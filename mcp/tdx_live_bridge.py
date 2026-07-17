@@ -16,12 +16,14 @@ TOKEN_MISSING_MESSAGE = (
 
 
 def _credential_paths():
-    paths = [
-        Path(f"C:/Users/Administrator/.workbuddy/connectors/{WORKBUDDY_CONNECTOR_ID}/.credentials.json"),
-    ]
+    paths = []
     workbuddy_home = os.environ.get("WORKBUDDY_HOME", "").strip()
     if workbuddy_home:
         paths.append(Path(workbuddy_home) / "connectors" / WORKBUDDY_CONNECTOR_ID / ".credentials.json")
+    # 未设置 WORKBUDDY_HOME 时回退到默认路径（跨平台兼容，不硬编码绝对路径）
+    fallback = Path.home() / ".workbuddy" / "connectors" / WORKBUDDY_CONNECTOR_ID / ".credentials.json"
+    if str(fallback) not in [str(p) for p in paths]:
+        paths.append(fallback)
     return paths
 
 
