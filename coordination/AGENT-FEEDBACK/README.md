@@ -59,8 +59,12 @@ AGENT-FEEDBACK/
    - 仅本地验证或 `git log --oneline` 不能保证远程文件已真正修改
    - 强制流程：commit 前 `git diff --cached` 逐文件确认 → push 后独立目录 clean clone → 逐文件 grep 关键内容
    - 详见 [P0-000-R2 反馈](P0-000-R2/WORKBUDDY-FEEDBACK.yaml) `root_cause_analysis`
-- （随后续任务增补）
 
 ## 关联 Issue
 
-- [Issue #4: 长期收集台](https://github.com/vxz2datoubo/second-brain-coordination/issues/4)
+- [Issue #4: 长期收集台 v2（Agent执行遥测、困难、失败、发现、机会与建议）](https://github.com/vxz2datoubo/second-brain-coordination/issues/4)
+
+## 模板版本
+
+当前模板: **v2.0** (2026-07-18 升级，新增 execution_metrics / token_usage / environment / difficulty_delta / special_gains / root_cause_analysis / metrics_provenance)
+历史: v1.0 (2026-07-17, P0-000-R1 feedback 生成)
