@@ -33,6 +33,7 @@ AGENT-FEEDBACK/
 | 任务ID | Agent | 难度 | 状态 | 日期 | 链接 |
 |--------|-------|------|------|------|------|
 | P0-000-R1 | WORKBUDDY | D3 | SUCCESS_WITH_FINDINGS | 2026-07-17 | [反馈文件](P0-000-R1/WORKBUDDY-FEEDBACK.yaml) |
+| P0-000-R2 | WORKBUDDY | D2 | SUCCESS_WITH_FINDINGS | 2026-07-18 | [反馈文件](P0-000-R2/WORKBUDDY-FEEDBACK.yaml) |
 
 ## 全局发现汇总
 
@@ -51,6 +52,13 @@ AGENT-FEEDBACK/
 ### 待分类的工程机会
 
 - `xargs + shell fork` 在大文件清单场景下的性能限制（已切 Python 子进程方案）
+
+### 已被吸收为交付规则的发现
+
+3. **commit push 后必须 clean clone 验证** (来源: P0-000-R2)
+   - 仅本地验证或 `git log --oneline` 不能保证远程文件已真正修改
+   - 强制流程：commit 前 `git diff --cached` 逐文件确认 → push 后独立目录 clean clone → 逐文件 grep 关键内容
+   - 详见 [P0-000-R2 反馈](P0-000-R2/WORKBUDDY-FEEDBACK.yaml) `root_cause_analysis`
 - （随后续任务增补）
 
 ## 关联 Issue

@@ -1,0 +1,82 @@
+agent_id: WORKBUDDY
+task_id: P0-000-R2
+report_type: final
+status: SUCCESS_WITH_FINDINGS
+difficulty_level: D2
+difficulty_reasons:
+  - "三项修改本身简单（路径替换/Manifest重生成/新建文件），但根因是 R1 的三个交付失误，属于自我修正"
+  - "修正过程中发现一处二次遗漏（help 文本仍含 Administrator），需 amend + force push"
+original_plan_vs_reality:
+  - "原计划：按 GPT 验收评论指出的 3 项逐项修正，预期本地改完 push 即完成"
+  - "现实：修改 start_bridge.bat 时第一次只改了执行路径，help 文本（echo 示例）仍残留 C:\Users\Administrator，干净 clone 验证环节发现后立即 amend 修正"
+problems_encountered:
+  - problem: "R1 声称'硬编码路径已修复'，但远程文件实际未修改"
+    impact: "GPT 远程逐行验证发现 start_bridge.bat 和 tdx_live_bridge.py 仍含原始硬编码路径，R1 被判定为未真正完成，触发 R2"
+    evidence: "GPT 评论 #5007003483：'报告声称路径已修复，但远程文件仍是硬编码'"
+  - problem: "start_bridge.bat help 文本二次遗漏"
+    impact: "第一次修正后 grep 'Administrator' 仍命中第11行（echo 示例）。虽非执行路径，但 GPT 要求不得保留 Administrator 绝对路径"
+    evidence: "干净 clone grep -n 'Administrator' start_bridge.bat 命中第11行 → 已改为 %USERPROFILE% 通用占位符"
+solutions_attempted:
+  - approach: "start_bridge.bat: cd /d %~dp0 + if defined WORKBUDDY_PYTHON 分支 + else 回退警告"
+    result: "成功"
+    reason: "%~dp0 = 脚本所在目录，WORKBUDDY_PYTHON = 用户可配置，无硬编码绝对路径"
+  - approach: "tdx_live_bridge.py: _credential_paths() 改用 WORKBUDDY_HOME env 优先 + Path.home()/.workbuddy 回退"
+    result: "成功"
+    reason: "跨平台兼容，不依赖 Administrator 用户名，未设 env 时有明确的默认回退"
+  - approach: "Manifest: Python 子进程 sha256sum + stat，添加 tracked_file_count/manifested_file_count/excluded_files/equality_check 元数据"
+    result: "成功"
+    reason: "等式 1461+1=1462 PASS，source_head 指向生成 Manifest 前的精确提交"
+  - approach: "AGENT-FEEDBACK README.md 含全局发现汇总（stale refs 规则/MCP 只读限制）"
+    result: "成功"
+    reason: "便于 GPT 后续读取时快速了解已知工程约束"
+final_solution:
+  - "start_bridge.bat: 执行路径 %~dp0，Python 优先 WORKBUDDY_PYTHON，help 文本 %USERPROFILE%"
+  - "tdx_live_bridge.py: WORKBUDDY_HOME env 优先，回退 Path.home()/.workbuddy"
+  - "Manifest: 1461+1=1462 PASS，完整的元数据字段"
+  - "AGENT-FEEDBACK: 目录完整，R1+R2 两份反馈均入库"
+unresolved_questions:
+  - "GitHub 平台层缓存/旧 PR ref 无法通过 git 客户端清理，状态未知（同 R1）"
+  - "Manifest 中 .reg 的 4 个对象为删除提交的 commit/tree 元数据（行解释见下方），非 blob 泄露，但 GPT 是否接受此解释未知"
+unexpected_findings:
+  - finding: "R1 执行者（我）在声称'已完成'时未做远程逐行验证，只做了本地验证"
+    severity: "high（根因层面）"
+    action: "今后所有声称'远程文件已修改'的交付，强制增加干净 clone grep 验证步骤"
+    detail: "R1 中修改了本地文件并 push，但错误假设 push 成功 = 远程文件已更新。实际上 push 确实成功了，但 R1 的 commit 可能不包含这些修改（这是 R1 的未解之谜——可能是 commit 时遗漏了这两个文件的 add，也可能是 force push 覆盖了之前的版本）。R2 吸取教训：每条修改在 commit 前 git diff --cached 确认，push 后 clean clone 逐行 grep 验证。"
+  - finding: "Git Bash 在 Windows 路径下的引号转义问题"
+    severity: "low"
+    action: "Python 内嵌 bash 命令时，Windows 路径的反斜杠 `F:\\aidanao` 必须在 Python 字符串中写 `F:\\\\\\\\aidanao`（双重转义）才不会被 grep 误匹配"
+    detail: "校验脚本中 grep 'F:\\\\aidanao' 在 Python 多行字符串里需写成四个反斜杠，否则 Python 解释器吞掉一层转义"
+opportunities:
+  - "将 'commit 前 git diff --cached 确认 + push 后 clean clone grep 验证' 固化为交付检查表"
+  - "AGENT-FEEDBACK 目录结构可模板化，后续任务直接 `cp -r` 创建"
+recommendations:
+  - "GPT 在验收时做的'远程逐行验证'是最有效的检查手段，建议保持"
+  - "如果 GPT 发现了与我本地报告不一致的地方，优先相信远程实际内容"
+  - "help/example 文本里的路径也应使用通用占位符（%USERPROFILE%、$HOME 等），这是容易被忽略的角落"
+command_quality_feedback:
+  clarity: clear
+  unnecessary_work: "无。三项修正均为 R1 真正未完成的内容，GPT 在 R2 中逐项列出远程文件现状与期望差距，指令精确、可验证。"
+  missing_context: "无。GPT 在 R2 验收中给出了每条修改的期望写法（%~dp0、WORKBUDDY_HOME、Path.home() 等），指令自包含。"
+  suggested_rewrite: "当前指令已足够清晰。唯一增强建议：可要求提供'远程逐项 grep 结果'作为完成证据，而不只靠文字说明。R2 中我已在干净 clone 中做了这个验证并写入 PR body。"
+plan_change_needed: false
+needs_gpt_decision: false
+needs_user_decision: false
+next_best_action: "等待 GPT 复验 R2 交付"
+confidence: high
+
+# ========== 根因分析：R1 → R2 的回溯 ==========
+root_cause_analysis:
+  - failure: "R1 声称修复了硬编码路径但远程文件实际未修改"
+    timeline:
+      - "R1 阶段我在本地修改了 start_bridge.bat 和 tdx_live_bridge.py"
+      - "生成 Manifest 时做了多次 git add/commit/amend/force push"
+      - "最终 push 的 commit 是 23ea5e5"
+      - "GPT 远程验证发现这两个文件的硬编码路径仍在"
+    why_did_this_happen:
+      - "最可能原因：R1 的多次 amend + force push 中，某些 amend 操作只提交了 Manifest 更新，遗漏了这两个文件的 staged 内容"
+      - "或：R1 的修改被后来的一次 git add 覆盖（add 了旧版本的这两个文件）"
+      - "根本原因：我没有在最终 push 前执行 git diff --cached 逐文件确认，也没有在 push 后 clean clone verify"
+    lesson:
+      - "铁律：声称'远程文件已修改'的交付 → push 后必须 clean clone + 逐文件 grep 验证"
+      - "铁律：commit 前必须 git diff --cached 确认每个预期修改的文件确实在暂存区"
+      - "禁止：force push 后只跑 git log --oneline 就当验证完成"
