@@ -1,0 +1,106 @@
+# 纠正日志 · 模板
+# ------------------------------------------------------
+# 每次用户纠正后，系统必须填写此日志。
+# 对应 Schön 反思性实践要求：不保存最终成品，还要保存修改原因、判断过程和结果。
+# ------------------------------------------------------
+
+corrections:
+  - id: "c-20260712-001"
+    date: 2026-07-12
+    scene: "莉莉会所吧台 · Shot 1"
+    character: "奥兹"
+    original_line: "都怪我们这边的年轻人太没用"
+    
+    ai_original_output: "奥兹语气轻蔑地抱怨手下年轻人太没用"
+    ai_error_assumption: "台词 = 角色真实想法 → 奥兹在表达对年轻人的不满"
+    
+    user_correction: "这不是情感流露，是社交措辞。给凯姆面子——意思是不得不请你出马。"
+    user_insight: "读上下文就能看出来，他是因为凯姆做了简单任务才说这话，是社交润滑剂。"
+    
+    corrected_output: "奥兹表情轻松、嘴角带社交微笑、微微欠身。不是抱怨，是恭维的社交表演——objective 是维持与凯姆的关系"
+    
+    # Schön: 行动后反思 (reflection-on-action)
+    reflection_why_ai_failed: "AI 默认假设'台词=情感窗口'，未考虑权力不对等场景下台词的社交功能优先于情感表达"
+    
+    # Argyris: 双环学习
+    single_loop_fix: "删掉'轻蔑抱怨'，改成'社交恭维'"
+    double_loop_fix: "修正底层假设：权力不对等时，台词=社交工具而非情感窗口。建立诊断公式：'如果角色此刻完全诚实，会说完全相同的话吗？'"
+    
+    # DBR: 提炼可迁移原则
+    transferable_principle: "任何存在权力差距的对话场景，先问 objective（角色想要什么），再判断台词是 tactic 还是真实情感"
+    
+    # 学术验证
+    academic_validation:
+      - "Stanislavski: Objective vs Tactic"
+      - "Stanislavski: Subtext（潜台词）"
+      - "Goffman: Face-work"
+    
+    skill_generated: "skills/dialogue-as-social-tool.yaml"
+    skill_registered: "SKILL-INDEX.yaml → trigger_map.power_gap_dialogue"
+
+  - id: "c-20260712-002"
+    date: 2026-07-12
+    scene: "莉莉会所吧台 · Shot 1"
+    character: "凯姆 & 奥兹"
+    original_line: "材质描述"
+    
+    ai_original_output: "凯姆:深色皮革外套磨损边缘、乱发油腻质感、数日未刮的胡茬。奥兹:深色布衣粗粝织纹、宽大手掌指节突出、腰间匕首皮鞘磨亮"
+    ai_error_assumption: "prompt 越详细越好——把角色所有外观信息都写进去让 AI 更准确"
+    
+    user_correction: "角色外表已由参考图确定，不需要在 prompt 里重复描述服装衣着。只有叙事功能的细节才需要提——比如奥兹宽大的手掌指节表明他做打手类脏活。"
+    user_insight: "图像负责身份，文字负责动作。prompt 里重复参考图已有的信息只会跟参考图竞争，稀释关键指令。"
+    
+    corrected_output: "凯姆:腰间的空皮套——此行不需要带武器。奥兹:宽大手掌指节突出，指关节有旧伤——常年做打手类脏活。"
+    
+    reflection_why_ai_failed: "AI 沿用了'文本生成'思维——描述越详细越好。但在 AI 视频生成中，reference_image 已锁定外观，prompt 的描述跟参考图是竞争关系——越多越差。"
+    
+    single_loop_fix: "删掉服装/发型描述，只保留叙事功能的材质"
+    double_loop_fix: "修正底层假设：AI 视频生成中，prompt 与 reference_image 有明确分工——图负责静态身份，文负责动态变化。多写无用信息 = 信号干扰。"
+    
+    transferable_principle: "在任何使用 reference_image 的 AI 生成中，检查每个外观描述：参考图能看出来吗？能→删。不能且有叙事功能→保留并标注原因。"
+    
+    academic_validation:
+      - "DojoClip AI: '图像负责身份，文字负责动作'"
+      - "PixVerse #1: 'Longer prompts produce worse output'"
+      - "Bresson: '当一只小提琴足够的时候，就不要用两只'"
+      - "HappyHorse AI: '不应重写参考图已固定的细节'"
+    
+    skill_generated: "skills/reference-image-division-of-labor.yaml"
+    skill_registered: "SKILL-INDEX.yaml → trigger_map.reference_image_prompt"
+
+  - id: "c-20260712-003"
+    date: 2026-07-12
+    scene: "莉莉会所吧台 · Shot 1"
+    character: "凯姆"
+    ai_original_output: "眼神倦怠、因任务结束如释重负"
+    ai_error_assumption: "抓人这个行为本身需要消耗精力 → 角色应该显得倦怠"
+    user_correction: "凯姆是前杀手，抓一个没攻击力的年轻人不值得疲惫。不是倦怠，是漫不经心。"
+    user_insight: "角色反应不由任务表面决定，而是由任务难度÷角色能力决定。前杀手抓弱人 = trivial task。"
+    corrected_output: "眼神平淡漫不经心、单手递出人质——不值得认真。目光飘向酒架——不是回避，是不在乎。"
+    reflection_why_ai_failed: "AI从'抓人'直接推导出'疲惫'，未考虑角色背景（前杀手）和任务难度（弱目标）。缺失了Stanislavski给定情境的校准步骤。"
+    single_loop_fix: "改'倦怠'为'漫不经心'"
+    double_loop_fix: "修正假设：角色反应 = 任务难度 ÷ 角色能力，不是任务本身。trivial → 漫不经心。"
+    transferable_principle: "任何场景先查角色能力水平（背景/经历），再计算任务难度级别，最后校准反应。"
+    academic_validation:
+      - "Stanislavski: Given Circumstances——角色背景和历史决定其对情境的反应"
+    skill_generated: "skills/given-circumstances-calibration.yaml"
+    skill_registered: "SKILL-INDEX.yaml → trigger_map.character_capability_calibration"
+
+  - id: "c-20260712-004"
+    date: 2026-07-12
+    scene: "莉莉会所吧台 · Shot 2 & Shot 5"
+    character: "凯姆"
+    ai_original_output: "灌了口酒 / 仰头灌酒"
+    ai_error_assumption: "训练数据中'喝酒'场景多以'借酒消愁/酗酒/酒后冲突'为主 → AI 默认喝酒=情感行为=大口灌"
+    user_correction: "前后并没有特别重大的事情要发生，没必要灌酒。抿一口就行，喝酒只是消遣。"
+    user_insight: "角色的行为不是训练数据的主流模式决定的，是场景上下文决定的。喝酒≠一定有情绪。"
+    corrected_output: "抿了口酒 / 仰头抿酒"
+    reflection_why_ai_failed: "AI 训练数据偏戏剧化场景——喝酒多数是借酒消愁/酒后吐真言/酗酒崩溃。当看到一个角色喝酒，AI 习惯性选'大口灌'，因为那是数据里的主流。但现实和好剧本里，喝酒经常只是消遣——日常就是日常。"
+    single_loop_fix: "灌→抿"
+    double_loop_fix: "修正 AI 的数据偏差假设：训练数据的主流模式 ≠ 所有场景的默认模式。每个行为都要先问：场景的情绪基线是什么？日常行为（酒/烟/饭/窗）最容易触发训练数据的戏剧化偏差——必须校准。"
+    transferable_principle: "任何日常行为（喝酒/吃饭/吸烟/看窗外）——先问场景的情绪基线，再决定动作的烈度。日常版/情绪版/崩溃版，三选一。不要默认选情绪版。"
+    academic_validation:
+      - "David Mamet: 'Perform actions as simply as possible. Do not help the play along.'"
+      - "Mamet: 'Remove every part of the scene that is not essential.'"
+    skill_generated: "skills/action-scene-calibration.yaml"
+    skill_registered: "SKILL-INDEX.yaml → trigger_map.everyday_action"

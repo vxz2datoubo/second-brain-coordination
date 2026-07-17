@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Wisdom Brain Graph v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:sans-serif;background:#0a0a0f;color:#e0e0e0;overflow:hidden}
+canvas{position:absolute;top:0;left:0}
+#h{position:absolute;top:0;left:0;right:0;height:60px;background:rgba(20,20,30,.95);display:flex;align-items:center;padding:0 20px;z-index:100}
+h1{font-size:18px;margin-right:30px;color:#fff}
+.s{margin:0 15px;font-size:13px}
+.s span{color:#4fc3f7;font-weight:bold}
+#l{position:absolute;top:70px;left:10px;width:250px;max-height:calc(100vh-100px);background:rgba(20,20,30,.9);border-radius:12px;border:1px solid rgba(255,255,255,.1);z-index:100;overflow:hidden}
+#ph{padding:12px 15px;background:rgba(255,255,255,.05);font-size:13px}
+#nl{flex:1;overflow-y:auto;padding:8px 0}
+.ni{padding:10px 15px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;font-size:12px}
+.ni:hover{background:rgba(255,255,255,.05)}
+.nt{margin-bottom:3px}
+.nc{font-size:10px;color:#888}
+.tg{margin-top:4px}
+.tg span{display:inline-block;padding:1px 6px;border-radius:8px;font-size:9px;margin:1px}
+.c0{background:#4fc3f7;color:#000}
+.c1{background:#81c784;color:#000}
+.c2{background:#ffb74d;color:#000}
+.c3{background:#f06292;color:#fff}
+.c4{background:#ba68c8;color:#fff}
+#r{position:absolute;top:70px;right:10px;width:300px;max-height:calc(100vh-100px);background:rgba(20,20,30,.9);border-radius:12px;padding:20px;z-index:100;display:none;overflow-y:auto}
+#r.show{display:block}
+.cl{float:right;cursor:pointer;font-size:20px;color:#888;background:none;border:none}
+.ti{font-size:15px;margin-bottom:12px;clear:both}
+.sec{margin-bottom:12px}
+.lb{font-size:10px;color:#666;margin-bottom:4px}
+.co{font-size:12px;line-height:1.5}
+#lg{position:absolute;bottom:20px;left:20px;background:rgba(20,20,30,.9);border-radius:8px;padding:12px 15px;z-index:100;font-size:11px}
+.li{display:flex;align-items:center;margin:4px 0}
+.d{width:10px;height:10px;border-radius:50%;margin-right:8px}
+#f{position:absolute;bottom:20px;right:20px;background:rgba(20,20,30,.9);border-radius:8px;padding:10px 15px;z-index:100;font-size:11px}
+#sr{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:100}
+#sr input{width:250px;padding:8px 15px;border:1px solid rgba(255,255,255,.2);border-radius:20px;background:rgba(20,20,30,.9);color:#fff;font-size:12px;outline:none}
+</style>
+</head>
+<body>
+<div id="h"><h1>Causal Wisdom Brain</h1><div class="s">Nodes: <span id="nc">0</span></div><div class="s">Edges: <span id="ec">0</span></div></div>
+<div id="sr"><input type="text" placeholder="Search..." id="si"></div>
+<div id="l"><div id="ph">Knowledge Nodes</div><div id="nl"></div></div>
+<div id="r"><button class="cl" id="closeBtn">X</button><div class="ti" id="dt"></div><div class="sec"><div class="lb">Category</div><div class="co" id="dc"></div></div><div class="sec"><div class="lb">Content</div><div class="co" id="dco"></div></div><div class="sec"><div class="lb">Tags</div><div class="tg" id="dtag"></div></div></div>
+<div id="lg"><div class="li"><div class="d" style="background:#4fc3f7"></div>Causal</div><div class="li"><div class="d" style="background:#81c784"></div>Game</div><div class="li"><div class="d" style="background:#ffb74d"></div>Analogy</div><div class="li"><div class="d" style="background:#f06292"></div>Counterfactual</div><div class="li"><div class="d" style="background:#ba68c8"></div>Worldview</div></div>
+<div id="f">Drag to move | Scroll to zoom | Click node</div>
+<canvas id="c"></canvas>
+<script>
+const cv=document.getElementById("c"),ctx=cv.getContext("2d");
+let ns=[],es=[],sl=null,cm={x:0,y:0,s:1},dr=false,lm={x:0,y:0};
+const cs=["Causal","Game","Analogy","Counterfactual","Worldview"];
+const cl=["#4fc3f7","#81c784","#ffb74d","#f06292","#ba68c8"];
+document.getElementById("closeBtn").onclick=function(){document.getElementById("r").classList.remove("show");};
+async function ld(){try{const r=await fetch("data.json");const d=await r.json();ns=d.nodes||[];es=d.edges||[];}catch(e){ns=[{id:"e",title:"No Data",x:0,y:0,category:"Worldview"}];}document.getElementById("nc").textContent=ns.length;document.getElementById("ec").textContent=es.length;lo();up();}
+function lo(){const cx2=cv.width/2,cy=cv.height/2;cs.forEach((c,i)=>{const a=(i/cs.length)*Math.PI*2-Math.PI/2;ns.filter(n=>n.category===c).forEach((n,j)=>{const nr=ns.filter(m=>m.category===c);const sa=(j/Math.max(nr.length,1))*Math.PI*2;n.x=cx2+Math.cos(a)*200+Math.cos(sa)*40;n.y=cy+Math.sin(a)*200+Math.sin(sa)*40;});});}
+function up(f){f=f||"";const l=document.getElementById("nl");l.innerHTML=ns.filter(n=>n.title.toLowerCase().includes(f.toLowerCase())).map(n=>{const ci=cs.indexOf(n.category);return '<div class="ni" id="n'+n.id+'"><div class="nt">'+n.title.substring(0,20)+'</div><div class="nc">'+n.category+'</div><div class="tg">'+(n.tags||[]).slice(0,3).map(t=>'<span class="c'+ci+'">'+t+'</span>').join('')+'</div></div>';}).join('');ns.forEach(n=>{document.getElementById("n"+n.id).onclick=function(){slN(n.id);};});}
+function slN(id){sl=ns.find(n=>n.id===id);if(!sl)return;const r=document.getElementById("r"),ci=cs.indexOf(sl.category);r.classList.add("show");document.getElementById("dt").textContent=sl.title;document.getElementById("dc").textContent=sl.category;document.getElementById("dco").textContent=(sl.content||sl.summary||"")||"No content";document.getElementById("dtag").innerHTML=(sl.tags||[]).map(t=>'<span class="c'+ci+'">'+t+'</span>').join("");}
+function dw(){ctx.clearRect(0,0,cv.width,cv.height);ctx.save();ctx.translate(cm.x,cm.y);ctx.scale(cm.s,cm.s);es.forEach(e=>{const s=ns.find(n=>n.id===e.source),t=ns.find(n=>n.id===e.target);if(!s||!t)return;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(t.x,t.y);ctx.strokeStyle="rgba(255,255,255,.1)";ctx.lineWidth=1;ctx.stroke();});ns.forEach(n=>{const ci=cs.indexOf(n.category),c=cl[ci];const is=sl&&sl.id===n.id;if(is){ctx.beginPath();ctx.arc(n.x,n.y,25,0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,.1)";ctx.fill();}ctx.beginPath();ctx.arc(n.x,n.y,is?14:10,0,Math.PI*2);ctx.fillStyle=c;ctx.fill();ctx.strokeStyle=is?"#fff":"rgba(255,255,255,.3)";ctx.lineWidth=is?2:1;ctx.stroke();ctx.fillStyle="#fff";ctx.font="10px sans-serif";ctx.textAlign="center";ctx.fillText(n.title.substring(0,8),n.x,n.y+22);});ctx.restore();requestAnimationFrame(dw);}
+cv.addEventListener("mousedown",e=>{dr=true;lm={x:e.clientX,y:e.clientY};});
+cv.addEventListener("mousemove",e=>{if(dr){cm.x+=e.clientX-lm.x;cm.y+=e.clientY-lm.y;lm={x:e.clientX,y:e.clientY};}});
+cv.addEventListener("mouseup",()=>{dr=false;});
+cv.addEventListener("click",e=>{const rect=cv.getBoundingClientRect();const mx=(e.clientX-rect.left-cm.x)/cm.s,my=(e.clientY-rect.top-cm.y)/cm.s;let hit=false;ns.forEach(n=>{const d=Math.sqrt((n.x-mx)**2+(n.y-my)**2);if(d<15){slN(n.id);hit=true;}});if(!hit){sl=null;document.getElementById("r").classList.remove("show");}});
+cv.addEventListener("wheel",e=>{e.preventDefault();cm.s=Math.max(.3,Math.min(3,cm.s*(e.deltaY>0?.9:1.1)));});
+window.addEventListener("resize",()=>{cv.width=window.innerWidth;cv.height=window.innerHeight;});
+document.getElementById("si").addEventListener("input",e=>up(e.target.value));
+cv.width=window.innerWidth;cv.height=window.innerHeight;ld();dw();
+</script>
+</body>
+</html>

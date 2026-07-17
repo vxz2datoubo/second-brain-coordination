@@ -1,0 +1,29 @@
+*** Begin Patch
+*** Update File: F:/aidanao/brain_core/service.py
+@@
+-from .foundation_data_governance import FoundationDataGovernanceV01
+@@
+-        self.foundation_data_governance = FoundationDataGovernanceV01(
+-            self.store, self.board, self.evolution, self.root, self.trading
+-        )
+@@
+-    def foundation_data_governance_report(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+-        return self.foundation_data_governance.report(payload or {})
+@@
+-                "foundation_data_governance_v2": "Implemented",
+*** Update File: F:/aidanao/apps/cli/brainctl.py
+@@
+-    foundation_report = sub.add_parser("foundation-data-governance-report")
+-    foundation_report.add_argument("--symbol", default="300418")
+-    foundation_report.add_argument("--timeframe", default="1d")
+-    foundation_report.add_argument("--data-path", default="")
+-    foundation_report.add_argument("--no-writeback", action="store_true")
+@@
+-    elif args.command == "foundation-data-governance-report":
+-        emit(brain.foundation_data_governance_report({
+-            "symbol": args.symbol,
+-            "timeframe": args.timeframe,
+-            "data_path": args.data_path,
+-            "writeback": not args.no_writeback,
+-        }))
+*** End Patch

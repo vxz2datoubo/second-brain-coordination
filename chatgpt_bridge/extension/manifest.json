@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "ChatGPT 第二大脑桥",
+  "version": "1.0",
+  "description": "把 ChatGPT 与本地第二大脑桥双向对接，无需 API Key",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "http://localhost:8799/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}

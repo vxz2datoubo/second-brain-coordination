@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Super Jarvis Task Schema",
+  "description": "Standard task object for cross-agent task dispatch",
+  "type": "object",
+  "required": ["id", "created_at", "source", "assignee", "type", "priority", "status", "input", "expected_output", "requires_user_approval"],
+  "properties": {
+    "id": {"type": "string", "description": "Unique task ID, e.g. task_20260617_001"},
+    "created_at": {"type": "string", "format": "date-time", "description": "ISO 8601 timestamp"},
+    "source": {"type": "string", "enum": ["workbuddy", "ai_girlfriend", "user_direct", "system"]},
+    "assignee": {"type": "string", "enum": ["workbuddy", "qclaw", "codex", "ai_girlfriend"]},
+    "type": {"type": "string", "enum": ["memory_consolidation", "conversation_summary", "knowledge_analysis", "code_generation", "code_review", "daily_review", "weekly_review", "knowledge_indexing", "batch_planning", "system_integration", "long_document_analysis"]},
+    "priority": {"type": "string", "enum": ["low", "normal", "high", "critical"]},
+    "status": {"type": "string", "enum": ["pending", "running", "done", "failed", "cancelled"]},
+    "input": {"type": "object", "description": "Task-specific input parameters"},
+    "expected_output": {"type": "string", "description": "What the task should produce"},
+    "requires_user_approval": {"type": "boolean", "default": false},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "result_summary": {"type": "string", "description": "Brief result after completion"}
+  }
+}

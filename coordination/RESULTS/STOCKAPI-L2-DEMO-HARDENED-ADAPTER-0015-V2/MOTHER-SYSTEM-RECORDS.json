@@ -1,0 +1,139 @@
+{
+  "skill_registry_entry": {
+    "quality_score": 0.72,
+    "evidence_level": "offline_fixture_tests",
+    "source_reliability": 0.58,
+    "freshness": 1.0,
+    "validation_status": "offline_fixture_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "skill_2ec7ae110e1e4d",
+    "skill_name": "trading.market_data.stockapi_l2_demo_hardened_adapter",
+    "domain": "trading.market_data",
+    "version": "v0.1-experimental",
+    "capability_type": "offline_protocol_adapter",
+    "created_at": "2026-07-16T19:04:31+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "STOCKAPI-L2-DEMO-HARDENED-ADAPTER-0015-V2",
+      "registered_statuses": [
+        "PROTOCOL_SCHEMA_IMPLEMENTED",
+        "OFFLINE_FIXTURE_TESTED",
+        "RUNTIME_CLIENT_SKELETON_READY"
+      ],
+      "not_registered_as_verified": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT",
+        "TEN_LEVEL_SNAPSHOT",
+        "TOP_OF_BOOK_QUEUE_50",
+        "AUCTION_TRAJECTORY"
+      ],
+      "network_used": false,
+      "credentials_used": false,
+      "raw_l2_gate_cleared": false
+    }
+  },
+  "module_status_record": {
+    "quality_score": 0.74,
+    "evidence_level": "offline_fixture_tests",
+    "source_reliability": 0.58,
+    "freshness": 1.0,
+    "validation_status": "offline_fixture_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "mod_2ec7ae110e1e4d",
+    "module_name": "stockapi_l2_demo_hardened_adapter",
+    "domain": "trading.market_data",
+    "quality_action": "keep",
+    "summary": "Offline-only hardened StockAPI TCP V2 adapter skeleton with byte framing, schemas, parser, raw writer, gap/backfill mock, and runtime state-machine guard.",
+    "dependencies": [
+      "brain_core/market_data/stockapi/protocol.py",
+      "brain_core/market_data/stockapi/framing.py",
+      "brain_core/market_data/stockapi/parser.py",
+      "brain_core/market_data/stockapi/runtime_client.py",
+      "tests/test_stockapi_l2_adapter.py"
+    ],
+    "created_at": "2026-07-16T19:04:31+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "STOCKAPI-L2-DEMO-HARDENED-ADAPTER-0015-V2",
+      "test_count": 30,
+      "stockapi_test_count": 15,
+      "supports_181xx_streams": [
+        "Market",
+        "Order",
+        "Queue",
+        "Tran"
+      ],
+      "network_used": false,
+      "credentials_used": false,
+      "raw_l2_gate_cleared": false,
+      "requires_workbuddy_samples": [
+        "real Market frame",
+        "real Order frame",
+        "real Tran frame",
+        "real Queue V1/V2 frame",
+        "login success/failure payload",
+        "KICK payload",
+        "HTTP GetData sample"
+      ]
+    }
+  },
+  "bulletin_state_record": {
+    "quality_score": 0.74,
+    "evidence_level": "offline_fixture_tests",
+    "source_reliability": 0.58,
+    "freshness": 1.0,
+    "validation_status": "offline_fixture_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "bstate_2ec7ae110e1e4d",
+    "bulletin_path": "F:\\aidanao\\bulletin\\super-second-brain-v01-board.md",
+    "state_status": "updated",
+    "completed": [
+      "stockapi_l2_demo_hardened_adapter_0015_v2_offline_completed"
+    ],
+    "in_progress": [],
+    "next_step": "WorkBuddy may run real StockAPI sample capture separately; Codex adapter remains offline skeleton until sanitized samples arrive.",
+    "recent_event": "stockapi_l2_demo_hardened_adapter_0015_v2_offline_completed",
+    "summary": "StockAPI TCP V2 offline hardened adapter skeleton completed; no network, no credentials, no raw L2 gate cleared.",
+    "created_at": "2026-07-16T19:04:31+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "STOCKAPI-L2-DEMO-HARDENED-ADAPTER-0015-V2",
+      "raw_l2_gate_cleared": false,
+      "live_trading_enabled": false
+    }
+  },
+  "self_evolution_log": {
+    "id": "evo_5f444ddf8f0343",
+    "trigger": "stockapi_l2_demo_hardened_adapter_0015_v2_offline_completed",
+    "observation": "Implemented offline StockAPI TCP V2 hardened adapter skeleton from demo code without network, credentials, or raw L2 promotion.",
+    "change_type": "market_data_adapter_scaffold",
+    "affected_ids": [
+      "skill_2ec7ae110e1e4d",
+      "mod_2ec7ae110e1e4d",
+      "bstate_2ec7ae110e1e4d"
+    ],
+    "proposed_update": "Use this adapter only for offline fixture parsing until WorkBuddy provides sanitized real samples and runtime validation evidence.",
+    "applied": true,
+    "metrics": {
+      "task_id": "STOCKAPI-L2-DEMO-HARDENED-ADAPTER-0015-V2",
+      "tests_passed": 30,
+      "stockapi_tests": 15,
+      "network_used": false,
+      "raw_l2_gate_cleared": false
+    },
+    "created_at": "2026-07-16T19:04:32+00:00",
+    "metadata": {}
+  }
+}

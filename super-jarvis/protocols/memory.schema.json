@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Super Jarvis Memory Schema",
+  "description": "Standardized memory records for long-term, episodic, relationship, and preference memory",
+  "type": "object",
+  "oneOf": [
+    {
+      "title": "Profile Memory",
+      "required": ["id", "type", "key", "value", "updated_at"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["profile"]},
+        "key": {"type": "string"},
+        "value": {"type": "string"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    {
+      "title": "Episodic Memory",
+      "required": ["id", "type", "timestamp", "summary", "source"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["episodic"]},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "summary": {"type": "string"},
+        "source": {"type": "string"},
+        "importance": {"type": "integer", "minimum": 1, "maximum": 5},
+        "tags": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    {
+      "title": "Relationship Memory",
+      "required": ["id", "type", "key", "value", "updated_at"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["relationship"]},
+        "key": {"type": "string"},
+        "value": {"type": "string"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    {
+      "title": "Fact Memory",
+      "required": ["id", "type", "fact", "source", "recorded_at"],
+      "properties": {
+        "id": {"type": "string"},
+        "type": {"enum": ["fact"]},
+        "fact": {"type": "string"},
+        "source": {"type": "string"},
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  ]
+}

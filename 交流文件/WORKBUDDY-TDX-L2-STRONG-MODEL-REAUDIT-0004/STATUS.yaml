@@ -1,0 +1,36 @@
+task_id: WORKBUDDY-TDX-L2-STRONG-MODEL-REAUDIT-0004
+model: Hy3 strongest reasoning config
+status: COMPLETED
+blind_audit: PERFORMED (raw-first, old reports read last)
+old_task_dir_untouched: true  # F:\aidanao\交流文件\TDX-L2-LIVE-AUCTION-AUDIT-0003\ 未改/未删/未移
+tdxw_pid_1628_alive: true
+runtime_probe_executed: true  # get_market_snapshot, no order/subscribe
+runtime_probe_result: IMPORT_OK_INITCONNECT_FAILED
+raw_integrity:
+  tdx_mcp_jsonl_records: 12  # rounds 3,4 only; R1/R2 raw NOT persisted
+  westock_jsonl_records: 10
+  r1_r2_raw_missing: true
+  receive_time_ns_zero: true
+  duplicate_records: false
+  time_monotonic: true
+sampling_mode: manual_rounds  # 非连续定频
+total_rounds: 5  # R1/R2 anchor-only, R3/R4 full, R5 partial(300418)
+failures: 0
+independent_confirmed_facts:
+  - MCP 不暴露十档 (3轮 RAW_EVIDENCE_VERIFIED)
+  - L2聚合字段经MCP实时可读且跨轮变动 (AGGREGATE_ONLY)
+  - TdxQuant 外部python不可用 (InitConnect失败, RUNTIME_VERIFIED)
+overturned_old_conclusions:
+  - DLL干扰风险 -> 实际可安全尝试,InitConnect失败才是真因
+  - InOutHB=撤单聚合 -> unknown_vendor_semantics (无据)
+  - "无限流" -> 仅未观察到错误(样本不足)
+narrowed_old_conclusions:
+  - 本地无L2 -> 有.th2/.tcu/PriCS.dat/sz.tfz候选专有缓存(可能含L2,不可解析)
+  - 逐笔无基础设施 -> _fast_format_tick_data存在但入口被valid_periods阻断
+unverified_key_questions:
+  - subscribe_hq 推送是否含十档/逐笔 (须TdxW内嵌验证)
+  - InOut/InOutHB等官方定义
+recommend_run_tdxquant_minimal_probe: ALREADY_DONE_EXTERNAL (失败); 内嵌subscribe_hq探针建议收盘后执行
+codex_local_file_investigation_recommended: true  # sz.tfz/sh.th2/sz.th2/PriCS.dat
+next_trading_day_capture_required: true  # 09:15前启动补采
+output_dir: F:\aidanao\交流文件\WORKBUDDY-TDX-L2-STRONG-MODEL-REAUDIT-0004\

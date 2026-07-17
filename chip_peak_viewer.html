@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>筹码峰分布图 — 昆仑万维 300418</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Microsoft YaHei',sans-serif; background:#0f1117; color:#e0e0e0; padding:20px; }
+.header { text-align:center; margin-bottom:20px; }
+.header h1 { font-size:24px; color:#ff6644; }
+.header .date { color:#888; font-size:14px; margin-top:4px; }
+.container { max-width:900px; margin:0 auto; }
+.controls { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; align-items:center; }
+.controls button { padding:8px 16px; border:1px solid #333; border-radius:4px; background:#1a1d25; color:#ccc; cursor:pointer; font-size:14px; }
+.controls button.active { background:#ff6644; color:#fff; border-color:#ff6644; }
+.controls button:hover { background:#2a2d35; }
+.controls .price-input { 
+    padding:8px; border:1px solid #333; border-radius:4px;
+    background:#1a1d25; color:#ff0; width:80px; text-align:center; font-size:14px;
+}
+.legend { display:flex; gap:20px; justify-content:center; margin-bottom:10px; font-size:13px; }
+.legend span { display:flex; align-items:center; gap:6px; }
+.legend .dot { width:12px; height:12px; border-radius:2px; }
+.legend .dot.red { background:#ff4444; }
+.legend .dot.green { background:#44aa44; }
+#chart { width:100%; height:520px; position:relative; overflow:auto; background:#13161c; border-radius:8px; border:1px solid #222; }
+canvas { display:block; }
+.summary { display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); 
+    gap:12px; margin-top:15px; }
+.stat-card { background:#1a1d25; border:1px solid #222; border-radius:8px; padding:14px; text-align:center; }
+.stat-card .label { font-size:12px; color:#888; margin-bottom:4px; }
+.stat-card .value { font-size:22px; font-weight:bold; }
+.stat-card .value.red { color:#ff6644; }
+.stat-card .value.green { color:#44bb44; }
+.stat-card .value.yellow { color:#ffaa00; }
+.tooltip { position:absolute; background:#1a1d25; border:1px solid #ff6644; border-radius:6px; 
+    padding:10px 14px; font-size:13px; pointer-events:none; display:none; z-index:100; }
+.tooltip .price { font-size:16px; font-weight:bold; color:#ff6644; }
+.tooltip .pct { color:#ff0; }
+.chip-label { font-size:11px; color:#ff6644; text-align:center; margin-top:6px; }
+.explanation {
+    background:#1a1d25; border:1px solid #333; border-radius:8px; padding:16px;
+    margin-top:15px; line-height:1.8; font-size:14px; color:#aaa;
+}
+.explanation strong { color:#ff6644; }
+.explanation .red { color:#ff4444; }
+.explanation .green { color:#44bb44; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>📊 筹码峰分布图</h1>
+    <div class="date">各价位持仓筹码堆积量 — 买入后未继续换手的筹码分布</div>
+</div>
+<div class="container">
+    <div class="controls">
+        <button id="btn-kl" class="active" onclick="switchStock('kl')">昆仑万维 300418</button>
+        <button id="btn-lb" onclick="switchStock('lb')">蓝色光标 300058</button>
+        <span style="color:#888;margin:0 10px;">当前价:</span>
+        <input type="number" id="currPrice" class="price-input" step="0.01" onchange="redraw()">
+        <button onclick="resetPrice()" style="font-size:12px;">↺ 昨收</button>
+    </div>
+    <div class="legend">
+        <span><span class="dot red"></span> 盈利筹码 (成本≤现价)</span>
+        <span><span class="dot green"></span> 亏损筹码 (成本>现价)</span>
+        <span style="color:#ff6644;">● POC 最大筹码峰</span>
+    </div>
+    <div id="chart"><canvas id="canvas"></canvas></div>
+    <div class="chip-label">每个价位柱 = 该价位仍持有的筹码占流通盘比例</div>
+    <div class="tooltip" id="tooltip">
+        <div class="price" id="tt-price"></div>
+        <div>筹码占比: <span class="pct" id="tt-pct"></span></div>
+        <div id="tt-status"></div>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="explanation">
+        <strong>什么是筹码峰？</strong><br>
+        筹码峰 = 在不同价位上，投资者<strong>买入后未再进行换手</strong>的筹码堆积量。<br>
+        每一根柱子 = 该价位目前有多少筹码<strong>仍然持有</strong>（成本在此、未被卖出）。<br>
+        <span class="red">红色</span> = 这些筹码目前<strong>盈利</strong>（成本低于现价）。<br>
+        <span class="green">绿色</span> = 这些筹码目前<strong>亏损</strong>（成本高于现价）。<br>
+        <strong style="color:#ff6644;">●</strong> POC = 筹码最密集的价位（主力核心成本区）。
+    </div>
+</div>
+
+<script>
+// ═══ 数据 ═══
+let currentStock = 'kl';
+let currentPrice = 49.42; // 7/10 close
+const closes = { kl: 49.42, lb: 13.81 };
+
+async function loadData(stock) {
+    const code = stock === 'kl' ? '300418' : '300058';
+    const resp = await fetch(`data/unified/snapshots/chip_${code}_20260710.json`);
+    return await resp.json();
+}
+
+let chipData = [];
+
+// ═══ 绘图 ═══
+function redraw() {
+    const canvas = document.getElementById('canvas');
+    const container = document.getElementById('chart');
+    const tooltip = document.getElementById('tooltip');
+    currentPrice = parseFloat(document.getElementById('currPrice').value) || currentPrice;
+    
+    const W = container.clientWidth - 4;
+    const H = 500;
+    canvas.width = W * 2;  // retina
+    canvas.height = H * 2;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    
+    const pad = { left: 70, right: 30, top: 20, bottom: 40 };
+    const pw = W - pad.left - pad.right;
+    const ph = H - pad.top - pad.bottom;
+    
+    // Filter to meaningful range (price within ±30% of current)
+    const lo = currentPrice * 0.65;
+    const hi = currentPrice * 1.35;
+    const data = chipData.filter(d => d.price >= lo && d.price <= hi);
+    if (data.length === 0) return;
+    
+    const maxPct = Math.max(...data.map(d => d.pct));
+    const priceMin = Math.min(...data.map(d => d.price));
+    const priceMax = Math.max(...data.map(d => d.price));
+    const barH = Math.max(4, ph / data.length * 0.8);
+    
+    // Grid
+    ctx.fillStyle = '#13161c';
+    ctx.fillRect(0, 0, W, H);
+    
+    // Title
+    ctx.fillStyle = '#888';
+    ctx.font = '11px Microsoft YaHei';
+    ctx.textAlign = 'center';
+    ctx.fillText(`日期: 2026-07-10 | 现价: ${currentPrice.toFixed(2)}元 | 104个价位显示`, W/2, pad.top - 5);
+    
+    // Axis
+    ctx.strokeStyle = '#333';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + ph);
+    ctx.lineTo(pad.left + pw, pad.top + ph);
+    ctx.stroke();
+    
+    // X-axis labels (chip %)
+    ctx.fillStyle = '#666';
+    ctx.font = '10px Microsoft YaHei';
+    ctx.textAlign = 'center';
+    for (let v = 0; v <= maxPct; v += Math.ceil(maxPct/5)) {
+        const x = pad.left + (v / maxPct) * pw;
+        ctx.fillText(v.toFixed(0) + '%', x, pad.top + ph + 16);
+    }
+    
+    // Price axis (Y)
+    ctx.textAlign = 'right';
+    const ySteps = 10;
+    for (let i = 0; i <= ySteps; i++) {
+        const price = priceMin + (priceMax - priceMin) * i / ySteps;
+        const y = pad.top + ph - (price - priceMin) / (priceMax - priceMin) * ph;
+        ctx.fillText(price.toFixed(1), pad.left - 8, y + 4);
+        ctx.strokeStyle = '#1a1d25';
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + pw, y);
+        ctx.stroke();
+    }
+    
+    // Bars
+    let pocPrice = data[0].price, pocPct = 0;
+    let profitSum = 0, weightedSum = 0, totalPct = 0;
+    
+    data.forEach(d => {
+        const idx = data.indexOf(d);
+        const y = pad.top + ph - (d.price - priceMin) / (priceMax - priceMin) * ph - barH/2;
+        const x = pad.left;
+        const w = (d.pct / maxPct) * pw;
+        
+        // Color: red (profit), green (loss)
+        const isProfit = d.price <= currentPrice;
+        const alpha = 0.5 + (d.pct / maxPct) * 0.5;
+        ctx.fillStyle = isProfit 
+            ? `rgba(255,80,60,${alpha})` 
+            : `rgba(60,180,60,${alpha})`;
+        ctx.fillRect(x, y, w, barH);
+        
+        // Border
+        ctx.strokeStyle = isProfit ? 'rgba(255,120,100,0.3)' : 'rgba(80,200,80,0.3)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(x, y, w, barH);
+        
+        // POC marker
+        if (d.pct > pocPct) { pocPrice = d.price; pocPct = d.pct; }
+        
+        // Stats
+        totalPct += d.pct;
+        weightedSum += d.price * d.pct;
+        if (d.price <= currentPrice) profitSum += d.pct;
+    });
+    
+    // POC line
+    const pocY = pad.top + ph - (pocPrice - priceMin) / (priceMax - priceMin) * ph;
+    ctx.strokeStyle = '#ff6644';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 3]);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pocY);
+    ctx.lineTo(pad.left + pw, pocY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // POC label
+    ctx.fillStyle = '#ff6644';
+    ctx.font = 'bold 12px Microsoft YaHei';
+    ctx.textAlign = 'left';
+    ctx.fillText(`POC ${pocPrice.toFixed(1)}元 ${pocPct.toFixed(1)}%`, pad.left + pw - 160, pocY - 8);
+    
+    // POC arrow
+    ctx.beginPath();
+    ctx.moveTo(pad.left + pw - 165, pocY);
+    ctx.lineTo(pad.left + pw - 170, pocY - 5);
+    ctx.lineTo(pad.left + pw - 170, pocY + 5);
+    ctx.fillStyle = '#ff6644';
+    ctx.fill();
+    
+    // Avg cost line
+    const avgCost = weightedSum / totalPct;
+    const avgY = pad.top + ph - (avgCost - priceMin) / (priceMax - priceMin) * ph;
+    ctx.strokeStyle = '#ffaa00';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, avgY);
+    ctx.lineTo(pad.left + pw, avgY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillText(`均成本 ${avgCost.toFixed(1)}`, pad.left + 4, avgY - 4);
+    
+    // Current price line
+    const curY = pad.top + ph - (currentPrice - priceMin) / (priceMax - priceMin) * ph;
+    if (curY >= pad.top && curY <= pad.top + ph) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, curY);
+        ctx.lineTo(pad.left + pw, curY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fff';
+        ctx.fillText(`现价 ${currentPrice.toFixed(2)}`, pad.left + 4, curY - 4);
+    }
+    
+    // Summary cards
+    document.getElementById('currPrice').value = currentPrice.toFixed(2);
+    const profitPct = (profitSum / totalPct * 100).toFixed(1);
+    const conc90 = ((priceMax - priceMin) / avgCost * 100).toFixed(1); // approx
+    document.getElementById('summary').innerHTML = `
+        <div class="stat-card">
+            <div class="label">POC (最大筹码峰)</div>
+            <div class="value red">${pocPrice.toFixed(1)}元</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">POC 筹码占比</div>
+            <div class="value yellow">${pocPct.toFixed(1)}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">加权平均成本</div>
+            <div class="value">${avgCost.toFixed(2)}元</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">获利比例</div>
+            <div class="value ${profitPct > 50 ? 'red' : 'green'}">${profitPct}%</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">总价位数</div>
+            <div class="value">${data.length}</div>
+        </div>
+    `;
+    
+    // Hover events
+    canvas.onmousemove = function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (W / rect.width);
+        const my = (e.clientY - rect.top) * (H / rect.height);
+        
+        // Find nearest bar
+        let nearest = null, minDist = Infinity;
+        data.forEach(d => {
+            const y = pad.top + ph - (d.price - priceMin) / (priceMax - priceMin) * ph;
+            const dist = Math.abs(my - y);
+            if (dist < barH * 2 && dist < minDist) {
+                minDist = dist;
+                nearest = d;
+            }
+        });
+        
+        if (nearest) {
+            const isP = nearest.price <= currentPrice;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX - container.getBoundingClientRect().left + 20) + 'px';
+            tooltip.style.top = (e.clientY - container.getBoundingClientRect().top - 60) + 'px';
+            document.getElementById('tt-price').textContent = nearest.price.toFixed(1) + '元';
+            document.getElementById('tt-pct').textContent = nearest.pct.toFixed(2) + '%';
+            document.getElementById('tt-status').innerHTML = 
+                isP ? '<span style="color:#ff4444;">◉ 盈利筹码</span>' : '<span style="color:#44bb44;">◉ 亏损筹码</span>';
+        } else {
+            tooltip.style.display = 'none';
+        }
+    };
+}
+
+async function switchStock(stock) {
+    currentStock = stock;
+    document.getElementById('btn-kl').classList.toggle('active', stock === 'kl');
+    document.getElementById('btn-lb').classList.toggle('active', stock === 'lb');
+    chipData = await loadData(stock);
+    currentPrice = closes[stock];
+    document.getElementById('currPrice').value = currentPrice.toFixed(2);
+    document.querySelector('.header h1').textContent = 
+        '📊 筹码峰分布图 — ' + (stock === 'kl' ? '昆仑万维 300418' : '蓝色光标 300058');
+    redraw();
+}
+
+function resetPrice() {
+    currentPrice = closes[currentStock];
+    document.getElementById('currPrice').value = currentPrice.toFixed(2);
+    redraw();
+}
+
+// Init
+(async function() {
+    chipData = await loadData('kl');
+    document.getElementById('currPrice').value = currentPrice.toFixed(2);
+    redraw();
+})();
+</script>
+</body>
+</html>

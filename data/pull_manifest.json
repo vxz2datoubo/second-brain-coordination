@@ -1,0 +1,88 @@
+{
+  "version": "2.0",
+  "description": "数据拉取清单 — 编辑此文件即可扩展系统",
+  "auto_expand": true,
+  
+  "stocks": {
+    "core": {
+      "note": "核心持仓 — 昆仑万维+蓝色光标, 拉全量历史",
+      "priority": 1,
+      "list": ["300418.SZ", "300058.SZ"],
+      "apis": ["moneyflow", "daily", "daily_basic", "margin_detail", "fina_indicator", "share_float"]
+    },
+    "theme_top20": {
+      "note": "主题核心票 — 每个核心概念TOP5股票, 换仓时无需重拉",
+      "priority": 2,
+      "apis": ["moneyflow", "daily"],
+      "themes": [
+        "AI智能体", "ChatGPT概念", "AIGC概念",
+        "手机游戏", "网络游戏", "短剧游戏", "云游戏",
+        "文化传媒概念", "网红经济", "直播概念",
+        "多模态AI", "智谱AI", "AI语料", "算力概念",
+        "芯片概念", "半导体", "共封装光学(CPO)",
+        "商业航天", "军工", "航天装备",
+        "新能源汽车", "锂电池", "固态电池",
+        "创新药", "CRO概念", "中药"
+      ],
+      "per_theme_stocks": 5
+    },
+    "watchlist": {
+      "note": "自选关注 — 随时添加, 下次运行自动拉",
+      "priority": 9,
+      "list": [],
+      "apis": ["moneyflow", "daily"]
+    }
+  },
+  
+  "sectors": {
+    "concept_flow": {
+      "note": "382概念板块每日资金流(一次调用全回)",
+      "api": "moneyflow_cnt_ths",
+      "start": "20200101",
+      "batch_months": 1
+    },
+    "industry_flow": {
+      "note": "同花顺行业每日资金流",
+      "api": "moneyflow_ind_ths",
+      "start": "20200101",
+      "batch_months": 1
+    },
+    "limit_concept": {
+      "note": "涨停最强概念板块(每天排名)",
+      "api": "limit_cpt_list",
+      "start": "20200101",
+      "batch_days": 90
+    }
+  },
+  
+  "market_wide": {
+    "top_list": {
+      "note": "每日龙虎榜(全市场一次调用)",
+      "api": "top_list",
+      "start": "20200101"
+    },
+    "limit_list": {
+      "note": "每日涨跌停统计",
+      "api": "limit_list",
+      "start": "20200101"
+    },
+    "stock_basic": {
+      "note": "全A股基础信息(只需一次)",
+      "api": "stock_basic",
+      "onetime": true
+    }
+  },
+  
+  "mappings": {
+    "concept_to_stocks": {
+      "note": "每个概念→成分股, 拉一次永久用",
+      "api": "ths_member",
+      "onetime": true
+    },
+    "ths_hot": {
+      "note": "同花顺热榜快照(行业+概念, 盘后拉最新)",
+      "api": "ths_hot",
+      "daily_snapshot": true
+    }
+  }
+}

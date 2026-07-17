@@ -1,0 +1,135 @@
+{
+  "id": "030eff6c",
+  "name": "交易决策树",
+  "description": "标准A股T仓交易决策流程",
+  "root_node_id": "node_0001",
+  "nodes": {
+    "node_0001": {
+      "id": "node_0001",
+      "type": "condition",
+      "description": "市场状态评估",
+      "parent_id": null,
+      "children": [
+        "node_0002",
+        "node_0004"
+      ],
+      "probability": 1.0,
+      "value": 0.0,
+      "conditions": {
+        "market_trend": {
+          "op": "in",
+          "value": [
+            "TREND_UP",
+            "HIGH_VOL_RANGE"
+          ]
+        }
+      },
+      "action": "",
+      "metadata": {}
+    },
+    "node_0002": {
+      "id": "node_0002",
+      "type": "condition",
+      "description": "高风险检查",
+      "parent_id": "node_0001",
+      "children": [
+        "node_0003"
+      ],
+      "probability": 1.0,
+      "value": 0.0,
+      "conditions": {
+        "change_pct": {
+          "op": ">",
+          "value": 5
+        },
+        "volume_ratio": {
+          "op": ">",
+          "value": 2
+        }
+      },
+      "action": "",
+      "metadata": {}
+    },
+    "node_0003": {
+      "id": "node_0003",
+      "type": "outcome",
+      "description": "风险过高，停止操作",
+      "parent_id": "node_0002",
+      "children": [],
+      "probability": 1.0,
+      "value": -2.0,
+      "conditions": {},
+      "action": "",
+      "metadata": {}
+    },
+    "node_0004": {
+      "id": "node_0004",
+      "type": "condition",
+      "description": "买入条件",
+      "parent_id": "node_0001",
+      "children": [
+        "node_0005"
+      ],
+      "probability": 1.0,
+      "value": 0.0,
+      "conditions": {
+        "buy_score": {
+          "op": ">=",
+          "value": 60
+        },
+        "time_window": {
+          "op": "in",
+          "value": [
+            "T2",
+            "T6"
+          ]
+        }
+      },
+      "action": "",
+      "metadata": {}
+    },
+    "node_0005": {
+      "id": "node_0005",
+      "type": "action",
+      "description": "买入5000元",
+      "parent_id": "node_0004",
+      "children": [
+        "node_0006",
+        "node_0007"
+      ],
+      "probability": 0.8,
+      "value": 1.0,
+      "conditions": {},
+      "action": "BUY",
+      "metadata": {}
+    },
+    "node_0006": {
+      "id": "node_0006",
+      "type": "outcome",
+      "description": "盈利2%以上",
+      "parent_id": "node_0005",
+      "children": [],
+      "probability": 0.6,
+      "value": 3.0,
+      "conditions": {},
+      "action": "",
+      "metadata": {}
+    },
+    "node_0007": {
+      "id": "node_0007",
+      "type": "outcome",
+      "description": "亏损1%",
+      "parent_id": "node_0005",
+      "children": [],
+      "probability": 0.4,
+      "value": -1.0,
+      "conditions": {},
+      "action": "",
+      "metadata": {}
+    }
+  },
+  "created_at": "2026-07-06T03:29:24.385498",
+  "updated_at": "2026-07-06T03:29:24.385498",
+  "tags": [],
+  "variables": {}
+}

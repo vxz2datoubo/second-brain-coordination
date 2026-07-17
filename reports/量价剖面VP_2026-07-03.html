@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>量价剖面(VP) · 2026-07-03</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Microsoft YaHei',sans-serif;background:#1a1d23;color:#c8ccd4}
+.bar{width:100%;max-width:1400px;margin:0 auto;padding:20px}
+h1{font-size:20px;text-align:center;padding:16px 0;color:#e8eaed;letter-spacing:1px}
+h1 span{font-size:13px;color:#888;font-weight:400}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+@media(max-width:960px){.grid2{grid-template-columns:1fr}}
+.panel{background:#21242b;border-radius:10px;border:1px solid #2a2d35;padding:18px}
+.panel h2{font-size:15px;color:#ddd;margin-bottom:2px}
+.panel .sub{font-size:11px;color:#678;margin-bottom:12px}
+.chart{width:100%;height:580px}
+.legend{display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+/* 结论条 */
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.v-card{background:#21242b;border-radius:8px;border:1px solid #2a2d35;padding:16px 20px}
+.v-card h3{font-size:14px;color:#ddd;margin-bottom:10px}
+.v-card .row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #2a2d35}
+.v-card .row:last-child{border-bottom:none}
+.v-card .row .val{font-weight:600}
+</style>
+</head>
+<body>
+<div class="bar">
+
+<h1>量价剖面 (Volume Profile) <span>· 2026-07-03 盘中</span></h1>
+
+<div class="verdict">
+<div class="v-card">
+  <h3>昆仑万维 · 上方量价结构</h3>
+  <div class="row"><span>当前价格</span><span class="val" style="color:#29b6f6">45.42</span></div>
+  <div class="row"><span>最近重阻力</span><span class="val" style="color:#ff7043">44.50-45.50 (×1.3)</span></div>
+  <div class="row"><span>上方总筹码占比</span><span class="val" style="color:#ffa726">25.4%</span></div>
+  <div class="row"><span>穿越难度</span><span class="val" style="color:#26a69a">轻 — 多数区间轻穿越</span></div>
+  <div class="row"><span>第一目标</span><span class="val" style="color:#29b6f6">46.40-46.89</span></div>
+</div>
+<div class="v-card">
+  <h3>蓝色光标 · 上方量价结构</h3>
+  <div class="row"><span>当前价格</span><span class="val" style="color:#ef5350">13.62</span></div>
+  <div class="row"><span>最近重阻力</span><span class="val" style="color:#ff7043">13.90-14.40 (多处×1.3)</span></div>
+  <div class="row"><span>上方总筹码占比</span><span class="val" style="color:#ffa726">11.3%</span></div>
+  <div class="row"><span>穿越难度</span><span class="val" style="color:#ef5350">偏重 — 13.9-14.4多重穿越×1.3</span></div>
+  <div class="row"><span>最大压力</span><span class="val" style="color:#ffa726">14.10-14.20 (5.4%筹码)</span></div>
+</div>
+</div>
+
+<div class="grid2">
+<div class="panel">
+  <h2>昆仑万维 sz300418</h2>
+  <div class="sub">量价剖面 · 主力二次建仓区(30-42) · 策略:大胆做T</div>
+  <div class="chart" id="vpA"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>极轻穿越 ×0.7</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#66bb6a"></div>轻穿越 ×0.7</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div>正常 ×1.0</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef5350"></div>重穿越 ×1.3</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#29b6f6"></div>当前价</div>
+  </div>
+</div>
+<div class="panel">
+  <h2>蓝色光标 sz300058</h2>
+  <div class="sub">量价剖面 · 主力拉升区(1.6x成本) · 策略:谨慎做T</div>
+  <div class="chart" id="vpB"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>极轻穿越 ×0.7</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#66bb6a"></div>轻穿越 ×0.7</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div>正常 ×1.0</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef5350"></div>重穿越 ×1.3</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#29b6f6"></div>当前价</div>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+(function(){
+// ========== 昆仑万维 ==========
+var cA = echarts.init(document.getElementById('vpA'));
+
+// Price layers from runner.py output (base: 40.36, but we extend to match current ~45.42)
+// Format: [priceMid, rawVolume, adjustedVolume, difficulty, easeLabel, easeColor]
+var layersA = [
+  // Above current price
+  [46.25, 0.8, 1.0, '重', '#ef5350'],
+  [45.75, 1.2, 1.6, '重', '#ff7043'],
+  [45.25, 1.7, 2.2, '重', '#ef5350'],
+  [44.75, 7.4, 9.6, '重', '#ef5350'],
+  [44.25, 8.3, 8.3, '正常', '#ffa726'],
+  [43.75, 11.9, 8.3, '轻', '#66bb6a'],
+  [43.25, 6.7, 4.7, '极轻', '#26a69a'],
+  [42.75, 2.2, 2.2, '正常', '#ffa726'],
+  [42.25, 7.3, 5.1, '轻', '#66bb6a'],
+  [41.75, 8.1, 5.7, '轻', '#66bb6a'],
+  [41.25, 5.2, 3.6, '极轻', '#26a69a'],
+  [40.75, 9.7, 6.8, '轻', '#66bb6a'],
+  // Below
+  [40.25, 5.1, 3.6, '轻', '#66bb6a'],
+  [39.75, 8.0, 5.6, '极轻', '#26a69a'],
+  [39.25, 10.2, 7.1, '轻', '#66bb6a'],
+  [38.75, 4.2, 2.9, '极轻', '#26a69a'],
+  [38.25, 3.8, 2.7, '轻', '#66bb6a'],
+  [37.75, 0.2, 0.1, '极轻', '#26a69a']
+];
+
+// Sort by price descending for horizontal bar
+layersA.sort(function(a,b){return b[0]-a[0];});
+
+var pricesA = layersA.map(function(l){return l[0].toFixed(2);});
+var volA = layersA.map(function(l){return +(l[2].toFixed(1));});
+var colorsA = layersA.map(function(l){return l[5];});
+
+cA.setOption({
+  tooltip:{
+    trigger:'axis',axisPointer:{type:'shadow'},
+    formatter:function(p){
+      var v = p[0];
+      var l = layersA[v.dataIndex];
+      var label = l[0].toFixed(2)+'元层';
+      if(l[0] > 45.42) label += ' (上方)';
+      else if(l[0] < 44.0) label += ' (下方)';
+      return label+'<br/>筹码占比: <b>'+l[2].toFixed(1)+'%</b><br/>难度: <b style=color:'+l[5]+'>'+l[3]+'</b>';
+    }
+  },
+  grid:{left:'12%',right:'8%',top:'3%',bottom:'5%'},
+  xAxis:{
+    type:'value',name:'筹码占比(%)',nameLocation:'middle',nameGap:28,
+    axisLabel:{color:'#888'},splitLine:{lineStyle:{color:'#2a2d35'}}
+  },
+  yAxis:{
+    type:'category',data:pricesA,inverse:true,
+    axisLabel:{color:'#aaa',fontSize:11},axisLine:{lineStyle:{color:'#444'}}
+  },
+  series:[{
+    type:'bar',data:volA.map(function(v,i){
+      return {value:v,itemStyle:{color:colorsA[i],borderRadius:[0,3,3,0]}};
+    }),
+    barWidth:'70%',
+    label:{
+      show:true,position:'right',fontSize:10,color:'#aaa',
+      formatter:function(p){
+        var l = layersA[p.dataIndex];
+        return l[2].toFixed(1)+'%';
+      }
+    },
+    markLine:{
+      silent:true,symbol:'none',
+      lineStyle:{color:'#29b6f6',width:2,type:'solid'},
+      label:{formatter:'现 45.42 →',position:'end',color:'#29b6f6',fontSize:11,fontWeight:'bold'},
+      data:[{yAxis:pricesA.length - 1 - 3.5}]
+    }
+  }]
+});
+
+// ========== 蓝色光标 ==========
+var cB = echarts.init(document.getElementById('vpB'));
+
+var layersB = [
+  [14.75, 2.9, 2.0, '轻', '#66bb6a'],
+  [14.65, 2.2, 2.2, '正常', '#ffa726'],
+  [14.55, 2.5, 1.8, '轻', '#66bb6a'],
+  [14.45, 1.8, 1.3, '轻', '#66bb6a'],
+  [14.35, 0.7, 0.9, '重', '#ef5350'],
+  [14.25, 1.7, 2.2, '重', '#ef5350'],
+  [14.15, 5.4, 5.4, '正常', '#ffa726'],
+  [14.05, 0.5, 0.3, '极轻', '#26a69a'],
+  [13.95, 2.0, 2.6, '重', '#ef5350'],
+  [13.85, 2.4, 1.7, '轻', '#66bb6a'],
+  [13.75, 7.4, 7.4, '正常', '#ffa726'],
+  [13.65, 4.0, 2.8, '极轻', '#26a69a'],
+  [13.55, 4.6, 3.2, '极轻', '#26a69a'],
+  [13.45, 0.7, 0.5, '轻', '#66bb6a'],
+  [13.35, 1.9, 1.3, '轻', '#66bb6a'],
+  [13.25, 2.1, 2.1, '正常', '#ffa726'],
+  [13.15, 0.6, 0.4, '轻', '#66bb6a'],
+  [13.05, 0.3, 0.4, '重', '#ef5350']
+];
+
+layersB.sort(function(a,b){return b[0]-a[0];});
+
+var pricesB = layersB.map(function(l){return l[0].toFixed(2);});
+var volB = layersB.map(function(l){return +(l[2].toFixed(1));});
+var colorsB = layersB.map(function(l){return l[5];});
+
+cB.setOption({
+  tooltip:{
+    trigger:'axis',axisPointer:{type:'shadow'},
+    formatter:function(p){
+      var l = layersB[p[0].dataIndex];
+      var label = l[0].toFixed(2)+'元层';
+      if(l[0] > 13.62) label += ' (上方)';
+      return label+'<br/>筹码占比: <b>'+l[2].toFixed(1)+'%</b><br/>难度: <b style=color:'+l[5]+'>'+l[3]+'</b>';
+    }
+  },
+  grid:{left:'12%',right:'8%',top:'3%',bottom:'5%'},
+  xAxis:{
+    type:'value',name:'筹码占比(%)',nameLocation:'middle',nameGap:28,
+    axisLabel:{color:'#888'},splitLine:{lineStyle:{color:'#2a2d35'}}
+  },
+  yAxis:{
+    type:'category',data:pricesB,inverse:true,
+    axisLabel:{color:'#aaa',fontSize:11},axisLine:{lineStyle:{color:'#444'}}
+  },
+  series:[{
+    type:'bar',data:volB.map(function(v,i){
+      return {value:v,itemStyle:{color:colorsB[i],borderRadius:[0,3,3,0]}};
+    }),
+    barWidth:'70%',
+    label:{
+      show:true,position:'right',fontSize:10,color:'#aaa',
+      formatter:function(p){
+        var l = layersB[p.dataIndex];
+        return l[2].toFixed(1)+'%';
+      }
+    },
+    markLine:{
+      silent:true,symbol:'none',
+      lineStyle:{color:'#ef5350',width:2,type:'solid'},
+      label:{formatter:'现 13.62 →',position:'end',color:'#ef5350',fontSize:11,fontWeight:'bold'},
+      data:[{yAxis:pricesB.length - 1 - 7.5}]
+    }
+  }]
+});
+})();
+</script>
+</body>
+</html>

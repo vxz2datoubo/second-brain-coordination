@@ -1,0 +1,84 @@
+# Reconstructed Patch Summary
+
+Repository has no Git baseline, so this file records the logical patch applied in 0013 rather than a Git-generated diff.
+
+```diff
+--- brain_core/realtime_l2_aggregate.py
++++ brain_core/realtime_l2_aggregate.py
+@@
+-SCHEMA_VERSION = "a-share-l2-aggregate-v0.1"
++SCHEMA_VERSION = "a-share-l2-aggregate-v0.2"
++CLASSIFIER_LIFECYCLE_VERSION = "broker-market-data-classifier-v0.2"
+@@
+ def _to_number(value):
+-    if value is None or value == "":
+-        return None
++    if value is None or isinstance(value, bool): return None
++    if isinstance(value, str): strip and treat blank as None
++    try: return float(value)
++    except (TypeError, ValueError): return None
+@@
+-def _has_text(value):
+-    return bool(...)
+-    try: return float(value)  # unreachable
++def _has_text(value): return bool(...)
++def _missing_kind(...): split missing, empty, zero, numeric, nonnumeric, permission, interface, not_applicable, unknown_sentinel
+@@
+- capability_level=["FIVE_LEVEL_SNAPSHOT", "L2_AGGREGATE", "UPDATE_TRIGGER_COMPATIBLE"]
++ capability_level=["L2_AGGREGATE"]
+@@
++def compute_l2_aggregate_deltas(...):
++    # same-day counter drops become anomaly_no_delta unless reset is explicit
+@@
+ public_crawler_auxiliary_policy():
++    usage_class="auxiliary_crosscheck_only"
++    reliability_calibration_status="uncalibrated"
++    default_reliability_hint=0.55
+@@
+ classify_broker_market_data_response():
+-    route_status in insufficient / needs_review / raw_l2_candidate_needs_runtime_probe / blocked
++    route_status in insufficient / needs_documentation / qualified_for_readonly_probe / blocked
++    add readonly isolation fields
++    require docs/sample before non-raw allowed_capabilities
++    require time semantics and stable sequence for raw tick
++    require channel/recovery evidence for raw order/order queue/cancel
++    block only when market data cannot be isolated from trading/account path
+```
+
+```diff
+--- tests/test_realtime_l2_aggregate.py
++++ tests/test_realtime_l2_aggregate.py
+@@
++ numeric conversion cases for None, blank, zero, positive, negative, nonnumeric, object
++ missing_kind cases for permission/interface/not_applicable/unknown sentinels
++ partial/all-missing/extra-field coverage
++ same-day delta anomaly and cross-day reset coverage
++ classifier v0.2 edge cases
+```
+
+```diff
+--- coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/BROKER-RESPONSE-SCHEMA.json
++++ coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/BROKER-RESPONSE-SCHEMA.json
+@@
+-schema_version: broker-market-data-response-v0.1
++schema_version: broker-market-data-response-v0.2
++route_isolation fields
++pre_probe_statuses and future_statuses_not_emitted_by_v0_2
++day_start_baseline_path/order_book_recovery_path/disconnect_recovery_doc_path
+```
+
+```diff
+--- coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/PUBLIC-CRAWLER-AUXILIARY-EVIDENCE-POLICY.md
++++ coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/PUBLIC-CRAWLER-AUXILIARY-EVIDENCE-POLICY.md
+@@
++ source_reliability <= 0.55 is a conservative hint, not measured reliability
++ reliability_calibration_status=uncalibrated
++ reserved calibration fields
+```
+
+```diff
+--- bulletin/super-second-brain-v01-board.md
++++ bulletin/super-second-brain-v01-board.md
+@@
++ [2026-07-17] tdx_l2_aggregate_hardening_0013_completed: ... no broker route promoted, no raw L2 gate cleared, no live trading enabled.
+```

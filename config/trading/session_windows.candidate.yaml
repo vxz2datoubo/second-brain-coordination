@@ -1,0 +1,78 @@
+# session_windows.yaml — 交易时间窗口配置（候选版本）
+# 来源: 旧版 AGENTS.md v2026-07-05
+# A股常规交易日: 09:30-11:30, 13:00-15:00
+
+sessions:
+  T1_opening:
+    start: "09:30"
+    end: "09:50"
+    strategy: "竞价分析，优先接回跨日仓位"
+    priority: 2
+    description: "开盘处理窗口"
+
+  T2_golden_morning:
+    start: "09:50"
+    end: "10:30"
+    strategy: "方向确认后首笔倒T"
+    priority: 1
+    description: "上午黄金窗口"
+
+  T3_morning_continuation:
+    start: "10:30"
+    end: "11:00"
+    strategy: "继续看倒T机会"
+    priority: 3
+    description: "上午延续窗口"
+
+  T4_cautious:
+    start: "11:00"
+    end: "11:30"
+    strategy: "除非强信号，否则等待"
+    priority: 5
+    description: "午前谨慎期"
+
+  T5_afternoon_restart:
+    start: "13:00"
+    end: "13:30"
+    strategy: "观察下午是否有新方向"
+    priority: 3
+    description: "下午重启窗口"
+
+  T6_golden_afternoon:
+    start: "13:30"
+    end: "14:00"
+    strategy: "倒T黄金窗口"
+    priority: 1
+    description: "下午黄金窗口"
+
+  T7_close_decision:
+    start: "14:00"
+    end: "14:30"
+    strategy: "判断当天是否还有T仓机会"
+    priority: 2
+    description: "尾盘决策窗口"
+
+  T8_forced_close:
+    start: "14:30"
+    end: "15:00"
+    strategy: "所有未接回T仓全部强平"
+    priority: 4
+    description: "强制收尾窗口"
+
+call_auction:
+  phase_1:
+    start: "09:15"
+    end: "09:20"
+    description: "可撤单期（烟雾弹期），参考价值低"
+  phase_2:
+    start: "09:20"
+    end: "09:25"
+    description: "不可撤单期（真实意图期），决定性"
+  execution:
+    time: "09:25"
+    description: "最大成交量原则撮合开盘价"
+
+# 优先级: 1=最高, 5=最低
+# source: AGENTS.md v2026-07-05
+# status: candidate
+# effective_from: "2026-07-05"

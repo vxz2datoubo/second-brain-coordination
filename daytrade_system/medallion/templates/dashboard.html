@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>大奖章 T仓信号</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"Microsoft YaHei",sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh}
+.header{background:#111827;border-bottom:1px solid #1e2a45;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:17px;color:#7eb8ff;letter-spacing:2px}
+.header .time{color:#6b7a99;font-size:12px;font-family:monospace}
+.status-bar{display:flex;gap:24px;padding:10px 24px;background:#0d1321;border-bottom:1px solid #1e2a45;font-size:12px;flex-wrap:wrap}
+.si{display:flex;align-items:center;gap:6px}
+.sl{color:#6b7a99}
+.sv{font-weight:600;font-family:monospace}
+.sv.pos{color:#34d399}
+.sv.neg{color:#f87171}
+.sv.neu{color:#fbbf24}
+.main{padding:20px;max-width:1200px;margin:0 auto}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:768px){.cards{grid-template-columns:1fr}}
+.card{background:#111827;border-radius:12px;border:1px solid #1e2a45;overflow:hidden}
+.ch{padding:12px 16px;border-bottom:1px solid #1e2a45;display:flex;align-items:center;justify-content:space-between}
+.ct{font-size:14px;font-weight:600}
+.ct.blue{color:#60a5fa}
+.ct.kunlun{color:#fbbf24}
+.badge{padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.bA\+\+,.bA{background:#059669;color:#fff}
+.bB{background:#f59e0b;color:#000}
+.bC{background:#6366f1;color:#fff}
+.bD{background:#374151;color:#9ca3af}
+.bW{background:#374151;color:#9ca3af}
+.cb{padding:16px}
+.pr{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.prICE{font-size:30px;font-weight:700}
+.prICE.down{color:#f87171}
+.prICE.up{color:#34d399}
+.chg{font-size:13px}
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.sb{background:#1a2235;border-radius:8px;padding:10px;text-align:center}
+.slb{font-size:10px;color:#6b7a99;margin-bottom:4px}
+.sv2{font-size:20px;font-weight:700}
+.sv2.hi{color:#f87171}
+.sv2.lo{color:#34d399}
+.sv2.nu{color:#fbbf24}
+.rb{padding:12px;border-radius:8px;margin-bottom:12px}
+.rb.buy{background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05));border:1px solid rgba(52,211,153,0.3)}
+.rb.sell{background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.3)}
+.rb.watch{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2)}
+.rb.hold{background:rgba(180,83,9,0.15);border:1px solid rgba(180,83,9,0.3)}
+.rb.none{background:#1a2235;border:1px solid #1e2a45}
+.rl{font-size:10px;color:#6b7a99;margin-bottom:3px}
+.ra{font-size:15px;font-weight:700;margin-bottom:3px}
+.rb.buy .ra{color:#34d399}
+.rb.sell .ra{color:#f87171}
+.rb.watch .ra{color:#fbbf24}
+.rb.hold .ra{color:#f97316}
+.rr{font-size:12px;color:#9ca3af;line-height:1.4}
+.tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.tb{background:#1a2235;border-radius:8px;padding:8px;text-align:center}
+.tl{font-size:10px;color:#6b7a99;margin-bottom:3px}
+.tv{font-size:14px;font-weight:600}
+.tv.s{color:#f87171}
+.tv.b{color:#34d399}
+.tv.st{color:#fbbf24}
+.bt{width:100%;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.bt:disabled{background:#1e2a45;color:#4b5563;cursor:not-allowed}
+.bt-sell{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.bt-sell:hover:not(:disabled){background:linear-gradient(135deg,#ef4444,#dc2626);transform:translateY(-1px)}
+.bt-buy{background:linear-gradient(135deg,#059669,#047857);color:#fff}
+.bt-buy:hover:not(:disabled){background:linear-gradient(135deg,#10b981,#059669);transform:translateY(-1px)}
+.slt{font-size:10px;color:#6b7a99;margin-bottom:4px}
+.srow{display:flex;gap:6px;margin-bottom:12px}
+.slt2{height:7px;border-radius:4px;background:#1e2a45;flex:1}
+.slt2.on{background:#f87171}
+.bx{margin-top:10px;padding-top:10px;border-top:1px solid #1e2a45}
+.bxl{font-size:11px;color:#6b7a99;margin-bottom:6px}
+.rfr{margin-top:16px;text-align:center}
+.rbt{background:#1e2a45;color:#9ca3af;border:1px solid #374151;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:12px}
+.rbt:hover{background:#374151}
+.nodata{text-align:center;padding:40px;color:#4b5563}
+</style></head>
+<body>
+
+<div class="header"><h1>大奖章 T仓信号系统</h1><div class="time" id="clock">--:--:--</div></div>
+<div class="status-bar" id="status-bar">
+  <div class="si"><span class="sl">总收益:</span><span class="sv pos" id="t-pnl">--</span></div>
+  <div class="si"><span class="sl">已交易:</span><span class="sv" id="t-trades">--</span></div>
+  <div class="si"><span class="sl">未回笼:</span><span class="sv neg" id="t-open">--</span></div>
+  <div class="si"><span class="sl">剩余:</span><span class="sv neu" id="t-rem">--</span></div>
+  <div class="si"><span class="sl">更新:</span><span class="sv" id="t-upd">--</span></div>
+</div>
+
+<div class="main">
+<div class="cards">
+
+<div class="card" id="card-blue">
+  <div class="ch">
+    <span class="ct blue">蓝色光标 (300418)</span>
+    <span class="badge bW" id="blue-badge">--</span>
+  </div>
+  <div class="cb">
+    <div class="pr"><span class="prICE" id="blue-price">--</span><span class="chg" id="blue-chg">--</span></div>
+    <div class="sg">
+      <div class="sb"><div class="slb">卖出信号</div><div class="sv2 hi" id="blue-ss">--</div></div>
+      <div class="sb"><div class="slb">接回信号</div><div class="sv2 lo" id="blue-bs">--</div></div>
+      <div class="sb"><div class="slb">置信</div><div class="sv2 nu" id="blue-cf">--</div></div>
+    </div>
+    <div class="slt">今日槽位: <span id="blue-slt">0/3</span></div>
+    <div class="srow">
+      <div class="slt2" id="blue-s1"></div><div class="slt2" id="blue-s2"></div><div class="slt2" id="blue-s3"></div>
+    </div>
+    <div class="rb none" id="blue-rb">
+      <div class="rl">建议</div>
+      <div class="ra" id="blue-ra">--</div>
+      <div class="rr" id="blue-rr">--</div>
+    </div>
+    <div class="tg">
+      <div class="tb"><div class="tl">卖出价</div><div class="tv s" id="blue-sp">--</div></div>
+      <div class="tb"><div class="tl">接回价</div><div class="tv b" id="blue-bp">--</div></div>
+      <div class="tb"><div class="tl">止损价</div><div class="tv st" id="blue-st">--</div></div>
+    </div>
+    <button class="bt bt-sell" id="blue-btn" disabled onclick="doAction('blue')">确认卖出</button>
+  </div>
+</div>
+
+<div class="card" id="card-kunlun">
+  <div class="ch">
+    <span class="ct kunlun">昆仑万维 (300058) ⭐</span>
+    <span class="badge bW" id="kunlun-badge">--</span>
+  </div>
+  <div class="cb">
+    <div class="pr"><span class="prICE" id="kunlun-price">--</span><span class="chg" id="kunlun-chg">--</span></div>
+    <div class="sg">
+      <div class="sb"><div class="slb">卖出信号</div><div class="sv2 hi" id="kunlun-ss">--</div></div>
+      <div class="sb"><div class="slb">接回信号</div><div class="sv2 lo" id="kunlun-bs">--</div></div>
+      <div class="sb"><div class="slb">置信</div><div class="sv2 nu" id="kunlun-cf">--</div></div>
+    </div>
+    <div class="slt">今日槽位: <span id="kunlun-slt">0/3</span></div>
+    <div class="srow">
+      <div class="slt2" id="kunlun-s1"></div><div class="slt2" id="kunlun-s2"></div><div class="slt2" id="kunlun-s3"></div>
+    </div>
+    <div class="rb none" id="kunlun-rb">
+      <div class="rl">建议</div>
+      <div class="ra" id="kunlun-ra">--</div>
+      <div class="rr" id="kunlun-rr">--</div>
+    </div>
+    <div class="tg">
+      <div class="tb"><div class="tl">卖出价</div><div class="tv s" id="kunlun-sp">--</div></div>
+      <div class="tb"><div class="tl">接回价</div><div class="tv b" id="kunlun-bp">--</div></div>
+      <div class="tb"><div class="tl">止损价</div><div class="tv st" id="kunlun-st">--</div></div>
+    </div>
+    <button class="bt bt-buy" id="kunlun-btn" disabled onclick="doAction('kunlun')">确认接回</button>
+  </div>
+</div>
+
+</div>
+<div class="rfr">
+  <button class="rbt" onclick="fetchData()">刷新数据</button>
+  <button class="rbt" onclick="resetDay()" style="margin-left:8px">重置日期</button>
+</div>
+</div>
+
+<script>
+let sigs={};
+function updateClock(){
+  document.getElementById("clock").textContent=new Date().toLocaleTimeString("zh-CN");
+}
+setInterval(updateClock,1000);updateClock();
+
+function updateStock(id, s){
+  if(!s||s.status==="no_data"){
+    document.getElementById(id+"-price").textContent="无数据";
+    return;
+  }
+  document.getElementById(id+"-price").textContent=s.price;
+  const pChg=((s.price-s.prev_close)/s.prev_close*100).toFixed(2);
+  const chgEl=document.getElementById(id+"-chg");
+  chgEl.textContent=(pChg>=0?"+":"")+pChg+"%";
+  chgEl.className="chg "+(pChg>=0?"down":"up");
+  
+  document.getElementById(id+"-ss").textContent=s.scores.sell;
+  document.getElementById(id+"-bs").textContent=s.scores.buy;
+  document.getElementById(id+"-cf").textContent=s.confidence;
+  const badge=document.getElementById(id+"-badge");
+  badge.textContent=s.confidence;
+  badge.className="badge b"+s.confidence.replace("\+\+","");
+  
+  document.getElementById(id+"-slt").textContent=(s.daily_sells||0)+"/3";
+  for(let i=1;i<=3;i++){
+    const el=document.getElementById(id+"-s"+i);
+    el.className="slt2"+(i<=s.open_slots?" on":"");
+  }
+  
+  const rb=document.getElementById(id+"-rb");
+  const rc=s.status==="sell_signal"?"sell":s.status==="buy_signal"?"buy":s.status==="holding"?"hold":s.status==="watch"?"watch":"none";
+  rb.className="rb "+rc;
+  document.getElementById(id+"-ra").textContent=s.recommendation;
+  document.getElementById(id+"-rr").textContent=s.reason||"--";
+  
+  document.getElementById(id+"-sp").textContent=s.sell_target||"--";
+  document.getElementById(id+"-bp").textContent=s.buy_target||"--";
+  document.getElementById(id+"-st").textContent=s.stop_loss||"--";
+  
+  const btn=document.getElementById(id+"-btn");
+  btn.disabled=s.status!=="sell_signal"&&s.status!=="buy_signal";
+  btn.textContent=s.status==="sell_signal"?"确认卖出":s.status==="buy_signal"?"确认接回":"等待信号";
+  btn.className="bt "+(s.status==="sell_signal"?"bt-sell":"bt-buy");
+}
+
+async function fetchData(){
+  try{
+    const r=await fetch("/api/signals");
+    const d=await r.json();
+    sigs=d.signals;
+    const p=d.portfolio;
+    const pnlp=document.getElementById("t-pnl");
+    pnlp.textContent=(p.total_pnl>=0?"+":"")+p.total_pnl.toFixed(3)+"%";
+    pnlp.className="sv "+(p.total_pnl>=0?"pos":"neg");
+    document.getElementById("t-trades").textContent=p.total_trades;
+    document.getElementById("t-open").textContent=p.total_open_slots;
+    document.getElementById("t-rem").textContent=p.remaining_slots;
+    document.getElementById("t-upd").textContent=new Date().toLocaleTimeString("zh-CN");
+    updateStock("blue",sigs["300418"]);
+    updateStock("kunlun",sigs["300058"]);
+  }catch(e){console.error(e);}
+}
+
+async function doAction(id){
+  const code=id==="blue"?"300418":"300058";
+  const s=sigs[code];
+  if(!s)return;
+  const action=s.status==="sell_signal"?"sell":s.status==="buy_signal"?"buyback":null;
+  if(!action)return;
+  try{
+    const r=await fetch("/api/execute",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({action,code,price:s.status==="sell_signal"?s.sell_target:s.buy_target,time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})})
+    });
+    const res=await r.json();
+    if(res.ok){
+      alert((action==="sell"?"已记录卖出！":"已记录接回！")+(res.profit!==undefined?" 盈利:"+res.profit.toFixed(3)+"%":""));
+      fetchData();
+    }
+  }catch(e){console.error(e);}
+}
+
+async function resetDay(){
+  if(!confirm("确定重置今天的记录？"))return;
+  await fetch("/api/reset");
+  fetchData();
+}
+
+setInterval(fetchData,30000);
+fetchData();
+</script>
+</body></html>

@@ -1,0 +1,57 @@
+{
+  "version": 2,
+  "updated_at": "2026-06-17T15:04:42+08:00",
+  "updated_by": "qclaw (整合 workbuddy 14:56 9条 + qclaw 6条)",
+  "rules": [
+    {
+      "id": "pre_run_check",
+      "priority": "critical",
+      "text": "Before starting any non-trivial task, every agent must read active rules, announcements, assigned tasks, shared tasks, and locks."
+    },
+    {
+      "id": "public_board_source_of_truth",
+      "priority": "critical",
+      "text": "Rules and tasks that must be known by all agents must be published to the public task board."
+    },
+    {
+      "id": "claim_before_running",
+      "priority": "high",
+      "text": "Agents must claim a task and write a lock before running it. Never run a task from a private initial/ folder without going through board/."
+    },
+    {
+      "id": "write_status",
+      "priority": "high",
+      "text": "Agents must write heartbeat and status updates while working."
+    },
+    {
+      "id": "no_silent_takeover",
+      "priority": "high",
+      "text": "Agents must not take over a task already locked by another agent unless the lock is stale or explicitly released."
+    },
+    {
+      "id": "emotion_does_not_block_critical_help",
+      "priority": "critical",
+      "text": "The AI girlfriend emotion system may affect tone and proactive chat, but must not block emergency help or explicit important work assistance."
+    },
+    {
+      "id": "write_before_read",
+      "priority": "high",
+      "text": "When an agent reads board state for the first time, it must also write its own status to confirm presence (avoid silent readers)."
+    },
+    {
+      "id": "token_safety",
+      "priority": "critical",
+      "text": "Tokens (qclaw, codex, etc.) must be read through resolve_token() helpers, never hardcoded. Hardcoded tokens are a P1 defect."
+    },
+    {
+      "id": "triple_retry_escalation",
+      "priority": "high",
+      "text": "If a task fails 3 times with the same error, escalate to user instead of looping. Log each attempt to outputs/{role}/retries.log."
+    },
+    {
+      "id": "board_as_truth",
+      "priority": "high",
+      "text": "If status/heartbeat files disagree with in-memory state, the file on board is the source of truth."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+task_id: TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006
+model: Hy3 strongest reasoning config
+status: COMPLETED_WITH_BLOCKERS
+old_task_dirs_untouched: true
+port_17709: NOT_LISTENING
+http_route: BLOCKED
+tq_local_available: false  # requires HTTP 17709
+tq_python_available: true  # but version-mismatched (v1.0.12 doc vs v1.0.4 runtime)
+version_mismatch: true  # tqcenter.py v1.0.4 vs official v1.0.12
+new_methods_found: true  # get_pricevol, get_more_info L2 aggregates in v1.0.12 doc
+new_methods_runtime_tested: false  # HTTP blocked
+formula_get_all_found: false
+formula_get_info_found: false
+ten_level_achieved: false
+raw_tick_achieved: false
+raw_order_achieved: false
+order_queue_achieved: false
+auction_fields_achieved: false  # only OpenAmo/OpenZTBuy aggregates
+python_route_richer_than_codex: no  # same v1.0.4
+http_route_richer_than_codex: yes_in_doc  # v1.0.12 doc has more L2 aggregates (L2TicNum/BCancel/SCancel/etc)
+update_recommended: yes  # update tqcenter+TPythClient to v1.0.12; enable HTTP 17709
+modify_existing_system: no  # this round only
+output_dir: F:\aidanao\交流文件\TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006\
+codex_already_confirmed:
+  - tqcenter_v1.0.4_can_initialize_in_embedded_env
+  - get_market_snapshot_5level_only
+  - subscribe_hq_callback_code_and_errorid_only
+  - get_market_data_tick_rejected
+  - formula_probe_no_l2_results
+  - local_cache_files_no_change_in_120s
+  - no_route_to_tenlevel_raw_tick_order_queue

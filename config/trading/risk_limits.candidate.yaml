@@ -1,0 +1,98 @@
+# risk_limits.yaml — 风控参数（候选版本）
+# 来源: 旧版 AGENTS.md v2026-07-05
+# 所有参数需用户审阅批准后方可激活
+
+parameters:
+  position:
+    single_trade_amount:
+      value: 5000
+      unit: CNY
+      tolerance: ±1000
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+    max_daily_t_trades:
+      value: 3
+      unit: trades
+      description: "单日T仓上限（未回笼计数）"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+    max_total_exposure:
+      value: 0.90
+      unit: ratio
+      description: "总持仓上限，保持10%+现金"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+  drawdown:
+    daily_drawdown_circuit_breaker:
+      value: 0.02
+      unit: ratio
+      description: "日亏熔断线，超限全天停止"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+    consecutive_loss_circuit_breaker:
+      value: 3
+      unit: trades
+      description: "连亏满3笔，全天停止交易"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+    consecutive_loss_days_position_reduction:
+      value: 2
+      unit: days
+      description: "连续2日亏损 → 降仓至1槽"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+  stop_conditions:
+    intraday_drop_no_add:
+      value: 0.05
+      unit: ratio
+      description: "持仓当日跌幅超此值禁止补仓"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+    stop_loss_check_threshold:
+      value: 0.07
+      unit: ratio
+      description: "跌幅超此值必须检查是否止损"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
+
+  cooling_periods:
+    post_sell_cooldown:
+      value: 30
+      unit: minutes
+      description: "卖出后冷却期，期间禁止接回"
+      effective_from: "2026-07-05"
+      source: "AGENTS.md v2026-07-05"
+      approved_by: user
+      status: candidate
+      last_validated_at: "2026-07-16"
