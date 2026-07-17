@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T仓全面分析 · 2026-07-03</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;background:#f5f6f8;color:#2c3e50;line-height:1.6}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px}
+/* 结论卡 */
+.tldr{padding:28px 32px;border-radius:12px;margin-bottom:24px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
+.tldr h2{font-size:20px;margin-bottom:16px;opacity:0.95}
+.tldr .big-num{font-size:48px;font-weight:700;line-height:1}
+.tldr .big-num span{font-size:18px;font-weight:400;opacity:0.8}
+.tldr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:20px}
+.tldr-item{background:rgba(255,255,255,0.15);border-radius:8px;padding:14px 16px}
+.tldr-item .label{font-size:12px;opacity:0.7;margin-bottom:4px}
+.tldr-item .value{font-size:22px;font-weight:700}
+.tldr-item .sub{font-size:12px;opacity:0.65;margin-top:2px}
+/* 卡片通用 */
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);padding:24px 28px;margin-bottom:20px}
+.card h3{font-size:17px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #eef0f2;color:#34495e}
+.card h4{font-size:15px;margin:16px 0 10px;color:#555}
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}
+th{background:#f0f3f7;padding:10px 12px;text-align:center;font-weight:600;color:#555;border-bottom:2px solid #dde}
+td{padding:10px 12px;text-align:center;border-bottom:1px solid #eef0f2}
+tr:hover td{background:#fafbfc}
+.green{color:#e74c3c;font-weight:600}
+.red{color:#27ae60;font-weight:600}
+.warn{background:#fff3e0;font-weight:600;color:#e65100}
+.bad-row td{background:#ffebee}
+/* chart容器 */
+.chart-box{width:100%;height:380px;margin:16px 0}
+.half-chart{width:100%;height:320px;margin:12px 0}
+/* 标注 */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600}
+.tag-buy{background:#e3f2fd;color:#1565c0}
+.tag-sell{background:#ffebee;color:#c62828}
+.tag-win{background:#e8f5e9;color:#2e7d32}
+.tag-loss{background:#ffebee;color:#c62828}
+.tag-warn{background:#fff3e0;color:#e65100}
+/* 双栏 */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:768px){.two-col{grid-template-columns:1fr}}
+/* 消息卡 */
+.news-item{padding:12px 0;border-bottom:1px solid #f0f2f5}
+.news-item:last-child{border-bottom:none}
+.news-date{font-size:12px;color:#999}
+.news-title{font-size:14px;color:#2c3e50;font-weight:500}
+.news-title a{color:#667eea;text-decoration:none}
+.news-title a:hover{text-decoration:underline}
+/* 教训卡 */
+.lesson-card{border-left:3px solid #e74c3c;padding:14px 18px;margin:12px 0;background:#fafafa;border-radius:0 8px 8px 0}
+.lesson-card .lesson-title{font-weight:700;color:#c62828;margin-bottom:6px}
+/* 快照 */
+.snapshot-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.snap-item{text-align:center;padding:14px 8px;background:#f8f9fa;border-radius:8px}
+.snap-item .price{font-size:26px;font-weight:700}
+.snap-item .change{font-size:14px;margin-top:4px}
+.snap-item .name{font-size:13px;color:#888;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- 结论卡 -->
+<div class="tldr">
+  <h2>T仓全面分析 · 2026-07-03 盘前</h2>
+  <div class="big-num">+26.3%<span>&nbsp;T仓收益率</span></div>
+  <div style="margin-top:6px;font-size:14px;opacity:0.85">2026-07-02 一个交易日内，9笔T仓全部正收益</div>
+  <div class="tldr-grid">
+    <div class="tldr-item">
+      <div class="label">T仓总利润(元/股)</div>
+      <div class="value">+10.70</div>
+      <div class="sub">9笔累计</div>
+    </div>
+    <div class="tldr-item">
+      <div class="label">胜率</div>
+      <div class="value">100%</div>
+      <div class="sub">9/9笔全胜</div>
+    </div>
+    <div class="tldr-item">
+      <div class="label">单笔最大盈利</div>
+      <div class="value">+8.1%</div>
+      <div class="sub">T6 39.55→42.74</div>
+    </div>
+    <div class="tldr-item">
+      <div class="label">最大单笔回撤</div>
+      <div class="value">-5.0%</div>
+      <div class="sub">第7轮接回：43.63→45.80</div>
+    </div>
+  </div>
+</div>
+
+<!-- 当前盘口快照 -->
+<div class="card">
+  <h3>当前盘口 (2026-07-03 09:26 集合竞价)</h3>
+  <div class="snapshot-grid">
+    <div class="snap-item" style="background:#fff0f0">
+      <div class="name"><b>标的A</b> (sz300418)</div>
+      <div class="price green">44.30</div>
+      <div class="change green">-2.74%</div>
+      <div style="font-size:12px;color:#999;margin-top:4px">昨收45.55 · 市值569亿</div>
+    </div>
+    <div class="snap-item" style="background:#fff0f0">
+      <div class="name"><b>标的B</b> (sz300058)</div>
+      <div class="price green">13.69</div>
+      <div class="change green">-3.79%</div>
+      <div style="font-size:12px;color:#999;margin-top:4px">昨收14.23 · 市值492亿</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;padding:12px 16px;background:#fff3e0;border-radius:6px;font-size:13px;color:#e65100">
+    <strong>信号识别：</strong>两个标的集合竞价均低开，标的A竞价换手0.23%偏低，标的B竞价换手0.18%。标的A昨日放量12%触发新闻突袭后，今日低开属正常获利回吐。标的B连续走弱，竞价空方主导。
+  </div>
+</div>
+
+<!-- T仓逐笔复盘 -->
+<div class="card">
+  <h3>T仓九轮逐笔复盘 (2026-07-02)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>轮次</th>
+        <th>买入价</th>
+        <th>卖出价</th>
+        <th>差价</th>
+        <th>收益率</th>
+        <th>特征标注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>T1</td><td>40.43</td><td>40.94</td><td>+0.51</td><td class="green">+1.3%</td><td><span class="tag tag-win">小肉</span></td></tr>
+      <tr><td>T2</td><td>40.99</td><td>41.29</td><td>+0.30</td><td class="green">+0.7%</td><td><span class="tag tag-win">微利</span></td></tr>
+      <tr><td>T3</td><td>40.86</td><td>41.17</td><td>+0.31</td><td class="green">+0.8%</td><td><span class="tag tag-win">微利</span></td></tr>
+      <tr><td>T4</td><td>40.74</td><td>41.60</td><td>+0.86</td><td class="green">+2.1%</td><td><span class="tag tag-win">标准</span></td></tr>
+      <tr style="background:#e8f5e9"><td>T5</td><td>39.65</td><td>42.74</td><td>+3.09</td><td class="green">+7.8%</td><td><span class="tag tag-win">大肉</span></td></tr>
+      <tr style="background:#e8f5e9"><td>T6</td><td>39.55</td><td>42.74</td><td>+3.19</td><td class="green">+8.1%</td><td><span class="tag tag-win">最大盈利</span></td></tr>
+      <tr><td>T7</td><td>42.18</td><td>43.63</td><td>+1.45</td><td class="green">+3.4%</td><td><span class="tag tag-win">中等肉</span></td></tr>
+      <tr><td>T8</td><td>45.80</td><td>46.23</td><td>+0.43</td><td class="green">+0.9%</td><td><span class="tag tag-warn">高位恐高</span></td></tr>
+      <tr><td>T9</td><td>45.21</td><td>45.77</td><td>+0.56</td><td class="green">+1.2%</td><td><span class="tag tag-warn">尾盘收束</span></td></tr>
+    </tbody>
+    <tfoot>
+      <tr style="font-weight:700;background:#f0f3f7">
+        <td>合计</td><td colspan="2">9笔全胜</td><td>+10.70</td><td class="green">+26.3%</td><td></td>
+      </tr>
+    </tfoot>
+  </table>
+  <div style="margin-top:16px">
+    <h4>卖出→接回视角 (10轮接回)</h4>
+    <table>
+      <thead>
+        <tr><th>轮次</th><th>卖出价</th><th>接回价</th><th>差价</th><th>收益率</th><th>标注</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>40.94</td><td>40.99</td><td>-0.05</td><td>-0.1%</td><td>几乎平接</td></tr>
+        <tr><td>2</td><td>41.29</td><td>40.86</td><td>+0.43</td><td>+1.0%</td><td>✅</td></tr>
+        <tr><td>3</td><td>41.17</td><td>40.74</td><td>+0.43</td><td>+1.0%</td><td>✅</td></tr>
+        <tr><td>4</td><td>41.60</td><td>39.65</td><td>+1.95</td><td>+4.7%</td><td>✅</td></tr>
+        <tr><td>5</td><td>42.74</td><td>39.55</td><td>+3.19</td><td>+7.5%</td><td>最成功接回</td></tr>
+        <tr><td>6</td><td>42.74</td><td>42.18</td><td>+0.56</td><td>+1.3%</td><td>✅</td></tr>
+        <tr class="bad-row"><td>7</td><td>43.63</td><td>45.80</td><td>-2.17</td><td>-5.0%</td><td>卖飞追回 ⚠️</td></tr>
+        <tr><td>8</td><td>46.23</td><td>45.21</td><td>+1.02</td><td>+2.2%</td><td>✅</td></tr>
+        <tr><td>9</td><td>45.77</td><td>45.05</td><td>+0.72</td><td>+1.6%</td><td>✅</td></tr>
+        <tr><td>10</td><td>45.77</td><td>45.28</td><td>+0.49</td><td>+1.1%</td><td>✅</td></tr>
+      </tbody>
+      <tfoot>
+        <tr style="font-weight:700;background:#f0f3f7">
+          <td>合计</td><td colspan="2">10轮接回</td><td>+7.57</td><td>+15.3%</td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- 可视化图表 -->
+<div class="card">
+  <h3>盈亏分布可视化</h3>
+  <div class="chart-box" id="pnl-chart"></div>
+</div>
+
+<!-- 行为诊断 -->
+<div class="card">
+  <h3>交易行为深度诊断</h3>
+
+  <h4>亮点</h4>
+  <div style="padding:12px;background:#e8f5e9;border-radius:6px;font-size:14px;margin-bottom:16px">
+    <p><strong>1. 盘中急跌时敢于接飞刀</strong> — T5/T6两笔大肉（+7.8%/+8.1%）均来自股价急跌至39.5元附近时果断买入，随后股价反弹至42.74卖出。这是全天最大利润来源，占T仓总利润的59%。</p>
+    <p style="margin-top:8px"><strong>2. 卖出纪律整体良好</strong> — 9笔卖出全部在买入价上方，没有止损卖出。说明买入点的判断精准，且卖出时心态稳健。</p>
+    <p style="margin-top:8px"><strong>3. 高频轮动保持手感</strong> — 一天内完成9轮T仓，换手节奏快，价差虽小但积少成多。T1-T4小肉微利期建立信心，T5-T6重拳出击。</p>
+  </div>
+
+  <h4>问题</h4>
+  <div style="padding:12px;background:#fce4ec;border-radius:6px;font-size:14px;margin-bottom:16px">
+    <p><strong>1. 新闻突袭应对失误 (第7轮)</strong> — 14:01 ARR 8亿美元新闻后，股价从42飙至46.89。你43.63卖出后被迫45.80追回（-5.0%）。如果14:01后暂停操作并查新闻，完全可以回避这次追高。这是全天唯一一笔卖飞，也是最大的"本不该亏的亏"。</p>
+    <p style="margin-top:8px"><strong>2. T8-T9高位畏手畏脚</strong> — 股价涨至45-46元高位后，价差缩小至0.43/0.56元，收益率降至0.9%/1.2%。说明心理上开始恐高，不敢在46元上方做较深的挂单。T8的买入价45.80几乎是全天次高位。</p>
+    <p style="margin-top:8px"><strong>3. 另一标的拖累</strong> — 蓝标两笔T仓亏损-3.8%和-5%（约），资金占用影响了主仓的T仓规模。记忆文件记载"北向-1.35亿+小单61%"说明竞价信号已有明显风险征兆，但未被充分重视。</p>
+  </div>
+
+  <h4>另一方声音</h4>
+  <div style="padding:14px 18px;background:#fff8e1;border-radius:6px;font-size:13px;color:#795548;margin-bottom:16px">
+    <strong>这 +26.3% 的含金量需要打折：</strong><br>
+    (1) T5/T6两笔就贡献了总利润的59%，这两笔的成功高度依赖股价盘中急跌→反弹的走势结构。如果当天没有这种深V形态，T仓收益率可能只有10%左右。<br>
+    (2) 9笔全胜≠每次都判断对——只是股价整体上行（收盘+12.19%）。单边上涨市场中做T，只要买入不追高、卖出不过早，不容易亏。<br>
+    (3) 第7轮的卖飞说明缺乏信息优势，在重大消息面前裸奔。
+  </div>
+</div>
+
+<!-- 标的A关键数据 -->
+<div class="card">
+  <h3>标的A 关键面一览</h3>
+  <div class="two-col">
+    <div>
+      <h4>昨日行情 (7/2)</h4>
+      <table>
+        <tr><td>收盘</td><td><b>45.55</b> (+12.19%)</td></tr>
+        <tr><td>最高/最低</td><td>46.89 / 39.36</td></tr>
+        <tr><td>振幅</td><td>18.55%</td></tr>
+        <tr><td>换手率</td><td>13.47%</td></tr>
+        <tr><td>成交额</td><td>67.59亿</td></tr>
+        <tr><td>主力净流入</td><td class="green">+8.67亿</td></tr>
+      </table>
+    </div>
+    <div>
+      <h4>今日开盘 (7/3 竞价)</h4>
+      <table>
+        <tr><td>开盘价</td><td><b>44.30</b> (-2.74%)</td></tr>
+        <tr><td>竞价换手</td><td>0.23%</td></tr>
+        <tr><td>竞价金额</td><td>1.17亿</td></tr>
+        <tr><td>5日涨幅</td><td class="green">+14.32%</td></tr>
+        <tr><td>20日涨幅</td><td class="green">+9.44%</td></tr>
+        <tr><td>年初至今</td><td class="red">+6.24%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h4>重大基本面变化 (7/2)</h4>
+  <div class="news-item">
+    <div class="news-date">2026-07-02 14:01</div>
+    <div class="news-title"><a href="http://gu.qq.com/resources/shy/news/detail-v2/index.html#/?id=nesSN20260702182258952e5d27&s=b" target="_blank">天工AI ARR突破8亿美元，股价午后直线拉升+12%</a></div>
+  </div>
+  <div class="news-item">
+    <div class="news-date">2026-07-02 15:08</div>
+    <div class="news-title"><a href="http://gu.qq.com/resources/shy/news/detail-v2/index.html#/?id=nesSN20260702150823987ef3e2&s=b" target="_blank">天工升级3.2版本，Skywork Tags功能让AI Agent接入工作群</a></div>
+  </div>
+  <div style="font-size:12px;color:#999;margin-top:12px">来源: 腾讯自选股, neodata-financial-search (2026-07-03)</div>
+</div>
+
+<!-- 标的B -->
+<div class="card">
+  <h3>标的B 持仓状态</h3>
+  <div class="two-col">
+    <div>
+      <table>
+        <tr><td>昨日收盘</td><td><b>14.23</b></td></tr>
+        <tr><td>今日竞价</td><td><b style="color:#e74c3c">13.69 (-3.79%)</b></td></tr>
+        <tr><td>20日表现</td><td class="green">-13.90%</td></tr>
+        <tr><td>技术面</td><td>MACD死叉，KDJ超卖区</td></tr>
+      </table>
+    </div>
+    <div>
+      <table>
+        <tr><td>市值</td><td>492亿</td></tr>
+        <tr><td>PE(TTM)</td><td>192.54 (亏损)</td></tr>
+        <tr><td>5日表现</td><td class="red">+2.09%</td></tr>
+        <tr><td>竞价资金</td><td>小额流入，方向不明</td></tr>
+      </table>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:12px;background:#ffebee;border-radius:6px;font-size:13px">
+    <strong>T仓教训：</strong>7/2竞价高开+放量≠吸筹，实际是北向-1.35亿+散户占61%的派发陷阱。两笔T仓均以亏损收场（-3.8%和约-5%）。20日均线14.59已破，技术面走弱。
+  </div>
+</div>
+
+<!-- T仓质量评估 -->
+<div class="card">
+  <h3>T仓质量评分卡</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>得分</th><th>评价</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>胜率</td><td class="green">A+</td>
+        <td>9/9全胜，历史级别</td>
+      </tr>
+      <tr>
+        <td>盈亏比</td><td class="green">A</td>
+        <td>单笔最高+8.1%，但卖飞一笔-5.0%拉低了卖出→接回的净效果</td>
+      </tr>
+      <tr>
+        <td>信息利用</td><td class="red" style="color:#c62828">C</td>
+        <td>ARR 8亿新闻发生时未查即卖飞，信息劣势明显</td>
+      </tr>
+      <tr>
+        <td>仓位管理</td><td class="green">B+</td>
+        <td>急跌敢于加仓，高位适度收缩，但蓝标占用资金拖累主仓</td>
+      </tr>
+      <tr>
+        <td>临场决策</td><td class="green">A-</td>
+        <td>除第7轮外，买卖点选择优秀，分时节奏把握到位</td>
+      </tr>
+      <tr>
+        <td>风险控制</td><td class="green">B</td>
+        <td>未设置硬止损线，全凭盘中判断。单边牛市没问题，弱势市场可能暴露缺陷</td>
+      </tr>
+      <tr style="font-weight:700;background:#f0f3f7">
+        <td>综合评分</td><td class="green">A-</td>
+        <td>优秀日交易员水平。信息是唯一拖后腿的短板</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 今日关注与建议 -->
+<div class="card">
+  <h3>今日盘前关注点 (2026-07-03)</h3>
+  <div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+    <div style="padding:12px 16px;background:#e3f2fd;border-radius:6px;border-left:3px solid #1565c0">
+      <strong>① 低开原因判定</strong> — 标的A竞价-2.74%低开，是获利回吐还是趋势转弱？关注开盘后30分钟内能否收回45.00以上。若迟迟不能翻红且放量，可能进入调整。
+    </div>
+    <div style="padding:12px 16px;background:#f3e5f5;border-radius:6px;border-left:3px solid #7b1fa2">
+      <strong>② 新闻监控拉满</strong> — 昨日ARR新闻后股价振幅18.55%，今日若有类似重大消息，必须第一时间查证后再操作。记住7/2的教训：卖飞一笔亏了所有下午T仓赚的钱。
+    </div>
+    <div style="padding:12px 16px;background:#fff3e0;border-radius:6px;border-left:3px solid #e65100">
+      <strong>③ 标的B是否继续持有</strong> — 标的B 20日跌-13.9%，今日竞价再跌-3.79%。如果开盘后跌破13.00（20日布林下轨），需重新评估是否继续占用T仓资金。
+    </div>
+    <div style="padding:12px 16px;background:#e8f5e9;border-radius:6px;border-left:3px solid #2e7d32">
+      <strong>④ T仓策略微调</strong> — 高位区间（44-46元）价差缩小，T仓需更精细。建议：挂单间距缩小（0.3-0.5元），不追高接回，有新闻先查再动手。
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;color:#999;font-size:12px;padding:20px 0">
+  数据来源: neodata-financial-search · 腾讯自选股 · 2026-07-03 09:26<br>
+  T仓数据来源: 盘中交易记录 · 单位: 人民币元 · 仅供参考不构成投资建议
+</div>
+
+</div>
+
+<script>
+(function(){
+var c = echarts.init(document.getElementById('pnl-chart'));
+
+// 9笔T仓盈亏柱状图
+var rounds = ['T1','T2','T3','T4','T5','T6','T7','T8','T9'];
+var absProfit = [0.51, 0.30, 0.31, 0.86, 3.09, 3.19, 1.45, 0.43, 0.56];
+var pctProfit = [1.3, 0.7, 0.8, 2.1, 7.8, 8.1, 3.4, 0.9, 1.2];
+
+c.setOption({
+  tooltip: {
+    trigger: 'axis',
+    formatter: function(params) {
+      var name = params[0].name;
+      var series0 = params[0];
+      return name + '<br/>差价: <b>+' + series0.value.toFixed(2) + '元</b>';
+    }
+  },
+  legend: { data: ['差价(元)', '收益率(%)'], top: 10 },
+  grid: { left: '8%', right: '8%', top: '18%', bottom: '8%' },
+  xAxis: { type: 'category', data: rounds, axisLabel: { fontSize: 13 } },
+  yAxis: [
+    {
+      type: 'value', name: '差价(元)',
+      axisLabel: { formatter: '{value}' },
+      splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+    },
+    {
+      type: 'value', name: '收益率(%)',
+      axisLabel: { formatter: '{value}%' },
+      splitLine: { show: false }
+    }
+  ],
+  series: [
+    {
+      name: '差价(元)',
+      type: 'bar',
+      data: absProfit.map(function(v, i) {
+        return { value: v, itemStyle: { color: v > 2 ? '#e74c3c' : '#f39c12' } };
+      }),
+      barWidth: '50%',
+      label: { show: true, position: 'top', formatter: '+{c}', fontSize: 12, color: '#e74c3c' }
+    },
+    {
+      name: '收益率(%)',
+      type: 'line',
+      yAxisIndex: 1,
+      data: pctProfit,
+      lineStyle: { color: '#667eea', width: 2 },
+      itemStyle: { color: '#667eea' },
+      symbol: 'circle',
+      symbolSize: 8,
+      label: { show: true, position: 'top', formatter: '+{c}%', fontSize: 11, color: '#667eea' }
+    }
+  ]
+});
+})();
+</script>
+</body>
+</html>

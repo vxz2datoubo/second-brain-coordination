@@ -1,0 +1,95 @@
+# ============================================================
+# 原子技能 · reference-image-division-of-labor
+# 来自纠正：2026-07-12 Shot 1 角色外观描述的冗余清理
+# ============================================================
+id: reference-image-division-of-labor
+version: "1.0"
+status: 已锁定
+created: 2026-07-12
+source_correction: "角色外观已由参考图确定，prompt 不应重复描述服装/发型"
+
+# ---------- 双环学习追踪 ----------
+default_assumption: "prompt 越详细越好，把所有视觉信息都写进去让 AI 更了解角色"
+corrected_assumption: "参考图负责身份（静态外观），文字负责动作（动态变化）。分工明确时生成质量最高。冗余的外观描述会与参考图竞争，稀释关键指令。"
+double_loop_scope: "泛化——适用于所有使用 reference_image 的 AI 视频/图片生成场景"
+# -----------------------------------
+
+# ------------------------------------------------------
+# 学术与行业依据
+# ------------------------------------------------------
+academic_basis:
+  - source: "AI 视频提示词工程 · DojoClip 指南"
+    key_point: "'图像负责身份，文字负责动作'——真正好的 Reference Images 提示词不是最长的，而是分工最清楚的"
+    ref: "dojoclip.com"
+
+  - source: "PixVerse AI 视频提示词指南 #1"
+    key_point: "Longer prompts produce worse output. The first sentence carries the most control, while later details can become weak suggestions that compete with each other."
+    ref: "pixverse.ai - 7 tested fixes"
+
+  - source: "Bresson 电影极简主义"
+    key_point: "'当一只小提琴足够的时候，就不要用两只'——不是通过加法来创造，而是通过减法"
+    ref: "Bresson 《电影书写摘记》"
+
+  - source: "HappyHorse AI · 角色一致性"
+    key_point: "不应重写的固定细节：如果参考图已定义了角色的外观，每次 prompt 都要避免重新描述它。prompt 漂移是真实存在的。"
+
+# ------------------------------------------------------
+# 何时触发
+# ------------------------------------------------------
+triggers:
+  - scene_type: "使用 reference_image 进行 AI 生成的任何场景"
+    conditions:
+      - ShotManifest 中存在 character_concepts
+      - character_concepts 的 material 字段包含服装/发型/面部特征描述
+
+  - scene_type: "prompt 中的角色外观描述超过 15 个词"
+    conditions:
+      - 提示：参考图已覆盖这些信息，砍掉
+
+# ------------------------------------------------------
+# 核心原则
+# ------------------------------------------------------
+principle: >
+  在 AI 视频生成中（即梦 / Seedance 2.0，使用 reference_image 模式）：
+  参考图 = 身份锚点（脸、体型、服装、发型）→ 不要在 prompt 里重复
+  文字 prompt = 仅描述本镜头的变化（表情、动作、站位、灯光、光影、镜头运动）
+  例外：角色身上有叙事功能的细节可以用 material 标注
+  （如奥兹的指节突出 → 表明他是打手/做脏活的）
+
+# ------------------------------------------------------
+# 应用规则
+# ------------------------------------------------------
+rules:
+  diagnose:
+    question: "这个外观细节，参考图里能看出来吗？"
+    if_yes: "砍掉。参考图已覆盖。"
+    if_no: "追问：这个细节有叙事功能吗？"
+    if_narrative_function: "保留。用一句话标注原因（'表明他是打手'）。"
+    if_no_narrative_function: "砍掉。不需要在 prompt 里加。"
+
+  apply:
+    - step: "读 ShotManifest → 找 character_concepts → material 字段"
+    - step: "每一条 material 问：参考图能看到吗？→ 能 → 删"
+    - step: "剩下的问：这条有叙事功能吗？→ 没有 → 删"
+    - step: "最终保留的 material 必须附一句 narrative_reason"
+
+  counter_example: "不要做的事：在 prompt 里写'穿深色皮革外套磨损边缘、乱发油腻'。参考图已经告诉 AI 角色长什么样了。这些词只会跟参考图竞争，让模型困惑。"
+
+# ------------------------------------------------------
+# 测试案例
+# ------------------------------------------------------
+examples:
+  wrong:
+    shot: "Shot 1 凯姆"
+    description: "凯姆:深色皮革外套磨损边缘、乱发油腻质感、数日未刮的胡茬"
+    problem: "参考图已定义凯姆的外表。这些描述是冗余的，和参考图竞争，稀释了镜头运动的指令。"
+
+  correct:
+    shot: "Shot 1 凯姆"
+    description: "凯姆:腰间的空皮套——此行不需要带武器"
+    reasoning: "皮套是动作信息（他没带武器），不是外观信息。而且参考图不一定拍到腰间的这个细节。"
+
+  correct_2:
+    shot: "Shot 1 奥兹"
+    description: "奥兹:宽大手掌指节突出，指关节有旧伤——常年做打手类脏活"
+    reasoning: "手指的特征有叙事功能——告诉观众这个人的职业本质。即使参考图有手，提示词强调一下能确保 AI 不会忽略这个关键叙事元素。"

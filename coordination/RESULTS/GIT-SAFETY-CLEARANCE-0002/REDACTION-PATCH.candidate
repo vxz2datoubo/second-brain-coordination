@@ -1,0 +1,51 @@
+--- a/core/tushare_bridge.py
++++ b/core/tushare_bridge.py
+@@
+-    BASE_URL = "https://ts.gyzcloud.top/api"
+-    TOKEN = "<REDACTED_REAL_SECRET>"
++    BASE_URL = os.environ.get("TUSHARE_PROXY_BASE_URL", "https://ts.gyzcloud.top/api")
++    TOKEN = os.environ.get("TUSHARE_TOKEN", "")
+@@
+-    def __init__(self, token=None):
+-        self.token = token or self.TOKEN
++    def __init__(self, token=None):
++        self.token = token or self.TOKEN
++        if not self.token:
++            raise RuntimeError("Tushare token missing. Set TUSHARE_TOKEN or pass token explicitly.")
+
+--- a/core/qclaw.py
++++ b/core/qclaw.py
+@@
+-FALLBACK_TOKEN = "<REDACTED_REAL_SECRET>"
++FALLBACK_TOKEN = os.environ.get("QCLAW_GATEWAY_TOKEN", "")
+@@
+-    return FALLBACK_TOKEN
++    if FALLBACK_TOKEN:
++        return FALLBACK_TOKEN
++    raise RuntimeError(
++        "QClaw token missing. Provide qclaw.json, openclaw.json, or QCLAW_GATEWAY_TOKEN."
++    )
+
+--- a/daytrade_system/live/tdx_mcp_client.py
++++ b/daytrade_system/live/tdx_mcp_client.py
+@@
+-OAUTH_TOKEN = "<REDACTED_REAL_SECRET>"
++OAUTH_TOKEN = os.environ.get("WORKBUDDY_TDX_TOKEN", "")
+@@
+-    def __init__(self, base_url: str = TDX_MCP_URL, token: str = OAUTH_TOKEN):
++    def __init__(self, base_url: str = TDX_MCP_URL, token: str = OAUTH_TOKEN):
+         self.base_url = base_url
+         self.token = token
++        if not self.token:
++            raise RuntimeError("TDX MCP token missing. Set WORKBUDDY_TDX_TOKEN or pass token explicitly.")
+
+--- a/mcp/tdx_live_bridge.py
++++ b/mcp/tdx_live_bridge.py
+@@
+-    return os.environ.get("WORKBUDDY_TDX_TOKEN", "<REDACTED_REAL_SECRET>")
++    return os.environ.get("WORKBUDDY_TDX_TOKEN", "")
+@@
+-TOKEN = _load_token()
++TOKEN = _load_token()
++if not TOKEN:
++    raise RuntimeError("WORKBUDDY_TDX_TOKEN missing. Refusing to start with no token.")

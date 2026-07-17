@@ -1,0 +1,195 @@
+{
+  "version": "2026-06-21.v1",
+  "architecture_name": "maibot-inner-brain-phase1",
+  "status": "approved_for_build",
+  "single_subject": "MaiBot",
+  "deployment_mode": "single-host-monolith-with-internal-brains",
+  "current_knowledge_strategy": "internal_only",
+  "future_migration_strategy": "export-clean-reingest-to-external-brain",
+  "stores": [
+    {
+      "name": "A_Memorix",
+      "role": "relationship_memory",
+      "owns": [
+        "user_preferences",
+        "person_profiles",
+        "relationship_state",
+        "chat_summaries",
+        "episodes",
+        "emotional_afterglow",
+        "relationship_temperature"
+      ],
+      "must_not_own": [
+        "decision_lessons_master",
+        "cross_task_knowledge_master",
+        "task_execution_state"
+      ]
+    },
+    {
+      "name": "InnerBrainStore",
+      "role": "knowledge_and_decision_basis",
+      "owns": [
+        "topic_knowledge",
+        "rules",
+        "lessons",
+        "red_lines",
+        "task_postmortems",
+        "high_value_execution_results",
+        "reusable_methodology"
+      ],
+      "must_not_own": [
+        "relationship_memory",
+        "chat_companion_memory",
+        "task_runtime_state"
+      ]
+    },
+    {
+      "name": "TaskLedger",
+      "role": "task_process_and_status",
+      "owns": [
+        "task_id",
+        "task_type",
+        "plan",
+        "tool_calls",
+        "intermediate_results",
+        "final_results",
+        "completion_status",
+        "reminder_status"
+      ],
+      "must_not_own": [
+        "relationship_memory",
+        "topic_knowledge_master"
+      ]
+    }
+  ],
+  "brains": [
+    {
+      "name": "CompanionBrain",
+      "responsibilities": [
+        "persona_stability",
+        "reply_style",
+        "emotional_continuity",
+        "relationship_expression",
+        "live2d_state_mapping",
+        "rumination_followup"
+      ]
+    },
+    {
+      "name": "DecisionBrain",
+      "responsibilities": [
+        "request_classification",
+        "risk_judgement",
+        "brain_lookup_decision",
+        "qclaw_dispatch_decision",
+        "workbuddy_codex_dispatch_decision",
+        "execution_permission"
+      ]
+    },
+    {
+      "name": "InnerBrain",
+      "responsibilities": [
+        "knowledge_storage",
+        "lesson_lookup",
+        "rule_lookup",
+        "knowledge_digest",
+        "decision_support"
+      ]
+    },
+    {
+      "name": "MemoryRouter",
+      "responsibilities": [
+        "route_relationship_data_to_amemorix",
+        "route_knowledge_data_to_innerbrainstore",
+        "route_task_data_to_taskledger"
+      ]
+    },
+    {
+      "name": "TaskOrchestrator",
+      "responsibilities": [
+        "multi_step_task_execution",
+        "qclaw_invocation",
+        "workbuddy_codex_invocation",
+        "task_tracking",
+        "task_result_return"
+      ]
+    },
+    {
+      "name": "ReminderCenter",
+      "responsibilities": [
+        "completion_reminder",
+        "timeout_reminder",
+        "followup_reminder",
+        "qq_live2d_wechat_push"
+      ]
+    }
+  ],
+  "tool_roles": {
+    "QClaw": {
+      "role": "compute_coprocessor",
+      "allowed": [
+        "long_text_summary",
+        "multi_candidate_generation",
+        "style_polish",
+        "heavy_text_reasoning",
+        "complex_analysis"
+      ],
+      "forbidden": [
+        "final_decision",
+        "file_fact_assertion",
+        "real_file_modification",
+        "persona_control"
+      ]
+    },
+    "WorkBuddy": {
+      "role": "execution_layer",
+      "allowed": [
+        "code_modification",
+        "file_operations",
+        "automation_flows",
+        "tool_integration",
+        "complex_execution"
+      ],
+      "forbidden": [
+        "becoming_primary_subject",
+        "overriding_architecture",
+        "mixing_persona_logic_into_execution"
+      ]
+    },
+    "Codex": {
+      "role": "architecture_guard_and_implementation_agent",
+      "allowed": [
+        "code_modification",
+        "boundary_enforcement",
+        "result_validation",
+        "refactor_under_architecture_rules"
+      ]
+    }
+  },
+  "api_contract": [
+    "brain_search(query, top_k, scope)",
+    "brain_consult(topic, risk_level)",
+    "brain_digest(text, title, source, kind)",
+    "brain_read(node_id, relation_depth)",
+    "brain_export(filter, format)"
+  ],
+  "absolute_rules": [
+    "MaiBot is the only user-facing subject",
+    "Do not create dual writable main knowledge stores",
+    "Do not bypass DecisionBrain for complex execution",
+    "Do not mix relationship memory and knowledge memory",
+    "QClaw is never the primary persona",
+    "WorkBuddy/Codex are never the primary persona"
+  ],
+  "phase_order": [
+    "P0_architecture_and_boundaries",
+    "P1_inner_brain_store_and_brain_api",
+    "P2_task_ledger_and_tool_dispatch",
+    "P3_reminder_center_and_channel_push",
+    "P4_export_and_future_migration"
+  ],
+  "read_first_files": [
+    "F:/ai/qclaw-output/maibot-内置知识脑一期总架构-2026-06-21.md",
+    "F:/ai/qclaw-output/maibot-协作代理接力指令-2026-06-21.md",
+    "F:/ai/qclaw-output/maibot-协作架构清单-2026-06-21.json"
+  ]
+}

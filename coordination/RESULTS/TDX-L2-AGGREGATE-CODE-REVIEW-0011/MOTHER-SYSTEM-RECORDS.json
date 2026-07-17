@@ -1,0 +1,482 @@
+{
+  "tdx_l2_aggregate_exhaust": {
+    "skill_registry_entries": [
+      {
+        "capability_type": "realtime_data_governance",
+        "conflict_count": 0,
+        "created_at": "2026-07-16T13:39:25+00:00",
+        "domain": "trading",
+        "evidence_level": "runtime_verified_aggregate",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "skill_dbf271470f3772",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "blocked_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "normalizer": "brain_core.realtime_l2_aggregate.normalize_tdx_l2_aggregate_payload",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010",
+          "verified_capabilities": [
+            "FIVE_LEVEL_SNAPSHOT",
+            "L2_AGGREGATE",
+            "UPDATE_TRIGGER_COMPATIBLE"
+          ]
+        },
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.76,
+        "skill_name": "trading.tdx_l2_aggregate_exhaust_v0_1",
+        "source_reliability": 0.84,
+        "status": "Experimental",
+        "validation_status": "aggregate_semantics_registered",
+        "version": "v0.1"
+      }
+    ],
+    "module_status_records": [
+      {
+        "conflict_count": 0,
+        "created_at": "2026-07-16T13:39:25+00:00",
+        "dependencies": [
+          "brain_core/realtime_l2_aggregate.py",
+          "brain_core/foundation_data_governance.py"
+        ],
+        "domain": "trading",
+        "evidence_level": "runtime_verified_aggregate",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "mod_dbf271470f3772",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "blocked_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "normalizer": "brain_core.realtime_l2_aggregate.normalize_tdx_l2_aggregate_payload",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010",
+          "verified_capabilities": [
+            "FIVE_LEVEL_SNAPSHOT",
+            "L2_AGGREGATE",
+            "UPDATE_TRIGGER_COMPATIBLE"
+          ]
+        },
+        "module_name": "tdx_l2_aggregate_exhaust_v0_1",
+        "out_of_sample_result": "not_run",
+        "quality_action": "keep",
+        "quality_score": 0.76,
+        "source_reliability": 0.84,
+        "status": "Experimental",
+        "summary": "TDX/TdxQuant L2 aggregate semantics are registered as governed research evidence; raw ticks/orders remain blocked.",
+        "validation_status": "aggregate_semantics_registered"
+      }
+    ],
+    "bulletin_state_records": [
+      {
+        "bulletin_path": "F:\\aidanao\\bulletin\\super-second-brain-v01-board.md",
+        "completed": [
+          "TDX L2 aggregate governance normalizer registered"
+        ],
+        "conflict_count": 0,
+        "created_at": "2026-07-16T13:39:25+00:00",
+        "evidence_level": "runtime_verified_aggregate",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "bstate_0fb6ec04a57048",
+        "implementation_status": "Implemented",
+        "in_progress": [
+          "broker low-cost market-data entitlement collection",
+          "public crawler auxiliary evidence policy enforcement"
+        ],
+        "metadata": {
+          "blocked_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "event_type": "tdx_l2_aggregate_exhaust_registered",
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "module_name": "tdx_l2_aggregate_exhaust_v0_1",
+          "normalizer": "brain_core.realtime_l2_aggregate.normalize_tdx_l2_aggregate_payload",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010",
+          "verified_capabilities": [
+            "FIVE_LEVEL_SNAPSHOT",
+            "L2_AGGREGATE",
+            "UPDATE_TRIGGER_COMPATIBLE"
+          ]
+        },
+        "next_step": "WorkBuddy should return broker answers and real post-upgrade payload packs for schema validation.",
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.76,
+        "recent_event": "tdx_l2_aggregate_exhaust_registered",
+        "source_reliability": 0.84,
+        "state_status": "in_progress",
+        "status": "Experimental",
+        "summary": "Registered TDX five-level snapshot + 13 L2 aggregate fields as governed research evidence; crawlers are auxiliary only.",
+        "validation_status": "aggregate_semantics_registered"
+      }
+    ],
+    "evolution_logs": [
+      {
+        "affected_ids": [
+          "skill_dbf271470f3772",
+          "mod_dbf271470f3772",
+          "bstate_0fb6ec04a57048"
+        ],
+        "applied": true,
+        "change_type": "realtime_data_governance",
+        "created_at": "2026-07-16T13:39:25+00:00",
+        "id": "evo_fad7c16326a042",
+        "metadata": {},
+        "metrics": {
+          "live_trading_enabled": false,
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "verified_aggregate_field_count": 13
+        },
+        "observation": "Registered existing TDX/TdxQuant L2 aggregate capability as governed research evidence and demoted public crawlers to auxiliary evidence only.",
+        "proposed_update": "Use broker-authorized market data as the next promotion route; keep raw tick/order claims blocked until evidence proves them.",
+        "trigger": "tdx_l2_aggregate_exhaust_registered"
+      }
+    ]
+  },
+  "broker_low_cost_market_data_outreach_pack": {
+    "skill_registry_entries": [
+      {
+        "capability_type": "broker_permission_collection",
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:02:39+00:00",
+        "domain": "trading",
+        "evidence_level": "workflow_template",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "skill_956e0dcdb1a65d",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "outreach_files": [
+            "BROKER-OUTREACH-MESSAGE.md",
+            "BROKER-RESPONSE-SCHEMA.json",
+            "BROKER-ROUTE-SCORECARD.csv"
+          ],
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "target_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.72,
+        "skill_name": "trading.broker_low_cost_market_data_outreach_pack_v0_1",
+        "source_reliability": 0.78,
+        "status": "Interface",
+        "validation_status": "ready_for_workbuddy_outreach",
+        "version": "v0.1"
+      }
+    ],
+    "module_status_records": [
+      {
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:02:39+00:00",
+        "dependencies": [
+          "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        ],
+        "domain": "trading",
+        "evidence_level": "workflow_template",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "mod_956e0dcdb1a65d",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "outreach_files": [
+            "BROKER-OUTREACH-MESSAGE.md",
+            "BROKER-RESPONSE-SCHEMA.json",
+            "BROKER-ROUTE-SCORECARD.csv"
+          ],
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "target_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "module_name": "broker_low_cost_market_data_outreach_pack_v0_1",
+        "out_of_sample_result": "not_run",
+        "quality_action": "keep",
+        "quality_score": 0.72,
+        "source_reliability": 0.78,
+        "status": "Interface",
+        "summary": "Broker outreach templates and response schema are ready for collecting legal low-cost A-share L2 market-data entitlements.",
+        "validation_status": "ready_for_workbuddy_outreach"
+      }
+    ],
+    "bulletin_state_records": [
+      {
+        "bulletin_path": "F:\\aidanao\\bulletin\\super-second-brain-v01-board.md",
+        "completed": [
+          "Broker low-cost market data outreach pack ready"
+        ],
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:02:39+00:00",
+        "evidence_level": "workflow_template",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "bstate_af1e0bd1459944",
+        "implementation_status": "Implemented",
+        "in_progress": [
+          "Await WorkBuddy broker replies and evidence files"
+        ],
+        "metadata": {
+          "event_type": "broker_low_cost_market_data_outreach_pack_ready",
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "module_name": "broker_low_cost_market_data_outreach_pack_v0_1",
+          "outreach_files": [
+            "BROKER-OUTREACH-MESSAGE.md",
+            "BROKER-RESPONSE-SCHEMA.json",
+            "BROKER-ROUTE-SCORECARD.csv"
+          ],
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "target_capabilities": [
+            "TEN_LEVEL_SNAPSHOT",
+            "RAW_TRADE_TICK",
+            "RAW_ORDER_EVENT",
+            "ORDER_QUEUE",
+            "CANCEL_EVENT",
+            "AUCTION_TRAJECTORY"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "next_step": "Fill BROKER-RESPONSE-SCHEMA.json per broker and attach field docs/sample payloads for Codex validation.",
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.72,
+        "recent_event": "broker_low_cost_market_data_outreach_pack_ready",
+        "source_reliability": 0.78,
+        "state_status": "in_progress",
+        "status": "Interface",
+        "summary": "Prepared broker outreach message, response schema, and scorecard for legal low-cost A-share L2 data permission collection.",
+        "validation_status": "ready_for_workbuddy_outreach"
+      }
+    ],
+    "evolution_logs": [
+      {
+        "affected_ids": [
+          "skill_956e0dcdb1a65d",
+          "mod_956e0dcdb1a65d",
+          "bstate_af1e0bd1459944"
+        ],
+        "applied": true,
+        "change_type": "broker_permission_collection",
+        "created_at": "2026-07-16T14:02:40+00:00",
+        "id": "evo_578ee8cc042d43",
+        "metadata": {},
+        "metrics": {
+          "outreach_file_count": 3,
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "target_capability_count": 6
+        },
+        "observation": "Prepared executable broker outreach and response templates to request legal low-cost A-share quant market-data entitlements.",
+        "proposed_update": "WorkBuddy should collect broker answers using the schema before Codex promotes any route beyond L2 aggregate or auxiliary evidence.",
+        "trigger": "broker_low_cost_market_data_outreach_pack_ready"
+      }
+    ]
+  },
+  "broker_market_data_reply_classifier": {
+    "skill_registry_entries": [
+      {
+        "capability_type": "broker_reply_classification",
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:08:26+00:00",
+        "domain": "trading",
+        "evidence_level": "tested_classifier",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "skill_1ea0d68141c1d2",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "function": "classify_broker_market_data_response",
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "module": "brain_core.realtime_l2_aggregate",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_codex_runtime_validation_for_raw_l2": true,
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "route_statuses": [
+            "insufficient",
+            "needs_review",
+            "raw_l2_candidate_needs_runtime_probe",
+            "blocked"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.78,
+        "skill_name": "trading.broker_market_data_reply_classifier_v0_1",
+        "source_reliability": 0.8,
+        "status": "Experimental",
+        "validation_status": "tested",
+        "version": "v0.1"
+      }
+    ],
+    "module_status_records": [
+      {
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:08:26+00:00",
+        "dependencies": [
+          "brain_core/realtime_l2_aggregate.py",
+          "tests/test_realtime_l2_aggregate.py"
+        ],
+        "domain": "trading",
+        "evidence_level": "tested_classifier",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "mod_1ea0d68141c1d2",
+        "implementation_status": "Implemented",
+        "metadata": {
+          "function": "classify_broker_market_data_response",
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "module": "brain_core.realtime_l2_aggregate",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_codex_runtime_validation_for_raw_l2": true,
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "route_statuses": [
+            "insufficient",
+            "needs_review",
+            "raw_l2_candidate_needs_runtime_probe",
+            "blocked"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "module_name": "broker_market_data_reply_classifier_v0_1",
+        "out_of_sample_result": "not_run",
+        "quality_action": "keep",
+        "quality_score": 0.78,
+        "source_reliability": 0.8,
+        "status": "Experimental",
+        "summary": "Broker market-data replies can now be classified into insufficient, needs_review, raw_l2_candidate_needs_runtime_probe, or blocked.",
+        "validation_status": "tested"
+      }
+    ],
+    "bulletin_state_records": [
+      {
+        "bulletin_path": "F:\\aidanao\\bulletin\\super-second-brain-v01-board.md",
+        "completed": [
+          "Broker market data reply classifier ready"
+        ],
+        "conflict_count": 0,
+        "created_at": "2026-07-16T14:08:26+00:00",
+        "evidence_level": "tested_classifier",
+        "failure_count": 0,
+        "freshness": 1.0,
+        "human_reviewed": false,
+        "id": "bstate_eaa52784b8be42",
+        "implementation_status": "Implemented",
+        "in_progress": [
+          "Await WorkBuddy broker replies and sample payload packs"
+        ],
+        "metadata": {
+          "event_type": "broker_market_data_reply_classifier_ready",
+          "function": "classify_broker_market_data_response",
+          "live_trading_enabled": false,
+          "market": "CN-A",
+          "module": "brain_core.realtime_l2_aggregate",
+          "module_name": "broker_market_data_reply_classifier_v0_1",
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "requires_codex_runtime_validation_for_raw_l2": true,
+          "requires_workbuddy_broker_reply": true,
+          "research_only": true,
+          "route_statuses": [
+            "insufficient",
+            "needs_review",
+            "raw_l2_candidate_needs_runtime_probe",
+            "blocked"
+          ],
+          "task_dir": "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010"
+        },
+        "next_step": "Classify each broker reply; only raw_l2_candidate_needs_runtime_probe may advance to read-only runtime probe planning.",
+        "out_of_sample_result": "not_run",
+        "quality_score": 0.78,
+        "recent_event": "broker_market_data_reply_classifier_ready",
+        "source_reliability": 0.8,
+        "state_status": "in_progress",
+        "status": "Experimental",
+        "summary": "Added tested classifier for broker low-cost market-data replies while preserving research-only/no-trade governance.",
+        "validation_status": "tested"
+      }
+    ],
+    "evolution_logs": [
+      {
+        "affected_ids": [
+          "skill_1ea0d68141c1d2",
+          "mod_1ea0d68141c1d2",
+          "bstate_eaa52784b8be42"
+        ],
+        "applied": true,
+        "change_type": "broker_permission_collection",
+        "created_at": "2026-07-16T14:08:26+00:00",
+        "id": "evo_5cb632a1b36d41",
+        "metadata": {},
+        "metrics": {
+          "public_crawler_role": "auxiliary_crosscheck_only",
+          "research_only": true,
+          "route_status_count": 4,
+          "tests_passed": true
+        },
+        "observation": "Added a tested classifier for WorkBuddy-filled broker market-data replies, keeping raw L2 promotion blocked until docs, samples, timestamps, and license terms are verified.",
+        "proposed_update": "Use classifier output before any broker route is allowed to advance beyond L2 aggregate or auxiliary evidence status.",
+        "trigger": "broker_market_data_reply_classifier_ready"
+      }
+    ]
+  }
+}

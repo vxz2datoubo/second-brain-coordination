@@ -1,0 +1,83 @@
+# strategy_parameters.yaml — 策略参数配置（候选版本）
+# 来源: 旧版 AGENTS.md v2026-07-05
+
+position_allocation:
+  kunlun_300418:
+    value: 0.60
+    unit: ratio
+    description: "昆仑万维仓位优先级权重"
+    effective_from: "2026-07-05"
+    source: "AGENTS.md v2026-07-05"
+    approved_by: user
+    status: candidate
+    last_validated_at: "2026-07-16"
+
+  bluefocus_300058:
+    value: 0.40
+    unit: ratio
+    description: "蓝色光标仓位优先级权重"
+    effective_from: "2026-07-05"
+    source: "AGENTS.md v2026-07-05"
+    approved_by: user
+    status: candidate
+    last_validated_at: "2026-07-16"
+
+confidence_levels:
+  A_plus_plus:
+    threshold: 90
+    unit: score
+    action: "立即执行，限1笔/天"
+  A:
+    threshold: 75
+    unit: score
+    action: "正常执行，等回调0.3%"
+  B:
+    threshold: 60
+    unit: score
+    action: "可执行，限额1笔/天"
+  C:
+    threshold: 45
+    unit: score
+    action: "仅备选，谨慎执行"
+  D:
+    threshold: 0
+    unit: score
+    action: "不执行"
+
+t_strategy:
+  inverted_t_priority:
+    value: true
+    description: "倒T优先：先卖后买"
+    effective_from: "2026-07-05"
+    source: "AGENTS.md v2026-07-05"
+    approved_by: user
+    status: candidate
+  forward_t_caution:
+    threshold:
+      value: 40
+      unit: buy_score
+      description: "正T仅buy_score>阈值时考虑"
+      note: "buy_score定义需进一步量化"
+    status: candidate_pending_definition
+  sell_fly_handle:
+    description: "卖飞处理：等回落1%再追回"
+    reentry_drop: 0.01
+    unit: ratio
+    status: candidate_pending_validation
+
+market_states:
+  # ⚠️ 分类算法未量化定义，为经验参考
+  TREND_UP:
+    strategy: "减少做T"
+  TREND_DOWN:
+    strategy: "倒T为主"
+  HIGH_VOL_RANGE:
+    strategy: "做T黄金期"
+  LOW_VOL_RANGE:
+    strategy: "减少操作"
+  EXTREME:
+    strategy: "全天停止"
+  note: "各状态量化定义待实现"
+
+# status: candidate
+# last_updated: 2026-07-16

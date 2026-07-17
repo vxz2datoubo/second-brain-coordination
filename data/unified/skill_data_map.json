@@ -1,0 +1,210 @@
+{
+  "volume-profile-chip": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "frequency": "daily",
+    "description": "Volume Profile + 筹码分布——需要日K和资金流数据"
+  },
+  "vwap-analyzer": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [],
+    "frequency": "intraday",
+    "description": "VWAP/AVWAP分析——需要日K（做锚定）和盘中实时价"
+  },
+  "anchoring-detection": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "frequency": "daily",
+    "description": "散户锚定检测——需要日K和资金流对比"
+  },
+  "t1-lockup-tracking": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "frequency": "daily",
+    "description": "T+1锁仓追踪——需要日K+换手率+资金流"
+  },
+  "market-perception": {
+    "required": [
+      "index_000001_daily",
+      "index_000300_daily"
+    ],
+    "optional": [
+      "concept_flow",
+      "industry_flow",
+      "ths_hot_concept",
+      "ths_hot_industry"
+    ],
+    "frequency": "daily",
+    "description": "全局盘面感知——需要指数数据+板块数据"
+  },
+  "market-context": {
+    "required": [
+      "index_000001_daily",
+      "index_000300_daily",
+      "index_399006_daily"
+    ],
+    "optional": [
+      "concept_flow",
+      "ths_hot_concept"
+    ],
+    "frequency": "daily",
+    "description": "市场环境分析——需要三大指数+板块共振"
+  },
+  "market-panic-index": {
+    "required": [
+      "index_000001_daily",
+      "index_000300_daily"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "恐慌指数——需要大盘指数涨跌分布"
+  },
+  "money-flow-warfare": {
+    "required": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "optional": [
+      "concept_flow"
+    ],
+    "frequency": "daily",
+    "description": "资金博弈——需要个股+板块资金流"
+  },
+  "money-flow-divergence": {
+    "required": [
+      "300418_daily",
+      "300418_moneyflow"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "资金流背离——需要日K+资金流对比"
+  },
+  "fund-pool-tracker": {
+    "required": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "资金池追踪——需要四渠道资金流数据"
+  },
+  "cause-effect-projection": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "威科夫因果法则——需要日K计算横盘区间"
+  },
+  "supply-test": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [
+      "300418_moneyflow",
+      "300058_moneyflow"
+    ],
+    "frequency": "daily",
+    "description": "供应测试——需要日K+量价关系"
+  },
+  "phase-c-d-transition": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "C-D阶段转换——需要日K识别结构转换"
+  },
+  "sector-flow-radar": {
+    "required": [
+      "concept_flow",
+      "industry_flow"
+    ],
+    "optional": [
+      "ths_hot_concept",
+      "ths_hot_industry"
+    ],
+    "frequency": "daily",
+    "description": "板块资金雷达——需要全市场板块资金流"
+  },
+  "sector-rotation-detection": {
+    "required": [
+      "concept_flow",
+      "industry_flow"
+    ],
+    "optional": [
+      "ths_hot_concept"
+    ],
+    "frequency": "daily",
+    "description": "板块轮动检测——需要板块资金流+热度排行"
+  },
+  "cross-stock-scanner": {
+    "required": [
+      "300418_daily",
+      "300058_daily"
+    ],
+    "optional": [],
+    "frequency": "daily",
+    "description": "全市场对标扫描——需要持仓标的数据做基准"
+  },
+  "high-value-alert": {
+    "required": [],
+    "optional": [],
+    "frequency": "realtime",
+    "description": "高价值消息预警——主要依赖WeStock MCP实时查询"
+  },
+  "news-catalyst-monitor": {
+    "required": [],
+    "optional": [],
+    "frequency": "realtime",
+    "description": "新闻催化剂监控——依赖WeStock data_news"
+  },
+  "fundamental-quick-view": {
+    "required": [
+      "300418_fina_indicator",
+      "300058_fina_indicator"
+    ],
+    "optional": [
+      "300418_share_float",
+      "300058_share_float"
+    ],
+    "frequency": "quarterly",
+    "description": "快速基本面——需要财务指标+流通股本"
+  },
+  "lockup-depth-analysis": {
+    "required": [
+      "300418_share_float",
+      "300058_share_float"
+    ],
+    "optional": [
+      "300418_fina_indicator",
+      "300058_fina_indicator"
+    ],
+    "frequency": "quarterly",
+    "description": "锁仓深度分析——需要股本结构+股东数据"
+  }
+}

@@ -1,0 +1,45 @@
+# STATUS.yaml — STOCKAPI-L2-RUNTIME-PREP-AND-LIVE-POC-0016
+
+task: STOCKAPI-L2-RUNTIME-PREP-AND-LIVE-POC-0016
+status: PHASE1_OFFLINE_PREP_COMPLETE
+phase: 离线准备完成，等待用户取得账号
+generated: 2026-07-17T02:55:00+08:00
+model: DeepSeek-V4-Pro (reasoning)
+executor: WorkBuddy (迪迪)
+
+account_obtained: false  # 用户尚未提供 StockAPI 账号
+credentials_exposed: false  # 未接触或泄露任何凭据
+unknown_binary_installed: false  # 未安装未知程序
+
+demo_1_reviewed: true  # test_demo.py = 参考骨架 (需P0修正)
+demo_2_reviewed: true  # test_demo (2)(1).py = 反例 (嵌套解析逻辑错误)
+environment_ready: true  # Python 3.13.14, 4.65TB free, 端口全部0占用
+
+p0_risks: 4  # 密码明文/无登录确认/缺Queue端口/反例解析错误
+p1_risks: 4  # 5秒重连/KICK后重连/无有界队列/无frame落盘
+p2_risks: 4  # 无HTTP回补/无monotonic/无local_seq/无connection_id
+
+next_phase: PHASE2_WITH_ACCOUNT  # 等待用户提供 StockAPI 账号
+live_poc_date: 2026-07-20  # 周一
+live_poc_stocks: [300418.SZ, 300058.SZ, 600519.SH, 510300.SH, 000001.SZ]
+
+outputs:
+  - ENVIRONMENT-BASELINE.md: done
+  - DEMO-RUNTIME-RISK-REVIEW.md: done
+  - SECRET-HANDLING-RECEIPT.md: done
+  - SERVER-DISCOVERY.json: pending (需要账号)
+  - CONNECTION-STATE-LOG.jsonl: pending (周一运行时)
+  - RAW-FRAMES/: pending
+  - NORMALIZED-SAMPLES/: pending
+  - MARKET-RUNTIME-RESULT.md: pending (周一)
+  - ORDER-RUNTIME-RESULT.md: pending (周一)
+  - TRAN-RUNTIME-RESULT.md: pending (周一)
+  - QUEUE-RUNTIME-RESULT.md: pending (周一)
+  - SEQUENCE-AND-GAP-ANALYSIS.md: pending (周一)
+  - HTTP-BACKFILL-RESULT.md: pending (周一)
+  - DATA-QUALITY-METRICS.json: pending (周一)
+  - CODEX-SANITIZED-SAMPLE-PACK/: pending (周一)
+  - CAPABILITY-EVIDENCE-MATRIX.md: pending (周一)
+  - SECURITY-RECEIPT.md: pending (周一)
+  - STATUS.yaml: done
+  - RUN-RECEIPT.md: pending

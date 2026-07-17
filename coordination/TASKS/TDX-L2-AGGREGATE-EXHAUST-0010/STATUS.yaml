@@ -1,0 +1,40 @@
+task_id: TDX-L2-AGGREGATE-EXHAUST-0010
+mode: implementation
+status: SUCCESS_WITH_FINDINGS
+created_at: "2026-07-16"
+scope:
+  - exploit_verified_tdx_l2_aggregate_fields
+  - prepare_low_cost_broker_permission_request
+  - prepare_broker_outreach_and_response_templates
+  - downgrade_public_crawlers_to_auxiliary_evidence
+no_live_trading: true
+no_account_or_order_api: true
+no_tdx_runtime_call: true
+code_changes:
+  - brain_core/realtime_l2_aggregate.py
+  - brain_core/foundation_data_governance.py
+tests:
+  - tests/test_realtime_l2_aggregate.py
+capability_boundary:
+  verified:
+    - FIVE_LEVEL_SNAPSHOT
+    - L2_AGGREGATE
+    - UPDATE_TRIGGER_COMPATIBLE
+  unverified:
+    - TEN_LEVEL_SNAPSHOT
+    - RAW_TRADE_TICK
+    - RAW_ORDER_EVENT
+    - ORDER_QUEUE
+    - CANCEL_EVENT
+    - AUCTION_TRAJECTORY
+public_crawler_role: auxiliary_crosscheck_only
+broker_outreach_pack:
+  - BROKER-OUTREACH-MESSAGE.md
+  - BROKER-RESPONSE-SCHEMA.json
+  - BROKER-ROUTE-SCORECARD.csv
+  - BROKER-RESPONSE-CLASSIFICATION.md
+broker_reply_classifier:
+  module: brain_core.realtime_l2_aggregate
+  function: classify_broker_market_data_response
+  status: Implemented
+  live_trading_enabled: false

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Aesthetic Preferences</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #fff;
+}
+h1 { font-size: 24px; margin-bottom: 10px; color: #4fc3f7; }
+.subtitle { font-size: 14px; color: #888; margin-bottom: 30px; }
+.chart-container {
+    width: 500px; max-width: 90vw;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px; padding: 30px;
+}
+</style>
+</head>
+<body>
+<h1>Aesthetic Preferences</h1>
+<div class="subtitle">Updated 2026-07-06 02:25</div>
+<div class="chart-container">
+<canvas id="radarChart"></canvas>
+</div>
+<script>
+const ctx = document.getElementById("radarChart").getContext("2d");
+new Chart(ctx, {
+    type: "radar",
+    data: {
+        labels: ["Person", "Style", "Scene", "Composition", "Atmosphere", "Details"],
+        datasets: [{
+            label: "Preferences",
+            data: [1.0, 1.0, 0.6666666666666666, 0.0, 0.0, 0.0],
+            backgroundColor: "rgba(79, 195, 247, 0.2)",
+            borderColor: "rgba(79, 195, 247, 1)",
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            r: {
+                beginAtZero: true, max: 1,
+                ticks: { stepSize: 0.2, color: "#888" },
+                grid: { color: "rgba(255,255,255,0.1)" },
+                angleLines: { color: "rgba(255,255,255,0.1)" },
+                pointLabels: { color: "#fff" }
+            }
+        },
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+</body>
+</html>
