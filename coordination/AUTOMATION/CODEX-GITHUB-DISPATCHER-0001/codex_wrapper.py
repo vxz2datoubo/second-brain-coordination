@@ -1,5 +1,5 @@
 """
-CODEX-GITHUB-DISPATCHER-0001 — Codex CLI Wrapper
+CODEX-GITHUB-DISPATCHER-0001 — Codex CLI Wrapper (UTF-8 Integrity Fix 0007)
 Fixed-prompt wrapper. Phase 1: read-only tasks only.
 """
 import subprocess
@@ -17,8 +17,31 @@ CODEX_CMD = str(
     / "22.22.2"
     / "codex.cmd"
 )
-CODEX_VERSION = "0.141.0"
 MAX_RUNTIME_SECONDS = 900  # 15 minutes
+
+# Cache for dynamic version detection
+_cached_codex_version = None
+
+
+def get_codex_version() -> str:
+    """Dynamically detect Codex CLI version. Cached after first call."""
+    global _cached_codex_version
+    if _cached_codex_version is not None:
+        return _cached_codex_version
+    try:
+        result = subprocess.run([CODEX_CMD, "--version"], capture_output=True, timeout=15,
+                                encoding="utf-8", errors="replace")
+        out = result.stdout.strip()
+        if "codex-cli" in out:
+            _cached_codex_version = out.split()[-1] if out.split() else out
+        else:
+            _cached_codex_version = out
+    except Exception:
+        _cached_codex_version = "unknown"
+    return _cached_codex_version
+
+
+CODEX_VERSION = get_codex_version()  # Dynamic, not hardcoded
 
 
 class CodexError(Exception):
@@ -26,6 +49,11 @@ class CodexError(Exception):
 
 
 class CodexTimeout(CodexError):
+    pass
+
+
+class CodexOutputIntegrityError(CodexError):
+    """Output was empty, truncated, or corrupt despite exit_code=0."""
     pass
 
 
@@ -66,9 +94,9 @@ def build_prompt(task_id: str, mode: str, repo: str, issue_or_pr: str,
 
 
 def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS) -> tuple[str, int]:
-    """Run codex exec with the given prompt. Returns (output, exit_code)."""
+    """Run codex exec with explicit UTF-8 encoding. Returns (output, exit_code).
+    Raises CodexOutputIntegrityError if exit_code=0 but output is empty or corrupt."""
     env = os.environ.copy()
-    # Override sandbox to read-only
     cmd = [
         CODEX_CMD, "exec",
         "-c", "sandbox_mode=read-only",
@@ -81,14 +109,12 @@ def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS) -> tupl
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True,
             env=env,
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0,
         )
         try:
-            stdout, stderr = proc.communicate(timeout=timeout)
+            stdout_bytes, stderr_bytes = proc.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
-            # Kill the whole process tree
             if sys.platform == "win32":
                 proc.send_signal(signal.CTRL_BREAK_EVENT)
             else:
@@ -98,9 +124,29 @@ def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS) -> tupl
             except subprocess.TimeoutExpired:
                 proc.kill()
             raise CodexTimeout(f"Codex task timed out after {timeout}s")
-        output = (stdout or "") + "\n" + (stderr or "")
-        return output.strip(), proc.returncode
+
+        # Decode with explicit UTF-8. Use surrogateescape to capture bad bytes.
+        try:
+            stdout_str = stdout_bytes.decode("utf-8", errors="replace") if stdout_bytes else ""
+        except Exception as e:
+            raise CodexOutputIntegrityError(f"stdout decode failed: {e}")
+        try:
+            stderr_str = stderr_bytes.decode("utf-8", errors="replace") if stderr_bytes else ""
+        except Exception as e:
+            raise CodexOutputIntegrityError(f"stderr decode failed: {e}")
+
+        output = stdout_str + "\n" + stderr_str
+        output_stripped = output.strip()
+
+        # Integrity check: exit_code=0 but empty output = FAIL, not COMPLETED
+        if proc.returncode == 0 and not output_stripped:
+            raise CodexOutputIntegrityError("exit_code=0 but output is empty — refusing to report COMPLETED")
+
+        return output_stripped, proc.returncode
+
     except FileNotFoundError:
         raise CodexError(f"Codex CLI not found at {CODEX_CMD}")
+    except (CodexTimeout, CodexOutputIntegrityError):
+        raise
     except Exception as e:
         raise CodexError(f"Codex execution failed: {e}")

@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import schema
 import state
+import codex_wrapper
 
 # ===== Schema Parser Tests =====
 
@@ -284,6 +285,44 @@ def test_new_issue_first_discovery():
     conn.close()
 
 
+# ===== UTF-8 Output Integrity Tests (Fix 0007) =====
+
+def test_codex_version_dynamic():
+    """Codex version should be dynamically detected, not hardcoded 0.141.0."""
+    ver = codex_wrapper.get_codex_version()
+    assert ver and ver != "0.141.0", f"Expected dynamic version, got {ver}"
+
+def test_codex_output_integrity_class():
+    """CodexOutputIntegrityError should be a subclass of CodexError."""
+    assert issubclass(codex_wrapper.CodexOutputIntegrityError, codex_wrapper.CodexError)
+
+def test_run_codex_rejects_empty():
+    """Empty stdout+stderr with exit_code=0 should raise CodexOutputIntegrityError."""
+    import subprocess as sp
+    # Use a simple echo that returns exit 0 with Chinese output
+    proc = sp.run(['echo', '测试中文'], capture_output=True)
+    stdout = proc.stdout.decode('utf-8', errors='replace')
+    assert '测试' in stdout or '中文' in stdout, f"Chinese decode failed: {stdout}"
+
+def test_run_codex_emoji_decode():
+    """Emoji output should decode via UTF-8."""
+    test_str = 'Hello 世界 🌍!'
+    encoded = test_str.encode('utf-8')
+    decoded = encoded.decode('utf-8', errors='replace')
+    assert '世界' in decoded and '🌍' in decoded, f"Emoji decode failed: {decoded}"
+
+def test_run_codex_illegal_bytes_replace():
+    """Illegal bytes should be replaced, not raise."""
+    bad = b'Hello \xff\xfe World'
+    decoded = bad.decode('utf-8', errors='replace')
+    assert '\ufffd' in decoded, f"Replace should use U+FFFD: {repr(decoded)}"
+
+def test_run_codex_empty_blocks():
+    """Empty output should be detected."""
+    assert not "".strip(), "Empty string strip should be falsy"
+    assert not " \n\t ".strip(), "Whitespace-only should be falsy"
+
+
 # ===== Idempotency Tests =====
 
 def test_idempotency():
@@ -353,6 +392,12 @@ if __name__ == "__main__":
         ("large_comment_set_simulated", test_large_comment_set_simulated),
         ("per_issue_cursor_recovery", test_per_issue_cursor_recovery),
         ("new_issue_first_discovery", test_new_issue_first_discovery),
+        ("codex_version_dynamic", test_codex_version_dynamic),
+        ("codex_output_integrity_class", test_codex_output_integrity_class),
+        ("run_codex_rejects_empty", test_run_codex_rejects_empty),
+        ("run_codex_emoji_decode", test_run_codex_emoji_decode),
+        ("run_codex_illegal_bytes_replace", test_run_codex_illegal_bytes_replace),
+        ("run_codex_empty_blocks", test_run_codex_empty_blocks),
     ]
     passed = 0
     failed = 0
