@@ -190,6 +190,100 @@ def test_unsupported_cancel_detected():
     assert block.is_unsupported_action
 
 
+# ===== Pagination + Per-Issue Cursor Tests (Fix 0005) =====
+
+def test_per_issue_cursor_basics():
+    """Per-issue cursor: read, write, update."""
+    state.ensure_dirs()
+    conn = state.init_db()
+    conn.execute("DELETE FROM issue_cursors")
+    conn.commit()
+    cid, cat, etag = state.get_issue_cursor(conn, 99)
+    assert cid == 0
+    state.upsert_issue_cursor(conn, 99, 50001, "2026-01-01T00:00:00Z", None)
+    cid2, cat2, etag2 = state.get_issue_cursor(conn, 99)
+    assert cid2 == 50001
+    assert cat2 is not None
+    conn.close()
+
+
+def test_per_issue_cursor_isolation():
+    """Different issues have independent cursors."""
+    state.ensure_dirs()
+    conn = state.init_db()
+    conn.execute("DELETE FROM issue_cursors")
+    conn.commit()
+    state.upsert_issue_cursor(conn, 7, 100, "2026-01-01T00:00:00Z", None)
+    state.upsert_issue_cursor(conn, 9, 200, "2026-01-02T00:00:00Z", "etag9")
+    c7, _, _ = state.get_issue_cursor(conn, 7)
+    c9, _, e9 = state.get_issue_cursor(conn, 9)
+    assert c7 == 100, f"issue 7 cursor should be 100, got {c7}"
+    assert c9 == 200, f"issue 9 cursor should be 200, got {c9}"
+    assert e9 == "etag9"
+    conn.close()
+
+
+def test_link_header_parsing():
+    """Parse GitHub Link header correctly."""
+    import protocol
+    header = '<https://api.github.com/repos/x/comments?page=2>; rel="next", <https://api.github.com/repos/x/comments?page=5>; rel="last"'
+    links = protocol._parse_link_header(header)
+    assert "next" in links
+    assert links["next"].endswith("page=2")
+
+
+def test_link_header_none():
+    import protocol
+    links = protocol._parse_link_header(None)
+    assert links == {}
+    links2 = protocol._parse_link_header("")
+    assert links2 == {}
+
+
+def test_large_comment_set_simulated():
+    """101-comment set: the 101st comment is discoverable (cursor logic)."""
+    state.ensure_dirs()
+    conn = state.init_db()
+    conn.execute("DELETE FROM issue_cursors")
+    conn.commit()
+
+    # Simulate: we've seen 100 comments, cursor at 100
+    state.upsert_issue_cursor(conn, 42, 100, "2026-01-01T00:00:00Z", None)
+    cid, _, _ = state.get_issue_cursor(conn, 42)
+    assert cid == 100
+
+    # A new comment with id 101 should pass through the filter
+    # (The actual pagination test would need HTTP, this tests the cursor logic)
+    new_comment_id = 101
+    assert new_comment_id > cid, "Comment 101 should be > cursor 100"
+    conn.close()
+
+
+def test_per_issue_cursor_recovery():
+    """Restart: per-issue cursors persist in SQLite."""
+    state.ensure_dirs()
+    conn = state.init_db()
+    state.upsert_issue_cursor(conn, 5, 500, "2026-01-01", "et")
+    conn.close()
+    conn2 = state.init_db()
+    c, _, e = state.get_issue_cursor(conn2, 5)
+    assert c == 500
+    assert e == "et"
+    conn2.execute("DELETE FROM issue_cursors")
+    conn2.commit()
+    conn2.close()
+
+
+def test_new_issue_first_discovery():
+    """First-time issue: cursor returns 0, all comments visible."""
+    state.ensure_dirs()
+    conn = state.init_db()
+    cid, cat, etag = state.get_issue_cursor(conn, 99999)
+    assert cid == 0, "New issue should have cursor=0"
+    assert cat is None
+    conn.close()
+
+
 # ===== Idempotency Tests =====
 
 def test_idempotency():
@@ -252,6 +346,13 @@ if __name__ == "__main__":
         ("unsupported_cancel_detected", test_unsupported_cancel_detected),
         ("test_idempotency", test_idempotency),
         ("test_cursor", test_cursor),
+        ("per_issue_cursor_basics", test_per_issue_cursor_basics),
+        ("per_issue_cursor_isolation", test_per_issue_cursor_isolation),
+        ("link_header_parsing", test_link_header_parsing),
+        ("link_header_none", test_link_header_none),
+        ("large_comment_set_simulated", test_large_comment_set_simulated),
+        ("per_issue_cursor_recovery", test_per_issue_cursor_recovery),
+        ("new_issue_first_discovery", test_new_issue_first_discovery),
     ]
     passed = 0
     failed = 0

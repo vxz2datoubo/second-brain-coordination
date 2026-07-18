@@ -206,6 +206,7 @@ def main_loop():
     log.info("=== CODEX-GITHUB-DISPATCHER-0001 STARTING ===")
     log.info(f"Worktree: {WORKTREE_PATH}")
     log.info(f"Codex CLI: {codex_wrapper.CODEX_VERSION}")
+    log.info(f"Build head: {get_worktree_head()}")
 
     lock = state.SingleInstanceLock()
     if not lock.acquire():
@@ -216,26 +217,46 @@ def main_loop():
         token = protocol._get_token()
         conn = state.init_db()
 
-        # Init cursor to latest comment (prevent replay)
-        last_id, last_etag = state.get_cursor(conn)
-        if last_id == 0:
-            latest = protocol.get_current_comment_id(token)
-            state.update_cursor(conn, latest, None)
-            last_id = latest
-            log.info(f"Cursor initialized to comment ID {last_id}")
+        # Init per-issue cursors for known issues on first run
+        issues = protocol.fetch_labeled_issues(token)
+        if issues:
+            log.info(f"Found {len(issues)} labeled issues: {issues}")
+        else:
+            log.warning("No labeled issues found on startup — running discovery anyway")
 
-        log.info("Entering polling loop (60s interval)")
+        log.info("Entering polling loop (60s interval, per-issue paginated)")
         while True:
             try:
-                comments, new_etag = protocol.fetch_new_comments(token, last_id, last_etag)
-                if comments:
-                    log.info(f"Found {len(comments)} new comments")
+                issues = protocol.fetch_labeled_issues(token)
+                degraded_any = False
+                total_processed = 0
+
+                for issue_num in issues:
+                    # Per-issue cursor
+                    last_cid, last_cat, last_etag = state.get_issue_cursor(conn, issue_num)
+                    comments, new_etag, degraded = protocol.fetch_issue_comments_paginated(
+                        token, issue_num, since_comment_id=last_cid, etag=last_etag)
+                    if degraded:
+                        degraded_any = True
+                        log.warning(f"Issue #{issue_num}: pagination DEGRADED (page cap or API error)")
+
                     for c in comments:
                         process_comment(token, conn, c)
-                        if c["id"] > last_id:
-                            last_id = c["id"]
-                    state.update_cursor(conn, last_id, new_etag)
-                    last_etag = new_etag
+                        if c["id"] > last_cid:
+                            last_cid = c["id"]
+                            last_cat = c.get("created_at", last_cat)
+                        total_processed += 1
+
+                    # Atomically update per-issue cursor
+                    if last_cid > 0:
+                        state.upsert_issue_cursor(conn, issue_num, last_cid,
+                                                   last_cat or "", new_etag)
+
+                if degraded_any:
+                    log.warning("One or more issues DEGRADED in this cycle")
+                if total_processed > 0:
+                    log.info(f"Processed {total_processed} comments across {len(issues)} issues")
+
                 time.sleep(POLL_INTERVAL_SECONDS)
             except KeyboardInterrupt:
                 log.info("Shutdown requested")

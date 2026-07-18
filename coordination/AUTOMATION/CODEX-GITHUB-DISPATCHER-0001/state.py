@@ -41,6 +41,15 @@ def init_db():
         )
     """)
     conn.execute("INSERT OR IGNORE INTO cursor_state (id, last_comment_id) VALUES (1, 0)")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS issue_cursors (
+            issue_number INTEGER PRIMARY KEY,
+            last_comment_id INTEGER NOT NULL DEFAULT 0,
+            last_comment_at TEXT,
+            etag TEXT,
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
     conn.commit()
     return conn
 
@@ -67,6 +76,32 @@ def update_cursor(conn: sqlite3.Connection, comment_id: int, etag: str | None = 
     conn.execute(
         "UPDATE cursor_state SET last_comment_id=?, last_etag=?, last_checked_at=datetime('now') WHERE id=1",
         (comment_id, etag),
+    )
+    conn.commit()
+
+
+# --- Per-Issue Cursors (Pagination Fix 0005) ---
+
+def get_issue_cursor(conn: sqlite3.Connection, issue_number: int) -> tuple[int, str | None, str | None]:
+    """Returns (last_comment_id, last_comment_at, etag) for an issue, or (0, None, None)."""
+    row = conn.execute(
+        "SELECT last_comment_id, last_comment_at, etag FROM issue_cursors WHERE issue_number=?",
+        (issue_number,),
+    ).fetchone()
+    return row if row else (0, None, None)
+
+
+def upsert_issue_cursor(conn: sqlite3.Connection, issue_number: int, comment_id: int,
+                         comment_at: str, etag: str | None = None):
+    conn.execute(
+        """INSERT INTO issue_cursors (issue_number, last_comment_id, last_comment_at, etag, updated_at)
+           VALUES (?,?,?,?, datetime('now'))
+           ON CONFLICT(issue_number) DO UPDATE SET
+           last_comment_id=excluded.last_comment_id,
+           last_comment_at=excluded.last_comment_at,
+           etag=excluded.etag,
+           updated_at=datetime('now')""",
+        (issue_number, comment_id, comment_at, etag),
     )
     conn.commit()
 
