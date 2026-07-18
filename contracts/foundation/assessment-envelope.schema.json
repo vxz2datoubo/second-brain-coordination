@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/contracts/foundation/assessment-envelope.schema.json",
+  "title": "Temporal Evidence Intelligence Assessment Envelope",
+  "description": "TEIF统一判断信封初版。事件概率、分析置信度、数据质量和模型校准必须分离。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "assessment_id",
+    "assessment_type",
+    "as_of",
+    "knowledge_cutoff",
+    "claim",
+    "likelihood",
+    "analytic_confidence",
+    "evidence",
+    "method",
+    "review",
+    "governance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "assessment_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "assessment_type": {
+      "type": "string",
+      "enum": [
+        "ATTENTION_STAGE",
+        "ANOMALY_ATTRIBUTION",
+        "TOPIC_RELEVANCE",
+        "SOURCE_ASSESSMENT",
+        "FORECAST",
+        "CAUSAL_HYPOTHESIS",
+        "FEATURE_ACCEPTANCE",
+        "RESEARCH_SUMMARY",
+        "OTHER"
+      ]
+    },
+    "subject_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "topic_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "knowledge_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_time_range": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "start": {"type": ["string", "null"], "format": "date-time"},
+        "end": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim_id", "claim_type", "statement"],
+      "properties": {
+        "claim_id": {"type": "string"},
+        "claim_type": {
+          "type": "string",
+          "enum": [
+            "OBSERVED_FACT",
+            "REPORTED_FACT",
+            "DERIVED_METRIC",
+            "INTERPRETATION",
+            "FORECAST",
+            "CAUSAL_HYPOTHESIS",
+            "DECISION_RECOMMENDATION"
+          ]
+        },
+        "statement": {"type": "string", "minLength": 1},
+        "status": {
+          "type": "string",
+          "enum": [
+            "SUPPORTED",
+            "PARTIALLY_SUPPORTED",
+            "AMBIGUOUS",
+            "INSUFFICIENT_EVIDENCE",
+            "CONFLICTING_EVIDENCE",
+            "CONTRADICTED",
+            "SUPERSEDED",
+            "RETRACTED"
+          ]
+        }
+      }
+    },
+    "likelihood": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicable"],
+      "properties": {
+        "applicable": {"type": "boolean"},
+        "value": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "lower": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "upper": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "band": {
+          "type": ["string", "null"],
+          "enum": [
+            "ALMOST_NO_CHANCE",
+            "VERY_UNLIKELY",
+            "UNLIKELY",
+            "ROUGHLY_EVEN",
+            "LIKELY",
+            "VERY_LIKELY",
+            "ALMOST_CERTAIN",
+            null
+          ]
+        },
+        "calibrated": {"type": ["boolean", "null"]},
+        "calibration_report_id": {"type": ["string", "null"]}
+      }
+    },
+    "analytic_confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "vector", "rationale"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH"]
+        },
+        "vector": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_quality",
+            "evidence_directness",
+            "evidence_independence",
+            "evidence_completeness",
+            "temporal_alignment",
+            "method_validity",
+            "alternative_explanation_risk",
+            "data_quality",
+            "model_calibration"
+          ],
+          "properties": {
+            "source_quality": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "evidence_directness": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "evidence_independence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "evidence_completeness": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "temporal_alignment": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "method_validity": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "alternative_explanation_risk": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "data_quality": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "model_calibration": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+          }
+        },
+        "rationale": {"type": "string"},
+        "policy_version": {"type": ["string", "null"]}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supporting_ids", "counter_ids", "alternative_explanations", "knowledge_gaps"],
+      "properties": {
+        "supporting_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "counter_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true
+        },
+        "alternative_explanations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["description", "status"],
+            "properties": {
+              "description": {"type": "string"},
+              "status": {
+                "type": "string",
+                "enum": ["OPEN", "WEAK", "PLAUSIBLE", "STRONG", "REJECTED"]
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {"type": "string"},
+                "default": []
+              }
+            }
+          }
+        },
+        "assumption_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "knowledge_gaps": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "change_indicators": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        }
+      }
+    },
+    "causal": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "C0_TEMPORAL_ORDER_ONLY",
+            "C1_ASSOCIATED",
+            "C2_PREDICTIVE_LEAD",
+            "C3_MECHANISM_SUPPORTED",
+            "C4_QUASI_EXPERIMENTAL",
+            "C5_CAUSAL_SUPPORTED"
+          ]
+        },
+        "cause_event_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "effect_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "mechanism": {"type": ["string", "null"]},
+        "confounders": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "falsifiers": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "parameters": {"type": "object"},
+        "limitations": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "dataset_versions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "feature_versions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        },
+        "model_version": {"type": ["string", "null"]},
+        "code_commit": {"type": ["string", "null"]}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["DRAFT", "IN_REVIEW", "REVIEWED", "APPROVED", "REJECTED", "SUPERSEDED"]
+        },
+        "reviewer_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "reviewed_at": {"type": ["string", "null"], "format": "date-time"},
+        "notes": {"type": ["string", "null"]}
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["research_only", "trade_action"],
+      "properties": {
+        "research_only": {"type": "boolean", "const": true},
+        "trade_action": {"type": "string", "const": "NO_TRADE"},
+        "classification": {
+          "type": "string",
+          "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "PERSONAL", "LICENSED_CONTENT"]
+        }
+      }
+    }
+  }
+}
