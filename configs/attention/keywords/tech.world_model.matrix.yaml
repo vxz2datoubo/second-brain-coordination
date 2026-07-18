@@ -1,0 +1,257 @@
+schema_version: "0.1"
+config_status: PROPOSED
+review_status: PENDING_HUMAN_REVIEW
+trade_action: NO_TRADE
+research_only: true
+
+topic:
+  topic_id: tech.world_model
+  canonical_name: 世界模型
+  english_name: World Model
+
+keyword_family:
+  family_id: kwf.world_model.matrix
+  canonical_entity_id: product.matrix_3_5
+  description: >-
+    用于区分 Matrix 3.5 世界模型相关语义与电影、数学、机器人、软件等同名语义。
+  effective_from: "2026-07-18"
+  version: v1
+
+keywords:
+  - keyword_id: kw.matrix_3_5_kunlun
+    text: "Matrix 3.5 昆仑万维"
+    normalized_text: "matrix 3.5 昆仑万维"
+    language: mixed
+    role: ANCHOR
+    ambiguity_level: LOW
+    target_weight: 1.0
+    candidate_senses:
+      - sense_id: sense.matrix_3_5_world_model
+        entity_id: product.matrix_3_5
+        topic_id: tech.world_model
+        prior_relevance: 0.98
+
+  - keyword_id: kw.kunlun_matrix_3_5
+    text: "昆仑万维 Matrix 3.5"
+    normalized_text: "昆仑万维 matrix 3.5"
+    language: mixed
+    role: ANCHOR
+    ambiguity_level: LOW
+    target_weight: 1.0
+    candidate_senses:
+      - sense_id: sense.matrix_3_5_world_model
+        entity_id: product.matrix_3_5
+        topic_id: tech.world_model
+        prior_relevance: 0.98
+
+  - keyword_id: kw.matrix_3_5
+    text: "Matrix 3.5"
+    normalized_text: "matrix 3.5"
+    language: en
+    role: CORE
+    ambiguity_level: MEDIUM
+    target_weight: 0.65
+    requires_disambiguation: true
+    candidate_senses:
+      - sense_id: sense.matrix_3_5_world_model
+        entity_id: product.matrix_3_5
+        topic_id: tech.world_model
+        prior_relevance: 0.70
+      - sense_id: sense.matrix_3_5_other_product
+        entity_id: unknown.matrix_3_5_other
+        topic_id: unknown
+        prior_relevance: 0.30
+
+  - keyword_id: kw.matrix
+    text: "Matrix"
+    normalized_text: "matrix"
+    language: en
+    role: BROAD
+    ambiguity_level: HIGH
+    target_weight: 0.0
+    requires_disambiguation: true
+    blocked_from_direct_topic_score: true
+    candidate_senses:
+      - sense_id: sense.matrix_world_model
+        entity_id: product.matrix_3_5
+        topic_id: tech.world_model
+        prior_relevance: null
+      - sense_id: sense.matrix_movie
+        entity_id: media.the_matrix
+        topic_id: entertainment.film
+        prior_relevance: null
+      - sense_id: sense.matrix_mathematics
+        entity_id: concept.mathematics.matrix
+        topic_id: science.mathematics
+        prior_relevance: null
+      - sense_id: sense.matrix_robotics_company
+        entity_id: company.matrix_robotics
+        topic_id: industry.robotics
+        prior_relevance: null
+      - sense_id: sense.matrix_software
+        entity_id: unknown.matrix_software
+        topic_id: software.general
+        prior_relevance: null
+      - sense_id: sense.matrix_unknown
+        entity_id: unknown.matrix
+        topic_id: unknown
+        prior_relevance: null
+
+  - keyword_id: kw.world_model_cn
+    text: "世界模型"
+    normalized_text: "世界模型"
+    language: zh-CN
+    role: CORE
+    ambiguity_level: MEDIUM
+    target_weight: 0.80
+    requires_disambiguation: true
+    candidate_senses:
+      - sense_id: sense.world_model_ai
+        entity_id: concept.ai.world_model
+        topic_id: tech.world_model
+        prior_relevance: 0.90
+      - sense_id: sense.world_model_other
+        entity_id: unknown.world_model_other
+        topic_id: unknown
+        prior_relevance: 0.10
+
+  - keyword_id: kw.world_model_en
+    text: "World Model"
+    normalized_text: "world model"
+    language: en
+    role: CORE
+    ambiguity_level: MEDIUM
+    target_weight: 0.75
+    requires_disambiguation: true
+    candidate_senses:
+      - sense_id: sense.world_model_ai
+        entity_id: concept.ai.world_model
+        topic_id: tech.world_model
+        prior_relevance: 0.85
+      - sense_id: sense.world_model_other
+        entity_id: unknown.world_model_other
+        topic_id: unknown
+        prior_relevance: 0.15
+
+  - keyword_id: kw.kunlun_tech
+    text: "昆仑万维"
+    normalized_text: "昆仑万维"
+    language: zh-CN
+    role: CONTEXT
+    ambiguity_level: LOW
+    target_weight: 0.0
+    context_boost: 0.30
+
+  - keyword_id: kw.riemann
+    text: "Riemann"
+    normalized_text: "riemann"
+    language: en
+    role: CONTEXT
+    ambiguity_level: HIGH
+    target_weight: 0.0
+    requires_disambiguation: true
+    notes: "可能指向数学家、黎曼几何、软件、产品或模型，不得直接进入主题分数。"
+
+  - keyword_id: kw.riemann_model_cn
+    text: "黎曼模型"
+    normalized_text: "黎曼模型"
+    language: zh-CN
+    role: CONTEXT
+    ambiguity_level: MEDIUM
+    target_weight: 0.0
+    requires_disambiguation: true
+
+context_rules:
+  positive:
+    - rule_id: ctx.kunlun_matrix
+      all_of:
+        - "Matrix"
+        - "昆仑万维"
+      target_sense: sense.matrix_3_5_world_model
+      confidence_boost: 0.45
+
+    - rule_id: ctx.matrix_world_model
+      all_of:
+        - "Matrix"
+        - "世界模型"
+      target_sense: sense.matrix_3_5_world_model
+      confidence_boost: 0.35
+
+    - rule_id: ctx.matrix_ai_release
+      all_of:
+        - "Matrix"
+      any_of:
+        - "模型"
+        - "AI"
+        - "发布"
+        - "生成"
+        - "视频"
+        - "空间智能"
+      target_sense: sense.matrix_world_model
+      confidence_boost: 0.20
+
+  negative:
+    - rule_id: ctx.matrix_movie
+      any_of:
+        - "黑客帝国"
+        - "The Matrix"
+        - "电影"
+        - "基努里维斯"
+      target_sense: sense.matrix_movie
+      target_topic_penalty: 1.0
+
+    - rule_id: ctx.matrix_math
+      any_of:
+        - "线性代数"
+        - "矩阵乘法"
+        - "行列式"
+        - "特征值"
+        - "矩阵求逆"
+      target_sense: sense.matrix_mathematics
+      target_topic_penalty: 1.0
+
+    - rule_id: ctx.matrix_robotics
+      any_of:
+        - "Matrix Robotics"
+        - "机器人公司"
+        - "人形机器人"
+      target_sense: sense.matrix_robotics_company
+      target_topic_penalty: 0.8
+
+disambiguation_policy:
+  direct_topic_score_allowed_for:
+    - ANCHOR
+  conditional_topic_score_allowed_for:
+    - CORE
+  disallowed_without_attribution:
+    - BROAD
+  unknown_class_required: true
+  minimum_confidence_for_topic_score: 0.75
+  minimum_evidence_items: 2
+  require_counter_evidence_check: true
+
+attribution_case_seed:
+  case_id: asa.matrix.wechat.2026_06_24
+  source_id: wechat_index
+  keyword_id: kw.matrix
+  observed_date: "2026-06-24"
+  observed_value: null
+  observed_unit: index
+  user_reported_value_note: "用户口述该日指数约为七十万，需以截图或平台原始记录核验。"
+  evidence_status: PENDING_SOURCE_ARTIFACT
+  required_comparisons:
+    - kw.matrix_3_5
+    - kw.matrix_3_5_kunlun
+    - kw.kunlun_matrix_3_5
+    - kw.world_model_cn
+    - kw.world_model_en
+    - kw.kunlun_tech
+  required_window_days_before: 30
+  required_window_days_after: 7
+  result_status: INSUFFICIENT_EVIDENCE
+
+change_log:
+  - version: v1
+    date: "2026-07-18"
+    change: "建立 Matrix / Matrix 3.5 首版歧义配置和微信指数案例种子。"
+    author_role: ChatGPT
