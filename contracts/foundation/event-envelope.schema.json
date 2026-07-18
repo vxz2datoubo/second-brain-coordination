@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/contracts/foundation/event-envelope.schema.json",
+  "title": "Temporal Evidence Intelligence Event Envelope",
+  "description": "TEIF统一事件信封初版。所有时间均使用RFC3339；未知精确时间时必须降低precision，不得伪造时分秒。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "event_type",
+    "source",
+    "producer",
+    "time",
+    "content",
+    "lineage",
+    "governance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "SOURCE_PUBLICATION",
+        "PLATFORM_METRIC",
+        "PRODUCT_RELEASE",
+        "CORPORATE_ACTION",
+        "MARKET_OBSERVATION",
+        "DATA_PIPELINE",
+        "ANALYTIC_ASSESSMENT",
+        "KNOWLEDGE_REVISION",
+        "DECISION",
+        "CONTROL_EVENT"
+      ]
+    },
+    "subject_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "topic_ids": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "default": []
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_type", "collection_method"],
+      "properties": {
+        "source_id": {"type": "string"},
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL_PRIMARY",
+            "REGULATORY",
+            "COMPANY_PRIMARY",
+            "ACADEMIC_PRIMARY",
+            "PLATFORM_NATIVE",
+            "MAINSTREAM_MEDIA",
+            "INDUSTRY_RESEARCH",
+            "SOCIAL_CONTENT",
+            "USER_OBSERVATION",
+            "MARKET_DATA_VENDOR",
+            "INTERNAL_SYSTEM",
+            "UNKNOWN"
+          ]
+        },
+        "source_native_id": {"type": ["string", "null"]},
+        "source_uri": {"type": ["string", "null"], "format": "uri-reference"},
+        "publisher_id": {"type": ["string", "null"]},
+        "collection_method": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL_API",
+            "OFFICIAL_EXPORT",
+            "OFFICIAL_UI_MANUAL",
+            "PUBLIC_PAGE",
+            "AUTHORIZED_PARTNER",
+            "USER_SUBMITTED",
+            "INTERNAL_GENERATED"
+          ]
+        },
+        "license_class": {
+          "type": ["string", "null"],
+          "enum": ["PUBLIC", "INTERNAL", "LICENSED", "RESTRICTED", "PERSONAL", null]
+        }
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_id", "agent_type"],
+      "properties": {
+        "agent_id": {"type": "string"},
+        "agent_type": {
+          "type": "string",
+          "enum": ["HUMAN", "SCRIPT", "SERVICE", "MODEL", "ORGANIZATION"]
+        },
+        "software_version": {"type": ["string", "null"]},
+        "code_commit": {"type": ["string", "null"]}
+      }
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed_at", "ingested_at", "available_at", "precision"],
+      "properties": {
+        "event_time": {"type": ["string", "null"], "format": "date-time"},
+        "published_at": {"type": ["string", "null"], "format": "date-time"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "ingested_at": {"type": "string", "format": "date-time"},
+        "available_at": {"type": "string", "format": "date-time"},
+        "valid_from": {"type": ["string", "null"], "format": "date-time"},
+        "valid_to": {"type": ["string", "null"], "format": "date-time"},
+        "market_effective_at": {"type": ["string", "null"], "format": "date-time"},
+        "original_timezone": {"type": ["string", "null"]},
+        "original_time_text": {"type": ["string", "null"]},
+        "precision": {
+          "type": "string",
+          "enum": ["SECOND", "MINUTE", "HOUR", "DAY", "MONTH", "YEAR", "INTERVAL", "UNKNOWN"]
+        },
+        "parse_confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+      }
+    },
+    "content": {
+      "type": "object",
+      "required": ["payload_type", "payload"],
+      "properties": {
+        "payload_type": {"type": "string"},
+        "payload": {"type": "object"},
+        "content_hash": {"type": ["string", "null"]},
+        "dedup_fingerprint": {"type": ["string", "null"]},
+        "language": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["artifact_id"],
+        "properties": {
+          "artifact_id": {"type": "string"},
+          "role": {
+            "type": "string",
+            "enum": ["PRIMARY_EVIDENCE", "CONTEXT", "SCREENSHOT", "EXPORT", "LOG", "REPORT", "OTHER"]
+          }
+        }
+      },
+      "default": []
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "PASS", "WARN", "BLOCKED", "FAILED"]
+        },
+        "completeness": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "freshness": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "accuracy": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "issues": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collection_run_id", "schema_refs"],
+      "properties": {
+        "collection_run_id": {"type": "string"},
+        "parent_event_ids": {
+          "type": "array",
+          "items": {"type": "string"},
+          "uniqueItems": true,
+          "default": []
+        },
+        "revises_event_id": {"type": ["string", "null"]},
+        "retracts_event_id": {"type": ["string", "null"]},
+        "supersedes_event_id": {"type": ["string", "null"]},
+        "schema_refs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        },
+        "config_versions": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": []
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification", "research_only", "trade_action"],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "PERSONAL", "LICENSED_CONTENT"]
+        },
+        "research_only": {"type": "boolean", "const": true},
+        "trade_action": {"type": "string", "const": "NO_TRADE"},
+        "retention_policy_id": {"type": ["string", "null"]},
+        "access_policy_id": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
