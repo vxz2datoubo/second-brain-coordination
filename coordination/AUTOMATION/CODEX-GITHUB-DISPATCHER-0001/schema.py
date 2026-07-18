@@ -6,6 +6,17 @@ Zero external dependencies — uses regex for the flat key:value subset we accep
 import re
 
 ALLOWED_ACTIONS = {"START"}
+UNSUPPORTED_ACTIONS = {"REVIEW", "CONTINUE", "CANCEL"}
+
+# Patterns that indicate automated dispatcher receipts — skip these
+AUTO_RECEIPT_PREFIXES = (
+    "CodexDispatchReceipt:",
+    "CODEX_TASK_STARTED",
+    "CODEX_TASK_PROGRESS",
+    "CODEX_TASK_BLOCKED",
+    "CODEX_TASK_COMPLETED",
+    "WBDispatcherHeartbeat:",
+)
 ALLOWED_MODES = {"goal", "direct"}
 ALLOWED_RISK_CLASSES = {"low"}
 ALLOWED_APPROVAL_POLICIES = {"automatic"}
@@ -48,6 +59,7 @@ class DispatchBlock:
         self.comment_url = comment_url
         self.parsed = None
         self.errors = []
+        self.is_unsupported_action = False
 
     def parse(self) -> bool:
         block = _extract_fenced_yaml(self.raw)
@@ -83,11 +95,19 @@ class DispatchBlock:
         if self.parsed is None:
             return False
         p = self.parsed
+
+        # Check for unsupported action FIRST — flag it clearly
+        action = p.get("action", "")
+        if action in UNSUPPORTED_ACTIONS:
+            self.is_unsupported_action = True
+            self.errors.append(f"action '{action}' is not supported in Phase 1 (only START)")
+            return False
+
         checks = [
             (p.get("schema_version") == "1.0", "schema_version must be 1.0"),
             (p.get("issuer_agent") == "GPT", "issuer_agent must be GPT"),
             (p.get("target_agent") == "CODEX", "target_agent must be CODEX"),
-            (p.get("action") in ALLOWED_ACTIONS, f"action must be one of {ALLOWED_ACTIONS}"),
+            (action in ALLOWED_ACTIONS, f"action must be one of {ALLOWED_ACTIONS}"),
             (p.get("mode") in ALLOWED_MODES, f"mode must be one of {ALLOWED_MODES}"),
             (p.get("repository") == TARGET_REPO, f"repository must be {TARGET_REPO}"),
             (p.get("workspace_alias") in ALLOWED_WORKSPACES, f"workspace_alias must be one of {ALLOWED_WORKSPACES}"),
@@ -187,8 +207,36 @@ def _extract_fenced_yaml(text: str) -> str | None:
     return None
 
 
+def should_skip_comment(body: str) -> tuple[bool, str]:
+    """
+    Pre-filter: return (True, reason) if this comment should be skipped silently.
+    Returns (False, "") if it might contain a dispatch block and should be parsed.
+    """
+    if not body or not body.strip():
+        return (True, "empty")
+
+    first_line = body.strip().split("\n")[0].strip() if body.strip() else ""
+
+    # Skip automated receipt comments from dispatcher itself
+    for prefix in AUTO_RECEIPT_PREFIXES:
+        if first_line.startswith(prefix):
+            return (True, f"auto_receipt:{prefix}")
+
+    # Skip if no CodexDispatch keyword AND no fenced YAML
+    if "CodexDispatch" not in body:
+        return (True, "no_dispatch_keyword")
+    if "```yaml" not in body:
+        return (True, "no_fenced_yaml")
+
+    return (False, "")
+
+
 def find_dispatch_blocks(body: str, comment_id: int, comment_url: str) -> list[DispatchBlock]:
-    """Find all potential dispatch blocks in a comment body."""
+    """Find all potential dispatch blocks in a comment body. Use should_skip_comment first."""
+    skip, reason = should_skip_comment(body)
+    if skip:
+        return []  # Silent skip — caller should NOT log this as WARNING
+
     pattern = r'```yaml[ \t]*\n.*?CodexDispatch.*?```'
     matches = re.finditer(pattern, body, re.DOTALL)
     blocks = []

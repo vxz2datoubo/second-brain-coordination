@@ -118,6 +118,78 @@ def test_reject_unknown_workspace():
     assert not block.validate()
 
 
+# ===== Pre-Filter Tests (Phase 1 Fix 0002) =====
+
+def test_skip_ordinary_comment():
+    """Ordinary comment without CodexDispatch keyword should be silently skipped."""
+    skip, reason = schema.should_skip_comment("This is a normal discussion comment.")
+    assert skip, f"should skip, got reason={reason}"
+
+
+def test_skip_auto_receipt():
+    """Automated receipt comment should be silently skipped."""
+    skip, reason = schema.should_skip_comment("CodexDispatchReceipt:\n  agent_id: CODEX-DISPATCHER\n  task_id: X")
+    assert skip, f"should skip receipt, got reason={reason}"
+    assert "auto_receipt" in reason
+
+
+def test_skip_heartbeat():
+    """Heartbeat comment should be silently skipped."""
+    skip, reason = schema.should_skip_comment("WBDispatcherHeartbeat:\n  dispatcher_status: ONLINE")
+    assert skip, f"should skip heartbeat, got reason={reason}"
+
+
+def test_skip_task_started():
+    """CODEX_TASK_STARTED should be silently skipped."""
+    skip, reason = schema.should_skip_comment("CODEX_TASK_STARTED:\n  agent_id: CODEX\n  task_id: X")
+    assert skip
+
+
+def test_skip_task_completed():
+    """CODEX_TASK_COMPLETED should be silently skipped."""
+    skip, reason = schema.should_skip_comment("CODEX_TASK_COMPLETED:\n  task_id: X")
+    assert skip
+
+
+def test_skip_no_fenced_yaml():
+    """Comment with CodexDispatch keyword but no fenced YAML should be skipped."""
+    skip, reason = schema.should_skip_comment("CodexDispatch: this is a mention but not a block")
+    assert skip, f"should skip, got reason={reason}"
+    assert "fenced" in reason
+
+
+def test_pass_valid_with_fence():
+    """Valid dispatch with both keyword and fenced YAML should pass pre-filter."""
+    skip, reason = schema.should_skip_comment(VALID_DISPATCH)
+    assert not skip, f"should not skip, got reason={reason}"
+
+
+# ===== Unsupported Action Tests (Phase 1 Fix 0002) =====
+
+def test_unsupported_review_detected():
+    text = VALID_DISPATCH.replace("action: START", "action: REVIEW")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    assert block.parse(), f"Parse failed: {block.errors}"
+    assert not block.validate(), "Expected validation to fail for REVIEW"
+    assert block.is_unsupported_action, "is_unsupported_action should be True for REVIEW"
+
+
+def test_unsupported_continue_detected():
+    text = VALID_DISPATCH.replace("action: START", "action: CONTINUE")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    assert block.parse()
+    assert not block.validate()
+    assert block.is_unsupported_action
+
+
+def test_unsupported_cancel_detected():
+    text = VALID_DISPATCH.replace("action: START", "action: CANCEL")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    assert block.parse()
+    assert not block.validate()
+    assert block.is_unsupported_action
+
+
 # ===== Idempotency Tests =====
 
 def test_idempotency():
@@ -168,6 +240,16 @@ if __name__ == "__main__":
         ("reject_oversized", test_reject_oversized),
         ("reject_non_gpt_continue", test_reject_non_gpt_continue),
         ("reject_unknown_workspace", test_reject_unknown_workspace),
+        ("skip_ordinary_comment", test_skip_ordinary_comment),
+        ("skip_auto_receipt", test_skip_auto_receipt),
+        ("skip_heartbeat", test_skip_heartbeat),
+        ("skip_task_started", test_skip_task_started),
+        ("skip_task_completed", test_skip_task_completed),
+        ("skip_no_fenced_yaml", test_skip_no_fenced_yaml),
+        ("pass_valid_with_fence", test_pass_valid_with_fence),
+        ("unsupported_review_detected", test_unsupported_review_detected),
+        ("unsupported_continue_detected", test_unsupported_continue_detected),
+        ("unsupported_cancel_detected", test_unsupported_cancel_detected),
         ("test_idempotency", test_idempotency),
         ("test_cursor", test_cursor),
     ]

@@ -83,18 +83,41 @@ def process_comment(token: str, conn, comment: dict):
 
     blocks = schema.find_dispatch_blocks(body, comment_id, comment_url)
     if not blocks:
-        return  # No dispatch blocks in this comment
+        return  # No dispatch blocks OR pre-filtered silently
 
     for block in blocks:
         if not block.parse():
-            log.warning(f"Parse failed for comment {comment_id}: {block.errors}")
+            log.debug(f"Parse failed for comment {comment_id}: {block.errors}")
             protocol.post_comment(token, issue_number,
                 protocol.format_receipt("UNKNOWN", "UNKNOWN", "INVALID", RUNNER_ID,
                                         WORKTREE_PATH, get_worktree_head(), codex_wrapper.CODEX_VERSION))
             return
 
         if not block.validate():
-            log.warning(f"Validation failed for comment {comment_id}: {block.errors}")
+            # Check if unsupported action — write back to GitHub
+            if block.is_unsupported_action:
+                p = block.parsed if block.parsed else {}
+                action = p.get("action", "UNKNOWN")
+                task_id = p.get("task_id", "UNKNOWN")
+                log.info(f"UNSUPPORTED_ACTION on comment {comment_id}: {action}")
+                msg = f"""```yaml
+CODEX_DISPATCH_UNSUPPORTED_ACTION:
+  agent_id: CODEX-DISPATCHER
+  task_id: {task_id}
+  action: {action}
+  reason: Phase 1 only supports action=START. {action} is not supported.
+  issue: {issue_number}
+  comment: {comment_id}
+```"""
+                protocol.post_comment(token, issue_number, msg)
+                return
+            log.debug(f"Validation failed for comment {comment_id}: {block.errors}")
+            protocol.post_comment(token, issue_number,
+                protocol.format_receipt(block.parsed.get("task_id", "UNKNOWN") if block.parsed else "UNKNOWN",
+                                        block.parsed.get("idempotency_key", "UNKNOWN") if block.parsed else "UNKNOWN",
+                                        "INVALID", RUNNER_ID, WORKTREE_PATH,
+                                        get_worktree_head(), codex_wrapper.CODEX_VERSION))
+            return
             protocol.post_comment(token, issue_number,
                 protocol.format_receipt(block.parsed.get("task_id", "UNKNOWN"),
                                         block.parsed.get("idempotency_key", "UNKNOWN"),
