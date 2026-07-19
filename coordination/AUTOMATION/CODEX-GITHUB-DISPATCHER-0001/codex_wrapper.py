@@ -63,22 +63,37 @@ class CodexOutputIntegrityError(CodexError):
 
 
 def build_prompt(task_id: str, mode: str, repo: str, issue_or_pr: str,
-                 workspace_alias: str, instruction_location: str | None = None) -> str:
-    """Build the fixed wrapper prompt for Codex."""
+                 workspace_alias: str, instruction_location: str | None = None,
+                 execution_profile: str = "read-only") -> str:
+    """Build the fixed wrapper prompt for Codex, profile-aware."""
+    profile_label = f"{execution_profile.upper()}" if execution_profile != "read-only" else "READ-ONLY"
     lines = [
         f"You are executing task `{task_id}` dispatched via GitHub.",
         f"Mode: {mode}",
+        f"Execution profile: {profile_label}",
         f"Repository: {repo}",
         f"Issue/PR: {issue_or_pr}",
         f"Workspace alias: {workspace_alias}",
         f"",
         f"CRITICAL RULES:",
-        f"1. This is a READ-ONLY task. Do NOT create, modify, or delete any files.",
-        f"2. Do NOT write to any file, database, or configuration.",
-        f"3. Do NOT execute git commit, git push, git stash, git reset, or git checkout.",
-        f"4. Do NOT install software, create services, or modify system settings.",
+    ]
+    if execution_profile == "read-only":
+        lines += [
+            f"1. This is a READ-ONLY task. Do NOT create, modify, or delete any files.",
+            f"2. Do NOT write to any file, database, or configuration.",
+            f"3. Do NOT execute git commit, git push, git stash, git reset, or git checkout.",
+            f"4. Do NOT install software, create services, or modify system settings.",
+        ]
+    elif execution_profile == "workspace-write":
+        lines += [
+            f"1. You may modify files within this workspace ONLY. Do NOT write outside it.",
+            f"2. You may commit changes but must NOT force-push, rewrite history, or merge.",
+            f"3. Do NOT execute git push --force, git reset --hard, or destructive operations.",
+            f"4. Do NOT touch git config, remotes, hooks, or the .git directory directly.",
+        ]
+    lines += [
         f"5. Do NOT access production credentials, API keys, or financial data.",
-        f"6. Read only: read files from the workspace and GitHub to complete your task.",
+        f"6. Do NOT access real trading interfaces, accounts, or order systems.",
         f"7. Output your findings as plain text — do not write .md files.",
         f"",
         f"TASK: Read all dispatch instructions from the GitHub issue/PR at the URL below.",
@@ -98,17 +113,28 @@ def build_prompt(task_id: str, mode: str, repo: str, issue_or_pr: str,
     return "\n".join(lines)
 
 
-def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS) -> tuple[str, int]:
+def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS,
+              execution_profile: str = "read-only") -> tuple[str, int]:
     """Run codex exec with explicit UTF-8 encoding. Returns (output, exit_code).
-    Raises CodexOutputIntegrityError if exit_code=0 but output is empty or corrupt."""
+    Raises CodexOutputIntegrityError if exit_code=0 but output is empty or corrupt.
+    
+    execution_profile: 'read-only' or 'workspace-write'.
+    read-only → sandbox_mode=read-only, sandbox_permissions=[read-only]
+    workspace-write → sandbox_mode=workspace-write, sandbox_permissions=[write-file]"""
     env = os.environ.copy()
     cmd = [
         CODEX_CMD, "exec",
-        "-c", "sandbox_mode=read-only",
-        "-c", 'sandbox_permissions=["read-only"]',
-        "-C", cwd,
-        prompt,
     ]
+    if execution_profile == "read-only":
+        cmd += ["-c", "sandbox_mode=read-only",
+                "-c", 'sandbox_permissions=["read-only"]']
+    elif execution_profile == "workspace-write":
+        cmd += ["-c", "sandbox_mode=workspace-write",
+                "-c", 'sandbox_permissions=["write-file","read-only"]']
+    else:
+        cmd += ["-c", "sandbox_mode=read-only",
+                "-c", 'sandbox_permissions=["read-only"]']
+    cmd += ["-C", cwd, prompt]
     try:
         proc = subprocess.Popen(
             cmd,

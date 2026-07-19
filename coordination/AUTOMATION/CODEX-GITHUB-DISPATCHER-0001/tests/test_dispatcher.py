@@ -176,6 +176,59 @@ def test_url_reject_malformed_path():
     block.parse()
     assert not block.validate()
 
+
+# ===== Dual-Mode Execution Profile Tests (0014) =====
+
+def test_profile_default_read_only():
+    text = VALID_DISPATCH
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert block.validate()
+    assert block.parsed.get("execution_profile", "read-only") == "read-only"
+
+
+def test_profile_workspace_write_valid():
+    text = VALID_DISPATCH.replace(
+        "idempotency_key: TEST-001-abc123\n",
+        "execution_profile: workspace-write\nexpected_base_head: abc123\nidempotency_key: TEST-001-abc123\n")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert block.validate(), f"Expected valid: {block.errors}"
+
+
+def test_profile_reject_prohibited():
+    text = VALID_DISPATCH.replace(
+        "idempotency_key: TEST-001-abc123\n",
+        "execution_profile: danger-full-access\nidempotency_key: TEST-001-abc123\n")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+    assert any("prohibited" in e for e in block.errors)
+
+
+def test_profile_reject_unknown():
+    text = VALID_DISPATCH.replace(
+        "idempotency_key: TEST-001-abc123\n",
+        "execution_profile: admin-mode\nidempotency_key: TEST-001-abc123\n")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+
+
+def test_profile_write_mocked_prompt():
+    prompt = codex_wrapper.build_prompt("TASK-ID", "direct", "user/repo", "3",
+                                         "AIDANAO_ROOT", None, execution_profile="workspace-write")
+    assert "WORKSPACE-WRITE" in prompt
+    assert "must NOT force-push" in prompt
+
+
+def test_profile_read_only_mocked_prompt():
+    prompt = codex_wrapper.build_prompt("TASK-ID", "direct", "user/repo", "3",
+                                         "AIDANAO_ROOT", None)
+    assert "READ-ONLY" in prompt
+    assert "Do NOT create, modify, or delete" in prompt
+
+
 def test_skip_ordinary_comment():
     """Ordinary comment without CodexDispatch keyword should be silently skipped."""
     skip, reason = schema.should_skip_comment("This is a normal discussion comment.")
@@ -487,6 +540,12 @@ if __name__ == "__main__":
         ("url_reject_number_mismatch", test_url_reject_number_mismatch),
         ("url_reject_wrong_scheme", test_url_reject_wrong_scheme),
         ("url_reject_malformed_path", test_url_reject_malformed_path),
+        ("profile_default_read_only", test_profile_default_read_only),
+        ("profile_workspace_write_valid", test_profile_workspace_write_valid),
+        ("profile_reject_prohibited", test_profile_reject_prohibited),
+        ("profile_reject_unknown", test_profile_reject_unknown),
+        ("profile_write_mocked_prompt", test_profile_write_mocked_prompt),
+        ("profile_read_only_mocked_prompt", test_profile_read_only_mocked_prompt),
         ("skip_ordinary_comment", test_skip_ordinary_comment),
         ("skip_auto_receipt", test_skip_auto_receipt),
         ("skip_heartbeat", test_skip_heartbeat),

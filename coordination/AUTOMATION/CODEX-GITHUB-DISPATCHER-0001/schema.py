@@ -23,6 +23,11 @@ ALLOWED_RISK_CLASSES = {"low"}
 ALLOWED_APPROVAL_POLICIES = {"automatic"}
 ALLOWED_WORKSPACES = {"AIDANAO_ROOT"}
 
+# Execution profiles: read-only is default; workspace-write only for GPT-issued, exact-head tasks
+ALLOWED_PROFILES = {"read-only", "workspace-write"}
+PROHIBITED_PROFILES = {"danger-full-access"}
+DEFAULT_PROFILE = "read-only"
+
 REQUIRED_KEYS = {
     "schema_version",
     "issuer_agent",
@@ -41,6 +46,7 @@ REQUIRED_KEYS = {
 OPTIONAL_KEYS = {
     "expected_base_head",
     "instruction_location",
+    "execution_profile",
 }
 
 # All known keys — reject anything else
@@ -144,6 +150,24 @@ class DispatchBlock:
             if path_match.group(4) != str(p["source_issue_or_pr"]):
                 self.errors.append("instruction_location issue/PR number must match source_issue_or_pr")
                 return False
+
+        # Execution profile validation
+        profile = p.get("execution_profile", DEFAULT_PROFILE)
+        if profile in PROHIBITED_PROFILES:
+            self.errors.append(f"execution_profile '{profile}' is prohibited")
+            return False
+        if profile not in ALLOWED_PROFILES:
+            self.errors.append(f"execution_profile must be one of {ALLOWED_PROFILES}")
+            return False
+        # workspace-write requires GPT issuer
+        if profile == "workspace-write" and p.get("issuer_agent") != "GPT":
+            self.errors.append("workspace-write profile requires issuer_agent=GPT")
+            return False
+        # workspace-write requires exact head match
+        if profile == "workspace-write" and not p.get("expected_base_head"):
+            self.errors.append("workspace-write profile requires expected_base_head")
+            return False
+
         return True
 
 

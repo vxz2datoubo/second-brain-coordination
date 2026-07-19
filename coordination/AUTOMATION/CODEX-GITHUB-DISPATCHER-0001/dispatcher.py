@@ -149,11 +149,13 @@ CODEX_DISPATCH_UNSUPPORTED_ACTION:
 
         # Accept
         log.info(f"ACCEPTING: task={task_id} idem={idem_key}")
+        exec_profile = p.get("execution_profile", "read-only")
         state.mark_idempotency_key(conn, idem_key, task_id, "ACCEPTED", comment_id)
         head = get_worktree_head()
         protocol.post_comment(token, issue_number,
             protocol.format_receipt(task_id, idem_key, "ACCEPTED", RUNNER_ID,
-                                    WORKTREE_PATH, head, codex_wrapper.CODEX_VERSION))
+                                    WORKTREE_PATH, head, codex_wrapper.CODEX_VERSION,
+                                    execution_profile=exec_profile))
 
         # Execute
         try:
@@ -164,9 +166,10 @@ CODEX_DISPATCH_UNSUPPORTED_ACTION:
                 str(p["source_issue_or_pr"]),
                 p["workspace_alias"],
                 instruction_loc,
+                execution_profile=exec_profile,
             )
-            log.info(f"Dispatching to Codex... (task={task_id})")
-            output, exit_code = codex_wrapper.run_codex(prompt, WORKTREE_PATH)
+            log.info(f"Dispatching to Codex... (task={task_id}, profile={exec_profile})")
+            output, exit_code = codex_wrapper.run_codex(prompt, WORKTREE_PATH, execution_profile=exec_profile)
 
             # Redact output (max 4000 chars)
             redacted = output[:4000]

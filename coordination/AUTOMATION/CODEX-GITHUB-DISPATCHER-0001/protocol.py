@@ -142,7 +142,8 @@ def post_comment(token: str, issue_number: int, body: str):
 
 
 def format_receipt(task_id: str, idempotency_key: str, status: str, runner_id: str,
-                    workspace: str, head_sha: str, codex_version: str) -> str:
+                    workspace: str, head_sha: str, codex_version: str,
+                    execution_profile: str = "read-only") -> str:
     now = datetime.now(timezone.utc).isoformat()
     return f"""```yaml
 CodexDispatchReceipt:
@@ -150,6 +151,7 @@ CodexDispatchReceipt:
   task_id: {task_id}
   idempotency_key: {idempotency_key}
   status: {status}
+  execution_profile: {execution_profile}
   local_workspace: {workspace}
   detected_head: {head_sha}
   runner_id: {runner_id}
