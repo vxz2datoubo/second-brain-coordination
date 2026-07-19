@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import schema
 import state
 import codex_wrapper
+from unittest.mock import patch, MagicMock
 
 # ===== Schema Parser Tests =====
 
@@ -285,42 +286,95 @@ def test_new_issue_first_discovery():
     conn.close()
 
 
-# ===== UTF-8 Output Integrity Tests (Fix 0007) =====
+# ===== UTF-8 Output Integrity — Real Regression Tests (Fix 0009) =====
 
-def test_codex_version_dynamic():
-    """Codex version should be dynamically detected, not hardcoded 0.141.0."""
-    ver = codex_wrapper.get_codex_version()
-    assert ver and ver != "0.141.0", f"Expected dynamic version, got {ver}"
+def _mock_popen(stdout_bytes, stderr_bytes=b"", returncode=0):
+    """Helper: create a mock subprocess.Popen that returns given bytes."""
+    mock_proc = MagicMock()
+    mock_proc.communicate.return_value = (stdout_bytes, stderr_bytes)
+    mock_proc.returncode = returncode
+    return mock_proc
 
-def test_codex_output_integrity_class():
-    """CodexOutputIntegrityError should be a subclass of CodexError."""
+
+def test_utf8_valid_chinese_emoji():
+    """Valid UTF-8 Chinese + emoji output → complete return."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_popen.return_value = _mock_popen("你好世界 🌍 通过".encode("utf-8"))
+        output, rc = codex_wrapper.run_codex("test prompt", "/tmp", timeout=10)
+        assert rc == 0
+        assert "你好世界" in output
+        assert "🌍" in output
+
+
+def test_utf8_illegal_bytes_raises_error():
+    """Illegal UTF-8 bytes → CodexOutputIntegrityError (strict policy)."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_popen.return_value = _mock_popen(b"Hello \xff\xfe World")
+        try:
+            codex_wrapper.run_codex("test", "/tmp", timeout=10)
+            assert False, "Should have raised CodexOutputIntegrityError"
+        except codex_wrapper.CodexOutputIntegrityError:
+            pass  # Expected
+
+
+def test_utf8_empty_output_zero_rc():
+    """Empty output with exit_code=0 → CodexOutputIntegrityError."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_popen.return_value = _mock_popen(b"", b"", returncode=0)
+        try:
+            codex_wrapper.run_codex("test", "/tmp", timeout=10)
+            assert False, "Should have raised CodexOutputIntegrityError"
+        except codex_wrapper.CodexOutputIntegrityError:
+            pass
+
+
+def test_utf8_whitespace_only_fails():
+    """Whitespace-only output with exit_code=0 → CodexOutputIntegrityError."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_popen.return_value = _mock_popen(b"  \n\t  ", b"", returncode=0)
+        try:
+            codex_wrapper.run_codex("test", "/tmp", timeout=10)
+            assert False, "Should have raised CodexOutputIntegrityError"
+        except codex_wrapper.CodexOutputIntegrityError:
+            pass
+
+
+def test_utf8_nonzero_rc_with_stderr():
+    """Non-zero returncode with stderr → returns both, no error raised."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_popen.return_value = _mock_popen(b"", b"error: something broke", returncode=1)
+        output, rc = codex_wrapper.run_codex("test", "/tmp", timeout=10)
+        assert rc == 1
+        assert "error" in output
+
+
+def test_utf8_timeout_raises_timeout():
+    """communicate timeout → CodexTimeout."""
+    with patch("subprocess.Popen") as mock_popen:
+        mock_proc = MagicMock()
+        import subprocess
+        mock_proc.communicate.side_effect = subprocess.TimeoutExpired(cmd=["codex"], timeout=1)
+        mock_popen.return_value = mock_proc
+        try:
+            codex_wrapper.run_codex("test", "/tmp", timeout=1)
+            assert False, "Should have raised CodexTimeout"
+        except codex_wrapper.CodexTimeout:
+            pass
+
+
+def test_utf8_version_mocked():
+    """Dynamic version detection with mocked subprocess."""
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(stdout="codex-cli 9.9.9\n", returncode=0)
+        codex_wrapper._cached_codex_version = None  # clear cache
+        ver = codex_wrapper.get_codex_version()
+        assert ver == "9.9.9", f"Expected 9.9.9, got {ver}"
+
+
+def test_utf8_class_hierarchy():
+    """CodexOutputIntegrityError inherits from CodexError."""
     assert issubclass(codex_wrapper.CodexOutputIntegrityError, codex_wrapper.CodexError)
-
-def test_run_codex_rejects_empty():
-    """Empty stdout+stderr with exit_code=0 should raise CodexOutputIntegrityError."""
-    import subprocess as sp
-    # Use a simple echo that returns exit 0 with Chinese output
-    proc = sp.run(['echo', '测试中文'], capture_output=True)
-    stdout = proc.stdout.decode('utf-8', errors='replace')
-    assert '测试' in stdout or '中文' in stdout, f"Chinese decode failed: {stdout}"
-
-def test_run_codex_emoji_decode():
-    """Emoji output should decode via UTF-8."""
-    test_str = 'Hello 世界 🌍!'
-    encoded = test_str.encode('utf-8')
-    decoded = encoded.decode('utf-8', errors='replace')
-    assert '世界' in decoded and '🌍' in decoded, f"Emoji decode failed: {decoded}"
-
-def test_run_codex_illegal_bytes_replace():
-    """Illegal bytes should be replaced, not raise."""
-    bad = b'Hello \xff\xfe World'
-    decoded = bad.decode('utf-8', errors='replace')
-    assert '\ufffd' in decoded, f"Replace should use U+FFFD: {repr(decoded)}"
-
-def test_run_codex_empty_blocks():
-    """Empty output should be detected."""
-    assert not "".strip(), "Empty string strip should be falsy"
-    assert not " \n\t ".strip(), "Whitespace-only should be falsy"
+    assert issubclass(codex_wrapper.CodexTimeout, codex_wrapper.CodexError)
 
 
 # ===== Idempotency Tests =====
@@ -392,12 +446,14 @@ if __name__ == "__main__":
         ("large_comment_set_simulated", test_large_comment_set_simulated),
         ("per_issue_cursor_recovery", test_per_issue_cursor_recovery),
         ("new_issue_first_discovery", test_new_issue_first_discovery),
-        ("codex_version_dynamic", test_codex_version_dynamic),
-        ("codex_output_integrity_class", test_codex_output_integrity_class),
-        ("run_codex_rejects_empty", test_run_codex_rejects_empty),
-        ("run_codex_emoji_decode", test_run_codex_emoji_decode),
-        ("run_codex_illegal_bytes_replace", test_run_codex_illegal_bytes_replace),
-        ("run_codex_empty_blocks", test_run_codex_empty_blocks),
+        ("utf8_valid_chinese_emoji", test_utf8_valid_chinese_emoji),
+        ("utf8_illegal_bytes_raises_error", test_utf8_illegal_bytes_raises_error),
+        ("utf8_empty_output_zero_rc", test_utf8_empty_output_zero_rc),
+        ("utf8_whitespace_only_fails", test_utf8_whitespace_only_fails),
+        ("utf8_nonzero_rc_with_stderr", test_utf8_nonzero_rc_with_stderr),
+        ("utf8_timeout_raises_timeout", test_utf8_timeout_raises_timeout),
+        ("utf8_version_mocked", test_utf8_version_mocked),
+        ("utf8_class_hierarchy", test_utf8_class_hierarchy),
     ]
     passed = 0
     failed = 0

@@ -1,6 +1,8 @@
 """
-CODEX-GITHUB-DISPATCHER-0001 — Codex CLI Wrapper (UTF-8 Integrity Fix 0007)
+CODEX-GITHUB-DISPATCHER-0001 — Codex CLI Wrapper (UTF-8 Integrity Fix 0009)
 Fixed-prompt wrapper. Phase 1: read-only tasks only.
+UTF-8 policy: strict decode — illegal bytes → CodexOutputIntegrityError → BLOCKED.
+Empty output with exit_code=0 also raises CodexOutputIntegrityError.
 """
 import subprocess
 import os
@@ -53,7 +55,10 @@ class CodexTimeout(CodexError):
 
 
 class CodexOutputIntegrityError(CodexError):
-    """Output was empty, truncated, or corrupt despite exit_code=0."""
+    """Output contains illegal UTF-8 bytes, is empty, truncated, or corrupt.
+    Raised when output cannot be decoded as strict UTF-8, or when exit_code=0
+    but stdout+stderr is empty. The dispatcher must NOT report COMPLETED when
+    this is raised — it writes BLOCKED instead."""
     pass
 
 
@@ -125,15 +130,17 @@ def run_codex(prompt: str, cwd: str, timeout: int = MAX_RUNTIME_SECONDS) -> tupl
                 proc.kill()
             raise CodexTimeout(f"Codex task timed out after {timeout}s")
 
-        # Decode with explicit UTF-8. Use surrogateescape to capture bad bytes.
+        # Decode with strict UTF-8. Illegal bytes → CodexOutputIntegrityError.
+        # Policy: NEVER silently replace or skip bad bytes; the dispatcher
+        # must write BLOCKED instead of falsely reporting COMPLETED.
         try:
-            stdout_str = stdout_bytes.decode("utf-8", errors="replace") if stdout_bytes else ""
-        except Exception as e:
-            raise CodexOutputIntegrityError(f"stdout decode failed: {e}")
+            stdout_str = stdout_bytes.decode("utf-8") if stdout_bytes else ""
+        except UnicodeDecodeError as e:
+            raise CodexOutputIntegrityError(f"stdout contains illegal UTF-8 bytes: {e}")
         try:
-            stderr_str = stderr_bytes.decode("utf-8", errors="replace") if stderr_bytes else ""
-        except Exception as e:
-            raise CodexOutputIntegrityError(f"stderr decode failed: {e}")
+            stderr_str = stderr_bytes.decode("utf-8") if stderr_bytes else ""
+        except UnicodeDecodeError as e:
+            raise CodexOutputIntegrityError(f"stderr contains illegal UTF-8 bytes: {e}")
 
         output = stdout_str + "\n" + stderr_str
         output_stripped = output.strip()
