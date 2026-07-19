@@ -4,6 +4,7 @@ Phase 1: Strict YAML dispatch protocol parser.
 Zero external dependencies — uses regex for the flat key:value subset we accept.
 """
 import re
+from urllib.parse import urlparse
 
 ALLOWED_ACTIONS = {"START"}
 UNSUPPORTED_ACTIONS = {"REVIEW", "CONTINUE", "CANCEL"}
@@ -125,8 +126,23 @@ class DispatchBlock:
             return False
         if p.get("instruction_location"):
             loc = p["instruction_location"]
-            if not str(loc).startswith("https://github.com/" + TARGET_REPO):
-                self.errors.append("instruction_location must point to this repository")
+            parsed = urlparse(str(loc))
+            if parsed.scheme not in ("http", "https"):
+                self.errors.append("instruction_location scheme must be http or https")
+                return False
+            if parsed.hostname != "github.com":
+                self.errors.append("instruction_location must be on github.com")
+                return False
+            # Path must match /owner/repo/(issues|pull)/number
+            path_match = re.match(r'^/([^/]+)/([^/]+)/(issues|pull)/(\d+)$', parsed.path)
+            if not path_match:
+                self.errors.append("instruction_location path must match /owner/repo/issues/N or /pull/N")
+                return False
+            if path_match.group(1) + "/" + path_match.group(2) != TARGET_REPO:
+                self.errors.append(f"instruction_location must be for {TARGET_REPO}")
+                return False
+            if path_match.group(4) != str(p["source_issue_or_pr"]):
+                self.errors.append("instruction_location issue/PR number must match source_issue_or_pr")
                 return False
         return True
 

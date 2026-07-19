@@ -120,7 +120,61 @@ def test_reject_unknown_workspace():
     assert not block.validate()
 
 
-# ===== Pre-Filter Tests (Phase 1 Fix 0002) =====
+# ===== Instruction Location URL Validation Tests (PR #3 Remediation 0011) =====
+
+VALID_WITH_LOC = VALID_DISPATCH.replace(
+    "idempotency_key: TEST-001-abc123\n",
+    "instruction_location: https://github.com/vxz2datoubo/second-brain-coordination/issues/7\nidempotency_key: TEST-001-abc123\n")
+
+
+def test_url_valid_issues():
+    """Valid URL with correct owner/repo/issues/N."""
+    block = schema.DispatchBlock(VALID_WITH_LOC, 1, "http://test")
+    assert block.parse()
+    assert block.validate(), f"Expected valid: {block.errors}"
+
+
+def test_url_reject_wrong_host():
+    """evil.com should be rejected."""
+    text = VALID_WITH_LOC.replace("github.com", "evil.com")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+    assert any("github.com" in e for e in block.errors)
+
+
+def test_url_reject_wrong_repo():
+    """Different repo should be rejected."""
+    text = VALID_WITH_LOC.replace("second-brain-coordination", "other-repo")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+    assert any("TARGET_REPO" in e or "vxz2datoubo" in e for e in block.errors)
+
+
+def test_url_reject_number_mismatch():
+    """instruction_location issue number must match source_issue_or_pr."""
+    text = VALID_WITH_LOC.replace("issues/7", "issues/999")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+    assert any("source_issue_or_pr" in e or "number" in e for e in block.errors)
+
+
+def test_url_reject_wrong_scheme():
+    """ftp:// should be rejected."""
+    text = VALID_WITH_LOC.replace("https://", "ftp://")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
+
+
+def test_url_reject_malformed_path():
+    """Malformed path should be rejected."""
+    text = VALID_WITH_LOC.replace("issues/7", "bad-path")
+    block = schema.DispatchBlock(text, 1, "http://test")
+    block.parse()
+    assert not block.validate()
 
 def test_skip_ordinary_comment():
     """Ordinary comment without CodexDispatch keyword should be silently skipped."""
@@ -427,6 +481,12 @@ if __name__ == "__main__":
         ("reject_oversized", test_reject_oversized),
         ("reject_non_gpt_continue", test_reject_non_gpt_continue),
         ("reject_unknown_workspace", test_reject_unknown_workspace),
+        ("url_valid_issues", test_url_valid_issues),
+        ("url_reject_wrong_host", test_url_reject_wrong_host),
+        ("url_reject_wrong_repo", test_url_reject_wrong_repo),
+        ("url_reject_number_mismatch", test_url_reject_number_mismatch),
+        ("url_reject_wrong_scheme", test_url_reject_wrong_scheme),
+        ("url_reject_malformed_path", test_url_reject_malformed_path),
         ("skip_ordinary_comment", test_skip_ordinary_comment),
         ("skip_auto_receipt", test_skip_auto_receipt),
         ("skip_heartbeat", test_skip_heartbeat),
