@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Super Jarvis Decision Record Schema",
+  "description": "Auditable decision record for WorkBuddy Decision Brain",
+  "type": "object",
+  "required": ["id", "time", "detected_intent", "memory_used", "knowledge_used", "tools_called", "chosen_action", "reason_summary", "risk_level"],
+  "properties": {
+    "id": {"type": "string", "description": "Unique decision ID, e.g. decision_20260617_001"},
+    "time": {"type": "string", "format": "date-time", "description": "ISO 8601 timestamp"},
+    "user_message_snippet": {"type": "string", "description": "Brief snippet of user message that triggered this decision"},
+    "detected_intent": {"type": "string", "description": "Classified intent from router"},
+    "memory_used": {"type": "array", "items": {"type": "string"}, "description": "Which memory sources were consulted"},
+    "knowledge_used": {"type": "array", "items": {"type": "string"}, "description": "Which knowledge/sources were consulted"},
+    "tools_called": {"type": "array", "items": {"type": "string"}, "description": "Which tools/models were invoked"},
+    "chosen_action": {"type": "string", "description": "What action was ultimately taken"},
+    "reason_summary": {"type": "string", "description": "Why this action was chosen (NOT full chain-of-thought)"},
+    "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+    "result": {"type": "string", "description": "Result after execution (filled after completion)"}
+  }
+}

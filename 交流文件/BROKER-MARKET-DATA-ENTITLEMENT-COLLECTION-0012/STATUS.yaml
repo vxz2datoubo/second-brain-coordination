@@ -1,0 +1,45 @@
+# STATUS.yaml — 任务状态
+
+task: BROKER-MARKET-DATA-ENTITLEMENT-COLLECTION-0012
+status: DRAFT_RESEARCH_COMPLETE
+phase: 公开资料调查阶段完成，等待用户发送问询
+generated: 2026-07-17T00:33:00+08:00
+model: DeepSeek-V4-Pro (reasoning)
+executor: WorkBuddy (迪迪)
+
+brokers_surveyed: 5
+brokers_with_official_docs: 2  # xtquant + PTrade API (框架级, 非券商级)
+brokers_awaiting_manual_contact: 4  # 国金/国信/中信建投/华泰 (广发不适合散户)
+
+## 能力候选发现
+python_l2_available: true  # xtquant miniQMT 国金/国信
+ten_level_candidate: true  # 国金QMT/国信QMT 均确认
+raw_trade_tick_candidate: partial  # GPT裁决: tick≠原始L2, 需验证l2transaction (tradeIndex/buyNo/sellNo)
+raw_order_event_candidate: partial  # xtdata l2order(待payload验证entrustNo) + PTrade tick_data order
+order_queue_candidate: partial  # xtquant l2orderqueue=一档委托队列(非千档), 千档结构待券商验证
+auction_candidate: unconfirmed  # 所有券商公开文档未明确集合竞价专门接口
+
+lowest_asset_threshold: 100000  # 国金/国信 10万
+lowest_monthly_cost: 0  # 达标后免费
+
+best_evidence_route: 国金证券-miniQMT-xtquant  # xtquant SDK文档最全, L2免费, 门槛最低
+security_blocked_routes: 广发证券  # 300万专业投资者门槛, 散户不可用
+
+## 文件清单
+outputs:
+  - BROKER-CANDIDATE-LIST.md: done
+  - PUBLIC-OFFICIAL-EVIDENCE.md: done
+  - EXPANDED-BROKER-QUESTIONNAIRE.md: done
+  - OUTREACH-MESSAGES.md: done
+  - BROKER-RESPONSE-SCHEMA-V2.json: done
+  - BROKER-ROUTE-SCORECARD-V2.csv: done
+  - BROKER-RAW-RESPONSES/: empty (等待券商答复)
+  - MISSING-EVIDENCE.md: done
+  - SECURITY-AND-PERMISSION-BOUNDARIES.md: done
+  - USER-MANUAL-SEND-LIST.md: done
+  - STATUS.yaml: done
+  - RUN-RECEIPT.md: pending
+
+## 下一步
+next_action: 用户审阅 OUTREACH-MESSAGES.md → 手动发送给国金/国信客户经理
+blocked_by: 需用户提供或找到客户经理联系方式

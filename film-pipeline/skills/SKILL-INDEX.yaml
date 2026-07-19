@@ -1,0 +1,74 @@
+# ============================================================
+# SKILL-INDEX · 原子技能索引
+# ============================================================
+# 每个技能通过 triggers 字段声明"什么场景调用我"。
+# 运行时：扫描场景特征 → 匹配 triggers → 加载匹配的技能 → 静默注入提示词生成
+# ============================================================
+
+version: "1.0"
+last_updated: 2026-07-12
+total_skills: 4
+
+# ------------------------------------------------------
+# 按触发条件分类的技能映射
+# ------------------------------------------------------
+trigger_map:
+
+  # --- 对话/表演类 ---
+  power_gap_dialogue:
+    condition: "场景中存在明确的权力不对等（上下级、甲方乙方、支配-被支配）"
+    skills: [dialogue-as-social-tool]
+
+  social_pleasantry:
+    condition: "台词表面是抱怨/自谦/道歉/客气，上下文暗示另有目的"
+    skills: [dialogue-as-social-tool]
+
+  any_character_lying:
+    condition: "角色在场景中说的与做的/已知事实矛盾"
+    skills: [dialogue-as-social-tool]
+
+  # --- 待扩充 ---
+  reference_image_prompt:
+    condition: "场景使用了 reference_image 进行 AI 生成"
+    skills: [reference-image-division-of-labor]
+
+  character_capability_calibration:
+    condition: "角色能力水平与任务难度存在明显差距"
+    skills: [given-circumstances-calibration]
+
+  everyday_action:
+    condition: "角色在做日常行为（喝酒/吃饭/吸烟），上下文无重大情绪事件"
+    skills: [action-scene-calibration]
+
+skill_registry:
+  - id: dialogue-as-social-tool
+    file: skills/dialogue-as-social-tool.yaml
+    status: 已锁定
+    version: "1.0"
+    correct_count: 1
+    last_applied: 2026-07-12
+    short_desc: "权力不对等时，台词=社交工具非情感窗口"
+
+  - id: reference-image-division-of-labor
+    file: skills/reference-image-division-of-labor.yaml
+    status: 已锁定
+    version: "1.0"
+    correct_count: 1
+    last_applied: 2026-07-12
+    short_desc: "参考图负责身份，文字prompt负责动作——不重复描述外观"
+
+  - id: given-circumstances-calibration
+    file: skills/given-circumstances-calibration.yaml
+    status: 已锁定
+    version: "1.0"
+    correct_count: 1
+    last_applied: 2026-07-12
+    short_desc: "角色反应由任务难度vs角色能力校准——前杀手抓弱人不值得疲惫"
+
+  - id: action-scene-calibration
+    file: skills/action-scene-calibration.yaml
+    status: 已锁定
+    version: "1.0"
+    correct_count: 1
+    last_applied: 2026-07-12
+    short_desc: "行为烈度匹配场景情绪基线——训练数据偏戏剧化≠所有场景都该戏剧化"

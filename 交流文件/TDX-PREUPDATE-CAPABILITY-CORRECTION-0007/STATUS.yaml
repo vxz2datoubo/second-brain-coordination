@@ -1,0 +1,25 @@
+task_id: TDX-PREUPDATE-CAPABILITY-CORRECTION-0007
+status: COMPLETED
+v104_get_more_info_exists: RUNTIME_VERIFIED_TRUE
+v104_get_more_info_l2_fields: 13  # L2TicNum, L2OrderNum, TotalBVol, TotalSVol, BCancel, SCancel, Zjl, Zjl_HB, OpenAmo, OpenZTBuy, Wtb, FzAmo, VOpenZAF
+v104_get_more_info_total_keys: 86
+v104_external_init: SUCCESS  # tq.initialize(__file__), run_id=3
+v104_external_init_previous_failure_root_cause: MISSING_initialize_call  # _connection_path 为空
+v104_missing_methods:
+  - get_pricevol
+  - formula_get_all
+  - formula_get_info
+  - get_match_stkinfo
+  - get_relation
+v104_tick: REJECTED  # valid_periods 不含 tick
+corrections_to_0006:
+  - v1.0.4 有 get_more_info (撤回0006结论)
+  - v1.0.4 有 get_gb_info/get_ipo_info/download_file/send_message/send_warn/get_trackzs_etf_info (撤回)
+  - 外部初始化可成功 (撤回,根因:未调initialize)
+  - v1.0.4 缺失 v1.0.12 文档中的 L2 字段 (撤回,实测都有)
+  - 0006 HTTP-CAPABILITY-MATRIX 中 L2TicNum 等字段归为 v1.0.12 独有 (撤回,v1.0.4 也有)
+document_conflicts:
+  tick: DOCUMENT_CONFLICT_RUNTIME_NOT_VERIFIED_ON_V1_0_12
+  formula: DOCUMENT_CONFLICT_RUNTIME_NOT_VERIFIED_ON_V1_0_12
+witness_files_copied: false  # 禁止修改原文件,已记录SHA256
+output_dir: F:\aidanao\交流文件\TDX-PREUPDATE-CAPABILITY-CORRECTION-0007\

@@ -1,0 +1,115 @@
+{
+  "generated_at": "2026-06-21T10:33:01",
+  "date": "2026-06-20",
+  "risk": {
+    "mode": "cautious",
+    "market_regime": "unknown",
+    "market_risk_multiplier": 1.0,
+    "risk_per_trade": 0.00375,
+    "max_position_pct": 0.15,
+    "max_total_exposure": 0.45,
+    "max_theme_exposure_pct": null,
+    "planned_exposure": 11555.8,
+    "risk_reasons": [
+      "存在执行扣分，下一轮单笔风险降至75%",
+      "出现超计划买入，降低单笔风险"
+    ]
+  },
+  "counts": {
+    "watchlist": 2,
+    "themes": 5,
+    "backtests": 2,
+    "selected": 2,
+    "open_positions": 0,
+    "position_action_required": 0
+  },
+  "hot_themes": [
+    {
+      "rank": "1",
+      "theme": "AI算力",
+      "stage": "分歧",
+      "risk": "中高",
+      "priority": "3",
+      "suggestion": "分歧阶段，只考虑核心标的低吸，必须设置硬止损"
+    },
+    {
+      "rank": "2",
+      "theme": "半导体",
+      "stage": "确认",
+      "risk": "中",
+      "priority": "4",
+      "suggestion": "中等热度，进入观察池，等待价格与成交量确认"
+    },
+    {
+      "rank": "3",
+      "theme": "机器人",
+      "stage": "分歧",
+      "risk": "中高",
+      "priority": "3",
+      "suggestion": "分歧阶段，只考虑核心标的低吸，必须设置硬止损"
+    },
+    {
+      "rank": "4",
+      "theme": "消费",
+      "stage": "退潮",
+      "risk": "高",
+      "priority": "0",
+      "suggestion": "题材退潮，原则上回避，只观察是否出现修复"
+    },
+    {
+      "rank": "5",
+      "theme": "低空经济",
+      "stage": "发酵",
+      "risk": "中",
+      "priority": "3",
+      "suggestion": "题材发酵，进入观察池，等待龙头确认和量能验证"
+    }
+  ],
+  "candidates": [
+    {
+      "symbol": "SEMI",
+      "name": "半导体样例",
+      "theme": "半导体",
+      "stage": "确认",
+      "strategy": "sma_cross",
+      "candidate_score": "72.98",
+      "entry": 26.0,
+      "stop": 24.4857,
+      "qty": 247,
+      "risk_pct": 0.0037,
+      "action": "重点观察，交易前仍需 consult 风控检查"
+    },
+    {
+      "symbol": "SAMPLE",
+      "name": "AI算力样例",
+      "theme": "AI算力",
+      "stage": "分歧",
+      "strategy": "sma_cross",
+      "candidate_score": "52.73",
+      "entry": 13.3,
+      "stop": 12.3286,
+      "qty": 386,
+      "risk_pct": 0.0037,
+      "action": "重点观察，交易前仍需 consult 风控检查"
+    }
+  ],
+  "risk_actions": [],
+  "watch_positions": [],
+  "gates": [
+    "风控模式 cautious，按节流后的仓位执行",
+    "未进入组合计划的标的不交易",
+    "下单前必须通过 pretrade check 或 /api/finance/consult",
+    "触发止损先执行，不用补仓掩盖亏损"
+  ],
+  "next_actions": [
+    "只从计划内候选里等待入场条件",
+    "复核排名靠前题材是否处于启动/确认/分歧，而非高潮退潮",
+    "盘后记录真实交易并跑 plan_review/risk_state"
+  ],
+  "sources": {
+    "pipeline": "qclaw-output\\finance-daily-pipeline-2026-06-20.json",
+    "daily_report": "F:\\ai\\qclaw-output\\finance-daily-report-2026-06-20.md",
+    "portfolio_plan": "F:\\ai\\qclaw-output\\finance-portfolio-plan-2026-06-20.md",
+    "position_monitor": "qclaw-output\\finance-position-monitor-2026-06-20.json"
+  }
+}

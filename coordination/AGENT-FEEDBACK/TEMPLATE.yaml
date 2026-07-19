@@ -1,0 +1,171 @@
+# AGENT-FEEDBACK 模板 v2.0
+# 来源: Issue #4 长期收集台 v2 — Agent执行遥测、困难、失败、发现、机会与建议
+# 所有非 trivial 任务完成后必须填写此模板并提交到 coordination/AGENT-FEEDBACK/<task-id>/
+# 规则: 1) 字段无内容写 none  2) Token 不可见写 unavailable  3) 禁止编造数字
+
+schema_version: "2.0"
+agent_id: WORKBUDDY  # WORKBUDDY | CODEX | GPT
+task_id: "<任务ID>"
+agent_role: executor  # executor | reviewer | architect | coordinator
+mode: direct  # project_plan | goal | direct | plan_then_review
+report_type: final  # progress | blocker | final | opportunity
+status: SUCCESS_CLEAN  # SUCCESS_CLEAN | SUCCESS_WITH_FINDINGS | PARTIAL | BLOCKED | FAILED | NEEDS_APPROVAL
+
+scope:
+  requested_goal: none
+  actual_work_completed:
+    - none
+  out_of_scope_work:
+    - none
+
+execution_metrics:
+  started_at: 
+  ended_at: 
+  wall_clock_minutes: unavailable
+  active_work_minutes: unavailable
+  waiting_minutes: none
+  retries: 0
+  tool_calls: unavailable
+  shell_commands: unavailable
+  test_runs: 0
+  files_read: unavailable
+  files_changed: 0
+  commits_created: 0
+
+token_usage:
+  measurement: unavailable  # exact | estimated | unavailable
+  model_or_runtime: unavailable
+  input_tokens: unavailable
+  output_tokens: unavailable
+  reasoning_tokens: unavailable
+  total_tokens: unavailable
+  estimation_method: unavailable
+  confidence: unavailable  # high | medium | low | unavailable
+
+resource_cost_notes:
+  - none
+
+difficulty:
+  planned_difficulty: unknown  # D1~D5 | unknown
+  experienced_difficulty: D1  # D1~D5
+  difficulty_delta: as_expected  # easier | as_expected | harder
+  reasons:
+    - none
+  hardest_step: none
+  bottlenecks:
+    - none
+
+environment:
+  operating_system: unavailable
+  shell: 
+  workspace_path: none
+  repository_state:
+    repo: none
+    branch_or_ref: none
+    head_sha: 
+    clean_checkout: unknown
+  runtimes:
+    python: unavailable
+    node: unavailable
+    git: unavailable
+  available_tools:
+    - none
+  missing_or_limited_tools:
+    - none
+  permissions_and_auth:
+    - none
+  network_and_proxy:
+    - none
+  environment_surprises:
+    - none
+
+original_plan_vs_reality:
+  - planned: none
+    actual: none
+    impact: none
+    adaptation: none
+
+problems_encountered:
+  - problem_id: P1
+    problem: none
+    severity: low
+    impact: none
+    root_cause: none
+    evidence: none
+
+failed_attempts:
+  - attempt: none
+    why_it_failed: none
+    cost: none
+    lesson: none
+
+solutions_attempted:
+  - approach: none
+    result: success  # success | failed | partial
+    evidence: none
+    tradeoffs: none
+
+final_solution:
+  - none
+
+unresolved_questions:
+  - none
+
+unexpected_events:
+  - none
+
+unexpected_findings:
+  - none
+
+special_gains:
+  reusable_assets:
+    - none
+  new_knowledge:
+    - none
+  newly_proven_capabilities:
+    - none
+  process_improvements:
+    - none
+
+opportunities:
+  - opportunity: none
+    expected_value: low  # low | medium | high
+    effort: low  # low | medium | high
+    recommended_timing: backlog  # now | next_task | backlog
+
+recommendations:
+  architecture:
+    - none
+  process:
+    - none
+  task_decomposition:
+    - none
+  testing:
+    - none
+  tools_and_automation:
+    - none
+
+command_quality_feedback:
+  clarity: clear  # clear | partial | ambiguous | conflicting
+  what_was_clear:
+    - none
+  missing_context:
+    - none
+  conflicting_or_risky_instructions:
+    - none
+  unnecessary_work:
+    - none
+  suggested_rewrite: none
+
+risk_and_decisions:
+  risks_remaining:
+    - none
+  plan_change_needed: false
+  needs_gpt_decision: false
+  needs_user_decision: false
+  stop_condition_triggered: false
+
+next_best_action: none
+confidence: high  # high | medium | low
+metrics_provenance:
+  - none

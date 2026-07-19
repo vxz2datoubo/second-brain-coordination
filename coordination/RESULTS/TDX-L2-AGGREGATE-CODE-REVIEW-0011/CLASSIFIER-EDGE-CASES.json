@@ -1,0 +1,751 @@
+[
+  {
+    "case_id": "oral_l2_no_docs",
+    "description": "????????L2?????",
+    "expected_review": "needs_review_or_insufficient",
+    "input": {
+      "broker_name": "Oral Broker",
+      "market_data_only_mode": "unknown",
+      "account_or_order_functions_required": "unknown",
+      "capabilities": {
+        "ten_level_book": "yes",
+        "raw_trade_tick": "unknown"
+      },
+      "timestamp_semantics": {},
+      "license": {},
+      "cost": {},
+      "evidence_files": {}
+    },
+    "result": {
+      "broker_name": "Oral Broker",
+      "official_product_name": "",
+      "route_status": "needs_review",
+      "score": 6,
+      "allowed_capabilities": [
+        "TEN_LEVEL_SNAPSHOT"
+      ],
+      "candidate_capabilities": [],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_TRADE_TICK",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_ORDER_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "ORDER_QUEUE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [
+        "field_list_path",
+        "license_terms_path",
+        "sample_payload_path",
+        "sdk_doc_path"
+      ],
+      "warnings": [
+        "account_or_order_requirement_unknown",
+        "automation_license_not_confirmed",
+        "cost_or_asset_threshold_missing",
+        "local_storage_license_not_confirmed",
+        "market_data_only_mode_not_confirmed",
+        "redistribution_terms_unknown",
+        "sequence_no_not_confirmed",
+        "source_timestamp_semantics_missing"
+      ],
+      "quality": {
+        "quality_score": 0.06,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.58,
+        "validation_status": "needs_review",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": false,
+        "requires_codex_runtime_validation": false,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "ten_level_ui_no_strategy_api",
+    "description": "???UI???????",
+    "expected_review": "needs_review",
+    "input": {
+      "broker_name": "UI Only Broker",
+      "market_data_only_mode": "no",
+      "account_or_order_functions_required": "unknown",
+      "capabilities": {
+        "ten_level_book": "yes"
+      },
+      "timestamp_semantics": {
+        "vendor_timestamp": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "unknown",
+        "automation_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "included"
+      },
+      "evidence_files": {
+        "field_list_path": "ui_screenshot_only"
+      }
+    },
+    "result": {
+      "broker_name": "UI Only Broker",
+      "official_product_name": "",
+      "route_status": "needs_review",
+      "score": 19,
+      "allowed_capabilities": [
+        "TEN_LEVEL_SNAPSHOT"
+      ],
+      "candidate_capabilities": [],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_TRADE_TICK",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_ORDER_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "ORDER_QUEUE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [
+        "license_terms_path",
+        "sample_payload_path",
+        "sdk_doc_path"
+      ],
+      "warnings": [
+        "account_or_order_requirement_unknown",
+        "automation_license_not_confirmed",
+        "local_storage_license_not_confirmed",
+        "market_data_only_mode_not_confirmed",
+        "redistribution_terms_unknown",
+        "sequence_no_not_confirmed",
+        "vendor_timestamp_only"
+      ],
+      "quality": {
+        "quality_score": 0.19,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.58,
+        "validation_status": "needs_review",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": false,
+        "requires_codex_runtime_validation": false,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "sdk_docs_no_payload",
+    "description": "?SDK????????payload",
+    "expected_review": "needs_review",
+    "input": {
+      "broker_name": "Docs Broker",
+      "market_data_only_mode": "yes",
+      "account_or_order_functions_required": "no",
+      "capabilities": {
+        "raw_trade_tick": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "yes",
+        "sequence_no": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "yes",
+        "automation_allowed": "yes",
+        "redistribution_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "Docs Broker",
+      "official_product_name": "",
+      "route_status": "needs_review",
+      "score": 62,
+      "allowed_capabilities": [],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "TEN_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_TRADE_TICK",
+          "reason": "broker claimed support but required evidence files are missing",
+          "missing_evidence": [
+            "sample_payload_path"
+          ]
+        },
+        {
+          "capability": "RAW_ORDER_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "ORDER_QUEUE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [
+        "RAW_TRADE_TICK:sample_payload_path",
+        "sample_payload_path"
+      ],
+      "warnings": [],
+      "quality": {
+        "quality_score": 0.62,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.58,
+        "validation_status": "needs_review",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "raw_trade_no_timestamp_sequence",
+    "description": "???????????????",
+    "expected_review": "needs_review",
+    "input": {
+      "broker_name": "No Timestamp Broker",
+      "market_data_only_mode": "yes",
+      "account_or_order_functions_required": "no",
+      "capabilities": {
+        "raw_trade_tick": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "no",
+        "sequence_no": "no"
+      },
+      "license": {
+        "local_storage_allowed": "yes",
+        "automation_allowed": "yes",
+        "redistribution_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "sample_payload_path": "sample.jsonl",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "No Timestamp Broker",
+      "official_product_name": "",
+      "route_status": "raw_l2_candidate_needs_runtime_probe",
+      "score": 64,
+      "allowed_capabilities": [],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "TEN_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "RAW_ORDER_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "ORDER_QUEUE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [],
+      "warnings": [
+        "sequence_no_not_confirmed",
+        "source_timestamp_semantics_missing"
+      ],
+      "quality": {
+        "quality_score": 0.64,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.72,
+        "validation_status": "raw_l2_candidate_needs_runtime_probe",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "complete_fields_no_local_storage",
+    "description": "???????????????????????",
+    "expected_review": "needs_review_or_blocked_future",
+    "input": {
+      "broker_name": "View Only Broker",
+      "market_data_only_mode": "yes",
+      "account_or_order_functions_required": "no",
+      "capabilities": {
+        "raw_trade_tick": "yes",
+        "raw_order_event": "yes",
+        "order_queue": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "yes",
+        "sequence_no": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "no",
+        "automation_allowed": "yes",
+        "redistribution_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "sample_payload_path": "sample.jsonl",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "View Only Broker",
+      "official_product_name": "",
+      "route_status": "raw_l2_candidate_needs_runtime_probe",
+      "score": 92,
+      "allowed_capabilities": [],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT",
+        "ORDER_QUEUE"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "TEN_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [],
+      "warnings": [
+        "local_storage_license_not_confirmed"
+      ],
+      "quality": {
+        "quality_score": 0.92,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.72,
+        "validation_status": "raw_l2_candidate_needs_runtime_probe",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "sdk_has_trading_methods_but_readonly_marketdata",
+    "description": "SDK???????????????????????",
+    "expected_review": "raw_l2_candidate_needs_runtime_probe",
+    "input": {
+      "broker_name": "Readonly Broker",
+      "market_data_only_mode": "yes",
+      "account_or_order_functions_required": "no",
+      "capabilities": {
+        "raw_trade_tick": "yes",
+        "raw_order_event": "yes",
+        "order_queue": "yes",
+        "cancel_event": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "yes",
+        "sequence_no": "yes",
+        "channel_no": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "yes",
+        "automation_allowed": "yes",
+        "redistribution_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "sample_payload_path": "sample.jsonl",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "Readonly Broker",
+      "official_product_name": "",
+      "route_status": "raw_l2_candidate_needs_runtime_probe",
+      "score": 100,
+      "allowed_capabilities": [],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT",
+        "ORDER_QUEUE",
+        "CANCEL_EVENT"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "TEN_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [],
+      "warnings": [],
+      "quality": {
+        "quality_score": 1.0,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.72,
+        "validation_status": "raw_l2_candidate_needs_runtime_probe",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "marketdata_requires_trading_counter",
+    "description": "???????????????",
+    "expected_review": "blocked",
+    "input": {
+      "broker_name": "Counter Broker",
+      "market_data_only_mode": "no",
+      "account_or_order_functions_required": "yes",
+      "capabilities": {
+        "raw_trade_tick": "yes",
+        "raw_order_event": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "yes",
+        "sequence_no": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "yes",
+        "automation_allowed": "yes"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "sample_payload_path": "sample.jsonl",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "Counter Broker",
+      "official_product_name": "",
+      "route_status": "blocked",
+      "score": 80,
+      "allowed_capabilities": [],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "route",
+          "reason": "broker says account/order functions are required in the same process"
+        },
+        {
+          "capability": "FIVE_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "TEN_LEVEL_SNAPSHOT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "L2_AGGREGATE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "ORDER_QUEUE",
+          "reason": "unknown"
+        },
+        {
+          "capability": "CANCEL_EVENT",
+          "reason": "unknown"
+        },
+        {
+          "capability": "AUCTION_TRAJECTORY",
+          "reason": "unknown"
+        },
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [],
+      "warnings": [
+        "market_data_only_mode_not_confirmed",
+        "redistribution_terms_unknown"
+      ],
+      "quality": {
+        "quality_score": 0.8,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.58,
+        "validation_status": "blocked",
+        "status": "Frozen",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  },
+  {
+    "case_id": "all_complete",
+    "description": "???????????????????",
+    "expected_review": "raw_l2_candidate_needs_runtime_probe",
+    "input": {
+      "broker_name": "Complete Broker",
+      "market_data_only_mode": "yes",
+      "account_or_order_functions_required": "no",
+      "capabilities": {
+        "five_level_book": "yes",
+        "ten_level_book": "yes",
+        "l2_aggregate": "yes",
+        "raw_trade_tick": "yes",
+        "raw_order_event": "yes",
+        "order_queue": "yes",
+        "cancel_event": "yes",
+        "auction_trajectory": "yes"
+      },
+      "timestamp_semantics": {
+        "exchange_timestamp": "yes",
+        "sequence_no": "yes",
+        "channel_no": "yes"
+      },
+      "license": {
+        "local_storage_allowed": "yes",
+        "automation_allowed": "yes",
+        "redistribution_allowed": "no"
+      },
+      "cost": {
+        "monthly_fee": "low"
+      },
+      "evidence_files": {
+        "field_list_path": "field.md",
+        "sdk_doc_path": "sdk.md",
+        "sample_payload_path": "sample.jsonl",
+        "license_terms_path": "terms.md"
+      }
+    },
+    "result": {
+      "broker_name": "Complete Broker",
+      "official_product_name": "",
+      "route_status": "raw_l2_candidate_needs_runtime_probe",
+      "score": 100,
+      "allowed_capabilities": [
+        "FIVE_LEVEL_SNAPSHOT",
+        "TEN_LEVEL_SNAPSHOT",
+        "L2_AGGREGATE"
+      ],
+      "candidate_capabilities": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT",
+        "ORDER_QUEUE",
+        "CANCEL_EVENT",
+        "AUCTION_TRAJECTORY"
+      ],
+      "blocked_capabilities": [
+        {
+          "capability": "HISTORICAL_L2_ARCHIVE",
+          "reason": "unknown"
+        }
+      ],
+      "evidence_gaps": [],
+      "warnings": [],
+      "quality": {
+        "quality_score": 1.0,
+        "evidence_level": "broker_reply",
+        "source_reliability": 0.72,
+        "validation_status": "raw_l2_candidate_needs_runtime_probe",
+        "status": "Experimental",
+        "human_reviewed": false
+      },
+      "governance": {
+        "research_only": true,
+        "live_trading_enabled": false,
+        "requires_workbuddy_sample_pack": true,
+        "requires_codex_runtime_validation": true,
+        "public_crawler_role": "auxiliary_crosscheck_only",
+        "summary": "Broker reply classified conservatively. Raw L2 capabilities remain candidates until field docs, sample payloads, timestamp semantics, and license terms are verified."
+      }
+    }
+  }
+]

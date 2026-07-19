@@ -1,0 +1,141 @@
+# P0-000 AI_HANDOFF
+
+# ============================================================
+# Agent 交接协议
+# ============================================================
+
+handoff:
+  task_id: "P0-000"
+  title: "统一仓库接入与安全基线"
+  status: "in_progress"
+  source_agent: "WORKBUDDY"
+  target_agent: "CODEX"
+  reviewer: "GPT"
+  final_approver: "USER"
+
+# ============================================================
+# 任务上下文
+# ============================================================
+context:
+  production_state: "research_only"
+  trading_state: "NO_TRADE"
+  project_root: "F:\\aidanao"
+  repo_url: "https://github.com/vxz2datoubo/second-brain-coordination"
+  branch_created: "workbuddy/P0-000-repository-baseline"
+  estimated_remaining_steps:
+    - "git add + commit"
+    - "git push origin workbuddy/P0-000-repository-baseline"
+    - "Create Pull Request"
+    - "CODEX review"
+    - "GPT acceptance"
+
+# ============================================================
+# 交付物清单
+# ============================================================
+deliverables:
+  root_files:
+    - file: "README.md"
+      description: "项目总览（已写入，含目录结构/蓝图索引/Agent署名规则）"
+      status: "done"
+    - file: "AGENTS.md"
+      description: "多Agent协作规则（身份/署名/角色/回报等级/停止条件）"
+      status: "done"
+    - file: "SECURITY.md"
+      description: "安全策略（凭证管理/数据隔离/分支保护/泄露应急）"
+      status: "done"
+    - file: ".gitignore"
+      description: "排除规则 80+ 条（凭证/日志/数据库/大文件/venv/screenshots/L2数据）"
+      status: "done"
+
+  structure:
+    - dir: "docs/adr/"
+      status: "created"
+    - dir: "docs/handoff/"
+      status: "created"
+    - dir: "governance/"
+      status: "created"
+    - dir: "services/"
+      status: "created"
+    - dir: "libs/"
+      status: "created"
+    - dir: "adapters/"
+      status: "created"
+    - dir: "scripts/"
+      status: "created"
+    - dir: "tests/"
+      status: "pre-existing"
+    - dir: "docs/blueprints/"
+      status: "pre-existing (from prior blueprint ingestion task)"
+
+  blueprints:
+    - file: "docs/blueprints/01_交易系统.md"
+      sha256: "fb7650343b7101a2"
+      status: "authoritative"
+    - file: "docs/blueprints/02_第二大脑_系统蓝图_v3.0.md"
+      sha256: "a71cdbf0bbc58f5b"
+      status: "authoritative"
+    - file: "docs/blueprints/03_交易系统与第二大脑_合作机制_v1.0.md"
+      sha256: "a3f7bb9781cdb836"
+      status: "authoritative"
+    - file: "docs/blueprints/BLUEPRINT_MANIFEST.yaml"
+      status: "authoritative"
+
+  handoff:
+    - file: "docs/handoff/P0-000_WORKBUDDY_REPORT.md"
+      description: "WORKBUDDY 完整执行报告（含工作过程/问题/意外发现/建议/未知项）"
+      status: "done"
+    - file: "docs/handoff/P0-000_AI_HANDOFF.yaml"
+      description: "结构化AI交接协议（本文件）"
+      status: "done"
+
+# ============================================================
+# 未知项 (给 CODEX 复核用)
+# ============================================================
+unknowns:
+  - id: "U1"
+    item: "gitproxy.mrhjx.cn 凭证助手 push 可用性"
+    evidence_level: "UNVERIFIED"
+    suggested_validation: "尝试 git push --dry-run 或实际 push"
+
+  - id: "U2"
+    item: "仓库当前为 Public 而非 Issue 要求的 Private"
+    evidence_level: "VERIFIED_FACT"
+    note: "API 确认 private:false, visibility:public。已报告。GPT 判定当前可接受。"
+
+  - id: "U3"
+    item: "coordination/RESULTS/ 目录是否应纳入 Git"
+    evidence_level: "UNVERIFIED"
+    suggested_validation: "评审其内容性质和归档价值后决定"
+
+# ============================================================
+# 安全问题 (给 CODEX 复核用)
+# ============================================================
+security_confirmations:
+  - item: "data/wallet.json 含真实凭证"
+    status: "gitignored"
+    verified: true
+  - item: "日志文件含可能路径泄露"
+    status: "all gitignored"
+    verified: true
+  - item: "数据库文件 (.db/.sqlite)"
+    status: "all gitignored"
+    verified: true
+  - item: "L2原始数据"
+    status: "仅 .py 分析脚本在库，无原始 .l2d/.tick/.th2"
+    verified: true
+  - item: "蓝图完整性"
+    status: "三份蓝图均附带 SHA-256 哈希，由 Manifest 记录"
+    verified: true
+
+# ============================================================
+# 下一步 (给 CODEX)
+# ============================================================
+codon_review_checklist:
+  - "检查 .gitignore 是否遗漏任何凭证或敏感文件"
+  - "验证三份蓝图的 SHA-256 与 Manifest 一致"
+  - "检查 AGENTS.md 是否精简（非冗长手册）"
+  - "确认仓库结构支持后续交易系统优先落地"
+  - "确认未虚构任何能力或测试"
+  - "复核 WorkBuddy 报告中的意外发现和建议"
+  - "如发现问题，在此 Issue 下评论并引用本 handoff 包"
+  - "完成后以 agent_id: CODEX 提交复核报告"

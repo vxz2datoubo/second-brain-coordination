@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "luoxue.memory",
+  "version": "v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "node_id",
+    "type",
+    "content",
+    "importance",
+    "ts",
+    "source"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luoxue.memory.v1"
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^lux_mem_[a-z0-9]+$"
+    },
+    "type": {
+      "enum": [
+        "event",
+        "preference",
+        "lesson",
+        "emotion",
+        "observation",
+        "conversation"
+      ]
+    },
+    "content": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 1000
+    },
+    "importance": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "emotion_vector": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": -1,
+        "maximum": 1
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "enum": [
+            "screen_observer",
+            "conversation",
+            "proactive",
+            "reflection",
+            "user_input"
+          ]
+        },
+        "active_app": {
+          "type": "string"
+        },
+        "window_title": {
+          "type": "string"
+        },
+        "observation_id": {
+          "type": "string"
+        }
+      }
+    },
+    "luoxue_state": {
+      "type": "object",
+      "properties": {
+        "pad": {
+          "type": "array"
+        },
+        "conflict_level": {
+          "type": "integer"
+        },
+        "relationship_stage": {
+          "type": "string"
+        },
+        "energy": {
+          "type": "number"
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

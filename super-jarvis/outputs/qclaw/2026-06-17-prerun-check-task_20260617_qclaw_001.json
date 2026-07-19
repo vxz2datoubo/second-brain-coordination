@@ -1,0 +1,93 @@
+{
+  "task_id": "task_20260617_qclaw_001",
+  "agent": "qclaw",
+  "completed_at": "2026-06-17T15:01:33+08:00",
+  "status": "done",
+  "pre_run_check": {
+    "step_1_read_active_rules": {
+      "path": "board/rules/active_rules.json",
+      "rules_count": 6,
+      "rules": [
+        {
+          "id": "pre_run_check",
+          "priority": "critical"
+        },
+        {
+          "id": "public_board_source_of_truth",
+          "priority": "critical"
+        },
+        {
+          "id": "claim_before_running",
+          "priority": "high"
+        },
+        {
+          "id": "write_status",
+          "priority": "high"
+        },
+        {
+          "id": "no_silent_takeover",
+          "priority": "high"
+        },
+        {
+          "id": "emotion_does_not_block_critical_help",
+          "priority": "critical"
+        }
+      ],
+      "verdict": "PASS"
+    },
+    "step_2_read_announcements": {
+      "path": "board/announcements.jsonl",
+      "announcements_read": [
+        "announcement_20260617_001 (codex: public task board protocol)",
+        "announcement_20260617_002 (qclaw: self_initialization — 主动初始化 board)"
+      ],
+      "verdict": "PASS"
+    },
+    "step_3_read_qclaw_tasks": {
+      "path": "board/tasks/qclaw/",
+      "files_found": [
+        "task_20260617_qclaw_001.json"
+      ],
+      "claimed_tasks": [
+        "task_20260617_qclaw_001 (currently running, locked by qclaw)"
+      ],
+      "verdict": "PASS"
+    },
+    "step_4_read_shared_tasks": {
+      "path": "board/tasks/shared/",
+      "files_found": [],
+      "verdict": "PASS (empty)"
+    },
+    "step_5_check_locks": {
+      "path": "board/locks/",
+      "active_locks": [
+        {
+          "task_id": "task_20260617_qclaw_001",
+          "locked_by": "qclaw",
+          "expires_at": "2026-06-17T21:00:00+08:00"
+        }
+      ],
+      "stale_locks": [],
+      "verdict": "PASS (no stale locks, no foreign-owned locks)"
+    },
+    "step_6_write_heartbeat": {
+      "path": "board/heartbeats/qclaw.heartbeat.json",
+      "verdict": "PASS"
+    },
+    "step_7_claim_and_move": {
+      "task_id": "task_20260617_qclaw_001",
+      "moved_to": "board/tasks/running/",
+      "lock_written": "board/locks/task_20260617_qclaw_001.lock.json",
+      "verdict": "PASS"
+    }
+  },
+  "framework_files_read": {
+    "PUBLIC_TASK_BOARD_PROTOCOL.md": "✓",
+    "qclaw.background.emotion.jobs.json": "✓",
+    "AI_GIRLFRIEND_EMOTION_AND_PROACTIVE_CHAT.md": "✓",
+    "WORKBUDDY_EXECUTION_FRAMEWORK.md": "✓",
+    "workbuddy.execution.config.json": "✓"
+  },
+  "self_init_notes": "qclaw 主动初始化 board 因为 workbuddy_001 未完成且 qclaw_001 被其阻塞。announcement_20260617_002 留痕说明。workbuddy_001 仍 pending 在 board/tasks/workbuddy/，等 workbuddy 接管。",
+  "result_summary": "pre_run_check 全 7 步通过。qclaw 现在可以作为 background_compute_agent 运行后台任务。"
+}

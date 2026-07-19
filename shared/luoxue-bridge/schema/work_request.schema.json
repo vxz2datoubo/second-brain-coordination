@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "luoxue.work_request",
+  "version": "v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "ts",
+    "user_text",
+    "luoxue_reply",
+    "work_intent"
+  ],
+  "properties": {
+    "schema": {
+      "const": "luoxue.work_request.v1"
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^lux_work_[a-z0-9]+$"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_channel": {
+      "type": "string"
+    },
+    "personality_channel": {
+      "type": "string"
+    },
+    "reply_type": {
+      "type": "string"
+    },
+    "user_text": {
+      "type": "string"
+    },
+    "luoxue_reply": {
+      "type": "string"
+    },
+    "work_intent": {
+      "type": "object"
+    },
+    "second_brain": {
+      "type": "object"
+    },
+    "emotion": {
+      "type": "object"
+    },
+    "relationship_tier": {
+      "type": "string"
+    },
+    "conflict_level": {
+      "type": "integer"
+    },
+    "needs_confirmation": {
+      "type": "boolean"
+    }
+  }
+}

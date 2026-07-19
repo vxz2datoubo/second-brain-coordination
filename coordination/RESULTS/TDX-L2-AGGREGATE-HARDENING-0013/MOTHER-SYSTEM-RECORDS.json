@@ -1,0 +1,151 @@
+{
+  "old_module_status_record": {
+    "quality_score": 0.42,
+    "evidence_level": "code_review_findings",
+    "source_reliability": 0.82,
+    "freshness": 1.0,
+    "validation_status": "superseded_by_hardening_0013",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 1,
+    "conflict_count": 1,
+    "human_reviewed": false,
+    "status": "Retired",
+    "id": "mod_aa3ab82ac2d32a",
+    "module_name": "tdx_l2_broker_classifier_v0_1",
+    "domain": "trading.market_data",
+    "quality_action": "archive",
+    "summary": "Classifier v0.1 superseded after P0 numeric conversion and over-claim hardening review.",
+    "dependencies": [
+      "brain_core/realtime_l2_aggregate.py"
+    ],
+    "created_at": "2026-07-16T16:57:03+00:00",
+    "implementation_status": "Superseded",
+    "metadata": {
+      "task_id": "TDX-L2-AGGREGATE-HARDENING-0013",
+      "superseded_by": "broker-market-data-classifier-v0.2",
+      "no_raw_l2_gate_cleared": true
+    }
+  },
+  "skill_registry_entry": {
+    "quality_score": 0.78,
+    "evidence_level": "unit_tests_and_code_review",
+    "source_reliability": 0.84,
+    "freshness": 1.0,
+    "validation_status": "hardened_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "skill_5c67d9146a8d82",
+    "skill_name": "trading.market_data.tdx_l2_broker_classifier_v0_2",
+    "domain": "trading.market_data",
+    "version": "v0.2",
+    "capability_type": "market_data_governance_classifier",
+    "created_at": "2026-07-16T16:57:03+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "TDX-L2-AGGREGATE-HARDENING-0013",
+      "test_count": 15,
+      "pre_probe_statuses": [
+        "insufficient",
+        "needs_documentation",
+        "qualified_for_readonly_probe",
+        "blocked"
+      ],
+      "blocked_promotions": [
+        "RAW_TRADE_TICK",
+        "RAW_ORDER_EVENT",
+        "ORDER_QUEUE",
+        "CANCEL_EVENT",
+        "AUCTION_TRAJECTORY"
+      ],
+      "no_broker_route_promoted": true,
+      "live_trading_enabled": false
+    }
+  },
+  "module_status_record": {
+    "quality_score": 0.8,
+    "evidence_level": "unit_tests_and_static_review",
+    "source_reliability": 0.84,
+    "freshness": 1.0,
+    "validation_status": "hardened_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "mod_f635a1ce6669ed",
+    "module_name": "tdx_l2_aggregate_hardening_0013",
+    "domain": "trading.market_data",
+    "quality_action": "keep",
+    "summary": "Hardens TDX L2 aggregate normalizer and broker route classifier without promoting raw L2 capability.",
+    "dependencies": [
+      "brain_core/realtime_l2_aggregate.py",
+      "tests/test_realtime_l2_aggregate.py",
+      "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/BROKER-RESPONSE-SCHEMA.json",
+      "coordination/TASKS/TDX-L2-AGGREGATE-EXHAUST-0010/PUBLIC-CRAWLER-AUXILIARY-EVIDENCE-POLICY.md"
+    ],
+    "created_at": "2026-07-16T16:57:03+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "TDX-L2-AGGREGATE-HARDENING-0013",
+      "numeric_value_restored": true,
+      "zero_value_identified": true,
+      "crawler_reliability_calibration_status": "uncalibrated",
+      "no_raw_l2_gate_cleared": true,
+      "no_live_trading_enabled": true
+    }
+  },
+  "bulletin_state_record": {
+    "quality_score": 0.8,
+    "evidence_level": "unit_tests_and_bulletin_writeback",
+    "source_reliability": 0.84,
+    "freshness": 1.0,
+    "validation_status": "hardened_tests_passed",
+    "out_of_sample_result": "not_applicable",
+    "failure_count": 0,
+    "conflict_count": 0,
+    "human_reviewed": false,
+    "status": "Experimental",
+    "id": "bstate_f635a1ce6669ed",
+    "bulletin_path": "F:\\aidanao\\bulletin\\super-second-brain-v01-board.md",
+    "state_status": "updated",
+    "completed": [
+      "tdx_l2_aggregate_hardening_0013_completed"
+    ],
+    "in_progress": [],
+    "next_step": "Wait for formal Phase 1 approval before realtime integration; keep raw L2 gates closed.",
+    "recent_event": "tdx_l2_aggregate_hardening_0013_completed",
+    "summary": "Classifier v0.2 hardening completed with tests; no broker route promotion.",
+    "created_at": "2026-07-16T16:57:03+00:00",
+    "implementation_status": "Implemented_Experimental",
+    "metadata": {
+      "task_id": "TDX-L2-AGGREGATE-HARDENING-0013",
+      "no_raw_l2_gate_cleared": true,
+      "no_live_trading_enabled": true
+    }
+  },
+  "self_evolution_log": {
+    "id": "evo_5f5feda949c94e",
+    "trigger": "tdx_l2_aggregate_hardening_0013_completed",
+    "observation": "P0 numeric conversion fixed; classifier lifecycle upgraded to v0.2 pre-probe statuses; crawler reliability marked uncalibrated; no raw L2 gate cleared.",
+    "change_type": "market_data_governance_hardening",
+    "affected_ids": [
+      "mod_aa3ab82ac2d32a",
+      "skill_5c67d9146a8d82",
+      "mod_f635a1ce6669ed",
+      "bstate_f635a1ce6669ed"
+    ],
+    "proposed_update": "Use classifier v0.2 for broker replies; keep formal realtime integration blocked until Phase 1 approval and real readonly evidence.",
+    "applied": true,
+    "metrics": {
+      "task_id": "TDX-L2-AGGREGATE-HARDENING-0013",
+      "tests_passed": 15,
+      "no_broker_route_promoted": true,
+      "live_trading_enabled": false
+    },
+    "created_at": "2026-07-16T16:57:03+00:00",
+    "metadata": {}
+  }
+}
