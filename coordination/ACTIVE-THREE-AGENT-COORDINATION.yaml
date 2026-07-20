@@ -1,0 +1,100 @@
+schema_version: "1.0"
+coordination_type: "ThreeAgentActiveCoordination"
+program_issue: 31
+status: "ACTIVE"
+updated_by: "GPT"
+updated_at: "2026-07-20"
+
+agents:
+  CODEX:
+    active_issue: 35
+    task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
+    role: "Freeze minimal enterprise contracts and implement public-safe tests."
+    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+    allowed_handoffs_from:
+      - "WORKBUDDY sanitized capability facts"
+      - "QCLAW public-safe contract observations"
+    prohibited:
+      - "local environment claims without WorkBuddy evidence"
+      - "private knowledge ingestion"
+      - "real trading or service mutation"
+
+  WORKBUDDY:
+    active_issue: 32
+    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+    role: "Verify local QCLAW runtime/data facts and design offline staging/sync boundaries."
+    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    allowed_handoffs_to:
+      - "Issue #35 sanitized capability and compatibility facts"
+      - "Issue #20 runtime/output capability facts"
+    prohibited:
+      - "private data upload"
+      - "Issue #7 fallback"
+      - "local strategy preemption"
+
+  QCLAW:
+    active_issue: 20
+    task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
+    role: "Establish GitHub handoff and produce one public-safe candidate LearningPacket."
+    source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    allowed_handoffs_to:
+      - "Issue #20 structured handshake and candidate package"
+      - "Issue #31 public-safe status summary"
+    prohibited:
+      - "authority promotion"
+      - "private/local knowledge upload"
+      - "Codex or WorkBuddy task execution"
+
+shared_handoff_contract:
+  required_fields:
+    - agent_id
+    - target_agent
+    - task_id
+    - run_id
+    - status
+    - verified_facts
+    - unknowns
+    - privacy_class
+    - authority_level
+    - positive_effects
+    - negative_effects
+    - unexpected_findings
+    - rollback_or_discard_method
+  privacy_default: "PUBLIC_SAFE_METADATA_ONLY"
+  authority_default: "CANDIDATE_OR_OBSERVATION_ONLY"
+  no_silent_task_preemption: true
+  no_direct_main_write_by_executors: true
+  no_auto_merge: true
+  no_trade: true
+
+wip_policy:
+  major_workstream_limit: 2
+  interpretation: "Codex P1 and WorkBuddy #32 are major workstreams; QCLAW handshake is a bounded coordination test and does not expand into bulk ingestion."
+
+cross_agent_dependencies:
+  - from: "WORKBUDDY#32"
+    to: "CODEX#35"
+    deliverable: "sanitized capability/format/permission facts"
+    blocking: false
+  - from: "QCLAW#20"
+    to: "WORKBUDDY#32"
+    deliverable: "verified GitHub and output-format capability statement"
+    blocking: false
+  - from: "CODEX#35"
+    to: "future offline replay"
+    deliverable: "frozen foundation contracts and tests"
+    blocking: true
+  - from: "WORKBUDDY#32"
+    to: "future knowledge authority slice"
+    deliverable: "local runtime/data evidence"
+    blocking: true
+
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  stop_and_escalate_before:
+    - "private or sensitive knowledge leaves local machine"
+    - "cloud/private repository/object storage creation"
+    - "credential access or service lifecycle changes"
+    - "protected blueprint body changes"
+    - "real trading, broker or order path"
