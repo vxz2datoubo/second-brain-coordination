@@ -1,4 +1,4 @@
-schema_version: "1.6"
+schema_version: "1.7"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -8,79 +8,116 @@ trigger_phrases:
   - "执行任务"
   - "开始任务"
 
-active_issue: 35
-task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001.yaml"
-mode: "project_plan_and_controlled_implementation"
-mode_label: "项目计划模式＋受控实现"
+active_issue: 39
+task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002.yaml"
+mode: "goal"
+mode_label: "目标模式"
 status: "READY"
 blocked_by: "none"
 
 parent_program: 31
-phase: "P1_FOUNDATION_CONTRACT_FREEZE"
+phase: "P2_OFFLINE_REPLAY_KNOWLEDGE_ACCESS_VERTICAL_SLICE"
+
 completed_preconditions:
-  - issue: 31
-    status: "PHASE0_ACCEPTED"
-  - pr: 33
+  - issue: 35
+    status: "COMPLETED"
+  - pr: 37
     status: "MERGED"
-    merge_commit: "c694cf28caf344953c181d985c57fd35b6e9cd4f"
+    reviewed_head: "4b2468536dee8cfe02b8da13162cf72880a0329b"
+    merge_commit: "30e6bb18ccaa1297877fa896eb0ee35e1d655792"
+  - decision: "ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-0001"
+    status: "ACTIVE"
 
 parallel_with:
+  - agent: "QCLAW"
+    issue: 36
+    task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
+    rule: "Consume public-safe observations if available; do not wait or preempt."
   - agent: "WORKBUDDY"
     issue: 32
     task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
-  - agent: "QCLAW"
-    issue: 20
-    task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
+    status: "WAITING_GPT_REVIEW"
+    rule: "PR #34 is proposed evidence only, not canonical."
 
 required_inputs:
-  - "Issue #35正文与全部评论"
-  - "Issue #31及PR #33合并后的Phase 0全部成果"
-  - "ENTERPRISE-CONTRACT-REGISTRY.yaml"
-  - "SYSTEM-OF-RECORD-MATRIX.yaml"
-  - "ENTERPRISE-DEPENDENCY-DAG.yaml"
-  - "MILESTONE-AND-ACCEPTANCE-GATES.yaml"
-  - "当前真实本地代码、类型、Schema和测试"
+  - "Issue #39正文与全部评论"
+  - "Issue #31及已合并企业Phase 0成果"
+  - "Issue #35与PR #37合并后的P1基础合同、测试和UNKNOWN"
+  - "coordination/AUTHORIZATION/ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-v1.0.yaml"
+  - "Issue #38 GPT全量原子化知识访问网关目标"
+  - "Issue #36公开安全QQ合同观察，若执行时存在"
+  - "WorkBuddy PR #34 exact head，仅作为proposed参考"
   - "任务影响预测与工程学习登记表"
 
 required_action:
-  - "冻结首个离线A股回放所需的最小企业基础合同，不重构整个仓库。"
-  - "统一object_id、schema version、run/trace、lineage、时间语义、证据/质量、能力/许可、审批/NO_TRADE、拒绝/降级和回滚。"
-  - "对现有类型逐项给出REUSE/ADAPT/MIGRATE/UNKNOWN，不制造双重权威。"
-  - "实现公开安全Schema、夹具、正例、反例、版本兼容和回滚测试。"
-  - "available_at必须具备未来数据泄漏负面测试。"
-  - "缺少能力、来源或许可时必须abstain/reject，不合成不存在的数据。"
-  - "完成后创建独立PR并回传完整反馈v2与结果校准。"
+  - "以目标模式交付可运行的离线A股研究纵向闭环，而不是只产计划或互不连接的文档。"
+  - "完成P1合同运行时适配、CSV/JSON摄入、规范化、谱系与时间/能力门禁。"
+  - "实现确定性事件回放、幂等、乱序处理、checkpoint/resume和重复运行哈希验证。"
+  - "实现少量可解释候选研究信号，不扩张策略数量。"
+  - "实现T+1、停牌、涨跌停、ST规则、费用、滑点和风险限制的离线组合模拟。"
+  - "实现时间切分、walk-forward、泄漏负例、成本前后和稳健性验证。"
+  - "生成RunManifest、EvidenceLedger、ValidationReport和ReproducibilityBundle。"
+  - "实现KnowledgeAccessPolicy、KnowledgeQuery、ContextBundle及GPT FULL_SEMANTIC_ACCESS合成演示。"
+  - "把研究运行转换为QQ可消费的candidate LearningPacket。"
+  - "提供CLI/一键演示、至少40项有意义测试或充分覆盖说明。"
+  - "在20/40/60/80/100%里程碑回传进度并维护PROGRESS-CHECKPOINT.yaml。"
+  - "提交完整反馈v2、结果校准、AI_HANDOFF和独立Draft PR。"
 
 execution_contract:
   sync_latest_main: true
   create_independent_branch: true
-  recommended_branch: "codex/a-share-foundation-contract-freeze-0001"
+  recommended_branch: "codex/a-share-offline-replay-knowledge-access-0002"
   create_pull_request: true
+  draft_pull_request: true
   auto_merge: false
   report_to_issues:
-    - 35
+    - 39
     - 31
+    - 38
+  optional_public_safe_observation_to_issues:
+    - 36
+  progress_checkpoints:
+    - 20
+    - 40
+    - 60
+    - 80
+    - 100
+  resumable_execution_required: true
   feedback_schema: "Agent execution feedback v2 full template"
   outcome_calibration_required: true
 
 safety_boundary:
-  profile: "bounded-contract-implementation"
+  profile: "large-public-safe-offline-vertical-slice"
   research_only: true
   no_trade: true
+  synthetic_or_public_safe_data_only: true
   no_service_start_stop: true
   no_private_data_upload: true
+  no_private_knowledge_ingestion: true
   no_cloud_resource_creation: true
   no_secret_exposure: true
+  no_broker_or_account_connection: true
   no_protected_blueprint_publication: true
-  no_whole_repository_refactor: true
   no_large_marl_training: true
+  no_direct_main_write: true
+
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  stop_and_request_user_approval_before:
+    - "任何私人或敏感知识离开本机或进入公开仓库"
+    - "创建或修改私有Git、Supabase、对象存储或其他云资源"
+    - "读取凭证、Cookie、Token、私钥、交易或银行认证材料"
+    - "启动、停止、迁移或修改真实服务"
+    - "连接实时行情、券商、账户或订单路径"
+    - "修改或公开受保护蓝图正文"
 
 supersedes:
-  previous_active_issue: 31
-  previous_task_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0"
-  reason: "PR #33已由GPT验收并合并，企业工程进入P1基础合同冻结。"
+  previous_active_issue: 35
+  previous_task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
+  reason: "PR #37已由GPT验收并合并，P1完成；进入P2大型目标模式纵向闭环。"
 
-notes: "用户对Codex只需说‘读取任务’。不得跳过P1直接进入离线回放、策略扩张、实时数据、MARL或交易执行。"
+notes: "用户对Codex只需说‘读取任务’。遇到非阻断UNKNOWN必须登记并继续安全实现；运行中断时从PROGRESS-CHECKPOINT恢复。"
 updated_by: "GPT"
-updated_at: "2026-07-20"
+updated_at: "2026-07-21"
