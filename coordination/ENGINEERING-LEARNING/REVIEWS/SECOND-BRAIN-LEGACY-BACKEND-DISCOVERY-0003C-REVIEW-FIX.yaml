@@ -1,0 +1,67 @@
+schema_version: "1.0"
+record_type: "OutcomeCalibrationReview"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
+source_issue: 26
+parent_issue: 22
+source_pr: 29
+reviewed_head: "744ccf68ccaf10346b52cdfcf1d0fac8fa09989d"
+merge_commit: "6c52b4dce5410abbeb98943f8c964933929f1670"
+reviewed_by: "GPT"
+reviewed_at: "2026-07-20"
+forecast_path: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX.yaml"
+
+forecast_vs_actual:
+  expected_benefits:
+    - benefit_id: "B1"
+      result: "REALIZED"
+      evidence: "CODEX-FEEDBACK.yaml now uses schema_version 2.0 and contains scope, metrics, environment, failures, solutions, risks, command-quality feedback, and forecast-vs-actual observations."
+    - benefit_id: "B2"
+      result: "PARTIALLY_REALIZED"
+      evidence: "The full template is now a reusable example; adoption by later tasks remains to be measured."
+  expected_harms:
+    - harm_id: "H1"
+      result: "OCCURRED_AS_EXPECTED"
+      actual_severity: "low"
+      evidence: "One focused remediation and re-review cycle delayed the next task but changed only one feedback file."
+  execution_cost:
+    result: "CLOSE_TO_EXPECTED"
+    evidence: "One additional commit, no new branch or PR, no runtime operations, and no data migration."
+  risk_controls:
+    result: "EFFECTIVE"
+    evidence: "Narrow scope, exact-head merge protection, NO_TRADE boundary, and no service/data operations prevented scope drift."
+
+unexpected_benefits:
+  - description: "The remediation produced a clearer reusable distinction between operational state and architectural authority."
+    causal_hypothesis: "Forcing explicit evidence, counterevidence, and governance classification prevents an active legacy component from being promoted merely because it is running."
+    necessary_conditions:
+      - "Separate current runtime evidence from target system-of-record decisions."
+      - "Require explicit reuse categories and counterevidence."
+    alternative_explanations:
+      - "The clarity may partly come from the specific legacy-backend context rather than the feedback template itself."
+    next_minimal_test: "Apply the same distinction to QCLAW local candidate storage versus private Git authority in Issues #31/#32."
+    maturity: "HYPOTHESIS"
+  - description: "The existing Phase A feedback artifact served as a canonical reference and reduced remediation ambiguity."
+    causal_hypothesis: "Linking a complete accepted example at task creation reduces schema drift."
+    next_minimal_test: "Have the engineering-learning validator check future feedback files against required fields before PR creation."
+    maturity: "HYPOTHESIS"
+
+unexpected_harms: []
+
+deviation_classification:
+  primary: "environment_change"
+  explanation: "The engineering-learning forecast/calibration requirement was introduced after the original Phase C delivery, adding reporting detail without changing the technical objective."
+
+net_value:
+  verdict: "POSITIVE"
+  confidence: "high"
+  rationale: "A low-cost one-file correction improved auditability and generated reusable process lessons without technical or safety regressions."
+
+learning_actions:
+  - learning_id: "ELR-0001"
+    action: "Record that operational availability does not establish canonical authority, and offline status does not prove deprecation."
+  - learning_id: "ELR-0002"
+    action: "Link or lint the full Agent execution feedback v2 structure before future PR submission."
+  - action: "Issue #30 will design machine validation; Issues #31/#32 will reuse the authority-versus-candidate distinction."
+
+high_severity_harm_observed: false
+user_escalation_required: false
