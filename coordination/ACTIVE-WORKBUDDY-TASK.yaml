@@ -1,0 +1,78 @@
+schema_version: "1.0"
+router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "WORKBUDDY"
+
+trigger_phrases:
+  - "读取任务"
+  - "执行任务"
+  - "开始任务"
+
+active_issue: 32
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0.yaml"
+mode: "project_plan_and_field_read_only_audit"
+mode_label: "项目计划模式＋现场只读审计"
+status: "READY"
+blocked_by: "none"
+
+parent_program: 31
+related_issues:
+  - 20
+  - 21
+parallel_with:
+  - agent: "CODEX"
+    issue: 31
+    task_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0"
+
+required_inputs:
+  - "Issue #32正文与全部评论"
+  - "QCLAW本地优先知识消化与批量同步蓝图"
+  - "Issue #20 QCLAW知识学习协议与全部评论"
+  - "Issue #21 GitHub＋Supabase知识云目标"
+  - "PR #29已合并的旧后端复用与迁移结论"
+  - "企业母工程Issue #31与总章程"
+
+required_action:
+  - "先建立QCLAW相关路径允许列表，再做只读现场核验。"
+  - "识别真实入口、输出、格式、运行方式、日志、缓存、磁盘规模和权限边界。"
+  - "不上传、不迁移、不启动或修改服务，不读取敏感正文。"
+  - "设计本地候选仓、状态机、LearningPacket、SyncBundle、隐私分级和未来批量同步计划。"
+  - "在独立分支和PR中提交公开安全、脱敏交付。"
+  - "回传实际正负效果、意外发现、成本和完整Agent执行反馈v2。"
+
+execution_contract:
+  sync_latest_main: true
+  create_independent_branch: true
+  recommended_branch: "workbuddy/qclaw-offline-sync-0001-phase0"
+  create_pull_request: true
+  auto_merge: false
+  report_to_issues:
+    - 32
+    - 20
+    - 21
+    - 31
+  outcome_calibration_required: true
+
+safety_boundary:
+  profile: "local-read-only"
+  research_only: true
+  no_trade: true
+  no_private_data_upload: true
+  no_cloud_resource_creation: true
+  no_service_start_stop: true
+  no_file_move_delete_overwrite: true
+  no_secret_exposure: true
+  no_unbounded_scan: true
+
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  future_user_approval_required_before:
+    - "任何私人或敏感知识离开本机"
+    - "创建私有Git仓库、Supabase或对象存储"
+    - "首次真实批量同步"
+
+notes: "用户对WorkBuddy只需说‘读取任务’。本任务可与Codex Issue #31并行，第一轮只做QCLAW本地现场审计和同步管线计划，不上传任何知识。"
+updated_by: "GPT"
+updated_at: "2026-07-20"
