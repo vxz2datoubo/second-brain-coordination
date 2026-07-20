@@ -1,117 +1,104 @@
-schema_version: "1.2"
+schema_version: "1.3"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
-agent_aliases:
-  - "Q"
-  - "QQ"
+agent_aliases: ["Q", "QQ"]
 
 trigger_phrases:
   - "读取任务"
   - "执行任务"
   - "开始任务"
 
-active_issue: 40
-task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003.yaml"
-mode: "goal_controlled_implementation"
-mode_label: "目标模式＋公开安全受控实现"
+active_issue: 43
+task_id: "QCLAW-CANDIDATE-MEMORY-LIBRARY-RETRIEVAL-0004"
+mode: "goal_public_safe_candidate_memory"
+mode_label: "目标模式＋公开安全候选记忆工程"
 status: "READY"
 blocked_by: "none"
-
 parent_program: 31
+impact_forecast_issue: 44
+
 completed_predecessor:
-  issue: 36
-  task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
-  status: "ACCEPTED_WITH_LIMITATIONS_AND_CLOSED"
-  accepted_findings:
-    - "Case A-F synthetic validation passed."
-    - "Repeated synthetic inputs demonstrated stable semantic core and atom identifiers."
-    - "Conflict, correction, privacy-class and causal-restraint behavior met the experimental acceptance gate."
-  migrated_gaps:
-    - "GitHub branch/commit/PR capabilities remain unverified."
-    - "Deterministic packet/atom/relation IDs and package hashes require implementation."
-    - "processor_version, base_knowledge_revision and per-atom evidence_quality are missing."
-    - "relation, confidence and candidate-state compatibility require executable mapping."
+  issue: 40
+  task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
+  status: "ACCEPTED_WITH_DELIVERY_LIMITATION_AND_CLOSED"
+  accepted:
+    - "44/44 local behavior tests reported passed."
+    - "6/6 deterministic comparisons reported passed."
+    - "18 LearningPackets reported locally valid."
+    - "Remote branch and file write/read capability verified on qclaw/mcp-verification-test."
+  migrated_gap:
+    - "Full pipeline code, fixtures, tests and reports were not submitted in a Draft PR. Gate 0 of Issue #43 must publish and reverify them."
 
 parallel_with:
   - agent: "CODEX"
     issue: 39
-    task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
-    rule: "Submit public-safe compatibility observations only; do not wait, preempt or modify Codex-owned contracts."
+    pr: 41
+    rule: "Read public-safe contracts for compatibility only; do not modify or preempt Codex work."
   - agent: "WORKBUDDY"
     issue: 32
     pr: 34
     status: "WAITING_GPT_REVIEW"
-    rule: "PR #34 contracts are proposed reference only, not canonical."
+    rule: "Reference-only until GPT acceptance."
 
 required_inputs:
   - "AGENTS.md"
   - "coordination/QCLAW-TASK-ROUTER.md"
   - "coordination/ACTIVE-QCLAW-TASK.yaml"
-  - "Issue #40正文与全部评论"
-  - "Issue #36正文、QQ回传和GPT验收评论"
+  - "Issue #43正文与全部评论"
+  - "Issue #40正文、QQ交付与GPT验收评论"
   - "Issue #20正文与全部评论"
-  - "PR #37合并后的P1基础合同"
-  - "coordination/AUTHORIZATION/ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-v1.0.yaml"
-  - "PR #34 exact head合同，仅作为proposed参考"
-  - "Issue #39公开安全合同观察，若存在则读取但不等待"
-  - "任务影响预测QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003.yaml"
+  - "Codex PR #41公开安全KnowledgeQuery、ContextBundle和LearningPacket实现"
+  - "用户全量原子化知识访问授权文件"
+  - "Issue #44影响预测"
 
 required_action:
-  - "回收并审计Issue #36本地15项合成交付物，不得混入私人材料。"
-  - "实现规范化序列化、内容寻址atom/relation/packet语义身份、包级哈希和幂等键。"
-  - "实现LearningPacket v0.2适配器及knowledge_status/gpt_access/transport_visibility三轴分离。"
-  - "实现关系、置信度和候选状态兼容映射，保留无法无损映射的扩展语义。"
-  - "实现可执行CLI或等价入口与至少30项有意义行为测试。"
-  - "重新运行Case A-F和新增负例，生成两轮结果与确定性报告。"
-  - "真实验证GitHub创建分支、提交文件、回读和创建Draft PR能力。"
-  - "向Issue #39提交公开安全兼容观察，不宣布canonical。"
-  - "提交完整反馈、结果校准、UNKNOWN和AI_HANDOFF。"
+  - "Gate 0先将Issue #40公开安全流水线、测试、夹具、反馈和AI_HANDOFF正式提交到独立Draft PR并重新验证。"
+  - "实现可重复构建的本地候选记忆库。"
+  - "实现增量融合、冲突/修正/UNKNOWN保留、版本快照与可逆回滚。"
+  - "实现关键词、实体、时间、关系、冲突、UNKNOWN和技能混合检索。"
+  - "实现QueryPlan和ContextBundle。"
+  - "建立30+公开安全检索回归问题与Recall@K、Precision@K、MRR等指标。"
+  - "形成与Codex PR #41的兼容矩阵。"
+  - "提交完整测试、两轮哈希、完整性报告、检索报告、反馈、校准和AI_HANDOFF。"
 
 execution_contract:
   sync_latest_main: true
   create_independent_branch: true
-  recommended_branch: "qclaw/deterministic-learning-packet-pipeline-0003"
+  recommended_branch: "qclaw/candidate-memory-library-retrieval-0004"
   create_pull_request: true
   draft_pull_request: true
   pull_request_title_must_include: "[agent:QCLAW]"
   auto_merge: false
   direct_main_write: false
-  report_to_issues:
-    - 40
-    - 20
-    - 31
-  optional_public_safe_observation_to_issue:
-    - 39
+  report_to_issues: [43, 20, 31]
+  optional_public_safe_observation_to: [39]
   outcome_calibration_required: true
 
 safety_boundary:
-  profile: "public-safe-deterministic-learning-packet-implementation"
+  profile: "public-safe-candidate-memory-and-retrieval"
   research_only: true
   no_trade: true
   candidate_only: true
   synthetic_or_public_safe_inputs_only: true
-  no_private_data_upload: true
-  no_local_private_knowledge_processing: true
+  no_private_knowledge_processing: true
   no_secret_access_or_exposure: true
   no_cloud_resource_creation: true
   no_authority_promotion: true
   no_service_or_config_change: true
-  no_other_agent_task_execution: true
   no_direct_main_write: true
 
 risk_gate:
   current_decision: "PROCEED_WITH_CONTROLS"
   user_approval_required_now: false
   stop_and_request_user_approval_before:
-    - "读取、处理或上传任何真实私人知识"
-    - "访问Token、Cookie、密钥、凭证或真实认证材料"
+    - "读取、处理或上传真实私人知识"
+    - "访问Token、Cookie、密钥或认证材料正文"
     - "修改QQ服务、配置、端口或运行环境"
-    - "创建私有Git、Supabase、对象存储或其他云资源"
-    - "将candidate升级为approved或authority"
-    - "发现任务目录混入非合成私人材料"
+    - "创建私有Git、Supabase、对象存储或云资源"
+    - "升级candidate为approved或authority"
+    - "下载模型或访问外部付费数据"
 
-notes: "用户称QCLAW为Q或QQ。当前唯一活动任务是Issue #40。用户只需对QQ说‘读取任务’。"
+notes: "用户称QCLAW为Q或QQ。当前唯一活动任务是Issue #43。用户只需对QQ说‘读取任务’。"
 updated_by: "GPT"
 updated_at: "2026-07-21"
