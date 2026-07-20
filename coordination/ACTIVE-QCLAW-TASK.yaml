@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
@@ -11,54 +11,49 @@ trigger_phrases:
 
 active_issue: 43
 task_id: "QCLAW-CANDIDATE-MEMORY-LIBRARY-RETRIEVAL-0004"
-mode: "goal_public_safe_candidate_memory"
-mode_label: "目标模式＋公开安全候选记忆工程"
+mode: "goal_complete_private_memory"
+mode_label: "目标模式＋完整私人记忆工程"
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 impact_forecast_issue: 44
 
+user_authorization:
+  directive_file: "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
+  semantic_policy: "All user-authorized knowledge may be fully learned, atomized, merged and retrieved without content-class redaction."
+  gpt_access_default: "FULL_SEMANTIC_ACCESS"
+  private_internal_paid_content: "FULL_CONTENT_ALLOWED"
+  credential_secret_exception:
+    storage: "LOCAL_ONLY"
+    searchable_locally: true
+    publish_to_github: false
+    include_in_normal_learning_packet_body: false
+    knowledge_graph_representation: "reference_id + purpose + owning_system + update_time + verification_digest + local_location_hint"
+  api_documentation_rule: "API documentation, interface schemas and non-authentication technical content are normal knowledge and must be fully processed."
+
 completed_predecessor:
   issue: 40
   task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
-  status: "ACCEPTED_WITH_DELIVERY_LIMITATION_AND_CLOSED"
-  accepted:
-    - "44/44 local behavior tests reported passed."
-    - "6/6 deterministic comparisons reported passed."
-    - "18 LearningPackets reported locally valid."
-    - "Remote branch and file write/read capability verified on qclaw/mcp-verification-test."
-  migrated_gap:
-    - "Full pipeline code, fixtures, tests and reports were not submitted in a Draft PR. Gate 0 of Issue #43 must publish and reverify them."
-
-parallel_with:
-  - agent: "CODEX"
-    issue: 39
-    pr: 41
-    rule: "Read public-safe contracts for compatibility only; do not modify or preempt Codex work."
-  - agent: "WORKBUDDY"
-    issue: 32
-    pr: 34
-    status: "WAITING_GPT_REVIEW"
-    rule: "Reference-only until GPT acceptance."
+  status: "DRAFT_PR_45_SUBMITTED_PENDING_GPT_REVIEW"
+  pr: 45
 
 required_inputs:
   - "AGENTS.md"
   - "coordination/QCLAW-TASK-ROUTER.md"
   - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
   - "Issue #43正文与全部评论"
-  - "Issue #40正文、QQ交付与GPT验收评论"
-  - "Issue #20正文与全部评论"
+  - "PR #45及GPT评论"
   - "Codex PR #41公开安全KnowledgeQuery、ContextBundle和LearningPacket实现"
-  - "用户全量原子化知识访问授权文件"
   - "Issue #44影响预测"
 
 required_action:
-  - "Gate 0先将Issue #40公开安全流水线、测试、夹具、反馈和AI_HANDOFF正式提交到独立Draft PR并重新验证。"
-  - "实现可重复构建的本地候选记忆库。"
-  - "实现增量融合、冲突/修正/UNKNOWN保留、版本快照与可逆回滚。"
-  - "实现关键词、实体、时间、关系、冲突、UNKNOWN和技能混合检索。"
-  - "实现QueryPlan和ContextBundle。"
-  - "建立30+公开安全检索回归问题与Recall@K、Precision@K、MRR等指标。"
+  - "继续构建完整本地候选记忆库，不因私人、内部、非公开或付费类别删减知识语义。"
+  - "凭证类秘密仅保留本地可检索引用，不写入GitHub或普通LearningPacket正文。"
+  - "完成增量融合、冲突/修正/UNKNOWN保留、版本快照与可逆回滚。"
+  - "完成关键词、实体、时间、关系、冲突、UNKNOWN和技能混合检索。"
+  - "完成QueryPlan和ContextBundle，并明确检索遗漏。"
+  - "建立30+检索回归问题与Recall@K、Precision@K、MRR等指标。"
   - "形成与Codex PR #41的兼容矩阵。"
   - "提交完整测试、两轮哈希、完整性报告、检索报告、反馈、校准和AI_HANDOFF。"
 
@@ -75,29 +70,15 @@ execution_contract:
   optional_public_safe_observation_to: [39]
   outcome_calibration_required: true
 
-safety_boundary:
-  profile: "public-safe-candidate-memory-and-retrieval"
-  research_only: true
-  no_trade: true
-  candidate_only: true
-  synthetic_or_public_safe_inputs_only: true
-  no_private_knowledge_processing: true
-  no_secret_access_or_exposure: true
-  no_cloud_resource_creation: true
-  no_authority_promotion: true
-  no_service_or_config_change: true
+boundaries:
+  full_private_knowledge_processing: true
+  full_semantic_access_for_gpt: true
+  preserve_sources_conflicts_versions_unknowns: true
+  credential_secrets_local_only: true
+  no_credential_secret_publication: true
+  no_cloud_resource_creation_without_approval: true
+  no_authority_promotion_without_governance: true
   no_direct_main_write: true
-
-risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
-  user_approval_required_now: false
-  stop_and_request_user_approval_before:
-    - "读取、处理或上传真实私人知识"
-    - "访问Token、Cookie、密钥或认证材料正文"
-    - "修改QQ服务、配置、端口或运行环境"
-    - "创建私有Git、Supabase、对象存储或云资源"
-    - "升级candidate为approved或authority"
-    - "下载模型或访问外部付费数据"
 
 notes: "用户称QCLAW为Q或QQ。当前唯一活动任务是Issue #43。用户只需对QQ说‘读取任务’。"
 updated_by: "GPT"
