@@ -1,0 +1,85 @@
+schema_version: "1.0"
+record_type: "ContractSpecification"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+status: "proposed"
+
+contract:
+  bundle_id: "sb-{timestamp}-{batch_label}"
+  created_at: "ISO 8601"
+  source_machine_alias: "string (e.g., 'WB-WIN11-DESKTOP')"
+  base_git_revision: "git commit hash (the knowledge authority revision this bundle was built against)"
+  packet_ids: ["ordered list of LearningPacket packet_ids"]
+  packet_hashes: ["ordered list of packet content_hashes"]
+  source_manifest_hash: "sha256 of the manifest listing source_artifacts"
+  schema_versions:
+    learning_packet: "1.0"
+    sync_bundle: "1.0"
+  privacy_summary:
+    public_safe_count: 0
+    private_knowledge_count: 0
+    sensitive_local_only_count: 0
+    restricted_never_sync_count: 0
+    license_restricted_count: 0
+    unknown_classification_count: 0
+  license_summary:
+    unrestricted_count: 0
+    license_restricted_count: 0
+    unknown_license_count: 0
+  conflicts:
+    - conflict_id: "cf-xxx"
+      description: "string"
+      resolution: "enum: resolved|deferred|unresolved"
+  unknowns:
+    - unknown_id: "uk-xxx"
+      description: "string"
+  idempotency_key: "{bundle_id}-{source_manifest_hash_short}"
+
+  # Pre-flight checks that MUST pass before sync
+  preflight_checks:
+    - check: "no_restricted_never_sync_content"
+    - check: "all_unknown_classifications_resolved"
+    - check: "no_unresolved_conflicts"
+    - check: "schema_migration_required (if schema version differs from target)"
+    - check: "duplicate_bundle (same idempotency_key already synced)"
+    - check: "git_repo_accessible"
+    - check: "bundle_size_within_limit (default 50MB per bundle)"
+
+  dry_run_result:
+    new_packets: ["list of packet_ids not in target"]
+    updated_packets: ["list of packet_ids with newer version"]
+    conflicting_packets: ["list of packet_ids where local and remote both changed"]
+    unchanged_packets: ["list of packet_ids identical to target"]
+    target_head_before: "git commit hash"
+
+  approval_status:
+    required: "enum: auto|manual"
+    approved_by: "string or null"
+    approved_at: "ISO 8601 or null"
+    reason: "string"
+
+  target:
+    private_git_repository: "string (URL, TBD)"
+    branch: "string (e.g., 'sync/candidate-20260720')"
+    serving_projection: "Supabase (TBD)"
+
+  rollback_revision: "git commit hash (the revision to return to if this sync fails)"
+
+sync_sequence:
+  - step: 1
+    action: "Freeze outbox: copy approved packets to sync-outbox, compute manifest"
+  - step: 2
+    action: "Run preflight checks (privacy, license, schema, duplicates, size)"
+  - step: 3
+    action: "Dry-run: compare local manifest with remote target"
+  - step: 4
+    action: "User/governance approval for bundles with private content"
+  - step: 5
+    action: "Write to private Git: create branch, commit packets, push, create PR"
+  - step: 6
+    action: "Record Git commit: mark local packets as SYNCED_TO_GIT"
+  - step: 7
+    action: "Project to Supabase: idempotent upsert from Git revision"
+  - step: 8
+    action: "Verify retrieval consistency: spot-check Supabase queries match Git content"
+  - step: 9
+    action: "Mark packets as PROJECTED_TO_SERVING, archive sync-outbox"
