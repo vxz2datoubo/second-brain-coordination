@@ -1,0 +1,81 @@
+feedback_schema_version: "2.0"
+report_type: "Agent execution feedback v2"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task:
+  task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+  parent_issue: 22
+  active_issue: 26
+  mode: "project_plan"
+  branch: "codex/legacy-backend-synthesis-0003c"
+  status: "SUCCESS_WITH_FINDINGS"
+  completion_ratio: 1.0
+  execution_boundary:
+    research_only: true
+    no_trade: true
+    read_only_analysis_and_planning: true
+    no_service_start_stop: true
+    no_real_migration: true
+    no_secret_exposure: true
+inputs_verified:
+  - "Latest remote main task index was read through the GitHub connector: active Issue #26, status READY, dependencies #24/#25 accepted."
+  - "Issue #26 body and all comments were read."
+  - "Issue #21 body, all comments, and the enterprise GitHub + Supabase blueprint were read."
+  - "Phase A static discovery accepted commit 48cc8dbea8283275bb24e0bb6e62889cea2fbb18 was read."
+  - "Phase B runtime verification accepted commit 67ab449473d48aad7a7ba79646dc4b262a4d6689 was read."
+  - "Local mother-system bulletin, service registry, and collaboration rules were read for boundary alignment."
+deliverables:
+  - path: "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/C-SYNTHESIS/LEGACY-BACKEND-DISCOVERY-REPORT.md"
+    purpose: "Evidence synthesis, candidate boundaries, data map, and approvals."
+  - path: "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/C-SYNTHESIS/LEGACY-BACKEND-REUSE-DECISION.yaml"
+    purpose: "Machine-readable classification, dependencies, risks, rollback, and approvals."
+  - path: "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/C-SYNTHESIS/MIGRATION-AND-ADAPTER-PLAN.md"
+    purpose: "Phased adapter/migration plan with gates, tests, and rollback."
+  - path: "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/C-SYNTHESIS/CODEX-FEEDBACK.yaml"
+    purpose: "This execution feedback."
+verified_findings:
+  - "SB-HTTP-8766 was the sole listening candidate at the recorded Phase B check time; it is WRAP, not future canonical authority."
+  - "SB-DEEP-HTTP-8767 and SB-LEGACY-HTTP-MCP-8767 are UNKNOWN because a port collision and absent runtime evidence prevent a safe final reuse decision."
+  - "SB-MCP-STDIO is WRAP as a future governed read adapter, pending read-only handshake and tool review."
+  - "SB-CHATGPT-BRIDGE-8799 is MIGRATE as an ingestion pattern, not a durable authority."
+  - "F:/ai is ARCHIVE as historical provenance; no move, deletion, or import is authorized."
+  - "No candidate qualifies for REUSE_AS_IS or DEPRECATE."
+key_architecture_decisions:
+  - "Private Git knowledge repository remains canonical; Supabase remains rebuildable serving projection."
+  - "Legacy services/stores are import and compatibility candidates only."
+  - "A single governed read contract is the target; clients must not gain parallel untracked write paths."
+  - "Trading content stays research_only and cannot authorize execution through the knowledge integration."
+validation:
+  performed:
+    - "Cross-checked every required candidate against accepted Phase A and Phase B evidence."
+    - "Checked classification against the Issue #21 authority boundary."
+    - "Verified that all four Issue #26 required artifacts are present on the independent branch."
+  not_performed_by_design:
+    - "No service start, stop, restart, handshake, port probe, API request, or data-store inspection."
+    - "No migration, export, database change, credential access, or trade operation."
+    - "No local git fetch succeeded; direct GitHub connector reads confirmed remote latest main and task routing."
+risks_and_unknowns:
+  - "8766 binds 0.0.0.0 and auth/firewall posture is unverified."
+  - "Both 8767 source implementations share a declared port; ownership and unique behavior remain unverified."
+  - "stdio MCP tool/fallback behavior is not runtime-verified."
+  - "Legacy SQLite, JSON, JSONL, documents, and F:/ai history have not received privacy, licensing, quality, or completeness classification."
+  - "Local git fetch to GitHub failed twice due to connection reset/port-443 timeout; GitHub connector access remained available."
+approvals_needed:
+  - "Approve a bounded follow-up plan for 8766 read-only capability/export design."
+  - "Approve any external/private-repository data movement after classification."
+  - "Approve any 8767 activation or port reassignment."
+  - "Approve any MCP tool beyond a strict read-only allow-list."
+rollback:
+  logical: "All Phase C changes are documentation only on an independent branch. Revert the four commits or close/delete the branch/PR."
+  byte_level: "No runtime files, databases, logs, or legacy source files were modified; byte-level restoration is not applicable outside the documentation commits."
+next_recommended_action:
+  task_id: "LEGACY-8766-READONLY-CAPABILITY-AND-EXPORT-PLAN"
+  mode: "project_plan"
+  rationale: "It resolves the highest-value active source without starting services, copying data, or violating the new authority boundary."
+handoff:
+  report_to_issues: [26, 22]
+  actual_executor: "CODEX"
+  actual_reviewer: "GPT"
+  auto_merge: false
