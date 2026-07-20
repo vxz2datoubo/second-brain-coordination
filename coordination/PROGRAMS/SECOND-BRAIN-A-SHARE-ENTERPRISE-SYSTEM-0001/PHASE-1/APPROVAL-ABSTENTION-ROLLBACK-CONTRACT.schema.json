@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/foundation/approval-abstention-rollback/1.0.0",
+  "title": "Approval Abstention Rollback Contract",
+  "type": "object",
+  "required": ["no_trade_gate", "authority_write", "change_class", "rollback_pointer"],
+  "properties": {
+    "no_trade_gate": {"const": true},
+    "authority_write": {"type": "boolean"},
+    "change_class": {"enum": ["reversible", "irreversible"]},
+    "human_approval_ref": {"type": "string", "minLength": 1},
+    "rollback_pointer": {"type": "string", "minLength": 1},
+    "abstention_reason": {"type": "string", "minLength": 1},
+    "proposed_action": {"enum": ["research_only", "candidate_import", "authority_promotion", "execution"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"change_class": {"const": "irreversible"}}}, "then": {"required": ["human_approval_ref"]}},
+    {"if": {"properties": {"proposed_action": {"const": "execution"}}}, "then": {"not": {}}},
+    {"if": {"properties": {"authority_write": {"const": true}}}, "then": {"required": ["human_approval_ref"]}}
+  ],
+  "additionalProperties": true
+}
