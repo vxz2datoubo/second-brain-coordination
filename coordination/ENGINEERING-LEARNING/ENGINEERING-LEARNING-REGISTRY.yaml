@@ -13,7 +13,63 @@ maturity_levels:
   - DEPRECATED
   - CONTRADICTED
 
-records: []
+records:
+  - learning_id: "ELR-0001"
+    title: "运行状态不等于权威地位，未运行不等于应废弃"
+    source_task: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+    source_issue: 26
+    source_pr: 29
+    source_commit: "6c52b4dce5410abbeb98943f8c964933929f1670"
+    observation: "8766是唯一已验证运行候选，但不应因此成为未来知识权威；两个8767未运行也不足以证明应废弃。"
+    causal_hypothesis: "将运行证据、能力证据和系统记录源治理分开，可以减少把现状误当目标架构的错误。"
+    supporting_evidence:
+      - "Phase A/B/C分别记录静态证据、运行事实和治理决策。"
+      - "复用分类保留WRAP、UNKNOWN、MIGRATE和ARCHIVE差异。"
+    opposing_evidence:
+      - "当前只在旧第二大脑后端场景中验证，跨域泛化仍需测试。"
+    applicability_conditions:
+      - "存在旧系统、临时服务、候选存储或迁移过渡期。"
+    failure_conditions:
+      - "目标系统明确决定现役服务就是唯一权威，且经过独立治理批准。"
+    risks:
+      - "过度坚持分离可能增加适配层和迁移成本。"
+    maturity: "HYPOTHESIS"
+    replication_count: 1
+    next_validation:
+      - "在QCLAW本地候选仓与私有Git知识权威的设计中复用并验证。"
+    affected_assets:
+      - "coordination/BLUEPRINTS/QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-BLUEPRINT-v1.0.md"
+      - "Issue #31"
+      - "Issue #32"
+    owner: "GPT"
+  - learning_id: "ELR-0002"
+    title: "任务应链接完整反馈范本并在PR前校验结构"
+    source_task: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
+    source_issue: 26
+    source_pr: 29
+    source_commit: "6c52b4dce5410abbeb98943f8c964933929f1670"
+    observation: "初始技术内容合格，但精简反馈结构遗漏统一v2字段，造成一次额外修订。"
+    causal_hypothesis: "在任务创建时链接完整已验收范本，并在PR前做字段校验，可以减少格式漂移和复审返工。"
+    supporting_evidence:
+      - "使用Phase A完整反馈作为参考后，一次性补齐缺失字段。"
+      - "修订仅一份文件即可通过验收。"
+    opposing_evidence:
+      - "完整模板可能增加小任务负担，机械校验不能证明内容真实。"
+    applicability_conditions:
+      - "非trivial Agent任务且要求反馈v2。"
+    failure_conditions:
+      - "紧急止损或纯信息读取任务使用明确例外。"
+    risks:
+      - "过度模板化和虚假合规感。"
+    maturity: "HYPOTHESIS"
+    replication_count: 1
+    next_validation:
+      - "Issue #30设计Schema/linter，并在后续三个任务中记录返工率。"
+    affected_assets:
+      - "Issue #30"
+      - "AGENTS.md"
+      - "coordination/ENGINEERING-LEARNING/REVIEWS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX.yaml"
+    owner: "GPT"
 
 rules:
   - "Single-task positive surprise cannot be promoted beyond HYPOTHESIS without strong independent mechanism evidence."
@@ -22,4 +78,4 @@ rules:
   - "Standards must be downgraded when contradicted by new evidence or environment changes."
   - "Lessons must be linked to the source Issue, PR, commit, and affected task templates or blueprints."
 
-next_learning_id: "ELR-0001"
+next_learning_id: "ELR-0003"
