@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
@@ -15,6 +15,19 @@ mode: "project_plan_and_field_read_only_audit"
 mode_label: "项目计划模式＋现场只读审计"
 status: "READY"
 blocked_by: "none"
+
+routing_guard:
+  executor_identity: "WORKBUDDY"
+  sole_task_source: "remote_latest_main/coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  legacy_codex_dispatch_issue: 7
+  issue_7_role: "Codex dispatcher infrastructure only; never a WorkBuddy task inbox"
+  completed_issues_to_ignore_as_wait_state:
+    - 22
+    - 26
+  prohibit_codex_dispatch_fallback: true
+  prohibit_recent_chat_task_inference: true
+  prohibit_local_strategy_preemption: true
+  on_dirty_or_stale_local_checkout: "read remote GitHub main directly; do not overwrite local work"
 
 parent_program: 31
 related_issues:
@@ -34,6 +47,7 @@ required_inputs:
   - "企业母工程Issue #31与总章程"
 
 required_action:
+  - "先确认当前身份是WorkBuddy执行者，不是Issue #7的Codex调度器维护流程。"
   - "先建立QCLAW相关路径允许列表，再做只读现场核验。"
   - "识别真实入口、输出、格式、运行方式、日志、缓存、磁盘规模和权限边界。"
   - "不上传、不迁移、不启动或修改服务，不读取敏感正文。"
@@ -73,6 +87,11 @@ risk_gate:
     - "创建私有Git仓库、Supabase或对象存储"
     - "首次真实批量同步"
 
-notes: "用户对WorkBuddy只需说‘读取任务’。本任务可与Codex Issue #31并行，第一轮只做QCLAW本地现场审计和同步管线计划，不上传任何知识。"
+separate_local_work:
+  description: "用户今日与WorkBuddy讨论的做T策略"
+  status: "PRESERVE_AS_SEPARATE_CANDIDATE_NOT_ACTIVE"
+  handling: "以后由用户让WorkBuddy总结并交给GPT；在GPT创建独立Issue或调整活动索引前，不得替换Issue #32。"
+
+notes: "用户对WorkBuddy说‘读取任务’时必须执行Issue #32。Issue #7不是WorkBuddy收件箱，Issue #26已关闭；做T策略作为独立候选保留，不抢占本任务。第一轮只做QCLAW本地现场审计和同步管线计划，不上传任何知识。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
