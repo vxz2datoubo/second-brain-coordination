@@ -1,0 +1,254 @@
+schema_version: "2.0"
+agent_id: "CODEX"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
+related_completed_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+parent_issue: 22
+active_issue: 26
+current_pr: 29
+agent_role: "executor"
+mode: "project_plan"
+report_type: "final_remediation"
+status: "SUCCESS_WITH_FINDINGS"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+scope:
+  requested_goal: "Repair only CODEX-FEEDBACK.yaml in the existing Phase C branch and PR using the full Agent execution feedback v2 template."
+  original_phase_c_goal: "Synthesize accepted Phase A/B legacy-backend evidence into reuse decisions and a migration/adapter plan without service lifecycle or migration operations."
+  actual_work_completed:
+    - "Read the latest remote main task router, active index, Issue #26 comments, and PR #29 review feedback."
+    - "Confirmed GPT accepted the Phase C architecture/evidence and migration plan; only feedback-v2 completeness required remediation."
+    - "Replaced only CODEX-FEEDBACK.yaml with the full Agent execution feedback v2 structure."
+    - "Preserved all established Phase C classifications and did not alter the other three C-SYNTHESIS artifacts."
+    - "Prepared a final evidence summary for Issue #26 and parent Issue #22."
+  out_of_scope_work:
+    - "No new backend scan, port inspection, service start/stop, MCP handshake, API request, or data-store inspection."
+    - "No migration, export, database change, credential access, trade action, Issue #23 work, new branch, or new pull request."
+execution_metrics:
+  started_at: "2026-07-20"
+  ended_at: "2026-07-20"
+  wall_clock_minutes: "Phase C primary run: approximately 12 minutes as reported by the Codex task controller; remediation duration not separately instrumented."
+  active_work_minutes: "not separately instrumented"
+  waiting_minutes: "network and connector waits occurred; exact duration not separately instrumented"
+  retries: 2
+  tool_calls: "not separately instrumented; evidence reads, branch/PR actions, validation, and remediation actions are recorded in the task transcript."
+  shell_commands: "Read-only repository context checks and two git fetch attempts during primary Phase C; no command in remediation changed local runtime state."
+  files_read: "Remote AGENTS/router/index, Issue #21/#22/#26 materials, Phase A/B artifacts, PR #29 review, and the existing feedback file."
+  files_changed: 1
+  tests_run: 0
+  validation_checks:
+    - "GitHub connector fetch confirmed the feedback file before remediation."
+    - "The planned replacement contains every field listed by the GPT review."
+    - "No Phase C architecture artifact other than CODEX-FEEDBACK.yaml is changed by this remediation."
+  runtime_operations: 0
+  network_requests_to_candidates: 0
+  commits_created: 1
+  pull_requests_created: 0
+token_usage:
+  measurement: "Codex task-controller measurement for the completed primary Phase C goal."
+  model_or_runtime: "Codex desktop"
+  input_tokens: "not separately exposed"
+  output_tokens: "not separately exposed"
+  reasoning_tokens: "not separately exposed"
+  total_tokens: 157946
+  estimation_method: "Reported by the Codex goal controller when SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C completed."
+  confidence: "high for total; unavailable for token-category breakdown"
+resource_cost_notes:
+  - "No paid external API, cloud project, broker, or market-data service was invoked."
+  - "GitHub connector access was used for remote reads and documentation-only branch updates."
+difficulty:
+  planned_difficulty: "D3"
+  experienced_difficulty: "D3"
+  difficulty_delta: "as_expected"
+  reasons:
+    - "The task required reconciling static/runtime evidence with a future authority model while preserving explicit safety boundaries."
+    - "The remediation required exact schema conformity without revising already accepted architecture."
+  hardest_step: "Separating a currently listening legacy backend from the future canonical authority, while avoiding a premature retirement decision for offline candidates."
+  bottlenecks:
+    - "Local git fetch to GitHub failed twice, requiring remote GitHub connector reads as the authoritative current-main path."
+    - "Initial feedback used a compact schema variant rather than the repository's complete v2 template."
+environment:
+  operating_system: "Windows"
+  shell: "PowerShell"
+  source_workspace: "F:/aidanao"
+  coordination_repository: "vxz2datoubo/second-brain-coordination"
+  isolated_branch: "codex/legacy-backend-synthesis-0003c"
+  original_phase_c_base_head: "f8f91b4891f2603e306347b479227410e5ecfcc4"
+  original_phase_c_head_before_remediation: "ada137eb3da946f5dccfecc910ca146b2ff02995"
+  runtime: "Codex desktop with GitHub connector"
+  permissions:
+    repository_documentation_write: "used only on existing Codex branch"
+    local_runtime_mutation: "not used"
+  network:
+    local_git_fetch: "failed twice due to connection reset or port-443 connection failure"
+    github_connector: "available and used to confirm remote latest main, issues, files, branch, and PR"
+  unexpected_environment_differences:
+    - "The local git remote could not be refreshed, so no local branch/worktree was used for the primary Phase C documentation commits."
+    - "Remote GitHub connector access remained available and provided the current task index required by the router."
+  original_workspace_mutated: false
+original_plan_vs_reality:
+  - planned: "Synchronize local origin/main, create an isolated local worktree, and commit the four Phase C artifacts."
+    actual: "Local git fetch failed twice; the GitHub connector confirmed current remote main and an independent remote Codex branch was used for the documentation-only artifacts."
+    impact: "No loss of evidence or scope expansion; local shared workspace was not touched."
+    adaptation: "Used the remote main task index and GitHub branch/PR operations, then recorded the network limitation."
+  - planned: "Deliver Agent execution feedback v2 with the Phase C artifacts."
+    actual: "The initial feedback omitted required full-template fields despite including a version-like field."
+    impact: "GPT required a focused remediation before merge."
+    adaptation: "This replacement adopts the repository's complete v2 field structure and preserves the accepted Phase C conclusions."
+problems_encountered:
+  - problem_id: "P1"
+    problem: "Local git fetch could not connect reliably to GitHub."
+    severity: "medium"
+    impact: "Prevented local synchronization and worktree creation from remote latest main."
+    root_cause: "Network connection reset and port-443 connection failure; no repository corruption evidenced."
+    evidence: "Two failed fetch attempts recorded during Phase C."
+  - problem_id: "P2"
+    problem: "Initial CODEX-FEEDBACK.yaml did not use the complete repository Agent execution feedback v2 template."
+    severity: "medium"
+    impact: "PR #29 content review remained CHANGES_REQUIRED despite architecture and migration plan acceptance."
+    root_cause: "A concise feedback structure was used instead of the canonical full template already present in Phase A artifacts."
+    evidence: "GPT PR #29 review explicitly enumerated the missing fields."
+failed_attempts:
+  - "Two local git fetch attempts failed; no forced synchronization or working-tree overwrite was attempted."
+  - "An initial GitHub issue-fetch invocation used incorrect connector argument names and was corrected without changing repository state."
+  - "An attempted unavailable PR-review connector method was not retried; the review was retrieved through the PR and PR-comment surfaces."
+solutions_attempted:
+  - approach: "Use GitHub connector remote-main reads after local git fetch failures."
+    result: "success"
+    evidence: "Remote AGENTS.md, router, active index, issue material, accepted Phase A/B artifacts, and PR state were fetched."
+    tradeoffs: "No local worktree was used; all branch updates were restricted to the remote Codex branch."
+  - approach: "Use the accepted Phase A CODEX-FEEDBACK.yaml as the full-template reference."
+    result: "success"
+    evidence: "This replacement contains its required top-level and detailed fields."
+    tradeoffs: "Adds more reporting detail but no new architecture, runtime, or data scope."
+final_solution:
+  - "Keep the Phase C content decision unchanged."
+  - "Update only CODEX-FEEDBACK.yaml with schema_version 2.0 and the complete feedback v2 audit structure."
+  - "Report the new final head and validation summary to Issue #26 and parent Issue #22."
+unresolved_questions:
+  - "Whether 8766 will later be wrapped only on loopback, protected by a reverse proxy, or retired after a verified migration."
+  - "Whether either 8767 implementation has a unique, maintainable capability once ownership and port collision are resolved."
+  - "Which legacy data objects pass privacy, license, quality, and completeness review for any future canonical import."
+verified_facts:
+  - "GPT accepted the Phase C evidence synthesis, candidate classifications, and migration/adapter plan in PR #29."
+  - "The only remediation requested is feedback-v2 completeness."
+  - "SB-HTTP-8766 remains WRAP; both 8767 candidates remain UNKNOWN; stdio MCP remains WRAP; 8799 remains MIGRATE; F:/ai remains ARCHIVE."
+  - "No Phase C operation started/stopped a service, migrated data, accessed credentials, or executed a trade."
+unexpected_events:
+  - "The active task index was updated to a review-remediation task while PR #29 remained open."
+  - "The GitHub connector remained usable even though local git fetch was unavailable."
+unexpected_findings:
+  - "The repository already contains a complete Phase A feedback-v2 example; it should be treated as the immediate template for future feedback artifacts."
+special_gains:
+  reusable_assets:
+    - "The completed Phase C report, reuse-decision YAML, and migration/adapter plan form the reviewed evidence base for the next bounded 8766 planning task."
+    - "This complete feedback-v2 structure can be reused for future Codex coordination tasks."
+  new_knowledge:
+    - "An active legacy process is an operational fact, not an authority decision."
+    - "A non-listening service remains UNKNOWN rather than deprecated until ownership, capability, and data dependencies are evidenced."
+  newly_proven_capabilities:
+    - "None; this task is documentation-only and did not test runtime capabilities."
+  process_improvements:
+    - "Before opening a PR, compare any new feedback artifact against the repository's existing full feedback-v2 example."
+opportunities:
+  - opportunity: "Create a schema or CI lint for Agent execution feedback v2 required keys."
+    expected_value: "high"
+    effort: "low"
+    recommended_timing: "after PR #29 is accepted; do not add it in this remediation."
+  - opportunity: "Create the bounded LEGACY-8766-READONLY-CAPABILITY-AND-EXPORT-PLAN task after Issue #26 acceptance."
+    expected_value: "high"
+    effort: "medium"
+    recommended_timing: "next approved task"
+task_impact_forecast:
+  path: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX.yaml"
+  first_principles_goal: "Restore complete execution telemetry without changing accepted Phase C conclusions."
+  forecast_net_value: "positive"
+  risk_gate: "PROCEED_WITH_CONTROLS"
+  stop_conditions_observed: false
+actual_outcome_vs_forecast:
+  positive_effects:
+    - forecast_benefit_id: "B1"
+      expected: "Complete reusable execution evidence."
+      observed: "The feedback now explicitly contains the full v2 reporting sections required by the GPT review."
+      evidence: "Required-field validation passed after the one-file replacement."
+      confidence: "high"
+    - forecast_benefit_id: "B2"
+      expected: "Prevent abbreviated feedback from becoming an accepted precedent."
+      observed: "The full template is now recorded as a reusable reference, but future adoption has not yet been measured."
+      evidence: "Phase A full-template example was reused and the remediation records the process lesson."
+      confidence: "medium"
+  negative_effects:
+    - forecast_harm_id: "H1"
+      expected: "Small delay before queued work can begin."
+      observed: "One focused remediation/re-review cycle occurred; no new branch, PR, scan, or architecture change was added."
+      severity: "low"
+      reversibility: "easy"
+      evidence: "PR #29 remained open pending feedback completion; the scope diff is one feedback file."
+  unexpected_effects:
+    - "The impact-forecast and calibration gate was added after the initial remediation, requiring an explicit outcome observation before acceptance."
+  forecast_deviation:
+    classification: "environment_change"
+    summary: "The new governance gate changed the required reporting detail after the original correction; its control objective remained aligned with the task."
+  net_value_assessment:
+    actual: "positive"
+    rationale: "The low-cost, one-file clarification improves auditability while preserving the accepted technical plan."
+  no_high_severity_harm_observed: true
+recommendations:
+  architecture:
+    - "Preserve private Git as canonical authority and Supabase as a rebuildable serving projection."
+    - "Keep legacy 8766 behind a future narrow read-only compatibility adapter, not as a direct canonical writer."
+  process:
+    - "Lint feedback-v2 required fields before PR creation."
+    - "Keep the active index on a narrowly scoped remediation task until GPT accepts and merges the related PR."
+  task_decomposition:
+    - "Resolve 8766 capability/export planning before considering runtime activation or any 8767 decision."
+  testing:
+    - "For the next implementation task, add manifest determinism, no-source-mutation, allow-list/deny-list, and idempotency tests before data movement."
+  tools_and_automation:
+    - "Continue using direct remote-main connector reads when local fetch cannot be confirmed; record the difference rather than using stale local state."
+command_quality_feedback:
+  clarity: "clear_after_review"
+  what_was_clear:
+    - "The remediation is limited to the existing branch, original PR, and CODEX-FEEDBACK.yaml."
+    - "Issue #23 is explicitly prohibited until PR #29 acceptance and merge."
+  missing_context:
+    - "The initial Issue #26 body did not link a full feedback-v2 template; the accepted Phase A artifact supplied the needed reference."
+  conflicting_or_risky_instructions:
+    - "none"
+  unnecessary_work:
+    - "No additional scan or architecture rewrite was required; the focused remediation scope prevented churn."
+  suggested_rewrite: "Future task issues should link the canonical feedback-v2 schema/example next to the required deliverables."
+risk_and_decisions:
+  risks_remaining:
+    - "8766 bind/auth/firewall posture remains unverified."
+    - "Both 8767 candidates remain unresolved because no approved capability/ownership review exists."
+    - "Legacy storage privacy, license, quality, and completeness have not been classified."
+    - "Local GitHub network instability may continue to block local fetch-based worktree flows."
+  decisions_preserved:
+    - "No candidate is REUSE_AS_IS or DEPRECATE."
+    - "Legacy components are compatibility/import candidates only; they are not canonical authority."
+    - "Trading content remains research_only and cannot create action authority."
+  plan_change_needed: false
+  needs_gpt_decision: true
+  needs_user_decision: false
+  stop_condition_triggered: false
+next_best_action:
+  task_id: "LEGACY-8766-READONLY-CAPABILITY-AND-EXPORT-PLAN"
+  mode: "project_plan"
+  precondition: "GPT accepts and merges PR #29; Issue #26 and parent Issue #22 are closed or advanced by the coordinator."
+  rationale: "It is the smallest next step that reduces uncertainty about the only verified active legacy backend without starting a service, exporting data, or weakening governance."
+user_approval_needed: false
+confidence:
+  overall: "high"
+  classification_confidence: "medium because legacy runtime/data semantics remain intentionally unverified"
+  feedback_remediation_confidence: "high because every GPT-listed required field is explicitly represented"
+metrics_provenance:
+  - "Primary task total token count and elapsed time came from the Codex goal-controller completion record."
+  - "Runtime and candidate facts derive only from accepted Phase A commit 48cc8dbea8283275bb24e0bb6e62889cea2fbb18 and Phase B commit 67ab449473d48aad7a7ba79646dc4b262a4d6689."
+  - "Remediation requirements derive from the latest Issue #26 GPT comment and PR #29 GPT review."
+  - "All file/branch/PR facts derive from GitHub connector reads during this task."
+handoff:
+  report_to_issues: [26, 22]
+  actual_executor: "CODEX"
+  actual_reviewer: "GPT"
+  auto_merge: false

@@ -1,0 +1,192 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+parent_issue: 22
+mode: "project_plan"
+execution_boundary:
+  profile: "read-only-analysis-and-planning"
+  research_only: true
+  no_trade: true
+  no_service_start_stop: true
+  no_real_migration: true
+  no_secret_exposure: true
+evidence_inputs:
+  - source: "Phase A static discovery"
+    accepted_commit: "48cc8dbea8283275bb24e0bb6e62889cea2fbb18"
+    evidence_level: "VERIFIED_FACT for static paths and declarations"
+  - source: "Phase B runtime verification"
+    accepted_commit: "67ab449473d48aad7a7ba79646dc4b262a4d6689"
+    evidence_cutoff: "2026-07-20T10:30:00+08:00"
+  - source: "Issue #21 and SECOND-BRAIN-GITHUB-SUPABASE-ENTERPRISE-BLUEPRINT-v1.0"
+    role: "target authority and serving-layer boundary"
+classification_policy:
+  meanings:
+    REUSE_AS_IS: "Direct reuse is justified by evidence and governance fit."
+    WRAP: "Retain existing component behind a separate governed compatibility adapter."
+    MIGRATE: "Preserve intent/data while moving into the target contract."
+    ARCHIVE: "Preserve historical evidence without active integration."
+    DEPRECATE: "Stop using after evidence and approval; no candidate meets this bar."
+    UNKNOWN: "Insufficient evidence for a reuse or retirement decision."
+  guardrails:
+    - "Not listening at one check time is not deprecation evidence."
+    - "No legacy component becomes the canonical source by being active."
+    - "No classification authorizes service activation, migration, or trade action."
+global_decision:
+  canonical_knowledge_authority: "Future private GitHub knowledge repository, per Issue #21."
+  serving_projection: "Supabase materialized projection, rebuildable from canonical Git history."
+  legacy_role: "Legacy stores and services are import/compatibility candidates only."
+  reuse_as_is_candidates: []
+  deprecate_candidates: []
+candidates:
+  - candidate_id: "SB-HTTP-8766"
+    classification: "WRAP"
+    confidence: "medium"
+    status_at_runtime_cutoff: "LISTENING"
+    evidence:
+      - "server.py and service registry declare the SuperBrain HTTP service and data root."
+      - "Phase B verified a Python process, root UI, GET/POST responses, and F:/aidanao/data candidate files."
+    counterevidence:
+      - "Dedicated structured health endpoint is absent; GET /health returned error HTML."
+      - "Authentication, firewall state, full API surface, write behavior, and store integrity are unverified."
+      - "0.0.0.0 bind may be LAN reachable."
+    dependencies:
+      - "Owner approval for read-only compatibility wrapping."
+      - "Security review and a narrow read-only API contract."
+      - "Immutable legacy-source manifest before any export."
+    risks:
+      - "Dual authority if clients write directly to the legacy store."
+      - "Potential LAN exposure or ungoverned legacy endpoints."
+    rollback:
+      strategy: "Feature-flagged wrapper only; legacy process and data remain untouched."
+      validation: "Disable wrapper and verify no legacy files or records were changed."
+    approval_required:
+      - "User approval for any data export or external client registration."
+      - "Security approval before wider network exposure."
+  - candidate_id: "SB-DEEP-HTTP-8767"
+    classification: "UNKNOWN"
+    confidence: "medium"
+    status_at_runtime_cutoff: "NOT_LISTENING"
+    evidence:
+      - "deep_server.py declares an independent HTTP service with memory/learning concepts."
+    counterevidence:
+      - "No listening service, endpoint response, or verified data root at cutoff."
+      - "Static conflict with SB-LEGACY-HTTP-MCP-8767 on port 8767."
+    dependencies:
+      - "Explicit owner/maintenance decision."
+      - "Isolated future capability review with unique port allocation."
+    risks:
+      - "Activation could create a second stateful authority or port collision."
+    rollback:
+      strategy: "No activation or source change in this plan."
+      validation: "No service registry or source file changes."
+    approval_required:
+      - "User approval before activation or port reassignment."
+  - candidate_id: "SB-LEGACY-HTTP-MCP-8767"
+    classification: "UNKNOWN"
+    confidence: "medium"
+    status_at_runtime_cutoff: "NOT_LISTENING"
+    evidence:
+      - "mcp/brain_server.py declares a legacy HTTP document bridge."
+      - "It references second-brain documents and core logs."
+    counterevidence:
+      - "No verified endpoint contract or runtime activity."
+      - "Static conflict with SB-DEEP-HTTP-8767 on port 8767."
+      - "Potential overlap with the stdio MCP adapter is untested."
+    dependencies:
+      - "Port and ownership decision."
+      - "Read-only feature inventory and provenance review."
+    risks:
+      - "Document behavior may diverge from the current legacy store or duplicate access paths."
+    rollback:
+      strategy: "Keep source preserved and non-running; remove only any future separate adapter config."
+      validation: "Verify legacy document roots are unchanged."
+    approval_required:
+      - "User approval before activation, port changes, or data extraction."
+  - candidate_id: "SB-MCP-STDIO"
+    classification: "WRAP"
+    confidence: "medium"
+    status_at_runtime_cutoff: "UNKNOWN"
+    evidence:
+      - "brain_bridge.py exposes stdio MCP read-oriented tools/resources."
+      - "It forwards selected knowledge access to 8766 and has a local fallback."
+    counterevidence:
+      - "No initialize/list-tools handshake was performed."
+      - "Fallback behavior and the full tool authorization surface are unverified."
+    dependencies:
+      - "Future strict read-only MCP handshake."
+      - "Tool allow-list, provenance envelope, and action-gate review."
+    risks:
+      - "Ungoverned fallback or tool expansion could bypass target versioning."
+    rollback:
+      strategy: "New wrapper configuration is separate and removable; retain the source unchanged."
+      validation: "Use private GitHub read channel as a non-MCP fallback."
+    approval_required:
+      - "Approval before registering any write/action-capable tool."
+  - candidate_id: "SB-CHATGPT-BRIDGE-8799"
+    classification: "MIGRATE"
+    confidence: "medium"
+    status_at_runtime_cutoff: "NOT_LISTENING"
+    evidence:
+      - "bridge.py describes a FastAPI local bridge with in-memory queues forwarding ingestion to 8766."
+    counterevidence:
+      - "No runtime validation; durability and browser/session behavior unverified."
+      - "In-memory delivery is not a durable canonical ingestion record."
+    dependencies:
+      - "KnowledgePacket schema, idempotency key, authenticated ingestion worker, failure queue."
+    risks:
+      - "Browser/session leakage, dropped tasks, and duplicate direct-write routes."
+    rollback:
+      strategy: "Preserve historical implementation; replacement is opt-in and independent."
+      validation: "Disable replacement without changes to legacy bridge or stores."
+    approval_required:
+      - "User approval before replacing an existing intake workflow."
+  - candidate_id: "HISTORICAL-F-AI"
+    classification: "ARCHIVE"
+    confidence: "high"
+    status_at_runtime_cutoff: "NO_ACTIVE_CANDIDATE_SERVICE"
+    evidence:
+      - "Phase B confirmed F:/ai exists with historical coordination, QClaw output, and TDX-related artifacts."
+      - "No candidate service was found running from this path."
+    counterevidence:
+      - "Some contents may still hold useful provenance or licensed/private material; contents were not classified."
+    dependencies:
+      - "Owner approval and privacy/licensing classification before any selective import."
+    risks:
+      - "Deletion loses provenance; treating it as live repeats stale path drift."
+    rollback:
+      strategy: "No move, deletion, or import."
+      validation: "Any future import is content-addressed and removable only from the new target version."
+    approval_required:
+      - "User approval before content leaves the local machine."
+data_location_decisions:
+  - location: "F:/aidanao/data/knowledge-graph.json"
+    handling: "MIGRATE_CANDIDATE"
+    rule: "Read-only snapshot and normalize to versioned atoms/edges only after approval."
+  - location: "F:/aidanao/data/category-index.json"
+    handling: "MIGRATE_CANDIDATE"
+    rule: "Derive categories/aliases; preserve original."
+  - location: "F:/aidanao/data/super_brain_v01.sqlite"
+    handling: "MIGRATE_CANDIDATE"
+    rule: "Future schema/hash inventory only; no assumption of canonical status."
+  - location: "F:/aidanao/data/audit/events.jsonl"
+    handling: "WRAP_OR_MIGRATE_CANDIDATE"
+    rule: "Import only as immutable audit or usage snapshots, never as authority edits."
+  - location: "F:/aidanao/second-brain and F:/aidanao/core/logs"
+    handling: "MIGRATE_CANDIDATE"
+    rule: "Classify documents separately from logs; preserve source paths."
+migration_preconditions:
+  - "Private knowledge repository exists and access is approved."
+  - "Legacy source inventory has hashes, retention labels, and privacy classification."
+  - "Canonical schemas and idempotency rules are frozen."
+  - "No source file, SQLite database, JSONL log, or live service is mutated by the dry run."
+  - "Trading-domain artifacts stay research_only and read-only."
+next_task_recommendation:
+  task_id: "LEGACY-8766-READONLY-CAPABILITY-AND-EXPORT-PLAN"
+  mode: "project_plan"
+  scope: "Capability contract, threat model, manifest schema, dry-run export test design only."
+  prohibited:
+    - "service start/stop"
+    - "credential access"
+    - "data upload"
+    - "legacy storage mutation"
+    - "trade execution"
