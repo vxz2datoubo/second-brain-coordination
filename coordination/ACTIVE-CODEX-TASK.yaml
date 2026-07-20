@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -41,7 +41,7 @@ required_action:
   - "读取task_impact_forecast，观察其中的预期收益、负面影响和停止条件。"
   - "只在现有分支和原PR #29中补齐CODEX-FEEDBACK.yaml。"
   - "使用统一Agent执行反馈v2完整模板，字段名必须包含schema_version: '2.0'。"
-  - "不得扩大扫描、改变已成立的Phase C架构结论或执行Issue #23。"
+  - "不得扩大扫描、改变已成立的Phase C架构结论或执行Issue #31、Issue #23。"
   - "修正后在Issue #26回传新的final_head、修改文件、验证结果、实际正负效果和反馈v2摘要。"
 
 execution_contract:
@@ -63,6 +63,7 @@ safety_boundary:
   no_service_start_stop: true
   no_real_migration: true
   no_secret_exposure: true
+  no_enterprise_issue_execution: true
   no_issue_23_execution: true
 
 supersedes:
@@ -70,11 +71,16 @@ supersedes:
   reason: "Phase C主体已完成并通过内容审查；当前仅补齐PR #29的完整Agent执行反馈v2。"
 
 next_after_acceptance:
-  active_issue_candidate: 23
-  task_id: "A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-0001"
-  task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-0001-PHASE0.yaml"
+  active_issue_candidate: 31
+  task_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0"
+  task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
   condition: "PR #29通过GPT复验并合并，Issue #26和父Issue #22完成关闭。"
+  child_workstreams:
+    - issue: 23
+      role: "四群体多智能体博弈工作流"
+    - issue: 30
+      role: "工程学习自动化工作流"
 
-notes: "用户只需对Codex说‘读取任务’。本轮不是重做Phase C，而是修正PR #29中不完整的CODEX-FEEDBACK.yaml；完成前不得执行Issue #23。"
+notes: "用户只需对Codex说‘读取任务’。当前仍只修正PR #29反馈v2；完成后由GPT把Issue #31切换为活动母任务。Issue #23和#30作为企业工程子工作流继续排队，不得抢占。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
