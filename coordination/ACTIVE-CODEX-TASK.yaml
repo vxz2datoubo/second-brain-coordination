@@ -1,12 +1,61 @@
-schema_version: 1.0
-router_protocol: coordination/CODEX-TASK-ROUTER.md
-repository: vxz2datoubo/second-brain-coordination
-active_issue: 22
-task_id: SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003-MANUAL
-mode: goal
-mode_label: 目标模式
-status: READY
-blocked_by: none
-supersedes_run: SECOND_BRAIN_LEGACY_BACKEND_DISCOVERY_0003_R1
-notes: 手动重新执行Issue #22。忽略此前dispatcher的TIMEOUT、UNKNOWN和INVALID回执；本任务完成前不要执行Issue #21。
-updated_by: GPT
+schema_version: "1.1"
+router_protocol: "coordination/CODEX-TASK-ROUTER.md"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+
+trigger_phrases:
+  - "读取任务"
+  - "执行任务"
+  - "开始任务"
+
+active_issue: 26
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+mode: "project_plan"
+mode_label: "项目计划模式"
+status: "READY"
+blocked_by: "none"
+
+parent_issue: 22
+phase: "C_SYNTHESIS_AND_REUSE_PLAN"
+dependencies:
+  - issue: 24
+    status: "ACCEPTED"
+    merged_pr: 27
+  - issue: 25
+    status: "ACCEPTED"
+    merged_pr: 28
+
+required_inputs:
+  - "Issue #26正文与全部评论"
+  - "Phase A静态发现结果（已合并到main）"
+  - "Phase B运行态核验结果（已合并到main）"
+  - "Issue #21知识云架构资料"
+  - "第二大脑与交易系统边界和协作蓝图"
+
+execution_contract:
+  sync_latest_main: true
+  create_independent_branch: true
+  recommended_branch: "codex/legacy-backend-synthesis-0003c"
+  create_pull_request: true
+  auto_merge: false
+  report_to_issues:
+    - 26
+    - 22
+  feedback_schema: "Agent execution feedback v2"
+
+safety_boundary:
+  profile: "read-only-analysis-and-planning"
+  research_only: true
+  no_trade: true
+  no_service_start_stop: true
+  no_real_migration: true
+  no_secret_exposure: true
+
+supersedes:
+  previous_active_issue: 22
+  previous_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003-MANUAL"
+  reason: "父任务已拆分；阶段A和阶段B均已验收并合并，当前唯一活动Codex任务为Issue #26。"
+
+notes: "用户只需对Codex说‘读取任务’。Codex必须先读取路由协议和本文件，再只执行active_issue指向的Issue #26；不得从聊天记录、最近Issue或旧任务回执猜测任务。"
+updated_by: "GPT"
+updated_at: "2026-07-20"
