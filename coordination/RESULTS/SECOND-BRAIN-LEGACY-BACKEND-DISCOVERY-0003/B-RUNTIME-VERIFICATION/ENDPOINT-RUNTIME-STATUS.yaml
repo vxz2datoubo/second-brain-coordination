@@ -52,7 +52,7 @@ checks:
     evidence_level: "VERIFIED_FACT"
     blockers: "none"
     sensitive_value_redacted: true
-    notes: "Only actively listening service discovered. Running since 2026-07-18 14:29. Binds 0.0.0.0 — accessible on all interfaces. No dedicated /health endpoint; root page indicates functional web server. API search endpoint confirmed working."
+    notes: "Only actively listening service discovered. Running since 2026-07-18 14:29. Binds 0.0.0.0 — may be reachable from LAN if no firewall rule blocks inbound port 8766; firewall not verified in this phase. No dedicated /health endpoint; root page indicates functional web server. API search endpoint confirmed working."
 
   - candidate_id: "SB-DEEP-HTTP-8767"
     checked_address_masked: "http://localhost:8767"
@@ -133,7 +133,7 @@ checks:
     evidence_level: "PARTIAL_EVIDENCE"
     blockers: "Stdio MCP — cannot verify running state without MCP client handshake; adapter, not standalone backend"
     sensitive_value_redacted: false
-    notes: "Adapter candidate. Depends on SB-HTTP-8766 for knowledge storage. Source confirms it is a bridge, not the canonical backend. Runtime state unknown without MCP client."
+    notes: "Adapter candidate. Depends on SB-HTTP-8766 for knowledge storage. Source confirms it is a bridge, not a standalone backend. Runtime state unknown — MCP client handshake not performed because starting services is prohibited in this phase. Classification deferred to phase C."
 
   - candidate_id: "SB-CHATGPT-BRIDGE-8799"
     checked_address_masked: "http://127.0.0.1:8799"
@@ -183,11 +183,15 @@ summary:
   verified_facts: 1
   partial_evidence: 4
   historical_artifacts: 1
-  can_be_eliminated:
-    - "SB-DEEP-HTTP-8767 (not running, port conflict)"
-    - "SB-LEGACY-HTTP-MCP-8767 (not running, port conflict with above)"
-    - "SB-CHATGPT-BRIDGE-8799 (not running, adapter only)"
+  can_be_eliminated: []
+  not_active_at_check_time:
+    - candidate_id: "SB-DEEP-HTTP-8767"
+      reason: "Port 8767 not listening at 2026-07-20 10:30 CST. Source exists. Requires phase C classification — software may be maintained, reusable, or archived."
+    - candidate_id: "SB-LEGACY-HTTP-MCP-8767"
+      reason: "Port 8767 not listening at 2026-07-20 10:30 CST. Source exists. Static port conflict with SB-DEEP-HTTP-8767. Requires phase C classification."
+    - candidate_id: "SB-CHATGPT-BRIDGE-8799"
+      reason: "Port 8799 not listening at 2026-07-20 10:30 CST. Source exists. Adapter only. Requires phase C classification — not proven obsolete."
   needs_further_investigation:
-    - "SB-MCP-STDIO (cannot verify runtime via TCP; needs MCP client handshake)"
-  confirmed_active_backend:
-    - "SB-HTTP-8766 — the sole running second-brain backend"
+    - "SB-MCP-STDIO (cannot verify runtime via TCP; MCP client handshake not performed — starting services is prohibited in this phase)"
+  sole_active_candidate_at_check_time:
+    - "SB-HTTP-8766 — sole confirmed active candidate at check time (2026-07-20 10:30 CST). Classification as canonical backend, adapter, or migratable component deferred to Issue #26 phase C."

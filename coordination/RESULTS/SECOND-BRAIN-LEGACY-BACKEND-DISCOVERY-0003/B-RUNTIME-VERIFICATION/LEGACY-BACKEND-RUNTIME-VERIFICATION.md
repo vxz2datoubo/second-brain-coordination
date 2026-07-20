@@ -24,7 +24,7 @@
 
 ### 1. SB-HTTP-8766 — **LISTENING** ✅
 
-**This is the canonical second-brain backend.**
+**This is the sole confirmed active candidate at check time (2026-07-20 10:30 CST).** Classification as canonical backend or otherwise is deferred to phase C.
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@
 | Startup | `python -u F:\aidanao\server.py` |
 | Working Dir | F:\aidanao |
 | Running Since | 2026-07-18 14:29 CST |
-| Bind | 0.0.0.0 (all interfaces) |
+| Bind | 0.0.0.0 (may be LAN-reachable if no firewall rule; firewall not verified) |
 
 **Health Checks:**
 
@@ -115,7 +115,7 @@ References to `F:/ai` in `F:/aidanao/core/qclaw.py` (lines 216, 349) are confirm
 
 ## Conclusions
 
-1. **SB-HTTP-8766 is the only running second-brain backend.** All other candidates are offline.
+1. **SB-HTTP-8766 is the sole confirmed active candidate at check time.** The other 4 candidates were not listening at 2026-07-20 10:30 CST; classification of their status (maintained, archived, migratable, etc.) is deferred to Issue #26 phase C.
 2. Port 8767 has a static conflict: two different services declare the same port. Neither is running.
 3. SB-MCP-STDIO (brain_bridge.py) is an MCP adapter, not a standalone backend — it proxies to SB-HTTP-8766.
 4. SB-CHATGPT-BRIDGE-8799 is offline and is an integration adapter only.
