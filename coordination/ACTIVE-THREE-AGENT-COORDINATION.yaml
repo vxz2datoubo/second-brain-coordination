@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 coordination_type: "ThreeAgentActiveCoordination"
 program_issue: 31
 status: "ACTIVE"
@@ -12,7 +12,7 @@ agents:
   CODEX:
     active_issue: 39
     task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
-    status: "READY"
+    status: "READY_OR_RUNNING"
     mode: "GOAL"
     role: "Build the large public-safe offline A-share replay, validation, evidence and GPT atomized-knowledge access vertical slice."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
@@ -21,7 +21,8 @@ agents:
       pr: 37
       merge_commit: "30e6bb18ccaa1297877fa896eb0ee35e1d655792"
     allowed_handoffs_from:
-      - "QCLAW Issue #36 public-safe contract observations"
+      - "QCLAW Issue #36 accepted public-safe contract findings"
+      - "QCLAW next task public-safe implementation observations"
       - "WORKBUDDY PR #34 proposed sanitized capability facts, reference only"
     prohibited:
       - "private knowledge ingestion or publication"
@@ -47,12 +48,17 @@ agents:
     aliases: ["Q", "QQ"]
     active_issue: 36
     task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
-    status: "READY_OR_RUNNING"
-    role: "Validate candidate packet stability, conflicts, versioning, privacy classes and causal restraint with synthetic inputs."
+    status: "COMPLETED_ACCEPTED_WITH_LIMITATIONS_PENDING_NEXT_TASK"
+    role: "Completed synthetic candidate-packet validation; transition to deterministic packet implementation and regression engineering."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
-    allowed_handoffs_to:
-      - "Issue #36 complete synthetic validation package"
-      - "Issue #39 public-safe contract observations only"
+    accepted_findings:
+      - "Case A-F synthetic validation passed."
+      - "Deterministic semantic identity demonstrated for repeated synthetic inputs."
+      - "Conflicts, corrections, privacy classes and causal restraint behaved as required."
+    required_follow_up:
+      - "Verify GitHub branch, commit and PR capabilities."
+      - "Implement deterministic packet and atom IDs, content hash, idempotency key, processor version and evidence quality."
+      - "Convert local-only artifacts into a reproducible GitHub-reviewed package."
     prohibited:
       - "private knowledge ingestion or upload"
       - "authority promotion or Codex task execution"
@@ -84,15 +90,15 @@ wip_policy:
   current_major_workstreams:
     - "CODEX Issue #39 large offline vertical slice"
   bounded_parallel_tests:
-    - "QCLAW Issue #36 synthetic candidate validation"
+    - "QCLAW post-validation implementation task to be activated"
   completed_deliveries_in_review:
     - "WORKBUDDY PR #34"
-  interpretation: "Codex #39 is the sole major active construction line. QQ #36 remains bounded synthetic validation; WB remains review-held."
+  interpretation: "Codex #39 remains the sole major construction line. QQ may run a bounded public-safe implementation and regression task without touching Codex-owned contracts."
 
 cross_agent_dependencies:
   - from: "QCLAW#36"
     to: "CODEX#39"
-    deliverable: "public-safe LearningPacket and knowledge-access compatibility observations"
+    deliverable: "accepted public-safe LearningPacket compatibility findings"
     blocking: false
     authority: "OBSERVATION_ONLY"
   - from: "WORKBUDDY PR #34"
