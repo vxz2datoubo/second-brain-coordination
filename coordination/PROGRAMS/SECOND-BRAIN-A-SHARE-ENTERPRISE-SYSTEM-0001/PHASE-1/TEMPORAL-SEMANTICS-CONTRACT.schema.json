@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/foundation/temporal-semantics/1.0.0",
+  "title": "Temporal Semantics Contract",
+  "type": "object",
+  "required": ["event_time", "observed_at", "receive_time", "entered_system_at", "available_at", "timezone"],
+  "properties": {
+    "event_time": {"type": "string", "format": "date-time"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "receive_time": {"type": "string", "format": "date-time"},
+    "entered_system_at": {"type": "string", "format": "date-time"},
+    "available_at": {"type": "string", "format": "date-time"},
+    "as_of": {"type": "string", "format": "date-time"},
+    "timezone": {"type": "string", "minLength": 1},
+    "source_sequence": {"type": ["string", "integer", "null"]},
+    "local_sequence": {"type": ["integer", "null"], "minimum": 0}
+  },
+  "additionalProperties": true,
+  "description": "Consumers must enforce available_at <= as_of outside JSON Schema, because this is a cross-field temporal gate."
+}

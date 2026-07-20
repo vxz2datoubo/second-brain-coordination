@@ -1,0 +1,64 @@
+schema_version: "1.0"
+decision: "P1 envelopes provide cross-module exchange semantics; existing domain objects retain domain ownership."
+types:
+  - type: SourceRecord
+    action: ADAPT
+    mapping: [object_id, lineage.source_refs, lineage.artifact_refs, quality]
+    authority: "future approved knowledge authority; current local instance is not promoted by P1"
+  - type: EvidenceItem
+    action: ADAPT
+    mapping: [lineage.evidence_refs, evidence_level, source_reliability]
+  - type: KnowledgeAtom
+    action: ADAPT
+    mapping: [object_id, status, approval, rollback]
+    constraint: "candidate cannot overwrite approved authority"
+  - type: RelationEdge
+    action: ADAPT
+    mapping: [object_id, lineage, schema_version]
+  - type: MarketDataRecord
+    action: ADAPT
+    mapping: [shared_envelope, temporal, lineage_evidence_quality, capability_entitlement]
+  - type: PriceBar
+    action: ADAPT
+    mapping: [shared_envelope, temporal.available_at, lineage_evidence_quality]
+  - type: FeatureSet
+    action: ADAPT
+    mapping: [shared_envelope, lineage.dataset_and_feature_refs, quality]
+  - type: DataLineageRecord
+    action: REUSE
+    mapping: [lineage]
+  - type: DataQualityRecord
+    action: REUSE
+    mapping: [quality]
+  - type: CapabilityDescriptor
+    action: ADAPT
+    mapping: [capability_entitlement]
+  - type: AdapterHealthStatus
+    action: ADAPT
+    mapping: [capability_entitlement.gate_result, abstention_reason]
+  - type: BacktestConfig
+    action: ADAPT
+    mapping: [shared_envelope, temporal.as_of, approval]
+  - type: BacktestResult
+    action: ADAPT
+    mapping: [shared_envelope, lineage, validation_status, rollback]
+  - type: ValidationReport
+    action: ADAPT
+    mapping: [quality.validation_status, evidence, approval]
+  - type: DecisionRecord
+    action: ADAPT
+    mapping: [evidence, approval, abstention_reason, no_trade_gate]
+  - type: ForecastRecord
+    action: ADAPT
+    mapping: [temporal, evidence, quality]
+  - type: TradeJournal
+    action: ADAPT
+    mapping: [lineage, no_trade_gate, rollback]
+  - type: RawMarketPayload
+    action: ADAPT
+    mapping: [lineage.artifact_refs, temporal.receive_time, capability_entitlement]
+    constraint: "L2 aggregate payload is never a RAW_TRADE_TICK or RAW_ORDER_EVENT"
+  - type: AgentGameScenario
+    action: UNKNOWN
+    reason: "Issue #23 remains queued; no runtime type is frozen in P1."
+no_dual_authority_rule: "The P1 envelope does not become a competing record store; it records exchange semantics and points to one declared authority."

@@ -1,0 +1,71 @@
+schema_version: "2.0"
+record_type: "AgentExecutionFeedback"
+agent_id: "CODEX"
+task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
+issue: 35
+parent_issue: 31
+mode: "project_plan_and_controlled_implementation"
+status: "SUCCESS_WITH_FINDINGS"
+executor: "CODEX"
+reviewer: "GPT"
+source_agent: "CODEX"
+target_agent: "GPT"
+run_id: "a-share-foundation-contract-freeze-20260720"
+trace_id: "issue35-p1-contract-freeze"
+boundary:
+  research_only: true
+  no_trade: true
+  service_start_stop: false
+  private_upload: false
+  cloud_creation: false
+  secret_access: false
+  protected_blueprint_publication: false
+objective: "Freeze the minimum public-safe enterprise contracts needed before the first offline A-share replay."
+implemented:
+  - "Five JSON Schema contract documents for shared envelope, time, lineage/quality, capability/entitlement and approval/abstention/rollback."
+  - "Public-safe positive and negative fixtures plus standard-library executable semantic gates."
+  - "Explicit local-type compatibility matrix, version/migration policy, decision record, unknown registry and test plan."
+tests:
+  command: "python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/tests -p test_*.py -v"
+  result: "12 passed"
+  schema_json_syntax: "5 passed"
+actual_effects:
+  positive:
+    - "Shared object, temporal, lineage, quality, capability, approval and rollback semantics are now explicit and testable without a service dependency."
+    - "Future leakage, unknown entitlement, candidate authority write, execution action, missing approval and missing rollback all have negative assertions."
+  negative:
+    - "The public coordination checkout does not contain the full local mother-system code, so P1 does not modify or execute its runtime objects."
+    - "Local git fetch reset during setup; the isolated local worktree was used only for self-contained public contract tests, not as a remote-main code baseline."
+unexpected:
+  benefits:
+    - "Existing local type inventory was sufficient to produce an explicit ADAPT/REUSE/UNKNOWN map without creating duplicate domain classes."
+  harms_or_constraints:
+    - "No external jsonschema dependency was present; a narrowly scoped standard-library semantic validator was used and its limits are documented."
+findings:
+  - id: "P1-F-001"
+    severity: "medium"
+    statement: "Public coordination repo and local mother-system repository have different materialized file sets."
+    action: "Keep public contract tests self-contained; future type-adapter work must use a clean local mother-system worktree."
+  - id: "P1-F-002"
+    severity: "medium"
+    statement: "JSON Schema syntax alone cannot express available_at <= as_of reliably."
+    action: "Retain an executable cross-field temporal gate and test it before replay."
+  - id: "P1-F-003"
+    severity: "low"
+    statement: "No jsonschema package is installed in the isolated checkout."
+    action: "Do not add dependency in P1; optionally add an external validator in a later approved CI task."
+rollback:
+  scope: "Isolated public contract/docs/fixtures/tests only."
+  method: "Revert the isolated P1 commit or close/reject the draft PR."
+  local_runtime_data_changed: false
+  service_state_changed: false
+  byte_level_restoration: "Git commit reversal for tracked P1 files; no runtime data restoration required."
+unknowns_reference: "UNKNOWN-REGISTRY.yaml"
+next_recommended_action:
+  gate: "GPT accepts P1 and activates a separate P2 offline replay task."
+  task: "Do not begin replay until a clean local mother-system worktree, approved sample lineage, and P1 contract adapter task scope are provided."
+approval_required:
+  required_now: false
+  future:
+    - "Any protected-blueprint body change."
+    - "Any private data import, authority promotion, cloud resource, service lifecycle or execution-related action."
