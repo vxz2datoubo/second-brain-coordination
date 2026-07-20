@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.5"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -8,79 +8,93 @@ trigger_phrases:
   - "执行任务"
   - "开始任务"
 
-active_issue: 26
-task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX.yaml"
+active_issue: 31
+task_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
 mode: "project_plan"
 mode_label: "项目计划模式"
 status: "READY"
 blocked_by: "none"
 
-parent_issue: 22
-phase: "C_REVIEW_REMEDIATION"
-current_pr: 29
-current_branch: "codex/legacy-backend-synthesis-0003c"
-expected_head_before_fix: "ada137eb3da946f5dccfecc910ca146b2ff02995"
+phase: "ENTERPRISE_PHASE_0_CURRENT_STATE_AND_EXECUTABLE_PLAN"
+completed_preconditions:
+  - issue: 22
+    status: "COMPLETED"
+  - issue: 26
+    status: "COMPLETED"
+  - pr: 29
+    status: "MERGED"
+    merge_commit: "6c52b4dce5410abbeb98943f8c964933929f1670"
 
-dependencies:
-  - issue: 24
-    status: "ACCEPTED"
-    merged_pr: 27
-  - issue: 25
-    status: "ACCEPTED"
-    merged_pr: 28
-
-review_state:
-  architecture_and_evidence: "ACCEPTED"
-  migration_plan: "ACCEPTED"
-  feedback_v2: "CHANGES_REQUIRED"
-  merge_authorized: false
+required_inputs:
+  - "Issue #31正文与全部评论"
+  - "企业级总工程章程和项目蓝图集成索引"
+  - "任务影响预测和工程学习系统"
+  - "Issues #1, #4, #5, #6, #7, #20, #21, #22, #23, #30, #32及相关PR/蓝图"
+  - "PR #29已合并的旧后端识别、复用和迁移结论"
+  - "QCLAW本地优先知识同步蓝图和WorkBuddy并行Issue #32"
+  - "本地受保护权威蓝图的Manifest、可访问摘要或现场事实"
+  - "当前本地代码、服务、数据、回放、指标、策略和验证最小闭环"
 
 required_action:
-  - "读取Issue #26最新GPT验收评论与PR #29最新GPT审查意见。"
-  - "读取task_impact_forecast，观察其中的预期收益、负面影响和停止条件。"
-  - "只在现有分支和原PR #29中补齐CODEX-FEEDBACK.yaml。"
-  - "使用统一Agent执行反馈v2完整模板，字段名必须包含schema_version: '2.0'。"
-  - "不得扩大扫描、改变已成立的Phase C架构结论或执行Issue #31、Issue #23。"
-  - "修正后在Issue #26回传新的final_head、修改文件、验证结果、实际正负效果和反馈v2摘要。"
+  - "先基于真实仓库和可访问本地事实建立企业当前状态审计，不把未验证能力标记为完成。"
+  - "统一第二大脑、A股交易研究、多智能体博弈、事件情报、验证风控、QCLAW同步和多AI协作的企业架构。"
+  - "明确每类数据、知识、策略、实验、模型和任务的唯一系统记录源。"
+  - "产出能力地图、依赖DAG、复用决策、路线图、验收门和首个真实纵向切片。"
+  - "吸收WorkBuddy Issue #32的QCLAW现场结果；若尚未完成，登记依赖与待合并接口，不等待或伪造事实。"
+  - "第一轮只做审计、架构、合同、计划和无副作用一致性检查，不一次性实现完整系统。"
+  - "完成后创建独立PR，回传实际正负效果、意外收益/损害和完整Agent执行反馈v2。"
 
 execution_contract:
-  sync_latest_main: false
-  continue_existing_branch: true
-  create_new_branch: false
-  create_new_pull_request: false
+  sync_latest_main: true
+  create_independent_branch: true
+  recommended_branch: "codex/enterprise-system-0001-phase0"
+  create_pull_request: true
   auto_merge: false
   report_to_issues:
-    - 26
-    - 22
+    - 31
   feedback_schema: "Agent execution feedback v2 full template"
   outcome_calibration_required: true
 
+child_workstreams:
+  - issue: 23
+    owner: "CODEX"
+    role: "四群体多智能体博弈"
+    status: "QUEUED_UNDER_ENTERPRISE_PROGRAM"
+  - issue: 30
+    owner: "CODEX"
+    role: "工程学习自动化"
+    status: "QUEUED_UNDER_ENTERPRISE_PROGRAM"
+  - issue: 32
+    owner: "WORKBUDDY"
+    role: "QCLAW本地消化、候选仓和未来批量同步现场审计"
+    status: "READY_PARALLEL"
+  - issue: 20
+    owner: "QCLAW_GOVERNANCE"
+    role: "知识学习协议"
+    status: "ACTIVE_DESIGN_INPUT"
+  - issue: 21
+    owner: "CODEX_AND_WORKBUDDY"
+    role: "私有Git权威库与Supabase检索服务层"
+    status: "PLANNED_INPUT"
+
 safety_boundary:
-  profile: "documentation-only-remediation"
+  profile: "read-only-audit-and-enterprise-planning"
   research_only: true
   no_trade: true
   no_service_start_stop: true
+  no_private_data_upload: true
+  no_cloud_resource_creation: true
   no_real_migration: true
   no_secret_exposure: true
-  no_enterprise_issue_execution: true
-  no_issue_23_execution: true
+  no_large_marl_training: true
+  no_protected_blueprint_publication: true
 
 supersedes:
-  previous_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
-  reason: "Phase C主体已完成并通过内容审查；当前仅补齐PR #29的完整Agent执行反馈v2。"
+  previous_active_issue: 26
+  previous_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
+  reason: "PR #29已验收并合并，Issues #26和#22已完成关闭。企业母工程Issue #31成为唯一活动Codex任务。"
 
-next_after_acceptance:
-  active_issue_candidate: 31
-  task_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0"
-  task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
-  condition: "PR #29通过GPT复验并合并，Issue #26和父Issue #22完成关闭。"
-  child_workstreams:
-    - issue: 23
-      role: "四群体多智能体博弈工作流"
-    - issue: 30
-      role: "工程学习自动化工作流"
-
-notes: "用户只需对Codex说‘读取任务’。当前仍只修正PR #29反馈v2；完成后由GPT把Issue #31切换为活动母任务。Issue #23和#30作为企业工程子工作流继续排队，不得抢占。"
+notes: "用户对Codex只需说‘读取任务’。Codex执行Issue #31企业Phase 0；WorkBuddy可同时执行Issue #32。不得自行切换到Issue #23或#30。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
