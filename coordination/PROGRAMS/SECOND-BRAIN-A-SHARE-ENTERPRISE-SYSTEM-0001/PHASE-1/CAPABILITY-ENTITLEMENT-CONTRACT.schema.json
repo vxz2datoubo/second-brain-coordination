@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/foundation/capability-entitlement/1.0.0",
+  "title": "Capability Entitlement Contract",
+  "type": "object",
+  "required": ["capability_id", "capability_level", "entitlement_id", "entitlement_status", "gate_result"],
+  "properties": {
+    "capability_id": {"type": "string", "minLength": 1},
+    "capability_level": {"enum": ["HISTORICAL_BAR", "FIVE_LEVEL_SNAPSHOT", "TEN_LEVEL_SNAPSHOT", "L2_AGGREGATE", "UPDATE_TRIGGER", "RAW_TRADE_TICK", "RAW_ORDER_EVENT", "ORDER_QUEUE", "AUCTION_TRAJECTORY"]},
+    "entitlement_id": {"type": "string", "minLength": 1},
+    "entitlement_status": {"enum": ["confirmed", "missing", "unknown", "expired", "restricted"]},
+    "gate_result": {"enum": ["allowed", "degraded", "rejected"]},
+    "abstention_reason": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {"if": {"properties": {"gate_result": {"const": "allowed"}}}, "then": {"properties": {"entitlement_status": {"const": "confirmed"}}, "not": {"required": ["abstention_reason"]}}},
+    {"if": {"properties": {"gate_result": {"enum": ["degraded", "rejected"]}}}, "then": {"required": ["abstention_reason"]}}
+  ],
+  "additionalProperties": true
+}
