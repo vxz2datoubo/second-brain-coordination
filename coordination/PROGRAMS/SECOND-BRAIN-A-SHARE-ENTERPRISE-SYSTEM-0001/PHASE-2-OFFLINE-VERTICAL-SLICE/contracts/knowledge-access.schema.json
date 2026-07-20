@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Public-safe KnowledgeQuery and ContextBundle",
+  "type": "object",
+  "required": ["query_id", "knowledge_revision", "atoms", "omitted_due_to_context_budget", "gpt_access"],
+  "properties": {
+    "query_id": {"type": "string", "minLength": 1},
+    "knowledge_revision": {"type": "string", "minLength": 1},
+    "atoms": {"type": "array"},
+    "omitted_due_to_context_budget": {"type": "array", "items": {"type": "string"}},
+    "gpt_access": {"const": "FULL_SEMANTIC_ACCESS"}
+  },
+  "additionalProperties": true
+}

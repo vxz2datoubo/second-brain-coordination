@@ -1,0 +1,19 @@
+schema_version: "1.0"
+task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
+status: "READY_FOR_GPT_REVIEW"
+forecast_comparison:
+  B1_executable_path: {expected: true, observed: true, evidence: "CLI demo and deterministic bundle"}
+  B2_failure_exposure: {expected: true, observed: true, evidence: "negative gates in 21 tests"}
+  B3_reproducible_baseline: {expected: true, observed: true, evidence: "equal event/evidence hashes across two runs"}
+  B4_knowledge_contract: {expected: true, observed: true, evidence: "KnowledgeGateway and ContextBundle fixture"}
+  B5_learning_packet: {expected: true, observed: true, evidence: "candidate packet with idempotency/evidence fields"}
+  H1_parallel_platform_risk: {observed: "controlled", control: "P1 adapter-only boundary and explicit UNKNOWN local integration"}
+  H2_future_leakage: {observed: "controlled", control: "available_at gate and delayed signal simulation"}
+  H3_synthetic_overclaim: {observed: "controlled", control: "EXPERIMENTAL_ONLY and candidate/no-trade labels"}
+  H4_scope_fragmentation: {observed: "controlled", control: "single CLI end-to-end path"}
+  H5_private_leakage: {observed: false, control: "synthetic atoms only and no network/private ingestion"}
+  H6_execution_drift: {observed: false, control: "no order/broker/service code"}
+deviations:
+  - type: "environment_constraint"
+    detail: "GitHub connector was temporarily unavailable; remote reads used GitHub raw/API and publication will use authenticated gh/git tooling."
+learning_candidate: "Use public-safe deterministic fixtures to validate temporal and authority gates before connecting any local/private adapter."

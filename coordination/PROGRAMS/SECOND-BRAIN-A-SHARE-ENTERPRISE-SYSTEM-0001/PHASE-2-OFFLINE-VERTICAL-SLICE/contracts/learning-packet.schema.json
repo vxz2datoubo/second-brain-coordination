@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Candidate LearningPacket",
+  "type": "object",
+  "required": ["packet_id", "packet_content_hash", "idempotency_key", "status", "authority_write", "evidence_refs"],
+  "properties": {
+    "packet_id": {"type": "string", "minLength": 1},
+    "packet_content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "idempotency_key": {"type": "string", "minLength": 1},
+    "status": {"const": "candidate"},
+    "authority_write": {"const": false},
+    "evidence_refs": {"type": "array", "minItems": 1}
+  },
+  "additionalProperties": true
+}
