@@ -1,0 +1,111 @@
+schema_version: "1.0"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003A"
+phase: "A_STATIC_DISCOVERY"
+evidence_boundary: "Static files only. No port, process, HTTP, MCP handshake, or runtime verification was performed."
+candidates:
+  - candidate_id: "SB-HTTP-8766"
+    address_masked: "http://localhost:8766"
+    protocol: "HTTP REST (custom Python http.server)"
+    host_scope: "localhost"
+    evidence_paths:
+      - "F:/aidanao/server.py:2,52-75,1736-1739"
+      - "F:/aidanao/bulletin/SERVICE-REGISTRY.md:18,29-41"
+      - "F:/aidanao/mcp/brain_bridge.py:36"
+    evidence_types: ["source_code", "service_registry", "client_configuration"]
+    associated_project: "F:/aidanao legacy Second Brain / SuperBrain"
+    framework_or_service: "Python HTTPServer; SuperBrainV01 and legacy core engines"
+    startup_entry: "python server.py (registry declares F:/aipengyou/.venv/Scripts/python.exe server.py with F:/aidanao working directory)"
+    data_location_hint: "runtime root/data; super_brain_v01.sqlite; audit/events.jsonl; legacy JSON graph and memory files"
+    confidence: "high"
+    evidence_level: "VERIFIED_FACT"
+    runtime_check_needed: true
+    sensitive_value_redacted: false
+    notes: "Source binds 0.0.0.0; actual listener, health, and external exposure are not checked in phase A."
+  - candidate_id: "SB-DEEP-HTTP-8767"
+    address_masked: "http://localhost:8767"
+    protocol: "HTTP REST (custom Python http.server)"
+    host_scope: "unknown"
+    evidence_paths:
+      - "F:/aidanao/deep_server.py:2-11,405-408"
+    evidence_types: ["source_code"]
+    associated_project: "F:/aidanao Deep Learning Enhanced Second Brain"
+    framework_or_service: "Python HTTPServer; deep thinking, episodic memory, continual learning declarations"
+    startup_entry: "python deep_server.py"
+    data_location_hint: "Uses project data/app paths; exact runtime root requires phase B/C evidence"
+    confidence: "high"
+    evidence_level: "VERIFIED_FACT"
+    runtime_check_needed: true
+    sensitive_value_redacted: false
+    notes: "Static port conflict with SB-LEGACY-HTTP-MCP-8767; no runtime conclusion."
+  - candidate_id: "SB-LEGACY-HTTP-MCP-8767"
+    address_masked: "http://127.0.0.1:8767"
+    protocol: "HTTP JSON service described as legacy Second Brain MCP server"
+    host_scope: "localhost"
+    evidence_paths:
+      - "F:/aidanao/mcp/brain_server.py:1-10,147-149"
+    evidence_types: ["source_code"]
+    associated_project: "F:/aidanao second-brain legacy document bridge"
+    framework_or_service: "Python HTTPServer; rules/lessons/daily-log bridge"
+    startup_entry: "python F:/aidanao/mcp/brain_server.py"
+    data_location_hint: "F:/aidanao/second-brain and F:/aidanao/core/logs"
+    confidence: "high"
+    evidence_level: "VERIFIED_FACT"
+    runtime_check_needed: true
+    sensitive_value_redacted: false
+    notes: "Cannot coexist on the same port with SB-DEEP-HTTP-8767 if both are launched as declared."
+  - candidate_id: "SB-MCP-STDIO"
+    address_masked: "stdio://F:/aidanao/mcp/brain_bridge.py"
+    protocol: "MCP JSON-RPC 2.0 over stdin/stdout"
+    host_scope: "unknown"
+    evidence_paths:
+      - "F:/aidanao/mcp/brain_bridge.py:1-36,1127-1172,1206"
+    evidence_types: ["source_code", "adapter_configuration"]
+    associated_project: "F:/aidanao SuperBrain MCP adapter"
+    framework_or_service: "stdio MCP tools, resources, prompts; downstream HTTP helper"
+    startup_entry: "python -u F:/aidanao/mcp/brain_bridge.py"
+    data_location_hint: "Configured downstream http://localhost:8766; selected local SuperBrainV01 fallback"
+    confidence: "high"
+    evidence_level: "VERIFIED_FACT"
+    runtime_check_needed: true
+    sensitive_value_redacted: false
+    notes: "Adapter candidate, not an independently proven knowledge-store backend."
+  - candidate_id: "SB-CHATGPT-BRIDGE-8799"
+    address_masked: "http://127.0.0.1:8799"
+    protocol: "FastAPI local HTTP bridge"
+    host_scope: "localhost"
+    evidence_paths:
+      - "F:/aidanao/chatgpt_bridge/bridge.py:1-25,139-141"
+      - "F:/aidanao/docs/chatgpt_bidirectional_integration_plan.md:18-25,80-88"
+    evidence_types: ["source_code", "integration_design_document"]
+    associated_project: "F:/aidanao ChatGPT-to-Second-Brain bridge"
+    framework_or_service: "FastAPI and uvicorn"
+    startup_entry: "F:/aidanao/chatgpt_bridge/start_bridge.bat or python bridge.py"
+    data_location_hint: "Temporary in-memory task queues; forwards ingestion to localhost:8766"
+    confidence: "high"
+    evidence_level: "VERIFIED_FACT"
+    runtime_check_needed: true
+    sensitive_value_redacted: false
+    notes: "Integration adapter only; not the canonical second-brain backend."
+excluded_or_unverified:
+  - reference: "F:/ai + localhost:8766 historical path"
+    evidence_paths:
+      - "F:/aidanao/bulletin/maibot-v2-improvement-board.md:46"
+      - "F:/aidanao/core/qclaw.py:216,349"
+    disposition: "historical_path_drift"
+    evidence_level: "PARTIAL_EVIDENCE"
+    reason: "Conflicts with current F:/aidanao source and registry evidence; requires phase B ownership verification."
+  - reference: "8000 and 8001"
+    evidence_paths: ["F:/aidanao/bulletin/SERVICE-REGISTRY.md:15-16,44"]
+    disposition: "excluded_non_second_brain"
+    evidence_level: "VERIFIED_FACT"
+    reason: "Statically documented as MaiBot-related services."
+  - reference: "180 and 749"
+    evidence_paths: ["static endpoint-pattern scan over approved source/document scope"]
+    disposition: "no_backend_endpoint_evidence_found"
+    evidence_level: "PARTIAL_EVIDENCE"
+    reason: "No attributable endpoint declaration or startup entry was found; numeric occurrences are not endpoint evidence."
+  - reference: "http://localhost:6220/v1"
+    evidence_paths: ["F:/aidanao/mcp/core/__init__.py:3,18"]
+    disposition: "excluded_external_analysis_dependency"
+    evidence_level: "VERIFIED_FACT"
+    reason: "QClaw OpenAI-compatible gateway, not an old Second Brain backend."

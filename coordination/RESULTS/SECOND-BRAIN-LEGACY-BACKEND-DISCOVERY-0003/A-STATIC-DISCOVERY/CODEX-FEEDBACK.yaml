@@ -1,0 +1,142 @@
+schema_version: "2.0"
+agent_id: "CODEX"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003A"
+parent_issue: 22
+child_issue: 24
+agent_role: "executor"
+mode: "goal"
+report_type: "final"
+status: "SUCCESS_WITH_FINDINGS"
+source_agent: "CODEX"
+target_agent: "WORKBUDDY"
+reviewer: "GPT"
+scope:
+  requested_goal: "Static-only identification of legacy Second Brain backend candidates and evidence."
+  actual_work_completed:
+    - "Read Issue #24, its zero comments, and the linked delivery blueprint."
+    - "Performed static source/config/document scans in F:/aidanao."
+    - "Produced candidate list with file evidence, confidence, evidence level, and phase-B needs."
+  out_of_scope_work:
+    - "No ports, processes, health endpoints, MCP handshakes, or running services were inspected."
+    - "No Issue #25 or #26 work was performed."
+execution_metrics:
+  started_at: "2026-07-20"
+  ended_at: "2026-07-20"
+  wall_clock_minutes: "unavailable"
+  active_work_minutes: "unavailable"
+  waiting_minutes: "none"
+  retries: 1
+  tool_calls: "unavailable"
+  shell_commands: "static discovery and artifact validation only"
+  files_read: "Selected service, bridge, storage, configuration, registry, and documentation files only."
+  files_changed: 3
+  tests_run: 2
+  runtime_operations: 0
+  network_requests_to_candidates: 0
+  commits_created: 1
+token_usage:
+  measurement: "unavailable"
+  model_or_runtime: "Codex desktop"
+  input_tokens: "unavailable"
+  output_tokens: "unavailable"
+  reasoning_tokens: "unavailable"
+  total_tokens: "unavailable"
+  estimation_method: "unavailable"
+  confidence: "unavailable"
+resource_cost_notes: ["none"]
+difficulty:
+  planned_difficulty: "D2"
+  experienced_difficulty: "D2"
+  difficulty_delta: "as_expected"
+  reasons:
+    - "The task was bounded to static evidence, but required separating similarly named legacy components without runtime assumptions."
+  hardest_step: "Distinguishing current source evidence from historical path drift and adapter-only services."
+  bottlenecks: ["Remote task-router state still points to the completed parent Issue #22."]
+environment:
+  source_workspace: "F:/aidanao"
+  isolated_branch: "codex/legacy-backend-static-discovery-0003a"
+  isolated_worktree: "F:/aidanao-codex-legacy-backend-static-discovery-0003a"
+  base_head: "532ff6183042f1aee758dab190c6f1afc88b3969"
+  original_workspace_mutated: false
+original_plan_vs_reality:
+  - planned: "Router would identify the active READY issue."
+    actual: "Remote ACTIVE-CODEX-TASK.yaml remains on Issue #22 although the user explicitly manually assigned Issue #24, which itself is READY_FOR_MANUAL_PICKUP."
+    impact: "Recorded as coordination-state drift; manual child Issue #24 was executed only because it matches the explicit user assignment and its own manual-pickup contract."
+    adaptation: "Did not execute any other issue, including #25 and #26."
+problems_encountered:
+  - problem_id: "P1"
+    problem: "GitHub connector fetch_issue returned an internal error."
+    severity: "low"
+    impact: "No scope loss; Issue #24 had zero comments and its body was retrieved through GitHub's public read-only API."
+    root_cause: "Connector internal error; no repository or task-content error evidenced."
+    evidence: "Connector error text recorded in execution transcript; public GitHub API returned Issue #24 body."
+solutions_attempted:
+  - approach: "Use the GitHub connector for repository files and comments, then a read-only public API fallback for the failed Issue body request."
+    result: "success"
+    evidence: "Issue #24 title, body, state, and zero-comment count were retrieved."
+    tradeoffs: "Public API fallback was read-only and did not use credentials, but does not replace connector metadata for write actions."
+final_solution:
+  - "Created a bounded, evidence-labelled Phase A candidate inventory for WorkBuddy Phase B."
+unresolved_questions:
+  - "Which 8767 source, if any, is the intended deployed implementation?"
+  - "Does the historical F:/ai path represent a former workspace, an alias, or stale documentation?"
+verified_facts:
+  - "server.py statically declares a Second Brain HTTP service at port 8766."
+  - "deep_server.py and mcp/brain_server.py both statically declare port 8767."
+  - "mcp/brain_bridge.py statically implements stdio MCP and configures localhost:8766 downstream."
+  - "chatgpt_bridge/bridge.py statically configures local port 8799 and forwards to localhost:8766."
+unexpected_findings:
+  - "There is a static 8767 declaration conflict between deep_server.py and mcp/brain_server.py."
+  - "Historical F:/ai references conflict with current F:/aidanao source/registry references."
+  - "The remote router state is stale relative to this manually-triggered child issue."
+special_gains:
+  reusable_assets:
+    - "CANDIDATE-ENDPOINTS.yaml provides a narrowly bounded Phase B allow-list."
+  new_knowledge:
+    - "Static declarations alone cannot prove backend availability or suitability."
+  newly_proven_capabilities:
+    - "None; no runtime capability was tested."
+  process_improvements:
+    - "Use the child issue's manual-pickup state together with explicit user assignment when the router pointer lags, and record the divergence."
+opportunities:
+  - opportunity: "Reconcile the 8767 duplicate declarations before any legacy-service launch plan."
+    expected_value: "high"
+    effort: "low"
+    recommended_timing: "next_task"
+recommendations:
+  architecture:
+    - "Keep the 8766 service, 8767 candidates, and MCP adapters as distinct components until runtime ownership is proven."
+  process:
+    - "Update ACTIVE-CODEX-TASK.yaml after a manual child Issue is assigned, or document the manual override in the router notes."
+  task_decomposition:
+    - "Phase B should use only the candidate allow-list in this result."
+  testing:
+    - "Validate only YAML structure and report boundaries in Phase A; reserve endpoint checks for Phase B."
+  tools_and_automation:
+    - "No automation recommendation in Phase A."
+command_quality_feedback:
+  clarity: "clear"
+  what_was_clear:
+    - "The Issue's no-runtime and no-modification boundary."
+  missing_context:
+    - "The active task router was not updated to child Issue #24."
+  conflicting_or_risky_instructions:
+    - "The parent router points to #22 while this manually-triggered child issue is READY_FOR_MANUAL_PICKUP."
+  unnecessary_work: ["none"]
+  suggested_rewrite: "When assigning a manual child issue, update ACTIVE-CODEX-TASK.yaml or explicitly add a manual-child override field."
+risk_and_decisions:
+  risks_remaining:
+    - "Static declarations do not prove any endpoint is running, healthy, authorized, or safe to reuse."
+    - "Port 8767 ownership must be resolved before either declared implementation is started."
+    - "Historical F:/ai evidence requires owner verification before migration planning."
+  plan_change_needed: true
+  needs_gpt_decision: true
+  needs_user_decision: false
+  stop_condition_triggered: false
+failed_attempts:
+  - "The GitHub connector fetch_issue call returned an internal error; Issue #24 body was retrieved read-only through GitHub's public API."
+next_best_action: "WorkBuddy Phase B should verify only the listed candidates with low-frequency local read-only checks and no service lifecycle action."
+user_approval_needed: false
+confidence: "high"
+metrics_provenance:
+  - "Static source and documentation line references in LEGACY-BACKEND-STATIC-DISCOVERY.md and CANDIDATE-ENDPOINTS.yaml."
