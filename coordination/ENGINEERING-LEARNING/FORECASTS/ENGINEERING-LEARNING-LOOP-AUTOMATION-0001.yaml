@@ -1,0 +1,125 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "ENGINEERING-LEARNING-LOOP-AUTOMATION-0001"
+issue_or_pr: "pending issue"
+prepared_by: "GPT"
+prepared_at: "2026-07-20"
+mode: "project_plan"
+
+first_principles:
+  fundamental_goal: "Turn the engineering learning policy into machine-checkable task and acceptance gates while preserving human judgment for causal analysis and high-risk decisions."
+  current_state_to_change: "Blueprints, templates, registry, AGENTS rules, and router requirements exist, but compliance is mostly manual."
+  causal_mechanism:
+    - "Schemas and validators can detect missing forecasts, missing calibration reviews, invalid maturity transitions, and unlinked evidence."
+    - "Issue and PR checklists can make the lifecycle visible before execution and merge."
+    - "Automated checks reduce omission, while GPT retains responsibility for causal interpretation and user escalation."
+  constraints:
+    - "No arbitrary shell execution from GitHub comments."
+    - "No external credentials, private data, or trading access."
+    - "Automation must not promote a learning hypothesis to a standard based only on count or one successful task."
+    - "Existing active task routing must remain functional."
+  required_evidence:
+    - "Schema validation tests."
+    - "Positive and negative fixtures for task forecast, outcome review, and learning records."
+    - "A dry-run audit of selected historical tasks without modifying their results."
+  observability_limits:
+    - "Automation can verify structure and links, but cannot independently prove causal truth."
+  alternatives_considered:
+    - option: "Keep the system entirely manual."
+      reason_not_selected: "Manual-only enforcement is likely to decay under task volume and context switching."
+  stop_conditions:
+    - "Validator blocks emergency containment or safe read-only inspection without a documented exception path."
+    - "Automation attempts to infer risk approval or causal correctness without GPT/user review."
+    - "Implementation requires credentials, production access, or weakening existing dispatcher safety."
+
+expected_benefits:
+  - benefit_id: "B1"
+    description: "Reduces missing impact forecasts and missing post-delivery calibration reviews."
+    benefit_type: "direct"
+    probability: "high"
+    impact: "high"
+    causal_basis: "Required schemas and pre-merge checks expose omissions early."
+    supporting_evidence: "Recent PR #29 review found a process artifact could be structurally incomplete despite strong technical content."
+    validation_signal: "Invalid fixtures fail and complete fixtures pass."
+    expected_time_horizon: "short"
+  - benefit_id: "B2"
+    description: "Creates a searchable history of prediction quality, positive surprises, negative surprises, and rule changes."
+    benefit_type: "long_term"
+    probability: "high"
+    impact: "high"
+    causal_basis: "Stable IDs and links connect forecasts, deliveries, reviews, and learning records."
+    supporting_evidence: "Current repository already relies on Issue/PR evidence and Agent feedback v2."
+    validation_signal: "A report can trace each learning record back to source evidence and affected rules."
+    expected_time_horizon: "medium"
+  - benefit_id: "B3"
+    description: "Improves GPT task calibration over time by comparing predicted and actual cost, benefit, and harm."
+    benefit_type: "cross_module"
+    probability: "medium"
+    impact: "high"
+    causal_basis: "Repeated forecast error categories reveal systematic optimism, pessimism, or missing controls."
+    supporting_evidence: "The outcome review template separates prediction, execution, environment, and measurement errors."
+    validation_signal: "Future task forecasts explicitly inherit relevant learning records."
+    expected_time_horizon: "long"
+
+expected_harms:
+  - harm_id: "H1"
+    description: "Process overhead may become excessive for small or urgent tasks."
+    harm_type: "complexity"
+    probability: "high"
+    severity: "medium"
+    reversibility: "easy"
+    detectability: "early"
+    propagation_scope: "system_wide"
+    causal_basis: "Mandatory forms can expand routine work."
+    mitigation: "Apply only to non-trivial tasks and provide emergency/read-only exceptions with post-hoc recording."
+    validation_signal: "Validator supports explicit exception categories."
+  - harm_id: "H2"
+    description: "Teams may fill templates mechanically without improving judgment."
+    harm_type: "model_risk"
+    probability: "medium"
+    severity: "medium"
+    reversibility: "moderate"
+    detectability: "delayed"
+    propagation_scope: "system_wide"
+    causal_basis: "Structural compliance can create false confidence."
+    mitigation: "Require evidence links, opposing evidence, causal hypotheses, and GPT review; automation cannot mark causal correctness."
+    validation_signal: "Checks reject empty placeholders and outcome reviews still require human verdict."
+  - harm_id: "H3"
+    description: "Overreacting to a few outcomes could create unstable process rules."
+    harm_type: "model_risk"
+    probability: "medium"
+    severity: "high"
+    reversibility: "moderate"
+    detectability: "delayed"
+    propagation_scope: "system_wide"
+    causal_basis: "Positive and negative surprises can be noisy."
+    mitigation: "Maturity transitions require replication or strong independent mechanism evidence; standards can be downgraded."
+    validation_signal: "Transition validator prevents direct HYPOTHESIS-to-STANDARD promotion."
+
+cost_forecast:
+  time: "medium"
+  token_or_compute: "low to medium"
+  maintenance: "medium"
+  opportunity_cost: "some delay in feature work, offset by reduced rework"
+
+net_value_assessment:
+  expected_net_value: "positive"
+  confidence: "medium"
+  rationale: "The system should reduce repeated planning mistakes, provided it stays lightweight and does not confuse form completeness with causal truth."
+
+risk_gate:
+  user_notification_required: false
+  triggered_rules:
+    - "none; this is repository-local, reversible, research-only planning and validation"
+  notification_summary: "Main risk is bureaucracy and false confidence, controlled through scope exceptions and human causal review."
+  approval_required: false
+  decision: "PROCEED_WITH_CONTROLS"
+
+execution_observation_requirements:
+  - "Measure added task-authoring and review overhead."
+  - "Track false positives and false negatives from validators."
+  - "Track whether agents produce meaningful content or boilerplate."
+  - "Track any interference with active task routing."
+
+post_delivery_review_required: true
+linked_outcome_review: "pending"
