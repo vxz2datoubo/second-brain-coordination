@@ -1,0 +1,81 @@
+schema_version: "1.0"
+router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "QCLAW"
+
+trigger_phrases:
+  - "读取任务"
+  - "执行任务"
+  - "开始任务"
+  - "执行对接初始化"
+
+active_issue: 20
+task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-GITHUB-HANDSHAKE-0001.yaml"
+mode: "handshake_and_public_safe_minimum_learning_packet"
+mode_label: "GitHub对接初始化＋公开安全最小知识包"
+status: "READY"
+blocked_by: "none"
+
+parent_program: 31
+related_issues:
+  - 32
+  - 21
+parallel_with:
+  - agent: "CODEX"
+    issue: 35
+    task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
+  - agent: "WORKBUDDY"
+    issue: 32
+    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+
+required_inputs:
+  - "AGENTS.md"
+  - "coordination/QCLAW-TASK-ROUTER.md"
+  - "Issue #20正文与全部评论"
+  - "Issue #32正文，仅作为本地优先与隐私边界参考"
+  - "QCLAW GitHub握手任务影响预测"
+
+required_action:
+  - "核验并区分GitHub读Issue、读评论、写评论、建分支、提交文件、建PR、读PR反馈等能力的VERIFIED/UNVERIFIED/UNSUPPORTED状态。"
+  - "在Issue #20发布结构化QCLAW↔GPT初始化握手。"
+  - "仅使用公开安全或合成材料生成一个3至8个KnowledgeAtom的最小LearningPacket。"
+  - "显式标注authority_level: CANDIDATE_ONLY和privacy_class: PUBLIC_SAFE。"
+  - "提交后等待GPT审查，不扩大到本地私人知识或批量同步。"
+  - "回传实际正负效果、意外发现、隐私检查和结果校准。"
+
+execution_contract:
+  sync_latest_main: true
+  direct_issue_comment_allowed: true
+  create_branch_only_if_needed: true
+  recommended_branch: "qclaw/github-handshake-0001"
+  create_pull_request_for_multi_file_changes: true
+  auto_merge: false
+  report_to_issues:
+    - 20
+    - 31
+  outcome_calibration_required: true
+
+safety_boundary:
+  profile: "public-safe-handshake"
+  research_only: true
+  no_trade: true
+  candidate_only: true
+  no_private_data_upload: true
+  no_local_private_knowledge_processing: true
+  no_secret_exposure: true
+  no_cloud_resource_creation: true
+  no_authority_promotion: true
+  no_other_agent_task_execution: true
+
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  stop_and_request_user_approval_before:
+    - "任何私人或敏感知识离开本机"
+    - "创建私有Git仓库、Supabase、对象存储或使用凭证"
+    - "修改最终知识权威状态"
+
+notes: "用户对QCLAW可发送‘执行对接初始化’或‘读取任务’。本轮只建立GitHub握手和公开安全最小闭环。"
+updated_by: "GPT"
+updated_at: "2026-07-20"
