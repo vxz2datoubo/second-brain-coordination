@@ -1,0 +1,193 @@
+schema_version: "1.0"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003B"
+phase: "B_RUNTIME_VERIFICATION"
+parent_issue: 22
+dependency_issue: 24
+agent_id: "WORKBUDDY"
+checked_at: "2026-07-20T10:30:00+08:00"
+evidence_boundary: "Read-only TCP listener check, HTTP GET/POST to localhost only, process inspection, file existence verification. No service start/stop/restart/install. No network scanning. No credential access."
+checks:
+  - candidate_id: "SB-HTTP-8766"
+    checked_address_masked: "http://localhost:8766"
+    checked_at: "2026-07-20T10:30:00+08:00"
+    listen_status: "LISTENING"
+    protocol: "HTTP REST (Python http.server)"
+    pid: 24344
+    process_name: "python.exe"
+    executable_path_masked: "C:\\Users\\XXX\\.workbuddy\\binaries\\python\\versions\\3.13.12\\python.exe"
+    working_directory_masked: "F:\\aidanao"
+    startup_entry: "python -u F:\\aidanao\\server.py"
+    startup_source_file_exists: true
+    startup_source_file_mtime: "2026-07-18T11:53:05"
+    service_or_task_name: "none (foreground process)"
+    bind_address: "0.0.0.0:8766"
+    health_check:
+      attempted: true
+      method: "GET"
+      path: "/"
+      status_code: 200
+      response_summary_redacted: "HTML page (second-brain web UI)"
+    additional_checks:
+      - path: "/health"
+        status_code: 200
+        response_summary_redacted: "Error HTML page — no dedicated health endpoint"
+      - path: "/api/retrieve/search"
+        method: "POST"
+        status_code: 200
+        response_summary_redacted: "JSON response — API endpoint functional"
+      - path: "/api/digest/text"
+        method: "POST"
+        status_code: 404
+        response_summary_redacted: "Not found — endpoint may not exist on this server version"
+    api_capabilities:
+      - "HTTP REST JSON API"
+      - "/api/retrieve/search (POST) — knowledge retrieval"
+      - "/api/events/upcoming (GET) — calendar/events"
+      - "Root serves HTML web UI"
+    data_location_status: "F:\\aidanao\\data\\ directory exists; knowledge-graph.json, category-index.json confirmed"
+    data_files_found:
+      - "F:/aidanao/data/knowledge-graph.json"
+      - "F:/aidanao/data/category-index.json"
+      - "F:/aidanao/data/super_brain_v01.sqlite (candidate, not opened)"
+    evidence_level: "VERIFIED_FACT"
+    blockers: "none"
+    sensitive_value_redacted: true
+    notes: "Only actively listening service discovered. Running since 2026-07-18 14:29. Binds 0.0.0.0 — accessible on all interfaces. No dedicated /health endpoint; root page indicates functional web server. API search endpoint confirmed working."
+
+  - candidate_id: "SB-DEEP-HTTP-8767"
+    checked_address_masked: "http://localhost:8767"
+    checked_at: "2026-07-20T10:30:00+08:00"
+    listen_status: "NOT_LISTENING"
+    protocol: "HTTP REST (declared)"
+    pid: null
+    process_name: null
+    executable_path_masked: null
+    working_directory_masked: null
+    startup_entry: "python deep_server.py (source declaration)"
+    startup_source_file_exists: true
+    startup_source_file_mtime: "2026-07-06T05:57:53"
+    service_or_task_name: "none"
+    health_check:
+      attempted: true
+      method: "GET"
+      path: "/"
+      status_code: null
+      response_summary_redacted: "Connection refused — port not listening"
+    api_capabilities: []
+    data_location_status: "Source declares project data/app paths; no runtime directory confirmed"
+    evidence_level: "PARTIAL_EVIDENCE"
+    blockers: "Service not running; static port conflict with SB-LEGACY-HTTP-MCP-8767"
+    sensitive_value_redacted: false
+    notes: "Source file exists but service is not running. Port conflict: same port (8767) declared by two different services."
+
+  - candidate_id: "SB-LEGACY-HTTP-MCP-8767"
+    checked_address_masked: "http://127.0.0.1:8767"
+    checked_at: "2026-07-20T10:30:00+08:00"
+    listen_status: "NOT_LISTENING"
+    protocol: "HTTP JSON (declared MCP server)"
+    pid: null
+    process_name: null
+    executable_path_masked: null
+    working_directory_masked: null
+    startup_entry: "python F:/aidanao/mcp/brain_server.py (source declaration)"
+    startup_source_file_exists: true
+    startup_source_file_mtime: "2026-07-04T10:26:25"
+    service_or_task_name: "none"
+    health_check:
+      attempted: true
+      method: "GET"
+      path: "/"
+      status_code: null
+      response_summary_redacted: "Connection refused — port not listening"
+    api_capabilities: []
+    data_location_status: "Source references F:/aidanao/second-brain and F:/aidanao/core/logs"
+    evidence_level: "PARTIAL_EVIDENCE"
+    blockers: "Service not running; static port conflict with SB-DEEP-HTTP-8767"
+    sensitive_value_redacted: false
+    notes: "Legacy MCP document bridge. Not running. Port 8767 is shared with SB-DEEP-HTTP-8767."
+
+  - candidate_id: "SB-MCP-STDIO"
+    checked_address_masked: "stdio://F:/aidanao/mcp/brain_bridge.py"
+    checked_at: "2026-07-20T10:30:00+08:00"
+    listen_status: "UNKNOWN"
+    protocol: "MCP JSON-RPC 2.0 over stdin/stdout"
+    pid: null
+    process_name: null
+    executable_path_masked: "F:\\aidanao\\mcp\\brain_bridge.py"
+    working_directory_masked: "F:\\aidanao (inferred from source imports)"
+    startup_entry: "python -u F:/aidanao/mcp/brain_bridge.py"
+    startup_source_file_exists: true
+    startup_source_file_mtime: "2026-07-14T17:07:10"
+    service_or_task_name: "none visible"
+    health_check:
+      attempted: false
+      method: null
+      path: null
+      status_code: null
+      response_summary_redacted: "Stdio MCP cannot be health-checked via HTTP; requires MCP initialize handshake over stdin/stdout"
+    api_capabilities:
+      - "MCP tools (stdio): search_knowledge, get_knowledge_node, list_categories, get_stats"
+      - "MCP resources: knowledge://categories, knowledge://search/{query}"
+      - "Downstream HTTP to localhost:8766 for knowledge APIs"
+    data_location_status: "Configured downstream: http://localhost:8766. Local fallback: SuperBrainV01"
+    evidence_level: "PARTIAL_EVIDENCE"
+    blockers: "Stdio MCP — cannot verify running state without MCP client handshake; adapter, not standalone backend"
+    sensitive_value_redacted: false
+    notes: "Adapter candidate. Depends on SB-HTTP-8766 for knowledge storage. Source confirms it is a bridge, not the canonical backend. Runtime state unknown without MCP client."
+
+  - candidate_id: "SB-CHATGPT-BRIDGE-8799"
+    checked_address_masked: "http://127.0.0.1:8799"
+    checked_at: "2026-07-20T10:30:00+08:00"
+    listen_status: "NOT_LISTENING"
+    protocol: "FastAPI HTTP bridge"
+    pid: null
+    process_name: null
+    executable_path_masked: null
+    working_directory_masked: null
+    startup_entry: "F:/aidanao/chatgpt_bridge/start_bridge.bat or python bridge.py"
+    startup_source_file_exists: true
+    startup_source_file_mtime: "2026-07-12T03:40:26"
+    service_or_task_name: "none"
+    health_check:
+      attempted: true
+      method: "GET"
+      path: "/"
+      status_code: null
+      response_summary_redacted: "Connection refused — port not listening"
+    api_capabilities: []
+    data_location_status: "Design document indicates in-memory task queues; forwards ingestion to localhost:8766"
+    evidence_level: "PARTIAL_EVIDENCE"
+    blockers: "Service not running"
+    sensitive_value_redacted: false
+    notes: "Integration adapter only. Offline at time of check. Depends on SB-HTTP-8766 for ingestion."
+
+excluded_or_unverified_runtime:
+  - reference: "F:/ai historical path drift"
+    evidence_paths:
+      - "F:/ai (directory exists)"
+      - "F:/ai/second-brain-coordination (git repo)"
+      - "F:/ai/qclaw-output (QClaw outputs)"
+      - "F:/ai/tdx-l2 (TDX data)"
+      - "F:/aidanao/core/qclaw.py (mentions localhost:8766)"
+    disposition: "historical_path_drift_confirmed"
+    evidence_level: "VERIFIED_FACT"
+    reason: "F:/ai was the previous second-brain root. F:/aidanao is the current active root. References to F:/ai in code (qclaw.py line 216,349) and documentation are historical artifacts. No active service runs from F:/ai on candidate ports. The F:/ai directory contains QClaw output archives and a cloned coordination repo."
+
+summary:
+  total_candidates: 5
+  listening_count: 1
+  non_listening_count: 3
+  unknown_count: 1
+  servers_running: 1
+  port_conflicts: 1
+  verified_facts: 1
+  partial_evidence: 4
+  historical_artifacts: 1
+  can_be_eliminated:
+    - "SB-DEEP-HTTP-8767 (not running, port conflict)"
+    - "SB-LEGACY-HTTP-MCP-8767 (not running, port conflict with above)"
+    - "SB-CHATGPT-BRIDGE-8799 (not running, adapter only)"
+  needs_further_investigation:
+    - "SB-MCP-STDIO (cannot verify runtime via TCP; needs MCP client handshake)"
+  confirmed_active_backend:
+    - "SB-HTTP-8766 — the sole running second-brain backend"

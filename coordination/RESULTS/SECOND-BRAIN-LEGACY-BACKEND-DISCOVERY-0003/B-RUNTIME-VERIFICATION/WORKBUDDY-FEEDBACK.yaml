@@ -1,0 +1,48 @@
+schema_version: "1.0"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003B"
+phase: "B_RUNTIME_VERIFICATION"
+agent_id: "WORKBUDDY"
+generated_at: "2026-07-20T10:30:00+08:00"
+
+execution_summary:
+  planned_difficulty: "D2"
+  actual_difficulty: "D2"
+  elapsed_minutes: 15
+  retries: 0
+  commands_run: 8
+  tests_run: 0
+
+task_evaluation:
+  goal_clarity: "high"
+  scope_boundary_adherence: "FULL"
+  found_issues:
+    - "Port 8767 has static conflict between two candidate services (SB-DEEP-HTTP-8767 and SB-LEGACY-HTTP-MCP-8767)"
+    - "No dedicated /health endpoint on SB-HTTP-8766 — root page used as proxy health check"
+    - "SB-MCP-STDIO cannot be runtime-verified without an MCP client; TCP-based verification is insufficient for stdio MCP"
+    - "SB-HTTP-8766 binds 0.0.0.0 — accessible on all interfaces, not just localhost"
+
+suggestions:
+  - "For phase C, consider MCP client handshake test for SB-MCP-STDIO"
+  - "Add a dedicated /health JSON endpoint to server.py for unambiguous health checks"
+  - "Resolve port 8767 conflict or document which service takes priority"
+  - "Consider binding SB-HTTP-8766 to 127.0.0.1 only for security if external access is not needed"
+
+risks:
+  - "SB-HTTP-8766 on 0.0.0.0:8766 could be reachable from LAN if no firewall rule blocks it"
+  - "Three candidate services offline — phase C capacity assessment will be limited to SB-HTTP-8766"
+
+tools_used:
+  - "PowerShell: Get-NetTCPConnection, Get-Process, Get-WmiObject, Test-Path"
+  - "Bash: curl HTTP requests"
+  - "Python: GitHub API for issue content"
+
+files_created:
+  - "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/B-RUNTIME-VERIFICATION/ENDPOINT-RUNTIME-STATUS.yaml"
+  - "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/B-RUNTIME-VERIFICATION/LEGACY-BACKEND-RUNTIME-VERIFICATION.md"
+  - "coordination/RESULTS/SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003/B-RUNTIME-VERIFICATION/WORKBUDDY-FEEDBACK.yaml"
+
+evidence_quality:
+  VERIFIED_FACT: 1
+  PARTIAL_EVIDENCE: 4
+  INFERENCE: 0
+  UNVERIFIED: 0
