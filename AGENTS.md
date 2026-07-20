@@ -24,14 +24,20 @@
 当用户对WorkBuddy说“读取任务”“执行任务”“开始任务”或同义短句时：
 
 1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
-2. 先同步或直接读取远端最新 `main`，不得使用未经确认的本地旧索引，不得覆盖未提交工作区。
-3. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`。
-4. 再读取最新 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
-5. 只执行其中 `status: READY`、依赖已满足的 `active_issue`，不得读取Codex活动索引代替。
-6. 必须读取Issue正文、全部评论、任务影响预测、允许列表和安全边界。
-7. 现场操作不得超出Issue授权，不能因为拥有本机访问能力就扩大扫描、读取秘密或修改服务。
-8. 完成后按完整Agent执行反馈v2和结果观察要求回传，创建独立PR，不自行合并。
-9. 无法确认远端索引、路径允许列表或权限边界时必须停止并报告。
+2. 必须先区分两个身份：
+   - `WorkBuddy执行者`：执行自己的现场任务，唯一入口是 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`；
+   - `Codex调度器维护者`：Issue #7仅用于建设或维护“唤醒Codex”的调度基础设施，不是WorkBuddy的任务收件箱。
+3. 用户直接对WorkBuddy说“读取任务”时，禁止进入Issue #7的CodexDispatch流程，禁止因此反问用户“想做什么”。
+4. Issue #26及其父任务已完成关闭，禁止继续以“等待GPT处理Issue #26”为当前状态。
+5. 先同步或直接读取远端最新 `main`；若本地工作区有未提交内容或不能安全快进，不得覆盖本地内容，必须直接读取GitHub远端最新文件。
+6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`。
+7. 再读取最新 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+8. 只执行其中 `status: READY`、依赖已满足的 `active_issue`，不得读取Codex活动索引、Issue #7、最近Issue或旧聊天记录代替。
+9. 必须读取活动Issue正文、全部评论、任务影响预测、允许列表和安全边界。
+10. 用户在本地临时讨论的策略、做T方案或其他研究内容，应保留为独立候选笔记；在GPT建立新Issue或显式调整优先级前，不得静默替换当前GitHub活动任务。
+11. 现场操作不得超出Issue授权，不能因为拥有本机访问能力就扩大扫描、读取秘密或修改服务。
+12. 完成后按完整Agent执行反馈v2和结果观察要求回传，创建独立PR，不自行合并。
+13. 无法确认远端索引、路径允许列表或权限边界时必须停止并报告，但不得回退到Issue #7猜任务。
 
 唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
 
