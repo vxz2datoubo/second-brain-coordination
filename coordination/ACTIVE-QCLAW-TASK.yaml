@@ -1,81 +1,104 @@
-schema_version: "1.0"
+schema_version: "1.1"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
+agent_aliases:
+  - "Q"
+  - "QQ"
 
 trigger_phrases:
   - "读取任务"
   - "执行任务"
   - "开始任务"
-  - "执行对接初始化"
 
-active_issue: 20
-task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-GITHUB-HANDSHAKE-0001.yaml"
-mode: "handshake_and_public_safe_minimum_learning_packet"
-mode_label: "GitHub对接初始化＋公开安全最小知识包"
+active_issue: 36
+task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002.yaml"
+mode: "controlled_experiment_and_public_safe_knowledge_engineering"
+mode_label: "受控实验＋公开安全知识工程"
 status: "READY"
 blocked_by: "none"
 
 parent_program: 31
+completed_predecessor:
+  issue: 20
+  task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
+  status: "COMPLETION_REPORTED_BY_USER_AND_GITHUB_ACTIVITY_OBSERVED"
+  note: "Issue #36第一项交付必须自审上一轮握手证据；当前不把握手结果自动升级为知识权威。"
+
 related_issues:
+  - 20
   - 32
-  - 21
+  - 35
+related_prs:
+  - pr: 34
+    head_sha: "5697004c24f0fbf5c1c334ddccf7d409f4a4de94"
+    role: "proposed WorkBuddy local audit/contracts; reference only, not canonical"
+    review_status: "GPT_REVIEW_IN_PROGRESS"
+
 parallel_with:
   - agent: "CODEX"
     issue: 35
     task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
-  - agent: "WORKBUDDY"
-    issue: 32
-    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+    rule: "QQ may provide observations but must not modify, freeze or preempt Codex contracts."
 
 required_inputs:
   - "AGENTS.md"
   - "coordination/QCLAW-TASK-ROUTER.md"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "Issue #36正文与全部评论"
   - "Issue #20正文与全部评论"
-  - "Issue #32正文，仅作为本地优先与隐私边界参考"
-  - "QCLAW GitHub握手任务影响预测"
+  - "任务影响预测QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002.yaml"
+  - "PR #34 exact head的LEARNING-PACKET-CONTRACT、LOCAL-STATE-MACHINE和PRIVACY分类，仅作为proposed参考"
 
 required_action:
-  - "核验并区分GitHub读Issue、读评论、写评论、建分支、提交文件、建PR、读PR反馈等能力的VERIFIED/UNVERIFIED/UNSUPPORTED状态。"
-  - "在Issue #20发布结构化QCLAW↔GPT初始化握手。"
-  - "仅使用公开安全或合成材料生成一个3至8个KnowledgeAtom的最小LearningPacket。"
-  - "显式标注authority_level: CANDIDATE_ONLY和privacy_class: PUBLIC_SAFE。"
-  - "提交后等待GPT审查，不扩大到本地私人知识或批量同步。"
-  - "回传实际正负效果、意外发现、隐私检查和结果校准。"
+  - "先对上一轮GitHub握手做自审，逐项标记VERIFIED、PARTIAL、UNVERIFIED或UNSUPPORTED。"
+  - "仅使用Issue #36规定的公开安全或合成材料建立测试集。"
+  - "执行稳定事实、重复/近重复、冲突、修正/过期、隐私/许可和因果过度声明测试。"
+  - "至少对Case A、B、C独立运行两次，比较语义核心、ID、哈希、关系、UNKNOWN和写入建议。"
+  - "所有输出保持authority_level: CANDIDATE_ONLY和privacy_class: PUBLIC_SAFE。"
+  - "输出QCLAW-to-Codex合同观察，但不得声明canonical或修改Codex Issue #35分支。"
+  - "提交完整QCLAW反馈、实际正负效果、意外发现和结果校准。"
 
 execution_contract:
   sync_latest_main: true
-  direct_issue_comment_allowed: true
-  create_branch_only_if_needed: true
-  recommended_branch: "qclaw/github-handshake-0001"
+  direct_issue_comment_allowed_for_ack_and_small_results: true
+  create_branch_if_capability_verified: true
+  recommended_branch: "qclaw/candidate-packet-validation-0002"
   create_pull_request_for_multi_file_changes: true
   auto_merge: false
   report_to_issues:
+    - 36
     - 20
     - 31
+  optional_public_safe_observation_to_issue:
+    - 35
   outcome_calibration_required: true
 
 safety_boundary:
-  profile: "public-safe-handshake"
+  profile: "public-safe-synthetic-candidate-validation"
   research_only: true
   no_trade: true
   candidate_only: true
+  synthetic_or_public_safe_inputs_only: true
   no_private_data_upload: true
   no_local_private_knowledge_processing: true
   no_secret_exposure: true
   no_cloud_resource_creation: true
   no_authority_promotion: true
+  no_service_or_config_change: true
   no_other_agent_task_execution: true
+  no_direct_main_write: true
 
 risk_gate:
   current_decision: "PROCEED_WITH_CONTROLS"
   user_approval_required_now: false
   stop_and_request_user_approval_before:
-    - "任何私人或敏感知识离开本机"
-    - "创建私有Git仓库、Supabase、对象存储或使用凭证"
-    - "修改最终知识权威状态"
+    - "任何私人、敏感、凭证或许可受限原文进入测试"
+    - "创建私有Git、Supabase、对象存储或云资源"
+    - "修改本地QCLAW服务、配置或真实知识文件"
+    - "将候选内容升级为approved或authority"
 
-notes: "用户对QCLAW可发送‘执行对接初始化’或‘读取任务’。本轮只建立GitHub握手和公开安全最小闭环。"
+notes: "用户称QCLAW为Q或QQ，均指同一Agent。当前唯一活动任务是Issue #36。对QQ说‘读取任务’即可启动。合成测试通过不等于真实私人知识已可批量摄入。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
