@@ -1,0 +1,82 @@
+schema_version: "1.0"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+program_name: "第二大脑＋A股交易研究企业级总工程"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.0.md"
+master_issue: 31
+current_status: "QUEUED_PENDING_ISSUE_26_ACCEPTANCE"
+mode: "project_plan"
+boundary: "research_only / NO_TRADE"
+impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
+
+program_objectives:
+  - "Unify Second Brain, A-share research, data, event intelligence, multi-agent game, validation, and AI operations under one enterprise architecture."
+  - "Define systems of record, bounded contexts, contracts, dependencies, milestones, acceptance gates, and rollback."
+  - "Select and launch testable vertical slices rather than implementing all modules at once."
+
+workstreams:
+  - id: "W1"
+    name: "Enterprise Architecture and Governance"
+    owner: "CODEX + GPT"
+    source_issue: 31
+    status: "QUEUED"
+  - id: "W2"
+    name: "Market Data and Replay"
+    owner: "CODEX + WORKBUDDY"
+    related_issues: [6]
+    status: "PARTIAL_FOUNDATION_EXISTS"
+  - id: "W3"
+    name: "Second Brain Knowledge Authority and Legacy Integration"
+    owner: "CODEX + WORKBUDDY"
+    related_issues: [21, 22, 24, 25, 26]
+    status: "PHASE_C_REVIEW_PENDING"
+  - id: "W4"
+    name: "Indicators, Theories, Strategies, and Experiments"
+    owner: "CODEX"
+    related_issues: [5, 6]
+    status: "QUEUED"
+  - id: "W5"
+    name: "Event, News, Announcement, and Attention Intelligence"
+    owner: "CODEX + QCLAW + WORKBUDDY"
+    related_pull_requests: [8]
+    status: "BLUEPRINT_EXISTS"
+  - id: "W6"
+    name: "Four-Family Multi-Agent Strategic Game"
+    owner: "CODEX + WORKBUDDY"
+    related_issues: [23]
+    status: "QUEUED_CHILD_WORKSTREAM"
+  - id: "W7"
+    name: "Validation and Risk"
+    owner: "CODEX + GPT"
+    status: "PARTIAL_FOUNDATION_EXISTS"
+  - id: "W8"
+    name: "Multi-AI Collaboration, Deployment, and Observability"
+    owner: "GPT + CODEX + WORKBUDDY"
+    related_issues: [4, 7]
+    status: "PARTIAL_FOUNDATION_EXISTS"
+  - id: "W9"
+    name: "Shadow Mode and Engineering Learning"
+    owner: "GPT + CODEX"
+    related_issues: [30]
+    status: "POLICY_EXISTS_AUTOMATION_QUEUED"
+
+activation_sequence:
+  - "Complete PR #29 remediation and GPT acceptance."
+  - "Close Issue #26 and parent Issue #22."
+  - "Set Issue #31 as the unique active Codex task."
+  - "Codex performs Phase 0 enterprise audit and project plan."
+  - "GPT reviews forecast versus outcome and selects first vertical slice."
+  - "Create bounded child tasks for Codex and WorkBuddy."
+
+wip_policy:
+  max_major_active_workstreams: 2
+  rule: "Do not start all workstreams simultaneously. Phase 0 must define dependencies and select the first vertical slice."
+
+protected_authority_policy:
+  protected_master_blueprints_remain_l0_authority: true
+  public_repository_may_store: "sanitized charters, contracts, indexes, tasks, and backwrite delta packages"
+  public_repository_must_not_store: "protected blueprint bodies, secrets, private knowledge, account data, or unlicensed market data"
+
+trade_boundary:
+  research_only: true
+  llm_not_in_order_critical_path: true
+  real_trade_requires_user_approval: true
