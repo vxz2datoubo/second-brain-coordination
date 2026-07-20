@@ -17,7 +17,23 @@
 
 固定协调仓库：`vxz2datoubo/second-brain-coordination`
 
-唯一任务真源：远端最新 `main` 上的 `coordination/ACTIVE-CODEX-TASK.yaml`。
+唯一Codex任务真源：远端最新 `main` 上的 `coordination/ACTIVE-CODEX-TASK.yaml`。
+
+## WorkBuddy短命令路由
+
+当用户对WorkBuddy说“读取任务”“执行任务”“开始任务”或同义短句时：
+
+1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
+2. 先同步或直接读取远端最新 `main`，不得使用未经确认的本地旧索引，不得覆盖未提交工作区。
+3. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`。
+4. 再读取最新 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+5. 只执行其中 `status: READY`、依赖已满足的 `active_issue`，不得读取Codex活动索引代替。
+6. 必须读取Issue正文、全部评论、任务影响预测、允许列表和安全边界。
+7. 现场操作不得超出Issue授权，不能因为拥有本机访问能力就扩大扫描、读取秘密或修改服务。
+8. 完成后按完整Agent执行反馈v2和结果观察要求回传，创建独立PR，不自行合并。
+9. 无法确认远端索引、路径允许列表或权限边界时必须停止并报告。
+
+唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
 
 ## 工程学习与结果校准硬规则
 
