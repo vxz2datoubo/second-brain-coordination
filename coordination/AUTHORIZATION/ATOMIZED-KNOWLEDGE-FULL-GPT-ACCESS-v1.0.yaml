@@ -1,0 +1,87 @@
+schema_version: "1.0"
+record_type: "UserAuthorizationDecision"
+decision_id: "ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-0001"
+status: "ACTIVE"
+issued_by: "USER"
+recorded_by: "GPT"
+issued_at: "2026-07-21"
+
+scope:
+  subject: "all knowledge that has been processed into atomized or structured knowledge by QCLAW/QQ or the Second Brain pipeline"
+  authorized_principal:
+    - "GPT"
+    - "Second Brain orchestration layer acting for GPT"
+  access_level: "FULL_SEMANTIC_ACCESS"
+  allowed_content:
+    - "complete atom content"
+    - "source lineage and source references"
+    - "relations and dependency edges"
+    - "conflicts and opposing evidence"
+    - "confidence, scope, exceptions and failure conditions"
+    - "skills, procedures, checklists and retrieval metadata"
+    - "version history, supersession and audit records"
+  default_behavior: "GPT may retrieve and use any atomized knowledge within the user-authorized knowledge estate without semantic redaction or per-item reapproval."
+
+interpretation:
+  not_required:
+    - "semantic redaction of atomized knowledge before GPT access"
+    - "per-query user approval for already atomized knowledge"
+    - "returning only sanitized summaries when full atom content is available through an authorized private/local channel"
+  still_required:
+    - "source traceability"
+    - "version and conflict preservation"
+    - "access through private or local authenticated channels"
+    - "context-window-aware retrieval rather than loading the entire corpus into every prompt"
+    - "ability to revoke or narrow authorization later"
+
+hard_exclusions:
+  - "passwords"
+  - "API tokens"
+  - "cookies and session secrets"
+  - "private keys"
+  - "broker credentials"
+  - "bank credentials"
+  - "raw authentication material"
+  - "content whose transfer or reuse is legally prohibited"
+
+storage_and_transport:
+  public_coordination_repo:
+    allowed: false
+    rule: "Private atomized knowledge bodies must not be published to the public coordination repository."
+  local_knowledge_gateway:
+    allowed: true
+    preferred_for: "full private knowledge access without cloud publication"
+  private_git:
+    allowed: true
+    role: "canonical approved structured knowledge ledger"
+  private_supabase_or_serving_index:
+    allowed: true
+    role: "rebuildable retrieval projection"
+  object_storage:
+    allowed: true
+    role: "large raw artifacts when permitted"
+
+retrieval_model:
+  corpus_access: "FULL"
+  prompt_injection_model: "RELEVANT_CONTEXT_BUNDLE"
+  explanation: "GPT may search the entire authorized corpus, while each answer receives the relevant subset plus lineage, conflicts and unknowns."
+
+agent_rules:
+  QCLAW:
+    authority: "CANDIDATE_ONLY until governance approval"
+    output_access_after_atomization: "FULL_GPT_ACCESS_ALLOWED"
+  WORKBUDDY:
+    responsibility: "build and operate local/private access path without publishing private bodies to public GitHub"
+  CODEX:
+    responsibility: "encode this authorization in foundation contracts, knowledge gateway and access-control architecture"
+  GPT:
+    responsibility: "use the full authorized atomized corpus, preserve uncertainty and cite lineage; do not treat candidate status as truth status"
+
+current_task_effect:
+  qclaw_issue_36: "unchanged; remains synthetic/public-safe validation only"
+  codex_issue_35: "must incorporate this authorization model into the contract design without preempting current task scope"
+  workbuddy_pr_34: "privacy transport controls remain relevant; semantic redaction is no longer the default for authorized atomized knowledge"
+
+revocation:
+  revocable_by_user: true
+  modification_rule: "A later explicit user instruction may narrow, expand or revoke this authorization."
