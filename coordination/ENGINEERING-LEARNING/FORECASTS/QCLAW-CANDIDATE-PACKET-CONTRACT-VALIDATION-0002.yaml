@@ -1,0 +1,118 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
+agent_id: "GPT"
+target_agent: "QCLAW"
+parent_program: 31
+status: "ACTIVE_FORECAST"
+created_at: "2026-07-20"
+
+first_principles:
+  fundamental_goal: "在处理任何真实私人知识之前，验证QQ能否稳定、可追溯、可重复地把公开安全或合成材料生成候选LearningPacket，并正确处理重复、冲突、修正、过期、隐私隔离与拒绝状态。"
+  causal_mechanism:
+    - "通过固定合成输入、重复运行和对抗样例，观察输出语义核心、ID、哈希、关系和治理决策是否稳定。"
+    - "通过冲突、修正、隐私与许可样例，验证QQ不会静默覆盖、越权升级或误同步。"
+    - "把发现形成公开安全的兼容性观察，供Codex基础合同冻结和WorkBuddy候选仓设计吸收。"
+  constraints:
+    - "仅使用PUBLIC_SAFE合成材料或仓库公开协议。"
+    - "所有输出保持CANDIDATE_ONLY。"
+    - "不读取、不处理、不上传本地私人知识。"
+    - "不创建私有Git、Supabase、对象存储或云资源。"
+    - "不修改QCLAW服务、配置、文件系统或WorkBuddy/Codex分支。"
+    - "不冻结企业最终Schema，不抢占Codex Issue #35的合同权威。"
+  required_evidence:
+    - "同一输入至少两次运行的对比结果。"
+    - "重复、冲突、修正、过期、隐私、许可和未知项样例。"
+    - "每个结论的来源、反证、失败条件与UNKNOWN。"
+    - "机器可解析的LearningPacket和质量审查。"
+  failure_modes:
+    - "合成测试通过被误解为真实语料已可大规模摄入。"
+    - "QQ为追求稳定而机械复制文本，失去语义质量。"
+    - "ID或哈希依赖时间戳，导致相同输入无法幂等。"
+    - "冲突被静默覆盖或修正抹除历史。"
+    - "候选包被误标为approved或authority。"
+    - "WB提出的合同与Codex正在冻结的合同发生漂移。"
+  observability:
+    - "semantic_core_stability"
+    - "idempotency_result"
+    - "conflict_preservation_rate"
+    - "privacy_quarantine_accuracy"
+    - "machine_parse_success"
+    - "authority_boundary_violations"
+  alternatives:
+    - "等待Codex完成P1后再测试，但会浪费QQ当前空闲并推迟发现基础歧义。"
+    - "直接使用真实私人材料测试，但隐私与误写风险不可接受。"
+  stop_conditions:
+    - "检测到任何私人、本地敏感或凭证内容准备离机。"
+    - "QQ尝试修改main、升级权威、创建云资源或执行其他Agent任务。"
+    - "出现无法解释的敏感数据来源或权限越界。"
+
+expected_benefits:
+  - id: B1
+    description: "验证QQ从材料到LearningPacket的实际稳定性和可追溯性。"
+    probability: high
+    impact: high
+    validation_signal: "固定合成输入重复运行后语义核心稳定且差异可解释。"
+  - id: B2
+    description: "在真实知识摄入前发现Schema、ID、哈希、冲突和状态语义歧义。"
+    probability: high
+    impact: high
+    validation_signal: "形成明确的conformance matrix、失败案例和修改建议。"
+  - id: B3
+    description: "为Codex Issue #35提供公开安全的合同观察，不阻塞其运行。"
+    probability: medium
+    impact: medium
+    validation_signal: "产出只含观察与UNKNOWN的QCLAW-to-Codex handoff。"
+  - id: B4
+    description: "形成未来回归测试夹具，降低QQ升级后知识质量漂移。"
+    probability: medium
+    impact: high
+    validation_signal: "合成测试集可重复使用并保留预期结果。"
+
+expected_harms:
+  - id: H1
+    description: "合成样例表现良好造成虚假成熟感。"
+    probability: medium
+    severity: medium
+    control: "所有结论标为实验性，明确不能外推到私人真实语料。"
+  - id: H2
+    description: "与Codex正在冻结的基础合同发生重复或冲突。"
+    probability: medium
+    severity: medium
+    control: "QQ只报告兼容性观察和建议，不声明canonical，不修改Codex分支。"
+  - id: H3
+    description: "模板过重导致机械填表而非真正理解。"
+    probability: medium
+    severity: low
+    control: "加入语义质量、反证、失败条件和人工可读审查，不只检查字段存在。"
+  - id: H4
+    description: "QQ错误读取本地或私人材料。"
+    probability: low
+    severity: high
+    control: "输入白名单仅允许任务内嵌合成材料和公开仓库协议；发现其他来源立即停止。"
+
+cost_forecast:
+  wall_clock: "low_to_medium"
+  token_or_compute: "medium"
+  maintenance: "low"
+  opportunity_cost: "delays broader ingestion but prevents unsafe premature ingestion"
+
+net_value_assessment:
+  expected_net_value: "strongly_positive"
+  rationale: "在零私人数据和零运行态修改条件下，提前验证QQ核心知识加工质量与治理边界。"
+
+risk_gate:
+  decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  user_notification_reason: "任务仅使用公开安全合成材料，可逆且不接触真实数据、凭证、云资源或交易。"
+
+execution_observation_requirements:
+  - "记录实际正负效果、意外发现、重复运行差异和格式解析结果。"
+  - "任何输出不得省略privacy_class与authority_level。"
+  - "将合成通过与真实语料未验证明确分开。"
+  - "发现合同冲突时保留双方，不自行裁决企业权威。"
+
+post_delivery:
+  outcome_calibration_required: true
+  learning_registry_update_required_if_surprise: true
+  expected_review_owner: "GPT"
