@@ -1,0 +1,62 @@
+schema_version: "1.0"
+risks:
+  - id: R1
+    risk: "Protected blueprint conflict"
+    probability: medium
+    impact: high
+    control: "L0 preserved; public backwrite deltas only; user approval required."
+    owner: USER
+  - id: R2
+    risk: "Shared dirty workspace collision"
+    probability: high
+    impact: high
+    control: "Use remote codex branch/isolated worktree; never overwrite other-agent changes."
+    owner: CODEX
+  - id: R3
+    risk: "Legacy runtime mistaken for authority"
+    probability: medium
+    impact: high
+    control: "Separate health observation, capability evidence and system-of-record decision."
+    owner: CODEX
+  - id: R4
+    risk: "Unverified market capability overstated"
+    probability: high
+    impact: high
+    control: "Capability labels, entitlement refs, fallback/abstention and no raw-event promotion."
+    owner: WORKBUDDY
+  - id: R5
+    risk: "Temporal leakage in replay/event research"
+    probability: medium
+    impact: high
+    control: "available_at gate, as-of fixtures, time split and negative tests."
+    owner: CODEX
+  - id: R6
+    risk: "Overplanning delays usable work"
+    probability: high
+    impact: medium
+    control: "WIP limit 2; selected bounded replay slice; milestone gates."
+    owner: GPT
+  - id: R7
+    risk: "Private knowledge or secrets enter public repo"
+    probability: medium
+    impact: critical
+    control: "sanitized-only public policy, hash/metadata references, review before upload."
+    owner: ALL
+  - id: R8
+    risk: "Candidate knowledge silently becomes authority"
+    probability: medium
+    impact: high
+    control: "quarantine, explicit promotion, immutable source, version lineage."
+    owner: QCLAW_GOVERNANCE
+  - id: R9
+    risk: "Agent-game narrative masquerades as evidence"
+    probability: high
+    impact: high
+    control: "probabilistic hidden types, alternatives, counterfactual/misclassification tests."
+    owner: CODEX
+  - id: R10
+    risk: "Research path couples to execution"
+    probability: low
+    impact: critical
+    control: "research_only/NO_TRADE, no order methods, human approval boundary."
+    owner: USER

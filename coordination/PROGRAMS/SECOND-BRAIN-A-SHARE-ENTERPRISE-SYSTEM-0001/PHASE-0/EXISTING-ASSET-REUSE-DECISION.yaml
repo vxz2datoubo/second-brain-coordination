@@ -1,0 +1,50 @@
+schema_version: "1.0"
+decisions:
+  - asset: "brain_core/contracts.py"
+    action: ADAPT
+    confidence: high
+    rationale: "Broad mother/trading object vocabulary exists; needs canonical contract registry and versioning before enterprise use."
+  - asset: "brain_core/foundation_data_governance.py"
+    action: ADAPT
+    confidence: high
+    rationale: "Useful governance envelopes/adapters; must remain capability-aware and be aligned with TEIF time semantics."
+  - asset: "brain_core/trading_domain.py"
+    action: WRAP_AND_STRANGLE
+    confidence: medium
+    rationale: "Existing replay path is valuable but very large and under concurrent change; introduce stable façade contracts rather than rewrite."
+  - asset: "brain_core/realtime_l2_aggregate.py"
+    action: REUSE_WITH_GATES
+    confidence: high
+    rationale: "13-field aggregate semantics are explicitly guarded; retain only aggregate labels and capability gates."
+  - asset: "local 8766 listener"
+    action: WRAP
+    confidence: medium
+    rationale: "Verified as running only; legacy evidence says wrapper candidate, not future authority."
+  - asset: "legacy 8767 candidates"
+    action: HOLD_UNKNOWN
+    confidence: high
+    rationale: "No verified runtime/semantic evidence sufficient for promote or deprecate."
+  - asset: "stdio MCP legacy bridge"
+    action: WRAP
+    confidence: medium
+    rationale: "Use governed read facade; do not allow unrestricted action surface."
+  - asset: "8799 dashboard candidate"
+    action: MIGRATE
+    confidence: medium
+    rationale: "Preserve useful UI concepts, migrate only after interface contract."
+  - asset: "F:/ai legacy copies"
+    action: ARCHIVE
+    confidence: medium
+    rationale: "Historical/non-authoritative candidate per accepted legacy review."
+  - asset: "knowledge/ local directories"
+    action: ADAPT_PENDING_ISSUE32
+    confidence: medium
+    rationale: "Potential candidate store; authority and QCLAW fit are unverified."
+  - asset: "PR #8 TEIF"
+    action: ADAPT_AFTER_AUDIT
+    confidence: high
+    rationale: "Draft architecture/contract seed; not implemented event intelligence."
+  - asset: "indicator knowledge candidate map"
+    action: ADAPT
+    confidence: medium
+    rationale: "Candidate ontology/schema has tests but lacks end-to-end validation/promotion."

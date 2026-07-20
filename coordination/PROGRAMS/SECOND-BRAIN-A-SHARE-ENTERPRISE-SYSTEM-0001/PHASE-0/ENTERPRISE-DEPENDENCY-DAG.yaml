@@ -1,0 +1,67 @@
+schema_version: "1.0"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+wip_limit_major_workstreams: 2
+nodes:
+  - id: P0
+    name: "Fact audit and executable enterprise plan"
+    status: IN_REVIEW
+    owner: CODEX
+  - id: P1
+    name: "Authority, ID, time, evidence, capability and approval contract freeze"
+    depends_on: [P0]
+    owner: CODEX
+  - id: P2
+    name: "Offline deterministic A-share replay vertical slice"
+    depends_on: [P1]
+    owner: CODEX
+  - id: P3
+    name: "QCLAW candidate-store and private authority interface"
+    depends_on: [P0, WB32]
+    owner: "CODEX + WORKBUDDY"
+  - id: P4
+    name: "TEIF contract compatibility and time-leakage gate"
+    depends_on: [P1]
+    owner: CODEX
+  - id: P5
+    name: "Indicator/theory/strategy executable definitions"
+    depends_on: [P1, P2]
+    owner: CODEX
+  - id: P6
+    name: "Validation/risk promotion registry"
+    depends_on: [P1, P2]
+    owner: "CODEX + GPT"
+  - id: P7
+    name: "Event and attention pilot"
+    depends_on: [P3, P4]
+    owner: "CODEX + WORKBUDDY + QCLAW"
+  - id: P8
+    name: "Rule-based four-family agent game MVP"
+    depends_on: [P2, P5, P6, P7]
+    owner: "CODEX + WORKBUDDY"
+  - id: P9
+    name: "Shadow research operations and engineering-learning automation"
+    depends_on: [P2, P3, P6, P8]
+    owner: "GPT + CODEX + WORKBUDDY"
+  - id: P10
+    name: "Serving projection/MCP hardening"
+    depends_on: [P3, P4, P9]
+    owner: "CODEX + WORKBUDDY"
+edges:
+  - [P0, P1]
+  - [P1, P2]
+  - [WB32, P3]
+  - [P0, P3]
+  - [P1, P4]
+  - [P2, P5]
+  - [P2, P6]
+  - [P3, P7]
+  - [P4, P7]
+  - [P2, P8]
+  - [P5, P8]
+  - [P6, P8]
+  - [P7, P8]
+  - [P8, P9]
+gates:
+  - "No Phase may claim raw L2/order/queue capability without source capability evidence."
+  - "No Phase may start real trading, broker access, cloud creation or protected backwrite without user approval."
+  - "Issue #23 and #30 remain queued until a child task is explicitly activated."
