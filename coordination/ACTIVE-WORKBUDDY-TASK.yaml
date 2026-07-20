@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
@@ -11,71 +11,61 @@ trigger_phrases:
 active_issue: 32
 task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0.yaml"
-mode: "project_plan_and_field_read_only_audit"
-mode_label: "项目计划模式＋现场只读审计"
-status: "READY"
-blocked_by: "none"
+mode: "delivery_review_hold"
+mode_label: "交付完成＋等待GPT复核"
+status: "WAITING_GPT_REVIEW"
+blocked_by: "GPT review of PR #34 and clarification of credential-handling discrepancy"
+
+delivery:
+  issue: 32
+  pr: 34
+  branch: "workbuddy/qclaw-offline-sync-0001-phase0"
+  head_sha: "5697004c24f0fbf5c1c334ddccf7d409f4a4de94"
+  merge_status: "OPEN_NOT_MERGED"
+  content_status: "PUBLIC_SAFE_DESIGN_DELIVERED"
+
+review_findings:
+  accepted_for_reference:
+    - "QCLAW runtime/output/disk facts as sanitized observations pending final review."
+    - "Proposed LearningPacket contract, state machine and privacy classification may be used by QQ Issue #36 as non-canonical reference."
+  clarification_required:
+    - "WORKBUDDY-FEEDBACK and OUTCOME-OBSERVATION state strict read-only/zero file modification while also reporting GitHub Token stored in wallet.json and mcp.json. Clarify whether this occurred during this task, before the task, or under separate user authorization."
+    - "Confirm no token value, credential body or private path was committed or exposed."
+    - "Correct files and actual_execution counts if needed, and separate pre-existing state from task actions."
+  prohibited_until_resolved:
+    - "No new WorkBuddy phase or local implementation."
+    - "No credential changes."
+    - "No QCLAW service/config changes."
+    - "No private upload or cloud creation."
 
 routing_guard:
   executor_identity: "WORKBUDDY"
   sole_task_source: "remote_latest_main/coordination/ACTIVE-WORKBUDDY-TASK.yaml"
   legacy_codex_dispatch_issue: 7
   issue_7_role: "Codex dispatcher infrastructure only; never a WorkBuddy task inbox"
-  completed_issues_to_ignore_as_wait_state:
-    - 22
-    - 26
   prohibit_codex_dispatch_fallback: true
   prohibit_recent_chat_task_inference: true
   prohibit_local_strategy_preemption: true
+  prohibit_reexecution_while_waiting_review: true
   on_dirty_or_stale_local_checkout: "read remote GitHub main directly; do not overwrite local work"
 
 parent_program: 31
-related_issues:
-  - 20
-  - 21
 parallel_with:
   - agent: "CODEX"
     issue: 35
     task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
   - agent: "QCLAW"
-    issue: 20
-    task_id: "QCLAW-GITHUB-HANDSHAKE-0001"
-
-required_inputs:
-  - "Issue #32正文与全部评论"
-  - "QCLAW本地优先知识消化与批量同步蓝图"
-  - "Issue #20 QCLAW知识学习协议与全部评论"
-  - "Issue #21 GitHub＋Supabase知识云目标"
-  - "PR #29已合并的旧后端复用与迁移结论"
-  - "PR #33已合并的企业Phase 0成果"
-  - "企业母工程Issue #31与总章程"
+    issue: 36
+    task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
 
 required_action:
-  - "先确认当前身份是WorkBuddy执行者，不是Issue #7的Codex调度器维护流程。"
-  - "先建立QCLAW相关路径允许列表，再做只读现场核验。"
-  - "识别真实入口、输出、格式、运行方式、日志、缓存、磁盘规模和权限边界。"
-  - "不上传、不迁移、不启动或修改服务，不读取敏感正文。"
-  - "设计本地候选仓、状态机、LearningPacket、SyncBundle、隐私分级和未来批量同步计划。"
-  - "向Codex Issue #35只交接公开安全的能力事实、字段兼容需求和路径别名，不交接私人正文。"
-  - "在独立分支和PR中提交公开安全、脱敏交付。"
-  - "回传实际正负效果、意外发现、成本和完整Agent执行反馈v2。"
-
-execution_contract:
-  sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "workbuddy/qclaw-offline-sync-0001-phase0"
-  create_pull_request: true
-  auto_merge: false
-  report_to_issues:
-    - 32
-    - 20
-    - 21
-    - 31
-    - 35
-  outcome_calibration_required: true
+  - "Do not rerun Issue #32."
+  - "Wait for GPT review comment on PR #34."
+  - "When requested, amend only the feedback/outcome evidence needed to resolve the credential-handling discrepancy; do not expand scope."
+  - "Preserve the separate 做T strategy as a candidate note; it remains inactive until a new Issue is created."
 
 safety_boundary:
-  profile: "local-read-only"
+  profile: "review-hold"
   research_only: true
   no_trade: true
   no_private_data_upload: true
@@ -83,21 +73,14 @@ safety_boundary:
   no_service_start_stop: true
   no_file_move_delete_overwrite: true
   no_secret_exposure: true
-  no_unbounded_scan: true
+  no_credential_change: true
+  no_new_execution: true
 
 risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
+  current_decision: "HOLD_FOR_CLARIFICATION"
   user_approval_required_now: false
-  future_user_approval_required_before:
-    - "任何私人或敏感知识离开本机"
-    - "创建私有Git仓库、Supabase或对象存储"
-    - "首次真实批量同步"
+  reason: "No evidence of secret exposure in PR content, but execution feedback contains an internal inconsistency that must be corrected before merge."
 
-separate_local_work:
-  description: "用户今日与WorkBuddy讨论的做T策略"
-  status: "PRESERVE_AS_SEPARATE_CANDIDATE_NOT_ACTIVE"
-  handling: "以后由用户让WorkBuddy总结并交给GPT；在GPT创建独立Issue或调整活动索引前，不得替换Issue #32。"
-
-notes: "用户对WorkBuddy说‘读取任务’时必须执行Issue #32。Issue #7不是WorkBuddy收件箱，Issue #26已关闭；做T策略作为独立候选保留，不抢占本任务。"
+notes: "WB已完成交付，不应重新执行Issue #32。当前等待GPT复核PR #34。QQ已转入Issue #36，Codex继续Issue #35。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
