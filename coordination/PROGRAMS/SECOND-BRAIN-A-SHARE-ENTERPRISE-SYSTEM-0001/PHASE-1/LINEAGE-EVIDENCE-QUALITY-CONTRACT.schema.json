@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.second-brain.local/foundation/lineage-evidence-quality/1.0.0",
+  "title": "Lineage Evidence Quality Contract",
+  "type": "object",
+  "required": ["source_reliability", "evidence_level", "quality_score", "freshness", "validation_status", "source_refs", "artifact_refs"],
+  "properties": {
+    "source_reliability": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence_level": {"enum": ["none", "weak", "partial", "direct", "corroborated"]},
+    "quality_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "freshness": {"enum": ["fresh", "aging", "stale", "unknown"]},
+    "validation_status": {"enum": ["unvalidated", "candidate", "validated", "rejected", "blocked"]},
+    "source_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "artifact_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": true
+}
