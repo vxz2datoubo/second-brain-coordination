@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -9,14 +9,18 @@ trigger_phrases:
   - "开始任务"
 
 active_issue: 26
-task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C-REVIEW-FIX"
 mode: "project_plan"
 mode_label: "项目计划模式"
 status: "READY"
 blocked_by: "none"
 
 parent_issue: 22
-phase: "C_SYNTHESIS_AND_REUSE_PLAN"
+phase: "C_REVIEW_REMEDIATION"
+current_pr: 29
+current_branch: "codex/legacy-backend-synthesis-0003c"
+expected_head_before_fix: "ada137eb3da946f5dccfecc910ca146b2ff02995"
+
 dependencies:
   - issue: 24
     status: "ACCEPTED"
@@ -25,37 +29,48 @@ dependencies:
     status: "ACCEPTED"
     merged_pr: 28
 
-required_inputs:
-  - "Issue #26正文与全部评论"
-  - "Phase A静态发现结果（已合并到main）"
-  - "Phase B运行态核验结果（已合并到main）"
-  - "Issue #21知识云架构资料"
-  - "第二大脑与交易系统边界和协作蓝图"
+review_state:
+  architecture_and_evidence: "ACCEPTED"
+  migration_plan: "ACCEPTED"
+  feedback_v2: "CHANGES_REQUIRED"
+  merge_authorized: false
+
+required_action:
+  - "读取Issue #26最新GPT验收评论与PR #29最新GPT审查意见。"
+  - "只在现有分支和原PR #29中补齐CODEX-FEEDBACK.yaml。"
+  - "使用统一Agent执行反馈v2完整模板，字段名必须包含schema_version: '2.0'。"
+  - "不得扩大扫描、改变已成立的Phase C架构结论或执行Issue #23。"
+  - "修正后在Issue #26回传新的final_head、修改文件、验证结果和反馈v2摘要。"
 
 execution_contract:
-  sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "codex/legacy-backend-synthesis-0003c"
-  create_pull_request: true
+  sync_latest_main: false
+  continue_existing_branch: true
+  create_new_branch: false
+  create_new_pull_request: false
   auto_merge: false
   report_to_issues:
     - 26
     - 22
-  feedback_schema: "Agent execution feedback v2"
+  feedback_schema: "Agent execution feedback v2 full template"
 
 safety_boundary:
-  profile: "read-only-analysis-and-planning"
+  profile: "documentation-only-remediation"
   research_only: true
   no_trade: true
   no_service_start_stop: true
   no_real_migration: true
   no_secret_exposure: true
+  no_issue_23_execution: true
 
 supersedes:
-  previous_active_issue: 22
-  previous_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003-MANUAL"
-  reason: "父任务已拆分；阶段A和阶段B均已验收并合并，当前唯一活动Codex任务为Issue #26。"
+  previous_task_id: "SECOND-BRAIN-LEGACY-BACKEND-DISCOVERY-0003C"
+  reason: "Phase C主体已完成并通过内容审查；当前仅补齐PR #29的完整Agent执行反馈v2。"
 
-notes: "用户只需对Codex说‘读取任务’。Codex必须先读取路由协议和本文件，再只执行active_issue指向的Issue #26；不得从聊天记录、最近Issue或旧任务回执猜测任务。"
+next_after_acceptance:
+  active_issue_candidate: 23
+  task_id: "A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-0001"
+  condition: "PR #29通过GPT复验并合并，Issue #26和父Issue #22完成关闭。"
+
+notes: "用户只需对Codex说‘读取任务’。本轮不是重做Phase C，而是修正PR #29中不完整的CODEX-FEEDBACK.yaml；完成前不得执行Issue #23。"
 updated_by: "GPT"
 updated_at: "2026-07-20"
