@@ -1,0 +1,39 @@
+schema_version: "1.0"
+registry_status: PROPOSED
+shared_envelope:
+  required: [object_id, schema_version, producer, run_id, trace_id, status, created_at, lineage]
+  temporal_when_applicable: [event_time, observed_at, receive_time, entered_system_at, available_at, timezone]
+  quality_when_applicable: [quality_score, evidence_level, source_reliability, freshness, validation_status]
+contracts:
+  - id: knowledge.source_evidence_atom_relation.v1
+    existing_types: [SourceRecord, EvidenceItem, KnowledgeAtom, RelationEdge]
+    state: PARTIAL_IMPLEMENTATION
+    future_requirements: [version_lineage, conflict_state, authority_ref, protected_content_boundary]
+  - id: market.raw_normalized_quality.v1
+    existing_types: [MarketDataRecord, PriceBar, FeatureSet, DataLineageRecord, DataQualityRecord, RawMarketPayload]
+    state: PARTIAL_IMPLEMENTATION
+    future_requirements: [complete_temporal_semantics, capability_ref, entitlement_ref, immutable_artifact_ref]
+  - id: research.definition_experiment.v1
+    existing_types: [IndicatorDefinition, TheoryDefinition, StrategyDefinition, BacktestConfig, BacktestResult, ValidationReport]
+    state: PARTIAL_IMPLEMENTATION
+    future_requirements: [dataset_manifest, code_manifest, parameter_manifest, OOS_protocol, promotion_state]
+  - id: decision.risk_journal.v1
+    existing_types: [SignalRecord, TradeDecision, DecisionRecord, ForecastRecord, TradeJournal, RiskCheckResult]
+    state: PARTIAL_IMPLEMENTATION
+    future_requirements: [evidence_bundle, abstention_reason, human_approval_ref, no_trade_gate]
+  - id: agent.scenario_assessment.v1
+    existing_types: []
+    state: INTERFACE
+    future_requirements: [FeasibleActions, RationalCandidateActions, BestResponseCandidates, MostConsistentAction, RobustAction, InvalidOrBlockedActions]
+  - id: teif.event_assessment.v1
+    existing_types: ["PR #8 draft Event/Assessment schema"]
+    state: DRAFT_EXTERNAL_CONTRACT
+    future_requirements: [local mapping, schema validation, revision semantics, available_at gate]
+  - id: operations.capability_task_artifact.v1
+    existing_types: [CapabilityDescriptor, AdapterHealthStatus, SkillRegistryEntry, ModuleStatusRecord, BulletinStateRecord]
+    state: PARTIAL_IMPLEMENTATION
+    future_requirements: [task/artifact registry links, approval, rollback pointer]
+compatibility_rules:
+  - "No contract becomes canonical solely because a Python dataclass exists."
+  - "Contract version changes require fixture, negative test, migration/read-compatibility and rollback decision."
+  - "Vendor aggregate fields cannot satisfy raw-event contracts."
