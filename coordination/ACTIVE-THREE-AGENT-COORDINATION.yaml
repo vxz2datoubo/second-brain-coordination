@@ -1,29 +1,32 @@
-schema_version: "1.1"
+schema_version: "1.2"
 coordination_type: "ThreeAgentActiveCoordination"
 program_issue: 31
 status: "ACTIVE"
 updated_by: "GPT"
-updated_at: "2026-07-20"
+updated_at: "2026-07-21"
 
 agent_aliases:
-  QCLAW:
-    - "Q"
-    - "QQ"
+  QCLAW: ["Q", "QQ"]
 
 agents:
   CODEX:
-    active_issue: 35
-    task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
-    status: "RUNNING_REPORTED_BY_USER"
-    role: "Freeze minimal enterprise contracts and implement public-safe tests."
+    active_issue: 39
+    task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
+    status: "READY"
+    mode: "GOAL"
+    role: "Build the large public-safe offline A-share replay, validation, evidence and GPT atomized-knowledge access vertical slice."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+    predecessor:
+      issue: 35
+      pr: 37
+      merge_commit: "30e6bb18ccaa1297877fa896eb0ee35e1d655792"
     allowed_handoffs_from:
-      - "WORKBUDDY sanitized capability facts"
-      - "QCLAW public-safe contract observations"
+      - "QCLAW Issue #36 public-safe contract observations"
+      - "WORKBUDDY PR #34 proposed sanitized capability facts, reference only"
     prohibited:
-      - "local environment claims without WorkBuddy evidence"
-      - "private knowledge ingestion"
-      - "real trading or service mutation"
+      - "private knowledge ingestion or publication"
+      - "credential, cloud, service or broker access"
+      - "real trading or protected blueprint mutation"
 
   WORKBUDDY:
     active_issue: 32
@@ -34,33 +37,26 @@ agents:
       head_sha: "5697004c24f0fbf5c1c334ddccf7d409f4a4de94"
     role: "Delivered local QCLAW runtime/data facts and proposed offline staging/sync boundaries."
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-    allowed_handoffs_to:
-      - "Issue #35 sanitized capability and compatibility facts"
-      - "Issue #36 proposed LearningPacket/state/privacy contracts"
-    review_note: "PR #34 contracts remain proposed. GPT must resolve feedback inconsistency about strict read-only versus reported GitHub token double-write before final acceptance."
+    review_note: "Clarification remains required on strict read-only versus reported GitHub token double-write."
     prohibited:
-      - "private data upload"
-      - "Issue #7 fallback"
-      - "local strategy preemption"
-      - "new Phase 1 implementation before GPT acceptance"
+      - "new implementation before GPT acceptance"
+      - "credential changes, service changes or private uploads"
+      - "Issue #7 fallback or local strategy preemption"
 
   QCLAW:
     aliases: ["Q", "QQ"]
     active_issue: 36
     task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
-    status: "READY"
-    role: "Validate candidate LearningPacket stability, conflict preservation, correction history, privacy quarantine and causal restraint using public-safe synthetic inputs."
+    status: "READY_OR_RUNNING"
+    role: "Validate candidate packet stability, conflicts, versioning, privacy classes and causal restraint with synthetic inputs."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
     allowed_handoffs_to:
-      - "Issue #36 full synthetic validation package"
-      - "Issue #20 concise index"
-      - "Issue #35 public-safe contract observations only"
+      - "Issue #36 complete synthetic validation package"
+      - "Issue #39 public-safe contract observations only"
     prohibited:
-      - "authority promotion"
-      - "private/local knowledge ingestion or upload"
-      - "Codex or WorkBuddy task execution"
+      - "private knowledge ingestion or upload"
+      - "authority promotion or Codex task execution"
       - "declaring PR #34 proposed contracts canonical"
-      - "modifying services, configs, cloud or main"
 
 shared_handoff_contract:
   required_fields:
@@ -77,7 +73,6 @@ shared_handoff_contract:
     - negative_effects
     - unexpected_findings
     - rollback_or_discard_method
-  privacy_default: "PUBLIC_SAFE_METADATA_ONLY"
   authority_default: "CANDIDATE_OR_OBSERVATION_ONLY"
   no_silent_task_preemption: true
   no_direct_main_write_by_executors: true
@@ -87,31 +82,27 @@ shared_handoff_contract:
 wip_policy:
   major_workstream_limit: 2
   current_major_workstreams:
-    - "CODEX Issue #35"
+    - "CODEX Issue #39 large offline vertical slice"
   bounded_parallel_tests:
     - "QCLAW Issue #36 synthetic candidate validation"
   completed_deliveries_in_review:
     - "WORKBUDDY PR #34"
-  interpretation: "QQ Issue #36 is bounded, synthetic and public-safe. It may run while Codex P1 continues, but cannot expand into real/private ingestion."
+  interpretation: "Codex #39 is the sole major active construction line. QQ #36 remains bounded synthetic validation; WB remains review-held."
 
 cross_agent_dependencies:
-  - from: "WORKBUDDY PR #34"
-    to: "QCLAW#36"
-    deliverable: "proposed LearningPacket, local state machine and privacy classification contracts"
-    blocking: false
-    authority: "REFERENCE_ONLY"
   - from: "QCLAW#36"
-    to: "CODEX#35"
-    deliverable: "public-safe compatibility observations and discovered ambiguities"
+    to: "CODEX#39"
+    deliverable: "public-safe LearningPacket and knowledge-access compatibility observations"
     blocking: false
     authority: "OBSERVATION_ONLY"
-  - from: "CODEX#35"
-    to: "future offline replay"
-    deliverable: "frozen foundation contracts and tests"
-    blocking: true
-  - from: "WORKBUDDY#32"
-    to: "future knowledge authority slice"
-    deliverable: "accepted local runtime/data evidence"
+  - from: "WORKBUDDY PR #34"
+    to: "CODEX#39"
+    deliverable: "proposed local runtime, packet and privacy facts"
+    blocking: false
+    authority: "REFERENCE_ONLY"
+  - from: "CODEX#39"
+    to: "Issue #38 future private/local knowledge gateway implementation"
+    deliverable: "KnowledgeQuery, ContextBundle, access-policy contracts and synthetic adapter demonstration"
     blocking: true
 
 risk_gate:
