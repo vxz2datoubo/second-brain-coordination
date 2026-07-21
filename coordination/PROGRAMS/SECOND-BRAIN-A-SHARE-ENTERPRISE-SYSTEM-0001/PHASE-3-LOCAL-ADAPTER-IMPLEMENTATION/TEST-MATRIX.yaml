@@ -1,0 +1,11 @@
+schema_version: "1.0"
+command: "python -m unittest discover -s tests -p test_*.py -v"
+coverage:
+  contracts: [SourceManifest, AdapterCapability, AdapterResult, CredentialReference, LocalArtifactReference]
+  positive: [synthetic_json, synthetic_csv, synthetic_jsonl, deterministic_hash, candidate_learning_packet]
+  negative: [missing_license, invalid_timezone, future_available_at, undeclared_adjustment, incomplete_ashare_policy, hash_mismatch, unknown_entitlement, secret_marker, candidate_authority_promotion, unsupported_format]
+  semantic_guards: [l2_aggregate_not_raw_trade, no_trade_gate, real_source_not_activated]
+  knowledge: [context_budget, full_semantic_authorized_atoms, candidate_only, credential_query_denied]
+minimum_test_count: 30
+actual_test_count: 38
+runtime_boundary: "synthetic/in-memory only"
