@@ -1,73 +1,53 @@
-schema_version: "1.4"
+schema_version: "1.5"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
-
-trigger_phrases:
-  - "读取任务"
-  - "执行任务"
-  - "开始任务"
-
-active_issue: 49
-task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
-mode: "goal_readonly_field_probe"
-mode_label: "目标模式＋现场只读核验"
+trigger_phrases: ["读取任务", "执行任务", "开始任务"]
+active_issue: 54
+task_id: "WORKBUDDY-TDX-DAY-EVIDENCE-FREEZE-0002"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/WORKBUDDY-TDX-DAY-EVIDENCE-FREEZE-0002.yaml"
+mode: "goal_readonly_evidence_freeze"
+mode_label: "目标模式＋本地只读证据冻结"
 status: "READY"
-blocked_by: "none for static/metadata probes; HTTP 8766 remains disabled pending separate user approval"
+blocked_by: "none"
 parent_program: 31
-phase: "P3_LOCAL_EVIDENCE_PROBE"
-
-completed_or_held_predecessor:
-  issue: 32
-  pr: 34
-  status: "DELIVERED_REFERENCE_REMAINS_OPEN"
-  rule: "Do not rerun Issue #32 or expand its old scope. New execution is exclusively Issue #49."
-
-source_blueprint:
-  issue: 47
-  pr: 48
-  merge_commit: "bea58ed279f77ea939b7049df770cc66fd608db0"
-  task_file: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-INTEGRATION-PLAN/WORKBUDDY-READONLY-PROBE-TASK.yaml"
-
+parent_wave: 53
+phase: "P3_TDX_DAY_EVIDENCE_FREEZE"
+predecessor:
+  issue: 49
+  pr: 52
+  status: "PARTIAL_EVIDENCE_ACCEPTED"
 parallel_with:
-  - agent: "CODEX"
-    issue: 50
-    task_id: "A-SHARE-LOCAL-ADAPTER-CONTRACTS-IMPLEMENTATION-0004"
-    rule: "Return evidence manifests and capability deltas; do not implement Codex adapters."
-  - agent: "QCLAW"
-    issue: 43
-    rule: "No service or candidate-memory modification."
-
+  - {agent: "CODEX", issue: 55}
+  - {agent: "QCLAW", issue: 56}
+required_inputs:
+  - "Issue #54正文与评论"
+  - "最新main与WORKBUDDY-TASK-ROUTER.md"
+  - "task_impact_forecast"
+  - "PR #52证据和验收评论"
+  - "PR #51合并后的机器合同"
 required_action:
-  - "Inspect Tongdaxin vipdoc metadata, hashes, parser feasibility and documented semantics using only approved local samples."
-  - "Inspect user-provided TQ export manifests and schemas without invoking TQ runtime."
-  - "Classify F:/aidanao data candidates by metadata, provenance, license/privacy and record/schema evidence."
-  - "Inventory brain_core static signatures and adapter hooks without source modification."
-  - "Produce PROBE-MANIFEST, SOURCE-MANIFESTS, FIELD-SEMANTICS, CAPABILITY-DELTA, privacy/license report, run receipt, feedback and AI handoff."
-  - "Create independent Draft PR for GPT review."
-
+  - "Port accepted evidence from PR #52 onto latest main."
+  - "Create one schema-compatible TDX day source manifest and validation receipt."
+  - "Record hash, record bounds, date bounds and field confidence."
+  - "Preserve ambiguous fields as UNKNOWN."
+  - "Create a fresh Draft PR for GPT review."
 execution_contract:
   sync_latest_main: true
   create_independent_branch: true
-  recommended_branch: "workbuddy/local-mother-system-readonly-probe-0001"
+  recommended_branch: "workbuddy/tdx-day-evidence-freeze-0002"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
-  report_to_issues: [49, 31, 50]
+  report_to_issues: [54, 53, 55]
   feedback_schema: "Agent execution feedback v2 full template"
-
 safety_boundary:
   research_only: true
   no_trade: true
-  no_service_start_stop_or_change: true
-  no_http_8766_request: true
-  no_tdxquant_or_tdx_mcp_runtime: true
-  no_realtime_data: true
-  no_broker_account_or_order_calls: true
-  no_credential_value_read_or_publication: true
-  no_source_database_log_or_runtime_write: true
+  local_read_only: true
+  derived_evidence_only: true
+  offline_only: true
   no_direct_main_write: true
-
-notes: "Current unique WorkBuddy task is Issue #49. User only needs to tell WorkBuddy '读取任务'. HTTP 8766 is explicitly excluded until separate approval."
+notes: "Issue #54 is the only active WorkBuddy task. Use a fresh branch from latest main; PR #52 is evidence input only."
 updated_by: "GPT"
 updated_at: "2026-07-21"
