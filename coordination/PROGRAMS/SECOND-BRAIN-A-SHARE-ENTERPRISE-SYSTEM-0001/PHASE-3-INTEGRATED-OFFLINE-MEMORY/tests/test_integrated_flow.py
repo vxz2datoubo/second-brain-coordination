@@ -40,9 +40,9 @@ def manifest(source_hash: str) -> SourceManifest:
         source_id="tdx-day-xt-test",
         source_class="historical_verified",
         artifact=LocalArtifactReference(
-            "artifact-xt-test", "local-only", source_hash, "PRIVATE_LOCAL_ONLY", "UNKNOWN"
+            "artifact-xt-test", "local-only", source_hash, "PRIVATE_LOCAL_ONLY", "DECLARED"
         ),
-        license="UNKNOWN",
+        license="LOCAL_USER_HELD_NO_REDISTRIBUTION",
         privacy_class="PRIVATE_LOCAL_ONLY",
         timezone="Asia/Shanghai",
         time_semantics="END_OF_BAR",

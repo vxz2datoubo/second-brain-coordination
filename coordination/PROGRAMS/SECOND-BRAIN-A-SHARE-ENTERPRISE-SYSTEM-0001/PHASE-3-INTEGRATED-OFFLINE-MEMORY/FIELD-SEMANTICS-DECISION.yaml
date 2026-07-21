@@ -8,10 +8,15 @@ fields:
   low: {status: VERIFIED, interpretation: uint32_divide_100, authority_feature_allowed: true}
   close: {status: VERIFIED, interpretation: uint32_divide_100, authority_feature_allowed: true}
   amount: {status: PARTIAL_FIELD_EVIDENCE, interpretation: raw_bytes_plus_float32_and_uint32_candidates, authority_feature_allowed: false}
-  volume: {status: UNKNOWN, interpretation: vendor_numeric_value_unit_unknown, authority_feature_allowed: false}
+  volume: {status: UNKNOWN, interpretation: vendor_numeric_value_unit_unknown_excluded_from_standard_volume, authority_feature_allowed: false}
   reserved: {status: UNKNOWN, interpretation: vendor_reserved_preserved, authority_feature_allowed: false}
+  suspended: {status: UNKNOWN, interpretation: not_present_in_day_record, authority_feature_allowed: false}
+  is_st: {status: UNKNOWN, interpretation: not_present_in_day_record, authority_feature_allowed: false}
 prohibited_promotions:
   - amount_to_authoritative_turnover
   - volume_to_assumed_shares_or_lots
+  - volume_to_p2_standard_volume_signal_or_portfolio_simulation
+  - missing_suspended_to_false
+  - missing_is_st_to_false
   - reserved_to_any_feature
   - daily_bar_to_tick_or_level2

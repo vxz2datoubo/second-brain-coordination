@@ -17,7 +17,7 @@ Use one package and one Draft PR for the adapter, replay, candidate memory, retr
 
 ## D-003 Local activation is narrower than source verification
 
-An activation policy may allow read-only structural parsing only when bound to one manifest ID and one SHA256 under `LOCAL_RESEARCH_ONLY`. It cannot grant realtime, trading, raw export, authority write, or fully verified status.
+An activation policy may allow read-only structural parsing only when bound to one manifest ID and one SHA256 under `LOCAL_RESEARCH_ONLY`. It must also carry the exact `LOCAL_USER_HELD_NO_REDISTRIBUTION` declaration, a non-empty evidence reference and `distribution_allowed=false`; UNKNOWN, undeclared or mismatched licenses cannot be overridden. It cannot grant realtime, trading, raw export, authority write, or fully verified status.
 
 ## D-004 A-share temporal semantics
 
@@ -25,7 +25,7 @@ Daily bars use 15:00 Asia/Shanghai as `event_time`. `available_at` is generated 
 
 ## D-005 Ambiguous vendor fields
 
-`amount` keeps raw bytes plus float32 and uint32 candidate interpretations. `volume` keeps the vendor value while its unit remains UNKNOWN. `reserved` remains UNKNOWN. None of these fields may silently become an authoritative feature.
+`amount` keeps raw bytes plus float32 and uint32 candidate interpretations. `volume` keeps the vendor value in parser evidence while its unit remains UNKNOWN, but maps to P2 standard volume as `None`. `reserved` remains UNKNOWN. ST and suspension state are absent from the `.day` record and map to `None`, never `False`. These UNKNOWN semantics force signal, validation and portfolio abstention.
 
 ## D-006 Candidate memory boundary
 
@@ -38,3 +38,7 @@ The ContextBundle semantic hash excludes SQLite `created_at` and `updated_at` wa
 ## D-008 Public delivery and CI boundary
 
 GitHub CI runs only synthetic and public-safe tests on Python 3.11 and 3.13. It never accesses the local `.day` artifact. The real sample is represented only by a hash-bound aggregate receipt and candidate-only semantic objects.
+
+## D-009 Empty and ordering fail closed
+
+An empty artifact receives parser status `EMPTY` and an adapter rejection. Any source-order regression receives `OUT_OF_ORDER_DATE` with `REJECTED` disposition. Neither condition may enter P2 replay; deterministic sorting remains available only for already-governed P2 `Bar` collections.

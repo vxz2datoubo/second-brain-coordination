@@ -179,6 +179,34 @@ class OfflineResearchTests(unittest.TestCase):
         self.assertGreaterEqual(full["walk_forward_windows"], 1)
         self.assertEqual(full["cost_after_result"], "not_economic_evidence")
 
+    def test_explicit_unknown_market_semantics_are_preserved(self) -> None:
+        unknown = replace(self.bars[0], volume=None, suspended=None, is_st=None)
+        ContractRuntime().validate_bar(unknown, AS_OF)
+        self.assertIsNone(unknown.volume)
+        self.assertIsNone(unknown.suspended)
+        self.assertIsNone(unknown.is_st)
+
+    def test_unknown_market_semantics_force_signal_abstention(self) -> None:
+        unknown = [replace(bar, volume=None, suspended=None, is_st=None) for bar in self.bars]
+        signals = candidate_signals(unknown)
+        self.assertTrue(signals)
+        self.assertTrue(all(item["action"] == "ABSTAIN" for item in signals))
+        self.assertTrue(all(item["reason"] == "REQUIRED_MARKET_SEMANTICS_UNKNOWN" for item in signals))
+
+    def test_unknown_market_semantics_block_forced_simulation_action(self) -> None:
+        unknown = replace(self.bars[0], volume=None, suspended=None, is_st=None)
+        signal = {"signal_id": "forced", "symbol": unknown.symbol, "event_id": unknown.event_id, "available_at": "2026-01-01T00:00:00Z", "action": "BUY_CANDIDATE"}
+        ledger, _ = simulate_portfolio([unknown], [signal], SimulationConfig())
+        self.assertEqual(ledger[0]["reason"], "REQUIRED_MARKET_SEMANTICS_UNKNOWN")
+        self.assertFalse(ledger[0]["executed_in_simulation"])
+
+    def test_unknown_market_semantics_force_validation_abstention(self) -> None:
+        unknown = [replace(bar, volume=None, suspended=None, is_st=None) for bar in self.bars]
+        report = validate(unknown, [], SimulationConfig())
+        self.assertEqual(report["validation_status"], "ABSTAIN")
+        self.assertEqual(report["reason"], "required_market_semantics_unknown")
+        self.assertEqual(report["executed_simulated_actions"], 0)
+
     def test_knowledge_query_separates_status_access_visibility_and_budget(self) -> None:
         atoms = [
             KnowledgeAtom("a1", "momentum candidate alpha", "candidate", ["source-a"], "weak"),

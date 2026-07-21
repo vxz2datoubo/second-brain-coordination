@@ -50,9 +50,9 @@ class Bar:
     high: float
     low: float
     close: float
-    volume: float
-    suspended: bool = False
-    is_st: bool = False
+    volume: float | None
+    suspended: bool | None = False
+    is_st: bool | None = False
     adjusted: bool = False
     adjustment_method: str = "none"
     limit_rule_version: str = "ashare-v1"
@@ -125,8 +125,11 @@ class ContractRuntime:
             raise ValidationError("future_available_at")
         if parse_time(bar.event_time) > parse_time(bar.available_at):
             raise ValidationError("available_before_event")
-        if any(value < 0 for value in (bar.open, bar.high, bar.low, bar.close, bar.volume)):
+        numeric_values = (bar.open, bar.high, bar.low, bar.close)
+        if any(value < 0 for value in numeric_values) or (bar.volume is not None and bar.volume < 0):
             raise ValidationError("negative_market_value")
+        if bar.suspended not in {True, False, None} or bar.is_st not in {True, False, None}:
+            raise ValidationError("invalid_market_state_semantics")
         if not (bar.low <= bar.open <= bar.high and bar.low <= bar.close <= bar.high):
             raise ValidationError("invalid_ohlc")
 
@@ -256,7 +259,31 @@ def candidate_signals(events: list[Bar]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     history: list[Bar] = []
     for bar in events:
-        if len(history) >= 2 and not bar.suspended:
+        if len(history) >= 2:
+            semantic_window = (history[-2], history[-1], bar)
+            unknown_fields = sorted({
+                field_name
+                for item in semantic_window
+                for field_name in ("volume", "suspended", "is_st")
+                if getattr(item, field_name) is None
+            })
+            if unknown_fields:
+                result.append({
+                    "signal_id": f"signal:{bar.event_id}",
+                    "symbol": bar.symbol,
+                    "event_id": bar.event_id,
+                    "available_at": bar.available_at,
+                    "action": "ABSTAIN",
+                    "confidence": 0.0,
+                    "features": {"momentum_2": None, "volume_ratio_2": None, "breakout_2": None},
+                    "status": "candidate",
+                    "reason": "REQUIRED_MARKET_SEMANTICS_UNKNOWN",
+                    "unknown_fields": unknown_fields,
+                    "failure_conditions": ["required_market_semantics_unknown", "no_execution_adapter"],
+                })
+                history.append(bar)
+                continue
+        if len(history) >= 2 and bar.suspended is False:
             momentum = (bar.close / history[-2].close) - 1.0
             volume_ratio = bar.volume / max(1.0, (history[-1].volume + history[-2].volume) / 2.0)
             breakout = bar.close > max(history[-1].high, history[-2].high)
@@ -268,6 +295,8 @@ def candidate_signals(events: list[Bar]) -> list[dict[str, Any]]:
 
 
 def _limit_pct(bar: Bar) -> float:
+    if bar.is_st is None:
+        raise ValidationError("st_status_unknown")
     return 0.05 if bar.is_st else 0.10
 
 
@@ -296,7 +325,9 @@ def simulate_portfolio(events: list[Bar], signals: list[dict[str, Any]], config:
         reason: str | None = None
         executed = False
         quantity = 0
-        if bar.suspended:
+        if bar.volume is None or bar.suspended is None or bar.is_st is None:
+            reason = "REQUIRED_MARKET_SEMANTICS_UNKNOWN"
+        elif bar.suspended:
             reason = "SUSPENDED"
         else:
             change = (bar.close / prior_close[bar.symbol] - 1.0) if bar.symbol in prior_close else 0.0
@@ -345,6 +376,21 @@ def simulate_portfolio(events: list[Bar], signals: list[dict[str, Any]], config:
 
 
 def validate(events: list[Bar], portfolio_ledger: list[dict[str, Any]], config: SimulationConfig) -> dict[str, Any]:
+    unknown_fields = sorted({
+        field_name
+        for bar in events
+        for field_name in ("volume", "suspended", "is_st")
+        if getattr(bar, field_name) is None
+    })
+    if unknown_fields:
+        return {
+            "validation_status": "ABSTAIN",
+            "reason": "required_market_semantics_unknown",
+            "unknown_fields": unknown_fields,
+            "executed_simulated_actions": 0,
+            "cost_proxy": 0.0,
+            "research_only": True,
+        }
     if len(events) < 6:
         return {"validation_status": "ABSTAIN", "reason": "insufficient_temporal_observations", "research_only": True}
     ordered = sorted(events, key=lambda item: parse_time(item.event_time))

@@ -15,6 +15,15 @@ deviations:
     detail: ContextBundle semantic hash excludes database wall-clock metadata after first dual-run comparison exposed timestamp-only drift
   - type: no_real_data_in_ci
     detail: local artifact verification remains outside GitHub; CI is synthetic and public-safe only
+  - type: pr57_blocker_correction
+    detail: unknown license activation, false defaults for missing ST and suspension, unknown-unit volume signal use, empty-file acceptance and out-of-order replay were changed to fail-closed or abstain behavior
+review_fix_observations:
+  license_gate: explicit_local_no_redistribution_declaration_and_evidence_required
+  missing_market_state: preserved_as_null
+  vendor_volume: parser_evidence_only_excluded_from_p2_standard_volume
+  empty_file: adapter_rejected
+  out_of_order_source: parser_rejected_before_replay
+  local_strategy_result: ABSTAIN_ZERO_SIMULATED_ACTIONS
 promotion_denied:
   - source_fully_verified
   - strategy_validated

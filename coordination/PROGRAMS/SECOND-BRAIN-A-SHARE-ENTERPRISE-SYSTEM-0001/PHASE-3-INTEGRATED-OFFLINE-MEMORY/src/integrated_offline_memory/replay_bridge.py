@@ -7,7 +7,7 @@ from datetime import datetime, time, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from local_adapter.contracts import SourceManifest, canonical_hash
+from local_adapter.contracts import ContractError, SourceManifest, canonical_hash
 from offline_research.engine import (
     Bar,
     DeterministicReplay,
@@ -82,6 +82,12 @@ def to_p2_bars(
     requested_as_of: str,
     availability_policy: CloseAvailabilityPolicy | None = None,
 ) -> list[Bar]:
+    if parsed.report.status != "PARTIALLY_VERIFIED":
+        raise ContractError(f"parsed_dataset_not_replayable:{parsed.report.status}")
+    if parsed.report.accepted_record_count <= 0:
+        raise ContractError("parsed_dataset_empty")
+    if parsed.report.out_of_order_count:
+        raise ContractError("parsed_dataset_out_of_order")
     policy = availability_policy or CloseAvailabilityPolicy()
     bars: list[Bar] = []
     for record in parsed.records:
@@ -92,7 +98,6 @@ def to_p2_bars(
             "symbol": symbol,
             "date": record.trade_date,
             "ohlc": [record.open_raw, record.high_raw, record.low_raw, record.close_raw],
-            "volume_vendor_raw": record.volume_vendor_raw,
         })[:20]
         bars.append(Bar(
             event_id=event_id,
@@ -108,9 +113,9 @@ def to_p2_bars(
             high=record.high,
             low=record.low,
             close=record.close,
-            volume=float(record.volume_vendor_raw),
-            suspended=False,
-            is_st=False,
+            volume=None,
+            suspended=None,
+            is_st=None,
             adjusted=manifest.adjusted,
             adjustment_method=manifest.adjustment_method,
             limit_rule_version=manifest.limit_rule_version,
@@ -150,6 +155,8 @@ def run_p2_replay(
         "exchange": exchange,
         "as_of": requested_as_of,
         "availability_policy": policy.version,
+        "field_semantics_version": parsed.report.field_semantics_version,
+        "semantic_gate": "unknown-volume-st-suspension-abstain-v1",
         "config": asdict(simulation),
     }
     run_id = "run-" + canonical_hash(identity)[:20]
@@ -167,8 +174,10 @@ def run_p2_replay(
         "economic_or_alpha_claim": "NOT_ESTABLISHED",
         "field_semantics_gate": {
             "amount": "EXCLUDED_AMBIGUOUS",
-            "volume": "VENDOR_VALUE_USED_FOR_CANDIDATE_RATIO_UNIT_UNKNOWN",
+            "volume": "EXCLUDED_UNIT_UNKNOWN",
             "reserved": "EXCLUDED_UNKNOWN",
+            "suspended": "UNKNOWN_ABSTAIN",
+            "is_st": "UNKNOWN_ABSTAIN",
         },
     }
     unknowns = (

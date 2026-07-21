@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
+from pathlib import PurePosixPath
 from typing import Any
 
 from local_adapter.contracts import ContractError, canonical_hash
@@ -17,6 +18,9 @@ class SourceActivationPolicy:
     policy_id: str
     manifest_id: str
     artifact_sha256: str
+    license_declaration: str
+    license_evidence_ref: str
+    distribution_allowed: bool
     purpose: str = "LOCAL_RESEARCH_ONLY"
     authority_write: bool = False
     no_trade_gate: bool = True
@@ -29,6 +33,15 @@ class SourceActivationPolicy:
             raise ContractError("activation_identity_required")
         if not _HEX_64.fullmatch(self.artifact_sha256):
             raise ContractError("activation_sha256_invalid")
+        if self.license_declaration != "LOCAL_USER_HELD_NO_REDISTRIBUTION":
+            raise ContractError("activation_license_not_eligible")
+        if not self.license_evidence_ref.strip():
+            raise ContractError("activation_license_evidence_required")
+        evidence_ref = self.license_evidence_ref.replace("\\", "/")
+        if not evidence_ref.startswith("coordination/EVIDENCE/") or ".." in PurePosixPath(evidence_ref).parts:
+            raise ContractError("activation_license_evidence_not_governed")
+        if self.distribution_allowed:
+            raise ContractError("activation_distribution_denied")
         if self.purpose != "LOCAL_RESEARCH_ONLY":
             raise ContractError("activation_purpose_not_allowed")
         if self.authority_write:
@@ -126,7 +139,7 @@ class ParseReport:
     def validate(self) -> None:
         if self.record_width != 32:
             raise ContractError("unexpected_record_width")
-        if self.status not in {"PARTIALLY_VERIFIED", "REJECTED"}:
+        if self.status not in {"PARTIALLY_VERIFIED", "EMPTY", "REJECTED"}:
             raise ContractError("parse_report_status_invalid")
         if self.authority_write or not self.no_trade_gate or self.raw_records_exported:
             raise ContractError("parse_report_boundary_violation")
@@ -149,8 +162,10 @@ def field_semantic_decisions() -> tuple[FieldSemanticDecision, ...]:
         FieldSemanticDecision("low", "VERIFIED", "uint32_price_divisor_100", True, "ACCEPTED_PARTIAL_FIELD_EVIDENCE"),
         FieldSemanticDecision("close", "VERIFIED", "uint32_price_divisor_100", True, "ACCEPTED_PARTIAL_FIELD_EVIDENCE"),
         FieldSemanticDecision("amount", "PARTIAL_FIELD_EVIDENCE", "raw_bytes_plus_float32_and_uint32_candidates", False, "EMPIRICAL_CANDIDATE_ONLY"),
-        FieldSemanticDecision("volume", "UNKNOWN", "vendor_numeric_value_unit_unknown", False, "UNIT_NOT_PROVEN"),
+        FieldSemanticDecision("volume", "UNKNOWN", "vendor_numeric_value_unit_unknown_excluded_from_standard_volume", False, "UNIT_NOT_PROVEN"),
         FieldSemanticDecision("reserved", "UNKNOWN", "vendor_reserved_preserved", False, "NO_ACCEPTED_SEMANTIC_DEFINITION"),
+        FieldSemanticDecision("suspended", "UNKNOWN", "not_present_in_day_record", False, "NO_SOURCE_FIELD"),
+        FieldSemanticDecision("is_st", "UNKNOWN", "not_present_in_day_record", False, "NO_SOURCE_FIELD"),
     )
 
 

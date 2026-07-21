@@ -50,6 +50,9 @@ def policy(sha256: str, **changes) -> SourceActivationPolicy:
         "policy_id": "activation-local-test",
         "manifest_id": "manifest-local-test",
         "artifact_sha256": sha256,
+        "license_declaration": "LOCAL_USER_HELD_NO_REDISTRIBUTION",
+        "license_evidence_ref": "coordination/EVIDENCE/WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001/PRIVACY-AND-LICENSE-CLASSIFICATION.md",
+        "distribution_allowed": False,
     }
     values.update(changes)
     return SourceActivationPolicy(**values)
@@ -65,9 +68,9 @@ def manifest(sha256: str, **changes) -> SourceManifest:
             local_location_hint="local-only/day-file",
             sha256=sha256,
             content_class="PRIVATE_LOCAL_ONLY",
-            license_status="UNKNOWN",
+            license_status="DECLARED",
         ),
-        "license": "UNKNOWN",
+        "license": "LOCAL_USER_HELD_NO_REDISTRIBUTION",
         "privacy_class": "PRIVATE_LOCAL_ONLY",
         "timezone": "Asia/Shanghai",
         "time_semantics": "END_OF_BAR",
@@ -111,9 +114,9 @@ class ParserTestCase(unittest.TestCase):
     def test_001_record_is_32_bytes(self):
         self.assertEqual(len(self.payload), 32)
 
-    def test_002_empty_payload_is_valid_empty_partial_report(self):
+    def test_002_empty_payload_is_explicit_empty(self):
         result = self.parse(b"")
-        self.assertEqual(result.report.status, "PARTIALLY_VERIFIED")
+        self.assertEqual(result.report.status, "EMPTY")
         self.assertEqual(result.report.source_record_count, 0)
 
     def test_003_truncated_record_rejected(self):
@@ -210,9 +213,11 @@ class ParserTestCase(unittest.TestCase):
         payload = encode_records(dataclasses.replace(self.record, date_raw=20260106), self.record)
         self.assertEqual(self.parse(payload).report.out_of_order_count, 1)
 
-    def test_027_out_of_order_record_remains_parseable(self):
+    def test_027_out_of_order_dataset_is_rejected(self):
         payload = encode_records(dataclasses.replace(self.record, date_raw=20260106), self.record)
-        self.assertEqual(self.parse(payload).report.accepted_record_count, 2)
+        result = self.parse(payload)
+        self.assertEqual(result.report.status, "REJECTED")
+        self.assertEqual(result.report.issues[0].disposition, "REJECTED")
 
     def test_028_amount_float_candidate_preserved(self):
         self.assertAlmostEqual(self.parse().records[0].amount_float32_candidate, 123456.0)
@@ -298,6 +303,19 @@ class ParserTestCase(unittest.TestCase):
         payload = encode_records(self.record, dataclasses.replace(self.record, date_raw=20260106))
         report = self.parse(payload).report
         self.assertEqual((report.first_date, report.last_date), ("2026-01-05", "2026-01-06"))
+
+    def test_079_missing_suspension_and_st_semantics_are_unknown(self):
+        decisions = {item.field_name: item for item in field_semantic_decisions()}
+        self.assertEqual(decisions["suspended"].status, "UNKNOWN")
+        self.assertEqual(decisions["is_st"].status, "UNKNOWN")
+
+    def test_091_parse_report_schema_accepts_empty_status(self):
+        schema = json.loads((PHASE_ROOT / "schemas" / "ParseReport.schema.json").read_text(encoding="utf-8"))
+        validate_schema_subset(schema, self.parse(b"").report.public_receipt())
+
+    def test_092_parse_report_schema_accepts_partial_status(self):
+        schema = json.loads((PHASE_ROOT / "schemas" / "ParseReport.schema.json").read_text(encoding="utf-8"))
+        validate_schema_subset(schema, self.parse().report.public_receipt())
 
 
 class ActivationAndAdapterTestCase(unittest.TestCase):
@@ -448,6 +466,87 @@ class ActivationAndAdapterTestCase(unittest.TestCase):
         sha = hashlib.sha256(self.path.read_bytes()).hexdigest()
         parsed = TdxDaySourceAdapter(self.path, policy(sha)).load_parsed(manifest(sha), "2026-12-31T00:00:00Z")
         self.assertEqual(parsed.report.zero_volume_count, 1)
+
+    def test_080_policy_rejects_unknown_license_declaration(self):
+        with self.assertRaisesRegex(ContractError, "license_not_eligible"):
+            policy(self.sha, license_declaration="UNKNOWN").validate()
+
+    def test_081_policy_requires_license_evidence(self):
+        with self.assertRaisesRegex(ContractError, "license_evidence"):
+            policy(self.sha, license_evidence_ref=" ").validate()
+
+    def test_082_policy_rejects_distribution(self):
+        with self.assertRaisesRegex(ContractError, "distribution"):
+            policy(self.sha, distribution_allowed=True).validate()
+
+    def test_089_policy_rejects_ungoverned_evidence_reference(self):
+        with self.assertRaisesRegex(ContractError, "evidence_not_governed"):
+            policy(self.sha, license_evidence_ref="somewhere/local-note.md").validate()
+
+    def test_083_adapter_rejects_unknown_manifest_license(self):
+        result = TdxDaySourceAdapter(self.path, policy(self.sha)).load(
+            manifest(self.sha, license="UNKNOWN"), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+
+    def test_084_adapter_rejects_unknown_artifact_license(self):
+        base = manifest(self.sha)
+        unknown_artifact = dataclasses.replace(base.artifact, license_status="UNKNOWN")
+        result = TdxDaySourceAdapter(self.path, policy(self.sha)).load(
+            dataclasses.replace(base, artifact=unknown_artifact), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+
+    def test_085_adapter_rejects_license_mismatch(self):
+        result = TdxDaySourceAdapter(self.path, policy(self.sha)).load(
+            manifest(self.sha, license="OTHER_DECLARED_LICENSE"), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+
+    def test_086_adapter_only_overrides_exact_real_source_gate(self):
+        result = TdxDaySourceAdapter(self.path, policy(self.sha)).load(
+            manifest(self.sha, st_policy="UNKNOWN"), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+
+    def test_087_empty_adapter_payload_is_rejected(self):
+        self.path.write_bytes(b"")
+        sha = hashlib.sha256(b"").hexdigest()
+        result = TdxDaySourceAdapter(self.path, policy(sha)).load(
+            manifest(sha), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+        self.assertEqual(result.reason_codes, ("dataset_empty",))
+
+    def test_088_out_of_order_adapter_payload_is_rejected(self):
+        self.path.write_bytes(encode_records(
+            dataclasses.replace(SyntheticDayRecord(), date_raw=20260106),
+            SyntheticDayRecord(),
+        ))
+        sha = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        result = TdxDaySourceAdapter(self.path, policy(sha)).load(
+            manifest(sha), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+        self.assertEqual(result.reason_codes, ("parse_rejected",))
+
+    def test_090_adapter_requires_evidence_file_to_exist(self):
+        missing = policy(
+            self.sha,
+            license_evidence_ref="coordination/EVIDENCE/DOES-NOT-EXIST/license.md",
+        )
+        result = TdxDaySourceAdapter(self.path, missing).load(
+            manifest(self.sha), "2026-12-31T00:00:00Z"
+        )
+        self.assertIs(result.status, AdapterStatus.REJECTED)
+        self.assertEqual(result.reason_codes, ("activation_license_evidence_not_found",))
+
+    def test_093_activation_schema_requires_license_fields(self):
+        schema = json.loads((PHASE_ROOT / "schemas" / "SourceActivationPolicy.schema.json").read_text(encoding="utf-8"))
+        payload = serialize_phase_contract(policy(self.sha))
+        payload.pop("license_evidence_ref")
+        with self.assertRaises(SchemaValidationError):
+            validate_schema_subset(schema, payload)
 
 
 if __name__ == "__main__":

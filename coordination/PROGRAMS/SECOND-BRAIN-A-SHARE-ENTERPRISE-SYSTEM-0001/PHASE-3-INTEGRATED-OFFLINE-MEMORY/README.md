@@ -9,6 +9,10 @@ This package implements one research-only path from a manifest-bound local TDX `
 - no source data, SQLite runtime database or credential value in Git
 - no automatic authority write
 - ambiguous `amount`, `volume` unit and `reserved` fields remain non-authoritative
+- missing ST and suspension fields remain explicit `UNKNOWN`, never `False`
+- vendor volume is retained only in parser evidence and excluded from P2 standard-volume signals and simulation
+- empty or out-of-order `.day` datasets cannot enter replay
+- local activation requires an explicit no-redistribution license declaration and evidence reference
 
 ## Synthetic Tests
 

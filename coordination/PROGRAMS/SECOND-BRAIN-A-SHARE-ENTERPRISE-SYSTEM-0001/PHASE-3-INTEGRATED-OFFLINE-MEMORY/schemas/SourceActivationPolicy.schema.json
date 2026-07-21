@@ -1,13 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:superbrain:p3:SourceActivationPolicy:1.0.0",
+  "$id": "urn:superbrain:p3:SourceActivationPolicy:1.1.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["policy_id", "manifest_id", "artifact_sha256", "purpose", "authority_write", "no_trade_gate", "realtime_enabled", "raw_export_allowed", "schema_version"],
+  "required": ["policy_id", "manifest_id", "artifact_sha256", "license_declaration", "license_evidence_ref", "distribution_allowed", "purpose", "authority_write", "no_trade_gate", "realtime_enabled", "raw_export_allowed", "schema_version"],
   "properties": {
     "policy_id": {"type": "string", "minLength": 1},
     "manifest_id": {"type": "string", "minLength": 1},
     "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "license_declaration": {"const": "LOCAL_USER_HELD_NO_REDISTRIBUTION"},
+    "license_evidence_ref": {"type": "string", "minLength": 1},
+    "distribution_allowed": {"const": false},
     "purpose": {"const": "LOCAL_RESEARCH_ONLY"},
     "authority_write": {"const": false},
     "no_trade_gate": {"const": true},

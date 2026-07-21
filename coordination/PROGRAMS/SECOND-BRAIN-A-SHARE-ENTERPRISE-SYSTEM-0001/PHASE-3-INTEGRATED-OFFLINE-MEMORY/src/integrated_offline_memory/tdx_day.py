@@ -90,7 +90,7 @@ class TdxDayParser:
                 continue
             if previous_date is not None and day_text < previous_date:
                 out_of_order += 1
-                issues.append(ParseIssue("OUT_OF_ORDER_DATE", index, day_text))
+                issues.append(ParseIssue("OUT_OF_ORDER_DATE", index, day_text, "REJECTED"))
             seen_dates.add(day_text)
             previous_date = day_text
 
@@ -174,10 +174,16 @@ class TdxDayParser:
         zero_volume_count: int = 0,
     ) -> ParseReport:
         hard_reject = any(item.disposition == "REJECTED" for item in issues)
+        if not payload:
+            status = "EMPTY"
+        elif hard_reject or not records:
+            status = "REJECTED"
+        else:
+            status = "PARTIALLY_VERIFIED"
         stable_records = [item.stable_payload() for item in records]
         report = ParseReport(
             schema_version="1.0.0",
-            status="REJECTED" if hard_reject else "PARTIALLY_VERIFIED",
+            status=status,
             source_manifest_id=manifest_id,
             activation_policy_id=policy_id,
             artifact_sha256=artifact_sha256,
@@ -206,12 +212,6 @@ class TdxDayParser:
 class TdxDaySourceAdapter:
     """Allows one hash-bound local file to pass the narrower research gate."""
 
-    _OVERRIDABLE_GATE_STATUSES = {
-        AdapterStatus.BLOCKED_BY_POLICY,
-        AdapterStatus.LEGACY_UNKNOWN,
-        AdapterStatus.PARTIALLY_VERIFIED,
-    }
-
     def __init__(self, artifact_path: Path, policy: SourceActivationPolicy) -> None:
         self.artifact_path = artifact_path
         self.policy = policy
@@ -227,8 +227,19 @@ class TdxDaySourceAdapter:
             raise ContractError("real_local_activation_cannot_target_synthetic")
         if manifest.capability.capability_level != "HISTORICAL_BAR":
             raise ContractError("activation_capability_not_historical_bar")
+        if manifest.license != self.policy.license_declaration:
+            raise ContractError("activation_license_manifest_mismatch")
+        if manifest.artifact.license_status not in {"DECLARED", "LICENSED"}:
+            raise ContractError("activation_artifact_license_not_declared")
+        if manifest.privacy_class != "PRIVATE_LOCAL_ONLY":
+            raise ContractError("activation_privacy_must_be_private_local_only")
+        if manifest.artifact.content_class not in {"PRIVATE_LOCAL_ONLY", "LICENSED_LOCAL"}:
+            raise ContractError("activation_content_class_not_local")
+        evidence_ref = Path(*self.policy.license_evidence_ref.replace("\\", "/").split("/"))
+        if not any((parent / evidence_ref).is_file() for parent in Path(__file__).resolve().parents):
+            raise ContractError("activation_license_evidence_not_found")
         gate = ManifestValidator().validate(manifest, requested_as_of)
-        if gate.status not in self._OVERRIDABLE_GATE_STATUSES:
+        if gate.status != AdapterStatus.BLOCKED_BY_POLICY or gate.reason_codes != ("real_source_binding_not_activated",):
             raise ContractError(f"manifest_gate_not_eligible:{gate.status.value}")
         if not self.artifact_path.is_file() or self.artifact_path.suffix.lower() != ".day":
             raise ContractError("day_artifact_not_found_or_wrong_suffix")
@@ -251,10 +262,18 @@ class TdxDaySourceAdapter:
             parsed = self.load_parsed(manifest, requested_as_of)
         except (ContractError, OSError, ValueError) as error:
             return AdapterResult(AdapterStatus.REJECTED, (str(error),))
-        status = AdapterStatus.PARTIALLY_VERIFIED if parsed.report.status == "PARTIALLY_VERIFIED" else AdapterStatus.REJECTED
+        if parsed.report.status == "PARTIALLY_VERIFIED":
+            status = AdapterStatus.PARTIALLY_VERIFIED
+            reasons = ("partial_field_evidence",)
+        elif parsed.report.status == "EMPTY":
+            status = AdapterStatus.REJECTED
+            reasons = ("dataset_empty",)
+        else:
+            status = AdapterStatus.REJECTED
+            reasons = ("parse_rejected",)
         return AdapterResult(
             status,
-            reason_codes=("partial_field_evidence",),
+            reason_codes=reasons,
             remediation_hints=("do_not_promote_ambiguous_fields_or_source_authority",),
             payload=parsed.report.public_receipt(),
         )
