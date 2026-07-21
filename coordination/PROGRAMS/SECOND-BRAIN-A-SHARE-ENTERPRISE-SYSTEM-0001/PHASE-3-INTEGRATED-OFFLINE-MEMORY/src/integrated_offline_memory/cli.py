@@ -11,6 +11,7 @@ import yaml
 from local_adapter.contracts import deserialize_contract
 
 from .contracts import SourceActivationPolicy
+from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
 
 
@@ -29,16 +30,31 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("--activation-policy", type=Path, required=True)
     validate.add_argument("--artifact", type=Path, required=True)
     validate.add_argument("--as-of", required=True)
+    replay = subparsers.add_parser("replay-day", help="Run the existing P2 replay and print an aggregate receipt")
+    replay.add_argument("--manifest", type=Path, required=True)
+    replay.add_argument("--activation-policy", type=Path, required=True)
+    replay.add_argument("--artifact", type=Path, required=True)
+    replay.add_argument("--as-of", required=True)
+    replay.add_argument("--symbol", required=True)
+    replay.add_argument("--exchange", choices=("SZ", "SH", "BJ"), required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.command != "validate-day":
-        return 2
     manifest = deserialize_contract("SourceManifest", _load_yaml(args.manifest))
     policy = SourceActivationPolicy(**_load_yaml(args.activation_policy))
-    result = TdxDaySourceAdapter(args.artifact, policy).load(manifest, args.as_of)
+    adapter = TdxDaySourceAdapter(args.artifact, policy)
+    if args.command == "replay-day":
+        try:
+            parsed = adapter.load_parsed(manifest, args.as_of)
+            receipt = run_p2_replay(parsed, manifest, symbol=args.symbol, exchange=args.exchange, requested_as_of=args.as_of)
+            print(json.dumps(receipt.public_payload(), ensure_ascii=True, sort_keys=True))
+            return 0
+        except (ValueError, OSError) as error:
+            print(json.dumps({"status": "REJECTED", "reason": str(error)}, ensure_ascii=True, sort_keys=True))
+            return 1
+    result = adapter.load(manifest, args.as_of)
     print(json.dumps({
         "status": result.status.value,
         "reason_codes": list(result.reason_codes),

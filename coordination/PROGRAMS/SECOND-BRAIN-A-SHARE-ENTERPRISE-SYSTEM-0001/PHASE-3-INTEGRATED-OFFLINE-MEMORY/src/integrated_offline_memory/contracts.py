@@ -112,6 +112,9 @@ class ParseReport:
     duplicate_date_count: int
     out_of_order_count: int
     nonzero_reserved_count: int
+    amount_float_candidate_count: int
+    amount_float_invalid_count: int
+    zero_volume_count: int
     parse_core_hash: str
     field_semantics_version: str
     field_decisions: tuple[FieldSemanticDecision, ...]

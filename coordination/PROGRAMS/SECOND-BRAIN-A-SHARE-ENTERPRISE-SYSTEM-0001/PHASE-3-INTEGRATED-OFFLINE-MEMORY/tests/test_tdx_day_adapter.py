@@ -21,6 +21,7 @@ PROGRAM_ROOT = PHASE_ROOT.parent
 for source_root in (
     PHASE_ROOT / "src",
     PROGRAM_ROOT / "PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION" / "src",
+    PROGRAM_ROOT / "PHASE-2-OFFLINE-VERTICAL-SLICE" / "src",
 ):
     sys.path.insert(0, str(source_root))
 
@@ -437,6 +438,16 @@ class ActivationAndAdapterTestCase(unittest.TestCase):
         parsed = TdxDaySourceAdapter(self.path, policy(self.sha)).load_parsed(manifest(self.sha), "2026-12-31T00:00:00Z")
         restored = deserialize_phase_contract("ParseReport", serialize_phase_contract(parsed.report))
         self.assertEqual(restored, parsed.report)
+
+    def test_077_amount_candidate_counted(self):
+        parsed = TdxDaySourceAdapter(self.path, policy(self.sha)).load_parsed(manifest(self.sha), "2026-12-31T00:00:00Z")
+        self.assertEqual(parsed.report.amount_float_candidate_count, 1)
+
+    def test_078_zero_volume_counted(self):
+        self.path.write_bytes(SyntheticDayRecord(volume_raw=0).encode())
+        sha = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        parsed = TdxDaySourceAdapter(self.path, policy(sha)).load_parsed(manifest(sha), "2026-12-31T00:00:00Z")
+        self.assertEqual(parsed.report.zero_volume_count, 1)
 
 
 if __name__ == "__main__":

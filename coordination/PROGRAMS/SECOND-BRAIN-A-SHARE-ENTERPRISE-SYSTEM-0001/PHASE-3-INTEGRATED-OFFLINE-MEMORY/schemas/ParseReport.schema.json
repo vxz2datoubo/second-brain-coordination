@@ -3,7 +3,7 @@
   "$id": "urn:superbrain:p3:ParseReport:1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "status", "source_manifest_id", "activation_policy_id", "artifact_sha256", "artifact_size", "record_width", "source_record_count", "accepted_record_count", "quarantined_record_count", "parse_core_hash", "field_semantics_version", "field_decisions", "issues", "authority_write", "no_trade_gate", "raw_records_exported"],
+  "required": ["schema_version", "status", "source_manifest_id", "activation_policy_id", "artifact_sha256", "artifact_size", "record_width", "source_record_count", "accepted_record_count", "quarantined_record_count", "amount_float_candidate_count", "amount_float_invalid_count", "zero_volume_count", "parse_core_hash", "field_semantics_version", "field_decisions", "issues", "authority_write", "no_trade_gate", "raw_records_exported"],
   "properties": {
     "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"},
     "status": {"enum": ["PARTIALLY_VERIFIED", "REJECTED"]},
@@ -20,6 +20,9 @@
     "duplicate_date_count": {"type": "integer", "minimum": 0},
     "out_of_order_count": {"type": "integer", "minimum": 0},
     "nonzero_reserved_count": {"type": "integer", "minimum": 0},
+    "amount_float_candidate_count": {"type": "integer", "minimum": 0},
+    "amount_float_invalid_count": {"type": "integer", "minimum": 0},
+    "zero_volume_count": {"type": "integer", "minimum": 0},
     "parse_core_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "field_semantics_version": {"type": "string"},
     "field_decisions": {"type": "array", "minItems": 8},

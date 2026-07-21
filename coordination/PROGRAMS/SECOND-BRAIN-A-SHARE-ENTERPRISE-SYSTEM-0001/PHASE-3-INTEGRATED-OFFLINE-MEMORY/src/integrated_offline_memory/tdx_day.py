@@ -64,6 +64,9 @@ class TdxDayParser:
         duplicate_dates = 0
         out_of_order = 0
         nonzero_reserved = 0
+        amount_float_candidates = 0
+        amount_float_invalid = 0
+        zero_volume = 0
         seen_dates: set[str] = set()
         previous_date: str | None = None
 
@@ -102,9 +105,15 @@ class TdxDayParser:
 
             amount_float = struct.unpack("<f", amount_raw)[0]
             amount_float_candidate = amount_float if math.isfinite(amount_float) and amount_float >= 0 else None
+            if amount_float_candidate is None:
+                amount_float_invalid += 1
+            else:
+                amount_float_candidates += 1
             amount_uint = struct.unpack("<I", amount_raw)[0]
             if reserved_raw:
                 nonzero_reserved += 1
+            if volume_raw == 0:
+                zero_volume += 1
             accepted.append(TdxDayRawRecord(
                 record_index=index,
                 byte_offset=offset,
@@ -130,6 +139,9 @@ class TdxDayParser:
             field_semantics_version, source_record_count=len(payload) // RECORD_WIDTH,
             duplicate_date_count=duplicate_dates, out_of_order_count=out_of_order,
             nonzero_reserved_count=nonzero_reserved,
+            amount_float_candidate_count=amount_float_candidates,
+            amount_float_invalid_count=amount_float_invalid,
+            zero_volume_count=zero_volume,
         )
         return ParsedDayDataset(tuple(accepted), report)
 
@@ -157,6 +169,9 @@ class TdxDayParser:
         duplicate_date_count: int = 0,
         out_of_order_count: int = 0,
         nonzero_reserved_count: int = 0,
+        amount_float_candidate_count: int = 0,
+        amount_float_invalid_count: int = 0,
+        zero_volume_count: int = 0,
     ) -> ParseReport:
         hard_reject = any(item.disposition == "REJECTED" for item in issues)
         stable_records = [item.stable_payload() for item in records]
@@ -176,6 +191,9 @@ class TdxDayParser:
             duplicate_date_count=duplicate_date_count,
             out_of_order_count=out_of_order_count,
             nonzero_reserved_count=nonzero_reserved_count,
+            amount_float_candidate_count=amount_float_candidate_count,
+            amount_float_invalid_count=amount_float_invalid_count,
+            zero_volume_count=zero_volume_count,
             parse_core_hash=canonical_hash(stable_records),
             field_semantics_version=field_semantics_version,
             field_decisions=field_semantic_decisions(),
