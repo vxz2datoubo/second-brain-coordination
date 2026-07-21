@@ -1,4 +1,4 @@
-schema_version: "1.7"
+schema_version: "1.8"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -8,116 +8,86 @@ trigger_phrases:
   - "执行任务"
   - "开始任务"
 
-active_issue: 39
-task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002.yaml"
-mode: "goal"
-mode_label: "目标模式"
+active_issue: 47
+task_id: "A-SHARE-LOCAL-MOTHER-SYSTEM-ADAPTER-PLAN-0003"
+mode: "project_plan"
+mode_label: "项目计划模式"
 status: "READY"
 blocked_by: "none"
-
 parent_program: 31
-phase: "P2_OFFLINE_REPLAY_KNOWLEDGE_ACCESS_VERTICAL_SLICE"
+phase: "P3_LOCAL_MOTHER_SYSTEM_ADAPTER_PLAN"
 
-completed_preconditions:
-  - issue: 35
-    status: "COMPLETED"
-  - pr: 37
-    status: "MERGED"
-    reviewed_head: "4b2468536dee8cfe02b8da13162cf72880a0329b"
-    merge_commit: "30e6bb18ccaa1297877fa896eb0ee35e1d655792"
-  - decision: "ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-0001"
-    status: "ACTIVE"
+completed_predecessor:
+  issue: 39
+  pr: 41
+  status: "ACCEPTED_WITH_FINDINGS_AND_MERGED"
+  merge_commit: "59aaff2469a741a1eeca86085b4a3268ddc902a0"
 
 parallel_with:
   - agent: "QCLAW"
-    issue: 36
-    task_id: "QCLAW-CANDIDATE-PACKET-CONTRACT-VALIDATION-0002"
-    rule: "Consume public-safe observations if available; do not wait or preempt."
+    issue: 43
+    pr: 45
+    rule: "Read public-safe contracts for compatibility; do not modify or preempt QQ work."
   - agent: "WORKBUDDY"
     issue: 32
-    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
-    status: "WAITING_GPT_REVIEW"
-    rule: "PR #34 is proposed evidence only, not canonical."
+    pr: 34
+    rule: "Use field evidence as proposed input; produce a separate read-only probe task."
 
 required_inputs:
-  - "Issue #39正文与全部评论"
-  - "Issue #31及已合并企业Phase 0成果"
-  - "Issue #35与PR #37合并后的P1基础合同、测试和UNKNOWN"
-  - "coordination/AUTHORIZATION/ATOMIZED-KNOWLEDGE-FULL-GPT-ACCESS-v1.0.yaml"
-  - "Issue #38 GPT全量原子化知识访问网关目标"
-  - "Issue #36公开安全QQ合同观察，若执行时存在"
-  - "WorkBuddy PR #34 exact head，仅作为proposed参考"
-  - "任务影响预测与工程学习登记表"
+  - "Issue #47正文与全部评论"
+  - "最新main、AGENTS.md与CODEX-TASK-ROUTER.md"
+  - "PR #37和PR #41合并成果"
+  - "Issue #31、#38、#43与PR #45"
+  - "WorkBuddy PR #34"
+  - "PR #27、#28、#29遗留后端发现成果"
+  - "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
+  - "coordination/AUTHORIZATION/CREDENTIAL-LOCAL-ONLY-EXCEPTION-v1.0.yaml"
 
 required_action:
-  - "以目标模式交付可运行的离线A股研究纵向闭环，而不是只产计划或互不连接的文档。"
-  - "完成P1合同运行时适配、CSV/JSON摄入、规范化、谱系与时间/能力门禁。"
-  - "实现确定性事件回放、幂等、乱序处理、checkpoint/resume和重复运行哈希验证。"
-  - "实现少量可解释候选研究信号，不扩张策略数量。"
-  - "实现T+1、停牌、涨跌停、ST规则、费用、滑点和风险限制的离线组合模拟。"
-  - "实现时间切分、walk-forward、泄漏负例、成本前后和稳健性验证。"
-  - "生成RunManifest、EvidenceLedger、ValidationReport和ReproducibilityBundle。"
-  - "实现KnowledgeAccessPolicy、KnowledgeQuery、ContextBundle及GPT FULL_SEMANTIC_ACCESS合成演示。"
-  - "把研究运行转换为QQ可消费的candidate LearningPacket。"
-  - "提供CLI/一键演示、至少40项有意义测试或充分覆盖说明。"
-  - "在20/40/60/80/100%里程碑回传进度并维护PROGRESS-CHECKPOINT.yaml。"
-  - "提交完整反馈v2、结果校准、AI_HANDOFF和独立Draft PR。"
+  - "审计真实母系统与P2参考实现的REUSE/ADAPT/WRAP/MIGRATE/UNKNOWN边界。"
+  - "建立唯一系统记录源矩阵，禁止创建第二套领域权威。"
+  - "规划通达信vipdoc、TQ导出与本地CSV/JSON真实离线数据适配。"
+  - "对齐Codex知识合同与QQ候选记忆库、GPT FULL_SEMANTIC_ACCESS。"
+  - "设计凭证值仅本地、知识内容完整访问的分层架构。"
+  - "产出WorkBuddy可执行的只读现场探针任务。"
+  - "形成分阶段执行DAG、验收门、回滚、风险与UNKNOWN。"
+  - "提交完整反馈v2、校准、AI_HANDOFF、检查点和独立Draft PR。"
 
 execution_contract:
   sync_latest_main: true
   create_independent_branch: true
-  recommended_branch: "codex/a-share-offline-replay-knowledge-access-0002"
+  recommended_branch: "codex/local-mother-system-adapter-plan-0003"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
-  report_to_issues:
-    - 39
-    - 31
-    - 38
-  optional_public_safe_observation_to_issues:
-    - 36
-  progress_checkpoints:
-    - 20
-    - 40
-    - 60
-    - 80
-    - 100
+  report_to_issues: [47, 31, 38]
+  progress_checkpoints: [20, 40, 60, 80, 100]
   resumable_execution_required: true
   feedback_schema: "Agent execution feedback v2 full template"
   outcome_calibration_required: true
 
 safety_boundary:
-  profile: "large-public-safe-offline-vertical-slice"
   research_only: true
   no_trade: true
-  synthetic_or_public_safe_data_only: true
-  no_service_start_stop: true
-  no_private_data_upload: true
-  no_private_knowledge_ingestion: true
+  planning_and_public_safe_probe_framework_only: true
+  no_private_knowledge_publication: true
+  credential_values_local_only: true
+  no_service_start_stop_or_change: true
+  no_realtime_or_broker_connection: true
+  no_order_path: true
   no_cloud_resource_creation: true
-  no_secret_exposure: true
-  no_broker_or_account_connection: true
-  no_protected_blueprint_publication: true
-  no_large_marl_training: true
   no_direct_main_write: true
 
 risk_gate:
   current_decision: "PROCEED_WITH_CONTROLS"
   user_approval_required_now: false
   stop_and_request_user_approval_before:
-    - "任何私人或敏感知识离开本机或进入公开仓库"
-    - "创建或修改私有Git、Supabase、对象存储或其他云资源"
-    - "读取凭证、Cookie、Token、私钥、交易或银行认证材料"
+    - "真实私人知识或凭证值离开本地"
     - "启动、停止、迁移或修改真实服务"
+    - "创建私有Git、Supabase、对象存储或其他云资源"
     - "连接实时行情、券商、账户或订单路径"
     - "修改或公开受保护蓝图正文"
 
-supersedes:
-  previous_active_issue: 35
-  previous_task_id: "A-SHARE-FOUNDATION-CONTRACT-FREEZE-0001"
-  reason: "PR #37已由GPT验收并合并，P1完成；进入P2大型目标模式纵向闭环。"
-
-notes: "用户对Codex只需说‘读取任务’。遇到非阻断UNKNOWN必须登记并继续安全实现；运行中断时从PROGRESS-CHECKPOINT恢复。"
+notes: "当前唯一Codex任务是Issue #47。用户只需对Codex说‘读取任务’。本轮明确使用项目计划模式，因为本地接口、复用边界和现场能力仍有大量UNKNOWN。"
 updated_by: "GPT"
 updated_at: "2026-07-21"
