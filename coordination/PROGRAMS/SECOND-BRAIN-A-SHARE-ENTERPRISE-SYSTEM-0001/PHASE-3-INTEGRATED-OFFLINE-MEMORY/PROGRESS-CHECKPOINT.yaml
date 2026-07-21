@@ -1,0 +1,24 @@
+schema_version: "1.0"
+task_id: CODEX-P3-INTEGRATED-OFFLINE-MEMORY-SYSTEM-0006
+checkpoints:
+  "20":
+    state: completed
+    commit: this_checkpoint_commit
+    evidence:
+      - PROJECT-PLAN.yaml
+      - SOURCE-ABSORPTION-MATRIX.yaml
+      - coordination/EVIDENCE/WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001
+  "40": {state: pending, commit: null, evidence: []}
+  "60": {state: pending, commit: null, evidence: []}
+  "80": {state: pending, commit: null, evidence: []}
+  "100": {state: pending, commit: null, evidence: []}
+resume_contract:
+  source_of_truth: STATUS.yaml
+  verify_before_resume:
+    - remote_main
+    - coordination/ACTIVE-CODEX-TASK.yaml
+    - issue_55_comments
+  never:
+    - amend_checkpoint_commit
+    - force_push
+    - write_main_directly

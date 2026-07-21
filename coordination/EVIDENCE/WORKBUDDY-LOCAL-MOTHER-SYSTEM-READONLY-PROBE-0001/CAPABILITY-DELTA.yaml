@@ -1,0 +1,42 @@
+schema_version: "1.0"
+agent_id: "WORKBUDDY"
+target_agent: "CODEX"
+task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+target_task_id: "A-SHARE-LOCAL-ADAPTER-CONTRACTS-IMPLEMENTATION-0004"
+
+what_works:
+  - capability: "Tongdaxin .day file parsing"
+    status: "READY"
+    details: "Fixed 32-byte records, well-documented format, ~4300 stocks × 3.3 years history available offline"
+  - capability: "Tongdaxin .lc1/.lc5 minute parsing"
+    status: "FEASIBLE"
+    details: "Files exist (4299 stocks), format documented in community, needs parser verification"
+  - capability: "TQ export metadata"
+    status: "READY"
+    details: "JSONL catalog available at F:/aidanao/交流文件/..., prior Codex audit exists"
+
+what_is_blocked:
+  - capability: "HTTP 8766 loopback health check"
+    reason: "Awaiting separate user approval per ACTIVE-WORKBUDDY-TASK.yaml v1.4"
+  - capability: "TQ runtime invocation"
+    reason: "Safety boundary prohibits runtime calls"
+  - capability: "L2 tick/order book data"
+    reason: "Not available in vipdoc/; TDX L2 requires different data source"
+
+what_adapters_need:
+  - adapter: "tdx_day_parser"
+    needs: "Python module reading 32-byte .day records → PriceBar/OHLCV struct"
+    blocking: false
+    known_libraries: ["pytdx", "mootdx"]
+  - adapter: "tdx_minute_parser"
+    needs: ".lc1 format parser (record size TBD)"
+    blocking: false
+  - adapter: "tq_export_reader"
+    needs: "JSONL manifest parser → DataLineageRecord"
+    blocking: false
+
+compatibility_notes:
+  - "vipdoc .day files are forward-only (no updates to historical records)"
+  - "File mtime is NOT a reliable data-freshness indicator (TDX may touch files without data change)"
+  - "sz/eday is EMPTY for all markets — no extended day data available"
+  - "ds/ market identity is UNKNOWN — needs verification before adapter use"

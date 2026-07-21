@@ -1,0 +1,53 @@
+schema_version: "1.0"
+task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+agent_id: "WORKBUDDY"
+executed_at: "2026-07-21T04:15:00Z"
+boundary: "local-read-only"
+base_head: "4767dff"
+
+probes_completed:
+  - id: "WB-P-001"
+    target: "F:/tongdaxin/vipdoc metadata"
+    status: "COMPLETED"
+    evidence_file: "SOURCE-MANIFESTS.yaml#vipdoc"
+  - id: "WB-P-002"
+    target: "TQ export manifests"
+    status: "COMPLETED"
+    evidence_file: "SOURCE-MANIFESTS.yaml#tq_exports"
+  - id: "WB-P-003"
+    target: "F:/aidanao data candidates"
+    status: "COMPLETED"
+    evidence_file: "SOURCE-MANIFESTS.yaml#data_candidates"
+  - id: "WB-P-004"
+    target: "brain_core static signatures"
+    status: "COMPLETED"
+    evidence_file: "SOURCE-MANIFESTS.yaml#brain_core"
+  - id: "WB-P-005"
+    target: "HTTP 8766 health/read"
+    status: "BLOCKED"
+    reason: "Task safety boundary explicitly prohibits HTTP 8766 requests. Awaiting separate user approval per ACTIVE-WORKBUDDY-TASK.yaml v1.4."
+
+verification_summary:
+  total_probes: 5
+  completed: 4
+  blocked: 1
+  zero_file_modifications: true
+  zero_service_changes: true
+  zero_credential_reads: true
+
+key_findings:
+  - "Tongdaxin vipdoc: 6 market dirs, 131,706 entries, .day/.lc1/.lc5 binary formats, 32-byte fixed records"
+  - "sz300418.day: 38,400 bytes, 1,200 records (~3.3 years of daily data), last updated 2026-07-16"
+  - "TQ exports: found at F:/aidanao/交流文件/TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006/ (JSONL catalog + Python review)"
+  - "data/: 203MB across 20+ subdirs, wallet.json present but no credential values read"
+  - "brain_core: 5 modules (cognition/emotion/knowledge/meta/social), directory-only audit"
+
+deliverables:
+  - "PROBE-MANIFEST.yaml"
+  - "SOURCE-MANIFESTS.yaml"
+  - "FIELD-SEMANTICS.md"
+  - "CAPABILITY-DELTA.yaml"
+  - "PRIVACY-AND-LICENSE-CLASSIFICATION.md"
+  - "RUN-RECEIPT.md"
+  - "WORKBUDDY-FEEDBACK.yaml"
+  - "AI_HANDOFF.yaml"
