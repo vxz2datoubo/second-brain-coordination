@@ -1,0 +1,49 @@
+schema_version: "1.0"
+task_id: CODEX-P4-FULL-KNOWLEDGE-GATEWAY-0007
+decisions:
+  - component: MemoryStore
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: EXTEND
+    reason: sole_candidate_store; add source registration, revocation and deterministic state helpers only
+  - component: FusionEngine
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: REUSE
+    reason: candidate-only import already enforces no authority promotion
+  - component: QueryPlan
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: EXTEND
+    reason: add source, current/history and evidence filters without a second retrieval runtime
+  - component: ContextAssembler
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: EXTEND
+    reason: preserve single assembler while adding revocation, conflict, unknown and evidence reasons
+  - component: ContextBundle
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: EXTEND
+    reason: retain canonical context contract and semantic hashing
+  - component: LearningPacket
+    source: PHASE-3-INTEGRATED-OFFLINE-MEMORY
+    decision: EXTEND
+    reason: retain deterministic candidate-only packet and add feedback provenance
+  - component: SourceManifest
+    source: PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION
+    decision: REUSE
+    reason: remains authoritative for market-data sources; common artifact and credential references are reused
+  - component: KnowledgeSourceManifest
+    source: ISSUE-38
+    decision: WRAP
+    reason: knowledge-specific manifest reuses LocalArtifactReference and does not replace market SourceManifest
+  - component: LocalKnowledgeAdapter
+    source: ISSUE-38
+    decision: NEW_INTERFACE_AND_IMPLEMENTATION
+    reason: read-only file and directory access is not present in Phase 3 memory runtime
+  - component: AnswerEvidenceBundle
+    source: ISSUE-38
+    decision: NEW_PROJECTION
+    reason: deterministic answer-facing projection compiled from canonical ContextBundle
+  - component: parallel_store_or_query_runtime
+    decision: DEPRECATE_AND_DENY
+    reason: violates Issue 38 single-runtime hard gate
+  - component: qclaw_phase4_delivery
+    decision: WAITING
+    reason: consume fixtures, packets, evaluator, reports and handoff only; never consume another runtime
