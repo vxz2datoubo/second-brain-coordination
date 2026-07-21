@@ -1,0 +1,77 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "A-SHARE-TDX-DAY-PARSER-REPLAY-INTEGRATION-0005"
+agent_id: "CODEX"
+mode: "goal"
+mode_label: "目标模式"
+status: "ACTIVE_FORECAST"
+created_by: "GPT"
+created_at: "2026-07-21"
+parent_wave: 53
+objective: "Implement a deterministic Tongdaxin .day parser and adapter that reuses the merged P1/P2/P3 contracts, supports synthetic binary fixtures immediately, and produces a local real-sample validation path after WorkBuddy Issue #54 evidence is accepted."
+first_principles_prediction:
+  benefits:
+    - id: B1
+      probability: high
+      effect: "Move the trading system from generic synthetic adapters to one concrete offline A-share source without introducing realtime or order risk."
+    - id: B2
+      probability: high
+      effect: "Expose binary-format, field-semantic, point-in-time and data-quality errors before any strategy work relies on the source."
+    - id: B3
+      probability: high
+      effect: "Reuse the existing deterministic replay and evidence stack rather than building a parallel backtester."
+    - id: B4
+      probability: medium_high
+      effect: "Create a repeatable local validation harness that WorkBuddy can execute without uploading raw licensed data."
+    - id: B5
+      probability: medium
+      effect: "Provide research results and evidence packets that the unified QCLAW memory task can import and retrieve."
+  harms:
+    - id: H1
+      severity: high
+      probability: medium
+      effect: "Ambiguous amount or reserved fields may be silently misdecoded and contaminate later features."
+      control: "Keep candidate decoders and explicit UNKNOWN states; no authority promotion without field evidence."
+    - id: H2
+      severity: high
+      probability: medium
+      effect: "A new parser may duplicate existing local or P2 domain objects."
+      control: "Parser and adapter types must map to existing PriceBar/MarketDataRecord ownership; adapter-only types require an explicit matrix."
+    - id: H3
+      severity: high
+      probability: low
+      effect: "Real local files or licensed raw records may be committed to the public repository."
+      control: "Commit only code, synthetic fixtures, hashes, manifests and aggregate receipts; raw local source paths remain references."
+    - id: H4
+      severity: high
+      probability: medium
+      effect: "File modification time may be mistaken for event availability and create future leakage."
+      control: "Use record date and declared acquisition/availability metadata; mtime is audit metadata only."
+    - id: H5
+      severity: high
+      probability: low
+      effect: "Aggregated daily bars may be mislabeled as Level-2 or raw events."
+      control: "Machine tests enforce HISTORICAL_BAR semantics and reject raw-event promotion."
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  user_approval_required_now: false
+  current_scope:
+    - "Parser, adapter, schemas and synthetic binary fixtures"
+    - "Deterministic replay and validation integration"
+    - "Local read-only validation CLI"
+  evidence_gated_scope:
+    - "Claiming one real local sample as field-validated"
+  stop_before:
+    - "Uploading a real .day file or licensed raw records"
+    - "Treating ambiguous fields as verified"
+    - "Starting or modifying services"
+    - "Realtime, broker, account or order integration"
+    - "Creating a competing system of record"
+success_observation_plan:
+  - "Report capability progress at 20/40/60/80/100 percent."
+  - "Run at least 50 new parser/adapter tests and preserve P1/P2/P3 tests."
+  - "Compare repeated parse and replay hashes."
+  - "Record every rejected, quarantined, downgraded and UNKNOWN field path."
+  - "After accepted WorkBuddy evidence, produce a secret-free local validation receipt."
+rollback:
+  strategy: "All changes remain on an isolated branch and Draft PR; revert or close it. The validator is read-only and must not change source files or runtime state."
