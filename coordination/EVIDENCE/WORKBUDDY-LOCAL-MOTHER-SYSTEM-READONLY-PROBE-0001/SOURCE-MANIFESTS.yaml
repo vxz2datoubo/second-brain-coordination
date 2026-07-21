@@ -1,0 +1,207 @@
+schema_version: "1.0"
+task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+agent_id: "WORKBUDDY"
+executed_at: "2026-07-21T04:15:00Z"
+
+vipdoc:
+  root: "F:/tongdaxin/vipdoc/"
+  markets:
+    - market: "sz (深圳)"
+      subdirs:
+        - name: "lday"
+          role: "日K线"
+          file_count: 4317
+          extension: ".day"
+          record_size: "32 bytes fixed"
+          sample_file: "sz300418.day"
+          sample_size: 38400
+          sample_records: "~1200 (~3.3 years)"
+          sample_mtime: "2026-07-16T16:01:10"
+          sample_hash: "UNCOMPUTED (no approved sample copy)"
+        - name: "minline"
+          role: "1分钟K线"
+          file_count: 4299
+          extension: ".lc1"
+        - name: "fzline"
+          role: "多分钟K线 (5分钟)"
+          file_count: 4299
+          extension: ".lc5"
+        - name: "eday"
+          role: "扩展日线数据"
+          file_count: 0
+    - market: "sh (上海)"
+      subdirs:
+        - name: "lday"
+          role: "日K线"
+          extension: ".day"
+        - name: "minline"
+          role: "1分钟K线"
+          extension: ".lc1"
+        - name: "fzline"
+          role: "多分钟K线"
+          extension: ".lc5"
+        - name: "eday"
+          role: "扩展日线"
+          file_count: 0
+      total_entries: 14415
+    - market: "bj (北交所)"
+      total_entries: 1001
+      subdirs: ["lday", "minline", "fzline", "eday"]
+    - market: "ds (??科创板/中小板??)"
+      total_entries: 103360
+      subdirs: ["lday", "minline", "fzline"]
+    - market: "cw (财务数据)"
+      total_entries: 1
+      subdirs: []
+      note: "empty directory"
+    - market: "ot (??其他??)"
+      total_entries: 1
+      subdirs: []
+      note: "empty directory"
+  total_entries: 131706
+  binary_format:
+    record_size: 32
+    fields_documented:
+      - name: "date"
+        offset: 0
+        size: 4
+        type: "uint32 LE"
+        encoding: "TDX proprietary (year*10000 + month*100 + day)"
+      - name: "open"
+        offset: 4
+        size: 4
+        type: "uint32 LE"
+        encoding: "price * 100 (integer cents)"
+      - name: "high"
+        offset: 8
+        size: 4
+        type: "uint32 LE"
+      - name: "low"
+        offset: 12
+        size: 4
+        type: "uint32 LE"
+      - name: "close"
+        offset: 16
+        size: 4
+        type: "uint32 LE"
+      - name: "amount"
+        offset: 20
+        size: 4
+        type: "uint32 LE (or float?)"
+        confidence: "UNKNOWN — needs parser verification"
+      - name: "volume"
+        offset: 24
+        size: 4
+        type: "uint32 LE"
+      - name: "reserved"
+        offset: 28
+        size: 4
+        type: "uint32"
+        confidence: "UNKNOWN — reserved field"
+    parser_feasibility: "HIGH — fixed 32-byte records, well-documented format in TDX community"
+    known_libraries: ["pytdx", "tdxpy", "mootdx"]
+    sample_hex: "7264 3401 a306 0000 cc06 0000 8b06 0000 c106 0000 109b 5e4d 1755 cf00 0000 0100"
+
+tq_exports:
+  - source: "F:/aidanao/交流文件/TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006/"
+    files:
+      - name: "TQ-LOCAL-RAW.jsonl"
+        role: "TQ本地工具原始输出"
+        format: "JSONL"
+      - name: "TQ-LOCAL-TOOL-CATALOG.md"
+        role: "TQ工具目录文档"
+        format: "Markdown"
+      - name: "TQ-PYTHON-REVIEW.md"
+        role: "TQ Python接口审查"
+        format: "Markdown"
+      - name: "skills/tdx-tq-local.zip"
+        role: "TQ本地技能包"
+        format: "ZIP archive"
+    note: "已由Codex审计(审计报告ID: TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006)"
+  - source: "F:/tongdaxin/T0001/export/"
+    role: "通达信用户导出目录"
+    status: "EXISTS — content not inspected (safety boundary: no credential/sensitive reads)"
+  - source: "F:/tongdaxin/PYPlugins/sys/tqcenter.py"
+    role: "TQ Python桥接入口(系统级)"
+    status: "EXISTS"
+    note: "v1.0.4, TPythClient.dll wrapper, InitConnect requires TdxW embedded runtime"
+
+data_candidates:
+  root: "F:/aidanao/data/"
+  total_size: "~203 MB"
+  candidates:
+    - path: "raw/tushare/"
+      size: "153 MB"
+      source_class: "Tushare Pro API export"
+      license_flag: "LICENSE_RESTRICTED (third-party data)"
+      privacy_flag: "PRIVATE_KNOWLEDGE"
+      schema_candidates: ["daily", "moneyflow", "adj_factor", "fina_indicator"]
+      record_estimate: "UNKNOWN"
+    - path: "raw/westock_info/"
+      size: "220 KB"
+      source_class: "WeStock metadata cache"
+      license_flag: "LICENSE_RESTRICTED"
+      privacy_flag: "PRIVATE_KNOWLEDGE"
+    - path: "news_db/"
+      size: "1.4 MB"
+      source_class: "Structured news database (SQLite/JSON)"
+      license_flag: "LICENSE_RESTRICTED (news content)"
+      privacy_flag: "PUBLIC_SAFE_METADATA_ONLY (titles/links may be public)"
+    - path: "news_index/"
+      size: "186 KB"
+      source_class: "News factor index (CSV)"
+      license_flag: "LICENSE_RESTRICTED"
+      privacy_flag: "PUBLIC_SAFE_METADATA_ONLY"
+    - path: "knowledge-graph.json"
+      size: "UNKNOWN"
+      source_class: "Second Brain knowledge graph"
+      license_flag: "PRIVATE_KNOWLEDGE"
+      privacy_flag: "PRIVATE_KNOWLEDGE"
+    - path: "wallet.json"
+      size: "UNKNOWN"
+      source_class: "Asset wallet"
+      license_flag: "RESTRICTED_NEVER_SYNC"
+      privacy_flag: "RESTRICTED_NEVER_SYNC (contains API token references)"
+      note: "credential values NOT read per safety boundary"
+    - path: "audit/"
+      size: "13 MB"
+      source_class: "Audit records"
+      license_flag: "PUBLIC_SAFE (sanitized summaries)"
+      privacy_flag: "PRIVATE_KNOWLEDGE (raw data)"
+    - path: "unified/"
+      size: "1.4 MB"
+      source_class: "Unified data schema/manifests"
+      license_flag: "PUBLIC_SAFE"
+      privacy_flag: "PUBLIC_SAFE"
+    - path: "decision_audit/"
+      source_class: "Decision audit trail"
+      license_flag: "PUBLIC_SAFE"
+      privacy_flag: "PRIVATE_KNOWLEDGE"
+    - path: "evolution/"
+      source_class: "Evolution/market tracking"
+      license_flag: "LICENSE_RESTRICTED"
+      privacy_flag: "PRIVATE_KNOWLEDGE"
+    - path: "T仓接回链_昆仑_2026-07-02.csv"
+      source_class: "T position tracking"
+      license_flag: "SENSITIVE_LOCAL_ONLY"
+      privacy_flag: "SENSITIVE_LOCAL_ONLY"
+
+brain_core:
+  root: "F:/aidanao/second_brain/core/"
+  modules:
+    - name: "cognition"
+      role: "认知模块"
+      files_found: true
+      adapter_hooks: "UNKNOWN (directory listed, content not audited per safety boundary)"
+    - name: "emotion"
+      role: "情绪模块"
+    - name: "knowledge"
+      role: "知识模块"
+    - name: "meta"
+      role: "元认知模块"
+    - name: "social"
+      role: "社交模块"
+  contract_surface: "UNKNOWN — directory-level only; source files not inspected"
+  import_faces: "UNKNOWN"
+  test_commands: "UNKNOWN"
+  note: "brain_core audit limited to directory structure per safety boundary. Full static signature inventory requires source code read which is outside current read-only metadata probe scope."

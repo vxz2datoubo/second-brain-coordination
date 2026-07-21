@@ -1,0 +1,37 @@
+schema_version: "1.0"
+handoff_type: "ThreeAgentEvidenceHandoff"
+
+agent_id: "WORKBUDDY"
+target_agent: "CODEX"
+task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+target_task_id: "A-SHARE-LOCAL-ADAPTER-CONTRACTS-IMPLEMENTATION-0004"
+target_issue: 50
+
+status: "EVIDENCE_DELIVERED"
+privacy_class: "PUBLIC_SAFE_METADATA_ONLY"
+authority_level: "VERIFIED_FIELD_OBSERVATION"
+
+delivered_evidence:
+  - file: "SOURCE-MANIFESTS.yaml"
+    contains: "vipdoc structure, file counts, binary format, TQ export locations, data classification, brain_core modules"
+  - file: "FIELD-SEMANTICS.md"
+    contains: ".day record layout (8 fields, 32 bytes), .lc1/.lc5 format notes, encoding rules, known ambiguities"
+  - file: "CAPABILITY-DELTA.yaml"
+    contains: "parser feasibility assessment, adapter needs, compatibility notes, what is blocked"
+  - file: "PRIVACY-AND-LICENSE-CLASSIFICATION.md"
+    contains: "6-level classification of 17 data candidates"
+
+key_facts_for_codex:
+  - ".day files: fixed 32-byte records, 4300+ stocks, ready for parser implementation"
+  - ".lc1/.lc5 files exist but format needs parser verification before production use"
+  - "vipdoc ds/ market identity is UNKNOWN — needs clarification before adapter scoping"
+  - "TQ exports already catalogued in prior audit (TDX-OFFICIAL-ENTRY-RUNTIME-AUDIT-0006)"
+  - "No Level-2 tick/order book data available in vipdoc"
+
+what_workbuddy_cannot_provide:
+  - "TQ runtime invocation results (blocked by safety boundary)"
+  - "HTTP 8766 health check (awaiting user approval)"
+  - "brain_core source code signatures (directory-only audit)"
+  - "Actual .lc1/.lc5 binary parse verification"
+
+rollback: "Discard this handoff; evidence files are immutable records of read-only probe."
