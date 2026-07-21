@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p3:SourceActivationPolicy:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_id", "manifest_id", "artifact_sha256", "purpose", "authority_write", "no_trade_gate", "realtime_enabled", "raw_export_allowed", "schema_version"],
+  "properties": {
+    "policy_id": {"type": "string", "minLength": 1},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "purpose": {"const": "LOCAL_RESEARCH_ONLY"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true},
+    "realtime_enabled": {"const": false},
+    "raw_export_allowed": {"const": false},
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+  }
+}
