@@ -1,0 +1,47 @@
+task_id: WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001
+status: PROPOSED_REQUIRES_APPROVAL
+source_agent: CODEX
+target_agent: WORKBUDDY
+reviewer: GPT
+scope: "Read-only evidence collection for local adapter feasibility."
+forbidden:
+  - "broker, account, asset, position, order, cancel, or login calls"
+  - "service start, stop, restart, or port reconfiguration"
+  - "writes under F:/aidanao/data, bulletin, logs, or runtime state"
+  - "credential value collection or publication"
+  - "TdxQuant or TDX MCP runtime invocation in this probe"
+probes:
+  - id: WB-P-001
+    target: "F:/tongdaxin/vipdoc metadata and approved offline sample"
+    method: "metadata/hash plus isolated copy of an owner-approved non-sensitive sample"
+    evidence: "path class, size, mtime, hash, parser feasibility, documented field semantics"
+  - id: WB-P-002
+    target: "user-provided TQ exports"
+    method: "manifest and sample schema only; no TQ runtime call"
+    evidence: "tool/version if supplied, export timestamp semantics, field list, entitlement statement"
+  - id: WB-P-003
+    target: "F:/aidanao data candidates"
+    method: "metadata and manifest classification"
+    evidence: "source class, license/privacy flag, raw hash, record count, schema guess marked unknown"
+  - id: WB-P-004
+    target: "brain_core static public signatures"
+    method: "read-only source signature inventory"
+    evidence: "contract names, import surface, adapter hooks, test commands; no source rewrite"
+  - id: WB-P-005
+    target: "HTTP 8766 narrow health/read contract"
+    method: "only after owner approval; one allow-listed loopback request with no state change"
+    evidence: "request/response schema, status, timestamp, capability limits"
+outputs:
+  directory: "coordination/EVIDENCE/WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+  required:
+    - "PROBE-MANIFEST.yaml"
+    - "SOURCE-MANIFESTS.yaml"
+    - "FIELD-SEMANTICS.md"
+    - "CAPABILITY-DELTA.yaml"
+    - "PRIVACY-AND-LICENSE-CLASSIFICATION.md"
+    - "RUN-RECEIPT.md"
+acceptance:
+  - "Every assertion is tied to raw evidence or labeled unknown."
+  - "No runtime service, account, broker, credential, or trading operation occurs."
+  - "Each copied sample is separately approved and hashed."
+rollback: "Delete only the probe-owned isolated evidence directory after retention approval; never alter source files."

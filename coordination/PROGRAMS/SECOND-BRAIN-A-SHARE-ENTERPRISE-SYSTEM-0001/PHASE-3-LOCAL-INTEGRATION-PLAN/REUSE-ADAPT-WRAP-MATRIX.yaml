@@ -1,0 +1,73 @@
+schema_version: "1.0"
+decision_rule: "One declared system of record per object class; adapters carry lineage and never silently promote legacy data."
+items:
+  - id: R-001
+    asset: "P1 shared envelope and temporal/lineage/quality/capability semantics"
+    action: REUSE
+    target: "all local adapter envelopes"
+    evidence: "P1 compatibility matrix"
+  - id: R-002
+    asset: "P2 deterministic offline vertical slice"
+    action: REUSE_REFERENCE
+    target: "offline regression harness"
+    constraint: "Synthetic reference only until real-data adapter acceptance."
+  - id: R-003
+    asset: "brain_core/contracts.py"
+    action: ADAPT
+    target: "local mother-system domain projection"
+    evidence: "static type inventory"
+  - id: R-004
+    asset: "brain_core/foundation_data_governance.py"
+    action: ADAPT
+    target: "lineage, quality, entitlement, and capability negotiation"
+    evidence: "static type inventory"
+  - id: R-005
+    asset: "brain_core/service.py"
+    action: WRAP
+    target: "narrow approved read-only gateway"
+    constraint: "No broad write, no authority promotion, no service lifecycle operation."
+  - id: R-006
+    asset: "server.py HTTP 8766"
+    action: WRAP
+    target: "future health/read contract only"
+    constraint: "Requires explicit approval and response-schema probe."
+  - id: R-007
+    asset: "legacy HTTP/MCP port 8767"
+    action: UNKNOWN
+    target: "none"
+    constraint: "Reserved/conflicted; do not activate."
+  - id: R-008
+    asset: "vipdoc day and minute files"
+    action: ADAPT
+    target: "offline historical bar adapter"
+    constraint: "Format and corporate-action semantics must be evidenced."
+  - id: R-009
+    asset: "TQ exported files"
+    action: ADAPT
+    target: "offline provider-specific adapter"
+    constraint: "No undocumented field inference; export provenance required."
+  - id: R-010
+    asset: "local CSV JSON JSONL samples"
+    action: ADAPT
+    target: "manifest-gated offline adapter"
+    constraint: "Classify historical_verified, payload_sample_only, or legacy_unknown."
+  - id: R-011
+    asset: "data SQLite, audit JSONL, and mutable state"
+    action: MIGRATE_CANDIDATE
+    target: "read-only inventory then governed projection"
+    constraint: "No overwrite, no bulk import, no Git publication."
+  - id: R-012
+    asset: "QCLAW LearningPacket candidate"
+    action: ADAPT
+    target: "candidate packet compatibility layer"
+    constraint: "CANDIDATE_ONLY; cannot overwrite approved learning authority."
+  - id: R-013
+    asset: "WorkBuddy capability claims and local evidence"
+    action: WRAP
+    target: "evidence-backed capability manifest"
+    constraint: "Proposed until read-only probe and review."
+  - id: R-014
+    asset: "knowledge directory hierarchy"
+    action: ADAPT
+    target: "authorized semantic gateway"
+    constraint: "Credential values remain local-only and reference-only."

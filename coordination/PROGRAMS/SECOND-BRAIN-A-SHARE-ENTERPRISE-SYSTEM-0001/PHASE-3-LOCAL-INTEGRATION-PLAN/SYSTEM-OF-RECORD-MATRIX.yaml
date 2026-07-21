@@ -1,0 +1,43 @@
+schema_version: "1.0"
+invariant: "An adapter is not a record authority. Every record carries authority_id, source_manifest_id, schema_version, and lineage digest."
+object_classes:
+  - object_class: blueprint_and_governance_rules
+    authority: "approved authoritative blueprint and coordination records"
+    projection: "public Git coordination repository"
+    write_policy: "approval-controlled"
+  - object_class: P1_P2_reference_contracts_and_synthetic_tests
+    authority: "merged public coordination artifacts"
+    projection: "public Git"
+    write_policy: "PR review"
+  - object_class: authorized_private_knowledge_body
+    authority: "future declared private/local knowledge authority"
+    projection: "reference/digest only in public artifacts"
+    write_policy: "owner-authorized governed gateway"
+  - object_class: credential_value
+    authority: "local credential store"
+    projection: "reference_id and verification digest only"
+    write_policy: "local-only; never public"
+  - object_class: local_legacy_knowledge_and_runtime_state
+    authority: "legacy candidate pending inventory"
+    projection: "read-only adapter"
+    write_policy: "no canonical promotion without migration gate"
+  - object_class: raw_market_data
+    authority: "declared provider/source manifest for each dataset"
+    projection: "immutable raw artifact pointer"
+    write_policy: "append/copy only in approved local storage"
+  - object_class: normalized_market_data_and_features
+    authority: "governed local dataset snapshot after acceptance"
+    projection: "versioned derived record"
+    write_policy: "reproducible pipeline only"
+  - object_class: LearningPacket
+    authority: "approved learning authority when declared"
+    projection: "candidate compatibility packet before approval"
+    write_policy: "candidate cannot overwrite approved state"
+  - object_class: service_health
+    authority: "service registry plus timestamped runtime probe"
+    projection: "read-only status"
+    write_policy: "registry update requires port/governance procedure"
+conflict_resolution:
+  - "Prefer approved authority over legacy, candidate, or inferred content."
+  - "Retain source mapping and conflict record; never silently merge conflicting semantics."
+  - "Unknown provenance blocks production promotion and trading use."

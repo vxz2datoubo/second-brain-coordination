@@ -1,0 +1,26 @@
+schema_version: "1.0"
+milestones:
+  - id: M0
+    state: COMPLETE_PLANNING
+    criterion: "All Phase 3 planning artifacts are internally consistent and public-safe."
+  - id: M1
+    state: AWAITING_EVIDENCE
+    criterion: "WorkBuddy returns read-only manifests with field semantics and privacy/license classification."
+  - id: M2
+    state: READY_FOR_IMPLEMENTATION_REVIEW
+    criterion: "One offline source has an approved manifest, bounded fixture, and parser mapping."
+  - id: M3
+    state: EXPERIMENTAL_IMPLEMENTATION
+    criterion: "Isolated adapter passes contract, point-in-time, T+1, limit/suspension, and deterministic rerun tests."
+  - id: M4
+    state: GOVERNED_REVIEW
+    criterion: "Lineage, authority, rollback, and knowledge compatibility evidence are independently reviewed."
+hard_gates:
+  - "No source without provenance/availability semantics reaches replay promotion."
+  - "No candidate learning packet overwrites approved authority."
+  - "No secret value or proprietary raw data enters public Git."
+  - "No broker/realtime/order capability is introduced."
+rollback:
+  - "Implementation uses isolated branch/worktree and append-only fixture directory."
+  - "Rejecting an adapter removes only its derived projection and registry entry, preserving raw reference and evidence."
+  - "A failed gate emits an abstention record, not a silent fallback."
