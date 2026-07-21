@@ -24,5 +24,10 @@ unknowns:
     gate: use_explicit_query_aliases_and_public_safe_fixture_mappings_only
   - id: P4-UNK-006
     subject: real_local_gateway_operational_status
-    status: PENDING_READONLY_PROBE
-    gate: final_status_WAITING_LOCAL_EVIDENCE_or_PARTIAL_if_no_hash_bound_probe_passes
+    status: PARTIALLY_VERIFIED_FILE_ADAPTER_ONLY
+    gate: do_not_generalize_to_directory_or_existing_service_without_source_specific_probe
+  - id: P4-UNK-007
+    subject: duplicate_semantic_blocks_in_local_sources
+    status: RESOLVED_BY_DETERMINISTIC_DEDUPLICATION
+    detail: one authorized blueprint contained repeated normalized blocks that initially produced duplicate content-addressed atom IDs
+    gate: merge_document_lineage_for_identical_normalized_semantics

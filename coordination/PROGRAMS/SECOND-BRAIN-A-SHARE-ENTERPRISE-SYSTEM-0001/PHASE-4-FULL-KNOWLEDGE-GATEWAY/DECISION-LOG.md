@@ -30,3 +30,9 @@
 - status: ACCEPTED
 - decision: current queries exclude superseded atoms; explicit historical queries may include them and must label them historical.
 - reason: Issue #38 requires current/history separation without destroying history.
+
+## D-006: Consolidate Duplicate Semantic Blocks
+
+- status: ACCEPTED
+- decision: identical normalized source blocks produce one content-addressed atom with all document references retained.
+- reason: the authorized local probe exposed repeated semantic blocks; preserving each as a separate atom would cause duplicate inflation and invalid packet identities.

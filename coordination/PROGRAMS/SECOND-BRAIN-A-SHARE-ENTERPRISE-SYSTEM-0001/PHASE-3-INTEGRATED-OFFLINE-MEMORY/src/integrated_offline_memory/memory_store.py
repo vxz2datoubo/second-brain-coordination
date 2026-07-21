@@ -12,6 +12,7 @@ from typing import Any, Iterator
 
 from .canonical import content_hash, normalize_text
 from .learning_packet import verify_learning_packet
+from .security import contains_credential_value
 
 
 ALLOWED_TRUTH_STATES = {"candidate", "approved", "conflict", "superseded", "unknown"}
@@ -99,6 +100,15 @@ CREATE TABLE IF NOT EXISTS audit_events (
     detail TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS knowledge_sources (
+    manifest_id TEXT PRIMARY KEY,
+    manifest_hash TEXT NOT NULL,
+    policy_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    public_metadata TEXT NOT NULL,
+    registered_at TEXT NOT NULL,
+    revoked_at TEXT
+);
 CREATE TABLE IF NOT EXISTS retrieval_terms (
     atom_id TEXT NOT NULL,
     term TEXT NOT NULL,
@@ -112,6 +122,7 @@ CREATE INDEX IF NOT EXISTS idx_atoms_type ON atoms(atom_type);
 CREATE INDEX IF NOT EXISTS idx_terms_term ON retrieval_terms(term);
 CREATE INDEX IF NOT EXISTS idx_rel_source ON relations(source_atom_id);
 CREATE INDEX IF NOT EXISTS idx_rel_target ON relations(target_atom_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_sources_status ON knowledge_sources(status);
 """
 
 
@@ -296,12 +307,67 @@ class MemoryStore:
             self._audit(connection, "PACKET_IMPORT", packet["packet_id"], f"atoms_inserted={inserted};revision={revision_id}")
         return {"status": "IMPORTED", "packet_id": packet["packet_id"], "atoms_inserted": inserted, "revision_id": revision_id}
 
+    def register_knowledge_source(
+        self,
+        *,
+        manifest_id: str,
+        manifest_hash: str,
+        policy_id: str,
+        public_metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not manifest_id or not re.fullmatch(r"[0-9a-f]{64}", manifest_hash):
+            raise ValueError("knowledge_source_registration_invalid")
+        if _contains_secret_value(public_metadata):
+            raise ValueError("credential_value_denied")
+        if any(key in public_metadata for key in {"content", "body", "raw_text", "credential_value"}):
+            raise ValueError("knowledge_source_private_body_or_secret_metadata_denied")
+        encoded = json.dumps(public_metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        existing = self.conn.execute(
+            "SELECT manifest_hash, status FROM knowledge_sources WHERE manifest_id=?",
+            (manifest_id,),
+        ).fetchone()
+        if existing and existing["manifest_hash"] != manifest_hash:
+            raise ValueError("knowledge_source_manifest_hash_conflict")
+        with self.transaction() as connection:
+            connection.execute(
+                """INSERT INTO knowledge_sources(manifest_id, manifest_hash, policy_id, status, public_metadata, registered_at, revoked_at)
+                   VALUES(?,?,?,?,?,?,NULL)
+                   ON CONFLICT(manifest_id) DO UPDATE SET policy_id=excluded.policy_id,
+                   public_metadata=excluded.public_metadata""",
+                (manifest_id, manifest_hash, policy_id, "ACTIVE", encoded, _now()),
+            )
+            self._audit(connection, "KNOWLEDGE_SOURCE_REGISTER", manifest_id, "metadata_only=true;status=ACTIVE")
+        return {"manifest_id": manifest_id, "manifest_hash": manifest_hash, "status": self.source_status(manifest_id)}
+
+    def source_status(self, manifest_id: str) -> str:
+        row = self.conn.execute("SELECT status FROM knowledge_sources WHERE manifest_id=?", (manifest_id,)).fetchone()
+        return row["status"] if row else "UNREGISTERED"
+
+    def is_source_revoked(self, manifest_id: str) -> bool:
+        return self.source_status(manifest_id) == "REVOKED"
+
+    def revoke_knowledge_source(self, manifest_id: str, reason_code: str) -> dict[str, Any]:
+        if self.source_status(manifest_id) == "UNREGISTERED":
+            raise ValueError("knowledge_source_not_registered")
+        if not re.fullmatch(r"[a-z0-9_:-]{1,80}", reason_code or "") or _contains_secret_value(reason_code):
+            raise ValueError("knowledge_source_revocation_reason_invalid")
+        with self.transaction() as connection:
+            connection.execute(
+                "UPDATE knowledge_sources SET status='REVOKED', revoked_at=? WHERE manifest_id=?",
+                (_now(), manifest_id),
+            )
+            self._audit(connection, "KNOWLEDGE_SOURCE_REVOKE", manifest_id, "reason_code=" + reason_code)
+        return {"manifest_id": manifest_id, "status": "REVOKED", "reason_code": reason_code}
+
     def latest_revision_id(self) -> str:
         row = self.conn.execute("SELECT revision_id FROM revisions ORDER BY rowid DESC LIMIT 1").fetchone()
         return row["revision_id"] if row else "candidate-r0"
 
     def stats(self) -> dict[str, int]:
-        names = ("atoms", "relations", "conflicts", "unknowns", "packets", "revisions", "audit_events", "retrieval_terms")
+        names = (
+            "atoms", "relations", "conflicts", "unknowns", "packets", "revisions",
+            "audit_events", "retrieval_terms", "knowledge_sources",
+        )
         return {name: int(self.conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]) for name in names}
 
     def integrity_check(self) -> dict[str, Any]:
@@ -373,17 +439,7 @@ def _validate_atom(atom: dict[str, Any]) -> None:
 
 
 def _contains_secret_value(value: Any) -> bool:
-    if isinstance(value, str):
-        return bool(_SECRET.search(value))
-    if isinstance(value, list):
-        return any(_contains_secret_value(item) for item in value)
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if str(key).casefold() in _SECRET_VALUE_KEYS and item not in (None, ""):
-                return True
-            if _contains_secret_value(item):
-                return True
-    return False
+    return contains_credential_value(value)
 
 
 def _atom(row: sqlite3.Row) -> dict[str, Any]:

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:KnowledgeGatewayPolicy:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_id", "manifest_id", "manifest_hash", "allowed_scopes", "allowed_content_classes", "gpt_access", "credential_values_denied", "private_bodies_public", "read_only", "authority_write", "no_trade_gate", "active", "schema_version"],
+  "properties": {
+    "policy_id": {"type": "string", "minLength": 1},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "manifest_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "allowed_scopes": {"type": "array"},
+    "allowed_content_classes": {"type": "array", "minItems": 1},
+    "gpt_access": {"const": "FULL_SEMANTIC_ACCESS"},
+    "credential_values_denied": {"const": true},
+    "private_bodies_public": {"const": false},
+    "read_only": {"const": true},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true},
+    "active": {"type": "boolean"},
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+  }
+}
