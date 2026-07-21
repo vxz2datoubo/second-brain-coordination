@@ -1,4 +1,4 @@
-schema_version: "1.8"
+schema_version: "1.9"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -8,59 +8,58 @@ trigger_phrases:
   - "执行任务"
   - "开始任务"
 
-active_issue: 47
-task_id: "A-SHARE-LOCAL-MOTHER-SYSTEM-ADAPTER-PLAN-0003"
-mode: "project_plan"
-mode_label: "项目计划模式"
-status: "READY"
-blocked_by: "none"
+active_issue: 50
+task_id: "A-SHARE-LOCAL-ADAPTER-CONTRACTS-IMPLEMENTATION-0004"
+mode: "goal"
+mode_label: "目标模式"
+status: "READY_WITH_EVIDENCE_GATE"
+blocked_by: "Real offline source binding waits for GPT acceptance of WorkBuddy Issue #49 evidence; contract skeleton and synthetic implementation are unblocked."
 parent_program: 31
-phase: "P3_LOCAL_MOTHER_SYSTEM_ADAPTER_PLAN"
+phase: "P3_LOCAL_ADAPTER_IMPLEMENTATION"
 
 completed_predecessor:
-  issue: 39
-  pr: 41
-  status: "ACCEPTED_WITH_FINDINGS_AND_MERGED"
-  merge_commit: "59aaff2469a741a1eeca86085b4a3268ddc902a0"
+  issue: 47
+  pr: 48
+  status: "ACCEPTED_WITH_EXECUTION_SPLIT_AND_MERGED"
+  merge_commit: "bea58ed279f77ea939b7049df770cc66fd608db0"
 
 parallel_with:
+  - agent: "WORKBUDDY"
+    issue: 49
+    task_id: "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001"
+    rule: "Consume only GPT-accepted evidence; do not guess local field semantics."
   - agent: "QCLAW"
     issue: 43
     pr: 45
-    rule: "Read public-safe contracts for compatibility; do not modify or preempt QQ work."
-  - agent: "WORKBUDDY"
-    issue: 32
-    pr: 34
-    rule: "Use field evidence as proposed input; produce a separate read-only probe task."
+    rule: "Build compatibility tests without modifying or promoting QQ candidate authority."
 
 required_inputs:
-  - "Issue #47正文与全部评论"
+  - "Issue #50正文与全部评论"
   - "最新main、AGENTS.md与CODEX-TASK-ROUTER.md"
-  - "PR #37和PR #41合并成果"
-  - "Issue #31、#38、#43与PR #45"
-  - "WorkBuddy PR #34"
-  - "PR #27、#28、#29遗留后端发现成果"
-  - "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
-  - "coordination/AUTHORIZATION/CREDENTIAL-LOCAL-ONLY-EXCEPTION-v1.0.yaml"
+  - "PR #37、#41、#48合并成果"
+  - "Phase 3 local integration plan artifacts"
+  - "Issue #49 evidence when accepted by GPT"
+  - "Issue #43 and PR #45 candidate memory contracts"
+  - "Complete knowledge and credential-local-only authorization files"
 
 required_action:
-  - "审计真实母系统与P2参考实现的REUSE/ADAPT/WRAP/MIGRATE/UNKNOWN边界。"
-  - "建立唯一系统记录源矩阵，禁止创建第二套领域权威。"
-  - "规划通达信vipdoc、TQ导出与本地CSV/JSON真实离线数据适配。"
-  - "对齐Codex知识合同与QQ候选记忆库、GPT FULL_SEMANTIC_ACCESS。"
-  - "设计凭证值仅本地、知识内容完整访问的分层架构。"
-  - "产出WorkBuddy可执行的只读现场探针任务。"
-  - "形成分阶段执行DAG、验收门、回滚、风险与UNKNOWN。"
-  - "提交完整反馈v2、校准、AI_HANDOFF、检查点和独立Draft PR。"
+  - "Implement SourceManifest, AdapterCapability, AdapterResult, CredentialReference and LocalArtifactReference contracts."
+  - "Implement manifest parsing, cross-field quality gates and explicit status outcomes."
+  - "Implement offline, knowledge, learning-packet and capability-probe adapter interfaces with synthetic/in-memory adapters."
+  - "Reuse P1/P2 contracts and preserve one system of record."
+  - "Add deterministic CSV/JSON/JSONL synthetic replay and negative tests."
+  - "Add QQ LearningPacket/ContextBundle compatibility tests without authority promotion."
+  - "After GPT accepts Issue #49, bind exactly one manifest-complete real offline source."
+  - "Maintain 20/40/60/80/100 checkpoints and submit an independent Draft PR."
 
 execution_contract:
   sync_latest_main: true
   create_independent_branch: true
-  recommended_branch: "codex/local-mother-system-adapter-plan-0003"
+  recommended_branch: "codex/local-adapter-contracts-implementation-0004"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
-  report_to_issues: [47, 31, 38]
+  report_to_issues: [50, 31, 38]
   progress_checkpoints: [20, 40, 60, 80, 100]
   resumable_execution_required: true
   feedback_schema: "Agent execution feedback v2 full template"
@@ -69,25 +68,13 @@ execution_contract:
 safety_boundary:
   research_only: true
   no_trade: true
-  planning_and_public_safe_probe_framework_only: true
-  no_private_knowledge_publication: true
-  credential_values_local_only: true
-  no_service_start_stop_or_change: true
   no_realtime_or_broker_connection: true
   no_order_path: true
-  no_cloud_resource_creation: true
+  no_service_start_stop_or_change: true
+  credential_values_local_only: true
+  no_private_knowledge_publication: true
   no_direct_main_write: true
 
-risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
-  user_approval_required_now: false
-  stop_and_request_user_approval_before:
-    - "真实私人知识或凭证值离开本地"
-    - "启动、停止、迁移或修改真实服务"
-    - "创建私有Git、Supabase、对象存储或其他云资源"
-    - "连接实时行情、券商、账户或订单路径"
-    - "修改或公开受保护蓝图正文"
-
-notes: "当前唯一Codex任务是Issue #47。用户只需对Codex说‘读取任务’。本轮明确使用项目计划模式，因为本地接口、复用边界和现场能力仍有大量UNKNOWN。"
+notes: "Current unique Codex task is Issue #50. User only needs to tell Codex '读取任务'. Synthetic and contract implementation may start now; real source binding waits for accepted WorkBuddy evidence."
 updated_by: "GPT"
 updated_at: "2026-07-21"
