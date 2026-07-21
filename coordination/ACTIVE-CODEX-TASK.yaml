@@ -1,4 +1,4 @@
-schema_version: "2.0"
+schema_version: "2.1"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -15,9 +15,7 @@ mode: "goal"
 mode_label: "目标模式"
 status: "READY"
 blocked_by: "none"
-dependencies:
-  synthetic_contract_scope: "SATISFIED"
-  real_source_binding: "NOT_ACTIVATED"
+review_gate: "CHANGES_REQUIRED_ON_PR_51"
 parent_program: 31
 phase: "P3_LOCAL_ADAPTER_IMPLEMENTATION_SYNTHETIC_FIRST"
 
@@ -30,7 +28,8 @@ completed_predecessor:
 parallel_with:
   - agent: "WORKBUDDY"
     issue: 49
-    rule: "Current synthetic implementation proceeds independently. Accepted field evidence is used only in a later phase."
+    pr: 52
+    rule: "Evidence is reviewed separately; real-source binding remains outside current scope."
   - agent: "QCLAW"
     issue: 43
     pr: 45
@@ -38,6 +37,7 @@ parallel_with:
 
 required_inputs:
   - "Issue #50正文与全部评论"
+  - "PR #51全部GPT审查意见"
   - "最新main、AGENTS.md与CODEX-TASK-ROUTER.md"
   - "task_impact_forecast"
   - "PR #37、#41、#48合并成果"
@@ -46,20 +46,19 @@ required_inputs:
   - "Repository authorization policies"
 
 required_action:
-  - "Implement machine contracts and schemas defined in Issue #50."
-  - "Implement manifest parsing and cross-field validation."
-  - "Implement synthetic and in-memory adapter interfaces."
-  - "Reuse P1/P2 ownership and preserve one system of record."
-  - "Add deterministic CSV/JSON/JSONL synthetic replay."
-  - "Add negative and compatibility tests."
-  - "Keep real source binding outside the current activated scope."
-  - "Report 20/40/60/80/100 checkpoints and submit a Draft PR."
+  - "Fix credential-value classification so terminology, documentation and metadata remain searchable."
+  - "Add deterministic Chinese and mixed-language retrieval."
+  - "Preserve conflict, superseded and unknown knowledge states under full semantic access."
+  - "Separate valid local content classes from the real-source activation gate."
+  - "Reject or downgrade unknown and undeclared license states."
+  - "Add machine-readable schemas and serialization compatibility tests."
+  - "Keep all existing tests and add regression coverage for review findings."
+  - "Update the same Draft PR #51 and report revised evidence."
 
 execution_contract:
   sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "codex/local-adapter-contracts-implementation-0004"
-  create_pull_request: true
+  continue_existing_branch: "codex/local-adapter-contracts-implementation-0004"
+  update_existing_pull_request: 51
   draft_pull_request: true
   auto_merge: false
   report_to_issues: [50, 31, 38]
@@ -88,6 +87,6 @@ risk_gate:
     - "realtime or execution integration"
     - "new system-of-record authority"
 
-notes: "Issue #50 is executable now. Start the synthetic contract, manifest gate, adapter skeleton and test scope. WorkBuddy #49 gates only a later real-source phase."
+notes: "PR #51 is not accepted yet. Continue Issue #50 and resolve the GPT review findings in the same Draft PR."
 updated_by: "GPT"
 updated_at: "2026-07-21"
