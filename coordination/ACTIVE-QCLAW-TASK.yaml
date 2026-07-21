@@ -1,85 +1,55 @@
-schema_version: "1.4"
+schema_version: "1.5"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 agent_aliases: ["Q", "QQ"]
-
-trigger_phrases:
-  - "读取任务"
-  - "执行任务"
-  - "开始任务"
-
-active_issue: 43
-task_id: "QCLAW-CANDIDATE-MEMORY-LIBRARY-RETRIEVAL-0004"
-mode: "goal_complete_private_memory"
-mode_label: "目标模式＋完整私人记忆工程"
+trigger_phrases: ["读取任务", "执行任务", "开始任务"]
+active_issue: 56
+task_id: "QCLAW-UNIFIED-MEMORY-PIPELINE-RETRIEVAL-HARDENING-0005"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-UNIFIED-MEMORY-PIPELINE-RETRIEVAL-HARDENING-0005.yaml"
+mode: "goal_unified_memory"
+mode_label: "目标模式＋统一记忆工程"
 status: "READY"
 blocked_by: "none"
 parent_program: 31
-impact_forecast_issue: 44
-
+parent_wave: 53
+primary_pull_request: 46
+source_pull_request: 45
+codex_contract_merge: "499e44d7bb25fb15b0778a86f0858d81f506cad6"
 user_authorization:
-  directive_file: "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
-  semantic_policy: "All user-authorized knowledge may be fully learned, atomized, merged and retrieved without content-class redaction."
+  semantic_policy: "All user-authorized knowledge remains fully learnable, mergeable and retrievable."
   gpt_access_default: "FULL_SEMANTIC_ACCESS"
-  private_internal_paid_content: "FULL_CONTENT_ALLOWED"
-  credential_secret_exception:
-    storage: "LOCAL_ONLY"
-    searchable_locally: true
-    publish_to_github: false
-    include_in_normal_learning_packet_body: false
-    knowledge_graph_representation: "reference_id + purpose + owning_system + update_time + verification_digest + local_location_hint"
-  api_documentation_rule: "API documentation, interface schemas and non-authentication technical content are normal knowledge and must be fully processed."
-
-completed_predecessor:
-  issue: 40
-  task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
-  status: "DRAFT_PR_45_SUBMITTED_PENDING_GPT_REVIEW"
-  pr: 45
-
+  credential_value_storage: "LOCAL_ONLY"
+  api_documentation_rule: "Normal knowledge"
 required_inputs:
-  - "AGENTS.md"
-  - "coordination/QCLAW-TASK-ROUTER.md"
-  - "coordination/ACTIVE-QCLAW-TASK.yaml"
-  - "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
-  - "Issue #43正文与全部评论"
-  - "PR #45及GPT评论"
-  - "Codex PR #41公开安全KnowledgeQuery、ContextBundle和LearningPacket实现"
-  - "Issue #44影响预测"
-
+  - "Issue #56正文与全部评论"
+  - "最新main、QCLAW-TASK-ROUTER.md与task_impact_forecast"
+  - "PR #45和PR #46全部代码、报告与GPT评论"
+  - "PR #51合并后的合同和Schema"
+  - "Issue #53、#55"
 required_action:
-  - "继续构建完整本地候选记忆库，不因私人、内部、非公开或付费类别删减知识语义。"
-  - "凭证类秘密仅保留本地可检索引用，不写入GitHub或普通LearningPacket正文。"
-  - "完成增量融合、冲突/修正/UNKNOWN保留、版本快照与可逆回滚。"
-  - "完成关键词、实体、时间、关系、冲突、UNKNOWN和技能混合检索。"
-  - "完成QueryPlan和ContextBundle，并明确检索遗漏。"
-  - "建立30+检索回归问题与Recall@K、Precision@K、MRR等指标。"
-  - "形成与Codex PR #41的兼容矩阵。"
-  - "提交完整测试、两轮哈希、完整性报告、检索报告、反馈、校准和AI_HANDOFF。"
-
+  - "Use PR #46 as the only candidate-memory implementation and absorb PR #45."
+  - "Add automatic indexing, Chinese/mixed retrieval and structured QueryPlan parsing."
+  - "Fix the retrieval regression and add CLI, scale and rollback tests."
+  - "Run executable cross-system roundtrip tests against merged Codex contracts."
+  - "Preserve candidate, conflict, superseded and unknown knowledge under full semantic access."
+  - "Update PR #46 only and report 20/40/60/80/100 checkpoints."
 execution_contract:
   sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "qclaw/candidate-memory-library-retrieval-0004"
-  create_pull_request: true
-  draft_pull_request: true
-  pull_request_title_must_include: "[agent:QCLAW]"
+  continue_existing_branch: "qclaw/candidate-memory-library-retrieval-0004"
+  update_existing_pull_request: 46
+  source_pr_to_absorb: 45
+  create_new_pull_request: false
   auto_merge: false
-  direct_main_write: false
-  report_to_issues: [43, 20, 31]
-  optional_public_safe_observation_to: [39]
+  report_to_issues: [56, 53, 43, 31]
   outcome_calibration_required: true
-
 boundaries:
-  full_private_knowledge_processing: true
   full_semantic_access_for_gpt: true
   preserve_sources_conflicts_versions_unknowns: true
-  credential_secrets_local_only: true
-  no_credential_secret_publication: true
-  no_cloud_resource_creation_without_approval: true
-  no_authority_promotion_without_governance: true
+  credential_values_local_only: true
+  candidate_only_writes: true
+  no_third_memory_implementation: true
   no_direct_main_write: true
-
-notes: "用户称QCLAW为Q或QQ。当前唯一活动任务是Issue #43。用户只需对QQ说‘读取任务’。"
+notes: "Issue #56 is the only active QCLAW task. PR #46 is primary; PR #45 is a source to absorb and supersede."
 updated_by: "GPT"
 updated_at: "2026-07-21"
