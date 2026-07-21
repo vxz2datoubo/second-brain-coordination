@@ -1,0 +1,11 @@
+schema_version: "1.0"
+command: "python run_all_tests.py"
+coverage:
+  contracts: [SourceManifest, AdapterCapability, AdapterResult, CredentialReference, LocalArtifactReference]
+  positive: [synthetic_json, synthetic_csv, synthetic_jsonl, deterministic_hash, candidate_learning_packet]
+  negative: [missing_license, invalid_timezone, future_available_at, undeclared_adjustment, incomplete_ashare_policy, hash_mismatch, unknown_entitlement, real_credential_value, candidate_authority_promotion, unsupported_format, unknown_license, unknown_field, incompatible_schema_version]
+  semantic_guards: [l2_aggregate_not_raw_trade, no_trade_gate, real_source_not_activated, valid_private_local_metadata]
+  knowledge: [context_budget, full_semantic_authorized_atoms, Chinese_company_name, Chinese_term, mixed_language, conflict, superseded, unknown, credential_documentation_allowed]
+minimum_test_count: 30
+actual_test_count: 61
+runtime_boundary: "synthetic/in-memory only"
