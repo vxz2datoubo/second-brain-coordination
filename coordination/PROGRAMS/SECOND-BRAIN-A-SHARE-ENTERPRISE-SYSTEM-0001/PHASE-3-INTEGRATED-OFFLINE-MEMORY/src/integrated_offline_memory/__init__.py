@@ -39,6 +39,13 @@ from .local_knowledge import (
     hash_local_file,
 )
 from .answer_evidence import AnswerEvidenceBundle, AnswerEvidenceCompiler
+from .feedback import (
+    FeedbackCommitReceipt,
+    FeedbackLearningPacket,
+    FeedbackProcessor,
+    FeedbackRecord,
+    RevocationReceipt,
+)
 
 __all__ = [
     "FieldSemanticDecision",
@@ -66,6 +73,11 @@ __all__ = [
     "ExistingServiceKnowledgeAdapter",
     "AnswerEvidenceBundle",
     "AnswerEvidenceCompiler",
+    "FeedbackRecord",
+    "FeedbackLearningPacket",
+    "FeedbackCommitReceipt",
+    "FeedbackProcessor",
+    "RevocationReceipt",
     "QueryPlan",
     "SnapshotManager",
     "TdxDayParser",

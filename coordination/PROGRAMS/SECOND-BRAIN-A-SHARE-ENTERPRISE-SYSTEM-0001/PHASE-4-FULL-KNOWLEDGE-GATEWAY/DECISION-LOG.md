@@ -48,3 +48,15 @@
 - status: ACCEPTED
 - decision: when conflict reporting is enabled, eligible counterpart atoms are added through `ContextAssembler` before budget selection and are explicitly labelled in the evidence package.
 - reason: returning a conflict record without the available opposing atom would hide material evidence.
+
+## D-009: Correction Does Not Imply Supersession
+
+- status: ACCEPTED
+- decision: `CORRECTION` creates a candidate correction plus an unresolved conflict; only explicit `SUPERSEDES` removes the target from the current view.
+- reason: user feedback must not silently rewrite history or promote a candidate correction into authority.
+
+## D-010: Feedback Is Previewed Before Mutation
+
+- status: ACCEPTED
+- decision: all seven feedback classes produce a deterministic candidate preview; commit validates the preview hash, imports through the existing LearningPacket path, records retrieval impact by IDs, and remains snapshot-recoverable.
+- reason: the user must be able to inspect, repeat, or roll back learning effects without a hidden write path.

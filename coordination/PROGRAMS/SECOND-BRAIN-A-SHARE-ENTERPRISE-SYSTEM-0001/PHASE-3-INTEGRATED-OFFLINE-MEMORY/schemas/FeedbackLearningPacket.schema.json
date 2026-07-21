@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:FeedbackLearningPacket:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feedback_id", "feedback_type", "packet", "primary_atom_id", "expected_actions", "impact_query_plan", "before_atom_ids", "preview_hash", "status", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "feedback_id": {"type": "string", "pattern": "^fb-[0-9a-f]{20}$"},
+    "feedback_type": {"enum": ["DUPLICATE", "SUPPLEMENT", "REFINEMENT", "CONFLICT", "CORRECTION", "SUPERSEDES", "UNKNOWN_RESOLVED"]},
+    "packet": {"type": "object"},
+    "primary_atom_id": {"type": "string", "minLength": 1},
+    "expected_actions": {"type": "array"},
+    "impact_query_plan": {"type": "object"},
+    "before_atom_ids": {"type": "array"},
+    "preview_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "status": {"const": "candidate"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}

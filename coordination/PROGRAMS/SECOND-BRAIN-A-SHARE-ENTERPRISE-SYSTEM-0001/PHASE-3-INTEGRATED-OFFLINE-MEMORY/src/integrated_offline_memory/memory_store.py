@@ -109,6 +109,20 @@ CREATE TABLE IF NOT EXISTS knowledge_sources (
     registered_at TEXT NOT NULL,
     revoked_at TEXT
 );
+CREATE TABLE IF NOT EXISTS feedback_receipts (
+    feedback_id TEXT PRIMARY KEY,
+    feedback_type TEXT NOT NULL,
+    preview_hash TEXT NOT NULL,
+    packet_id TEXT NOT NULL,
+    import_status TEXT NOT NULL,
+    revision_id TEXT NOT NULL,
+    before_atom_ids TEXT NOT NULL,
+    after_atom_ids TEXT NOT NULL,
+    added_atom_ids TEXT NOT NULL,
+    removed_atom_ids TEXT NOT NULL,
+    resolved_unknown_ids TEXT NOT NULL DEFAULT '[]',
+    recorded_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS retrieval_terms (
     atom_id TEXT NOT NULL,
     term TEXT NOT NULL,
@@ -271,6 +285,28 @@ class MemoryStore:
                 result.append(item)
         return result
 
+    def get_unknown(self, unknown_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute("SELECT * FROM unknowns WHERE id=?", (unknown_id,)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["related_atom_ids"] = json.loads(item["related_atom_ids"])
+        item["source_refs"] = json.loads(item["source_refs"])
+        return item
+
+    def resolve_unknown(self, unknown_id: str, resolution_atom_id: str) -> dict[str, Any]:
+        unknown = self.get_unknown(unknown_id)
+        if unknown is None:
+            raise ValueError("feedback_unknown_target_missing")
+        if self.get_atom(resolution_atom_id) is None:
+            raise ValueError("feedback_resolution_atom_missing")
+        if unknown["status"] == "RESOLVED":
+            return {"unknown_id": unknown_id, "status": "RESOLVED", "changed": False}
+        with self.transaction() as connection:
+            connection.execute("UPDATE unknowns SET status='RESOLVED' WHERE id=?", (unknown_id,))
+            self._audit(connection, "UNKNOWN_RESOLVE", unknown_id, "resolution_atom_id=" + resolution_atom_id)
+        return {"unknown_id": unknown_id, "status": "RESOLVED", "changed": True}
+
     def import_learning_packet(self, packet: dict[str, Any]) -> dict[str, Any]:
         verdict = verify_learning_packet(packet)
         if not verdict["valid"]:
@@ -353,17 +389,63 @@ class MemoryStore:
         return self.source_status(manifest_id) == "REVOKED"
 
     def revoke_knowledge_source(self, manifest_id: str, reason_code: str) -> dict[str, Any]:
-        if self.source_status(manifest_id) == "UNREGISTERED":
+        previous_status = self.source_status(manifest_id)
+        if previous_status == "UNREGISTERED":
             raise ValueError("knowledge_source_not_registered")
         if not re.fullmatch(r"[a-z0-9_:-]{1,80}", reason_code or "") or _contains_secret_value(reason_code):
             raise ValueError("knowledge_source_revocation_reason_invalid")
+        if previous_status == "REVOKED":
+            return {
+                "manifest_id": manifest_id,
+                "previous_status": "REVOKED",
+                "status": "REVOKED",
+                "reason_code": reason_code,
+                "changed": False,
+            }
         with self.transaction() as connection:
             connection.execute(
                 "UPDATE knowledge_sources SET status='REVOKED', revoked_at=? WHERE manifest_id=?",
                 (_now(), manifest_id),
             )
             self._audit(connection, "KNOWLEDGE_SOURCE_REVOKE", manifest_id, "reason_code=" + reason_code)
-        return {"manifest_id": manifest_id, "status": "REVOKED", "reason_code": reason_code}
+        return {
+            "manifest_id": manifest_id,
+            "previous_status": previous_status,
+            "status": "REVOKED",
+            "reason_code": reason_code,
+            "changed": True,
+        }
+
+    def record_feedback_receipt(self, receipt: dict[str, Any]) -> dict[str, Any]:
+        if _contains_secret_value(receipt):
+            raise ValueError("credential_value_denied")
+        existing = self.get_feedback_receipt(receipt["feedback_id"])
+        if existing:
+            return existing
+        with self.transaction() as connection:
+            connection.execute(
+                """INSERT INTO feedback_receipts(feedback_id, feedback_type, preview_hash, packet_id,
+                   import_status, revision_id, before_atom_ids, after_atom_ids, added_atom_ids,
+                   removed_atom_ids, resolved_unknown_ids, recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    receipt["feedback_id"], receipt["feedback_type"], receipt["preview_hash"],
+                    receipt["packet_id"], receipt["import_status"], receipt["revision_id"],
+                    json.dumps(receipt["before_atom_ids"]), json.dumps(receipt["after_atom_ids"]),
+                    json.dumps(receipt["added_atom_ids"]), json.dumps(receipt["removed_atom_ids"]),
+                    json.dumps(receipt.get("resolved_unknown_ids", [])), _now(),
+                ),
+            )
+            self._audit(connection, "FEEDBACK_COMMIT", receipt["feedback_id"], "public_ids_only=true")
+        return self.get_feedback_receipt(receipt["feedback_id"]) or {}
+
+    def get_feedback_receipt(self, feedback_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute("SELECT * FROM feedback_receipts WHERE feedback_id=?", (feedback_id,)).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        for name in ("before_atom_ids", "after_atom_ids", "added_atom_ids", "removed_atom_ids", "resolved_unknown_ids"):
+            result[name] = json.loads(result[name])
+        return result
 
     def latest_revision_id(self) -> str:
         row = self.conn.execute("SELECT revision_id FROM revisions ORDER BY rowid DESC LIMIT 1").fetchone()
@@ -372,7 +454,7 @@ class MemoryStore:
     def stats(self) -> dict[str, int]:
         names = (
             "atoms", "relations", "conflicts", "unknowns", "packets", "revisions",
-            "audit_events", "retrieval_terms", "knowledge_sources",
+            "audit_events", "retrieval_terms", "knowledge_sources", "feedback_receipts",
         )
         return {name: int(self.conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]) for name in names}
 

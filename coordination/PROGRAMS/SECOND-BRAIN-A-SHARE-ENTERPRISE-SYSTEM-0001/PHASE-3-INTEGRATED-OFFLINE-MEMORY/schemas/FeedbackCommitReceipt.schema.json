@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:FeedbackCommitReceipt:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "feedback_id", "feedback_type", "preview_hash", "packet_id", "import_status", "revision_id", "before_atom_ids", "after_atom_ids", "added_atom_ids", "removed_atom_ids", "resolved_unknown_ids", "status", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "feedback_id": {"type": "string", "minLength": 1},
+    "feedback_type": {"type": "string", "minLength": 1},
+    "preview_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "packet_id": {"type": "string", "minLength": 1},
+    "import_status": {"enum": ["IMPORTED", "IDEMPOTENT_DUPLICATE"]},
+    "revision_id": {"type": "string", "minLength": 1},
+    "before_atom_ids": {"type": "array"},
+    "after_atom_ids": {"type": "array"},
+    "added_atom_ids": {"type": "array"},
+    "removed_atom_ids": {"type": "array"},
+    "resolved_unknown_ids": {"type": "array"},
+    "status": {"const": "COMMITTED_CANDIDATE"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}
