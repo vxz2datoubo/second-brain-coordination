@@ -1,0 +1,58 @@
+schema_version: "1.0"
+task_id: A-SHARE-LOCAL-MOTHER-SYSTEM-ADAPTER-PLAN-0003
+agent_id: CODEX
+scope: planning_only
+source_snapshot:
+  remote_commit: "376210ef46fb72c2475ca209ed4ed50211582740"
+  acquisition: github_archive_fallback
+  limitation: "Git fetch reset twice; this is not a Git worktree."
+evidence:
+  - id: E-REMOTE-P1-P2
+    fact: "P1 supplies exchange envelopes; P2 supplies a deterministic synthetic offline reference."
+    source: "PHASE-1 and PHASE-2 artifacts on remote main"
+    confidence: high
+    implication: "Reuse contracts and tests, but do not assert local runtime integration."
+  - id: E-LOCAL-CONTRACTS
+    fact: "Local brain_core/contracts.py statically declares source, knowledge, market, validation, decision, journal, and module-status types."
+    source: "F:/aidanao static read on 2026-07-21"
+    confidence: medium
+    implication: "Candidate adapter target; ownership and runtime behavior require a bounded probe."
+  - id: E-LOCAL-GOVERNANCE
+    fact: "Local foundation_data_governance.py statically declares lineage, quality, capability, adapter health, and market-event concepts."
+    source: "F:/aidanao static read on 2026-07-21"
+    confidence: medium
+    implication: "Adapt rather than rebuild these concepts."
+  - id: E-LOCAL-SERVICE
+    fact: "Local server.py and brain_core/service.py expose broad legacy service surfaces; registry records HTTP 8766 and reserves 8767 and 8799."
+    source: "F:/aidanao/bulletin/SERVICE-REGISTRY.md and static source inventory"
+    confidence: medium
+    implication: "Only a narrow read-only wrapper may be planned; no service action is authorized."
+  - id: E-LOCAL-DATA
+    fact: "Local data contains mutable JSON, SQLite, JSONL, historical-looking CSV/JSON, and trading-related samples."
+    source: "metadata-only inventory of F:/aidanao/data"
+    confidence: medium
+    implication: "Each dataset needs a manifest and source classification before use."
+  - id: E-KNOWLEDGE-AUTH
+    fact: "User authorizes complete semantic treatment of authorized knowledge, with credential values kept local-only."
+    source: "coordination/AUTHORIZATION/USER-DIRECTIVE-COMPLETE-KNOWLEDGE-LIBRARY-v1.0.md"
+    confidence: high
+    implication: "Gateway design may access authorized knowledge semantically but public artifacts retain only references and digests."
+  - id: E-CREDENTIAL-PATH-DRIFT
+    fact: "The task referenced a missing credential-exception filename; repository authority is CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0."
+    source: "remote tree and authorization files"
+    confidence: high
+    implication: "Use the corrected authority path and retain this drift in UNKNOWN registry."
+  - id: E-QQ-CANDIDATE
+    fact: "Issue 43 and PR 45 describe candidate-only LearningPacket work, not a canonical authority."
+    source: "GitHub Issue 43 and PR 45"
+    confidence: high
+    implication: "Plan a compatibility adapter without promoting QQ artifacts."
+  - id: E-WORKBUDDY-PROPOSED
+    fact: "WorkBuddy field capability material remains proposed until independently evidenced."
+    source: "PR 34 and prior audit records"
+    confidence: high
+    implication: "Use a read-only probe task and capability manifests."
+non_claims:
+  - "No realtime, broker, account, order, or credential operation was performed."
+  - "No local service was started, stopped, or called."
+  - "No local database, bulletin, JSONL, or runtime state was changed."

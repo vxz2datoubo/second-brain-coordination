@@ -1,0 +1,32 @@
+schema_version: "1.0"
+authority_rule: "Access authorization and public transport visibility are separate. Candidate packets cannot overwrite an approved authority."
+axes:
+  - axis: semantic_access
+    local_gateway: "complete authorized knowledge access; credential values excluded"
+    QQ_candidate: "candidate knowledge/memory pipeline"
+    bridge: "KnowledgeQuery access_policy and ContextBundle evidence references"
+  - axis: query
+    local_gateway: "governed semantic retrieval with source/provenance"
+    QQ_candidate: "candidate hybrid retrieval and 30-query regression target"
+    bridge: "query_id, trace_id, authority_id, requested_scope, as_of"
+  - axis: context
+    local_gateway: "private body remains local; public projection is reference/digest"
+    QQ_candidate: "public-safe candidate context bundle"
+    bridge: "ContextBundle contains relevance/lineage/quality and redaction status"
+  - axis: learning
+    local_gateway: "approved learning writes require declared authority and rollback"
+    QQ_candidate: "LearningPacket candidate only"
+    bridge: "candidate packet carries validation status, confidence, conflict count, and rollback reference"
+  - axis: credentials
+    local_gateway: "local-only values"
+    QQ_candidate: "must not receive values"
+    bridge: "reference_id, purpose, owner, updated_at, verification_digest only"
+  - axis: versioning
+    local_gateway: "versioned source and relationship records"
+    QQ_candidate: "candidate rollback/version design"
+    bridge: "content_id, parent_version_id, schema_version, artifact hash"
+promotion_gates:
+  - "Schema compatibility test passes."
+  - "Authority is declared and no competing authority is introduced."
+  - "No credential value or private body enters public coordination artifacts."
+  - "Rollback and conflict behavior are tested."

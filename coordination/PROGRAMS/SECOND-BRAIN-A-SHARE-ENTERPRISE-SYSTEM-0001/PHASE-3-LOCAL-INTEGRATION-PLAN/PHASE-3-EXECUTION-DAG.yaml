@@ -1,0 +1,50 @@
+schema_version: "1.0"
+global_state: research_only_NO_TRADE
+nodes:
+  - id: P3-0
+    name: "Authority and record-of-system freeze"
+    owner: CODEX
+    depends_on: []
+    output: "approved matrices and decision log"
+  - id: P3-1
+    name: "WorkBuddy local read-only evidence probe"
+    owner: WORKBUDDY
+    depends_on: [P3-0]
+    output: "source/capability manifests"
+  - id: P3-2
+    name: "Offline source manifest and fixture acceptance"
+    owner: CODEX
+    reviewer: GPT
+    depends_on: [P3-1]
+    output: "approved small offline fixture and adapter contract test"
+  - id: P3-3
+    name: "Local contract adapter implementation"
+    owner: CODEX
+    reviewer: GPT
+    depends_on: [P3-2]
+    output: "isolated branch, tests, rollback plan"
+  - id: P3-4
+    name: "Knowledge gateway compatibility proof"
+    owner: CODEX
+    reviewer: GPT
+    depends_on: [P3-0]
+    output: "candidate-only compatibility test without private-body publication"
+  - id: P3-5
+    name: "Offline replay validation"
+    owner: CODEX
+    reviewer: GPT
+    depends_on: [P3-3, P3-4]
+    output: "deterministic replay and abstention report"
+  - id: P3-6
+    name: "Governed integration review"
+    owner: GPT
+    depends_on: [P3-5]
+    output: "promotion, hold, or rollback decision"
+edges:
+  - {from: P3-1, to: P3-2, condition: "evidence complete and privacy/license accepted"}
+  - {from: P3-2, to: P3-3, condition: "one system-of-record declared"}
+  - {from: P3-3, to: P3-5, condition: "tests and rollback prove adapter isolation"}
+  - {from: P3-5, to: P3-6, condition: "NO_TRADE and capability gates remain intact"}
+parallelism:
+  allowed: [P3-1, P3-4]
+  prohibited: ["P3-3 before P3-2", "any realtime or execution work"]
