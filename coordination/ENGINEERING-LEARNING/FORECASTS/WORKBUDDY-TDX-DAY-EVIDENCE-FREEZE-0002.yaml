@@ -1,0 +1,34 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "WORKBUDDY-TDX-DAY-EVIDENCE-FREEZE-0002"
+agent_id: "WORKBUDDY"
+mode: "goal_readonly_evidence_freeze"
+status: "ACTIVE_FORECAST"
+created_by: "GPT"
+created_at: "2026-07-21"
+parent_wave: 53
+objective: "Port the accepted PR #52 evidence onto latest main and freeze one local Tongdaxin .day source manifest with hashes, record boundaries and honest field-confidence decisions without uploading the source file."
+benefits:
+  - "Resolve the PR #52 base conflict without rerunning broad scans."
+  - "Give Codex a schema-compatible, reproducible local source reference."
+  - "Separate verified OHLCV fields from ambiguous amount and reserved fields."
+risks:
+  - risk: "A real local source file could be copied into the public repository."
+    control: "Only hashes, aggregate receipts, schema projections and local reference hints may be committed."
+  - risk: "One sample could be treated as proof for all markets and versions."
+    control: "Scope conclusions to the selected market, symbol, client version and file hash."
+  - risk: "Ambiguous decoding may be presented as verified."
+    control: "Use VERIFIED/PARTIALLY_VERIFIED/UNKNOWN with direct evidence."
+risk_gate:
+  current_decision: "PROCEED_WITH_CONTROLS"
+  stop_before:
+    - "Uploading raw market records"
+    - "Reading credentials or personal trading records"
+    - "Invoking realtime, service-control, account or order interfaces"
+success_observation_plan:
+  - "SourceManifest parses against the merged Codex schema or reports exact incompatibilities."
+  - "File hash, byte divisibility, record count and date bounds are reproducible."
+  - "Field confidence and unknowns are explicit."
+  - "A new Draft PR is based on current main."
+rollback:
+  strategy: "Delete only task-owned derived evidence after review; never modify the source file."
