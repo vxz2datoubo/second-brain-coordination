@@ -7,6 +7,7 @@ import csv
 import hashlib
 import json
 import re
+import unicodedata
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -28,7 +29,11 @@ class AdapterStatus(str, Enum):
 
 
 _CAPABILITIES = {"HISTORICAL_BAR", "FIVE_LEVEL_SNAPSHOT", "TEN_LEVEL_SNAPSHOT", "L2_AGGREGATE"}
-_SECRET = re.compile(r"(?:ghp_|github_pat_|api[_-]?key\s*[=:]|token\s*[=:]|password\s*[=:]|private[_ -]?key|cookie\s*[=:])", re.I)
+_CONTENT_CLASSES = {"PUBLIC_SAFE_SYNTHETIC", "PRIVATE_LOCAL_ONLY", "LICENSED_LOCAL", "PUBLIC_SAFE_REFERENCE"}
+_LICENSE_STATUSES = {"DECLARED", "LICENSED", "UNKNOWN", "UNDECLARED", "CONFLICT"}
+_SOURCE_CLASSES = {"synthetic", "historical_verified", "payload_sample_only", "legacy_unknown"}
+_REAL_SECRET_VALUE = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+_CREDENTIAL_VALUE_FIELDS = {"credential_value", "secret_value", "access_token_value", "api_key_value", "password_value", "private_key_value"}
 
 
 def canonical_hash(value: Any) -> str:
@@ -46,6 +51,42 @@ def _parse_time(value: str) -> datetime:
     return result.astimezone(timezone.utc)
 
 
+def _normalize(text: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", text).casefold().split())
+
+
+def _contains_actual_secret_value(value: Any) -> bool:
+    if isinstance(value, str):
+        return bool(_REAL_SECRET_VALUE.search(value))
+    if isinstance(value, list):
+        return any(_contains_actual_secret_value(item) for item in value)
+    if isinstance(value, dict):
+        for key, item in value.items():
+            normalized_key = _normalize(str(key)).replace(" ", "_")
+            if normalized_key in _CREDENTIAL_VALUE_FIELDS and item not in (None, ""):
+                return True
+            if _contains_actual_secret_value(item):
+                return True
+    return False
+
+
+def _relevant(query: str, content: str) -> bool:
+    """Deterministic normalized substring match with a Chinese bigram fallback."""
+    query, content = _normalize(query), _normalize(content)
+    if not query or not content:
+        return False
+    if query in content:
+        return True
+    q_terms = {term for term in query.split() if len(term) >= 2}
+    c_terms = set(content.split())
+    if q_terms.intersection(c_terms):
+        return True
+    def grams(value: str) -> set[str]:
+        compact = "".join(char for char in value if "\u4e00" <= char <= "\u9fff")
+        return {compact[index:index + 2] for index in range(max(0, len(compact) - 1))}
+    return bool(grams(query).intersection(grams(content)))
+
+
 @dataclass(frozen=True)
 class LocalArtifactReference:
     reference_id: str
@@ -53,12 +94,16 @@ class LocalArtifactReference:
     sha256: str
     content_class: str = "PUBLIC_SAFE_SYNTHETIC"
     license_status: str = "DECLARED"
+    schema_version: str = "1.0.0"
 
     def validate(self) -> None:
         if not self.reference_id or not self.local_location_hint or not re.fullmatch(r"[0-9a-f]{64}", self.sha256):
             raise ContractError("invalid_local_artifact_reference")
-        if self.content_class != "PUBLIC_SAFE_SYNTHETIC":
-            raise ContractError("non_synthetic_artifact_not_activated")
+        if self.content_class not in _CONTENT_CLASSES:
+            raise ContractError("invalid_content_class")
+        if self.license_status not in _LICENSE_STATUSES:
+            raise ContractError("invalid_license_status")
+        _require_v1(self.schema_version)
 
 
 @dataclass(frozen=True)
@@ -69,6 +114,7 @@ class CredentialReference:
     updated_at: str
     verification_digest: str
     local_location_hint: str
+    schema_version: str = "1.0.0"
 
     def validate(self) -> None:
         if not all((self.reference_id, self.purpose, self.owning_system, self.verification_digest, self.local_location_hint)):
@@ -76,8 +122,7 @@ class CredentialReference:
         _parse_time(self.updated_at)
         if not re.fullmatch(r"[0-9a-f]{16,64}", self.verification_digest):
             raise ContractError("credential_digest_invalid")
-        if _SECRET.search(" ".join(asdict(self).values())):
-            raise ContractError("credential_value_or_secret_marker_not_allowed")
+        _require_v1(self.schema_version)
 
 
 @dataclass(frozen=True)
@@ -88,6 +133,7 @@ class AdapterCapability:
     provider_semantics: str
     source_sequence_supported: bool = False
     exchange_time_supported: bool = False
+    schema_version: str = "1.0.0"
 
     def validate(self) -> None:
         if not self.capability_id or self.capability_level not in _CAPABILITIES:
@@ -96,6 +142,7 @@ class AdapterCapability:
             raise ContractError("invalid_entitlement_status")
         if self.capability_level == "L2_AGGREGATE" and self.provider_semantics in {"RAW_TRADE_TICK", "RAW_ORDER_EVENT", "ORDER_QUEUE", "AUCTION_TRAJECTORY"}:
             raise ContractError("l2_aggregate_cannot_promote_to_raw_event")
+        _require_v1(self.schema_version)
 
 
 @dataclass(frozen=True)
@@ -129,12 +176,14 @@ class AdapterResult:
     payload: dict[str, Any] = field(default_factory=dict)
     authority_write: bool = False
     no_trade_gate: bool = True
+    schema_version: str = "1.0.0"
 
     def validate(self) -> None:
         if self.authority_write:
             raise ContractError("adapter_result_cannot_write_authority")
         if not self.no_trade_gate:
             raise ContractError("no_trade_gate_required")
+        _require_v1(self.schema_version)
 
 
 class ManifestValidator:
@@ -144,8 +193,15 @@ class ManifestValidator:
         try:
             manifest.artifact.validate()
             manifest.capability.validate()
+            _require_v1(manifest.schema_version)
+            if manifest.source_class not in _SOURCE_CLASSES:
+                return self._result(AdapterStatus.REJECTED, "invalid_source_class", "declare a supported source class")
             if not manifest.manifest_id or not manifest.source_id or not manifest.license:
                 return self._result(AdapterStatus.LEGACY_UNKNOWN, "missing_identity_or_license", "supply source and license manifest")
+            if manifest.license.upper() in {"UNKNOWN", "UNDECLARED"} or manifest.artifact.license_status in {"UNKNOWN", "UNDECLARED"}:
+                return self._result(AdapterStatus.LEGACY_UNKNOWN, "license_unknown_or_undeclared", "supply a declared license and artifact license status")
+            if manifest.artifact.license_status == "CONFLICT":
+                return self._result(AdapterStatus.PARTIALLY_VERIFIED, "license_status_conflict", "resolve source and artifact license conflict")
             if manifest.privacy_class not in {"PUBLIC_SAFE", "PRIVATE_LOCAL_ONLY"}:
                 return self._result(AdapterStatus.REJECTED, "invalid_privacy_class", "declare privacy class")
             if manifest.timezone not in {"UTC", "Asia/Shanghai"}:
@@ -163,6 +219,8 @@ class ManifestValidator:
                 return self._result(AdapterStatus.PARTIALLY_VERIFIED, "ashare_policy_incomplete", "supply suspension/ST/limit/corporate-action policy")
             if not manifest.synthetic:
                 return self._result(AdapterStatus.BLOCKED_BY_POLICY, "real_source_binding_not_activated", "wait for accepted WorkBuddy evidence and later activation")
+            if manifest.artifact.content_class != "PUBLIC_SAFE_SYNTHETIC":
+                return self._result(AdapterStatus.REJECTED, "synthetic_content_class_mismatch", "use PUBLIC_SAFE_SYNTHETIC only for synthetic artifacts")
             if manifest.capability.entitlement_status != "confirmed":
                 return self._result(AdapterStatus.PARTIALLY_VERIFIED, "entitlement_not_confirmed", "obtain entitlement evidence")
             return self._result(AdapterStatus.VERIFIED, payload={"manifest_hash": canonical_hash(asdict(manifest))})
@@ -238,16 +296,15 @@ class InMemoryKnowledgeGateway(KnowledgeGatewayAdapter):
     def query(self, text: str, budget: int) -> AdapterResult:
         if budget < 1:
             return AdapterResult(AdapterStatus.REJECTED, ("invalid_context_budget",))
-        if _SECRET.search(text):
-            return AdapterResult(AdapterStatus.BLOCKED_BY_POLICY, ("credential_query_denied",))
-        tokens = set(text.lower().split())
         chosen, omitted, used = [], [], 0
         for atom in sorted(self.atoms, key=lambda item: str(item.get("atom_id", ""))):
-            if atom.get("status") not in {"candidate", "approved"}:
+            if atom.get("status") not in {"candidate", "approved", "conflict", "superseded", "unknown"}:
                 continue
             if atom.get("gpt_access", "FULL_SEMANTIC_ACCESS") != "FULL_SEMANTIC_ACCESS":
                 continue
-            if not tokens.intersection(str(atom.get("content", "")).lower().split()):
+            if _contains_actual_secret_value(atom):
+                continue
+            if not _relevant(text, str(atom.get("content", ""))):
                 continue
             cost = max(1, len(str(atom.get("content", ""))) // 4)
             if used + cost > budget:
@@ -263,8 +320,8 @@ class InMemoryLearningPacketAdapter(LearningPacketAdapter):
     def emit(self, packet: dict[str, Any]) -> AdapterResult:
         if packet.get("authority_write") or packet.get("status") != "candidate":
             return AdapterResult(AdapterStatus.REJECTED, ("candidate_authority_promotion_denied",))
-        if _SECRET.search(json.dumps(packet, sort_keys=True)):
-            return AdapterResult(AdapterStatus.BLOCKED_BY_POLICY, ("credential_content_denied",))
+        if _contains_actual_secret_value(packet):
+            return AdapterResult(AdapterStatus.BLOCKED_BY_POLICY, ("credential_value_payload_denied",))
         required = {"packet_id", "packet_content_hash", "idempotency_key", "base_knowledge_revision", "status"}
         if required - packet.keys():
             return AdapterResult(AdapterStatus.REJECTED, ("learning_packet_incomplete",))
@@ -280,3 +337,47 @@ class InMemoryCapabilityProbe(CapabilityProbeAdapter):
         if capability.entitlement_status != "confirmed":
             return AdapterResult(AdapterStatus.PARTIALLY_VERIFIED, ("entitlement_not_confirmed",))
         return AdapterResult(AdapterStatus.VERIFIED, payload={"capability_id": capability.capability_id, "probe": "synthetic_in_memory_only"})
+
+
+def _require_v1(version: str) -> None:
+    if not re.fullmatch(r"1\.\d+\.\d+", version or ""):
+        raise ContractError("unsupported_schema_version")
+
+
+_CONTRACT_TYPES = {
+    "LocalArtifactReference": LocalArtifactReference,
+    "CredentialReference": CredentialReference,
+    "AdapterCapability": AdapterCapability,
+    "AdapterResult": AdapterResult,
+    "SourceManifest": SourceManifest,
+}
+
+
+def serialize_contract(value: Any) -> dict[str, Any]:
+    """Stable public-safe contract projection; values are caller-validated first."""
+    if type(value).__name__ not in _CONTRACT_TYPES:
+        raise ContractError("unsupported_contract_type")
+    if isinstance(value, SourceManifest):
+        return {**asdict(value), "artifact": serialize_contract(value.artifact), "capability": serialize_contract(value.capability)}
+    if isinstance(value, AdapterResult):
+        return {**asdict(value), "status": value.status.value}
+    return asdict(value)
+
+
+def deserialize_contract(name: str, payload: dict[str, Any]) -> Any:
+    """Reject unknown fields and incompatible major versions before constructing a contract."""
+    target = _CONTRACT_TYPES.get(name)
+    if target is None or not isinstance(payload, dict):
+        raise ContractError("unknown_contract_type")
+    allowed = set(target.__dataclass_fields__)
+    unknown = set(payload) - allowed
+    if unknown:
+        raise ContractError("unknown_contract_field")
+    data = dict(payload)
+    _require_v1(str(data.get("schema_version", "")))
+    if name == "SourceManifest":
+        data["artifact"] = deserialize_contract("LocalArtifactReference", data["artifact"])
+        data["capability"] = deserialize_contract("AdapterCapability", data["capability"])
+    if name == "AdapterResult":
+        data["status"] = AdapterStatus(data["status"])
+    return target(**data)

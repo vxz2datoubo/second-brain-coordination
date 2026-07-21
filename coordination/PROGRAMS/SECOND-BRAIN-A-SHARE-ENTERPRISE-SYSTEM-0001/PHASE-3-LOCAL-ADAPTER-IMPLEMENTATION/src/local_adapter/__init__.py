@@ -14,6 +14,8 @@ from .contracts import (
     SourceManifest,
     SyntheticOfflineDatasetAdapter,
     canonical_hash,
+    deserialize_contract,
+    serialize_contract,
 )
 
 __all__ = [
@@ -21,4 +23,5 @@ __all__ = [
     "CredentialReference", "InMemoryKnowledgeGateway", "InMemoryLearningPacketAdapter",
     "LocalArtifactReference", "ManifestValidator", "SourceManifest",
     "SyntheticOfflineDatasetAdapter", "canonical_hash",
+    "deserialize_contract", "serialize_contract",
 ]

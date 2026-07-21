@@ -6,8 +6,12 @@ prediction_comparison:
   B3_no_second_authority: {expected: high, observed: adapter_only_types_and_negative_tests}
   H1_second_authority: {control: compatibility_matrix_and_authority_write_rejection, observed: no_violation}
   H2_synthetic_misread_as_real: {control: BLOCKED_BY_POLICY_non_synthetic_gate, observed: no_violation}
-  H3_credential_leak: {control: marker_and_serialization_tests, observed: no_violation}
+  H3_credential_leak: {control: field_driven_value_isolation_and_serialization_tests, observed: no_violation}
   H5_l2_promotion: {control: semantic_rejection_test, observed: no_violation}
 limitations:
   - "Passing tests do not validate real provider fields, real knowledge storage, or market performance."
 next_measurement: "Run source-specific contract tests only after accepted WorkBuddy evidence."
+review_fix_effects:
+  - "Credential terminology and documentation remain retrievable; explicit value fields and real secret payload patterns remain blocked."
+  - "Full semantic access now retains conflict, superseded and unknown states instead of silently treating them as access denial."
+  - "Legitimate private/local or licensed-local metadata reaches the separate real-source activation gate instead of being mislabeled invalid."
