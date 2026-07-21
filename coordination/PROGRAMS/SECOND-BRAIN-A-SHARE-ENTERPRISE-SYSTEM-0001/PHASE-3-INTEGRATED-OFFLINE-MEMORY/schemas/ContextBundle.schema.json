@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p3:ContextBundle:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "query_id", "query_plan_hash", "knowledge_version", "atoms", "relations", "conflicts", "unknowns", "source_lineage", "omitted_due_to_budget", "context_budget", "semantic_access_state", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"},
+    "query_id": {"type": "string", "minLength": 1},
+    "query_plan_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "knowledge_version": {"type": "string", "minLength": 1},
+    "atoms": {"type": "array"},
+    "relations": {"type": "array"},
+    "conflicts": {"type": "array"},
+    "unknowns": {"type": "array"},
+    "source_lineage": {"type": "array"},
+    "omitted_due_to_budget": {"type": "array"},
+    "context_budget": {"type": "integer", "minimum": 1},
+    "semantic_access_state": {"const": "FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}

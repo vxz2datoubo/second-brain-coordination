@@ -27,7 +27,17 @@ checkpoints:
       - LOCAL-SAMPLE-ACTIVATION.yaml
       - LOCAL-SAMPLE-VALIDATION-RECEIPT.yaml
       - tests/test_replay_bridge.py
-  "80": {state: pending, commit: null, evidence: []}
+  "80":
+    state: completed
+    commit: this_checkpoint_commit
+    evidence:
+      - src/integrated_offline_memory/memory_store.py
+      - src/integrated_offline_memory/learning_packet.py
+      - src/integrated_offline_memory/retrieval.py
+      - src/integrated_offline_memory/snapshot.py
+      - PR45-PR46-ABSORPTION-REPORT.md
+      - RETRIEVAL-REGRESSION-REPORT.md
+      - tests/test_memory_system.py
   "100": {state: pending, commit: null, evidence: []}
 resume_contract:
   source_of_truth: STATUS.yaml
