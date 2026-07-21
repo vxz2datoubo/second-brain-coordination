@@ -1,62 +1,44 @@
-schema_version: "2.2"
+schema_version: "2.3"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 active_issue: 55
-task_id: "A-SHARE-TDX-DAY-PARSER-REPLAY-INTEGRATION-0005"
+task_id: "CODEX-P3-INTEGRATED-OFFLINE-MEMORY-SYSTEM-0006"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-TDX-DAY-PARSER-REPLAY-INTEGRATION-0005.yaml"
-mode: "goal"
-mode_label: "目标模式"
+mode: "project_plan"
+mode_label: "项目计划模式"
 status: "READY"
 blocked_by: "none"
-dependencies:
-  parser_scope: "SATISFIED"
-  local_validation_evidence: "WAITING_FOR_ISSUE_54_ACCEPTANCE"
 parent_program: 31
 parent_wave: 53
-phase: "P3_TDX_DAY_REAL_OFFLINE_INTEGRATION"
-completed_predecessor:
-  issue: 50
-  pr: 51
-  merge_commit: "499e44d7bb25fb15b0778a86f0858d81f506cad6"
-parallel_with:
-  - {agent: "WORKBUDDY", issue: 54}
-  - {agent: "QCLAW", issue: 56, pr: 46}
+absorbed_issues: [54, 56]
+source_prs: [45, 46, 51, 52]
 required_inputs:
-  - "Issue #55正文与全部评论"
-  - "最新main、AGENTS.md与CODEX-TASK-ROUTER.md"
-  - "task_impact_forecast"
-  - "PR #37、#41、#48、#51合并成果"
-  - "Issue #53、#54、#56及PR #52、#46"
+  - "Issues #53 #54 #55 #56 and all comments"
+  - "Latest main and router protocol"
+  - "PRs #45 #46 #51 #52"
 required_action:
-  - "Implement the strict TDX day parser, adapter and schemas defined by Issue #55."
-  - "Build deterministic binary fixtures, replay, validation and evidence outputs."
-  - "Reuse existing P1/P2/P3 ownership and preserve field UNKNOWN states."
-  - "Prepare local validation tooling and consume Issue #54 only after GPT acceptance."
-  - "Report 20/40/60/80/100 checkpoints and submit a Draft PR."
+  - "Maintain one resumable project plan."
+  - "Unify data adapters, offline replay and validation."
+  - "Use PR #46 as memory base and absorb PR #45."
+  - "Unify LearningPacket, retrieval, QueryPlan and ContextBundle."
+  - "Run parser, replay, retrieval, scale and roundtrip tests."
+  - "Report 20/40/60/80/100 and create one Draft PR."
 execution_contract:
   sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "codex/tdx-day-parser-replay-integration-0005"
+  recommended_branch: "codex/p3-integrated-offline-memory-system-0006"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
   report_to_issues: [55, 53, 31]
   progress_checkpoints: [20, 40, 60, 80, 100]
   resumable_execution_required: true
-  feedback_schema: "Agent execution feedback v2 full template"
-  outcome_calibration_required: true
 safety_boundary:
   research_only: true
   no_trade: true
-  local_source_reference_only: true
   offline_only: true
   no_direct_main_write: true
-risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
-  user_approval_required_now: false
-  stop_before: ["real-source publication", "field authority escalation", "realtime or execution integration", "new system-of-record authority"]
-notes: "Issue #55 is executable now. Issue #54 gates only the final local-sample validation claim."
+notes: "Issue #55 is the only active execution task. WorkBuddy and QCLAW are paused."
 updated_by: "GPT"
 updated_at: "2026-07-21"
