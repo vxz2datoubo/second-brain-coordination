@@ -1,53 +1,17 @@
-schema_version: "1.5"
+schema_version: "1.6"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
-trigger_phrases: ["读取任务", "执行任务", "开始任务"]
-active_issue: 54
-task_id: "WORKBUDDY-TDX-DAY-EVIDENCE-FREEZE-0002"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/WORKBUDDY-TDX-DAY-EVIDENCE-FREEZE-0002.yaml"
-mode: "goal_readonly_evidence_freeze"
-mode_label: "目标模式＋本地只读证据冻结"
-status: "READY"
-blocked_by: "none"
+active_issue: null
+task_id: "NO_ACTIVE_TASK"
+mode: "paused"
+mode_label: "暂停"
+status: "PAUSED"
+blocked_by: "Assigned to Codex Issue #55"
 parent_program: 31
 parent_wave: 53
-phase: "P3_TDX_DAY_EVIDENCE_FREEZE"
-predecessor:
-  issue: 49
-  pr: 52
-  status: "PARTIAL_EVIDENCE_ACCEPTED"
-parallel_with:
-  - {agent: "CODEX", issue: 55}
-  - {agent: "QCLAW", issue: 56}
-required_inputs:
-  - "Issue #54正文与评论"
-  - "最新main与WORKBUDDY-TASK-ROUTER.md"
-  - "task_impact_forecast"
-  - "PR #52证据和验收评论"
-  - "PR #51合并后的机器合同"
-required_action:
-  - "Port accepted evidence from PR #52 onto latest main."
-  - "Create one schema-compatible TDX day source manifest and validation receipt."
-  - "Record hash, record bounds, date bounds and field confidence."
-  - "Preserve ambiguous fields as UNKNOWN."
-  - "Create a fresh Draft PR for GPT review."
-execution_contract:
-  sync_latest_main: true
-  create_independent_branch: true
-  recommended_branch: "workbuddy/tdx-day-evidence-freeze-0002"
-  create_pull_request: true
-  draft_pull_request: true
-  auto_merge: false
-  report_to_issues: [54, 53, 55]
-  feedback_schema: "Agent execution feedback v2 full template"
-safety_boundary:
-  research_only: true
-  no_trade: true
-  local_read_only: true
-  derived_evidence_only: true
-  offline_only: true
-  no_direct_main_write: true
-notes: "Issue #54 is the only active WorkBuddy task. Use a fresh branch from latest main; PR #52 is evidence input only."
+superseded_issue: 54
+absorbed_by_issue: 55
+notes: "No independent WorkBuddy task is active."
 updated_by: "GPT"
 updated_at: "2026-07-21"
