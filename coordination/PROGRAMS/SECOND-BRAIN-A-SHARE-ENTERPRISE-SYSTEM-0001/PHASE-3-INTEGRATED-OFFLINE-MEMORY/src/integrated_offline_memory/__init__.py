@@ -46,6 +46,7 @@ from .feedback import (
     FeedbackRecord,
     RevocationReceipt,
 )
+from .recovery import MemoryRebuildBundle, RebuildReceipt, export_rebuild_bundle, rebuild_memory_store
 
 __all__ = [
     "FieldSemanticDecision",
@@ -78,6 +79,10 @@ __all__ = [
     "FeedbackCommitReceipt",
     "FeedbackProcessor",
     "RevocationReceipt",
+    "MemoryRebuildBundle",
+    "RebuildReceipt",
+    "export_rebuild_bundle",
+    "rebuild_memory_store",
     "QueryPlan",
     "SnapshotManager",
     "TdxDayParser",

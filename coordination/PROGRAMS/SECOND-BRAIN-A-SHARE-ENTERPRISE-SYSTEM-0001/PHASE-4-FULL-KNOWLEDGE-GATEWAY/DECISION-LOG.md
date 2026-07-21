@@ -60,3 +60,9 @@
 - status: ACCEPTED
 - decision: all seven feedback classes produce a deterministic candidate preview; commit validates the preview hash, imports through the existing LearningPacket path, records retrieval impact by IDs, and remains snapshot-recoverable.
 - reason: the user must be able to inspect, repeat, or roll back learning effects without a hidden write path.
+
+## D-011: Do Not Self-Certify the Independent Benchmark
+
+- status: ACCEPTED
+- decision: local 2,000-atom and recovery gates may complete, but the phase remains PARTIAL until the QCLAW 100+ query package is fetched and executed unchanged.
+- reason: replacing an independent evaluation with Codex-authored answer keys would violate Issue #38's anti-self-certification boundary.

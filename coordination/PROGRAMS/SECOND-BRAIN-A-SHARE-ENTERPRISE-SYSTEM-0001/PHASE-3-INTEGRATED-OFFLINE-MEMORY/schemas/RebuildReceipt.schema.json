@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:RebuildReceipt:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "bundle_hash", "packet_count", "atom_count", "semantic_state_hash", "integrity_ok", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "bundle_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "packet_count": {"type": "integer", "minimum": 0},
+    "atom_count": {"type": "integer", "minimum": 0},
+    "semantic_state_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "integrity_ok": {"const": true},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}

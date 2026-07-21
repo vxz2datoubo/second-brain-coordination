@@ -447,6 +447,75 @@ class MemoryStore:
             result[name] = json.loads(result[name])
         return result
 
+    def all_learning_packets(self) -> list[dict[str, Any]]:
+        return [
+            json.loads(row["json_blob"])
+            for row in self.conn.execute("SELECT json_blob FROM packets ORDER BY rowid")
+        ]
+
+    def all_knowledge_sources(self) -> list[dict[str, Any]]:
+        result: list[dict[str, Any]] = []
+        for row in self.conn.execute(
+            "SELECT manifest_id, manifest_hash, policy_id, status, public_metadata FROM knowledge_sources ORDER BY manifest_id"
+        ):
+            item = dict(row)
+            item["public_metadata"] = json.loads(item["public_metadata"])
+            result.append(item)
+        return result
+
+    def all_feedback_receipts(self) -> list[dict[str, Any]]:
+        rows = self.conn.execute("SELECT feedback_id FROM feedback_receipts ORDER BY feedback_id").fetchall()
+        return [self.get_feedback_receipt(row["feedback_id"]) for row in rows]
+
+    def all_unknown_statuses(self) -> list[dict[str, str]]:
+        return [
+            {"unknown_id": row["id"], "status": row["status"]}
+            for row in self.conn.execute("SELECT id, status FROM unknowns ORDER BY id")
+        ]
+
+    def restore_unknown_status(self, unknown_id: str, status: str) -> None:
+        if status not in {"OPEN", "RESOLVED"}:
+            raise ValueError("unknown_restore_status_invalid")
+        if self.get_unknown(unknown_id) is None:
+            raise ValueError("unknown_restore_target_missing")
+        with self.transaction() as connection:
+            connection.execute("UPDATE unknowns SET status=? WHERE id=?", (status, unknown_id))
+            self._audit(connection, "UNKNOWN_STATUS_REBUILD", unknown_id, "status=" + status)
+
+    def semantic_state_hash(self) -> str:
+        atoms = []
+        for atom in self.all_atoms():
+            atoms.append({key: value for key, value in atom.items() if key not in {"created_at", "updated_at"}})
+        relations = [dict(row) for row in self.conn.execute("SELECT * FROM relations ORDER BY id")]
+        conflicts = [dict(row) for row in self.conn.execute("SELECT * FROM conflicts ORDER BY id")]
+        unknowns = []
+        for row in self.conn.execute("SELECT * FROM unknowns ORDER BY id"):
+            item = dict(row)
+            item["related_atom_ids"] = json.loads(item["related_atom_ids"])
+            item["source_refs"] = json.loads(item["source_refs"])
+            unknowns.append(item)
+        terms = [dict(row) for row in self.conn.execute("SELECT atom_id, term, weight FROM retrieval_terms ORDER BY atom_id, term")]
+        packets = [
+            dict(row)
+            for row in self.conn.execute(
+                "SELECT id, content_hash, idempotency_key, status, authority_write, base_knowledge_version FROM packets ORDER BY id"
+            )
+        ]
+        sources = self.all_knowledge_sources()
+        feedback = []
+        for item in self.all_feedback_receipts():
+            feedback.append({key: value for key, value in item.items() if key != "recorded_at"})
+        return content_hash({
+            "atoms": atoms,
+            "relations": relations,
+            "conflicts": conflicts,
+            "unknowns": unknowns,
+            "retrieval_terms": terms,
+            "packets": packets,
+            "knowledge_sources": sources,
+            "feedback_receipts": feedback,
+        })
+
     def latest_revision_id(self) -> str:
         row = self.conn.execute("SELECT revision_id FROM revisions ORDER BY rowid DESC LIMIT 1").fetchone()
         return row["revision_id"] if row else "candidate-r0"
