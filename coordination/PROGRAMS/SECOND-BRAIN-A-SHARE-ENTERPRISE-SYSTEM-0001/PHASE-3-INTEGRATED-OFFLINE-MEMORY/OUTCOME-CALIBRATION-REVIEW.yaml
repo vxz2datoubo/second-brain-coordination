@@ -1,0 +1,32 @@
+schema_version: "1.0"
+task_id: CODEX-P3-INTEGRATED-OFFLINE-MEMORY-SYSTEM-0006
+status: READY_FOR_GPT_REVIEW
+forecast_comparison:
+  integrated_offline_flow: {expected: true, observed: true, evidence: CROSS-SYSTEM-VALIDATION-REPORT.md}
+  deterministic_hashes: {expected: true, observed: true, evidence: two independent aggregate local runs}
+  candidate_memory_only: {expected: true, observed: true, evidence: LearningPacket and MemoryStore guards}
+  multilingual_retrieval: {expected: true, observed: true, evidence: 32 of 32 regression cases}
+  conflict_and_unknown_propagation: {expected: true, observed: true, evidence: XT-003 and XT-004}
+  credential_isolation: {expected: true, observed: true, evidence: XT-005 and public safety scan}
+  scale_512: {expected: true, observed: true, evidence: XT-006}
+  scale_beyond_512: {expected: unknown, observed: unknown, evidence: deliberately not tested}
+deviations:
+  - type: corrected_determinism_definition
+    detail: ContextBundle semantic hash excludes database wall-clock metadata after first dual-run comparison exposed timestamp-only drift
+  - type: no_real_data_in_ci
+    detail: local artifact verification remains outside GitHub; CI is synthetic and public-safe only
+  - type: pr57_blocker_correction
+    detail: unknown license activation, false defaults for missing ST and suspension, unknown-unit volume signal use, empty-file acceptance and out-of-order replay were changed to fail-closed or abstain behavior
+review_fix_observations:
+  license_gate: explicit_local_no_redistribution_declaration_and_evidence_required
+  missing_market_state: preserved_as_null
+  vendor_volume: parser_evidence_only_excluded_from_p2_standard_volume
+  empty_file: adapter_rejected
+  out_of_order_source: parser_rejected_before_replay
+  local_strategy_result: ABSTAIN_ZERO_SIMULATED_ACTIONS
+promotion_denied:
+  - source_fully_verified
+  - strategy_validated
+  - profitability_established
+  - production_ready
+  - trade_execution

@@ -1,0 +1,38 @@
+schema_version: "1.0"
+task_id: CODEX-P3-INTEGRATED-OFFLINE-MEMORY-SYSTEM-0006
+unknowns:
+  - id: P3-UNK-001
+    subject: tdx_day_amount_semantics
+    status: PARTIAL_FIELD_EVIDENCE
+    detail: float32 is an empirical candidate for the bound local sample, not an authoritative成交额 definition
+    gate: exclude_from_authoritative_features
+  - id: P3-UNK-002
+    subject: tdx_day_volume_unit
+    status: UNKNOWN
+    detail: vendor numeric value is retained but the unit is not proven by accepted evidence
+    gate: retain_parser_evidence_only_map_p2_standard_volume_to_null_and_abstain
+  - id: P3-UNK-003
+    subject: tdx_day_reserved_field
+    status: UNKNOWN
+    detail: nonzero values occur and no accepted semantic definition exists
+    gate: never_map_to_feature
+  - id: P3-UNK-004
+    subject: local_source_license_scope
+    status: PARTIAL_FIELD_EVIDENCE
+    detail: local read-only structural research is declared under user-held no-redistribution evidence; redistribution and production use are not established
+    gate: explicit_declared_local_license_evidence_required_no_raw_export
+  - id: P3-UNK-005
+    subject: memory_scale_beyond_512_atoms
+    status: UNKNOWN
+    detail: this phase validates 512 synthetic atoms only
+    gate: no_enterprise_scale_claim
+  - id: P3-UNK-006
+    subject: real_market_strategy_validity
+    status: NOT_IN_SCOPE
+    detail: deterministic replay plumbing does not establish alpha, profitability or production fitness
+    gate: research_only_no_trade
+  - id: P3-UNK-007
+    subject: historical_st_and_suspension_status
+    status: UNKNOWN
+    detail: the local day record does not contain accepted ST or suspension fields
+    gate: map_to_null_and_force_signal_validation_and_simulation_abstention

@@ -1,0 +1,36 @@
+name: Phase 3 integrated offline memory
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/phase3-integrated-offline-memory.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-public-safe:
+    name: Python ${{ matrix.python-version }} synthetic/public-safe
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Run P1, P2, and local-adapter regressions
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION
+        run: python run_all_tests.py
+      - name: Run integrated Phase 3 synthetic tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY
+        run: python run_all_tests.py
+      - name: Scan the public Phase 3 delivery surface
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY
+        run: python public_safety_scan.py

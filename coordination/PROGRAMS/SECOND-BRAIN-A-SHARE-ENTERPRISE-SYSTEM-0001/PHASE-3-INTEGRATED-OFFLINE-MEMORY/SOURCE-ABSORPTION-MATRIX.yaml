@@ -1,0 +1,61 @@
+schema_version: "1.0"
+task_id: CODEX-P3-INTEGRATED-OFFLINE-MEMORY-SYSTEM-0006
+sources:
+  - source: main/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION
+    origin: PR_51
+    decision: REUSE
+    items:
+      - SourceManifest
+      - AdapterResult
+      - ManifestValidator
+      - license_and_credential_value_boundaries
+    reason: merged_contract_authority
+  - source: main/PHASE-2-OFFLINE-VERTICAL-SLICE
+    origin: PR_41
+    decision: REUSE
+    items:
+      - Bar
+      - DeterministicReplay
+      - ValidationReport_shape
+      - available_at_gate
+    reason: existing_replay_authority
+  - source: qclaw/candidate-memory-library-retrieval-0004
+    origin: PR_46@265cfad75d27af116883dbee8ad9b158829f93ac
+    decision: MERGE
+    items:
+      - sqlite_store
+      - fusion
+      - snapshot_and_rollback
+      - retrieval_and_context_base
+    exclusions:
+      - _push_pr.py
+      - generated_reports
+      - generated_databases
+    reason: sole_candidate_memory_base
+  - source: qclaw/deterministic-learning-packet-pipeline-0003
+    origin: PR_45@f7a7e95494e36d1bf3858e469d0b489e8050791e
+    decision: MERGE
+    items:
+      - NFKC_normalization
+      - content_addressed_ids
+      - relation_mapping
+      - packet_idempotency
+      - case_A_through_F
+    exclusions:
+      - pipeline_output
+      - publishing_helpers
+    reason: capability_source_not_parallel_authority
+  - source: WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001
+    origin: PR_52@fe48bc24e6ec057a9bc4ee0cfee42d0c73f068ec
+    decision: REUSE
+    status: ACCEPTED_AS_PARTIAL_FIELD_EVIDENCE
+    items:
+      - eight_public_safe_evidence_documents
+    reason: immutable_field_evidence_source
+  - source: legacy_PriceBar_or_parallel_memory_types
+    decision: DEPRECATE
+    items:
+      - any_new_parallel_bar_authority
+      - any_new_parallel_memory_authority
+    reason: prevent_split_system_of_record
+
