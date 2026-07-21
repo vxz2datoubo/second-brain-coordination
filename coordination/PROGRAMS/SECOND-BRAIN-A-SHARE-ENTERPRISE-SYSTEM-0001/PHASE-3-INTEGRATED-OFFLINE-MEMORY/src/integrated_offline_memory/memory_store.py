@@ -254,6 +254,12 @@ class MemoryStore:
         ).fetchall()
         return [dict(row) for row in rows]
 
+    def conflicting_atom_ids(self, atom_ids: set[str]) -> set[str]:
+        related: set[str] = set()
+        for conflict in self.conflicts_for(atom_ids):
+            related.update((conflict["atom_id_a"], conflict["atom_id_b"]))
+        return related - atom_ids
+
     def unknowns_for(self, atom_ids: set[str], include_all_open: bool = False) -> list[dict[str, Any]]:
         rows = self.conn.execute("SELECT * FROM unknowns WHERE status='OPEN' ORDER BY id").fetchall()
         result: list[dict[str, Any]] = []

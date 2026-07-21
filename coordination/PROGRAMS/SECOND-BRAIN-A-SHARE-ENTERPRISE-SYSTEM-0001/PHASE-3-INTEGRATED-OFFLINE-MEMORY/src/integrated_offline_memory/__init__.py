@@ -38,6 +38,7 @@ from .local_knowledge import (
     hash_local_directory,
     hash_local_file,
 )
+from .answer_evidence import AnswerEvidenceBundle, AnswerEvidenceCompiler
 
 __all__ = [
     "FieldSemanticDecision",
@@ -63,6 +64,8 @@ __all__ = [
     "LocalFileKnowledgeAdapter",
     "LocalDirectoryKnowledgeAdapter",
     "ExistingServiceKnowledgeAdapter",
+    "AnswerEvidenceBundle",
+    "AnswerEvidenceCompiler",
     "QueryPlan",
     "SnapshotManager",
     "TdxDayParser",

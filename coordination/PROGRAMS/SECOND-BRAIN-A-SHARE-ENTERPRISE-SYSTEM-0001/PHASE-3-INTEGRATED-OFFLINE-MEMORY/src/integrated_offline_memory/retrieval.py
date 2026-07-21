@@ -132,6 +132,12 @@ class ContextAssembler:
             if not frontier:
                 break
 
+        if plan.include_conflicts:
+            for atom_id in self.store.conflicting_atom_ids(set(candidates)):
+                atom = self.store.get_atom(atom_id)
+                if atom is not None and self._allowed(atom, plan):
+                    candidates[atom_id] = max(candidates.get(atom_id, 0.0), 0.75)
+
         ranked_ids = sorted(candidates, key=lambda atom_id: (-candidates[atom_id], atom_id))
         selected_ids = ranked_ids[:plan.budget]
         omitted = ranked_ids[plan.budget:]
