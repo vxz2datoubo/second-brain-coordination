@@ -1,12 +1,18 @@
-# Test Run Receipt: 80 Percent
+# Test Run Receipt: 100 Percent
 
 - agent_id: `CODEX`
 - boundary: `research_only / NO_TRADE / offline_only`
-- Python: current local interpreter
+- Python: `3.13.13`
 - P1 foundation contracts: 12 passed
 - P2 offline replay: 21 passed
 - PR #51 local adapter suite: 61 passed
-- Phase 3 parser/adapter/replay/memory suite: 149 passed
+- Phase 3 parser/adapter/replay/memory/integration suite: 161 passed
+- distinct tests across the four suites: 255 passed
+- XT-001 through XT-006: 6 passed
+- retrieval regression: 32 of 32 passed
+- schema round trips and unsupported/unknown fields: passed
+- compile and `git diff --check`: passed
+- public safety scan: 57 files scanned, 0 issues
 - failures: 0
 
-The automated Phase 3 suite uses regenerated synthetic bytes only. A separate read-only run of the hash-bound local sample produced the aggregate `LOCAL-SAMPLE-VALIDATION-RECEIPT.yaml`; raw bars were not written or exported. No remote market API, credential, service or order path was used. A missing third-party `jsonschema` dependency was handled by a dependency-free validator for the schema keywords used by this package; no package was installed.
+The automated Phase 3 suite uses regenerated synthetic bytes only. Two independent read-only runs of the hash-bound local sample produced identical packet, query-plan and semantic ContextBundle hashes in `LOCAL-SAMPLE-VALIDATION-RECEIPT.yaml`; raw bars and runtime databases were not written or exported. No remote market API, credential, service or order path was used. A dependency-free validator covers the JSON Schema keywords used by this package. GitHub CI installs only the pinned test-time YAML parser and runs Python 3.11/3.13 synthetic and public-safe suites.

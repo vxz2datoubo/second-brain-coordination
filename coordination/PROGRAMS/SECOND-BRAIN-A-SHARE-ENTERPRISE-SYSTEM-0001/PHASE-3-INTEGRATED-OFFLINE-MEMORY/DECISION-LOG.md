@@ -31,3 +31,10 @@ Daily bars use 15:00 Asia/Shanghai as `event_time`. `available_at` is generated 
 
 All imported LearningPackets remain `candidate` with `authority_write=false`. Rejected, quarantined and credential values are excluded from default retrieval; conflicts and unknowns remain visible unless explicitly filtered.
 
+## D-007 Semantic ContextBundle hash
+
+The ContextBundle semantic hash excludes SQLite `created_at` and `updated_at` wall-clock metadata. Those fields remain available for time filtering, while the cross-run hash represents stable semantic content. This decision was added after two independent local runs exposed timestamp-only hash drift.
+
+## D-008 Public delivery and CI boundary
+
+GitHub CI runs only synthetic and public-safe tests on Python 3.11 and 3.13. It never accesses the local `.day` artifact. The real sample is represented only by a hash-bound aggregate receipt and candidate-only semantic objects.

@@ -11,6 +11,8 @@ import yaml
 from local_adapter.contracts import deserialize_contract
 
 from .contracts import SourceActivationPolicy
+from .integrated_flow import run_integrated_flow
+from .memory_store import MemoryStore
 from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
 
@@ -37,6 +39,16 @@ def build_parser() -> argparse.ArgumentParser:
     replay.add_argument("--as-of", required=True)
     replay.add_argument("--symbol", required=True)
     replay.add_argument("--exchange", choices=("SZ", "SH", "BJ"), required=True)
+    integrated = subparsers.add_parser(
+        "integrated-day",
+        help="Replay one local artifact into an in-memory candidate store and print an aggregate receipt",
+    )
+    integrated.add_argument("--manifest", type=Path, required=True)
+    integrated.add_argument("--activation-policy", type=Path, required=True)
+    integrated.add_argument("--artifact", type=Path, required=True)
+    integrated.add_argument("--as-of", required=True)
+    integrated.add_argument("--symbol", required=True)
+    integrated.add_argument("--exchange", choices=("SZ", "SH", "BJ"), required=True)
     return parser
 
 
@@ -45,10 +57,18 @@ def main(argv: list[str] | None = None) -> int:
     manifest = deserialize_contract("SourceManifest", _load_yaml(args.manifest))
     policy = SourceActivationPolicy(**_load_yaml(args.activation_policy))
     adapter = TdxDaySourceAdapter(args.artifact, policy)
-    if args.command == "replay-day":
+    if args.command in {"replay-day", "integrated-day"}:
         try:
             parsed = adapter.load_parsed(manifest, args.as_of)
             receipt = run_p2_replay(parsed, manifest, symbol=args.symbol, exchange=args.exchange, requested_as_of=args.as_of)
+            if args.command == "integrated-day":
+                store = MemoryStore().connect()
+                try:
+                    flow_receipt, _, _ = run_integrated_flow(receipt, store)
+                finally:
+                    store.close()
+                print(json.dumps(flow_receipt.public_payload(), ensure_ascii=True, sort_keys=True))
+                return 0
             print(json.dumps(receipt.public_payload(), ensure_ascii=True, sort_keys=True))
             return 0
         except (ValueError, OSError) as error:

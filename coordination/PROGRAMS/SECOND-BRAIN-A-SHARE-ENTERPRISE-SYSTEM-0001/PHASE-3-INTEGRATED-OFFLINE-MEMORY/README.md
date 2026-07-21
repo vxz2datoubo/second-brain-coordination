@@ -17,3 +17,11 @@ python run_all_tests.py
 ```
 
 The local `.day` validation CLI requires an explicit manifest, hash-bound activation policy and as-of time. It prints an aggregate receipt only.
+
+The `integrated-day` command extends that read-only path through P2 replay, a candidate LearningPacket, an in-memory SQLite candidate store, QueryPlan retrieval and a ContextBundle. It still prints only an aggregate receipt and never persists the source data or runtime database.
+
+```powershell
+python public_safety_scan.py
+```
+
+The public safety scan rejects raw market files, runtime databases, logs, compiled or binary artifacts, and secret-shaped values from this delivery surface.
