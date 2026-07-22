@@ -1,0 +1,180 @@
+schema_version: "1.1"
+record_type: "TaskImpactForecast"
+task_id: "CODEX-W4-LSRV-D0-PROJECT-PLAN-0017A"
+issue_or_pr: "Issue #69"
+prepared_by: "GPT"
+prepared_at: "2026-07-22"
+mode: "project_plan"
+task_weight: "STRATEGIC"
+research_trigger_level: "L2_TARGETED_PROFESSIONAL_RESEARCH"
+
+mission_intent:
+  fundamental_goal: "Merge legacy liquidity-sweep/reclaim fragments into one observable, point-in-time, A-share-constrained and falsifiable validation skill."
+  user_capability_outcome: "The system can distinguish reference-zone breach, reclaim, failure, continuation and post-event stabilization without claiming hidden stops, order flow or participant intent."
+
+system_position:
+  primary_workstreams: [W4, W7]
+  consumes: [W2, W5, W13]
+  read_only_downstream: [W10, W11]
+  systems_of_record:
+    market_and_rules: W2
+    feature_and_experiment: W4
+    validation: W7
+    shadow_and_learning: W9
+  prohibited_duplicates:
+    - market_data_runtime
+    - replay_runtime
+    - event_ledger
+    - participant_identity_engine
+    - risk_engine
+    - portfolio_engine
+    - execution_or_order_system
+
+first_principles:
+  fundamental_goal: "Create testable event labels and T+1-aware validation rather than a narrative indicator."
+  current_state_to_change: "Relevant fragments exist but are semantically scattered and not independently validated."
+  causal_mechanism:
+    - "Predefine a reference zone without future leakage."
+    - "Measure observable breach and reclaim paths."
+    - "Separate continuation, reversal and stabilization outcomes."
+    - "Apply A-share inventory and execution constraints."
+    - "Compare against simple baselines across periods and regimes."
+  constraints:
+    - research_only_NO_TRADE
+    - no_master_intent_claim
+    - no_fake_tick_or_order_flow
+    - no_DDX_or_DDY
+    - no_auto_trade
+    - one_active_codex_task
+  required_evidence:
+    - repository_and_local_candidate_inventory
+    - source_semantics_and_capability_matrix
+    - official_A_share_rule_snapshots
+    - point_in_time_replay_feasibility
+    - multi_period_OOS_validation_plan
+  observability_limits:
+    - "BAR_ONLY cannot observe stop clusters, absorption, hidden liquidity or participant identity."
+    - "L1 snapshots cannot reconstruct queues or true OFI."
+  alternatives_considered:
+    - option: "Treat liquidity sweep as a chart-pattern strategy"
+      reason_not_selected: "Would overclaim hidden mechanisms and invite parameter mining."
+    - option: "Fold everything into W13 participant-intent inference"
+      reason_not_selected: "Price structure does not identify participants and would contaminate identity semantics."
+    - option: "Start with raw-order-flow implementation"
+      reason_not_selected: "Raw order-event entitlement and history are not yet verified."
+  stop_conditions:
+    - future_leakage_in_reference_zones
+    - required_data_license_unavailable
+    - no_reproducible_point_in_time_labels
+    - duplicate_canonical_runtime_required
+    - expected_net_value_negative
+
+exploration_budget:
+  primary_delivery_share: "65-75%"
+  active_discovery_share: "15-25%"
+  system_opportunity_share: "10-15%"
+  max_new_architecture_proposals: 4
+  max_new_skill_candidates: 1
+  max_unplanned_files: 8
+  scope_expansion_without_gate: false
+
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    - fix_stale_references
+    - improve_validation_checks
+    - add_backward_compatible_quality_fields
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    - add_internal_audit_tables_and_receipts
+  C_PROPOSAL_ONLY:
+    - new_schema
+    - new_data_source
+    - new_runtime
+    - new_cross_module_interface
+    - raw_order_event_pipeline
+  D_PROHIBITED_OR_USER_GATE:
+    - credentials
+    - broker_account
+    - real_trade
+    - auto_merge
+    - direct_main_write
+    - risk_or_capital_boundary_change
+
+expected_benefits:
+  - benefit_id: B1
+    description: "Eliminate duplicate and semantically inflated liquidity-sweep candidates."
+    benefit_type: reusable_asset
+    probability: high
+    impact: high
+    causal_basis: "One canonical contract and non-duplication audit."
+    validation_signal: "All legacy fragments receive a disposition."
+  - benefit_id: B2
+    description: "Make sweep/reclaim labels reproducible and point-in-time."
+    benefit_type: direct
+    probability: medium
+    impact: high
+    causal_basis: "Frozen zones and deterministic state machine."
+    validation_signal: "Cross-run and cross-granularity label consistency."
+  - benefit_id: B3
+    description: "Prevent T+1 and price-limit risk from being hidden by attractive chart results."
+    benefit_type: cross_module
+    probability: high
+    impact: critical
+    causal_basis: "Lot-level inventory and unexecutable exit metrics."
+    validation_signal: "Results report next-day tradability and locked-exit rate."
+
+expected_harms:
+  - harm_id: H1
+    description: "Pattern complexity and parameter search may create false discoveries."
+    harm_type: model_risk
+    probability: high
+    severity: high
+    reversibility: moderate
+    detectability: delayed
+    propagation_scope: module
+    mitigation: "Experiment-family ledger, simple baselines, lockbox and multiple-testing audit."
+  - harm_id: H2
+    description: "Retail jargon may reintroduce hidden-intent claims."
+    harm_type: model_risk
+    probability: medium
+    severity: high
+    reversibility: easy
+    detectability: early
+    propagation_scope: cross_module
+    mitigation: "Canonical observable labels and prohibited semantics."
+  - harm_id: H3
+    description: "New work may expand WIP and delay current gates."
+    harm_type: schedule
+    probability: medium
+    severity: medium
+    reversibility: easy
+    detectability: early
+    propagation_scope: system_wide
+    mitigation: "Queue behind current Codex task and D0 gates."
+
+cost_forecast:
+  time: "Strategic D0 audit and plan; implementation separately gated."
+  token_or_compute: "Medium for research and audit; high only after historical backtest authorization."
+  maintenance: "Moderate if one canonical skill is preserved."
+  opportunity_cost: "Delayed W4 feature research while W13/PMN foundational interfaces freeze."
+
+net_value_assessment:
+  expected_net_value: positive
+  confidence: medium
+  rationale: "High semantic and validation value, provided implementation remains gated and BAR_ONLY first."
+
+risk_gate:
+  user_notification_required: false
+  triggered_rules: [none]
+  notification_summary: "Research-only queued task with no credentials, account or trade path."
+  approval_required: false
+  decision: PROCEED_WITH_CONTROLS
+
+execution_observation_requirements:
+  - "Track duplicate assets and semantic overclaims discovered."
+  - "Track whether BAR_ONLY labels can be reproduced without future leakage."
+  - "Track T+1 and price-limit effects on apparent edge."
+  - "Preserve negative and null results."
+  - "Escalate any canonical runtime or licensed-data proposal as C-class."
+
+post_delivery_review_required: true
+linked_outcome_review: "PENDING"
