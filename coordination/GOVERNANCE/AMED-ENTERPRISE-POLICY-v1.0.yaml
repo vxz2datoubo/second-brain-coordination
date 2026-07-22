@@ -1,0 +1,207 @@
+schema_version: "1.0"
+policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+short_name: "AMED"
+status: "ACTIVE_ENTERPRISE_STANDARD"
+authority_scope: "all_non_trivial_agent_tasks"
+applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
+blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+boundary: "research_only / NO_TRADE unless separately authorized"
+
+mandatory_task_fields:
+  - mission_intent
+  - fundamental_goal
+  - system_position
+  - systems_of_record
+  - dependencies
+  - hard_boundaries
+  - success_criteria
+  - stop_conditions
+  - task_weight
+  - research_trigger_level
+  - exploration_budget
+  - improvement_authority
+  - evidence_requirements
+  - second_pass_audit_required
+
+execution_chains:
+  primary_delivery: true
+  active_discovery: true
+  system_evolution_proposal: true
+
+research_trigger_levels:
+  L1_REUSE_AND_QUICK_CHECK:
+    default: true
+    internet_research_required: false
+    required_actions:
+      - "Search repository blueprints, issues, PRs, skills, tests and engineering learning."
+      - "Check duplication, stale assumptions and obvious reusable capabilities."
+  L2_TARGETED_PROFESSIONAL_RESEARCH:
+    triggers:
+      - NEW_DOMAIN
+      - BLUEPRINT_GAP
+      - SOURCE_CONFLICT
+      - RULE_OR_POLICY_FRESHNESS
+      - HIGH_IMPACT_ARCHITECTURE_OR_CAPITAL_DECISION
+      - MISSING_PRIMARY_EVIDENCE
+      - THEORY_BACKTEST_CONTRADICTION
+      - CROSS_MODULE_INTERFACE_CONFLICT
+      - MATERIAL_UNCERTAINTY
+    source_priority:
+      - OFFICIAL_PRIMARY
+      - ORIGINAL_RESEARCH_PAPER
+      - OFFICIAL_STANDARD
+      - UNIVERSITY_COURSE_OR_LAB
+      - REPRODUCIBLE_REAL_PROJECT
+      - INSTITUTIONAL_CASE
+      - PROFESSIONAL_SECONDARY
+    required_outputs:
+      - RESEARCH_LEDGER
+      - SOURCE_CONFLICTS
+      - A_SHARE_APPLICABILITY
+      - COUNTEREVIDENCE
+      - CONFIDENCE_AND_UNKNOWNS
+  L3_INDEPENDENT_RESEARCH_TASK:
+    triggers:
+      - CANONICAL_RUNTIME_CHANGE
+      - SYSTEM_OF_RECORD_CHANGE
+      - CROSS_MODULE_AUTHORITY_MIGRATION
+      - NEW_INDEPENDENT_SKILL
+      - NEW_PAID_OR_LICENSED_DATA
+      - LARGE_HISTORICAL_DATASET
+      - FORMAL_BACKTEST_PROGRAM
+      - EXPLORATION_BUDGET_EXCEEDED
+      - INDEPENDENT_ADVERSARIAL_VALIDATION_REQUIRED
+      - USER_DECISION_REQUIRED
+    action: "PROPOSAL_ONLY_AND_CREATE_TASK_CANDIDATE"
+
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    implementation_allowed: true
+    conditions:
+      - CURRENT_BRANCH_ONLY
+      - NO_EXTERNAL_CONTRACT_CHANGE
+      - NO_AUTHORITY_CHANGE
+      - NO_PERMISSION_EXPANSION
+      - NO_OTHER_ACTIVE_TASK_IMPACT
+      - TESTED
+      - EASY_ROLLBACK
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    implementation_allowed: true
+    report_required: true
+    conditions:
+      - BACKWARD_COMPATIBLE
+      - LOCAL_OR_INTERNAL
+      - TESTED
+      - ROLLBACK_DOCUMENTED
+  C_PROPOSAL_ONLY:
+    implementation_allowed: false
+    outputs: [RFC, ADR, SCHEMA_PROPOSAL, FOLLOW_UP_TASK_CANDIDATE]
+  D_PROHIBITED_OR_USER_GATE:
+    implementation_allowed: false
+    stop_and_escalate: true
+
+exploration_budget_defaults:
+  LIGHT:
+    primary_delivery_share: "85-95%"
+    active_discovery_share: "5-15%"
+    system_opportunity_share: "0-5%"
+    max_new_architecture_proposals: 1
+    max_new_skill_candidates: 0
+    max_unplanned_files: 2
+  STANDARD:
+    primary_delivery_share: "70-80%"
+    active_discovery_share: "10-20%"
+    system_opportunity_share: "5-10%"
+    max_new_architecture_proposals: 3
+    max_new_skill_candidates: 2
+    max_unplanned_files: 5
+  STRATEGIC:
+    primary_delivery_share: "60-75%"
+    active_discovery_share: "15-25%"
+    system_opportunity_share: "10-15%"
+    max_new_architecture_proposals: 5
+    max_new_skill_candidates: 3
+    max_unplanned_files: 10
+  scope_expansion_without_gate: false
+
+mandatory_delivery_artifacts:
+  LIGHT:
+    - EXECUTION_RECEIPT
+    - TEST_RECEIPT
+    - ACTIVE_DISCOVERY_SUMMARY
+    - UNKNOWN_SUMMARY
+  STANDARD:
+    - AGENT_EXECUTION_RECEIPT
+    - RESEARCH_LEDGER
+    - UNPLANNED_IMPROVEMENT_LEDGER
+    - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
+    - TEST_RUN_RECEIPT
+    - UNKNOWN_REGISTRY
+    - AI_HANDOFF
+  STRATEGIC:
+    - TASK_IMPACT_FORECAST
+    - AGENT_EXECUTION_RECEIPT
+    - RESEARCH_LEDGER
+    - UNPLANNED_IMPROVEMENT_LEDGER
+    - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
+    - ALTERNATIVE_AND_TRADEOFF_MATRIX
+    - INDEPENDENT_VALIDATION_PACKAGE
+    - TEST_RUN_RECEIPT
+    - UNKNOWN_REGISTRY
+    - AI_HANDOFF
+
+fact_classes:
+  - VERIFIED_REPOSITORY
+  - VERIFIED_LOCAL
+  - VERIFIED_OFFICIAL_SOURCE
+  - VERIFIED_TEST
+  - INFERENCE
+  - INHERITED_REPORT
+  - ACCESS_NOT_AVAILABLE
+  - UNKNOWN
+
+proposal_dispositions:
+  - ACCEPT_IN_CURRENT_TASK
+  - PROPOSE_FOLLOW_UP
+  - PROPOSE_ARCHITECTURE_DECISION
+  - PROPOSE_NEW_SKILL
+  - PROPOSE_DEPRECATION
+  - NEEDS_INDEPENDENT_RESEARCH
+  - NEEDS_USER_DECISION
+  - REJECTED_AFTER_RESEARCH
+  - UNKNOWN
+
+gpt_second_pass_gates:
+  - TASK_COMPLETENESS_GATE
+  - FACT_EVIDENCE_GATE
+  - RESEARCH_QUALITY_GATE
+  - ENGINEERING_CORRECTNESS_GATE
+  - IMPROVEMENT_VALUE_GATE
+  - SYSTEM_EVOLUTION_GATE
+  - NEXT_ACTION_GATE
+
+gpt_verdicts:
+  - ACCEPTED
+  - ACCEPTED_WITH_BOUNDED_AMENDMENT
+  - REMEDIATION_REQUIRED
+  - INDEPENDENT_VALIDATION_REQUIRED
+  - SPLIT_INTO_NEW_TASK
+  - ARCHITECTURE_DECISION_REQUIRED
+  - USER_DECISION_REQUIRED
+  - REJECTED
+
+anti_scope_explosion:
+  primary_task_must_complete_first: true
+  discovery_is_not_implementation: true
+  new_capability_requires_non_duplication_matrix: true
+  negative_results_must_be_preserved: true
+  executor_cannot_self_approve_major_expansion: true
+  every_proposal_requires_owner_gate_and_close_condition: true
+
+security_and_trade:
+  direct_main_write: false
+  auto_merge: false
+  credentials_denied: true
+  broker_account_access_denied: true
+  real_trade_denied: true
+  bypass_license_paywall_captcha_denied: true
