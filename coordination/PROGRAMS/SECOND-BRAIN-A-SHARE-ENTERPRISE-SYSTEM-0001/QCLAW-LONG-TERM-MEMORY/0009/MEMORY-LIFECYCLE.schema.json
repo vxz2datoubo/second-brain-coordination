@@ -1,0 +1,539 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qclaw.second-brain/schemas/memory-lifecycle-v1.0.0.schema.json",
+  "title": "Memory Lifecycle State Machine",
+  "description": "10-state lifecycle for KnowledgeAtoms in the QCLAW Long-Term Memory system. Defines states, valid transitions, guard conditions, and required metadata per state.",
+  "version": "1.0.0-M0",
+  "type": "object",
+  "required": ["lifecycle_version", "states", "transitions", "guard_conditions", "metadata_per_state", "lifecycle_rules"],
+  "properties": {
+    "lifecycle_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "states": {
+      "type": "object",
+      "description": "The 10 lifecycle states a memory atom can occupy.",
+      "properties": {
+        "INGESTED": {
+          "type": "object",
+          "description": "Atom has been received in a LearningPacket but not yet classified into memory layers. The entry state for all new knowledge.",
+          "properties": {
+            "index": { "type": "integer", "const": 0 },
+            "display_name": { "type": "string", "const": "Ingested" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": true },
+            "visible_in_query": { "type": "boolean", "const": false },
+            "description": { "type": "string" }
+          }
+        },
+        "CANDIDATE": {
+          "type": "object",
+          "description": "Atom classified into memory layers, indexed, searchable, but not yet reviewed/promoted as authoritative. The default state after ingestion and classification.",
+          "properties": {
+            "index": { "type": "integer", "const": 1 },
+            "display_name": { "type": "string", "const": "Candidate" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": true },
+            "description": { "type": "string" }
+          }
+        },
+        "ACTIVE": {
+          "type": "object",
+          "description": "Reviewed and serving queries as current knowledge. Represents the 'live' knowledge base.",
+          "properties": {
+            "index": { "type": "integer", "const": 2 },
+            "display_name": { "type": "string", "const": "Active" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": true },
+            "description": { "type": "string" }
+          }
+        },
+        "CONSOLIDATED": {
+          "type": "object",
+          "description": "Long-standing, high-confidence knowledge that has been active for an extended period without change. Receives highest retrieval priority within its layer.",
+          "properties": {
+            "index": { "type": "integer", "const": 3 },
+            "display_name": { "type": "string", "const": "Consolidated" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": true },
+            "description": { "type": "string" }
+          }
+        },
+        "SUPERSEDED": {
+          "type": "object",
+          "description": "Replaced by a newer atom via the version chain (supersedes/superseded_by). Old atom is preserved for history and audit but not returned in primary queries.",
+          "properties": {
+            "index": { "type": "integer", "const": 4 },
+            "display_name": { "type": "string", "const": "Superseded" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": false },
+            "description": { "type": "string" }
+          }
+        },
+        "STALE": {
+          "type": "object",
+          "description": "Not accessed or updated past its decay threshold. Still queryable but with reduced retrieval priority and a staleness warning.",
+          "properties": {
+            "index": { "type": "integer", "const": 5 },
+            "display_name": { "type": "string", "const": "Stale" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": true },
+            "description": { "type": "string" }
+          }
+        },
+        "DISPUTED": {
+          "type": "object",
+          "description": "Has an unresolved conflict with another atom. Both sides are preserved. Queryable but always surfaced WITH the conflict context.",
+          "properties": {
+            "index": { "type": "integer", "const": 6 },
+            "display_name": { "type": "string", "const": "Disputed" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": true },
+            "description": { "type": "string" }
+          }
+        },
+        "REVOKED": {
+          "type": "object",
+          "description": "Explicitly withdrawn due to source retraction, user correction, or authoritative override. Preserved for audit. Never returned in primary queries.",
+          "properties": {
+            "index": { "type": "integer", "const": 7 },
+            "display_name": { "type": "string", "const": "Revoked" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": false },
+            "description": { "type": "string" }
+          }
+        },
+        "ARCHIVED": {
+          "type": "object",
+          "description": "No longer serving queries. Content preserved for historical reference, audit, and potential restoration.",
+          "properties": {
+            "index": { "type": "integer", "const": 8 },
+            "display_name": { "type": "string", "const": "Archived" },
+            "is_terminal": { "type": "boolean", "const": false },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": false },
+            "description": { "type": "string" }
+          }
+        },
+        "FORGOTTEN_INDEX_ONLY": {
+          "type": "object",
+          "description": "Content removed from active store. Only the index entry remains: atom_id, hash, lifecycle history trace. Enables 'I know I knew this but I've forgotten it' semantics.",
+          "properties": {
+            "index": { "type": "integer", "const": 9 },
+            "display_name": { "type": "string", "const": "Forgotten (Index Only)" },
+            "is_terminal": { "type": "boolean", "const": true },
+            "is_entry_state": { "type": "boolean", "const": false },
+            "visible_in_query": { "type": "boolean", "const": false },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "description": "All valid state transitions in the lifecycle.",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "name", "trigger", "reversible"],
+        "properties": {
+          "from": { "type": "string", "enum": ["INGESTED", "CANDIDATE", "ACTIVE", "CONSOLIDATED", "SUPERSEDED", "STALE", "DISPUTED", "REVOKED", "ARCHIVED", "FORGOTTEN_INDEX_ONLY"] },
+          "to": { "type": "string", "enum": ["INGESTED", "CANDIDATE", "ACTIVE", "CONSOLIDATED", "SUPERSEDED", "STALE", "DISPUTED", "REVOKED", "ARCHIVED", "FORGOTTEN_INDEX_ONLY"] },
+          "name": { "type": "string" },
+          "trigger": { "type": "string", "description": "What causes this transition" },
+          "reversible": { "type": "boolean", "description": "Can the atom transition back?" },
+          "reverse_transition": { "type": "string", "description": "Name of the reverse transition if reversible" }
+        }
+      },
+      "default": [
+        { "from": "INGESTED", "to": "CANDIDATE", "name": "classify", "trigger": "Layer classification completed", "reversible": false },
+        { "from": "CANDIDATE", "to": "ACTIVE", "name": "promote", "trigger": "Review approved OR automated promotion threshold reached", "reversible": true, "reverse_transition": "demote" },
+        { "from": "ACTIVE", "to": "CANDIDATE", "name": "demote", "trigger": "New conflicting evidence OR confidence downgrade", "reversible": true, "reverse_transition": "promote" },
+        { "from": "ACTIVE", "to": "CONSOLIDATED", "name": "consolidate", "trigger": "Extended ACTIVE duration + high confidence + no changes", "reversible": true, "reverse_transition": "deconsolidate" },
+        { "from": "CONSOLIDATED", "to": "ACTIVE", "name": "deconsolidate", "trigger": "New evidence challenges consolidated knowledge", "reversible": true, "reverse_transition": "consolidate" },
+        { "from": "CANDIDATE", "to": "SUPERSEDED", "name": "supersede_from_candidate", "trigger": "Newer atom with same subject ingested", "reversible": false },
+        { "from": "ACTIVE", "to": "SUPERSEDED", "name": "supersede_from_active", "trigger": "Newer atom replaces this one via version chain", "reversible": false },
+        { "from": "CONSOLIDATED", "to": "SUPERSEDED", "name": "supersede_from_consolidated", "trigger": "Newer atom replaces consolidated knowledge", "reversible": false },
+        { "from": "ACTIVE", "to": "STALE", "name": "decay_to_stale", "trigger": "Time-based decay threshold crossed; no recent access", "reversible": true, "reverse_transition": "refresh" },
+        { "from": "CONSOLIDATED", "to": "STALE", "name": "decay_to_stale_from_consolidated", "trigger": "Extended inactivity despite consolidation", "reversible": true, "reverse_transition": "refresh" },
+        { "from": "STALE", "to": "ACTIVE", "name": "refresh", "trigger": "Atom is accessed or updated; staleness reset", "reversible": true, "reverse_transition": "decay_to_stale" },
+        { "from": "CANDIDATE", "to": "DISPUTED", "name": "dispute_from_candidate", "trigger": "Conflict detected with another candidate atom", "reversible": true, "reverse_transition": "resolve_dispute" },
+        { "from": "ACTIVE", "to": "DISPUTED", "name": "dispute_from_active", "trigger": "New contradictory evidence emerges", "reversible": true, "reverse_transition": "resolve_dispute" },
+        { "from": "DISPUTED", "to": "ACTIVE", "name": "resolve_dispute", "trigger": "Conflict resolved via evidence, supersedure, or scope clarification", "reversible": true, "reverse_transition": "dispute_from_active" },
+        { "from": "CANDIDATE", "to": "REVOKED", "name": "revoke_from_candidate", "trigger": "Source retraction or user explicit revocation", "reversible": true, "reverse_transition": "reinstate" },
+        { "from": "ACTIVE", "to": "REVOKED", "name": "revoke_from_active", "trigger": "Authoritative override or source retraction", "reversible": true, "reverse_transition": "reinstate" },
+        { "from": "DISPUTED", "to": "REVOKED", "name": "revoke_from_disputed", "trigger": "Both sides of dispute determined invalid", "reversible": false },
+        { "from": "SUPERSEDED", "to": "ARCHIVED", "name": "archive_superseded", "trigger": "Superseded atom past retention window", "reversible": true, "reverse_transition": "restore" },
+        { "from": "STALE", "to": "ARCHIVED", "name": "archive_stale", "trigger": "Stale atom past extended decay threshold", "reversible": true, "reverse_transition": "restore" },
+        { "from": "REVOKED", "to": "ARCHIVED", "name": "archive_revoked", "trigger": "Revoked atom past audit retention window", "reversible": true, "reverse_transition": "restore" },
+        { "from": "ARCHIVED", "to": "CANDIDATE", "name": "restore", "trigger": "Explicit restoration request; re-enters as candidate", "reversible": false },
+        { "from": "ARCHIVED", "to": "FORGOTTEN_INDEX_ONLY", "name": "forget", "trigger": "Deep decay OR explicit forget request", "reversible": false },
+        { "from": "REVOKED", "to": "FORGOTTEN_INDEX_ONLY", "name": "forget_revoked", "trigger": "Explicit destruction of revoked knowledge (legal/compliance)", "reversible": false }
+      ]
+    },
+    "guard_conditions": {
+      "type": "object",
+      "description": "Conditions that must be met for each transition to be valid. Transitions are blocked if guards fail.",
+      "properties": {
+        "classify": {
+          "type": "object",
+          "description": "INGESTED → CANDIDATE",
+          "properties": {
+            "atom_has_been_parsed": { "type": "boolean", "const": true, "description": "Atom must have been parsed from a valid LearningPacket" },
+            "layer_assigned": { "type": "boolean", "const": true, "description": "Atom must have at least one primary layer classification" },
+            "atom_id_valid": { "type": "boolean", "const": true, "description": "Atom ID must be a valid deterministic SHA-256 derivation" },
+            "no_hard_secret_leakage": { "type": "boolean", "const": true, "description": "Must pass secret scan (QG-SEC-001, QG-SEC-002)" }
+          }
+        },
+        "promote": {
+          "type": "object",
+          "description": "CANDIDATE → ACTIVE",
+          "properties": {
+            "confidence_minimum": { "type": "string", "const": "MEDIUM", "description": "Atom confidence must be at least MEDIUM" },
+            "not_disputed": { "type": "boolean", "const": true, "description": "Atom must not be in an unresolved conflict" },
+            "source_verified": { "type": "boolean", "const": true, "description": "Source manifest must be complete and verified" },
+            "quality_gate_passed": { "type": "boolean", "const": true, "description": "Must pass all QG-FAIL severity gates" }
+          }
+        },
+        "demote": {
+          "type": "object",
+          "description": "ACTIVE → CANDIDATE",
+          "properties": {
+            "evidence_of_demotion": { "type": "boolean", "const": true, "description": "Must have explicit evidence: new conflict, confidence downgrade, or source retraction" },
+            "demotion_reason_documented": { "type": "boolean", "const": true, "description": "Reason must be recorded in lifecycle metadata" }
+          }
+        },
+        "consolidate": {
+          "type": "object",
+          "description": "ACTIVE → CONSOLIDATED",
+          "properties": {
+            "minimum_active_duration_days": { "type": "integer", "const": 90, "description": "Must have been ACTIVE for at least 90 days" },
+            "confidence_minimum": { "type": "string", "const": "HIGH", "description": "Confidence must be HIGH or VERY_HIGH" },
+            "no_recent_changes": { "type": "integer", "const": 30, "description": "No changes (updates, supersedes, disputes) in past 30 days" },
+            "access_frequency_above_threshold": { "type": "boolean", "const": true, "description": "Must have above-median access frequency" }
+          }
+        },
+        "deconsolidate": {
+          "type": "object",
+          "description": "CONSOLIDATED → ACTIVE",
+          "properties": {
+            "challenging_evidence_present": { "type": "boolean", "const": true, "description": "New evidence or conflict challenges consolidated knowledge" },
+            "deconsolidation_reason_documented": { "type": "boolean", "const": true }
+          }
+        },
+        "supersede": {
+          "type": "object",
+          "description": "Any state → SUPERSEDED",
+          "properties": {
+            "superseding_atom_exists": { "type": "boolean", "const": true, "description": "A newer atom must exist with a valid SUPERSEDES relation" },
+            "superseding_atom_has_different_state": { "type": "boolean", "const": true, "description": "Superseding atom must be CANDIDATE, ACTIVE, or CONSOLIDATED" },
+            "version_chain_recorded": { "type": "boolean", "const": true, "description": "Both atoms must have supersedes/superseded_by chain" }
+          }
+        },
+        "decay_to_stale": {
+          "type": "object",
+          "description": "ACTIVE or CONSOLIDATED → STALE",
+          "properties": {
+            "decay_threshold_exceeded": { "type": "boolean", "const": true, "description": "Layer-specific decay threshold must be exceeded" },
+            "no_recent_access": { "type": "integer", "const": 30, "description": "No access in past 30 days (minimum for any layer)" },
+            "layer_allows_decay": { "type": "boolean", "const": true, "description": "Layer must have decay enabled (L4, L6 never decay)" }
+          }
+        },
+        "refresh": {
+          "type": "object",
+          "description": "STALE → ACTIVE",
+          "properties": {
+            "atom_accessed_or_updated": { "type": "boolean", "const": true, "description": "Atom was accessed or updated, resetting staleness" },
+            "still_valid": { "type": "boolean", "const": true, "description": "Atom content still valid (not revoked, not superseded)" }
+          }
+        },
+        "dispute": {
+          "type": "object",
+          "description": "Any active state → DISPUTED",
+          "properties": {
+            "conflict_relation_valid": { "type": "boolean", "const": true, "description": "Must have a valid KnowledgeConflict relation with another atom" },
+            "both_atoms_present": { "type": "boolean", "const": true, "description": "Both sides of the conflict must exist in the system" },
+            "conflict_unresolved": { "type": "boolean", "const": true, "description": "Conflict resolution status must be UNRESOLVED" }
+          }
+        },
+        "resolve_dispute": {
+          "type": "object",
+          "description": "DISPUTED → ACTIVE",
+          "properties": {
+            "resolution_evidence_present": { "type": "boolean", "const": true, "description": "Must have resolution_evidence in the conflict record" },
+            "resolution_type_documented": { "type": "string", "enum": ["RESOLVED_BY_EVIDENCE", "RESOLVED_BY_SUPERSEDES", "RESOLVED_BY_SCOPE_CLARIFICATION", "ACKNOWLEDGED_PARADOX"] }
+          }
+        },
+        "revoke": {
+          "type": "object",
+          "description": "Any state → REVOKED",
+          "properties": {
+            "revocation_authorized": { "type": "boolean", "const": true, "description": "Must have explicit revocation authorization (user, source retraction, or admin)" },
+            "revocation_reason_documented": { "type": "boolean", "const": true }
+          }
+        },
+        "reinstate": {
+          "type": "object",
+          "description": "REVOKED → CANDIDATE/ACTIVE (via explicit restoration)",
+          "properties": {
+            "revocation_reversed": { "type": "boolean", "const": true, "description": "Original revocation reason no longer applies" },
+            "reinstate_authorized": { "type": "boolean", "const": true, "description": "Reinstatement explicitly authorized" }
+          }
+        },
+        "archive": {
+          "type": "object",
+          "description": "Non-queryable states → ARCHIVED",
+          "properties": {
+            "retention_window_exceeded": { "type": "boolean", "const": true, "description": "State-specific retention window must be exceeded" },
+            "no_pending_audit_hold": { "type": "boolean", "const": true, "description": "No active audit hold on this atom" }
+          }
+        },
+        "restore": {
+          "type": "object",
+          "description": "ARCHIVED → CANDIDATE",
+          "properties": {
+            "restore_request_authorized": { "type": "boolean", "const": true },
+            "content_still_available": { "type": "boolean", "const": true, "description": "Cannot restore if already FORGOTTEN_INDEX_ONLY" }
+          }
+        },
+        "forget": {
+          "type": "object",
+          "description": "ARCHIVED or REVOKED → FORGOTTEN_INDEX_ONLY",
+          "properties": {
+            "forget_authorized": { "type": "boolean", "const": true, "description": "Must be explicitly authorized (not automatic)" },
+            "content_not_required_for_audit": { "type": "boolean", "const": true },
+            "index_entry_preserved": { "type": "boolean", "const": true, "description": "atom_id, hash, lifecycle trace must be preserved in index" }
+          }
+        }
+      }
+    },
+    "metadata_per_state": {
+      "type": "object",
+      "description": "Required and optional metadata fields for atoms in each lifecycle state.",
+      "properties": {
+        "INGESTED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["ingested_at", "ingested_from_packet_id", "source_hash"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["ingestion_errors", "pending_classification_notes"]
+            }
+          }
+        },
+        "CANDIDATE": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["classified_at", "primary_layer", "secondary_layers", "classification_confidence"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["review_deadline", "promotion_blockers"]
+            }
+          }
+        },
+        "ACTIVE": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["promoted_at", "promoted_by", "active_since"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["last_accessed_at", "access_count", "quality_score"]
+            }
+          }
+        },
+        "CONSOLIDATED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["consolidated_at", "consolidation_trigger", "active_duration_days"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["expected_stability_days"]
+            }
+          }
+        },
+        "SUPERSEDED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["superseded_at", "superseded_by_atom_id", "supersedes_reason"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["archive_at"]
+            }
+          }
+        },
+        "STALE": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["stale_since", "staleness_level", "last_accessed_at", "decay_function_applied"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["auto_refresh_on_access"]
+            }
+          }
+        },
+        "DISPUTED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["disputed_at", "conflict_id", "conflicting_atom_id", "conflict_type", "resolution_status"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["resolution_expected_by", "impact_assessment"]
+            }
+          }
+        },
+        "REVOKED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["revoked_at", "revoked_by", "revocation_reason", "revocation_authority"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["legal_hold", "audit_retention_until"]
+            }
+          }
+        },
+        "ARCHIVED": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["archived_at", "archive_reason", "previous_state"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["restorable_until", "compression_level"]
+            }
+          }
+        },
+        "FORGOTTEN_INDEX_ONLY": {
+          "type": "object",
+          "properties": {
+            "required": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["forgotten_at", "forgotten_by", "forget_reason", "atom_id_preserved", "content_hash_preserved", "lifecycle_trace_preserved"]
+            },
+            "optional": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["forget_authorization_id"]
+            }
+          }
+        }
+      }
+    },
+    "lifecycle_rules": {
+      "type": "object",
+      "description": "Global lifecycle rules that apply to all atoms.",
+      "properties": {
+        "deterministic": {
+          "type": "boolean",
+          "const": true,
+          "description": "Same atom + same time + same events → same state progression. Lifecycle is deterministic."
+        },
+        "no_skipping": {
+          "type": "boolean",
+          "const": true,
+          "description": "Atoms must pass through INGESTED → CANDIDATE; cannot skip directly to ACTIVE."
+        },
+        "conflict_preservation": {
+          "type": "boolean",
+          "const": true,
+          "description": "DISPUTED atoms MUST preserve both sides of the conflict. Resolution does NOT delete either atom."
+        },
+        "immutable_history": {
+          "type": "boolean",
+          "const": true,
+          "description": "Lifecycle event history is append-only. Past state transitions cannot be modified."
+        },
+        "terminal_state": {
+          "type": "string",
+          "const": "FORGOTTEN_INDEX_ONLY",
+          "description": "FORGOTTEN_INDEX_ONLY is the only terminal state. No transitions out."
+        },
+        "reversible_from": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["CANDIDATE", "ACTIVE", "CONSOLIDATED", "STALE", "DISPUTED", "ARCHIVED"],
+          "description": "States from which restoration is possible (all except INGESTED and FORGOTTEN_INDEX_ONLY)"
+        },
+        "irreversible_to": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["FORGOTTEN_INDEX_ONLY"],
+          "description": "States that cannot be left once entered"
+        },
+        "visibility_rules": {
+          "type": "object",
+          "description": "Which states are visible in queries vs. audit-only",
+          "properties": {
+            "query_visible": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["CANDIDATE", "ACTIVE", "CONSOLIDATED", "STALE", "DISPUTED"]
+            },
+            "query_hidden": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["INGESTED", "SUPERSEDED", "REVOKED", "ARCHIVED", "FORGOTTEN_INDEX_ONLY"]
+            },
+            "audit_visible": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["INGESTED", "CANDIDATE", "ACTIVE", "CONSOLIDATED", "SUPERSEDED", "STALE", "DISPUTED", "REVOKED", "ARCHIVED", "FORGOTTEN_INDEX_ONLY"],
+              "description": "All states are visible in audit queries"
+            }
+          }
+        }
+      }
+    }
+  }
+}
