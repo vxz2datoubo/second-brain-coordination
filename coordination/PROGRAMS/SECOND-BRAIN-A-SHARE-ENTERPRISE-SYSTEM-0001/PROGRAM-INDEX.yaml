@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
 program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
@@ -16,6 +16,7 @@ program_objectives:
   - "Evaluate probabilistic edge and expected value before allocating capital, then apply robust Kelly, risk, correlation, liquidity and A-share execution constraints."
   - "Cover the full decision lifecycle from framing, belief and information value through timing, sizing, portfolio, survival, execution, validation, monitoring, attribution and evolution."
   - "Compile every material blueprint method into an existing skill, candidate skill, reference-only item, rejected item or explicit research unknown."
+  - "Track daily institution, Northbound, passive/programmatic, active-seat and state-linked stabilization evidence without confusing activity, identity, direction or amount."
   - "Define systems of record, contracts, dependencies, milestones, acceptance gates, rollback, user correction, belief revision and probability calibration."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
 
@@ -41,6 +42,15 @@ registered_blueprints:
     implementation_issue: 63
     dependencies: [23, 38, 59, 60, 61, 62]
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - module_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
+    path: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-v1.0.yaml"
+    impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014.yaml"
+    implementation_issue: 67
+    dependencies: [6, 8, 23, 30, 38, 42, 59, 60, 61, 62, 63]
+    status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
 
 workstreams:
   - id: "W1"
@@ -51,7 +61,7 @@ workstreams:
   - id: "W2"
     name: "Market Data and Replay"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [6]
+    related_issues: [6, 67]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W3"
     name: "Second Brain Knowledge Authority and Legacy Integration"
@@ -61,45 +71,45 @@ workstreams:
   - id: "W4"
     name: "Indicators, Theories, Strategies, and Experiments"
     owner: "CODEX"
-    related_issues: [5, 6, 63]
+    related_issues: [5, 6, 63, 67]
     status: "QUEUED"
   - id: "W5"
     name: "Event, News, Announcement, and Attention Intelligence"
     owner: "CODEX + QCLAW + WORKBUDDY"
     related_pull_requests: [8]
-    related_issues: [63]
+    related_issues: [63, 67]
     status: "BLUEPRINT_EXISTS"
   - id: "W6"
     name: "Four-Family Multi-Agent Strategic Game"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [23, 63]
+    related_issues: [23, 63, 67]
     status: "QUEUED_CHILD_WORKSTREAM"
   - id: "W7"
     name: "Validation and Risk"
     owner: "CODEX + GPT"
-    related_issues: [62, 63]
+    related_issues: [62, 63, 67]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W8"
     name: "Multi-AI Collaboration, Deployment, and Observability"
     owner: "GPT + CODEX + WORKBUDDY + QCLAW"
-    related_issues: [4, 7, 63]
+    related_issues: [4, 7, 63, 67]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W9"
     name: "Shadow Mode and Engineering Learning"
     owner: "GPT + CODEX"
-    related_issues: [30, 61, 62, 63]
+    related_issues: [30, 61, 62, 63, 67]
     status: "POLICY_EXISTS_AUTOMATION_QUEUED"
   - id: "W10"
     name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [38, 59, 60, 61, 62, 63]
+    related_issues: [38, 59, 60, 61, 62, 63, 67]
     blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
   - id: "W11"
     name: "Kelly-Thorp Expected Value, Probabilistic Edge, and Robust A-share Capital Allocation"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 38, 59, 60, 61, 62, 63]
+    related_issues: [23, 38, 59, 60, 61, 62, 63, 67]
     blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
     machine_readable_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
@@ -107,12 +117,22 @@ workstreams:
   - id: "W12"
     name: "Decision Science Skill Family and Blueprint-to-Skill Gap Compiler"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 31, 38, 59, 60, 61, 62, 63]
+    related_issues: [23, 31, 38, 59, 60, 61, 62, 63, 67]
     blueprint: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-AND-GAP-COMPILER-BLUEPRINT-v1.0.md"
     root_cause_audit: "coordination/BLUEPRINTS/WHY-DECISION-SKILLS-WERE-MISSED-ROOT-CAUSE-AUDIT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-RESEARCH-VALIDATION-v1.0.md"
     machine_readable_registry: "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - id: "W13"
+    name: "A-share Daily Participant Capital-Flow Intelligence"
+    owner: "GPT + CODEX + WORKBUDDY + QCLAW"
+    related_issues: [6, 23, 42, 59, 60, 61, 62, 63, 67]
+    blueprint: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-v1.0.yaml"
+    implementation_issue: 67
+    status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
 
 activation_sequence:
   - "Continue Issue #59 atomization, digestion, and adversarial validation."
@@ -120,14 +140,17 @@ activation_sequence:
   - "Issue #61 performs C0 non-duplication audit and a C0-C7 PEOS project plan before canonical implementation."
   - "Issue #62 performs K0 non-duplication audit and a K0-K7 Kelly-Thorp project plan."
   - "Issue #63 performs D0 repository/local-blueprint skill-gap audit and a D0-D6 project plan."
-  - "Do not implement all thirteen candidate skills simultaneously; first implement the Gap Compiler and select at most three P0 vertical slices."
+  - "Issue #67 performs a W13 D0 repository/local source, license, disclosure-regime, non-duplication and validation-capability audit before implementation."
+  - "Do not implement all thirteen W12 candidate skills or all ten W13 subskills simultaneously."
+  - "W13 first vertical slice is official evidence and a fact-first daily bulletin; advanced actor inference waits for data and identification validation."
   - "GPT assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
-  - "Run shadow-mode cognitive, probability, allocation, research-integrity and engineering calibration before any high-risk deployment."
+  - "Run shadow-mode cognitive, probability, allocation, participant-flow, research-integrity and engineering calibration before any high-risk deployment."
 
 wip_policy:
   max_major_active_workstreams: 3
-  rule: "Issue #59 and #60 may continue while #61, #62 and #63 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
+  rule: "Issue #59 and #60 may continue while #61, #62, #63 and #67 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
   max_initial_w12_child_vertical_slices: 3
+  max_initial_w13_vertical_slices: 1
 
 skill_gap_governance:
   lifecycle: [FRAME, BELIEVE, LEARN, CHOOSE, TIME, SIZE, PORTFOLIO, SURVIVE, EXECUTE, VALIDATE, MONITOR, ATTRIBUTE, EVOLVE]
@@ -149,6 +172,23 @@ skill_gap_governance:
   blueprint_presence_is_not_implementation: true
   formula_correctness_is_not_a_share_validation: true
   skill_count_is_not_success_metric: true
+
+participant_flow_governance:
+  activity_is_not_direction: true
+  direction_is_not_amount: true
+  market_signature_is_not_identity: true
+  official_disclosure_regime_version_required: true
+  northbound_post_2024_08_19_daily_net_claim_prohibited_without_authoritative_data: true
+  dragon_tiger_trigger_selection_must_be_modelled: true
+  brokerage_seat_is_not_real_person: true
+  etf_flow_is_not_national_team_amount: true
+  program_trade_reporting_is_not_public_account_identity: true
+  separate_identity_direction_amount_confidence_required: true
+  competing_explanations_and_counterevidence_required: true
+  point_in_time_replay_required: true
+  identification_and_economic_increment_validation_required: true
+  multi_period_regime_interaction_ablation_required: true
+  abstention_supported: true
 
 protected_authority_policy:
   protected_master_blueprints_remain_l0_authority: true
