@@ -1,58 +1,63 @@
-schema_version: "1.7"
+schema_version: "1.8"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
-active_issue: 38
-task_id: "QCLAW-P4-ADVERSARIAL-EVALUATION-PACKETS-0007"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/P4-GPT-FULL-KNOWLEDGE-GATEWAY-ADVERSARIAL-EVALUATION-0007.yaml"
-mode: "goal_evaluation_supply"
-mode_label: "目标模式＋独立评测供给线"
-mode_reason: "The required outputs are clear: hard candidate packets, adversarial queries, expected and forbidden retrieval labels, evaluator, calibration and handoff. QCLAW must not build another runtime."
+active_issue: 59
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-ARCHITECTURE-0008"
+mode: "goal_knowledge_atomization"
+mode_label: "目标模式＋知识原子化专线"
+mode_reason: "The current objective is explicit: build a reusable knowledge atomization architecture and pipeline for user-authorized public, private, internal and paid knowledge. QCLAW may choose decomposition and schema implementation details but must not build a parallel memory runtime."
 status: "READY"
 blocked_by: "none"
 parent_program: 31
-joint_issue: 38
+related_gateway_issue: 38
 predecessor_pull_requests: [45, 46]
 absorbed_by_pull_request: 57
 canonical_runtime_merge: "473d0ec15b28ac5e1b70db0b8a6a9ab17738161b"
 canonical_runtime: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY"
 required_inputs:
-  - "Issue #38 and all comments"
-  - "Latest main including PR #57 merge 473d0ec15b28ac5e1b70db0b8a6a9ab17738161b"
-  - "PR #45 and PR #46 historical source code and GPT closure comments"
-  - "PR #57 absorption matrix and retrieval regression"
-  - "The Phase 4 task impact forecast"
+  - "Issue #59 and all comments"
+  - "Latest main and QCLAW router protocol"
+  - "PR #45 and PR #46 historical atomization and LearningPacket capabilities"
+  - "PR #57 absorption matrix and canonical runtime contracts"
+  - "Authorization files governing full semantic knowledge access and credential local-only handling"
 required_action:
-  - "Do not copy or implement store, fusion, snapshot, retrieval runtime, QueryPlan, ContextBundle or gateway runtime code."
-  - "Create at least 40 hard candidate atoms with conflicts, UNKNOWN, supersedes, conditions, exceptions, failures and source requirements."
-  - "Create at least 100 independently labeled adversarial queries; language variants of the same fact do not count as separate difficulty classes."
-  - "For every query specify expected atoms, forbidden atoms, required conflicts, required UNKNOWN, minimum source evidence, valid abstention conditions and failure class."
-  - "Provide machine-executable evaluator and metrics for recall, precision, MRR, conflict/UNKNOWN/source coverage, stale leakage, forbidden leakage, budget correctness, abstention and credential leakage."
-  - "Never lower thresholds, delete failures or rewrite answer keys after execution without an audited rationale."
-  - "Open one independent Draft PR containing fixtures, packets, evaluator, reports and AI_HANDOFF only."
+  - "Build only the knowledge atomization architecture and executable decomposition pipeline."
+  - "Read and process user-authorized public, private, internal and paid knowledge bodies within local or authenticated private boundaries."
+  - "Preserve full semantic content, conditions, exceptions, failures, counterexamples, conflicts, UNKNOWN, source lineage and version chains."
+  - "Write private/internal/paid atoms and bodies only to local or private architecture; public GitHub may contain code, schemas, public-safe fixtures, hashes, statistics, references and redacted receipts only."
+  - "Never read, atomize, store, log or output credential secret values; metadata references without values are allowed."
+  - "Do not build adversarial evaluation packages in this task."
+  - "Do not implement a second store, fusion engine, snapshot runtime, retrieval runtime, QueryPlan, ContextBundle or gateway service."
+  - "Open one independent Draft PR and report 20/40/60/80/100 checkpoints."
 execution_contract:
   sync_latest_main: true
-  recommended_branch: "qclaw/p4-adversarial-evaluation-packets-0007"
+  recommended_branch: "qclaw/knowledge-atomization-architecture-0008"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
-  allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-4-KNOWLEDGE-EVALUATION/"
+  allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/"
   forbidden_runtime_modification: true
-  no_shared_branch_with_codex: true
-  report_to_issues: [38, 31]
+  report_to_issues: [59, 31]
   progress_checkpoints: [20, 40, 60, 80, 100]
+  resumable_execution_required: true
 safety_boundary:
-  public_safe_fixtures_only: true
+  authorized_public_knowledge_processing: true
+  authorized_private_knowledge_processing: true
+  authorized_internal_knowledge_processing: true
+  authorized_paid_knowledge_processing: true
+  full_semantic_access: true
+  local_or_private_body_storage: true
+  private_body_in_public_repo: false
+  credential_values_denied: true
+  credential_reference_metadata_allowed: true
   candidate_only: true
   no_authority_promotion: true
-  no_private_knowledge_body: true
-  credential_values_denied: true
-  no_cloud_or_paid_resources: true
   no_realtime: true
   no_trade: true
   no_direct_main_write: true
-notes: "PR #45 and #46 are closed as absorbed historical sources. Issue #38 is now the only active QCLAW task. Codex owns the runtime; QCLAW owns independent adversarial evaluation supply."
+notes: "QCLAW is temporarily dedicated only to knowledge atomization. Issue #38 remains the Codex gateway task. Private knowledge is allowed and required inside the authorized local/private architecture; only public-repository transport of private bodies is forbidden."
 updated_by: "GPT"
 updated_at: "2026-07-22"
