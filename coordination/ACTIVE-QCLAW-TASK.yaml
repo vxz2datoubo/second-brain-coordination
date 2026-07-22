@@ -1,9 +1,16 @@
-schema_version: "2.2"
+schema_version: "2.3"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取任务并开始长期第二知识库", "读取任务并开始PEOS研究支持"]
+trigger_phrases:
+  - "读取任务"
+  - "执行任务"
+  - "开始任务"
+  - "读取任务并开始长期第二知识库"
+  - "读取任务并开始PEOS研究支持"
+  - "读取任务并开始凯利索普研究支持"
+  - "读取任务并开始决策科学技能缺口扫描"
 
 active_issue: 59
 active_task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008"
@@ -16,7 +23,7 @@ active_subtasks:
     status: "READY_FOR_PLANNING"
     recommended_branch: "qclaw/long-term-memory-palace-hybrid-retrieval-0009"
     allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LONG-TERM-MEMORY/0009/"
-    start_rule: "Immediately perform M0 audit and project plan. Implementation may proceed after interfaces with Issue #59, Issue #38 and PR #57 are frozen and file ownership is clear."
+    start_rule: "Perform M0 audit and project plan. Implementation only after Issue #59/#38/PR #57 interfaces and file ownership are frozen."
   - issue: 61
     task_id: "QCLAW-PEOS-COGNITIVE-RESEARCH-ADVERSARIAL-SUPPORT-0010"
     parent_task_id: "PEOS-COGNITIVE-CALIBRATION-SYSTEM-0010"
@@ -24,7 +31,23 @@ active_subtasks:
     status: "PLANNING_INPUT_ONLY"
     recommended_branch: "qclaw/peos-cognitive-research-adversarial-support-0010"
     allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PEOS-COGNITIVE-CALIBRATION/0010/QCLAW-SUPPORT/"
-    start_rule: "Read Issue #61 and the PEOS blueprint and research-validation matrix. QCLAW may digest research, propose canonical-compatible cognitive atoms and schemas, and build adversarial fixtures, but must not modify canonical runtime files until Codex C0 freezes interfaces and file ownership."
+    start_rule: "Digest research, propose canonical-compatible atoms/schemas and adversarial fixtures; do not modify canonical runtime before Codex C0 freeze."
+  - issue: 62
+    task_id: "QCLAW-KELLY-THORP-RESEARCH-ADVERSARIAL-SUPPORT-0011"
+    parent_task_id: "KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SYSTEM-0011"
+    mode: "目标模式＋凯利索普、期望值与A股仓位研究支持线"
+    status: "PLANNING_INPUT_ONLY"
+    recommended_branch: "qclaw/kelly-thorp-research-adversarial-support-0011"
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/KELLY-THORP-CAPITAL-ALLOCATION/0011/QCLAW-SUPPORT/"
+    start_rule: "Digest primary Kelly/Thorp/EV research, generate probability-event atoms and adversarial cases; do not implement the canonical optimizer."
+  - issue: 63
+    task_id: "QCLAW-DECISION-SCIENCE-SKILL-GAP-RESEARCH-SUPPORT-0012"
+    parent_task_id: "DECISION-SCIENCE-SKILL-GAP-COMPILER-0012"
+    mode: "目标模式＋决策科学研究消化、孤儿术语扫描与对抗夹具支持线"
+    status: "PLANNING_INPUT_ONLY"
+    recommended_branch: "qclaw/decision-science-skill-gap-research-0012"
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DECISION-SCIENCE-SKILL-FAMILY/0012/QCLAW-SUPPORT/"
+    start_rule: "Read Issue #63 and W12 assets. Digest research, scan orphan terms and ghost capabilities, propose candidate skills and adversarial fixtures. Do not create portfolio/risk/execution runtimes."
 
 parent_program: 31
 related_gateway_issue: 38
@@ -35,59 +58,61 @@ blocked_by: "none"
 
 primary_roles:
   - "Build and maintain the knowledge atomization architecture and executable decomposition pipeline."
-  - "Continuously discover and digest user-authorized knowledge into deterministic KnowledgeAtoms, relations and canonical-compatible LearningPackets."
+  - "Continuously digest user-authorized knowledge into deterministic KnowledgeAtoms, relations and canonical-compatible LearningPackets."
   - "Run an independent adversarial epistemic-integrity gate on every digest batch."
-  - "Design and implement the long-term second-knowledge-base architecture through Issue #60."
-  - "Provide hybrid vector, lexical, graph, temporal, evidence and memory-palace retrieval without creating a duplicate canonical fact source."
-  - "Support Issue #61 by digesting cognitive-science and decision-science research, generating evidence-bound PersonalCognitiveModel candidates, and building anti-sycophancy, outcome-bias, state-trait and false-profile adversarial cases."
+  - "Design the long-term second-knowledge-base architecture through Issue #60."
+  - "Provide hybrid vector, lexical, graph, temporal, evidence and memory-palace retrieval without a duplicate fact source."
+  - "Support Issue #61 with evidence-bound cognitive-model candidates and adversarial tests."
+  - "Support Issue #62 with Kelly/Thorp/expected-value research atoms, assumptions, counterexamples and adversarial sizing cases."
+  - "Support Issue #63 by digesting decision-science research, identifying orphan terms and ghost capabilities, and maintaining skill-candidate evidence."
 
 knowledge_pipeline:
   issue: 59
   recommended_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
   allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/"
   required_components:
-    - "KnowledgeSourceManifest"
-    - "KnowledgeDocument"
-    - "KnowledgeSegment"
-    - "KnowledgeAtom"
-    - "KnowledgeRelation"
-    - "KnowledgeConflict"
-    - "KnowledgeUnknown"
-    - "KnowledgeDigestQueue"
-    - "SecretScanReceipt"
-    - "LearningPacket"
+    - KnowledgeSourceManifest
+    - KnowledgeDocument
+    - KnowledgeSegment
+    - KnowledgeAtom
+    - KnowledgeRelation
+    - KnowledgeConflict
+    - KnowledgeUnknown
+    - KnowledgeDigestQueue
+    - SecretScanReceipt
+    - LearningPacket
   acceptance_rules:
-    - "Conditions, exceptions, negation, time, scope, conflicts, counterexamples and UNKNOWN must survive atomization."
-    - "User claims and preferences must not be silently promoted into externally verified facts."
-    - "Every material batch must pass anti-sycophancy, counterevidence and security tests."
+    - "Conditions, exceptions, negation, time, scope, conflicts, counterexamples and UNKNOWN survive atomization."
+    - "User claims and preferences are not silently promoted to externally verified facts."
+    - "Every material batch passes anti-sycophancy, counterevidence and security tests."
 
 long_term_memory_role:
   enabled: true
   issue: 60
-  objective: "Build a durable second knowledge base that supports semantic recall, exact recall, temporal reasoning, graph navigation, memory consolidation and a computable memory-palace structure."
+  objective: "Build a durable second knowledge base supporting semantic recall, exact recall, temporal reasoning, graph navigation, consolidation and computable memory-palace navigation."
   memory_layers:
-    - "WORKING_MEMORY"
-    - "EPISODIC_MEMORY"
-    - "SEMANTIC_MEMORY"
-    - "PROCEDURAL_MEMORY"
-    - "AUTOBIOGRAPHICAL_USER_MEMORY"
-    - "PROJECT_MEMORY"
-    - "SOURCE_MEMORY"
-    - "CONFLICT_AND_UNKNOWN_MEMORY"
-    - "META_MEMORY"
+    - WORKING_MEMORY
+    - EPISODIC_MEMORY
+    - SEMANTIC_MEMORY
+    - PROCEDURAL_MEMORY
+    - AUTOBIOGRAPHICAL_USER_MEMORY
+    - PROJECT_MEMORY
+    - SOURCE_MEMORY
+    - CONFLICT_AND_UNKNOWN_MEMORY
+    - META_MEMORY
   retrievers:
-    - "VECTOR_SEMANTIC_RETRIEVER"
-    - "LEXICAL_BM25_RETRIEVER"
-    - "EXACT_ID_AND_ENTITY_RETRIEVER"
-    - "KNOWLEDGE_GRAPH_RETRIEVER"
-    - "TEMPORAL_VERSION_RETRIEVER"
-    - "SOURCE_EVIDENCE_RETRIEVER"
-    - "MEMORY_PALACE_RETRIEVER"
-    - "USER_AND_PROJECT_SCOPE_RETRIEVER"
-    - "CONFLICT_UNKNOWN_RETRIEVER"
+    - VECTOR_SEMANTIC_RETRIEVER
+    - LEXICAL_BM25_RETRIEVER
+    - EXACT_ID_AND_ENTITY_RETRIEVER
+    - KNOWLEDGE_GRAPH_RETRIEVER
+    - TEMPORAL_VERSION_RETRIEVER
+    - SOURCE_EVIDENCE_RETRIEVER
+    - MEMORY_PALACE_RETRIEVER
+    - USER_AND_PROJECT_SCOPE_RETRIEVER
+    - CONFLICT_UNKNOWN_RETRIEVER
   memory_palace_contract:
-    hierarchy: ["MemoryPalace", "PalaceWing", "MemoryRoom", "MemoryLocus", "MemoryObjectPlacement"]
-    rule: "The palace is a stable computable navigation index over canonical atoms, not a duplicate body store or decorative UI."
+    hierarchy: [MemoryPalace, PalaceWing, MemoryRoom, MemoryLocus, MemoryObjectPlacement]
+    rule: "The palace is a computable navigation index over canonical atoms, not a duplicate body store."
   embedding_governance:
     provider_agnostic: true
     backend_agnostic: true
@@ -96,103 +121,126 @@ long_term_memory_role:
     reembedding_supported: true
     canonical_content_rebuilds_all_indexes: true
     do_not_select_backend_before_benchmark: true
-  lifecycle:
-    - "INGESTED"
-    - "CANDIDATE"
-    - "ACTIVE"
-    - "CONSOLIDATED"
-    - "SUPERSEDED"
-    - "STALE"
-    - "DISPUTED"
-    - "REVOKED"
-    - "ARCHIVED"
-    - "FORGOTTEN_INDEX_ONLY"
   required_controls:
     - "Hybrid retrieval and reranking; cosine similarity alone is insufficient."
-    - "Current, historical, stale, disputed and revoked memories must remain distinguishable."
-    - "Conflicts, counterevidence and UNKNOWN must be returned when relevant."
-    - "Memory decay may lower index weight or archive an item but must not silently delete canonical knowledge."
-    - "Embeddings, palace placement and all other indexes must be rebuildable from canonical knowledge."
-    - "Every long-term retrieval benchmark must include anti-sycophancy and epistemic-integrity cases."
+    - "Current, historical, stale, disputed and revoked memories remain distinguishable."
+    - "Conflicts, counterevidence and UNKNOWN return when relevant."
+    - "Memory decay may lower index weight but does not silently delete canonical knowledge."
 
 peos_cognitive_support_role:
   enabled: true
   issue: 61
   blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
   research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
-  objective: "Support the WorldModel, PersonalCognitiveModel, TaskContextModel, decision calibration and metacognitive governance subsystem without creating a parallel canonical runtime."
   allowed_now:
-    - "Digest and atomize primary cognitive-science, decision-science, causal-inference, forecasting, user-model and AI-governance research."
-    - "Propose KnowledgeAtom-compatible cognitive observation, user correction, evidence, reasoning-step, decision-episode and metacognitive-judgment contracts."
-    - "Build public-safe and user-authorized adversarial fixtures for anti-sycophancy, state-trait confusion, roleplay contamination, cross-domain profile transfer, outcome bias and hindsight bias."
-    - "Maintain supporting evidence, opposing evidence, UNKNOWN, confidence basis, invalidation conditions and user-review status."
+    - "Digest cognitive-science, decision-science, causal-inference, forecasting, user-model and AI-governance research."
+    - "Propose canonical-compatible cognitive observation, evidence, reasoning-step, decision-episode and metacognitive contracts."
+    - "Build adversarial fixtures for anti-sycophancy, state-trait confusion, roleplay contamination, outcome and hindsight bias."
   forbidden_until_c0_contract_freeze:
-    - "Do not modify the canonical Phase 3 runtime."
-    - "Do not create a second user-model store, evidence store, memory runtime, retrieval gateway or decision engine."
+    - "Do not modify canonical Phase 3 runtime."
+    - "Do not create a second user-model, evidence, memory, gateway or decision engine."
     - "Do not promote a single conversation into a permanent user trait."
-    - "Do not let model-generated summaries count as independent evidence."
+    - "Do not count model summaries as independent evidence."
+
+kelly_thorp_support_role:
+  enabled: true
+  issue: 62
+  blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
+  research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
+  machine_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
+  allowed_now:
+    - "Digest Kelly, Thorp, expected-value, utility, robust sizing, risk-constrained growth and probability-calibration research."
+    - "Generate formula-condition, failure, counterexample, A-share rule and probability-event KnowledgeAtoms."
+    - "Build adversarial cases for negative NetEV, parameter error, correlated evidence, tail loss, T+1 and unexecutable exits."
+  forbidden_until_k0_contract_freeze:
+    - "Do not implement or modify the canonical capital-allocation optimizer."
+    - "Do not create a second risk engine, portfolio engine or order path."
+    - "Do not convert LLM confidence into position size."
+    - "Do not recommend Full Kelly as a default."
+
+skill_gap_support_role:
+  enabled: true
+  issue: 63
+  blueprint: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-AND-GAP-COMPILER-BLUEPRINT-v1.0.md"
+  root_cause_audit: "coordination/BLUEPRINTS/WHY-DECISION-SKILLS-WERE-MISSED-ROOT-CAUSE-AUDIT-v1.0.md"
+  research_validation: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-RESEARCH-VALIDATION-v1.0.md"
+  registry: "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
+  objective: "Support the Gap Compiler and skill family with source-grounded research, maturity evidence and adversarial cases without creating duplicate runtimes."
+  allowed_now:
+    - "Digest decision analysis, Bayesian fusion, information value, robust decision, stopping, bandit, portfolio, risk, execution, research-audit, regime and attribution sources."
+    - "Scan blueprints and knowledge for ORPHAN_TERM, GHOST_CAPABILITY, FORMULA_WITHOUT_ASSUMPTIONS and other candidate findings."
+    - "Propose lifecycle mapping, candidate Skill IDs, evidence levels, non-goals, counterexamples and A-share constraints."
+    - "Maintain REFERENCE_ONLY, REJECTED and UNKNOWN_NEEDS_RESEARCH items with rationale."
+  forbidden_until_d0_contract_freeze:
+    - "Do not automatically create child runtimes or issues without GPT/user approval."
+    - "Do not implement portfolio, risk, execution, OMS, market-data or knowledge authority components."
+    - "Do not label a mentioned method as implemented or validated."
+    - "Do not split highly overlapping methods into a skill zoo."
   required_case_families:
-    - "SINGLE_OBSERVATION_PERMANENT_TRAIT"
-    - "STATE_AS_TRAIT"
-    - "ROLEPLAY_AS_REAL_PROFILE"
-    - "HUMOR_AS_LITERAL_BELIEF"
-    - "USER_PREFERENCE_AS_WORLD_FACT"
-    - "CROSS_DOMAIN_PROFILE_TRANSFER"
-    - "OUTCOME_BIAS"
-    - "HINDSIGHT_BIAS"
-    - "BAD_PROCESS_GOOD_OUTCOME"
-    - "GOOD_PROCESS_BAD_OUTCOME"
-    - "SUPPORT_ONLY_RETRIEVAL"
-    - "COUNTEREVIDENCE_ERASURE"
-    - "MODEL_OUTPUT_SELF_CITATION"
-    - "OVERCONFIDENT_METACOGNITION"
-    - "MECHANICAL_CONTRARIANISM"
+    - ORPHAN_TERM
+    - GHOST_CAPABILITY
+    - FORMULA_WITHOUT_ASSUMPTIONS
+    - SKILL_WITHOUT_A_SHARE_MAPPING
+    - IMPLEMENTED_WITHOUT_VALIDATION
+    - DUPLICATE_RUNTIME
+    - REFERENCE_ONLY_WITHOUT_REASON
+    - MATURE_STATUS_INFLATION
+    - NO_OWNER_OR_ISSUE
+    - NO_NEGATIVE_CASES
+    - NO_DATA_LINEAGE
+    - STALE_RULE_MAPPING
 
 adversarial_role:
   enabled: true
-  objective: "Reduce AI sycophancy, confirmation bias, unsupported agreement, fabricated certainty, conflict erasure, stale-memory leakage, false user profiling and incorrect knowledge promotion."
+  objective: "Reduce sycophancy, confirmation bias, fabricated certainty, conflict erasure, stale-memory leakage, false profiling, unsafe sizing and capability inflation."
   mandatory_case_families:
-    - "USER_AGREEMENT_PRESSURE"
-    - "CONFIRMATION_BIAS"
-    - "FALSE_CAUSALITY"
-    - "MISSING_NEGATION"
-    - "MISSING_CONDITION"
-    - "MISSING_EXCEPTION"
-    - "CONFLICT_ERASURE"
-    - "UNKNOWN_ERASURE"
-    - "STALE_KNOWLEDGE"
-    - "USER_PREFERENCE_AS_FACT"
-    - "UNSUPPORTED_CERTAINTY"
-    - "FABRICATED_SOURCE"
-    - "VECTOR_NEIGHBOR_FALSE_MATCH"
-    - "CROSS_PROJECT_MEMORY_LEAK"
-    - "MEMORY_PALACE_PROXIMITY_AS_CAUSALITY"
-    - "EMBEDDING_VERSION_DRIFT"
-    - "PROMPT_INJECTION"
-    - "SECRET_VALUE_LEAKAGE"
-    - "AUTHORITY_ESCALATION"
-    - "FALSE_COMPLETION_CLAIM"
-    - "STATE_TRAIT_CONFUSION"
-    - "ROLEPLAY_PROFILE_CONTAMINATION"
-    - "OUTCOME_BIAS"
-    - "MODEL_GENERATED_EVIDENCE_LOOP"
+    - USER_AGREEMENT_PRESSURE
+    - CONFIRMATION_BIAS
+    - FALSE_CAUSALITY
+    - MISSING_NEGATION
+    - MISSING_CONDITION
+    - MISSING_EXCEPTION
+    - CONFLICT_ERASURE
+    - UNKNOWN_ERASURE
+    - STALE_KNOWLEDGE
+    - USER_PREFERENCE_AS_FACT
+    - UNSUPPORTED_CERTAINTY
+    - FABRICATED_SOURCE
+    - VECTOR_NEIGHBOR_FALSE_MATCH
+    - CROSS_PROJECT_MEMORY_LEAK
+    - PROMPT_INJECTION
+    - SECRET_VALUE_LEAKAGE
+    - AUTHORITY_ESCALATION
+    - FALSE_COMPLETION_CLAIM
+    - STATE_TRAIT_CONFUSION
+    - ROLEPLAY_PROFILE_CONTAMINATION
+    - OUTCOME_BIAS
+    - MODEL_GENERATED_EVIDENCE_LOOP
+    - NEGATIVE_EV_POSITIVE_SIZE
+    - UNCALIBRATED_PROBABILITY_SIZING
+    - CORRELATED_FORECAST_DOUBLE_COUNT
+    - A_SHARE_UNEXECUTABLE_EXIT
+    - BLUEPRINT_TERM_AS_IMPLEMENTED_SKILL
   rules:
-    - "Insufficient evidence must produce UNKNOWN, NEEDS_VERIFICATION or ABSTAIN."
-    - "Conflicting memories and user-model evidence must coexist until an evidence-backed resolution is recorded."
-    - "Do not delete failed tests or rewrite expected answers merely to raise the score."
-    - "Report per-case failures and block completion on material unresolved failures."
-    - "Anti-sycophancy must not become unsupported mechanical disagreement."
+    - "Insufficient evidence produces UNKNOWN, NEEDS_VERIFICATION or ABSTAIN."
+    - "Conflicting memories and evidence coexist until evidence-backed resolution."
+    - "Failed tests remain visible and block completion."
+    - "Anti-sycophancy does not become unsupported mechanical disagreement."
 
 priority_state_machine:
   P0: "Repair blocking atomization architecture defects."
-  P0M: "Perform Issue #60 M0 audit and project plan; freeze integration contracts and non-duplication boundaries."
-  P0C: "For Issue #61, digest research and prepare cognitive contracts and adversarial fixtures while waiting for Codex C0 interface freeze."
-  P1: "Digest pending authorized knowledge items."
-  P1A: "Run adversarial validation on every digest batch and repair failures."
-  P1M: "Build and test the long-term memory, hybrid retrieval and memory-palace modules in the Issue #60 branch after M0 gates pass."
-  P1C: "After Issue #61 C0 approval, implement only explicitly assigned cognitive-model and adversarial components on an independent branch."
-  P2: "When all primary queues, planning gates and adversarial failures are empty, assist explicitly assigned system-construction tasks."
-  return_rule: "New knowledge returns work to P1; adversarial failures return to P0/P1/P1M/P1C; long-term memory or PEOS integration conflicts return to P0M or Issue #61 C0."
+  P0M: "Perform Issue #60 M0 audit and project plan."
+  P0C: "Support Issue #61 research and adversarial fixtures while awaiting Codex C0 freeze."
+  P0K: "Support Issue #62 Kelly/Thorp research and adversarial fixtures while awaiting Codex K0 freeze."
+  P0D: "Support Issue #63 decision-science research, orphan-term scan and adversarial fixtures while awaiting Codex D0 freeze."
+  P1: "Digest pending authorized knowledge."
+  P1A: "Run adversarial validation on every digest batch."
+  P1M: "Build long-term-memory modules after M0 gates."
+  P1C: "Implement only explicitly assigned cognitive components after C0 approval."
+  P1K: "Implement only explicitly assigned Kelly knowledge/adversarial components after K0 approval."
+  P1D: "Implement only explicitly assigned Gap Compiler knowledge/adversarial components after D0 approval."
+  P2: "Assist explicitly assigned system construction only when primary queues and gates are clear."
+  return_rule: "New knowledge returns P1; adversarial failures return to the relevant P0/P1 line; integration conflicts return to M0/C0/K0/D0."
 
 storage_and_access_boundary:
   all_user_authorized_non_secret_knowledge_may_enter_public_github: true
@@ -225,21 +273,21 @@ execution_contract:
   auto_merge: false
   direct_main_write: false
   no_shared_branch_with_codex: true
-  report_to_issues: [59, 60, 61, 31]
+  report_to_issues: [59, 60, 61, 62, 63, 31]
   progress_checkpoints: [20, 40, 60, 80, 100]
   resumable_execution_required: true
-  separate_branches_for_issues_59_60_61: true
+  separate_branches_for_issues_59_60_61_62_63: true
   canonical_runtime_modification_requires_explicit_integration_authorization: true
 
 first_actions:
-  - "Read Issue #59 and resume the atomization/digestion/adversarial workstream."
-  - "Read Issue #60 and produce the M0 audit, non-duplication matrix, architecture options and phased project plan."
-  - "Read Issue #61, the PEOS blueprint, the PEOS research-validation matrix and the program charter v1.1."
-  - "For Issue #61, digest research, propose canonical-compatible cognitive atoms and prepare adversarial fixtures only until Codex C0 freezes interfaces."
-  - "Do not select a final embedding model or vector backend before benchmark evidence exists."
-  - "Do not implement a second canonical body store or personal-model store; all indexes and views must reference canonical evidence and atoms."
-  - "Report branch, SHA, Draft PR, tests, benchmark evidence, failures, UNKNOWN and AI_HANDOFF at every checkpoint."
+  - "Read and resume Issue #59."
+  - "Read Issue #60 and produce the M0 audit and plan."
+  - "Read Issue #61 and prepare research/fixtures only until C0 freeze."
+  - "Read Issue #62 and prepare Kelly/Thorp research atoms and adversarial cases only until K0 freeze."
+  - "Read Issue #63 and scan orphan terms/ghost capabilities, digest research and prepare adversarial cases only until D0 freeze."
+  - "Do not implement a second canonical store, personal model, capital optimizer, risk engine, portfolio engine or execution path."
+  - "Report branch, SHA, Draft PR, tests, evidence, failures, UNKNOWN and AI_HANDOFF at checkpoints."
 
-notes: "QCLAW owns three coordinated lines: Issue #59 turns authorized knowledge into adversarially validated atoms and LearningPackets; Issue #60 organizes canonical atoms into a long-term hybrid-memory and memory-palace system; Issue #61 support digests cognitive research, proposes evidence-bound user-model candidates and supplies adversarial cognitive tests. Codex owns the Issue #61 project plan and canonical integration."
+notes: "QCLAW owns the #59 atomization/adversarial line and #60 long-term-memory line, and provides bounded research/adversarial support to #61 PEOS, #62 Kelly-Thorp and #63 decision-science skill-gap work. Codex owns project plans and canonical integration; QCLAW must not create parallel runtimes."
 updated_by: "GPT"
 updated_at: "2026-07-22"
