@@ -1,168 +1,194 @@
-schema_version: "2.0"
+schema_version: "2.1"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-trigger_phrases: ["读取任务", "执行任务", "开始任务"]
+trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取任务并开始长期第二知识库"]
+
 active_issue: 59
-task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008"
-mode: "goal_knowledge_atomization_digest_and_adversarial_validation"
-mode_label: "目标模式＋知识原子化、持续消化与对抗校验主线"
-mode_reason: "QCLAW builds and maintains the reusable knowledge-atomization architecture, continuously digests authorized knowledge, and independently challenges every digest batch for sycophancy, unsupported claims, missing conflict, false causality, stale knowledge and erased UNKNOWN. When the queue is empty, QCLAW may assist explicitly assigned system work without creating a silent parallel canonical runtime."
-status: "READY"
-blocked_by: "none"
+active_task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008"
+active_mode: "目标模式＋知识原子化、持续消化与对抗校验主线"
+
+active_subtasks:
+  - issue: 60
+    task_id: "QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009"
+    mode: "项目计划模式＋长期记忆架构执行线"
+    status: "READY_FOR_PLANNING"
+    recommended_branch: "qclaw/long-term-memory-palace-hybrid-retrieval-0009"
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LONG-TERM-MEMORY/0009/"
+    start_rule: "Immediately perform M0 audit and project plan. Implementation may proceed after interfaces with Issue #59, Issue #38 and PR #57 are frozen and file ownership is clear."
+
 parent_program: 31
 related_gateway_issue: 38
-predecessor_pull_requests: [45, 46]
-absorbed_by_pull_request: 57
 canonical_runtime_merge: "473d0ec15b28ac5e1b70db0b8a6a9ab17738161b"
 canonical_runtime: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+status: "READY"
+blocked_by: "none"
+
 primary_roles:
   - "Build and maintain the knowledge atomization architecture and executable decomposition pipeline."
-  - "Continuously discover and digest user-authorized knowledge from files, conversations, research, issues, pull requests and agent handoffs."
-  - "Preserve full semantic content, conditions, exceptions, failures, counterexamples, conflicts, UNKNOWN, source lineage and version chains."
-  - "Generate deterministic KnowledgeAtoms, KnowledgeRelations and canonical-compatible LearningPackets."
-  - "Run an adversarial epistemic-integrity gate on every atomization and digestion batch before it is accepted."
+  - "Continuously discover and digest user-authorized knowledge into deterministic KnowledgeAtoms, relations and canonical-compatible LearningPackets."
+  - "Run an independent adversarial epistemic-integrity gate on every digest batch."
+  - "Design and implement the long-term second-knowledge-base architecture through Issue #60."
+  - "Provide hybrid vector, lexical, graph, temporal, evidence and memory-palace retrieval without creating a duplicate canonical fact source."
+
+knowledge_pipeline:
+  issue: 59
+  recommended_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
+  allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/"
+  required_components:
+    - "KnowledgeSourceManifest"
+    - "KnowledgeDocument"
+    - "KnowledgeSegment"
+    - "KnowledgeAtom"
+    - "KnowledgeRelation"
+    - "KnowledgeConflict"
+    - "KnowledgeUnknown"
+    - "KnowledgeDigestQueue"
+    - "SecretScanReceipt"
+    - "LearningPacket"
+  acceptance_rules:
+    - "Conditions, exceptions, negation, time, scope, conflicts, counterexamples and UNKNOWN must survive atomization."
+    - "User claims and preferences must not be silently promoted into externally verified facts."
+    - "Every material batch must pass anti-sycophancy, counterevidence and security tests."
+
+long_term_memory_role:
+  enabled: true
+  issue: 60
+  objective: "Build a durable second knowledge base that supports semantic recall, exact recall, temporal reasoning, graph navigation, memory consolidation and a computable memory-palace structure."
+  memory_layers:
+    - "WORKING_MEMORY"
+    - "EPISODIC_MEMORY"
+    - "SEMANTIC_MEMORY"
+    - "PROCEDURAL_MEMORY"
+    - "AUTOBIOGRAPHICAL_USER_MEMORY"
+    - "PROJECT_MEMORY"
+    - "SOURCE_MEMORY"
+    - "CONFLICT_AND_UNKNOWN_MEMORY"
+    - "META_MEMORY"
+  retrievers:
+    - "VECTOR_SEMANTIC_RETRIEVER"
+    - "LEXICAL_BM25_RETRIEVER"
+    - "EXACT_ID_AND_ENTITY_RETRIEVER"
+    - "KNOWLEDGE_GRAPH_RETRIEVER"
+    - "TEMPORAL_VERSION_RETRIEVER"
+    - "SOURCE_EVIDENCE_RETRIEVER"
+    - "MEMORY_PALACE_RETRIEVER"
+    - "USER_AND_PROJECT_SCOPE_RETRIEVER"
+    - "CONFLICT_UNKNOWN_RETRIEVER"
+  memory_palace_contract:
+    hierarchy: ["MemoryPalace", "PalaceWing", "MemoryRoom", "MemoryLocus", "MemoryObjectPlacement"]
+    rule: "The palace is a stable computable navigation index over canonical atoms, not a duplicate body store or decorative UI."
+  embedding_governance:
+    provider_agnostic: true
+    backend_agnostic: true
+    local_first: true
+    chinese_first_benchmark: true
+    reembedding_supported: true
+    canonical_content_rebuilds_all_indexes: true
+    do_not_select_backend_before_benchmark: true
+  lifecycle:
+    - "INGESTED"
+    - "CANDIDATE"
+    - "ACTIVE"
+    - "CONSOLIDATED"
+    - "SUPERSEDED"
+    - "STALE"
+    - "DISPUTED"
+    - "REVOKED"
+    - "ARCHIVED"
+    - "FORGOTTEN_INDEX_ONLY"
+  required_controls:
+    - "Hybrid retrieval and reranking; cosine similarity alone is insufficient."
+    - "Current, historical, stale, disputed and revoked memories must remain distinguishable."
+    - "Conflicts, counterevidence and UNKNOWN must be returned when relevant."
+    - "Memory decay may lower index weight or archive an item but must not silently delete canonical knowledge."
+    - "Embeddings, palace placement and all other indexes must be rebuildable from canonical knowledge."
+    - "Every long-term retrieval benchmark must include anti-sycophancy and epistemic-integrity cases."
+
 adversarial_role:
   enabled: true
-  objective: "Reduce AI sycophancy, confirmation bias, unsupported agreement, fabricated certainty, conflict erasure and incorrect knowledge promotion."
-  scope:
-    - "Atomization adversarial tests: conditions, exceptions, negation, time, scope, subject, causality, counterexamples, conflicts and UNKNOWN must survive decomposition."
-    - "Knowledge-digestion adversarial tests: user claims and preferences must not be silently promoted into verified facts."
-    - "Epistemic challenge tests: retrieve or construct the strongest reasonable counterevidence, alternative explanation and failure condition for important claims."
-    - "Sycophancy-resistance tests: disagreement with the user is allowed and required when evidence conflicts or is insufficient."
-    - "Security adversarial tests: secret-value leakage, prompt injection, authority escalation and false completion claims."
-    - "When explicitly assigned, provide adversarial fixtures and evaluation for canonical system modules without building a second runtime."
-  mandatory_rules:
-    - "Every material claim must be labeled as fact, observation, claim, hypothesis, preference, correction, decision or UNKNOWN; do not flatten them into FACT."
-    - "A user statement may have high priority as a USER_REQUIREMENT or USER_CORRECTION but does not automatically become an externally verified fact."
-    - "For every high-impact conclusion, record supporting evidence, counterevidence, alternative explanations, confidence basis and disconfirmation conditions."
-    - "Conflicting atoms must coexist until an evidence-backed resolution is recorded."
-    - "Insufficient evidence must produce UNKNOWN, NEEDS_VERIFICATION or ABSTAIN rather than a pleasing answer."
-    - "Do not rewrite expected answers or remove failing adversarial cases merely to increase pass rate."
-    - "Adversarial evaluation must be independent from the transformation being evaluated and must report per-case failures."
-  required_case_families:
+  objective: "Reduce AI sycophancy, confirmation bias, unsupported agreement, fabricated certainty, conflict erasure, stale-memory leakage and incorrect knowledge promotion."
+  mandatory_case_families:
     - "USER_AGREEMENT_PRESSURE"
     - "CONFIRMATION_BIAS"
     - "FALSE_CAUSALITY"
-    - "CORRELATION_AS_CAUSATION"
     - "MISSING_NEGATION"
     - "MISSING_CONDITION"
     - "MISSING_EXCEPTION"
-    - "MISSING_COUNTEREXAMPLE"
     - "CONFLICT_ERASURE"
     - "UNKNOWN_ERASURE"
     - "STALE_KNOWLEDGE"
-    - "SOURCE_AUTHORITY_INFLATION"
     - "USER_PREFERENCE_AS_FACT"
-    - "USER_CORRECTION_MISAPPLIED"
     - "UNSUPPORTED_CERTAINTY"
     - "FABRICATED_SOURCE"
+    - "VECTOR_NEIGHBOR_FALSE_MATCH"
+    - "CROSS_PROJECT_MEMORY_LEAK"
+    - "MEMORY_PALACE_PROXIMITY_AS_CAUSALITY"
+    - "EMBEDDING_VERSION_DRIFT"
     - "PROMPT_INJECTION"
     - "SECRET_VALUE_LEAKAGE"
     - "AUTHORITY_ESCALATION"
     - "FALSE_COMPLETION_CLAIM"
-  required_outputs:
-    - "ADVERSARIAL-ATOMIZATION-CASES.yaml"
-    - "EPISTEMIC-INTEGRITY-GATE.md"
-    - "SYCOPHANCY-RESISTANCE-POLICY.yaml"
-    - "ADVERSARIAL-EVALUATION-RESULTS.jsonl"
-    - "COUNTEREVIDENCE-AND-DISCONFIRMATION-REGISTER.yaml"
-    - "PER-CASE-FAILURE-REPORT.md"
-  acceptance_gate:
-    - "No accepted batch may erase a material condition, exception, negation, conflict, counterexample or UNKNOWN."
-    - "No accepted batch may promote a user preference, user claim or source assertion into verified FACT without an explicit evidence basis."
-    - "Secret-value leakage and fabricated-source cases must have zero failures."
-    - "All failed cases remain visible and block 100 percent completion unless explicitly waived by the user with rationale."
-fallback_role:
-  enabled: true
-  activation_condition: "No blocking atomization defect, no pending knowledge-digest item and no unresolved adversarial failure remain after an explicit queue and gate check."
-  actions:
-    - "Read the active router, Issue #59, parent Issue #31, related Issue #38 and any explicit subtask before assisting."
-    - "Assist with separable system contracts, schemas, tests, documentation, handoff, regression or explicitly assigned implementation work."
-    - "Provide adversarial tests for the assisted module and feed decisions, failures, discoveries and UNKNOWN back into the knowledge-digest queue."
-  constraints:
-    - "Do not work blindly in the same files or branch as Codex."
-    - "Do not silently create a second canonical memory, fusion, retrieval, QueryPlan, ContextBundle or gateway runtime."
-    - "Canonical runtime modification requires an explicit Issue, comment authorization or router update and an independent branch."
-required_inputs:
-  - "Issue #59 and all comments"
-  - "Latest main and QCLAW router protocol"
-  - "Issue #31 parent program and Issue #38 gateway coordination"
-  - "PR #45 and PR #46 historical atomization and adversarial-evaluation ideas"
-  - "PR #57 absorption matrix and canonical runtime contracts"
-  - "User-authorized files, conversations, research outputs, design decisions, corrections, failures and agent handoffs"
-required_action:
-  - "Build and run the knowledge atomization and continuous-digestion pipeline."
-  - "Check and maintain a real KnowledgeDigestQueue instead of delivering an empty architecture only."
-  - "Run the adversarial epistemic-integrity gate on every completed digest batch."
-  - "Treat user-authorized public, private, internal and personal knowledge as eligible for both public GitHub and local architecture storage."
-  - "Do not let privacy_class automatically block public transport; storage_targets and transport_visibility are separate fields."
-  - "Scan for authentication, access and financial-security secret values before storage or commit."
-  - "For mixed documents, redact only secret values and continue digesting the remaining knowledge."
-  - "Ordinary API documentation, API names, request/response schemas and code without secret values are allowed; API keys and tokens are denied."
-  - "Respect third-party ownership and publication licenses as a separate governance concern from secret classification."
-  - "Open one independent Draft PR and report 20/40/60/80/100 checkpoints."
+  rules:
+    - "Insufficient evidence must produce UNKNOWN, NEEDS_VERIFICATION or ABSTAIN."
+    - "Conflicting memories must coexist until an evidence-backed resolution is recorded."
+    - "Do not delete failed tests or rewrite expected answers merely to raise the score."
+    - "Report per-case failures and block completion on material unresolved failures."
+
 priority_state_machine:
   P0: "Repair blocking atomization architecture defects."
-  P1: "Digest all pending authorized knowledge items."
-  P1A: "Run adversarial epistemic-integrity validation on every digest batch and repair failures."
-  P2: "When P0, P1 and P1A are empty, assist explicitly assigned system-construction tasks with adversarial tests."
-  return_rule: "Any newly discovered knowledge item returns execution from P2 to P1; any adversarial failure returns execution to P0 or P1 as appropriate."
-knowledge_discovery_sources:
-  - "User uploads and provided files"
-  - "Unstructured conversation knowledge and user corrections"
-  - "GitHub issues, pull requests, reviews and AI handoffs"
-  - "Research reports, architecture decisions, failure reviews and UNKNOWN registries"
-  - "Outputs from Codex, WorkBuddy and other authorized agents"
-execution_contract:
-  sync_latest_main: true
-  recommended_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
-  create_pull_request: true
-  draft_pull_request: true
-  auto_merge: false
-  primary_allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/"
-  fallback_system_paths: "Only paths explicitly authorized by an active Issue, comment or router update."
-  direct_main_write: false
-  no_shared_branch_with_codex: true
-  report_to_issues: [59, 31]
-  progress_checkpoints: [20, 40, 60, 80, 100]
-  resumable_execution_required: true
+  P0M: "Perform Issue #60 M0 audit and project plan; freeze integration contracts and non-duplication boundaries."
+  P1: "Digest pending authorized knowledge items."
+  P1A: "Run adversarial validation on every digest batch and repair failures."
+  P1M: "Build and test the long-term memory, hybrid retrieval and memory-palace modules in the Issue #60 branch after M0 gates pass."
+  P2: "When P0, P0M, P1, P1A and P1M have no pending work, assist explicitly assigned system-construction tasks."
+  return_rule: "New knowledge returns work to P1; adversarial failures return to P0/P1/P1M; long-term memory integration conflicts return to P0M."
+
 storage_and_access_boundary:
-  authorized_public_knowledge_processing: true
-  authorized_private_knowledge_processing: true
-  authorized_internal_knowledge_processing: true
-  authorized_personal_knowledge_processing: true
-  authorized_paid_or_licensed_processing: true
-  full_semantic_access: true
-  public_github_storage_for_non_secret_knowledge: true
-  local_storage_for_non_secret_knowledge: true
+  all_user_authorized_non_secret_knowledge_may_enter_public_github: true
+  all_user_authorized_non_secret_knowledge_may_enter_local_architecture: true
   dual_storage_allowed: true
-  private_body_in_public_repo: true
   privacy_class_blocks_public_storage: false
   publication_license_check_required_for_third_party_material: true
+
 secret_boundary:
   only_hard_sensitive_class: "authentication_access_and_financial_security_secret_values"
   denied_values:
     - "API keys, secret keys and access keys"
     - "Tokens, refresh tokens and bearer tokens"
-    - "Account passwords and database passwords"
+    - "Account and database passwords"
     - "Cookies, sessions and login-state tickets"
     - "Private keys, mnemonic phrases and recovery phrases"
     - "2FA seeds, one-time codes and recovery codes"
     - "Bank, card, payment, broker and trading-account authentication secrets"
-    - "Any value that can directly log in, authorize, sign, transfer funds or place orders"
-  metadata_without_values_allowed: true
   exact_redaction_required: true
-  reject_entire_mixed_document: false
   zero_secret_storage: true
+  zero_secret_embedding: true
   zero_secret_logging: true
   zero_secret_commit: true
   zero_secret_echo: true
-knowledge_governance:
-  candidate_only_by_default: true
-  no_automatic_authority_promotion: true
-  no_realtime_or_trade_claims_without_explicit_task: true
-notes: "QCLAW is the knowledge atomization architect, digestion engine and adversarial epistemic-integrity tester. All user-authorized non-secret knowledge, including private and personal knowledge, may be stored in public GitHub, local architecture or both. Only authentication/access/financial secret values are hard-sensitive. Every digest batch must survive anti-sycophancy, conflict, counterevidence, UNKNOWN and security challenges before acceptance. When all queues and adversarial failures are empty, QCLAW may help build the system under explicit coordination."
+
+execution_contract:
+  sync_latest_main: true
+  create_pull_request: true
+  draft_pull_request: true
+  auto_merge: false
+  direct_main_write: false
+  no_shared_branch_with_codex: true
+  report_to_issues: [59, 60, 31]
+  progress_checkpoints: [20, 40, 60, 80, 100]
+  resumable_execution_required: true
+  separate_branches_for_issues_59_and_60: true
+  canonical_runtime_modification_requires_explicit_integration_authorization: true
+
+first_actions:
+  - "Read Issue #59 and resume the atomization/digestion/adversarial workstream."
+  - "Read Issue #60 and immediately produce the M0 audit, non-duplication matrix, architecture options and phased project plan."
+  - "Do not select a final embedding model or vector backend before benchmark evidence exists."
+  - "Do not implement a second canonical body store; indexes must reference and be rebuildable from canonical atoms."
+  - "Report branch, SHA, Draft PR, tests, benchmark evidence, failures, UNKNOWN and AI_HANDOFF at every checkpoint."
+
+notes: "QCLAW now owns two coordinated workstreams: Issue #59 turns authorized knowledge into adversarially validated atoms and LearningPackets; Issue #60 organizes those canonical atoms into a durable long-term second knowledge base using hybrid retrieval and a computable memory-palace index. Vector retrieval is one component, not the entire memory system."
 updated_by: "GPT"
 updated_at: "2026-07-22"
