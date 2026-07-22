@@ -1,34 +1,31 @@
-schema_version: "1.1"
+schema_version: "1.2"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 as_of: "2026-07-22"
 owner: "GPT"
 boundary: "research_only / NO_TRADE"
 authoritative_program_index: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-authoritative_program_index_schema: "1.3"
+authoritative_program_index_schema: "1.4"
 authoritative_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
 
 stabilization_assessment:
-  overall: "MINOR_CONSOLIDATION_REQUIRED_THEN_EXECUTE"
+  overall: "EXECUTE_WITH_SERIAL_CODEX_GATES"
   architecture_rewrite_required: false
-  reasons:
-    - "W10 PEOS, W11 Kelly-Thorp and W12 decision-science skill family have coherent bounded contexts and explicit non-duplication rules."
-    - "PROGRAM-INDEX points to v1.3 and correctly marks W10-W12 as registered/planning rather than implemented."
-    - "PR #58 is 90% complete but blocked by missing independent QCLAW adversarial evidence."
-    - "PR #64 is a useful P0 candidate but requires metadata and executable-evidence remediation before P1."
-    - "PR #65 requires M0 re-audit because it used incorrect runtime paths and stale Issue #38 status."
-    - "The former WorkBuddy W12 local-reality audit is reassigned to Codex by user instruction and consolidated into the Codex D0 lane."
-    - "Open PR #8 and PR #34 contain potentially useful historical evidence but must remain parked pending W12 D0 non-duplication review."
+  current_blockers:
+    - "PR #58 still requires independent QCLAW adversarial evidence."
+    - "PR #66 contains completed W12 D0 evidence but must synchronize with latest main and absorb W13 as a post-D0 delta before GPT review."
+    - "W13 is registered but not implemented, backtested or shadow validated."
+  preserved_assets:
+    - "PR #58 knowledge gateway implementation and tests remain preserved at the independent-evidence gate."
+    - "PR #66 W12 D0 artifacts and verified evidence must be preserved during latest-main integration."
+    - "W13 reuses W2/W5/W6/W7/W9/W10/W11/W12 canonical boundaries and may not create a parallel platform."
 
 execution_principles:
-  - "Finish blocking acceptance gates before starting additional canonical runtimes."
-  - "Planning-only work may proceed in parallel when it does not modify canonical files."
-  - "No more than three active execution lanes."
-  - "QCLAW must not split attention across #59, #60, #61, #62 and #63 implementation simultaneously."
-  - "Codex owns project plans, repository reality audit, any genuinely accessible local evidence audit, and canonical integration."
-  - "QCLAW owns independent evidence, knowledge digestion and adversarial fixtures."
-  - "WorkBuddy has no active lane in this execution sequence after user-directed reassignment."
-  - "If Codex cannot access a claimed local protected source, it must record ACCESS_NOT_AVAILABLE and UNKNOWN rather than infer from filenames, old reports or agent claims."
-  - "Blueprint, issue or formula existence is not implementation evidence."
+  - "One active Codex task at a time; queued tasks release only after explicit GPT gates."
+  - "Finish mergeability and evidence-review gates before child runtime implementation."
+  - "Planning-only work may proceed only when it does not create duplicate canonical runtimes."
+  - "Blueprint presence, formulas, issue registration and fluent reports are not implementation evidence."
+  - "All inaccessible local evidence remains ACCESS_NOT_AVAILABLE or UNKNOWN."
+  - "No real trading, broker/account access, credential-value use or order-critical path changes."
 
 current_execution_lanes:
   - lane: "A"
@@ -38,10 +35,9 @@ current_execution_lanes:
     unblocks_pr: 58
     task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A"
     mode: "目标模式＋独立对抗证据交付"
-    branch: "qclaw/p4-independent-adversarial-evidence-0013a"
-    objective: "Deliver an independent, unchanged 100+ case adversarial query package and per-case results against the PR #58 knowledge gateway acceptance contract."
+    objective: "Deliver the independently authored unchanged 100+ case adversarial package and per-case security/failure evidence for PR #58."
     required_outputs:
-      - "ADVERSARIAL-QUERY-PACK.yaml with at least 100 independently authored cases"
+      - "ADVERSARIAL-QUERY-PACK.yaml"
       - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
       - "ADVERSARIAL-EVALUATION-RESULTS.jsonl"
       - "PER-CASE-FAILURE-REPORT.md"
@@ -51,107 +47,125 @@ current_execution_lanes:
       - "UNKNOWN-REGISTRY.yaml"
       - "TEST-RUN-RECEIPT.md"
       - "AI_HANDOFF.yaml"
-    constraints:
-      - "Do not read or rewrite Codex expected outputs merely to raise pass rate."
-      - "Do not create a second gateway or memory runtime."
-      - "Keep failures visible."
-      - "Draft PR, no auto-merge, separate branch."
-    completion_gate: "GPT verifies independence, case coverage, logs, failures and unchanged consumption path; PR #58 then runs the package and reports per-case metrics."
+    completion_gate: "GPT verifies independence, coverage, failures and unchanged consumption; PR #58 then runs the package."
 
   - lane: "B"
-    priority: "P0_PLANNING_AND_EVIDENCE"
+    priority: "P0_CODEX_CLOSEOUT"
     owner: "CODEX"
     issue: 63
-    task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
-    supersedes_task_ids:
-      - "CODEX-W12-D0-SKILL-GAP-AUDIT-PLAN-0013B"
-      - "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
-    mode: "项目计划模式＋仓库与可访问本地证据实况审计"
-    branch: "codex/w12-d0-combined-audit-plan-0013b"
-    objective: "Perform D0 public-repository audit plus any genuinely accessible local protected-blueprint, code, skill, test and A-share-rule evidence audit; produce a self-contained D0-D6 plan and select at most three P0 vertical slices without implementing child runtimes."
-    mandatory_findings:
-      - ORPHAN_TERM
-      - GHOST_CAPABILITY
-      - DUPLICATE_RUNTIME
-      - MATURE_STATUS_INFLATION
-      - IMPLEMENTED_WITHOUT_VALIDATION
-      - STALE_RULE_MAPPING
-      - ACCESS_NOT_AVAILABLE
-      - DOCUMENTATION_ONLY_NOT_RUNTIME
-      - TEST_COMMAND_NOT_EXECUTED
-    required_outputs:
-      - "PUBLIC-REPOSITORY-SKILL-REALITY-MATRIX.yaml"
-      - "LOCAL-SKILL-REALITY-MATRIX.yaml or ACCESS-NOT-AVAILABLE-REPORT.md"
-      - "PROTECTED-BLUEPRINT-v1.3-BACKWRITE-EXECUTION-REPORT.md or precise pending/unknown report"
-      - "A-SHARE-RULE-SOURCE-AND-EFFECTIVE-DATE-MATRIX.yaml"
-      - "DUPLICATE-OR-ORPHAN-CAPABILITY-FINDINGS.md"
-      - "PR64-PR65-REALITY-AND-REMEDIATION-MATRIX.md"
-      - "D0-D6-PROJECT-PLAN.md"
-      - "CODEX-FEEDBACK.yaml"
-      - "OUTCOME-CALIBRATION-REVIEW.yaml"
-      - "UNKNOWN-REGISTRY.yaml"
-      - "TEST-RUN-RECEIPT.md"
-      - "AI_HANDOFF.yaml"
-    required_decisions:
-      - "Classify each material method as existing subcapability, candidate skill, reference-only, rejected or unknown."
-      - "Freeze ownership and non-duplication boundaries across W7, W10, W11, OMS and canonical memory."
-      - "Recommend no more than three first vertical slices."
-      - "Reconcile PR #57 real Python runtime and PR #58 current candidate implementation before accepting PR #65 non-duplication claims."
-      - "Determine whether PR #8 and PR #34 are reusable evidence, migration inputs, reference-only artifacts or should be closed."
-    local_evidence_rules:
-      - "Use only sources Codex can actually open and inspect."
-      - "Record exact paths, hashes, commands and timestamps for every local fact."
-      - "If protected blueprints or local code are inaccessible, return ACCESS_NOT_AVAILABLE and UNKNOWN."
-      - "Do not infer implementation from filenames, documentation, prior agent reports or process/port presence alone."
-      - "Do not expose credential values or broker/account secrets."
-      - "Read-only unless a later explicit write task is issued."
+    pull_request: 66
+    task_id: "CODEX-W12-D0-PR66-REBASE-W13-ABSORPTION-0013B-R1"
+    mode: "目标模式＋PR收口与W13增量吸收"
+    task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-W12-D0-PR66-REBASE-W13-ABSORPTION-0013B-R1.yaml"
+    branch: "codex/w12-d0-combined-skill-gap-local-reality-audit-0013b"
+    objective: >-
+      Preserve the completed W12 D0 package, synchronize Draft PR #66 with latest main,
+      resolve conflicts with receipts, and add only the W13 maturity/ownership/dependency/
+      non-duplication delta before returning the same PR for GPT review.
+    mandatory_outputs:
+      - "Exact latest-main SHA and before/after head SHAs"
+      - "Conflict-resolution receipt"
+      - "W13 post-D0 delta mapping"
+      - "Updated CODEX-FEEDBACK / UNKNOWN / TEST-RUN-RECEIPT / OUTCOME-CALIBRATION / AI_HANDOFF"
+      - "Affected governance, parse, secret and CI results"
     forbidden:
-      - "No child-skill runtime implementation."
-      - "No canonical memory, risk, portfolio, execution or order-path modification."
-      - "No automatic child issue explosion."
-      - "No service lifecycle, broker/account action or secret-value access."
+      - "No W12 child runtime implementation."
+      - "No W13 collector, model, bulletin or backtest implementation."
+      - "No replacement PR or duplicate branch."
+      - "No silent loss of verified PR #66 artifacts."
+    completion_signal: "W12_D0_PR66_REFRESHED_FOR_GPT_REVIEW"
+    completion_gate: "GPT reviews refreshed PR #66 and either accepts it or records a bounded remediation that does not invalidate W13 foundations."
 
-reassigned_and_inactive_lanes:
-  - former_lane: "C"
-    former_owner: "WORKBUDDY"
+inactive_or_reassigned_lanes:
+  - former_owner: "WORKBUDDY"
     former_task_id: "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
-    status: "REASSIGNED_TO_CODEX_AND_CONSOLIDATED_IN_LANE_B"
-    reason: "User explicitly requested that the WorkBuddy task be given to Codex."
+    status: "REASSIGNED_TO_CODEX"
+    reason: "User explicitly reassigned WorkBuddy's audit responsibility to Codex."
 
-queued_after_current_lanes:
+codex_serial_queue:
   - order: 1
-    gate: "Lane A accepted and PR #58 adversarial run complete"
-    action: "GPT reviews PR #58; merge only if independent cases, failures and security gates pass."
+    release_gate: "PR #66 refreshed and GPT accepted or bounded remediation recorded"
+    issue: 67
+    task_id: "CODEX-W13-D0-DAILY-PARTICIPANT-FLOW-PLAN-0014A"
+    mode: "项目计划模式＋仓库与可访问本地来源实况审计"
+    objective: >-
+      Audit W13 repository/local data capability, source licensing, publication times,
+      Northbound disclosure regimes, seat/ETF/state-linked observability, replay support,
+      validation infrastructure and non-duplication; produce a self-contained D0-D6 plan.
+    implementation_allowed: false
+    required_decisions:
+      - "REUSE / ADAPT / MIGRATE / REFERENCE_ONLY / DEPRECATE / NEW_CANDIDATE for every component"
+      - "Official source, license, coverage, available_at and field-semantics matrix"
+      - "Historical regime split and point-in-time reconstruction feasibility"
+      - "First and only initial vertical slice scope"
+      - "UNKNOWN, stop conditions, rollback, costs and validation plan"
+
   - order: 2
-    gate: "PR #58 accepted or explicit remediation plan recorded"
-    action: "QCLAW repairs PR #64 evidence metadata, then resumes Issue #59 P1/P1A; Issue #60 remains frozen until PR #65 re-audit is accepted."
+    release_gate: "GPT accepts W13 D0 plan and freezes source/schema contracts"
+    issue: 67
+    task_id: "CODEX-W13-VS1-OFFICIAL-EVIDENCE-BULLETIN-0014B"
+    mode: "目标模式＋官方证据首个纵向切片"
+    objective: >-
+      Implement only official-source/authorized point-in-time evidence adapters and a
+      fact-first shadow bulletin for龙虎榜、大宗、ETF/指数、北向官方汇总与季度锚点、
+      官方国家队/重要机构公告, reusing canonical evidence and replay systems.
+    maximum_initial_new_runtime_components: 1
+    required_gates:
+      - "No daily Northbound net-flow claim after the 2024 disclosure change without authoritative data"
+      - "No brokerage-seat-to-real-person claim"
+      - "No ETF-flow-to-exact-National-Team-amount claim"
+      - "No public market signature treated as program-account identity"
+      - "Identity, direction and amount confidence remain separate"
+      - "Point-in-time dataset and no-trade shadow bulletin are reproducible"
+
   - order: 3
-    gate: "Issue #63 combined D0 plan and evidence audit accepted"
-    action: "Freeze the first P0 skill slices and shared contracts. Recommended default: DS-01 Decision Framing, DS-02 Bayesian/Forecast Fusion and DS-10 Research Overfitting Audit."
+    release_gate: "W13 VS1 data quality and point-in-time replay accepted"
+    issue: 67
+    task_id: "CODEX-W13-IDENTIFICATION-ECONOMIC-VALIDATION-0014C"
+    mode: "项目计划模式"
+    objective: >-
+      Plan and then separately activate identification calibration and economic incremental
+      validation across regimes, market states and 1/3/5/10/20/60-day horizons, comparing
+      B3 versus B3+W13 with purged walk-forward, embargo, lockbox, ablation and multiple-testing controls.
+    implementation_allowed_without_new_gpt_route: false
+
+program_queue_after_blockers:
+  - order: 1
+    gate: "QCLAW package accepted"
+    action: "PR #58 consumes unchanged adversarial cases; GPT reviews security, failures and per-case metrics."
+  - order: 2
+    gate: "PR #58 accepted or bounded remediation recorded"
+    action: "QCLAW repairs PR #64 metadata and executable evidence; PR #65/#60 remain frozen until re-audit."
+  - order: 3
+    gate: "PR #66 accepted"
+    action: "Freeze DS-01, DS-02 and DS-10 as the only first W12 vertical candidates; no simultaneous implementation explosion."
   - order: 4
-    gate: "DecisionFrame and probability contracts frozen"
-    action: "Codex starts Issue #62 K0-K2 single-opportunity NetEV and robust Kelly vertical slice with A-share constraints."
+    gate: "W13 D0 plan accepted"
+    action: "Activate only W13-VS1 official evidence and fact-first shadow bulletin."
   - order: 5
-    gate: "DecisionEpisode shared interface frozen"
-    action: "Issue #61 starts C0-C3 PEOS DecisionEpisode and process/outcome calibration slice, integrating W11/W12 outputs."
+    gate: "ProbabilityEstimate and DecisionFrame contracts frozen"
+    action: "Issue #62 may start the single-opportunity NetEV and robust Kelly A-share slice."
   - order: 6
-    gate: "Single-opportunity and DecisionEpisode slices pass"
-    action: "Expand to portfolio, downside survival, execution and attribution in that order; optimal stopping, bandits and digital twin remain deferred."
+    gate: "DecisionEpisode shared interface frozen"
+    action: "Issue #61 may start PEOS DecisionEpisode and process/outcome calibration slice."
+  - order: 7
+    gate: "Foundational slices pass backtest and shadow gates"
+    action: "Expand to portfolio, downside survival, execution and attribution; optimal stopping, bandits, digital twin and large-scale MARL stay deferred."
 
 parked_items:
   - item: "PR #8"
-    status: "PARKED_FOR_W12_D0_RECONCILIATION"
-    rationale: "Contains temporal-evidence and attention-intelligence blueprints that may be reusable, but predates the current mother charter and must not merge without non-duplication mapping."
+    status: "PARKED_AS_HISTORICAL_EVIDENCE_PENDING_ACCEPTED_MAPPING"
   - item: "PR #34"
-    status: "PARKED_FOR_W12_D0_RECONCILIATION"
-    rationale: "Contains WorkBuddy QCLAW local-audit evidence; useful as evidence but privacy, authority and architecture rules have since changed."
+    status: "PARKED_AS_HISTORICAL_LOCAL_EVIDENCE"
   - item: "PR #65"
-    status: "FROZEN_PENDING_CODEX_D0_REAUDIT"
-    rationale: "Contains potentially useful M0 architecture, but current-runtime audit uses incorrect paths and stale gateway status and lacks the full execution feedback package."
+    status: "FROZEN_REQUIRES_M0_REAUDIT"
+  - item: "Issue #60 M2"
+    status: "FROZEN_UNTIL_CORRECT_M0"
 
 success_definition:
-  - "PR #58 blocker is resolved with independent QCLAW evidence."
-  - "Issue #63 produces a verified repository and available-local-evidence non-duplication and maturity map before child runtimes."
-  - "Local protected blueprints are backwritten to v1.3 references with hashes, or inaccessible elements are explicitly recorded as UNKNOWN."
-  - "Only selected vertical slices enter implementation."
-  - "W10-W12 remain research-only and cannot produce real orders."
+  - "PR #58 blocker resolved with independent evidence."
+  - "PR #66 synchronized and accepted without losing W12 D0 evidence."
+  - "W13 D0 proves source/legal/temporal feasibility and non-duplication before implementation."
+  - "W13 VS1 produces reproducible official-evidence-first shadow bulletins with honest abstention."
+  - "Participant identification and economic incremental value are validated separately across periods and regimes."
+  - "Only gated vertical slices enter implementation and all outputs remain research-only."
