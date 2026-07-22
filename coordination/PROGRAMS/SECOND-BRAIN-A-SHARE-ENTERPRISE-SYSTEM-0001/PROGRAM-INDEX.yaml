@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.5"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
 program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
@@ -17,6 +17,7 @@ program_objectives:
   - "Cover the full decision lifecycle from framing, belief and information value through timing, sizing, portfolio, survival, execution, validation, monitoring, attribution and evolution."
   - "Compile every material blueprint method into an existing skill, candidate skill, reference-only item, rejected item or explicit research unknown."
   - "Track daily institution, Northbound, passive/programmatic, active-seat and state-linked stabilization evidence without confusing activity, identity, direction or amount."
+  - "Track confirmed policy calendars, high-prior unconfirmed windows, expectations, multi-dimensional surprises, pre-event pricing, cross-asset reactions and A-share transmission without confusing recurrence, rumor, surprise or causality."
   - "Define systems of record, contracts, dependencies, milestones, acceptance gates, rollback, user correction, belief revision and probability calibration."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
 
@@ -51,6 +52,15 @@ registered_blueprints:
     implementation_issue: 67
     dependencies: [6, 8, 23, 30, 38, 42, 59, 60, 61, 62, 63]
     status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
+  - module_id: "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015"
+    path: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
+    impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015.yaml"
+    implementation_issue: 68
+    dependencies: [6, 8, 23, 30, 31, 38, 42, 59, 60, 61, 62, 63, 67]
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
 
 workstreams:
   - id: "W1"
@@ -61,7 +71,7 @@ workstreams:
   - id: "W2"
     name: "Market Data and Replay"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [6, 67]
+    related_issues: [6, 67, 68]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W3"
     name: "Second Brain Knowledge Authority and Legacy Integration"
@@ -71,45 +81,50 @@ workstreams:
   - id: "W4"
     name: "Indicators, Theories, Strategies, and Experiments"
     owner: "CODEX"
-    related_issues: [5, 6, 63, 67]
+    related_issues: [5, 6, 63, 67, 68]
     status: "QUEUED"
   - id: "W5"
-    name: "Event, News, Announcement, and Attention Intelligence"
+    name: "Event, News, Announcement, Attention, Policy and Cross-Asset Intelligence"
     owner: "CODEX + QCLAW + WORKBUDDY"
     related_pull_requests: [8]
-    related_issues: [63, 67]
-    status: "BLUEPRINT_EXISTS"
+    related_issues: [63, 67, 68]
+    blueprint: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
+    implementation_issue: 68
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
   - id: "W6"
     name: "Four-Family Multi-Agent Strategic Game"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [23, 63, 67]
+    related_issues: [23, 63, 67, 68]
     status: "QUEUED_CHILD_WORKSTREAM"
   - id: "W7"
     name: "Validation and Risk"
     owner: "CODEX + GPT"
-    related_issues: [62, 63, 67]
+    related_issues: [62, 63, 67, 68]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W8"
     name: "Multi-AI Collaboration, Deployment, and Observability"
     owner: "GPT + CODEX + WORKBUDDY + QCLAW"
-    related_issues: [4, 7, 63, 67]
+    related_issues: [4, 7, 63, 67, 68]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W9"
     name: "Shadow Mode and Engineering Learning"
     owner: "GPT + CODEX"
-    related_issues: [30, 61, 62, 63, 67]
+    related_issues: [30, 61, 62, 63, 67, 68]
     status: "POLICY_EXISTS_AUTOMATION_QUEUED"
   - id: "W10"
     name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [38, 59, 60, 61, 62, 63, 67]
+    related_issues: [38, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
   - id: "W11"
     name: "Kelly-Thorp Expected Value, Probabilistic Edge, and Robust A-share Capital Allocation"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 38, 59, 60, 61, 62, 63, 67]
+    related_issues: [23, 38, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
     machine_readable_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
@@ -117,7 +132,7 @@ workstreams:
   - id: "W12"
     name: "Decision Science Skill Family and Blueprint-to-Skill Gap Compiler"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 31, 38, 59, 60, 61, 62, 63, 67]
+    related_issues: [23, 31, 38, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-AND-GAP-COMPILER-BLUEPRINT-v1.0.md"
     root_cause_audit: "coordination/BLUEPRINTS/WHY-DECISION-SKILLS-WERE-MISSED-ROOT-CAUSE-AUDIT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-RESEARCH-VALIDATION-v1.0.md"
@@ -126,7 +141,7 @@ workstreams:
   - id: "W13"
     name: "A-share Daily Participant Capital-Flow Intelligence"
     owner: "GPT + CODEX + WORKBUDDY + QCLAW"
-    related_issues: [6, 23, 42, 59, 60, 61, 62, 63, 67]
+    related_issues: [6, 23, 42, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
     validation_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
@@ -141,16 +156,20 @@ activation_sequence:
   - "Issue #62 performs K0 non-duplication audit and a K0-K7 Kelly-Thorp project plan."
   - "Issue #63 performs D0 repository/local-blueprint skill-gap audit and a D0-D6 project plan."
   - "Issue #67 performs a W13 D0 repository/local source, license, disclosure-regime, non-duplication and validation-capability audit before implementation."
-  - "Do not implement all thirteen W12 candidate skills or all ten W13 subskills simultaneously."
-  - "W13 first vertical slice is official evidence and a fact-first daily bulletin; advanced actor inference waits for data and identification validation."
+  - "Issue #68 performs a W5 policy/macro/news/cross-asset D0 source, calendar, expectation, non-duplication and validation-feasibility audit after the current Codex gates."
+  - "Do not implement all thirteen W12 candidate skills, all ten W13 subskills or all twelve PMN subskills simultaneously."
+  - "W13 first vertical slice is official participant evidence; PMN first vertical slice is official calendar/event packet and a fact-first cross-asset shadow bulletin."
+  - "After W13 and PMN D0 plans, GPT freezes shared event/evidence/expectation/participant interfaces and activates at most one implementation slice at a time."
   - "GPT assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
-  - "Run shadow-mode cognitive, probability, allocation, participant-flow, research-integrity and engineering calibration before any high-risk deployment."
+  - "Run shadow-mode cognitive, probability, allocation, participant-flow, policy-news, research-integrity and engineering calibration before any high-risk deployment."
 
 wip_policy:
   max_major_active_workstreams: 3
-  rule: "Issue #59 and #60 may continue while #61, #62, #63 and #67 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
+  rule: "Issue #59 and #60 may continue while #61, #62, #63, #67 and #68 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
   max_initial_w12_child_vertical_slices: 3
   max_initial_w13_vertical_slices: 1
+  max_initial_w5_pmn_vertical_slices: 1
+  codex_single_active_route: true
 
 skill_gap_governance:
   lifecycle: [FRAME, BELIEVE, LEARN, CHOOSE, TIME, SIZE, PORTFOLIO, SURVIVE, EXECUTE, VALIDATE, MONITOR, ATTRIBUTE, EVOLVE]
@@ -188,6 +207,23 @@ participant_flow_governance:
   point_in_time_replay_required: true
   identification_and_economic_increment_validation_required: true
   multi_period_regime_interaction_ablation_required: true
+  abstention_supported: true
+
+policy_macro_news_governance:
+  historical_recurrence_is_not_confirmed_schedule: true
+  confirmed_window_market_expectation_and_rumor_are_separate: true
+  news_is_not_surprise_without_ex_ante_expectation: true
+  expectation_unknown_supported: true
+  headline_sentiment_is_not_full_policy_information: true
+  policy_surprise_is_multidimensional: true
+  pre_event_runup_is_not_proof_of_leak_or_identity: true
+  sell_the_news_requires_pricing_state_and_post_event_evidence: true
+  single_asset_move_is_not_complete_explanation: true
+  cross_asset_support_counterevidence_and_alternatives_required: true
+  policy_intent_is_not_implementation_or_company_profit: true
+  point_in_time_event_revision_and_expectation_replay_required: true
+  event_claim_pricing_state_and_economic_increment_validation_required: true
+  official_source_first_and_license_governance_required: true
   abstention_supported: true
 
 protected_authority_policy:
