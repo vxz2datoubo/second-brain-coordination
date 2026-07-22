@@ -1,0 +1,110 @@
+schema_version: "1.0"
+record_type: "AMEDAgentExecutionReceipt"
+task_id: "CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+issue: 63
+parent_issue: 31
+pull_request: 66
+mode: "target_closeout"
+task_weight: "STANDARD"
+research_trigger: "L1_REUSE_AND_QUICK_CHECK"
+status: "SUCCESS_WITH_FINDINGS_PENDING_GPT_SEVEN_GATE_REVIEW"
+boundary: "research_only / NO_TRADE"
+run_id: "run-w12-d0-r3-20260723-0013b"
+trace_id: "trace-w12-d0-r3-0013b"
+mission_intent:
+  fundamental_goal: "Preserve verified W12 D0 evidence while integrating latest-main W13, PMN and AMED governance deltas."
+  success_criteria: "One current Draft PR, no lost D0 artifact, explicit maturity and non-duplication boundaries, reproducible tests and complete receipts."
+  stop_conditions:
+    - "A latest-main conflict invalidates material D0 evidence."
+    - "A canonical runtime or system-of-record change is required."
+    - "Credentials, account data, service lifecycle or real trade would be touched."
+system_position:
+  workstream: "W1 + W9 governance closeout supporting W12, W13 and W5"
+  systems_of_record: ["remote main control plane", "Draft PR #66"]
+  canonical_components_not_duplicated: ["market", "calendar", "event", "evidence", "replay", "probability", "memory", "risk", "portfolio", "execution", "orders"]
+repository_evidence:
+  latest_main_sha: "9fb0d0a943f4da921bc29f94677fcaa76ac1a20f"
+  original_pr_head_sha: "a429077fd835a3f3b6709e853123869e6ee386fa"
+  local_artifact_count_before: 40
+  remote_artifact_count_before: 40
+  local_remote_hash_comparison: "ALL_LOCAL_MATCH_REMOTE"
+  latest_main_advanced_during_run: "529af757b883f98b23b267366d7ffc4ababdd827 -> 521b9c15f591b344163ba2dd0db957385c3746e0 -> 9fb0d0a943f4da921bc29f94677fcaa76ac1a20f"
+  local_git_fetch: "FAILED_RECV_CONNECTION_RESET"
+  publication_path: "GIT_DATA_API_MERGE_COMMIT_WITH_ORIGINAL_HEAD_AND_LATEST_MAIN_PARENTS"
+primary_delivery:
+  result: "COMPLETE"
+  facts:
+    - "W13 mapped as REGISTERED_READY_FOR_D0_PROJECT_PLAN / NOT_IMPLEMENTED / NOT_BACKTESTED / NO_TRADE."
+    - "PMN mapped as REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN / NOT_IMPLEMENTED / NOT_BACKTESTED / NO_TRADE."
+    - "AMED mapped as ACTIVE_ENTERPRISE_STANDARD / GOVERNANCE_ONLY / NO_BUSINESS_RUNTIME / NO_TRADE."
+    - "Original D0 artifacts, tests, failures and UNKNOWN records were preserved."
+active_discovery:
+  result: "COMPLETE_WITH_FINDINGS"
+  findings:
+    - "GitHub REST and Git Data API are reachable while git HTTPS fetch resets; transport health must remain a separate preflight."
+    - "W13 and PMN both depend on W12 probability and DS-10 validation but do not own those authorities."
+    - "AMED evidence quality still requires independent GPT sampling; executor receipts are not self-validation."
+    - "The optional Windows Python 3.12 probe failed because that interpreter lacks tzdata; no runtime regression is inferred."
+    - "Latest main added registered module 0018 after initial validation; it is retained from main but not absorbed into this W13/PMN/AMED-only closeout."
+system_evolution:
+  implemented: false
+  reason: "All new interfaces, skills, runtimes, sources and tasks are C_PROPOSAL_ONLY in this closeout."
+exploration_budget:
+  primary_delivery_share: "85%"
+  active_discovery_share: "10%"
+  system_opportunity_share: "5%"
+  new_architecture_proposals: 2
+  new_skill_candidates: 0
+  unplanned_files: 4
+improvement_authority_used:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    - "Correct stale status, maturity, dependency and receipt references in the isolated D0 artifact set."
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    - "Add backward-compatible AMED receipts and post-D0 governance fields."
+  C_PROPOSAL_ONLY:
+    - "Transport-resilience preflight and shared evidence-cluster contract are proposals only."
+  D_PROHIBITED_OR_USER_GATE: []
+alternative_and_tradeoff_summary:
+  selected: "Merge latest-main tree and the preserved PR artifact tree through Git Data API."
+  alternatives:
+    - option: "Normal git rebase"
+      disposition: "UNAVAILABLE"
+      tradeoff: "Preferred lineage, but repeated HTTPS connection resets prevented fetch."
+    - option: "Replacement branch or PR"
+      disposition: "REJECTED"
+      tradeoff: "Would duplicate lineage and violate the active task."
+    - option: "Restart full D0 audit"
+      disposition: "REJECTED"
+      tradeoff: "No evidence invalidated the 40 verified D0 artifacts."
+conflict_resolution_receipt:
+  tree_overlap_conflicts: 0
+  semantic_conflicts: 0
+  transport_conflicts: 1
+  resolution: "Use latest main as the tree base, overlay the preserved and updated W12 D0 directory, and create a two-parent commit."
+  silent_loss_guard: "Compare all 40 pre-update local hashes to PR #66 remote branch before editing; result was exact match."
+security_receipt:
+  credentials_read: false
+  secrets_written: false
+  broker_or_account_access: false
+  service_lifecycle_change: false
+  runtime_change: false
+  trade_or_order: false
+  direct_main_write: false
+  auto_merge: false
+test_summary:
+  passed:
+    - "44 artifact / 24 YAML validation"
+    - "183 integrated Phase 3 tests on Python 3.13.13"
+    - "98 P1/P2/adapter tests on Python 3.13.13"
+    - "57-file public safety scan"
+  failed:
+    - "Optional Python 3.12.10 probe: 4 import errors due to missing local tzdata"
+  hidden_failures: false
+rollback:
+  logical: "Close Draft PR #66 or move its branch back to original_pr_head_sha after GPT approval."
+  byte_scope: "Only governance artifacts on the PR branch; main and protected local blueprints remain unchanged."
+next_action: "GPT performs the AMED seven-gate second-pass audit; no child task starts before release."

@@ -10,6 +10,9 @@ nodes:
   - {id: "DS-04", type: "vertical_skill", priority: "P0_LATER", status: "PLANNED_NOT_AUTHORIZED"}
   - {id: "D5", type: "integration", status: "PLANNED_NOT_AUTHORIZED"}
   - {id: "D6", type: "adversarial_validation", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "W13-D0", type: "external_governance_delta", status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"}
+  - {id: "PMN-D0", type: "external_governance_delta", status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"}
+  - {id: "AMED", type: "enterprise_governance", status: "ACTIVE_ENTERPRISE_STANDARD"}
 edges:
   - {from: "D0", to: "D1", reason: "reality freeze precedes compiler implementation"}
   - {from: "D1", to: "DS-01", reason: "maturity and duplication gate"}
@@ -19,8 +22,13 @@ edges:
   - {from: "D5", to: "D6", reason: "adversarial validation requires integrated candidate path"}
   - {from: "DS-02", to: "DS-03", reason: "information value requires probabilistic state"}
   - {from: "DS-02", to: "DS-04", reason: "robust choice requires explicit uncertainty"}
+  - {from: "DS-02", to: "W13-D0", reason: "future participant posterior must use the shared probability contract"}
+  - {from: "DS-10", to: "W13-D0", reason: "identity and economic-increment claims require governed validation"}
+  - {from: "DS-02", to: "PMN-D0", reason: "future surprise and pricing states must use the shared probability contract"}
+  - {from: "DS-10", to: "PMN-D0", reason: "event and economic-increment claims require governed validation"}
+  - {from: "AMED", to: "D1", reason: "all later non-trivial tasks require AMED intent, evidence, budget and second-pass audit"}
 external_gates:
   - {id: "PR58-INDEPENDENT-EVIDENCE", blocks: "D5_GATEWAY_INTEGRATION"}
   - {id: "OFFICIAL-RULE-SNAPSHOT", blocks: "ALL_A_SHARE_VALIDATION"}
   - {id: "GPT-CHILD-TASK-AUTHORIZATION", blocks: "D1_AND_LATER_IMPLEMENTATION"}
-
+  - {id: "GPT-PR66-SEVEN-GATE-ACCEPTANCE", blocks: "W13_D0_AND_PMN_D0_RELEASE"}

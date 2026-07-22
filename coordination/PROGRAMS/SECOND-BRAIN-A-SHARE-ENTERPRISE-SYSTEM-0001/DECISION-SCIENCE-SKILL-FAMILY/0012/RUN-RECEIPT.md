@@ -33,3 +33,24 @@ fast-forwarded to the exact authoritative remote `main`; if that cannot be done,
 discard this worktree or retain the uncommitted directory as a local evidence
 package. Closing a future Draft PR and deleting its isolated branch/worktree is
 the complete repository rollback because no runtime or protected file is changed.
+
+## R3 Closeout Run
+
+- `task_id`: `CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3`
+- `latest_main`: `9fb0d0a943f4da921bc29f94677fcaa76ac1a20f`
+- `original_pr_head`: `a429077fd835a3f3b6709e853123869e6ee386fa`
+- `pre_edit_artifact_check`: 40 local files matched 40 remote PR files
+- `normal_git_fetch`: failed twice with `Recv failure: Connection was reset`
+- `conflict_files`: none
+- `integration_method`: latest-main tree plus updated W12 D0 directory in a
+  two-parent Git Data API merge commit
+- `scope`: governance artifacts only
+- `new_skill_candidates`: 0
+- `runtime_or_service_changes`: 0
+- `credential_or_trade_access`: 0
+- `stale_base_preflight`: stopped publication when main advanced from
+  `529af757b883f98b23b267366d7ffc4ababdd827` to the final SHA above
+
+The R3 path preserves the original PR head as a parent, uses latest `main` as the
+other parent and does not force-update either branch. The final commit and test
+results are reported in the PR and Issue completion comments after publication.

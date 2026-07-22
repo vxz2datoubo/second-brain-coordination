@@ -1,0 +1,320 @@
+schema_version: "1.0"
+skill_id: "A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-SKILL-0017"
+module_id: "A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-0017"
+name: "A-share Reference-Zone Breach, Reclaim, Stabilization and T+1 Validation"
+status: "REGISTERED_CANDIDATE"
+maturity:
+  blueprint: COMPLETE
+  contract: REGISTERED
+  implementation: NOT_IMPLEMENTED
+  a_share_backtest: NOT_RUN
+  shadow_validation: NOT_RUN
+  live_trading: PROHIBITED
+boundary:
+  research_only: true
+  no_trade: true
+  direct_order_output: false
+  participant_identity_claim: false
+  master_intent_claim: false
+  hidden_liquidity_claim: false
+  auto_trade: false
+owners:
+  architecture: GPT
+  implementation_candidate: CODEX
+  local_data_capability: WORKBUDDY
+  research_adversarial: QCLAW
+workstreams: [W2, W4, W5, W7, W9, W10, W11, W13]
+implementation_issue: 69
+blueprint: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BLUEPRINT-v1.0.md"
+validation_protocol: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+research_validation: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-RESEARCH-VALIDATION-v1.0.md"
+
+mission_intent:
+  - "Merge legacy liquidity-sweep/reclaim candidates into one non-duplicative research skill."
+  - "Detect point-in-time reference-zone breaches, reclaims, failures, continuations and observable post-event stabilization."
+  - "Model lot-level T+1 inventory and unexecutable exits."
+  - "Validate identification and economic increment across A-share periods and regimes."
+
+canonical_semantics:
+  sweep_default_label: "SWEEP_CANDIDATE"
+  preferred_event_label: "REFERENCE_ZONE_BREACH"
+  reclaim_labels:
+    - INTRABAR_REENTRY
+    - BAR_CLOSE_RECLAIM
+    - SUSTAINED_RECLAIM
+    - FAILED_RECLAIM
+    - CONTINUATION_AFTER_BREACH
+  stabilization_labels:
+    - POST_SWEEP_STABILIZATION
+    - DRAWDOWN_CONTAINMENT
+    - RECLAIM_PERSISTENCE
+    - DISPLAYED_DEPTH_SUPPORT_CANDIDATE
+  prohibited_labels_without_raw_order_evidence:
+    - LIQUIDITY_SWEEP_CONFIRMED
+    - ABSORPTION_CONFIRMED
+    - STOP_CLUSTER_CONFIRMED
+    - MAIN_FORCE_INTENT_CONFIRMED
+
+capability_tiers:
+  BAR_ONLY:
+    allowed:
+      - reference_zone
+      - breach
+      - excursion
+      - reclaim
+      - continuation
+      - volatility_state
+      - volume_state
+      - relative_market_sector_state
+    forbidden:
+      - order_direction
+      - true_absorption
+      - stop_cluster
+      - hidden_liquidity
+      - participant_identity
+  L1_SNAPSHOT:
+    allowed:
+      - displayed_spread
+      - displayed_depth_snapshot
+      - snapshot_staleness
+    forbidden:
+      - queue_position
+      - cancellation_flow
+      - true_ofi
+      - hidden_liquidity
+      - true_absorption
+  L2_AGGREGATE:
+    allowed:
+      - vendor_semantic_aggregate_fields
+    forbidden:
+      - raw_trade_event_claim
+      - raw_order_event_claim
+      - single_cancel_claim
+  RAW_TRADE_TICK:
+    allowed:
+      - trade_sequence
+      - trade_classification_with_error_model
+    forbidden:
+      - missing_order_events
+      - queue_claim
+      - account_identity
+  RAW_ORDER_EVENT:
+    allowed:
+      - order_add_cancel_execute_sequence
+      - order_flow_imbalance
+      - queue_dynamics
+    forbidden:
+      - economic_motive_certainty
+      - participant_identity_certainty
+
+prohibited_inputs:
+  - DDX
+  - DDY
+  - DDX_DDY_VARIANTS
+  - OHLCV_FAKE_DELTA
+  - OHLCV_FAKE_CVD
+  - FAKE_OFI
+  - UNVERIFIED_ORDER_FLOW_PROXY
+  - UNVERSIONED_VENDOR_FLOW
+  - FUTURE_KNOWN_REFERENCE_ZONE
+
+core_objects:
+  ReferenceLiquidityZone:
+    required_fields:
+      - zone_id
+      - zone_type
+      - lower_bound
+      - upper_bound
+      - defined_at
+      - available_at
+      - source_timeframe
+      - construction_method
+      - lookback_window
+      - selection_provenance
+      - data_capability
+      - rule_snapshot_id
+      - expiration_rule
+  ReferenceZoneBreachEvent:
+    required_fields:
+      - event_id
+      - zone_id
+      - direction
+      - first_breach_at
+      - max_excursion
+      - normalized_excursion
+      - breach_duration
+      - volume_state
+      - volatility_state
+      - market_control
+      - sector_control
+      - price_limit_proximity
+      - data_quality
+      - data_capability
+  ReclaimAssessment:
+    required_fields:
+      - event_id
+      - reclaim_type
+      - reclaim_at
+      - confirmation_window
+      - persistence_window
+      - hold_above_or_below_zone
+      - failed_reclaim_at
+      - counterevidence
+      - status
+  PostSweepStabilizationAssessment:
+    required_fields:
+      - event_id
+      - drawdown_containment
+      - retest_behavior
+      - volatility_decay
+      - relative_strength
+      - displayed_depth_candidate
+      - capability_limit
+      - competing_explanations
+      - status
+  TPlusOneInventoryState:
+    required_fields:
+      - trade_date
+      - quantity
+      - settled_quantity
+      - sellable_quantity
+      - frozen_quantity
+      - already_sold_quantity
+      - round_trip_eligible
+      - overnight_gap_exposure
+      - limit_down_lock_state
+      - suspension_state
+      - rule_snapshot_id
+  SweepReclaimExperimentFamily:
+    required_fields:
+      - experiment_family_id
+      - zone_family
+      - parameter_space
+      - total_trials
+      - baseline_models
+      - train_windows
+      - validation_windows
+      - lockbox_window
+      - cost_model
+      - rule_versions
+      - negative_results
+      - selection_rule
+  SweepReclaimValidationReport:
+    required_fields:
+      - dataset_manifest
+      - event_label_metrics
+      - multi_horizon_metrics
+      - regime_results
+      - board_results
+      - t_plus_one_results
+      - cost_capacity_results
+      - baseline_increment
+      - multiple_testing_audit
+      - null_and_negative_results
+      - verdict
+
+reference_zone_candidates:
+  - PREVIOUS_DAY_HIGH_LOW
+  - POINT_IN_TIME_N_DAY_SWING_HIGH_LOW
+  - OPENING_RANGE
+  - COMPLETED_BAR_LOCAL_EXTREME
+  - TRUE_TRADE_BASED_VWAP_ZONE
+  - TRUE_TRADE_BASED_VOLUME_PROFILE_ZONE
+  - PRICE_LIMIT_BOUNDARY
+  - PRE_REGISTERED_ROUND_NUMBER_ZONE
+
+integration_contracts:
+  W2:
+    role: "Point-in-time market facts, rule snapshots and replay authority."
+  W4:
+    role: "Owns reference-zone definitions, event labels and research candidates."
+  W5:
+    role: "Provides concurrent event/news labels and confounder controls."
+  W7:
+    role: "Owns validation, costs, overfitting audit and promotion gates."
+  W9:
+    role: "Owns shadow observation and outcome calibration."
+  W10:
+    role: "Persists ex-ante evidence and DecisionEpisode references."
+  W11:
+    role: "Read-only consumer of validated probability distributions; 0017 never sets position size."
+  W13:
+    role: "Participant evidence is an external context or interaction feature, never identity confirmation."
+
+validation_requirements:
+  point_in_time: true
+  deterministic_label_replay: true
+  simple_baselines_required: true
+  baselines:
+    - RANDOM_LEVEL
+    - ORDINARY_LEVEL_TOUCH
+    - SIMPLE_BREAKOUT
+    - SIMPLE_REVERSAL
+    - VOLATILITY_SHOCK_ONLY
+    - VOLUME_SHOCK_ONLY
+    - B3_MOTHER_SYSTEM
+  horizons:
+    intraday: ["1m", "5m", "15m", "30m", "60m"]
+    trading_days: [1, 3, 5, 10, 20]
+  market_regimes:
+    - BULL
+    - BEAR
+    - RANGE
+    - HIGH_VOLATILITY
+    - LOW_VOLATILITY
+    - HIGH_LIQUIDITY
+    - LOW_LIQUIDITY
+    - HIGH_ATTENTION
+    - LOW_ATTENTION
+  required_methods:
+    - PURGED_WALK_FORWARD
+    - EMBARGO
+    - NESTED_SELECTION
+    - FINAL_LOCKBOX
+    - WHITE_REALITY_CHECK
+    - HANSEN_SPA
+    - PBO
+    - DEFLATED_SHARPE
+    - ROMANO_WOLF
+  required_outcomes:
+    - MFE
+    - MAE
+    - RECLAIM_PERSISTENCE_RATE
+    - FAILED_RECLAIM_RATE
+    - CONTINUATION_RATE
+    - NEXT_DAY_TRADABILITY_RATE
+    - UNEXECUTABLE_EXIT_RATE
+    - COST_ADJUSTED_INCREMENT
+
+amed_gates:
+  - NO_FUTURE_REFERENCE_ZONE
+  - NO_FAKE_ORDER_FLOW
+  - NO_IDENTITY_OR_INTENT_OVERCLAIM
+  - T_PLUS_ONE_LOT_LEVEL_REQUIRED
+  - PRICE_LIMIT_AND_SUSPENSION_REQUIRED
+  - SIMPLE_BASELINE_INCREMENT_REQUIRED
+  - MULTI_PERIOD_OOS_REQUIRED
+  - NULL_AND_NEGATIVE_RESULTS_PRESERVED
+  - AMED_SEVEN_GATE_AUDIT_REQUIRED
+
+amed_abstentions:
+  - INSUFFICIENT_DATA_CAPABILITY
+  - REFERENCE_ZONE_NOT_POINT_IN_TIME
+  - RULE_SNAPSHOT_MISSING
+  - DATA_SEMANTICS_UNKNOWN
+  - EVENT_CONFOUNDER_UNCONTROLLED
+  - T_PLUS_ONE_STATE_UNKNOWN
+  - LABEL_INSTABILITY
+  - NO_OOS_INCREMENT
+
+amed_non_goals:
+  - identify_main_force
+  - identify_hidden_stop_pool
+  - infer_private_intent
+  - create_order_flow_from_bars
+  - use_ddx_or_ddy
+  - auto_trade
+  - direct_order_generation
+  - replace_market_data_replay_risk_or_portfolio_runtime
+
+amed_completion_signal: "A_SHARE_LIQUIDITY_SWEEP_RECLAIM_D0_PLAN_READY_FOR_GPT_REVIEW"

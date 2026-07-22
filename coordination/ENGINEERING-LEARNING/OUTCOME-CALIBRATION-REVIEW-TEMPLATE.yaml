@@ -1,16 +1,32 @@
-schema_version: "1.0"
+schema_version: "1.1"
 record_type: "OutcomeCalibrationReview"
 task_id: ""
 issue_or_pr: ""
 reviewed_by: "GPT"
 reviewed_at: ""
 forecast_record: ""
+
+amed_review:
+  policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+  agent_execution_receipt: ""
+  research_ledger: ""
+  unplanned_improvement_ledger: ""
+  system_discovery_report: ""
+  gpt_second_pass_audit: ""
+  task_weight: "LIGHT | STANDARD | STRATEGIC"
+  research_trigger_level: "L1 | L2 | L3"
+  exploration_budget_compliance: "COMPLIANT | PARTIAL | EXCEEDED | UNVERIFIED"
+
 delivery_evidence:
   pr: ""
   final_head: ""
   tests:
     - ""
   feedback_v2: ""
+  commands_and_exit_codes:
+    - ""
+  negative_results:
+    - ""
 
 forecast_vs_actual:
   expected_benefits:
@@ -58,11 +74,46 @@ unexpected_harms:
     required_regression_test: ""
     prohibition_or_approval_change: ""
 
+amed_scope_and_improvement_review:
+  main_delivery_completed_before_expansion: false
+  exploration_budget_actual:
+    primary_delivery_share: ""
+    active_discovery_share: ""
+    system_opportunity_share: ""
+  unplanned_improvements:
+    - improvement: ""
+      authority_class: "A | B | C | D"
+      permission_compliant: false
+      evidence_quality: "LOW | MEDIUM | HIGH"
+      net_value: "POSITIVE | NEUTRAL | NEGATIVE | UNKNOWN"
+      complexity_cost: ""
+      maintenance_cost: ""
+      rollback_quality: ""
+      disposition: "ACCEPT | AMEND | SPLIT | REJECT | USER_GATE"
+  unauthorized_scope_expansion:
+    - ""
+  hidden_or_deferred_costs:
+    - ""
+
+research_quality_calibration:
+  primary_sources_used: 0
+  secondary_sources_used: 0
+  counterevidence_present: false
+  source_conflicts_preserved_or_resolved: false
+  dates_versions_and_effective_dates_verified: false
+  a_share_adaptation_verified: false
+  self_reflection_used_as_external_validation: false
+  major_research_gaps:
+    - ""
+  overall_quality: "HIGH | MEDIUM | LOW | UNVERIFIED"
+
 cost_and_complexity_calibration:
   time_vs_expected: "lower | similar | higher | unknown"
   compute_or_token_vs_expected: "lower | similar | higher | unknown"
   complexity_vs_expected: "lower | similar | higher | unknown"
   maintenance_vs_expected: "lower | similar | higher | unknown"
+  research_cost_vs_expected: "lower | similar | higher | unknown"
+  second_pass_audit_cost_vs_expected: "lower | similar | higher | unknown"
   explanation: ""
 
 prediction_quality:
@@ -76,9 +127,34 @@ prediction_quality:
   new_unknowns:
     - ""
 
+first_loop_learning:
+  task_execution_improvements:
+    - ""
+  tests_or_controls_to_add:
+    - ""
+  local_method_changes:
+    - ""
+
+second_loop_learning:
+  why_system_missed_issue:
+    - ""
+  blueprint_or_contract_changes:
+    - ""
+  task_template_changes:
+    - ""
+  agent_router_or_authority_changes:
+    - ""
+  skill_or_interface_candidates:
+    - ""
+  deprecations_or_downgrades:
+    - ""
+  independent_research_needed:
+    - ""
+  generalization_scope: "LOCAL | MODULE | CROSS_MODULE | ENTERPRISE | UNKNOWN"
+
 overall_outcome:
   net_value: "positive | neutral | negative | insufficient_evidence"
-  acceptance_verdict: "ACCEPT | ACCEPT_WITH_FOLLOWUP | CHANGES_REQUIRED | REJECT"
+  acceptance_verdict: "ACCEPTED | ACCEPTED_WITH_BOUNDED_AMENDMENT | REMEDIATION_REQUIRED | INDEPENDENT_VALIDATION_REQUIRED | SPLIT_INTO_NEW_TASK | ARCHITECTURE_DECISION_REQUIRED | USER_DECISION_REQUIRED | REJECTED"
   rationale: ""
 
 learning_actions:
@@ -88,12 +164,19 @@ learning_actions:
     - ""
   blueprints_to_update:
     - ""
+  contracts_or_schemas_to_update:
+    - ""
   tests_or_gates_to_add:
     - ""
   router_or_agent_rules_to_update:
     - ""
   next_task_inheritance:
     - ""
+  owner_validation_gate_and_close_condition:
+    - action: ""
+      owner: ""
+      validation_gate: ""
+      close_condition: ""
 
 user_notification:
   required: false

@@ -1,0 +1,357 @@
+schema_version: "1.0"
+skill_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-0014"
+module_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
+workstream: "W13"
+name: "A股每日参与者资金情报"
+status: "CANDIDATE_SKILL_REGISTERED"
+maturity: "CANDIDATE_SKILL_REGISTERED"
+boundary: "research_only / NO_TRADE"
+owner:
+  architecture: "GPT"
+  implementation_candidate: ["CODEX", "WORKBUDDY"]
+  research_support: ["QCLAW"]
+
+purpose: >-
+  Compile point-in-time official disclosures, licensed data, public seat records,
+  periodic ownership anchors and calibrated market proxies into daily competing
+  participant-flow hypotheses for A shares, with counterevidence, uncertainty,
+  abstention and cross-regime validation.
+
+systems_of_record:
+  market_and_replay: "W2"
+  event_and_evidence: "W5 / canonical evidence ledger"
+  participant_archetypes: "W6"
+  validation_and_risk: "W7"
+  shadow_and_learning: "W9"
+  decision_episode: "W10"
+  capital_allocation: "W11"
+  decision_science: "W12"
+  participant_flow_contract: "W13"
+
+non_goals:
+  - "Identify a real person or account from a brokerage branch without authoritative identity evidence."
+  - "Treat Northbound turnover or quota balance as daily net buying."
+  - "Claim an exact National Team daily purchase amount without official disclosure."
+  - "Treat vendor-defined main-fund flow as exchange fact."
+  - "Create a second market data, event ledger, replay, probability, risk or order runtime."
+  - "Generate or send real orders."
+
+actor_families:
+  - NORTHBOUND_CONNECT
+  - DOMESTIC_INSTITUTION
+  - ETF_AP_PASSIVE
+  - PROGRAM_QUANT
+  - ACTIVE_SHORT_TERM_SEAT
+  - STATE_LINKED_STABILIZATION
+  - BROKER_PROPRIETARY
+  - CORPORATE_INSIDER
+  - MARGIN_LEVERAGED
+  - RETAIL_RESIDUAL
+
+observation_classes:
+  - EXACT_DISCLOSED
+  - OFFICIAL_AGGREGATE
+  - PUBLIC_SEAT
+  - OWNERSHIP_SNAPSHOT
+  - VENDOR_DERIVED
+  - MARKET_PROXY
+  - MODEL_INFERENCE
+
+evidence_grades:
+  A1: "Official point-in-time disclosure with clear actor and field semantics."
+  A2: "Official aggregate or trigger-conditioned disclosure with limited coverage."
+  B1: "Official periodic holdings, ETF shares or announcement anchor."
+  B2: "Licensed vendor data with frozen semantics and cross-source verification."
+  C: "Historically calibrated market proxy or model inference."
+  D: "Unverified narrative or heuristic; research queue only and excluded from formal score."
+
+input_contract:
+  required:
+    - as_of_time
+    - market_date
+    - source_records
+    - evidence_items
+    - source_capability_registry
+    - source_license_registry
+    - field_semantics_registry
+    - a_share_rule_snapshot
+    - disclosure_regime_snapshot
+    - market_phase
+    - market_regime
+  optional:
+    - price_bars
+    - l1_or_l2_events
+    - dragon_tiger_records
+    - block_trade_records
+    - etf_share_records
+    - etf_pcf_records
+    - index_rebalance_records
+    - northbound_activity_records
+    - northbound_holding_anchors
+    - institutional_holding_anchors
+    - margin_records
+    - corporate_action_records
+    - official_state_linked_announcements
+    - event_and_attention_context
+    - probability_estimates
+
+canonical_objects:
+  - ParticipantFlowEvidence
+  - ParticipantIdentityCandidate
+  - SeatAliasRegistry
+  - SeatStockTemporalGraph
+  - NorthboundDisclosureRegime
+  - OwnershipAnchor
+  - ETFShareAndCreationRecord
+  - ParticipantFlowPosterior
+  - ActorPressureMap
+  - InventoryPressureEstimate
+  - CrowdingAndUnwindRisk
+  - DailyParticipantFlowMap
+  - DailyParticipantFlowBulletin
+  - ParticipantFlowValidationReport
+
+participant_flow_evidence_fields:
+  identity:
+    - evidence_id
+    - market_date
+    - instrument_id
+    - sector_id
+    - index_id
+    - actor_family_candidate
+    - actor_subtype_candidate
+  temporal:
+    - event_time
+    - source_time
+    - published_at
+    - available_at
+    - as_of
+  semantics:
+    - observation_class
+    - evidence_grade
+    - measure_type
+    - coverage_universe
+    - disclosure_trigger
+    - field_semantics_version
+    - rule_snapshot_id
+  values:
+    - gross_buy
+    - gross_sell
+    - net_value
+    - turnover_value
+    - holding_value
+    - holding_delta
+    - creation_redemption_proxy
+    - activity_score
+    - pressure_score
+    - value_unit
+  provenance:
+    - source_id
+    - source_hash
+    - source_license
+    - evidence_cluster_id
+  confidence:
+    - identity_confidence
+    - direction_confidence
+    - amount_confidence
+    - coverage_score
+    - latency_score
+    - source_reliability
+  epistemic:
+    - supporting_evidence
+    - counterevidence
+    - alternative_explanations
+    - invalidation_conditions
+    - status
+
+subskills:
+  - id: DPF-01
+    name: "Source and Rule Registry"
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [SourceCapabilityCard, FieldSemanticsVersion, DisclosureRegimeSnapshot, RuleSnapshot]
+  - id: DPF-02
+    name: "Official Evidence Collector"
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [RawEvidenceArtifact, ParticipantFlowEvidence]
+  - id: DPF-03
+    name: "Northbound Activity and Holding Nowcast"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [NorthboundActivity, TopActiveMap, QuarterlyHoldingAnchor, DailyHoldingNowcast]
+  - id: DPF-04
+    name: "Domestic Institution Inventory and Flow"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [InstitutionFlowEvidence, InventoryPressureEstimate]
+  - id: DPF-05
+    name: "Active Short-Term Seat Graph"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [SeatAliasRegistry, SeatStockTemporalGraph, ActiveSeatCluster]
+  - id: DPF-06
+    name: "State-Linked Stabilization Hypothesis"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [StateSupportHypothesis, CompetingExplanationSet]
+  - id: DPF-07
+    name: "Program and Quant Signature Detector"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [ProgramQuantActivityHypothesis, RebalancePressure, CrowdingRisk]
+  - id: DPF-08
+    name: "Actor Evidence Fusion"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [ParticipantFlowPosterior, ActorPressureMap, AbstentionRecord]
+  - id: DPF-09
+    name: "Daily Participant Flow Bulletin"
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [DailyParticipantFlowMap, DailyParticipantFlowBulletin]
+  - id: DPF-10
+    name: "Replay, Validation and Calibration"
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    outputs: [ParticipantFlowValidationReport, CalibrationRecord, PromotionOrRetirementDecision]
+
+pipeline:
+  - "Collect official or licensed raw artifacts without overwriting history."
+  - "Normalize event, publication, availability and as-of times."
+  - "Apply source, license, field-semantics, disclosure-regime and capability gates."
+  - "Produce participant-flow evidence without identity escalation."
+  - "Cluster correlated evidence and prevent duplicate voting."
+  - "Generate competing actor hypotheses with Bayesian or calibrated fusion."
+  - "Condition on market regime, liquidity, horizon and A-share rules."
+  - "Apply counterevidence, alternatives, invalidation and abstention gates."
+  - "Publish a research-only daily bulletin."
+  - "Replay point-in-time history and update calibration without rewriting ex-ante records."
+
+hard_gates:
+  - id: POINT_IN_TIME
+    rule: "No record may be used before its actual available_at time."
+  - id: DISCLOSURE_REGIME
+    rule: "Northbound and other sources must use the disclosure rules effective on the historical date."
+  - id: IDENTITY_LIMIT
+    rule: "Seat, channel, market pattern or vendor category may not be promoted to real account identity without authoritative evidence."
+  - id: DIRECTION_LIMIT
+    rule: "Turnover, activity or quota data may not be represented as net direction."
+  - id: AMOUNT_LIMIT
+    rule: "Model-estimated amounts must be ranges with amount_confidence and may not imitate official exact values."
+  - id: DEPENDENCE
+    rule: "Correlated features or sources must be grouped into evidence clusters before fusion."
+  - id: A_SHARE_EXECUTABILITY
+    rule: "Research outcomes must preserve T+1, price limits, suspension, lot, cost, liquidity and capacity constraints."
+  - id: VALIDATION
+    rule: "No promotion without both identification validation and economic incremental validation."
+  - id: ABSTENTION
+    rule: "INSUFFICIENT_OBSERVABILITY and ABSTAIN are valid mandatory outputs."
+  - id: NO_TRADE
+    rule: "The skill cannot create orders or enter a broker-critical path."
+
+northbound_regime_rules:
+  - id: PRE_DISCLOSURE_CHANGE
+    rule: "Historical net-flow fields may be used only for dates and sources where they were publicly available and licensed."
+  - id: POST_2024_08_19
+    rule: "Treat official daily disclosure as aggregate activity/top-active/ETF turnover; individual holding anchors are quarterly."
+  - id: PROGRAM_REPORTING_2026_01_12
+    rule: "Program-trading reporting is regulatory data and does not imply public account-level access."
+
+output_contract:
+  required:
+    - bulletin_date
+    - rule_and_disclosure_regime
+    - market_regime
+    - source_coverage
+    - actor_summaries
+    - interaction_map
+    - crowding_and_unwind_risks
+    - next_most_valuable_information
+    - abstentions
+    - validation_status
+    - no_trade_gate
+  actor_summary_required:
+    - actor_family
+    - observed_facts
+    - inferred_direction
+    - posterior_band
+    - amount_range
+    - horizons
+    - affected_indices_sectors_instruments
+    - supporting_evidence
+    - counterevidence
+    - alternative_explanations
+    - confidence_components
+    - invalidation_conditions
+
+validation_contract:
+  protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+  two_level_validation:
+    - IDENTIFICATION_AND_DIRECTION
+    - ECONOMIC_INCREMENT
+  horizons: ["1d", "3d", "5d", "10d", "20d", "60d"]
+  required_methods:
+    - point_in_time_replay
+    - purged_walk_forward
+    - embargo
+    - nested_model_selection
+    - regime_splits
+    - matched_controls
+    - event_study_and_placebo
+    - ablation
+    - interaction_tests
+    - White_Reality_Check
+    - Hansen_SPA
+    - PBO
+    - Deflated_Sharpe
+    - Romano_Wolf
+  required_metrics:
+    identification: [Brier, log_loss, ECE, calibration_slope, precision, recall, confusion_matrix, abstention_coverage]
+    economic: [IC, rank_IC, alpha, return, drawdown, expected_shortfall, turnover, cost, capacity, stability]
+
+maturity_state_machine:
+  - DISCOVERED
+  - CANDIDATE_SKILL_REGISTERED
+  - SOURCE_AND_RULE_CONTRACTED
+  - DATA_READY
+  - IDENTIFICATION_VALIDATED
+  - ECONOMIC_INCREMENT_VALIDATED
+  - SHADOW_DAILY_VALIDATED
+  - VALIDATED_RESEARCH_CAPABILITY
+
+initial_vertical_slice:
+  id: "W13-VS1"
+  name: "Official Daily Evidence and Bulletin"
+  allowed_sources:
+    - exchange_dragon_tiger_list
+    - exchange_block_trades
+    - exchange_etf_share_and_pcf
+    - official_index_rebalance
+    - official_northbound_aggregate_and_top_active
+    - official_northbound_quarterly_holdings
+    - official_corporate_and_state_linked_announcements
+  deliverables:
+    - source_capability_and_license_registry
+    - point_in_time_raw_artifact_manifest
+    - official_participant_flow_evidence_ledger
+    - daily_bulletin
+    - replay_fixture
+    - baseline_validation_report
+  exclusions:
+    - real_person_hot_money_identity
+    - exact_daily_national_team_amount
+    - unauthorized_scraping
+    - large_scale_MARL
+    - live_order_execution
+
+current_reality:
+  blueprint: COMPLETE
+  skill_contract: REGISTERED_CANDIDATE
+  source_adapters: NOT_IMPLEMENTED
+  daily_scheduler: NOT_IMPLEMENTED
+  historical_dataset: NOT_ASSEMBLED
+  identification_validation: NOT_RUN
+  economic_backtest: NOT_RUN
+  shadow_daily_run: NOT_STARTED
+  live_trading: PROHIBITED

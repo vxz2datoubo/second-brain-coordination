@@ -1,8 +1,8 @@
-schema_version: "1.3"
+schema_version: "1.7"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
-program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
-previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.2.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md"
+previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
 project_blueprint_integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.3.md"
 master_issue: 31
 current_status: "ACTIVE_MULTI_WORKSTREAM_COORDINATION"
@@ -10,12 +10,36 @@ mode: "project_plan"
 boundary: "research_only / NO_TRADE"
 impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
 
+enterprise_execution_governance:
+  protocol_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+  short_name: "AMED"
+  status: "ACTIVE_ENTERPRISE_STANDARD"
+  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
+  agent_receipt_template: "coordination/TEMPLATES/AMED-AGENT-EXECUTION-RECEIPT-TEMPLATE-v1.0.yaml"
+  research_ledger_template: "coordination/TEMPLATES/AMED-RESEARCH-LEDGER-TEMPLATE-v1.0.yaml"
+  gpt_second_pass_audit_template: "coordination/TEMPLATES/AMED-GPT-SECOND-PASS-AUDIT-TEMPLATE-v1.0.yaml"
+  applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
+  all_non_trivial_tasks_require_amed_contract: true
+  active_discovery_required: true
+  double_loop_system_backwrite_required: true
+  executor_cannot_self_approve_major_expansion: true
+  gpt_second_pass_audit_required: true
+  direct_main_write: false
+  auto_merge: false
+  no_trade: true
+
 program_objectives:
   - "Unify Second Brain, A-share research, data, event intelligence, multi-agent game, validation, and AI operations under one enterprise architecture."
   - "Operate the Second Brain as a Personal Epistemic and Cognitive Operating System separating world knowledge, personal cognitive modelling, task context, decision calibration, and metacognitive governance."
   - "Evaluate probabilistic edge and expected value before allocating capital, then apply robust Kelly, risk, correlation, liquidity and A-share execution constraints."
   - "Cover the full decision lifecycle from framing, belief and information value through timing, sizing, portfolio, survival, execution, validation, monitoring, attribution and evolution."
   - "Compile every material blueprint method into an existing skill, candidate skill, reference-only item, rejected item or explicit research unknown."
+  - "Track daily institution, Northbound, passive/programmatic, active-seat and state-linked stabilization evidence without confusing activity, identity, direction or amount."
+  - "Track confirmed policy calendars, high-prior unconfirmed windows, expectations, multi-dimensional surprises, pre-event pricing, cross-asset reactions and A-share transmission without confusing recurrence, rumor, surprise or causality."
+  - "Validate reference-zone breaches, reclaims, continuations and post-event stabilization without claiming hidden stops, fake order flow or participant intent."
+  - "Require every non-trivial agent task to complete the main delivery, active discovery and system-evolution proposal under bounded exploration and evidence-backed second-pass review."
   - "Define systems of record, contracts, dependencies, milestones, acceptance gates, rollback, user correction, belief revision and probability calibration."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
 
@@ -41,17 +65,45 @@ registered_blueprints:
     implementation_issue: 63
     dependencies: [23, 38, 59, 60, 61, 62]
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - module_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
+    path: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-v1.0.yaml"
+    impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014.yaml"
+    implementation_issue: 67
+    dependencies: [6, 8, 23, 30, 38, 42, 59, 60, 61, 62, 63]
+    status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
+  - module_id: "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015"
+    path: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
+    impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015.yaml"
+    implementation_issue: 68
+    dependencies: [6, 8, 23, 30, 31, 38, 42, 59, 60, 61, 62, 63, 67]
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
+  - module_id: "A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-0017"
+    path: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-SKILL-v1.0.yaml"
+    impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-0017.yaml"
+    implementation_issue: 69
+    dependencies: [6, 42, 63, 67, 68]
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
 
 workstreams:
   - id: "W1"
-    name: "Enterprise Architecture and Governance"
-    owner: "CODEX + GPT"
+    name: "Enterprise Architecture, Governance and AMED Mission Execution"
+    owner: "GPT + CODEX"
     source_issue: 31
+    blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
     status: "ACTIVE_PROGRAM_GOVERNANCE"
   - id: "W2"
     name: "Market Data and Replay"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [6]
+    related_issues: [6, 67, 68, 69]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W3"
     name: "Second Brain Knowledge Authority and Legacy Integration"
@@ -59,47 +111,59 @@ workstreams:
     related_issues: [21, 22, 24, 25, 26, 38, 57, 59, 60]
     status: "CANONICAL_PHASE3_AND_CHILD_WORKSTREAMS_ACTIVE"
   - id: "W4"
-    name: "Indicators, Theories, Strategies, and Experiments"
+    name: "Indicators, Theories, Strategies, Experiments and Observable Price-Structure Validation"
     owner: "CODEX"
-    related_issues: [5, 6, 63]
-    status: "QUEUED"
+    related_issues: [5, 6, 42, 63, 67, 68, 69]
+    blueprint: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-SKILL-v1.0.yaml"
+    implementation_issue: 69
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
   - id: "W5"
-    name: "Event, News, Announcement, and Attention Intelligence"
+    name: "Event, News, Announcement, Attention, Policy and Cross-Asset Intelligence"
     owner: "CODEX + QCLAW + WORKBUDDY"
     related_pull_requests: [8]
-    related_issues: [63]
-    status: "BLUEPRINT_EXISTS"
+    related_issues: [63, 67, 68, 69]
+    blueprint: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
+    implementation_issue: 68
+    status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
   - id: "W6"
     name: "Four-Family Multi-Agent Strategic Game"
     owner: "CODEX + WORKBUDDY"
-    related_issues: [23, 63]
+    related_issues: [23, 63, 67, 68]
     status: "QUEUED_CHILD_WORKSTREAM"
   - id: "W7"
     name: "Validation and Risk"
     owner: "CODEX + GPT"
-    related_issues: [62, 63]
+    related_issues: [62, 63, 67, 68, 69]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W8"
     name: "Multi-AI Collaboration, Deployment, and Observability"
     owner: "GPT + CODEX + WORKBUDDY + QCLAW"
-    related_issues: [4, 7, 63]
+    related_issues: [4, 7, 63, 67, 68, 69]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W9"
-    name: "Shadow Mode and Engineering Learning"
+    name: "Shadow Mode, Engineering Learning, Outcome Calibration and Double-Loop Evolution"
     owner: "GPT + CODEX"
-    related_issues: [30, 61, 62, 63]
-    status: "POLICY_EXISTS_AUTOMATION_QUEUED"
+    related_issues: [30, 31, 61, 62, 63, 67, 68, 69]
+    blueprint: "coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md"
+    amed_blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+    status: "ACTIVE_GOVERNANCE_AND_AUTOMATION_QUEUED"
   - id: "W10"
-    name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
+    name: "Personal Epistemic Cognitive OS"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [38, 59, 60, 61, 62, 63]
+    related_issues: [38, 59, 60, 61, 62, 63, 67, 68, 69]
     blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
   - id: "W11"
-    name: "Kelly-Thorp Expected Value, Probabilistic Edge, and Robust A-share Capital Allocation"
+    name: "Kelly-Thorp Expected Value and Robust A-share Capital Allocation"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 38, 59, 60, 61, 62, 63]
+    related_issues: [23, 38, 59, 60, 61, 62, 63, 67, 68, 69]
     blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
     machine_readable_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
@@ -107,48 +171,128 @@ workstreams:
   - id: "W12"
     name: "Decision Science Skill Family and Blueprint-to-Skill Gap Compiler"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [23, 31, 38, 59, 60, 61, 62, 63]
+    related_issues: [23, 31, 38, 59, 60, 61, 62, 63, 67, 68, 69]
     blueprint: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-AND-GAP-COMPILER-BLUEPRINT-v1.0.md"
     root_cause_audit: "coordination/BLUEPRINTS/WHY-DECISION-SKILLS-WERE-MISSED-ROOT-CAUSE-AUDIT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-RESEARCH-VALIDATION-v1.0.md"
     machine_readable_registry: "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - id: "W13"
+    name: "A-share Daily Participant Capital-Flow Intelligence"
+    owner: "GPT + CODEX + WORKBUDDY + QCLAW"
+    related_issues: [6, 23, 42, 59, 60, 61, 62, 63, 67, 68, 69]
+    blueprint: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
+    validation_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-v1.0.yaml"
+    implementation_issue: 67
+    status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
 
 activation_sequence:
-  - "Continue Issue #59 atomization, digestion, and adversarial validation."
-  - "Continue Issue #60 M0 long-term-memory audit and project plan."
-  - "Issue #61 performs C0 non-duplication audit and a C0-C7 PEOS project plan before canonical implementation."
-  - "Issue #62 performs K0 non-duplication audit and a K0-K7 Kelly-Thorp project plan."
-  - "Issue #63 performs D0 repository/local-blueprint skill-gap audit and a D0-D6 project plan."
-  - "Do not implement all thirteen candidate skills simultaneously; first implement the Gap Compiler and select at most three P0 vertical slices."
-  - "GPT assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
-  - "Run shadow-mode cognitive, probability, allocation, research-integrity and engineering calibration before any high-risk deployment."
+  - "Every new or reopened non-trivial task must inherit AMED before it can become READY."
+  - "Continue Issue #59 atomization, digestion, and adversarial validation under AMED reporting."
+  - "Issue #60 remains frozen until correct M0 re-audit and AMED task contract."
+  - "Issue #61 performs C0 non-duplication audit and C0-C7 PEOS plan before implementation."
+  - "Issue #62 performs K0 non-duplication audit and K0-K7 Kelly-Thorp plan."
+  - "Issue #63/PR #66 closes W12 D0 and absorbs registered governance deltas."
+  - "Issue #67 performs W13 D0 source, license, disclosure-regime, non-duplication and validation audit."
+  - "Issue #68 performs W5 PMN D0 source, calendar, expectation, non-duplication and validation audit."
+  - "Issue #69 performs W4/W7 liquidity-sweep/reclaim D0 legacy-candidate, data-capability, rule, T+1 and validation audit after shared time/evidence contracts are frozen."
+  - "Do not implement all W12, W13, PMN or liquidity-sweep/reclaim child skills simultaneously."
+  - "After W13 and PMN D0 plans, GPT freezes shared interfaces and activates at most one implementation slice at a time."
+  - "0017 first vertical slice, if selected, is BAR_ONLY reference-zone breach/reclaim with T+1 inventory and no order-flow or identity inference."
+  - "GPT assigns non-overlapping branches and file ownership."
+  - "Run shadow-mode cognitive, probability, allocation, participant-flow, policy-news, price-structure, AMED process, research-integrity and outcome calibration before high-risk deployment."
 
 wip_policy:
   max_major_active_workstreams: 3
-  rule: "Issue #59 and #60 may continue while #61, #62 and #63 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
+  rule: "Canonical implementation requires explicit WIP decision, frozen interfaces, AMED contract and separate file ownership."
   max_initial_w12_child_vertical_slices: 3
+  max_initial_w13_vertical_slices: 1
+  max_initial_w5_pmn_vertical_slices: 1
+  max_initial_w4_liquidity_sweep_vertical_slices: 1
+  codex_single_active_route: true
+  discovery_proposal_does_not_expand_wip: true
+
+amed_task_queue:
+  current_codex: "Issue #63 / PR #66 closeout"
+  next_codex:
+    - "Issue #67 W13 D0"
+    - "Issue #68 PMN D0"
+    - "Issue #69 liquidity-sweep/reclaim D0, release only after shared interfaces and explicit GPT route"
+
+amed_liquidity_sweep_reclaim_governance:
+  sweep_is_observable_breach_candidate_not_hidden_stop_fact: true
+  reclaim_and_continuation_are_separate: true
+  absorption_claim_prohibited_without_raw_order_evidence: true
+  master_intent_claim_prohibited: true
+  DDX_DDY_prohibited: true
+  fake_tick_delta_cvd_ofi_prohibited: true
+  l1_snapshot_is_not_queue_or_cancel_flow: true
+  vendor_aggregate_semantics_must_be_preserved: true
+  reference_zone_must_be_point_in_time: true
+  lot_level_t_plus_one_required: true
+  price_limit_suspension_and_unexecutable_exit_required: true
+  simple_baselines_required: true
+  multi_period_oos_and_multiple_testing_required: true
+  negative_and_null_results_required: true
+  abstention_supported: true
+
+amed_amed_task_governance:
+  task_weights: [LIGHT, STANDARD, STRATEGIC]
+  research_levels: [L1_REUSE_AND_QUICK_CHECK, L2_TARGETED_PROFESSIONAL_RESEARCH, L3_INDEPENDENT_RESEARCH_TASK]
+  improvement_classes: [A_SAFE_LOCAL_AUTONOMOUS, B_BOUNDED_IMPLEMENT_AND_REPORT, C_PROPOSAL_ONLY, D_PROHIBITED_OR_USER_GATE]
+  primary_task_priority: true
+  exploration_budget_required: true
+  research_ledger_required: true
+  negative_results_required: true
+  alternatives_and_tradeoffs_required: true
+  gpt_second_pass_gates: [TASK_COMPLETENESS_GATE, FACT_EVIDENCE_GATE, RESEARCH_QUALITY_GATE, ENGINEERING_CORRECTNESS_GATE, IMPROVEMENT_VALUE_GATE, SYSTEM_EVOLUTION_GATE, NEXT_ACTION_GATE]
+  executor_major_expansion_self_approval: false
+  system_backwrite_after_gpt_acceptance_only: true
 
 skill_gap_governance:
   lifecycle: [FRAME, BELIEVE, LEARN, CHOOSE, TIME, SIZE, PORTFOLIO, SURVIVE, EXECUTE, VALIDATE, MONITOR, ATTRIBUTE, EVOLVE]
   maturity_states: [DISCOVERED, MENTIONED, MAPPED_TO_LIFECYCLE, CANDIDATE_SKILL_REGISTERED, RESEARCH_VALIDATED, CONTRACTED, IMPLEMENTED, A_SHARE_BACKTESTED, SHADOW_VALIDATED, VALIDATED_RESEARCH_CAPABILITY]
-  material_method_must_be_classified_as:
-    - EXISTING_SKILL_SUBCAPABILITY
-    - CANDIDATE_INDEPENDENT_SKILL
-    - REFERENCE_ONLY
-    - REJECTED
-    - UNKNOWN_NEEDS_RESEARCH
-  blocking_findings:
-    - ORPHAN_TERM
-    - GHOST_CAPABILITY
-    - FORMULA_WITHOUT_ASSUMPTIONS
-    - SKILL_WITHOUT_A_SHARE_MAPPING
-    - IMPLEMENTED_WITHOUT_VALIDATION
-    - DUPLICATE_RUNTIME
-    - MATURE_STATUS_INFLATION
+  material_method_must_be_classified_as: [EXISTING_SKILL_SUBCAPABILITY, CANDIDATE_INDEPENDENT_SKILL, REFERENCE_ONLY, REJECTED, UNKNOWN_NEEDS_RESEARCH]
+  blocking_findings: [ORPHAN_TERM, GHOST_CAPABILITY, FORMULA_WITHOUT_ASSUMPTIONS, SKILL_WITHOUT_A_SHARE_MAPPING, IMPLEMENTED_WITHOUT_VALIDATION, DUPLICATE_RUNTIME, MATURE_STATUS_INFLATION]
   blueprint_presence_is_not_implementation: true
   formula_correctness_is_not_a_share_validation: true
   skill_count_is_not_success_metric: true
+
+participant_flow_governance:
+  activity_is_not_direction: true
+  direction_is_not_amount: true
+  market_signature_is_not_identity: true
+  official_disclosure_regime_version_required: true
+  northbound_post_2024_08_19_daily_net_claim_prohibited_without_authoritative_data: true
+  dragon_tiger_trigger_selection_must_be_modelled: true
+  brokerage_seat_is_not_real_person: true
+  etf_flow_is_not_national_team_amount: true
+  program_trade_reporting_is_not_public_account_identity: true
+  separate_identity_direction_amount_confidence_required: true
+  competing_explanations_and_counterevidence_required: true
+  point_in_time_replay_required: true
+  identification_and_economic_increment_validation_required: true
+  multi_period_regime_interaction_ablation_required: true
+  abstention_supported: true
+
+policy_macro_news_governance:
+  historical_recurrence_is_not_confirmed_schedule: true
+  confirmed_window_market_expectation_and_rumor_are_separate: true
+  news_is_not_surprise_without_ex_ante_expectation: true
+  expectation_unknown_supported: true
+  headline_sentiment_is_not_full_policy_information: true
+  policy_surprise_is_multidimensional: true
+  pre_event_runup_is_not_proof_of_leak_or_identity: true
+  sell_the_news_requires_pricing_state_and_post_event_evidence: true
+  single_asset_move_is_not_complete_explanation: true
+  cross_asset_support_counterevidence_and_alternatives_required: true
+  policy_intent_is_not_implementation_or_company_profit: true
+  point_in_time_event_revision_and_expectation_replay_required: true
+  event_claim_pricing_state_and_economic_increment_validation_required: true
+  official_source_first_and_license_governance_required: true
+  abstention_supported: true
 
 protected_authority_policy:
   protected_master_blueprints_remain_l0_authority: true

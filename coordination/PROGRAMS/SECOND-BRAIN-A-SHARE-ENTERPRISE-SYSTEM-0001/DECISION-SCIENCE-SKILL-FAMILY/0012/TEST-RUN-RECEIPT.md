@@ -35,3 +35,21 @@ A prior shared-root full discovery run exceeded 244 seconds and was safely
 terminated. Its state is `TIMEOUT / NOT_PASSED`; this report does not convert it
 to a pass. No broker, account, credential, realtime service or order path was
 used by any listed command.
+
+## R3 Closeout Validation
+
+`run_at: 2026-07-23 Asia/Shanghai`
+
+| Scope | Interpreter | Result | Exit |
+|---|---|---|---:|
+| W12 artifact YAML, UTF-8, required-status and secret-pattern checks | Python 3.13.13 | 44 artifacts, 24 YAML, 0 findings | 0 |
+| Integrated Phase 3 synthetic suite | Python 3.13.13 | 183 passed | 0 |
+| P1/P2/local-adapter regression chain | Python 3.13.13 | 12 + 25 + 61 = 98 passed | 0 |
+| Public safety scan | Python 3.13.13 | 57 files scanned, 0 issues | 0 |
+| Integrated Phase 3 extra local compatibility probe | Python 3.12.10 | 4 import errors: local interpreter lacks `tzdata` for `Asia/Shanghai` | 1 |
+
+The Python 3.12 result is an environment dependency failure and is preserved as
+a negative result. No runtime file was changed and no dependency was installed.
+The repository workflow targets Python 3.11 and 3.13 on Ubuntu; their authoritative
+status is taken only from GitHub Actions after publication, not inferred from the
+local Python 3.12 probe.

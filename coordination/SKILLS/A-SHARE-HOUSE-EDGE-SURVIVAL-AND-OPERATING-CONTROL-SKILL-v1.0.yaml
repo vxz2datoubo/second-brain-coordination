@@ -1,0 +1,164 @@
+schema_version: "1.0"
+skill_id: "A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-SKILL-0018"
+module_id: "A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-0018"
+name: "A股赌场优势启发的生存、容量与运营控制技能"
+status: "REGISTERED_CANDIDATE"
+maturity: "CONTRACTED_NOT_IMPLEMENTED_NOT_BACKTESTED"
+boundary: "research_only / NO_TRADE"
+implementation_issue: 71
+blueprint: "coordination/BLUEPRINTS/A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-BLUEPRINT-v1.0.md"
+validation_protocol: "coordination/BLUEPRINTS/A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+research_validation: "coordination/BLUEPRINTS/A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-RESEARCH-VALIDATION-v1.0.md"
+
+amed_governance:
+  task_weight: "STRATEGIC"
+  research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
+  second_pass_audit_required: true
+  executor_major_expansion_self_approval: false
+
+system_position:
+  owner_workstreams: [W7, W9, W11]
+  consumes: [W2, W4, W5, W12, W13]
+  authority:
+    probability_estimate: "W12_DS02"
+    capital_allocation: "W11_ISSUE_62"
+    final_risk_veto: "W7"
+    outcome_learning: "W9"
+    this_skill: "NET_EDGE_QUALITY_EFFECTIVE_TRIAL_RUIN_CAPACITY_GAME_PROTECTION_RECONCILIATION"
+  duplicate_runtime_forbidden: true
+
+inputs:
+  - ProbabilityEstimate
+  - ReturnDistributionEstimate
+  - StrategyValidationSummary
+  - CostAndSlippageModel
+  - MarketImpactAndCapacityEstimate
+  - CorrelationAndCommonFactorGraph
+  - AShareRuleSnapshot
+  - ReplayOrShadowOutcome
+  - DataQualityAndCapabilityState
+  - EventAndPolicyContext
+  - ParticipantFlowContext
+  - W11CandidateAllocation
+  - W7RiskEnvelope
+
+outputs:
+  - HouseEdgeInspiredNetEdgeEstimate
+  - EdgeUncertaintyReserve
+  - EffectiveIndependentTrialEstimate
+  - StrategyGameSelectionGate
+  - MaxExposureAndTableLimitPolicy
+  - CapitalBufferAndRuinAssessment
+  - CapacityAndTurnoverQualityAssessment
+  - AdverseSelectionAndCrowdingAssessment
+  - GameProtectionAndModelIntegrityControl
+  - OperatingReconciliationReceipt
+  - HouseEdgeSurvivalValidationReport
+
+states:
+  edge: [EDGE_POSITIVE, EDGE_AMBIGUOUS, EDGE_NEGATIVE, ABSTAIN]
+  game_gate: [OPEN_FOR_RESEARCH, SHADOW_ONLY, CAPACITY_RESTRICTED, SUSPENDED, CLOSED]
+  control: [HEALTHY, WARNING, DEGRADED, FAILED, UNKNOWN]
+
+net_edge_contract:
+  formula_components:
+    - gross_expected_edge_interval
+    - explicit_cost_interval
+    - slippage_and_impact_interval
+    - adverse_selection_loss_interval
+    - model_uncertainty_reserve
+    - tail_event_reserve
+    - operational_loss_reserve
+  output_interval_required: true
+  point_estimate_only_forbidden: true
+  lower_bound_positive_required_for_open_gate: true
+
+subskills:
+  - id: "HE-01"
+    name: "赌场概念与A股非等价映射"
+    purpose: "区分house edge、hold、RTP、turnover、bankroll和市场净优势。"
+  - id: "HE-02"
+    name: "净优势瀑布编译"
+    purpose: "将毛优势逐项扣除成本、冲击、逆向选择、不确定性、尾部和运营损失。"
+  - id: "HE-03"
+    name: "策略游戏选择门"
+    purpose: "按状态、数据、容量和验证成熟度决定开放、影子、限制、暂停或关闭。"
+  - id: "HE-04"
+    name: "有效独立试验估计"
+    purpose: "按时间、标的、行业、事件、模型、持有期和共同因子折算原始次数。"
+  - id: "HE-05"
+    name: "最大暴露与桌限策略"
+    purpose: "提出单笔、标的、策略、行业、事件、日度和组合暴露上限。"
+  - id: "HE-06"
+    name: "资本缓冲与风险破产"
+    purpose: "在厚尾、跳空、相关性、T+1和不可退出下估计生存区间。"
+  - id: "HE-07"
+    name: "容量与换手质量"
+    purpose: "验证扩大次数是否仍保留净优势，识别成本和冲击饱和。"
+  - id: "HE-08"
+    name: "逆向选择与拥挤"
+    purpose: "识别收益是否被信息更强对手、陈旧信号和策略拥挤侵蚀。"
+  - id: "HE-09"
+    name: "游戏保护与模型完整性"
+    purpose: "监控数据污染、未来泄漏、漂移、作弊式选择和执行偏差。"
+  - id: "HE-10"
+    name: "运营对账"
+    purpose: "对齐研究、数据、模型、配置、风险、回放、成本和归因版本。"
+  - id: "HE-11"
+    name: "关桌与再开放"
+    purpose: "定义优势失效、容量耗尽、规则变化和质量失败的暂停与复核门。"
+  - id: "HE-12"
+    name: "多时期样本外验证"
+    purpose: "验证0018在完整母系统上的稳定净增量和失败区域。"
+
+required_fact_fields:
+  - as_of
+  - available_at
+  - rule_snapshot_id
+  - data_lineage
+  - model_version
+  - supporting_evidence
+  - counterevidence
+  - unknowns
+  - confidence
+  - invalidating_conditions
+
+first_vertical_slice:
+  id: "0018-VS1"
+  name: "NET_EDGE_EFFECTIVE_TRIAL_RUIN_SHADOW_REPORT"
+  write_authority: "REPORT_ONLY"
+  permitted_reads:
+    - existing_backtest_results
+    - cost_models
+    - W11_candidate_allocation
+    - W7_risk_data
+    - W9_outcomes
+  prohibited_writes:
+    - probability_estimate
+    - W11_allocation
+    - W7_risk_gate
+    - portfolio
+    - order
+
+forbidden:
+  - GUARANTEED_OR_STABLE_PROFIT_CLAIM
+  - DAILY_PROFIT_CLAIM
+  - HIGH_WIN_RATE_EQUALS_EDGE
+  - MARTINGALE_OR_LOSS_DOUBLING
+  - AVERAGING_DOWN_AS_EDGE_SOURCE
+  - RAW_TRIAL_COUNT_EQUALS_INDEPENDENT_TRIALS
+  - TURNOVER_ALWAYS_IMPROVES_RESULT
+  - DUPLICATE_KELLY_ENGINE
+  - DUPLICATE_RISK_ENGINE
+  - DUPLICATE_PORTFOLIO_OR_ORDER_RUNTIME
+  - REAL_TRADE
+  - ACCOUNT_OR_CREDENTIAL_ACCESS
+
+promotion_gates:
+  - D0_NON_DUPLICATION_AND_RESEARCH_AUDIT_ACCEPTED
+  - SHARED_W11_W7_W9_INTERFACES_FROZEN
+  - POINT_IN_TIME_VALIDATION_DATASET
+  - MULTI_PERIOD_OOS_AND_STRESS_VALIDATION
+  - NEGATIVE_RESULTS_PRESERVED
+  - SHADOW_VALIDATION
+  - GPT_AMED_SEVEN_GATE_ACCEPTANCE
