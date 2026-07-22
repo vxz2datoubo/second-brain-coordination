@@ -1,0 +1,215 @@
+schema_version: "1.0"
+module_id: "DECISION-SCIENCE-AND-A-SHARE-SKILL-FAMILY-0012"
+implementation_issue: 63
+status: "CANDIDATE_SKILL_FAMILY_REGISTERED"
+boundary: "research_only / NO_TRADE"
+
+meta_skill:
+  skill_id: "BLUEPRINT-TO-SKILL-GAP-COMPILER-0012"
+  lifecycle_stage: "GOVERNANCE"
+  priority: "P0"
+  maturity: "BLUEPRINTED_NOT_IMPLEMENTED"
+  purpose:
+    - "Extract material theories, methods, masters and professional terms from blueprints and research."
+    - "Map them to the decision lifecycle and existing skills, runtimes, tests and owners."
+    - "Detect orphan terms, ghost capabilities, duplicate runtimes and maturity inflation."
+    - "Generate candidate skills, dependencies, issues and validation gates."
+  required_findings:
+    - ORPHAN_TERM
+    - GHOST_CAPABILITY
+    - FORMULA_WITHOUT_ASSUMPTIONS
+    - SKILL_WITHOUT_A_SHARE_MAPPING
+    - IMPLEMENTED_WITHOUT_VALIDATION
+    - DUPLICATE_RUNTIME
+    - REFERENCE_ONLY_WITHOUT_REASON
+    - MATURE_STATUS_INFLATION
+    - NO_OWNER_OR_ISSUE
+    - NO_NEGATIVE_CASES
+    - NO_DATA_LINEAGE
+    - STALE_RULE_MAPPING
+
+maturity_state_machine:
+  - DISCOVERED
+  - MENTIONED
+  - MAPPED_TO_LIFECYCLE
+  - CANDIDATE_SKILL_REGISTERED
+  - RESEARCH_VALIDATED
+  - CONTRACTED
+  - IMPLEMENTED
+  - A_SHARE_BACKTESTED
+  - SHADOW_VALIDATED
+  - VALIDATED_RESEARCH_CAPABILITY
+
+common_contract:
+  required_fields:
+    - skill_id
+    - decision_problem
+    - lifecycle_stage
+    - inputs
+    - outputs
+    - assumptions
+    - non_goals
+    - dependencies
+    - system_of_record
+    - a_share_rule_version
+    - validation_plan
+    - adversarial_cases
+    - failure_and_abstention_conditions
+    - owner
+    - implementation_issue
+    - maturity
+  rules:
+    - "No maturity state may be skipped."
+    - "A named method in a blueprint must map to an existing skill, a candidate skill, REFERENCE_ONLY with rationale, REJECTED with rationale, or UNKNOWN_NEEDS_RESEARCH."
+    - "Formula correctness does not prove A-share usefulness."
+    - "No child skill may create a second canonical market, knowledge, risk, execution or decision runtime."
+    - "All trading-related outputs remain research-only and cannot generate real orders."
+
+skills:
+  - skill_id: "DECISION-FRAMING-INFLUENCE-DIAGRAM-SKILL-0012A"
+    lifecycle_stage: FRAME
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "What exactly is being decided, with which options, uncertainties, information order, objectives and constraints?"
+    existing_fragments: ["DecisionPacket", "DecisionEpisode", "scenario and mechanism graphs"]
+    dependencies: [61]
+    core_outputs: [DecisionFrame, InfluenceDiagram, AssumptionSet, ObservabilityMap, MissingDecisionVariable]
+    non_goals: ["Infer correct probabilities merely from diagram structure"]
+
+  - skill_id: "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+    lifecycle_stage: BELIEVE
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should base rates, evidence, models, experts and market-implied information update probabilities?"
+    existing_fragments: ["ForecastAndCalibration", "ProbabilityEstimate", "multi-agent probability candidates"]
+    dependencies: [61, 62]
+    core_outputs: [Prior, Posterior, ForecastPool, DependenceMap, CalibrationTask, UNKNOWNMass]
+    non_goals: ["Treat LLM confidence as calibrated probability", "Count correlated forecasts as independent evidence"]
+
+  - skill_id: "VALUE-OF-INFORMATION-RESEARCH-STOPPING-SKILL-0012C"
+    lifecycle_stage: LEARN
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "Is additional research, data, waiting or evidence worth its cost and lost opportunity?"
+    existing_fragments: ["next most valuable information in DecisionPacket", "W11 value of information mention"]
+    dependencies: [61, 62]
+    core_outputs: [EVPI, EVSI, ExpectedNetInformationValue, NextBestEvidence, STOP_RESEARCH, CONTINUE_RESEARCH]
+    non_goals: ["Assume information has value without considering price response or delay"]
+
+  - skill_id: "ROBUST-AMBIGUITY-MINIMAX-REGRET-SKILL-0012D"
+    lifecycle_stage: CHOOSE
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "What should be chosen when probabilities or distributions are materially ambiguous?"
+    existing_fragments: ["robust Kelly", "stress tests", "UNKNOWN and abstention gates"]
+    dependencies: [61, 62]
+    core_outputs: [RobustChoice, RegretTable, SensitivityRegion, FragileDecision, ABSTAIN]
+    non_goals: ["Assume the chosen uncertainty set is objectively true"]
+
+  - skill_id: "SEQUENTIAL-DECISION-OPTIMAL-STOPPING-REAL-OPTIONS-SKILL-0012E"
+    lifecycle_stage: TIME
+    priority: P2
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "When should the system wait, enter, continue, scale, reduce or stop as information and states evolve?"
+    existing_fragments: ["entry and exit rules", "T+1 inventory state", "event timeline"]
+    dependencies: [61, 62]
+    core_outputs: [StatePolicy, WaitValue, StopBoundary, StageGate, RecomputeTrigger]
+    non_goals: ["Apply stationary optimal-stopping assumptions without A-share state constraints"]
+
+  - skill_id: "EXPLORATION-EXPLOITATION-ADAPTIVE-EXPERIMENT-SKILL-0012F"
+    lifecycle_stage: LEARN
+    priority: P2
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should research and shadow-testing resources be split between known candidates and exploration?"
+    existing_fragments: ["shadow mode", "experiment registry", "engineering learning"]
+    dependencies: [30, 61]
+    core_outputs: [ExperimentAllocation, ExplorationBudget, RegretRecord, StopRule, BiasWarning]
+    non_goals: ["Autonomous live-capital bandit exploration"]
+
+  - skill_id: "PORTFOLIO-BELIEF-TO-WEIGHTS-SKILL-0012G"
+    lifecycle_stage: PORTFOLIO
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should return views and confidence become constrained portfolio weights under estimation error?"
+    existing_fragments: ["Portfolio/Risk plane", "TargetPosition", "Markowitz/Kelly/Black-Litterman mentions"]
+    dependencies: [62]
+    core_outputs: [PriorPortfolio, ReturnViews, ViewConfidence, PosteriorReturns, TargetWeightRange, BindingConstraints]
+    non_goals: ["Generate alpha", "Assume sample estimates are stable"]
+
+  - skill_id: "RISK-BUDGET-DOWNSIDE-SURVIVAL-SKILL-0012H"
+    lifecycle_stage: SURVIVE
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should risk, tail loss, drawdown, liquidity and survival capacity be budgeted across positions and strategies?"
+    existing_fragments: ["W7 risk", "CVaR/max drawdown limits", "W11 risk-constrained sizing"]
+    dependencies: [62]
+    core_outputs: [RiskContribution, RiskBudget, ExpectedShortfall, DrawdownScenario, SurvivalGate, CashBuffer]
+    non_goals: ["Create returns by risk allocation alone", "Replace independent hard risk controls"]
+
+  - skill_id: "OPTIMAL-EXECUTION-IMPLEMENTATION-SHORTFALL-SKILL-0012I"
+    lifecycle_stage: EXECUTE
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should target positions be converted into executable plans while controlling impact, timing risk and fill uncertainty?"
+    existing_fragments: ["OMS", "TWAP/VWAP/POV", "TCA", "Almgren-Chriss mention"]
+    dependencies: [6, 62]
+    core_outputs: [ExecutionPlan, ImplementationShortfallBudget, ParticipationPath, FillProbability, TCAReport]
+    non_goals: ["Send real orders", "Assume linear impact in all A-share regimes"]
+
+  - skill_id: "RESEARCH-MULTIPLE-TESTING-OVERFITTING-AUDIT-SKILL-0012J"
+    lifecycle_stage: VALIDATE
+    priority: P0
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "Is an apparent research winner likely to be a selection artifact from many trials or data leakage?"
+    existing_fragments: ["research preregistration", "PBO/DSR/White/SPA mentions", "failure preservation"]
+    dependencies: [30]
+    core_outputs: [ExperimentFamily, TrialLedger, SelectionBiasRisk, AdjustedEvidence, LockboxStatus, RejectOrRetest]
+    non_goals: ["Replace costs, capacity, final holdout or shadow validation"]
+
+  - skill_id: "REGIME-CHANGE-MODEL-DECAY-SKILL-0012K"
+    lifecycle_stage: MONITOR
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "Has the market, rule, data or model relationship changed enough to reduce, retrain, freeze or retire a capability?"
+    existing_fragments: ["model drift monitoring", "market phase", "rule versioning", "degrade ladder"]
+    dependencies: [6, 61, 62]
+    core_outputs: [RegimePosterior, ChangePoint, DriftEvidence, ValidityWindow, DegradeAction]
+    non_goals: ["Assign certain economic meaning to every statistical regime"]
+
+  - skill_id: "PERFORMANCE-DECISION-EXECUTION-ATTRIBUTION-SKILL-0012L"
+    lifecycle_stage: ATTRIBUTE
+    priority: P1
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "Which parts of outcome came from market exposure, selection, timing, sizing, execution, costs, events and randomness?"
+    existing_fragments: ["DecisionEpisode", "engineering learning", "performance attribution requirement"]
+    dependencies: [30, 61, 62]
+    core_outputs: [MarketContribution, FactorContribution, SelectionContribution, SizingContribution, ExecutionContribution, ResidualUncertainty]
+    non_goals: ["Treat accounting attribution as causal proof"]
+
+  - skill_id: "MULTI-OBJECTIVE-UTILITY-CAPITAL-RATIONING-SKILL-0012M"
+    lifecycle_stage: CHOOSE
+    priority: P2
+    maturity: CANDIDATE_SKILL_REGISTERED
+    decision_problem: "How should growth, drawdown, liquidity, goal attainment, psychological tolerance and competing resource uses be traded off?"
+    existing_fragments: ["TaskContextModel", "user risk boundary", "expected utility in W11"]
+    dependencies: [61, 62]
+    core_outputs: [ObjectiveSet, UtilityOrPreferenceModel, OpportunityCost, CapitalRationingPlan, SensitivityAndConflictReport]
+    non_goals: ["Let the personal model silently choose the user's utility function"]
+
+common_a_share_constraints:
+  - "Read exchange, board, security type and effective-date rule version."
+  - "Model T+1 sellable inventory, price limits, suspensions, relisting and no-limit periods."
+  - "Model lot size, tick size, integer quantities, cash and frozen funds."
+  - "Model auctions, continuous trading, close auction and after-hours fixed-price trading where applicable."
+  - "Include commissions, stamp tax where applicable, transfer fees, financing, slippage, impact, queueing and partial fills."
+  - "Do not assume naked shorting or margin capability without verified account, instrument, borrow and cost evidence."
+  - "Preserve research-only and NO_TRADE boundary."
+
+initial_execution_policy:
+  max_p0_vertical_slices: 3
+  child_runtime_creation_before_gap_audit: false
+  recommended_first_slice_candidates:
+    - "DECISION-FRAMING-INFLUENCE-DIAGRAM-SKILL-0012A"
+    - "BAYESIAN-BELIEF-UPDATE-FORECAST-FUSION-SKILL-0012B"
+    - "RESEARCH-MULTIPLE-TESTING-OVERFITTING-AUDIT-SKILL-0012J"
+  rationale: "These establish correct problem framing, probability integrity and research truthfulness before advanced portfolio or adaptive methods."
