@@ -1,0 +1,304 @@
+schema_version: "1.0"
+skill_id: "KELLY-THORP-EXPECTED-VALUE-SIZING-SKILL-0011"
+module_id: "KELLY-THORP-PROBABILISTIC-CAPITAL-ALLOCATION-0011"
+implementation_issue: 62
+status: "BLUEPRINT_REGISTERED_RUNTIME_NOT_IMPLEMENTED"
+boundary: "research_only / NO_TRADE"
+
+purpose:
+  - "Determine whether an opportunity has positive expected value after all costs."
+  - "Determine a robust capital-allocation range when positive edge exists."
+  - "Abstain or reduce allocation when probability, payoff, correlation, execution or model risk is insufficiently known."
+
+non_goals:
+  - "Predict market direction by Kelly formula alone."
+  - "Turn a negative expected-value strategy into a positive one through sizing."
+  - "Use LLM confidence as a calibrated probability."
+  - "Generate or transmit real orders."
+  - "Treat Full Kelly as a default recommendation."
+
+core_objects:
+  - "OutcomeScenario"
+  - "ProbabilityEstimate"
+  - "PayoffDistribution"
+  - "CostLiquidityExecutionModel"
+  - "ExpectedValueDecision"
+  - "KellyAllocationRequest"
+  - "KellyAllocationResult"
+  - "PortfolioDependencyGraph"
+  - "AShareExecutionRuleVersion"
+  - "CalibrationRecord"
+  - "DecisionEpisode"
+
+input_contract:
+  required:
+    - decision_id
+    - opportunity_id
+    - as_of_time
+    - available_research_capital
+    - outcome_scenarios
+    - probability_estimates
+    - payoff_or_return_distribution
+    - holding_horizon
+    - cost_model
+    - liquidity_and_execution_model
+    - existing_positions
+    - capital_and_risk_constraints
+    - a_share_rule_version
+    - evidence_and_counterevidence
+  optional:
+    - strategy_id
+    - event_id
+    - world_model_context
+    - personal_cognitive_context
+    - market_regime
+    - correlation_and_common_factor_model
+    - posterior_parameter_distribution
+    - alternative_opportunities
+    - user_defined_utility
+
+probability_requirements:
+  allowed_source_types:
+    - MARKET_IMPLIED
+    - FREQUENCY_ESTIMATE
+    - MODEL_PREDICTION
+    - EXPERT_JUDGMENT
+    - MULTI_AGENT_INFERENCE
+    - BASE_RATE
+    - POSTERIOR_BLEND
+    - UNKNOWN
+  fields:
+    - point_estimate
+    - interval_or_distribution
+    - sample_size
+    - effective_sample_size
+    - source_lineage
+    - independence_assumption
+    - calibration_history
+    - base_rate
+    - model_version
+    - regime_scope
+    - supporting_evidence
+    - counterevidence
+    - drift_status
+    - invalidation_conditions
+  rules:
+    - "Probabilities across mutually exclusive exhaustive scenarios must sum to approximately one or expose residual UNKNOWN mass."
+    - "A point estimate without uncertainty is insufficient for high-impact allocation."
+    - "Multiple forecasts sharing data, prompts or models must not be counted as independent evidence."
+    - "Uncalibrated LLM or narrative confidence cannot directly drive position size."
+
+math_contract:
+  expected_value: "EV = sum_i probability_i * payoff_i"
+  net_expected_value: "NetEV = sum_i probability_i * net_payoff_i_after_costs"
+  binary_kelly: "f_raw = (b*p - q)/b, q = 1-p"
+  general_single_opportunity: "argmax_f E[log(1 + f*R)]"
+  multi_opportunity: "argmax_w E[log(1 + transpose(w)*R)]"
+  fractional_kelly: "f_used = lambda * f_raw, 0 <= lambda <= 1"
+  caveats:
+    - "Binary Kelly requires correctly defined binary outcomes and payoff odds."
+    - "Stock returns normally require multi-scenario or continuous-distribution treatment."
+    - "Expected log growth is not identical to expected monetary profit or every user's utility."
+    - "Feasibility requires wealth to remain positive across admissible scenarios."
+
+pipeline:
+  - id: S0
+    name: "Task and capital boundary"
+    actions:
+      - "Confirm research-only status, capital base, horizon, liquidity need and irreversible-risk limits."
+  - id: S1
+    name: "Scenario construction"
+    actions:
+      - "Create mutually exclusive scenarios, tail outcomes, execution states and residual UNKNOWN."
+  - id: S2
+    name: "Probability estimation"
+    actions:
+      - "Combine base rates, models, evidence, counterevidence and calibrated expert judgment without duplicate evidence."
+  - id: S3
+    name: "Expected-value analysis"
+    actions:
+      - "Calculate gross EV, net EV, alternative-opportunity EV and value of additional information."
+  - id: S4
+    name: "Raw Kelly"
+    actions:
+      - "Calculate binary, discrete, continuous or portfolio log-optimal allocation with explicit assumptions."
+  - id: S5
+    name: "Uncertainty and robustness"
+    actions:
+      - "Apply fractional, posterior, conservative-quantile, distributionally robust or risk-constrained methods."
+  - id: S6
+    name: "Portfolio dependency"
+    actions:
+      - "Account for existing positions, sector/theme/factor exposure, common events and tail dependence."
+  - id: S7
+    name: "A-share executable mapping"
+    actions:
+      - "Apply rule version, T+1, price limits, lot rounding, costs, liquidity, suspension and account capability."
+  - id: S8
+    name: "Survival and drawdown gate"
+    actions:
+      - "Evaluate drawdown, consecutive loss, ruin-like, liquidity and forced-exit scenarios."
+  - id: S9
+    name: "Allocation-range output"
+    actions:
+      - "Return abstain, wait, probe, fractional-Kelly and constrained ranges with cash reserve."
+  - id: S10
+    name: "Ex-ante freeze and ex-post calibration"
+    actions:
+      - "Freeze probability, evidence, distribution, allocation and invalidation conditions in DecisionEpisode."
+      - "Later separate forecast, sizing, execution and randomness errors."
+
+hard_gates:
+  - id: POSITIVE_NET_EV
+    rule: "No positive allocation unless net expected value is positive under an accepted scenario model."
+  - id: PROBABILITY_TRACEABILITY
+    rule: "Probability sources, versions and calibration must be traceable."
+  - id: UNCERTAINTY
+    rule: "Material parameter uncertainty must reduce allocation, widen the range or trigger ABSTAIN."
+  - id: CORRELATION
+    rule: "Portfolio allocation requires dependency and common-factor checks."
+  - id: TAIL_AND_DRAWDOWN
+    rule: "Tail, drawdown and capital-survival constraints may override raw Kelly."
+  - id: EXECUTABILITY
+    rule: "Theoretical allocation must survive A-share rule, lot, liquidity and cost mapping."
+  - id: MODEL_DRIFT
+    rule: "Stale or drifting inputs invalidate prior allocation."
+  - id: NO_TRADE
+    rule: "Output remains research decision support and cannot become an order."
+
+a_share_constraints:
+  versioned_registry_required: true
+  categories:
+    - exchange_and_board
+    - security_type
+    - effective_date
+    - t_plus_one_or_other_settlement
+    - price_limit_and_no_limit_period
+    - order_quantity_and_increment
+    - tick_size
+    - after_hours_mechanism
+    - risk_warning_and_delisting_stage
+    - margin_and_securities_lending_capability
+    - fees_and_taxes
+  execution_risks:
+    - "Same-day stock-sale stop loss may be unavailable after a new purchase."
+    - "Limit-down, one-price boards, suspension and queue position can prevent planned exit."
+    - "Planned stop price is not a guaranteed payoff floor."
+    - "Theoretical weights require executable-share rounding and cash rechecking."
+    - "Ordinary cash accounts must not assume naked shorting."
+
+robust_sizing_policy:
+  full_kelly_default: false
+  required_comparisons:
+    - ZERO_POSITION
+    - FIXED_SMALL_POSITION
+    - QUARTER_KELLY
+    - HALF_KELLY
+    - THREE_QUARTER_KELLY
+    - FULL_KELLY_REFERENCE_ONLY
+    - RISK_CONSTRAINED_KELLY
+  lambda_drivers:
+    - probability_calibration
+    - parameter_uncertainty
+    - sample_size
+    - regime_drift
+    - payoff_tail_risk
+    - portfolio_dependency
+    - liquidity_and_capacity
+    - capital_horizon
+    - withdrawal_need
+    - user_loss_boundary
+    - current_drawdown
+  output_precision_rule: "Return a range unless input precision and stability justify a point allocation."
+
+output_contract:
+  required:
+    - edge_status
+    - gross_ev
+    - net_ev
+    - raw_kelly_fraction_or_unknown
+    - fractional_kelly_scenarios
+    - confidence_adjusted_range
+    - drawdown_constrained_fraction_or_unknown
+    - correlation_adjusted_portfolio
+    - a_share_executable_position
+    - cash_reserve
+    - expected_log_growth_or_unknown
+    - binding_constraints
+    - sensitivity_analysis
+    - tail_scenarios
+    - evidence
+    - counterevidence
+    - unknowns
+    - abstention_reasons
+    - invalidation_conditions
+    - required_next_evidence
+    - decision_episode_ref
+  edge_status_values:
+    - POSITIVE
+    - NEGATIVE
+    - UNCERTAIN
+  action_status_values:
+    - ABSTAIN
+    - WAIT_FOR_INFORMATION
+    - PROBE_POSITION
+    - CONSTRAINED_ALLOCATION
+    - NO_EXECUTABLE_POSITION
+
+adversarial_case_families:
+  - HIGH_WIN_RATE_NEGATIVE_EV
+  - POSITIVE_EV_CATASTROPHIC_TAIL
+  - COST_TURNS_EDGE_NEGATIVE
+  - SMALL_SAMPLE_OVERCONFIDENCE
+  - POINT_PROBABILITY_WITHOUT_INTERVAL
+  - DUPLICATE_EVIDENCE
+  - HIDDEN_COMMON_FACTOR
+  - T_PLUS_ONE_STOP_LOSS_FALLACY
+  - LIMIT_DOWN_EXIT_FAILURE
+  - AVERAGE_PAYOFF_HIDES_DISTRIBUTION
+  - REGIME_SHIFT_STALE_PARAMETERS
+  - FULL_KELLY_DEFAULT
+  - FRACTIONAL_KELLY_FALSE_SAFETY
+  - FINITE_HORIZON_OR_WITHDRAWAL_CONFLICT
+  - LOT_ROUNDING_CASH_BREACH
+  - THEORETICAL_FILL_WITHOUT_LIQUIDITY
+  - OUTCOME_BIAS_REWRITES_FORECAST
+  - FAILURE_CASE_DELETION
+  - FALSE_PRECISION_POSITION
+  - LLM_CONFIDENCE_AS_PROBABILITY
+
+integrations:
+  world_model:
+    provides: [base_rates, mechanisms, external_scenarios, source_quality, alternative_explanations]
+  personal_cognitive_model:
+    provides: [risk_boundary, cognitive_bias_context, communication_and_approval_needs]
+    prohibition: "Must not silently modify world probabilities."
+  event_intelligence:
+    provides: [event_time, scenarios, information_arrival, availability_time]
+  multi_agent_game:
+    provides: [conditional_scenarios, opponent_responses, observable_validation_signals]
+  strategy_research:
+    provides: [out_of_sample_distribution, frequency, cost, capacity, drift]
+  validation_and_risk:
+    provides: [walk_forward, stress, drawdown, cost, capacity, maturity_gate]
+  shadow_mode:
+    provides: [frozen_counterfactual_allocations, later_outcome_and_attribution]
+  qclaw:
+    provides: [research_atoms, formula_conditions, counterexamples, adversarial_cases, long_term_learning_packets]
+
+agent_roles:
+  GPT: "Research, architecture, orchestration, counter-review and acceptance."
+  CODEX: "Project plan, schemas, optimizer, tests and canonical integration."
+  QCLAW: "Research digestion, probability-event atoms, counterevidence and adversarial evaluation."
+  WORKBUDDY: "Local data, rule verification, costs, liquidity and shadow-run evidence."
+  USER: "Objective, capital boundary, loss tolerance, model correction and high-risk approval."
+
+maturity:
+  blueprint: COMPLETE
+  machine_readable_skill_contract: COMPLETE
+  research_validation_matrix: COMPLETE
+  codex_project_plan: NOT_STARTED
+  runtime: NOT_IMPLEMENTED
+  a_share_real_data_validation: NOT_STARTED
+  shadow_mode: NOT_STARTED
+  live_trading: PROHIBITED
