@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/atomization-decision-v1",
+  "title": "Atomization Decision",
+  "description": "Records every substantive decision made during the atomization process. Enables audit, reproducibility, and learning from decision patterns.",
+  "type": "object",
+  "required": [
+    "decision_id", "decision_type", "context",
+    "decision", "rationale", "decided_at",
+    "digest_run_id"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "pattern": "^DEC-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID."
+    },
+    "decision_type": {
+      "type": "string",
+      "enum": [
+        "ATOM_SEGMENTATION", "ATOM_MERGE", "ATOM_SPLIT",
+        "ATOM_TYPE_SELECTION", "RELATION_TYPE_SELECTION",
+        "CONFIDENCE_ASSIGNMENT", "SCOPE_DETERMINATION",
+        "CONDITION_EXTRACTION", "EXCEPTION_PRESERVATION",
+        "NEGATION_TREATMENT", "SOURCE_QUALITY_JUDGMENT",
+        "EXTRACTION_DEFERRED", "EXTRACTION_REJECTED",
+        "REDACTION_DECISION", "STORAGE_TARGET_SELECTION",
+        "PRIVACY_CLASSIFICATION", "TRANSPORT_VISIBILITY",
+        "GPT_ACCESS_DECISION", "AUTHORITY_LEVEL",
+        "QUALITY_GATE_OVERRIDE", "CONFLICT_ACKNOWLEDGMENT",
+        "UNKNOWN_DOCUMENTATION", "VERSION_CHAIN",
+        "STRUCTURE_CREATION", "SKILL_DECOMPOSITION"
+      ]
+    },
+    "context": {
+      "type": "string",
+      "description": "What was being decided — the source text, segment, or atom under consideration."
+    },
+    "decision": {
+      "type": "string",
+      "description": "What was decided."
+    },
+    "alternatives_considered": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Other options that were considered and rejected."
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why this decision was made."
+    },
+    "evidence": {
+      "type": "string",
+      "description": "Evidence or reasoning supporting the decision."
+    },
+    "affected_atom_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^AT-[A-Fa-f0-9]{8,12}$"}
+    },
+    "affected_source_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^SRC-[A-Fa-f0-9]{8}$"}
+    },
+    "decided_at": {"type": "string", "format": "date-time"},
+    "decided_by": {"type": "string"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "review_status": {
+      "type": "string",
+      "enum": ["NOT_REVIEWED", "REVIEWED_CORRECT", "REVIEWED_OVERRIDDEN", "REVIEWED_UNCERTAIN"]
+    },
+    "review_notes": {"type": "string", "maxLength": 1000}
+  },
+  "additionalProperties": false
+}

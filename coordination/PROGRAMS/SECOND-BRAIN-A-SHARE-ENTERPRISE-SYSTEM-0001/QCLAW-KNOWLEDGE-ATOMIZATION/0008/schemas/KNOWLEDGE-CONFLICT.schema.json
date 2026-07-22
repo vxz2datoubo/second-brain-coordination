@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-conflict-v1",
+  "title": "Knowledge Conflict",
+  "description": "An explicit recording of contradictory knowledge. Conflicts are first-class knowledge entities — both sides must be preserved for correct retrieval and evaluation.",
+  "type": "object",
+  "required": [
+    "conflict_id",
+    "atom_id_a",
+    "atom_id_b",
+    "conflict_type",
+    "resolution_status",
+    "created_at",
+    "digest_run_id"
+  ],
+  "properties": {
+    "conflict_id": {
+      "type": "string",
+      "pattern": "^CNF-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'CNF-' + SHA256(atom_id_a + atom_id_b + conflict_type)[:8]."
+    },
+    "atom_id_a": {"type": "string", "pattern": "^AT-[A-Fa-f0-9]{8,12}$"},
+    "atom_id_b": {"type": "string", "pattern": "^AT-[A-Fa-f0-9]{8,12}$"},
+    "conflict_type": {
+      "type": "string",
+      "enum": [
+        "DIRECT_FACTUAL",
+        "METHODOLOGICAL",
+        "INTERPRETIVE",
+        "TEMPORAL",
+        "SCOPE",
+        "DEFINITIONAL",
+        "CAUSAL_DIRECTION",
+        "MEASUREMENT",
+        "PREDICTIVE",
+        "PRESCRIPTIVE",
+        "SOURCE_QUALITY",
+        "UNRESOLVED_EVIDENCE"
+      ],
+      "description": "Type of conflict. DIRECT_FACTUAL: same claim, opposite truth values. METHODOLOGICAL: different methods yield different results. INTERPRETIVE: same data, different conclusions. TEMPORAL: valid at different times. SCOPE: different applicability domains. DEFINITIONAL: different definitions. CAUSAL_DIRECTION: disagreement about cause/effect direction. MEASUREMENT: different measured values. PREDICTIVE: different predictions. PRESCRIPTIVE: different recommended actions. SOURCE_QUALITY: conflicting sources of different quality. UNRESOLVED_EVIDENCE: both sides plausible, evidence insufficient."
+    },
+    "resolution_status": {
+      "type": "string",
+      "enum": [
+        "UNRESOLVED",
+        "RESOLVED_EVIDENCE_FAVORS_A",
+        "RESOLVED_EVIDENCE_FAVORS_B",
+        "RESOLVED_BY_SUPERSEDES",
+        "RESOLVED_BY_SCOPE_CLARIFICATION",
+        "RESOLVED_BY_METHODOLOGY_CORRECTION",
+        "RESOLVED_PARTIAL_OVERLAP",
+        "ACKNOWLEDGED_PARADOX",
+        "DEFERRED_EXTERNAL_AUTHORITY"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Detailed explanation of the conflict, its nature, and implications."
+    },
+    "evidence_for_a": {"type": "string", "maxLength": 1000},
+    "evidence_for_b": {"type": "string", "maxLength": 1000},
+    "resolution_evidence": {"type": "string", "maxLength": 1000},
+    "resolution_timestamp": {"type": "string", "format": "date-time"},
+    "impact_assessment": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NEGLIGIBLE"],
+      "description": "How much this conflict matters for downstream knowledge use."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "knowledge_status": {
+      "type": "string",
+      "enum": ["active", "resolved", "superseded", "deprecated"]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-source-manifest-v1",
+  "title": "Knowledge Source Manifest",
+  "description": "Declares a knowledge source and its authorization for digestion. Tracked in the KnowledgeDigestQueue.",
+  "type": "object",
+  "required": [
+    "source_id", "source_type", "source_location",
+    "access_authorized", "discovered_at", "digest_status"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "pattern": "^SRC-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'SRC-' + SHA256(source_location)[:8]."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "FILE", "ISSUE", "PULL_REQUEST", "COMMIT",
+        "CONVERSATION", "RESEARCH_PAPER", "TECHNICAL_REPORT",
+        "DESIGN_DOCUMENT", "FAILURE_REVIEW", "AGENT_HANDOFF",
+        "USER_INPUT", "WEB_PAGE", "API_RESPONSE",
+        "CODE_FILE", "CONFIGURATION", "DATABASE",
+        "DIRECTORY", "ARCHIVE"
+      ]
+    },
+    "source_location": {"type": "string", "maxLength": 2000},
+    "source_name": {"type": "string", "maxLength": 500},
+    "source_description": {"type": "string", "maxLength": 2000},
+    "source_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "source_size_bytes": {"type": "integer", "minimum": 0},
+    "mime_type": {"type": "string"},
+    "encoding": {"type": "string"},
+    "format": {
+      "type": "string",
+      "enum": [
+        "MARKDOWN", "PLAIN_TEXT", "JSON", "JSONL", "YAML",
+        "PYTHON", "JAVASCRIPT", "TYPESCRIPT", "GO", "RUST",
+        "SHELL", "TOML", "INI", "XML", "CSV", "HTML",
+        "PDF", "DOCX", "PPTX", "IMAGE", "BINARY",
+        "CONVERSATION_LOG", "UNKNOWN"
+      ]
+    },
+    "access_authorized": {"type": "boolean"},
+    "authorization_basis": {
+      "type": "string",
+      "enum": [
+        "USER_EXPLICIT_AUTHORIZATION", "USER_IMPLICIT_WORKSPACE",
+        "PUBLIC_DOMAIN", "AGENT_GENERATED", "SYSTEM_CONFIGURATION",
+        "LICENSE_PERMITTED", "UNKNOWN"
+      ]
+    },
+    "license": {"type": "string", "maxLength": 500},
+    "copyright_holder": {"type": "string"},
+    "ownership": {
+      "type": "string",
+      "enum": ["USER_OWNED", "THIRD_PARTY", "ORGANIZATION", "PUBLIC_DOMAIN", "UNKNOWN"]
+    },
+    "contains_secrets": {"type": "boolean"},
+    "secret_scan_completed": {"type": "boolean"},
+    "secret_scan_receipt_id": {"type": "string", "pattern": "^SCR-[A-Fa-f0-9]{8}$"},
+    "requires_redaction": {"type": "boolean"},
+    "post_redaction_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "discovered_at": {"type": "string", "format": "date-time"},
+    "last_accessed_at": {"type": "string", "format": "date-time"},
+    "last_modified_at": {"type": "string", "format": "date-time"},
+    "digest_status": {
+      "type": "string",
+      "enum": [
+        "PENDING", "QUEUED", "IN_PROGRESS",
+        "DIGESTED", "PARTIALLY_DIGESTED",
+        "FAILED", "SKIPPED_SECRETS",
+        "WAITING_AUTHORIZATION", "WAITING_SOURCE",
+        "DEFERRED", "SUPERSEDED"
+      ]
+    },
+    "digest_priority": {
+      "type": "string",
+      "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "BACKGROUND"]
+    },
+    "digest_dependencies": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^SRC-[A-Fa-f0-9]{8}$"},
+      "description": "Source IDs that must be digested before this one."
+    },
+    "last_digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "atom_count_produced": {"type": "integer", "minimum": 0},
+    "relation_count_produced": {"type": "integer", "minimum": 0},
+    "conflict_count_produced": {"type": "integer", "minimum": 0},
+    "unknown_count_produced": {"type": "integer", "minimum": 0},
+    "digest_errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "error_type": {"type": "string"},
+          "error_message": {"type": "string"},
+          "timestamp": {"type": "string", "format": "date-time"}
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 100},
+      "maxItems": 20
+    },
+    "notes": {"type": "string", "maxLength": 2000}
+  },
+  "additionalProperties": false
+}

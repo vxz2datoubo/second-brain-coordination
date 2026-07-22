@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/quality-gate-report-v1",
+  "title": "Quality Gate Report",
+  "description": "Results of quality gate checks applied to an atomization run. Each check is independently evaluated.",
+  "type": "object",
+  "required": [
+    "report_id", "digest_run_id", "timestamp",
+    "checks", "summary"
+  ],
+  "properties": {
+    "report_id": {"type": "string", "pattern": "^QGR-[A-Fa-f0-9]{8}$"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "check_name", "result"],
+        "properties": {
+          "check_id": {"type": "string"},
+          "check_name": {"type": "string"},
+          "result": {
+            "type": "string",
+            "enum": ["PASS", "WARN", "FAIL", "SKIPPED", "NOT_APPLICABLE"]
+          },
+          "description": {"type": "string"},
+          "detail": {"type": "string"},
+          "affected_count": {"type": "integer", "minimum": 0},
+          "affected_ids": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "threshold": {"type": "string"},
+          "observed_value": {"type": "string"},
+          "remediation": {"type": "string"},
+          "severity": {
+            "type": "string",
+            "enum": ["BLOCKING", "CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "total_checks", "passed", "warned", "failed",
+        "skipped", "blocking_failures"
+      ],
+      "properties": {
+        "total_checks": {"type": "integer", "minimum": 0},
+        "passed": {"type": "integer", "minimum": 0},
+        "warned": {"type": "integer", "minimum": 0},
+        "failed": {"type": "integer", "minimum": 0},
+        "skipped": {"type": "integer", "minimum": 0},
+        "not_applicable": {"type": "integer", "minimum": 0},
+        "blocking_failures": {"type": "integer", "minimum": 0},
+        "overall_verdict": {
+          "type": "string",
+          "enum": ["ACCEPT", "ACCEPT_WITH_WARNINGS", "REJECT", "MANUAL_REVIEW_REQUIRED"]
+        }
+      }
+    },
+    "check_definitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "check_id": {"type": "string"},
+          "name": {"type": "string"},
+          "category": {
+            "type": "string",
+            "enum": [
+              "ATOM_INTEGRITY", "RELATION_INTEGRITY",
+              "CONFLICT_PRESERVATION", "UNKNOWN_PRESERVATION",
+              "SOURCE_INTEGRITY", "SECURITY",
+              "DETERMINISM", "COMPLETENESS",
+              "SEMANTIC_CONSISTENCY", "PERFORMANCE",
+              "COMPATIBILITY", "FIELD_POLLUTION"
+            ]
+          },
+          "auto_detect": {"type": "boolean"},
+          "detection_method": {"type": "string"},
+          "default_severity": {"type": "string"},
+          "can_override": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-atom-v1",
+  "title": "Knowledge Atom",
+  "description": "The minimum complete semantic unit of knowledge. Every atom is self-contained, traceable to source, and carries full semantic content including conditions and exceptions.",
+  "type": "object",
+  "required": [
+    "atom_id",
+    "atom_type",
+    "canonical_statement",
+    "knowledge_status",
+    "authority_level",
+    "gpt_access",
+    "transport_visibility",
+    "privacy_class",
+    "storage_targets",
+    "version",
+    "created_at",
+    "updated_at",
+    "confidence",
+    "confidence_basis",
+    "sources",
+    "digest_run_id",
+    "semantic_hash"
+  ],
+  "properties": {
+    "atom_id": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "Deterministic ID: 'AT-' + SHA256(canonical_statement + scope + time_scope_valid_from)[:8-12]. Same semantic input produces same ID."
+    },
+    "atom_type": {
+      "type": "string",
+      "enum": [
+        "FACT", "OBSERVATION", "CLAIM", "HYPOTHESIS",
+        "CAUSAL_CLAIM", "CORRELATION", "DEFINITION", "CONCEPT",
+        "RULE", "CONSTRAINT", "CONDITION", "EXCEPTION",
+        "FAILURE_CONDITION", "COUNTEREXAMPLE", "RISK",
+        "UNKNOWN", "QUESTION", "DECISION", "RATIONALE",
+        "METHOD", "PROCEDURE", "SKILL", "CHECKLIST_ITEM", "CASE",
+        "METRIC", "PARAMETER",
+        "SOURCE_ASSERTION", "USER_PREFERENCE", "USER_CORRECTION",
+        "TEMPORAL_UPDATE", "PROJECT_REQUIREMENT",
+        "ARCHITECTURE_DECISION", "FAILURE_LESSON", "OPPORTUNITY"
+      ],
+      "description": "The 32 valid atom types. See ATOM-TYPE-TAXONOMY.yaml for full definitions and decision tree."
+    },
+    "canonical_statement": {
+      "type": "string",
+      "minLength": 30,
+      "maxLength": 2000,
+      "description": "The complete semantic payload. Must be independently comprehensible. Carries all conditions, negations, and exceptions that are part of the knowledge."
+    },
+    "full_semantic_content": {
+      "type": "string",
+      "maxLength": 10000,
+      "description": "Optional extended context, elaborations, or supporting detail that doesn't fit in canonical_statement."
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Optional short descriptive title for human readability. Not used for ID generation."
+    },
+    "knowledge_status": {
+      "type": "string",
+      "enum": ["candidate", "active", "superseded", "revoked", "deprecated", "duplicate"],
+      "description": "Lifecycle status. New atoms start as 'candidate'. Superseded atoms retain their original ID but link forward."
+    },
+    "authority_level": {
+      "type": "string",
+      "enum": ["CANDIDATE_ONLY", "REVIEWED", "APPROVED", "AUTHORITATIVE", "DISPUTED"],
+      "description": "Trust level. Default CANDIDATE_ONLY. Promotion requires explicit review, never automatic."
+    },
+    "gpt_access": {
+      "type": "string",
+      "enum": ["FULL_SEMANTIC_ACCESS", "METADATA_ONLY", "REDACTED_ACCESS"],
+      "description": "GPT readability. Default FULL_SEMANTIC_ACCESS for authorized candidate atoms."
+    },
+    "transport_visibility": {
+      "type": "string",
+      "enum": ["PUBLIC_ALLOWED", "RESTRICTED", "PRIVATE_BOUNDARY_ONLY", "AUTHENTICATED_ONLY"],
+      "description": "Who can see this atom in transit/storage."
+    },
+    "privacy_class": {
+      "type": "string",
+      "enum": [
+        "PUBLIC_KNOWLEDGE", "PRIVATE_KNOWLEDGE", "INTERNAL_KNOWLEDGE",
+        "PAID_KNOWLEDGE", "PERSONAL_KNOWLEDGE", "RESEARCH_DATA",
+        "CONVERSATION_RECORD", "AGENT_INTERNAL", "CREDENTIAL_VALUE",
+        "FINANCIAL_VALUE", "THIRD_PARTY_LICENSED"
+      ],
+      "description": "Nature of the knowledge. Does NOT control storage (use storage_targets) or transport (use transport_visibility). CREDENTIAL_VALUE and FINANCIAL_VALUE are permanently denied from all outputs."
+    },
+    "storage_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE", "PRIVATE_VAULT", "NONE"]
+      },
+      "description": "Where this atom is stored. Independent of privacy_class."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this atom. Changes on content update."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 creation timestamp."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 last modification timestamp. Excluded from semantic hash."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["VERY_HIGH", "HIGH", "MEDIUM_HIGH", "MEDIUM", "LOW", "VERY_LOW", "UNKNOWN"],
+      "description": "Confidence in this knowledge."
+    },
+    "confidence_basis": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Evidence, reasoning, or authority behind the confidence level. MANDATORY — never assign confidence without basis."
+    },
+    "scope": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Domain, context, or system where this knowledge applies."
+    },
+    "conditions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Conditions under which this atom is true. Empty array means unconditional."
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Known exceptions where this atom does NOT hold."
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Known failure modes for methods/procedures/skills."
+    },
+    "time_scope": {
+      "type": "object",
+      "properties": {
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": "string", "format": "date-time"},
+        "is_temporal": {"type": "boolean"},
+        "description": {"type": "string"}
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["source_id", "source_type", "source_location"],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "pattern": "^SRC-[A-Fa-f0-9]{8}$",
+            "description": "Deterministic source ID."
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "FILE", "ISSUE", "PULL_REQUEST", "COMMIT", "CONVERSATION",
+              "RESEARCH_PAPER", "TECHNICAL_REPORT", "DESIGN_DOCUMENT",
+              "FAILURE_REVIEW", "AGENT_HANDOFF", "USER_INPUT",
+              "WEB_PAGE", "API_RESPONSE", "CODE_FILE", "CONFIGURATION",
+              "DATABASE", "PEER_REVIEW", "INTERVIEW", "OBSERVATION",
+              "SYNTHESIS", "UNKNOWN"
+            ]
+          },
+          "source_location": {"type": "string"},
+          "source_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+          "source_quality": {
+            "type": "string",
+            "enum": ["PRIMARY_AUTHORITATIVE", "PRIMARY_VERIFIED", "SECONDARY_REVIEWED", "SECONDARY_UNVERIFIED", "TERTIARY", "UNKNOWN"]
+          },
+          "source_url": {"type": "string", "format": "uri"},
+          "access_timestamp": {"type": "string", "format": "date-time"},
+          "access_method": {"type": "string"},
+          "revoked": {"type": "boolean", "default": false},
+          "revocation_reason": {"type": "string"},
+          "authors": {"type": "array", "items": {"type": "string"}},
+          "publication_date": {"type": "string", "format": "date"},
+          "license": {"type": "string"},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {"$ref": "knowledge-relation-v1"},
+      "description": "Relations to other atoms. See KnowledgeRelation schema."
+    },
+    "supersedes": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "Atom ID that this atom supersedes."
+    },
+    "superseded_by": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "Atom ID that supersedes this atom."
+    },
+    "digest_run_id": {
+      "type": "string",
+      "pattern": "^DIG-[A-Fa-f0-9]{8}$",
+      "description": "The digestion run that produced this atom. Links to AtomizationRunManifest."
+    },
+    "extraction_decision_id": {
+      "type": "string",
+      "description": "Link to the AtomizationDecision that documents why/how this atom was extracted."
+    },
+    "semantic_hash": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$",
+      "description": "SHA-256 of canonical_statement + scope + time_scope.valid_from + concatenated source_ids. Deterministic for same semantic input. Excludes created_at and updated_at."
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 100},
+      "maxItems": 20,
+      "description": "Optional tags for categorization."
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+      "description": "ISO 639-1 language code of canonical_statement."
+    },
+    "research_only": {"type": "boolean", "default": true},
+    "NO_TRADE": {"type": "boolean", "default": true}
+  },
+  "additionalProperties": false
+}

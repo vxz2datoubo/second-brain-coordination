@@ -1,0 +1,277 @@
+# Quality Gate Definitions
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+
+gates:
+  # ── Atom Integrity Gates ──
+  - gate_id: QG-ATOM-001
+    name: "atom_length_too_short"
+    category: ATOM_INTEGRITY
+    description: "Atom canonical_statement is shorter than minimum (30 chars)"
+    detection: "length(canonical_statement) < 30"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Expand to include subject, predicate, object, and conditions"
+
+  - gate_id: QG-ATOM-002
+    name: "atom_length_too_long"
+    category: ATOM_INTEGRITY
+    description: "Atom canonical_statement is longer than maximum (2000 chars)"
+    detection: "length(canonical_statement) > 2000"
+    severity: WARN
+    auto_detect: true
+    remediation: "Split into multiple atoms at logical boundaries"
+
+  - gate_id: QG-ATOM-003
+    name: "missing_conditions"
+    category: ATOM_INTEGRITY
+    description: "Source contains conditional language but atom lacks conditions"
+    detection: "source_text contains 'if|when|unless|provided that|assuming' AND canonical_statement does not AND conditions is empty"
+    severity: WARN
+    auto_detect: true
+    remediation: "Extract conditions from source and add to conditions field"
+
+  - gate_id: QG-ATOM-004
+    name: "missing_exceptions"
+    category: ATOM_INTEGRITY
+    description: "Source contains exception language but atom lacks exceptions"
+    detection: "source_text contains 'except|unless|but not|excluding|other than' AND exceptions is empty"
+    severity: WARN
+    auto_detect: true
+    remediation: "Extract exceptions and add to exceptions field"
+
+  - gate_id: QG-ATOM-005
+    name: "negation_loss"
+    category: ATOM_INTEGRITY
+    description: "Source contains negation that is missing from canonical_statement"
+    detection: "source_text has 'not|never|no|neither|nor' where canonical_statement lacks corresponding negation"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Preserve negation in canonical_statement"
+
+  - gate_id: QG-ATOM-006
+    name: "time_scope_loss"
+    category: ATOM_INTEGRITY
+    description: "Source contains temporal references missing from atom's time_scope"
+    detection: "source_text has dates/times but time_scope.valid_from is empty"
+    severity: WARN
+    auto_detect: true
+    remediation: "Add time_scope from source temporal references"
+
+  - gate_id: QG-ATOM-007
+    name: "subject_mismatch"
+    category: ATOM_INTEGRITY
+    description: "Atom's apparent subject differs from source's actual subject"
+    detection: "extracted_entity_list(atom) ∩ extracted_entity_list(source) is near-empty"
+    severity: WARN
+    auto_detect: false
+    remediation: "Manual review: re-extract atom focusing on source's actual subject"
+
+  - gate_id: QG-ATOM-008
+    name: "causality_overreach"
+    category: ATOM_INTEGRITY
+    description: "Correlation worded as causation without evidence"
+    detection: "canonical_statement contains 'causes|leads to|results in|triggers' AND atom_type is CORRELATION or confidence_basis lacks causal evidence"
+    severity: WARN
+    auto_detect: true
+    remediation: "Change relation to CORRELATES_WITH or provide causal evidence"
+
+  - gate_id: QG-ATOM-009
+    name: "opinion_as_fact"
+    category: ATOM_INTEGRITY
+    description: "CLAIM/HYPOTHESIS atom types with VERY_HIGH confidence without basis"
+    detection: "atom_type in [CLAIM, HYPOTHESIS] AND confidence == 'VERY_HIGH' AND confidence_basis is weak"
+    severity: WARN
+    auto_detect: true
+    remediation: "Reduce confidence or provide strong evidence in confidence_basis"
+
+  - gate_id: QG-ATOM-010
+    name: "duplicate_canonical_statement"
+    category: ATOM_INTEGRITY
+    description: "Two atoms share identical canonical_statement"
+    detection: "group by canonical_statement, count > 1"
+    severity: WARN
+    auto_detect: true
+    remediation: "Merge or differentiate the atoms"
+
+  # ── Relation Integrity Gates ──
+  - gate_id: QG-REL-001
+    name: "orphan_relation_target"
+    category: RELATION_INTEGRITY
+    description: "Relation references an atom that does not exist in this packet"
+    detection: "target_atom_id not in packet.atoms[].atom_id"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Include the target atom or remove the relation"
+
+  - gate_id: QG-REL-002
+    name: "relation_type_too_generic"
+    category: RELATION_INTEGRITY
+    description: "RELATED_TO used when a more specific type exists"
+    detection: "relation_type == 'RELATED_TO' AND description suggests a specific type"
+    severity: WARN
+    auto_detect: false
+    remediation: "Use the most specific relation type"
+
+  # ── Conflict Preservation Gates ──
+  - gate_id: QG-CNF-001
+    name: "conflict_one_sided"
+    category: CONFLICT_PRESERVATION
+    description: "Only one atom of a known conflict pair is present"
+    detection: "conflict referenced in packet.conflicts but target pair not both in packet.atoms"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Include both conflicting atoms"
+
+  - gate_id: QG-CNF-002
+    name: "conflict_resolved_early"
+    category: CONFLICT_PRESERVATION
+    description: "Conflict marked as resolved without resolution_evidence"
+    detection: "conflict.resolution_status is 'RESOLVED_*' but resolution_evidence is empty"
+    severity: WARN
+    auto_detect: true
+    remediation: "Provide resolution evidence or mark as UNRESOLVED"
+
+  # ── Unknown Preservation Gates ──
+  - gate_id: QG-UNK-001
+    name: "unknown_deleted"
+    category: UNKNOWN_PRESERVATION
+    description: "Source's documented unknowns are not carried forward"
+    detection: "source had unknowns in prior digest, current digest has fewer"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Preserve all unknowns from source"
+
+  - gate_id: QG-UNK-002
+    name: "unknown_no_verification_path"
+    category: UNKNOWN_PRESERVATION
+    description: "Unknown lacks verification_path"
+    detection: "unknown.verification_path is empty"
+    severity: WARN
+    auto_detect: true
+    remediation: "Add verification/resolution path"
+
+  # ── Source Integrity Gates ──
+  - gate_id: QG-SRC-001
+    name: "source_chain_broken"
+    category: SOURCE_INTEGRITY
+    description: "Atom references source_id not in packet.source_manifest"
+    detection: "atom.sources[].source_id not in packet.source_manifest[].source_id"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Include source in manifest or fix source reference"
+
+  - gate_id: QG-SRC-002
+    name: "unreferenced_source"
+    category: SOURCE_INTEGRITY
+    description: "Source is in manifest but no atom references it"
+    detection: "source_id in manifest but never referenced in any atom.sources[].source_id"
+    severity: WARN
+    auto_detect: true
+    remediation: "Either add atoms from this source or document why it was included but not used"
+
+  # ── Security Gates ──
+  - gate_id: QG-SEC-001
+    name: "credential_pattern_detected"
+    category: SECURITY
+    description: "Atom content matches credential value patterns"
+    detection: "regex match against API keys, tokens, passwords, private keys, financial auth patterns"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Redact credential values; retain only metadata references"
+
+  - gate_id: QG-SEC-002
+    name: "financial_value_detected"
+    category: SECURITY
+    description: "Atom contains financial account numbers, brokerage credentials, or payment keys"
+    detection: "regex match against financial auth patterns"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Redact financial auth values"
+
+  - gate_id: QG-SEC-003
+    name: "post_redaction_semantic_damage"
+    category: SECURITY
+    description: "Redaction critically changes atom meaning"
+    detection: "semantic comparison before/after redaction shows significant meaning change"
+    severity: WARN
+    auto_detect: false
+    remediation: "Document what semantic content was lost in semantic_damage_description"
+
+  # ── Determinism Gates ──
+  - gate_id: QG-DET-001
+    name: "non_deterministic_id"
+    category: DETERMINISM
+    description: "Atom ID does not match deterministic derivation"
+    detection: "atom_id != 'AT-' + SHA256(canonical_statement + scope + time_scope.valid_from)[:8-12]"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Regenerate atom_id using deterministic method"
+
+  - gate_id: QG-DET-002
+    name: "packet_hash_mismatch"
+    category: DETERMINISM
+    description: "Packet hash does not match content"
+    detection: "SHA256(packet canonical content) != packet.packet_hash"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Regenerate packet_hash"
+
+  # ── Completeness Gates ──
+  - gate_id: QG-CMP-001
+    name: "queue_omission"
+    category: COMPLETENESS
+    description: "Source in digest path is not in KnowledgeDigestQueue"
+    detection: "source harvested but no queue entry found"
+    severity: WARN
+    auto_detect: true
+    remediation: "Add source to the digest queue"
+
+  - gate_id: QG-CMP-002
+    name: "empty_packet"
+    category: COMPLETENESS
+    description: "Packet contains zero atoms despite digesting sources"
+    detection: "packet.atoms.length == 0 AND packet.source_manifest.length > 0"
+    severity: WARN
+    auto_detect: true
+    remediation: "Investigate extraction failure; document in decisions"
+
+  # ── Semantic Consistency Gates ──
+  - gate_id: QG-SEM-001
+    name: "internal_contradiction"
+    category: SEMANTIC_CONSISTENCY
+    description: "Two atoms from same source directly contradict without conflict relation"
+    detection: "two atoms share source, semantically contradict, but no conflict relation exists"
+    severity: WARN
+    auto_detect: false
+    remediation: "Add conflict relation or fix one of the atoms"
+
+  # ── Field Pollution Gates ──
+  - gate_id: QG-FLD-001
+    name: "privacy_vs_storage_conflict"
+    category: FIELD_POLLUTION
+    description: "privacy_class suggests restriction but storage_targets includes PUBLIC_GITHUB without user override"
+    detection: "privacy_class in [CREDENTIAL_VALUE, FINANCIAL_VALUE] AND storage_targets includes PUBLIC_GITHUB"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Credential and financial values must never go on PUBLIC_GITHUB"
+
+  - gate_id: QG-FLD-002
+    name: "transport_vs_gpt_conflict"
+    category: FIELD_POLLUTION
+    description: "gpt_access is FULL_SEMANTIC_ACCESS but transport_visibility blocks all access"
+    detection: "gpt_access == FULL_SEMANTIC_ACCESS AND transport_visibility == PRIVATE_BOUNDARY_ONLY"
+    severity: WARN
+    auto_detect: true
+    remediation: "Review: private-boundary atoms can have full semantic access for GPT within that boundary"
+
+  # ── Compatibility Gates ──
+  - gate_id: QG-COM-001
+    name: "canonical_runtime_compatibility"
+    category: COMPATIBILITY
+    description: "LearningPacket can be ingested by Phase 3 runtime"
+    detection: "schema validation against PR #57 LearningPacket contract"
+    severity: FAIL
+    auto_detect: true
+    remediation: "Ensure packet conforms to canonical runtime ingestion contract"

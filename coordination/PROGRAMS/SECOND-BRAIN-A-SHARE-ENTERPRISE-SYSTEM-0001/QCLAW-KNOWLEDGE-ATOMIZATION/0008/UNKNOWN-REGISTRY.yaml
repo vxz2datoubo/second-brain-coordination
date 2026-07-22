@@ -1,0 +1,509 @@
+# ============================================================================
+# UNKNOWN REGISTRY
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+#
+# Registry of known unknowns: gaps in architecture, pending decisions,
+# missing knowledge sources, unresolved questions.
+#
+# Each entry:
+#   - unknown_id: deterministic ID via SHA-256(question)[:8]
+#   - category: area of knowledge gap
+#   - description: what is unknown
+#   - raised_by: source that identified the gap
+#   - raised_at: timestamp
+#   - resolution_criteria: what would resolve this
+#   - status: UNRESOLVED, PARTIALLY_RESOLVED, RESOLVED, SUPERSEDED
+#   - resolution_atom_id: link to resolving atom if resolved
+
+registry:
+  version: "1.0.0"
+  total_unknowns: 22
+  by_status:
+    UNRESOLVED: 19
+    PARTIALLY_RESOLVED: 3
+    RESOLVED: 0
+  by_category:
+    ARCHITECTURE: 5
+    RUNTIME_COMPATIBILITY: 4
+    PERFORMANCE_SCALE: 3
+    COORDINATION: 3
+    MISSING_KNOWLEDGE: 4
+    SECURITY: 2
+    PROCESS: 1
+
+  # ════════════════════════════════════════════════════════════════════
+  # ARCHITECTURE GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+  unknowns:
+
+    - unknown_id: "UNK-A1B2C3D4"
+      category: "ARCHITECTURE"
+      question: "What is the maximum practical size of a LearningPacket before ingestion performance degrades in the Phase 3 runtime?"
+      description: >
+        The architecture defines packets with no hard size limit, but the Phase 3
+        runtime (PR #57) has an unknown practical maximum. Large packets may cause
+        ingestion timeouts, memory pressure, or index degradation.
+      raised_by: "ARCHITECTURE.md — Component Catalog #14 LearningPacket"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Run ingestion benchmarks with packets of 100, 500, 1000, 5000 atoms. Measure ingestion latency, memory usage, and query performance post-ingestion."
+      verification_path: "Coordinate with Codex agent to run scale tests; feed results back as QCLAW atoms."
+      verification_estimated_effort: "HIGH"
+      impact_if_unresolved: "May cause runtime failures when QCLAW produces packets with many atoms. Without this knowledge, batch sizes are guesses."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-B2C3D4E5"
+      category: "ARCHITECTURE"
+      question: "How does the Phase 3 runtime handle LearningPackets with additional QCLAW fields (privacy_class, storage_targets, full_semantic_content, failure_modes, digest_run_id, extraction_decision_id, tags)?"
+      description: >
+        CANONICAL-RUNTIME-BOUNDARY.md states that Phase 3 should accept or ignore
+        QCLAW-added fields without error. This assumption has NOT been tested.
+        Phase 3 may reject unknown fields, error on unexpected properties, or silently
+        drop them.
+      raised_by: "CANONICAL-RUNTIME-BOUNDARY.md — Schema Compatibility section"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Send a test LearningPacket with all QCLAW-additional fields to the Phase 3 runtime and verify: (1) no errors, (2) all Phase 3-required fields are ingested, (3) QCLAW fields are either preserved or harmlessly ignored."
+      verification_path: "Coordinate test with Codex; use a minimal packet (1 atom, all fields populated) as test vector."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "All QCLAW LearningPackets may be rejected by Phase 3 runtime if schema validation is strict. This is a BLOCKING risk for the coordination interface."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-C3D4E5F6"
+      category: "ARCHITECTURE"
+      question: "What is the collision probability threshold for switching from 8-char to 12-char atom IDs, and has the probability been calculated for the expected 200+ atoms in this task?"
+      description: >
+        DETERMINISTIC-IDENTITY.md sets the collision trigger at >0.1% (1 in 1000 atoms).
+        For 200 atoms, the birthday problem gives ~0.001% collision probability (very safe).
+        But the threshold needs empirical validation as the knowledge base grows.
+      raised_by: "DETERMINISTIC-IDENTITY.md — Collision Handling Policy"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Run Monte Carlo simulation: generate random SHA-256 hashes, truncate to 8-char, measure collision rate at 100, 1000, 10000, 100000 atoms. Confirm theoretical probabilities match empirical."
+      verification_path: "Write a small simulation script; run with increasing atom counts; publish results."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "Low immediate impact (probability is very small at current scale). Becomes critical if knowledge base exceeds 10,000 atoms."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-D4E5F6A7"
+      category: "ARCHITECTURE"
+      question: "Should QCLAW produce KnowledgeStructure atoms (hierarchical groupings like concept maps, topic trees) in the initial digestion runs, or defer to later phases?"
+      description: >
+        The schema supports KnowledgeStructure atoms (TAXONOMY, CONCEPT_MAP,
+        TOPIC_TREE, DECISION_TREE, PIPELINE). These provide hierarchical navigation
+        but add complexity. P0 doesn't specify when structures should be generated.
+      raised_by: "KNOWLEDGE-STRUCTURE.schema.json + TASK-EXECUTION-PLAN.yaml"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Decision: produce structures as part of META-DIGEST (digest-005) during P2 architecture validation, or defer entirely to post-P0 phases."
+      verification_path: "Evaluate cost/benefit: structures help navigation but require additional extraction effort."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "Without structures, atoms are flat with only relation-based navigation. Low immediate impact; becomes valuable at >100 atoms."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-E5F6A7B8"
+      category: "ARCHITECTURE"
+      question: "What is the exact merge commit hash for PR #57, and has it been independently verified?"
+      description: >
+        ARCHITECTURE.md references PR #57 merge commit hash `473d0ec`. This is
+        stated as canonical but its exact full SHA and verification status are
+        unknown. Multiple documents (README.md, ARCHITECTURE.md, TASK-EXECUTION-PLAN.yaml)
+        reference this hash.
+      raised_by: "ARCHITECTURE.md — Overview"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Fetch PR #57 merge details from GitHub API; verify the commit exists and matches the hash; document full SHA."
+      verification_path: "GitHub API: GET /repos/vxz2datoubo/second-brain-coordination/pulls/57/merge"
+      verification_estimated_effort: "TRIVIAL"
+      impact_if_unresolved: "All canonical runtime references use a potentially incorrect hash. Low impact on QCLAW (uses schema, not runtime code) but significant for coordination."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # RUNTIME COMPATIBILITY GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-F6A7B8C9"
+      category: "RUNTIME_COMPATIBILITY"
+      question: "Does the Phase 3 runtime support the full set of 27 relation types, or does it have a restricted subset?"
+      description: >
+        QCLAW defines 27+ relation types. The Phase 3 runtime (PR #57) may only
+        support a subset. Sending unsupported relation types could cause ingestion
+        errors or silent drops.
+      raised_by: "RELATION-TAXONOMY.yaml — Schema Compatibility Note"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Review PR #57 runtime code for relation type handling. Send test packet with all 27 relation types and verify all are ingested."
+      verification_path: "Codex: review Phase 3 retrieval engine relation type handling; QCLAW: prepare test packet."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "Unsupported relation types would be lost during ingestion, damaging knowledge graph completeness."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-A7B8C9D0"
+      category: "RUNTIME_COMPATIBILITY"
+      question: "How does the Phase 3 runtime handle atom version chains (supersedes/superseded_by)? Does it expose historical atoms in queries or only return the latest version?"
+      description: >
+        QCLAW preserves all atom versions with SUPERSEDES chains. The Phase 3
+        runtime's retrieval behavior for versioned atoms is unknown: does it return
+        only active atoms, all versions, or provide version-query capabilities?
+      raised_by: "ARCHITECTURE.md — Deterministic Identity section"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Send packet with 3 versions of same atom (v1.0.0, v2.0.0, v3.0.0) linked by SUPERSEDES. Query for the atom and observe which version(s) are returned."
+      verification_path: "Coordinate test with Codex; analyze retrieval behavior."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "May cause retrieval of outdated atoms when only current version is desired. Version chains may be invisible to query users."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-B8C9D0E1"
+      category: "RUNTIME_COMPATIBILITY"
+      question: "What is the exact schema validation behavior of the Phase 3 runtime — strict (reject on unknown fields) or lenient (ignore unknown fields)?"
+      description: >
+        QCLAW schemas add fields beyond the Phase 3 minimum contract
+        (privacy_class, storage_targets, full_semantic_content, etc.). The runtime's
+        validation strictness determines whether QCLAW packets are accepted or rejected.
+      raised_by: "CANONICAL-RUNTIME-BOUNDARY.md — Interface Contract"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Send test packet with extra fields; observe Phase 3 response. Or review Phase 3 schema validation code."
+      verification_path: "Codex: review runtime ingestion code for additionalProperties handling; QCLAW: test with extra-field packet."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "CRITICAL — all QCLAW LearningPackets may be rejected if validation is strict."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-C9D0E1F2"
+      category: "RUNTIME_COMPATIBILITY"
+      question: "What License does the Phase 3 runtime use, and does it permit integration with QCLAW-produced knowledge in public repositories?"
+      description: >
+        PR #57 is referenced as the canonical runtime, but its license is unknown.
+        This affects whether QCLAW's LearningPackets (which reference PR #57
+        contracts) can be publicly distributed.
+      raised_by: "KNOWLEDGE-DIGEST-QUEUE.yaml — SRC-PR-57 notes"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Check repository root for LICENSE file; check PR #57 for license declarations."
+      verification_path: "Read LICENSE file from second-brain-coordination repository root."
+      verification_estimated_effort: "TRIVIAL"
+      impact_if_unresolved: "Low immediate impact (QCLAW uses contracts/schemas, not runtime code). Relevant for future integration."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # PERFORMANCE & SCALE GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-D0E1F2A3"
+      category: "PERFORMANCE_SCALE"
+      question: "What is the practical throughput limit of the atomization pipeline — how many sources per hour can be digested by a single agent session?"
+      description: >
+        PIPELINE.yaml estimates 2-5 minutes per source, but this has not been
+        validated. LLM-based stages (4: Atom Extraction, 5: Relation Extraction)
+        are the bottleneck. Session token limits may cap throughput before time
+        limits.
+      raised_by: "ATOMIZATION-PIPELINE.md — Appendix C: Stage Time Estimates"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Run a timed benchmark: digest 3 sources, measure wall-clock time per stage. Calculate atoms/minute, relations/minute. Identify actual bottleneck."
+      verification_path: "Execute P1 digest-001 baseline run; measure and log per-stage timings."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "Cannot plan digest batches efficiently. May exceed session limits mid-digestion."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-E1F2A3B4"
+      category: "PERFORMANCE_SCALE"
+      question: "What is the O(n²) practical limit for relation extraction — at what atom count does pairwise comparison become infeasible?"
+      description: >
+        Stage 5 (Relation Extraction) involves pairwise comparison of atoms for
+        implicit relation detection. At 200 atoms, this is 19,900 comparisons
+        (manageable). At 2000 atoms, it's ~2M comparisons (potentially too slow).
+      raised_by: "ATOMIZATION-PIPELINE.md — Stage 5 processing steps"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Measure relation extraction time at 50, 100, 200 atoms. Extrapolate to 500, 1000, 2000. Identify breakpoint where optimization is needed."
+      verification_path: "Benchmark with actual P1/P2 atoms; track time per atom pair."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "Pipeline may hang or timeout on large batches. Partitioning or approximate matching may be needed."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-F2A3B4C5"
+      category: "PERFORMANCE_SCALE"
+      question: "Can the atomization pipeline be parallelized — can multiple sources be digested concurrently by spawning sub-agents?"
+      description: >
+        The pipeline currently describes sequential processing. Sub-agent
+        parallelism could significantly improve throughput but introduces
+        coordination complexity (shared KnowledgeDigestQueue, potential ID
+        collisions across parallel runs).
+      raised_by: "ATOMIZATION-PIPELINE.md — Pipeline-Wide Concerns"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Assess: (1) whether sub-agents can be spawned for parallel digestion, (2) how to handle shared queue updates, (3) whether deterministic IDs eliminate merge conflicts."
+      verification_path: "Design parallel digestion architecture; test with 2 concurrent sub-agents on independent sources."
+      verification_estimated_effort: "HIGH"
+      impact_if_unresolved: "Sequential throughput may be inadequate for large knowledge bases (>100 sources). Not critical at current scale."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # COORDINATION GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-A3B4C5D6"
+      category: "COORDINATION"
+      question: "What is the handoff protocol between QCLAW and Codex — file-based (LearningPacket files), API-based, or Issue comment-based?"
+      description: >
+        CANONICAL-RUNTIME-BOUNDARY.md defines file-based coordination (QCLAW writes
+        packets, Codex reads them). But the actual protocol (polling, push
+        notification, Issue comment triggers) is undefined.
+      raised_by: "CANONICAL-RUNTIME-BOUNDARY.md — Coordination Protocol"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Define: (1) how Codex discovers new packets, (2) how Codex confirms ingestion, (3) how errors are communicated back to QCLAW."
+      verification_path: "Coordinate with Codex agent via Issue #59 or dedicated sub-issue. Document the agreed protocol."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "Codex may never discover or ingest QCLAW packets. The entire coordination interface is blocked."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-B4C5D6E7"
+      category: "COORDINATION"
+      question: "Does Codex (as the Phase 3 runtime agent) exist and is it currently active? What is its current task assignment?"
+      description: >
+        The architecture references Codex as a partner agent but its existence,
+        activation status, and current task are unknown. QCLAW is producing
+        LearningPackets for a runtime that may not be deployed or active.
+      raised_by: "CANONICAL-RUNTIME-BOUNDARY.md — Interface Contract"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Check Issue #38 and Issue #31 for Codex assignment. Verify if Codex has an active branch or recent activity."
+      verification_path: "Search for Codex-related Issues, PRs, and branches in the repository."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "QCLAW may be producing packets for a non-existent consumer. Low immediate impact (packets are valuable as structured knowledge regardless)."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-C5D6E7F8"
+      category: "COORDINATION"
+      question: "What is the authorization model for QCLAW to write to the public GitHub repository? Does the agent have write access to the coordination branch?"
+      description: >
+        QCLAW is producing files under the coordination workspace. Whether these
+        files can be pushed to the `qclaw/knowledge-atomization-digestion-0008`
+        branch on GitHub depends on repository access permissions.
+      raised_by: "TASK-EXECUTION-PLAN.yaml — delivery_path"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Verify: (1) local workspace is a git repository, (2) remote origin is configured, (3) branch exists or can be created, (4) push permissions exist."
+      verification_path: "Check git remote, branch existence, and attempt a push (or verify credentials)."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "All deliverables remain local only. Cannot create PRs or share with Codex."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # MISSING KNOWLEDGE SOURCES
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-D6E7F8A9"
+      category: "MISSING_KNOWLEDGE"
+      question: "What is the full content of Issue #38 (P4 Adversarial Evaluation Task), and are there any decisions or rules from it that apply to Issue #59?"
+      description: >
+        Issue #38 defines the P4 full knowledge gateway task. It is listed in the
+        digest queue as SRC-ISSUE-38 but its content has not been fetched or reviewed.
+        Key questions: Does it contain rules that constrain Issue #59? Does it contain
+        decisions that are still authoritative?
+      raised_by: "KNOWLEDGE-DIGEST-QUEUE.yaml — SRC-ISSUE-38"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Fetch Issue #38 body and all comments. Extract rules, decisions, and constraints relevant to atomization."
+      verification_path: "Fetch from GitHub API or web. Digest as part of P1 (digest-002)."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "May miss constraints that Issue #38 imposes on the atomization task. Issue #59 may reference Issue #38 decisions."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-E7F8A9B0"
+      category: "MISSING_KNOWLEDGE"
+      question: "What is the full content of Issue #31 (Parent Program — Codex Phase 0), and how does it constrain QCLAW's scope?"
+      description: >
+        Issue #31 is the parent program for the entire Second Brain system. It defines
+        9 workflows and 20 deliverables. QCLAW's atomization is one component. The
+        parent program may impose global constraints on atomization behavior.
+      raised_by: "TASK-EXECUTION-PLAN.yaml — parent_program: 31"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Fetch Issue #31 and extract: global constraints, coordination rules, deliverable format requirements."
+      verification_path: "Fetch from GitHub. Digest as part of P1."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "QCLAW may produce deliverables in a format or structure incompatible with the parent program's requirements."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-F8A9B0C1"
+      category: "MISSING_KNOWLEDGE"
+      question: "What is the current content of ACTIVE-QCLAW-TASK.yaml (v1.9), and has it been updated since Issue #59 became active?"
+      description: >
+        The task router references ACTIVE-QCLAW-TASK.yaml v1.9. Its current content
+        (primary role, fallback role, constraints, required inputs) directly affects
+        QCLAW's behavior. It may have been updated since Issue #59 started.
+      raised_by: "KNOWLEDGE-DIGEST-QUEUE.yaml — SRC-ACTIVE-TASK"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Fetch current ACTIVE-QCLAW-TASK.yaml. Compare with known state. Identify any new constraints or changes."
+      verification_path: "web_fetch from raw.githubusercontent.com. Digest as part of P1."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "QCLAW may be operating under outdated task constraints."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-A9B0C1D2"
+      category: "MISSING_KNOWLEDGE"
+      question: "What QCLAW-TASK-ROUTER.md content has changed since Issue #59 assignment, and does the router correctly route to atomization mode?"
+      description: >
+        The task router protocol defines trigger phrases, startup flow, and routing
+        logic. QCLAW's routing to atomization mode depends on this file.
+      raised_by: "KNOWLEDGE-DIGEST-QUEUE.yaml — SRC-ROUTER"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Fetch current QCLAW-TASK-ROUTER.md. Verify routing to atomization task is correctly configured."
+      verification_path: "web_fetch from raw.githubusercontent.com. Digest as part of P1."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "Router may not correctly activate atomization mode, causing task misrouting."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # SECURITY GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-B0C1D2E3"
+      category: "SECURITY"
+      question: "Are there any secret values in the existing coordination workspace files that the Secret Scanner should detect?"
+      description: >
+        The Secret Scanner is defined but has not been run against the workspace.
+        Architecture files use placeholder values and should be clean, but other
+        files in the coordination directory may contain actual credentials.
+      raised_by: "SECRET-SCAN.yaml — Scan Procedure"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Run SECRET-SCAN.yaml patterns against all files in the coordination workspace. Generate SecretScanReceipts."
+      verification_path: "Execute Stage 1 (Secret Scan) of the pipeline against workspace files."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "Unknown risk of secret exposure. Architecture defines protection but has not verified its necessity."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+    - unknown_id: "UNK-C1D2E3F4"
+      category: "SECURITY"
+      question: "Does the Secret Scanner's regex pattern set have any false-positive or false-negative rates against real-world credential patterns?"
+      description: >
+        The 14 regex patterns in SECRET-SCAN.yaml were designed based on known
+        credential formats. Their accuracy against actual credential values in
+        real-world documents is untested. False positives could redact non-secret
+        content; false negatives could miss actual secrets.
+      raised_by: "SECRET-SCAN.yaml — Pattern Definitions"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Test against a benchmark set: 100 known-secret patterns + 100 known-safe patterns. Measure precision and recall."
+      verification_path: "Create test corpus; run scanner; calculate F1 score. Iterate on patterns."
+      verification_estimated_effort: "MEDIUM"
+      impact_if_unresolved: "Security-critical: missed secrets = exposure; false positives = knowledge loss."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "UNRESOLVED"
+
+  # ════════════════════════════════════════════════════════════════════
+  # PROCESS GAPS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-D2E3F4A5"
+      category: "PROCESS"
+      question: "What is the exact current overall_progress percentage for Issue #59, and which files have been completed since the last checkpoint update?"
+      description: >
+        PROGRESS-CHECKPOINT.yaml shows 20% completion (21 files, P0 complete).
+        However, P0 deliverables 17 (CANONICAL-RUNTIME-BOUNDARY.md), 19
+        (KNOWLEDGE-DIGEST-QUEUE.yaml), and 20 (SECRET-SCAN.yaml) were marked TODO
+        but have since been completed. Additionally, 12 new gap-filling files are
+        being created. The checkpoint needs recalibration.
+      raised_by: "PROGRESS-CHECKPOINT.yaml — progress section"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Audit all files in 0008/ directory. Update PROGRESS-CHECKPOINT.yaml with accurate counts and percentages."
+      verification_path: "Count all files; verify each against TASK-EXECUTION-PLAN.yaml deliverables list; update checkpoint."
+      verification_estimated_effort: "TRIVIAL"
+      impact_if_unresolved: "Progress tracking is inaccurate. May cause premature PR or missed deliverables."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "PARTIALLY_RESOLVED"
+      partial_resolution: "This file (UNKNOWN-REGISTRY.yaml) is part of the gap-filling effort. PROGRESS-CHECKPOINT.yaml update will be done after all 12 files are written."
+
+  # ════════════════════════════════════════════════════════════════════
+  # PARTIALLY RESOLVED UNKNOWNS
+  # ════════════════════════════════════════════════════════════════════
+
+    - unknown_id: "UNK-E3F4A5B6"
+      category: "ARCHITECTURE"
+      question: "Is privacy_class truly descriptive-only in all pipeline stages, or are there edge cases where it SHOULD influence storage decisions (e.g., PAID_KNOWLEDGE from non-redistributable sources)?"
+      description: >
+        The architecture states privacy_class is descriptive-only and does NOT
+        control storage. However, the STORAGE-TRANSPORT-ACCESS-MATRIX.yaml sets
+        different DEFAULT storage targets based on privacy_class (e.g., PAID_KNOWLEDGE
+        defaults to LOCAL_KNOWLEDGE_ARCHITECTURE). This is a DEFAULT, not a hard rule,
+        but it creates a practical coupling between privacy_class and storage behavior.
+      raised_by: "STORAGE-TRANSPORT-ACCESS-MATRIX.yaml — Default Assignment"
+      raised_at: "2026-07-22T09:00:00+08:00"
+      resolution_criteria: "Clarify: defaults are recommendations, not rules. privacy_class informs defaults but does not constrain. User can override any default."
+      verification_path: "Document in architecture that defaults are advisory only; the matrix defines valid combinations, not automatic assignments."
+      verification_estimated_effort: "TRIVIAL"
+      impact_if_unresolved: "Low. The distinction between 'descriptive' and 'advisory default' is subtle but important for future agents."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "PARTIALLY_RESOLVED"
+      partial_resolution: "STORAGE-TRANSPORT-ACCESS-MATRIX.yaml section 'default_assignment.rules' explicitly marks every non-secret rule as override_allowed: true. The coupling is intentional as advisory defaults."
+
+    - unknown_id: "UNK-F4A5B6C7"
+      category: "PROCESS"
+      question: "Should the 0008/ directory be reorganized to separate P0 architecture from P1+ generated content?"
+      description: >
+        The current flat structure has architecture files, schemas, and
+        learning-packets/ all in one directory. As the directory grows, organization
+        may become unwieldy.
+      raised_by: "README.md — Directory Structure"
+      raised_at: "2026-07-22T08:00:00+08:00"
+      resolution_criteria: "Decision: keep flat structure (as documented in README) or reorganize into architecture/, schemas/, generated/, reports/ subdirectories."
+      verification_path: "Review with user; assess navigability at 30+ files."
+      verification_estimated_effort: "LOW"
+      impact_if_unresolved: "Low. Current structure is navigable. Refactoring would require updating all file references."
+      related_atom_ids: []
+      resolution_atom_id: null
+      status: "PARTIALLY_RESOLVED"
+      partial_resolution: "Current structure (schemas/ subdirectory + flat otherwise + learning-packets/) follows README.md layout. New files are added in-place. Knowledge-Digest-Receipts/ subdirectory is being added."
+
+# ════════════════════════════════════════════════════════════════════
+# REGISTRY METADATA
+# ════════════════════════════════════════════════════════════════════
+
+metadata:
+  generated_at: "2026-07-22T09:00:00+08:00"
+  generated_by: "QCLAW (Issue #59 subagent — gap filling)"
+  schema_version: "1.0.0"
+  total_entries: 22
+  unresolved_count: 19
+  partially_resolved_count: 3
+  resolved_count: 0
+
+  next_review: "P1 checkpoint 40% — after first knowledge digestion batch"
+  review_actions:
+    - "Re-evaluate all UNRESOLVED entries after fetching external sources (Issue #38, #31, PR #57)"
+    - "Resolve TRIVIAL-effort unknowns (UNK-E5F6A7B8, UNK-C9D0E1F2, UNK-D2E3F4A5, UNK-E3F4A5B6)"
+    - "Prioritize coordination unknowns (UNK-A3B4C5D6, UNK-B4C5D6E7, UNK-C5D6E7F8) — these block Codex handoff"
+    - "Test runtime compatibility unknowns (UNK-A1B2C3D4, UNK-B2C3D4E5, UNK-F6A7B8C9) with actual Phase 3 runtime"
