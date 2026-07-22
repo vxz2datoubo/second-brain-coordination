@@ -1,14 +1,14 @@
-schema_version: "1.9"
+schema_version: "2.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 active_issue: 59
-task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008"
-mode: "goal_knowledge_atomization_and_digest"
-mode_label: "目标模式＋知识原子化与持续消化主线"
-mode_reason: "QCLAW's primary responsibility is to build and maintain the reusable knowledge atomization architecture and continuously digest authorized knowledge into deterministic atoms and LearningPackets. When the atomization backlog is empty, QCLAW may assist explicitly assigned system-construction work without creating a silent parallel canonical runtime."
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008"
+mode: "goal_knowledge_atomization_digest_and_adversarial_validation"
+mode_label: "目标模式＋知识原子化、持续消化与对抗校验主线"
+mode_reason: "QCLAW builds and maintains the reusable knowledge-atomization architecture, continuously digests authorized knowledge, and independently challenges every digest batch for sycophancy, unsupported claims, missing conflict, false causality, stale knowledge and erased UNKNOWN. When the queue is empty, QCLAW may assist explicitly assigned system work without creating a silent parallel canonical runtime."
 status: "READY"
 blocked_by: "none"
 parent_program: 31
@@ -22,13 +22,65 @@ primary_roles:
   - "Continuously discover and digest user-authorized knowledge from files, conversations, research, issues, pull requests and agent handoffs."
   - "Preserve full semantic content, conditions, exceptions, failures, counterexamples, conflicts, UNKNOWN, source lineage and version chains."
   - "Generate deterministic KnowledgeAtoms, KnowledgeRelations and canonical-compatible LearningPackets."
+  - "Run an adversarial epistemic-integrity gate on every atomization and digestion batch before it is accepted."
+adversarial_role:
+  enabled: true
+  objective: "Reduce AI sycophancy, confirmation bias, unsupported agreement, fabricated certainty, conflict erasure and incorrect knowledge promotion."
+  scope:
+    - "Atomization adversarial tests: conditions, exceptions, negation, time, scope, subject, causality, counterexamples, conflicts and UNKNOWN must survive decomposition."
+    - "Knowledge-digestion adversarial tests: user claims and preferences must not be silently promoted into verified facts."
+    - "Epistemic challenge tests: retrieve or construct the strongest reasonable counterevidence, alternative explanation and failure condition for important claims."
+    - "Sycophancy-resistance tests: disagreement with the user is allowed and required when evidence conflicts or is insufficient."
+    - "Security adversarial tests: secret-value leakage, prompt injection, authority escalation and false completion claims."
+    - "When explicitly assigned, provide adversarial fixtures and evaluation for canonical system modules without building a second runtime."
+  mandatory_rules:
+    - "Every material claim must be labeled as fact, observation, claim, hypothesis, preference, correction, decision or UNKNOWN; do not flatten them into FACT."
+    - "A user statement may have high priority as a USER_REQUIREMENT or USER_CORRECTION but does not automatically become an externally verified fact."
+    - "For every high-impact conclusion, record supporting evidence, counterevidence, alternative explanations, confidence basis and disconfirmation conditions."
+    - "Conflicting atoms must coexist until an evidence-backed resolution is recorded."
+    - "Insufficient evidence must produce UNKNOWN, NEEDS_VERIFICATION or ABSTAIN rather than a pleasing answer."
+    - "Do not rewrite expected answers or remove failing adversarial cases merely to increase pass rate."
+    - "Adversarial evaluation must be independent from the transformation being evaluated and must report per-case failures."
+  required_case_families:
+    - "USER_AGREEMENT_PRESSURE"
+    - "CONFIRMATION_BIAS"
+    - "FALSE_CAUSALITY"
+    - "CORRELATION_AS_CAUSATION"
+    - "MISSING_NEGATION"
+    - "MISSING_CONDITION"
+    - "MISSING_EXCEPTION"
+    - "MISSING_COUNTEREXAMPLE"
+    - "CONFLICT_ERASURE"
+    - "UNKNOWN_ERASURE"
+    - "STALE_KNOWLEDGE"
+    - "SOURCE_AUTHORITY_INFLATION"
+    - "USER_PREFERENCE_AS_FACT"
+    - "USER_CORRECTION_MISAPPLIED"
+    - "UNSUPPORTED_CERTAINTY"
+    - "FABRICATED_SOURCE"
+    - "PROMPT_INJECTION"
+    - "SECRET_VALUE_LEAKAGE"
+    - "AUTHORITY_ESCALATION"
+    - "FALSE_COMPLETION_CLAIM"
+  required_outputs:
+    - "ADVERSARIAL-ATOMIZATION-CASES.yaml"
+    - "EPISTEMIC-INTEGRITY-GATE.md"
+    - "SYCOPHANCY-RESISTANCE-POLICY.yaml"
+    - "ADVERSARIAL-EVALUATION-RESULTS.jsonl"
+    - "COUNTEREVIDENCE-AND-DISCONFIRMATION-REGISTER.yaml"
+    - "PER-CASE-FAILURE-REPORT.md"
+  acceptance_gate:
+    - "No accepted batch may erase a material condition, exception, negation, conflict, counterexample or UNKNOWN."
+    - "No accepted batch may promote a user preference, user claim or source assertion into verified FACT without an explicit evidence basis."
+    - "Secret-value leakage and fabricated-source cases must have zero failures."
+    - "All failed cases remain visible and block 100 percent completion unless explicitly waived by the user with rationale."
 fallback_role:
   enabled: true
-  activation_condition: "No blocking atomization defect and no pending knowledge-digest item remain after an explicit queue check."
+  activation_condition: "No blocking atomization defect, no pending knowledge-digest item and no unresolved adversarial failure remain after an explicit queue and gate check."
   actions:
     - "Read the active router, Issue #59, parent Issue #31, related Issue #38 and any explicit subtask before assisting."
     - "Assist with separable system contracts, schemas, tests, documentation, handoff, regression or explicitly assigned implementation work."
-    - "Feed decisions, failures, discoveries and UNKNOWN from system work back into the knowledge-digest queue."
+    - "Provide adversarial tests for the assisted module and feed decisions, failures, discoveries and UNKNOWN back into the knowledge-digest queue."
   constraints:
     - "Do not work blindly in the same files or branch as Codex."
     - "Do not silently create a second canonical memory, fusion, retrieval, QueryPlan, ContextBundle or gateway runtime."
@@ -37,24 +89,26 @@ required_inputs:
   - "Issue #59 and all comments"
   - "Latest main and QCLAW router protocol"
   - "Issue #31 parent program and Issue #38 gateway coordination"
-  - "PR #45 and PR #46 historical atomization and LearningPacket capabilities"
+  - "PR #45 and PR #46 historical atomization and adversarial-evaluation ideas"
   - "PR #57 absorption matrix and canonical runtime contracts"
   - "User-authorized files, conversations, research outputs, design decisions, corrections, failures and agent handoffs"
 required_action:
   - "Build and run the knowledge atomization and continuous-digestion pipeline."
   - "Check and maintain a real KnowledgeDigestQueue instead of delivering an empty architecture only."
+  - "Run the adversarial epistemic-integrity gate on every completed digest batch."
   - "Treat user-authorized public, private, internal and personal knowledge as eligible for both public GitHub and local architecture storage."
   - "Do not let privacy_class automatically block public transport; storage_targets and transport_visibility are separate fields."
   - "Scan for authentication, access and financial-security secret values before storage or commit."
-  - "For mixed documents, redact only the secret values and continue digesting the remaining knowledge."
+  - "For mixed documents, redact only secret values and continue digesting the remaining knowledge."
   - "Ordinary API documentation, API names, request/response schemas and code without secret values are allowed; API keys and tokens are denied."
   - "Respect third-party ownership and publication licenses as a separate governance concern from secret classification."
   - "Open one independent Draft PR and report 20/40/60/80/100 checkpoints."
 priority_state_machine:
   P0: "Repair blocking atomization architecture defects."
   P1: "Digest all pending authorized knowledge items."
-  P2: "When P0 and P1 are empty, assist explicitly assigned system-construction tasks."
-  return_rule: "Any newly discovered knowledge item returns execution from P2 to P1."
+  P1A: "Run adversarial epistemic-integrity validation on every digest batch and repair failures."
+  P2: "When P0, P1 and P1A are empty, assist explicitly assigned system-construction tasks with adversarial tests."
+  return_rule: "Any newly discovered knowledge item returns execution from P2 to P1; any adversarial failure returns execution to P0 or P1 as appropriate."
 knowledge_discovery_sources:
   - "User uploads and provided files"
   - "Unstructured conversation knowledge and user corrections"
@@ -63,7 +117,7 @@ knowledge_discovery_sources:
   - "Outputs from Codex, WorkBuddy and other authorized agents"
 execution_contract:
   sync_latest_main: true
-  recommended_branch: "qclaw/knowledge-atomization-digestion-0008"
+  recommended_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
   create_pull_request: true
   draft_pull_request: true
   auto_merge: false
@@ -109,6 +163,6 @@ knowledge_governance:
   candidate_only_by_default: true
   no_automatic_authority_promotion: true
   no_realtime_or_trade_claims_without_explicit_task: true
-notes: "QCLAW is the knowledge atomization architect and digestion engine. All user-authorized non-secret knowledge, including private and personal knowledge, may be stored in public GitHub, local architecture or both. Only authentication/access/financial secret values are hard-sensitive. When the digest queue is empty, QCLAW may help build the system under explicit coordination and must feed new knowledge back into the atomization pipeline."
+notes: "QCLAW is the knowledge atomization architect, digestion engine and adversarial epistemic-integrity tester. All user-authorized non-secret knowledge, including private and personal knowledge, may be stored in public GitHub, local architecture or both. Only authentication/access/financial secret values are hard-sensitive. Every digest batch must survive anti-sycophancy, conflict, counterevidence, UNKNOWN and security challenges before acceptance. When all queues and adversarial failures are empty, QCLAW may help build the system under explicit coordination."
 updated_by: "GPT"
 updated_at: "2026-07-22"
