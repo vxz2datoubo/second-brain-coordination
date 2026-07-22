@@ -1,0 +1,130 @@
+schema_version: "1.0"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+as_of: "2026-07-22"
+owner: "GPT"
+boundary: "research_only / NO_TRADE"
+authoritative_program_index: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+authoritative_program_index_schema: "1.3"
+authoritative_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
+
+stabilization_assessment:
+  overall: "MINOR_CONSOLIDATION_REQUIRED_THEN_EXECUTE"
+  architecture_rewrite_required: false
+  reasons:
+    - "W10 PEOS, W11 Kelly-Thorp and W12 decision-science skill family have coherent bounded contexts and explicit non-duplication rules."
+    - "PROGRAM-INDEX points to v1.3 and correctly marks W10-W12 as registered/planning rather than implemented."
+    - "PR #58 is 90% complete but blocked by missing independent QCLAW adversarial evidence."
+    - "Issues #60-#63 are registered but no matching new QCLAW/Codex execution branches were verified at stabilization time."
+    - "Old Issue #59 comments contain superseded privacy/task wording; ACTIVE-QCLAW-TASK.yaml schema 2.3 is the current router authority."
+    - "Open PR #8 and PR #34 contain potentially useful historical evidence but must remain parked pending W12 D0 non-duplication review."
+
+execution_principles:
+  - "Finish blocking acceptance gates before starting additional canonical runtimes."
+  - "Planning-only work may proceed in parallel when it does not modify canonical files."
+  - "No more than three active execution lanes."
+  - "QCLAW must not split attention across #59, #60, #61, #62 and #63 implementation simultaneously."
+  - "Codex owns project plans and canonical integration; QCLAW owns independent evidence, knowledge digestion and adversarial fixtures; WorkBuddy owns local read-only evidence and rule/data validation."
+  - "Blueprint, issue or formula existence is not implementation evidence."
+
+current_execution_lanes:
+  - lane: "A"
+    priority: "BLOCKER_P0"
+    owner: "QCLAW"
+    issue: 59
+    unblocks_pr: 58
+    task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A"
+    mode: "目标模式＋独立对抗证据交付"
+    branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+    objective: "Deliver an independent, unchanged 100+ case adversarial query package and per-case results against the PR #58 knowledge gateway acceptance contract."
+    required_outputs:
+      - "ADVERSARIAL-QUERY-PACK.yaml with at least 100 independently authored cases"
+      - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
+      - "ADVERSARIAL-EVALUATION-RESULTS.jsonl"
+      - "PER-CASE-FAILURE-REPORT.md"
+      - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+      - "SECURITY-SECRET-PROMPT-INJECTION-RESULTS.md"
+      - "AI_HANDOFF.yaml"
+    constraints:
+      - "Do not read or rewrite Codex expected outputs merely to raise pass rate."
+      - "Do not create a second gateway or memory runtime."
+      - "Keep failures visible."
+      - "Draft PR, no auto-merge, separate branch."
+    completion_gate: "GPT verifies independence, case coverage and unchanged consumption path; PR #58 then runs the package and reports per-case metrics."
+
+  - lane: "B"
+    priority: "P0_PLANNING"
+    owner: "CODEX"
+    issue: 63
+    task_id: "CODEX-W12-D0-SKILL-GAP-AUDIT-PLAN-0013B"
+    mode: "项目计划模式"
+    branch: "codex/w12-d0-skill-gap-audit-plan-0013b"
+    objective: "Perform D0 public-repository and available local-evidence audit, produce a self-contained D0-D6 plan and select at most three P0 vertical slices without implementing child runtimes."
+    mandatory_findings:
+      - ORPHAN_TERM
+      - GHOST_CAPABILITY
+      - DUPLICATE_RUNTIME
+      - MATURE_STATUS_INFLATION
+      - IMPLEMENTED_WITHOUT_VALIDATION
+      - STALE_RULE_MAPPING
+    required_decisions:
+      - "Classify each material method as existing subcapability, candidate skill, reference-only, rejected or unknown."
+      - "Freeze ownership and non-duplication boundaries across W7, W10, W11, OMS and canonical memory."
+      - "Recommend no more than three first vertical slices."
+    forbidden:
+      - "No child-skill runtime implementation."
+      - "No canonical memory, risk, portfolio, execution or order-path modification."
+      - "No automatic child issue explosion."
+
+  - lane: "C"
+    priority: "P0_EVIDENCE"
+    owner: "WORKBUDDY"
+    issue: 63
+    task_id: "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
+    mode: "目标模式＋本地只读实况审计"
+    branch: "workbuddy/w12-local-skill-reality-audit-0013c"
+    objective: "Read-only audit the local protected blueprints, code, skills, tests and A-share rule sources to distinguish mentioned, implemented and actually validated capabilities."
+    outputs:
+      - "LOCAL-SKILL-REALITY-MATRIX.yaml"
+      - "PROTECTED-BLUEPRINT-v1.3-BACKWRITE-EXECUTION-REPORT.md"
+      - "A-SHARE-RULE-SOURCE-AND-EFFECTIVE-DATE-MATRIX.yaml"
+      - "DUPLICATE-OR-ORPHAN-CAPABILITY-FINDINGS.md"
+      - "AI_HANDOFF.yaml"
+    constraints:
+      - "Read-only unless a later explicit write task is issued."
+      - "No credential values, no account/broker actions and no service lifecycle changes."
+      - "Do not infer implementation from filenames or documentation alone."
+
+queued_after_current_lanes:
+  - order: 1
+    gate: "Lane A accepted and PR #58 adversarial run complete"
+    action: "GPT reviews PR #58; merge only if independent cases, failures and security gates pass."
+  - order: 2
+    gate: "PR #58 accepted or explicit remediation plan recorded"
+    action: "QCLAW starts Issue #60 M0 long-term-memory non-duplication audit and benchmark plan."
+  - order: 3
+    gate: "Issue #63 D0 plan accepted"
+    action: "Freeze the first P0 skill slices and shared contracts. Recommended default: DS-01 Decision Framing, DS-02 Bayesian/Forecast Fusion and DS-10 Research Overfitting Audit."
+  - order: 4
+    gate: "DecisionFrame and probability contracts frozen"
+    action: "Codex starts Issue #62 K0-K2 single-opportunity NetEV and robust Kelly vertical slice with A-share constraints."
+  - order: 5
+    gate: "DecisionEpisode shared interface frozen"
+    action: "Issue #61 starts C0-C3 PEOS DecisionEpisode and process/outcome calibration slice, integrating W11/W12 outputs."
+  - order: 6
+    gate: "Single-opportunity and DecisionEpisode slices pass"
+    action: "Expand to portfolio, downside survival, execution and attribution in that order; optimal stopping, bandits and digital twin remain deferred."
+
+parked_items:
+  - item: "PR #8"
+    status: "PARKED_FOR_W12_D0_RECONCILIATION"
+    rationale: "Contains temporal-evidence and attention-intelligence blueprints that may be reusable, but predates the current mother charter and must not merge without non-duplication mapping."
+  - item: "PR #34"
+    status: "PARKED_FOR_W12_D0_RECONCILIATION"
+    rationale: "Contains WorkBuddy QCLAW local-audit evidence; useful as evidence but privacy, authority and architecture rules have since changed."
+
+success_definition:
+  - "PR #58 blocker is resolved with independent QCLAW evidence."
+  - "Issue #63 produces a verified non-duplication and maturity map before child runtimes."
+  - "Local protected blueprints are backwritten to v1.3 references with hashes and no hidden conflicts."
+  - "Only selected vertical slices enter implementation."
+  - "W10-W12 remain research-only and cannot produce real orders."
