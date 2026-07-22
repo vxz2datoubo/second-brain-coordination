@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 record_type: "TaskImpactForecast"
 task_id: ""
 issue_or_pr: ""
@@ -6,8 +6,36 @@ prepared_by: "GPT"
 prepared_at: ""
 mode: "project_plan | goal | direct | plan_then_review"
 
+amed_policy:
+  policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_weight: "LIGHT | STANDARD | STRATEGIC"
+  research_trigger_level: "L1_REUSE_AND_QUICK_CHECK | L2_TARGETED_PROFESSIONAL_RESEARCH | L3_INDEPENDENT_RESEARCH_TASK"
+  research_trigger_reasons:
+    - ""
+  exploration_budget:
+    primary_delivery_share: ""
+    active_discovery_share: ""
+    system_opportunity_share: ""
+    max_new_architecture_proposals: 0
+    max_new_skill_candidates: 0
+    max_unplanned_files: 0
+    scope_expansion_without_gate: false
+  improvement_authority:
+    A_SAFE_LOCAL_AUTONOMOUS:
+      - ""
+    B_BOUNDED_IMPLEMENT_AND_REPORT:
+      - ""
+    C_PROPOSAL_ONLY:
+      - ""
+    D_PROHIBITED_OR_USER_GATE:
+      - ""
+  second_pass_audit_required: true
+
 first_principles:
   fundamental_goal: ""
+  user_capability_outcome: ""
   current_state_to_change: ""
   causal_mechanism:
     - ""
@@ -23,6 +51,29 @@ first_principles:
   stop_conditions:
     - ""
 
+system_position:
+  workstream: ""
+  bounded_context: ""
+  systems_of_record:
+    - ""
+  upstream_dependencies:
+    - ""
+  downstream_consumers:
+    - ""
+  canonical_components_not_to_duplicate:
+    - ""
+  related_active_tasks:
+    - ""
+
+active_discovery_requirements:
+  - "Check wrong or stale assumptions."
+  - "Check missing requirements, data, tests, interfaces and rules."
+  - "Check duplicate runtimes, skills, schemas and stores."
+  - "Check reuse, adaptation, migration and deprecation opportunities."
+  - "Check simpler or more reliable alternatives."
+  - "Check cross-module linkages and hidden costs."
+  - "Preserve negative, null and counterintuitive results."
+
 expected_benefits:
   - benefit_id: "B1"
     description: ""
@@ -37,7 +88,7 @@ expected_benefits:
 expected_harms:
   - harm_id: "H1"
     description: ""
-    harm_type: "technical_debt | complexity | cost | security | privacy | data | dependency | schedule | model_risk | other"
+    harm_type: "technical_debt | complexity | cost | security | privacy | data | dependency | schedule | model_risk | scope_expansion | authority_conflict | other"
     probability: "low | medium | high"
     severity: "low | medium | high | critical"
     reversibility: "easy | moderate | difficult | irreversible"
@@ -52,6 +103,9 @@ cost_forecast:
   token_or_compute: ""
   maintenance: ""
   opportunity_cost: ""
+  research_cost: ""
+  integration_cost: ""
+  second_pass_audit_cost: ""
 
 net_value_assessment:
   expected_net_value: "positive | neutral | negative | insufficient_evidence"
@@ -69,7 +123,22 @@ risk_gate:
 execution_observation_requirements:
   - "Track whether each expected benefit signal appears."
   - "Track whether each expected harm signal appears."
+  - "Track whether exploration consumes the main delivery."
+  - "Track unplanned improvements and their A/B/C/D authority class."
+  - "Track research trigger escalation from L1 to L2 or L3."
+  - "Track duplicate-runtime, authority-conflict and WIP-expansion signals."
   - "Report critical or unexpectedly expanding harm immediately."
+  - "Do not hide evidence contradicting the forecast."
+
+mandatory_delivery_artifacts:
+  - "AMEDAgentExecutionReceipt"
+  - "AMEDResearchLedger"
+  - "UnplannedImprovementLedger"
+  - "SystemDiscoveryAndOpportunityReport"
+  - "TestRunReceipt"
+  - "UNKNOWN-REGISTRY"
+  - "AI_HANDOFF"
 
 post_delivery_review_required: true
 linked_outcome_review: ""
+linked_amed_second_pass_audit: ""
