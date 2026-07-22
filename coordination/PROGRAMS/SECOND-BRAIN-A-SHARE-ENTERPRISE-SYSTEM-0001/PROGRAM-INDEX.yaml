@@ -1,24 +1,34 @@
-schema_version: "1.0"
+schema_version: "1.1"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
-program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.0.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.1.md"
+previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.0.md"
 master_issue: 31
-current_status: "QUEUED_PENDING_ISSUE_26_ACCEPTANCE"
+current_status: "ACTIVE_MULTI_WORKSTREAM_COORDINATION"
 mode: "project_plan"
 boundary: "research_only / NO_TRADE"
 impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
 
 program_objectives:
   - "Unify Second Brain, A-share research, data, event intelligence, multi-agent game, validation, and AI operations under one enterprise architecture."
-  - "Define systems of record, bounded contexts, contracts, dependencies, milestones, acceptance gates, and rollback."
+  - "Upgrade the Second Brain into a Personal Epistemic and Cognitive Operating System that separates world knowledge, personal cognitive modelling, task context, decision calibration, and metacognitive governance."
+  - "Define systems of record, bounded contexts, contracts, dependencies, milestones, acceptance gates, rollback, user correction, and belief revision."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
+
+registered_blueprints:
+  - module_id: "PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-0010"
+    path: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
+    implementation_issue: 61
+    dependencies: [38, 59, 60]
+    status: "REGISTERED_READY_FOR_PROJECT_PLAN"
 
 workstreams:
   - id: "W1"
     name: "Enterprise Architecture and Governance"
     owner: "CODEX + GPT"
     source_issue: 31
-    status: "QUEUED"
+    status: "ACTIVE_PROGRAM_GOVERNANCE"
   - id: "W2"
     name: "Market Data and Replay"
     owner: "CODEX + WORKBUDDY"
@@ -26,9 +36,9 @@ workstreams:
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W3"
     name: "Second Brain Knowledge Authority and Legacy Integration"
-    owner: "CODEX + WORKBUDDY"
-    related_issues: [21, 22, 24, 25, 26]
-    status: "PHASE_C_REVIEW_PENDING"
+    owner: "CODEX + WORKBUDDY + QCLAW"
+    related_issues: [21, 22, 24, 25, 26, 38, 57, 59, 60]
+    status: "CANONICAL_PHASE3_AND_CHILD_WORKSTREAMS_ACTIVE"
   - id: "W4"
     name: "Indicators, Theories, Strategies, and Experiments"
     owner: "CODEX"
@@ -50,7 +60,7 @@ workstreams:
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W8"
     name: "Multi-AI Collaboration, Deployment, and Observability"
-    owner: "GPT + CODEX + WORKBUDDY"
+    owner: "GPT + CODEX + WORKBUDDY + QCLAW"
     related_issues: [4, 7]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W9"
@@ -58,23 +68,50 @@ workstreams:
     owner: "GPT + CODEX"
     related_issues: [30]
     status: "POLICY_EXISTS_AUTOMATION_QUEUED"
+  - id: "W10"
+    name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
+    owner: "GPT + CODEX + QCLAW + WORKBUDDY"
+    related_issues: [38, 59, 60, 61]
+    blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
+    status: "REGISTERED_READY_FOR_PROJECT_PLAN"
 
 activation_sequence:
-  - "Complete PR #29 remediation and GPT acceptance."
-  - "Close Issue #26 and parent Issue #22."
-  - "Set Issue #31 as the unique active Codex task."
-  - "Codex performs Phase 0 enterprise audit and project plan."
-  - "GPT reviews forecast versus outcome and selects first vertical slice."
-  - "Create bounded child tasks for Codex and WorkBuddy."
+  - "Continue Issue #59 atomization, digestion, and adversarial validation."
+  - "Continue Issue #60 M0 long-term-memory audit and project plan."
+  - "Issue #61 performs C0 non-duplication audit and a C0-C7 project plan before canonical implementation."
+  - "GPT reviews contracts and assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
+  - "Select the DecisionEpisode plus open-user-model vertical slice before digital-twin work."
+  - "Run shadow-mode cognitive and engineering calibration before any high-risk deployment."
 
 wip_policy:
-  max_major_active_workstreams: 2
-  rule: "Do not start all workstreams simultaneously. Phase 0 must define dependencies and select the first vertical slice."
+  max_major_active_workstreams: 3
+  rule: "Issue #59 and Issue #60 may continue while Issue #61 performs planning, but canonical implementation file ownership must be frozen before parallel code changes."
 
 protected_authority_policy:
   protected_master_blueprints_remain_l0_authority: true
-  public_repository_may_store: "sanitized charters, contracts, indexes, tasks, and backwrite delta packages"
-  public_repository_must_not_store: "protected blueprint bodies, secrets, private knowledge, account data, or unlicensed market data"
+  user_authorized_non_secret_knowledge_may_enter_public_repository: true
+  user_authorized_non_secret_knowledge_may_enter_local_architecture: true
+  dual_storage_allowed: true
+  public_repository_may_store: "user-authorized non-secret knowledge, blueprints, contracts, indexes, tasks, source bodies, atoms, evidence, tests, and backwrite packages subject to publication/license governance"
+  public_repository_must_not_store: "API keys, tokens, passwords, cookies, private keys, bank/broker authentication secrets, account login data, or material the user is not authorized to publish"
+  privacy_class_does_not_automatically_block_public_storage: true
+  third_party_publication_license_governance_required: true
+
+cognitive_governance:
+  world_model_and_personal_model_separated: true
+  task_context_model_required: true
+  ex_ante_decision_freeze_required: true
+  process_outcome_separation_required: true
+  open_negotiated_user_model_required: true
+  state_trait_context_domain_separation_required: true
+  single_observation_cannot_create_permanent_trait: true
+  supporting_and_opposing_evidence_required: true
+  user_correction_and_revocation_required: true
+  metacognitive_monitoring_and_control_required: true
+  anti_sycophancy_and_counterevidence_gate_required: true
+  single_metric_cannot_prove_calibration_or_utility: true
+  digital_twin_status: "DEFERRED_UNTIL_C0_C6_VALIDATED"
 
 trade_boundary:
   research_only: true
