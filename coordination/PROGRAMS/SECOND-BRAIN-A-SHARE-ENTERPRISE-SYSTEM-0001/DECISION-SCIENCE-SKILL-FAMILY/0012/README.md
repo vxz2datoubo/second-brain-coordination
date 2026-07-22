@@ -10,6 +10,8 @@
 
 `boundary: research_only / NO_TRADE`
 
+`draft_pr: #66`
+
 This directory freezes the public-repository and accessible-local reality of the
 W12 decision-science skill family before any child runtime is implemented.
 

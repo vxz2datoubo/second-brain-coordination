@@ -13,6 +13,10 @@
 - `credentials_accessed`: no
 - `broker_or_account_connected`: no
 - `trade_or_order_called`: no
+- `remote_base`: `64a42895e49b31f4aa1de62d6db54bf54d4a555a`
+- `remote_initial_head`: `09edfa9df03e9b29a84d97b02d94def3482a3d30`
+- `draft_pr`: [#66](https://github.com/vxz2datoubo/second-brain-coordination/pull/66)
+- `publication_method`: GitHub Git Data API exact-parent commit after git HTTPS fetch timeout
 
 ## Evidence Operations
 
@@ -29,4 +33,3 @@ fast-forwarded to the exact authoritative remote `main`; if that cannot be done,
 discard this worktree or retain the uncommitted directory as a local evidence
 package. Closing a future Draft PR and deleting its isolated branch/worktree is
 the complete repository rollback because no runtime or protected file is changed.
-
