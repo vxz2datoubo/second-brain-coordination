@@ -1,8 +1,9 @@
-schema_version: "1.1"
+schema_version: "1.2"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
-program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.1.md"
-previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.0.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.2.md"
+previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.1.md"
+project_blueprint_integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.2.md"
 master_issue: 31
 current_status: "ACTIVE_MULTI_WORKSTREAM_COORDINATION"
 mode: "project_plan"
@@ -11,8 +12,9 @@ impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHA
 
 program_objectives:
   - "Unify Second Brain, A-share research, data, event intelligence, multi-agent game, validation, and AI operations under one enterprise architecture."
-  - "Upgrade the Second Brain into a Personal Epistemic and Cognitive Operating System that separates world knowledge, personal cognitive modelling, task context, decision calibration, and metacognitive governance."
-  - "Define systems of record, bounded contexts, contracts, dependencies, milestones, acceptance gates, rollback, user correction, and belief revision."
+  - "Operate the Second Brain as a Personal Epistemic and Cognitive Operating System separating world knowledge, personal cognitive modelling, task context, decision calibration, and metacognitive governance."
+  - "Evaluate probabilistic edge and expected value before allocating capital, then apply robust Kelly, risk, correlation, liquidity and A-share execution constraints."
+  - "Define systems of record, bounded contexts, contracts, dependencies, milestones, acceptance gates, rollback, user correction, belief revision and probability calibration."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
 
 registered_blueprints:
@@ -21,6 +23,13 @@ registered_blueprints:
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
     implementation_issue: 61
     dependencies: [38, 59, 60]
+    status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - module_id: "KELLY-THORP-PROBABILISTIC-CAPITAL-ALLOCATION-0011"
+    path: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
+    implementation_issue: 62
+    dependencies: [23, 38, 59, 60, 61]
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
 
 workstreams:
@@ -57,6 +66,7 @@ workstreams:
   - id: "W7"
     name: "Validation and Risk"
     owner: "CODEX + GPT"
+    related_issues: [62]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W8"
     name: "Multi-AI Collaboration, Deployment, and Observability"
@@ -66,34 +76,44 @@ workstreams:
   - id: "W9"
     name: "Shadow Mode and Engineering Learning"
     owner: "GPT + CODEX"
-    related_issues: [30]
+    related_issues: [30, 61, 62]
     status: "POLICY_EXISTS_AUTOMATION_QUEUED"
   - id: "W10"
     name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
-    related_issues: [38, 59, 60, 61]
+    related_issues: [38, 59, 60, 61, 62]
     blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
+    status: "REGISTERED_READY_FOR_PROJECT_PLAN"
+  - id: "W11"
+    name: "Kelly-Thorp Expected Value, Probabilistic Edge, and Robust A-share Capital Allocation"
+    owner: "GPT + CODEX + QCLAW + WORKBUDDY"
+    related_issues: [23, 38, 59, 60, 61, 62]
+    blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
+    research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
+    machine_readable_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
 
 activation_sequence:
   - "Continue Issue #59 atomization, digestion, and adversarial validation."
   - "Continue Issue #60 M0 long-term-memory audit and project plan."
-  - "Issue #61 performs C0 non-duplication audit and a C0-C7 project plan before canonical implementation."
-  - "GPT reviews contracts and assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
-  - "Select the DecisionEpisode plus open-user-model vertical slice before digital-twin work."
-  - "Run shadow-mode cognitive and engineering calibration before any high-risk deployment."
+  - "Issue #61 performs C0 non-duplication audit and a C0-C7 PEOS project plan before canonical implementation."
+  - "Issue #62 performs K0 non-duplication audit and a K0-K7 Kelly-Thorp project plan; no optimizer implementation before interfaces and file ownership are frozen."
+  - "GPT assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
+  - "Select DecisionEpisode plus probability/EV plus robust single-opportunity Kelly as the first W10-W11 joint vertical slice."
+  - "Add portfolio correlation and A-share execution mapping only after the single-opportunity contracts pass."
+  - "Run shadow-mode cognitive, probability, allocation and engineering calibration before any high-risk deployment."
 
 wip_policy:
   max_major_active_workstreams: 3
-  rule: "Issue #59 and Issue #60 may continue while Issue #61 performs planning, but canonical implementation file ownership must be frozen before parallel code changes."
+  rule: "Issue #59 and Issue #60 may continue while Issue #61 and Issue #62 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
 
 protected_authority_policy:
   protected_master_blueprints_remain_l0_authority: true
   user_authorized_non_secret_knowledge_may_enter_public_repository: true
   user_authorized_non_secret_knowledge_may_enter_local_architecture: true
   dual_storage_allowed: true
-  public_repository_may_store: "user-authorized non-secret knowledge, blueprints, contracts, indexes, tasks, source bodies, atoms, evidence, tests, and backwrite packages subject to publication/license governance"
+  public_repository_may_store: "user-authorized non-secret knowledge, blueprints, contracts, indexes, tasks, source bodies, atoms, evidence, tests, skills and backwrite packages subject to publication/license governance"
   public_repository_must_not_store: "API keys, tokens, passwords, cookies, private keys, bank/broker authentication secrets, account login data, or material the user is not authorized to publish"
   privacy_class_does_not_automatically_block_public_storage: true
   third_party_publication_license_governance_required: true
@@ -112,6 +132,22 @@ cognitive_governance:
   anti_sycophancy_and_counterevidence_gate_required: true
   single_metric_cannot_prove_calibration_or_utility: true
   digital_twin_status: "DEFERRED_UNTIL_C0_C6_VALIDATED"
+
+capital_allocation_governance:
+  positive_net_expected_value_required_for_positive_allocation: true
+  probability_source_and_calibration_required: true
+  probability_uncertainty_required_for_high_impact_allocation: true
+  full_kelly_default: false
+  fractional_and_risk_constrained_comparisons_required: true
+  correlation_and_common_factor_check_required: true
+  tail_drawdown_and_survival_gate_required: true
+  a_share_rule_registry_versioned_by_effective_date: true
+  t_plus_one_and_unexecutable_exit_scenarios_required: true
+  cost_liquidity_capacity_and_fill_probability_required: true
+  output_range_preferred_over_false_precision: true
+  abstain_and_no_executable_position_supported: true
+  allocation_ex_ante_freeze_and_ex_post_attribution_required: true
+  direct_order_output: false
 
 trade_boundary:
   research_only: true
