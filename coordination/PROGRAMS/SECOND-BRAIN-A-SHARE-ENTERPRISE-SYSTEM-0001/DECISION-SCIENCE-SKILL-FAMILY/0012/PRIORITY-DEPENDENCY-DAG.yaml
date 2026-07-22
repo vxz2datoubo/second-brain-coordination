@@ -1,0 +1,26 @@
+schema_version: "1.0"
+record_type: "PriorityDependencyDAG"
+nodes:
+  - {id: "D0", type: "audit", status: "IN_PROGRESS"}
+  - {id: "D1", type: "meta_infrastructure", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "DS-01", type: "vertical_skill", priority: "P0", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "DS-02", type: "vertical_skill", priority: "P0", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "DS-10", type: "vertical_skill", priority: "P0", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "DS-03", type: "vertical_skill", priority: "P0_LATER", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "DS-04", type: "vertical_skill", priority: "P0_LATER", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "D5", type: "integration", status: "PLANNED_NOT_AUTHORIZED"}
+  - {id: "D6", type: "adversarial_validation", status: "PLANNED_NOT_AUTHORIZED"}
+edges:
+  - {from: "D0", to: "D1", reason: "reality freeze precedes compiler implementation"}
+  - {from: "D1", to: "DS-01", reason: "maturity and duplication gate"}
+  - {from: "DS-01", to: "DS-02", reason: "belief update requires framed hypotheses and observability"}
+  - {from: "DS-02", to: "DS-10", reason: "audit must know forecast and experiment claims"}
+  - {from: "DS-10", to: "D5", reason: "integration requires promotion audit"}
+  - {from: "D5", to: "D6", reason: "adversarial validation requires integrated candidate path"}
+  - {from: "DS-02", to: "DS-03", reason: "information value requires probabilistic state"}
+  - {from: "DS-02", to: "DS-04", reason: "robust choice requires explicit uncertainty"}
+external_gates:
+  - {id: "PR58-INDEPENDENT-EVIDENCE", blocks: "D5_GATEWAY_INTEGRATION"}
+  - {id: "OFFICIAL-RULE-SNAPSHOT", blocks: "ALL_A_SHARE_VALIDATION"}
+  - {id: "GPT-CHILD-TASK-AUTHORIZATION", blocks: "D1_AND_LATER_IMPLEMENTATION"}
+
