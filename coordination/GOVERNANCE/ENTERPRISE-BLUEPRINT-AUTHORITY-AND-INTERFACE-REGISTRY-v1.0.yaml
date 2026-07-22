@@ -1,0 +1,146 @@
+schema_version: "1.0"
+registry_id: "ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-0019"
+program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+implementation_issue: 72
+status: "ACTIVE_GOVERNANCE_BASELINE_CODEX_VERIFICATION_PENDING"
+boundary: "research_only / NO_TRADE"
+
+planes:
+  governance_control:
+    workstreams: [W1, W8, W9]
+  fact_evidence:
+    workstreams: [W2, W3, W5, W13]
+  research_model:
+    workstreams: [W4, W6, W12]
+  decision_capital_survival:
+    workstreams: [W7, W10, W11]
+    embedded_capabilities: [A_SHARE_LIQUIDITY_SWEEP_RECLAIM_VALIDATION_0017, A_SHARE_HOUSE_EDGE_SURVIVAL_OPERATING_CONTROL_0018]
+
+canonical_authorities:
+  task_governance:
+    owner: W1
+    object: AMEDTaskContract
+  agent_operations:
+    owner: W8
+    object: AgentOperationRecord
+  market_time_rules_replay:
+    owner: W2
+    objects: [MarketTimeAndAvailabilityEnvelope, AShareRuleSnapshot, ReplayConfiguration]
+  knowledge_evidence_memory:
+    owner: W3
+    objects: [SourceRecord, EvidenceItem, KnowledgeAtom, ConflictRecord]
+  event_policy_evidence:
+    owner: W5
+    object: EventEvidencePacket
+  participant_flow_evidence:
+    owner: W13
+    object: ParticipantFlowEvidencePacket
+    identity_claim_authority: false
+  strategy_experiment:
+    owner: W4
+    objects: [FeatureDefinition, StrategyDefinition, StrategyExperimentFamily]
+  participant_hypothesis:
+    owner: W6
+    object: ParticipantHypothesis
+    identity_fact_authority: false
+  probability_estimate:
+    owner: W12_DS02
+    object: ProbabilityEstimate
+  decision_episode:
+    owner: W10
+    object: DecisionEpisode
+  capital_allocation:
+    owner: W11
+    object: W11CandidateAllocation
+  validation_and_final_risk_veto:
+    owner: W7
+    objects: [ValidationReport, W7RiskEnvelope]
+  outcome_calibration:
+    owner: W9
+    object: OutcomeCalibrationRecord
+  observable_breach_reclaim:
+    owner: W4_W7_EMBEDDED_0017
+    objects: [ReferenceLiquidityZone, ReferenceZoneBreachEvent, ReclaimAssessment, PostSweepStabilizationAssessment]
+    creates_parallel_runtime: false
+  net_edge_survival_operating_control:
+    owner: W7_W9_W11_EMBEDDED_0018
+    objects: [HouseEdgeInspiredNetEdgeEstimate, EffectiveIndependentTrialEstimate, CapitalBufferAndRuinAssessment, OperatingReconciliationReceipt]
+    probability_write_authority: false
+    allocation_write_authority: false
+    final_risk_veto_authority: false
+    creates_parallel_runtime: false
+
+shared_contracts:
+  - id: C1_MARKET_TIME_AND_AVAILABILITY
+    producer: W2
+    consumers: [W3, W4, W5, W6, W7, W9, W10, W11, W12, W13, MODULE_0017, MODULE_0018]
+    required_fields: [event_time, source_time, published_at, observed_at, ingested_at, available_at, as_of, revision_id]
+  - id: C2_A_SHARE_RULE_SNAPSHOT
+    producer: W2
+    consumers: [W4, W7, W11, MODULE_0017, MODULE_0018]
+    write_policy: SINGLE_WRITER_READ_ONLY_CONSUMERS
+  - id: C3_KNOWLEDGE_AND_EVIDENCE
+    producer: W3
+    consumers: [W5, W6, W10, W12, W13]
+  - id: C4_EVENT_EVIDENCE_PACKET
+    producer: W5
+    consumers: [W4, W6, W10, W12, MODULE_0017, MODULE_0018]
+  - id: C5_PARTICIPANT_FLOW_EVIDENCE_PACKET
+    producer: W13
+    consumers: [W4, W6, W10, W12, MODULE_0017, MODULE_0018]
+  - id: C6_STRATEGY_EXPERIMENT_FAMILY
+    producer: W4
+    consumers: [W7, W9, W11, W12, MODULE_0018]
+  - id: C7_PROBABILITY_ESTIMATE
+    producer: W12_DS02
+    consumers: [W7, W10, W11, MODULE_0018]
+  - id: C8_DECISION_EPISODE
+    producer: W10
+    consumers: [W9, W11, W12]
+  - id: C9_CANDIDATE_ALLOCATION
+    producer: W11
+    consumers: [W7, W9, MODULE_0018]
+  - id: C10_VALIDATION_AND_RISK
+    producer: W7
+    consumers: [W4, W9, W11, W12, MODULE_0017, MODULE_0018]
+  - id: C11_OUTCOME_CALIBRATION
+    producer: W9
+    consumers: [W10, W11, W12, MODULE_0018]
+
+maturity_baseline:
+  W2: PARTIAL_FOUNDATION_EXISTS
+  W3: IMPLEMENTED_WITH_OPEN_GATES
+  W4: PARTIAL_CANDIDATES
+  W5_0015: CONTRACTED_NOT_IMPLEMENTED
+  W6: BLUEPRINT_ONLY
+  W7: PARTIAL_FOUNDATION_EXISTS
+  W9: ACTIVE_GOVERNANCE_PARTIAL_RUNTIME
+  W10_0010: CONTRACTED_NOT_IMPLEMENTED
+  W11_0011: CONTRACTED_NOT_IMPLEMENTED
+  W12_0012: D0_COMPLETE_PENDING_MERGE
+  W13_0014: CONTRACTED_NOT_IMPLEMENTED
+  MODULE_0017: CONTRACTED_NOT_IMPLEMENTED
+  MODULE_0018: CONTRACTED_NOT_IMPLEMENTED
+
+wip_policy:
+  codex_single_active_route: true
+  max_initial_business_vertical_slices: 1
+  no_parallel_consumers_before_shared_interface_freeze: true
+  discovery_does_not_expand_wip: true
+  no_w14_for_0017_or_0018: true
+
+next_control_task:
+  issue: 72
+  task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+  mode: PROJECT_PLAN
+  runtime_implementation_allowed: false
+  backtest_execution_allowed: false
+
+hard_boundaries:
+  - NO_REAL_TRADE
+  - NO_ACCOUNT_OR_CREDENTIAL_ACCESS
+  - NO_AUTO_MERGE
+  - NO_DUPLICATE_CANONICAL_RUNTIME
+  - NO_PARTICIPANT_IDENTITY_OVERCLAIM
+  - NO_FAKE_ORDER_FLOW
+  - NO_STABLE_PROFIT_CLAIM
