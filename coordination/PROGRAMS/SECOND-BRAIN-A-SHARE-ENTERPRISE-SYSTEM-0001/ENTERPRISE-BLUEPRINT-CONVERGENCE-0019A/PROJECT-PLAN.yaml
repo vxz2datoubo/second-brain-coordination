@@ -1,0 +1,61 @@
+schema_version: "1.0"
+record_type: "ResumableProjectPlan"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+issue: 72
+parent_issue: 31
+mode: "PROJECT_PLAN"
+boundary: "research_only / NO_TRADE"
+base_sha: "28954192ff1208705c986b620c33239bca3fb79b"
+branch: "codex/enterprise-blueprint-convergence-0019a"
+pull_request: null
+mission: >-
+  Converge W1-W13 and embedded modules 0017/0018 into one evidence-backed
+  authority, interface, maturity and dependency baseline without implementing
+  any business runtime.
+stages:
+  - id: S1
+    percent: 25
+    name: "task and evidence freeze"
+    status: "COMPLETE"
+    outputs: [PROJECT-PLAN.yaml, STATUS.yaml, PROGRESS-CHECKPOINT.yaml, DECISION-LOG.md]
+  - id: S2
+    percent: 50
+    name: "authority interface and maturity audit"
+    status: "IN_PROGRESS"
+    outputs:
+      - ENTERPRISE-BLUEPRINT-CURRENT-STATE-AUDIT.md
+      - CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml
+      - SHARED-INTERFACE-REGISTRY.yaml
+      - MODULE-MATURITY-LEDGER.yaml
+  - id: S3
+    percent: 75
+    name: "dependency duplication and slice selection"
+    status: "PENDING"
+    outputs:
+      - DEPENDENCY-DAG-AND-CRITICAL-PATH.yaml
+      - PARALLEL-SAFETY-AND-WIP-MATRIX.yaml
+      - DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT.md
+      - NEXT-VERTICAL-SLICE-SELECTION.md
+  - id: S4
+    percent: 100
+    name: "governance proposals validation and handoff"
+    status: "PENDING"
+    outputs:
+      - AMED-AGENT-EXECUTION-RECEIPT.yaml
+      - AMED-RESEARCH-LEDGER.yaml
+      - UNPLANNED-IMPROVEMENT-LEDGER.yaml
+      - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md
+      - TEST-RUN-RECEIPT.md
+      - UNKNOWN-REGISTRY.yaml
+      - AI_HANDOFF.yaml
+resume:
+  worktree: "F:/aidanao-codex-enterprise-blueprint-convergence-0019a"
+  command: "git status --short --branch"
+  rule: "Resume from the first stage whose status is not COMPLETE after re-reading remote ACTIVE-CODEX-TASK.yaml."
+hard_stops:
+  - "new canonical runtime required"
+  - "protected authority replacement required"
+  - "market-data, service, account, credential, risk-gate or order runtime change required"
+  - "verified PR #66 artifacts would be lost"
+  - "a second Codex route becomes active"
