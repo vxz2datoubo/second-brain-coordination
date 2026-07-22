@@ -1,0 +1,51 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R3"
+agent_id: "QCLAW"
+active_issue: 59
+pull_request: 70
+target_pull_request: 58
+mode: "TARGET"
+mode_label: "目标模式＋PR70票据一致性与机器复验收口"
+status: "ACTIVE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+mission_intent: >-
+  Preserve the frozen 110-query package unchanged while correcting stale or contradictory
+  R2 receipts and replacing manual assertions with reproducible machine validation, actual
+  commands, versions and exit codes before GPT accepts PR #70 for unchanged PR #58 consumption.
+success_criteria:
+  - "No frozen query, expected behavior, forbidden behavior, MANIFEST or README content changes."
+  - "R1-to-R3 diff proves the 13 query files remain byte-identical to frozen R1."
+  - "The 16-file per-file hashes and combined SHA256 are machine-recomputed and match the frozen receipt or any mismatch blocks acceptance."
+  - "YAML parsing, UTF-8, secret-pattern, query-count, required-field, reference and schema checks have real commands and exit codes."
+  - "TEST-RUN-RECEIPT records the actual R3 head, actual timestamps and PASS/FAIL/SKIP honestly."
+  - "AMED execution receipt uses the explicit R2/R3 route policy L1 and 80/15/5, marks work complete and preserves the legacy receipt only as historical context."
+  - "UNKNOWNs about format compatibility, atom-ID mapping, category coverage and UNKNOWN/ABSTAIN remain visible."
+expected_positive_impacts:
+  - "Make PR #70 independently reproducible rather than self-attested."
+  - "Prevent stale metadata from contaminating PR #58 evaluation evidence."
+  - "Enable safe release of Issue #73 after GPT acceptance."
+expected_costs:
+  - "One small same-branch receipt-only commit."
+risks:
+  - risk: "A receipt correction accidentally changes frozen questions or answers."
+    control: "Diff and hash gate; frozen R1 package is read-only."
+  - risk: "Validation script silently weakens secret or schema checks."
+    control: "Record exact script, command, version, exit code and negative test behavior."
+unknowns:
+  - "Whether the existing combined SHA256 algorithm is fully specified and reproducible across platforms."
+  - "Whether all YAML files use a schema that can be validated beyond parse and required-field checks."
+stop_conditions:
+  - "Any frozen R1 query or expected/forbidden behavior changes."
+  - "Hash mismatch cannot be explained without modifying the frozen package."
+  - "The task expands into PR #58 execution or Issue #73 audit."
+  - "Secrets, accounts, services, market feeds or trading paths would be accessed."
+amed_policy:
+  task_weight: "STANDARD"
+  research_trigger: "L1_REUSE_AND_QUICK_CHECK"
+  exploration_budget:
+    primary_delivery_share: "90%"
+    active_discovery_share: "8%"
+    system_opportunity_share: "2%"
+  second_pass_required: true
+completion_signal: "QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE"
