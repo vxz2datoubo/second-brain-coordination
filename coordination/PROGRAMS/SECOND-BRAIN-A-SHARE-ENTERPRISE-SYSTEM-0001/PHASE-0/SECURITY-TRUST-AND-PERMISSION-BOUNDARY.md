@@ -1,33 +1,61 @@
-# Security, Trust and Permission Boundary
+# Security, Trust and Permission Boundary v1.1
+
+## First principle
+
+Knowledge privacy classification and publication/storage permission are separate dimensions.
+
+All user-authorized non-secret knowledge, including personal, private, internal, project and conversation knowledge, may be stored in the public GitHub repository, the local knowledge architecture, or both.
+
+The only hard-sensitive values that must never enter repositories, knowledge atoms, embeddings, logs, issues, PRs, tests or AI handoffs are authentication, access and financial-security secrets, including API keys, tokens, passwords, cookies, sessions, private keys, recovery phrases, 2FA secrets and bank/broker authentication values.
+
+Third-party ownership, copyright, entitlement and publication licenses remain a separate governance gate. A document may be non-secret but still not authorized for publication.
 
 ## Trust zones
 
 | Zone | Permitted content | Prohibited content |
 |---|---|---|
-| Public coordination repository | Sanitized plans, schemas, task state, tests, backwrite deltas, hashes | Protected blueprint bodies, private knowledge, credentials, account data, licensed raw market data |
-| Local candidate workspace | Candidate packets and reversible local experiments | Automatic promotion to cloud/authority |
-| Future private knowledge repository | Approved knowledge, provenance, review history | Broker credentials and unrestricted runtime logs |
-| Raw evidence store | Entitlement-scoped raw artifacts and manifests | Public release unless license/approval allows |
-| Serving projection | Rebuildable search indexes and least-privilege read APIs | Source-of-truth mutation and arbitrary SQL exposure |
-| Research runtime | Replay/simulation and controlled adapters | Broker order/control path |
+| Public coordination repository | User-authorized non-secret knowledge, source bodies, plans, schemas, atoms, evidence, task state, tests, backwrite deltas and hashes | Authentication/access/financial secret values; unauthorized third-party material; restricted raw market data without publication rights |
+| Local candidate workspace | User-authorized non-secret knowledge, candidate packets, cognitive observations and reversible experiments | Secret values; automatic authority promotion; unapproved irreversible actions |
+| Local or private knowledge repository | Approved or candidate knowledge, provenance, personal cognitive evidence, review history and source bodies | Authentication/access/financial secret values and unrestricted credential-bearing runtime logs |
+| Raw evidence store | Entitlement-scoped raw artifacts, user-authorized personal artifacts and manifests | Secret values; public release when publication or license basis is absent |
+| Serving projection | Rebuildable search indexes, embeddings, graphs, palace indexes and least-privilege read APIs | Source-of-truth mutation, arbitrary SQL exposure and secret values in indexes |
+| Research runtime | Replay, simulation, cognitive calibration and controlled adapters | Broker order/control path and automatic irreversible decisions |
+
+A `PRIVATE_KNOWLEDGE` label does not by itself block public storage. Storage is governed by explicit `storage_targets`, `transport_visibility`, user authorization and publication/license basis.
 
 ## Permissions
 
-- USER: changes to protected blueprints, authority migration, cloud creation, credentials, data upload, real-money/execution and irreversible actions.
-- GPT: architecture, task routing and acceptance; cannot mutate production files.
-- CODEX: contracts, code, tests, audits and plans; cannot access secrets, create cloud resources, trade or self-approve protected backwrite.
-- WORKBUDDY: local environment, licensed source capability and deployment verification; cannot infer unverified data capability.
-- QCLAW: offline candidate-package digestion only; no online authority, decision or execution role.
+- USER: controls project direction, public-storage authorization, personal-model corrections, authority migration, cloud creation, credentials, real-money execution and irreversible actions.
+- GPT: research, architecture, task routing, adversarial review and acceptance; no secret handling or real-trade control.
+- CODEX: project planning, canonical contracts, code, tests, audits and integration; cannot access secret values, trade or self-approve high-risk authority changes.
+- WORKBUDDY: local sources, file parsing, licensed capability, adapters, deployment and real-run evidence; cannot expose secrets or infer unverified capability.
+- QCLAW: knowledge atomization, continuous digestion, long-term memory planning/building, cognitive-model candidates and adversarial epistemic testing; no secret handling, silent authority promotion, parallel canonical runtime or real execution role.
 
 ## Gates
 
-1. Capability and entitlement gate before reading vendor data.
-2. Schema/lineage/quality/time gate before normalisation.
-3. Evidence, counter-evidence and abstention gate before assessment.
-4. OOS/cost/A-share-rule/risk gate before research maturity promotion.
-5. Human approval gate before protected-blueprint update, authority migration, cloud action or execution-related scope.
-6. Audit/rollback gate before any destructive or non-reversible change.
+1. User authorization and publication/license gate before public storage of source material.
+2. Exact secret-value scan and redaction before storage, atomization, embedding, logging or commit.
+3. Capability and entitlement gate before reading vendor or restricted data.
+4. Schema, lineage, quality, context and time gate before normalization.
+5. Evidence, counterevidence, conflict, UNKNOWN and abstention gate before assessment.
+6. State/trait/context/domain and roleplay/humor gate before personal cognitive-model updates.
+7. User review, correction, revocation and dependency-propagation gate for personal-model changes.
+8. OOS, cost, A-share-rule, risk and probability-calibration gate before research maturity promotion.
+9. Human approval gate before authority migration, cloud action, high-impact personal publication changes or execution-related scope.
+10. Audit and rollback gate before destructive or irreversible change.
 
-## Security finding
+## Mixed documents
 
-The current shared local repository is dirty and contains generated/runtime-looking artifacts. It must not be treated as a clean security baseline for a new enterprise migration. Phase 0 writes are isolated in the public coordination branch only.
+When a document contains useful knowledge and secret values:
+
+1. identify the exact secret span;
+2. replace or remove only the secret value;
+3. preserve and process the remaining knowledge;
+4. record secret type, location and redaction status without recording the original value;
+5. do not reject the entire document merely because one secret was present.
+
+## Current security finding
+
+Historical files may contain superseded statements such as “private knowledge cannot enter the public repository.” Those files remain as audit history unless they are active authority documents. Current execution must follow this v1.1 boundary, PROGRAM-INDEX v1.1, the current QCLAW router and the latest issue comments.
+
+The research and execution boundary remains `research_only / NO_TRADE`; LLMs are not permitted in the real-order critical path.
