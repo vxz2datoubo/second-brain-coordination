@@ -1,6 +1,7 @@
-schema_version: "1.0"
+schema_version: "1.1"
 record_type: "TaskImpactForecast"
 task_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
+implementation_issue: 67
 prepared_by: "GPT"
 prepared_at: "2026-07-22"
 mode: "project_plan"
@@ -11,14 +12,14 @@ first_principles:
     Build a point-in-time, evidence-graded and continuously validated A-share daily
     participant-capital intelligence capability for institutions, Northbound Connect,
     active short-term seats, passive/programmatic flows and state-linked stabilization
-    hypotheses without pretending that hidden account identity or private intent is observable.
+    hypotheses without pretending hidden account identity or private intent is observable.
   current_state_to_change: >-
     The repository has participant archetypes, capital-intent architecture and offline
     replay, but no operational daily collectors, disclosure-regime contracts, participant
     evidence ledger, daily bulletin, identity calibration or economic incremental backtest.
   causal_mechanism:
     - "Official and licensed point-in-time evidence creates a reproducible daily fact layer."
-    - "Observation classes and three-part confidence prevent activity, direction, amount and identity from being conflated."
+    - "Observation classes and separate identity, direction and amount confidence prevent semantic escalation."
     - "Competing hypotheses and counterevidence reduce narrative overreach."
     - "Cross-regime replay and two-level validation separate actor identification from economic usefulness."
     - "Daily shadow reports create calibration feedback before any high-risk use."
@@ -37,65 +38,61 @@ first_principles:
     - "Identity/direction/amount calibration labels and uncertainty."
     - "Cross-regime, cross-market-state and multi-skill economic validation."
   stop_conditions:
-    - "Implementation requires fabricating unavailable actor identity or amount data."
+    - "Implementation requires fabricated actor identity or amount data."
     - "A source cannot be used legally or its field semantics cannot be verified."
     - "A proposed adapter duplicates a canonical runtime."
     - "Point-in-time publication history cannot be reconstructed for a claimed backtest."
-    - "Task expands into live trade execution without a new explicit user approval."
+    - "Task expands into live trade execution without new explicit user approval."
 
 expected_benefits:
-  - benefit_id: B1
-    description: "Provides a daily evidence map of major A-share participant-flow hypotheses."
+  - id: B1
+    outcome: "Reproducible daily evidence map of major A-share participant-flow hypotheses."
     probability: high
     impact: high
-    validation_signal: "Daily bulletin is reproducible from frozen point-in-time artifacts and includes abstentions."
-  - benefit_id: B2
-    description: "Improves multi-agent game inputs with evidence-graded participant posteriors instead of static stereotypes."
+  - id: B2
+    outcome: "Evidence-graded inputs for W6 participant games, W7 risk, W10 decisions and W11 allocation."
     probability: high
     impact: high
-    validation_signal: "W6 consumes W13 outputs without treating simulation as fact."
-  - benefit_id: B3
-    description: "Separates Northbound activity, institutions, passive ETF flows, active seats and state-linked stabilization to reduce false attribution."
+  - id: B3
+    outcome: "Lower false attribution by separating Northbound activity, domestic institutions, passive ETF flows, active seats and state-linked hypotheses."
     probability: high
     impact: high
-    validation_signal: "Misclassification matrix and ablation show lower error than a single main-fund-flow score."
-  - benefit_id: B4
-    description: "Creates a reusable dataset and validation protocol for event, risk, allocation and second-brain decisions."
+  - id: B4
+    outcome: "Reusable point-in-time dataset and cross-regime validation assets."
     probability: medium
     impact: high
-    validation_signal: "Point-in-time records are reusable by W5/W7/W10/W11/W12."
 
 expected_harms:
-  - harm_id: H1
-    description: "Daily reports may sound more certain than the public data permits."
+  - id: H1
+    risk: "Reports sound more certain than public data permits."
     probability: high
     severity: high
-    mitigation: "Observation class, evidence grade, separate identity/direction/amount confidence, alternatives and mandatory abstention."
-  - harm_id: H2
-    description: "Historical Northbound effects may be wrongly transferred across disclosure and identity regimes."
+    mitigation: "Evidence grade, three-part confidence, alternatives, invalidation and mandatory abstention."
+  - id: H2
+    risk: "Historical Northbound effects are transferred across identity and disclosure regimes."
     probability: high
     severity: high
-    mitigation: "Hard regime splits, rolling calibration, model retirement and no universal net-flow field."
-  - harm_id: H3
-    description: "Multiple correlated proxies may create fake confirmation and backtest overfitting."
+    mitigation: "Hard regime splits, rolling calibration, retirement gates and no universal net-flow field."
+  - id: H3
+    risk: "Correlated proxies and parameter searches create fake confirmation."
     probability: high
     severity: high
-    mitigation: "Evidence clusters, experiment-family ledger, nested validation, PBO/DSR/White/SPA/Romano-Wolf and failure preservation."
-  - harm_id: H4
-    description: "Seat or ETF proxies may falsely label a real person or state-linked fund."
+    mitigation: "Evidence clusters, experiment-family ledger, nested validation and multiple-testing audit."
+  - id: H4
+    risk: "Seat or ETF proxies falsely label a person or state-linked fund."
     probability: medium
     severity: high
-    mitigation: "Use seat clusters and state-linked hypotheses only; prohibit person identity and exact amount claims."
-  - harm_id: H5
-    description: "Source licensing or publication restrictions may block historical assembly."
-    probability: medium
-    severity: medium
-    mitigation: "Capability/license registry, official-first adapters, metadata-only records where redistribution is not permitted."
-  - harm_id: H6
-    description: "The workstream may duplicate existing capital-intent and replay architecture."
+    mitigation: "Seat clusters and state-linked hypotheses only; exact identity/amount claims prohibited."
+  - id: H5
+    risk: "Licensing or publication restrictions block historical assembly."
     probability: medium
     severity: medium
-    mitigation: "D0 non-duplication audit and explicit reuse/adapt/migrate/reference-only decisions."
+    mitigation: "Official-first capability/license registry and metadata-only storage when redistribution is prohibited."
+  - id: H6
+    risk: "Duplicate capital-intent, evidence or replay runtime."
+    probability: medium
+    severity: medium
+    mitigation: "D0 non-duplication audit and REUSE/ADAPT/MIGRATE/REFERENCE_ONLY decisions."
 
 cost_forecast:
   architecture: medium
@@ -104,27 +101,18 @@ cost_forecast:
   engineering: high
   model_and_validation_compute: medium
   ongoing_maintenance: high
-  main_cost_drivers:
-    - "Disclosure and field-semantics versioning."
-    - "Historical point-in-time publication reconstruction."
-    - "Seat alias history and entity resolution."
-    - "Cross-regime validation and independent adversarial tests."
 
 net_value_assessment:
   expected_net_value: positive
   confidence: medium_high
   rationale: >-
     Daily participant intelligence can materially improve A-share context, game modelling,
-    risk and event interpretation, but only if the first delivery remains official-evidence-first,
-    avoids identity claims and validates incremental value instead of optimizing a narrative score.
+    risk and event interpretation, provided the first delivery remains official-evidence-first,
+    avoids identity claims and validates incremental value rather than optimizing a narrative score.
 
 execution_policy:
   codex_mode: "PROJECT_PLAN"
-  reason: >-
-    The task crosses data, rules, market microstructure, evidence, identity resolution,
-    replay, validation and multiple existing workstreams; local source availability and
-    historical coverage contain material unknowns.
-  first_required_stage: "D0 repository and accessible-local capability/non-duplication audit"
+  first_required_stage: "D0 repository and accessible-local capability, source, license, disclosure-regime and non-duplication audit"
   first_vertical_slice: "W13-VS1 Official Daily Evidence and Bulletin"
   maximum_initial_new_runtime_components: 1
   preferred_design: "Adapters and projections over canonical systems, not a parallel platform."
@@ -145,7 +133,13 @@ current_reality:
   research_validation: COMPLETE
   machine_skill_contract: REGISTERED_CANDIDATE
   validation_protocol: COMPLETE
-  implementation_issue: PENDING_CREATION
+  program_registration: COMPLETE
+  implementation_issue: 67
+  d0_audit: NOT_STARTED
   data_adapters: NOT_IMPLEMENTED
-  backtest: NOT_RUN
+  daily_scheduler: NOT_IMPLEMENTED
+  point_in_time_dataset: NOT_ASSEMBLED
+  identification_validation: NOT_RUN
+  economic_backtest: NOT_RUN
   shadow_run: NOT_STARTED
+  live_trading: PROHIBITED
