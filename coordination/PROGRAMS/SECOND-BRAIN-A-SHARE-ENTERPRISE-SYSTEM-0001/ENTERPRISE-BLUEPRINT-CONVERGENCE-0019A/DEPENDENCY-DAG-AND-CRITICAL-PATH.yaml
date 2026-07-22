@@ -1,0 +1,81 @@
+schema_version: "1.0"
+record_type: "DependencyDagAndCriticalPath"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+status: "CANDIDATE_FREEZE_PENDING_GPT"
+nodes:
+  - id: W1
+    role: governance
+    prerequisites: []
+  - id: W2
+    role: market_time_rules_replay
+    prerequisites: [W1]
+  - id: W3
+    role: knowledge_evidence_memory
+    prerequisites: [W1]
+  - id: W5
+    role: event_policy_evidence
+    prerequisites: [W2, W3]
+  - id: W13
+    role: participant_flow_evidence
+    prerequisites: [W2, W3]
+  - id: W4
+    role: strategy_experiment
+    prerequisites: [W2]
+  - id: W6
+    role: participant_hypothesis
+    prerequisites: [W3, W5, W13]
+  - id: W12
+    role: probability_and_decision_science
+    prerequisites: [W2, W3]
+  - id: W10
+    role: decision_episode
+    prerequisites: [W3, W12]
+  - id: W7
+    role: validation_and_final_veto
+    prerequisites: [W2, W4]
+  - id: W9
+    role: outcome_calibration
+    prerequisites: [W7, W10]
+  - id: W11
+    role: capital_allocation
+    prerequisites: [W2, W7, W10, W12]
+  - id: MODULE_0017
+    role: embedded_breach_reclaim_validation
+    prerequisites: [W2, W4, W7]
+  - id: MODULE_0018
+    role: embedded_net_edge_survival_control
+    prerequisites: [W2, W7, W9, W11, W12]
+edges:
+  - [W2, MODULE_0017, "time/rules/replay"]
+  - [W4, MODULE_0017, "strategy experiment family"]
+  - [W7, MODULE_0017, "validation and veto"]
+  - [W12, W10, "probability reference"]
+  - [W12, W11, "probability distribution"]
+  - [W10, W11, "ex-ante decision context"]
+  - [W11, W7, "candidate allocation for veto"]
+  - [W7, W9, "validated outcome candidate"]
+  - [W9, W12, "calibration feedback"]
+  - [W12, MODULE_0018, "probability input"]
+  - [W11, MODULE_0018, "allocation input"]
+  - [W7, MODULE_0018, "risk and veto input"]
+  - [W9, MODULE_0018, "outcome reconciliation"]
+critical_paths:
+  selected_first_slice:
+    path: [W1_ISSUE_72_ACCEPTANCE, QCLAW_ISSUE_73_COUNTERAUDIT_OR_GPT_WAIVER, W2, W4, W7, MODULE_0017_D0, MODULE_0017_BAR_ONLY_IMPLEMENTATION, MODULE_0017_OOS_VALIDATION]
+    rationale: "Reuses deterministic bars, A-share time/rule gates and validation without waiting for event, participant, probability, allocation or order runtimes."
+  capital_path:
+    path: [W12_PROBABILITY_MAIN, W10_DECISION_EPISODE, W7_RISK_ENVELOPE, W11_ALLOCATION, MODULE_0018, W9_SHADOW_CALIBRATION]
+    status: "BLOCKED_UPSTREAM"
+  event_participant_path:
+    path: [W2_POINT_IN_TIME, W3_EVIDENCE, W5_OR_W13_SOURCE_ADAPTER, W6_HYPOTHESES, W12_PROBABILITY, W7_VALIDATION]
+    status: "SOURCE_AND_RUNTIME_NOT_READY"
+anti_dependencies:
+  - "MODULE_0017 must not depend on raw order events or participant identity for BAR_ONLY scope."
+  - "MODULE_0018 must not precede W12, W11, W7 and W9 interfaces."
+  - "W11 must not invent probability when C7 is absent."
+  - "W3 physical-store migration must not block read-only governance planning, but must precede destructive consolidation."
+cycles:
+  permitted_learning_loop: "W12 -> W10/W11/W7 -> W9 -> future versioned W12 calibration"
+  rule: "The loop crosses versions/runs; it is not an in-run cyclic dependency."
+  unresolved_cycle_count: 0

@@ -1,0 +1,90 @@
+schema_version: "1.0"
+record_type: "SharedInterfaceRegistry"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+status: "CANDIDATE_FREEZE_PENDING_GPT"
+versioning_policy: "producer owns compatible versions; incompatible major changes require routed migration"
+interfaces:
+  - interface_id: "C1_MARKET_TIME_AND_AVAILABILITY"
+    version: "candidate-1"
+    producer: "W2"
+    consumers: [W3, W4, W5, W6, W7, W9, W10, W11, W12, W13, MODULE_0017, MODULE_0018]
+    required_fields: [event_time, source_time, published_at, observed_at, ingested_at, available_at, as_of, revision_id]
+    evidence: "P1/P2/P3 time and replay implementation"
+    maturity: "IMPLEMENTED_PARTIAL"
+    unknowns: ["complete source-time semantics across all vendors"]
+  - interface_id: "C2_A_SHARE_RULE_SNAPSHOT"
+    version: "candidate-1"
+    producer: "W2"
+    consumers: [W4, W7, W11, MODULE_0017, MODULE_0018]
+    required_fields: [rule_snapshot_id, market, security_type, effective_from, effective_to, t_plus_one_policy, session_policy, price_limit_policy, cost_policy]
+    evidence: "P1/P2 rule gates and governance blueprints"
+    maturity: "IMPLEMENTED_PARTIAL"
+    unknowns: ["all-board historical effective-date coverage"]
+  - interface_id: "C3_KNOWLEDGE_AND_EVIDENCE"
+    version: "candidate-1"
+    producer: "W3"
+    consumers: [W5, W6, W10, W12, W13]
+    required_fields: [record_id, source_refs, evidence_class, authenticity_status, available_at, content_hash, schema_version]
+    evidence: "public Phase 3 and accessible local mother-system contracts"
+    maturity: "IMPLEMENTED_WITH_PHYSICAL_AUTHORITY_UNKNOWN"
+    unknowns: ["public/local migration and canonical store"]
+  - interface_id: "C4_EVENT_EVIDENCE_PACKET"
+    version: "blueprint-1"
+    producer: "W5"
+    consumers: [W4, W6, W10, W12, MODULE_0017, MODULE_0018]
+    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    unknowns: ["point-in-time expectation-state reconstruction"]
+  - interface_id: "C5_PARTICIPANT_FLOW_EVIDENCE_PACKET"
+    version: "blueprint-1"
+    producer: "W13"
+    consumers: [W4, W6, W10, W12, MODULE_0017, MODULE_0018]
+    required_semantics: [observed_activity, participant_category_claim, identity_confidence, direction, amount, source_lineage]
+    prohibitions: ["market signature as account identity", "vendor fund flow as exchange order flow"]
+    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    unknowns: ["licensed point-in-time sources and field mappings"]
+  - interface_id: "C6_STRATEGY_EXPERIMENT_FAMILY"
+    version: "candidate-1"
+    producer: "W4"
+    consumers: [W7, W9, W11, W12, MODULE_0018]
+    required_fields: [strategy_id, hypothesis_id, feature_versions, parameter_version, data_manifest_refs, rule_snapshot_ref, cost_model_ref, split_protocol, result_refs]
+    maturity: "PARTIAL_CANDIDATES"
+    unknowns: ["canonical serialization and promotion lifecycle"]
+  - interface_id: "C7_PROBABILITY_ESTIMATE"
+    version: "pr66-candidate-1"
+    producer: "W12_DS02"
+    consumers: [W7, W10, W11, MODULE_0018]
+    required_semantics: [target_event, horizon, conditional_state, estimate, interval, base_rate, evidence_refs, counterevidence_refs, calibration_ref, abstention]
+    maturity: "DRAFT_PR_NOT_MAIN"
+    unknowns: ["GPT merge decision and compatible public runtime"]
+  - interface_id: "C8_DECISION_EPISODE"
+    version: "blueprint-1"
+    producer: "W10"
+    consumers: [W9, W11, W12]
+    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    unknowns: ["minimal ex-ante freeze runtime"]
+  - interface_id: "C9_CANDIDATE_ALLOCATION"
+    version: "blueprint-1"
+    producer: "W11"
+    consumers: [W7, W9, MODULE_0018]
+    maturity: "CONTRACTED_BLOCKED"
+    blockers: [C7_PROBABILITY_ESTIMATE, C10_VALIDATION_AND_RISK]
+  - interface_id: "C10_VALIDATION_AND_RISK"
+    version: "candidate-1"
+    producer: "W7"
+    consumers: [W4, W9, W11, W12, MODULE_0017, MODULE_0018]
+    required_semantics: [point_in_time, t_plus_one, costs, capacity, liquidity, sample_split, multiple_testing, abstention, veto_reasons]
+    maturity: "IMPLEMENTED_PARTIAL"
+    unknowns: ["single canonical W7RiskEnvelope runtime"]
+  - interface_id: "C11_OUTCOME_CALIBRATION"
+    version: "blueprint-1"
+    producer: "W9"
+    consumers: [W10, W11, W12, MODULE_0018]
+    maturity: "GOVERNANCE_PARTIAL_RUNTIME"
+    unknowns: ["canonical record and shadow reconciliation runtime"]
+freeze_result:
+  duplicate_producer_count: 0
+  fully_implemented_count: 0
+  partially_implemented_count: 5
+  contracted_or_blueprint_count: 6
+  consumer_implementation_release_rule: "No downstream implementation may infer absent fields; UNKNOWN and abstention must propagate."

@@ -1,0 +1,43 @@
+schema_version: "1.0"
+record_type: "UnplannedImprovementLedger"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+budget:
+  task_weight: STRATEGIC
+  max_new_architecture_proposals: 3
+  max_new_skill_candidates: 0
+  max_unplanned_files: 8
+items:
+  - item_id: UI1
+    item: "Normalize two malformed amed_policy keys and one YAML scalar on the isolated branch."
+    authority_class: A
+    actual_disposition: "ABSORBED_BY_LATER_MAIN_INTEGRATION"
+    evidence: "latest main contained equivalent safe fixes"
+    compatibility_impact: NONE
+    rollback: "revert the integration commit"
+  - item_id: UI2
+    item: "Add deterministic governance validator."
+    authority_class: A
+    actual_disposition: "IMPLEMENTED_IN_TASK_PACKAGE"
+    evidence: "validates YAML/JSON/UTF-8, canonical pointers, single writers, interfaces, DAG and secret-like values"
+    compatibility_impact: NONE
+    rollback: "remove validate_convergence.py with the task package"
+  - item_id: UI3
+    item: "Create a separate W3 physical system-of-record migration decision."
+    authority_class: C
+    actual_disposition: "PROPOSAL_ONLY"
+    evidence: "local brain_core and public Phase 3 coexist without a migration receipt"
+    compatibility_impact: "potential future canonical storage decision"
+    rollback: "close proposal without changing either runtime"
+  - item_id: UI4
+    item: "Deprecate consumed 0018 supplemental registration files after consumer search."
+    authority_class: C
+    actual_disposition: "PROPOSAL_ONLY"
+    evidence: "PROGRAM-INDEX and execution sequence now contain the same registration"
+    compatibility_impact: "unknown external router consumers"
+    rollback: "retain supplements"
+summary:
+  architecture_proposals: 2
+  skill_candidates: 0
+  unplanned_files: 1
+  budget_exceeded: false

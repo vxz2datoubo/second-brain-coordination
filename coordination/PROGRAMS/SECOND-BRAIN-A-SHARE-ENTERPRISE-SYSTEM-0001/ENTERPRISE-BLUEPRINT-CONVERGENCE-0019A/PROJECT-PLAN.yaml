@@ -6,9 +6,10 @@ issue: 72
 parent_issue: 31
 mode: "PROJECT_PLAN"
 boundary: "research_only / NO_TRADE"
-base_sha: "28954192ff1208705c986b620c33239bca3fb79b"
+original_base_sha: "28954192ff1208705c986b620c33239bca3fb79b"
+integrated_main_sha: "7c7b04e6d2e31f0f10f458ea7f22322ef92fcc23"
 branch: "codex/enterprise-blueprint-convergence-0019a"
-pull_request: null
+pull_request: 74
 mission: >-
   Converge W1-W13 and embedded modules 0017/0018 into one evidence-backed
   authority, interface, maturity and dependency baseline without implementing
@@ -22,7 +23,7 @@ stages:
   - id: S2
     percent: 50
     name: "authority interface and maturity audit"
-    status: "IN_PROGRESS"
+    status: "COMPLETE"
     outputs:
       - ENTERPRISE-BLUEPRINT-CURRENT-STATE-AUDIT.md
       - CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml
@@ -31,7 +32,7 @@ stages:
   - id: S3
     percent: 75
     name: "dependency duplication and slice selection"
-    status: "PENDING"
+    status: "COMPLETE"
     outputs:
       - DEPENDENCY-DAG-AND-CRITICAL-PATH.yaml
       - PARALLEL-SAFETY-AND-WIP-MATRIX.yaml
@@ -40,7 +41,7 @@ stages:
   - id: S4
     percent: 100
     name: "governance proposals validation and handoff"
-    status: "PENDING"
+    status: "COMPLETE"
     outputs:
       - AMED-AGENT-EXECUTION-RECEIPT.yaml
       - AMED-RESEARCH-LEDGER.yaml
@@ -52,7 +53,7 @@ stages:
 resume:
   worktree: "F:/aidanao-codex-enterprise-blueprint-convergence-0019a"
   command: "git status --short --branch"
-  rule: "Resume from the first stage whose status is not COMPLETE after re-reading remote ACTIVE-CODEX-TASK.yaml."
+  rule: "Fetch main, re-read remote ACTIVE-CODEX-TASK.yaml, then resume from the first stage whose status is not COMPLETE."
 hard_stops:
   - "new canonical runtime required"
   - "protected authority replacement required"

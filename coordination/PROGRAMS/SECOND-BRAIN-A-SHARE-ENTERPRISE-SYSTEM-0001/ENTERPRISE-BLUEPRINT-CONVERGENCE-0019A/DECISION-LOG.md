@@ -4,9 +4,9 @@
 - `task_id`: CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A
 - `boundary`: research_only / NO_TRADE
 
-## D-001 Exact Baseline
+## D-001 Baseline And Latest-Main Integration
 
-Use remote `main` commit `28954192ff1208705c986b620c33239bca3fb79b` as the only task baseline. The shared `F:/aidanao` root is dirty with other-Agent work, so all changes stay in the isolated task worktree.
+The task started from remote `main` commit `28954192ff1208705c986b620c33239bca3fb79b`, then integrated remote governance changes through `7c7b04e6d2e31f0f10f458ea7f22322ef92fcc23`. The shared `F:/aidanao` root is dirty with other-Agent work, so all changes stay in the isolated task worktree.
 
 ## D-002 Logical Authority Versus Physical Runtime
 
@@ -23,3 +23,15 @@ Blueprint and contract presence do not prove implementation. Synthetic tests pro
 ## D-005 Scope
 
 This branch may repair governance spelling, references and machine-readable consistency. New interfaces, Skills, data sources and business runtimes remain proposal-only.
+
+## D-006 Physical W3 Authority
+
+Freeze W3 as the single logical owner, but keep the physical local/public memory system of record as `UNKNOWN_MIGRATION_REQUIRED`. Preserve both implementations until inventory, dry-run migration, hash/count reconciliation and rollback are independently reviewed.
+
+## D-007 First Business Slice
+
+Select only `0017 BAR_ONLY reference-zone breach/reclaim plus T+1 validation`. It has the strongest current data/replay reuse and the lowest dependence on unimplemented event, participant, probability, allocation and order systems. Selection is not activation.
+
+## D-008 Independent Gate
+
+PR #70 supplies a candidate QCLAW package but is not yet evidence that PR #58 passed it. Issue #73 remains an independent audit lane and cannot edit Codex authority files. A business slice waits for GPT acceptance of this task plus Issue #73 completion or explicit waiver.
