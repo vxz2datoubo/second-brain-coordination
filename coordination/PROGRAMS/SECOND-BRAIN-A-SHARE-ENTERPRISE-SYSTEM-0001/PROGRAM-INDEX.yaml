@@ -1,14 +1,34 @@
-schema_version: "1.5"
+schema_version: "1.6"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 program_name: "第二大脑＋A股交易研究企业级总工程"
-program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
-previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.2.md"
+program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md"
+previous_program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.3.md"
 project_blueprint_integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.3.md"
 master_issue: 31
 current_status: "ACTIVE_MULTI_WORKSTREAM_COORDINATION"
 mode: "project_plan"
 boundary: "research_only / NO_TRADE"
 impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001-PHASE0.yaml"
+
+enterprise_execution_governance:
+  protocol_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+  short_name: "AMED"
+  status: "ACTIVE_ENTERPRISE_STANDARD"
+  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
+  agent_receipt_template: "coordination/TEMPLATES/AMED-AGENT-EXECUTION-RECEIPT-TEMPLATE-v1.0.yaml"
+  research_ledger_template: "coordination/TEMPLATES/AMED-RESEARCH-LEDGER-TEMPLATE-v1.0.yaml"
+  gpt_second_pass_audit_template: "coordination/TEMPLATES/AMED-GPT-SECOND-PASS-AUDIT-TEMPLATE-v1.0.yaml"
+  applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
+  all_non_trivial_tasks_require_amed_contract: true
+  active_discovery_required: true
+  double_loop_system_backwrite_required: true
+  executor_cannot_self_approve_major_expansion: true
+  gpt_second_pass_audit_required: true
+  direct_main_write: false
+  auto_merge: false
+  no_trade: true
 
 program_objectives:
   - "Unify Second Brain, A-share research, data, event intelligence, multi-agent game, validation, and AI operations under one enterprise architecture."
@@ -18,6 +38,7 @@ program_objectives:
   - "Compile every material blueprint method into an existing skill, candidate skill, reference-only item, rejected item or explicit research unknown."
   - "Track daily institution, Northbound, passive/programmatic, active-seat and state-linked stabilization evidence without confusing activity, identity, direction or amount."
   - "Track confirmed policy calendars, high-prior unconfirmed windows, expectations, multi-dimensional surprises, pre-event pricing, cross-asset reactions and A-share transmission without confusing recurrence, rumor, surprise or causality."
+  - "Require every non-trivial agent task to complete the main delivery, active discovery and system-evolution proposal under bounded exploration and evidence-backed second-pass review."
   - "Define systems of record, contracts, dependencies, milestones, acceptance gates, rollback, user correction, belief revision and probability calibration."
   - "Select and launch testable vertical slices rather than implementing all modules at once."
 
@@ -64,9 +85,10 @@ registered_blueprints:
 
 workstreams:
   - id: "W1"
-    name: "Enterprise Architecture and Governance"
-    owner: "CODEX + GPT"
+    name: "Enterprise Architecture, Governance and AMED Mission Execution"
+    owner: "GPT + CODEX"
     source_issue: 31
+    blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
     status: "ACTIVE_PROGRAM_GOVERNANCE"
   - id: "W2"
     name: "Market Data and Replay"
@@ -110,19 +132,21 @@ workstreams:
     related_issues: [4, 7, 63, 67, 68]
     status: "PARTIAL_FOUNDATION_EXISTS"
   - id: "W9"
-    name: "Shadow Mode and Engineering Learning"
+    name: "Shadow Mode, Engineering Learning, Outcome Calibration and Double-Loop Evolution"
     owner: "GPT + CODEX"
-    related_issues: [30, 61, 62, 63, 67, 68]
-    status: "POLICY_EXISTS_AUTOMATION_QUEUED"
+    related_issues: [30, 31, 61, 62, 63, 67, 68]
+    blueprint: "coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md"
+    amed_blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+    status: "ACTIVE_GOVERNANCE_AND_AUTOMATION_QUEUED"
   - id: "W10"
-    name: "Personal Epistemic Cognitive OS: World Model, Personal Cognitive Model, Decision Calibration, and Metacognitive Governance"
+    name: "Personal Epistemic Cognitive OS"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
     related_issues: [38, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
     research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
     status: "REGISTERED_READY_FOR_PROJECT_PLAN"
   - id: "W11"
-    name: "Kelly-Thorp Expected Value, Probabilistic Edge, and Robust A-share Capital Allocation"
+    name: "Kelly-Thorp Expected Value and Robust A-share Capital Allocation"
     owner: "GPT + CODEX + QCLAW + WORKBUDDY"
     related_issues: [23, 38, 59, 60, 61, 62, 63, 67, 68]
     blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
@@ -150,44 +174,53 @@ workstreams:
     status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
 
 activation_sequence:
-  - "Continue Issue #59 atomization, digestion, and adversarial validation."
-  - "Continue Issue #60 M0 long-term-memory audit and project plan."
-  - "Issue #61 performs C0 non-duplication audit and a C0-C7 PEOS project plan before canonical implementation."
-  - "Issue #62 performs K0 non-duplication audit and a K0-K7 Kelly-Thorp project plan."
-  - "Issue #63 performs D0 repository/local-blueprint skill-gap audit and a D0-D6 project plan."
-  - "Issue #67 performs a W13 D0 repository/local source, license, disclosure-regime, non-duplication and validation-capability audit before implementation."
-  - "Issue #68 performs a W5 policy/macro/news/cross-asset D0 source, calendar, expectation, non-duplication and validation-feasibility audit after the current Codex gates."
-  - "Do not implement all thirteen W12 candidate skills, all ten W13 subskills or all twelve PMN subskills simultaneously."
-  - "W13 first vertical slice is official participant evidence; PMN first vertical slice is official calendar/event packet and a fact-first cross-asset shadow bulletin."
-  - "After W13 and PMN D0 plans, GPT freezes shared event/evidence/expectation/participant interfaces and activates at most one implementation slice at a time."
-  - "GPT assigns non-overlapping branches and file ownership to Codex, QCLAW, and WorkBuddy."
-  - "Run shadow-mode cognitive, probability, allocation, participant-flow, policy-news, research-integrity and engineering calibration before any high-risk deployment."
+  - "Every new or reopened non-trivial task must inherit AMED before it can become READY."
+  - "Continue Issue #59 atomization, digestion, and adversarial validation under AMED reporting."
+  - "Issue #60 remains frozen until correct M0 re-audit and AMED task contract."
+  - "Issue #61 performs C0 non-duplication audit and C0-C7 PEOS plan before implementation."
+  - "Issue #62 performs K0 non-duplication audit and K0-K7 Kelly-Thorp plan."
+  - "Issue #63/PR #66 closes W12 D0 and absorbs W13, PMN and AMED governance deltas."
+  - "Issue #67 performs W13 D0 source, license, disclosure-regime, non-duplication and validation audit."
+  - "Issue #68 performs W5 PMN D0 source, calendar, expectation, non-duplication and validation audit."
+  - "Do not implement all W12, W13 or PMN child skills simultaneously."
+  - "After W13 and PMN D0 plans, GPT freezes shared interfaces and activates at most one implementation slice at a time."
+  - "GPT assigns non-overlapping branches and file ownership."
+  - "Run shadow-mode cognitive, probability, allocation, participant-flow, policy-news, AMED process, research-integrity and outcome calibration before high-risk deployment."
 
 wip_policy:
   max_major_active_workstreams: 3
-  rule: "Issue #59 and #60 may continue while #61, #62, #63, #67 and #68 perform planning-only work. Canonical implementation requires an explicit WIP decision, frozen interfaces and separate file ownership."
+  rule: "Canonical implementation requires explicit WIP decision, frozen interfaces, AMED contract and separate file ownership."
   max_initial_w12_child_vertical_slices: 3
   max_initial_w13_vertical_slices: 1
   max_initial_w5_pmn_vertical_slices: 1
   codex_single_active_route: true
+  discovery_proposal_does_not_expand_wip: true
+
+amed_task_governance:
+  task_weights: [LIGHT, STANDARD, STRATEGIC]
+  research_levels: [L1_REUSE_AND_QUICK_CHECK, L2_TARGETED_PROFESSIONAL_RESEARCH, L3_INDEPENDENT_RESEARCH_TASK]
+  improvement_classes: [A_SAFE_LOCAL_AUTONOMOUS, B_BOUNDED_IMPLEMENT_AND_REPORT, C_PROPOSAL_ONLY, D_PROHIBITED_OR_USER_GATE]
+  primary_task_priority: true
+  exploration_budget_required: true
+  research_ledger_required: true
+  negative_results_required: true
+  alternatives_and_tradeoffs_required: true
+  gpt_second_pass_gates:
+    - TASK_COMPLETENESS_GATE
+    - FACT_EVIDENCE_GATE
+    - RESEARCH_QUALITY_GATE
+    - ENGINEERING_CORRECTNESS_GATE
+    - IMPROVEMENT_VALUE_GATE
+    - SYSTEM_EVOLUTION_GATE
+    - NEXT_ACTION_GATE
+  executor_major_expansion_self_approval: false
+  system_backwrite_after_gpt_acceptance_only: true
 
 skill_gap_governance:
   lifecycle: [FRAME, BELIEVE, LEARN, CHOOSE, TIME, SIZE, PORTFOLIO, SURVIVE, EXECUTE, VALIDATE, MONITOR, ATTRIBUTE, EVOLVE]
   maturity_states: [DISCOVERED, MENTIONED, MAPPED_TO_LIFECYCLE, CANDIDATE_SKILL_REGISTERED, RESEARCH_VALIDATED, CONTRACTED, IMPLEMENTED, A_SHARE_BACKTESTED, SHADOW_VALIDATED, VALIDATED_RESEARCH_CAPABILITY]
-  material_method_must_be_classified_as:
-    - EXISTING_SKILL_SUBCAPABILITY
-    - CANDIDATE_INDEPENDENT_SKILL
-    - REFERENCE_ONLY
-    - REJECTED
-    - UNKNOWN_NEEDS_RESEARCH
-  blocking_findings:
-    - ORPHAN_TERM
-    - GHOST_CAPABILITY
-    - FORMULA_WITHOUT_ASSUMPTIONS
-    - SKILL_WITHOUT_A_SHARE_MAPPING
-    - IMPLEMENTED_WITHOUT_VALIDATION
-    - DUPLICATE_RUNTIME
-    - MATURE_STATUS_INFLATION
+  material_method_must_be_classified_as: [EXISTING_SKILL_SUBCAPABILITY, CANDIDATE_INDEPENDENT_SKILL, REFERENCE_ONLY, REJECTED, UNKNOWN_NEEDS_RESEARCH]
+  blocking_findings: [ORPHAN_TERM, GHOST_CAPABILITY, FORMULA_WITHOUT_ASSUMPTIONS, SKILL_WITHOUT_A_SHARE_MAPPING, IMPLEMENTED_WITHOUT_VALIDATION, DUPLICATE_RUNTIME, MATURE_STATUS_INFLATION]
   blueprint_presence_is_not_implementation: true
   formula_correctness_is_not_a_share_validation: true
   skill_count_is_not_success_metric: true
