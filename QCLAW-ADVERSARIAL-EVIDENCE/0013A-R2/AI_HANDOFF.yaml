@@ -1,0 +1,130 @@
+# AI_HANDOFF
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+handoff_id: "QCLAW-0013A-R2-HANDOFF"
+handoff_from: QCLAW
+handoff_to: "GPT (primary reviewer), Codex (PR #58 consumer)"
+
+# === PACKAGE STATUS ===
+
+status: READY_FOR_CONSUMPTION
+completion_signal: "QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION"
+package_combined_sha256: "51315f4622fa4ef3c43cfbad1fa43cf79d55abe5f238f6599e2015c500a42135"
+
+# === WHAT THIS PACKAGE IS ===
+
+description: >
+  An independent, immutable, 110-query adversarial evidence package designed
+  to be consumed by Codex PR #58 (Phase 4 knowledge gateway). The package
+  tests 13 categories of knowledge-retrieval adversarial scenarios against
+  the canonical Phase 3 offline memory runtime (PR #57, merge SHA 473d0ec).
+
+  All queries, expected behaviors, and forbidden behaviors were authored by
+  QCLAW without reading Codex source code, test answers, or hidden answer
+  keys. Expected atom IDs are derived from QCLAW's own knowledge atomization
+  outputs (Issues #59-#63).
+
+# === PACKAGE STRUCTURE ===
+
+contents:
+  r1_delivery:
+    adversarial_queries:
+      - "AC-01-precise-facts.v2.yaml (8 queries)"
+      - "AC-02-negation.yaml (8 queries)"
+      - "AC-03-premises-exceptions.yaml (8 queries)"
+      - "AC-04-historical-versions.yaml (8 queries)"
+      - "AC-05-conflicts.yaml (8 queries)"
+      - "AC-06-unknown-abstain.yaml (10 queries)"
+      - "AC-07-forbidden-recall.yaml (8 queries)"
+      - "AC-08-source-requirements.yaml (8 queries)"
+      - "AC-09-filter-tests.yaml (8 queries)"
+      - "AC-10-relationship-traversal.yaml (8 queries)"
+      - "AC-11-language-encoding.yaml (10 queries)"
+      - "AC-12-budget-omission.yaml (8 queries)"
+      - "AC-13-security-attacks.yaml (8 queries)"
+    packaging:
+      - "README.md"
+      - "MANIFEST.yaml"
+      - "AI_HANDOFF.yaml (this file, updated R2)"
+
+  r2_amed_receipts:
+    - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+    - "PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
+    - "AMED-LEGACY-INHERITANCE-RECEIPT.yaml"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+    - "AMED-RESEARCH-LEDGER.yaml"
+    - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+    - "TEST-RUN-RECEIPT.md"
+    - "UNKNOWN-REGISTRY.yaml"
+
+# === WHAT GPT NEEDS TO DO ===
+
+gpt_actions:
+  - action: "Review the INDEPENDENCE attestation"
+    detail: "Verify that QCLAW did not contaminate queries with Codex answer keys"
+
+  - action: "Review the PACKAGE-IMMUTABILITY receipt"
+    detail: "Confirm all 16 original files match their frozen SHA256 hashes"
+
+  - action: "Review TEST-RUN-RECEIPT"
+    detail: "All 110 queries pass structure, completeness, and safety tests"
+
+  - action: "Review UNKNOWN-REGISTRY"
+    detail: "9 unresolved unknowns documented; Codex should address before execution"
+
+  - action: "Review AMED receipts"
+    detail: "Research ledger, improvement ledger, execution receipt, legacy inheritance"
+
+  - action: "Review SYSTEM-DISCOVERY report"
+    detail: "Architecture drift findings (ACTIVE-QCLAW-TASK.yaml missing, atom ID
+      namespace gap, sycophancy patterns) and process improvement proposals"
+
+  - action: "Decide on C-class proposals"
+    detail: "3 proposals: shared adversarial query schema (UPI-004), GitHub API
+      pipeline tool (UPI-005), atom ID namespace registry (UPI-006)"
+
+  - action: "Signal acceptance"
+    detail: "If accepted, signal to Codex to consume PR #70 for PR #58 execution.
+      Completion signal: QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION"
+
+# === WHAT CODEX NEEDS TO DO ===
+
+codex_actions:
+  - action: "Confirm format compatibility"
+    detail: "PR #70 YAML format vs PR #58 evaluation harness input schema"
+
+  - action: "Declare in-scope AC categories"
+    detail: "Which of 13 categories PR #58 implements; mark out-of-scope as SKIPPED"
+
+  - action: "Declare atom ID namespace"
+    detail: "Publish atom ID scheme or provide mapping from QCLAW AMNS-XXXX IDs"
+
+  - action: "Declare UNKNOWN vs ABSTAIN semantics"
+    detail: "Before executing AC-06 queries"
+
+  - action: "Execute all 110 queries"
+    detail: "Against PR #58 runtime, without modifying any query or expected answer"
+
+  - action: "Report results"
+    detail: "Per-query pass/fail + actual atoms returned + failure classification.
+      Do not delete failing queries. Do not rewrite expected answers."
+
+# === NEXT TASK (after PR #70 acceptance) ===
+
+next_task: "Issue #73: QCLAW-ENTERPRISE-BLUEPRINT-INDEPENDENT-ADVERSARIAL-AUDIT-0019Q"
+release_gate: "PR #70 accepted, PR #58 ready, Codex Issue #72 has Draft PR, GPT explicitly releases #73"
+next_branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
+
+# === SAFETY ===
+
+safety: PUBLIC_SAFE
+authority: CANDIDATE_ONLY
+trade: NO_TRADE
+secrets: NONE_PRESENT
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"

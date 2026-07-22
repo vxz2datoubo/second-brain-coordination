@@ -1,0 +1,87 @@
+# INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+attestation_id: "QCLAW-0013A-R2-INDEPENDENCE-ATTESTATION"
+
+# === INDEPENDENCE CLAIMS ===
+
+claims:
+  - claim_id: IND-001
+    claim: "QCLAW did not read Codex PR #58 source code."
+    evidence: >
+      At no point during the authoring of the 110 adversarial queries (AC-01
+      through AC-13) did QCLAW issue any read, fetch, checkout, or inspection
+      command targeting the Codex branch 'codex/phase4-knowledge-gateway-0007',
+      PR #58 diff, PR #58 file tree, or any Codex-authored test harness.
+    method: "QCLAW limited reads to: (a) Issue #38 body/comments for Q2 spec,
+      (b) QCLAW own knowledge atomization in Issues #59-#63 directories,
+      (c) public main branch governance files. All web_fetch and gh api calls
+      were target-scoped and logged."
+
+  - claim_id: IND-002
+    claim: "QCLAW did not read Codex hidden answer keys or test expected outputs."
+    evidence: >
+      No file from the Codex test/ directory, evaluation harness, or answer-key
+      registry was opened, fetched, or inspected. All expected atom IDs in
+      adversarial queries are derived from QCLAW's own atomization outputs
+      (0008 knowledge atoms, 0010 PEOS, 0011 Kelly-Thorp, 0012 Decision Science).
+
+  - claim_id: IND-003
+    claim: "Expected atom IDs are sourced from QCLAW workspace, not from Codex."
+    evidence:
+      sources:
+        - "Issue #59 / 0008 directory: knowledge atomization architecture and digestion output"
+        - "Issue #61 / 0010 directory: PEOS cognitive research atoms"
+        - "Issue #62 / 0011 directory: Kelly-Thorp capital allocation atoms"
+        - "Issue #63 / 0012 directory: Decision Science skill gap atoms"
+      verification: >
+        Each expected_atom_id field in the query files references atoms
+        produced or registered by QCLAW sub-agents during Issues #59-#63
+        execution. No atom ID from the Codex namespace was used.
+
+  - claim_id: IND-004
+    claim: "QCLAW did not modify any query or expected answer after observing Codex behavior."
+    evidence: >
+      At the time of attestation signing, QCLAW has not observed any Codex
+      PR #58 runtime output, test results, or query-execution traces against
+      this package. The queries were designed and frozen before any Codex
+      consumption could occur.
+
+  - claim_id: IND-005
+    claim: "No Codex-authored content is embedded in this package."
+    verification: >
+      A full-text scan of all 16 files confirms no references to Codex
+      branch paths, Codex test harness internals, Codex internal atom IDs,
+      or Codex hidden evaluation schemas. All architectural references
+      (PR #58 merge SHA, Issue #38 spec) are from public main branch content
+      explicitly authorized for reading.
+
+# === NON-CONTAMINATION ===
+
+non_contamination_rules:
+  - "This package must be consumed as-is by Codex PR #58."
+  - "Codex must not modify queries, expected behaviors, or forbidden behaviors."
+  - "If Codex disagrees with an expected answer, a separate CORRIGENDUM.yaml must be filed."
+  - "QCLAW will not participate in any back-and-forth adjustment of answer keys."
+  - "Failing queries must be preserved; they are adversarial test evidence, not defects."
+
+# === BOUNDARY PROOF ===
+
+boundary_proof:
+  qclaw_workspace_sources_only:
+    - "0008/ knowledge atomization (Issue #59)"
+    - "0010/ PEOS cognitive atoms (Issue #61)"
+    - "0011/ Kelly-Thorp atoms (Issue #62)"
+    - "0012/ Decision Science atoms (Issue #63)"
+  codex_sources_read: []
+  codex_sources_referenced_but_not_read:
+    - "PR #58 merge SHA 473d0ec (read from public issue metadata, not from PR diff)"
+    - "Issue #38 Q2 spec (read from public issue body, not from Codex branch)"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
