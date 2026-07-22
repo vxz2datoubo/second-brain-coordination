@@ -1,233 +1,146 @@
-schema_version: "3.0"
+schema_version: "4.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: 63
-task_id: "CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3.yaml"
-mode: "target"
-mode_label: "目标模式＋PR收口与W13/PMN/AMED增量吸收"
-mode_reason: >
-  W12 D0 has already been delivered in Draft PR #66 with SUCCESS_WITH_FINDINGS.
-  The remaining path is bounded and explicit: synchronize the existing branch with latest
-  main, preserve verified D0 evidence, resolve conflicts, absorb W13, PMN and AMED only as
-  post-D0 governance deltas, rerun affected evidence checks and return the same PR for GPT
-  seven-gate second-pass review. No new project plan or child runtime is required in this closeout.
+active_issue: 72
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A.yaml"
+mode: "project_plan"
+mode_label: "项目计划模式＋全工程蓝图、权威、接口、成熟度与依赖收敛"
+mode_reason: >-
+  Recent AMED, W13, PMN, 0017 and 0018 additions create cross-module authority,
+  interface, maturity and sequencing questions. The path is not a bounded implementation:
+  Codex must audit repository and accessible-local reality, reconcile conflicts and produce
+  a self-contained convergence plan before any business vertical slice is activated.
 status: "READY"
 blocked_by: "none"
 parent_program: 31
-pull_request: 66
-reuse_existing_branch: "codex/w12-d0-combined-skill-gap-local-reality-audit-0013b"
-create_new_branch: false
-create_new_pr: false
+create_new_branch: true
+branch: "codex/enterprise-blueprint-convergence-0019a"
+create_new_pr: true
+draft_pull_request: true
+direct_main_write: false
+auto_merge: false
 
-amed_policy:
+amed_authoritative_inputs:
+  program_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md"
+  program_index: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+  integration_index: "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.4.md"
+  convergence_map: "coordination/BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-MAP-v1.0.md"
+  authority_registry: "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
+  execution_sequence: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/ACTIVE-EXECUTION-SEQUENCE-v1.0.yaml"
+  accepted_previous_pr: 66
+  issues: [31, 61, 62, 63, 67, 68, 69, 71, 72]
+
+amed_amed_policy:
   policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
-  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
-  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-  task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
-  agent_receipt_template: "coordination/TEMPLATES/AMED-AGENT-EXECUTION-RECEIPT-TEMPLATE-v1.0.yaml"
-  research_ledger_template: "coordination/TEMPLATES/AMED-RESEARCH-LEDGER-TEMPLATE-v1.0.yaml"
-  gpt_second_pass_audit_template: "coordination/TEMPLATES/AMED-GPT-SECOND-PASS-AUDIT-TEMPLATE-v1.0.yaml"
-  task_weight: "STANDARD"
+  task_weight: "STRATEGIC"
   research_trigger:
     level: "L1_REUSE_AND_QUICK_CHECK"
-    reason: "Bounded repository governance closeout; escalate to L2 only for a material unresolved current-source or architecture conflict."
+    escalation: "Use L2 only for current official rules, material local capability conflicts or unresolved architecture evidence."
   exploration_budget:
     primary_delivery_share: "85%"
     active_discovery_share: "10%"
     system_opportunity_share: "5%"
-    max_new_architecture_proposals: 2
+    max_new_architecture_proposals: 3
     max_new_skill_candidates: 0
-    max_unplanned_files: 5
+    max_unplanned_files: 8
     scope_expansion_without_gate: false
   improvement_authority:
     A_SAFE_LOCAL_AUTONOMOUS:
-      - "Fix stale references, YAML, tests, documentation consistency and evidence receipts on the existing branch."
+      - "Fix spelling drift, broken references, YAML consistency and machine-readable mismatches on the task branch."
     B_BOUNDED_IMPLEMENT_AND_REPORT:
-      - "Add backward-compatible governance fields or receipts required for W13, PMN and AMED mapping."
+      - "Add backward-compatible governance fields, matrices and migration/deprecation records required for convergence."
     C_PROPOSAL_ONLY:
-      - "Any new interface, skill, runtime, data source or follow-up task discovered."
+      - "Any new interface, Skill, data source, canonical runtime or new business workstream."
     D_PROHIBITED_OR_USER_GATE:
-      - "Canonical runtime changes, credentials, accounts, real trade, service lifecycle, auto-merge or direct main write."
+      - "Real trade, account, credential, service, order, auto-merge, destructive migration or protected-authority replacement."
   second_pass_audit_required: true
+
+mission_intent: >-
+  Verify and converge W1-W13 plus embedded modules 0017 and 0018 into one executable
+  enterprise blueprint with single-writer authorities, shared contracts, evidence-backed
+  maturity, a dependency DAG and a ranked next-vertical-slice decision.
+
+system_position:
+  owner_workstream: W1
+  consumes_workstreams: [W2, W3, W4, W5, W6, W7, W8, W9, W10, W11, W12, W13]
+  embedded_modules_under_review: [0017, 0018]
+  creates_business_runtime: false
+  creates_new_workstream: false
+
+required_action:
+  - "Read Issue #72, this route, the TaskImpactForecast, convergence map, authority registry, PROGRAM-INDEX, integration index and execution sequence."
+  - "Record exact main SHA, PR #66 head/base and current repository state before edits."
+  - "Create branch codex/enterprise-blueprint-convergence-0019a from exact current main and open one Draft PR."
+  - "Audit W1-W13, 0017 and 0018 across blueprints, Issues, PRs, Skills, tests, active routes, registration supplements and accessible-local evidence."
+  - "Build a canonical authority matrix and prove each core object has one write owner."
+  - "Build a shared interface registry with producer, consumers, version, maturity, unknowns and migration rules."
+  - "Recalculate module maturity using evidence; do not treat a blueprint, formula or fluent report as implementation."
+  - "Classify every duplicate, orphan, ghost, stale reference and naming drift as FIXED, MIGRATE, REFERENCE_ONLY, DEPRECATE, REJECTED or UNKNOWN."
+  - "Verify 0017 remains embedded in W4/W7 and 0018 remains embedded in W7/W9/W11; do not create W14."
+  - "Build the dependency DAG, critical path, parallel-safety matrix and WIP limits."
+  - "Rank W13, PMN, 0017, W12, W11 and 0018 candidate slices using data readiness, reuse, point-in-time feasibility, incremental value, risk and validation cost."
+  - "Recommend exactly one next business vertical slice, plus alternatives and why they were not selected."
+  - "Update proposed PROGRAM-INDEX, integration index and execution sequence on the task branch; do not edit main."
+  - "Run YAML, UTF-8, stale-reference, duplicate-authority, secret-pattern and relevant governance tests with actual commands and exit codes."
+  - "Deliver AMED receipts, negative findings, UNKNOWN registry, rollback and AI_HANDOFF."
+
+mandatory_outputs:
+  - "ENTERPRISE-BLUEPRINT-CURRENT-STATE-AUDIT.md"
+  - "CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml"
+  - "SHARED-INTERFACE-REGISTRY.yaml"
+  - "MODULE-MATURITY-LEDGER.yaml"
+  - "DEPENDENCY-DAG-AND-CRITICAL-PATH.yaml"
+  - "PARALLEL-SAFETY-AND-WIP-MATRIX.yaml"
+  - "DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT.md"
+  - "NEXT-VERTICAL-SLICE-SELECTION.md"
+  - "Updated governance index proposals"
+  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+  - "AMED-RESEARCH-LEDGER.yaml"
+  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+  - "TEST-RUN-RECEIPT.md"
+  - "UNKNOWN-REGISTRY.yaml"
+  - "AI_HANDOFF.yaml"
+
+acceptance_gates:
+  - "No core object has multiple write authorities."
+  - "0017 and 0018 create no parallel runtime or W14."
+  - "All maturity states have evidence or UNKNOWN."
+  - "PROGRAM-INDEX, integration index, execution sequence and route are mutually consistent."
+  - "Exactly one next business vertical slice is recommended with evidence and alternatives."
+  - "All tests and scans report actual pass/fail/skip."
+  - "No real trade, account, credential, service, market-data or order runtime change."
+
+forbidden:
+  - "Do not implement W13, PMN, 0017, 0018, W11 or W12 business vertical slices."
+  - "Do not create collectors, models, backtests, allocation engines, risk engines, portfolios, execution or orders."
+  - "Do not create W14 or a second canonical runtime."
+  - "Do not merge PR #66 or any new PR automatically."
+  - "Do not delete verified historical artifacts; use migration/deprecation records."
+  - "Do not rewrite inaccessible local evidence as verified."
+  - "Do not exceed the AMED exploration budget or implement C/D-class discoveries."
 
 previous_task:
   issue: 63
-  task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
-  status: "SUCCESS_WITH_FINDINGS_PENDING_GPT_REVIEW_AND_LATEST_MAIN_SYNC"
   pull_request: 66
-  base_sha_reported: "64a42895e49b31f4aa1de62d6db54bf54d4a555a"
-  head_sha_reported: "a429077fd835a3f3b6709e853123869e6ee386fa"
+  task_id: "CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3"
+  status: "GPT_ACCEPTED_WITH_BOUNDED_AMENDMENT_DRAFT_NOT_AUTO_MERGED"
   preserve_all_verified_evidence: true
 
-latest_control_plane_delta:
-  program_index_schema: "1.6"
-  enterprise_charter: "coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md"
-  modules:
-    - module_id: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
-      workstream: "W13"
-      issue: 67
-      status: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
-      blueprint: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      skill_contract: "coordination/SKILLS/A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-SKILL-v1.0.yaml"
-      research_validation: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-RESEARCH-VALIDATION-v1.0.md"
-      backtest_protocol: "coordination/BLUEPRINTS/A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
-    - module_id: "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015"
-      workstream: "W5"
-      issue: 68
-      status: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
-      blueprint: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      skill_contract: "coordination/SKILLS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-SKILL-v1.0.yaml"
-      research_validation: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-RESEARCH-VALIDATION-v1.0.md"
-      backtest_protocol: "coordination/BLUEPRINTS/A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
-    - module_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
-      workstream: "W1 + W9"
-      issue: 31
-      status: "ACTIVE_ENTERPRISE_STANDARD"
-      blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
-      machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-
-required_action:
-  - "Read this route, the bound R3 TaskImpactForecast, AMED policy, PR #66, Issue #63 and latest remote main."
-  - "Record the exact latest-main SHA before integration."
-  - "Use the existing PR #66 branch; do not create a replacement branch or duplicate PR."
-  - "Rebase onto or merge latest main using a documented, reproducible conflict-resolution path."
-  - "Preserve the original PR #66 head SHA and compare before/after so verified D0 evidence is not silently lost."
-  - "List every conflict file and explain the resolution decision."
-  - "Absorb W13, PMN and AMED only as post-D0 governance deltas: maturity, lifecycle, dependencies, ownership, non-duplication, task execution and validation gates."
-  - "Classify W13 as REGISTERED_READY_FOR_D0_PROJECT_PLAN / NOT_IMPLEMENTED / NOT_BACKTESTED / NO_TRADE."
-  - "Classify PMN as REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN / NOT_IMPLEMENTED / NOT_BACKTESTED / NO_TRADE."
-  - "Classify AMED as ACTIVE_ENTERPRISE_STANDARD / GOVERNANCE_ONLY / NO_BUSINESS_RUNTIME / NO_TRADE."
-  - "Map W13 to W2, W5, W6, W7, W9, W10, W11 and W12 without creating a second runtime."
-  - "Map PMN to W2, W5, W6, W7, W9, W10, W11, W12 and W13; map PR #8 as historical evidence requiring PMN D0 disposition."
-  - "Map AMED to W1 and W9 and to all Agent routers, TaskImpactForecast, execution receipt, research ledger and GPT second-pass audit; it must not change business systems of record."
-  - "Do not redo all D0 artifacts unless a concrete latest-main conflict invalidates a specific artifact."
-  - "Complete the main delivery before optional discovery work; stay within the AMED exploration budget."
-  - "Perform active discovery for stale assumptions, missing fields, duplicate authority, evidence gaps, hidden cost and bounded follow-up opportunities."
-  - "Any new interface, skill, runtime, source or task discovered is C_PROPOSAL_ONLY."
-  - "Update PR #66 feedback v2, UNKNOWN registry, test receipt, outcome calibration and AI_HANDOFF with this R3 work."
-  - "Add AMEDAgentExecutionReceipt, AMEDResearchLedger, UnplannedImprovementLedger and SystemDiscoveryAndOpportunityReport."
-  - "Run affected YAML/UTF-8/stale-reference/secret-pattern/governance tests plus existing relevant CI; report actual commands, exit codes, pass/fail/skip."
-  - "Push to the existing branch and update Draft PR #66."
-  - "Report completion to Issues #63 and #31 using the exact completion signal."
-
-required_w13_delta_findings:
-  - "W13 does not create a second market-data, event-evidence, replay, probability, risk, memory or execution runtime."
-  - "Participant activity, identity, direction and amount remain separate semantics."
-  - "Post-2024 Northbound official public activity is not represented as daily net flow without authoritative data."
-  - "Brokerage seat is not a real person; ETF flow is not an exact National Team amount; public market signatures are not program-account identity."
-  - "W13 first task remains Issue #67 D0 planning, followed by at most one official-evidence-first vertical slice after GPT approval."
-
-required_pmn_delta_findings:
-  - "PMN does not create a second event/news/evidence, market, calendar, replay, probability, risk, memory or execution runtime."
-  - "Historical recurrence or a late-July policy prior is not represented as an officially confirmed meeting date."
-  - "News is not represented as surprise without a frozen ex-ante expectation or explicit EXPECTATION_UNKNOWN."
-  - "Pre-event price movement may raise a leakage hypothesis but is not proof of insider access or identity."
-  - "A single bond yield, equity index, FX or commodity move is not a complete policy explanation."
-  - "A sell-the-news label requires evidence of pre-pricing plus post-event reversal or deterioration."
-  - "PMN first task remains Issue #68 D0 planning; no collector, model or bulletin implementation is allowed in this closeout."
-
-required_amed_delta_findings:
-  - "Every non-trivial task requires Mission Intent, System Position, Hard Boundaries, Active Discovery Duty, Improvement Authority and Exploration Budget."
-  - "Research trigger levels L1/L2/L3 are explicit and L3 work is split rather than silently expanded."
-  - "A/B/C/D unplanned-improvement authority is enforced; the executor cannot self-approve major expansion."
-  - "The main delivery remains primary and discovery does not expand WIP."
-  - "Execution reports contain enough evidence for GPT seven-gate second-pass audit."
-  - "Reusable findings are proposed for system backwrite but only GPT acceptance can update enterprise standards."
-
-mandatory_amed_delivery:
-  - "AMEDAgentExecutionReceipt"
-  - "AMEDResearchLedger with L1 searches and any L2 escalation evidence"
-  - "UnplannedImprovementLedger"
-  - "SystemDiscoveryAndOpportunityReport"
-  - "AlternativeAndTradeoffSummary"
-  - "Exact fact classifications"
-  - "Negative and null findings"
-  - "Rollback and security receipt"
-
-execution_feedback_v2_required:
-  identity_and_mode: true
-  current_goal_and_success_criteria: true
-  phase_and_percentage: true
-  branch_base_head_sha_and_pr: true
-  environment_and_actual_elapsed_time: true
-  changed_files: true
-  commands_exit_codes_tests_pass_fail_skip: true
-  verified_facts_inferences_and_unknowns: true
-  research_trigger_sources_counterevidence_and_a_share_mapping: true
-  unplanned_improvements_authority_evidence_impact_and_rollback: true
-  active_discovery_task_module_cross_module_and_enterprise_findings: true
-  difficulties_root_causes_attempts_and_resolution: true
-  failures_and_blockers: true
-  unexpected_findings_risks_and_opportunities: true
-  recommendations_for_task_and_whole_system: true
-  key_decisions_evidence_and_alternatives: true
-  conflict_resolution_receipt: true
-  security_receipt: true
-  next_steps_and_ai_handoff: true
-
-forbidden:
-  - "Do not implement DS-01, DS-02, DS-10 or any other W12 child runtime."
-  - "Do not implement W13 collectors, adapters, databases, actor models, daily bulletin or backtest in this closeout task."
-  - "Do not implement PMN source collectors, calendars, expectation models, surprise compilers, pricing-state models, cross-asset bulletins or backtests in this closeout task."
-  - "Do not create an AMED business runtime, second task scheduler, second evidence system or second learning database."
-  - "Do not create a second canonical market, calendar, event, evidence, replay, probability, memory, risk, portfolio, execution or order system."
-  - "Do not discard PR #66 artifacts merely to resolve conflicts."
-  - "Do not rewrite inaccessible local evidence as verified."
-  - "Do not access credential values, broker/account data, perform service lifecycle changes or conduct real trading."
-  - "Do not start Issue #67 or Issue #68 before GPT accepts refreshed PR #66 and explicitly releases the task."
-  - "Do not exceed the AMED exploration budget or implement C/D-class discoveries."
+next_task_queue_after_acceptance:
+  - "Issue #72 conclusion selects the order."
+  - "Candidate D0 tasks: Issue #67 W13, Issue #68 PMN, Issue #69 0017, Issue #62 W11 K0, Issue #71 0018."
+  - "Candidate business slices: one W13, PMN, 0017, W12, W11 or 0018 slice only."
 
 execution_contract:
-  sync_latest_main: true
-  existing_branch: "codex/w12-d0-combined-skill-gap-local-reality-audit-0013b"
-  existing_pull_request: 66
-  draft_pull_request: true
-  auto_merge: false
-  report_to_issues: [63, 31]
-  progress_checkpoints: [50, 100]
-  direct_main_write: false
-  completion_signal: "W12_D0_PR66_REFRESHED_FOR_GPT_REVIEW"
-  after_completion: "WAIT_FOR_GPT_SEVEN_GATE_SECOND_PASS_AUDIT"
-
-next_task_queue:
-  - order: 1
-    issue: 67
-    task_id: "CODEX-W13-D0-DAILY-PARTICIPANT-FLOW-PLAN-0014A"
-    mode: "project_plan"
-    mode_label: "项目计划模式＋仓库与可访问本地来源实况审计"
-    amed_task_weight: "STRATEGIC"
-    amed_research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
-    release_gate: "GPT accepts refreshed PR #66 through AMED seven-gate audit or records bounded remediation that does not invalidate W13/PMN foundations."
-    objective: "Perform W13 D0 non-duplication, source/license, disclosure-regime, local capability and validation audit; produce a self-contained D0-D6 plan without implementation."
-  - order: 2
-    issue: 68
-    task_id: "CODEX-W5-PMN-D0-POLICY-MACRO-NEWS-PLAN-0015A"
-    mode: "project_plan"
-    mode_label: "项目计划模式＋仓库与可访问本地来源实况审计"
-    amed_task_weight: "STRATEGIC"
-    amed_research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
-    release_gate: "GPT accepts W13 D0 plan or records bounded remediation and shared event/evidence requirements."
-    objective: "Perform PMN D0 source/calendar/license, ex-ante expectation, cross-asset coverage, PR #8 reuse, replay and validation feasibility audit; produce D0-D6 plan without implementation."
-  - order: 3
-    issue: 68
-    task_id: "CODEX-W5-PMN-VS1-POLICY-CALENDAR-CROSS-ASSET-BULLETIN-0015B"
-    mode: "target"
-    mode_label: "目标模式＋官方日历事件包与跨资产影子简报"
-    amed_task_weight: "STRATEGIC"
-    release_gate: "GPT accepts W13 and PMN D0 plans, freezes shared contracts and explicitly selects PMN VS1."
-    objective: "Implement only official-source point-in-time calendar/event packets, expectation-or-UNKNOWN snapshots, cross-asset reaction maps and a fact-first no-trade shadow bulletin."
-  - order: 4
-    issue: 67
-    task_id: "CODEX-W13-VS1-OFFICIAL-EVIDENCE-BULLETIN-0014B"
-    mode: "target"
-    mode_label: "目标模式＋官方证据首个纵向切片"
-    amed_task_weight: "STRATEGIC"
-    release_gate: "GPT accepts W13 and PMN D0 plans, freezes shared contracts and explicitly selects W13 VS1."
-    objective: "Implement only the official-evidence-first participant-flow adapter and fact-first shadow bulletin, with no identity overclaim or live order path."
+  report_to_issues: [72, 31]
+  progress_checkpoints: [25, 50, 75, 100]
+  completion_signal: "ENTERPRISE_BLUEPRINT_CONVERGENCE_READY_FOR_GPT_REVIEW"
+  after_completion: "WAIT_FOR_GPT_AMED_SEVEN_GATE_REVIEW"
 
 safety_boundary:
   research_only: true
@@ -237,10 +150,5 @@ safety_boundary:
   no_service_lifecycle_changes: true
   inaccessible_local_evidence_must_be_unknown: true
 
-notes: >
-  Codex must finish the bounded PR #66 synchronization and W13/PMN/AMED governance absorption
-  before starting Issue #67 or #68. The task is STANDARD with L1 research and a tight exploration
-  budget. Complete the main delivery first, report active discoveries, propose rather than implement
-  new system-level work, then stop for GPT seven-gate second-pass review.
 updated_by: "GPT"
-updated_at: "2026-07-22"
+updated_at: "2026-07-23"
