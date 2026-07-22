@@ -4,6 +4,8 @@
 >
 > `implementation_issue: #62`
 >
+> `user_approval: GRANTED_BY_CURRENT_BLUEPRINT_INTEGRATION_REQUEST`
+>
 > 本文件只描述需要写回三份本地受保护权威蓝图的章节差异，不复制其正文。
 
 ## 一、写回“第二大脑权威总蓝图”
@@ -87,7 +89,7 @@
 - specialized_blueprint: `...SKILL-BLUEPRINT-v1.0.md`
 - research_validation: `...RESEARCH-VALIDATION-v1.0.md`
 - machine_readable_skill: `coordination/SKILLS/...v1.0.yaml`
-- protected_backwrite_status: `PENDING_USER_APPROVAL`
+- protected_backwrite_status: `USER_APPROVED_LOCAL_EXECUTION_PENDING`
 - runtime_status: `NOT_IMPLEMENTED`
 - boundary: `research_only / NO_TRADE`
 
@@ -95,7 +97,7 @@
 
 本地权威回写只有在以下条件满足后才能登记为完成：
 
-1. 用户批准回写；
+1. 用户批准回写，当前已满足；
 2. 三份蓝图都增加对应章节或正式引用；
 3. Manifest或版本哈希已更新；
 4. 不出现第二套Kelly或风险权威；
@@ -103,4 +105,4 @@
 6. 新旧规则无隐式冲突；
 7. 回写完成状态反馈至Issue #31和#62。
 
-当前状态：`PROTECTED_MASTER_BACKWRITE_PENDING_USER_APPROVAL`。
+当前状态：`USER_APPROVED / LOCAL_PROTECTED_MASTER_EXECUTION_PENDING`。
