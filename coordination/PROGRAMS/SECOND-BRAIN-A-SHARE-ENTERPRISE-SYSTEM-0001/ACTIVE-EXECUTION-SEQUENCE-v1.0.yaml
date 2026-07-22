@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 program_id: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
 as_of: "2026-07-22"
 owner: "GPT"
@@ -14,8 +14,9 @@ stabilization_assessment:
     - "W10 PEOS, W11 Kelly-Thorp and W12 decision-science skill family have coherent bounded contexts and explicit non-duplication rules."
     - "PROGRAM-INDEX points to v1.3 and correctly marks W10-W12 as registered/planning rather than implemented."
     - "PR #58 is 90% complete but blocked by missing independent QCLAW adversarial evidence."
-    - "Issues #60-#63 are registered but no matching new QCLAW/Codex execution branches were verified at stabilization time."
-    - "Old Issue #59 comments contain superseded privacy/task wording; ACTIVE-QCLAW-TASK.yaml schema 2.3 is the current router authority."
+    - "PR #64 is a useful P0 candidate but requires metadata and executable-evidence remediation before P1."
+    - "PR #65 requires M0 re-audit because it used incorrect runtime paths and stale Issue #38 status."
+    - "The former WorkBuddy W12 local-reality audit is reassigned to Codex by user instruction and consolidated into the Codex D0 lane."
     - "Open PR #8 and PR #34 contain potentially useful historical evidence but must remain parked pending W12 D0 non-duplication review."
 
 execution_principles:
@@ -23,7 +24,10 @@ execution_principles:
   - "Planning-only work may proceed in parallel when it does not modify canonical files."
   - "No more than three active execution lanes."
   - "QCLAW must not split attention across #59, #60, #61, #62 and #63 implementation simultaneously."
-  - "Codex owns project plans and canonical integration; QCLAW owns independent evidence, knowledge digestion and adversarial fixtures; WorkBuddy owns local read-only evidence and rule/data validation."
+  - "Codex owns project plans, repository reality audit, any genuinely accessible local evidence audit, and canonical integration."
+  - "QCLAW owns independent evidence, knowledge digestion and adversarial fixtures."
+  - "WorkBuddy has no active lane in this execution sequence after user-directed reassignment."
+  - "If Codex cannot access a claimed local protected source, it must record ACCESS_NOT_AVAILABLE and UNKNOWN rather than infer from filenames, old reports or agent claims."
   - "Blueprint, issue or formula existence is not implementation evidence."
 
 current_execution_lanes:
@@ -43,22 +47,28 @@ current_execution_lanes:
       - "PER-CASE-FAILURE-REPORT.md"
       - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
       - "SECURITY-SECRET-PROMPT-INJECTION-RESULTS.md"
+      - "QCLAW-FEEDBACK.yaml"
+      - "UNKNOWN-REGISTRY.yaml"
+      - "TEST-RUN-RECEIPT.md"
       - "AI_HANDOFF.yaml"
     constraints:
       - "Do not read or rewrite Codex expected outputs merely to raise pass rate."
       - "Do not create a second gateway or memory runtime."
       - "Keep failures visible."
       - "Draft PR, no auto-merge, separate branch."
-    completion_gate: "GPT verifies independence, case coverage and unchanged consumption path; PR #58 then runs the package and reports per-case metrics."
+    completion_gate: "GPT verifies independence, case coverage, logs, failures and unchanged consumption path; PR #58 then runs the package and reports per-case metrics."
 
   - lane: "B"
-    priority: "P0_PLANNING"
+    priority: "P0_PLANNING_AND_EVIDENCE"
     owner: "CODEX"
     issue: 63
-    task_id: "CODEX-W12-D0-SKILL-GAP-AUDIT-PLAN-0013B"
-    mode: "项目计划模式"
-    branch: "codex/w12-d0-skill-gap-audit-plan-0013b"
-    objective: "Perform D0 public-repository and available local-evidence audit, produce a self-contained D0-D6 plan and select at most three P0 vertical slices without implementing child runtimes."
+    task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
+    supersedes_task_ids:
+      - "CODEX-W12-D0-SKILL-GAP-AUDIT-PLAN-0013B"
+      - "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
+    mode: "项目计划模式＋仓库与可访问本地证据实况审计"
+    branch: "codex/w12-d0-combined-audit-plan-0013b"
+    objective: "Perform D0 public-repository audit plus any genuinely accessible local protected-blueprint, code, skill, test and A-share-rule evidence audit; produce a self-contained D0-D6 plan and select at most three P0 vertical slices without implementing child runtimes."
     mandatory_findings:
       - ORPHAN_TERM
       - GHOST_CAPABILITY
@@ -66,33 +76,47 @@ current_execution_lanes:
       - MATURE_STATUS_INFLATION
       - IMPLEMENTED_WITHOUT_VALIDATION
       - STALE_RULE_MAPPING
+      - ACCESS_NOT_AVAILABLE
+      - DOCUMENTATION_ONLY_NOT_RUNTIME
+      - TEST_COMMAND_NOT_EXECUTED
+    required_outputs:
+      - "PUBLIC-REPOSITORY-SKILL-REALITY-MATRIX.yaml"
+      - "LOCAL-SKILL-REALITY-MATRIX.yaml or ACCESS-NOT-AVAILABLE-REPORT.md"
+      - "PROTECTED-BLUEPRINT-v1.3-BACKWRITE-EXECUTION-REPORT.md or precise pending/unknown report"
+      - "A-SHARE-RULE-SOURCE-AND-EFFECTIVE-DATE-MATRIX.yaml"
+      - "DUPLICATE-OR-ORPHAN-CAPABILITY-FINDINGS.md"
+      - "PR64-PR65-REALITY-AND-REMEDIATION-MATRIX.md"
+      - "D0-D6-PROJECT-PLAN.md"
+      - "CODEX-FEEDBACK.yaml"
+      - "OUTCOME-CALIBRATION-REVIEW.yaml"
+      - "UNKNOWN-REGISTRY.yaml"
+      - "TEST-RUN-RECEIPT.md"
+      - "AI_HANDOFF.yaml"
     required_decisions:
       - "Classify each material method as existing subcapability, candidate skill, reference-only, rejected or unknown."
       - "Freeze ownership and non-duplication boundaries across W7, W10, W11, OMS and canonical memory."
       - "Recommend no more than three first vertical slices."
+      - "Reconcile PR #57 real Python runtime and PR #58 current candidate implementation before accepting PR #65 non-duplication claims."
+      - "Determine whether PR #8 and PR #34 are reusable evidence, migration inputs, reference-only artifacts or should be closed."
+    local_evidence_rules:
+      - "Use only sources Codex can actually open and inspect."
+      - "Record exact paths, hashes, commands and timestamps for every local fact."
+      - "If protected blueprints or local code are inaccessible, return ACCESS_NOT_AVAILABLE and UNKNOWN."
+      - "Do not infer implementation from filenames, documentation, prior agent reports or process/port presence alone."
+      - "Do not expose credential values or broker/account secrets."
+      - "Read-only unless a later explicit write task is issued."
     forbidden:
       - "No child-skill runtime implementation."
       - "No canonical memory, risk, portfolio, execution or order-path modification."
       - "No automatic child issue explosion."
+      - "No service lifecycle, broker/account action or secret-value access."
 
-  - lane: "C"
-    priority: "P0_EVIDENCE"
-    owner: "WORKBUDDY"
-    issue: 63
-    task_id: "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
-    mode: "目标模式＋本地只读实况审计"
-    branch: "workbuddy/w12-local-skill-reality-audit-0013c"
-    objective: "Read-only audit the local protected blueprints, code, skills, tests and A-share rule sources to distinguish mentioned, implemented and actually validated capabilities."
-    outputs:
-      - "LOCAL-SKILL-REALITY-MATRIX.yaml"
-      - "PROTECTED-BLUEPRINT-v1.3-BACKWRITE-EXECUTION-REPORT.md"
-      - "A-SHARE-RULE-SOURCE-AND-EFFECTIVE-DATE-MATRIX.yaml"
-      - "DUPLICATE-OR-ORPHAN-CAPABILITY-FINDINGS.md"
-      - "AI_HANDOFF.yaml"
-    constraints:
-      - "Read-only unless a later explicit write task is issued."
-      - "No credential values, no account/broker actions and no service lifecycle changes."
-      - "Do not infer implementation from filenames or documentation alone."
+reassigned_and_inactive_lanes:
+  - former_lane: "C"
+    former_owner: "WORKBUDDY"
+    former_task_id: "WORKBUDDY-W12-LOCAL-SKILL-REALITY-AUDIT-0013C"
+    status: "REASSIGNED_TO_CODEX_AND_CONSOLIDATED_IN_LANE_B"
+    reason: "User explicitly requested that the WorkBuddy task be given to Codex."
 
 queued_after_current_lanes:
   - order: 1
@@ -100,9 +124,9 @@ queued_after_current_lanes:
     action: "GPT reviews PR #58; merge only if independent cases, failures and security gates pass."
   - order: 2
     gate: "PR #58 accepted or explicit remediation plan recorded"
-    action: "QCLAW starts Issue #60 M0 long-term-memory non-duplication audit and benchmark plan."
+    action: "QCLAW repairs PR #64 evidence metadata, then resumes Issue #59 P1/P1A; Issue #60 remains frozen until PR #65 re-audit is accepted."
   - order: 3
-    gate: "Issue #63 D0 plan accepted"
+    gate: "Issue #63 combined D0 plan and evidence audit accepted"
     action: "Freeze the first P0 skill slices and shared contracts. Recommended default: DS-01 Decision Framing, DS-02 Bayesian/Forecast Fusion and DS-10 Research Overfitting Audit."
   - order: 4
     gate: "DecisionFrame and probability contracts frozen"
@@ -121,10 +145,13 @@ parked_items:
   - item: "PR #34"
     status: "PARKED_FOR_W12_D0_RECONCILIATION"
     rationale: "Contains WorkBuddy QCLAW local-audit evidence; useful as evidence but privacy, authority and architecture rules have since changed."
+  - item: "PR #65"
+    status: "FROZEN_PENDING_CODEX_D0_REAUDIT"
+    rationale: "Contains potentially useful M0 architecture, but current-runtime audit uses incorrect paths and stale gateway status and lacks the full execution feedback package."
 
 success_definition:
   - "PR #58 blocker is resolved with independent QCLAW evidence."
-  - "Issue #63 produces a verified non-duplication and maturity map before child runtimes."
-  - "Local protected blueprints are backwritten to v1.3 references with hashes and no hidden conflicts."
+  - "Issue #63 produces a verified repository and available-local-evidence non-duplication and maturity map before child runtimes."
+  - "Local protected blueprints are backwritten to v1.3 references with hashes, or inaccessible elements are explicitly recorded as UNKNOWN."
   - "Only selected vertical slices enter implementation."
   - "W10-W12 remain research-only and cannot produce real orders."
