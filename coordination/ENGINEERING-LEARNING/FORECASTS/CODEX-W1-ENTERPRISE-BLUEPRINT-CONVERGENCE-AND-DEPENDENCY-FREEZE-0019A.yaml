@@ -22,7 +22,7 @@ success_criteria:
   - "A single ranked next-business-slice recommendation is produced with evidence and alternatives."
   - "No business runtime, backtest, portfolio, risk gate or order path is implemented."
 
-amed_inputs:
+inputs:
   - "Program Charter v1.4"
   - "PROGRAM-INDEX schema 1.8"
   - "Project Blueprint Integration Index v1.4"
@@ -53,26 +53,26 @@ negative_side_effects:
   - risk: "Direct edits to shared governance files cause conflict."
     control: "Use a dedicated branch and Draft PR; do not write main or auto-merge."
 
-amed_unknowns:
+unknowns:
   - "Exact current accessible-local implementations outside the public repository."
   - "Whether all current registration supplements have already been consumed by another branch."
   - "Final data readiness ranking of W13 versus PMN versus 0017."
   - "Whether W11/0018 interfaces need one shared NetExpectedValueInterval schema or only adapters."
   - "Whether PR #66 will be merged before or after Issue #72 completes."
 
-amed_stop_conditions:
+stop_conditions:
   - "A requested change requires a new canonical runtime."
   - "Two protected authorities conflict and cannot be reconciled without user decision."
   - "The task would modify market data, account, credential, service or order runtime."
   - "Verified PR #66 assets would be lost or rewritten without evidence."
   - "WIP would exceed one active Codex route."
 
-amed_rollback:
+rollback:
   - "Revert Issue #72 branch/PR; authoritative main runtime remains unchanged."
   - "Keep historical v1.3 integration index and prior registry versions."
   - "Do not delete existing module artifacts; use deprecation or reference-only dispositions."
 
-amed_metrics:
+metrics:
   - "duplicate_write_authority_count"
   - "unresolved_shared_interface_count"
   - "stale_or_broken_reference_count"
@@ -82,14 +82,16 @@ amed_metrics:
   - "candidate_slice_readiness_score"
   - "yaml_utf8_reference_secret_scan_findings"
 
-amed_forecast:
+forecast:
   expected_value: "HIGH_GOVERNANCE_VALUE"
   delivery_risk: "MEDIUM"
   runtime_risk: "LOW_BY_DESIGN"
   trade_risk: "NONE_NO_TRADE"
   confidence: "MEDIUM_HIGH"
 
-amed_amed:
+amed_amed_policy_avoid: false
+amed_key_connector_note: "Do not use keys beginning with named_ because the connector rewrites them."
+amed_policy:
   task_weight: "STRATEGIC"
   research_trigger: "L1_REUSE_AND_QUICK_CHECK"
   exploration_budget:
