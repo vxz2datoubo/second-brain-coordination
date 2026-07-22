@@ -1,0 +1,56 @@
+# ============================================================================
+# AI_HANDOFF — QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A
+# ============================================================================
+
+handoff_from: "QCLAW"
+handoff_to: ["CODEX", "GPT"]
+package_id: "0013A"
+status: "CANDIDATE_DELIVERY"
+
+# --- WHAT WAS DONE ---
+summary: >
+  Designed and built 110 independent adversarial queries across 13 categories
+  for the Phase 4 knowledge gateway (PR #58). All queries were designed without
+  access to Codex's source code, tests, or answer keys. Expected/forbidden atom
+  IDs are derived from QCLAW's own knowledge atomization output.
+
+# --- WHAT REMAINS ---
+remaining_work:
+  - "Codex must execute all 110 queries against PR #58 runtime without modification"
+  - "Codex must record per-case pass/fail + actual atoms returned"
+  - "Codex must compute mandatory metrics: overall %, conflict recall, UNKNOWN recall, forbidden leakage, credential leakage"
+  - "GPT must verify independence (that QCLAW did not read Codex answers)"
+  - "GPT must verify coverage (that 13 categories cover Issue #38 Q2 requirements)"
+  - "GPT must decide whether PR #58 meets the 95-query pass threshold for merge"
+
+# --- KNOWN LIMITATIONS ---
+limitations:
+  - "Atom ID references are semantic (descriptive names, not hash-bound)"
+  - "AC-06 queries reference AMNS domain atoms which may not exist in Codex's store"
+  - "Some queries reference cross-issue atoms (#59-#63) that QCLAW created but Codex may not have ingested"
+  - "Budget-tested queries (AC-12) require Codex to configure budget limits"
+  - "Security attack queries (AC-13) test denial — results may be hard to quantify"
+
+# --- DESIGN UNKNOWNS ---
+unknowns_encountered:
+  - "Exact atom ID naming conventions in Codex's Phase 4 runtime"
+  - "Which QCLAW knowledge atoms Codex has ingested vs which are still candidate-only"
+  - "Codex's exact budget configuration and omission-reporting format"
+  - "Whether AMNS domain atoms from AC-06 exist in Codex's knowledge store"
+
+# --- HARD / UNEXPECTED / SUGGESTED ---
+observations:
+  hard: "Building 100+ queries without reading the target system's answers is inherently uncertain — expected_atom_ids may not perfectly match Codex's internal IDs"
+  unexpected: "The 13-category decomposition naturally emerged from Issue #38's Q2 requirements — each sub-pattern mapped to a specific adversarial weakness"
+  suggested: "After Codex's first execution, a second round of queries targeting discovered blind spots would be valuable"
+  recommended_expansion: "Add category AC-14 (Cross-Module Boundary) and AC-15 (Recovery/Rollback) in v2"
+
+# --- SAFETY ASSERTION ---
+safety:
+  no_credential_values: true
+  no_private_body_text: true
+  no_api_keys_or_tokens: true
+  no_trade_signals: true
+  no_runtime_code: true
+  candidate_only: true
+  independence_preserved: true

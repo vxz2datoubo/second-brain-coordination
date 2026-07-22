@@ -1,0 +1,233 @@
+# ============================================================================
+# AC-11 LANGUAGE & ENCODING STRESS — ADVERSARIAL QUERY SET
+# Tests: Chinese query for English label, mixed language, full-width chars,
+# no-space short phrase, synonym matching, cross-language, punctuation variants,
+# abbreviation expansion, whitespace normalization, Unicode edge cases
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "LANGUAGE_AND_ENCODING_STRESS"
+total_queries: 10
+
+queries:
+  - query_id: "AC11-CE-001"
+    sub_pattern: 1
+    query: >
+      凯利公式最优仓位怎么计算？
+    language: "zh"
+    domain_scope: "Kelly / Cross-Language Retrieval"
+    expected_atom_ids: ["kelly-fractional-adjustment", "kelly-lambda-drivers"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Chinese query for English-labeled content. "凯利公式" = Kelly
+      criterion, "最优仓位" = optimal position (f*). The gateway must
+      cross the language boundary and retrieve the English-labeled Kelly
+      atoms. This tests whether Chinese semantic queries reach
+      English-titled atoms.
+
+  - query_id: "AC11-ML-002"
+    sub_pattern: 2
+    query: >
+      DS-01的decision framing和influence diagram怎么设计？
+    language: "zh"
+    domain_scope: "Decision Science / Mixed Language Query"
+    expected_atom_ids: ["ds01-input-contract", "ds01-influence-diagram"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Mixed Chinese + English query. "DS-01" is English-labeled,
+      "decision framing" and "influence diagram" are English terms
+      embedded in Chinese syntax. The gateway must handle mixed-language
+      queries without losing either language's retrieval signal.
+
+  - query_id: "AC11-FW-003"
+    sub_pattern: 3
+    query: >
+      ＰＥＯＳ认知系统的ProbabilityEstimate有什么字段？
+    language: "zh"
+    domain_scope: "PEOS / Full-Width Character Encoding"
+    expected_atom_ids: ["peos-probability-estimate-schema"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Full-width character handling. "ＰＥＯＳ" uses full-width Latin
+      characters (U+FF30, U+FF25, U+FF2F, U+FF33) instead of half-width
+      "PEOS". The gateway must normalize or match these to the standard
+      half-width encoding. Failing to match due to full-width chars is
+      an encoding failure.
+
+  - query_id: "AC11-NS-004"
+    sub_pattern: 4
+    query: >
+      T+1
+    language: "zh"
+    domain_scope: "A-Share / No-Space Short Phrase"
+    expected_atom_ids: ["ashare-t1-settlement-rule"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      No-space short phrase. "T+1" is a three-character query with
+      no spaces and mixed symbols. The gateway must match this to the
+      A-share T+1 settlement rule atoms. This tests minimal-context
+      retrieval where the query is extremely short.
+
+  - query_id: "AC11-SY-005"
+    sub_pattern: 5
+    query: >
+      头寸管理方法有哪些？
+    language: "zh"
+    domain_scope: "Kelly / Synonym Matching"
+    expected_atom_ids: ["kelly-position-sizing", "kelly-lambda-drivers"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Synonym matching. "头寸管理" (position management) is synonymous
+      with "仓位管理" (position sizing/management). The gateway must
+      retrieve Kelly position sizing atoms regardless of which Chinese
+      synonym is used.
+
+  - query_id: "AC11-EC-006"
+    sub_pattern: 6
+    query: >
+      What is 知识原子化?
+    language: "en"
+    domain_scope: "Architecture / Cross-Language Concept"
+    expected_atom_ids: ["knowledge-atomization-definition"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      English query for Chinese concept. "知识原子化" is likely stored
+      under a Chinese label or mixed-content atom. The gateway must
+      perform cross-language retrieval in the opposite direction
+      (English → Chinese) from the previous test.
+
+  - query_id: "AC11-PV-007"
+    sub_pattern: 7
+    query: >
+      Kelly's criterion vs Kelly criterion
+    language: "en"
+    domain_scope: "Kelly / Punctuation Variant"
+    expected_atom_ids: ["kelly-criterion-core"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Punctuation variant. "Kelly's criterion" and "Kelly criterion"
+      should produce the same or very similar retrieval results. The
+      possessive apostrophe should not materially change retrieval
+      quality. This tests punctuation normalization.
+
+  - query_id: "AC11-AE-008"
+    sub_pattern: 8
+    query: >
+      Explain Personal Epistemic Cognitive Operating System.
+    language: "en"
+    domain_scope: "PEOS / Abbreviation Expansion"
+    expected_atom_ids: ["peos-definition", "peos-architecture"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Abbreviation expansion. The query uses the full expansion of PEOS
+      instead of the abbreviation. The gateway must recognize that
+      "Personal Epistemic Cognitive Operating System" refers to PEOS
+      and retrieve PEOS atoms.
+
+  - query_id: "AC11-WN-009"
+    sub_pattern: 9
+    query: >
+      T + 1 settlement rules
+    language: "en"
+    domain_scope: "A-Share / Whitespace Normalization"
+    expected_atom_ids: ["ashare-t1-settlement-rule"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Whitespace normalization. "T + 1" with spaces should produce the
+      same result as "T+1" without spaces. The gateway must normalize
+      whitespace around symbols without losing the semantic match.
+
+  - query_id: "AC11-UE-010"
+    sub_pattern: 10
+    query: >
+      Kelly f* → λ adjustment for μ≠0, σ>1
+    language: "en"
+    domain_scope: "Kelly / Unicode Edge Case"
+    expected_atom_ids: ["kelly-lambda-drivers", "kelly-fractional-adjustment"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Unicode edge case. The query uses → (U+2192 RIGHTWARDS ARROW),
+      ≠ (U+2260 NOT EQUAL TO), > (U+003E GREATER-THAN SIGN), μ (U+03BC
+      GREEK SMALL LETTER MU), and σ (U+03C3 GREEK SMALL LETTER SIGMA).
+      The gateway must handle these Unicode math symbols and match them
+      to Kelly atoms that use either the same symbols or their ASCII
+      approximations.
+
+suite_summary:
+  total_queries: 10
+  sub_patterns:
+    - chinese_query_english_label
+    - mixed_language
+    - full_width_characters
+    - no_space_short_phrase
+    - synonym_matching
+    - cross_language_reverse
+    - punctuation_variant
+    - abbreviation_expansion
+    - whitespace_normalization
+    - unicode_edge_case
+  difficulty_distribution: { HARD: 4, MODERATE: 6 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

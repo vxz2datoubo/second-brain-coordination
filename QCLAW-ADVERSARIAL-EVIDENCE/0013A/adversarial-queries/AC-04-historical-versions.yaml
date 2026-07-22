@@ -1,0 +1,192 @@
+# ============================================================================
+# AC-04 CURRENT vs HISTORICAL VERSIONS — ADVERSARIAL QUERY SET
+# Tests: superseded content, time-bound rules, deprecated capability,
+# version-linked claims, issue lifecycle, PR absorption, task reassignment,
+# knowledge version tracking
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "CURRENT_VS_HISTORICAL_VERSIONS"
+total_queries: 8
+
+queries:
+  - query_id: "AC04-SF-001"
+    sub_pattern: 1
+    query: >
+      What is the storage control mechanism defined PR #45?
+    language: "en"
+    domain_scope: "Architecture / Version Lineage"
+    expected_atom_ids: ["pr45-absorbed-by-pr57"]
+    forbidden_atom_ids: ["pr45-storage-original-unchanged"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Superseded content. PR #45 was absorbed into PR #57. The original
+      PR #45 implementation is now deprecated/superseded. The gateway must
+      return the "absorbed by PR #57" status rather than the original
+      PR #45 content as if it is still current.
+
+  - query_id: "AC04-TB-002"
+    sub_pattern: 2
+    query: >
+      What were the A-share settlement rules before 2026-07-06?
+    language: "en"
+    domain_scope: "A-Share / Temporal Rule Change"
+    expected_atom_ids: ["ashare-t0-historical-rule"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Time-bound rule. Before 2026-07-06, settlement was T+0. The
+      gateway must return the historically-correct version, not the
+      post-2026-07-06 T+1 rule. This tests the system's ability to
+      distinguish "what was true then" from "what is true now."
+
+  - query_id: "AC04-DC-003"
+    sub_pattern: 3
+    query: >
+      What does PR #46 implement?
+    language: "en"
+    domain_scope: "Architecture / Deprecated Capability"
+    expected_atom_ids: ["pr46-absorbed-by-pr57"]
+    forbidden_atom_ids: ["pr46-active-implementation"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Deprecated capability. Like PR #45, PR #46 was absorbed into
+      PR #57. Any implementation it contained is now superseded by
+      the canonical runtime. The gateway must note absorption, not
+      treat PR #46 as an independent current implementation.
+
+  - query_id: "AC04-VC-004"
+    sub_pattern: 4
+    query: >
+      According to the PEOS blueprint v1.0, what is the ProbabilityEstimate
+      schema?
+    language: "en"
+    domain_scope: "PEOS / Version-Linked Claim"
+    expected_atom_ids: ["peos-probability-estimate-v1"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Version-linked claim. The query anchors to "v1.0" of the blueprint.
+      If a v2.0 exists with a different schema, the gateway must return
+      the v1.0 version OR note that a newer version exists. It must not
+      silently return v2.0 content when v1.0 was asked for.
+
+  - query_id: "AC04-IL-005"
+    sub_pattern: 5
+    query: >
+      What is the current status of Issue #38?
+    language: "en"
+    domain_scope: "Task Management / Issue Lifecycle"
+    expected_atom_ids: ["issue-38-paused-preserved"]
+    forbidden_atom_ids: ["issue-38-complete", "issue-38-cancelled", "issue-38-active"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Issue lifecycle precision. Issue #38 is PAUSED_PRESERVED — not
+      COMPLETE, not CANCELLED, not ACTIVE. PR #58 remains at 90%.
+      The gateway must return the exact boolean: NOT complete, NOT
+      cancelled, waiting on independent QCLAW evidence.
+
+  - query_id: "AC04-PA-006"
+    sub_pattern: 6
+    query: >
+      Are PR #45 and PR #46 independent implementations alongside PR #57?
+    language: "en"
+    domain_scope: "Architecture / PR Absorption"
+    expected_atom_ids: ["pr45-46-absorbed-by-pr57"]
+    forbidden_atom_ids: ["pr45-independent", "pr46-independent"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      PR absorption. PR #45 and #46 were ABSORBED into PR #57 — they
+      are not independent implementations running in parallel. The
+      gateway must return the absorption relationship, not treat them
+      as peer implementations alongside the canonical runtime.
+
+  - query_id: "AC04-TR-007"
+    sub_pattern: 7
+    query: >
+      What was QCLAW's task assignment in Issue #38?
+    language: "en"
+    domain_scope: "Task Management / Reassignment"
+    expected_atom_ids: ["qclaw-task-reassigned-to-issue59"]
+    forbidden_atom_ids: ["qclaw-still-assigned-to-issue38"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Task reassignment history. QCLAW was ORIGINALLY assigned the
+      adversarial evaluation task in Issue #38, but was REASSIGNED to
+      Issue #59 (knowledge atomization architecture) and Issue #38's
+      adversarial task became a subtask. The gateway must return the
+      historical reassignment, not claim QCLAW is still working on #38.
+
+  - query_id: "AC04-KV-008"
+    sub_pattern: 8
+    query: >
+      Show the current storage_target rules AND any superseded versions.
+    language: "en"
+    domain_scope: "Architecture / Knowledge Version Tracking"
+    expected_atom_ids:
+      - "storage-targets-current"
+      - "storage-targets-superseded-patch"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Knowledge version tracking. This tests explicit historical recall:
+      the gateway must return both the CURRENT storage_target rules AND
+      the SUPERSEDED versions with their replacement lineage. Omitting
+      either the current or the superseded version is a failure.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - superseded_content
+    - time_bound_rule
+    - deprecated_capability
+    - version_linked_claim
+    - issue_lifecycle_precision
+    - pr_absorption
+    - task_reassignment
+    - knowledge_version_tracking
+  difficulty_distribution: { HARD: 4, MODERATE: 4 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

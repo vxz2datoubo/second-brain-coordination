@@ -1,0 +1,191 @@
+# ============================================================================
+# AC-10 RELATIONSHIP TRAVERSAL — ADVERSARIAL QUERY SET
+# Tests: 1-hop dependency, 2-hop dependency, reverse dependency,
+# cross-issue relation, relation type filtering, orphan detection,
+# circular dependency check, full chain traversal
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "RELATIONSHIP_TRAVERSAL"
+total_queries: 8
+
+queries:
+  - query_id: "AC10-1H-001"
+    sub_pattern: 1
+    query: >
+      What does DS-01 Decision Framing directly depend on?
+    language: "en"
+    domain_scope: "Decision Science / Dependency Traversal"
+    expected_atom_ids: ["ds01-dependencies"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      One-hop dependency. DS-01 Decision Framing has direct dependency
+      atoms that list its prerequisites. The gateway must return exactly
+      the 1-hop dependencies, not 2-hop (transitive) dependencies.
+
+  - query_id: "AC10-2H-002"
+    sub_pattern: 2
+    query: >
+      What are all transitive dependencies of DS-03 Information Value?
+    language: "en"
+    domain_scope: "Decision Science / Transitive Dependency"
+    expected_atom_ids: ["ds03-dependencies", "ds03-transitive-deps"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Two-hop dependency. DS-03 depends on DS-02 (1-hop), which depends
+      on DS-01 (2-hop). The gateway must traverse BOTH hops. Only
+      returning 1-hop is incomplete.
+
+  - query_id: "AC10-RD-003"
+    sub_pattern: 3
+    query: >
+      What skills depend on DS-02 Probability Fusion?
+    language: "en"
+    domain_scope: "Decision Science / Reverse Dependency"
+    expected_atom_ids: ["ds03-depends-on-ds02", "ds04-depends-on-ds02"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Reverse dependency traversal. The query asks for dependents
+      (reverse direction), not dependencies (forward direction).
+      DS-03, DS-04, and potentially others depend on DS-02. The
+      gateway must traverse the reverse relation correctly.
+
+  - query_id: "AC10-CR-004"
+    sub_pattern: 4
+    query: >
+      How does Issue #61 PEOS research relate to Issue #62 Kelly/Thorp?
+    language: "en"
+    domain_scope: "Cross-Module / Cross-Issue Relation"
+    expected_atom_ids:
+      - "peos-feeds-decision-episodes"
+      - "kelly-consumes-decision-episodes"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Cross-issue relation. PEOS (Issue #61) generates DecisionEpisode
+      records consumed by Kelly/Thorp (Issue #62) for position sizing.
+      The gateway must traverse the cross-issue relation between these
+      two separately-submitted knowledge domains.
+
+  - query_id: "AC10-RT-005"
+    sub_pattern: 5
+    query: >
+      List all CONFLICT relations between knowledge atoms.
+    language: "en"
+    domain_scope: "Knowledge Management / Relation Type Filter"
+    expected_atom_ids: ["ALL-CONFLICT-RELATIONS"]
+    forbidden_atom_ids: ["DEPENDS-ON-RELATIONS", "SUPERSEDES-RELATIONS"]
+    required_conflict_ids: ["ALL-CONFLICT-RELATIONS"]
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Relation type filtering. Only CONFLICT-type relations should be
+      returned. DEPENDS_ON, SUPERSEDES, RELATED_TO, and other relation
+      types must be excluded. The gateway must filter by relation type,
+      not return all inter-atom relationships.
+
+  - query_id: "AC10-OD-006"
+    sub_pattern: 6
+    query: >
+      Are there any knowledge atoms with zero relations to other atoms?
+    language: "en"
+    domain_scope: "Knowledge Management / Orphan Detection"
+    expected_atom_ids: ["ORPHAN-ATOMS-LIST"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Orphan detection. The gateway must identify atoms that have zero
+      relations (no DEPENDS_ON, no CONFLICT, no SUPERSEDES, no
+      RELATED_TO). This is a completeness check — orphan atoms may
+      indicate incomplete atomization or missing relation definitions.
+
+  - query_id: "AC10-CD-007"
+    sub_pattern: 7
+    query: >
+      Are there any circular dependencies in the decision science
+      skill dependency DAG?
+    language: "en"
+    domain_scope: "Decision Science / Cycle Detection"
+    expected_atom_ids: ["ds-skill-dag-acyclic"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Circular dependency check. The DS-01 to DS-13 skill DAG is
+      designed to be acyclic. The gateway must traverse the full DAG
+      and confirm zero cycles. If cycles exist, they must be reported
+      as failures. This tests DAG integrity awareness.
+
+  - query_id: "AC10-FC-008"
+    sub_pattern: 8
+    query: >
+      Trace the complete W11 integration chain from DS-01 through DS-13.
+    language: "en"
+    domain_scope: "Decision Science / Full Chain Traversal"
+    expected_atom_ids:
+      - "ds01-ds13-full-chain"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 13
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Full chain traversal. The query asks for the complete 13-step
+      chain from DS-01 Decision Framing through DS-13. The gateway
+      must return all 13 skills in order with their relationships.
+      Missing any skill, or presenting them out of order, is a failure.
+      This tests the full connectedness of the dependency DAG.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - one_hop_dependency
+    - two_hop_transitive_dependency
+    - reverse_dependency
+    - cross_issue_relation
+    - relation_type_filtering
+    - orphan_detection
+    - circular_dependency_check
+    - full_chain_traversal
+  difficulty_distribution: { HARD: 4, MODERATE: 4 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"
