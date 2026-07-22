@@ -1,293 +1,176 @@
-schema_version: "2.3"
+schema_version: "3.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-trigger_phrases:
-  - "读取任务"
-  - "执行任务"
-  - "开始任务"
-  - "读取任务并开始长期第二知识库"
-  - "读取任务并开始PEOS研究支持"
-  - "读取任务并开始凯利索普研究支持"
-  - "读取任务并开始决策科学技能缺口扫描"
+trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 59
-active_task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008"
-active_mode: "目标模式＋知识原子化、持续消化与对抗校验主线"
-
-active_subtasks:
-  - issue: 60
-    task_id: "QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009"
-    mode: "项目计划模式＋长期记忆架构执行线"
-    status: "READY_FOR_PLANNING"
-    recommended_branch: "qclaw/long-term-memory-palace-hybrid-retrieval-0009"
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LONG-TERM-MEMORY/0009/"
-    start_rule: "Perform M0 audit and project plan. Implementation only after Issue #59/#38/PR #57 interfaces and file ownership are frozen."
-  - issue: 61
-    task_id: "QCLAW-PEOS-COGNITIVE-RESEARCH-ADVERSARIAL-SUPPORT-0010"
-    parent_task_id: "PEOS-COGNITIVE-CALIBRATION-SYSTEM-0010"
-    mode: "目标模式＋研究消化、认知原子与对抗夹具支持线"
-    status: "PLANNING_INPUT_ONLY"
-    recommended_branch: "qclaw/peos-cognitive-research-adversarial-support-0010"
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PEOS-COGNITIVE-CALIBRATION/0010/QCLAW-SUPPORT/"
-    start_rule: "Digest research, propose canonical-compatible atoms/schemas and adversarial fixtures; do not modify canonical runtime before Codex C0 freeze."
-  - issue: 62
-    task_id: "QCLAW-KELLY-THORP-RESEARCH-ADVERSARIAL-SUPPORT-0011"
-    parent_task_id: "KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SYSTEM-0011"
-    mode: "目标模式＋凯利索普、期望值与A股仓位研究支持线"
-    status: "PLANNING_INPUT_ONLY"
-    recommended_branch: "qclaw/kelly-thorp-research-adversarial-support-0011"
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/KELLY-THORP-CAPITAL-ALLOCATION/0011/QCLAW-SUPPORT/"
-    start_rule: "Digest primary Kelly/Thorp/EV research, generate probability-event atoms and adversarial cases; do not implement the canonical optimizer."
-  - issue: 63
-    task_id: "QCLAW-DECISION-SCIENCE-SKILL-GAP-RESEARCH-SUPPORT-0012"
-    parent_task_id: "DECISION-SCIENCE-SKILL-GAP-COMPILER-0012"
-    mode: "目标模式＋决策科学研究消化、孤儿术语扫描与对抗夹具支持线"
-    status: "PLANNING_INPUT_ONLY"
-    recommended_branch: "qclaw/decision-science-skill-gap-research-0012"
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/DECISION-SCIENCE-SKILL-FAMILY/0012/QCLAW-SUPPORT/"
-    start_rule: "Read Issue #63 and W12 assets. Digest research, scan orphan terms and ghost capabilities, propose candidate skills and adversarial fixtures. Do not create portfolio/risk/execution runtimes."
-
-parent_program: 31
-related_gateway_issue: 38
-canonical_runtime_merge: "473d0ec15b28ac5e1b70db0b8a6a9ab17738161b"
-canonical_runtime: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+active_task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2"
+active_mode: "target"
+mode_label: "目标模式＋PR70独立对抗证据包AMED收口与不可变交接"
+mode_reason: >-
+  QCLAW has already delivered a concrete 110-query independent adversarial package
+  in Draft PR #70. The remaining work is bounded: preserve the package, add AMED and
+  verification receipts, prove independence and hand it unchanged to PR #58. A new
+  project plan is not needed for this closeout.
 status: "READY"
 blocked_by: "none"
+parent_program: 31
+related_gateway_issue: 38
+pull_request: 70
+target_pull_request: 58
+reuse_existing_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+create_new_branch: false
+create_new_pr: false
 
-primary_roles:
-  - "Build and maintain the knowledge atomization architecture and executable decomposition pipeline."
-  - "Continuously digest user-authorized knowledge into deterministic KnowledgeAtoms, relations and canonical-compatible LearningPackets."
-  - "Run an independent adversarial epistemic-integrity gate on every digest batch."
-  - "Design the long-term second-knowledge-base architecture through Issue #60."
-  - "Provide hybrid vector, lexical, graph, temporal, evidence and memory-palace retrieval without a duplicate fact source."
-  - "Support Issue #61 with evidence-bound cognitive-model candidates and adversarial tests."
-  - "Support Issue #62 with Kelly/Thorp/expected-value research atoms, assumptions, counterexamples and adversarial sizing cases."
-  - "Support Issue #63 by digesting decision-science research, identifying orphan terms and ghost capabilities, and maintaining skill-candidate evidence."
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2.yaml"
 
-knowledge_pipeline:
-  issue: 59
-  recommended_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
-  allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/"
-  required_components:
-    - KnowledgeSourceManifest
-    - KnowledgeDocument
-    - KnowledgeSegment
-    - KnowledgeAtom
-    - KnowledgeRelation
-    - KnowledgeConflict
-    - KnowledgeUnknown
-    - KnowledgeDigestQueue
-    - SecretScanReceipt
-    - LearningPacket
-  acceptance_rules:
-    - "Conditions, exceptions, negation, time, scope, conflicts, counterexamples and UNKNOWN survive atomization."
-    - "User claims and preferences are not silently promoted to externally verified facts."
-    - "Every material batch passes anti-sycophancy, counterevidence and security tests."
+amed_policy:
+  policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_weight: "STRATEGIC"
+  research_trigger:
+    level: "L1_REUSE_AND_QUICK_CHECK"
+    escalation: "L2 only for a material current-source, security or architecture conflict."
+  exploration_budget:
+    primary_delivery_share: "80%"
+    active_discovery_share: "15%"
+    system_opportunity_share: "5%"
+    max_new_architecture_proposals: 2
+    max_new_skill_candidates: 0
+    max_unplanned_files: 8
+    scope_expansion_without_gate: false
+  improvement_authority:
+    A_SAFE_LOCAL_AUTONOMOUS:
+      - "Fix PR #70 package formatting, manifest counts, broken references and receipt consistency without changing query semantics."
+    B_BOUNDED_IMPLEMENT_AND_REPORT:
+      - "Add backward-compatible AMED, independence, hash, test, UNKNOWN and handoff receipts inside the PR #70 package."
+    C_PROPOSAL_ONLY:
+      - "Any new query family, interface, Skill, data source, runtime or Issue #73 design change."
+    D_PROHIBITED_OR_USER_GATE:
+      - "Read Codex hidden answers, alter the canonical runtime, access secrets/accounts, trade, auto-merge or write main."
+  second_pass_audit_required: true
 
-long_term_memory_role:
-  enabled: true
-  issue: 60
-  objective: "Build a durable second knowledge base supporting semantic recall, exact recall, temporal reasoning, graph navigation, consolidation and computable memory-palace navigation."
-  memory_layers:
-    - WORKING_MEMORY
-    - EPISODIC_MEMORY
-    - SEMANTIC_MEMORY
-    - PROCEDURAL_MEMORY
-    - AUTOBIOGRAPHICAL_USER_MEMORY
-    - PROJECT_MEMORY
-    - SOURCE_MEMORY
-    - CONFLICT_AND_UNKNOWN_MEMORY
-    - META_MEMORY
-  retrievers:
-    - VECTOR_SEMANTIC_RETRIEVER
-    - LEXICAL_BM25_RETRIEVER
-    - EXACT_ID_AND_ENTITY_RETRIEVER
-    - KNOWLEDGE_GRAPH_RETRIEVER
-    - TEMPORAL_VERSION_RETRIEVER
-    - SOURCE_EVIDENCE_RETRIEVER
-    - MEMORY_PALACE_RETRIEVER
-    - USER_AND_PROJECT_SCOPE_RETRIEVER
-    - CONFLICT_UNKNOWN_RETRIEVER
-  memory_palace_contract:
-    hierarchy: [MemoryPalace, PalaceWing, MemoryRoom, MemoryLocus, MemoryObjectPlacement]
-    rule: "The palace is a computable navigation index over canonical atoms, not a duplicate body store."
-  embedding_governance:
-    provider_agnostic: true
-    backend_agnostic: true
-    local_first: true
-    chinese_first_benchmark: true
-    reembedding_supported: true
-    canonical_content_rebuilds_all_indexes: true
-    do_not_select_backend_before_benchmark: true
-  required_controls:
-    - "Hybrid retrieval and reranking; cosine similarity alone is insufficient."
-    - "Current, historical, stale, disputed and revoked memories remain distinguishable."
-    - "Conflicts, counterevidence and UNKNOWN return when relevant."
-    - "Memory decay may lower index weight but does not silently delete canonical knowledge."
+mission_intent: >-
+  Complete the independent evidence delivery required by Issue #38 and PR #58 by
+  preserving all 110 QCLAW-authored queries, proving their independence, adding
+  executable receipts and handing the package to Codex for unchanged execution.
 
-peos_cognitive_support_role:
-  enabled: true
-  issue: 61
-  blueprint: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
-  research_validation: "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OS-RESEARCH-VALIDATION-v1.0.md"
-  allowed_now:
-    - "Digest cognitive-science, decision-science, causal-inference, forecasting, user-model and AI-governance research."
-    - "Propose canonical-compatible cognitive observation, evidence, reasoning-step, decision-episode and metacognitive contracts."
-    - "Build adversarial fixtures for anti-sycophancy, state-trait confusion, roleplay contamination, outcome and hindsight bias."
-  forbidden_until_c0_contract_freeze:
-    - "Do not modify canonical Phase 3 runtime."
-    - "Do not create a second user-model, evidence, memory, gateway or decision engine."
-    - "Do not promote a single conversation into a permanent user trait."
-    - "Do not count model summaries as independent evidence."
+required_action:
+  - "Read this route, PR #70, Issue #59, Issue #38, PR #58 and the bound TaskImpactForecast."
+  - "Sync latest main and record exact main, PR #70 base/head and PR #58 head SHAs."
+  - "Use the existing PR #70 branch; do not create another branch or PR."
+  - "Hash the 110 queries and expected/forbidden behavior before edits."
+  - "Do not modify query meaning or expected outcomes after learning PR #58 behavior."
+  - "Verify manifest category counts, query counts, paths, encoding and PUBLIC_SAFE boundary."
+  - "Add AMEDAgentExecutionReceipt, AMEDResearchLedger, UnplannedImprovementLedger, SystemDiscoveryReport, TestRunReceipt, UNKNOWN and AI_HANDOFF."
+  - "Add independence and non-contamination attestation plus immutable-consumption instructions."
+  - "Run YAML, UTF-8, secret-pattern, count, reference and schema checks with actual commands and exit codes."
+  - "Update PR #70 and report the exact completion signal to Issues #59, #38 and #31 and PR #58."
+  - "Stop for GPT review; do not run the package against PR #58 unless separately authorized."
 
-kelly_thorp_support_role:
-  enabled: true
-  issue: 62
-  blueprint: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-BLUEPRINT-v1.0.md"
-  research_validation: "coordination/BLUEPRINTS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-RESEARCH-VALIDATION-v1.0.md"
-  machine_skill: "coordination/SKILLS/KELLY-THORP-EXPECTED-VALUE-CAPITAL-ALLOCATION-SKILL-v1.0.yaml"
-  allowed_now:
-    - "Digest Kelly, Thorp, expected-value, utility, robust sizing, risk-constrained growth and probability-calibration research."
-    - "Generate formula-condition, failure, counterexample, A-share rule and probability-event KnowledgeAtoms."
-    - "Build adversarial cases for negative NetEV, parameter error, correlated evidence, tail loss, T+1 and unexecutable exits."
-  forbidden_until_k0_contract_freeze:
-    - "Do not implement or modify the canonical capital-allocation optimizer."
-    - "Do not create a second risk engine, portfolio engine or order path."
-    - "Do not convert LLM confidence into position size."
-    - "Do not recommend Full Kelly as a default."
+mandatory_outputs:
+  - "Preserved 13-category, 110-query adversarial pack"
+  - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+  - "PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
+  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+  - "AMED-RESEARCH-LEDGER.yaml"
+  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+  - "TEST-RUN-RECEIPT.md"
+  - "UNKNOWN-REGISTRY.yaml"
+  - "AI_HANDOFF.yaml"
 
-skill_gap_support_role:
-  enabled: true
-  issue: 63
-  blueprint: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-AND-GAP-COMPILER-BLUEPRINT-v1.0.md"
-  root_cause_audit: "coordination/BLUEPRINTS/WHY-DECISION-SKILLS-WERE-MISSED-ROOT-CAUSE-AUDIT-v1.0.md"
-  research_validation: "coordination/BLUEPRINTS/DECISION-SCIENCE-SKILL-FAMILY-RESEARCH-VALIDATION-v1.0.md"
-  registry: "coordination/SKILLS/DECISION-SCIENCE-SKILL-FAMILY-REGISTRY-v1.0.yaml"
-  objective: "Support the Gap Compiler and skill family with source-grounded research, maturity evidence and adversarial cases without creating duplicate runtimes."
-  allowed_now:
-    - "Digest decision analysis, Bayesian fusion, information value, robust decision, stopping, bandit, portfolio, risk, execution, research-audit, regime and attribution sources."
-    - "Scan blueprints and knowledge for ORPHAN_TERM, GHOST_CAPABILITY, FORMULA_WITHOUT_ASSUMPTIONS and other candidate findings."
-    - "Propose lifecycle mapping, candidate Skill IDs, evidence levels, non-goals, counterexamples and A-share constraints."
-    - "Maintain REFERENCE_ONLY, REJECTED and UNKNOWN_NEEDS_RESEARCH items with rationale."
-  forbidden_until_d0_contract_freeze:
-    - "Do not automatically create child runtimes or issues without GPT/user approval."
-    - "Do not implement portfolio, risk, execution, OMS, market-data or knowledge authority components."
-    - "Do not label a mentioned method as implemented or validated."
-    - "Do not split highly overlapping methods into a skill zoo."
-  required_case_families:
-    - ORPHAN_TERM
-    - GHOST_CAPABILITY
-    - FORMULA_WITHOUT_ASSUMPTIONS
-    - SKILL_WITHOUT_A_SHARE_MAPPING
-    - IMPLEMENTED_WITHOUT_VALIDATION
-    - DUPLICATE_RUNTIME
-    - REFERENCE_ONLY_WITHOUT_REASON
-    - MATURE_STATUS_INFLATION
-    - NO_OWNER_OR_ISSUE
-    - NO_NEGATIVE_CASES
-    - NO_DATA_LINEAGE
-    - STALE_RULE_MAPPING
-
-adversarial_role:
-  enabled: true
-  objective: "Reduce sycophancy, confirmation bias, fabricated certainty, conflict erasure, stale-memory leakage, false profiling, unsafe sizing and capability inflation."
-  mandatory_case_families:
-    - USER_AGREEMENT_PRESSURE
-    - CONFIRMATION_BIAS
-    - FALSE_CAUSALITY
-    - MISSING_NEGATION
-    - MISSING_CONDITION
-    - MISSING_EXCEPTION
-    - CONFLICT_ERASURE
-    - UNKNOWN_ERASURE
-    - STALE_KNOWLEDGE
-    - USER_PREFERENCE_AS_FACT
-    - UNSUPPORTED_CERTAINTY
-    - FABRICATED_SOURCE
-    - VECTOR_NEIGHBOR_FALSE_MATCH
-    - CROSS_PROJECT_MEMORY_LEAK
-    - PROMPT_INJECTION
-    - SECRET_VALUE_LEAKAGE
-    - AUTHORITY_ESCALATION
-    - FALSE_COMPLETION_CLAIM
-    - STATE_TRAIT_CONFUSION
-    - ROLEPLAY_PROFILE_CONTAMINATION
-    - OUTCOME_BIAS
-    - MODEL_GENERATED_EVIDENCE_LOOP
-    - NEGATIVE_EV_POSITIVE_SIZE
-    - UNCALIBRATED_PROBABILITY_SIZING
-    - CORRELATED_FORECAST_DOUBLE_COUNT
-    - A_SHARE_UNEXECUTABLE_EXIT
-    - BLUEPRINT_TERM_AS_IMPLEMENTED_SKILL
-  rules:
-    - "Insufficient evidence produces UNKNOWN, NEEDS_VERIFICATION or ABSTAIN."
-    - "Conflicting memories and evidence coexist until evidence-backed resolution."
-    - "Failed tests remain visible and block completion."
-    - "Anti-sycophancy does not become unsupported mechanical disagreement."
-
-priority_state_machine:
-  P0: "Repair blocking atomization architecture defects."
-  P0M: "Perform Issue #60 M0 audit and project plan."
-  P0C: "Support Issue #61 research and adversarial fixtures while awaiting Codex C0 freeze."
-  P0K: "Support Issue #62 Kelly/Thorp research and adversarial fixtures while awaiting Codex K0 freeze."
-  P0D: "Support Issue #63 decision-science research, orphan-term scan and adversarial fixtures while awaiting Codex D0 freeze."
-  P1: "Digest pending authorized knowledge."
-  P1A: "Run adversarial validation on every digest batch."
-  P1M: "Build long-term-memory modules after M0 gates."
-  P1C: "Implement only explicitly assigned cognitive components after C0 approval."
-  P1K: "Implement only explicitly assigned Kelly knowledge/adversarial components after K0 approval."
-  P1D: "Implement only explicitly assigned Gap Compiler knowledge/adversarial components after D0 approval."
-  P2: "Assist explicitly assigned system construction only when primary queues and gates are clear."
-  return_rule: "New knowledge returns P1; adversarial failures return to the relevant P0/P1 line; integration conflicts return to M0/C0/K0/D0."
-
-storage_and_access_boundary:
-  all_user_authorized_non_secret_knowledge_may_enter_public_github: true
-  all_user_authorized_non_secret_knowledge_may_enter_local_architecture: true
-  dual_storage_allowed: true
-  privacy_class_blocks_public_storage: false
-  publication_license_check_required_for_third_party_material: true
-
-secret_boundary:
-  only_hard_sensitive_class: "authentication_access_and_financial_security_secret_values"
-  denied_values:
-    - "API keys, secret keys and access keys"
-    - "Tokens, refresh tokens and bearer tokens"
-    - "Account and database passwords"
-    - "Cookies, sessions and login-state tickets"
-    - "Private keys, mnemonic phrases and recovery phrases"
-    - "2FA seeds, one-time codes and recovery codes"
-    - "Bank, card, payment, broker and trading-account authentication secrets"
-  exact_redaction_required: true
-  zero_secret_storage: true
-  zero_secret_embedding: true
-  zero_secret_logging: true
-  zero_secret_commit: true
-  zero_secret_echo: true
+forbidden:
+  - "Do not edit Codex PR #58 source, tests or answer behavior."
+  - "Do not read hidden Codex expected answers before freezing the package."
+  - "Do not add unrelated Issue #72 or Issue #73 files to PR #70."
+  - "Do not create a second knowledge, evidence, memory, retrieval, probability, risk, capital or order runtime."
+  - "Do not access credential values, private bodies without explicit task authorization, broker/account data or real trading."
+  - "Do not merge PR #70 or PR #58 automatically."
 
 execution_contract:
   sync_latest_main: true
-  create_pull_request: true
+  existing_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+  existing_pull_request: 70
   draft_pull_request: true
-  auto_merge: false
   direct_main_write: false
-  no_shared_branch_with_codex: true
-  report_to_issues: [59, 60, 61, 62, 63, 31]
-  progress_checkpoints: [20, 40, 60, 80, 100]
-  resumable_execution_required: true
-  separate_branches_for_issues_59_60_61_62_63: true
-  canonical_runtime_modification_requires_explicit_integration_authorization: true
+  auto_merge: false
+  report_to_issues: [59, 38, 31]
+  report_to_pull_requests: [70, 58]
+  progress_checkpoints: [50, 100]
+  completion_signal: "QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION"
+  after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_PR58_UNCHANGED_CONSUMPTION"
 
-first_actions:
-  - "Read and resume Issue #59."
-  - "Read Issue #60 and produce the M0 audit and plan."
-  - "Read Issue #61 and prepare research/fixtures only until C0 freeze."
-  - "Read Issue #62 and prepare Kelly/Thorp research atoms and adversarial cases only until K0 freeze."
-  - "Read Issue #63 and scan orphan terms/ghost capabilities, digest research and prepare adversarial cases only until D0 freeze."
-  - "Do not implement a second canonical store, personal model, capital optimizer, risk engine, portfolio engine or execution path."
-  - "Report branch, SHA, Draft PR, tests, evidence, failures, UNKNOWN and AI_HANDOFF at checkpoints."
+queued_tasks:
+  - order: 1
+    issue: 73
+    parent_issue: 72
+    task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
+    mode: "project_plan"
+    mode_label: "项目计划模式＋企业蓝图独立对抗审计与下一切片反证"
+    task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q.yaml"
+    release_gate: >-
+      PR #70 is accepted for PR #58 consumption, Codex Issue #72 has a Draft PR with
+      all required convergence artifacts, and GPT explicitly releases Issue #73.
+    branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
+    separate_from_codex_branch: true
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-BLUEPRINT-CONVERGENCE-AUDIT/0019Q/"
+    objective: >-
+      Independently challenge the Codex blueprint-convergence delivery for duplicate
+      authority, maturity inflation, interface contradictions, hidden parallel runtime
+      and unsupported next-slice selection without editing Codex authority files.
+  - order: 2
+    issue: 60
+    task_id: "QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009"
+    mode: "project_plan"
+    status: "FROZEN_REQUIRES_CORRECT_M0_AND_NEW_ROUTE"
+  - order: 3
+    issue: 61
+    task_id: "QCLAW-PEOS-COGNITIVE-RESEARCH-ADVERSARIAL-SUPPORT-0010"
+    mode: "target"
+    status: "PLANNING_INPUT_ONLY_AFTER_C0_FREEZE"
+  - order: 4
+    issue: 62
+    task_id: "QCLAW-KELLY-THORP-RESEARCH-ADVERSARIAL-SUPPORT-0011"
+    mode: "target"
+    status: "PLANNING_INPUT_ONLY_AFTER_K0_FREEZE"
+  - order: 5
+    issue: 63
+    task_id: "QCLAW-DECISION-SCIENCE-SKILL-GAP-RESEARCH-SUPPORT-0012"
+    mode: "target"
+    status: "D0_SUPPORT_PRESERVED_NO_NEW_RUNTIME"
 
-notes: "QCLAW owns the #59 atomization/adversarial line and #60 long-term-memory line, and provides bounded research/adversarial support to #61 PEOS, #62 Kelly-Thorp and #63 decision-science skill-gap work. Codex owns project plans and canonical integration; QCLAW must not create parallel runtimes."
+preserved_long_term_role:
+  issue: 59
+  role: "Knowledge atomization, continuous digest and adversarial epistemic-integrity support"
+  authority: "CANDIDATE_ONLY"
+  canonical_runtime_write_authority: false
+  resume_rule: >-
+    Resume ongoing atomization/digest work only after the current PR #70 evidence
+    closeout or when GPT explicitly routes a bounded digest batch. New knowledge and
+    failures return to the digest queue, but cannot silently interrupt an active gated task.
+
+qclaw_and_codex_separation:
+  codex_issue_72_role: "Build canonical convergence proposals and authority/interface/maturity matrices."
+  qclaw_issue_73_role: "Independently challenge the Codex delivery with candidate-only adversarial evidence."
+  shared_branch: false
+  shared_output_files: false
+  qclaw_may_edit_codex_authority_files: false
+  codex_may_rewrite_qclaw_adversarial_questions: false
+  gpt_final_acceptance_required: true
+
+safety_boundary:
+  public_safe_only_for_current_task: true
+  candidate_only: true
+  research_only: true
+  no_trade: true
+  no_broker_account_order: true
+  credential_values_denied: true
+  direct_main_write: false
+  auto_merge: false
+
 updated_by: "GPT"
-updated_at: "2026-07-22"
+updated_at: "2026-07-23"
