@@ -1,0 +1,183 @@
+schema_version: "0.1.0"
+policy_id: teif.confidence.default
+status: PROPOSED
+review_status: PENDING_HUMAN_REVIEW
+effective_from: "2026-07-18"
+research_only: true
+trade_action: NO_TRADE
+
+principles:
+  - "Likelihood、Analytic Confidence、Data Quality 和 Model Calibration 必须分别保存和展示。"
+  - "大语言模型的语气、措辞强度或自报信心不得直接作为概率。"
+  - "证据不足、证据冲突、分布外或方法未验证时，系统必须允许保留判断。"
+  - "同源转载不得重复计算为独立证据。"
+  - "综合等级只能作为摘要，不能替代分项向量。"
+
+likelihood_bands:
+  - id: ALMOST_NO_CHANCE
+    lower_inclusive: 0.01
+    upper_exclusive: 0.05
+    zh_label: 极少可能
+  - id: VERY_UNLIKELY
+    lower_inclusive: 0.05
+    upper_exclusive: 0.20
+    zh_label: 很不可能
+  - id: UNLIKELY
+    lower_inclusive: 0.20
+    upper_exclusive: 0.45
+    zh_label: 不太可能
+  - id: ROUGHLY_EVEN
+    lower_inclusive: 0.45
+    upper_exclusive: 0.55
+    zh_label: 大致均等
+  - id: LIKELY
+    lower_inclusive: 0.55
+    upper_exclusive: 0.80
+    zh_label: 可能
+  - id: VERY_LIKELY
+    lower_inclusive: 0.80
+    upper_exclusive: 0.95
+    zh_label: 很可能
+  - id: ALMOST_CERTAIN
+    lower_inclusive: 0.95
+    upper_inclusive: 0.99
+    zh_label: 几乎确定
+
+analytic_confidence:
+  dimensions:
+    source_quality:
+      description: 来源身份、历史准确性、专业能力与利益冲突风险
+      direction: higher_is_better
+    evidence_directness:
+      description: 证据与目标陈述的直接接触程度
+      direction: higher_is_better
+    evidence_independence:
+      description: 支持证据是否真正独立而非同源转载
+      direction: higher_is_better
+    evidence_completeness:
+      description: 关键证据、时间窗口和必要字段是否完整
+      direction: higher_is_better
+    temporal_alignment:
+      description: 候选原因与结果在时间和传播链路上是否匹配
+      direction: higher_is_better
+    method_validity:
+      description: 使用方法是否适合问题、是否通过验证和稳健性检查
+      direction: higher_is_better
+    alternative_explanation_risk:
+      description: 共同原因、反向因果、同名词、平台算法和营销等替代解释风险
+      direction: lower_is_better
+    data_quality:
+      description: 数据完整性、准确性、及时性、一致性和可用性
+      direction: higher_is_better
+    model_calibration:
+      description: 模型概率与历史真实命中率的一致程度
+      direction: higher_is_better
+
+  baseline_summary_rules:
+    HIGH:
+      minimum_required_dimensions: 7
+      minimum_positive_dimension_value: 0.75
+      maximum_alternative_explanation_risk: 0.25
+      requirements:
+        - 至少两组真正独立的支持证据，或一手强证据加独立佐证
+        - 时间顺序与机制证据均不存在重大冲突
+        - 数据质量未被标记为 BLOCKED 或 FAILED
+        - 主要替代解释已被检查
+    MEDIUM:
+      minimum_required_dimensions: 6
+      minimum_positive_dimension_value: 0.50
+      maximum_alternative_explanation_risk: 0.55
+      requirements:
+        - 至少一项直接证据或多项间接证据
+        - 存在不确定性但没有致命冲突
+    LOW:
+      requirements:
+        - 证据稀少、间接、同源、时间不清或方法未经验证
+        - 存在强替代解释或关键数据缺失
+
+  summary_rule_note: >-
+    首版规则仅作为透明基线，实际计算需由 Codex 实现并通过历史案例验收。
+    任一关键门禁失败时可强制降级，不允许仅用平均分抵消致命缺陷。
+
+source_reliability_dimensions:
+  - identity_authenticity
+  - first_party_proximity
+  - historical_accuracy
+  - subject_matter_competence
+  - incentive_conflict_risk
+  - deception_or_manipulation_risk
+  - correction_and_retraction_process
+  - access_and_license_stability
+
+evidence_quality_dimensions:
+  - relevance
+  - completeness
+  - temporal_proximity
+  - integrity
+  - methodological_transparency
+  - representativeness
+  - independence
+  - reproducibility
+  - corroboration
+
+abstention_states:
+  - INSUFFICIENT_EVIDENCE
+  - AMBIGUOUS
+  - CONFLICTING_EVIDENCE
+  - OUT_OF_DISTRIBUTION
+  - DATA_QUALITY_BLOCKED
+  - METHOD_NOT_VALIDATED
+
+calibration:
+  required_metrics:
+    - brier_score
+    - log_loss
+    - expected_calibration_error
+    - reliability_diagram
+    - binned_hit_rate
+  optional_methods:
+    - temperature_scaling
+    - isotonic_regression
+    - histogram_binning
+    - conformal_prediction
+  validation_rules:
+    - 使用时间切分或滚动窗口，禁止只在训练样本上校准
+    - 按主题、平台、市场状态和预测期限分组检查
+    - 记录校准样本数、适用范围和失效日期
+
+causal_language_gate:
+  C0_TEMPORAL_ORDER_ONLY:
+    allowed_phrases:
+      - 发生在之前
+      - 时间上领先
+    forbidden_phrases:
+      - 导致
+      - 驱动
+  C1_ASSOCIATED:
+    allowed_phrases:
+      - 相关
+      - 同期变化
+  C2_PREDICTIVE_LEAD:
+    allowed_phrases:
+      - 具有预测领先关系
+      - 历史上常领先
+  C3_MECHANISM_SUPPORTED:
+    allowed_phrases:
+      - 可能通过该机制影响
+      - 机制证据支持
+  C4_QUASI_EXPERIMENTAL:
+    allowed_phrases:
+      - 准实验结果支持影响关系
+  C5_CAUSAL_SUPPORTED:
+    allowed_phrases:
+      - 多方法证据支持因果影响
+    requirements:
+      - 多种方法结果一致
+      - 主要混杂与反向因果已检验
+      - 独立复核通过
+
+change_log:
+  - version: "0.1.0"
+    date: "2026-07-18"
+    change: 建立默认概率语言、置信度向量、保留判断和因果用语门禁。
+    author_role: ChatGPT
