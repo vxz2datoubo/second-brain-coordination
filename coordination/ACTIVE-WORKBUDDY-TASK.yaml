@@ -1,17 +1,40 @@
-schema_version: "1.6"
+schema_version: "1.7"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
+
 active_issue: null
 task_id: "NO_ACTIVE_TASK"
 mode: "paused"
-mode_label: "暂停"
-status: "PAUSED"
-blocked_by: "Assigned to Codex Issue #55"
+mode_label: "暂停＋等待0017 D0合同冻结"
+status: "PAUSED_QUEUED_FOR_0017_LOCAL_VERIFICATION"
+blocked_by: "GPT_ACCEPTANCE_OF_CODEX_ISSUE69_D0_PLAN"
 parent_program: 31
-parent_wave: 53
-superseded_issue: 54
-absorbed_by_issue: 55
-notes: "No independent WorkBuddy task is active."
+
+default_response_to_task_trigger:
+  - "Report PAUSED_QUEUED_FOR_0017_LOCAL_VERIFICATION."
+  - "Do not create a branch, PR, adapter or local runtime before GPT release."
+
+future_role_after_release:
+  task_family: "0017-VS1-LOCAL-DATA-REPLAY-VERIFICATION"
+  mode: "goal"
+  allowed:
+    - "Verify local point-in-time bar coverage, timestamps, missing values and rule snapshots."
+    - "Run Codex-approved replay and validation commands."
+    - "Report actual local paths, field semantics, counts, hashes, exit codes and UNKNOWNs."
+    - "Implement only an explicitly approved thin adapter when the D0 contract requires it."
+  prohibited:
+    - "Redesign the 0017 architecture or scoring methodology."
+    - "Introduce L2/order-book/raw-tick dependencies into BAR_ONLY VS1."
+    - "Promote a local store, adapter or dataset to canonical authority."
+    - "Access broker accounts, trade, change credentials or expose private data."
+
+w3_note:
+  status: "UNKNOWN_MIGRATION_REQUIRED"
+  instruction: "Do not consolidate or migrate W3 stores unless GPT creates a separate gated task."
+
+boundary: "local_verification_only / NO_TRADE"
+direct_main_write: false
+auto_merge: false
 updated_by: "GPT"
-updated_at: "2026-07-21"
+updated_at: "2026-07-24"
