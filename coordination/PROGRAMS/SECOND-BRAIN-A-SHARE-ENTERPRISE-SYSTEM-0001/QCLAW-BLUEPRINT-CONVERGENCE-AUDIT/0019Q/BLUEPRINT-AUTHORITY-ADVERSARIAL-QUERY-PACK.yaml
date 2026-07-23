@@ -1,0 +1,2070 @@
+# ============================================================================
+# BLUEPRINT-AUTHORITY-ADVERSARIAL-QUERY-PACK
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# Generated: 2026-07-23T12:00:00+08:00
+#
+# Purpose: 18-family adversarial query pack auditing Codex PR #74
+#          enterprise blueprint convergence claims.
+# Method:  Rooted in QCLAW 0013A adversarial methodology. Each family
+#          maps to an Issue #73 adversary category. Queries probe for
+#          authority overreach, maturity inflation, ghost capability,
+#          orphan interface, broken dependency, stale reference,
+#          hidden parallel runtime, and cross-agent contamination.
+#
+# Total:   18 families, 54 queries (3 queries/family)
+#
+# Safety:  PUBLIC_SAFE, CANDIDATE_ONLY, NO_TRADE
+# ============================================================================
+
+schema_version: "1.0"
+pack_id: "QCLAW-0019Q-ADVERSARIAL-QUERY-PACK-001"
+audit_target:
+  issue: 73
+  pr: 74
+  agent: CODEX
+  branch: "codex/enterprise-blueprint-convergence-0019a"
+  commit_sha: "693550ff043ed9948ffa63e52715ba86e9542c4f"
+methodology:
+  adversarial_framework: "QCLAW-0013A: 18 adversary categories mapped to 18 query families"
+  codex_files_under_test:
+    - "ENTERPRISE-BLUEPRINT-CONVERGENCE-0019A/CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml"
+    - "ENTERPRISE-BLUEPRINT-CONVERGENCE-0019A/MODULE-MATURITY-LEDGER.yaml"
+    - "ENTERPRISE-BLUEPRINT-CONVERGENCE-0019A/NEXT-VERTICAL-SLICE-SELECTION.md"
+    - "ENTERPRISE-BLUEPRINT-CONVERGENCE-0019A/DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT.md"
+    - "ENTERPRISE-BLUEPRINT-CONVERGENCE-0019A/SHARED-INTERFACE-REGISTRY.yaml"
+  qclaw_knowledge_atoms_referenced:
+    - "0008/KnowledgeAtomization (storage/transport/access matrix, UNKNOWN registry)"
+    - "0010/PEOS-Cognitive-OS (decision lifecycle, W10/W13 contracts)"
+    - "0011/Kelly-Thorp-Capital-Allocation (W11 probability dependency, backtest gap)"
+    - "0012/Decision-Science-Skills (DS-01 through DS-13, W12 contracts)"
+  independence: "See INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+
+query_families:
+  # ==========================================================================
+  # FAMILY 1: DUPLICATE_WRITE_AUTHORITY
+  # Test that Codex doesn't claim write authority where embedded modules
+  # already own it.
+  # ==========================================================================
+  - family_id: "F01"
+    family_name: "DUPLICATE_WRITE_AUTHORITY"
+    issue_73_adversary: 1
+    description: >
+      Test that Codex's CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX does not
+      claim write authority over domains where QCLAW-embedded modules
+      (0008, 0010, 0011, 0012) already hold canonical write authority.
+      QCLAW's 0008 CANONICAL-RUNTIME-BOUNDARY.md defines the atomization
+      pipeline as QCLAW-governed; Codex must not duplicate or override
+      those write paths.
+    queries:
+      - query_id: "0019Q-F01-Q01"
+        family: "DUPLICATE_WRITE_AUTHORITY"
+        query_text: >
+          List every module in the enterprise blueprint where Codex claims
+          WRITE authority over knowledge atom storage, transport, or access
+          decision logic. For each such claim, cite the specific authority
+          matrix entry and its declared source of truth (SoR). If any of
+          these overlap with QCLAW-0008 DETERMINISTIC-IDENTITY or
+          CANONICAL-RUNTIME-BOUNDARY, flag the overlap explicitly.
+        expected_finding: >
+          If Codex claims write authority over atom storage/transport/access
+          (W3 physical store, W8 routing), these conflict with QCLAW-0008's
+          embedded ownership. The honest answer should identify at minimum
+          W3 and W8 as having unresolved authority collision with 0008.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: any WRITE authority
+          claim on knowledge atom storage, transport, or access layers.
+        evidence_required: >
+          Explicit comparison table showing Codex claimed WRITE domains
+          against QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX owned paths.
+          Each overlap must cite the specific atom ID range in 0008.
+        forbidden_behaviors:
+          - "Must NOT claim WRITE authority on any path governed by QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY"
+          - "Must NOT treat LOGICAL_AUTHORITY_FROZEN as equivalent to PHYSICAL_AUTHORITY_KNOWN"
+          - "Must NOT silently merge QCLAW-0008 and Codex write paths into a single 'consensus' authority"
+        pass_criteria: >
+          All overlapping write claims between Codex matrix and QCLAW-0008
+          are explicitly identified, with Codex either conceding the overlap
+          or providing a non-conflicting physical SoR distinct from 0008.
+
+      - query_id: "0019Q-F01-Q02"
+        family: "DUPLICATE_WRITE_AUTHORITY"
+        query_text: >
+          For W3 (local/public memory storage), examine the authority
+          matrix entry. Does Codex claim PHYSICAL_AUTHORITY over W3's
+          storage layer, and if so, what physical storage medium, hash
+          reconciliation path, and migration protocol does it cite?
+          Compare against QCLAW-0008's existing storage contracts that
+          already cover local memory, public memory, and the public-to-local
+          migration path.
+        expected_finding: >
+          Codex's own matrix marks W3 as LOGICAL_AUTHORITY_FROZEN_
+          PHYSICAL_AUTHORITY_UNKNOWN. Any claim to write authority over
+          W3 storage is contradicted by this self-assessment AND by
+          QCLAW-0008's pre-existing embedded storage contracts.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: W3 authority status
+          and physical SoR claim.
+        evidence_required: >
+          Side-by-side of Codex W3 authority entry vs. QCLAW-0008
+          STORAGE-TRANSPORT-ACCESS-MATRIX storage entries; explicit
+          identification of the physical storage migration path (PR #58
+          Draft status must be disclosed).
+        forbidden_behaviors:
+          - "Must NOT claim W3 physical store is resolved when PR #58 is a Draft PR"
+          - "Must NOT treat QCLAW-0008 storage as a 'reference implementation' subject to Codex override"
+          - "Must NOT claim authority over W3 public memory when QCLAW-0008 PUBLIC_SAFE transport is embedded"
+        pass_criteria: >
+          W3 authority status is correctly reported as FROZEN/UNKNOWN,
+          with honest disclosure of PR #58 Draft status and explicit
+          acknowledgment that QCLAW-0008 owns the existing storage contracts.
+
+      - query_id: "0019Q-F01-Q03"
+        family: "DUPLICATE_WRITE_AUTHORITY"
+        query_text: >
+          For the W8 agent routing and handoff module, does Codex's
+          authority matrix claim write authority over agent-to-agent
+          handoff protocols, routing table updates, or handoff artifact
+          generation? Compare against QCLAW-0010 PEOS-Cognitive-OS
+          decision lifecycle contracts and QCLAW-0008 AI_HANDOFF.yaml
+          which already define canonical handoff structures.
+        expected_finding: >
+          QCLAW-0008 AI_HANDOFF.yaml and 0010 PEOS contracts already
+          define agent handoff protocols. If Codex claims write authority
+          over handoff routing, it duplicates embedded 0008/0010
+          authority. QCLAW-0010 owns the handoff-to-decision pipeline.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: W8 authority scope
+          and agent routing claims.
+        evidence_required: >
+          Cross-reference of Codex W8 write authority claims against
+          QCLAW-0008 AI_HANDOFF.yaml artifact schemas and QCLAW-0010
+          decision lifecycle handoff contracts.
+        forbidden_behaviors:
+          - "Must NOT present Codex W8 handoff as the authoritative routing layer"
+          - "Must NOT claim W8 overrides or replaces QCLAW-0008 handoff formats"
+          - "Must NOT write handoff artifacts in a format incompatible with QCLAW-0010 decision ingestion"
+        pass_criteria: >
+          W8 is correctly scoped as a consumer of QCLAW-0008/0010
+          handoff schemas, not a parallel write authority over
+          handoff protocol design.
+
+  # ==========================================================================
+  # FAMILY 2: PRODUCER_CONSUMER_WRITE_CONFLICT
+  # Test C1-C11 interfaces for producer/consumer contradictions.
+  # ==========================================================================
+  - family_id: "F02"
+    family_name: "PRODUCER_CONSUMER_WRITE_CONFLICT"
+    issue_73_adversary: 2
+    description: >
+      Test every shared interface C1-C11 for contradictions between
+      the producer module's claimed output and the consumer module's
+      expected input. QCLAW's SHARED-INTERFACE-REGISTRY reports
+      5 partial, 6 contracted/blueprint, and 0 fully implemented
+      interfaces — every interface has at minimum unresolved schemas.
+    queries:
+      - query_id: "0019Q-F02-Q01"
+        family: "PRODUCER_CONSUMER_WRITE_CONFLICT"
+        query_text: >
+          For interface C7_PROBABILITY_ESTIMATE connecting W12_0012
+          (producer) to W11_0011 (consumer), what is the exact schema
+          contract? Does the producer (W12, C7 output) have a runtime
+          that actually emits C7-formatted probability estimates, and
+          does the consumer (W11, C7 input) have a runtime that ingests
+          them? Cite the implementation status of both sides.
+        expected_finding: >
+          C7 is classified as DRAFT_PR_NOT_MAIN by SHARED-INTERFACE-
+          REGISTRY. W12 has no main-branch runtime; W11 has zero
+          backtest evidence. Neither side has a running implementation
+          that produces or consumes C7. The interface is a blueprint
+          contract with no current operational path.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: C7 implementation status;
+          MODULE-MATURITY-LEDGER: W12 REGISTERED_CANDIDATE claim.
+        evidence_required: >
+          PR #66 merge status (main vs. Draft), C7 schema existence vs.
+          C7 schema as consumed by any running pipeline, W11 backtest
+          evidence count.
+        forbidden_behaviors:
+          - "Must NOT claim C7 is 'partially operational' when producer side has no main runtime"
+          - "Must NOT claim W11 ingests C7 probability estimates when W11 has zero backtest evidence"
+          - "Must NOT present Draft PR schema as a production interface contract"
+        pass_criteria: >
+          C7 is correctly reported as NOT operational end-to-end.
+          Both producer (W12) and consumer (W11) empty-runtime status
+          is disclosed.
+
+      - query_id: "0019Q-F02-Q02"
+        family: "PRODUCER_CONSUMER_WRITE_CONFLICT"
+        query_text: >
+          For interface C4 connecting W4 (P2 synthetic strategy) to
+          downstream consumers, identify: (a) which module is the
+          declared producer of C4 data, (b) which modules consume C4,
+          (c) whether the C4 schema is published in the SHARED-INTERFACE-
+          REGISTRY, and (d) whether any consumer has a runtime that
+          ingests C4 output from a running W4 pipeline.
+        expected_finding: >
+          C4 is likely one of the 5 PARTIAL interfaces. W4 is correctly
+          assessed as REGISTERED_CANDIDATE — no A-share OOS validation.
+          If Codex claims any C4 consumer is operational, it contradicts
+          the producer's REGISTERED_CANDIDATE status.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: C4 classification;
+          MODULE-MATURITY-LEDGER: W4 maturity and any consumer maturity
+          that claims to consume C4.
+        evidence_required: >
+          C4 schema document (if exists), W4 runtime evidence,
+          consumer runtime evidence for any module consuming C4.
+        forbidden_behaviors:
+          - "Must NOT claim C4 is fully implemented when W4 is REGISTERED_CANDIDATE"
+          - "Must NOT fabricate consumer-enrichment that W4 has not produced"
+          - "Must NOT claim C4 data exists when P2 synthetic strategy has no A-share validation"
+        pass_criteria: >
+          C4 implementation status correctly reflects W4's
+          REGISTERED_CANDIDATE ceiling. No consumer claims to
+          be operational on C4 input without evidence.
+
+      - query_id: "0019Q-F02-Q03"
+        family: "PRODUCER_CONSUMER_WRITE_CONFLICT"
+        query_text: >
+          For interfaces C5, C8, and C9 — all classified by SHARED-
+          INTERFACE-REGISTRY as contracted/blueprint — identify each
+          interface's declared producer module. Does each such producer
+          have a runtime that emits the contracted schema? If any
+          producer's maturity in MODULE-MATURITY-LEDGER is BLUEPRINT_ONLY
+          or CONTRACTED_NOT_IMPLEMENTED, explain how the interface can
+          be anything other than BLUEPRINT_ONLY.
+        expected_finding: >
+          C5, C8, C9 are contracted/blueprint with no producer runtime.
+          Any claim that these interfaces are 'partially implemented'
+          or 'available for integration' is false. A contract without
+          a producer runtime is a blueprint, not an interface.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: C5, C8, C9 implementation status;
+          MODULE-MATURITY-LEDGER: respective producer modules.
+        evidence_required: >
+          Each interface's producer module maturity from the ledger,
+          evidence that the producer has emitted C5/C8/C9 formatted
+          output in any test or production run.
+        forbidden_behaviors:
+          - "Must NOT claim C5/C8/C9 are PARTIAL when producers are BLUEPRINT_ONLY"
+          - "Must NOT conflate 'schema written' with 'interface operational'"
+          - "Must NOT count Draft PR schemas as evidence of interface readiness"
+        pass_criteria: >
+          All three interfaces correctly reported as BLUEPRINT_ONLY
+          in alignment with their producer modules' maturity.
+
+  # ==========================================================================
+  # FAMILY 3: MATURITY_STATUS_INFLATION
+  # Test every module's maturity assignment against QCLAW's knowledge
+  # of actual implementation state.
+  # ==========================================================================
+  - family_id: "F03"
+    family_name: "MATURITY_STATUS_INFLATION"
+    issue_73_adversary: 3
+    description: >
+      Test each of the 14 modules in MODULE-MATURITY-LEDGER for maturity
+      inflation. QCLAW's independent audit (MATURITY-INFLATION-AND-GHOST-
+      CAPABILITY-REPORT) found 2 clear inflations (W3: HIGH, W12: MEDIUM)
+      and 1 borderline caveat (W7: LOW). These queries force Codex to
+      defend its maturity assignments with implementation evidence.
+    queries:
+      - query_id: "0019Q-F03-Q01"
+        family: "MATURITY_STATUS_INFLATION"
+        query_text: >
+          For module W3, you assess maturity as IMPLEMENTED_NOT_A_SHARE_
+          VALIDATED. Provide the specific evidence of implementation:
+          (a) What physical storage medium is W3 writing to in production?
+          (b) What hash reconciliation protocol verifies W3 storage
+          integrity? (c) When was the public-to-local store migration
+          completed, and where is the migration completion artifact?
+          (d) Is PR #58 merged to main, and if not, why does a Draft PR
+          qualify as 'implemented'?
+        expected_finding: >
+          W3 maturity is INFLATED (QCLAW finding: HIGH severity). Codex's
+          own matrix marks W3 PHYSICAL_AUTHORITY_UNKNOWN; PR #58 is Draft.
+          No physical storage medium is proven. IMPLEMENTED_NOT_A_SHARE_
+          VALIDATED requires implementation — a Draft PR plus unresolved
+          migration is not implementation.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: W3 maturity assignment and evidence.
+        evidence_required: >
+          PR #58 merge status, physical storage proof (hash reconciliation),
+          migration completion artifact, GPT acceptance of W3 storage.
+        forbidden_behaviors:
+          - "Must NOT claim a Draft PR as implementation evidence"
+          - "Must NOT claim PHYSICAL_AUTHORITY_UNKNOWN is compatible with IMPLEMENTED status"
+          - "Must NOT conflate Phase 3 offline memory (PR #57 merged) with W3 physical store migration"
+        pass_criteria: >
+          W3 is downgraded to REGISTERED_CANDIDATE or lower, OR Codex
+          provides concrete physical storage evidence that was not
+          available during the independent audit.
+
+      - query_id: "0019Q-F03-Q02"
+        family: "MATURITY_STATUS_INFLATION"
+        query_text: >
+          For module W12_0012, you assess maturity as REGISTERED_CANDIDATE.
+          Define 'registered candidate' in operational terms and explain
+          how it differs from CONTRACTED_NOT_IMPLEMENTED. Provide evidence
+          that W12's C7 probability estimation has been exercised beyond
+          GPT review: has any running pipeline consumed C7 output?
+          SHARED-INTERFACE-REGISTRY itself classifies C7 as DRAFT_PR_NOT_MAIN.
+          Is a Draft PR with GPT acceptance sufficient for REGISTERED_
+          CANDIDATE, or does this fit the definition of CONTRACTED_NOT_
+          IMPLEMENTED?
+        expected_finding: >
+          W12 maturity is INFLATED (QCLAW finding: MEDIUM severity).
+          PR #66 is a Draft PR on a non-main branch. No consumer has
+          integrated C7 into a running pipeline. QCLAW's 0012 Decision-
+          Science contracts define REGISTERED_CANDIDATE as requiring
+          at least one routed child implementation — which W12 lacks.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: W12 maturity assignment;
+          SHARED-INTERFACE-REGISTRY: C7 classification.
+        evidence_required: >
+          PR #66 merge status, existence of C7 consumer implementations,
+          QCLAW-0012 DS-01 through DS-13 contract definitions of maturity
+          gates.
+        forbidden_behaviors:
+          - "Must NOT claim REGISTERED_CANDIDATE when no routed child implementation exists"
+          - "Must NOT present GPT acceptance of Draft PR as equivalent to implementation evidence"
+          - "Must NOT ignore SHARED-INTERFACE-REGISTRY's own DRAFT_PR_NOT_MAIN classification"
+        pass_criteria: >
+          W12 is downgraded to CONTRACTED_NOT_IMPLEMENTED, OR Codex
+          provides evidence of at least one routed child implementation
+          consuming C7 output from a main-branch runtime.
+
+      - query_id: "0019Q-F03-Q03"
+        family: "MATURITY_STATUS_INFLATION"
+        query_text: >
+          Walk through every module in MODULE-MATURITY-LEDGER and identify:
+          for those marked IMPLEMENTED_NOT_A_SHARE_VALIDATED or higher,
+          what constitutes the 'implementation' evidence. For each such
+          module, answer: (a) Is the implementation on the main branch?
+          (b) Has any downstream consumer ingested its output? (c) Is
+          there a GPT acceptance or quality gate report? If the answer
+          to (a) or (b) is NO for any module, explain why the maturity
+          level is not inflated.
+        expected_finding: >
+          W3: PR #58 is Draft (no main). W7: risk envelope runtime not on
+          main. W8 has agent routes on main but consumer integration is
+          partial. The pattern of non-main-branch Draft PRs being treated
+          as 'implemented' suggests systematic inflation on the knowledge-
+          evidence-memory axis (W3, W12).
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: all modules at IMPLEMENTED_NOT_A_SHARE_
+          VALIDATED or higher.
+        evidence_required: >
+          Branch status (main vs. Draft) for each module's implementation
+          PR, consumer attestation of output ingestion, GPT acceptance
+          reports.
+        forbidden_behaviors:
+          - "Must NOT treat Draft PR as main-branch implementation"
+          - "Must NOT conflate GPT review signal with operational evidence"
+          - "Must NOT claim downstream integration without consumer attestation"
+        pass_criteria: >
+          Every IMPLEMENTED module has main-branch code AND at least
+          one attested consumer. All exceptions are explicitly downgraded
+          or caveated with a published remediation timeline.
+
+  # ==========================================================================
+  # FAMILY 4: BLUEPRINT_TERM_AS_IMPLEMENTATION
+  # Test that maturity classifications distinguish blueprint-only from
+  # implemented.
+  # ==========================================================================
+  - family_id: "F04"
+    family_name: "BLUEPRINT_TERM_AS_IMPLEMENTATION"
+    issue_73_adversary: 4
+    description: >
+      Test that Codex's MODULE-MATURITY-LEDGER uses terminology that
+      clearly distinguishes blueprint-only artifacts from implemented
+      artifacts. The concern is that terms like REGISTERED_CANDIDATE
+      and IMPLEMENTED_NOT_A_SHARE_VALIDATED blur the line between
+      'document exists' and 'code runs'.
+    queries:
+      - query_id: "0019Q-F04-Q01"
+        family: "BLUEPRINT_TERM_AS_IMPLEMENTATION"
+        query_text: >
+          Define the precise operational difference between BLUEPRINT_ONLY,
+          CONTRACTED_NOT_IMPLEMENTED, REGISTERED_CANDIDATE, and
+          IMPLEMENTED_NOT_A_SHARE_VALIDATED in your maturity ledger.
+          Specifically: at what point does a module transition from
+          'documentation-only' to 'code-exists' to 'code-runs-on-main'
+          to 'code-validated-on-A-share'? Apply these definitions to
+          W12 and explain why it qualifies as REGISTERED_CANDIDATE
+          rather than CONTRACTED_NOT_IMPLEMENTED.
+        expected_finding: >
+          The boundary between CONTRACTED_NOT_IMPLEMENTED and
+          REGISTERED_CANDIDATE is the most problematic. For W12,
+          the only evidence beyond a contract document is a Draft PR
+          (PR #66) with GPT acceptance. If Codex's definitions treat
+          'Draft PR exists' as 'registered candidate', the taxonomy
+          conflates documentation with implementation.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: maturity taxonomy definitions;
+          W12 assignment.
+        evidence_required: >
+          The operational gate definitions for each maturity level,
+          explicit criteria for each transition boundary, W12 evidence
+          mapped to the REGISTERED_CANDIDATE criteria.
+        forbidden_behaviors:
+          - "Must NOT define maturity levels such that 'Draft PR exists' bridges BLUEPRINT to IMPLEMENTED"
+          - "Must NOT use different criteria for different modules to achieve desired maturity levels"
+          - "Must NOT skip CONTRACTED_NOT_IMPLEMENTED when the only implementation evidence is a non-main Draft PR"
+        pass_criteria: >
+          Maturity taxonomy has clear, falsifiable criteria for each level.
+          W12's assignment can be independently verified against those
+          criteria. If Draft PR is NOT sufficient, W12 is downgraded.
+
+      - query_id: "0019Q-F04-Q02"
+        family: "BLUEPRINT_TERM_AS_IMPLEMENTATION"
+        query_text: >
+          For module W7, your ledger lists open_gates including "canonical
+          W7RiskEnvelope" and "full final-veto integration" as incomplete.
+          Yet W7 maturity is IMPLEMENTED_NOT_A_SHARE_VALIDATED. Define
+          what 'implemented' means when canonical risk envelope runtime
+          is not on main and final-veto integration is incomplete. If
+          these are blocking gates, how can the module be 'implemented'?
+        expected_finding: >
+          W7's IMPLEMENTED label is defensible but generous. The open
+          gates explicitly state that the canonical risk envelope is
+          incomplete. This creates a credibility problem: if W7 is
+          'implemented' with incomplete canonical components, the
+          maturity taxonomy is allowing partial implementation to
+          count as full implementation.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: W7 maturity vs. open_gates.
+        evidence_required: >
+          W7's open_gates list vs. its IMPLEMENTED status, evidence
+          that the canonical W7RiskEnvelope is operational on any branch.
+        forbidden_behaviors:
+          - "Must NOT declare IMPLEMENTED when listed blocking gates remain open"
+          - "Must NOT treat 'validation infrastructure exists' as equivalent to 'module is implemented'"
+          - "Must NOT omit the open_gates from the maturity summary"
+        pass_criteria: >
+          W7's open_gates are prominently disclosed alongside its
+          maturity status. If canonical risk envelope is not on main,
+          the IMPLEMENTED label carries an explicit caveat about
+          incomplete core functionality.
+
+      - query_id: "0019Q-F04-Q03"
+        family: "BLUEPRINT_TERM_AS_IMPLEMENTATION"
+        query_text: >
+          Count the number of modules in MODULE-MATURITY-LEDGER whose
+          implementation evidence consists primarily of one or more of:
+          (a) a Draft PR not on main, (b) a GPT review or acceptance
+          signal, (c) a schema document without runtime proof. For each
+          such module, state whether you consider Draft PR + GPT signal
+          to constitute 'implementation' and explain your reasoning
+          against QCLAW-0008's QUALITY-GATES.yaml definition which
+          requires main-branch merge + consumer attestation + hash
+          reconciliation for implementation gate passage.
+        expected_finding: >
+          W3 and W12 at minimum rely on Draft PR + GPT signal as their
+          primary evidence. QCLAW-0008 QUALITY-GATES explicitly requires
+          main-branch merge + consumer attestation, which neither W3
+          nor W12 has. The discrepancy reveals a different definition
+          of 'implementation' between Codex and QCLAW-0008.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: evidence base for all modules;
+          implicit definition of 'implementation'.
+        evidence_required: >
+          Per-module evidence classification (Draft PR, merged PR,
+          GPT signal, consumer attestation, hash reconciliation);
+          QCLAW-0008 QUALITY-GATES.yaml implementation gate criteria.
+        forbidden_behaviors:
+          - "Must NOT treat QCLAW-0008 quality gate criteria as optional or advisory"
+          - "Must NOT count the same GPT signal as evidence for multiple modules"
+          - "Must NOT hide the Draft/merged status of implementation PRs"
+        pass_criteria: >
+          All evidence is classified by type and disclosed. Any module
+          relying on Draft PR + GPT signal is flagged with its evidence
+          quality caveat. Discrepancy with QCLAW-0008 implementation
+          gate is acknowledged.
+
+  # ==========================================================================
+  # FAMILY 5: CONTRACT_AS_BACKTEST_EVIDENCE
+  # Test that CONTRACTED_NOT_IMPLEMENTED modules are not treated as
+  # evidence of backtesting.
+  # ==========================================================================
+  - family_id: "F05"
+    family_name: "CONTRACT_AS_BACKTEST_EVIDENCE"
+    issue_73_adversary: 5
+    description: >
+      Test that Codex does not treat modules classified as CONTRACTED_NOT_
+      IMPLEMENTED as evidence of A-share backtesting, OOS validation, or
+      production readiness. A contract document is a promise, not evidence.
+    queries:
+      - query_id: "0019Q-F05-Q01"
+        family: "CONTRACT_AS_BACKTEST_EVIDENCE"
+        query_text: >
+          W11_0011 is CONTRACTED_NOT_IMPLEMENTED, with zero A-share
+          backtest evidence of any kind (not even synthetic). Yet the
+          enterprise blueprint convergence map lists W11 as a dependency
+          for 0018 and the NEXT-VERTICAL-SLICE mentions W11's score of 46.
+          If W11 has zero backtest evidence, on what basis was W11 scored
+          for next-slice selection? Does the score incorporate the
+          CONTRACTED_NOT_IMPLEMENTED status, or does it assume future
+          backtest evidence that does not yet exist?
+        expected_finding: >
+          Scoring W11 at 46 with zero backtest evidence implies the
+          scoring framework credits blueprint contracts as if they
+          were implementation evidence. QCLAW's independent assessment
+          finds this is a systematic issue: the next-slice scoring
+          treats contracted modules as having partial evidence when
+          they have none.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION.md: W11 scoring and evidence
+          basis; BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-
+          DEPENDENCY-MAP-v1.1.md: W11 dependency claims.
+        evidence_required: >
+          W11 score decomposition by evidence category; any A-share
+          backtest data attributed to W11; explicit statement of what
+          constitutes W11's 46-point evidence base.
+        forbidden_behaviors:
+          - "Must NOT score CONTRACTED_NOT_IMPLEMENTED modules as if backtest evidence exists"
+          - "Must NOT treat contract documents as backtest evidence"
+          - "Must NOT inflate W11's score with assumed future evidence"
+        pass_criteria: >
+          W11's score is either justified with actual backtest evidence
+          (not contracts) or explicitly marked as 'evidence-absent' with
+          a ceiling proportional to its CONTRACTED_NOT_IMPLEMENTED status.
+
+      - query_id: "0019Q-F05-Q02"
+        family: "CONTRACT_AS_BACKTEST_EVIDENCE"
+        query_text: >
+          Modules W5, W10_0010, W11_0011, W13_0014, 0017, and 0018 are
+          all CONTRACTED_NOT_IMPLEMENTED. List every enterprise blueprint
+          claim that depends on these modules providing operational
+          functionality. For each such claim, state whether the dependency
+          is on a contract (document) or on an implementation (running
+          code), and whether the contract alone is sufficient to support
+          the claim.
+        expected_finding: >
+          Multiple dependencies in the convergence map likely cross
+          CONTRACTED_NOT_IMPLEMENTED modules. If the blueprint presents
+          these dependencies as operational, it is treating contracts
+          as implementations — a category error in maturity assessment.
+        codex_claim_under_test: >
+          BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-
+          MAP-v1.1.md: dependency chains through CONTRACTED_NOT_
+          IMPLEMENTED modules.
+        evidence_required: >
+          Full dependency graph with each edge annotated by source and
+          target module maturity; identification of every edge where
+          the source is CONTRACTED_NOT_IMPLEMENTED.
+        forbidden_behaviors:
+          - "Must NOT draw operational dependency edges through modules that have no runtime"
+          - "Must NOT present contract-only modules as if they constrain downstream modules"
+          - "Must NOT omit the maturity caveat on dependency edges"
+        pass_criteria: >
+          Every dependency through a CONTRACTED_NOT_IMPLEMENTED module
+          is explicitly flagged as CONTRACT_ONLY with the caveat that
+          no runtime evidence exists.
+
+      - query_id: "0019Q-F05-Q03"
+        family: "CONTRACT_AS_BACKTEST_EVIDENCE"
+        query_text: >
+          QCLAW-0011 Kelly-Thorp knowledge atoms define backtest evidence
+          requirements for capital allocation modules: minimum N ≥ 100
+          independent trials, OOS window ≥ 20% of total sample, and
+          no in-sample parameter optimization on A-share data. Does
+          W11_0011 meet any of these requirements? If not, explain how
+          W11 contributes to the enterprise blueprint's claim of an
+          'integrated capital allocation capability.'
+        expected_finding: >
+          W11 meets zero of QCLAW-0011's backtest evidence requirements.
+          It has no trials, no OOS window, and no A-share data of any
+          kind. Any claim of 'integrated capital allocation' that
+          includes W11 is a claim based on a contract document, not
+          on backtested allocation logic.
+        codex_claim_under_test: >
+          Enterprise blueprint claims about capital allocation
+          integration; W11 maturity and evidence.
+        evidence_required: >
+          QCLAW-0011 KELLY-KNOWLEDGE-ATOMS.yaml backtest requirements;
+          W11 backtest evidence count by category.
+        forbidden_behaviors:
+          - "Must NOT claim capital allocation capability when the allocation module has zero backtest evidence"
+          - "Must NOT present QCLAW-0011 backtest gates as met when they are unmet"
+          - "Must NOT treat W11's contract as equivalent to W11's validation evidence"
+        pass_criteria: >
+          W11's zero-evidence status is explicitly stated. Any capital
+          allocation claim that includes W11 is caveated as CONTRACT_ONLY
+          with no operational backtest.
+
+  # ==========================================================================
+  # FAMILY 6: GHOST_CAPABILITY
+  # Test each ghost capability claim from DUPLICATE-ORPHAN-GHOST-
+  # DEPRECATION-REPORT.
+  # ==========================================================================
+  - family_id: "F06"
+    family_name: "GHOST_CAPABILITY"
+    issue_73_adversary: 6
+    description: >
+      Test each of the 7 ghost capabilities listed in Codex's own
+      DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT. Verify that Codex
+      does not claim these capabilities in other documents while
+      simultaneously listing them as NOT_IMPLEMENTED or PROHIBITED.
+    queries:
+      - query_id: "0019Q-F06-Q01"
+        family: "GHOST_CAPABILITY"
+        query_text: >
+          Your DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT lists
+          "calibrated production probability fusion" as DRAFT_NOT_
+          IMPLEMENTED. Your MODULE-MATURITY-LEDGER lists W12 as
+          REGISTERED_CANDIDATE. Your CANONICAL-AUTHORITY-AND-OWNERSHIP-
+          MATRIX lists C7_PROBABILITY_ESTIMATE as a W12 output interface.
+          If probability fusion is DRAFT_NOT_IMPLEMENTED (per the ghost
+          report), how can W12 be REGISTERED_CANDIDATE (per the maturity
+          ledger)? Reconcile these three documents' claims about the
+          same capability.
+        expected_finding: >
+          The three documents contradict each other. The ghost report
+          correctly identifies probability fusion as not implemented.
+          The maturity ledger inflates W12. The authority matrix treats
+          C7 as if it exists. This is a cross-document inconsistency
+          that GPT must resolve: either the ghost report is wrong (W12
+          IS implemented) or the maturity ledger is inflated.
+        codex_claim_under_test: >
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT: ghost capability
+          disposition for probability fusion vs. MODULE-MATURITY-LEDGER:
+          W12 maturity vs. CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: C7.
+        evidence_required: >
+          All three document excerpts side-by-side; PR #66 merge status;
+          any runtime emitting C7 probability estimates.
+        forbidden_behaviors:
+          - "Must NOT reconcile the contradiction by silently deleting or downgrading the ghost report entry"
+          - "Must NOT claim the ghost report is superseded without documenting the superseding evidence"
+          - "Must NOT present all three documents as consistent when they contradict"
+        pass_criteria: >
+          The contradiction is explicitly identified and resolved. Either
+          W12 maturity is downgraded to match the ghost report, or the
+          ghost report is updated with evidence that probability fusion
+          has progressed past DRAFT.
+
+      - query_id: "0019Q-F06-Q02"
+        family: "GHOST_CAPABILITY"
+        query_text: >
+          The ghost report lists "raw exchange trade ticks, order events,
+          queues" as NOT_IMPLEMENTED and acknowledges BAR_ONLY scope for
+          0017. Yet NEXT-VERTICAL-SLICE-SELECTION scores 0017 at 84 —
+          the highest of any module. If 0017 is restricted to BAR_ONLY
+          observable reference-zone testing (no order events, no queues,
+          no hidden stop inference), what exactly was scored at 84?
+          Decompose the 84 score into its evidence components and
+          identify whether any component depends on data that the ghost
+          report says is NOT_IMPLEMENTED.
+        expected_finding: >
+          The 84 score may incorporate implementation-readiness assumptions
+          that the ghost report explicitly denies. If BAR_ONLY scope
+          means no order events/queues/stops, the 84 must be based on
+          what IS available (bar data, reference zone logic). Any scoring
+          component that requires ghost-category data inflates the score.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION.md: 0017 score decomposition;
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT: ghost capability
+          dispositions.
+        evidence_required: >
+          Full decomposition of 84 score by component with evidence
+          sources; explicit mapping of each score component to available
+          vs. ghost-category data.
+        forbidden_behaviors:
+          - "Must NOT score 0017 on data that the ghost report says is NOT_IMPLEMENTED"
+          - "Must NOT claim BAR_ONLY scope while incorporating order-event scoring components"
+          - "Must NOT hide the ghost-category dependency behind 'aggregate proxy' language"
+        pass_criteria: >
+          0017 score decomposition transparently shows what data sources
+          contribute to each component. No component depends on ghost-
+          category data. If any component does, it is flagged and
+          the score is adjusted.
+
+      - query_id: "0019Q-F06-Q03"
+        family: "GHOST_CAPABILITY"
+        query_text: >
+          The ghost report lists "operational DecisionEpisode ledger" as
+          CONTRACTED_NOT_IMPLEMENTED. W13_0014 and W10_0010 both reference
+          decision episodes in their contracts. If the DecisionEpisode
+          ledger is a ghost (not implemented), how do W10 and W13 plan
+          to record or replay decisions? Is the DecisionEpisode ledger
+          a dependency of W10/W13, and if so, how does the dependency
+          graph handle a ghost dependency?
+        expected_finding: >
+          W10 and W13's contracts reference a capability that the ghost
+          report says doesn't exist. If the dependency graph doesn't
+          reflect this, the blueprint has an undisclosed broken
+          dependency. The honest answer identifies the ghost in the
+          dependency chain.
+        codex_claim_under_test: >
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT: DecisionEpisode
+          ghost; MODULE-MATURITY-LEDGER: W10/W13 contracts.
+        evidence_required: >
+          W10 and W13 contract text referencing DecisionEpisode;
+          dependency graph edges from W10/W13 to the DecisionEpisode
+          ghost; implementation status of the ledger.
+        forbidden_behaviors:
+          - "Must NOT claim W10/W13 are independent of the DecisionEpisode ghost when contracts reference it"
+          - "Must NOT silently remove DecisionEpisode from the dependency graph"
+          - "Must NOT treat 'contract mentions capability' as 'capability implemented'"
+        pass_criteria: >
+          The ghost dependency is identified. W10/W13 contracts are
+          annotated with the ghost-status caveat. The dependency graph
+          reflects that the DecisionEpisode ledger is a ghost.
+
+  # ==========================================================================
+  # FAMILY 7: ORPHAN_INTERFACE
+  # Test C4/C5/C8/C9 for orphaned interfaces with no producer runtime.
+  # ==========================================================================
+  - family_id: "F07"
+    family_name: "ORPHAN_INTERFACE"
+    issue_73_adversary: 7
+    description: >
+      Test C4, C5, C8, C9 specifically for orphaned interfaces —
+      interfaces whose declared producer has no runtime (BLUEPRINT_ONLY
+      or CONTRACTED_NOT_IMPLEMENTED). An orphan interface is a contract
+      with no party capable of fulfilling it.
+    queries:
+      - query_id: "0019Q-F07-Q01"
+        family: "ORPHAN_INTERFACE"
+        query_text: >
+          For each of C4, C5, C8, and C9, identify the declared producer
+          module, the producer's maturity in MODULE-MATURITY-LEDGER, and
+          whether the producer has emitted the interface's data in any
+          test or production run. If the producer maturity is BLUEPRINT_
+          ONLY or CONTRACTED_NOT_IMPLEMENTED, classify the interface as
+          ORPHAN and explain what must happen before the interface can
+          be considered non-orphan.
+        expected_finding: >
+          At minimum C5, C8, C9 are orphans — their producers have no
+          runtime. C4 may be borderline depending on W4's P2 synthetic
+          strategy status. The SHARED-INTERFACE-REGISTRY should
+          explicitly label orphans; if it doesn't, the registry is
+          misrepresenting interface readiness.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: C4, C5, C8, C9 implementation
+          classifications; MODULE-MATURITY-LEDGER: producer maturities.
+        evidence_required: >
+          Per-interface producer maturity mapping; evidence that any
+          producer has emitted C4/C5/C8/C9 formatted output.
+        forbidden_behaviors:
+          - "Must NOT classify an interface as PARTIAL when its producer has no runtime"
+          - "Must NOT claim an orphan interface is 'available for integration'"
+          - "Must NOT omit the ORPHAN label from interfaces with non-runtime producers"
+        pass_criteria: >
+          All orphan interfaces are explicitly labeled ORPHAN with
+          the blocking condition documented. No orphan is presented
+          as an integration-ready interface.
+
+      - query_id: "0019Q-F07-Q02"
+        family: "ORPHAN_INTERFACE"
+        query_text: >
+          The SHARED-INTERFACE-REGISTRY reports 5 PARTIAL, 6 CONTRACTED/
+          BLUEPRINT, and 0 FULLY_IMPLEMENTED interfaces. For the 5 PARTIAL
+          interfaces, define what 'partial' means operationally. Is a
+          partial interface one where: (a) the schema is defined but not
+          tested, (b) the producer runs but the consumer doesn't,
+          (c) one direction works but not the other, or (d) something
+          else? Apply this definition to each of the 5 PARTIAL interfaces
+          and verify that the producer side actually has a runtime.
+        expected_finding: >
+          The PARTIAL classification may be obscuring the fact that
+          some 'partial' interfaces have producers that don't run.
+          A partial interface with a non-running producer is an orphan,
+          not a partial interface. The distinction matters for
+          dependency planning.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: PARTIAL classification definition
+          and application to specific interfaces.
+        evidence_required: >
+          Operational definition of PARTIAL; per-PARTIAL-interface
+          evidence of producer runtime and consumer runtime.
+        forbidden_behaviors:
+          - "Must NOT define PARTIAL in a way that hides orphan status"
+          - "Must NOT classify producer-non-runtime interfaces as PARTIAL"
+          - "Must NOT claim PARTIAL implies 'closer to implemented' without runtime evidence"
+        pass_criteria: >
+          PARTIAL definition is falsifiable. Every PARTIAL interface
+          has a running producer. Any PARTIAL interface whose producer
+          has no runtime is reclassified as ORPHAN/BLUEPRINT.
+
+      - query_id: "0019Q-F07-Q03"
+        family: "ORPHAN_INTERFACE"
+        query_text: >
+          Trace the full lifecycle of C8: identify its producer, its
+          consumer(s), the schema definition (if any), whether the
+          schema has been validated against producer output and consumer
+          input, and whether the full path from producer runtime →
+          schema → transport → consumer runtime exists. If any link
+          in this chain is missing, explain whether C8 can be considered
+          anything other than BLUEPRINT_ONLY.
+        expected_finding: >
+          C8 is contracted/blueprint with no producer runtime. No link
+          in the producer→consumer chain exists beyond the schema
+          document. C8 is a blueprint, not an interface.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: C8 classification and lifecycle
+          documentation.
+        evidence_required: >
+          C8 schema document, producer runtime evidence, consumer
+          runtime evidence, transport path evidence, schema validation
+          test results.
+        forbidden_behaviors:
+          - "Must NOT claim C8 is PARTIAL when only the schema document exists"
+          - "Must NOT present C8 as a 'ready interface' for dependency planning"
+          - "Must NOT draw operational dependency edges through C8"
+        pass_criteria: >
+          C8 is correctly classified as BLUEPRINT_ONLY with all missing
+          lifecycle links documented.
+
+  # ==========================================================================
+  # FAMILY 8: STALE_REFERENCE
+  # Test for references to PR #8/#34/#64/#65/#66 that may be stale.
+  # ==========================================================================
+  - family_id: "F08"
+    family_name: "STALE_REFERENCE"
+    issue_73_adversary: 8
+    description: >
+      Test for stale references to past PRs (#8, #34, #64, #65, #66)
+      that may have been superseded, merged, closed, or replaced since
+      they were first referenced. Stale references create false
+      dependencies and mask current implementation state.
+    queries:
+      - query_id: "0019Q-F08-Q01"
+        family: "STALE_REFERENCE"
+        query_text: >
+          PR #66 provides C7 probability estimation (W12). What is its
+          current status: Draft, Merged, Closed, or Superseded? If it
+          has been superseded by a newer PR, cite the superseding PR.
+          If it remains Draft, explain how long it has been in Draft
+          and whether there is an active merge plan. If the enterprise
+          blueprint's dependency map treats PR #66 as resolved, does
+          this constitute a stale reference?
+        expected_finding: >
+          PR #66 is a Draft PR not on main. If any document treats it
+          as merged or as evidence of W12 implementation, that is a
+          stale reference — the PR's status hasn't changed but documents
+          written later assume it has.
+        codex_claim_under_test: >
+          All enterprise blueprint files referencing PR #66 or its
+          outputs (C7, W12 probability estimation).
+        evidence_required: >
+          PR #66 current status (GitHub API), timestamp of last status
+          change, all enterprise blueprint references to PR #66.
+        forbidden_behaviors:
+          - "Must NOT treat Draft PR as merged in any operational claim"
+          - "Must NOT assume PR #66 will merge without documenting the merge conditions"
+          - "Must NOT omit PR #66's Draft status when citing it as evidence"
+        pass_criteria: >
+          All PR #66 references are annotated with its current Draft
+          status. Any document treating PR #66 as merged is flagged
+          as containing a stale reference.
+
+      - query_id: "0019Q-F08-Q02"
+        family: "STALE_REFERENCE"
+        query_text: >
+          PR #58 (knowledge gateway extension for W3) is referenced in
+          the authority matrix and maturity ledger. What is its current
+          status? Has it been merged to main? Has any consumer attested
+          to ingesting W3 data through the PR #58 gateway? If PR #58
+          is still Draft, list every document that treats it as if it
+          provides operational W3 storage and flag those references as
+          potentially stale.
+        expected_finding: >
+          PR #58 is Draft (from audit evidence). References to PR #58
+          as providing W3 physical storage are stale — they reference
+          a capability that doesn't exist on main. The authority matrix's
+          PHYSICAL_AUTHORITY_UNKNOWN status is the honest acknowledgment.
+        codex_claim_under_test: >
+          All enterprise blueprint files referencing PR #58 or W3
+          physical storage capabilities dependent on PR #58.
+        evidence_required: >
+          PR #58 current status, all blueprint references to PR #58,
+          consumer attestation of W3 gateway ingestion.
+        forbidden_behaviors:
+          - "Must NOT treat PR #58 Draft as evidence of W3 storage implementation"
+          - "Must NOT assume PR #58 will merge without documenting merge conditions"
+          - "Must NOT reference PR #58 as a resolved dependency"
+        pass_criteria: >
+          All PR #58 references correctly reflect Draft status.
+          W3 storage claims dependent on PR #58 are caveated.
+
+      - query_id: "0019Q-F08-Q03"
+        family: "STALE_REFERENCE"
+        query_text: >
+          Compile a complete list of every PR reference (by number)
+          across all Codex enterprise blueprint files. For each PR,
+          determine: (a) current status (Draft/Merged/Closed), (b) date
+          of last status change, (c) whether the blueprint reference
+          reflects the current status. Any PR that is Draft or Closed
+          but referenced as if merged/active is a stale reference.
+          Report the count and identify the documents.
+        expected_finding: >
+          At minimum PR #58 and PR #66 are Draft but referenced in
+          contexts that imply merged/active capabilities. The count of
+          stale references may include PRs #8, #34, #64, #65 depending
+          on their status. The honest answer provides a complete
+          inventory.
+        codex_claim_under_test: >
+          All PR references across CANONICAL-AUTHORITY-AND-OWNERSHIP-
+          MATRIX, MODULE-MATURITY-LEDGER, NEXT-VERTICAL-SLICE-SELECTION,
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT, SHARED-INTERFACE-
+          REGISTRY, and BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-
+          AND-DEPENDENCY-MAP.
+        evidence_required: >
+          Complete PR inventory with status and last-modified dates;
+          per-reference context analysis.
+        forbidden_behaviors:
+          - "Must NOT omit PRs that are stale from the inventory"
+          - "Must NOT claim a Draft PR is 'effectively merged' without actual merge"
+          - "Must NOT present stale references as current without caveat"
+        pass_criteria: >
+          Complete PR inventory published with status annotations.
+          All stale references identified and caveated.
+
+  # ==========================================================================
+  # FAMILY 9: BROKEN_DEPENDENCY
+  # Test dependency chain W11→W12→W7 for breakage.
+  # ==========================================================================
+  - family_id: "F09"
+    family_name: "BROKEN_DEPENDENCY"
+    issue_73_adversary: 9
+    description: >
+      Test the W11→W12→W7 dependency chain for breakage. W11 depends
+      on W12 (C7 probability) which depends on W7 (risk envelope).
+      If W12 has no main runtime and W11 has zero backtest evidence,
+      the entire chain may be broken — each link is a contract, not
+      an implementation.
+    queries:
+      - query_id: "0019Q-F09-Q01"
+        family: "BROKEN_DEPENDENCY"
+        query_text: >
+          Trace the full dependency chain W11→W12→W7. For each link:
+          (a) W11 depends on W12 for C7 probability estimates — does
+          W12 have a main-branch runtime emitting C7? (b) W12 depends
+          on W7 for risk envelope constraints — does W7 have the
+          canonical W7RiskEnvelope on main? (c) If both links are
+          broken (no main runtime at either end), state whether the
+          dependency chain can support any downstream module that
+          depends on it (e.g., 0018).
+        expected_finding: >
+          W12 has no main-branch C7 runtime (PR #66 is Draft). W7's
+          canonical risk envelope is incomplete (open_gate). At least
+          one, likely both, links are broken. The W11→W12→W7 chain
+          cannot support 0018's dependency — 0018 depends on a chain
+          of contracts with no operational links.
+        codex_claim_under_test: >
+          BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-
+          MAP-v1.1.md: W11→W12→W7 chain and downstream dependencies;
+          MODULE-MATURITY-LEDGER: W11, W12, W7 maturities.
+        evidence_required: >
+          Per-link runtime evidence (C7 emitter, C7 consumer, risk
+          envelope runtime), PR #66 merge status, W7 open_gates status.
+        forbidden_behaviors:
+          - "Must NOT claim the chain is operational when links have no main runtime"
+          - "Must NOT treat contract documents as functional chain links"
+          - "Must NOT claim 0018 dependency is satisfied through a broken chain"
+        pass_criteria: >
+          Each link's operational status is documented. Broken links
+          are explicitly flagged. Any downstream dependency on a broken
+          chain is identified and caveated.
+
+      - query_id: "0019Q-F09-Q02"
+        family: "BROKEN_DEPENDENCY"
+        query_text: >
+          For the W11→W12→W7 chain, if any link is broken, describe
+          what must happen to repair it. For each repair step, identify
+          whether the action is: (a) merge PR to main, (b) create new
+          implementation, (c) await consumer attestation, (d) await
+          GPT quality gate, or (e) something else. Estimate the
+          minimum calendar time to repair the chain assuming all
+          blocking conditions are resolved immediately.
+        expected_finding: >
+          Repair requires at minimum: merge PR #66 to main (W12),
+          complete canonical W7RiskEnvelope (W7), validate C7
+          throughput end-to-end, backtest W11 with C7 input. Even
+          under optimistic assumptions, the chain cannot be operational
+          in less than weeks/months. Any claim that 0018 can proceed
+          imminently ignores the broken chain.
+        codex_claim_under_test: >
+          Enterprise blueprint timeline assumptions; dependency
+          chain readiness for 0018.
+        evidence_required: >
+          PR #66 merge plan, W7RiskEnvelope completion status,
+          C7 integration test plan, W11 backtest schedule.
+        forbidden_behaviors:
+          - "Must NOT claim the chain can be repaired in days when PRs are stuck in Draft"
+          - "Must NOT assume parallel repair of all links without coordination cost"
+          - "Must NOT claim 0018 can begin before the chain is operational"
+        pass_criteria: >
+          Realistic repair timeline published. 0018 dependency on
+          the chain is explicitly acknowledged with the repair
+          precondition documented.
+
+      - query_id: "0019Q-F09-Q03"
+        family: "BROKEN_DEPENDENCY"
+        query_text: >
+          If the W11→W12→W7 chain is broken, identify all downstream
+          modules that depend on it (directly or transitively). For
+          each such module, state its current maturity and whether the
+          broken chain changes its effective maturity ceiling. If a
+          CONTRACTED_NOT_IMPLEMENTED module (e.g., 0018) depends on
+          a broken chain, does the broken chain materially change its
+          status, or is it already at the floor?
+        expected_finding: >
+          0018 is already CONTRACTED_NOT_IMPLEMENTED, so the broken
+          chain reinforces but doesn't change its status. However,
+          any module that CLAIMS higher maturity while depending on
+          this chain is inflated — the broken chain is a binding
+          constraint on any module that needs C7 or risk envelope
+          output.
+        codex_claim_under_test: >
+          Enterprise blueprint dependency graph: all transitive
+          dependents of W11→W12→W7; MODULE-MATURITY-LEDGER: dependent
+          module maturities.
+        evidence_required: >
+          Full transitive closure of the W11→W12→W7 dependency graph;
+          per-dependent maturity and dependency weight.
+        forbidden_behaviors:
+          - "Must NOT claim a module's maturity is unaffected by a broken upstream chain"
+          - "Must NOT draw dependency edges that skip broken links"
+          - "Must NOT present 0018's dependency as 'already at floor so no impact' without documenting the impact"
+        pass_criteria: >
+          All transitive dependents identified. Each dependent's
+          maturity ceiling recalculated with the broken chain as a
+          blocking constraint.
+
+  # ==========================================================================
+  # FAMILY 10: HIDDEN_W14_OR_PARALLEL_RUNTIME
+  # Test that 0017/0018 create no hidden parallel platform.
+  # ==========================================================================
+  - family_id: "F10"
+    family_name: "HIDDEN_W14_OR_PARALLEL_RUNTIME"
+    issue_73_adversary: 10
+    description: >
+      Test that modules 0017 and 0018 do not create a hidden W14 module
+      or parallel platform that bypasses QCLAW's existing runtime
+      governance (0008 CANONICAL-RUNTIME-BOUNDARY). Any new runtime
+      must integrate through the defined module pipeline, not create
+      a shadow execution environment.
+    queries:
+      - query_id: "0019Q-F10-Q01"
+        family: "HIDDEN_W14_OR_PARALLEL_RUNTIME"
+        query_text: >
+          The enterprise blueprint defines 14 modules (W1 through W13,
+          plus 0017 and 0018). Are there any additional modules (W14
+          or others) implied by 0017/0018's design that are not listed
+          in MODULE-MATURITY-LEDGER? Specifically: does 0017 require
+          a BAR data ingestion pipeline, a reference-zone computation
+          engine, or a breach/reclaim detection runtime that is not
+          covered by any existing module? Does 0018 require a stability
+          assessment runtime, drift detection, or OOS validator that
+          is not covered?
+        expected_finding: >
+          If 0017/0018 require runtime components not in the 14-module
+          list, those components constitute undeclared modules —
+          potentially an ungoverned parallel platform. QCLAW-0008
+          CANONICAL-RUNTIME-BOUNDARY requires all runtime components
+          to be declared and governed.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: module completeness;
+          NEXT-VERTICAL-SLICE-SELECTION: 0017/0018 scope;
+          BLUEPRINTS dependency map: hidden runtime components.
+        evidence_required: >
+          0017 and 0018 architecture decomposition showing all runtime
+          components; cross-reference against MODULE-MATURITY-LEDGER
+          module list; QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY governance
+          requirements.
+        forbidden_behaviors:
+          - "Must NOT embed undeclared runtime components within 0017/0018"
+          - "Must NOT claim 0017/0018 have no runtime components when they require BAR ingestion, zone computation, etc."
+          - "Must NOT create a parallel governance path outside QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY"
+        pass_criteria: >
+          All 0017/0018 runtime components are explicitly declared
+          and mapped to existing or new modules. No hidden runtime
+          components. All new modules are added to MODULE-MATURITY-
+          LEDGER.
+
+      - query_id: "0019Q-F10-Q02"
+        family: "HIDDEN_W14_OR_PARALLEL_RUNTIME"
+        query_text: >
+          Compare the runtime governance model proposed by Codex's
+          enterprise blueprint against QCLAW-0008 CANONICAL-RUNTIME-
+          BOUNDARY.md. Does Codex's blueprint respect the boundary
+          that QCLAW-0008 defines? Specifically: (a) does Codex claim
+          authority to modify the runtime boundary, (b) does Codex
+          propose runtime components that execute outside the boundary,
+          (c) does Codex create agent execution paths that bypass 0008's
+          DETERMINISTIC-IDENTITY or QUALITY-GATES?
+        expected_finding: >
+          QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY defines the hard edge
+          of the governed runtime. Any Codex blueprint that creates
+          runtime components outside this boundary — even implicitly
+          through 0017/0018 — constitutes a parallel platform. The
+          honest answer identifies any boundary violations.
+        codex_claim_under_test: >
+          BLUEPRINTS/ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-
+          MAP-v1.1.md: runtime boundary claims vs. QCLAW-0008 boundary.
+        evidence_required: >
+          QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY.md full text;
+          Codex blueprint runtime architecture; gap analysis.
+        forbidden_behaviors:
+          - "Must NOT claim QCLAW-0008 boundary is advisory or overrideable"
+          - "Must NOT create runtime paths that bypass 0008 DETERMINISTIC-IDENTITY"
+          - "Must NOT position Codex blueprint as an alternative to 0008 governance"
+        pass_criteria: >
+          All Codex runtime components are within QCLAW-0008 boundary.
+          Any boundary violation is explicitly identified and the
+          component is either moved inside the boundary or declared
+          as a non-runtime (blueprint-only) artifact.
+
+      - query_id: "0019Q-F10-Q03"
+        family: "HIDDEN_W14_OR_PARALLEL_RUNTIME"
+        query_text: >
+          If 0017 processes BAR data for reference-zone breach/reclaim
+          detection, where does the BAR data come from? Identify the
+          data source, the ingestion pipeline, the storage module, and
+          the transport path. If any of these components are not in
+          the 14-module list, state whether they constitute hidden
+          infrastructure. Compare against QCLAW-0008 STORAGE-TRANSPORT-
+          ACCESS-MATRIX to verify no unauthorized data paths.
+        expected_finding: >
+          BAR data ingestion requires a data pipeline that doesn't
+          exist in the current module list. The storage, transport,
+          and access paths must be declared and governed. If Codex
+          hasn't specified these, 0017 is underspecified and its
+          84 score overestimates readiness.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0017 architecture and data
+          pipeline; SHARED-INTERFACE-REGISTRY: data interfaces for 0017.
+        evidence_required: >
+          0017 data pipeline specification; source, ingestion, storage,
+          transport, access path documentation; QCLAW-0008 STORAGE-
+          TRANSPORT-ACCESS-MATRIX compliance check.
+        forbidden_behaviors:
+          - "Must NOT claim 0017 can process BAR data without specifying the ingestion pipeline"
+          - "Must NOT create ungoverned data paths outside QCLAW-0008 matrix"
+          - "Must NOT score 0017 at 84 when critical data infrastructure is unspecified"
+        pass_criteria: >
+          0017's data pipeline is fully specified and mapped to governed
+          modules. Any unspecified pipeline component is identified as
+          a pre-implementation gap and the 84 score is adjusted.
+
+  # ==========================================================================
+  # FAMILY 11: W12_W11_W7_0018_AUTHORITY_COLLISION
+  # Test boundaries between probability, capital, risk, and survival
+  # control.
+  # ==========================================================================
+  - family_id: "F11"
+    family_name: "W12_W11_W7_0018_AUTHORITY_COLLISION"
+    issue_73_adversary: 11
+    description: >
+      Test the authority boundaries between W12 (probability estimation),
+      W11 (capital allocation), W7 (risk envelope / survival control),
+      and 0018 (stability/profit assessment). These four modules occupy
+      adjacent decision domains where authority collision is likely.
+    queries:
+      - query_id: "0019Q-F11-Q01"
+        family: "W12_W11_W7_0018_AUTHORITY_COLLISION"
+        query_text: >
+          Define the precise authority boundary between W12 (probability
+          estimation), W11 (capital allocation), and W7 (risk envelope /
+          final veto). Specifically: if W12 estimates a 60% probability
+          for a trade and W11 allocates capital based on that estimate,
+          can W7 override the allocation? Does W7's final-veto include
+          the authority to reject W12's probability estimate, W11's
+          allocation, or both? If there is no defined override protocol,
+          this is an authority collision.
+        expected_finding: >
+          W12, W11, and W7 occupy overlapping authority domains without
+          a defined override hierarchy. QCLAW-0011 Kelly-Thorp atoms
+          define independent capital allocation with risk envelope as
+          a constraint, not a veto. If the blueprint gives W7 veto
+          over W11 allocation, it contradicts QCLAW-0011; if not, the
+          authority boundaries are undefined.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: W12, W11, W7
+          authority scopes and override hierarchies.
+        evidence_required: >
+          Authority override protocol document; QCLAW-0011 KELLY-
+          KNOWLEDGE-ATOMS risk/capital boundary definition;
+          conflict resolution path.
+        forbidden_behaviors:
+          - "Must NOT leave W7/W11/W12 authority boundaries undefined"
+          - "Must NOT grant W7 veto over W11 without documenting the conflict-resolution protocol"
+          - "Must NOT claim W12 probability is 'advisory' in one context and 'authoritative' in another"
+        pass_criteria: >
+          Clear, documented override hierarchy between W12→W11→W7
+          with conflict resolution protocol. Any contradiction with
+          QCLAW-0011 is explicitly identified.
+
+      - query_id: "0019Q-F11-Q02"
+        family: "W12_W11_W7_0018_AUTHORITY_COLLISION"
+        query_text: >
+          0018 claims to assess survival/stability/profit consistency.
+          If 0018 detects an inconsistency between W12 probability,
+          W11 capital allocation, and W7 risk envelope, what authority
+          does 0018 have to act? Does 0018: (a) flag for human review,
+          (b) auto-adjust parameters, (c) halt the execution pipeline,
+          or (d) something else? If 0018 can auto-adjust, it may claim
+          authority over W11/W12/W7, creating a four-way collision.
+        expected_finding: >
+          0018's authority scope is undefined. If 0018 can auto-adjust,
+          it sits above W11/W12/W7 in the control hierarchy — a position
+          that would need to be explicitly declared and justified. The
+          default should be human-gated escalation, not automatic override.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: 0018 authority
+          scope; MODULE-MATURITY-LEDGER: 0018 contracts.
+        evidence_required: >
+          0018 authority specification; override/intervention protocol;
+          human-in-the-loop gate definition.
+        forbidden_behaviors:
+          - "Must NOT grant 0018 automatic override over W11/W12/W7 without explicit authority declaration"
+          - "Must NOT create a four-way authority deadlock with no resolution protocol"
+          - "Must NOT claim 0018 is 'assessment only' while granting it write authority"
+        pass_criteria: >
+          0018's intervention protocol is explicitly defined as
+          human-gated by default. Any automatic authority is
+          declared, bounded, and justified.
+
+      - query_id: "0019Q-F11-Q03"
+        family: "W12_W11_W7_0018_AUTHORITY_COLLISION"
+        query_text: >
+          Compare QCLAW-0011's Kelly-Thorp capital allocation authority
+          model against Codex's W11/W7 authority matrix entry. QCLAW-0011
+          defines Kelly allocation as an optimization under constraints,
+          with risk envelope as a boundary condition (not a veto).
+          QCLAW-0012 Decision-Science DS-07 defines probability estimates
+          as inputs, not authorities. If Codex's matrix assigns different
+          authority relationships between these functions, identify where
+          the models diverge and explain the divergence.
+        expected_finding: >
+          QCLAW-0011 and QCLAW-0012 define clean authority boundaries
+          between probability, allocation, and risk envelope. Codex's
+          matrix may have created overlapping or conflicting authorities
+          that don't exist in QCLAW's contract model. The honest answer
+          identifies and documents each divergence.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: W11/W12/W7 authority
+          relationships vs. QCLAW-0011 and QCLAW-0012 contracts.
+        evidence_required: >
+          QCLAW-0011 KELLY-KNOWLEDGE-ATOMS authority model;
+          QCLAW-0012 DS-07 contract; Codex matrix authority entries;
+          divergence analysis.
+        forbidden_behaviors:
+          - "Must NOT claim Codex authority model is aligned with QCLAW when it diverges"
+          - "Must NOT silently replace QCLAW's model with Codex's model"
+          - "Must NOT present divergence as 'minor clarification' when it changes authority structure"
+        pass_criteria: >
+          All divergences between Codex authority model and QCLAW
+          contracts are explicitly identified, documented, and
+          categorized by severity.
+
+  # ==========================================================================
+  # FAMILY 12: 0017_FAKE_ORDER_FLOW
+  # Test that 0017 doesn't claim order flow or identity inference.
+  # ==========================================================================
+  - family_id: "F12"
+    family_name: "0017_FAKE_ORDER_FLOW"
+    issue_73_adversary: 12
+    description: >
+      Test that module 0017 does not claim access to order flow data,
+      institution identity inference, or hidden stop detection. The
+      ghost report explicitly lists these as NOT_IMPLEMENTED/PROHIBITED.
+      0017's BAR_ONLY scope must be enforced and verifiable.
+    queries:
+      - query_id: "0019Q-F12-Q01"
+        family: "0017_FAKE_ORDER_FLOW"
+        query_text: >
+          The ghost report says 0017 will "test observable reference-zone
+          breach/reclaim only" and "not infer hidden stops." Define
+          'observable reference-zone breach/reclaim' in terms of the
+          exact data inputs 0017 will use. Does this definition require
+          order book depth, trade tick data, queue position, or
+          institution flow classification? If it requires any data
+          beyond publicly observable bar data (OHLCV), explain how
+          that doesn't violate the BAR_ONLY constraint.
+        expected_finding: >
+          If 0017's breach/reclaim detection requires anything beyond
+          bar data, it exceeds BAR_ONLY scope. The ghost report is clear
+          that order events, queues, and institution identity are NOT
+          available. Any 0017 design that needs them is claiming ghost
+          capabilities.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0017 scope and data requirements;
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT: ghost capability
+          dispositions for 0017.
+        evidence_required: >
+          0017 data input specification; mapping of each required data
+          element to available vs. ghost-category sources.
+        forbidden_behaviors:
+          - "Must NOT design 0017 to use data that the ghost report says is NOT_IMPLEMENTED"
+          - "Must NOT claim 'observable' includes L2 depth when BAR_ONLY scope is defined"
+          - "Must NOT infer hidden stops from bar data and claim it doesn't violate the constraint"
+        pass_criteria: >
+          0017's data inputs are explicitly enumerated and verified
+          against the BAR_ONLY constraint. Any ghost-category dependency
+          is removed or the scope is upgraded with a documented data
+          availability plan.
+
+      - query_id: "0019Q-F12-Q02"
+        family: "0017_FAKE_ORDER_FLOW"
+        query_text: >
+          The ghost report lists "true institution, retail or hot-money
+          account identity" as PROHIBITED_OVERCLAIM. Does 0017 make any
+          claim about classifying market participants by type? Does it
+          claim to distinguish institutional from retail flow, smart
+          money from noise, or 'strong hands' from 'weak hands' based
+          on bar data patterns? If so, this is identity inference under
+          a different name — a PROHIBITED behavior.
+        expected_finding: >
+          Any classification of market participants by type, even if
+          called 'flow regime detection' or 'volume quality analysis,'
+          is a form of identity inference. If 0017 claims to identify
+          institutional behavior from bar patterns, it violates the
+          PROHIBITED_OVERCLAIM on identity inference.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0017 methodology and claims
+          about flow classification; DUPLICATE-ORPHAN-GHOST-
+          DEPRECATION-REPORT: identity inference prohibition.
+        evidence_required: >
+          0017 methodology description; any claim about participant
+          type classification; ghost report PROHIBITED_OVERCLAIM entry.
+        forbidden_behaviors:
+          - "Must NOT classify market participants by type under any label"
+          - "Must NOT claim bar data patterns reveal institutional vs. retail identity"
+          - "Must NOT rename identity inference as 'flow regime analysis' to bypass the prohibition"
+        pass_criteria: >
+          0017 methodology explicitly disclaims participant identity
+          inference. Any classification language is removed.
+
+      - query_id: "0019Q-F12-Q03"
+        family: "0017_FAKE_ORDER_FLOW"
+        query_text: >
+          If 0017 detects a reference-zone breach and generates a signal,
+          what other modules consume that signal? Trace the signal path
+          from 0017 output through all consumers. At each consumer,
+          verify that the consumer doesn't amplify 0017's signal into
+          a claim about order flow direction, institution intent, or
+          stop-loss positioning. If any consumer makes such claims,
+          0017's BAR_ONLY signal is being used to construct prohibited
+          inference downstream.
+        expected_finding: >
+          Even if 0017 itself stays within BAR_ONLY, downstream consumers
+          may use breach/reclaim signals to construct prohibited
+          inferences. The signal path audit must verify end-to-end
+          compliance, not just 0017's output format.
+        codex_claim_under_test: >
+          SHARED-INTERFACE-REGISTRY: 0017 output interfaces and consumers;
+          BLUEPRINTS dependency map: downstream signal propagation.
+        evidence_required: >
+          Full signal propagation path from 0017 to all consumers;
+          per-consumer claim analysis for prohibited inference.
+        forbidden_behaviors:
+          - "Must NOT create downstream consumers that use 0017 signals for prohibited inference"
+          - "Must NOT claim 'the consumer, not 0017, made the inference' as a compliance defense"
+          - "Must NOT route 0017 signals through intermediate modules that add prohibited inference"
+        pass_criteria: >
+          Full signal path audit completed. No consumer in the
+          0017→downstream chain makes prohibited identity, order flow,
+          or stop-loss claims. Any such consumer is flagged.
+
+  # ==========================================================================
+  # FAMILY 13: 0018_STABLE_PROFIT_OVERCOUNT
+  # Test 0018 doesn't claim stable edge from insufficient trials.
+  # ==========================================================================
+  - family_id: "F13"
+    family_name: "0018_STABLE_PROFIT_OVERCOUNT"
+    issue_73_adversary: 13
+    description: >
+      Test that module 0018 does not claim stable profit edge,
+      survival-consistent returns, or regime-robust performance from
+      insufficient trial counts. QCLAW-0012 Decision-Science DS-11
+      requires N ≥ 100 independent trials for stability claims.
+    queries:
+      - query_id: "0019Q-F13-Q01"
+        family: "0018_STABLE_PROFIT_OVERCOUNT"
+        query_text: >
+          0018 claims to assess survival/stability/profit consistency
+          across the W11→W12→W7→0017 pipeline. QCLAW-0012 DS-11 requires
+          minimum N ≥ 100 independent trials for any stability claim.
+          How many independent trials does 0018 have? If fewer than 100,
+          does 0018 qualify its output as 'insufficient trials, stability
+          not established'? If 0018 claims stability from any N < 100,
+          this is overcount.
+        expected_finding: >
+          0018 is CONTRACTED_NOT_IMPLEMENTED — it has zero trials. Any
+          stability or profit consistency claim from 0018 is overcount
+          of a nonexistent evidence base. Even if 0018 were implemented,
+          QCLAW-0012 DS-11 requires N ≥ 100; the minimum bar is
+          documented and must be met.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0018 stability claims;
+          MODULE-MATURITY-LEDGER: 0018 evidence base.
+        evidence_required: >
+          0018 trial count; QCLAW-0012 DS-11 minimum trial requirement;
+          any stability/profit claim language in 0018 documentation.
+        forbidden_behaviors:
+          - "Must NOT claim stability from CONTRACTED_NOT_IMPLEMENTED module with zero trials"
+          - "Must NOT claim 'theoretical stability' as equivalent to empirically demonstrated stability"
+          - "Must NOT claim QCLAW-0012 DS-11 is advisory and can be waived"
+        pass_criteria: >
+          0018's zero-trial status is disclosed. Any stability language
+          is removed or rephrased as 'hypothesis to be tested' with
+          the N ≥ 100 requirement prominently cited.
+
+      - query_id: "0019Q-F13-Q02"
+        family: "0018_STABLE_PROFIT_OVERCOUNT"
+        query_text: >
+          The NEXT-VERTICAL-SLICE gives 0018 a score of 35. Even at 35,
+          explain what evidence the 35 is based on. If 0018 has zero
+          trials and depends on the broken W11→W12→W7 chain, decompose
+          the 35 score and identify how much of it comes from: (a) the
+          problem definition being clear, (b) the contract being written,
+          (c) assumed future evidence, (d) dependency chain assumptions.
+          What would 0018 score if only currently-available evidence
+          were counted?
+        expected_finding: >
+          With zero trials and a broken dependency chain, 0018's
+          evidence-justified score should be near the floor. If the
+          35 score includes assumed future evidence or treats the
+          broken chain as operational, it overcounts 0018's readiness.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0018 score and decomposition.
+        evidence_required: >
+          0018 score decomposition by evidence category; identification
+          of currently-available vs. assumed-future evidence components.
+        forbidden_behaviors:
+          - "Must NOT score 0018 on evidence that does not exist"
+          - "Must NOT assume the W11→W12→W7 chain will be operational when scoring 0018"
+          - "Must NOT claim a low score (35) immunizes against overcount criticism"
+        pass_criteria: >
+          0018 score decomposition published. Current-evidence-only
+          score computed. Any gap between current-evidence and
+          published score is documented with assumptions listed.
+
+      - query_id: "0019Q-F13-Q03"
+        family: "0018_STABLE_PROFIT_OVERCOUNT"
+        query_text: >
+          QCLAW-0012 Decision-Science DS-08 through DS-13 define
+          validation standards for decision modules: independence of
+          trials, OOS window, regime coverage, parameter stability,
+          and degradation under stress. For each of these standards,
+          state whether 0018's current evidence (if any) meets it.
+          If 0018 meets zero of these standards, explain how 0018
+          can claim to assess 'profit consistency' or 'survival
+          consistency' at any confidence level.
+        expected_finding: >
+          0018 meets zero of QCLAW-0012 DS-08 through DS-13 standards.
+          The module has no trials, no OOS window, no regime coverage,
+          no parameter stability evidence, and no stress degradation
+          data. Any claim of profit/survival consistency is a category
+          error — applying validation language to an unvalidated
+          hypothesis.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: 0018 claims; QCLAW-0012 validation
+          standards.
+        evidence_required: >
+          QCLAW-0012 DS-08 through DS-13 full validation criteria;
+          0018 evidence per criterion.
+        forbidden_behaviors:
+          - "Must NOT claim QCLAW-0012 validation standards are met when they are unmet"
+          - "Must NOT claim 'consistency assessment' is different from 'validation' to bypass DS standards"
+          - "Must NOT treat 0018's contract language as evidence of validation"
+        pass_criteria: >
+          Per-standard compliance table published. All unmet standards
+          flagged. Any consistency claim language is replaced with
+          hypothesis language.
+
+  # ==========================================================================
+  # FAMILY 14: NEXT_SLICE_RECENCY_BIAS
+  # Test whether 0017 score of 84 suffers from recency/momentum bias
+  # vs W12(62) and W11(46).
+  # ==========================================================================
+  - family_id: "F14"
+    family_name: "NEXT_SLICE_RECENCY_BIAS"
+    issue_73_adversary: 14
+    description: >
+      Test whether 0017's top score of 84 reflects genuine readiness
+      or recency/momentum bias. 0017 is the newest module proposal;
+      W12 (62) and W11 (46) have been in the pipeline longer but score
+      lower. QCLAW's independent assessment must verify that the scoring
+      doesn't overweight novelty.
+    queries:
+      - query_id: "0019Q-F14-Q01"
+        family: "NEXT_SLICE_RECENCY_BIAS"
+        query_text: >
+          The scoring weights for next-slice selection are reported as
+          25/20/15/15/10/10/5. Explain how each weight category was
+          applied to 0017 (score 84) and W12 (score 62). For each
+          category, provide the raw score and the weighted contribution.
+          Specifically address: does 0017's higher score come from
+          genuinely better evidence across all categories, or does it
+          come from categories that favor new proposals (e.g., lower
+          implementation cost because nothing has been built yet)?
+        expected_finding: >
+          If 0017 outscores W12 primarily in categories that are
+          easier for unimplemented modules (implementation cost,
+          isolation gate, rollback), the scoring framework has a
+          structural bias toward new proposals. The 84 vs. 62 gap
+          may reflect recency bias rather than higher readiness.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: scoring methodology, weights,
+          per-category scores for 0017 and W12.
+        evidence_required: >
+          Full per-category score decomposition for 0017 and W12;
+          per-category scoring rubric.
+        forbidden_behaviors:
+          - "Must NOT apply different scoring rubrics to 0017 vs. W12"
+          - "Must NOT give 0017 full marks in 'isolation gate' when it depends on the broken W11 chain"
+          - "Must NOT claim recency bias doesn't exist without providing the per-category data"
+        pass_criteria: >
+          Per-category scores published. Any category where 0017
+          outscores W12 due to novelty/not-yet-built status is flagged
+          as structurally biased. Adjusted scores computed.
+
+      - query_id: "0019Q-F14-Q02"
+        family: "NEXT_SLICE_RECENCY_BIAS"
+        query_text: >
+          Normalize the next-slice scores for maturity: modules with
+          lower maturity should have lower evidence-readiness scores.
+          Does 0017 (CONTRACTED_NOT_IMPLEMENTED) scoring 84 while W12
+          (REGISTERED_CANDIDATE) scores 62 and W11 (CONTRACTED_NOT_
+          IMPLEMENTED) scores 46 indicate that maturity is not a
+          significant factor in the scoring? If maturity were properly
+          weighted, what would the rank order be?
+        expected_finding: >
+          If maturity were properly weighted, CONTRACTED_NOT_IMPLEMENTED
+          modules should not outscore REGISTERED_CANDIDATE modules.
+          The 84→62→46 pattern inverts the expected maturity-weighted
+          order. The scoring framework either underweights maturity
+          or applies it inconsistently.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: scoring weights and maturity
+          incorporation.
+        evidence_required: >
+          Maturity-weighted score recalculation for all modules;
+          maturity-to-score correlation analysis.
+        forbidden_behaviors:
+          - "Must NOT claim maturity is adequately weighted when CONTRACTED outranks REGISTERED_CANDIDATE"
+          - "Must NOT claim 0017's 84 reflects 'different criteria' without documenting those criteria"
+          - "Must NOT dismiss the inversion as 'scoring captures different dimensions'"
+        pass_criteria: >
+          Maturity-weighted scores computed. If the rank order inverts
+          under proper maturity weighting, the inversion is documented
+          and the scoring framework is revised or caveated.
+
+      - query_id: "0019Q-F14-Q03"
+        family: "NEXT_SLICE_RECENCY_BIAS"
+        query_text: >
+          QCLAW's independent scoring uses weights: data_adequacy (20%),
+          dependency_readiness (25%), implementation_cost (15%),
+          isolation_gate (20%), rollback (10%), infrastructure_reuse (10%).
+          Apply these weights to 0017, W12, and W11 using QCLAW's
+          assessment of each module's evidence. Report the QCLAW-weighted
+          scores. Compare against Codex's scores (84, 62, 46) and explain
+          material differences.
+        expected_finding: >
+          QCLAW's weights emphasize dependency_readiness (25%) and
+          isolation_gate (20%), which penalize 0017 for its broken
+          W11→W12→W7 dependency chain. QCLAW-weighted scores should
+          show 0017 significantly lower than 84. W12's REGISTERED_
+          CANDIDATE status with Draft PR should also score lower than 62.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: Codex scores and weights;
+          QCLAW independent weights.
+        evidence_required: >
+          QCLAW-weighted scores with per-category decomposition;
+          Codex-QCLAW score comparison with gap analysis.
+        forbidden_behaviors:
+          - "Must NOT reject QCLAW's weights without providing a principled counter-argument"
+          - "Must NOT claim the weight difference is 'minor' if it changes the rank order"
+          - "Must NOT dismiss QCLAW's dependency_readiness emphasis as 'too conservative' without evidence"
+        pass_criteria: >
+          QCLAW-weighted scores computed and published. Material
+          differences explained. If the rank order changes, the
+          implications for next-slice selection are documented.
+
+  # ==========================================================================
+  # FAMILY 15: NEXT_SLICE_DATA_NOT_READY
+  # Test data readiness scores against QCLAW's assessment of available
+  # data.
+  # ==========================================================================
+  - family_id: "F15"
+    family_name: "NEXT_SLICE_DATA_NOT_READY"
+    issue_73_adversary: 15
+    description: >
+      Test data readiness scores in NEXT-VERTICAL-SLICE-SELECTION
+      against QCLAW's assessment of what data is actually available.
+      QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX defines what data
+      sources exist and their access paths.
+    queries:
+      - query_id: "0019Q-F15-Q01"
+        family: "NEXT_SLICE_DATA_NOT_READY"
+        query_text: >
+          For each module in the next-slice selection, identify its
+          required data inputs. Cross-reference each data input against
+          QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX to verify: (a) the
+          data source exists, (b) the access path is operational, (c) the
+          transport is PUBLIC_SAFE and available to that module. Flag
+          any data input for which the source, access, or transport is
+          not verified in QCLAW-0008.
+        expected_finding: >
+          Multiple modules likely require data sources that are not in
+          QCLAW-0008's verified matrix. 0017's BAR data, W12's training
+          data for probability estimation, W11's A-share market data
+          for backtesting — these may not have verified access paths.
+          The honest answer identifies all unverified data dependencies.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: per-module data readiness;
+          QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX: verified data
+          sources.
+        evidence_required: >
+          QCLAW-0008 matrix full data source inventory; per-module
+          data input specification; gap analysis.
+        forbidden_behaviors:
+          - "Must NOT claim data is available when QCLAW-0008 has no verified access path"
+          - "Must NOT assume data sources will become available without documenting the acquisition plan"
+          - "Must NOT score modules on data that has no verified storage/transport/access path"
+        pass_criteria: >
+          Complete data readiness audit published. All unverified data
+          dependencies identified. Per-module data readiness scores
+          adjusted to reflect only verified data paths.
+
+      - query_id: "0019Q-F15-Q02"
+        family: "NEXT_SLICE_DATA_NOT_READY"
+        query_text: >
+          Specifically for 0017's BAR data requirement: QCLAW-0008
+          STORAGE-TRANSPORT-ACCESS-MATRIX defines what A-share market
+          data is currently accessible. Does the matrix include BAR
+          data (OHLCV at sufficient resolution for reference-zone
+          computation)? If not, what is QCLAW-0008's assessment of
+          BAR data availability, and how does this affect 0017's
+          data readiness score?
+        expected_finding: >
+          If QCLAW-0008 matrix doesn't verify BAR data availability
+          at the required resolution, 0017's data readiness component
+          of the 84 score is unsupported. The honest answer includes
+          the QCLAW-0008 assessment and its impact on scoring.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: 0017 data readiness;
+          QCLAW-0008 matrix: BAR data availability.
+        evidence_required: >
+          QCLAW-0008 matrix BAR data entry; 0017 BAR data specification
+          (resolution, frequency, history length).
+        forbidden_behaviors:
+          - "Must NOT claim BAR data is available if QCLAW-0008 doesn't verify it"
+          - "Must NOT substitute 'market data exists in theory' for 'access path is verified'"
+          - "Must NOT score 0017 data readiness without QCLAW-0008 cross-reference"
+        pass_criteria: >
+          0017's BAR data availability is confirmed against QCLAW-0008
+          or the discrepancy is documented. Score adjusted if data is
+          unverified.
+
+      - query_id: "0019Q-F15-Q03"
+        family: "NEXT_SLICE_DATA_NOT_READY"
+        query_text: >
+          For W12's probability estimation: what training data,
+          calibration data, and OOS test data does W12 require? Does
+          QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX verify that this
+          data is accessible? W12 is scored at 62 in next-slice selection;
+          if the required data is not verified as accessible, what portion
+          of the 62 is unsupported?
+        expected_finding: >
+          W12 requires A-share market data for probability estimation
+          model training, calibration, and OOS testing. If QCLAW-0008
+          hasn't verified this data path, W12's 62 score overestimates
+          data readiness. With C7 as DRAFT_PR_NOT_MAIN and data
+          unverified, W12's effective readiness is lower than 62.
+        codex_claim_under_test: >
+          NEXT-VERTICAL-SLICE-SELECTION: W12 scoring; QCLAW-0008 matrix:
+          W12 data requirements.
+        evidence_required: >
+          W12 data specification; QCLAW-0008 data path verification;
+          per-component score decomposition.
+        forbidden_behaviors:
+          - "Must NOT claim W12 has adequate data when QCLAW-0008 doesn't verify the data path"
+          - "Must NOT score W12 on data that hasn't been through the 0008 verification pipeline"
+          - "Must NOT treat PR #66 schema as evidence of data availability"
+        pass_criteria: >
+          W12 data requirements verified against QCLAW-0008. Any
+          unverified data path identified and score adjusted.
+
+  # ==========================================================================
+  # FAMILY 16: NEGATIVE_RESULT_ERASURE
+  # Test that rejected alternatives and negative findings are preserved.
+  # ==========================================================================
+  - family_id: "F16"
+    family_name: "NEGATIVE_RESULT_ERASURE"
+    issue_73_adversary: 16
+    description: >
+      Test that the enterprise blueprint preserves negative results,
+      rejected alternatives, and counterevidence. QCLAW-0008's
+      CANONICAL-RUNTIME-BOUNDARY and DECISION-LOG require that
+      rejected paths remain documented and retrievable.
+    queries:
+      - query_id: "0019Q-F16-Q01"
+        family: "NEGATIVE_RESULT_ERASURE"
+        query_text: >
+          During the convergence process for PR #74, were any module
+          designs, interface schemas, or dependency paths proposed and
+          then rejected? If so, list each rejected alternative, the
+          reason for rejection, and where the rejection is documented.
+          If no rejections are documented, explain how a convergence
+          process across 14 modules produced a final blueprint without
+          any rejected alternatives.
+        expected_finding: >
+          A convergence process across 14 modules with zero documented
+          rejections is implausible. The honest answer either documents
+          the rejected alternatives or acknowledges that the convergence
+          process did not preserve its decision history — a negative
+          result erasure that violates QCLAW-0008 DECISION-LOG
+          requirements.
+        codex_claim_under_test: >
+          PR #74 convergence process documentation; any decision log,
+          rejected alternative list, or design-decision record.
+        evidence_required: >
+          Existence and completeness of PR #74 decision history;
+          QCLAW-0008 DECISION-LOG requirements for rejected alternatives.
+        forbidden_behaviors:
+          - "Must NOT claim convergence produced zero rejections as evidence of process quality"
+          - "Must NOT bury rejected alternatives in closed GitHub threads without blueprint documentation"
+          - "Must NOT present the final blueprint as if no alternatives were ever considered"
+        pass_criteria: >
+          Decision history with rejected alternatives is published.
+          If none exists, the gap is acknowledged with a plan to
+          reconstruct the decision history.
+
+      - query_id: "0019Q-F16-Q02"
+        family: "NEGATIVE_RESULT_ERASURE"
+        query_text: >
+          The maturity inflation audit found W3 and W12 over-assigned.
+          Were lower maturity assignments considered and rejected for
+          these modules? If so, what was the evidence that supported
+          the higher assignment over the lower one? If the higher
+          assignment was chosen without documenting why the lower one
+          was rejected, does this constitute negative result erasure?
+        expected_finding: >
+          If W3 and W12 were assigned IMPLEMENTED and REGISTERED_CANDIDATE
+          without documenting why BLUEPRINT_ONLY or CONTRACTED_NOT_
+          IMPLEMENTED were rejected, the decision process erased the
+          negative evidence. The honest answer either provides the
+          rejection rationale or acknowledges the erasure.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: W3 and W12 maturity assignment
+          rationale and decision history.
+        evidence_required: >
+          Decision record for W3 and W12 maturity assignment; evidence
+          considered for lower maturity options; rationale for choosing
+          the higher level.
+        forbidden_behaviors:
+          - "Must NOT claim the maturity assignment was 'obvious' without documenting the alternatives considered"
+          - "Must NOT treat the absence of a decision record as evidence that the assignment was straightforward"
+          - "Must NOT retroactively invent rejection rationale that wasn't documented at the time"
+        pass_criteria: >
+          W3 and W12 decision records published with alternatives
+          considered and rejection rationale. If no record exists,
+          the assignment is explicitly flagged as lacking documented
+          decision history.
+
+      - query_id: "0019Q-F16-Q03"
+        family: "NEGATIVE_RESULT_ERASURE"
+        query_text: >
+          QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY requires that every
+          design decision that affects the runtime boundary must be
+          documented with: the alternatives considered, the evidence
+          for and against each, the decision rationale, and the
+          dissenting views (if any). Does Codex's enterprise blueprint
+          convergence process meet this standard for each boundary-
+          affecting decision? If not, list the decisions that lack
+          this documentation.
+        expected_finding: >
+          The convergence process likely lacks decision documentation
+          meeting QCLAW-0008's standard. Module maturity assignments,
+          interface classifications, dependency edges, and authority
+          claims are all boundary-affecting decisions that should have
+          documented alternatives and dissent. Their absence is
+          negative-result erasure.
+        codex_claim_under_test: >
+          PR #74 convergence process: decision documentation for
+          boundary-affecting decisions vs. QCLAW-0008 standard.
+        evidence_required: >
+          QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY decision documentation
+          requirements; per-decision compliance assessment.
+        forbidden_behaviors:
+          - "Must NOT claim QCLAW-0008 documentation standards don't apply to Codex PRs"
+          - "Must NOT present undocumented decisions as if the standard was met"
+          - "Must NOT claim convergence automatically satisfies documentation requirements"
+        pass_criteria: >
+          Compliance table published. All non-compliant decisions
+          identified. Gap acknowledged with a documentation remediation
+          plan or an explicit recognition that the convergence process
+          did not meet QCLAW-0008 standards.
+
+  # ==========================================================================
+  # FAMILY 17: UNKNOWN_ERASURE
+  # Test that UNKNOWN/UNRESOLVED items from Codex's own UNKNOWN
+  # registries are preserved.
+  # ==========================================================================
+  - family_id: "F17"
+    family_name: "UNKNOWN_ERASURE"
+    issue_73_adversary: 17
+    description: >
+      Test that UNKNOWN/UNRESOLVED items from Codex's own registries
+      and QCLAW-0008 UNKNOWN-REGISTRY are preserved in the convergence
+      blueprint. Unknowns must not be silently resolved or omitted.
+    queries:
+      - query_id: "0019Q-F17-Q01"
+        family: "UNKNOWN_ERASURE"
+        query_text: >
+          Does the enterprise blueprint preserve W3's PHYSICAL_AUTHORITY_
+          UNKNOWN status as declared in CANONICAL-AUTHORITY-AND-OWNERSHIP-
+          MATRIX? Or does the convergence blueprint present W3 as if its
+          physical store status is resolved? If the UNKNOWN status is
+          preserved, where exactly in the blueprint is it documented?
+          If it is not documented, this is UNKNOWN erasure.
+        expected_finding: >
+          W3's PHYSICAL_AUTHORITY_UNKNOWN is a declared UNKNOWN in Codex's
+          own matrix. If the convergence blueprint doesn't prominently
+          preserve this UNKNOWN, the blueprint is erasing a self-declared
+          knowledge gap. QCLAW-0008 UNKNOWN-REGISTRY requires all UNKNOWN
+          items to be preserved with their verification paths.
+        codex_claim_under_test: >
+          CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX: W3 UNKNOWN status;
+          BLUEPRINTS convergence document: W3 presentation.
+        evidence_required: >
+          W3 UNKNOWN declaration in matrix; W3 representation in
+          convergence blueprint; QCLAW-0008 UNKNOWN preservation
+          requirements.
+        forbidden_behaviors:
+          - "Must NOT present W3 as resolved when its own matrix says PHYSICAL_AUTHORITY_UNKNOWN"
+          - "Must NOT bury the UNKNOWN status in a footnote while highlighting W3 capabilities"
+          - "Must NOT claim 'the UNKNOWN is acknowledged in the matrix so it doesn't need to be in the blueprint'"
+        pass_criteria: >
+          W3's PHYSICAL_AUTHORITY_UNKNOWN status is prominently
+          preserved in the convergence blueprint with its verification
+          path. Any other UNKNOWN from the matrix is similarly preserved.
+
+      - query_id: "0019Q-F17-Q02"
+        family: "UNKNOWN_ERASURE"
+        query_text: >
+          Compile every UNKNOWN or UNRESOLVED item from all Codex
+          enterprise blueprint files: CANONICAL-AUTHORITY-AND-OWNERSHIP-
+          MATRIX, MODULE-MATURITY-LEDGER (open_gates), DUPLICATE-ORPHAN-
+          GHOST-DEPRECATION-REPORT, and SHARED-INTERFACE-REGISTRY. For
+          each item, verify whether it is preserved in the convergence
+          blueprint or the NEXT-VERTICAL-SLICE-SELECTION. Any UNKNOWN
+          that is not preserved constitutes erasure.
+        expected_finding: >
+          Known UNKNOWNs include: W3 PHYSICAL_AUTHORITY_UNKNOWN, W7
+          open_gates, C7 DRAFT_PR_NOT_MAIN, all ghost capabilities,
+          and all CONTRACTED_NOT_IMPLEMENTED modules' dependency gaps.
+          The convergence blueprint must preserve all of these. Any
+          omission is UNKNOWN erasure.
+        codex_claim_under_test: >
+          All Codex enterprise blueprint files: UNKNOWN/UNRESOLVED items
+          and their preservation in the convergence output.
+        evidence_required: >
+          Complete UNKNOWN inventory from all source files; per-item
+          preservation audit in convergence blueprint.
+        forbidden_behaviors:
+          - "Must NOT omit any self-declared UNKNOWN from the convergence blueprint"
+          - "Must NOT claim UNKNOWNs are 'implicitly preserved' if they're not explicitly stated"
+          - "Must NOT treat the convergence blueprint as 'forward-looking' to justify omitting UNKNOWNs"
+        pass_criteria: >
+          Complete UNKNOWN inventory published with per-item preservation
+          status. All unpreserved UNKNOWNs identified as erasures.
+
+      - query_id: "0019Q-F17-Q03"
+        family: "UNKNOWN_ERASURE"
+        query_text: >
+          QCLAW-0008 UNKNOWN-REGISTRY.yaml catalogs knowledge gaps that
+          are declared UNKNOWN by QCLAW. Does Codex's enterprise blueprint
+          reference any of these QCLAW-declared UNKNOWNs? If Codex claims
+          capabilities in domains where QCLAW-0008 has declared UNKNOWN,
+          is Codex claiming to have resolved a QCLAW-UNKNOWN without
+          documenting the resolution evidence? This would constitute
+          UNKNOWN erasure through silent resolution.
+        expected_finding: >
+          If Codex claims capabilities (e.g., in storage/transport/access
+          or agent routing) that overlap with QCLAW-0008 UNKNOWN domains,
+          and doesn't acknowledge the QCLAW-UNKNOWN or provide resolution
+          evidence, Codex is silently resolving QCLAW-declared unknowns.
+          The honest answer identifies every such silent resolution.
+        codex_claim_under_test: >
+          Enterprise blueprint claims in domains covered by QCLAW-0008
+          UNKNOWN-REGISTRY.
+        evidence_required: >
+          QCLAW-0008 UNKNOWN-REGISTRY full inventory; enterprise blueprint
+          capability claims mapped to UNKNOWN domains; resolution evidence
+          for any overlapping claim.
+        forbidden_behaviors:
+          - "Must NOT resolve QCLAW-0008 UNKNOWNs without documenting the resolution evidence"
+          - "Must NOT claim QCLAW-0008 UNKNOWNs don't apply to the enterprise blueprint"
+          - "Must NOT omit QCLAW-0008 UNKNOWNs that contradict Codex capability claims"
+        pass_criteria: >
+          All QCLAW-0008 UNKNOWN-to-Codex-claim overlaps identified.
+          Each silent resolution flagged. Codex either acknowledges
+          the QCLAW-UNKNOWN or provides resolution evidence.
+
+  # ==========================================================================
+  # FAMILY 18: CROSS_AGENT_BRANCH_CONTAMINATION
+  # Test that Codex PR #74 doesn't reference QCLAW PR #70 evidence
+  # as its own.
+  # ==========================================================================
+  - family_id: "F18"
+    family_name: "CROSS_AGENT_BRANCH_CONTAMINATION"
+    issue_73_adversary: 18
+    description: >
+      Test that Codex PR #74 does not reference QCLAW PR #70 evidence,
+      findings, or artifacts as if they were Codex-generated. Cross-agent
+      contamination occurs when one agent incorporates another agent's
+      output without attribution, creating the appearance of independent
+      convergence when it's actually derivative.
+    queries:
+      - query_id: "0019Q-F18-Q01"
+        family: "CROSS_AGENT_BRANCH_CONTAMINATION"
+        query_text: >
+          Does Codex PR #74 cite, reference, or incorporate any evidence
+          from QCLAW PR #70? For each reference to QCLAW work in Codex's
+          files, verify that: (a) the source is QCLAW-attributed, not
+          presented as Codex-original, (b) the QCLAW finding is not
+          re-characterized as Codex convergence output, (c) QCLAW's
+          CANDIDATE_ONLY authority is preserved, not escalated to
+          CANONICAL. If Codex PR #74 contains zero QCLAW PR #70
+          references, state this explicitly.
+        expected_finding: >
+          The independence attestation states QCLAW and Codex did not
+          collaborate on PR #74. If Codex PR #74 references QCLAW PR #70
+          without attribution, it is cross-agent contamination. If it
+          contains zero QCLAW references despite QCLAW having relevant
+          findings, Codex may be omitting known counterevidence.
+        codex_claim_under_test: >
+          All Codex PR #74 files: any QCLAW PR #70 references, citations,
+          or incorporated evidence.
+        evidence_required: >
+          Full-text search of Codex PR #74 files for QCLAW references;
+          attribution audit for each reference found.
+        forbidden_behaviors:
+          - "Must NOT present QCLAW PR #70 findings as Codex-original convergence analysis"
+          - "Must NOT cite QCLAW evidence without preserving its CANDIDATE_ONLY authority level"
+          - "Must NOT re-characterize QCLAW's CANDIDATE_ONLY findings as CANONICAL enterprise positions"
+        pass_criteria: >
+          All QCLAW PR #70 references in Codex PR #74 are attributed,
+          authority-preserved, and not re-characterized. Zero references
+          is acceptable if explicitly stated.
+
+      - query_id: "0019Q-F18-Q02"
+        family: "CROSS_AGENT_BRANCH_CONTAMINATION"
+        query_text: >
+          Compare Codex PR #74's maturity assessments (MODULE-MATURITY-
+          LEDGER) against any QCLAW maturity assessments from PR #70 or
+          other QCLAW outputs. Are there instances where Codex's maturity
+          assessment appears to have adopted, adapted, or converged with
+          a QCLAW assessment without attribution? If Codex and QCLAW
+          assessments align on specific modules, is this independent
+          convergence or derived agreement?
+        expected_finding: >
+          If Codex and QCLAW assessments align on modules where QCLAW
+          published findings first, and Codex does not attribute the
+          alignment to QCLAW's prior work, the convergence may not be
+          independent. QCLAW's maturity inflation audit was published
+          in 0019Q before GPT review of Codex PR #74 — if Codex's
+          response incorporates QCLAW findings without attribution,
+          it's contamination.
+        codex_claim_under_test: >
+          MODULE-MATURITY-LEDGER: maturity assessments vs. QCLAW PR #70
+          and 0019Q audit findings.
+        evidence_required: >
+          Timeline of QCLAW maturity publications vs. Codex PR #74
+          publication; per-module alignment analysis; attribution audit.
+        forbidden_behaviors:
+          - "Must NOT adopt QCLAW maturity assessments without attribution"
+          - "Must NOT claim independent convergence when assessments appeared after QCLAW publication"
+          - "Must NOT revise Codex maturity in response to QCLAW audit and claim it was always the assessment"
+        pass_criteria: >
+          Timeline and alignment analysis published. All QCLAW-attributable
+          alignments are either attributed or demonstrated to be temporally
+          independent.
+
+      - query_id: "0019Q-F18-Q03"
+        family: "CROSS_AGENT_BRANCH_CONTAMINATION"
+        query_text: >
+          Does Codex PR #74's DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT
+          reference any QCLAW ghost capability findings? QCLAW-0008's
+          UNKNOWN-REGISTRY and QCLAW's 0013A adversarial methodology
+          both catalog ghost/UNKNOWN capabilities. If Codex's ghost
+          report covers the same capabilities without citing QCLAW's
+          prior catalog, is this independent discovery or unreferenced
+          derivation?
+        expected_finding: >
+          If Codex's ghost report covers capabilities that QCLAW-0008
+          UNKNOWN-REGISTRY had already cataloged, and Codex does not
+          cite QCLAW's catalog, the ghost report may be derived from
+          QCLAW's prior work. The honest answer provides the timeline
+          and attribution analysis.
+        codex_claim_under_test: >
+          DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT: ghost capability
+          catalog vs. QCLAW-0008 UNKNOWN-REGISTRY and 0013A methodology.
+        evidence_required: >
+          QCLAW-0008 UNKNOWN-REGISTRY publication date; 0013A methodology
+          publication date; Codex ghost report publication date; per-
+          capability overlap analysis.
+        forbidden_behaviors:
+          - "Must NOT claim ghost capability discovery is independent if QCLAW published first"
+          - "Must NOT cite QCLAW ghost catalogs without preserving CANDIDATE_ONLY authority"
+          - "Must NOT incorporate QCLAW ghost findings and claim they validate Codex's independent analysis"
+        pass_criteria: >
+          Overlap analysis published with timeline. All overlaps with
+          QCLAW-prior publications are attributed. Independent discovery
+          is claimed only for capabilities not in QCLAW's prior catalogs.
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  total_families: 18
+  total_queries: 54
+  queries_per_family: 3
+  coverage:
+    authority_audit:
+      - "F01: DUPLICATE_WRITE_AUTHORITY (3 queries)"
+      - "F02: PRODUCER_CONSUMER_WRITE_CONFLICT (3 queries)"
+      - "F11: W12_W11_W7_0018_AUTHORITY_COLLISION (3 queries)"
+    maturity_audit:
+      - "F03: MATURITY_STATUS_INFLATION (3 queries)"
+      - "F04: BLUEPRINT_TERM_AS_IMPLEMENTATION (3 queries)"
+      - "F05: CONTRACT_AS_BACKTEST_EVIDENCE (3 queries)"
+    capability_audit:
+      - "F06: GHOST_CAPABILITY (3 queries)"
+      - "F12: 0017_FAKE_ORDER_FLOW (3 queries)"
+      - "F13: 0018_STABLE_PROFIT_OVERCOUNT (3 queries)"
+    structural_audit:
+      - "F07: ORPHAN_INTERFACE (3 queries)"
+      - "F08: STALE_REFERENCE (3 queries)"
+      - "F09: BROKEN_DEPENDENCY (3 queries)"
+    governance_audit:
+      - "F10: HIDDEN_W14_OR_PARALLEL_RUNTIME (3 queries)"
+      - "F14: NEXT_SLICE_RECENCY_BIAS (3 queries)"
+      - "F15: NEXT_SLICE_DATA_NOT_READY (3 queries)"
+    integrity_audit:
+      - "F16: NEGATIVE_RESULT_ERASURE (3 queries)"
+      - "F17: UNKNOWN_ERASURE (3 queries)"
+      - "F18: CROSS_AGENT_BRANCH_CONTAMINATION (3 queries)"
+  methodology_anchors:
+    - "QCLAW-0013A adversarial methodology"
+    - "QCLAW-0008 CANONICAL-RUNTIME-BOUNDARY"
+    - "QCLAW-0008 QUALITY-GATES.yaml"
+    - "QCLAW-0008 UNKNOWN-REGISTRY.yaml"
+    - "QCLAW-0008 DECISION-LOG requirements"
+    - "QCLAW-0008 STORAGE-TRANSPORT-ACCESS-MATRIX"
+    - "QCLAW-0010 PEOS decision lifecycle"
+    - "QCLAW-0011 Kelly-Thorp capital allocation"
+    - "QCLAW-0012 Decision-Science DS-01 through DS-13"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T12:00:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
+  trade_status: NO_TRADE

@@ -1,0 +1,100 @@
+# AUTHORITY-COLLISION-COUNTEREVIDENCE
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# Generated: 2026-07-23T12:00:00+08:00
+
+schema_version: "1.0"
+report_id: "QCLAW-0019Q-AUTHORITY-COLLISION-001"
+audit_target: "Codex PR #74 CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml"
+
+findings:
+
+  - collision_id: "AC-001"
+    severity: HIGH
+    type: "PHYSICAL_SYSTEM_OF_RECORD_UNKNOWN"
+    location: "AUTH_KNOWLEDGE_EVIDENCE_MEMORY (W3)"
+    description: >
+      Codex declares W3 as single logical authority for knowledge/evidence,
+      but its physical_system_of_record is "UNKNOWN_MIGRATION_REQUIRED."
+      Two physical candidates exist (public Phase 3 MemoryStore from PR #57
+      and local F:/aidanao/brain_core) with NO proven migration path, NO
+      dry-run, NO hash reconciliation, and NO GPT decision recorded.
+    impact: >
+      Every consumer of C3_KNOWLEDGE_AND_EVIDENCE (W5, W6, W10, W12, W13)
+      depends on an interface with UNKNOWN physical authority. All downstream
+      evidence chains are built on an unresolved physical store.
+    codex_self_awareness: >
+      Codex acknowledges this in DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT
+      as "MIGRATION_DECISION_REQUIRED" and lists it in the conflicts block.
+      The self-awareness is credit-worthy but does not resolve the collision.
+    recommendation: "Block 0017 BAR_ONLY evidence consumption of C3 until physical store migration is proven with dry-run, count/hash reconciliation, and GPT acceptance."
+
+  - collision_id: "AC-002"
+    severity: MEDIUM
+    type: "DUPLICATE_STORAGE_TARGETS"
+    location: "W3 — two physical store candidates"
+    description: >
+      Codex's DUPLICATE-ORPHAN report lists local brain_core SQLite/JSONL
+      AND public Phase 3 MemoryStore as candidates. The P2 KnowledgeGateway
+      is correctly classified as REFERENCE_ONLY_TEST_FACADE. However, the
+      two physical candidates remain unresolved — both are "candidates,"
+      neither is declared canonical, and no selection criteria are published.
+    recommendation: "GPT must select one canonical store or accept a hybrid migration plan with explicit hash reconciliation."
+
+  - collision_id: "AC-003"
+    severity: MEDIUM
+    type: "DRAFT_PR_CLAIMED_AS_IMPLEMENTATION"
+    location: "AUTH_PROBABILITY_ESTIMATE (W12_DS02)"
+    description: >
+      Codex classifies W12 maturity as REGISTERED_CANDIDATE, but its
+      physical_system_of_record is "PR_66_DRAFT_NOT_MAIN." The authority
+      matrix itself acknowledges this — the physical store is a Draft PR,
+      not merged, not on main, with zero consumer integration.
+    impact: >
+      W11 (capital allocation) is blocked by C7_PROBABILITY_ESTIMATE,
+      which does not exist on main. W11's maturity is correctly stated
+      as CONTRACTED_BLOCKED_BY_PROBABILITY_AND_RISK, but W12's maturity
+      inflation creates a false impression of readiness.
+    recommendation: "Downgrade W12 to CONTRACTED_NOT_IMPLEMENTED until PR #66 is merged to main."
+
+  - collision_id: "AC-004"
+    severity: LOW
+    type: "MAY_WRITE_BOUNDARY_AMBIGUITY"
+    location: "embedded_capabilities: 0017 and 0018"
+    description: >
+      Both 0017 and 0018 have "may_write" and "may_not_write" lists that
+      correctly exclude ProbabilityEstimate, W11CandidateAllocation,
+      W7RiskEnvelope, and Order. However, the boundary between W7's
+      "final veto" on validation and 0017/0018's "may_write" on
+      domain-specific validation objects (ReferenceZoneBreachEvent,
+      CapitalBufferAndRuinAssessment) is not explicitly tested.
+    recommendation: "Add an explicit integration test: W7 must receive AND approve every domain validation object before it enters any evidence chain."
+
+  - collision_id: "AC-005"
+    severity: UNKNOWN
+    type: "W7_CANONICAL_RISK_ENVELOPE_UNDEFINED"
+    location: "AUTH_VALIDATION_FINAL_VETO (W7)"
+    description: >
+      W7 has final-veto authority but its own open_gate lists "canonical
+      W7RiskEnvelope" and "full final-veto integration" as incomplete.
+      The interface C10_VALIDATION_AND_RISK lists required semantics but
+      has no canonical single runtime. W7 is simultaneously the validator
+      AND a module with blocking open gates.
+    classification: >
+      UNKNOWN: QCLAW cannot determine from Codex's docs whether W7 has
+      sufficient runtime to actually exercise its final-veto authority over
+      0017 validation results, or whether W7 veto is itself a blueprint
+      concept awaiting implementation.
+
+summary:
+  collisions: 5
+  severity_high: 1
+  severity_medium: 2
+  severity_low: 1
+  severity_unknown: 1
+  codex_self_awareness_credit: "Codex correctly self-identifies 1 unresolved physical store (AC-001) and acknowledges W7 open gates. The self-awareness reduces but does not eliminate the risks."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T12:00:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

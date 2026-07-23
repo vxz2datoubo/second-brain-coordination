@@ -1,0 +1,187 @@
+# MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# Generated: 2026-07-23T12:15:00+08:00
+
+schema_version: "1.0"
+registry_id: "QCLAW-0019Q-UNKNOWN-REGISTRY-001"
+
+# ============================================================================
+# CODEX-IDENTIFIED UNKNOWNS (from PR #74 convergence artifacts)
+# ============================================================================
+
+codex_unknowns:
+  - id: "CU-001"
+    source: "CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml + DUPLICATE-ORPHAN report"
+    item: "W3 local/public memory migration"
+    status: "UNRESOLVED"
+    impact: "HIGH — affects every C3 consumer (W5, W6, W10, W12, W13)"
+    
+  - id: "CU-002"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C1_MARKET_TIME"
+    item: "complete source-time semantics across all vendors"
+    status: "UNKNOWN"
+    impact: "MEDIUM — time pipeline works for current data sources but multi-vendor edge cases untested"
+    
+  - id: "CU-003"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C2_RULE_SNAPSHOT"
+    item: "all-board historical effective-date coverage"
+    status: "UNKNOWN"
+    impact: "MEDIUM — partial rule coverage may miss board-specific edge cases"
+    
+  - id: "CU-004"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C3_KNOWLEDGE"
+    item: "public/local migration and canonical store"
+    status: "UNKNOWN"
+    impact: "HIGH — same as CU-001, this is the interface-side of the same problem"
+    
+  - id: "CU-005"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C4_EVENT_EVIDENCE"
+    item: "point-in-time expectation-state reconstruction"
+    status: "UNKNOWN"
+    impact: "HIGH — C4 is a blueprint interface; PIT reconstruction is the core unsolved problem"
+    
+  - id: "CU-006"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C5_PARTICIPANT_FLOW"
+    item: "licensed point-in-time sources and field mappings"
+    status: "UNKNOWN"
+    impact: "HIGH — C5 is a blueprint interface with no data sources identified"
+    
+  - id: "CU-007"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C6_STRATEGY_EXPERIMENT"
+    item: "canonical serialization and promotion lifecycle"
+    status: "UNKNOWN"
+    impact: "MEDIUM — strategy experiments work at P2 level but lack canonical format"
+    
+  - id: "CU-008"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C7_PROBABILITY"
+    item: "GPT merge decision and compatible public runtime"
+    status: "UNKNOWN"
+    impact: "HIGH — C7 is DRAFT_PR_NOT_MAIN; W11 and 0018 are blocked until resolved"
+    
+  - id: "CU-009"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C8_DECISION_EPISODE"
+    item: "minimal ex-ante freeze runtime"
+    status: "UNKNOWN"
+    impact: "MEDIUM — W10 is blueprint-only; decision freeze is unsolved"
+    
+  - id: "CU-010"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C10_VALIDATION_RISK"
+    item: "single canonical W7RiskEnvelope runtime"
+    status: "UNKNOWN"
+    impact: "HIGH — W7 has final-veto authority but its canonical runtime is undefined"
+    
+  - id: "CU-011"
+    source: "SHARED-INTERFACE-REGISTRY.yaml — C11_OUTCOME_CALIBRATION"
+    item: "canonical record and shadow reconciliation runtime"
+    status: "UNKNOWN"
+    impact: "MEDIUM — W9 engineering-learning forecasts exist but no canonical calibration"
+    
+  - id: "CU-012"
+    source: "DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT.md"
+    item: "W12 outcome-review reference — expected by earlier routing, not present on main"
+    status: "UNKNOWN_STALE_REFERENCE"
+    impact: "LOW — stale routing reference, not a broken implementation"
+
+# ============================================================================
+# QCLAW-DISCOVERED UNKNOWNS (not in Codex's own registries)
+# ============================================================================
+
+qclaw_unknowns:
+  - id: "QU-001"
+    item: "W7 final-veto authority: is W7 itself implemented enough to veto?"
+    classification: "ARCHITECTURAL_UNCERTAINTY"
+    description: >
+      W7 is IMPLEMENTED_NOT_A_SHARE_VALIDATED with partial P1/P2 validation paths.
+      Its own open_gates include "canonical W7RiskEnvelope" and "full final-veto
+      integration." If W7 cannot yet exercise its veto, who validates 0017 BAR_ONLY
+      results? This is a circular dependency: 0017 needs W7 validation, but W7's
+      validation runtime is not complete.
+    severity: HIGH
+    blocks: ["0017 BAR_ONLY implementation — 0017 needs W7 validation, W7 needs validation runtime"]
+
+  - id: "QU-002"
+    item: "W3 IMPLEMENTED maturity defensibility given UNKNOWN physical store"
+    classification: "MATURITY_INCONSISTENCY"
+    description: >
+      Can a module be IMPLEMENTED_NOT_A_SHARE_VALIDATED when its physical_system_of_record
+      is UNKNOWN_MIGRATION_REQUIRED? QCLAW says no — if you don't know where the data
+      lives, the module is not implemented. Codex itself classifies this as a conflict
+      (unresolved_physical_system_of_record_count: 1) but still assigns IMPLEMENTED status.
+    severity: HIGH
+    blocks: ["any evidence chain that consumes C3_KNOWLEDGE_AND_EVIDENCE"]
+
+  - id: "QU-003"
+    item: "PR #66 (W12) merge decision"
+    classification: "GOVERNANCE_UNCERTAINTY"
+    description: >
+      Will GPT merge, reject, or request modification of PR #66? This single decision
+      determines whether W11 capital allocation and 0018 survival control have a
+      probability foundation or remain blocked. Neither Codex nor QCLAW can predict this.
+    severity: HIGH
+    blocks: ["W11 implementation", "0018 implementation"]
+
+  - id: "QU-004"
+    item: "0017 BAR_ONLY signal vs noise: can reference-zone breach be distinguished from random L2 bar noise without L3 tick data?"
+    classification: "DATA_ADEQUACY_UNKNOWN"
+    description: >
+      The 0017 hypothesis tests reference-zone breach/reclaim using PIT bar data.
+      Without L3 tick data (which Codex correctly classifies as NOT_IMPLEMENTED ghost),
+      it is UNKNOWN whether BAR_ONLY data has sufficient signal-to-noise ratio to
+      distinguish genuine breach-driven reclaim from random bar-level fluctuation.
+      This is a hypothesis risk, not a design flaw — 0017 is explicitly a falsification
+      experiment. But it means 0017 may fail for a reason (insufficient signal) that
+      no amount of correct implementation can fix.
+    severity: MEDIUM
+    blocks: ["0017 may terminate with NEGATIVE_RESULT due to data inadequacy, not hypothesis falsity"]
+
+  - id: "QU-005"
+    item: "PMN calendar data licensability"
+    classification: "EXTERNAL_DEPENDENCY_UNKNOWN"
+    description: >
+      Official policy calendar data from PMN (People's Bank of China monetary policy
+      announcements) may require data licensing or may not be available at reasonable
+      cost. Both Codex and QCLAW rate PMN as a promising low-cost scout, but neither
+      has verified data availability.
+    severity: MEDIUM
+    blocks: ["PMN calendar scout — must verify data access before committing resources"]
+
+  - id: "QU-006"
+    item: "local brain_core contents: any secret/credential values?"
+    classification: "SECURITY_UNKNOWN"
+    description: >
+      Codex's DUPLICATE-ORPHAN report identifies local F:/aidanao/brain_core as
+      a physical store candidate for W3 migration. QCLAW does not know whether
+      this local store contains secret values (API keys, tokens, private keys,
+      mnemonics) that would preclude public GitHub migration. Per Issue #59
+      comment rules: secret values are the one hard boundary against public storage.
+    severity: CRITICAL
+    note: >
+      QCLAW CANNOT and MUST NOT inspect local brain_core contents. This UNKNOWN
+      must be resolved by the human operator before any W3 physical store migration.
+    blocks: ["W3 public store migration — secrets audit required first"]
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  codex_unknowns: 12
+  qclaw_unknowns: 6
+  total_unknowns: 18
+  
+  by_severity:
+    CRITICAL: 1  # QU-006: brain_core secrets audit
+    HIGH: 5      # CU-001, CU-004, CU-005, CU-006, CU-008, CU-010, QU-001, QU-002, QU-003
+    MEDIUM: 5    # CU-002, CU-003, CU-007, CU-009, CU-011, QU-004, QU-005
+    LOW: 1       # CU-012
+  
+  note: >
+    CU-001/CU-004 are the same problem (W3 physical store) seen from two
+    perspectives (authority matrix and interface registry). They are counted as
+    2 UNKNOWNs but represent 1 root problem.
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T12:15:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

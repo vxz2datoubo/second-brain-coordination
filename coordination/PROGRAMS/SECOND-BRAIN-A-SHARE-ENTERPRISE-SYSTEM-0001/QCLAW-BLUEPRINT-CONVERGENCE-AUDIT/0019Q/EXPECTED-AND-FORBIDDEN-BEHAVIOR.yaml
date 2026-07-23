@@ -1,0 +1,96 @@
+# EXPECTED-AND-FORBIDDEN-BEHAVIOR
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# Generated: 2026-07-23T12:02:00+08:00
+#
+# Every expected behavior has a corresponding forbidden behavior.
+# Each pair maps to an auditable claim in Codex PR #74.
+
+schema_version: "1.0"
+record_id: "QCLAW-0019Q-EXPECTED-FORBIDDEN-001"
+
+pairs:
+
+  - id: "EF-001"
+    claim_target: "one_logical_writer_per_object rule in CANONICAL-AUTHORITY-MATRIX"
+    expected: "Every authority object has exactly one owner module and one physical system of record."
+    forbidden: "No module may claim write authority over an object owned by another module. No object may have two physical stores with no declared canonical choice."
+    test_result: "EXPECTED VIOLATED — W3 has two physical store candidates with no declared canonical choice. UNKNOWN_MIGRATION_REQUIRED is an unresolved conflict, not a resolved single-owner state."
+
+  - id: "EF-002"
+    claim_target: "maturity classifications in MODULE-MATURITY-LEDGER (none exceeds IMPLEMENTED_NOT_A_SHARE_VALIDATED)"
+    expected: "No module is A_SHARE_BACKTESTED or SHADOW_VALIDATED."
+    forbidden: "No module is promoted beyond its evidence. Blueprint, Draft PR, or contract cannot be claimed as implementation."
+    test_result: "EXPECTED PARTIALLY VIOLATED — W3 is IMPLEMENTED_NOT_A_SHARE_VALIDATED despite UNKNOWN physical store and unresolved migration. W12 is REGISTERED_CANDIDATE despite physical store being Draft PR not on main."
+
+  - id: "EF-003"
+    claim_target: "Ghost-capability ledger in DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT"
+    expected: "All 7 ghost capabilities are correctly classified as NOT_IMPLEMENTED, PROHIBITED_OVERCLAIM, HYPOTHESIS_NOT_FACT, DRAFT_NOT_IMPLEMENTED, CONTRACTED_NOT_IMPLEMENTED, BLOCKED_NOT_IMPLEMENTED, or HUMAN_GATED_ONLY."
+    forbidden: "No ghost capability may be silently promoted to implemented during downstream work."
+    test_result: "EXPECTED MET — all 7 ghost dispositions are correct. Residual risk: W12 DRAFT_NOT_IMPLEMENTED ghost contradicts W12 REGISTERED_CANDIDATE maturity."
+
+  - id: "EF-004"
+    claim_target: "Next-slice selection: 0017 BAR_ONLY at 84/100, ranked first"
+    expected: "0017 is the most executable, lowest-dependency, cheapest-to-falsify candidate."
+    forbidden: "0017 must NOT claim to infer order flow, hidden stops, participant identity, or raw trade ticks."
+    test_result: "EXPECTED MET — QCLAW independent re-scoring converges at 84/100 for 0017. The BAR_ONLY scope language correctly excludes forbidden claims."
+
+  - id: "EF-005"
+    claim_target: "W11 and 0018 dependency chains"
+    expected: "W11 implementation is blocked until W12 (probability), W2 (rule snapshots), and W7 (risk envelope) are complete. 0018 is blocked until W12, W11, W7, and W9 are complete."
+    forbidden: "No runtime for W11 or 0018 may begin before their blocking gates are cleared. Draft PRs and blueprinted contracts do not count as cleared gates."
+    test_result: "EXPECTED MET — Codex correctly identifies blocking dependencies. QCLAW notes that Codex's own scoring understates the severity (W11 at 46 from Codex vs 35 from QCLAW; 0018 at 35 vs 24)."
+
+  - id: "EF-006"
+    claim_target: "Interface registry: 0 duplicate producers, 0 fully implemented interfaces"
+    expected: "No interface has two producers claiming write authority. Most interfaces are contracted/blueprint, not running."
+    forbidden: "No consumer may infer absent fields; UNKNOWN and abstention must propagate."
+    test_result: "EXPECTED MET — freeze_result confirms 0 duplicate producers. Consumer release rule is correct but untestable without any fully-implemented producer."
+
+  - id: "EF-007"
+    claim_target: "Deprecation policy: nothing deleted in Issue #72"
+    expected: "All historical artifacts remain. Deprecation requires owner, replacement, consumer search, compatibility window, rollback, GPT approval."
+    forbidden: "No file, historical PR, or report may be deleted or silently replaced."
+    test_result: "EXPECTED MET — no deletions observed. PR #64/#65/#8/#34 are preserved with reference-only dispositions."
+
+  - id: "EF-008"
+    claim_target: "0017 BAR_ONLY scope: 'keep probability, allocation and order generation out of scope'"
+    expected: "The 0017 implementation contract explicitly excludes probability estimation, capital allocation, and order generation."
+    forbidden: "0017 may not produce or consume C7_PROBABILITY_ESTIMATE, C9_CANDIDATE_ALLOCATION, or any order-like object."
+    test_result: "EXPECTED MET in blueprint — the may_not_write list correctly excludes ProbabilityEstimate, W11CandidateAllocation, and Order. Implementation risk remains."
+
+  - id: "EF-009"
+    claim_target: "Cross-agent contamination: Codex PR #74 should not reference QCLAW PR #70"
+    expected: "Codex's convergence is independent of QCLAW's adversarial evidence package."
+    forbidden: "Codex must not cite QCLAW's PR #70 findings as its own evidence, or modify QCLAW's frozen queries."
+    test_result: "NO CONTAMINATION DETECTED — Codex PR #74 does not reference QCLAW PR #70. Independence maintained."
+
+  - id: "EF-010"
+    claim_target: "Alternative and rejected-slice preservation"
+    expected: "All rejected next-slice alternatives WITH their counterevidence are preserved in NEXT-VERTICAL-SLICE-SELECTION.md."
+    forbidden: "No rejected candidate or its negative evidence may be silently deleted."
+    test_result: "EXPECTED MET — all 5 rejected alternatives (W12, W13, W11, PMN, 0018) are documented with explicit rejection reasons. Negative results are preserved."
+
+  - id: "EF-011"
+    claim_target: "0017/0018 embedding: owns_parallel_runtime: false"
+    expected: "0017 and 0018 are capabilities embedded in their owner modules, not standalone platforms."
+    forbidden: "Neither may create a parallel runtime, duplicate write authorities, or claim to be a W14+ workstream."
+    test_result: "EXPECTED MET — both correctly declare owns_parallel_runtime: false. May_write/may_not_write boundaries are correct. No W14 or hidden platform detected."
+
+  - id: "EF-012"
+    claim_target: "A_SHARE_BACKTESTED count: 0, SHADOW_VALIDATED count: 0"
+    expected: "Summary confirms zero modules have reached A-share backtested, shadow-validated, or live-trading maturity."
+    forbidden: "No module may be represented or implied to have A-share backtest evidence unless timestamped prediction/outcome reconciliation exists."
+    test_result: "EXPECTED MET — all summary counts are zero. QCLAW independently confirms no A-share backtest evidence exists in public repo."
+
+summary:
+  total_pairs: 12
+  expected_met: 9
+  expected_partially_violated: 2  # EF-001 (W3 physical store), EF-002 (W3/W12 maturity)
+  expected_violated: 1  # EF-001 is the most serious: one_logical_writer_per_object is violated by unresolved physical store
+  no_contamination: 1  # EF-009
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T12:02:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

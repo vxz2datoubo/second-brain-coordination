@@ -1,0 +1,66 @@
+# UNPLANNED-IMPROVEMENT-LEDGER
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# Generated: 2026-07-23T12:05:00+08:00
+
+schema_version: "1.0"
+ledger_id: "QCLAW-0019Q-UNPLANNED-IMPROVEMENT-001"
+
+entries:
+  - id: "UI-001"
+    category: "METHODOLOGY_OBSERVATION"
+    description: >
+      PMN calendar data is the most underrated enabling investment in the
+      current next-slice scoring. Both Codex (39/100) and QCLAW (45/100)
+      score it below W13 participant bulletin, yet official policy calendars
+      provide ground truth for W5 event evidence and serve as a calibration
+      baseline for expectation-revision studies. Neither scoring framework
+      has a "strategic enabling value" dimension.
+    recommendation: "Consider a PMN policy calendar scout as a parallel low-cost task alongside 0017 BAR_ONLY."
+    scope: "CANDIDATE_ONLY — not a requirement for Issue #73 acceptance"
+
+  - id: "UI-002"
+    category: "WEIGHTING_FRAMEWORK_IMPROVEMENT"
+    description: >
+      Both Codex and QCLAW scoring frameworks lack a "blocker count"
+      dimension. The difference between QCLAW's W11 (35) and Codex's W11
+      (46) is entirely explained by dependency-readiness weight (25 vs 10).
+      A simpler approach: count the number of unmerged Draft PRs and
+      UNKNOWN gates blocking each candidate, and penalize proportionally.
+    recommendation: "Future next-slice scoring should add a 'blocker count' dimension that separates 'Draft PR exists' from 'merged to main and consumers exist.'"
+    scope: "CANDIDATE_ONLY — governance improvement suggestion"
+
+  - id: "UI-003"
+    category: "TESTABILITY_GAP"
+    description: >
+      The CODE-INTERFACE-REGISTRY's consumer release rule ("no downstream
+      implementation may infer absent fields") is correct governance but
+      has zero test coverage because no interface is fully implemented.
+      When C1 or C2 reaches full implementation, the first test should
+      verify that a consumer with a deliberately absent field fails
+      gracefully with UNKNOWN propagation, not silently.
+    recommendation: "Add a negative-test fixture to the first fully-implemented interface C1 or C2: inject a consumer that requests an absent field."
+    scope: "CANDIDATE_ONLY — future test governance suggestion"
+
+  - id: "UI-004"
+    category: "KNOWLEDGE_ATOM_OPPORTUNITY"
+    description: >
+      Codex's DUPLICATE-ORPHAN-GHOST-DEPRECATION-REPORT correctly identifies
+      7 ghost capabilities. QCLAW's 0008 knowledge atomization digests can
+      convert each ghost capability into a structured adversarial query atom
+      for future QCLAW audit tasks, making ghost-capability checks systematic
+      rather than manual.
+    recommendation: "Atomize the 7 ghost capabilities from Codex's report into QCLAW's 0008 knowledge base for automated re-check in future audits."
+    scope: "CANDIDATE_ONLY — QCLAW internal improvement, not affecting Issue #73"
+
+summary:
+  total_entries: 4
+  methodology: 1
+  weighting_improvement: 1
+  testability_gap: 1
+  knowledge_atom_opportunity: 1
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T12:05:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
