@@ -1,30 +1,51 @@
-schema_version: "7.0"
+schema_version: "7.1"
 coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
+qclaw_role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 program_issue: 31
-status: "QCLAW_P1_INDEPENDENT_AUDIT_ACTIVE_CODEX_D0_FROZEN"
+status: "QCLAW_P1_TEMPORARY_BORROW_ACTIVE_CODEX_D0_FROZEN"
 updated_by: "GPT"
 updated_at: "2026-07-24"
 
 program_goal: >-
   Independently evaluate the delivered 0017 BAR_ONLY D0 package at a fixed Codex head, preserve the discovered data-admission
   bottleneck, and prevent D1, real historical labels, backtests or performance claims until QCLAW and GPT gates are complete.
+  This audit is a bounded temporary borrow and must not redefine QCLAW's long-term knowledge digestion and memory supply role.
+
+qclaw_long_term_role:
+  authority_issue: 81
+  primary_identity: "KNOWLEDGE_DIGESTION_ATOMIZATION_MEMORY_INDEXING_AND_CONTEXT_SUPPLY_ENGINE"
+  primary_build_issues: [59, 60]
+  integration_issue: 38
+  lifecycle_mode: "BUILD_MODE"
+  current_exception: "TEMPORARY_BORROW_FOR_0017_P1_AUDIT"
+  automatic_return_after_gpt_disposition: true
+  post_return_priority: [59, 60, 38]
+  dedicated_future_mode: "DEDICATED_DIGEST_AND_MEMORY_SUPPLY_MODE"
+  dedicated_future_compute:
+    continuous_digest_and_memory_supply: "85-95%"
+    own_pipeline_maintenance_and_quality: "5-15%"
+    generic_system_assistance: "0% default"
 
 resource_model:
   codex_primary_share: 0
-  qclaw_independent_audit_share: 100
+  qclaw_temporary_audit_share: 100
   workbuddy_share: 0
   current_interpretation: >-
-    Codex D0 is delivered and frozen for review. QCLAW now owns the only active execution lane: P1 independent evaluation against
-    the immutable preregistered instrument. Codex may preserve evidence but must not change PR #79. WorkBuddy remains outside 0017.
+    Codex D0 is delivered and frozen for review. QCLAW owns the only current execution lane solely as a temporary P1 audit borrow.
+    Codex may preserve evidence but must not change PR #79. WorkBuddy remains outside 0017. After GPT disposes P1, QCLAW returns
+    to knowledge atomization, memory retrieval and continuous digestion rather than accepting another audit automatically.
 
 coordination_principles:
-  single_major_execution_owner: "QCLAW_P1"
-  independent_audit_owner: "QCLAW"
+  single_major_execution_owner: "QCLAW_P1_TEMPORARY_BORROW"
+  independent_audit_owner: "QCLAW_TEMPORARY"
+  qclaw_primary_role_owner: "QCLAW"
   final_gate_owner: "GPT"
   proactive_discovery_enabled: true
   fixed_target_head_required: true
   no_silent_task_preemption: true
+  no_consecutive_qclaw_borrow_without_explicit_release: true
+  qclaw_auto_return_to_primary_role: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
   no_trade: true
@@ -32,9 +53,11 @@ coordination_principles:
   preserve_unknowns: true
 
 current_phase:
-  name: "QCLAW_P1_FROZEN_INSTRUMENT_EVALUATION"
-  execution_model: "ONE_INDEPENDENT_AUDIT_TASK; CODEX_FROZEN; WORKBUDDY_INACTIVE"
-  gpt_role: "Review QCLAW P1, conduct the final seven-gate D0 decision, then decide whether Issue #80 is the mandatory next prerequisite."
+  name: "QCLAW_P1_FROZEN_INSTRUMENT_EVALUATION_TEMPORARY_BORROW"
+  execution_model: "ONE_TEMPORARY_INDEPENDENT_AUDIT_TASK; CODEX_FROZEN; WORKBUDDY_INACTIVE"
+  gpt_role: >-
+    Review QCLAW P1, conduct the final seven-gate D0 decision, decide whether Issue #80 is the mandatory next prerequisite,
+    and then route QCLAW back to Issue #59/#60 unless the user explicitly changes its long-term role.
 
 agents:
   CODEX:
@@ -51,6 +74,8 @@ agents:
 
   QCLAW:
     aliases: ["Q", "QQ"]
+    long_term_role: "KNOWLEDGE_DIGESTION_ATOMIZATION_MEMORY_INDEXING_AND_CONTEXT_SUPPLY_ENGINE"
+    current_role_class: "TEMPORARY_BORROW"
     active_issue: 76
     preregistration_pull_request: 77
     preregistration_receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
@@ -60,6 +85,9 @@ agents:
     role_now: >-
       Create a new branch and Draft PR, then independently evaluate all 42 frozen questions and four blocking failures against
       Codex PR #79 head b515b662..., without changing criteria, coaching repairs or implementing any business capability.
+    return_after_completion: >-
+      Stop for GPT disposition, then return to Issue #59 knowledge atomization and Issue #60 memory/hybrid retrieval mainline.
+      Do not accept another external audit merely because the digest system has not yet been reactivated.
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
   WORKBUDDY:
@@ -104,9 +132,24 @@ active_discoveries:
       R2 mixed validator identities and attempted a self-referential final-head receipt. R3 closed this with a concrete tested head,
       a later receipt head, recomputed validator identity and explicit supersession of wrong R2 claims.
 
+  - discovery_id: "DISC-USER-QCLAW-ROLE-003"
+    source: "User clarification / Issue #81"
+    severity: "S3_MAJOR_GOVERNANCE"
+    type: "AGENT_ROLE_DRIFT_RISK"
+    status: "CHARTERED_AND_ROUTED"
+    plain_language: >-
+      QCLAW's repeated temporary audits risk turning it into a general-purpose auditor and starving the knowledge atomization,
+      long-term memory and continuous digestion system it was created to build. The new charter makes audit work temporary and
+      requires automatic return to the primary role.
+    effect:
+      blocks: ["silent permanent reassignment of QCLAW", "consecutive audit borrowing without explicit release"]
+      does_not_block: ["the currently released bounded P1 audit"]
+    authority_issue: 81
+
 execution_queue:
   - order: 1
     owner: "QCLAW"
+    role_class: "TEMPORARY_BORROW"
     task: "Execute P1 independent 42-question/four-blocker audit against fixed Codex PR #79 head."
     completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
   - order: 2
@@ -114,25 +157,46 @@ execution_queue:
     task: "Review P1 and conduct the seven-gate D0 decision."
   - order: 3
     owner: "GPT"
-    task: "Decide whether Issue #80 data-admission closure becomes the required next active task or is absorbed as a bounded D1 prerequisite."
+    task: "Decide whether Issue #80 data-admission closure becomes the required trading-system next task."
   - order: 4
+    owner: "GPT"
+    task: "Restore QCLAW to primary role: Issue #59/#60/#38 system build and continuous digestion."
+  - order: 5
     owner: "NONE_UNTIL_EXPLICIT_RELEASE"
     task: "No D1, VS1, source activation, real historical labels, backtest or performance claim."
+
+qclaw_primary_role_queue_after_p1:
+  - order: 1
+    issue: 59
+    role_class: "PRIMARY_SYSTEM_BUILD"
+    task: "Re-audit and converge PR #64 into a non-duplicative knowledge atomization and continuous digest implementation plan."
+  - order: 2
+    issue: 60
+    role_class: "PRIMARY_SYSTEM_BUILD"
+    task: "Re-audit PR #65 against real PR #57 runtime and PR #58 gateway, then continue memory and hybrid retrieval roadmap."
+  - order: 3
+    issue: 38
+    role_class: "PRIMARY_SYSTEM_INTEGRATION"
+    task: "Connect accepted atomization/memory outputs to the canonical knowledge gateway and context bundle interfaces."
+  - order: 4
+    role_class: "CONTINUOUS_DIGEST_OPERATION"
+    task: "Run real authorized digest queues and evolve toward dedicated digest and memory supply mode."
 
 queued_candidates:
   - issue: 80
     task: "A-share PIT data admission, source Manifest and historical rule/status evidence closure"
-    status: "QUEUED_AFTER_QCLAW_P1_AND_GPT_D0_GATE"
-    non_duplication: "Must reuse Issue #50 / merged PR #51 SourceManifest and quality gates."
+    status: "QUEUED_AFTER_QCLAW_P1_AND_GPT_D0_GATE_FOR_CODEX_OR_OTHER_OWNER"
+    non_duplication: "Must reuse Issue #50 / merged PR #51 SourceManifest and quality gates. QCLAW may supply knowledge context but is not the default executor."
   - issue: 78
     task: "A-share factor research factory, automatic mining and anti-overfitting validation D0"
-    status: "QUEUED_NO_PREEMPTION"
+    status: "QUEUED_NO_PREEMPTION_NOT_DEFAULT_QCLAW_OWNER"
 
 release_control:
   only_GPT_may_activate_next_step: true
+  qclaw_borrow_end_behavior: "AUTOMATIC_RETURN_TO_PRIMARY_ROLE_ROUTE"
   trigger_behavior:
     CODEX: "Report FROZEN_WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW and do not alter PR #79."
-    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute P1 only."
+    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml, declare TEMPORARY_BORROW, execute P1 only, then stop for return routing."
     WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
 
 safety_boundary:
