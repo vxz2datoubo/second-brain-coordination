@@ -1,28 +1,29 @@
-schema_version: "6.0"
+schema_version: "7.0"
 coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "CODEX_D0_DELIVERED_QCLAW_R3_RECEIPT_REPAIR_PENDING"
+status: "QCLAW_P1_INDEPENDENT_AUDIT_ACTIVE_CODEX_D0_FROZEN"
 updated_by: "GPT"
 updated_at: "2026-07-24"
 
 program_goal: >-
-  Review the delivered 0017 BAR_ONLY D0 package through a preregistered independent gate, preserve the newly discovered
-  data-admission bottleneck, and prevent any historical execution before authorized PIT data and rule evidence exist.
+  Independently evaluate the delivered 0017 BAR_ONLY D0 package at a fixed Codex head, preserve the discovered data-admission
+  bottleneck, and prevent D1, real historical labels, backtests or performance claims until QCLAW and GPT gates are complete.
 
 resource_model:
-  codex_primary_share: 90
-  qclaw_bounded_support_share: 10
+  codex_primary_share: 0
+  qclaw_independent_audit_share: 100
   workbuddy_share: 0
   current_interpretation: >-
-    Codex has completed the D0 candidate and must wait. QCLAW is closing a bounded two-head receipt chain before P1.
-    WorkBuddy remains outside the 0017 mainline. No agent may start D1, VS1 or Issue #80.
+    Codex D0 is delivered and frozen for review. QCLAW now owns the only active execution lane: P1 independent evaluation against
+    the immutable preregistered instrument. Codex may preserve evidence but must not change PR #79. WorkBuddy remains outside 0017.
 
 coordination_principles:
-  single_major_execution_owner: "NONE_WHILE_D0_UNDER_REVIEW"
+  single_major_execution_owner: "QCLAW_P1"
   independent_audit_owner: "QCLAW"
   final_gate_owner: "GPT"
   proactive_discovery_enabled: true
+  fixed_target_head_required: true
   no_silent_task_preemption: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
@@ -31,9 +32,9 @@ coordination_principles:
   preserve_unknowns: true
 
 current_phase:
-  name: "QCLAW_R3_RECEIPT_CLOSURE_BEFORE_P1"
-  execution_model: "ONE_BOUNDED_SUPPORT_TASK; CODEX_WAITING"
-  gpt_role: "Accept or remediate QCLAW R3, release P1, then conduct joint seven-gate D0 review."
+  name: "QCLAW_P1_FROZEN_INSTRUMENT_EVALUATION"
+  execution_model: "ONE_INDEPENDENT_AUDIT_TASK; CODEX_FROZEN; WORKBUDDY_INACTIVE"
+  gpt_role: "Review QCLAW P1, conduct the final seven-gate D0 decision, then decide whether Issue #80 is the mandatory next prerequisite."
 
 agents:
   CODEX:
@@ -42,20 +43,23 @@ agents:
     delivered_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
     task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
     mode: "project_plan"
-    status: "WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW"
-    role_now: "Preserve PR #79; answer bounded evidence questions only; do not implement D1/VS1."
+    status: "FROZEN_WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW"
+    role_now: >-
+      Do not change PR #79, begin D1/VS1, run labels/backtests or answer by editing evidence. Preserve the fixed target head.
+      Any requested factual clarification must be separately logged and cannot alter this P1 target.
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
 
   QCLAW:
     aliases: ["Q", "QQ"]
     active_issue: 76
-    pull_request: 77
-    task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R3-TWO-HEAD-EVIDENCE-ANCHOR"
+    preregistration_pull_request: 77
+    preregistration_receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+    task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
     mode: "target"
     status: "READY"
     role_now: >-
-      Replace AT_HEAD placeholders with a concrete tested_head and later receipt_head evidence chain while keeping the
-      eight frozen audit files immutable and without reading Codex PR #79.
+      Create a new branch and Draft PR, then independently evaluate all 42 frozen questions and four blocking failures against
+      Codex PR #79 head b515b662..., without changing criteria, coaching repairs or implementing any business capability.
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
   WORKBUDDY:
@@ -64,62 +68,71 @@ agents:
     status: "REMOVED_FROM_0017_MAINLINE_BY_USER"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
+accepted_gates:
+  - gate: "QCLAW_R3_TWO_HEAD_RECEIPT"
+    status: "ACCEPTED_FOR_P1_WITH_EXTERNAL_RECEIPT_HEAD_ANCHOR"
+    tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+    receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+    evidence: >-
+      One later receipt-only commit changed exactly seven allowed meta/receipt files; no frozen core or validator changed. The exact
+      receipt head is anchored in GitHub PR/Issue comments rather than self-referentially embedded in the same commit.
+    bounded_finding: >-
+      R3 normalized output contains an absolute local working path. Treat it as noncanonical display metadata; future public
+      receipts should prefer stable path aliases or repository-relative paths.
+
 active_discoveries:
   - discovery_id: "DISC-CODEX-0017-D0-001"
     source: "PR #79"
     severity: "S3_MAJOR"
     type: "DATA_OR_LICENSE_GAP"
-    status: "ROUTED"
+    status: "ROUTED_PENDING_D0_DECISION"
     plain_language: >-
-      Large local bar inventories exist, but they cannot yet support trustworthy historical research because their
-      license, field meanings, adjustment, point-in-time availability and historical security/rule context are incomplete.
+      Large local bar inventories exist, but they cannot yet support trustworthy historical research because license, field meanings,
+      adjustment, point-in-time availability and historical security/rule context are incomplete.
     effect:
       blocks: ["D1 real historical labels", "backtest", "performance or alpha claim"]
-      does_not_block: ["D0 review", "synthetic fixtures", "contract validation", "QCLAW audit"]
+      does_not_block: ["D0 audit", "synthetic fixtures", "contract validation"]
     follow_up_issue: 80
     follow_up_status: "REGISTERED_QUEUED_NOT_ACTIVE"
 
   - discovery_id: "DISC-GPT-QCLAW-RECEIPT-002"
-    source: "PR #77 R2"
+    source: "PR #77 R2/R3"
     severity: "S2_MATERIAL"
-    type: "SELF_REFERENTIAL_RECEIPT_DESIGN"
-    status: "R3_ACTIVE"
+    type: "EVIDENCE_IDENTITY_AND_SELF_REFERENCE"
+    status: "CLOSED_ACCEPTED_WITH_BOUNDED_PATH_HYGIENE_FINDING"
     plain_language: >-
-      R2 correctly separated validator identities but used AT_HEAD because embedding a commit SHA inside the same commit
-      creates a circular reference. The corrected design uses tested_head followed by receipt_head.
-    effect:
-      blocks: ["QCLAW P1 release"]
-      does_not_block: ["Codex D0 evidence preservation", "Issue #80 registration"]
+      R2 mixed validator identities and attempted a self-referential final-head receipt. R3 closed this with a concrete tested head,
+      a later receipt head, recomputed validator identity and explicit supersession of wrong R2 claims.
 
 execution_queue:
   - order: 1
     owner: "QCLAW"
-    task: "Complete PR #77 R3 two-head evidence anchor."
-    completion_signal: "QCLAW_0017_D0_P0_TWO_HEAD_EVIDENCE_ANCHOR_CLOSED_FOR_P1"
+    task: "Execute P1 independent 42-question/four-blocker audit against fixed Codex PR #79 head."
+    completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
   - order: 2
     owner: "GPT"
-    task: "Review R3 and, if accepted, release QCLAW P1."
+    task: "Review P1 and conduct the seven-gate D0 decision."
   - order: 3
-    owner: "QCLAW"
-    task: "Independently evaluate Codex PR #79 against frozen questions and corrigendum."
-  - order: 4
     owner: "GPT"
-    task: "Joint seven-gate D0 review and decide whether Issue #80 is the required D1 prerequisite."
-  - order: 5
+    task: "Decide whether Issue #80 data-admission closure becomes the required next active task or is absorbed as a bounded D1 prerequisite."
+  - order: 4
     owner: "NONE_UNTIL_EXPLICIT_RELEASE"
-    task: "No D1, VS1, real-source binding or backtest."
+    task: "No D1, VS1, source activation, real historical labels, backtest or performance claim."
 
 queued_candidates:
   - issue: 80
     task: "A-share PIT data admission, source Manifest and historical rule/status evidence closure"
-    status: "QUEUED_AFTER_PR79_QCLAW_P1_AND_GPT_D0_GATE"
+    status: "QUEUED_AFTER_QCLAW_P1_AND_GPT_D0_GATE"
     non_duplication: "Must reuse Issue #50 / merged PR #51 SourceManifest and quality gates."
+  - issue: 78
+    task: "A-share factor research factory, automatic mining and anti-overfitting validation D0"
+    status: "QUEUED_NO_PREEMPTION"
 
 release_control:
   only_GPT_may_activate_next_step: true
   trigger_behavior:
-    CODEX: "Report WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW."
-    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute R3 only."
+    CODEX: "Report FROZEN_WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW and do not alter PR #79."
+    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute P1 only."
     WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
 
 safety_boundary:
