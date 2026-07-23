@@ -1,4 +1,4 @@
-schema_version: "3.1"
+schema_version: "3.2"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
@@ -6,13 +6,13 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 59
-active_task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R3"
+active_task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4"
 active_mode: "target"
-mode_label: "目标模式＋PR70票据一致性与机器复验收口"
+mode_label: "目标模式＋PR70清单勘误、真实YAML解析与最终票据收口"
 mode_reason: >-
-  The 110-query package is already frozen and R2 preserved all 13 query files, but the
-  acceptance receipts contain stale commit/timestamp/status fields and manual rather than
-  reproducible validation claims. The remaining path is bounded and must not redesign the package.
+  R3 preserved the frozen query files and reproduced the combined hash, but a pre-existing
+  manifest count error, regex-only validation, stale head metadata and packaging-freeze wording
+  still prevent reproducible acceptance. The remaining work is bounded and receipt-only.
 status: "READY"
 blocked_by: "none"
 parent_program: 31
@@ -22,7 +22,6 @@ target_pull_request: 58
 reuse_existing_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
 create_new_branch: false
 create_new_pr: false
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R3.yaml"
 
 amed_policy:
   policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
@@ -31,18 +30,18 @@ amed_policy:
     level: "L1_REUSE_AND_QUICK_CHECK"
     escalation: "L2 only if a material security, schema or independence conflict is discovered."
   exploration_budget:
-    primary_delivery_share: "90%"
-    active_discovery_share: "8%"
-    system_opportunity_share: "2%"
+    primary_delivery_share: "95%"
+    active_discovery_share: "4%"
+    system_opportunity_share: "1%"
     max_new_architecture_proposals: 0
     max_new_skill_candidates: 0
     max_unplanned_files: 3
     scope_expansion_without_gate: false
   improvement_authority:
     A_SAFE_LOCAL_AUTONOMOUS:
-      - "Correct stale receipt metadata and add deterministic validation scripts/commands without changing frozen package semantics."
+      - "Correct receipt metadata, add corrigendum/amendment records and run a real parser without changing frozen query semantics."
     B_BOUNDED_IMPLEMENT_AND_REPORT:
-      - "Add a receipt-only validator or amendment log required to make the evidence reproducible."
+      - "Add a receipt-only validator using a YAML parser with duplicate-key rejection."
     C_PROPOSAL_ONLY:
       - "Any new query family, schema, interface, runtime or Issue #73 design change."
     D_PROHIBITED_OR_USER_GATE:
@@ -50,45 +49,49 @@ amed_policy:
   second_pass_audit_required: true
 
 mission_intent: >-
-  Correct and machine-verify PR #70 acceptance receipts while preserving the frozen
-  13-category, 110-query package byte-for-byte, then return it for GPT acceptance and
-  unchanged PR #58 consumption.
+  Produce a final reproducible acceptance package by correcting frozen-manifest metadata through
+  a separate corrigendum, performing real YAML parsing with duplicate-key rejection, correcting
+  head and packaging statements, and preserving all 13 query files byte-for-byte.
 
 required_action:
-  - "Read this route, TaskImpactForecast, PR #70 GPT review, R1 package, R2 receipts, Issue #59, Issue #38 and PR #58 metadata."
+  - "Read this route, PR #70 R3 head 8d2edce769e9be0ce3ca88b9ff1f6e3764ac0480, GPT findings and all R1-R3 receipts."
   - "Use the existing PR #70 branch and Draft PR; create no replacement branch or PR."
-  - "Prove with diff/hash evidence that all 13 query files, MANIFEST and README remain unchanged from frozen R1."
-  - "Machine-recompute all 16 frozen-file SHA256 hashes and the combined SHA256; document the exact deterministic combination algorithm."
-  - "Run machine YAML parsing with duplicate-key detection, UTF-8 decoding, secret-pattern scan, 110-count, required-field, unique-query-id, reference/path and available schema checks."
-  - "Record exact commands, tool versions, start/end timestamps and exit codes; preserve all FAIL and SKIP results."
-  - "Update TEST-RUN-RECEIPT to the actual R3 head and actual completion time, removing estimated timestamps and manual-only validation claims."
-  - "Update AMED execution receipt to status COMPLETED and completion status DELIVERED_FOR_GPT_REVIEW. Use this explicit route policy L1 and 90/8/2; retain legacy inheritance only as historical context, not current authority."
-  - "Preserve UNKNOWNs for format compatibility, atom-ID mapping, category coverage and UNKNOWN-vs-ABSTAIN semantics."
-  - "Update AI_HANDOFF with R3 head, verified hashes, actual validation results and the exact completion signal."
-  - "Stop for GPT review; do not execute the package against PR #58 and do not start Issue #73."
+  - "Do not modify any of the 13 query files, MANIFEST.yaml or README.md."
+  - "Add CORRIGENDUM.yaml stating that frozen MANIFEST AC-01 count is 8 but the frozen AC-01 file contains 10; the correct category counts sum to 110. Preserve the frozen MANIFEST and hashes."
+  - "Add AMENDMENT-LOG.yaml covering R2, R3 and R4 receipt/packaging metadata changes."
+  - "Run a real YAML parser across all query and receipt YAML files with duplicate-key rejection; regex-only structure checks are insufficient."
+  - "Record the exact validator script or full command, interpreter and library versions, start/end timestamps, stdout/stderr and exit codes."
+  - "Validate manifest-vs-file counts and report the known AC-01 mismatch as CORRIGENDUM_APPLIED rather than silently PASS."
+  - "Distinguish immutable semantic files from mutable packaging: 13 query files plus MANIFEST and README are frozen; AI_HANDOFF is a versioned handoff file and must not be claimed unchanged across R2/R3."
+  - "Explain the exact combined-hash input set and algorithm, including which AI_HANDOFF version was used."
+  - "Replace all pending/current-head placeholders with a post-push head attestation or exact final head; no stale SHA or self-reference ambiguity."
+  - "Update AMED receipt and AI_HANDOFF to completion signal QCLAW_PR70_R4_CORRIGENDUM_AND_MACHINE_YAML_VERIFIED_FOR_GPT_ACCEPTANCE."
+  - "Stop for GPT review; do not execute PR #58 and do not start Issue #73."
 
 mandatory_outputs:
-  - "Frozen 13-category, 110-query package unchanged"
-  - "Machine-recomputed PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
-  - "Corrected TEST-RUN-RECEIPT.md with actual commands and exit codes"
+  - "Frozen 13-category, 110-query semantic package unchanged"
+  - "CORRIGENDUM.yaml"
+  - "AMENDMENT-LOG.yaml"
+  - "Real YAML parser validator with duplicate-key rejection or exact reproducible command"
+  - "Corrected TEST-RUN-RECEIPT.md"
   - "Corrected AMED-AGENT-EXECUTION-RECEIPT.yaml"
   - "Updated AI_HANDOFF.yaml"
-  - "AMENDMENT-LOG.yaml if any receipt or packaging metadata changes"
-  - "Validation script or exact reproducible command block"
+  - "Post-push head attestation"
 
 acceptance_gates:
-  - "R1 query and expected/forbidden behavior diff count is zero."
-  - "All frozen hashes and combined SHA256 reproduce exactly, or mismatch blocks acceptance."
-  - "All machine checks report real PASS/FAIL/SKIP and exit codes."
-  - "No stale SHA, estimated end time, IN_PROGRESS or PENDING_UPLOAD remains in final receipts."
-  - "UNKNOWNs and CANDIDATE_ONLY status remain visible."
-  - "No PR #58 runtime or Issue #73 work is performed."
+  - "13 query-file byte hashes are unchanged from R1."
+  - "MANIFEST and README remain unchanged; manifest AC-01 count error is documented only in CORRIGENDUM."
+  - "Real YAML parsing and duplicate-key rejection pass with actual exit code."
+  - "Correct category counts are AC-01=10, AC-06=10, AC-11=10, all others=8, total=110."
+  - "Combined-hash algorithm and input file versions are unambiguous and reproducible."
+  - "No stale/pending head, estimated timestamp or contradictory immutable-packaging claim remains."
+  - "UNKNOWNs, CANDIDATE_ONLY and NO_TRADE remain visible."
 
 forbidden:
-  - "Do not modify any frozen query text, expected_behavior, forbidden_behavior, expected_atom_ids or forbidden_atom_ids."
-  - "Do not modify MANIFEST or README except through a separately justified metadata-only corrigendum; default is no change."
-  - "Do not inspect or modify Codex PR #58 source, tests, hidden answers or runtime."
-  - "Do not create Issue #72/#73 artifacts on PR #70."
+  - "Do not modify query text, expected/forbidden behavior or atom IDs."
+  - "Do not modify frozen MANIFEST or README; use CORRIGENDUM."
+  - "Do not inspect or modify PR #58 source, tests, hidden answers or runtime."
+  - "Do not create Issue #73 artifacts on PR #70."
   - "Do not access credentials, accounts, services, market feeds, broker data or real trading."
   - "Do not merge PR #70 or PR #58 automatically."
 
@@ -99,7 +102,7 @@ execution_contract:
   auto_merge: false
   report_to_issues: [59, 38, 31, 73]
   report_to_pull_requests: [70, 58, 74]
-  completion_signal: "QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE"
+  completion_signal: "QCLAW_PR70_R4_CORRIGENDUM_AND_MACHINE_YAML_VERIFIED_FOR_GPT_ACCEPTANCE"
   after_completion: "WAIT_FOR_GPT_ACCEPTANCE_THEN_ISSUE73_RELEASE"
 
 queued_task:
@@ -108,7 +111,7 @@ queued_task:
   task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
   status: "QUEUED_NOT_RELEASED"
   release_gate: >-
-    GPT accepts the verified PR #70 R3 package for unchanged PR #58 consumption and
+    GPT accepts the verified PR #70 R4 package for unchanged PR #58 consumption and
     explicitly switches ACTIVE-QCLAW-TASK to Issue #73.
   branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
   separate_from_codex_branch: true
