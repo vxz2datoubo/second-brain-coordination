@@ -1,4 +1,4 @@
-schema_version: "4.2"
+schema_version: "4.3"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -7,9 +7,9 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 active_issue: 72
 task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
 mode: "project_plan"
-mode_label: "项目计划模式＋全工程蓝图、权威、接口、成熟度与依赖收敛"
-status: "GPT_ACCEPTED_FOR_QCLAW_COUNTERAUDIT"
-blocked_by: "QCLAW_PR70_ACCEPTANCE_AND_ISSUE73_COUNTERAUDIT"
+mode_label: "项目计划模式＋全工程蓝图收敛"
+status: "WAITING_FOR_GPT_FINAL_CONVERGENCE"
+blocked_by: "QCLAW_PR75_R1_FINAL_REVIEW"
 parent_program: 31
 pull_request: 74
 branch: "codex/enterprise-blueprint-convergence-0019a"
@@ -18,65 +18,88 @@ draft_pull_request: true
 direct_main_write: false
 auto_merge: false
 
-review_state:
-  gpt_seven_gate_result: "ACCEPTED_FOR_INDEPENDENT_COUNTERAUDIT_WITH_BOUNDED_FINDINGS"
-  task_completeness_gate: PASS
-  fact_evidence_gate: PASS_WITH_UNKNOWN_PRESERVED
-  research_quality_gate: PASS_FOR_GOVERNANCE_PLAN
-  engineering_correctness_gate: PASS_WITH_DECLARED_EXCEPTION
-  improvement_value_gate: PASS
-  system_evolution_gate: PASS_WITH_CRITICAL_UNKNOWN
-  next_action_gate: CONDITIONAL_PASS
-  review_record: "PR #74 review at head 693550ff043ed9948ffa63e52715ba86e9542c4f"
-
-accepted_findings:
-  duplicate_logical_writer_count: 0
-  unresolved_physical_system_of_record_count: 1
-  unresolved_physical_system_of_record: "W3 local brain_core versus public Phase 3; UNKNOWN_MIGRATION_REQUIRED"
-  a_share_backtested_count: 0
-  shadow_validated_count: 0
-  validated_research_capability_count: 0
-  live_trading_count: 0
-  recommended_next_candidate: "Issue #69 / 0017 BAR_ONLY reference-zone breach-reclaim plus T+1 validation"
-  candidate_is_activated: false
-
 current_action:
-  - "Do not rerun or modify Issue #72 unless GPT records a bounded remediation."
-  - "Keep PR #74 Draft and stable for QCLAW independent counteraudit."
-  - "Do not merge PR #74 and do not activate Issue #69/0017."
-  - "Wait for QCLAW PR #70 AMED closeout, hash freeze, independence proof and GPT acceptance."
-  - "After PR #70 acceptance, GPT may release Issue #73 on its separate QCLAW branch."
-  - "Respond to task triggers with WAITING_FOR_QCLAW_COUNTERAUDIT and the blocking gates; perform no repository work."
+  - "Do not modify PR #74 or begin Issue #69 until GPT publishes the release decision."
+  - "On task trigger, report WAITING_FOR_GPT_FINAL_CONVERGENCE and the two conditional routes below."
+  - "Do not create a speculative implementation branch while waiting."
 
-qclaw_release_sequence:
-  current_qclaw_task: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2 / PR #70"
-  queued_qclaw_issue: 73
-  queued_task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
-  release_requires:
-    - "PR #70 AMED receipts and immutable hash package complete"
-    - "GPT accepts PR #70 for unchanged PR #58 consumption"
-    - "GPT explicitly releases Issue #73"
-  issue_73_must_recompute_candidate_scores: true
-  issue_73_may_edit_codex_authority_files: false
+conditional_release_routes:
+  route_A_direct_to_0017_D0:
+    condition:
+      - "GPT accepts QCLAW PR #75 evidence remediation."
+      - "No substantive PR #74 authority or maturity correction is required before planning."
+    next_issue: 69
+    next_task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN"
+    mode: "project_plan"
+    purpose: "Audit repository/local capabilities and produce a self-contained D0-D6 plan for the BAR_ONLY reference-zone breach/reclaim plus T+1 validation slice. No implementation in D0."
 
-bounded_findings_for_issue_73:
-  - "Challenge whether W3 logical single-writer hides two physical systems of record."
-  - "Challenge whether IMPLEMENTED_NOT_A_SHARE_VALIDATED is too broad for W1/W2/W3/W7/W8."
-  - "Recompute the 0017 ranking without accepting Codex weights as ground truth."
-  - "Verify W11 candidate-allocation to W7 final-veto semantics remain one-way and non-duplicative."
-  - "Verify the exact-path exact-count secret-shaped fixture allowlist cannot expand."
-  - "Search open PRs and accessible local schemas for duplicate write paths."
+  route_B_bounded_blueprint_patch_then_0017_D0:
+    condition:
+      - "GPT accepts the QCLAW audit but requires factual corrections to PR #74."
+    first_task_id: "CODEX-0019A-R1-BOUNDED-CONVERGENCE-REMEDIATION"
+    first_mode: "goal"
+    first_scope:
+      - "Correct only accepted maturity, UNKNOWN, interface or BAR_ONLY boundary findings."
+      - "Preserve existing architecture, rejected alternatives and negative evidence."
+      - "Do not redesign the enterprise blueprint."
+    after_first_task:
+      next_issue: 69
+      next_task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN"
+      mode: "project_plan"
+
+planned_execution_sequence:
+  - step: 1
+    owner: "GPT"
+    action: "Final review and convergence of PR #75 with PR #74."
+  - step: 2
+    owner: "CODEX"
+    action: "Optional bounded PR #74 remediation only when explicitly released."
+  - step: 3
+    owner: "CODEX"
+    action: "Issue #69 D0 project plan, repository reality audit and validation design."
+  - step: 4
+    owner: "GPT"
+    action: "Seven-gate review of D0; freeze VS1 contract."
+  - step: 5
+    owner: "CODEX"
+    action: "Implement 0017-VS1 in goal mode on a new branch and Draft PR."
+  - step: 6
+    owner: "WORKBUDDY"
+    action: "Verify local data/replay availability and run approved adapters/tests without changing architecture."
+  - step: 7
+    owner: "QCLAW"
+    action: "Independent adversarial audit of the delivered VS1 implementation and evidence."
+  - step: 8
+    owner: "GPT"
+    action: "Final acceptance, rejection or bounded remediation decision."
+
+issue_69_BAR_ONLY_boundary:
+  allowed:
+    - "Point-in-time minute/daily bar data."
+    - "Versioned A-share rules, T+1 inventory, price limits, suspension and transaction-cost assumptions."
+    - "Reference-zone breach, reclaim, failed reclaim, continuation and stabilization labels."
+    - "Purged walk-forward, embargo, lockbox and negative-result preservation."
+  prohibited:
+    - "L2 order-book dependency in the first slice."
+    - "Raw tick/order events, DDX/DDY, synthetic Delta/CVD/OFI or participant identity."
+    - "Hidden stop, main-force intent, probability, allocation, order generation or real trading."
+
+w3_parallel_governance_track:
+  status: "UNKNOWN_MIGRATION_REQUIRED"
+  blocks:
+    - "Canonical C3 knowledge/evidence promotion and destructive store consolidation."
+  does_not_block:
+    - "Issue #69 D0 planning."
+    - "A self-contained BAR_ONLY research implementation that does not claim canonical W3 storage authority."
 
 forbidden:
-  - "No Issue #69/0017 activation before Issue #73 acceptance or explicit GPT waiver."
-  - "No W13, PMN, W12 child, W11 or 0018 activation."
-  - "No business runtime, collector, model, backtest, allocation, risk, portfolio, execution or order work."
-  - "No destructive W3 physical-store consolidation."
-  - "No account, credential, service, market-feed or real-trade access."
-  - "No auto-merge."
+  - "No Issue #69 activation before explicit GPT release."
+  - "No W12, W11, 0018, W13 or PMN implementation preemption."
+  - "No runtime, trade, broker, credential, service or market-feed action while waiting."
+  - "No merge or auto-merge."
 
 completion_signal: "ENTERPRISE_BLUEPRINT_CONVERGENCE_READY_FOR_GPT_REVIEW"
-after_completion: "WAIT_FOR_QCLAW_PR70_THEN_ISSUE73_COUNTERAUDIT"
+after_completion: "WAIT_FOR_GPT_FINAL_CONVERGENCE_THEN_ISSUE69_RELEASE"
 boundary: "research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-23"
+updated_at: "2026-07-24"
