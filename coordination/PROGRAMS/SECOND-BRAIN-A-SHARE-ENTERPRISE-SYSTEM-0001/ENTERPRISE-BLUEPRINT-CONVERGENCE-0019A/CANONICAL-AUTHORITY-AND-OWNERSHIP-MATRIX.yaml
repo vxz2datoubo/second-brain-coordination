@@ -1,0 +1,119 @@
+schema_version: "1.0"
+record_type: "CanonicalAuthorityAndOwnershipMatrix"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+status: "CANDIDATE_FREEZE_PENDING_GPT"
+boundary: "research_only / NO_TRADE"
+rules:
+  one_logical_writer_per_object: true
+  similarly_named_local_classes_do_not_transfer_authority: true
+  blueprint_presence_is_not_implementation: true
+  embedded_modules_create_no_new_workstream: true
+  implementation_maturity_and_authority_readiness_are_separate: true
+authority_readiness_definitions:
+  CANONICAL_AUTHORITY_READY: "Declared owner has a verified canonical governance, producer or system-of-record path."
+  LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY: "Declared logical owner exists, but a canonical executable producer or final system-of-record path is not verified."
+  UNKNOWN_MIGRATION_REQUIRED: "Multiple physical candidates exist and no migration or reconciliation receipt selects one."
+authorities:
+  - authority_id: "AUTH_TASK_GOVERNANCE"
+    owner: "W1"
+    objects: [AMEDTaskContract, TaskRoute, ProgramIndex]
+    physical_system_of_record: "public coordination governance files"
+    implementation_maturity: "IMPLEMENTED_GOVERNANCE_PENDING_REVIEW"
+    canonical_authority_readiness: "CANONICAL_AUTHORITY_READY"
+  - authority_id: "AUTH_AGENT_OPERATIONS"
+    owner: "W8"
+    objects: [AgentOperationRecord, AIHandoff]
+    physical_system_of_record: "coordination routes and handoff artifacts"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "CANONICAL_AUTHORITY_READY"
+  - authority_id: "AUTH_MARKET_TIME_RULE_REPLAY"
+    owner: "W2"
+    objects: [MarketTimeAndAvailabilityEnvelope, AShareRuleSnapshot, ReplayConfiguration]
+    physical_system_of_record: "P1/P2/P3 public packages; canonical package boundary pending consolidation"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_KNOWLEDGE_EVIDENCE_MEMORY"
+    owner: "W3"
+    objects: [SourceRecord, EvidenceItem, KnowledgeAtom, ConflictRecord, KnowledgeVersion]
+    physical_system_of_record: "UNKNOWN_MIGRATION_REQUIRED"
+    candidates:
+      - "public Phase 3 MemoryStore derived from PR #57"
+      - "local F:/aidanao/brain_core storage and contracts"
+    non_authoritative_facades:
+      - "P2 synthetic KnowledgeGateway"
+      - "P3 local-adapter in-memory gateway"
+    implementation_maturity: "IMPLEMENTED_WITH_OPEN_GATES"
+    canonical_authority_readiness: "UNKNOWN_MIGRATION_REQUIRED"
+  - authority_id: "AUTH_EVENT_POLICY_EVIDENCE"
+    owner: "W5"
+    objects: [EventEvidencePacket]
+    physical_system_of_record: "NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_PARTICIPANT_FLOW_EVIDENCE"
+    owner: "W13"
+    objects: [ParticipantFlowEvidencePacket]
+    identity_claim_authority: false
+    physical_system_of_record: "NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_STRATEGY_EXPERIMENT"
+    owner: "W4"
+    objects: [FeatureDefinition, StrategyDefinition, StrategyExperimentFamily]
+    physical_system_of_record: "PARTIAL_P2_SYNTHETIC_AND_LOCAL_CANDIDATES"
+    implementation_maturity: "PARTIAL_CANDIDATES"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_PARTICIPANT_HYPOTHESIS"
+    owner: "W6"
+    objects: [ParticipantHypothesis]
+    identity_fact_authority: false
+    physical_system_of_record: "NOT_IMPLEMENTED"
+    implementation_maturity: "BLUEPRINT_ONLY"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_PROBABILITY_ESTIMATE"
+    owner: "W12_DS02"
+    objects: [ProbabilityEstimate]
+    physical_system_of_record: "NO_MAIN_BRANCH_EXECUTABLE_PRODUCER"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+    candidate_evidence: "PR #66 Draft only; not main-branch implementation evidence"
+  - authority_id: "AUTH_DECISION_EPISODE"
+    owner: "W10"
+    objects: [DecisionEpisode]
+    physical_system_of_record: "NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_CAPITAL_ALLOCATION"
+    owner: "W11"
+    objects: [W11CandidateAllocation]
+    physical_system_of_record: "NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_BLOCKED_BY_PROBABILITY_AND_RISK"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_VALIDATION_FINAL_VETO"
+    owner: "W7"
+    objects: [ValidationReport, W7RiskEnvelope]
+    physical_system_of_record: "PARTIAL_P1_P2_AND_LOCAL_VALIDATION_OBJECTS"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+  - authority_id: "AUTH_OUTCOME_CALIBRATION"
+    owner: "W9"
+    objects: [OutcomeCalibrationRecord]
+    physical_system_of_record: "NOT_IMPLEMENTED_AS_CANONICAL_OBJECT"
+    implementation_maturity: "GOVERNANCE_PARTIAL_RUNTIME"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+embedded_capabilities:
+  - capability_id: "A_SHARE_LIQUIDITY_SWEEP_RECLAIM_VALIDATION_0017"
+    owners: [W4, W7]
+    owns_parallel_runtime: false
+    may_write: [ReferenceLiquidityZone, ReferenceZoneBreachEvent, ReclaimAssessment, PostSweepStabilizationAssessment]
+    may_not_write: [ProbabilityEstimate, W11CandidateAllocation, W7RiskEnvelope, Order]
+  - capability_id: "A_SHARE_HOUSE_EDGE_SURVIVAL_OPERATING_CONTROL_0018"
+    owners: [W7, W9, W11]
+    owns_parallel_runtime: false
+    may_write: [HouseEdgeInspiredNetEdgeEstimate, EffectiveIndependentTrialEstimate, CapitalBufferAndRuinAssessment, OperatingReconciliationReceipt]
+    may_not_write: [ProbabilityEstimate, W11CandidateAllocation, W7RiskEnvelope, Order]
+conflicts:
+  duplicate_logical_writer_count: 0
+  unresolved_physical_system_of_record_count: 1
+  unresolved_items: ["W3_LOCAL_PUBLIC_MEMORY_MIGRATION"]

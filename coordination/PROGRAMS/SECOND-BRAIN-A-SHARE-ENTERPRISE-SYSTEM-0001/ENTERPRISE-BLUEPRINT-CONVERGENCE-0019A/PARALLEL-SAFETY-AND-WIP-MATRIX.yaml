@@ -1,0 +1,49 @@
+schema_version: "1.0"
+record_type: "ParallelSafetyAndWipMatrix"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+status: "CANDIDATE_FREEZE_PENDING_GPT"
+limits:
+  codex_active_tasks: 1
+  qclaw_active_tasks: 1
+  initial_business_vertical_slices: 1
+  shared_interface_consumers_before_freeze: 0
+lanes:
+  - lane_id: CODEX_ISSUE_72
+    owner: CODEX
+    files: ["0019A task package", "proposed program indexes", "proposed authority registry"]
+    may_parallel_with: [QCLAW_PR70_CLOSEOUT]
+    must_serialize_with: [QCLAW_ISSUE_73, W13_D0, PMN_D0, MODULE_0017_D0, W11_K0, MODULE_0018_D0]
+    reason: "Issue #72 defines the baseline those tasks would audit or consume."
+  - lane_id: QCLAW_PR70_CLOSEOUT
+    owner: QCLAW
+    files: ["PR #70 evidence package only"]
+    may_parallel_with: [CODEX_ISSUE_72]
+    must_serialize_with: [PR58_CONSUMPTION]
+    reason: "Package must remain immutable before evaluation."
+  - lane_id: QCLAW_ISSUE_73
+    owner: QCLAW
+    files: ["separate Issue #73 branch and candidate-only audit artifacts"]
+    release_gate: "PR #74 complete plus GPT explicit release"
+    may_parallel_with: []
+    must_serialize_with: [CODEX_ISSUE_72, FIRST_BUSINESS_SLICE]
+  - lane_id: FIRST_BUSINESS_SLICE
+    owner: CODEX
+    selected_candidate: MODULE_0017_BAR_ONLY
+    release_gate: "GPT accepts Issue #72 and accepts Issue #73 counteraudit or explicitly waives it"
+    may_parallel_with: ["read-only local evidence collection with disjoint files"]
+    must_serialize_with: [W13_D0, PMN_D0, W12_CHILD, W11_K0, MODULE_0018_D0]
+unsafe_parallel_pairs:
+  - pair: [W12_PROBABILITY_IMPLEMENTATION, W11_ALLOCATION_IMPLEMENTATION]
+    reason: "W11 would code against an unfrozen upstream schema."
+  - pair: [W7_RISK_ENVELOPE_IMPLEMENTATION, MODULE_0018_IMPLEMENTATION]
+    reason: "0018 consumes the W7 authority and must not define it implicitly."
+  - pair: [W3_PHYSICAL_MIGRATION, W3_CONSUMER_REWRITE]
+    reason: "Migration evidence and rollback must precede consumer cutover."
+  - pair: [W13_RUNTIME, PMN_RUNTIME]
+    reason: "Both would expand point-in-time evidence ingestion before shared evidence semantics are proven."
+file_ownership_rules:
+  - "Agents use separate branches/worktrees and do not edit each other's active task package."
+  - "Other-agent uncommitted local files are preserved."
+  - "Shared index changes are proposed by one writer and reviewed before merge."
+  - "No runtime, account, credential, service or order file is in Issue #72 scope."

@@ -1,0 +1,37 @@
+schema_version: "1.0"
+record_type: "AlternativeAndTradeoffMatrix"
+task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+agent_id: "CODEX"
+selected_option: "INCREMENTAL_SINGLE_WRITER_CONVERGENCE"
+alternatives:
+  - option: "INCREMENTAL_SINGLE_WRITER_CONVERGENCE"
+    benefits: ["preserves verified assets", "explicit UNKNOWN", "low rollback cost", "supports one next slice"]
+    harms: ["retains visible migration debt"]
+    maintenance_cost: MEDIUM
+    validation_cost: MEDIUM
+    disposition: SELECTED
+  - option: "KEEP_ALL_PARALLEL_SYSTEMS"
+    benefits: ["zero immediate migration work"]
+    harms: ["authority drift", "duplicate truth", "consumer ambiguity"]
+    maintenance_cost: HIGH
+    validation_cost: HIGH
+    disposition: REJECTED
+  - option: "GREENFIELD_REWRITE"
+    benefits: ["clean conceptual model"]
+    harms: ["provenance loss", "regression risk", "large hidden migration surface"]
+    maintenance_cost: HIGH
+    validation_cost: VERY_HIGH
+    disposition: REJECTED
+  - option: "SELECT_W13_OR_PMN_FIRST"
+    benefits: ["rich participant or event context"]
+    harms: ["source, license and point-in-time adapters absent"]
+    maintenance_cost: HIGH
+    validation_cost: HIGH
+    disposition: DEFERRED
+  - option: "SELECT_W11_OR_0018_FIRST"
+    benefits: ["direct capital relevance"]
+    harms: ["would duplicate or infer missing probability/risk/calibration inputs"]
+    maintenance_cost: HIGH
+    validation_cost: VERY_HIGH
+    disposition: BLOCKED
+decision_reversibility: "HIGH until GPT accepts and merges; revert PR #74 to restore v1.4/v1.0 governance."
