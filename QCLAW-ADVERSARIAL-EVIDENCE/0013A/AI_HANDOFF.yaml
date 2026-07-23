@@ -1,41 +1,86 @@
 # AI_HANDOFF
-# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A
-# UPDATED R2 — see 0013A-R2/AI_HANDOFF.yaml for full R2 handoff
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# UPDATED R3 — see 0013A-R2/AI_HANDOFF.yaml for R2 handoff details
 
 schema_version: "1.0"
-handoff_id: "QCLAW-0013A-HANDOFF"
+handoff_id: "QCLAW-0013A-R2-HANDOFF"
+handoff_from: QCLAW
+handoff_to: "GPT (primary reviewer), Codex (PR #58 consumer)"
 
-# This package is now in R2. The R1 110-query adversarial evidence package
-# has been supplemented with full AMED receipts, immutability hashes,
-# independence attestation, and test receipts.
-#
-# Full handoff: see 0013A-R2/AI_HANDOFF.yaml
+# === PACKAGE STATUS ===
 
-status: R2_COMPLETE
-completion_signal: "QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION"
-r2_directory: "0013A-R2/"
+status: R3_COMPLETED_AWAITING_GPT_REVIEW
+completion_signal: "QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE"
 
-r1_files:
-  adversarial_queries: 13 files (110 queries)
-  packaging: 3 files (README.md, MANIFEST.yaml, AI_HANDOFF.yaml)
+# === R3 SCOPE ===
+# R3 is bounded: only R2 receipt fixes and AI_HANDOFF status update.
+# 13 frozen query files, MANIFEST.yaml, and README.md are untouched (SHA256 unchanged).
+# All UNKNOWN entries preserved.
 
-r2_files:
-  - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
-  - "PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
-  - "AMED-LEGACY-INHERITANCE-RECEIPT.yaml"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-  - "TEST-RUN-RECEIPT.md"
-  - "UNKNOWN-REGISTRY.yaml"
-  - "AI_HANDOFF.yaml"
+r3_changes:
+  fixed:
+    - "TEST-RUN-RECEIPT.md: commit SHA → actual 8ce5d92, times → actual, Manual inspection → machine validator exit_code=0"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml: IN_PROGRESS→COMPLETED, PENDING_UPLOAD→DONE, L2→L1"
+  added:
+    - "AMED-CONTRACT-CLARIFICATION.yaml: L1 vs legacy L2 distinction"
+    - "R3-BOUNDARY-LOG.yaml: full change/non-change audit"
+  updated:
+    - "AI_HANDOFF.yaml (this file): completion signal → R3 version"
+  preserved:
+    - "13 adversarial query files (SHA256 unchanged)"
+    - "MANIFEST.yaml, README.md (SHA256 unchanged)"
+    - "UNKNOWN-REGISTRY.yaml (all 9 entries)"
+    - "All other R2 receipts"
 
 package_combined_sha256: "51315f4622fa4ef3c43cfbad1fa43cf79d55abe5f238f6599e2015c500a42135"
 
-handoff_to: GPT
-consumer: Codex (PR #58)
-next_task: Issue #73 (queued)
+# === R3 MACHINE VALIDATOR ===
+validator_result:
+  exit_code: 0
+  yaml_structure: "13/13 PASS"
+  per_file_sha256: "13/13 PASS"
+  combined_sha256: "MATCH"
+  unique_queries: 110
+  secret_scan: 0
+  utf8_encoding: "all_verified"
+
+# === WHAT GPT NEEDS TO DO ===
+
+gpt_actions:
+  - action: "Verify R3 boundary"
+    detail: "R3-BOUNDARY-LOG.yaml documents exactly what changed (5 files) and what did not (16 frozen + 7 preserved receipts)"
+  
+  - action: "Review machine validator output"
+    detail: "TEST-RUN-RECEIPT.md contains verbatim PowerShell output: exit_code=0, 13/13 PASS, 110 unique queries, combined SHA256 match, 0 secrets"
+
+  - action: "Review contract clarification"
+    detail: "AMED-CONTRACT-CLARIFICATION.yaml: L1_REUSE_AND_QUICK_CHECK (80/15/5) is R2/R3 authoritative. L2 legacy (70/20/10) is historical only."
+
+  - action: "Accept or reject"
+    detail: "Completion signal: QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE"
+
+  - action: "If accepted, release Issue #73"
+    detail: "Issue #73 release gate: PR #70 accepted + PR #58 ready + Codex Issue #72 Draft PR + GPT explicit release"
+
+# === WHAT CODEX NEEDS TO DO ===
+
+codex_actions:
+  - action: "Consume PR #70 as-is"
+    detail: "110 frozen queries with verified SHA256, independence attestation, immutability receipts"
+
+  - action: "Address UNKNOWN registry entries BEFORE execution"
+    detail: "Format adapter, atom ID mapping, UNKNOWN/ABSTAIN semantics, category coverage — see UNKNOWN-REGISTRY.yaml"
+
+  - action: "Execute against PR #58"
+    detail: "Without modifying any query or expected answer"
+
+# === SAFETY ===
 
 safety: PUBLIC_SAFE
 authority: CANDIDATE_ONLY
+trade: NO_TRADE
+secrets: NONE_PRESENT
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T08:05:00+08:00"
