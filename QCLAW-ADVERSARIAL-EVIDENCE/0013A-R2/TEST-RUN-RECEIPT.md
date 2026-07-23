@@ -13,14 +13,14 @@
 | R1 Commit SHA | 4bb0bdaf279a3df490381be7f8b95888b59a7bdd |
 | R2 Commit SHA | 8ce5d9292f2a92ba6e533e1106985d9886f0c519 |
 | R3 Commit SHA | 8d2edce769e9be0ce3ca88b9ff1f6e3764ac0480 |
-| R4 Commit SHA | to_be_filled_after_push |
+| R4 Commit SHA | 75d2563338b22e8c6c3e3fc104b9f15e1630f00c |
 | OS | Windows 10.0.22631 |
 | Shell | PowerShell 5.1 |
 | Git transport | GitHub API (HTTPS RST) |
 | R1 start/end | 2026-07-23T00:30:00+08:00 / 2026-07-23T05:05:00+08:00 |
 | R2 start/end | 2026-07-23T07:10:00+08:00 / 2026-07-23T07:18:00+08:00 |
 | R3 start/end | 2026-07-23T07:35:00+08:00 / 2026-07-23T08:15:00+08:00 |
-| R4 start/end | 2026-07-23T10:18:00+08:00 / 2026-07-23T10:40:00+08:00 |
+| R4 start/end | 2026-07-23T10:18:00+08:00 / 2026-07-23T10:42:00+08:00 |
 
 ## Real YAML Parser: Machine Validator
 
