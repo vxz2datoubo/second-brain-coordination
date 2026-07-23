@@ -1,30 +1,52 @@
 # FROZEN-MANIFEST.yaml
-# QCLAW-0017-D0-Audit-Preregistration-0020Q-R1
-# Frozen anchor head: 70ed222e279568b7370af62df5bb23b79201ee45
-# R1 updated: 2026-07-24T03:30+08:00
-#
-# 8 immutable core YAML files frozen at head 70ed222e.
-# Validator, manifest, receipt and handoff are versioned meta-files
-# excluded from the core combined hash to avoid circular dependency.
+# QCLAW-0017-D0-Audit-Preregistration-0020Q-R2
+# R2: Validator provenance + final-head receipt closure
+# Updated: 2026-07-24T06:30+08:00
 
-schema_version: "2.0"
-phase: "R1_INTEGRITY_METADATA_CORRECTED"
+schema_version: "3.0"
+phase: "R2_VALIDATOR_AND_HEAD_RECEIPT_CLOSURE"
 task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q"
 pull_request: 77
 branch: "qclaw/0017-d0-audit-preregistration-0020q"
-frozen_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
+
+# Three canonical heads — unambiguous
+pr_base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
+frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+r2_final_head: "PENDING_AFTER_COMMIT"
+
+# ============================================================================
+# CORE COMBINED HASH (8 immutable core YAML files only, no circular dep)
+# ============================================================================
 
 combined_hash:
   algorithm: "SHA-256"
-  method: >-
-    SHA-256 hex digests of 8 immutable core YAML files, sorted by filename,
-    concatenated into a single UTF-8 string, then SHA-256 of that string.
-    Excludes FROZEN-MANIFEST.yaml (self), TEST-RUN-RECEIPT.md, AI_HANDOFF.yaml,
-    validate_preregistration.py, CORRIGENDUM.yaml, AMENDMENT-LOG.yaml,
-    and GIT-BLOB-AND-SHA256-RECEIPT.yaml.
+  method: "SHA-256 of concatenated SHA-256 hex digests of 8 immutable core YAML files sorted by filename"
   core_covered_files: 8
   value: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+
+# ============================================================================
+# VALIDATOR PROVENANCE — TWO DISTINCT RECORDS, NO CONFLATION
+# ============================================================================
+
+validator_p0_provenance:
+  filename: "validate_preregistration.py"
+  git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
+  sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  bytes: 9136
+  frozen_at_commit: "70ed222e"
+  note: "P0 validator — NOT the currently executed validator."
+
+validator_r2_executed:
+  filename: "validate_preregistration.py"
+  git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  bytes: 12644
+  executed_at_commit: "PENDING_AFTER_COMMIT"
+  note: "R2 executed validator (R1-updated). 59/59 PASS, exit 0."
+
+# ============================================================================
+# FROZEN CORE FILES (immutable since P0)
+# ============================================================================
 
 frozen_files:
   - file: "BAR-ONLY-SCOPE-GUARD.yaml"
@@ -32,79 +54,53 @@ frozen_files:
     git_blob_sha1: "e362e269593369501dd5d4ed49511312a8b20c77"
     size_bytes: 9509
     category: "core_immutable"
-    description: "BAR_ONLY data type boundary: allowed/forbidden lists"
 
   - file: "D0-AUDIT-QUESTION-FREEZE.yaml"
     sha256: "c2e695e41d362facaf929221f5c8082ceec2d75e4d36be7e4a06fb361bfa84ba"
     git_blob_sha1: "f615a389bc09f0fd90215d06721a7da0aa17f7d7"
     size_bytes: 24950
     category: "core_immutable"
-    description: "42 frozen audit questions across 10 dimensions"
 
   - file: "D0-SCORING-RUBRIC-FREEZE.yaml"
     sha256: "1e8cd67fd61a1820fc8d0da67c031062bb84d43f369b8e927252dff7ee0e0066"
     git_blob_sha1: "42a205e0f2847484b0c1931db1b52fd837af836d"
     size_bytes: 3555
     category: "core_immutable"
-    description: "Scoring rubric with dimension weights and 4 blocking failure modes"
 
   - file: "EVIDENCE-REQUIREMENT-MATRIX.yaml"
     sha256: "0054673b2ad0784f6e0401c58d06b386ab2ac8248a251482eb130e26be81323f"
     git_blob_sha1: "204f2b6bf7a47f7612209736832b3ca5883b4cfa"
     size_bytes: 7046
     category: "core_immutable"
-    description: "Per-question evidence format requirements (42 questions mapped)"
 
   - file: "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
     sha256: "ab57bac9a76b81e5b9428b884154423b489d6b7eb346cdfe5dc1ddd42cb59ca8"
     git_blob_sha1: "02ceeed24c5a69112fc280ffc5a4e9d330f79af6"
     size_bytes: 7021
     category: "core_immutable"
-    description: "10 expected behaviors + 10 forbidden behaviors for D0 plans"
 
   - file: "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
     sha256: "a6a24b5d6dd4f6dec60dd6fabb4bd6405253090f0bcac64c96f91278e82ae0ce"
     git_blob_sha1: "7a416772a3dc75177769d5a09372d8e33fdf1150"
     size_bytes: 5260
     category: "core_immutable"
-    description: "5 independence certifications + preregistration gate"
 
   - file: "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
     sha256: "7575edd7a4fce8b67a841c56d957b0622832984b5ab773dd93b0082abd04c5a7"
     git_blob_sha1: "968d841ca6beb19554b7831f2b7e21c96ee1c420"
     size_bytes: 5664
     category: "core_immutable"
-    description: "P1 local-reality + replay + historical-gate checklist (12 checks)"
 
   - file: "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
     sha256: "9a2287f7dce68f90d735d3cbfae0f3d1e942867a3e0e27e2ca69414a6c01956f"
     git_blob_sha1: "29603057f0a90d8eebba3dbbf799cd667b5f0f3f"
     size_bytes: 4635
     category: "core_immutable"
-    description: "6 UNKNOWN categories + 6 abstention rules"
 
 core_files_count: 8
 core_files_total_bytes: 67640
 
-r1_artifacts:
-  - file: "CORRIGENDUM.yaml"
-    category: "r1_corrigendum"
-    description: "Documents P0 hash contradictions, noncanonical rule examples, and reproducibility boundary"
-
-  - file: "AMENDMENT-LOG.yaml"
-    category: "r1_amendment_log"
-    description: "Records P0 creation and R1 remediation phases"
-
-  - file: "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
-    category: "r1_git_blob_receipt"
-    description: "Git blob SHA1 + SHA-256 for every immutable core file, machine-reproduced"
-
-validator:
-  file: "validate_preregistration.py"
-  sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
-  note: "P0 version at head 70ed222e. R1 updated in-place (validate_preregistration.py is a versioned tool, NOT a frozen core file)."
-
-completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
 
 safety:
   boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
@@ -112,4 +108,4 @@ safety:
   no_core_modified: true
 
 signed_by: "QCLAW"
-signed_at: "2026-07-24T03:30:00+08:00"
+signed_at: "2026-07-24T06:30:00+08:00"

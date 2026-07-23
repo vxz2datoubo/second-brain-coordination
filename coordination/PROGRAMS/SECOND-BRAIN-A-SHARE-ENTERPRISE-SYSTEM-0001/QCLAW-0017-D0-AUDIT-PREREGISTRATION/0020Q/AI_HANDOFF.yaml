@@ -1,114 +1,66 @@
-# AI_HANDOFF (R1)
-# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-R1
-# Integrity metadata corrected: 2026-07-24T03:30+08:00
+# AI_HANDOFF (R2)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-R2
+# Validator provenance + final-head receipt closure
+# Updated: 2026-07-24T06:30+08:00
 
-schema_version: "2.0"
-handoff_id: "QCLAW-0020Q-R1-HANDOFF-001"
-task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R1"
-phase: "R1_INTEGRITY_METADATA_REMEDIATION"
-status: "CORRECTED_AWAITING_GPT_ACCEPTANCE"
-completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
-
-# ============================================================================
-# R1 DELIVERY SUMMARY
-# ============================================================================
+schema_version: "3.0"
+handoff_id: "QCLAW-0020Q-R2-HANDOFF-001"
+task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R2"
+phase: "R2_VALIDATOR_AND_HEAD_RECEIPT_CLOSURE"
+status: "CLOSED_AWAITING_GPT_ACCEPTANCE"
+completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
 
 delivery:
   directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
   branch: "qclaw/0017-d0-audit-preregistration-0020q"
   pull_request: 77
-  frozen_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-  base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
-
-# ============================================================================
-# IMMUTABLE CORE (unchanged from P0)
-# ============================================================================
+  pr_base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
+  frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+  r2_final_head: "PENDING_AFTER_COMMIT"
 
 core:
   files: 8
   total_bytes: 67640
   combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
-  all_match_head: "70ed222e"
-  frozen_before_codex_d0: true
+  all_byte_identical_to_frozen_head: true
 
-# ============================================================================
-# R1 CORRECTIONS APPLIED
-# ============================================================================
-
-corrections:
-  - id: "HASH-001"
-    issue: "Conflicting combined hash between FROZEN-MANIFEST and AI_HANDOFF"
-    resolution: "Single combined hash bf029d13... on 8 immutable core files only"
-
-  - id: "HASH-002"
-    issue: "Conflicting validator SHA between manifest and receipt"
-    resolution: "Validator SHA-256 f57c7d2c... recorded consistently; validator is separately versioned"
-
-  - id: "CLAIM-001"
-    issue: "43/43 PASS claim not verifiable with contradictory hashes"
-    resolution: "R1 validator passes cleanly on corrected instrument with consistent hashes"
-
-  - id: "RULE-001"
-    issue: "Q11 hardcoded price limits (10%/20%/5%) must not be canonical"
-    resolution: "CORRIGENDUM.yaml mandates versioned exchange/board/security-state/date matrix"
-
-  - id: "RULE-002"
-    issue: "Q13 hardcoded auction windows (9:15-9:25 etc.) must not be canonical"
-    resolution: "CORRIGENDUM.yaml mandates versioned exchange-official auction definitions"
-
-  - id: "REPRO-001"
-    issue: "Q18 could be misinterpreted as requiring all data globally portable"
-    resolution: "CORRIGENDUM.yaml permits licensed/local data with documented source, hash, license, alt-dataset"
-
-# ============================================================================
-# R1 NEW ARTIFACTS
-# ============================================================================
-
-r1_files:
-  - "CORRIGENDUM.yaml"
-  - "AMENDMENT-LOG.yaml"
-  - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
-
-r1_updated_files:
-  - "FROZEN-MANIFEST.yaml"
-  - "validate_preregistration.py"
-  - "TEST-RUN-RECEIPT.md"
-  - "AI_HANDOFF.yaml"
-
-# ============================================================================
-# VALIDATOR (separately versioned, R1-updated)
-# ============================================================================
-
-validator:
+validator_p0_provenance:
   filename: "validate_preregistration.py"
-  sha256_p0: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
+  sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  bytes: 9136
+  frozen_at: "70ed222e"
+
+validator_r2_executed:
+  filename: "validate_preregistration.py"
+  git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  bytes: 12644
+  executed_at_commit: "PENDING_AFTER_COMMIT"
+  result: "59/59 PASS, exit 0"
   python: "3.12.10"
   pyyaml: "6.0.3"
-  note: "R1 updated to include immutable core verification, core combined hash check, and corrigendum reference cross-check. P0 SHA recorded for provenance; R1 executable differs."
+  working_directory: "0020Q/"
+  command: "python validate_preregistration.py"
 
-# ============================================================================
-# NEXT STATE (P1) — FOR GPT
-# ============================================================================
+machine_check:
+  git_blob_sha1_verified_at_r2_head: "PENDING_AFTER_COMMIT"
+  sha256_verified_against_local_bytes: "PENDING_AFTER_COMMIT"
 
-next_state:
-  activation: "GPT_ACCEPTS_R1_AND_CODEX_DELIVERS_D0"
-  p1_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P1"
-  p1_behavior: |
-    Evaluate Codex D0 against the 8 immutable core files and the accepted
-    CORRIGENDUM.yaml. Do NOT modify frozen core. Only add amendment-proposal
-    files for corrections. Separate facts, interpretations, predictions,
-    counterevidence and UNKNOWN. Score against frozen rubric.
+r2_correction:
+  what_was_wrong: "R1 claimed 59/59 PASS but receipts only recorded P0 validator SHA-256, not the executed validator bytes."
+  what_was_done: "Both P0 provenance and R2 executed validator are now separately recorded with Git blob SHA1, SHA-256, bytes, and commit binding."
 
-# ============================================================================
-# SAFETY
-# ============================================================================
+next_state_p1:
+  activation: "GPT_ACCEPTS_R2_AND_CODEX_DELIVERS_D0"
+  task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P1"
 
 safety:
   boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-  no_codex_d0_read: true
+  no_codex_d0_accessed: true
   no_core_modified: true
   no_merge: true
   no_runtime: true
 
 signed_by: "QCLAW"
-signed_at: "2026-07-24T03:30:00+08:00"
+signed_at: "2026-07-24T06:30:00+08:00"
