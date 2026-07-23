@@ -1,10 +1,30 @@
-schema_version: "10.0"
+schema_version: "10.1"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
+role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
+
+long_term_role:
+  canonical_role: "KNOWLEDGE_DIGESTION_ATOMIZATION_MEMORY_INDEXING_AND_CONTEXT_SUPPLY_ENGINE"
+  authority_issue: 81
+  primary_build_issue: 59
+  memory_retrieval_issue: 60
+  gateway_integration_issue: 38
+  current_lifecycle_mode: "BUILD_MODE"
+
+role_class: "TEMPORARY_BORROW"
+temporary_borrow:
+  reason: "A bounded preregistered independent audit is needed before accepting Codex 0017 D0."
+  changes_long_term_role: false
+  may_repeat_automatically: false
+  return_to_primary_role:
+    automatic_after_gpt_disposition: true
+    priority_order: [59, 60, 38]
+    preferred_next_state: "PRIMARY_SYSTEM_BUILD_OR_CONTINUOUS_DIGEST_OPERATION"
+    no_consecutive_external_audit_without_explicit_user_or_gpt_release: true
 
 active_issue: 76
 active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
@@ -13,7 +33,7 @@ mode_label: "目标模式＋使用冻结考卷对Codex PR79 D0进行独立逐题
 mode_reason: >-
   审计对象、目标head、42个问题、评分权重、阻断门、预期/禁止行为和证据要求都已经冻结；
   当前不需要重新规划审计体系，只需在保持程序独立性的前提下，对固定Codex D0提交逐题取证、评分、反证与报告，
-  因此使用目标模式。
+  因此使用目标模式。本任务是明确的TEMPORARY_BORROW，完成后必须返回QCLAW知识原子化、记忆检索与持续消化主线。
 status: "READY"
 blocked_by: "none"
 parent_issue: 69
@@ -34,14 +54,18 @@ mission_intent: >-
 fundamental_goal: >-
   Determine what the Codex D0 package actually proves, what it only proposes, what remains UNKNOWN, whether any frozen blocking
   failure is triggered, and whether the package is safe to use as the planning basis for the next gated task.
-system_position: "Independent adversarial evaluator; candidate evidence producer only; not implementation or canonical authority."
+system_position: "Temporary independent adversarial evaluator; candidate evidence producer only; long-term role remains knowledge digestion and memory supply."
 systems_of_record:
+  role_charter: "Issue #81 and QCLAW knowledge digestion/memory supply charter"
   audit_instrument: "PR #77 frozen core at 70ed222e279568b7370af62df5bb23b79201ee45"
   accepted_receipt_closure: "PR #77 receipt head ee86f1d918bc401b06b0278d1db1feb512c31a52"
   evaluated_target: "Codex PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41"
   final_gate: "GPT"
 
 dependencies:
+  - id: "QCLAW_ROLE_CHARTER"
+    status: "ACTIVE"
+    evidence: "Issue #81 and machine-readable charter; P1 is a temporary borrow and must auto-return."
   - id: "QCLAW_R3"
     status: "ACCEPTED_FOR_P1_WITH_EXTERNAL_RECEIPT_HEAD_ANCHOR"
     evidence: "PR #77 tested_head 8ebb272...; receipt_head ee86f1d...; only seven allowed receipt/meta files changed."
@@ -58,9 +82,11 @@ task_impact_forecast:
     - "Expose unsupported mappings, self-verification loops, maturity inflation, local-reality gaps and rule/data UNKNOWNs."
     - "Give GPT a stable basis for deciding whether D0 is accepted, remediated or split before D1."
   expected_negative_effects:
+    - "The audit temporarily diverts QCLAW compute away from its primary knowledge-system build."
     - "The audit may delay implementation and may produce a FAIL/UNKNOWN-heavy result."
     - "Strict evidence rules may reduce apparent completion percentage."
   primary_risks:
+    - "Temporary audit work silently becoming QCLAW's permanent role."
     - "Changing questions after seeing Codex answers."
     - "Treating presence of an artifact as evidence sufficiency."
     - "Treating Codex tests as independent acceptance."
@@ -106,9 +132,11 @@ independence_contract:
   - "Do not ask Codex for a repair during scoring. Questions for missing evidence may be recorded as UNKNOWN, not used to coach the answer."
   - "Codex validators and self-reported local receipts are evidence inputs, never independent proof by themselves."
   - "Separate VERIFIED_FACT, INTERPRETATION, PREDICTION, COUNTEREVIDENCE, UNKNOWN and RECOMMENDATION."
+  - "Do not convert this temporary audit into a general audit backlog; stop and return after GPT disposition."
 
 required_actions:
-  - "Read latest main, Issue #76, PR #77 accepted frozen instrument and this active route."
+  - "Read latest main, Issue #81 role charter, Issue #76, PR #77 accepted frozen instrument and this active route."
+  - "In the first receipt declare role_class TEMPORARY_BORROW and return target Issues #59/#60."
   - "Record exact PR #77 frozen/receipt heads, core combined hash and Codex PR #79 target head before evaluation."
   - "Create exactly one new branch and one new Draft PR from latest main under the allowed path."
   - "Read Codex PR #79 at the fixed head only, including all 21 artifacts and validator, without modifying it."
@@ -124,7 +152,7 @@ required_actions:
   - "Preserve all FAIL, PARTIAL, UNKNOWN, ABSTAIN, negative and reverse findings; do not optimize the report for a passing verdict."
   - "Emit PDER DiscoveryPackets immediately for S3/S4 findings and at checkpoint for S2 findings."
   - "Run deterministic package validation, YAML duplicate-key checks, reference checks, secret scan and target-head drift check."
-  - "Post the standard structured execution feedback to the new PR, Issues #76/#69/#31, then stop for GPT review."
+  - "Post the standard structured execution feedback to the new PR, Issues #76/#69/#31/#81, then stop for GPT review."
 
 mandatory_outputs:
   - "P1-AUDIT-IDENTITY-AND-INDEPENDENCE-RECEIPT.yaml"
@@ -165,6 +193,7 @@ acceptance_gates:
   - "No question, weight, criterion or target file is modified."
   - "New branch/PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
   - "No D1/VS1 implementation, backtest, alpha claim or data-source activation occurs."
+  - "Handoff declares automatic return to QCLAW primary knowledge-system role."
 
 forbidden:
   - "No editing PR #77 frozen core, PR #77 accepted receipts or Codex PR #79."
@@ -172,19 +201,25 @@ forbidden:
   - "No repairing, implementing or coaching Codex during P1."
   - "No new architecture, runtime, source activation, labeler, replay, backtest or performance claim."
   - "No local restricted payload publication, dependency installation without declaration, credential, account, broker, order or trade action."
+  - "No continuation into another external audit without an explicit new route."
   - "No merge or auto-merge."
 
 report_to:
-  issues: [76, 69, 31]
+  issues: [76, 69, 31, 81]
   create_new_draft_pr: true
   include:
-    - "task ID, mode, fixed heads, objective, success criteria, phase and completion percentage"
+    - "task ID, mode, role class, fixed heads, objective, success criteria, phase and completion percentage"
     - "question-by-question results, dimension scores, blocking failures and total recommendation"
     - "verified facts, counterevidence, official sources, failures, SKIPs, UNKNOWNs and discoveries"
     - "changed files, commands, versions, exit codes, target-drift check, safety and rollback"
+    - "automatic return target to Issues #59/#60 after GPT disposition"
 
 completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
-after_completion: "STOP_AND_WAIT_FOR_GPT_SEVEN_GATE_D0_DECISION"
+after_completion: "STOP_AND_WAIT_FOR_GPT_SEVEN_GATE_D0_DECISION_THEN_AUTOMATIC_RETURN_TO_PRIMARY_ROLE"
+post_disposition_default_route:
+  role_class: "PRIMARY_SYSTEM_BUILD"
+  issue_priority: [59, 60, 38]
+  target_mode: "BUILD_MODE_THEN_DEDICATED_DIGEST_AND_MEMORY_SUPPLY_MODE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
