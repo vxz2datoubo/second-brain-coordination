@@ -1,0 +1,125 @@
+# UNKNOWN-REGISTRY
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+registry_id: "UNKNOWN-REGISTRY-0013A-R2"
+
+# Entries that QCLAW cannot resolve at time of package freeze.
+# These are NOT defects; they are honest gaps for GPT/Codex awareness.
+
+unknowns:
+
+  - unknown_id: UNK-0013A-001
+    category: RUNTIME_CAPABILITY
+    description: >
+      Whether PR #58 implements all 13 adversarial categories or a subset.
+      The Issue #38 Q2 spec requires 13 categories with 100+ queries total,
+      but PR #58 may have downscoped during implementation.
+    impact: >
+      If PR #58 does not implement AC-04 (historical versions), AC-09 (filter
+      tests), or AC-10 (relationship traversal), those query categories will
+      produce false negatives (they test a missing capability, not a bug).
+    recommended_action: >
+      Codex should declare which AC categories are in-scope for PR #58
+      before execution, and mark out-of-scope categories as SKIPPED.
+
+  - unknown_id: UNK-0013A-002
+    category: CROSS_AGENT_REFERENCE
+    description: >
+      Whether PR #58's knowledge store uses the same atom ID namespace as
+      QCLAW's atomization outputs. QCLAW uses AMNS-XXXX; Codex may use a
+      different scheme (e.g., CDX-XXXX, KGA-XXXX).
+    impact: >
+      expected_atom_id fields may not resolve, causing false negatives in
+      AC-01 through AC-13.
+    recommended_action: >
+      Codex should either (a) publish its atom ID namespace, or (b) provide
+      a mapping function from QCLAW atom IDs to Codex store IDs.
+
+  - unknown_id: UNK-0013A-003
+    category: IMPLEMENTATION_DETAIL
+    description: >
+      Whether PR #58 distinguishes UNKNOWN (knowledge absent from store) from
+      ABSTAIN (knowledge present but safety/authority rules forbid disclosure).
+    impact: >
+      AC-06 queries that test this distinction will produce ambiguous results.
+    recommended_action: >
+      Codex should declare its UNKNOWN-vs-ABSTAIN semantics in its response
+      schema before execution.
+
+  - unknown_id: UNK-0013A-004
+    category: IMPLEMENTATION_DETAIL
+    description: >
+      Whether PR #58 maintains effective_from / effective_to / supersedes /
+      superseded_by chains for temporal version tracking.
+    impact: >
+      AC-04 (historical versions) queries depend on temporal awareness.
+    recommended_action: >
+      Codex should declare temporal-tracking capability before execution.
+
+  - unknown_id: UNK-0013A-005
+    category: IMPLEMENTATION_DETAIL
+    description: >
+      Whether PR #58 has budget/omission reporting: can it signal "I have more
+      results than budget allows, here is what was omitted"?
+    impact: >
+      AC-12 (budget & omission) queries depend on omission transparency.
+    recommended_action: >
+      Codex should declare budget-aware response capability before execution.
+
+  - unknown_id: UNK-0013A-006
+    category: DATA_AVAILABILITY
+    description: >
+      Full PR #57 diff/patch content. QCLAW was unable to clone or fetch the
+      diff due to git HTTPS network RST. All PR #57 knowledge is from Issue
+      metadata and public comments.
+    impact: >
+      Some adversarial assumptions about the canonical runtime baseline may
+      be incomplete.
+    recommended_action: >
+      GPT/Codex should verify that the PR #57 baseline described in
+      adversarial queries matches the actual PR #57 implementation.
+
+  - unknown_id: UNK-0013A-007
+    category: CROSS_AGENT_COORDINATION
+    description: >
+      Whether the PR #70 package format (YAML query files with specific
+      field schemas) is directly consumable by PR #58's evaluation harness.
+    impact: >
+      Format compatibility gap could delay execution.
+    recommended_action: >
+      Codex should confirm format compatibility or request a mapping adapter
+      (separate from query content).
+
+  - unknown_id: UNK-0013A-008
+    category: PROCESS
+    description: >
+      Whether git HTTPS will remain blocked for all future QCLAW deliveries.
+      If so, every delivery will require the GitHub API blob-tree-commit-ref
+      pipeline.
+    impact: >
+      Increased delivery latency (~5-15 min vs ~30 sec per package).
+    recommended_action: >
+      Investigate SSH-based git or configure SSH key on the QCLAW host.
+
+  - unknown_id: UNK-0013A-009
+    category: PROCESS
+    description: >
+      Whether the AMED legacy inheritance (STRATEGIC, L2, 70-20-10) is the
+      correct setting for this task or should be adjusted by GPT.
+    impact: >
+      The exploration budget allocation may not reflect the actual task
+      complexity.
+    recommended_action: >
+      GPT review of AMED inheritance receipt, with option to override.
+
+known_knowns_with_gaps:
+  - "PR #57 is the canonical runtime (confirmed) — but the full diff is not read"
+  - "PR #58 has 397 passing tests (confirmed from Issue metadata) — but what those tests cover on adversarial dimensions is unknown"
+  - "QCLAW atom IDs exist in workspace (confirmed by file-system scan) — but Codex mapping is unknown"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"
+  safety: PUBLIC_SAFE

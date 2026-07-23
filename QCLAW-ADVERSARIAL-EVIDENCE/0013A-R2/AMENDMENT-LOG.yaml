@@ -1,0 +1,100 @@
+# AMENDMENT-LOG
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A
+# Tracks metadata/header changes across R2, R3, R4 revisions.
+# Frozen queries (13 files), MANIFEST.yaml and README.md are NEVER listed here.
+
+schema_version: "1.0"
+log_id: "AMENDMENT-0013A-R4"
+
+amendments:
+
+  - revision: R2
+    date: "2026-07-23T07:10:00+08:00"
+    commit_sha: "8ce5d9292f2a92ba6e533e1106985d9886f0c519"
+    description: "Initial AMED receipt package"
+    files:
+      - path: "0013A-R2/INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+        change: "CREATED — independence claims, non-contamination boundary"
+      - path: "0013A-R2/PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
+        change: "CREATED — per-file SHA256 registry, combined hash"
+      - path: "0013A-R2/AMED-LEGACY-INHERITANCE-RECEIPT.yaml"
+        change: "CREATED — Issue #59 AMED legacy historical inheritance"
+      - path: "0013A-R2/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+        change: "CREATED — R1+R2 execution timeline, later superseded by R3"
+      - path: "0013A-R2/AMED-RESEARCH-LEDGER.yaml"
+        change: "CREATED — 5 L2 research entries"
+      - path: "0013A-R2/UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+        change: "CREATED — 3×A-class + 3×C-class proposals"
+      - path: "0013A-R2/SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+        change: "CREATED — architecture drift, cross-agent gaps, risks"
+      - path: "0013A-R2/TEST-RUN-RECEIPT.md"
+        change: "CREATED — later superseded by R3"
+      - path: "0013A-R2/UNKNOWN-REGISTRY.yaml"
+        change: "CREATED — 9 unresolved unknowns (preserved across R2/R3/R4)"
+      - path: "0013A-R2/AI_HANDOFF.yaml"
+        change: "CREATED — GPT/Codex handoff instructions"
+      - path: "0013A/AI_HANDOFF.yaml"
+        change: "UPDATED — completion signal, package status, R2 directory reference"
+
+  - revision: R3
+    date: "2026-07-23T08:05:00+08:00"
+    commit_sha: "8d2edce769e9be0ce3ca88b9ff1f6e3764ac0480"
+    description: "Bounded GPT amendment: fix R2 receipt contradictions"
+    reason: "https://github.com/vxz2datoubo/second-brain-coordination/pull/70#pullrequestreview-3091991467"
+    parent_revision: R2
+    files:
+      - path: "0013A-R2/TEST-RUN-RECEIPT.md"
+        change: "UPDATED — commit SHA 4bb0 → 8ce5d92, estimated times → actual, Manual inspection → machine validator exit_code=0, 13/13 PASS, 110 queries, SHA256 match"
+      - path: "0013A-R2/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+        change: "UPDATED — IN_PROGRESS→COMPLETED, PENDING_UPLOAD→DONE, L2→L1 (80/15/5), added phase_r3, added R3 completeness signal"
+      - path: "0013A-R2/AMED-CONTRACT-CLARIFICATION.yaml"
+        change: "CREATED — L1 explicit routing vs L2 legacy historical distinction"
+      - path: "0013A-R2/R3-BOUNDARY-LOG.yaml"
+        change: "CREATED — full R3 change/non-change audit"
+      - path: "0013A/AI_HANDOFF.yaml"
+        change: "UPDATED — completion signal QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE, status R3_COMPLETED_AWAITING_GPT_REVIEW"
+
+  - revision: R4
+    date: "2026-07-23T10:35:00+08:00"
+    commit_sha: "75d2563338b22e8c6c3e3fc104b9f15e1630f00c"
+    description: "Bounded GPT amendment: corrigendum, amendment log, real YAML parser, fix head/times/immutability"
+    reason: "coordination/ACTIVE-QCLAW-TASK.yaml active_task_id=QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4"
+    parent_revision: R3
+    files:
+      - path: "0013A-R2/CORRIGENDUM.yaml"
+        change: "CREATED — 3 corrigenda: AC-01 count (8→10 in manifest), AC-06 YAML structure limitation, combined hash environment"
+      - path: "0013A-R2/AMENDMENT-LOG.yaml"
+        change: "CREATED — this file: full R2/R3/R4 metadata change log"
+      - path: "0013A-R2/TEST-RUN-RECEIPT.md"
+        change: "UPDATED — post-push commit SHA, actual times, real PyYAML 6.0.3 validator output (exit_code=0, 13/13 SHA256, 110 queries, 23/24 YAML parse, dup-keys enforced)"
+      - path: "0013A-R2/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+        change: "UPDATED — final commit SHA, phase_r4 added, contract per ACTIVE-QCLAW-TASK.yaml (L1, 95/4/1), completed status"
+      - path: "0013A/AI_HANDOFF.yaml"
+        change: "UPDATED — completion signal QCLAW_PR70_R4_CORRIGENDUM_AND_MACHINE_YAML_VERIFIED_FOR_GPT_ACCEPTANCE"
+      - path: "0013A-R2/validate_r4.py"
+        change: "CREATED — canonical R4 machine validator (PyYAML 6.0.3, dup-key rejection, per-file SHA256, query count, combined hash)"
+
+frozen_files:
+  description: "NEVER modified in any revision"
+  files:
+    - "adversarial-queries/AC-01-precise-facts.v2.yaml (10 queries, SHA 63E3E0DB...)"
+    - "adversarial-queries/AC-02-negation.yaml (8 queries, SHA A3CE603D...)"
+    - "adversarial-queries/AC-03-premises-exceptions.yaml (8 queries, SHA E440914F...)"
+    - "adversarial-queries/AC-04-historical-versions.yaml (8 queries, SHA 90A14B84...)"
+    - "adversarial-queries/AC-05-conflicts.yaml (8 queries, SHA E6ABBFA3...)"
+    - "adversarial-queries/AC-06-unknown-abstain.yaml (10 queries, SHA B6755F36...)"
+    - "adversarial-queries/AC-07-forbidden-recall.yaml (8 queries, SHA 4B86D577...)"
+    - "adversarial-queries/AC-08-source-requirements.yaml (8 queries, SHA C73B1E3B...)"
+    - "adversarial-queries/AC-09-filter-tests.yaml (8 queries, SHA 9B224E41...)"
+    - "adversarial-queries/AC-10-relationship-traversal.yaml (8 queries, SHA 4B35AE8D...)"
+    - "adversarial-queries/AC-11-language-encoding.yaml (10 queries, SHA 7567FCD3...)"
+    - "adversarial-queries/AC-12-budget-omission.yaml (8 queries, SHA 1CBA4401...)"
+    - "adversarial-queries/AC-13-security-attacks.yaml (8 queries, SHA 79EFC17F...)"
+    - "0013A/MANIFEST.yaml (SHA 9B6143C1..., AC-01 count error preserved as CORRIGENDUM)"
+    - "0013A/README.md (SHA EFEDB7A5...)"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T10:35:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

@@ -1,0 +1,212 @@
+# ============================================================================
+# AC-05 CONFLICT RECALL — ADVERSARIAL QUERY SET
+# Tests: direct contradiction, implicit conflict, boundary dispute,
+# privacy boundary tension, method disagreement, status ambiguity,
+# ownership ambiguity, unresolved research question
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "CONFLICT_RECALL"
+total_queries: 8
+
+queries:
+  - query_id: "AC05-DC-001"
+    sub_pattern: 1
+    query: >
+      Who owns the Kelly criterion implementation?
+    language: "en"
+    domain_scope: "Agent Boundary / Ownership Conflict"
+    expected_atom_ids:
+      - "codex-owns-kelly-runtime"
+      - "kelly-implementation-boundary-dispute"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["kelly-implementation-boundary-dispute"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Direct contradiction. Codex owns the runtime implementation
+      (PR #57 canonical runtime), but both QCLAW Issue #62 (Kelly/Thorp)
+      and W11 blueprint reference Kelly implementation. The gateway must
+      return BOTH the Codex-ownership atom AND the boundary dispute
+      conflict, not resolve to one side.
+
+  - query_id: "AC05-IC-002"
+    sub_pattern: 2
+    query: >
+      Can authorized private knowledge be stored in public GitHub?
+    language: "en"
+    domain_scope: "Security / Privacy Boundary Tension"
+    expected_atom_ids:
+      - "authorized-private-can-enter-github"
+      - "no-private-body-to-public-repo"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["private-github-tension"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Implicit conflict. Two rules create tension: (1) authorized
+      private knowledge CAN go to public GitHub (Issue #59 correction),
+      and (2) no private body text should be submitted to public repo.
+      Both are true but create tension for mixed-document scenarios.
+      The gateway must return BOTH rules with the tension flag, not
+      resolve to one.
+
+  - query_id: "AC05-MD-003"
+    sub_pattern: 3
+    query: >
+      Should Kelly sizing use full or fractional f*?
+    language: "en"
+    domain_scope: "Kelly / Method Disagreement"
+    expected_atom_ids:
+      - "kelly-full-fraction-optimal"
+      - "kelly-fractional-adjustment"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["kelly-full-vs-fractional"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Method disagreement. The literature contains both full-Kelly
+      and fractional-Kelly advocates. Neither is "wrong" — they address
+      different assumptions (known parameters vs. parameter uncertainty).
+      The gateway must preserve both sides, not pick one.
+
+  - query_id: "AC05-SA-004"
+    sub_pattern: 4
+    query: >
+      Is Issue #38 complete?
+    language: "en"
+    domain_scope: "Task Management / Status Ambiguity"
+    expected_atom_ids: ["issue-38-paused-preserved"]
+    forbidden_atom_ids: ["issue-38-complete"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Status ambiguity. Issue #38 is in a nuanced state: PAUSED_PRESERVED,
+      not COMPLETE, not CANCELLED. PR #58 is at 90% waiting for external
+      evidence. The gateway must preserve the ambiguity ("not complete,
+      but not cancelled — paused with 90% work preserved") rather than
+      collapsing to one boolean.
+
+  - query_id: "AC05-OA-005"
+    sub_pattern: 5
+    query: >
+      Who handles robust choice under uncertainty — DS-04 or W11?
+    language: "en"
+    domain_scope: "Decision Science / Ownership Ambiguity"
+    expected_atom_ids:
+      - "ds04-robust-choice"
+      - "w11-robust-kelly"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["ds04-w11-boundary-unsettled"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Ownership ambiguity. DS-04 Robust Choice handles general robust
+      decision methods; W11 handles robust Kelly specifically. Both
+      claim the "robust" label, and the boundary is not fully settled.
+      The gateway must return both with the unsettled-boundary conflict,
+      not assign sole ownership.
+
+  - query_id: "AC05-BD-006"
+    sub_pattern: 6
+    query: >
+      What is the relationship between PEOS and Kelly/Thorp (W11)?
+    language: "en"
+    domain_scope: "Cross-Module / Relationship Dispute"
+    expected_atom_ids:
+      - "peos-feeds-decision-episodes"
+      - "kelly-consumes-decision-episodes"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Cross-module relationship. PEOS generates DecisionEpisode records
+      that Kelly/Thorp (W11) consumes for position sizing. This relationship
+      is established but the exact interface (schema alignment between
+      ProbabilityEstimate and Kelly inputs) is partially defined. The
+      gateway must return the established relationship AND note the
+      interface gap.
+
+  - query_id: "AC05-UR-007"
+    sub_pattern: 7
+    query: >
+      Does fractional Kelly with λ=0.5 outperform full Kelly on A-shares?
+    language: "en"
+    domain_scope: "Kelly / Unresolved Research Question"
+    expected_atom_ids:
+      - "kelly-full-vs-fractional"
+      - "kelly-fractional-adjustment"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["kelly-full-vs-fractional"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Unresolved research question. The literature disagrees on whether
+      fractional Kelly empirically outperforms full Kelly on A-shares
+      after adjusting for transaction costs, parameter uncertainty, and
+      non-normal returns. The gateway must return the disagreement, not
+      settle on one conclusion.
+
+  - query_id: "AC05-PB-008"
+    sub_pattern: 8
+    query: >
+      What is the boundary between W11 risk constraints and DS-08 risk
+      constraint validation?
+    language: "en"
+    domain_scope: "Cross-Module / Boundary Dispute"
+    expected_atom_ids:
+      - "w11-risk-constraints"
+      - "ds08-risk-validation"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["w11-ds08-boundary-dispute"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Cross-module boundary dispute. W11 (Kelly/Thorp) and DS-08
+      (Risk Constraint Validation) both define risk constraints.
+      The question of who is the authoritative source is unsettled.
+      The gateway must return both and acknowledge the dispute, not
+      declare one module as authoritative.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - direct_contradiction
+    - implicit_conflict
+    - method_disagreement
+    - status_ambiguity
+    - ownership_ambiguity
+    - cross_module_relationship
+    - unresolved_research_question
+    - boundary_dispute
+  difficulty_distribution: { HARD: 6, MODERATE: 2 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

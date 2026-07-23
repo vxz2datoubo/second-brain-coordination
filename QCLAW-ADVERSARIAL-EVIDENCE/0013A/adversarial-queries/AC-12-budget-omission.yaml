@@ -1,0 +1,209 @@
+# ============================================================================
+# AC-12 BUDGET & OMISSION — ADVERSARIAL QUERY SET
+# Tests: budget overflow, quality-based pruning, omission transparency,
+# coverage bias, re-query with larger budget, conflict budget reservation,
+# UNKNOWN budget, selective omission report
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "BUDGET_AND_OMISSION"
+total_queries: 8
+
+queries:
+  - query_id: "AC12-BO-001"
+    sub_pattern: 1
+    query: >
+      List all knowledge atoms created under the QCLAW atomization
+      architecture programme.
+    language: "en"
+    domain_scope: "Knowledge Management / Budget Overflow"
+    expected_atom_ids: ["ALL-QCLAW-ATOMS-WITH-OMISSION-REPORT"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 20 }
+    rationale: >
+      Budget overflow. The full set of QCLAW atoms spans Issues #59-#63
+      plus evaluation packets (71+ files, ~1.85MB). With a budget cap of
+      20 atoms, the gateway must return the top 20 AND explicitly report
+      what was omitted. Returning all atoms (ignoring budget) OR returning
+      only the first 20 without an omission report are both failures.
+
+  - query_id: "AC12-QP-002"
+    sub_pattern: 2
+    query: >
+      What are the most important rules for the Kelly criterion
+      application on A-shares?
+    language: "en"
+    domain_scope: "Kelly / Quality-Based Pruning"
+    expected_atom_ids: ["kelly-lambda-drivers", "kelly-fractional-adjustment", "kelly-parameter-uncertainty"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 5 }
+    rationale: >
+      Quality-based pruning. With a budget of 5 atoms, the gateway must
+      prioritize higher-quality/source authority atoms. Lower-confidence
+      atoms (candidate-quality research digestion) should be deprioritized
+      relative to blueprint-derived or primary-literature atoms.
+
+  - query_id: "AC12-OT-003"
+    sub_pattern: 3
+    query: >
+      List all knowledge atoms about the PEOS architecture, including
+      what was omitted from the results.
+    language: "en"
+    domain_scope: "PEOS / Omission Transparency"
+    expected_atom_ids: ["PEOS-ATOMS-WITH-OMISSION-REPORT"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 10 }
+    rationale: >
+      Omission transparency. The query explicitly requests omission
+      reporting. The gateway must provide both the returned atoms AND
+      a structured omission report listing: atom_ids omitted, reason
+      for omission (budget/quality/low-relevance), and what query
+      expansion would retrieve them.
+
+  - query_id: "AC12-CB-004"
+    sub_pattern: 4
+    query: >
+      List knowledge atoms about all QCLAW issues.
+    language: "en"
+    domain_scope: "Knowledge Management / Coverage Bias"
+    expected_atom_ids: ["ATOMS-FROM-ALL-FIVE-ISSUES"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 5
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 15 }
+    rationale: >
+      Coverage bias. With a 15-atom budget across 5 issues (#59-#63),
+      the gateway must provide fair representation from each issue.
+      All 15 atoms coming from a single issue is a coverage bias failure.
+      At minimum, atoms from at least 3 of the 5 issues must appear.
+
+  - query_id: "AC12-RQ-005"
+    sub_pattern: 5
+    query: >
+      List ALL knowledge atoms about the decision science skills.
+      (No budget limit on this query.)
+    language: "en"
+    domain_scope: "Decision Science / Re-Query Larger Budget"
+    expected_atom_ids: ["ALL-DS-ATOMS"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 500, previous_atoms: 15 }
+    rationale: >
+      Re-query with larger budget. If a previous query returned 15 atoms
+      with omission report, this follow-up with 500-atom budget should
+      return the previously-omitted atoms. This tests that omission is
+      reversible and budget expansion actually recovers omitted content.
+
+  - query_id: "AC12-CR-006"
+    sub_pattern: 6
+    query: >
+      What rules govern QCLAW's architecture, including any conflicts?
+    language: "en"
+    domain_scope: "Architecture / Conflict Budget Reservation"
+    expected_atom_ids:
+      - "qclaw-arch-rules"
+      - "w11-ds08-boundary-dispute"
+      - "private-github-tension"
+    forbidden_atom_ids: []
+    required_conflict_ids:
+      - "w11-ds08-boundary-dispute"
+      - "private-github-tension"
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 10 }
+    rationale: >
+      Conflict budget reservation. Conflicts must be included even when
+      the budget is tight. If the 10-atom budget is fully consumed by
+      "normal" rules, conflicts like W11/DS-08 boundary and private/GitHub
+      tension would be omitted — which is a failure. Conflicts must have
+      budget reservation priority.
+
+  - query_id: "AC12-UB-007"
+    sub_pattern: 7
+    query: >
+      What are the operational risks of AMNS Arctic deployment?
+    language: "en"
+    domain_scope: "AMNS / UNKNOWN Budget Reservation"
+    expected_atom_ids: ["AMNS-0033", "AMNS-0035", "AMNS-0036"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: ["AMNS-0033", "AMNS-0035", "AMNS-0036"]
+    min_sources: 3
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 5 }
+    rationale: >
+      UNKNOWN budget reservation. Even with a tight 5-atom budget, the
+      UNKNOWN entries (AMNS-0033 ice navigation, AMNS-0035 jamming,
+      AMNS-0036 fleet consensus) MUST be included. UNKNOWN gaps are
+      more important than known facts when the query is about risks.
+      Omitting UNKNOWNs for budget is a critical failure.
+
+  - query_id: "AC12-SO-008"
+    sub_pattern: 8
+    query: >
+      List all knowledge atoms, but omit low-confidence candidate atoms.
+    language: "en"
+    domain_scope: "Knowledge Management / Selective Omission"
+    expected_atom_ids: ["ALL-HIGH-AND-MEDIUM-CONFIDENCE-ATOMS"]
+    forbidden_atom_ids: ["ALL-LOW-CONFIDENCE-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    budget: { max_atoms: 100, omit_confidence: "LOW" }
+    rationale: >
+      Selective omission. The query explicitly requests omission of
+      low-confidence atoms. The gateway must honor this request and
+      return only HIGH and MEDIUM confidence atoms. Including any
+      LOW-confidence atom is a selective omission failure.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - budget_overflow_with_omission
+    - quality_based_pruning
+    - omission_transparency
+    - coverage_bias_prevention
+    - requery_larger_budget
+    - conflict_budget_reservation
+    - unknown_budget_reservation
+    - selective_omission
+  difficulty_distribution: { HARD: 5, MODERATE: 3 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

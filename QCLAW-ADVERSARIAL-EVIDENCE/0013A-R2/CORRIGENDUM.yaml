@@ -1,0 +1,106 @@
+# CORRIGENDUM
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4
+# Generated: 2026-07-23T10:35:00+08:00
+
+schema_version: "1.0"
+corrigendum_id: "CORRIGENDUM-0013A-R4"
+
+# === CORRIGENDUM #1: MANIFEST AC-01 COUNT ===
+
+issue: "MANIFEST.yaml lists AC-01 as having 8 queries. The frozen AC-01 file contains 10 queries."
+severity: "DOCUMENTATION — no impact on semantic correctness"
+
+frozen_manifest_entry:
+  file: "MANIFEST.yaml"
+  line: "query_categories section, AC-01 entry"
+  states: >
+    queries: 8
+    description: "Tests exact factual retrieval vs confusable near-matches"
+
+actual_frozen_file:
+  file: "adversarial-queries/AC-01-precise-facts.v2.yaml"
+  sha256: "63E3E0DB00BD98AED7F09636D9504101C87E756D3DA8052A8941C2E474C080FC"
+  sha256_verified: true
+  contains: 10 queries
+  query_ids:
+    - "AC01-FACT-001"
+    - "AC01-FACT-002"
+    - "AC01-FACT-003"
+    - "AC01-FACT-004"
+    - "AC01-FACT-005"
+    - "AC01-FACT-006"
+    - "AC01-FACT-007"
+    - "AC01-FACT-008"
+    - "AC01-FACT-009"
+    - "AC01-FACT-010"
+
+correct_counts:
+  AC_01: 10
+  AC_02: 8
+  AC_03: 8
+  AC_04: 8
+  AC_05: 8
+  AC_06: 10
+  AC_07: 8
+  AC_08: 8
+  AC_09: 8
+  AC_10: 8
+  AC_11: 10
+  AC_12: 8
+  AC_13: 8
+  total: 110
+
+resolution: >
+  The frozen MANIFEST.yaml has AC-01 listed as 8 queries but the frozen file
+  contains 10 queries. This CORRIGENDUM is the authoritative correction.
+  Neither MANIFEST.yaml nor any of the 13 query files are modified.
+  All SHA256 values are preserved unchanged.
+  The correct counts sum to 110 (10+8+8+8+8+10+8+8+8+8+10+8+8).
+
+# === CORRIGENDUM #2: AC-06 YAML STRUCTURE ===
+
+issue: "AC-06-unknown-abstain.yaml uses a YAML structure (block mapping followed by list items at root, without YAML document separator '---') that strict PyYAML parsers reject."
+severity: "FORMAT — file is semantically valid and SHA256 is frozen"
+
+detail: >
+  The file begins with a YAML mapping block (schema_version, creation_date, ...),
+  then switches directly to list items (- query_id: ...). A strict YAML parser
+  expects either a `---` document separator or a different structure.
+  The file was read/consumed by Codex and GPT without issue in practice.
+  PyYAML 6.0.3 raises an error, but the file content, query semantics, and
+  SHA256 hash are all intact and unchanged from R1.
+
+resolution: >
+  This corrigendum documents the format limitation. The file is NOT modified
+  (SHA256 preserved at B6755F367E8FDB23C1BA447E3E52CA19D476CF1B5A1DC761CBD3E2CBBBF0431C).
+  Query count verified via unique query_id regex fallback: 10 unique queries.
+
+# === CORRIGENDUM #3: COMBINED HASH ENVIRONMENT ===
+
+issue: "The frozen combined SHA256 51315f46... was computed under PowerShell (Get-Content -Raw + .NET UTF8.GetBytes). Python recomputation yields a different value due to string-encoding differences in CRLF handling between PowerShell and Python stdlib."
+severity: "ENVIRONMENT — per-file binary SHA256 values are the canonical immutability proof"
+
+detail: >
+  The combined SHA256 was originally computed on Windows PowerShell:
+  $allContent = join of sorted "<fname>:" + (Get-Content $file -Raw)
+  SHA256 = .NET SHA256.Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($allContent))
+
+  On Python 3.12.10, the same algorithm produces a different hash because
+  PowerShell's Get-Content -Raw and Python's open().read() handle the
+  internal representation of \r\n differently when the string goes through
+  UTF-8 encoding. The difference is in the string-to-bytes layer, not in
+  the raw file bytes.
+
+  The authoritative immutability proof is the 13 per-file binary SHA256 values,
+  all of which match exactly between R1, R3, and R4 (verified 13/13).
+
+resolution: >
+  Noted for reproducibility. The 13 per-file binary SHA256 values are the
+  canonical immutability proof. The combined hash algorithm and environment
+  are documented here for reproducibility.
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T10:35:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
