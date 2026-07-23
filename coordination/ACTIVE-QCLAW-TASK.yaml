@@ -1,55 +1,107 @@
-schema_version: "4.3"
+schema_version: "5.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
-active_issue: 73
-active_task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1-EVIDENCE-REMEDIATION"
+active_issue: 76
+active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0"
 active_mode: "target"
-mode_label: "目标模式＋Issue73独立审计证据链有界修复"
-status: "DELIVERED_AWAITING_GPT_FINAL_REVIEW"
-blocked_by: "GPT_FINAL_REVIEW_OF_PR75_HEAD_3443430683fcda3d2863cbb09d8f3d4e66dff19f"
-parent_issue: 72
+mode_label: "目标模式＋0017-D0独立审计预注册、评分冻结与哈希封存"
+mode_reason: >-
+  The deliverables and success criteria are concrete. QCLAW must freeze the future D0 audit instrument before
+  Codex produces the D0 answer. This is bounded preregistration, not another open-ended architecture audit.
+status: "READY"
+blocked_by: "none"
+parent_issue: 69
 parent_program: 31
-source_pull_request: 74
-evidence_pull_request: 70
-audit_pull_request: 75
-branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
-latest_observed_head: "3443430683fcda3d2863cbb09d8f3d4e66dff19f"
+source_issue: 76
+create_new_branch: true
+branch: "qclaw/0017-d0-audit-preregistration-0020q"
+create_new_pr: true
 draft_pull_request: true
 direct_main_write: false
 auto_merge: false
+allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
 
-current_action:
-  - "Stop repository work and wait for GPT final review of PR #75."
-  - "Do not create another branch, PR, audit rerun or score revision."
-  - "Do not modify Codex PR #74, PR #70 frozen evidence or Issue #69."
-  - "On task trigger, report WAITING_FOR_GPT_FINAL_REVIEW with PR #75 and the latest observed head."
+closed_prior_wave:
+  issue: 73
+  pull_request: 75
+  disposition: "ACCEPTED_CANDIDATE_EVIDENCE_PROCEDURAL_INDEPENDENCE_NOT_PROVEN_NO_MERGE"
+  reusable_findings_only:
+    - "Historical failure mode: scoring preceded question/behavior freeze."
+    - "BAR_ONLY must exclude L2/L3/order flow/identity/hidden intent."
+    - "W3 physical SoR remains UNKNOWN_MIGRATION_REQUIRED."
+  prohibited_carryover:
+    - "Do not copy old scores or claim PR #75 independently proved 0017-first."
+    - "Do not edit PR #75 or rerun Issue #73."
 
-preserved_candidate_findings:
-  - "0017 remains the highest-ranked candidate in the submitted scoring, but procedural pre-freeze independence must be represented truthfully."
-  - "W3 physical system of record remains UNKNOWN_MIGRATION_REQUIRED."
-  - "W3 and W12 maturity-inflation findings remain candidate counterevidence."
-  - "W11 and 0018 dependency-readiness concerns and PMN enabling-value observation remain preserved."
+mission_intent: >-
+  Build and machine-freeze the audit questions, scoring rubric, evidence thresholds, expected and forbidden
+  behaviors, UNKNOWN/abstention rules and hashes that will later be used to evaluate Codex Issue #69 D0.
+  P0 creates the exam before the answer exists. P0 performs no evaluation of future Codex D0 work.
 
-next_state_after_gpt_review:
-  accepted:
-    action: "CLOSE_QCLAW_AUDIT_WAVE_AND_RELEASE_CODEX_SEQUENCE"
-  bounded_remediation_required:
-    action: "GPT_WILL_PUBLISH_ONE_EXPLICIT_BOUNDED_TASK_ON_THE_SAME_BRANCH_AND_PR"
-  rejected:
-    action: "PRESERVE_ARTIFACTS_AS_NON_AUTHORITATIVE_CANDIDATE_EVIDENCE"
+allowed_inputs:
+  - "Current main Issue #69 specification and activity routes."
+  - "Published PR #74 and PR #75 only for known boundaries and historical failure modes."
+  - "Public-safe repository schemas, governance contracts and current A-share rule assumptions."
+
+forbidden_inputs:
+  - "Any future Codex Issue #69 D0 branch, Draft PR, answer, score, internal draft or work log."
+  - "Private/local sensitive values, secrets, accounts, services, broker or market-feed data."
+  - "Predicted Codex answers used to tailor questions toward a preferred verdict."
+
+required_action:
+  - "Read Issue #76 and latest main routes."
+  - "Create the required branch from latest main and exactly one Draft PR."
+  - "Freeze questions, weights, thresholds, evidence requirements and forbidden behaviors before any Codex D0 Draft PR exists."
+  - "Cover point-in-time reference zones, leakage, BAR_ONLY scope, T+1, rules, costs, replay, OOS design, baselines, negative results and local-reality receipts."
+  - "Add explicit checks for Codex self-verification loops after WorkBuddy scope transfer."
+  - "Add explicit checks that W3 physical SoR UNKNOWN neither becomes canonical nor falsely blocks self-contained D0 planning."
+  - "Record Git blob SHA and SHA-256 for every frozen core file and generate one combined hash."
+  - "Use a real YAML parser with duplicate-key rejection and validate UTF-8, required files, unique IDs, weights, references, placeholders, secret patterns and hashes."
+  - "After freezing, mark core files immutable for P1. Future omissions may only be proposed in a separate AMENDMENT-PROPOSAL; no silent exam edits."
+  - "Post PR number, base/head SHA, files, hashes, commands, versions, exit codes, SKIPs and UNKNOWNs to Issues #76/#69/#31."
+  - "Stop for GPT review. Do not evaluate Codex, implement 0017, modify PR #74 or create runtime work."
+
+mandatory_outputs:
+  - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+  - "D0-AUDIT-QUESTION-FREEZE.yaml"
+  - "D0-SCORING-RUBRIC-FREEZE.yaml"
+  - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
+  - "EVIDENCE-REQUIREMENT-MATRIX.yaml"
+  - "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
+  - "BAR-ONLY-SCOPE-GUARD.yaml"
+  - "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
+  - "FROZEN-MANIFEST.yaml"
+  - "validate_preregistration.py"
+  - "TEST-RUN-RECEIPT.md"
+  - "AI_HANDOFF.yaml"
+
+acceptance_gates:
+  - "The freeze commit and timestamps predate any Codex Issue #69 D0 Draft PR."
+  - "All frozen core files have Git blob SHA, SHA-256 and a combined hash."
+  - "Question IDs and rubric weights are unique and machine validated."
+  - "No answer, score or verdict about the future Codex D0 is present."
+  - "BAR_ONLY and self-verification-loop guards are explicit."
+  - "PR remains Draft and only allowed paths are changed."
+
+future_p1_contract:
+  activation: "GPT_EXPLICIT_RELEASE_AFTER_CODEX_D0_DELIVERY"
+  behavior: >-
+    Evaluate Codex D0 only with the frozen P0 instrument. Do not modify frozen core files. Separate verified
+    facts, interpretations, predictions, counterevidence and UNKNOWN. Any proposed amendment remains outside
+    the scored P1 evaluation unless GPT approves it before evaluation.
 
 forbidden:
+  - "No scoring or judgment of not-yet-delivered Codex D0."
+  - "No change to PR #74, PR #75, Issue #69 body or Codex routes."
+  - "No implementation, local runtime, trade, account, credential or service action."
   - "No merge or auto-merge."
-  - "No Issue #69/0017 activation by QCLAW."
-  - "No runtime, trading, account, credential, service or market-feed access."
-  - "No silent conclusion, score or UNKNOWN changes."
 
-completion_signal: "QCLAW_ISSUE73_R1_EVIDENCE_REMEDIATION_READY_FOR_GPT_REVIEW"
-after_completion: "WAIT_FOR_GPT_FINAL_CONVERGENCE_DECISION"
+completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_FUTURE_P1_RELEASE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
