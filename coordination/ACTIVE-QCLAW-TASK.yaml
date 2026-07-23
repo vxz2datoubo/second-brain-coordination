@@ -1,4 +1,4 @@
-schema_version: "5.0"
+schema_version: "6.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
@@ -6,102 +6,108 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 76
-active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0"
+active_task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R1-INTEGRITY-METADATA-REMEDIATION"
 active_mode: "target"
-mode_label: "目标模式＋0017-D0独立审计预注册、评分冻结与哈希封存"
+mode_label: "目标模式＋PR77冻结收据、哈希一致性与解释边界有界修复"
 mode_reason: >-
-  The deliverables and success criteria are concrete. QCLAW must freeze the future D0 audit instrument before
-  Codex produces the D0 answer. This is bounded preregistration, not another open-ended architecture audit.
+  The eight core audit YAML files were created before Codex D0 and are frozen at an exact Git commit. The remaining
+  defects are concrete integrity-metadata contradictions and rule-interpretation risks. QCLAW must correct receipts
+  without changing the exam, scoring rubric or evidence requirements.
 status: "READY"
 blocked_by: "none"
 parent_issue: 69
 parent_program: 31
 source_issue: 76
-create_new_branch: true
+pull_request: 77
 branch: "qclaw/0017-d0-audit-preregistration-0020q"
-create_new_pr: true
-draft_pull_request: true
+continue_existing_branch: true
+continue_existing_draft_pr: true
 direct_main_write: false
 auto_merge: false
 allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
 
-closed_prior_wave:
-  issue: 73
-  pull_request: 75
-  disposition: "ACCEPTED_CANDIDATE_EVIDENCE_PROCEDURAL_INDEPENDENCE_NOT_PROVEN_NO_MERGE"
-  reusable_findings_only:
-    - "Historical failure mode: scoring preceded question/behavior freeze."
-    - "BAR_ONLY must exclude L2/L3/order flow/identity/hidden intent."
-    - "W3 physical SoR remains UNKNOWN_MIGRATION_REQUIRED."
-  prohibited_carryover:
-    - "Do not copy old scores or claim PR #75 independently proved 0017-first."
-    - "Do not edit PR #75 or rerun Issue #73."
+priority_and_role:
+  priority: "P1_BOUNDED_SUPPORT_NONBLOCKING_CODEX_D0"
+  work_share: "10_PERCENT_INDEPENDENT_GATE_SUPPORT"
+  primary_executor: "CODEX"
+  qclaw_role: >-
+    Repair the integrity metadata of the preregistered audit instrument. Do not redesign Codex work, implement 0017,
+    or expand this into a second main workstream.
 
-mission_intent: >-
-  Build and machine-freeze the audit questions, scoring rubric, evidence thresholds, expected and forbidden
-  behaviors, UNKNOWN/abstention rules and hashes that will later be used to evaluate Codex Issue #69 D0.
-  P0 creates the exam before the answer exists. P0 performs no evaluation of future Codex D0 work.
+accepted_core_freeze:
+  pull_request: 77
+  head: "70ed222e279568b7370af62df5bb23b79201ee45"
+  disposition: "CORE_INSTRUMENT_ACCEPTED_AT_HEAD_WITH_BOUNDED_INTEGRITY_METADATA_REMEDIATION"
+  frozen_before_codex_d0: true
+  immutable_core_files:
+    - "BAR-ONLY-SCOPE-GUARD.yaml"
+    - "D0-AUDIT-QUESTION-FREEZE.yaml"
+    - "D0-SCORING-RUBRIC-FREEZE.yaml"
+    - "EVIDENCE-REQUIREMENT-MATRIX.yaml"
+    - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
+    - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+    - "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
+    - "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
+  immutable_rule: "The eight core files must remain byte-identical to PR #77 head 70ed222e."
 
-allowed_inputs:
-  - "Current main Issue #69 specification and activity routes."
-  - "Published PR #74 and PR #75 only for known boundaries and historical failure modes."
-  - "Public-safe repository schemas, governance contracts and current A-share rule assumptions."
-
-forbidden_inputs:
-  - "Any future Codex Issue #69 D0 branch, Draft PR, answer, score, internal draft or work log."
-  - "Private/local sensitive values, secrets, accounts, services, broker or market-feed data."
-  - "Predicted Codex answers used to tailor questions toward a preferred verdict."
+observed_defects:
+  - "FROZEN-MANIFEST combined hash is a89bb299..., while AI_HANDOFF reports 7210d4bc...."
+  - "FROZEN-MANIFEST reports validator SHA-256 f57c7d2c..., while TEST-RUN-RECEIPT reports c7a5807b...."
+  - "The 43/43 PASS and all-hashes-match claim is therefore not yet proven."
+  - "Q11 and Q13 contain hardcoded rule examples that must not become canonical across exchanges, boards, security states and historical periods."
+  - "Q18 can be misread as requiring all vendor/local data to be globally portable rather than honestly documented and reproducible within its licensed boundary."
 
 required_action:
-  - "Read Issue #76 and latest main routes."
-  - "Create the required branch from latest main and exactly one Draft PR."
-  - "Freeze questions, weights, thresholds, evidence requirements and forbidden behaviors before any Codex D0 Draft PR exists."
-  - "Cover point-in-time reference zones, leakage, BAR_ONLY scope, T+1, rules, costs, replay, OOS design, baselines, negative results and local-reality receipts."
-  - "Add explicit checks for Codex self-verification loops after WorkBuddy scope transfer."
-  - "Add explicit checks that W3 physical SoR UNKNOWN neither becomes canonical nor falsely blocks self-contained D0 planning."
-  - "Record Git blob SHA and SHA-256 for every frozen core file and generate one combined hash."
-  - "Use a real YAML parser with duplicate-key rejection and validate UTF-8, required files, unique IDs, weights, references, placeholders, secret patterns and hashes."
-  - "After freezing, mark core files immutable for P1. Future omissions may only be proposed in a separate AMENDMENT-PROPOSAL; no silent exam edits."
-  - "Post PR number, base/head SHA, files, hashes, commands, versions, exit codes, SKIPs and UNKNOWNs to Issues #76/#69/#31."
-  - "Stop for GPT review. Do not evaluate Codex, implement 0017, modify PR #74 or create runtime work."
+  - "Read the GPT review on PR #77 and latest main route."
+  - "Do not read or inspect any Codex Issue #69 D0 branch, PR, draft, answer or work log while performing R1."
+  - "Reuse the same branch and Draft PR #77; do not create a replacement PR."
+  - "Verify the eight immutable core files are byte-identical to PR #77 head 70ed222e; fail immediately if any changed."
+  - "Add CORRIGENDUM.yaml documenting every hash/receipt contradiction and the noncanonical nature of hardcoded rule examples."
+  - "Add AMENDMENT-LOG.yaml documenting P0 and R1 without changing frozen questions, weights, expected behaviors or evidence requirements."
+  - "Add GIT-BLOB-AND-SHA256-RECEIPT.yaml with actual Git blob SHA and SHA-256 for each immutable core file, plus one unambiguous combined hash and exact method."
+  - "Treat validate_preregistration.py as a versioned validator, not a frozen core exam file. Record its current SHA separately from the core combined hash."
+  - "Update FROZEN-MANIFEST.yaml, TEST-RUN-RECEIPT.md and AI_HANDOFF.yaml so the combined hash, covered-file list, validator hash, PR number, base/head SHA, commands, versions and exit codes agree exactly."
+  - "The canonical P1 rule criterion is a versioned official-source matrix by exchange, board, security/risk-warning status and effective date. Numeric limits and auction windows written in Q11/Q13 are examples, not universal truth."
+  - "The canonical P1 reproducibility criterion permits licensed/local-only data when source, path alias, license, hashes, environment, alternative dataset and UNKNOWN portability are truthfully recorded."
+  - "Use real YAML parsing with duplicate-key rejection; validate UTF-8, required files, unique IDs, weights, references, placeholders, secret patterns, immutable-core hashes and completion signals."
+  - "Post changed files, exact hashes, commands, versions, exit codes, failures, SKIPs, UNKNOWNs, base/head SHA and PR number to PR #77 and Issues #76/#69/#31."
+  - "Stop after R1. Do not evaluate Codex D0; P1 remains separately gated by GPT."
 
-mandatory_outputs:
-  - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
-  - "D0-AUDIT-QUESTION-FREEZE.yaml"
-  - "D0-SCORING-RUBRIC-FREEZE.yaml"
-  - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
-  - "EVIDENCE-REQUIREMENT-MATRIX.yaml"
-  - "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
-  - "BAR-ONLY-SCOPE-GUARD.yaml"
-  - "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
+allowed_changes:
+  - "CORRIGENDUM.yaml"
+  - "AMENDMENT-LOG.yaml"
+  - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
   - "FROZEN-MANIFEST.yaml"
   - "validate_preregistration.py"
   - "TEST-RUN-RECEIPT.md"
   - "AI_HANDOFF.yaml"
 
 acceptance_gates:
-  - "The freeze commit and timestamps predate any Codex Issue #69 D0 Draft PR."
-  - "All frozen core files have Git blob SHA, SHA-256 and a combined hash."
-  - "Question IDs and rubric weights are unique and machine validated."
-  - "No answer, score or verdict about the future Codex D0 is present."
-  - "BAR_ONLY and self-verification-loop guards are explicit."
-  - "PR remains Draft and only allowed paths are changed."
+  - "Eight core files are byte-identical to PR #77 head 70ed222e."
+  - "One and only one core combined hash exists across all active receipts."
+  - "Git blob SHA and SHA-256 are recorded for each core file and machine-reproduced."
+  - "Validator is excluded from the immutable core hash or separately versioned without ambiguity."
+  - "Rule and reproducibility interpretations are corrected without editing the frozen exam."
+  - "No Codex D0 output was read and no future answer/verdict appears."
+  - "PR remains Draft and no file outside the allowed directory changes."
 
 future_p1_contract:
-  activation: "GPT_EXPLICIT_RELEASE_AFTER_CODEX_D0_DELIVERY"
+  activation:
+    - "GPT accepts this R1 integrity metadata correction."
+    - "Codex delivers Issue #69 D0."
   behavior: >-
-    Evaluate Codex D0 only with the frozen P0 instrument. Do not modify frozen core files. Separate verified
-    facts, interpretations, predictions, counterevidence and UNKNOWN. Any proposed amendment remains outside
-    the scored P1 evaluation unless GPT approves it before evaluation.
+    Evaluate Codex D0 against the immutable eight-file core instrument and the accepted corrigendum. Separate facts,
+    interpretations, predictions, counterevidence and UNKNOWN. Do not modify the frozen core or assist Codex repairs.
 
 forbidden:
-  - "No scoring or judgment of not-yet-delivered Codex D0."
-  - "No change to PR #74, PR #75, Issue #69 body or Codex routes."
-  - "No implementation, local runtime, trade, account, credential or service action."
+  - "No modification of the eight immutable core files."
+  - "No reading, scoring or judging Codex D0 during R1."
+  - "No modification of PR #74, PR #75, Issue #69 body or Codex branch."
+  - "No implementation, runtime, local private-data inspection, account, credential, service, market-feed or trade action."
   - "No merge or auto-merge."
 
-completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
-after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_FUTURE_P1_RELEASE"
+completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+after_completion: "WAIT_FOR_CODEX_D0_DELIVERY_AND_GPT_P1_RELEASE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
