@@ -1,18 +1,18 @@
-schema_version: "7.0"
+schema_version: "8.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
+discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 76
-active_task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R2-VALIDATOR-AND-FINAL-HEAD-RECEIPT-CLOSURE"
+active_task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R3-TWO-HEAD-EVIDENCE-ANCHOR"
 active_mode: "target"
-mode_label: "目标模式＋PR77当前验证器与最终head收据闭环"
+mode_label: "目标模式＋PR77 tested_head与receipt_head两阶段证据锚定"
 mode_reason: >-
-  R1已保留8个冻结核心文件、统一核心combined hash并修正规则与可复现性解释。剩余缺陷只有一个：
-  实际执行的R1验证器已经改变，但收据仍只记录P0验证器SHA-256，且没有把59/59结果绑定到当前验证器字节和最终PR head。
-  目标、允许文件与成功标准均已冻结，因此使用目标模式，不允许重新设计审计工具或扩展工作流。
+  R2已经分离P0与当前验证器身份，但使用AT_HEAD占位。单个收据文件无法在自身commit中记录该commit SHA而不产生自引用循环。
+  现在只需建立具体tested_head和后续receipt_head的两阶段证据链，目标、文件和成功标准完全确定，因此使用目标模式。
 status: "READY"
 blocked_by: "none"
 parent_issue: 69
@@ -31,79 +31,79 @@ priority_and_role:
   work_share: "10_PERCENT_INDEPENDENT_GATE_SUPPORT"
   primary_executor: "CODEX"
   qclaw_role: >-
-    Close the validator and final-head evidence receipts only. Do not redesign the frozen audit instrument, evaluate Codex D0,
-    implement 0017 or create a parallel architecture.
+    Replace symbolic AT_HEAD/TBD receipt fields with a concrete two-head evidence chain. Do not redesign the audit,
+    inspect Codex D0, implement 0017 or create another workstream.
 
-accepted_r1_results:
+accepted_results:
   frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
   immutable_core_files: 8
   core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
-  accepted:
-    - "Eight frozen core YAML files remain immutable and predate Codex D0."
-    - "Per-core Git blob SHA1 and SHA-256 receipts are present."
-    - "Q11/Q13 numeric rules are noncanonical examples; P1 uses a versioned official-source rule matrix."
-    - "Q18 permits licensed/local-only data with truthful portability and UNKNOWN declarations."
-    - "No Codex D0 was read and no file outside the allowed directory changed."
-
-remaining_blocking_defect:
-  pr_head_reviewed: "ef00c99a607dd1611692700898066e1ccb51bcbf"
   validator_p0_git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
-  validator_r1_git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  validator_current_git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  validator_current_sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  accepted:
+    - "Eight frozen core files remain immutable and predate Codex D0."
+    - "P0 and current validator identities are separated."
+    - "Rule and reproducibility corrigenda remain accepted."
+    - "No Codex D0 was read."
+
+remaining_defect:
+  severity: "S2_MATERIAL"
   defect: >-
-    R1 changed validate_preregistration.py and claims 59/59 PASS, but active receipts still record only the P0 validator
-    SHA-256 f57c7d2c... and do not bind the executed R1 validator bytes to the result or the final PR head.
-  consequence: "QCLAW P1 remains blocked; Codex Issue #69 D0 remains unblocked."
+    R2 records tested/final bindings as AT_HEAD rather than concrete commits. The prior one-head requirement was
+    self-referential; use a tested_head followed by a receipt_head.
+  consequence: "QCLAW P1 remains blocked; Codex PR #79 review remains unblocked."
 
 required_actions:
-  - "Read the latest GPT review on PR #77 and this active task."
-  - "Reuse the same branch and Draft PR #77; create no replacement PR."
-  - "Do not read, inspect, score or discuss any Codex Issue #69 D0 branch, PR, answer or work log."
-  - "Verify the eight immutable core files are byte-identical to frozen head 70ed222e; fail immediately if any changed."
-  - "Record validator_p0_provenance separately with its Git blob SHA1, SHA-256, byte size and frozen commit."
-  - "Record validator_r2_executed with the current validator Git blob SHA1, SHA-256, byte size and exact final commit used for execution."
-  - "Update FROZEN-MANIFEST.yaml, GIT-BLOB-AND-SHA256-RECEIPT.yaml, TEST-RUN-RECEIPT.md and AI_HANDOFF.yaml so PR base, frozen-core head and R2 final head agree exactly."
-  - "Run the validator from the R2 final head and record exact command, working directory, Python/PyYAML versions, PASS/FAIL/SKIP counts and exit code."
-  - "Add a machine check that the recorded current-validator Git blob SHA1 equals the Git blob at final head and the recorded SHA-256 equals the exact executed file bytes."
-  - "Keep the core combined hash limited to the eight immutable core YAML files; do not introduce a circular manifest hash."
-  - "Post changed files, exact hashes, base/frozen/final heads, commands, versions, counts, exit codes, failures, SKIPs and UNKNOWNs to PR #77 and Issues #76/#69/#31."
-  - "Stop after R2. Do not begin P1 evaluation automatically."
+  - "Read the latest GPT R2 review on PR #77 and the PDER protocol."
+  - "Reuse the same branch and Draft PR #77; do not create another PR."
+  - "Do not read, inspect, score or discuss Codex PR #79 or any D0 answer during R3."
+  - "Verify the eight core files still match frozen head 70ed222e."
+  - "Create or identify a concrete tested_head containing the exact current validator bytes and all files needed for the run."
+  - "Checkout or otherwise verify tested_head, run python validate_preregistration.py, and capture exact stdout/stderr bytes or a deterministic normalized output file."
+  - "Record tested_head full SHA, validator Git blob SHA1, validator SHA-256, command, working directory, Python/PyYAML versions, PASS/FAIL/SKIP counts, exit code and test_output_sha256."
+  - "Create a later concrete receipt_head containing the receipts that reference tested_head. receipt_head may differ from tested_head and must be recorded in the PR comment after it exists."
+  - "Prove with Git commands or GitHub blob evidence that the validator blob at tested_head equals the recorded blob and that receipt_head changes only allowed meta files."
+  - "Replace every active AT_HEAD/TBD/FINAL_HEAD placeholder in R2 receipts with tested_head or the correct non-self-referential meaning."
+  - "Do not attempt to write receipt_head into a file in the same receipt_head commit. Record receipt_head in the PR/Issue comment or in a subsequent immutable external receipt if needed."
+  - "Post a DiscoveryPacket if any S2+ contradiction appears; otherwise include NO_ADDITIONAL_S2_PLUS_DISCOVERY."
+  - "Stop after R3. Do not begin P1 automatically."
 
 allowed_changes:
   - "FROZEN-MANIFEST.yaml"
   - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
   - "TEST-RUN-RECEIPT.md"
   - "AI_HANDOFF.yaml"
-  - "validate_preregistration.py"
   - "AMENDMENT-LOG.yaml"
-  - "CORRIGENDUM.yaml only if a reference to R2 receipt identity is necessary; no semantic expansion"
+  - "validate_preregistration.py only if required to emit deterministic test output; any code change creates a new tested_head"
 
 acceptance_gates:
-  - "Eight core files are byte-identical to frozen head 70ed222e."
-  - "The accepted core combined hash remains unchanged."
-  - "P0 provenance hash and current executed-validator hash are both recorded without conflation."
-  - "The current validator Git blob SHA1 and SHA-256 are machine-verified against the R2 final head."
-  - "The reported validator result is generated by the exact recorded current-validator bytes."
-  - "PR base, frozen core head and R2 final head are unambiguous and consistent across active receipts."
-  - "No Codex D0 output was read and no answer-dependent audit criterion was added."
-  - "PR remains Draft; no file outside the allowed directory changes."
+  - "Eight core files remain byte-identical to frozen head 70ed222e."
+  - "No AT_HEAD, TBD or symbolic final-head placeholder remains in active evidence claims."
+  - "tested_head is a concrete full SHA and contains the exact recorded validator blob."
+  - "The 59/59 or updated result is generated at tested_head by the recorded bytes."
+  - "test_output_sha256 and exit code are recorded."
+  - "receipt_head is a concrete full SHA reported after creation and only allowed meta files changed after tested_head."
+  - "No Codex D0 output was read and no answer-dependent criterion was added."
+  - "PR remains Draft and no file outside the allowed directory changes."
 
 future_p1_contract:
   activation:
-    - "GPT accepts R2 validator and final-head receipt closure."
-    - "Codex delivers Issue #69 D0."
+    - "GPT accepts R3 two-head evidence closure."
+    - "Codex PR #79 D0 exists and GPT explicitly releases P1."
   behavior: >-
-    Evaluate Codex D0 against the immutable eight-file core instrument and accepted corrigendum. Separate facts,
-    interpretations, predictions, counterevidence and UNKNOWN. Do not modify the frozen core or assist Codex repairs.
+    Evaluate Codex D0 against the immutable core instrument and accepted corrigendum. Separate facts, interpretations,
+    predictions, counterevidence and UNKNOWN. Do not modify frozen criteria or assist Codex repairs.
 
 forbidden:
   - "No modification of the eight immutable core files."
-  - "No reading, scoring or judging Codex D0 during R2."
-  - "No new questions, weights, expected behaviors, evidence requirements or blocking gates."
-  - "No implementation, runtime, local private-data inspection, account, credential, service, market-feed or trade action."
+  - "No reading or judging Codex D0 during R3."
+  - "No new questions, weights, behaviors or evidence gates."
+  - "No runtime, private-data inspection, account, credential, market-feed or trade action."
   - "No merge or auto-merge."
 
-completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
-after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_CODEX_D0_DELIVERY"
+completion_signal: "QCLAW_0017_D0_P0_TWO_HEAD_EVIDENCE_ANCHOR_CLOSED_FOR_P1"
+after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_P1_RELEASE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
