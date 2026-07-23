@@ -1,4 +1,4 @@
-schema_version: "4.2"
+schema_version: "4.3"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
@@ -9,105 +9,47 @@ active_issue: 73
 active_task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1-EVIDENCE-REMEDIATION"
 active_mode: "target"
 mode_label: "目标模式＋Issue73独立审计证据链有界修复"
-mode_reason: >-
-  PR #75 restored the branch and Draft PR delivery, but GPT review found bounded evidence-chain,
-  route-compliance, validator and BAR_ONLY boundary defects. The audit must not be redone or
-  rescored; only truthful correction, normalization and reproducible receipts are allowed.
-status: "READY"
-blocked_by: "GPT_REVIEW_FINDINGS_ON_PR_75_HEAD_1f1139346aef105f63ecdf2da7527665bcf71257"
+status: "DELIVERED_AWAITING_GPT_FINAL_REVIEW"
+blocked_by: "GPT_FINAL_REVIEW_OF_PR75_HEAD_3443430683fcda3d2863cbb09d8f3d4e66dff19f"
 parent_issue: 72
 parent_program: 31
 source_pull_request: 74
 evidence_pull_request: 70
 audit_pull_request: 75
-reviewed_head: "1f1139346aef105f63ecdf2da7527665bcf71257"
 branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
-continue_existing_branch: true
-continue_existing_draft_pr: true
+latest_observed_head: "3443430683fcda3d2863cbb09d8f3d4e66dff19f"
+draft_pull_request: true
 direct_main_write: false
 auto_merge: false
-allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-BLUEPRINT-CONVERGENCE-AUDIT/0019Q/"
 
-review_disposition:
-  delivery_restoration: "PASS"
-  substantive_findings: "PRESERVE_AS_CANDIDATE_EVIDENCE"
-  independent_freeze_gate: "NOT_PROVEN"
-  bar_only_boundary_gate: "FAIL_REQUIRES_CORRECTION"
-  mandatory_output_gate: "FAIL_REQUIRES_NORMALIZATION"
-  machine_receipt_gate: "FAIL_REQUIRES_REPRODUCIBLE_COMMANDS"
-  merge_authority: "DENIED"
-  issue_69_activation: "DENIED"
+current_action:
+  - "Stop repository work and wait for GPT final review of PR #75."
+  - "Do not create another branch, PR, audit rerun or score revision."
+  - "Do not modify Codex PR #74, PR #70 frozen evidence or Issue #69."
+  - "On task trigger, report WAITING_FOR_GPT_FINAL_REVIEW with PR #75 and the latest observed head."
 
-preserve_without_rescoring:
-  - "All existing candidate scores, including 0017=84, W12=64, PMN=45, W11=35 and 0018=24."
-  - "W3 physical system-of-record UNKNOWN/MIGRATION_REQUIRED finding."
-  - "W3 and W12 maturity-inflation findings."
-  - "All negative evidence, divergences and UNKNOWN entries."
+preserved_candidate_findings:
+  - "0017 remains the highest-ranked candidate in the submitted scoring, but procedural pre-freeze independence must be represented truthfully."
+  - "W3 physical system of record remains UNKNOWN_MIGRATION_REQUIRED."
+  - "W3 and W12 maturity-inflation findings remain candidate counterevidence."
+  - "W11 and 0018 dependency-readiness concerns and PMN enabling-value observation remain preserved."
 
-required_action:
-  - "Read the latest main route and GPT review on PR #75 at reviewed head."
-  - "Do not rerun the audit, change candidate scores, soften negative findings or create a new PR."
-  - "Add AUDIT-QUESTION-AND-SCORING-FREEZE.yaml that truthfully records the observed artifact order: recomputation 11:58, query pack 12:00, expected/forbidden 12:02. Mark pre-evaluation freeze as NOT_PROVEN/FAIL; do not invent an earlier timestamp."
-  - "Replace claims of independently verified ranking with a bounded statement: substantive concordance exists, but procedural pre-freeze independence is not proven."
-  - "Correct 0017 BAR_ONLY documentation so the selected slice depends only on point-in-time bar data and excludes L2 order-book, raw tick, L3, participant identity and hidden-intent dependencies. Any L2/L3 topic may only be preserved as a future non-BAR_ONLY UNKNOWN."
-  - "Provide exact mandatory-output filenames from the active route. Thin mapping or normalization artifacts may reference existing files, but must preserve original findings and evidence."
-  - "Add a physical SoR audit, secret-fixture allowlist boundary audit, counterevidence/UNKNOWN ledger and interface/hidden-runtime audit under the allowed directory."
-  - "Record that pre-publication local hashes are UNKNOWN_NOT_RECORDED_PRE_PUBLICATION if they were not actually captured. Compute and record current Git blob/SHA-256 hashes without representing them as pre-publication hashes."
-  - "Repair validate_convergence.py: enforce the active-route required list, real allowed-prefix validation, stale-reference checks, score arithmetic/recomputation checks, secret allowlist exact-path/exact-count controls, placeholder detection and exact completion signals."
-  - "Update TEST-RUN-RECEIPT.md with actual commands, PASS/FAIL/SKIP, exit codes, PR number, base SHA, current head SHA and GitHub Actions result."
-  - "Update AI_HANDOFF and Issues #73/#72/#31 with both original completion context and the R1 remediation signal."
-  - "Stop for GPT review; keep PR #75 Draft and do not merge or activate Issue #69/0017."
-
-mandatory_outputs:
-  - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
-  - "AUDIT-QUESTION-AND-SCORING-FREEZE.yaml"
-  - "AUTHORITY-COLLISION-COUNTERAUDIT.yaml"
-  - "PHYSICAL-SYSTEM-OF-RECORD-AUDIT.md"
-  - "MATURITY-INFLATION-AUDIT.yaml"
-  - "INTERFACE-AND-HIDDEN-RUNTIME-AUDIT.yaml"
-  - "NEXT-SLICE-INDEPENDENT-RECOMPUTATION.md"
-  - "COUNTEREVIDENCE-AND-UNKNOWN-LEDGER.yaml"
-  - "SECRET-FIXTURE-ALLOWLIST-BOUNDARY-AUDIT.md"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-  - "TEST-RUN-RECEIPT.md"
-  - "AI_HANDOFF.yaml"
-
-acceptance_gates:
-  - "No existing score or substantive finding is silently changed."
-  - "Freeze chronology is represented truthfully and cannot be marked PASS retroactively."
-  - "0017 BAR_ONLY contains no L2/L3/order-book/raw-tick/participant-identity dependency."
-  - "All mandatory outputs exist at exact names or contain explicit, machine-checkable mappings."
-  - "Validator checks are real rather than self-fulfilling and all commands/exit codes are recorded."
-  - "No Codex PR #74 file, PR #70 frozen evidence, runtime or canonical shared file is modified."
-  - "PR #75 remains Draft; no merge, trade, account, credential or Issue #69 activation occurs."
+next_state_after_gpt_review:
+  accepted:
+    action: "CLOSE_QCLAW_AUDIT_WAVE_AND_RELEASE_CODEX_SEQUENCE"
+  bounded_remediation_required:
+    action: "GPT_WILL_PUBLISH_ONE_EXPLICIT_BOUNDED_TASK_ON_THE_SAME_BRANCH_AND_PR"
+  rejected:
+    action: "PRESERVE_ARTIFACTS_AS_NON_AUTHORITATIVE_CANDIDATE_EVIDENCE"
 
 forbidden:
-  - "Do not fabricate pre-evaluation freeze evidence or pre-publication hashes."
-  - "Do not change 0017=84 merely to make the result look more independent."
-  - "Do not re-audit Codex PR #74 or inspect hidden answers."
-  - "Do not create a new branch or duplicate PR."
-  - "Do not modify files outside the allowed 0019Q prefix except Issue/PR comments."
-  - "Do not merge or auto-merge any PR."
-  - "Do not activate Issue #69/0017."
+  - "No merge or auto-merge."
+  - "No Issue #69/0017 activation by QCLAW."
+  - "No runtime, trading, account, credential, service or market-feed access."
+  - "No silent conclusion, score or UNKNOWN changes."
 
-execution_contract:
-  report_to_issues: [73, 72, 31]
-  report_to_pull_requests: [75]
-  completion_signal: "QCLAW_ISSUE73_R1_EVIDENCE_REMEDIATION_READY_FOR_GPT_REVIEW"
-  after_completion: "WAIT_FOR_GPT_FINAL_CONVERGENCE_DECISION"
-
-safety_boundary:
-  public_safe_only: true
-  candidate_only: true
-  research_only: true
-  no_trade: true
-  no_broker_account_order: true
-  credential_values_denied: true
-  direct_main_write: false
-  auto_merge: false
-
+completion_signal: "QCLAW_ISSUE73_R1_EVIDENCE_REMEDIATION_READY_FOR_GPT_REVIEW"
+after_completion: "WAIT_FOR_GPT_FINAL_CONVERGENCE_DECISION"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-23"
+updated_at: "2026-07-24"
