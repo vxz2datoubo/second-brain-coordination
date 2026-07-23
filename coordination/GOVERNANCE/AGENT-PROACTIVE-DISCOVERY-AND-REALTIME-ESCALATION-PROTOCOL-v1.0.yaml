@@ -1,0 +1,208 @@
+schema_version: "1.0"
+protocol_id: "AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-0001"
+short_name: "PDER"
+status: "ACTIVE_ENTERPRISE_STANDARD"
+authority_scope: "all_non_trivial_agent_tasks"
+applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
+parent_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+boundary: "research_only / NO_TRADE unless separately authorized"
+
+purpose: >-
+  Give every agent bounded initiative to discover, investigate and report material facts, contradictions, risks,
+  opportunities and changing conditions during execution instead of waiting until final delivery. Discovery must
+  improve situational awareness without silently changing the active task, canonical authority or safety boundary.
+
+operating_model:
+  independent_attention: true
+  evidence_before_narrative: true
+  report_before_scope_expansion: true
+  affected_scope_only_stop: true
+  preserve_minor_findings: true
+  translate_for_user: true
+  no_silent_suppression: true
+  no_self_approval_of_major_change: true
+
+what_counts_as_discovery:
+  - VERIFIED_NEW_FACT
+  - CONTRADICTION_WITH_ASSUMPTION
+  - STALE_OR_CHANGED_REALITY
+  - DATA_OR_LICENSE_GAP
+  - POINT_IN_TIME_OR_FUTURE_LEAKAGE_RISK
+  - RULE_VERSION_OR_POLICY_CHANGE
+  - INTERFACE_OR_AUTHORITY_CONFLICT
+  - DUPLICATE_SYSTEM_OR_REUSE_OPPORTUNITY
+  - TEST_FAILURE_OR_NEGATIVE_RESULT
+  - SECURITY_PRIVACY_OR_SAFETY_RISK
+  - HIGH_LEVERAGE_IMPROVEMENT
+  - NEW_UNKNOWN_WITH_DECISION_IMPACT
+  - EXTERNAL_DEPENDENCY_OR_BLOCKER
+  - USER_MODEL_OR_REQUIREMENT_MISMATCH
+
+severity_scale:
+  S4_CRITICAL:
+    definition: >-
+      Evidence indicates possible safety, credential, privacy, license, destructive-write, real-trade, canonical-corruption
+      or invalid-result risk that makes continued work on the affected scope unsafe or misleading.
+    timing: "REPORT_IMMEDIATELY"
+    action:
+      - "Stop only the affected operation or scope immediately."
+      - "Preserve evidence and rollback state."
+      - "Escalate to GPT and user gate when required."
+      - "Do not continue through a guessed workaround."
+  S3_MAJOR:
+    definition: >-
+      A finding changes the project plan, invalidates a core assumption, blocks a major acceptance gate, exposes a
+      missing foundation, or creates a high-value cross-module opportunity.
+    timing: "REPORT_AT_DISCOVERY_CHECKPOINT_WITHOUT_WAITING_FOR_FINAL_DELIVERY"
+    action:
+      - "Continue unaffected work when safe."
+      - "Do not implement the implied system-level change without a gate."
+      - "Create or propose a follow-up task, architecture decision or bounded amendment."
+  S2_MATERIAL:
+    definition: >-
+      A finding changes a contract detail, test plan, dependency, data interpretation, local integration path or
+      acceptance criterion but does not invalidate the whole active task.
+    timing: "REPORT_IN_CURRENT_CHECKPOINT_AND_FINAL_HANDOFF"
+    action:
+      - "Handle through AMED A/B when authorized, otherwise C proposal."
+      - "Record effect, evidence and rollback."
+  S1_MINOR:
+    definition: >-
+      A useful correction, cleanup, small opportunity, documentation gap, weak signal or nonblocking anomaly.
+    timing: "BATCH_IN_DISCOVERY_LEDGER; SURFACE_WHEN_PATTERN_OR_THRESHOLD_EMERGES"
+    action:
+      - "Deduplicate and aggregate."
+      - "Escalate to S2 when repeated, cross-module or cumulatively costly."
+  S0_NOTE:
+    definition: "Context worth preserving but with no current decision or execution impact."
+    timing: "ARCHIVE_IN_LEDGER"
+    action: ["No route change."]
+
+mandatory_discovery_packet:
+  fields:
+    - discovery_id
+    - detected_at
+    - reporting_agent
+    - active_task_id
+    - active_issue
+    - severity
+    - discovery_type
+    - one_sentence_plain_language_summary
+    - verified_facts
+    - inference_or_hypothesis
+    - evidence_references
+    - confidence
+    - affected_scope
+    - immediate_impact
+    - downstream_impact
+    - action_already_taken
+    - recommended_options
+    - preferred_option_and_reason
+    - requires_GPT_gate
+    - requires_user_decision
+    - freshness_or_expiry
+    - dedup_key
+    - status
+  fact_inference_rule: >-
+    Verified facts, interpretations, predictions and recommendations must be separated. A persuasive explanation is not
+    evidence, and a local observation is not automatically a public or canonical capability.
+
+human_translation_contract:
+  required_for: [S4_CRITICAL, S3_MAJOR, USER_DECISION_REQUIRED]
+  format:
+    - "What Codex/QCLAW/WB actually found"
+    - "What it means in ordinary language"
+    - "Why it matters now"
+    - "What it does not prove"
+    - "Whether current work should stop"
+    - "Recommended next action"
+  avoid:
+    - "Unexplained internal acronyms"
+    - "Presenting UNKNOWN as failure or fact"
+    - "Dumping raw machine receipts without interpretation"
+
+agent_initiative_permissions:
+  allowed:
+    - "Run read-only checks inside the authorized task and exploration budget."
+    - "Inspect relevant repository evidence, tests, interfaces, official sources and sanitized local metadata."
+    - "Challenge task assumptions and preserve negative findings."
+    - "Implement AMED A or B improvements when all conditions are met."
+    - "Propose C follow-up tasks, architecture decisions, deprecations or new skills."
+  prohibited:
+    - "Silently switch the active task or mode."
+    - "Expand WIP into another major workstream."
+    - "Change canonical authority, system of record or cross-agent ownership."
+    - "Access credentials, bypass licenses, publish restricted data or initiate real trades."
+    - "Upgrade a hypothesis into a verified capability or performance claim."
+
+continuous_reporting_rules:
+  S4_CRITICAL: "Post to active PR/Issue immediately and stop affected scope."
+  S3_MAJOR: "Post a discovery packet as soon as evidence is sufficient; do not wait for task completion."
+  S2_MATERIAL: "Post at the next execution checkpoint and include in AI_HANDOFF."
+  S1_MINOR: "Append to UNPLANNED-IMPROVEMENT or DISCOVERY ledger; batch by dedup_key."
+  no_spam_rule: >-
+    Multiple observations with the same root cause should be combined into one evolving packet with evidence deltas,
+    not emitted as repetitive notifications.
+
+cross_agent_model:
+  CODEX:
+    focus: ["repository reality", "implementation feasibility", "data semantics", "tests", "interfaces", "technical debt"]
+  QCLAW:
+    focus: ["counterevidence", "source conflict", "maturity inflation", "self-verification loops", "knowledge gaps"]
+  WORKBUDDY:
+    focus: ["local reality", "permissions", "services", "paths", "performance", "deployment", "data quality"]
+  GPT:
+    focus: ["cross-agent synthesis", "user intent", "system-level implications", "priority", "task routing", "final gates"]
+  independence_rule: >-
+    Different agents should search from their own evidence position. They may compare findings after capture, but must
+    not erase disagreement or rewrite preregistered criteria to manufacture consensus.
+
+GPT_obligations:
+  - "Before major routing or acceptance decisions, inspect the newest active PRs, issue comments, discovery ledgers and UNKNOWN registries."
+  - "Translate S3/S4 findings for the user and state whether they are verified facts, inferences or proposals."
+  - "Compare the finding with existing modules and tasks before creating a new workstream."
+  - "Decide ACCEPT_IN_CURRENT_TASK / BOUNDED_AMENDMENT / FOLLOW_UP_TASK / ARCHITECTURE_DECISION / USER_GATE / REJECT."
+  - "Update active routes when a discovery materially changes dependencies or acceptance gates."
+  - "Track unresolved S3/S4 discoveries until closed, downgraded or explicitly accepted as risk."
+
+lifecycle:
+  states:
+    - DETECTED
+    - EVIDENCE_CAPTURED
+    - TRIAGED
+    - ROUTED
+    - ACTION_IN_PROGRESS
+    - INDEPENDENTLY_CHECKED
+    - CLOSED_ACCEPTED
+    - CLOSED_REJECTED
+    - CLOSED_DUPLICATE
+    - DEFERRED_WITH_OWNER_AND_TRIGGER
+  closure_requirements:
+    - "Decision and owner recorded."
+    - "Evidence or rejection reason preserved."
+    - "Any route/task change linked."
+    - "User-facing consequence recorded for S3/S4."
+
+current_program_application:
+  program_issue: 31
+  current_discovery:
+    discovery_id: "DISC-CODEX-0017-D0-001"
+    source_pr: 79
+    severity: "S3_MAJOR"
+    type: "DATA_OR_LICENSE_GAP"
+    plain_language: >-
+      Large local market-data inventories physically exist, but their license, field semantics, adjustment policy,
+      historical rule/status context and point-in-time availability are not yet sufficient for a trustworthy backtest.
+    effect: >-
+      This does not invalidate D0 planning, but it blocks D1 historical label execution and any empirical performance
+      claim until an authorized point-in-time data-admission manifest and historical rule/status snapshots exist.
+    stop_scope: "D1 historical execution and performance claims only"
+    continue_scope: "D0 review, contract design, synthetic fixture tests and discovery protocol improvements"
+
+security:
+  public_safe_only: true
+  credentials_denied: true
+  restricted_raw_data_denied: true
+  real_trade_denied: true
+  direct_main_write_by_executors: false
+  auto_merge: false
