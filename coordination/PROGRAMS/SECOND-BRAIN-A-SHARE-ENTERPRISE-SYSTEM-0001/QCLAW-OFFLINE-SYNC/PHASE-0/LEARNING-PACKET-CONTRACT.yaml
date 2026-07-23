@@ -1,0 +1,113 @@
+schema_version: "1.0"
+record_type: "ContractSpecification"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+status: "proposed"
+reviewed_by: null
+
+contract:
+  packet_id:
+    format: "lp-{source_hash_short}-{timestamp}"
+    example: "lp-a3f8c2-20260720T1430Z"
+    guarantee: "globally unique within this machine"
+
+  schema_version: "1.0"
+  source_artifacts:
+    - source_id: "string (UUID or stable path-based)"
+      source_hash: "sha256 hex"
+      source_type: "enum: markdown|json|csv|jsonl|pdf|url|chat_log|audio_transcript"
+      source_reference_local: "relative path from QCLAW_KNOWLEDGE_ROOT"
+      source_time: "ISO 8601"
+      event_time: "ISO 8601 (when the event/knowledge was created, not when processed)"
+      license_class: "enum: PUBLIC_SAFE|PRIVATE_KNOWLEDGE|SENSITIVE_LOCAL_ONLY|RESTRICTED_NEVER_SYNC|LICENSE_RESTRICTED|UNKNOWN_CLASSIFICATION"
+      privacy_class: "enum: PUBLIC_SAFE|PRIVATE_KNOWLEDGE|SENSITIVE_LOCAL_ONLY|RESTRICTED_NEVER_SYNC|UNKNOWN_CLASSIFICATION"
+
+  processed_by: "QCLAW"
+  processor_version: "string (e.g., 'qclaw-v0.2.33-bridge-v2.1')"
+  processed_at: "ISO 8601"
+  base_knowledge_revision: "git commit hash or null"
+  status: "enum: candidate|review_required|approved_local|frozen_for_sync|synced_to_git|projected_to_serving"
+
+  atoms:
+    type: "array"
+    items:
+      atom_id: "at-{content_hash_short}"
+      type: "enum: fact|concept|rule|procedure|checklist|insight|question|constraint|observation"
+      content: "string (plain text or structured)"
+      language: "zh-CN|en"
+      confidence: "enum: certain|high|medium|low|speculative"
+      scope: "string (applicability context)"
+      premises: ["list of atom_ids this depends on"]
+      exceptions: ["list of exception conditions"]
+      expiration_condition: "string or null"
+      source_atom_ids: ["back-reference to source_artifact.source_id"]
+      evidence_quality: "enum: verified|strong|weak|anecdotal|none"
+
+  relations:
+    type: "array"
+    items:
+      relation_id: "rel-{hash_short}"
+      type: "enum: causes|depends_on|contradicts|supports|refines|generalizes|exemplifies|supersedes|related_to"
+      source_atom_id: "atom_id"
+      target_atom_id: "atom_id"
+      strength: "enum: certain|strong|moderate|weak"
+      evidence: "string"
+
+  structures:
+    type: "array"
+    items:
+      structure_id: "str-{hash_short}"
+      type: "enum: concept_hierarchy|rule_chain|procedure_flow|checklist|decision_tree|causal_graph"
+      atom_ids: ["back-references to atoms"]
+      description: "string"
+
+  skills:
+    type: "array"
+    items:
+      skill_id: "sk-{hash_short}"
+      name: "string"
+      description: "string"
+      atom_ids: ["back-references"]
+      trigger_condition: "string"
+      expected_outcome: "string"
+      failure_modes: ["list"]
+
+  retrieval_index:
+    type: "array"
+    items:
+      index_id: "ix-{hash_short}"
+      atom_ids: ["back-references"]
+      keywords: ["zh-CN and en keywords"]
+      category: "string"
+      relevance_score: 0.0-1.0
+
+  unknowns:
+    type: "array"
+    items:
+      unknown_id: "uk-{hash_short}"
+      question: "string"
+      related_atom_ids: ["back-references"]
+
+  conflicts:
+    type: "array"
+    items:
+      conflict_id: "cf-{hash_short}"
+      description: "string"
+      atom_a_id: "atom_id"
+      atom_b_id: "atom_id"
+      resolution_status: "enum: unresolved|resolved_a_wins|resolved_b_wins|resolved_synthesis|resolved_deferred"
+      resolution_evidence: "string or null"
+
+  quality_audit:
+    completeness_score: 0.0-1.0
+    internal_consistency: "enum: consistent|minor_conflicts|major_conflicts"
+    source_coverage: 0.0-1.0
+    hallucination_risk: "enum: low|medium|high"
+    notes: "string"
+
+  write_proposal:
+    auto_accept_candidate: ["list of atom_ids to auto-accept"]
+    human_review_required: ["list of atom_ids needing review"]
+    reject_or_hold: ["list of atom_ids to reject or quarantine"]
+
+  content_hash: "sha256 of all atoms+relations ordered by id"
+  idempotency_key: "{packet_id}-{content_hash_short}"

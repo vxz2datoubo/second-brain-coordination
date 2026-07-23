@@ -1,0 +1,91 @@
+schema_version: "1.0"
+record_type: "PrivacyLicenseStorageClassification"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+status: "proposed"
+
+classification_levels:
+  PUBLIC_SAFE:
+    description: "允许进入公开协调仓库的Schema、代码或脱敏摘要"
+    examples: ["协议文件", "Schema定义", "合同模板", "脱敏审计报告", "路径清单(不含Token)"]
+    local_storage: "all directories"
+    private_git: "allowed"
+    public_git: "allowed (after sanitization)"
+    object_storage: "allowed"
+    supabase: "allowed"
+    human_approval_required: false
+
+  PRIVATE_KNOWLEDGE:
+    description: "只允许进入私有Git知识仓库的结构化知识"
+    examples: ["QCLAW产出的知识原子", "结构化关系", "技能定义", "分析报告", "处理后摘要"]
+    local_storage: "all directories"
+    private_git: "allowed (default target)"
+    public_git: "NEVER"
+    object_storage: "allowed (encrypted if sensitive)"
+    supabase: "allowed (from private Git projection)"
+    human_approval_required: "batch-level for first upload"
+
+  SENSITIVE_LOCAL_ONLY:
+    description: "仅本地保存, 不上传任何云端"
+    examples: ["个人笔记", "私密对话摘要", "涉及第三方隐私的分析", "业务策略草稿"]
+    local_storage: "quarantine gated, explicit tag"
+    private_git: "NEVER"
+    public_git: "NEVER"
+    object_storage: "NEVER"
+    supabase: "NEVER"
+    human_approval_required: "required to reclassify"
+
+  RESTRICTED_NEVER_SYNC:
+    description: "凭证/浏览器/交易/账户数据, 严禁离开本机"
+    examples: ["API Token", "密码", "Cookie", "浏览器会话", "真实交易记录", "银行账户", "个人身份信息"]
+    local_storage: "rejected directory only"
+    private_git: "NEVER — hard block"
+    public_git: "NEVER — hard block"
+    object_storage: "NEVER — hard block"
+    supabase: "NEVER — hard block"
+    human_approval_required: "not applicable — permanently blocked"
+
+  LICENSE_RESTRICTED:
+    description: "许可受限内容——只同步自有摘要/引用/哈希/元数据, 不上传原文"
+    examples: ["付费研报摘要", "授权数据库引用", "API返回数据(非自有)"]
+    local_storage: "all directories, with license metadata"
+    private_git: "metadata only (hash, title, source, license)"
+    public_git: "metadata only"
+    object_storage: "original if license permits, otherwise metadata"
+    supabase: "metadata + abstract only"
+    human_approval_required: true
+
+  UNKNOWN_CLASSIFICATION:
+    description: "未分类——进入隔离区, 禁止同步"
+    local_storage: "quarantine only"
+    private_git: "blocked until classified"
+    public_git: "blocked until classified"
+    object_storage: "blocked until classified"
+    supabase: "blocked until classified"
+    human_approval_required: "required to classify"
+
+storage_placement:
+  local_candidate_repo:
+    path: "F:/aidanao/qclaw-knowledge/"
+    stores: ["00-inbox-raw", "01-processing", "02-candidate-packets", "03-review-queue", "04-approved-local", "05-sync-outbox", "06-synced", "07-quarantine", "08-rejected"]
+    encryption: "none (local filesystem)"
+
+  private_git:
+    repository: "TBD (future)"
+    stores: ["structured knowledge", "schemas", "relationships", "skills", "conflicts", "version history"]
+    encryption: "at rest (GitHub private repo)"
+    size_limit: "recommend <100MB per repo (exclude large binaries)"
+
+  object_storage:
+    provider: "TBD (future)"
+    stores: ["large raw artifacts", "PDFs", "audio/video", "snapshots", "backups"]
+    git_strategy: "store content_hash + object_id + permission in Git; raw data in object storage"
+
+  supabase:
+    project: "TBD (future)"
+    stores: ["read-only projection of structured knowledge"]
+    rebuild_strategy: "always rebuildable from private Git at any commit"
+
+  public_coordination:
+    repository: "vxz2datoubo/second-brain-coordination"
+    stores: ["protocols", "schemas", "code", "sanitized reports", "manifest summaries"]
+    rule: "NEVER private knowledge body text, raw account data, or license-restricted originals"

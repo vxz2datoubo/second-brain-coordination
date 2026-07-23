@@ -1,0 +1,83 @@
+schema_version: "1.0"
+record_type: "StateMachineSpec"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+status: "proposed"
+
+root_alias: "<QCLAW_KNOWLEDGE_ROOT>"
+recommended_root: "F:/aidanao/qclaw-knowledge/"
+rationale: "与现有qclaw-output/分离, 避免污染现有扁平输出目录"
+
+directory_layout:
+  00-inbox-raw:
+    purpose: "原始材料, 只追加不覆盖"
+    format: "flat files named by source_hash or timestamp"
+    lifecycle: "never delete, never overwrite"
+  01-processing:
+    purpose: "QCLAW正在处理的临时文件"
+    lifecycle: "可清理重建, 不保存状态"
+  02-candidate-packets:
+    purpose: "QCLAW产出的结构化LearningPacket (JSONL)"
+    format: "JSONL, 每行一个完整packet"
+    lifecycle: "状态迁移到APPROVED后在此移除"
+  03-review-queue:
+    purpose: "需要人工/治理层审核的packet"
+    lifecycle: "审核后迁移到approved或rejected"
+  04-approved-local:
+    purpose: "已通过审核但尚未同步的packet"
+    lifecycle: "冻结后迁移到sync-outbox"
+  05-sync-outbox:
+    purpose: "已冻结的同步批次 (不可变)"
+    format: "per-bundle subdirs with manifest"
+    lifecycle: "同步成功后迁移到synced"
+  06-synced:
+    purpose: "已绑定Git提交和远端回执的批次记录"
+    lifecycle: "长期保留作为审计轨迹"
+  07-quarantine:
+    purpose: "格式/隐私/许可/冲突异常"
+    lifecycle: "问题解决后重新分类, 不静默删除"
+  08-rejected:
+    purpose: "明确拒绝的知识包"
+    lifecycle: "永久保留, 可被superseded"
+
+  manifests:
+    purpose: "哈希、来源、批次和状态清单"
+    format: "JSON, per-batch manifest files"
+  state:
+    purpose: "游标、幂等键、锁和恢复点"
+    recommended: "SQLite (state.sqlite)"
+    tables:
+      - packet_state: "packet_id, current_state, state_history (JSONL append), created_at, updated_at"
+      - idempotency: "key, packet_id, bundle_id, status, created_at"
+      - cursor: "source_type, last_processed_hash, last_checked_at"
+      - sync_log: "bundle_id, git_commit, projected_at, verified_at"
+  logs:
+    purpose: "脱敏运行与错误日志"
+    format: "rotating text"
+
+state_transitions:
+  main_flow:
+    - "RECEIVED → PROCESSING"
+    - "PROCESSING → CANDIDATE"
+    - "CANDIDATE → REVIEW_REQUIRED"
+    - "REVIEW_REQUIRED → APPROVED_LOCAL"
+    - "APPROVED_LOCAL → FROZEN_FOR_SYNC"
+    - "FROZEN_FOR_SYNC → SYNCED_TO_GIT"
+    - "SYNCED_TO_GIT → PROJECTED_TO_SERVING"
+  side_paths:
+    - "any → QUARANTINED (format/privacy/license/conflict error)"
+    - "QUARANTINED → CANDIDATE (issue resolved)"
+    - "any → REJECTED (explicit rejection)"
+    - "any → SUPERSEDED (replaced by newer packet)"
+    - "any → FAILED_RETRYABLE (transient sync failure)"
+    - "FAILED_RETRYABLE → FROZEN_FOR_SYNC (retry)"
+    - "FAILED_RETRYABLE → FAILED_FINAL (max retries exceeded)"
+  rules:
+    - "状态变化只通过追加新事件记录, 不直接改写历史"
+    - "每次状态变化记录: timestamp, actor, reason, evidence_hash"
+    - "FROZEN_FOR_SYNC不可逆转——如需修改必须创建新的SUPERSEDES packet"
+
+implementation_notes:
+  - "Phase 1: 创建目录结构 Shell + SQLite状态表 + 状态机Python模块"
+  - "Phase 2: QCLAW output wrapper → 生成候选LearningPacket JSONL"
+  - "Phase 3: 审核队列 + 本地审批流程"
+  - "Phase 4: 同步出站箱 + Git集成"
