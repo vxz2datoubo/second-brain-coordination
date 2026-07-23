@@ -6,8 +6,8 @@ schema_version: "1.0"
 handoff_id: "QCLAW-0019Q-AI_HANDOFF-001"
 task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
 agent_id: "QCLAW"
-status: "COMPLETE_READY_FOR_GPT_REVIEW"
-completion_signal: "QCLAW_BLUEPRINT_INDEPENDENT_AUDIT_READY_FOR_GPT_REVIEW"
+status: "R1_EVIDENCE_REMEDIATION_DONE"
+completion_signal: "QCLAW_ISSUE73_R1_EVIDENCE_REMEDIATION_READY_FOR_GPT_REVIEW"
 
 # ============================================================================
 # WHAT QCLAW DID
@@ -15,12 +15,22 @@ completion_signal: "QCLAW_BLUEPRINT_INDEPENDENT_AUDIT_READY_FOR_GPT_REVIEW"
 
 summary: >
   QCLAW conducted an independent adversarial audit of Codex PR #74 enterprise
-  blueprint convergence. The audit was a project-plan-mode read-only review
-  of 6 Codex files. QCLAW did NOT modify Codex files, run any runtime,
-  access credentials, or activate any trading. All findings are independent,
-  evidence-backed, and CANDIDATE_ONLY.
+  blueprint convergence, then performed R1 bounded evidence remediation
+  per GPT review of PR #75 head 1f113934. Five blockers addressed:
+  (1) freeze chronology declared NOT_PROVEN, (2) 0017 BAR_ONLY corrected
+  to PIT bar data only, (3) missing mandatory outputs created per active
+  route, (4) pre-publication hashes declared UNKNOWN_NOT_RECORDED,
+  (5) validator and receipt updated with real checks. No audit rerun,
+  no score change, no Codex file modification, no merge.
 
-key_convergence:
+r1_remediation_summary:
+  blocker_1_freeze_chronology: "NOT_PROVEN — Artifact order truthfully reported in AUDIT-QUESTION-AND-SCORING-FREEZE.yaml"
+  blocker_2_bar_only_correction: "CORRECTED — 0017 BAR_ONLY depends only on PIT bar data (OHLCV); L2/L3 removed"
+  blocker_3_missing_artifacts: "CORRECTED — 9 new mandatory-output files created per active route"
+  blocker_4_pre_publication_hashes: "REGISTERED — UNKNOWN_NOT_RECORDED_PRE_PUBLICATION; no fabrication"
+  blocker_5_validator_receipt: "CORRECTED — Real stale-ref, allowed-prefix, score, signal, placeholder checks"
+
+key_convergence_preserved:
   - "0017 BAR_ONLY breach/reclaim confirmed as correct next slice (Codex 84, QCLAW 84)"
   - "Ghost capabilities: all 7 Codex dispositions verified correct"
   - "0017/0018 embedding: no parallel platform, boundaries correct"

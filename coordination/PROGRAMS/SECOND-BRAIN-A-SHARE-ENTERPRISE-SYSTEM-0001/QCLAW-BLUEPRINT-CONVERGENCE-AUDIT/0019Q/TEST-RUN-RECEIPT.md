@@ -1,57 +1,79 @@
-# TEST-RUN-RECEIPT
+# TEST-RUN-RECEIPT (R1)
 # QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# R1 Evidence Remediation
 
 | Field | Value |
 |---|---|
-| Task ID | QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q |
+| Task ID | QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1-EVIDENCE-REMEDIATION |
 | Agent | QCLAW |
-| Phase | project_plan (M0 audit) |
-| Audit Target | Codex PR #74 (693550f) |
-| Start | 2026-07-23T11:52:00+08:00 |
-| End | 2026-07-23T12:20:00+08:00 |
-| Duration | ~28 min |
+| Phase | remediation (R1 bounded evidence repair) |
+| Start | 2026-07-24T00:33:00+08:00 |
+| End | 2026-07-24T00:45:00+08:00 |
+| Duration | ~12 min |
 | Status | DONE |
-| Completion Signal | QCLAW_BLUEPRINT_INDEPENDENT_AUDIT_READY_FOR_GPT_REVIEW |
+| Completion Signal | QCLAW_ISSUE73_R1_EVIDENCE_REMEDIATION_READY_FOR_GPT_REVIEW |
+| PR | #75 |
+| Branch | qclaw/enterprise-blueprint-independent-audit-0019q |
+| Original Head | 1f1139346aef105f63ecdf2da7527665bcf71257 |
+| Base | a15a883f40ad34ab2c0b69316f28d9350e7c48d8 |
 
-## Machine Validator
+## R1 Remediation Commands Executed
+
+```powershell
+# Python validator (R1)
+$py = "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\python.exe"
+$d = "$env:USERPROFILE\.openclaw\workspace\...\QCLAW-BLUEPRINT-CONVERGENCE-AUDIT\0019Q"
+& $py -m pip install -q PyYAML
+& $py "$d\validate_convergence.py"
+```
+
+## Machine Validator (R1)
 
 | Check | Method | Result |
 |---|---|---|
-| Required Outputs | File existence, 15 mandatory files | 15/15 PRESENT |
-| YAML Structure | PyYAML 6.0.3 load_all + DupRejectLoader | PASS (no YAML with dup keys) |
-| UTF-8 | Python open(encoding='utf-8') | PASS (all files UTF-8) |
-| Secret Patterns | Regex scan (7 patterns) | PASS (0 real secrets, 1 self-scan false positive fixed) |
-| Allowed Path | Prefix match | PASS (all files in 0019Q directory) |
+| Required Outputs (R1 list) | File existence, 15 mandatory files | 15/15 PRESENT |
+| YAML Structure | PyYAML 6.0.3 load_all + DupRejectLoader | ALL PASS |
+| UTF-8 | Python open(encoding='utf-8') | ALL PASS |
+| Secret Patterns | Regex scan (7 patterns) | 0 hits |
+| Stale References | PR #8/#34/#45/#46 inactive-ref check | 0 stale refs in active claims |
+| Allowed Prefix | Real path prefix check | ALL PASS |
+| Score Arithmetic | Sum dimensions vs expected total | 5/5 MATCH |
+| Completion Signal | Expected signal string present | PASS |
+| Placeholder Detection | TODO/FIXME/TK/to_be_filled | 0 unfilled |
 | Exit Code | Python sys.exit | 0 |
 
-## YAML Details
+## YAML Details (R1)
 
 | File | Docs | UTF-8 | Dup Keys |
 |---|---|---|---|
 | AI_HANDOFF.yaml | 1 | OK | 0 |
+| AMED-AGENT-EXECUTION-RECEIPT.yaml | 1 | OK | 0 |
+| AMED-RESEARCH-LEDGER.yaml | 1 | OK | 0 |
+| AUDIT-QUESTION-AND-SCORING-FREEZE.yaml | 1 | OK | 0 |
+| AUTHORITY-COLLISION-COUNTERAUDIT.yaml | 1 | OK | 0 |
 | AUTHORITY-COLLISION-COUNTEREVIDENCE.yaml | 1 | OK | 0 |
 | BLUEPRINT-AUTHORITY-ADVERSARIAL-QUERY-PACK.yaml | 1 | OK | 0 |
+| COUNTEREVIDENCE-AND-UNKNOWN-LEDGER.yaml | 1 | OK | 0 |
 | EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml | 1 | OK | 0 |
 | INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml | 1 | OK | 0 |
+| INTERFACE-AND-HIDDEN-RUNTIME-AUDIT.yaml | 1 | OK | 0 |
+| MATURITY-INFLATION-AUDIT.yaml | 1 | OK | 0 |
 | MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml | 1 | OK | 0 |
 | QCLAW-AMED-AGENT-EXECUTION-RECEIPT.yaml | 1 | OK | 0 |
 | QCLAW-AMED-RESEARCH-LEDGER.yaml | 1 | OK | 0 |
 | UNPLANNED-IMPROVEMENT-LEDGER.yaml | 1 | OK | 0 |
 
-Total: 9 YAML files, 9/9 PASS (PyYAML 6.0.3)
+Total: 16 YAML files, ALL PASS (PyYAML 6.0.3)
 
-## AMED Contract
+## R1 Blocker Disposition
 
-| Parameter | Value |
-|---|---|
-| Policy | ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001 |
-| Task Weight | STRATEGIC |
-| Research Trigger | L1_REUSE_AND_QUICK_CHECK |
-| Exploration Budget | 95/4/1 |
-| L2 Escalations | 0 |
-| New Architecture Proposals | 0 |
-| New Skill Candidates | 0 |
-| Scope Expansion | false |
+| Blocker | Fix | Status |
+|---|---|---|
+| 1. Freeze order | AUDIT-QUESTION-AND-SCORING-FREEZE.yaml — NOT_PROVEN | DONE |
+| 2. BAR_ONLY L2/L3 | 0017-0018-EMBEDDING-BOUNDARY-AUDIT.md corrected to PIT bar only | DONE |
+| 3. Missing artifacts | 9 new files per active-route mandatory list | DONE |
+| 4. Pre-publication hashes | UNKNOWN_NOT_RECORDED_PRE_PUBLICATION; no fabrication | DONE |
+| 5. Validator + receipt | Real stale-ref, allowed-prefix, score, signal, placeholder checks | DONE |
 
 ## Safety Boundary
 
@@ -59,42 +81,10 @@ Total: 9 YAML files, 9/9 PASS (PyYAML 6.0.3)
 - CANDIDATE_ONLY: ✅
 - research_only: ✅
 - NO_TRADE: ✅
-- no_broker_account_order: ✅
 - credential_values_denied: ✅
-- direct_main_write: false
-- auto_merge: false
+- Codex PR #74 files: UNMODIFIED ✅
+- QCLAW PR #70 evidence: UNMODIFIED ✅
+- No merge or auto-merge: ✅
+- Issue #69/0017 NOT activated: ✅
 
-## Deliverables
-
-All 15 mandatory outputs delivered:
-
-1. INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml — 3,854B
-2. BLUEPRINT-AUTHORITY-ADVERSARIAL-QUERY-PACK.yaml — 54 queries, 18 families
-3. EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml — 12 pairs (9 met, 2 partial, 1 violation)
-4. AUTHORITY-COLLISION-COUNTEREVIDENCE.yaml — 5 collisions (1 HIGH, 2 MEDIUM, 1 LOW, 1 UNKNOWN)
-5. MATURITY-INFLATION-AND-GHOST-CAPABILITY-REPORT.md — 14 modules, 2 inflations found
-6. SHARED-INTERFACE-CONTRADICTION-REPORT.md — 11 interfaces, 0 fully implemented
-7. 0017-0018-EMBEDDING-BOUNDARY-AUDIT.md — boundary audit, no parallel platform
-8. NEXT-SLICE-INDEPENDENT-RECOMPUTATION.md — independent scoring, 0017 confirmed at 84
-9. MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml — 18 UNKNOWNs (12 Codex + 6 QCLAW)
-10. QCLAW-AMED-AGENT-EXECUTION-RECEIPT.yaml — project_plan DONE
-11. QCLAW-AMED-RESEARCH-LEDGER.yaml — 8 L1 checks, 0 escalations
-12. UNPLANNED-IMPROVEMENT-LEDGER.yaml — 4 improvement entries
-13. SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md — 4 discoveries, 3 opportunities
-14. TEST-RUN-RECEIPT.md — this file
-15. AI_HANDOFF.yaml — completion signal
-
-## Commit SHA
-
-to_be_filled_after_push
-
-## Frozen Checklist
-
-- [x] Codex PR #74 files NOT modified
-- [x] QCLAW PR #70 frozen queries NOT modified
-- [x] No runtime files modified
-- [x] No canonical runtime created
-- [x] No credentials accessed
-- [x] No merge or auto-merge
-
-Generated: 2026-07-23T12:20:00+08:00
+Generated: 2026-07-24T00:45:00+08:00

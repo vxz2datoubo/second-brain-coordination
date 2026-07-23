@@ -1,0 +1,215 @@
+# AUTHORITY-COLLISION-COUNTERAUDIT
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1
+# Generated: 2026-07-24T00:36:00+08:00
+
+schema_version: "1.0"
+audit_id: "QCLAW-0019Q-R1-COUNTERAUDIT-001"
+
+# ============================================================================
+# INTRODUCTION — RE-AUDIT OF CODEX AUTHORITY MATRIX
+# ============================================================================
+
+context: >
+  Codex PR #74 CANONICAL-AUTHORITY-AND-OWNERSHIP-MATRIX.yaml assigns
+  authority levels (CANONICAL, CANDIDATE, EMBEDDED, FROZEN) to each
+  module. This counteraudit independently re-examines each assignment
+  for duplicate write paths, missing physical system-of-record (SoR),
+  candidate-claimed-as-canonical, and producer/consumer collisions.
+
+  R1 scope: counteraudit only. Original authority matrix scores preserved.
+  No Codex file modified.
+
+# ============================================================================
+# MODULE-BY-MODULE COUNTERAUDIT
+# ============================================================================
+
+modules:
+  - module: "W1_IMMUTABLE_DATA_DEFINITION"
+    codex_authority: "CANONICAL"
+    counteraudit: >
+      No collision found. W1 defines immutable type contracts. As the
+      foundational schema, CANONICAL authority is appropriate. The
+      physical SoR is the W1 type definition file itself, which is
+      versioned on main.
+    finding: "PASS_NO_COLLISION"
+
+  - module: "W2_TIME_EVENT_PIPELINE"
+    codex_authority: "CANONICAL"
+    counteraudit: >
+      No collision found. W2 owns the event-time pipeline. Registration
+      of event types and timeline is correctly canonical. However, C2
+      (RULE_SNAPSHOT) partial implementation means W2's "complete
+      historical effective-date coverage" is UNKNOWN — interface gap,
+      not authority collision.
+    finding: "PASS_WITH_INTERFACE_NOTE"
+
+  - module: "W3_KNOWLEDGE_AND_EVIDENCE"
+    codex_authority: "CANONICAL"
+    codex_maturity: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    counteraudit: >
+      CONFLICT: CANONICAL authority + IMPLEMENTED maturity + UNKNOWN
+      physical system-of-record. A canonical authority module cannot
+      be considered implemented if its physical store is UNKNOWN.
+      
+      This is NOT a duplicate write path — no other module claims W3
+      authority. It is a SELF-CONFLICT: the module's own matrix entry
+      declares a conflict ("unresolved_physical_system_of_record_count: 1")
+      while also claiming maturity IMPLEMENTED. The authority assignment
+      is correct; the maturity assignment is inflated (see MATURITY-INFLATION-AUDIT.yaml).
+
+      Five modules consume W3 via C3_KNOWLEDGE: W5, W6, W10, W12, W13.
+      Every one of these consumers inherits the UNKNOWN physical store
+      risk.
+    finding: "SELF_CONFLICT_UNRESOLVED_PHYSICAL_SOR"
+
+  - module: "W4_BACK_TESTING_ENGINE"
+    codex_authority: "CANONICAL"
+    counteraudit: >
+      No collision found. W4 owns the replay/reconstruction runtime.
+      0017 (BAR_ONLY) is correctly embedded within W4/W7.
+    finding: "PASS_NO_COLLISION"
+
+  - module: "W5_EVENT_CALENDAR_FUSION"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W5 is correctly CANDIDATE (evolves under
+      W2/W3 governance). Consumes C3_KNOWLEDGE — inherits the
+      W3 physical SoR risk.
+    finding: "PASS_WITH_INHERITED_RISK"
+
+  - module: "W6_EXPECTATION_REVISION_ENGINE"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W6 is correctly CANDIDATE. Consumes C3
+      and C1 — inherited risk as above.
+    finding: "PASS_WITH_INHERITED_RISK"
+
+  - module: "W7_RISK_DECISION_ENGINE"
+    codex_authority: "CANONICAL"
+    codex_maturity: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    counteraudit: >
+      No direct collision found. W7 correctly owns risk decisions.
+      However, the "canonical W7RiskEnvelope" is listed as an open
+      gate. If there is no defined W7RiskEnvelope runtime, then W7's
+      final-veto authority is canonical-in-name but not yet operable.
+      This is a maturity question, not an authority collision.
+    finding: "PASS_OPEN_GATE_AUTHORITY_VACUUM"
+
+  - module: "W8_CORPUS_RESEARCH"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W8 is correctly CANDIDATE. Research module,
+      not a canonical runtime.
+    finding: "PASS_NO_COLLISION"
+
+  - module: "W9_ORDER_GENERATOR"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W9 correctly delegates to W2/W7.
+    finding: "PASS_NO_COLLISION"
+
+  - module: "W10_DECISION_FREEZE_ENGINE"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W10 is correctly CANDIDATE. However, the
+      absence of C8 (DECISION_EPISODE) producer means W10's freeze
+      runtime is undefined. Authority assignment correct; interface
+      gap exists.
+    finding: "PASS_MISSING_DEPENDENCY"
+
+  - module: "W11_CAPITAL_ALLOCATOR"
+    codex_authority: "FROZEN"
+    counteraudit: >
+      No collision found. W11 is correctly FROZEN (awaiting W12 merge).
+      QCLAW's scoring divergence (35 vs Codex 46) reflects the
+      frozen-status risk, not an authority dispute.
+    finding: "PASS_FROZEN_CORRECT"
+
+  - module: "W12_PROBABILITY_ENGINE"
+    codex_authority: "CANDIDATE"
+    codex_maturity: "REGISTERED_CANDIDATE"
+    counteraudit: >
+      CONCERN: REGISTERED_CANDIDATE maturity is assigned based on
+      PR #66 (Draft PR, not on main). A Draft PR is not a registerable
+      candidate — it is a proposal in transit. The authority assignment
+      (CANDIDATE) is appropriate for a future probability engine.
+      The maturity assignment is inflated (see MATURITY-INFLATION-AUDIT.yaml).
+
+      C7_PROBABILITY interface is DRAFT_PR_NOT_MAIN. This means
+      W11 and 0018, which consume C7, are consuming an interface
+      whose producer doesn't exist on main.
+    finding: "PASS_AUTHORITY_CORRECT_MATURITY_INFLATED"
+
+  - module: "W13_PARTICIPANT_BULLETIN"
+    codex_authority: "CANDIDATE"
+    counteraudit: >
+      No collision found. W13 is correctly CANDIDATE. External data
+      licensing is the primary blocker, not authority.
+    finding: "PASS_NO_COLLISION"
+
+  - module: '"W14" (CHECK FOR HIDDEN)'
+    codex_authority: "NOT_LISTED"
+    counteraudit: >
+      No W14 module found in Codex matrix or QCLAW inspection.
+      No hidden coordinator, scheduler, or parallel runtime detected.
+    finding: "PASS_NO_HIDDEN_W14"
+
+# ============================================================================
+# INTERFACE-LEVEL COLLISIONS
+# ============================================================================
+
+interface_collisions:
+  - interface: "C3_KNOWLEDGE_AND_EVIDENCE"
+    producer: "W3"
+    consumers: ["W5", "W6", "W10", "W12", "W13"]
+    collision: >
+      C3 has 5 declared consumers that read from a producer whose
+      physical SoR is UNKNOWN. This is a data-availability collision:
+      the interface contract exists, but no consumer can actually
+      receive valid data because the producer's store is undefined.
+    severity: "HIGH"
+
+  - interface: "C7_PROBABILITY"
+    producer: "W12"
+    consumers: ["W11", "0018"]
+    collision: >
+      C7 has 2 declared consumers that read from a producer whose
+      PR (#66) is not merged to main. The interface exists ONLY in
+      Draft PR state. Until PR #66 is merged, W11 and 0018 are
+      consuming a ghost interface.
+    severity: "HIGH"
+
+  - interface: "C4_EVENT_EVIDENCE"
+    producer: "BLUEPRINT (none on main)"
+    consumers: ["W6"]
+    collision: >
+      C4 is declared as an interface with a consumer (W6) but no
+      producer runtime. This is an orphan interface — the contract
+      exists, the consumer expects data, but no producer serves it.
+    severity: "MEDIUM"
+
+  - interface: "C8_DECISION_EPISODE"
+    producer: "BLUEPRINT (none on main)"
+    consumers: ["W10"]
+    collision: >
+      C8 is an orphan interface. W10's decision freeze engine is
+      the sole consumer of an interface with no producer.
+    severity: "MEDIUM"
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  total_modules: 14
+  no_collision: 10
+  self_conflict: 1      # W3 (UNKNOWN physical SoR)
+  maturity_inflated: 1   # W12 (Draft PR presented as REGISTERED)
+  interface_collisions: 4
+  hidden_w14: 0
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T00:36:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

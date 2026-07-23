@@ -1,0 +1,132 @@
+# MATURITY-INFLATION-AUDIT
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1
+# Generated: 2026-07-24T00:38:00+08:00
+
+schema_version: "1.0"
+audit_id: "QCLAW-0019Q-R1-MATURITY-001"
+
+# ============================================================================
+# PRESERVED FINDINGS (R1 does not modify original maturity findings)
+# ============================================================================
+
+preserved:
+  w3_inflation: 
+    finding: >
+      Codex MATURITY-LEDGER assigns W3 maturity IMPLEMENTED_NOT_A_SHARE_VALIDATED
+      while simultaneously recording "unresolved_physical_system_of_record_count: 1"
+      and "UNKNOWN_MIGRATION_REQUIRED" for the physical store. A module with UNKNOWN
+      physical system-of-record cannot be considered IMPLEMENTED.
+
+    codex_assigned: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw_assessment: "REGISTERED_CANDIDATE (with UNKNOWN physical SoR)"
+    severity: "HIGH"
+    preserved_unchanged: true
+
+  w12_inflation:
+    finding: >
+      Codex MATURITY-LEDGER assigns W12 maturity REGISTERED_CANDIDATE. The sole
+      evidence cited is PR #66, which is a Draft PR not merged to main. A Draft PR
+      is not a registerable candidate — it is a proposal in transit. W12 should be
+      CONTRACTED_NOT_IMPLEMENTED until PR #66 is merged and a calibration test exists.
+
+    codex_assigned: "REGISTERED_CANDIDATE"
+    qclaw_assessment: "CONTRACTED_NOT_IMPLEMENTED (Draft PR, not on main)"
+    severity: "MEDIUM"
+    preserved_unchanged: true
+
+# ============================================================================
+# FULL MODULE MATURITY CHECK (R1 — no rescoring)
+# ============================================================================
+
+maturity_check:
+  - module: "W1"
+    codex: "IMPLEMENTED"
+    qclaw: "AGREE"
+    note: "Type definitions canonical; physical SoR on main."
+
+  - module: "W2"
+    codex: "IMPLEMENTED"
+    qclaw: "AGREE"
+    note: "Event pipeline active; C2 partial interface noted."
+
+  - module: "W3"
+    codex: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw: "DISAGREE (see preserved.w3_inflation)"
+    note: "UNKNOWN physical SoR contradicts IMPLEMENTED."
+
+  - module: "W4"
+    codex: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw: "AGREE"
+    note: "Replay runtime exists; validation pending."
+
+  - module: "W5"
+    codex: "REGISTERED_CANDIDATE"
+    qclaw: "AGREE"
+    note: "Calendar fusion depends on W2/W3; W3 gap inherited."
+
+  - module: "W6"
+    codex: "CONTRACTED_NOT_IMPLEMENTED"
+    qclaw: "AGREE"
+    note: "Expectation revision is blueprint. C3/C4 gaps noted."
+
+  - module: "W7"
+    codex: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw: "AGREE_WITH_NOTE"
+    note: "Partial P1/P2 validation; canonical RiskEnvelope open gate."
+
+  - module: "W8"
+    codex: "IMPLEMENTED"
+    qclaw: "AGREE"
+    note: "Research corpus operational."
+
+  - module: "W9"
+    codex: "IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw: "AGREE"
+    note: "Order generator functional; engineering-learning forecasts exist."
+
+  - module: "W10"
+    codex: "CONTRACTED_NOT_IMPLEMENTED"
+    qclaw: "AGREE"
+    note: "Decision freeze is blueprint; C3/C8 gaps noted."
+
+  - module: "W11"
+    codex: "FROZEN"
+    qclaw: "AGREE"
+    note: "Correctly frozen pending W12 merge and W7 RiskEnvelope."
+
+  - module: "W12"
+    codex: "REGISTERED_CANDIDATE"
+    qclaw: "DISAGREE (see preserved.w12_inflation)"
+    note: "Draft PR is not a registerable candidate."
+
+  - module: "W13"
+    codex: "REGISTERED_CANDIDATE"
+    qclaw: "AGREE"
+    note: "Registered as candidate; data licensing is blocker."
+
+  - module: "W14"
+    codex: "NOT_LISTED"
+    qclaw: "AGREE"
+    note: "No hidden W14 detected."
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  total: 14
+  agree: 9
+  agree_with_note: 2
+  disagree: 2  # W3, W12
+  not_listed: 1  # W14
+  
+  note: >
+    All disagreements preserved from original audit. No scores changed.
+    The W3 and W12 inflations are the only maturity disagreements.
+    All other modules agree with Codex maturity assignments.
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T00:38:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

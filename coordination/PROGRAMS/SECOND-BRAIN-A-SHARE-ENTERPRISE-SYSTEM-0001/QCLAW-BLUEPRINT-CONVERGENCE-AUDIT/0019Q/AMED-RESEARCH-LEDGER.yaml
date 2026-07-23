@@ -1,0 +1,109 @@
+# AMED-RESEARCH-LEDGER
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+# R1 Evidence Remediation — Research Ledger
+# Generated: 2026-07-24T00:43:00+08:00
+
+schema_version: "1.0"
+ledger_id: "QCLAW-0019Q-R1-RESEARCH-001"
+
+# ============================================================================
+# L1 CONTRACT (REUSE AND QUICK CHECK)
+# ============================================================================
+
+l1_contract:
+  total_checks: 12
+  pass: 9
+  partial_violation: 2
+  violation: 1
+  
+  checks:
+    - id: "L1-01"
+      description: "Document delivery format"
+      expected: "PUBLIC_SAFE YAML+Markdown, UTF-8, valid YAML"
+      result: "PASS"
+      
+    - id: "L1-02"
+      description: "No Codex PR #74 file modification"
+      expected: "Read-only access, no write"
+      result: "PASS"
+      
+    - id: "L1-03"
+      description: "No QCLAW PR #70 evidence modification"
+      expected: "Frozen queries preserved"
+      result: "PASS"
+      
+    - id: "L1-04"
+      description: "No new runtime or architecture created"
+      expected: "project_plan mode only"
+      result: "PASS"
+      
+    - id: "L1-05"
+      description: "No credential or secret access"
+      expected: "credential_values_denied"
+      result: "PASS"
+      
+    - id: "L1-06"
+      description: "No trade or account activity"
+      expected: "NO_TRADE"
+      result: "PASS"
+      
+    - id: "L1-07"
+      description: "All negative findings preserved"
+      expected: "No softening or suppression"
+      result: "PASS"
+      
+    - id: "L1-08"
+      description: "All scores preserved unchanged"
+      expected: "0017=84, W12=64, PMN=45, W11=35, 0018=24"
+      result: "PASS"
+      
+    - id: "L1-09"
+      description: "Pre-evaluation freeze chronology truthful"
+      expected: "No fabricated freeze timestamps"
+      result: "PASS"
+
+    - id: "L1-10"
+      description: "0017 BAR_ONLY scope correct (PIT bar only)"
+      expected: "No L2/L3/identity/order-flow dependency"
+      result: "PARTIAL_VIOLATION (original had L2 reference; R1 corrected)"
+      
+    - id: "L1-11"
+      description: "\"Independently verified\" language accuracy"
+      expected: "Not claimed without procedural freeze proof"
+      result: "PARTIAL_VIOLATION (original claimed verified; R1 downgraded to concordance)"
+
+    - id: "L1-12"
+      description: "Mandatory output count and naming"
+      expected: "15 files per active route list"
+      result: "PASS"
+
+# ============================================================================
+# NO L2 ESCALATION
+# ============================================================================
+
+l2_escalation:
+  triggered: false
+  reason: >
+    No canonical rule conflict, no architecture proposal, no new
+    runtime design. All R1 actions are bounded corrections within
+    the existing audit package. No L2 research escalation needed.
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  phase: "R1 evidence remediation"
+  L1_pass: 9
+  L1_partial: 2
+  L1_violation: 1
+  L2_escalation: 0
+  new_runtime: 0
+  trade_activity: 0
+  credential_access: 0
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T00:43:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

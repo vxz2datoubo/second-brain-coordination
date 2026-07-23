@@ -1,11 +1,23 @@
-# 0017-0018 EMBEDDING BOUNDARY AUDIT
+# 0017-0018 EMBEDDING BOUNDARY AUDIT — R1 CORRECTED
 
-**Task ID:** QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
+**Task ID:** QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1
 **Scope:** 0017 (BAR_ONLY Reference Zone), 0018 (Edge Estimation Subsystem)
-**Audit Date:** 2026-07-23T12:05+08:00
+**Audit Date:** 2026-07-24T00:35+08:00 (R1 correction of 2026-07-23 original)
 **Auditor:** QCLAW Independent Audit Agent
 **Safety Classification:** PUBLIC_SAFE / CANDIDATE_ONLY / NO_TRADE
 **Core Question:** Do 0017 and 0018 remain embedded capabilities within their parent modules, or have they drifted toward parallel platforms?
+
+---
+
+## R1 CORRECTION NOTICE
+
+> **Original (2026-07-23) INCORRECTLY attributed L2 order-book data and L3 tick
+> data as 0017 BAR_ONLY dependencies.** The selected 0017 slice depends only on
+> point-in-time bar (OHLCV) data. L2 order-book, L3 tick-by-tick, participant
+> identity, and hidden-intent data are NOT 0017 BAR_ONLY dependencies.
+> Any mention of L2/L3 in the original audit is hereby corrected: L2/L3 topics
+> are preserved below ONLY as future non-BAR_ONLY UNKNOWN items, not as 0017
+> dependencies.
 
 ---
 
@@ -30,17 +42,30 @@
 
 **Ownership:** W4 and W7 own 0017's lifecycle. No independent runtime exists.
 
-### 2.2 Boundary Assessment
+### 2.2 BAR_ONLY Dependency Declaration (R1 CORRECTED)
+
+**0017 BAR_ONLY depends ONLY on:**
+- Point-in-time bar data (OHLCV at bar resolution)
+- No L2 order-book data
+- No L3 tick-by-tick data
+- No participant identity data
+- No hidden-intent data
+- No order-flow data
+
+Any future extension beyond bar-data scope is a non-BAR_ONLY slice and would
+require a separate freeze gate.
+
+### 2.3 Boundary Assessment
 
 | Boundary Rule | Compliance | Evidence |
 |--------------|------------|---------|
 | `owns_parallel_runtime: false` | ✅ PASS | No independent runtime or scheduler |
-| `may_write: false` (0017 only reads L2 data) | ✅ PASS | Reference zone is read-only |
+| BAR_ONLY: depends only on PIT bar data | ✅ PASS | No L2/L3/identity/order-flow dependency |
+| `may_write: false` (read-only reference zone) | ✅ PASS | Reference zone is read-only |
 | `may_not_write` to order flow | ✅ PASS | Correctly excluded from order pipeline |
-| `BAR_ONLY` scope excludes order flow | ✅ PASS | Scope is limited to reference-zone computation |
 | No W14 or hidden platform | ✅ PASS | No independent coordinator, scheduler, or state machine detected |
 
-### 2.3 Boundary Risk: Probability Drift via PostSweepStabilizationAssessment
+### 2.4 Boundary Risk: Probability Drift via PostSweepStabilizationAssessment
 
 **Risk Surface Identified:**
 The `PostSweepStabilizationAssessment` capability within 0017's NEXT-SLICE raises a boundary concern. Post-sweep stabilization inherently involves assessing whether observed outcomes converge to expected distributions — which is a probability estimation function.
@@ -54,11 +79,20 @@ The `PostSweepStabilizationAssessment` capability within 0017's NEXT-SLICE raise
 
 **Monitoring Trigger:** If 0017's NEXT-SLICE introduces any numeric probability output or distributional comparison, it has crossed the boundary.
 
-### 2.4 QCLAW-Discovered Concern: L2 Noise vs L3 Tick Data
+### 2.5 Future Non-BAR_ONLY UNKNOWN: Signal-to-Noise Beyond Bar Resolution
 
-**Question:** Can 0017's BAR_ONLY scope distinguish genuine reference-zone breach from random L2 noise without L3 tick data?
+**Preserved from original audit as UNKNOWN, NOT as 0017 dependency:**
 
-This is a **data-resolution dependency**, not an architecture violation. 0017 relies on L2 (order book) data. Certain reference-zone patterns (e.g., fleeting price excursions) may be indistinguishable from noise at L2 resolution without L3 (tick-by-tick) confirmation. This does not violate the embedding boundary but creates a **false-positive risk** in 0017's breach detection that should be acknowledged in its operational documentation.
+The 0017 hypothesis tests reference-zone breach/reclaim using PIT bar data.
+It is UNKNOWN whether BAR_ONLY data has sufficient signal-to-noise ratio to
+distinguish genuine breach-driven reclaim from random bar-level fluctuation.
+Higher-resolution data (L2 order-book, L3 tick) would improve signal-to-noise
+but is NOT part of the current BAR_ONLY slice. This is a data-adequacy risk,
+not a scope violation: 0017 may terminate with NEGATIVE_RESULT due to data
+inadequacy, not hypothesis falsity.
+
+**This L2/L3 topic is registered as a future non-BAR_ONLY UNKNOWN (QU-004 in
+MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml). It is NOT a 0017 dependency.**
 
 ---
 
@@ -127,7 +161,7 @@ Audit confirms no independent coordinator, scheduler, state machine, or runtime 
 |-----------|------|------|
 | Embedded in parent modules | ✅ | ✅ |
 | Correct write boundaries | ✅ | ✅ |
-| Scope exclusion correct | ✅ (order flow excluded) | ✅ (allocation/probability excluded) |
+| Scope exclusion correct | ✅ (order flow + L2/L3 excluded) | ✅ (allocation/probability excluded) |
 | Boundary risk — probability drift | ⚠️ MONITOR | ⚠️ MONITOR |
 | Boundary risk — allocation drift | N/A | ⚠️ MONITOR |
 | Parallel runtime risk | ✅ None | ✅ None |
@@ -144,5 +178,13 @@ Both capabilities remain correctly embedded. Neither constitutes a parallel plat
 1. **Watch 0017 NEXT-SLICE:** If `PostSweepStabilizationAssessment` introduces numeric probability outputs, flag as boundary breach into W12 territory.
 2. **Watch 0018 `CapitalBufferAndRuinAssessment`:** If it begins making allocation decisions rather than producing calibration estimates, flag as boundary breach into W11 territory.
 3. **Watch 0018 `HouseEdgeInspiredNetEdgeEstimate`:** If it begins producing statistical distributions or confidence intervals, flag as boundary breach into W12 territory.
-4. **Acknowledge L2/L3 data resolution limitation** in 0017's operational documentation.
+4. **Watch 0017 data scope:** If any L2/L3/identity/order-flow data enters 0017's dependency list, flag as scope creep beyond BAR_ONLY.
 5. **Review at each architecture iteration** (PR merge events) to confirm `owns_parallel_runtime` remains false.
+
+### R1 CORRECTION LOG
+
+| Correction | Original (pre-R1) | R1 Corrected |
+|---|---|---|
+| 0017 data dependency | Claimed "relies on L2 order book data" and "without L3 tick data" | Depends ONLY on PIT bar (OHLCV) data |
+| L2 noise analysis | Presented as 0017 dependency concern | Registered as future non-BAR_ONLY UNKNOWN (QU-004) |
+| Scope boundary | "excludes order flow" | "excludes order flow, L2, L3, participant identity, hidden-intent" |

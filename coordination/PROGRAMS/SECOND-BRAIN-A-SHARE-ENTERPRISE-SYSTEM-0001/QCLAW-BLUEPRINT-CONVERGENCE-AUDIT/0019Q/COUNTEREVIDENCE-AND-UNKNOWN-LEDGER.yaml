@@ -1,0 +1,116 @@
+# COUNTEREVIDENCE-AND-UNKNOWN-LEDGER
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1
+# Merges: MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY + AUTHORITY-COLLISION-COUNTEREVIDENCE
+# Generated: 2026-07-24T00:40:00+08:00
+
+schema_version: "1.0"
+ledger_id: "QCLAW-0019Q-R1-COUNTEREVIDENCE-001"
+
+# ============================================================================
+# NOTE: Thin normalization artifact.
+# Canonical counterevidence sources:
+#   - MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml (original, preserved)
+#   - AUTHORITY-COLLISION-COUNTEREVIDENCE.yaml (original, preserved)
+#   - AUTHORITY-COLLISION-COUNTERAUDIT.yaml (R1, see that file)
+# This file REGISTERS the evidence items; original findings unchanged.
+# ============================================================================
+
+# ============================================================================
+# COUNTEREVIDENCE — WHERE QCLAW DISAGREES WITH CODEX
+# ============================================================================
+
+counterevidence:
+  - id: "CE-001"
+    finding: "W3 maturity inflation (HIGH)"
+    codex_claim: "W3 is IMPLEMENTED_NOT_A_SHARE_VALIDATED"
+    qclaw_evidence: >
+      Codex's own matrix records "unresolved_physical_system_of_record_count: 1"
+      and UNKNOWN_MIGRATION_REQUIRED. A module whose physical store is UNKNOWN
+      cannot be implemented. The code may be implemented; the system is not.
+    source_files:
+      - "MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml (CU-001/CU-004)"
+      - "MATURITY-INFLATION-AUDIT.yaml (preserved.w3_inflation)"
+      - "PHYSICAL-SYSTEM-OF-RECORD-AUDIT.md"
+
+  - id: "CE-002"
+    finding: "W12 maturity inflation (MEDIUM)"
+    codex_claim: "W12 is REGISTERED_CANDIDATE"
+    qclaw_evidence: >
+      PR #66 is a Draft PR not merged to main. A Draft PR is a proposal
+      in transit, not a registerable candidate. The producer for C7 does
+      not exist on main.
+    source_files:
+      - "MATURITY-INFLATION-AUDIT.yaml (preserved.w12_inflation)"
+      - "AUTHORITY-COLLISION-COUNTERAUDIT.yaml (W12 entry)"
+
+  - id: "CE-003"
+    finding: "W11 over-scored (Codex 46 → QCLAW 35)"
+    evidence: "W11 blocked at C7 (Draft PR), C10 (undefined W7RiskEnvelope), C2 (partial rule snapshots)."
+    source: "NEXT-SLICE-INDEPENDENT-RECOMPUTATION.md (preserved)"
+
+  - id: "CE-004"
+    finding: "0018 over-scored (Codex 35 → QCLAW 24)"
+    evidence: "Four upstream dependencies (W12/C7, W11/C9, W7/C10, W9/C11) all partial or absent."
+    source: "NEXT-SLICE-INDEPENDENT-RECOMPUTATION.md (preserved)"
+
+  - id: "CE-005"
+    finding: "PMN under-scored (Codex 39 → QCLAW 45)"
+    evidence: "Calendar data is cheap, provides ground truth for W5, low implementation cost."
+    source: "NEXT-SLICE-INDEPENDENT-RECOMPUTATION.md (preserved)"
+
+# ============================================================================
+# UNKNOWN LEDGER — CONSOLIDATED
+# ============================================================================
+
+unknowns:
+  codex_identified:
+    count: 12
+    source: "MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml (CU-001 through CU-012)"
+    canonical_file: "MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml"
+
+  qclaw_discovered:
+    count: 6
+    items:
+      - "QU-001: W7 final-veto authority operability (HIGH)"
+      - "QU-002: W3 IMPLEMENTED defensibility with UNKNOWN SoR (HIGH)"
+      - "QU-003: PR #66 merge decision (HIGH)"
+      - "QU-004: 0017 BAR_ONLY bar-data signal-to-noise adequacy (MEDIUM)"
+      - "QU-005: PMN calendar data licensability (MEDIUM)"
+      - "QU-006: local brain_core secrets audit (CRITICAL)"
+    source: "MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml (QU-001 through QU-006)"
+    canonical_file: "MISSING-EVIDENCE-AND-UNKNOWN-REGISTRY.yaml"
+
+# ============================================================================
+# PRE-PUBLICATION HASHES
+# ============================================================================
+
+pre_publication_hashes:
+  status: "UNKNOWN_NOT_RECORDED_PRE_PUBLICATION"
+  note: >
+    QCLAW did not record SHA-256 hashes of individual artifacts before
+    publishing them to GitHub. The first recorded hashes are Git blob SHAs
+    from commit 1f113934. Post-publication blob SHAs exist and can be
+    verified. But no pre-publication freeze hash chain is provable.
+  post_publication_hashes: "Git blob SHAs in commit 1f113934 — verifiable"
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+
+summary:
+  counterevidence_items: 5
+  codex_unknowns: 12
+  qclaw_unknowns: 6
+  total_unknowns: 18
+  pre_publication_hashes: "UNKNOWN_NOT_RECORDED_PRE_PUBLICATION"
+  
+  note: >
+    This ledger is a R1 normalization artifact. Original evidence
+    files are preserved unchanged. All scores and findings from the
+    original audit are retained.
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T00:40:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

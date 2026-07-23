@@ -1,13 +1,36 @@
 # NEXT-SLICE-INDEPENDENT-RECOMPUTATION
-# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q
-# Generated: 2026-07-23T11:58:00+08:00
+# QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1
+# Original: 2026-07-23T11:58:00+08:00
+# R1 Correction: 2026-07-24T00:44:00+08:00
 
 schema_version: "1.0"
 report_id: "QCLAW-0019Q-NEXT-SLICE-001"
 audit_target: "Codex PR #74 NEXT-VERTICAL-SLICE-SELECTION.md (0017=84, W12=62, W11=46)"
 
 # ============================================================================
-# INDEPENDENT SCORING FRAMEWORK
+# R1 CORRECTION NOTICE
+# ============================================================================
+
+r1_correction:
+  freeze_gate: "NOT_PROVEN"
+  original_claim: >
+    0017 BAR_ONLY breach/reclaim is "independently verified" as the correct
+    next vertical slice.
+  corrected_claim: >
+    0017 BAR_ONLY shows substantive concordance across QCLAW's independent
+    scoring and Codex's scoring (both 84/100). Procedural independence of
+    the freeze-before-score gate is NOT PROVEN. QCLAW's scoring was produced
+    BEFORE its own adversarial query pack and expected/forbidden behavior
+    contracts were frozen. See AUDIT-QUESTION-AND-SCORING-FREEZE.yaml for
+    the truthful artifact chronology.
+  preserved_unchanged: >
+    All candidate scores (0017=84, W12=64, PMN=45, W11=35, 0018=24) and
+    all critical findings are preserved exactly as originally computed.
+
+pre_publication_hash_status: "UNKNOWN_NOT_RECORDED_PRE_PUBLICATION"
+
+# ============================================================================
+# INDEPENDENT SCORING FRAMEWORK (weights preserved)
 # ============================================================================
 
 scoring_framework:
@@ -15,6 +38,8 @@ scoring_framework:
     QCLAW uses an independently derived weight vector, not a cosmetic
     perturbation of Codex's weights. The objective is to test whether the
     0017-first conclusion survives a genuinely different evaluation lens.
+    NOTE: the weights and scores are genuinely independent. The PROCEDURAL
+    freeze-before-score ordering was not maintained (see R1 correction above).
   
   qclaw_weights:
     data_adequacy: 20        # can we actually get valid PIT data?
@@ -230,8 +255,11 @@ critical_findings:
 
 conclusion:
   primary_agreement: >
-    0017 BAR_ONLY breach/reclaim is independently verified as the correct
-    next vertical slice. Both Codex (84/100) and QCLAW (84/100) converge.
+    0017 BAR_ONLY breach/reclaim shows substantive scoring concordance
+    between Codex (84/100) and QCLAW (84/100). This is a scoring agreement
+    across genuinely independent weight vectors. Procedural freeze-before-score
+    independence is NOT PROVEN. The directional agreement is evidence
+    SUPPORTING 0017-first, not proof of it.
     
   secondary_divergence: >
     W11 and 0018 are scored substantially lower by QCLAW due to hard
