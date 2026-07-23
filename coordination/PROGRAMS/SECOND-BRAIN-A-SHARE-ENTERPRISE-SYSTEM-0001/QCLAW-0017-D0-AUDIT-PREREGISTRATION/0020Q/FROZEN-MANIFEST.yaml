@@ -1,100 +1,115 @@
-# FROZEN-MANIFEST (P0)
-# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
-# Frozen: 2026-07-24T02:30:00+08:00
-# This manifest records immutable hashes for every frozen core file.
-# P1 evaluation must verify these hashes match the P0 freeze state.
+# FROZEN-MANIFEST.yaml
+# QCLAW-0017-D0-Audit-Preregistration-0020Q-R1
+# Frozen anchor head: 70ed222e279568b7370af62df5bb23b79201ee45
+# R1 updated: 2026-07-24T03:30+08:00
+#
+# 8 immutable core YAML files frozen at head 70ed222e.
+# Validator, manifest, receipt and handoff are versioned meta-files
+# excluded from the core combined hash to avoid circular dependency.
 
-schema_version: "1.0"
-manifest_id: "QCLAW-0020Q-P0-MANIFEST-001"
-freeze_timestamp: "2026-07-24T02:30:00+08:00"
-codex_d0_status: "DOES_NOT_EXIST"
-codex_d0_draft_pr: "DOES_NOT_EXIST"
-codex_d0_branch: "DOES_NOT_EXIST"
+schema_version: "2.0"
+phase: "R1_INTEGRITY_METADATA_CORRECTED"
+task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q"
+pull_request: 77
+branch: "qclaw/0017-d0-audit-preregistration-0020q"
+frozen_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
 
 combined_hash:
   algorithm: "SHA-256"
-  method: "Concatenate SHA-256 of 8 core YAML files + validator sorted by filename, EXCLUDING FROZEN-MANIFEST.yaml/TEST-RUN-RECEIPT.md/AI_HANDOFF.yaml (avoids circular dependency). Then SHA-256 the result."
-  value: "a89bb299852398e496ea5cf11f544ca8add52b1061181d223ae5d692efb3e19f"
-  covered_files: 9
+  method: >-
+    SHA-256 hex digests of 8 immutable core YAML files, sorted by filename,
+    concatenated into a single UTF-8 string, then SHA-256 of that string.
+    Excludes FROZEN-MANIFEST.yaml (self), TEST-RUN-RECEIPT.md, AI_HANDOFF.yaml,
+    validate_preregistration.py, CORRIGENDUM.yaml, AMENDMENT-LOG.yaml,
+    and GIT-BLOB-AND-SHA256-RECEIPT.yaml.
+  core_covered_files: 8
+  value: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
 
 frozen_files:
   - file: "BAR-ONLY-SCOPE-GUARD.yaml"
     sha256: "720c022221b5052efde954f44e93a3ce14195145667bc77e2832b151f7a1fe79"
+    git_blob_sha1: "e362e269593369501dd5d4ed49511312a8b20c77"
     size_bytes: 9509
-    category: "core"
-    description: "BAR_ONLY data type boundary — allowed/forbidden lists"
+    category: "core_immutable"
+    description: "BAR_ONLY data type boundary: allowed/forbidden lists"
 
   - file: "D0-AUDIT-QUESTION-FREEZE.yaml"
     sha256: "c2e695e41d362facaf929221f5c8082ceec2d75e4d36be7e4a06fb361bfa84ba"
+    git_blob_sha1: "f615a389bc09f0fd90215d06721a7da0aa17f7d7"
     size_bytes: 24950
-    category: "core"
+    category: "core_immutable"
     description: "42 frozen audit questions across 10 dimensions"
 
   - file: "D0-SCORING-RUBRIC-FREEZE.yaml"
     sha256: "1e8cd67fd61a1820fc8d0da67c031062bb84d43f369b8e927252dff7ee0e0066"
+    git_blob_sha1: "42a205e0f2847484b0c1931db1b52fd837af836d"
     size_bytes: 3555
-    category: "core"
+    category: "core_immutable"
     description: "Scoring rubric with dimension weights and 4 blocking failure modes"
 
   - file: "EVIDENCE-REQUIREMENT-MATRIX.yaml"
     sha256: "0054673b2ad0784f6e0401c58d06b386ab2ac8248a251482eb130e26be81323f"
+    git_blob_sha1: "204f2b6bf7a47f7612209736832b3ca5883b4cfa"
     size_bytes: 7046
-    category: "core"
+    category: "core_immutable"
     description: "Per-question evidence format requirements (42 questions mapped)"
 
   - file: "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
     sha256: "ab57bac9a76b81e5b9428b884154423b489d6b7eb346cdfe5dc1ddd42cb59ca8"
+    git_blob_sha1: "02ceeed24c5a69112fc280ffc5a4e9d330f79af6"
     size_bytes: 7021
-    category: "core"
+    category: "core_immutable"
     description: "10 expected behaviors + 10 forbidden behaviors for D0 plans"
 
   - file: "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
     sha256: "a6a24b5d6dd4f6dec60dd6fabb4bd6405253090f0bcac64c96f91278e82ae0ce"
+    git_blob_sha1: "7a416772a3dc75177769d5a09372d8e33fdf1150"
     size_bytes: 5260
-    category: "core"
+    category: "core_immutable"
     description: "5 independence certifications + preregistration gate"
 
   - file: "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
     sha256: "7575edd7a4fce8b67a841c56d957b0622832984b5ab773dd93b0082abd04c5a7"
+    git_blob_sha1: "968d841ca6beb19554b7831f2b7e21c96ee1c420"
     size_bytes: 5664
-    category: "core"
+    category: "core_immutable"
     description: "P1 local-reality + replay + historical-gate checklist (12 checks)"
 
   - file: "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
     sha256: "9a2287f7dce68f90d735d3cbfae0f3d1e942867a3e0e27e2ca69414a6c01956f"
+    git_blob_sha1: "29603057f0a90d8eebba3dbbf799cd667b5f0f3f"
     size_bytes: 4635
-    category: "core"
+    category: "core_immutable"
     description: "6 UNKNOWN categories + 6 abstention rules"
-
-  - file: "validate_preregistration.py"
-    sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
-    size_bytes: 9136
-    category: "validator"
-    description: "Machine validator: outputs, YAML, IDs, weights, secrets, signal, placeholders, manifest cross-check"
-
-  - file: "TEST-RUN-RECEIPT.md"
-    sha256: "c17218bbda7dc9ce991644f904eab91a230f0ef30f6cee165f3e491b022929ba"
-    size_bytes: 2321
-    category: "receipt"
-    description: "Machine validation receipt — 43 total checks, 12/12 outputs, 10/10 YAML"
-
-  - file: "AI_HANDOFF.yaml"
-    sha256: "6db7de486bbcf63dc10c1803ed36d54524e333109495c6ae9e796b5748bcfab9"
-    size_bytes: 2711
-    category: "handoff"
-    description: "AI handoff — frozen P0 preregistration instrument for P1 evaluation"
 
 core_files_count: 8
 core_files_total_bytes: 67640
-validator_files_count: 1
-receipt_files_count: 2
 
-# Files MUST NOT be modified between freeze and P1 evaluation.
-# Any amendment requires a separate AMENDMENT-PROPOSAL file.
-# The combined_hash is the single integrity anchor for the entire audit instrument.
+r1_artifacts:
+  - file: "CORRIGENDUM.yaml"
+    category: "r1_corrigendum"
+    description: "Documents P0 hash contradictions, noncanonical rule examples, and reproducibility boundary"
 
-signed:
-  agent: QCLAW
-  timestamp: "2026-07-24T02:30:00+08:00"
-  immutable_after_freeze: true
-  completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+  - file: "AMENDMENT-LOG.yaml"
+    category: "r1_amendment_log"
+    description: "Records P0 creation and R1 remediation phases"
+
+  - file: "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
+    category: "r1_git_blob_receipt"
+    description: "Git blob SHA1 + SHA-256 for every immutable core file, machine-reproduced"
+
+validator:
+  file: "validate_preregistration.py"
+  sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  note: "P0 version at head 70ed222e. R1 updated in-place (validate_preregistration.py is a versioned tool, NOT a frozen core file)."
+
+completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+
+safety:
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+  no_codex_d0_accessed: true
+  no_core_modified: true
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T03:30:00+08:00"

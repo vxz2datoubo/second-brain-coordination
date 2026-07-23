@@ -1,0 +1,88 @@
+# AMENDMENT-LOG.yaml
+# QCLAW-0017-D0-Audit-Preregistration-0020Q
+# Records P0 creation and R1 remediation without editing frozen core.
+
+schema_version: "1.0"
+task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q"
+branch: "qclaw/0017-d0-audit-preregistration-0020q"
+pull_request: 77
+
+amendments:
+  - phase: "P0"
+    timestamp: "2026-07-24T02:30:00+08:00"
+    action: "CREATE"
+    head: "70ed222e279568b7370af62df5bb23b79201ee45"
+    description: >-
+      Created 12 files: 8 immutable core YAML audit instruments,
+      1 validator, 1 frozen manifest, 1 test-run receipt, 1 AI handoff.
+      All 8 core files were frozen before Codex D0 existed.
+      Score-before-questions-freeze order per Issue #73 lesson.
+    files_created:
+      - "BAR-ONLY-SCOPE-GUARD.yaml"
+      - "D0-AUDIT-QUESTION-FREEZE.yaml"
+      - "D0-SCORING-RUBRIC-FREEZE.yaml"
+      - "EVIDENCE-REQUIREMENT-MATRIX.yaml"
+      - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
+      - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+      - "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
+      - "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
+      - "validate_preregistration.py"
+      - "FROZEN-MANIFEST.yaml"
+      - "TEST-RUN-RECEIPT.md"
+      - "AI_HANDOFF.yaml"
+    files_modified: []
+    immutable_core_count: 8
+    immutable_commit: "70ed222e279568b7370af62df5bb23b79201ee45"
+
+  - phase: "R1"
+    timestamp: "2026-07-24T03:30:00+08:00"
+    action: "REMEDIATE_INTEGRITY_METADATA"
+    head: "70ed222e279568b7370af62df5bb23b79201ee45"
+    description: >-
+      GPT review identified 2 hash contradictions in receipts
+      (HASH-001: conflicting combined hashes between manifest and handoff;
+      HASH-002: conflicting validator SHAs between manifest and receipt),
+      2 noncanonical rule-example risks (Q11 price limits, Q13 auction windows),
+      1 reproducibility interpretation risk (Q18 local-data portability).
+      R1 corrects all integrity metadata without modifying any of the 8
+      immutable core YAML files. No Codex D0 output was read.
+    files_created:
+      - "CORRIGENDUM.yaml"
+      - "AMENDMENT-LOG.yaml"
+      - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
+    files_modified:
+      - "FROZEN-MANIFEST.yaml"
+      - "validate_preregistration.py"
+      - "TEST-RUN-RECEIPT.md"
+      - "AI_HANDOFF.yaml"
+    immutable_core_preserved: true
+    immutable_core_sha256_match: "ALL 8 MATCH head 70ed222e"
+    no_codex_d0_read: true
+
+# ============================================================================
+# CORRECTED COMBINED HASH
+# ============================================================================
+
+corrected_combined_hash:
+  value: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+  algorithm: "SHA-256"
+  covered: "8 immutable core YAML files"
+  excludes: "validator, manifest, receipt, handoff, corrigendum, amendment-log, git-blob-receipt"
+
+# ============================================================================
+# CORRECTED VALIDATOR HASH
+# ============================================================================
+
+corrected_validator_hash:
+  sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  bytes: 9136
+  note: "validate_preregistration.py at head 70ed222e — P0 original; R1 updated to skip meta-files in cross-check"
+
+# ============================================================================
+# SAFETY
+# ============================================================================
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+signed_by: "QCLAW"
+signed_at: "2026-07-24T03:30:00+08:00"

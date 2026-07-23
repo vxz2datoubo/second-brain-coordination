@@ -1,62 +1,103 @@
-# AI_HANDOFF (P0)
-# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
-# Frozen: 2026-07-24T02:30:00+08:00
+# AI_HANDOFF (R1)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-R1
+# Integrity metadata corrected: 2026-07-24T03:30+08:00
 
-schema_version: "1.0"
-handoff_id: "QCLAW-0020Q-P0-HANDOFF-001"
-task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0"
-phase: "P0_PREREGISTRATION_ONLY"
-status: "FROZEN_AWAITING_GPT_REVIEW"
-completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+schema_version: "2.0"
+handoff_id: "QCLAW-0020Q-R1-HANDOFF-001"
+task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R1"
+phase: "R1_INTEGRITY_METADATA_REMEDIATION"
+status: "CORRECTED_AWAITING_GPT_ACCEPTANCE"
+completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
 
 # ============================================================================
-# P0 DELIVERY SUMMARY
+# R1 DELIVERY SUMMARY
 # ============================================================================
 
 delivery:
   directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
   branch: "qclaw/0017-d0-audit-preregistration-0020q"
-  files: 12
-  core_files: 8
-  frozen_instrument_ready: true
-  combined_hash: "7210d4bc167675cbee4fea42f5c708be210d931e10ddefdd9826548095b3d540"
-  validator: "validate_preregistration.py (PyYAML 6.0.3, Python 3.12.10)"
+  pull_request: 77
+  frozen_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+  base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
 
 # ============================================================================
-# FROZEN STATE — DO NOT MODIFY
+# IMMUTABLE CORE (unchanged from P0)
 # ============================================================================
 
-frozen_summary:
-  questions: 42
-  dimensions: 10
-  max_raw_score: 42
-  dimension_weights_sum: 100.0
-  rubric_weight_sum: 1.0
-  blocking_failure_modes: 4
-  expected_behaviors: 10
-  forbidden_behaviors: 10
-  bar_only_scope_violations: 8
-  independence_certifications: 5
-  local_reality_checks: 5
-  replay_checks: 4
-  historical_gate_checks: 3
-  unknown_categories: 6
-  abstention_rules: 6
+core:
+  files: 8
+  total_bytes: 67640
+  combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+  all_match_head: "70ed222e"
+  frozen_before_codex_d0: true
+
+# ============================================================================
+# R1 CORRECTIONS APPLIED
+# ============================================================================
+
+corrections:
+  - id: "HASH-001"
+    issue: "Conflicting combined hash between FROZEN-MANIFEST and AI_HANDOFF"
+    resolution: "Single combined hash bf029d13... on 8 immutable core files only"
+
+  - id: "HASH-002"
+    issue: "Conflicting validator SHA between manifest and receipt"
+    resolution: "Validator SHA-256 f57c7d2c... recorded consistently; validator is separately versioned"
+
+  - id: "CLAIM-001"
+    issue: "43/43 PASS claim not verifiable with contradictory hashes"
+    resolution: "R1 validator passes cleanly on corrected instrument with consistent hashes"
+
+  - id: "RULE-001"
+    issue: "Q11 hardcoded price limits (10%/20%/5%) must not be canonical"
+    resolution: "CORRIGENDUM.yaml mandates versioned exchange/board/security-state/date matrix"
+
+  - id: "RULE-002"
+    issue: "Q13 hardcoded auction windows (9:15-9:25 etc.) must not be canonical"
+    resolution: "CORRIGENDUM.yaml mandates versioned exchange-official auction definitions"
+
+  - id: "REPRO-001"
+    issue: "Q18 could be misinterpreted as requiring all data globally portable"
+    resolution: "CORRIGENDUM.yaml permits licensed/local data with documented source, hash, license, alt-dataset"
+
+# ============================================================================
+# R1 NEW ARTIFACTS
+# ============================================================================
+
+r1_files:
+  - "CORRIGENDUM.yaml"
+  - "AMENDMENT-LOG.yaml"
+  - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
+
+r1_updated_files:
+  - "FROZEN-MANIFEST.yaml"
+  - "validate_preregistration.py"
+  - "TEST-RUN-RECEIPT.md"
+  - "AI_HANDOFF.yaml"
+
+# ============================================================================
+# VALIDATOR (separately versioned, R1-updated)
+# ============================================================================
+
+validator:
+  filename: "validate_preregistration.py"
+  sha256_p0: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
+  python: "3.12.10"
+  pyyaml: "6.0.3"
+  note: "R1 updated to include immutable core verification, core combined hash check, and corrigendum reference cross-check. P0 SHA recorded for provenance; R1 executable differs."
 
 # ============================================================================
 # NEXT STATE (P1) — FOR GPT
 # ============================================================================
 
 next_state:
-  activation: "GPT_EXPLICIT_RELEASE_AFTER_CODEX_D0_DELIVERY"
+  activation: "GPT_ACCEPTS_R1_AND_CODEX_DELIVERS_D0"
   p1_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P1"
   p1_behavior: |
-    Evaluate Codex D0 using the FROZEN P0 instrument.
-    Do NOT modify frozen core files.
-    Separate facts, interpretations, predictions, counterevidence and UNKNOWN.
-    P1 may only ADD AMENDMENT-PROPOSAL files; no silent edits to core files.
-    Score against the frozen rubric.
-    Report completion signal: QCLAW_0017_D0_INDEPENDENT_AUDIT_EVALUATION_COMPLETE
+    Evaluate Codex D0 against the 8 immutable core files and the accepted
+    CORRIGENDUM.yaml. Do NOT modify frozen core. Only add amendment-proposal
+    files for corrections. Separate facts, interpretations, predictions,
+    counterevidence and UNKNOWN. Score against frozen rubric.
 
 # ============================================================================
 # SAFETY
@@ -64,12 +105,10 @@ next_state:
 
 safety:
   boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-  no_codex_d0_accessed: true
-  no_brain_core_accessed: true
+  no_codex_d0_read: true
+  no_core_modified: true
   no_merge: true
-  no_auto_merge: true
   no_runtime: true
 
-signed:
-  agent: QCLAW
-  timestamp: "2026-07-24T02:30:00+08:00"
+signed_by: "QCLAW"
+signed_at: "2026-07-24T03:30:00+08:00"

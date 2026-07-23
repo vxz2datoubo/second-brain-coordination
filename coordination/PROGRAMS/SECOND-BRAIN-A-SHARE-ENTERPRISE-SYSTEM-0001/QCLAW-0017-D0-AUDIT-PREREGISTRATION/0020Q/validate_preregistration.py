@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""validate_preregistration.py — QCLAW 0020Q P0 Preregistration Validator.
-Checks: required outputs, YAML/UTF-8/dup-key, ID uniqueness, weight sum,
-secret patterns, stale references, completion signal, placeholder detection.
-Frozen with P0 preregistration — validates the exam, not the answers.
+"""validate_preregistration.py — QCLAW 0020Q R1 Integrity Validator.
+
+R1 (2026-07-24): Updated for bounded integrity metadata remediation.
+- Verifies 8 immutable core files against known combined hash
+- Skips meta-files (manifest, receipt, handoff) from manifest cross-check
+- Validates R1 artifacts (CORRIGENDUM, AMENDMENT-LOG, GIT-BLOB-RECEIPT) as YAML
+- Checks R1 completion signal
+- Validator is a SEPARATELY VERSIONED tool; NOT part of core combined hash.
+
+P0 base: 70ed222e279568b7370af62df5bb23b79201ee45
 """
 
 import os, sys, re, hashlib
@@ -18,25 +24,31 @@ def record(name, status, detail=""):
     print(f"  {tag}: {name}" + (f" — {detail}" if detail else ""))
 
 print("=" * 60)
-print("QCLAW 0020Q P0 VALIDATE PREREGISTRATION")
+print("QCLAW 0020Q R1 VALIDATE PREREGISTRATION")
 print(f"python {sys.version.split()[0]}")
 print("=" * 60)
 
 # ---- 1. REQUIRED OUTPUTS ----
-print("\n[REQUIRED OUTPUTS — P0]")
+print("\n[REQUIRED OUTPUTS — P0 + R1]")
 REQUIRED = [
-    "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml",
+    # 8 immutable core
+    "BAR-ONLY-SCOPE-GUARD.yaml",
     "D0-AUDIT-QUESTION-FREEZE.yaml",
     "D0-SCORING-RUBRIC-FREEZE.yaml",
-    "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml",
     "EVIDENCE-REQUIREMENT-MATRIX.yaml",
-    "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml",
-    "BAR-ONLY-SCOPE-GUARD.yaml",
+    "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml",
+    "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml",
     "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml",
+    "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml",
+    # 4 meta (updated in R1)
     "FROZEN-MANIFEST.yaml",
-    "validate_preregistration.py",
     "TEST-RUN-RECEIPT.md",
     "AI_HANDOFF.yaml",
+    "validate_preregistration.py",
+    # 3 R1 artifacts (new)
+    "CORRIGENDUM.yaml",
+    "AMENDMENT-LOG.yaml",
+    "GIT-BLOB-AND-SHA256-RECEIPT.yaml",
 ]
 present = 0
 for f in REQUIRED:
@@ -89,7 +101,55 @@ for yf in sorted(AUDIT_DIR.glob("*.yaml")):
         yaml_fail += 1; EXIT = 1
 print(f"\n  RESULT: {yaml_pass}/{yaml_pass+yaml_fail} YAML PASS")
 
-# ---- 3. QUESTION ID UNIQUENESS ----
+# ---- 3. IMMUTABLE CORE VERIFICATION ----
+print("\n[IMMUTABLE CORE SHA-256 VERIFICATION]")
+IMMUTABLE_CORE = {
+    "BAR-ONLY-SCOPE-GUARD.yaml":
+        "720c022221b5052efde954f44e93a3ce14195145667bc77e2832b151f7a1fe79",
+    "D0-AUDIT-QUESTION-FREEZE.yaml":
+        "c2e695e41d362facaf929221f5c8082ceec2d75e4d36be7e4a06fb361bfa84ba",
+    "D0-SCORING-RUBRIC-FREEZE.yaml":
+        "1e8cd67fd61a1820fc8d0da67c031062bb84d43f369b8e927252dff7ee0e0066",
+    "EVIDENCE-REQUIREMENT-MATRIX.yaml":
+        "0054673b2ad0784f6e0401c58d06b386ab2ac8248a251482eb130e26be81323f",
+    "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml":
+        "ab57bac9a76b81e5b9428b884154423b489d6b7eb346cdfe5dc1ddd42cb59ca8",
+    "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml":
+        "a6a24b5d6dd4f6dec60dd6fabb4bd6405253090f0bcac64c96f91278e82ae0ce",
+    "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml":
+        "7575edd7a4fce8b67a841c56d957b0622832984b5ab773dd93b0082abd04c5a7",
+    "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml":
+        "9a2287f7dce68f90d735d3cbfae0f3d1e942867a3e0e27e2ca69414a6c01956f",
+}
+
+core_match = 0
+for fn, expected_sha in IMMUTABLE_CORE.items():
+    fpath = AUDIT_DIR / fn
+    if not fpath.is_file():
+        record(f"CORE: {fn}", "FAIL", "file missing")
+        EXIT = 1
+        continue
+    actual = hashlib.sha256(fpath.read_bytes()).hexdigest()
+    if actual == expected_sha:
+        record(f"CORE: {fn}", "PASS")
+        core_match += 1
+    else:
+        record(f"CORE: {fn}", "FAIL", f"modified — run SHA {actual[:12]}...")
+        EXIT = 1
+
+# Verify core combined hash
+core_hashes = [IMMUTABLE_CORE[k] for k in sorted(IMMUTABLE_CORE)]
+expected_combined = "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+actual_combined = hashlib.sha256("".join(core_hashes).encode("utf-8")).hexdigest()
+if actual_combined == expected_combined:
+    record("CORE_COMBINED_HASH", "PASS", expected_combined[:12] + "...")
+else:
+    record("CORE_COMBINED_HASH", "FAIL", f"expected {expected_combined[:12]}... got {actual_combined[:12]}...")
+    EXIT = 1
+
+print(f"\n  RESULT: {core_match}/{len(IMMUTABLE_CORE)} immutable core match")
+
+# ---- 4. QUESTION ID UNIQUENESS ----
 print("\n[QUESTION ID UNIQUENESS]")
 qf = AUDIT_DIR / "D0-AUDIT-QUESTION-FREEZE.yaml"
 if qf.is_file():
@@ -103,7 +163,6 @@ if qf.is_file():
     else:
         record("QUESTION_IDS", "PASS", f"{len(id_set)} unique IDs")
 
-    # Check Q01-Q42 present and sequential
     expected = [f"Q{i:02d}" for i in range(1, 43)]
     missing_ids = [e for e in expected if e not in id_set]
     if missing_ids:
@@ -114,7 +173,7 @@ if qf.is_file():
 else:
     record("QUESTION_IDS", "SKIP", "D0-AUDIT-QUESTION-FREEZE.yaml missing")
 
-# ---- 4. WEIGHT SUM CHECK ----
+# ---- 5. WEIGHT SUM CHECK ----
 print("\n[WEIGHT SUM CHECK]")
 if qf.is_file():
     import yaml as y
@@ -131,7 +190,6 @@ if qf.is_file():
     else:
         record("DIMENSION_WEIGHTS", "SKIP", "no frozen_manifest.dimension_weights")
 
-    # Check rubric weight sum
     rf = AUDIT_DIR / "D0-SCORING-RUBRIC-FREEZE.yaml"
     if rf.is_file():
         with open(rf, encoding="utf-8") as fh:
@@ -144,7 +202,7 @@ if qf.is_file():
             record("RUBRIC_WEIGHTS", "FAIL", f"sum={rsum}, expected 1.0")
             EXIT = 1
 
-# ---- 5. SECRET SCAN ----
+# ---- 6. SECRET SCAN ----
 print("\n[SECRET PATTERN SCAN]")
 SECRET_PATTERNS = [
     (r'sk-[A-Za-z0-9]{32,}', "OpenAI key"),
@@ -155,7 +213,7 @@ SECRET_PATTERNS = [
 ]
 secret_hits = 0
 for f in AUDIT_DIR.rglob("*"):
-    if f.name in ('validate_preregistration.py',):
+    if f.name == 'validate_preregistration.py':
         continue
     if f.is_file() and f.suffix in ('.yaml', '.md'):
         try:
@@ -172,22 +230,28 @@ for f in AUDIT_DIR.rglob("*"):
 if secret_hits == 0:
     record("SECRETS", "PASS", "0 secrets")
 
-# ---- 6. COMPLETION SIGNAL ----
+# ---- 7. COMPLETION SIGNAL (R1) ----
 print("\n[COMPLETION SIGNAL CHECK]")
-EXPECTED = "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
-found = False
-for f in [AUDIT_DIR / "AI_HANDOFF.yaml", AUDIT_DIR / "FROZEN-MANIFEST.yaml"]:
+EXPECTED_R1 = "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+EXPECTED_P0 = "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+found_r1 = False
+found_p0 = False
+for f in [AUDIT_DIR / "AI_HANDOFF.yaml", AUDIT_DIR / "FROZEN-MANIFEST.yaml",
+          AUDIT_DIR / "AMENDMENT-LOG.yaml", AUDIT_DIR / "TEST-RUN-RECEIPT.md"]:
     if f.is_file():
-        if EXPECTED in f.read_text(encoding="utf-8"):
-            record(f"SIGNAL: {f.name}", "PASS")
-            found = True
-if found:
-    record("COMPLETION_SIGNAL", "PASS", EXPECTED)
+        text = f.read_text(encoding="utf-8")
+        if EXPECTED_R1 in text:
+            record(f"SIGNAL_R1: {f.name}", "PASS")
+            found_r1 = True
+        if EXPECTED_P0 in text:
+            found_p0 = True
+if found_r1:
+    record("COMPLETION_SIGNAL", "PASS", EXPECTED_R1)
 else:
-    record("COMPLETION_SIGNAL", "FAIL", "not found")
+    record("COMPLETION_SIGNAL", "FAIL", f"{EXPECTED_R1} not found in any receipt")
     EXIT = 1
 
-# ---- 7. PLACEHOLDER DETECTION ----
+# ---- 8. PLACEHOLDER DETECTION ----
 print("\n[PLACEHOLDER DETECTION]")
 PLACEHOLDERS = [r'\bTODO\b', r'\bFIXME\b', r'XXX\s*—', r'<PLACEHOLDER>', r'\bTK\b']
 ph_hits = 0
@@ -207,9 +271,10 @@ for f in AUDIT_DIR.rglob("*"):
 if ph_hits == 0:
     record("PLACEHOLDERS", "PASS", "0 unfilled")
 
-# ---- 8. SHA-256 MATCH AGAINST MANIFEST ----
+# ---- 9. MANIFEST SHA-256 CROSS-CHECK (R1: skip meta-files) ----
 print("\n[MANIFEST SHA-256 CROSS-CHECK]")
 mf = AUDIT_DIR / "FROZEN-MANIFEST.yaml"
+META_SKIP = {"FROZEN-MANIFEST.yaml", "TEST-RUN-RECEIPT.md", "AI_HANDOFF.yaml"}
 if mf.is_file():
     import yaml as y
     with open(mf, encoding="utf-8") as fh:
@@ -218,7 +283,7 @@ if mf.is_file():
     match, mismatch, skipped = 0, 0, 0
     for entry in entries:
         fn = entry.get("file", "")
-        if fn in ("FROZEN-MANIFEST.yaml", "TEST-RUN-RECEIPT.md", "AI_HANDOFF.yaml"):
+        if fn in META_SKIP:
             record(f"MANIFEST: {fn}", "SKIP", "meta-file")
             skipped += 1
             continue
@@ -239,12 +304,32 @@ if mf.is_file():
         EXIT = 1
     record("MANIFEST_SHA256", "PASS" if mismatch == 0 else "FAIL",
            f"{match} match, {mismatch} mismatch, {skipped} skip")
+
+# ---- 10. CORRIGENDUM REFERENCES CHECK ----
+print("\n[CORRIGENDUM REFERENCE CHECK]")
+cf = AUDIT_DIR / "CORRIGENDUM.yaml"
+if cf.is_file():
+    import yaml as y
+    with open(cf, encoding="utf-8") as fh:
+        cdata = y.safe_load(fh)
+    cch = cdata.get("corrected_combined_hash", {})
+    if cch.get("value") == expected_combined:
+        record("CORRIGENDUM_COMBINED_HASH", "PASS")
+    else:
+        record("CORRIGENDUM_COMBINED_HASH", "FAIL", "mismatch with computed")
+        EXIT = 1
+    core_covered = cch.get("core_covered_files", 0)
+    if core_covered == 8:
+        record("CORRIGENDUM_CORE_COUNT", "PASS", f"{core_covered} files")
+    else:
+        record("CORRIGENDUM_CORE_COUNT", "FAIL", f"{core_covered} != 8")
+        EXIT = 1
 else:
-    record("MANIFEST_SHA256", "SKIP", "FROZEN-MANIFEST.yaml missing")
+    record("CORRIGENDUM", "SKIP", "file missing")
 
 # ---- SUMMARY ----
 print("\n" + "=" * 60)
-print("P0 VALIDATION SUMMARY")
+print("R1 VALIDATION SUMMARY")
 print("=" * 60)
 pass_count = sum(1 for r in RESULTS if r[1] == "PASS")
 fail_count = sum(1 for r in RESULTS if r[1] == "FAIL")
@@ -255,6 +340,6 @@ if EXIT == 0:
     print("OVERALL: PASS (exit 0)")
 else:
     print(f"OVERALL: FAIL (exit {EXIT})")
-print(f"  Completion signal: {EXPECTED}")
+print(f"  Completion signal: {EXPECTED_R1}")
 print("=" * 60)
 sys.exit(EXIT)
