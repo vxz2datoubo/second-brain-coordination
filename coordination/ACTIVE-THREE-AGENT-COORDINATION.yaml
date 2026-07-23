@@ -1,5 +1,6 @@
-schema_version: "2.0"
-coordination_type: "ThreeAgentActiveCoordination"
+schema_version: "2.1"
+coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
+legacy_filename_note: "File name is retained for compatibility; WorkBuddy is removed from the 0017 mainline."
 program_issue: 31
 status: "ACTIVE_SINGLE_MAINLINE"
 updated_by: "GPT"
@@ -7,11 +8,14 @@ updated_at: "2026-07-24"
 
 program_goal: >-
   Finish enterprise-blueprint convergence truthfully, then move one controlled vertical slice at a time:
-  0017 BAR_ONLY reference-zone breach/reclaim with T+1 and sample-out validation. Keep W3 physical-store
-  governance separate so it cannot silently block all research or silently become canonical.
+  0017 BAR_ONLY reference-zone breach/reclaim with T+1 and sample-out validation. Codex owns planning,
+  implementation and local replay/data verification. QCLAW supplies independent adversarial audit.
 
 coordination_principles:
   single_major_execution_owner: "CODEX"
+  independent_audit_owner: "QCLAW"
+  final_gate_owner: "GPT"
+  workbuddy_in_mainline: false
   no_silent_task_preemption: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
@@ -19,7 +23,7 @@ coordination_principles:
   preserve_negative_results: true
   preserve_unknowns: true
   max_major_workstreams: 1
-  bounded_support_workstreams: 1
+  bounded_support_workstreams: 0
 
 current_phase:
   name: "PR75_FINAL_REVIEW_AND_BLUEPRINT_CONVERGENCE"
@@ -39,7 +43,8 @@ agents:
     pull_request: 75
     task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1-EVIDENCE-REMEDIATION"
     status: "DELIVERED_AWAITING_GPT_FINAL_REVIEW"
-    role_now: "Wait. Preserve the submitted candidate evidence and make no further changes without a new GPT route."
+    role_now: "Wait. Preserve submitted candidate evidence and make no further changes without a new GPT route."
+    future_role: "Independently audit Codex VS1 implementation and Codex local-verification receipts."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
   CODEX:
@@ -50,20 +55,24 @@ agents:
     role_now: "Wait for GPT convergence decision."
     next_primary_task:
       issue: 69
-      task: "0017 D0 project plan and repository/local reality audit"
+      task: "0017 D0 project plan plus repository and accessible-local reality audit"
       mode: "project_plan"
-    optional_pre_task:
-      task: "bounded PR #74 factual remediation"
-      mode: "goal"
-      condition: "Only when GPT determines accepted QCLAW findings require PR #74 correction."
+    full_mainline_ownership:
+      - "Optional bounded PR #74 factual remediation when explicitly released."
+      - "Issue #69 D0 project plan."
+      - "0017-VS1 implementation."
+      - "Local data/path/coverage/hash/field/timestamp verification."
+      - "Replay, T+1, cost, OOS and negative-control execution."
+      - "Approved thin-adapter implementation and machine receipts."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
 
   WORKBUDDY:
     active_issue: null
     task_id: "NO_ACTIVE_TASK"
-    status: "PAUSED_QUEUED_FOR_POST_D0_LOCAL_VERIFICATION"
-    role_now: "Wait."
-    future_role: "After GPT accepts Codex Issue #69 D0, verify local bar/replay capability and run approved tests/adapters."
+    status: "REMOVED_FROM_0017_MAINLINE_BY_USER"
+    role_now: "No execution or verification responsibility."
+    transferred_to: "CODEX"
+    reactivation: "Only by a new explicit user or GPT task."
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 execution_queue:
@@ -82,9 +91,11 @@ execution_queue:
   - order: 3
     owner: "CODEX"
     issue: 69
-    task: "0017 D0 project plan."
+    task: "0017 D0 project plan and repository/local reality audit."
     mode: "project_plan"
-    deliverable: "Self-contained D0-D6 plan, capability audit, data/rule contract, validation design, UNKNOWN and AI_HANDOFF. No implementation."
+    deliverable: >-
+      Self-contained D0-D6 plan, actual accessible-local capability audit, data/rule contract,
+      validation design, UNKNOWN and AI_HANDOFF. No business implementation.
 
   - order: 4
     owner: "GPT"
@@ -98,14 +109,18 @@ execution_queue:
     deliverable: "Deterministic point-in-time bar labels, T+1/rule/cost model, replay, OOS tests, negative evidence and rollback."
 
   - order: 6
-    owner: "WORKBUDDY"
-    task: "Local data/replay verification for the frozen VS1 contract."
+    owner: "CODEX"
+    issue: 69
+    task: "Local data and replay verification for the frozen VS1 contract."
     mode: "goal"
-    deliverable: "Actual path/coverage/hash/field/timestamp/test receipts and bounded adapter evidence."
+    deliverable: >-
+      Actual sanitized path/coverage/hash/field/timestamp/environment/command/exit-code receipts,
+      approved thin adapters, replay evidence, failures, SKIPs and UNKNOWNs.
+    acceptance_note: "Codex self-verification is evidence, not independent acceptance."
 
   - order: 7
     owner: "QCLAW"
-    task: "Independent adversarial audit of VS1 implementation and evidence."
+    task: "Independent adversarial audit of VS1 implementation and Codex local-verification evidence."
     mode: "project_plan_or_target_as_released_by_GPT"
 
   - order: 8
@@ -127,7 +142,7 @@ parallel_governance_track:
   id: "W3-PHYSICAL-SOR-RESOLUTION"
   status: "UNKNOWN_MIGRATION_REQUIRED"
   priority: "P1_GOVERNANCE_NOT_CURRENT_EXECUTION_MAINLINE"
-  may_run_when: "GPT creates a separate gated task without preempting 0017."
+  may_run_when: "GPT creates a separate gated Codex task without preempting 0017."
   blocks:
     - "Canonical C3 knowledge/evidence authority promotion."
     - "Destructive consolidation or migration of local/public stores."
@@ -140,7 +155,7 @@ release_control:
   trigger_behavior:
     QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and wait unless explicitly released."
     CODEX: "Read ACTIVE-CODEX-TASK.yaml and wait unless explicitly released."
-    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and wait unless explicitly released."
+    WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
 
 safety_boundary:
   public_safe_only: true
