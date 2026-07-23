@@ -1,6 +1,6 @@
 # 0017 D0 discoveries and opportunities
 
-`agent_id: CODEX`  
+`agent_id: CODEX`
 `classification: findings, not implementation approval`
 
 1. **The first real bottleneck is data admission, not a more elaborate chart pattern.** The accessible `.day` file has a stable structural hash and plausible record layout, but no declared point-in-time availability, adjustment policy, status history or publishable license. A deterministic labeler built on it now would be reproducible only on one local machine and would still be unable to justify its rule/availability assumptions.

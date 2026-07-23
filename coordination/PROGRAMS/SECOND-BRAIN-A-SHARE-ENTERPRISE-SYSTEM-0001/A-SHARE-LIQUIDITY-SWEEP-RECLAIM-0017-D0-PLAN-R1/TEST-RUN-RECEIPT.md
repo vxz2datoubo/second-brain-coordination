@@ -1,6 +1,6 @@
 # 0017 D0 test receipt
 
-`agent_id: CODEX`  
+`agent_id: CODEX`
 `scope: planning artifacts only; no market data replay, labels, strategy, performance or trade action`
 
 ## D0 verification command design

@@ -1,7 +1,7 @@
 # 0017 D0 repository and local-reality audit
 
-`agent_id: CODEX`  
-`status: VERIFIED_REPOSITORY_PLUS_PARTIAL_LOCAL_EVIDENCE`  
+`agent_id: CODEX`
+`status: VERIFIED_REPOSITORY_PLUS_PARTIAL_LOCAL_EVIDENCE`
 `boundary: research_only / NO_TRADE`
 
 ## Verified repository facts
