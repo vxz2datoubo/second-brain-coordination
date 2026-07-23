@@ -1,0 +1,35 @@
+schema_version: "1.0"
+record_type: "SkillMaturityStateMachine"
+sequential_states:
+  - "DISCOVERED"
+  - "MENTIONED"
+  - "MAPPED_TO_LIFECYCLE"
+  - "CANDIDATE_SKILL_REGISTERED"
+  - "RESEARCH_VALIDATED"
+  - "CONTRACTED"
+  - "IMPLEMENTED"
+  - "A_SHARE_BACKTESTED"
+  - "SHADOW_VALIDATED"
+  - "VALIDATED_RESEARCH_CAPABILITY"
+terminal_or_governance_states:
+  - "FROZEN"
+  - "RETIRED"
+  - "REJECTED"
+  - "REFUTED"
+rules:
+  no_forward_skip: true
+  documentation_never_proves_implementation: true
+  formula_never_proves_a_share_effectiveness: true
+  test_source_never_proves_test_pass: true
+  research_validation_never_grants_trade_authority: true
+  unknowns_must_survive_transition: true
+minimum_evidence:
+  MAPPED_TO_LIFECYCLE: ["source_locator", "lifecycle_stage", "owner"]
+  CANDIDATE_SKILL_REGISTERED: ["stable_skill_id", "scope", "non_duplication_check"]
+  RESEARCH_VALIDATED: ["research_matrix", "limitations", "counterevidence"]
+  CONTRACTED: ["versioned_input", "versioned_output", "error_contract"]
+  IMPLEMENTED: ["code_locator", "implementation_hash", "unit_tests"]
+  A_SHARE_BACKTESTED: ["point_in_time_data", "rule_snapshot", "cost_model", "run_receipt"]
+  SHADOW_VALIDATED: ["independent_shadow_evidence", "drift_and_failure_report"]
+  VALIDATED_RESEARCH_CAPABILITY: ["accepted_calibration", "accepted_adversarial_pack", "human_approval"]
+

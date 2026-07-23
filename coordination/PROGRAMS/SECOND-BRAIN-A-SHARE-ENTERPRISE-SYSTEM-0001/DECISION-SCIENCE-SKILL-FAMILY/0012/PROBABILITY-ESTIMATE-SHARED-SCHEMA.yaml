@@ -1,0 +1,53 @@
+schema_version: "1.0"
+record_type: "SharedContractDeclaration"
+contract_id: "ProbabilityEstimate"
+contract_status: "CONTRACTED_ARCHITECTURE_DECISION"
+runtime_status: "NOT_IMPLEMENTED_BY_D0"
+boundary: "research_only / NO_TRADE"
+ownership:
+  schema_owner: "W12 / DS-02"
+  computation_owner: "W12 / DS-02"
+  persistence_and_ex_ante_freeze: "W10 DecisionEpisode reference"
+  read_only_consumers: ["W11", "DS-03", "DS-04", "DS-05", "W7"]
+  prohibited_mutator: "PersonalCognitiveModel"
+fields:
+  estimate_id: {type: "string", required: true}
+  event_id: {type: "string", required: true}
+  decision_id: {type: "string|null", required: true}
+  outcome_space: {type: "list", required: true}
+  as_of_time: {type: "datetime", required: true}
+  horizon: {type: "object", required: true}
+  point_estimate: {type: "number|map", required: true}
+  interval_or_distribution: {type: "object", required: true}
+  unknown_mass: {type: "number", required: true, constraints: "0 <= value <= 1"}
+  base_rate: {type: "object|null", required: true}
+  source_forecasts: {type: "list", required: true}
+  source_lineage: {type: "list", required: true}
+  dependence_clusters: {type: "list", required: true}
+  fusion_method: {type: "string", required: true}
+  effective_sample_size: {type: "number|null", required: true}
+  calibration_group: {type: "string|null", required: true}
+  calibration_history: {type: "object|null", required: true}
+  calibration_status: {type: "string", required: true}
+  supporting_evidence: {type: "list", required: true}
+  counterevidence: {type: "list", required: true}
+  assumptions: {type: "list", required: true}
+  regime_scope: {type: "object|null", required: true}
+  drift_status: {type: "string", required: true}
+  invalidation_conditions: {type: "list", required: true}
+  model_versions: {type: "list", required: true}
+  rule_versions: {type: "list", required: true}
+  status:
+    type: "enum"
+    required: true
+    values: ["CANDIDATE", "FROZEN_EX_ANTE", "SUPERSEDED", "INVALIDATED"]
+invariants:
+  - "W10 stores estimate_id and an ex-ante snapshot hash; it does not rewrite the estimate."
+  - "Outcome resolution appends a CalibrationRecord and never changes the frozen ex-ante probability."
+  - "Language variation or multiple wrappers around one lineage do not create independent evidence."
+  - "LLM confidence language is not a point estimate."
+  - "UNKNOWN and dependence metadata cannot be silently discarded."
+implementation_gate:
+  next_phase: "D3"
+  requires: ["DS-01 DecisionFrame", "D1 non-duplication check", "schema round-trip tests", "calibration fixtures"]
+

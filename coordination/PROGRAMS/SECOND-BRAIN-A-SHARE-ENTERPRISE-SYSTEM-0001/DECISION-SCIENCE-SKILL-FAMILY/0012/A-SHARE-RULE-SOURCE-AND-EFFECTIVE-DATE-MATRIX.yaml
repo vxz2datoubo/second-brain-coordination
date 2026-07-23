@@ -1,0 +1,117 @@
+schema_version: "1.0"
+task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
+as_of: "2026-07-22"
+policy:
+  - "Every runtime rule must bind exchange, board, security type and effective date."
+  - "A current rule does not authorize rewriting historical replays without the historical version."
+  - "Missing applicability or delayed-effective clauses produce UNKNOWN, never a guessed default."
+contract_reference: "A-SHARE-RULE-SNAPSHOT-CONTRACT.yaml"
+rules:
+  - rule_id: "SSE-TRADING-RULES-2026"
+    authority: "Shanghai Stock Exchange"
+    source_url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml"
+    published_at: "2026-04-24"
+    effective_from: "2026-07-06"
+    supersedes: "SSE Trading Rules 2023 revision"
+    status: "VERIFIED_FACT"
+    applicability: "SSE-listed securities subject to product-specific exceptions and delayed clauses"
+    verified_semantics:
+      - "Purchased securities cannot be sold before settlement unless the product supports turnaround trading."
+      - "Opening call auction 09:15-09:25, continuous auction 09:30-11:30 and 13:00-14:57, close auction 14:57-15:00."
+      - "Auction reference price, matched quantity and unmatched quantity are defined market fields."
+      - "Continuous-auction public quote describes five price levels, not raw order events."
+    cautions:
+      - "Rules explicitly identify some delayed-effective clauses."
+      - "Product-specific rules override the general rules where stated."
+
+  - rule_id: "SZSE-TRADING-RULES-2026"
+    authority: "Shenzhen Stock Exchange"
+    source_url: "https://www.szse.cn/lawrules/rule/allrules/bussiness/t20260424_620190.html"
+    attachment_url: "https://docs.static.szse.cn/www/lawrules/rule/trade/current/W020260424690713155663.pdf"
+    published_at: "2026-04-24"
+    effective_from: "2026-07-06"
+    supersedes: "SZSE Trading Rules 2023 revision"
+    status: "VERIFIED_FACT"
+    applicability: "SZSE-listed securities subject to board and product rules"
+    verified_semantics:
+      - "Purchased securities cannot be sold before settlement unless the product supports turnaround trading."
+      - "Opening call auction 09:15-09:25, continuous auction 09:30-11:30 and 13:00-14:57, close auction 14:57-15:00."
+      - "After-hours fixed-price scope expanded under the 2026 mechanism changes."
+
+  - rule_id: "BSE-TRADING-RULES-2026"
+    authority: "Beijing Stock Exchange"
+    source_url: "https://www.bse.cn/jygl_list/200028217.html"
+    published_at: "2026-04-24"
+    effective_from: "2026-07-06"
+    status: "PARTIAL_EVIDENCE"
+    applicability: "BSE-listed securities"
+    verified_semantics:
+      - "The 2026 rules are current and generally effective from 2026-07-06."
+      - "Several named clauses have a separately announced implementation date."
+    unknowns:
+      - "Complete machine rule pack for lot, price-limit, after-hours and delayed clauses"
+
+  - rule_id: "A-SHARE-T1-SELLABLE-INVENTORY"
+    authority: "SSE and SZSE current trading rules"
+    effective_from: "2026-07-06"
+    status: "VERIFIED_FACT"
+    normalized_rule: >
+      Newly purchased non-turnaround securities are not sellable before settlement.
+      This is a sellable-inventory constraint, not a one-transaction-per-stock or
+      one-sale-event-per-seasoned-position rule.
+    stale_local_mapping: "Each chip can exchange at most once per day"
+    required_state: ["security_type", "turnaround_eligible", "trade_date", "settlement_state", "seasoned_sellable_quantity", "fresh_locked_quantity"]
+
+  - rule_id: "SSE-MAIN-RISK-WARNING-PRICE-LIMIT-2026"
+    authority: "Shanghai Stock Exchange"
+    source_url: "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20260424_10816474.shtml"
+    effective_from: "2026-07-06"
+    status: "VERIFIED_FACT"
+    applicability: "SSE main-board risk-warning stocks under the announced 2026 revision"
+    change: "Price-limit percentage changed from 5 percent to 10 percent."
+    guard: "Never generalize this row to all ST, delisting, relisting, IPO, STAR, ChiNext or BSE securities."
+
+  - rule_id: "SZSE-AFTER-HOURS-AND-RISK-WARNING-TECHNICAL-PREP-2026"
+    authority: "Shenzhen Stock Exchange"
+    source_url: "https://www.szse.cn/marketServices/technicalservice/notice/t20260424_620199.html"
+    published_at: "2026-04-24"
+    effective_from: "2026-07-06"
+    status: "PARTIAL_EVIDENCE"
+    verified_semantics:
+      - "After-hours fixed-price eligibility expanded to listed categories described in the notice."
+      - "Main-board risk-warning price-limit technical preparation was required."
+    guard: "Bind the final rule and instrument category before applying a percentage."
+
+  - rule_id: "SECURITIES-TRANSACTION-STAMP-TAX-2023-HALF"
+    authority: "Ministry of Finance and State Taxation Administration"
+    source_url: "https://fgk.chinatax.gov.cn/zcfgk/c102416/c5211343/content.html"
+    published_at: "2023-08-27"
+    effective_from: "2023-08-28"
+    status: "VERIFIED_FACT"
+    verified_semantics: "Securities transaction stamp tax is collected at half the previous rate from the effective date."
+    unknowns:
+      - "The complete historical tax schedule and transaction-side applicability must be sourced before point-in-time replay."
+
+  - rule_id: "MARGIN-FINANCING-AND-SECURITIES-LENDING-GOVERNANCE"
+    authority: "China Securities Regulatory Commission"
+    source_url: "https://www.csrc.gov.cn/csrc/c106256/c1654005/content.shtml"
+    effective_from: "2015-07-01"
+    status: "VERIFIED_FACT"
+    verified_semantics: "Margin financing and securities lending require approved business, eligible clients, contracts, instruments, collateral and costs."
+    guard: "A normal cash account must not be modeled as having naked-short or borrow capability."
+
+  - rule_id: "A-SHARE-TRANSFER-FEE-CURRENT"
+    authority: "China Securities Depository and Clearing Corporation"
+    source_url: null
+    effective_from: null
+    status: "UNKNOWN"
+    reason: "No complete current first-party tariff and historical-version chain was verified in this audit."
+    runtime_action: "Block hard-coded fee promotion; require an official tariff snapshot."
+
+  - rule_id: "BOARD-PRODUCT-PRICE-LIMIT-AND-LOT-RULE-PACK"
+    authority: "SSE, SZSE and BSE product-specific rules"
+    source_url: null
+    effective_from: null
+    status: "UNKNOWN"
+    reason: "A complete historical matrix for main board, STAR, ChiNext, BSE, IPO/no-limit, relisting, delisting, ETF and convertible products was outside D0."
+    runtime_action: "Use abstention or explicit unsupported-product status until the versioned pack exists."
