@@ -1,125 +1,151 @@
-schema_version: "1.4"
+schema_version: "2.0"
 coordination_type: "ThreeAgentActiveCoordination"
 program_issue: 31
-status: "ACTIVE"
+status: "ACTIVE_SINGLE_MAINLINE"
 updated_by: "GPT"
-updated_at: "2026-07-21"
+updated_at: "2026-07-24"
 
-agent_aliases:
-  QCLAW: ["Q", "QQ"]
+program_goal: >-
+  Finish enterprise-blueprint convergence truthfully, then move one controlled vertical slice at a time:
+  0017 BAR_ONLY reference-zone breach/reclaim with T+1 and sample-out validation. Keep W3 physical-store
+  governance separate so it cannot silently block all research or silently become canonical.
 
-agents:
-  CODEX:
-    active_issue: 39
-    task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
-    status: "READY_OR_RUNNING"
-    mode: "GOAL"
-    role: "Build the large public-safe offline A-share replay, validation, evidence and GPT atomized-knowledge access vertical slice."
-    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
-    allowed_handoffs_from:
-      - "QCLAW Issue #36 accepted public-safe findings"
-      - "QCLAW Issue #40 public-safe adapter compatibility observations"
-      - "WORKBUDDY PR #34 proposed sanitized capability facts, reference only"
-    prohibited:
-      - "private knowledge ingestion or publication"
-      - "credential, cloud, service or broker access"
-      - "real trading or protected blueprint mutation"
-
-  WORKBUDDY:
-    active_issue: 32
-    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
-    status: "DELIVERED_PR34_GPT_REVIEW_IN_PROGRESS"
-    delivery:
-      pr: 34
-      head_sha: "5697004c24f0fbf5c1c334ddccf7d409f4a4de94"
-    role: "Delivered local QCLAW runtime/data facts and proposed offline staging/sync boundaries."
-    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-    review_note: "Clarification remains required on strict read-only versus reported GitHub token double-write."
-    prohibited:
-      - "new implementation before GPT acceptance"
-      - "credential changes, service changes or private uploads"
-      - "Issue #7 fallback or local strategy preemption"
-
-  QCLAW:
-    aliases: ["Q", "QQ"]
-    active_issue: 40
-    task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
-    status: "READY"
-    mode: "GOAL_CONTROLLED_IMPLEMENTATION"
-    role: "Implement a deterministic, content-addressed, testable candidate LearningPacket pipeline and prove GitHub branch/commit/Draft-PR delivery."
-    source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
-    predecessor:
-      issue: 36
-      status: "ACCEPTED_WITH_LIMITATIONS_AND_CLOSED"
-    allowed_handoffs_to:
-      - "Issue #40 complete public-safe implementation package and Draft PR"
-      - "Issue #20 concise task index"
-      - "Issue #39 public-safe compatibility observations only"
-    prohibited:
-      - "private knowledge ingestion or upload"
-      - "authority promotion or Codex task execution"
-      - "declaring PR #34 or QQ v0.2 adapter canonical"
-      - "service/config/cloud/main mutations"
-
-shared_handoff_contract:
-  required_fields:
-    - agent_id
-    - target_agent
-    - task_id
-    - run_id
-    - status
-    - verified_facts
-    - unknowns
-    - privacy_class
-    - authority_level
-    - positive_effects
-    - negative_effects
-    - unexpected_findings
-    - rollback_or_discard_method
-  authority_default: "CANDIDATE_OR_OBSERVATION_ONLY"
+coordination_principles:
+  single_major_execution_owner: "CODEX"
   no_silent_task_preemption: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
   no_trade: true
+  preserve_negative_results: true
+  preserve_unknowns: true
+  max_major_workstreams: 1
+  bounded_support_workstreams: 1
 
-wip_policy:
-  major_workstream_limit: 2
-  current_major_workstreams:
-    - "CODEX Issue #39 large offline vertical slice"
-  bounded_parallel_implementation:
-    - "QCLAW Issue #40 deterministic LearningPacket pipeline"
-  completed_deliveries_in_review:
-    - "WORKBUDDY PR #34"
-  interpretation: "Codex #39 remains the sole enterprise vertical-slice owner. QQ #40 is a bounded public-safe knowledge-engineering implementation and may not freeze enterprise contracts."
+current_phase:
+  name: "PR75_FINAL_REVIEW_AND_BLUEPRINT_CONVERGENCE"
+  primary_owner: "GPT"
+  executor_state: "ALL_EXECUTORS_WAIT"
+  inputs:
+    codex_pr: 74
+    codex_reviewed_head: "693550ff043ed9948ffa63e52715ba86e9542c4f"
+    qclaw_pr: 75
+    qclaw_latest_observed_head: "3443430683fcda3d2863cbb09d8f3d4e66dff19f"
+  output: "One explicit release decision: direct Issue #69 D0, or bounded PR #74 correction followed by Issue #69 D0."
 
-cross_agent_dependencies:
-  - from: "QCLAW#36"
-    to: "CODEX#39"
-    deliverable: "accepted public-safe LearningPacket compatibility findings"
-    blocking: false
-    authority: "OBSERVATION_ONLY"
-  - from: "QCLAW#40"
-    to: "CODEX#39"
-    deliverable: "public-safe deterministic-ID, packet-field and adapter observations"
-    blocking: false
-    authority: "OBSERVATION_ONLY"
-  - from: "WORKBUDDY PR #34"
-    to: "QCLAW#40"
-    deliverable: "proposed LearningPacket and local state-machine reference"
-    blocking: false
-    authority: "REFERENCE_ONLY"
-  - from: "CODEX#39"
-    to: "Issue #38 future private/local knowledge gateway implementation"
-    deliverable: "KnowledgeQuery, ContextBundle, access-policy contracts and synthetic adapter demonstration"
-    blocking: true
+agents:
+  QCLAW:
+    aliases: ["Q", "QQ"]
+    active_issue: 73
+    pull_request: 75
+    task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-R1-EVIDENCE-REMEDIATION"
+    status: "DELIVERED_AWAITING_GPT_FINAL_REVIEW"
+    role_now: "Wait. Preserve the submitted candidate evidence and make no further changes without a new GPT route."
+    source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
-risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
-  user_approval_required_now: false
-  stop_and_escalate_before:
-    - "private or sensitive knowledge leaves local machine"
-    - "cloud/private repository/object storage creation"
-    - "credential access or service lifecycle changes"
-    - "protected blueprint body changes"
-    - "candidate knowledge authority promotion"
-    - "real trading, broker or order path"
+  CODEX:
+    active_issue: 72
+    pull_request: 74
+    task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
+    status: "CONDITIONALLY_QUEUED"
+    role_now: "Wait for GPT convergence decision."
+    next_primary_task:
+      issue: 69
+      task: "0017 D0 project plan and repository/local reality audit"
+      mode: "project_plan"
+    optional_pre_task:
+      task: "bounded PR #74 factual remediation"
+      mode: "goal"
+      condition: "Only when GPT determines accepted QCLAW findings require PR #74 correction."
+    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+
+  WORKBUDDY:
+    active_issue: null
+    task_id: "NO_ACTIVE_TASK"
+    status: "PAUSED_QUEUED_FOR_POST_D0_LOCAL_VERIFICATION"
+    role_now: "Wait."
+    future_role: "After GPT accepts Codex Issue #69 D0, verify local bar/replay capability and run approved tests/adapters."
+    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+
+execution_queue:
+  - order: 1
+    owner: "GPT"
+    task: "Final-review QCLAW PR #75 and converge it with Codex PR #74."
+    gate_output: "ACCEPT / BOUNDED_REMEDIATION / REJECT with preserved evidence."
+
+  - order: 2
+    owner: "CODEX"
+    task: "Optional bounded correction of PR #74."
+    mode: "goal"
+    conditional: true
+    forbidden: "No blueprint redesign, no new workstream, no runtime."
+
+  - order: 3
+    owner: "CODEX"
+    issue: 69
+    task: "0017 D0 project plan."
+    mode: "project_plan"
+    deliverable: "Self-contained D0-D6 plan, capability audit, data/rule contract, validation design, UNKNOWN and AI_HANDOFF. No implementation."
+
+  - order: 4
+    owner: "GPT"
+    task: "Seven-gate review of Issue #69 D0 and freeze 0017-VS1 contract."
+
+  - order: 5
+    owner: "CODEX"
+    issue: 69
+    task: "0017-VS1 BAR_ONLY implementation."
+    mode: "goal"
+    deliverable: "Deterministic point-in-time bar labels, T+1/rule/cost model, replay, OOS tests, negative evidence and rollback."
+
+  - order: 6
+    owner: "WORKBUDDY"
+    task: "Local data/replay verification for the frozen VS1 contract."
+    mode: "goal"
+    deliverable: "Actual path/coverage/hash/field/timestamp/test receipts and bounded adapter evidence."
+
+  - order: 7
+    owner: "QCLAW"
+    task: "Independent adversarial audit of VS1 implementation and evidence."
+    mode: "project_plan_or_target_as_released_by_GPT"
+
+  - order: 8
+    owner: "GPT"
+    task: "Final slice acceptance, bounded remediation or rejection."
+
+bar_only_VS1_contract:
+  allowed:
+    - "Point-in-time minute/daily bars and pre-known reference zones."
+    - "Breach, bar-close reclaim, sustained reclaim, failed reclaim and continuation labels."
+    - "T+1 sellable/frozen inventory, overnight gap, suspension and price-limit rules."
+    - "Costs, slippage, non-fill assumptions, purged walk-forward, embargo and lockbox."
+  prohibited:
+    - "L2 order book, displayed depth as a hard dependency, raw trade/order events or L3."
+    - "DDX/DDY, fabricated Delta/CVD/OFI, participant identity or main-force/hidden-stop intent."
+    - "Probability engine, capital allocation, order generation, account access or real trading."
+
+parallel_governance_track:
+  id: "W3-PHYSICAL-SOR-RESOLUTION"
+  status: "UNKNOWN_MIGRATION_REQUIRED"
+  priority: "P1_GOVERNANCE_NOT_CURRENT_EXECUTION_MAINLINE"
+  may_run_when: "GPT creates a separate gated task without preempting 0017."
+  blocks:
+    - "Canonical C3 knowledge/evidence authority promotion."
+    - "Destructive consolidation or migration of local/public stores."
+  does_not_block:
+    - "0017 D0 planning."
+    - "Self-contained BAR_ONLY candidate research that does not claim W3 canonical write authority."
+
+release_control:
+  only_GPT_may_activate_next_step: true
+  trigger_behavior:
+    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and wait unless explicitly released."
+    CODEX: "Read ACTIVE-CODEX-TASK.yaml and wait unless explicitly released."
+    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and wait unless explicitly released."
+
+safety_boundary:
+  public_safe_only: true
+  candidate_only_until_GPT_acceptance: true
+  research_only: true
+  no_trade: true
+  no_broker_account_order: true
+  no_credential_or_service_change: true
