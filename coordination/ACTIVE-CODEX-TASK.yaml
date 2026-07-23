@@ -1,4 +1,4 @@
-schema_version: "4.3"
+schema_version: "4.4"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -18,10 +18,18 @@ draft_pull_request: true
 direct_main_write: false
 auto_merge: false
 
+user_scope_decision:
+  decision: "WORKBUDDY_0017_SCOPE_TRANSFERRED_TO_CODEX"
+  effective_date: "2026-07-24"
+  consequence: >-
+    Codex is the sole execution owner for Issue #69 planning, implementation, local-data reality checks,
+    replay execution, thin-adapter work and machine receipts. WorkBuddy has no role in this mainline unless
+    the user or GPT explicitly creates a new task later.
+
 current_action:
   - "Do not modify PR #74 or begin Issue #69 until GPT publishes the release decision."
   - "On task trigger, report WAITING_FOR_GPT_FINAL_CONVERGENCE and the two conditional routes below."
-  - "Do not create a speculative implementation branch while waiting."
+  - "Do not create a speculative implementation or local-verification branch while waiting."
 
 conditional_release_routes:
   route_A_direct_to_0017_D0:
@@ -31,7 +39,10 @@ conditional_release_routes:
     next_issue: 69
     next_task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN"
     mode: "project_plan"
-    purpose: "Audit repository/local capabilities and produce a self-contained D0-D6 plan for the BAR_ONLY reference-zone breach/reclaim plus T+1 validation slice. No implementation in D0."
+    purpose: >-
+      Audit repository and accessible local capabilities, then produce a self-contained D0-D6 plan for the
+      BAR_ONLY reference-zone breach/reclaim plus T+1 validation slice. D0 includes the local-data and replay
+      reality audit formerly assigned to WorkBuddy, but performs no business implementation.
 
   route_B_bounded_blueprint_patch_then_0017_D0:
     condition:
@@ -47,6 +58,23 @@ conditional_release_routes:
       next_task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN"
       mode: "project_plan"
 
+absorbed_workbuddy_scope:
+  owner: "CODEX"
+  activation_gate: "GPT_ACCEPTANCE_OF_ISSUE69_D0_AND_EXPLICIT_RELEASE"
+  mode_after_release: "goal"
+  required_actions:
+    - "Verify actual local point-in-time bar paths, coverage windows, symbols, timestamps, time zones and missing-value semantics."
+    - "Verify data and rule snapshot hashes, file counts, field names, dtypes, available_at semantics and reproducibility."
+    - "Run the frozen replay, label-generation, T+1, cost, walk-forward and negative-control commands with actual exit codes."
+    - "Produce machine-readable receipts for commands, environment versions, inputs, outputs, hashes, failures, SKIPs and UNKNOWNs."
+    - "Implement only the thin adapters explicitly approved by the frozen D0/VS1 contract."
+    - "Keep local/private paths and sensitive values out of public artifacts; publish sanitized evidence only."
+  prohibited:
+    - "Do not redesign architecture or scoring while performing local verification."
+    - "Do not introduce L2/order-book/raw-tick dependencies into BAR_ONLY VS1."
+    - "Do not promote a local dataset, adapter or store to canonical authority."
+    - "Do not treat Codex self-verification as independent acceptance; QCLAW audit remains mandatory."
+
 planned_execution_sequence:
   - step: 1
     owner: "GPT"
@@ -56,19 +84,22 @@ planned_execution_sequence:
     action: "Optional bounded PR #74 remediation only when explicitly released."
   - step: 3
     owner: "CODEX"
-    action: "Issue #69 D0 project plan, repository reality audit and validation design."
+    action: "Issue #69 D0 project plan, repository/local reality audit and validation design."
+    mode: "project_plan"
   - step: 4
     owner: "GPT"
     action: "Seven-gate review of D0; freeze VS1 contract."
   - step: 5
     owner: "CODEX"
-    action: "Implement 0017-VS1 in goal mode on a new branch and Draft PR."
+    action: "Implement 0017-VS1 on a new branch and Draft PR."
+    mode: "goal"
   - step: 6
-    owner: "WORKBUDDY"
-    action: "Verify local data/replay availability and run approved adapters/tests without changing architecture."
+    owner: "CODEX"
+    action: "Perform local data/replay verification, approved thin-adapter work and machine receipt generation for the frozen VS1 contract."
+    mode: "goal"
   - step: 7
     owner: "QCLAW"
-    action: "Independent adversarial audit of the delivered VS1 implementation and evidence."
+    action: "Independently audit the delivered VS1 implementation, local-verification evidence and negative results."
   - step: 8
     owner: "GPT"
     action: "Final acceptance, rejection or bounded remediation decision."
@@ -95,7 +126,7 @@ w3_parallel_governance_track:
 forbidden:
   - "No Issue #69 activation before explicit GPT release."
   - "No W12, W11, 0018, W13 or PMN implementation preemption."
-  - "No runtime, trade, broker, credential, service or market-feed action while waiting."
+  - "No trade, broker, credential or service action."
   - "No merge or auto-merge."
 
 completion_signal: "ENTERPRISE_BLUEPRINT_CONVERGENCE_READY_FOR_GPT_REVIEW"
