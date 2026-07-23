@@ -1,16 +1,12 @@
-﻿# TEST-RUN-RECEIPT (R2)
-# QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R2
-# Run: 2026-07-24T06:30+08:00
+# TEST-RUN-RECEIPT (R3)
+# QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R3
+# 2026-07-24T07:03:02+08:00
 
 | Field | Value |
 |---|---|
-| Task ID | QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R2 |
-| Agent | QCLAW |
-| Phase | R2_VALIDATOR_AND_HEAD_RECEIPT_CLOSURE |
-| Python | 3.12.10 |
-| PyYAML | 6.0.3 |
-| Validator | validate_preregistration.py (R2 executed) |
-| Completion Signal | QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1 |
+| Task ID | QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R3 |
+| Phase | R3_EXACT_TWO_HEAD_EVIDENCE_CLOSURE |
+| Completion Signal | QCLAW_0017_D0_R3_EXACT_TWO_HEAD_EVIDENCE_CLOSED_FOR_GPT_REVIEW |
 
 ## Canonical Heads
 
@@ -18,54 +14,71 @@
 |---|---|
 | PR base | b76b8f846b446f0144e8afa12f4ef08d12e09bd7 |
 | Frozen core | 70ed222e279568b7370af62df5bb23b79201ee45 |
-| R2 final | AT_HEAD |
+| Tested head | 8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc |
+| Receipt head | WILL_BE_REPORTED_AFTER_PUSH |
 
-## Immutable Core — byte-identical to frozen head 70ed222e
+## Immutable Core
 
-All 8 files verified. Core combined hash: `bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0`
+8/8 byte-identical to frozen head 70ed222e.
+Core combined hash: bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0
 
-## Validator Provenance — Two Distinct Records
+## Validator
 
-| | P0 (frozen) | R2 (executed) |
+| | P0 (frozen) | At tested_head (R3 recomputed) |
 |---|---|---|
-| Git blob SHA1 | 2a9a927cf35ae0f736f93d29291e7345e9f9a997 | bb68f0caba3b403d676184c3e3d260f40155130e |
-| SHA-256 | f57c7d2c... | a21d65d3b... |
-| Bytes | 9136 | 12644 |
-| Frozen at | 70ed222e | AT_HEAD |
+| Git blob | 2a9a927c... | a438921c... |
+| SHA-256 | f57c7d2c... | 1d5f5c2c... |
+| Bytes | 9136 | 13024 |
 
-## Validation Result
+## R2 Superseded Claims
 
-| Check | Result |
+| Claim | R2 Value | R3 Reality |
+|---|---|---|
+| Validator blob | bb68f0ca... | a438921c... (verified at tested_head) |
+| SHA-256 | a21d65d3... | 1d5f5c2c... (recomputed from tested_head bytes) |
+| Bytes | 12644 | 13024 (recomputed) |
+
+R2 values do not match any Git object at PR head 8ebb272. Likely intermediate local state.
+Explicitly superseded, not silently overwritten.
+
+## Test Execution
+
+| Attribute | Value |
 |---|---|
-| Required Outputs | 15/15 PRESENT |
-| YAML + UTF-8 + Dup-Key | 13/13 PASS |
-| Immutable Core | 8/8 match frozen head |
-| Core Combined Hash | MATCH |
-| Question IDs | 42 unique, Q01-Q42 complete |
-| Weights | dimension=100.0, rubric=1.0 |
-| Secrets | 0 |
-| Completion Signal | R2 signal found in 4 receipts |
-| Placeholders | 0 |
-| Manifest Cross-Check | 8 match, 0 mismatch, 0 skip |
-| Corrigendum References | PASS (combined hash + core count) |
-| **Total** | **59/59 PASS, exit 0** |
+| Python | 3.12.10 |
+| PyYAML | 6.0.3 (preinstalled, pip fallback NOT triggered) |
+| Command | python validate_preregistration.py |
+| Working dir | 0020Q/ |
+| Exit code | 0 |
+| PASS | 59 |
+| FAIL | 0 |
+| SKIP | 0 |
+| Normalized output SHA-256 | 7d2aba7a41f889ba8ee7bc8b0763577f5654ce9be74fe7ad18febe19e017800d |
 
-## Machine Check
+## R3 Evidence Files
 
-| Check | Status |
+| New | Updated |
 |---|---|
-| validator_r2_executed.git_blob_sha1 == GitHub blob at R2 head | AT_HEAD |
-| validator_r2_executed.sha256 == SHA-256 of executed file | AT_HEAD |
+| R3-TWO-HEAD-EVIDENCE-ANCHOR.yaml | FROZEN-MANIFEST.yaml |
+| R3-NORMALIZED-TEST-OUTPUT.txt | AMENDMENT-LOG.yaml |
+| | GIT-BLOB-AND-SHA256-RECEIPT.yaml |
+| | AI_HANDOFF.yaml |
+| | TEST-RUN-RECEIPT.md |
 
 ## Gates
 
-- 8 core files byte-identical to frozen head ✅
-- Core combined hash unchanged ✅
-- P0 provenance + R2 executed validator separately recorded ✅
-- No Codex D0 read ✅
-- No core modified ✅
-- PR Draft ✅
+| Gate | Status |
+|---|---|
+| 8 core byte-identical to frozen head | PASS |
+| tested_head is concrete full SHA | PASS |
+| Validator blob at tested_head == a438921c | PASS |
+| Validator SHA-256 recomputed from tested_head bytes | PASS |
+| PyYAML preinstalled, pip fallback not triggered | PASS |
+| R2 claims superseded not overwritten | PASS |
+| No core or validator modified | PASS |
+| No Codex D0 read | PASS |
+| PR Draft | PASS |
 
 ## Safety
 
-- PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE
+PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE

@@ -1,14 +1,13 @@
-﻿# AI_HANDOFF (R2)
-# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-R2
-# Validator provenance + final-head receipt closure
-# Updated: 2026-07-24T06:30+08:00
+# AI_HANDOFF (R3)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-R3
+# Exact two-head evidence closure. R2 claims superseded.
 
-schema_version: "3.0"
-handoff_id: "QCLAW-0020Q-R2-HANDOFF-001"
-task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R2"
-phase: "R2_VALIDATOR_AND_HEAD_RECEIPT_CLOSURE"
+schema_version: "4.0"
+handoff_id: "QCLAW-0020Q-R3-HANDOFF-001"
+task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q-R3"
+phase: "R3_EXACT_TWO_HEAD_EVIDENCE_CLOSURE"
 status: "CLOSED_AWAITING_GPT_ACCEPTANCE"
-completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
+completion_signal: "QCLAW_0017_D0_R3_EXACT_TWO_HEAD_EVIDENCE_CLOSED_FOR_GPT_REVIEW"
 
 delivery:
   directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
@@ -16,51 +15,62 @@ delivery:
   pull_request: 77
   pr_base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
   frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-  r2_final_head: "AT_HEAD"
+  tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+  receipt_head: "WILL_BE_REPORTED_AFTER_PUSH"
 
 core:
   files: 8
-  total_bytes: 67640
   combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
   all_byte_identical_to_frozen_head: true
 
 validator_p0_provenance:
-  filename: "validate_preregistration.py"
   git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
   sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
   bytes: 9136
   frozen_at: "70ed222e"
 
-validator_r2_executed:
-  filename: "validate_preregistration.py"
-  git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
-  sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
-  bytes: 12644
-  executed_at_commit: "AT_HEAD"
-  result: "59/59 PASS, exit 0"
+validator_at_tested_head:
+  git_blob_sha1: "a438921cc81475b2561f8a66fb24928ef1f18628"
+  sha256: "1d5f5c2c8bbed6ea13ff77e58d0b338fbf47633a58c33df42480c64aa60ee9e7"
+  bytes: 13024
+  recomputed_from_tested_head: true
+
+test_result:
   python: "3.12.10"
   pyyaml: "6.0.3"
-  working_directory: "0020Q/"
+  pyyaml_preinstalled: true
   command: "python validate_preregistration.py"
+  exit_code: 0
+  pass: 59
+  fail: 0
+  skip: 0
+  normalized_output_sha256: "7d2aba7a41f889ba8ee7bc8b0763577f5654ce9be74fe7ad18febe19e017800d"
 
-machine_check:
-  git_blob_sha1_verified_at_r2_head: "AT_HEAD"
-  sha256_verified_against_local_bytes: "AT_HEAD"
+# ============================================================================
+# SUPERSEDED R2 CLAIMS
+# ============================================================================
+superseded_historical_claim:
+  r2_claimed_validator_blob: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  r2_claimed_sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  r2_claimed_bytes: 12644
+  reason_superseeded: "No validator blob at PR head 8ebb272 matches these values. R3 recomputed from tested_head."
 
-r2_correction:
-  what_was_wrong: "R1 claimed 59/59 PASS but receipts only recorded P0 validator SHA-256, not the executed validator bytes."
-  what_was_done: "Both P0 provenance and R2 executed validator are now separately recorded with Git blob SHA1, SHA-256, bytes, and commit binding."
+r3_correction: |
+  R2 attempted to record validator identity but the recorded values (blob bb68f0ca,
+  SHA-256 a21d65d3, 12644B) do not exist at the concrete PR head 8ebb272. R3 recomputed
+  from tested_head bytes: blob a438921c, SHA-256 1d5f5c2c, 13024B. All active receipts
+  now use R3 values. R2 values are explicitly superseded rather than silently overwritten.
 
 next_state_p1:
-  activation: "GPT_ACCEPTS_R2_AND_CODEX_DELIVERS_D0"
+  activation: "GPT_ACCEPTS_R3_AND_SEPARATELY_RELEASES_P1"
   task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P1"
 
 safety:
   boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
   no_codex_d0_accessed: true
   no_core_modified: true
+  no_validator_modified: true
   no_merge: true
-  no_runtime: true
 
 signed_by: "QCLAW"
-signed_at: "2026-07-24T06:30:00+08:00"
+signed_at: "2026-07-24T07:03:00+08:00"

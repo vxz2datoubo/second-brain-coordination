@@ -1,8 +1,8 @@
-﻿# AMENDMENT-LOG.yaml
-# QCLAW-0017-D0-Audit-Preregistration-0020Q
-# Records P0, R1, R2 phases without editing frozen core.
+# AMENDMENT-LOG.yaml
+# QCLAW-0017-D0-Audit-Preregistration-0020Q-R3
+# Records P0, R1, R2, R3 phases. R2 claims superseded.
 
-schema_version: "2.0"
+schema_version: "3.0"
 task_id: "QCLAW-0017-D0-AUDIT-PREREGISTRATION-0020Q"
 branch: "qclaw/0017-d0-audit-preregistration-0020q"
 pull_request: 77
@@ -23,17 +23,49 @@ amendments:
   - phase: "R2"
     timestamp: "2026-07-24T06:30:00+08:00"
     action: "VALIDATOR_AND_HEAD_RECEIPT_CLOSURE"
-    head: "AT_HEAD"
-    description: "R1 claimed 59/59 but receipts only recorded P0 validator SHA. R2 separately records P0 validator provenance (blob 2a9a927c..., SHA-256 f57c7d2c...) and R2 executed validator (blob bb68f0ca..., SHA-256 a21d65d3...) with Git blob SHA1, SHA-256, bytes, and commit binding. Three canonical heads: base b76b8f84, frozen core 70ed222e, R2 final TBD. 8 core files unchanged."
+    status: "SUPERSEDED_BY_R3"
+    head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+    description: "R1 claimed 59/59 but receipts only recorded P0 validator SHA. R2 attempted to separate P0/R2 validator records."
+    superseeded_because: "R2 receipts recorded validator blob bb68f0ca/SHA-256 a21d65d3/12644B which do not exist at PR head 8ebb272. Actual validator at that head: blob a438921c/SHA-256 1d5f5c2c/13024B."
 
+  - phase: "R3"
+    timestamp: "2026-07-24T07:03:00+08:00"
+    action: "EXACT_TWO_HEAD_EVIDENCE_CLOSURE"
+    tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+    receipt_head: "WILL_BE_REPORTED_AFTER_PUSH"
+    description: "Recomputed validator identity from tested_head bytes: blob a438921c, SHA-256 1d5f5c2c, 13024B. 59/59 PASS exit 0. All R2 identity claims explicitly superseded rather than silently overwritten. No AT_HEAD/TBD/FINAL_HEAD in active R3 evidence."
+
+# ============================================================================
+# SUPERSEDED R2 CLAIMS (preserved for provenance, not active)
+# ============================================================================
+superseded_historical_claim:
+  r2_claimed_validator_blob: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  r2_claimed_sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  r2_claimed_bytes: 12644
+  reason_superseeded: "These values do not match any validator blob at PR head 8ebb272. Likely described intermediate local state. R3 recomputed from tested_head bytes."
+
+# ============================================================================
+# CANONICAL HEADS (R3 active evidence — no AT_HEAD/TBD/FINAL_HEAD)
+# ============================================================================
 canonical_heads:
   pr_base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
   frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-  r2_final_head: "AT_HEAD"
+  tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+  receipt_head: "WILL_BE_REPORTED_AFTER_PUSH"
+
+# ============================================================================
+# R3 VALIDATOR IDENTITY (recomputed from tested_head)
+# ============================================================================
+validator_r3_identity:
+  git_blob_sha1: "a438921cc81475b2561f8a66fb24928ef1f18628"
+  sha256: "1d5f5c2c8bbed6ea13ff77e58d0b338fbf47633a58c33df42480c64aa60ee9e7"
+  bytes: 13024
+  verified_at_tested_head: true
 
 immutable_core_preserved: true
 no_codex_d0_read: true
-completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
+no_validator_modified: true
+completion_signal: "QCLAW_0017_D0_R3_EXACT_TWO_HEAD_EVIDENCE_CLOSED_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 signed_by: "QCLAW"
-signed_at: "2026-07-24T06:30:00+08:00"
+signed_at: "2026-07-24T07:03:00+08:00"

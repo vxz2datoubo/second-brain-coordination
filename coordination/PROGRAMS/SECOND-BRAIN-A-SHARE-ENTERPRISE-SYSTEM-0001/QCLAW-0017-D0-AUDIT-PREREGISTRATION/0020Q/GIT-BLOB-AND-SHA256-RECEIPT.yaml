@@ -1,72 +1,65 @@
-﻿# GIT-BLOB-AND-SHA256-RECEIPT.yaml
-# QCLAW-0017-D0-Audit-Preregistration-0020Q-R2
-# R2: Validator provenance + final-head receipt closure
-# Date: 2026-07-24T06:30+08:00
-# Machine: WIN-VMQ5E1RGQNV, Windows 10.0.22631, PowerShell 5.1
+# GIT-BLOB-AND-SHA256-RECEIPT.yaml
+# QCLAW-0017-D0-Audit-Preregistration-0020Q-R3
+# Exact two-head evidence closure. R2 claims superseded.
+# Machine: WIN-VMQ5E1RGQNV, Windows 10.0.22631
 
-schema_version: "2.0"
-receipt_id: "QCLAW-0020Q-R2-GIT-BLOB-AND-SHA256-002"
+schema_version: "3.0"
+receipt_id: "QCLAW-0020Q-R3-GIT-BLOB-AND-SHA256-003"
 repository: "vxz2datoubo/second-brain-coordination"
 branch: "qclaw/0017-d0-audit-preregistration-0020q"
 pull_request: 77
 
-# Head references
+# ============================================================================
+# CANONICAL HEADS — concrete SHAs, no AT_HEAD
+# ============================================================================
 pr_base: "b76b8f846b446f0144e8afa12f4ef08d12e09bd7"
 frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-r2_final_head: "AT_HEAD"  # will be filled after push
+tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+receipt_head: "WILL_BE_REPORTED_AFTER_PUSH"
 
 # ============================================================================
-# IMMUTABLE CORE FILES — Byte-identical to frozen_core_head 70ed222e
+# IMMUTABLE CORE FILES — byte-identical to frozen_core_head 70ed222e
 # ============================================================================
-
 immutable_core_files:
   - filename: "BAR-ONLY-SCOPE-GUARD.yaml"
     git_blob_sha1: "e362e269593369501dd5d4ed49511312a8b20c77"
     sha256: "720c022221b5052efde954f44e93a3ce14195145667bc77e2832b151f7a1fe79"
     bytes: 9509
-    frozen_at: "70ed222e"
 
   - filename: "D0-AUDIT-QUESTION-FREEZE.yaml"
     git_blob_sha1: "f615a389bc09f0fd90215d06721a7da0aa17f7d7"
     sha256: "c2e695e41d362facaf929221f5c8082ceec2d75e4d36be7e4a06fb361bfa84ba"
     bytes: 24950
-    frozen_at: "70ed222e"
 
   - filename: "D0-SCORING-RUBRIC-FREEZE.yaml"
     git_blob_sha1: "42a205e0f2847484b0c1931db1b52fd837af836d"
     sha256: "1e8cd67fd61a1820fc8d0da67c031062bb84d43f369b8e927252dff7ee0e0066"
     bytes: 3555
-    frozen_at: "70ed222e"
 
   - filename: "EVIDENCE-REQUIREMENT-MATRIX.yaml"
     git_blob_sha1: "204f2b6bf7a47f7612209736832b3ca5883b4cfa"
     sha256: "0054673b2ad0784f6e0401c58d06b386ab2ac8248a251482eb130e26be81323f"
     bytes: 7046
-    frozen_at: "70ed222e"
 
   - filename: "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
     git_blob_sha1: "02ceeed24c5a69112fc280ffc5a4e9d330f79af6"
     sha256: "ab57bac9a76b81e5b9428b884154423b489d6b7eb346cdfe5dc1ddd42cb59ca8"
     bytes: 7021
-    frozen_at: "70ed222e"
 
   - filename: "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
     git_blob_sha1: "7a416772a3dc75177769d5a09372d8e33fdf1150"
     sha256: "a6a24b5d6dd4f6dec60dd6fabb4bd6405253090f0bcac64c96f91278e82ae0ce"
     bytes: 5260
-    frozen_at: "70ed222e"
 
   - filename: "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
     git_blob_sha1: "968d841ca6beb19554b7831f2b7e21c96ee1c420"
     sha256: "7575edd7a4fce8b67a841c56d957b0622832984b5ab773dd93b0082abd04c5a7"
     bytes: 5664
-    frozen_at: "70ed222e"
 
   - filename: "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
     git_blob_sha1: "29603057f0a90d8eebba3dbbf799cd667b5f0f3f"
     sha256: "9a2287f7dce68f90d735d3cbfae0f3d1e942867a3e0e27e2ca69414a6c01956f"
     bytes: 4635
-    frozen_at: "70ed222e"
 
 immutable_core_summary:
   total_files: 8
@@ -74,55 +67,65 @@ immutable_core_summary:
   all_byte_identical_to_frozen_head: true
 
 # ============================================================================
-# CORE COMBINED HASH (unchanged from R1)
+# CORE COMBINED HASH
 # ============================================================================
-
 core_combined_hash:
   algorithm: "SHA-256"
-  method: "SHA-256 of concatenated SHA-256 hex digests of 8 core files sorted by filename"
   value: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
-  validated_r2: true
 
 # ============================================================================
-# VALIDATOR PROVENANCE — P0 (frozen at head 70ed222e)
+# VALIDATOR P0 PROVENANCE (frozen)
 # ============================================================================
-
 validator_p0_provenance:
-  filename: "validate_preregistration.py"
   git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
   sha256: "f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e"
   bytes: 9136
   frozen_at: "70ed222e"
-  note: "P0 validator at frozen core head. NOT the currently executed validator."
 
 # ============================================================================
-# VALIDATOR EXECUTED — R2 (current draft, after R1 remediation)
+# VALIDATOR AT TESTED HEAD — recomputed from Git bytes, NOT copied from R2
 # ============================================================================
-
-validator_r2_executed:
-  filename: "validate_preregistration.py"
-  git_blob_sha1: "bb68f0caba3b403d676184c3e3d260f40155130e"
-  sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
-  bytes: 12644
-  executed_at_commit: "AT_HEAD"
-  note: "Current executed validator (R1-updated). 59/59 PASS, exit 0, Python 3.12.10, PyYAML 6.0.3."
+validator_at_tested_head:
+  git_blob_sha1: "a438921cc81475b2561f8a66fb24928ef1f18628"
+  sha256: "1d5f5c2c8bbed6ea13ff77e58d0b338fbf47633a58c33df42480c64aa60ee9e7"
+  bytes: 13024
+  recomputed: true
+  verified_against_git: true
 
 # ============================================================================
-# MACHINE VERIFICATION
+# TEST EXECUTION
 # ============================================================================
+test_execution:
+  python: "3.12.10"
+  pyyaml: "6.0.3"
+  pyyaml_preinstalled: true
+  pip_install_fallback_triggered: false
+  working_directory: "0020Q/"
+  command: "python validate_preregistration.py"
+  start_time: "2026-07-24T07:03:02+08:00"
+  end_time: "2026-07-24T07:03:04+08:00"
+  exit_code: 0
+  pass_count: 59
+  fail_count: 0
+  skip_count: 0
 
-machine_check:
-  type: "blob_sha1_vs_git_remote_and_sha256_vs_local_bytes"
-  status: "AT_HEAD"
-  command: >-
-    (Git blob SHA1 == GitHub blob SHA1 at R2 final head)
-    AND (SHA-256 == SHA-256 of local file bytes)
-    AND (core_combined_hash == bf029d13...)
+normalized_output:
+  filename: "R3-NORMALIZED-TEST-OUTPUT.txt"
+  sha256: "7d2aba7a41f889ba8ee7bc8b0763577f5654ce9be74fe7ad18febe19e017800d"
+  bytes: 4351
+
+# ============================================================================
+# SUPERSEDED R2 CLAIMS — preserved for provenance, NOT active evidence
+# ============================================================================
+superseded_historical_claim:
+  r2_claimed_validator_blob: "bb68f0caba3b403d676184c3e3d260f40155130e"
+  r2_claimed_sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
+  r2_claimed_bytes: 12644
+  reason_superseeded: "No validator blob at PR head 8ebb272 matches these values."
 
 # ============================================================================
 # ENVIRONMENT
 # ============================================================================
-
 environment:
   os: "Windows 10.0.22631"
   hostname: "WIN-VMQ5E1RGQNV"
@@ -132,5 +135,7 @@ environment:
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 no_codex_d0_accessed: true
+no_core_modified: true
+no_validator_modified: true
 signed_by: "QCLAW"
-signed_at: "2026-07-24T06:30:00+08:00"
+signed_at: "2026-07-24T07:03:00+08:00"
