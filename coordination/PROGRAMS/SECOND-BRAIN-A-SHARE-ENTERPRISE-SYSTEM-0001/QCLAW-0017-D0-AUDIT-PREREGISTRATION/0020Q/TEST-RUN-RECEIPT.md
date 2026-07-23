@@ -18,7 +18,7 @@
 |---|---|
 | PR base | b76b8f846b446f0144e8afa12f4ef08d12e09bd7 |
 | Frozen core | 70ed222e279568b7370af62df5bb23b79201ee45 |
-| R2 final | 5a1030dc4b268bf2decdf9fabd1844553a210711 |
+| R2 final | AT_HEAD |
 
 ## Immutable Core — byte-identical to frozen head 70ed222e
 
@@ -31,7 +31,7 @@ All 8 files verified. Core combined hash: `bf029d13dba2e6bc054e9b452a5d799290584
 | Git blob SHA1 | 2a9a927cf35ae0f736f93d29291e7345e9f9a997 | bb68f0caba3b403d676184c3e3d260f40155130e |
 | SHA-256 | f57c7d2c... | a21d65d3b... |
 | Bytes | 9136 | 12644 |
-| Frozen at | 70ed222e | 5a1030dc4b268bf2decdf9fabd1844553a210711 |
+| Frozen at | 70ed222e | AT_HEAD |
 
 ## Validation Result
 
@@ -54,8 +54,8 @@ All 8 files verified. Core combined hash: `bf029d13dba2e6bc054e9b452a5d799290584
 
 | Check | Status |
 |---|---|
-| validator_r2_executed.git_blob_sha1 == GitHub blob at R2 head | 5a1030dc4b268bf2decdf9fabd1844553a210711 |
-| validator_r2_executed.sha256 == SHA-256 of executed file | 5a1030dc4b268bf2decdf9fabd1844553a210711 |
+| validator_r2_executed.git_blob_sha1 == GitHub blob at R2 head | AT_HEAD |
+| validator_r2_executed.sha256 == SHA-256 of executed file | AT_HEAD |
 
 ## Gates
 
