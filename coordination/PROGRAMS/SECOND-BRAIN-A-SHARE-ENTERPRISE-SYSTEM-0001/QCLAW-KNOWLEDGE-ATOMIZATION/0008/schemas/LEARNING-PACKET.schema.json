@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/learning-packet-v1",
+  "title": "Learning Packet",
+  "description": "The canonical output format for atomization runs. Compatible with Phase 3 offline memory runtime (PR #57). Contains atoms, relations, conflicts, unknowns, and source manifest in a deterministic, hashable bundle.",
+  "type": "object",
+  "required": [
+    "packet_id", "packet_version", "created_at",
+    "digest_run_id", "atoms", "relations",
+    "source_manifest", "packet_hash"
+  ],
+  "properties": {
+    "packet_id": {
+      "type": "string",
+      "pattern": "^PKT-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic packet ID."
+    },
+    "packet_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "packet_label": {"type": "string", "maxLength": 200},
+    "description": {"type": "string", "maxLength": 2000},
+    "created_at": {"type": "string", "format": "date-time"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "atoms": {
+      "type": "array",
+      "items": {"$ref": "knowledge-atom-v1"},
+      "minItems": 0
+    },
+    "relations": {
+      "type": "array",
+      "items": {"$ref": "knowledge-relation-v1"},
+      "minItems": 0
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {"$ref": "knowledge-conflict-v1"},
+      "minItems": 0
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {"$ref": "knowledge-unknown-v1"},
+      "minItems": 0
+    },
+    "skills": {
+      "type": "array",
+      "items": {"$ref": "knowledge-skill-v1"},
+      "minItems": 0
+    },
+    "structures": {
+      "type": "array",
+      "items": {"$ref": "knowledge-structure-v1"},
+      "minItems": 0
+    },
+    "source_manifest": {
+      "type": "array",
+      "items": {"$ref": "knowledge-source-manifest-v1"},
+      "minItems": 1
+    },
+    "secret_scan_receipts": {
+      "type": "array",
+      "items": {"$ref": "secret-scan-receipt-v1"}
+    },
+    "decisions": {
+      "type": "array",
+      "items": {"$ref": "atomization-decision-v1"}
+    },
+    "quality_report": {"$ref": "quality-gate-report-v1"},
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "atom_count": {"type": "integer", "minimum": 0},
+        "relation_count": {"type": "integer", "minimum": 0},
+        "conflict_count": {"type": "integer", "minimum": 0},
+        "unknown_count": {"type": "integer", "minimum": 0},
+        "skill_count": {"type": "integer", "minimum": 0},
+        "structure_count": {"type": "integer", "minimum": 0},
+        "source_count": {"type": "integer", "minimum": 0},
+        "total_chars": {"type": "integer", "minimum": 0},
+        "atom_types": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "confidence_distribution": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        },
+        "quality_gate_passes": {"type": "integer", "minimum": 0},
+        "quality_gate_warnings": {"type": "integer", "minimum": 0},
+        "quality_gate_failures": {"type": "integer", "minimum": 0}
+      }
+    },
+    "packet_hash": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$",
+      "description": "SHA-256 of canonical content. Excludes created_at and updated_at. Same semantic input = same hash."
+    },
+    "previous_packet_id": {"type": "string", "pattern": "^PKT-[A-Fa-f0-9]{8}$"},
+    "parent_program": {"type": "string", "maxLength": 200},
+    "phase": {"type": "integer", "minimum": 1},
+    "task_id": {"type": "string", "maxLength": 200},
+    "boundary": {"type": "string", "maxLength": 200},
+    "transport_visibility": {
+      "type": "string",
+      "enum": ["PUBLIC_ALLOWED", "RESTRICTED", "PRIVATE_BOUNDARY_ONLY"]
+    },
+    "gpt_access": {
+      "type": "string",
+      "enum": ["FULL_SEMANTIC_ACCESS", "METADATA_ONLY", "REDACTED_ACCESS"]
+    },
+    "research_only": {"type": "boolean", "default": true},
+    "NO_TRADE": {"type": "boolean", "default": true}
+  },
+  "additionalProperties": false
+}

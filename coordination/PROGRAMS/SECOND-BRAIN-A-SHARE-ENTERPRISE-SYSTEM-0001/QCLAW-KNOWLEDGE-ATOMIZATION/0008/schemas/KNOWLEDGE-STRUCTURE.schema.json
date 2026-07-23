@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-structure-v1",
+  "title": "Knowledge Structure",
+  "description": "A hierarchical or organizational grouping of atoms. Supports taxonomies, concept maps, topic trees, decision trees, and pipelines.",
+  "type": "object",
+  "required": [
+    "structure_id", "structure_name", "structure_type",
+    "created_at", "digest_run_id"
+  ],
+  "properties": {
+    "structure_id": {
+      "type": "string",
+      "pattern": "^STR-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'STR-' + SHA256(structure_name + structure_type)[:8]."
+    },
+    "structure_name": {"type": "string", "maxLength": 200},
+    "structure_type": {
+      "type": "string",
+      "enum": [
+        "TAXONOMY", "CONCEPT_MAP", "TOPIC_TREE",
+        "DECISION_TREE", "PIPELINE", "WORKFLOW",
+        "STATE_MACHINE", "LAYER", "COMPONENT_HIERARCHY",
+        "DEPENDENCY_GRAPH", "SEQUENCE", "GROUP"
+      ]
+    },
+    "description": {"type": "string", "maxLength": 2000},
+    "root_element": {
+      "type": "object",
+      "properties": {
+        "element_type": {"type": "string", "enum": ["atom", "skill", "structure", "unknown", "label"]},
+        "reference_id": {"type": "string"},
+        "label": {"type": "string", "maxLength": 200}
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["order", "element_type"],
+        "properties": {
+          "order": {"type": "integer", "minimum": 0},
+          "element_type": {"type": "string", "enum": ["atom", "skill", "structure", "unknown", "label", "separator"]},
+          "reference_id": {"type": "string"},
+          "label": {"type": "string", "maxLength": 200},
+          "description": {"type": "string", "maxLength": 1000},
+          "relation_to_parent": {"type": "string", "maxLength": 100},
+          "children": {
+            "type": "array",
+            "items": {"$ref": "#/properties/elements/items"}
+          }
+        }
+      }
+    },
+    "cross_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "from_order": {"type": "integer"},
+          "to_order": {"type": "integer"},
+          "relation_type": {"type": "string", "maxLength": 100},
+          "description": {"type": "string", "maxLength": 500}
+        }
+      }
+    },
+    "domain": {"type": "string", "maxLength": 200},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "knowledge_status": {"type": "string", "enum": ["candidate", "active", "superseded", "deprecated"]}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,145 @@
+# ============================================================================
+# ATOM TYPE TAXONOMY
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+
+# Atom Type Taxonomy
+
+## Foundational Types
+
+- **FACT**: Empirically verified statement with strong evidence and high confidence.
+  Example: "The freezing point of pure water at 1 atm is 0°C."
+
+- **OBSERVATION**: Recorded observation, potentially unverified or single-instance.
+  Example: "In experiment run #3, the system latency was 245ms."
+
+- **CLAIM**: Asserted statement that may or may not be verified. Lower confidence than FACT.
+  Example: "The author claims that transformer-based models outperform LSTM for trajectory prediction."
+
+- **HYPOTHESIS**: Proposed explanation or prediction awaiting verification.
+  Example: "If salinity exceeds 35 PSU, 1550nm LiDAR attenuation will increase exponentially."
+
+## Logical and Structural Types
+
+- **CAUSAL_CLAIM**: Assertion that A causes B, with specified mechanism and conditions.
+  Example: "Increased salinity causes increased refractive index, which increases LiDAR attenuation."
+
+- **CORRELATION**: Observed statistical association without proven causation.
+  Example: "Vessel speed reduction correlates with fog density (r = -0.73, p < 0.01)."
+
+- **DEFINITION**: Formal definition of a term or concept.
+  Example: "COLREGs Rule 18 defines vessel hierarchy: power-driven < sailing < fishing < CBD < RAM < NUC."
+
+- **CONCEPT**: Abstract idea, framework, or mental model.
+  Example: "The four-axis access model separates knowledge_status, authority_level, gpt_access, and transport_visibility."
+
+- **RULE**: Prescriptive or normative statement.
+  Example: "Authentication secret values must never be stored in public repositories."
+
+- **CONSTRAINT**: Limitation or boundary condition.
+  Example: "The system's maximum supported knowledge base size is 2,000 atoms before performance degradation."
+
+- **CONDITION**: A prerequisite or trigger condition for some other knowledge.
+  Example: "If the vessel is in open ocean and visibility exceeds 5nm, LiDAR-only navigation is sufficient."
+
+- **EXCEPTION**: A case where a general rule or fact does NOT apply.
+  Example: "The LiDAR-only navigation rule does NOT apply when other vessels are within 2nm."
+
+- **FAILURE_CONDITION**: A specific condition under which something fails or breaks.
+  Example: "MEMS IMU drift exceeds safety threshold after 90+ days of continuous operation without recalibration."
+
+- **COUNTEREXAMPLE**: A specific instance that contradicts a general claim.
+  Example: "In the Singapore Strait encounter of 2024-03-15, the ML avoidance system failed COLREGs Rule 18 despite passing all simulation tests."
+
+- **RISK**: A potential negative outcome with probability and impact.
+  Example: "Risk of GPS spoofing attack causing vessel to deviate from planned route: probability LOW, impact CRITICAL."
+
+## Gap and Meta Types
+
+- **UNKNOWN**: Explicitly declared knowledge gap with verification path.
+  Example: "The effect of adaptive jamming on AMNS FHSS communication is unknown. Verification requires SDR jammer testing."
+
+- **QUESTION**: An open question that guides research or investigation.
+  Example: "Can transformer-based trajectory prediction maintain <200ms latency with 20+ simultaneous vessels?"
+
+- **DECISION**: A recorded decision with context and rationale.
+  Example: "Use PR #57 Phase 3 runtime as the sole canonical candidate memory; do not create a second runtime."
+
+- **RATIONALE**: The reasoning behind a decision, claim, or design choice.
+  Example: "QCLAW chosen as atomization architect because candidate knowledge decomposition requires full semantic access without runtime authority."
+
+## Process and Method Types
+
+- **METHOD**: A systematic approach or technique.
+  Example: "Knowledge atomization uses a pipeline: Source → Parse → Decompose → Structure → Quality → Output."
+
+- **PROCEDURE**: A step-by-step process.
+  Example: "To redact secrets from a mixed document: (1) scan for patterns, (2) locate exact positions, (3) replace with REDACTED marker, (4) verify no residual values, (5) generate SecretScanReceipt."
+
+- **SKILL**: A learned capability with prerequisites and outcomes.
+  Example: "Atomization skill requires: source reading, semantic decomposition, relation identification, conflict preservation, and quality verification."
+
+- **CHECKLIST_ITEM**: A single item in a verification or process checklist.
+  Example: "[ ] Verify that no atom's canonical_statement contains credential substrings."
+
+- **CASE**: A specific instance, example, or scenario used for learning or reference.
+  Example: "Case: PR #45 LearningPacket contained atoms without source_hash, requiring PR #46 to add source lineage."
+
+## Measurement and Configuration Types
+
+- **METRIC**: A quantitative measure with definition and interpretation.
+  Example: "recall_at_k measures the fraction of expected atoms returned in the top-K results."
+
+- **PARAMETER**: A configurable value with range, default, and impact.
+  Example: "max_atom_length: 2000 characters. Exceeding this triggers a quality gate warning."
+
+## Source and Authority Types
+
+- **SOURCE_ASSERTION**: A claim about the provenance, reliability, or quality of a source.
+  Example: "PR #57 merge commit 473d0ec passed 255 tests with 0 failures and is the canonical Phase 3 runtime."
+
+- **USER_PREFERENCE**: An explicit user preference or choice.
+  Example: "User prefers public GitHub as primary storage target for all non-secret knowledge."
+
+- **USER_CORRECTION**: A user-provided correction to previous knowledge.
+  Example: "User correction 2026-07-22: privacy_class does NOT block public storage; storage_targets and transport_visibility are separate fields."
+
+- **TEMPORAL_UPDATE**: A time-bound update to existing knowledge.
+  Example: "As of 2026-07-22, the active QCLAW task changed from 0007 (adversarial evaluation) to 0008 (knowledge atomization)."
+
+## Project and Architecture Types
+
+- **PROJECT_REQUIREMENT**: A formal requirement for a project or system.
+  Example: "The system must produce deterministic atom IDs that are identical across rebuilds."
+
+- **ARCHITECTURE_DECISION**: A recorded architectural decision (ADR-style).
+  Example: "ADR-001: Use SHA-256 for deterministic atom ID generation rather than sequential numbering."
+
+- **FAILURE_LESSON**: A lesson learned from a failure or near-miss.
+  Example: "Lesson: ContextBundle hash drift was caused by including wall-clock timestamps in the semantic hash. Fix: exclude created_at and updated_at."
+
+- **OPPORTUNITY**: A potential improvement or future direction.
+  Example: "Opportunity: Extend atomization to support PDF, DOCX, and HTML formats using format-specific parsers."
+
+## Type Selection Decision Tree
+
+```
+Is this a verifiable statement of fact?
+  ├─ YES → FACT
+  └─ NO
+      ├─ Is it an unverified assertion? → CLAIM
+      ├─ Is it a proposed explanation? → HYPOTHESIS
+      ├─ Is it a recorded observation? → OBSERVATION
+      ├─ Is it a definition? → DEFINITION
+      ├─ Is it a rule or constraint? → RULE / CONSTRAINT
+      ├─ Is it a process or method? → METHOD / PROCEDURE / SKILL
+      ├─ Is it a decision? → DECISION
+      ├─ Is it an unknown gap? → UNKNOWN
+      ├─ Is it a question? → QUESTION
+      ├─ Is it a failure or counterexample? → FAILURE_CONDITION / COUNTEREXAMPLE / FAILURE_LESSON
+      ├─ Is it a risk? → RISK
+      ├─ Is it user input? → USER_PREFERENCE / USER_CORRECTION
+      └─ None of the above → choose the closest match, document in AtomizationDecision
+```

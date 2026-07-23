@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-unknown-v1",
+  "title": "Knowledge Unknown",
+  "description": "An explicit recording of what is NOT known. Must include verification path. UNKNOWN is first-class knowledge and must never be deleted or replaced with fabricated answers.",
+  "type": "object",
+  "required": [
+    "unknown_id",
+    "question",
+    "unknown_type",
+    "what_is_known",
+    "verification_path",
+    "impact_if_unresolved",
+    "created_at",
+    "digest_run_id"
+  ],
+  "properties": {
+    "unknown_id": {
+      "type": "string",
+      "pattern": "^UNK-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'UNK-' + SHA256(question)[:8]."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 1000,
+      "description": "The precise question or knowledge gap."
+    },
+    "unknown_type": {
+      "type": "string",
+      "enum": [
+        "MISSING_DATA",
+        "MISSING_METHOD",
+        "MISSING_VALIDATION",
+        "MISSING_THEORY",
+        "MISSING_CAUSAL_CHAIN",
+        "MISSING_BOUNDARY_CONDITION",
+        "MISSING_SCALE",
+        "MISSING_HISTORICAL_RECORD",
+        "INSUFFICIENT_EVIDENCE",
+        "CONFLICTING_EVIDENCE",
+        "MEASUREMENT_LIMITATION",
+        "ACCESS_RESTRICTED",
+        "FUTURE_EVENT",
+        "DELIBERATELY_WITHHELD",
+        "UNKNOWN_UNKNOWN_ACKNOWLEDGED"
+      ]
+    },
+    "what_is_known": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Surrounding established knowledge that bounds the unknown."
+    },
+    "verification_path": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "How to resolve this unknown: experiment, observation, data collection, expert consultation, etc."
+    },
+    "verification_estimated_effort": {
+      "type": "string",
+      "enum": ["TRIVIAL", "LOW", "MEDIUM", "HIGH", "EXTREME", "CURRENTLY_IMPOSSIBLE"]
+    },
+    "impact_if_unresolved": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Why this matters. What decisions, designs, or safety properties depend on resolving this."
+    },
+    "related_atom_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^AT-[A-Fa-f0-9]{8,12}$"},
+      "description": "Atoms related to or bounded by this unknown."
+    },
+    "resolution_atom_id": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "If resolved, the atom that provided the answer."
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "knowledge_status": {
+      "type": "string",
+      "enum": ["UNKNOWN", "PARTIALLY_RESOLVED", "RESOLVED", "SUPERSEDED"]
+    }
+  },
+  "additionalProperties": false
+}

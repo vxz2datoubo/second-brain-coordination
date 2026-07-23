@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-skill-v1",
+  "title": "Knowledge Skill",
+  "description": "A procedural or methodological knowledge atom. Skills capture how-to knowledge: steps, prerequisites, outcomes, failure modes.",
+  "type": "object",
+  "required": [
+    "skill_id", "skill_name", "skill_type", "description",
+    "steps", "prerequisites", "expected_outcomes",
+    "failure_modes", "created_at", "digest_run_id"
+  ],
+  "properties": {
+    "skill_id": {
+      "type": "string",
+      "pattern": "^SKL-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'SKL-' + SHA256(skill_name + skill_type)[:8]."
+    },
+    "skill_name": {"type": "string", "maxLength": 200},
+    "skill_type": {
+      "type": "string",
+      "enum": ["METHOD", "PROCEDURE", "CHECKLIST", "TECHNIQUE", "HEURISTIC", "WORKFLOW", "PATTERN", "BEST_PRACTICE"]
+    },
+    "description": {"type": "string", "maxLength": 2000},
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["order", "action"],
+        "properties": {
+          "order": {"type": "integer", "minimum": 1},
+          "action": {"type": "string", "maxLength": 1000},
+          "expected_result": {"type": "string", "maxLength": 500},
+          "failure_recovery": {"type": "string", "maxLength": 500},
+          "conditional_on": {"type": "string", "maxLength": 500},
+          "skip_condition": {"type": "string", "maxLength": 500},
+          "estimated_time": {"type": "string"},
+          "required_tools": {"type": "array", "items": {"type": "string"}}
+        }
+      },
+      "minItems": 1
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 500},
+      "description": "What must be true or available before executing this skill."
+    },
+    "expected_outcomes": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 500},
+      "minItems": 1
+    },
+    "failure_modes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["mode", "symptoms", "recovery"],
+        "properties": {
+          "mode": {"type": "string", "maxLength": 500},
+          "symptoms": {"type": "array", "items": {"type": "string", "maxLength": 500}},
+          "recovery": {"type": "string", "maxLength": 1000},
+          "probability": {"type": "string", "enum": ["COMMON", "OCCASIONAL", "RARE", "UNKNOWN"]},
+          "severity": {"type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]}
+        }
+      }
+    },
+    "quality_signals": {
+      "type": "object",
+      "properties": {
+        "signs_of_success": {"type": "array", "items": {"type": "string"}},
+        "signs_of_failure": {"type": "array", "items": {"type": "string"}},
+        "smoke_test": {"type": "string", "maxLength": 500}
+      }
+    },
+    "performance_characteristics": {
+      "type": "object",
+      "properties": {
+        "typical_duration": {"type": "string"},
+        "scalability_limit": {"type": "string"},
+        "resource_consumption": {"type": "string"},
+        "parallelizable": {"type": "boolean"}
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "reference_type": {"type": "string", "enum": ["SOURCE", "TUTORIAL", "DOCUMENTATION", "EXAMPLE", "RELATED_SKILL"]},
+          "reference_id": {"type": "string"},
+          "description": {"type": "string"}
+        }
+      }
+    },
+    "domain": {"type": "string", "maxLength": 200},
+    "subdomain": {"type": "string", "maxLength": 200},
+    "difficulty": {"type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "digest_run_id": {"type": "string", "pattern": "^DIG-[A-Fa-f0-9]{8}$"},
+    "knowledge_status": {"type": "string", "enum": ["candidate", "active", "superseded", "deprecated"]},
+    "superseded_by": {"type": "string", "pattern": "^SKL-[A-Fa-f0-9]{8}$"},
+    "atom_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^AT-[A-Fa-f0-9]{8,12}$"},
+      "description": "KnowledgeAtoms that decompose or support this skill."
+    }
+  },
+  "additionalProperties": false
+}

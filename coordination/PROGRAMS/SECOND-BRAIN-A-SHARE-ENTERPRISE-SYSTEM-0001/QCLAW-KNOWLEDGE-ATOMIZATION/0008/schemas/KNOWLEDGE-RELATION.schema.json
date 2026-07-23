@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain/qclaw/schemas/knowledge-relation-v1",
+  "title": "Knowledge Relation",
+  "description": "A typed relationship between two KnowledgeAtoms. Relations are first-class knowledge entities, not just metadata.",
+  "type": "object",
+  "required": [
+    "relation_id",
+    "relation_type",
+    "source_atom_id",
+    "target_atom_id",
+    "direction",
+    "created_at",
+    "digest_run_id"
+  ],
+  "properties": {
+    "relation_id": {
+      "type": "string",
+      "pattern": "^REL-[A-Fa-f0-9]{8}$",
+      "description": "Deterministic ID: 'REL-' + SHA256(source_atom_id + target_atom_id + relation_type)[:8]."
+    },
+    "relation_type": {
+      "type": "string",
+      "enum": [
+        "SUPPORTS",
+        "CONTRADICTS",
+        "PARTIALLY_CONTRADICTS",
+        "REFINES",
+        "GENERALIZES",
+        "SUPERSEDES",
+        "SUPERSEDED_BY",
+        "CORRECTS",
+        "EXTENDS",
+        "RESTRICTS",
+        "REQUIRES",
+        "PREREQUISITE_OF",
+        "ENABLES",
+        "BLOCKS",
+        "CAUSES",
+        "CORRELATES_WITH",
+        "PREDICTS",
+        "EXCLUDES",
+        "OVERLAPS_WITH",
+        "IS_A",
+        "HAS_A",
+        "PART_OF",
+        "EXAMPLE_OF",
+        "COUNTEREXAMPLE_OF",
+        "DERIVED_FROM",
+        "DEPENDS_ON",
+        "DOCUMENTED_IN",
+        "IMPLEMENTS",
+        "TESTED_BY",
+        "RELATED_TO"
+      ],
+      "description": "30 relation types. Use the most specific type available. Only use RELATED_TO when no more specific type fits."
+    },
+    "source_atom_id": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "The atom from which this relation originates."
+    },
+    "target_atom_id": {
+      "type": "string",
+      "pattern": "^AT-[A-Fa-f0-9]{8,12}$",
+      "description": "The atom to which this relation points."
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["UNIDIRECTIONAL", "BIDIRECTIONAL"],
+      "description": "Whether the relation holds in both directions."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Human-readable explanation of the relationship, especially for RELATED_TO or when the original source relationship doesn't map cleanly."
+    },
+    "original_relation_text": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "The original text from the source that established this relationship."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"],
+      "description": "Confidence that this relationship is correctly identified."
+    },
+    "evidence": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Evidence supporting this relation."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Excluded from semantic hash."
+    },
+    "digest_run_id": {
+      "type": "string",
+      "pattern": "^DIG-[A-Fa-f0-9]{8}$"
+    },
+    "knowledge_status": {
+      "type": "string",
+      "enum": ["active", "superseded", "revoked", "deprecated"]
+    }
+  },
+  "additionalProperties": false
+}

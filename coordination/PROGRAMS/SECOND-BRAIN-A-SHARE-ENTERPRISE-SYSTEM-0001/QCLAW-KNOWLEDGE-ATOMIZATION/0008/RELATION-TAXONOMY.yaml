@@ -1,0 +1,811 @@
+# ============================================================================
+# RELATION TYPE TAXONOMY
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+#
+# Complete taxonomy of all relation types used in the QCLAW KnowledgeAtom system.
+# Each relation defines a typed, directional or bidirectional association between
+# exactly two KnowledgeAtoms. Relations are first-class knowledge entities with
+# deterministic IDs and audit trails.
+#
+# Key definitions:
+#   - directionality: UNIDIRECTIONAL (A→B only) or BIDIRECTIONAL (A↔B)
+#   - cardinality: how many atoms can participate on each end
+#   - semantic_contract: the precise meaning of A-RELATION→B
+#   - inverse: the natural inverse relation (B→A) if it exists
+#   - transitivity: whether A→B ∧ B→C implies A→C
+#   - allowed_atom_types: constraints on which atom types can participate
+
+taxonomy:
+  version: "1.0.0"
+  total_relation_types: 27
+  description: >
+    27 typed relations between KnowledgeAtoms. Use the most specific type
+    available. RELATED_TO is the escape hatch — used only when no more
+    specific type captures the relationship. Each relation carries a
+    deterministic relation_id derived from source_atom_id + target_atom_id +
+    relation_type.
+
+  # ════════════════════════════════════════════════════════════════════
+  # LOGICAL / EVIDENTIAL RELATIONS (7)
+  # ════════════════════════════════════════════════════════════════════
+  relations:
+
+    - id: "REL-TYPE-001"
+      name: "SUPPORTS"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A provides evidence, reasoning, or authority that strengthens the
+        truth value of Atom B. A independently supports B's claim; A's truth
+        is NOT conditional on B.
+      inverse: "SUPPORTED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "FACT"
+          - "OBSERVATION"
+          - "CLAIM"
+          - "RATIONALE"
+          - "CASE"
+          - "SOURCE_ASSERTION"
+        target:
+          - "FACT"
+          - "CLAIM"
+          - "HYPOTHESIS"
+          - "CAUSAL_CLAIM"
+          - "DECISION"
+          - "ARCHITECTURE_DECISION"
+      examples:
+        - "Experimental data (FACT) SUPPORTS → hypothesis that salinity affects LiDAR attenuation (HYPOTHESIS)"
+        - "PR #57 test results (OBSERVATION) SUPPORTS → claim that runtime is stable (CLAIM)"
+      detection_signals:
+        - "supports, confirms, proves, validates, corroborates, is evidence for, demonstrates"
+      anti_pattern: >
+        Do NOT use SUPPORTS when A is a prerequisite for B's truth.
+        Use REQUIRES or PREREQUISITE_OF instead.
+
+    - id: "REL-TYPE-002"
+      name: "CONTRADICTS"
+      directionality: "BIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A and Atom B make mutually incompatible claims about the same
+        subject. Both atoms cannot be simultaneously true under the same scope.
+        This is a first-class conflict that should be recorded in a
+        KnowledgeConflict entry.
+      inverse: "CONTRADICTS"  # self-inverse
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types: "ANY"  # any atom type can contradict another of the same kind
+      examples:
+        - "Atom claims X causes Y; another atom claims X does NOT cause Y"
+        - "Atom asserts value=42; another atom asserts value=43 for same measurement"
+      detection_signals:
+        - "contradicts, conflicts with, is inconsistent with, disproves, refutes, falsifies"
+        - "Semantic analysis: same subject, opposite truth value"
+      anti_pattern: >
+        Do NOT delete or merge conflicting atoms. Both must be preserved with
+        CONTRADICTS relations and a KnowledgeConflict entry. CONFLICT_NOT_RETURNED
+        is a critical failure in adversarial evaluation.
+
+    - id: "REL-TYPE-003"
+      name: "REFINES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        Atom A provides a more precise, detailed, or narrowly-scoped version of
+        the general claim in Atom B. A is a specialization of B. A inherits B's
+        truth conditions but adds specificity.
+      inverse: "REFINED_BY"
+      transitivity: "TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "FACT"
+          - "OBSERVATION"
+          - "CLAIM"
+          - "CONDITION"
+          - "RULE"
+          - "CONSTRAINT"
+        target:
+          - "FACT"
+          - "CLAIM"
+          - "HYPOTHESIS"
+          - "RULE"
+          - "CONCEPT"
+      examples:
+        - "Atom: 'COLREGs Rule 18 hierarchy: power < sailing < fishing < CBD < RAM < NUC' (DEFINITION)
+           REFINES → Atom: 'COLREGs establish vessel priority rules' (CONCEPT)"
+        - "Atom: 'At salinity > 35 PSU and temperature < 10°C, 1550nm LiDAR attenuates at 0.8 dB/m' (FACT)
+           REFINES → Atom: 'Salinity affects 1550nm LiDAR attenuation' (FACT)"
+      detection_signals:
+        - "specifically, more precisely, in particular, namely, that is, i.e."
+
+    - id: "REL-TYPE-004"
+      name: "SUPPLEMENTS"
+      directionality: "BIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A and Atom B provide complementary information about the same subject
+        without overlapping or contradicting. Together they create a more complete
+        picture than either alone. Neither refines, generalizes, nor contradicts
+        the other.
+      inverse: "SUPPLEMENTS"  # self-inverse
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types: "ANY"
+      examples:
+        - "Atom: 'QCLAW produces LearningPackets' (FACT) + 'Codex ingests LearningPackets' (FACT)
+           → SUPPLEMENTS each other (both describe the pipeline from different perspectives)"
+      detection_signals:
+        - Automatically inferred when two atoms share subject but differ in aspect
+          without refinement, contradiction, or generalization relationship
+
+    - id: "REL-TYPE-005"
+      name: "EXPLAINS"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A provides the mechanism, reasoning, or causal chain that explains
+        WHY Atom B is true or HOW Atom B works. A answers the "why" question for B.
+      inverse: "EXPLAINED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "RATIONALE"
+          - "CAUSAL_CLAIM"
+          - "DEFINITION"
+          - "CONCEPT"
+          - "FACT"
+          - "METHOD"
+        target:
+          - "FACT"
+          - "CLAIM"
+          - "OBSERVATION"
+          - "RULE"
+          - "ARCHITECTURE_DECISION"
+          - "DECISION"
+      examples:
+        - "Atom: 'SHA-256 was chosen for ID generation to ensure deterministic reproducibility' (RATIONALE)
+           EXPLAINS → Atom: 'QCLAW uses SHA-256 for deterministic atom IDs' (ARCHITECTURE_DECISION)"
+      detection_signals:
+        - "because, the reason is, this is because, explains why, the mechanism is"
+
+    - id: "REL-TYPE-006"
+      name: "CAUSES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A describes a phenomenon, event, or condition that produces, triggers,
+        or directly results in the phenomenon described by Atom B. This is a STRONG
+        causal claim requiring explicit causal evidence in the source. Do NOT use
+        for correlation.
+      inverse: "CAUSED_BY"
+      transitivity: "TRANSITIVE_WITH_CAVEATS"  # causal chains are transitive but often lose force
+      allowed_atom_types:
+        source:
+          - "CAUSAL_CLAIM"
+          - "FACT"
+          - "OBSERVATION"
+          - "CONDITION"
+        target:
+          - "FACT"
+          - "OBSERVATION"
+          - "CAUSAL_CLAIM"
+          - "RISK"
+          - "FAILURE_CONDITION"
+      examples:
+        - "Atom: 'Increased water salinity' (CONDITION) CAUSES → Atom: 'increased refractive index' (FACT)
+           ONLY if source explicitly states causal mechanism"
+      detection_signals:
+        - "causes, leads to, results in, triggers, produces, induces, brings about"
+      anti_pattern: >
+        Do NOT use CAUSES when source only implies correlation. Use CORRELATES_WITH.
+        Quality gate QG-ATOM-008 catches causality overreach.
+
+    - id: "REL-TYPE-007"
+      name: "CORRELATES_WITH"
+      directionality: "BIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A and Atom B describe phenomena that are statistically associated.
+        Changes in one are accompanied by changes in the other. No causal direction
+        is asserted. The relationship may be spurious, mediated by a third variable,
+        or genuinely causal (but not proven).
+      inverse: "CORRELATES_WITH"  # self-inverse
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "OBSERVATION"
+          - "FACT"
+          - "CORRELATION"
+        target:
+          - "OBSERVATION"
+          - "FACT"
+          - "CORRELATION"
+      examples:
+        - "Atom: 'Vessel speed reduction' CORRELATES_WITH → Atom: 'fog density (r = -0.73, p < 0.01)'"
+      detection_signals:
+        - "correlates with, is associated with, varies with, tracks with, is linked to"
+
+  # ════════════════════════════════════════════════════════════════════
+  # DEPENDENCY RELATIONS (5)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-008"
+      name: "DEPENDS_ON"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A's truth, validity, or applicability depends on Atom B being true
+        or valid. If B is revoked or superseded, A must be reevaluated. This is
+        a soft dependency — A can still be considered while noting B as unverified.
+      inverse: "DEPENDED_UPON_BY"
+      transitivity: "TRANSITIVE"
+      allowed_atom_types: "ANY"
+      examples:
+        - "Atom: 'QCLAW pipeline stage quality gate thresholds depend on the QUALITY-GATES.yaml definitions' (FACT)
+           DEPENDS_ON → Atom: 'Quality gates are defined in QUALITY-GATES.yaml' (FACT)"
+      detection_signals:
+        - "depends on, relies on, is contingent on, is based on, presupposes"
+
+    - id: "REL-TYPE-009"
+      name: "REQUIRES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A is only valid, true, or executable when Atom B holds. This is a
+        STRONG dependency — B is a necessary condition for A. Unlike DEPENDS_ON,
+        REQUIRES implies that A cannot be evaluated or applied without B.
+      inverse: "REQUIRED_BY"
+      transitivity: "TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "PROCEDURE"
+          - "METHOD"
+          - "SKILL"
+          - "RULE"
+          - "CONSTRAINT"
+          - "FACT"
+          - "CONDITION"
+        target:
+          - "CONDITION"
+          - "FACT"
+          - "RULE"
+          - "CONSTRAINT"
+          - "DEFINITION"
+      examples:
+        - "Atom: 'The LiDAR-only navigation procedure' (PROCEDURE) REQUIRES →
+           Atom: 'visibility exceeds 5nm and no vessels within 2nm' (CONDITION)"
+        - "Atom: 'Secret scan stage' (PROCEDURE) REQUIRES →
+           Atom: 'Source has been ingested and parsed' (CONDITION)"
+      detection_signals:
+        - "requires, needs, must have, prerequisite is, only if, necessary condition"
+
+    - id: "REL-TYPE-010"
+      name: "HAS_CONDITION"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        Atom A's truth is conditional on the situation described by Atom B.
+        A is true WHEN B holds. If B does not hold, A is not asserted.
+        This is a specific form of REQUIRES used for conditional knowledge.
+      inverse: "CONDITION_FOR"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source: "ANY"  # any atom type can have conditions
+        target:
+          - "CONDITION"
+      examples:
+        - "Atom: 'QCLAW uses public GitHub as default storage target' (RULE) HAS_CONDITION →
+           Atom: 'Unless user specifies otherwise' (CONDITION)"
+      detection_signals:
+        - "if, when, provided that, assuming, in case of, on condition that"
+
+    - id: "REL-TYPE-011"
+      name: "HAS_EXCEPTION"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        Atom A is generally true, but does NOT apply in the situation described
+        by Atom B. B is an exception that limits A's scope. The exception is
+        valuable knowledge — removing it creates a false assertion.
+      inverse: "EXCEPTION_TO"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source: "ANY"
+        target:
+          - "EXCEPTION"
+      examples:
+        - "Atom: 'All knowledge is stored on public GitHub by default' (RULE) HAS_EXCEPTION →
+           Atom: 'Credential and financial secret values are never stored publicly' (EXCEPTION)"
+      detection_signals:
+        - "except, unless, but not, excluding, other than, with the exception of"
+
+    - id: "REL-TYPE-012"
+      name: "FAILS_WHEN"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        The method, procedure, rule, or system described by Atom A fails or breaks
+        under the condition described by Atom B. Knowing failure conditions is often
+        more valuable than knowing success conditions.
+      inverse: "CAUSES_FAILURE_OF"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "PROCEDURE"
+          - "METHOD"
+          - "SKILL"
+          - "SYSTEM"   # via RULE or CONSTRAINT
+          - "FACT"
+        target:
+          - "FAILURE_CONDITION"
+      examples:
+        - "Atom: 'MEMS IMU provides reliable orientation data' (FACT) FAILS_WHEN →
+           Atom: '> 90 days continuous operation without recalibration' (FAILURE_CONDITION)"
+      detection_signals:
+        - "fails when, breaks when, fails if, stops working when, is unreliable when"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STRUCTURAL / TAXONOMIC RELATIONS (3)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-013"
+      name: "PART_OF"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        Atom A is a constituent component, sub-system, or element of the larger
+        entity or concept described by Atom B. A is a proper part of B; B is a
+        whole that contains A.
+      inverse: "HAS_PART"
+      transitivity: "TRANSITIVE"  # if A PART_OF B and B PART_OF C, then A PART_OF C
+      allowed_atom_types:
+        source: "ANY"
+        target:
+          - "CONCEPT"
+          - "METHOD"
+          - "PROCEDURE"
+          - "SKILL"
+          - "DEFINITION"
+      examples:
+        - "Atom: 'Quality gate QG-ATOM-001: atom_length_too_short' (RULE) PART_OF →
+           Atom: 'Quality gate system defined in QUALITY-GATES.yaml' (CONCEPT)"
+        - "Atom: 'Secret scanning stage' (PROCEDURE) PART_OF →
+           Atom: 'QCLAW 8-stage atomization pipeline' (CONCEPT)"
+      detection_signals:
+        - "is part of, is a component of, belongs to, is a sub-element of, is contained in"
+
+    - id: "REL-TYPE-014"
+      name: "INSTANCE_OF"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        Atom A is a specific instance, example, or concrete occurrence of the
+        general category, type, or class described by Atom B. A instantiates B.
+      inverse: "HAS_INSTANCE"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "CASE"
+          - "OBSERVATION"
+          - "COUNTEREXAMPLE"
+          - "FAILURE_LESSON"
+        target:
+          - "CONCEPT"
+          - "DEFINITION"
+          - "RULE"
+          - "METHOD"
+          - "PATTERN"   # via CONCEPT
+      examples:
+        - "Atom: 'PR #45 LearningPacket lacked source_hash' (CASE) INSTANCE_OF →
+           Atom: 'Source lineage anti-pattern' (CONCEPT)"
+      detection_signals:
+        - "is an example of, is an instance of, is a case of, exemplifies, illustrates"
+
+    - id: "REL-TYPE-015"
+      name: "APPLIES_TO"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        The rule, constraint, method, or principle described by Atom A is applicable
+        to the domain, system, or situation described by Atom B. B is the scope or
+        context where A is relevant.
+      inverse: "GOVERNED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "RULE"
+          - "CONSTRAINT"
+          - "METHOD"
+          - "PROCEDURE"
+          - "PRINCIPLE"  # via RULE
+          - "DEFINITION"
+        target:
+          - "CONCEPT"
+          - "DEFINITION"
+          - "SYSTEM"     # via CONCEPT
+      examples:
+        - "Atom: 'privacy_class does NOT control storage' (RULE) APPLIES_TO →
+           Atom: 'Six-field knowledge access model' (CONCEPT)"
+      detection_signals:
+        - "applies to, is relevant to, governs, pertains to, is applicable to, covers"
+
+  # ════════════════════════════════════════════════════════════════════
+  # PROVENANCE / LINEAGE RELATIONS (4)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-016"
+      name: "DERIVED_FROM"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        Atom A was synthesized, inferred, or logically derived from the content
+        of Atom B. A was not directly stated in any source but was produced by
+        reasoning over B. This is distinct from QUOTES (direct extraction).
+      inverse: "SOURCE_FOR"
+      transitivity: "TRANSITIVE"
+      allowed_atom_types: "ANY"
+      examples:
+        - "Atom: 'The 6-field model has 4×3×3×2=72 possible theoretical combinations' (FACT)
+           DERIVED_FROM → Atom: 'Four-axis access model separates knowledge_status, authority_level, gpt_access, transport_visibility' (CONCEPT)"
+      detection_signals:
+        - "derived from, inferred from, synthesized from, calculated from, deduced from"
+
+    - id: "REL-TYPE-017"
+      name: "QUOTES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        Atom A is a direct extraction or near-verbatim quote from the source
+        content represented by Atom B. The canonical_statement preserves the
+        original source wording. No synthesis or inference was applied.
+      inverse: "QUOTED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types: "ANY"  # any atom type can be a direct quote
+      examples:
+        - "Atom: direct quote from Issue #59 comment (USER_CORRECTION) QUOTES →
+           Atom: summary of Issue #59 (RATIONALE)"
+      detection_signals:
+        - Direct copy from source to canonical_statement, marked as extraction
+          rather than synthesis
+
+    - id: "REL-TYPE-018"
+      name: "UPDATES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-one"
+      semantic_contract: >
+        Atom A is a newer version of Atom B that has been revised but does not
+        change the core truth value. An update corrects details, clarifies wording,
+        or adds metadata without changing the fundamental claim.
+      inverse: "UPDATED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types: "ANY"
+      examples:
+        - "Atom: 'The pipeline has 9 stages as of v1.1' (FACT) UPDATES →
+           Atom: 'The pipeline has 8 stages in v1.0' (FACT)
+           Note: if the update changes the truth value, use SUPERSEDES instead"
+      detection_signals:
+        - "updated, revised, corrected details in, clarified wording of"
+
+    - id: "REL-TYPE-019"
+      name: "REPLACES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-one"
+      semantic_contract: >
+        Atom A replaces Atom B as the current authoritative version. This is a
+        design or architecture replacement, not a truth-value correction.
+        REPLACES is appropriate for design evolution; SUPERSEDES is for knowledge
+        correction.
+      inverse: "REPLACED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        - "ARCHITECTURE_DECISION"
+        - "DECISION"
+        - "METHOD"
+        - "PROCEDURE"
+        - "DESIGN"     # via DECISION
+      examples:
+        - "Atom: 'Issue #59 supersedes Issue #38 as the active QCLAW task' (DECISION)
+           REPLACES → Atom: 'Issue #38 is the active QCLAW task' (TEMPORAL_UPDATE)"
+      detection_signals:
+        - "replaces, substituted by, changed to, switched from, replaced by"
+
+    - id: "REL-TYPE-020"
+      name: "SUPERSEDES"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-one"
+      semantic_contract: >
+        Atom A renders Atom B obsolete because A contains more accurate, more
+        complete, or corrected knowledge. B's truth value was wrong or incomplete.
+        B is preserved (knowledge_status='superseded') but A is now the authoritative
+        version. The version chain is mandatory: A.supersedes = B.atom_id and
+        B.superseded_by = A.atom_id.
+      inverse: "SUPERSEDED_BY"
+      transitivity: "TRANSITIVE"  # A supersedes B, B supersedes C → A supersedes C
+      allowed_atom_types: "ANY"
+      examples:
+        - "User correction atom SUPERSEDES → original atom that had wrong privacy_class behavior"
+        - "v2.0 atom with corrected data SUPERSEDES → v1.0 atom with erroneous data"
+      detection_signals:
+        - "supersedes, overrides, replaces with corrected version, obsoletes"
+      anti_pattern: >
+        Do NOT delete superseded atoms. They must be preserved with
+        knowledge_status='superseded' and a SUPERSEDES chain.
+
+  # ════════════════════════════════════════════════════════════════════
+  # GAP / UNKNOWN RELATIONS (4)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-021"
+      name: "RESOLVES_UNKNOWN"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-one"
+      semantic_contract: >
+        Atom A provides the answer, data, or evidence that resolves a previously
+        documented unknown represented by Atom B. The unknown's knowledge_status
+        changes from UNKNOWN to RESOLVED.
+      inverse: "RESOLVED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "FACT"
+          - "OBSERVATION"
+          - "CLAIM"
+          - "DEFINITION"
+          - "RATIONALE"
+        target:
+          - "UNKNOWN"
+      examples:
+        - "Atom: 'PR #57 merge hash is 473d0ec' (FACT) RESOLVES_UNKNOWN →
+           Atom: 'What is the exact merge commit hash for PR #57?' (UNKNOWN)"
+      detection_signals:
+        - "This atom answers the question posed by the UNKNOWN atom"
+
+    - id: "REL-TYPE-022"
+      name: "RAISES_UNKNOWN"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        Atom A introduces or highlights a knowledge gap, uncertainty, or open
+        question represented by Atom B. The source or content of A explicitly
+        or implicitly identifies that something is unknown.
+      inverse: "RAISED_BY"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source: "ANY"
+        target:
+          - "UNKNOWN"
+          - "QUESTION"
+      examples:
+        - "Atom: 'The system supports Markdown, TXT, JSON, JSONL, YAML formats' (FACT) RAISES_UNKNOWN →
+           Atom: 'Does the system support PDF and DOCX formats?' (UNKNOWN)"
+      detection_signals:
+        - Source mentions uncertainty, gap, TBD, TODO, "unknown", "unclear",
+          "needs investigation", "further research required"
+
+    - id: "REL-TYPE-023"
+      name: "LEARNED_FROM_FAILURE"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-one"
+      semantic_contract: >
+        The lesson, rule, or improved procedure described by Atom A was derived
+        from the failure event or catastrophe described by Atom B. The failure
+        is the basis for the learning.
+      inverse: "TAUGHT_LESSON"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "FAILURE_LESSON"
+          - "RULE"
+          - "CONSTRAINT"
+          - "PROCEDURE"
+          - "METHOD"
+        target:
+          - "FAILURE_CONDITION"
+          - "COUNTEREXAMPLE"
+          - "CASE"
+      examples:
+        - "Atom: 'ContextBundle hash drift was caused by including wall-clock timestamps' (FAILURE_LESSON)
+           LEARNED_FROM_FAILURE → Atom: 'ContextBundle hashing included timestamps in semantic hash' (CASE)"
+      detection_signals:
+        - "learned from, because of this failure, after this incident, lesson learned"
+
+    - id: "REL-TYPE-024"
+      name: "HAS_COUNTEREXAMPLE"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        Atom A is a general claim, rule, or hypothesis that is contradicted by
+        the specific instance described by Atom B. B is a COUNTEREXAMPLE atom
+        that challenges A's universality or correctness.
+      inverse: "COUNTEREXAMPLE_TO"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "CLAIM"
+          - "HYPOTHESIS"
+          - "RULE"
+          - "FACT"
+          - "CAUSAL_CLAIM"
+        target:
+          - "COUNTEREXAMPLE"
+          - "FAILURE_CONDITION"
+      examples:
+        - "Atom: 'ML avoidance system always follows COLREGs' (CLAIM) HAS_COUNTEREXAMPLE →
+           Atom: 'Singapore Strait 2024-03-15: ML system violated Rule 18' (COUNTEREXAMPLE)"
+      detection_signals:
+        - "counterexample, exception to, disproves, falsified by, fails in the case of"
+
+  # ════════════════════════════════════════════════════════════════════
+  # IMPLEMENTATION / VERIFICATION RELATIONS (3)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-025"
+      name: "IMPLEMENTED_BY"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        The design, specification, or requirement described by Atom A is realized,
+        coded, or operationalized by the implementation described by Atom B.
+      inverse: "IMPLEMENTS"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "ARCHITECTURE_DECISION"
+          - "PROJECT_REQUIREMENT"
+          - "DESIGN"     # via DECISION
+          - "DECISION"
+          - "PROCEDURE"
+          - "METHOD"
+        target:
+          - "FACT"
+          - "OBSERVATION"
+          - "PROCEDURE"
+          - "METHOD"
+      examples:
+        - "Atom: 'Deterministic atom IDs from SHA-256' (ARCHITECTURE_DECISION)
+           IMPLEMENTED_BY → Atom: 'atom_id = AT- + SHA256(...)[:8]' (RULE)"
+      detection_signals:
+        - "implemented by, realized by, built as, coded in, deployed as"
+
+    - id: "REL-TYPE-026"
+      name: "VERIFIED_BY"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "one-to-many"
+      semantic_contract: >
+        The truth, correctness, or quality of Atom A was tested, verified, or
+        validated by the evidence or process described by Atom B.
+      inverse: "VERIFIES"
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types:
+        source:
+          - "FACT"
+          - "CLAIM"
+          - "HYPOTHESIS"
+          - "PROCEDURE"
+          - "METHOD"
+          - "IMPLEMENTATION"  # via CLAIM
+        target:
+          - "OBSERVATION"
+          - "FACT"
+          - "CASE"
+          - "CHECKLIST_ITEM"
+      examples:
+        - "Atom: 'PR #57 runtime is stable' (CLAIM) VERIFIED_BY →
+           Atom: 'PR #57 passed 255 tests with 0 failures' (OBSERVATION)"
+      detection_signals:
+        - "verified by, validated by, tested by, confirmed by, proven by, demonstrated by"
+
+  # ════════════════════════════════════════════════════════════════════
+  # FALLBACK RELATION (1)
+  # ════════════════════════════════════════════════════════════════════
+
+    - id: "REL-TYPE-027"
+      name: "RELATED_TO"
+      directionality: "UNIDIRECTIONAL"
+      cardinality: "many-to-many"
+      semantic_contract: >
+        Atom A and Atom B share a meaningful connection that cannot be adequately
+        captured by any more specific relation type. This is the ESCAPE HATCH —
+        use ONLY when no other type fits. The description field MUST document
+        the nature of the relationship in detail.
+      inverse: "RELATED_TO_BY"  # not a true inverse; use a separate RELATED_TO relation
+      transitivity: "NON_TRANSITIVE"
+      allowed_atom_types: "ANY"
+      examples:
+        - "Two atoms from the same source that are thematically adjacent but share
+           no logical, structural, or dependency relationship"
+      detection_signals:
+        - None — this is the default when no specific type applies
+      anti_pattern: >
+        Do NOT use RELATED_TO when a more specific type exists. Quality gate
+        QG-REL-002 warns when RELATED_TO is used where a specific type would fit.
+        The description field is MANDATORY for RELATED_TO relations.
+
+# ════════════════════════════════════════════════════════════════════
+# RELATION TYPE QUICK REFERENCE
+# ════════════════════════════════════════════════════════════════════
+
+quick_reference:
+  by_category:
+    LOGICAL_EVIDENTIAL:
+      - "SUPPORTS (001): A provides evidence for B"
+      - "CONTRADICTS (002): A and B cannot both be true"
+      - "REFINES (003): A is a more specific version of B"
+      - "SUPPLEMENTS (004): A and B complement each other"
+      - "EXPLAINS (005): A explains why B is true"
+      - "CAUSES (006): A causes B (requires causal evidence)"
+      - "CORRELATES_WITH (007): A and B are associated (no causation claimed)"
+
+    DEPENDENCY:
+      - "DEPENDS_ON (008): A's validity depends on B"
+      - "REQUIRES (009): B is a necessary condition for A"
+      - "HAS_CONDITION (010): A is true when B holds"
+      - "HAS_EXCEPTION (011): A is false when B holds"
+      - "FAILS_WHEN (012): A breaks under condition B"
+
+    STRUCTURAL_TAXONOMIC:
+      - "PART_OF (013): A is a component of B"
+      - "INSTANCE_OF (014): A is a concrete example of B"
+      - "APPLIES_TO (015): A's rule/constraint governs B's domain"
+
+    PROVENANCE_LINEAGE:
+      - "DERIVED_FROM (016): A was synthesized from B"
+      - "QUOTES (017): A is a direct quote from B's source"
+      - "UPDATES (018): A is a newer version of B (non-truth-change)"
+      - "REPLACES (019): A replaces B as current version"
+      - "SUPERSEDES (020): A corrects B's truth value"
+
+    GAP_UNKNOWN:
+      - "RESOLVES_UNKNOWN (021): A answers B's unknown question"
+      - "RAISES_UNKNOWN (022): A introduces B's knowledge gap"
+      - "LEARNED_FROM_FAILURE (023): A's lesson came from B's failure"
+      - "HAS_COUNTEREXAMPLE (024): B contradicts A's general claim"
+
+    IMPLEMENTATION_VERIFICATION:
+      - "IMPLEMENTED_BY (025): A's design is realized by B"
+      - "VERIFIED_BY (026): A's truth is tested/confirmed by B"
+
+    FALLBACK:
+      - "RELATED_TO (027): No more specific type fits (use as last resort)"
+
+  decision_flow: |
+    For each pair of atoms that share a relationship:
+    1. Does A provide evidence for B? → SUPPORTS
+    2. Do A and B make contradictory claims? → CONTRADICTS
+    3. Is A a more specific version of B? → REFINES
+    4. Does A explain the mechanism behind B? → EXPLAINS
+    5. Does A cause B (with evidence)? → CAUSES / CORRELATES_WITH
+    6. Is B a prerequisite for A? → REQUIRES
+    7. Is B a condition for A's truth? → HAS_CONDITION
+    8. Is B an exception to A? → HAS_EXCEPTION
+    9. Does A fail under B's condition? → FAILS_WHEN
+    10. Is A part of B? → PART_OF
+    11. Is A an instance of B? → INSTANCE_OF
+    12. Does A govern B? → APPLIES_TO
+    13. Was A derived from B? → DERIVED_FROM
+    14. Is A a direct quote from B? → QUOTES
+    15. Does A update/replace/supersede B? → UPDATES / REPLACES / SUPERSEDES
+    16. Does A answer B's unknown? → RESOLVES_UNKNOWN
+    17. Does A raise B's unknown? → RAISES_UNKNOWN
+    18. Was A learned from B's failure? → LEARNED_FROM_FAILURE
+    19. Is B a counterexample to A? → HAS_COUNTEREXAMPLE
+    20. Is A implemented by B? → IMPLEMENTED_BY
+    21. Is A verified by B? → VERIFIED_BY
+    22. Do A and B supplement each other? → SUPPLEMENTS
+    23. Does A depend on B (soft)? → DEPENDS_ON
+    24. No specific type fits → RELATED_TO (document in description field)
+
+# ════════════════════════════════════════════════════════════════════
+# SCHEMA COMPATIBILITY NOTE
+# ════════════════════════════════════════════════════════════════════
+
+schema_note: >
+  This taxonomy defines 27 relation types. The KNOWLEDGE-RELATION.schema.json
+  defines 30 relation types. The difference (3 types) covers additional inverse
+  relations that are stored as separate entries in the schema for query convenience
+  (SUPERSEDED_BY, SUPPORTED_BY, GENERALIZES).
+  All 27 types defined here MUST be supported by the schema. The schema may
+  define additional convenience types for bidirectional querying.

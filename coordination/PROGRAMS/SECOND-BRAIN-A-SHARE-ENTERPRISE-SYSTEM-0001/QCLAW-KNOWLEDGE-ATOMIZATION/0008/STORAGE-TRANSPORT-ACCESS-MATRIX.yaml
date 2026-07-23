@@ -1,0 +1,577 @@
+# ============================================================================
+# STORAGE, TRANSPORT, ACCESS — COMPLETE MATRIX
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+#
+# This matrix maps every possible combination of:
+#   privacy_class × storage_targets × transport_visibility × gpt_access
+#
+# Key architectural rules:
+#   1. privacy_class is DESCRIPTIVE ONLY — it does NOT control storage placement
+#   2. storage_targets control ACTUAL placement (PUBLIC_GITHUB, LOCAL_KNOWLEDGE_ARCHITECTURE, etc.)
+#   3. transport_visibility controls WHO can transmit/see the atom
+#   4. gpt_access controls WHAT AI can read (full semantics vs metadata only)
+#   5. The ONLY hard boundary is CREDENTIAL_VALUE and FINANCIAL_VALUE atoms
+#      (permanently denied from ALL outputs — storage_targets MUST be NONE)
+#   6. All other combinations are VALID and user-configurable
+#   7. Default for all non-secret atoms: PUBLIC_GITHUB + PUBLIC_ALLOWED + FULL_SEMANTIC_ACCESS
+
+matrix:
+  version: "1.0.0"
+  description: >
+    Complete mapping of all privacy_class × storage_targets × transport_visibility
+    × gpt_access combinations. Each combination defines whether it is VALID,
+    what its default use case is, and any special rules.
+
+  # ════════════════════════════════════════════════════════════════════
+  # FIELD DEFINITIONS
+  # ════════════════════════════════════════════════════════════════════
+
+  field_definitions:
+
+    privacy_class:
+      definition: >
+        Describes the NATURE and ORIGIN of the knowledge. Does NOT control
+        storage, transport, or AI access. Purely descriptive metadata.
+      values:
+        PUBLIC_KNOWLEDGE:
+          description: "Knowledge from publicly available sources (papers, public repos, public conversations)"
+          typical_sources: ["Published papers", "Public GitHub repos", "Public documentation", "Public web pages"]
+          default_storage: "PUBLIC_GITHUB"
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        PRIVATE_KNOWLEDGE:
+          description: "User's private, proprietary, or confidential knowledge"
+          typical_sources: ["Private notes", "Proprietary research", "Personal conversations", "Internal documents"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        INTERNAL_KNOWLEDGE:
+          description: "Organization-internal knowledge not intended for public distribution"
+          typical_sources: ["Internal wikis", "Team documents", "Internal process docs", "Architecture records"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        PAID_KNOWLEDGE:
+          description: "Knowledge obtained through paid access (subscriptions, courses, paywalled research)"
+          typical_sources: ["Paywalled journals", "Paid courses", "Licensed databases", "Subscription APIs"]
+          default_storage: "LOCAL_KNOWLEDGE_ARCHITECTURE"  # license-dependent
+          default_transport: "RESTRICTED"  # depends on license terms
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        PERSONAL_KNOWLEDGE:
+          description: "Personal knowledge, experiences, opinions of the user"
+          typical_sources: ["User's direct statements", "Personal journal entries", "User preferences", "User corrections"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        RESEARCH_DATA:
+          description: "Raw or processed research data"
+          typical_sources: ["Experimental data", "Survey results", "Measurement logs", "Simulation outputs"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        CONVERSATION_RECORD:
+          description: "Records of conversations (user-agent, agent-agent, group chats)"
+          typical_sources: ["Chat transcripts", "Issue comments", "PR discussions", "Meeting notes"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        AGENT_INTERNAL:
+          description: "Agent self-knowledge, reasoning traces, internal decisions"
+          typical_sources: ["Agent identity documents", "Decision logs", "Self-assessments", "Handoff documents"]
+          default_storage: "PUBLIC_GITHUB"  # user-authorized
+          default_transport: "PUBLIC_ALLOWED"
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+        CREDENTIAL_VALUE:
+          description: "Authentication secrets: API keys, tokens, passwords, private keys"
+          typical_sources: ["Config files", "Environment variables", "Code with embedded keys"]
+          default_storage: "NONE"  # ← HARD BOUNDARY
+          default_transport: "PRIVATE_BOUNDARY_ONLY"  # ← HARD BOUNDARY
+          default_gpt: "METADATA_ONLY"  # ← HARD BOUNDARY
+          special_rules:
+            - "PERMANENTLY DENIED from ALL outputs"
+            - "storage_targets MUST be NONE (enforced by QG-FLD-001)"
+            - "transport_visibility MUST NOT be PUBLIC_ALLOWED"
+            - "gpt_access MUST be METADATA_ONLY"
+            - "Only the METADATA (that a credential exists, what type, where stored) is preserved"
+            - "The actual secret VALUE is never stored, transported, or accessible"
+        FINANCIAL_VALUE:
+          description: "Financial secrets: account numbers, brokerage keys, payment processor keys, crypto keys"
+          typical_sources: ["Config files", "Trading scripts", "Payment integration code"]
+          default_storage: "NONE"  # ← HARD BOUNDARY
+          default_transport: "PRIVATE_BOUNDARY_ONLY"  # ← HARD BOUNDARY
+          default_gpt: "METADATA_ONLY"  # ← HARD BOUNDARY
+          special_rules:
+            - "PERMANENTLY DENIED from ALL outputs"
+            - "Same hard boundary rules as CREDENTIAL_VALUE"
+        THIRD_PARTY_LICENSED:
+          description: "Knowledge under third-party license with specific terms"
+          typical_sources: ["Licensed datasets", "API-provided content", "Syndicated content"]
+          default_storage: "LOCAL_KNOWLEDGE_ARCHITECTURE"  # license-dependent
+          default_transport: "RESTRICTED"  # depends on license
+          default_gpt: "FULL_SEMANTIC_ACCESS"
+
+    storage_targets:
+      definition: >
+        Where the atom is physically stored. Controls ACTUAL placement.
+        Multiple targets are allowed (e.g., both LOCAL and PUBLIC).
+      values:
+        PUBLIC_GITHUB:
+          description: "Stored in the public GitHub repository for the program"
+          accessible_to: "Anyone with repository access (public or authorized)"
+        LOCAL_KNOWLEDGE_ARCHITECTURE:
+          description: "Stored in the local workspace knowledge architecture directory"
+          accessible_to: "Local agent and authorized readers of the architecture"
+        PRIVATE_VAULT:
+          description: "Stored in a private, encrypted vault (not in public repo)"
+          accessible_to: "Only explicitly authorized readers"
+        NONE:
+          description: "Not stored anywhere. Atom is metadata-only or exists purely for tracking."
+          accessible_to: "Nobody — atom exists only as an entry in quality reports and manifests"
+          special_rules:
+            - "MANDATORY for CREDENTIAL_VALUE and FINANCIAL_VALUE atoms"
+            - "May be used for atoms that are purely structural or temporary"
+
+    transport_visibility:
+      definition: >
+        Who can transmit, view, or receive this atom across network boundaries.
+        Controls transit and visibility, not storage.
+      values:
+        PUBLIC_ALLOWED:
+          description: "Atom can be freely transmitted and viewed by anyone"
+          typical_use: "Public knowledge, user-authorized private knowledge, architecture decisions"
+        RESTRICTED:
+          description: "Atom can be transmitted but only within authorized contexts"
+          typical_use: "License-restricted knowledge, internal-only architecture"
+          access_control: "May require authentication or authorization to transmit"
+        PRIVATE_BOUNDARY_ONLY:
+          description: "Atom must not leave the local environment boundary"
+          typical_use: "Hard secrets (metadata only), highly sensitive internal decisions"
+          access_control: "MANDATORY boundary enforcement — atom cannot be transmitted externally"
+        AUTHENTICATED_ONLY:
+          description: "Atom can be transmitted only to authenticated recipients"
+          typical_use: "Knowledge with readership restrictions, team-internal knowledge"
+          access_control: "Requires confirmed identity of recipient"
+
+    gpt_access:
+      definition: >
+        What level of semantic access GPT/AI has to this atom.
+        Controls AI readability, not storage or transport.
+      values:
+        FULL_SEMANTIC_ACCESS:
+          description: "GPT can read the full canonical_statement and all metadata"
+          typical_use: "Default for all non-secret knowledge"
+          retrieval_behavior: "Atom returned in search results with full content"
+        METADATA_ONLY:
+          description: "GPT can only see metadata (atom_id, type, tags, status) — NOT the canonical_statement"
+          typical_use: "Hard-secret atoms (only the fact that a secret exists is visible)"
+          retrieval_behavior: "Atom returned in search but canonical_statement is masked"
+        REDACTED_ACCESS:
+          description: "GPT can see a redacted version of the canonical_statement with sensitive portions removed"
+          typical_use: "Documents with mixed public and sensitive content after redaction"
+          retrieval_behavior: "Atom returned with [REDACTED] markers in place of sensitive content"
+
+  # ════════════════════════════════════════════════════════════════════
+  # COMPLETE COMBINATION MATRIX
+  # ════════════════════════════════════════════════════════════════════
+
+  combinations:
+
+    # ── CREDENTIAL_VALUE — HARD BOUNDARY ──
+    - id: "COMBO-001"
+      privacy_class: "CREDENTIAL_VALUE"
+      storage_targets: ["NONE"]
+      transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+      gpt_access: "METADATA_ONLY"
+      valid: true
+      is_default: true
+      description: "Default for credential value atoms. Metadata only — values permanently denied."
+      quality_gate: "QG-FLD-001 enforces: CREDENTIAL_VALUE must have storage_targets=NONE"
+
+    - id: "COMBO-002"
+      privacy_class: "CREDENTIAL_VALUE"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: false
+      description: "BLOCKED: Credential values MUST NOT go on public GitHub. Quality gate QG-FLD-001 FAIL."
+      blocking_gate: "QG-FLD-001"
+
+    - id: "COMBO-003"
+      privacy_class: "CREDENTIAL_VALUE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "METADATA_ONLY"
+      valid: false
+      description: "BLOCKED: Credential values must not be stored anywhere. Use NONE instead."
+      blocking_gate: "QG-FLD-001"
+
+    # ── FINANCIAL_VALUE — HARD BOUNDARY ──
+    - id: "COMBO-004"
+      privacy_class: "FINANCIAL_VALUE"
+      storage_targets: ["NONE"]
+      transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+      gpt_access: "METADATA_ONLY"
+      valid: true
+      is_default: true
+      description: "Default for financial value atoms. Metadata only."
+      quality_gate: "QG-FLD-001 enforces storage_targets=NONE"
+
+    - id: "COMBO-005"
+      privacy_class: "FINANCIAL_VALUE"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: false
+      description: "BLOCKED: Financial values MUST NOT go on public GitHub."
+      blocking_gate: "QG-FLD-001"
+
+    # ── PUBLIC_KNOWLEDGE — Full freedom ──
+    - id: "COMBO-010"
+      privacy_class: "PUBLIC_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for public knowledge. Full visibility, full AI access, public storage."
+
+    - id: "COMBO-011"
+      privacy_class: "PUBLIC_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Public knowledge on public GitHub only."
+
+    - id: "COMBO-012"
+      privacy_class: "PUBLIC_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Public knowledge stored locally only (e.g., for local-first workflows)."
+
+    # ── PRIVATE_KNOWLEDGE — User configurable ──
+    - id: "COMBO-020"
+      privacy_class: "PRIVATE_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for private knowledge with user authorization. Note: user must explicitly authorize public storage of private knowledge."
+
+    - id: "COMBO-021"
+      privacy_class: "PRIVATE_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Private knowledge stored locally only — not on public GitHub."
+
+    - id: "COMBO-022"
+      privacy_class: "PRIVATE_KNOWLEDGE"
+      storage_targets: ["PRIVATE_VAULT"]
+      transport_visibility: "AUTHENTICATED_ONLY"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Private knowledge in encrypted vault with authenticated access."
+
+    - id: "COMBO-023"
+      privacy_class: "PRIVATE_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Private knowledge that must not leave local boundary."
+
+    # ── INTERNAL_KNOWLEDGE — User configurable ──
+    - id: "COMBO-030"
+      privacy_class: "INTERNAL_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for internal knowledge (user-authorized). Internal does NOT block public storage."
+
+    - id: "COMBO-031"
+      privacy_class: "INTERNAL_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Internal knowledge locally only."
+
+    # ── PAID_KNOWLEDGE — License-dependent ──
+    - id: "COMBO-040"
+      privacy_class: "PAID_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for paid knowledge. License terms typically restrict public distribution."
+
+    - id: "COMBO-041"
+      privacy_class: "PAID_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Paid knowledge on public GitHub ONLY if license explicitly permits public redistribution."
+      requires: "Explicit license authorization verified"
+
+    - id: "COMBO-042"
+      privacy_class: "PAID_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Paid knowledge that must not leave local boundary (strictest license terms)."
+
+    # ── PERSONAL_KNOWLEDGE — User configurable ──
+    - id: "COMBO-050"
+      privacy_class: "PERSONAL_KNOWLEDGE"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for personal knowledge with user authorization."
+
+    - id: "COMBO-051"
+      privacy_class: "PERSONAL_KNOWLEDGE"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Personal knowledge kept locally."
+
+    # ── RESEARCH_DATA — User configurable ──
+    - id: "COMBO-060"
+      privacy_class: "RESEARCH_DATA"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for research data with user authorization."
+
+    - id: "COMBO-061"
+      privacy_class: "RESEARCH_DATA"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Research data stored locally only."
+
+    # ── CONVERSATION_RECORD — User configurable ──
+    - id: "COMBO-070"
+      privacy_class: "CONVERSATION_RECORD"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for conversation records with user authorization."
+
+    - id: "COMBO-071"
+      privacy_class: "CONVERSATION_RECORD"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Conversation records stored locally only."
+
+    # ── AGENT_INTERNAL — User configurable ──
+    - id: "COMBO-080"
+      privacy_class: "AGENT_INTERNAL"
+      storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for agent internal knowledge. User-authorized for public storage."
+
+    - id: "COMBO-081"
+      privacy_class: "AGENT_INTERNAL"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Agent internal knowledge stored locally only."
+
+    # ── THIRD_PARTY_LICENSED — License-dependent ──
+    - id: "COMBO-090"
+      privacy_class: "THIRD_PARTY_LICENSED"
+      storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      transport_visibility: "RESTRICTED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      is_default: true
+      description: "Default for third-party licensed knowledge."
+
+    - id: "COMBO-091"
+      privacy_class: "THIRD_PARTY_LICENSED"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "Third-party knowledge on public GitHub ONLY if license permits."
+      requires: "Explicit license authorization verified"
+
+    # ── Edge cases: transport vs gpt interaction ──
+    - id: "COMBO-100"
+      privacy_class: "ANY"  # except CREDENTIAL_VALUE / FINANCIAL_VALUE
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+      gpt_access: "FULL_SEMANTIC_ACCESS"
+      valid: true
+      description: "GPT can access within private boundary; atom exists publicly but transport is restricted. Quality gate QG-FLD-002 will WARN."
+
+    - id: "COMBO-101"
+      privacy_class: "ANY"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "METADATA_ONLY"
+      valid: true
+      description: "Publicly visible atom but GPT only sees metadata. Useful for redacted documents."
+
+    - id: "COMBO-102"
+      privacy_class: "ANY"
+      storage_targets: ["PUBLIC_GITHUB"]
+      transport_visibility: "PUBLIC_ALLOWED"
+      gpt_access: "REDACTED_ACCESS"
+      valid: true
+      description: "Publicly visible atom with partial redaction for GPT."
+
+  # ════════════════════════════════════════════════════════════════════
+  # DEFAULT MAPPINGS
+  # ════════════════════════════════════════════════════════════════════
+
+  default_assignment:
+    description: >
+      When an atom is first created and no explicit storage/transport/access
+      decisions have been made, apply these defaults based on privacy_class.
+
+    rules:
+      # Hard boundary rules
+      - privacy_classes: ["CREDENTIAL_VALUE", "FINANCIAL_VALUE"]
+        default:
+          storage_targets: ["NONE"]
+          transport_visibility: "PRIVATE_BOUNDARY_ONLY"
+          gpt_access: "METADATA_ONLY"
+        reason: "Permanent denial of secret values from ALL outputs"
+        override_allowed: false
+
+      # License-dependent defaults
+      - privacy_classes: ["PAID_KNOWLEDGE", "THIRD_PARTY_LICENSED"]
+        default:
+          storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+          transport_visibility: "RESTRICTED"
+          gpt_access: "FULL_SEMANTIC_ACCESS"
+        reason: "License terms typically restrict public distribution; user must explicitly authorize public storage"
+        override_allowed: true
+
+      # Default for everything else: public and open
+      - privacy_classes: ["PUBLIC_KNOWLEDGE", "PRIVATE_KNOWLEDGE", "INTERNAL_KNOWLEDGE",
+                          "PERSONAL_KNOWLEDGE", "RESEARCH_DATA", "CONVERSATION_RECORD",
+                          "AGENT_INTERNAL"]
+        default:
+          storage_targets: ["PUBLIC_GITHUB", "LOCAL_KNOWLEDGE_ARCHITECTURE"]
+          transport_visibility: "PUBLIC_ALLOWED"
+          gpt_access: "FULL_SEMANTIC_ACCESS"
+        reason: "User-authorized knowledge is public and AI-accessible by default"
+        override_allowed: true
+
+  # ════════════════════════════════════════════════════════════════════
+  # INVALID COMBINATIONS
+  # ════════════════════════════════════════════════════════════════════
+
+  invalid_combinations:
+    - id: "INVALID-001"
+      combination:
+        privacy_class: ["CREDENTIAL_VALUE", "FINANCIAL_VALUE"]
+        storage_targets: ["PUBLIC_GITHUB"]
+      reason: "Secret values must never be stored on public GitHub"
+      enforced_by: "QG-FLD-001 (BLOCKING, auto_detect)"
+      remediation: "Change storage_targets to NONE; use METADATA_ONLY for the existence record"
+
+    - id: "INVALID-002"
+      combination:
+        privacy_class: ["CREDENTIAL_VALUE", "FINANCIAL_VALUE"]
+        transport_visibility: "PUBLIC_ALLOWED"
+      reason: "Secret values must never be publicly transportable"
+      enforced_by: "QG-FLD-001 (BLOCKING, auto_detect)"
+      remediation: "Change transport_visibility to PRIVATE_BOUNDARY_ONLY"
+
+    - id: "INVALID-003"
+      combination:
+        privacy_class: ["CREDENTIAL_VALUE", "FINANCIAL_VALUE"]
+        gpt_access: "FULL_SEMANTIC_ACCESS"
+      reason: "Secret values must never be fully readable by AI"
+      enforced_by: "Manual review"
+      remediation: "Change gpt_access to METADATA_ONLY"
+
+    - id: "INVALID-004"
+      combination:
+        privacy_class: ["CREDENTIAL_VALUE", "FINANCIAL_VALUE"]
+        storage_targets: ["LOCAL_KNOWLEDGE_ARCHITECTURE"]
+      reason: "Secret values must not be stored in the local architecture — they should not be stored at all"
+      enforced_by: "QG-FLD-001"
+      remediation: "Change storage_targets to NONE"
+
+  # ════════════════════════════════════════════════════════════════════
+  # QUALITY GATE INTERACTIONS
+  # ════════════════════════════════════════════════════════════════════
+
+  quality_gate_interactions:
+    - gate: "QG-FLD-001 (privacy_vs_storage_conflict)"
+      description: "Catches CREDENTIAL_VALUE or FINANCIAL_VALUE atoms with PUBLIC_GITHUB in storage_targets"
+      severity: "FAIL"
+      auto_detect: true
+      test: "privacy_class ∈ {CREDENTIAL_VALUE, FINANCIAL_VALUE} AND PUBLIC_GITHUB ∈ storage_targets"
+
+    - gate: "QG-FLD-002 (transport_vs_gpt_conflict)"
+      description: "Warns when gpt_access is FULL_SEMANTIC_ACCESS but transport is PRIVATE_BOUNDARY_ONLY"
+      severity: "WARN"
+      auto_detect: true
+      test: "gpt_access == FULL_SEMANTIC_ACCESS AND transport_visibility == PRIVATE_BOUNDARY_ONLY"
+      note: "This is a WARN, not a FAIL — private-boundary atoms MAY have full semantic access within that boundary"
+
+    - gate: "QG-SEC-001 (credential_pattern_detected)"
+      description: "Catches atoms that contain credential patterns (regex match)"
+      severity: "FAIL"
+      auto_detect: true
+      test: "regex match for API keys, tokens, passwords in canonical_statement"
+
+    - gate: "QG-SEC-002 (financial_value_detected)"
+      description: "Catches financial auth values in canonical_statement"
+      severity: "FAIL"
+      auto_detect: true
+      test: "regex match for financial auth patterns in canonical_statement"
+
+# ════════════════════════════════════════════════════════════════════
+# SUMMARY: THE ONLY HARD BOUNDARY
+# ════════════════════════════════════════════════════════════════════
+
+summary:
+  hard_boundary: >
+    Only CREDENTIAL_VALUE and FINANCIAL_VALUE atoms are permanently denied
+    from ALL outputs. They exist only as metadata entries (NEVER with actual
+    values) and have storage_targets=NONE, transport_visibility=PRIVATE_BOUNDARY_ONLY,
+    and gpt_access=METADATA_ONLY.
+
+  everything_else: >
+    All other privacy classes can be stored publicly, transported freely, and
+    accessed by AI with FULL_SEMANTIC_ACCESS. The user configures specific
+    restrictions. privacy_class does NOT control any of this.
+
+  privacy_class_is_descriptive: >
+    privacy_class describes the knowledge's NATURE. It helps the user understand
+    what kind of knowledge this is. It does NOT enforce any access, storage,
+    or transmission policy. Those are separate, independent decisions.

@@ -1,0 +1,196 @@
+# ============================================================================
+# KNOWLEDGE DIGEST QUEUE
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+#
+# Priority-ordered queue of knowledge sources waiting for atomization.
+# Sources are sorted topologically (dependencies first) then by priority.
+# Status: PENDING → QUEUED → IN_PROGRESS → DIGESTED | FAILED | SKIPPED_SECRETS
+
+queue:
+  # ── CRITICAL: Architecture Foundation (META-DIGEST) ──
+  - source_id: "SRC-ARCH-01"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/ARCHITECTURE.md"
+    source_name: "QCLAW Knowledge Atomization Architecture"
+    priority: "CRITICAL"
+    digest_status: "QUEUED"
+    digest_dependencies: []
+    notes: "Self-digestion: architecture document itself becomes atoms (META-DIGEST)"
+
+  - source_id: "SRC-ARCH-02"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/ATOMIZATION-PRINCIPLES.md"
+    source_name: "20 Atomization Principles"
+    priority: "CRITICAL"
+    digest_status: "QUEUED"
+    digest_dependencies: ["SRC-ARCH-01"]
+    notes: "Principles as atoms — each principle becomes at least one atom"
+
+  - source_id: "SRC-ARCH-03"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/ATOM-TYPE-TAXONOMY.yaml"
+    source_name: "32 Atom Type Taxonomy"
+    priority: "CRITICAL"
+    digest_status: "QUEUED"
+    digest_dependencies: ["SRC-ARCH-01"]
+    notes: "Taxonomy definitions and decision tree as atoms"
+
+  - source_id: "SRC-ARCH-04"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/PIPELINE.yaml"
+    source_name: "8-Stage Atomization Pipeline"
+    priority: "CRITICAL"
+    digest_status: "QUEUED"
+    digest_dependencies: ["SRC-ARCH-01"]
+    notes: "Pipeline stages and steps as procedural atoms"
+
+  - source_id: "SRC-ARCH-05"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/QUALITY-GATES.yaml"
+    source_name: "28 Quality Gate Definitions"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: ["SRC-ARCH-01"]
+    notes: "Quality gates as atoms — each gate is a RULE or METHOD atom"
+
+  - source_id: "SRC-ARCH-06"
+    source_type: "DESIGN_DOCUMENT"
+    source_location: "0008/CANONICAL-RUNTIME-BOUNDARY.md"
+    source_name: "Runtime Boundary Definition"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: ["SRC-ARCH-01"]
+    notes: "Boundary rules as CONSTRAINT and RULE atoms"
+
+  # ── HIGH: Task Definitions and Historical Knowledge ──
+  - source_id: "SRC-ISSUE-38"
+    source_type: "ISSUE"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/issues/38"
+    source_name: "Issue #38: P4 Adversarial Evaluation Task"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: >
+      Issue #38 defines the P4 full knowledge gateway task with 0-4 work packages
+      for QCLAW. Now superseded by Issue #59 as active task, but preserved as
+      knowledge: system rules, evaluation framework, Codex coordination, 4-axis
+      access model, anti-cheat rules, verification hard gates.
+
+  - source_id: "SRC-ISSUE-59"
+    source_type: "ISSUE"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/issues/59"
+    source_name: "Issue #59: Knowledge Atomization Task"
+    priority: "CRITICAL"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: >
+      The active task definition. Must be digested to establish self-referential
+      knowledge: what QCLAW is, what it does, what it must not do, correction about
+      privacy_class behavior.
+
+  - source_id: "SRC-ISSUE-31"
+    source_type: "ISSUE"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/issues/31"
+    source_name: "Issue #31: Parent Program (Codex Phase 0)"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Parent program: 9 workflows W1-W9, 20 deliverables, 12 key questions"
+
+  # ── HIGH: Runtime Contracts ──
+  - source_id: "SRC-PR-57"
+    source_type: "PULL_REQUEST"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/pull/57"
+    source_name: "PR #57: Phase 3 Integrated Offline Memory"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: >
+      Canonical runtime contract. Key knowledge: 255 tests passed, 57 files,
+      deterministic hash corrections, PR #45/#46 absorption, security guardrails,
+      scale and license unknowns.
+
+  # ── HIGH: Task Routing and Agent Identity ──
+  - source_id: "SRC-ROUTER"
+    source_type: "CONFIGURATION"
+    source_location: "https://raw.githubusercontent.com/vxz2datoubo/second-brain-coordination/main/coordination/QCLAW-TASK-ROUTER.md"
+    source_name: "QCLAW Task Router Protocol"
+    priority: "HIGH"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Router protocol: trigger phrases, startup flow, routing logic"
+
+  - source_id: "SRC-ACTIVE-TASK"
+    source_type: "CONFIGURATION"
+    source_location: "https://raw.githubusercontent.com/vxz2datoubo/second-brain-coordination/main/coordination/ACTIVE-QCLAW-TASK.yaml"
+    source_name: "ACTIVE-QCLAW-TASK.yaml (v1.9)"
+    priority: "CRITICAL"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Active task routing: primary roles, fallback role, constraints, required inputs"
+
+  - source_id: "SRC-AGENTS"
+    source_type: "CONFIGURATION"
+    source_location: "https://raw.githubusercontent.com/vxz2datoubo/second-brain-coordination/main/AGENTS.md"
+    source_name: "AGENTS.md"
+    priority: "MEDIUM"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Agent identity and behavior rules"
+
+  # ── MEDIUM: Historical Reference ──
+  - source_id: "SRC-PR-45"
+    source_type: "PULL_REQUEST"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/pull/45"
+    source_name: "PR #45 (absorbed into #57)"
+    priority: "MEDIUM"
+    digest_status: "PENDING"
+    digest_dependencies: ["SRC-PR-57"]
+    notes: "Historical: absorbed by PR #57. Digest for lessons learned, not current capability."
+
+  - source_id: "SRC-PR-46"
+    source_type: "PULL_REQUEST"
+    source_location: "https://github.com/vxz2datoubo/second-brain-coordination/pull/46"
+    source_name: "PR #46 (absorbed into #57)"
+    priority: "MEDIUM"
+    digest_status: "PENDING"
+    digest_dependencies: ["SRC-PR-57"]
+    notes: "Historical: absorbed by PR #57. Digest for lessons learned."
+
+  # ── LOW/BACKGROUND: Supporting Context ──
+  - source_id: "SRC-IDENTITY"
+    source_type: "CONFIGURATION"
+    source_location: "workspace://IDENTITY.md"
+    source_name: "QCLAW Identity"
+    priority: "LOW"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Agent self-identity statements"
+
+  - source_id: "SRC-SOUL"
+    source_type: "CONFIGURATION"
+    source_location: "workspace://SOUL.md"
+    source_name: "QCLAW SOUL.md"
+    priority: "BACKGROUND"
+    digest_status: "PENDING"
+    digest_dependencies: []
+    notes: "Persona definition — low knowledge value, mostly behavioral"
+
+queue_metadata:
+  total_sources: 15
+  by_status:
+    PENDING: 12
+    QUEUED: 3
+    IN_PROGRESS: 0
+    DIGESTED: 0
+    FAILED: 0
+  by_priority:
+    CRITICAL: 3
+    HIGH: 7
+    MEDIUM: 3
+    LOW: 1
+    BACKGROUND: 1
+  estimated_total_atoms: 200
+  estimated_digest_runs: 6

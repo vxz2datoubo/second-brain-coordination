@@ -1,0 +1,505 @@
+# ============================================================================
+# KNOWLEDGE ATOMIZATION PIPELINE
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Task:    QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-0008
+# Version: 1.0.0
+# ============================================================================
+
+pipeline:
+  name: "QCLAW Knowledge Atomization Pipeline"
+  version: "1.0.0"
+  description: >
+    The complete pipeline for transforming raw knowledge sources into
+    deterministic, traceable KnowledgeAtoms, KnowledgeRelations,
+    KnowledgeConflicts, KnowledgeUnknowns, KnowledgeSkills, KnowledgeStructures,
+    and canonical-compatible LearningPackets.
+
+stages:
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 0: QUEUE MANAGEMENT
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 0
+    name: "Queue Management"
+    id: STAGE_QUEUE
+    description: "Manage the priority queue of knowledge sources waiting for digestion."
+    
+    steps:
+      - step: 0.1
+        name: "Scan for new sources"
+        description: "Scan files, issues, PRs, conversations, research for new knowledge sources."
+        action: |
+          For each potential source:
+          1. Check against existing KnowledgeSourceManifest entries
+          2. If new or modified (hash differs), create pending source manifest entry
+          3. Classify source_type and format
+          4. Set initial priority based on declared importance
+        output: "New KnowledgeSourceManifest entries in QUEUE:PENDING status"
+      
+      - step: 0.2
+        name: "Sort and prioritize queue"
+        description: "Resolve dependencies and assign final digest priority."
+        action: |
+          1. Walk all PENDING sources' digest_dependencies
+          2. Topological sort: dependencies before dependents
+          3. Within same dependency level, sort by digest_priority (CRITICAL > HIGH > MEDIUM > LOW > BACKGROUND)
+          4. Set status to QUEUED
+        output: "Ordered source queue"
+      
+      - step: 0.3
+        name: "Pop next batch"
+        description: "Select the next source(s) for digestion."
+        action: |
+          Select source(s) from QUEUED based on:
+          1. All dependencies are DIGESTED
+          2. Highest priority
+          3. Batch compatible formats (may process multiple small sources together)
+          Set status to IN_PROGRESS
+        output: "One or more sources ready for ingestion"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 1: SOURCE INGESTION
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 1
+    name: "Source Ingestion"
+    id: STAGE_INGEST
+    description: "Read and validate the source content."
+    
+    steps:
+      - step: 1.1
+        name: "Fetch source content"
+        description: "Retrieve the full source content."
+        action: |
+          Based on source_type:
+          - FILE: read file from source_location
+          - ISSUE: fetch issue body + all comments via GitHub API
+          - PULL_REQUEST: fetch PR body + diff + review comments
+          - CONVERSATION: read conversation transcript
+          - AGENT_HANDOFF: parse handoff document
+          - WEB_PAGE: web_fetch URL
+          - CODE_FILE: read file
+          - Other: use appropriate access method
+        output: "Raw source content"
+        error_handling: 
+          capture: true
+          on_error: "Set source status to FAILED, record error, continue to next source"
+      
+      - step: 1.2
+        name: "Compute and verify source hash"
+        description: "SHA-256 the raw content and verify against known hash if exists."
+        action: |
+          1. Compute SHA-256 of raw content
+          2. If source already has source_hash, compare
+          3. If differs: source has been updated, create new version entry
+          4. Store hash in source manifest
+        output: "Verified source hash"
+      
+      - step: 1.3
+        name: "Format detection and parsing"
+        description: "Detect format and parse into structured document."
+        action: |
+          1. Detect format from extension, content, or metadata
+          2. Apply format-specific parser:
+             - MARKDOWN: parse headings, paragraphs, code blocks, lists, quotes, tables
+             - PLAIN_TEXT: segment by paragraphs
+             - JSON/JSONL/YAML: parse into structured segments
+             - CODE: treat as single or few segments
+             - CONVERSATION_LOG: segment by speaker turns
+          3. Produce KnowledgeDocument with KnowledgeSegments
+        output: "Structured KnowledgeDocument"
+        error_handling:
+          on_unsupported_format: "Skip with status SKIPPED_FORMAT, record decision"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 2: SECRET SCANNING
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 2
+    name: "Secret Scanning"
+    id: STAGE_SECRET
+    description: "Scan for and redact credential/financial secret values."
+    
+    steps:
+      - step: 2.1
+        name: "Scan for secrets"
+        description: "Apply regex patterns and heuristics to detect credential patterns."
+        action: |
+          Apply pattern matching for:
+          - API keys (common formats: sk-*, key-*, etc.)
+          - JWT/OAuth tokens (eyJ... pattern)
+          - Private keys (-----BEGIN...-----)
+          - Passwords in config files (password=..., passwd=..., pwd=...)
+          - Connection strings with embedded credentials
+          - Financial account numbers
+          - Broker/Payment API keys
+          - Crypto wallet keys/seed phrases
+        output: "List of found secret locations (types and positions, NEVER values)"
+      
+      - step: 2.2
+        name: "Redact secret values"
+        description: "Replace secret values with safe markers."
+        action: |
+          If secrets found:
+          1. For each secret location:
+             - Replace value with "[REDACTED:<secret_type>]"
+          2. Compute hash after redaction
+          3. Assess semantic damage
+          If no secrets: mark CLEAN
+        output: "Redacted source content + SecretScanReceipt"
+      
+      - step: 2.3
+        name: "Evaluate redaction impact"
+        description: "Assess whether redaction critically damaged semantic knowledge."
+        action: |
+          1. Compare atomizable content before/after redaction
+          2. Classify damage: NONE / MINIMAL / MODERATE / SIGNIFICANT / CRITICAL
+          3. If CRITICAL: document what knowledge was lost
+          4. If MINIMAL: proceed normally
+        output: "Semantic damage assessment"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 3: SEMANTIC DECOMPOSITION
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 3
+    name: "Semantic Decomposition"
+    id: STAGE_DECOMPOSE
+    description: "Decompose the parsed, redacted document into candidate atoms."
+    
+    steps:
+      - step: 3.1
+        name: "Identify atomic units"
+        description: "Split segments into minimum complete semantic units."
+        action: |
+          For each KnowledgeSegment:
+          1. Identify independent assertions (single subject-verb-object with complete meaning)
+          2. Identify conditions that modify assertions
+          3. Identify exceptions that limit assertions
+          4. Identify negations that invert assertions
+          5. Identify unknowns and gaps
+          6. Identify procedural/method content
+          
+          Decision rules:
+          - Each FACT/CLAIM/OBSERVATION should be one independently evaluable assertion
+          - Conditions that are part of the truth value must be PART of the atom
+          - Exceptions that limit scope must be documented as exceptions
+          - Separate but related claims should be separate atoms + relations
+          - If uncertain about split/merge: document in AtomizationDecision
+        output: "Candidate atoms"
+        decision_id_pattern: "DEC-{digest_run_id}-SEG-{index}"
+      
+      - step: 3.2
+        name: "Extract full semantic content"
+        description: "Build complete canonical_statement for each candidate atom."
+        action: |
+          For each candidate atom:
+          1. Build canonical_statement preserving original wording as much as possible
+          2. Include conditions as part of the statement where truth depends on them
+          3. Preserve negations exactly
+          4. Preserve scope qualifiers (temporal, spatial, domain)
+          5. If source text is imprecise, document in Decision
+          6. Never "improve" or "correct" source text — preserve as-is
+        output: "Atoms with complete canonical_statements"
+      
+      - step: 3.3
+        name: "Assign atom types"
+        description: "Classify each atom using the type taxonomy."
+        action: |
+          Apply the ATOM-TYPE-TAXONOMY decision tree:
+          1. Is this a FACT? → Check evidence quality
+          2. Is this a CLAIM? → Check if asserted by source
+          3. Is this a METHOD? → Check for procedural content
+          4. Is this an UNKNOWN? → Check if source explicitly states uncertainty
+          5. Is this a DECISION? → Check if it's a recorded choice
+          ... (full taxonomy)
+          Document type selection rationale in AtomizationDecision.
+        output: "Typed atoms"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 4: RELATIONSHIP EXTRACTION
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 4
+    name: "Relationship Extraction"
+    id: STAGE_RELATIONS
+    description: "Identify and type relationships between atoms."
+    
+    steps:
+      - step: 4.1
+        name: "Identify explicit relations"
+        description: "Find relationships directly stated in the source."
+        action: |
+          1. For each pair of atoms from the same source, check if source states a relationship
+          2. Map source language to relation types:
+             - "supports/confirms/proves" → SUPPORTS
+             - "contradicts/disproves/conflicts" → CONTRADICTS
+             - "requires/depends on/needs" → REQUIRES
+             - "causes/leads to/results in" → CAUSES (if causal evidence exists)
+             - "correlates with/associated with" → CORRELATES_WITH
+             - "is a type of/category of" → IS_A
+             - "is part of/component of" → PART_OF
+             - "supersedes/replaces/updates" → SUPERSEDES
+             - "is an example of" → EXAMPLE_OF
+             - "is a counterexample to" → COUNTEREXAMPLE_OF
+             - ... (full mapping)
+          3. Prefer most specific type; use RELATED_TO only as last resort
+        output: "Explicit relations"
+      
+      - step: 4.2
+        name: "Identify implicit relations"
+        description: "Find relationships not directly stated but inferable."
+        action: |
+          For pairs of atoms:
+          1. Contradiction: same subject, opposite truth value → CONTRADICTS
+          2. Generalization: one atom's scope is subset of another's → GENERALIZES/REFINES
+          3. Prerequisite: one atom's truth depends on another's → REQUIRES/PREREQUISITE_OF
+          4. Version chain: same subject, different version → SUPERSEDES/SUPERSEDED_BY
+          5. Conceptual overlap: same subject, different aspect → OVERLAPS_WITH
+          Document implicit relation inference in AtomizationDecision.
+        output: "Implicit relations"
+      
+      - step: 4.3
+        name: "Detect conflicts"
+        description: "Find contradictory atom pairs and create KnowledgeConflict entries."
+        action: |
+          1. Scan all atom pairs for semantic contradiction
+          2. Classify conflict type: DIRECT_FACTUAL, METHODOLOGICAL, INTERPRETIVE, etc.
+          3. If one atom supersedes the other: conflict is RESOLVED_BY_SUPERSEDES
+          4. If both are valid in different scopes: RESOLVED_BY_SCOPE_CLARIFICATION
+          5. If no resolution: UNRESOLVED
+          6. BOTH atoms must be preserved; never delete the "wrong" one
+        output: "KnowledgeConflict entries"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 5: METADATA ASSIGNMENT
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 5
+    name: "Metadata Assignment"
+    id: STAGE_METADATA
+    description: "Assign all metadata fields: privacy, storage, transport, GPT access, authority."
+    
+    steps:
+      - step: 5.1
+        name: "Assign privacy classification"
+        description: "Classify the knowledge's privacy nature."
+        action: |
+          1. Source is public (paper, public repo, public conversation) → PUBLIC_KNOWLEDGE
+          2. Source is user's private content → PRIVATE_KNOWLEDGE
+          3. Source is internal/organizational → INTERNAL_KNOWLEDGE
+          4. Source requires payment → PAID_KNOWLEDGE
+          5. Source is agent-generated → AGENT_INTERNAL
+          6. Source contains credential references (not values) → separate from CREDENTIAL_VALUE
+          7. privacy_class NEVER controls storage; use storage_targets
+        
+        REMEMBER: privacy_class alone DOES NOT block public storage.
+        Only CREDENTIAL_VALUE and FINANCIAL_VALUE atoms are hard-blocked from all outputs.
+        output: "Classified atoms"
+      
+      - step: 5.2
+        name: "Assign storage targets"
+        description: "Decide where to store each atom."
+        action: |
+          1. PUBLIC_KNOWLEDGE atoms → PUBLIC_GITHUB + LOCAL_KNOWLEDGE_ARCHITECTURE
+          2. PRIVATE_KNOWLEDGE atoms (user authorized) → PUBLIC_GITHUB + LOCAL_KNOWLEDGE_ARCHITECTURE
+          3. CREDENTIAL_VALUE or FINANCIAL_VALUE → NONE (hard block)
+          4. Other atoms → per user preference
+          Default: all non-credential-financial atoms go to PUBLIC_GITHUB
+        output: "Storage targets assigned"
+      
+      - step: 5.3
+        name: "Assign GPT access"
+        description: "Set whether GPT can read full semantic content."
+        action: |
+          1. All authorized knowledge → FULL_SEMANTIC_ACCESS (default)
+          2. Metadata-only atoms (describing categories without values) → FULL_SEMANTIC_ACCESS
+          3. Hard-secret atoms → METADATA_ONLY
+        output: "GPT access assigned"
+      
+      - step: 5.4
+        name: "Assign confidence"
+        description: "Set confidence level with explicit basis."
+        action: |
+          1. Multiple high-quality sources agree → HIGH
+          2. Single high-quality source → MEDIUM
+          3. Low-quality or unverified source → LOW
+          4. Source explicitly states uncertainty → match source's stated confidence
+          5. Always document WHY in confidence_basis
+        output: "Confidence assigned"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 6: QUALITY GATE
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 6
+    name: "Quality Gate"
+    id: STAGE_QUALITY
+    description: "Apply automated and manual quality checks."
+    
+    steps:
+      - step: 6.1
+        name: "Run automated checks"
+        description: "Apply all auto-detect quality gates."
+        action: |
+          For each gate in QUALITY-GATES.yaml where auto_detect == true:
+          1. Execute detection method
+          2. Record result (PASS / WARN / FAIL)
+          3. For WARN: document but continue
+          4. For FAIL: block unless overridden
+        output: "Quality gate results per check"
+      
+      - step: 6.2
+        name: "Run manual checks"
+        description: "Apply quality gates requiring human/LLM review."
+        action: |
+          For gates where auto_detect == false:
+          1. Apply heuristic or LLM analysis
+          2. Record result and reasoning
+          3. Document in AtomizationDecision
+        output: "Manual check results"
+      
+      - step: 6.3
+        name: "Generate quality report"
+        description: "Compile and assess overall quality."
+        action: |
+          1. Count PASS/WARN/FAIL/SKIPPED
+          2. If any FAIL with severity BLOCKING: REJECT
+          3. If any FAIL without BLOCKING: ACCEPT_WITH_WARNINGS
+          4. If all PASS: ACCEPT
+          5. Generate QualityGateReport
+        output: "QualityGateReport"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 7: PACKET ASSEMBLY
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 7
+    name: "Packet Assembly"
+    id: STAGE_ASSEMBLE
+    description: "Assemble the final LearningPacket with deterministic hash."
+    
+    steps:
+      - step: 7.1
+        name: "Bootstrap packet"
+        description: "Create packet envelope with metadata."
+        action: |
+          1. Generate packet_id from digest_run_id
+          2. Fill packet metadata (version, label, parent_program, etc.)
+          3. Set transport_visibility and gpt_access from most restrictive atom
+        output: "Packet envelope"
+      
+      - step: 7.2
+        name: "Insert artifacts"
+        description: "Add all atoms, relations, conflicts, unknowns, skills, structures."
+        action: |
+          1. Sort atoms by atom_id for deterministic ordering
+          2. Sort relations by relation_id
+          3. Sort conflicts by conflict_id
+          4. Sort unknowns by unknown_id
+          5. Include source manifest entries
+          6. Include secret scan receipts
+          7. Include atomization decisions
+          8. Include quality gate report
+        output: "Complete packet content"
+      
+      - step: 7.3
+        name: "Compute packet hash"
+        description: "Generate deterministic SHA-256 hash."
+        action: |
+          1. Serialize canonical content to canonical JSON form:
+             - Sort all keys alphabetically
+             - Omit created_at and updated_at from all embedded objects
+             - Include atoms, relations, conflicts, unknowns in deterministic order
+          2. Compute SHA-256 of canonical serialization
+          3. Set packet_hash
+        output: "Hashed packet"
+      
+      - step: 7.4
+        name: "Compute statistics"
+        description: "Generate packet statistics summary."
+        action: |
+          1. Count atoms by type
+          2. Count relations by type
+          3. Distribution of confidence levels
+          4. Distribution of atom_types
+          5. Quality gate summary
+        output: "Statistics block"
+
+  # ════════════════════════════════════════════════════════════════════
+  # STAGE 8: OUTPUT AND HANDOFF
+  # ════════════════════════════════════════════════════════════════════
+  - stage: 8
+    name: "Output and Handoff"
+    id: STAGE_OUTPUT
+    description: "Write the packet, update queue, generate handoff, cleanup."
+    
+    steps:
+      - step: 8.1
+        name: "Write LearningPacket"
+        description: "Write the packet to the appropriate storage target."
+        action: |
+          Per storage_targets:
+          - PUBLIC_GITHUB: write to workspace under appropriate path
+          - LOCAL_KNOWLEDGE_ARCHITECTURE: write to local architecture directory
+          - NONE: skip (hard-secret atoms area only)
+        output: "Written packet file(s)"
+      
+      - step: 8.2
+        name: "Write AtomizationRunManifest"
+        description: "Record the complete run details."
+        action: |
+          Create manifest containing:
+          - digest_run_id, timestamp, duration
+          - Sources processed
+          - Atoms, relations, conflicts, unknowns produced
+          - Quality gate results
+          - Errors and warnings
+          - Key decisions
+        output: "AtomizationRunManifest"
+      
+      - step: 8.3
+        name: "Update KnowledgeDigestQueue"
+        description: "Mark source as digested, update counts."
+        action: |
+          1. Set source status to DIGESTED (or PARTIALLY_DIGESTED / FAILED)
+          2. Record last_digest_run_id
+          3. Record atom_count_produced, relation_count_produced, etc.
+          4. If partially digested: set status to PARTIALLY_DIGESTED, create follow-up entry
+        output: "Updated queue entries"
+      
+      - step: 8.4
+        name: "Generate AI_HANDOFF"
+        description: "Create handoff for next agent or next run."
+        action: |
+          1. Summarize what was produced
+          2. List UNKNOWN gaps carried forward
+          3. List decisions awaiting review
+          4. List sources awaiting digestion
+          5. List quality warnings needing attention
+        output: "AI_HANDOFF.yaml"
+
+# ════════════════════════════════════════════════════════════════════
+# ERROR RECOVERY AND CHECKPOINTS
+# ════════════════════════════════════════════════════════════════════
+
+error_recovery:
+  strategy: "Checkpoint-based resume"
+  checkpoints:
+    - after_stage: 1
+      save: "Raw source + hash"
+    - after_stage: 2
+      save: "Redacted source + SecretScanReceipt"
+    - after_stage: 3
+      save: "Candidate atoms"
+    - after_stage: 4
+      save: "Atoms + relations + conflicts"
+    - after_stage: 5
+      save: "Full atoms with metadata"
+    - after_stage: 6
+      save: "Quality report"
+  
+  resume_procedure: |
+    1. Load most recent checkpoint
+    2. Validate checkpoint integrity (hash check)
+    3. Resume from next stage
+    4. If checkpoint invalid: restart from Stage 0 for affected source
+
+determinism:
+  guarantee: >
+    Same source content + same quality gate thresholds + same pipeline version
+    → identical packet_hash
+  exclusion_fields: ["created_at", "updated_at", "run_duration_ms", "host_name"]
+  canonical_ordering: "All arrays sorted by their primary deterministic ID"
