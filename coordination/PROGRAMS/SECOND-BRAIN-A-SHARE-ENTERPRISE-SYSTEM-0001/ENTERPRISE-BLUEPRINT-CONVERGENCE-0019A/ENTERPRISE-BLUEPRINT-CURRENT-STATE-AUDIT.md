@@ -10,7 +10,7 @@
 
 ## Executive finding
 
-The repository has a coherent logical authority model, but implementation maturity is uneven. W2 and W3 contain the strongest reusable public foundations. Most W5-W13 objects are contracts or blueprints, not runtime classes. The accessible local `F:/aidanao/brain_core` contains useful mother-system contracts and an operational SQLite/JSONL path, while the public Phase 3 package contains a separate candidate `MemoryStore`. Their migration and physical system-of-record decision are not proven. This audit therefore freezes one logical W3 authority and records the physical-runtime convergence as `UNKNOWN`, rather than silently selecting or deleting either implementation.
+The repository has a coherent logical authority model, but implementation maturity is uneven. R1 records two separate axes: `implementation_maturity` and `canonical_authority_readiness`. W2 and W3 contain the strongest reusable public foundations. Most W5-W13 objects are contracts or blueprints, not runtime classes. The accessible local `F:/aidanao/brain_core` contains useful mother-system contracts and an operational SQLite/JSONL path, while the public Phase 3 package contains a separate candidate `MemoryStore`. Their migration and physical system-of-record decision are not proven. This audit therefore preserves W3 implementation evidence while recording canonical physical authority as `UNKNOWN_MIGRATION_REQUIRED`, rather than silently selecting or deleting either implementation.
 
 ## Evidence method
 
@@ -34,16 +34,16 @@ Claims use these classes: `VERIFIED_REPOSITORY`, `VERIFIED_LOCAL`, `INHERITED_RE
 |---|---|---|---|
 | W1 governance | AGENTS, routers, AMED policy/templates, program indexes and task forecasts | final GPT acceptance of this convergence | `IMPLEMENTED_GOVERNANCE_PENDING_REVIEW` |
 | W2 market/rules/replay | P1 contracts, synthetic P2 deterministic replay, T+1/session/cost guards, P3 local `.day` adapter | broad instrument/rule-version coverage and business-slice validation | `PARTIAL_FOUNDATION_EXISTS` |
-| W3 knowledge/memory | Phase 3 SQLite candidate store, fusion, query, context bundle, snapshot and rollback | PR #58 independent gate; local/public physical authority migration | `IMPLEMENTED_WITH_OPEN_GATES` |
+| W3 knowledge/memory | Phase 3 SQLite candidate store, fusion, query, context bundle, snapshot and rollback | PR #58 independent gate; local/public physical authority migration | implementation: `IMPLEMENTED_WITH_OPEN_GATES`; authority: `UNKNOWN_MIGRATION_REQUIRED` |
 | W4 strategy/experiments | P2 synthetic strategy/replay and several candidate blueprints | canonical experiment-family contract and A-share OOS validation | `PARTIAL_CANDIDATES` |
 | W5 event/policy | registered blueprint and skill contract | point-in-time collector, expectation state and runtime | `CONTRACTED_NOT_IMPLEMENTED` |
 | W6 participant hypotheses | architecture concepts | runtime and falsification ledger | `BLUEPRINT_ONLY` |
-| W7 validation/risk | partial validation objects and replay gates | one canonical risk envelope and full veto path | `PARTIAL_FOUNDATION_EXISTS` |
+| W7 validation/risk | partial validation objects and replay gates | one canonical risk envelope and full veto path | implementation: `PARTIAL_FOUNDATION_EXISTS`; authority: `LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY` |
 | W8 operations | routing, task separation, handoff and evidence conventions | complete deployment/observability runtime | `PARTIAL_FOUNDATION_EXISTS` |
 | W9 calibration | engineering-learning forecasts/templates and partial receipts | canonical `OutcomeCalibrationRecord` runtime and shadow reconciliation | `GOVERNANCE_PARTIAL_RUNTIME` |
 | W10 PEOS | blueprint and boundary decisions | `DecisionEpisode` runtime | `CONTRACTED_NOT_IMPLEMENTED` |
 | W11 allocation | blueprint and skill contract | `W11CandidateAllocation` runtime; blocked by probability and risk contracts | `CONTRACTED_NOT_IMPLEMENTED` |
-| W12 decision science | D0 candidate on PR #66 | merge, then one explicitly routed child slice | `D0_ACCEPTED_DRAFT_NOT_MAIN` |
+| W12 decision science | contract and blueprint on `main`; PR #66 remains candidate evidence | merged executable producer, then one explicitly routed child slice | implementation: `CONTRACTED_NOT_IMPLEMENTED`; authority: `LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY` |
 | W13 flow evidence | blueprint and skill contract | source adapters and `ParticipantFlowEvidencePacket` runtime | `CONTRACTED_NOT_IMPLEMENTED` |
 | 0017 liquidity validation | embedded W4/W7 contract | BAR_ONLY implementation and validation | `CONTRACTED_NOT_IMPLEMENTED` |
 | 0018 house-edge control | embedded W7/W9/W11 contract | all upstream probability/allocation/risk/calibration interfaces | `CONTRACTED_BLOCKED_BY_UPSTREAM` |
@@ -67,7 +67,7 @@ Exact full hashes and private contents are intentionally not replicated into thi
 
 1. Logical writers are frozen by bounded context, not by whichever file happens to define a similarly named class.
 2. W3 owns knowledge/evidence/memory semantics. P2 `KnowledgeGateway` is a synthetic replay facade, not another authority.
-3. W12/DS-02 is the future writer for `ProbabilityEstimate`, but the shared schema is still `DRAFT_PR_NOT_MAIN`.
+3. W12/DS-02 is the declared future writer for `ProbabilityEstimate`, but no merged executable producer exists on `main`; PR #66 is candidate evidence only.
 4. W7 owns final validation and veto; module-specific validation reports are domain views, not independent final-veto authorities.
 5. 0017 and 0018 remain embedded capabilities. Neither creates W14, a second strategy engine, a second allocator, or an order path.
 
@@ -78,6 +78,7 @@ Exact full hashes and private contents are intentionally not replicated into thi
 - Whether PR #66 merges before the selected 0017 D0 route begins.
 - Full A-share rule coverage for all boards, security types and historical effective-date transitions.
 - Whether the 0017 BAR_ONLY slice produces economic increment; this task does not run a backtest.
+- Whether QCLAW PR #75 can demonstrate preregistered procedural independence; it is currently candidate counterevidence only.
 
 ## Audit disposition
 

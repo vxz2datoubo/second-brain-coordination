@@ -35,3 +35,15 @@ Select only `0017 BAR_ONLY reference-zone breach/reclaim plus T+1 validation`. I
 ## D-008 Independent Gate
 
 PR #70 supplies a candidate QCLAW package but is not yet evidence that PR #58 passed it. Issue #73 remains an independent audit lane and cannot edit Codex authority files. A business slice waits for GPT acceptance of this task plus Issue #73 completion or explicit waiver.
+
+## D-009 R1 Two-Axis Maturity And Candidate Counterevidence
+
+R1 separates `implementation_maturity` from `canonical_authority_readiness`. W3 retains evidence of implemented public and local memory components, while its physical canonical authority stays `UNKNOWN_MIGRATION_REQUIRED`. W12 has no merged executable main-branch producer, so its main implementation maturity is `CONTRACTED_NOT_IMPLEMENTED`; PR #66 remains candidate evidence only. W7 retains partial implementation evidence but has no verified canonical final-veto runtime. QCLAW PR #75 provides substantive candidate counterevidence, but preregistered procedural independence is not proven; GPT selects 0017 under uncertainty rather than treating that PR as independent proof.
+
+## D-010 Strict BAR_ONLY Boundary
+
+Issue #69 D0 may plan only point-in-time bar semantics. It must exclude L2/order-book or displayed-depth dependencies, raw tick/order events, L3, DDX/DDY, synthetic Delta/CVD/OFI, participant identity, hidden-stop claims and main-force intent. W3's physical migration blocks canonical C3 promotion and destructive consolidation, but does not block self-contained Issue #69 D0 planning after GPT releases it.
+
+## D-011 Latest-Main Synchronization
+
+The normal Git fetch transport reset twice, so the R1 route and the five changed coordination files were verified against remote `main` commit `b76b8f846b446f0144e8afa12f4ef08d12e09bd7` through GitHub's authenticated/raw APIs and synchronized mechanically in the isolated PR worktree. This is a transport workaround, not a claim that the root worktree or any other Agent branch was clean, rebased, or overwritten.

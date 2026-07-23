@@ -1,176 +1,107 @@
-schema_version: "3.0"
+schema_version: "5.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
-active_issue: 59
-active_task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2"
+active_issue: 76
+active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0"
 active_mode: "target"
-mode_label: "目标模式＋PR70独立对抗证据包AMED收口与不可变交接"
+mode_label: "目标模式＋0017-D0独立审计预注册、评分冻结与哈希封存"
 mode_reason: >-
-  QCLAW has already delivered a concrete 110-query independent adversarial package
-  in Draft PR #70. The remaining work is bounded: preserve the package, add AMED and
-  verification receipts, prove independence and hand it unchanged to PR #58. A new
-  project plan is not needed for this closeout.
+  The deliverables and success criteria are concrete. QCLAW must freeze the future D0 audit instrument before
+  Codex produces the D0 answer. This is bounded preregistration, not another open-ended architecture audit.
 status: "READY"
 blocked_by: "none"
+parent_issue: 69
 parent_program: 31
-related_gateway_issue: 38
-pull_request: 70
-target_pull_request: 58
-reuse_existing_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
-create_new_branch: false
-create_new_pr: false
+source_issue: 76
+create_new_branch: true
+branch: "qclaw/0017-d0-audit-preregistration-0020q"
+create_new_pr: true
+draft_pull_request: true
+direct_main_write: false
+auto_merge: false
+allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
 
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2.yaml"
-
-amed_policy:
-  policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
-  blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
-  machine_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-  task_weight: "STRATEGIC"
-  research_trigger:
-    level: "L1_REUSE_AND_QUICK_CHECK"
-    escalation: "L2 only for a material current-source, security or architecture conflict."
-  exploration_budget:
-    primary_delivery_share: "80%"
-    active_discovery_share: "15%"
-    system_opportunity_share: "5%"
-    max_new_architecture_proposals: 2
-    max_new_skill_candidates: 0
-    max_unplanned_files: 8
-    scope_expansion_without_gate: false
-  improvement_authority:
-    A_SAFE_LOCAL_AUTONOMOUS:
-      - "Fix PR #70 package formatting, manifest counts, broken references and receipt consistency without changing query semantics."
-    B_BOUNDED_IMPLEMENT_AND_REPORT:
-      - "Add backward-compatible AMED, independence, hash, test, UNKNOWN and handoff receipts inside the PR #70 package."
-    C_PROPOSAL_ONLY:
-      - "Any new query family, interface, Skill, data source, runtime or Issue #73 design change."
-    D_PROHIBITED_OR_USER_GATE:
-      - "Read Codex hidden answers, alter the canonical runtime, access secrets/accounts, trade, auto-merge or write main."
-  second_pass_audit_required: true
+closed_prior_wave:
+  issue: 73
+  pull_request: 75
+  disposition: "ACCEPTED_CANDIDATE_EVIDENCE_PROCEDURAL_INDEPENDENCE_NOT_PROVEN_NO_MERGE"
+  reusable_findings_only:
+    - "Historical failure mode: scoring preceded question/behavior freeze."
+    - "BAR_ONLY must exclude L2/L3/order flow/identity/hidden intent."
+    - "W3 physical SoR remains UNKNOWN_MIGRATION_REQUIRED."
+  prohibited_carryover:
+    - "Do not copy old scores or claim PR #75 independently proved 0017-first."
+    - "Do not edit PR #75 or rerun Issue #73."
 
 mission_intent: >-
-  Complete the independent evidence delivery required by Issue #38 and PR #58 by
-  preserving all 110 QCLAW-authored queries, proving their independence, adding
-  executable receipts and handing the package to Codex for unchanged execution.
+  Build and machine-freeze the audit questions, scoring rubric, evidence thresholds, expected and forbidden
+  behaviors, UNKNOWN/abstention rules and hashes that will later be used to evaluate Codex Issue #69 D0.
+  P0 creates the exam before the answer exists. P0 performs no evaluation of future Codex D0 work.
+
+allowed_inputs:
+  - "Current main Issue #69 specification and activity routes."
+  - "Published PR #74 and PR #75 only for known boundaries and historical failure modes."
+  - "Public-safe repository schemas, governance contracts and current A-share rule assumptions."
+
+forbidden_inputs:
+  - "Any future Codex Issue #69 D0 branch, Draft PR, answer, score, internal draft or work log."
+  - "Private/local sensitive values, secrets, accounts, services, broker or market-feed data."
+  - "Predicted Codex answers used to tailor questions toward a preferred verdict."
 
 required_action:
-  - "Read this route, PR #70, Issue #59, Issue #38, PR #58 and the bound TaskImpactForecast."
-  - "Sync latest main and record exact main, PR #70 base/head and PR #58 head SHAs."
-  - "Use the existing PR #70 branch; do not create another branch or PR."
-  - "Hash the 110 queries and expected/forbidden behavior before edits."
-  - "Do not modify query meaning or expected outcomes after learning PR #58 behavior."
-  - "Verify manifest category counts, query counts, paths, encoding and PUBLIC_SAFE boundary."
-  - "Add AMEDAgentExecutionReceipt, AMEDResearchLedger, UnplannedImprovementLedger, SystemDiscoveryReport, TestRunReceipt, UNKNOWN and AI_HANDOFF."
-  - "Add independence and non-contamination attestation plus immutable-consumption instructions."
-  - "Run YAML, UTF-8, secret-pattern, count, reference and schema checks with actual commands and exit codes."
-  - "Update PR #70 and report the exact completion signal to Issues #59, #38 and #31 and PR #58."
-  - "Stop for GPT review; do not run the package against PR #58 unless separately authorized."
+  - "Read Issue #76 and latest main routes."
+  - "Create the required branch from latest main and exactly one Draft PR."
+  - "Freeze questions, weights, thresholds, evidence requirements and forbidden behaviors before any Codex D0 Draft PR exists."
+  - "Cover point-in-time reference zones, leakage, BAR_ONLY scope, T+1, rules, costs, replay, OOS design, baselines, negative results and local-reality receipts."
+  - "Add explicit checks for Codex self-verification loops after WorkBuddy scope transfer."
+  - "Add explicit checks that W3 physical SoR UNKNOWN neither becomes canonical nor falsely blocks self-contained D0 planning."
+  - "Record Git blob SHA and SHA-256 for every frozen core file and generate one combined hash."
+  - "Use a real YAML parser with duplicate-key rejection and validate UTF-8, required files, unique IDs, weights, references, placeholders, secret patterns and hashes."
+  - "After freezing, mark core files immutable for P1. Future omissions may only be proposed in a separate AMENDMENT-PROPOSAL; no silent exam edits."
+  - "Post PR number, base/head SHA, files, hashes, commands, versions, exit codes, SKIPs and UNKNOWNs to Issues #76/#69/#31."
+  - "Stop for GPT review. Do not evaluate Codex, implement 0017, modify PR #74 or create runtime work."
 
 mandatory_outputs:
-  - "Preserved 13-category, 110-query adversarial pack"
   - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
-  - "PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+  - "D0-AUDIT-QUESTION-FREEZE.yaml"
+  - "D0-SCORING-RUBRIC-FREEZE.yaml"
+  - "EXPECTED-AND-FORBIDDEN-BEHAVIOR.yaml"
+  - "EVIDENCE-REQUIREMENT-MATRIX.yaml"
+  - "UNKNOWN-AND-ABSTENTION-CONTRACT.yaml"
+  - "BAR-ONLY-SCOPE-GUARD.yaml"
+  - "LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST.yaml"
+  - "FROZEN-MANIFEST.yaml"
+  - "validate_preregistration.py"
   - "TEST-RUN-RECEIPT.md"
-  - "UNKNOWN-REGISTRY.yaml"
   - "AI_HANDOFF.yaml"
 
+acceptance_gates:
+  - "The freeze commit and timestamps predate any Codex Issue #69 D0 Draft PR."
+  - "All frozen core files have Git blob SHA, SHA-256 and a combined hash."
+  - "Question IDs and rubric weights are unique and machine validated."
+  - "No answer, score or verdict about the future Codex D0 is present."
+  - "BAR_ONLY and self-verification-loop guards are explicit."
+  - "PR remains Draft and only allowed paths are changed."
+
+future_p1_contract:
+  activation: "GPT_EXPLICIT_RELEASE_AFTER_CODEX_D0_DELIVERY"
+  behavior: >-
+    Evaluate Codex D0 only with the frozen P0 instrument. Do not modify frozen core files. Separate verified
+    facts, interpretations, predictions, counterevidence and UNKNOWN. Any proposed amendment remains outside
+    the scored P1 evaluation unless GPT approves it before evaluation.
+
 forbidden:
-  - "Do not edit Codex PR #58 source, tests or answer behavior."
-  - "Do not read hidden Codex expected answers before freezing the package."
-  - "Do not add unrelated Issue #72 or Issue #73 files to PR #70."
-  - "Do not create a second knowledge, evidence, memory, retrieval, probability, risk, capital or order runtime."
-  - "Do not access credential values, private bodies without explicit task authorization, broker/account data or real trading."
-  - "Do not merge PR #70 or PR #58 automatically."
+  - "No scoring or judgment of not-yet-delivered Codex D0."
+  - "No change to PR #74, PR #75, Issue #69 body or Codex routes."
+  - "No implementation, local runtime, trade, account, credential or service action."
+  - "No merge or auto-merge."
 
-execution_contract:
-  sync_latest_main: true
-  existing_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
-  existing_pull_request: 70
-  draft_pull_request: true
-  direct_main_write: false
-  auto_merge: false
-  report_to_issues: [59, 38, 31]
-  report_to_pull_requests: [70, 58]
-  progress_checkpoints: [50, 100]
-  completion_signal: "QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION"
-  after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_PR58_UNCHANGED_CONSUMPTION"
-
-queued_tasks:
-  - order: 1
-    issue: 73
-    parent_issue: 72
-    task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
-    mode: "project_plan"
-    mode_label: "项目计划模式＋企业蓝图独立对抗审计与下一切片反证"
-    task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q.yaml"
-    release_gate: >-
-      PR #70 is accepted for PR #58 consumption, Codex Issue #72 has a Draft PR with
-      all required convergence artifacts, and GPT explicitly releases Issue #73.
-    branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
-    separate_from_codex_branch: true
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-BLUEPRINT-CONVERGENCE-AUDIT/0019Q/"
-    objective: >-
-      Independently challenge the Codex blueprint-convergence delivery for duplicate
-      authority, maturity inflation, interface contradictions, hidden parallel runtime
-      and unsupported next-slice selection without editing Codex authority files.
-  - order: 2
-    issue: 60
-    task_id: "QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009"
-    mode: "project_plan"
-    status: "FROZEN_REQUIRES_CORRECT_M0_AND_NEW_ROUTE"
-  - order: 3
-    issue: 61
-    task_id: "QCLAW-PEOS-COGNITIVE-RESEARCH-ADVERSARIAL-SUPPORT-0010"
-    mode: "target"
-    status: "PLANNING_INPUT_ONLY_AFTER_C0_FREEZE"
-  - order: 4
-    issue: 62
-    task_id: "QCLAW-KELLY-THORP-RESEARCH-ADVERSARIAL-SUPPORT-0011"
-    mode: "target"
-    status: "PLANNING_INPUT_ONLY_AFTER_K0_FREEZE"
-  - order: 5
-    issue: 63
-    task_id: "QCLAW-DECISION-SCIENCE-SKILL-GAP-RESEARCH-SUPPORT-0012"
-    mode: "target"
-    status: "D0_SUPPORT_PRESERVED_NO_NEW_RUNTIME"
-
-preserved_long_term_role:
-  issue: 59
-  role: "Knowledge atomization, continuous digest and adversarial epistemic-integrity support"
-  authority: "CANDIDATE_ONLY"
-  canonical_runtime_write_authority: false
-  resume_rule: >-
-    Resume ongoing atomization/digest work only after the current PR #70 evidence
-    closeout or when GPT explicitly routes a bounded digest batch. New knowledge and
-    failures return to the digest queue, but cannot silently interrupt an active gated task.
-
-qclaw_and_codex_separation:
-  codex_issue_72_role: "Build canonical convergence proposals and authority/interface/maturity matrices."
-  qclaw_issue_73_role: "Independently challenge the Codex delivery with candidate-only adversarial evidence."
-  shared_branch: false
-  shared_output_files: false
-  qclaw_may_edit_codex_authority_files: false
-  codex_may_rewrite_qclaw_adversarial_questions: false
-  gpt_final_acceptance_required: true
-
-safety_boundary:
-  public_safe_only_for_current_task: true
-  candidate_only: true
-  research_only: true
-  no_trade: true
-  no_broker_account_order: true
-  credential_values_denied: true
-  direct_main_write: false
-  auto_merge: false
-
+completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_FUTURE_P1_RELEASE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-23"
+updated_at: "2026-07-24"

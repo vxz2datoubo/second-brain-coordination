@@ -13,6 +13,8 @@
 3. **PR #70 is evidence input, not a passed gate.** Its 110-query package still needs immutable consumption and result evaluation against PR #58.
 4. **0017 has the cleanest next falsifiable path.** BAR_ONLY can reuse current replay/rule assets while explicitly refusing hidden-stop, identity and order-flow claims.
 5. **Some registration supplements are becoming redundant.** They should remain until a consumer search and GPT-approved deprecation, avoiding a noisy cleanup during convergence.
+6. **Implementation and authority readiness require separate evidence.** R1 found that W3, W7 and W12 cannot be described accurately by a single maturity field: a component may be implemented while its canonical producer is unresolved, or a declared owner may lack a merged executable producer.
+7. **Counterevidence and independent proof are different.** PR #75 can inform GPT's selection under uncertainty without establishing preregistered procedural independence.
 
 ## Opportunities Within Budget
 

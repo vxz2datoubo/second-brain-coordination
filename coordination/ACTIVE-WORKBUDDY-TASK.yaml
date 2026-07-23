@@ -1,17 +1,44 @@
-schema_version: "1.6"
+schema_version: "1.8"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
+
 active_issue: null
 task_id: "NO_ACTIVE_TASK"
-mode: "paused"
-mode_label: "暂停"
-status: "PAUSED"
-blocked_by: "Assigned to Codex Issue #55"
+mode: "retired_from_mainline"
+mode_label: "已移出0017主线"
+status: "NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX"
+blocked_by: "USER_DECISION_WORKBUDDY_SCOPE_TRANSFERRED_TO_CODEX"
 parent_program: 31
-parent_wave: 53
-superseded_issue: 54
-absorbed_by_issue: 55
-notes: "No independent WorkBuddy task is active."
+
+default_response_to_task_trigger:
+  - "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
+  - "Do not create a branch, PR, adapter, local runtime or verification package for Issue #69/0017."
+  - "Refer the caller to coordination/ACTIVE-CODEX-TASK.yaml."
+
+scope_transfer:
+  effective_date: "2026-07-24"
+  receiving_agent: "CODEX"
+  transferred_scope:
+    - "Local point-in-time bar path and coverage verification."
+    - "Timestamp, missing-value, field-semantic and rule-snapshot checks."
+    - "Replay and validation command execution."
+    - "Counts, hashes, environment versions, exit codes and UNKNOWN receipts."
+    - "Explicitly approved thin-adapter implementation."
+  transfer_boundary: >-
+    WorkBuddy has no residual execution, verification, adapter or handoff responsibility for Issue #69/0017.
+    Codex is the sole execution owner, while QCLAW remains the independent adversarial auditor.
+
+future_reactivation:
+  allowed_only_when: "The user or GPT creates a new explicit task unrelated to the transferred 0017 scope."
+  implicit_reactivation_denied: true
+
+w3_note:
+  status: "UNKNOWN_MIGRATION_REQUIRED"
+  instruction: "Do not consolidate or migrate W3 stores unless GPT creates a separate gated task."
+
+boundary: "NO_ACTIVE_SCOPE / NO_TRADE"
+direct_main_write: false
+auto_merge: false
 updated_by: "GPT"
-updated_at: "2026-07-21"
+updated_at: "2026-07-24"

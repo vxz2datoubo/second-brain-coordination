@@ -10,6 +10,13 @@
 >
 > boundary: `research_only / NO_TRADE`
 
+> R1 correction: `implementation_maturity` and
+> `canonical_authority_readiness` are separate. W3 physical authority remains
+> `UNKNOWN_MIGRATION_REQUIRED`; it blocks C3 canonical promotion and
+> destructive migration, not a self-contained Issue #69 D0 after explicit GPT
+> release. PR #75 is candidate counterevidence, not proof of preregistered
+> procedural independence.
+
 ## 权威入口
 
 1. 企业章程：`coordination/BLUEPRINTS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.4.md`

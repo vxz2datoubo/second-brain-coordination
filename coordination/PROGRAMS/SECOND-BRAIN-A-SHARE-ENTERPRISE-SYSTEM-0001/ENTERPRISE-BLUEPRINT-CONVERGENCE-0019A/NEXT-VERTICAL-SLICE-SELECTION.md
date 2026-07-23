@@ -14,7 +14,7 @@
 
 The next business vertical slice should be the narrow BAR_ONLY portion of module 0017. It tests observable reference-zone breach, reclaim/failure, post-event stabilization and T+1-aware executability using the existing W2 replay path, W4 experiment ownership and W7 validation authority. It does not infer hidden stops, participant identity, raw order flow or intent.
 
-This document selects a candidate; it does not activate or implement it. Release requires GPT acceptance of Issue #72 and either completion of the independent Issue #73 audit or an explicit GPT waiver.
+This document selects a candidate; it does not activate or implement it. GPT selects 0017 under documented uncertainty: QCLAW PR #75 supplies substantive candidate counterevidence, but preregistered procedural independence was not proven. Release requires explicit GPT approval of this R1 correction and the current route's stated preregistration gate or a documented bounded waiver.
 
 ## Scoring method
 
@@ -34,7 +34,7 @@ Scores are governance estimates, not measured economic value. They can be invali
 ## Why 0017 wins now
 
 1. The public repository already has deterministic bar replay, local `.day` adaptation and basic A-share T+1/session/cost guards.
-2. BAR_ONLY avoids unavailable raw order events and avoids pretending L2 aggregates reveal exact stops or identities.
+2. BAR_ONLY excludes L2/order-book and displayed-depth dependency, raw tick/order events, L3, DDX/DDY, synthetic Delta/CVD/OFI, participant identity, hidden-stop claims and main-force intent; it only labels observable point-in-time bar behavior.
 3. The hypothesis can be falsified with an event-study baseline, purged/walk-forward splits, regime partitions, costs and abstention.
 4. It does not wait for W5/W13 collectors, W12 probability, W10 decision ledger, W11 allocation or 0018 survival controls.
 5. Failure is informative and cheap: the slice can be retired without changing shared authorities.

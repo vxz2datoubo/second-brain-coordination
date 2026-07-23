@@ -9,22 +9,30 @@ rules:
   similarly_named_local_classes_do_not_transfer_authority: true
   blueprint_presence_is_not_implementation: true
   embedded_modules_create_no_new_workstream: true
+  implementation_maturity_and_authority_readiness_are_separate: true
+authority_readiness_definitions:
+  CANONICAL_AUTHORITY_READY: "Declared owner has a verified canonical governance, producer or system-of-record path."
+  LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY: "Declared logical owner exists, but a canonical executable producer or final system-of-record path is not verified."
+  UNKNOWN_MIGRATION_REQUIRED: "Multiple physical candidates exist and no migration or reconciliation receipt selects one."
 authorities:
   - authority_id: "AUTH_TASK_GOVERNANCE"
     owner: "W1"
     objects: [AMEDTaskContract, TaskRoute, ProgramIndex]
     physical_system_of_record: "public coordination governance files"
-    maturity: "IMPLEMENTED_GOVERNANCE_PENDING_REVIEW"
+    implementation_maturity: "IMPLEMENTED_GOVERNANCE_PENDING_REVIEW"
+    canonical_authority_readiness: "CANONICAL_AUTHORITY_READY"
   - authority_id: "AUTH_AGENT_OPERATIONS"
     owner: "W8"
     objects: [AgentOperationRecord, AIHandoff]
     physical_system_of_record: "coordination routes and handoff artifacts"
-    maturity: "PARTIAL_FOUNDATION_EXISTS"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "CANONICAL_AUTHORITY_READY"
   - authority_id: "AUTH_MARKET_TIME_RULE_REPLAY"
     owner: "W2"
     objects: [MarketTimeAndAvailabilityEnvelope, AShareRuleSnapshot, ReplayConfiguration]
     physical_system_of_record: "P1/P2/P3 public packages; canonical package boundary pending consolidation"
-    maturity: "PARTIAL_FOUNDATION_EXISTS"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_KNOWLEDGE_EVIDENCE_MEMORY"
     owner: "W3"
     objects: [SourceRecord, EvidenceItem, KnowledgeAtom, ConflictRecord, KnowledgeVersion]
@@ -35,54 +43,65 @@ authorities:
     non_authoritative_facades:
       - "P2 synthetic KnowledgeGateway"
       - "P3 local-adapter in-memory gateway"
-    maturity: "LOGICAL_AUTHORITY_FROZEN_PHYSICAL_AUTHORITY_UNKNOWN"
+    implementation_maturity: "IMPLEMENTED_WITH_OPEN_GATES"
+    canonical_authority_readiness: "UNKNOWN_MIGRATION_REQUIRED"
   - authority_id: "AUTH_EVENT_POLICY_EVIDENCE"
     owner: "W5"
     objects: [EventEvidencePacket]
     physical_system_of_record: "NOT_IMPLEMENTED"
-    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_PARTICIPANT_FLOW_EVIDENCE"
     owner: "W13"
     objects: [ParticipantFlowEvidencePacket]
     identity_claim_authority: false
     physical_system_of_record: "NOT_IMPLEMENTED"
-    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_STRATEGY_EXPERIMENT"
     owner: "W4"
     objects: [FeatureDefinition, StrategyDefinition, StrategyExperimentFamily]
     physical_system_of_record: "PARTIAL_P2_SYNTHETIC_AND_LOCAL_CANDIDATES"
-    maturity: "PARTIAL_CANDIDATES"
+    implementation_maturity: "PARTIAL_CANDIDATES"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_PARTICIPANT_HYPOTHESIS"
     owner: "W6"
     objects: [ParticipantHypothesis]
     identity_fact_authority: false
     physical_system_of_record: "NOT_IMPLEMENTED"
-    maturity: "BLUEPRINT_ONLY"
+    implementation_maturity: "BLUEPRINT_ONLY"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_PROBABILITY_ESTIMATE"
     owner: "W12_DS02"
     objects: [ProbabilityEstimate]
-    physical_system_of_record: "PR_66_DRAFT_NOT_MAIN"
-    maturity: "CONTRACT_CANDIDATE_PENDING_MERGE"
+    physical_system_of_record: "NO_MAIN_BRANCH_EXECUTABLE_PRODUCER"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
+    candidate_evidence: "PR #66 Draft only; not main-branch implementation evidence"
   - authority_id: "AUTH_DECISION_EPISODE"
     owner: "W10"
     objects: [DecisionEpisode]
     physical_system_of_record: "NOT_IMPLEMENTED"
-    maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_CAPITAL_ALLOCATION"
     owner: "W11"
     objects: [W11CandidateAllocation]
     physical_system_of_record: "NOT_IMPLEMENTED"
-    maturity: "CONTRACTED_BLOCKED_BY_PROBABILITY_AND_RISK"
+    implementation_maturity: "CONTRACTED_BLOCKED_BY_PROBABILITY_AND_RISK"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_VALIDATION_FINAL_VETO"
     owner: "W7"
     objects: [ValidationReport, W7RiskEnvelope]
     physical_system_of_record: "PARTIAL_P1_P2_AND_LOCAL_VALIDATION_OBJECTS"
-    maturity: "PARTIAL_FOUNDATION_EXISTS"
+    implementation_maturity: "PARTIAL_FOUNDATION_EXISTS"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
   - authority_id: "AUTH_OUTCOME_CALIBRATION"
     owner: "W9"
     objects: [OutcomeCalibrationRecord]
     physical_system_of_record: "NOT_IMPLEMENTED_AS_CANONICAL_OBJECT"
-    maturity: "GOVERNANCE_PARTIAL_RUNTIME"
+    implementation_maturity: "GOVERNANCE_PARTIAL_RUNTIME"
+    canonical_authority_readiness: "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY"
 embedded_capabilities:
   - capability_id: "A_SHARE_LIQUIDITY_SWEEP_RECLAIM_VALIDATION_0017"
     owners: [W4, W7]

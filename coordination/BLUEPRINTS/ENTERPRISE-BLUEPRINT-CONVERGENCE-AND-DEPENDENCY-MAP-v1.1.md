@@ -10,6 +10,12 @@
 >
 > boundary: `research_only / NO_TRADE`
 
+> R1 correction: implementation maturity and canonical authority readiness are
+> separate axes. W3 remains `UNKNOWN_MIGRATION_REQUIRED` for physical
+> authority, W12 is `CONTRACTED_NOT_IMPLEMENTED` on main, and PR #66 is
+> `CANDIDATE_ONLY` evidence. PR #75 has substantive candidate counterevidence
+> but no proven preregistered procedural independence.
+
 ## 1. 收敛后的系统
 
 系统保持四个平面和十三个工作流，不创建 W14：

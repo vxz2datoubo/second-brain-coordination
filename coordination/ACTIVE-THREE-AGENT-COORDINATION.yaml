@@ -1,125 +1,177 @@
-schema_version: "1.4"
-coordination_type: "ThreeAgentActiveCoordination"
+schema_version: "3.0"
+coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
+legacy_filename_note: "File name is retained for compatibility; WorkBuddy is removed from the 0017 mainline."
 program_issue: 31
-status: "ACTIVE"
+status: "ACTIVE_ONE_BUILD_ONE_PREREGISTRATION"
 updated_by: "GPT"
-updated_at: "2026-07-21"
+updated_at: "2026-07-24"
 
-agent_aliases:
-  QCLAW: ["Q", "QQ"]
+program_goal: >-
+  Converge PR #74 truthfully, preregister an independent audit before Codex D0 exists, then build and validate
+  one controlled 0017 BAR_ONLY slice. Codex owns all execution and accessible-local verification. QCLAW owns
+  independent preregistration and adversarial evaluation. GPT owns release and final gates.
 
-agents:
-  CODEX:
-    active_issue: 39
-    task_id: "A-SHARE-OFFLINE-REPLAY-KNOWLEDGE-ACCESS-0002"
-    status: "READY_OR_RUNNING"
-    mode: "GOAL"
-    role: "Build the large public-safe offline A-share replay, validation, evidence and GPT atomized-knowledge access vertical slice."
-    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
-    allowed_handoffs_from:
-      - "QCLAW Issue #36 accepted public-safe findings"
-      - "QCLAW Issue #40 public-safe adapter compatibility observations"
-      - "WORKBUDDY PR #34 proposed sanitized capability facts, reference only"
-    prohibited:
-      - "private knowledge ingestion or publication"
-      - "credential, cloud, service or broker access"
-      - "real trading or protected blueprint mutation"
-
-  WORKBUDDY:
-    active_issue: 32
-    task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
-    status: "DELIVERED_PR34_GPT_REVIEW_IN_PROGRESS"
-    delivery:
-      pr: 34
-      head_sha: "5697004c24f0fbf5c1c334ddccf7d409f4a4de94"
-    role: "Delivered local QCLAW runtime/data facts and proposed offline staging/sync boundaries."
-    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-    review_note: "Clarification remains required on strict read-only versus reported GitHub token double-write."
-    prohibited:
-      - "new implementation before GPT acceptance"
-      - "credential changes, service changes or private uploads"
-      - "Issue #7 fallback or local strategy preemption"
-
-  QCLAW:
-    aliases: ["Q", "QQ"]
-    active_issue: 40
-    task_id: "QCLAW-DETERMINISTIC-LEARNING-PACKET-PIPELINE-0003"
-    status: "READY"
-    mode: "GOAL_CONTROLLED_IMPLEMENTATION"
-    role: "Implement a deterministic, content-addressed, testable candidate LearningPacket pipeline and prove GitHub branch/commit/Draft-PR delivery."
-    source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
-    predecessor:
-      issue: 36
-      status: "ACCEPTED_WITH_LIMITATIONS_AND_CLOSED"
-    allowed_handoffs_to:
-      - "Issue #40 complete public-safe implementation package and Draft PR"
-      - "Issue #20 concise task index"
-      - "Issue #39 public-safe compatibility observations only"
-    prohibited:
-      - "private knowledge ingestion or upload"
-      - "authority promotion or Codex task execution"
-      - "declaring PR #34 or QQ v0.2 adapter canonical"
-      - "service/config/cloud/main mutations"
-
-shared_handoff_contract:
-  required_fields:
-    - agent_id
-    - target_agent
-    - task_id
-    - run_id
-    - status
-    - verified_facts
-    - unknowns
-    - privacy_class
-    - authority_level
-    - positive_effects
-    - negative_effects
-    - unexpected_findings
-    - rollback_or_discard_method
-  authority_default: "CANDIDATE_OR_OBSERVATION_ONLY"
+coordination_principles:
+  single_major_execution_owner: "CODEX"
+  independent_audit_owner: "QCLAW"
+  final_gate_owner: "GPT"
+  workbuddy_in_mainline: false
+  max_major_workstreams: 1
+  bounded_support_workstreams: 1
+  preregistration_before_answer: true
   no_silent_task_preemption: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
   no_trade: true
+  preserve_negative_results: true
+  preserve_unknowns: true
 
-wip_policy:
-  major_workstream_limit: 2
-  current_major_workstreams:
-    - "CODEX Issue #39 large offline vertical slice"
-  bounded_parallel_implementation:
-    - "QCLAW Issue #40 deterministic LearningPacket pipeline"
-  completed_deliveries_in_review:
-    - "WORKBUDDY PR #34"
-  interpretation: "Codex #39 remains the sole enterprise vertical-slice owner. QQ #40 is a bounded public-safe knowledge-engineering implementation and may not freeze enterprise contracts."
+current_phase:
+  name: "PARALLEL_PR74_R1_AND_QCLAW_D0_PREREGISTRATION"
+  execution_model: "ONE_MAJOR_PLUS_ONE_BOUNDED_AUDIT_PREP"
+  major_owner: "CODEX"
+  bounded_support_owner: "QCLAW"
+  gpt_role: "Review both outputs before releasing Issue #69 D0."
 
-cross_agent_dependencies:
-  - from: "QCLAW#36"
-    to: "CODEX#39"
-    deliverable: "accepted public-safe LearningPacket compatibility findings"
-    blocking: false
-    authority: "OBSERVATION_ONLY"
-  - from: "QCLAW#40"
-    to: "CODEX#39"
-    deliverable: "public-safe deterministic-ID, packet-field and adapter observations"
-    blocking: false
-    authority: "OBSERVATION_ONLY"
-  - from: "WORKBUDDY PR #34"
-    to: "QCLAW#40"
-    deliverable: "proposed LearningPacket and local state-machine reference"
-    blocking: false
-    authority: "REFERENCE_ONLY"
-  - from: "CODEX#39"
-    to: "Issue #38 future private/local knowledge gateway implementation"
-    deliverable: "KnowledgeQuery, ContextBundle, access-policy contracts and synthetic adapter demonstration"
-    blocking: true
+prior_audit_disposition:
+  issue: 73
+  pull_request: 75
+  result: "ACCEPTED_CANDIDATE_EVIDENCE_PROCEDURAL_INDEPENDENCE_NOT_PROVEN_NO_MERGE"
+  effect:
+    - "Substantive counterevidence may inform PR #74 corrections."
+    - "PR #75 is not canonical and not proof of independent convergence."
+    - "No more remediation of the old scoring wave is scheduled."
 
-risk_gate:
-  current_decision: "PROCEED_WITH_CONTROLS"
-  user_approval_required_now: false
-  stop_and_escalate_before:
-    - "private or sensitive knowledge leaves local machine"
-    - "cloud/private repository/object storage creation"
-    - "credential access or service lifecycle changes"
-    - "protected blueprint body changes"
-    - "candidate knowledge authority promotion"
-    - "real trading, broker or order path"
+agents:
+  CODEX:
+    active_issue: 72
+    pull_request: 74
+    task_id: "CODEX-0019A-R1-BOUNDED-CONVERGENCE-REMEDIATION"
+    mode: "goal"
+    status: "READY"
+    role_now: >-
+      Correct maturity-versus-authority conflation, W12 Draft maturity, PR75 proof language and BAR_ONLY/W3
+      boundaries on the existing PR #74 branch. No redesign, no runtime and no Issue #69 work yet.
+    owns_after_release:
+      - "Issue #69 D0 project plan and accessible-local reality audit."
+      - "0017-VS1 implementation."
+      - "Local path/coverage/hash/field/timestamp verification."
+      - "Replay, T+1, cost, OOS and negative-control execution."
+      - "Approved thin adapters and machine receipts."
+    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+
+  QCLAW:
+    aliases: ["Q", "QQ"]
+    active_issue: 76
+    task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0"
+    mode: "target"
+    status: "READY"
+    role_now: >-
+      Create and hash-freeze the future Codex D0 audit questions, scoring rubric, evidence thresholds and
+      forbidden behaviors before a Codex D0 answer exists. Do not evaluate or design the Codex answer.
+    future_role:
+      - "P1: evaluate Codex Issue #69 D0 with the immutable P0 instrument."
+      - "P2: preregister and later audit the frozen VS1 implementation and local-verification receipts."
+    source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
+
+  WORKBUDDY:
+    active_issue: null
+    task_id: "NO_ACTIVE_TASK"
+    status: "REMOVED_FROM_0017_MAINLINE_BY_USER"
+    transferred_to: "CODEX"
+    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+
+parallel_wave_1:
+  may_run_concurrently: true
+  tasks:
+    - owner: "CODEX"
+      task: "PR #74 R1 bounded convergence remediation."
+      completion_signal: "CODEX_0019A_R1_BOUNDED_CONVERGENCE_REMEDIATION_READY_FOR_GPT_REVIEW"
+    - owner: "QCLAW"
+      issue: 76
+      task: "0017 D0 independent-audit P0 preregistration and hash freeze."
+      completion_signal: "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+  isolation:
+    - "QCLAW may not inspect future Codex D0 output because none may be created in this wave."
+    - "Codex may not modify QCLAW Issue #76 artifacts."
+    - "Both remain Draft/no-merge and research_only."
+
+execution_queue:
+  - order: 1
+    owner: "CODEX_AND_QCLAW_IN_PARALLEL"
+    task: "Complete parallel_wave_1."
+  - order: 2
+    owner: "GPT"
+    task: "Review PR #74 R1 and QCLAW Issue #76 P0; accept, remediate or reject each independently."
+  - order: 3
+    owner: "CODEX"
+    issue: 69
+    task: "0017 D0 project plan plus repository and accessible-local reality audit."
+    mode: "project_plan"
+    release_gate:
+      - "PR #74 R1 accepted."
+      - "QCLAW P0 freeze accepted or explicit GPT waiver."
+    deliverable: >-
+      Self-contained D0-D6 plan, data/rule contracts, actual accessible-local capability audit, replay and
+      validation design, baselines, UNKNOWN, negative-result policy and AI_HANDOFF. No business implementation.
+  - order: 4
+    owner: "QCLAW"
+    issue: 76
+    task: "P1 independent evaluation of Codex D0 using frozen P0 files."
+    mode: "target"
+  - order: 5
+    owner: "GPT"
+    task: "Joint seven-gate review of Codex D0 and QCLAW P1; freeze or reject VS1 contract."
+  - order: 6
+    owner: "QCLAW"
+    task: "Pre-register VS1 implementation audit before Codex implementation begins."
+    mode: "target"
+  - order: 7
+    owner: "CODEX"
+    issue: 69
+    task: "Implement and locally verify 0017-VS1 BAR_ONLY."
+    mode: "goal"
+    deliverable: >-
+      Deterministic PIT bar labels, T+1/rule/cost model, replay, OOS and negative controls, sanitized local
+      path/coverage/hash/field/timestamp/environment/command/exit-code receipts, approved thin adapters and rollback.
+  - order: 8
+    owner: "QCLAW"
+    task: "Evaluate VS1 implementation and Codex self-verification evidence with the frozen implementation audit."
+  - order: 9
+    owner: "GPT"
+    task: "Final slice acceptance, bounded remediation or rejection."
+
+bar_only_contract:
+  allowed:
+    - "Point-in-time minute/daily bars and pre-known reference zones."
+    - "Breach, bar-close reclaim, sustained reclaim, failed reclaim, continuation and stabilization labels."
+    - "T+1 sellable/frozen inventory, overnight gap, suspension and price-limit rules."
+    - "Costs, slippage, non-fill assumptions, purged walk-forward, embargo, nested selection and lockbox."
+  prohibited:
+    - "L2 order book or displayed-depth dependency, raw trade/order events or L3."
+    - "DDX/DDY, fabricated Delta/CVD/OFI, participant identity or main-force/hidden-stop intent."
+    - "Probability engine, capital allocation, order generation, account access or real trading."
+
+w3_parallel_governance_track:
+  status: "UNKNOWN_MIGRATION_REQUIRED"
+  blocks:
+    - "Canonical C3 knowledge/evidence authority promotion."
+    - "Destructive consolidation or migration of local/public stores."
+  does_not_block:
+    - "Issue #69 D0 planning."
+    - "Self-contained BAR_ONLY research that does not claim canonical W3 write authority."
+
+release_control:
+  only_GPT_may_activate_next_step: true
+  trigger_behavior:
+    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute the released R1 task."
+    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute Issue #76 P0 only."
+    WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
+
+safety_boundary:
+  public_safe_only: true
+  candidate_only_until_GPT_acceptance: true
+  research_only: true
+  no_trade: true
+  no_broker_account_order: true
+  no_credential_or_service_change: true

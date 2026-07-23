@@ -2,8 +2,8 @@ schema_version: "1.0"
 record_type: "ModuleMaturityLedger"
 task_id: "CODEX-W1-ENTERPRISE-BLUEPRINT-CONVERGENCE-AND-DEPENDENCY-FREEZE-0019A"
 agent_id: "CODEX"
-status: "CANDIDATE_FREEZE_PENDING_GPT"
-maturity_scale:
+status: "R1_BOUNDED_REMEDIATION_PENDING_GPT"
+implementation_maturity_scale:
   - BLUEPRINT_ONLY
   - REGISTERED_CANDIDATE
   - CONTRACTED_NOT_IMPLEMENTED
@@ -12,79 +12,104 @@ maturity_scale:
   - SHADOW_VALIDATED
   - VALIDATED_RESEARCH_CAPABILITY
   - LIVE_TRADING
+canonical_authority_readiness_scale:
+  - LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
+  - CANONICAL_AUTHORITY_READY
+  - UNKNOWN_MIGRATION_REQUIRED
+assessment_rule: >-
+  Implementation maturity measures executable evidence and validation only.
+  Canonical authority readiness measures whether the declared owner has a
+  verified canonical producer or system-of-record path. The two axes must not
+  be inferred from one another.
 modules:
   - module_id: W1
-    maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    implementation_maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    canonical_authority_readiness: CANONICAL_AUTHORITY_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["AMED policy and templates", "routers", "program indexes"]
     open_gates: ["Issue #72 GPT review"]
   - module_id: W2
-    maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    implementation_maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["P1 contracts", "P2 deterministic synthetic replay", "P3 local adapter"]
     open_gates: ["complete historical rule snapshots", "business-slice OOS validation"]
   - module_id: W3
-    maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    implementation_maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    canonical_authority_readiness: UNKNOWN_MIGRATION_REQUIRED
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["merged PR #57 Phase 3 memory", "PR #58 Draft extension"]
     open_gates: ["PR #58 independent evaluation", "local/public physical store migration"]
   - module_id: W4
-    maturity: REGISTERED_CANDIDATE
+    implementation_maturity: REGISTERED_CANDIDATE
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["P2 synthetic strategy", "strategy blueprints"]
     open_gates: ["canonical experiment family", "A-share OOS and cost validation"]
   - module_id: W5
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["0015 blueprint", "0015 skill contract"]
     open_gates: ["point-in-time source implementation"]
   - module_id: W6
-    maturity: BLUEPRINT_ONLY
+    implementation_maturity: BLUEPRINT_ONLY
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["program charter and convergence map"]
     open_gates: ["falsifiable hypothesis contract and runtime"]
   - module_id: W7
-    maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    implementation_maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["P1/P2 validation paths", "risk governance blueprints"]
     open_gates: ["canonical W7RiskEnvelope", "full final-veto integration"]
   - module_id: W8
-    maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    implementation_maturity: IMPLEMENTED_NOT_A_SHARE_VALIDATED
+    canonical_authority_readiness: CANONICAL_AUTHORITY_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["agent routers", "handoff and execution sequence"]
     open_gates: ["complete observability runtime"]
   - module_id: W9
-    maturity: REGISTERED_CANDIDATE
+    implementation_maturity: REGISTERED_CANDIDATE
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["engineering-learning forecasts", "AMED receipts and review workflow"]
     open_gates: ["OutcomeCalibrationRecord runtime", "shadow reconciliation"]
   - module_id: W10_0010
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["PEOS blueprint"]
     open_gates: ["DecisionEpisode minimum slice"]
   - module_id: W11_0011
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["Kelly-Thorp blueprint", "skill contract"]
     open_gates: ["ProbabilityEstimate", "AShareRuleSnapshot", "W7RiskEnvelope"]
   - module_id: W12_0012
-    maturity: REGISTERED_CANDIDATE
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
-    evidence: ["PR #66 Draft", "GPT bounded acceptance"]
-    open_gates: ["merge decision", "one routed child implementation"]
+    evidence: ["W12 contract and blueprint on main"]
+    candidate_evidence: ["PR #66 Draft", "GPT bounded acceptance"]
+    open_gates: ["merged executable producer", "one routed child implementation"]
   - module_id: W13_0014
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["participant-flow blueprint", "skill contract"]
     open_gates: ["source and field evidence", "runtime"]
   - module_id: MODULE_0017
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["0017 blueprint", "skill contract"]
     open_gates: ["BAR_ONLY implementation", "A-share T+1 and OOS validation"]
   - module_id: MODULE_0018
-    maturity: CONTRACTED_NOT_IMPLEMENTED
+    implementation_maturity: CONTRACTED_NOT_IMPLEMENTED
+    canonical_authority_readiness: LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY
     evidence_class: VERIFIED_REPOSITORY
     evidence: ["0018 blueprint", "skill contract"]
     open_gates: ["W12 probability", "W11 allocation", "W7 risk", "W9 calibration"]
@@ -92,8 +117,12 @@ prohibited_promotions:
   - "No module is A_SHARE_BACKTESTED based on blueprint, unit test or synthetic replay alone."
   - "No module is SHADOW_VALIDATED without timestamped prediction/outcome reconciliation."
   - "LIVE_TRADING remains prohibited."
+  - "A Draft PR is candidate evidence and cannot raise main-branch implementation maturity."
+  - "An implemented component cannot establish canonical authority readiness without a verified producer or system-of-record path."
 summary:
   a_share_backtested_count: 0
   shadow_validated_count: 0
   validated_research_capability_count: 0
   live_trading_count: 0
+  canonical_authority_ready_count: 2
+  canonical_authority_unknown_migration_count: 1

@@ -124,9 +124,9 @@ def check_program_references() -> None:
     require(index["blueprint_convergence_map"] == sequence["blueprint_convergence_map"], "convergence pointer drift")
     require(index["authority_interface_registry"] == sequence["authority_interface_registry"], "authority pointer drift")
     require(route["active_issue"] == index["current_control_issue"] == 72, "active issue drift")
-    require(route["authoritative_inputs"]["integration_index"] == index["project_blueprint_integration_index"], "integration index route drift")
-    require(route["authoritative_inputs"]["convergence_map"] == index["blueprint_convergence_map"], "convergence route drift")
-    require(route["authoritative_inputs"]["authority_registry"] == index["authority_interface_registry"], "authority route drift")
+    require(route["task_id"] == "CODEX-0019A-R1-BOUNDED-CONVERGENCE-REMEDIATION", "R1 route drift")
+    require(route["status"] == "READY", "R1 route is not ready")
+    require(route["branch"] == "codex/enterprise-blueprint-convergence-0019a", "R1 branch drift")
     selection = sequence["first_business_vertical_slice_candidates"]
     require(selection["maximum_simultaneous"] == 1, "business WIP is not one")
     require(selection["selected_candidate"].startswith("0017 BAR_ONLY"), "exactly one selected candidate is not frozen")
@@ -139,6 +139,28 @@ def check_authorities_and_interfaces() -> None:
     require(len(ids) == len(set(ids)), "duplicate authority IDs")
     require(all(isinstance(item["owner"], str) and item["owner"] for item in authorities), "authority without one logical owner")
     require(matrix["conflicts"]["duplicate_logical_writer_count"] == 0, "duplicate logical writer remains")
+    for authority in authorities:
+        require("implementation_maturity" in authority, f"authority lacks implementation maturity: {authority['authority_id']}")
+        require(
+            "canonical_authority_readiness" in authority,
+            f"authority lacks canonical readiness: {authority['authority_id']}",
+        )
+
+    maturity = load_yaml(PACKAGE / "MODULE-MATURITY-LEDGER.yaml")
+    require(
+        "implementation_maturity_scale" in maturity and "canonical_authority_readiness_scale" in maturity,
+        "maturity ledger must expose separate evidence axes",
+    )
+    modules = {item["module_id"]: item for item in maturity["modules"]}
+    require(
+        all("implementation_maturity" in item and "canonical_authority_readiness" in item for item in modules.values()),
+        "every module must have both maturity axes",
+    )
+    require(modules["W3"]["implementation_maturity"] == "IMPLEMENTED_NOT_A_SHARE_VALIDATED", "W3 implementation evidence erased")
+    require(modules["W3"]["canonical_authority_readiness"] == "UNKNOWN_MIGRATION_REQUIRED", "W3 migration unknown lost")
+    require(modules["W7"]["canonical_authority_readiness"] == "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY", "W7 canonical readiness overstated")
+    require(modules["W12_0012"]["implementation_maturity"] == "CONTRACTED_NOT_IMPLEMENTED", "W12 main maturity overstated")
+    require(modules["W12_0012"]["candidate_evidence"] == ["PR #66 Draft", "GPT bounded acceptance"], "W12 draft evidence lost")
 
     registry = load_yaml(PACKAGE / "SHARED-INTERFACE-REGISTRY.yaml")
     interfaces = registry["interfaces"]
@@ -146,6 +168,39 @@ def check_authorities_and_interfaces() -> None:
     require(len(interface_ids) == 11, "shared interface count must be eleven")
     require(len(interface_ids) == len(set(interface_ids)), "duplicate shared interface IDs")
     require(all(isinstance(item["producer"], str) and item["producer"] for item in interfaces), "interface without producer")
+    require("assessment_axes" in registry, "shared interfaces must declare two assessment axes")
+    require(
+        all("implementation_maturity" in item and "canonical_authority_readiness" in item for item in interfaces),
+        "every shared interface must have both maturity axes",
+    )
+    c3 = next(item for item in interfaces if item["interface_id"] == "C3_KNOWLEDGE_AND_EVIDENCE")
+    c7 = next(item for item in interfaces if item["interface_id"] == "C7_PROBABILITY_ESTIMATE")
+    c10 = next(item for item in interfaces if item["interface_id"] == "C10_VALIDATION_AND_RISK")
+    require(c3["canonical_authority_readiness"] == "UNKNOWN_MIGRATION_REQUIRED", "C3 migration boundary lost")
+    require(c7["implementation_maturity"] == "CONTRACTED_NOT_IMPLEMENTED", "C7 draft maturity overstated")
+    require(c10["canonical_authority_readiness"] == "LOGICAL_OWNER_DECLARED_NOT_CANONICAL_READY", "C10 veto readiness overstated")
+
+
+def check_r1_boundaries_and_counterevidence() -> None:
+    selection = (PACKAGE / "NEXT-VERTICAL-SLICE-SELECTION.md").read_text(encoding="utf-8")
+    required_exclusions = [
+        "L2/order-book",
+        "displayed-depth",
+        "raw tick/order",
+        "L3",
+        "DDX/DDY",
+        "synthetic Delta/CVD/OFI",
+        "participant identity",
+        "hidden-stop",
+        "main-force intent",
+    ]
+    for exclusion in required_exclusions:
+        require(exclusion in selection, f"BAR_ONLY exclusion missing: {exclusion}")
+    require("preregistered procedural independence was not proven" in selection, "PR #75 independence language overstated")
+
+    audit = (PACKAGE / "ENTERPRISE-BLUEPRINT-CURRENT-STATE-AUDIT.md").read_text(encoding="utf-8")
+    require("PR #66 is candidate evidence only" in audit, "W12 Draft boundary absent from audit")
+    require("UNKNOWN_MIGRATION_REQUIRED" in audit, "W3 migration boundary absent from audit")
 
 
 def check_dependency_dag() -> None:
@@ -175,6 +230,7 @@ def main() -> int:
     check_required_artifacts()
     check_program_references()
     check_authorities_and_interfaces()
+    check_r1_boundaries_and_counterevidence()
     check_dependency_dag()
     print(
         json.dumps(
