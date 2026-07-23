@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from .canonical import atom_id, content_hash, normalize_text, packet_id, relation_id
+from .security import contains_credential_value
 
 
 SCHEMA_VERSION = "1.0.0"
@@ -112,7 +113,7 @@ def verify_learning_packet(packet: dict[str, Any]) -> dict[str, Any]:
         errors.append("candidate_authority_boundary")
     if packet.get("no_trade_gate") is not True:
         errors.append("no_trade_gate_required")
-    if _SECRET.search(str(packet)):
+    if contains_credential_value(packet):
         errors.append("credential_value_denied")
     atom_ids = [item.get("id") for item in packet.get("atoms", [])]
     if any(not item for item in atom_ids) or len(atom_ids) != len(set(atom_ids)):

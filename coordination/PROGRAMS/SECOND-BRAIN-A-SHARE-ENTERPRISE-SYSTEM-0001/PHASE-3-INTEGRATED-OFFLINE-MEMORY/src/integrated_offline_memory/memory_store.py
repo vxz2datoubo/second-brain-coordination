@@ -12,6 +12,7 @@ from typing import Any, Iterator
 
 from .canonical import content_hash, normalize_text
 from .learning_packet import verify_learning_packet
+from .security import contains_credential_value
 
 
 ALLOWED_TRUTH_STATES = {"candidate", "approved", "conflict", "superseded", "unknown"}
@@ -99,6 +100,29 @@ CREATE TABLE IF NOT EXISTS audit_events (
     detail TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS knowledge_sources (
+    manifest_id TEXT PRIMARY KEY,
+    manifest_hash TEXT NOT NULL,
+    policy_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    public_metadata TEXT NOT NULL,
+    registered_at TEXT NOT NULL,
+    revoked_at TEXT
+);
+CREATE TABLE IF NOT EXISTS feedback_receipts (
+    feedback_id TEXT PRIMARY KEY,
+    feedback_type TEXT NOT NULL,
+    preview_hash TEXT NOT NULL,
+    packet_id TEXT NOT NULL,
+    import_status TEXT NOT NULL,
+    revision_id TEXT NOT NULL,
+    before_atom_ids TEXT NOT NULL,
+    after_atom_ids TEXT NOT NULL,
+    added_atom_ids TEXT NOT NULL,
+    removed_atom_ids TEXT NOT NULL,
+    resolved_unknown_ids TEXT NOT NULL DEFAULT '[]',
+    recorded_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS retrieval_terms (
     atom_id TEXT NOT NULL,
     term TEXT NOT NULL,
@@ -112,6 +136,7 @@ CREATE INDEX IF NOT EXISTS idx_atoms_type ON atoms(atom_type);
 CREATE INDEX IF NOT EXISTS idx_terms_term ON retrieval_terms(term);
 CREATE INDEX IF NOT EXISTS idx_rel_source ON relations(source_atom_id);
 CREATE INDEX IF NOT EXISTS idx_rel_target ON relations(target_atom_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_sources_status ON knowledge_sources(status);
 """
 
 
@@ -243,6 +268,12 @@ class MemoryStore:
         ).fetchall()
         return [dict(row) for row in rows]
 
+    def conflicting_atom_ids(self, atom_ids: set[str]) -> set[str]:
+        related: set[str] = set()
+        for conflict in self.conflicts_for(atom_ids):
+            related.update((conflict["atom_id_a"], conflict["atom_id_b"]))
+        return related - atom_ids
+
     def unknowns_for(self, atom_ids: set[str], include_all_open: bool = False) -> list[dict[str, Any]]:
         rows = self.conn.execute("SELECT * FROM unknowns WHERE status='OPEN' ORDER BY id").fetchall()
         result: list[dict[str, Any]] = []
@@ -253,6 +284,28 @@ class MemoryStore:
             if include_all_open or atom_ids.intersection(item["related_atom_ids"]):
                 result.append(item)
         return result
+
+    def get_unknown(self, unknown_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute("SELECT * FROM unknowns WHERE id=?", (unknown_id,)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["related_atom_ids"] = json.loads(item["related_atom_ids"])
+        item["source_refs"] = json.loads(item["source_refs"])
+        return item
+
+    def resolve_unknown(self, unknown_id: str, resolution_atom_id: str) -> dict[str, Any]:
+        unknown = self.get_unknown(unknown_id)
+        if unknown is None:
+            raise ValueError("feedback_unknown_target_missing")
+        if self.get_atom(resolution_atom_id) is None:
+            raise ValueError("feedback_resolution_atom_missing")
+        if unknown["status"] == "RESOLVED":
+            return {"unknown_id": unknown_id, "status": "RESOLVED", "changed": False}
+        with self.transaction() as connection:
+            connection.execute("UPDATE unknowns SET status='RESOLVED' WHERE id=?", (unknown_id,))
+            self._audit(connection, "UNKNOWN_RESOLVE", unknown_id, "resolution_atom_id=" + resolution_atom_id)
+        return {"unknown_id": unknown_id, "status": "RESOLVED", "changed": True}
 
     def import_learning_packet(self, packet: dict[str, Any]) -> dict[str, Any]:
         verdict = verify_learning_packet(packet)
@@ -296,12 +349,182 @@ class MemoryStore:
             self._audit(connection, "PACKET_IMPORT", packet["packet_id"], f"atoms_inserted={inserted};revision={revision_id}")
         return {"status": "IMPORTED", "packet_id": packet["packet_id"], "atoms_inserted": inserted, "revision_id": revision_id}
 
+    def register_knowledge_source(
+        self,
+        *,
+        manifest_id: str,
+        manifest_hash: str,
+        policy_id: str,
+        public_metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not manifest_id or not re.fullmatch(r"[0-9a-f]{64}", manifest_hash):
+            raise ValueError("knowledge_source_registration_invalid")
+        if _contains_secret_value(public_metadata):
+            raise ValueError("credential_value_denied")
+        if any(key in public_metadata for key in {"content", "body", "raw_text", "credential_value"}):
+            raise ValueError("knowledge_source_private_body_or_secret_metadata_denied")
+        encoded = json.dumps(public_metadata, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        existing = self.conn.execute(
+            "SELECT manifest_hash, status FROM knowledge_sources WHERE manifest_id=?",
+            (manifest_id,),
+        ).fetchone()
+        if existing and existing["manifest_hash"] != manifest_hash:
+            raise ValueError("knowledge_source_manifest_hash_conflict")
+        with self.transaction() as connection:
+            connection.execute(
+                """INSERT INTO knowledge_sources(manifest_id, manifest_hash, policy_id, status, public_metadata, registered_at, revoked_at)
+                   VALUES(?,?,?,?,?,?,NULL)
+                   ON CONFLICT(manifest_id) DO UPDATE SET policy_id=excluded.policy_id,
+                   public_metadata=excluded.public_metadata""",
+                (manifest_id, manifest_hash, policy_id, "ACTIVE", encoded, _now()),
+            )
+            self._audit(connection, "KNOWLEDGE_SOURCE_REGISTER", manifest_id, "metadata_only=true;status=ACTIVE")
+        return {"manifest_id": manifest_id, "manifest_hash": manifest_hash, "status": self.source_status(manifest_id)}
+
+    def source_status(self, manifest_id: str) -> str:
+        row = self.conn.execute("SELECT status FROM knowledge_sources WHERE manifest_id=?", (manifest_id,)).fetchone()
+        return row["status"] if row else "UNREGISTERED"
+
+    def is_source_revoked(self, manifest_id: str) -> bool:
+        return self.source_status(manifest_id) == "REVOKED"
+
+    def revoke_knowledge_source(self, manifest_id: str, reason_code: str) -> dict[str, Any]:
+        previous_status = self.source_status(manifest_id)
+        if previous_status == "UNREGISTERED":
+            raise ValueError("knowledge_source_not_registered")
+        if not re.fullmatch(r"[a-z0-9_:-]{1,80}", reason_code or "") or _contains_secret_value(reason_code):
+            raise ValueError("knowledge_source_revocation_reason_invalid")
+        if previous_status == "REVOKED":
+            return {
+                "manifest_id": manifest_id,
+                "previous_status": "REVOKED",
+                "status": "REVOKED",
+                "reason_code": reason_code,
+                "changed": False,
+            }
+        with self.transaction() as connection:
+            connection.execute(
+                "UPDATE knowledge_sources SET status='REVOKED', revoked_at=? WHERE manifest_id=?",
+                (_now(), manifest_id),
+            )
+            self._audit(connection, "KNOWLEDGE_SOURCE_REVOKE", manifest_id, "reason_code=" + reason_code)
+        return {
+            "manifest_id": manifest_id,
+            "previous_status": previous_status,
+            "status": "REVOKED",
+            "reason_code": reason_code,
+            "changed": True,
+        }
+
+    def record_feedback_receipt(self, receipt: dict[str, Any]) -> dict[str, Any]:
+        if _contains_secret_value(receipt):
+            raise ValueError("credential_value_denied")
+        existing = self.get_feedback_receipt(receipt["feedback_id"])
+        if existing:
+            return existing
+        with self.transaction() as connection:
+            connection.execute(
+                """INSERT INTO feedback_receipts(feedback_id, feedback_type, preview_hash, packet_id,
+                   import_status, revision_id, before_atom_ids, after_atom_ids, added_atom_ids,
+                   removed_atom_ids, resolved_unknown_ids, recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    receipt["feedback_id"], receipt["feedback_type"], receipt["preview_hash"],
+                    receipt["packet_id"], receipt["import_status"], receipt["revision_id"],
+                    json.dumps(receipt["before_atom_ids"]), json.dumps(receipt["after_atom_ids"]),
+                    json.dumps(receipt["added_atom_ids"]), json.dumps(receipt["removed_atom_ids"]),
+                    json.dumps(receipt.get("resolved_unknown_ids", [])), _now(),
+                ),
+            )
+            self._audit(connection, "FEEDBACK_COMMIT", receipt["feedback_id"], "public_ids_only=true")
+        return self.get_feedback_receipt(receipt["feedback_id"]) or {}
+
+    def get_feedback_receipt(self, feedback_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute("SELECT * FROM feedback_receipts WHERE feedback_id=?", (feedback_id,)).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        for name in ("before_atom_ids", "after_atom_ids", "added_atom_ids", "removed_atom_ids", "resolved_unknown_ids"):
+            result[name] = json.loads(result[name])
+        return result
+
+    def all_learning_packets(self) -> list[dict[str, Any]]:
+        return [
+            json.loads(row["json_blob"])
+            for row in self.conn.execute("SELECT json_blob FROM packets ORDER BY rowid")
+        ]
+
+    def all_knowledge_sources(self) -> list[dict[str, Any]]:
+        result: list[dict[str, Any]] = []
+        for row in self.conn.execute(
+            "SELECT manifest_id, manifest_hash, policy_id, status, public_metadata FROM knowledge_sources ORDER BY manifest_id"
+        ):
+            item = dict(row)
+            item["public_metadata"] = json.loads(item["public_metadata"])
+            result.append(item)
+        return result
+
+    def all_feedback_receipts(self) -> list[dict[str, Any]]:
+        rows = self.conn.execute("SELECT feedback_id FROM feedback_receipts ORDER BY feedback_id").fetchall()
+        return [self.get_feedback_receipt(row["feedback_id"]) for row in rows]
+
+    def all_unknown_statuses(self) -> list[dict[str, str]]:
+        return [
+            {"unknown_id": row["id"], "status": row["status"]}
+            for row in self.conn.execute("SELECT id, status FROM unknowns ORDER BY id")
+        ]
+
+    def restore_unknown_status(self, unknown_id: str, status: str) -> None:
+        if status not in {"OPEN", "RESOLVED"}:
+            raise ValueError("unknown_restore_status_invalid")
+        if self.get_unknown(unknown_id) is None:
+            raise ValueError("unknown_restore_target_missing")
+        with self.transaction() as connection:
+            connection.execute("UPDATE unknowns SET status=? WHERE id=?", (status, unknown_id))
+            self._audit(connection, "UNKNOWN_STATUS_REBUILD", unknown_id, "status=" + status)
+
+    def semantic_state_hash(self) -> str:
+        atoms = []
+        for atom in self.all_atoms():
+            atoms.append({key: value for key, value in atom.items() if key not in {"created_at", "updated_at"}})
+        relations = [dict(row) for row in self.conn.execute("SELECT * FROM relations ORDER BY id")]
+        conflicts = [dict(row) for row in self.conn.execute("SELECT * FROM conflicts ORDER BY id")]
+        unknowns = []
+        for row in self.conn.execute("SELECT * FROM unknowns ORDER BY id"):
+            item = dict(row)
+            item["related_atom_ids"] = json.loads(item["related_atom_ids"])
+            item["source_refs"] = json.loads(item["source_refs"])
+            unknowns.append(item)
+        terms = [dict(row) for row in self.conn.execute("SELECT atom_id, term, weight FROM retrieval_terms ORDER BY atom_id, term")]
+        packets = [
+            dict(row)
+            for row in self.conn.execute(
+                "SELECT id, content_hash, idempotency_key, status, authority_write, base_knowledge_version FROM packets ORDER BY id"
+            )
+        ]
+        sources = self.all_knowledge_sources()
+        feedback = []
+        for item in self.all_feedback_receipts():
+            feedback.append({key: value for key, value in item.items() if key != "recorded_at"})
+        return content_hash({
+            "atoms": atoms,
+            "relations": relations,
+            "conflicts": conflicts,
+            "unknowns": unknowns,
+            "retrieval_terms": terms,
+            "packets": packets,
+            "knowledge_sources": sources,
+            "feedback_receipts": feedback,
+        })
+
     def latest_revision_id(self) -> str:
         row = self.conn.execute("SELECT revision_id FROM revisions ORDER BY rowid DESC LIMIT 1").fetchone()
         return row["revision_id"] if row else "candidate-r0"
 
     def stats(self) -> dict[str, int]:
-        names = ("atoms", "relations", "conflicts", "unknowns", "packets", "revisions", "audit_events", "retrieval_terms")
+        names = (
+            "atoms", "relations", "conflicts", "unknowns", "packets", "revisions",
+            "audit_events", "retrieval_terms", "knowledge_sources", "feedback_receipts",
+        )
         return {name: int(self.conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]) for name in names}
 
     def integrity_check(self) -> dict[str, Any]:
@@ -373,17 +596,7 @@ def _validate_atom(atom: dict[str, Any]) -> None:
 
 
 def _contains_secret_value(value: Any) -> bool:
-    if isinstance(value, str):
-        return bool(_SECRET.search(value))
-    if isinstance(value, list):
-        return any(_contains_secret_value(item) for item in value)
-    if isinstance(value, dict):
-        for key, item in value.items():
-            if str(key).casefold() in _SECRET_VALUE_KEYS and item not in (None, ""):
-                return True
-            if _contains_secret_value(item):
-                return True
-    return False
+    return contains_credential_value(value)
 
 
 def _atom(row: sqlite3.Row) -> dict[str, Any]:

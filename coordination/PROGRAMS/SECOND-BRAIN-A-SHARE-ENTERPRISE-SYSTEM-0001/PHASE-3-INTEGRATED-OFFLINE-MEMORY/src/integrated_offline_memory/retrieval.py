@@ -14,12 +14,17 @@ class QueryPlan:
     query_text: str = ""
     scopes: tuple[str, ...] = ()
     atom_types: tuple[str, ...] = ()
-    truth_states: tuple[str, ...] = ("candidate", "approved", "conflict", "superseded", "unknown")
+    truth_states: tuple[str, ...] = ("candidate", "approved", "conflict", "unknown")
+    source_manifest_ids: tuple[str, ...] = ()
+    evidence_qualities: tuple[str, ...] = ()
+    query_aliases: tuple[str, ...] = ()
     min_confidence: float = 0.0
     time_start: str | None = None
     time_end: str | None = None
     include_conflicts: bool = True
     include_unknowns: bool = True
+    include_revoked_sources: bool = False
+    history_mode: str = "CURRENT"
     relation_depth: int = 0
     budget: int = 50
     schema_version: str = "1.0.0"
@@ -33,14 +38,21 @@ class QueryPlan:
             raise ValueError("query_plan_budget_invalid")
         if not 0 <= self.relation_depth <= 4:
             raise ValueError("query_plan_relation_depth_invalid")
+        if self.history_mode not in {"CURRENT", "HISTORY"}:
+            raise ValueError("query_plan_history_mode_invalid")
         states = set(self.truth_states)
         if states.intersection(DENIED_TRUTH_STATES) or not states.issubset(ALLOWED_TRUTH_STATES):
             raise ValueError("query_plan_truth_state_denied_or_unknown")
+        if self.history_mode == "CURRENT" and "superseded" in states:
+            raise ValueError("query_plan_superseded_requires_history_mode")
 
     def to_dict(self) -> dict[str, Any]:
         self.validate()
         payload = asdict(self)
-        for field_name in ("scopes", "atom_types", "truth_states"):
+        for field_name in (
+            "scopes", "atom_types", "truth_states", "source_manifest_ids",
+            "evidence_qualities", "query_aliases",
+        ):
             payload[field_name] = list(payload[field_name])
         return payload
 
@@ -50,7 +62,10 @@ class QueryPlan:
         if unknown:
             raise ValueError("query_plan_unknown_field")
         data = dict(payload)
-        for field_name in ("scopes", "atom_types", "truth_states"):
+        for field_name in (
+            "scopes", "atom_types", "truth_states", "source_manifest_ids",
+            "evidence_qualities", "query_aliases",
+        ):
             if field_name in data:
                 data[field_name] = tuple(data[field_name])
         result = cls(**data)
@@ -93,6 +108,9 @@ class ContextAssembler:
     def assemble(self, plan: QueryPlan) -> ContextBundle:
         plan.validate()
         score_map = self.store.search_term_scores(plan.query_text)
+        for alias in plan.query_aliases:
+            for atom_id, score in self.store.search_term_scores(alias).items():
+                score_map[atom_id] = score_map.get(atom_id, 0.0) + score
         candidates: dict[str, float] = {}
         for atom_id, score in score_map.items():
             atom = self.store.get_atom(atom_id)
@@ -113,6 +131,12 @@ class ContextAssembler:
             frontier = next_frontier
             if not frontier:
                 break
+
+        if plan.include_conflicts:
+            for atom_id in self.store.conflicting_atom_ids(set(candidates)):
+                atom = self.store.get_atom(atom_id)
+                if atom is not None and self._allowed(atom, plan):
+                    candidates[atom_id] = max(candidates.get(atom_id, 0.0), 0.75)
 
         ranked_ids = sorted(candidates, key=lambda atom_id: (-candidates[atom_id], atom_id))
         selected_ids = ranked_ids[:plan.budget]
@@ -138,8 +162,7 @@ class ContextAssembler:
             semantic_access_state="FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY",
         )
 
-    @staticmethod
-    def _allowed(atom: dict[str, Any], plan: QueryPlan) -> bool:
+    def _allowed(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
         if atom["knowledge_status"] not in set(plan.truth_states):
             return False
         if atom["knowledge_status"] in DENIED_TRUTH_STATES:
@@ -147,6 +170,13 @@ class ContextAssembler:
         if atom["gpt_access"] != "FULL_SEMANTIC_ACCESS":
             return False
         if atom["transport_visibility"] == "RESTRICTED_NEVER_SYNC":
+            return False
+        manifest_ids = _manifest_ids(atom)
+        if plan.source_manifest_ids and not manifest_ids.intersection(plan.source_manifest_ids):
+            return False
+        if not plan.include_revoked_sources and any(self.store.is_source_revoked(source_id) for source_id in manifest_ids):
+            return False
+        if plan.evidence_qualities and atom["evidence_quality"] not in set(plan.evidence_qualities):
             return False
         if float(atom["confidence"]) < plan.min_confidence:
             return False
@@ -159,3 +189,11 @@ class ContextAssembler:
         if plan.time_end and atom["updated_at"] > plan.time_end:
             return False
         return True
+
+
+def _manifest_ids(atom: dict[str, Any]) -> set[str]:
+    result: set[str] = set()
+    for source_ref in atom.get("source_refs", []):
+        if isinstance(source_ref, str) and source_ref.startswith("manifest:"):
+            result.add(source_ref.split(":", 1)[1])
+    return result

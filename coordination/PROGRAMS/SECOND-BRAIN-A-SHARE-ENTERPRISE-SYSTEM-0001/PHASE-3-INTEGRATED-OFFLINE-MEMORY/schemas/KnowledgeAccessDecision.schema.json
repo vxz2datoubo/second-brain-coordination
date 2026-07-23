@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:KnowledgeAccessDecision:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision_id", "status", "manifest_id", "policy_id", "reason_codes", "semantic_access", "body_transport", "source_hash", "manifest_hash", "policy_hash", "content_body_included", "credential_value_included", "authority_write", "no_trade_gate", "schema_version"],
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "status": {"type": "string", "enum": ["GRANTED", "DENIED", "WAITING_LOCAL_EVIDENCE", "REVOKED"]},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "policy_id": {"type": "string", "minLength": 1},
+    "reason_codes": {"type": "array"},
+    "semantic_access": {"const": "FULL_SEMANTIC_ACCESS"},
+    "body_transport": {"type": "string"},
+    "source_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "manifest_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "policy_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "content_body_included": {"const": false},
+    "credential_value_included": {"const": false},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true},
+    "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
+  }
+}

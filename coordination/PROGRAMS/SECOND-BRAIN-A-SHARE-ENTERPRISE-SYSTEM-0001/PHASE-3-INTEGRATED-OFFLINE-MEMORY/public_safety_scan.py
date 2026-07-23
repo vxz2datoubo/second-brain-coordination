@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[3]
 SCAN_ROOTS = (
     ROOT,
+    REPO_ROOT / "coordination" / "PROGRAMS" / "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001" / "PHASE-4-FULL-KNOWLEDGE-GATEWAY",
     REPO_ROOT / "coordination" / "EVIDENCE" / "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001",
     REPO_ROOT / ".github" / "workflows" / "phase3-integrated-offline-memory.yml",
 )

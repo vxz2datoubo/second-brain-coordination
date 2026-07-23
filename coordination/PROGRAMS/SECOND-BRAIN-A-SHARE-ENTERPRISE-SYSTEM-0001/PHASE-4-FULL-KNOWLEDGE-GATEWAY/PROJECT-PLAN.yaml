@@ -1,0 +1,95 @@
+schema_version: "1.0"
+agent_id: CODEX
+task_id: CODEX-P4-FULL-KNOWLEDGE-GATEWAY-0007
+issue: 38
+parent_program: 31
+mode: project_plan_and_main_integration
+branch: codex/p4-full-knowledge-gateway-0007
+input_commit: 03430fb63a3e356be57a77cc68e32d0fe45a252f
+predecessor_merge: 473d0ec15b28ac5e1b70db0b8a6a9ab17738161b
+canonical_runtime: ../PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory
+safety:
+  research_only: true
+  no_trade: true
+  local_first: true
+  realtime: false
+  broker_account_order: false
+  credential_values_allowed: false
+  private_bodies_in_public_git: false
+  authority_write: false
+single_runtime_rule:
+  store: Phase_3_MemoryStore
+  fusion: Phase_3_FusionEngine
+  query_runtime: Phase_3_QueryPlan_and_ContextAssembler
+  context_runtime: Phase_3_ContextBundle
+  extension_policy: extend_in_place
+checkpoints:
+  - percent: 20
+    name: baseline_and_resumable_plan
+    status: completed
+    acceptance:
+      - latest_main_and_issue_38_verified
+      - phase_3_baseline_281_tests_pass
+      - reuse_extend_wrap_matrix_frozen
+      - recovery_control_files_present
+  - percent: 40
+    name: source_contracts_and_local_readonly_adapters
+    status: completed
+    acceptance:
+      - knowledge_source_manifest_and_policy_validate
+      - markdown_txt_json_jsonl_public_safe_fixtures_pass
+      - unknown_license_cannot_activate
+      - credential_values_denied_in_success_error_and_audit_paths
+      - one_authorized_local_source_receipt_or_WAITING_LOCAL_EVIDENCE
+  - percent: 60
+    name: retrieval_and_answer_evidence
+    status: completed
+    acceptance:
+      - one_canonical_query_runtime
+      - current_default_excludes_superseded
+      - conflicts_unknowns_lineage_and_budget_omissions_explicit
+      - deterministic_answer_evidence_bundle
+  - percent: 80
+    name: feedback_revocation_and_learning
+    status: completed
+    acceptance:
+      - seven_feedback_classes_supported
+      - preview_commit_idempotency_snapshot_and_rollback
+      - source_revocation_removes_current_results
+      - history_and_audit_remain_traceable
+  - percent: 100
+    name: adversarial_scale_recovery_and_delivery
+    status: waiting_external_evidence
+    acceptance:
+      - qclaw_evaluation_package_consumed_without_branch_modification
+      - at_least_100_adversarial_queries_executed
+      - at_least_95_pass_or_predeclared_valid_abstentions
+      - mandatory_zero_leakage_gates_pass
+      - 2000_atom_rebuild_snapshot_rollback_and_recovery_pass
+      - draft_pr_open_and_issues_38_31_updated
+dependencies:
+  qclaw_evaluation_package:
+    status: WAITING_NOT_DELIVERED
+    boundary: fixtures_packets_evaluator_reports_handoff_only
+  authorized_local_source:
+    status: PARTIALLY_VERIFIED_LOCAL_READONLY
+    public_output: aggregate_receipt_only
+recovery:
+  read_first:
+    - STATUS.yaml
+    - PROGRESS-CHECKPOINT.yaml
+    - DECISION-LOG.md
+    - UNKNOWN-REGISTRY.yaml
+  refresh_commands:
+    - git fetch origin main
+    - gh issue view 38 --repo vxz2datoubo/second-brain-coordination --comments
+  baseline_test_commands:
+    - python -m unittest discover -s ../PHASE-1/tests -p test_*.py
+    - python -m unittest discover -s ../PHASE-2-OFFLINE-VERTICAL-SLICE/tests -p test_*.py
+    - python ../PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/run_all_tests.py
+    - python ../PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py
+  rule: resume_from_first_checkpoint_not_completed
+rollback:
+  code: revert_phase_specific_commits_in_reverse_order
+  runtime_data: restore_verified_sqlite_snapshot_then_verify_semantic_state_hash
+  local_sources: read_only_no_source_mutation

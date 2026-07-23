@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:AnswerEvidenceBundle:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "bundle_id", "semantic_hash", "query_id", "query_plan_hash", "knowledge_version", "history_mode", "selected_evidence", "relations", "conflicts", "unknowns", "source_lineage", "omitted_evidence", "abstained", "abstention_reasons", "uncertainty_reasons", "semantic_access_state", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "bundle_id": {"type": "string", "pattern": "^aeb-[0-9a-f]{20}$"},
+    "semantic_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "query_id": {"type": "string", "minLength": 1},
+    "query_plan_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "knowledge_version": {"type": "string", "minLength": 1},
+    "history_mode": {"enum": ["CURRENT", "HISTORY"]},
+    "selected_evidence": {"type": "array"},
+    "relations": {"type": "array"},
+    "conflicts": {"type": "array"},
+    "unknowns": {"type": "array"},
+    "source_lineage": {"type": "array"},
+    "omitted_evidence": {"type": "array"},
+    "abstained": {"type": "boolean"},
+    "abstention_reasons": {"type": "array"},
+    "uncertainty_reasons": {"type": "array"},
+    "semantic_access_state": {"const": "FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}
