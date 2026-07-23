@@ -1,4 +1,4 @@
-schema_version: "4.0"
+schema_version: "4.1"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
@@ -6,92 +6,65 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 73
-active_task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q"
-active_mode: "project_plan"
-mode_label: "项目计划模式＋企业蓝图独立对抗审计与下一切片反证"
+active_task_id: "QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q-DELIVERY-RECOVERY"
+active_mode: "target"
+mode_label: "目标模式＋Issue73既有审计成果发布恢复"
 mode_reason: >-
-  Codex PR #74 has passed GPT seven-gate review for independent counteraudit, and QCLAW PR #70
-  has now preserved and machine-verified the 110-query independent evidence package. The next task
-  requires a separate, self-contained adversarial audit plan across authority, interface, maturity,
-  hidden-runtime and next-slice claims, so project plan mode is required.
+  QCLAW reports the independent audit complete, but GitHub verification found no required branch,
+  Draft PR, delivery directory or completion receipt. The remaining path is bounded publication
+  recovery only; QCLAW must publish the existing audit without redoing or adapting its findings.
 status: "READY"
-blocked_by: "none"
+blocked_by: "DELIVERY_NOT_FOUND_ON_GITHUB"
 parent_issue: 72
 parent_program: 31
 source_pull_request: 74
 evidence_pull_request: 70
-target_branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
-create_new_branch: true
-create_new_pr: true
-draft_pull_request: true
+branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
+create_new_branch_if_missing: true
+create_new_draft_pr_if_missing: true
 direct_main_write: false
 auto_merge: false
 allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-BLUEPRINT-CONVERGENCE-AUDIT/0019Q/"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-W1-ENTERPRISE-BLUEPRINT-INDEPENDENT-AUDIT-0019Q.yaml"
 
-pr70_acceptance:
-  result: "ACCEPTED_AS_INDEPENDENT_FROZEN_EVIDENCE_WITH_BOUNDED_FORMAT_FINDING"
-  reviewed_head: "8a4a429644ed6e50ecf45039724ab9ebd45bebbf"
-  query_files_unchanged: true
-  per_file_sha256: "13/13 PASS"
-  unique_queries: 110
-  category_counts:
-    AC_01: 10
-    AC_06: 10
-    AC_11: 10
-    all_other_categories: 8
-  machine_yaml_parse: "23/24 PASS"
-  bounded_format_finding: "AC-06 is not strict single-document YAML; semantics and hash remain frozen."
+amed_mode_boundary:
+  original_audit_mode: "project_plan"
+  current_recovery_mode: "target"
+  reason: "The audit is reported complete; only deterministic repository publication and evidence handoff remain."
+
+verified_delivery_absence:
+  checked_at: "2026-07-23"
+  required_branch_found: false
+  draft_pr_found: false
+  issue_completion_comment_found: false
+  required_ai_handoff_found: false
+  repository_search_completion_signal_found_only_in_route_registration: true
+
+amed_prerequisite_state:
+  pr74: "GPT_ACCEPTED_FOR_INDEPENDENT_COUNTERAUDIT_WITH_BOUNDED_FINDINGS"
+  pr70: "ACCEPTED_AS_INDEPENDENT_FROZEN_EVIDENCE_WITH_BOUNDED_FORMAT_FINDING"
   pr58_direct_execution: "BLOCKED_PENDING_READ_ONLY_ADAPTER_OR_EQUIVALENT_PARSER_DECLARATION"
-  issue73_release_impact: "NO_BLOCK"
-  no_merge_performed: true
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 
-amed_policy:
+amed_amed_policy:
   policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
-  task_weight: "STRATEGIC"
-  research_trigger:
-    level: "L1_REUSE_AND_QUICK_CHECK"
-    escalation: "L2 only for a material architecture, security, authority or current-source conflict."
-  exploration_budget:
-    primary_delivery_share: "70%"
-    active_discovery_share: "20%"
-    system_opportunity_share: "10%"
-    max_new_architecture_proposals: 3
-    max_new_skill_candidates: 0
-    max_unplanned_files: 8
-    scope_expansion_without_gate: false
-  improvement_authority:
-    A_SAFE_LOCAL_AUTONOMOUS:
-      - "Fix audit-package formatting, references, manifests and receipt consistency inside the allowed output directory."
-    B_BOUNDED_IMPLEMENT_AND_REPORT:
-      - "Add read-only audit scripts, evidence matrices, counterargument tables and reproducible receipts."
-    C_PROPOSAL_ONLY:
-      - "Any change to canonical authority files, interfaces, Skills, runtime, data sources or business-slice design."
-    D_PROHIBITED_OR_USER_GATE:
-      - "Modify Codex PR #74 authority artifacts, create a runtime, access secrets/accounts/services, trade, merge or write main."
-  second_pass_audit_required: true
-
-mission_intent: >-
-  Independently challenge Codex PR #74 and Issue #72 convergence conclusions for duplicate logical
-  or physical authority, maturity inflation, interface contradiction, hidden W14/parallel runtime,
-  stale or ghost capability, unsupported dependency order and biased next-slice selection. Preserve
-  counterevidence, negative results and UNKNOWN without editing Codex canonical proposal files.
+  task_weight: "STANDARD"
+  research_trigger: "L1_REUSE_AND_QUICK_CHECK"
+  exploration_budget: "98/1/1"
+  new_architecture_proposals: 0
+  new_skill_candidates: 0
+  scope_expansion_without_gate: false
 
 required_action:
-  - "Read Issue #73, Issue #72, PR #74 at reviewed head 693550ff043ed9948ffa63e52715ba86e9542c4f, PR #70 R4 evidence, this route and the TaskImpactForecast."
-  - "Create branch qclaw/enterprise-blueprint-independent-audit-0019q from current main and open one Draft PR."
-  - "Freeze QCLAW audit questions and scoring rules before evaluating Codex answers; record hashes and non-contamination attestation."
-  - "Audit W1-W13 plus embedded 0017 and 0018 across public main, open PRs and authorized accessible-local schemas for duplicate writers and physical systems of record."
-  - "Challenge W3 logical single-writer versus local brain_core/public Phase 3 physical authority and preserve UNKNOWN_MIGRATION_REQUIRED unless migration proof exists."
-  - "Challenge maturity labels, especially IMPLEMENTED_NOT_A_SHARE_VALIDATED for W1/W2/W3/W7/W8, using evidence thresholds rather than fluent descriptions."
-  - "Recompute the next-slice ranking independently; do not inherit Codex weights or the 84 score. Include counterarguments for 0017, W12, W13, PMN, W11 and 0018."
-  - "Verify W11 candidate-allocation to W7 final-veto semantics are one-way and do not create duplicate allocation/risk authority."
-  - "Verify 0017 and 0018 create no W14, no second probability/allocation/risk/replay/memory/order runtime and no hidden participant-identity or stop-intent claims."
-  - "Inspect the exact-path/exact-count secret-fixture allowlist design for expansion risk without copying secret-shaped values."
-  - "Classify findings as CONFIRMED, REFUTED, PARTIAL, UNKNOWN, MIGRATION_REQUIRED, DEPRECATE_PROPOSAL or NO_FINDING."
-  - "Run YAML, UTF-8, duplicate-key, secret-pattern, stale-reference, authority-collision and score-recomputation checks with actual commands and exit codes."
-  - "Deliver AMED receipts, test receipt, UNKNOWN registry, counterevidence ledger and AI_HANDOFF."
-  - "Stop for GPT review; do not edit PR #74 files, merge any PR or activate Issue #69/0017."
+  - "Read latest main route, Issue #73 and its GPT delivery-verification comment."
+  - "Do not redo, reinterpret, improve or soften the completed audit findings after this publication notice."
+  - "Locate the existing completed local artifacts and record their local pre-publication hashes before any packaging edits."
+  - "Create or publish branch qclaw/enterprise-blueprint-independent-audit-0019q from the documented base; if a local branch already exists, preserve its commit history."
+  - "Publish all deliverables only under the allowed 0019Q directory."
+  - "Open exactly one Draft PR to main and report its number, base SHA and head SHA."
+  - "Verify no Codex PR #74 authority files, PR #70 frozen evidence, runtime files or shared canonical files are modified."
+  - "Run YAML, JSON/JSONL, UTF-8, duplicate-key, secret-pattern, required-output, stale-reference and allowed-path checks with actual commands and exit codes."
+  - "Post the exact completion signal, Draft PR link, changed-file list, tests, UNKNOWNs and AI_HANDOFF to Issues #73, #72 and #31."
+  - "Stop for GPT review; do not merge, execute PR #58 or activate Issue #69/0017."
 
 mandatory_outputs:
   - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
@@ -111,34 +84,29 @@ mandatory_outputs:
   - "AI_HANDOFF.yaml"
 
 acceptance_gates:
-  - "Audit questions and scoring are frozen before Codex conclusions are evaluated."
-  - "No Codex authority or proposal file is modified."
-  - "Every confirmed/refuted finding has file/line or reproducible command evidence."
-  - "Physical authority UNKNOWN is not collapsed into logical-authority success."
-  - "Maturity is not promoted by blueprint, synthetic test, self-report or governance receipt alone."
-  - "Next-slice ranking is independently recomputed with weights, sensitivity and counterarguments."
-  - "No W14, parallel canonical runtime, real trade or order-critical path is created."
-  - "All tests report actual PASS/FAIL/SKIP and exit codes."
+  - "One required branch and one Draft PR are observable on GitHub."
+  - "All mandatory outputs are present under the allowed path prefix."
+  - "Published audit findings match the pre-publication completed artifacts; any packaging-only change is logged."
+  - "Audit questions/scoring freeze predates evaluation of Codex conclusions."
+  - "No Codex PR #74 authority or proposal file is modified."
+  - "Every finding retains evidence, negative result and UNKNOWN classifications."
+  - "All machine checks report actual PASS/FAIL/SKIP and exit codes."
+  - "No runtime, trade, account, credential, service, merge or Issue #69 activation occurs."
 
 forbidden:
-  - "Do not modify Codex PR #74 or its authority, interface, maturity, DAG or next-slice files."
-  - "Do not execute or modify PR #58 as part of Issue #73."
-  - "Do not modify PR #70 frozen queries or answer expectations."
-  - "Do not create a second knowledge, evidence, memory, probability, allocation, validation, risk, replay, execution or order runtime."
+  - "Do not rerun the audit merely to produce a different conclusion."
+  - "Do not modify Codex PR #74 authority, interface, maturity, DAG or next-slice files."
+  - "Do not inspect or modify PR #58 or PR #70 frozen queries."
+  - "Do not write outside the allowed 0019Q output prefix except branch/PR metadata and Issue comments."
+  - "Do not create a second canonical runtime or business slice."
   - "Do not access credentials, accounts, private bodies, services, market feeds, broker data or real trading."
-  - "Do not merge PR #70, #74, #58 or any new PR automatically."
-  - "Do not activate Issue #69/0017 or another business slice."
+  - "Do not merge or auto-merge any PR."
 
 execution_contract:
-  sync_latest_main: true
-  branch: "qclaw/enterprise-blueprint-independent-audit-0019q"
-  create_draft_pr: true
-  direct_main_write: false
-  auto_merge: false
   report_to_issues: [73, 72, 31]
   report_to_pull_requests: [74, 70]
-  progress_checkpoints: [25, 50, 75, 100]
   completion_signal: "QCLAW_BLUEPRINT_INDEPENDENT_AUDIT_READY_FOR_GPT_REVIEW"
+  delivery_recovery_signal: "QCLAW_ISSUE73_DELIVERY_RESTORED_FOR_GPT_REVIEW"
   after_completion: "WAIT_FOR_GPT_FINAL_CONVERGENCE_DECISION"
 
 safety_boundary:
