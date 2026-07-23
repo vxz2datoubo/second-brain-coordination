@@ -1,23 +1,23 @@
-schema_version: "4.0"
+schema_version: "5.0"
 coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
 legacy_filename_note: "File name retained for compatibility; WorkBuddy is removed from the 0017 mainline."
 program_issue: 31
-status: "ACTIVE_CODEX_PRIMARY_QCLAW_BOUNDED_SUPPORT"
+status: "ACTIVE_CODEX_D0_PRIMARY_QCLAW_R2_BOUNDED_SUPPORT"
 updated_by: "GPT"
 updated_at: "2026-07-24"
 
 program_goal: >-
   Advance the A-share research system through one controlled 0017 BAR_ONLY vertical slice. Codex is the primary
-  builder and local-reality owner. QCLAW supplies a small independent preregistration/integrity gate and later
-  adversarial evaluation. GPT owns releases and final acceptance.
+  builder and accessible-local reality owner. QCLAW supplies a small preregistered independent gate and may only
+  repair non-core audit receipts before later scoring. GPT owns releases and final acceptance.
 
 resource_model:
   codex_primary_share: 90
   qclaw_bounded_support_share: 10
   workbuddy_share: 0
   interpretation: >-
-    Codex carries the main workload and must not be idle while QCLAW repairs non-core receipts. QCLAW cannot create
-    a competing architecture or execution stream.
+    Codex must continue the main D0 workload while QCLAW closes one validator-receipt defect. QCLAW cannot create a
+    competing architecture, inspect Codex D0 during R2 or delay Codex execution.
 
 coordination_principles:
   single_major_execution_owner: "CODEX"
@@ -34,55 +34,57 @@ coordination_principles:
   preserve_negative_results: true
   preserve_unknowns: true
 
-accepted_wave:
+accepted_governance_inputs:
   codex_pr74:
     head: "954ca1630260ba0c4b2372f58377553716d0c3a3"
     disposition: "ACCEPTED_AS_BOUNDED_ENTERPRISE_BLUEPRINT_EVIDENCE_NO_MERGE"
     issue: 72
-    effect: "Issue #69 D0 is released."
-  qclaw_pr77:
-    head: "70ed222e279568b7370af62df5bb23b79201ee45"
-    disposition: "CORE_INSTRUMENT_ACCEPTED_AT_HEAD_WITH_BOUNDED_INTEGRITY_METADATA_REMEDIATION"
+    effect: "Issue #69 D0 is released and must use a new branch/PR."
+  qclaw_pr77_core:
+    frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+    disposition: "EIGHT_CORE_FILES_ACCEPTED_AND_IMMUTABLE"
     immutable_core_files: 8
+    core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
     effect: >-
-      Core questions/rubric predate Codex D0 and are frozen. Receipt/hash metadata correction is required before
-      QCLAW P1 but does not block Codex starting D0.
+      Core questions, rubric and evidence criteria may be used as preregistered D0 audit criteria. QCLAW P1 remains
+      blocked until the current validator bytes and final PR head are bound to machine receipts.
 
 current_phase:
-  name: "CODEX_0017_D0_PRIMARY_WITH_QCLAW_P0_RECEIPT_REPAIR"
-  execution_model: "ONE_PRIMARY_BUILD_PLUS_ONE_NONBLOCKING_AUDIT_SUPPORT"
+  name: "CODEX_0017_D0_PRIMARY_WITH_QCLAW_R2_VALIDATOR_RECEIPT_CLOSURE"
+  execution_model: "ONE_PRIMARY_BUILD_PLUS_ONE_NONBLOCKING_RECEIPT_REPAIR"
   major_owner: "CODEX"
   bounded_support_owner: "QCLAW"
-  gpt_role: "Review QCLAW R1 when delivered and later jointly review Codex D0 plus QCLAW P1."
+  gpt_role: "Review QCLAW R2, then release QCLAW P1 only after Codex D0 delivery."
 
 agents:
   CODEX:
     active_issue: 69
     task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
     mode: "project_plan"
-    status: "READY"
+    status: "DISPATCHED_READY_TO_EXECUTE"
+    branch: "codex/a-share-liquidity-sweep-reclaim-0017-d0"
     role_now: >-
-      Lead the mainline: perform repository and accessible-local reality audit, define PIT/BAR_ONLY/T+1/rule/replay
-      contracts and produce a self-contained D0-D6 plan. No business implementation in D0.
+      Perform repository and accessible-local reality audit, define PIT/BAR_ONLY/T+1/rule/replay contracts and
+      produce a self-contained D0-D6 plan. D0 must not implement labels, strategy runtime or backtests.
     full_mainline_ownership:
-      - "D0 repository and local reality audit."
-      - "D0-D6 implementation/validation plan."
-      - "After later release, VS1 implementation and local replay/data verification."
-      - "Former WorkBuddy path/coverage/hash/field/timestamp/thin-adapter duties."
+      - "D0 repository and accessible-local reality audit."
+      - "D0-D6 implementation and validation plan."
+      - "Former WorkBuddy path, coverage, hash, field, timestamp and thin-adapter duties."
+      - "After later release only: VS1 implementation and local replay/data verification."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
 
   QCLAW:
     aliases: ["Q", "QQ"]
     active_issue: 76
     pull_request: 77
-    task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R1-INTEGRITY-METADATA-REMEDIATION"
+    task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R2-VALIDATOR-AND-FINAL-HEAD-RECEIPT-CLOSURE"
     mode: "target"
-    status: "READY"
+    status: "DISPATCHED_READY_TO_EXECUTE"
     role_now: >-
-      Keep the eight core audit files immutable and repair only contradictory combined hashes, validator hashes,
-      Git-blob receipts and interpretation boundaries. Do not read Codex D0 during this repair.
+      Keep the eight core audit files immutable. Record both P0 validator provenance and the exact current executed
+      validator Git blob/SHA-256, bind test results to the R2 final head and stop before P1.
     future_role:
-      - "P1 independent evaluation of Codex D0 after GPT release."
+      - "P1 independent evaluation of Codex D0 after separate GPT release."
       - "Pre-register and later audit VS1 implementation evidence."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
@@ -93,7 +95,7 @@ agents:
     transferred_to: "CODEX"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
-parallel_wave_2:
+parallel_wave_3:
   may_run_concurrently: true
   primary_task:
     owner: "CODEX"
@@ -104,24 +106,24 @@ parallel_wave_2:
     owner: "QCLAW"
     issue: 76
     pull_request: 77
-    task: "P0 integrity metadata correction with immutable core."
-    completion_signal: "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
+    task: "R2 current-validator and final-head receipt closure; frozen core unchanged."
+    completion_signal: "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
   isolation:
-    - "QCLAW may not read Codex D0 output during R1."
-    - "Codex may read the frozen QCLAW core criteria but may not edit PR #77 or its weights."
-    - "QCLAW R1 cannot pause Codex D0 creation or planning."
+    - "QCLAW may not read any Codex D0 output during R2."
+    - "Codex may read the frozen QCLAW core and accepted corrigendum but may not edit PR #77."
+    - "QCLAW R2 cannot pause Codex branch creation, D0 audit or planning."
     - "Both remain Draft/no-merge, public-safe and research_only."
 
 execution_queue:
   - order: 1
     owner: "CODEX_PRIMARY_AND_QCLAW_SUPPORT_IN_PARALLEL"
-    task: "Complete parallel_wave_2."
+    task: "Complete parallel_wave_3."
   - order: 2
     owner: "GPT"
-    task: "Review QCLAW P0 integrity R1 independently; accept or request one bounded correction."
+    task: "Review QCLAW R2 validator and final-head receipts; accept or reject without changing frozen core."
   - order: 3
     owner: "GPT"
-    task: "When Codex D0 is delivered, release QCLAW P1 using immutable core plus accepted corrigendum."
+    task: "When Codex D0 exists and R2 is accepted, release QCLAW P1 with the immutable core plus accepted corrigendum."
   - order: 4
     owner: "QCLAW"
     issue: 76
@@ -137,7 +139,7 @@ execution_queue:
   - order: 7
     owner: "CODEX"
     issue: 69
-    task: "Implement and locally verify 0017-VS1 BAR_ONLY after explicit release."
+    task: "Implement and locally verify 0017-VS1 BAR_ONLY only after explicit GPT release."
     mode: "goal"
   - order: 8
     owner: "QCLAW"
@@ -174,8 +176,8 @@ w3_parallel_governance_track:
 release_control:
   only_GPT_may_activate_next_step: true
   trigger_behavior:
-    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute Issue #69 D0 as primary owner."
-    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute PR #77 R1 receipt correction only."
+    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute Issue #69 D0 as primary owner now."
+    QCLAW: "Read ACTIVE-QCLAW-TASK.yaml and execute PR #77 R2 receipt closure only."
     WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
 
 safety_boundary:
