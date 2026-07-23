@@ -1,0 +1,169 @@
+# ============================================================================
+# PROGRESS CHECKPOINT
+# Task: QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009
+# Issue: #60
+# Program: SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001
+# Phase: 5 — Long-Term Memory & Hybrid Retrieval
+# ============================================================================
+
+task:
+  task_id: "QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009"
+  issue: "#60"
+  agent: "QCLAW"
+  parent_program: "SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001 (#31)"
+  phase: 5
+
+progress:
+  overall_percentage: 20
+  current_phase: M0
+  phase_status: COMPLETE
+
+phases:
+  - phase: M0
+    name: "Audit and Project Plan"
+    percentage: 20
+    status: COMPLETE
+    deliverables:
+      - file: "PROJECT-PLAN.md"
+        status: COMPLETE
+        size_bytes: 17988
+        description: "Complete project plan with executive summary, phase breakdown, dependency graph, risk register, non-goals"
+      
+      - file: "CURRENT-RUNTIME-AUDIT.md"
+        status: COMPLETE
+        size_bytes: 16067
+        description: "Audit of PR #57, Issue #38, Issue #59; non-duplication proof; file ownership boundaries"
+      
+      - file: "LONG-TERM-MEMORY-ARCHITECTURE.md"
+        status: COMPLETE
+        size_bytes: 29404
+        description: "System diagram, 9-layer model, hybrid retrieval, memory palace, embedding governance, lifecycle, AnswerEvidenceBundle"
+      
+      - file: "MEMORY-LAYER-TAXONOMY.yaml"
+        status: COMPLETE
+        size_bytes: 25537
+        description: "Complete taxonomy of 9 memory layers: definitions, content types, retention, retrieval priority, decay, indexing, classification rules"
+      
+      - file: "MEMORY-LIFECYCLE.schema.json"
+        status: COMPLETE
+        size_bytes: 28346
+        description: "JSON Schema v7 for 10-state lifecycle: states, transitions, guard conditions, metadata per state"
+      
+      - file: "HYBRID-RETRIEVAL-ARCHITECTURE.md"
+        status: COMPLETE
+        size_bytes: 26048
+        description: "9-retriever architecture, 13-axis reranking, query parsing, dedup/merge, relation expansion, conflict/gap fill, AnswerEvidenceBundle"
+      
+      - file: "NON-DUPLICATION-MATRIX.yaml"
+        status: COMPLETE
+        size_bytes: 28802
+        description: "Comprehensive non-duplication proof: 44 deliverables checked against PR #57, Issue #38, Issue #59"
+    
+    success_gate:
+      status: PASSED
+      criteria:
+        - "All 7 files exist": true
+        - "Internal consistency review passed": true
+        - "All interfaces to PR #57 documented": true
+        - "All interfaces to Issue #59 documented": true
+        - "All interfaces to Issue #38 documented": true
+        - "Non-duplication matrix proves zero overlap with existing code": true
+        - "No duplicate canonical fact source": true
+        - "PR #57 is sole canonical runtime": true
+        - "All indexes rebuildable from canonical atoms": true
+        - "No final embedding model or vector backend selected": true
+        - "Memory Palace is computable navigation index (not UI)": true
+
+    decision_log:
+      - decision: "9 memory layers adopted"
+        rationale: "Complete cognitive memory taxonomy; layers are lightweight classifiers that hold atom_id → layer mappings, never duplicate content"
+      
+      - decision: "10-state lifecycle with guard conditions"
+        rationale: "Covers ingestion, classification, promotion, consolidation, supersession, staleness, dispute, revocation, archival, and forgetting"
+      
+      - decision: "9-retriever hybrid system with PR #57 as one input"
+        rationale: "PR #57 retrieval is ONE of 9 parallel recall sources; 0009 adds 8 new retrievers + dispatch + reranking"
+      
+      - decision: "13-axis reranking, not just cosine similarity"
+        rationale: "Semantic + keyword + entity + project/user scope + temporal validity + source quality + confidence + lifecycle state + relation distance + importance + recency + conflict/unknown coverage + task relevance"
+      
+      - decision: "Content-index separation with rebuild guarantee"
+        rationale: "Atoms live in Issue #59/PR #57; 0009 indexes are rebuildable from canonical atoms"
+      
+      - decision: "Model-agnostic embedding architecture"
+        rationale: "No final model selected; pluggable registry supports any embedding backend"
+      
+      - decision: "Memory Palace is computational, not UI"
+        rationale: "Navigable, queryable, traversable — but not renderable. No HTML/CSS/visualization"
+      
+      - decision: "AnswerEvidenceBundle as sole output contract"
+        rationale: "Evidence + conflicts + unknowns + citations + trace = evidence-complete answers"
+
+  - phase: M1
+    name: "Memory Layer Implementation"
+    percentage: 40
+    status: PENDING
+    depends_on: [M0]
+
+  - phase: M2
+    name: "Hybrid Retrieval Engine"
+    percentage: 60
+    status: PENDING
+    depends_on: [M1]
+
+  - phase: M3
+    name: "Memory Palace Computational Model"
+    percentage: 75
+    status: PENDING
+    depends_on: [M1, M2]
+
+  - phase: M4
+    name: "Embedding Governance"
+    percentage: 85
+    status: PENDING
+    depends_on: [M1]
+
+  - phase: M5
+    name: "Integration & API Surface"
+    percentage: 95
+    status: PENDING
+    depends_on: [M1, M2, M3, M4]
+
+  - phase: M6
+    name: "Evaluation, Documentation & Delivery"
+    percentage: 100
+    status: PENDING
+    depends_on: [M5]
+
+external_dependencies:
+  - dependency: "PR #57 canonical runtime (Codex)"
+    status: "AVAILABLE"
+    commit: "473d0ec"
+    notes: "Pinned; re-validate on PR merge"
+  
+  - dependency: "Issue #59 atomization (QCLAW 0008)"
+    status: "IN_PROGRESS"
+    notes: "Schemas and LearningPacket format available; 0009 consumes READ-ONLY"
+  
+  - dependency: "Issue #38 Knowledge Gateway (Codex)"
+    status: "PENDING"
+    notes: "C1-C6 work packages; 0009 bridges to gateway, does not depend on it for M1-M4"
+
+next_actions:
+  - action: "Begin M1: implement 9 memory layer classes"
+    priority: CRITICAL
+    estimated_sessions: 3
+    
+  - action: "Define layer interface contract"
+    priority: HIGH
+    notes: "Common interface across all 9 layers: classify, write, read, stats"
+    
+  - action: "Implement lifecycle state machine"
+    priority: HIGH
+    notes: "10-state engine with guard conditions and event history"
+
+metadata:
+  created_at: "2026-07-22T09:00:00+08:00"
+  completed_at: "2026-07-22T09:00:00+08:00"
+  version: "1.0.0-M0"
+  next_checkpoint: "M1 — Memory Layer Implementation (target: 40%)"

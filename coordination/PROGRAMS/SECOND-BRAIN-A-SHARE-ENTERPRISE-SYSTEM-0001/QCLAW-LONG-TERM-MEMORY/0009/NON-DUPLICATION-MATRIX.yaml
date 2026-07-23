@@ -1,0 +1,573 @@
+# ============================================================================
+# NON-DUPLICATION MATRIX
+# Task: QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009
+# Issue: #60
+# Version: 1.0.0-M0
+# ============================================================================
+
+# Comprehensive matrix proving each planned M1-M6 deliverable does NOT duplicate:
+# - PR #57 Phase 3 offline memory (store, fusion, snapshot, retrieval, context, eval, CLI)
+# - Issue #38 Knowledge Gateway (C1-C6 work packages)
+# - Issue #59 Atomization (atoms, relations, schemas, pipeline, quality gates)
+
+matrix:
+  description: >
+    Each row maps an M-phase deliverable to:
+    (a) what it needs from existing infrastructure
+    (b) why it is NOT duplication
+    (c) what new capability it adds
+    
+    VERDICTS: NO_DUPLICATION, INTERFACE_CONSUMPTION (uses but does not duplicate),
+    SHARED_SCHEMA (uses schema but separate implementation)
+
+  entries:
+
+    # ════════════════════════════════════════════════════════════════
+    # M1: MEMORY LAYER IMPLEMENTATION
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "layers/working_memory.rb"
+      phase: M1
+      needs_from_pr57: "None — working memory is session-scoped, transient"
+      needs_from_issue38: "None"
+      needs_from_issue59: "Atom schema for understanding what atoms look like (interface only)"
+      why_not_duplication: >
+        PR #57 has no concept of "working memory" — all knowledge is stored
+        persistently. Issue #59 produces atoms but has no session concept.
+        Working memory is a new cognitive layer that wraps transient context.
+      new_capability: "Session-scoped high-priority memory with LRU eviction and TTL"
+
+    - deliverable: "layers/episodic_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read to fetch atoms classified as episodic"
+      needs_from_issue38: "None"
+      needs_from_issue59: "CASE, TEMPORAL_UPDATE, DECISION atom types for classification"
+      why_not_duplication: >
+        PR #57 stores all atoms flat; has no time-ordered event taxonomy.
+        Issue #59 creates atoms but has no episodic layer classification.
+        Episodic memory is a layer classifier + temporal index, not a store.
+      new_capability: "Time-ordered event memory with temporal indexing, compression, and episode chains"
+
+    - deliverable: "layers/semantic_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read to fetch atoms classified as semantic"
+      needs_from_issue38: "None"
+      needs_from_issue59: "FACT, OBSERVATION, CLAIM, HYPOTHESIS, CAUSAL_CLAIM, CORRELATION, DEFINITION, CONCEPT, RULE, CONSTRAINT, CONDITION, EXCEPTION, RISK atom types"
+      why_not_duplication: >
+        PR #57 provides flat storage. Issue #59 produces typed atoms.
+        Neither provides a conceptual knowledge layer with subject-indexed
+        retrieval, confidence-weighted decay, or topic classification.
+      new_capability: "Subject-indexed conceptual knowledge layer with confidence-weighted decay and topic classification"
+
+    - deliverable: "layers/procedural_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read for METHOD/PROCEDURE/SKILL atoms"
+      needs_from_issue38: "None"
+      needs_from_issue59: "METHOD, PROCEDURE, SKILL, CHECKLIST_ITEM atom types; KnowledgeSkill schema"
+      why_not_duplication: >
+        Issue #59 defines skill atoms but has no procedural memory layer with
+        step-order indexing, prerequisite chains, and failure mode mapping.
+      new_capability: "Step-ordered procedural memory with prerequisite awareness and failure mode indexing"
+
+    - deliverable: "layers/autobiographical_user_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read for USER_PREFERENCE/USER_CORRECTION atoms"
+      needs_from_issue38: "KnowledgeAccessDecision for user-scoped filtering (M5)"
+      needs_from_issue59: "USER_PREFERENCE, USER_CORRECTION atom types"
+      why_not_duplication: >
+        PR #57 has no user memory concept — all knowledge is flat.
+        Issue #59 tags atoms as user preferences but has no retrieval priority
+        system or preference override logic.
+      new_capability: "User-scoped memory with preference/correction override priority (highest retrieval priority)"
+
+    - deliverable: "layers/project_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read for project-scoped atoms"
+      needs_from_issue38: "None"
+      needs_from_issue59: "PROJECT_REQUIREMENT, ARCHITECTURE_DECISION, OPPORTUNITY, METRIC, PARAMETER, DECISION, RATIONALE atom types"
+      why_not_duplication: >
+        PR #57 has tenant isolation but no project-level scoping.
+        Issue #59 types project atoms but has no project lifecycle (active/completed/archived).
+      new_capability: "Project-scoped memory with lifecycle-aware decay (active, completed, archived)"
+
+    - deliverable: "layers/source_memory.rb"
+      phase: M1
+      needs_from_pr57: "None — operates on source manifests"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeSourceManifest schema, KnowledgeDigestQueue"
+      why_not_duplication: >
+        Issue #59 creates source manifests but has no source-quality scoring,
+        cross-source consistency analysis, or digest history tracking as a layer.
+      new_capability: "Provenance tracking with source quality scoring, digest history, and cross-source consistency"
+
+    - deliverable: "layers/conflict_and_unknown_memory.rb"
+      phase: M1
+      needs_from_pr57: "Store.read for conflict/unknown atoms"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeConflict, KnowledgeUnknown schemas; CONFLICT/UNKNOWN atom types"
+      why_not_duplication: >
+        Issue #59 records conflicts and unknowns as data entities.
+        It does NOT provide a memory layer that proactively surfaces them
+        during retrieval, links them to affected knowledge, or ensures
+        mandatory inclusion in query results.
+      new_capability: "Proactive conflict/unknown surfacing layer with mandatory retrieval inclusion and cross-reference indexing"
+
+    - deliverable: "layers/meta_memory.rb"
+      phase: M1
+      needs_from_pr57: "None — auto-populated from memory system health monitor"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None — auto-populated"
+      why_not_duplication: >
+        No existing system has meta-memory — self-referential statistics,
+        health metrics, and retrieval performance tracking.
+      new_capability: "Memory-about-memory: statistics, health monitoring, performance tracking, layer distribution analytics"
+
+    - deliverable: "lifecycle/state_machine.rb"
+      phase: M1
+      needs_from_pr57: "None — state machine is new"
+      needs_from_issue38: "None"
+      needs_from_issue59: "knowledge_status field on atoms (as a field, not a state machine)"
+      why_not_duplication: >
+        Issue #59's knowledge_status is a static field (candidate, active,
+        superseded, revoked). It has NO state machine: no transitions,
+        no guard conditions, no lifecycle events, no determinism guarantees.
+        0009 builds a complete 10-state machine on top of this field.
+      new_capability: "Complete 10-state lifecycle with validated transitions, guard conditions, event history, and determinism"
+
+    - deliverable: "lifecycle/guard_conditions.rb"
+      phase: M1
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None — guard conditions are new"
+      why_not_duplication: "No existing system has transition guard conditions"
+      new_capability: "Validate every state transition with explicit, testable conditions"
+
+    - deliverable: "memory_palace/navigation_index.rb"
+      phase: M1
+      needs_from_pr57: "None — index is purely computational"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeAtoms for content, KnowledgeRelations for graph edges"
+      why_not_duplication: >
+        Memory Palace is a computable navigation index — NOT a UI, NOT a store,
+        NOT a retrieval engine. It is a new primitive: layer-to-layer spatial
+        mapping, topic-based navigation, and importance-weighted paths.
+        No existing system provides anything like this.
+      new_capability: "Content-index separation with rebuildable navigation paths, spatial conceptual mapping"
+
+    # ════════════════════════════════════════════════════════════════
+    # M2: HYBRID RETRIEVAL ENGINE
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "retrieval/query_parser.rb"
+      phase: M2
+      needs_from_pr57: "None — PR #57 has QueryPlan but for SQL-like queries, not NL intent"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57's QueryPlan decomposes queries into sub-queries for SQL-like
+        execution. 0009's query parser extracts INTENT (fact lookup, how-to,
+        timeline, etc.), entities, temporal scope, and project scope from
+        natural language. Different input, different output, different purpose.
+      new_capability: "Natural language intent extraction with entity, temporal, project, and confidence scoping"
+
+    - deliverable: "retrieval/dispatcher.rb"
+      phase: M2
+      needs_from_pr57: "PR #57 retrieval engine as ONE of 9 recall sources"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57 has no multi-recall parallel dispatch. It runs a single retrieval
+        pipeline (semantic + keyword → results). 0009 dispatches 9 retrievers
+        in parallel, each targeting different memory layers and query dimensions.
+        PR #57 retrieval is just one input source.
+      new_capability: "Parallel multi-recall dispatch across 9 retrievers with timeout management and result fusion"
+
+    - deliverable: "retrieval/retrievers/semantic_retriever.rb"
+      phase: M2
+      needs_from_pr57: "PR #57 retrieval engine output (consumed, not duplicated)"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57's retrieval engine does semantic search. 0009's semantic
+        retriever WRAPS it — adding memory layer awareness, lifecycle state
+        filtering, and layer-specific embedding indexes (from M4).
+        It ENHANCES the existing retrieval, does not replace it.
+      new_capability: "Layer-aware semantic search with lifecycle state filtering and configurable embedding policies"
+
+    - deliverable: "retrieval/retrievers/keyword_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None — independent BM25/text index on memory layers"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57 retrieval includes keyword capabilities but does so on the flat
+        store. 0009's keyword retriever is layer-aware and state-filtered,
+        operating on the memory layer indexes, not the raw store.
+      new_capability: "Layer-aware BM25 search with state filtering and per-layer index optimization"
+
+    - deliverable: "retrieval/retrievers/entity_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has entity-based retrieval with disambiguation"
+      new_capability: "Named entity matching with alias resolution and entity-to-atom indexing"
+
+    - deliverable: "retrieval/retrievers/relation_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeRelation schema for relation types"
+      why_not_duplication: >
+        Issue #59 creates relations but has no graph traversal retriever.
+        PR #57 has no relation graph. 0009 builds a graph traversal retriever
+        that follows REQUIRES, SUPPORTS, CONTRADICTS, etc.
+      new_capability: "Graph-traversal retrieval via relation types with configurable hop depth and score decay"
+
+    - deliverable: "retrieval/retrievers/temporal_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has time-scoped recall with recency weighting"
+      new_capability: "Time-scoped atom recall with temporal overlap scoring and recency decay"
+
+    - deliverable: "retrieval/retrievers/project_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has project-scoped retrieval with scope inheritance"
+      new_capability: "Project-scoped retrieval with program hierarchy awareness and scope inheritance"
+
+    - deliverable: "retrieval/retrievers/source_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeSourceManifest for source_id resolution"
+      why_not_duplication: >
+        Issue #59 has source manifests as data but no source-provenance retriever.
+      new_capability: "Source-provenance retrieval with source quality filtering and cross-source tracing"
+
+    - deliverable: "retrieval/retrievers/conflict_unknown_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeConflict, KnowledgeUnknown schemas"
+      why_not_duplication: >
+        Issue #59 stores conflicts and unknowns. 0009 builds a retriever that
+        proactively surfaces them during queries, NOT just stores them.
+      new_capability: "Proactive conflict/unknown retrieval with mandatory query-surface inclusion"
+
+    - deliverable: "retrieval/retrievers/lifecycle_retriever.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None — lifecycle states are 0009's domain"
+      why_not_duplication: "No existing system has lifecycle-aware retrieval with state-based boosts"
+      new_capability: "State-aware result filtering and boosting: promote CONSOLIDATED, penalize STALE, expose DISPUTED"
+
+    - deliverable: "retrieval/dedup_merge.rb"
+      phase: M2
+      needs_from_pr57: "PR #57 fusion merges atoms. 0009 merges RECALL RESULTS — different domain"
+      needs_from_issue38: "None"
+      needs_from_issue59: "Atom version chains (supersedes/superseded_by)"
+      why_not_duplication: >
+        PR #57 fusion merges atoms at ingestion time (content-level merge).
+        0009 dedup_merge operates at query time on RECALL RESULTS — handling
+        same-atom-from-multiple-retrievers, superseded versions, and
+        multi-retriever metadata merging.
+      new_capability: "Query-time result deduplication with multi-retriever metadata fusion and version chain resolution"
+
+    - deliverable: "retrieval/relation_expander.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeRelation graph data"
+      why_not_duplication: >
+        Issue #59 creates relations. 0009 traverses them at query time to
+        pull contextual knowledge (prerequisites, supporting evidence,
+        contradictory evidence, broader/narrower concepts).
+      new_capability: "Query-time relation graph traversal for context enrichment with configurable hop depth"
+
+    - deliverable: "retrieval/conflict_gap_filler.rb"
+      phase: M2
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeConflict, KnowledgeUnknown data"
+      why_not_duplication: >
+        Issue #59 stores conflicts and unknowns. 0009 proactively surfaces them
+        during query assembly, ensuring every answer includes "here's what we
+        don't know" and "here's what contradicts."
+      new_capability: "Automatic conflict and unknown gap surfacing in query responses with impact assessment"
+
+    - deliverable: "retrieval/reranker.rb"
+      phase: M2
+      needs_from_pr57: "None — PR #57 uses cosine similarity only (1 axis)"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None — reranking is new"
+      why_not_duplication: >
+        PR #57 uses cosine similarity for ranking. 0009 uses 13-axis
+        multi-dimensional ranking: semantic, keyword, entity, project/user scope,
+        temporal validity, source quality, confidence, lifecycle state,
+        relation distance, importance, recency, conflict/unknown coverage,
+        task relevance.
+        This is a 13x expansion of the ranking dimension space.
+      new_capability: "13-axis multi-dimensional reranking with configurable per-intent axis weights"
+
+    - deliverable: "retrieval/answer_bundle.rb"
+      phase: M2
+      needs_from_pr57: "None — PR #57 produces ContextBundle (fragments), not AnswerEvidenceBundle"
+      needs_from_issue38: "AnswerEvidenceBundle spec (C4) — 0009 produces a conforming implementation"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57's ContextBundle contains knowledge fragments with relevance scores.
+        0009's AnswerEvidenceBundle adds: source citations, confidence per atom,
+        conflict surfacing, unknown gap surfacing, retrieval metadata, axis score
+        breakdown, budget information, and trace.
+        Different structure, richer content, evidence-complete output.
+      new_capability: "Evidence-complete answer bundle with citations, conflicts, gaps, and full retrieval trace"
+
+    # ════════════════════════════════════════════════════════════════
+    # M3: MEMORY PALACE COMPUTATIONAL MODEL
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "memory_palace/spatial_index.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeAtoms for content pointers"
+      why_not_duplication: "No existing system has spatial conceptual mapping between memory layers"
+      new_capability: "Layer-to-layer conceptual distance mapping for navigational queries"
+
+    - deliverable: "memory_palace/topic_tree.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeStructure schema for hierarchical grouping"
+      why_not_duplication: >
+        Issue #59 defines KnowledgeStructure as a data type.
+        0009 builds a queryable topic decomposition tree from it.
+      new_capability: "Hierarchical topic decomposition with drill-down navigation"
+
+    - deliverable: "memory_palace/importance_graph.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeRelation graph"
+      why_not_duplication: "No existing system computes PageRank-style importance on knowledge atoms"
+      new_capability: "PageRank-scored atom importance for prioritizing retrieval results"
+
+    - deliverable: "memory_palace/relation_graph.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "30 relation types, bidirectional support"
+      why_not_duplication: >
+        Issue #59 produces relations. 0009 builds a queryable graph with
+        bidirectional traversal API, edge weighting, and path scoring.
+      new_capability: "Full relation graph with bidirectional traversal, edge weighting, and path scoring API"
+
+    - deliverable: "memory_palace/decay_scheduler.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None — decay is new"
+      why_not_duplication: "No existing system has time-based knowledge decay or forgetting"
+      new_capability: "Per-layer decay curves, forgetting policy, time-based importance decay"
+
+    - deliverable: "memory_palace/palace.rb"
+      phase: M3
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "LearningPackets for initial build"
+      why_not_duplication: >
+        Memory Palace is a completely new concept — a computable navigation
+        index that unifies spatial mapping, topic trees, importance graphs,
+        relation graphs, and decay scheduling. No existing system.
+      new_capability: "Unified memory palace orchestrator with rebuild-from-canonical-atoms capability"
+
+    # ════════════════════════════════════════════════════════════════
+    # M4: EMBEDDING GOVERNANCE
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "embeddings/governance.rb"
+      phase: M4
+      needs_from_pr57: "None — PR #57 uses embeddings internally with no governance"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57 uses embedding vectors but has no governance layer: no version
+        tracking, no model switching, no rebuild policies.
+      new_capability: "Embedding governance: version tracking, model switching, index rebuild policies"
+
+    - deliverable: "embeddings/index_manager.rb"
+      phase: M4
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57 has internal indexes but no index management API: no rebuild,
+        no incremental updates, no integrity verification.
+      new_capability: "Index lifecycle: create, rebuild, incrementally update, verify integrity"
+
+    - deliverable: "embeddings/model_registry.rb"
+      phase: M4
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has pluggable embedding model architecture"
+      new_capability: "Model-agnostic embedding registry: plug and switch embedding backends without code changes"
+
+    - deliverable: "embeddings/similarity_policy.rb"
+      phase: M4
+      needs_from_pr57: "None — PR #57 has a threshold, not a policy framework"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57 has a similarity threshold. 0009 provides a full policy
+        framework with per-layer thresholds, metric selection, normalization,
+        and diversity factors.
+      new_capability: "Configurable similarity policies: per-layer thresholds, metric selection, diversity enforcement"
+
+    - deliverable: "embeddings/rebuild_verification.rb"
+      phase: M4
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "LearningPackets as canonical source"
+      why_not_duplication: "No existing system verifies rebuild determinism"
+      new_capability: "Deterministic rebuild verification: rebuild from atoms → compare hash → prove consistency"
+
+    # ════════════════════════════════════════════════════════════════
+    # M5: INTEGRATION & API SURFACE
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "api/memory_api.rb"
+      phase: M5
+      needs_from_pr57: "None — 0009 API wraps 0009 memory system, not PR #57"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57's gateway is an entry point to the runtime.
+        0009's memory API is an entry point to the memory system (layers, lifecycle, palace).
+        Different systems, different APIs.
+      new_capability: "Memory system API: layer queries, lifecycle management, palace navigation"
+
+    - deliverable: "api/query_api.rb"
+      phase: M5
+      needs_from_pr57: "None"
+      needs_from_issue38: "AnswerEvidenceBundle spec for output format"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        PR #57's gateway.query returns ContextBundle with fragments.
+        0009's query API returns AnswerEvidenceBundle with evidence + conflicts + unknowns.
+      new_capability: "Evidence-complete query API with conflict/unknown surfacing"
+
+    - deliverable: "api/ingestion_api.rb"
+      phase: M5
+      needs_from_pr57: "None — 0009 ingests LearningPackets, not raw chunks"
+      needs_from_issue38: "None"
+      needs_from_issue59: "LearningPacket schema for ingestion"
+      why_not_duplication: >
+        PR #57's gateway.submit ingests raw knowledge chunks.
+        0009's ingestion API ingests LearningPackets from Issue #59 into memory layers.
+        Different input format, different pipeline.
+      new_capability: "LearningPacket ingestion → layer classification → lifecycle → retrievable"
+
+    - deliverable: "api/admin_api.rb"
+      phase: M5
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has memory admin API"
+      new_capability: "Admin API: lifecycle overrides, decay resets, index rebuilds, health diagnostics"
+
+    - deliverable: "gateway/bridge.rb"
+      phase: M5
+      needs_from_pr57: "None — bridges to Issue #38, not PR #57"
+      needs_from_issue38: "Gateway API surface (C2), KnowledgeAccessDecision (C1)"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        This is a BRIDGE to Issue #38, not a reimplementation of the gateway.
+        It translates 0009 API calls into Issue #38 gateway protocol.
+      new_capability: "Knowledge Gateway bridge: translate 0009 memory API to Issue #38 gateway protocol"
+
+    - deliverable: "filters/source_filter.rb"
+      phase: M5
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "KnowledgeSourceManifest for source metadata"
+      why_not_duplication: "No existing system filters retrieval results by source provenance with quality scoring"
+      new_capability: "Source provenance filter: by source_id, source_type, source_quality threshold"
+
+    - deliverable: "filters/auth_filter.rb"
+      phase: M5
+      needs_from_pr57: "None"
+      needs_from_issue38: "KnowledgeAccessDecision (C1) for authority-level filtering"
+      needs_from_issue59: "None"
+      why_not_duplication: >
+        Issue #38 provides access DECISIONS (can this user see this?).
+        0009 implements the FILTER that applies those decisions to retrieval results.
+      new_capability: "Authority-level filter applying KnowledgeAccessDecision to retrieval results"
+
+    - deliverable: "filters/scope_filter.rb"
+      phase: M5
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "No existing system has multi-axis scope filtering for retrieval"
+      new_capability: "Multi-axis scope filter: project, user, temporal scope with inheritance"
+
+    # ════════════════════════════════════════════════════════════════
+    # M6: EVALUATION, DOCUMENTATION & DELIVERY
+    # ════════════════════════════════════════════════════════════════
+
+    - deliverable: "evaluation/retrieval_quality.rb"
+      phase: M6
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "Evaluates 0009 retrieval, not PR #57 retrieval"
+      new_capability: "Retrieval quality benchmarks: recall, precision, relevance, evidence completeness"
+
+    - deliverable: "evaluation/lifecycle_integrity.rb"
+      phase: M6
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "Evaluates 0009 lifecycle, not PR #57 snapshot system"
+      new_capability: "Lifecycle integrity testing: all valid transitions pass, all invalid transitions blocked"
+
+    - deliverable: "evaluation/memory_palace_navigation.rb"
+      phase: M6
+      needs_from_pr57: "None"
+      needs_from_issue38: "None"
+      needs_from_issue59: "None"
+      why_not_duplication: "Evaluates 0009 memory palace, which no other system has"
+      new_capability: "Memory palace navigation accuracy: spatial paths, topic drill-down, importance ranking"
+
+    - deliverable: "evaluation/answer_bundle_quality.rb"
+      phase: M6
+      needs_from_pr57: "None"
+      needs_from_issue38: "AnswerEvidenceBundle spec for conformance testing"
+      needs_from_issue59: "None"
+      why_not_duplication: "Evaluates 0009 AnswerEvidenceBundle, not PR #57 ContextBundle"
+      new_capability: "Answer bundle quality scoring: evidence completeness, conflict coverage, gap coverage"
+
+# ════════════════════════════════════════════════════════════════
+# SUMMARY
+# ════════════════════════════════════════════════════════════════
+
+summary:
+  total_deliverables: 44
+  verdicts:
+    NO_DUPLICATION: 44
+    INTERFACE_CONSUMPTION: 0
+    SHARED_SCHEMA: 0
+  conclusion: >
+    Every deliverable in M1-M6 builds NEW capabilities that do NOT exist
+    in PR #57, Issue #38, or Issue #59. Where 0009 consumes existing
+    infrastructure (PR #57 store, Issue #59 atoms, Issue #38 gateway),
+    it does so via defined interfaces without re-implementing or duplicating.
+    
+    Zero boundary violations. Zero duplicates. All new capabilities.

@@ -1,0 +1,646 @@
+# ============================================================================
+# MEMORY LAYER TAXONOMY
+# Task: QCLAW-LONG-TERM-MEMORY-PALACE-HYBRID-RETRIEVAL-0009
+# Issue: #60
+# Version: 1.0.0-M0
+# ============================================================================
+
+# Complete taxonomy of all 9 memory layers.
+# Each layer defines: purpose, content types, retention, retrieval priority,
+# decay policy, indexing requirements, and classification rules.
+
+taxonomy:
+  version: "1.0.0-M0"
+  total_layers: 9
+  description: >
+    The 9-layer memory taxonomy classifies KnowledgeAtoms (from Issue #59/0008)
+    into cognitive memory layers. Layers are lightweight classifiers — they
+    hold atom_id → layer mappings, never duplicate atom content.
+    All classifications are deterministic (same atom → same layer).
+
+  layers:
+
+    # ════════════════════════════════════════════════════════════════
+    # L0: WORKING MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L0
+      name: WORKING_MEMORY
+      description: >
+        Short-lived, high-priority, session-scoped memory. Holds information
+        actively being used, processed, or just created. Analogous to
+        human working memory — limited capacity, immediate access.
+      cognitive_analogy: "What you're thinking about RIGHT NOW"
+      
+      content_types:
+        - Active session context (current conversation turns)
+        - Recently ingested atoms not yet classified
+        - Temporary query results in current retrieval session
+        - Pending decisions and in-progress operations
+      
+      retention_policy:
+        scope: session
+        max_ttl: "Session duration or 24 hours, whichever is shorter"
+        max_items: 100
+        eviction: "LRU (Least Recently Used) when capacity exceeded"
+      
+      retrieval_priority: 100  # HIGHEST — always checked first
+      
+      decay_policy:
+        function: "immediate_linear"
+        description: "Linear decay from ingestion to session end; TTL-based removal"
+        half_life: null  # not applicable — session scoped
+        decay_to_zero_at: "session_end"
+      
+      indexing_requirements:
+        - "Temporal index: ordered by ingestion_time"
+        - "No persistence required (volatile, session-only)"
+        - "No embedding index (working set is small enough for linear scan)"
+        - "Access counter for LRU eviction"
+      
+      classification_rules:
+        - "Atoms ingested within current session → WORKING_MEMORY as intermediate state"
+        - "Query context atoms during active retrieval → WORKING_MEMORY"
+        - "Unclassified CANDIDATE atoms → briefly in WORKING_MEMORY before classification"
+      
+      source_atom_types: []  # Working memory contains temporary references, not classified atoms
+
+    # ════════════════════════════════════════════════════════════════
+    # L1: EPISODIC MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L1
+      name: EPISODIC_MEMORY
+      description: >
+        Time-ordered record of events, experiences, and temporal sequences.
+        Answers "what happened when?" and "what was the sequence?"
+        Key capability: reconstruct event timelines.
+      cognitive_analogy: "Your personal timeline of experiences"
+      
+      content_types:
+        - Session summaries and conversation records
+        - Knowledge digest events (atomization runs)
+        - User interactions and feedback events
+        - Decision events with temporal context
+        - Error events and recovery sequences
+        - LearningPacket ingestion events
+      
+      retention_policy:
+        scope: permanent  # Episodic memory persists indefinitely (compressed over time)
+        max_ttl: null
+        max_items: null
+        eviction: "Compression: older events summarized into higher-level episodes"
+      
+      retrieval_priority: 80  # Very high for temporal queries
+      
+      decay_policy:
+        function: "exponential_with_compression"
+        description: >
+          Recent events remain detailed; older events persist but get
+          compressed into summary episodes. Access frequency also slows decay.
+        half_life: "90 days (for detail loss; episode summary persists indefinitely)"
+        decay_to_zero_at: null  # never fully forgotten
+      
+      indexing_requirements:
+        - "Temporal index: primary sort by event_timestamp"
+        - "Episode chain: linked list of related events"
+        - "Compression index: links from summarized events to their detailed sources"
+        - "Session-scoped temporal index for fast recent-event lookup"
+      
+      classification_rules:
+        atom_type_in:
+          - CASE
+          - TEMPORAL_UPDATE
+          - DECISION  # decisions are also EPISODIC events
+        secondary_classification:
+          - "Any atom with time_scope containing specific event dates"
+          - "Atoms from conversation/session sources"
+      
+      source_atom_types:
+        - CASE
+        - TEMPORAL_UPDATE
+        - DECISION
+
+    # ════════════════════════════════════════════════════════════════
+    # L2: SEMANTIC MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L2
+      name: SEMANTIC_MEMORY
+      description: >
+        Conceptual knowledge: facts, definitions, relationships, rules,
+        constraints. Answers "what is X?", "how does X relate to Y?",
+        "what are the rules about Z?". The primary knowledge layer.
+      cognitive_analogy: "Your encyclopedia of facts and concepts"
+      
+      content_types:
+        - Verifiable facts and observations
+        - Definitions of terms, concepts, and frameworks
+        - Causal claims and correlations
+        - Rules, constraints, and conditions
+        - Exceptions to general rules
+        - Risks with probability and impact
+        - Claims and hypotheses (with confidence)
+      
+      retention_policy:
+        scope: permanent
+        max_ttl: null
+        max_items: null
+        eviction: "Superseded atoms move to SUPERSEDED state; not deleted"
+      
+      retrieval_priority: 90  # Highest among persistent layers
+      
+      decay_policy:
+        function: "confidence_and_access_weighted"
+        description: >
+          High-confidence, frequently accessed facts decay slowly.
+          Low-confidence, unaccessed claims decay faster.
+          Stale and superseded atoms continue to decay.
+        half_life: "365 days (for unaccessed LOW-confidence CLAIMs; FACTs never decay below CONSOLIDATED)"
+        decay_to_zero_at: null  # never fully forgotten
+      
+      indexing_requirements:
+        - "Subject index: primary lookup by subject/entity"
+        - "Embedding index: semantic vector for similarity search"
+        - "Keyword index: BM25 for text search"
+        - "Confidence index: sorted by confidence level for filtering"
+      
+      classification_rules:
+        atom_type_in:
+          - FACT
+          - OBSERVATION
+          - CLAIM
+          - HYPOTHESIS
+          - CAUSAL_CLAIM
+          - CORRELATION
+          - DEFINITION
+          - CONCEPT
+          - RULE
+          - CONSTRAINT
+          - CONDITION
+          - EXCEPTION
+          - RISK
+      
+      source_atom_types:
+        - FACT
+        - OBSERVATION
+        - CLAIM
+        - HYPOTHESIS
+        - CAUSAL_CLAIM
+        - CORRELATION
+        - DEFINITION
+        - CONCEPT
+        - RULE
+        - CONSTRAINT
+        - CONDITION
+        - EXCEPTION
+        - RISK
+
+    # ════════════════════════════════════════════════════════════════
+    # L3: PROCEDURAL MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L3
+      name: PROCEDURAL_MEMORY
+      description: >
+        How-to knowledge: skills, methods, procedures, checklists, techniques.
+        Answers "how do I do X?", "what are the steps for Y?",
+        "what can go wrong when doing Z?". Step-ordered, prerequisite-aware.
+      cognitive_analogy: "Muscle memory for processes and skills"
+      
+      content_types:
+        - Methods and systematic approaches
+        - Step-by-step procedures
+        - Skills with prerequisites and outcomes
+        - Checklists and verification steps
+        - Failure modes and counterexamples for processes
+        - Condition/exception handling in procedures
+      
+      retention_policy:
+        scope: permanent
+        max_ttl: null
+        max_items: null
+        eviction: "Superseded by updated procedure versions"
+      
+      retrieval_priority: 75  # High for how-to queries
+      
+      decay_policy:
+        function: "version_based"
+        description: >
+          Procedures persist at full fidelity regardless of age.
+          Only decay when superseded by a newer version.
+          Access frequency has no effect on decay.
+        half_life: null  # no time-based decay for procedures
+        decay_to_zero_at: null  # only superseded, never forgotten
+      
+      indexing_requirements:
+        - "Step-order index: ordered by step sequence"
+        - "Prerequisite index: maps procedure_id → prerequisites"
+        - "Skill taxonomy index: hierarchical skill classification"
+        - "Failure mode index: maps procedure → known failure conditions"
+      
+      classification_rules:
+        atom_type_in:
+          - METHOD
+          - PROCEDURE
+          - SKILL
+          - CHECKLIST_ITEM
+        secondary_classification:
+          - CONDITION with procedural context → also L3
+          - EXCEPTION with procedural context → also L3
+          - FAILURE_CONDITION for specific procedures → also L3
+          - FAILURE_LESSON about procedural failures → also L3
+      
+      source_atom_types:
+        - METHOD
+        - PROCEDURE
+        - SKILL
+        - CHECKLIST_ITEM
+
+    # ════════════════════════════════════════════════════════════════
+    # L4: AUTOBIOGRAPHICAL USER MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L4
+      name: AUTOBIOGRAPHICAL_USER_MEMORY
+      description: >
+        User-specific knowledge: preferences, corrections, feedback history,
+        personal context. Answers "what does the user prefer about X?",
+        "what corrections has the user made about Y?",
+        "what is the user's history with Z?".
+      cognitive_analogy: "Your sense of self and personal preferences"
+      
+      content_types:
+        - Explicit user preferences and choices
+        - User corrections to previous knowledge
+        - User feedback history (accept/reject/modify)
+        - User interaction patterns
+        - Personal context and history
+      
+      retention_policy:
+        scope: permanent
+        max_ttl: null
+        max_items: null
+        eviction: "Only by explicit user deletion or newer correction"
+      
+      retrieval_priority: 95  # Very high — user preferences override general knowledge
+      
+      decay_policy:
+        function: "none"  # User memory never decays
+        description: >
+          User preferences and corrections are permanent.
+          Newer corrections supersede older ones, but both are preserved.
+        half_life: null
+        decay_to_zero_at: null
+      
+      indexing_requirements:
+        - "User scope index: primary filter by user/tenant ID"
+        - "Topic index: user preferences organized by subject"
+        - "Correction chain index: original → correction1 → correction2 (linked)"
+        - "Preference priority index: explicit preferences override implicit ones"
+      
+      classification_rules:
+        atom_type_in:
+          - USER_PREFERENCE
+          - USER_CORRECTION
+      
+      source_atom_types:
+        - USER_PREFERENCE
+        - USER_CORRECTION
+
+    # ════════════════════════════════════════════════════════════════
+    # L5: PROJECT MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L5
+      name: PROJECT_MEMORY
+      description: >
+        Project and architecture knowledge: requirements, architecture decisions,
+        program scope, opportunities. Answers "what does this project require?",
+        "what architecture decisions were made and why?",
+        "what is in scope vs. out of scope?".
+      cognitive_analogy: "Your project folder — organized by program/project"
+      
+      content_types:
+        - Project requirements and specifications
+        - Architecture decisions (ADR-style) with rationale
+        - Program and project scope definitions
+        - Opportunities and future directions
+        - Metrics and parameters with project context
+        - Decisions and rationales specific to programs
+      
+      retention_policy:
+        scope: permanent (project lifespan)
+        max_ttl: null
+        max_items: null
+        eviction: "Project archival: entire project memory moves to ARCHIVED when project ends"
+      
+      retrieval_priority: 85  # High for project-scoped queries
+      
+      decay_policy:
+        function: "project_lifecycle_aware"
+        description: >
+          Active project: full fidelity, no decay.
+          Completed project: gradual decay over 2 years.
+          Archived project: compressed to summary; details in index-only mode.
+        half_life: "Active: null; Completed: 365 days; Archived: details compressed"
+        decay_to_zero_at: null  # project memory is never fully deleted
+      
+      indexing_requirements:
+        - "Project scope index: primary filter by project/program ID"
+        - "Decision chain index: linked ADR decisions by sequence"
+        - "Requirement traceability index: requirement → implementation → test"
+        - "Cross-project reference index: when Project A references Project B"
+      
+      classification_rules:
+        atom_type_in:
+          - PROJECT_REQUIREMENT
+          - ARCHITECTURE_DECISION
+          - OPPORTUNITY
+          - METRIC
+          - PARAMETER
+          - DECISION  # decisions always have project context
+          - RATIONALE  # rationales always have project context
+        secondary_classification:
+          - "Any atom with project/program scope metadata"
+      
+      source_atom_types:
+        - PROJECT_REQUIREMENT
+        - ARCHITECTURE_DECISION
+        - OPPORTUNITY
+        - METRIC
+        - PARAMETER
+        - DECISION
+        - RATIONALE
+
+    # ════════════════════════════════════════════════════════════════
+    # L6: SOURCE MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L6
+      name: SOURCE_MEMORY
+      description: >
+        Provenance tracking: source manifests, digest history, source quality.
+        Answers "where did this knowledge come from?",
+        "how reliable is the source?",
+        "when was this last digested?".
+      cognitive_analogy: "Your bibliography and source credibility tracker"
+      
+      content_types:
+        - Source manifests (files, issues, PRs, conversations)
+        - Digest run history and receipts
+        - Source quality assessments
+        - Source update tracking (hash changes, re-digestion)
+        - Cross-source consistency analysis
+      
+      retention_policy:
+        scope: permanent
+        max_ttl: null
+        max_items: null
+        eviction: "Only if source itself is deleted (then ARCHIVED)"
+      
+      retrieval_priority: 50  # Medium — consulted for authority, not primary recall
+      
+      decay_policy:
+        function: "source_update_aware"
+        description: >
+          Source memory decays only when a source is no longer available.
+          Digest runs retain full history for audit trail.
+        half_life: null  # sources don't decay
+        decay_to_zero_at: null
+      
+      indexing_requirements:
+        - "Source ID index: primary lookup by source_id"
+        - "Digest run index: ordered by digest timestamp"
+        - "Source-to-atom index: maps source_id → produced atom_ids"
+        - "Source quality index: ordered by source reliability score"
+      
+      classification_rules:
+        atom_type_in:
+          - SOURCE_ASSERTION
+        secondary_classification:
+          - "Source manifest entries (from KnowledgeDigestQueue) → SOURCE_MEMORY"
+          - "Digest run receipts → SOURCE_MEMORY"
+        # Source memory is primarily populated from Issue #59 source manifests,
+        # not from individual atoms.
+      
+      source_atom_types:
+        - SOURCE_ASSERTION
+
+    # ════════════════════════════════════════════════════════════════
+    # L7: CONFLICT AND UNKNOWN MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L7
+      name: CONFLICT_AND_UNKNOWN_MEMORY
+      description: >
+        The gap-and-contradiction layer. Explicitly records what is NOT known,
+        what is contradictory, and what is uncertain. Answers "what don't we know?",
+        "what evidence contradicts?", "what are the open questions?".
+        This is NOT an error bucket — it is a first-class knowledge layer.
+      cognitive_analogy: "Your 'I don't know' and 'that doesn't add up' tracker"
+      
+      content_types:
+        - Conflicting atom pairs with resolution status
+        - Explicit knowledge gaps (UNKNOWN atoms)
+        - Open questions and research directions
+        - Failure conditions and counterexamples
+        - Failure lessons learned
+        - Low-confidence claims awaiting verification
+        - Unresolved contradictions from multiple sources
+      
+      retention_policy:
+        scope: permanent
+        max_ttl: null
+        max_items: null
+        eviction: "Resolved conflicts move to RESOLVED state; unresolved persist indefinitely"
+      
+      retrieval_priority: 70  # MUST be surfaced for relevant queries
+      
+      decay_policy:
+        function: "resolution_aware"
+        description: >
+          Unresolved conflicts and unknowns: NEVER decay.
+          Resolved conflicts: converted to CONSOLIDATED knowledge.
+          Outdated unknowns (resolved by new evidence): marked SUPERSEDED.
+        half_life: null  # unresolved conflicts never decay
+        decay_to_zero_at: null
+      
+      indexing_requirements:
+        - "Conflict pair index: maps conflict_id → (atom_a, atom_b) with type and status"
+        - "Unknown gap index: organized by question domain"
+        - "Verification path index: unknowns grouped by how to resolve them"
+        - "Cross-layer reference: conflicts/unknowns linked to L2, L3, L5 atoms they affect"
+      
+      classification_rules:
+        atom_type_in:
+          - UNKNOWN
+          - QUESTION
+          - FAILURE_CONDITION
+          - COUNTEREXAMPLE
+          - FAILURE_LESSON
+        secondary_classification:
+          - "Any pair of atoms with a CONFLICT relation → CONFLICT_AND_UNKNOWN_MEMORY"
+          - "Low-confidence CLAIMs with unresolved verification → also L7"
+      
+      source_atom_types:
+        - UNKNOWN
+        - QUESTION
+        - FAILURE_CONDITION
+        - COUNTEREXAMPLE
+        - FAILURE_LESSON
+
+    # ════════════════════════════════════════════════════════════════
+    # L8: META MEMORY
+    # ════════════════════════════════════════════════════════════════
+    - layer_id: L8
+      name: META_MEMORY
+      description: >
+        Memory about memory: system statistics, health metrics, index status,
+        retrieval performance, layer distribution. Answers "how healthy is
+        the memory system?", "what's the layer distribution?",
+        "how well is retrieval performing?".
+      cognitive_analogy: "Your metacognition — knowing what you know and how well"
+      
+      content_types:
+        - Memory system statistics (total atoms, per-layer counts)
+        - Lifecycle state distribution
+        - Index health and rebuild status
+        - Retrieval performance history (latency, recall, precision)
+        - Embedding model version and index freshness
+        - Decay scheduler state
+        - Error and warning logs
+        - Layer distribution analytics
+      
+      retention_policy:
+        scope: permanent (rolling window)
+        max_ttl: "Rolling 90-day window for detailed metrics; aggregates persist indefinitely"
+        max_items: null
+        eviction: "Old detail metrics compressed to aggregates after 90 days"
+      
+      retrieval_priority: 10  # Lowest — only queried for diagnostics
+      
+      decay_policy:
+        function: "rolling_window_compression"
+        description: >
+          Detailed metrics: rolling 90-day window, then compressed to aggregates.
+          Aggregated statistics: persist indefinitely.
+        half_life: "90 days for detail-level metrics"
+        decay_to_zero_at: null  # aggregates never decay
+      
+      indexing_requirements:
+        - "Time-series index for performance metrics"
+        - "Layer distribution summary: live query, not stored index"
+        - "Health status cache: updated on significant events"
+      
+      classification_rules:
+        # Meta memory is populated automatically by the memory system,
+        # not from atom_type classification.
+        automatic_population:
+          source: "Memory system health monitor"
+          triggers:
+            - "On ingestion: update total_atoms, per-layer counts"
+            - "On lifecycle change: update state distribution"
+            - "On retrieval: record latency, recall count"
+            - "On index rebuild: update index health status"
+            - "On error: record error event"
+      
+      source_atom_types: []  # Populated automatically, not from atoms
+
+# ════════════════════════════════════════════════════════════════
+# CLASSIFICATION RULES SUMMARY
+# ════════════════════════════════════════════════════════════════
+
+classification_rules:
+  deterministic: true
+  description: >
+    Every KnowledgeAtom is classified into exactly ONE primary layer
+    and zero or more secondary layers. Classification is deterministic:
+    same atom → same layer(s), every time.
+
+  primary_classification:
+    description: "Each atom has exactly one primary layer based on atom_type"
+    mapping:
+      # L0: none — WORKING_MEMORY is transient, not for classified atoms
+      L1_EPISODIC: [CASE, TEMPORAL_UPDATE, DECISION]
+      L2_SEMANTIC: [FACT, OBSERVATION, CLAIM, HYPOTHESIS, CAUSAL_CLAIM, CORRELATION, DEFINITION, CONCEPT, RULE, CONSTRAINT, CONDITION, EXCEPTION, RISK]
+      L3_PROCEDURAL: [METHOD, PROCEDURE, SKILL, CHECKLIST_ITEM]
+      L4_AUTOBIOGRAPHICAL_USER: [USER_PREFERENCE, USER_CORRECTION]
+      L5_PROJECT: [PROJECT_REQUIREMENT, ARCHITECTURE_DECISION, OPPORTUNITY, METRIC, PARAMETER, RATIONALE]
+      L6_SOURCE: [SOURCE_ASSERTION]
+      L7_CONFLICT_AND_UNKNOWN: [UNKNOWN, QUESTION, FAILURE_CONDITION, COUNTEREXAMPLE, FAILURE_LESSON]
+      L8_META: []  # Automatic, not from atom_type
+
+  secondary_classification:
+    description: "Atoms may also appear in secondary layers"
+    rules:
+      - condition: "DECISION atom with RATIONALE"
+        primary: L1
+        secondary: [L5]
+      - condition: "Atoms involved in a CONFLICT relation"
+        secondary_add: L7
+      - condition: "CONDITION/EXCEPTION in procedural context"
+        secondary_add: L3
+      - condition: "FAILURE_LESSON"
+        primary: L7
+        secondary: [L3]
+      - condition: "Any atom with project scope metadata"
+        secondary_add: L5
+      - condition: "FAILURE_CONDITION for specific procedures"
+        primary: L7
+        secondary: [L3]
+
+  unclassified_fallback:
+    action: "Classify to L2_SEMANTIC with WARN log"
+    reason: "Default assumption: unknown types are conceptual knowledge"
+
+# ════════════════════════════════════════════════════════════════
+# RETRIEVAL PRIORITY SUMMARY
+# ════════════════════════════════════════════════════════════════
+
+retrieval_priority_order:
+  - layer: L0_WORKING_MEMORY
+    priority: 100
+    comment: "Always check working memory first — what's immediately relevant"
+
+  - layer: L4_AUTOBIOGRAPHICAL_USER_MEMORY
+    priority: 95
+    comment: "User preferences/corrections override general knowledge"
+
+  - layer: L2_SEMANTIC_MEMORY
+    priority: 90
+    comment: "Primary knowledge store — facts, concepts, rules"
+
+  - layer: L5_PROJECT_MEMORY
+    priority: 85
+    comment: "Project-contextual knowledge — close second to semantic"
+
+  - layer: L1_EPISODIC_MEMORY
+    priority: 80
+    comment: "Event and temporal knowledge"
+
+  - layer: L3_PROCEDURAL_MEMORY
+    priority: 75
+    comment: "How-to knowledge"
+
+  - layer: L7_CONFLICT_AND_UNKNOWN_MEMORY
+    priority: 70
+    comment: "MUST surface conflicts and gaps for relevant queries"
+
+  - layer: L6_SOURCE_MEMORY
+    priority: 50
+    comment: "Consulted for authority, not primary recall"
+
+  - layer: L8_META_MEMORY
+    priority: 10
+    comment: "Only for diagnostic queries"
+
+# ════════════════════════════════════════════════════════════════
+# DECAY POLICY SUMMARY
+# ════════════════════════════════════════════════════════════════
+
+decay_summary:
+  no_decay_layers:
+    - L4_AUTOBIOGRAPHICAL_USER_MEMORY  # User choices are permanent
+    - L6_SOURCE_MEMORY                  # Source provenance never decays
+  never_forgotten_layers:
+    - L1_EPISODIC_MEMORY       # Compressed but never deleted
+    - L2_SEMANTIC_MEMORY       # Facts persist (superseded, not deleted)
+    - L3_PROCEDURAL_MEMORY     # Skills persist (superseded, not deleted)
+    - L5_PROJECT_MEMORY        # Project knowledge archived, not deleted
+    - L7_CONFLICT_AND_UNKNOWN  # Unresolved conflicts/unknowns never decay
+  decay_enabled_layers:
+    - L0_WORKING_MEMORY        # Session-scoped: linear decay to zero at session end
+    - L8_META_MEMORY           # Rolling window: detail metrics decay after 90 days
