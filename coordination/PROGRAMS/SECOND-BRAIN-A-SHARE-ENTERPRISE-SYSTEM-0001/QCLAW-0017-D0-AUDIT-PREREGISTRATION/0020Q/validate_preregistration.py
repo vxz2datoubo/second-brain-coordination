@@ -232,23 +232,34 @@ if secret_hits == 0:
 
 # ---- 7. COMPLETION SIGNAL (R1) ----
 print("\n[COMPLETION SIGNAL CHECK]")
+EXPECTED_R2 = "QCLAW_0017_D0_P0_VALIDATOR_AND_HEAD_RECEIPTS_CLOSED_FOR_P1"
 EXPECTED_R1 = "QCLAW_0017_D0_P0_INTEGRITY_METADATA_CORRECTED_FOR_P1"
 EXPECTED_P0 = "QCLAW_0017_D0_AUDIT_PREREGISTRATION_FROZEN_FOR_GPT_REVIEW"
+found_r2 = False
 found_r1 = False
 found_p0 = False
 for f in [AUDIT_DIR / "AI_HANDOFF.yaml", AUDIT_DIR / "FROZEN-MANIFEST.yaml",
           AUDIT_DIR / "AMENDMENT-LOG.yaml", AUDIT_DIR / "TEST-RUN-RECEIPT.md"]:
-    if f.is_file():
+    if not f.is_file():
+        continue
+    try:
         text = f.read_text(encoding="utf-8")
-        if EXPECTED_R1 in text:
-            record(f"SIGNAL_R1: {f.name}", "PASS")
-            found_r1 = True
-        if EXPECTED_P0 in text:
-            found_p0 = True
-if found_r1:
-    record("COMPLETION_SIGNAL", "PASS", EXPECTED_R1)
+    except:
+        text = open(str(f), encoding="utf-8").read()
+    if EXPECTED_R2 in text:
+        record(f"SIGNAL_R2: {f.name}", "PASS")
+        found_r2 = True
+    if EXPECTED_R1 in text:
+        record(f"SIGNAL_R1: {f.name}", "PASS")
+        found_r1 = True
+    if EXPECTED_P0 in text:
+        found_p0 = True
+if found_r2:
+    record("COMPLETION_SIGNAL", "PASS", EXPECTED_R2)
+elif found_r1:
+    record("COMPLETION_SIGNAL", "PASS", EXPECTED_R1 + " (R1 legacy)")
 else:
-    record("COMPLETION_SIGNAL", "FAIL", f"{EXPECTED_R1} not found in any receipt")
+    record("COMPLETION_SIGNAL", "FAIL", f"{EXPECTED_R2} not found in any receipt")
     EXIT = 1
 
 # ---- 8. PLACEHOLDER DETECTION ----
@@ -340,6 +351,6 @@ if EXIT == 0:
     print("OVERALL: PASS (exit 0)")
 else:
     print(f"OVERALL: FAIL (exit {EXIT})")
-print(f"  Completion signal: {EXPECTED_R1}")
+print(f"  Completion signal: {EXPECTED_R2 if found_r2 else EXPECTED_R1}")
 print("=" * 60)
 sys.exit(EXIT)
