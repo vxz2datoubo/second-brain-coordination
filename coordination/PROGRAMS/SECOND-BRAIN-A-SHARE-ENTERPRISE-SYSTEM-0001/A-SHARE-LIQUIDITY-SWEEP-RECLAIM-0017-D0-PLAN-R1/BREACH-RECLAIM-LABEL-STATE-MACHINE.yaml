@@ -1,0 +1,48 @@
+schema_version: "1.0"
+record_type: "BreachReclaimLabelStateMachine"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+boundary: "observable BAR_ONLY labels, not intent or participant labels"
+objects:
+  ReferenceZoneBreachEvent:
+    required_fields: [event_id, zone_id, source, event_time, observed_at, available_at, rule_version, missing_error_state, direction, first_breach_at, max_excursion, normalized_excursion, breach_duration_bars, volume_state, volatility_state, market_control, sector_control, price_limit_proximity, data_quality]
+  ReclaimAssessment:
+    required_fields: [event_id, source, event_time, observed_at, available_at, rule_version, missing_error_state, reclaim_type, reclaim_at, confirmation_window, persistence_window, status, counterevidence]
+  PostSweepStabilizationAssessment:
+    required_fields: [event_id, source, event_time, observed_at, available_at, rule_version, missing_error_state, drawdown_containment, retest_behavior, volatility_decay, relative_strength, competing_explanations, capability_limit, status]
+states: [ZONE_ACTIVE, APPROACH, REFERENCE_ZONE_BREACH, EXTREME_EXCURSION, INTRABAR_REENTRY, BAR_CLOSE_RECLAIM, SUSTAINED_RECLAIM, POST_SWEEP_STABILIZATION, FAILED_RECLAIM, CONTINUATION_AFTER_BREACH, LIMIT_LOCK, SUSPENSION, DATA_INVALID, ABSTAIN]
+parameters: "All thresholds/windows belong to a preregistered SweepReclaimExperimentFamily; no D0 numeric default is active."
+transitions:
+  - from: ZONE_ACTIVE
+    to: APPROACH
+    when: "completed PIT bar enters predeclared proximity band"
+  - from: APPROACH
+    to: REFERENCE_ZONE_BREACH
+    when: "bar high/low crosses the applicable zone bound after zone.available_at"
+  - from: REFERENCE_ZONE_BREACH
+    to: EXTREME_EXCURSION
+    when: "same or later eligible bar reaches preregistered excursion threshold"
+  - from: REFERENCE_ZONE_BREACH
+    to: INTRABAR_REENTRY
+    when: "bar crosses out and its close returns inside zone; intrabar path is UNKNOWN, label means bar-range reentry candidate only"
+  - from: REFERENCE_ZONE_BREACH
+    to: BAR_CLOSE_RECLAIM
+    when: "eligible completed bar closes back inside or beyond required zone bound"
+  - from: BAR_CLOSE_RECLAIM
+    to: SUSTAINED_RECLAIM
+    when: "N preregistered subsequent eligible bars retain the reclaimed side"
+  - from: BAR_CLOSE_RECLAIM
+    to: FAILED_RECLAIM
+    when: "before persistence confirmation a completed eligible bar breaches the adverse bound"
+  - from: REFERENCE_ZONE_BREACH
+    to: CONTINUATION_AFTER_BREACH
+    when: "N preregistered eligible bars remain beyond breach bound without reclaim"
+  - from: SUSTAINED_RECLAIM
+    to: POST_SWEEP_STABILIZATION
+    when: "predeclared observable containment/persistence criteria hold; no absorption claim"
+  - from: "*"
+    to: [LIMIT_LOCK, SUSPENSION, DATA_INVALID, ABSTAIN]
+    when: "corresponding rule/data/executability condition is UNKNOWN or blocks interpretation"
+determinism:
+  ordering: "sort by available_at, event_time, source_sequence, immutable input id"
+  boundaries: "first/last N confirmation bars, gaps, suspensions, auction-only bars and out-of-order records are skipped or explicitly flagged, never silently labeled"
+  reproducibility: "future implementation must emit canonical JSON with explicit seed=null and dependency lockfile"

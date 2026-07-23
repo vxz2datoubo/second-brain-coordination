@@ -1,0 +1,83 @@
+schema_version: "1.0"
+record_type: "ProjectPlan"
+task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+agent_id: "CODEX"
+issue: 69
+parent_program_issue: 31
+mode: "project_plan"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+base_commit: "701e935a1891fe9b3395b96aa2759e992aa2be3b"
+qclaw_freeze:
+  pull_request: 77
+  head: "70ed222e279568b7370af62df5bb23b79201ee45"
+  freeze_id: "QCLAW-0020Q-P0-QUESTIONS-001"
+  disposition: "READ_ONLY_IMMUTABLE_AUDIT_INPUT"
+mission: >-
+  Produce contracts and a D0-D6 execution plan for point-in-time, BAR_ONLY
+  reference-zone breach, reclaim, post-event stabilization and A-share
+  execution-constraint research. This task does not implement labels, replay,
+  a strategy, a backtest, signals, probability estimates, allocation or trades.
+current_phase:
+  id: D0
+  name: "reality audit and deterministic contract freeze"
+  status: "COMPLETE_PENDING_GPT_QCLAW_REVIEW"
+  completion_percent: 100
+phase_plan:
+  - id: D0
+    objective: "Audit actual repository and accessible local evidence; freeze interfaces and explicit UNKNOWNs."
+    owner: CODEX
+    allowed_writes: ["this task package", "new draft PR", "Issue receipts"]
+    exit_gate: "GPT and QCLAW accept D0; no scope violation found."
+  - id: D1
+    objective: "Implement a deterministic, BAR_ONLY zone and label contract only after D0 acceptance."
+    owner: CODEX
+    status: "NOT_AUTHORIZED"
+    exit_gate: "fixture-level PIT, boundary and rule-version tests pass."
+  - id: D2
+    objective: "Add replay adapters and lot-level T+1/untradeable simulation using approved data contracts."
+    owner: CODEX
+    status: "NOT_AUTHORIZED"
+    exit_gate: "point-in-time, duplicate, gap and non-fill tests pass."
+  - id: D3
+    objective: "Run preregistered historical validation, baselines and negative controls."
+    owner: CODEX
+    status: "NOT_AUTHORIZED"
+    exit_gate: "all trials and negative outcomes are preserved."
+  - id: D4
+    objective: "Perform purged walk-forward, lockbox and multiple-testing review."
+    owner: CODEX
+    status: "NOT_AUTHORIZED"
+    exit_gate: "W7 review accepts research evidence or records rejection."
+  - id: D5
+    objective: "Publish candidate LearningPacket and link DecisionEpisode evidence without promotion."
+    owner: CODEX
+    status: "NOT_AUTHORIZED"
+    exit_gate: "candidate-only writeback and rollback receipt accepted."
+  - id: D6
+    objective: "Run independent adversarial and shadow reconciliation."
+    owner: "QCLAW / GPT"
+    status: "NOT_AUTHORIZED"
+    exit_gate: "independent review; remains NO_TRADE."
+hard_gates:
+  - "No zone may use a bar with available_at after the event under evaluation."
+  - "No L1/L2 depth, tick/order event, DDX/DDY/DDZ, bar-derived order-flow proxy, participant identity or hidden-intent claim enters D0-D3 BAR_ONLY inputs."
+  - "Every applied rule must be selected by exchange, board, security status and effective interval."
+  - "Unknown rule, license, corporate-action, calendar or execution field must propagate as UNKNOWN/ABSTAIN, never false."
+  - "Fresh lots are not same-day sellable unless a security-specific rule snapshot explicitly permits it."
+  - "No result can promote this candidate to production or a trade recommendation."
+dependencies:
+  required_before_D1:
+    - "GPT/QCLAW acceptance of this D0 package."
+    - "A public or authorized PIT bar manifest with license and field semantics."
+    - "Approved rule snapshots for each evaluated exchange/board/security/date."
+  external_unknowns:
+    - "W3 physical system of record and canonical persistence selection."
+    - "QCLAW-equivalent licensed data path."
+    - "Complete historical corporate-action and suspension calendars."
+    - "Independent runtime reproducibility outside Codex local paths."
+rollback:
+  D0: "Delete this isolated task-package commit or revert it; no runtime/data/blueprint authority was modified."
+  later_phases: "Require a manifest-bound rollback receipt before any candidate writeback."
+recovery:
+  command: "git fetch origin main; git switch codex/a-share-liquidity-sweep-reclaim-0017-d0; git status --short"
+  resume_rule: "Re-read ACTIVE-CODEX-TASK.yaml and restart from the first phase not accepted by its recorded external gate."
