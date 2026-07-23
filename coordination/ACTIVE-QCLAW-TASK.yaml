@@ -1,4 +1,4 @@
-schema_version: "9.0"
+schema_version: "10.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -7,134 +7,184 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
 
 active_issue: 76
-active_task_id: "QCLAW-0017-D0-PREREGISTRATION-0020Q-R3-EXACT-TWO-HEAD-EVIDENCE-CLOSURE"
+active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
 active_mode: "target"
-mode_label: "目标模式＋PR77现有tested_head与后续receipt_head精确证据闭环"
+mode_label: "目标模式＋使用冻结考卷对Codex PR79 D0进行独立逐题审计"
 mode_reason: >-
-  R2已经分离P0验证器与当前验证器概念，但其机器收据与GitHub现实不一致：PR head 8ebb272上的
-  validate_preregistration.py真实Git blob为a438921c，而活动收据写bb68f0ca；字节数又在12644与13024之间冲突，
-  SHA-256未由当前Git对象独立闭合，且多个字段仍使用AT_HEAD。目标、现有tested_head、允许文件与成功标准均已确定，
-  因此继续使用目标模式，只修证据链，不重做冻结考卷。
+  审计对象、目标head、42个问题、评分权重、阻断门、预期/禁止行为和证据要求都已经冻结；
+  当前不需要重新规划审计体系，只需在保持程序独立性的前提下，对固定Codex D0提交逐题取证、评分、反证与报告，
+  因此使用目标模式。
 status: "READY"
 blocked_by: "none"
 parent_issue: 69
 parent_program: 31
 source_issue: 76
-pull_request: 77
-branch: "qclaw/0017-d0-audit-preregistration-0020q"
-continue_existing_branch: true
-continue_existing_draft_pr: true
+create_new_branch: true
+branch: "qclaw/0017-d0-independent-audit-0020q-p1"
+create_new_pr: true
+draft_pull_request: true
 direct_main_write: false
 auto_merge: false
-allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-AUDIT-PREREGISTRATION/0020Q/"
+allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-INDEPENDENT-AUDIT/0020Q-P1/"
 
-priority_and_role:
-  priority: "P1_BOUNDED_SUPPORT_NONBLOCKING_CODEX_D0"
-  work_share: "10_PERCENT_INDEPENDENT_GATE_SUPPORT"
-  primary_executor: "CODEX"
-  qclaw_role: >-
-    Use the already-existing concrete PR head as the test anchor, rerun and bind the exact Git object, then create a later
-    receipt-only head. Do not redesign the audit, inspect Codex D0, implement 0017 or create another workstream.
+mission_intent: >-
+  Independently evaluate whether Codex PR #79 provides an evidence-sufficient, non-self-certifying and scope-correct D0 plan
+  for 0017 BAR_ONLY. Preserve failures, UNKNOWNs and counterevidence, and give GPT a question-by-question external gate before
+  any D1, VS1, real historical execution or performance claim can begin.
+fundamental_goal: >-
+  Determine what the Codex D0 package actually proves, what it only proposes, what remains UNKNOWN, whether any frozen blocking
+  failure is triggered, and whether the package is safe to use as the planning basis for the next gated task.
+system_position: "Independent adversarial evaluator; candidate evidence producer only; not implementation or canonical authority."
+systems_of_record:
+  audit_instrument: "PR #77 frozen core at 70ed222e279568b7370af62df5bb23b79201ee45"
+  accepted_receipt_closure: "PR #77 receipt head ee86f1d918bc401b06b0278d1db1feb512c31a52"
+  evaluated_target: "Codex PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41"
+  final_gate: "GPT"
 
-verified_repository_facts:
-  pr_head_observed: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
-  frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-  immutable_core_files: 8
-  core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
-  validator_p0_git_blob_sha1: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
-  validator_blob_at_pr_head: "a438921cc81475b2561f8a66fb24928ef1f18628"
-  r2_receipt_claimed_validator_blob: "bb68f0caba3b403d676184c3e3d260f40155130e"
-  r2_receipt_claimed_sha256: "a21d65d3b31d075c8c7027bf7ee7d0781432046184ca40588115e38cd4b74956"
-  r2_receipt_claimed_bytes: 12644
-  r2_comment_claimed_bytes: 13024
-  fact_disposition:
-    - "The eight frozen core files and their accepted combined hash remain provisionally accepted."
-    - "R2 validator SHA-256 and byte-count claims are UNTRUSTED_PENDING_R3_RECOMPUTATION because the recorded Git blob does not match the blob at the stated PR head."
-    - "The R2 PR comment contains escaped/control-character corruption and is not a canonical machine receipt."
-    - "No evidence was found that QCLAW read Codex D0 during R2."
+dependencies:
+  - id: "QCLAW_R3"
+    status: "ACCEPTED_FOR_P1_WITH_EXTERNAL_RECEIPT_HEAD_ANCHOR"
+    evidence: "PR #77 tested_head 8ebb272...; receipt_head ee86f1d...; only seven allowed receipt/meta files changed."
+  - id: "CODEX_D0"
+    status: "DELIVERED_FIXED_TARGET_HEAD"
+    evidence: "PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41"
+  - id: "FROZEN_INSTRUMENT"
+    status: "IMMUTABLE"
+    evidence: "Eight core YAML files and accepted corrigendum; do not modify."
 
-remaining_defects:
-  severity: "S2_MATERIAL"
-  items:
-    - id: "R3-D01"
-      defect: "R2 receipt validator blob does not match the validator blob at concrete PR head 8ebb272."
-      consequence: "The claimed 59/59 run is not bound to the stated Git object."
-    - id: "R3-D02"
-      defect: "Validator byte count conflicts between repository receipts and PR comment."
-      consequence: "The executed file identity remains ambiguous."
-    - id: "R3-D03"
-      defect: "AT_HEAD remains in active receipt fields."
-      consequence: "External reproduction cannot identify the tested commit."
-    - id: "R3-D04"
-      defect: "The validator placeholder scan does not classify AT_HEAD/TBD/FINAL_HEAD as placeholders."
-      consequence: "Its 59/59 PASS cannot prove head-binding fields are complete."
-    - id: "R3-D05"
-      defect: "The validator contains an automatic pip-install fallback when PyYAML is absent."
-      consequence: "The run can mutate its environment; R3 must use a predeclared environment and must not trigger installation."
-  consequence: "QCLAW P1 remains blocked; Codex PR #79 D0 review remains unblocked."
+task_impact_forecast:
+  expected_positive_effects:
+    - "Create a genuinely external evidence gate instead of accepting Codex self-validation."
+    - "Expose unsupported mappings, self-verification loops, maturity inflation, local-reality gaps and rule/data UNKNOWNs."
+    - "Give GPT a stable basis for deciding whether D0 is accepted, remediated or split before D1."
+  expected_negative_effects:
+    - "The audit may delay implementation and may produce a FAIL/UNKNOWN-heavy result."
+    - "Strict evidence rules may reduce apparent completion percentage."
+  primary_risks:
+    - "Changing questions after seeing Codex answers."
+    - "Treating presence of an artifact as evidence sufficiency."
+    - "Treating Codex tests as independent acceptance."
+    - "Quietly helping Codex repair answers during scoring."
+    - "Target-head drift during the audit."
+  stop_conditions:
+    - "PR #79 target head changes from b515b66290944af3d3e1d3285e95cb6162736d41."
+    - "Any frozen core audit file or accepted corrigendum changes."
+    - "Branch independence, target identity or evidence provenance cannot be verified."
+    - "Credential, restricted data, account, broker, order, trade or destructive-write path is encountered."
+
+amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+task_weight: "STRATEGIC"
+research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
+exploration_budget:
+  primary_evaluation_share: "70-80%"
+  active_discovery_share: "15-20%"
+  system_opportunity_share: "5-10%"
+  scope_expansion_without_gate: false
+improvement_authority:
+  A: "Only local audit-package formatting, deterministic validation and typo fixes that do not change criteria."
+  B: "Backward-compatible audit-package tooling improvements; separately report and preserve rollback."
+  C: "Any new question, weight, blocking gate, architecture, skill, interface or follow-up implementation task is proposal-only."
+  D: "Any criterion change based on Codex answers, authority change, secret access, license bypass or trade action is prohibited."
+second_pass_audit_required: true
+
+fixed_inputs:
+  qclaw_pr77:
+    frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+    tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+    receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+    core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+    use: "Read-only audit criteria, scoring rubric, evidence requirements, expected/forbidden behavior, UNKNOWN/abstention contract and accepted corrigendum."
+  codex_pr79:
+    target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+    target_task: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+    use: "Read-only evaluated artifact. Do not edit, reply with repairs, or score a later head under this task."
+
+independence_contract:
+  - "Create a new branch and new Draft PR; do not continue PR #77 or edit PR #79."
+  - "Before reading PR #79, verify and record the frozen question/rubric/corrigendum hashes and target head."
+  - "Do not change questions, weights, expected behaviors, forbidden behaviors, evidence thresholds or blocking rules after reading PR #79."
+  - "Do not ask Codex for a repair during scoring. Questions for missing evidence may be recorded as UNKNOWN, not used to coach the answer."
+  - "Codex validators and self-reported local receipts are evidence inputs, never independent proof by themselves."
+  - "Separate VERIFIED_FACT, INTERPRETATION, PREDICTION, COUNTEREVIDENCE, UNKNOWN and RECOMMENDATION."
 
 required_actions:
-  - "Read the latest GPT R3 reissue review on PR #77, Issue #76 and the PDER protocol."
-  - "Reuse the same branch and Draft PR #77; create no replacement PR."
-  - "Do not read, inspect, score, quote or discuss Codex PR #79 or any D0 answer during R3."
-  - "Use 8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc as the initial tested_head unless evidence shows that checkout is impossible or corrupted; if it changes, report before proceeding."
-  - "Checkout/verify tested_head exactly and verify the eight core files still match frozen head 70ed222e."
-  - "Obtain the validator Git blob from Git at tested_head; it must equal a438921cc81475b2561f8a66fb24928ef1f18628, otherwise stop and report S2 contradiction."
-  - "Recompute validator SHA-256 and byte size from the exact checked-out file. Do not copy either value from R2 receipts or comments."
-  - "Preflight Python and PyYAML versions. PyYAML must already be installed; do not permit the validator's pip-install fallback to execute."
-  - "Run `python validate_preregistration.py` from the exact 0020Q directory at tested_head and capture exact stdout, stderr, exit code, start/end timestamps and environment versions."
-  - "Create a deterministic normalized test-output artifact and record its SHA-256. Preserve FAIL/SKIP honestly; do not force the result to remain 59/59."
-  - "Create a later receipt_head that modifies only allowed meta/receipt files and adds `R3-TWO-HEAD-EVIDENCE-ANCHOR.yaml` plus `R3-NORMALIZED-TEST-OUTPUT.txt`."
-  - "In R3-TWO-HEAD-EVIDENCE-ANCHOR.yaml record tested_head, exact validator blob/SHA-256/bytes, output hash, command, working directory, environment, counts and exit code."
-  - "Update active handoff/manifest/receipt/amendment files to mark all R2 identity claims as superseded, without rewriting historical R2 text as if it had been correct."
-  - "Remove AT_HEAD/TBD/FINAL_HEAD from active R3 evidence claims. Historical quoted defects may retain the literal tokens only under a clearly marked `superseded_historical_claim` field."
-  - "After receipt_head exists, publish its full SHA in the PR #77 and Issue #76 comments. Do not attempt to write receipt_head into a file contained by that same commit."
-  - "Use Git comparison from tested_head to receipt_head to prove only the allowed receipt/meta files changed and no core or validator file changed."
-  - "Post a PDER DiscoveryPacket for any additional S2+ contradiction; otherwise state `NO_ADDITIONAL_S2_PLUS_DISCOVERY`."
-  - "Stop after R3 delivery. Do not begin P1 automatically."
+  - "Read latest main, Issue #76, PR #77 accepted frozen instrument and this active route."
+  - "Record exact PR #77 frozen/receipt heads, core combined hash and Codex PR #79 target head before evaluation."
+  - "Create exactly one new branch and one new Draft PR from latest main under the allowed path."
+  - "Read Codex PR #79 at the fixed head only, including all 21 artifacts and validator, without modifying it."
+  - "Evaluate all Q01-Q42 individually against the frozen evidence requirements and accepted corrigendum."
+  - "For every question record status, score contribution, exact evidence reference, counterevidence, missing evidence, confidence and whether UNKNOWN/ABSTAIN applies."
+  - "Evaluate all four frozen blocking failure modes independently; a high aggregate score cannot override a triggered blocker."
+  - "Verify that 42/42 mapping is evidence-sufficient rather than merely present."
+  - "Check BAR_ONLY scope for hidden L2/order-flow/participant-identity/intent dependencies."
+  - "Check PIT availability, future leakage, rule-version selection, historical status/corporate-action gaps, T+1, nonfill, costs and lockbox design."
+  - "Check local-reality and reproducibility claims: distinguish public planning reproducibility from licensed/local empirical reproducibility."
+  - "Inspect for self-verification loops, circular evidence, maturity inflation, duplicated authority and unsupported implementation language."
+  - "Use official primary sources only for targeted verification of current/historical A-share rules cited by the target; record URLs, effective dates, conflicts and limits."
+  - "Preserve all FAIL, PARTIAL, UNKNOWN, ABSTAIN, negative and reverse findings; do not optimize the report for a passing verdict."
+  - "Emit PDER DiscoveryPackets immediately for S3/S4 findings and at checkpoint for S2 findings."
+  - "Run deterministic package validation, YAML duplicate-key checks, reference checks, secret scan and target-head drift check."
+  - "Post the standard structured execution feedback to the new PR, Issues #76/#69/#31, then stop for GPT review."
 
-allowed_changes:
-  - "FROZEN-MANIFEST.yaml"
-  - "GIT-BLOB-AND-SHA256-RECEIPT.yaml"
+mandatory_outputs:
+  - "P1-AUDIT-IDENTITY-AND-INDEPENDENCE-RECEIPT.yaml"
+  - "P1-QUESTION-BY-QUESTION-EVIDENCE-AND-SCORE.yaml"
+  - "P1-DIMENSION-SCORECARD.yaml"
+  - "P1-BLOCKING-FAILURE-ASSESSMENT.yaml"
+  - "P1-COUNTEREVIDENCE-AND-SELF-VERIFICATION-LOOP-REPORT.md"
+  - "P1-BAR-ONLY-PIT-RULE-AND-LOCAL-REALITY-REVIEW.yaml"
+  - "P1-UNKNOWN-ABSTENTION-AND-EVIDENCE-GAP-REPORT.yaml"
+  - "P1-DISCOVERY-PACKETS.yaml"
+  - "P1-VERDICT-AND-NEXT-GATE-RECOMMENDATION.yaml"
+  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+  - "AMED-RESEARCH-LEDGER.yaml"
+  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
   - "TEST-RUN-RECEIPT.md"
   - "AI_HANDOFF.yaml"
-  - "AMENDMENT-LOG.yaml"
-  - "R3-TWO-HEAD-EVIDENCE-ANCHOR.yaml"
-  - "R3-NORMALIZED-TEST-OUTPUT.txt"
-  - "No validator change is authorized in this R3; changing it would create a new tested_head and must be separately escalated."
+  - "validate_p1_audit.py"
+
+status_vocabulary: ["PASS", "PARTIAL", "FAIL", "UNKNOWN", "ABSTAIN", "NOT_APPLICABLE"]
+verdict_vocabulary:
+  - "ACCEPT_D0_FOR_GPT_FINAL_GATE"
+  - "ACCEPT_D0_WITH_BOUNDED_AMENDMENT"
+  - "REMEDIATION_REQUIRED"
+  - "BLOCKED_BY_FROZEN_FAILURE_MODE"
+  - "INSUFFICIENT_EVIDENCE"
+  - "TARGET_DRIFT_STOPPED"
 
 acceptance_gates:
-  - "Eight core files remain byte-identical to frozen head 70ed222e."
-  - "tested_head is a concrete full SHA and is checked out/verified exactly."
-  - "Validator blob at tested_head equals a438921cc81475b2561f8a66fb24928ef1f18628."
-  - "Validator SHA-256 and byte size are recomputed from tested_head bytes and agree across all active R3 receipts."
-  - "The reported result is generated by that exact validator at tested_head; stdout/stderr hash and exit code are recorded."
-  - "The validator does not install dependencies or mutate the environment during the run."
-  - "receipt_head is a concrete later full SHA reported externally after creation."
-  - "Git comparison proves tested_head to receipt_head changed only allowed receipt/meta files; no core or validator change."
-  - "No active R3 evidence claim uses AT_HEAD, TBD or FINAL_HEAD."
-  - "R2 contradictory identity claims are explicitly superseded rather than silently overwritten."
-  - "No Codex D0 output was read and no answer-dependent criterion was added."
-  - "PR remains Draft; no merge, runtime, account, credential, feed or trade action."
-
-future_p1_contract:
-  activation:
-    - "GPT accepts R3 exact two-head evidence closure."
-    - "GPT separately releases QCLAW P1 against Codex PR #79."
-  behavior: >-
-    Evaluate Codex D0 against the immutable eight-file core instrument and accepted corrigendum. Separate facts,
-    interpretations, predictions, counterevidence and UNKNOWN. Do not modify frozen criteria or assist Codex repairs.
+  - "Target remains exact Codex PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41."
+  - "Frozen eight-file instrument and accepted corrigendum remain unchanged."
+  - "All 42 questions have evidence-grounded statuses and score contributions."
+  - "All four blocking failure modes are explicitly assessed."
+  - "Every PASS cites sufficient target evidence; artifact presence alone is not accepted."
+  - "Codex self-tests are not represented as independent verification."
+  - "Official rule checks use primary sources and effective-date context."
+  - "Failures, UNKNOWNs, abstentions and evidence gaps are preserved."
+  - "No question, weight, criterion or target file is modified."
+  - "New branch/PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
+  - "No D1/VS1 implementation, backtest, alpha claim or data-source activation occurs."
 
 forbidden:
-  - "No modification of the eight immutable core files."
-  - "No modification of validate_preregistration.py during R3."
-  - "No reading or judging Codex D0 during R3."
-  - "No new questions, weights, expected behaviors or blocking gates."
-  - "No dependency installation, runtime implementation, local private-data inspection, credential, market-feed, account, broker, order or trade action."
+  - "No editing PR #77 frozen core, PR #77 accepted receipts or Codex PR #79."
+  - "No criterion adaptation after observing Codex answers."
+  - "No repairing, implementing or coaching Codex during P1."
+  - "No new architecture, runtime, source activation, labeler, replay, backtest or performance claim."
+  - "No local restricted payload publication, dependency installation without declaration, credential, account, broker, order or trade action."
   - "No merge or auto-merge."
 
-completion_signal: "QCLAW_0017_D0_R3_EXACT_TWO_HEAD_EVIDENCE_CLOSED_FOR_GPT_REVIEW"
-after_completion: "WAIT_FOR_GPT_ACCEPTANCE_AND_SEPARATE_P1_RELEASE"
+report_to:
+  issues: [76, 69, 31]
+  create_new_draft_pr: true
+  include:
+    - "task ID, mode, fixed heads, objective, success criteria, phase and completion percentage"
+    - "question-by-question results, dimension scores, blocking failures and total recommendation"
+    - "verified facts, counterevidence, official sources, failures, SKIPs, UNKNOWNs and discoveries"
+    - "changed files, commands, versions, exit codes, target-drift check, safety and rollback"
+
+completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_SEVEN_GATE_D0_DECISION"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
