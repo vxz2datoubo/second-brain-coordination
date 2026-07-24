@@ -1,15 +1,27 @@
-schema_version: "8.6"
+schema_version: "8.7"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 qclaw_role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 program_issue: 31
-status: "CODEX_PR90_R2_ACCEPTED_WORKBUDDY_PR91_R3_ACTIVE"
+status: "TASK_LEASE_PROTOCOL_ACTIVE_CODEX_ACCEPTED_WORKBUDDY_R3_EPOCH3_READY"
 updated_by: "GPT"
-updated_at: "2026-07-24"
+updated_at: "2026-07-24T14:40:14Z"
 
 program_goal: >-
   Preserve the accepted PR #90 data-admission contract, correct PR #91's self-blind public-safety scanner and produce a genuine final-head receipt.
-  Keep Issue #92 blocked until WorkBuddy R3 passes and exactly one source manifest is explicitly approved.
+  Use route leases to prevent stale task completions from overriding the current control plane. Keep Issue #92 blocked until WorkBuddy R3 passes and exactly one source manifest is explicitly approved.
+
+control_plane_improvement:
+  reason: >-
+    WorkBuddy posted an R2 completion after R3 had already become active. Existing routers checked remote main only before execution,
+    not immediately before completion, so a delayed local task could publish a superseded signal.
+  change:
+    - "Added a repository-wide task lease and completion freshness protocol."
+    - "Codex, WorkBuddy and QCLAW routers now require route claim and pre-completion revalidation."
+    - "READY tasks must carry route_epoch, completion_signal, AMED fields and TaskImpactForecast."
+    - "Lower-epoch or task-id-mismatched completion comments are historical evidence only."
+  regression_case: "R3 active plus delayed R2 completion must leave R3 active and Issue #92 blocked."
 
 review_results:
   PR90_R2:
@@ -38,6 +50,11 @@ review_results:
       - "A single R2 commit does not create a tested-head/receipt-head chain."
       - "The QCLAW extraction logic uses a short SHA and misclassifies P1-TEST-RUN-RECEIPT.md."
       - "The scan hash binds only an empty findings list, not the file manifest, command or test output."
+  stale_R2_completion_after_R3:
+    comment_id: 5071039844
+    classification: "HISTORICAL_SUPERSEDED_RECEIPT"
+    state_effect: "NONE"
+    reason: "No new R3 head; task_id and completion claim refer to the rejected lower-epoch R2 route."
 
 resource_model:
   current:
@@ -48,10 +65,13 @@ resource_model:
   issue92_after_explicit_release: "WORKBUDDY_ONLY"
 
 coordination_principles:
-  active_execution_owner: "WORKBUDDY_PR91_R3"
+  active_execution_owner: "WORKBUDDY_PR91_R3_ROUTE_EPOCH_3"
   codex_state: "ACCEPTED_STOPPED"
   qclaw_semantic_evidence_owner: "QCLAW_FIXED_SUBMISSION_PR84"
   final_gate_owner: "GPT"
+  task_lease_required: true
+  pre_completion_revalidation_required: true
+  stale_completion_may_change_state: false
   no_cross_branch_coaching: true
   no_real_source_selection_before_issue92: true
   no_direct_main_write_by_executors: true
@@ -75,18 +95,21 @@ agents:
     active_issue: 89
     pull_request: 91
     task_id: "WORKBUDDY-PR91-R3-SELF-AUDITING-SCANNER-AND-TRUE-TWO-HEAD-CLOSURE"
+    route_epoch: 3
     mode: "target"
     status: "READY"
+    execution_allowed: true
     branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
     role_now: >-
-      Delete the leaking R2 scanner, build one self-auditing relative-path verifier, faithfully reproduce the exact 15-file QCLAW package,
-      create a real tested-head/receipt-head chain and post a final receipt-head scan. Do not touch semantics or Issue #92.
+      Claim epoch 3, delete the leaking R2 scanner, build one self-auditing relative-path verifier, faithfully reproduce the exact 15-file QCLAW package,
+      create a real tested-head/receipt-head chain, revalidate the lease and post a final receipt-head scan. Do not touch semantics or Issue #92.
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
   QCLAW:
     aliases: ["Q", "QQ"]
     submission_pull_request: 84
     submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
     status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_SPLIT_COMPLETE"
+    execution_allowed: false
     role_now: "No execution today; after quota reset return to Issues #59/#60/#38."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
@@ -103,11 +126,12 @@ execution_queue:
     owner: "WORKBUDDY"
     issue: 89
     pull_request: 91
+    route_epoch: 3
     task: "R3 self-auditing public-safety scanner, faithful QCLAW reproduction and true two-head receipt closure."
     completion_signal: "WORKBUDDY_PR91_R3_SELF_AUDITING_SCANNER_AND_TRUE_TWO_HEAD_READY_FOR_GPT_REVIEW"
   - order: 2
     owner: "GPT"
-    task: "Review only the PR #91 R3 bounded delta and final receipt-head scan."
+    task: "Review only the PR #91 R3 bounded delta, lease receipts and final receipt-head scan."
   - order: 3
     owner: "GPT_USER"
     task: "Approve exactly one source manifest candidate or keep Issue #92 abstained."
@@ -132,12 +156,13 @@ cross_lane_firewalls:
   - "QCLAW semantics remain frozen."
   - "Issue #92 cannot start until WorkBuddy R3 is accepted, one candidate is approved and GPT explicitly changes the WorkBuddy route."
   - "Machine packaging or current-rule access is not historical-coverage proof."
+  - "A stale or lower-epoch completion comment cannot release any gate."
 
 release_control:
   only_GPT_may_activate_issue92: true
   trigger_behavior:
     CODEX: "Report PR #90 R2 accepted and stop; do not execute."
-    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and execute PR #91 R3 only."
+    WORKBUDDY: "Read latest main, claim route_epoch 3 and execute PR #91 R3 only."
     QCLAW: "Report submitted/quota exhausted; do not continue today."
 
 safety_boundary:
