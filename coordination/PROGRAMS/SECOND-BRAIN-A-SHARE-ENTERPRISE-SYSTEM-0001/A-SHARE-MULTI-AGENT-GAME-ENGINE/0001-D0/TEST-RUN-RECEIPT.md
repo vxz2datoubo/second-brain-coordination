@@ -18,7 +18,7 @@ not amended into the tested commit.
 | Cross-contract token coverage | PASS | Required latent-type, evidence, A-share constraint and gate tokens present. |
 | Git whitespace check | PASS | `git diff --check` returned exit code 0. |
 | Allowed-path review | PENDING_FINAL_RECHECK | Re-run after receipt-anchor commit. |
-| Generic public-safety review | PARTIAL_EVIDENCE | SHA-shaped strings were reviewed as Git provenance only; no value-bearing credential scan was executed. |
+| Value-bearing credential-pattern scan | PASS | No GitHub-token, private-key, AWS-access-key or credential-assignment pattern matched; only counts and file names would have been emitted. |
 
 The first strict validation run failed closed because the literal
 `HiddenTypePosterior` was missing from the archetype ontology. The ontology was
@@ -40,12 +40,16 @@ full validator passed. This finding is preserved rather than silently erased.
 3. `git diff --check`: exit code `0`.
 4. `rg -n --pcre2 '[A-Fa-f0-9]{40}' <D0-path>`: exit code `0`; only expected
    Git provenance identifiers were observed during review.
+5. `python -` with a non-disclosing credential-pattern scanner: exit code `0`.
+   It reported zero matching files for GitHub-token, private-key, AWS access-key
+   and value-bearing credential-assignment patterns. It never printed a value.
 
-Two attempts to capture a broader scan through the shell tool were blocked by
-the local tool policy before execution. They are recorded as
-`NOT_EXECUTED_TOOL_POLICY_BLOCKED`, not as passed scans. No real data, replay,
-backtest, MARL, account or trade test was run because D0 explicitly prohibits
-those activities.
+Two earlier attempts to capture a broader scan through the shell tool were
+blocked by the local tool policy before execution. They remain recorded as
+`NOT_EXECUTED_TOOL_POLICY_BLOCKED`; the later non-disclosing value-bearing scan
+above is the successful public-safety evidence. No real data, replay, backtest,
+MARL, account or trade test was run because D0 explicitly prohibits those
+activities.
 
 The final revalidation also confirmed all 50 changed paths remain under the
 single task-owned allowlisted directory. The receipt-anchor commit itself is
