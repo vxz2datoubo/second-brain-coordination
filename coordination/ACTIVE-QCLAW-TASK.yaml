@@ -1,11 +1,13 @@
-schema_version: "10.4"
+schema_version: "11.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
+task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
+amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-trigger_phrases: ["读取任务", "执行任务", "开始任务", "执行对接初始化"]
+trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 long_term_role:
   canonical_role: "KNOWLEDGE_DIGESTION_ATOMIZATION_MEMORY_INDEXING_AND_CONTEXT_SUPPLY_ENGINE"
@@ -13,74 +15,127 @@ long_term_role:
   primary_build_issue: 59
   memory_retrieval_issue: 60
   gateway_integration_issue: 38
-  lifecycle_mode_after_quota_reset: "BUILD_MODE"
+  lifecycle_mode: "BUILD_MODE_QUOTA_RESTORED"
 
-current_role_class: "TEMPORARY_BORROW_COMPLETED"
-status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_REVIEWED_AND_REASSIGNED"
-execution_allowed: false
-daily_compute_status: "EXHAUSTED_FOR_CURRENT_DAY"
-active_issue: 76
-completed_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
-submission_pull_request: 84
-submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
-completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
+active_issue: 59
+task_id: "QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0"
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】PR #93市场主体专家经验原子化、冲突校验与对抗评测包Q0"
+mode_reason: >-
+  QQ每日算力已经恢复，应回归知识消化主职。当前输入边界明确：冻结读取PR #93及既有多智能体蓝图，
+  将圈内经验拆成可追溯知识原子、关系、利益冲突、反证、UNKNOWN和验证任务，并生成供GPT与Codex后续消费的
+  LearningPacket和对抗评测包。不得修改PR #93、不得建立交易模型运行时，因此使用目标模式。
+status: "READY"
+execution_allowed: true
+daily_compute_status: "AVAILABLE_RESTORED"
+parent_program: 31
+source_issue: 59
+related_issue: 23
+source_pull_request: 93
+branch: "qclaw/participant-evidence-digest-0010-q0"
+direct_main_write: false
+auto_merge: false
 
-submission_disposition:
-  substantive_audit:
-    status: "SUBMITTED_AS_QCLAW_AUTHORED_CANDIDATE_EVIDENCE"
-    facts:
-      - "42 frozen questions received statuses and score contributions."
-      - "All four frozen blocking modes were assessed as NOT_TRIGGERED."
-      - "Reported weighted score is 0.491 with a conditional-accept recommendation."
-      - "The recommendation and score remain QCLAW-authored immutable candidate evidence pending GPT disposition."
-  packaging_and_machine_verification:
-    status: "TRANSFERRED_TO_WORKBUDDY_ISSUE89_MINIMUM_SUFFICIENT_H0"
-    issue: 89
-    task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
-    scope: "Fixed-head identity, change surface, hashes, path/output gaps, unchanged-validator execution and public-safety hygiene."
-  target_contract_design:
-    status: "TRANSFERRED_TO_CODEX_ISSUE80_D0"
-    issue: 80
-    task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-CONTRACT-AND-RULE-EVIDENCE-0022-D0"
-    scope: "Admission contract, PR #51 reuse, PIT/field/adjustment semantics, historical rules and WorkBuddy Issue #92 execution contract."
-  future_local_source_evidence:
-    status: "QUEUED_TO_WORKBUDDY_AFTER_GPT_RELEASE"
-    issue: 92
-    task_id: "WORKBUDDY-A-SHARE-LOCAL-PIT-SOURCE-ADMISSION-EVIDENCE-0024-L0"
-    scope: "Read-only evidence against at most one approved local source after the Codex contract is accepted."
+route_epoch: 1
+route_issued_at: "2026-07-25T04:32:00+08:00"
+completion_signal: "QCLAW_PR93_PARTICIPANT_EVIDENCE_DIGEST_Q0_READY_FOR_GPT_REVIEW"
 
-known_packaging_hypotheses_for_workbuddy_to_verify:
-  - "Fifteen audit artifacts appear at repository root rather than the authorized audit directory."
-  - "PR #84 appears to carry twenty-two Codex target artifacts in its changed-file surface."
-  - "Some mandatory output names appear missing/renamed and two governance outputs appear absent."
-  - "The test receipt claims fifteen mandatory files but appears to hash fourteen."
-  - "These remain hypotheses until WorkBuddy reproduces them."
+lease_claim_required:
+  protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal]
+  mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
+pre_completion_revalidation:
+  required: true
+  reread_latest_remote_main: true
+  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
+  mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
-independence_preservation:
-  - "Neither Codex nor WorkBuddy may alter, rescore, reinterpret or complete QCLAW's semantic judgments."
-  - "PR #84 head 63c344084d9af86cb26c1cc65a30d409fefa872f is the fixed QCLAW submission object."
-  - "WorkBuddy Issue #89 verifies machine facts only on a separate branch and minimal evidence package."
-  - "Codex Issue #80 designs contracts only and selects no real source."
-  - "WorkBuddy Issue #92 cannot start before GPT accepts the frozen contract and explicitly releases it."
-  - "GPT remains the only final audit and acceptance authority."
+resource_and_effort:
+  priority_share_percent: 30
+  task_weight: "MEDIUM_HEAVY"
+  research_trigger: "L2_KNOWLEDGE_DIGESTION_AND_ADVERSARIAL_VALIDATION"
+  checkpoints: [20, 40, 60, 80, 100]
+  primary_delivery_percent: 85
+  discovery_percent: 10
+  system_evolution_proposal_percent: 5
 
-trigger_response_today:
-  - "Report submitted, compute exhausted and reassignment complete."
-  - "Do not continue PR #84 or create a repair branch."
-  - "Do not accept another external audit today."
+frozen_inputs:
+  pr93:
+    head: "d3296ece7b7ec56414fb60b1ac497530b188a258"
+    status: "DRAFT_CANDIDATE_SOURCE_NOT_MERGED_NOT_AUTHORITY"
+    files:
+      - "coordination/BLUEPRINTS/A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md"
+      - "coordination/BLUEPRINTS/EXPERT-SOURCE-PROFILES/XINDUODUO-LIUXIN-2026-07.yaml"
+      - "coordination/BLUEPRINTS/PARTICIPANT-INSIDER-EVIDENCE-INTEGRATION-MANIFEST-v1.0.yaml"
+  canonical_context:
+    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md"
+    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md"
+    - "Issue #23 body and all comments"
+    - "Issue #59 atomization principles and schemas"
 
-after_quota_reset:
-  auto_resume_this_audit: false
-  default_return_route: [59, 60, 38]
-  preferred_role: "PRIMARY_SYSTEM_BUILD_OR_CONTINUOUS_DIGEST_OPERATION"
-  note: "QCLAW does not need to finish WorkBuddy or Codex handed-off work."
+first_principles_goal: >-
+  Preserve the source's useful access advantage without inheriting its incentives or narrative certainty by splitting every statement
+  into minimal complete semantic atoms with perspective, interest, verifiability, time scope, evidence status, counterevidence,
+  failure conditions and validation routes, then supply a deterministic candidate packet rather than a truth verdict.
 
-safety:
-  public_safe_only: true
-  candidate_only: true
-  no_trade: true
-  no_credentials: true
-  no_merge_or_auto_merge: true
+required_actions:
+  - "Claim route_epoch 1 before reading or writing."
+  - "Read the exact frozen PR #93 head and verify the three-file source surface."
+  - "Classify claims at minimum as SELF_ATTRIBUTION, OTHER_ACTOR_OBSERVATION, MARKET_STRUCTURE, MARKET_OUTLOOK or NORMATIVE_ADVICE."
+  - "Separate source-access advantage from source authority and record conflict-of-interest, positioning, reputation and reflexivity risks."
+  - "Map nine participant categories into the existing four-family ontology without creating nine rigid identity agents."
+  - "Generate FACT/CLAIM/HYPOTHESIS/CAUSAL_CLAIM/CONSTRAINT/EXCEPTION/COUNTEREXAMPLE/RISK/UNKNOWN/VALIDATION_TASK atoms."
+  - "Retain source wording by pointer or bounded excerpt while preventing narrative text from becoming an executable signal."
+  - "Produce explicit SUPPORTS, CONTRADICTS, REFINES, DEPENDS_ON, FAILS_WHEN, RAISES_UNKNOWN and VERIFIED_BY relations."
+  - "Create adversarial questions that test self-serving attribution, identity overreach, market-outlook leakage, correlation-to-causation and participant-family misclassification."
+  - "Run secret-value and public-safety scans over the complete delivered surface."
 
+mandatory_deliverables:
+  base_directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/"
+  files:
+    - "SOURCE-MANIFEST.yaml"
+    - "CLAIM-PERSPECTIVE-LEDGER.yaml"
+    - "KNOWLEDGE-ATOMS.jsonl"
+    - "KNOWLEDGE-RELATIONS.jsonl"
+    - "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml"
+    - "CREDIBILITY-CONFLICT-AND-ACCESS-ADVANTAGE-MATRIX.yaml"
+    - "COUNTEREVIDENCE-AND-FAILURE-CONDITIONS.yaml"
+    - "UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml"
+    - "ADVERSARIAL-QUESTION-SET.jsonl"
+    - "EXPECTED-AND-FORBIDDEN-RETRIEVAL-KEYS.yaml"
+    - "LEARNING-PACKET.json"
+    - "ATOMIZATION-DECISION-LOG.yaml"
+    - "QUALITY-GATE-REPORT.md"
+    - "TEST-RUN-RECEIPT.md"
+    - "QCLAW-FEEDBACK-v2.yaml"
+    - "AI_HANDOFF.yaml"
+
+minimum_quality_gates:
+  - "At least 80 non-duplicate semantic atoms across all required types."
+  - "At least 120 explicit relations, including contradiction and failure-condition edges."
+  - "At least 60 adversarial questions with expected atoms, forbidden atoms, required UNKNOWN/conflict and allowed abstention."
+  - "Every market outlook claim is isolated from structural facts and marked non-signal."
+  - "Every participant identity inference is candidate-only and includes misclassification risk."
+  - "Every claimed metric or score records missing evidence and required validation, not a fabricated parameter."
+  - "Deterministic IDs and hashes reproduce across two runs."
+  - "All JSON/JSONL/YAML parses; duplicate keys and broken source pointers fail closed."
+
+parallel_firewall:
+  codex_task: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1"
+  rule: >-
+    QCLAW writes only its own QCLAW-PARTICIPANT-EVIDENCE-DIGEST directory and must not modify Codex files, Issue #23 plans,
+    PR #93 or any simulator/runtime. Codex may reserve an integration slot but does not consume unaccepted QCLAW output until GPT review.
+  workbuddy_rule: "Do not modify PR #91 or WorkBuddy receipt/verifier files."
+
+forbidden:
+  - "No merge or edit of PR #93."
+  - "No claim that the public article, author wealth, loss or reputation proves market facts."
+  - "No deterministic real identity assignment from behavior traces."
+  - "No direct trading signal, position recommendation, replay, backtest, account, order or performance claim."
+  - "No new canonical memory store, retrieval runtime or parallel database."
+  - "No modification of Codex or WorkBuddy branches."
+
+after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-24"
+updated_at: "2026-07-25T04:32:00+08:00"
