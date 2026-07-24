@@ -1,15 +1,16 @@
-schema_version: "10.1"
+schema_version: "10.2"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "THREE_AGENT_PARALLEL_EXECUTION_WORKBUDDY_R8_ACTIVE"
+status: "THREE_AGENT_PARALLEL_EXECUTION_CODEX_EPOCH2_AND_WORKBUDDY_R8_ACTIVE"
 updated_by: "GPT"
-updated_at: "2026-07-25T05:12:00+08:00"
+updated_at: "2026-07-25T06:52:00+08:00"
 
 replanning_reason:
   - "QCLAW daily compute remains restored and QCLAW Q0 is active."
-  - "Codex heavy Issue #23 D0 project-plan lane remains active."
+  - "Codex heavy Issue #23 D0 project-plan lane is active with a complete Epoch 2 lease and AMED control packet."
+  - "Codex correctly stopped on the incomplete Epoch 1 packet; no local files or dirty worktree were modified."
   - "WorkBuddy R7 was submitted and reviewed; its two-head structure is accepted but top-level failure propagation remains fail-open."
   - "WorkBuddy therefore receives one final bounded R8 instead of being reassigned or released to Issue #92."
 
@@ -22,12 +23,14 @@ agents:
   CODEX:
     active_issue: 23
     task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1"
-    route_epoch: 1
+    route_epoch: 2
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
     branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+    reviewed_or_base_head: "742bf80c48087f1062886e2c437f2063a5359e5f"
     completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D0_INTEGRATED_PLAN_READY_FOR_GPT_REVIEW"
+    control_packet_status: "COMPLETE_TASK_IMPACT_AMED_SCOPE_ACCEPTANCE_AND_EXPLORATION_FIELDS_PRESENT"
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
@@ -55,6 +58,20 @@ agents:
     completion_signal: "WORKBUDDY_PR91_R8_TOPLEVEL_FAILURE_PROPAGATION_AND_MACHINE_RECEIPTS_READY_FOR_GPT_REVIEW"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
+codex_epoch1_control_review:
+  classification: "CORRECT_FAIL_CLOSED_STOP_INCOMPLETE_ROUTE_PACKET"
+  accepted:
+    - "Codex read latest remote main and the correct Issue #23 route."
+    - "Codex read Issue #23 body, comments, AMED and impact context."
+    - "Codex did not touch the dirty F:/aidanao worktree or create an unauthorized branch."
+  repaired_in_epoch2:
+    - "task_impact_forecast"
+    - "reviewed_or_base_head"
+    - "supersedes"
+    - "allowed_changed_files"
+    - "acceptance_gates"
+    - "explicit exploration_budget"
+
 workbuddy_r7_review:
   tested_head: "73e4ff9a889c6f37c6bd26aee7d5309c9f53af3d"
   receipt_head: "f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3"
@@ -71,7 +88,7 @@ workbuddy_r7_review:
 
 parallel_execution_plan:
   - owner: "CODEX"
-    task: "Continue heavy Issue #23 D0 project plan on its own branch."
+    task: "Read latest main, claim Epoch 2, create an isolated worktree/clean clone and execute the heavy Issue #23 D0 project plan."
   - owner: "QCLAW"
     task: "Continue PR #93 candidate evidence digestion and adversarial packet on its own branch."
   - owner: "WORKBUDDY"
@@ -81,6 +98,7 @@ parallel_execution_plan:
 
 cross_lane_firewalls:
   - "Codex may read but not edit PR #93, QCLAW or WorkBuddy branches."
+  - "Codex must not touch or clean the existing dirty F:/aidanao worktree; use an isolated worktree or clean clone."
   - "QCLAW may not edit Codex, PR #93 or PR #91."
   - "WorkBuddy may change only the R8 verifier and four receipt files."
   - "No agent writes directly to main, merges, auto-merges or rewrites history."
