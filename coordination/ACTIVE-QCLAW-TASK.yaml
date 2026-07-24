@@ -1,4 +1,4 @@
-schema_version: "10.2"
+schema_version: "10.3"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -16,7 +16,7 @@ long_term_role:
   lifecycle_mode_after_quota_reset: "BUILD_MODE"
 
 current_role_class: "TEMPORARY_BORROW_COMPLETED"
-status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_COMPLETE"
+status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_SPLIT_COMPLETE"
 execution_allowed: false
 daily_compute_status: "EXHAUSTED_FOR_CURRENT_DAY"
 active_issue: 76
@@ -27,45 +27,72 @@ completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_F
 
 submission_disposition:
   substantive_audit:
-    status: "SUBMITTED_AS_CANDIDATE_EVIDENCE"
+    status: "SUBMITTED_AS_QCLAW_AUTHORED_CANDIDATE_EVIDENCE"
     facts:
       - "42 frozen questions received statuses and score contributions."
       - "All four frozen blocking modes were assessed as NOT_TRIGGERED."
       - "Reported weighted score is 0.491 with a conditional-accept recommendation."
       - "The recommendation and score remain QCLAW-authored immutable candidate evidence pending GPT disposition."
-  packaging_and_contract_findings:
-    status: "INCOMPLETE_HANDOFF_TO_CODEX_FOR_NONSEMANTIC_CLOSEOUT"
-    items:
-      - "Fifteen audit artifacts were committed at repository root rather than the authorized audit directory."
-      - "PR #84 also carries the twenty-two Codex target artifacts in its changed-file surface instead of a clean external-reference-only audit PR."
-      - "Exact mandatory output names are not fully satisfied: the question evidence/score file and discovery packet names differ, and the unplanned-improvement and system-discovery outputs are absent."
-      - "The test receipt claims all fifteen mandatory files exist but records a combined hash over fourteen files."
-      - "Official primary-source rule verification is not independently closed inside the QCLAW package."
+  packaging_and_machine_verification:
+    status: "TRANSFERRED_TO_WORKBUDDY_INDEPENDENT_CLEANROOM_H0"
+    issue: 89
+    task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
+    reason: >-
+      These remaining items concern fixed-head identity, file paths, changed-file ownership, Git blobs, SHA-256, validator execution,
+      mandatory-output naming and hash reconciliation. They should not be completed by the evaluated Codex agent.
+  target_side_prerequisites:
+    status: "TRANSFERRED_TO_CODEX_ISSUE_80_D0"
+    issue: 80
+    task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-AND-HISTORICAL-RULE-EVIDENCE-0022-D0"
+    scope: "PIT data license, field semantics, historical rules/status and W3/W7 prerequisite planning only."
+
+known_packaging_hypotheses_for_workbuddy_to_verify:
+  - "Fifteen audit artifacts appear at repository root rather than the authorized audit directory."
+  - "PR #84 appears to carry twenty-two Codex target artifacts in its changed-file surface."
+  - "Some mandatory output names appear missing/renamed and two governance outputs appear absent."
+  - "The test receipt claims fifteen mandatory files but appears to hash fourteen."
+  - "These are hypotheses until WorkBuddy reproduces them; QCLAW does not receive quota to repair them today."
 
 independence_preservation:
-  - "Codex must not alter, rescore, reinterpret or complete QCLAW's question-level judgments, blocking decisions, score or verdict."
+  - "Neither Codex nor WorkBuddy may alter, rescore, reinterpret or complete QCLAW's question-level judgments, blocker decisions, score or verdict."
   - "PR #84 head 63c344084d9af86cb26c1cc65a30d409fefa872f is the fixed QCLAW submission object."
-  - "Any Codex work is target-side engineering or nonsemantic handoff preservation only and must occur on a separate branch/PR."
+  - "WorkBuddy may verify machine and packaging facts only on a separate branch/PR."
+  - "Codex may build target-side data/rule prerequisites only on a separate branch/PR."
   - "GPT remains the only final audit and acceptance authority."
 
-handoff:
-  target_agent: "CODEX"
-  active_issue: 80
-  task_id: "CODEX-QCLAW-P1-HANDOFF-INTEGRATION-AND-PIT-DATA-ADMISSION-0022-D0"
-  transferred_work:
-    - "Create a clean immutable external-evidence import manifest for PR #84 without copying or editing QCLAW judgments."
-    - "Catalogue PR #84 packaging/contract defects and preserve all source blob hashes."
-    - "Continue the target-side PIT data admission, source-license, field-semantics, historical-rule and W3/W7 interface prerequisite plan."
+handoff_split:
+  semantic_evidence_target:
+    agent: "GPT"
+    scope: "Final review of QCLAW-authored 42-question audit, blocker decisions, score and verdict."
+  independent_machine_verification_target:
+    agent: "WORKBUDDY"
+    active_issue: 89
+    scope:
+      - "Fixed-head cleanroom identity and unchanged-validator execution."
+      - "File ownership classification, blobs, hashes, path and mandatory-output gap verification."
+      - "14-versus-15 hash reconciliation and public-safety/path hygiene."
+  target_engineering_target:
+    agent: "CODEX"
+    active_issue: 80
+    scope:
+      - "PIT data admission, source license, field semantics and adjustment policy."
+      - "Historical exchange/board/security-status rule evidence plan."
+      - "W3/W7 read-only dependency and reproducibility-equivalence contracts."
   not_transferred:
     - "Independent scoring or verdict authorship."
     - "Any amendment of the frozen QCLAW instrument."
-    - "Any claim that Codex independently validated itself."
+    - "Any claim that WorkBuddy or Codex semantically validated QCLAW's verdict."
+
+trigger_response_today:
+  - "Report submitted, compute exhausted and handoff split complete."
+  - "Do not continue PR #84 or create a repair branch."
+  - "Do not accept another external audit today."
 
 after_quota_reset:
   auto_resume_this_audit: false
   default_return_route: [59, 60, 38]
   preferred_role: "PRIMARY_SYSTEM_BUILD_OR_CONTINUOUS_DIGEST_OPERATION"
-  note: "QCLAW does not need to finish Codex's handed-off work and must not accept another external audit automatically."
+  note: "QCLAW does not need to finish WorkBuddy or Codex handed-off work."
 
 safety:
   public_safe_only: true
