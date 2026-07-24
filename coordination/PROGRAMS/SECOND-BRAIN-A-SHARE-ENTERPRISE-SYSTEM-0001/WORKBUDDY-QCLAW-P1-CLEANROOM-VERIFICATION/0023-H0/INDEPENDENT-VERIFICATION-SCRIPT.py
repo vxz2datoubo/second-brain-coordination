@@ -85,7 +85,9 @@ elif MODE == "nt1":
     tgt.write_text(orig + "\n" + inj + "\n", encoding="utf-8")
     _,F,_,fh = scan()
     tgt.write_text(orig, encoding="utf-8")
-    if F: print(f"NT1|PASS|findings={len(F)}|fhash={fh}")
+    if F:
+        print(f"NT1|PASS|findings={len(F)}|fhash={fh}")
+        EXIT = 1  # detected unsafe content → non-zero exit (fail-closed)
     else: print(f"NT1|FAIL|findings=0"); EXIT = 1
 
 elif MODE == "nt2":
