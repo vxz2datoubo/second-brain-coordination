@@ -1,0 +1,35 @@
+schema_version: '1.0.0'
+tests:
+  - id: ADMISSION-NEG-001
+    case: Missing license evidence
+    expected: BLOCKED_BY_POLICY
+  - id: ADMISSION-NEG-002
+    case: Artifact hash differs from accepted manifest
+    expected: REJECTED
+  - id: ADMISSION-NEG-003
+    case: available_at is after requested_as_of
+    expected: REJECTED_OR_QUARANTINED
+  - id: ADMISSION-NEG-004
+    case: Volume or amount unit is UNKNOWN
+    expected: NO_FEATURE_SIGNAL_OR_SIMULATION_USE
+  - id: ADMISSION-NEG-005
+    case: Adjustment is undeclared
+    expected: UNKNOWN_AND_NO_CROSS_DATE_COMPARISON
+  - id: ADMISSION-NEG-006
+    case: Security status absent at evaluation date
+    expected: UNKNOWN_NOT_FALSE
+  - id: ADMISSION-NEG-007
+    case: Rule effective interval has a gap or conflict
+    expected: ABSTAIN
+  - id: ADMISSION-NEG-008
+    case: Local file is present but no source evidence exists
+    expected: ABSTAIN
+  - id: ADMISSION-NEG-009
+    case: W3 authority write requested
+    expected: DENIED
+  - id: ADMISSION-NEG-010
+    case: W7 risk clearance requested
+    expected: DENIED
+  - id: ADMISSION-NEG-011
+    case: Raw vendor record proposed for public Git
+    expected: DENIED

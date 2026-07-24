@@ -1,0 +1,33 @@
+schema_version: '1.0.0'
+current_decision: ABSTAIN
+activation_owner: GPT_AND_USER_APPROVAL_REQUIRED
+phases:
+  - phase: D0
+    state: COMPLETE_PENDING_GPT_REVIEW
+    action: plan and abstain
+  - phase: D1_PRECHECK
+    state: BLOCKED
+    entry_gates:
+      - exactly_one_accepted_SourceManifest
+      - documented_license_scope
+      - authorized_private_artifact_hash
+      - PIT_available_at_policy
+      - field_unit_adjustment_evidence
+      - status_and_rule_snapshot_coverage
+      - W2_W3_W7_owner_acknowledgement
+    output: candidate activation proposal only
+  - phase: D2_IMPLEMENTATION
+    state: NOT_AUTHORIZED
+    entry_gate: explicit_GPT_and_user_approval_of_D1_output
+    constraints:
+      - no_trade
+      - private_raw_data_only
+      - versioned_manifest_gate
+      - rollback_receipt_required
+abstention_is_successful: true
+prohibited_until_D2_approval:
+  - source_activation
+  - historical_labels
+  - replay
+  - backtest
+  - alpha_or_performance_claim

@@ -1,0 +1,44 @@
+schema_version: '1.0.0'
+status: PLAN_ONLY
+rule_snapshot_ref_required:
+  - rule_snapshot_id
+  - issuer
+  - official_url
+  - document_title
+  - source_hash
+  - publication_date
+  - effective_from
+  - effective_to_or_supersession
+  - provision_implementation_status
+  - exchange
+  - board
+  - security_type
+  - status_context
+security_status_dimensions:
+  - listing_status
+  - risk_warning_status
+  - suspension_status
+  - ipo_phase
+  - delisting_or_reorganization_status
+  - price_limit_rule_context
+official_source_candidates:
+  - issuer: SSE
+    official_url: https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml
+    evidence_state: PARTIAL_EVIDENCE
+  - issuer: SZSE
+    official_url: https://www.szse.cn/marketServices/technicalservice/notice/t20260424_620199.html
+    evidence_state: PARTIAL_EVIDENCE
+  - issuer: BSE
+    official_url: https://www.bse.cn/jygl_list/200028217.html
+    evidence_state: PARTIAL_EVIDENCE
+rules:
+  - apply_rule_by_effective_interval_not_current_website_text
+  - preserve_deferred_or_exchange_specific_provision_status
+  - do_not_encode_universal_ST_or_price_limit_constant
+  - missing_security_status_is_UNKNOWN_not_false
+  - no_historical_label_or_replay_until_required_snapshot_coverage_is_accepted
+open_requirements:
+  - authoritative_SZSE_full_historical_rule_snapshots
+  - BSE_special_board_and_fee_history
+  - security_level_status_history_with_effective_intervals
+  - corporate_action_and_adjustment_lineage

@@ -1,0 +1,26 @@
+schema_version: '1.0.0'
+status: PROPOSAL_ONLY
+purpose: Permit authorized agents to prove equivalent private execution without publishing vendor raw data.
+private_receipt_required:
+  - manifest_id
+  - artifact_sha256
+  - source_version
+  - field_semantics_version
+  - rule_snapshot_ids
+  - coverage_summary
+  - parse_or_admission_result_hash
+  - execution_environment_version
+public_receipt_allowed:
+  - manifest_id
+  - non_sensitive_hashes
+  - status_and_reason_codes
+  - record_count_range_or_approved_summary
+  - test_case_identifiers
+denied_from_public_artifacts:
+  - raw_vendor_records
+  - local_absolute_paths
+  - credentials_or_tokens
+  - proprietary_license_text
+  - restricted_payloads
+equivalence_rule: Equivalent means matching declared contract versions and approved hashes/statuses, not byte-for-byte disclosure of private data.
+dispute_rule: Hash mismatch or missing proof yields UNKNOWN and blocks activation.
