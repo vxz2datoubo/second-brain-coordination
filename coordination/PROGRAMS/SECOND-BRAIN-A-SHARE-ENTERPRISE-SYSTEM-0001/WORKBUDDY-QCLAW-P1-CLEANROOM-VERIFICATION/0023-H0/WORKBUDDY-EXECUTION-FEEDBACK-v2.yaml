@@ -1,19 +1,21 @@
-task_id: "WORKBUDDY-PR91-R2-MACHINE-RECEIPT-AND-PATH-SCAN-CLOSURE"
+task_id: "WORKBUDDY-PR91-R3-SELF-AUDITING-SCANNER-AND-TRUE-TWO-HEAD-CLOSURE"
 agent: "WorkBuddy"
-version: "R2"
+version: "R3"
 status: "COMPLETED"
 feedback:
-  r2_defects_resolved:
-    - id: "WB91-R2-D01"
-      resolution: "Deterministic scanner added (_r2_scanner.py), 17 files, 0 findings, output hash recorded"
-    - id: "WB91-R2-D02"
-      resolution: "Independent validator rerun at tested_head ce1704c, exact command and output hash recorded"
-    - id: "WB91-R2-D03"
-      resolution: "AI_HANDOFF corrected: 3 path-bearing files, 7 total modified in R1"
-  observations:
-    - "Scanner self-hits prevented by excluding scanner scripts from scan"
-    - "QCLAW validator output hash changed slightly (from f309d888 to 774c009f) — expected, different Python minor version"
-  recommendations:
-    - "Add path-pattern pre-commit hook for future PRs"
-verified_by: "WorkBuddy (R2)"
-timestamp: "2026-07-24T15:55:00+08:00"
+  r3_defects_resolved:
+    - id: "WB91-R3-D01"
+      resolution: "_r2_scanner.py deleted. New scanner uses Path(__file__) + git rev-parse — no hardcoded paths."
+    - id: "WB91-R3-D02"
+      resolution: "Scanner now scans ALL 19 files including itself. Patterns built from safe fragments to avoid self-hits."
+    - id: "WB91-R3-D03"
+      resolution: "True tested_head (d6d2df6) contains verifier code. Receipt_head modifies only 4 receipt files."
+    - id: "WB91-R3-D04"
+      resolution: "Full 40-char head 63c344084d9af86cb26c1cc65a30d409fefa872f. Exact 15-file manifest with real extensions."
+    - id: "WB91-R3-D05"
+      resolution: "manifest_hash (19 files) + findings_hash + stdout_hash + stderr_hash — full integrity chain."
+  lessons:
+    - "Excluding scanner from scan is a false-safety anti-pattern"
+    - "Short commit hashes and imprecise file manifests erode auditability"
+verified_by: "WorkBuddy (R3)"
+timestamp: "2026-07-24T15:01:24Z"

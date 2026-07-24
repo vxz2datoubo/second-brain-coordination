@@ -1,24 +1,22 @@
-scan_version: "R2"
-scan_date: "2026-07-24T15:55:00+08:00"
-scanner: "_r2_scanner.py"
-scanner_method: "Regex pattern matching; excludes scanner scripts to prevent self-hits; <CLEANROOM_WORKSPACE> treated as allowed alias"
-files_scanned: 17
+scan_version: "R3"
+tested_head: "d6d2df6459f33688258820a30305eb349e157d17"
+scanner: "INDEPENDENT-VERIFICATION-SCRIPT.py (R3 self-auditing)"
+self_scan: true
+files_scanned: 19
 findings: 0
 result: "CLEAN"
-output_hash: "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-tested_head: "ce1704c"
-
-scan_history:
-  - version: "H0"
-    result: "FAIL — absolute paths in 3 files"
-    corrected_in: "R1"
-  - version: "R1"
-    result: "FAIL — 1 remaining path in WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
-    corrected_in: "R2"
-  - version: "R2"
-    result: "CLEAN"
-
-credentials_found: "NONE"
+manifest_hash: "1915572b11efce56b44a24cb0071b55e6fa0670b4a5abdb9c7140cf214533948"
+findings_hash: "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+qclaw_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
+qclaw_files: 15
+qclaw_validator: "37 PASS / 0 FAIL / 0 SKIP"
+qclaw_output_hash: "f372b9ad44021c821d581ef3f16d9ab5e9dada96b53be4df5c82f2193b75e65c"
+r2_defects:
+  D01: "R2 scanner had absolute paths — DELETED in R3"
+  D02: "R2 scanner excluded itself — R3 scans all 19 files"
+  D03: "R2 had no valid two-head chain — R3: d6d2df6459f33688258820a30305eb349e157d17 (tested) → receipt_head TBD"
+  D04: "R2 used short head — R3: full 40-char 63c344084d9af86cb26c1cc65a30d409fefa872f"
+  D05: "R2 hash missed manifest — R3 binds manifest+findings+command"
 safe_for_public_pr: true
-verified_by: "WorkBuddy (R2)"
-timestamp: "2026-07-24T15:55:00+08:00"
+verified_by: "WorkBuddy (R3)"
+timestamp: "2026-07-24T15:01:23Z"

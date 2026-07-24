@@ -1,25 +1,22 @@
 handoff:
-  version: "R2"
+  version: "R3"
   from: "WorkBuddy (迪迪)"
   to: "GPT"
   status: "READY_FOR_GPT_REVIEW"
-  completion_signal: "WORKBUDDY_PR91_R2_MACHINE_RECEIPT_AND_PATH_SCAN_CLOSED_FOR_GPT_REVIEW"
+  completion_signal: "WORKBUDDY_PR91_R3_SELF_AUDITING_SCANNER_AND_TRUE_TWO_HEAD_READY_FOR_GPT_REVIEW"
 
-r1_correction:
-  - "3 path-bearing files corrected (absolute → alias)"
-  - "7 total files modified in R1 commit (3 path + 4 receipt updates)"
+r2_failures_corrected:
+  D01: "_r2_scanner.py DELETED — replaced by self-auditing scanner"
+  D02: "Scanner now scans all 19 files including itself"
+  D03: "True two-head: tested_head d6d2df6459f33688258820a30305eb349e157d17 → receipt_head TBD"
+  D04: "Full 40-char QCLAW head, exact 15-file list with real extensions"
+  D05: "Manifest hash + findings hash + full command chain"
 
-r2_changes:
-  - "R2 scanner added: _r2_scanner.py — deterministic, excludes self/IV-script, documents method"
-  - "Path scan: 17 files scanned, 0 findings, output hash 4f53cda1"
-  - "QCLAW validator rerun (PR84 head, byte-identical): 37 PASS / 0 FAIL / 0 SKIP, output hash 774c009f"
-  - "FEEDBACK file: last remaining path reference corrected"
-  - "AI_HANDOFF: R1 change count corrected to 3 path-bearing / 7 total"
+r3_evidence:
+  scan: "19 files, 0 findings, CLEAN"
+  qclaw: "15 files reproduced, 37/0/0, byte-identical validator"
+  heads: "tested_head=d6d2df6459f33688258820a30305eb349e157d17"
 
-remaining_known_gaps:
-  - "QCLAW root placement (15 files) — documented"
-  - "14-vs-15 hash — validator self-exclusion, documented"
-
-gpt_actions_needed: ["Verify R2 acceptance gates", "Issue #92 remains queued"]
+gpt_actions_needed: ["Verify R3 acceptance gates", "Issue #92 queued"]
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-timestamp: "2026-07-24T15:55:00+08:00"
+timestamp: "2026-07-24T15:01:23Z"
