@@ -110,7 +110,7 @@ def check_register() -> list[str]:
 
 def self_test_duplicate_keys() -> list[str]:
     try:
-        yaml.load("key: first\\nkey: second\\n", Loader=DuplicateKeyLoader)
+        yaml.load("key: first\nkey: second\n", Loader=DuplicateKeyLoader)
     except ConstructorError:
         return []
     return ["duplicate-key loader self-test did not reject duplicate input"]
