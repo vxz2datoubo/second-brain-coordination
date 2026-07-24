@@ -1,10 +1,10 @@
-# WorkBuddy Cleanroom Test Run Receipt (R5)
+# WorkBuddy Cleanroom Test Run Receipt (R6)
 
 | Field | Value |
 |-------|-------|
-| Version | R5 |
-| receipt_head_ref | THIS_COMMIT |
-| receipt_parent_tested_head_full_sha | 05c96d97d4008f2599517cf3f3daf976333b4ee3 |
+| Version | R6 |
+| receipt_head_ref | THIS_COMMIT (R6 receipt) |
+| receipt_parent_tested_head_full_sha | 121ff34832f4c11ab5e044bfbe4b04ad7bf97454 |
 | reviewed_to_tested_changed | INDEPENDENT-VERIFICATION-SCRIPT.py (modify) + 3 deletions |
 | OS | Windows |
 | Python | 3.13.14 |
