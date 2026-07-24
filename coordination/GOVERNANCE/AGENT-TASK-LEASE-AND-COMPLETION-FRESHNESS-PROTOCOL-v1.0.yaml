@@ -1,11 +1,11 @@
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 protocol_id: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
 status: "ACTIVE"
 owner: "GPT"
 applies_to: [CODEX, WORKBUDDY, QCLAW, FUTURE_AGENTS]
 purpose: >-
-  Prevent stale local routes, superseded task execution, delayed completion comments and invalid tested-head claims
-  from overriding the current remote-main task state.
+  Prevent stale routes, superseded completions, invalid tested-head claims, unauthorized delivery files,
+  incomplete safety scans and impossible self-referential receipt requirements from overriding the current control plane.
 
 single_source_of_truth:
   repository: "vxz2datoubo/second-brain-coordination"
@@ -30,6 +30,7 @@ required_fields_for_ready_tasks:
   - exploration_budget
   - amed_policy
   - task_impact_forecast
+  - allowed_changed_files
   - acceptance_gates
   - forbidden
 
@@ -41,12 +42,7 @@ lease_claim_gate:
     - "Echo repository, remote-main head, task_id, route_epoch, issue, PR, branch, status, completion_signal and reviewed/base head."
     - "Proceed only when status is READY, execution_allowed is true, dependencies are satisfied and all echoed fields match the current active-task file."
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
-  prohibited_fallbacks:
-    - "chat history"
-    - "local cached active-task file"
-    - "older Issue comment"
-    - "older completion signal"
-    - "superseded task"
+  prohibited_fallbacks: [chat_history, local_cached_active_task, older_issue_comment, older_completion_signal, superseded_task]
 
 pre_completion_revalidation_gate:
   required_before_posting_completion: true
@@ -54,7 +50,8 @@ pre_completion_revalidation_gate:
     - "Fetch or remotely read latest main again after implementation and tests."
     - "Re-read the latest router, this protocol and active-task file."
     - "Compare task_id, route_epoch, active_issue, pull_request, branch, completion_signal and execution_allowed with the claimed lease."
-    - "Confirm the delivered full head contains the executable changes and descends from the authorized reviewed/base head."
+    - "Confirm the delivered full head descends from the authorized reviewed/base head."
+    - "Run the delivery-surface gate and final public-safety scan against the complete delivered diff surface."
   exact_match_required: true
   mismatch_result:
     status: "STALE_COMPLETION_ABORTED"
@@ -62,6 +59,40 @@ pre_completion_revalidation_gate:
       - "Do not post the old completion signal as current completion."
       - "Preserve local work and logs without merging or force-pushing."
       - "Post a StaleRoutePacket naming the old and current task_id/route_epoch and stop."
+
+delivery_surface_gate:
+  required: true
+  tested_head_check:
+    compare: "reviewed_or_base_head...tested_head"
+    rule: "Changed paths and change types must exactly match the task's tested_head allowlist."
+  receipt_head_check:
+    compare: "tested_head...receipt_head"
+    rule: "Changed paths must exactly match the receipt_head allowlist; no executable, helper or output file may change."
+  final_scan_scope:
+    rule: >-
+      Scan every file changed anywhere in reviewed_or_base_head...receipt_head, plus the verifier/scanner source itself.
+      A package-directory-only scan is insufficient when the delivered diff contains files outside that directory.
+  helper_file_rule:
+    - "Temporary generators, copied scripts and raw command outputs must remain untracked and outside the delivered Git tree unless explicitly authorized."
+    - "Any committed helper/output file becomes part of the delivery surface and must be allowed and scanned."
+  mismatch_result: "UNAUTHORIZED_DELIVERY_SURFACE_REJECTED"
+
+receipt_commit_identity_model:
+  problem: >-
+    A Git commit cannot reliably contain its own final SHA inside its tree because changing that text changes the commit SHA.
+  internal_receipt_fields:
+    - "tested_head_full_sha"
+    - "receipt_head_ref: THIS_COMMIT"
+    - "receipt_parent_tested_head_full_sha"
+    - "tested_to_receipt_changed_files"
+  external_anchor_required:
+    - "After pushing the receipt commit, post receipt_head_full_sha in the PR and active Issue completion comment."
+    - "GPT independently verifies the SHA and records it in the control-plane review."
+  forbidden:
+    - "TBD, FINAL_HEAD, AT_HEAD or other unresolved placeholders in final receipt files."
+    - "A follow-up commit whose only purpose is to write the previous receipt commit SHA into itself."
+  acceptance_rule: >-
+    receipt_head_ref=THIS_COMMIT plus an immutable external full-SHA anchor is authoritative and avoids self-reference.
 
 completion_receipt_required_fields:
   - task_id
@@ -75,8 +106,10 @@ completion_receipt_required_fields:
   - authorized_reviewed_or_base_head
   - delivered_head_full_sha
   - tested_head_full_sha
-  - receipt_head_full_sha_or_NOT_APPLICABLE
+  - receipt_head_ref_or_NOT_APPLICABLE
+  - receipt_head_full_sha_external_anchor_or_NOT_APPLICABLE
   - tested_to_receipt_changed_files
+  - reviewed_to_tested_changed_files
   - exact_commands
   - exit_codes
   - counts
@@ -89,16 +122,13 @@ completion_acceptance_rules:
   - "Comments or receipts from lower route_epoch values are historical evidence only and cannot change current status."
   - "A tested_head must contain the actual executable validator/scanner/code used in the receipt."
   - "A receipt_head must descend from tested_head and change only explicitly authorized receipt files."
+  - "The complete delivered diff surface must pass the allowlist and public-safety gates."
   - "Short commit identifiers are non-authoritative in completion receipts."
   - "Only GPT may accept, reject, supersede or release the downstream task after completion review."
 
 stale_signal_handling:
   classification: "HISTORICAL_SUPERSEDED_RECEIPT"
-  must_not:
-    - "reactivate an old task"
-    - "overwrite the current PR disposition"
-    - "release a dependency"
-    - "start a downstream Issue"
+  must_not: [reactivate_old_task, overwrite_current_disposition, release_dependency, start_downstream_issue]
   recommended_response: "Record once in the active-task stale_completion_registry and do not create duplicate remediation work."
 
 regression_cases:
@@ -114,6 +144,12 @@ regression_cases:
   - id: "LEASE-REG-04"
     case: "Task becomes STOPPED while local implementation is running."
     expected: "Pre-completion revalidation aborts current completion and preserves work without publishing a current signal."
+  - id: "LEASE-REG-05"
+    case: "Task allowlist names two tested-head paths, but helper scripts and raw output are committed elsewhere."
+    expected: "Reject the delivery surface even when the package-directory scan is CLEAN."
+  - id: "LEASE-REG-06"
+    case: "A receipt file is required to contain the SHA of the commit containing that same file."
+    expected: "Use receipt_head_ref=THIS_COMMIT and externally anchor the concrete full SHA; do not require an impossible self-reference."
 
 exceptions:
   - "Emergency safety containment may execute before a lease claim, but must create a retrospective receipt and cannot expand scope."
@@ -121,4 +157,4 @@ exceptions:
 
 boundary: "CONTROL_PLANE_ONLY / NO_TRADE / NO_CREDENTIALS / NO_AUTO_MERGE"
 updated_by: "GPT"
-updated_at: "2026-07-24T14:40:14Z"
+updated_at: "2026-07-24T15:35:00Z"
