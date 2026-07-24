@@ -1,1 +1,0 @@
-Note: _r2_scanner.py DELETED in this commit. All scanning now integrated into INDEPENDENT-VERIFICATION-SCRIPT.py per R3 requirements.
