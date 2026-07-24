@@ -1,4 +1,4 @@
-schema_version: "2.8"
+schema_version: "2.9"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -8,13 +8,14 @@ target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 89
-task_id: "WORKBUDDY-PR91-R6-FUNCTIONAL-NEGTEST-ASSERTIONS-AND-EXTERNAL-ANCHOR-CLOSURE"
+task_id: "WORKBUDDY-PR91-R7-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】PR #91功能负测断言、回归恢复与外部锚定收口R6"
+mode_label: "【WorkBuddy模式：目标模式】PR #91生产路径负测、回执真值与外部锚定收口R7"
 mode_reason: >-
-  R5已经严格清理三个越权根文件、形成合规tested-to-receipt链并采用THIS_COMMIT模型；
-  当前仅剩功能负测未真正断言非零、若干Git命令/不可读文件仍可能静默通过、以及最终外部锚定证据不足。
-  缺口文件与验收标准完全确定，因此继续使用目标模式，不重做H0、QQ语义、Codex合同或系统架构。
+  R6已经保持严格的tested-to-receipt两头结构，恢复冻结head上的精确15文件集合检查，
+  并对主要Git diff命令和不可读文件设置失败状态；当前缺口仅限于负测没有经过生产包装路径、
+  每项机器哈希缺失、部分Git命令未检查，以及四份回执混入R5旧数据和错误完成信号。
+  文件面与验收标准完全确定，因此继续使用目标模式，不重做H0、QQ语义、Codex合同或系统架构。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
@@ -22,18 +23,18 @@ parent_program: 31
 source_issue: 89
 pull_request: 91
 branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
-reviewed_or_base_head: "654c7e098b2ba56c06e9f3d6493d8d4bcc35ec88"
-r5_tested_head: "05c96d97d4008f2599517cf3f3daf976333b4ee3"
-r5_receipt_head: "654c7e098b2ba56c06e9f3d6493d8d4bcc35ec88"
+reviewed_or_base_head: "f5f25dafe7b02bf0e20e75865e1610d836ab380a"
+r6_tested_head: "121ff34832f4c11ab5e044bfbe4b04ad7bf97454"
+r6_receipt_head: "f5f25dafe7b02bf0e20e75865e1610d836ab380a"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 6
-route_issued_at: "2026-07-25T00:45:00+08:00"
-completion_signal: "WORKBUDDY_PR91_R6_FUNCTIONAL_NEGTESTS_AND_EXTERNAL_ANCHOR_READY_FOR_GPT_REVIEW"
+route_epoch: 7
+route_issued_at: "2026-07-25T04:00:00+08:00"
+completion_signal: "WORKBUDDY_PR91_R7_PRODUCTION_PATH_NEGTESTS_AND_TRUTHFUL_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
+  - "WORKBUDDY-PR91-R6-FUNCTIONAL-NEGTEST-ASSERTIONS-AND-EXTERNAL-ANCHOR-CLOSURE"
   - "WORKBUDDY-PR91-R5-DELIVERY-SURFACE-CLEANUP-AND-EXTERNAL-RECEIPT-ANCHOR-CLOSURE"
-  - "WORKBUDDY-PR91-R4-FAIL-CLOSED-VERIFIER-AND-FINAL-RECEIPT-TRUTH-CLOSURE"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -49,97 +50,109 @@ pre_completion_revalidation:
 amed_task_contract:
   task_weight: "LIGHT"
   research_trigger: "L1_INTERNAL_ENGINEERING_VALIDATION"
-  research_reason: "No external research is required; this is a bounded verifier assertion, regression and receipt-anchor repair."
+  research_reason: "No external research is required; this is a bounded production-path test and receipt-truth repair."
   exploration_budget:
-    main_delivery_percent: 95
-    proactive_discovery_percent: 3
-    system_evolution_proposal_percent: 2
+    main_delivery_percent: 97
+    proactive_discovery_percent: 2
+    system_evolution_proposal_percent: 1
   unplanned_improvement_permissions:
     A_DIRECT: "Mechanical changes inside the single authorized verifier and four receipt files."
-    B_IMPLEMENT_AND_REPORT: "Small in-process test modes required to prove expected non-zero exits."
-    C_PROPOSAL_ONLY: "Any shared CI, repository-wide scanner service or new governance layer."
+    B_IMPLEMENT_AND_REPORT: "Built-in CLI/internal fixture modes required to prove production wrapper failure propagation."
+    C_PROPOSAL_ONLY: "Shared CI, repository-wide scanner service or any new governance layer."
     D_STOP_AND_ESCALATE: "Credential exposure, history rewrite, semantic rescore, source activation, account/order/trade or cross-branch edits."
-  primary_delivery_priority: "Make every claimed negative test executable, asserted and reproducibly evidenced."
+  primary_delivery_priority: "Exercise the real production wrapper paths and replace copied R5 receipt data with exact R7 machine truth."
 
 task_impact_forecast:
   first_principles_goal: >-
-    Ensure PR #91 can only claim completion when the verifier itself proves, through executable assertions,
-    that injected unsafe content, missing QCLAW artifacts and a forced validator failure each produce non-zero outcomes,
-    while the final receipt is externally anchored after push.
+    Ensure PR #91 can only claim completion when the same production scanner and validator wrapper used normally
+    is proven to return non-zero for injected unsafe content, missing QCLAW artifacts and a forced validator exit,
+    and every receipt exactly identifies the current task, signal, heads, commands and final scan.
   expected_positive_effects:
-    - "Eliminate print-only negative tests that can report PASS without checking the process result."
-    - "Restore exact QCLAW fifteen-file manifest verification removed during R5 simplification."
-    - "Close PR #91 without another delivery-surface expansion."
+    - "Eliminate unit-like regex checks masquerading as end-to-end production-path tests."
+    - "Remove stale R5 facts and wrong task/signal identifiers from R6 receipts."
+    - "Close the remaining machine-evidence gap without expanding the PR delivery surface."
   expected_negative_effects:
-    - "One final tested-head and receipt-head cycle."
+    - "One additional tested-head and receipt-head cycle."
   execution_cost: "LOW"
-  opportunity_cost: "Issue #92 remains blocked until R6 review."
+  opportunity_cost: "Issue #92 remains blocked until R7 review."
   net_value_assessment: "POSITIVE_HIGH"
   validation_signals:
     - "reviewed-to-tested changes only the main verifier."
-    - "Each of three functional negative tests records expected non-zero and actual non-zero exit codes."
-    - "All Git discovery/diff commands and unreadable-file branches are fail-closed."
-    - "Exact fifteen-file QCLAW ls-tree set check is present and passes."
-    - "tested-to-receipt changes exactly four authorized receipt files."
-    - "Concrete receipt SHA and epoch-6 revalidation are posted to PR #91 and Issues #89/#31."
+    - "Each negative test invokes the production wrapper through an explicit mode and the top-level process returns non-zero."
+    - "Every test records exact mode/command, expected/actual exit, PASS/FAIL and stdout/stderr SHA-256."
+    - "All relevant Git commands, strict file decoding and child validator execution are fail-closed."
+    - "tested-to-receipt changes exactly four authorized receipt files containing only current R7 facts."
+    - "Concrete receipt SHA and epoch-7 revalidation are externally anchored in PR #91 and Issues #89/#31."
   stop_conditions:
-    - "Latest remote main no longer matches route_epoch 6."
+    - "Latest remote main no longer matches route_epoch 7."
     - "Any credential, destructive history rewrite or unauthorized scope is encountered."
 
 review_disposition:
-  classification: "R5_STRUCTURE_ACCEPTED_FUNCTIONAL_ASSERTIONS_AND_EXTERNAL_ANCHOR_R6_REQUIRED"
+  classification: "R6_STRUCTURE_AND_MANIFEST_ACCEPTED_PRODUCTION_PATH_AND_RECEIPT_TRUTH_R7_REQUIRED"
   accepted_facts:
-    - "R5 is exactly two commits ahead of reviewed R4 receipt head."
-    - "R5 tested head 05c96d97d4008f2599517cf3f3daf976333b4ee3 changes exactly the main verifier and deletes the three authorized root files."
-    - "R5 receipt head 654c7e098b2ba56c06e9f3d6493d8d4bcc35ec88 changes exactly the four authorized receipt files."
-    - "_verify.py, _gen_outputs.py, validator_output.txt and _r2_scanner.py are absent from the final tree."
-    - "Receipt files use receipt_head_ref: THIS_COMMIT and preserve historical path exposure truthfully."
+    - "R6 is exactly two commits ahead of R5 receipt head."
+    - "R6 tested head 121ff34832f4c11ab5e044bfbe4b04ad7bf97454 changes exactly the authorized main verifier."
+    - "R6 receipt head f5f25dafe7b02bf0e20e75865e1610d836ab380a changes exactly the four authorized receipt files."
+    - "The exact frozen-head fifteen-file git ls-tree set comparison is restored."
+    - "git diff commands are checked and unreadable-file branches set a non-zero final result."
     - "No QCLAW semantic decision, blocker, 0.491 score or verdict changed."
   blocking_defects:
-    - id: "WB91-R6-D01"
+    - id: "WB91-R7-D01"
       fact: >-
-        The missing-QCLAW negative test executes the validator and prints missing_run.returncode, but never asserts that it is non-zero.
-        A zero return would not fail the R5 verifier.
-    - id: "WB91-R6-D02"
+        NT1 calls a standalone regular expression and maps detection to integer 1; it does not invoke the production scanner
+        or prove the top-level verifier process returns non-zero for an injected unsafe delivered file.
+    - id: "WB91-R7-D02"
       fact: >-
-        The claimed forced-validator-failure test is not a forced validator execution at all; it only comments that scan findings inherently set EXIT=1.
-        This does not test the validator wrapper failure path required by the task.
-    - id: "WB91-R6-D03"
+        NT3 directly executes a temporary script that exits 7 and checks the child return code; it does not pass that child
+        through the production validator wrapper and prove the wrapper/top-level process propagates a non-zero result.
+    - id: "WB91-R7-D03"
       fact: >-
-        git diff commands used to derive the delivery surface do not check returncode, and unreadable changed files are silently skipped.
-        Either condition can reduce the scan surface while still allowing a clean result.
-    - id: "WB91-R6-D04"
+        The three negative tests do not record stdout and stderr SHA-256 as required. git rev-parse HEAD is also read without
+        checking returncode/non-empty output, and the NT2 git-show extraction is not checked before execution.
+    - id: "WB91-R7-D04"
       fact: >-
-        R5 removed the R4 git ls-tree exact-set comparison for the fifteen QCLAW artifacts and now only extracts a hardcoded list.
-        The accepted exact-manifest check must be restored.
-    - id: "WB91-R6-D05"
+        TEST-RUN-RECEIPT.md still describes the R5 reviewed-to-tested change as verifier plus three deletions, delivery_files=4,
+        the old manifest hash and old negative-test names, rather than the R6/R7 facts.
+    - id: "WB91-R7-D05"
       fact: >-
-        A complete externally anchored completion packet was not independently established in the PR conversation:
-        concrete receipt SHA, exact final scan command and hashes, and epoch-5 pre-completion revalidation must be reissued under epoch 6.
+        AI_HANDOFF.yaml uses completion signal WORKBUDDY_PR91_R6_DELIVERY_SURFACE_AND_EXTERNAL_RECEIPT_ANCHOR_READY_FOR_GPT_REVIEW,
+        which does not match the authoritative epoch-6 signal. WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml likewise uses the wrong R6 task_id,
+        copied R5 resolutions and an old timestamp. These receipts cannot establish a current completion lease.
+    - id: "WB91-R7-D06"
+      fact: >-
+        PUBLIC-SAFETY reports only the tested-head one-file surface, while final completion requires a post-receipt scan of the
+        complete reviewed-to-receipt surface. No valid epoch-6 external anchor can cure the wrong internal task/signal identities.
 
 required_actions:
-  - "Claim route_epoch 6 from latest remote main and post the exact lease acknowledgement before editing."
+  - "Claim route_epoch 7 from latest remote main and post the exact lease acknowledgement before editing."
   - "Reuse the existing branch and Draft PR #91; do not rewrite history or create a replacement PR."
-  - "Create one R6 tested_head changing only INDEPENDENT-VERIFICATION-SCRIPT.py."
+  - "Create one R7 tested_head changing only INDEPENDENT-VERIFICATION-SCRIPT.py."
   - >-
-    Refactor or use internal functions so each functional negative test exercises the same production path and asserts its outcome:
-    injected unsafe path must produce non-zero; missing QCLAW artifacts must produce non-zero; a temporary validator that exits 7 must make the validator wrapper produce non-zero.
-  - "For every negative test record test id, exact command or internal mode, expected exit, actual exit, PASS/FAIL, stdout SHA-256 and stderr SHA-256."
-  - "Check returncode and required output for git rev-parse HEAD, git diff --name-status/name-only and git ls-tree; any failure must exit non-zero."
-  - "Treat any unreadable existing changed file as a hard failure rather than continue."
+    Refactor the scanner and QCLAW validator execution into callable production functions or explicit CLI modes.
+    The normal run and each test fixture must use the same scanner/wrapper logic rather than separate regex-only or child-only checks.
   - >-
-    Restore exact QCLAW manifest validation by comparing the full frozen-head git ls-tree P1 artifact set to the exact expected fifteen filenames;
-    reject missing, duplicate or extra P1 audit artifacts before extraction.
-  - "Run normal verification and all three functional negative tests at the concrete R6 tested_head."
-  - "Create one receipt commit changing exactly the four authorized receipt files and use receipt_head_ref: THIS_COMMIT."
+    Run three top-level functional tests: injected unsafe delivered file -> verifier process non-zero;
+    missing one required QCLAW artifact -> verifier process non-zero; temporary validator exit 7 -> production wrapper and verifier process non-zero.
+  - "For each test record test_id, exact command or CLI mode, expected exit rule/value, actual top-level exit, PASS/FAIL, stdout SHA-256 and stderr SHA-256."
+  - "Check returncode and required output for git rev-parse --show-toplevel, git rev-parse HEAD, git diff, git ls-tree and every git show used by normal or test paths."
+  - "Read existing changed text files with strict UTF-8 decoding; any read/decode failure must return non-zero."
+  - "Preserve the exact frozen-head fifteen-file set comparison and unchanged validator 37/0/0 normal reproduction."
+  - "Run the normal verifier and all three production-path tests at one concrete full R7 tested_head."
+  - "Create one receipt commit changing exactly the four authorized receipt files and use the exact field receipt_head_ref: THIS_COMMIT."
   - >-
-    In each receipt record full tested head, receipt parent, reviewed-to-tested and tested-to-receipt lists,
-    exact commands, expected/actual exits, timestamps, counts, manifest/finding hashes and normalized stdout/stderr SHA-256.
+    Rewrite all four receipts from current R7 outputs. Each must use the exact R7 task_id and completion_signal,
+    full tested head, receipt parent, reviewed-to-tested one-file list, tested-to-receipt four-file list, current timestamps,
+    exact commands/modes, expected/actual exits, counts, manifest/finding hashes and normalized stdout/stderr hashes.
+  - "TEST-RUN-RECEIPT must not contain R5 three-deletion facts or stale delivery counts/hashes."
   - >-
-    After pushing, post one immutable external completion anchor to PR #91 and Issues #89/#31 containing the concrete full receipt SHA,
-    final full-delivery scan result and route_epoch 6 pre-completion revalidation fields. Do not create a self-backfill commit.
-  - "Preserve all R2-R5 failures and historical local-path exposure; do not claim history was sanitized."
-  - "Post the epoch-6 completion signal and stop for GPT review."
+    After pushing the receipt commit, run the normal verifier at the final receipt head so the scan covers the complete
+    reviewed-to-receipt surface, then post one immutable external completion anchor to PR #91 and Issues #89/#31.
+  - >-
+    The external anchor must contain the concrete receipt_head_full_sha, tested head, exact final command,
+    delivery/scanned counts, findings, manifest/findings/stdout/stderr hashes, remote_main_head_at_claim,
+    remote_main_head_at_pre_completion_revalidation and exact epoch-7 route match.
+  - "Preserve all R2-R6 failures and historical local-path exposure; do not claim history was sanitized."
+  - "Post the exact epoch-7 completion signal and stop for GPT review."
 
 allowed_changed_files:
   tested_head:
@@ -153,26 +166,28 @@ allowed_changed_files:
 preserve_unchanged:
   - "PR #84/#77/#79/#90 and all fixed heads"
   - "QCLAW 42-question statuses, four blocker decisions, 0.491 score and verdict"
-  - "Accepted H0/R1 facts and accepted R3-R5 delivery structure"
+  - "Accepted H0/R1 facts and accepted R3-R6 commit structure/manifest evidence"
   - "All other PR #91 files"
 
 acceptance_gates:
-  - "Lease acknowledgement exactly matches route_epoch 6."
+  - "Lease acknowledgement exactly matches route_epoch 7."
   - "The reviewed-to-tested diff changes exactly the one authorized verifier file."
-  - "Git discovery, diff, unreadable-file and exact-manifest errors are fail-closed."
-  - "Injected-path, missing-artifact and forced-validator-failure tests each assert and record non-zero outcomes."
+  - "All three negative tests exercise the production scanner/wrapper through top-level process modes and assert non-zero outcomes."
+  - "Every normal/test command has expected/actual exits plus stdout/stderr SHA-256."
+  - "Git discovery/head/diff/ls-tree/show, strict file decoding, extraction and validator failures are fail-closed."
   - "The full frozen QCLAW head contains exactly the expected fifteen P1 artifacts and the unchanged validator passes 37/0/0."
-  - "The final complete delivery surface is CLEAN with concrete manifest and findings hashes."
   - "The tested-to-receipt diff changes exactly four authorized receipt files."
-  - "All receipts use THIS_COMMIT semantics and contain no unresolved placeholders or short authoritative SHAs."
-  - "The external completion anchor contains concrete receipt SHA, machine hashes and epoch-6 revalidation in PR #91 and Issues #89/#31."
+  - "All four receipts contain exact R7 task/signal/head/change-list/test facts, receipt_head_ref: THIS_COMMIT, and no stale R5 data or unresolved placeholder."
+  - "The final post-receipt complete delivery surface is CLEAN with concrete machine hashes."
+  - "The external completion anchor contains concrete receipt SHA, machine hashes and epoch-7 revalidation in PR #91 and Issues #89/#31."
   - "Every failure, SKIP, UNKNOWN and historical negative result remains visible."
   - "No semantic rescore, Issue #92 execution, source access, merge, account, order or trade occurs."
 
 forbidden:
   - "No new helper, generator, copied verifier or raw output file in the Git tree."
-  - "No print-only negative test without an asserted expected/actual exit comparison."
-  - "No package-only scan presented as proof for a broader delivery surface."
+  - "No unit-like regex-only or direct-child test presented as a production wrapper test."
+  - "No copied R5 task_id, signal, timestamps, change lists, counts or hashes in R7 receipts."
+  - "No decorated THIS_COMMIT value; use receipt_head_ref: THIS_COMMIT exactly."
   - "No TBD, self-SHA backfill commit or short authoritative SHA."
   - "No history rewrite, force push or deletion of negative evidence."
   - "No modification of QCLAW semantics or PR #84/#77/#79/#90."
@@ -182,4 +197,4 @@ forbidden:
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T00:45:00+08:00"
+updated_at: "2026-07-25T04:00:00+08:00"
