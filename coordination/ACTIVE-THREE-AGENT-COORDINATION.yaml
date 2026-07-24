@@ -1,55 +1,59 @@
-schema_version: "8.5"
+schema_version: "8.6"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 qclaw_role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 program_issue: 31
-status: "WB_PR91_R2_AND_CODEX_PR90_R2_ACTIVE"
+status: "CODEX_PR90_R2_ACCEPTED_WORKBUDDY_PR91_R3_ACTIVE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
 
 program_goal: >-
-  Close WorkBuddy PR #91 machine receipts and Codex PR #90 structured rule-register validation without reopening accepted facts,
-  QCLAW semantics or contract-first architecture. Keep Issue #92 blocked until both closures pass GPT review.
+  Preserve the accepted PR #90 data-admission contract, correct PR #91's self-blind public-safety scanner and produce a genuine final-head receipt.
+  Keep Issue #92 blocked until WorkBuddy R3 passes and exactly one source manifest is explicitly approved.
 
 review_results:
-  PR91_R1:
-    reviewed_head: "ce1704c1ce3f0ff882022b60871735fcc9127ada"
-    classification: "MECHANICAL_FIX_ACCEPTED_RECEIPT_ONLY_R2_REQUIRED"
-    status: "NO_NEW_R2_DELIVERY_YET"
+  PR90_R2:
+    tested_head: "abc9b618eacec0a3004a56b614e56f196161c107"
+    receipt_head: "b683cd69e4742455b125bf95172e5f3a51851cd4"
+    classification: "ACCEPTED_FOR_CONTRACT_AND_EVIDENCE_GATE_USE_NO_SOURCE_ADMISSION"
     accepted:
-      - "Three path-bearing files use <CLEANROOM_WORKSPACE>."
-      - "Seven-file R1 delta did not change fixed heads, hashes or QCLAW semantics."
-    remaining:
-      - "Reproducible path scan, independent-verifier receipt and tested-head/receipt-head closure."
-  PR90_R1:
-    reviewed_head: "634bbe39942514bbb11734d6dc36e8eb703069f3"
-    classification: "CONTENT_ACCEPTED_STRUCTURE_AND_RECEIPT_R2_REQUIRED"
+      - "Exactly one official SSE, SZSE and BSE entry is structurally validated against exact facts."
+      - "Duplicate keys are rejected and document_hash_status remains UNKNOWN_NOT_CAPTURED."
+      - "Historical status/rule coverage remains UNKNOWN."
+      - "The receipt head changes only three authorized receipt files."
+      - "Recorded validation includes exact commands, timestamps, hashes and 61 PR #51 regression tests."
+    non_blocking_clarification:
+      - "For Issue #92, public document identity means document_id plus official_url."
+      - "A document SHA-256 may be added only after authorized immutable capture; UNKNOWN_NOT_CAPTURED remains blocking for executable history."
+    state: "ACCEPTED_STOPPED"
+  PR91_R2:
+    reviewed_head: "1946be22345300c6bad2e12f8acdd2ce75945584"
+    classification: "REJECTED_BOUNDED_R3_REQUIRED"
     accepted:
-      - "Exactly seven authorized files changed."
-      - "Official SSE/SZSE/BSE entries, dates and deferred status were corrected."
-      - "Historical coverage UNKNOWN remains open and no source was selected."
-      - "Reported PR #51 regression result is 61 passed."
-    defects:
-      - "Validator uses global substring checks rather than per-entry structural validation."
-      - "Contract and register do not explicitly reconcile immutable document-hash status."
-      - "Test receipt lacks exact commands, timestamps, scan counts and output hashes."
+      - "No QCLAW semantic decision or score was changed."
+      - "R1 change accounting was corrected to three path-bearing files and seven total modifications."
+    blocking_defects:
+      - "_r2_scanner.py itself publishes fixed local paths while excluding itself from scanning."
+      - "The reported tested head predates the scanner and R2 corrections."
+      - "A single R2 commit does not create a tested-head/receipt-head chain."
+      - "The QCLAW extraction logic uses a short SHA and misclassifies P1-TEST-RUN-RECEIPT.md."
+      - "The scan hash binds only an empty findings list, not the file manifest, command or test output."
 
 resource_model:
-  active_parallel:
-    codex_share: 55
-    workbuddy_share: 45
+  current:
+    workbuddy_share: 100
+    codex_share: 0
     qclaw_share: 0
   next_gpt_review: 100
   issue92_after_explicit_release: "WORKBUDDY_ONLY"
 
 coordination_principles:
-  parallel_execution_owners: ["WORKBUDDY_PR91_R2", "CODEX_PR90_R2"]
+  active_execution_owner: "WORKBUDDY_PR91_R3"
+  codex_state: "ACCEPTED_STOPPED"
   qclaw_semantic_evidence_owner: "QCLAW_FIXED_SUBMISSION_PR84"
   final_gate_owner: "GPT"
-  no_codex_self_audit: true
-  no_workbuddy_semantic_rescore: true
   no_cross_branch_coaching: true
-  no_real_source_selection_in_D0: true
+  no_real_source_selection_before_issue92: true
   no_direct_main_write_by_executors: true
   no_auto_merge: true
   no_trade: true
@@ -62,22 +66,21 @@ agents:
     pull_request: 90
     task_id: "CODEX-PR90-R2-STRUCTURED-RULE-REGISTER-AND-REPRODUCIBLE-RECEIPT-CLOSURE"
     mode: "target"
-    status: "READY"
+    status: "ACCEPTED_STOPPED_WAITING_FOR_DOWNSTREAM_GATE"
+    execution_allowed: false
     branch: "codex/a-share-pit-data-admission-0022-d0"
-    role_now: >-
-      Preserve accepted R1 facts; add exact per-entry YAML validation, duplicate-key rejection, explicit document hash/capture status
-      and reproducible tested-head/receipt-head receipts. Select no source and inspect no local data.
+    role_now: "No execution. Report accepted state and wait for a new explicit route."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   WORKBUDDY:
     active_issue: 89
     pull_request: 91
-    task_id: "WORKBUDDY-PR91-R2-MACHINE-RECEIPT-AND-PATH-SCAN-CLOSURE"
+    task_id: "WORKBUDDY-PR91-R3-SELF-AUDITING-SCANNER-AND-TRUE-TWO-HEAD-CLOSURE"
     mode: "target"
     status: "READY"
     branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
     role_now: >-
-      Preserve accepted path aliases and produce reproducible scan/validator receipts with tested-head and receipt-head evidence.
-      Do not alter fixed-head/hash facts, QCLAW semantics or data-admission scope.
+      Delete the leaking R2 scanner, build one self-auditing relative-path verifier, faithfully reproduce the exact 15-file QCLAW package,
+      create a real tested-head/receipt-head chain and post a final receipt-head scan. Do not touch semantics or Issue #92.
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
   QCLAW:
     aliases: ["Q", "QQ"]
@@ -91,48 +94,50 @@ fixed_evidence:
   qclaw_preregistration: {pr: 77, receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"}
   codex_d0_target: {pr: 79, head: "b515b66290944af3d3e1d3285e95cb6162736d41", status: "FROZEN_NO_EDITS"}
   qclaw_p1_submission: {pr: 84, head: "63c344084d9af86cb26c1cc65a30d409fefa872f", semantic_disposition: "PENDING_GPT_ADOPTION"}
-  workbuddy_r1_reviewed: {pr: 91, head: "ce1704c1ce3f0ff882022b60871735fcc9127ada"}
-  codex_r1_reviewed: {pr: 90, head: "634bbe39942514bbb11734d6dc36e8eb703069f3"}
+  workbuddy_r1_accepted: {pr: 91, head: "ce1704c1ce3f0ff882022b60871735fcc9127ada"}
+  workbuddy_r2_rejected: {pr: 91, head: "1946be22345300c6bad2e12f8acdd2ce75945584"}
+  codex_r2_accepted: {pr: 90, tested_head: "abc9b618eacec0a3004a56b614e56f196161c107", receipt_head: "b683cd69e4742455b125bf95172e5f3a51851cd4"}
 
 execution_queue:
   - order: 1
-    parallel_group: "ACTIVE"
     owner: "WORKBUDDY"
     issue: 89
     pull_request: 91
-    task: "R2 reproducible path scan, independent verifier receipt and accurate change accounting."
-    completion_signal: "WORKBUDDY_PR91_R2_MACHINE_RECEIPT_AND_PATH_SCAN_CLOSED_FOR_GPT_REVIEW"
-  - order: 1
-    parallel_group: "ACTIVE"
-    owner: "CODEX"
-    issue: 80
-    pull_request: 90
-    task: "R2 exact rule-entry structural validation, hash-status semantics and reproducible receipts."
-    completion_signal: "CODEX_PR90_R2_STRUCTURED_RULE_REGISTER_AND_RECEIPTS_CLOSED_FOR_GPT_REVIEW"
+    task: "R3 self-auditing public-safety scanner, faithful QCLAW reproduction and true two-head receipt closure."
+    completion_signal: "WORKBUDDY_PR91_R3_SELF_AUDITING_SCANNER_AND_TRUE_TWO_HEAD_READY_FOR_GPT_REVIEW"
   - order: 2
     owner: "GPT"
-    task: "Review only bounded R2 deltas and decide acceptance."
+    task: "Review only the PR #91 R3 bounded delta and final receipt-head scan."
   - order: 3
+    owner: "GPT_USER"
+    task: "Approve exactly one source manifest candidate or keep Issue #92 abstained."
+  - order: 4
     owner: "WORKBUDDY"
     issue: 92
-    status: "QUEUED_REQUIRES_EXPLICIT_RELEASE_AFTER_PR91_R2_AND_PR90_R2_ACCEPTED"
-    task: "Execute the frozen contract against at most one user/GPT-approved local candidate source."
-  - order: 4
+    status: "QUEUED_REQUIRES_EXPLICIT_RELEASE_AFTER_PR91_R3_AND_ONE_CANDIDATE"
+    task: "Execute the accepted PR #90 contract against at most one approved local candidate source."
+  - order: 5
     owner: "NONE_UNTIL_EXPLICIT_RELEASE"
     task: "No source activation, labels, replay, backtest, performance claim or trade."
 
+issue92_contract_clarification:
+  document_identity: "document_id plus official_url"
+  document_hash_status: "UNKNOWN_NOT_CAPTURED is allowed for planning but blocks executable historical use"
+  document_sha256: "optional only after authorized immutable capture"
+  source_limit: "exactly one user/GPT-approved candidate manifest"
+
 cross_lane_firewalls:
-  - "Codex and WorkBuddy remain on separate branches and PRs."
-  - "Neither agent modifies PR #84/#77/#79."
-  - "Codex does not inspect or coach PR #91; WorkBuddy does not inspect or coach PR #90."
-  - "Issue #92 cannot start until both R2 tasks are accepted and GPT explicitly changes the WorkBuddy route."
-  - "Machine receipt closure is not semantic acceptance; official current rules are not historical-coverage proof."
+  - "Codex makes no further PR #90 edits."
+  - "WorkBuddy does not modify PR #90/#84/#77/#79."
+  - "QCLAW semantics remain frozen."
+  - "Issue #92 cannot start until WorkBuddy R3 is accepted, one candidate is approved and GPT explicitly changes the WorkBuddy route."
+  - "Machine packaging or current-rule access is not historical-coverage proof."
 
 release_control:
   only_GPT_may_activate_issue92: true
   trigger_behavior:
-    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute PR #90 R2 only."
-    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and execute PR #91 R2 only."
+    CODEX: "Report PR #90 R2 accepted and stop; do not execute."
+    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and execute PR #91 R3 only."
     QCLAW: "Report submitted/quota exhausted; do not continue today."
 
 safety_boundary:
