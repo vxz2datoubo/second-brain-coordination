@@ -13,6 +13,8 @@
 > privacy: `PUBLIC_REPO_SAFE_ABSTRACTION_ONLY`
 >
 > evolution_status: `QUEUED_BLUEPRINT_INPUT / NON_BLOCKING / NO_WIP_EXPANSION`
+>
+> autonomous_capture: `ENABLED_WITH_PRIVACY_AND_REVOCATION_GATES`
 
 ## 1. 项目目的
 
@@ -128,11 +130,12 @@
 显式触发词包括但不限于：
 
 - “记忆采集”
-- “录入永久记忆”
-- “把这个放进认知框架”
-- “这个以后要提醒我”
+- “知识框架采集”
+- “双重采集”
+- “把这个录入记忆系统”
+- “把这个放进知识框架”
 
-显式触发不代表可以跳过证据和用户复审，只代表该内容应进入候选写入流程。
+显式触发不代表可以跳过证据、隐私分类和用户撤销权，只代表该内容应进入对应的候选写入流程。
 
 ## 6. 检索目标
 
@@ -187,6 +190,10 @@
 - `COGNITIVE-UPDATE-AND-RETRIEVAL-PROTOCOL.md`：未来聊天如何持续补充和检索；
 - `COGNITIVE-GROWTH-BACKLOG.md`：学习与验证路线；
 - `BLUEPRINT-INTEGRATION-AND-CONTINUOUS-EVOLUTION-PLAN.md`：蓝图回写、Codex/WB 实施、QCLAW 限定角色和非抢占式演化路线；
+- `SYSTEMS-CYBERNETICS-MECHANISM-GAME-COMPLEXITY-MULTI-AGENT-INTEGRATION-BLUEPRINT.md`：七理论跨系统融合蓝图；
+- `THEORY-TO-ENTERPRISE-ARCHITECTURE-INTEGRATION-MAP.yaml`：理论到企业架构的机器映射；
+- `DUAL-TRACK-MEMORY-AND-COGNITIVE-FRAMEWORK-PROTOCOL.md`：记忆轨与知识框架轨的边界、口令和自主采集规则；
+- `MEMORY-AND-COGNITIVE-CAPTURE-COMMAND-REGISTRY-v0.1.yaml`：机器可读口令和授权注册表；
 - `AI_HANDOFF.yaml`：后续 Agent 接力与边界。
 
 ## 10. 验收标准
@@ -202,4 +209,21 @@
 7. 能被 Issue #61 的正式 PersonalCognitiveModel 合同吸收，而不形成平行运行时；
 8. 能由 Codex 与 WorkBuddy 在原有节奏下逐步实现，不抢占当前 WIP；
 9. QCLAW 保持知识支持角色，不承担工程实现；
-10. 每次扩展都通过现有治理、依赖、验收和回滚机制。
+10. 每次扩展都通过现有治理、依赖、验收和回滚机制；
+11. 记忆系统与知识框架系统使用分离权威、共享来源链接且不复制原始证据；
+12. 用户能够用简短口令采集、查看、纠正、撤销和暂停自动采集。
+
+## 11. 双轨采集速查
+
+```text
+记忆采集
+→ 保存发生过什么、重要约定、共同语境和以后从哪里继续
+
+知识框架采集
+→ 分解理解、掌握度、强项候选、缺口、反例和未知未知
+
+双重采集
+→ 两条轨道分别生成记录，并使用同一 source_episode_id 连接
+```
+
+用户已授权 GPT 在有明显长期价值时自主生成候选并告知，不必每次事前询问。敏感内容、第三方信息、原始亲密对话和公开上传仍需确认或进入私有受控存储。详细规则见双轨协议与命令注册表。
