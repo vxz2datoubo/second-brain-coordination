@@ -1,0 +1,34 @@
+schema_version: "1.0"
+record_type: "BaselineNegativeControlAndFailureMatrix"
+status: "PREREGISTERED_DESIGN_NOT_RUN"
+baseline_models:
+  - id: RANDOM_LEVEL
+    computation: "Draw pre-registered random price levels from the same PIT price-range distribution using a recorded seed; construct only from data available before event evaluation."
+  - id: ORDINARY_LEVEL_TOUCH
+    computation: "First touch of a pre-known zone boundary without breach/reclaim confirmation."
+  - id: SIMPLE_BREAKOUT
+    computation: "Cross a pre-known zone boundary and retain direction; no reclaim state."
+  - id: SIMPLE_REVERSAL
+    computation: "Direction reversal over a preregistered completed-bar window without any zone definition."
+  - id: VOLATILITY_SHOCK_ONLY
+    computation: "Completed-bar ATR/realized-range threshold without reference zone."
+  - id: VOLUME_SHOCK_ONLY
+    computation: "Completed-bar volume relative to a past-only baseline; only after volume unit/semantics admission."
+  - id: B3_MOTHER_SYSTEM
+    computation: "Read-only baseline supplied by its owning authority; interface UNKNOWN until W3/W7 contract is frozen."
+  - id: B3_PLUS_0017
+    computation: "Only after B3 interface approval; compare against B3 with identical PIT/rule/cost assumptions."
+negative_controls:
+  - "Randomize zone placement within permitted price range."
+  - "Reverse event direction while preserving timestamps."
+  - "Shift zones to a pre-registered placebo interval."
+  - "Compare simple baseline against full state machine using the same selection ledger."
+failure_states:
+  FUTURE_LEAKAGE: "Reject affected family."
+  LABEL_INSTABILITY: "Report by timeframe; do not collapse to favorable timeframe."
+  DATA_OR_RULE_UNKNOWN: "ABSTAIN and preserve coverage loss."
+  COST_OR_NONFILL_UNKNOWN: "No net/executable claim."
+  NO_INCREMENT: "Preserve as a first-class negative result."
+  REVERSE_INCREMENT: "Preserve as a first-class inverse result."
+  MULTIPLE_TESTING_FAILURE: "Downgrade to exploratory only."
+publication_commitment: "All attempted families, rejected parameters, null increments, inverse findings, failures and abstentions are retained in the research ledger."

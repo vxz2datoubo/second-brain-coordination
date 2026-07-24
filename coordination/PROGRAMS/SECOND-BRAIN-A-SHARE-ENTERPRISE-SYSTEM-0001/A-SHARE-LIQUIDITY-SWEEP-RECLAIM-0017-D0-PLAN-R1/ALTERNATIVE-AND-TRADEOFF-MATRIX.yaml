@@ -1,0 +1,28 @@
+schema_version: "1.0"
+record_type: "AlternativeAndTradeoffMatrix"
+decisions:
+  - id: D001
+    decision: "Use BAR_ONLY VS1 as the sole first implementation boundary."
+    selected: "PIT OHLCV plus rules/calendars only"
+    alternatives: ["include L1/L2 depth", "infer order flow from OHLCV", "wait for full raw order events"]
+    tradeoff: "Less microstructure detail, but avoids false flow/identity claims and makes PIT verification feasible."
+  - id: D002
+    decision: "Treat reentry/stabilization as observable labels, not motive/absorption facts."
+    selected: "reference-zone breach/reclaim/stabilization terminology"
+    alternatives: ["main-force or stop-sweep intent labels"]
+    tradeoff: "Weaker narrative, stronger falsifiability."
+  - id: D003
+    decision: "Use a separate versioned rule selector rather than universal A-share constants."
+    selected: "exchange-board-security-status-effective interval"
+    alternatives: ["hardcoded 10/20/5 limits and generic session table"]
+    tradeoff: "More metadata work, prevents historical and board-rule contamination."
+  - id: D004
+    decision: "Keep vendor-local bars outside public Git and CI."
+    selected: "hash-locked local receipt plus synthetic public fixtures"
+    alternatives: ["commit raw local bars", "claim local source is public"]
+    tradeoff: "No public empirical replay yet, preserves license/privacy boundary."
+  - id: D005
+    decision: "Reuse W2/W7/W9/W3 authority interfaces rather than new runtimes."
+    selected: "adapt only after their contracts are accepted"
+    alternatives: ["build parallel replay/validation/memory systems"]
+    tradeoff: "May wait on dependencies, avoids authority conflict and duplicated state."

@@ -1,0 +1,64 @@
+schema_version: "1.0"
+record_type: "ReferenceZoneDefinitionContract"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+object: ReferenceLiquidityZone
+common_provenance_fields: [source, source_manifest_id, event_time, observed_at, available_at, rule_version, missing_error_state]
+required_fields:
+  zone_id: string
+  symbol: string
+  direction_context: [SUPPORT_CANDIDATE, RESISTANCE_CANDIDATE, NEUTRAL]
+  zone_type: [PREVIOUS_SESSION_EXTREME, PIT_N_BAR_SWING, OPENING_RANGE, COMPLETED_BAR_LOCAL_EXTREME, BAR_VWAP_BAND, BAR_VOLUME_DISTRIBUTION_CANDIDATE, PRICE_LIMIT_BOUNDARY, PRE_REGISTERED_ROUND_NUMBER]
+  lower_bound: decimal
+  upper_bound: decimal
+  source_timeframe: string
+  lookback_window: string
+  construction_method: string
+  defined_at: datetime
+  available_at: datetime
+  expiration_rule: string
+  selection_provenance: string
+  rule_snapshot_id: string
+  data_capability: BAR_ONLY
+  missing_error_state: string
+invariants:
+  - "lower_bound <= upper_bound"
+  - "defined_at <= available_at"
+  - "available_at <= breach_event.event_time is mandatory before a zone can be used"
+  - "zone version changes only at a completed source-bar available_at boundary"
+  - "expired/superseded zones remain immutable records and cannot be retroactively rewritten"
+zone_families:
+  PREVIOUS_SESSION_EXTREME:
+    bar_fields: [prior_session.high, prior_session.low]
+    lookback: "one completed prior trading session"
+    available_at: "prior session close availability, per source manifest"
+  PIT_N_BAR_SWING:
+    bar_fields: [high, low]
+    lookback: "N completed bars plus declared confirmation bars"
+    available_at: "after final confirmation bar is available"
+  OPENING_RANGE:
+    bar_fields: [open, high, low, close]
+    lookback: "pre-registered completed opening window"
+    available_at: "opening window close availability"
+  COMPLETED_BAR_LOCAL_EXTREME:
+    bar_fields: [high, low]
+    lookback: "pre-registered completed-bar window"
+    available_at: "source bar availability only"
+  BAR_VWAP_BAND:
+    bar_fields: [high, low, close, volume]
+    formula: "sum(HL3 * volume) / sum(volume) over completed bars only"
+    constraint: "volume unit and adjustment semantics must be verified; otherwise ABSTAIN"
+  BAR_VOLUME_DISTRIBUTION_CANDIDATE:
+    bar_fields: [high, low, close, volume]
+    constraint: "bar allocation method must be declared; it is not true trade-level volume-at-price"
+  PRICE_LIMIT_BOUNDARY:
+    bar_fields: [prior_close]
+    constraint: "requires a matched exchange/board/security-status rule snapshot"
+  PRE_REGISTERED_ROUND_NUMBER:
+    bar_fields: []
+    constraint: "grid and rounding rule frozen before dataset access"
+forbidden_construction: [future_extreme, same_day_daily_close_for_earlier_intraday_bar, L1_L2_depth_zone, participant_tagged_zone, post_hoc_best_level]
+multi_timeframe_proof: >-
+  A zone sourced from daily D is only eligible after D has completed and the
+  data manifest says the daily bar is available. It is never eligible for a
+  minute bar earlier on D. A prior-day daily zone is eligible on D only if its
+  availability precedes the evaluated minute bar.
