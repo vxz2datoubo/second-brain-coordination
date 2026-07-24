@@ -1,4 +1,4 @@
-schema_version: "8.1"
+schema_version: "8.2"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,18 +6,17 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 80
-task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-AND-HISTORICAL-RULE-EVIDENCE-0022-D0"
+task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-CONTRACT-AND-RULE-EVIDENCE-0022-D0"
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】A股PIT数据准入、来源许可与历史规则状态证据闭环D0"
+mode_label: "【Codex模式：项目计划模式】A股PIT准入合同、非重复架构与历史规则证据D0"
 mode_reason: >-
-  QQ审计暴露出的PIT数据许可、字段语义、复权、available_at、历史规则状态和W3/W7接口问题跨越多个既有模块，
-  需要先完成非重复审计、分阶段计划和证据门，不能直接进入D1或回测，因此使用项目计划模式。
-  QQ审计包的独立清洁室核验已由用户改派WorkBuddy Issue #89，Codex不得接手该H0工作。
+  该任务跨越PR #51准入门、W2/W3/W7权威、PIT时间语义、复权、历史规则与后续本地执行接口，路径尚未冻结，
+  因此使用项目计划模式。Codex只负责设计和证据组织，不负责替本地执行者选择或验收真实数据源。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 80
-related_issues: [69, 76, 81, 89]
+related_issues: [69, 76, 81, 89, 92]
 source_pull_requests:
   qclaw_submission_pr: 84
   qclaw_submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
@@ -35,132 +34,120 @@ auto_merge: false
 allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-PIT-DATA-ADMISSION-0022-D0/"
 
 mission_intent: >-
-  Produce a recoverable D0 project plan for the data, license, PIT, historical-rule, security-status and W3/W7 prerequisites that must
-  be accepted before any 0017 D1 historical labels, replay, backtest or performance claim.
+  Produce a recoverable, non-duplicative admission contract and historical-rule evidence plan that a separate local executor can later use
+  to test at most one A-share offline data source before any 0017 D1 labels, replay, backtest or performance claim.
 fundamental_goal: >-
-  Convert Codex's own data-admission discovery and QCLAW's fixed external findings into a non-duplicative prerequisite program without
-  modifying QCLAW judgments, duplicating PR #51 infrastructure, activating a real source or pretending unavailable data has been validated.
+  Freeze what must be proved, how it is proved, who owns each fact and when the system must abstain, without selecting a source from
+  unverified local availability or creating a second data-admission authority.
 system_position: >-
-  Codex is the engineering and canonical-plan owner for target-side data admission. It is not the independent auditor, does not own
-  QCLAW package verification, and cannot approve its own D0.
+  Codex owns target-side architecture, contracts and candidate implementation planning. WorkBuddy owns later local evidence execution.
+  QCLAW owns its fixed semantic audit; GPT owns final acceptance and official-source spot verification.
 
-workbuddy_parallel_lane:
+parallel_workbuddy_h0:
   active_issue: 89
   task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
+  scope: "PR #84 fixed-head machine and packaging verification only."
+  firewall:
+    - "Do not duplicate WorkBuddy manifests, hashes or validator execution."
+    - "Do not inspect, coach or consume WorkBuddy in-progress findings."
+    - "Consume WorkBuddy results only after GPT acceptance or explicit routing."
+
+future_local_execution:
+  queued_issue: 92
   owner: "WORKBUDDY"
-  scope: "Independent fixed-head artifact identity, hashes, changed-file surface and unchanged-validator execution for PR #84."
-  codex_boundary:
-    - "Do not duplicate WorkBuddy manifests, hash receipts or cleanroom verification."
-    - "Do not edit, review or coach the WorkBuddy branch or findings during execution."
-    - "WorkBuddy machine results may be consumed only after GPT accepts or explicitly routes them."
+  status: "REGISTERED_QUEUED_AFTER_ISSUE80_D0_AND_GPT_RELEASE"
+  purpose: >-
+    Execute the accepted admission contract against at most one approved local candidate source using read-only machine evidence.
+  codex_non_ownership: >-
+    Codex must not claim a local source is admissible, licensed, PIT-correct or complete based only on repository planning or physical-file existence.
 
 qclaw_semantic_freeze:
-  - "Do not change any QCLAW question status, score contribution, blocking-mode decision, weighted score or verdict."
-  - "Do not create replacement independent-audit findings in Codex's name."
+  - "Do not change any QCLAW question status, score contribution, blocking decision, weighted score or verdict."
   - "Do not edit PR #84, PR #77 or their branches."
-  - "QCLAW reported 0.491 and CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS remains candidate evidence pending GPT disposition."
+  - "QCLAW's 0.491 and conditional-accept recommendation remain candidate evidence pending GPT disposition."
 
 execution_phase:
-  name: "D0_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_PLAN"
-  purpose: "Plan the prerequisites exposed by PR #79 and QCLAW PR #84 without running 0017."
+  name: "D0_ADMISSION_CONTRACT_AND_RULE_EVIDENCE_PLAN"
   required_actions:
-    - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and policy gates before proposing anything new."
-    - "Audit PR #79 data capability, local inventory, rule snapshot, UNKNOWN and reproducibility contracts at fixed head only."
-    - "Produce a candidate-source and license matrix; select at most one first real offline source or abstain if none qualifies."
-    - "Define field types, units, timezone, event_time, observed_at, available_at, adjustment policy, missing semantics and corporate-action lineage."
+    - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and BLOCKED_BY_POLICY gates before proposing anything new."
+    - "Audit PR #79 data capability, local-inventory claims, rule snapshots, UNKNOWNs and reproducibility contracts at the fixed head."
+    - "Define source-admission requirements and evidence classes without choosing a real source."
+    - "Define fields, units, timezone, event_time, observed_at, available_at, bar-close semantics, adjustment policy, missingness and corporate-action lineage."
     - "Design versioned SSE/SZSE/BSE, board, security-status, ST, suspension, IPO, delisting and rule snapshots by effective date."
-    - "Map W3 knowledge/evidence and W7 validation/risk interfaces read-only; do not create a second authority."
-    - "Define a reproducibility-equivalence contract for authorized agents without requiring QCLAW or WorkBuddy to expose restricted vendor data."
-    - "Use official exchange/regulator primary sources for rule evidence and record effective dates, supersession and unresolved conflicts."
-    - "Preserve UNKNOWN/BLOCKED_BY_POLICY/ABSTAIN where license, semantics or history cannot be proved."
-  mandatory_outputs:
-    - "CURRENT-DATA-ADMISSION-REALITY-AUDIT.md"
-    - "SOURCE-CANDIDATE-AND-LICENSE-MATRIX.yaml"
-    - "PR51-REUSE-AND-NON-DUPLICATION-MATRIX.yaml"
-    - "PIT-AVAILABLE-AT-SEMANTICS-CONTRACT.yaml"
-    - "FIELD-UNIT-ADJUSTMENT-SEMANTICS-MATRIX.yaml"
-    - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-PLAN.yaml"
-    - "W3-W7-READONLY-INTERFACE-DEPENDENCY-MAP.yaml"
-    - "AUTHORIZED-AGENT-REPRODUCIBILITY-EQUIVALENCE-CONTRACT.yaml"
-    - "ONE-SOURCE-ACTIVATION-PLAN.yaml"
-    - "NEGATIVE-AND-ABSTENTION-TEST-MATRIX.yaml"
-    - "UNKNOWN-REGISTRY.yaml"
-    - "DISCOVERY-PACKETS.yaml"
-    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-    - "AMED-RESEARCH-LEDGER.yaml"
-    - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-    - "TEST-RUN-RECEIPT.md"
-    - "AI_HANDOFF.yaml"
-    - "validate_d0_admission.py"
+    - "Map W2 market/PIT ownership, W3 evidence ownership and W7 validation/risk interfaces read-only."
+    - "Define a one-source decision procedure and a WorkBuddy L0 execution contract for Issue #92."
+    - "Collect an official-source evidence register with effective dates and supersession; GPT will independently spot-check load-bearing entries."
+    - "Preserve UNKNOWN / BLOCKED_BY_POLICY / ABSTAIN wherever license, semantics, history or authority cannot be proved."
 
-amed_non_duplication:
-  - "Reuse PR #51 SourceManifest and policy gates; do not create a second admission authority."
-  - "Reuse W2 market/PIT ownership, W3 evidence ownership and W7 validation/risk ownership."
-  - "Do not duplicate WorkBuddy Issue #89 artifact-verification package."
-  - "Do not create a second replay, evidence, memory, probability, risk, portfolio or order runtime."
+core_outputs:
+  - "PROJECT-PLAN.yaml"
+  - "CURRENT-DATA-ADMISSION-AND-NON-DUPLICATION-AUDIT.md"
+  - "PR51-REUSE-AND-AUTHORITY-MATRIX.yaml"
+  - "SOURCE-ADMISSION-REQUIREMENTS-AND-EVIDENCE-MATRIX.yaml"
+  - "PIT-FIELD-TIME-UNIT-ADJUSTMENT-CONTRACT.yaml"
+  - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml"
+  - "W2-W3-W7-READONLY-OWNERSHIP-AND-DEPENDENCY-MAP.yaml"
+  - "ONE-SOURCE-ADMISSION-DECISION-PROCEDURE.yaml"
+  - "WORKBUDDY-ISSUE92-LOCAL-EVIDENCE-EXECUTION-CONTRACT.yaml"
+  - "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml"
+  - "NEGATIVE-ABSTENTION-AND-FAILURE-TEST-MATRIX.yaml"
+  - "UNKNOWN-REGISTRY.yaml"
+  - "TEST-RUN-RECEIPT.md"
+  - "CODEX-FEEDBACK-v2.yaml"
+  - "AI_HANDOFF.yaml"
+  - "validate_d0_admission_contract.py"
 
-amed_amed:
-  policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-  task_weight: "STRATEGIC"
-  research_trigger: "L2_PRIMARY_SOURCE_RULE_AND_LICENSE_RESEARCH"
-  exploration_budget:
-    data_admission_and_rule_plan: 80
-    active_discovery_and_counterevidence: 15
-    system_opportunity_proposals: 5
-  improvement_authority:
-    A: "Local formatting, deterministic validators, manifests and typo fixes inside the new candidate package."
-    B: "Backward-compatible reuse contracts inside the candidate package, separately documented with rollback."
-    C: "New source activation, cross-module interface, runtime, skill or migration is proposal-only."
-    D: "Any QCLAW semantic change, WorkBuddy verification interference, license bypass, restricted-data publication, D1 execution or trade action is prohibited."
+conditional_outputs:
+  rule: >-
+    AMED research ledgers, improvement ledgers and system-opportunity reports are required only when they contain substantive discoveries
+    beyond the core package; boilerplate-only files are prohibited.
 
-named_task_impact_forecast:
-  expected_positive_effects:
-    - "Focuses Codex on the target-side prerequisite it is qualified to design."
-    - "Preserves independent verification by assigning PR #84 cleanroom checks to WorkBuddy."
-    - "Avoids duplicating PR #51 infrastructure and prevents premature historical runs."
-  expected_negative_effects:
-    - "Adds a prerequisite planning step before 0017 D1."
-    - "May conclude that no current real source is admissible."
-  primary_risks:
-    - "A source is selected based on physical availability rather than license and PIT semantics."
-    - "Historical rules are backfilled with present-day constants."
-    - "PR #51 contracts are duplicated rather than reused."
-    - "Codex consumes unaccepted WorkBuddy findings as if canonical."
-  stop_conditions:
-    - "PR #84 or PR #79 fixed heads drift."
-    - "A task requires editing QCLAW judgments or interfering with WorkBuddy verification."
-    - "License, credentials, restricted raw data, broker, account, order or trade paths are encountered."
-    - "A real-source activation or historical run would be required."
+non_duplication:
+  - "PR #51 remains the only SourceManifest and policy-admission authority."
+  - "W2 remains market-data and PIT authority; W3 remains evidence authority; W7 remains validation/risk authority."
+  - "WorkBuddy Issue #89 owns PR #84 machine verification."
+  - "WorkBuddy Issue #92 owns later local source evidence execution."
+  - "No second replay, evidence, memory, probability, risk, portfolio or order runtime."
 
 acceptance_gates:
   - "PR #79 fixed head is verified before analysis."
-  - "PR #51 reuse/non-duplication is explicit."
-  - "At most one candidate real source is selected, or the task abstains."
+  - "PR #51 reuse and ownership are explicit."
+  - "No real source is selected or declared admissible in D0."
+  - "The one-source decision procedure has explicit PASS/FAIL/UNKNOWN/ABSTAIN outcomes."
+  - "Issue #92 receives a bounded, machine-executable, read-only contract."
+  - "Official-source entries include publisher, document identity, effective date, supersession and evidence status."
   - "License, PIT, field, adjustment, rule and security-status UNKNOWNs are preserved."
-  - "WorkBuddy Issue #89 remains independent and is not duplicated or coached."
-  - "No QCLAW semantic score/verdict is changed or adopted as Codex validation."
-  - "No D1/VS1, labels, replay, backtest, alpha claim, source activation or trade action occurs."
-  - "New PR stays Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
+  - "WorkBuddy Issue #89 remains independent and uncoached."
+  - "No D1, labels, replay, backtest, source activation or trade action occurs."
+  - "Draft PR remains PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
   - "No modification of PR #84, PR #77 or PR #79 branches/files."
-  - "No cleanroom reproduction, hash receipt or packaging verification assigned to WorkBuddy Issue #89."
-  - "No completion, rewriting or reinterpretation of QCLAW semantic audit outputs."
-  - "No change to the frozen 42 questions, weights, blocker rules or QCLAW scoring."
-  - "No real-data upload, license guess, source activation, replay, label generation or backtest."
+  - "No local cleanroom reproduction, hash receipt or PR #84 packaging verification."
+  - "No real-source selection based on physical availability."
+  - "No claim that local license, field semantics or PIT correctness has been verified."
+  - "No completion or reinterpretation of QCLAW semantic outputs."
+  - "No real-data upload, license guess, adapter activation, replay, labels or backtest."
   - "No broker, account, credential, live feed, order, trade, merge or auto-merge."
 
-report_to:
-  issues: [80, 69, 31]
-  pull_requests: [79]
-  include:
-    - "task identity, mode, fixed heads, completion percentage and exact changed files"
-    - "data-source/license/PIT/rule/interface plan, official sources and unresolved UNKNOWNs"
-    - "PR #51 reuse, commands, versions, tests, failures, SKIPs, PDER discoveries, rollback and next gate"
+named_task_impact_forecast:
+  positive:
+    - "Separates contract design from local source admission evidence."
+    - "Gives WorkBuddy Issue #92 a frozen executable target."
+    - "Reduces D0 outputs to core evidence-bearing artifacts."
+  risks:
+    - "Codex may still overstate official-source completeness."
+    - "A contract may be too abstract for local execution."
+  mitigations:
+    - "GPT independently spot-checks load-bearing official sources."
+    - "Issue #92 execution contract and negative fixtures are mandatory."
 
-completion_signal: "CODEX_A_SHARE_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_0022_D0_READY_FOR_GPT_REVIEW"
-after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_D1"
+report_to:
+  issues: [80, 31, 92]
+  pull_requests: [79]
+
+completion_signal: "CODEX_A_SHARE_PIT_DATA_ADMISSION_CONTRACT_0022_D0_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_LOCAL_EXECUTION"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
