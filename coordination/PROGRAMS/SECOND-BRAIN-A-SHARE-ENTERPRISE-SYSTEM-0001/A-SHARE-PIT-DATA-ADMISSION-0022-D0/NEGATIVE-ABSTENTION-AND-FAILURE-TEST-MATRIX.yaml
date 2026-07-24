@@ -1,0 +1,29 @@
+schema_version: '1.0.0'
+cases:
+  - id: NEG-01
+    input: missing research license
+    expected: BLOCKED_BY_POLICY
+  - id: NEG-02
+    input: available_at later than requested_as_of
+    expected: REJECT_OR_QUARANTINE
+  - id: NEG-03
+    input: volume or amount unit unknown
+    expected: NO_FEATURE_SIGNAL_OR_SIMULATION_USE
+  - id: NEG-04
+    input: adjustment or corporate-action lineage absent
+    expected: ABSTAIN
+  - id: NEG-05
+    input: security status missing at event date
+    expected: UNKNOWN_NOT_FALSE
+  - id: NEG-06
+    input: zero or multiple matching rule snapshots
+    expected: UNKNOWN_RULE_SNAPSHOT_AND_ABSTAIN
+  - id: NEG-07
+    input: local file without accepted manifest
+    expected: NO_SOURCE_DECISION
+  - id: NEG-08
+    input: request to write W3 or clear W7
+    expected: DENIED
+  - id: NEG-09
+    input: raw vendor data or absolute path for public Git
+    expected: DENIED

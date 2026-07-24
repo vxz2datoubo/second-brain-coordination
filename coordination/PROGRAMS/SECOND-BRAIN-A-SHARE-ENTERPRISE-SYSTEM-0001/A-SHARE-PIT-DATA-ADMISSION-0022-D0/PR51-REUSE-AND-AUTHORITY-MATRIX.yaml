@@ -1,0 +1,25 @@
+schema_version: '1.0.0'
+authority_rule: REUSE_EXISTING_CANONICAL_AUTHORITIES
+entries:
+  - artifact: SourceManifest
+    canonical_location: PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/schemas/SourceManifest.schema.json
+    disposition: REUSE
+    reason: Source identity, license, privacy, available_at, adjustment and policy declaration already exist.
+  - artifact: AdapterResult
+    canonical_location: PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/schemas/AdapterResult.schema.json
+    disposition: REUSE
+    reason: authority_write false and no_trade_gate true are mandatory.
+  - artifact: real_source_binding_gate
+    canonical_location: PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/local_adapter/contracts.py
+    disposition: REUSE
+    reason: Non-synthetic source stays BLOCKED_BY_POLICY before a later accepted activation.
+  - artifact: W2
+    disposition: READONLY_OWNER
+    ownership: market_data_PIT_and_rules
+  - artifact: W3
+    disposition: READONLY_OWNER
+    ownership: evidence_and_knowledge
+  - artifact: W7
+    disposition: READONLY_OWNER
+    ownership: validation_and_final_risk_veto
+prohibited: [second_manifest_authority, second_replay_runtime, second_evidence_store, second_risk_or_order_runtime]
