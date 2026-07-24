@@ -1,4 +1,4 @@
-schema_version: "8.3"
+schema_version: "8.4"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -34,41 +34,54 @@ review_disposition:
     - id: "C90-R1-D01"
       fact: "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml uses a Shenzhen technical notice instead of the official Shenzhen Trading Rules (2026 revision)."
     - id: "C90-R1-D02"
-      fact: "The register marks Shenzhen and Beijing official pages ACCESS_NOT_AVAILABLE even though official rule pages and effective dates are available."
+      fact: "The register marks Shenzhen and Beijing official pages ACCESS_NOT_AVAILABLE even though the official rule pages, document identifiers and effective dates are available."
 
-required_official_entries:
+independent_gpt_spot_check:
+  checked_at: "2026-07-24"
+  scope: "official exchange pages only; this does not prove historical rule/status completeness"
   SSE_2026:
+    page_access_status: "VERIFIED_ACCESSIBLE"
+    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
     publisher: "上海证券交易所"
     document_id: "上证发〔2026〕41号"
     publication_date: "2026-04-24"
     effective_from: "2026-07-06"
+    supersedes: "上海证券交易所交易规则（2023年修订），上证发〔2023〕32号"
     official_url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml"
-    required_note: "Record the separately listed deferred provisions; effective date does not mean every deferred clause is active."
+    deferred_provision_status: "EXPLICIT_ATTACHMENT_AND_SEPARATE_IMPLEMENTATION_NOTICE_REQUIRED"
   SZSE_2026:
+    page_access_status: "VERIFIED_ACCESSIBLE"
+    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
     publisher: "深圳证券交易所"
     document_id: "深证上〔2026〕551号"
     publication_date: "2026-04-24"
     effective_from: "2026-07-06"
-    official_url: "https://www.szse.cn/lawrules/rule/allrules/bussiness/t20260424_620190.html"
     supersedes: "深圳证券交易所交易规则（2023年修订），深证上〔2023〕98号"
+    official_url: "https://www.szse.cn/lawrules/rule/allrules/bussiness/t20260424_620190.html"
+    deferred_provision_status: "NO_DEFERRED_CLAUSE_CLAIM_FROM_NOTICE; PROVISION_LEVEL_REVIEW_STILL_REQUIRED"
   BSE_2026:
+    page_access_status: "VERIFIED_ACCESSIBLE"
+    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
     publisher: "北京证券交易所"
     document_id: "北证公告〔2026〕17号"
     publication_date: "2026-04-24"
     effective_from: "2026-07-06"
     official_url: "https://www.bse.cn/jygl_list/200028217.html"
-    required_note: "Record clauses whose implementation time is separately notified; do not treat them as active from 2026-07-06."
+    deferred_provision_status: >-
+      Rules 3.6.5 paragraphs 2-3, 3.7.1-3.7.10 and 4.5.1-4.5.4 have separate implementation timing;
+      do not mark them active from 2026-07-06.
+  historical_coverage_status: "UNKNOWN_REMAINS_OPEN"
 
 required_actions:
   - "Reuse existing branch and Draft PR #90; create no replacement PR."
   - "Replace the Shenzhen technical-notice entry with the official Shenzhen Trading Rules entry above."
-  - "Change Shenzhen and Beijing page access status to machine-verified official access; keep historical pre-2026 coverage UNKNOWN where it remains uncollected."
+  - "Correct Shenzhen and Beijing page-access status using the verified official pages; do not infer historical coverage from page access."
   - "Separate page_access_status, document_authority_status, effective_date_status, deferred_provision_status and historical_coverage_status."
   - "Add document identifiers, supersession facts and provision-level deferred-implementation notes for all load-bearing entries."
   - "Update HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml only where needed to bind these evidence-status fields."
-  - "Update UNKNOWN-REGISTRY.yaml: close only the false page-access UNKNOWNs; preserve historical status/rule coverage UNKNOWNs."
-  - "Strengthen validate_d0_admission_contract.py to require SSE/SZSE/BSE official entries, identifiers, dates and deferred-provision status without performing live web access in CI."
-  - "Rerun structural validation, YAML/Python parsing, public-safe scanning and the PR #51 regression suite; record exact results."
+  - "Update UNKNOWN-REGISTRY.yaml: close only false page-access UNKNOWNs; preserve historical status/rule coverage UNKNOWNs."
+  - "Strengthen validate_d0_admission_contract.py to require SSE/SZSE/BSE official entries, identifiers, dates and deferred-provision status without live web access in CI."
+  - "Rerun structural validation, YAML/Python parsing, public-safe scanning and the PR #51 regression suite; record exact commands, versions, exit codes and counts."
   - "Update TEST-RUN-RECEIPT.md, CODEX-FEEDBACK-v2.yaml and AI_HANDOFF.yaml, then post completion to PR #90 and Issues #80/#31/#92."
 
 allowed_changed_files:
@@ -88,12 +101,12 @@ preserve_unchanged:
   - "All other PR #90 contract files unless a direct schema reference requires a bounded edit."
 
 acceptance_gates:
-  - "All three 2026 trading-rule entries point to the official rule pages, not technical notices or secondary summaries."
+  - "All three 2026 trading-rule entries point to official rule pages, not technical notices or secondary summaries."
   - "Document IDs, publication dates, effective dates, supersession and deferred-provision status are explicit."
   - "Page accessibility is not conflated with historical coverage completeness."
   - "No current rule is used to backfill pre-effective history."
   - "No real source is selected, activated or declared admissible."
-  - "Issue #92 remains blocked pending GPT acceptance of PR #90 R1 and PR #91 R1."
+  - "Issue #92 remains blocked pending GPT acceptance of PR #90 R1 and WorkBuddy PR #91 receipt closure."
   - "PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
