@@ -1,4 +1,4 @@
-schema_version: "8.4"
+schema_version: "8.5"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,116 +6,102 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 80
-task_id: "CODEX-A-SHARE-PIT-D0-R1-OFFICIAL-RULE-EVIDENCE-CORRECTION"
+task_id: "CODEX-PR90-R2-STRUCTURED-RULE-REGISTER-AND-REPRODUCIBLE-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【Codex模式：目标模式】PR #90官方规则证据登记修正与准入合同收口R1"
+mode_label: "【Codex模式：目标模式】PR #90规则证据表结构验证、哈希状态与机器回执收口R2"
 mode_reason: >-
-  PR #90的准入合同、PR #51复用、权威边界和Issue #92执行合同已经形成，不需要重做项目计划；
-  当前缺口集中在三家交易所2026交易规则的一手证据登记，其中深交所误登记为技术通知，深交所与北交所又被标记为无法访问。
-  修正范围、官方文档和验收标准明确，因此使用目标模式。
+  PR #90 R1已经正确修正三家交易所正式规则、页面访问状态、暂缓条款和历史覆盖UNKNOWN，
+  当前剩余问题仅为逐条结构验证、合同与证据表字段一致性、文档哈希状态和可复现测试回执。
+  输入、文件范围和成功标准均已固定，因此使用目标模式，不重做D0合同。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 80
 pull_request: 90
 branch: "codex/a-share-pit-data-admission-0022-d0"
-reviewed_head: "e091aa40cb706469a2a91233976cb49b4054e0ab"
+r1_reviewed_head: "634bbe39942514bbb11734d6dc36e8eb703069f3"
 direct_main_write: false
 auto_merge: false
 
 review_disposition:
-  classification: "ACCEPTED_WITH_BOUNDED_REMEDIATION"
-  accepted_findings:
-    - "PR #51 remains the sole SourceManifest and policy-admission authority."
-    - "No real source was selected or declared admissible."
-    - "PIT, field, unit, adjustment, historical-status and W2/W3/W7 ownership contracts are structurally present."
-    - "Issue #92 is correctly queued for later WorkBuddy read-only execution."
-  blocking_defects:
-    - id: "C90-R1-D01"
-      fact: "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml uses a Shenzhen technical notice instead of the official Shenzhen Trading Rules (2026 revision)."
-    - id: "C90-R1-D02"
-      fact: "The register marks Shenzhen and Beijing official pages ACCESS_NOT_AVAILABLE even though the official rule pages, document identifiers and effective dates are available."
-
-independent_gpt_spot_check:
-  checked_at: "2026-07-24"
-  scope: "official exchange pages only; this does not prove historical rule/status completeness"
-  SSE_2026:
-    page_access_status: "VERIFIED_ACCESSIBLE"
-    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
-    publisher: "上海证券交易所"
-    document_id: "上证发〔2026〕41号"
-    publication_date: "2026-04-24"
-    effective_from: "2026-07-06"
-    supersedes: "上海证券交易所交易规则（2023年修订），上证发〔2023〕32号"
-    official_url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml"
-    deferred_provision_status: "EXPLICIT_ATTACHMENT_AND_SEPARATE_IMPLEMENTATION_NOTICE_REQUIRED"
-  SZSE_2026:
-    page_access_status: "VERIFIED_ACCESSIBLE"
-    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
-    publisher: "深圳证券交易所"
-    document_id: "深证上〔2026〕551号"
-    publication_date: "2026-04-24"
-    effective_from: "2026-07-06"
-    supersedes: "深圳证券交易所交易规则（2023年修订），深证上〔2023〕98号"
-    official_url: "https://www.szse.cn/lawrules/rule/allrules/bussiness/t20260424_620190.html"
-    deferred_provision_status: "NO_DEFERRED_CLAUSE_CLAIM_FROM_NOTICE; PROVISION_LEVEL_REVIEW_STILL_REQUIRED"
-  BSE_2026:
-    page_access_status: "VERIFIED_ACCESSIBLE"
-    document_authority_status: "VERIFIED_OFFICIAL_EXCHANGE_RULE"
-    publisher: "北京证券交易所"
-    document_id: "北证公告〔2026〕17号"
-    publication_date: "2026-04-24"
-    effective_from: "2026-07-06"
-    official_url: "https://www.bse.cn/jygl_list/200028217.html"
-    deferred_provision_status: >-
-      Rules 3.6.5 paragraphs 2-3, 3.7.1-3.7.10 and 4.5.1-4.5.4 have separate implementation timing;
-      do not mark them active from 2026-07-06.
-  historical_coverage_status: "UNKNOWN_REMAINS_OPEN"
+  classification: "R1_CONTENT_ACCEPTED_STRUCTURE_AND_RECEIPT_R2_REQUIRED"
+  accepted_facts:
+    - "R1 is exactly one commit ahead of the prior reviewed head and modifies only the seven authorized files."
+    - "The Shenzhen technical notice was replaced by the official 2026 Trading Rules entry."
+    - "SSE, SZSE and BSE document IDs, official URLs, publication dates, effective dates and deferred-provision statuses are present."
+    - "Historical security-status and rule coverage remain UNKNOWN; no current rule was used to backfill history."
+    - "No real source was selected or activated; Issue #92 remains queued."
+    - "The reported PR #51 regression result is 61 tests passed on Python 3.13.13."
+  remaining_defects:
+    - id: "C90-R2-D01"
+      fact: >-
+        validate_d0_admission_contract.py performs global substring checks. It does not prove that exactly one SSE, SZSE and BSE entry exists,
+        that every required field belongs to the correct entry, or that duplicate YAML keys are rejected.
+    - id: "C90-R2-D02"
+      fact: >-
+        HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml requires document_identity_and_hash and provision implementation semantics,
+        while the register supplies document_id/URL and deferred_provision_status without an explicit immutable-document hash status.
+        Missing capture/hash evidence must be represented as UNKNOWN, not silently omitted or invented.
+    - id: "C90-R2-D03"
+      fact: >-
+        TEST-RUN-RECEIPT.md names several checks generically but lacks exact commands for YAML parsing, AST parsing and public-safe scanning,
+        plus timestamps, scanned-file counts and normalized stdout/stderr hashes.
 
 required_actions:
-  - "Reuse existing branch and Draft PR #90; create no replacement PR."
-  - "Replace the Shenzhen technical-notice entry with the official Shenzhen Trading Rules entry above."
-  - "Correct Shenzhen and Beijing page-access status using the verified official pages; do not infer historical coverage from page access."
-  - "Separate page_access_status, document_authority_status, effective_date_status, deferred_provision_status and historical_coverage_status."
-  - "Add document identifiers, supersession facts and provision-level deferred-implementation notes for all load-bearing entries."
-  - "Update HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml only where needed to bind these evidence-status fields."
-  - "Update UNKNOWN-REGISTRY.yaml: close only false page-access UNKNOWNs; preserve historical status/rule coverage UNKNOWNs."
-  - "Strengthen validate_d0_admission_contract.py to require SSE/SZSE/BSE official entries, identifiers, dates and deferred-provision status without live web access in CI."
-  - "Rerun structural validation, YAML/Python parsing, public-safe scanning and the PR #51 regression suite; record exact commands, versions, exit codes and counts."
-  - "Update TEST-RUN-RECEIPT.md, CODEX-FEEDBACK-v2.yaml and AI_HANDOFF.yaml, then post completion to PR #90 and Issues #80/#31/#92."
+  - "Reuse the existing branch and Draft PR #90; create no replacement PR and do not redesign the contract package."
+  - "Replace global substring-only validation with structural YAML validation using a duplicate-key-rejecting loader."
+  - "Require the exact entry-id set SSE-2026-TRADING-RULES, SZSE-2026-TRADING-RULES and BSE-2026-TRADING-RULES, with exactly one entry for each."
+  - "Validate per entry: publisher, document_id, exact official_url, publication_date, effective_from, page_access_status, document_authority_status, effective_date_status, deferred_provision_status and historical_coverage_status."
+  - "Validate SSE and SZSE supersession identities and the BSE deferred-clause set at the correct entry, not merely somewhere in the file."
+  - >-
+    Align the contract and evidence register for document identity/hash semantics. Record an actual public-safe content hash only if a concrete immutable capture was made;
+    otherwise record document_hash_status=UNKNOWN_NOT_CAPTURED (or equivalent), preserve the UNKNOWN and prohibit executable historical use.
+  - "Make deferred_provision_status and historical_coverage_status explicit required fields, or provide a documented one-to-one mapping to the existing contract field names."
+  - "Keep page accessibility separate from historical coverage and keep UNK-0022-04 open."
+  - "Update UNK-0022-05 to refer to WorkBuddy PR #91 R2 rather than a generic Issue #89 result."
+  - "Rerun the structural validator, duplicate-key YAML parser, Python AST parser, public-safe/path scan and PR #51 regression suite."
+  - "For each command record exact command, workspace alias, OS, Python/dependency versions, start/end timestamps, exit code, counts and normalized stdout/stderr SHA-256."
+  - "Use a tested_head/receipt_head model: run checks at one concrete full tested_head; any later receipt_head may change only receipt/feedback/handoff files and must list the full diff."
+  - "Update TEST-RUN-RECEIPT.md, CODEX-FEEDBACK-v2.yaml and AI_HANDOFF.yaml, post completion to PR #90 and Issues #80/#31/#92, then stop."
 
 allowed_changed_files:
-  - "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml"
-  - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml"
-  - "UNKNOWN-REGISTRY.yaml"
-  - "validate_d0_admission_contract.py"
-  - "TEST-RUN-RECEIPT.md"
-  - "CODEX-FEEDBACK-v2.yaml"
-  - "AI_HANDOFF.yaml"
+  tested_head:
+    - "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml"
+    - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml"
+    - "UNKNOWN-REGISTRY.yaml"
+    - "validate_d0_admission_contract.py"
+    - "TEST-RUN-RECEIPT.md"
+    - "CODEX-FEEDBACK-v2.yaml"
+    - "AI_HANDOFF.yaml"
+  receipt_head_only:
+    - "TEST-RUN-RECEIPT.md"
+    - "CODEX-FEEDBACK-v2.yaml"
+    - "AI_HANDOFF.yaml"
 
 preserve_unchanged:
-  - "No real source selection or admission decision."
-  - "PR #51 authority and W2/W3/W7 ownership."
-  - "Issue #92 queued state."
+  - "PR #51 remains the sole SourceManifest and policy-admission authority."
+  - "No real source selection, local source inspection or admission decision."
+  - "W2/W3/W7 ownership and Issue #92 queued state."
   - "QCLAW PR #84 semantics and WorkBuddy PR #91 evidence."
-  - "All other PR #90 contract files unless a direct schema reference requires a bounded edit."
+  - "All other PR #90 files."
 
 acceptance_gates:
-  - "All three 2026 trading-rule entries point to official rule pages, not technical notices or secondary summaries."
-  - "Document IDs, publication dates, effective dates, supersession and deferred-provision status are explicit."
-  - "Page accessibility is not conflated with historical coverage completeness."
-  - "No current rule is used to backfill pre-effective history."
-  - "No real source is selected, activated or declared admissible."
-  - "Issue #92 remains blocked pending GPT acceptance of PR #90 R1 and WorkBuddy PR #91 receipt closure."
+  - "The three official entries are structurally parsed, unique and individually validated against exact expected facts."
+  - "Duplicate YAML keys fail validation."
+  - "Document hash/capture status is explicit and no hash is fabricated."
+  - "Historical coverage UNKNOWN remains open and blocks historical labels, replay and backtest."
+  - "All commands have concrete tested_head, exact command, environment, exit code, counts and output hashes."
+  - "The tested_head-to-receipt_head delta is receipt-only and explicitly enumerated."
+  - "No source is selected, activated or declared admissible; Issue #92 remains blocked."
   - "PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
-  - "No local data inspection, source activation, adapter execution, labels, replay or backtest."
+  - "No local data inspection, adapter execution, source activation, labels, replay or backtest."
   - "No modification of PR #84/#77/#79 or WorkBuddy PR #91."
-  - "No claim that official 2026 pages prove historical security-status coverage."
+  - "No current-rule backfill into pre-effective history and no fabricated document hash."
   - "No merge or auto-merge."
 
-completion_signal: "CODEX_PR90_R1_OFFICIAL_RULE_EVIDENCE_CORRECTED_FOR_GPT_REVIEW"
+completion_signal: "CODEX_PR90_R2_STRUCTURED_RULE_REGISTER_AND_RECEIPTS_CLOSED_FOR_GPT_REVIEW"
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_ISSUE92_RELEASE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
