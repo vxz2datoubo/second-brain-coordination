@@ -1,4 +1,4 @@
-schema_version: "9.0"
+schema_version: "9.1"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -23,22 +23,49 @@ parent_program: 31
 source_issue: 23
 pull_request: null
 branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+reviewed_or_base_head: "742bf80c48087f1062886e2c437f2063a5359e5f"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 1
-route_issued_at: "2026-07-25T04:30:00+08:00"
+route_epoch: 2
+route_issued_at: "2026-07-25T06:50:00+08:00"
 completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D0_INTEGRATED_PLAN_READY_FOR_GPT_REVIEW"
+supersedes:
+  - "CODEX-PR90-R2-STRUCTURED-RULE-REGISTER-AND-REPRODUCIBLE-RECEIPT-CLOSURE"
+  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1@route_epoch:1_INCOMPLETE_CONTROL_PACKET"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal]
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
+
+dependencies:
+  issue_22: "COMPLETED"
+  issue_26: "COMPLETED"
+  pr_29: "MERGED"
+  pr_93: "DRAFT_CANDIDATE_INPUT_ONLY_NOT_BLOCKING"
+  qclaw_parallel_packet: "PARALLEL_NOT_BLOCKING_D0"
+  workbuddy_pr91: "PARALLEL_NOT_BLOCKING_D0"
+
+cleared_dependencies:
+  - "Issue #22 is closed as completed."
+  - "Issue #26 is closed as completed."
+  - "PR #29 is merged into main."
+  - "The former QUEUED dependency gate on Issue #23 is therefore cleared."
+
+task_weight: "HEAVY"
+research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
+exploration_budget:
+  main_delivery_percent: 85
+  proactive_discovery_percent: 10
+  system_evolution_proposal_percent: 5
+  max_parallel_subplans: 3
+  no_scope_expansion_without_gpt: true
 
 resource_and_effort:
   priority_share_percent: 60
@@ -49,11 +76,53 @@ resource_and_effort:
   discovery_percent: 10
   system_evolution_proposal_percent: 5
 
-cleared_dependencies:
-  - "Issue #22 is closed as completed."
-  - "Issue #26 is closed as completed."
-  - "PR #29 is merged into main."
-  - "The former QUEUED dependency gate on Issue #23 is therefore cleared."
+amed_task_contract:
+  task_weight: "HEAVY"
+  research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
+  exploration_budget:
+    main_delivery_percent: 85
+    proactive_discovery_percent: 10
+    system_evolution_proposal_percent: 5
+  unplanned_improvement_permissions:
+    A_DIRECT: "Mechanical corrections and clarifications inside the authorized D0 delivery directory."
+    B_IMPLEMENT_AND_REPORT: "Small read-only audit scripts or temporary local checks that are not committed and do not touch real data."
+    C_PROPOSAL_ONLY: "New canonical runtimes, shared governance layers, live data adapters, large-scale MARL or cross-agent architecture changes."
+    D_STOP_AND_ESCALATE: "Credential exposure, real source activation, account/order/trade paths, history rewrite, cross-branch edits or destructive local changes."
+
+task_impact_forecast:
+  first_principles_goal: >-
+    Convert narrative participant categories into a research-only, machine-readable and falsifiable multi-agent game-engine plan
+    where identity remains latent, actions are constrained by A-share rules and inventory, advantages and weaknesses activate by state,
+    claims carry source/interest/verifiability metadata, and every inference is calibrated against replay and counterfactual evidence.
+  expected_positive_effects:
+    - "Turn the four-family idea into testable ontologies, state/action contracts and staged implementation gates."
+    - "Reduce identity-story hallucination through hidden types, posterior probabilities and misclassification matrices."
+    - "Integrate participant alignment, mismatch and narrative ledgers into the wider trading-system blueprint without creating direct signals."
+    - "Expose data, replay, simulator, validation and compute gaps before expensive implementation or MARL training."
+    - "Produce a recoverable plan and protected-blueprint backwrite delta that later agents can execute independently."
+  expected_negative_effects:
+    - "A large documentation surface may grow faster than executable capability."
+    - "Simulated behavior may look persuasive and be mistaken for real participant intent."
+    - "Overly broad ontology design may duplicate existing feature, replay or evidence modules."
+    - "The plan may reveal that important calibration data is unavailable or historically incomplete."
+  risk_gates:
+    - "Rule-based MVP must precede Level-k self-play or MARL."
+    - "No behavior trace may be treated as certain real identity."
+    - "No unavailable data, local source, replay result, backtest or performance evidence may be fabricated."
+    - "Any proposal touching credentials, accounts, orders, real source activation or live trading is an immediate stop."
+    - "Any need to modify PR #93, QCLAW, WorkBuddy or accepted PR #90 files is an immediate cross-lane escalation."
+  stop_conditions:
+    - "Latest remote main no longer matches route_epoch 2 or the task lease fields."
+    - "The current local worktree cannot be isolated without overwriting or mixing uncommitted changes."
+    - "Credential or secret material is encountered."
+    - "The task drifts into real data activation, replay/backtest execution, MARL training, broker/account/order or trade operations."
+    - "A second canonical simulator, memory runtime or evidence authority would be created instead of reusing the current system of record."
+  execution_observations_required:
+    - "Report repository reuse facts and UNKNOWNs at 20/40/60/80/100 checkpoints."
+    - "Record actual positive and negative effects, unexpected findings and rejected alternatives."
+    - "Every metric proposal must state inputs, confounders, calibration method, failure conditions and forbidden downstream use."
+    - "Every unavailable dependency remains explicit in UNKNOWN-REGISTRY.yaml."
+  net_value_assessment: "POSITIVE_HIGH_IF_BOUNDED_TO_D0_PLAN_AND_REUSE_AUDIT"
 
 frozen_inputs:
   canonical_blueprints:
@@ -151,6 +220,12 @@ mandatory_deliverables:
     - "CODEX-FEEDBACK-v2.yaml"
     - "AI_HANDOFF.yaml"
 
+allowed_changed_files:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/**"
+allowed_change_rule: >-
+  Only new or task-owned files under the exact D0 base directory may be committed. Existing blueprints, active routers,
+  PR #93, PR #90, QCLAW, WorkBuddy and other agent branches are read-only. Temporary audit scripts must remain untracked.
+
 validation_requirements:
   - "All YAML/JSON parses and duplicate keys are rejected."
   - "Every blueprint requirement maps to at least one deliverable and acceptance gate."
@@ -159,15 +234,40 @@ validation_requirements:
   - "A file-surface manifest and public-safety scan cover the complete delivered diff."
   - "The package contains no credentials, account information, order path or real trade execution."
 
+acceptance_gates:
+  - "Lease acknowledgement exactly matches route_epoch 2 and reviewed_or_base_head."
+  - "A new isolated branch and Draft PR are created without modifying or cleaning the user's dirty local worktree."
+  - "The complete committed file surface stays under the authorized D0 directory."
+  - "All mandatory deliverables exist or are explicitly marked NOT_APPLICABLE with rationale accepted by GPT."
+  - "All YAML/JSON/JSONL parses and duplicate keys fail closed."
+  - "The reuse audit identifies existing systems of record and prevents a second simulator, replay engine, evidence authority or memory runtime."
+  - "Participant identity remains latent; no observed behavior is treated as certain real identity."
+  - "Every action and metric contract contains constraints, evidence, confounders, failure conditions and forbidden downstream use."
+  - "A-share call auction, continuous auction, price limits, T+1, suspension, nonfill and cross-day inventory are explicitly represented in the plan."
+  - "Rule-based MVP precedes Level-k, self-play and MARL behind explicit capability gates."
+  - "Replay/OOS/walk-forward/cost/slippage/capacity/probability-calibration and counterfactual validation plans are concrete and falsifiable."
+  - "PR #93 remains candidate-only and no QCLAW/WB/Codex-accepted branch is modified."
+  - "The complete delivery surface passes public-safety and secret-value scanning."
+  - "Checkpoints 20/40/60/80/100, tested/receipt heads, commands, exit codes and stdout/stderr hashes are recorded."
+  - "No source activation, labels, replay/backtest execution, performance claim, account/order/trade, merge or auto-merge occurs."
+
 forbidden:
   - "No real source activation, local data admission, labels, replay or backtest execution in this D0 task."
   - "No large-scale MARL training or production simulator implementation."
   - "No identity certainty from market behavior."
   - "No direct trading signal, position recommendation, broker/account/order integration or performance claim."
-  - "No edits to PR #93 or QCLAW/WB branches."
+  - "No edits to PR #93, PR #90 or QCLAW/WorkBuddy branches."
+  - "No overwrite, stash, reset, clean or checkout operation that would disturb the user's current dirty local worktree."
   - "No merge or auto-merge."
+
+notes:
+  - "The local F:/aidanao worktree may contain unrelated uncommitted changes. Codex must not touch or clean it."
+  - "Use a separate worktree or clean clone rooted at reviewed_or_base_head."
+  - "PR #93 is readable only at its frozen candidate head and is not an authority source."
+  - "QCLAW runs independently; Codex may reserve integration slots but must not consume unaccepted QCLAW output."
+  - "Issue #92 remains blocked and is outside this task."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T04:30:00+08:00"
+updated_at: "2026-07-25T06:50:00+08:00"
