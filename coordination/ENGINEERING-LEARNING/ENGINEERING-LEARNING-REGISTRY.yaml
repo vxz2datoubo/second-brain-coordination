@@ -104,6 +104,48 @@ records:
       - "Issue #32"
       - "Issue #30"
     owner: "GPT"
+  - learning_id: "ELR-0004"
+    title: "任务领取和完成都必须绑定远端新鲜租约，开工时同步一次不足以防止旧回执复活"
+    source_task: "WORKBUDDY-PR91-R3-SELF-AUDITING-SCANNER-AND-TRUE-TWO-HEAD-CLOSURE"
+    source_issue: 89
+    source_pr: 91
+    source_commit: "1946be22345300c6bad2e12f8acdd2ce75945584"
+    observation: >-
+      GPT已经把活动任务从R2升级为R3并更新远端main，但WorkBuddy随后仍向PR #91发布旧R2完成回执，
+      且没有新的R3提交。现有路由只强制开工前读取最新main，没有强制交付前重新校验任务身份与完成信号。
+    causal_hypothesis: >-
+      为活动任务增加单调route_epoch，并要求执行前领取租约、交付前重新读取远端main，
+      可以阻止延迟回执、旧本地缓存和长任务竞态覆盖当前控制面状态。
+    supporting_evidence:
+      - "远端ACTIVE-WORKBUDDY-TASK已经指向R3，PR #91 head仍是被拒绝的R2 head。"
+      - "R3发布后出现的评论仍声明R2完成，并重复无效的ce1704c→1946be2两头模型。"
+      - "WORKBUDDY-TASK-ROUTER此前没有交付前二次同步、route_epoch或StaleRoutePacket规则。"
+    opposing_evidence:
+      - "目前只在WorkBuddy长任务交付中直接观察到一次，其他Agent尚未复现。"
+      - "如果Agent运行时原生提供原子任务租约，本仓库协议可能只是重复保护。"
+    applicability_conditions:
+      - "任务可能在执行期间被GPT修订、拒绝、停止或升级。"
+      - "Agent存在本地缓存、长时间运行、延迟网络或异步评论提交。"
+    failure_conditions:
+      - "执行环境能以原子CAS方式锁定任务版本，并在服务端拒绝旧版本完成信号。"
+    risks:
+      - "增加一次远端读取和回执字段，轻量任务成本略升。"
+      - "route_epoch管理不当可能造成不必要停工，因此仅对READY执行任务强制。"
+    maturity: "HYPOTHESIS"
+    replication_count: 1
+    next_validation:
+      - "让WorkBuddy领取R3时回显route_epoch并在交付前再次校验。"
+      - "在后续Codex或QCLAW任务中验证较低route_epoch回执会被自动降级为历史证据。"
+      - "Issue #30增加过期完成信号、执行中任务被停止和错误tested-head的回归用例。"
+    affected_assets:
+      - "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+      - "coordination/WORKBUDDY-TASK-ROUTER.md"
+      - "coordination/CODEX-TASK-ROUTER.md"
+      - "coordination/QCLAW-TASK-ROUTER.md"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "Issue #89"
+      - "Issue #30"
+    owner: "GPT"
 
 rules:
   - "Single-task positive surprise cannot be promoted beyond HYPOTHESIS without strong independent mechanism evidence."
@@ -112,4 +154,4 @@ rules:
   - "Standards must be downgraded when contradicted by new evidence or environment changes."
   - "Lessons must be linked to the source Issue, PR, commit, and affected task templates or blueprints."
 
-next_learning_id: "ELR-0004"
+next_learning_id: "ELR-0005"
