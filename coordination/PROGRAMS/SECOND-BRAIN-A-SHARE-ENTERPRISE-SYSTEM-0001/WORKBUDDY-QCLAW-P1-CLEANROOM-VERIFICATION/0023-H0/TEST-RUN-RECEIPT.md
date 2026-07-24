@@ -1,33 +1,27 @@
-# WorkBuddy Cleanroom Test Run Receipt (R4)
+# WorkBuddy Cleanroom Test Run Receipt (R5)
 
 | Field | Value |
 |-------|-------|
-| Version | R4 |
-| Tested head | 81de4da53e14ddd35a7d3afca0a3f4a4a9747080 |
-| Receipt head | TBD (to be filled after receipt commit) |
-| Command | python INDEPENDENT-VERIFICATION-SCRIPT.py |
+| Version | R5 |
+| receipt_head_ref | THIS_COMMIT |
+| receipt_parent_tested_head_full_sha | 05c96d97d4008f2599517cf3f3daf976333b4ee3 |
+| reviewed_to_tested_changed | INDEPENDENT-VERIFICATION-SCRIPT.py (modify) + 3 deletions |
 | OS | Windows |
 | Python | 3.13.14 |
 
-## R4 Path Scan (fail-closed, 18 files including self)
+## Delivery Surface Scan (full diff, not package-only)
 | Field | Value |
 |-------|-------|
+| Delivery files | 4 |
 | Findings | 0 (CLEAN) |
-| Exit code | 0 |
-| Negative tests | 4/4 PASS |
-| Manifest hash | 5d4d63aca3bdd376a68609492167bb8c553f6ed47b69180af477a1e259d27fd3 |
+| Manifest hash | 785f0347e58037f149b8c3833f7e1f258ac1de9e2052a3b14c5d4665f71fbcab |
+
+## Functional Negtests
+| Test | Result |
+|------|--------|
+| Injected drive path | PASS (detected) |
+| Missing QCLAW files | PASS (validator exit 1) |
+| Fail-closed findings→exit | PASS |
 
 ## QCLAW Reproduction
-| Field | Value |
-|-------|-------|
-| Head | 63c344084d9af86cb26c1cc65a30d409fefa872f |
-| Files | 15 (ls-tree verified) |
-| Validator | BYTE-IDENTICAL, 37/0/0 |
-| Combined hash | dc815fc10d3d6eb5164587b4bcc9f3247bb8d30b5e9533f873f5ba14982488f5 |
-
-## R4 Changes
-- _r2_scanner.py: GIT-DELETED (not tombstone)
-- Fail-closed: any finding/missing file/validator fail → exit 1
-- Google token + credential assignment patterns added
-- OS auto-detected (not hardcoded "Windows")
-- git ls-tree manifest verification
+37 PASS / 0 FAIL / 0 SKIP | Combined: dc815fc10d3d6eb516

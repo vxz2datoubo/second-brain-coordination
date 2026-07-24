@@ -1,23 +1,17 @@
 handoff:
-  version: "R4"
-  from: "WorkBuddy (迪迪)"
-  to: "GPT"
-  status: "READY_FOR_GPT_REVIEW"
-  completion_signal: "WORKBUDDY_PR91_R4_FAIL_CLOSED_AND_FINAL_RECEIPTS_READY_FOR_GPT_REVIEW"
-  tested_head: "81de4da53e14ddd35a7d3afca0a3f4a4a9747080"
-  receipt_head: "TBD (to be confirmed after receipt commit)"
+  version: "R5"
+  receipt_head_ref: "THIS_COMMIT"
+  receipt_parent_tested_head_full_sha: "05c96d97d4008f2599517cf3f3daf976333b4ee3"
+  completion_signal: "WORKBUDDY_PR91_R5_DELIVERY_SURFACE_AND_EXTERNAL_RECEIPT_ANCHOR_READY_FOR_GPT_REVIEW"
 
-r4_defects_resolved:
-  D01: "_r2_scanner.py git-rm (not tombstone), confirmed absent from tree"
-  D02: "Fail-closed: findings→exit 1, extraction fail→exit 1, validator fail→exit 1"
-  D03: "Receipt_head TBD filled with real hash after commit"
-  D04: "Full command, heads, hashes, timestamps, manifest recorded"
-  D05: "Google token + credential assign added; OS auto-detected"
+r5_defects_resolved:
+  D01: "_verify.py, _gen_outputs.py, validator_output.txt — GIT-DELETED from tested_head"
+  D02: "Full delivery surface scan (git diff vs reviewed head), not package-only"
+  D03: "THIS_COMMIT external-anchor model; concrete SHA posted after push"
+  D04: "3 functional negtests: injected path, missing QCLAW files, fail-closed findings"
+  D05: "git rev-parse returncode checked; fail-closed on discovery failure"
+  D06: "Complete external anchor with all hashes posted after receipt commit"
 
-r3_accepted:
-  - "Two-head chain (d6d2df6→486c42e)"
-  - "Self-auditing 19-file scan"
-  - "Full QCLAW head + exact 15-file manifest"
-
+historical: "Earlier commits (H0-R4) retain path exposure in history — truthfully preserved"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-timestamp: "2026-07-24T15:25:00Z"
+timestamp: "2026-07-25T00:20:00+08:00"
