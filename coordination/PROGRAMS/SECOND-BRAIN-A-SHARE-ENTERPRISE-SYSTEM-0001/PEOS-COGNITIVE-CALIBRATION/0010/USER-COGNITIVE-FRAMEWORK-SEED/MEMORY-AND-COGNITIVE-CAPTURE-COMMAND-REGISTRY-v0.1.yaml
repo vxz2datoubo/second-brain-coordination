@@ -1,0 +1,174 @@
+schema_version: "0.1"
+registry_id: "MEMORY-AND-COGNITIVE-CAPTURE-COMMAND-REGISTRY-0001"
+status: "BLUEPRINT_INPUT_NON_CANONICAL"
+boundary: "research_only / no_wip_expansion / public_safe_abstraction_only"
+user_authorization:
+  autonomous_candidate_capture: true
+  authorization_level: "HIGHEST_WITHIN_PRIVACY_SAFETY_AND_REVOCATION_BOUNDARIES"
+  user_can_pause: true
+  user_can_review: true
+  user_can_correct: true
+  user_can_revoke: true
+  user_can_delete: true
+
+authorities:
+  memory_track:
+    canonical_owner: "W3"
+    system_name: "Shared Interaction and Episodic Memory Capture System"
+  cognitive_track:
+    canonical_owner: "W10"
+    system_name: "Personal Cognitive Framework and Mastery System"
+  raw_source_rule: "ONE_RAW_SOURCE_MANY_DERIVED_VIEWS"
+
+commands:
+  - command_id: "CMD-MEMORY-CAPTURE"
+    primary_phrase: "记忆采集"
+    aliases:
+      - "把这个录入记忆系统"
+      - "记住我们刚才这段经历"
+      - "把这个作为我们的对话记忆"
+      - "以后从这里继续"
+      - "把这个约定记下来"
+    route: "MEMORY_TRACK_ONLY"
+    default_outputs:
+      - "InteractionEpisode"
+      - "AgreementMemory"
+      - "ProjectMilestoneMemory"
+      - "UnresolvedThreadMemory"
+      - "CorrectionMemory"
+    prohibit_by_default:
+      - "stable_trait_inference"
+      - "cognitive_mastery_upgrade"
+      - "public_raw_transcript_upload"
+
+  - command_id: "CMD-COGNITIVE-CAPTURE"
+    primary_phrase: "知识框架采集"
+    aliases:
+      - "把这个录入知识框架"
+      - "分解一下我的知识框架"
+      - "把刚才的观点放进认知框架"
+      - "记录我的掌握度和缺口"
+      - "把这个未知未知记下来"
+    route: "COGNITIVE_TRACK_ONLY"
+    default_outputs:
+      - "CognitiveObservation"
+      - "KnowledgeMasteryCandidate"
+      - "ReasoningPatternCandidate"
+      - "CognitiveGap"
+      - "UnknownRegistryEntry"
+      - "LearningTask"
+    required_separation:
+      - "user_belief_vs_world_fact"
+      - "observation_vs_stable_trait"
+      - "supporting_vs_opposing_evidence"
+
+  - command_id: "CMD-DUAL-CAPTURE"
+    primary_phrase: "双重采集"
+    aliases:
+      - "这段既录入记忆，也录入知识框架"
+      - "经历和认知都保存"
+      - "两条轨道都采集"
+    route: "MEMORY_AND_COGNITIVE_LINKED"
+    output_link:
+      shared_field: "source_episode_id"
+      duplicate_raw_source: false
+
+  - command_id: "CMD-MEMORY-ONLY-NO-ANALYSIS"
+    primary_phrase: "只记经历，不分析"
+    route: "MEMORY_TRACK_ONLY_STRICT"
+
+  - command_id: "CMD-COGNITIVE-ONLY-NO-EPISODE"
+    primary_phrase: "只进知识框架，不记对话"
+    route: "COGNITIVE_TRACK_ONLY_STRICT"
+
+  - command_id: "CMD-REVIEW-LAST-CAPTURE"
+    primary_phrase: "查看刚才采集了什么"
+    route: "SHOW_LAST_CAPTURE_SUMMARY"
+
+  - command_id: "CMD-REVOKE-LAST-MEMORY"
+    primary_phrase: "撤销上次记忆采集"
+    route: "REVOKE_LAST_MEMORY_CANDIDATE"
+
+  - command_id: "CMD-REVOKE-LAST-COGNITIVE"
+    primary_phrase: "撤销上次知识框架采集"
+    route: "REVOKE_LAST_COGNITIVE_CANDIDATE"
+
+  - command_id: "CMD-CORRECT-MEMORY"
+    primary_phrase: "修正记忆"
+    argument_pattern: "修正记忆：<correction>"
+    route: "VERSIONED_MEMORY_CORRECTION"
+
+  - command_id: "CMD-CORRECT-COGNITIVE"
+    primary_phrase: "修正知识框架"
+    argument_pattern: "修正知识框架：<correction>"
+    route: "VERSIONED_COGNITIVE_CORRECTION"
+
+  - command_id: "CMD-PAUSE-AUTO-CAPTURE"
+    primary_phrase: "暂停自动采集"
+    route: "DISABLE_AUTONOMOUS_CAPTURE"
+
+  - command_id: "CMD-RESUME-AUTO-CAPTURE"
+    primary_phrase: "恢复自动采集"
+    route: "ENABLE_AUTONOMOUS_CAPTURE"
+
+autonomous_capture_policy:
+  enabled: true
+  levels:
+    A0_IGNORE:
+      description: "No durable value; do not capture."
+    A1_SILENT_CANDIDATE:
+      description: "Low-sensitivity durable candidate; summarize later when natural."
+    A2_CAPTURE_AND_NOTIFY:
+      description: "Important project, preference, correction, insight, gap or continuation point; capture candidate and briefly notify user."
+    A3_CONFIRM_FIRST:
+      description: "Sensitive, identity-rich, third-party, intimate, health, legal, financial or public-upload content; require confirmation or private controlled storage."
+  autonomous_memory_triggers:
+    - "durable interaction preference"
+    - "explicit agreement or protocol"
+    - "project milestone or architectural decision"
+    - "important correction"
+    - "unresolved thread with future continuation value"
+    - "shared conversation reference with durable recall value"
+  autonomous_cognitive_triggers:
+    - "transferable insight"
+    - "new terminology or theory mapping"
+    - "new mastery evidence"
+    - "new cognitive gap"
+    - "new known unknown or unknown unknown"
+    - "repeated reasoning pattern across contexts"
+    - "strong counterexample or invalidation condition"
+  forbidden_autonomous_actions:
+    - "upload private raw dialogue to public GitHub"
+    - "create permanent trait from one conversation"
+    - "merge to main"
+    - "create parallel W3 or W10 runtime"
+    - "override user revocation or deletion"
+    - "treat model inference as source evidence"
+    - "preempt Codex or WorkBuddy active route"
+
+privacy_routing:
+  PUBLIC_SAFE:
+    github_allowed: true
+    raw_transcript_allowed: false
+  PRIVATE:
+    github_allowed: false
+    storage_target: "local_or_access_controlled_memory"
+  SENSITIVE_RESTRICTED:
+    github_allowed: false
+    confirmation_required: true
+    storage_target: "explicitly_authorized_private_layer_only"
+
+cross_track_rules:
+  - "Memory track stores what happened and where to continue."
+  - "Cognitive track stores what was understood, how well, and what remains missing."
+  - "One memory episode may support multiple cognitive candidates."
+  - "Cognitive inference cannot overwrite memory evidence."
+  - "User correction may update both tracks through versioned records."
+  - "Retrieval may return both tracks but must label each source and epistemic status."
+
+implementation_cadence:
+  current_stage: "T0_BLUEPRINT_REGISTRATION_ONLY"
+  codex_activation: "AFTER_GOVERNANCE_RELEASE_AND_NON_DUPLICATION_AUDIT"
+  workbuddy_activation: "AFTER_CONTRACT_CLARITY_FOR_LOCAL_PRIVATE_INTEGRATION"
+  qclaw_role: "KNOWLEDGE_SUPPORT_ONLY"
+  no_current_wip_expansion: true
