@@ -1,4 +1,4 @@
-schema_version: "2.0"
+schema_version: "2.1"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -8,24 +8,22 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 active_issue: 89
 task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】QQ P1审计包固定head清洁室复现、证据保全与非语义交接核验"
+mode_label: "【WorkBuddy模式：目标模式】QQ P1固定head最小充分清洁室核验"
 mode_reason: >-
-  QQ的42问评分、4个阻断判断、0.491分数和条件接受建议已经形成，不能交给被审对象Codex修改；
-  剩余事项是固定head、文件分类、路径、Git blob、SHA-256、必交付命名、验证器执行和14/15哈希矛盾等确定性核验，
-  WorkBuddy可在独立本机环境中按固定输入完成，因此使用目标模式。
+  QQ的语义审计已冻结；剩余事项均为固定输入下的文件身份、变更面、哈希、路径、必交付名称和验证器执行。
+  这些是确定性机器核验，适合WorkBuddy目标模式。为减少治理开销，本轮采用最小充分证据包，不以文档数量代替证据质量。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 89
-related_issues: [76, 80, 81]
+related_issues: [76, 80, 81, 92]
 
 user_override:
   previous_state: "REMOVED_FROM_0017_MAINLINE_SCOPE_TRANSFERRED_TO_CODEX"
   new_decision: >-
-    The user explicitly reactivates WorkBuddy only for the QCLAW work that must not be completed by the evaluated Codex agent.
+    User reactivates WorkBuddy only for QCLAW work that the evaluated Codex agent must not self-certify.
   effect: >-
-    The prior full-scope transfer is superseded only for this bounded independent cleanroom verification. Codex retains target-side
-    data-admission planning; WorkBuddy does not regain strategy, replay, adapter, backtest or trading authority.
+    WorkBuddy owns this bounded cleanroom verification only. It does not regain strategy, adapter, replay, backtest or trading authority.
 
 fixed_inputs:
   qclaw_submission:
@@ -48,10 +46,9 @@ allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYST
 
 mission_intent: >-
   Independently reproduce the machine-verifiable identity and packaging facts of QCLAW PR #84 without changing or endorsing its
-  semantic audit judgments, and provide GPT a clean evidence-preservation package that the evaluated Codex agent cannot self-certify.
+  semantic audit judgments, and provide GPT with a compact, reproducible evidence package.
 system_position: >-
-  WorkBuddy is the cleanroom environment and artifact-verification owner for this H0 task only. It is not the independent semantic
-  scorer, not the Codex target owner, and not the final acceptance authority.
+  WorkBuddy is the cleanroom machine-evidence owner for H0 only. It is not the semantic scorer, Codex target owner or final authority.
 
 semantic_freeze:
   immutable_qclaw_authored_claims:
@@ -61,40 +58,35 @@ semantic_freeze:
     - "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS recommendation"
     - "QCLAW counterevidence, UNKNOWN and explanatory judgments"
   forbidden_interpretation: >-
-    Machine reproducibility, hash agreement or validator PASS does not establish that QCLAW's semantic score or verdict is correct.
+    Hash agreement or validator PASS proves packaging reproducibility only; it does not validate QCLAW's semantic score or verdict.
 
 required_actions:
-  - "Create a clean isolated checkout or equivalent workspace from latest main and verify fixed heads before reading contents."
-  - "List every PR #84 changed file and record category, path, Git blob, bytes and SHA-256."
-  - "Classify QCLAW P1 audit artifacts, carried Codex target artifacts and any unexpected files separately."
-  - "Verify root-directory placement, authorized-path violation, exact mandatory names, absent governance outputs and the 14-versus-15 hash contradiction."
-  - "Run P1-VALIDATE-AUDIT.py unchanged from PR #84 and record OS, Python, dependencies, command, path alias, timestamps, exit code, PASS/FAIL/SKIP and normalized-output hash."
-  - "Independently compute per-file and complete fifteen-file hashes without treating QCLAW receipts as truth."
-  - "Reconstruct the claimed fourteen-file combined hash when possible; identify omitted input or preserve UNKNOWN."
-  - "Perform public-safety, credential-pattern and local-path hygiene checks without publishing private paths or restricted payloads."
-  - "Post structured evidence and feedback to PR #84 and Issues #89/#76/#80/#31, then stop for GPT review."
+  - "Use a clean isolated checkout or equivalent workspace and verify all fixed heads before content analysis."
+  - "List every PR #84 changed file with ownership category, path, Git blob, bytes and SHA-256."
+  - "Classify QCLAW audit artifacts, carried Codex target artifacts and unexpected files separately."
+  - "Confirm or falsify root placement, authorized-path violation, missing/renamed outputs and the 14-versus-15 hash discrepancy."
+  - "Run P1-VALIDATE-AUDIT.py unchanged and record OS, Python, dependencies, command, path alias, timestamps, exit code and normalized output hash."
+  - "Independently compute the complete fifteen-file hash set and reconstruct the claimed fourteen-file combined hash when possible."
+  - "Perform public-safety, credential-pattern and local-path hygiene checks without publishing restricted values."
+  - "Post one concise summary to Issue #89, PR #84 and program Issue #31, then stop."
 
-mandatory_outputs:
-  - "FIXED-HEAD-AND-CLEANROOM-IDENTITY-RECEIPT.yaml"
-  - "PR84-FULL-CHANGE-SURFACE-MANIFEST.yaml"
-  - "QCLAW-P1-AUDIT-FILE-BLOB-AND-SHA256-RECEIPT.yaml"
-  - "QCLAW-VS-CODEX-FILE-OWNERSHIP-CLASSIFICATION.yaml"
-  - "AUTHORIZED-PATH-AND-MANDATORY-OUTPUT-GAP-REPORT.yaml"
-  - "FOURTEEN-VS-FIFTEEN-HASH-RECONCILIATION.yaml"
+core_outputs:
+  - "CLEANROOM-IDENTITY-AND-PR84-CHANGE-SURFACE-MANIFEST.yaml"
+  - "QCLAW-P1-FILE-HASH-AND-14-15-RECONCILIATION.yaml"
+  - "PATH-OUTPUT-AND-FILE-OWNERSHIP-GAP-REPORT.yaml"
   - "UNCHANGED-VALIDATOR-EXECUTION-RECEIPT.md"
-  - "SEMANTIC-NONINTERFERENCE-ATTESTATION.yaml"
-  - "PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
-  - "UNKNOWN-REGISTRY.yaml"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+  - "SEMANTIC-NONINTERFERENCE-AND-PUBLIC-SAFETY-ATTESTATION.yaml"
+  - "UNKNOWN-AND-NEGATIVE-RESULT-REGISTRY.yaml"
   - "WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
-  - "TEST-RUN-RECEIPT.md"
   - "AI_HANDOFF.yaml"
-  - "Independent read-only verification script"
+  - "verify_pr84_cleanroom.py"
 
-amed_findings_to_verify:
+conditional_outputs:
+  rule: >-
+    Add AMED research ledger, unplanned-improvement ledger or system-opportunity report only when a material new discovery actually exists.
+    Their absence is not a failure when there is nothing substantive to record.
+
+known_hypotheses_to_test:
   - id: "H0-D01"
     claim: "Fifteen QCLAW audit files are at repository root rather than the authorized directory."
   - id: "H0-D02"
@@ -103,45 +95,43 @@ amed_findings_to_verify:
     claim: "Required output names are missing/renamed and two governance outputs are absent."
   - id: "H0-D04"
     claim: "The receipt states fifteen mandatory files but hashes fourteen."
+hypothesis_policy: "Confirm, falsify or mark UNKNOWN from machine evidence; never copy hypotheses as conclusions."
 
-amed_findings_policy: >-
-  Treat these as hypotheses to confirm or falsify with machine evidence. Do not copy them as conclusions without reproduction.
-
-amed_boundaries:
-  codex_owner: "Issue #80 target-side PIT data admission and historical-rule D0 plan"
-  qclaw_owner: "Fixed semantic audit submission at PR #84 head"
-  workbuddy_owner: "Independent artifact identity, cleanroom execution and packaging evidence"
+lane_boundaries:
+  codex_owner: "Issue #80 admission-contract and historical-rule D0 planning"
+  qclaw_owner: "Fixed semantic audit at PR #84 head"
+  workbuddy_owner: "H0 artifact identity and unchanged-validator execution"
   gpt_owner: "Final semantic and engineering disposition"
+  downstream_workbuddy_issue: 92
+  downstream_rule: "Issue #92 remains queued until Issue #80 D0 and this H0 are separately accepted by GPT."
 
-amed_non_goals:
-  - "No rescore, reinterpretation or completion of QCLAW judgments."
+non_goals:
+  - "No semantic rescore, reinterpretation or completion of QCLAW judgments."
   - "No editing, moving or renaming files in PR #84, PR #77 or PR #79."
-  - "No Codex answer repair or D0 coaching."
-  - "No source activation, adapter implementation, D1, VS1, labels, replay, backtest or performance claim."
+  - "No Codex answer repair or coaching."
+  - "No source admission, adapter implementation, D1, labels, replay, backtest or performance claim."
   - "No broker, account, credential, service lifecycle, order, trade, merge or auto-merge."
 
-amed_stop_conditions:
+stop_conditions:
   - "Any fixed head drifts."
   - "The task would require semantic scoring or changing QCLAW criteria."
   - "A private secret, restricted payload or destructive operation is encountered."
-  - "The unchanged validator cannot be executed without modification; record failure and stop that substep."
+  - "The unchanged validator cannot run without modification; record the failure and stop that substep."
 
-amed_amed:
-  policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-  task_weight: "STANDARD"
-  research_trigger: "L1_REPOSITORY_AND_MACHINE_EVIDENCE"
-  exploration_budget:
-    cleanroom_and_reproduction: 85
-    active_discovery: 10
-    system_opportunity_proposals: 5
-  improvement_authority:
-    A: "Formatting and deterministic scripts inside the new WorkBuddy package."
-    B: "Backward-compatible verification helpers inside the package with explicit rollback."
-    C: "Any new cross-agent protocol, runtime or interface is proposal-only."
-    D: "Any semantic audit change, source activation, secret access or trade action is prohibited."
+amed_task_impact_forecast:
+  positive:
+    - "Preserves independent machine evidence without Codex self-review."
+    - "Reduces mandatory artifacts from eighteen to nine core outputs."
+    - "Separates negative results from semantic acceptance."
+  risks:
+    - "WorkBuddy may mistake validator PASS for semantic correctness."
+    - "Absolute local paths may leak into public receipts."
+  mitigations:
+    - "Semantic noninterference attestation is mandatory."
+    - "Use stable path aliases and public-safety scan."
 
 report_to:
-  issues: [89, 76, 80, 31]
+  issues: [89, 31]
   pull_requests: [84]
 
 completion_signal: "WORKBUDDY_QCLAW_P1_CLEANROOM_HANDOFF_VERIFICATION_0023_H0_READY_FOR_GPT_REVIEW"
