@@ -38,6 +38,24 @@ def main() -> int:
     errors += has("ONE-SOURCE-ADMISSION-DECISION-PROCEDURE.yaml", "NO_SOURCE_SUBMITTED_NO_DECISION")
     errors += has("WORKBUDDY-ISSUE92-LOCAL-EVIDENCE-EXECUTION-CONTRACT.yaml", "QUEUED_UNTIL_GPT_RELEASE")
     errors += has("AI_HANDOFF.yaml", "NO_LOCAL_EXECUTION")
+    register = "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml"
+    for fragment in (
+        "SSE-2026-TRADING-RULES",
+        "SZSE-2026-TRADING-RULES",
+        "BSE-2026-TRADING-RULES",
+        "上证发〔2026〕41号",
+        "深证上〔2026〕551号",
+        "北证公告〔2026〕17号",
+        "publication_date: '2026-04-24'",
+        "effective_from: '2026-07-06'",
+        "page_access_status: VERIFIED_ACCESSIBLE",
+        "document_authority_status: VERIFIED_OFFICIAL_EXCHANGE_RULE",
+        "deferred_provision_status:",
+        "historical_coverage_status: UNKNOWN_REMAINS_OPEN",
+    ):
+        errors += has(register, fragment)
+    if (ROOT / register).is_file() and "ACCESS_NOT_AVAILABLE" in (ROOT / register).read_text(encoding="utf-8"):
+        errors.append("official rule register still conflates access with historical coverage")
     if errors:
         print("D0 admission contract package invalid")
         print("\n".join(errors))
