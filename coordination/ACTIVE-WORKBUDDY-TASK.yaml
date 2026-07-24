@@ -1,4 +1,4 @@
-schema_version: "2.3"
+schema_version: "2.4"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,82 +6,108 @@ target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 89
-task_id: "WORKBUDDY-PR91-R2-MACHINE-RECEIPT-AND-PATH-SCAN-CLOSURE"
+task_id: "WORKBUDDY-PR91-R3-SELF-AUDITING-SCANNER-AND-TRUE-TWO-HEAD-CLOSURE"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】PR #91机器回执、路径扫描与两头证据收口R2"
+mode_label: "【WorkBuddy模式：目标模式】PR #91自审计扫描器、真实两头证据与公开安全收口R3"
 mode_reason: >-
-  PR #91 R1已经机械替换公开绝对路径，固定head、哈希与QQ语义均未改变；
-  当前只缺可复现的路径扫描命令、独立验证器重跑回执、输出哈希和准确变更计数。
-  修正范围确定且不需要重做H0，因此使用目标模式。
+  PR #91的固定head、哈希分类、QQ语义和R1路径别名均已接受；R2只在扫描器与回执层失败。
+  当前缺口有明确文件、明确反例和确定性验收标准，因此使用目标模式，不重做H0或QQ审计。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 89
 pull_request: 91
 branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
-r1_reviewed_head: "ce1704c1ce3f0ff882022b60871735fcc9127ada"
+r2_reviewed_head: "1946be22345300c6bad2e12f8acdd2ce75945584"
 direct_main_write: false
 auto_merge: false
 
 review_disposition:
-  classification: "R1_MECHANICAL_FIX_ACCEPTED_RECEIPT_ONLY_R2_REQUIRED"
+  classification: "R2_REJECTED_BOUNDED_R3_REQUIRED"
   accepted_facts:
-    - "R1 is one commit ahead of reviewed H0 head and changes seven files only."
-    - "Three path-bearing artifacts replaced F:/aidanao/_cleanroom with <CLEANROOM_WORKSPACE>."
-    - "The extra edit to FIXED-HEAD-AND-CLEANROOM-IDENTITY-RECEIPT.yaml is accepted as a one-line path-alias correction; fixed heads and drift facts were not changed."
-    - "INDEPENDENT-VERIFICATION-SCRIPT.py changed only its workspace resolution from a hard-coded path to Path.cwd()."
-    - "No QCLAW semantic status, blocker decision, 0.491 score or verdict was modified."
-  remaining_defects:
-    - id: "WB91-R2-D01"
-      fact: "The R1 safety report asserts a clean post-remediation scan but does not record a reproducible scan command, scanned-file count, exit code or normalized output hash."
-    - id: "WB91-R2-D02"
-      fact: "The R1 test receipt does not provide an independently reproducible rerun receipt for INDEPENDENT-VERIFICATION-SCRIPT.py with exact command, exit code, tested head and output hash."
-    - id: "WB91-R2-D03"
-      fact: "AI_HANDOFF says three files were corrected, while the R1 commit changed seven files; it must distinguish three path-bearing files from seven total modified files."
+    - "R2 is one commit ahead of the accepted R1 head and does not modify QCLAW question status, blocker decisions, score or verdict."
+    - "AI_HANDOFF now distinguishes three path-bearing files corrected from seven total R1 modifications."
+    - "The intended scope remains path safety, faithful validator reproduction and machine receipts only."
+  blocking_defects:
+    - id: "WB91-R3-D01"
+      fact: >-
+        _r2_scanner.py publicly contains F:\aidanao\_cleanroom and F:/aidanao/_qclaw_p1 while the safety report claims zero findings and safe_for_public_pr=true.
+    - id: "WB91-R3-D02"
+      fact: >-
+        The scanner excludes itself and INDEPENDENT-VERIFICATION-SCRIPT.py, so it cannot prove the complete current PR #91 changed-file surface is clean.
+    - id: "WB91-R3-D03"
+      fact: >-
+        Receipts name ce1704c as tested_head, but _r2_scanner.py and the R2 corrections do not exist at that commit. R2 used one commit only, so no valid tested_head-to-receipt_head chain exists.
+    - id: "WB91-R3-D04"
+      fact: >-
+        The QCLAW extraction code uses short head 63c34408 and derives file extensions with '.md' only when a name contains REPORT, which misclassifies P1-TEST-RUN-RECEIPT.md and does not establish faithful 15-file reproduction.
+    - id: "WB91-R3-D05"
+      fact: >-
+        The reported path-scan hash is the SHA-256 of the findings JSON only. It does not bind the scanned file manifest, exact command, normalized stdout/stderr or current tested tree.
 
 required_actions:
   - "Reuse the existing branch and Draft PR #91; create no replacement PR."
-  - "Extend INDEPENDENT-VERIFICATION-SCRIPT.py or add a bounded deterministic scanner inside the same package that scans current file contents, not removed diff lines."
-  - "Scan the complete PR #91 package for Windows drive paths, UNC paths, /Users/, /home/, credential-shaped values and token/private-key patterns; treat <CLEANROOM_WORKSPACE> as an allowed alias."
-  - "Avoid scanner self-hits by excluding the scanner source from literal-pattern scanning or encoding test patterns deterministically; document the method."
-  - "Rerun the unchanged QCLAW P1-VALIDATE-AUDIT.py and the WorkBuddy independent verifier/scanner."
-  - "Record for each command: exact command, workspace alias, OS, Python/dependency versions, start/end timestamps, exit code, PASS/FAIL/SKIP or finding counts, scanned-file count and normalized stdout/stderr SHA-256."
-  - "Use a tested-head/receipt-head model: execute at one concrete full tested_head; any later receipt_head may change only receipt/feedback files and must record the exact tested_head-to-receipt_head file list."
-  - "Correct AI_HANDOFF to state: three path-bearing files corrected, seven total files modified in R1."
-  - "Update the safety report, test receipt, feedback and handoff; preserve every failure, SKIP, UNKNOWN and negative result."
-  - "Post one concise completion receipt to PR #91 and Issues #89/#31, then stop."
+  - "Delete _r2_scanner.py from the public package. Do not preserve or merely hide its absolute paths."
+  - >-
+    Consolidate deterministic scanning into INDEPENDENT-VERIFICATION-SCRIPT.py using Path(__file__).resolve().parent,
+    repository discovery through git rev-parse --show-toplevel and tempfile.TemporaryDirectory; publish no real local path.
+  - >-
+    Scan every current PR #91 changed file including the scanner source itself. Do not exclude scanner or verifier source files.
+    Avoid self-hits by constructing literal test tokens from safe fragments rather than embedding /Users/, /home/, token prefixes or private-key headers verbatim.
+  - "Detect Windows drive paths with slash or backslash, UNC paths, /Users/, /home/, GitHub/OpenAI/Google token shapes, private-key headers and credential assignments; allow only documented aliases such as <CLEANROOM_WORKSPACE>."
+  - >-
+    Reproduce QCLAW from the exact full head 63c344084d9af86cb26c1cc65a30d409fefa872f.
+    Enumerate the exact 15 top-level P1 files from git ls-tree or a fixed manifest, preserve real extensions, verify count/blob/SHA-256,
+    extract into a temporary directory and run python P1-VALIDATE-AUDIT.py as a file rather than python -c.
+  - "Record exact full commands, full 40-character heads, OS, Python/dependencies, start/end timestamps, exit codes, PASS/FAIL/SKIP or finding counts, scanned-file manifest hash, normalized stdout SHA-256 and stderr SHA-256."
+  - >-
+    Create a true tested_head containing the final scanner code, deletion of _r2_scanner.py and all non-receipt corrections; run all tests at that full commit.
+    Then create one receipt_head that modifies only TEST-RUN-RECEIPT.md, PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml,
+    AI_HANDOFF.yaml and WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml.
+  - >-
+    After creating receipt_head, rerun a scan-only command against the final receipt head and post its full head, exact command, file count,
+    findings, exit code, stdout/stderr hashes and tested_head-to-receipt_head file list in PR #91 and Issues #89/#31. Do not make another receipt commit.
+  - "Preserve the R2 failures and explain why the prior CLEAN claim was invalid; do not overwrite history as if R2 had passed."
+  - "Complete, post the required receipts and stop for GPT review."
 
 allowed_changed_files:
   tested_head:
     - "INDEPENDENT-VERIFICATION-SCRIPT.py"
+    - "_r2_scanner.py deletion only"
     - "PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
     - "TEST-RUN-RECEIPT.md"
     - "AI_HANDOFF.yaml"
     - "WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
   receipt_head_only:
+    - "PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
     - "TEST-RUN-RECEIPT.md"
     - "AI_HANDOFF.yaml"
     - "WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
-  conditional_exception: >-
-    FIXED-HEAD-AND-CLEANROOM-IDENTITY-RECEIPT.yaml must remain unchanged from R1 unless a newly reproduced public-path finding
-    requires another alias-only correction; any such exception must be separately justified and may not alter fixed-head facts.
+
+preserve_unchanged:
+  - "PR #84/#77/#79 and all fixed heads"
+  - "QCLAW 42-question statuses, four blocker decisions, 0.491 score and verdict"
+  - "accepted H0 hashes, 14/15 explanation and file ownership classification unless faithful rerun disproves a machine fact"
+  - "all other PR #91 files"
 
 acceptance_gates:
-  - "Current package contents contain zero unaliased public absolute local paths and zero credential/token findings."
-  - "The path scan and both validators have exact commands, concrete tested_head, exit codes, counts and output hashes."
-  - "The tested_head-to-receipt_head diff is receipt-only and explicitly enumerated."
-  - "R1 change count is stated accurately as three path-bearing files and seven total modified files."
-  - "QCLAW validator remains byte-identical and all changed test results are reported honestly."
-  - "No semantic rescore, Codex coaching, source-admission work, merge or trade occurs."
+  - "The final PR #91 head contains no unaliased absolute local path, credential or token finding, including scanner/verifier source files."
+  - "_r2_scanner.py is deleted and no replacement file hardcodes a workspace or temporary directory."
+  - "The faithful QCLAW reproduction uses the full frozen head, exactly 15 correctly named files and the unchanged validator."
+  - "The tested_head contains executable scanner/validator code and precedes a receipt-only head with exactly four allowed receipt files."
+  - "A final receipt-head scan is posted after the receipt commit and binds the final changed-file surface."
+  - "Every failure, SKIP, UNKNOWN and negative result is retained."
+  - "No semantic rescore, source-admission work, merge, account access, order or trade occurs."
 
 forbidden:
-  - "No modification of QCLAW question statuses, blocker decisions, score or verdict."
-  - "No modification of PR #84/#77/#79."
-  - "No Issue #92 execution, data-source access, replay, backtest, account, order or trade."
-  - "No deletion or rewriting of negative evidence to obtain a clean scan."
+  - "No exclusion of scanner or verifier source to manufacture a clean scan."
+  - "No short commit identifiers in authoritative receipts."
+  - "No fixed local workspace or temporary path in any public artifact."
+  - "No modification of QCLAW semantics or PR #84/#77/#79."
+  - "No Issue #92 execution, data-source access, labels, replay, backtest or trading."
   - "No merge or auto-merge."
 
-completion_signal: "WORKBUDDY_PR91_R2_MACHINE_RECEIPT_AND_PATH_SCAN_CLOSED_FOR_GPT_REVIEW"
+completion_signal: "WORKBUDDY_PR91_R3_SELF_AUDITING_SCANNER_AND_TRUE_TWO_HEAD_READY_FOR_GPT_REVIEW"
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
