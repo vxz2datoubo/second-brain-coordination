@@ -1,4 +1,4 @@
-schema_version: "8.0"
+schema_version: "8.1"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,18 +6,18 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 80
-task_id: "CODEX-QCLAW-P1-HANDOFF-INTEGRATION-AND-PIT-DATA-ADMISSION-0022-D0"
+task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-AND-HISTORICAL-RULE-EVIDENCE-0022-D0"
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】QQ审计交接保全＋A股PIT数据准入与历史规则证据闭环"
+mode_label: "【Codex模式：项目计划模式】A股PIT数据准入、来源许可与历史规则状态证据闭环D0"
 mode_reason: >-
-  QQ已经提交独立P1审计，但今日算力耗尽，且PR #84存在目录、变更面和必交付命名等工程收口缺口。
-  同时审计暴露出的PIT数据许可、字段语义、复权、available_at、历史规则状态和W3/W7接口问题跨越多个既有模块，
+  QQ审计暴露出的PIT数据许可、字段语义、复权、available_at、历史规则状态和W3/W7接口问题跨越多个既有模块，
   需要先完成非重复审计、分阶段计划和证据门，不能直接进入D1或回测，因此使用项目计划模式。
+  QQ审计包的独立清洁室核验已由用户改派WorkBuddy Issue #89，Codex不得接手该H0工作。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 80
-related_issues: [69, 76, 81]
+related_issues: [69, 76, 81, 89]
 source_pull_requests:
   qclaw_submission_pr: 84
   qclaw_submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
@@ -28,167 +28,138 @@ source_pull_requests:
   predecessor_manifest_pr: 51
 
 create_new_branch: true
-branch: "codex/qclaw-p1-handoff-pit-data-admission-0022-d0"
+branch: "codex/a-share-pit-data-admission-0022-d0"
 create_new_draft_pr: true
 direct_main_write: false
 auto_merge: false
 allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-PIT-DATA-ADMISSION-0022-D0/"
 
 mission_intent: >-
-  Preserve QCLAW's submitted P1 audit as immutable external candidate evidence, close only the nonsemantic handoff and packaging layer,
-  and produce a recoverable D0 project plan for the target-side data/rule/interface prerequisites that must be satisfied before any
-  0017 D1 historical labels, replay, backtest or performance claim.
+  Produce a recoverable D0 project plan for the data, license, PIT, historical-rule, security-status and W3/W7 prerequisites that must
+  be accepted before any 0017 D1 historical labels, replay, backtest or performance claim.
 fundamental_goal: >-
-  Convert the QCLAW handoff and Codex's own data-admission discovery into a clean, non-self-certifying prerequisite program without
-  altering QCLAW judgments, modifying PR #79, duplicating PR #51 infrastructure, or pretending unavailable data has been validated.
+  Convert Codex's own data-admission discovery and QCLAW's fixed external findings into a non-duplicative prerequisite program without
+  modifying QCLAW judgments, duplicating PR #51 infrastructure, activating a real source or pretending unavailable data has been validated.
 system_position: >-
-  Codex is the engineering and canonical-plan owner for handoff integration and data admission. It is not the independent auditor,
-  cannot complete QCLAW's scoring, and cannot approve its own D0.
+  Codex is the engineering and canonical-plan owner for target-side data admission. It is not the independent auditor, does not own
+  QCLAW package verification, and cannot approve its own D0.
 
-qclaw_compute_handoff:
-  reason: "QCLAW daily compute exhausted after submitting PR #84."
-  source_status: "SUBMITTED_AS_CANDIDATE_EVIDENCE"
-  semantic_freeze:
-    - "Do not change any QCLAW question status, score contribution, blocking-mode decision, weighted score or verdict."
-    - "Do not create replacement independent-audit findings in Codex's name."
-    - "Do not edit PR #84, PR #77 or their branches."
-  fixed_submission_facts:
-    - "QCLAW assessed all 42 questions and all four blocking modes."
-    - "QCLAW reported weighted score 0.491 and CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS."
-    - "GPT has not yet adopted that verdict as canonical acceptance."
+workbuddy_parallel_lane:
+  active_issue: 89
+  task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
+  owner: "WORKBUDDY"
+  scope: "Independent fixed-head artifact identity, hashes, changed-file surface and unchanged-validator execution for PR #84."
+  codex_boundary:
+    - "Do not duplicate WorkBuddy manifests, hash receipts or cleanroom verification."
+    - "Do not edit, review or coach the WorkBuddy branch or findings during execution."
+    - "WorkBuddy machine results may be consumed only after GPT accepts or explicitly routes them."
 
-verified_handoff_findings:
-  - id: "H0-D01"
-    severity: "S2_MATERIAL_PACKAGING"
-    fact: "The fifteen P1 audit files are at repository root rather than the authorized audit directory declared by the task and handoff."
-  - id: "H0-D02"
-    severity: "S2_MATERIAL_CHANGE_SURFACE"
-    fact: "PR #84's changed-file surface also includes the twenty-two Codex D0 target artifacts, so it is not a clean external-reference-only audit PR."
-  - id: "H0-D03"
-    severity: "S2_CONTRACT_INCOMPLETE"
-    fact: >-
-      Exact mandatory outputs are not fully satisfied: P1-QUESTION-BY-QUESTION-EVIDENCE-AND-SCORE.yaml and P1-DISCOVERY-PACKETS.yaml
-      are replaced by differently named files, while UNPLANNED-IMPROVEMENT-LEDGER.yaml and SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md are absent.
-  - id: "H0-D04"
-    severity: "S2_RECEIPT_CONTRADICTION"
-    fact: "The test receipt says all fifteen mandatory files exist but records the combined hash over fourteen files."
-  - id: "H0-D05"
-    severity: "S2_INDEPENDENCE_LIMIT"
-    fact: "Codex cannot fill semantic audit gaps or official-source independent verification without creating self-review contamination."
+qclaw_semantic_freeze:
+  - "Do not change any QCLAW question status, score contribution, blocking-mode decision, weighted score or verdict."
+  - "Do not create replacement independent-audit findings in Codex's name."
+  - "Do not edit PR #84, PR #77 or their branches."
+  - "QCLAW reported 0.491 and CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS remains candidate evidence pending GPT disposition."
 
-execution_phases:
-  H0_EXTERNAL_EVIDENCE_HANDOFF:
-    purpose: "Create a clean read-only provenance and gap record for QCLAW PR #84."
-    required_actions:
-      - "Read PR #84 at exact head 63c344084d9af86cb26c1cc65a30d409fefa872f and list all changed files and Git blobs."
-      - "Hash and register the fifteen QCLAW-authored audit artifacts as external immutable evidence; do not copy or edit their semantic contents."
-      - "Separate QCLAW audit artifacts from the twenty-two Codex target artifacts in a handoff change-surface map."
-      - "Record all missing/renamed mandatory outputs and the fourteen-versus-fifteen hash contradiction."
-      - "State explicitly that Codex has not independently validated the QCLAW score or verdict."
-    mandatory_outputs:
-      - "QCLAW-P1-EXTERNAL-EVIDENCE-IMPORT-MANIFEST.yaml"
-      - "QCLAW-P1-CONTENT-BLOB-AND-SHA256-RECEIPT.yaml"
-      - "QCLAW-P1-HANDOFF-GAP-AND-CHANGE-SURFACE-MATRIX.yaml"
-      - "QCLAW-P1-SEMANTIC-NONINTERFERENCE-ATTESTATION.yaml"
-    stop_condition: "Any need to alter QCLAW judgments or frozen audit criteria."
+execution_phase:
+  name: "D0_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_PLAN"
+  purpose: "Plan the prerequisites exposed by PR #79 and QCLAW PR #84 without running 0017."
+  required_actions:
+    - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and policy gates before proposing anything new."
+    - "Audit PR #79 data capability, local inventory, rule snapshot, UNKNOWN and reproducibility contracts at fixed head only."
+    - "Produce a candidate-source and license matrix; select at most one first real offline source or abstain if none qualifies."
+    - "Define field types, units, timezone, event_time, observed_at, available_at, adjustment policy, missing semantics and corporate-action lineage."
+    - "Design versioned SSE/SZSE/BSE, board, security-status, ST, suspension, IPO, delisting and rule snapshots by effective date."
+    - "Map W3 knowledge/evidence and W7 validation/risk interfaces read-only; do not create a second authority."
+    - "Define a reproducibility-equivalence contract for authorized agents without requiring QCLAW or WorkBuddy to expose restricted vendor data."
+    - "Use official exchange/regulator primary sources for rule evidence and record effective dates, supersession and unresolved conflicts."
+    - "Preserve UNKNOWN/BLOCKED_BY_POLICY/ABSTAIN where license, semantics or history cannot be proved."
+  mandatory_outputs:
+    - "CURRENT-DATA-ADMISSION-REALITY-AUDIT.md"
+    - "SOURCE-CANDIDATE-AND-LICENSE-MATRIX.yaml"
+    - "PR51-REUSE-AND-NON-DUPLICATION-MATRIX.yaml"
+    - "PIT-AVAILABLE-AT-SEMANTICS-CONTRACT.yaml"
+    - "FIELD-UNIT-ADJUSTMENT-SEMANTICS-MATRIX.yaml"
+    - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-PLAN.yaml"
+    - "W3-W7-READONLY-INTERFACE-DEPENDENCY-MAP.yaml"
+    - "AUTHORIZED-AGENT-REPRODUCIBILITY-EQUIVALENCE-CONTRACT.yaml"
+    - "ONE-SOURCE-ACTIVATION-PLAN.yaml"
+    - "NEGATIVE-AND-ABSTENTION-TEST-MATRIX.yaml"
+    - "UNKNOWN-REGISTRY.yaml"
+    - "DISCOVERY-PACKETS.yaml"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+    - "AMED-RESEARCH-LEDGER.yaml"
+    - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+    - "TEST-RUN-RECEIPT.md"
+    - "AI_HANDOFF.yaml"
+    - "validate_d0_admission.py"
 
-  D0_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_PLAN:
-    purpose: "Plan the prerequisites exposed by PR #79 and QCLAW PR #84 without running 0017."
-    required_actions:
-      - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and policy gates before proposing anything new."
-      - "Audit PR #79 data capability, local inventory, rule snapshot, UNKNOWN and reproducibility contracts at fixed head only."
-      - "Produce a candidate-source and license matrix; select at most one first real offline source or abstain if none qualifies."
-      - "Define field types, units, timezone, event_time, observed_at, available_at, adjustment policy, missing semantics and corporate-action lineage."
-      - "Design versioned SSE/SZSE/BSE, board, security-status, ST, suspension, IPO, delisting and rule snapshots by effective date."
-      - "Map W3 knowledge/evidence and W7 validation/risk interfaces read-only; do not create a second authority."
-      - "Define a reproducibility-equivalence contract for authorized agents without requiring QCLAW to execute local vendor data."
-      - "Use official exchange/regulator primary sources for rule evidence and record effective dates, supersession and unresolved conflicts."
-      - "Preserve UNKNOWN/BLOCKED_BY_POLICY/ABSTAIN where license, semantics or history cannot be proved."
-    mandatory_outputs:
-      - "CURRENT-DATA-ADMISSION-REALITY-AUDIT.md"
-      - "SOURCE-CANDIDATE-AND-LICENSE-MATRIX.yaml"
-      - "PR51-REUSE-AND-NON-DUPLICATION-MATRIX.yaml"
-      - "PIT-AVAILABLE-AT-SEMANTICS-CONTRACT.yaml"
-      - "FIELD-UNIT-ADJUSTMENT-SEMANTICS-MATRIX.yaml"
-      - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-PLAN.yaml"
-      - "W3-W7-READONLY-INTERFACE-DEPENDENCY-MAP.yaml"
-      - "AUTHORIZED-AGENT-REPRODUCIBILITY-EQUIVALENCE-CONTRACT.yaml"
-      - "ONE-SOURCE-ACTIVATION-PLAN.yaml"
-      - "NEGATIVE-AND-ABSTENTION-TEST-MATRIX.yaml"
-      - "UNKNOWN-REGISTRY.yaml"
-      - "DISCOVERY-PACKETS.yaml"
-      - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-      - "AMED-RESEARCH-LEDGER.yaml"
-      - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-      - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-      - "TEST-RUN-RECEIPT.md"
-      - "AI_HANDOFF.yaml"
-      - "validate_d0_handoff_and_admission.py"
+amed_non_duplication:
+  - "Reuse PR #51 SourceManifest and policy gates; do not create a second admission authority."
+  - "Reuse W2 market/PIT ownership, W3 evidence ownership and W7 validation/risk ownership."
+  - "Do not duplicate WorkBuddy Issue #89 artifact-verification package."
+  - "Do not create a second replay, evidence, memory, probability, risk, portfolio or order runtime."
 
-amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-task_weight: "STRATEGIC"
-research_trigger: "L2_PRIMARY_SOURCE_RULE_AND_LICENSE_RESEARCH"
-exploration_budget:
-  main_handoff_and_admission_plan: 75
-  active_discovery_and_counterevidence: 15
-  system_opportunity_proposals: 10
-  scope_expansion_without_gate: false
-improvement_authority:
-  A: "Local formatting, deterministic validators, manifests and typo fixes inside the new candidate package."
-  B: "Backward-compatible reuse adapters or contracts inside the candidate package, separately documented with rollback."
-  C: "New source activation, cross-module interface, runtime, skill or migration is proposal-only."
-  D: "Any QCLAW semantic change, criterion change, license bypass, restricted-data publication, D1 execution or trade action is prohibited."
-second_pass_audit_required: true
+amed_amed:
+  policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_weight: "STRATEGIC"
+  research_trigger: "L2_PRIMARY_SOURCE_RULE_AND_LICENSE_RESEARCH"
+  exploration_budget:
+    data_admission_and_rule_plan: 80
+    active_discovery_and_counterevidence: 15
+    system_opportunity_proposals: 5
+  improvement_authority:
+    A: "Local formatting, deterministic validators, manifests and typo fixes inside the new candidate package."
+    B: "Backward-compatible reuse contracts inside the candidate package, separately documented with rollback."
+    C: "New source activation, cross-module interface, runtime, skill or migration is proposal-only."
+    D: "Any QCLAW semantic change, WorkBuddy verification interference, license bypass, restricted-data publication, D1 execution or trade action is prohibited."
 
-task_impact_forecast:
+named_task_impact_forecast:
   expected_positive_effects:
-    - "Preserves QQ's work despite quota exhaustion without allowing Codex to rewrite the independent verdict."
-    - "Turns the largest real blocker into an explicit data/rule prerequisite plan."
-    - "Avoids merging a contaminated audit PR or duplicating PR #51 infrastructure."
+    - "Focuses Codex on the target-side prerequisite it is qualified to design."
+    - "Preserves independent verification by assigning PR #84 cleanroom checks to WorkBuddy."
+    - "Avoids duplicating PR #51 infrastructure and prevents premature historical runs."
   expected_negative_effects:
     - "Adds a prerequisite planning step before 0017 D1."
     - "May conclude that no current real source is admissible."
   primary_risks:
-    - "Codex accidentally self-certifies the QCLAW audit."
     - "A source is selected based on physical availability rather than license and PIT semantics."
     - "Historical rules are backfilled with present-day constants."
     - "PR #51 contracts are duplicated rather than reused."
+    - "Codex consumes unaccepted WorkBuddy findings as if canonical."
   stop_conditions:
-    - "PR #84 or PR #79 target heads drift."
-    - "A task requires editing QCLAW judgments or frozen criteria."
+    - "PR #84 or PR #79 fixed heads drift."
+    - "A task requires editing QCLAW judgments or interfering with WorkBuddy verification."
     - "License, credentials, restricted raw data, broker, account, order or trade paths are encountered."
     - "A real-source activation or historical run would be required."
 
 acceptance_gates:
-  - "PR #84 and PR #79 fixed heads are verified before analysis."
-  - "All fifteen QCLAW audit artifacts are registered by exact Git blob and content hash without semantic modification."
-  - "The twenty-two target artifacts are not represented as QCLAW-authored audit outputs."
-  - "All PR #84 packaging defects are recorded honestly; none are silently repaired in QCLAW's name."
-  - "Codex does not adopt or alter QCLAW's score/verdict and does not claim independent validation."
+  - "PR #79 fixed head is verified before analysis."
   - "PR #51 reuse/non-duplication is explicit."
   - "At most one candidate real source is selected, or the task abstains."
   - "License, PIT, field, adjustment, rule and security-status UNKNOWNs are preserved."
+  - "WorkBuddy Issue #89 remains independent and is not duplicated or coached."
+  - "No QCLAW semantic score/verdict is changed or adopted as Codex validation."
   - "No D1/VS1, labels, replay, backtest, alpha claim, source activation or trade action occurs."
   - "New PR stays Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
   - "No modification of PR #84, PR #77 or PR #79 branches/files."
-  - "No completion, renaming or rewriting of QCLAW semantic audit outputs in Codex's name."
+  - "No cleanroom reproduction, hash receipt or packaging verification assigned to WorkBuddy Issue #89."
+  - "No completion, rewriting or reinterpretation of QCLAW semantic audit outputs."
   - "No change to the frozen 42 questions, weights, blocker rules or QCLAW scoring."
   - "No real-data upload, license guess, source activation, replay, label generation or backtest."
-  - "No second data, replay, evidence, memory, validation, risk or order authority."
   - "No broker, account, credential, live feed, order, trade, merge or auto-merge."
 
 report_to:
-  issues: [80, 76, 69, 31]
-  pull_requests: [84, 79]
+  issues: [80, 69, 31]
+  pull_requests: [79]
   include:
     - "task identity, mode, fixed heads, completion percentage and exact changed files"
-    - "QCLAW evidence manifest and packaging-gap matrix"
     - "data-source/license/PIT/rule/interface plan, official sources and unresolved UNKNOWNs"
-    - "commands, versions, tests, failures, SKIPs, PDER discoveries, rollback and next gate"
+    - "PR #51 reuse, commands, versions, tests, failures, SKIPs, PDER discoveries, rollback and next gate"
 
-completion_signal: "CODEX_QCLAW_P1_HANDOFF_AND_PIT_DATA_ADMISSION_0022_D0_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_A_SHARE_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_0022_D0_READY_FOR_GPT_REVIEW"
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_D1"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
