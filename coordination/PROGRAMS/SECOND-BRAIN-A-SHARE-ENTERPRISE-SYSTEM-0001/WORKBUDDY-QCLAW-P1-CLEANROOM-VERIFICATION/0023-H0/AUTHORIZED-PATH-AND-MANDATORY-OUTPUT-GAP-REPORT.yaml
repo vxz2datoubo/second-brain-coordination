@@ -1,0 +1,24 @@
+# Authorized Path & Mandatory Output Gap Report
+verified_by: "WorkBuddy Cleanroom"
+timestamp: "2026-07-24T12:50:00+08:00"
+
+findings:
+  H0_D01:
+    claim: "15 QCLAW audit files at repo root instead of authorized dir"
+    confirmed: true
+    evidence: "git diff shows 15 A(added) at ROOT, not under authorized path"
+    
+  H0_D02:
+    claim: "PR84 includes 22 Codex D0 target artifacts"
+    confirmed: true
+    evidence: "22 files confirmed under 0017-D0-PLAN-R1/"
+    
+  H0_D03:
+    claim: "Required outputs missing/renamed"
+    confirmed: true
+    detail: "UNPLANNED-IMPROVEMENT-LEDGER.yaml and SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md exist only in Codex target directory, absent from QCLAW root"
+    
+  H0_D04:
+    claim: "14-vs-15 hash contradiction"
+    confirmed: true
+    detail: "FROZEN-MANIFEST says 15 mandatory files; TEST-RUN-RECEIPT hashes 14. Validator excluded itself."
