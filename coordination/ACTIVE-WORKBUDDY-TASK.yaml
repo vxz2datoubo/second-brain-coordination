@@ -1,44 +1,151 @@
-schema_version: "1.8"
+schema_version: "2.0"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
+discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "WORKBUDDY"
+trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: null
-task_id: "NO_ACTIVE_TASK"
-mode: "retired_from_mainline"
-mode_label: "已移出0017主线"
-status: "NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX"
-blocked_by: "USER_DECISION_WORKBUDDY_SCOPE_TRANSFERRED_TO_CODEX"
+active_issue: 89
+task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
+mode: "target"
+mode_label: "【WorkBuddy模式：目标模式】QQ P1审计包固定head清洁室复现、证据保全与非语义交接核验"
+mode_reason: >-
+  QQ的42问评分、4个阻断判断、0.491分数和条件接受建议已经形成，不能交给被审对象Codex修改；
+  剩余事项是固定head、文件分类、路径、Git blob、SHA-256、必交付命名、验证器执行和14/15哈希矛盾等确定性核验，
+  WorkBuddy可在独立本机环境中按固定输入完成，因此使用目标模式。
+status: "READY"
+blocked_by: "none"
 parent_program: 31
+source_issue: 89
+related_issues: [76, 80, 81]
 
-default_response_to_task_trigger:
-  - "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
-  - "Do not create a branch, PR, adapter, local runtime or verification package for Issue #69/0017."
-  - "Refer the caller to coordination/ACTIVE-CODEX-TASK.yaml."
+user_override:
+  previous_state: "REMOVED_FROM_0017_MAINLINE_SCOPE_TRANSFERRED_TO_CODEX"
+  new_decision: >-
+    The user explicitly reactivates WorkBuddy only for the QCLAW work that must not be completed by the evaluated Codex agent.
+  effect: >-
+    The prior full-scope transfer is superseded only for this bounded independent cleanroom verification. Codex retains target-side
+    data-admission planning; WorkBuddy does not regain strategy, replay, adapter, backtest or trading authority.
 
-scope_transfer:
-  effective_date: "2026-07-24"
-  receiving_agent: "CODEX"
-  transferred_scope:
-    - "Local point-in-time bar path and coverage verification."
-    - "Timestamp, missing-value, field-semantic and rule-snapshot checks."
-    - "Replay and validation command execution."
-    - "Counts, hashes, environment versions, exit codes and UNKNOWN receipts."
-    - "Explicitly approved thin-adapter implementation."
-  transfer_boundary: >-
-    WorkBuddy has no residual execution, verification, adapter or handoff responsibility for Issue #69/0017.
-    Codex is the sole execution owner, while QCLAW remains the independent adversarial auditor.
+fixed_inputs:
+  qclaw_submission:
+    pull_request: 84
+    head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
+  qclaw_preregistration:
+    pull_request: 77
+    receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+  evaluated_codex_target:
+    pull_request: 79
+    head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+  drift_policy: "Any head drift requires TARGET_DRIFT_STOPPED; do not silently follow a newer head."
 
-future_reactivation:
-  allowed_only_when: "The user or GPT creates a new explicit task unrelated to the transferred 0017 scope."
-  implicit_reactivation_denied: true
-
-w3_note:
-  status: "UNKNOWN_MIGRATION_REQUIRED"
-  instruction: "Do not consolidate or migrate W3 stores unless GPT creates a separate gated task."
-
-boundary: "NO_ACTIVE_SCOPE / NO_TRADE"
+create_new_branch: true
+branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
+create_new_draft_pr: true
 direct_main_write: false
 auto_merge: false
+allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/"
+
+mission_intent: >-
+  Independently reproduce the machine-verifiable identity and packaging facts of QCLAW PR #84 without changing or endorsing its
+  semantic audit judgments, and provide GPT a clean evidence-preservation package that the evaluated Codex agent cannot self-certify.
+system_position: >-
+  WorkBuddy is the cleanroom environment and artifact-verification owner for this H0 task only. It is not the independent semantic
+  scorer, not the Codex target owner, and not the final acceptance authority.
+
+semantic_freeze:
+  immutable_qclaw_authored_claims:
+    - "42 question statuses and score contributions"
+    - "four blocking-mode decisions"
+    - "weighted score 0.491"
+    - "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS recommendation"
+    - "QCLAW counterevidence, UNKNOWN and explanatory judgments"
+  forbidden_interpretation: >-
+    Machine reproducibility, hash agreement or validator PASS does not establish that QCLAW's semantic score or verdict is correct.
+
+required_actions:
+  - "Create a clean isolated checkout or equivalent workspace from latest main and verify fixed heads before reading contents."
+  - "List every PR #84 changed file and record category, path, Git blob, bytes and SHA-256."
+  - "Classify QCLAW P1 audit artifacts, carried Codex target artifacts and any unexpected files separately."
+  - "Verify root-directory placement, authorized-path violation, exact mandatory names, absent governance outputs and the 14-versus-15 hash contradiction."
+  - "Run P1-VALIDATE-AUDIT.py unchanged from PR #84 and record OS, Python, dependencies, command, path alias, timestamps, exit code, PASS/FAIL/SKIP and normalized-output hash."
+  - "Independently compute per-file and complete fifteen-file hashes without treating QCLAW receipts as truth."
+  - "Reconstruct the claimed fourteen-file combined hash when possible; identify omitted input or preserve UNKNOWN."
+  - "Perform public-safety, credential-pattern and local-path hygiene checks without publishing private paths or restricted payloads."
+  - "Post structured evidence and feedback to PR #84 and Issues #89/#76/#80/#31, then stop for GPT review."
+
+mandatory_outputs:
+  - "FIXED-HEAD-AND-CLEANROOM-IDENTITY-RECEIPT.yaml"
+  - "PR84-FULL-CHANGE-SURFACE-MANIFEST.yaml"
+  - "QCLAW-P1-AUDIT-FILE-BLOB-AND-SHA256-RECEIPT.yaml"
+  - "QCLAW-VS-CODEX-FILE-OWNERSHIP-CLASSIFICATION.yaml"
+  - "AUTHORIZED-PATH-AND-MANDATORY-OUTPUT-GAP-REPORT.yaml"
+  - "FOURTEEN-VS-FIFTEEN-HASH-RECONCILIATION.yaml"
+  - "UNCHANGED-VALIDATOR-EXECUTION-RECEIPT.md"
+  - "SEMANTIC-NONINTERFERENCE-ATTESTATION.yaml"
+  - "PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
+  - "UNKNOWN-REGISTRY.yaml"
+  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+  - "AMED-RESEARCH-LEDGER.yaml"
+  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+  - "WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
+  - "TEST-RUN-RECEIPT.md"
+  - "AI_HANDOFF.yaml"
+  - "Independent read-only verification script"
+
+amed_findings_to_verify:
+  - id: "H0-D01"
+    claim: "Fifteen QCLAW audit files are at repository root rather than the authorized directory."
+  - id: "H0-D02"
+    claim: "PR #84 changed-file surface includes twenty-two Codex D0 target artifacts."
+  - id: "H0-D03"
+    claim: "Required output names are missing/renamed and two governance outputs are absent."
+  - id: "H0-D04"
+    claim: "The receipt states fifteen mandatory files but hashes fourteen."
+
+amed_findings_policy: >-
+  Treat these as hypotheses to confirm or falsify with machine evidence. Do not copy them as conclusions without reproduction.
+
+amed_boundaries:
+  codex_owner: "Issue #80 target-side PIT data admission and historical-rule D0 plan"
+  qclaw_owner: "Fixed semantic audit submission at PR #84 head"
+  workbuddy_owner: "Independent artifact identity, cleanroom execution and packaging evidence"
+  gpt_owner: "Final semantic and engineering disposition"
+
+amed_non_goals:
+  - "No rescore, reinterpretation or completion of QCLAW judgments."
+  - "No editing, moving or renaming files in PR #84, PR #77 or PR #79."
+  - "No Codex answer repair or D0 coaching."
+  - "No source activation, adapter implementation, D1, VS1, labels, replay, backtest or performance claim."
+  - "No broker, account, credential, service lifecycle, order, trade, merge or auto-merge."
+
+amed_stop_conditions:
+  - "Any fixed head drifts."
+  - "The task would require semantic scoring or changing QCLAW criteria."
+  - "A private secret, restricted payload or destructive operation is encountered."
+  - "The unchanged validator cannot be executed without modification; record failure and stop that substep."
+
+amed_amed:
+  policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  task_weight: "STANDARD"
+  research_trigger: "L1_REPOSITORY_AND_MACHINE_EVIDENCE"
+  exploration_budget:
+    cleanroom_and_reproduction: 85
+    active_discovery: 10
+    system_opportunity_proposals: 5
+  improvement_authority:
+    A: "Formatting and deterministic scripts inside the new WorkBuddy package."
+    B: "Backward-compatible verification helpers inside the package with explicit rollback."
+    C: "Any new cross-agent protocol, runtime or interface is proposal-only."
+    D: "Any semantic audit change, source activation, secret access or trade action is prohibited."
+
+report_to:
+  issues: [89, 76, 80, 31]
+  pull_requests: [84]
+
+completion_signal: "WORKBUDDY_QCLAW_P1_CLEANROOM_HANDOFF_VERIFICATION_0023_H0_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
