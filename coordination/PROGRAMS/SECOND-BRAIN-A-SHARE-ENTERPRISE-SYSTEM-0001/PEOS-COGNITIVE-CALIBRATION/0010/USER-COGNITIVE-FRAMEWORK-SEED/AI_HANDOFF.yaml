@@ -1,23 +1,28 @@
-schema_version: "1.0"
+schema_version: "1.1"
 handoff_id: "PEOS-USER-COGNITIVE-FRAMEWORK-SEED-HANDOFF-0001"
 project_id: "PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-0010"
 parent_issue: 61
 related_issues: [38, 59, 60, 63, 72]
 branch: "docs/peos-user-cognitive-framework-seed-v0"
 status: "RESEARCH_INPUT_READY_FOR_REVIEW"
+evolution_status: "QUEUED_BLUEPRINT_INPUT_NON_BLOCKING"
 boundary: "research_only / NO_TRADE"
 canonical_runtime_created: false
 parallel_personal_model_created: false
 public_repo_safe_abstraction_only: true
+no_current_wip_expansion: true
+no_active_route_preemption: true
+implementation_owners_when_activated: [CODEX, WORKBUDDY]
+knowledge_support_only: [QCLAW]
 
 mission: >-
   Establish a versioned, evidence-aware and user-correctable seed for the user's cognitive framework,
-  capturing strengths, gaps, unknowns, mastery and learning paths without creating a parallel runtime
-  or converting one conversation into permanent personality labels.
+  capturing strengths, gaps, unknowns, mastery and learning paths without creating a parallel runtime,
+  converting one conversation into permanent personality labels, or disturbing the existing execution cadence.
 
 deliverables:
   - path: "README.md"
-    purpose: "project scope, architecture relationship, privacy and acceptance criteria"
+    purpose: "project scope, architecture relationship, privacy, cadence and acceptance criteria"
   - path: "CURRENT-COGNITIVE-SNAPSHOT-v0.1.md"
     purpose: "human-readable strengths, gaps, unknowns and validation tasks"
   - path: "DISCUSSION-2026-07-25-SYSTEMS-FEEDBACK-GOVERNANCE.md"
@@ -28,6 +33,8 @@ deliverables:
     purpose: "future conversation ingestion, review, retrieval and correction protocol"
   - path: "COGNITIVE-GROWTH-BACKLOG.md"
     purpose: "learning and validation roadmap"
+  - path: "BLUEPRINT-INTEGRATION-AND-CONTINUOUS-EVOLUTION-PLAN.md"
+    purpose: "future blueprint backwrite, Codex/WorkBuddy implementation boundaries and non-blocking evolution path"
 
 frozen_principles:
   - "Single conversation creates observations or candidates, not permanent traits."
@@ -39,6 +46,26 @@ frozen_principles:
   - "The framework must surface known unknowns and unknown unknowns."
   - "The assistant should provide metacognitive prompts: terms, assumptions, blind spots, counterexamples and adjacent theories."
   - "No runtime, trading action or canonical authority is created by this seed."
+  - "This work must not interrupt or preempt existing Codex or WorkBuddy tasks."
+  - "Future engineering implementation is owned by Codex and WorkBuddy when formally activated."
+  - "QCLAW is limited to knowledge learning and research support, not implementation ownership."
+
+cadence_policy:
+  registration_mode: "BLUEPRINT_INPUT_ONLY"
+  active_now: false
+  activation_must_follow_existing_governance: true
+  activation_requirements:
+    - "current active route is completed or resources are explicitly released"
+    - "required shared authorities and interfaces are mature enough"
+    - "GPT completes non-duplication and risk review"
+    - "user confirms stage goal and data boundary"
+    - "Codex creates a bounded task package with acceptance and rollback"
+    - "WorkBuddy begins integration only after contracts are clear"
+  prohibited_shortcuts:
+    - "creating a parallel implementation lane merely because this document exists"
+    - "changing current priority, resource allocation or agent lease"
+    - "marking the module implemented based on blueprint documents"
+    - "starting multiple cognitive-model consumers before authority freeze"
 
 current_candidate_findings:
   strengths:
@@ -67,32 +94,57 @@ agent_tasks:
       - "continue cognitive dialogue and metacognitive prompting"
       - "propose candidate observations and strongest counterarguments"
       - "orchestrate user review and correction"
-      - "audit privacy and unsupported profiling"
+      - "audit privacy, unsupported profiling, architecture alignment and non-duplication"
+      - "perform second-pass review before each major implementation expansion"
     prohibited:
       - "claiming stable traits from one conversation"
       - "writing private raw dialogue to public GitHub"
+      - "activating engineering work without respecting existing governance cadence"
+
   CODEX:
+    activation: "FUTURE_ONLY_AFTER_FORMAL_RELEASE"
     role:
-      - "after Issue #72 authority freeze, map mature candidate fields into W10 canonical contracts"
-      - "perform C0 non-duplication audit"
-      - "define schema validation and version migrations"
+      - "perform C0 non-duplication audit against Issues #38/#59/#60/#61/#63/#72"
+      - "map mature candidate fields into W10 canonical contracts"
+      - "define CognitiveObservation, Mastery, Gap, Unknown, UserCorrection and CognitiveEvolutionEpisode contracts"
+      - "define schema validation, version migrations, access control, expiry and revocation semantics"
+      - "integrate with the existing knowledge gateway, evidence graph and long-term memory authority"
+      - "create bounded implementation plans, APIs and automated tests"
     prohibited:
       - "starting a second PersonalCognitiveModel runtime before interface freeze"
-  QCLAW:
-    role:
-      - "atomize future cognitive episodes"
-      - "generate candidate concept links, evidence and counterevidence"
-      - "prepare hybrid retrieval fixtures"
-    prohibited:
-      - "promoting model inference into source evidence"
-      - "modifying canonical runtime before authorization"
+      - "preempting the current active task or expanding WIP without release"
+      - "turning the seed into permanent profiling without evidence and user review"
+      - "bypassing canonical authorities to accelerate delivery"
+
   WORKBUDDY:
+    activation: "FUTURE_ONLY_AFTER_CONTRACT_CLARITY"
     role:
       - "validate local/private source formats and import boundaries"
       - "verify public/private path separation"
-      - "test real retrieval against approved local data"
+      - "integrate approved local conversation, file, learning and review sources"
+      - "test real hybrid retrieval, time/version behavior, correction and revocation"
+      - "validate local privacy, backup, recovery, observability and user review workflows"
+      - "run integration, negative and data-leakage tests"
+      - "report runtime facts and limitations without redefining canonical semantics"
     prohibited:
       - "uploading private raw files to public repository"
+      - "inventing a second schema before canonical interfaces are frozen"
+      - "preempting current tasks or changing execution cadence"
+      - "treating retrieval similarity as factual truth"
+
+  QCLAW:
+    activation: "KNOWLEDGE_SUPPORT_ONLY"
+    role:
+      - "digest systems theory, control theory, learning science, metacognition and user-model research"
+      - "provide terminology, research evidence, counterexamples and learning materials"
+      - "prepare candidate knowledge atoms for the cognitive growth backlog"
+      - "state evidence strength, scope and limitations of learning content"
+    prohibited:
+      - "acting as implementation owner"
+      - "creating or modifying the cognitive framework runtime"
+      - "freezing canonical schemas, APIs, permissions or profile upgrade rules"
+      - "promoting learning materials or model inference into stable user traits"
+      - "building a parallel system alongside Codex or WorkBuddy"
 
 next_review_actions:
   - id: "R1"
@@ -105,13 +157,17 @@ next_review_actions:
     priority: "P0"
   - id: "R3"
     owner: "CODEX"
-    action: "After authority freeze, compare this seed with Issue #61 schema requirements and produce a non-duplication mapping."
-    priority: "BLOCKED_BY_ISSUE_72"
+    action: "At the natural scheduling point after formal release, compare this seed with W3/W10/W9 contracts and produce a non-duplication mapping."
+    priority: "QUEUED_BLOCKED_BY_GOVERNANCE_AND_EXISTING_CADENCE"
   - id: "R4"
-    owner: "QCLAW"
-    action: "Prepare retrieval test cases for topic, mastery, gap, time, evidence and counterevidence queries."
-    priority: "PLANNING_INPUT_ONLY"
+    owner: "WORKBUDDY"
+    action: "After contract clarity, audit approved local data formats, privacy boundaries and realistic retrieval test fixtures."
+    priority: "QUEUED_AFTER_CODEX_CONTRACT"
   - id: "R5"
+    owner: "QCLAW"
+    action: "Provide learning-only research support for systems theory, control theory, Goodhart/Campbell and related evidence."
+    priority: "KNOWLEDGE_SUPPORT_ONLY"
+  - id: "R6"
     owner: "USER + GPT"
     action: "Create a second cognitive episode in a different domain to test transfer rather than repeating the same evidence."
     priority: "P1"
@@ -119,7 +175,11 @@ next_review_actions:
 acceptance_gates:
   - "No private data leakage."
   - "No parallel canonical runtime."
+  - "No current task or resource preemption."
   - "Every candidate has status, evidence, confidence and review path."
   - "At least one explicit opposing-evidence or unknown path exists for each major claim."
   - "User can correct and revoke the model."
   - "Future retrieval can answer strengths, gaps, unknowns, mastery and history questions."
+  - "Codex and WorkBuddy remain the future implementation owners."
+  - "QCLAW remains knowledge support only."
+  - "Each implementation stage follows the original governance speed, dependencies and rollback requirements."
