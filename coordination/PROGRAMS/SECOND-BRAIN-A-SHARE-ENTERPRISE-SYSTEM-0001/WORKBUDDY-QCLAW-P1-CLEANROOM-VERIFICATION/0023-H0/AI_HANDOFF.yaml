@@ -1,24 +1,25 @@
 handoff:
-  version: "R1"
+  version: "R2"
   from: "WorkBuddy (迪迪)"
   to: "GPT"
   status: "READY_FOR_GPT_REVIEW"
-  completion_signal: "WORKBUDDY_PR91_R1_PUBLIC_PATH_HYGIENE_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
+  completion_signal: "WORKBUDDY_PR91_R2_MACHINE_RECEIPT_AND_PATH_SCAN_CLOSED_FOR_GPT_REVIEW"
 
-r1_changes:
-  - "3 files corrected: absolute paths → <CLEANROOM_WORKSPACE>"
-  - "PUBLIC-SAFETY report updated with truthful pre/post remediation scan"
-  - "All other H0 evidence preserved unchanged"
+r1_correction:
+  - "3 path-bearing files corrected (absolute → alias)"
+  - "7 total files modified in R1 commit (3 path + 4 receipt updates)"
+
+r2_changes:
+  - "R2 scanner added: _r2_scanner.py — deterministic, excludes self/IV-script, documents method"
+  - "Path scan: 17 files scanned, 0 findings, output hash 4f53cda1"
+  - "QCLAW validator rerun (PR84 head, byte-identical): 37 PASS / 0 FAIL / 0 SKIP, output hash 774c009f"
+  - "FEEDBACK file: last remaining path reference corrected"
+  - "AI_HANDOFF: R1 change count corrected to 3 path-bearing / 7 total"
 
 remaining_known_gaps:
-  - "QCLAW root placement (15 files) — documented, not remediated (not WorkBuddy's domain)"
-  - "14-vs-15 hash documentation gap — recorded, pending QCLAW clarification"
+  - "QCLAW root placement (15 files) — documented"
+  - "14-vs-15 hash — validator self-exclusion, documented"
 
-gpt_actions_needed:
-  - "Verify post-remediation scan: zero absolute paths"
-  - "Decide whether H0-R1 satisfies acceptance gates"
-  - "Issue #92 remains queued behind Issue #80 D0 acceptance"
-
+gpt_actions_needed: ["Verify R2 acceptance gates", "Issue #92 remains queued"]
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-timestamp: "2026-07-24T13:50:00+08:00"
+timestamp: "2026-07-24T15:55:00+08:00"

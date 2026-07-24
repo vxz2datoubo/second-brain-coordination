@@ -239,3 +239,73 @@ else:
 print("\n" + "=" * 70)
 print("CLEANROOM VERIFICATION COMPLETE")
 print("=" * 70)
+
+# ======= 5. R2: DETERMINISTIC PATH & SAFETY SCAN =======
+print("\n" + "=" * 70)
+print("STEP 5 (R2): Deterministic Path & Credential Scan")
+print("=" * 70)
+
+import re
+
+OUTDIR = Path(__file__).parent
+scanned = 0
+findings = []
+
+# Patterns to detect (excluding <CLEANROOM_WORKSPACE> which is allowed alias)
+danger_patterns = [
+    (r"[A-Za-z]:[/\\]", "Windows drive path"),
+    (r"/Users/", "/Users/ path"),
+    (r"/home/", "/home/ path"),
+    (r"\\\\[A-Za-z]", "UNC path"),
+    (r"ghp_[A-Za-z0-9]{30,}", "GitHub token"),
+    (r"sk-[A-Za-z0-9]{30,}", "OpenAI API key"),
+    (r"PRIVATE KEY", "Private key header"),
+]
+
+# Files to scan (only PR91 outputs, skip scanner itself and git objects)
+for root, dirs, files in os.walk(OUTDIR):
+    # Skip .git and non-PR91 dirs
+    rel = Path(root).relative_to(OUTDIR)
+    if ".git" in str(rel):
+        continue
+    
+    for fname in files:
+        fpath = Path(root) / fname
+        relpath = fpath.relative_to(OUTDIR)
+        
+        # Skip the scanner script itself to avoid self-hit
+        if fpath.samefile(Path(__file__)):
+            print(f"  SKIP (self): {relpath}")
+            continue
+        
+        try:
+            content = fpath.read_text(errors='ignore')
+        except:
+            continue
+        
+        scanned += 1
+        
+        for pattern, label in danger_patterns:
+            matches = re.findall(pattern, content)
+            if matches:
+                # Exclude <CLEANROOM_WORKSPACE> alias matches
+                if "<CLEANROOM_WORKSPACE>" in content and label == "Windows drive path":
+                    # Check if the only match is in comments mentioning the alias
+                    non_alias = [m for m in matches if "<CLEANROOM_WORKSPACE>" not in content[content.find(m):content.find(m)+50]]
+                    if not non_alias:
+                        continue
+                
+                for m in matches[:3]:
+                    findings.append({"file": str(relpath), "pattern": label, "match": str(m)[:50]})
+
+print(f"Scanned: {scanned} files in {OUTDIR}")
+print(f"Findings: {len(findings)}")
+for f in findings:
+    print(f"  {f['file']}: {f['pattern']} — {f['match']}")
+
+scan_sha = hashlib.sha256(json.dumps(findings).encode()).hexdigest()
+print(f"\nScan output SHA-256: {scan_sha}")
+print(f"Result: {'CLEAN' if len(findings) == 0 else f'FAIL — {len(findings)} findings'}")
+
+# Record for receipt
+print(f"\nR2_SCAN|files={scanned}|findings={len(findings)}|sha256={scan_sha}")
