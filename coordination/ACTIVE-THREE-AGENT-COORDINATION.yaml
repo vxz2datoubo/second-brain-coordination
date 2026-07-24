@@ -1,32 +1,22 @@
-schema_version: "10.0"
+schema_version: "10.1"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "THREE_AGENT_PARALLEL_EXECUTION_REPLANNED_QCLAW_QUOTA_RESTORED"
+status: "THREE_AGENT_PARALLEL_EXECUTION_WORKBUDDY_R8_ACTIVE"
 updated_by: "GPT"
-updated_at: "2026-07-25T04:35:00+08:00"
+updated_at: "2026-07-25T05:12:00+08:00"
 
 replanning_reason:
-  - "QCLAW daily compute is restored and its previous EXHAUSTED route is stale."
-  - "Codex PR #90 contract work is accepted and its previous STOP route no longer uses available capacity."
-  - "Issue #22 and #26 are completed and PR #29 is merged, clearing the old Issue #23 dependency gate."
-  - "PR #93 adds a Draft candidate participant-evidence governance package that should be digested and incorporated without being treated as authority."
-  - "WorkBuddy PR #91 is close to closure and should remain bounded rather than being reassigned."
+  - "QCLAW daily compute remains restored and QCLAW Q0 is active."
+  - "Codex heavy Issue #23 D0 project-plan lane remains active."
+  - "WorkBuddy R7 was submitted and reviewed; its two-head structure is accepted but top-level failure propagation remains fail-open."
+  - "WorkBuddy therefore receives one final bounded R8 instead of being reassigned or released to Issue #92."
 
 resource_model:
-  CODEX:
-    share_percent: 60
-    weight: "HEAVY"
-    rationale: "Own the largest repository audit, multi-agent game-engine project plan, integration map and validation architecture."
-  QCLAW:
-    share_percent: 30
-    weight: "MEDIUM_HEAVY"
-    rationale: "Resume primary knowledge digestion role and independently atomize/adversarially test PR #93 candidate evidence."
-  WORKBUDDY:
-    share_percent: 10
-    weight: "LIGHT"
-    rationale: "Finish the already-bounded PR #91 R7 truth and production-path receipt closure."
+  CODEX: {share_percent: 60, weight: "HEAVY"}
+  QCLAW: {share_percent: 30, weight: "MEDIUM_HEAVY"}
+  WORKBUDDY: {share_percent: 10, weight: "LIGHT_FINAL_CLOSURE"}
 
 agents:
   CODEX:
@@ -55,65 +45,53 @@ agents:
   WORKBUDDY:
     active_issue: 89
     pull_request: 91
-    task_id: "WORKBUDDY-PR91-R7-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE"
-    route_epoch: 7
+    task_id: "WORKBUDDY-PR91-R8-TOPLEVEL-FAILURE-PROPAGATION-AND-MACHINE-RECEIPT-CLOSURE"
+    route_epoch: 8
     mode: "target"
     status: "READY"
     execution_allowed: true
     branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
-    completion_signal: "WORKBUDDY_PR91_R7_PRODUCTION_PATH_NEGTESTS_AND_TRUTHFUL_RECEIPTS_READY_FOR_GPT_REVIEW"
+    reviewed_head: "f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3"
+    completion_signal: "WORKBUDDY_PR91_R8_TOPLEVEL_FAILURE_PROPAGATION_AND_MACHINE_RECEIPTS_READY_FOR_GPT_REVIEW"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
+workbuddy_r7_review:
+  tested_head: "73e4ff9a889c6f37c6bd26aee7d5309c9f53af3d"
+  receipt_head: "f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3"
+  classification: "STRUCTURE_ACCEPTED_TOPLEVEL_FAILURE_PROPAGATION_R8_REQUIRED"
+  accepted:
+    - "Exactly two commits: verifier-only tested head and four-file receipt head."
+    - "Exact task id, completion signal, THIS_COMMIT and fifteen-file manifest are present."
+    - "Strict UTF-8 read and major Git command checks are present."
+  blocking:
+    - "nt1/nt2/nt3 report PASS but the test-mode top-level process exits 0."
+    - "nt2 and nt3 bypass the production qclaw wrapper."
+    - "Normal mode does not propagate child validator non-zero or missing result fields to top-level failure."
+    - "Receipts omit per-command stdout/stderr hashes and report tested-head delivery=1 instead of final receipt-head delivery surface."
+
 parallel_execution_plan:
-  - order: 1
-    owner: "ALL_THREE"
-    task: "Each agent reads latest remote main, claims its own exact lease and works only in its own branch and allowed directory."
-  - order: 2
-    owner: "CODEX"
-    task: "Heavy D0 project plan for the A-share multi-agent strategic game engine and blueprint backwrite package."
-  - order: 2
-    owner: "QCLAW"
-    task: "Independent PR #93 candidate-source atomization, conflict/UNKNOWN registry and adversarial retrieval packet."
-  - order: 2
-    owner: "WORKBUDDY"
-    task: "Complete PR #91 R7 production-path negative tests and truthful external receipt anchor."
-  - order: 3
-    owner: "GPT"
-    task: "Review each lane independently; no agent output automatically changes another lane's authority."
-  - order: 4
-    owner: "GPT"
-    task: "After Codex and QCLAW acceptance, reconcile the participant evidence packet into the Issue #23 plan without cross-branch edits."
+  - owner: "CODEX"
+    task: "Continue heavy Issue #23 D0 project plan on its own branch."
+  - owner: "QCLAW"
+    task: "Continue PR #93 candidate evidence digestion and adversarial packet on its own branch."
+  - owner: "WORKBUDDY"
+    task: "Execute only PR #91 R8 top-level failure propagation and truthful receipt closure."
+  - owner: "GPT"
+    task: "Review every lane independently; no output automatically changes another lane's authority."
 
 cross_lane_firewalls:
-  - "Codex writes only its Issue #23 D0 branch and may read but not edit PR #93 or QCLAW/WB branches."
-  - "QCLAW writes only QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0 and may not edit the Codex plan, PR #93 or PR #91."
-  - "WorkBuddy remains restricted to the PR #91 R7 verifier and four receipt files."
-  - "No agent merges, auto-merges or directly writes main."
-  - "QCLAW candidate packets do not become facts or Codex inputs until GPT accepts them."
-  - "Codex may reserve integration slots for QCLAW output but must keep them candidate/UNKNOWN."
-
-frozen_and_candidate_evidence:
-  qclaw_preregistration: {pr: 77, receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"}
-  codex_d0_target: {pr: 79, head: "b515b66290944af3d3e1d3285e95cb6162736d41", status: "FROZEN_NO_EDITS"}
-  qclaw_p1_submission: {pr: 84, head: "63c344084d9af86cb26c1cc65a30d409fefa872f", status: "FROZEN_CANDIDATE_EVIDENCE"}
-  codex_pit_contract: {pr: 90, receipt_head: "b683cd69e4742455b125bf95172e5f3a51851cd4", status: "ACCEPTED_STOPPED"}
-  workbuddy_current: {pr: 91, reviewed_head: "f5f25dafe7b02bf0e20e75865e1610d836ab380a", status: "R7_ACTIVE"}
-  participant_evidence_addendum: {pr: 93, head: "d3296ece7b7ec56414fb60b1ac497530b188a258", status: "DRAFT_CANDIDATE_NOT_AUTHORITY"}
+  - "Codex may read but not edit PR #93, QCLAW or WorkBuddy branches."
+  - "QCLAW may not edit Codex, PR #93 or PR #91."
+  - "WorkBuddy may change only the R8 verifier and four receipt files."
+  - "No agent writes directly to main, merges, auto-merges or rewrites history."
+  - "QCLAW candidate packets remain candidate/UNKNOWN until GPT acceptance."
 
 issue92_gate:
-  active: false
-  status: "QUEUED_NOT_RELEASED"
+  status: "BLOCKED_NOT_RELEASED"
   required_before_release:
-    - "WorkBuddy PR #91 R7 accepted by GPT."
-    - "Exactly one source manifest candidate explicitly approved by user/GPT."
-    - "A separate explicit GPT route changes Issue #92 to READY."
-  current_forbidden: ["source activation", "labels", "replay", "backtest", "performance claim", "account", "order", "trade"]
+    - "WorkBuddy PR #91 accepted by GPT."
+    - "Exactly one SourceManifest candidate explicitly approved by user or GPT."
+    - "A separate explicit GPT READY route for Issue #92."
+  forbidden_before_release: [source_activation, labels, replay, backtest, performance_claim, account, order, trade]
 
-safety_boundary:
-  public_safe_only: true
-  candidate_only_until_GPT_acceptance: true
-  research_only: true
-  no_trade: true
-  no_broker_account_order: true
-  no_credential_or_service_change: true
-  no_merge_or_auto_merge: true
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
