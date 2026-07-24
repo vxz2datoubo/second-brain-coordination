@@ -1,29 +1,33 @@
-schema_version: "8.0"
-coordination_type: "GPT_CODEX_QCLAW_ACTIVE_COORDINATION"
+schema_version: "8.1"
+coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 qclaw_role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 program_issue: 31
-status: "CODEX_HANDOFF_AND_PIT_PREREQUISITE_ACTIVE_QCLAW_QUOTA_EXHAUSTED"
+status: "WORKBUDDY_CLEANROOM_H0_AND_CODEX_PIT_D0_ACTIVE_QCLAW_QUOTA_EXHAUSTED"
 updated_by: "GPT"
 updated_at: "2026-07-24"
 
 program_goal: >-
-  Preserve QCLAW's submitted independent P1 findings without allowing the evaluated Codex agent to rewrite them, while transferring
-  the remaining nonsemantic handoff engineering and target-side PIT data/rule/interface prerequisite planning to Codex.
+  Preserve QCLAW's submitted semantic audit as immutable candidate evidence, use WorkBuddy for independent machine and packaging
+  verification that the evaluated Codex agent must not self-certify, and use Codex only for target-side PIT data/rule/interface planning.
 
 resource_model:
-  codex_active_share: 100
+  codex_target_prerequisite_share: 65
+  workbuddy_independent_verification_share: 35
   qclaw_active_share: 0
-  workbuddy_share: 0
   reason: >-
-    QCLAW submitted PR #84 and exhausted its daily compute. Codex now owns one bounded project-plan lane. QCLAW's score, blocker
-    decisions and verdict remain immutable candidate evidence; Codex may only preserve provenance and build target-side prerequisites.
+    QCLAW submitted PR #84 and exhausted daily compute. The user explicitly reactivated WorkBuddy for the portion that cannot safely
+    be assigned to Codex. Codex and WorkBuddy now run separate non-overlapping branches; QCLAW's score and verdict remain frozen.
 
 coordination_principles:
-  single_major_execution_owner: "CODEX_ISSUE_80"
+  parallel_execution_owners: ["WORKBUDDY_ISSUE_89_H0", "CODEX_ISSUE_80_D0"]
   qclaw_independent_evidence_owner: "QCLAW_FIXED_SUBMISSION_PR84"
+  workbuddy_machine_evidence_owner: "WORKBUDDY_FIXED_HEAD_CLEANROOM_VERIFICATION"
+  codex_target_plan_owner: "CODEX_PIT_DATA_ADMISSION_AND_RULE_PLAN"
   final_gate_owner: "GPT"
   no_codex_self_audit: true
+  no_workbuddy_semantic_rescore: true
+  no_cross_branch_coaching: true
   qclaw_semantic_freeze: true
   fixed_heads_required: true
   no_direct_main_write_by_executors: true
@@ -33,23 +37,34 @@ coordination_principles:
   preserve_unknowns: true
 
 current_phase:
-  name: "QCLAW_P1_HANDOFF_PRESERVATION_AND_PIT_DATA_ADMISSION_D0"
-  execution_model: "CODEX_ACTIVE; QCLAW_PAUSED_QUOTA_EXHAUSTED; WORKBUDDY_INACTIVE"
+  name: "PARALLEL_QCLAW_P1_CLEANROOM_H0_AND_PIT_DATA_ADMISSION_D0"
+  execution_model: "WORKBUDDY_H0_ACTIVE; CODEX_D0_ACTIVE; QCLAW_PAUSED_QUOTA_EXHAUSTED"
   gpt_role: >-
-    Review PR #84 as candidate evidence, review the Codex handoff/admission package, retain final audit authority, and forbid D1 until
-    license, PIT, historical rules and interface gates are explicitly accepted.
+    Review PR #84 semantic candidate evidence, WorkBuddy's independent machine package and Codex's target-side prerequisite plan as
+    three separate evidence classes. Do not authorize D1 until the relevant gates are explicitly accepted.
 
 agents:
   CODEX:
     active_issue: 80
-    task_id: "CODEX-QCLAW-P1-HANDOFF-INTEGRATION-AND-PIT-DATA-ADMISSION-0022-D0"
+    task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-AND-HISTORICAL-RULE-EVIDENCE-0022-D0"
     mode: "project_plan"
     status: "READY"
-    new_branch: "codex/qclaw-p1-handoff-pit-data-admission-0022-d0"
+    new_branch: "codex/a-share-pit-data-admission-0022-d0"
     role_now: >-
-      Build a clean external-evidence manifest for QCLAW PR #84 and plan the PIT data, license, historical rule and W3/W7 prerequisites.
-      Do not modify QCLAW judgments, PR #84, PR #77 or PR #79, and do not start D1.
+      Plan PIT data, license, field semantics, adjustment, historical rule/security-status and W3/W7 prerequisites. Do not reproduce
+      PR #84 packaging/hashes, modify QCLAW judgments, interfere with WorkBuddy Issue #89 or start D1.
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+
+  WORKBUDDY:
+    active_issue: 89
+    task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
+    mode: "target"
+    status: "READY"
+    new_branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
+    role_now: >-
+      Independently reproduce PR #84 fixed-head identity, file ownership, blobs, hashes, path/mandatory-output gaps, unchanged-validator
+      execution and 14/15 hash reconciliation. Do not rescore or endorse QCLAW semantics and do not enter Codex data-admission scope.
+    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
   QCLAW:
     aliases: ["Q", "QQ"]
@@ -57,18 +72,12 @@ agents:
     completed_issue: 76
     submission_pull_request: 84
     submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
-    status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_COMPLETE"
+    status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_SPLIT_COMPLETE"
     role_now: >-
-      No further execution today. PR #84 remains the fixed QCLAW-authored candidate audit. After compute resets, return to the
-      knowledge atomization/memory mainline rather than resume this transferred task automatically.
+      No further execution today. PR #84 remains the fixed QCLAW-authored semantic audit. After compute resets, return to the
+      knowledge atomization/memory mainline rather than resume WorkBuddy or Codex handed-off work.
     return_route_after_reset: [59, 60, 38]
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
-
-  WORKBUDDY:
-    active_issue: null
-    task_id: "NO_ACTIVE_TASK"
-    status: "REMOVED_FROM_0017_MAINLINE_BY_USER"
-    source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 fixed_evidence:
   qclaw_preregistration:
@@ -87,46 +96,59 @@ fixed_evidence:
     reported_verdict: "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS"
     canonical_disposition: "PENDING_GPT_ADOPTION"
 
-handoff_findings:
-  - id: "H0-D01"
-    severity: "S2"
-    description: "QCLAW audit files were placed at repository root rather than the authorized audit directory."
-  - id: "H0-D02"
-    severity: "S2"
-    description: "PR #84 also contains the twenty-two Codex target files in its changed-file surface."
-  - id: "H0-D03"
-    severity: "S2"
-    description: "Several exact mandatory output names are missing/renamed, and two mandatory governance outputs are absent."
-  - id: "H0-D04"
-    severity: "S2"
-    description: "The test receipt claims fifteen mandatory files but hashes fourteen."
-  - id: "H0-D05"
-    severity: "S3_TARGET_PREREQUISITE"
-    description: "Authorized PIT data, source license, field semantics, historical rules/status and W3/W7 interface evidence remain incomplete."
+scope_split:
+  QCLAW_TO_GPT:
+    - "42-question semantic statuses and score contributions"
+    - "four blocking decisions"
+    - "0.491 score and conditional-accept recommendation"
+    - "counterevidence, UNKNOWN and explanatory judgments"
+  WORKBUDDY_H0:
+    - "fixed-head and branch identity"
+    - "changed-file surface and file ownership classification"
+    - "Git blobs, bytes, SHA-256 and combined-hash reproduction"
+    - "authorized-path, mandatory-output and 14/15 discrepancy verification"
+    - "unchanged QCLAW validator execution and environment receipt"
+  CODEX_D0:
+    - "PIT source admission and license plan"
+    - "field, time and adjustment semantics"
+    - "historical exchange/board/security-status rules"
+    - "W3/W7 read-only dependencies and reproducibility equivalence"
+
+cross_lane_firewalls:
+  - "WorkBuddy and Codex use separate branches, directories, PRs and completion signals."
+  - "Codex must not consume WorkBuddy in-progress findings or coach its verification."
+  - "WorkBuddy must not inspect or edit Codex's new data-admission branch as part of H0."
+  - "Neither agent may modify QCLAW PR #84, PR #77 or Codex PR #79."
+  - "Machine verification does not equal semantic audit acceptance."
+  - "Target-side planning does not equal independent validation."
 
 execution_queue:
   - order: 1
+    owner: "WORKBUDDY"
+    parallel_group: "A"
+    task: "Issue #89 fixed-head cleanroom and artifact verification for QCLAW PR #84."
+    completion_signal: "WORKBUDDY_QCLAW_P1_CLEANROOM_HANDOFF_VERIFICATION_0023_H0_READY_FOR_GPT_REVIEW"
+  - order: 1
     owner: "CODEX"
-    task: "H0 immutable external-evidence handoff manifest for PR #84."
-  - order: 2
-    owner: "CODEX"
+    parallel_group: "A"
     task: "Issue #80 D0 PIT data-admission and historical-rule prerequisite plan."
-  - order: 3
+    completion_signal: "CODEX_A_SHARE_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_0022_D0_READY_FOR_GPT_REVIEW"
+  - order: 2
     owner: "GPT"
-    task: "Review Codex package and make the final P1/D0 disposition."
-  - order: 4
+    task: "Review QCLAW semantic evidence, WorkBuddy machine evidence and Codex prerequisite plan separately, then make final disposition."
+  - order: 3
     owner: "QCLAW_AFTER_COMPUTE_RESET"
     task: "Return to Issues #59/#60/#38 knowledge digestion and memory-supply mainline."
-  - order: 5
+  - order: 4
     owner: "NONE_UNTIL_EXPLICIT_RELEASE"
     task: "No D1, VS1, source activation, historical labels, replay, backtest or performance claim."
 
 release_control:
   only_GPT_may_activate_next_step: true
   trigger_behavior:
-    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute Issue #80 H0 plus D0 only."
-    QCLAW: "Report submitted/quota exhausted; do not continue PR #84 or accept another task today."
-    WORKBUDDY: "Report NO_ACTIVE_TASK_SCOPE_TRANSFERRED_TO_CODEX."
+    CODEX: "Read ACTIVE-CODEX-TASK.yaml and execute Issue #80 D0 only."
+    WORKBUDDY: "Read ACTIVE-WORKBUDDY-TASK.yaml and execute Issue #89 H0 only."
+    QCLAW: "Report submitted/quota exhausted and handoff split complete; do not continue today."
 
 safety_boundary:
   public_safe_only: true
