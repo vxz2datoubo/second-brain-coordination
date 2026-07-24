@@ -1,0 +1,91 @@
+# P1-AUDIT-IDENTITY-AND-INDEPENDENCE-RECEIPT.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+# R3 accepted freeze → P1 independent evaluation
+# 2026-07-24T07:03+08:00
+
+schema_version: "1.0"
+receipt_id: "QCLAW-0020Q-P1-IDENTITY-001"
+phase: "P1_FROZEN_INSTRUMENT_EVALUATION"
+role_class: "TEMPORARY_BORROW"
+return_target: "Issues #59 (knowledge atomization), #60 (long-term memory retrieval), #38 (gateway integration)"
+role_charter_ref: "Issue #81 / QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
+
+# ============================================================================
+# AUDIT INSTRUMENT (frozen, immutable, not modified)
+# ============================================================================
+audit_instrument:
+  source: "PR #77"
+  frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+  tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
+  receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+  core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+  core_files: 8
+  questions: 42
+  dimensions: 10
+  validator_p0_blob: "2a9a927cf35ae0f736f93d29291e7345e9f9a997"
+  validator_r3_blob: "a438921cc81475b2561f8a66fb24928ef1f18628"
+  status: "ACCEPTED_FOR_P1_WITH_EXTERNAL_RECEIPT_HEAD_ANCHOR"
+
+# ============================================================================
+# EVALUATED TARGET
+# ============================================================================
+evaluated_target:
+  source: "Codex PR #79"
+  target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+  target_head_verified: true
+  verification_method: "GitHub API GET repos/{owner}/{repo}/pulls/79"
+  artifact_count: 22
+  task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+  phase: "D0 (planning only)"
+  status: "ALL_CONTRACTS_CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+
+# ============================================================================
+# INDEPENDENCE ATTESTATION
+# ============================================================================
+independence:
+  separate_branch: "qclaw/0017-d0-independent-audit-0020q-p1"
+  separate_pr: "NEW_DRAFT_PR (to be created after first commit)"
+  no_edit_of_codex_pr79: true
+  no_edit_of_qclaw_pr77: true
+  questions_frozen_before_target_read: true
+  no_question_adaptation_after_target_read: true
+  no_codex_coaching_during_p1: true
+  no_d1_implementation: true
+
+# ============================================================================
+# CODE EVALUATION ENVIRONMENT
+# ============================================================================
+environment:
+  python: "3.12.10"
+  pyyaml: "6.0.3"
+  os: "Windows 10.0.22631"
+  hostname: "WIN-VMQ5E1RGQNV"
+  target_files_retrieved_via: "GitHub Contents API"
+  target_head_verified_via: "GitHub Pulls API"
+  no_local_codex_dependency: true
+
+# ============================================================================
+# SCOPE AND BOUNDARY
+# ============================================================================
+scope:
+  evaluates: "Codex D0 plan for 0017 BAR_ONLY reference-zone research"
+  does_not_evaluate: "D1-D6 implementation, backtest results, trade recommendations, runtime correctness"
+  does_not_modify: "Frozen instrument, Codex PR #79, any canonical runtime or blueprint"
+  does_not_access: "Credentials, private data bodies, broker APIs, live feeds"
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+
+# ============================================================================
+# REPORTING TARGETS
+# ============================================================================
+report_to:
+  pull_request: "NEW P1 Audit Draft PR"
+  issues: [76, 69, 31, 81]
+  include_pr_link: true
+
+completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_SEVEN_GATE_D0_DECISION_THEN_AUTOMATIC_RETURN_TO_PRIMARY_ROLE"
+auto_return: {role: "PRIMARY_SYSTEM_BUILD", issues: [59, 60, 38]}
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T07:03:00+08:00"

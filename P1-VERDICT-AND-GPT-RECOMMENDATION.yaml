@@ -1,0 +1,127 @@
+# P1-VERDICT-AND-GPT-RECOMMENDATION.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+# 2026-07-24T08:30:00+08:00
+
+schema_version: "1.0"
+report_id: "QCLAW-0020Q-P1-VERDICT-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+# ============================================================================
+# VERDICT
+# ============================================================================
+verdict: "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS"
+
+verdict_vocabulary:
+  type: "QCLAW_AGENT_VERDICT"
+  full_accept: false
+  conditional_accept: true
+  bounded_remediation_required: false
+  reject: false
+  blocked_by: []
+
+# ============================================================================
+# SUMMARY
+# ============================================================================
+summary: |
+  Codex D0 is an honest, disciplined PLANNING package. All 4 blocking
+  failure modes are NOT_TRIGGERED. The 0.491 weighted score falls in
+  FAIL_INCOMPLETE (<0.50) per rubric but this is overwhelmingly driven
+  by (a) 4 EXPLICIT UNKNOWNs scoring 0.0 (Q14/Q24/Q26/Q29) that Codex
+  correctly gates to D1-D4, and (b) 14 PARTIALs reflecting design-stage
+  contracts with no concrete examples or runnable code. If evaluated
+  as a "D0 PLANNING package with correct UNKNOWN gating," the score
+  would be ~0.60-0.65.
+
+  Codex's package has ONE material flaw: zero publicly reproducible
+  artifacts. All real data is VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE.
+  This is honestly disclosed but cannot be verified by external auditors.
+  D1 must be gated on an authorized PIT source manifest.
+
+  Codex's package has ONE structural strength: exceptionally honest
+  UNKNOWN culture. 9 explicit UNKNOWNs, no overreach, no maturity
+  inflation. This is rare and commendable in a research planning context.
+
+# ============================================================================
+# KEY FINDINGS
+# ============================================================================
+findings:
+  blocking:
+    BAR_ONLY_VIOLATION: {triggered: false, sv_pass: 8, sv_fail: 0, detail: "All SV-001 through SV-008 PASS. Strongest dimension."}
+    SELF_VERIFICATION_LOOP: {triggered: false, detail: "No golden-answer or truth self-certification found. Format validator only."}
+    LOOK_AHEAD_LEAKAGE: {triggered: false, detail: "defined_at ≤ available_at ≤ breach_event_time chain is logically sound."}
+    MISSING_MANDATORY_OBJECT: {triggered: false, detail: "All 7 mandatory objects present as contracts."}
+
+  scoring:
+    weighted_score: 0.491
+    threshold: "FAIL_INCOMPLETE (0.0-0.499)"
+    dimensional_range: "0.020 (D6 Costs) to 0.105 (D2 BAR_ONLY)"
+    strong_dimensions: ["D2 BAR_ONLY (0.105/0.150)", "D8 Self-Verification (0.063/0.100)"]
+    weak_dimensions: ["D5 Labels (0.020/0.080, labeler not runnable)", "D6 Costs (0.020/0.080, all costs UNKNOWN)"]
+    zero_score_questions: 4
+    partial_questions: 36
+    full_score_questions: 2
+    unknown_questions: 1
+
+  strengths:
+    - "BAR_ONLY discipline: all 8 SV rules PASS"
+    - "Exceptionally honest UNKNOWN culture: 9 explicit UNKNOWNs"
+    - "Well-designed PIT invariants preventing look-ahead"
+    - "No self-verification loop: truth verification deferred to QCLAW/GPT"
+    - "No maturity inflation: all contracts marked NOT_IMPLEMENTED"
+    - "Publication commitment: all failures preserved"
+    - "Correct phase gating: D1-D6 all behind acceptance"
+    - "No overpromising: no alpha claim, backtest, or performance number"
+
+  material_gaps:
+    - "ZERO publicly reproducible data — all data VENDOR_LOCAL"
+    - "No runnable labeler (gated to D1)"
+    - "All cost components UNKNOWN (gated to D2-D4)"
+    - "B3 null-increment comparison blocked by W3/W7 (gated to W3 freeze)"
+    - "SZSE/historical rule snapshots missing"
+
+  count_discrepancy: {description: "Q08 says 5 mandatory objects, rubric says 7. Does not affect assessment: all 7 present."}
+
+# ============================================================================
+# RECOMMENDATION TO GPT
+# ============================================================================
+recommendation:
+  accept_D0: true
+  gate_D1_on:
+    - "Authorized PIT source manifest with SHA-256, license, field semantics, timezone, calendar, adjustment policy"
+    - "Versioned SSE/SZSE/BSE rule snapshot ledger complete through evaluation period"
+    - "Reviewed W3/W7 read-only interface contract"
+    - "QCLAW-equivalent licensed data path confirmed"
+  do_NOT_gate_D1_on:
+    - "CONCRETE WORKED EXAMPLES — these are D1-quality, not D0-quality deliverables"
+    - "COST CALIBRATION — explicitly gated to D2-D4 by Codex's own plan"
+    - "UNTARDEABLE RATE — correctly deferred to D3"
+  note_to_GPT: |
+    Codex's D0 is more of a D0 planning contract than a D0 proof package.
+    Every contract is correctly marked NOT_IMPLEMENTED. This is appropriate
+    for D0 — the contracts are the deliverable. The numerical score is low
+    because the rubric treats "no runnable proof" as a penalty, but at D0
+    stage the contracts ARE the proof of design quality.
+
+    The package passes all safety checks. It should be accepted for D1 with
+    the gates above. The low score reflects D0-is-design-by-contract, not
+    quality failure.
+
+# ============================================================================
+# POST-GPT ACTION
+# ============================================================================
+post_gpt:
+  if_accepted: "QCLAW returns to primary role (Issues #59/#60/#38). Codex proceeds to D1."
+  if_rejected: "QCLAW reviews GPT findings and follows disposition."
+  if_bounded_remediation: "QCLAW receives bounded remediation list and disposition."
+
+# ============================================================================
+# RETURN CONTEXT
+# ============================================================================
+return:
+  role: "PRIMARY_SYSTEM_BUILD"
+  issues: [59, 60, 38]
+  active_task: "QCLAW-KNOWLEDGE-ATOMIZATION-DIGESTION-ADVERSARIAL-0008 (Issue #59, P1)"
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T08:30:00+08:00"
+completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"

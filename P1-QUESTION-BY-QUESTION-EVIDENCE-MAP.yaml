@@ -1,0 +1,72 @@
+# P1-QUESTION-BY-QUESTION-EVIDENCE-MAP.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+# Maps each of 42 frozen questions to evidence found in Codex PR #79 D0 + QCLAW assessment
+
+schema_version: "1.0"
+map_id: "QCLAW-0020Q-P1-QEVIDENCE-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+questions:
+  Q01: {dimension: "D1_REFERENCE_ZONE", score: 0.5, status: "PARTIAL", codex_file: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml", codex_claim: "8 zone families with bar_fields and lookback", qclaw_finding: "All zone types covered but no volatility-only zone family. Contract design correct but abstract (no concrete examples)."}
+  Q02: {dimension: "D1_REFERENCE_ZONE", score: 0.5, status: "PARTIAL", codex_file: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml §invariants", codex_claim: "defined_at ≤ available_at ≤ breach_event_time", qclaw_finding: "Invariants are logically sound. No look-ahead leakage. But no concrete timestamp chain proof with example."}
+  Q03: {dimension: "D1_REFERENCE_ZONE", score: 0.5, status: "PARTIAL", codex_file: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml §invariants", codex_claim: "version changes only at completed source-bar available_at boundary", qclaw_finding: "Versioning rules correct. No per-time-period applicability table."}
+  Q04: {dimension: "D1_REFERENCE_ZONE", score: 0.5, status: "PARTIAL", codex_file: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml §multi-timeframe + DATA-CAPABILITY-CONTRACT §timeframe_join_rule", codex_claim: "daily zone only eligible after day completion", qclaw_finding: "Causality proof is declarative, not machine-proven. No concrete diagram."}
+  Q05: {dimension: "D2_BAR_ONLY", score: 0.5, status: "PARTIAL", codex_file: "DATA-CAPABILITY-AND-PIT-CONTRACT.yaml §capabilities", codex_claim: "Explicit allowed/prohibited lists", qclaw_finding: "Lists present. No unified columnar field-source table."}
+  Q06: {dimension: "D2_BAR_ONLY", score: 1.0, status: "PASS", codex_file: "DATA-CAPABILITY-AND-PIT-CONTRACT.yaml + CURRENT-REPOSITORY-AUDIT.md", codex_claim: "L1/L2 depth explicitly prohibited", qclaw_finding: "SV-001 PASS. No L2 data found."}
+  Q07: {dimension: "D2_BAR_ONLY", score: 1.0, status: "PASS", codex_file: "DATA-CAPABILITY-AND-PIT-CONTRACT.yaml + CURRENT-REPOSITORY-AUDIT.md", codex_claim: "DDX/DDY/DDZ/CVD/OFI explicitly excluded", qclaw_finding: "SV-003+SV-004 PASS. No order-flow proxy found."}
+  Q08: {dimension: "D2_BAR_ONLY", score: 0.5, status: "PARTIAL", codex_file: "Multiple: REFERENCE-ZONE/BREACH-RECLAIM/TPLUSONE contracts + QCLAW-P0-QUESTION-COVERAGE-MAP.yaml", codex_claim: "5 mandatory output objects mapped", qclaw_finding: "5 named in Q08, 7 in rubric. All 7 present. No unified field-source audit table."}
+  Q09: {dimension: "D2_BAR_ONLY", score: 0.5, status: "PARTIAL", codex_file: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml", codex_claim: "VWAP formula, ATR constraints", qclaw_finding: "VWAP formula correct: HL3*vol with bar completeness. ATR/volume constraints stated but no per-indicator audit table."}
+  Q10: {dimension: "D3_T1_UNTRADEABLE", score: 0.5, status: "PARTIAL", codex_file: "TPLUSONE-INVENTORY-AND-UNTRADEABLE-CONTRACT.yaml", codex_claim: "lot_model with formulas for sellable/frozen/sold", qclaw_finding: "Formulas present. Overnight gap as risk observation. Status: NOT_IMPLEMENTED. No T+1 timing diagram."}
+  Q11: {dimension: "D3_T1_UNTRADEABLE", score: 0.5, status: "PARTIAL", codex_file: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml §price_limit_contract", codex_claim: "SSE 2026 rules with source URLs and effective dates", qclaw_finding: "3 SSE entries. SZSE/historical UNKNOWN. Contract design correct per corrigendum (no hardcoded defaults)."}
+  Q12: {dimension: "D3_T1_UNTRADEABLE", score: 0.5, status: "PARTIAL", codex_file: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml §suspension_contract", codex_claim: "5 suspension states, default SUSPECTED_GAP", qclaw_finding: "Design correct. Suspension/corporate-action data UNKNOWN (U0017-005)."}
+  Q13: {dimension: "D3_T1_UNTRADEABLE", score: 0.5, status: "PARTIAL", codex_file: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml §auction_contract", codex_claim: "Auction-only bar excluded from labeling", qclaw_finding: "Fields defined. No specific 9:15-9:25/14:57-15:00 timestamps per corrigendum."}
+  Q14: {dimension: "D3_T1_UNTRADEABLE", score: 0.0, status: "UNKNOWN", codex_file: "UNKNOWN-REGISTRY.yaml U0017-008", codex_claim: "Explicitly UNKNOWN — deferred to D3", qclaw_finding: "HONEST explicit UNKNOWN. Score 0.0 per rubric. Correctly gated."}
+  Q15: {dimension: "D4_DATA", score: 0.5, status: "PARTIAL", codex_file: "LOCAL-DATA-INVENTORY-AND-REPRODUCIBILITY-RECEIPT.yaml", codex_claim: "4 file inventories with SHAs, sizes, periods", qclaw_finding: "Missing data_type column, timezone, missing_policy. 96K files counted only. VENDOR_LOCAL."}
+  Q16: {dimension: "D4_DATA", score: 0.5, status: "PARTIAL", codex_file: "LOCAL-DATA-INVENTORY-AND-REPRODUCIBILITY-RECEIPT.yaml", codex_claim: "SHA-256 for 2 files, prefix for 2", qclaw_finding: "Partial hashes. All marked VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE. License UNKNOWN."}
+  Q17: {dimension: "D4_DATA", score: 0.5, status: "PARTIAL", codex_file: "DATA-CAPABILITY-AND-PIT-CONTRACT.yaml §validation", codex_claim: "Duplicate key, out-of-order exclusion", qclaw_finding: "Missing_error_state on all objects. No bar-count-per-day formula. Gap policy abstract."}
+  Q18: {dimension: "D4_DATA", score: 0.5, status: "PARTIAL", codex_file: "CURRENT-REPOSITORY-AND-LOCAL-REALITY-AUDIT.md", codex_claim: "brain_core paths acknowledged; D0 as planning artifact only", qclaw_finding: "Codex is honest: brain_core paths EXIST locally but are not disclosed. Per evidence matrix, 'alternative path' required. Path is not reproducible by QCLAW. Score 0.5 reflects honesty + gap."}
+  Q19: {dimension: "D4_DATA", score: 0.5, status: "PARTIAL", codex_file: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml §verified_source_ledger", codex_claim: "3 SSE 2026 entries with URLs and dates", qclaw_finding: "SSE only. SZSE/historical UNKNOWN. No bar-timestamp alignment verification."}
+  Q20: {dimension: "D5_LABELS", score: 0.5, status: "PARTIAL", codex_file: "BREACH-RECLAIM-LABEL-STATE-MACHINE.yaml", codex_claim: "State machine with 10 states and transitions", qclaw_finding: "Complete state machine. Parameters preregistered only. No concrete pseudocode with actual thresholds."}
+  Q21: {dimension: "D5_LABELS", score: 0.0, status: "UNKNOWN", codex_file: "VALIDATION-OOS-AND-LOCKBOX-DESIGN.yaml", codex_claim: "multi-horizon metrics designed but not run", qclaw_finding: "NOT RUN. OOS design exists but no label consistency analysis performed. Score 0.0 per question intent."}
+  Q22: {dimension: "D5_LABELS", score: 0.5, status: "PARTIAL", codex_file: "BREACH-RECLAIM-LABEL-STATE-MACHINE.yaml §boundaries", codex_claim: "first/last N bars, gaps, suspensions skipped/flagged", qclaw_finding: "Boundaries defined. No edge-case catalogue with actual scenarios."}
+  Q23: {dimension: "D5_LABELS", score: 0.0, status: "UNKNOWN", codex_file: "(none — future D1)", codex_claim: "FUTURE_IMPLEMENTATION_REQUIRED", qclaw_finding: "No reproducible label-generation script exists. Correctly gated to D1. Score 0.0."}
+  Q24: {dimension: "D6_COSTS", score: 0.0, status: "UNKNOWN", codex_file: "COST-NONFILL-AND-CAPACITY-CONTRACT.yaml §required_cost_components", codex_claim: "EXPLICITLY UNKNOWN — all 5 components", qclaw_finding: "Honest. ALL: commission, stamp_duty, exchange_fees, spread, slippage UNKNOWN. Score 0.0 per rubric."}
+  Q25: {dimension: "D6_COSTS", score: 0.5, status: "PARTIAL", codex_file: "TPLUSONE-INVENTORY-AND-UNTRADEABLE-CONTRACT.yaml §execution_classification", codex_claim: "theoretical_event vs executable_event distinction", qclaw_finding: "Correct logical distinction with explicit gating. No run data."}
+  Q26: {dimension: "D6_COSTS", score: 0.0, status: "UNKNOWN", codex_file: "COST-NONFILL-AND-CAPACITY-CONTRACT.yaml §capacity", codex_claim: "EXPLICITLY UNKNOWN", qclaw_finding: "HONEST explicit UNKNOWN. 'No market-cap-quintile capacity number.'"}
+  Q27: {dimension: "D6_COSTS", score: 0.5, status: "PARTIAL", codex_file: "VALIDATION-OOS-AND-LOCKBOX-DESIGN.yaml §splits", codex_claim: "Purged expanding/rolling walk-forward at max outcome horizon", qclaw_finding: "Design present. No concretely frozen dates."}
+  Q28: {dimension: "D7_BASELINES", score: 0.5, status: "PARTIAL", codex_file: "BASELINE-NEGATIVE-CONTROL-AND-FAILURE-MATRIX.yaml", codex_claim: "6 baseline models (random_level, ordinary_touch, etc)", qclaw_finding: "6 baselines with descriptions. No exact pseudocode. B3 blocked by W3."}
+  Q29: {dimension: "D7_BASELINES", score: 0.0, status: "UNKNOWN", codex_file: "BASELINE-MATRIX.yaml B3_BASELINE/B3_PLUS_0017", codex_claim: "BLOCKED_BY_W3_W7_INTERFACE", qclaw_finding: "Correctly gated. B3 null-increment test cannot run. Honest UNKNOWN."}
+  Q30: {dimension: "D7_BASELINES", score: 0.5, status: "PARTIAL", codex_file: "VALIDATION-OOS-AND-LOCKBOX-DESIGN.yaml §multiple_testing", codex_claim: "WRC, Hansen SPA, PBO, Deflated Sharpe, Romano-Wolf planned", qclaw_finding: "5 methods listed. No test run."}
+  Q31: {dimension: "D7_BASELINES", score: 1.0, status: "PASS", codex_file: "BASELINE-MATRIX.yaml §publication_commitment", codex_claim: "'all attempted families, rejected params, null increments, inverse findings, failures and abstentions retained'", qclaw_finding: "Strong publication commitment. NO FILE-DRAWERING. Exceeds minimum for D0."}
+  Q32: {dimension: "D7_BASELINES", score: 0.5, status: "PARTIAL", codex_file: "VALIDATION-OOS-AND-LOCKBOX-DESIGN.yaml §outcomes", codex_claim: "MFE/MAE/persistence/continuation/failure/tradable/untradeable formulas", qclaw_finding: "Formulas correct. Not run on actual data."}
+  Q33: {dimension: "D8_SELF_VERIFICATION", score: 0.5, status: "PARTIAL", codex_file: "AI_HANDOFF.yaml §verification_separation", codex_claim: "Codex cannot self-certify. Defers to QCLAW/GPT.", qclaw_finding: "Correctly identifies self-verification risk. No step-by-step role map."}
+  Q34: {dimension: "D8_SELF_VERIFICATION", score: 0.5, status: "PARTIAL", codex_file: "TEST-RUN-RECEIPT.md + validate_d0_plan.py", codex_claim: "self-reported PASS with validator SHA-256", qclaw_finding: "Design present. QCLAW did NOT independently execute (independence). Cannot verify Codex self-report."}
+  Q35: {dimension: "D8_SELF_VERIFICATION", score: 0.5, status: "PARTIAL", codex_file: "LEGACY-REUSE-AND-NON-DUPLICATION-MATRIX.yaml", codex_claim: "ADAPT_PENDING_INTERFACE_AUDIT for PR57/PR74 reuse", qclaw_finding: "Partial audit. Acknowledges candidates but does not verify applicability for 0017."}
+  Q36: {dimension: "D8_SELF_VERIFICATION", score: 1.0, status: "PASS", codex_file: "AI_HANDOFF.yaml + validate_d0_plan.py analysis", codex_claim: "EXTERNAL_AUDIT_REQUIRED", qclaw_finding: "No self-verification loop. Validator is format-only, no golden answers. Codex defers truth verification. PASS."}
+  Q37: {dimension: "D9_ARCHITECTURE", score: 0.5, status: "PARTIAL", codex_file: "PROJECT-PLAN.yaml", codex_claim: "no new runtime in D0; D1-D6 gated behind acceptance", qclaw_finding: "Correct: no NEW_AND_IMPLEMENTED components. No explicit GPT-approval column."}
+  Q38: {dimension: "D9_ARCHITECTURE", score: 0.5, status: "PARTIAL", codex_file: "LEGACY-REUSE-AND-NON-DUPLICATION-MATRIX.yaml", codex_claim: "13 entries classified REUSE/ADAPT/REFERENCE_ONLY", qclaw_finding: "Entries present with dispositions. Maturity/merge status not detailed."}
+  Q39: {dimension: "D9_ARCHITECTURE", score: 0.5, status: "PARTIAL", codex_file: "CURRENT-REPOSITORY-AND-LOCAL-REALITY-AUDIT.md", codex_claim: "D0 as planning artifact; not independently reproducible as research run", qclaw_finding: "HONEST. Codex admits brain_core dependency. QCLAW confirms D0 as planning artifact is self-contained."}
+  Q40: {dimension: "D10_LEGACY_W3", score: 0.5, status: "PARTIAL", codex_file: "LEGACY-REUSE-AND-NON-DUPLICATION-MATRIX.yaml", codex_claim: "13 entries with classification and rationale", qclaw_finding: "Disposition table present. Some entries' rationale brief."}
+  Q41: {dimension: "D10_LEGACY_W3", score: 0.5, status: "PARTIAL", codex_file: "UNKNOWN-REGISTRY.yaml U0017-001 + LEGACY-REUSE-MATRIX", codex_claim: "W3 UNKNOWN explicitly declared", qclaw_finding: "Explicit U0017-001. Local alternative proposed: W3/W7 read-only interface freeze. Non-promotion guarantee stated."}
+  Q42: {dimension: "D10_LEGACY_W3", score: 0.5, status: "PARTIAL", codex_file: "LEGACY-REUSE-AND-NON-DUPLICATION-MATRIX.yaml 0016/Issue#42 entries", codex_claim: "0016 MIGRATE (do not copy now), Issue#42 REFERENCE_ONLY (BAR_ONLY conflict)", qclaw_finding: "Overlap avoidance acknowledged. Dispositions correct."}
+
+totals:
+  PASS_count: 2
+  PARTIAL_count: 36
+  UNKNOWN_count: 4
+  FAIL_count: 0
+  ABSTAIN_count: 0
+  total_questions: 42
+
+uncertainty:
+  Q18_required_alternative_path: |
+    Per EVIDENCE-REQUIREMENT-MATRIX.yaml, Q18 requires "alternative path for each brain_core reference."
+    Codex states paths exist locally but are not disclosed. This is HONEST but means Q18 evidence is
+    only partially satisfied — we know Codex knows the paths, but we cannot verify. Score 0.5 reflects
+    this uncertainty.
+  Q08_Q03_count_discrepancy: |
+    Q08 says 5 mandatory output objects; rubric says 7. The 2 additional objects (CostModel, ValidationDesign)
+    are present. Does not affect scores — all identifiable mandatory objects exist.
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T08:30:00+08:00"

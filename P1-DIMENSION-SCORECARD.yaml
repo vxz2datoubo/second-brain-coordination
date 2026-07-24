@@ -1,0 +1,154 @@
+# P1-DIMENSION-SCORECARD.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+# Frozen instrument: PR #77, frozen_core_head 70ed222e
+
+schema_version: "1.0"
+scorcard_id: "QCLAW-0020Q-P1-SCORECARD-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+scoring_method: "Each question: 0.0 (fail/missing), 0.5 (partial), 1.0 (satisfies contract)"
+weighted_formula: "Σ(d)[ weight_d × raw_d / max_raw_d ]"
+
+# ============================================================================
+# D1: REFERENCE ZONE DEFINABILITY (weight 0.10, 4 questions, max_raw 4.0)
+# ============================================================================
+D1_REFERENCE_ZONE:
+  weight: 0.10
+  questions:
+    Q01: {score: 0.5, status: "PARTIAL", reason: "8 zone families with bar_fields defined. 3 mandatory types covered but no explicit volatility_zone family. Contract not implemented."}
+    Q02: {score: 0.5, status: "PARTIAL", reason: "Invariants define timestamp ordering correctly. No concrete timestamp chain proof with example."}
+    Q03: {score: 0.5, status: "PARTIAL", reason: "Zone versioning rules stated: changes at source-bar available_at boundary. No per-time-period applicability table."}
+    Q04: {score: 0.5, status: "PARTIAL", reason: "Multi-timeframe proof section addresses causality. No concrete causation diagram."}
+  raw: 2.0
+  max_raw: 4.0
+  weighted: 0.050
+
+D2_BAR_ONLY:
+  weight: 0.15
+  questions:
+    Q05: {score: 0.5, status: "PARTIAL", reason: "BAR_ONLY capabilities list with allowed/prohibited in DATA-CAPABILITY-CONTRACT. No complete columnar field-source table."}
+    Q06: {score: 1.0, status: "PASS", reason: "L1/L2 depth explicitly prohibited. CURRENT-REPOSITORY-AUDIT explicitly excludes l2/l1_depth. No L2 data used."}
+    Q07: {score: 1.0, status: "PASS", reason: "Delta/CVD/OFI/DDX/DDY all explicitly prohibited. No order-flow proxy found in any D0 file."}
+    Q08: {score: 0.5, status: "PARTIAL", reason: "5 mandatory object field contracts exist across 3 files. Coverage map maps all 5. No unified field-source audit table."}
+    Q09: {score: 0.5, status: "PARTIAL", reason: "VWAP formula: bar-level HL3*volume with bar completeness constraint. ATR/VWAP contracts present but no per-indicator audit table."}
+  raw: 3.5
+  max_raw: 5.0
+  weighted: 0.105
+
+D3_T1_UNTRADEABLE:
+  weight: 0.12
+  questions:
+    Q10: {score: 0.5, status: "PARTIAL", reason: "Lot model with formulas, overnight gap as risk observation. Status: CANDIDATE_CONTRACT_NOT_IMPLEMENTED. No T+1 timing diagram."}
+    Q11: {score: 0.5, status: "PARTIAL", reason: "Price-limit contract with SSE 2026 source URLs/effective dates. SZSE and historical rules UNKNOWN. Contract design correct per corrigendum."}
+    Q12: {score: 0.5, status: "PARTIAL", reason: "Suspension contract defines 5 states. Default: missing bars = SUSPECTED_GAP. Suspension/corporate-action data UNKNOWN (U0017-005)."}
+    Q13: {score: 0.5, status: "PARTIAL", reason: "Auction contract fields defined. Default: auction-only bars excluded. No specific 9:15-9:25/14:57-15:00 timestamps."}
+    Q14: {score: 0.0, status: "UNKNOWN", reason: "Untradeable rate EXPLICITLY UNKNOWN (U0017-008). Honest. Score 0.0 per rubric."}
+  raw: 2.0
+  max_raw: 5.0
+  weighted: 0.048
+
+D4_DATA_REPRODUCIBILITY:
+  weight: 0.10
+  questions:
+    Q15: {score: 0.5, status: "PARTIAL", reason: "4 local file inventories with SHAs, sizes, periods. Missing: data_type column, timezone, missing_policy. 96K files counted but not detailed."}
+    Q16: {score: 0.5, status: "PARTIAL", reason: "SHA-256 for 2 files, prefix for 2. Reproducibility column present. ALL VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE. License: UNKNOWN."}
+    Q17: {score: 0.5, status: "PARTIAL", reason: "Missing_error_state field on all objects. Out-of-order retention/exclusion policy. No bar-count-per-day formula or per-computation gap policy."}
+    Q18: {score: 0.5, status: "PARTIAL", reason: "Codex ACKNOWLEDGES brain_core paths exist locally, marks as publicly non-reproducible. Honest. BUT: no alternative paths (per evidence matrix)."}
+    Q19: {score: 0.5, status: "PARTIAL", reason: "3 SSE 2026 rule entries with source URLs, pub dates, effective dates. SZSE/historical: UNKNOWN. No bar-timestamp alignment check."}
+  raw: 2.5
+  max_raw: 5.0
+  weighted: 0.050
+
+D5_LABEL_DETERMINISM:
+  weight: 0.08
+  questions:
+    Q20: {score: 0.5, status: "PARTIAL", reason: "State machine with 10 states and transitions defined. Parameters declared as preregistered (no defaults). No concrete pseudocode with actual thresholds."}
+    Q21: {score: 0.0, status: "UNKNOWN", reason: "Multi-period consistency NOT RUN. OOS design mentions multi-horizon but no label consistency analysis performed."}
+    Q22: {score: 0.5, status: "PARTIAL", reason: "Boundaries section: first/last N bars, gaps, suspensions skipped/flagged. No edge-case catalogue with actual scenarios."}
+    Q23: {score: 0.0, status: "UNKNOWN", reason: "FUTURE_IMPLEMENTATION_REQUIRED. No reproducible label script exists in D0. D1 after acceptance."}
+  raw: 1.0
+  max_raw: 4.0
+  weighted: 0.020
+
+D6_COSTS_EXECUTION:
+  weight: 0.08
+  questions:
+    Q24: {score: 0.0, status: "UNKNOWN", reason: "ALL 5 cost components status UNKNOWN. Commission, stamp_duty, exchange_fees, spread, slippage: not calibrated."}
+    Q25: {score: 0.5, status: "PARTIAL", reason: "Execution classification: theoretical_event vs executable_event with explicit rule-gating. Logical design correct. No run data."}
+    Q26: {score: 0.0, status: "UNKNOWN", reason: "Capacity EXPLICITLY UNKNOWN. 'No market-cap-quintile capacity number.' Honest."}
+    Q27: {score: 0.5, status: "PARTIAL", reason: "Purged expanding/rolling walk-forward specified. Purge/embargo/lockbox described. Nested selection. No concretely frozen dates."}
+  raw: 1.0
+  max_raw: 4.0
+  weighted: 0.020
+
+D7_BASELINES_NEGATIVES:
+  weight: 0.12
+  questions:
+    Q28: {score: 0.5, status: "PARTIAL", reason: "6 baseline models defined with computation descriptions. No exact pseudocode. B3_BASELINE interface UNKNOWN."}
+    Q29: {score: 0.0, status: "UNKNOWN", reason: "B3_PLUS_0017 comparison BLOCKED_BY_W3_W7_INTERFACE. Cannot perform null-increment test. Design deferred but not runnable."}
+    Q30: {score: 0.5, status: "PARTIAL", reason: "5 statistical methods planned (WRC, SPA, PBO, Deflated Sharpe, RW). Romano-Wolf for family-wise correction. No test run yet."}
+    Q31: {score: 1.0, status: "PASS", reason: "Publication commitment explicit: 'All attempted families, rejected parameters, null increments, inverse findings, failures and abstentions are retained.'"}
+    Q32: {score: 0.5, status: "PARTIAL", reason: "MFE/MAE/persistence/failure/continuation/tradable/untradeable formulas defined. Not run on actual data."}
+  raw: 2.5
+  max_raw: 5.0
+  weighted: 0.060
+
+D8_SELF_VERIFICATION:
+  weight: 0.10
+  questions:
+    Q33: {score: 0.5, status: "PARTIAL", reason: "Verification separation acknowledged. No step-by-step role map enumerating Codex-only vs external verification steps."}
+    Q34: {score: 0.5, status: "PARTIAL", reason: "Test receipt design exists with command/format checks. Codex self-reports exit 0. QCLAW did not independently execute per independence contract."}
+    Q35: {score: 0.5, status: "PARTIAL", reason: "PR57/PR74 reuse candidates acknowledged. Audit marked PARTIAL. No confirmed 0017-specific adaptation list."}
+    Q36: {score: 1.0, status: "PASS", reason: "No self-verification loop detected. Validator checks format not truth. No golden answers. Codex explicitly defers truth verification to QCLAW/GPT."}
+  raw: 2.5
+  max_raw: 4.0
+  weighted: 0.063
+
+D9_ARCHITECTURE:
+  weight: 0.08
+  questions:
+    Q37: {score: 0.5, status: "PARTIAL", reason: "No new runtime in D0 per PROJECT-PLAN. No NEW_AND_IMPLEMENTED components. Legacy references marked ADAPT. No explicit GPT-approval-status column."}
+    Q38: {score: 0.5, status: "PARTIAL", reason: "W2/W7/W9/W13 references in LEGACY-REUSE-MATRIX with disposition. Maturity/merge status for reused interfaces not detailed."}
+    Q39: {score: 0.5, status: "PARTIAL", reason: "Codex states D0 is not independently runnable. This is honest. EXTERNAL_AUDIT_REQUIRED. QCLAW confirms: D0 as planning artifact is self-contained."}
+  raw: 1.5
+  max_raw: 3.0
+  weighted: 0.040
+
+D10_LEGACY_W3:
+  weight: 0.07
+  questions:
+    Q40: {score: 0.5, status: "PARTIAL", reason: "13 legacy entries classified REUSE/ADAPT/REFERENCE_ONLY/MIGRATE with rationale. Disposition table present. Some entries' rationale brief."}
+    Q41: {score: 0.5, status: "PARTIAL", reason: "W3 UNKNOWN explicitly declared (U0017-001). B3 blocked. Local alternative: W3/W7 read-only interface freeze proposed. Non-promotion guarantee stated."}
+    Q42: {score: 0.5, status: "PARTIAL", reason: "0016 MIGRATE disposition with 'do not copy now'. Issue #42 REFERENCE_ONLY with BAR_ONLY conflict noted. Overlap avoidance acknowledged."}
+  raw: 1.5
+  max_raw: 3.0
+  weighted: 0.035
+
+# ============================================================================
+# COMPOSITE SCORE
+# ============================================================================
+composite:
+  total_raw: 20.0
+  max_raw: 42.0
+  raw_percentage: "47.6%"
+  weighted_score: 0.491
+  threshold: "FAIL_INCOMPLETE (0.0 - 0.499)"
+
+threshold_assessment: "Weighted score 0.491 falls in FAIL_INCOMPLETE range (< 0.50). However, this is primarily driven by EXPLICIT UNKNOWNs on cost, capacity, untradeable rate, label implementation, and B3 comparison — all items Codex correctly gates to D1-D4. Plus 14 partial scores on contracts that are well-designed but lack concrete examples/pseudocode/data."
+
+context_for_gpt: "Codex D0 is an unusually honest and well-structured PLANNING package. The low score is not a quality failure — it reflects that (1) ALL contracts are explicitly NOT_IMPLEMENTED, (2) 4 EXPLICIT UNKNOWNs (Q14/Q24/Q26/Q29) score 0.0 by rubric design, (3) the package is proportionately scoped as D0 planning. If 'CONDITIONAL_PASS for a planning package with explicit UNKNOWNs' were a threshold, this D0 would qualify. The dimensional pattern is: BAR_ONLY scope enforcement (strongest, 0.105/0.15), ZONE definability + architecture (adequate), costs + label implementation (weakest, gated to D1-D4)."
+
+dimension_rankings:
+  - {dimension: "D8 Self-Verification", score: 0.063, max: 0.100, pct: "63%", note: "Strong: no self-loop, honest about limits"}
+  - {dimension: "D2 BAR_ONLY", score: 0.105, max: 0.150, pct: "70%", note: "Best dimension: all SV PASS, no violations"}
+  - {dimension: "D10 Legacy/W3", score: 0.035, max: 0.070, pct: "50%", note: "Adequate: disposition table, W3 gated"}
+  - {dimension: "D7 Baselines", score: 0.060, max: 0.120, pct: "50%", note: "Publication commitment strong; B3 blocked by W3"}
+  - {dimension: "D1 Reference Zone", score: 0.050, max: 0.100, pct: "50%", note: "Contract design complete; no worked examples"}
+  - {dimension: "D4 Data", score: 0.050, max: 0.100, pct: "50%", note: "Honest about vendor-local limits; no public data"}
+  - {dimension: "D9 Architecture", score: 0.040, max: 0.080, pct: "50%", note: "No new runtime; self-containment honest"}
+  - {dimension: "D3 T+1/Limits", score: 0.048, max: 0.120, pct: "40%", note: "Good contracts; Q14 untradeable rate UNKNOWN"}
+  - {dimension: "D5 Labels", score: 0.020, max: 0.080, pct: "25%", note: "State machine complete; no runnable labeler (D1)"}
+  - {dimension: "D6 Costs", score: 0.020, max: 0.080, pct: "25%", note: "ALL cost components UNKNOWN (D2-D4)"}
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T08:15:00+08:00"
