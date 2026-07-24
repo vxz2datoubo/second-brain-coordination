@@ -1,88 +1,195 @@
-schema_version: "7.0"
+schema_version: "8.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: 69
-task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+active_issue: 80
+task_id: "CODEX-QCLAW-P1-HANDOFF-INTEGRATION-AND-PIT-DATA-ADMISSION-0022-D0"
 mode: "project_plan"
-mode_label: "项目计划模式＋0017 BAR_ONLY D0已交付，等待独立审计与GPT门禁"
-status: "WAITING_FOR_QCLAW_P1_AND_GPT_REVIEW"
-blocked_by:
-  - "QCLAW PR #77 R3 two-head evidence anchor acceptance"
-  - "QCLAW P1 independent audit of PR #79"
-  - "GPT seven-gate D0 review"
+mode_label: "【Codex模式：项目计划模式】QQ审计交接保全＋A股PIT数据准入与历史规则证据闭环"
+mode_reason: >-
+  QQ已经提交独立P1审计，但今日算力耗尽，且PR #84存在目录、变更面和必交付命名等工程收口缺口。
+  同时审计暴露出的PIT数据许可、字段语义、复权、available_at、历史规则状态和W3/W7接口问题跨越多个既有模块，
+  需要先完成非重复审计、分阶段计划和证据门，不能直接进入D1或回测，因此使用项目计划模式。
+status: "READY"
+blocked_by: "none"
 parent_program: 31
-source_issue: 69
-branch: "codex/a-share-liquidity-sweep-reclaim-0017-d0"
-pull_request: 79
-delivered_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+source_issue: 80
+related_issues: [69, 76, 81]
+source_pull_requests:
+  qclaw_submission_pr: 84
+  qclaw_submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
+  qclaw_preregistration_pr: 77
+  qclaw_preregistration_receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+  codex_d0_pr: 79
+  codex_d0_fixed_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+  predecessor_manifest_pr: 51
+
+create_new_branch: true
+branch: "codex/qclaw-p1-handoff-pit-data-admission-0022-d0"
+create_new_draft_pr: true
 direct_main_write: false
 auto_merge: false
+allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-PIT-DATA-ADMISSION-0022-D0/"
 
-completion:
-  signal: "CODEX_0017_D0_PROJECT_PLAN_AND_LOCAL_REALITY_AUDIT_READY_FOR_GPT_QCLAW_REVIEW"
-  disposition: "DELIVERED_CANDIDATE_PENDING_INDEPENDENT_REVIEW"
-  artifacts: 22
-  verified_summary:
-    - "D0-D6 project plan and repository/local-reality audit delivered."
-    - "42/42 QCLAW frozen questions mapped."
-    - "BAR_ONLY PIT, rules, T+1, nonfill, validation and UNKNOWN contracts delivered."
-    - "No business runtime, labels, replay, backtest, alpha claim, broker, account, order or trade action occurred."
+mission_intent: >-
+  Preserve QCLAW's submitted P1 audit as immutable external candidate evidence, close only the nonsemantic handoff and packaging layer,
+  and produce a recoverable D0 project plan for the target-side data/rule/interface prerequisites that must be satisfied before any
+  0017 D1 historical labels, replay, backtest or performance claim.
+fundamental_goal: >-
+  Convert the QCLAW handoff and Codex's own data-admission discovery into a clean, non-self-certifying prerequisite program without
+  altering QCLAW judgments, modifying PR #79, duplicating PR #51 infrastructure, or pretending unavailable data has been validated.
+system_position: >-
+  Codex is the engineering and canonical-plan owner for handoff integration and data admission. It is not the independent auditor,
+  cannot complete QCLAW's scoring, and cannot approve its own D0.
 
-active_discovery:
-  discovery_id: "DISC-CODEX-0017-D0-001"
-  severity: "S3_MAJOR"
-  discovery_type: "DATA_OR_LICENSE_GAP"
-  plain_language_summary: >-
-    Local market-data files physically exist at large scale, but license, field semantics, adjustment policy,
-    point-in-time availability and historical rule/status context are insufficient for a trustworthy historical run.
-  verified_facts:
-    - "One daily candidate has 1,200 fixed 32-byte records and a stable SHA-256."
-    - "Large local .day/.lc1/.lc5 inventories were counted as metadata."
-    - "Minute format, available_at, license, adjustment and historical status/rule semantics remain UNKNOWN or partial."
-    - "Merged PR #51 already provides SourceManifest and synthetic-only admission gates."
-  impact:
-    does_not_block:
-      - "D0 contract review"
-      - "QCLAW independent audit"
-      - "Synthetic fixture and contract testing"
-    blocks:
-      - "D1 real historical label execution"
-      - "Historical backtest"
-      - "Performance, alpha or stable-profit claim"
-  route:
-    follow_up_issue: 80
-    status: "REGISTERED_QUEUED_NOT_ACTIVE"
-    non_duplication: "Reuse Issue #50 / merged PR #51 SourceManifest and quality gates."
+qclaw_compute_handoff:
+  reason: "QCLAW daily compute exhausted after submitting PR #84."
+  source_status: "SUBMITTED_AS_CANDIDATE_EVIDENCE"
+  semantic_freeze:
+    - "Do not change any QCLAW question status, score contribution, blocking-mode decision, weighted score or verdict."
+    - "Do not create replacement independent-audit findings in Codex's name."
+    - "Do not edit PR #84, PR #77 or their branches."
+  fixed_submission_facts:
+    - "QCLAW assessed all 42 questions and all four blocking modes."
+    - "QCLAW reported weighted score 0.491 and CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS."
+    - "GPT has not yet adopted that verdict as canonical acceptance."
 
-current_instruction: >-
-  Do not execute, revise PR #79, start D1/VS1, bind a real source or open another workstream. Preserve the branch and
-  wait for QCLAW P1 and GPT review. New evidence may be reported through a PDER DiscoveryPacket, but no implementation
-  follows without an explicit route update.
+verified_handoff_findings:
+  - id: "H0-D01"
+    severity: "S2_MATERIAL_PACKAGING"
+    fact: "The fifteen P1 audit files are at repository root rather than the authorized audit directory declared by the task and handoff."
+  - id: "H0-D02"
+    severity: "S2_MATERIAL_CHANGE_SURFACE"
+    fact: "PR #84's changed-file surface also includes the twenty-two Codex D0 target artifacts, so it is not a clean external-reference-only audit PR."
+  - id: "H0-D03"
+    severity: "S2_CONTRACT_INCOMPLETE"
+    fact: >-
+      Exact mandatory outputs are not fully satisfied: P1-QUESTION-BY-QUESTION-EVIDENCE-AND-SCORE.yaml and P1-DISCOVERY-PACKETS.yaml
+      are replaced by differently named files, while UNPLANNED-IMPROVEMENT-LEDGER.yaml and SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md are absent.
+  - id: "H0-D04"
+    severity: "S2_RECEIPT_CONTRADICTION"
+    fact: "The test receipt says all fifteen mandatory files exist but records the combined hash over fourteen files."
+  - id: "H0-D05"
+    severity: "S2_INDEPENDENCE_LIMIT"
+    fact: "Codex cannot fill semantic audit gaps or official-source independent verification without creating self-review contamination."
 
-allowed_while_waiting:
-  - "Answer a bounded GPT review question about existing PR #79 evidence."
-  - "Report a newly verified S3/S4 discovery without changing code or scope."
-  - "Correct a factual typo only after GPT publishes a bounded remediation task."
+execution_phases:
+  H0_EXTERNAL_EVIDENCE_HANDOFF:
+    purpose: "Create a clean read-only provenance and gap record for QCLAW PR #84."
+    required_actions:
+      - "Read PR #84 at exact head 63c344084d9af86cb26c1cc65a30d409fefa872f and list all changed files and Git blobs."
+      - "Hash and register the fifteen QCLAW-authored audit artifacts as external immutable evidence; do not copy or edit their semantic contents."
+      - "Separate QCLAW audit artifacts from the twenty-two Codex target artifacts in a handoff change-surface map."
+      - "Record all missing/renamed mandatory outputs and the fourteen-versus-fifteen hash contradiction."
+      - "State explicitly that Codex has not independently validated the QCLAW score or verdict."
+    mandatory_outputs:
+      - "QCLAW-P1-EXTERNAL-EVIDENCE-IMPORT-MANIFEST.yaml"
+      - "QCLAW-P1-CONTENT-BLOB-AND-SHA256-RECEIPT.yaml"
+      - "QCLAW-P1-HANDOFF-GAP-AND-CHANGE-SURFACE-MATRIX.yaml"
+      - "QCLAW-P1-SEMANTIC-NONINTERFERENCE-ATTESTATION.yaml"
+    stop_condition: "Any need to alter QCLAW judgments or frozen audit criteria."
+
+  D0_PIT_DATA_ADMISSION_AND_RULE_EVIDENCE_PLAN:
+    purpose: "Plan the prerequisites exposed by PR #79 and QCLAW PR #84 without running 0017."
+    required_actions:
+      - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and policy gates before proposing anything new."
+      - "Audit PR #79 data capability, local inventory, rule snapshot, UNKNOWN and reproducibility contracts at fixed head only."
+      - "Produce a candidate-source and license matrix; select at most one first real offline source or abstain if none qualifies."
+      - "Define field types, units, timezone, event_time, observed_at, available_at, adjustment policy, missing semantics and corporate-action lineage."
+      - "Design versioned SSE/SZSE/BSE, board, security-status, ST, suspension, IPO, delisting and rule snapshots by effective date."
+      - "Map W3 knowledge/evidence and W7 validation/risk interfaces read-only; do not create a second authority."
+      - "Define a reproducibility-equivalence contract for authorized agents without requiring QCLAW to execute local vendor data."
+      - "Use official exchange/regulator primary sources for rule evidence and record effective dates, supersession and unresolved conflicts."
+      - "Preserve UNKNOWN/BLOCKED_BY_POLICY/ABSTAIN where license, semantics or history cannot be proved."
+    mandatory_outputs:
+      - "CURRENT-DATA-ADMISSION-REALITY-AUDIT.md"
+      - "SOURCE-CANDIDATE-AND-LICENSE-MATRIX.yaml"
+      - "PR51-REUSE-AND-NON-DUPLICATION-MATRIX.yaml"
+      - "PIT-AVAILABLE-AT-SEMANTICS-CONTRACT.yaml"
+      - "FIELD-UNIT-ADJUSTMENT-SEMANTICS-MATRIX.yaml"
+      - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-PLAN.yaml"
+      - "W3-W7-READONLY-INTERFACE-DEPENDENCY-MAP.yaml"
+      - "AUTHORIZED-AGENT-REPRODUCIBILITY-EQUIVALENCE-CONTRACT.yaml"
+      - "ONE-SOURCE-ACTIVATION-PLAN.yaml"
+      - "NEGATIVE-AND-ABSTENTION-TEST-MATRIX.yaml"
+      - "UNKNOWN-REGISTRY.yaml"
+      - "DISCOVERY-PACKETS.yaml"
+      - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+      - "AMED-RESEARCH-LEDGER.yaml"
+      - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+      - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+      - "TEST-RUN-RECEIPT.md"
+      - "AI_HANDOFF.yaml"
+      - "validate_d0_handoff_and_admission.py"
+
+amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+task_weight: "STRATEGIC"
+research_trigger: "L2_PRIMARY_SOURCE_RULE_AND_LICENSE_RESEARCH"
+exploration_budget:
+  main_handoff_and_admission_plan: 75
+  active_discovery_and_counterevidence: 15
+  system_opportunity_proposals: 10
+  scope_expansion_without_gate: false
+improvement_authority:
+  A: "Local formatting, deterministic validators, manifests and typo fixes inside the new candidate package."
+  B: "Backward-compatible reuse adapters or contracts inside the candidate package, separately documented with rollback."
+  C: "New source activation, cross-module interface, runtime, skill or migration is proposal-only."
+  D: "Any QCLAW semantic change, criterion change, license bypass, restricted-data publication, D1 execution or trade action is prohibited."
+second_pass_audit_required: true
+
+task_impact_forecast:
+  expected_positive_effects:
+    - "Preserves QQ's work despite quota exhaustion without allowing Codex to rewrite the independent verdict."
+    - "Turns the largest real blocker into an explicit data/rule prerequisite plan."
+    - "Avoids merging a contaminated audit PR or duplicating PR #51 infrastructure."
+  expected_negative_effects:
+    - "Adds a prerequisite planning step before 0017 D1."
+    - "May conclude that no current real source is admissible."
+  primary_risks:
+    - "Codex accidentally self-certifies the QCLAW audit."
+    - "A source is selected based on physical availability rather than license and PIT semantics."
+    - "Historical rules are backfilled with present-day constants."
+    - "PR #51 contracts are duplicated rather than reused."
+  stop_conditions:
+    - "PR #84 or PR #79 target heads drift."
+    - "A task requires editing QCLAW judgments or frozen criteria."
+    - "License, credentials, restricted raw data, broker, account, order or trade paths are encountered."
+    - "A real-source activation or historical run would be required."
+
+acceptance_gates:
+  - "PR #84 and PR #79 fixed heads are verified before analysis."
+  - "All fifteen QCLAW audit artifacts are registered by exact Git blob and content hash without semantic modification."
+  - "The twenty-two target artifacts are not represented as QCLAW-authored audit outputs."
+  - "All PR #84 packaging defects are recorded honestly; none are silently repaired in QCLAW's name."
+  - "Codex does not adopt or alter QCLAW's score/verdict and does not claim independent validation."
+  - "PR #51 reuse/non-duplication is explicit."
+  - "At most one candidate real source is selected, or the task abstains."
+  - "License, PIT, field, adjustment, rule and security-status UNKNOWNs are preserved."
+  - "No D1/VS1, labels, replay, backtest, alpha claim, source activation or trade action occurs."
+  - "New PR stays Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
-  - "No automatic D1 or VS1 implementation."
-  - "No new branch or PR for Issue #80."
-  - "No real-source binding, replay or backtest."
-  - "No modification of QCLAW PR #77."
-  - "No broker, account, credential, service lifecycle, live feed, order or trade action."
-  - "No merge or auto-merge."
+  - "No modification of PR #84, PR #77 or PR #79 branches/files."
+  - "No completion, renaming or rewriting of QCLAW semantic audit outputs in Codex's name."
+  - "No change to the frozen 42 questions, weights, blocker rules or QCLAW scoring."
+  - "No real-data upload, license guess, source activation, replay, label generation or backtest."
+  - "No second data, replay, evidence, memory, validation, risk or order authority."
+  - "No broker, account, credential, live feed, order, trade, merge or auto-merge."
 
-after_review:
-  possible_verdicts:
-    - "ACCEPT_D0_AND_ACTIVATE_DATA_ADMISSION_PREREQUISITE"
-    - "ACCEPT_D0_WITH_BOUNDED_REMEDIATION"
-    - "REQUIRE_MORE_INDEPENDENT_EVIDENCE"
-    - "REJECT_OR_REDESIGN_D0"
+report_to:
+  issues: [80, 76, 69, 31]
+  pull_requests: [84, 79]
+  include:
+    - "task identity, mode, fixed heads, completion percentage and exact changed files"
+    - "QCLAW evidence manifest and packaging-gap matrix"
+    - "data-source/license/PIT/rule/interface plan, official sources and unresolved UNKNOWNs"
+    - "commands, versions, tests, failures, SKIPs, PDER discoveries, rollback and next gate"
 
+completion_signal: "CODEX_QCLAW_P1_HANDOFF_AND_PIT_DATA_ADMISSION_0022_D0_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_D1"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
