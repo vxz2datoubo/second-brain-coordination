@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 handoff_id: "PEOS-USER-COGNITIVE-FRAMEWORK-SEED-HANDOFF-0001"
 project_id: "PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-0010"
 parent_issue: 61
@@ -15,14 +15,26 @@ no_active_route_preemption: true
 implementation_owners_when_activated: [CODEX, WORKBUDDY]
 knowledge_support_only: [QCLAW]
 
+user_authorization:
+  autonomous_candidate_capture: true
+  authorization_level: "HIGHEST_WITHIN_PRIVACY_SAFETY_AUTHORITY_AND_REVOCATION_BOUNDARIES"
+  memory_capture_command: "记忆采集"
+  cognitive_capture_command: "知识框架采集"
+  dual_capture_command: "双重采集"
+  assistant_may_initiate_capture: true
+  prior_confirmation_required_for_sensitive_or_public_upload: true
+  user_can_review_correct_revoke_delete_pause: true
+
 mission: >-
-  Establish a versioned, evidence-aware and user-correctable seed for the user's cognitive framework,
-  capturing strengths, gaps, unknowns, mastery and learning paths without creating a parallel runtime,
-  converting one conversation into permanent personality labels, or disturbing the existing execution cadence.
+  Establish a versioned, evidence-aware and user-correctable dual-track system: W3 preserves shared
+  conversation episodes, agreements, preferences, milestones and continuation context; W10 derives
+  mastery, cognitive candidates, gaps, unknowns and learning paths. The design must not create a
+  parallel runtime, convert one conversation into permanent traits, expose private raw dialogue,
+  or disturb the existing execution cadence.
 
 deliverables:
   - path: "README.md"
-    purpose: "project scope, architecture relationship, privacy, cadence and acceptance criteria"
+    purpose: "project scope, architecture relationship, privacy, cadence, commands and acceptance criteria"
   - path: "CURRENT-COGNITIVE-SNAPSHOT-v0.1.md"
     purpose: "human-readable strengths, gaps, unknowns and validation tasks"
   - path: "DISCUSSION-2026-07-25-SYSTEMS-FEEDBACK-GOVERNANCE.md"
@@ -35,8 +47,19 @@ deliverables:
     purpose: "learning and validation roadmap"
   - path: "BLUEPRINT-INTEGRATION-AND-CONTINUOUS-EVOLUTION-PLAN.md"
     purpose: "future blueprint backwrite, Codex/WorkBuddy implementation boundaries and non-blocking evolution path"
+  - path: "SYSTEMS-CYBERNETICS-MECHANISM-GAME-COMPLEXITY-MULTI-AGENT-INTEGRATION-BLUEPRINT.md"
+    purpose: "cross-system theory stack for trading, cognitive, governance, multi-agent and animation workflows"
+  - path: "THEORY-TO-ENTERPRISE-ARCHITECTURE-INTEGRATION-MAP.yaml"
+    purpose: "machine-readable theory-to-workstream and contract mapping"
+  - path: "DUAL-TRACK-MEMORY-AND-COGNITIVE-FRAMEWORK-PROTOCOL.md"
+    purpose: "separate memory and cognitive tracks, commands, autonomous capture and privacy gates"
+  - path: "MEMORY-AND-COGNITIVE-CAPTURE-COMMAND-REGISTRY-v0.1.yaml"
+    purpose: "machine-readable command aliases, routing, authorization, privacy and revocation policy"
 
 frozen_principles:
+  - "W3 records what happened, agreements, sources, time and continuation context."
+  - "W10 records what was understood, mastery, cognitive candidates, gaps, unknowns and learning tasks."
+  - "One raw source may support multiple derived views, but raw evidence must not be duplicated."
   - "Single conversation creates observations or candidates, not permanent traits."
   - "User correction is authoritative inside the user model but cannot overwrite world facts."
   - "Supporting and opposing evidence must be preserved."
@@ -45,10 +68,47 @@ frozen_principles:
   - "Raw private conversation must not be stored in the public repository."
   - "The framework must surface known unknowns and unknown unknowns."
   - "The assistant should provide metacognitive prompts: terms, assumptions, blind spots, counterexamples and adjacent theories."
+  - "Autonomous capture creates candidates and notifications, not irreversible permanent truth."
+  - "Sensitive content requires confirmation or private controlled storage."
+  - "User retains review, correction, revocation, deletion and pause rights."
   - "No runtime, trading action or canonical authority is created by this seed."
   - "This work must not interrupt or preempt existing Codex or WorkBuddy tasks."
   - "Future engineering implementation is owned by Codex and WorkBuddy when formally activated."
   - "QCLAW is limited to knowledge learning and research support, not implementation ownership."
+
+track_contracts:
+  memory_track:
+    authority: "W3"
+    candidate_objects:
+      - "InteractionEpisode"
+      - "SharedConversationReference"
+      - "UserPreferenceMemory"
+      - "AgreementMemory"
+      - "ProjectMilestoneMemory"
+      - "UnresolvedThreadMemory"
+      - "CorrectionMemory"
+    purpose: "preserve event, context, continuity and source evidence"
+    prohibited:
+      - "stable trait inference by default"
+      - "public raw dialogue storage"
+  cognitive_track:
+    authority: "W10"
+    candidate_objects:
+      - "CognitiveObservation"
+      - "KnowledgeMastery"
+      - "ReasoningPatternCandidate"
+      - "CognitiveStrengthCandidate"
+      - "CognitiveGap"
+      - "UnknownRegistryEntry"
+      - "LearningTask"
+      - "CognitiveEvolutionEpisode"
+    purpose: "model knowledge, reasoning, mastery, gaps and learning evolution"
+    prohibited:
+      - "overwriting memory evidence"
+      - "treating inference as user quote or world fact"
+  cross_track_link:
+    shared_key: "source_episode_id"
+    duplicate_raw_source: false
 
 cadence_policy:
   registration_mode: "BLUEPRINT_INPUT_ONLY"
@@ -65,7 +125,7 @@ cadence_policy:
     - "creating a parallel implementation lane merely because this document exists"
     - "changing current priority, resource allocation or agent lease"
     - "marking the module implemented based on blueprint documents"
-    - "starting multiple cognitive-model consumers before authority freeze"
+    - "starting multiple memory or cognitive-model consumers before authority freeze"
 
 current_candidate_findings:
   strengths:
@@ -92,26 +152,31 @@ agent_tasks:
   GPT:
     role:
       - "continue cognitive dialogue and metacognitive prompting"
+      - "autonomously route durable content to memory, cognitive or linked dual-track candidates"
+      - "notify user after important autonomous capture"
+      - "apply sensitive-content confirmation and privacy gates"
       - "propose candidate observations and strongest counterarguments"
-      - "orchestrate user review and correction"
+      - "orchestrate user review, correction, revocation and deletion"
       - "audit privacy, unsupported profiling, architecture alignment and non-duplication"
       - "perform second-pass review before each major implementation expansion"
     prohibited:
       - "claiming stable traits from one conversation"
       - "writing private raw dialogue to public GitHub"
+      - "silently converting sensitive dialogue into permanent records"
       - "activating engineering work without respecting existing governance cadence"
 
   CODEX:
     activation: "FUTURE_ONLY_AFTER_FORMAL_RELEASE"
     role:
       - "perform C0 non-duplication audit against Issues #38/#59/#60/#61/#63/#72"
-      - "map mature candidate fields into W10 canonical contracts"
-      - "define CognitiveObservation, Mastery, Gap, Unknown, UserCorrection and CognitiveEvolutionEpisode contracts"
-      - "define schema validation, version migrations, access control, expiry and revocation semantics"
+      - "map memory-track objects to W3 and cognitive-track objects to W10 canonical contracts"
+      - "freeze shared source_episode_id and one-raw-source-many-derived-views semantics"
+      - "define command parsing, routing, schema validation, version migrations, access control, expiry, deletion and revocation"
       - "integrate with the existing knowledge gateway, evidence graph and long-term memory authority"
-      - "create bounded implementation plans, APIs and automated tests"
+      - "create cross-track retrieval and user-review APIs"
+      - "create bounded implementation plans and automated tests"
     prohibited:
-      - "starting a second PersonalCognitiveModel runtime before interface freeze"
+      - "starting a second W3 or PersonalCognitiveModel runtime before interface freeze"
       - "preempting the current active task or expanding WIP without release"
       - "turning the seed into permanent profiling without evidence and user review"
       - "bypassing canonical authorities to accelerate delivery"
@@ -122,9 +187,10 @@ agent_tasks:
       - "validate local/private source formats and import boundaries"
       - "verify public/private path separation"
       - "integrate approved local conversation, file, learning and review sources"
-      - "test real hybrid retrieval, time/version behavior, correction and revocation"
+      - "test command aliases, routing, cross-track links, time/version behavior, correction, deletion and revocation"
+      - "validate cross-session context restoration without overclaiming memory"
       - "validate local privacy, backup, recovery, observability and user review workflows"
-      - "run integration, negative and data-leakage tests"
+      - "run integration, negative, false-profile and data-leakage tests"
       - "report runtime facts and limitations without redefining canonical semantics"
     prohibited:
       - "uploading private raw files to public repository"
@@ -140,8 +206,8 @@ agent_tasks:
       - "prepare candidate knowledge atoms for the cognitive growth backlog"
       - "state evidence strength, scope and limitations of learning content"
     prohibited:
-      - "acting as implementation owner"
-      - "creating or modifying the cognitive framework runtime"
+      - "acting as memory or cognitive framework implementation owner"
+      - "creating or modifying either runtime"
       - "freezing canonical schemas, APIs, permissions or profile upgrade rules"
       - "promoting learning materials or model inference into stable user traits"
       - "building a parallel system alongside Codex or WorkBuddy"
@@ -149,23 +215,23 @@ agent_tasks:
 next_review_actions:
   - id: "R1"
     owner: "USER + GPT"
-    action: "Review each candidate strength and gap; accept, correct, dispute or revoke."
+    action: "Use the three commands in real conversations and review whether routing matches intent."
     priority: "P0"
   - id: "R2"
-    owner: "GPT"
-    action: "Turn the first three backlog items into a small learning sequence with exercises."
+    owner: "USER + GPT"
+    action: "Review each candidate strength and gap; accept, correct, dispute or revoke."
     priority: "P0"
   - id: "R3"
     owner: "CODEX"
-    action: "At the natural scheduling point after formal release, compare this seed with W3/W10/W9 contracts and produce a non-duplication mapping."
+    action: "At the natural scheduling point after formal release, map the dual-track protocol to W3/W10/W9 contracts and produce a non-duplication table."
     priority: "QUEUED_BLOCKED_BY_GOVERNANCE_AND_EXISTING_CADENCE"
   - id: "R4"
     owner: "WORKBUDDY"
-    action: "After contract clarity, audit approved local data formats, privacy boundaries and realistic retrieval test fixtures."
+    action: "After contract clarity, audit approved local dialogue formats, privacy boundaries and realistic cross-session recall fixtures."
     priority: "QUEUED_AFTER_CODEX_CONTRACT"
   - id: "R5"
     owner: "QCLAW"
-    action: "Provide learning-only research support for systems theory, control theory, Goodhart/Campbell and related evidence."
+    action: "Provide learning-only research support for memory science, systems theory, control theory and metacognitive learning."
     priority: "KNOWLEDGE_SUPPORT_ONLY"
   - id: "R6"
     owner: "USER + GPT"
@@ -176,10 +242,11 @@ acceptance_gates:
   - "No private data leakage."
   - "No parallel canonical runtime."
   - "No current task or resource preemption."
-  - "Every candidate has status, evidence, confidence and review path."
-  - "At least one explicit opposing-evidence or unknown path exists for each major claim."
-  - "User can correct and revoke the model."
-  - "Future retrieval can answer strengths, gaps, unknowns, mastery and history questions."
+  - "Memory and cognitive tracks have separate authority and a shared evidence link."
+  - "Every candidate has status, source, privacy, review and revocation path."
+  - "At least one explicit opposing-evidence or unknown path exists for each major cognitive claim."
+  - "User can inspect, correct, revoke, delete and pause capture."
+  - "Future retrieval can answer both what happened and what was learned without conflating them."
   - "Codex and WorkBuddy remain the future implementation owners."
   - "QCLAW remains knowledge support only."
   - "Each implementation stage follows the original governance speed, dependencies and rollback requirements."
