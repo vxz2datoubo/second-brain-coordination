@@ -7,10 +7,10 @@
 3. 用户直接对WorkBuddy发出短命令时，不得跳转Issue #7，不得进入 `CodexDispatch` 等待态，也不得反问用户当前要做什么。
 4. Issue #26及父Issue #22已完成关闭，不得继续把“等待GPT处理Issue #26”作为当前状态或阻断理由。
 5. 先同步或直接读取远端最新 `main`。若本地工作区不适合快进、存在未提交内容或本地网络无法安全同步，不得覆盖工作区，应直接读取GitHub远端最新文件。
-6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`和`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
-7. 读取活动索引中的 `active_issue`、`mode`、`status`、`dependencies`、`task_impact_forecast`、`amed_policy`、`task_weight`、`research_trigger`、`exploration_budget`、`required_action`、`routing_guard` 和 `safety_boundary`。
-8. 仅当 `status: READY`、依赖满足、影响预测存在且AMED字段完整时，读取对应Issue正文与全部评论。
-9. 必须读取AMED协议、`coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`、机器策略、任务影响预测、任务简报、允许路径和安全边界。
+6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml` 和 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+7. 读取活动索引中的 `active_issue`、`mode`、`status`、`execution_allowed`、`route_epoch`、`route_issued_at`、`completion_signal`、`dependencies`、`task_impact_forecast`、`amed_policy`、`task_weight`、`research_trigger`、`exploration_budget`、`required_action`、`routing_guard` 和 `safety_boundary`。
+8. 执行前必须提交任务租约声明，逐字回显：仓库、读取到的远端main head、task_id、route_epoch、Issue、PR、分支、状态、completion_signal和reviewed/base head。只有与最新活动索引完全一致，且 `status: READY`、`execution_allowed: true`、依赖满足、影响预测存在、AMED字段完整时，才可执行。
+9. 必须读取对应Issue正文与全部评论、AMED协议、`coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`、机器策略、任务影响预测、任务简报、允许路径和安全边界。
 10. 按Issue显式标注的WorkBuddy模式执行，不得自行更换模式或扩大现场扫描范围。
 11. 执行必须同时完成主交付、主动发现和系统演进提案。重点发现本地真实能力、接口、权限、许可、路径、服务、数据质量、性能、部署、可观测性和云端设计与本地现实的偏差。
 12. 主动发现必须按PDER严重度实时上报：`S4`立即停止受影响操作并保全日志；`S3`证据足够即向活动PR和Issue提交DiscoveryPacket；`S2`在当前检查点报告；`S1`按根因去重聚合。
@@ -20,13 +20,20 @@
 16. 用户临时讨论的做T策略或其他研究工作应独立保存，等GPT建立新Issue或显式调整队列；不得抢占当前活动Issue。
 17. 不得执行Codex活动索引、Issue #7、其他Issue、最近聊天任务或已被 `supersedes` 替代的旧任务。
 18. 完成后必须提交AMED执行回执、研究账本、计划外改良账本、系统发现报告、DiscoveryPacket或`NO_S2_PLUS_DISCOVERY`声明、真实命令和测试、UNKNOWN、AI_HANDOFF以及完整Agent执行反馈v2。
-19. 创建独立分支和PR，不自行合并，不得直接写main。
-20. 无法确认远端最新索引、AMED字段、PDER协议、权限边界、路径允许列表或安全状态时，停止并报告，不得回退到旧调度器猜任务。
-21. 主动发现不授予跨模块接管、服务生命周期变更、凭证访问或实盘权限。
+19. **发布完成信号前必须重新读取远端最新main。** 再次比较task_id、route_epoch、Issue、PR、分支、completion_signal和execution_allowed。任一不一致时，禁止发布旧完成信号，必须按任务租约协议提交`StaleRoutePacket`并停止。
+20. 当前完成回执必须包含：领取与交付前的远端main head、task_id、route_epoch、完整40位delivered/tested/receipt head、精确命令、退出码、计数、stdout/stderr哈希和保留的失败/SKIP/UNKNOWN。
+21. 低于当前route_epoch、task_id不匹配或completion_signal不匹配的评论，只是历史回执，不能覆盖当前PR结论、解除依赖或启动下游任务。
+22. 创建独立分支和PR，不自行合并，不得直接写main。
+23. 无法确认远端最新索引、任务租约协议、AMED字段、PDER协议、权限边界、路径允许列表或安全状态时，停止并报告，不得回退到旧调度器猜任务。
+24. 主动发现不授予跨模块接管、服务生命周期变更、凭证访问或实盘权限。
 
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
 唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+
+任务租约与完成新鲜度权威：
+
+- `coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`
 
 AMED与主动发现权威：
 
