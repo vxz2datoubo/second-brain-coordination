@@ -6,7 +6,7 @@ import subprocess, hashlib, os, json, yaml, sys
 from pathlib import Path
 from datetime import datetime
 
-CLEANROOM = Path(r"F:\aidanao\_cleanroom")
+CLEANROOM = Path.cwd()  # <CLEANROOM_WORKSPACE> — resolve at runtime
 AUTHORIZED_DIR = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
 
 # QCLAW P1 audit files (root level)
