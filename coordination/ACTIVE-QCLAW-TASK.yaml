@@ -1,4 +1,4 @@
-schema_version: "10.1"
+schema_version: "10.2"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -13,213 +13,66 @@ long_term_role:
   primary_build_issue: 59
   memory_retrieval_issue: 60
   gateway_integration_issue: 38
-  current_lifecycle_mode: "BUILD_MODE"
+  lifecycle_mode_after_quota_reset: "BUILD_MODE"
 
-role_class: "TEMPORARY_BORROW"
-temporary_borrow:
-  reason: "A bounded preregistered independent audit is needed before accepting Codex 0017 D0."
-  changes_long_term_role: false
-  may_repeat_automatically: false
-  return_to_primary_role:
-    automatic_after_gpt_disposition: true
-    priority_order: [59, 60, 38]
-    preferred_next_state: "PRIMARY_SYSTEM_BUILD_OR_CONTINUOUS_DIGEST_OPERATION"
-    no_consecutive_external_audit_without_explicit_user_or_gpt_release: true
-
+current_role_class: "TEMPORARY_BORROW_COMPLETED"
+status: "SUBMITTED_DAILY_COMPUTE_EXHAUSTED_HANDOFF_COMPLETE"
+execution_allowed: false
+daily_compute_status: "EXHAUSTED_FOR_CURRENT_DAY"
 active_issue: 76
-active_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
-active_mode: "target"
-mode_label: "目标模式＋使用冻结考卷对Codex PR79 D0进行独立逐题审计"
-mode_reason: >-
-  审计对象、目标head、42个问题、评分权重、阻断门、预期/禁止行为和证据要求都已经冻结；
-  当前不需要重新规划审计体系，只需在保持程序独立性的前提下，对固定Codex D0提交逐题取证、评分、反证与报告，
-  因此使用目标模式。本任务是明确的TEMPORARY_BORROW，完成后必须返回QCLAW知识原子化、记忆检索与持续消化主线。
-status: "READY"
-blocked_by: "none"
-parent_issue: 69
-parent_program: 31
-source_issue: 76
-create_new_branch: true
-branch: "qclaw/0017-d0-independent-audit-0020q-p1"
-create_new_pr: true
-draft_pull_request: true
-direct_main_write: false
-auto_merge: false
-allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-INDEPENDENT-AUDIT/0020Q-P1/"
-
-mission_intent: >-
-  Independently evaluate whether Codex PR #79 provides an evidence-sufficient, non-self-certifying and scope-correct D0 plan
-  for 0017 BAR_ONLY. Preserve failures, UNKNOWNs and counterevidence, and give GPT a question-by-question external gate before
-  any D1, VS1, real historical execution or performance claim can begin.
-fundamental_goal: >-
-  Determine what the Codex D0 package actually proves, what it only proposes, what remains UNKNOWN, whether any frozen blocking
-  failure is triggered, and whether the package is safe to use as the planning basis for the next gated task.
-system_position: "Temporary independent adversarial evaluator; candidate evidence producer only; long-term role remains knowledge digestion and memory supply."
-systems_of_record:
-  role_charter: "Issue #81 and QCLAW knowledge digestion/memory supply charter"
-  audit_instrument: "PR #77 frozen core at 70ed222e279568b7370af62df5bb23b79201ee45"
-  accepted_receipt_closure: "PR #77 receipt head ee86f1d918bc401b06b0278d1db1feb512c31a52"
-  evaluated_target: "Codex PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41"
-  final_gate: "GPT"
-
-dependencies:
-  - id: "QCLAW_ROLE_CHARTER"
-    status: "ACTIVE"
-    evidence: "Issue #81 and machine-readable charter; P1 is a temporary borrow and must auto-return."
-  - id: "QCLAW_R3"
-    status: "ACCEPTED_FOR_P1_WITH_EXTERNAL_RECEIPT_HEAD_ANCHOR"
-    evidence: "PR #77 tested_head 8ebb272...; receipt_head ee86f1d...; only seven allowed receipt/meta files changed."
-  - id: "CODEX_D0"
-    status: "DELIVERED_FIXED_TARGET_HEAD"
-    evidence: "PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41"
-  - id: "FROZEN_INSTRUMENT"
-    status: "IMMUTABLE"
-    evidence: "Eight core YAML files and accepted corrigendum; do not modify."
-
-task_impact_forecast:
-  expected_positive_effects:
-    - "Create a genuinely external evidence gate instead of accepting Codex self-validation."
-    - "Expose unsupported mappings, self-verification loops, maturity inflation, local-reality gaps and rule/data UNKNOWNs."
-    - "Give GPT a stable basis for deciding whether D0 is accepted, remediated or split before D1."
-  expected_negative_effects:
-    - "The audit temporarily diverts QCLAW compute away from its primary knowledge-system build."
-    - "The audit may delay implementation and may produce a FAIL/UNKNOWN-heavy result."
-    - "Strict evidence rules may reduce apparent completion percentage."
-  primary_risks:
-    - "Temporary audit work silently becoming QCLAW's permanent role."
-    - "Changing questions after seeing Codex answers."
-    - "Treating presence of an artifact as evidence sufficiency."
-    - "Treating Codex tests as independent acceptance."
-    - "Quietly helping Codex repair answers during scoring."
-    - "Target-head drift during the audit."
-  stop_conditions:
-    - "PR #79 target head changes from b515b66290944af3d3e1d3285e95cb6162736d41."
-    - "Any frozen core audit file or accepted corrigendum changes."
-    - "Branch independence, target identity or evidence provenance cannot be verified."
-    - "Credential, restricted data, account, broker, order, trade or destructive-write path is encountered."
-
-amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-task_weight: "STRATEGIC"
-research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
-exploration_budget:
-  primary_evaluation_share: "70-80%"
-  active_discovery_share: "15-20%"
-  system_opportunity_share: "5-10%"
-  scope_expansion_without_gate: false
-improvement_authority:
-  A: "Only local audit-package formatting, deterministic validation and typo fixes that do not change criteria."
-  B: "Backward-compatible audit-package tooling improvements; separately report and preserve rollback."
-  C: "Any new question, weight, blocking gate, architecture, skill, interface or follow-up implementation task is proposal-only."
-  D: "Any criterion change based on Codex answers, authority change, secret access, license bypass or trade action is prohibited."
-second_pass_audit_required: true
-
-fixed_inputs:
-  qclaw_pr77:
-    frozen_core_head: "70ed222e279568b7370af62df5bb23b79201ee45"
-    tested_head: "8ebb27211999e3b14cd0f9e493aedf9d3bd2a7fc"
-    receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
-    core_combined_hash: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
-    use: "Read-only audit criteria, scoring rubric, evidence requirements, expected/forbidden behavior, UNKNOWN/abstention contract and accepted corrigendum."
-  codex_pr79:
-    target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
-    target_task: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
-    use: "Read-only evaluated artifact. Do not edit, reply with repairs, or score a later head under this task."
-
-independence_contract:
-  - "Create a new branch and new Draft PR; do not continue PR #77 or edit PR #79."
-  - "Before reading PR #79, verify and record the frozen question/rubric/corrigendum hashes and target head."
-  - "Do not change questions, weights, expected behaviors, forbidden behaviors, evidence thresholds or blocking rules after reading PR #79."
-  - "Do not ask Codex for a repair during scoring. Questions for missing evidence may be recorded as UNKNOWN, not used to coach the answer."
-  - "Codex validators and self-reported local receipts are evidence inputs, never independent proof by themselves."
-  - "Separate VERIFIED_FACT, INTERPRETATION, PREDICTION, COUNTEREVIDENCE, UNKNOWN and RECOMMENDATION."
-  - "Do not convert this temporary audit into a general audit backlog; stop and return after GPT disposition."
-
-required_actions:
-  - "Read latest main, Issue #81 role charter, Issue #76, PR #77 accepted frozen instrument and this active route."
-  - "In the first receipt declare role_class TEMPORARY_BORROW and return target Issues #59/#60."
-  - "Record exact PR #77 frozen/receipt heads, core combined hash and Codex PR #79 target head before evaluation."
-  - "Create exactly one new branch and one new Draft PR from latest main under the allowed path."
-  - "Read Codex PR #79 at the fixed head only, including all 21 artifacts and validator, without modifying it."
-  - "Evaluate all Q01-Q42 individually against the frozen evidence requirements and accepted corrigendum."
-  - "For every question record status, score contribution, exact evidence reference, counterevidence, missing evidence, confidence and whether UNKNOWN/ABSTAIN applies."
-  - "Evaluate all four frozen blocking failure modes independently; a high aggregate score cannot override a triggered blocker."
-  - "Verify that 42/42 mapping is evidence-sufficient rather than merely present."
-  - "Check BAR_ONLY scope for hidden L2/order-flow/participant-identity/intent dependencies."
-  - "Check PIT availability, future leakage, rule-version selection, historical status/corporate-action gaps, T+1, nonfill, costs and lockbox design."
-  - "Check local-reality and reproducibility claims: distinguish public planning reproducibility from licensed/local empirical reproducibility."
-  - "Inspect for self-verification loops, circular evidence, maturity inflation, duplicated authority and unsupported implementation language."
-  - "Use official primary sources only for targeted verification of current/historical A-share rules cited by the target; record URLs, effective dates, conflicts and limits."
-  - "Preserve all FAIL, PARTIAL, UNKNOWN, ABSTAIN, negative and reverse findings; do not optimize the report for a passing verdict."
-  - "Emit PDER DiscoveryPackets immediately for S3/S4 findings and at checkpoint for S2 findings."
-  - "Run deterministic package validation, YAML duplicate-key checks, reference checks, secret scan and target-head drift check."
-  - "Post the standard structured execution feedback to the new PR, Issues #76/#69/#31/#81, then stop for GPT review."
-
-mandatory_outputs:
-  - "P1-AUDIT-IDENTITY-AND-INDEPENDENCE-RECEIPT.yaml"
-  - "P1-QUESTION-BY-QUESTION-EVIDENCE-AND-SCORE.yaml"
-  - "P1-DIMENSION-SCORECARD.yaml"
-  - "P1-BLOCKING-FAILURE-ASSESSMENT.yaml"
-  - "P1-COUNTEREVIDENCE-AND-SELF-VERIFICATION-LOOP-REPORT.md"
-  - "P1-BAR-ONLY-PIT-RULE-AND-LOCAL-REALITY-REVIEW.yaml"
-  - "P1-UNKNOWN-ABSTENTION-AND-EVIDENCE-GAP-REPORT.yaml"
-  - "P1-DISCOVERY-PACKETS.yaml"
-  - "P1-VERDICT-AND-NEXT-GATE-RECOMMENDATION.yaml"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-  - "TEST-RUN-RECEIPT.md"
-  - "AI_HANDOFF.yaml"
-  - "validate_p1_audit.py"
-
-status_vocabulary: ["PASS", "PARTIAL", "FAIL", "UNKNOWN", "ABSTAIN", "NOT_APPLICABLE"]
-verdict_vocabulary:
-  - "ACCEPT_D0_FOR_GPT_FINAL_GATE"
-  - "ACCEPT_D0_WITH_BOUNDED_AMENDMENT"
-  - "REMEDIATION_REQUIRED"
-  - "BLOCKED_BY_FROZEN_FAILURE_MODE"
-  - "INSUFFICIENT_EVIDENCE"
-  - "TARGET_DRIFT_STOPPED"
-
-acceptance_gates:
-  - "Target remains exact Codex PR #79 head b515b66290944af3d3e1d3285e95cb6162736d41."
-  - "Frozen eight-file instrument and accepted corrigendum remain unchanged."
-  - "All 42 questions have evidence-grounded statuses and score contributions."
-  - "All four blocking failure modes are explicitly assessed."
-  - "Every PASS cites sufficient target evidence; artifact presence alone is not accepted."
-  - "Codex self-tests are not represented as independent verification."
-  - "Official rule checks use primary sources and effective-date context."
-  - "Failures, UNKNOWNs, abstentions and evidence gaps are preserved."
-  - "No question, weight, criterion or target file is modified."
-  - "New branch/PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
-  - "No D1/VS1 implementation, backtest, alpha claim or data-source activation occurs."
-  - "Handoff declares automatic return to QCLAW primary knowledge-system role."
-
-forbidden:
-  - "No editing PR #77 frozen core, PR #77 accepted receipts or Codex PR #79."
-  - "No criterion adaptation after observing Codex answers."
-  - "No repairing, implementing or coaching Codex during P1."
-  - "No new architecture, runtime, source activation, labeler, replay, backtest or performance claim."
-  - "No local restricted payload publication, dependency installation without declaration, credential, account, broker, order or trade action."
-  - "No continuation into another external audit without an explicit new route."
-  - "No merge or auto-merge."
-
-report_to:
-  issues: [76, 69, 31, 81]
-  create_new_draft_pr: true
-  include:
-    - "task ID, mode, role class, fixed heads, objective, success criteria, phase and completion percentage"
-    - "question-by-question results, dimension scores, blocking failures and total recommendation"
-    - "verified facts, counterevidence, official sources, failures, SKIPs, UNKNOWNs and discoveries"
-    - "changed files, commands, versions, exit codes, target-drift check, safety and rollback"
-    - "automatic return target to Issues #59/#60 after GPT disposition"
-
+completed_task_id: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1-FROZEN-INSTRUMENT-EVALUATION"
+submission_pull_request: 84
+submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
 completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
-after_completion: "STOP_AND_WAIT_FOR_GPT_SEVEN_GATE_D0_DECISION_THEN_AUTOMATIC_RETURN_TO_PRIMARY_ROLE"
-post_disposition_default_route:
-  role_class: "PRIMARY_SYSTEM_BUILD"
-  issue_priority: [59, 60, 38]
-  target_mode: "BUILD_MODE_THEN_DEDICATED_DIGEST_AND_MEMORY_SUPPLY_MODE"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+
+submission_disposition:
+  substantive_audit:
+    status: "SUBMITTED_AS_CANDIDATE_EVIDENCE"
+    facts:
+      - "42 frozen questions received statuses and score contributions."
+      - "All four frozen blocking modes were assessed as NOT_TRIGGERED."
+      - "Reported weighted score is 0.491 with a conditional-accept recommendation."
+      - "The recommendation and score remain QCLAW-authored immutable candidate evidence pending GPT disposition."
+  packaging_and_contract_findings:
+    status: "INCOMPLETE_HANDOFF_TO_CODEX_FOR_NONSEMANTIC_CLOSEOUT"
+    items:
+      - "Fifteen audit artifacts were committed at repository root rather than the authorized audit directory."
+      - "PR #84 also carries the twenty-two Codex target artifacts in its changed-file surface instead of a clean external-reference-only audit PR."
+      - "Exact mandatory output names are not fully satisfied: the question evidence/score file and discovery packet names differ, and the unplanned-improvement and system-discovery outputs are absent."
+      - "The test receipt claims all fifteen mandatory files exist but records a combined hash over fourteen files."
+      - "Official primary-source rule verification is not independently closed inside the QCLAW package."
+
+independence_preservation:
+  - "Codex must not alter, rescore, reinterpret or complete QCLAW's question-level judgments, blocking decisions, score or verdict."
+  - "PR #84 head 63c344084d9af86cb26c1cc65a30d409fefa872f is the fixed QCLAW submission object."
+  - "Any Codex work is target-side engineering or nonsemantic handoff preservation only and must occur on a separate branch/PR."
+  - "GPT remains the only final audit and acceptance authority."
+
+handoff:
+  target_agent: "CODEX"
+  active_issue: 80
+  task_id: "CODEX-QCLAW-P1-HANDOFF-INTEGRATION-AND-PIT-DATA-ADMISSION-0022-D0"
+  transferred_work:
+    - "Create a clean immutable external-evidence import manifest for PR #84 without copying or editing QCLAW judgments."
+    - "Catalogue PR #84 packaging/contract defects and preserve all source blob hashes."
+    - "Continue the target-side PIT data admission, source-license, field-semantics, historical-rule and W3/W7 interface prerequisite plan."
+  not_transferred:
+    - "Independent scoring or verdict authorship."
+    - "Any amendment of the frozen QCLAW instrument."
+    - "Any claim that Codex independently validated itself."
+
+after_quota_reset:
+  auto_resume_this_audit: false
+  default_return_route: [59, 60, 38]
+  preferred_role: "PRIMARY_SYSTEM_BUILD_OR_CONTINUOUS_DIGEST_OPERATION"
+  note: "QCLAW does not need to finish Codex's handed-off work and must not accept another external audit automatically."
+
+safety:
+  public_safe_only: true
+  candidate_only: true
+  no_trade: true
+  no_credentials: true
+  no_merge_or_auto_merge: true
+
 updated_by: "GPT"
 updated_at: "2026-07-24"
