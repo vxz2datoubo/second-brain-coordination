@@ -1,17 +1,22 @@
-schema_version: "8.8"
+schema_version: "8.9"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 qclaw_role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 program_issue: 31
-status: "CODEX_ACCEPTED_WORKBUDDY_PR91_R4_EPOCH4_ACTIVE"
+status: "CODEX_ACCEPTED_WORKBUDDY_PR91_R5_EPOCH5_ACTIVE"
 updated_by: "GPT"
-updated_at: "2026-07-24T15:15:00Z"
+updated_at: "2026-07-24T15:35:00Z"
 
 program_goal: >-
-  Preserve accepted Codex PR #90 and the accepted parts of WorkBuddy PR #91 R3,
-  close only the remaining fail-open verifier and false receipt claims in R4,
-  and keep Issue #92 blocked until R4 passes plus exactly one source manifest is approved.
+  Preserve accepted Codex PR #90 and accepted WorkBuddy machine facts, remove unauthorized R4 delivery files,
+  enforce whole-delivery safety scanning and externally anchor the receipt commit without impossible self-reference.
+  Keep Issue #92 blocked until R5 passes and exactly one source manifest is explicitly approved.
+
+control_plane_correction:
+  - "Task lease protocol v1.1 adds exact delivery-surface allowlist checks."
+  - "Final safety scans must cover the complete delivered diff, not only a package directory."
+  - "Receipt files use receipt_head_ref=THIS_COMMIT; the concrete commit SHA is externally anchored after push."
 
 review_results:
   PR90_R2:
@@ -19,21 +24,22 @@ review_results:
     receipt_head: "b683cd69e4742455b125bf95172e5f3a51851cd4"
     classification: "ACCEPTED_FOR_CONTRACT_AND_EVIDENCE_GATE_USE_NO_SOURCE_ADMISSION"
     state: "ACCEPTED_STOPPED"
-  PR91_R3:
-    tested_head: "d6d2df686e8cb5c7b87334371fa05e4eca35de91"
-    receipt_head: "486c42e19c3f4689080bc9ff0c8fac093bb4d951"
-    classification: "CORE_CHAIN_ACCEPTED_FINAL_TRUTH_AND_FAIL_CLOSED_R4_REQUIRED"
+  PR91_R4:
+    tested_head: "81de4da53e14ddd35a7d3afca0a3f4a4a9747080"
+    receipt_head: "e0d2078c28bdeb3a43c40fd0e7e6d0d7e2a7ff01"
+    classification: "PARTIALLY_ACCEPTED_UNAUTHORIZED_DELIVERY_SURFACE_AND_RECEIPT_CONTRACT_R5_REQUIRED"
     accepted:
-      - "R3 used a valid epoch-3 lease claim."
-      - "The tested head contains executable verifier changes."
-      - "The receipt head is one commit later and changes exactly four authorized receipt files."
-      - "The full QCLAW frozen head and explicit 15-file real-extension manifest are used."
+      - "_r2_scanner.py is actually removed."
+      - "The primary verifier has fail-closed handling for findings, extraction failures and non-zero validator results."
+      - "The tested-to-receipt diff changes exactly four authorized receipt files."
+      - "The full QCLAW frozen head and fifteen-file manifest are preserved."
       - "No QCLAW semantic result was modified."
     blocking:
-      - "_r2_scanner.py remains as a tombstone file although receipts claim deletion."
-      - "The verifier prints failures but does not fail the process for findings, extraction or validator errors."
-      - "Receipt files retain receipt_head TBD and omit final-head scan/lease-revalidation machine fields."
-      - "Google-token and credential-assignment patterns are missing; OS is hardcoded."
+      - "R4 tested head added unauthorized root files _verify.py, _gen_outputs.py and validator_output.txt."
+      - "Those files contain F:\\aidanao\\_cleanroom, while the eighteen-file package scan did not cover them."
+      - "Receipt files still contain receipt_head TBD."
+      - "Required missing-artifact and forced-validator-failure functional tests were not executed."
+      - "No complete epoch-4 final external receipt anchor and whole-delivery scan was found."
 
 resource_model:
   current: {workbuddy_share: 100, codex_share: 0, qclaw_share: 0}
@@ -41,11 +47,12 @@ resource_model:
   issue92_after_explicit_release: "WORKBUDDY_ONLY"
 
 coordination_principles:
-  active_execution_owner: "WORKBUDDY_PR91_R4_ROUTE_EPOCH_4"
+  active_execution_owner: "WORKBUDDY_PR91_R5_ROUTE_EPOCH_5"
   codex_state: "ACCEPTED_STOPPED"
   qclaw_semantic_evidence_owner: "QCLAW_FIXED_SUBMISSION_PR84"
   final_gate_owner: "GPT"
   task_lease_required: true
+  delivery_surface_gate_required: true
   pre_completion_revalidation_required: true
   no_cross_branch_coaching: true
   no_real_source_selection_before_issue92: true
@@ -66,15 +73,15 @@ agents:
   WORKBUDDY:
     active_issue: 89
     pull_request: 91
-    task_id: "WORKBUDDY-PR91-R4-FAIL-CLOSED-VERIFIER-AND-FINAL-RECEIPT-TRUTH-CLOSURE"
-    route_epoch: 4
+    task_id: "WORKBUDDY-PR91-R5-DELIVERY-SURFACE-CLEANUP-AND-EXTERNAL-RECEIPT-ANCHOR-CLOSURE"
+    route_epoch: 5
     mode: "target"
     status: "READY"
     execution_allowed: true
     branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
     role_now: >-
-      Physically delete the obsolete scanner, make every required verifier failure return non-zero,
-      produce concrete full-head receipts and publish the post-receipt scan plus epoch-4 lease revalidation.
+      Delete the three unauthorized root helper/output files, make the verifier scan the whole delivered surface,
+      run three functional failure tests, create an exact receipt-only commit and externally anchor its full SHA.
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
   QCLAW:
     submission_pull_request: 84
@@ -88,7 +95,7 @@ fixed_evidence:
   qclaw_preregistration: {pr: 77, receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"}
   codex_d0_target: {pr: 79, head: "b515b66290944af3d3e1d3285e95cb6162736d41", status: "FROZEN_NO_EDITS"}
   qclaw_p1_submission: {pr: 84, head: "63c344084d9af86cb26c1cc65a30d409fefa872f", semantic_disposition: "PENDING_GPT_ADOPTION"}
-  workbuddy_r3_reviewed: {pr: 91, tested_head: "d6d2df686e8cb5c7b87334371fa05e4eca35de91", receipt_head: "486c42e19c3f4689080bc9ff0c8fac093bb4d951"}
+  workbuddy_r4_reviewed: {pr: 91, tested_head: "81de4da53e14ddd35a7d3afca0a3f4a4a9747080", receipt_head: "e0d2078c28bdeb3a43c40fd0e7e6d0d7e2a7ff01"}
   codex_r2_accepted: {pr: 90, tested_head: "abc9b618eacec0a3004a56b614e56f196161c107", receipt_head: "b683cd69e4742455b125bf95172e5f3a51851cd4"}
 
 execution_queue:
@@ -96,19 +103,19 @@ execution_queue:
     owner: "WORKBUDDY"
     issue: 89
     pull_request: 91
-    route_epoch: 4
-    task: "R4 fail-closed verifier, actual Git deletion, final-head receipts and lease revalidation."
-    completion_signal: "WORKBUDDY_PR91_R4_FAIL_CLOSED_AND_FINAL_RECEIPTS_READY_FOR_GPT_REVIEW"
+    route_epoch: 5
+    task: "R5 exact delivery-surface cleanup, whole-diff scan, functional failure tests and external receipt-head anchor."
+    completion_signal: "WORKBUDDY_PR91_R5_DELIVERY_SURFACE_AND_EXTERNAL_RECEIPT_ANCHOR_READY_FOR_GPT_REVIEW"
   - order: 2
     owner: "GPT"
-    task: "Review only the bounded PR #91 R4 delta and final machine receipts."
+    task: "Review only the bounded PR #91 R5 delta, whole-delivery scan and external receipt anchor."
   - order: 3
     owner: "GPT_USER"
     task: "Approve exactly one source manifest candidate or preserve abstention."
   - order: 4
     owner: "WORKBUDDY"
     issue: 92
-    status: "QUEUED_REQUIRES_EXPLICIT_RELEASE_AFTER_PR91_R4_AND_ONE_CANDIDATE"
+    status: "QUEUED_REQUIRES_EXPLICIT_RELEASE_AFTER_PR91_R5_AND_ONE_CANDIDATE"
     task: "Execute the accepted PR #90 contract against at most one approved local source candidate."
   - order: 5
     owner: "NONE_UNTIL_EXPLICIT_RELEASE"
@@ -124,14 +131,14 @@ cross_lane_firewalls:
   - "Codex makes no further PR #90 edits."
   - "WorkBuddy does not modify PR #90/#84/#77/#79."
   - "QCLAW semantics remain frozen."
-  - "Issue #92 cannot start until WorkBuddy R4 is accepted, one candidate is approved and GPT explicitly changes the route."
+  - "Issue #92 cannot start until WorkBuddy R5 is accepted, one candidate is approved and GPT explicitly changes the route."
   - "A stale or lower-epoch completion cannot release any gate."
 
 release_control:
   only_GPT_may_activate_issue92: true
   trigger_behavior:
     CODEX: "Report PR #90 accepted and stop."
-    WORKBUDDY: "Read latest main, claim route_epoch 4 and execute PR #91 R4 only."
+    WORKBUDDY: "Read latest main, claim route_epoch 5 and execute PR #91 R5 only."
     QCLAW: "Report submitted/quota exhausted; do not continue today."
 
 safety_boundary:
