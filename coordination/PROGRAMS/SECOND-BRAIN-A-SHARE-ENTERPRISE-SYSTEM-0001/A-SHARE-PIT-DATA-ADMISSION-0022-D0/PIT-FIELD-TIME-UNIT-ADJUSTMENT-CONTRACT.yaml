@@ -1,0 +1,18 @@
+schema_version: '1.0.0'
+status: CANDIDATE_CONTRACT_NOT_IMPLEMENTED
+canonical_temporal_reference: PHASE-0/ENTERPRISE-CONTRACT-REGISTRY.yaml
+temporal_fields:
+  event_time: represented market event or completed bar time; never filesystem mtime
+  observed_at: provider observation/publication time or UNKNOWN
+  receive_time: local receipt time; never exchange time
+  entered_system_at: authorized adapter acceptance time
+  available_at: earliest model-usable time proven by versioned source policy
+  timezone: declared source and market timezone; A-share session references use Asia/Shanghai
+bar_rule: A daily nominal close at 15:00 Asia/Shanghai is not proof of availability; requested_as_of earlier than available_at rejects or quarantines the record.
+field_rules:
+  ohlc: scaling, currency and adjustment basis must be declared
+  volume: UNKNOWN unit blocks feature, signal and simulation use
+  amount: UNKNOWN encoding/unit blocks authoritative turnover use
+  missingness: distinguish missing, zero, error, permission denial, stale, duplicate and out_of_order
+  adjustment: raw/forward/backward policy and corporate-action lineage are required
+unknown_propagation: Any unresolved field semantics produces UNKNOWN or ABSTAIN, never a false boolean.

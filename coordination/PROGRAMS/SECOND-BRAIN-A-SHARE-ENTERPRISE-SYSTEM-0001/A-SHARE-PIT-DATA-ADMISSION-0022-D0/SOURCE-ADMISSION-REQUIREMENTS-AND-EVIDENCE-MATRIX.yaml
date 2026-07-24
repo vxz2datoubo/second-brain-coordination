@@ -1,0 +1,33 @@
+schema_version: '1.0.0'
+selection_in_D0: FORBIDDEN
+outcomes: [PASS_FOR_ISSUE92_READONLY_EVIDENCE, FAIL, UNKNOWN, ABSTAIN]
+requirements:
+  - id: ADM-01
+    requirement: source identity and immutable artifact hash
+    evidence_class: AUTHORIZED_LOCAL_RECEIPT
+    failure: ABSTAIN
+  - id: ADM-02
+    requirement: permitted research and local-processing license scope
+    evidence_class: PROVIDER_OR_RIGHTSHOLDER_DOCUMENT
+    failure: BLOCKED_BY_POLICY
+  - id: ADM-03
+    requirement: point-in-time availability and correction policy
+    evidence_class: SOURCE_DOCUMENTATION_OR_AUTHORIZED_RECEIPT
+    failure: UNKNOWN
+  - id: ADM-04
+    requirement: field, unit, encoding and missingness semantics
+    evidence_class: PROVIDER_DOCUMENTATION_PLUS_MACHINE_FIXTURE
+    failure: UNKNOWN
+  - id: ADM-05
+    requirement: adjustment and corporate-action lineage
+    evidence_class: VERSIONED_SOURCE_POLICY
+    failure: UNKNOWN
+  - id: ADM-06
+    requirement: historical security-status and effective-dated rule coverage
+    evidence_class: OFFICIAL_RULE_AND_STATUS_SNAPSHOTS
+    failure: ABSTAIN
+  - id: ADM-07
+    requirement: raw-data privacy boundary and reproducibility receipt
+    evidence_class: AUTHORIZED_AGENT_RECEIPT
+    failure: BLOCKED_BY_POLICY
+source_rule: No candidate is elevated by filesystem presence, UI visibility, or generic vendor marketing.

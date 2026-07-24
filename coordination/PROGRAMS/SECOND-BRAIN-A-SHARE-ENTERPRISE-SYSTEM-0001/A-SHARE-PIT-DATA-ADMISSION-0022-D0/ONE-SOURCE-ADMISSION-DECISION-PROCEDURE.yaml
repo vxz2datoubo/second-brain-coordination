@@ -1,0 +1,14 @@
+schema_version: '1.0.0'
+owner: GPT_AND_WORKBUDDY_ISSUE92
+codex_role: DESIGN_ONLY
+input: exactly_one_user_or_GPT_approved_candidate_manifest_reference
+procedure:
+  - verify ADM-01 through ADM-07 independently
+  - record each gate as PASS_FAIL_OR_UNKNOWN
+  - FAIL for license/privacy/authority returns BLOCKED_BY_POLICY
+  - UNKNOWN for PIT/unit/adjustment/status/rule returns ABSTAIN
+  - only all PASS permits ISSUE92_READONLY_EVIDENCE_EXECUTION
+  - Issue92 result may not activate a source or start D1 without GPT release
+outputs: [decision_receipt, reason_codes, unknowns, authorized_agent_reproducibility_receipt]
+current_decision: NO_SOURCE_SUBMITTED_NO_DECISION
+prohibited: [source_selection_by_Codex, multi_source_scan, real_data_publication, replay_or_backtest]

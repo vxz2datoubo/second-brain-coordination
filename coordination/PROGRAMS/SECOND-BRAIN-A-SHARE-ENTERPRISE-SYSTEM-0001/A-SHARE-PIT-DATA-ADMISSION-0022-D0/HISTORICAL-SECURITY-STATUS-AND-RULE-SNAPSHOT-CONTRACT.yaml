@@ -1,0 +1,27 @@
+schema_version: '1.0.0'
+status: CANDIDATE_CONTRACT_NOT_IMPLEMENTED
+selection_key: [exchange, board, security_type, risk_warning_status, listing_status, event_date, effective_from, effective_to]
+required_rule_snapshot_fields:
+  - rule_snapshot_id
+  - publisher
+  - official_url
+  - document_identity_and_hash
+  - publication_date
+  - available_at
+  - effective_from
+  - effective_to_or_supersession
+  - provision_implementation_status
+  - session_calendar_policy
+  - auction_policy
+  - settlement_policy
+  - price_limit_policy
+  - suspension_policy
+required_security_status_fields: [listing_status, risk_warning_status, suspension_status, IPO_phase, delisting_or_reorganization_status]
+rules:
+  - select_one_matching_snapshot_or_return_UNKNOWN_RULE_SNAPSHOT
+  - apply_effective_intervals_not_present_day_constants
+  - deferred_provision_is_not_automatically_active
+  - missing_bar_does_not_prove_suspension
+  - unknown_ST_or_status_is_UNKNOWN_not_false
+  - no_universal_limit_or_T_plus_1_constant
+prohibited_until_coverage: [historical_labels, replay, backtest, executable_limit_logic]

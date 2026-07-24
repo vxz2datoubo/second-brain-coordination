@@ -1,16 +1,10 @@
 # Test Run Receipt
 
-- `agent_id`: `CODEX`
-- `task_id`: `CODEX-A-SHARE-PIT-DATA-ADMISSION-AND-HISTORICAL-RULE-EVIDENCE-0022-D0`
-- `scope`: public-safe structural plan validation only
+`agent_id: CODEX`
+`scope: static public-safe D0 contract validation only`
 
-## Commands and expected evidence
+The package validator confirms all core outputs are present, no source has been selected, and Issue #92 remains queued. All YAML files parse with the local YAML parser; the validator parses with Python AST; a scoped public-safe scan rejects credential-shaped values and absolute local paths. The existing PR #51 local-adapter regression suite is also run as a non-regression check.
 
-1. `python validate_d0_admission.py` must pass only when all required deliverables are present and the package keeps both `ABSTAIN` and the no-D1 gate.
-2. Every YAML deliverable must parse with the local Python YAML parser.
-3. `validate_d0_admission.py` must parse as Python without writing bytecode.
-4. A scoped public-safe scan must find neither raw local drive paths nor credential-shaped values in this package.
+Results: package validator passed; `16` required core artifacts found; YAML parsing passed; Python AST parsing passed; the scoped public-safe scan passed; the existing PR #51 local-adapter regression suite passed `61` tests in `0.124s`.
 
-## Result
-
-All four package checks passed after the package was completed. The initial structural-validator failure before this receipt existed was expected and fixed by adding the mandatory receipt and aligning the explicit D1 denial check. The existing PR #51 local-adapter regression suite also passed: `61` tests, `0.190s`, `OK`. No source, adapter, replay, strategy, account, or network market interface was invoked.
+No real source, adapter activation, local data, replay, labeling, backtest, account, or trading interface is used by these checks.
