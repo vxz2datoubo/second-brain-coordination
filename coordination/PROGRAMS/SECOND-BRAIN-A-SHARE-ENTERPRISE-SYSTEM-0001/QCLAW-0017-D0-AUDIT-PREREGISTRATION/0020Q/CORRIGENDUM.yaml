@@ -1,0 +1,152 @@
+# CORRIGENDUM.yaml
+# QCLAW-0017-D0-Audit-Preregistration-0020Q-R1
+# Date: 2026-07-24T03:30+08:00
+# Reason: Bounded integrity metadata remediation per GPT review on PR #77 head 70ed222e
+#
+# This corrigendum documents known defects in P0 receipts/hashes and
+# interpretive boundaries. The eight core YAML files remain immutable.
+
+schema_version: "1.0"
+corrigendum_id: "QCLAW-0020Q-R1-CORRIGENDUM-001"
+parent_head: "70ed222e279568b7370af62df5bb23b79201ee45"
+
+# ============================================================================
+# 1. HASH CONTRADICTIONS IN P0 RECEIPTS
+# ============================================================================
+
+hash_contradictions:
+  - id: "HASH-001"
+    severity: "FATAL_TO_INTEGRITY_CLAIM"
+    description: >-
+      FROZEN-MANIFEST.yaml at head 70ed222e reports combined_hash value
+      `a89bb299...` (covering 8 core files + validator = 9 files).
+      AI_HANDOFF.yaml at the same head reports combined_hash value
+      `7210d4bc...` (covering 12 files including itself).
+      These two values cannot both be correct for the same set of
+      core files. The verified correct core combined hash (8 immutable
+      core YAML files only, filenames sorted, SHA-256 concatenated then
+      SHA-256 of the result) is:
+      bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0
+    resolution: >-
+      R1 corrects all receipts to single combined hash
+      bf029d13... (8-core only), excludes validator and meta-files
+      from the core combined hash to avoid circular dependency.
+    was_fixed_in: "R1"
+
+  - id: "HASH-002"
+    severity: "FATAL_TO_INTEGRITY_CLAIM"
+    description: >-
+      FROZEN-MANIFEST.yaml reports validate_preregistration.py SHA-256 as
+      `f57c7d2c...` while TEST-RUN-RECEIPT.md reports it as `c7a5807b...`.
+      The actual SHA-256 of validate_preregistration.py at head 70ed222e is
+      `f57c7d2cc14e8637f02ba59d8b8c04d463d6465b94e5b61ef5b3ec500df3783e`.
+      The receipt value is incorrect.
+    resolution: >-
+      R1 corrects all receipts to actual SHA-256 f57c7d2c... and
+      documents validator as a SEPARATELY VERSIONED tool (not part of
+      the core combined hash).
+    was_fixed_in: "R1"
+
+  - id: "CLAIM-001"
+    severity: "FATAL_TO_INTEGRITY_CLAIM"
+    description: >-
+      P0 TEST-RUN-RECEIPT.md claimed "43/43 PASS" and "ALL MATCH" for
+      manifest SHA-256 cross-check, but the manifest cross-check itself
+      contained conflicting hashes (HASH-001, HASH-002 above). The 43/43
+      PASS cannot be verified against head 70ed222e.
+    resolution: >-
+      After R1 corrections (validator updated to skip meta-files + 8-core
+      combined hash), the machine validator passes 45/45 with 0 failures
+      and exit 0 on the corrected instrument.
+    was_fixed_in: "R1"
+
+# ============================================================================
+# 2. NONCANONICAL RULE EXAMPLES IN Q11 AND Q13
+# ============================================================================
+
+noncanonical_rule_examples:
+  - id: "RULE-001"
+    location: "D0-AUDIT-QUESTION-FREEZE.yaml Q11 (immutable)"
+    severity: "INTERPRETIVE_RISK"
+    description: >-
+      Q11 question text mentions specific numeric price limits:
+      "10%/20% for ChiNext/STAR, 5% for ST". These are hardcoded
+      examples that must NOT be treated as universal, cross-market,
+      cross-board, cross-security-state, or cross-historical-period
+      canonical rules.
+    canonical_standard: >-
+      P1 evaluation MUST use a versioned official-source rule matrix
+      keyed by exchange (SSE/SZSE/BSE), board (主板/创业板/科创板),
+      security status (normal/ST/*ST/退市整理/risk-warning), and
+      effective date. No universal 10%/20%/5% limit may be assumed.
+      Numeric limits in Q11 are illustrative only.
+    does_not_affect: "Question remains frozen; only P1 scoring interpretation changes."
+
+  - id: "RULE-002"
+    location: "D0-AUDIT-QUESTION-FREEZE.yaml Q13 (immutable)"
+    severity: "INTERPRETIVE_RISK"
+    description: >-
+      Q13 question text mentions specific call auction windows:
+      "9:15-9:25, 14:57-15:00". These are hardcoded examples that
+      must NOT be treated as universal. Auction windows vary by
+      exchange, board, and historical regulatory change.
+    canonical_standard: >-
+      P1 evaluation MUST use versioned exchange-official auction
+      window definitions. The hardcoded 9:15-9:25/14:57-15:00 are
+      merely the most common current SSE/SZSE windows and are subject
+      to change by exchange rule.
+    does_not_affect: "Question remains frozen; only P1 scoring interpretation changes."
+
+# ============================================================================
+# 3. REPRODUCIBILITY INTERPRETATION BOUNDARY
+# ============================================================================
+
+reproducibility_boundary:
+  - id: "REPRO-001"
+    location: "D0-AUDIT-QUESTION-FREEZE.yaml Q18 (immutable)"
+    severity: "INTERPRETIVE_RISK"
+    description: >-
+      Q18 can be misread as requiring all vendor or local-proprietary
+      data to be freely reproducible on any machine without the
+      original licensed data feed. That is an unreasonable standard.
+    canonical_standard: >-
+      P1 evaluation MUST accept licensed/local-only data as
+      satisfactorily documented when ALL of the following are
+      truthfully recorded: (a) data source name and vendor, (b) path
+      alias (not credential-bearing path), (c) license/access
+      boundary, (d) file-level SHA-256 hashes of the dataset as used,
+      (e) exact environment (OS, Python version, library versions),
+      (f) documented alternative dataset or synthetic sample for
+      independent replay of logic, and (g) explicit UNKNOWN for
+      full-scale portability.
+    does_not_affect: "Question remains frozen; only P1 scoring interpretation changes."
+
+# ============================================================================
+# 4. COMBINED HASH SPECIFICATION
+# ============================================================================
+
+corrected_combined_hash:
+  algorithm: "SHA-256"
+  method: >-
+    SHA-256 hash of concatenated SHA-256 hex digests of the 8 immutable core YAML
+    files, sorted by filename. Validator, manifest, receipt, handoff, corrigendum
+    and amendment-log are EXCLUDED from the core combined hash to avoid circular
+    dependency.
+  core_covered_files: 8
+  excluded_files:
+    - "FROZEN-MANIFEST.yaml (self-referencing)"
+    - "TEST-RUN-RECEIPT.md (references combined hash)"
+    - "AI_HANDOFF.yaml (references combined hash)"
+    - "validate_preregistration.py (versioned tool, not frozen core)"
+    - "CORRIGENDUM.yaml (this file, R1 artifact)"
+    - "AMENDMENT-LOG.yaml (R1 artifact)"
+    - "GIT-BLOB-AND-SHA256-RECEIPT.yaml (R1 artifact)"
+  value: "bf029d13dba2e6bc054e9b452a5d7992905847781bb00bf73a7ef240220d61c0"
+
+# ============================================================================
+# SIGNATURES
+# ============================================================================
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+signed_by: "QCLAW"
+signed_at: "2026-07-24T03:30:00+08:00"

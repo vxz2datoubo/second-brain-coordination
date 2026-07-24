@@ -1,0 +1,102 @@
+# UNKNOWN-AND-ABSTENTION-CONTRACT (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# Defines what must be marked UNKNOWN and when QCLAW must abstain.
+
+schema_version: "1.0"
+contract_id: "QCLAW-0020Q-P0-UNKNOWN-001"
+
+# ============================================================================
+# UNKNOWN DECLARATION REQUIREMENTS
+# ============================================================================
+# During P1 evaluation, QCLAW must classify each question's evidence
+# as RESOLVED, PARTIAL, or UNKNOWN. UNKNOWN is an honest answer, not a penalty.
+
+unknown_categories:
+  - id: "U-DATA"
+    description: "Data not available or not reproducible. Includes: vendor-specific data
+      without license, brain_core paths without alternative, missing date ranges."
+    treatment: "Mark question as UNKNOWN. State what data would resolve it."
+
+  - id: "U-RULES"
+    description: "Rule snapshot incomplete, conflicting, or missing effective dates.
+      Includes: regulatory changes not documented, multi-exchange rule conflicts."
+    treatment: "Mark question as UNKNOWN. State which rule gap blocks the audit."
+
+  - id: "U-IMPLEMENTATION"
+    description: "Planned but not yet built. D0 is a plan; this is expected."
+    treatment: "Mark as NOT_YET_IMPLEMENTABLE. No penalty for D0 planning gap."
+
+  - id: "U-EXTERNAL"
+    description: "Depends on external system not under Codex control.
+      Includes: W3 physical SoR, W12 probability estimates, external data licenses."
+    treatment: "Mark as BLOCKED_BY_EXTERNAL. State the blocking system."
+
+  - id: "U-BOUNDARY"
+    description: "Question probes beyond BAR_ONLY scope. QCLAW must abstain."
+    treatment: "Mark as OUT_OF_SCOPE_FOR_BAR_ONLY_AUDIT. Do not score."
+
+  - id: "U-CODE_LEVEL"
+    description: "Question requires reading Codex implementation code.
+      P1 evaluates the D0 PLAN, not the D1-VS1 implementation."
+    treatment: "Mark as NOT_APPLICABLE_TO_PLAN_AUDIT. Defer to future implementation audit."
+
+# ============================================================================
+# ABSTENTION RULES
+# ============================================================================
+# QCLAW must ABSTAIN (not answer, not score) in these situations:
+
+abstention_rules:
+  - rule: "A-SCOPE"
+    condition: "Question probes beyond Issue #69 D0 audit scope."
+    action: "Mark ABSTAIN_OUT_OF_SCOPE. Do not score. Record in AI_HANDOFF."
+
+  - rule: "A-SECRETS"
+    condition: "Answering would require reading private credentials, secrets, or
+      brain_core contents. Hard safety boundary."
+    action: "Mark ABSTAIN_CREDENTIAL_BOUNDARY. Do not inspect brain_core."
+
+  - rule: "A-CODEX-FUTURE"
+    condition: "Question probes future Codex D1-VS1 implementation, not D0 plan."
+    action: "Mark ABSTAIN_FUTURE_PHASE. Defer to future audit phases."
+
+  - rule: "A-TRADE"
+    condition: "Answering would involve trading, account access, order placement,
+      or market participation. NO_TRADE boundary."
+    action: "Mark ABSTAIN_NO_TRADE. Do not execute any market operation."
+
+  - rule: "A-W3-MIGRATION"
+    condition: "Answering would require W3 physical SoR to exist. It is UNKNOWN."
+    action: "Mark ABSTAIN_W3_UNKNOWN. Note the gap."
+
+  - rule: "A-PROBABILITY"
+    condition: "Question requires probability estimation. 0017 is BAR_ONLY."
+    action: "Mark ABSTAIN_PROBABILITY_BOUNDARY. Refer to W12."
+
+# ============================================================================
+# HONEST UNKNOWN IS NOT A FAILURE
+# ============================================================================
+
+unknown_policy:
+  principle: >
+    UNKNOWN is a valid and honest audit answer. The scoring rubric does NOT
+    penalize UNKNOWN when it is (a) correctly classified per the categories
+    above, (b) accompanied by a statement of what would resolve it, and
+    (c) not used to mask a scope violation.
+
+  forbidden_patterns:
+    - "Marking a question as UNKNOWN to avoid admitting a BAR_ONLY violation."
+    - "Claiming UNKNOWN for a question whose answer is knowable from public D0 plan."
+    - "Marking as UNKNOWN to avoid reporting a negative finding."
+
+  minimum_unknowns: >
+    A D0 plan with ZERO UNKNOWN declarations is inherently suspicious.
+    At minimum, W3 physical SoR (U-EXTERNAL), data license limitations
+    (U-DATA), and external probability dependencies (U-EXTERNAL) should be
+    UNKNOWN at D0 stage. QCLAW's own UNKNOWNs (e.g., data availability
+    for QCLAW-equivalent reproduction) must also be declared.
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  immutable_after_freeze: true
