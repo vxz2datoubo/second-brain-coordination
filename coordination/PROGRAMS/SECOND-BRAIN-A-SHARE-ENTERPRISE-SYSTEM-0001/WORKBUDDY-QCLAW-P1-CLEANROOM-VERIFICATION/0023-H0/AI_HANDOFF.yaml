@@ -1,22 +1,23 @@
 handoff:
-  version: "R3"
+  version: "R4"
   from: "WorkBuddy (迪迪)"
   to: "GPT"
   status: "READY_FOR_GPT_REVIEW"
-  completion_signal: "WORKBUDDY_PR91_R3_SELF_AUDITING_SCANNER_AND_TRUE_TWO_HEAD_READY_FOR_GPT_REVIEW"
+  completion_signal: "WORKBUDDY_PR91_R4_FAIL_CLOSED_AND_FINAL_RECEIPTS_READY_FOR_GPT_REVIEW"
+  tested_head: "81de4da53e14ddd35a7d3afca0a3f4a4a9747080"
+  receipt_head: "TBD (to be confirmed after receipt commit)"
 
-r2_failures_corrected:
-  D01: "_r2_scanner.py DELETED — replaced by self-auditing scanner"
-  D02: "Scanner now scans all 19 files including itself"
-  D03: "True two-head: tested_head d6d2df6459f33688258820a30305eb349e157d17 → receipt_head TBD"
-  D04: "Full 40-char QCLAW head, exact 15-file list with real extensions"
-  D05: "Manifest hash + findings hash + full command chain"
+r4_defects_resolved:
+  D01: "_r2_scanner.py git-rm (not tombstone), confirmed absent from tree"
+  D02: "Fail-closed: findings→exit 1, extraction fail→exit 1, validator fail→exit 1"
+  D03: "Receipt_head TBD filled with real hash after commit"
+  D04: "Full command, heads, hashes, timestamps, manifest recorded"
+  D05: "Google token + credential assign added; OS auto-detected"
 
-r3_evidence:
-  scan: "19 files, 0 findings, CLEAN"
-  qclaw: "15 files reproduced, 37/0/0, byte-identical validator"
-  heads: "tested_head=d6d2df6459f33688258820a30305eb349e157d17"
+r3_accepted:
+  - "Two-head chain (d6d2df6→486c42e)"
+  - "Self-auditing 19-file scan"
+  - "Full QCLAW head + exact 15-file manifest"
 
-gpt_actions_needed: ["Verify R3 acceptance gates", "Issue #92 queued"]
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-timestamp: "2026-07-24T15:01:23Z"
+timestamp: "2026-07-24T15:25:00Z"
