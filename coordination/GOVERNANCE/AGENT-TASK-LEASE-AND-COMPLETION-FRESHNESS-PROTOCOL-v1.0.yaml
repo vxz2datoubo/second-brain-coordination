@@ -1,0 +1,124 @@
+schema_version: "1.0.0"
+protocol_id: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
+status: "ACTIVE"
+owner: "GPT"
+applies_to: [CODEX, WORKBUDDY, QCLAW, FUTURE_AGENTS]
+purpose: >-
+  Prevent stale local routes, superseded task execution, delayed completion comments and invalid tested-head claims
+  from overriding the current remote-main task state.
+
+single_source_of_truth:
+  repository: "vxz2datoubo/second-brain-coordination"
+  branch: "main"
+  active_task_file_pattern: "coordination/ACTIVE-<AGENT>-TASK.yaml"
+  authority_rule: "Only the latest remote main active-task record can grant execution or define an acceptable completion signal."
+
+required_fields_for_ready_tasks:
+  - task_id
+  - active_issue
+  - pull_request
+  - branch
+  - status
+  - execution_allowed
+  - route_epoch
+  - route_issued_at
+  - completion_signal
+  - reviewed_or_base_head
+  - supersedes
+  - task_weight
+  - research_trigger
+  - exploration_budget
+  - amed_policy
+  - task_impact_forecast
+  - acceptance_gates
+  - forbidden
+
+lease_claim_gate:
+  required_before_execution: true
+  procedure:
+    - "Fetch or remotely read the latest main without overwriting uncommitted local work."
+    - "Read the latest router, this protocol and the agent's active-task file."
+    - "Echo repository, remote-main head, task_id, route_epoch, issue, PR, branch, status, completion_signal and reviewed/base head."
+    - "Proceed only when status is READY, execution_allowed is true, dependencies are satisfied and all echoed fields match the current active-task file."
+  mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
+  prohibited_fallbacks:
+    - "chat history"
+    - "local cached active-task file"
+    - "older Issue comment"
+    - "older completion signal"
+    - "superseded task"
+
+pre_completion_revalidation_gate:
+  required_before_posting_completion: true
+  procedure:
+    - "Fetch or remotely read latest main again after implementation and tests."
+    - "Re-read the latest router, this protocol and active-task file."
+    - "Compare task_id, route_epoch, active_issue, pull_request, branch, completion_signal and execution_allowed with the claimed lease."
+    - "Confirm the delivered full head contains the executable changes and descends from the authorized reviewed/base head."
+  exact_match_required: true
+  mismatch_result:
+    status: "STALE_COMPLETION_ABORTED"
+    actions:
+      - "Do not post the old completion signal as current completion."
+      - "Preserve local work and logs without merging or force-pushing."
+      - "Post a StaleRoutePacket naming the old and current task_id/route_epoch and stop."
+
+completion_receipt_required_fields:
+  - task_id
+  - route_epoch
+  - remote_main_head_at_claim
+  - remote_main_head_at_pre_completion_revalidation
+  - completion_signal
+  - active_issue
+  - pull_request
+  - branch
+  - authorized_reviewed_or_base_head
+  - delivered_head_full_sha
+  - tested_head_full_sha
+  - receipt_head_full_sha_or_NOT_APPLICABLE
+  - tested_to_receipt_changed_files
+  - exact_commands
+  - exit_codes
+  - counts
+  - normalized_stdout_sha256
+  - normalized_stderr_sha256
+  - preserved_failures_skips_unknowns
+
+completion_acceptance_rules:
+  - "A completion signal is current only when task_id, route_epoch and completion_signal exactly match the latest active-task file."
+  - "Comments or receipts from lower route_epoch values are historical evidence only and cannot change current status."
+  - "A tested_head must contain the actual executable validator/scanner/code used in the receipt."
+  - "A receipt_head must descend from tested_head and change only explicitly authorized receipt files."
+  - "Short commit identifiers are non-authoritative in completion receipts."
+  - "Only GPT may accept, reject, supersede or release the downstream task after completion review."
+
+stale_signal_handling:
+  classification: "HISTORICAL_SUPERSEDED_RECEIPT"
+  must_not:
+    - "reactivate an old task"
+    - "overwrite the current PR disposition"
+    - "release a dependency"
+    - "start a downstream Issue"
+  recommended_response: "Record once in the active-task stale_completion_registry and do not create duplicate remediation work."
+
+regression_cases:
+  - id: "LEASE-REG-01"
+    case: "R3 route is active, but an R2 completion comment is posted later."
+    expected: "R2 comment is historical only; R3 remains active."
+  - id: "LEASE-REG-02"
+    case: "Receipt claims a tested head that predates the scanner or validator code."
+    expected: "Reject completion as invalid tested-head evidence."
+  - id: "LEASE-REG-03"
+    case: "Agent starts from a cached local route while remote main has a higher route_epoch."
+    expected: "Stop before execution and report stale route."
+  - id: "LEASE-REG-04"
+    case: "Task becomes STOPPED while local implementation is running."
+    expected: "Pre-completion revalidation aborts current completion and preserves work without publishing a current signal."
+
+exceptions:
+  - "Emergency safety containment may execute before a lease claim, but must create a retrospective receipt and cannot expand scope."
+  - "Pure read-only status reporting for status STOPPED or execution_allowed=false does not require an execution lease."
+
+boundary: "CONTROL_PLANE_ONLY / NO_TRADE / NO_CREDENTIALS / NO_AUTO_MERGE"
+updated_by: "GPT"
+updated_at: "2026-07-24T14:40:14Z"
