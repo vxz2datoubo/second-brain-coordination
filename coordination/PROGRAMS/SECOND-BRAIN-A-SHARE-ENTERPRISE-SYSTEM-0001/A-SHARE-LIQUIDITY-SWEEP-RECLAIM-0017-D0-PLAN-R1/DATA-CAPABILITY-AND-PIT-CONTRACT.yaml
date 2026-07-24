@@ -1,0 +1,46 @@
+schema_version: "1.0"
+record_type: "DataCapabilityAndPointInTimeContract"
+task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+boundary: "BAR_ONLY / research_only / NO_TRADE"
+canonical_input:
+  type: "PointInTimeBar"
+  required_fields:
+    source: {type: string, state: REQUIRED}
+    source_manifest_id: {type: string, state: REQUIRED}
+    symbol: {type: string, state: REQUIRED}
+    market: {type: string, state: REQUIRED}
+    timeframe: {type: string, state: REQUIRED}
+    event_time: {type: datetime, semantics: "bar close in Asia/Shanghai"}
+    observed_at: {type: datetime, semantics: "source observation timestamp or UNKNOWN"}
+    available_at: {type: datetime, semantics: "earliest model-usable timestamp"}
+    source_sequence: {type: string, state: "OPTIONAL_OR_UNKNOWN"}
+    open: {type: decimal, state: REQUIRED}
+    high: {type: decimal, state: REQUIRED}
+    low: {type: decimal, state: REQUIRED}
+    close: {type: decimal, state: REQUIRED}
+    volume: {type: decimal, state: "REQUIRED_WITH_UNIT_SEMANTICS"}
+    amount: {type: decimal, state: "OPTIONAL_NOT_AUTHORITATIVE_UNTIL_SEMANTICS_VERIFIED"}
+    adjustment_policy_id: {type: string, state: REQUIRED}
+    rule_snapshot_id: {type: string, state: REQUIRED}
+    rule_version: {type: string, state: REQUIRED}
+    completeness: {type: enum, values: [COMPLETE, PARTIAL, UNKNOWN, INVALID]}
+    missing_error_state: {type: enum, values: [NONE, MISSING, STALE, DUPLICATE, OUT_OF_ORDER, SEMANTIC_UNKNOWN, LICENSE_UNKNOWN, INVALID]}
+    schema_version: {type: string, state: REQUIRED}
+  validation:
+    - "low <= min(open, close) <= max(open, close) <= high"
+    - "available_at >= event_time for closed bars unless source documents a different finalization model"
+    - "no downstream evaluation timestamp may be earlier than available_at"
+    - "duplicate key is source_manifest_id + symbol + timeframe + event_time + source_sequence"
+    - "out-of-order bars are retained as evidence but excluded until deterministic ordering policy accepts them"
+capabilities:
+  BAR_ONLY:
+    allowed: [OHLCV, bar_vwap_formula, bar_atr, pre_known_zone, rule_snapshot, calendar, corporate_adjustment]
+    prohibited: [l1_depth, l2_depth, raw_trade_tick, raw_order_event, vendor_flow_as_order_flow, participant_identity, hidden_intent, allocation, order]
+  LOCAL_RESEARCH_ONLY:
+    condition: "Manifest-bound local source, SHA-256 fixed, authorization/field semantics not sufficient for publication."
+    prohibition: [live_activation, authority_promotion, raw_export, production_claim]
+timeframe_join_rule:
+  daily_to_intraday: "A daily zone completed on D is available to intraday event evaluation no earlier than its declared available_at; D close may not define a zone for earlier bars on D."
+  intraday_to_daily: "Only completed intraday bars whose available_at is <= daily evaluation timestamp may aggregate."
+unknown_propagation: "Any missing source, available_at, rule snapshot, unit, adjustment or license semantic makes affected output ABSTAIN/UNKNOWN rather than false."

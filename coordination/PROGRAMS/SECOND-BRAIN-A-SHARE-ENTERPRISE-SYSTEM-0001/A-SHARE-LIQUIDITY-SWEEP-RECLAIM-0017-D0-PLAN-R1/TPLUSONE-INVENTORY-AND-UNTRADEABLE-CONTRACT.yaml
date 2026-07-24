@@ -1,0 +1,30 @@
+schema_version: "1.0"
+record_type: "TPlusOneInventoryAndUntradeableContract"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+object: TPlusOneInventoryState
+common_provenance_fields: [source, event_time, observed_at, available_at, rule_version, missing_error_state]
+required_fields: [inventory_id, account_scope, security_id, trade_date, quantity, settled_quantity, sellable_quantity, frozen_quantity, already_sold_quantity, round_trip_eligible, overnight_gap_exposure, limit_down_lock_state, suspension_state, rule_snapshot_id]
+scope: "Research simulator only. No account, position, order or actual inventory input is permitted."
+lot_model:
+  fields: [lot_id, acquisition_date, acquisition_available_at, quantity, sellable_from, sold_quantity, source_rule_snapshot_id]
+  fresh_lot_rule: "A lot acquired today remains frozen until its selected security-specific rule snapshot allows sale. Default when unknown: frozen."
+  seasoned_lot_rule: "Pre-existing lots may be sellable only to the remaining quantity and only if the selected rule snapshot permits it. No claim that an entire security is limited to one transaction per day."
+  formulas:
+    sellable_quantity: "sum(max(0, lot.quantity - lot.sold_quantity) for lots where lot.sellable_from <= evaluation_time and rule permits sale)"
+    frozen_quantity: "sum(max(0, lot.quantity - lot.sold_quantity) for lots where lot.sellable_from > evaluation_time or rule is UNKNOWN)"
+    already_sold_quantity: "sum(lot.sold_quantity)"
+untradeable_states:
+  - PRICE_LIMIT_LOCKED
+  - SUSPENDED
+  - AUCTION_ONLY_UNMODELED
+  - INSUFFICIENT_BAR_LIQUIDITY
+  - DATA_GAP
+  - RULE_UNKNOWN
+  - COST_UNKNOWN
+  - NO_SEASONED_INVENTORY
+execution_classification:
+  theoretical_event: "Observable state label only."
+  executable_event: "Requires selected rule snapshot, eligible inventory, market phase, non-lock state and a future approved bar-level execution model."
+  default: "D0 emits neither class as an actual trade opportunity."
+overnight_gap: "For a fresh lot, next eligible exit evaluation cannot occur before next rule-permitted session; the open-to-prior-close return is retained as a risk observation, not a fill assumption."
+unknown_policy: "Unknown security type, rule, status history, inventory lot or session boundary means sellable_quantity is UNKNOWN, not zero or false."

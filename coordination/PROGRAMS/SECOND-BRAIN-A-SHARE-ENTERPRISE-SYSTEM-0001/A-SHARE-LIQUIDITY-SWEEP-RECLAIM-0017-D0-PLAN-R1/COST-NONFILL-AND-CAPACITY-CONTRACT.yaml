@@ -1,0 +1,18 @@
+schema_version: "1.0"
+record_type: "CostNonFillAndCapacityContract"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+boundary: "No execution simulator is implemented or calibrated in D0."
+required_cost_components:
+  commission: {effective_date: REQUIRED, source: REQUIRED, status: UNKNOWN}
+  stamp_duty: {effective_date: REQUIRED, source: REQUIRED, status: UNKNOWN}
+  exchange_and_transfer_fees: {effective_date: REQUIRED, source: REQUIRED, status: UNKNOWN}
+  bar_spread_estimate: {method: "future preregistered BAR_ONLY conservative proxy", status: NOT_IMPLEMENTED}
+  slippage: {method: "future preregistered BAR_ONLY conservative proxy", status: NOT_IMPLEMENTED}
+nonfill_model:
+  required_states: [FILL_NOT_MODELED, LIMIT_LOCKED, SUSPENDED, AUCTION_POLICY_UNKNOWN, BAR_LIQUIDITY_UNKNOWN, GAP_AFFECTED, INVENTORY_INELIGIBLE]
+  rule: "A close price is never a guaranteed executable price. Limit/suspension/auction/gap affected paths must remain unfilled or abstained until a validated model exists."
+capacity:
+  status: UNKNOWN
+  reason: "Requires authorized PIT volume, free-float/market-cap classification, execution model and size policy."
+  prohibition: "No market-cap-quintile capacity number or practical-minimum claim in D0."
+future_report_fields: [gross_outcome, each_cost_component, nonfill_reason, fill_assumption_version, capacity_assumption_version, theoretical_vs_executable_state, unknowns]
