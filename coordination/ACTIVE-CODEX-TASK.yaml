@@ -1,4 +1,4 @@
-schema_version: "8.2"
+schema_version: "8.3"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -6,148 +6,104 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 80
-task_id: "CODEX-A-SHARE-PIT-DATA-ADMISSION-CONTRACT-AND-RULE-EVIDENCE-0022-D0"
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】A股PIT准入合同、非重复架构与历史规则证据D0"
+task_id: "CODEX-A-SHARE-PIT-D0-R1-OFFICIAL-RULE-EVIDENCE-CORRECTION"
+mode: "target"
+mode_label: "【Codex模式：目标模式】PR #90官方规则证据登记修正与准入合同收口R1"
 mode_reason: >-
-  该任务跨越PR #51准入门、W2/W3/W7权威、PIT时间语义、复权、历史规则与后续本地执行接口，路径尚未冻结，
-  因此使用项目计划模式。Codex只负责设计和证据组织，不负责替本地执行者选择或验收真实数据源。
+  PR #90的准入合同、PR #51复用、权威边界和Issue #92执行合同已经形成，不需要重做项目计划；
+  当前缺口集中在三家交易所2026交易规则的一手证据登记，其中深交所误登记为技术通知，深交所与北交所又被标记为无法访问。
+  修正范围、官方文档和验收标准明确，因此使用目标模式。
 status: "READY"
 blocked_by: "none"
 parent_program: 31
 source_issue: 80
-related_issues: [69, 76, 81, 89, 92]
-source_pull_requests:
-  qclaw_submission_pr: 84
-  qclaw_submission_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
-  qclaw_preregistration_pr: 77
-  qclaw_preregistration_receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
-  codex_d0_pr: 79
-  codex_d0_fixed_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
-  predecessor_manifest_pr: 51
-
-create_new_branch: true
+pull_request: 90
 branch: "codex/a-share-pit-data-admission-0022-d0"
-create_new_draft_pr: true
+reviewed_head: "e091aa40cb706469a2a91233976cb49b4054e0ab"
 direct_main_write: false
 auto_merge: false
-allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-PIT-DATA-ADMISSION-0022-D0/"
 
-mission_intent: >-
-  Produce a recoverable, non-duplicative admission contract and historical-rule evidence plan that a separate local executor can later use
-  to test at most one A-share offline data source before any 0017 D1 labels, replay, backtest or performance claim.
-fundamental_goal: >-
-  Freeze what must be proved, how it is proved, who owns each fact and when the system must abstain, without selecting a source from
-  unverified local availability or creating a second data-admission authority.
-system_position: >-
-  Codex owns target-side architecture, contracts and candidate implementation planning. WorkBuddy owns later local evidence execution.
-  QCLAW owns its fixed semantic audit; GPT owns final acceptance and official-source spot verification.
+review_disposition:
+  classification: "ACCEPTED_WITH_BOUNDED_REMEDIATION"
+  accepted_findings:
+    - "PR #51 remains the sole SourceManifest and policy-admission authority."
+    - "No real source was selected or declared admissible."
+    - "PIT, field, unit, adjustment, historical-status and W2/W3/W7 ownership contracts are structurally present."
+    - "Issue #92 is correctly queued for later WorkBuddy read-only execution."
+  blocking_defects:
+    - id: "C90-R1-D01"
+      fact: "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml uses a Shenzhen technical notice instead of the official Shenzhen Trading Rules (2026 revision)."
+    - id: "C90-R1-D02"
+      fact: "The register marks Shenzhen and Beijing official pages ACCESS_NOT_AVAILABLE even though official rule pages and effective dates are available."
 
-parallel_workbuddy_h0:
-  active_issue: 89
-  task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-HANDOFF-VERIFICATION-0023-H0"
-  scope: "PR #84 fixed-head machine and packaging verification only."
-  firewall:
-    - "Do not duplicate WorkBuddy manifests, hashes or validator execution."
-    - "Do not inspect, coach or consume WorkBuddy in-progress findings."
-    - "Consume WorkBuddy results only after GPT acceptance or explicit routing."
+required_official_entries:
+  SSE_2026:
+    publisher: "上海证券交易所"
+    document_id: "上证发〔2026〕41号"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    official_url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml"
+    required_note: "Record the separately listed deferred provisions; effective date does not mean every deferred clause is active."
+  SZSE_2026:
+    publisher: "深圳证券交易所"
+    document_id: "深证上〔2026〕551号"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    official_url: "https://www.szse.cn/lawrules/rule/allrules/bussiness/t20260424_620190.html"
+    supersedes: "深圳证券交易所交易规则（2023年修订），深证上〔2023〕98号"
+  BSE_2026:
+    publisher: "北京证券交易所"
+    document_id: "北证公告〔2026〕17号"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    official_url: "https://www.bse.cn/jygl_list/200028217.html"
+    required_note: "Record clauses whose implementation time is separately notified; do not treat them as active from 2026-07-06."
 
-future_local_execution:
-  queued_issue: 92
-  owner: "WORKBUDDY"
-  status: "REGISTERED_QUEUED_AFTER_ISSUE80_D0_AND_GPT_RELEASE"
-  purpose: >-
-    Execute the accepted admission contract against at most one approved local candidate source using read-only machine evidence.
-  codex_non_ownership: >-
-    Codex must not claim a local source is admissible, licensed, PIT-correct or complete based only on repository planning or physical-file existence.
+required_actions:
+  - "Reuse existing branch and Draft PR #90; create no replacement PR."
+  - "Replace the Shenzhen technical-notice entry with the official Shenzhen Trading Rules entry above."
+  - "Change Shenzhen and Beijing page access status to machine-verified official access; keep historical pre-2026 coverage UNKNOWN where it remains uncollected."
+  - "Separate page_access_status, document_authority_status, effective_date_status, deferred_provision_status and historical_coverage_status."
+  - "Add document identifiers, supersession facts and provision-level deferred-implementation notes for all load-bearing entries."
+  - "Update HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml only where needed to bind these evidence-status fields."
+  - "Update UNKNOWN-REGISTRY.yaml: close only the false page-access UNKNOWNs; preserve historical status/rule coverage UNKNOWNs."
+  - "Strengthen validate_d0_admission_contract.py to require SSE/SZSE/BSE official entries, identifiers, dates and deferred-provision status without performing live web access in CI."
+  - "Rerun structural validation, YAML/Python parsing, public-safe scanning and the PR #51 regression suite; record exact results."
+  - "Update TEST-RUN-RECEIPT.md, CODEX-FEEDBACK-v2.yaml and AI_HANDOFF.yaml, then post completion to PR #90 and Issues #80/#31/#92."
 
-qclaw_semantic_freeze:
-  - "Do not change any QCLAW question status, score contribution, blocking decision, weighted score or verdict."
-  - "Do not edit PR #84, PR #77 or their branches."
-  - "QCLAW's 0.491 and conditional-accept recommendation remain candidate evidence pending GPT disposition."
-
-execution_phase:
-  name: "D0_ADMISSION_CONTRACT_AND_RULE_EVIDENCE_PLAN"
-  required_actions:
-    - "Audit Issue #50 / merged PR #51 SourceManifest, AdapterResult and BLOCKED_BY_POLICY gates before proposing anything new."
-    - "Audit PR #79 data capability, local-inventory claims, rule snapshots, UNKNOWNs and reproducibility contracts at the fixed head."
-    - "Define source-admission requirements and evidence classes without choosing a real source."
-    - "Define fields, units, timezone, event_time, observed_at, available_at, bar-close semantics, adjustment policy, missingness and corporate-action lineage."
-    - "Design versioned SSE/SZSE/BSE, board, security-status, ST, suspension, IPO, delisting and rule snapshots by effective date."
-    - "Map W2 market/PIT ownership, W3 evidence ownership and W7 validation/risk interfaces read-only."
-    - "Define a one-source decision procedure and a WorkBuddy L0 execution contract for Issue #92."
-    - "Collect an official-source evidence register with effective dates and supersession; GPT will independently spot-check load-bearing entries."
-    - "Preserve UNKNOWN / BLOCKED_BY_POLICY / ABSTAIN wherever license, semantics, history or authority cannot be proved."
-
-core_outputs:
-  - "PROJECT-PLAN.yaml"
-  - "CURRENT-DATA-ADMISSION-AND-NON-DUPLICATION-AUDIT.md"
-  - "PR51-REUSE-AND-AUTHORITY-MATRIX.yaml"
-  - "SOURCE-ADMISSION-REQUIREMENTS-AND-EVIDENCE-MATRIX.yaml"
-  - "PIT-FIELD-TIME-UNIT-ADJUSTMENT-CONTRACT.yaml"
-  - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml"
-  - "W2-W3-W7-READONLY-OWNERSHIP-AND-DEPENDENCY-MAP.yaml"
-  - "ONE-SOURCE-ADMISSION-DECISION-PROCEDURE.yaml"
-  - "WORKBUDDY-ISSUE92-LOCAL-EVIDENCE-EXECUTION-CONTRACT.yaml"
+allowed_changed_files:
   - "OFFICIAL-SOURCE-EVIDENCE-REGISTER.yaml"
-  - "NEGATIVE-ABSTENTION-AND-FAILURE-TEST-MATRIX.yaml"
+  - "HISTORICAL-SECURITY-STATUS-AND-RULE-SNAPSHOT-CONTRACT.yaml"
   - "UNKNOWN-REGISTRY.yaml"
+  - "validate_d0_admission_contract.py"
   - "TEST-RUN-RECEIPT.md"
   - "CODEX-FEEDBACK-v2.yaml"
   - "AI_HANDOFF.yaml"
-  - "validate_d0_admission_contract.py"
 
-conditional_outputs:
-  rule: >-
-    AMED research ledgers, improvement ledgers and system-opportunity reports are required only when they contain substantive discoveries
-    beyond the core package; boilerplate-only files are prohibited.
-
-non_duplication:
-  - "PR #51 remains the only SourceManifest and policy-admission authority."
-  - "W2 remains market-data and PIT authority; W3 remains evidence authority; W7 remains validation/risk authority."
-  - "WorkBuddy Issue #89 owns PR #84 machine verification."
-  - "WorkBuddy Issue #92 owns later local source evidence execution."
-  - "No second replay, evidence, memory, probability, risk, portfolio or order runtime."
+preserve_unchanged:
+  - "No real source selection or admission decision."
+  - "PR #51 authority and W2/W3/W7 ownership."
+  - "Issue #92 queued state."
+  - "QCLAW PR #84 semantics and WorkBuddy PR #91 evidence."
+  - "All other PR #90 contract files unless a direct schema reference requires a bounded edit."
 
 acceptance_gates:
-  - "PR #79 fixed head is verified before analysis."
-  - "PR #51 reuse and ownership are explicit."
-  - "No real source is selected or declared admissible in D0."
-  - "The one-source decision procedure has explicit PASS/FAIL/UNKNOWN/ABSTAIN outcomes."
-  - "Issue #92 receives a bounded, machine-executable, read-only contract."
-  - "Official-source entries include publisher, document identity, effective date, supersession and evidence status."
-  - "License, PIT, field, adjustment, rule and security-status UNKNOWNs are preserved."
-  - "WorkBuddy Issue #89 remains independent and uncoached."
-  - "No D1, labels, replay, backtest, source activation or trade action occurs."
-  - "Draft PR remains PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
+  - "All three 2026 trading-rule entries point to the official rule pages, not technical notices or secondary summaries."
+  - "Document IDs, publication dates, effective dates, supersession and deferred-provision status are explicit."
+  - "Page accessibility is not conflated with historical coverage completeness."
+  - "No current rule is used to backfill pre-effective history."
+  - "No real source is selected, activated or declared admissible."
+  - "Issue #92 remains blocked pending GPT acceptance of PR #90 R1 and PR #91 R1."
+  - "PR remains Draft, PUBLIC_SAFE, CANDIDATE_ONLY and NO_TRADE."
 
 forbidden:
-  - "No modification of PR #84, PR #77 or PR #79 branches/files."
-  - "No local cleanroom reproduction, hash receipt or PR #84 packaging verification."
-  - "No real-source selection based on physical availability."
-  - "No claim that local license, field semantics or PIT correctness has been verified."
-  - "No completion or reinterpretation of QCLAW semantic outputs."
-  - "No real-data upload, license guess, adapter activation, replay, labels or backtest."
-  - "No broker, account, credential, live feed, order, trade, merge or auto-merge."
+  - "No local data inspection, source activation, adapter execution, labels, replay or backtest."
+  - "No modification of PR #84/#77/#79 or WorkBuddy PR #91."
+  - "No claim that official 2026 pages prove historical security-status coverage."
+  - "No merge or auto-merge."
 
-named_task_impact_forecast:
-  positive:
-    - "Separates contract design from local source admission evidence."
-    - "Gives WorkBuddy Issue #92 a frozen executable target."
-    - "Reduces D0 outputs to core evidence-bearing artifacts."
-  risks:
-    - "Codex may still overstate official-source completeness."
-    - "A contract may be too abstract for local execution."
-  mitigations:
-    - "GPT independently spot-checks load-bearing official sources."
-    - "Issue #92 execution contract and negative fixtures are mandatory."
-
-report_to:
-  issues: [80, 31, 92]
-  pull_requests: [79]
-
-completion_signal: "CODEX_A_SHARE_PIT_DATA_ADMISSION_CONTRACT_0022_D0_READY_FOR_GPT_REVIEW"
-after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_LOCAL_EXECUTION"
+completion_signal: "CODEX_PR90_R1_OFFICIAL_RULE_EVIDENCE_CORRECTED_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW_NO_ISSUE92_RELEASE"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
 updated_at: "2026-07-24"
