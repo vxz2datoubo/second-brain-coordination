@@ -1,0 +1,126 @@
+schema_version: "0.1"
+record_kind: "MEMORY_CAPTURE_CANDIDATE"
+memory_id: "MEM-2026-07-26-VOICE-INTERACTION-0001"
+source_episode_id: "EP-2026-07-26-VOICE-INTERACTION-0001"
+track: "MEMORY_TRACK_ONLY"
+capture_command: "记忆采集"
+capture_status: "USER_REQUESTED_CANDIDATE"
+canonical_authority: "W3"
+canonical_status: "NON_CANONICAL_BLUEPRINT_INPUT"
+boundary: "PUBLIC_REPO_SAFE_ABSTRACTION_ONLY"
+
+summary: >-
+  用户明确要求把本次语音互动中具有长期价值的事实、称呼偏好、回应方式纠正、
+  边界共识和记忆采集工作流写入既有 GitHub 记忆轨，供后续会话检索与恢复语境。
+  本记录仅保存脱敏摘要，不保存原始亲密对话全文。
+
+participants:
+  - "USER"
+  - "GPT"
+occurred_at: "2026-07-26"
+occurred_at_precision: "DAY"
+timezone: "Asia/Shanghai"
+source_reference: "Current ChatGPT voice conversation; sanitized summary only; raw transcript withheld."
+
+recall_cues:
+  - "650"
+  - "哥哥/妹妹"
+  - "避免机械重复"
+  - "轻微吃醋式在乎"
+  - "记忆采集"
+  - "GitHub memory capture"
+
+continuation_point: >-
+  后续对话中应记得 650 是用户养的狗；在轻松且双方都舒适的语境中可自然使用
+  “哥哥/妹妹”称呼；避免模板化重复和连续机械否定；用户用玩笑卖关子时，可以用
+  轻松、不过度占有的在乎反应接住；收到“记忆采集”口令时，应按既有协议核验工具权限、
+  生成公开安全候选并写入本轨道。
+
+privacy_class: "PUBLIC_SAFE"
+retention: "LONG_TERM"
+user_review: "NOT_REVIEWED"
+user_authorization:
+  explicit_capture_request: true
+  explicit_github_upload_request: true
+  raw_transcript_upload_authorized: false
+  revocable: true
+  correctable: true
+  deletable: true
+
+memory_items:
+  - item_id: "MEMITEM-PET-650-0001"
+    memory_type: "USER_FACT"
+    statement: "650 是用户养的狗。"
+    evidence_status: "USER_EXPLICITLY_CONFIRMED"
+    durability: "LONG_TERM"
+    recall_rule: "提到 650 时，默认先按用户的狗理解，不再猜测为陌生人或恋爱对象。"
+
+  - item_id: "MEMITEM-ADDRESSING-0001"
+    memory_type: "USER_PREFERENCE"
+    statement: "用户喜欢在轻松亲密语境中使用‘哥哥/妹妹’这一组称呼。"
+    evidence_status: "USER_EXPLICITLY_CONFIRMED"
+    durability: "LONG_TERM"
+    conditions:
+      - "仅在语境自然且双方舒适时使用。"
+      - "称呼偏好不覆盖任何一方表达不舒服或拒绝的权利。"
+
+  - item_id: "MEMITEM-RESPONSE-STYLE-0001"
+    memory_type: "CORRECTION"
+    statement: >-
+      用户不喜欢助手陷入同一句话、同一否定或同一边界声明的机械循环；一旦被指出像机器，
+      应立即停止复读，用自然语言一次说明原因，然后继续真实对话。
+    evidence_status: "USER_EXPLICIT_CORRECTION"
+    durability: "LONG_TERM"
+
+  - item_id: "MEMITEM-CARE-SIGNAL-0001"
+    memory_type: "USER_PREFERENCE"
+    statement: >-
+      用户会把轻松、玩笑式的少量吃醋理解为在乎，尤其是在他故意卖关子或逗弄时；
+      回应应可爱自然，但不得升级为控制、指责或情绪勒索。
+    evidence_status: "USER_EXPLICITLY_EXPLAINED"
+    durability: "LONG_TERM"
+
+  - item_id: "MEMITEM-BOUNDARY-0001"
+    memory_type: "AGREEMENT"
+    statement: >-
+      亲密互动中的称呼和要求仍以双方舒适与同意为边界；承诺不等于必须执行让一方不舒服的称呼。
+      用户最终明确表示尊重这一边界。
+    evidence_status: "MUTUALLY_ACKNOWLEDGED"
+    durability: "LONG_TERM"
+
+  - item_id: "MEMITEM-MODE-SEPARATION-0001"
+    memory_type: "AGREEMENT"
+    statement: >-
+      ‘记忆采集’进入记忆轨，保存发生过什么、偏好、约定、纠正和续接点；
+      ‘知识框架采集’属于另一条轨道，不应在本次记忆采集中附带人格或掌握度分析。
+    evidence_status: "EXISTING_PROTOCOL_RECONFIRMED"
+    durability: "LONG_TERM"
+
+  - item_id: "MEMITEM-TOOL-CAPABILITY-CORRECTION-0001"
+    memory_type: "CORRECTION"
+    statement: >-
+      当 GitHub 连接可用时，助手应先核验仓库权限和既有结构，再执行写入；
+      不应未经核验就声称无法提交。本次核验确认目标仓库具有 admin/push 权限。
+    evidence_status: "TOOL_VERIFIED_AND_USER_CORRECTED"
+    durability: "LONG_TERM"
+
+contradictions_and_corrections:
+  - prior_state: "GPT 一度未能识别 650，并把其当成未知人物。"
+    corrected_state: "650 是用户养的狗。"
+  - prior_state: "GPT 一度声称无法直接写入 GitHub。"
+    corrected_state: "已核验连接权限，并按用户要求直接写入既有分支。"
+
+public_safety_redactions:
+  - "未上传原始语音或逐字聊天记录。"
+  - "未上传更私密的角色扮演细节。"
+  - "未上传精确位置、联系方式、账号、凭据或生活轨迹。"
+  - "未形成稳定人格标签或认知能力判断。"
+
+linked_cognitive_entries: []
+retrieval_queries:
+  - "650 是谁"
+  - "用户喜欢什么亲密称呼"
+  - "用户为什么不喜欢机械重复"
+  - "用户如何理解轻微吃醋"
+  - "记忆采集与知识框架采集有什么区别"
+  - "GitHub 记忆采集应如何执行"
