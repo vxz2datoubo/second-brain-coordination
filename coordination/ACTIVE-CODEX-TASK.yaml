@@ -1,4 +1,4 @@
-schema_version: "10.5"
+schema_version: "10.6"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -7,39 +7,41 @@ repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
-active_issue: 23
-pull_request: 98
-task_id: "CODEX-PR98-R3-TOTAL-RUNTIME-FAIL-CLOSED-SETTLEMENT-CAUSALITY-AND-RECEIPT-TRUTH-CLOSURE"
+active_issue: 89
+pull_request: 99
+upstream_workbuddy_pull_request: 97
+task_id: "CODEX-PR99-R1-WORKBUDDY-H1-VERIFIER-TAKEOVER-MACHINE-EVIDENCE-CLOSURE"
 mode: "target"
-mode_label: "【Codex模式：目标模式】PR #98全运行时失败闭锁、结算因果与回执真值R3"
+mode_label: "【Codex模式：目标模式】接管PR #97 H1验证器并完成独立机器证据闭环R1"
 mode_reason: >-
-  R2已经建立正确两提交链、20个夹具、24个命名不变量和外部Git锚点，但运行时类型边界、
-  pending/lot安全上限、结算状态因果性及命令级证据仍有明确缺口。目标与文件面均已确定，继续目标模式做有界收口。
+  WorkBuddy在算力恢复前暂停。PR #97已经形成有效五文件H1候选，但缺完整逐命令哈希、受控异常闭锁和最终外部锚定。
+  缺口、文件面和成功标准均明确，因此由Codex使用目标模式在独立PR #99中接管，不启动D2。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
-source_issue: 23
-branch: "codex/a-share-multi-agent-game-engine-0001-d1-synthetic-rules-e6"
-reviewed_or_base_head: "91931ffd777c9111d3f65fb9dcd20547e0ca635f"
-reviewed_tested_head: "6fae744306e0273ddc491aa48b3b7ed6b0d3dfb1"
-reviewed_receipt_head: "91931ffd777c9111d3f65fb9dcd20547e0ca635f"
-accepted_d0_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
-stacked_base_branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+source_issue: 89
+branch: "codex/qclaw-p1-h1-verifier-takeover-e9"
+reviewed_or_base_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
+upstream_workbuddy_tested_head: "b31041e7b1376fa4dbdc4d960886d5c993ebf7f9"
+upstream_workbuddy_receipt_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
+accepted_codex_d1_tested_head: "b70e278a5220aeead6f6e3a0b1c02981f793fd22"
+accepted_codex_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 8
-route_issued_at: "2026-07-26T03:10:00+08:00"
-completion_signal: "CODEX_PR98_R3_TOTAL_RUNTIME_FAIL_CLOSED_SETTLEMENT_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
+route_epoch: 9
+route_issued_at: "2026-07-26T04:45:00+08:00"
+completion_signal: "CODEX_PR99_R1_H1_VERIFIER_TAKEOVER_MACHINE_EVIDENCE_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-PR98-R2-FAIL-CLOSED-RULE-SEMANTICS-INVARIANT-MAPPING-AND-REMOTE-RECEIPT-CLOSURE@route_epoch:7"
+  - "CODEX-PR98-R3-TOTAL-RUNTIME-FAIL-CLOSED-SETTLEMENT-CAUSALITY-AND-RECEIPT-TRUTH-CLOSURE@route_epoch:8"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
   exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
-  branch_head_at_claim_must_equal: "91931ffd777c9111d3f65fb9dcd20547e0ca635f"
+  branch_head_at_claim_must_equal: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
+
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
@@ -47,89 +49,74 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "R2_STRUCTURE_TEST_MAPPING_AND_EXTERNAL_ANCHOR_ACCEPTED_TOTAL_RUNTIME_FAIL_CLOSED_AND_SETTLEMENT_CAUSALITY_R3_REQUIRED"
-  accepted_facts:
-    - "Reviewed-to-tested and tested-to-receipt are exactly one commit each and respect the R2 allowlists."
-    - "Unsupported and UNKNOWN match modes no longer silently become cancellations."
-    - "Twenty named fixtures and twenty-four stable invariant/test IDs exist."
-    - "Concrete tested and receipt SHAs, parents and trees were externally anchored on PR #98."
-    - "No real data, replay, backtest, identity, broker, account, routing or trade capability exists."
-  blocking_facts:
-    - "Malformed top-level state, order or inventory objects can still raise AttributeError instead of returning structured INVALID_OR_BLOCKED."
-    - "Invalid phase/status/rule field types, bool/string rule limits, invalid trade dates and malformed permitted phases are not exhaustively rejected before use."
-    - "Pending quantities and newly created lot IDs are not consistently bounded; repeated order IDs can create duplicate lots and carry can exceed the computational bound."
-    - "settled_trade_date is recorded but sellability still depends on a caller-supplied date, so the settlement transition is not the causal gate for T+1 eligibility."
-    - "The settlement invariant can pass even if advance_settlement_day is removed, and quantity-conservation evidence remains too shallow."
-    - "Test receipts aggregate outputs across commands rather than recording each direct command's exact stdout/stderr hashes and literal invocation."
+  codex_pr98:
+    classification: "ACCEPTED_D1_SYNTHETIC_RULES_MVP_FROZEN_NO_D2_RELEASE"
+    accepted_facts:
+      - "PR #98 R3 has an exact tested/receipt chain with current route identity and per-command hashes."
+      - "Expected malformed top-level inputs return structured INVALID_OR_BLOCKED outcomes."
+      - "Explicit settlement state causally controls synthetic T+1 eligibility in the tested model."
+      - "Twenty fixtures, twenty-four named invariant tests and deterministic clean-directory runs exist."
+    accepted_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
+  workbuddy_pr97:
+    classification: "R3_IMPLEMENTATION_DIRECTION_ACCEPTED_CODEX_INDEPENDENT_TAKEOVER_REQUIRED"
+    accepted_facts:
+      - "PR #97 uses the correct fresh five-file H1 package and exact WorkBuddy Epoch 14 identity."
+      - "Binary extraction, strict UTF-8 child decoding, verifier self-scan, exact fifteen-file checks and separate child/top exits exist."
+    blocking_facts:
+      - "Receipts still omit literal normal/NT1/NT2/NT3 commands and complete stdout/stderr SHA-256."
+      - "No independently reproduced receipt-head normal run and concrete final external anchor have been accepted by GPT."
+      - "TimeoutExpired, UnicodeDecodeError, OSError and several subprocess failures can still escape as uncontrolled tracebacks."
 
 resource_and_effort:
-  priority_share_percent: 50
-  task_weight: "HEAVY_FINAL_RUNTIME_CLOSURE"
+  priority_share_percent: 70
+  task_weight: "HEAVY_INDEPENDENT_TAKEOVER_AND_MACHINE_CLOSURE"
   checkpoints: [25, 50, 75, 100]
 
 objective:
   summary: >-
-    Preserve the D1 architecture while making every malformed or unsupported input return a deterministic structured outcome,
-    making settlement state the actual causal gate for T+1 eligibility, proving conservation across every outcome path,
-    and publishing exact per-command receipt evidence.
+    Independently reproduce and harden the frozen PR #97 H1 verifier package, without trusting inherited WorkBuddy receipts,
+    then publish exact command-level, byte-level and Git-level evidence in the Codex-owned PR #99.
 
 required_actions:
-  - "Claim the exact Epoch 8 lease and reuse PR #98 and its existing branch."
-  - "Create exactly one tested remediation commit followed by exactly one four-file receipt commit."
-  - "No exception may escape for expected malformed input: validate state/order/inventory object types before any attribute access."
-  - "Strictly validate SessionPhase, SecurityStatus, MatchMode, OrderSide, rule booleans, numeric fields, units, permitted phases, timestamps and ISO trade dates; bool-as-int and strings must fail closed."
-  - "Apply the computational safety bound to order values, rule numeric values, lot quantities, locked quantities, pending quantities and pending arithmetic; reject overflow/bound breaches before mutation."
-  - "Prevent duplicate lot IDs on apply_buy and repeated order IDs; carry/cancel/sell operations must preserve a valid inventory or return structured failure."
-  - "Replace caller-controlled maturity with explicit inventory settlement state such as settled_through_trade_date; a fresh lot must remain ineligible until advance_settlement_day changes that state to a validated later trading day."
-  - "Prove that the before/after eligibility result changes because of the settlement transition, not merely because a different date argument was supplied."
-  - "Add a table-driven malformed-input matrix covering None/wrong object types, invalid enums, bad rule types, invalid dates, negative timestamps, bound breaches, duplicate order/lot IDs and pending overflow; every case must return a reason code without traceback."
-  - "Strengthen conservation tests for full buy/sell, partial fill, no-fill cancel, carry, cancellation of pending intent, lot depletion and rejected idempotence."
-  - "Run the exact tested commit in two independently extracted clean directories with PYTHONHASHSEED=1 and 777."
-  - "Record every direct command separately with literal command, environment, exit, stdout SHA-256 and stderr SHA-256; do not substitute a synthetic shell string or combined hash for multiple commands."
-  - "The receipt commit may change only D1-DELIVERY-MANIFEST.yaml, TEST-RUN-RECEIPT.md, AMED-AGENT-EXECUTION-RECEIPT.yaml and AI_HANDOFF.yaml."
-  - "Receipts must use tested_head_full_sha, tested parent/tree, receipt_head_ref: THIS_COMMIT, exact delta manifests, current timestamps and no PENDING/local-only identity."
-  - "After receipt push, externally anchor the concrete receipt SHA and all per-command evidence on PR #98 and Issues #23/#31."
-  - "Stop for GPT review; D2 remains blocked."
+  - "Claim exact Epoch 9 lease and work only on PR #99 branch; do not commit to PR #97, PR #91 or H0."
+  - "Treat 8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd as imported evidence, not as already accepted truth."
+  - "Create exactly one verifier-only tested commit followed by exactly one four-receipt-only commit."
+  - "Catch subprocess.TimeoutExpired, UnicodeDecodeError, OSError, Git failures, missing output, malformed output and cleanup/restoration failures as structured top-level nonzero results."
+  - "Preserve raw-byte Git extraction and verify source byte count/SHA-256 equals re-read extracted byte count/SHA-256 for all fifteen artifacts."
+  - "Scan exactly all five H1 files including the verifier; any self-pattern exemption must be narrow, line-specific and independently tested."
+  - "Normal must require exact five H1 files, exact fifteen QCLAW files, exact 37 PASS / 0 FAIL / 0 SKIP and complete combined SHA-256."
+  - "NT1, NT2 and NT3 top-level commands must exit nonzero; NT2/NT3 child exits must be separately recorded."
+  - "Run literal commands for normal, NT1, NT2 and NT3 from the exact tested commit in a clean extracted workspace."
+  - "Record each literal command, environment, expected condition, top-level exit, child exit if applicable, PASS/FAIL, stdout SHA-256 and stderr SHA-256."
+  - "At the receipt head rerun normal, verify exact-five final manifest, scan placeholders/paths/secrets/stale WorkBuddy truth and record command hashes."
+  - "Use the exact Codex Epoch 9 task_id and completion_signal in all four receipts; preserve WorkBuddy attribution only as upstream provenance."
+  - "Externally anchor concrete tested/receipt SHA, parents, trees, exact deltas and all command evidence on PR #99 and Issues #89/#31."
+  - "Stop for GPT review. D2 and Issue #92 remain blocked."
 
 allowed_changed_files:
   tested_commit_only:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/D1-CONTRACT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/DETERMINISM-RECEIPT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/FIXTURE-MANIFEST.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/INVARIANT-CATALOG.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/README.md"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/__init__.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/types.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/calendar.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/rules.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/inventory.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/matching.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/engine.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/fixtures.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/tests/run_determinism.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/tests/test_synthetic_engine.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-INDEPENDENT-VERIFIER.py"
   receipt_commit_only:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/D1-DELIVERY-MANIFEST.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/TEST-RUN-RECEIPT.md"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AMED-AGENT-EXECUTION-RECEIPT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-PUBLIC-SAFETY-REPORT.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-TEST-RUN-RECEIPT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
 
 acceptance_gates:
-  - "Exactly two new commits exist after 91931ffd777c9111d3f65fb9dcd20547e0ca635f and respect the exact allowlists."
-  - "Every expected malformed input returns a structured deterministic outcome; no AttributeError, TypeError or uncontrolled traceback escapes."
-  - "Settlement state is the causal gate for T+1 eligibility and before/after tests prove it."
-  - "All inventory arithmetic remains nonnegative, bounded and conserved across every tested outcome."
-  - "Two clean tested-head runs are deterministic and every direct command has its own exact hashes."
-  - "Four receipts contain exact remote truth and the concrete receipt SHA is externally anchored with no later commit."
-  - "No D2, real data, replay, backtest, performance claim, identity, account, routing or trade action occurs."
+  - "Reviewed-to-tested and tested-to-receipt are exactly one commit each and respect the exact allowlists."
+  - "Every expected Git/I/O/timeout/decode/cleanup failure is controlled and top-level nonzero."
+  - "All fifteen extracted artifacts have byte-identical source and extracted identities."
+  - "Normal=0; NT1/NT2/NT3 top-level exits are nonzero; every command has complete separate hashes."
+  - "Receipt-head normal and exact-five safety scan pass with no placeholder, physical path, secret or stale route truth."
+  - "Concrete receipt SHA is externally anchored and no later branch commit exists."
+  - "No D2, Issue #92, source, labels, replay, backtest, account, order, route or trade action occurs."
 
 forbidden:
-  - "No new files, D0 edits, replacement PR, direct main write, merge, force push or history rewrite."
-  - "No current or historical exchange-rule claim from synthetic constants."
-  - "No real source inspection, labels, replay, backtest, MARL, participant identity, broker, account, order route or trade."
-  - "No D2 execution before separate GPT release."
+  - "No changes to PR #97, PR #91, 0023-H0, QCLAW semantic files, Codex PR #98 or main."
+  - "No merge, auto-merge, force push, reset or history rewrite."
+  - "No source activation, labels, replay, backtest, performance claim, identity, account, order or trade."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / INDEPENDENT_MACHINE_EVIDENCE / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-26T03:10:00+08:00"
+updated_at: "2026-07-26T04:45:00+08:00"
