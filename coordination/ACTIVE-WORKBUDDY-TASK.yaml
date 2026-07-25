@@ -1,4 +1,4 @@
-schema_version: "4.1"
+schema_version: "4.2"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -7,103 +7,85 @@ target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 89
-pull_request: null
-task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-H1-E12-FRESH-BRANCH-FAIL-CLOSED-VERIFIER-R1"
+pull_request: 97
+task_id: "WORKBUDDY-PR97-R2-BINARY-EXTRACTION-FINALLY-CLEANUP-AND-EXTERNAL-ANCHOR-CLOSURE"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】QCLAW P1 H1-E12全新分支、失败闭锁验证器与真实回执"
+mode_label: "【WorkBuddy模式：目标模式】PR #97二进制提取、finally恢复清理与外部锚定R2"
 mode_reason: >-
-  Epoch 11要求新分支、新目录和新PR，但WorkBuddy反而在已冻结PR #91/H0分支追加两次提交，
-  并使用未授权任务ID和旧回执数据。该交付无效。当前目标完全明确，故继续目标模式，
-  但由GPT预建唯一合法分支并使用全新目录/文件名，禁止任何H0复用。
+  H1-E12已经正确使用GPT预建分支、新目录、新Draft PR、五文件和两提交结构。
+  剩余缺陷集中在二进制保真、恢复/清理闭锁、命令哈希与最终外部回执，目标完全明确，继续使用目标模式做一次有界R2。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 89
 branch: "workbuddy/qclaw-p1-cleanroom-h1-final-verification-0023-h1-e12"
-branch_precreated_by_gpt: true
-branch_initial_head: "c106443ac429e4d8de9acfa33110a1f1eea47607"
-reviewed_or_base_head: "c106443ac429e4d8de9acfa33110a1f1eea47607"
-remote_main_at_release: "6de1928bcdf1a3c9c23ebd62f8e2ac0b29b66598"
+reviewed_or_base_head: "ad3d9ed5127d46b8181dbdcb306ccfe4f79a7998"
+reviewed_tested_head: "b4b210bd302f80a33c69c20d5e796c7f86dc6383"
+reviewed_receipt_head: "ad3d9ed5127d46b8181dbdcb306ccfe4f79a7998"
 superseded_pull_request: 91
-pr91_last_authorized_head: "0cfd082cbc508675d892615a1283e82ddaf134bb"
-pr91_unauthorized_post_freeze_head: "0e800762a9caafbd508ac96cb34730d45a2b5800"
-pr91_unauthorized_delta_commits: 2
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 12
-route_issued_at: "2026-07-25T16:25:00+08:00"
-completion_signal: "WORKBUDDY_QCLAW_P1_H1_E12_FRESH_FAIL_CLOSED_VERIFIER_READY_FOR_GPT_REVIEW"
+route_epoch: 13
+route_issued_at: "2026-07-26T01:22:00+08:00"
+completion_signal: "WORKBUDDY_PR97_R2_BINARY_EXTRACTION_FINALLY_CLEANUP_AND_EXTERNAL_ANCHOR_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "WORKBUDDY-QCLAW-P1-CLEANROOM-H1-FRESH-VERIFIER-AND-RECEIPT-CLOSURE@route_epoch:11"
-  - "WORKBUDDY-PH11-H1-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE"
+  - "WORKBUDDY-QCLAW-P1-CLEANROOM-H1-E12-FRESH-BRANCH-FAIL-CLOSED-VERIFIER-R1@route_epoch:12"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head, branch_initial_head]
-  branch_head_at_claim_must_equal: "c106443ac429e4d8de9acfa33110a1f1eea47607"
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  branch_head_at_claim_must_equal: "ad3d9ed5127d46b8181dbdcb306ccfe4f79a7998"
   forbidden_branch_must_not_move: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "EPOCH11_ROUTE_VIOLATED_PR91_POST_FREEZE_COMMITS_INVALID_EPOCH12_FRESH_BRANCH_REQUIRED"
+  classification: "H1_FRESH_BRANCH_AND_TWO_HEAD_ACCEPTED_BINARY_EXTRACTION_FINALLY_CLEANUP_COMMAND_HASH_AND_EXTERNAL_ANCHOR_R2_REQUIRED"
   accepted_facts:
-    - "PR #91 R10 authorized boundary ended at 0cfd082cbc508675d892615a1283e82ddaf134bb."
-    - "The later delta to 0e800762a9caafbd508ac96cb34730d45a2b5800 is exactly two commits and five H0 files, but it is outside the Epoch 11 branch, directory and PR contract."
-    - "The unauthorized receipts retain old scan scope, delivery_files=1, old timestamp and invented task truth."
-  invalidated_facts:
-    - "No post-freeze PR #91 commit is eligible as H1 tested or receipt evidence."
-    - "No H1 completion is recognized from PR #91, regardless of code content."
+    - "PR #97 uses the exact GPT-precreated Epoch 12 branch and a new Draft PR."
+    - "Base-to-tested is exactly one commit adding the verifier and four empty receipt stubs; tested-to-receipt changes exactly the four receipt files."
+    - "The final PR surface is exactly five new files under 0023-H1-E12 and contains zero H0/PR91 changes."
+    - "Normal, NT1, NT2 and NT3 share qclaw_reproduce for extraction and child execution; normal checks exact 15-file manifest and exact 37/0/0."
+  blocking_facts:
+    - "git show runs in text mode and re-encodes stdout, so frozen artifact bytes are not guaranteed to be preserved exactly."
+    - "Temporary cleanup uses shutil.rmtree(ignore_errors=True), directly violating the fail-closed cleanup gate."
+    - "NT1 mutation/restoration is not protected by try/finally and does not verify restored bytes or a clean worktree."
+    - "The verifier does not enforce the exact five H1 filenames; an extra safe file could be silently accepted."
+    - "Receipts omit complete stdout/stderr SHA-256 for normal/NT1/NT2/NT3 and mix child exit 7 with top-level exit 1."
+    - "The combined QCLAW hash is truncated and no receipt-head final scan or concrete external anchor is published."
 
 resource_and_effort:
-  priority_share_percent: 15
-  task_weight: "MEDIUM_CLEAN_REBUILD"
-  checkpoints: [35, 70, 100]
+  priority_share_percent: 20
+  task_weight: "MEDIUM_FINAL_MACHINE_CLOSURE"
+  checkpoints: [50, 100]
 
 objective:
   summary: >-
-    Build a fresh, independent five-file H1 verifier package that reproduces the frozen QCLAW P1 package,
-    fails closed on every incomplete or malformed path and produces truthful machine receipts without inheriting H0 metadata.
-  frozen_qclaw_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
-  expected_qclaw_files: 15
-  expected_qclaw_result:
-    pass: 37
-    fail: 0
-    skip: 0
-
-required_outputs:
-  root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/"
-  tested_commit_only:
-    - "H1-INDEPENDENT-VERIFIER.py"
-  receipt_commit_only:
-    - "H1-PUBLIC-SAFETY-REPORT.yaml"
-    - "H1-TEST-RUN-RECEIPT.md"
-    - "H1-AI_HANDOFF.yaml"
-    - "H1-WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
+    Preserve the correct H1-E12 branch and five-file package while making extraction byte-exact, every mutation and cleanup fail closed,
+    enforcing the exact delivery manifest and publishing truthful command-level and external Git evidence.
 
 required_actions:
-  - "Claim exact Epoch 12 lease and verify the GPT-precreated branch still equals c106443ac429e4d8de9acfa33110a1f1eea47607 before any edit."
-  - "Create a new Draft PR from the exact Epoch 12 branch to main; never reuse PR #91."
-  - "Create exactly two commits: first add only H1-INDEPENDENT-VERIFIER.py, then add exactly the four H1 receipt files."
-  - "Do not modify, copy, rename or delete any file under 0023-H0; do not commit to the superseded H0 branch."
-  - "The verifier must discover the repository fail-closed, extract the exact fifteen-file manifest from frozen QCLAW head and compare exact names."
-  - "Use one shared production function for extraction, temporary workspace creation, validator execution, timeout handling, result parsing and cleanup."
-  - "Normal mode exits 0 only when manifest is exact, every artifact is extracted, child exit is 0, result fields exist and equal exactly 37 PASS / 0 FAIL / 0 SKIP, public-safety scan is clean and cleanup succeeds."
-  - "NT1 injects an unsafe absolute-path fixture through the production delivery scanner and the top-level command exits nonzero."
-  - "NT2 omits one required frozen artifact through the production extraction function and the top-level command exits nonzero."
-  - "NT3 replaces the extracted validator with a temporary exit-7 validator through the production execution function and the top-level command exits nonzero."
-  - "All temporary mutation/restoration/cleanup operations must use try/finally; any restoration or cleanup failure is top-level nonzero."
-  - "Use strict UTF-8 and reject unreadable files, decode errors, Git command nonzero, timeout, malformed output, missing counts and unexpected counts."
-  - "Run an uncommitted external harness against the exact tested commit in a clean checkout; require normal=0 and nt1/nt2/nt3 each nonzero."
-  - "For all four commands record exact command, expected condition, actual top-level exit, PASS/FAIL and complete stdout/stderr SHA-256."
-  - "At the receipt head scan exactly the five H1 files for physical paths, credential values, stale H0/PR91 task truth, placeholders and non-existent file claims."
-  - "Externally anchor the concrete tested SHA, receipt SHA, parent/tree identities, five-file manifest, commands/exits/hashes and Epoch 12 pre-completion revalidation on the new PR and Issues #89/#31."
+  - "Claim exact Epoch 13 lease and reuse PR #97 and its existing branch; never touch PR #91 or 0023-H0."
+  - "Create exactly one verifier-only tested remediation commit and one later four-receipt-only commit."
+  - "Extract every frozen Git artifact as raw bytes; do not use text=True, universal newline conversion or decode/re-encode before writing."
+  - "After extraction, compare extracted byte counts and SHA-256 to the bytes returned by Git for every file, or record an equivalent deterministic byte-identity proof."
+  - "Use a single production function for manifest validation, binary extraction, temporary workspace, child execution, timeout handling, output parsing and cleanup."
+  - "Replace ignore_errors cleanup with try/finally plus explicit cleanup verification; any cleanup failure or surviving workspace is top-level nonzero."
+  - "Wrap NT1 mutation in try/finally, preserve original bytes/hash, restore exactly, verify restored hash and verify no worktree diff remains; restoration failure is top-level nonzero."
+  - "Enforce the exact five H1-E12 filenames and reject any missing or extra file at normal and receipt-head validation."
+  - "Catch subprocess timeout and all expected I/O/Git errors and emit structured failure records rather than uncontrolled tracebacks."
+  - "Run an uncommitted external harness against the exact tested commit and later the receipt commit."
+  - "Record for normal, NT1, NT2 and NT3: exact command, expected condition, actual top-level exit, child exit where applicable, PASS/FAIL and complete stdout/stderr SHA-256."
+  - "Truthfully distinguish NT3 child exit=7 from NT3 top-level exit=1."
+  - "Record the complete QCLAW combined SHA-256, not a truncated prefix."
+  - "At the receipt head rerun normal and scan exactly the five final H1 files for physical paths, credential values, placeholders, stale H0 truth and nonexistent-file claims."
+  - "Externally anchor concrete tested SHA, receipt SHA, parents, trees, exact five-file manifest, commands/exits/hashes and Epoch 13 revalidation on PR #97 and Issues #89/#31."
   - "Stop for GPT review."
 
 allowed_changed_files:
@@ -116,31 +98,30 @@ allowed_changed_files:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1-E12/H1-WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
 
 acceptance_gates:
-  - "The branch was precreated by GPT, starts at the exact initial head and a new Draft PR is used."
-  - "Exactly two commits and exactly five new H1-E12 files exist; zero H0 or PR #91 file changes exist."
-  - "Normal exits 0 only on exact 15-file and 37/0/0 evidence; nt1, nt2 and nt3 commands themselves exit nonzero."
-  - "All Git failures, extraction failures, timeouts, child nonzero, malformed/missing fields, wrong counts, unsafe content and cleanup/restoration failures are fail-closed."
-  - "Every command has actual top-level exit plus complete stdout/stderr SHA-256."
-  - "Receipts use the exact Epoch 12 task ID/signal, current timestamps, tested_head_full_sha and receipt_head_ref: THIS_COMMIT."
+  - "Reviewed-to-tested changes only the verifier and tested-to-receipt changes exactly the four receipt files."
+  - "Raw Git bytes and extracted bytes are identical for all fifteen frozen artifacts."
+  - "Normal enforces exact five H1 filenames, exact fifteen QCLAW files and exact 37 PASS / 0 FAIL / 0 SKIP."
+  - "NT1/NT2/NT3 commands themselves exit nonzero; all mutation, restoration and cleanup paths are protected by try/finally and verified."
+  - "Every command has exact top-level exit and complete stdout/stderr SHA-256; child exits are separately labeled."
+  - "The final receipt-head five-file scan is clean and records the complete QCLAW combined hash."
   - "Concrete receipt SHA is externally anchored and no later commit exists."
   - "No QCLAW semantic rescore, source, replay, backtest, account, order or trade action occurs."
 
 exploration_budget:
-  main_delivery_percent: 96
-  local_improvement_percent: 3
+  main_delivery_percent: 97
+  local_improvement_percent: 2
   discovery_percent: 1
   max_unplanned_new_files: 0
   class_c_or_d_action: "STOP_AND_REPORT"
 
 forbidden:
+  - "No new files and no changes outside the exact verifier/four-receipt allowlists."
   - "No commit to PR #91, its branch or 0023-H0."
-  - "No reuse of H0 receipt text, H0 tested heads, H0 scan baselines or invented PR/task identifiers."
-  - "No extra helper, generator, copied validator or raw-output file committed."
-  - "No child-only or regex-only negative test presented as top-level evidence."
-  - "No merge, auto-merge, direct main write, force push, reset, rebase rewrite or history rewrite."
+  - "No text-mode Git extraction, ignored cleanup error, child-only evidence or truncated authoritative hash."
+  - "No merge, auto-merge, direct main write, force push, reset or history rewrite."
   - "No Issue #92 execution, source activation, labels, replay, backtest, account, order or trade."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / INDEPENDENT_MACHINE_EVIDENCE / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T16:25:00+08:00"
+updated_at: "2026-07-26T01:22:00+08:00"
