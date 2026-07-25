@@ -1,4 +1,4 @@
-schema_version: "10.3"
+schema_version: "10.4"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -8,147 +8,142 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
-pull_request: null
-task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP-R1"
+pull_request: 98
+task_id: "CODEX-PR98-R2-FAIL-CLOSED-RULE-SEMANTICS-INVARIANT-MAPPING-AND-REMOTE-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【Codex模式：目标模式】A股多智能体博弈引擎D1确定性合成规则MVP R1"
+mode_label: "【Codex模式：目标模式】PR #98 D1失败闭锁规则语义、不变量映射与远端回执R2"
 mode_reason: >-
-  D0企业蓝图已在PR #95的e979f109225bf2d6f00a7890d79df3684dc9e129通过GPT验收。
-  本轮目标、规则边界、状态语义、夹具和不变量均已定义，核心工作是基于真实仓库实现并多轮验证，故使用目标模式。
+  PR #98已经形成可执行D1候选和真实两头链，剩余问题集中在运行时边界、逐项测试映射与最终证据收口。
+  目标、缺陷与文件面均明确，不需要重做项目规划，因此使用目标模式；Codex继续承担三线中最大的工程工作量。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
 branch: "codex/a-share-multi-agent-game-engine-0001-d1-synthetic-rules-e6"
-branch_precreated_by_gpt: true
-branch_initial_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
-stacked_base_branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+reviewed_or_base_head: "71055bf18437428d26183f404eb1dd4b6ea6ebff"
 accepted_d0_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
-reviewed_or_base_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
-remote_main_at_release: "c106443ac429e4d8de9acfa33110a1f1eea47607"
+reviewed_tested_head: "415b25d26131348902cf0a913fbe567c5e65d0ec"
+reviewed_receipt_head: "71055bf18437428d26183f404eb1dd4b6ea6ebff"
+stacked_base_branch: "codex/a-share-multi-agent-game-engine-0001-d0"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 6
-route_issued_at: "2026-07-25T16:15:00+08:00"
-completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D1_SYNTHETIC_RULES_MVP_R1_READY_FOR_GPT_REVIEW"
+route_epoch: 7
+route_issued_at: "2026-07-26T01:20:00+08:00"
+completion_signal: "CODEX_PR98_R2_FAIL_CLOSED_RULE_SEMANTICS_INVARIANTS_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP@route_epoch:5"
+  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP-R1@route_epoch:6"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head, branch_initial_head]
-  branch_head_at_claim_must_equal: "e979f109225bf2d6f00a7890d79df3684dc9e129"
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  branch_head_at_claim_must_equal: "71055bf18437428d26183f404eb1dd4b6ea6ebff"
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "NO_D1_DELIVERY_FOUND_EPOCH5_REPUBLISHED_WITH_PRECREATED_BRANCH_AND_EXECUTION_GATES"
+  classification: "D1_EXECUTABLE_CORE_AND_TWO_HEAD_ACCEPTED_FAIL_CLOSED_SEMANTICS_INVARIANT_TRACEABILITY_AND_RECEIPTS_R2_REQUIRED"
   accepted_facts:
-    - "PR #95 D0 remains accepted and frozen at e979f109225bf2d6f00a7890d79df3684dc9e129."
-    - "No D1 PR, completion signal or branch commit was found before this route was issued."
+    - "PR #98 is a stacked Draft PR based on accepted D0 head e979f109225bf2d6f00a7890d79df3684dc9e129."
+    - "D0-to-tested is exactly one commit containing fifteen D1 implementation/contract/test files."
+    - "Tested-to-receipt is exactly one commit containing only the four authorized receipt files."
+    - "Twelve named synthetic fixtures, a standard-library rules engine and two isolated PYTHONHASHSEED executions exist."
+    - "No real data, replay, backtest, participant identity, broker, account, route or trade integration exists."
   blocking_facts:
-    - "D1 has not started; no executable rules, fixtures, invariants or receipts exist yet."
+    - "matching.resolve treats any unsupported match_mode as UNFILLED_CANCELLED instead of failing closed."
+    - "Negative pending quantities and malformed runtime fields are not rejected and can distort sellability."
+    - "advance_settlement_day is effectively a no-op and the claimed settlement-maturity invariant is not actually demonstrated."
+    - "The 24-item invariant catalogue is not mapped one-to-one to individually identifiable executable tests; several catalogue claims are not tested."
+    - "AI_HANDOFF, D1-DELIVERY-MANIFEST and DETERMINISM-RECEIPT retain PENDING/local-head truth despite a concrete remote two-head chain."
+    - "No command-level stdout/stderr hashes or concrete external completion anchors exist on PR #98 and Issues #23/#31."
 
 resource_and_effort:
-  priority_share_percent: 60
-  task_weight: "HEAVY_IMPLEMENTATION"
-  checkpoints: [20, 40, 60, 80, 100]
+  priority_share_percent: 55
+  task_weight: "HEAVY_ENGINEERING_REMEDIATION"
+  checkpoints: [25, 50, 75, 100]
   checkpoint_requirements:
-    20: "PR created, package skeleton, contracts and state types committed; no business behavior claimed complete."
-    40: "Calendar/rule snapshot/order-validity/T+1 inventory implemented with initial fixtures."
-    60: "Matching/no-fill/partial-fill/cancel/session transitions implemented; at least 12 fixtures executable."
-    80: "At least 20 invariants, negative tests and two-environment determinism pass."
-    100: "Tested head plus receipt-only head, external anchor and full AMED report submitted."
+    25: "Runtime input contract and reason-code matrix corrected; no receipt edits yet."
+    50: "Inventory/settlement/carry/cancel semantics corrected with named negative fixtures."
+    75: "Every invariant maps to an executable test ID; clean-checkout deterministic runs pass."
+    100: "One tested commit plus one four-file receipt commit and external anchors published."
 
 objective:
   summary: >-
-    Implement a deterministic, synthetic-only A-share market-rule vertical slice that turns the accepted D0 contracts into executable
-    pure functions for session state, rule snapshots, order validity, matching outcomes and T+1 lot inventory.
-  non_objectives:
-    - "No real or local market data."
-    - "No replay, backtest, alpha, participant identity, hidden intent or prediction."
-    - "No broker, account, order routing, execution service or trade."
-
-required_outputs:
-  root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/"
-  implementation:
-    - "README.md"
-    - "D1-CONTRACT.yaml"
-    - "synthetic_engine/__init__.py"
-    - "synthetic_engine/types.py"
-    - "synthetic_engine/calendar.py"
-    - "synthetic_engine/rules.py"
-    - "synthetic_engine/inventory.py"
-    - "synthetic_engine/matching.py"
-    - "synthetic_engine/engine.py"
-    - "synthetic_engine/fixtures.py"
-  verification:
-    - "tests/"
-    - "FIXTURE-MANIFEST.yaml"
-    - "INVARIANT-CATALOG.yaml"
-    - "DETERMINISM-RECEIPT.yaml"
-  receipts:
-    - "D1-DELIVERY-MANIFEST.yaml"
-    - "TEST-RUN-RECEIPT.md"
-    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-    - "AI_HANDOFF.yaml"
+    Preserve the D1 candidate architecture while making every unsupported or malformed runtime path fail closed,
+    turning settlement and pending-inventory semantics into real state transitions, mapping every claimed invariant to executable evidence,
+    and replacing local/PENDING receipts with exact remote Git truth.
 
 required_actions:
-  - "Claim exact Epoch 6 lease and use only the GPT-precreated branch at its exact initial head."
-  - "Create a stacked Draft PR whose base is codex/a-share-multi-agent-game-engine-0001-d0."
-  - "Keep all D0 files byte-unchanged; D1 writes only under the 0001-D1 root."
-  - "Represent exchange, board, security-status, date, session windows, price-limit and suspension behavior through an injected versioned SyntheticRuleSnapshot; no unversioned current-rule constants may be called historical truth."
-  - "Implement immutable typed state for sessions, orders, fills, no-fills, cancellations, positions and T+1 lots."
-  - "Implement pure deterministic transitions for PREOPEN, CALL_AUCTION, AUCTION_FREEZE, CONTINUOUS_AM, MIDDAY_BREAK, CONTINUOUS_PM, CLOSING_AUCTION, CLOSED and SUSPENDED."
-  - "Implement order validation, limit checks, session eligibility, partial fill, no fill, cancel, carry, settlement-day advance and T+1 sellability."
-  - "Every rejection/no-fill must return a structured reason code; UNKNOWN or unsupported rule combinations must abstain/fail closed rather than guess."
-  - "Provide at least 12 named synthetic fixtures spanning auction, continuous trading, limit states, suspension, partial fill, no-fill, cancel and T+1 inventory."
-  - "Provide at least 20 executable invariants, including conservation, nonnegative quantities, no sell of locked T+1 lots, deterministic ordering, phase legality and idempotent rejected actions."
-  - "Use Python standard library only unless an existing repository dependency is already authoritative and justified."
-  - "Run unit tests with at least two PYTHONHASHSEED values and two isolated work directories; normalized result hashes must match."
-  - "Create a tested head containing implementation/contracts/tests, then one later receipt-only commit changing only the four receipt files."
-  - "Externally anchor the concrete tested SHA, receipt SHA, parent/tree identities, exact changed-file manifests, commands, exits and stdout/stderr SHA-256 to the new PR and Issues #23/#31."
-  - "Stop for GPT review."
+  - "Claim the exact Epoch 7 lease on PR #98 and do not create a replacement PR or branch."
+  - "Create exactly one tested remediation commit followed by exactly one receipt-only commit."
+  - "Validate order_id, side, match_mode, quantity, price, partial_fill_quantity, timestamps, lot IDs, lot quantities, locked quantities and pending quantities at runtime; reject bool-as-int and unsupported enum/string values."
+  - "Define a computational numeric safety bound separate from market rules and return NUMERIC_BOUND_EXCEEDED for unsafe values; do not present it as an exchange rule."
+  - "Unsupported or missing match modes must return INVALID_OR_BLOCKED with a structured reason, never default to cancellation."
+  - "Reject negative or non-integer pending quantities and prevent pending reservations from making sellable quantity negative or artificially larger."
+  - "Implement an explicit settlement-state transition with validated current/next trade dates; demonstrate fresh-lot ineligibility before transition and eligibility only after the declared later trading day."
+  - "Preserve quantity conservation across full fill, partial fill, no-fill cancel, carry, pending cancellation and sell-lot depletion."
+  - "Give every invariant in INVARIANT-CATALOG.yaml a stable invariant_id and an exact test_id; the test runner must report each invariant independently rather than counting anonymous assertions."
+  - "Add negative fixtures for unsupported match_mode, bool quantity/price/partial, negative pending quantities, duplicate lot IDs, malformed dates, numeric-bound breach, invalid settlement transition and unknown output mode."
+  - "Run the exact tested commit from two independently extracted clean directories with PYTHONHASHSEED=1 and 777; record exact commands, exits and complete stdout/stderr SHA-256."
+  - "At the tested commit require all named fixtures and invariant IDs pass and normalized outputs match."
+  - "The receipt commit may change only D1-DELIVERY-MANIFEST.yaml, TEST-RUN-RECEIPT.md, AMED-AGENT-EXECUTION-RECEIPT.yaml and AI_HANDOFF.yaml."
+  - "Receipts must use the concrete remote tested SHA, receipt_head_ref: THIS_COMMIT, exact tested-to-receipt list and no PENDING/local-only authoritative identity."
+  - "After receipt push, externally anchor concrete tested SHA, receipt SHA, parents, trees, file manifests, commands, exits, stdout/stderr hashes and Epoch 7 revalidation on PR #98 and Issues #23/#31."
+  - "Stop for GPT review; D2 remains blocked."
 
 allowed_changed_files:
-  tested_head_prefix:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/"
-  receipt_head_only:
+  tested_commit_only:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/D1-CONTRACT.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/DETERMINISM-RECEIPT.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/FIXTURE-MANIFEST.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/INVARIANT-CATALOG.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/README.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/__init__.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/types.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/calendar.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/rules.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/inventory.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/matching.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/engine.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/synthetic_engine/fixtures.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/tests/run_determinism.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/tests/test_synthetic_engine.py"
+  receipt_commit_only:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/D1-DELIVERY-MANIFEST.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/TEST-RUN-RECEIPT.md"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AMED-AGENT-EXECUTION-RECEIPT.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AI_HANDOFF.yaml"
 
 acceptance_gates:
-  - "The new branch starts exactly at the accepted D0 head and the stacked PR targets the D0 branch."
-  - "No D0 or other-agent file changes exist."
-  - "At least 12 fixtures and 20 executable invariants pass."
-  - "Two isolated runs with different PYTHONHASHSEED values produce identical normalized outputs."
-  - "All unsupported/UNKNOWN, malformed, overflow, illegal-phase, limit, suspension and T+1 violations fail closed."
-  - "Tested-to-receipt changes exactly the four authorized receipt files."
-  - "No real data, replay, backtest, performance claim, identity, account, order route or trade occurs."
+  - "Reviewed-to-tested and tested-to-receipt are exactly one commit each and respect the exact allowlists."
+  - "All malformed, unsupported, unknown and numeric-bound paths return structured fail-closed outcomes without exceptions escaping or silent defaults."
+  - "Settlement-day advance changes explicit state and the before/after T+1 eligibility tests prove the transition."
+  - "Every declared invariant has one or more exact executable test IDs and all pass independently."
+  - "Two clean extracted tested-head runs with different PYTHONHASHSEED values have identical normalized output."
+  - "Four final receipts contain exact remote truth, complete command hashes and no PENDING/local-only authoritative identity."
+  - "Concrete receipt SHA is externally anchored and no later commit exists."
+  - "No D2, real data, replay, backtest, performance claim, identity, account, routing or trade action occurs."
 
 exploration_budget:
-  main_delivery_percent: 85
-  local_improvement_percent: 10
-  discovery_percent: 5
+  main_delivery_percent: 90
+  local_improvement_percent: 8
+  discovery_percent: 2
   max_unplanned_new_files: 0
   class_c_or_d_action: "PROPOSE_OR_STOP_DO_NOT_IMPLEMENT"
 
 forbidden:
-  - "No commit to PR #95 or the D0 branch."
-  - "No direct main write, merge, auto-merge, force push, rebase rewrite or history rewrite."
-  - "No real source or local file inspection, source activation, labels, replay, backtest or MARL training."
-  - "No participant identity, main-force intent, broker, account, order, position or trade integration."
-  - "No consumption of PR #96 candidate knowledge as accepted fact."
+  - "No new files, no D0 edits and no edits outside the exact D1 allowlist."
+  - "No direct main write, merge, auto-merge, force push, reset, history rewrite or replacement PR."
+  - "No current or historical exchange-rule claim from synthetic constants."
+  - "No real source inspection, labels, replay, backtest, MARL, participant identity, broker, account, order route or trade."
+  - "No D2 execution before separate GPT release."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T16:15:00+08:00"
+updated_at: "2026-07-26T01:20:00+08:00"
