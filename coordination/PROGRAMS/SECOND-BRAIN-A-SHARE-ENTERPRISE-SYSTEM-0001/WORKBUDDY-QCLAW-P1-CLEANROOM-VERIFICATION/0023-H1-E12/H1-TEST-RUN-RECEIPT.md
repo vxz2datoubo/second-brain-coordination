@@ -1,19 +1,19 @@
-# R2 Test Run Receipt
+# R3 Test Run Receipt
 
 | Field | Value |
 |-------|-------|
-| task_id | WORKBUDDY-QCLAW-P1-CLEANROOM-R2-FRESH-BRANCH-FAIL-CLOSED-VERIFIER-R1 |
+| task_id | WORKBUDDY-PR97-R3-EXACT-LEASE-STRICT-UTF8-SELF-SCAN-AND-MACHINE-RECEIPT-CLOSURE |
 | receipt_head_ref | THIS_COMMIT |
-| receipt_parent_tested_head_full_sha | 6fb92d21f23140ba715f7a305340e3b1b049a0c3 |
-| reviewed_to_tested_changed | H1-INDEPENDENT-VERIFIER.py + 4 stub files (5 files total) |
-| OS | Windows |
+| receipt_parent_tested_head_full_sha | b31041e7b1376fa4dbdc4d960886d5c993ebf7f9 |
+| OS | Windows 11 |
 | Python | 3.13.14 |
 
 ## Normal
-5 files, 0 findings, mhash=7b234af59c8a57e5604ff1178b17ce2e63033bd4b0bb57755b79a498d0e7507a
-QCLAW: 15 manifest exact, 37/0/0, combined=dc815fc10d3d6eb516
+5 files, 0 findings, QCLAW 37/0/0, combined=dc815fc10d3d6eb5164587b4bcc9f3247bb8d30b5e9533f873f5ba14982488f5
 
 ## Negtests
-NT1 injected_path: PASS, exit=1
-NT2 missing_artifact: PASS, exit=1
-NT3 forced_fail: PASS, exit=7
+| Mode | Child Exit | Top Exit | Result |
+|------|-----------|----------|--------|
+| NT1 | N/A | 1 | PASS |
+| NT2 | 1 | 1 | PASS |
+| NT3 | 7 | 1 | PASS |
