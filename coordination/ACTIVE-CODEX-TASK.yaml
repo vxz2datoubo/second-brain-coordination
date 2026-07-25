@@ -1,4 +1,4 @@
-schema_version: "10.2"
+schema_version: "10.3"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -9,34 +9,37 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
 pull_request: null
-task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP"
+task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP-R1"
 mode: "target"
-mode_label: "【Codex模式：目标模式】A股多智能体博弈引擎D1确定性合成规则MVP"
+mode_label: "【Codex模式：目标模式】A股多智能体博弈引擎D1确定性合成规则MVP R1"
 mode_reason: >-
-  PR #95 D0企业蓝图和R3远端发布闭环已经通过GPT复核。D1目标、状态语义、夹具和失败门已在D0明确，
-  但具体纯函数实现、接口拆分和测试路径仍需基于真实仓库多轮验证，因此使用目标模式，而不是重新制作项目计划。
+  D0企业蓝图已在PR #95的e979f109225bf2d6f00a7890d79df3684dc9e129通过GPT验收。
+  本轮目标、规则边界、状态语义、夹具和不变量均已定义，核心工作是基于真实仓库实现并多轮验证，故使用目标模式。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
-branch: "codex/a-share-multi-agent-game-engine-0001-d1-synthetic-rules"
+branch: "codex/a-share-multi-agent-game-engine-0001-d1-synthetic-rules-e6"
+branch_precreated_by_gpt: true
+branch_initial_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
 stacked_base_branch: "codex/a-share-multi-agent-game-engine-0001-d0"
 accepted_d0_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
 reviewed_or_base_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
-remote_main_at_release: "74bf492e31dc3d9c727362f3512de1ad47d3b2cb"
+remote_main_at_release: "c106443ac429e4d8de9acfa33110a1f1eea47607"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 5
-route_issued_at: "2026-07-25T15:30:00+08:00"
-completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D1_SYNTHETIC_RULES_MVP_READY_FOR_GPT_REVIEW"
+route_epoch: 6
+route_issued_at: "2026-07-25T16:15:00+08:00"
+completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D1_SYNTHETIC_RULES_MVP_R1_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE@route_epoch:4"
+  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP@route_epoch:5"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head, branch_initial_head]
+  branch_head_at_claim_must_equal: "e979f109225bf2d6f00a7890d79df3684dc9e129"
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
@@ -45,77 +48,107 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "PR95_D0_ENTERPRISE_PLAN_AND_R3_PUBLICATION_ACCEPTED_CODEX_RELEASED_TO_D1"
+  classification: "NO_D1_DELIVERY_FOUND_EPOCH5_REPUBLISHED_WITH_PRECREATED_BRANCH_AND_EXECUTION_GATES"
   accepted_facts:
-    - "PR #95 final head e979f109225bf2d6f00a7890d79df3684dc9e129 is exactly one four-receipt-file commit after reviewed D0 head 653fcff04ba5fa7701c943596189371251b0c6a7."
-    - "The accepted D0 package defines D0-D6 ownership, state tuples, phase transitions, order validity, matching/no-fill, T+1 inventory, twelve fixtures and twenty invariants."
-    - "The final receipt was externally anchored with parent 653fcff04ba5fa7701c943596189371251b0c6a7 and tree df072188dc2a6ccc80f75431b399fcd818d44ef1; no later commit exists."
-    - "No source activation, replay, backtest, MARL, account, order or trade path was created."
+    - "PR #95 D0 remains accepted and frozen at e979f109225bf2d6f00a7890d79df3684dc9e129."
+    - "No D1 PR, completion signal or branch commit was found before this route was issued."
+  blocking_facts:
+    - "D1 has not started; no executable rules, fixtures, invariants or receipts exist yet."
 
 resource_and_effort:
   priority_share_percent: 60
   task_weight: "HEAVY_IMPLEMENTATION"
-  checkpoints: [15, 30, 50, 70, 85, 100]
-  main_delivery_percent: 88
-  proactive_discovery_percent: 8
-  system_evolution_proposal_percent: 4
-  max_parallel_subplans: 3
+  checkpoints: [20, 40, 60, 80, 100]
+  checkpoint_requirements:
+    20: "PR created, package skeleton, contracts and state types committed; no business behavior claimed complete."
+    40: "Calendar/rule snapshot/order-validity/T+1 inventory implemented with initial fixtures."
+    60: "Matching/no-fill/partial-fill/cancel/session transitions implemented; at least 12 fixtures executable."
+    80: "At least 20 invariants, negative tests and two-environment determinism pass."
+    100: "Tested head plus receipt-only head, external anchor and full AMED report submitted."
 
-first_principles_goal: >-
-  Implement the smallest deterministic synthetic A-share rule engine that can prove state, feasibility, inventory and no-fill semantics
-  without real data, identity inference, profitability claims or executable trading output.
-
-required_actions:
-  - "Claim exact Epoch 5 from latest remote main; create a new isolated branch from accepted D0 head e979f109225bf2d6f00a7890d79df3684dc9e129."
-  - "Create a stacked Draft PR whose base is codex/a-share-multi-agent-game-engine-0001-d0; do not add D1 commits to PR #95."
-  - "Use only the new D1 root coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/."
-  - "Implement a standard-library-only pure state reducer. Synthetic OrderIntent is a research object and must never connect to broker/account/order APIs."
-  - "Define explicit immutable contracts for RuleSnapshot, SecurityStatus, MarketState, AgentState, InventoryState, InformationSet, SyntheticOrderIntent, FeasibilityResult and SyntheticMatchOutcome."
-  - "Support pre_open, call_auction, continuous_auction, midday_break, closing_auction, halted and post_close transitions; unsupported transitions fail closed."
-  - "Validate in this order: source capability/available_at, rule snapshot/security status, phase/halt, price limit/order validity, fresh-seasoned-pending inventory, quantity/capacity and declared synthetic matching rule."
-  - "Model outcomes only as filled, partially_filled, unfilled_cancelled, unfilled_carried, unknown_outcome or invalid_or_blocked. No queue position, participant identity or true exchange matching detail may be inferred."
-  - "Implement T+1 inventory separation: seasoned_quantity, fresh_quantity, locked_quantity, pending quantities and explicit cross-day settlement transition."
-  - "UNKNOWN rule, status, capability, unit or inventory prerequisites must return abstain/invalid_or_blocked; no UNKNOWN-to-zero coercion."
-  - "Provide at least twelve executable fixtures covering call auction, continuous partial/no fill, halt, limit, fresh-lot sell rejection, seasoned sale, cross-day transition, stale/UNKNOWN rules and competing latent hypotheses."
-  - "Provide at least twenty executable invariants including inventory conservation, non-negative buckets, phase legality, no fill while halted/break, no future leakage, deterministic equal-input output, no identity promotion and no direct order output."
-  - "Add negative tests for malformed snapshots, unsupported transitions, missing available_at, missing security status, invalid quantities, illegal fresh sale and nondeterministic repeated execution."
-  - "Document every assumption and remaining UNKNOWN; do not hard-code current exchange numeric rules as timeless facts."
-  - "Run the full fixture/invariant suite twice in isolated temporary directories and require byte-identical normalized outputs."
-  - "Create a tested implementation commit and a later receipt-only commit. Externally anchor the concrete receipt SHA after push."
-  - "Stop for GPT review; D2 data admission, replay, calibration, Level-k, self-play and MARL remain blocked."
+objective:
+  summary: >-
+    Implement a deterministic, synthetic-only A-share market-rule vertical slice that turns the accepted D0 contracts into executable
+    pure functions for session state, rule snapshots, order validity, matching outcomes and T+1 lot inventory.
+  non_objectives:
+    - "No real or local market data."
+    - "No replay, backtest, alpha, participant identity, hidden intent or prediction."
+    - "No broker, account, order routing, execution service or trade."
 
 required_outputs:
   root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/"
-  minimum_files:
+  implementation:
     - "README.md"
-    - "contracts.py"
-    - "synthetic_rules_engine.py"
-    - "fixtures.yaml"
-    - "test_synthetic_rules.py"
-    - "validate_d1.py"
-    - "D1-UNKNOWN-REGISTRY.yaml"
-    - "D1-TEST-RUN-RECEIPT.md"
-    - "CODEX-FEEDBACK-v2.yaml"
+    - "D1-CONTRACT.yaml"
+    - "synthetic_engine/__init__.py"
+    - "synthetic_engine/types.py"
+    - "synthetic_engine/calendar.py"
+    - "synthetic_engine/rules.py"
+    - "synthetic_engine/inventory.py"
+    - "synthetic_engine/matching.py"
+    - "synthetic_engine/engine.py"
+    - "synthetic_engine/fixtures.py"
+  verification:
+    - "tests/"
+    - "FIXTURE-MANIFEST.yaml"
+    - "INVARIANT-CATALOG.yaml"
+    - "DETERMINISM-RECEIPT.yaml"
+  receipts:
+    - "D1-DELIVERY-MANIFEST.yaml"
+    - "TEST-RUN-RECEIPT.md"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
     - "AI_HANDOFF.yaml"
-  maximum_total_files: 20
-  forbidden_files: [raw_market_data, copied_private_blueprint, generated_binary, notebook_checkpoint, broker_adapter, live_order_adapter]
+
+required_actions:
+  - "Claim exact Epoch 6 lease and use only the GPT-precreated branch at its exact initial head."
+  - "Create a stacked Draft PR whose base is codex/a-share-multi-agent-game-engine-0001-d0."
+  - "Keep all D0 files byte-unchanged; D1 writes only under the 0001-D1 root."
+  - "Represent exchange, board, security-status, date, session windows, price-limit and suspension behavior through an injected versioned SyntheticRuleSnapshot; no unversioned current-rule constants may be called historical truth."
+  - "Implement immutable typed state for sessions, orders, fills, no-fills, cancellations, positions and T+1 lots."
+  - "Implement pure deterministic transitions for PREOPEN, CALL_AUCTION, AUCTION_FREEZE, CONTINUOUS_AM, MIDDAY_BREAK, CONTINUOUS_PM, CLOSING_AUCTION, CLOSED and SUSPENDED."
+  - "Implement order validation, limit checks, session eligibility, partial fill, no fill, cancel, carry, settlement-day advance and T+1 sellability."
+  - "Every rejection/no-fill must return a structured reason code; UNKNOWN or unsupported rule combinations must abstain/fail closed rather than guess."
+  - "Provide at least 12 named synthetic fixtures spanning auction, continuous trading, limit states, suspension, partial fill, no-fill, cancel and T+1 inventory."
+  - "Provide at least 20 executable invariants, including conservation, nonnegative quantities, no sell of locked T+1 lots, deterministic ordering, phase legality and idempotent rejected actions."
+  - "Use Python standard library only unless an existing repository dependency is already authoritative and justified."
+  - "Run unit tests with at least two PYTHONHASHSEED values and two isolated work directories; normalized result hashes must match."
+  - "Create a tested head containing implementation/contracts/tests, then one later receipt-only commit changing only the four receipt files."
+  - "Externally anchor the concrete tested SHA, receipt SHA, parent/tree identities, exact changed-file manifests, commands, exits and stdout/stderr SHA-256 to the new PR and Issues #23/#31."
+  - "Stop for GPT review."
+
+allowed_changed_files:
+  tested_head_prefix:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/"
+  receipt_head_only:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/D1-DELIVERY-MANIFEST.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/TEST-RUN-RECEIPT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/AI_HANDOFF.yaml"
 
 acceptance_gates:
-  - "All D1 changes are confined to the exact D1 root and the stacked PR is based on the accepted D0 branch."
-  - "Pure deterministic engine and all tests run with Python standard library plus PyYAML only if already available; no network or market data is required."
-  - "At least twelve fixtures and twenty invariants execute, not merely appear in prose."
-  - "Normal test command exits 0 only when all fixtures/invariants pass; every negative fixture fails closed for the expected reason."
-  - "Two isolated runs have identical normalized output hashes."
-  - "No source activation, replay, backtest, performance claim, participant identity, broker, account, order, position or trade action occurs."
-  - "Tested-to-receipt diff contains receipt/meta files only; concrete receipt SHA is externally anchored and no later commit exists."
+  - "The new branch starts exactly at the accepted D0 head and the stacked PR targets the D0 branch."
+  - "No D0 or other-agent file changes exist."
+  - "At least 12 fixtures and 20 executable invariants pass."
+  - "Two isolated runs with different PYTHONHASHSEED values produce identical normalized outputs."
+  - "All unsupported/UNKNOWN, malformed, overflow, illegal-phase, limit, suspension and T+1 violations fail closed."
+  - "Tested-to-receipt changes exactly the four authorized receipt files."
+  - "No real data, replay, backtest, performance claim, identity, account, order route or trade occurs."
+
+exploration_budget:
+  main_delivery_percent: 85
+  local_improvement_percent: 10
+  discovery_percent: 5
+  max_unplanned_new_files: 0
+  class_c_or_d_action: "PROPOSE_OR_STOP_DO_NOT_IMPLEMENT"
 
 forbidden:
-  - "No modification of PR #95, PR #96, PR #91, PR #93 or another agent branch."
-  - "No direct main write, merge, auto-merge, force push or history rewrite."
-  - "No real source, historical replay, backtest, MARL, model training, performance claim, account, broker, order or trade."
-  - "No claim that synthetic feasibility predicts profitability, true participant identity or actual market intent."
+  - "No commit to PR #95 or the D0 branch."
+  - "No direct main write, merge, auto-merge, force push, rebase rewrite or history rewrite."
+  - "No real source or local file inspection, source activation, labels, replay, backtest or MARL training."
+  - "No participant identity, main-force intent, broker, account, order, position or trade integration."
+  - "No consumption of PR #96 candidate knowledge as accepted fact."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T15:30:00+08:00"
+updated_at: "2026-07-25T16:15:00+08:00"
