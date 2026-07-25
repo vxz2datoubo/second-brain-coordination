@@ -1,7 +1,17 @@
 # Counterfactual Engine Plan
 
-Status: `Interface / Future Roadmap`.
+Status: `Future Roadmap`. A counterfactual is a registered alternative transition under explicit synthetic or admitted assumptions; it is not a claim about what a real actor would have done.
 
-Counterfactuals begin with synthetic, fully specified states. The engine changes one declared mechanism at a time, such as inventory feasibility, liquidity state, evidence coverage, an advantage activation condition or an opponent hypothesis. It records unchanged variables, transition assumptions, seeds, expected direction of change and falsification criteria.
+## Required record
 
-Historical counterfactuals are allowed only after a separate task freezes point-in-time inputs and defines a credible identification strategy. They must distinguish a simulation comparison from a causal estimate. The output is a scenario set with uncertainty and cannot claim that a real actor would have acted differently.
+Every future counterfactual records a factual-state reference, intervention, unchanged variables, rule/status snapshot, information-set cutoff, alternative participant hypotheses, matching assumptions, output unit, uncertainty method, placebo/negative control, invalidation condition and forbidden downstream use.
+
+## Minimal tests
+
+* Change no causal input: result must be identical.
+* Change an unavailable variable: run must abstain or fail closed.
+* Replace an identity hypothesis with a competing hypothesis: both outputs must remain observable.
+* Change a rule snapshot: feasibility must change only where the snapshot authorizes it.
+* Use a placebo intervention: apparent effect is reported as a warning, not evidence.
+
+Empirical causal claims require the D2-D3 admission and identification gates. D0 creates no counterfactual runtime.

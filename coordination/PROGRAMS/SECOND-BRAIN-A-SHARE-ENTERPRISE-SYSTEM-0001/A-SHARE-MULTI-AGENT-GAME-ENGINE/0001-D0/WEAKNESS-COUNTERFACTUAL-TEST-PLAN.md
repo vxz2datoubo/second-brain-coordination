@@ -1,5 +1,7 @@
 # Weakness Counterfactual Test Plan
 
-The first test suite is synthetic and deterministic. For each archetype hypothesis, hold the state constant and vary one declared advantage or weakness. Verify that the candidate action set changes only through the documented mechanism; keep rule constraints and uncertainty visible.
+Status: `Future Roadmap`. “Exploitability” means sensitivity of a **synthetic hypothesis** to a registered alternative state; it never authorizes exploiting people or placing orders.
 
-Required tests: activation versus decay under two market states, a capacity-constrained large-inventory scenario, a T+1 fresh-inventory block, an aggregate-only evidence abstention, a competing-explanation misclassification case and a no-fill case. A later approved replay task must repeat the same tests with point-in-time inputs, placebo scenarios, costs and out-of-sample gates. No counterfactual test may be interpreted as proof of real participant intent.
+For each weakness hypothesis, test: activation precondition, competing explanation, rule/inventory feasibility, intervention, expected directional result or `UNKNOWN`, placebo, no-change baseline, deactivation, adverse consequence, and measurement limitation. A test fails closed if it requires an unobserved identity, unavailable raw event stream, unversioned rule or post-cutoff information.
+
+Minimum future cases: fresh-inventory constraint; price-limit state; halt; no-fill; partial fill; delayed availability; alternative participant type; conflicting evidence; changed cost assumption; and changed rule snapshot. Preserve a negative result whenever an apparent weakness disappears under a plausible alternative.
