@@ -1,10 +1,10 @@
-# H1-E12 Test Run Receipt
+# R2 Test Run Receipt
 
 | Field | Value |
 |-------|-------|
-| task_id | WORKBUDDY-QCLAW-P1-CLEANROOM-H1-E12-FRESH-BRANCH-FAIL-CLOSED-VERIFIER-R1 |
+| task_id | WORKBUDDY-QCLAW-P1-CLEANROOM-R2-FRESH-BRANCH-FAIL-CLOSED-VERIFIER-R1 |
 | receipt_head_ref | THIS_COMMIT |
-| receipt_parent_tested_head_full_sha | b4b210bd302f80a33c69c20d5e796c7f86dc6383 |
+| receipt_parent_tested_head_full_sha | 6fb92d21f23140ba715f7a305340e3b1b049a0c3 |
 | reviewed_to_tested_changed | H1-INDEPENDENT-VERIFIER.py + 4 stub files (5 files total) |
 | OS | Windows |
 | Python | 3.13.14 |
