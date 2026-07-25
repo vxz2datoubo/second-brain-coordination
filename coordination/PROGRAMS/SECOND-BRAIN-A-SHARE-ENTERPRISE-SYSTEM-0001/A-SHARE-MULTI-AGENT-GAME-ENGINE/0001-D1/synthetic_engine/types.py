@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
 
+NUMERIC_SAFETY_BOUND = 1_000_000_000
+
 
 class SessionPhase(str, Enum):
     PREOPEN = "PREOPEN"; CALL_AUCTION = "CALL_AUCTION"; AUCTION_FREEZE = "AUCTION_FREEZE"

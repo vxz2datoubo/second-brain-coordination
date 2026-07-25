@@ -13,6 +13,22 @@ class Rules(unittest.TestCase):
   self.assertEqual(20,len(FIXTURES))
   for name,s,i,o,expected in FIXTURES:
    with self.subTest(name=name): self.assertEqual(expected,reduce_order(s,i,o).status)
+ def test_table_driven_malformed_input_matrix(self):
+  cases=[
+   ('none_state',None,INVENTORY,order('a')),
+   ('wrong_state',object(),INVENTORY,order('b')),
+   ('none_order',market(),INVENTORY,None),
+   ('wrong_inventory',market(),object(),order('c')),
+   ('invalid_phase',MarketState('BAD','2026-07-26',SecurityStatus.ACTIVE,RULE,INFO),INVENTORY,order('d')),
+   ('invalid_status',MarketState(SessionPhase.CONTINUOUS_AM,'2026-07-26','BAD',RULE,INFO),INVENTORY,order('e')),
+   ('negative_timestamp',market(),INVENTORY,order('f',available=-1)),
+   ('pending_overflow',market(),InventoryState((),1_000_000_001,0),order('g')),
+  ]
+  for name,state_value,inventory_value,order_value in cases:
+   with self.subTest(name=name):
+    outcome=reduce_order(state_value,inventory_value,order_value)
+    self.assertEqual(OutcomeStatus.INVALID_OR_BLOCKED,outcome.status)
+    self.assertTrue(outcome.reason_codes)
 
 def _out(mode=MatchMode.PARTIAL,partial=1): return reduce_order(market(),INVENTORY,order('x',mode=mode,partial=partial))
 def _pass(expression):
@@ -39,17 +55,17 @@ _CHECKS={
 'I17_illegal_phase':lambda: not validate(market(SessionPhase.PREOPEN),INVENTORY,order('phase')).accepted,
 'I18_suspension':lambda: not validate(market(status=SecurityStatus.SUSPENDED),INVENTORY,order('halt')).accepted,
 'I19_price_limit':lambda: not validate(market(),INVENTORY,order('limit',price=11)).accepted,
-'I20_t_plus_one':lambda: not validate(market(),InventoryState((SyntheticLot('fresh','2026-07-26',1),)),order('fresh',side=OrderSide.SELL,qty=1)).accepted,
-'I21_locked_lot':lambda: sellable_quantity(InventoryState((SyntheticLot('locked','2026-07-25',1,1),)),'2026-07-26',True)==0,
+'I20_t_plus_one':lambda: not validate(market(),InventoryState((SyntheticLot('fresh','2026-07-26',1),),settled_trade_date='2026-07-26'),order('fresh',side=OrderSide.SELL,qty=1)).accepted,
+'I21_locked_lot':lambda: sellable_quantity(InventoryState((SyntheticLot('locked','2026-07-25',1,1),),settled_trade_date='2026-07-26'),True)==0,
 'I22_settlement':lambda: _settlement_proof(),
 'I23_transition':lambda: _transition_proof(),
 'I24_unknown_match':lambda: reduce_order(market(),INVENTORY,order('unknown',mode=MatchMode.UNKNOWN)).status is OutcomeStatus.INVALID_OR_BLOCKED,
 }
 def _settlement_proof():
- inv=apply_buy(InventoryState(()),'2026-07-26',2,'b')
- if sellable_quantity(inv,'2026-07-26',True)!=0:return False
+ inv=apply_buy(InventoryState((),settled_trade_date='2026-07-26'),'2026-07-26',2,'b')
+ if sellable_quantity(inv,True)!=0:return False
  matured=advance_settlement_day(inv,'2026-07-26','2026-07-27')
- return matured.settled_trade_date=='2026-07-27' and sellable_quantity(matured,'2026-07-27',True)==2
+ return matured.settled_trade_date=='2026-07-27' and sellable_quantity(matured,True)==2
 def _transition_proof():
  try: transition(SessionPhase.PREOPEN,SessionPhase.CLOSED)
  except ValueError:return True
