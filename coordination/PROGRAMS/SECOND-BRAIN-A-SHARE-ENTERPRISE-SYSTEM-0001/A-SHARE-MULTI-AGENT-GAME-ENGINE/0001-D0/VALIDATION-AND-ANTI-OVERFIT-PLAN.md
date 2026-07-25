@@ -1,5 +1,21 @@
 # Validation and Anti-overfit Plan
 
-Every future experiment requires a registered research question, target, point-in-time data boundary, holdout policy, baseline, parameter budget, cost/slippage/capacity assumptions and promotion rule. Use chronological walk-forward splits, purge and embargo where overlapping labels justify them, a final lockbox, regime-stratified reporting and repeated seeded runs for stochastic methods.
+## Experiment ledger
 
-Record the number of hypotheses and model variants. Apply appropriate multiple-testing diagnostics such as false-discovery control, probability of backtest overfitting or deflated Sharpe only when their assumptions are met; otherwise mark them `NOT_APPLICABLE` with rationale. Report failures, no-trade outcomes, low coverage and sensitivity. A favorable simulated result is insufficient without calibration and out-of-sample evidence.
+Each future experiment has an immutable ID, research question, input manifest hash, rule/status versions, target and horizon, code/version hash, seed list, candidate family, baseline family, parameter count, rejected variants, split specification, outputs, and owner. Failed, cancelled, abstaining and no-trade outcomes are first-class records.
+
+## Baselines and regimes
+
+Baseline families must include at least: a feasibility-only abstaining baseline, a simple prior/base-rate baseline, and a no-signal/shuffled comparator where valid. Results are stratified by predeclared market phase, volatility/liquidity proxy, limit/halt state, rule regime and data-capability level. A model cannot claim robustness by averaging away an undefined or unavailable regime.
+
+## Variant and multiple-testing control
+
+The plan records all attempted hypotheses, hyperparameter combinations, feature/label definitions and stopping decisions. False-discovery controls, PBO and deflated-Sharpe-like diagnostics may be used only when their mathematical assumptions and inputs are documented. Otherwise their status is `NOT_APPLICABLE`, not a decorative score. Exploratory runs are labeled exploratory and cannot use confirmatory thresholds.
+
+## Rejection gates
+
+Reject or freeze a candidate when any of the following holds: point-in-time breach; missing effective rule/status snapshot; unlicensed source; undefined cost/impact unit; lower coverage hidden by abstention; materially worse calibration than baseline; instability across registered folds/seeds; sensitivity only to one regime; variant-budget breach; or an unreplicated result. Promotion requires all gates plus independent review, never merely a positive simulated utility.
+
+## Evidence required from future validation
+
+Every report must state units, horizons, sample counts, missingness, abstention, costs, confidence intervals or uncertainty method where applicable, counterexamples, limitations and forbidden use. It must say explicitly that participant identity remains latent and that outputs are not order instructions.

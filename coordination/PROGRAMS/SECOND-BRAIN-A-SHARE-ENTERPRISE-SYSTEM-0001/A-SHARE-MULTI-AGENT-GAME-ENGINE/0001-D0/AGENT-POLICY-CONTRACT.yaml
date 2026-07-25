@@ -14,6 +14,10 @@ required_fields:
   - "counterevidence_refs"
   - "invalidation_conditions"
   - "forbidden_downstream_use"
+  - "decision_horizon"
+  - "utility_units"
+  - "abstention_semantics"
+  - "competing_hypotheses"
 objective_components:
   - "expected_value_candidate"
   - "impact_candidate"
@@ -31,3 +35,11 @@ constraints:
   - "capacity"
   - "data_capability"
 policy_output_rule: "Outputs are candidate hypotheses with abstention allowed, never executable trade instructions."
+evaluation_order:
+  - "available_at_and_capability"
+  - "rule_snapshot_and_security_status"
+  - "market_phase_and_halt"
+  - "inventory_and_order_feasibility"
+  - "utility_terms_with_aligned_units"
+  - "competing_hypothesis_and_counterevidence_review"
+unknown_rule: "Missing evidence, unit, horizon or applicable constraint must produce abstain or invalid_or_blocked."

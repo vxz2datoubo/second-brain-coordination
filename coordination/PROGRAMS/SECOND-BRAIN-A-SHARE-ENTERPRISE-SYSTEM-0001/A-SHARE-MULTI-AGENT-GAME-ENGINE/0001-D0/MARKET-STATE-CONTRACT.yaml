@@ -13,6 +13,9 @@ required_fields:
   - "data_capability_snapshot"
   - "lineage_refs"
   - "unknown_flags"
+  - "state_transition_reason"
+  - "observability_boundary"
+  - "forbidden_downstream_use"
 market_phase_values:
   - "pre_open"
   - "call_auction"
@@ -26,7 +29,12 @@ rules:
   rule_snapshot_ref: "Must identify an effective-date version; D0 stores no hard-coded current rule as timeless fact."
   price_limit_state: "Unknown when status, board or rule evidence is unavailable."
   data_capability_snapshot: "Must distinguish five-level, ten-level, aggregate, raw-event and historical-bar capabilities."
+  available_at: "Information unavailable at the state cutoff cannot enter the InformationSet."
+  state_transition_reason: "Every phase, halt, limit or settlement transition records the snapshot-backed reason."
+  observability_boundary: "Observable fields, withheld fields and UNKNOWNs remain distinguishable."
 forbidden_uses:
   - "implicit historical rule reconstruction"
   - "identity label"
   - "order emission"
+  - "using a local receive time as exchange event time"
+  - "turning aggregate observation into raw order or identity evidence"

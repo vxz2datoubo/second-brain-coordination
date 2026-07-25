@@ -1,0 +1,53 @@
+schema_version: "1.0"
+record_type: "D0EnterpriseDepthCompletenessMatrix"
+task_id: "CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+requirements:
+  - requirement_id: "R2-PLAN"
+    requirement: "D0-D6 independently assignable task graph"
+    files: ["PROJECT-PLAN.md", "WORKBREAKDOWN.yaml"]
+    sections: ["Phase task graph", "phase_tasks"]
+    acceptance_gate: "task IDs, inputs, outputs, owner, prerequisites, effort, tests, rollback and stop conditions exist"
+    remaining_unknown: "future task authorization"
+  - requirement_id: "R2-MICROSTRUCTURE"
+    requirement: "Synthetic state machine, order validity, matching/no-fill, T+1, halt and cross-day semantics"
+    files: ["A-SHARE-MICROSTRUCTURE-SIMULATOR-PLAN.md", "MARKET-STATE-CONTRACT.yaml"]
+    sections: ["State tuple", "Market-phase transition state machine", "Order validity and matching semantics"]
+    acceptance_gate: "12 synthetic fixtures and 20 invariants are specified; no runtime exists"
+    remaining_unknown: "effective rule values and real matching details"
+  - requirement_id: "R2-ACTION"
+    requirement: "Utility, horizon, constraints, abstention, alternatives and invalidation"
+    files: ["AGENT-POLICY-CONTRACT.yaml", "RATIONAL-AND-BEST-RESPONSE-ACTION-CONTRACT.yaml"]
+    sections: ["evaluation_order", "utility_components", "deterministic_examples"]
+    acceptance_gate: "UNKNOWN blocks feasibility; no coefficients or executable output"
+    remaining_unknown: "calibrated numeric units"
+  - requirement_id: "R2-VALIDATION"
+    requirement: "Identification, temporal splits, baselines, regimes, calibration, multiple testing and rejection"
+    files: ["CALIBRATION-AND-IDENTIFICATION-PLAN.md", "VALIDATION-AND-ANTI-OVERFIT-PLAN.md", "COUNTERFACTUAL-ENGINE-PLAN.md"]
+    sections: ["Preregistration requirements", "Temporal design", "Rejection gates"]
+    acceptance_gate: "future runs require point-in-time proof, baseline and coverage/abstention reporting"
+    remaining_unknown: "admitted data and label horizon"
+  - requirement_id: "R2-COMPUTE"
+    requirement: "Scenario/parameter/seed budgeting, ceilings and cancellation"
+    files: ["COMPUTE-AND-COST-PLAN.md", "WORKBREAKDOWN.yaml"]
+    sections: ["Future budgeting formula", "compute_data_needs"]
+    acceptance_gate: "no unbounded run may start without registered ceiling"
+    remaining_unknown: "measured hardware/data estimates"
+  - requirement_id: "R2-GOVERNANCE"
+    requirement: "Machine-actionable dependency, risk and UNKNOWN closure paths"
+    files: ["CAPABILITY-DEPENDENCY-GRAPH.yaml", "RISK-REGISTER.yaml", "UNKNOWN-REGISTRY.yaml"]
+    sections: ["nodes", "risks", "items"]
+    acceptance_gate: "owners, evidence, blocking scope, resolution phase and rollback are explicit where applicable"
+    remaining_unknown: "future owner acceptance"
+  - requirement_id: "R2-PROTECTED-BACKWRITE"
+    requirement: "Chapter-level protected-blueprint deltas with approval and rollback"
+    files: ["PROTECTED-BLUEPRINT-BACKWRITE-PACKAGE.md", "BLUEPRINT-MANIFEST-DELTA.yaml"]
+    sections: ["Proposed chapter-level delta", "Preconditions", "Rollback"]
+    acceptance_gate: "no protected body copied; GPT and user gate retained"
+    remaining_unknown: "user-approved local backwrite"
+  - requirement_id: "R2-PUBLICATION"
+    requirement: "No local physical paths; local/remote publication provenance reconciled"
+    files: ["CURRENT-SYSTEM-GAP-AUDIT.md", "REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml", "TEST-RUN-RECEIPT.md"]
+    sections: ["Public-safe local aliases", "tree_equality", "command evidence"]
+    acceptance_gate: "complete diff scans clean and external remote SHA anchor is posted"
+    remaining_unknown: "final R2 receipt head until push"
