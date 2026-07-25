@@ -1,4 +1,4 @@
-schema_version: "3.0"
+schema_version: "3.1"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -8,27 +8,31 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 89
 pull_request: 91
-task_id: "WORKBUDDY-PR91-R8-TOPLEVEL-FAILURE-PROPAGATION-AND-MACHINE-RECEIPT-CLOSURE"
+task_id: "WORKBUDDY-PR91-R9-COMPLETE-TOPLEVEL-FAILURE-PROPAGATION-AND-TRUTHFUL-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】PR #91顶层失败传播与机器回执最终收口R8"
+mode_label: "【WorkBuddy模式：目标模式】PR #91完整顶层失败传播与真实机器回执最终收口R9"
 mode_reason: >-
-  R7已经形成严格的tested-to-receipt两头结构并修正了旧任务标识，但负测模式在检测到预期危险后仍返回0，
-  nt2/nt3没有经过同一个生产QCLAW包装函数，正常模式也未把子验证器非零传播为顶层非零。
-  当前缺口只涉及一个验证器和四个回执文件，路径和成功标准完全确定，因此继续使用目标模式。
+  R8仍保持正确的两头提交结构，但tested head只修复NT1，NT2、NT3和正常模式的生产包装失败传播没有完成；
+  四份回执又写入了错误task_id、错误完成信号、旧扫描基线、delivery=1和旧时间。
+  缺口完全限定在一个验证器和四个回执文件，因此继续使用目标模式做最后一次有界收口。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 89
 branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
-reviewed_or_base_head: "f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3"
-r7_tested_head: "73e4ff9a889c6f37c6bd26aee7d5309c9f53af3d"
-r7_receipt_head: "f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3"
+reviewed_or_base_head: "1135cf2f2f927bda134ec374a2690396877efb44"
+r8_tested_head: "ed0aab5e31b9013709374fbf207a4a9afd443292"
+r8_receipt_head: "1135cf2f2f927bda134ec374a2690396877efb44"
 direct_main_write: false
 auto_merge: false
-route_epoch: 8
-route_issued_at: "2026-07-25T05:10:00+08:00"
-completion_signal: "WORKBUDDY_PR91_R8_TOPLEVEL_FAILURE_PROPAGATION_AND_MACHINE_RECEIPTS_READY_FOR_GPT_REVIEW"
+
+route_epoch: 9
+route_issued_at: "2026-07-25T09:19:00+08:00"
+completion_signal: "WORKBUDDY_PR91_R9_COMPLETE_TOPLEVEL_FAILURE_PROPAGATION_AND_TRUTHFUL_RECEIPTS_READY_FOR_GPT_REVIEW"
+supersedes:
+  - "WORKBUDDY-PR91-R8-TOPLEVEL-FAILURE-PROPAGATION-AND-MACHINE-RECEIPT-CLOSURE"
+  - "WORKBUDDY-PR91-R8-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -41,43 +45,46 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "R7_STRUCTURE_ACCEPTED_TOPLEVEL_FAILURE_PROPAGATION_AND_RECEIPT_EVIDENCE_R8_REQUIRED"
+  classification: "WORKBUDDY_R8_STRUCTURE_ACCEPTED_ONLY_NT1_FIXED_ROUTE_TRUTH_AND_FAILURE_PROPAGATION_R9_REQUIRED"
   accepted_facts:
-    - "R7 is exactly two commits after the reviewed R6 receipt head."
-    - "R7 tested head changes only INDEPENDENT-VERIFICATION-SCRIPT.py."
-    - "R7 receipt head changes exactly the four authorized receipt files."
-    - "Exact fifteen-file QCLAW manifest checking, strict UTF-8 reads, full task id and exact completion signal are present."
+    - "R8 is exactly two commits after reviewed R7 head f4e03e4e49ef50fd2c81965b2cf391b8c5fd02b3."
+    - "R8 tested head changes only INDEPENDENT-VERIFICATION-SCRIPT.py and R8 receipt head changes exactly four authorized receipt files."
+    - "NT1 now sets top-level EXIT=1 after detecting the injected unsafe content."
     - "No QCLAW semantic result, blocker, 0.491 score or verdict changed."
   blocking_defects:
-    - id: "WB91-R8-D01"
-      fact: "nt1 detects a finding but treats it as PASS and exits 0; the required top-level non-zero behavior is not proven."
-    - id: "WB91-R8-D02"
-      fact: "nt2 directly executes the child validator and exits 0 when the child fails; it does not exercise production wrapper propagation."
-    - id: "WB91-R8-D03"
-      fact: "nt3 directly executes an exit-7 child and exits 0 when the assertion succeeds; it does not prove the production wrapper and top-level process fail."
-    - id: "WB91-R8-D04"
-      fact: "qclaw() records child returncode but normal mode never sets EXIT when the child validator is non-zero or required result fields are absent."
-    - id: "WB91-R8-D05"
-      fact: "The receipts claim per-test stdout/stderr hashes, but TEST-RUN-RECEIPT does not contain them and records findings/child exits rather than actual top-level process exits."
-    - id: "WB91-R8-D06"
-      fact: "The receipt files report delivery=1 from the tested head, not the final reviewed-to-receipt five-file delivery surface."
+    - id: "WB91-R9-D01"
+      fact: "R8 modifies only NT1; NT2 still directly runs a missing-artifact child validator and exits 0 after considering the child failure a PASS."
+    - id: "WB91-R9-D02"
+      fact: "NT3 still directly runs an exit-7 script rather than the production QCLAW wrapper and exits 0 after its assertion succeeds."
+    - id: "WB91-R9-D03"
+      fact: "Normal mode still does not fail top-level on child validator non-zero, missing 37/0/0 result fields, timeout or incomplete extraction."
+    - id: "WB91-R9-D04"
+      fact: "R8 receipt task_id and completion signal do not match the authoritative Epoch 8 lease."
+    - id: "WB91-R9-D05"
+      fact: "R8 receipts retain reviewed baseline f5f25daf, delivery_files=1 and timestamp 04:08 instead of the R8 reviewed head, final five-file surface and current execution time."
+    - id: "WB91-R9-D06"
+      fact: "The receipts claim complete stdout/stderr hashes and an external anchor without recording command-level actual top-level exits or the concrete final receipt SHA."
+
+resource_and_effort:
+  priority_share_percent: 10
+  task_weight: "LIGHT_FINAL_CLOSURE"
+  checkpoints: [50, 100]
 
 required_actions:
-  - "Claim route_epoch 8 from latest remote main before editing."
-  - "Reuse the current branch and Draft PR #91; do not rewrite history or create another PR."
+  - "Claim exact Epoch 9 lease from latest remote main before editing and reuse the current branch and Draft PR #91."
   - "Create one tested head changing only INDEPENDENT-VERIFICATION-SCRIPT.py."
-  - "Use one production scan function and one production QCLAW wrapper for normal and fixture modes."
-  - "In normal mode, any manifest mismatch, git failure, missing extraction, validator timeout, validator non-zero, missing 37/0/0 fields or unsafe finding must make the top-level process non-zero."
-  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt1` must itself return non-zero after the production scanner sees an injected unsafe fixture."
-  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt2` must itself return non-zero after the production wrapper receives a missing-artifact validator failure."
-  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt3` must itself return non-zero after the production wrapper receives validator exit 7."
-  - "Use an uncommitted external harness or shell commands to assert those three commands are non-zero; the harness may return 0 only after verifying expected failures."
-  - "Restore every temporary fixture in finally blocks; restoration failure must be non-zero."
-  - "Record exact commands, expected and actual top-level exits, PASS/FAIL, stdout SHA-256 and stderr SHA-256 for normal, nt1, nt2 and nt3."
-  - "Create one receipt commit changing exactly the four authorized receipt files."
-  - "All receipt files must use exact R8 task_id, completion signal, full tested head, receipt_head_ref: THIS_COMMIT and current timestamps."
-  - "After receipt push, run normal verification at the final receipt head; reviewed-to-receipt scan must cover exactly five changed files unless Git independently proves another exact count."
-  - "Post the concrete receipt SHA, full final scan hashes, command hashes and epoch-8 pre-completion revalidation to PR #91 and Issues #89/#31."
+  - "Refactor normal, nt2 and nt3 to use the same production QCLAW extraction/execution/result-validation wrapper; fixtures may alter inputs or validator bytes but may not bypass the wrapper."
+  - "Normal mode must return non-zero on unsafe findings, git rev-parse/diff/ls-tree/show failures, manifest mismatch, unreadable or decode-failed files, missing artifact, extraction failure, timeout, validator non-zero, missing PASS/FAIL/SKIP fields, or any result other than exactly 37 PASS / 0 FAIL / 0 SKIP."
+  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt1` must itself return non-zero because an unsafe fixture is detected."
+  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt2` must itself return non-zero because the production wrapper sees a missing required QCLAW artifact."
+  - "Command `python INDEPENDENT-VERIFICATION-SCRIPT.py nt3` must itself return non-zero because the production wrapper executes a temporary validator that exits 7."
+  - "Restore all temporary fixtures in finally blocks; restoration failure must be non-zero and recorded."
+  - "Use an uncommitted external harness to run normal, nt1, nt2 and nt3; the harness may return 0 only after confirming normal=0 and all three negative commands are non-zero."
+  - "For each command record exact command/mode, expected exit condition, actual top-level exit, PASS/FAIL, complete stdout SHA-256 and stderr SHA-256."
+  - "Create a later receipt commit changing exactly the four authorized receipt files and no verifier code."
+  - "Use the exact Epoch 9 task_id, completion signal, full tested head, receipt_head_ref: THIS_COMMIT, reviewed head 1135cf2f2f927bda134ec374a2690396877efb44 and current timestamps in every receipt."
+  - "After receipt push, run normal verification at the final receipt head and scan the complete reviewed-to-receipt surface; it must contain exactly five changed files unless Git proves and explains a different exact count."
+  - "Post the concrete full receipt SHA, exact five-file manifest, final scan/output hashes and Epoch 9 pre-completion revalidation to PR #91 and Issues #89/#31."
   - "Stop for GPT review."
 
 allowed_changed_files:
@@ -89,15 +96,28 @@ allowed_changed_files:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/AI_HANDOFF.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
 
+acceptance_gates:
+  - "Reviewed→tested changes exactly the one verifier; tested→receipt changes exactly the four receipt files."
+  - "Normal command exits 0 only for complete clean 37/0/0 evidence; nt1, nt2 and nt3 commands themselves each exit non-zero."
+  - "NT2 and NT3 prove failure through the same production wrapper used by normal mode."
+  - "Every command has exact top-level exit plus complete stdout/stderr SHA-256."
+  - "All four receipts use exact Epoch 9 route truth and record the final reviewed→receipt five-file surface."
+  - "Concrete receipt SHA is externally anchored after push and no later commit exists."
+  - "No QCLAW semantic, source, replay, backtest, account, order or trade action occurs."
+
+next_queued_after_acceptance:
+  status: "QUEUED_NOT_ACTIVE"
+  purpose: "Independent machine audit of PR #95 and PR #96 may be assigned only after GPT accepts PR #91 R9."
+
 forbidden:
   - "No helper, generator, copied validator or raw-output file committed to Git."
-  - "No child-only test or PASS-with-exit-0 presented as top-level failure propagation proof."
+  - "No child-only test, regex-only test or PASS-with-exit-0 presented as top-level failure proof."
   - "No history rewrite, force push, semantic rescore or deletion of negative evidence."
-  - "No modification of PR #84/#77/#79/#90/#93 or Codex/QCLAW branches."
+  - "No modification of PR #84/#77/#79/#90/#93/#95/#96 or other agent branches."
   - "No Issue #92 execution, source access, labels, replay, backtest, account, order or trade."
   - "No merge or auto-merge."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T05:10:00+08:00"
+updated_at: "2026-07-25T09:19:00+08:00"
