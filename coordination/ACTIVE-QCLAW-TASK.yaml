@@ -1,4 +1,4 @@
-schema_version: "11.0"
+schema_version: "12.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -13,129 +13,138 @@ long_term_role:
   canonical_role: "KNOWLEDGE_DIGESTION_ATOMIZATION_MEMORY_INDEXING_AND_CONTEXT_SUPPLY_ENGINE"
   authority_issue: 81
   primary_build_issue: 59
-  memory_retrieval_issue: 60
-  gateway_integration_issue: 38
-  lifecycle_mode: "BUILD_MODE_QUOTA_RESTORED"
+  lifecycle_mode: "BUILD_MODE_QUOTA_AVAILABLE"
 
 active_issue: 59
-task_id: "QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0"
+related_issue: 23
+source_pull_request: 93
+pull_request: 96
+task_id: "QCLAW-PR96-R1-SEMANTIC-HYGIENE-TWO-RUN-DETERMINISM-AND-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #93市场主体专家经验原子化、冲突校验与对抗评测包Q0"
+mode_label: "【QCLAW模式：目标模式】PR #96市场主体知识包语义卫生、两次确定性验证与回执收口R1"
 mode_reason: >-
-  QQ每日算力已经恢复，应回归知识消化主职。当前输入边界明确：冻结读取PR #93及既有多智能体蓝图，
-  将圈内经验拆成可追溯知识原子、关系、利益冲突、反证、UNKNOWN和验证任务，并生成供GPT与Codex后续消费的
-  LearningPacket和对抗评测包。不得修改PR #93、不得建立交易模型运行时，因此使用目标模式。
+  PR #96已经形成99个知识原子、152条关系和64道对抗问题，候选内容具有保留价值；
+  当前缺口集中在公开本机路径、自引用/截断哈希、来源blob身份错误、缺两次运行证据、严格解析不足，
+  以及少数关于稳定资金、外资流量和可信度权重的过度断言。目标和文件面明确，不重做知识消化，因此使用目标模式。
 status: "READY"
 execution_allowed: true
 daily_compute_status: "AVAILABLE_RESTORED"
+blocked_by: "none"
 parent_program: 31
 source_issue: 59
-related_issue: 23
-source_pull_request: 93
 branch: "qclaw/participant-evidence-digest-0010-q0"
+reviewed_or_base_head: "a16e241a027f018a735cd2ae8a63093b57d9c2ff"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 1
-route_issued_at: "2026-07-25T04:32:00+08:00"
-completion_signal: "QCLAW_PR93_PARTICIPANT_EVIDENCE_DIGEST_Q0_READY_FOR_GPT_REVIEW"
+route_epoch: 2
+route_issued_at: "2026-07-25T09:17:00+08:00"
+completion_signal: "QCLAW_PR96_R1_SEMANTIC_HYGIENE_TWO_RUN_DETERMINISM_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
+supersedes:
+  - "QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0@route_epoch:1"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal]
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
-resource_and_effort:
-  priority_share_percent: 30
-  task_weight: "MEDIUM_HEAVY"
-  research_trigger: "L2_KNOWLEDGE_DIGESTION_AND_ADVERSARIAL_VALIDATION"
-  checkpoints: [20, 40, 60, 80, 100]
-  primary_delivery_percent: 85
-  discovery_percent: 10
-  system_evolution_proposal_percent: 5
+review_disposition:
+  classification: "QCLAW_Q0_CONTENT_CANDIDATE_ACCEPTED_SEMANTIC_HYGIENE_REPRODUCIBILITY_AND_RECEIPT_R1_REQUIRED"
+  accepted_facts:
+    - "PR #96 head a16e241a027f018a735cd2ae8a63093b57d9c2ff contains all sixteen requested Q0 artifact names under the authorized directory."
+    - "The package contains 99 candidate atoms, 152 candidate relations and 64 adversarial questions, above the minimum count thresholds."
+    - "It separates source access advantage from source authority and preserves counterevidence, UNKNOWNs, failure conditions and candidate-only identity handling."
+    - "It does not modify PR #93 or create a trading runtime, signal, position, replay, backtest or order path."
+  blocking_defects:
+    - id: "QQ96-R1-D01"
+      fact: "TEST-RUN-RECEIPT publicly exposes the absolute Windows workspace path C:/Users/Administrator/.openclaw/... while the package declares PUBLIC_SAFE."
+    - id: "QQ96-R1-D02"
+      fact: "The receipt names gen_atoms.py, gen_relations.py and gen_deliverables.py, but those programs are absent from the PR, so the claimed generation is not independently reproducible."
+    - id: "QQ96-R1-D03"
+      fact: "Receipt hashes are truncated with ellipses and AI_HANDOFF hashes itself and TEST-RUN-RECEIPT inside a combined sixteen-file hash, creating an unverifiable self-referential final-state claim."
+    - id: "QQ96-R1-D04"
+      fact: "Deterministic IDs are asserted without two independent recomputation runs, exact commands, actual exits or stdout/stderr hashes."
+    - id: "QQ96-R1-D05"
+      fact: "SOURCE-MANIFEST uses the PR commit SHA as each source file's frozen_git_blob instead of recording the actual per-file Git blob identity or an honest NOT_CAPTURED status."
+    - id: "QQ96-R1-D06"
+      fact: "Semantic hygiene defects remain: stabilization capital is assigned 'unlimited liquidity'; foreign-capital signatures assume northbound daily net buying/selling availability; numeric credibility adjustments are uncalibrated; MARKET_OUTLOOK references/counts conflict."
+    - id: "QQ96-R1-D07"
+      fact: "AI_HANDOFF misstates QCLAW's primary role as the multi-agent game engine and proposes downstream integration before GPT acceptance."
 
-frozen_inputs:
-  pr93:
-    head: "d3296ece7b7ec56414fb60b1ac497530b188a258"
-    status: "DRAFT_CANDIDATE_SOURCE_NOT_MERGED_NOT_AUTHORITY"
-    files:
-      - "coordination/BLUEPRINTS/A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md"
-      - "coordination/BLUEPRINTS/EXPERT-SOURCE-PROFILES/XINDUODUO-LIUXIN-2026-07.yaml"
-      - "coordination/BLUEPRINTS/PARTICIPANT-INSIDER-EVIDENCE-INTEGRATION-MANIFEST-v1.0.yaml"
-  canonical_context:
-    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md"
-    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md"
-    - "Issue #23 body and all comments"
-    - "Issue #59 atomization principles and schemas"
+resource_and_effort:
+  priority_share_percent: 25
+  task_weight: "MEDIUM"
+  research_trigger: "L2_KNOWLEDGE_DIGESTION_AND_ADVERSARIAL_VALIDATION"
+  checkpoints: [25, 50, 75, 100]
+  main_delivery_percent: 90
+  discovery_percent: 7
+  system_evolution_proposal_percent: 3
 
 first_principles_goal: >-
-  Preserve the source's useful access advantage without inheriting its incentives or narrative certainty by splitting every statement
-  into minimal complete semantic atoms with perspective, interest, verifiability, time scope, evidence status, counterevidence,
-  failure conditions and validation routes, then supply a deterministic candidate packet rather than a truth verdict.
+  Preserve the useful knowledge structure while ensuring every ID, source pointer, hash, classification and downstream handoff can be independently
+  recomputed without local-path disclosure, self-reference, invented authority or unsupported participant claims.
 
 required_actions:
-  - "Claim route_epoch 1 before reading or writing."
-  - "Read the exact frozen PR #93 head and verify the three-file source surface."
-  - "Classify claims at minimum as SELF_ATTRIBUTION, OTHER_ACTOR_OBSERVATION, MARKET_STRUCTURE, MARKET_OUTLOOK or NORMATIVE_ADVICE."
-  - "Separate source-access advantage from source authority and record conflict-of-interest, positioning, reputation and reflexivity risks."
-  - "Map nine participant categories into the existing four-family ontology without creating nine rigid identity agents."
-  - "Generate FACT/CLAIM/HYPOTHESIS/CAUSAL_CLAIM/CONSTRAINT/EXCEPTION/COUNTEREXAMPLE/RISK/UNKNOWN/VALIDATION_TASK atoms."
-  - "Retain source wording by pointer or bounded excerpt while preventing narrative text from becoming an executable signal."
-  - "Produce explicit SUPPORTS, CONTRADICTS, REFINES, DEPENDS_ON, FAILS_WHEN, RAISES_UNKNOWN and VERIFIED_BY relations."
-  - "Create adversarial questions that test self-serving attribution, identity overreach, market-outlook leakage, correlation-to-causation and participant-family misclassification."
-  - "Run secret-value and public-safety scans over the complete delivered surface."
+  - "Claim exact Epoch 2 lease and reuse the existing PR #96 branch; do not create a replacement PR."
+  - "Preserve the original candidate package and record every semantic or count change in AMENDMENT-LOG.yaml with before/after reason and affected IDs."
+  - "Replace every physical local path with a stable alias such as <QCLAW_WORKSPACE>; scan the complete final delivery surface for local paths and credential values."
+  - "Correct SOURCE-MANIFEST: keep PR #93 full commit head separate from each source file's exact git blob SHA; if a blob cannot be captured, write NOT_CAPTURED rather than copying the commit SHA."
+  - "Add validate_q0.py that strictly parses YAML with duplicate-key rejection, JSON and JSONL; verifies unique IDs, source pointers, relation endpoints, expected/forbidden keys, thresholds, semantic constraints and full file hashes."
+  - "Run validate_q0.py twice from clean temporary output directories or equivalent isolated recomputation contexts; compare complete atom IDs, relation IDs, question IDs and normalized hashes."
+  - "Record both run commands, Python/PyYAML versions if used, expected/actual exits, counts, full stdout SHA-256 and stderr SHA-256 in R1-TWO-RUN-DETERMINISM-RECEIPT.yaml."
+  - "Use a true two-head model: tested head contains semantic corrections and validator; receipt head changes only authorized receipt/meta files and uses receipt_head_ref: THIS_COMMIT."
+  - "Do not hash a file as authoritative evidence of its own final contents. Hash the tested-head package excluding receipt-only files, then externally anchor the concrete receipt head after push."
+  - "Replace truncated hashes with complete 64-hex SHA-256 values and state the exact ordered file set and normalization algorithm."
+  - "Replace '无限流动性' with a bounded, policy-dependent capacity hypothesis carrying legal, mandate, timing and observability UNKNOWNs."
+  - "Make foreign-capital observability versioned and availability-aware; do not assume current daily northbound net-flow disclosure, and separate aggregate public activity from actor identity."
+  - "Convert uncalibrated numerical credibility adjustments into symbolic candidate effects or mark parameter_status: UNKNOWN_UNCALIBRATED; no numeric weight becomes canonical."
+  - "Reconcile MARKET_OUTLOOK atom references and distribution counts; every outlook remains LOW/UNKNOWN, non-signal and isolated from structural FACT records."
+  - "Correct canonical role to knowledge digestion, atomization, memory indexing and context supply; downstream Codex/WorkBuddy use remains blocked until GPT accepts the packet."
+  - "Remove any validation task that attempts person/account matching; use aggregate official/regulatory evidence and preserve anonymity, uncertainty and misclassification risk."
+  - "Create a receipt-only commit and externally anchor the final full receipt SHA, tested head, exact commands, complete hashes and Epoch 2 revalidation in PR #96 and Issues #59/#31."
+  - "Stop for GPT review."
 
-mandatory_deliverables:
-  base_directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/"
-  files:
-    - "SOURCE-MANIFEST.yaml"
-    - "CLAIM-PERSPECTIVE-LEDGER.yaml"
-    - "KNOWLEDGE-ATOMS.jsonl"
-    - "KNOWLEDGE-RELATIONS.jsonl"
-    - "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml"
-    - "CREDIBILITY-CONFLICT-AND-ACCESS-ADVANTAGE-MATRIX.yaml"
-    - "COUNTEREVIDENCE-AND-FAILURE-CONDITIONS.yaml"
-    - "UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml"
-    - "ADVERSARIAL-QUESTION-SET.jsonl"
-    - "EXPECTED-AND-FORBIDDEN-RETRIEVAL-KEYS.yaml"
-    - "LEARNING-PACKET.json"
-    - "ATOMIZATION-DECISION-LOG.yaml"
-    - "QUALITY-GATE-REPORT.md"
-    - "TEST-RUN-RECEIPT.md"
-    - "QCLAW-FEEDBACK-v2.yaml"
-    - "AI_HANDOFF.yaml"
+allowed_changed_files:
+  tested_head:
+    existing_files: "All sixteen files present at reviewed head a16e241a027f018a735cd2ae8a63093b57d9c2ff under the exact Q0 directory may be corrected only for semantic hygiene, source identity and deterministic validation."
+    new_files_only:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/validate_q0.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AMENDMENT-LOG.yaml"
+  receipt_head_only:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/TEST-RUN-RECEIPT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QUALITY-GATE-REPORT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QCLAW-FEEDBACK-v2.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
+  forbidden_new_files: "No raw source copy, local log, generator scratch file, private data, runtime, database or trading component."
 
-minimum_quality_gates:
-  - "At least 80 non-duplicate semantic atoms across all required types."
-  - "At least 120 explicit relations, including contradiction and failure-condition edges."
-  - "At least 60 adversarial questions with expected atoms, forbidden atoms, required UNKNOWN/conflict and allowed abstention."
-  - "Every market outlook claim is isolated from structural facts and marked non-signal."
-  - "Every participant identity inference is candidate-only and includes misclassification risk."
-  - "Every claimed metric or score records missing evidence and required validation, not a fabricated parameter."
-  - "Deterministic IDs and hashes reproduce across two runs."
-  - "All JSON/JSONL/YAML parses; duplicate keys and broken source pointers fail closed."
+acceptance_gates:
+  - "Every YAML/JSON/JSONL file parses strictly and duplicate keys fail closed."
+  - "Two isolated recomputation runs produce identical complete atom, relation and question ID sets and identical tested-package hashes."
+  - "Every source file has exact commit and blob provenance or explicit NOT_CAPTURED; no commit SHA is mislabeled as a blob SHA."
+  - "No absolute local path, credential value, person/account matching task or self-referential final hash remains."
+  - "99/152/64 counts are either reproduced exactly or every justified delta is recorded and remains above minimum thresholds."
+  - "All numeric credibility parameters are source-backed or UNKNOWN_UNCALIBRATED; no fabricated calibration."
+  - "Market outlook, participant identity and northbound/public-flow statements remain candidate-only, availability-aware and non-signal."
+  - "Receipt files use exact Epoch 2 task ID/signal, full tested head, THIS_COMMIT and complete command/output hashes."
 
 parallel_firewall:
-  codex_task: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1"
-  rule: >-
-    QCLAW writes only its own QCLAW-PARTICIPANT-EVIDENCE-DIGEST directory and must not modify Codex files, Issue #23 plans,
-    PR #93 or any simulator/runtime. Codex may reserve an integration slot but does not consume unaccepted QCLAW output until GPT review.
-  workbuddy_rule: "Do not modify PR #91 or WorkBuddy receipt/verifier files."
+  codex_pr95: "May be read only as an unaccepted parallel candidate; do not edit or claim integration."
+  workbuddy_pr91: "Do not modify or depend on unfinished R9 evidence."
+  pr93: "Frozen candidate input; no edit or merge."
 
 forbidden:
-  - "No merge or edit of PR #93."
-  - "No claim that the public article, author wealth, loss or reputation proves market facts."
-  - "No deterministic real identity assignment from behavior traces."
-  - "No direct trading signal, position recommendation, replay, backtest, account, order or performance claim."
-  - "No new canonical memory store, retrieval runtime or parallel database."
-  - "No modification of Codex or WorkBuddy branches."
+  - "No merge, auto-merge, direct main write or history rewrite."
+  - "No new canonical memory/runtime/schema authority or implementation ownership."
+  - "No source activation, person/account identification, signal, recommendation, replay, backtest, performance claim, account, order or trade."
+  - "No modification of Codex, WorkBuddy or PR #93 branches."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T04:32:00+08:00"
+updated_at: "2026-07-25T09:17:00+08:00"
