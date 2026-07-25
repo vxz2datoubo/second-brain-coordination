@@ -1,4 +1,4 @@
-schema_version: "10.1"
+schema_version: "10.2"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -8,100 +8,114 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
-pull_request: 95
-task_id: "CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE"
+pull_request: null
+task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D1-SYNTHETIC-RULES-MVP"
 mode: "target"
-mode_label: "【Codex模式：目标模式】PR #95远端发布证明与最终回执收口R3"
+mode_label: "【Codex模式：目标模式】A股多智能体博弈引擎D1确定性合成规则MVP"
 mode_reason: >-
-  PR #95 R2已经把D0-D6任务图、A股合成状态机、十二夹具、二十不变量、候选行动合同、
-  校准与反过拟合门、公开路径别名和完整性矩阵补到可继续施工的水平。剩余问题只在远端发布证明和
-  最终回执身份：当前publication receipt仍为PENDING，主要记录上一轮树一致性，且receipt之后又出现一次空格修正提交。
-  文件面和成功标准完全确定，因此改用目标模式做一次四文件收口，不再扩写蓝图或启动D1。
+  PR #95 D0企业蓝图和R3远端发布闭环已经通过GPT复核。D1目标、状态语义、夹具和失败门已在D0明确，
+  但具体纯函数实现、接口拆分和测试路径仍需基于真实仓库多轮验证，因此使用目标模式，而不是重新制作项目计划。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
-branch: "codex/a-share-multi-agent-game-engine-0001-d0"
-reviewed_or_base_head: "653fcff04ba5fa7701c943596189371251b0c6a7"
+branch: "codex/a-share-multi-agent-game-engine-0001-d1-synthetic-rules"
+stacked_base_branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+accepted_d0_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
+reviewed_or_base_head: "e979f109225bf2d6f00a7890d79df3684dc9e129"
+remote_main_at_release: "74bf492e31dc3d9c727362f3512de1ad47d3b2cb"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 4
-route_issued_at: "2026-07-25T10:35:00+08:00"
-completion_signal: "CODEX_PR95_R3_REMOTE_PUBLICATION_PROOF_AND_FINAL_RECEIPTS_READY_FOR_GPT_REVIEW"
+route_epoch: 5
+route_issued_at: "2026-07-25T15:30:00+08:00"
+completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D1_SYNTHETIC_RULES_MVP_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE@route_epoch:3"
+  - "CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE@route_epoch:4"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "CODEX_R2_ENTERPRISE_D0_SUBSTANCE_ACCEPTED_REMOTE_PUBLICATION_AND_FINAL_RECEIPT_R3_REQUIRED"
+  classification: "PR95_D0_ENTERPRISE_PLAN_AND_R3_PUBLICATION_ACCEPTED_CODEX_RELEASED_TO_D1"
   accepted_facts:
-    - "R2 preserves the exact D0 root and adds only the two authorized new files."
-    - "WORKBREAKDOWN now defines D0-D6 owners, inputs, outputs, prerequisites, effort, tests, rollback and stop conditions."
-    - "The microstructure plan defines state tuples, phase transitions, validity/matching/no-fill semantics, twelve fixtures and twenty invariants."
-    - "The action contract retains units, UNKNOWNs, competing hypotheses, abstention and forbidden downstream use."
-    - "Physical local paths were replaced by stable public aliases; no runtime, source, replay, backtest, MARL, account, order or trade path was created."
-  blocking_defects:
-    - id: "CX95-R3-D01"
-      fact: "REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT remains R2_TESTED_PENDING_EXTERNAL_ANCHOR and mostly records the prior R1 publication history rather than the current R2 remote chain."
-    - id: "CX95-R3-D02"
-      fact: "The current receipt does not record the concrete current remote parent/tree identities, equality commands and normalized stdout/stderr hashes required by the Epoch 3 contract."
-    - id: "CX95-R3-D03"
-      fact: "A later whitespace-only commit followed the receipt-document commit, so THIS_COMMIT references and the asserted final receipt boundary are no longer unambiguous."
-    - id: "CX95-R3-D04"
-      fact: "The completion comment externally anchors the final SHA but omits the current tree-equality proof and full command hashes."
+    - "PR #95 final head e979f109225bf2d6f00a7890d79df3684dc9e129 is exactly one four-receipt-file commit after reviewed D0 head 653fcff04ba5fa7701c943596189371251b0c6a7."
+    - "The accepted D0 package defines D0-D6 ownership, state tuples, phase transitions, order validity, matching/no-fill, T+1 inventory, twelve fixtures and twenty invariants."
+    - "The final receipt was externally anchored with parent 653fcff04ba5fa7701c943596189371251b0c6a7 and tree df072188dc2a6ccc80f75431b399fcd818d44ef1; no later commit exists."
+    - "No source activation, replay, backtest, MARL, account, order or trade path was created."
 
 resource_and_effort:
-  priority_share_percent: 15
-  task_weight: "LIGHT_RECEIPT_CLOSURE"
-  checkpoints: [50, 100]
+  priority_share_percent: 60
+  task_weight: "HEAVY_IMPLEMENTATION"
+  checkpoints: [15, 30, 50, 70, 85, 100]
+  main_delivery_percent: 88
+  proactive_discovery_percent: 8
+  system_evolution_proposal_percent: 4
+  max_parallel_subplans: 3
+
+first_principles_goal: >-
+  Implement the smallest deterministic synthetic A-share rule engine that can prove state, feasibility, inventory and no-fill semantics
+  without real data, identity inference, profitability claims or executable trading output.
 
 required_actions:
-  - "Claim exact Epoch 4 from latest remote main and reuse the current branch and Draft PR #95."
-  - "Do not change any blueprint, ontology, task graph, schema, risk, UNKNOWN, compute, simulator or action-contract content."
-  - "Create exactly one receipt-only commit changing exactly the four authorized files and no others."
-  - "Treat reviewed head 653fcff04ba5fa7701c943596189371251b0c6a7 as the accepted substantive/tested content boundary."
-  - "Record the concrete reviewed head parent SHA and tree SHA, the new receipt commit parent and tree identities, and any local/API counterpart identities without claiming different commit SHAs are identical."
-  - "Run exact Git commands that establish ancestry, changed-file allowlist and tree identity; record command text, actual exit, normalized stdout SHA-256 and stderr SHA-256."
-  - "Record the exact reviewed-to-receipt four-file manifest and verify no other file changed."
-  - "Run final complete local-path, credential-value and git-diff checks over the R2 reviewed surface and the R3 four-file receipt delta; preserve exact counts and hashes."
-  - "Use receipt_head_ref: THIS_COMMIT inside receipts; after push externally anchor the concrete receipt SHA in PR #95 and Issues #23/#31."
-  - "The external anchor must include remote main at claim and pre-completion revalidation, reviewed head, receipt SHA, parent/tree SHAs, exact commands/exits/hashes and the completion signal."
-  - "No later whitespace, typo or metadata commit is allowed after the externally anchored receipt commit."
-  - "Stop for GPT review. D1 remains blocked until a separate explicit GPT/user route."
+  - "Claim exact Epoch 5 from latest remote main; create a new isolated branch from accepted D0 head e979f109225bf2d6f00a7890d79df3684dc9e129."
+  - "Create a stacked Draft PR whose base is codex/a-share-multi-agent-game-engine-0001-d0; do not add D1 commits to PR #95."
+  - "Use only the new D1 root coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/."
+  - "Implement a standard-library-only pure state reducer. Synthetic OrderIntent is a research object and must never connect to broker/account/order APIs."
+  - "Define explicit immutable contracts for RuleSnapshot, SecurityStatus, MarketState, AgentState, InventoryState, InformationSet, SyntheticOrderIntent, FeasibilityResult and SyntheticMatchOutcome."
+  - "Support pre_open, call_auction, continuous_auction, midday_break, closing_auction, halted and post_close transitions; unsupported transitions fail closed."
+  - "Validate in this order: source capability/available_at, rule snapshot/security status, phase/halt, price limit/order validity, fresh-seasoned-pending inventory, quantity/capacity and declared synthetic matching rule."
+  - "Model outcomes only as filled, partially_filled, unfilled_cancelled, unfilled_carried, unknown_outcome or invalid_or_blocked. No queue position, participant identity or true exchange matching detail may be inferred."
+  - "Implement T+1 inventory separation: seasoned_quantity, fresh_quantity, locked_quantity, pending quantities and explicit cross-day settlement transition."
+  - "UNKNOWN rule, status, capability, unit or inventory prerequisites must return abstain/invalid_or_blocked; no UNKNOWN-to-zero coercion."
+  - "Provide at least twelve executable fixtures covering call auction, continuous partial/no fill, halt, limit, fresh-lot sell rejection, seasoned sale, cross-day transition, stale/UNKNOWN rules and competing latent hypotheses."
+  - "Provide at least twenty executable invariants including inventory conservation, non-negative buckets, phase legality, no fill while halted/break, no future leakage, deterministic equal-input output, no identity promotion and no direct order output."
+  - "Add negative tests for malformed snapshots, unsupported transitions, missing available_at, missing security status, invalid quantities, illegal fresh sale and nondeterministic repeated execution."
+  - "Document every assumption and remaining UNKNOWN; do not hard-code current exchange numeric rules as timeless facts."
+  - "Run the full fixture/invariant suite twice in isolated temporary directories and require byte-identical normalized outputs."
+  - "Create a tested implementation commit and a later receipt-only commit. Externally anchor the concrete receipt SHA after push."
+  - "Stop for GPT review; D2 data admission, replay, calibration, Level-k, self-play and MARL remain blocked."
 
-allowed_changed_files:
-  receipt_commit_only:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/TEST-RUN-RECEIPT.md"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/AI_HANDOFF.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+required_outputs:
+  root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D1/"
+  minimum_files:
+    - "README.md"
+    - "contracts.py"
+    - "synthetic_rules_engine.py"
+    - "fixtures.yaml"
+    - "test_synthetic_rules.py"
+    - "validate_d1.py"
+    - "D1-UNKNOWN-REGISTRY.yaml"
+    - "D1-TEST-RUN-RECEIPT.md"
+    - "CODEX-FEEDBACK-v2.yaml"
+    - "AI_HANDOFF.yaml"
+  maximum_total_files: 20
+  forbidden_files: [raw_market_data, copied_private_blueprint, generated_binary, notebook_checkpoint, broker_adapter, live_order_adapter]
 
 acceptance_gates:
-  - "Exactly one new commit exists after reviewed head and it changes exactly the four authorized receipt files."
-  - "Current R3 publication proof contains concrete parent/tree identities and command-level exits/stdout/stderr hashes."
-  - "Receipts use the exact Epoch 4 task ID and completion signal, reviewed head, THIS_COMMIT and current timestamps."
-  - "Concrete receipt SHA is externally anchored after push and no later commit exists."
-  - "The substantive R2 D0 blueprint remains byte-unchanged."
-  - "No runtime, source activation, replay, backtest, MARL, performance claim, account, order or trade action occurs."
+  - "All D1 changes are confined to the exact D1 root and the stacked PR is based on the accepted D0 branch."
+  - "Pure deterministic engine and all tests run with Python standard library plus PyYAML only if already available; no network or market data is required."
+  - "At least twelve fixtures and twenty invariants execute, not merely appear in prose."
+  - "Normal test command exits 0 only when all fixtures/invariants pass; every negative fixture fails closed for the expected reason."
+  - "Two isolated runs have identical normalized output hashes."
+  - "No source activation, replay, backtest, performance claim, participant identity, broker, account, order, position or trade action occurs."
+  - "Tested-to-receipt diff contains receipt/meta files only; concrete receipt SHA is externally anchored and no later commit exists."
 
 forbidden:
-  - "No blueprint deepening, new file, helper, generator, raw output or runtime change."
-  - "No merge, auto-merge, direct main write, force push or history rewrite."
-  - "No modification of QCLAW, WorkBuddy, PR #90, PR #93 or PR #96 branches."
-  - "No source activation, labels, replay, backtest, MARL, account, order, position or trade."
+  - "No modification of PR #95, PR #96, PR #91, PR #93 or another agent branch."
+  - "No direct main write, merge, auto-merge, force push or history rewrite."
+  - "No real source, historical replay, backtest, MARL, model training, performance claim, account, broker, order or trade."
+  - "No claim that synthetic feasibility predicts profitability, true participant identity or actual market intent."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T10:35:00+08:00"
+updated_at: "2026-07-25T15:30:00+08:00"
