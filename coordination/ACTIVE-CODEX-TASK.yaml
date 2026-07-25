@@ -1,4 +1,4 @@
-schema_version: "9.1"
+schema_version: "10.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -8,31 +8,30 @@ target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
-task_id: "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1"
+pull_request: 95
+task_id: "CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE"
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】A股异质交易者多智能体博弈引擎D0整体规划与蓝图集成R1"
+mode_label: "【Codex模式：项目计划模式】PR #95多智能体博弈引擎企业级深度、公开路径与远端发布回执R2"
 mode_reason: >-
-  本任务横跨A股交易制度、市场微观结构、异质主体本体、隐藏类型与后验概率、对手建模、
-  Level-k与自博弈、反事实仿真、真实回放校准、优势弱点动态激活、主体证据治理以及三份受保护总蓝图回写。
-  目标清晰但实现路径、现有模块复用和数据条件仍存在大量UNKNOWN，因此必须先基于真实仓库建立
-  可恢复、可更新、分阶段的项目计划，不直接进入大规模MARL或生产交易实现。
+  PR #95已经建立正确的单一目录、潜在身份、A股约束、证据治理、NO_TRADE和蓝图回写骨架，
+  但50个文件仅约1074行，多份关键计划只有5至30行，仍不足以作为可恢复、可拆分、可验收的企业级施工蓝图；
+  同时公开包泄露本机绝对路径，远端API发布head与本地tested/receipt head缺少机器可读映射。
+  本轮目标不是实现运行时，而是把已接受骨架加深为可执行项目计划并闭合公开与发布证据，因此继续使用项目计划模式。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
-pull_request: null
 branch: "codex/a-share-multi-agent-game-engine-0001-d0"
-reviewed_or_base_head: "742bf80c48087f1062886e2c437f2063a5359e5f"
+reviewed_or_base_head: "150e339a98ba07a70a369c33d46a10b077707cee"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 2
-route_issued_at: "2026-07-25T06:50:00+08:00"
-completion_signal: "CODEX_A_SHARE_MULTI_AGENT_GAME_ENGINE_D0_INTEGRATED_PLAN_READY_FOR_GPT_REVIEW"
+route_epoch: 3
+route_issued_at: "2026-07-25T09:15:00+08:00"
+completion_signal: "CODEX_PR95_R2_ENTERPRISE_DEPTH_PUBLIC_PATH_AND_REMOTE_PUBLICATION_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-PR90-R2-STRUCTURED-RULE-REGISTER-AND-REPRODUCIBLE-RECEIPT-CLOSURE"
-  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1@route_epoch:1_INCOMPLETE_CONTROL_PACKET"
+  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1@route_epoch:2"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -44,230 +43,109 @@ pre_completion_revalidation:
   exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
-dependencies:
-  issue_22: "COMPLETED"
-  issue_26: "COMPLETED"
-  pr_29: "MERGED"
-  pr_93: "DRAFT_CANDIDATE_INPUT_ONLY_NOT_BLOCKING"
-  qclaw_parallel_packet: "PARALLEL_NOT_BLOCKING_D0"
-  workbuddy_pr91: "PARALLEL_NOT_BLOCKING_D0"
-
-cleared_dependencies:
-  - "Issue #22 is closed as completed."
-  - "Issue #26 is closed as completed."
-  - "PR #29 is merged into main."
-  - "The former QUEUED dependency gate on Issue #23 is therefore cleared."
-
-task_weight: "HEAVY"
-research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
-exploration_budget:
-  main_delivery_percent: 85
-  proactive_discovery_percent: 10
-  system_evolution_proposal_percent: 5
-  max_parallel_subplans: 3
-  no_scope_expansion_without_gpt: true
+review_disposition:
+  classification: "CODEX_D0_STRUCTURAL_SCAFFOLD_ACCEPTED_ENTERPRISE_DEPTH_PUBLIC_PATH_AND_REMOTE_RECEIPT_R2_REQUIRED"
+  accepted_facts:
+    - "PR #95 head 150e339a98ba07a70a369c33d46a10b077707cee contains exactly 50 changed paths under the single authorized D0 root."
+    - "The package preserves latent participant identity, alternative hypotheses, counterevidence, A-share feasibility constraints and NO_TRADE boundaries."
+    - "The package reuses existing source/evidence, data-governance and research-validation owners instead of creating a second runtime."
+    - "All named ontology, action, risk, UNKNOWN, integration, protected-backwrite and AMED artifact families are present."
+    - "PR #93 remains candidate-only and no source, replay, backtest, MARL, account, order or trade path was activated."
+  blocking_defects:
+    - id: "CX95-R2-D01"
+      fact: "The heavy enterprise plan is materially underdeveloped: PROJECT-PLAN is about 20 lines, microstructure plan 7 lines, validation and compute plans 5 lines each, and many gates are generic slogans rather than executable acceptance contracts."
+    - id: "CX95-R2-D02"
+      fact: "CURRENT-SYSTEM-GAP-AUDIT publicly contains F:/aidanao absolute paths while the package declares PUBLIC_SAFE; the scan did not include a complete local-path category."
+    - id: "CX95-R2-D03"
+      fact: "The public branch was constructed through Git Data API at head 150e339..., while committed receipts anchor local tested/receipt heads; no dedicated machine-readable tree-equality and remote-publication receipt reconciles the two histories."
+    - id: "CX95-R2-D04"
+      fact: "TEST-RUN-RECEIPT contains incomplete command-level evidence: later validators/scans lack complete normalized stdout/stderr hashes, and its table still says PENDING_FINAL_RECHECK while prose claims final PASS."
+    - id: "CX95-R2-D05"
+      fact: "Phase plans lack task-level inputs, outputs, owners, dependencies, effort, acceptance gates, rollback, stop conditions, fixtures and invariant matrices required for independent continuation."
 
 resource_and_effort:
-  priority_share_percent: 60
-  task_weight: "HEAVY"
+  priority_share_percent: 65
+  task_weight: "HEAVY_PLUS"
   research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
   checkpoints: [20, 40, 60, 80, 100]
-  primary_delivery_percent: 85
-  discovery_percent: 10
-  system_evolution_proposal_percent: 5
-
-amed_task_contract:
-  task_weight: "HEAVY"
-  research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
-  exploration_budget:
-    main_delivery_percent: 85
-    proactive_discovery_percent: 10
-    system_evolution_proposal_percent: 5
-  unplanned_improvement_permissions:
-    A_DIRECT: "Mechanical corrections and clarifications inside the authorized D0 delivery directory."
-    B_IMPLEMENT_AND_REPORT: "Small read-only audit scripts or temporary local checks that are not committed and do not touch real data."
-    C_PROPOSAL_ONLY: "New canonical runtimes, shared governance layers, live data adapters, large-scale MARL or cross-agent architecture changes."
-    D_STOP_AND_ESCALATE: "Credential exposure, real source activation, account/order/trade paths, history rewrite, cross-branch edits or destructive local changes."
-
-task_impact_forecast:
-  first_principles_goal: >-
-    Convert narrative participant categories into a research-only, machine-readable and falsifiable multi-agent game-engine plan
-    where identity remains latent, actions are constrained by A-share rules and inventory, advantages and weaknesses activate by state,
-    claims carry source/interest/verifiability metadata, and every inference is calibrated against replay and counterfactual evidence.
-  expected_positive_effects:
-    - "Turn the four-family idea into testable ontologies, state/action contracts and staged implementation gates."
-    - "Reduce identity-story hallucination through hidden types, posterior probabilities and misclassification matrices."
-    - "Integrate participant alignment, mismatch and narrative ledgers into the wider trading-system blueprint without creating direct signals."
-    - "Expose data, replay, simulator, validation and compute gaps before expensive implementation or MARL training."
-    - "Produce a recoverable plan and protected-blueprint backwrite delta that later agents can execute independently."
-  expected_negative_effects:
-    - "A large documentation surface may grow faster than executable capability."
-    - "Simulated behavior may look persuasive and be mistaken for real participant intent."
-    - "Overly broad ontology design may duplicate existing feature, replay or evidence modules."
-    - "The plan may reveal that important calibration data is unavailable or historically incomplete."
-  risk_gates:
-    - "Rule-based MVP must precede Level-k self-play or MARL."
-    - "No behavior trace may be treated as certain real identity."
-    - "No unavailable data, local source, replay result, backtest or performance evidence may be fabricated."
-    - "Any proposal touching credentials, accounts, orders, real source activation or live trading is an immediate stop."
-    - "Any need to modify PR #93, QCLAW, WorkBuddy or accepted PR #90 files is an immediate cross-lane escalation."
-  stop_conditions:
-    - "Latest remote main no longer matches route_epoch 2 or the task lease fields."
-    - "The current local worktree cannot be isolated without overwriting or mixing uncommitted changes."
-    - "Credential or secret material is encountered."
-    - "The task drifts into real data activation, replay/backtest execution, MARL training, broker/account/order or trade operations."
-    - "A second canonical simulator, memory runtime or evidence authority would be created instead of reusing the current system of record."
-  execution_observations_required:
-    - "Report repository reuse facts and UNKNOWNs at 20/40/60/80/100 checkpoints."
-    - "Record actual positive and negative effects, unexpected findings and rejected alternatives."
-    - "Every metric proposal must state inputs, confounders, calibration method, failure conditions and forbidden downstream use."
-    - "Every unavailable dependency remains explicit in UNKNOWN-REGISTRY.yaml."
-  net_value_assessment: "POSITIVE_HIGH_IF_BOUNDED_TO_D0_PLAN_AND_REUSE_AUDIT"
-
-frozen_inputs:
-  canonical_blueprints:
-    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md"
-    - "coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md"
-    - "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.0.md"
-    - "coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md"
-  candidate_only_external_design:
-    pull_request: 93
-    frozen_head: "d3296ece7b7ec56414fb60b1ac497530b188a258"
-    status: "DRAFT_CANDIDATE_NOT_MERGED_NOT_AUTHORITY"
-    use: >-
-      Read as a candidate expert-evidence governance addendum. Extract useful contracts and required validation work,
-      but do not treat the article, source profile, market outlook, participant claims or proposed scores as verified facts.
-  qclaw_parallel_packet:
-    status: "PARALLEL_NOT_BLOCKING_D0"
-    expected_task: "QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0"
-    rule: "Codex may define an integration slot but must not wait for or modify QCLAW files. GPT will reconcile later."
+  main_delivery_percent: 88
+  proactive_discovery_percent: 8
+  system_evolution_proposal_percent: 4
+  max_parallel_subplans: 3
 
 first_principles_goal: >-
-  Convert narrative participant categories into a research-only, machine-readable and falsifiable multi-agent game-engine plan
-  where identity remains latent, actions are constrained by A-share rules and inventory, advantages and weaknesses activate by state,
-  claims carry source/interest/verifiability metadata, and every inference is calibrated against replay and counterfactual evidence.
+  Convert the accepted D0 scaffold into a recoverable enterprise construction plan whose future phases can be assigned to independent agents
+  without guessing object ownership, market-state transitions, test fixtures, quantitative budgets, evidence gates, rollback rules or public/private boundaries.
 
-required_work_packages:
-  D0_repository_and_reuse_audit:
-    - "Audit current trading, replay, feature, signal, participant-map, evidence-governance and second-brain modules."
-    - "Produce REUSE / EXTEND / WRAP / DEPRECATE / UNKNOWN matrix and prevent duplicate runtimes."
-    - "Map all unavailable data, interfaces and validation blockers honestly."
-  D1_participant_and_evidence_ontology:
-    - "Four-family ontology with subtypes for retail, public funds, private funds, policy/stabilization capital, industrial capital, foreign capital, active money and quant strategies."
-    - "HiddenTypePosterior, ParticipantArchetypeHypothesis, claim perspective, conflict of interest, access advantage, verifiability and corroboration contracts."
-    - "No behavior trace may be upgraded to a real identity label."
-  D2_game_and_action_contracts:
-    - "MarketState, AgentState, InventoryState, InformationSet, FeasibleActions and transition contracts."
-    - "RationalCandidateActions, BestResponseCandidates, MostConsistentAction, RobustAction and InvalidOrBlockedActions."
-    - "Utility decomposition, impact, fill probability, cost, risk, opponent response, evidence and failure conditions."
-  D3_advantage_weakness_and_misclassification:
-    - "Dynamic advantage activation and failure conditions."
-    - "Exploitability and countermeasure matrix."
-    - "Misclassification matrix and anti-narrative safeguards."
-  D4_a_share_simulation_and_opponent_modeling:
-    - "Call auction, continuous auction, price limits, T+1, suspension, cross-day inventory and nonfill semantics."
-    - "Rule-based MVP before MARL; Level-k, Bayesian opponent modeling and self-play only behind explicit gates."
-  D5_participant_alignment_and_narrative_ledgers:
-    - "Design candidate schemas and validation plans for ParticipantAlignmentScore, ParticipantMismatchRisk and NarrativeForecastLedger."
-    - "Scores remain research hypotheses and cannot directly emit orders, positions or performance claims."
-  D6_calibration_counterfactual_and_validation:
-    - "Replay calibration, identification limits, walk-forward, OOS/lockbox, cost/slippage/capacity and probability calibration."
-    - "Counterfactual engine, placebo tests, regime stratification, sensitivity and anti-overfit gates."
-  D7_blueprint_and_system_integration:
-    - "System-of-record and data-flow map."
-    - "Capability dependency graph and protected-blueprint backwrite delta package."
-    - "Second-brain knowledge/evidence interface without coupling the numerical simulator to LLM narration."
-  D8_execution_plan:
-    - "D0-D6 phase plan, checkpoints, compute/cost plan, branch/worktree plan, rollback and continuation capsule."
+task_impact_forecast:
+  expected_positive_effects:
+    - "Turn shallow placeholders into independently executable work packages and acceptance contracts."
+    - "Prevent implementation teams from inventing A-share matching, inventory, rule or validation semantics."
+    - "Reconcile local test provenance with the public GitHub branch without history rewrite."
+    - "Remove public local-path disclosure while retaining evidence truth through stable aliases."
+  expected_negative_effects:
+    - "The D0 documentation surface will grow and require careful cross-file consistency checks."
+    - "More explicit gates may expose additional data and implementation UNKNOWNs."
+  stop_conditions:
+    - "Any need to activate a real source, run replay/backtest, train MARL, access credentials/accounts/orders or create a trading path."
+    - "Any need to modify PR #93, PR #96, PR #91 or another agent branch."
+    - "Any inability to isolate work without overwriting uncommitted local changes."
+    - "Any attempt to rewrite history or force push to reconcile local and remote SHA identities."
 
-mandatory_deliverables:
-  base_directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/"
-  files:
-    - "CURRENT-SYSTEM-GAP-AUDIT.md"
-    - "REUSE-EXTEND-WRAP-DEPRECATE-UNKNOWN-MATRIX.yaml"
-    - "AGENT-ARCHETYPE-ONTOLOGY.yaml"
-    - "MARKET-PARTICIPANT-MAP.schema.json"
-    - "EXPERT-EVIDENCE-AND-CREDIBILITY-CONTRACT.yaml"
-    - "GAME-FORMULATION.md"
-    - "MARKET-STATE-CONTRACT.yaml"
-    - "AGENT-POLICY-CONTRACT.yaml"
-    - "RATIONAL-AND-BEST-RESPONSE-ACTION-CONTRACT.yaml"
-    - "AGENT-FAMILY-ADVANTAGE-WEAKNESS-ONTOLOGY.yaml"
-    - "EXPLOITABILITY-MATRIX.yaml"
-    - "MISCLASSIFICATION-MATRIX.yaml"
-    - "ADVANTAGE-ACTIVATION-MODEL.md"
-    - "WEAKNESS-COUNTERFACTUAL-TEST-PLAN.md"
-    - "PARTICIPANT-ALIGNMENT-MISMATCH-AND-NARRATIVE-LEDGER-PLAN.md"
-    - "A-SHARE-MICROSTRUCTURE-SIMULATOR-PLAN.md"
-    - "OPPONENT-MODELING-PLAN.md"
-    - "LEVEL-K-AND-SELFPLAY-PLAN.md"
-    - "CALIBRATION-AND-IDENTIFICATION-PLAN.md"
-    - "COUNTERFACTUAL-ENGINE-PLAN.md"
-    - "VALIDATION-AND-ANTI-OVERFIT-PLAN.md"
-    - "COMPUTE-AND-COST-PLAN.md"
-    - "OVERALL-BLUEPRINT-INTEGRATION-MAP.md"
-    - "PROTECTED-BLUEPRINT-BACKWRITE-PACKAGE.md"
-    - "BLUEPRINT-MANIFEST-DELTA.yaml"
-    - "CAPABILITY-DEPENDENCY-GRAPH.yaml"
-    - "SYSTEM-OF-RECORD-AND-DATA-FLOW-MAP.md"
-    - "INTEGRATION-ACCEPTANCE-GATES.yaml"
-    - "RISK-REGISTER.yaml"
-    - "UNKNOWN-REGISTRY.yaml"
-    - "WORKBREAKDOWN.yaml"
-    - "PROJECT-PLAN.md"
-    - "TEST-RUN-RECEIPT.md"
-    - "CODEX-CONTINUATION-CAPSULE.md"
-    - "CODEX-FEEDBACK-v2.yaml"
-    - "AI_HANDOFF.yaml"
+required_actions:
+  - "Claim exact Epoch 3 lease from latest remote main before editing and use the existing isolated branch and Draft PR #95."
+  - "Preserve all accepted contracts, UNKNOWNs, negative findings and the complete 50-file R1 surface; do not collapse the package into fewer vague summaries."
+  - "Replace every public absolute local path with stable aliases such as <LOCAL_REPOSITORY_ROOT> and record alias semantics without exposing the physical path."
+  - "Add a complete local-path and credential-value scan over every file changed from reviewed head to final receipt head."
+  - "Deepen PROJECT-PLAN and WORKBREAKDOWN into D0-D6 task graphs with task_id, objective, inputs, outputs, owner, prerequisites, effort class, compute/data needs, acceptance tests, rollback, stop conditions and continuation capsule."
+  - "Deepen the synthetic rules MVP plan with explicit MarketState/AgentState/InventoryState/InformationSet schemas, market-phase state machine, order validity, matching/no-fill, price-limit, suspension, T+1 and cross-day inventory semantics."
+  - "Define at least twelve synthetic fixtures and at least twenty invariants/negative tests covering call auction, continuous auction, halt, limit state, stale/UNKNOWN rule snapshot, fresh-lot sell rejection, partial/no fill and alternative participant hypotheses."
+  - "Deepen action contracts with utility components, units, horizons, constraint order, abstention semantics, competing hypotheses, deterministic examples and invalidation paths; no coefficient may be fabricated."
+  - "Deepen calibration and anti-overfit plans with identification assumptions, temporal split design, purge/embargo applicability, baseline families, regime strata, probability calibration, multiple-testing decision rules, coverage/abstention metrics, failure thresholds and promotion/rejection criteria."
+  - "Deepen compute and cost planning with parameter-count, scenario-count, seed-count, time/memory/storage estimates, hard ceilings, cancellation thresholds and escalation rules for synthetic MVP, replay, Level-k, self-play and MARL."
+  - "Make dependency graph, integration gates, risk register and UNKNOWN registry machine-actionable with owners, evidence requirements, blocking scope, latest resolution phase and rollback effects."
+  - "Reconcile protected-blueprint backwrite into chapter-level deltas, prerequisites, conflicts, user approval points and rollback; do not copy protected bodies."
+  - "Add REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml recording local tested/receipt heads, remote public head, parent/tree identities, exact equality method, commands, exit codes and normalized stdout/stderr hashes."
+  - "Add D0-ENTERPRISE-DEPTH-COMPLETENESS-MATRIX.yaml mapping every blueprint requirement to files, sections, acceptance gates and remaining UNKNOWNs."
+  - "Run strict YAML duplicate-key rejection, JSON/JSONL parsing where applicable, cross-reference validation, complete allowlist, local-path and credential-value scans, and git diff checks."
+  - "Create a tested head and a later receipt-only head; after push externally anchor the concrete remote receipt SHA and revalidate Epoch 3."
+  - "Stop for GPT review. Do not start a synthetic runtime or consume PR #96 as accepted authority."
+
+minimum_depth_acceptance:
+  project_plan:
+    required: [phase_task_graph, owners, inputs_outputs, dependencies, effort, acceptance, rollback, stop_conditions]
+  microstructure_plan:
+    required: [state_machine, order_validity, matching_no_fill, t_plus_one_inventory, rule_snapshot_unknown, fixtures, invariants]
+  validation_plan:
+    required: [identification, temporal_splits, baselines, regimes, calibration, multiple_testing, coverage, rejection_gates]
+  compute_plan:
+    required: [scenario_formula, seed_budget, parameter_budget, time_memory_storage_ceiling, cancellation_thresholds]
+  publication_receipt:
+    required: [local_tested_head, local_receipt_head, remote_head, parent_sha, tree_sha, equality_proof, commands, exits, stdout_stderr_hashes]
 
 allowed_changed_files:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/**"
-allowed_change_rule: >-
-  Only new or task-owned files under the exact D0 base directory may be committed. Existing blueprints, active routers,
-  PR #93, PR #90, QCLAW, WorkBuddy and other agent branches are read-only. Temporary audit scripts must remain untracked.
-
-validation_requirements:
-  - "All YAML/JSON parses and duplicate keys are rejected."
-  - "Every blueprint requirement maps to at least one deliverable and acceptance gate."
-  - "Every proposed metric records inputs, confounders, calibration method, failure conditions and forbidden downstream use."
-  - "Every UNKNOWN remains explicit; no unavailable data or completed runtime may be fabricated."
-  - "A file-surface manifest and public-safety scan cover the complete delivered diff."
-  - "The package contains no credentials, account information, order path or real trade execution."
+  existing_files: "All 50 files already present at reviewed head 150e339a98ba07a70a369c33d46a10b077707cee under the exact D0 root may be modified only for the required depth, path hygiene and receipt corrections."
+  new_files_only:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/D0-ENTERPRISE-DEPTH-COMPLETENESS-MATRIX.yaml"
+  forbidden_new_files: "No committed helper, generator, raw output, copied source, runtime, adapter, simulator or test data file."
 
 acceptance_gates:
-  - "Lease acknowledgement exactly matches route_epoch 2 and reviewed_or_base_head."
-  - "A new isolated branch and Draft PR are created without modifying or cleaning the user's dirty local worktree."
-  - "The complete committed file surface stays under the authorized D0 directory."
-  - "All mandatory deliverables exist or are explicitly marked NOT_APPLICABLE with rationale accepted by GPT."
-  - "All YAML/JSON/JSONL parses and duplicate keys fail closed."
-  - "The reuse audit identifies existing systems of record and prevents a second simulator, replay engine, evidence authority or memory runtime."
-  - "Participant identity remains latent; no observed behavior is treated as certain real identity."
-  - "Every action and metric contract contains constraints, evidence, confounders, failure conditions and forbidden downstream use."
-  - "A-share call auction, continuous auction, price limits, T+1, suspension, nonfill and cross-day inventory are explicitly represented in the plan."
-  - "Rule-based MVP precedes Level-k, self-play and MARL behind explicit capability gates."
-  - "Replay/OOS/walk-forward/cost/slippage/capacity/probability-calibration and counterfactual validation plans are concrete and falsifiable."
-  - "PR #93 remains candidate-only and no QCLAW/WB/Codex-accepted branch is modified."
-  - "The complete delivery surface passes public-safety and secret-value scanning."
-  - "Checkpoints 20/40/60/80/100, tested/receipt heads, commands, exit codes and stdout/stderr hashes are recorded."
-  - "No source activation, labels, replay/backtest execution, performance claim, account/order/trade, merge or auto-merge occurs."
+  - "Final PR surface is exactly the reviewed 50 files plus the two authorized new receipt/completeness files, unless GPT explicitly changes the allowlist."
+  - "No absolute local path or credential value is present in the final public delivery surface."
+  - "Every D0-D6 phase and core contract meets minimum_depth_acceptance and has machine-readable cross-file mapping."
+  - "The remote-publication receipt proves tree equality without pretending local and remote commit SHAs are identical."
+  - "Every command has actual exit code and normalized stdout/stderr SHA-256; failures and SKIPs are preserved."
+  - "PR #93 and PR #96 remain candidate/UNKNOWN; no article claim or QCLAW atom becomes an accepted fact in this task."
+  - "No runtime, source activation, replay, backtest, MARL training, performance claim, account, order or trade action occurs."
 
 forbidden:
-  - "No real source activation, local data admission, labels, replay or backtest execution in this D0 task."
-  - "No large-scale MARL training or production simulator implementation."
-  - "No identity certainty from market behavior."
-  - "No direct trading signal, position recommendation, broker/account/order integration or performance claim."
-  - "No edits to PR #93, PR #90 or QCLAW/WorkBuddy branches."
-  - "No overwrite, stash, reset, clean or checkout operation that would disturb the user's current dirty local worktree."
-  - "No merge or auto-merge."
-
-notes:
-  - "The local F:/aidanao worktree may contain unrelated uncommitted changes. Codex must not touch or clean it."
-  - "Use a separate worktree or clean clone rooted at reviewed_or_base_head."
-  - "PR #93 is readable only at its frozen candidate head and is not an authority source."
-  - "QCLAW runs independently; Codex may reserve integration slots but must not consume unaccepted QCLAW output."
-  - "Issue #92 remains blocked and is outside this task."
+  - "No direct main write, merge, auto-merge, force push or history rewrite."
+  - "No modification of Codex PR #90, QCLAW, WorkBuddy, PR #93 or PR #96 branches."
+  - "No public disclosure of local physical paths, private blueprints, credentials or raw/private data."
+  - "No source activation, labels, replay, backtest, MARL, broker, account, order, position or trade."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T06:50:00+08:00"
+updated_at: "2026-07-25T09:15:00+08:00"
