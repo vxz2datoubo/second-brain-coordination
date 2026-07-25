@@ -1,57 +1,22 @@
-# Test Run Receipt
+# R2 Test Run Receipt
 
-Status: `TESTED`.
+task_id: `CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE`  
+route_epoch: `3`  
+tested_head_full_sha: `3963792bfcc47ad4d8fcd80fe5edde7ae4729003`  
+receipt_head_ref: `THIS_COMMIT`
 
-This receipt covers the complete D0 delivery surface at tested commit
-`e5ac551e15d804417f1e1c1d8fa77f0032a7bb23`. The receipt-anchor commit is
-created separately and must change only receipt metadata; it is intentionally
-not amended into the tested commit.
+## Preserved failed checks
 
-## Executed validation
+1. The first R2 static validator on `2a68a5751f67a630d77d0bff084c0af7048607a7` failed closed: the rational/best-response action contract omitted `competing_hypotheses`. Commit `3963792` added the required field before the successful tested run.
+2. The first local-path regular expression treated the `https://` prefix in a JSON Schema URI as a drive path. The scanner was corrected to require a non-letter before a drive prefix; this was a scanner false positive, not a physical-path disclosure.
 
-| Check | Result | Evidence |
-| --- | --- | --- |
-| Strict YAML parsing, including duplicate-key rejection fixture | PASS | 25 YAML files parsed; fixture rejected duplicate keys. |
-| JSON parsing | PASS | 1 JSON Schema parsed. |
-| Required task deliverable presence | PASS | 36 task-required files present at the tested head. |
-| Full D0 contract-document presence | PASS | 41 planned contract/document files present at the receipt anchor. |
-| Cross-contract token coverage | PASS | Required latent-type, evidence, A-share constraint and gate tokens present. |
-| Git whitespace check | PASS | `git diff --check` returned exit code 0. |
-| Allowed-path review | PENDING_FINAL_RECHECK | Re-run after receipt-anchor commit. |
-| Value-bearing credential-pattern scan | PASS | No GitHub-token, private-key, AWS-access-key or credential-assignment pattern matched; only counts and file names would have been emitted. |
+## Successful tested run
 
-The first strict validation run failed closed because the literal
-`HiddenTypePosterior` was missing from the archetype ontology. The ontology was
-corrected by making both required candidate contract types explicit, then the
-full validator passed. This finding is preserved rather than silently erased.
+| Check | Exact command class | Exit | Normalized stdout SHA-256 | Normalized stderr SHA-256 | Result |
+| --- | --- | ---: | --- | --- | --- |
+| Strict validator | `python -` inline strict YAML loader, JSON parser, duplicate-key fixture, matrix references, fixture/invariant and action-contract assertions, plus base-to-tested allowlist assertion | 0 | `f96da40229e37e3deafe7bc1e0c170d43d99399e7e1c8581fa5e7065c9555404` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | PASS: 27 YAML, 1 JSON, 8 matrix requirements, 12+ fixtures, 22 changed paths. |
+| Local physical-path scan | `rg -n --pcre2 '(?<![A-Za-z])[A-Za-z]:[\\/]|(?<!https:)/(?:home|Users)/' <D0-root>` | 1 interpreted as clean | `7849211ace5c33379729472fee9fb0469082a7c80d6248f3e59b8b41a5e08179` | empty SHA above | PASS: zero matches. |
+| Credential-value scan | `python -` non-disclosing regex scan for GitHub-token, private-key, AWS-access-key and value-bearing credential assignments | 0 | `2241d25f4bc116da78f9235d4b8626b57ca9bc10f4b34f710d7a06ebdd4c3a94` | empty SHA above | PASS: zero matching files; no values emitted. |
+| Whitespace scan | `git diff --check 150e339a98ba07a70a369c33d46a10b077707cee` | 0 | `531a62067629ec38e912d348148c7183f3fefa118a984525fe78804a85755a4d` | empty SHA above | PASS. |
 
-## Command evidence
-
-1. `python -` with the initial inline strict package validator: exit code `0`.
-   Normalized stdout SHA256:
-   `e2d3db208d6361f35cc32082d4abd032da297ab2f90cf34c9c1fe055f378589b`.
-   Normalized stderr SHA256:
-   `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
-   Output: `static-contract-validation: PASS`; `required-files: 36`;
-   `yaml-files: 24`; `json-files: 1`; `duplicate-key-rejection: PASS`.
-2. `python -` with the final inline strict package validator: exit code `0`.
-   It verified 41 D0 contract/document files, 25 YAML files, one JSON Schema,
-   duplicate-key rejection and required cross-contract tokens.
-3. `git diff --check`: exit code `0`.
-4. `rg -n --pcre2 '[A-Fa-f0-9]{40}' <D0-path>`: exit code `0`; only expected
-   Git provenance identifiers were observed during review.
-5. `python -` with a non-disclosing credential-pattern scanner: exit code `0`.
-   It reported zero matching files for GitHub-token, private-key, AWS access-key
-   and value-bearing credential-assignment patterns. It never printed a value.
-
-Two earlier attempts to capture a broader scan through the shell tool were
-blocked by the local tool policy before execution. They remain recorded as
-`NOT_EXECUTED_TOOL_POLICY_BLOCKED`; the later non-disclosing value-bearing scan
-above is the successful public-safety evidence. No real data, replay, backtest,
-MARL, account or trade test was run because D0 explicitly prohibits those
-activities.
-
-The final revalidation also confirmed all 50 changed paths remain under the
-single task-owned allowlisted directory. The receipt-anchor commit itself is
-identified with `receipt_head_ref: THIS_COMMIT` in the machine-readable AMED
-receipt so the chain remains recoverable without amending a tested commit.
+The inline validator is intentionally not committed because the allowlist forbids committed helpers/generators. It is fully described above and its actual tested head, exit code, counts and normalized output hashes are retained. No real data, source activation, replay, backtest, MARL, account, order, trade or performance test was run.
