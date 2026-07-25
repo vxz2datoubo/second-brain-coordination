@@ -1,4 +1,4 @@
-schema_version: "12.0"
+schema_version: "13.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -19,13 +19,13 @@ active_issue: 59
 related_issue: 23
 source_pull_request: 93
 pull_request: 96
-task_id: "QCLAW-PR96-R1-SEMANTIC-HYGIENE-TWO-RUN-DETERMINISM-AND-RECEIPT-CLOSURE"
+task_id: "QCLAW-PR96-R2-TRUE-TWO-HEAD-SEMANTIC-AND-DETERMINISTIC-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96市场主体知识包语义卫生、两次确定性验证与回执收口R1"
+mode_label: "【QCLAW模式：目标模式】PR #96真实两头、语义卫生与确定性回执R2"
 mode_reason: >-
-  PR #96已经形成99个知识原子、152条关系和64道对抗问题，候选内容具有保留价值；
-  当前缺口集中在公开本机路径、自引用/截断哈希、来源blob身份错误、缺两次运行证据、严格解析不足，
-  以及少数关于稳定资金、外资流量和可信度权重的过度断言。目标和文件面明确，不重做知识消化，因此使用目标模式。
+  R1新增了验证器、修订日志和两次运行材料，候选知识主体仍有价值；但所有改动混在一个Git提交中，
+  内容哈希被误称为tested head，回执仍使用旧task_id、物理Python路径、零哈希占位，并且关键语义缺陷没有实际修改。
+  当前需要保留知识主体，建立真实tested/receipt两头并修正验证器和语义，因此继续使用目标模式。
 status: "READY"
 execution_allowed: true
 daily_compute_status: "AVAILABLE_RESTORED"
@@ -33,15 +33,15 @@ blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "a16e241a027f018a735cd2ae8a63093b57d9c2ff"
+reviewed_or_base_head: "c4dfdfdfb598557a5e2782d84ee57958cf6e8cf3"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 2
-route_issued_at: "2026-07-25T09:17:00+08:00"
-completion_signal: "QCLAW_PR96_R1_SEMANTIC_HYGIENE_TWO_RUN_DETERMINISM_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
+route_epoch: 3
+route_issued_at: "2026-07-25T10:38:00+08:00"
+completion_signal: "QCLAW_PR96_R2_TRUE_TWO_HEAD_SEMANTIC_AND_DETERMINISTIC_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0@route_epoch:1"
+  - "QCLAW-PR96-R1-SEMANTIC-HYGIENE-TWO-RUN-DETERMINISM-AND-RECEIPT-CLOSURE@route_epoch:2"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -54,97 +54,100 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "QCLAW_Q0_CONTENT_CANDIDATE_ACCEPTED_SEMANTIC_HYGIENE_REPRODUCIBILITY_AND_RECEIPT_R1_REQUIRED"
+  classification: "QCLAW_R1_CONTENT_CORRECTIONS_PARTIALLY_ACCEPTED_SINGLE_COMMIT_FALSE_TWO_HEAD_SEMANTIC_AND_VALIDATOR_R2_REQUIRED"
   accepted_facts:
-    - "PR #96 head a16e241a027f018a735cd2ae8a63093b57d9c2ff contains all sixteen requested Q0 artifact names under the authorized directory."
-    - "The package contains 99 candidate atoms, 152 candidate relations and 64 adversarial questions, above the minimum count thresholds."
-    - "It separates source access advantage from source authority and preserves counterevidence, UNKNOWNs, failure conditions and candidate-only identity handling."
-    - "It does not modify PR #93 or create a trading runtime, signal, position, replay, backtest or order path."
+    - "R1 adds validate_q0.py, AMENDMENT-LOG and a two-run evidence document while retaining counts above all minimum thresholds."
+    - "The public workspace path in TEST-RUN-RECEIPT was replaced with an alias and the canonical QCLAW role was corrected."
+    - "SOURCE-MANIFEST no longer mislabels the PR commit as a per-file blob, although real blob capture remains unresolved."
+    - "No source activation, signal, replay, backtest, account, order or trade path was created."
   blocking_defects:
-    - id: "QQ96-R1-D01"
-      fact: "TEST-RUN-RECEIPT publicly exposes the absolute Windows workspace path C:/Users/Administrator/.openclaw/... while the package declares PUBLIC_SAFE."
-    - id: "QQ96-R1-D02"
-      fact: "The receipt names gen_atoms.py, gen_relations.py and gen_deliverables.py, but those programs are absent from the PR, so the claimed generation is not independently reproducible."
-    - id: "QQ96-R1-D03"
-      fact: "Receipt hashes are truncated with ellipses and AI_HANDOFF hashes itself and TEST-RUN-RECEIPT inside a combined sixteen-file hash, creating an unverifiable self-referential final-state claim."
-    - id: "QQ96-R1-D04"
-      fact: "Deterministic IDs are asserted without two independent recomputation runs, exact commands, actual exits or stdout/stderr hashes."
-    - id: "QQ96-R1-D05"
-      fact: "SOURCE-MANIFEST uses the PR commit SHA as each source file's frozen_git_blob instead of recording the actual per-file Git blob identity or an honest NOT_CAPTURED status."
-    - id: "QQ96-R1-D06"
-      fact: "Semantic hygiene defects remain: stabilization capital is assigned 'unlimited liquidity'; foreign-capital signatures assume northbound daily net buying/selling availability; numeric credibility adjustments are uncalibrated; MARKET_OUTLOOK references/counts conflict."
-    - id: "QQ96-R1-D07"
-      fact: "AI_HANDOFF misstates QCLAW's primary role as the multi-agent game engine and proposes downstream integration before GPT acceptance."
+    - id: "QQ96-R2-D01"
+      fact: "R1 is one Git commit mixing semantic/tested files and five receipt files; the claimed tested_head is a combined content hash rather than a concrete Git commit."
+    - id: "QQ96-R2-D02"
+      fact: "R1 receipts retain the old Q0 task_id, expose a physical Python executable path, use zero-hash placeholders and contain no external concrete receipt anchor."
+    - id: "QQ96-R2-D03"
+      fact: "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP still says stabilization capital has unlimited liquidity and treats northbound net buying/selling as a timeless foreign-capital observable signature."
+    - id: "QQ96-R2-D04"
+      fact: "UNKNOWN/validation registry still contains a person-to-account matching task for Liu Xin, contrary to the explicit anonymity and no-identification gate."
+    - id: "QQ96-R2-D05"
+      fact: "validate_q0.py checks ID shape and uniqueness but does not recompute atom/relation/question IDs from canonical normalized content; JSON/JSONL duplicate keys are not rejected."
+    - id: "QQ96-R2-D06"
+      fact: "The PyYAML fallback is invalid because _DupKeyLoader subclasses yaml.SafeLoader even when yaml import fails; complete delivery-surface path and placeholder scans are absent."
+    - id: "QQ96-R2-D07"
+      fact: "R1 evidence conflicts on relation count 150 versus 152, and TEST-RUN-RECEIPT contains stale pre-correction file sizes and hashes."
+    - id: "QQ96-R2-D08"
+      fact: "SOURCE-MANIFEST reports NOT_CAPTURED based on a claimed API 404 although the repository and frozen PR are accessible; exact Git blob commands and failure evidence are absent."
 
 resource_and_effort:
-  priority_share_percent: 25
-  task_weight: "MEDIUM"
-  research_trigger: "L2_KNOWLEDGE_DIGESTION_AND_ADVERSARIAL_VALIDATION"
+  priority_share_percent: 45
+  task_weight: "MEDIUM_HEAVY_CORRECTION"
   checkpoints: [25, 50, 75, 100]
-  main_delivery_percent: 90
-  discovery_percent: 7
-  system_evolution_proposal_percent: 3
-
-first_principles_goal: >-
-  Preserve the useful knowledge structure while ensuring every ID, source pointer, hash, classification and downstream handoff can be independently
-  recomputed without local-path disclosure, self-reference, invented authority or unsupported participant claims.
 
 required_actions:
-  - "Claim exact Epoch 2 lease and reuse the existing PR #96 branch; do not create a replacement PR."
-  - "Preserve the original candidate package and record every semantic or count change in AMENDMENT-LOG.yaml with before/after reason and affected IDs."
-  - "Replace every physical local path with a stable alias such as <QCLAW_WORKSPACE>; scan the complete final delivery surface for local paths and credential values."
-  - "Correct SOURCE-MANIFEST: keep PR #93 full commit head separate from each source file's exact git blob SHA; if a blob cannot be captured, write NOT_CAPTURED rather than copying the commit SHA."
-  - "Add validate_q0.py that strictly parses YAML with duplicate-key rejection, JSON and JSONL; verifies unique IDs, source pointers, relation endpoints, expected/forbidden keys, thresholds, semantic constraints and full file hashes."
-  - "Run validate_q0.py twice from clean temporary output directories or equivalent isolated recomputation contexts; compare complete atom IDs, relation IDs, question IDs and normalized hashes."
-  - "Record both run commands, Python/PyYAML versions if used, expected/actual exits, counts, full stdout SHA-256 and stderr SHA-256 in R1-TWO-RUN-DETERMINISM-RECEIPT.yaml."
-  - "Use a true two-head model: tested head contains semantic corrections and validator; receipt head changes only authorized receipt/meta files and uses receipt_head_ref: THIS_COMMIT."
-  - "Do not hash a file as authoritative evidence of its own final contents. Hash the tested-head package excluding receipt-only files, then externally anchor the concrete receipt head after push."
-  - "Replace truncated hashes with complete 64-hex SHA-256 values and state the exact ordered file set and normalization algorithm."
-  - "Replace '无限流动性' with a bounded, policy-dependent capacity hypothesis carrying legal, mandate, timing and observability UNKNOWNs."
-  - "Make foreign-capital observability versioned and availability-aware; do not assume current daily northbound net-flow disclosure, and separate aggregate public activity from actor identity."
-  - "Convert uncalibrated numerical credibility adjustments into symbolic candidate effects or mark parameter_status: UNKNOWN_UNCALIBRATED; no numeric weight becomes canonical."
-  - "Reconcile MARKET_OUTLOOK atom references and distribution counts; every outlook remains LOW/UNKNOWN, non-signal and isolated from structural FACT records."
-  - "Correct canonical role to knowledge digestion, atomization, memory indexing and context supply; downstream Codex/WorkBuddy use remains blocked until GPT accepts the packet."
-  - "Remove any validation task that attempts person/account matching; use aggregate official/regulatory evidence and preserve anonymity, uncertainty and misclassification risk."
-  - "Create a receipt-only commit and externally anchor the final full receipt SHA, tested head, exact commands, complete hashes and Epoch 2 revalidation in PR #96 and Issues #59/#31."
-  - "Stop for GPT review."
+  - "Claim exact Epoch 3 and reuse the existing branch and Draft PR #96; no replacement PR or history rewrite."
+  - "Create exactly two new commits after reviewed head c4dfdfdfb598557a5e2782d84ee57958cf6e8cf3."
+  - "The tested commit may modify semantic/core files, validate_q0.py and AMENDMENT-LOG.yaml, but must not modify any of the five receipt-only files."
+  - "The receipt commit must modify exactly the five authorized receipt files and no semantic/core/validator file."
+  - "Use the full concrete tested Git commit SHA in every receipt; a content-set SHA must be labeled tested_package_sha256, never tested_head."
+  - "Replace all old task IDs/signals with the exact Epoch 3 task ID and completion signal; replace physical Python paths with <PYTHON_EXECUTABLE> or version-only evidence."
+  - "Remove all zero hashes and placeholder authoritative entries. Receipt-only files may use receipt_head_ref: THIS_COMMIT and must not pretend to hash their own final bytes."
+  - "Correct stabilization-capital language to bounded policy-dependent capacity with mandate, timing, legal and observability UNKNOWNs."
+  - "Replace timeless northbound-net-flow signature with versioned public aggregate activity evidence whose availability and actor attribution remain explicit UNKNOWNs."
+  - "Remove the Liu Xin person/account matching validation task and all dependent relation/question references; use aggregate source-credibility validation without identity matching."
+  - "Record every semantic deletion/change and every atom/relation/question ID delta in AMENDMENT-LOG with before, after, reason and affected references."
+  - "Reconcile the exact final atom, relation and question counts. A justified count delta is acceptable if above thresholds and fully logged; stale 152/150 contradictions are forbidden."
+  - "For each PR #93 source file, run exact Git commands such as git ls-tree or git rev-parse <head>:<path> and record the true blob SHA. NOT_CAPTURED is allowed only with exact failing command, nonzero exit and stdout/stderr hashes."
+  - "Repair validate_q0.py so missing PyYAML fails closed or a genuinely working fallback is defined without referencing an unavailable module."
+  - "Reject duplicate keys in JSON and every JSONL line using object_pairs_hook or an equivalent strict parser."
+  - "Define and document canonical normalization for atoms, relations and questions; recompute every deterministic ID and fail on any mismatch, not only shape/uniqueness."
+  - "Validate source pointers, relation endpoints, expected/forbidden/UNKNOWN references, task/signal exactness, placeholders/zero hashes, complete file manifest, local paths and credential values over the full tested and receipt surfaces."
+  - "Run the tested commit validator twice from independently created clean temporary directories; record exact commands, versions, actual exits, complete ID-set hashes, package hashes and stdout/stderr SHA-256."
+  - "After the receipt commit is pushed, post the concrete receipt SHA, full tested SHA, exact two-commit diff manifests, commands/hashes and Epoch 3 pre-completion revalidation to PR #96 and Issues #59/#31."
+  - "No later commit is permitted after the externally anchored receipt commit. Stop for GPT review."
 
 allowed_changed_files:
-  tested_head:
-    existing_files: "All sixteen files present at reviewed head a16e241a027f018a735cd2ae8a63093b57d9c2ff under the exact Q0 directory may be corrected only for semantic hygiene, source identity and deterministic validation."
-    new_files_only:
+  tested_commit:
+    existing_core_files: "Any non-receipt file already under the exact 0010-Q0 directory may be changed only for the listed semantic, provenance, count and validator corrections."
+    named_validator_and_log:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/validate_q0.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AMENDMENT-LOG.yaml"
-  receipt_head_only:
+    excluded_receipt_files:
+      - "TEST-RUN-RECEIPT.md"
+      - "QUALITY-GATE-REPORT.md"
+      - "QCLAW-FEEDBACK-v2.yaml"
+      - "AI_HANDOFF.yaml"
+      - "R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
+  receipt_commit_only:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/TEST-RUN-RECEIPT.md"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QUALITY-GATE-REPORT.md"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QCLAW-FEEDBACK-v2.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AI_HANDOFF.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
-  forbidden_new_files: "No raw source copy, local log, generator scratch file, private data, runtime, database or trading component."
+  forbidden_new_files: "No new source copy, generator, scratch output, private data, runtime, database or trading component."
 
 acceptance_gates:
-  - "Every YAML/JSON/JSONL file parses strictly and duplicate keys fail closed."
-  - "Two isolated recomputation runs produce identical complete atom, relation and question ID sets and identical tested-package hashes."
-  - "Every source file has exact commit and blob provenance or explicit NOT_CAPTURED; no commit SHA is mislabeled as a blob SHA."
-  - "No absolute local path, credential value, person/account matching task or self-referential final hash remains."
-  - "99/152/64 counts are either reproduced exactly or every justified delta is recorded and remains above minimum thresholds."
-  - "All numeric credibility parameters are source-backed or UNKNOWN_UNCALIBRATED; no fabricated calibration."
-  - "Market outlook, participant identity and northbound/public-flow statements remain candidate-only, availability-aware and non-signal."
-  - "Receipt files use exact Epoch 2 task ID/signal, full tested head, THIS_COMMIT and complete command/output hashes."
+  - "Exactly two new commits exist: semantic/validator tested commit, then exactly five-file receipt commit."
+  - "Every deterministic atom/relation/question ID is recomputed from documented canonical content and matches."
+  - "Strict YAML, JSON and JSONL duplicate-key rejection passes; missing PyYAML cannot cause import-time failure or silent fallback."
+  - "No unlimited-liquidity claim, timeless northbound-net-flow assumption, person/account matching task, physical path, zero hash or placeholder remains."
+  - "Source commit and per-file blob identities are accurately separated with reproducible command evidence."
+  - "Final counts and all hashes are internally consistent and above thresholds."
+  - "Receipts use exact Epoch 3 route truth, full Git tested head, THIS_COMMIT, current timestamps and complete command/output hashes."
+  - "Concrete receipt SHA is externally anchored and no later commit exists."
+  - "No source activation, identity assignment, signal, recommendation, replay, backtest, account, order or trade action occurs."
 
 parallel_firewall:
-  codex_pr95: "May be read only as an unaccepted parallel candidate; do not edit or claim integration."
-  workbuddy_pr91: "Do not modify or depend on unfinished R9 evidence."
+  codex_pr95: "Read-only unaccepted/partially accepted candidate; do not edit or claim integration."
+  workbuddy_pr91: "Do not modify or depend on unfinished R10 evidence."
   pr93: "Frozen candidate input; no edit or merge."
 
 forbidden:
-  - "No merge, auto-merge, direct main write or history rewrite."
-  - "No new canonical memory/runtime/schema authority or implementation ownership."
+  - "No merge, auto-merge, direct main write, force push or history rewrite."
+  - "No new canonical memory/runtime/schema authority or engineering ownership."
   - "No source activation, person/account identification, signal, recommendation, replay, backtest, performance claim, account, order or trade."
   - "No modification of Codex, WorkBuddy or PR #93 branches."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T09:17:00+08:00"
+updated_at: "2026-07-25T10:38:00+08:00"
