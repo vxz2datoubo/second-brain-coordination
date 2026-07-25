@@ -1,10 +1,10 @@
-# WorkBuddy Cleanroom Test Run Receipt (R10)
+# WorkBuddy Cleanroom Test Run Receipt (H1)
 
 | Field | Value |
 |-------|-------|
-| task_id | WORKBUDDY-PR101-R10-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE |
+| task_id | WORKBUDDY-PH11-H1-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE |
 | receipt_head_ref | THIS_COMMIT |
-| receipt_parent_tested_head_full_sha | e39c96611bdb8ab1a3415b353dd8c82ad0ed76ed |
+| receipt_parent_tested_head_full_sha | c2f66116c1b12f4b6cc7952c15c85e5caae974bc |
 | reviewed_to_tested_changed | INDEPENDENT-VERIFICATION-SCRIPT.py (1 file) |
 | OS | Windows |
 | Python | 3.13.14 |
