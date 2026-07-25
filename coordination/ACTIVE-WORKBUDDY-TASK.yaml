@@ -1,4 +1,4 @@
-schema_version: "3.2"
+schema_version: "4.0"
 router_protocol: "coordination/WORKBUDDY-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -7,123 +7,123 @@ target_agent: "WORKBUDDY"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 89
-pull_request: 91
-task_id: "WORKBUDDY-PR91-R10-PRODUCTION-WRAPPER-REFACTOR-AND-FINAL-TRUTH-CLOSURE"
+pull_request: null
+task_id: "WORKBUDDY-QCLAW-P1-CLEANROOM-H1-FRESH-VERIFIER-AND-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【WorkBuddy模式：目标模式】PR #91生产包装器重构与最终真实回执R10"
+mode_label: "【WorkBuddy模式：目标模式】QCLAW P1全新H1干净验证器与真实回执闭环"
 mode_reason: >-
-  R9仍保持两头提交结构，但tested head只在NT2分支增加一行EXIT=1，没有建立共同生产包装器；
-  NT3继续直接运行临时脚本并在预期exit 7时顶层退出0，normal也不传播子验证器非零、超时或缺失37/0/0字段。
-  当前唯一正确修法是有界重构一个生产包装函数并重写真实回执，故继续目标模式；禁止标签式或单行式修补。
+  PR #91 R10虽建立共享qclaw_wrapper，但normal仍未验证子进程非零和精确37/0/0，回执又写错PR #101、旧基线、delivery=1和旧时间。
+  按R10合同，WorkBuddy在PR #91上的迭代路线停止。为保留独立审计角色但清除十轮历史污染，改为新分支、新目录、新PR的H1干净实现。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 89
-branch: "workbuddy/qclaw-p1-cleanroom-handoff-verification-0023-h0"
-reviewed_or_base_head: "51698878c79417f950abffc395b628b98ea6d1cd"
-r9_tested_head: "4ff81a959c24b4875749704d4604284b44b739e7"
-r9_receipt_head: "51698878c79417f950abffc395b628b98ea6d1cd"
+branch: "workbuddy/qclaw-p1-cleanroom-h1-final-verification-0023-h1"
+reviewed_or_base_head: "44a05d8a466af31f35618d778b15f84709cf3c11"
+remote_main_at_release: "44a05d8a466af31f35618d778b15f84709cf3c11"
+superseded_pull_request: 91
+superseded_pr_head: "0cfd082cbc508675d892615a1283e82ddaf134bb"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 10
-route_issued_at: "2026-07-25T10:41:00+08:00"
-completion_signal: "WORKBUDDY_PR91_R10_PRODUCTION_WRAPPER_REFACTOR_AND_FINAL_TRUTH_READY_FOR_GPT_REVIEW"
+route_epoch: 11
+route_issued_at: "2026-07-25T15:38:00+08:00"
+completion_signal: "WORKBUDDY_QCLAW_P1_H1_FRESH_VERIFIER_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "WORKBUDDY-PR91-R9-COMPLETE-TOPLEVEL-FAILURE-PROPAGATION-AND-TRUTHFUL-RECEIPT-CLOSURE@route_epoch:9"
-  - "WORKBUDDY-PR91-R9-PRODUCTION-PATH-NEGTESTS-AND-TRUTHFUL-RECEIPT-CLOSURE"
+  - "WORKBUDDY-PR91-R10-PRODUCTION-WRAPPER-REFACTOR-AND-FINAL-TRUTH-CLOSURE@route_epoch:10"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
   reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
+  exact_match_fields: [task_id, route_epoch, active_issue, branch, completion_signal, execution_allowed]
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "WORKBUDDY_R9_STRUCTURE_ACCEPTED_NT2_EXIT_ONLY_PRODUCTION_WRAPPER_AND_RECEIPT_TRUTH_R10_REQUIRED"
+  classification: "PR91_R10_CODE_IMPROVEMENT_ACCEPTED_ROUTE_STOPPED_FRESH_H1_REQUIRED"
   accepted_facts:
-    - "R9 is exactly two commits after the reviewed R8 head and preserves the one-verifier plus four-receipt allowlist."
-    - "NT1 remains nonzero on an injected unsafe finding and NT2 now returns nonzero after its direct child failure."
+    - "R10 is exactly two commits after 51698878c79417f950abffc395b628b98ea6d1cd and changes one verifier plus four receipt files."
+    - "R10 introduces a shared qclaw_wrapper used by normal, nt2 and nt3."
     - "No QCLAW semantic result, blocker, 0.491 score or verdict changed."
   blocking_defects:
-    - id: "WB91-R10-D01"
-      fact: "R9 tested head changes only one line in NT2 and does not implement the required common production QCLAW wrapper."
-    - id: "WB91-R10-D02"
-      fact: "NT2 manually reconstructs and directly executes the child validator, so it does not prove production-wrapper missing-artifact propagation."
-    - id: "WB91-R10-D03"
-      fact: "NT3 directly replaces and executes the validator and still exits 0 when child exit 7 is observed."
-    - id: "WB91-R10-D04"
-      fact: "Normal mode prints child results but does not set failure on child nonzero, timeout, missing result fields, incomplete extraction or any result other than exact 37 PASS / 0 FAIL / 0 SKIP."
-    - id: "WB91-R10-D05"
-      fact: "Timeout exceptions and fixture restoration are not fail-closed/finally protected; deleted or non-file delivery paths may be silently skipped."
-    - id: "WB91-R10-D06"
-      fact: "R9 receipts again use a non-authoritative task ID/signal, stale baseline f5f25daf, delivery_files=1 and timestamp 04:08, with no real command-level top exits or concrete external anchor."
+    - id: "WB-H1-D01"
+      fact: "normal prints child validator output but never fails on validator nonzero, missing result fields or any result other than exact 37 PASS / 0 FAIL / 0 SKIP."
+    - id: "WB-H1-D02"
+      fact: "subprocess timeouts are not caught, temporary directory cleanup is not in finally, and NT1 restoration failure is not fail-closed."
+    - id: "WB-H1-D03"
+      fact: "R10 scan baseline remains f5f25dafe7b02bf0e20e75865e1610d836ab380a rather than the R10 reviewed head."
+    - id: "WB-H1-D04"
+      fact: "All four R10 receipts use non-authoritative PR #101 task IDs/signals, stale reviewed baseline, delivery_files=1 and the old 04:08 timestamp."
+    - id: "WB-H1-D05"
+      fact: "No valid Epoch 10 external anchor with concrete receipt SHA, five-file manifest, command exits and hashes exists."
 
 resource_and_effort:
-  priority_share_percent: 40
-  task_weight: "MEDIUM_HIGH_FINAL_EXECUTABLE_CLOSURE"
+  priority_share_percent: 15
+  task_weight: "MEDIUM_CLEAN_REBUILD"
   checkpoints: [25, 50, 75, 100]
 
+first_principles_goal: >-
+  Produce one small independent verifier whose code path and receipts are easier to audit than the accumulated PR #91 history, while reproducing the frozen QCLAW evidence without semantic self-review.
+
+frozen_inputs:
+  qclaw_pr84_head: "63c344084d9af86cb26c1cc65a30d409fefa872f"
+  codex_pr79_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+  qclaw_pr77_receipt_head: "ee86f1d918bc401b06b0278d1db1feb512c31a52"
+  expected_qclaw_files: 15
+  expected_result: "37 PASS / 0 FAIL / 0 SKIP"
+  semantic_verdict_frozen: true
+
 required_actions:
-  - "Claim exact Epoch 10 and reuse the existing branch and Draft PR #91."
-  - "Create exactly one tested commit changing only INDEPENDENT-VERIFICATION-SCRIPT.py."
-  - "Replace duplicated/manual NT2 and NT3 extraction logic with one production function, for example run_qclaw_validation(fixture_config), used by normal, nt2 and nt3."
-  - "The common wrapper must own exact 15-file manifest validation, git extraction, temporary directory lifecycle, optional fixture injection, validator execution, timeout handling, output parsing and required-result validation."
-  - "Fixture configuration may omit one required artifact for NT2 or replace validator bytes for NT3, but the mode must still call the same production wrapper and result validator used by normal."
-  - "Normal succeeds only if manifest is exact, every artifact extracts, validator exits 0, output contains exact numeric PASS=37 FAIL=0 SKIP=0 and required combined/file-count evidence, and delivery scan is clean."
-  - "Any Git failure, decode/unreadable file, missing/deleted delivery file, manifest mismatch, extraction failure, timeout, child nonzero, missing/malformed result field or non-37/0/0 result must set top-level nonzero."
-  - "NT1, NT2 and NT3 commands themselves must each exit nonzero; NT2 proves missing-artifact failure through the common wrapper and NT3 proves child exit 7 through the common wrapper."
-  - "Use try/finally for every temporary mutation and directory. Restoration/cleanup failure is a top-level failure and must be visible."
-  - "Use the current reviewed head 51698878c79417f950abffc395b628b98ea6d1cd as the delivery-scan baseline; do not retain f5f25daf or any earlier baseline in active R10 receipts."
-  - "Use an uncommitted external harness that expects normal=0 and nt1/nt2/nt3 all nonzero; record exact top-level exits, PASS/FAIL and full stdout/stderr SHA-256 for all four commands."
-  - "Create exactly one later receipt commit changing exactly the four authorized receipt files."
-  - "Rewrite receipts from current facts rather than renaming R9 labels: exact Epoch 10 task/signal, fresh timestamp, full tested head, THIS_COMMIT, exact reviewed-to-receipt five-file manifest, command exits and hashes."
-  - "After push, rerun normal at final receipt head, externally anchor concrete receipt SHA and Epoch 10 pre-completion revalidation in PR #91 and Issues #89/#31, then stop."
-  - "No later commit may exist after the anchored receipt commit."
+  - "Claim exact Epoch 11, create a new branch from reviewed main head and create a new Draft PR against main. Do not push further commits to PR #91."
+  - "Use only coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1/."
+  - "Do not copy PR #91 receipt text or task metadata. PR #91 may be read only as a negative engineering history."
+  - "Create exactly five files: INDEPENDENT-VERIFICATION-SCRIPT.py plus four receipt files named PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml, TEST-RUN-RECEIPT.md, AI_HANDOFF.yaml and WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml."
+  - "Implement one production wrapper that performs exact 15-file ls-tree verification, extraction, validator execution, timeout handling, stdout parsing and exact 37/0/0 validation."
+  - "Return a structured result containing manifest status, extraction status, process exit, PASS/FAIL/SKIP counts, combined hash, files hashed and stdout/stderr SHA-256."
+  - "normal exits 0 only when delivery scan is clean, all Git commands succeed, the exact 15-file set matches, validator exit is 0 and parsed result is exactly 37/0/0 with all required fields present."
+  - "nt1 injects an unsafe value into an H1 receipt fixture, runs the same production delivery scanner, restores in finally and exits nonzero."
+  - "nt2 omits one required frozen artifact before the same wrapper validation and exits nonzero."
+  - "nt3 replaces only the temporary extracted validator bytes with a script exiting 7, uses the same wrapper and exits nonzero."
+  - "Catch subprocess.TimeoutExpired, OSError, decode errors, missing files and cleanup/restoration errors; each must produce a controlled nonzero exit."
+  - "Use a temporary untracked harness to run normal, nt1, nt2 and nt3. Harness success requires top-level exits [0, nonzero, nonzero, nonzero]."
+  - "Create a tested commit containing only the verifier, then a receipt commit containing only the four receipts."
+  - "Receipts must be generated from actual command results and use the exact Epoch 11 task ID/signal, branch base, tested parent, receipt_head_ref: THIS_COMMIT, fresh timestamps and final five-file manifest."
+  - "After receipt push, rerun normal and full reviewed-base-to-receipt scan at the concrete receipt head; externally anchor concrete receipt SHA, tested SHA, exact manifests, exits and stdout/stderr hashes in the new PR and Issues #89/#31."
+  - "Stop for GPT review."
 
 allowed_changed_files:
-  tested_commit:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/INDEPENDENT-VERIFICATION-SCRIPT.py"
-  receipt_commit_only:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/TEST-RUN-RECEIPT.md"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/AI_HANDOFF.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
+  exact_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H1/"
+  exact_files:
+    - "INDEPENDENT-VERIFICATION-SCRIPT.py"
+    - "PUBLIC-SAFETY-AND-LOCAL-PATH-HYGIENE-REPORT.yaml"
+    - "TEST-RUN-RECEIPT.md"
+    - "AI_HANDOFF.yaml"
+    - "WORKBUDDY-EXECUTION-FEEDBACK-v2.yaml"
 
 acceptance_gates:
-  - "Exactly two commits exist after reviewed head: one verifier-only tested commit and one four-receipt-file commit."
-  - "Normal, NT2 and NT3 visibly call the same production extraction/execution/result-validation function; duplicated manual child execution is absent."
-  - "Normal exits 0 only for complete exact 37/0/0 evidence; nt1, nt2 and nt3 commands themselves each exit nonzero."
-  - "Timeout, cleanup/restoration and missing/malformed result paths are executable fail-closed branches."
-  - "Every command has exact top-level exit and full stdout/stderr SHA-256."
-  - "All receipts use exact Epoch 10 truth, fresh baseline/timestamp and final reviewed-to-receipt five-file surface."
+  - "A new Draft PR exists; PR #91 remains unchanged after 0cfd082cbc508675d892615a1283e82ddaf134bb."
+  - "Exactly two commits exist: verifier-only tested commit and four-receipt-file commit."
+  - "normal, nt2 and nt3 call the identical wrapper; nt1 calls the identical delivery scanner."
+  - "Normal top-level exit is 0 only for exact 15 files and exact 37/0/0; nt1/nt2/nt3 top-level exits are nonzero."
+  - "Timeout, malformed output, missing required fields, child nonzero, extraction failure and restoration/cleanup failure are demonstrably fail-closed."
+  - "Every command has exact expected/actual top-level exit and full stdout/stderr SHA-256."
+  - "Final public scan covers exactly the five-file H1 delivery and has zero physical-path or credential-value findings."
   - "Concrete receipt SHA is externally anchored and no later commit exists."
-  - "No QCLAW semantic, source, replay, backtest, account, order or trade action occurs."
-
-failure_result:
-  condition: "R10 again uses label-only/single-line EXIT changes, bypasses the common wrapper, leaves NT3/normal fail-open, or publishes stale/false receipts."
-  action: "STOP_WORKBUDDY_ON_PR91_AND_ESCALATE_VERIFIER_CLOSURE_FOR_REASSIGNMENT"
-  execution_allowed_after_failure: false
-
-next_queued_after_acceptance:
-  status: "QUEUED_NOT_ACTIVE"
-  purpose: "Independent machine audit of accepted-candidate PR #95 and PR #96 may be assigned only after GPT accepts PR #91 R10."
+  - "No QCLAW semantic rescore, source, replay, backtest, account, order or trade action occurs."
 
 forbidden:
-  - "No label-only or one-line EXIT patch presented as wrapper refactor."
-  - "No duplicated child-only extraction/execution path for NT2 or NT3."
-  - "No helper, generator, copied validator or raw-output file committed to Git."
-  - "No history rewrite, force push, semantic rescore or deletion of negative evidence."
-  - "No modification of PR #84/#77/#79/#90/#93/#95/#96 or other agent branches."
+  - "No modification, reopening or further patching of PR #91."
+  - "No helper, generator, copied QCLAW validator or raw-output file committed to Git."
+  - "No semantic rescore, blocker change, 0.491 change or verdict adoption/rejection."
+  - "No modification of PR #77/#79/#84/#90/#93/#95/#96 or another agent branch."
   - "No Issue #92 execution, source access, labels, replay, backtest, account, order or trade."
-  - "No merge or auto-merge."
+  - "No merge, auto-merge, force push or history rewrite."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / INDEPENDENT_MACHINE_VERIFICATION / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T10:41:00+08:00"
+updated_at: "2026-07-25T15:38:00+08:00"
