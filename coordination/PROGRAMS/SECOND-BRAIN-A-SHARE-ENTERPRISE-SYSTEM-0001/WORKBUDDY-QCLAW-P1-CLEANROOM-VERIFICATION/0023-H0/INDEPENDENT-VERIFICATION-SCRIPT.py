@@ -106,6 +106,7 @@ elif MODE == "nt2":
     p = vr.returncode != 0
     print(f"NT2|{'PASS' if p else 'FAIL'}|exit={vr.returncode}|soh={H(vr.stdout)}")
     if not p: EXIT = 1
+    else: EXIT = 1  # R9: detected failure → non-zero exit (fail-closed)
     shutil.rmtree(td)
 
 elif MODE == "nt3":
