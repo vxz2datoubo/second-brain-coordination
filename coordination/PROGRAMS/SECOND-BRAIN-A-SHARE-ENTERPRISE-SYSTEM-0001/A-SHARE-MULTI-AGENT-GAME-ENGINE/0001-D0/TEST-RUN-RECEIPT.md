@@ -1,8 +1,8 @@
 # R2 Test Run Receipt
 
-task_id: `CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE`  
-route_epoch: `3`  
-tested_head_full_sha: `3963792bfcc47ad4d8fcd80fe5edde7ae4729003`  
+task_id: `CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE`
+route_epoch: `3`
+tested_head_full_sha: `3963792bfcc47ad4d8fcd80fe5edde7ae4729003`
 receipt_head_ref: `THIS_COMMIT`
 
 ## Preserved failed checks
