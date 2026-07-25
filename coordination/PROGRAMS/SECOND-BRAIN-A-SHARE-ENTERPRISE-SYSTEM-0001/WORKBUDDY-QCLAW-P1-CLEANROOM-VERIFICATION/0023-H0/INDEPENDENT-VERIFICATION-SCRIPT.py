@@ -84,8 +84,9 @@ if MODE == "normal":
     if F: EXIT = 1
     print(f"SCAN|files={len(C)}|findings={len(F)}|mhash={mh}|fhash={fh}")
     r = qclaw_wrapper()
-    if r: print(f"QCLAW|exit={r['exit']}|{r.get('res')}|combined={r.get('cmb')}")
-    else: EXIT = 1
+    if r and r["exit"] == 0 and r.get("res") == "Results: 37 PASS / 0 FAIL / 0 SKIP":
+        print(f"QCLAW|exit={r['exit']}|{r['res']}|combined={r.get('cmb')}")
+    else: EXIT = 1; print(f"QCLAW|FAIL|exit={r['exit'] if r else 'NONE'}|res={r.get('res') if r else 'NONE'}")
 
 elif MODE == "nt1":
     tgt = REPO / "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/WORKBUDDY-QCLAW-P1-CLEANROOM-VERIFICATION/0023-H0/AI_HANDOFF.yaml"
