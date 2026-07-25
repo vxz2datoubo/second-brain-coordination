@@ -1,9 +1,11 @@
-# R2 Test Run Receipt
+# R3 Final Receipt Closure
 
-task_id: `CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE`
-route_epoch: `3`
+task_id: `CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE`
+route_epoch: `4`
 tested_head_full_sha: `3963792bfcc47ad4d8fcd80fe5edde7ae4729003`
 receipt_head_ref: `THIS_COMMIT`
+
+R3 modifies only the four receipt files allowed by Epoch 4. The reviewed substantive boundary is `653fcff04ba5fa7701c943596189371251b0c6a7`; its parent is `af0589692041430a6d7c24182fbc5b47e9f2d609` and its tree is `c8b7f6704f9c4f920034d397ed4376bcd9cba8a7`. The new receipt parent is the reviewed boundary. Concrete final receipt SHA and tree are externally anchored after push to avoid self-reference.
 
 ## Preserved failed checks
 
