@@ -1,4 +1,4 @@
-schema_version: "14.1"
+schema_version: "14.2"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -19,12 +19,12 @@ active_issue: 59
 related_issue: 23
 source_pull_request: 93
 pull_request: 96
-task_id: "QCLAW-PR96-R3-VALIDATOR-TRUTH-YAML-INTEGRITY-AND-RECEIPT-CLOSURE-R1"
+task_id: "QCLAW-PR96-R4-CANONICAL-SCHEMA-PRESERVATION-NEGTEST-AND-RECEIPT-TRUTH-CLOSURE"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96验证器真值、YAML/JSON完整性与回执收口R3-R1"
+mode_label: "【QCLAW模式：目标模式】PR #96规范Schema保真、顶层负测与回执真值R4"
 mode_reason: >-
-  R2已经建立真实Git两头并完成有价值的语义修正，但当前验证器不拒绝JSON/JSONL重复键、不按规范重算ID，
-  UNKNOWN注册表含重复YAML键，回执与最终树相互矛盾。当前缺口集中、机械可证，因此使用目标模式严格收口。
+  R3-R1已建立严格YAML/JSON/JSONL解析与ID重算方向，但降低对抗问题门槛、删除测试覆盖、
+  泛化canonical payload和占位回执破坏了语义保真与机器真值。缺口集中可证，继续目标模式做有界R4。
 status: "READY"
 execution_allowed: true
 daily_compute_status: "AVAILABLE_RESTORED"
@@ -32,22 +32,22 @@ blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "685c9b27706156266aa0ac302ec8ca5e082327fe"
-branch_head_at_release: "685c9b27706156266aa0ac302ec8ca5e082327fe"
-remote_main_at_release: "3e7f1a12eabeca215969699e00c7fac9ccc9d77c"
+reviewed_or_base_head: "4a7401a15c1e03a6a20a60336c1f72dd173327cc"
+reviewed_tested_head: "4642288a7552368108693a61f0ed457eafd114e1"
+reviewed_receipt_head: "4a7401a15c1e03a6a20a60336c1f72dd173327cc"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 5
-route_issued_at: "2026-07-25T16:20:00+08:00"
-completion_signal: "QCLAW_PR96_R3_R1_VALIDATOR_TRUTH_YAML_JSON_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
+route_epoch: 6
+route_issued_at: "2026-07-26T03:14:00+08:00"
+completion_signal: "QCLAW_PR96_R4_CANONICAL_SCHEMA_PRESERVATION_NEGTESTS_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR96-R3-VALIDATOR-TRUTH-YAML-INTEGRITY-AND-RECEIPT-CLOSURE@route_epoch:4"
+  - "QCLAW-PR96-R3-VALIDATOR-TRUTH-YAML-INTEGRITY-AND-RECEIPT-CLOSURE-R1@route_epoch:5"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head, branch_head_at_release]
-  branch_head_at_claim_must_equal: "685c9b27706156266aa0ac302ec8ca5e082327fe"
+  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
+  branch_head_at_claim_must_equal: "4a7401a15c1e03a6a20a60336c1f72dd173327cc"
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
 pre_completion_revalidation:
   required: true
@@ -56,57 +56,55 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "NO_R3_DELIVERY_FOUND_R2_STRUCTURE_PRESERVED_VALIDATOR_TRUTH_REPUBLISHED"
+  classification: "R3_STRICT_PARSE_AND_TWO_HEAD_DIRECTION_ACCEPTED_SCHEMA_COVERAGE_NEGTEST_AND_RECEIPT_TRUTH_R4_REQUIRED"
   accepted_facts:
-    - "R2 tested head e886519c96109845bca7c1e35474f0d9d751c6de and receipt head 685c9b27706156266aa0ac302ec8ca5e082327fe remain the reviewed boundary."
-    - "R2 preserves bounded stabilization capacity, versioned foreign aggregate evidence, removal of person/account matching and concrete PR #93 blob identities."
-    - "No R3 commit or completion signal was found before this route was issued."
+    - "Exactly one tested commit and one five-file receipt commit exist after the Epoch 5 reviewed head."
+    - "The validator uses duplicate-key rejection for YAML, JSON and JSONL and recomputes atom/relation/question hashes."
+    - "UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml is repaired into explicit unknown_entries and validation_task_entries lists."
+    - "Atom and relation counts remain 99 and 147, and no source activation, identity matching, replay, backtest or trade occurred."
   blocking_facts:
-    - "JSON and JSONL duplicate keys are accepted by ordinary json.loads."
-    - "Atom, relation and question IDs are format-checked but not recomputed from canonical payloads."
-    - "UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml contains duplicate keys caused by a missing list-item marker."
-    - "Receipt metadata contains THIS_COMMIT in sha256 fields, a non-existent renamed document and stale evidence."
+    - "ADVERSARIAL-QUESTION-SET was reduced from 64 records to 44 and MIN_QUESTIONS was lowered from the prior 60 gate to 44, violating semantic/coverage preservation and the no-silent-deletion rule."
+    - "Q0_CANONICAL_ID_V1 is not implemented as explicit per-object ordered fields with Unicode NFC and LF normalization; the validator hashes every current field except the ID, allowing volatile or schema-added fields to change identity."
+    - "The twenty removed questions are not individually mapped, justified or preserved as equivalent adversarial coverage in AMENDMENT-LOG."
+    - "Negative fixtures run as internal assertions inside a successful validator; the required four separate validator commands do not themselves exit nonzero."
+    - "TEST-RUN-RECEIPT.md contains literal {TASK_ID}, {SIGNAL} and {TESTED_SHA} placeholders."
+    - "Receipt file hashes are self-referential/unverified, commands and stdout/stderr hashes are absent, and no receipt-head integrity command or valid external completion anchor is present."
+    - "R1-TWO-RUN-DETERMINISM-RECEIPT records only counts and exits, not isolated Git-extraction identities, literal commands or normalized output hashes."
 
 resource_and_effort:
-  priority_share_percent: 25
-  task_weight: "MEDIUM_TRUTH_CLOSURE"
+  priority_share_percent: 30
+  task_weight: "MEDIUM_SCHEMA_AND_EVIDENCE_CLOSURE"
   checkpoints: [40, 75, 100]
 
 objective:
   summary: >-
-    Make the PR #96 validator, semantic files, deterministic IDs and five receipt files describe one exact committed reality,
-    with strict duplicate-key rejection and reproducible validation from Git-extracted tested-head bytes.
-  non_objectives:
-    - "No new market-subject research or new knowledge categories."
-    - "No personal/account identification or current-market signal."
-    - "No integration into Codex D1 or any runtime."
+    Preserve the original knowledge and adversarial-test coverage while implementing one explicit versioned canonical-ID contract,
+    proving each negative fixture through a real nonzero top-level command, and replacing every placeholder or self-referential receipt with exact Git truth.
 
 canonical_id_contract:
   version: "Q0_CANONICAL_ID_V1"
-  required_documentation: "AMENDMENT-LOG.yaml"
   requirements:
-    - "Define explicit ordered payload fields separately for atoms, relations and adversarial questions."
-    - "Exclude generated ID fields and volatile receipt/runtime metadata from their own ID payloads."
-    - "Use UTF-8, Unicode NFC, LF line endings, stable JSON separators and sorted keys."
-    - "Recompute SHA-256 IDs and update every dependent reference atomically."
-    - "A one-byte canonical-payload mutation negative fixture must be detected as an ID mismatch."
+    - "Define explicit ordered payload-field allowlists separately for atoms, relations and adversarial questions in AMENDMENT-LOG.yaml and validator constants."
+    - "Normalize every string to Unicode NFC, normalize line endings to LF, encode UTF-8 and serialize with stable separators and the declared field order."
+    - "Exclude generated IDs, receipt/runtime metadata and any non-semantic volatile field."
+    - "Reject missing required payload fields and unexpected identity-affecting fields unless the schema version is explicitly advanced."
+    - "Recompute all IDs and atomically migrate every dependent reference."
 
 required_actions:
-  - "Claim exact Epoch 5 lease before editing and reuse only the existing PR #96 branch."
-  - "Create exactly two new Git commits after reviewed head 685c9b27706156266aa0ac302ec8ca5e082327fe."
-  - "The tested commit may change only semantic/reference files, validate_q0.py and AMENDMENT-LOG.yaml; it must not change the five receipt files."
-  - "Repair UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml into a duplicate-key-free list with explicit validation_id on every task and update declared counts."
-  - "Implement object_pairs_hook duplicate-key rejection for JSON and every JSONL record; YAML duplicate-key rejection remains strict and fail-closed."
-  - "Implement canonical ID recomputation for every atom, relation and adversarial question; format-only checks are insufficient."
-  - "Recompute all affected IDs and cascade-update every reference in relations, ledgers, expected/forbidden retrieval keys, learning packet and other semantic files."
-  - "Preserve semantic meaning unless a reference must change mechanically; record every changed semantic file and count in AMENDMENT-LOG.yaml."
-  - "Run four uncommitted negative fixtures: duplicate YAML key, duplicate JSON key, duplicate JSONL key and canonical-ID mismatch; each validator command must exit nonzero."
-  - "Extract the exact tested commit into two independent temporary directories and run validation with different PYTHONHASHSEED values; exits, counts and normalized hashes must match."
-  - "Create a later receipt commit changing exactly TEST-RUN-RECEIPT.md, QUALITY-GATE-REPORT.md, QCLAW-FEEDBACK-v2.yaml, AI_HANDOFF.yaml and R1-TWO-RUN-DETERMINISM-RECEIPT.yaml."
-  - "Receipt metadata must use tested_head_full_sha plus receipt_head_ref: THIS_COMMIT; THIS_COMMIT is forbidden in any sha256 field."
-  - "Every listed file must exist at the stated head; record actual byte size and full SHA-256, or omit it from the list."
-  - "Run one receipt-head integrity validation that verifies the exact five-file receipt delta and scans all reviewed-to-receipt files for physical paths, secrets, zero hashes, stale task/signal and non-existent filenames."
-  - "Externally anchor the concrete receipt SHA, parent, exact changed-file manifests, commands, exits and stdout/stderr SHA-256 on PR #96 and Issues #59/#31."
+  - "Claim the exact Epoch 6 lease and reuse PR #96 and its existing branch."
+  - "Create exactly one tested remediation commit followed by exactly one five-file receipt commit."
+  - "Restore at least the prior 60-question quality gate and preserve all 64 prior adversarial test cases unless a case is proven byte/semantic duplicate."
+  - "For any exact duplicate, preserve its coverage through an explicit stable variant/case field or record a one-to-one old-record to replacement-record mapping and prove no category, expected/forbidden atom or abstention coverage is lost."
+  - "Do not silently delete questions, UNKNOWNs, counterevidence, amendment history or failure fixtures."
+  - "Implement Q0_CANONICAL_ID_V1 using explicit per-object payload fields, NFC, LF and UTF-8; generic 'all fields except ID' hashing is forbidden."
+  - "Add strict checks that every declared ID is 64 lowercase hex, unique, recomputed from the exact schema and all references resolve."
+  - "Expose four uncommitted fixture modes or equivalent isolated commands for duplicate YAML, duplicate JSON, duplicate JSONL and canonical-payload mutation; each top-level validator command must exit nonzero."
+  - "Run the exact tested commit from two independently Git-extracted temporary directories with different PYTHONHASHSEED values; record tree identity, literal commands, exits, stdout SHA-256, stderr SHA-256 and normalized output SHA-256."
+  - "The receipt commit may change only TEST-RUN-RECEIPT.md, QUALITY-GATE-REPORT.md, QCLAW-FEEDBACK-v2.yaml, AI_HANDOFF.yaml and R1-TWO-RUN-DETERMINISM-RECEIPT.yaml."
+  - "Remove every placeholder. Use tested_head_full_sha, tested parent/tree and receipt_head_ref: THIS_COMMIT; THIS_COMMIT remains forbidden in sha256 fields."
+  - "Do not list or self-hash a receipt file unless the recorded byte size and SHA-256 are independently computed from an immutable prior head; otherwise record a non-self-referential manifest of tested artifacts and externally anchor the receipt SHA."
+  - "Run a receipt-head integrity command that verifies the exact five-file delta and scans the entire reviewed-to-receipt surface for physical paths, secrets, zero hashes, placeholders, stale task/signal and nonexistent files."
+  - "After push, externally anchor receipt SHA, parent/tree, exact deltas, all commands/exits/hashes and Epoch 6 revalidation on PR #96 and Issues #59/#31."
   - "Stop for GPT review."
 
 allowed_changed_files:
@@ -126,29 +124,22 @@ allowed_changed_files:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
 
 acceptance_gates:
-  - "Exactly two new commits exist: tested then five-file receipt."
-  - "Strict parsing rejects duplicate YAML, JSON and JSONL keys with nonzero exits."
-  - "Every atom/relation/question ID equals a recomputed Q0_CANONICAL_ID_V1 value and all references resolve."
-  - "The repaired UNKNOWN registry parses strictly with no duplicate key and correct task count."
-  - "Two independent tested-head validations are identical; receipt-head integrity validation also exits 0."
-  - "No physical path, credential value, zero hash, THIS_COMMIT-as-sha256, non-existent file or stale route truth remains."
-  - "No source activation, person/account identification, recommendation, replay, backtest, performance claim, account, order or trade occurs."
-
-exploration_budget:
-  main_delivery_percent: 92
-  local_improvement_percent: 6
-  discovery_percent: 2
-  max_unplanned_new_files: 0
-  class_c_or_d_action: "PROPOSE_OR_STOP_DO_NOT_IMPLEMENT"
+  - "Exactly two new commits exist after 4a7401a15c1e03a6a20a60336c1f72dd173327cc and respect the tested/receipt separation."
+  - "Adversarial coverage is at least 60 cases and every prior case is preserved or explicitly mapped without semantic loss."
+  - "Every atom, relation and question ID equals the exact Q0_CANONICAL_ID_V1 value and all dependent references resolve."
+  - "Duplicate YAML/JSON/JSONL and canonical-ID mutation commands each exit nonzero at top level."
+  - "Two independent tested-head runs are byte/tree identified and deterministic; receipt-head integrity exits 0."
+  - "No placeholder, physical path, secret, zero hash, self-referential hash, nonexistent file or stale route truth remains."
+  - "Concrete receipt SHA is externally anchored and no later commit exists."
+  - "No new knowledge claim, source activation, identity matching, signal, replay, backtest, account, order or trade occurs."
 
 forbidden:
   - "No modification of PR #93, Codex, WorkBuddy or main."
-  - "No new knowledge claims, participant scores or market outlook beyond mechanical integrity repairs."
-  - "No silent deletion of failed fixtures, UNKNOWNs, counterevidence or amendment history."
+  - "No lowering of prior quality thresholds, silent deletion of coverage, generic all-fields canonical hashing or receipt placeholders."
   - "No merge, auto-merge, force push or history rewrite."
-  - "No source activation, labels, replay, backtest, account, order or trade."
+  - "No source activation, labels, person/account identification, replay, backtest, account, order or trade."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T16:20:00+08:00"
+updated_at: "2026-07-26T03:14:00+08:00"
