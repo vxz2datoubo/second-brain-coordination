@@ -1,4 +1,4 @@
-schema_version: "10.0"
+schema_version: "10.1"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -9,29 +9,29 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
 pull_request: 95
-task_id: "CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE"
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】PR #95多智能体博弈引擎企业级深度、公开路径与远端发布回执R2"
+task_id: "CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE"
+mode: "target"
+mode_label: "【Codex模式：目标模式】PR #95远端发布证明与最终回执收口R3"
 mode_reason: >-
-  PR #95已经建立正确的单一目录、潜在身份、A股约束、证据治理、NO_TRADE和蓝图回写骨架，
-  但50个文件仅约1074行，多份关键计划只有5至30行，仍不足以作为可恢复、可拆分、可验收的企业级施工蓝图；
-  同时公开包泄露本机绝对路径，远端API发布head与本地tested/receipt head缺少机器可读映射。
-  本轮目标不是实现运行时，而是把已接受骨架加深为可执行项目计划并闭合公开与发布证据，因此继续使用项目计划模式。
+  PR #95 R2已经把D0-D6任务图、A股合成状态机、十二夹具、二十不变量、候选行动合同、
+  校准与反过拟合门、公开路径别名和完整性矩阵补到可继续施工的水平。剩余问题只在远端发布证明和
+  最终回执身份：当前publication receipt仍为PENDING，主要记录上一轮树一致性，且receipt之后又出现一次空格修正提交。
+  文件面和成功标准完全确定，因此改用目标模式做一次四文件收口，不再扩写蓝图或启动D1。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
 branch: "codex/a-share-multi-agent-game-engine-0001-d0"
-reviewed_or_base_head: "150e339a98ba07a70a369c33d46a10b077707cee"
+reviewed_or_base_head: "653fcff04ba5fa7701c943596189371251b0c6a7"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 3
-route_issued_at: "2026-07-25T09:15:00+08:00"
-completion_signal: "CODEX_PR95_R2_ENTERPRISE_DEPTH_PUBLIC_PATH_AND_REMOTE_PUBLICATION_READY_FOR_GPT_REVIEW"
+route_epoch: 4
+route_issued_at: "2026-07-25T10:35:00+08:00"
+completion_signal: "CODEX_PR95_R3_REMOTE_PUBLICATION_PROOF_AND_FINAL_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-A-SHARE-MULTI-AGENT-GAME-ENGINE-0001-D0-INTEGRATED-PROJECT-PLAN-R1@route_epoch:2"
+  - "CODEX-PR95-R2-ENTERPRISE-DEPTH-PUBLIC-PATH-AND-REMOTE-PUBLICATION-CLOSURE@route_epoch:3"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -44,108 +44,64 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "CODEX_D0_STRUCTURAL_SCAFFOLD_ACCEPTED_ENTERPRISE_DEPTH_PUBLIC_PATH_AND_REMOTE_RECEIPT_R2_REQUIRED"
+  classification: "CODEX_R2_ENTERPRISE_D0_SUBSTANCE_ACCEPTED_REMOTE_PUBLICATION_AND_FINAL_RECEIPT_R3_REQUIRED"
   accepted_facts:
-    - "PR #95 head 150e339a98ba07a70a369c33d46a10b077707cee contains exactly 50 changed paths under the single authorized D0 root."
-    - "The package preserves latent participant identity, alternative hypotheses, counterevidence, A-share feasibility constraints and NO_TRADE boundaries."
-    - "The package reuses existing source/evidence, data-governance and research-validation owners instead of creating a second runtime."
-    - "All named ontology, action, risk, UNKNOWN, integration, protected-backwrite and AMED artifact families are present."
-    - "PR #93 remains candidate-only and no source, replay, backtest, MARL, account, order or trade path was activated."
+    - "R2 preserves the exact D0 root and adds only the two authorized new files."
+    - "WORKBREAKDOWN now defines D0-D6 owners, inputs, outputs, prerequisites, effort, tests, rollback and stop conditions."
+    - "The microstructure plan defines state tuples, phase transitions, validity/matching/no-fill semantics, twelve fixtures and twenty invariants."
+    - "The action contract retains units, UNKNOWNs, competing hypotheses, abstention and forbidden downstream use."
+    - "Physical local paths were replaced by stable public aliases; no runtime, source, replay, backtest, MARL, account, order or trade path was created."
   blocking_defects:
-    - id: "CX95-R2-D01"
-      fact: "The heavy enterprise plan is materially underdeveloped: PROJECT-PLAN is about 20 lines, microstructure plan 7 lines, validation and compute plans 5 lines each, and many gates are generic slogans rather than executable acceptance contracts."
-    - id: "CX95-R2-D02"
-      fact: "CURRENT-SYSTEM-GAP-AUDIT publicly contains F:/aidanao absolute paths while the package declares PUBLIC_SAFE; the scan did not include a complete local-path category."
-    - id: "CX95-R2-D03"
-      fact: "The public branch was constructed through Git Data API at head 150e339..., while committed receipts anchor local tested/receipt heads; no dedicated machine-readable tree-equality and remote-publication receipt reconciles the two histories."
-    - id: "CX95-R2-D04"
-      fact: "TEST-RUN-RECEIPT contains incomplete command-level evidence: later validators/scans lack complete normalized stdout/stderr hashes, and its table still says PENDING_FINAL_RECHECK while prose claims final PASS."
-    - id: "CX95-R2-D05"
-      fact: "Phase plans lack task-level inputs, outputs, owners, dependencies, effort, acceptance gates, rollback, stop conditions, fixtures and invariant matrices required for independent continuation."
+    - id: "CX95-R3-D01"
+      fact: "REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT remains R2_TESTED_PENDING_EXTERNAL_ANCHOR and mostly records the prior R1 publication history rather than the current R2 remote chain."
+    - id: "CX95-R3-D02"
+      fact: "The current receipt does not record the concrete current remote parent/tree identities, equality commands and normalized stdout/stderr hashes required by the Epoch 3 contract."
+    - id: "CX95-R3-D03"
+      fact: "A later whitespace-only commit followed the receipt-document commit, so THIS_COMMIT references and the asserted final receipt boundary are no longer unambiguous."
+    - id: "CX95-R3-D04"
+      fact: "The completion comment externally anchors the final SHA but omits the current tree-equality proof and full command hashes."
 
 resource_and_effort:
-  priority_share_percent: 65
-  task_weight: "HEAVY_PLUS"
-  research_trigger: "L3_REPOSITORY_SYSTEM_ARCHITECTURE_AND_MODEL_VALIDATION"
-  checkpoints: [20, 40, 60, 80, 100]
-  main_delivery_percent: 88
-  proactive_discovery_percent: 8
-  system_evolution_proposal_percent: 4
-  max_parallel_subplans: 3
-
-first_principles_goal: >-
-  Convert the accepted D0 scaffold into a recoverable enterprise construction plan whose future phases can be assigned to independent agents
-  without guessing object ownership, market-state transitions, test fixtures, quantitative budgets, evidence gates, rollback rules or public/private boundaries.
-
-task_impact_forecast:
-  expected_positive_effects:
-    - "Turn shallow placeholders into independently executable work packages and acceptance contracts."
-    - "Prevent implementation teams from inventing A-share matching, inventory, rule or validation semantics."
-    - "Reconcile local test provenance with the public GitHub branch without history rewrite."
-    - "Remove public local-path disclosure while retaining evidence truth through stable aliases."
-  expected_negative_effects:
-    - "The D0 documentation surface will grow and require careful cross-file consistency checks."
-    - "More explicit gates may expose additional data and implementation UNKNOWNs."
-  stop_conditions:
-    - "Any need to activate a real source, run replay/backtest, train MARL, access credentials/accounts/orders or create a trading path."
-    - "Any need to modify PR #93, PR #96, PR #91 or another agent branch."
-    - "Any inability to isolate work without overwriting uncommitted local changes."
-    - "Any attempt to rewrite history or force push to reconcile local and remote SHA identities."
+  priority_share_percent: 15
+  task_weight: "LIGHT_RECEIPT_CLOSURE"
+  checkpoints: [50, 100]
 
 required_actions:
-  - "Claim exact Epoch 3 lease from latest remote main before editing and use the existing isolated branch and Draft PR #95."
-  - "Preserve all accepted contracts, UNKNOWNs, negative findings and the complete 50-file R1 surface; do not collapse the package into fewer vague summaries."
-  - "Replace every public absolute local path with stable aliases such as <LOCAL_REPOSITORY_ROOT> and record alias semantics without exposing the physical path."
-  - "Add a complete local-path and credential-value scan over every file changed from reviewed head to final receipt head."
-  - "Deepen PROJECT-PLAN and WORKBREAKDOWN into D0-D6 task graphs with task_id, objective, inputs, outputs, owner, prerequisites, effort class, compute/data needs, acceptance tests, rollback, stop conditions and continuation capsule."
-  - "Deepen the synthetic rules MVP plan with explicit MarketState/AgentState/InventoryState/InformationSet schemas, market-phase state machine, order validity, matching/no-fill, price-limit, suspension, T+1 and cross-day inventory semantics."
-  - "Define at least twelve synthetic fixtures and at least twenty invariants/negative tests covering call auction, continuous auction, halt, limit state, stale/UNKNOWN rule snapshot, fresh-lot sell rejection, partial/no fill and alternative participant hypotheses."
-  - "Deepen action contracts with utility components, units, horizons, constraint order, abstention semantics, competing hypotheses, deterministic examples and invalidation paths; no coefficient may be fabricated."
-  - "Deepen calibration and anti-overfit plans with identification assumptions, temporal split design, purge/embargo applicability, baseline families, regime strata, probability calibration, multiple-testing decision rules, coverage/abstention metrics, failure thresholds and promotion/rejection criteria."
-  - "Deepen compute and cost planning with parameter-count, scenario-count, seed-count, time/memory/storage estimates, hard ceilings, cancellation thresholds and escalation rules for synthetic MVP, replay, Level-k, self-play and MARL."
-  - "Make dependency graph, integration gates, risk register and UNKNOWN registry machine-actionable with owners, evidence requirements, blocking scope, latest resolution phase and rollback effects."
-  - "Reconcile protected-blueprint backwrite into chapter-level deltas, prerequisites, conflicts, user approval points and rollback; do not copy protected bodies."
-  - "Add REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml recording local tested/receipt heads, remote public head, parent/tree identities, exact equality method, commands, exit codes and normalized stdout/stderr hashes."
-  - "Add D0-ENTERPRISE-DEPTH-COMPLETENESS-MATRIX.yaml mapping every blueprint requirement to files, sections, acceptance gates and remaining UNKNOWNs."
-  - "Run strict YAML duplicate-key rejection, JSON/JSONL parsing where applicable, cross-reference validation, complete allowlist, local-path and credential-value scans, and git diff checks."
-  - "Create a tested head and a later receipt-only head; after push externally anchor the concrete remote receipt SHA and revalidate Epoch 3."
-  - "Stop for GPT review. Do not start a synthetic runtime or consume PR #96 as accepted authority."
-
-minimum_depth_acceptance:
-  project_plan:
-    required: [phase_task_graph, owners, inputs_outputs, dependencies, effort, acceptance, rollback, stop_conditions]
-  microstructure_plan:
-    required: [state_machine, order_validity, matching_no_fill, t_plus_one_inventory, rule_snapshot_unknown, fixtures, invariants]
-  validation_plan:
-    required: [identification, temporal_splits, baselines, regimes, calibration, multiple_testing, coverage, rejection_gates]
-  compute_plan:
-    required: [scenario_formula, seed_budget, parameter_budget, time_memory_storage_ceiling, cancellation_thresholds]
-  publication_receipt:
-    required: [local_tested_head, local_receipt_head, remote_head, parent_sha, tree_sha, equality_proof, commands, exits, stdout_stderr_hashes]
+  - "Claim exact Epoch 4 from latest remote main and reuse the current branch and Draft PR #95."
+  - "Do not change any blueprint, ontology, task graph, schema, risk, UNKNOWN, compute, simulator or action-contract content."
+  - "Create exactly one receipt-only commit changing exactly the four authorized files and no others."
+  - "Treat reviewed head 653fcff04ba5fa7701c943596189371251b0c6a7 as the accepted substantive/tested content boundary."
+  - "Record the concrete reviewed head parent SHA and tree SHA, the new receipt commit parent and tree identities, and any local/API counterpart identities without claiming different commit SHAs are identical."
+  - "Run exact Git commands that establish ancestry, changed-file allowlist and tree identity; record command text, actual exit, normalized stdout SHA-256 and stderr SHA-256."
+  - "Record the exact reviewed-to-receipt four-file manifest and verify no other file changed."
+  - "Run final complete local-path, credential-value and git-diff checks over the R2 reviewed surface and the R3 four-file receipt delta; preserve exact counts and hashes."
+  - "Use receipt_head_ref: THIS_COMMIT inside receipts; after push externally anchor the concrete receipt SHA in PR #95 and Issues #23/#31."
+  - "The external anchor must include remote main at claim and pre-completion revalidation, reviewed head, receipt SHA, parent/tree SHAs, exact commands/exits/hashes and the completion signal."
+  - "No later whitespace, typo or metadata commit is allowed after the externally anchored receipt commit."
+  - "Stop for GPT review. D1 remains blocked until a separate explicit GPT/user route."
 
 allowed_changed_files:
-  existing_files: "All 50 files already present at reviewed head 150e339a98ba07a70a369c33d46a10b077707cee under the exact D0 root may be modified only for the required depth, path hygiene and receipt corrections."
-  new_files_only:
+  receipt_commit_only:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/REMOTE-PUBLICATION-AND-TREE-EQUALITY-RECEIPT.yaml"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/D0-ENTERPRISE-DEPTH-COMPLETENESS-MATRIX.yaml"
-  forbidden_new_files: "No committed helper, generator, raw output, copied source, runtime, adapter, simulator or test data file."
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/TEST-RUN-RECEIPT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D0/AMED-AGENT-EXECUTION-RECEIPT.yaml"
 
 acceptance_gates:
-  - "Final PR surface is exactly the reviewed 50 files plus the two authorized new receipt/completeness files, unless GPT explicitly changes the allowlist."
-  - "No absolute local path or credential value is present in the final public delivery surface."
-  - "Every D0-D6 phase and core contract meets minimum_depth_acceptance and has machine-readable cross-file mapping."
-  - "The remote-publication receipt proves tree equality without pretending local and remote commit SHAs are identical."
-  - "Every command has actual exit code and normalized stdout/stderr SHA-256; failures and SKIPs are preserved."
-  - "PR #93 and PR #96 remain candidate/UNKNOWN; no article claim or QCLAW atom becomes an accepted fact in this task."
-  - "No runtime, source activation, replay, backtest, MARL training, performance claim, account, order or trade action occurs."
+  - "Exactly one new commit exists after reviewed head and it changes exactly the four authorized receipt files."
+  - "Current R3 publication proof contains concrete parent/tree identities and command-level exits/stdout/stderr hashes."
+  - "Receipts use the exact Epoch 4 task ID and completion signal, reviewed head, THIS_COMMIT and current timestamps."
+  - "Concrete receipt SHA is externally anchored after push and no later commit exists."
+  - "The substantive R2 D0 blueprint remains byte-unchanged."
+  - "No runtime, source activation, replay, backtest, MARL, performance claim, account, order or trade action occurs."
 
 forbidden:
-  - "No direct main write, merge, auto-merge, force push or history rewrite."
-  - "No modification of Codex PR #90, QCLAW, WorkBuddy, PR #93 or PR #96 branches."
-  - "No public disclosure of local physical paths, private blueprints, credentials or raw/private data."
-  - "No source activation, labels, replay, backtest, MARL, broker, account, order, position or trade."
+  - "No blueprint deepening, new file, helper, generator, raw output or runtime change."
+  - "No merge, auto-merge, direct main write, force push or history rewrite."
+  - "No modification of QCLAW, WorkBuddy, PR #90, PR #93 or PR #96 branches."
+  - "No source activation, labels, replay, backtest, MARL, account, order, position or trade."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T09:15:00+08:00"
+updated_at: "2026-07-25T10:35:00+08:00"
