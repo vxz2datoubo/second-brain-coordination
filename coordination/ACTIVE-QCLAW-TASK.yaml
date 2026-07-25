@@ -1,4 +1,4 @@
-schema_version: "13.0"
+schema_version: "14.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -19,13 +19,13 @@ active_issue: 59
 related_issue: 23
 source_pull_request: 93
 pull_request: 96
-task_id: "QCLAW-PR96-R2-TRUE-TWO-HEAD-SEMANTIC-AND-DETERMINISTIC-RECEIPT-CLOSURE"
+task_id: "QCLAW-PR96-R3-VALIDATOR-TRUTH-YAML-INTEGRITY-AND-RECEIPT-CLOSURE"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96真实两头、语义卫生与确定性回执R2"
+mode_label: "【QCLAW模式：目标模式】PR #96验证器真值、YAML完整性与回执收口R3"
 mode_reason: >-
-  R1新增了验证器、修订日志和两次运行材料，候选知识主体仍有价值；但所有改动混在一个Git提交中，
-  内容哈希被误称为tested head，回执仍使用旧task_id、物理Python路径、零哈希占位，并且关键语义缺陷没有实际修改。
-  当前需要保留知识主体，建立真实tested/receipt两头并修正验证器和语义，因此继续使用目标模式。
+  R2已经建立真实tested/receipt两个Git提交，并修正稳定资本、外资可观测性、身份匹配与来源blob；
+  但当前验证器仍不拒绝JSON重复键、不重算确定性ID，UNKNOWN注册表含重复YAML键，五份回执与当前树矛盾。
+  缺口集中且可机械验证，因此继续目标模式做严格真值收口，不扩大知识研究范围。
 status: "READY"
 execution_allowed: true
 daily_compute_status: "AVAILABLE_RESTORED"
@@ -33,15 +33,16 @@ blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "c4dfdfdfb598557a5e2782d84ee57958cf6e8cf3"
+reviewed_or_base_head: "685c9b27706156266aa0ac302ec8ca5e082327fe"
+remote_main_at_release: "e18320367e673e1207ac4b5e5bea79da1c1c49d6"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 3
-route_issued_at: "2026-07-25T10:38:00+08:00"
-completion_signal: "QCLAW_PR96_R2_TRUE_TWO_HEAD_SEMANTIC_AND_DETERMINISTIC_RECEIPTS_READY_FOR_GPT_REVIEW"
+route_epoch: 4
+route_issued_at: "2026-07-25T15:34:00+08:00"
+completion_signal: "QCLAW_PR96_R3_VALIDATOR_TRUTH_YAML_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR96-R1-SEMANTIC-HYGIENE-TWO-RUN-DETERMINISM-AND-RECEIPT-CLOSURE@route_epoch:2"
+  - "QCLAW-PR96-R2-TRUE-TWO-HEAD-SEMANTIC-AND-DETERMINISTIC-RECEIPT-CLOSURE@route_epoch:3"
 
 lease_claim_required:
   protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
@@ -54,100 +55,87 @@ pre_completion_revalidation:
   mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
 
 review_disposition:
-  classification: "QCLAW_R1_CONTENT_CORRECTIONS_PARTIALLY_ACCEPTED_SINGLE_COMMIT_FALSE_TWO_HEAD_SEMANTIC_AND_VALIDATOR_R2_REQUIRED"
+  classification: "QCLAW_R2_TRUE_GIT_TWO_HEAD_ACCEPTED_VALIDATOR_AND_RECEIPT_TRUTH_R3_REQUIRED"
   accepted_facts:
-    - "R1 adds validate_q0.py, AMENDMENT-LOG and a two-run evidence document while retaining counts above all minimum thresholds."
-    - "The public workspace path in TEST-RUN-RECEIPT was replaced with an alias and the canonical QCLAW role was corrected."
-    - "SOURCE-MANIFEST no longer mislabels the PR commit as a per-file blob, although real blob capture remains unresolved."
-    - "No source activation, signal, replay, backtest, account, order or trade path was created."
+    - "R2 has exactly two commits after c4dfdfdfb598557a5e2782d84ee57958cf6e8cf3: tested e886519c96109845bca7c1e35474f0d9d751c6de and receipt 685c9b27706156266aa0ac302ec8ca5e082327fe."
+    - "Tested and five receipt files are structurally separated."
+    - "Stabilization-capital capacity is bounded/UNKNOWN-aware, foreign activity is versioned aggregate evidence, and the explicit person/account matching task was removed."
+    - "SOURCE-MANIFEST records three concrete PR #93 Git blob identities."
   blocking_defects:
-    - id: "QQ96-R2-D01"
-      fact: "R1 is one Git commit mixing semantic/tested files and five receipt files; the claimed tested_head is a combined content hash rather than a concrete Git commit."
-    - id: "QQ96-R2-D02"
-      fact: "R1 receipts retain the old Q0 task_id, expose a physical Python executable path, use zero-hash placeholders and contain no external concrete receipt anchor."
-    - id: "QQ96-R2-D03"
-      fact: "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP still says stabilization capital has unlimited liquidity and treats northbound net buying/selling as a timeless foreign-capital observable signature."
-    - id: "QQ96-R2-D04"
-      fact: "UNKNOWN/validation registry still contains a person-to-account matching task for Liu Xin, contrary to the explicit anonymity and no-identification gate."
-    - id: "QQ96-R2-D05"
-      fact: "validate_q0.py checks ID shape and uniqueness but does not recompute atom/relation/question IDs from canonical normalized content; JSON/JSONL duplicate keys are not rejected."
-    - id: "QQ96-R2-D06"
-      fact: "The PyYAML fallback is invalid because _DupKeyLoader subclasses yaml.SafeLoader even when yaml import fails; complete delivery-surface path and placeholder scans are absent."
-    - id: "QQ96-R2-D07"
-      fact: "R1 evidence conflicts on relation count 150 versus 152, and TEST-RUN-RECEIPT contains stale pre-correction file sizes and hashes."
-    - id: "QQ96-R2-D08"
-      fact: "SOURCE-MANIFEST reports NOT_CAPTURED based on a claimed API 404 although the repository and frozen PR are accessible; exact Git blob commands and failure evidence are absent."
+    - id: "QQ96-R3-D01"
+      fact: "_parse_json_strict and _parse_jsonl use ordinary json.loads and therefore do not reject duplicate JSON keys despite claiming strict rejection."
+    - id: "QQ96-R3-D02"
+      fact: "validate_q0.py checks only ID shape and uniqueness; it never reconstructs atom, relation or question IDs from a documented canonical payload."
+    - id: "QQ96-R3-D03"
+      fact: "UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml omits a list-item validation_id before the MARKET_OUTLOOK task, creating duplicate content_zh/content_en keys inside the prior mapping; strict YAML must reject the current file."
+    - id: "QQ96-R3-D04"
+      fact: "AI_HANDOFF writes THIS_COMMIT into sha256 fields, lists a non-existent renamed documentation file, preserves stale byte/hash metadata and cannot pass its own 64-hex validator at receipt head."
+    - id: "QQ96-R3-D05"
+      fact: "The claimed two-run exit-0 evidence is incompatible with the malformed YAML and current receipt fields, so the recorded run context is not the final committed tree."
+    - id: "QQ96-R3-D06"
+      fact: "The completion anchor is not present on PR #96 and does not provide a complete final five-file receipt manifest, exact commands/exits/hashes and concrete receipt SHA across PR/Issue #59/#31."
 
 resource_and_effort:
-  priority_share_percent: 45
-  task_weight: "MEDIUM_HEAVY_CORRECTION"
+  priority_share_percent: 25
+  task_weight: "MEDIUM_TRUTH_CLOSURE"
   checkpoints: [25, 50, 75, 100]
+  main_delivery_percent: 94
+  discovery_percent: 4
+  system_evolution_proposal_percent: 2
+
+first_principles_goal: >-
+  Make the committed tree, the validator output and every receipt describe the same reality, with deterministic IDs and strict parsers that fail on adversarial duplicate-key fixtures.
 
 required_actions:
-  - "Claim exact Epoch 3 and reuse the existing branch and Draft PR #96; no replacement PR or history rewrite."
-  - "Create exactly two new commits after reviewed head c4dfdfdfb598557a5e2782d84ee57958cf6e8cf3."
-  - "The tested commit may modify semantic/core files, validate_q0.py and AMENDMENT-LOG.yaml, but must not modify any of the five receipt-only files."
-  - "The receipt commit must modify exactly the five authorized receipt files and no semantic/core/validator file."
-  - "Use the full concrete tested Git commit SHA in every receipt; a content-set SHA must be labeled tested_package_sha256, never tested_head."
-  - "Replace all old task IDs/signals with the exact Epoch 3 task ID and completion signal; replace physical Python paths with <PYTHON_EXECUTABLE> or version-only evidence."
-  - "Remove all zero hashes and placeholder authoritative entries. Receipt-only files may use receipt_head_ref: THIS_COMMIT and must not pretend to hash their own final bytes."
-  - "Correct stabilization-capital language to bounded policy-dependent capacity with mandate, timing, legal and observability UNKNOWNs."
-  - "Replace timeless northbound-net-flow signature with versioned public aggregate activity evidence whose availability and actor attribution remain explicit UNKNOWNs."
-  - "Remove the Liu Xin person/account matching validation task and all dependent relation/question references; use aggregate source-credibility validation without identity matching."
-  - "Record every semantic deletion/change and every atom/relation/question ID delta in AMENDMENT-LOG with before, after, reason and affected references."
-  - "Reconcile the exact final atom, relation and question counts. A justified count delta is acceptable if above thresholds and fully logged; stale 152/150 contradictions are forbidden."
-  - "For each PR #93 source file, run exact Git commands such as git ls-tree or git rev-parse <head>:<path> and record the true blob SHA. NOT_CAPTURED is allowed only with exact failing command, nonzero exit and stdout/stderr hashes."
-  - "Repair validate_q0.py so missing PyYAML fails closed or a genuinely working fallback is defined without referencing an unavailable module."
-  - "Reject duplicate keys in JSON and every JSONL line using object_pairs_hook or an equivalent strict parser."
-  - "Define and document canonical normalization for atoms, relations and questions; recompute every deterministic ID and fail on any mismatch, not only shape/uniqueness."
-  - "Validate source pointers, relation endpoints, expected/forbidden/UNKNOWN references, task/signal exactness, placeholders/zero hashes, complete file manifest, local paths and credential values over the full tested and receipt surfaces."
-  - "Run the tested commit validator twice from independently created clean temporary directories; record exact commands, versions, actual exits, complete ID-set hashes, package hashes and stdout/stderr SHA-256."
-  - "After the receipt commit is pushed, post the concrete receipt SHA, full tested SHA, exact two-commit diff manifests, commands/hashes and Epoch 3 pre-completion revalidation to PR #96 and Issues #59/#31."
-  - "No later commit is permitted after the externally anchored receipt commit. Stop for GPT review."
+  - "Claim exact Epoch 4 and reuse PR #96 and the current branch; do not create a replacement PR."
+  - "Create exactly one tested commit followed by exactly one five-receipt-file commit."
+  - "Fix UNKNOWN-AND-VALIDATION-TASK-REGISTRY.yaml so each validation task is a distinct list item with a unique validation_id; preserve the removed identity-matching decision in AMENDMENT-LOG."
+  - "Implement JSON and JSONL duplicate-key rejection with object_pairs_hook or equivalent; add executable duplicate-key negative fixtures for YAML, JSON and JSONL."
+  - "Document a canonical UTF-8 JSON serialization and ID version. Recompute atom_id, relation_id and question_id from canonical payloads excluding the ID field itself."
+  - "If current IDs do not match the documented formula, regenerate them and update every dependent relation, question, ledger and retrieval reference in the same tested commit; no dangling legacy ID is allowed."
+  - "Verify exact counts from parsed records. The expected semantic count is currently 99 atoms, 147 relations and 64 questions unless a fully logged deterministic-ID cascade changes references but not record counts."
+  - "Verify SOURCE-MANIFEST blob SHAs with exact git ls-tree commands against PR #93 head d3296ece7b7ec56414fb60b1ac497530b188a258; record command, exit and normalized output hashes."
+  - "Remove every sha256: THIS_COMMIT field. Receipt files must use receipt_head_ref: THIS_COMMIT as identity metadata, not pretend it is a content hash."
+  - "List only files that actually exist at tested head. Do not invent a renamed QCLAW-PR96 documentation filename unless a separately authorized tested commit actually renames it."
+  - "Receipt hashes may cover only the non-self-referential tested package. Receipt-only files are identified by names and Git commit identity, not self-hashed final content."
+  - "Run the validator twice from two isolated copies of the exact tested Git commit. Both runs must parse every YAML/JSON/JSONL file, execute duplicate-key negative fixtures, recompute all IDs and produce identical normalized stdout/stderr hashes."
+  - "After creating the five-file receipt commit, check out/copy the exact receipt head and run a receipt-integrity mode that validates task ID, signal, tested parent, existing filenames, no placeholders/physical paths and no malformed YAML."
+  - "Externally anchor concrete tested and receipt SHAs, exact tested/receipt manifests, commands, exits, counts, stdout/stderr hashes and Epoch 4 revalidation in PR #96 and Issues #59/#31."
+  - "Stop for GPT review; no downstream integration is authorized."
 
 allowed_changed_files:
   tested_commit:
-    existing_core_files: "Any non-receipt file already under the exact 0010-Q0 directory may be changed only for the listed semantic, provenance, count and validator corrections."
-    named_validator_and_log:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/validate_q0.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AMENDMENT-LOG.yaml"
-    excluded_receipt_files:
-      - "TEST-RUN-RECEIPT.md"
-      - "QUALITY-GATE-REPORT.md"
-      - "QCLAW-FEEDBACK-v2.yaml"
-      - "AI_HANDOFF.yaml"
-      - "R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
+    existing_files: "Files already present under the exact 0010-Q0 directory may be modified only when required to fix YAML integrity, strict parsing, canonical ID regeneration and dependent-reference consistency."
+    no_new_files: true
   receipt_commit_only:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/TEST-RUN-RECEIPT.md"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QUALITY-GATE-REPORT.md"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QCLAW-FEEDBACK-v2.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AI_HANDOFF.yaml"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
-  forbidden_new_files: "No new source copy, generator, scratch output, private data, runtime, database or trading component."
 
 acceptance_gates:
-  - "Exactly two new commits exist: semantic/validator tested commit, then exactly five-file receipt commit."
-  - "Every deterministic atom/relation/question ID is recomputed from documented canonical content and matches."
-  - "Strict YAML, JSON and JSONL duplicate-key rejection passes; missing PyYAML cannot cause import-time failure or silent fallback."
-  - "No unlimited-liquidity claim, timeless northbound-net-flow assumption, person/account matching task, physical path, zero hash or placeholder remains."
-  - "Source commit and per-file blob identities are accurately separated with reproducible command evidence."
-  - "Final counts and all hashes are internally consistent and above thresholds."
-  - "Receipts use exact Epoch 3 route truth, full Git tested head, THIS_COMMIT, current timestamps and complete command/output hashes."
-  - "Concrete receipt SHA is externally anchored and no later commit exists."
-  - "No source activation, identity assignment, signal, recommendation, replay, backtest, account, order or trade action occurs."
+  - "Exactly two new commits exist after reviewed head: tested first, five-file receipt second."
+  - "Every YAML, JSON and JSONL production file parses strictly; duplicate-key negative fixtures return nonzero for all three formats."
+  - "Every atom/relation/question ID equals a recomputation from the documented canonical payload and all cross-references resolve."
+  - "Final committed counts are internally identical across validator output, quality report, handoff and receipts."
+  - "Receipt head contains no physical path, zero hash, THIS_COMMIT-as-sha256, non-existent filename, stale task/signal or self-referential combined hash."
+  - "Two isolated tested-head runs and one receipt-integrity run have exact command-level exits and full stdout/stderr SHA-256."
+  - "Concrete receipt SHA is externally anchored after push and no later commit exists."
+  - "No source activation, person/account matching, signal, recommendation, replay, backtest, performance claim, account, order or trade occurs."
 
 parallel_firewall:
-  codex_pr95: "Read-only unaccepted/partially accepted candidate; do not edit or claim integration."
-  workbuddy_pr91: "Do not modify or depend on unfinished R10 evidence."
-  pr93: "Frozen candidate input; no edit or merge."
+  codex_d1: "May be read only as an unaccepted parallel synthetic implementation; do not edit or claim integration."
+  workbuddy_h1: "Do not modify or depend on the new independent clean-room verifier task."
+  pr93: "Frozen candidate source; read exact blobs only and do not edit or merge."
 
 forbidden:
   - "No merge, auto-merge, direct main write, force push or history rewrite."
-  - "No new canonical memory/runtime/schema authority or engineering ownership."
-  - "No source activation, person/account identification, signal, recommendation, replay, backtest, performance claim, account, order or trade."
+  - "No new canonical runtime/schema authority, database, retrieval engine or trading component."
+  - "No source activation, identity/account matching, signal, recommendation, replay, backtest, account, order or trade."
   - "No modification of Codex, WorkBuddy or PR #93 branches."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-25T10:38:00+08:00"
+updated_at: "2026-07-25T15:34:00+08:00"
