@@ -57,6 +57,7 @@ class SyntheticLot:
 @dataclass(frozen=True)
 class InventoryState:
     lots: Tuple[SyntheticLot, ...]; pending_buy_quantity: Optional[int] = 0; pending_sell_quantity: Optional[int] = 0
+    settled_trade_date: Optional[str] = None
 
 
 @dataclass(frozen=True)
