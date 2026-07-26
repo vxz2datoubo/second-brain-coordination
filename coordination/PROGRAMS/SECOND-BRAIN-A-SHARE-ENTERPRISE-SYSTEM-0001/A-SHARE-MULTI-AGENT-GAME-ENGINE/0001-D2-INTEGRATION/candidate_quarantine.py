@@ -19,6 +19,12 @@ CANONICAL_FAMILIES = (
     "ACTIVE_CAPITAL",
     "POLICY_INDUSTRIAL_FOREIGN_AGGREGATE",
 )
+IMMUTABLE_SOURCE_TRANSLATIONS = {
+    ("retail", "synthetic-retail"): "RETAIL",
+    ("institutional_quant", "synthetic-systematic"): "INSTITUTIONAL_QUANT",
+    ("active_capital", "synthetic-event-driven"): "ACTIVE_CAPITAL",
+    ("policy_industrial_foreign_aggregate", "synthetic-policy"): "POLICY_INDUSTRIAL_FOREIGN_AGGREGATE",
+}
 DEPRECATED_CANONICAL_LABELS = {"LargeCapital", "QuantStrategy", "ActiveSpeculative"}
 _HEX40 = re.compile(r"^[0-9a-f]{40}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -40,6 +46,16 @@ class CandidateEnvelope:
     target_kind: str
     identity_claimed: bool
     deterministic_status: str
+    run_attestations: Tuple["RunAttestation", ...] = ()
+
+
+@dataclass(frozen=True)
+class RunAttestation:
+    command: str
+    exit_code: int
+    stdout_hash: str
+    stderr_hash: str
+    normalized_package_hash: str
 
 
 @dataclass(frozen=True)
@@ -94,14 +110,36 @@ def translate_ontology(source_family_label: object, source_subtype_label: object
     source_subtype = source_subtype_label if isinstance(source_subtype_label, str) else ""
     if canonical_family_label in DEPRECATED_CANONICAL_LABELS:
         return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "DEPRECATED_LABEL_PRESENTED_AS_CANONICAL")
-    if canonical_family_label is not None:
-        if canonical_family_label not in CANONICAL_FAMILIES:
-            return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "UNKNOWN_CANONICAL_FAMILY")
-        return OntologyTranslation(source_family, source_subtype, canonical_family_label, "MAPPED", "EXPLICIT_CANONICAL_LABEL")
-    normalized = source_family.upper()
-    if normalized in CANONICAL_FAMILIES:
-        return OntologyTranslation(source_family, source_subtype, normalized, "MAPPED", "SOURCE_LABEL_EXACTLY_MATCHES_CANONICAL_FAMILY")
+    derived = IMMUTABLE_SOURCE_TRANSLATIONS.get((source_family, source_subtype))
+    if derived is None:
+        return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "UNMAPPED_SOURCE_TRANSLATION")
+    if canonical_family_label is not None and canonical_family_label != derived:
+        return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "ADVISORY_CANONICAL_LABEL_MISMATCH")
+    if canonical_family_label is not None and canonical_family_label not in CANONICAL_FAMILIES:
+        return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "UNKNOWN_CANONICAL_FAMILY")
+    if canonical_family_label == derived:
+        return OntologyTranslation(source_family, source_subtype, derived, "MAPPED", "IMMUTABLE_TRANSLATION_CONFIRMED")
+    if derived in CANONICAL_FAMILIES:
+        return OntologyTranslation(source_family, source_subtype, derived, "MAPPED", "IMMUTABLE_TRANSLATION_DERIVED")
     return OntologyTranslation(source_family, source_subtype, "UNMAPPED_UNKNOWN", "REJECTED", "UNKNOWN_SOURCE_FAMILY_LABEL")
+
+
+def derive_determinism_status(attestations: object) -> Tuple[bool, str]:
+    """Accept exactly three independently recorded, hash-identical successful runs."""
+    if not isinstance(attestations, tuple) or len(attestations) != 3:
+        return False, "EXACTLY_THREE_RUN_ATTESTATIONS_REQUIRED"
+    if any(not isinstance(item, RunAttestation) for item in attestations):
+        return False, "INVALID_RUN_ATTESTATION"
+    if any(not _valid_text(item.command) or item.exit_code != 0 for item in attestations):
+        return False, "RUN_COMMAND_OR_EXIT_INVALID"
+    hashes = tuple(item.normalized_package_hash for item in attestations)
+    if any(not _HEX64.fullmatch(item.stdout_hash) or not _HEX64.fullmatch(item.stderr_hash) or not _HEX64.fullmatch(item.normalized_package_hash) for item in attestations):
+        return False, "RUN_ATTESTATION_HASH_INVALID"
+    if len(set(hashes)) != 1:
+        return False, "RUN_PACKAGE_HASH_MISMATCH"
+    if len({(item.command, item.stdout_hash, item.stderr_hash) for item in attestations}) != 3:
+        return False, "DUPLICATE_OR_REUSED_RUN_EVIDENCE"
+    return True, "VERIFIED_THREE_RUN_DETERMINISM"
 
 
 def validate_claim_envelope(envelope: object, now_ns: int) -> Tuple[bool, Tuple[str, ...]]:
@@ -139,8 +177,9 @@ def validate_candidate(envelope: object) -> QuarantineDecision:
         reasons.append("MISSING_VERIFIER_COMMAND")
     if not _valid_hashes(envelope.verifier_evidence_hashes, _HEX64):
         reasons.append("MISSING_VERIFIER_EVIDENCE_HASH")
-    if envelope.deterministic_status == "HARDCODED_PASS":
-        reasons.append("HARDCODED_DETERMINISM_STATUS_REJECTED")
+    deterministic_ok, deterministic_reason = derive_determinism_status(envelope.run_attestations)
+    if not deterministic_ok or envelope.deterministic_status != deterministic_reason:
+        reasons.append(deterministic_reason)
     if envelope.status != "CANDIDATE" or envelope.authority_write:
         reasons.append("CANDIDATE_STATUS_OR_AUTHORITY_VIOLATION")
     if envelope.source_capability != SYNTHETIC_CAPABILITY:

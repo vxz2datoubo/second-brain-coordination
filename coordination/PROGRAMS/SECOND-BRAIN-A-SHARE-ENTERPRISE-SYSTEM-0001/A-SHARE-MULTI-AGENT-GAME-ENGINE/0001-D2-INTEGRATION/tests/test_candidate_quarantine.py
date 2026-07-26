@@ -11,17 +11,18 @@ if str(ROOT) not in sys.path:
 
 from candidate_quarantine import (  # noqa: E402
     CANONICAL_FAMILIES, CandidateEnvelope, ClaimEvidenceEnvelope, negotiate_schema,
-    translate_ontology, validate_candidate, validate_claim_envelope,
+    RunAttestation, derive_determinism_status, translate_ontology, validate_candidate, validate_claim_envelope,
 )
 
 
 def valid_candidate(**changes):
+    attestations = tuple(RunAttestation("python verify_fixture.py", 0, str(i) * 64, str(i + 3) * 64, "f" * 64) for i in range(1, 4))
     envelope = CandidateEnvelope(
         source_schema_version="1.2", source_commit_lock="a" * 40, artifact_hashes=("b" * 64,),
         verifier_command="python verify_fixture.py", verifier_evidence_hashes=("c" * 64,), status="CANDIDATE",
         authority_write=False, source_capability="SYNTHETIC_RESEARCH_ONLY", source_family_label="retail",
         source_subtype_label="synthetic-retail", canonical_family_label="RETAIL", target_kind="CANDIDATE_CLAIM",
-        identity_claimed=False, deterministic_status="EXECUTED_WITH_RECEIPT",
+        identity_claimed=False, deterministic_status="VERIFIED_THREE_RUN_DETERMINISM", run_attestations=attestations,
     )
     return replace(envelope, **changes)
 
@@ -47,7 +48,7 @@ class CandidateQuarantineTests(unittest.TestCase):
         decision = validate_candidate(valid_candidate(artifact_hashes=("not-a-hash",), deterministic_status="HARDCODED_PASS"))
         self.assertFalse(decision.accepted)
         self.assertIn("MISSING_OR_INVALID_ARTIFACT_HASH", decision.reason_codes)
-        self.assertIn("HARDCODED_DETERMINISM_STATUS_REJECTED", decision.reason_codes)
+        self.assertIn("VERIFIED_THREE_RUN_DETERMINISM", decision.reason_codes)
 
     def test_authority_identity_and_fact_promotion_are_rejected(self):
         decision = validate_candidate(valid_candidate(authority_write=True, identity_claimed=True, target_kind="FACT"))
@@ -69,6 +70,47 @@ class CandidateQuarantineTests(unittest.TestCase):
         self.assertEqual("source-retail-label", translation.source_family_label)
         self.assertEqual("source-subtype", translation.source_subtype_label)
         self.assertEqual("UNMAPPED_UNKNOWN", translation.canonical_family)
+
+    def test_advisory_canonical_label_must_match_immutable_translation(self):
+        decision = validate_candidate(valid_candidate(canonical_family_label="ACTIVE_CAPITAL"))
+        self.assertFalse(decision.accepted)
+        self.assertIn("ADVISORY_CANONICAL_LABEL_MISMATCH", decision.reason_codes)
+
+    def test_exactly_three_unique_attestations_are_required(self):
+        candidate = valid_candidate()
+        self.assertTrue(derive_determinism_status(candidate.run_attestations)[0])
+        duplicate = candidate.run_attestations[:2] + (candidate.run_attestations[1],)
+        self.assertFalse(derive_determinism_status(duplicate)[0])
+        self.assertFalse(validate_candidate(valid_candidate(run_attestations=duplicate)).accepted)
+
+    def test_missing_or_arbitrary_status_is_rejected(self):
+        self.assertFalse(validate_candidate(valid_candidate(deterministic_status="EXECUTED_WITH_RECEIPT")).accepted)
+        self.assertFalse(validate_candidate(valid_candidate(run_attestations=())).accepted)
+
+    def test_attestation_requires_success_exit(self):
+        runs = list(valid_candidate().run_attestations)
+        runs[0] = replace(runs[0], exit_code=1)
+        self.assertFalse(derive_determinism_status(tuple(runs))[0])
+
+    def test_attestation_requires_hashes(self):
+        runs = list(valid_candidate().run_attestations)
+        runs[0] = replace(runs[0], stdout_hash="bad")
+        self.assertFalse(derive_determinism_status(tuple(runs))[0])
+
+    def test_attestation_requires_same_normalized_package(self):
+        runs = list(valid_candidate().run_attestations)
+        runs[2] = replace(runs[2], normalized_package_hash="e" * 64)
+        self.assertFalse(derive_determinism_status(tuple(runs))[0])
+
+    def test_unmapped_source_cannot_be_rescued_by_advisory_label(self):
+        decision = validate_candidate(valid_candidate(source_family_label="invented", source_subtype_label="invented"))
+        self.assertFalse(decision.accepted)
+        self.assertIn("UNMAPPED_SOURCE_TRANSLATION", decision.reason_codes)
+
+    def test_deprecated_label_remains_rejected_even_with_valid_runs(self):
+        decision = validate_candidate(valid_candidate(canonical_family_label="LargeCapital"))
+        self.assertFalse(decision.accepted)
+        self.assertIn("DEPRECATED_LABEL_PRESENTED_AS_CANONICAL", decision.reason_codes)
 
     def test_claim_envelope_requires_expiry_and_candidate_only_promotion(self):
         claim = ClaimEvidenceEnvelope("fixture-1", "SYNTHETIC_FIXTURE", "synthetic-only", ("d" * 64,), (), ("unknown",), 101)
