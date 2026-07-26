@@ -1,29 +1,30 @@
-schema_version: "12.0"
+schema_version: "13.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 23
 related_issues: [31, 59, 89]
-pull_request: null
-accepted_h1_pull_request: 99
-accepted_h1_tested_head: "b2d8603859902da9741dda016a3daf3ffeb0772b"
-accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
+primary_pull_requests: [101, 102]
+reviewed_core_head: "8e4750b8a48386559516b817e87cacce4486ea92"
+reviewed_evaluation_head: "1524137dbc6780abb5e9174bcd1e93910ae15007"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
-reviewed_candidate_adapter_pr: 100
-reviewed_candidate_adapter_head: "0e6f96ffbe7f03d7b5b33b1175612930f8a27532"
+accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
+reviewed_qclaw_adapter_pr: 100
+reviewed_qclaw_adapter_head: "137ea13440ed61de9b240e475db8ffd081a217c9"
 
-task_id: "CODEX-D2-SYNTHETIC-GAME-CORE-EVALUATION-AND-CANDIDATE-INTEGRATION-0003-E11"
+ task_id: "CODEX-D2-STATEFUL-MULTI-AGENT-CONVERGENCE-EVALUATION-QUARANTINE-0004-E12"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2合成博弈核心、评测运行环与候选知识隔离对接E11"
+mode_label: "【Codex模式：目标模式】D2真实多主体状态、语义评测、候选隔离与D3有界方案E12"
 mode_reason: >-
-  PR #99 H1独立验证闭环已经通过GPT验收。D1规则MVP已冻结可复用，QQ又主动产出PR #100候选知识适配包。
-  用户要求单次任务更大并给予Codex更多主观能动性，因此本轮以多PR、多阶段目标模式建设D2核心、评测运行环、
-  候选适配隔离层和系统对接文档。Codex可自主选择内部架构和算法并连续推进，但不得把候选知识升级为事实。
+  Codex主动拆分PR #101核心与PR #102评测，方向和工程主动性值得保留。但独立审核发现当前核心以agents[0].inventory
+  作为唯一工作库存，尚未形成真正的多主体状态；评测中的多数所谓不变量只是场景存在性检查，多步episode也未承接上一步状态。
+  本轮采用大型多阶段目标任务，允许Codex自主重构新D2路径、提高测试密度、建立隔离适配与提出D3方案，但继续禁止真实数据与交易权限。
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
@@ -34,140 +35,219 @@ reviewed_or_base_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 11
-route_issued_at: "2026-07-27T02:40:00+08:00"
-completion_signal: "CODEX_E11_D2_GAME_CORE_EVALUATION_AND_CANDIDATE_INTEGRATION_READY_FOR_GPT_REVIEW"
+route_epoch: 12
+route_issued_at: "2026-07-27T04:05:00+08:00"
+route_issued_against_main: "132193438827c1e76ac789e3d163e48fb5e37e0d"
+completion_signal: "CODEX_E12_D2_STATEFUL_MULTI_AGENT_EVALUATION_QUARANTINE_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-INTEGRATED-H1-CLOSURE-AND-D2-SYNTHETIC-GAME-CORE-0002-E10@route_epoch:10"
+  - "CODEX-D2-SYNTHETIC-GAME-CORE-EVALUATION-AND-CANDIDATE-INTEGRATION-0003-E11@route_epoch:11"
 
 review_disposition:
-  classification: "PR99_H1_INDEPENDENT_MACHINE_CLOSURE_ACCEPTED_D2_LARGE_AUTONOMOUS_BUILD_RELEASED"
-  accepted_facts:
-    - "PR #99 is exactly two commits after the reviewed WorkBuddy import and changes the exact five H1 files."
-    - "The first new commit is verifier-only and the second changes the four receipts."
-    - "Fifteen frozen artifacts are byte-checked; normal reports 37 PASS / 0 FAIL / 0 SKIP."
-    - "NT1, NT2 and NT3 have truthful top-level and child exits with complete hashes."
-    - "PR #99 head 94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a is the accepted frozen H1 closure."
-  candidate_inputs_not_yet_authoritative:
-    - "PR #100 preserves 99 atoms, 147 relations and candidate/adversarial cases, but its ontology and determinism evidence require QCLAW remediation."
-    - "Codex may inspect PR #100 only to design a quarantined compatibility port and synthetic fixtures; it may not consume claims as facts."
+  classification: "PROACTIVE_D2_SCAFFOLD_ACCEPTED_FOR_REMEDIATION_NOT_ACCEPTED_AS_MULTI_AGENT_CORE"
+  accepted_value:
+    - "PR #101 is based on the accepted D1 receipt and adds an executable D2-only core in three commits."
+    - "Four participant-family enums, nine subtypes, hidden-type hypotheses, information timestamps, abstention and event-ledger structures exist."
+    - "PR #102 is a separate stacked evaluation PR and preserves synthetic-only/no-trade boundaries."
+    - "Codex correctly separated core and evaluation work instead of mixing authority surfaces."
+  blocking_findings:
+    - "The core uses agents[0].inventory as the single mutable inventory, so other agents do not own independent evolving state."
+    - "Malformed agent/action objects may be dereferenced in comprehensions or sorting before fail-closed validation."
+    - "Evaluation scenarios are primarily single-agent and do not demonstrate multi-family state interaction."
+    - "Forty-eight of sixty checks are shallow per-scenario ledger-presence checks rather than distinct semantic invariants."
+    - "Multi-step episodes repeatedly rerun from the same initial state rather than carrying forward state and ledger causality."
+    - "Stage C quarantine and Stage D system-connection/evidence package remain incomplete."
+
+dependencies:
+  accepted_d1: "SATISFIED"
+  accepted_h1: "SATISFIED"
+  qclaw_adapter_authority: "CANDIDATE_ONLY_NOT_REQUIRED_FOR_CORE_AND_NOT_FACTUAL"
+  issue92: "BLOCKED_AND_NOT_A_DEPENDENCY_FOR_SYNTHETIC_D2"
 
 resource_and_effort:
-  priority_share_percent: 65
-  task_weight: "VERY_HEAVY_AUTONOMOUS_MULTI_PR_BUILD"
-  checkpoints: [15, 30, 50, 70, 85, 100]
+  priority_share_percent: 70
+  task_weight: "VERY_HEAVY_AUTONOMOUS_MULTI_PR_CONVERGENCE"
+  research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
+  checkpoints: [10, 25, 40, 55, 70, 85, 100]
   checkpoint_behavior: >-
-    Report concise evidence at each checkpoint. Continue without waiting when an internal gate passes. Stop only for stale route,
-    destructive action, real-data requirement, authority conflict, inability to preserve deterministic evidence, or Issue #92 dependency.
+    Report concise evidence and proactive discoveries at each checkpoint. Continue without waiting when internal gates pass.
+    Stop only on stale route, destructive action, authority conflict, real-data requirement, cross-agent ownership conflict,
+    inability to preserve deterministic evidence, or an S4 condition.
+
+exploration_budget:
+  primary_delivery_share: "60-70%"
+  active_discovery_share: "20-25%"
+  system_opportunity_share: "10-15%"
+  maximum_new_branches: 4
+  maximum_new_draft_prs: 4
+  maximum_unplanned_files_inside_authorized_paths: 20
+  scope_expansion_without_gate: false
 
 autonomy_grant:
+  profile: "CODEX_ENHANCED_AUTONOMY"
   architecture_choice: true
   module_layout_choice: true
   deterministic_algorithm_choice: true
-  scenario_model_choice: true
-  test_harness_design_choice: true
+  state_model_choice: true
+  evaluation_design_choice: true
   may_refactor_within_new_d2_paths: true
-  may_add_tests_and_contracts_beyond_minimum: true
-  may_create_new_branches: true
-  maximum_new_branches: 3
-  may_create_new_draft_prs: true
-  maximum_new_draft_prs: 3
-  authorized_branch_prefixes:
-    - "codex/a-share-multi-agent-game-engine-0001-d2-"
-    - "codex/a-share-multi-agent-game-engine-0001-d2-eval-"
-    - "codex/a-share-multi-agent-game-engine-0001-d2-integration-"
+  may_add_tests_contracts_validators_and_observability_beyond_minimum: true
+  may_fix_adjacent_AMED_A_B_defects_inside_authorized_paths: true
   may_adjust_internal_plan_when_evidence_changes: true
-  may_fix_adjacent_defects_inside_new_d2_paths: true
+  may_continue_between_internal_gates_without_gpt: true
+  may_create_new_branches: true
+  maximum_new_branches: 4
+  may_create_new_draft_prs: true
+  maximum_new_draft_prs: 4
+  final_self_approval: false
   decision_log_required: true
   alternatives_considered_required: true
   assumption_registry_required: true
   unknown_and_abstention_registry_required: true
 
+amed_task_contract:
+  improvement_authority:
+    A_SAFE_LOCAL_AUTONOMOUS: "IMPLEMENT_AND_TEST"
+    B_BOUNDED_IMPLEMENT_AND_REPORT: "IMPLEMENT_TEST_AND_SEPARATELY_REPORT"
+    C_PROPOSAL_ONLY: "RFC_ADR_OR_FOLLOW_UP_ONLY"
+    D_PROHIBITED_OR_USER_GATE: "STOP_AND_ESCALATE"
+  high_value_adjacent_work_expected: true
+  proactive_delivery_sections_required: true
+
+ task_impact_forecast:
+  fundamental_goal: >-
+    Convert the current D2 scaffold into a genuinely stateful, deterministic and auditable multi-agent synthetic game system whose
+    participant states, interactions, evaluation evidence and candidate-knowledge boundary are coherent enough for later research calibration.
+  expected_positive_effects:
+    - "Independent per-agent state eliminates false multi-agent claims and enables real interaction semantics."
+    - "State-carrying episodes and semantic invariants improve defect detection and future calibration readiness."
+    - "A strict quarantine port allows schema compatibility work without importing QCLAW claims as facts."
+    - "A larger autonomous mission reduces repeated micro-remediation cycles."
+  expected_negative_effects:
+    - "Refactoring core state may invalidate existing fixture hashes and require explicit migration receipts."
+    - "More meaningful scenarios and invariants increase implementation and review cost."
+    - "Multiple stacked PRs raise coordination complexity if boundaries are not kept clean."
+  risk_gates:
+    - "No state from one synthetic agent may silently mutate another agent's portfolio."
+    - "No test-count padding: every invariant must have a unique requirement and failure oracle."
+    - "No candidate claim may enter runtime state as fact, probability, identity or signal."
+    - "No D1, D0, QCLAW, WorkBuddy or accepted frozen branch may be edited."
+  stop_conditions:
+    - "Real market data, replay, backtest, performance claim, identity, account, order routing or trade becomes necessary."
+    - "A required change falls outside authorized D2 paths or conflicts with another active owner."
+    - "Deterministic evidence cannot be reproduced from clean Git extraction."
+    - "Current route becomes stale or Issue #92 is implicitly required."
+  required_observations:
+    - "Per-agent pre/post state hashes and total-system conservation evidence."
+    - "Cross-agent conflict, resource contention, abstention and causal-ledger behavior."
+    - "Invariant-to-test mapping and mutation/failure-injection sensitivity."
+    - "Three-run deterministic hashes and resource-cost measurements."
+    - "Proactive improvements, rejected alternatives and remaining UNKNOWNs."
+  forecast_classification: "HIGH_VALUE_WITH_CONTROLLED_SYNTHETIC_RISK"
+
 stage_plan:
-  - stage_id: "A_D2_EXECUTABLE_GAME_CORE"
-    base_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
-    required_new_draft_pr: true
-    output_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/"
+  - stage_id: "A_PR101_TRUE_MULTI_AGENT_STATE_REMEDIATION"
+    owner_pr: 101
+    reviewed_head: "8e4750b8a48386559516b817e87cacce4486ea92"
     objective: >-
-      Build an executable deterministic synthetic multi-agent game engine above accepted D1, with typed participants,
-      private/public information sets, candidate actions, feasibility, abstention, arbitration, transitions and event sourcing.
-    minimum_capabilities:
-      - "Four canonical D2 families: RETAIL; INSTITUTIONAL_QUANT; ACTIVE_CAPITAL; POLICY_INDUSTRIAL_FOREIGN_AGGREGATE."
-      - "Nine subtype identifiers and an explicit source-ontology-to-D2-family translation table."
-      - "Hidden-type hypotheses and synthetic uncalibrated weights with normalization and UNKNOWN handling."
-      - "Information availability timestamps, no-future-information enforcement and incomplete-information abstention."
-      - "Candidate action sets with feasible, blocked, abstain, robust, most-consistent and best-response-candidate labels."
-      - "Deterministic arbitration and state transitions through the accepted D1 reducer."
-      - "Append-only synthetic event ledger with stable IDs, causal parents, rejected actions and reason codes."
-      - "One-step and bounded multi-step counterfactual episodes changing declared assumptions only."
-      - "ParticipantAlignmentScore, ParticipantMismatchRisk and NarrativeForecastLedger as uncalibrated containers, never signals."
+      Refactor the core from one global first-agent inventory into explicit per-agent evolving state plus shared market state,
+      while preserving deterministic event sourcing and accepted D1 reducer semantics.
+    required_results:
+      - "AgentPortfolioState or equivalent mapping keyed by stable agent_id; every action mutates only its owner's state unless an explicit shared-resource contract applies."
+      - "GameRun contains final per-agent states and a total-system state hash, not only one final_inventory."
+      - "Cross-agent conflict/arbitration semantics are explicit and independent of lexicographic agent ID accidents."
+      - "Validate all top-level market/agent/action collections and object types before attribute access, comprehensions or sorting."
+      - "Validate family/subtype consistency, action labels, IDs, evidence/assumption refs, string lengths, counts and bounded arithmetic."
+      - "Bound agents, actions, events, causal parents, evidence refs and episode steps with explicit reason codes."
+      - "Duplicate order/action replay is idempotent or explicitly rejected; it may not duplicate lots or events silently."
+      - "Preserve four canonical families and nine subtype identifiers."
+      - "Migration note and backward-compatibility decision for the PR #101 first scaffold."
 
-  - stage_id: "B_D2_EVALUATION_OPERATING_LOOP"
-    required_separate_draft_pr: true
+  - stage_id: "B_PR102_SEMANTIC_STATEFUL_EVALUATION_REMEDIATION"
+    owner_pr: 102
+    reviewed_head: "1524137dbc6780abb5e9174bcd1e93910ae15007"
     objective: >-
-      Build a deterministic evaluation and experiment loop around D2 without historical market data or performance claims.
+      Replace count-padded single-agent evaluation with semantically distinct multi-agent scenarios, state-carrying episodes,
+      requirement-linked invariants and sensitive negative tests.
     minimum_requirements:
-      synthetic_scenarios: 48
-      executable_invariants: 60
-      negative_cases: 24
-      multi_step_episodes: 12
-      counterfactual_pairs: 24
-    required_coverage:
-      - "All A-share synthetic session phases and D1 order/inventory constraints."
-      - "Conflicting actions, hidden-type ambiguity, missing evidence, narrative attacks, abstention and policy shocks."
-      - "Conservation, bounded arithmetic, stable ordering, no future information, deterministic replay of synthetic episodes."
-      - "Failure injection for malformed ontology, invalid weights, duplicate events, causal cycles and adapter contamination."
+      synthetic_scenarios: 72
+      semantic_executable_invariants: 80
+      negative_cases: 36
+      stateful_multi_step_episodes: 24
+      counterfactual_pairs: 36
+      cross_family_interaction_scenarios: 24
+    semantic_rules:
+      - "No more than 20% of invariants may be simple existence/count/hash-presence checks."
+      - "Every invariant has invariant_id, requirement_id, fixture_ids, failure oracle and mapped test_id."
+      - "At least one mutation or injected defect must cause each invariant family to fail."
+      - "Multi-step episodes carry forward prior per-agent state, event ledger and causal parents."
+      - "Scenarios include at least two agents and cover all four families in aggregate; at least twelve scenarios include three or more agents."
+      - "Cover shared constraints, conflicting actions, abstention, incomplete information, hidden-type ambiguity and policy shocks."
+      - "Negative tests include malformed top-level types, duplicate IDs, event cycles, future information, state leakage and candidate contamination."
     determinism:
-      - "At least three isolated Git-extracted runs with distinct hash seeds."
-      - "Record every command, exit and stdout/stderr SHA-256."
-      - "Normalized event, decision and counterfactual ledger hashes must match."
+      - "At least three isolated Git-extracted runs with distinct PYTHONHASHSEED values."
+      - "Record exact commands, exits, stdout/stderr SHA-256, event/state/counterfactual hashes and elapsed resource measurements."
 
-  - stage_id: "C_CANDIDATE_KNOWLEDGE_QUARANTINE_AND_COMPATIBILITY"
-    required_separate_draft_pr: true
+  - stage_id: "C_NEW_QUARANTINE_AND_ONTOLOGY_COMPATIBILITY_PR"
+    required_new_draft_pr: true
+    branch_prefix: "codex/a-share-multi-agent-game-engine-0001-d2-integration-"
+    output_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-INTEGRATION/"
     objective: >-
-      Define and test a quarantine boundary for candidate knowledge adapters such as PR #100 without granting factual or runtime authority.
+      Build a fail-closed candidate adapter port that validates structure and translates source ontology without consuming QCLAW claims as facts.
     required_results:
-      - "CANDIDATE-KNOWLEDGE-ADAPTER-PORT.yaml with version negotiation and fail-closed schema validation."
-      - "ONTOLOGY-TRANSLATION-MATRIX.yaml mapping source families/subtypes to canonical D2 families without overwriting source labels."
-      - "Candidate claim/evidence/counterevidence/UNKNOWN envelopes and expiry semantics."
-      - "Synthetic compatibility fixtures that do not import PR #100 claims as truth."
-      - "Reject abbreviated source locks, missing verifier commands, missing hashes, unknown family labels and claim-to-fact promotion."
-      - "Produce a compatibility report against reviewed PR #100 head, explicitly advisory and non-authoritative."
+      - "CANDIDATE-KNOWLEDGE-ADAPTER-PORT.yaml with schema/version negotiation."
+      - "ONTOLOGY-TRANSLATION-MATRIX.yaml using exact canonical families RETAIL, INSTITUTIONAL_QUANT, ACTIVE_CAPITAL and POLICY_INDUSTRIAL_FOREIGN_AGGREGATE."
+      - "Preserve source family/subtype labels separately and map unknowns to UNMAPPED_UNKNOWN with rationale."
+      - "Reject old LargeCapital/QuantStrategy/ActiveSpeculative labels when presented as canonical D2 labels."
+      - "Reject abbreviated locks, missing verifier evidence, hard-coded determinism status, missing hashes, identity promotion and claim-to-fact promotion."
+      - "Use only synthetic compatibility fixtures; do not import PR #100 atom text into game state."
+      - "Compatibility report against PR #100 head 137ea134... remains advisory and candidate-only."
 
-  - stage_id: "D_SYSTEM_CONNECTION_AND_NEXT_GATE_PACKAGE"
+  - stage_id: "D_SYSTEM_CONNECTION_EVIDENCE_AND_D3_BOUNDED_PLAN"
+    objective: >-
+      Close D2 with coherent documentation, machine receipts and a bounded D3 proposal while preserving all release gates.
     required_results:
-      - "D1-D2-INTEGRATION-MAP.md"
-      - "D2-SECOND-BRAIN-NON-DUPLICATION-MAP.md referencing PR #57 merged runtime and PR #58 open candidate gateway."
-      - "D2-ARCHITECTURE-DECISIONS.md and ALTERNATIVES-CONSIDERED.md"
-      - "ASSUMPTION-MODEL-RISK-AND-UNKNOWN-REGISTRY.yaml"
-      - "SCENARIO-AND-INVARIANT-CATALOG.yaml"
-      - "DETERMINISM-AND-EXPERIMENT-RECEIPT.yaml"
-      - "AMED-AGENT-EXECUTION-RECEIPT.yaml and AI_HANDOFF.yaml"
-      - "A bounded D3 proposal with gates, not D3 execution."
+      - "D1-D2-INTEGRATION-MAP.md updated for per-agent state."
+      - "D2-SECOND-BRAIN-NON-DUPLICATION-MAP.md referencing PR #57 merged base and PR #58 open candidate."
+      - "SCENARIO-INVARIANT-NEGTEST-COVERAGE-MATRIX.yaml."
+      - "DETERMINISM-AND-RESOURCE-RECEIPT.yaml with three clean runs."
+      - "PROACTIVE-IMPROVEMENT-AND-DECISION-LEDGER.yaml."
+      - "ASSUMPTION-MODEL-RISK-AND-UNKNOWN-REGISTRY.yaml."
+      - "AMED-AGENT-EXECUTION-RECEIPT.yaml and AI_HANDOFF.yaml."
+      - "D3-BOUNDED-PROPOSAL.md comparing at least three next-step options, prerequisites, evidence gates, cost and rollback."
+      - "No D3 implementation."
 
 allowed_changed_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION/"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-INTEGRATION/"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-INTEGRATION/**"
+
+cross_agent_firewalls:
+  - "Do not edit QCLAW PR #96/#100/#64/#65 branches or files."
+  - "Do not edit WorkBuddy branches or PR #97/#91."
+  - "Candidate compatibility is schema-level only and cannot grant authority."
+  - "PR #101, #102 and the new integration PR remain separate authority surfaces."
 
 acceptance_gates:
-  - "PR #99 remains frozen at 94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a."
-  - "All new work is based exactly on accepted D1 receipt and isolated in new Draft PRs."
-  - "D1, D0, QCLAW and WorkBuddy files remain byte-identical."
-  - "D2 is executable and deterministic, not prose-only."
-  - "Minimum scenario, invariant, negative and episode counts pass with complete evidence."
-  - "Candidate knowledge is quarantined and never promoted to fact or signal."
-  - "All branches, commits, parents, trees, deltas, commands and hashes are externally anchored."
-  - "No real data, historical replay, backtest, performance claim, identity, account, routing or trade occurs."
+  - "PR #101 demonstrates independent per-agent evolving state and total-system conservation."
+  - "PR #102 meets semantic, not merely numeric, scenario/invariant/negative-test gates."
+  - "Stateful episodes carry state and causal history across steps."
+  - "Candidate adapter port fails closed against the current misaligned PR #100 ontology and hard-coded verifier."
+  - "All tests reproduce from three clean Git extractions with complete hashes."
+  - "All proactive additions are separately identified and have decisions, alternatives and rollback."
+  - "No real data, replay, backtest, performance claim, identity, account, routing, order or trade occurs."
+
+precompletion_revalidation:
+  required: true
+  action: "Re-read latest remote main and compare task_id, route_epoch, execution_allowed, reviewed heads and completion_signal before posting completion."
 
 forbidden:
   - "No direct main write, merge, auto-merge, force push, reset or history rewrite."
-  - "No commits to PR #99, PR #98, PR #97, PR #91, D1, D0, H0 or QCLAW branches."
+  - "No commits to PR #99/#98/#97/#95/#91, D1, D0, H1, H0 or any QCLAW branch."
   - "No source activation, labels, real market data, historical replay, backtest, MARL training, performance claim, person/account identity, broker, account, order route or trade."
-  - "No consumption of PR #100, PR #64 or PR #65 as canonical or factual authority."
   - "No Issue #92 execution and no D3 implementation."
+  - "No self-approval of proactive work as accepted or canonical."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
 boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_QUARANTINE / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-27T02:40:00+08:00"
+updated_at: "2026-07-27T04:05:00+08:00"
