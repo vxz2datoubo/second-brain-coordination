@@ -118,7 +118,13 @@ class AgentInformationSet:
     available_at_ns: Optional[int]
     observable_refs: Tuple[str, ...]
     unknowns: Tuple[str, ...]
+    private_observable_refs: Tuple[str, ...] = ()
     source_capability: str = SYNTHETIC_CAPABILITY
+
+    @property
+    def public_observable_refs(self) -> Tuple[str, ...]:
+        """Public references are retained separately from private synthetic inputs."""
+        return self.observable_refs
 
 
 @dataclass(frozen=True)
@@ -138,6 +144,8 @@ class CandidateAction:
     assumption_ids: Tuple[str, ...]
     evidence_refs: Tuple[str, ...]
     conflict_key: Optional[str] = None
+    requires_complete_information: bool = False
+    causal_parent_event_ids: Tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -152,6 +160,7 @@ class LedgerEvent:
     filled_quantity: int
     rejected_reason_codes: Tuple[str, ...]
     cause_refs: Tuple[str, ...]
+    causal_parent_event_ids: Tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -196,6 +205,13 @@ class CounterfactualResult:
     changed_action_ids: Tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class BoundedCounterfactualEpisode:
+    changed_assumption_ids: Tuple[str, ...]
+    runs: Tuple[GameRun, ...]
+    max_steps: int
+
+
 def _canonical(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -228,6 +244,8 @@ def _validate_agent(agent: AgentState, market: MarketState) -> Tuple[bool, Tuple
     info = agent.information
     if info.source_capability != SYNTHETIC_CAPABILITY:
         return False, ("UNSUPPORTED_AGENT_CAPABILITY",)
+    if not isinstance(info.observable_refs, tuple) or not isinstance(info.private_observable_refs, tuple) or not isinstance(info.unknowns, tuple):
+        return False, ("INVALID_AGENT_INFORMATION_COLLECTION",)
     if not isinstance(info.available_at_ns, int) or isinstance(info.available_at_ns, bool) or info.available_at_ns < 0:
         return False, ("UNKNOWN_OR_INVALID_AGENT_INFORMATION_TIME",)
     if market.information is None or market.information.available_at_ns is None:
@@ -249,6 +267,7 @@ def _blocked_event(run_id: str, ordinal: int, action: CandidateAction, reasons: 
         filled_quantity=0,
         rejected_reason_codes=tuple(reasons),
         cause_refs=tuple(sorted(action.evidence_refs)),
+        causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
     )
 
 
@@ -264,6 +283,7 @@ def _abstain_event(run_id: str, ordinal: int, action: CandidateAction, reason: s
         filled_quantity=0,
         rejected_reason_codes=(reason,),
         cause_refs=tuple(sorted(action.evidence_refs)),
+        causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
     )
 
 
@@ -303,8 +323,15 @@ def arbitrate(
         if not action.evidence_refs:
             events.append(_blocked_event(run_id, ordinal, action, ("MISSING_ACTION_EVIDENCE",)))
             continue
+        prior_event_ids = {event.event_id for event in events}
+        if any(parent not in prior_event_ids for parent in action.causal_parent_event_ids):
+            events.append(_blocked_event(run_id, ordinal, action, ("UNKNOWN_OR_FORWARD_CAUSAL_PARENT",)))
+            continue
         if action.label is ActionLabel.ABSTAIN:
             events.append(_abstain_event(run_id, ordinal, action, "DECLARED_ABSTENTION"))
+            continue
+        if action.requires_complete_information and agent.information.unknowns:
+            events.append(_abstain_event(run_id, ordinal, action, "INCOMPLETE_INFORMATION"))
             continue
         if action.order is None:
             events.append(_blocked_event(run_id, ordinal, action, ("MISSING_SYNTHETIC_ORDER",)))
@@ -328,6 +355,7 @@ def arbitrate(
             filled_quantity=outcome.filled_quantity,
             rejected_reason_codes=tuple(outcome.reason_codes),
             cause_refs=tuple(sorted(action.evidence_refs)),
+            causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
         )
         events.append(event)
     ledger_payload = [event.__dict__ | {"label": event.label.value} for event in events]
@@ -353,6 +381,36 @@ def run_one_step_counterfactual(
     )
     alternative = arbitrate(run_id + ":counterfactual", market, agents, alternative_actions)
     return CounterfactualResult(changed_assumption_id, baseline, alternative, changed)
+
+
+def run_bounded_counterfactual_episode(
+    run_id: str,
+    market: MarketState,
+    agents: Sequence[AgentState],
+    actions: Sequence[CandidateAction],
+    changed_assumption_ids: Sequence[str],
+    *,
+    max_steps: int = 12,
+) -> BoundedCounterfactualEpisode:
+    """Apply a bounded sequence of declared assumption removals, never new facts."""
+    if not isinstance(max_steps, int) or isinstance(max_steps, bool) or max_steps < 1 or max_steps > 12:
+        raise ValueError("INVALID_COUNTERFACTUAL_MAX_STEPS")
+    identifiers = tuple(changed_assumption_ids)
+    if not identifiers or len(identifiers) > max_steps or len(set(identifiers)) != len(identifiers):
+        raise ValueError("INVALID_COUNTERFACTUAL_ASSUMPTION_SEQUENCE")
+    current_actions = tuple(actions)
+    runs = [arbitrate(run_id + ":baseline", market, agents, current_actions)]
+    for index, assumption_id in enumerate(identifiers, start=1):
+        matching = [action for action in current_actions if assumption_id in action.assumption_ids]
+        if len(matching) != 1:
+            raise ValueError("COUNTERFACTUAL_REQUIRES_EXACTLY_ONE_ACTION")
+        target_id = matching[0].action_id
+        current_actions = tuple(
+            replace(action, label=ActionLabel.ABSTAIN, order=None) if action.action_id == target_id else action
+            for action in current_actions
+        )
+        runs.append(arbitrate(run_id + f":step:{index}", market, agents, current_actions))
+    return BoundedCounterfactualEpisode(identifiers, tuple(runs), max_steps)
 
 
 def inventory_ledger_conserved(initial: InventoryState, result: GameRun, actions: Sequence[CandidateAction]) -> bool:

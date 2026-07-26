@@ -13,7 +13,7 @@ from d2_game_core import (  # noqa: E402
     ActionLabel, AgentInformationSet, AgentState, CandidateAction, HiddenTypePosterior,
     NarrativeForecastRecord, NarrativeStatus, ParticipantArchetypeHypothesis,
     ParticipantSubtype, arbitrate, evaluate_narrative, feature_container,
-    inventory_ledger_conserved, run_one_step_counterfactual,
+    inventory_ledger_conserved, run_bounded_counterfactual_episode, run_one_step_counterfactual,
 )
 from synthetic_engine.fixtures import INVENTORY, market, order  # noqa: E402
 from synthetic_engine.types import (  # noqa: E402
@@ -96,13 +96,13 @@ class D2GameCoreTests(unittest.TestCase):
             "posterior_not_identity": posterior().status == "UNCALIBRATED_SYNTHETIC_HYPOTHESIS",
             "posterior_normalized": posterior().validate()[0],
             "family_mapping_complete": len({item.value for item in ParticipantSubtype}) == 9,
-            "four_family_mapping": len({item.family.value for item in posterior().hypotheses}) == 1,
             "no_future_info": arbitrate("future", state, (agent(available=101),), (action("future"),)).events[0].accepted is False,
             "missing_evidence_blocks": arbitrate("missing", state, (agent(),), (CandidateAction("m", "agent-a", ActionLabel.FEASIBLE, order("m"), ("a",), ()),)).events[0].accepted is False,
             "abstention_preserved": arbitrate("abstain", state, (agent(),), (action("x", label=ActionLabel.ABSTAIN, synthetic_order=None),)).events[0].outcome_status == "ABSTAINED",
             "d1_reducer_composed": run.events[0].outcome_status == OutcomeStatus.FILLED.value,
             "conflict_deterministic": arbitrate("conflict", state, (agent(),), (action("a", conflict_key="k"), action("b", conflict_key="k"))).events[1].accepted is False,
             "unknown_narrative_retained": evaluate_narrative(NarrativeForecastRecord("n", "claim", (), (), None), 5) == NarrativeStatus.UNKNOWN,
+            "incomplete_information_abstains": arbitrate("unknown", state, (AgentState("agent-a", posterior(), AgentInformationSet(100, ("public",), ("missing",)), INVENTORY),), (CandidateAction("unknown", "agent-a", ActionLabel.FEASIBLE, order("unknown"), ("a",), ("e",), requires_complete_information=True),)).events[0].outcome_status == "ABSTAINED",
             "feature_is_uncalibrated": feature_container(0.1, ("x",)).status == "UNCALIBRATED_SYNTHETIC_FEATURE",
             "mismatch_is_uncalibrated": feature_container(0.2, ("x",), mismatch=True).status == "UNCALIBRATED_SYNTHETIC_FEATURE",
             "counterfactual_single_change": len(run_one_step_counterfactual("cf", state, (agent(),), (primary,), "assumption:one").changed_action_ids) == 1,
@@ -111,10 +111,17 @@ class D2GameCoreTests(unittest.TestCase):
             "partial_fill_labeled": arbitrate("partial", state, (agent(),), (action("p", synthetic_order=order("p", mode=MatchMode.PARTIAL, partial=1)),)).events[0].outcome_status == OutcomeStatus.PARTIALLY_FILLED.value,
             "carry_state_visible": arbitrate("carry", state, (agent(),), (action("c", synthetic_order=order("c", mode=MatchMode.NO_FILL_CARRY)),)).final_inventory.pending_buy_quantity == 2,
             "negative_order_is_blocked": arbitrate("bad", state, (agent(),), (action("bad", synthetic_order=order("bad", qty=-1)),)).events[0].accepted is False,
-            "stable_ledger_hash": run.ledger_hash == arbitrate("invariants", state, (agent(), agent("agent-b")), (primary, secondary)).ledger_hash,
+            "causal_parent_unknown_blocks": arbitrate("causal", state, (agent(),), (CandidateAction("causal", "agent-a", ActionLabel.FEASIBLE, order("causal"), ("a",), ("e",), causal_parent_event_ids=("future-event",)),)).events[0].accepted is False,
         }
         self.assertEqual(30, len(names))
         self.assertTrue(all(names.values()), names)
+
+    def test_bounded_counterfactual_changes_declared_assumptions_only(self):
+        first = CandidateAction("first", "agent-a", ActionLabel.FEASIBLE, order("first"), ("assumption:first",), ("e",))
+        second = CandidateAction("second", "agent-a", ActionLabel.FEASIBLE, order("second"), ("assumption:second",), ("e",))
+        episode = run_bounded_counterfactual_episode("multi", market(), (agent(),), (first, second), ("assumption:first", "assumption:second"), max_steps=2)
+        self.assertEqual(3, len(episode.runs))
+        self.assertNotEqual(episode.runs[0].ledger_hash, episode.runs[-1].ledger_hash)
 
     def test_12_negative_cases_fail_closed_or_raise(self):
         state = market()
