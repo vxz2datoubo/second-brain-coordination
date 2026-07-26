@@ -1,18 +1,19 @@
-"""Deterministic D2 synthetic multi-agent game core.
+"""Deterministic, synthetic-only D2 stateful multi-agent game core.
 
-This module composes the accepted D1 reducer.  Its participants, beliefs,
-intentions, scores, actions, and narratives are synthetic hypotheses only; none
-of them identify a real participant or make a trading claim.
+This module deliberately models hypotheses rather than real market identities.
+Each agent owns an independent inventory.  The only shared mutable surface is
+the explicit synthetic conflict-resource registry; it is never inferred from
+prices, order flow, or a real person.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import sys
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, is_dataclass, replace
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Any, Optional, Sequence, Tuple
 
 
 _D1_ROOT = Path(__file__).resolve().parents[1] / "0001-D1"
@@ -31,6 +32,11 @@ from synthetic_engine.types import (  # noqa: E402
 
 SYNTHETIC_CAPABILITY = "SYNTHETIC_RESEARCH_ONLY"
 MAX_AGENT_COUNT = 64
+MAX_ACTION_COUNT = 256
+MAX_EVENT_COUNT = 256
+MAX_REFERENCE_COUNT = 32
+MAX_CAUSAL_PARENT_COUNT = 16
+MAX_IDENTIFIER_LENGTH = 160
 MAX_FEATURE_MAGNITUDE = 1_000_000
 
 
@@ -101,15 +107,22 @@ class HiddenTypePosterior:
     status: str = "UNCALIBRATED_SYNTHETIC_HYPOTHESIS"
 
     def validate(self) -> Tuple[bool, Tuple[str, ...]]:
-        if not self.hypotheses:
-            return False, ("EMPTY_HIDDEN_TYPE_POSTERIOR",)
+        if not _typed_tuple(self.hypotheses, ParticipantArchetypeHypothesis, MAX_REFERENCE_COUNT):
+            return False, ("INVALID_HIDDEN_TYPE_HYPOTHESES",)
         weights = [item.normalized_weight for item in self.hypotheses]
-        if any(not isinstance(value, (int, float)) or isinstance(value, bool) for value in weights):
+        if any(not _finite_number(value) for value in weights):
             return False, ("INVALID_POSTERIOR_WEIGHT_TYPE",)
         if any(value < 0 or value > 1 for value in weights):
             return False, ("POSTERIOR_WEIGHT_OUT_OF_RANGE",)
         if abs(sum(weights) - 1.0) > 1e-9:
             return False, ("POSTERIOR_NOT_NORMALIZED",)
+        for item in self.hypotheses:
+            if not isinstance(item.subtype, ParticipantSubtype):
+                return False, ("UNKNOWN_PARTICIPANT_SUBTYPE",)
+            if not _valid_refs(item.evidence_refs) or not _valid_refs(item.counterevidence_refs):
+                return False, ("INVALID_POSTERIOR_REFERENCE",)
+            if not _bounded_text(item.alternative_explanation, allow_empty=False):
+                return False, ("INVALID_ALTERNATIVE_EXPLANATION",)
         return True, ("UNCALIBRATED_NORMALIZED_WEIGHTS_ONLY",)
 
 
@@ -123,7 +136,6 @@ class AgentInformationSet:
 
     @property
     def public_observable_refs(self) -> Tuple[str, ...]:
-        """Public references are retained separately from private synthetic inputs."""
         return self.observable_refs
 
 
@@ -146,6 +158,28 @@ class CandidateAction:
     conflict_key: Optional[str] = None
     requires_complete_information: bool = False
     causal_parent_event_ids: Tuple[str, ...] = ()
+    arrival_sequence: int = 0
+
+
+@dataclass(frozen=True)
+class AgentPortfolioState:
+    """Per-agent state; no other agent can mutate this inventory implicitly."""
+
+    agent_id: str
+    initial_inventory: InventoryState
+    final_inventory: InventoryState
+    pre_state_hash: str
+    post_state_hash: str
+    net_filled_quantity: int
+
+
+@dataclass(frozen=True)
+class SharedMarketState:
+    market: MarketState
+    claimed_conflict_keys: Tuple[str, ...]
+    conflict_claim_event_ids: Tuple[Tuple[str, str], ...]
+    state_hash: str
+    contract: str = "EXPLICIT_SYNTHETIC_CONFLICT_RESOURCE_ONLY"
 
 
 @dataclass(frozen=True)
@@ -161,6 +195,10 @@ class LedgerEvent:
     rejected_reason_codes: Tuple[str, ...]
     cause_refs: Tuple[str, ...]
     causal_parent_event_ids: Tuple[str, ...]
+    owner_pre_state_hash: str
+    owner_post_state_hash: str
+    system_pre_state_hash: str
+    system_post_state_hash: str
 
 
 @dataclass(frozen=True)
@@ -193,8 +231,16 @@ class NarrativeForecastRecord:
 class GameRun:
     run_id: str
     events: Tuple[LedgerEvent, ...]
-    final_inventory: InventoryState
+    final_agent_portfolios: Tuple[AgentPortfolioState, ...]
+    shared_market_state: SharedMarketState
     ledger_hash: str
+    total_system_state_hash: str
+    causal_history_event_ids: Tuple[str, ...] = ()
+
+    @property
+    def final_inventory(self) -> Optional[InventoryState]:
+        """Legacy projection, intentionally unavailable once there are multiple agents."""
+        return self.final_agent_portfolios[0].final_inventory if len(self.final_agent_portfolios) == 1 else None
 
 
 @dataclass(frozen=True)
@@ -210,81 +256,135 @@ class BoundedCounterfactualEpisode:
     changed_assumption_ids: Tuple[str, ...]
     runs: Tuple[GameRun, ...]
     max_steps: int
+    final_state_hash: str
+
+
+def _finite_number(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and abs(value) <= MAX_FEATURE_MAGNITUDE
+
+
+def _bounded_text(value: object, *, allow_empty: bool = False) -> bool:
+    return isinstance(value, str) and len(value) <= MAX_IDENTIFIER_LENGTH and (allow_empty or bool(value))
+
+
+def _typed_tuple(value: object, expected_type: type, limit: int) -> bool:
+    return isinstance(value, tuple) and bool(value) and len(value) <= limit and all(isinstance(item, expected_type) for item in value)
+
+
+def _valid_refs(value: object, *, allow_empty: bool = False, limit: int = MAX_REFERENCE_COUNT) -> bool:
+    return isinstance(value, tuple) and len(value) <= limit and (allow_empty or bool(value)) and all(_bounded_text(item) for item in value)
+
+
+def _primitive(value: Any) -> Any:
+    if isinstance(value, Enum):
+        return value.value
+    if is_dataclass(value):
+        return _primitive(asdict(value))
+    if isinstance(value, dict):
+        return {str(key): _primitive(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
+    if isinstance(value, (list, tuple)):
+        return [_primitive(item) for item in value]
+    return value
 
 
 def _canonical(value: object) -> bytes:
-    return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return json.dumps(_primitive(value), ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def _event_id(run_id: str, ordinal: int, action: CandidateAction, status: str, reasons: Sequence[str]) -> str:
-    return hashlib.sha256(_canonical({
-        "run_id": run_id,
-        "ordinal": ordinal,
-        "agent_id": action.agent_id,
-        "action_id": action.action_id,
-        "status": status,
-        "reasons": tuple(reasons),
-    })).hexdigest()
+def _sha(value: object) -> str:
+    return hashlib.sha256(_canonical(value)).hexdigest()
 
 
 def _inventory_quantity(inventory: InventoryState) -> int:
-    return sum(lot.quantity for lot in inventory.lots)
+    return sum(lot.quantity for lot in inventory.lots if isinstance(lot.quantity, int) and not isinstance(lot.quantity, bool))
 
 
-def _action_sort_key(action: CandidateAction) -> tuple[str, str]:
-    return action.agent_id, action.action_id
+def _portfolio_hash(agent_id: str, inventory: InventoryState) -> str:
+    return _sha({"agent_id": agent_id, "inventory": inventory})
 
 
-def _validate_agent(agent: AgentState, market: MarketState) -> Tuple[bool, Tuple[str, ...]]:
-    if not isinstance(agent.agent_id, str) or not agent.agent_id:
+def _system_hash(portfolios: dict[str, AgentPortfolioState], claimed: dict[str, str], prior_event_ids: Sequence[str]) -> str:
+    return _sha({
+        "portfolios": {agent_id: portfolios[agent_id].final_inventory for agent_id in sorted(portfolios)},
+        "claimed_conflicts": sorted(claimed.items()),
+        "causal_history": tuple(prior_event_ids),
+    })
+
+
+def _event_id(run_id: str, ordinal: int, action: CandidateAction, status: str, reasons: Sequence[str], pre_hash: str, post_hash: str) -> str:
+    return _sha({"run_id": run_id, "ordinal": ordinal, "action": action.action_id, "agent": action.agent_id,
+                 "status": status, "reasons": tuple(reasons), "pre": pre_hash, "post": post_hash})
+
+
+def _validate_agent(agent: object, market: MarketState) -> Tuple[bool, Tuple[str, ...]]:
+    if not isinstance(agent, AgentState):
+        return False, ("INVALID_AGENT_OBJECT",)
+    if not _bounded_text(agent.agent_id):
         return False, ("INVALID_AGENT_ID",)
+    if not isinstance(agent.posterior, HiddenTypePosterior) or not isinstance(agent.information, AgentInformationSet):
+        return False, ("INVALID_AGENT_COMPONENT",)
+    if not isinstance(agent.inventory, InventoryState):
+        return False, ("INVALID_AGENT_INVENTORY",)
     valid_posterior, posterior_reasons = agent.posterior.validate()
     if not valid_posterior:
         return False, posterior_reasons
     info = agent.information
     if info.source_capability != SYNTHETIC_CAPABILITY:
         return False, ("UNSUPPORTED_AGENT_CAPABILITY",)
-    if not isinstance(info.observable_refs, tuple) or not isinstance(info.private_observable_refs, tuple) or not isinstance(info.unknowns, tuple):
-        return False, ("INVALID_AGENT_INFORMATION_COLLECTION",)
+    if not _valid_refs(info.observable_refs, allow_empty=True) or not _valid_refs(info.private_observable_refs, allow_empty=True):
+        return False, ("INVALID_AGENT_INFORMATION_REFERENCE",)
+    if not _valid_refs(info.unknowns, allow_empty=True):
+        return False, ("INVALID_AGENT_UNKNOWN_COLLECTION",)
     if not isinstance(info.available_at_ns, int) or isinstance(info.available_at_ns, bool) or info.available_at_ns < 0:
         return False, ("UNKNOWN_OR_INVALID_AGENT_INFORMATION_TIME",)
-    if market.information is None or market.information.available_at_ns is None:
+    if not isinstance(market, MarketState) or market.information is None or market.information.available_at_ns is None:
         return False, ("UNKNOWN_MARKET_INFORMATION_TIME",)
     if info.available_at_ns > market.information.available_at_ns:
         return False, ("AGENT_FUTURE_INFORMATION",)
     return True, posterior_reasons
 
 
-def _blocked_event(run_id: str, ordinal: int, action: CandidateAction, reasons: Sequence[str]) -> LedgerEvent:
-    return LedgerEvent(
-        event_id=_event_id(run_id, ordinal, action, "BLOCKED", reasons),
-        ordinal=ordinal,
-        agent_id=action.agent_id,
-        action_id=action.action_id,
-        label=ActionLabel.BLOCKED,
-        accepted=False,
-        outcome_status="INVALID_OR_BLOCKED",
-        filled_quantity=0,
-        rejected_reason_codes=tuple(reasons),
-        cause_refs=tuple(sorted(action.evidence_refs)),
-        causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
-    )
+def _validate_action(action: object) -> Tuple[bool, Tuple[str, ...]]:
+    if not isinstance(action, CandidateAction):
+        return False, ("INVALID_ACTION_OBJECT",)
+    if not _bounded_text(action.action_id) or not _bounded_text(action.agent_id):
+        return False, ("INVALID_ACTION_OR_AGENT_ID",)
+    if not isinstance(action.label, ActionLabel):
+        return False, ("INVALID_ACTION_LABEL",)
+    if not isinstance(action.arrival_sequence, int) or isinstance(action.arrival_sequence, bool) or action.arrival_sequence < 0:
+        return False, ("INVALID_ARRIVAL_SEQUENCE",)
+    if not _valid_refs(action.assumption_ids) or not _valid_refs(action.evidence_refs):
+        return False, ("INVALID_ACTION_REFERENCE",)
+    if not _valid_refs(action.causal_parent_event_ids, allow_empty=True, limit=MAX_CAUSAL_PARENT_COUNT):
+        return False, ("INVALID_CAUSAL_PARENT_REFERENCE",)
+    if action.conflict_key is not None and not _bounded_text(action.conflict_key):
+        return False, ("INVALID_CONFLICT_KEY",)
+    if not isinstance(action.requires_complete_information, bool):
+        return False, ("INVALID_COMPLETE_INFORMATION_FLAG",)
+    if action.order is not None and not isinstance(action.order, SyntheticOrder):
+        return False, ("INVALID_SYNTHETIC_ORDER",)
+    return True, ()
 
 
-def _abstain_event(run_id: str, ordinal: int, action: CandidateAction, reason: str) -> LedgerEvent:
-    return LedgerEvent(
-        event_id=_event_id(run_id, ordinal, action, "ABSTAIN", (reason,)),
-        ordinal=ordinal,
-        agent_id=action.agent_id,
-        action_id=action.action_id,
-        label=ActionLabel.ABSTAIN,
-        accepted=False,
-        outcome_status="ABSTAINED",
-        filled_quantity=0,
-        rejected_reason_codes=(reason,),
-        cause_refs=tuple(sorted(action.evidence_refs)),
-        causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
-    )
+def _blocked_event(run_id: str, ordinal: int, action: CandidateAction, reasons: Sequence[str], owner_hash: str, system_hash: str) -> LedgerEvent:
+    event_id = _event_id(run_id, ordinal, action, "BLOCKED", reasons, owner_hash, owner_hash)
+    return LedgerEvent(event_id, ordinal, action.agent_id, action.action_id, ActionLabel.BLOCKED, False,
+                       "INVALID_OR_BLOCKED", 0, tuple(reasons), tuple(sorted(action.evidence_refs)),
+                       tuple(sorted(action.causal_parent_event_ids)), owner_hash, owner_hash, system_hash, system_hash)
+
+
+def _abstain_event(run_id: str, ordinal: int, action: CandidateAction, reason: str, owner_hash: str, system_hash: str) -> LedgerEvent:
+    event_id = _event_id(run_id, ordinal, action, "ABSTAIN", (reason,), owner_hash, owner_hash)
+    return LedgerEvent(event_id, ordinal, action.agent_id, action.action_id, ActionLabel.ABSTAIN, False,
+                       "ABSTAINED", 0, (reason,), tuple(sorted(action.evidence_refs)),
+                       tuple(sorted(action.causal_parent_event_ids)), owner_hash, owner_hash, system_hash, system_hash)
+
+
+def _build_portfolios(agents: Tuple[AgentState, ...]) -> dict[str, AgentPortfolioState]:
+    return {agent.agent_id: AgentPortfolioState(agent.agent_id, agent.inventory, agent.inventory,
+                                                 _portfolio_hash(agent.agent_id, agent.inventory),
+                                                 _portfolio_hash(agent.agent_id, agent.inventory), 0)
+            for agent in agents}
 
 
 def arbitrate(
@@ -292,137 +392,172 @@ def arbitrate(
     market: MarketState,
     agents: Sequence[AgentState],
     actions: Sequence[CandidateAction],
+    *,
+    prior_events: Sequence[LedgerEvent] = (),
 ) -> GameRun:
-    """Deterministically applies synthetic candidate actions through the D1 reducer."""
-    if not isinstance(run_id, str) or not run_id:
+    """Apply actions to owning agents only, under explicit synthetic arbitration."""
+    if not _bounded_text(run_id):
         raise ValueError("INVALID_RUN_ID")
-    if len(agents) > MAX_AGENT_COUNT:
-        raise ValueError("AGENT_LIMIT_EXCEEDED")
-    agent_by_id = {agent.agent_id: agent for agent in agents}
-    if len(agent_by_id) != len(agents):
-        raise ValueError("DUPLICATE_AGENT_ID")
-    if len({action.action_id for action in actions}) != len(actions):
-        raise ValueError("DUPLICATE_ACTION_ID")
+    if not isinstance(market, MarketState):
+        raise ValueError("INVALID_MARKET_STATE")
+    if not isinstance(agents, (tuple, list)) or not isinstance(actions, (tuple, list)):
+        raise ValueError("INVALID_TOP_LEVEL_COLLECTION")
+    if not 1 <= len(agents) <= MAX_AGENT_COUNT:
+        raise ValueError("INVALID_AGENT_COUNT")
+    if len(actions) > MAX_ACTION_COUNT:
+        raise ValueError("ACTION_LIMIT_EXCEEDED")
+    if len(prior_events) > MAX_EVENT_COUNT or any(not isinstance(event, LedgerEvent) for event in prior_events):
+        raise ValueError("INVALID_PRIOR_EVENT_COLLECTION")
+    if any(not isinstance(agent, AgentState) for agent in agents):
+        raise ValueError("INVALID_AGENT_OBJECT")
     if any(not isinstance(action, CandidateAction) for action in actions):
         raise ValueError("INVALID_ACTION_OBJECT")
-    if not agents:
-        raise ValueError("EMPTY_AGENT_SET")
-
-    working_inventory = agents[0].inventory
+    agent_tuple, action_tuple = tuple(agents), tuple(actions)
+    if len({agent.agent_id for agent in agent_tuple}) != len(agent_tuple):
+        raise ValueError("DUPLICATE_AGENT_ID")
+    if len({action.action_id for action in action_tuple}) != len(action_tuple):
+        raise ValueError("DUPLICATE_ACTION_ID")
+    if len({action.arrival_sequence for action in action_tuple}) != len(action_tuple):
+        raise ValueError("AMBIGUOUS_ACTION_ARRIVAL_SEQUENCE")
+    agent_by_id = {agent.agent_id: agent for agent in agent_tuple}
+    invalid_agents = {agent.agent_id: _validate_agent(agent, market)[1] for agent in agent_tuple if not _validate_agent(agent, market)[0]}
+    invalid_actions = {action.action_id: _validate_action(action)[1] for action in action_tuple if not _validate_action(action)[0]}
+    portfolios = _build_portfolios(agent_tuple)
     events: list[LedgerEvent] = []
-    claimed_conflicts: set[str] = set()
-    for ordinal, action in enumerate(sorted(actions, key=_action_sort_key), start=1):
+    prior_ids = tuple(event.event_id for event in prior_events)
+    known_parent_ids = set(prior_ids)
+    claimed_conflicts: dict[str, str] = {}
+
+    for ordinal, action in enumerate(sorted(action_tuple, key=lambda item: item.arrival_sequence), start=1):
+        owner = portfolios.get(action.agent_id)
+        owner_hash = owner.post_state_hash if owner is not None else "UNKNOWN_OWNER_STATE"
+        system_before = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
+        if action.action_id in invalid_actions:
+            events.append(_blocked_event(run_id, ordinal, action, invalid_actions[action.action_id], owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
+            continue
         agent = agent_by_id.get(action.agent_id)
         if agent is None:
-            events.append(_blocked_event(run_id, ordinal, action, ("UNKNOWN_AGENT",)))
+            events.append(_blocked_event(run_id, ordinal, action, ("UNKNOWN_AGENT",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
-        agent_ok, agent_reasons = _validate_agent(agent, market)
-        if not agent_ok:
-            events.append(_blocked_event(run_id, ordinal, action, agent_reasons))
+        if agent.agent_id in invalid_agents:
+            events.append(_blocked_event(run_id, ordinal, action, invalid_agents[agent.agent_id], owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
-        if not action.evidence_refs:
-            events.append(_blocked_event(run_id, ordinal, action, ("MISSING_ACTION_EVIDENCE",)))
-            continue
-        prior_event_ids = {event.event_id for event in events}
-        if any(parent not in prior_event_ids for parent in action.causal_parent_event_ids):
-            events.append(_blocked_event(run_id, ordinal, action, ("UNKNOWN_OR_FORWARD_CAUSAL_PARENT",)))
+        if any(parent not in known_parent_ids for parent in action.causal_parent_event_ids):
+            events.append(_blocked_event(run_id, ordinal, action, ("UNKNOWN_OR_FORWARD_CAUSAL_PARENT",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
         if action.label is ActionLabel.ABSTAIN:
-            events.append(_abstain_event(run_id, ordinal, action, "DECLARED_ABSTENTION"))
+            events.append(_abstain_event(run_id, ordinal, action, "DECLARED_ABSTENTION", owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
         if action.requires_complete_information and agent.information.unknowns:
-            events.append(_abstain_event(run_id, ordinal, action, "INCOMPLETE_INFORMATION"))
+            events.append(_abstain_event(run_id, ordinal, action, "INCOMPLETE_INFORMATION", owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
         if action.order is None:
-            events.append(_blocked_event(run_id, ordinal, action, ("MISSING_SYNTHETIC_ORDER",)))
+            events.append(_blocked_event(run_id, ordinal, action, ("MISSING_SYNTHETIC_ORDER",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
         if action.conflict_key and action.conflict_key in claimed_conflicts:
-            events.append(_blocked_event(run_id, ordinal, action, ("CONFLICT_KEY_ALREADY_CLAIMED",)))
+            events.append(_blocked_event(run_id, ordinal, action, ("CONFLICT_RESOURCE_ALREADY_CLAIMED",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
             continue
-        outcome: SyntheticMatchOutcome = reduce_order(market, working_inventory, action.order)
+        outcome: SyntheticMatchOutcome = reduce_order(market, owner.final_inventory, action.order)
         accepted = outcome.status is not OutcomeStatus.INVALID_OR_BLOCKED
+        next_inventory = outcome.inventory
+        next_owner_hash = _portfolio_hash(action.agent_id, next_inventory)
+        next_portfolio = AgentPortfolioState(action.agent_id, owner.initial_inventory, next_inventory, owner.pre_state_hash,
+                                             next_owner_hash, owner.net_filled_quantity + (outcome.filled_quantity if action.order.side.value == "BUY" else -outcome.filled_quantity))
+        portfolios[action.agent_id] = next_portfolio
+        provisional_id = _event_id(run_id, ordinal, action, outcome.status.value, outcome.reason_codes, owner_hash, next_owner_hash)
         if accepted and action.conflict_key:
-            claimed_conflicts.add(action.conflict_key)
-        working_inventory = outcome.inventory
-        event = LedgerEvent(
-            event_id=_event_id(run_id, ordinal, action, outcome.status.value, outcome.reason_codes),
-            ordinal=ordinal,
-            agent_id=action.agent_id,
-            action_id=action.action_id,
-            label=action.label if accepted else ActionLabel.BLOCKED,
-            accepted=accepted,
-            outcome_status=outcome.status.value,
-            filled_quantity=outcome.filled_quantity,
-            rejected_reason_codes=tuple(outcome.reason_codes),
-            cause_refs=tuple(sorted(action.evidence_refs)),
-            causal_parent_event_ids=tuple(sorted(action.causal_parent_event_ids)),
-        )
+            claimed_conflicts[action.conflict_key] = provisional_id
+        system_after = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events) + (provisional_id,))
+        event = LedgerEvent(provisional_id, ordinal, action.agent_id, action.action_id,
+                            action.label if accepted else ActionLabel.BLOCKED, accepted, outcome.status.value,
+                            outcome.filled_quantity, tuple(outcome.reason_codes), tuple(sorted(action.evidence_refs)),
+                            tuple(sorted(action.causal_parent_event_ids)), owner_hash, next_owner_hash, system_before, system_after)
         events.append(event)
-    ledger_payload = [event.__dict__ | {"label": event.label.value} for event in events]
-    return GameRun(run_id, tuple(events), working_inventory, hashlib.sha256(_canonical(ledger_payload)).hexdigest())
+        known_parent_ids.add(event.event_id)
+    ordered_portfolios = tuple(portfolios[agent_id] for agent_id in sorted(portfolios))
+    shared_hash = _sha({"market": market, "claims": sorted(claimed_conflicts.items())})
+    shared = SharedMarketState(market, tuple(sorted(claimed_conflicts)), tuple(sorted(claimed_conflicts.items())), shared_hash)
+    ledger_hash = _sha([event for event in events])
+    total_hash = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
+    return GameRun(run_id, tuple(events), ordered_portfolios, shared, ledger_hash, total_hash, prior_ids)
 
 
-def run_one_step_counterfactual(
-    run_id: str,
-    market: MarketState,
-    agents: Sequence[AgentState],
-    actions: Sequence[CandidateAction],
-    changed_assumption_id: str,
-) -> CounterfactualResult:
-    """Change exactly one declared assumption by converting affected actions to abstention."""
+def run_one_step_counterfactual(run_id: str, market: MarketState, agents: Sequence[AgentState], actions: Sequence[CandidateAction], changed_assumption_id: str) -> CounterfactualResult:
     baseline = arbitrate(run_id + ":baseline", market, agents, actions)
-    changed = tuple(action.action_id for action in actions if changed_assumption_id in action.assumption_ids)
+    changed = tuple(action.action_id for action in actions if isinstance(action, CandidateAction) and changed_assumption_id in action.assumption_ids)
     if len(changed) != 1:
         raise ValueError("COUNTERFACTUAL_REQUIRES_EXACTLY_ONE_ACTION")
-    alternative_actions = tuple(
-        replace(action, label=ActionLabel.ABSTAIN, order=None)
-        if action.action_id == changed[0] else action
-        for action in actions
-    )
+    alternative_actions = tuple(replace(action, label=ActionLabel.ABSTAIN, order=None) if action.action_id == changed[0] else action for action in actions)
     alternative = arbitrate(run_id + ":counterfactual", market, agents, alternative_actions)
     return CounterfactualResult(changed_assumption_id, baseline, alternative, changed)
 
 
-def run_bounded_counterfactual_episode(
-    run_id: str,
-    market: MarketState,
-    agents: Sequence[AgentState],
-    actions: Sequence[CandidateAction],
-    changed_assumption_ids: Sequence[str],
-    *,
-    max_steps: int = 12,
-) -> BoundedCounterfactualEpisode:
-    """Apply a bounded sequence of declared assumption removals, never new facts."""
-    if not isinstance(max_steps, int) or isinstance(max_steps, bool) or max_steps < 1 or max_steps > 12:
+def _agents_from_portfolios(agents: Sequence[AgentState], portfolios: Sequence[AgentPortfolioState]) -> Tuple[AgentState, ...]:
+    inventory_by_id = {portfolio.agent_id: portfolio.final_inventory for portfolio in portfolios}
+    return tuple(replace(agent, inventory=inventory_by_id[agent.agent_id]) for agent in agents)
+
+
+def run_bounded_counterfactual_episode(run_id: str, market: MarketState, agents: Sequence[AgentState], actions: Sequence[CandidateAction], changed_assumption_ids: Sequence[str], *, max_steps: int = 12) -> BoundedCounterfactualEpisode:
+    """State-carrying episode: later steps inherit prior portfolios and causal ledger."""
+    if not isinstance(max_steps, int) or isinstance(max_steps, bool) or not 1 <= max_steps <= 12:
         raise ValueError("INVALID_COUNTERFACTUAL_MAX_STEPS")
-    identifiers = tuple(changed_assumption_ids)
-    if not identifiers or len(identifiers) > max_steps or len(set(identifiers)) != len(identifiers):
+    if not isinstance(changed_assumption_ids, (tuple, list)):
         raise ValueError("INVALID_COUNTERFACTUAL_ASSUMPTION_SEQUENCE")
+    identifiers = tuple(changed_assumption_ids)
+    if not identifiers or len(identifiers) > max_steps or len(set(identifiers)) != len(identifiers) or not all(_bounded_text(item) for item in identifiers):
+        raise ValueError("INVALID_COUNTERFACTUAL_ASSUMPTION_SEQUENCE")
+    current_agents = tuple(agents)
     current_actions = tuple(actions)
-    runs = [arbitrate(run_id + ":baseline", market, agents, current_actions)]
+    accumulated_events: tuple[LedgerEvent, ...] = ()
+    runs: list[GameRun] = []
     for index, assumption_id in enumerate(identifiers, start=1):
-        matching = [action for action in current_actions if assumption_id in action.assumption_ids]
+        matching = [action for action in current_actions if isinstance(action, CandidateAction) and assumption_id in action.assumption_ids]
         if len(matching) != 1:
             raise ValueError("COUNTERFACTUAL_REQUIRES_EXACTLY_ONE_ACTION")
         target_id = matching[0].action_id
+        inherited_parent = (accumulated_events[-1].event_id,) if accumulated_events else ()
         current_actions = tuple(
-            replace(action, label=ActionLabel.ABSTAIN, order=None) if action.action_id == target_id else action
+            replace(action, label=ActionLabel.ABSTAIN, order=None,
+                    causal_parent_event_ids=action.causal_parent_event_ids or inherited_parent)
+            if action.action_id == target_id else action
             for action in current_actions
         )
-        runs.append(arbitrate(run_id + f":step:{index}", market, agents, current_actions))
-    return BoundedCounterfactualEpisode(identifiers, tuple(runs), max_steps)
+        run = arbitrate(run_id + f":step:{index}", market, current_agents, current_actions, prior_events=accumulated_events)
+        runs.append(run)
+        accumulated_events = accumulated_events + run.events
+        current_agents = _agents_from_portfolios(current_agents, run.final_agent_portfolios)
+    return BoundedCounterfactualEpisode(identifiers, tuple(runs), max_steps, runs[-1].total_system_state_hash)
 
 
 def inventory_ledger_conserved(initial: InventoryState, result: GameRun, actions: Sequence[CandidateAction]) -> bool:
-    """Synthetic accounting identity: initial + filled buys - filled sells equals final."""
-    by_id = {action.action_id: action for action in actions}
-    delta = 0
-    for event in result.events:
-        action = by_id.get(event.action_id)
-        if action is None or action.order is None:
-            continue
-        delta += event.filled_quantity if action.order.side.value == "BUY" else -event.filled_quantity
+    """Legacy single-agent conservation helper retained for scaffold consumers."""
+    if result.final_inventory is None:
+        return False
+    by_id = {action.action_id: action for action in actions if isinstance(action, CandidateAction)}
+    delta = sum(event.filled_quantity if by_id.get(event.action_id) and by_id[event.action_id].order and by_id[event.action_id].order.side.value == "BUY" else -event.filled_quantity for event in result.events)
     return _inventory_quantity(initial) + delta == _inventory_quantity(result.final_inventory)
+
+
+def total_system_conserved(initial_agents: Sequence[AgentState], result: GameRun) -> bool:
+    """All portfolio deltas equal signed accepted fills; no cross-agent mutation is hidden."""
+    if not isinstance(initial_agents, (tuple, list)):
+        return False
+    initial_by_id = {agent.agent_id: agent.inventory for agent in initial_agents if isinstance(agent, AgentState)}
+    if len(initial_by_id) != len(result.final_agent_portfolios):
+        return False
+    return all(
+        initial_by_id.get(portfolio.agent_id) == portfolio.initial_inventory
+        and _inventory_quantity(portfolio.final_inventory) - _inventory_quantity(portfolio.initial_inventory) == portfolio.net_filled_quantity
+        for portfolio in result.final_agent_portfolios
+    )
 
 
 def evaluate_narrative(record: NarrativeForecastRecord, now_ns: int) -> NarrativeStatus:
@@ -434,9 +569,9 @@ def evaluate_narrative(record: NarrativeForecastRecord, now_ns: int) -> Narrativ
 
 
 def feature_container(value: float, names: Sequence[str], *, mismatch: bool = False):
-    if not isinstance(value, (int, float)) or isinstance(value, bool) or abs(value) > MAX_FEATURE_MAGNITUDE:
+    if not _finite_number(value):
         raise ValueError("INVALID_UNCALIBRATED_FEATURE_VALUE")
-    if not names or any(not isinstance(name, str) or not name for name in names):
+    if not isinstance(names, (tuple, list)) or not names or any(not _bounded_text(name) for name in names):
         raise ValueError("INVALID_FEATURE_NAMES")
     factory = ParticipantMismatchRisk if mismatch else ParticipantAlignmentScore
     return factory(tuple(sorted(set(names))), float(value))

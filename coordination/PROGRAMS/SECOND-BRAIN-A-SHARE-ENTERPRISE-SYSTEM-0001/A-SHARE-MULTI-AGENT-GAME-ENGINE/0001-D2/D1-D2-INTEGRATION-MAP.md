@@ -9,8 +9,10 @@ replay engine. It imports D1's immutable `MarketState`, `InventoryState`,
 | Feasibility and synthetic transition | `reduce_order` | D2 cannot bypass D1 validation. |
 | Session, price-limit, suspension and T+1 rules | D1 rule/calendar/inventory modules | Synthetic snapshots only. |
 | Participant hypotheses and information sets | D2 only | Not participant facts. |
-| Arbitration/event sourcing | D2 only | Stable synthetic ledger, not order flow. |
-| Counterfactual episodes | D2 only | Changes declared assumptions, not history. |
+| Per-agent portfolio transition | D2 owns a mapping of D1 `InventoryState` values | An action is reduced against its owning portfolio only. |
+| Shared conflict arbitration | D2 `SharedMarketState` | The sole shared mutable resource is a declared synthetic conflict key. |
+| Arbitration/event sourcing | D2 only | Arrival sequence is declared and unique; no lexicographic ID priority. |
+| Counterfactual episodes | D2 only | Carries prior portfolios and causal event IDs between bounded steps. |
 
 The D1 dependency blobs were individually compared with the exact accepted D1
 receipt base before D2 local execution. This map does not authorize market data,
