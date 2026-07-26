@@ -1,79 +1,83 @@
-schema_version: "17.0"
+schema_version: "18.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "CODEX_PR99_TAKEOVER_E9_QCLAW_PR96_R5_E7_WORKBUDDY_PAUSED_E15"
+status: "CODEX_AUTONOMOUS_H1_D2_E10_QCLAW_RECEIPT_ADAPTER_E8_WORKBUDDY_PAUSED_E15"
 updated_by: "GPT"
-updated_at: "2026-07-26T04:51:00+08:00"
+updated_at: "2026-07-26T05:27:00+08:00"
 
 review_summary:
   CODEX_PR98_R3:
     tested_head: "b70e278a5220aeead6f6e3a0b1c02981f793fd22"
     receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
-    classification: "ACCEPTED_D1_SYNTHETIC_RULES_MVP_FROZEN_NO_D2_RELEASE"
+    classification: "ACCEPTED_D1_SYNTHETIC_RULES_MVP_FROZEN_NO_D2_REAL_DATA_RELEASE"
     accepted:
-      - "Top-level malformed inputs fail closed with structured outcomes."
-      - "Explicit settlement state causally gates synthetic T+1 maturity."
-      - "Twenty fixtures, twenty-four invariant tests and per-command hashes exist."
-    next_action: "No further PR #98 work; D2 remains queued until separate GPT release."
-  QCLAW_PR96_R4:
-    tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
-    receipt_head: "888187a5c19d47dc3f4b402dee960a7defc596d6"
-    classification: "CONTENT_AND_VALIDATOR_ACCEPTED_EXACT_ROUTE_AND_RECEIPT_EVIDENCE_R5_REQUIRED"
+      - "D1 malformed inputs, settlement causality, deterministic fixtures and invariant evidence are accepted."
+    next_action: "Codex may build D2 synthetic-only core under Epoch 10 but may not use real data, replay, backtest or trading runtime."
+  CODEX_PR99:
+    current_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
+    classification: "NO_NEW_CODEX_COMMIT_YET_TASK_EXPANDED_BEFORE_EXECUTION"
+    action: "Epoch 10 combines independent H1 closure with a separate D2 synthetic game-core build."
+  QCLAW_PR96_R5:
+    accepted_tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
+    reviewed_receipt_head: "7750f0fba783b859dcd333e62c8a0f39622b2642"
+    classification: "CONTENT_ACCEPTED_FINAL_RECEIPT_TRUTH_AND_CANDIDATE_ADAPTER_E8_REQUIRED"
     accepted:
-      - "64 adversarial questions restored."
-      - "Explicit canonical schemas, NFC and standalone negative fixtures exist."
+      - "99 atoms, 147 relations, 64 adversarial questions, explicit canonical schemas and standalone negative fixtures remain."
     blocking:
-      - "R4 receipts use invented task/signal and wrong reviewed base identity."
-      - "Literal command hashes and concrete external anchor are incomplete."
-  WORKBUDDY_PR97_R3:
-    tested_head: "b31041e7b1376fa4dbdc4d960886d5c993ebf7f9"
-    receipt_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
-    classification: "IMPLEMENTATION_PRESERVED_WORKBUDDY_PAUSED_REMAINDER_TRANSFERRED_TO_CODEX"
-    accepted:
-      - "Fresh five-file H1 package, binary extraction, strict UTF-8 and self-scan exist."
-    transferred_blocking:
-      - "Complete per-command evidence, controlled exception paths and final external anchor."
+      - "QCLAW-FEEDBACK retains an obsolete reviewed/base head."
+      - "R5 receipt text points to the prior receipt rather than the new concrete head."
+      - "Positive and negative commands do not yet contain complete stdout/stderr SHA-256 evidence."
+  WORKBUDDY:
+    frozen_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
+    classification: "PAUSED_COMPUTE_UNAVAILABLE_NO_TASK"
+    next_action: "No automatic resume; explicit GPT review and release required after 2026-07-28."
 
 resource_model:
   CODEX:
-    share_percent: 70
-    weight: "HEAVY_INDEPENDENT_TAKEOVER"
-    reason: "Own PR #99 and finish the former WorkBuddy H1 verifier machine-evidence closure."
+    share_percent: 75
+    weight: "VERY_HEAVY_MULTI_STAGE_AUTONOMOUS_BUILD"
+    reason: "Close H1 independently, then build D2 synthetic multi-agent game core, scenarios, invariants and integration receipts."
   QCLAW:
-    share_percent: 30
-    weight: "LIGHT_RECEIPT_CLOSURE"
-    reason: "Correct exact route identity, command hashes and external anchor without semantic edits."
+    share_percent: 25
+    weight: "HEAVY_TWO_STAGE_KNOWLEDGE_ADAPTER"
+    reason: "Close PR96 receipt truth and build a separate traceable candidate-only D2 adapter packet."
   WORKBUDDY:
     share_percent: 0
     weight: "PAUSED_COMPUTE_UNAVAILABLE"
-    reason: "No compute until after 2026-07-28; explicit GPT re-release required before any future work."
+    reason: "No compute until after 2026-07-28; no task or automatic resume."
 
 agents:
   CODEX:
-    active_issue: 89
+    active_issue: 23
+    related_issue: 89
     pull_request: 99
-    task_id: "CODEX-PR99-R1-WORKBUDDY-H1-VERIFIER-TAKEOVER-MACHINE-EVIDENCE-CLOSURE"
-    route_epoch: 9
+    task_id: "CODEX-INTEGRATED-H1-CLOSURE-AND-D2-SYNTHETIC-GAME-CORE-0002-E10"
+    route_epoch: 10
     mode: "target"
     status: "READY"
     execution_allowed: true
     branch: "codex/qclaw-p1-h1-verifier-takeover-e9"
     reviewed_or_base_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
-    completion_signal: "CODEX_PR99_R1_H1_VERIFIER_TAKEOVER_MACHINE_EVIDENCE_READY_FOR_GPT_REVIEW"
+    completion_signal: "CODEX_E10_H1_CLOSURE_AND_D2_SYNTHETIC_GAME_CORE_READY_FOR_GPT_REVIEW"
+    autonomy:
+      may_continue_between_internal_gates_without_gpt: true
+      maximum_additional_draft_prs: 2
+      may_choose_internal_architecture_and_tests: true
+      adjacent_defects_within_h1_or_d2_may_be_fixed_with_decision_log: true
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
     pull_request: 96
-    task_id: "QCLAW-PR96-R5-EXACT-ROUTE-IDENTITY-COMMAND-EVIDENCE-AND-EXTERNAL-ANCHOR-CLOSURE"
-    route_epoch: 7
+    task_id: "QCLAW-PR96-R6-RECEIPT-TRUTH-AND-D2-CANDIDATE-ADAPTER-0011-E8"
+    route_epoch: 8
     mode: "target"
     status: "READY"
     execution_allowed: true
     daily_compute_status: "AVAILABLE_RESTORED"
     branch: "qclaw/participant-evidence-digest-0010-q0"
-    reviewed_or_base_head: "888187a5c19d47dc3f4b402dee960a7defc596d6"
-    completion_signal: "QCLAW_PR96_R5_EXACT_ROUTE_COMMAND_EVIDENCE_AND_EXTERNAL_ANCHOR_READY_FOR_GPT_REVIEW"
+    reviewed_or_base_head: "7750f0fba783b859dcd333e62c8a0f39622b2642"
+    completion_signal: "QCLAW_E8_PR96_RECEIPT_TRUTH_AND_D2_CANDIDATE_ADAPTER_READY_FOR_GPT_REVIEW"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     active_issue: 89
@@ -85,38 +89,37 @@ agents:
     execution_allowed: false
     resume_not_before: "2026-07-29T00:00:00+08:00"
     automatic_resume: false
-    frozen_branch: "workbuddy/qclaw-p1-cleanroom-h1-final-verification-0023-h1-e12"
     frozen_head: "8a899a3e6c244d4bb9dcf8dbf0cd559c500107fd"
-    handoff_to: "CODEX_PR99"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 parallel_execution_plan:
   - owner: "CODEX"
-    task: "Independently take over and close PR #97 H1 verifier evidence through Codex-owned PR #99."
+    task: "Stage A close PR99 H1 machine evidence, then autonomously create a separate D2 branch/PR and build the synthetic multi-agent game core."
   - owner: "QCLAW"
-    task: "Publish one five-receipt correction commit with exact Epoch 7 identity, command hashes and external anchor."
+    task: "Stage A close PR96 receipt truth, then create a separate candidate-only D2 knowledge adapter branch/PR."
   - owner: "WORKBUDDY"
-    task: "Remain paused; do not claim, edit, commit or push."
+    task: "Remain paused; do not read an executable task, edit, commit, push or claim completion."
   - owner: "GPT"
-    task: "Review Codex PR #99 and QCLAW PR #96 independently; do not auto-release D2 or Issue #92."
+    task: "Review final multi-stage deliverables, independently rerun critical evidence and decide whether any next gate is released."
 
 cross_lane_firewalls:
-  - "Codex PR #99 may edit only the H1 verifier and four H1 receipt files inherited from PR #97."
-  - "QCLAW may edit only its five receipt files and may not edit semantic/tested content."
-  - "WorkBuddy may not write to any branch while execution_allowed is false."
+  - "Codex PR99 H1 changes and D2 changes must be in separate PRs."
+  - "Codex may reserve a QCLAW adapter interface but may not consume PR96 or the future adapter as accepted fact before GPT acceptance."
+  - "QCLAW candidate adapter may not edit any Codex runtime or claim canonical authority."
+  - "WorkBuddy may not resume or modify any branch."
   - "No agent writes directly to main, merges, auto-merges, force pushes or rewrites history."
 
 issue92_gate:
   status: "BLOCKED_NOT_RELEASED"
   required_before_release:
-    - "Codex PR #99 accepted by GPT as the valid independent H1 verification closure."
-    - "Exactly one SourceManifest candidate explicitly approved by user or GPT."
+    - "Codex PR #99 H1 closure accepted by GPT."
+    - "Exactly one SourceManifest candidate explicitly approved."
     - "A separate explicit GPT READY route for Issue #92."
   not_satisfied_by:
-    - "Codex PR #98 D1 acceptance."
-    - "QCLAW PR #96 content or receipt acceptance."
-    - "WorkBuddy PR #97 self-declared completion."
-    - "The passage of 2026-07-28 or automatic WorkBuddy resume."
-  forbidden_before_release: [source_activation, labels, replay, backtest, performance_claim, account, order, trade]
+    - "Codex D1 or D2 synthetic-only progress."
+    - "QCLAW PR96 or candidate-adapter progress."
+    - "WorkBuddy compute restoration."
+    - "Any self-declared completion."
+  forbidden_before_release: [source_activation, labels, real_market_replay, backtest, performance_claim, account, order, trade]
 
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / SYNTHETIC_ONLY_WHERE_AUTHORIZED / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY_WHERE_AUTHORIZED / CANDIDATE_ONLY / research_only / NO_TRADE"
