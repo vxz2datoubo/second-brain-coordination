@@ -1,13 +1,16 @@
-task_id: "WORKBUDDY-PR97-R3-EXACT-LEASE-STRICT-UTF8-SELF-SCAN-AND-MACHINE-RECEIPT-CLOSURE"
-completion_signal: "WORKBUDDY_PR97_R3_EXACT_LEASE_STRICT_UTF8_SELF_SCAN_AND_RECEIPTS_READY_FOR_GPT_REVIEW"
-agent: WorkBuddy
-version: R3
-status: COMPLETED
-tested_head_full_sha: "b31041e7b1376fa4dbdc4d960886d5c993ebf7f9"
-receipt_head_ref: THIS_COMMIT
+task_id: "CODEX-INTEGRATED-H1-CLOSURE-AND-D2-SYNTHETIC-GAME-CORE-0002-E10"
+agent_id: "CODEX"
+document_role: "independent_verifier_feedback_replacing_prior_machine_receipt"
+status: "COMPLETED_PENDING_GPT_REVIEW"
+receipt_head_ref: "THIS_COMMIT"
+verifier_tested_head_full_sha: "b2d8603859902da9741dda016a3daf3ffeb0772b"
+local_execution_carrier_full_sha: "3111121b01f54a161a195a52bd81b2f737142542"
+publication_provenance: "Git Data API exact-parent publication; verifier blob equals local execution carrier."
 feedback:
-  summary: "R3: exact lease, self-scan with narrow exemption, strict UTF-8, byte identity, separate child/top exits"
-  normal: "exit=0, 0 findings, 37/0/0"
-  self_scan_method: "\x escape patterns for gh, sk, home, Users, password, BEGIN PRIVATE KEY"
-verified_by: "WorkBuddy (R3)"
-timestamp: "2026-07-26T03:55:00+08:00"
+  normal_reproduction: "PASS: 15 source/extract byte checks; validator 37 PASS / 0 FAIL / 0 SKIP"
+  public_safety_negative: "PASS: injected non-public absolute path rejected; top exit 1"
+  missing_artifact_negative: "PASS: validator exit 1 preserved; top exit 1"
+  child_failure_negative: "PASS: child exit 7 preserved; top exit 1"
+  cleanup: "PASS across normal and negative modes"
+independence_statement: "This is a CODEX reproduction. It does not attest to a real-world market, identity, performance, or production capability."
+boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / candidate_only / research_only / NO_TRADE"
