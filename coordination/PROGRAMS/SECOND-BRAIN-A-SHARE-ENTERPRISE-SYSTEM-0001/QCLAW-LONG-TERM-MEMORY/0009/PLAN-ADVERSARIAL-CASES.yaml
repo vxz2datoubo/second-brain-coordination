@@ -1,0 +1,1123 @@
+# PLAN-ADVERSARIAL-CASES.yaml
+# Stage D: PR #65 Meaningful LTM Plan Evidence
+# 48+ unique structured adversarial cases for the Long-Term Memory plan
+# All authority_status values restricted to: PLAN | CONTRACT | CANDIDATE
+# NO claims of IMPLEMENTED for unimplemented components
+
+document_type: PLAN_ADVERSARIAL_CASES
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: D
+target_pr: 65
+total_cases: 48
+required_categories:
+  - STALE_MEMORY
+  - SUPERSESSION
+  - CONFLICT
+  - UNKNOWN
+  - ROLEPLAY_CONTAMINATION
+  - PRIVACY_BOUNDARY
+  - SOURCE_AUTHORITY
+  - PLAN_VS_IMPLEMENTED
+  - D2_SEPARATION
+  - CANDIDATE_PROMOTION
+  - COUNT_DRIFT
+  - CANONICAL_RUNTIME_CLAIM
+
+cases:
+  # ============================
+  # CATEGORY: STALE_MEMORY (4 cases)
+  # ============================
+  - case_id: ALM-001
+    category: STALE_MEMORY
+    setup: >
+      A memory entry was last updated 90 days ago and has not been refreshed.
+      A newer query asks for the same fact domain. The retrieval plan must
+      surface the staleness and deprioritize this entry against entries with
+      freshness scores within the last 7 days.
+    expected_behavior: >
+      Retrieval plan labels the entry STALE. Fresh entries win ranking tiebreaks.
+      Staleness metadata (last_updated, decay_score) is exposed in output.
+    forbidden_behavior: >
+      MUST NOT return stale entry as top-ranked result when a fresh entry
+      for the same fact domain exists with equivalent confidence. MUST NOT
+      silently treat stale entries as current.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 Phase 3 offline memory: MERGED_CANONICAL evidence freshness pipeline"
+      - "0010-Q0 temporal semantics contract schema"
+    failure_oracle: >
+      Query returns stale entry ranked above fresh entry with same confidence
+      AND no staleness warning is emitted.
+
+  - case_id: ALM-002
+    category: STALE_MEMORY
+    setup: >
+      A fact recorded 180 days ago has a TTL policy of 90 days. The memory
+      lifecycle plan dictates that expired entries should be flagged for
+      archival review rather than returned in primary retrieval.
+    expected_behavior: >
+      Plan marks entry as EXPIRED. Retrieval path excludes expired entries
+      from primary results and surfaces an archival recommendation.
+    forbidden_behavior: >
+      MUST NOT return expired entries in primary retrieval results without
+      explicit archival context. MUST NOT silently discard without logging.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 memory lifecycle state machine: MERGED_CANONICAL"
+      - "0010-Q0 temporal semantics: expiry and TTL contracts"
+    failure_oracle: >
+      Expired entry appears in primary retrieval results without archival
+      flag or TTL-expiry annotation.
+
+  - case_id: ALM-003
+    category: STALE_MEMORY
+    setup: >
+      A corpus of market microstructure facts was ingested 30 days ago.
+      Since then, a regulatory change has invalidated 3 of the 15 facts.
+      The retrieval plan must detect that the superseded facts are stale
+      relative to the new regulatory timestamp.
+    expected_behavior: >
+      Retrieval plan handles temporal invalidation. Facts with newer
+      effective dates supersede older ones; stale entries are annotated
+      with SUPERSEDED_BY pointer.
+    forbidden_behavior: >
+      MUST NOT return invalidated facts without the SUPERSEDED_BY reference,
+      and MUST NOT treat them as equally authoritative to the newer facts.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 canonical store: content versioning and lineage"
+      - "PR #58 knowledge gateway: OPEN_CANDIDATE temporal cohort filtering"
+    failure_oracle: >
+      Invalidated fact returned without supersession pointer and with same
+      confidence weight as the newer regulatory fact.
+
+  - case_id: ALM-004
+    category: STALE_MEMORY
+    setup: >
+      Memory consolidation plan describes a periodic sweep that archives
+      entries older than 365 days unless they carry a retention override
+      flag. Without a retention override, a 400-day-old entry should be
+      moved to archive and excluded from real-time retrieval.
+    expected_behavior: >
+      Consolidation sweep detects the 400-day-old entry and transfers it
+      to archive storage. Real-time retrieval no longer includes it.
+    forbidden_behavior: >
+      MUST NOT keep the entry in active retrieval after the sweep completes
+      unless a valid retention override is present. MUST NOT archive entries
+      that carry a retention override.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 memory lifecycle: ARCHIVED state definition"
+      - "0010-Q0 temporal semantics: retention override contract"
+    failure_oracle: >
+      Entry older than 365 days without retention override still appears in
+      active retrieval results after consolidation sweep timestamp.
+
+  # ============================
+  # CATEGORY: SUPERSESSION (4 cases)
+  # ============================
+  - case_id: ALM-005
+    category: SUPERSESSION
+    setup: >
+      FACT-A (version 1) states "X is Y". A new ingestion produces FACT-A
+      (version 2) stating "X is Z". The plan must detect that v2 supersedes
+      v1 for the same deterministic_id and handle the transition.
+    expected_behavior: >
+      Plan applies supersession logic: v1 gets SUPERSEDED status with pointer
+      to v2. v2 becomes the active version. Both are retained for audit.
+    forbidden_behavior: >
+      MUST NOT return both v1 and v2 as equally active. MUST NOT delete v1
+      without audit log. MUST NOT treat v2 as a new independent fact.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 content versioning: deterministic_id lineage"
+      - "0010-Q0 lineage evidence quality contract"
+    failure_oracle: >
+      Both v1 and v2 returned with same active status and no supersession
+      link between them.
+
+  - case_id: ALM-006
+    category: SUPERSESSION
+    setup: >
+      Three versions of a policy fact exist: v1 (deprecated), v2 (current),
+      v3 (future, effective in 7 days). A query today should return v2 as
+      authoritative with v3 flagged as future-effective.
+    expected_behavior: >
+      Plan respects effective_date ordering. v2 is authoritative for
+      current-time queries. v3 is surfaced as pending-future. v1 is
+      marked deprecated.
+    forbidden_behavior: >
+      MUST NOT return v3 as authoritative before its effective date. MUST NOT
+      silently omit v1 from audit trail.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 temporal semantics in canonical store"
+      - "0010-Q0 temporal semantics: effective_date contract"
+    failure_oracle: >
+      v3 returned as authoritative for a query with current-time scope
+      before its effective_date.
+
+  - case_id: ALM-007
+    category: SUPERSESSION
+    setup: >
+      A batch ingestion updates 50 facts simultaneously. 10 are supersessions,
+      40 are new. The plan must process the batch atomically: all 10
+      supersessions link correctly to their predecessors, and no partial
+      state is observable.
+    expected_behavior: >
+      Batch is atomic. All 10 supersession links resolve correctly. External
+      readers see either the full pre-batch or full post-batch state.
+    forbidden_behavior: >
+      MUST NOT expose partial state where some supersessions are applied
+      and others are pending. MUST NOT create dangling supersession pointers.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 atomic batch ingestion contract"
+      - "0010-Q0 foundation shared envelope schema"
+    failure_oracle: >
+      Mid-batch read returns 3 of 10 supersessions applied and 7 not yet
+      applied (partial state leakage).
+
+  - case_id: ALM-008
+    category: SUPERSESSION
+    setup: >
+      A fact chain has v1->v2->v3->v4 over 12 months. A query explicitly
+      requests the history of this fact. The plan must return all versions
+      in lineage order with clear status annotations.
+    expected_behavior: >
+      Plan returns lineage: v1(DEPRECATED)->v2(DEPRECATED)->v3(SUPERSEDED)->
+      v4(ACTIVE). Each link carries timestamps and supersession reason codes.
+    forbidden_behavior: >
+      MUST NOT collapse the lineage into only v4. MUST NOT reorder versions.
+      MUST NOT omit transition timestamps.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 content lineage: version chain traversal"
+      - "0010-Q0 lineage evidence quality contract"
+    failure_oracle: >
+      History query returns only v4 with no lineage traversal, or returns
+      versions in wrong chronological order.
+
+  # ============================
+  # CATEGORY: CONFLICT (4 cases)
+  # ============================
+  - case_id: ALM-009
+    category: CONFLICT
+    setup: >
+      Two sources (A and B) report contradictory values for the same
+      deterministic fact. Source A reports "value=100" at confidence 0.9;
+      Source B reports "value=200" at confidence 0.8. The plan must
+      detect the conflict and not silently pick one.
+    expected_behavior: >
+      Plan detects CONFLICT status. Both values are surfaced with source
+      annotations and confidence scores. Conflict is flagged for human
+      or agent resolution. No automatic winner-picking.
+    forbidden_behavior: >
+      MUST NOT silently return only the higher-confidence value. MUST NOT
+      merge conflicting values into a blended/averaged output. MUST NOT
+      suppress the conflict flag.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 conflict detection in canonical store"
+      - "PR #58 knowledge gateway: OPEN_CANDIDATE conflict resolution queue"
+    failure_oracle: >
+      Only value=100 (higher confidence) returned with no conflict flag
+      and no mention of value=200.
+
+  - case_id: ALM-010
+    category: CONFLICT
+    setup: >
+      A conflict was previously resolved by a human reviewer who selected
+      Source B as authoritative. Later, Source A produces a new version
+      with higher confidence (0.95) and new evidence. The plan must
+      re-open the conflict rather than blindly trusting the prior resolution.
+    expected_behavior: >
+      Plan detects the resolution is now stale due to new evidence from
+      Source A. Conflict is re-opened with RESOLVED_STALE->CONFLICT transition.
+      Both new A value and old B resolution are surfaced.
+    forbidden_behavior: >
+      MUST NOT maintain the stale resolution silently. MUST NOT auto-re-resolve
+      in favor of the higher-confidence new entry without surfacing the conflict.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 resolution lifecycle: re-open conditions"
+      - "0010-Q0 conflict and UNKNOWN retrieval policy"
+    failure_oracle: >
+      Resolved conflict stays RESOLVED despite new contradictory evidence
+      with higher confidence from the previously-rejected source.
+
+  - case_id: ALM-011
+    category: CONFLICT
+    setup: >
+      Three facts (X, Y, Z) are each independently non-conflicting, but
+      together they form an inconsistent triad: X implies NOT-Y, Y implies
+      Z, Z contradicts X. The plan's transitivity check should detect this.
+    expected_behavior: >
+      Plan applies transitive consistency check across the knowledge graph.
+      Detects the X->Y->Z->X contradiction and flags all three as part
+      of a CONFLICT_CLUSTER. Resolution requires addressing the cluster,
+      not individual facts.
+    forbidden_behavior: >
+      MUST NOT resolve one fact in isolation while leaving the cluster
+      inconsistent. MUST NOT ignore the transitive inconsistency.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 graph traversal: consistency checking contracts"
+      - "0010-Q0 graph traversal (working code): NOT_IMPLEMENTED"
+    failure_oracle: >
+      All three facts passed as non-conflicting individually with no
+      cluster-level inconsistency flag.
+
+  - case_id: ALM-012
+    category: CONFLICT
+    setup: >
+      A fact has confidence=0.51 (just above threshold of 0.50). A
+      conflicting fact has confidence=0.49. The plan's tiebreak policy
+      says differences of less than 0.05 should be treated as CONFLICT
+      rather than resolved by confidence alone.
+    expected_behavior: >
+      Plan detects 0.02 confidence delta < 0.05 threshold. Both entries
+      marked as CONFLICT (marginal). Neither is auto-selected as winner.
+    forbidden_behavior: >
+      MUST NOT treat the 0.51-confidence entry as the unambiguous winner
+      due to being above threshold while the other is below.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 confidence thresholds and conflict tiebreak policy"
+      - "0010-Q0 13-factor reranking: PLAN weighted policy only"
+    failure_oracle: >
+      0.51-confidence entry returned as sole result with no conflict flag
+      and no mention of the 0.49-confidence conflicting entry.
+
+  # ============================
+  # CATEGORY: UNKNOWN (4 cases)
+  # ============================
+  - case_id: ALM-013
+    category: UNKNOWN
+    setup: >
+      A query asks for a fact that has never been ingested. No entry exists
+      in the canonical store or in any retrieval cache. The plan must
+      explicitly return UNKNOWN rather than fabricating or guessing.
+    expected_behavior: >
+      Plan returns explicit UNKNOWN status with metadata about what was
+      searched, which indices were consulted, and a null result. No
+      hallucinated data.
+    forbidden_behavior: >
+      MUST NOT fabricate a plausible-sounding answer. MUST NOT return a
+      low-confidence guess without marking it as SPECULATIVE/UNKNOWN.
+      MUST NOT return an unrelated fact as a proxy answer.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 canonical store: UNKNOWN handling contract"
+      - "PR #58 knowledge gateway: OPEN_CANDIDATE UNKNOWN escalation"
+    failure_oracle: >
+      A fabricated or plausible-sounding fact returned when no entry
+      exists in the canonical store for the queried key.
+
+  - case_id: ALM-014
+    category: UNKNOWN
+    setup: >
+      A fact once existed but was explicitly deleted (hard delete with
+      audit trail). A query for this fact should return UNKNOWN_DELETED
+      rather than silently omitting any response.
+    expected_behavior: >
+      Plan returns UNKNOWN_DELETED status with deletion timestamp and
+      audit reference. Distinguishes "never existed" from "existed but
+      was removed."
+    forbidden_behavior: >
+      MUST NOT silently return an empty result set that conflates
+      "never existed" with "was deleted." MUST NOT resurrect deleted
+      facts from stale caches.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 deletion audit trail: MERGED_CANONICAL"
+      - "0010-Q0 memory lifecycle: DELETED state in 10-state model"
+    failure_oracle: >
+      Query returns empty result set with no distinction between "never
+      existed" and "was deleted."
+
+  - case_id: ALM-015
+    category: UNKNOWN
+    setup: >
+      Retrieval plan encounters a fact in a language/dialect for which
+      no embedding or index is currently available. The plan must
+      surface UNKNOWN_UNSUPPORTED_LOCALE rather than attempting a
+      lossy translation that could alter meaning.
+    expected_behavior: >
+      Plan returns UNKNOWN_UNSUPPORTED_LOCALE with locale identifier.
+      Does not attempt automatic translation. Suggests manual review.
+    forbidden_behavior: >
+      MUST NOT auto-translate and surface the translated result as if
+      it were the original fact. MUST NOT drop the locale silently.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 embedding provider contract: provider-agnostic"
+      - "0010-Q0 content_zh/en fields: language boundary"
+    failure_oracle: >
+      Auto-translated content surfaced as original-language fact with
+      no UNKNOWN_UNSUPPORTED_LOCALE flag.
+
+  - case_id: ALM-016
+    category: UNKNOWN
+    setup: >
+      A retrieval request targets a time range for which the canonical
+      store has never received data (coverage gap). The plan must
+      return UNKNOWN_COVERAGE_GAP with the requested time range and
+      the actual available ranges.
+    expected_behavior: >
+      Plan returns UNKNOWN_COVERAGE_GAP with requested interval and
+      nearest available intervals. Does not interpolate or extrapolate.
+    forbidden_behavior: >
+      MUST NOT return data from a nearby time range as if it were the
+      requested range. MUST NOT interpolate missing data silently.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 time/version index: PLAN design only"
+      - "0010-Q0 temporal semantics contract schema"
+    failure_oracle: >
+      Data from adjacent time range returned as if it covered the
+      requested gap interval with no coverage-gap annotation.
+
+  # ============================
+  # CATEGORY: ROLEPLAY_CONTAMINATION (4 cases)
+  # ============================
+  - case_id: ALM-017
+    category: ROLEPLAY_CONTAMINATION
+    setup: >
+      During a roleplay session, the agent stored a "fact" that "the user's
+      name is Captain Nebula." After the roleplay session ends, a legitimate
+      memory query should not surface this roleplay artifact as a real user fact.
+    expected_behavior: >
+      Plan segregates roleplay-context facts from canonical identity facts.
+      Roleplay facts carry session-bound context tags and are excluded
+      from non-roleplay queries.
+    forbidden_behavior: >
+      MUST NOT return roleplay identity facts in response to a real-world
+      identity query. MUST NOT merge roleplay facts into the canonical
+      user profile.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 canonical store: session-scoped fact isolation"
+      - "0010-Q0 memory record schema: context_scope field"
+    failure_oracle: >
+      "Captain Nebula" returned as a user identity fact in a non-roleplay
+      query session.
+
+  - case_id: ALM-018
+    category: ROLEPLAY_CONTAMINATION
+    setup: >
+      A roleplay session simulates a trading scenario where "TSLA crashes
+      to $50." This is a fictional scenario fact. Later, a real trading
+      analysis query for TSLA must not retrieve this fictional value.
+    expected_behavior: >
+      Plan identifies the session context as ROLEPLAY and excludes
+      fictional trading facts from real analysis queries. Roleplay
+      session scope is preserved in metadata.
+    forbidden_behavior: >
+      MUST NOT return fictional price points in real trading analysis.
+      MUST NOT contaminate real market data indices with roleplay data.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 session-scoped fact isolation"
+      - "PR #100 D2 candidate adapter: OPEN_CANDIDATE trading boundary"
+    failure_oracle: >
+      $50 TSLA price from roleplay appears in real trading analysis query
+      results without roleplay warning annotation.
+
+  - case_id: ALM-019
+    category: ROLEPLAY_CONTAMINATION
+    setup: >
+      During a creative writing session, the agent generates fictional
+      knowledge about "quantum arbitrage strategies." These are not real
+      strategies. A subsequent knowledge-base build must exclude these
+      from the canonical trading strategy corpus.
+    expected_behavior: >
+      Plan detects CREATIVE_WRITING session context. Generated content
+      is tagged as fictional and excluded from canonical knowledge builds.
+    forbidden_behavior: >
+      MUST NOT include fictional creative-writing content in canonical
+      knowledge-base builds. MUST NOT blur the boundary between creative
+      generation and factual ingestion.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 canonical store: ingestion context classification"
+      - "0010-Q0 evidence_status field: FICTIONAL vs FACTUAL"
+    failure_oracle: >
+      Fictional strategy content appears in canonical knowledge-base
+      without CREATIVE_WRITING or FICTIONAL status annotation.
+
+  - case_id: ALM-020
+    category: ROLEPLAY_CONTAMINATION
+    setup: >
+      A multi-character roleplay involves Agent A pretending to be "Dr. Smith"
+      and Agent B pretending to be "Patient Jones." After the session, a
+      query for "Dr. Smith's credentials" should not return any data from
+      the roleplay as if Dr. Smith were a real person in the system.
+    expected_behavior: >
+      Plan maintains strict persona-isolation. Roleplay characters exist
+      only within their session scope. Cross-session character queries
+      return UNKNOWN unless the character has a real canonical identity.
+    forbidden_behavior: >
+      MUST NOT leak roleplay character data across session boundaries.
+      MUST NOT treat roleplay characters as real canonical entities.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 session-scoped fact isolation: persona boundary"
+      - "0010-Q0 memory record schema: persona_id field"
+    failure_oracle: >
+      "Dr. Smith's credentials" from roleplay returned in a non-roleplay
+      session as if Dr. Smith were a real canonical entity.
+
+  # ============================
+  # CATEGORY: PRIVACY_BOUNDARY (4 cases)
+  # ============================
+  - case_id: ALM-021
+    category: PRIVACY_BOUNDARY
+    setup: >
+      A memory entry contains a user's private API key in its metadata.
+      The retrieval plan must detect this as a PRIVATE credential and
+      redact or exclude it from public-facing retrieval output.
+    expected_behavior: >
+      Plan detects PRIVATE classification on the credential field.
+      Redacts the value in retrieval output. Logs an access audit event.
+    forbidden_behavior: >
+      MUST NOT return the raw API key in retrieval results. MUST NOT
+      skip the access audit log. MUST NOT treat credentials as
+      regular content for embedding or indexing.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 canonical store: field-level classification"
+      - "0010-Q0 CREDENTIAL-SECRETS-LOCAL-ONLY contract"
+    failure_oracle: >
+      Raw API key value appears in retrieval output without redaction
+      and no access audit event is logged.
+
+  - case_id: ALM-022
+    category: PRIVACY_BOUNDARY
+    setup: >
+      A shared multi-agent session involves Agent QClaw, Agent Codex,
+      and Agent WorkBuddy. QClaw stores a user preference as "prefer
+      dark mode." This preference is PUBLIC_SAFE. But in the same session,
+      a trading strategy detail is marked INTERNAL_ONLY. The retrieval plan
+      must distinguish these two classification levels.
+    expected_behavior: >
+      Plan checks classification on each field. PUBLIC_SAFE entries
+      (dark mode preference) are freely retrievable. INTERNAL_ONLY
+      entries require authorization check.
+    forbidden_behavior: >
+      MUST NOT return INTERNAL_ONLY content to unauthorized consumers.
+      MUST NOT downgrade INTERNAL_ONLY to PUBLIC_SAFE silently.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 field-level classification contract"
+      - "0010-Q0 PUBLIC_SAFE | CANDIDATE_ONLY boundary"
+    failure_oracle: >
+      INTERNAL_ONLY trading strategy detail returned to unauthorized
+      agent without authorization check or warning.
+
+  - case_id: ALM-023
+    category: PRIVACY_BOUNDARY
+    setup: >
+      A memory entry was originally classified PUBLIC_SAFE. It is later
+      reclassified to CANDIDATE_ONLY due to new licensing constraints.
+      The plan must respect the reclassification and stop serving the
+      entry to public consumers.
+    expected_behavior: >
+      Plan detects reclassification event. Entry is removed from
+      public retrieval paths. Existing public caches are invalidated.
+      Access audit reflects the change.
+    forbidden_behavior: >
+      MUST NOT continue serving the entry to public consumers after
+      reclassification. MUST NOT serve a stale cached copy.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 classification lifecycle: reclassification events"
+      - "PR #58 knowledge gateway: OPEN_CANDIDATE access control"
+    failure_oracle: >
+      Reclassified entry still served to public consumer 30 minutes
+      after reclassification timestamp.
+
+  - case_id: ALM-024
+    category: PRIVACY_BOUNDARY
+    setup: >
+      A retrieval query originates from the webchat channel (public-facing).
+      The plan must not return any entry classified above PUBLIC_SAFE,
+      even if the same query from an internal channel would have access.
+    expected_behavior: >
+      Plan checks channel authorization context. Webchat channel gets only
+      PUBLIC_SAFE results. INTERNAL_ONLY and CANDIDATE_ONLY entries are
+      filtered out. Channel classification mismatch is logged.
+    forbidden_behavior: >
+      MUST NOT return non-PUBLIC_SAFE entries to webchat regardless of
+      content relevance. MUST NOT skip channel-level authorization.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 authorization: channel-level access control"
+      - "0010-Q0 PUBLIC_SAFE | CANDIDATE_ONLY boundary"
+    failure_oracle: >
+      CANDIDATE_ONLY entry returned to webchat channel query with no
+      authorization filtering.
+
+  # ============================
+  # CATEGORY: SOURCE_AUTHORITY (4 cases)
+  # ============================
+  - case_id: ALM-025
+    category: SOURCE_AUTHORITY
+    setup: >
+      Source A is authoritative for market microstructure. Source B is
+      authoritative for macroeconomics. Source B makes a claim about
+      market microstructure. The plan must weight this claim lower than
+      Source A's claim on the same topic, because Source B's authority
+      domain does not include microstructure.
+    expected_behavior: >
+      Plan checks source authority domain matrix. Source B's microstructure
+      claim gets lower authority_weight. Source A's claim is preferred.
+      Domain mismatch is annotated in output.
+    forbidden_behavior: >
+      MUST NOT treat Source B's microstructure claim as equally authoritative
+      to Source A's. MUST NOT ignore domain boundaries in authority weighting.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 source authority matrix: MERGED_CANONICAL"
+      - "0010-Q0 AUTHORITY-AND-NON-DUPLICATION-MATRIX (supply chain)"
+    failure_oracle: >
+      Source B's out-of-domain microstructure claim weighted equally to
+      Source A's in-domain claim with no domain-mismatch annotation.
+
+  - case_id: ALM-026
+    category: SOURCE_AUTHORITY
+    setup: >
+      A new source (Source C) has no authority record in the system.
+      Its claims arrive with self-reported confidence of 0.95. The plan
+      must treat UNKNOWN_AUTHORITY sources conservatively, capping their
+      effective weight until authority is established.
+    expected_behavior: >
+      Plan detects UNKNOWN_AUTHORITY for Source C. Effective confidence
+      is capped at a conservative default (e.g., 0.30) regardless of
+      self-reported confidence. Flag raised for authority review.
+    forbidden_behavior: >
+      MUST NOT accept self-reported confidence at face value for unknown
+      sources. MUST NOT treat UNKNOWN_AUTHORITY sources as equivalent to
+      established authoritative sources.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 source authority: UNKNOWN_AUTHORITY handling"
+      - "0010-Q0 UNKNOWN-REGISTRY patterns"
+    failure_oracle: >
+      Source C's claim accepted at self-reported 0.95 confidence with
+      no capping or UNKNOWN_AUTHORITY annotation.
+
+  - case_id: ALM-027
+    category: SOURCE_AUTHORITY
+    setup: >
+      An authoritative source (Source A) has its authority revoked due
+      to a provenance audit finding. All facts previously accepted from
+      Source A must be re-evaluated. The plan must mark them for review
+      rather than continuing to treat them as authoritative.
+    expected_behavior: >
+      Plan detects authority revocation event. All Source-A facts are
+      flagged AUTHORITY_REVOKED and enter a review queue. Confidence
+      scores are recalculated based on corroborating sources only.
+    forbidden_behavior: >
+      MUST NOT continue to serve Source-A facts as authoritative after
+      revocation. MUST NOT skip the batch re-evaluation.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 source authority lifecycle: revocation events"
+      - "PR #58 knowledge gateway: OPEN_CANDIDATE provenance audit"
+    failure_oracle: >
+      Source-A fact returned as authoritative after revocation event
+      with no AUTHORITY_REVOKED flag.
+
+  - case_id: ALM-028
+    category: SOURCE_AUTHORITY
+    setup: >
+      Two sources with equal authority in the same domain produce
+      identical claims. The plan should detect the corroboration and
+      boost the combined confidence, but also flag that the two sources
+      may not be fully independent.
+    expected_behavior: >
+      Plan detects CORROBORATION between Source A and Source B.
+      Combined confidence is boosted with a corroboration bonus.
+      Source-independence score is calculated and attached.
+    forbidden_behavior: >
+      MUST NOT double-count the same underlying evidence as independent
+      corroboration. MUST NOT boost confidence if sources share a common
+      upstream dependency.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #57 source authority: corroboration detection"
+      - "0010-Q0 COUNT-SOURCE-OF-TRUTH-MANIFEST (supply chain)"
+    failure_oracle: >
+      Corroborating sources treated as fully independent without checking
+      shared upstream dependencies, leading to inflated confidence.
+
+  # ============================
+  # CATEGORY: PLAN_VS_IMPLEMENTED (4 cases)
+  # ============================
+  - case_id: ALM-029
+    category: PLAN_VS_IMPLEMENTED
+    setup: >
+      A component in PR #65 is marked as IMPLEMENTED in an adversarial
+      case but the component has no runtime code, no backend, and no
+      integration. The validator must detect this false claim.
+    expected_behavior: >
+      Validator detects IMPLEMENTED status on a component with
+      NOT_IMPLEMENTED ground truth. Case fails validation.
+      Error message specifies which component has the false claim.
+    forbidden_behavior: >
+      MUST NOT pass validation if any case claims IMPLEMENTED for a
+      component known to be unimplemented. MUST NOT silently accept
+      false authority_status values.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: NOT_IMPLEMENTED entries"
+      - "PR #57 MERGED_CANONICAL: the only implemented canonical store"
+    failure_oracle: >
+      Adversarial case with IMPLEMENTED claim on vector search index
+      (known NOT_IMPLEMENTED) passes validation.
+
+  - case_id: ALM-030
+    category: PLAN_VS_IMPLEMENTED
+    setup: >
+      A query in the adversarial suite asks whether the hybrid retrieval
+      system has working code. The plan must truthfully answer NO.
+      Any case that claims HYBRID_RETRIEVAL_IMPLEMENTED must be rejected.
+    expected_behavior: >
+      Plan truthfully reports hybrid retrieval as NOT_IMPLEMENTED.
+      Cases that assume IMPLEMENTED hybrid retrieval fail validation.
+    forbidden_behavior: >
+      MUST NOT claim hybrid retrieval is IMPLEMENTED. MUST NOT write
+      adversarial cases that depend on unimplemented runtime behavior.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: Hybrid retrieval (working code) = NOT_IMPLEMENTED"
+      - "PR #57 Phase 3 offline memory: the only implemented runtime"
+    failure_oracle: >
+      Adversarial case passes validation while assuming hybrid retrieval
+      runtime exists and returns results.
+
+  - case_id: ALM-031
+    category: PLAN_VS_IMPLEMENTED
+    setup: >
+      The plan documentation claims that memory palace architecture is
+      "computable navigation design" (PLAN status). An adversarial case
+      accidentally references "memory_palace.navigate()" as if it were
+      implemented. The validator must flag this.
+    expected_behavior: >
+      Validator detects the IMPLEMENTED claim for memory_palace.navigate()
+      against the PLAN ground truth. Case fails with specificity: which
+      function reference is invalid.
+    forbidden_behavior: >
+      MUST NOT pass cases that reference unimplemented API surfaces as
+      if they were callable. MUST NOT treat PLAN as equivalent to IMPLEMENTED.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: Memory palace architecture = PLAN"
+      - "0010-Q0 architecture: Memory palace = NOT_IMPLEMENTED (no runtime)"
+    failure_oracle: >
+      Case referencing memory_palace.navigate() as implemented passes
+      validation without error.
+
+  - case_id: ALM-032
+    category: PLAN_VS_IMPLEMENTED
+    setup: >
+      The LTM-TRUTH.md lists "Vector search index (working code)" as
+      NOT_IMPLEMENTED. An adversarial case asserts that vector similarity
+      search returns cosine distance scores. This is a runtime claim on
+      an unimplemented component.
+    expected_behavior: >
+      Validator detects the runtime claim on an unimplemented component.
+      Fails the case with reference to the LTM-TRUTH.md ground truth entry.
+    forbidden_behavior: >
+      MUST NOT accept runtime behavior assertions for components marked
+      NOT_IMPLEMENTED. MUST NOT conflate CONTRACT (schema only) with
+      IMPLEMENTED (working code).
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: Vector search index = NOT_IMPLEMENTED"
+      - "0010-Q0 vector index manifest: CONTRACT schema only"
+    failure_oracle: >
+      Case asserting cosine distance computation on vector index passes
+      validation despite component being NOT_IMPLEMENTED.
+
+  # ============================
+  # CATEGORY: D2_SEPARATION (4 cases)
+  # ============================
+  - case_id: ALM-033
+    category: D2_SEPARATION
+    setup: >
+      A trading signal (D2 classification: "strong buy") is generated by
+      the D2 candidate adapter (PR #100). The PR #65 LTM plan must not
+      ingest, store, or retrieve trading signals as memory facts. The
+      boundary is: LTM handles knowledge facts, D2 handles trading signals.
+    expected_behavior: >
+      Plan explicitly excludes D2 trading signals from LTM storage and
+      retrieval. The NON-DUPLICATION-MAP confirms D2 separation.
+      LTM retrieval queries for trading signals return UNKNOWN.
+    forbidden_behavior: >
+      MUST NOT store D2 trading signals in LTM memory. MUST NOT retrieve
+      D2 trading signals as if they were knowledge facts. MUST NOT blur
+      the second-brain vs trading-system boundary.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 NON-DUPLICATION-MAP.yaml: trading_system_boundary"
+      - "PR #100 D2 candidate adapter: OPEN_CANDIDATE"
+    failure_oracle: >
+      D2 trading signal "strong buy" retrieved from LTM in response to
+      a knowledge query, crossing the second-brain/trading-system boundary.
+
+  - case_id: ALM-034
+    category: D2_SEPARATION
+    setup: >
+      PR #100 defines a candidate classification for market participants.
+      PR #65 also defines evidence_status on memory entries. The shared
+      evidence contracts (source locks, family ontology, quarantine rules)
+      must be referenced, not duplicated. The plan must delegate to
+      the shared contract layer.
+    expected_behavior: >
+      PR #65 plan references shared evidence contracts without duplicating
+      their definitions. LTM inherits evidence_status from canonical.
+      D2 reads evidence_status from the same canonical source.
+    forbidden_behavior: >
+      MUST NOT duplicate evidence contract definitions within PR #65.
+      MUST NOT create a PR #65-specific evidence_status that diverges
+      from the shared contract. MUST NOT claim ownership of shared contracts.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 NON-DUPLICATION-MAP.yaml: field_mappings"
+      - "PR #100 D2: shared evidence contracts boundary"
+    failure_oracle: >
+      PR #65 contains a self-contained evidence_status definition that
+      duplicates the shared contract without cross-reference.
+
+  - case_id: ALM-035
+    category: D2_SEPARATION
+    setup: >
+      PR #100 D2 candidate adapter produces a participant classification
+      labeled "family A." PR #65 LTM stores a knowledge fact about
+      "family A's historical behavior." The two references must be kept
+      distinct: D2's "family A" is a trading classification; LTM's
+      "family A" is a knowledge entity.
+    expected_behavior: >
+      Plan maintains separate namespaces: D2 participant classifications
+      are scoped to the trading system. LTM knowledge entities are scoped
+      to the second-brain. Same label in different namespaces does not
+      imply identity.
+    forbidden_behavior: >
+      MUST NOT merge D2 "family A" classification with LTM "family A"
+      knowledge entity. MUST NOT cross-pollinate trading metadata into
+      knowledge facts or vice versa.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 NON-DUPLICATION-MAP.yaml: trading_system_boundary"
+      - "PR #100 D2: candidate classification adapter"
+    failure_oracle: >
+      D2 participant classification metadata appears in LTM knowledge
+      fact about the same named entity with no namespace separation.
+
+  - case_id: ALM-036
+    category: D2_SEPARATION
+    setup: >
+      The quarantine rules contract is shared between PR #65 (LTM) and
+      PR #100 (D2). When PR #100 quarantines a source, PR #65 must
+      reflect this without independently re-implementing quarantine logic.
+      The plan must describe how LTM reacts to shared quarantine events.
+    expected_behavior: >
+      Plan describes LTM's reaction to shared quarantine events: LTM
+      reads quarantine status from shared contract, applies it to
+      affected memory entries, and does not re-evaluate quarantines.
+    forbidden_behavior: >
+      MUST NOT independently re-implement quarantine detection logic.
+      MUST NOT ignore shared quarantine events. MUST NOT serve quarantined
+      content while the shared contract marks it as quarantined.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 NON-DUPLICATION-MAP: shared evidence contracts"
+      - "PR #100 D2: quarantine rules in shared contract layer"
+    failure_oracle: >
+      Quarantined source content served by LTM while shared contract
+      marks it as quarantined, indicating LTM ignored the shared quarantine.
+
+  # ============================
+  # CATEGORY: CANDIDATE_PROMOTION (4 cases)
+  # ============================
+  - case_id: ALM-037
+    category: CANDIDATE_PROMOTION
+    setup: >
+      PR #58 (knowledge gateway) is OPEN_CANDIDATE, not AUTHORITY.
+      An adversarial case incorrectly treats PR #58 as if it were
+      an accepted runtime authority that can gate LTM retrieval.
+      The plan must distinguish OPEN_CANDIDATE from MERGED_CANONICAL.
+    expected_behavior: >
+      Plan treats PR #58 as OPEN_CANDIDATE. References to PR #58 are
+      marked as CANDIDATE, not CONTRACT or IMPLEMENTED. LTM does not
+      depend on PR #58 for correctness.
+    forbidden_behavior: >
+      MUST NOT treat PR #58 as an authority that LTM depends on.
+      MUST NOT claim PR #58 is MERGED or IMPLEMENTED. MUST NOT gate
+      LTM retrieval on PR #58 gateway acceptance.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: PR #58 = OPEN_CANDIDATE_NOT_AUTHORITY"
+      - "PR #57 MERGED_CANONICAL: the only accepted canonical store"
+    failure_oracle: >
+      Adversarial case treats PR #58 gateway as an authority gate that
+      LTM must pass through, when PR #58 is OPEN_CANDIDATE.
+
+  - case_id: ALM-038
+    category: CANDIDATE_PROMOTION
+    setup: >
+      PR #58 is promoted from OPEN_CANDIDATE to MERGED_CANONICAL.
+      The LTM plan must have a documented transition path: update
+      authority references, re-evaluate any gates that previously
+      treated PR #58 as CANDIDATE, and update the LTM-TRUTH.md.
+    expected_behavior: >
+      Plan includes a CANDIDATE_PROMOTION procedure. When promotion
+      occurs, LTM plan references are updated, and the DETERMINISM-RECEIPT
+      is regenerated to reflect the new authority status.
+    forbidden_behavior: >
+      MUST NOT have an undocumented, ad-hoc promotion path. MUST NOT
+      silently upgrade PR #58 authority without re-running validation.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: PR #58 status field"
+      - "0010-Q0 CODEX-D2-CANDIDATE-HANDOFF (supply chain)"
+    failure_oracle: >
+      After PR #58 promotion, LTM plan continues referencing it as
+      OPEN_CANDIDATE with no documented transition or re-validation.
+
+  - case_id: ALM-039
+    category: CANDIDATE_PROMOTION
+    setup: >
+      A new candidate (PR #200) proposes an alternative retrieval ranking
+      system. The LTM plan must reference it as CANDIDATE, not as a
+      dependency. Plan execution must not fail if PR #200 is rejected.
+    expected_behavior: >
+      Plan references PR #200 as OPEN_CANDIDATE with fallback to the
+      PLAN-level 13-factor reranking policy. If PR #200 is rejected,
+      LTM plan continues operating with the existing PLAN policy.
+    forbidden_behavior: >
+      MUST NOT hard-depend on an OPEN_CANDIDATE. MUST NOT fail to
+      execute if a CANDIDATE is rejected. MUST NOT treat CANDIDATE
+      as a blocking prerequisite.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: 13-factor reranking = PLAN"
+      - "PR #58 pattern: OPEN_CANDIDATE handling"
+    failure_oracle: >
+      LTM plan execution fails or produces incorrect results because
+      a referenced CANDIDATE (PR #200) is unavailable or rejected.
+
+  - case_id: ALM-040
+    category: CANDIDATE_PROMOTION
+    setup: >
+      Multiple candidates (PR #58, PR #200, PR #201) exist for the
+      same capability (knowledge gateway). The LTM plan must handle the
+      multi-candidate scenario: reference all candidates, document the
+      selection criteria, and not silently pick one as winner.
+    expected_behavior: >
+      Plan lists all candidates for the capability. Documents selection
+      criteria. Defaults to PLAN-level fallback until ONE candidate
+      is promoted to MERGED_CANONICAL. No implicit winner-picking.
+    forbidden_behavior: >
+      MUST NOT select one candidate as implicit winner without documented
+      selection criteria and explicit promotion. MUST NOT ignore competing
+      candidates.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: candidate handling policy"
+      - "0010-Q0 CODEX-D2-CANDIDATE-HANDOFF (supply chain)"
+    failure_oracle: >
+      One of three competing candidates silently selected as the
+      reference without documented criteria or explicit promotion.
+
+  # ============================
+  # CATEGORY: COUNT_DRIFT (4 cases)
+  # ============================
+  - case_id: ALM-041
+    category: COUNT_DRIFT
+    setup: >
+      The KNOWLEDGE-SUPPLY-CHAIN-INDEX.md claims 15 canonical sources.
+      The COUNT-SOURCE-OF-TRUTH-MANIFEST.yaml claims 12 canonical sources.
+      The LTM plan must flag this count mismatch as a supply-chain
+      inconsistency rather than silently using either count.
+    expected_behavior: >
+      Plan detects count mismatch (15 vs 12). Flags it as
+      COUNT_DRIFT supply-chain inconsistency. Neither count is
+      used as authoritative until reconciled.
+    forbidden_behavior: >
+      MUST NOT silently pick one count over the other. MUST NOT ignore
+      the mismatch. MUST NOT propagate inconsistent counts downstream.
+    authority_status: PLAN
+    evidence_refs:
+      - "PR #65 stage plan: cross-PR duplicate remediation"
+      - "0010-Q0 COUNT-SOURCE-OF-TRUTH-MANIFEST (supply chain, Stage E)"
+    failure_oracle: >
+      Count mismatch between supply-chain manifests ignored; one count
+      silently propagated as authoritative without reconciliation.
+
+  - case_id: ALM-042
+    category: COUNT_DRIFT
+    setup: >
+      The adversarial case file is expected to contain 48 cases.
+      If it contains only 47 due to a deletion, the count_drift
+      detection must flag the mismatch. Similarly, duplicates (same
+      case_id appearing twice) must be detected.
+    expected_behavior: >
+      Validator checks case_count against expected minimum (48).
+      Detects duplicate case_ids. Reports COUNT_DRIFT with specifics.
+    forbidden_behavior: >
+      MUST NOT silently pass if case_count < 48 or duplicates exist.
+      MUST NOT treat count validation as optional.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 validate_plan.py: count validation contract"
+      - "0010-Q0 COUNT-SOURCE-OF-TRUTH-MANIFEST pattern"
+    failure_oracle: >
+      Validator returns exit=0 when only 47 cases exist or duplicate
+      case_id is present.
+
+  - case_id: ALM-043
+    category: COUNT_DRIFT
+    setup: >
+      The LTM-TRUTH.md architecture status table lists 18 components.
+      The NON-DUPLICATION-MAP.yaml lists 6 field mappings.
+      The adversarial cases cover 12 categories, each with at least
+      4 cases. If any of these counts drifts (e.g., 17 components,
+      5 field mappings, 11 categories), the validator must report it.
+    expected_behavior: >
+      Validator checks component count (18), field_mapping count (6),
+      and category count (12). Any drift from expected counts triggers
+      a warning. Exit code reflects count integrity.
+    forbidden_behavior: >
+      MUST NOT ignore count drift in architecture table, field mappings,
+      or category coverage. MUST NOT treat approximate counts as acceptable.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: architecture status table"
+      - "PR #65 NON-DUPLICATION-MAP.yaml: field_mappings"
+    failure_oracle: >
+      Architecture table shrinks from 18 to 17 components with no
+      count_drift warning from validator.
+
+  - case_id: ALM-044
+    category: COUNT_DRIFT
+    setup: >
+      The 12 required adversarial categories are explicitly enumerated.
+      If a new case introduces a 13th category (e.g., HALLUCINATION)
+      that is not in the required set, the validator must flag it as
+      an unrecognized category rather than silently accepting it.
+    expected_behavior: >
+      Validator checks that all case categories are in the allowed set.
+      Unknown categories trigger CATEGORY_DRIFT error with specifics.
+    forbidden_behavior: >
+      MUST NOT silently accept unknown categories. MUST NOT auto-add
+      unknown categories to the required set without plan update.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 PLAN-ADVERSARIAL-CASES.yaml: required_categories"
+      - "0010-Q0 supply chain ontology"
+    failure_oracle: >
+      Case with HALLUCINATION category passes validation without
+      CATEGORY_DRIFT error.
+
+  # ============================
+  # CATEGORY: CANONICAL_RUNTIME_CLAIM (4 cases)
+  # ============================
+  - case_id: ALM-045
+    category: CANONICAL_RUNTIME_CLAIM
+    setup: >
+      An adversarial case asserts that the canonical offline store
+      (PR #57) returns search results in under 100ms. While PR #57
+      is MERGED_CANONICAL, this specific performance SLA claim is
+      not documented in the plan. The plan must not make runtime
+      performance claims without evidence.
+    expected_behavior: >
+      Plan does not assert specific runtime performance SLAs for
+      the canonical store. Performance claims require separate
+      benchmarking evidence. Adversarial cases that assert unverified
+      SLAs are flagged.
+    forbidden_behavior: >
+      MUST NOT make unverified runtime performance claims about
+      MERGED_CANONICAL or any other component. MUST NOT treat
+      "canonical" as a license to assert arbitrary runtime behavior.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #57 Phase 3 offline memory: MERGED_CANONICAL"
+      - "PR #65 LTM-TRUTH.md: No Implementation section"
+    failure_oracle: >
+      Adversarial case asserts "canonical store query < 100ms" and
+      passes validation without flagging the unverified SLA claim.
+
+  - case_id: ALM-046
+    category: CANONICAL_RUNTIME_CLAIM
+    setup: >
+      The LTM plan describes a "memory consolidation" process that runs
+      nightly. This is a PLAN description, not an implemented cron job.
+      An adversarial case asserts that consolidation ran successfully
+      on a specific date. This conflates PLAN with IMPLEMENTED.
+    expected_behavior: >
+      Plan distinguishes PLAN descriptions from IMPLEMENTED runs.
+      References to consolidation execution dates are flagged as
+      CANONICAL_RUNTIME_CLAIM on a PLAN-level component.
+    forbidden_behavior: >
+      MUST NOT assert specific execution history for PLAN-level components.
+      MUST NOT claim successful runs of unimplemented processes.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: Memory consolidation = PLAN"
+      - "PR #65 LTM-TRUTH.md: No Implementation section"
+    failure_oracle: >
+      Case passes validation while asserting "consolidation ran on
+      2025-01-15" when consolidation is PLAN, not IMPLEMENTED.
+
+  - case_id: ALM-047
+    category: CANONICAL_RUNTIME_CLAIM
+    setup: >
+      The 9-layer memory model is CONTRACT (schema + taxonomy defined).
+      An adversarial case references "layer_3.activate()" or "layer 7
+      returned embeddings" as if layers had runtime behavior. Layers
+      are a taxonomy, not a runtime module.
+    expected_behavior: >
+      Plan treats 9-layer model as a CONTRACT taxonomy. Adversarial
+      cases that assert runtime behavior on taxonomy layers are flagged
+      as CANONICAL_RUNTIME_CLAIM on a CONTRACT-level artifact.
+    forbidden_behavior: >
+      MUST NOT claim runtime behavior (activation, computation, data
+      flow) for CONTRACT-level taxonomy artifacts. MUST NOT confuse
+      schema layers with runtime layers.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: 9-layer memory model = CONTRACT"
+      - "0010-Q0 memory record schema: CONTRACT schema defined"
+    failure_oracle: >
+      Case passes validation while asserting layer-3 runtime behavior
+      when the 9-layer model is CONTRACT taxonomy only.
+
+  - case_id: ALM-048
+    category: CANONICAL_RUNTIME_CLAIM
+    setup: >
+      PR #57 (MERGED_CANONICAL) is the only component with implemented
+      runtime code. Any adversarial case that claims runtime behavior
+      for any other component (vector index, graph traversal, memory
+      palace, hybrid retrieval, embedding provider) must be flagged
+      unless that case is explicitly a PLAN-level behavior description
+      with PLAN authority_status.
+    expected_behavior: >
+      Validator cross-references each runtime claim against the
+      LTM-TRUTH.md architecture status table. Any IMPLEMENTED claim
+      on a NOT_IMPLEMENTED component fails validation. PLAN-level
+      behavioral descriptions are accepted only with PLAN authority_status.
+    forbidden_behavior: >
+      MUST NOT accept runtime behavioral assertions on NOT_IMPLEMENTED
+      components regardless of authority_status. MUST NOT accept
+      IMPLEMENTED authority_status on any component except PR #57.
+    authority_status: CONTRACT
+    evidence_refs:
+      - "PR #65 LTM-TRUTH.md: Architecture Status table"
+      - "PR #57 MERGED_CANONICAL_OFFLINE_BASE"
+    failure_oracle: >
+      Case with IMPLEMENTED authority_status on vector search index
+      passes validation when LTM-TRUTH.md states "NOT_IMPLEMENTED."

@@ -1,0 +1,114 @@
+# AI_HANDOFF.yaml
+# Stage D complete — PR #65 Plan Package
+# Handoff from Stage D sub-agent to main session / Stage E
+
+document_type: AI_HANDOFF
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: D
+target_pr: 65
+completed_at: "2026-07-26T22:50:00Z"
+
+handoff_summary: >
+  Stage D is complete. All placeholder adversarial cases replaced with
+  48 unique structured cases across 12 categories. Executable validator
+  (validate_plan.py) passes 2 clean runs and 2 negative tests. Cross-PR
+  duplicate files identified and documented for deletion. Receipt files
+  generated. Ready for GitHub push.
+
+## Deliverables Produced
+
+files_created:
+  - path: "PLAN-ADVERSARIAL-CASES.yaml"
+    sha256: "c4ab30bab332aa2636bea12afa5772c22a1018df33d16958fdbab4c750a0c687"
+    description: "48 unique structured adversarial cases across 12 required categories"
+    size_bytes: 51544
+  
+  - path: "validate_plan.py"
+    sha256: "af973a8019bda9294eb60493a886bd52d6916597729b9ca4c906c929f7dc1b63"
+    description: "Executable plan package validator with count, category, placeholder, authority, and field-completeness checks"
+    size_bytes: 18179
+  
+  - path: "DELETION-RATIONALE.md"
+    sha256: "e6fcaae76e8ed55f6b9ee750a3b9e55cb11560d3c2026f2a002eb612fbf657ef"
+    description: "Documents the 4 cross-PR duplicate files to be removed and their Stage E ownership"
+    size_bytes: 2929
+
+files_preserved:
+  - path: "LTM-TRUTH.md"
+    action: "Keep as-is (truthful plan status document)"
+  - path: "NON-DUPLICATION-MAP.yaml"
+    action: "Keep as-is (truthful non-duplication mapping)"
+
+files_removed:
+  - "AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+  - "CODEX-D2-CANDIDATE-HANDOFF.yaml"
+  - "COUNT-SOURCE-OF-TRUTH-MANIFEST.yaml"
+  - "KNOWLEDGE-SUPPLY-CHAIN-INDEX.md"
+
+## Validation Results
+
+clean_runs:
+  - run: 1
+    exit_code: 0
+    total_cases: 48
+    categories_covered: 12
+    categories_missing: 0
+    errors: 0
+    cases_hash: "c4ab30bab332aa2636bea12afa5772c22a1018df33d16958fdbab4c750a0c687"
+  - run: 2
+    exit_code: 0
+    total_cases: 48
+    categories_covered: 12
+    categories_missing: 0
+    errors: 0
+    cases_hash: "c4ab30bab332aa2636bea12afa5772c22a1018df33d16958fdbab4c750a0c687"
+
+negative_tests:
+  - test: "Unknown category (HALLUCINATION replacing STALE_MEMORY)"
+    exit_code: 1
+    errors_detected: 5
+    description: "CATEGORY_DRIFT + CATEGORY_COVERAGE errors correctly flagged"
+  - test: "Duplicate case_id (ALM-001 appearing twice)"
+    exit_code: 1
+    errors_detected: 1
+    description: "COUNT_DRIFT duplicate detection correctly flagged"
+
+## Category Distribution
+| Category | Cases |
+|---|---|
+| STALE_MEMORY | 4 |
+| SUPERSESSION | 4 |
+| CONFLICT | 4 |
+| UNKNOWN | 4 |
+| ROLEPLAY_CONTAMINATION | 4 |
+| PRIVACY_BOUNDARY | 4 |
+| SOURCE_AUTHORITY | 4 |
+| PLAN_VS_IMPLEMENTED | 4 |
+| D2_SEPARATION | 4 |
+| CANDIDATE_PROMOTION | 4 |
+| COUNT_DRIFT | 4 |
+| CANONICAL_RUNTIME_CLAIM | 4 |
+
+## Authority Status Distribution
+| Status | Cases |
+|---|---|
+| PLAN | 29 |
+| CONTRACT | 19 |
+| IMPLEMENTED | 0 (correct — no false claims) |
+
+## Constraints Verified
+- [x] NO retrieval runtime, vector backend, graph traversal, or canonical store implementation
+- [x] NO claim of IMPLEMENTED for anything not actually implemented
+- [x] PR #57 = MERGED_CANONICAL_OFFLINE_BASE (truthful)
+- [x] PR #58 = OPEN_CANDIDATE_NOT_AUTHORITY (truthful)
+- [x] PUBLIC_SAFE / CANDIDATE_ONLY boundary maintained
+- [x] All 48 cases have unique IDs, non-placeholder content
+- [x] All 12 categories present with at least 4 cases each
+- [x] Validator exits 0 on valid, 1 on tampered
+
+## Next Stage
+Stage E (0010-Q0 supply-chain layer) will own the 4 removed cross-PR duplicate files.
+PR #65 should reference them by canonical path, not by duplication.
+
+NO_TRADE | PUBLIC_SAFE | CANDIDATE_ONLY

@@ -1,0 +1,87 @@
+# TEST-RUN-RECEIPT.yaml
+# Stage D — PR #65 validate_plan.py test run receipts
+
+document_type: TEST_RUN_RECEIPT
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: D
+target_pr: 65
+validator_version: "1.0.0"
+validator_sha256: "af973a8019bda9294eb60493a886bd52d6916597729b9ca4c906c929f7dc1b63"
+cases_file: "PLAN-ADVERSARIAL-CASES.yaml"
+cases_sha256: "c4ab30bab332aa2636bea12afa5772c22a1018df33d16958fdbab4c750a0c687"
+
+## Clean Runs (exit 0 expected)
+
+clean_runs:
+  - run_id: 1
+    timestamp: "2026-07-26T22:48:47Z"
+    exit_code: 0
+    total_cases_parsed: 48
+    unique_categories: 12
+    required_categories: 12
+    categories_missing: 0
+    placeholder_errors: 0
+    authority_errors: 0
+    pr_reference_errors: 0
+    field_completeness_errors: 0
+    total_errors: 0
+    overall_valid: true
+    authority_distribution:
+      PLAN: 29
+      CONTRACT: 19
+      IMPLEMENTED: 0
+
+  - run_id: 2
+    timestamp: "2026-07-26T22:49:08Z"
+    exit_code: 0
+    total_cases_parsed: 48
+    unique_categories: 12
+    required_categories: 12
+    categories_missing: 0
+    placeholder_errors: 0
+    authority_errors: 0
+    pr_reference_errors: 0
+    field_completeness_errors: 0
+    total_errors: 0
+    overall_valid: true
+    authority_distribution:
+      PLAN: 29
+      CONTRACT: 19
+      IMPLEMENTED: 0
+
+## Negative Tests (exit 1 expected — tampered input)
+
+negative_tests:
+  - test_id: NEG-001
+    timestamp: "2026-07-26T22:49:18Z"
+    description: >
+      Tampered categories: replaced all STALE_MEMORY with HALLUCINATION (unknown category).
+      Expected: CATEGORY_DRIFT errors + CATEGORY_COVERAGE missing STALE_MEMORY.
+    exit_code: 1
+    errors_count: 5
+    error_types:
+      - "CATEGORY_DRIFT (4 cases with HALLUCINATION)"
+      - "CATEGORY_COVERAGE (STALE_MEMORY missing)"
+    verifies: "Unknown category detection + missing category coverage check"
+
+  - test_id: NEG-002
+    timestamp: "2026-07-26T22:49:30Z"
+    description: >
+      Tampered case_ids: duplicated ALM-001 (replaced ALM-002's case_id with ALM-001).
+      Expected: COUNT_DRIFT duplicate detection.
+    exit_code: 1
+    errors_count: 1
+    error_types:
+      - "COUNT_DRIFT (duplicate case_id ALM-001)"
+    verifies: "Duplicate case_id detection"
+
+## Summary
+
+total_clean_runs: 2
+clean_runs_all_pass: true
+total_negative_tests: 2
+negative_tests_all_catch: true
+deterministic_results: true  # Same input → same output on both clean runs
+
+NO_TRADE | PUBLIC_SAFE | CANDIDATE_ONLY
