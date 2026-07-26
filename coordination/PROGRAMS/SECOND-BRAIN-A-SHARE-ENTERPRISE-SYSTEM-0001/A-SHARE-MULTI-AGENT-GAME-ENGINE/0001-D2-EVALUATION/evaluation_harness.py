@@ -254,12 +254,24 @@ def mutation_sensitivity() -> dict[str, bool]:
     }
 
 
+def state_leakage_guard(initial_agents: Sequence[AgentState], run: GameRun) -> bool:
+    """Reject a run whose portfolio's initial inventory belongs to another agent."""
+    initial_by_agent = {agent.agent_id: agent.inventory for agent in initial_agents if isinstance(agent, AgentState)}
+    return all(initial_by_agent.get(portfolio.agent_id) == portfolio.initial_inventory for portfolio in run.final_agent_portfolios)
+
+
 def negative_cases() -> tuple[tuple[str, Callable[[], object]], ...]:
     state = market()
     good = _agents_for(build_scenarios()[0])[0]
     valid = CandidateAction("negative", good.agent_id, ActionLabel.FEASIBLE, order("negative"), ("a",), ("e",), arrival_sequence=1)
     bad_posterior = AgentState("bad-posterior", HiddenTypePosterior(()), good.information, good.inventory)
     long_id = "x" * 161
+    leak_scenario = build_scenarios()[0]
+    leak_agents = _agents_for(leak_scenario)
+    leak_run = run_scenario(leak_scenario).run
+    leaked_portfolios = list(leak_run.final_agent_portfolios)
+    leaked_portfolios[1] = replace(leaked_portfolios[1], initial_inventory=leak_agents[0].inventory)
+    leaked_run = replace(leak_run, final_agent_portfolios=tuple(leaked_portfolios))
     return (
         ("invalid_top_level_agents", lambda: arbitrate("n01", state, "bad", ())),
         ("invalid_top_level_actions", lambda: arbitrate("n02", state, (good,), "bad")),
@@ -297,6 +309,7 @@ def negative_cases() -> tuple[tuple[str, Callable[[], object]], ...]:
         ("unknown_match", lambda: arbitrate("n34", state, (good,), (replace(valid, action_id="n34", order=order("n34", mode=MatchMode.UNKNOWN)),))),
         ("closed_phase", lambda: arbitrate("n35", market(SessionPhase.CLOSED), (good,), (valid,))),
         ("malformed_private_refs", lambda: arbitrate("n36", state, (replace(good, information=replace(good.information, private_observable_refs="bad")),), (valid,))),
+        ("state_leakage", lambda: state_leakage_guard(leak_agents, leaked_run)),
     )
 
 

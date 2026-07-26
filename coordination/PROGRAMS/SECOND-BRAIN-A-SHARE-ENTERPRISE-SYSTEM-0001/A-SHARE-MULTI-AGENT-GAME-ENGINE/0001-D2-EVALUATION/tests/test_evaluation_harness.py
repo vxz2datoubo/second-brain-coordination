@@ -56,9 +56,9 @@ class SemanticEvaluationHarnessTests(unittest.TestCase):
         self.assertTrue(all(run.causal_history_event_ids for run in episodes))
         self.assertTrue(all(run.total_system_state_hash for run in episodes))
 
-    def test_36_negative_cases_fail_closed(self):
+    def test_37_negative_cases_fail_closed(self):
         cases = negative_cases()
-        self.assertEqual(36, len(cases))
+        self.assertEqual(37, len(cases))
         for name, call in cases:
             try:
                 result = call()
