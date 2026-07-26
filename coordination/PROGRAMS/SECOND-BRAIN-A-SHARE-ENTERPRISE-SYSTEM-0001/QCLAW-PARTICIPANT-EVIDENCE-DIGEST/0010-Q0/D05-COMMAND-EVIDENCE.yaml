@@ -1,0 +1,39 @@
+document_type: D05-COMMAND-EVIDENCE
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: 'Stage A: PR #96 Machine Receipt Truth'
+commands:
+- command: python validate_q0.py
+  run: 1
+  exit: 1
+  stdout_sha256: afc5f6e76bc1d744452b3c82111667cab536b0ea5903a186dc7d7134d6053772
+  stderr_sha256: 7122c1bb5c7bd38e5aaea1c3ba4115ada0de746770903a55b3a19ed2bd72113b
+- command: python validate_q0.py
+  run: 1
+  exit: 1
+  stdout_sha256: afc5f6e76bc1d744452b3c82111667cab536b0ea5903a186dc7d7134d6053772
+  stderr_sha256: 7122c1bb5c7bd38e5aaea1c3ba4115ada0de746770903a55b3a19ed2bd72113b
+- command: python tests/fixtures/dup_json_key_test.py
+  run: null
+  exit: 1
+  stdout_sha256: 2e8c35f62ddd0821e0ce8b2d9fd60f11636d03d2c72e9cdf9674e4f85ad45d1a
+  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- command: python tests/fixtures/dup_jsonl_key_test.py
+  run: null
+  exit: 1
+  stdout_sha256: 2e8c35f62ddd0821e0ce8b2d9fd60f11636d03d2c72e9cdf9674e4f85ad45d1a
+  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- command: python tests/fixtures/dup_yaml_key_test.py
+  run: null
+  exit: 1
+  stdout_sha256: 805d1c345be076bee6790ae0cbaee6d63062a9997ccaa0d827f200cc90ec7ddf
+  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- command: python tests/fixtures/canonical_id_mismatch_test.py
+  run: null
+  exit: 1
+  stdout_sha256: 89c77175cd328ff5f22beedcb15fb905400689ac482e6c702ed42c222d4f1f41
+  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+source_extraction:
+  commit: e54e04b14876017253d27c578484e0bbd9096c0b
+  description: All fixtures and validate_q0.py extracted from immutable Q0 tested
+    head
