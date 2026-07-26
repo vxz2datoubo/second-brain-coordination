@@ -1,0 +1,37 @@
+agent_id: "CODEX"
+fact_class: "VERIFIED_TEST"
+execution_carrier_commit: "5fe92b63ea9c622cabc092b845e108c02d73b6f0"
+method: "three isolated Git archive ZIP extractions from the same local execution carrier"
+commands:
+  test: "python 0001-D2-EVALUATION/tests/test_evaluation_harness.py"
+  runner: "python 0001-D2-EVALUATION/tests/run_evaluation.py"
+runs:
+  - seed: 1
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "9ba48ca9324a61c3ab66a56d0eecd921cb4b66d082df10a872c79b5b8a2c0ab1"
+    runner_stdout_sha256: "caba4107ac91a27603434905c165dc9f06bb02476f18302a33ccc2fd00eb769d"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 5526
+  - seed: 777
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "cb78a1fabae4d6333c326ec13ae87a8d97c01125ceba3833dfa434b26e9538dc"
+    runner_stdout_sha256: "caba4107ac91a27603434905c165dc9f06bb02476f18302a33ccc2fd00eb769d"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 5673
+  - seed: 31337
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "1c1f96b58f23841cc23cdd71b22516a36b4b4e1ff9d3ff6641d6f4fbeed6c863"
+    runner_stdout_sha256: "caba4107ac91a27603434905c165dc9f06bb02476f18302a33ccc2fd00eb769d"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 6381
+normalized_evaluation_hash: "53d62fc30fa92efec98de1e125fc2682dcc69c998cfd7a30351629a6341f9522"
+hashes_match_across_all_runs: true
+stderr_variance_explanation: "unittest emits each extracted temporary path; runner output is path-independent and identical."
+resource_note: "elapsed_ms includes archive-extracted test and runner execution on the local carrier only; it is not a market-performance measure."
+boundary: "SYNTHETIC_ONLY; deterministic execution does not establish market validity."
