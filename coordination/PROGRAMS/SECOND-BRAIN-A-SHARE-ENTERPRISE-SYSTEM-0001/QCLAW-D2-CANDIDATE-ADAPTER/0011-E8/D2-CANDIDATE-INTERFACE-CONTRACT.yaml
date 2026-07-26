@@ -1,0 +1,70 @@
+document_type: D2-CANDIDATE-INTERFACE-CONTRACT
+version: v3.0-codex-d2-candidate
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+candidate_only_boundary: true
+source_ontology:
+  description: Original 0010-Q0 subject_family/subtype labels (source ontology, preserved
+    for traceability)
+  source_families:
+  - RetailPopulationFamily
+  - LargeCapitalFamily
+  - QuantStrategyFamily
+  - ActiveSpeculativeCapitalFamily
+  - MarketStructure
+  - MethodologyNormative
+  - Policy
+  - Industrial
+  - Foreign
+codex_d2_canonical_targets:
+  description: Exact Codex D2 family enums (from GPT route E10 B-stage spec)
+  enums:
+    RETAIL: Retail population participants
+    INSTITUTIONAL_QUANT: Institutional + quantitative participants aggregated
+    ACTIVE_CAPITAL: Active speculative capital participants
+    POLICY_INDUSTRIAL_FOREIGN_AGGREGATE: Policy, industrial, and foreign capital aggregated
+    UNMAPPED_UNKNOWN: Cannot map to any Codex D2 family
+translation_layer:
+  description: Lossless source→Codex D2 mapping. Source labels never overwritten.
+  rules:
+    RetailPopulationFamily:
+      target: RETAIL
+      rationale: direct_retail
+    LargeCapitalFamily:
+      target: POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+      rationale: aggregated_large_capital
+    QuantStrategyFamily:
+      target: INSTITUTIONAL_QUANT
+      rationale: aggregated_quant_strategy
+    ActiveSpeculativeCapitalFamily:
+      target: ACTIVE_CAPITAL
+      rationale: direct_active_speculative
+    MarketStructure:
+      target: POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+      rationale: source_structural_category_aggregated_to_policy_industrial_foreign
+    MethodologyNormative:
+      target: UNMAPPED_UNKNOWN
+      rationale: source_normative_category_missing_participant_tie
+    Policy:
+      target: POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+      rationale: source_policy_aggregated
+    Industrial:
+      target: POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+      rationale: source_industrial_aggregated
+    Foreign:
+      target: POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+      rationale: source_foreign_aggregated
+person_identity_quarantine:
+  status: ACTIVE
+  rule: no_person_identity_inferred
+abstention_rules:
+- UNMAPPED_UNKNOWN → manual queue
+- Insufficient info → abstain
+- Multi-family overlap → flag misclassification_risk
+critical_rules:
+- CANDIDATE_ONLY
+- NO CLAIM/HYPOTHESIS/UNKNOWN→FACT upgrade
+- Retain source IDs, evidence_status, confidence, misclassification_risk
+- 'Exact Codex D2 enums only: RETAIL | INSTITUTIONAL_QUANT | ACTIVE_CAPITAL | POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+  | UNMAPPED_UNKNOWN'
+- Person identity quarantine ACTIVE
