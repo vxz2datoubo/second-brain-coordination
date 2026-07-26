@@ -1,10 +1,25 @@
-schema_version: "19.0"
+schema_version: "19.1"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+initiative_and_orchestration_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
 program_issue: 31
 status: "CODEX_D2_AUTONOMOUS_E11_QCLAW_SUPPLY_CHAIN_E9_WORKBUDDY_PAUSED_E15"
 updated_by: "GPT"
-updated_at: "2026-07-27T02:47:00+08:00"
+updated_at: "2026-07-27T03:18:00+08:00"
+
+permanent_operating_model:
+  status: "ACTIVE_PROGRAM_RULE"
+  agent_layer: >-
+    Every agent must execute the primary mission and proactively discover adjacent defects, high-value opportunities, better
+    methods, reusable capabilities and new UNKNOWNs. Authorized AMED A/B improvements should be implemented and tested, not merely suggested.
+  GPT_layer: >-
+    GPT independently understands and evaluates both requested and proactive work, then accepts, integrates, refines, removes,
+    returns, splits, defers or rejects it. GPT controls overall sequencing, dependencies, WIP, interfaces, release gates and system operability.
+  codex_priority: >-
+    Codex receives the largest safe autonomy budget by default for strategic engineering tasks because of its stronger architecture,
+    programming, testing and defect-discovery capability. Autonomy remains bounded by explicit paths, branches, PR budgets and hard gates.
+  final_authority: "GPT_FINAL_GATE_WITH_USER_STRATEGIC_AND_HIGH_RISK_APPROVAL"
+  automatic_self_approval_by_agents: false
 
 review_summary:
   CODEX_PR99:
@@ -71,10 +86,13 @@ agents:
     reviewed_or_base_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
     completion_signal: "CODEX_E11_D2_GAME_CORE_EVALUATION_AND_CANDIDATE_INTEGRATION_READY_FOR_GPT_REVIEW"
     autonomy:
+      profile: "CODEX_ENHANCED_AUTONOMY"
       continuous_internal_progress: true
       maximum_new_draft_prs: 3
       architecture_and_test_choice: true
       adjacent_d2_repairs_with_decision_log: true
+      high_value_adjacent_work_expected: true
+      final_self_approval: false
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
@@ -89,6 +107,10 @@ agents:
     daily_compute_status: "AVAILABLE_RESTORED"
     reviewed_or_base_head: "0e6f96ffbe7f03d7b5b33b1175612930f8a27532"
     completion_signal: "QCLAW_E9_MULTI_PR_KNOWLEDGE_SUPPLY_CHAIN_CONSISTENCY_READY_FOR_GPT_REVIEW"
+    autonomy:
+      profile: "KNOWLEDGE_SUPPLY_BOUNDED_AUTONOMY"
+      high_value_adjacent_work_expected: true
+      final_self_approval: false
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -100,14 +122,27 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 proactive_work_policy:
+  constitutional_source: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
   accepted_behavior:
-    - "Agents may discover and implement adjacent improvements inside authorized branches and paths."
-    - "Each proactive item must include evidence, decision log, alternatives, scope impact and authority class."
-    - "GPT may absorb useful proactive work into the next route after independent review."
+    - "Agents must discover and may implement adjacent high-value improvements inside authorized branches, paths and AMED A/B authority."
+    - "Each proactive item must include evidence, decision log, alternatives, scope impact, rollback and authority class."
+    - "Agents should complete valuable adjacent work when safe rather than only writing suggestions."
+    - "GPT must understand proactive work and may accept, integrate, refine, remove, return, split, defer or reject it."
+    - "Codex receives wider implementation and architecture autonomy than other agents when the route provides explicit firewalls."
   prohibited_behavior:
     - "No proactive item self-promotes to canonical, accepted, implemented, factual or production authority."
     - "No cross-agent branch edits, direct main writes, merges, force pushes or history rewrites."
     - "No expansion into real data, replay, backtest, identity, account, routing or trade."
+    - "No weakening tests, deleting negative evidence or hiding UNKNOWNs to manufacture success."
+  GPT_review_dispositions:
+    - "ACCEPT_AS_IS"
+    - "ACCEPT_AND_INTEGRATE"
+    - "ACCEPT_WITH_GPT_REFINEMENT"
+    - "PARTIAL_ACCEPT_REMOVE_INCOHERENT_PORTIONS"
+    - "RETURN_FOR_REMEDIATION"
+    - "SPLIT_AND_ROUTE"
+    - "DEFER_WITH_OWNER_AND_TRIGGER"
+    - "REJECT_PRESERVE_EVIDENCE"
 
 cross_lane_integration:
   - "Codex may design and test a quarantine port against PR #100 structure, but may not consume its claims as facts."
