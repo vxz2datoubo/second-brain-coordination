@@ -1,4 +1,4 @@
-schema_version: "15.0"
+schema_version: "16.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -8,143 +8,155 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 59
-related_issue: 23
+related_issues: [23, 31, 38, 60]
+primary_pull_request: 100
+related_pull_requests: [96, 64, 65]
 source_pull_request: 93
-pull_request: 96
-task_id: "QCLAW-PR96-R6-RECEIPT-TRUTH-AND-D2-CANDIDATE-ADAPTER-0011-E8"
+
+task_id: "QCLAW-MULTI-PR-TRUTH-ADAPTER-ATOMIZATION-LTM-CONSISTENCY-0012-E9"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96回执真值封口＋D2候选知识适配包E8"
+mode_label: "【QCLAW模式：目标模式】回执真值、候选适配、原子化架构与长期记忆一致性E9"
 mode_reason: >-
-  R5已经恢复并保留64条对抗问题、显式canonical schema和四类独立负测，但最终回执仍缺完整命令哈希，
-  QCLAW-FEEDBACK保留旧基线，且回执正文错误指向旧receipt head。用户要求单次任务量增大，因此本轮先完成
-  PR #96最终机器真值，再在独立分支创建只读候选适配包，为Codex D2预留接口；适配包不具备事实或运行时权威。
+  QCLAW主动完成PR #100候选适配包，并补建PR #64原子化架构和PR #65长期记忆规划，方向值得保留。
+  但PR #96回执仍有Epoch和命令证据残缺，PR #100存在不存在的hash_verify命令和家族本体错位，PR #64存在0计数与137/147冲突，
+  PR #65必须严格区分PR #57已合并运行时、PR #58开放候选和自身计划能力。用户要求接受主动成果并发布更大任务，故采用多PR连续修订任务。
 status: "READY"
 execution_allowed: true
 daily_compute_status: "AVAILABLE_RESTORED"
 blocked_by: "none"
 parent_program: 31
 source_issue: 59
-branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "7750f0fba783b859dcd333e62c8a0f39622b2642"
-accepted_tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
-reviewed_receipt_head: "7750f0fba783b859dcd333e62c8a0f39622b2642"
+branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+reviewed_or_base_head: "0e6f96ffbe7f03d7b5b33b1175612930f8a27532"
+reviewed_pr96_head: "6d85d3f1f424b2d72fa657c625b650f04cd1e39b"
+reviewed_pr64_head: "507fbf3fda6e64729a872308a2399d6bac577068"
+reviewed_pr65_head: "af2cf696eecfc2fdf12515ec6058ffbb58fc011b"
+accepted_q0_tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 8
-route_issued_at: "2026-07-26T05:24:00+08:00"
-completion_signal: "QCLAW_E8_PR96_RECEIPT_TRUTH_AND_D2_CANDIDATE_ADAPTER_READY_FOR_GPT_REVIEW"
+route_epoch: 9
+route_issued_at: "2026-07-27T02:44:00+08:00"
+completion_signal: "QCLAW_E9_MULTI_PR_KNOWLEDGE_SUPPLY_CHAIN_CONSISTENCY_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR96-R5-EXACT-ROUTE-IDENTITY-COMMAND-EVIDENCE-AND-EXTERNAL-ANCHOR-CLOSURE@route_epoch:7"
-
-lease_claim_required:
-  protocol: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
-  exact_echo_fields: [repository, remote_main_head_at_claim, task_id, route_epoch, active_issue, pull_request, branch, status, execution_allowed, completion_signal, reviewed_or_base_head]
-  branch_head_at_claim_must_equal: "7750f0fba783b859dcd333e62c8a0f39622b2642"
-  mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
-
-pre_completion_revalidation:
-  required: true
-  reread_latest_remote_main: true
-  exact_match_fields: [task_id, route_epoch, active_issue, pull_request, branch, completion_signal, execution_allowed]
-  mismatch_result: "STALE_COMPLETION_ABORTED_AND_STALEROUTEPACKET_REQUIRED"
+  - "QCLAW-PR96-R6-RECEIPT-TRUTH-AND-D2-CANDIDATE-ADAPTER-0011-E8@route_epoch:8"
 
 review_disposition:
-  classification: "R5_CONTENT_ACCEPTED_FINAL_MACHINE_TRUTH_AND_CANDIDATE_ADAPTER_E8_REQUIRED"
-  accepted_facts:
-    - "R4/R5 content preserves 99 atoms, 147 relations and 64 adversarial questions."
-    - "Explicit Q0_CANONICAL_ID_V1 field allowlists, NFC normalization and strict duplicate-key rejection exist."
-    - "Four standalone negative fixtures exist and report nonzero exits."
-    - "No source activation, identity matching, signal, replay, backtest or trade occurred."
+  classification: "PROACTIVE_DELIVERIES_ACCEPTED_AS_CANDIDATES_CROSS_PR_TRUTH_AND_INTEGRATION_REMEDIATION_REQUIRED"
+  accepted_candidate_facts:
+    - "PR #100 contains a separate nine-file candidate adapter package and preserves 99 atom records and 147 relation coverage claims."
+    - "PR #100 includes 68 retrieval, abstention or adversarial cases and explicitly marks candidate-only boundaries."
+    - "PR #64 contains a broad atomization architecture, schemas, queue, receipts and a generator while avoiding a second canonical runtime in principle."
+    - "PR #65 correctly identifies merged PR #57 as the canonical offline memory base and frames long-term retrieval as a layer above it."
   blocking_facts:
-    - "QCLAW-FEEDBACK-v2.yaml still records an obsolete reviewed/base head."
-    - "The R5 receipt body describes the previous 888187a receipt as the external anchor rather than the actual 7750f0f receipt."
-    - "Two clean positive runs and four negative commands still lack complete command-level stdout/stderr SHA-256 evidence."
-    - "The concrete R5 receipt head, parent, tree and no-later-commit proof are not consistently represented in immutable receipts plus external comments."
+    - "PR #96 final receipts still mix Epoch 7/8 truth and do not fully record command hashes."
+    - "PR #100 DETERMINISM-RECEIPT invokes hash_verify.py, which is not in the PR, and source lock uses an abbreviated commit."
+    - "PR #100 source family categories do not align with the canonical four-family D2 ontology; a lossless translation layer is required."
+    - "PR #64 architecture contains zero-count template pollution and relation totals that conflict with accepted 147 relations."
+    - "PR #65 is a plan candidate only and must not describe PR #58 or unimplemented retrieval layers as completed runtime."
 
 resource_and_effort:
-  priority_share_percent: 25
-  task_weight: "HEAVY_TWO_STAGE_KNOWLEDGE_ADAPTER"
-  checkpoints: [25, 50, 75, 100]
+  priority_share_percent: 35
+  task_weight: "VERY_HEAVY_MULTI_PR_KNOWLEDGE_SUPPLY_CHAIN_REMEDIATION"
+  checkpoints: [15, 30, 50, 70, 85, 100]
   checkpoint_behavior: >-
-    QCLAW may proceed from the PR #96 receipt gate to the candidate-adapter stage without waiting for GPT when the receipt gate
-    passes locally. It must stop on route mismatch, semantic-content drift, secret exposure or any attempt to create runtime authority.
+    QCLAW may move between stages without waiting when its internal gate passes. Stop on stale route, secret exposure,
+    semantic deletion, runtime-authority promotion, cross-agent edit, or inability to reproduce deterministic evidence.
 
 autonomy_grant:
-  may_choose_adapter_schema_details: true
-  may_add_adversarial_tests: true
-  may_create_one_new_branch_and_draft_pr: true
-  authorized_branch_prefix: "qclaw/q0-d2-candidate-adapter-0011-"
-  may_record_additional_unknowns_and_conflicts: true
-  may_not_create_new_market_claims: true
+  may_choose_internal_schema_repairs: true
+  may_add_validation_and_adversarial_cases: true
+  may_create_new_branches: true
+  maximum_new_branches: 3
+  may_create_new_draft_prs: true
+  maximum_new_draft_prs: 3
+  may_refactor_generators_inside_qclaw_paths: true
+  may_record_new_unknowns_conflicts_and_exclusions: true
+  may_not_create_new_external_market_claims: true
+  may_not_upgrade_candidate_authority: true
   decision_log_required: true
+  alternatives_considered_required: true
 
 stage_plan:
-  - stage_id: "A_PR96_FINAL_RECEIPT_TRUTH"
-    objective: "Close PR #96 with exact route identity, complete command evidence and truthful external anchors."
-    commit_contract:
-      exact_new_commits: 1
-      changed_files_only:
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/TEST-RUN-RECEIPT.md"
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QUALITY-GATE-REPORT.md"
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/QCLAW-FEEDBACK-v2.yaml"
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/AI_HANDOFF.yaml"
-        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/R1-TWO-RUN-DETERMINISM-RECEIPT.yaml"
+  - stage_id: "A_PR96_RECEIPT_TRUTH_FINALIZATION"
+    owner_pr: 96
+    reviewed_head: "6d85d3f1f424b2d72fa657c625b650f04cd1e39b"
+    objective: "Create one final five-receipt-only correction commit and truthful external anchor."
     required_results:
-      - "Use the exact Epoch 8 task ID and completion signal in all five receipts and all comments."
-      - "Correct every reviewed/base field to 7750f0fba783b859dcd333e62c8a0f39622b2642 and preserve accepted tested head e54e04b14876017253d27c578484e0bbd9096c0b."
-      - "Run the accepted tested package from two independently Git-extracted directories and record literal commands, exits, stdout SHA-256, stderr SHA-256, package/tree identity and normalized output hash."
-      - "Run duplicate JSON, JSONL, YAML and canonical-ID mismatch as four separate top-level commands and record the same evidence."
-      - "Do not place a future concrete receipt SHA inside the receipt commit. Use receipt_head_ref: THIS_COMMIT and publish the concrete receipt SHA, parent and tree externally after push."
-      - "Run receipt-head integrity and verify only the five receipt files changed from 7750f0f."
-      - "Externally anchor the new concrete receipt on PR #96 and Issues #59/#31 and confirm no later commit."
-    internal_gate_to_continue:
-      - "All positive commands exit 0, all four negative commands exit nonzero and every command has complete hashes."
-      - "No semantic, validator, fixture, atom, relation or question file changed."
+      - "All five files use exact Epoch 9 task identity where current-task fields are required, while preserving historical run identity explicitly."
+      - "Correct route_epoch 7/8 inconsistencies and stale reviewed/base fields."
+      - "Record two positive and four negative commands with exits and complete stdout/stderr SHA-256."
+      - "Use receipt_head_ref: THIS_COMMIT internally and concrete SHA/parent/tree only in external comments after push."
+      - "Prove exactly five receipt files changed and no semantic, validator, fixture, atom, relation or question changed."
 
-  - stage_id: "B_D2_CANDIDATE_KNOWLEDGE_ADAPTER"
-    required_new_branch_prefix: "qclaw/q0-d2-candidate-adapter-0011-"
-    required_new_draft_pr: true
-    output_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
+  - stage_id: "B_PR100_CANDIDATE_ADAPTER_R1_REMEDIATION"
+    owner_pr: 100
+    reviewed_head: "0e6f96ffbe7f03d7b5b33b1175612930f8a27532"
     objective: >-
-      Build a deterministic, traceable candidate-only adapter from the accepted Q0 package into interfaces that Codex D2 can
-      later inspect after GPT acceptance. The adapter must preserve evidence, counterevidence, conflicts and UNKNOWNs and must not
-      become a runtime, signal or factual authority.
-    required_deliverables:
-      - "SOURCE-LOCK-AND-INPUT-MANIFEST.yaml"
-      - "ATOM-TO-PARTICIPANT-CANDIDATE-MAP.jsonl"
-      - "RELATION-CONFLICT-AND-UNKNOWN-GRAPH.yaml"
-      - "D2-CANDIDATE-INTERFACE-CONTRACT.yaml"
-      - "RETRIEVAL-ABSTENTION-AND-ADVERSARIAL-CASES.jsonl"
-      - "COVERAGE-AND-TRACEABILITY-REPORT.md"
-      - "DETERMINISM-RECEIPT.yaml"
-      - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-      - "AI_HANDOFF.yaml"
-    minimum_requirements:
-      - "Every one of 99 atoms is mapped, explicitly excluded with reason, or retained as UNKNOWN."
-      - "Every one of 147 relations is represented in the conflict/unknown graph or explicitly classified as non-adapter-relevant."
-      - "All 64 adversarial questions remain traceable to adapter tests or are explicitly carried as unchanged source tests."
-      - "Four participant families and nine subtype identifiers are represented only as candidate categories."
-      - "Every mapping retains source atom IDs, evidence status, counterevidence, confidence tier and misclassification risk."
-      - "At least 24 adapter retrieval/abstention/adversarial cases with expected, forbidden and UNKNOWN outputs."
-      - "Two isolated deterministic runs with complete command hashes and identical normalized adapter hash."
-      - "No claim is upgraded from CLAIM/HYPOTHESIS/UNKNOWN to FACT."
+      Preserve the proactive adapter while making it reproducible, ontology-compatible, privacy-safe and suitable for quarantined Codex inspection.
+    required_results:
+      - "Commit the actual deterministic verification command or script; no receipt may name a nonexistent file."
+      - "Use full 40-character source commit locks and exact source-file hashes."
+      - "Define SOURCE_ONTOLOGY and CANONICAL_D2_ONTOLOGY separately; never overwrite original subject_family/subtype."
+      - "Translate to RETAIL, INSTITUTIONAL_QUANT, ACTIVE_CAPITAL, POLICY_INDUSTRIAL_FOREIGN_AGGREGATE or UNMAPPED_UNKNOWN with rationale and uncertainty."
+      - "Retain every 99 atoms and account for every 147 relations and all 64 source adversarial questions."
+      - "Keep the 68 proactive adapter cases or supersede them with at least 72 traceable cases without silent deletion."
+      - "Add person-identity quarantine fields so source statements about named people remain source claims, not participant identities."
+      - "Run at least three isolated deterministic generations and record commands, exits, stdout/stderr hashes and identical normalized package hash."
+      - "Add negative cases for missing source lock, unknown family, claim-to-fact promotion, omitted relation, nonexistent verifier and abbreviated SHA."
+      - "Truthfully reconcile deliverable_count, generated files, receipts and generator files."
+
+  - stage_id: "C_PR64_ATOMIZATION_ARCHITECTURE_TRUTH_REMEDIATION"
+    owner_pr: 64
+    reviewed_head: "507fbf3fda6e64729a872308a2399d6bac577068"
+    objective: >-
+      Keep the proactive atomization architecture but regenerate it from accepted Q0 truth and align it with merged PR #57 without claiming canonical runtime authority.
+    required_results:
+      - "Remove all zero-count template pollution and reconcile exact 99 atoms, 147 relations and 64 questions."
+      - "Correct all type/category count distributions from immutable source files and prove totals."
+      - "Add full source locks and a validator that fails on count drift, schema drift, missing relation types or stale generator output."
+      - "Distinguish architecture, generator, candidate queue, example receipts and implemented runtime."
+      - "Map LearningPacket and gateway interfaces to PR #57/#58 without building a duplicate store, fusion, retrieval or gateway runtime."
+      - "Add non-duplication and authority matrix plus two deterministic regeneration runs."
+
+  - stage_id: "D_PR65_LONG_TERM_MEMORY_PLAN_TRUTH_AND_NON_DUPLICATION"
+    owner_pr: 65
+    reviewed_head: "af2cf696eecfc2fdf12515ec6058ffbb58fc011b"
+    objective: >-
+      Preserve the long-term memory and memory-palace plan while making every capability status and dependency truthful.
+    required_results:
+      - "PR #57 is MERGED_CANONICAL_OFFLINE_BASE; PR #58 is OPEN_CANDIDATE_GATEWAY, not accepted runtime."
+      - "Classify every proposed retriever, vector index, graph traversal, palace, lifecycle and reranker as PLAN, CONTRACT, PROTOTYPE or IMPLEMENTED."
+      - "Produce a field-level non-duplication map against PR #57, PR #58, PR #64 and existing Phase 3 schemas."
+      - "Separate second-brain long-term retrieval from trading-system D2; only shared evidence contracts may connect them."
+      - "Add at least 36 adversarial long-memory cases covering stale memory, conflict, UNKNOWN, roleplay contamination, privacy and authority confusion."
+      - "No new canonical store or runtime implementation in this task; deliver an executable validation of the plan package only."
+
+  - stage_id: "E_CROSS_PR_SUPPLY_CHAIN_INDEX_AND_HANDOFF"
+    required_results:
+      - "QCLAW-KNOWLEDGE-SUPPLY-CHAIN-INDEX.md linking PR #96, #100, #64, #65, PR #57 and PR #58."
+      - "AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml."
+      - "COUNT-SOURCE-OF-TRUTH-MANIFEST.yaml with 99/147/64 lineage."
+      - "CODEX-D2-CANDIDATE-HANDOFF.yaml exposing only candidate envelopes and ontology translation."
+      - "All PRs, branches, heads, parents, trees, commands and hashes externally anchored."
 
 acceptance_gates:
-  - "PR #96 receives exactly one receipt-only commit and a truthful external concrete anchor."
-  - "The adapter is in a separate branch/PR and does not modify PR #96 or PR #93 content."
-  - "Coverage accounts for 99 atoms, 147 relations and 64 adversarial questions without silent deletion."
-  - "All mappings are candidate-only, traceable and deterministic."
-  - "No source activation, identity matching, trading signal, replay, backtest, account, order or trade occurs."
+  - "PR #96 final receipt truth is internally consistent and externally anchored."
+  - "PR #100 is reproducible, uses full source locks and aligns losslessly with canonical D2 families."
+  - "PR #64 exact counts are 99/147/64 with no template zeros or duplicate canonical runtime claim."
+  - "PR #65 truthfully separates merged, candidate, planned and implemented capabilities."
+  - "Cross-PR supply-chain and authority maps contain no contradictory status or count."
+  - "No claim is upgraded, no person/account identity is inferred, and no candidate becomes canonical."
+  - "No source activation, signal, replay, backtest, account, order or trade occurs."
 
 forbidden:
   - "No direct main write, merge, auto-merge, force push or history rewrite."
-  - "No semantic or validator edits in PR #96 during Stage A."
-  - "No modification of PR #93, Codex branches, WorkBuddy branches or accepted D1/D2 runtime."
-  - "No new external market claims, person/account identification, source activation, labels, signal, replay, backtest, performance claim, account, order or trade."
-  - "No adapter status above CANDIDATE_ONLY before separate GPT acceptance."
+  - "No edits to Codex, WorkBuddy, PR #93, PR #57 or PR #58 branches."
+  - "No second canonical memory, retrieval, knowledge gateway or trading runtime."
+  - "No source activation, labels, new external market claims, person/account identification, signal, replay, backtest, performance claim, account, order or trade."
+  - "No authority above CANDIDATE_ONLY for PR #100/#64/#65."
 
 after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / KNOWLEDGE_ADAPTER_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / KNOWLEDGE_SUPPLY_CHAIN / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-26T05:24:00+08:00"
+updated_at: "2026-07-27T02:44:00+08:00"
