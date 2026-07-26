@@ -1,4 +1,4 @@
-# Knowledge Atomization Architecture — Epoch 9 Regenerated from Ground Truth
+# Knowledge Atomization Architecture ? Epoch 9 Regenerated from Ground Truth
 
 **task_id:** QCLAW-MULTI-PR-TRUTH-ADAPTER-ATOMIZATION-LTM-CONSISTENCY-0012-E9
 **route_epoch:** 9
@@ -7,7 +7,7 @@
 ## Canonical Runtime
 - **MERGED_CANONICAL:** PR #57 Phase 3 Offline Memory (merge SHA 473d0ec15b28ac5e1b70db0b8a6a9ab17738161b)
 - **CANDIDATE_GATEWAY:** PR #58 Codex Phase 4 Knowledge Gateway (open PR, NOT merged runtime)
-- **This document:** ARCHITECTURE_DESCRIPTION only — does NOT implement or claim canonical runtime authority
+- **This document:** ARCHITECTURE_DESCRIPTION only ? does NOT implement or claim canonical runtime authority
 
 ## Atomization Ground Truth Counts (verified from 0010-Q0 tested head e54e04b14876017253d27c578484e0bbd9096c0b)
 - **Atoms:** 99
@@ -38,7 +38,7 @@
 
 ## Authority Matrix
 | Layer | Authority | Runtime Status |
-|-------|-----------|---------------|
+|-------|-----------|----------------|
 | Canonical offline store | PR #57 | MERGED |
 | Atomization + ID | 0010-Q0 (PR #96) | CANDIDATE_TESTED |
 | Knowledge Gateway | PR #58 | OPEN PR (Codex Phase 4) |
@@ -51,7 +51,7 @@
 - Does NOT duplicate PR #57 offline memory engine
 - Does NOT implement retrieval runtime (that is PR #65 scope)
 - Does NOT implement gateway (that is PR #58 scope)
-- Maps LearningPacket → gateway interfaces to PR #57/#58 without building duplicates
+- Maps LearningPacket ? gateway interfaces to PR #57/#58 without building duplicates
 
 ## Source Lock
 - Source: 0010-Q0 KNOWLEDGE-ATOMS.jsonl, KNOWLEDGE-RELATIONS.jsonl, ADVERSARIAL-QUESTION-SET.jsonl
