@@ -1,0 +1,36 @@
+agent_id: "CODEX"
+fact_class: "VERIFIED_TEST"
+execution_carrier_commit: "1a84c1fbdd1dbf55f85946a6ff0ed6315d2e2ad5"
+method: "three isolated Git archive ZIP extractions"
+commands:
+  test: "python 0001-D2/tests/test_d2_game_core.py"
+  runner: "python 0001-D2/tests/run_determinism.py"
+runs:
+  - seed: 1
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "65fbe4456721ffa17e1c449349080e7835664537672b99fe2ad78b2ffcf9b6d4"
+    runner_stdout_sha256: "6b16a926ce782da5b0ca324ee8a73f789ee0374e48608d77ad30d0894169234b"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 388
+  - seed: 777
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "f8c93fdefe6aec01186aed71e9c81821b628c4062569944d818e9a59417b235c"
+    runner_stdout_sha256: "6b16a926ce782da5b0ca324ee8a73f789ee0374e48608d77ad30d0894169234b"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 329
+  - seed: 31337
+    test_exit: 0
+    runner_exit: 0
+    test_stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    test_stderr_sha256: "95534a4386944e82bd448b9e0d20874c855f2640f15845c61ab24b4c9336dd9f"
+    runner_stdout_sha256: "6b16a926ce782da5b0ca324ee8a73f789ee0374e48608d77ad30d0894169234b"
+    runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    elapsed_ms: 323
+normalized_ledger_hash: "f313b3631104117c46bbd28b697ce88c77ddfda4c0de335ca604edd9f57bc9fd"
+hashes_match_across_all_runs: true
+stderr_variance_explanation: "unittest writes temporary extracted script paths; stable runner output is identical."
+boundary: "Synthetic deterministic execution only; no market validity is claimed."
