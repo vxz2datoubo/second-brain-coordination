@@ -20,17 +20,18 @@ from evaluation_harness import (  # noqa: E402
 
 
 class SemanticEvaluationHarnessTests(unittest.TestCase):
-    def test_72_multi_agent_scenarios_cover_all_categories_and_families(self):
+    def test_96_multi_agent_scenarios_cover_all_categories_families_and_phases(self):
         scenarios = build_scenarios()
-        self.assertEqual(72, len(scenarios))
+        self.assertEqual(96, len(scenarios))
         self.assertTrue(all(item.agent_count >= 2 for item in scenarios))
         self.assertGreaterEqual(sum(1 for item in scenarios if item.agent_count >= 3), 12)
         self.assertGreaterEqual(sum(1 for item in scenarios if item.category == "conflict"), 12)
         self.assertEqual({"retail", "institutional_quant", "active_capital", "policy_industrial_foreign_aggregate"}, {SUBTYPE_FAMILY[subtype].value for item in scenarios for subtype in item.participants})
+        self.assertGreaterEqual(len({item.phase for item in scenarios}), 9)
 
     def test_each_result_contains_cross_agent_state_and_explicit_semantics(self):
         results = run_all_scenarios()
-        self.assertEqual(72, len(results))
+        self.assertEqual(96, len(results))
         self.assertTrue(all(len(item.run.final_agent_portfolios) >= 2 for item in results))
         self.assertTrue(all(len(item.run.total_system_state_hash) == 64 for item in results))
         conflict = next(item for item in results if item.scenario.category == "conflict")
@@ -39,20 +40,20 @@ class SemanticEvaluationHarnessTests(unittest.TestCase):
         abstain = next(item for item in results if item.scenario.category == "incomplete_information")
         self.assertEqual("ABSTAINED", abstain.run.events[0].outcome_status)
 
-    def test_80_semantic_invariants_are_requirement_linked(self):
+    def test_104_semantic_invariants_are_requirement_linked(self):
         specs, catalog = invariant_specs(), invariant_catalog()
-        self.assertEqual(80, len(specs))
-        self.assertEqual(80, len(catalog))
+        self.assertEqual(104, len(specs))
+        self.assertEqual(104, len(catalog))
         self.assertTrue(all(spec.requirement_id and spec.fixture_ids and spec.failure_oracle and spec.mapped_test_id for spec in specs))
         self.assertLessEqual(sum(1 for spec in specs if spec.family == "MUTATION"), 16)
         self.assertTrue(all(catalog.values()), {key: value for key, value in catalog.items() if not value})
 
-    def test_36_counterfactual_pairs_and_24_stateful_episodes(self):
+    def test_48_counterfactual_pairs_and_32_stateful_episodes(self):
         pairs = build_counterfactual_pairs()
         episodes = run_multistep_episodes()
-        self.assertEqual(36, len(pairs))
+        self.assertEqual(48, len(pairs))
         self.assertTrue(all(left != right for left, right in pairs))
-        self.assertEqual(24, len(episodes))
+        self.assertEqual(32, len(episodes))
         self.assertTrue(all(run.causal_history_event_ids for run in episodes))
         self.assertTrue(all(run.total_system_state_hash for run in episodes))
 

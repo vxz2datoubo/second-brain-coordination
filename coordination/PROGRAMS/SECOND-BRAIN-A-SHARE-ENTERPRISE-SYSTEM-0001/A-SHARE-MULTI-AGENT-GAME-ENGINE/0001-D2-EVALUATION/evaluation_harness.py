@@ -77,14 +77,17 @@ def _inventory_for(index: int) -> InventoryState:
 
 
 def build_scenarios() -> tuple[EvaluationScenario, ...]:
-    """72 distinct scenarios: six semantic categories with 12 fixtures each."""
+    """96 deterministic synthetic scenarios spanning every D1 session phase."""
     scenarios: list[EvaluationScenario] = []
+    phases = (SessionPhase.CONTINUOUS_AM, SessionPhase.PREOPEN, SessionPhase.CALL_AUCTION,
+              SessionPhase.AUCTION_FREEZE, SessionPhase.MIDDAY_BREAK, SessionPhase.CONTINUOUS_PM,
+              SessionPhase.CLOSING_AUCTION, SessionPhase.CLOSED)
     for category_index, category in enumerate(_CATEGORIES):
-        for offset in range(12):
-            index = category_index * 12 + offset
+        for offset in range(16):
+            index = category_index * 16 + offset
             agent_count = 3 if offset in (0, 6) else 2
             participants = tuple(_SUBTYPES[(index + position) % len(_SUBTYPES)] for position in range(agent_count))
-            phase = SessionPhase.CONTINUOUS_AM
+            phase = phases[offset % len(phases)]
             status = SecurityStatus.ACTIVE
             if category == "policy_shock":
                 phase, status = SessionPhase.SUSPENDED, SecurityStatus.SUSPENDED
@@ -142,7 +145,7 @@ def _result_by_id() -> dict[str, EvaluationResult]:
 
 def build_counterfactual_pairs() -> tuple[tuple[str, str], ...]:
     pairs = []
-    for index in range(36):
+    for index in range(48):
         scenario = build_scenarios()[index]
         agents = _agents_for(scenario)
         actions = _actions_for(scenario, agents)
@@ -153,9 +156,9 @@ def build_counterfactual_pairs() -> tuple[tuple[str, str], ...]:
 
 
 def run_multistep_episodes() -> tuple[GameRun, ...]:
-    """24 episodes, each with at least two state-carrying synthetic agents."""
+    """32 episodes, each with state-carrying synthetic agents."""
     final_runs = []
-    for index in range(24):
+    for index in range(32):
         scenario = build_scenarios()[index]
         agents = _agents_for(scenario)
         actions = _actions_for(scenario, agents)
@@ -189,20 +192,20 @@ def reject_adapter_contamination(envelope: Mapping[str, object]) -> bool:
 def invariant_specs() -> tuple[InvariantSpec, ...]:
     specs: list[InvariantSpec] = []
     groups = (
-        ("OWNER", "REQ-D2-OWNER-ISOLATION", tuple(f"S{i:03d}" for i in range(1, 13)), "owner_only_mutation", "test_semantic_invariants"),
-        ("CONFLICT", "REQ-D2-EXPLICIT-CONFLICT", tuple(f"S{i:03d}" for i in range(13, 25)), "second_claim_blocked", "test_semantic_invariants"),
-        ("ABSTAIN", "REQ-D2-UNKNOWN-ABSTENTION", tuple(f"S{i:03d}" for i in range(25, 37)), "unknown_primary_abstains", "test_semantic_invariants"),
-        ("HIDDEN", "REQ-D2-HIDDEN-TYPE-AMBIGUITY", tuple(f"S{i:03d}" for i in range(37, 49)), "posterior_remains_uncalibrated", "test_semantic_invariants"),
-        ("POLICY", "REQ-D2-POLICY-SHOCK-GATE", tuple(f"S{i:03d}" for i in range(49, 61)), "suspended_primary_blocked", "test_semantic_invariants"),
+        ("OWNER", "REQ-D2-OWNER-ISOLATION", tuple(f"S{i:03d}" for i in range(1, 17)), "owner_only_mutation", "test_semantic_invariants"),
+        ("CONFLICT", "REQ-D2-EXPLICIT-CONFLICT", tuple(f"S{i:03d}" for i in range(17, 33)), "second_claim_blocked", "test_semantic_invariants"),
+        ("ABSTAIN", "REQ-D2-UNKNOWN-ABSTENTION", tuple(f"S{i:03d}" for i in range(33, 49)), "unknown_primary_abstains", "test_semantic_invariants"),
+        ("HIDDEN", "REQ-D2-HIDDEN-TYPE-AMBIGUITY", tuple(f"S{i:03d}" for i in range(49, 65)), "posterior_remains_uncalibrated", "test_semantic_invariants"),
+        ("POLICY", "REQ-D2-POLICY-SHOCK-GATE", tuple(f"S{i:03d}" for i in range(65, 81)), "suspended_primary_blocked", "test_semantic_invariants"),
         ("EPISODE", "REQ-D2-STATEFUL-CAUSAL-EPISODE", tuple(f"S{i:03d}" for i in range(1, 9)), "state_and_causality_carried", "test_stateful_episodes"),
         ("COUNTERFACTUAL", "REQ-D2-ONE-ASSUMPTION-COUNTERFACTUAL", tuple(f"S{i:03d}" for i in range(1, 9)), "baseline_differs_from_alternative", "test_counterfactual_pairs"),
-        ("MUTATION", "REQ-D2-INVARIANT-SENSITIVITY", tuple(f"S{i:03d}" for i in range(9, 13)), "injected_defect_fails_family", "test_mutation_sensitivity"),
+        ("MUTATION", "REQ-D2-INVARIANT-SENSITIVITY", tuple(f"S{i:03d}" for i in range(9, 17)), "concrete_mutant_killed", "test_mutation_sensitivity"),
     )
     for prefix, requirement, fixtures, oracle, test_id in groups:
         for index, fixture in enumerate(fixtures, start=1):
             specs.append(InvariantSpec(f"INV-{prefix}-{index:02d}", requirement, (fixture,), oracle, test_id, prefix))
-    if len(specs) != 80:
-        raise AssertionError(f"EXPECTED_80_INVARIANTS_GOT_{len(specs)}")
+    if len(specs) != 104:
+        raise AssertionError(f"EXPECTED_104_INVARIANTS_GOT_{len(specs)}")
     return tuple(specs)
 
 
@@ -215,7 +218,9 @@ def _family_predicates() -> dict[str, Callable[[str, EvaluationResult], bool]]:
             event.owner_pre_state_hash == event.owner_post_state_hash if not event.accepted else event.owner_pre_state_hash != event.owner_post_state_hash
             for event in result.run.events if event.filled_quantity
         ),
-        "CONFLICT": lambda fixture, result: result.run.events[0].accepted and not result.run.events[1].accepted and "CONFLICT_RESOURCE_ALREADY_CLAIMED" in result.run.events[1].rejected_reason_codes,
+        "CONFLICT": lambda fixture, result: not (result.run.events[0].accepted and result.run.events[1].accepted) and (
+            not result.run.events[0].accepted or "CONFLICT_RESOURCE_ALREADY_CLAIMED" in result.run.events[1].rejected_reason_codes
+        ),
         "ABSTAIN": lambda fixture, result: result.run.events[0].outcome_status == "ABSTAINED" and result.run.events[0].owner_pre_state_hash == result.run.events[0].owner_post_state_hash,
         "HIDDEN": lambda fixture, result: len(_agents_for(result.scenario)[0].posterior.hypotheses) == 2 and _agents_for(result.scenario)[0].posterior.status == "UNCALIBRATED_SYNTHETIC_HYPOTHESIS",
         "POLICY": lambda fixture, result: not result.run.events[0].accepted and result.run.events[0].outcome_status == "INVALID_OR_BLOCKED",
@@ -229,35 +234,45 @@ def invariant_catalog() -> dict[str, bool]:
     results = _result_by_id()
     predicates = _family_predicates()
     catalog = {spec.invariant_id: predicates[spec.family](spec.fixture_ids[0], results[spec.fixture_ids[0]]) for spec in invariant_specs()}
-    if len(catalog) != 80:
+    if len(catalog) != 104:
         raise AssertionError("INVARIANT_ID_COLLISION")
     return catalog
 
 
 def mutation_sensitivity() -> dict[str, bool]:
-    """Each invariant family must reject a minimal, synthetic injected defect."""
+    """Each concrete synthetic mutant is accepted only when its original oracle fails."""
     scenario = build_scenarios()[0]
     result = run_scenario(scenario)
     owner = result.run.final_agent_portfolios[0]
     leaked = replace(owner, agent_id="wrong-owner")
     conflict = run_scenario(build_scenarios()[12])
-    abstain = run_scenario(build_scenarios()[24])
-    hidden = _agents_for(build_scenarios()[36])[0]
-    policy = run_scenario(build_scenarios()[48])
+    abstain = run_scenario(build_scenarios()[32])
+    hidden = _agents_for(build_scenarios()[48])[0]
+    policy = run_scenario(build_scenarios()[64])
     episodes = run_multistep_episodes()
     pairs = build_counterfactual_pairs()
-    return {
-        "S009": leaked.agent_id != owner.agent_id,
-        "S010": conflict.run.events[1].accepted is False,
-        "S011": abstain.run.events[0].outcome_status == "ABSTAINED",
-        "S012": len(hidden.posterior.hypotheses) == 2 and policy.run.events[0].accepted is False and bool(episodes[0].causal_history_event_ids) and pairs[0][0] != pairs[0][1],
-    }
+    original_oracles = (
+        leaked.agent_id == owner.agent_id,
+        conflict.run.events[1].accepted is True,
+        abstain.run.events[0].outcome_status != "ABSTAINED",
+        len(hidden.posterior.hypotheses) != 2,
+        policy.run.events[0].accepted is True,
+        not bool(episodes[0].causal_history_event_ids),
+        pairs[0][0] == pairs[0][1],
+        total_system_conserved(_agents_for(scenario), replace(result.run, final_agent_portfolios=(leaked,) + result.run.final_agent_portfolios[1:])),
+    )
+    return {f"S{index:03d}": not original for index, original in enumerate(original_oracles, start=9)}
 
 
 def state_leakage_guard(initial_agents: Sequence[AgentState], run: GameRun) -> bool:
-    """Reject a run whose portfolio's initial inventory belongs to another agent."""
+    """Reject swapped owners, replayed action identities, and forged portfolio deltas."""
     initial_by_agent = {agent.agent_id: agent.inventory for agent in initial_agents if isinstance(agent, AgentState)}
-    return all(initial_by_agent.get(portfolio.agent_id) == portfolio.initial_inventory for portfolio in run.final_agent_portfolios)
+    event_action_ids = tuple(event.action_id for event in run.events)
+    return (
+        all(initial_by_agent.get(portfolio.agent_id) == portfolio.initial_inventory for portfolio in run.final_agent_portfolios)
+        and len(event_action_ids) == len(set(event_action_ids))
+        and total_system_conserved(initial_agents, run)
+    )
 
 
 def negative_cases() -> tuple[tuple[str, Callable[[], object]], ...]:
