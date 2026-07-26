@@ -160,6 +160,39 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.assertEqual(prior_states, next_states)
         self.assertEqual(episode.final_state_hash, episode.runs[-1].total_system_state_hash)
 
+    def test_shared_conflict_and_execution_ids_persist_across_episode_steps(self):
+        actions = (
+            action("retail-conflict", "retail", 1, conflict="one-resource", assumptions=("a1",)),
+            action("quant-conflict", "quant", 2, conflict="one-resource", assumptions=("a2",)),
+            action("active-third", "active", 3, assumptions=("a3",)),
+        )
+        episode = run_bounded_counterfactual_episode(
+            "cross-step", self.market, (self.retail, self.quant, self.active), actions, ("a1", "a2"),
+        )
+        first, second = episode.runs
+        self.assertIn("one-resource", first.shared_market_state.claimed_conflict_keys)
+        self.assertIn("one-resource", second.shared_market_state.claimed_conflict_keys)
+        replayed = {event.action_id: event for event in second.events}
+        self.assertIn("REPLAYED_ACTION_OR_ORDER_REJECTED", replayed["active-third"].rejected_reason_codes)
+        self.assertFalse(replayed["active-third"].accepted)
+
+    def test_blocked_label_is_non_executable_even_with_valid_order(self):
+        result = arbitrate("blocked", self.market, (self.retail,), (
+            action("blocked-action", "retail", 1, label=ActionLabel.BLOCKED),
+        ))
+        self.assertFalse(result.events[0].accepted)
+        self.assertIn("DECLARED_BLOCKED_ACTION", result.events[0].rejected_reason_codes)
+
+    def test_conservation_recomputes_immutable_actions_not_mutable_net_field(self):
+        result = arbitrate("conservation", self.market, (self.retail,), (action("buy", "retail", 1, qty=2),))
+        forged = tuple(replace(portfolio, net_filled_quantity=999) for portfolio in result.final_agent_portfolios)
+        self.assertTrue(total_system_conserved((self.retail,), replace(result, final_agent_portfolios=forged)))
+
+    def test_duplicate_prior_event_ids_fail_closed(self):
+        first = arbitrate("prior", self.market, (self.retail,), (action("first", "retail", 1),))
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_PRIOR_EVENT_ID"):
+            arbitrate("prior-next", self.market, (self.retail,), (action("second", "retail", 2),), prior_events=(first.events[0], first.events[0]))
+
     def test_episode_bound_and_duplicate_assumptions_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "INVALID_COUNTERFACTUAL_ASSUMPTION_SEQUENCE"):
             run_bounded_counterfactual_episode("bad", self.market, (self.retail,), (action("one", "retail", 1),), ("x", "x"))

@@ -236,6 +236,9 @@ class GameRun:
     ledger_hash: str
     total_system_state_hash: str
     causal_history_event_ids: Tuple[str, ...] = ()
+    executed_action_ids: Tuple[str, ...] = ()
+    executed_order_ids: Tuple[str, ...] = ()
+    action_records: Tuple[CandidateAction, ...] = ()
 
     @property
     def final_inventory(self) -> Optional[InventoryState]:
@@ -303,9 +306,10 @@ def _portfolio_hash(agent_id: str, inventory: InventoryState) -> str:
     return _sha({"agent_id": agent_id, "inventory": inventory})
 
 
-def _system_hash(portfolios: dict[str, AgentPortfolioState], claimed: dict[str, str], prior_event_ids: Sequence[str]) -> str:
+def _system_hash(portfolios: dict[str, AgentPortfolioState], market: MarketState, claimed: dict[str, str], prior_event_ids: Sequence[str]) -> str:
     return _sha({
         "portfolios": {agent_id: portfolios[agent_id].final_inventory for agent_id in sorted(portfolios)},
+        "market": market,
         "claimed_conflicts": sorted(claimed.items()),
         "causal_history": tuple(prior_event_ids),
     })
@@ -394,6 +398,9 @@ def arbitrate(
     actions: Sequence[CandidateAction],
     *,
     prior_events: Sequence[LedgerEvent] = (),
+    prior_shared_market_state: Optional[SharedMarketState] = None,
+    prior_executed_action_ids: Sequence[str] = (),
+    prior_executed_order_ids: Sequence[str] = (),
 ) -> GameRun:
     """Apply actions to owning agents only, under explicit synthetic arbitration."""
     if not _bounded_text(run_id):
@@ -408,6 +415,17 @@ def arbitrate(
         raise ValueError("ACTION_LIMIT_EXCEEDED")
     if len(prior_events) > MAX_EVENT_COUNT or any(not isinstance(event, LedgerEvent) for event in prior_events):
         raise ValueError("INVALID_PRIOR_EVENT_COLLECTION")
+    if len({event.event_id for event in prior_events}) != len(prior_events):
+        raise ValueError("DUPLICATE_PRIOR_EVENT_ID")
+    if not isinstance(prior_executed_action_ids, (tuple, list)) or not isinstance(prior_executed_order_ids, (tuple, list)):
+        raise ValueError("INVALID_PRIOR_EXECUTION_COLLECTION")
+    if len(set(prior_executed_action_ids)) != len(prior_executed_action_ids) or len(set(prior_executed_order_ids)) != len(prior_executed_order_ids):
+        raise ValueError("DUPLICATE_PRIOR_EXECUTION_ID")
+    if any(not _bounded_text(item) for item in tuple(prior_executed_action_ids) + tuple(prior_executed_order_ids)):
+        raise ValueError("INVALID_PRIOR_EXECUTION_ID")
+    if prior_shared_market_state is not None:
+        if not isinstance(prior_shared_market_state, SharedMarketState) or prior_shared_market_state.market != market:
+            raise ValueError("INVALID_OR_CHANGED_PRIOR_SHARED_MARKET_STATE")
     if any(not isinstance(agent, AgentState) for agent in agents):
         raise ValueError("INVALID_AGENT_OBJECT")
     if any(not isinstance(action, CandidateAction) for action in actions):
@@ -426,12 +444,14 @@ def arbitrate(
     events: list[LedgerEvent] = []
     prior_ids = tuple(event.event_id for event in prior_events)
     known_parent_ids = set(prior_ids)
-    claimed_conflicts: dict[str, str] = {}
+    claimed_conflicts: dict[str, str] = dict(prior_shared_market_state.conflict_claim_event_ids) if prior_shared_market_state else {}
+    executed_action_ids = set(prior_executed_action_ids)
+    executed_order_ids = set(prior_executed_order_ids)
 
     for ordinal, action in enumerate(sorted(action_tuple, key=lambda item: item.arrival_sequence), start=1):
         owner = portfolios.get(action.agent_id)
         owner_hash = owner.post_state_hash if owner is not None else "UNKNOWN_OWNER_STATE"
-        system_before = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
+        system_before = _system_hash(portfolios, market, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
         if action.action_id in invalid_actions:
             events.append(_blocked_event(run_id, ordinal, action, invalid_actions[action.action_id], owner_hash, system_before))
             known_parent_ids.add(events[-1].event_id)
@@ -453,12 +473,20 @@ def arbitrate(
             events.append(_abstain_event(run_id, ordinal, action, "DECLARED_ABSTENTION", owner_hash, system_before))
             known_parent_ids.add(events[-1].event_id)
             continue
+        if action.label is ActionLabel.BLOCKED:
+            events.append(_blocked_event(run_id, ordinal, action, ("DECLARED_BLOCKED_ACTION",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
+            continue
         if action.requires_complete_information and agent.information.unknowns:
             events.append(_abstain_event(run_id, ordinal, action, "INCOMPLETE_INFORMATION", owner_hash, system_before))
             known_parent_ids.add(events[-1].event_id)
             continue
         if action.order is None:
             events.append(_blocked_event(run_id, ordinal, action, ("MISSING_SYNTHETIC_ORDER",), owner_hash, system_before))
+            known_parent_ids.add(events[-1].event_id)
+            continue
+        if action.action_id in executed_action_ids or action.order.order_id in executed_order_ids:
+            events.append(_blocked_event(run_id, ordinal, action, ("REPLAYED_ACTION_OR_ORDER_REJECTED",), owner_hash, system_before))
             known_parent_ids.add(events[-1].event_id)
             continue
         if action.conflict_key and action.conflict_key in claimed_conflicts:
@@ -475,19 +503,22 @@ def arbitrate(
         provisional_id = _event_id(run_id, ordinal, action, outcome.status.value, outcome.reason_codes, owner_hash, next_owner_hash)
         if accepted and action.conflict_key:
             claimed_conflicts[action.conflict_key] = provisional_id
-        system_after = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events) + (provisional_id,))
+        system_after = _system_hash(portfolios, market, claimed_conflicts, prior_ids + tuple(event.event_id for event in events) + (provisional_id,))
         event = LedgerEvent(provisional_id, ordinal, action.agent_id, action.action_id,
                             action.label if accepted else ActionLabel.BLOCKED, accepted, outcome.status.value,
                             outcome.filled_quantity, tuple(outcome.reason_codes), tuple(sorted(action.evidence_refs)),
                             tuple(sorted(action.causal_parent_event_ids)), owner_hash, next_owner_hash, system_before, system_after)
         events.append(event)
         known_parent_ids.add(event.event_id)
+        executed_action_ids.add(action.action_id)
+        executed_order_ids.add(action.order.order_id)
     ordered_portfolios = tuple(portfolios[agent_id] for agent_id in sorted(portfolios))
     shared_hash = _sha({"market": market, "claims": sorted(claimed_conflicts.items())})
     shared = SharedMarketState(market, tuple(sorted(claimed_conflicts)), tuple(sorted(claimed_conflicts.items())), shared_hash)
     ledger_hash = _sha([event for event in events])
-    total_hash = _system_hash(portfolios, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
-    return GameRun(run_id, tuple(events), ordered_portfolios, shared, ledger_hash, total_hash, prior_ids)
+    total_hash = _system_hash(portfolios, market, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
+    return GameRun(run_id, tuple(events), ordered_portfolios, shared, ledger_hash, total_hash, prior_ids,
+                   tuple(sorted(executed_action_ids)), tuple(sorted(executed_order_ids)), action_tuple)
 
 
 def run_one_step_counterfactual(run_id: str, market: MarketState, agents: Sequence[AgentState], actions: Sequence[CandidateAction], changed_assumption_id: str) -> CounterfactualResult:
@@ -530,7 +561,14 @@ def run_bounded_counterfactual_episode(run_id: str, market: MarketState, agents:
             if action.action_id == target_id else action
             for action in current_actions
         )
-        run = arbitrate(run_id + f":step:{index}", market, current_agents, current_actions, prior_events=accumulated_events)
+        prior_run = runs[-1] if runs else None
+        run = arbitrate(
+            run_id + f":step:{index}", market, current_agents, current_actions,
+            prior_events=accumulated_events,
+            prior_shared_market_state=prior_run.shared_market_state if prior_run else None,
+            prior_executed_action_ids=prior_run.executed_action_ids if prior_run else (),
+            prior_executed_order_ids=prior_run.executed_order_ids if prior_run else (),
+        )
         runs.append(run)
         accumulated_events = accumulated_events + run.events
         current_agents = _agents_from_portfolios(current_agents, run.final_agent_portfolios)
@@ -547,15 +585,30 @@ def inventory_ledger_conserved(initial: InventoryState, result: GameRun, actions
 
 
 def total_system_conserved(initial_agents: Sequence[AgentState], result: GameRun) -> bool:
-    """All portfolio deltas equal signed accepted fills; no cross-agent mutation is hidden."""
+    """Recompute deltas from immutable action/event records; ignore stored net fields."""
     if not isinstance(initial_agents, (tuple, list)):
         return False
     initial_by_id = {agent.agent_id: agent.inventory for agent in initial_agents if isinstance(agent, AgentState)}
     if len(initial_by_id) != len(result.final_agent_portfolios):
         return False
+    actions = {action.action_id: action for action in result.action_records}
+    if len(actions) != len(result.action_records):
+        return False
+    recomputed: dict[str, int] = {agent_id: 0 for agent_id in initial_by_id}
+    for event in result.events:
+        action = actions.get(event.action_id)
+        if action is None or action.agent_id != event.agent_id:
+            return False
+        if event.accepted:
+            if action.order is None or event.filled_quantity < 0:
+                return False
+            signed = event.filled_quantity if action.order.side.value == "BUY" else -event.filled_quantity
+            recomputed[event.agent_id] = recomputed.get(event.agent_id, 0) + signed
+        elif event.filled_quantity != 0:
+            return False
     return all(
         initial_by_id.get(portfolio.agent_id) == portfolio.initial_inventory
-        and _inventory_quantity(portfolio.final_inventory) - _inventory_quantity(portfolio.initial_inventory) == portfolio.net_filled_quantity
+        and _inventory_quantity(portfolio.final_inventory) - _inventory_quantity(portfolio.initial_inventory) == recomputed.get(portfolio.agent_id)
         for portfolio in result.final_agent_portfolios
     )
 
