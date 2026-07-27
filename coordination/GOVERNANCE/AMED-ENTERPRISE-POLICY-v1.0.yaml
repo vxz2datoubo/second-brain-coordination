@@ -1,10 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
 short_name: "AMED"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
 blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+local_secret_protocol: "coordination/GOVERNANCE/LOCAL-SECRET-ACCESS-AND-RUNTIME-CREDENTIAL-HANDLING-PROTOCOL-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
 
 mandatory_task_fields:
@@ -81,7 +82,7 @@ improvement_authority:
       - CURRENT_BRANCH_ONLY
       - NO_EXTERNAL_CONTRACT_CHANGE
       - NO_AUTHORITY_CHANGE
-      - NO_PERMISSION_EXPANSION
+      - NO_PERMISSION_EXPANSION_EXCEPT_LSARH_LOCAL_SECRET_USE
       - NO_OTHER_ACTIVE_TASK_IMPACT
       - TESTED
       - EASY_ROLLBACK
@@ -198,10 +199,26 @@ anti_scope_explosion:
   executor_cannot_self_approve_major_expansion: true
   every_proposal_requires_owner_gate_and_close_condition: true
 
+local_runtime_credentials:
+  policy: "LSARH"
+  standing_user_authorization: true
+  local_codex_task_credentials_allowed: true
+  permitted_services: [WORKBUDDY_MCP, TDX, TQ, WESTOCK, AUTHORIZED_LOCAL_MCP]
+  read_workbuddy_config_for_connection_bootstrap: true
+  repeat_user_confirmation_required: false
+  raw_secret_reporting: false
+  repository_secret_write: false
+  remote_secret_publication: false
+  does_not_authorize_source_admission: true
+  does_not_authorize_account_order_or_trade: true
+
 security_and_trade:
   direct_main_write: false
   auto_merge: false
-  credentials_denied: true
+  local_task_credentials_allowed_under_LSARH: true
+  credentials_denied_globally: false
+  remote_secret_disclosure_denied: true
+  repository_secret_write_denied: true
   broker_account_access_denied: true
   real_trade_denied: true
   bypass_license_paywall_captcha_denied: true
