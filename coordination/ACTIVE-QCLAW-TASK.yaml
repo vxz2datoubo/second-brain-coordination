@@ -1,4 +1,4 @@
-schema_version: "17.0"
+schema_version: "18.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -12,238 +12,88 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 59
 related_issues: [23, 31, 38, 60]
-primary_pull_request: 100
-related_pull_requests: [96, 64, 65]
-reviewed_pr96_head: "b1d88bf95d052a34bb9fecbb1ff31778740abd16"
-reviewed_pr100_head: "137ea13440ed61de9b240e475db8ffd081a217c9"
-reviewed_pr64_head: "feaece788a5a3388ffd852aa62be8687ece39f38"
-reviewed_pr65_head: "ba40627611fda9f950724c73c7b904c85dbbd2d2"
+reviewed_heads:
+  pr96: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
+  pr100: "76d447f0bfc9896ee530808238fcda1527809fc1"
+  pr64: "30d803b69da89461ea8c8d6be663effb38a1d816"
+  pr65: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
+  pr104: "0de24a78d0aa0640fde30014446145a289b3d9bc"
 accepted_q0_tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
 
-task_id: "QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10"
-mode: "target"
-mode_label: "【QCLAW模式：目标模式】四PR真值收敛、唯一供应链索引、D2本体适配与长期记忆证据E10"
+# No active execution lease until GPT explicitly resumes after daily compute reset.
+task_id: "QCLAW-PAUSED-DAILY-COMPUTE-RESET-PENDING-E11"
+mode: "paused"
+mode_label: "【QCLAW模式：暂停】等待每日算力重置与下一轮显式发布"
 mode_reason: >-
-  QCLAW已主动推进PR #96/#100/#64/#65，主体方向值得保留；但审核发现四条线仍未形成统一可复现供应链。
-  PR #96的负测退出码与质量报告冲突且锚点仍指向旧head；PR #100仍使用旧四家族名称且hash_verify把IDENTICAL写死；
-  PR #64验证器引用不存在的C_*文件和未定义变量；PR #65的36个对抗案例是同一句占位文本且没有可执行验证器。
-  本轮允许QCLAW自主修复各PR并新建唯一跨PR供应链PR，但所有结果继续保持CANDIDATE_ONLY。
-status: "READY"
-execution_allowed: true
-daily_compute_status: "AVAILABLE_RESTORED"
-blocked_by: "none"
+  用户确认QCLAW今日算力需等待24点重置。Epoch 10成果已完成GPT审查，但统一供应链不能验收，
+  因此当前只冻结有价值候选与审查结论，不授权继续修改、推送、声明完成或自动恢复。
+status: "PAUSED_DAILY_COMPUTE_UNAVAILABLE"
+execution_allowed: false
+automatic_resume: false
+resume_requires: "AFTER_DAILY_RESET_AND_NEW_EXPLICIT_GPT_ROUTE"
+blocked_by: "DAILY_COMPUTE_RESET"
 parent_program: 31
 source_issue: 59
-branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
-reviewed_or_base_head: "137ea13440ed61de9b240e475db8ffd081a217c9"
+branch: null
+reviewed_or_base_head: "0de24a78d0aa0640fde30014446145a289b3d9bc"
 direct_main_write: false
 auto_merge: false
-
-route_epoch: 10
-route_issued_at: "2026-07-27T04:10:00+08:00"
-route_issued_against_main: "09e4fa6c51b927e2fd5215a36b444ef7ee0f638a"
-completion_signal: "QCLAW_E10_UNIFIED_SUPPLY_CHAIN_ONTOLOGY_DETERMINISM_AND_LTM_EVIDENCE_READY_FOR_GPT_REVIEW"
+route_epoch: 11
+route_issued_at: "2026-07-27T08:35:00+08:00"
+route_issued_against_main: "d7df6c523e805c15161ca38a4145bdae655da2f1"
+completion_signal: null
 supersedes:
-  - "QCLAW-MULTI-PR-TRUTH-ADAPTER-ATOMIZATION-LTM-CONSISTENCY-0012-E9@route_epoch:9"
+  - "QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10@route_epoch:10"
 
 review_disposition:
-  classification: "PROACTIVE_MULTI_PR_WORK_ACCEPTED_FOR_CONVERGENCE_NOT_ACCEPTED_AS_UNIFIED_SUPPLY_CHAIN"
+  classification: "E10_LOCAL_PROGRESS_PRESERVED_UNIFIED_SUPPLY_CHAIN_NOT_ACCEPTED_PAUSED_FOR_COMPUTE_RESET"
   accepted_value:
-    - "PR #96 preserves accepted 99 atoms, 147 relations and 64 adversarial questions."
-    - "PR #100 now contains a committed verifier, full source commit lock, source hashes, candidate boundaries and person-identity quarantine intent."
-    - "PR #64 corrected headline counts to 99/147/64 and distinguishes architecture from canonical runtime in principle."
-    - "PR #65 truthfully labels PR #57 as merged canonical base and PR #58 as open candidate, and classifies proposed memory capabilities."
-    - "QCLAW proactively created cross-PR maps rather than waiting for a micro-task."
+    - "PR #100 adopts the exact Codex D2 family target vocabulary and retains large UNMAPPED_UNKNOWN coverage instead of forcing mappings."
+    - "PR #64 replaces the previously broken decorative validator with a materially stronger architecture validation direction."
+    - "PR #65 replaces repeated placeholder text with 48 distinct structured long-term-memory adversarial plan cases."
+    - "PR #104 correctly attempts to isolate cross-PR supply-chain ownership in a dedicated Draft PR."
   blocking_findings:
-    - "PR #96 command evidence records negative exits as 2 while QUALITY-GATE-REPORT records exits as 1; TEST-RUN-RECEIPT anchors old receipt 888187a5 instead of current head."
-    - "PR #100 still exposes RetailPopulationFamily, LargeCapitalFamily, QuantStrategyFamily and ActiveSpeculativeCapitalFamily as canonical D2 families instead of exact Codex D2 enums."
-    - "PR #100 hash_verify.py only hashes files and hard-codes determinism_status IDENTICAL; it does not validate ontology, counts, source locks or compare isolated runs."
-    - "PR #64 verify_counts.py references nonexistent C_* filenames and undefined ATOM_COUNT/REL_COUNT/QUEST_COUNT variables."
-    - "PR #65 repeats the same placeholder sentence for all 36 adversarial cases and has no executable plan-package validator."
-    - "PR #64 and PR #65 both contain duplicate cross-PR index/manifest/handoff files, so there is no unique supply-chain source of truth."
-
-dependencies:
-  q0_semantic_package: "ACCEPTED_CANDIDATE_BASE"
-  codex_d2_runtime: "SEPARATE_OWNER_SCHEMA_REFERENCE_ONLY"
-  pr57_memory_base: "MERGED_CANONICAL_OFFLINE_BASE"
-  pr58_gateway: "OPEN_CANDIDATE_NOT_AUTHORITY"
-  issue92: "BLOCKED_AND_NOT_A_DEPENDENCY"
+    - "PR #96 records positive validate_q0.py runs as exit 1 while simultaneously declaring ALL VALIDATIONS PASSED and elsewhere claiming exit 0."
+    - "PR #100 checks that a candidate target belongs to an allowed enum but does not derive the target from immutable source family/subtype evidence or recompute source hashes and generated output across isolated runs."
+    - "PR #64 clean-extraction validation depends on Q0 source JSONL files that are absent from the PR tree; its receipt still contains TBD stdout hashes."
+    - "PR #65 uses a line-oriented pseudo-YAML parser, does not actually enforce PR #57/#58 truth, and accepts a --truth argument without reading it."
+    - "PR #104 incorrectly conflates 99 KnowledgeAtoms, 147 KnowledgeRelations and 64 AdversarialQuestions into a sequential 99-to-147-to-64 transformation."
+    - "PR #104 invents q0_source_part1/part2 paths, preserves PLACEHOLDER or NOT_COMPUTABLE hashes, marks existing relations/questions as NOT_YET_PRODUCED and does not verify remote artifact content."
+    - "PR #104 PUBLIC_SAFE scan cannot fail because detected patterns execute pass; aggregate determinism covers only its own local nine files."
+  preserved_candidate_boundaries:
+    pr96: "RECEIPT_TRUTH_REPAIR_REQUIRED"
+    pr100: "DERIVED_MAPPING_AND_GENERATION_DETERMINISM_REQUIRED"
+    pr64: "CLEAN_EXTRACTION_SOURCE_AND_STRICT_NEGTEST_REQUIRED"
+    pr65: "CONTENT_ACCEPTED_STRICT_VALIDATOR_REQUIRED"
+    pr104: "OBJECT_MODEL_AND_SOURCE_OF_TRUTH_REWRITE_REQUIRED_NOT_SAFE_FOR_CODEX_CONSUMPTION"
 
 resource_and_effort:
-  priority_share_percent: 30
-  task_weight: "VERY_HEAVY_AUTONOMOUS_MULTI_PR_KNOWLEDGE_CONVERGENCE"
-  research_trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
-  checkpoints: [10, 25, 40, 55, 70, 85, 100]
-  checkpoint_behavior: >-
-    Continue between internal gates when evidence passes. Report proactive discoveries and AMED A/B improvements at each checkpoint.
-    Stop on stale route, semantic deletion, authority promotion, secret exposure, cross-agent edit or inability to reproduce evidence.
+  priority_share_percent: 0
+  task_weight: "PAUSED_DAILY_COMPUTE_UNAVAILABLE"
+  daily_compute_status: "WAITING_FOR_RESET"
 
-exploration_budget:
-  primary_delivery_share: "65-75%"
-  active_discovery_share: "15-25%"
-  system_opportunity_share: "10-15%"
-  maximum_new_branches: 4
-  maximum_new_draft_prs: 4
-  maximum_unplanned_files_inside_authorized_paths: 16
-  scope_expansion_without_gate: false
-
-autonomy_grant:
-  profile: "KNOWLEDGE_SUPPLY_BOUNDED_AUTONOMY"
-  may_choose_internal_schema_repairs: true
-  may_refactor_generators_and_validators_inside_qclaw_paths: true
-  may_add_adversarial_cases_and_unknowns: true
-  may_remove_incoherent_duplicate_candidate_files_with_decision_log: true
-  may_create_new_branches: true
-  maximum_new_branches: 4
-  may_create_new_draft_prs: true
-  maximum_new_draft_prs: 4
-  may_continue_between_internal_gates_without_gpt: true
-  may_implement_adjacent_AMED_A_B_improvements: true
-  may_not_create_new_external_market_claims: true
-  may_not_upgrade_candidate_authority: true
-  final_self_approval: false
-  decision_log_required: true
-  alternatives_considered_required: true
-
-amed_task_contract:
-  improvement_authority:
-    A_SAFE_LOCAL_AUTONOMOUS: "IMPLEMENT_AND_TEST"
-    B_BOUNDED_IMPLEMENT_AND_REPORT: "IMPLEMENT_TEST_AND_SEPARATELY_REPORT"
-    C_PROPOSAL_ONLY: "RFC_OR_FOLLOW_UP_TASK_ONLY"
-    D_PROHIBITED_OR_USER_GATE: "STOP_AND_ESCALATE"
-  high_value_adjacent_work_expected: true
-  proactive_delivery_sections_required: true
-
-task_impact_forecast:
-  fundamental_goal: >-
-    Produce one coherent, reproducible and non-duplicated candidate knowledge supply chain from Q0 evidence through atomization,
-    D2 ontology translation and long-term-memory planning, while preserving authority, provenance, conflicts and UNKNOWNs.
-  expected_positive_effects:
-    - "A unique supply-chain index removes contradictory local copies and clarifies ownership."
-    - "Semantic validators replace decorative receipts and detect count, ontology and status drift."
-    - "Exact D2 ontology translation enables safe schema compatibility with Codex without claim promotion."
-    - "Meaningful LTM adversarial cases improve future retrieval-plan review."
-  expected_negative_effects:
-    - "Moving duplicate cross-PR artifacts into one dedicated package requires corrective deletions on candidate branches."
-    - "Semantic verification and isolated runs add compute and documentation cost."
-    - "More precise ontology mapping may increase UNMAPPED_UNKNOWN counts."
-  risk_gates:
-    - "No atom, relation, question, conflict, UNKNOWN or negative result may be silently deleted."
-    - "No source ontology label may be overwritten by the D2 translation."
-    - "No plan or candidate may be described as implemented or canonical."
-    - "No duplicate global supply-chain authority may remain across PR #64/#65/#100."
-  stop_conditions:
-    - "A required edit falls on a Codex, WorkBuddy, PR #57 or PR #58 branch."
-    - "A source count or hash cannot be reproduced from the accepted Q0 head."
-    - "Private secret values or restricted data are encountered."
-    - "The route becomes stale or an authority promotion is required."
-  required_observations:
-    - "Actual command exits and stdout/stderr hashes for every positive and negative verifier run."
-    - "Exact 99/147/64 lineage across all packages."
-    - "Ontology mapping coverage, UNMAPPED_UNKNOWN and rejection counts."
-    - "Unique-vs-duplicate artifact decisions and removal receipts."
-    - "Proactive improvements, rejected alternatives and unresolved UNKNOWNs."
-  forecast_classification: "HIGH_VALUE_CANDIDATE_SUPPLY_CHAIN_REMEDIATION"
-
-stage_plan:
-  - stage_id: "A_PR96_MACHINE_RECEIPT_TRUTH"
-    owner_pr: 96
-    reviewed_head: "b1d88bf95d052a34bb9fecbb1ff31778740abd16"
-    objective: "Create one final receipt-only correction with internally consistent commands, exits, hashes and current external anchors."
-    required_results:
-      - "Resolve exit=1 versus exit=2 contradictions by rerunning all four negative fixtures from a clean Git extraction and recording actual results everywhere."
-      - "Record two positive clean runs and four negative commands with exact command, cwd model, exit, stdout SHA-256 and stderr SHA-256."
-      - "TEST-RUN-RECEIPT lists exactly the authorized receipt files and includes D05-COMMAND-EVIDENCE if it is part of the package."
-      - "Internal receipt uses receipt_head_ref THIS_COMMIT; current concrete SHA/parent/tree appear only in external comments after push."
-      - "Remove stale 888187a5 anchor and externally anchor the new concrete head to PR #96, Issue #59 and Issue #31."
-      - "No semantic, validator, fixture, atom, relation or question file changes."
-
-  - stage_id: "B_PR100_SEMANTIC_ONTOLOGY_AND_DETERMINISM"
-    owner_pr: 100
-    reviewed_head: "137ea13440ed61de9b240e475db8ffd081a217c9"
-    objective: "Make the adapter lossless, semantically validated and exactly compatible with Codex canonical D2 family names."
-    required_results:
-      - "Keep SOURCE_ONTOLOGY separate and immutable."
-      - "Canonical targets are exactly RETAIL, INSTITUTIONAL_QUANT, ACTIVE_CAPITAL, POLICY_INDUSTRIAL_FOREIGN_AGGREGATE or UNMAPPED_UNKNOWN."
-      - "Remove old LargeCapitalFamily/QuantStrategyFamily/ActiveSpeculativeCapitalFamily labels from canonical target fields; preserve them only as source aliases if present."
-      - "Map industrial, foreign and policy source categories according to explicit rationale; do not collapse them silently into LargeCapital."
-      - "Replace hard-coded hash verifier with a semantic validator for full source lock, file hashes, counts, ontology values, person quarantine, relation coverage and case coverage."
-      - "Run three isolated clean generations and independently compare normalized package hashes; IDENTICAL may only be computed, never hard-coded."
-      - "Preserve 99 atoms, account for 147 relations and 64 source questions; retain at least 78 traceable adapter/adversarial cases."
-      - "Add failures for wrong canonical family, abbreviated SHA, missing source, missing verifier, count drift, omitted relation, claim promotion and identity promotion."
-
-  - stage_id: "C_PR64_EXECUTABLE_ARCHITECTURE_TRUTH"
-    owner_pr: 64
-    reviewed_head: "feaece788a5a3388ffd852aa62be8687ece39f38"
-    objective: "Turn the corrected architecture counts into a reproducible package rather than a broken decorative validator."
-    required_results:
-      - "Fix verify_counts.py to resolve paths relative to its own file and remove undefined variables/C_* filenames."
-      - "Validate actual architecture, taxonomies, manifest and accepted Q0 source files or immutable extracted copies."
-      - "Fail on count drift, type-distribution drift, missing relation type, duplicate key, stale source lock and template-zero reintroduction."
-      - "Run at least two isolated clean validations with exact hashes."
-      - "Keep PR #64 architecture-only and do not claim canonical runtime."
-      - "Remove cross-PR global index/manifest/handoff duplicates that will move to the dedicated Stage E PR; preserve a local pointer and deletion rationale."
-
-  - stage_id: "D_PR65_MEANINGFUL_LTM_PLAN_EVIDENCE"
-    owner_pr: 65
-    reviewed_head: "ba40627611fda9f950724c73c7b904c85dbbd2d2"
-    objective: "Preserve the truthful plan/contract status while replacing duplicated placeholders with real adversarial plan evidence."
-    required_results:
-      - "Replace the 36 repeated placeholder lines with at least 48 unique structured cases."
-      - "Each case has case_id, category, setup, expected behavior, forbidden behavior, authority status, evidence refs and failure oracle."
-      - "Cover stale memory, supersession, conflicts, UNKNOWN, roleplay contamination, privacy boundaries, source authority, plan-vs-implemented confusion and D2 separation."
-      - "Add an executable validator that checks unique IDs, category coverage, non-placeholder content, status truth and PR #57/#58 classifications."
-      - "No retrieval runtime, vector backend, graph traversal or canonical store implementation."
-      - "Remove duplicate global supply-chain artifacts that move to Stage E; preserve local references and rationale."
-
-  - stage_id: "E_NEW_UNIQUE_CROSS_PR_SUPPLY_CHAIN_PR"
-    required_new_draft_pr: true
-    branch_prefix: "qclaw/unified-knowledge-supply-chain-0013-e10-"
-    output_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-SUPPLY-CHAIN/0013-E10/"
-    objective: "Create the only cross-PR candidate supply-chain index and handoff package."
-    required_results:
-      - "QCLAW-KNOWLEDGE-SUPPLY-CHAIN-INDEX.md linking PR #96/#100/#64/#65 and PR #57/#58 with exact heads and authority states."
-      - "AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml with one owner per artifact class."
-      - "COUNT-SOURCE-OF-TRUTH-MANIFEST.yaml with exact 99/147/64 lineage and source hashes."
-      - "CODEX-D2-CANDIDATE-HANDOFF.yaml exposing only candidate envelopes and exact canonical translation targets."
-      - "SUPPLY-CHAIN-VALIDATOR.py that fails on duplicated global authority files, count/status/head drift and missing evidence."
-      - "DECISION-AND-REMOVAL-LEDGER.yaml documenting moved/deleted duplicate candidate artifacts and alternatives."
-      - "Three isolated validation runs and complete machine receipts."
-
-allowed_changed_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-PARTICIPANT-EVIDENCE-DIGEST/0010-Q0/**"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/**"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION/0008/**"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LONG-TERM-MEMORY/0009/**"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-SUPPLY-CHAIN/0013-E10/**"
-
-cross_agent_firewalls:
-  - "No edits to Codex PR #101/#102 or D2 runtime paths."
-  - "No edits to WorkBuddy branches."
-  - "No edits to PR #57/#58 branches."
-  - "Only schema-level candidate handoff may reference Codex D2 enums."
-
-acceptance_gates:
-  - "PR #96 receipts have no contradictory exits, stale head or missing command hash."
-  - "PR #100 uses exact canonical D2 target names and computes semantic determinism rather than hard-coding it."
-  - "PR #64 validator executes successfully from a clean extraction and detects injected drift."
-  - "PR #65 contains meaningful unique cases and an executable plan validator."
-  - "Exactly one dedicated Stage E package owns cross-PR supply-chain authority; duplicate global files are removed or downgraded to pointers."
-  - "All 99 atoms, 147 relations, 64 questions, conflicts and UNKNOWNs remain traceable."
-  - "No claim/person/account is upgraded to fact or identity; no canonical/runtime authority is created."
-
-precompletion_revalidation:
-  required: true
-  action: "Re-read latest remote main and compare task_id, route_epoch, execution_allowed, all reviewed heads and completion_signal before posting completion."
+pause_contract:
+  no_new_commits: true
+  no_new_prs: true
+  no_task_claim: true
+  no_completion_claim: true
+  no_automatic_resume: true
+  preserve_current_heads: true
+  next_route_expected_scope:
+    - "Repair PR #96 positive/negative exit truth."
+    - "Finish PR #100 table-derived mapping, source-hash validation and isolated generation determinism."
+    - "Make PR #64 clean-extraction reproducible with real source blobs and strict mutation fixtures."
+    - "Keep PR #65 cases and replace its parser/status checks with strict validation."
+    - "Rewrite PR #104 around parallel 99 atoms / 147 relations / 64 questions, using real paths and hashes."
 
 forbidden:
+  - "No execution before a new explicit GPT route after compute reset."
   - "No direct main write, merge, auto-merge, force push or history rewrite."
   - "No edits to Codex, WorkBuddy, PR #57, PR #58 or PR #93 branches."
-  - "No second canonical memory, retrieval, gateway or trading runtime."
-  - "No source activation, labels, new external market claims, person/account identification, signal, replay, backtest, performance claim, account, order or trade."
+  - "No source activation, labels, external market claims, person/account identification, signal, replay, backtest, performance claim, account, order or trade."
   - "No self-approval of candidate work as accepted, implemented or canonical."
 
-after_completion: "STOP_AND_WAIT_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / UNIQUE_KNOWLEDGE_SUPPLY_CHAIN / research_only / NO_TRADE"
+after_completion: "NOT_APPLICABLE_WHILE_PAUSED"
+boundary: "PUBLIC_SAFE / PAUSED / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-27T04:10:00+08:00"
+updated_at: "2026-07-27T08:35:00+08:00"
