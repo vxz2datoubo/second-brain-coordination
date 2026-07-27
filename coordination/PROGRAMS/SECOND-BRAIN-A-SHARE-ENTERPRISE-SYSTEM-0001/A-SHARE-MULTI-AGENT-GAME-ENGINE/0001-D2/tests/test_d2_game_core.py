@@ -11,10 +11,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from d2_game_core import (  # noqa: E402
-    ActionLabel, AgentInformationSet, AgentState, CandidateAction, HiddenTypePosterior,
+    ActionLabel, ConflictTransition, LiquidityMode, AgentInformationSet, AgentState, CandidateAction, HiddenTypePosterior,
     ParticipantArchetypeHypothesis, ParticipantFamily, ParticipantSubtype, SYNTHETIC_CAPABILITY,
     arbitrate, run_bounded_counterfactual_episode, run_one_step_counterfactual,
-    total_system_conserved,
+    total_system_accounted, total_system_conserved, verify_episode_ledger, _episode_state_hash,
 )
 from synthetic_engine.fixtures import INVENTORY, market, order  # noqa: E402
 from synthetic_engine.types import InventoryState, OrderSide, SyntheticLot  # noqa: E402
@@ -55,7 +55,8 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.assertNotEqual(states["quant"].initial_inventory, states["quant"].final_inventory)
         self.assertEqual(states["retail"].net_filled_quantity, 2)
         self.assertEqual(states["quant"].net_filled_quantity, -3)
-        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertFalse(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
         self.assertIsNone(result.final_inventory)
 
     def test_action_never_mutates_non_owner_portfolio(self):
@@ -160,21 +161,56 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.assertEqual(prior_states, next_states)
         self.assertEqual(episode.final_state_hash, episode.runs[-1].total_system_state_hash)
 
-    def test_shared_conflict_and_execution_ids_persist_across_episode_steps(self):
+    def test_episode_state_preserves_dag_without_reemitting_prior_abstention(self):
         actions = (
-            action("retail-conflict", "retail", 1, conflict="one-resource", assumptions=("a1",)),
-            action("quant-conflict", "quant", 2, conflict="one-resource", assumptions=("a2",)),
-            action("active-third", "active", 3, assumptions=("a3",)),
+            action("abstain-once", "retail", 1, assumptions=("a1",), label=ActionLabel.ABSTAIN),
+            action("change-quant", "quant", 2, assumptions=("a2",)),
         )
-        episode = run_bounded_counterfactual_episode(
-            "cross-step", self.market, (self.retail, self.quant, self.active), actions, ("a1", "a2"),
-        )
+        episode = run_bounded_counterfactual_episode("episode-dag", self.market, (self.retail, self.quant), actions, ("a1", "a2"))
         first, second = episode.runs
-        self.assertIn("one-resource", first.shared_market_state.claimed_conflict_keys)
-        self.assertIn("one-resource", second.shared_market_state.claimed_conflict_keys)
-        replayed = {event.action_id: event for event in second.events}
-        self.assertIn("REPLAYED_ACTION_OR_ORDER_REJECTED", replayed["active-third"].rejected_reason_codes)
-        self.assertFalse(replayed["active-third"].accepted)
+        self.assertIsNotNone(second.episode_state)
+        self.assertEqual(len(second.episode_state.event_dag), len(first.events) + len(second.events))
+        self.assertEqual(tuple(event.action_id for event in second.events), ("change-quant",))
+        self.assertEqual(len(second.episode_state.executed_action_ids), 2)
+        self.assertTrue(verify_episode_ledger(second.episode_state).valid)
+
+    def test_claim_release_and_reclaim_follow_explicit_lifecycle(self):
+        first = arbitrate("claim", self.market, (self.retail,), (action("claim", "retail", 1, conflict="scarce"),))
+        release = action("release", "retail", 1, conflict="scarce", conflict_transition=ConflictTransition.RELEASE)
+        second = arbitrate("release", self.market, (self.retail,), (release,), prior_episode_state=first.episode_state)
+        self.assertNotIn("scarce", second.shared_market_state.claimed_conflict_keys)
+        reclaim = action("reclaim", "retail", 1, conflict="scarce")
+        third = arbitrate("reclaim", self.market, (self.retail,), (reclaim,), prior_episode_state=second.episode_state)
+        self.assertIn("scarce", third.shared_market_state.claimed_conflict_keys)
+
+    def test_release_of_unclaimed_resource_fails_closed(self):
+        release = action("release", "retail", 1, conflict="missing", conflict_transition=ConflictTransition.RELEASE)
+        result = arbitrate("release-missing", self.market, (self.retail,), (release,))
+        self.assertIn("CONFLICT_RESOURCE_NOT_CLAIMED", result.events[0].rejected_reason_codes)
+
+    def test_expire_releases_resource_and_permits_a_later_claim(self):
+        first = arbitrate("claim-expire", self.market, (self.retail,), (action("claim", "retail", 1, conflict="scarce"),))
+        expire = action("expire", "retail", 1, conflict="scarce", conflict_transition=ConflictTransition.EXPIRE)
+        second = arbitrate("expire", self.market, (self.retail,), (expire,), prior_episode_state=first.episode_state)
+        self.assertNotIn("scarce", second.shared_market_state.claimed_conflict_keys)
+        self.assertTrue(verify_episode_ledger(second.episode_state).valid)
+
+    def test_tampered_episode_hash_is_detected(self):
+        run = arbitrate("tamper", self.market, (self.retail,), (action("once", "retail", 1),))
+        self.assertFalse(verify_episode_ledger(replace(run.episode_state, state_hash="0" * 64)).valid)
+
+    def test_tampered_forward_parent_is_detected(self):
+        run = arbitrate("dag", self.market, (self.retail,), (action("once", "retail", 1),))
+        forged_event = replace(run.episode_state.event_dag[0], causal_parent_event_ids=("future",))
+        forged = replace(run.episode_state, event_dag=(forged_event,))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_replayed_action_is_rejected_before_a_second_event_is_emitted(self):
+        first_action = action("retail-conflict", "retail", 1, conflict="one-resource")
+        first = arbitrate("cross-step", self.market, (self.retail,), (first_action,))
+        with self.assertRaisesRegex(ValueError, "REPLAYED_ACTION_OR_ORDER_REJECTED"):
+            arbitrate("cross-step-next", self.market, (self.retail,), (first_action,), prior_episode_state=first.episode_state)
+        self.assertEqual(len(first.episode_state.event_dag), 1)
 
     def test_blocked_label_is_non_executable_even_with_valid_order(self):
         result = arbitrate("blocked", self.market, (self.retail,), (
@@ -186,7 +222,7 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
     def test_conservation_recomputes_immutable_actions_not_mutable_net_field(self):
         result = arbitrate("conservation", self.market, (self.retail,), (action("buy", "retail", 1, qty=2),))
         forged = tuple(replace(portfolio, net_filled_quantity=999) for portfolio in result.final_agent_portfolios)
-        self.assertTrue(total_system_conserved((self.retail,), replace(result, final_agent_portfolios=forged)))
+        self.assertTrue(total_system_accounted((self.retail,), replace(result, final_agent_portfolios=forged)))
 
     def test_duplicate_prior_event_ids_fail_closed(self):
         first = arbitrate("prior", self.market, (self.retail,), (action("first", "retail", 1),))
@@ -205,6 +241,104 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         two = arbitrate("stable", self.market, (self.retail, self.quant), actions)
         self.assertEqual(one.ledger_hash, two.ledger_hash)
         self.assertEqual(one.total_system_state_hash, two.total_system_state_hash)
+
+    def test_external_liquidity_has_explicit_offsetting_flow_event(self):
+        result = arbitrate("external-flow", self.market, (self.retail,), (action("buy", "retail", 1, qty=2),))
+        flows = result.episode_state.external_liquidity_flows
+        self.assertEqual(len(flows), 1)
+        self.assertEqual(flows[0].agent_inventory_delta, 2)
+        self.assertEqual(flows[0].external_inventory_delta, -2)
+        self.assertFalse(total_system_conserved((self.retail,), result))
+        self.assertTrue(total_system_accounted((self.retail,), result))
+
+    def test_matched_peer_transfer_conserves_local_inventory_without_external_flow(self):
+        buy = action("peer-buy", "retail", 1, qty=2, liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+                     counterparty_agent_id="quant", peer_transfer_id="transfer-1")
+        sell = action("peer-sell", "quant", 2, side=OrderSide.SELL, qty=2,
+                      liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+                      counterparty_agent_id="retail", peer_transfer_id="transfer-1")
+        result = arbitrate("peer", self.market, (self.retail, self.quant), (buy, sell))
+        self.assertTrue(all(event.accepted for event in result.events))
+        self.assertEqual(result.episode_state.external_liquidity_flows, ())
+        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
+
+    def test_unpaired_peer_transfer_fails_closed(self):
+        lone = action("lone-peer", "retail", 1, liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+                      counterparty_agent_id="quant", peer_transfer_id="transfer-lone")
+        result = arbitrate("unpaired", self.market, (self.retail, self.quant), (lone,))
+        self.assertFalse(result.events[0].accepted)
+        self.assertIn("PEER_TRANSFER_REQUIRES_EXACTLY_TWO_ACTIONS", result.events[0].rejected_reason_codes)
+        self.assertEqual(result.episode_state.external_liquidity_flows, ())
+
+    def test_mismatched_peer_quantities_block_both_actions(self):
+        buy = action("peer-buy", "retail", 1, qty=2, liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+                     counterparty_agent_id="quant", peer_transfer_id="transfer-quantity")
+        sell = action("peer-sell", "quant", 2, side=OrderSide.SELL, qty=1,
+                      liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+                      counterparty_agent_id="retail", peer_transfer_id="transfer-quantity")
+        result = arbitrate("peer-mismatch", self.market, (self.retail, self.quant), (buy, sell))
+        self.assertTrue(all(not event.accepted for event in result.events))
+        self.assertTrue(all("INVALID_PEER_TRANSFER_PAIR" in event.rejected_reason_codes for event in result.events))
+
+    def test_duplicate_invocation_is_rejected_before_any_event(self):
+        first = action("first", "retail", 1, invocation_id="same-invocation")
+        second = action("second", "quant", 2, invocation_id="same-invocation")
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_INVOCATION_ID"):
+            arbitrate("invocation", self.market, (self.retail, self.quant), (first, second))
+
+    def test_duplicate_order_is_rejected_before_any_event(self):
+        first = action("first", "retail", 1)
+        second = replace(action("second", "quant", 2), order=first.order)
+        with self.assertRaisesRegex(ValueError, "DUPLICATE_ORDER_ID"):
+            arbitrate("order", self.market, (self.retail, self.quant), (first, second))
+
+    def test_coordinated_portfolio_and_hash_tampering_is_reconstructed_and_rejected(self):
+        result = arbitrate("tamper-coordinated", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged_agent = replace(result.episode_state.current_agents[0], inventory=INVENTORY)
+        forged = replace(result.episode_state, current_agents=(forged_agent,))
+        forged = replace(forged, state_hash=_episode_state_hash(
+            step_index=forged.step_index, initial_agents=forged.initial_agents, current_agents=forged.current_agents,
+            shared_market_state=forged.shared_market_state, executed_action_ids=forged.executed_action_ids,
+            executed_order_ids=forged.executed_order_ids, executed_invocation_ids=forged.executed_invocation_ids,
+            event_dag=forged.event_dag, action_registry=forged.action_registry,
+            external_liquidity_flows=forged.external_liquidity_flows,
+        ))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("FORGED_STORED_EPISODE_STATE", verification.reason_codes)
+
+    def test_forged_filled_quantity_is_rejected_even_when_flow_and_hash_are_recomputed(self):
+        result = arbitrate("tamper-delta", self.market, (self.retail,), (action("buy", "retail", 1),))
+        event = replace(result.episode_state.event_dag[0], filled_quantity=2)
+        flow = replace(result.episode_state.external_liquidity_flows[0], agent_inventory_delta=2, external_inventory_delta=-2)
+        forged = replace(result.episode_state, event_dag=(event,), external_liquidity_flows=(flow,))
+        forged = replace(forged, state_hash=_episode_state_hash(
+            step_index=forged.step_index, initial_agents=forged.initial_agents, current_agents=forged.current_agents,
+            shared_market_state=forged.shared_market_state, executed_action_ids=forged.executed_action_ids,
+            executed_order_ids=forged.executed_order_ids, executed_invocation_ids=forged.executed_invocation_ids,
+            event_dag=forged.event_dag, action_registry=forged.action_registry,
+            external_liquidity_flows=forged.external_liquidity_flows,
+        ))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("FORGED_EVENT_OUTCOME", verification.reason_codes)
+
+    def test_swapped_agent_portfolios_are_rejected_even_when_state_hash_is_recomputed(self):
+        result = arbitrate("tamper-swap", self.market, (self.retail, self.quant), (
+            action("retail-buy", "retail", 1), action("quant-buy", "quant", 2),
+        ))
+        swapped = replace(result.episode_state, current_agents=tuple(reversed(result.episode_state.current_agents)))
+        swapped = replace(swapped, state_hash=_episode_state_hash(
+            step_index=swapped.step_index, initial_agents=swapped.initial_agents, current_agents=swapped.current_agents,
+            shared_market_state=swapped.shared_market_state, executed_action_ids=swapped.executed_action_ids,
+            executed_order_ids=swapped.executed_order_ids, executed_invocation_ids=swapped.executed_invocation_ids,
+            event_dag=swapped.event_dag, action_registry=swapped.action_registry,
+            external_liquidity_flows=swapped.external_liquidity_flows,
+        ))
+        verification = verify_episode_ledger(swapped)
+        self.assertFalse(verification.valid)
+        self.assertIn("FORGED_STORED_EPISODE_STATE", verification.reason_codes)
 
 
 if __name__ == "__main__":
