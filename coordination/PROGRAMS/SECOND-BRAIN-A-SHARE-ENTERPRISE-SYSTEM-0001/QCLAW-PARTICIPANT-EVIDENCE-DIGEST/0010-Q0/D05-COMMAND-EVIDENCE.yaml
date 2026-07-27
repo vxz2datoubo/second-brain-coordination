@@ -1,20 +1,26 @@
 document_type: D05-COMMAND-EVIDENCE
 task_id: QCLAW-SEQUENTIAL-Q0-RECEIPT-ONTOLOGY-ARCHITECTURE-LTM-AND-SUPPLY-CHAIN-CLOSURE-0014-E12
 route_epoch: 12
-stage: 'Gate A: PR #96 Machine Receipt Truth'
+stage: 'Gate A R1: 3-archive receipt truth'
 commands:
 - command: python validate_q0.py
   run: 1
-  exit: 1
-  stdout_sha256: db0ce51001d681595b5938a9bd9bccec59a7d2695b7855e7ad94a6f373f350b1
+  exit: 0
+  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
   stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-  cwd: extract1/
+  cwd: archive1/
 - command: python validate_q0.py
   run: 2
-  exit: 1
-  stdout_sha256: db0ce51001d681595b5938a9bd9bccec59a7d2695b7855e7ad94a6f373f350b1
+  exit: 0
+  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
   stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-  cwd: extract2/
+  cwd: archive2/
+- command: python validate_q0.py
+  run: 3
+  exit: 0
+  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
+  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  cwd: archive3/
 - command: python tests/fixtures/dup_json_test.py
   run: null
   exit: 1
@@ -37,4 +43,4 @@ commands:
   stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 source_extraction:
   commit: e54e04b14876017253d27c578484e0bbd9096c0b
-  description: 2 clean independent extractions from accepted Q0 head
+  description: 3 clean independent Git-archive extractions from accepted Q0 head

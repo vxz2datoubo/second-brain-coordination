@@ -488,7 +488,7 @@ def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     print(f"validate_q0.py — Epoch 6 R4: Q0_CANONICAL_ID_V1 + Explicit Allowlists + NFC")
     print(f"Python: {sys.version}")
-    # Base path suppressed for deterministic output
+    # Base path suppressed for deterministic output (Gate A R1)
 
     if args.hash_only:
         tested_hash, _ = compute_tested_hash(base_dir)
