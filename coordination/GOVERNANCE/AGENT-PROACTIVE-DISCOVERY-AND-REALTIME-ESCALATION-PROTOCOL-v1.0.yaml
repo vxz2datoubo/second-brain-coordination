@@ -1,10 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-0001"
 short_name: "PDER"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
 parent_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+local_secret_protocol: "coordination/GOVERNANCE/LOCAL-SECRET-ACCESS-AND-RUNTIME-CREDENTIAL-HANDLING-PROTOCOL-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
 
 purpose: >-
@@ -41,12 +42,13 @@ what_counts_as_discovery:
 severity_scale:
   S4_CRITICAL:
     definition: >-
-      Evidence indicates possible safety, credential, privacy, license, destructive-write, real-trade, canonical-corruption
-      or invalid-result risk that makes continued work on the affected scope unsafe or misleading.
+      Evidence indicates possible secret disclosure, privacy, license, destructive-write, real-trade, canonical-corruption
+      or invalid-result risk that makes continued work on the affected scope unsafe or misleading. Merely reading a task-required
+      local credential under LSARH is not an S4 event; exposure or unauthorized export is.
     timing: "REPORT_IMMEDIATELY"
     action:
       - "Stop only the affected operation or scope immediately."
-      - "Preserve evidence and rollback state."
+      - "Preserve sanitized evidence and rollback state without copying the secret."
       - "Escalate to GPT and user gate when required."
       - "Do not continue through a guessed workaround."
   S3_MAJOR:
@@ -120,6 +122,7 @@ human_translation_contract:
     - "Unexplained internal acronyms"
     - "Presenting UNKNOWN as failure or fact"
     - "Dumping raw machine receipts without interpretation"
+    - "Including raw or partial secrets in any human-readable packet"
 
 agent_initiative_permissions:
   allowed:
@@ -128,12 +131,37 @@ agent_initiative_permissions:
     - "Challenge task assumptions and preserve negative findings."
     - "Implement AMED A or B improvements when all conditions are met."
     - "Propose C follow-up tasks, architecture decisions, deprecations or new skills."
+    - "Under LSARH, local Codex may directly discover, read and use task-required credentials for WorkBuddy MCP, TDX, TQ, WeStock and explicitly authorized local integrations."
+    - "Under LSARH, local Codex may inspect WorkBuddy MCP configuration read-only for connection bootstrap."
   prohibited:
     - "Silently switch the active task or mode."
     - "Expand WIP into another major workstream."
     - "Change canonical authority, system of record or cross-agent ownership."
-    - "Access credentials, bypass licenses, publish restricted data or initiate real trades."
-    - "Upgrade a hypothesis into a verified capability or performance claim."
+    - "Publish, echo, log, commit, export or remotely transmit secrets or restricted data."
+    - "Access unrelated credentials, broker/order/trade secrets, or secrets outside active-task necessity."
+    - "Bypass licenses, CAPTCHA, MFA or provider restrictions."
+    - "Initiate real trades or upgrade a hypothesis into a verified capability or performance claim."
+
+local_secret_discovery_rules:
+  standing_user_authorization: true
+  repeat_confirmation_required: false
+  required_task_relevance: true
+  allowed_secret_sources:
+    - OS_CREDENTIAL_STORE
+    - ENVIRONMENT_VARIABLE
+    - MCP_CONFIGURATION
+    - PROTECTED_LOCAL_ENV_FILE
+    - WORKBUDDY_LOCAL_CONFIG_READ_ONLY
+    - TASK_SPECIFIC_LOCAL_CONFIG
+  safe_reporting_only:
+    - SECRET_ALIAS
+    - SOURCE_CLASS
+    - FOUND_OR_NOT_FOUND
+    - USED_OR_NOT_USED
+    - AUTHENTICATION_SUCCESS_OR_FAILURE
+  raw_secret_or_fingerprint_reporting: false
+  source_admission_implied: false
+  trade_authority_implied: false
 
 continuous_reporting_rules:
   S4_CRITICAL: "Post to active PR/Issue immediately and stop affected scope."
@@ -146,7 +174,7 @@ continuous_reporting_rules:
 
 cross_agent_model:
   CODEX:
-    focus: ["repository reality", "implementation feasibility", "data semantics", "tests", "interfaces", "technical debt"]
+    focus: ["repository reality", "implementation feasibility", "data semantics", "tests", "interfaces", "technical debt", "local MCP connectivity"]
   QCLAW:
     focus: ["counterevidence", "source conflict", "maturity inflation", "self-verification loops", "knowledge gaps"]
   WORKBUDDY:
@@ -164,6 +192,7 @@ GPT_obligations:
   - "Decide ACCEPT_IN_CURRENT_TASK / BOUNDED_AMENDMENT / FOLLOW_UP_TASK / ARCHITECTURE_DECISION / USER_GATE / REJECT."
   - "Update active routes when a discovery materially changes dependencies or acceptance gates."
   - "Track unresolved S3/S4 discoveries until closed, downgraded or explicitly accepted as risk."
+  - "Treat task-required local credential access under LSARH as an execution permission, not a reason to block the task."
 
 lifecycle:
   states:
@@ -197,12 +226,15 @@ current_program_application:
       This does not invalidate D0 planning, but it blocks D1 historical label execution and any empirical performance
       claim until an authorized point-in-time data-admission manifest and historical rule/status snapshots exist.
     stop_scope: "D1 historical execution and performance claims only"
-    continue_scope: "D0 review, contract design, synthetic fixture tests and discovery protocol improvements"
+    continue_scope: "D0 review, contract design, synthetic fixture tests, local MCP connectivity checks and discovery protocol improvements"
 
 security:
-  public_safe_only: true
-  credentials_denied: true
-  restricted_raw_data_denied: true
+  public_safe_only_for_remote_outputs: true
+  local_task_credentials_allowed_under_LSARH: true
+  credentials_denied_globally: false
+  remote_secret_disclosure_denied: true
+  repository_secret_write_denied: true
+  restricted_raw_data_publication_denied: true
   real_trade_denied: true
   direct_main_write_by_executors: false
   auto_merge: false
