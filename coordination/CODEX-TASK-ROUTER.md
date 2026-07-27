@@ -5,7 +5,7 @@
 1. 固定目标仓库为 `vxz2datoubo/second-brain-coordination`，不得从聊天记录猜测其他仓库。
 2. **先同步远端最新 `main`**：优先执行安全的 `git fetch origin main`，并从最新 `origin/main` 读取路由和活动索引。若本地工作区不适合快进或存在未提交改动，不得覆盖本地内容，应直接读取GitHub远端最新文件。
 3. 禁止使用未验证的新旧本地缓存副本作为任务来源；必须确认读取到的 `coordination/ACTIVE-CODEX-TASK.yaml` 来自当前远端最新 `main`。
-4. 打开最新 `coordination/CODEX-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml` 和 `coordination/ACTIVE-CODEX-TASK.yaml`。
+4. 打开最新 `coordination/CODEX-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`、`coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml`、`coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml` 和 `coordination/ACTIVE-CODEX-TASK.yaml`。
 5. 读取其中的 `active_issue`、`mode`、`status`、`execution_allowed`、`route_epoch`、`route_issued_at`、`completion_signal`、`blocked_by`、`dependencies`、`task_impact_forecast`、`amed_policy`、`task_weight`、`research_trigger`、`exploration_budget`、`autonomy_grant` 与 `notes`。
 6. 执行前必须提交任务租约声明，逐字回显仓库、远端main head、task_id、route_epoch、Issue、PR、分支、状态、completion_signal和reviewed/base head。只有与最新活动索引完全一致，且 `status: READY`、`execution_allowed: true`、依赖状态满足、任务影响预测存在、AMED字段完整时，才可继续。
 7. 读取对应GitHub Issue正文与全部评论，以及：
@@ -13,6 +13,8 @@
    - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`；
    - `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`；
    - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`；
+   - `coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml`；
+   - `coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml`；
    - 当前任务影响预测与任务简报。
 8. 读取任务影响预测中的第一性原理目标、预期收益、预期负面影响、风险门禁、停止条件和执行观测要求。不得为了完成任务而忽略预测中的反证或风险信号。
 9. 按Issue中明确标注的Codex模式执行，不得自行更换模式。
@@ -24,7 +26,7 @@
 15. 相邻工作只有同时满足以下条件才可直接完成：位于授权路径/分支；不改变外部合同或权威；能测试和回滚；不抢占其他Agent所有权；直接提升正确性、安全性、可复现性、集成性、可维护性或高杠杆未来能力。
 16. 研究必须按L1/L2/L3触发执行。L2记录一手来源、反证、适用条件、来源冲突、可信度和A股适配；L3拆分新任务，不得静默扩张。
 17. 若Issue存在旧的 TIMEOUT、INVALID、UNKNOWN、较低route_epoch完成信号或已被supersedes替代的回执，只把它们当历史记录，不得当作本次任务完成证据。
-18. 执行前确认仓库名、最新远端索引、Issue编号、任务租约、影响预测、AMED合同、PDER主动发现协议、双层主观能动性宪法和当前活动任务完全一致。
+18. 执行前确认仓库名、最新远端索引、Issue编号、任务租约、影响预测、AMED合同、PDER主动发现协议、双层主观能动性宪法、本地凭据直接使用协议和当前活动任务完全一致。
 19. 执行期间不得把主动发现推迟到最终交付：`S4_CRITICAL`立即停止并保全证据；`S3_MAJOR`证据足够即提交DiscoveryPacket；`S2_MATERIAL`在当前检查点报告；`S1_MINOR`按根因去重聚合。
 20. 每个S3/S4发现必须同时提交机器可读证据和人类可读翻译，明确发现、含义、重要性、它不证明什么、是否停工和建议下一步。
 21. Codex可以在授权范围内主动做只读核查、反证、验证、架构调整和高价值相邻修复，但不得自行切换顶层任务、接管其他Agent、建立平行canonical或突破硬边界。
@@ -36,10 +38,22 @@
 27. **发布完成信号前必须再次同步或远程读取最新main。** 重新比较task_id、route_epoch、Issue、PR、分支、completion_signal和execution_allowed。任一不一致时，禁止发布旧完成信号，必须提交`StaleRoutePacket`并停止。
 28. 当前完成回执必须包含领取与交付前的远端main head、task_id、route_epoch、完整40位delivered/tested/receipt head、精确命令、退出码、计数、stdout/stderr哈希和保留的失败/SKIP/UNKNOWN。
 29. 在活动Issue和父Issue中留下证据，创建独立PR，不得自行合并。
-30. 若远端入口文件缺失、任务租约字段缺失、影响预测缺失、AMED字段缺失、PDER协议缺失、双层主观能动性宪法缺失、状态不是READY、execution_allowed不是true、依赖未满足、Issue不存在、索引版本冲突或无法确认远端最新状态，停止执行并报告，不得猜测任务。
+30. 若远端入口文件缺失、任务租约字段缺失、影响预测缺失、AMED字段缺失、PDER协议缺失、双层主观能动性宪法缺失、本地凭据协议缺失、状态不是READY、execution_allowed不是true、依赖未满足、Issue不存在、索引版本冲突或无法确认远端最新状态，停止执行并报告，不得猜测任务。
 31. 不得因为用户只说“读取任务”就扫描、选择或执行其他Issue。
 32. 不得重新执行 `supersedes` 中记录的旧活动任务。
 33. 主动发现与实现权限必须服从当前活动路由中的路径、分支、PR、探索预算和停止条件。
+
+## 本地凭据与MCP直接使用规则
+
+34. 当活动任务明确授权连接用户本机的WorkBuddy MCP、通达信/TDX、TQ或其他用户自有本地适配器时，本地Codex被明确授权直接搜索、读取和使用本机已有密钥、令牌、会话凭据和认证配置，不需要每次再次向用户确认。
+35. `LOCAL_ONLY`表示密钥只能留在用户本机，不表示本地Codex不可读取。Codex不得以“凭据属于秘密”“跨Agent配置”“安全策略不允许读取”为由跳过已授权的本地认证步骤。
+36. 本地凭据发现顺序为：已认证会话 → 进程/用户环境变量 → 项目批准的本地配置引用 → WorkBuddy或适配器本地配置 → 已配置的操作系统凭据存储。只有全部尝试后仍不可用，才可报告真实阻塞。
+37. Codex可读取WorkBuddy本地MCP配置和凭据以完成互操作，但这不转移WorkBuddy的分支、任务、历史或canonical所有权；除非活动路由另行授权，不得改写WorkBuddy仓库内容。
+38. 密钥值只允许存在于本机进程内存、环境注入、stdin或本地认证客户端对象中。优先避免会进入shell历史或进程列表的命令行参数。
+39. 密钥值禁止进入Git、GitHub、PR、Issue、评论、回执、AI_HANDOFF、日志、stdout/stderr持久记录、测试夹具、数据集、知识图谱、聊天上下文或无关外部服务。报告只允许写引用ID、来源类别、认证是否成功和不可逆验证摘要。
+40. 读取本地凭据只解决认证和连接权限，不自动授权真实数据准入、回放、回测、模型拟合、账户访问、订单路由或交易；这些能力仍必须由独立活动路由显式放行。
+41. 若发现密钥可能被打印、提交或外泄，立即停止相关输出，执行脱敏并保留不含密钥的证据；未推送的Git污染应先清除，已推送则停止并请求用户主导轮换和历史处置。
+42. 本地Codex的默认执行目标是最高效率：已有本地凭据和会话可直接复用，不要求用户手工复制密钥，不重复制造认证步骤，不把可自动解决的本地配置问题包装成人工阻塞。
 
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
@@ -53,9 +67,11 @@
 
 `coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md`
 
-AMED、主动发现与双层主观能动性权威：
+AMED、主动发现、双层主观能动性与本地凭据权威：
 
 - `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
 - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
 - `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`
 - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`
+- `coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml`
+- `coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml`
