@@ -1,19 +1,40 @@
-schema_version: "22.0"
+schema_version: "22.1"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 initiative_and_orchestration_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
+local_credential_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
+local_credential_execution_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
+local_credential_constitutional_amendment: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-AUTHORIZATION-CONSTITUTIONAL-AMENDMENT-v1.0.yaml"
 program_issue: 31
 status: "CODEX_E14_ACTIVE_QCLAW_DAILY_RESET_PAUSED_WORKBUDDY_COMPUTE_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-07-27T08:40:00+08:00"
+updated_at: "2026-07-27T09:05:00+08:00"
 
 permanent_operating_model:
   status: "ACTIVE_PROGRAM_RULE"
   agent_layer: "Complete the primary mission and implement authorized high-value adjacent AMED A/B improvements with evidence."
   GPT_layer: "Understand, accept, integrate, refine, remove, return, split, defer or reject while controlling system rhythm and operability."
   codex_priority: "Codex receives the largest safe autonomy budget for strategic engineering."
+  local_codex_credentials: >-
+    For an authorized local MCP/adapter task, Codex may directly discover, read and use existing local credentials without repeated
+    confirmation. Generic credential-denial wording does not block this local runtime use. Secret export and authority expansion remain denied.
   final_authority: "GPT_FINAL_GATE_WITH_USER_STRATEGIC_AND_HIGH_RISK_APPROVAL"
   automatic_self_approval_by_agents: false
+
+local_credential_execution:
+  status: "ACTIVE_STANDING_USER_AUTHORIZATION"
+  applies_to: [WORKBUDDY_MCP, TDX, TQ, WESTOCK, AUTHORIZED_LOCAL_MCP]
+  local_codex_direct_read_and_use: true
+  repeated_confirmation_required: false
+  workbuddy_config_read_mode: "READ_ONLY_FOR_AUTHORIZED_INTEROPERABILITY"
+  highest_efficiency_path_preferred: true
+  generic_credentials_denied_overridden_for_local_runtime_use: true
+  secret_export_denied: true
+  repository_secret_write_denied: true
+  log_and_receipt_secret_disclosure_denied: true
+  source_manifest_admission_implied: false
+  issue92_release_implied: false
+  broker_account_order_trade_authority_implied: false
 
 review_summary:
   CODEX_PR101:
@@ -89,6 +110,7 @@ agents:
       continuous_internal_progress: true
       maximum_new_draft_prs: 3
       proactive_adjacent_repairs_with_evidence: true
+      local_task_credential_read_and_use_under_canonical_protocol: true
       final_self_approval: false
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
@@ -123,7 +145,7 @@ parallel_execution_plan:
 cross_lane_firewalls:
   - "Codex owns executable D2 core, fresh Evaluation V2, schema quarantine and D3A preregistration paths."
   - "QCLAW owns candidate knowledge paths but is paused; Codex may not consume QCLAW claims as facts."
-  - "WorkBuddy remains inactive."
+  - "WorkBuddy remains inactive, but local Codex may read WorkBuddy MCP configuration and credential references read-only when a future authorized local interoperability task requires it."
   - "No direct main writes, merges, force pushes or history rewrites by executors."
 
 issue92_gate:
@@ -137,6 +159,7 @@ issue92_gate:
     - "Codex D2/Evaluation/D3A progress."
     - "QCLAW knowledge-supply progress or compute reset."
     - "WorkBuddy compute restoration."
+    - "Successful local credential authentication."
   forbidden_before_release: [source_activation, labels, real_market_replay, backtest, performance_claim, account, order, trade]
 
-boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY_WHERE_AUTHORIZED / CANDIDATE_ONLY / PREREGISTRATION_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / LOCAL_CREDENTIAL_USE_ALLOWED / SYNTHETIC_ONLY_WHERE_AUTHORIZED / CANDIDATE_ONLY / PREREGISTRATION_ONLY / research_only / NO_TRADE"
