@@ -1,10 +1,11 @@
-schema_version: "1.1.0"
+schema_version: "1.2.0"
 protocol_id: "AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS"
 status: "ACTIVE"
 owner: "GPT"
 applies_to: [CODEX, WORKBUDDY, QCLAW, FUTURE_AGENTS]
+in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
 purpose: >-
-  Prevent stale routes, superseded completions, invalid tested-head claims, unauthorized delivery files,
+  Prevent stale routes, superseded completions, invisible local progress, invalid tested-head claims, unauthorized delivery files,
   incomplete safety scans and impossible self-referential receipt requirements from overriding the current control plane.
 
 single_source_of_truth:
@@ -38,17 +39,34 @@ lease_claim_gate:
   required_before_execution: true
   procedure:
     - "Fetch or remotely read the latest main without overwriting uncommitted local work."
-    - "Read the latest router, this protocol and the agent's active-task file."
+    - "Read the latest router, this protocol, the in-progress visibility protocol and the agent's active-task file."
     - "Echo repository, remote-main head, task_id, route_epoch, issue, PR, branch, status, completion_signal and reviewed/base head."
     - "Proceed only when status is READY, execution_allowed is true, dependencies are satisfied and all echoed fields match the current active-task file."
   mismatch_result: "STOP_STALE_OR_INVALID_ROUTE"
   prohibited_fallbacks: [chat_history, local_cached_active_task, older_issue_comment, older_completion_signal, superseded_task]
 
+in_progress_visibility_gate:
+  required_for_material_partial_progress: true
+  protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
+  trigger_summary:
+    - "A substantive local commit or recovery point exists beyond the remote PR head."
+    - "A configured checkpoint or principal test milestone is reached."
+    - "The agent reports PARTIAL, CHECKPOINT or RECOVERY_POINT."
+    - "The route changes while local work exists."
+  required_behavior:
+    - "When public-safe, push one fast-forward-only checkpoint branch for the active gate and post an InProgressVisibilityPacket."
+    - "When unsafe to push, post a redacted LOCAL_UNVERIFIABLE packet and preserve local work."
+    - "A checkpoint is not tested_head, receipt_head, final delivery or acceptance."
+    - "Before a stale-route stop, preserve local work and publish StaleRoutePacket plus visibility information."
+  GPT_inference_rule:
+    - "An unchanged PR head proves only NO_REMOTE_VERIFIABLE_DELIVERY."
+    - "It does not prove that no local progress exists."
+
 pre_completion_revalidation_gate:
   required_before_posting_completion: true
   procedure:
     - "Fetch or remotely read latest main again after implementation and tests."
-    - "Re-read the latest router, this protocol and active-task file."
+    - "Re-read the latest router, this protocol, the in-progress visibility protocol and active-task file."
     - "Compare task_id, route_epoch, active_issue, pull_request, branch, completion_signal and execution_allowed with the claimed lease."
     - "Confirm the delivered full head descends from the authorized reviewed/base head."
     - "Run the delivery-surface gate and final public-safety scan against the complete delivered diff surface."
@@ -58,7 +76,7 @@ pre_completion_revalidation_gate:
     actions:
       - "Do not post the old completion signal as current completion."
       - "Preserve local work and logs without merging or force-pushing."
-      - "Post a StaleRoutePacket naming the old and current task_id/route_epoch and stop."
+      - "Post a StaleRoutePacket and InProgressVisibilityPacket naming the old and current task_id/route_epoch, then stop or follow the new route bridge policy."
 
 delivery_surface_gate:
   required: true
@@ -124,6 +142,7 @@ completion_acceptance_rules:
   - "A receipt_head must descend from tested_head and change only explicitly authorized receipt files."
   - "The complete delivered diff surface must pass the allowlist and public-safety gates."
   - "Short commit identifiers are non-authoritative in completion receipts."
+  - "Checkpoint branches and local-only progress reports cannot satisfy tested or receipt gates."
   - "Only GPT may accept, reject, supersede or release the downstream task after completion review."
 
 stale_signal_handling:
@@ -143,18 +162,23 @@ regression_cases:
     expected: "Stop before execution and report stale route."
   - id: "LEASE-REG-04"
     case: "Task becomes STOPPED while local implementation is running."
-    expected: "Pre-completion revalidation aborts current completion and preserves work without publishing a current signal."
+    expected: "Pre-completion revalidation aborts current completion, preserves local work and publishes visibility/bridge evidence."
   - id: "LEASE-REG-05"
     case: "Task allowlist names two tested-head paths, but helper scripts and raw output are committed elsewhere."
     expected: "Reject the delivery surface even when the package-directory scan is CLEAN."
   - id: "LEASE-REG-06"
     case: "A receipt file is required to contain the SHA of the commit containing that same file."
     expected: "Use receipt_head_ref=THIS_COMMIT and externally anchor the concrete full SHA; do not require an impossible self-reference."
+  - id: "LEASE-REG-07"
+    case: "The active PR head is unchanged, but the agent has a substantive unpushed local PARTIAL commit when GPT reviews and publishes a higher route_epoch."
+    expected: >-
+      GPT states NO_REMOTE_VERIFIABLE_DELIVERY rather than no progress, checks visibility packets, and the new route preserves or explicitly
+      bridges the local work. The agent must preserve the commit, publish a checkpoint or redacted packet, then continue only under the new route.
 
 exceptions:
   - "Emergency safety containment may execute before a lease claim, but must create a retrospective receipt and cannot expand scope."
   - "Pure read-only status reporting for status STOPPED or execution_allowed=false does not require an execution lease."
 
-boundary: "CONTROL_PLANE_ONLY / NO_TRADE / NO_CREDENTIALS / NO_AUTO_MERGE"
+boundary: "CONTROL_PLANE_ONLY / PUBLIC_SAFE_CHECKPOINTS / LOCAL_WORK_PRESERVATION / NO_TRADE / NO_AUTO_MERGE"
 updated_by: "GPT"
-updated_at: "2026-07-24T15:35:00Z"
+updated_at: "2026-07-27T23:18:00+08:00"
