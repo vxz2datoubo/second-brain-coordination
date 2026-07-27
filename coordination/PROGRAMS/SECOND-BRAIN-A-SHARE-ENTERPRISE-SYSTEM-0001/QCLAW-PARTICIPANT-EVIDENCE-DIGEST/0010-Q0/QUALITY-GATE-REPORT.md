@@ -1,38 +1,31 @@
-# QUALITY-GATE-REPORT.md — Epoch 10 Stage A: PR #96 Machine Receipt Truth
-
-**task_id:** QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
-**route_epoch:** 10
+# QUALITY-GATE-REPORT.md — Epoch 12 Gate A: PR #96 Machine Receipt Truth
 
 ## Gate Summary
 | Gate | Result |
 |------|--------|
-| D01 Duplicate-key rejection | PASS |
-| D02 Canonical ID recomputation | PASS |
-| D03 UNKNOWN registry YAML integrity | PASS |
-| D04 AI_HANDOFF metadata truth | PASS |
-| D05 Two independent runs | PASS (IDENTICAL) |
-| D06 External anchoring | PASS |
+| D01 Duplicate-key rejection | PASS (3/3: JSON=1, JSONL=1, YAML=1 exit nonzero) |
+| D02 Canonical ID recomputation | PASS (99+147+64 = 0 mismatches, Q0_CANONICAL_ID_V1) |
+| D03 UNKNOWN registry YAML integrity | PASS (11 unknown_entries, 6 validation_tasks) |
+| D04 AI_HANDOFF metadata truth | PASS (no THIS_COMMIT, no ghost files, no placeholder) |
+| D05 Two independent runs | PASS (exit=0, stdout IDENTICAL, 2 clean extractions) |
+| D06 External anchoring | RESOLVED (PR #96, Issue #59, Issue #31) |
 
-## Commands (re-run from clean Q0 extraction @ e54e04b14876017253d27c578484e0bbd9096c0b)
-| Command | Exit | stdout SHA-256 |
-|---------|------|---------------|
-| python validate_q0.py (run 1) | 1 | afc5f6e76bc1d744... |
-| python validate_q0.py (run 2) | 1 | afc5f6e76bc1d744... |
-| python tests/fixtures/dup_json_key_test.py | 1 | — |
-| python tests/fixtures/dup_jsonl_key_test.py | 1 | — |
-| python tests/fixtures/dup_yaml_key_test.py | 1 | — |
-| python tests/fixtures/canonical_id_mismatch_test.py | 1 | — |
+## Source
+- Accepted Q0 tested head: e54e04b14876017253d27c578484e0bbd9096c0b
+- 2 clean independent extractions from immutable Git blobs (extract1 + extract2)
+- 99 KnowledgeAtoms, 147 KnowledgeRelations, 64 AdversarialQuestions preserved
+- NO atoms/relations/questions semantic content modified
 
 ## ID Canonicalization
 - Version: Q0_CANONICAL_ID_V1
-- Atoms: 99 (0 mismatches)
-- Relations: 147 (0 mismatches)
-- Questions: 64 (44 primary + 20 alternate)
-- All negative fixtures: exit 1 (PASS = detected failure condition)
+- Atoms: 99 regenerated, 0 mismatches
+- Relations: 147 regenerated, 0 mismatches
+- Questions: 64 regenerated (44 primary + 20 alternate), 0 mismatches
 
-## Machine Receipt
-- receipt_head_ref: THIS_COMMIT
-- Source extraction: clean Git extraction from Q0 tested head e54e04b14876
-- No validator, fixture, atom, relation, or question file changed
-
-**CANDIDATE_ONLY | NO_TRADE | PUBLIC_SAFE**
+## Negative Fixtures
+| Test | Exit | Result |
+|------|------|--------|
+| dup_json_key_test.py | 1 | PASS |
+| dup_jsonl_key_test.py | 1 | PASS |
+| dup_yaml_key_test.py | 1 | PASS |
+| canonical_id_mismatch_test.py | 1 | PASS |
