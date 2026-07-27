@@ -5,7 +5,8 @@ status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
 parent_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-local_secret_protocol: "coordination/GOVERNANCE/LOCAL-SECRET-ACCESS-AND-RUNTIME-CREDENTIAL-HANDLING-PROTOCOL-v1.0.yaml"
+local_secret_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
+user_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
 
 purpose: >-
@@ -44,7 +45,7 @@ severity_scale:
     definition: >-
       Evidence indicates possible secret disclosure, privacy, license, destructive-write, real-trade, canonical-corruption
       or invalid-result risk that makes continued work on the affected scope unsafe or misleading. Merely reading a task-required
-      local credential under LSARH is not an S4 event; exposure or unauthorized export is.
+      local credential under the canonical local credential protocol is not an S4 event; exposure or unauthorized export is.
     timing: "REPORT_IMMEDIATELY"
     action:
       - "Stop only the affected operation or scope immediately."
@@ -131,8 +132,8 @@ agent_initiative_permissions:
     - "Challenge task assumptions and preserve negative findings."
     - "Implement AMED A or B improvements when all conditions are met."
     - "Propose C follow-up tasks, architecture decisions, deprecations or new skills."
-    - "Under LSARH, local Codex may directly discover, read and use task-required credentials for WorkBuddy MCP, TDX, TQ, WeStock and explicitly authorized local integrations."
-    - "Under LSARH, local Codex may inspect WorkBuddy MCP configuration read-only for connection bootstrap."
+    - "Under the canonical local credential protocol, local Codex may directly discover, read and use task-required credentials for WorkBuddy MCP, TDX, TQ, WeStock and explicitly authorized local integrations."
+    - "Under the same protocol, local Codex may inspect WorkBuddy MCP configuration read-only for connection bootstrap."
   prohibited:
     - "Silently switch the active task or mode."
     - "Expand WIP into another major workstream."
@@ -144,22 +145,23 @@ agent_initiative_permissions:
 
 local_secret_discovery_rules:
   standing_user_authorization: true
+  canonical_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
   repeat_confirmation_required: false
   required_task_relevance: true
+  overrides_generic_credentials_denied_for_local_runtime_use: true
   allowed_secret_sources:
-    - OS_CREDENTIAL_STORE
+    - EXISTING_AUTHENTICATED_SESSION
     - ENVIRONMENT_VARIABLE
-    - MCP_CONFIGURATION
-    - PROTECTED_LOCAL_ENV_FILE
-    - WORKBUDDY_LOCAL_CONFIG_READ_ONLY
-    - TASK_SPECIFIC_LOCAL_CONFIG
+    - PROJECT_APPROVED_LOCAL_CONFIG_REFERENCE
+    - WORKBUDDY_OR_ADAPTER_LOCAL_CONFIG_READ_ONLY
+    - OS_CREDENTIAL_STORE
   safe_reporting_only:
-    - SECRET_ALIAS
+    - SECRET_REFERENCE_ID
     - SOURCE_CLASS
     - FOUND_OR_NOT_FOUND
     - USED_OR_NOT_USED
     - AUTHENTICATION_SUCCESS_OR_FAILURE
-  raw_secret_or_fingerprint_reporting: false
+  raw_secret_reporting: false
   source_admission_implied: false
   trade_authority_implied: false
 
@@ -192,7 +194,7 @@ GPT_obligations:
   - "Decide ACCEPT_IN_CURRENT_TASK / BOUNDED_AMENDMENT / FOLLOW_UP_TASK / ARCHITECTURE_DECISION / USER_GATE / REJECT."
   - "Update active routes when a discovery materially changes dependencies or acceptance gates."
   - "Track unresolved S3/S4 discoveries until closed, downgraded or explicitly accepted as risk."
-  - "Treat task-required local credential access under LSARH as an execution permission, not a reason to block the task."
+  - "Treat task-required local credential access under the canonical protocol as execution permission, not a reason to block the task."
 
 lifecycle:
   states:
@@ -230,7 +232,7 @@ current_program_application:
 
 security:
   public_safe_only_for_remote_outputs: true
-  local_task_credentials_allowed_under_LSARH: true
+  local_task_credentials_allowed_under_canonical_protocol: true
   credentials_denied_globally: false
   remote_secret_disclosure_denied: true
   repository_secret_write_denied: true
