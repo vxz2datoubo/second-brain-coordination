@@ -5,7 +5,8 @@ status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
 blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
-local_secret_protocol: "coordination/GOVERNANCE/LOCAL-SECRET-ACCESS-AND-RUNTIME-CREDENTIAL-HANDLING-PROTOCOL-v1.0.yaml"
+local_secret_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
+user_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
 
 mandatory_task_fields:
@@ -82,7 +83,7 @@ improvement_authority:
       - CURRENT_BRANCH_ONLY
       - NO_EXTERNAL_CONTRACT_CHANGE
       - NO_AUTHORITY_CHANGE
-      - NO_PERMISSION_EXPANSION_EXCEPT_LSARH_LOCAL_SECRET_USE
+      - NO_PERMISSION_EXPANSION_EXCEPT_CANONICAL_LOCAL_CREDENTIAL_PROTOCOL
       - NO_OTHER_ACTIVE_TASK_IMPACT
       - TESTED
       - EASY_ROLLBACK
@@ -200,7 +201,8 @@ anti_scope_explosion:
   every_proposal_requires_owner_gate_and_close_condition: true
 
 local_runtime_credentials:
-  policy: "LSARH"
+  policy: "LOCAL_CREDENTIAL_DIRECT_USE_AND_NON_EXPORT"
+  authorization_record: "CREDENTIAL_SECRETS_LOCAL_ONLY"
   standing_user_authorization: true
   local_codex_task_credentials_allowed: true
   permitted_services: [WORKBUDDY_MCP, TDX, TQ, WESTOCK, AUTHORIZED_LOCAL_MCP]
@@ -209,13 +211,14 @@ local_runtime_credentials:
   raw_secret_reporting: false
   repository_secret_write: false
   remote_secret_publication: false
+  overrides_generic_credentials_denied_for_local_runtime_use: true
   does_not_authorize_source_admission: true
   does_not_authorize_account_order_or_trade: true
 
 security_and_trade:
   direct_main_write: false
   auto_merge: false
-  local_task_credentials_allowed_under_LSARH: true
+  local_task_credentials_allowed_under_canonical_protocol: true
   credentials_denied_globally: false
   remote_secret_disclosure_denied: true
   repository_secret_write_denied: true
