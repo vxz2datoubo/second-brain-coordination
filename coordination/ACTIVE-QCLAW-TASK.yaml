@@ -1,10 +1,12 @@
-schema_version: "18.0"
+schema_version: "19.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
 initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
+review_publish_semantics: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -12,6 +14,7 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 
 active_issue: 59
 related_issues: [23, 31, 38, 60]
+primary_pull_requests: [96, 100, 64, 65, 104]
 reviewed_heads:
   pr96: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
   pr100: "76d447f0bfc9896ee530808238fcda1527809fc1"
@@ -20,80 +23,193 @@ reviewed_heads:
   pr104: "0de24a78d0aa0640fde30014446145a289b3d9bc"
 accepted_q0_tested_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
 
-# No active execution lease until GPT explicitly resumes after daily compute reset.
-task_id: "QCLAW-PAUSED-DAILY-COMPUTE-RESET-PENDING-E11"
-mode: "paused"
-mode_label: "【QCLAW模式：暂停】等待每日算力重置与下一轮显式发布"
+task_id: "QCLAW-SEQUENTIAL-Q0-RECEIPT-ONTOLOGY-ARCHITECTURE-LTM-AND-SUPPLY-CHAIN-CLOSURE-0014-E12"
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】Q0回执、本体、原子架构、长期记忆与统一供应链顺序封口E12"
 mode_reason: >-
-  用户确认QCLAW今日算力需等待24点重置。Epoch 10成果已完成GPT审查，但统一供应链不能验收，
-  因此当前只冻结有价值候选与审查结论，不授权继续修改、推送、声明完成或自动恢复。
-status: "PAUSED_DAILY_COMPUTE_UNAVAILABLE"
-execution_allowed: false
+  用户确认QCLAW每日算力已经恢复。Epoch 10产生了有价值候选，但GPT完整审查发现五个PR之间存在机器回执矛盾、
+  自报映射、干净提取缺源、伪YAML解析和统一供应链对象类型混淆。Epoch 12不推倒已有成果，而是按依赖顺序逐个封口。
+  同一时间只允许一个实质PR施工，前一Gate机器PASS后QCLAW可以自动进入下一Gate。QCLAW在当前Gate内具有较高的知识工程、
+  验证器和测试设计自主权，但所有输出仍是CANDIDATE_ONLY，不能自行升级为canonical或交给Codex运行时消费。
+status: "READY"
+execution_allowed: true
 automatic_resume: false
-resume_requires: "AFTER_DAILY_RESET_AND_NEW_EXPLICIT_GPT_ROUTE"
-blocked_by: "DAILY_COMPUTE_RESET"
+blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: null
-reviewed_or_base_head: "0de24a78d0aa0640fde30014446145a289b3d9bc"
+reviewed_or_base_head: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
 direct_main_write: false
 auto_merge: false
-route_epoch: 11
-route_issued_at: "2026-07-27T08:35:00+08:00"
-route_issued_against_main: "d7df6c523e805c15161ca38a4145bdae655da2f1"
-completion_signal: null
+route_epoch: 12
+route_issued_at: "2026-07-28T00:15:00+08:00"
+route_issued_against_main: "7fdc532a8c6a1d0c9f5e224fd774c36e1430f13e"
+completion_signal: "QCLAW_E12_SEQUENTIAL_KNOWLEDGE_SUPPLY_TRUTH_AND_UNIFIED_INDEX_READY_FOR_GPT_REVIEW"
 supersedes:
+  - "QCLAW-PAUSED-DAILY-COMPUTE-RESET-PENDING-E11@route_epoch:11"
   - "QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10@route_epoch:10"
 
 review_disposition:
-  classification: "E10_LOCAL_PROGRESS_PRESERVED_UNIFIED_SUPPLY_CHAIN_NOT_ACCEPTED_PAUSED_FOR_COMPUTE_RESET"
+  classification: "COMPUTE_RESTORED_E10_VALUE_PRESERVED_E12_SEQUENTIAL_REMEDIATION_RELEASED"
   accepted_value:
-    - "PR #100 adopts the exact Codex D2 family target vocabulary and retains large UNMAPPED_UNKNOWN coverage instead of forcing mappings."
-    - "PR #64 replaces the previously broken decorative validator with a materially stronger architecture validation direction."
-    - "PR #65 replaces repeated placeholder text with 48 distinct structured long-term-memory adversarial plan cases."
-    - "PR #104 correctly attempts to isolate cross-PR supply-chain ownership in a dedicated Draft PR."
-  blocking_findings:
-    - "PR #96 records positive validate_q0.py runs as exit 1 while simultaneously declaring ALL VALIDATIONS PASSED and elsewhere claiming exit 0."
-    - "PR #100 checks that a candidate target belongs to an allowed enum but does not derive the target from immutable source family/subtype evidence or recompute source hashes and generated output across isolated runs."
-    - "PR #64 clean-extraction validation depends on Q0 source JSONL files that are absent from the PR tree; its receipt still contains TBD stdout hashes."
-    - "PR #65 uses a line-oriented pseudo-YAML parser, does not actually enforce PR #57/#58 truth, and accepts a --truth argument without reading it."
-    - "PR #104 incorrectly conflates 99 KnowledgeAtoms, 147 KnowledgeRelations and 64 AdversarialQuestions into a sequential 99-to-147-to-64 transformation."
-    - "PR #104 invents q0_source_part1/part2 paths, preserves PLACEHOLDER or NOT_COMPUTABLE hashes, marks existing relations/questions as NOT_YET_PRODUCED and does not verify remote artifact content."
-    - "PR #104 PUBLIC_SAFE scan cannot fail because detected patterns execute pass; aggregate determinism covers only its own local nine files."
-  preserved_candidate_boundaries:
-    pr96: "RECEIPT_TRUTH_REPAIR_REQUIRED"
-    pr100: "DERIVED_MAPPING_AND_GENERATION_DETERMINISM_REQUIRED"
-    pr64: "CLEAN_EXTRACTION_SOURCE_AND_STRICT_NEGTEST_REQUIRED"
-    pr65: "CONTENT_ACCEPTED_STRICT_VALIDATOR_REQUIRED"
-    pr104: "OBJECT_MODEL_AND_SOURCE_OF_TRUTH_REWRITE_REQUIRED_NOT_SAFE_FOR_CODEX_CONSUMPTION"
+    - "PR #100 uses the exact Codex D2 target vocabulary and retains large UNMAPPED_UNKNOWN coverage."
+    - "PR #64 contains a materially improved architecture-validator direction and correct 99/147/64 headline counts."
+    - "PR #65 contains 48 distinct structured long-term-memory adversarial cases worth preserving."
+    - "PR #104 correctly isolates cross-PR supply-chain coordination into a dedicated Draft PR."
+  blocking_findings_carried_forward:
+    - "PR #96 positive validator runs exit 1 while receipts simultaneously claim success and exit 0."
+    - "PR #100 validates candidate-declared targets instead of deriving them from immutable source family/subtype evidence."
+    - "PR #64 cannot reproduce clean extraction because required Q0 source blobs are absent or unbound; receipts contain TBD."
+    - "PR #65 uses a line-oriented pseudo-YAML parser and does not enforce its truth reference."
+    - "PR #104 conflates 99 KnowledgeAtoms, 147 KnowledgeRelations and 64 AdversarialQuestions into a false sequential transformation."
+  issue92: "BLOCKED_NOT_RELEASED"
 
 resource_and_effort:
-  priority_share_percent: 0
-  task_weight: "PAUSED_DAILY_COMPUTE_UNAVAILABLE"
-  daily_compute_status: "WAITING_FOR_RESET"
+  priority_share_percent: 30
+  task_weight: "VERY_HEAVY_SEQUENTIAL_KNOWLEDGE_SUPPLY_TRUTH_CLOSURE"
+  research_trigger: "L1_REPOSITORY_AND_PRIMARY_SCHEMA_RESEARCH_ONLY"
+  checkpoints: [10, 25, 40, 55, 70, 85, 100]
+  first_checkpoint_required:
+    - "Echo latest remote main, task_id, route_epoch, all five reviewed heads and active Gate A."
+    - "Report whether any substantive unpushed local work exists; publish IDLE_OR_NO_LOCAL_PROGRESS or InProgressVisibilityPacket as applicable."
+    - "Show a failing reproduction of the PR #96 positive-run exit contradiction before remediation."
 
-pause_contract:
-  no_new_commits: true
-  no_new_prs: true
-  no_task_claim: true
-  no_completion_claim: true
-  no_automatic_resume: true
-  preserve_current_heads: true
-  next_route_expected_scope:
-    - "Repair PR #96 positive/negative exit truth."
-    - "Finish PR #100 table-derived mapping, source-hash validation and isolated generation determinism."
-    - "Make PR #64 clean-extraction reproducible with real source blobs and strict mutation fixtures."
-    - "Keep PR #65 cases and replace its parser/status checks with strict validation."
-    - "Rewrite PR #104 around parallel 99 atoms / 147 relations / 64 questions, using real paths and hashes."
+exploration_budget:
+  primary_delivery_share: "70-80%"
+  active_discovery_share: "15-25%"
+  system_opportunity_share: "5-10%"
+  maximum_new_branches: 2
+  maximum_new_draft_prs: 0
+  maximum_simultaneous_substantive_prs: 1
+  maximum_unplanned_files_inside_authorized_paths: 24
+  scope_expansion_without_gate: false
+
+autonomy_grant:
+  profile: "QCLAW_HIGH_BOUNDED_AUTONOMY_WITH_SINGLE_ACTIVE_GATE"
+  validator_and_test_architecture_choice_inside_gate: true
+  module_layout_choice_inside_authorized_paths: true
+  may_refactor_within_current_pr_paths: true
+  may_add_strict_parsers_validators_negative_tests_and_receipts: true
+  may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
+  may_continue_within_current_gate_without_gpt: true
+  may_advance_to_next_gate_without_new_gpt_message_only_when_machine_gate_passes: true
+  may_work_on_multiple_substantive_prs_concurrently: false
+  final_self_approval: false
+  decision_log_required: true
+  alternatives_considered_required: true
+  unknown_registry_required: true
+
+visibility_contract:
+  material_partial_progress_requires_packet: true
+  public_safe_checkpoint_allowed: true
+  maximum_checkpoint_branches_per_gate: 1
+  checkpoint_is_not_delivery: true
+  unchanged_pr_head_means_only_no_remote_verifiable_delivery: true
+  local_secret_or_private_material_must_not_be_pushed: true
+
+sequential_gate_policy:
+  only_one_active_gate: true
+  active_gate: "A_PR96_RECEIPT_TRUTH"
+  later_gates_status: "WAITING_FOR_PREDECESSOR_MACHINE_PASS"
+  gate_pass_requires:
+    - "One substantive tested commit from the reviewed Gate head plus one receipt-only commit."
+    - "Allowed-file delta verified and no unrelated knowledge-content expansion."
+    - "Exact full SHAs, parents, trees, commands, exits and stdout/stderr SHA-256 recorded."
+    - "Three clean Git-archive runs with distinct temporary directories."
+    - "No PLACEHOLDER, TBD, NOT_COMPUTABLE, zero SHA or self-referential receipt value."
+    - "External anchors on the Gate PR, Issue #59 and Issue #31."
+    - "Latest main and active route re-read before advancing."
+  gate_failure_behavior: "STOP_CURRENT_GATE_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
+
+stage_plan:
+  - gate_id: "A_PR96_RECEIPT_TRUTH"
+    status: "ACTIVE"
+    owner_pr: 96
+    reviewed_head: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
+    objective: "Make Q0 positive and negative command evidence internally consistent, reproducible and machine-verifiable without changing the 99 atoms, 147 relations or 64 questions."
+    required_results:
+      - "Run the primary validator twice from independent clean extraction of accepted Q0 head e54e04b14876017253d27c578484e0bbd9096c0b; both positive runs must actually exit 0."
+      - "Run duplicate JSON, duplicate JSONL, duplicate YAML and canonical-ID mismatch fixtures; each must actually exit non-zero."
+      - "Use distinct run indexes and record exact command, cwd contract, exit, stdout SHA-256 and stderr SHA-256 for every run."
+      - "All five receipt files and AI_HANDOFF must agree on task, epoch, source head, exits, counts and determinism."
+      - "Do not modify atom, relation or question semantic content. Validator or extraction harness may change only when required to make clean execution truthful."
+    encouraged_initiative:
+      - "Add a machine-readable receipt consistency checker and minimal failure reproducer."
+      - "Improve path independence and fail-closed error messages."
+    caution:
+      - "Do not reinterpret exit 1 as positive success."
+      - "Do not start PR #100 before Gate A machine PASS and external anchors."
+
+  - gate_id: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM"
+    status: "WAITING_FOR_GATE_A"
+    owner_pr: 100
+    reviewed_head: "76d447f0bfc9896ee530808238fcda1527809fc1"
+    objective: "Derive D2 candidate mappings from immutable source evidence and prove isolated generation determinism."
+    required_results:
+      - "Create an immutable source-family/subtype to target-family translation table with exact Codex targets: RETAIL, INSTITUTIONAL_QUANT, ACTIVE_CAPITAL, POLICY_INDUSTRIAL_FOREIGN_AGGREGATE and UNMAPPED_UNKNOWN."
+      - "Treat candidate-declared target as a proposal and reject any mismatch with the derived target."
+      - "Recompute and verify the accepted source commit and every registered source blob SHA-256 before generation."
+      - "Generate the normalized adapter package in three isolated clean runs and compare canonical per-file plus aggregate hashes."
+      - "Preserve source labels separately; reject legacy labels as canonical targets and preserve ambiguous records as UNMAPPED_UNKNOWN."
+      - "Provide at least 96 traceable positive, negative, ambiguity, stale-lock and claim-promotion cases."
+
+  - gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH"
+    status: "WAITING_FOR_GATE_B"
+    owner_pr: 64
+    reviewed_head: "30d803b69da89461ea8c8d6be663effb38a1d816"
+    objective: "Make the architecture candidate reproducible from real immutable Q0 blobs rather than missing local files or decorative receipts."
+    required_results:
+      - "Extract or bind the real KNOWLEDGE-ATOMS.jsonl, KNOWLEDGE-RELATIONS.jsonl and ADVERSARIAL-QUESTION-SET.jsonl blobs from accepted Q0 head."
+      - "Validate actual 99/147/64 counts, deterministic IDs, duplicate keys, type distributions, source lock and authority boundaries."
+      - "Use __file__-relative or exact Git-blob extraction so execution is independent of cwd."
+      - "Add at least eight real mutation fixtures covering count drift, missing relation type, duplicate key, stale lock, wrong blob hash, authority promotion, missing source and malformed schema."
+      - "Run three clean archive extractions with real stdout/stderr hashes and no TBD values."
+      - "Remain architecture and schema candidate only; do not implement a new memory runtime."
+
+  - gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE"
+    status: "WAITING_FOR_GATE_C"
+    owner_pr: 65
+    reviewed_head: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
+    objective: "Preserve the meaningful 48-case plan while replacing permissive parsing and decorative truth checks with strict evidence validation."
+    required_results:
+      - "Preserve at least the existing 48 distinct structured adversarial cases and their setup, expected behavior, forbidden behavior, authority, evidence and failure oracle fields."
+      - "Use a strict YAML parser that rejects duplicate keys, aliases or malformed types as defined by the schema."
+      - "Resolve all default paths relative to the validator file, not the caller cwd."
+      - "Actually read and validate LTM truth data, PR #57 merged canonical offline-base status and PR #58 open candidate/non-authority status from a pinned machine-readable truth snapshot."
+      - "Reject false IMPLEMENTED claims, roleplay contamination, privacy leakage, candidate promotion and stale truth references."
+      - "Add at least eight real negative fixtures and run three clean archive executions."
+      - "Do not implement retrieval runtime, vector backend, graph traversal or a second canonical store."
+
+  - gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF"
+    status: "WAITING_FOR_GATE_D"
+    owner_pr: 104
+    reviewed_head: "0de24a78d0aa0640fde30014446145a289b3d9bc"
+    objective: "Rewrite the unique cross-PR supply-chain index around the correct parallel object model and independently verify every upstream artifact."
+    required_results:
+      - "Model KnowledgeAtoms=99, KnowledgeRelations=147 and AdversarialQuestions=64 as three parallel artifact classes, never as a 99-to-147-to-64 transformation."
+      - "Remove q0_source_part1/part2 inventions, PLACEHOLDER, NOT_COMPUTABLE, zero hashes and claims that existing relations/questions are not produced."
+      - "Use real paths, exact full upstream Gate receipt heads, Git blob SHAs and content SHA-256 values."
+      - "The validator must extract and inspect actual upstream PR artifacts, not compare local declarations with themselves."
+      - "Verify cross-PR authority, non-duplication, count truth, source locks, candidate boundaries and Codex handoff quarantine."
+      - "PUBLIC_SAFE scanning must fail on injected credential-like, private-body, absolute-local-path and claim-promotion fixtures."
+      - "Run three isolated complete supply-chain builds with canonical per-file and aggregate package hashes."
+      - "Codex handoff remains BLOCKED_FOR_GPT_REVIEW until GPT accepts the final package."
+
+completion_requirements:
+  - "Each Gate has one tested commit plus one receipt-only commit with exact external anchors."
+  - "Final report separates accepted facts, repaired defects, proactive improvements, rejected alternatives, failures, UNKNOWNs and cross-agent impact."
+  - "Final package preserves CANDIDATE_ONLY and does not modify Codex or WorkBuddy branches."
+
+after_completion: "STOP_AND_WAIT_FOR_GPT_FULL_REVIEW"
 
 forbidden:
-  - "No execution before a new explicit GPT route after compute reset."
   - "No direct main write, merge, auto-merge, force push or history rewrite."
+  - "No concurrent substantive work on more than one Gate PR."
   - "No edits to Codex, WorkBuddy, PR #57, PR #58 or PR #93 branches."
+  - "No second canonical memory, retrieval, fusion or knowledge-gateway runtime."
   - "No source activation, labels, external market claims, person/account identification, signal, replay, backtest, performance claim, account, order or trade."
   - "No self-approval of candidate work as accepted, implemented or canonical."
 
-after_completion: "NOT_APPLICABLE_WHILE_PAUSED"
-boundary: "PUBLIC_SAFE / PAUSED / CANDIDATE_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-27T08:35:00+08:00"
+updated_at: "2026-07-28T00:15:00+08:00"
