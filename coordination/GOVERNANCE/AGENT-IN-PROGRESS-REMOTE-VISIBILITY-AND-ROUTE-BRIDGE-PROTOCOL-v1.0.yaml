@@ -1,0 +1,179 @@
+schema_version: "1.0"
+protocol_id: "AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE"
+short_name: "IPRV-RB"
+status: "ACTIVE_PERMANENT_PROJECT_RULE"
+owner: "GPT"
+applies_to: [CODEX, QCLAW, WORKBUDDY, FUTURE_AGENTS, GPT]
+parent_program: 31
+boundary: "PUBLIC_SAFE_REMOTE_VISIBILITY / LOCAL_WORK_PRESERVATION / NO_AUTO_ACCEPTANCE / NO_TRADE"
+
+purpose: >-
+  Prevent a recurring asynchronous blind spot in which an agent has substantive local progress but the active PR and remote branch
+  still show an older head, causing GPT to infer that no work exists and to supersede or redesign a task without preserving the local work.
+  Preserve local execution speed while making material in-progress state visible enough for safe review and route transitions.
+
+risk_assessment:
+  classification: "STRUCTURAL_MEDIUM_HIGH_RECURRENCE_RISK"
+  why_not_rare:
+    - "Large Codex tasks commonly involve long local implementation and test cycles before final push."
+    - "GPT reviews remote GitHub state while the agent may still hold unpushed local commits."
+    - "User-triggered review and route publication can occur while local work is in progress."
+    - "The existing lease protocol validates start and completion, but previously had no mandatory in-progress visibility gate."
+  adjustment_required: true
+  proportionality: "LIGHTWEIGHT_EVENT_BASED_NOT_TIME_BASED"
+
+terms:
+  REMOTE_DELIVERY:
+    meaning: "A pushed commit on the authorized active PR branch that GPT can independently fetch and inspect."
+  REMOTE_CHECKPOINT:
+    meaning: "A pushed public-safe checkpoint ref plus a visibility packet; it is reviewable evidence but not final delivery or acceptance."
+  LOCAL_ONLY_PROGRESS:
+    meaning: "A local commit or working tree state that is not resolvable from the remote repository."
+  LOCAL_PROGRESS_REPORTED_NOT_VERIFIED:
+    meaning: "An agent or user reports local work, but GPT cannot fetch its commit, tree and diff."
+  NO_REMOTE_VERIFIABLE_DELIVERY:
+    meaning: "Remote PR and checkpoint refs show no new reviewable delivery. This does not mean local work is absent."
+
+visibility_trigger_events:
+  any_event_requires_packet:
+    - "A substantive local commit is created after the latest remote PR head."
+    - "A configured progress checkpoint is reached."
+    - "A principal defect receives a working implementation or a test milestone materially improves."
+    - "The agent reports status PARTIAL, RECOVERY_POINT, CHECKPOINT or equivalent."
+    - "The agent is about to stop for an extended period, hand off, switch gate, request review or publish completion."
+    - "The agent discovers that remote main has advanced to a new route_epoch while local work exists."
+  minimum_materiality_examples:
+    - "A new state contract, validator, executable algorithm or integration boundary exists."
+    - "Five or more new semantic tests pass, or a principal failure is fixed."
+    - "The local diff changes ten or more files, or materially changes an authorized core file."
+  minor_work_exemption:
+    - "Pure notes, typo fixes, uncommitted experiments or failed scratch work below the current checkpoint need not create remote noise."
+
+agent_visibility_procedure:
+  step_1_classify_public_safety:
+    - "Scan the checkpoint diff for credentials, private data, licensed source material, local absolute paths, raw logs and prohibited real-market content."
+  step_2_choose_visibility_mode:
+    PUBLIC_SAFE_REMOTE_CHECKPOINT:
+      when: "The checkpoint contains only authorized PUBLIC_SAFE project material."
+      required_actions:
+        - "Push one fast-forward-only checkpoint branch for the active gate or task."
+        - "Recommended branch pattern: <agent>/checkpoint/<task_id>/<gate-or-stage>."
+        - "Post an InProgressVisibilityPacket on the active PR and active Issue."
+      final_delivery_effect:
+        - "The checkpoint branch is not the final PR branch and does not count as tested_head or receipt_head."
+        - "It is exempt from the final two-commit delivery shape and from the implementation PR count, but only one checkpoint branch per active gate may exist."
+        - "It must never be merged or treated as canonical."
+    LOCAL_ONLY_REDACTED_PACKET:
+      when: "The local checkpoint cannot be pushed safely because it contains secrets, private data, licensed material or local-only artifacts."
+      required_actions:
+        - "Do not push the unsafe diff."
+        - "Post a redacted InProgressVisibilityPacket with LOCAL_UNVERIFIABLE status."
+        - "Preserve the local commit, patch and logs without exposing secret values or private content."
+        - "State exactly what evidence cannot be independently reviewed."
+  step_3_continue_or_bridge:
+    - "Continue inside the current lease when the route remains current."
+    - "When the route is stale, preserve local work, post StaleRoutePacket plus the visibility packet, fetch the new route and follow its bridge policy."
+
+in_progress_visibility_packet_required_fields:
+  - "packet_type: InProgressVisibilityPacket"
+  - "agent"
+  - "repository"
+  - "task_id"
+  - "route_epoch"
+  - "active_issue"
+  - "active_pr"
+  - "gate_or_stage"
+  - "remote_main_head_at_packet"
+  - "remote_pr_head_at_packet"
+  - "visibility_mode"
+  - "local_or_checkpoint_head_full_sha"
+  - "parent_full_sha"
+  - "tree_full_sha"
+  - "checkpoint_branch_or_LOCAL_ONLY"
+  - "changed_file_count"
+  - "changed_paths_or_redacted_summary"
+  - "working_tree_status"
+  - "exact_test_commands"
+  - "exit_codes"
+  - "test_counts"
+  - "stdout_stderr_hashes_when_public_safe"
+  - "completed_scope"
+  - "remaining_scope"
+  - "known_failures_skips_unknowns"
+  - "contains_secret_or_private_material"
+  - "remote_reviewability: VERIFIED_OR_UNVERIFIABLE"
+  - "next_action"
+
+route_transition_bridge_policy:
+  GPT_before_superseding_active_route:
+    - "Check active PR heads, active Issue comments and the latest InProgressVisibilityPacket or checkpoint ref."
+    - "When no new remote head exists and no explicit IDLE_OR_NO_LOCAL_PROGRESS packet exists, classify local state as UNKNOWN rather than absent."
+    - "The new route must state whether reported or unknown local work should be preserved, bridged, isolated or discarded with reason."
+  agent_after_detecting_new_route:
+    - "Do not delete, reset, overwrite, force-push or silently abandon local work."
+    - "Emit StaleRoutePacket and InProgressVisibilityPacket."
+    - "If the new route preserves the same underlying goal, continue from the local work only after checking parentage, authorized paths and new gates."
+    - "If the new route conflicts with local work, preserve it on a safe checkpoint branch or local backup and stop for GPT disposition."
+
+GPT_review_preflight:
+  mandatory_checks:
+    - "Latest remote main and active route."
+    - "Active PR head and commit chain."
+    - "Active Issue and PR comments for InProgressVisibilityPacket, PARTIAL, CHECKPOINT, RECOVERY_POINT or StaleRoutePacket."
+    - "Authorized checkpoint branch when one is named."
+    - "Whether the user supplied a local SHA or local progress report that is not remotely resolvable."
+  inference_rules:
+    - "No new PR head means NO_REMOTE_VERIFIABLE_DELIVERY only."
+    - "Do not infer NO_NEW_PROGRESS unless an explicit current IDLE_OR_NO_LOCAL_PROGRESS packet exists."
+    - "A local-only SHA or self-report is not accepted implementation evidence until pushed and independently fetched."
+    - "A remotely fetchable checkpoint may inform architecture and route preservation, but cannot satisfy final tested/receipt gates."
+  required_language:
+    remote_only_absence: "No new remote-verifiable delivery is visible; local progress is unknown unless separately reported."
+    local_report_present: "Local progress is reported but not yet independently verified."
+
+IDLE_OR_NO_LOCAL_PROGRESS_packet:
+  use_when: "The agent has no substantive unpushed work and the remote PR accurately represents current implementation state."
+  required_fields:
+    - "task_id"
+    - "route_epoch"
+    - "remote_pr_head"
+    - "working_tree_clean_or_only_scratch"
+    - "no_substantive_unpushed_commits: true"
+    - "timestamp"
+
+checkpoint_branch_safety:
+  maximum_per_active_gate: 1
+  update_mode: "FAST_FORWARD_ONLY"
+  contains_secrets: false
+  contains_private_data: false
+  contains_real_market_data: false
+  merge_authority: "NONE"
+  canonical_authority: "NONE"
+  final_delivery_authority: "NONE"
+  cleanup: "May be retained as historical recovery evidence or deleted after GPT acceptance; deletion is not required for acceptance."
+
+anti_patterns:
+  - "GPT declaring no work based only on an unchanged PR head."
+  - "Agent keeping a material PARTIAL commit invisible until after the route changes."
+  - "Pushing secret-bearing local work merely to satisfy visibility."
+  - "Treating a checkpoint branch as the final tested or receipt head."
+  - "Force-rewriting the active PR branch to preserve a local checkpoint."
+  - "Discarding local work after a stale-route event without a bridge decision."
+
+binding_updates_required:
+  - "coordination/CODEX-TASK-ROUTER.md"
+  - "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
+  - "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+
+security:
+  secret_export_denied: true
+  direct_main_write_by_agents: false
+  auto_merge: false
+  force_push: false
+  history_rewrite: false
+  issue92_implicit_release: false
+  real_data_implicit_release: false
+  account_order_trade_implicit_release: false
+
+updated_by: "GPT"
+updated_at: "2026-07-27T23:10:00+08:00"
