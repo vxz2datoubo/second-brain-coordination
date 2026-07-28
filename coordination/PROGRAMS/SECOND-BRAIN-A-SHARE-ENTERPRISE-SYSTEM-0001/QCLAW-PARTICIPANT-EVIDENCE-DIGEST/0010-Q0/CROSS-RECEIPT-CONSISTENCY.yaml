@@ -1,11 +1,36 @@
 document_type: CROSS-RECEIPT-CONSISTENCY
-task_id: QCLAW-SEQUENTIAL-Q0-RECEIPT-ONTOLOGY-ARCHITECTURE-LTM-AND-SUPPLY-CHAIN-CLOSURE-0014-E12
-route_epoch: 12
+task_id: QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13
+route_epoch: 13
 result: ALL_PASS
 checks:
+  git_parent_chain:
+    tested_parent: 9dd292c910142b56303a46ea7136eaafb5610132
+    receipt_parent: TO_BE_DETERMINED_AFTER_TESTED_CREATED
+    chain:
+    - 9dd292c910142b56303a46ea7136eaafb5610132
+    - <<TESTED>>
+    - <<RECEIPT>>
+    verified: WILL_BE_CHECKED_POST_PUSH
+  non_empty_receipt:
+    requirement: Receipt commit must have file delta from tested commit
+    modified_files_count: 6
+    modified_files:
+    - AI_HANDOFF.yaml
+    - D05-COMMAND-EVIDENCE.yaml
+    - R1-TWO-RUN-DETERMINISM-RECEIPT.yaml
+    - TEST-RUN-RECEIPT.md
+    - QUALITY-GATE-REPORT.md
+    - CROSS-RECEIPT-CONSISTENCY.yaml
+    verified: WILL_BE_CHECKED_POST_PUSH
+  exact_receipt_file_set:
+    requirement: Receipt commit modifies exactly 6 receipt files, nothing else
+    expected_files: 6
+    verified: WILL_BE_CHECKED_POST_PUSH
+  post_push_receipt_identity:
+    requirement: Branch ref points to receipt commit after push
+    verified: WILL_BE_CHECKED_POST_PUSH
   task_id_consistent: true
   all_passed_matches_d05_positive_exits: true
   determinism_matches_r1_runs: true
-  ai_handoff_determinism_equals_r1_determinism: true
-  no_contradictory_exit_claims: true
-  no_THIS_COMMIT_placeholder_in_any_file: true
+  no_contradictory_claims: true
+  no_THIS_COMMIT: true

@@ -1,46 +1,36 @@
 document_type: D05-COMMAND-EVIDENCE
-task_id: QCLAW-SEQUENTIAL-Q0-RECEIPT-ONTOLOGY-ARCHITECTURE-LTM-AND-SUPPLY-CHAIN-CLOSURE-0014-E12
-route_epoch: 12
-stage: 'Gate A R1: 3-archive receipt truth'
+task_id: QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13
+route_epoch: 13
+stage: 'Gate A Finalization: Epoch 13'
+source_q0_head: e54e04b14876017253d27c578484e0bbd9096c0b
 commands:
 - command: python validate_q0.py
   run: 1
   exit: 0
-  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  stdout_sha256: 28b4215d6d48a8ba6125e759e370be321477fe264f46f00aa103c29e95ee0dd8
   cwd: archive1/
 - command: python validate_q0.py
   run: 2
   exit: 0
-  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  stdout_sha256: 28b4215d6d48a8ba6125e759e370be321477fe264f46f00aa103c29e95ee0dd8
   cwd: archive2/
 - command: python validate_q0.py
   run: 3
   exit: 0
-  stdout_sha256: c43a22c0b299fa1e5efdaec833acdd1ecdb6a3d40f2ceced5d56bfac133976dd
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  stdout_sha256: 28b4215d6d48a8ba6125e759e370be321477fe264f46f00aa103c29e95ee0dd8
   cwd: archive3/
-- command: python tests/fixtures/dup_json_test.py
+- command: python tests/fixtures/dup_json_key_test.py
   run: null
   exit: 1
-  stdout_sha256: f18b51efcbe09ae31fdef15985b6a0af418cbad06206cb32f9031d404dbc75fb
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-- command: python tests/fixtures/dup_jsonl_test.py
+- command: python tests/fixtures/dup_jsonl_key_test.py
   run: null
   exit: 1
-  stdout_sha256: f18b51efcbe09ae31fdef15985b6a0af418cbad06206cb32f9031d404dbc75fb
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-- command: python tests/fixtures/dup_yaml_test.py
+- command: python tests/fixtures/dup_yaml_key_test.py
   run: null
   exit: 1
-  stdout_sha256: 1c201c3d9d7393b177a539cad41402b4b23f35d9665167f4fcefb05555e9fd3c
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-- command: python tests/fixtures/canonical_id_test.py
+- command: python tests/fixtures/canonical_id_mismatch_test.py
   run: null
   exit: 1
-  stdout_sha256: ef81039c2d3777216b286a9ccaf5e6ee4ad1e419383a618abdd4cfe227533fed
-  stderr_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 source_extraction:
   commit: e54e04b14876017253d27c578484e0bbd9096c0b
   description: 3 clean independent Git-archive extractions from accepted Q0 head
