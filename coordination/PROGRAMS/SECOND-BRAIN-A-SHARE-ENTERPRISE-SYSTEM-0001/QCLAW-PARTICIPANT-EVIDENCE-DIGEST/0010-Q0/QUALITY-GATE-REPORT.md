@@ -1,22 +1,24 @@
-# QUALITY-GATE-REPORT.md 鈥?Epoch 13 Gate A Finalization
+# QUALITY-GATE-REPORT.md — Epoch 14 Remote Lineage Truth Correction
 
 ## Gate Summary
-| Gate | Result |
-|------|--------|
-| D01 Content validation | PASS (99/147/64, 0 mismatches) |
-| D02 Source/tested lineage | PASS (source=e54e04b14876, tested=713c035d327d, receipt_parent=9dd292c91014) |
-| D03 AI_HANDOFF lineage fields | PASS (4 fields: source_q0_head, gate_reviewed_head, gate_tested_head, receipt_parent) |
-| D04 Non-empty receipt + file set | PASS (6 receipt files will differ from tested tree) |
-| D05 3 independent archives | PASS (exit=0 x3, 0 failures, stdout IDENTICAL) |
-| D06 Negative fixtures | PASS (4/4 exit nonzero) |
-| D07 External anchoring | RESOLVED (PR #96, Issue #59, Issue #31) |
+| Check | Result |
+|-------|--------|
+| Content validation (99/147/64) | PASS (0 mismatches) |
+| Lineage truth vs remote | PASS (GitHub API confirmed) |
+| Non-empty receipt commit | PASS (trees differ) |
+| Receipt file count truth | PASS (1 file, verified via Compare API) |
+| 3 archive runs | PASS (exit=0, stdout IDENTICAL) |
+| Negative fixtures | PASS (4/4 exit nonzero) |
+| Post-push attestation | PASS (branch ref verified) |
+| No stale head SHAs | PASS |
+| No self-reference | PASS |
 
-## 3-Archive Determinism
-| Archive | Exit | Failures | stdout_sha256 |
-|---------|------|----------|---------------|
-| 1 | 0 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
-| 2 | 0 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
-| 3 | 0 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
+## Key Corrections
+| Field | Before (stale) | After (remote truth) |
+|-------|---------------|---------------------|
+| gate_reviewed_head | b5c4ec6... | 9dd292c... |
+| gate_tested_head | 713c035d... | d748191e... |
+| receipt_parent | 9dd292c... | d748191e... |
+| receipt changed files | 6 | 1 (CROSS-RECEIPT-CONSISTENCY.yaml) |
 
-Determinism: **IDENTICAL**
-**0 FAILURES, 0 WARNINGS**
+**0 FAILURES, 0 WARNINGS — Remote lineage truth achieved**

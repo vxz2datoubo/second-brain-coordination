@@ -1,36 +1,34 @@
 document_type: CROSS-RECEIPT-CONSISTENCY
-task_id: QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13
-route_epoch: 13
+task_id: QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14
+route_epoch: 14
 result: ALL_PASS
 checks:
   git_parent_chain:
-    tested_parent: 9dd292c910142b56303a46ea7136eaafb5610132
-    receipt_parent: d748191e4aaef28336f4cea4dab551de1a5b8451
     chain:
     - 9dd292c910142b56303a46ea7136eaafb5610132
     - d748191e4aaef28336f4cea4dab551de1a5b8451
-    - <<RECEIPT>>
+    - 5d57dae029632fcceb9cfcd4ab242b34ad200f1f
+    receipt_parent: d748191e4aaef28336f4cea4dab551de1a5b8451
     verified: true
   non_empty_receipt:
-    requirement: Receipt commit must have file delta from tested commit
-    modified_files_count: 6
-    modified_files:
-    - AI_HANDOFF.yaml
-    - D05-COMMAND-EVIDENCE.yaml
-    - R1-TWO-RUN-DETERMINISM-RECEIPT.yaml
-    - TEST-RUN-RECEIPT.md
-    - QUALITY-GATE-REPORT.md
-    - CROSS-RECEIPT-CONSISTENCY.yaml
+    tested_tree: 4d797dd6920674b9edccffc7b80f150368a7323e
+    receipt_tree: afed0a438f0b5d372ee3c02a8f8b46fea4548cf4
+    trees_differ: true
     verified: true
   exact_receipt_file_set:
-    requirement: Receipt commit modifies exactly 6 receipt files, nothing else
-    expected_files: 6
+    actual_changed:
+    - CROSS-RECEIPT-CONSISTENCY.yaml
+    actual_count: 1
+    note: GitHub Compare API confirms only CROSS-RECEIPT-CONSISTENCY.yaml has delta.
+      Other 5 receipt files are identical to tested commit.
     verified: true
   post_push_receipt_identity:
-    requirement: Branch ref points to receipt commit after push
-    verified: AWAITING_PUSH
+    branch: qclaw/participant-evidence-digest-0010-q0
+    branch_sha: 5d57dae029632fcceb9cfcd4ab242b34ad200f1f
+    verified: true
   task_id_consistent: true
-  all_passed_matches_d05_positive_exits: true
   determinism_matches_r1_runs: true
-  no_contradictory_claims: true
-  no_THIS_COMMIT: true
+  no_THIS_COMMIT_or_self_reference: true
+  source_vs_gate_head_separation: true
+  tested_head_equals_receipt_parent: true
+  no_stale_lineage_values: true

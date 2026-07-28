@@ -1,47 +1,47 @@
-# TEST-RUN-RECEIPT.md 鈥?Epoch 13 Gate A Finalization
+# TEST-RUN-RECEIPT.md — Epoch 14 Remote Lineage Truth Correction
 
-**task_id:** QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13
-**completion_signal:** QCLAW_E13_PR96_RECEIPT_LINEAGE_AND_POST_PUSH_ATTESTATION_READY_FOR_GPT_REVIEW
-**route_epoch:** 13
+**task_id:** QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14
+**completion_signal:** QCLAW_E14_PR96_REMOTE_LINEAGE_TRUTH_AND_EXTERNAL_ATTESTATION_READY_FOR_GPT_REVIEW
+**route_epoch:** 14
 
-## Head Lineage
+## Actual Remote Git Chain
 | Role | SHA |
 |------|-----|
 | source_q0_head | e54e04b14876017253d27c578484e0bbd9096c0b |
-| gate_reviewed_head | b5c4ec6bd4da3480ac378d55c43c21151310f4c5 |
-| gate_tested_head | 713c035d327d194e3c44a2256eb4e27596659f52 |
-| receipt_parent | 9dd292c910142b56303a46ea7136eaafb5610132 |
+| gate_reviewed_head | 9dd292c910142b56303a46ea7136eaafb5610132 |
+| gate_tested_head | d748191e4aaef28336f4cea4dab551de1a5b8451 |
+| gate_receipt_head | 5d57dae029632fcceb9cfcd4ab242b34ad200f1f |
+| receipt_parent | d748191e4aaef28336f4cea4dab551de1a5b8451 |
 
-## Receipt Files (Epoch 13)
+## Receipt Commit Delta (verified via GitHub Compare API)
+Receipt commit `5d57dae029632fcceb9cfcd4ab242b34ad200f1f` changed exactly 1 file from tested `d748191e4aaef28336f4cea4dab551de1a5b8451`:
+- CROSS-RECEIPT-CONSISTENCY.yaml
+
+## Receipt Files (E14 post-correction, actual on-disk)
 | File | Size | SHA-256 |
 |------|------|---------|
-| D05-COMMAND-EVIDENCE.yaml | 1156 | 3183cce3595d9b58bbd776733efad05a2f7fe7063abf631d653cf3866b68a343 |
-| AI_HANDOFF.yaml | 790 | c0c81163b55d5f7ad143f0a6d6403407786c4bfaa452c4d10417086520a9e966 |
-| R1-TWO-RUN-DETERMINISM-RECEIPT.yaml | 682 | c138d310d761f3a9a7d1c800ef11bc91c5df4b7b195b43fc8836c6b2d953ed47 |
-| CROSS-RECEIPT-CONSISTENCY.yaml | 1267 | 0a9fe10249cfb704992ba49d6a7db99b64acca4ed3eb9f96613c6f8e1ce70d2b |
+| AI_HANDOFF.yaml | 902 | 5a70aaeaed05b027df56173f857dff5e1ff877c41850c389c1a254af9ec0eab5 |
+| CROSS-RECEIPT-CONSISTENCY.yaml | 1244 | 920652eb7840190dc83dd0cbb899727c78b96a1844705d85155b2adc469e03c3 |
+| D05-COMMAND-EVIDENCE.yaml | 1189 | fc445b2aa1f54824e354b426e63a4eccd6e3010289a97e68b7aad425089cecad |
+| R1-TWO-RUN-DETERMINISM-RECEIPT.yaml | 688 | 36501878b098c45e1529268ed345847a7a6629bf88393a11fccee65a32e64b4e |
 
-## Source Blobs (immutable from e54e04b14876)
+## Source Blobs (immutable, from e54e04b14876)
 | File | Size | SHA-256 |
 |------|------|---------|
 | KNOWLEDGE-ATOMS.jsonl | 59631 | 47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d |
 | KNOWLEDGE-RELATIONS.jsonl | 52892 | 39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a |
 | ADVERSARIAL-QUESTION-SET.jsonl | 40889 | 2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927 |
 
-## 3-Archive Validation (content checks)
-| Archive | Exit | stdout_sha256 |
-|---------|------|---------------|
-| 1 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
-| 2 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
-| 3 | 0 | 28b4215d6d48a8ba6125e759e370be32... |
-
-## Summary
-- Source Q0 head: e54e04b14876017253d27c578484e0bbd9096c0b
-- Gate tested head: 713c035d327d194e3c44a2256eb4e27596659f52
-- Receipt parent: 9dd292c910142b56303a46ea7136eaafb5610132
-- 99 Atoms, 147 Relations, 64 Questions 鈥?preserved
-- 3 archives: exit=0, 0 failures, stdout=28b4215d6d48a8ba6125e759e370be32...
-- 4/4 negative fixtures exit nonzero
+## Validation Evidence
+- 3 archive runs: exit=0, 0 content FAIL, stdout IDENTICAL
+- 4 negative fixtures: all exit nonzero
+- 99 Atoms, 147 Relations, 64 Questions — preserved
 - Determinism: IDENTICAL
-- Cross-receipt: ALL_PASS
 
-**ALL 0 FAILURES, 0 WARNINGS**
+## E14 Corrections Applied
+- AI_HANDOFF: stale heads corrected to remote truth (no b5c4ec6/713c035d/9dd292c)
+- Receipt file count: truthfully 1 (CROSS-RECEIPT-CONSISTENCY), not 6
+- post_push_receipt_identity: VERIFIED
+- No self-referencing SHA anywhere
+
+**0 FAILURES, 0 WARNINGS**
