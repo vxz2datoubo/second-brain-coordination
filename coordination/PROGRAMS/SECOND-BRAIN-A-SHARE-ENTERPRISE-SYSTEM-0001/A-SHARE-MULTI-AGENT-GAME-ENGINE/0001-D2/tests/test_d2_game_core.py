@@ -15,10 +15,10 @@ from d2_game_core import (  # noqa: E402
     ParticipantArchetypeHypothesis, ParticipantFamily, ParticipantSubtype, SYNTHETIC_CAPABILITY,
     arbitrate, run_bounded_counterfactual_episode, run_one_step_counterfactual,
     total_system_accounted, total_system_conserved, verify_episode_ledger, _episode_state_hash,
-    SharedMarketState, _sha, _system_hash,
+    ExternalLiquidityFlowEvent, SharedMarketState, _sha, _system_hash,
 )
 from synthetic_engine.fixtures import INVENTORY, market, order  # noqa: E402
-from synthetic_engine.types import InventoryState, OrderSide, SyntheticLot  # noqa: E402
+from synthetic_engine.types import InventoryState, MatchMode, OrderSide, SyntheticLot  # noqa: E402
 
 
 def posterior(subtype=ParticipantSubtype.RETAIL_LIQUIDITY_TAKER, weight=1.0):
@@ -54,6 +54,35 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.retail = agent("retail", ParticipantSubtype.RETAIL_LIQUIDITY_TAKER, INVENTORY)
         self.quant = agent("quant", ParticipantSubtype.SYSTEMATIC_REBALANCER, InventoryState((SyntheticLot("quant-seasoned", "2026-07-25", 7),), settled_trade_date="2026-07-26"))
         self.active = agent("active", ParticipantSubtype.EVENT_DRIVEN_ACTIVE, INVENTORY)
+
+    def peer_pair(self, transfer_id, *, first_options=None, second_options=None, qty=2):
+        first_options = dict(first_options or {})
+        second_options = dict(second_options or {})
+        buy = action(
+            "peer-buy-" + transfer_id, "retail", 1, qty=qty,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id=transfer_id,
+            **first_options,
+        )
+        sell = action(
+            "peer-sell-" + transfer_id, "quant", 2, side=OrderSide.SELL, qty=qty,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="retail", peer_transfer_id=transfer_id,
+            **second_options,
+        )
+        return buy, sell
+
+    def assert_atomic_peer_abort(self, result, reason):
+        self.assertEqual(len(result.events), 2)
+        self.assertTrue(all(not event.accepted and event.filled_quantity == 0 for event in result.events))
+        self.assertTrue(all(reason in event.rejected_reason_codes for event in result.events))
+        self.assertEqual(result.episode_state.external_liquidity_flows, ())
+        states = {state.agent_id: state for state in result.final_agent_portfolios}
+        self.assertEqual(states["retail"].initial_inventory, states["retail"].final_inventory)
+        self.assertEqual(states["quant"].initial_inventory, states["quant"].final_inventory)
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
 
     def test_canonical_four_families_and_nine_subtypes_remain_defined(self):
         self.assertEqual(len(ParticipantFamily), 4)
@@ -520,6 +549,162 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         result = arbitrate("e16-step", self.market, (self.retail,), (action("buy", "retail", 1),))
         forged = rehashed_episode(result.episode_state, step_index=result.episode_state.step_index + 1)
         self.assertFalse(verify_episode_ledger(forged).valid)
+
+    # E17: peer transfer groups settle over a shared pre-state or abort together.
+    def test_e17_unknown_parent_on_second_leg_aborts_both_peer_legs(self):
+        result = arbitrate(
+            "e17-parent-second", self.market, (self.retail, self.quant),
+            self.peer_pair("parent-second", second_options={"causal_parent_event_ids": ("missing-parent",)}),
+        )
+        self.assert_atomic_peer_abort(result, "PEER_GROUP_UNKNOWN_OR_FORWARD_CAUSAL_PARENT")
+
+    def test_e17_unknown_parent_on_first_leg_aborts_both_peer_legs_symmetrically(self):
+        result = arbitrate(
+            "e17-parent-first", self.market, (self.retail, self.quant),
+            self.peer_pair("parent-first", first_options={"causal_parent_event_ids": ("missing-parent",)}),
+        )
+        self.assert_atomic_peer_abort(result, "PEER_GROUP_UNKNOWN_OR_FORWARD_CAUSAL_PARENT")
+
+    def test_e17_release_on_one_peer_leg_aborts_both_before_resource_mutation(self):
+        result = arbitrate(
+            "e17-release", self.market, (self.retail, self.quant),
+            self.peer_pair("release", second_options={"conflict": "scarce", "conflict_transition": ConflictTransition.RELEASE}),
+        )
+        self.assert_atomic_peer_abort(result, "UNSUPPORTED_PEER_CONFLICT_RESOURCE")
+        self.assertEqual(result.shared_market_state.claimed_conflict_keys, ())
+
+    def test_e17_expire_on_one_peer_leg_aborts_both_before_resource_mutation(self):
+        result = arbitrate(
+            "e17-expire", self.market, (self.retail, self.quant),
+            self.peer_pair("expire", first_options={"conflict": "scarce", "conflict_transition": ConflictTransition.EXPIRE}),
+        )
+        self.assert_atomic_peer_abort(result, "UNSUPPORTED_PEER_CONFLICT_RESOURCE")
+
+    def test_e17_claim_on_one_peer_leg_aborts_both_before_resource_mutation(self):
+        result = arbitrate(
+            "e17-claim", self.market, (self.retail, self.quant),
+            self.peer_pair("claim", first_options={"conflict": "scarce"}),
+        )
+        self.assert_atomic_peer_abort(result, "UNSUPPORTED_PEER_CONFLICT_RESOURCE")
+
+    def test_e17_valid_peer_commit_has_shared_pre_and_post_system_state(self):
+        result = arbitrate("e17-commit", self.market, (self.retail, self.quant), self.peer_pair("commit"))
+        self.assertEqual(len(result.events), 2)
+        self.assertTrue(all(event.accepted for event in result.events))
+        self.assertEqual({event.system_pre_state_hash for event in result.events}, {result.events[0].system_pre_state_hash})
+        self.assertEqual({event.system_post_state_hash for event in result.events}, {result.events[0].system_post_state_hash})
+        self.assertEqual(result.episode_state.external_liquidity_flows, ())
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
+
+    def test_e17_valid_no_fill_peer_pair_commits_zero_complementary_delta(self):
+        buy, sell = self.peer_pair("no-fill")
+        buy = replace(buy, order=replace(buy.order, match_mode=MatchMode.NO_FILL_CANCEL))
+        sell = replace(sell, order=replace(sell.order, match_mode=MatchMode.NO_FILL_CANCEL))
+        result = arbitrate("e17-no-fill", self.market, (self.retail, self.quant), (buy, sell))
+        self.assertTrue(all(event.accepted and event.filled_quantity == 0 for event in result.events))
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
+
+    def test_e17_valid_partial_fill_peer_pair_commits_complementary_delta(self):
+        buy, sell = self.peer_pair("partial", qty=3)
+        buy = replace(buy, order=replace(buy.order, match_mode=MatchMode.PARTIAL, partial_fill_quantity=1))
+        sell = replace(sell, order=replace(sell.order, match_mode=MatchMode.PARTIAL, partial_fill_quantity=1))
+        result = arbitrate("e17-partial", self.market, (self.retail, self.quant), (buy, sell))
+        self.assertEqual(tuple(event.filled_quantity for event in result.events), (1, 1))
+        self.assertTrue(all(event.accepted for event in result.events))
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        self.assertTrue(total_system_conserved((self.retail, self.quant), result))
+        self.assertTrue(total_system_accounted((self.retail, self.quant), result))
+
+    def test_e17_declared_blocked_peer_leg_aborts_both(self):
+        result = arbitrate(
+            "e17-declared-blocked", self.market, (self.retail, self.quant),
+            self.peer_pair("declared-blocked", second_options={"label": ActionLabel.BLOCKED}),
+        )
+        self.assert_atomic_peer_abort(result, "PEER_GROUP_NONEXECUTABLE_ACTION")
+
+    def test_e17_incomplete_information_on_one_peer_leg_aborts_both(self):
+        unknown_quant = agent(
+            "quant", ParticipantSubtype.SYSTEMATIC_REBALANCER,
+            InventoryState((SyntheticLot("quant-seasoned", "2026-07-25", 7),), settled_trade_date="2026-07-26"),
+            unknowns=("opaque-context",),
+        )
+        result = arbitrate(
+            "e17-information", self.market, (self.retail, unknown_quant),
+            self.peer_pair("information", second_options={"requires_complete_information": True}),
+        )
+        self.assert_atomic_peer_abort(result, "PEER_GROUP_INCOMPLETE_INFORMATION")
+
+    def test_e17_aborted_peer_invocation_and_order_identities_cannot_be_reused(self):
+        pair = self.peer_pair("abort-identities", second_options={"causal_parent_event_ids": ("missing-parent",)})
+        first = arbitrate("e17-identities", self.market, (self.retail, self.quant), pair)
+        reused = replace(action("later", "retail", 1, invocation_id=pair[0].effective_invocation_id), order=pair[1].order)
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e17-identities-next", self.market, (self.retail, self.quant), (reused,), prior_episode_state=first.episode_state)
+
+    def test_e17_aborted_peer_transfer_id_cannot_be_reused_across_steps(self):
+        pair = self.peer_pair("abort-transfer", second_options={"causal_parent_event_ids": ("missing-parent",)})
+        first = arbitrate("e17-transfer", self.market, (self.retail, self.quant), pair)
+        next_pair = tuple(replace(item, peer_transfer_id="abort-transfer") for item in self.peer_pair("new-transfer"))
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e17-transfer-next", self.market, (self.retail, self.quant), next_pair, prior_episode_state=first.episode_state)
+
+    def test_e17_verifier_rejects_coordinated_one_leg_peer_commit(self):
+        result = arbitrate("e17-forge-one-leg", self.market, (self.retail, self.quant), self.peer_pair("forge-one-leg"))
+        first, second = result.episode_state.event_dag
+        forged_second = replace(
+            second, label=ActionLabel.BLOCKED, accepted=False, outcome_status="INVALID_OR_BLOCKED",
+            filled_quantity=0, rejected_reason_codes=("PEER_GROUP_ABORTED",),
+            owner_post_state_hash=second.owner_pre_state_hash,
+        )
+        forged = rehashed_episode(result.episode_state, event_dag=(first, forged_second))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("PEER_GROUP_PARTIAL_COMMIT", verification.reason_codes)
+
+    def test_e17_verifier_rejects_deleted_peer_terminal_event(self):
+        result = arbitrate("e17-forge-delete", self.market, (self.retail, self.quant), self.peer_pair("forge-delete"))
+        forged = rehashed_episode(result.episode_state, event_dag=result.episode_state.event_dag[:1])
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("PEER_GROUP_EVENT_MEMBERSHIP_MISMATCH", verification.reason_codes)
+
+    def test_e17_verifier_rejects_noncomplementary_peer_delta(self):
+        result = arbitrate("e17-forge-delta", self.market, (self.retail, self.quant), self.peer_pair("forge-delta"))
+        first, second = result.episode_state.event_dag
+        forged = rehashed_episode(result.episode_state, event_dag=(first, replace(second, filled_quantity=1)))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("PEER_GROUP_NONCOMPLEMENTARY_DELTA", verification.reason_codes)
+
+    def test_e17_verifier_rejects_external_flow_attached_to_peer_event(self):
+        result = arbitrate("e17-forge-flow", self.market, (self.retail, self.quant), self.peer_pair("forge-flow"))
+        event = result.episode_state.event_dag[0]
+        forged_flow = ExternalLiquidityFlowEvent("forged-flow", event.event_id, event.agent_id, 2, -2)
+        forged = rehashed_episode(result.episode_state, external_liquidity_flows=(forged_flow,))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("PEER_GROUP_EXTERNAL_FLOW_PRESENT", verification.reason_codes)
+
+    def test_e17_peer_commit_preserves_prior_claim_then_release_lineage(self):
+        claimed = arbitrate(
+            "e17-lineage-claim", self.market, (self.retail, self.quant),
+            (action("claim", "retail", 1, conflict="scarce"),),
+        )
+        peer = arbitrate(
+            "e17-lineage-peer", self.market, (self.retail, self.quant), self.peer_pair("lineage-peer"),
+            prior_episode_state=claimed.episode_state,
+        )
+        released = arbitrate(
+            "e17-lineage-release", self.market, (self.retail, self.quant),
+            (action("release", "retail", 1, conflict="scarce", conflict_transition=ConflictTransition.RELEASE),),
+            prior_episode_state=peer.episode_state,
+        )
+        self.assertNotIn("scarce", released.shared_market_state.claimed_conflict_keys)
+        self.assertTrue(verify_episode_ledger(released.episode_state).valid)
 
 
 if __name__ == "__main__":
