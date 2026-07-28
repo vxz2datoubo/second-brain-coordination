@@ -1,4 +1,4 @@
-schema_version: "20.0"
+schema_version: "21.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -13,7 +13,7 @@ active_issue: 59
 related_issues: [23, 31, 38, 60]
 primary_pull_requests: [96, 100, 64, 65, 104]
 reviewed_heads:
-  pr96: "9dd292c910142b56303a46ea7136eaafb5610132"
+  pr96: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
   pr100: "76d447f0bfc9896ee530808238fcda1527809fc1"
   pr64: "30d803b69da89461ea8c8d6be663effb38a1d816"
   pr65: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
@@ -21,16 +21,16 @@ reviewed_heads:
 accepted_q0_source_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
 
 # ACTIVE LEASE
-task_id: "QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13"
+task_id: "QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96回执父链、非空receipt与推送后证明最终封口E13"
+mode_label: "【QCLAW模式：目标模式】PR #96远端谱系真值与外部证明校正E14"
 mode_reason: >-
-  GPT independently reviewed PR #96 through head 9dd292c910142b56303a46ea7136eaafb5610132. The Epoch 12 R1 correction
-  materially fixed the previous exit-code and determinism contradictions: three clean archives now record exit 0 with identical stdout,
-  negative fixtures remain non-zero, and the 99/147/64 semantic content was not changed. Gate A is still not accepted because the supposed
-  receipt commit is empty, TEST-RUN-RECEIPT labels the immutable Q0 source head as tested_commit instead of the Gate tested head, and the
-  cross-receipt checker does not verify Git lineage, non-empty receipt delta, exact receipt-only file scope, or post-push receipt identity.
-  Epoch 13 preserves the useful validator work and performs one bounded final evidence closure. Gate B cannot start without explicit GPT acceptance.
+  GPT reviewed PR #96 through remote head 5d57dae029632fcceb9cfcd4ab242b34ad200f1f. Epoch 13 preserved valid
+  archive and negative-test evidence, and created a non-empty receipt commit, but the final remote tree still binds stale heads:
+  AI_HANDOFF records gate_reviewed_head=b5c4ec6..., gate_tested_head=713c035d..., and receipt_parent=9dd292c..., while the actual
+  Epoch 13 chain is reviewed=9dd292c..., tested=d748191e..., receipt=5d57dae.... The receipt commit also changed only one file,
+  although its message and receipt metadata claim six. Epoch 14 is therefore a narrow remote-lineage truth correction. It must not
+  repeat broad validator work or begin Gate B.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
@@ -38,125 +38,108 @@ blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "9dd292c910142b56303a46ea7136eaafb5610132"
+reviewed_or_base_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
 direct_main_write: false
 auto_merge: false
-route_epoch: 13
-route_issued_at: "2026-07-28T04:15:00+08:00"
-route_issued_against_main: "cf57c7114587ece09c311a5c05124a437f498588"
-completion_signal: "QCLAW_E13_PR96_RECEIPT_LINEAGE_AND_POST_PUSH_ATTESTATION_READY_FOR_GPT_REVIEW"
+route_epoch: 14
+route_issued_at: "2026-07-28T04:45:00+08:00"
+completion_signal: "QCLAW_E14_PR96_REMOTE_LINEAGE_TRUTH_AND_EXTERNAL_ATTESTATION_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-SEQUENTIAL-Q0-RECEIPT-ONTOLOGY-ARCHITECTURE-LTM-AND-SUPPLY-CHAIN-CLOSURE-0014-E12@route_epoch:12"
+  - "QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13@route_epoch:13"
 
 review_disposition:
-  classification: "ACCEPT_WITH_GPT_REFINEMENT_VALIDATOR_RESULTS_PRESERVED_GATE_A_NOT_PASSED"
-  accepted_as_candidate_base:
-    - "Three clean Git-archive runs are recorded as exit 0 with identical stdout SHA-256."
-    - "Four negative fixtures remain fail-closed with non-zero exits."
-    - "AI_HANDOFF determinism and run receipts now agree on IDENTICAL."
-    - "99 KnowledgeAtoms, 147 KnowledgeRelations and 64 AdversarialQuestions were not semantically modified."
-    - "A cross-receipt consistency direction is useful and should be strengthened rather than discarded."
+  classification: "PARTIAL_ACCEPT_PRESERVE_TEST_EVIDENCE_RETURN_REMOTE_LINEAGE_AND_RECEIPT_TRUTH"
+  accepted_value:
+    - "Three clean archive positive runs remain recorded as exit 0 with identical normalized stdout."
+    - "Four negative fixtures remain non-zero."
+    - "Q0 semantic content 99/147/64 remains unchanged."
+    - "Epoch 13 created an actual non-empty receipt commit."
   blocking_findings:
-    - "Commit 9dd292c910142b56303a46ea7136eaafb5610132 is labelled receipt-only but has no file delta from tested commit 713c035d327d194e3c44a2256eb4e27596659f52."
-    - "TEST-RUN-RECEIPT.md uses e54e04b14876017253d27c578484e0bbd9096c0b as tested_commit; that is the immutable Q0 source head, not the Epoch 12 Gate tested correction head."
-    - "AI_HANDOFF exposes q0_tested_head but does not separately bind source_q0_head, gate_reviewed_head, gate_tested_head and receipt_parent."
-    - "CROSS-RECEIPT-CONSISTENCY.yaml does not prove Git ancestry, exact allowed receipt delta, non-empty receipt commit, or post-push receipt identity."
-    - "The tested correction bundled validator and receipt changes, while the following receipt commit carried no receipt changes."
+    - "Actual chain is 9dd292c... -> d748191e... -> 5d57dae...."
+    - "Final AI_HANDOFF still records stale gate_reviewed_head=b5c4ec6..., gate_tested_head=713c035d..., receipt_parent=9dd292c...."
+    - "Receipt commit 5d57dae... modifies only CROSS-RECEIPT-CONSISTENCY.yaml, not six files as claimed."
+    - "CROSS-RECEIPT-CONSISTENCY marks post_push_receipt_identity as AWAITING_PUSH even though the branch is already pushed."
+    - "Commit messages and metadata overclaim the remote changed-file set."
   gate_b_status: "FROZEN_PENDING_EXPLICIT_GPT_ACCEPTANCE"
   issue92: "BLOCKED_NOT_RELEASED"
 
 resource_and_effort:
   priority_share_percent: 30
-  task_weight: "MEDIUM_BOUNDED_FINAL_EVIDENCE_CLOSURE"
-  checkpoints: [20, 50, 80, 100]
+  task_weight: "SMALL_STRICT_REMOTE_TRUTH_CORRECTION"
+  checkpoints: [50, 100]
   first_checkpoint_required:
-    - "Echo latest main, route_epoch 13, reviewed PR #96 head 9dd292c910142b56303a46ea7136eaafb5610132 and Gate A FINALIZATION_ONLY."
-    - "Report any unpushed local work using IDLE_OR_NO_LOCAL_PROGRESS or InProgressVisibilityPacket."
-    - "Show a machine failing reproduction for empty receipt commit and source-head/tested-head conflation before changing files."
+    - "Echo remote main, Epoch 14, PR #96 head 5d57dae... and FINAL_REMOTE_TRUTH_ONLY."
+    - "Use GitHub-visible commit/compare results as the authority, not local assumptions."
+    - "Show the exact actual chain and receipt changed-file list before editing."
 
 exploration_budget:
-  primary_delivery_share: "85-95%"
-  active_discovery_share: "5-15%"
-  maximum_new_branches: 1
+  primary_delivery_share: "95-100%"
+  active_discovery_share: "0-5%"
+  maximum_new_branches: 0
   maximum_new_draft_prs: 0
   maximum_simultaneous_substantive_prs: 1
-  maximum_unplanned_files_inside_authorized_paths: 4
+  maximum_unplanned_files_inside_authorized_paths: 0
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "QCLAW_BOUNDED_FINALIZATION_AUTONOMY_SINGLE_PR"
-  validator_and_test_design_inside_gate: true
-  may_add_one_lineage_release_validator: true
-  may_fix_AMED_A_B_evidence_defects_inside_gate: true
+  profile: "QCLAW_MINIMAL_REMOTE_TRUTH_CORRECTION_SINGLE_PR"
   may_continue_inside_gate_without_gpt: true
   may_advance_to_gate_b_without_gpt: false
   final_self_approval: false
   history_rewrite: false
   force_push: false
 
-visibility_contract:
-  material_partial_progress_requires_packet: true
-  public_safe_checkpoint_allowed: true
-  maximum_checkpoint_branches_per_gate: 1
-  checkpoint_is_not_delivery: true
-  local_secret_or_private_material_must_not_be_pushed: true
-
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_PR96_RECEIPT_LINEAGE_FINALIZATION"
+  active_gate: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
   later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE"
   gate_transition_requires_explicit_gpt_acceptance: true
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR100"
 
 stage_plan:
-  - gate_id: "A_PR96_RECEIPT_LINEAGE_FINALIZATION"
+  - gate_id: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
     status: "ACTIVE"
     owner_pr: 96
-    reviewed_head: "9dd292c910142b56303a46ea7136eaafb5610132"
-    objective: "Produce a non-empty, lineage-correct and independently verifiable tested-plus-receipt pair without changing Q0 semantic content."
+    reviewed_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+    objective: "Correct the final remote receipt metadata to the actual Git lineage and publish truthful external attestation."
     exact_commit_shape:
-      - "From reviewed head 9dd292c..., create exactly one substantive tested correction commit."
-      - "Then create exactly one non-empty receipt-only commit whose changed files are limited to approved receipt and handoff files."
-      - "No amend, rebase, reset of published history, force push or merge."
-    tested_commit_requirements:
-      - "Add or strengthen machine validation for source_q0_head versus gate_tested_head separation, Git parent lineage, non-empty receipt delta and exact receipt-only file scope."
-      - "Allowed substantive files: validate_q0.py, at most one dedicated release-lineage validator, and validator tests/fixtures inside the existing 0010-Q0 directory."
-      - "Run three independent Git archives of the tested commit; all primary validations must exit 0 and normalized stdout must be identical."
-      - "Run duplicate JSON, JSONL, YAML and canonical-ID mutation fixtures; all must exit non-zero."
-      - "Do not modify KNOWLEDGE-ATOMS.jsonl, KNOWLEDGE-RELATIONS.jsonl or ADVERSARIAL-QUESTION-SET.jsonl."
-    receipt_commit_requirements:
-      - "The receipt commit must be non-empty and modify only AI_HANDOFF.yaml, D05-COMMAND-EVIDENCE.yaml, R1-TWO-RUN-DETERMINISM-RECEIPT.yaml, TEST-RUN-RECEIPT.md, QUALITY-GATE-REPORT.md and CROSS-RECEIPT-CONSISTENCY.yaml."
-      - "Record source_q0_head=e54e04b..., gate_reviewed_head=9dd292c..., exact full gate_tested_head, gate_tested_tree and receipt_parent equal to gate_tested_head."
-      - "Do not attempt to place the receipt commit's own SHA or tree inside its own content. Bind receipt_head, receipt_parent, receipt_tree and receipt blob SHAs in post-push external anchors instead."
-      - "TEST-RUN-RECEIPT must not label the source Q0 head as the Gate tested commit."
-      - "Cross-receipt checks must include source_vs_gate_head_separation, tested_head_equals_receipt_parent, receipt_commit_non_empty, exact_receipt_only_file_set and no_self_reference."
-    post_push_attestation:
-      - "After pushing, independently verify the receipt head using GitHub-visible commits and compare output."
-      - "Post exact tested head/tree, receipt head/parent/tree, changed-file list, command exits and stdout/stderr SHA-256 to PR #96, Issue #59 and Issue #31."
-      - "Completion signal is candidate evidence for GPT review only; do not mark Gate B active."
+      - "From 5d57dae..., create exactly one non-empty metadata-correction commit."
+      - "Do not create another tested commit and do not rerun or modify validator logic unless the existing remote evidence is disproved."
+      - "No amend, rebase, reset, force push or merge."
+    allowed_files:
+      - "AI_HANDOFF.yaml"
+      - "TEST-RUN-RECEIPT.md"
+      - "QUALITY-GATE-REPORT.md"
+      - "CROSS-RECEIPT-CONSISTENCY.yaml"
+    required_remote_truth:
+      source_q0_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
+      gate_reviewed_head: "9dd292c910142b56303a46ea7136eaafb5610132"
+      gate_tested_head: "d748191e4aaef28336f4cea4dab551de1a5b8451"
+      gate_receipt_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+      receipt_parent: "d748191e4aaef28336f4cea4dab551de1a5b8451"
+      actual_receipt_changed_files:
+        - "CROSS-RECEIPT-CONSISTENCY.yaml"
+    requirements:
+      - "Remove all stale b5c4ec6..., 713c035d... and incorrect receipt_parent=9dd292c... claims from final receipt metadata."
+      - "State truthfully that Epoch 13 receipt commit changed exactly one file, not six."
+      - "Mark post_push_receipt_identity VERIFIED only after reading the remote branch head as 5d57dae...."
+      - "Do not write the new correction commit's own SHA into its own files; bind it through post-push comments."
+      - "After push, post the correction head, parent, tree, exact changed files and remote compare result to PR #96, Issue #59 and Issue #31."
+      - "Stop for GPT review. Gate B remains frozen."
 
 later_gates:
-  - gate_id: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM"
-    status: "FROZEN_PENDING_GPT_ACCEPTANCE_OF_GATE_A"
-    owner_pr: 100
-  - gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH"
-    status: "WAITING_FOR_GATE_B"
-    owner_pr: 64
-  - gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE"
-    status: "WAITING_FOR_GATE_C"
-    owner_pr: 65
-  - gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF"
-    status: "WAITING_FOR_GATE_D"
-    owner_pr: 104
+  - {gate_id: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM", status: "FROZEN_PENDING_GPT_ACCEPTANCE", owner_pr: 100}
+  - {gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH", status: "WAITING_FOR_GATE_B", owner_pr: 64}
+  - {gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE", status: "WAITING_FOR_GATE_C", owner_pr: 65}
+  - {gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF", status: "WAITING_FOR_GATE_D", owner_pr: 104}
 
 forbidden:
   - "No PR #100, #64, #65 or #104 commits before explicit GPT Gate A acceptance."
   - "No Codex or WorkBuddy branch edits and no runtime handoff."
   - "No source activation, labels, real data, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
   - "No direct main write, merge, auto-merge, force push or published-history rewrite."
-  - "No candidate self-promotion to accepted, implemented or canonical."
 
 after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_B"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-28T04:15:00+08:00"
+updated_at: "2026-07-28T04:45:00+08:00"
