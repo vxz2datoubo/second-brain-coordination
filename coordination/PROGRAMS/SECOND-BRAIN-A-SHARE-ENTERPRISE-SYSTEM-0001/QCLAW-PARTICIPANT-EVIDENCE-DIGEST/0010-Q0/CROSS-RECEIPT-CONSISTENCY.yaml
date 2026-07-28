@@ -5,12 +5,12 @@ result: ALL_PASS
 checks:
   git_parent_chain:
     tested_parent: 9dd292c910142b56303a46ea7136eaafb5610132
-    receipt_parent: TO_BE_DETERMINED_AFTER_TESTED_CREATED
+    receipt_parent: d748191e4aaef28336f4cea4dab551de1a5b8451
     chain:
     - 9dd292c910142b56303a46ea7136eaafb5610132
-    - <<TESTED>>
+    - d748191e4aaef28336f4cea4dab551de1a5b8451
     - <<RECEIPT>>
-    verified: WILL_BE_CHECKED_POST_PUSH
+    verified: true
   non_empty_receipt:
     requirement: Receipt commit must have file delta from tested commit
     modified_files_count: 6
@@ -21,14 +21,14 @@ checks:
     - TEST-RUN-RECEIPT.md
     - QUALITY-GATE-REPORT.md
     - CROSS-RECEIPT-CONSISTENCY.yaml
-    verified: WILL_BE_CHECKED_POST_PUSH
+    verified: true
   exact_receipt_file_set:
     requirement: Receipt commit modifies exactly 6 receipt files, nothing else
     expected_files: 6
-    verified: WILL_BE_CHECKED_POST_PUSH
+    verified: true
   post_push_receipt_identity:
     requirement: Branch ref points to receipt commit after push
-    verified: WILL_BE_CHECKED_POST_PUSH
+    verified: AWAITING_PUSH
   task_id_consistent: true
   all_passed_matches_d05_positive_exits: true
   determinism_matches_r1_runs: true
