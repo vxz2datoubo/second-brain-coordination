@@ -1,4 +1,4 @@
-schema_version: "25.0"
+schema_version: "26.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
@@ -7,9 +7,9 @@ review_publish_semantics: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-C
 local_credential_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
 local_credential_execution_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "CODEX_E15_GATE_A_ACTIVE_QCLAW_E13_GATE_A_FINALIZATION_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E15_GATE_A_ACTIVE_QCLAW_E14_REMOTE_TRUTH_CORRECTION_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-07-28T04:18:00+08:00"
+updated_at: "2026-07-28T04:48:00+08:00"
 
 permanent_operating_model:
   status: "ACTIVE_PROGRAM_RULE"
@@ -25,7 +25,6 @@ local_credential_execution:
   applies_to: [WORKBUDDY_MCP, TDX, TQ, WESTOCK, AUTHORIZED_LOCAL_MCP]
   local_codex_direct_read_and_use: true
   repeated_confirmation_required: false
-  workbuddy_config_read_mode: "READ_ONLY_FOR_AUTHORIZED_INTEROPERABILITY"
   secret_export_denied: true
   source_manifest_admission_implied: false
   issue92_release_implied: false
@@ -34,31 +33,28 @@ local_credential_execution:
   current_qclaw_need: "NOT_REQUIRED_PUBLIC_SAFE_KNOWLEDGE_TASK"
 
 review_summary:
-  classification: "QCLAW_E12_CONTENT_REPAIRS_PRESERVED_GATE_A_RETURNED_AS_E13_LINEAGE_FINALIZATION_CODEX_E15_UNCHANGED"
+  classification: "QCLAW_E13_PARTIAL_VALUE_PRESERVED_REMOTE_LINEAGE_FALSE_CLAIMS_RETURNED_AS_E14_CODEX_E15_UNCHANGED"
   verified:
     - "Codex remains Epoch 15 Gate A on PR #101."
-    - "QCLAW PR #96 advanced to 9dd292c910142b56303a46ea7136eaafb5610132."
-    - "QCLAW tested correction 713c035d327d194e3c44a2256eb4e27596659f52 records three exit-0 identical archive runs and preserves 99/147/64 content."
-    - "QCLAW receipt-labelled commit 9dd292c910142b56303a46ea7136eaafb5610132 has no file delta from the tested correction."
-    - "PR #100 remains frozen at 76d447f0bfc9896ee530808238fcda1527809fc1."
-    - "PR #64 remains at 30d803b69da89461ea8c8d6be663effb38a1d816."
-    - "PR #65 remains at 69de4b7a37afd2fd6bf81b2613e574728aafac39."
-    - "PR #104 remains at 0de24a78d0aa0640fde30014446145a289b3d9bc."
+    - "QCLAW PR #96 advanced to remote head 5d57dae029632fcceb9cfcd4ab242b34ad200f1f."
+    - "Actual Epoch 13 chain is 9dd292c910142b56303a46ea7136eaafb5610132 -> d748191e4aaef28336f4cea4dab551de1a5b8451 -> 5d57dae029632fcceb9cfcd4ab242b34ad200f1f."
+    - "Receipt commit 5d57dae... modifies only CROSS-RECEIPT-CONSISTENCY.yaml."
+    - "Final AI_HANDOFF still records stale reviewed/tested/parent heads."
+    - "PR #100, #64, #65 and #104 remain frozen."
     - "WorkBuddy remains paused."
   accepted_qclaw_value:
-    - "Strict duplicate-key and canonical-ID validation direction."
-    - "Three clean archive runs with identical normalized stdout."
-    - "Non-zero mutation fixtures and preserved Q0 semantic content."
-    - "Cross-receipt consistency direction, subject to lineage expansion."
+    - "Three clean archive runs recorded as exit 0 with identical normalized stdout."
+    - "Four non-zero negative fixtures and unchanged 99/147/64 semantic content."
+    - "A non-empty Epoch 13 receipt commit now exists."
   returned_qclaw_boundaries:
-    - "Empty receipt commit cannot satisfy receipt-only evidence."
-    - "Q0 source head and Gate tested head must be separate machine fields."
-    - "Receipt lineage, exact file set and post-push identity require independent proof."
-    - "Gate B cannot activate through QCLAW self-declared machine PASS."
+    - "Remote Git truth overrides local or commit-message assertions."
+    - "Stale lineage fields must be corrected to the actual remote chain."
+    - "Changed-file claims must equal remote compare output."
+    - "Gate B remains frozen pending explicit GPT acceptance."
   qclaw_optimization:
-    - "Epoch 13 is a bounded PR #96 evidence finalization, not another broad repair round."
-    - "Exactly one tested correction and one non-empty receipt-only commit are allowed from reviewed head 9dd292c..."
-    - "Gate transition now requires explicit GPT acceptance."
+    - "Epoch 14 is one metadata-only correction commit from 5d57dae...."
+    - "No broad validator rerun or new tested commit is allowed unless existing evidence is disproved."
+    - "Post-push external attestation binds the new correction head."
 
 resource_model:
   CODEX:
@@ -67,8 +63,8 @@ resource_model:
     reason: "Primary runtime and D2 semantic-proof lane."
   QCLAW:
     share_percent: 30
-    weight: "MEDIUM_BOUNDED_RECEIPT_LINEAGE_FINALIZATION"
-    reason: "Close PR #96 evidence truth without starting ontology Gate B."
+    weight: "SMALL_STRICT_REMOTE_TRUTH_CORRECTION"
+    reason: "Correct PR #96 remote lineage metadata without opening Gate B."
   WORKBUDDY:
     share_percent: 0
     weight: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -88,31 +84,21 @@ agents:
     active_gate: "A_PR101_CORE_PROOF"
     maximum_simultaneous_substantive_prs: 1
     completion_signal: "CODEX_E15_D2_SEQUENTIAL_PROOF_EVALUATION_QUARANTINE_AND_PREREG_READY_FOR_GPT_REVIEW"
-    autonomy:
-      profile: "CODEX_ENHANCED_AUTONOMY_HIGH_WITH_SINGLE_ACTIVE_GATE"
-      architecture_and_test_choice_inside_gate: true
-      proactive_adjacent_repairs_with_evidence: true
-      internal_gate_continuation_after_machine_pass: true
-      maximum_new_draft_prs: 1
-      local_task_credential_read_and_use_under_protocol: true
-      final_self_approval: false
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
     related_issues: [23, 31, 38, 60]
     primary_pull_requests: [96, 100, 64, 65, 104]
-    task_id: "QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13"
-    route_epoch: 13
+    task_id: "QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14"
+    route_epoch: 14
     mode: "target"
     status: "READY"
     execution_allowed: true
-    active_gate: "A_PR96_RECEIPT_LINEAGE_FINALIZATION"
+    active_gate: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
     maximum_simultaneous_substantive_prs: 1
-    completion_signal: "QCLAW_E13_PR96_RECEIPT_LINEAGE_AND_POST_PUSH_ATTESTATION_READY_FOR_GPT_REVIEW"
+    completion_signal: "QCLAW_E14_PR96_REMOTE_LINEAGE_TRUTH_AND_EXTERNAL_ATTESTATION_READY_FOR_GPT_REVIEW"
     autonomy:
-      profile: "QCLAW_BOUNDED_FINALIZATION_AUTONOMY_SINGLE_PR"
-      validator_and_test_choice_inside_gate: true
-      proactive_adjacent_evidence_repairs: true
+      profile: "QCLAW_MINIMAL_REMOTE_TRUTH_CORRECTION_SINGLE_PR"
       internal_gate_continuation_after_machine_pass: false
       gate_transition_requires_gpt: true
       final_self_approval: false
@@ -130,31 +116,23 @@ execution_plan:
   - owner: "CODEX"
     task: "Continue Epoch 15 Gate A only."
   - owner: "QCLAW"
-    task: "Execute Epoch 13 PR #96 receipt-lineage finalization only; stop for GPT review after completion."
+    task: "Execute Epoch 14 PR #96 remote-lineage metadata correction only; stop for GPT review."
   - owner: "WORKBUDDY"
     task: "Remain paused and make no changes."
   - owner: "GPT"
-    task: "Review exact Git lineage, non-empty receipt delta, post-push attestation and whole-system boundaries."
+    task: "Review remote Git chain, exact changed-file truth and external attestation."
 
 cross_lane_firewalls:
   - "Codex owns synthetic D2 core, Evaluation V2, quarantine schema and D3A preregistration within Epoch 15 Gates."
-  - "QCLAW owns candidate knowledge evidence only and may not modify Codex or WorkBuddy branches."
-  - "QCLAW output cannot become Codex runtime truth or canonical memory without explicit GPT acceptance."
-  - "PR #100, #64, #65 and #104 remain frozen during QCLAW Epoch 13."
+  - "QCLAW may not modify Codex or WorkBuddy branches or promote candidate output to runtime truth."
+  - "PR #100, #64, #65 and #104 remain frozen during QCLAW Epoch 14."
   - "No direct main writes, merges, force pushes or history rewrites by executors."
 
 issue92_gate:
   status: "BLOCKED_NOT_RELEASED"
-  satisfied_component:
-    - "Independent H1 verification satisfied by accepted PR #99."
   still_required_before_release:
     - "Exactly one SourceManifest candidate explicitly approved."
     - "A separate explicit GPT READY route for Issue #92."
-  not_satisfied_by:
-    - "Codex Epoch 15 progress or completion."
-    - "QCLAW Epoch 13 progress or completion."
-    - "WorkBuddy compute restoration."
-    - "Successful local credential authentication."
   forbidden_before_release: [source_activation, labels, real_market_replay, backtest, performance_claim, account, order, trade]
 
-boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / LOCAL_CREDENTIAL_USE_ALLOWED / SYNTHETIC_ONLY / CANDIDATE_ONLY / PREREGISTRATION_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
