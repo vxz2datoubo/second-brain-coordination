@@ -15,6 +15,7 @@ from d2_game_core import (  # noqa: E402
     ParticipantArchetypeHypothesis, ParticipantFamily, ParticipantSubtype, SYNTHETIC_CAPABILITY,
     arbitrate, run_bounded_counterfactual_episode, run_one_step_counterfactual,
     total_system_accounted, total_system_conserved, verify_episode_ledger, _episode_state_hash,
+    SharedMarketState, _sha, _system_hash,
 )
 from synthetic_engine.fixtures import INVENTORY, market, order  # noqa: E402
 from synthetic_engine.types import InventoryState, OrderSide, SyntheticLot  # noqa: E402
@@ -32,6 +33,19 @@ def agent(name, subtype=ParticipantSubtype.RETAIL_LIQUIDITY_TAKER, inventory=INV
 
 def action(name, agent_id, sequence, *, side=OrderSide.BUY, qty=1, conflict=None, assumptions=("assumption:one",), label=ActionLabel.FEASIBLE, **kwargs):
     return CandidateAction(name, agent_id, label, order(name, side=side, qty=qty), tuple(assumptions), ("synthetic:evidence",), conflict, arrival_sequence=sequence, **kwargs)
+
+
+def rehashed_episode(episode, **changes):
+    candidate = replace(episode, **changes)
+    return replace(candidate, state_hash=_episode_state_hash(
+        step_index=candidate.step_index, initial_agents=candidate.initial_agents, current_agents=candidate.current_agents,
+        shared_market_state=candidate.shared_market_state, executed_action_ids=candidate.executed_action_ids,
+        executed_order_ids=candidate.executed_order_ids, executed_invocation_ids=candidate.executed_invocation_ids,
+        event_dag=candidate.event_dag, action_registry=candidate.action_registry,
+        external_liquidity_flows=candidate.external_liquidity_flows,
+        root_run_id=candidate.root_run_id, episode_id=candidate.episode_id,
+        step_boundaries=candidate.step_boundaries,
+    ))
 
 
 class StatefulMultiAgentCoreTests(unittest.TestCase):
@@ -208,7 +222,7 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
     def test_replayed_action_is_rejected_before_a_second_event_is_emitted(self):
         first_action = action("retail-conflict", "retail", 1, conflict="one-resource")
         first = arbitrate("cross-step", self.market, (self.retail,), (first_action,))
-        with self.assertRaisesRegex(ValueError, "REPLAYED_ACTION_OR_ORDER_REJECTED"):
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
             arbitrate("cross-step-next", self.market, (self.retail,), (first_action,), prior_episode_state=first.episode_state)
         self.assertEqual(len(first.episode_state.event_dag), 1)
 
@@ -296,14 +310,7 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
     def test_coordinated_portfolio_and_hash_tampering_is_reconstructed_and_rejected(self):
         result = arbitrate("tamper-coordinated", self.market, (self.retail,), (action("buy", "retail", 1),))
         forged_agent = replace(result.episode_state.current_agents[0], inventory=INVENTORY)
-        forged = replace(result.episode_state, current_agents=(forged_agent,))
-        forged = replace(forged, state_hash=_episode_state_hash(
-            step_index=forged.step_index, initial_agents=forged.initial_agents, current_agents=forged.current_agents,
-            shared_market_state=forged.shared_market_state, executed_action_ids=forged.executed_action_ids,
-            executed_order_ids=forged.executed_order_ids, executed_invocation_ids=forged.executed_invocation_ids,
-            event_dag=forged.event_dag, action_registry=forged.action_registry,
-            external_liquidity_flows=forged.external_liquidity_flows,
-        ))
+        forged = rehashed_episode(result.episode_state, current_agents=(forged_agent,))
         verification = verify_episode_ledger(forged)
         self.assertFalse(verification.valid)
         self.assertIn("FORGED_STORED_EPISODE_STATE", verification.reason_codes)
@@ -312,14 +319,7 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         result = arbitrate("tamper-delta", self.market, (self.retail,), (action("buy", "retail", 1),))
         event = replace(result.episode_state.event_dag[0], filled_quantity=2)
         flow = replace(result.episode_state.external_liquidity_flows[0], agent_inventory_delta=2, external_inventory_delta=-2)
-        forged = replace(result.episode_state, event_dag=(event,), external_liquidity_flows=(flow,))
-        forged = replace(forged, state_hash=_episode_state_hash(
-            step_index=forged.step_index, initial_agents=forged.initial_agents, current_agents=forged.current_agents,
-            shared_market_state=forged.shared_market_state, executed_action_ids=forged.executed_action_ids,
-            executed_order_ids=forged.executed_order_ids, executed_invocation_ids=forged.executed_invocation_ids,
-            event_dag=forged.event_dag, action_registry=forged.action_registry,
-            external_liquidity_flows=forged.external_liquidity_flows,
-        ))
+        forged = rehashed_episode(result.episode_state, event_dag=(event,), external_liquidity_flows=(flow,))
         verification = verify_episode_ledger(forged)
         self.assertFalse(verification.valid)
         self.assertIn("FORGED_EVENT_OUTCOME", verification.reason_codes)
@@ -328,17 +328,160 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         result = arbitrate("tamper-swap", self.market, (self.retail, self.quant), (
             action("retail-buy", "retail", 1), action("quant-buy", "quant", 2),
         ))
-        swapped = replace(result.episode_state, current_agents=tuple(reversed(result.episode_state.current_agents)))
-        swapped = replace(swapped, state_hash=_episode_state_hash(
-            step_index=swapped.step_index, initial_agents=swapped.initial_agents, current_agents=swapped.current_agents,
-            shared_market_state=swapped.shared_market_state, executed_action_ids=swapped.executed_action_ids,
-            executed_order_ids=swapped.executed_order_ids, executed_invocation_ids=swapped.executed_invocation_ids,
-            event_dag=swapped.event_dag, action_registry=swapped.action_registry,
-            external_liquidity_flows=swapped.external_liquidity_flows,
-        ))
+        swapped = rehashed_episode(result.episode_state, current_agents=tuple(reversed(result.episode_state.current_agents)))
         verification = verify_episode_ledger(swapped)
         self.assertFalse(verification.valid)
         self.assertIn("FORGED_STORED_EPISODE_STATE", verification.reason_codes)
+
+    # E16-B01: stored acceptance must never decide whether the reducer runs.
+    def test_e16_coordinated_accepted_to_noop_forgery_is_rejected(self):
+        result = arbitrate("e16-noop", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged_event = replace(
+            result.episode_state.event_dag[0], label=ActionLabel.BLOCKED, accepted=False,
+            outcome_status="INVALID_OR_BLOCKED", filled_quantity=0, rejected_reason_codes=(),
+            owner_post_state_hash=result.episode_state.event_dag[0].owner_pre_state_hash,
+            system_post_state_hash=result.episode_state.event_dag[0].system_pre_state_hash,
+        )
+        forged_agent = replace(result.episode_state.current_agents[0], inventory=INVENTORY)
+        forged = rehashed_episode(
+            result.episode_state, current_agents=(forged_agent,), event_dag=(forged_event,),
+            executed_action_ids=(), executed_order_ids=(), executed_invocation_ids=(), external_liquidity_flows=(),
+        )
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    # E16-B02: a coordinated replacement of the ID and its claim references is not enough.
+    def test_e16_replaced_event_id_with_recomputed_claim_state_is_rejected(self):
+        result = arbitrate("e16-id", self.market, (self.retail,), (action("claim", "retail", 1, conflict="scarce"),))
+        original = result.episode_state.event_dag[0]
+        replacement_id = "f" * 64
+        claim_map = {"scarce": replacement_id}
+        forged_event = replace(original, event_id=replacement_id)
+        forged_event = replace(
+            forged_event,
+            system_post_state_hash=_system_hash(
+                {"retail": result.final_agent_portfolios[0]}, self.market, claim_map, (replacement_id,),
+            ),
+        )
+        forged_shared = SharedMarketState(
+            self.market, ("scarce",), (("scarce", replacement_id),),
+            _sha({"market": self.market, "claims": sorted(claim_map.items())}),
+        )
+        original_flow = result.episode_state.external_liquidity_flows[0]
+        forged_flow = replace(
+            original_flow, ledger_event_id=replacement_id,
+            flow_id=_sha({"ledger_event_id": replacement_id, "agent_id": original_flow.agent_id,
+                          "agent_delta": original_flow.agent_inventory_delta}),
+        )
+        forged = rehashed_episode(
+            result.episode_state, event_dag=(forged_event,), shared_market_state=forged_shared,
+            external_liquidity_flows=(forged_flow,),
+        )
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("EVENT_EVENT_ID_MISMATCH", verification.reason_codes)
+
+    # E16-B03: action semantics on the stored event are evidence, not authority.
+    def test_e16_event_label_substitution_is_rejected(self):
+        result = arbitrate("e16-label", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, event_dag=(replace(result.episode_state.event_dag[0], label=ActionLabel.ABSTAIN),))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e16_event_reason_substitution_is_rejected(self):
+        result = arbitrate("e16-reason", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, event_dag=(replace(result.episode_state.event_dag[0], rejected_reason_codes=("FORGED",)),))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e16_event_cause_reference_substitution_is_rejected(self):
+        result = arbitrate("e16-cause", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, event_dag=(replace(result.episode_state.event_dag[0], cause_refs=("forged:source",)),))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e16_event_invocation_substitution_is_rejected(self):
+        result = arbitrate("e16-invocation", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, event_dag=(replace(result.episode_state.event_dag[0], invocation_id="forged-invocation"),))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e16_event_liquidity_and_peer_substitution_is_rejected(self):
+        result = arbitrate("e16-liquidity", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged_event = replace(
+            result.episode_state.event_dag[0], liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="forged", peer_transfer_id="forged-transfer",
+        )
+        forged = rehashed_episode(result.episode_state, event_dag=(forged_event,))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e16_event_status_substitution_is_rejected(self):
+        result = arbitrate("e16-status", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, event_dag=(replace(result.episode_state.event_dag[0], outcome_status="ABSTAINED"),))
+        verification = verify_episode_ledger(forged)
+        self.assertFalse(verification.valid)
+        self.assertIn("EVENT_OUTCOME_STATUS_MISMATCH", verification.reason_codes)
+
+    def test_e16_event_conflict_transition_substitution_is_rejected(self):
+        result = arbitrate("e16-transition", self.market, (self.retail,), (action("claim", "retail", 1, conflict="scarce"),))
+        forged_event = replace(result.episode_state.event_dag[0], conflict_transition=ConflictTransition.EXPIRE)
+        verification = verify_episode_ledger(rehashed_episode(result.episode_state, event_dag=(forged_event,)))
+        self.assertFalse(verification.valid)
+        self.assertIn("EVENT_CONFLICT_TRANSITION_MISMATCH", verification.reason_codes)
+
+    def test_e16_event_counterparty_substitution_is_rejected(self):
+        result = arbitrate("e16-counterparty", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged_event = replace(result.episode_state.event_dag[0], counterparty_agent_id="forged-counterparty")
+        verification = verify_episode_ledger(rehashed_episode(result.episode_state, event_dag=(forged_event,)))
+        self.assertFalse(verification.valid)
+        self.assertIn("EVENT_COUNTERPARTY_AGENT_ID_MISMATCH", verification.reason_codes)
+
+    # E16-B05: a different valid historical parent cannot substitute for the declared parent.
+    def test_e16_existing_causal_parent_substitution_is_rejected(self):
+        first = action("first", "retail", 1)
+        second = action("second", "retail", 2, causal_parent_event_ids=())
+        initial = arbitrate("e16-parent", self.market, (self.retail,), (first, second))
+        third = action("third", "retail", 1, causal_parent_event_ids=(initial.events[0].event_id,))
+        continued = arbitrate("e16-parent-next", self.market, (self.retail,), (third,), prior_episode_state=initial.episode_state)
+        forged_event = replace(continued.episode_state.event_dag[-1], causal_parent_event_ids=(initial.events[1].event_id,))
+        forged = rehashed_episode(continued.episode_state, event_dag=continued.episode_state.event_dag[:-1] + (forged_event,))
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    # E16-B04: every generated terminal block consumes action, invocation, and supplied order identity.
+    def test_e16_generated_blocked_invocation_is_reserved_across_steps(self):
+        blocked = action("blocked", "nobody", 1, invocation_id="blocked-invocation")
+        first = arbitrate("e16-blocked-invocation", self.market, (self.retail,), (blocked,))
+        replay = action("different-action", "retail", 1, invocation_id="blocked-invocation")
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e16-blocked-invocation-next", self.market, (self.retail,), (replay,), prior_episode_state=first.episode_state)
+
+    def test_e16_generated_blocked_order_is_reserved_across_steps(self):
+        blocked = action("blocked", "nobody", 1)
+        first = arbitrate("e16-blocked-order", self.market, (self.retail,), (blocked,))
+        replay = replace(action("different-action", "retail", 1), order=blocked.order)
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e16-blocked-order-next", self.market, (self.retail,), (replay,), prior_episode_state=first.episode_state)
+
+    def test_e16_generated_unknown_agent_block_is_independently_reconstructable(self):
+        result = arbitrate("e16-unknown", self.market, (self.retail,), (action("unknown", "nobody", 1),))
+        verification = verify_episode_ledger(result.episode_state)
+        self.assertTrue(verification.valid)
+        self.assertEqual(result.episode_state.executed_action_ids, ("unknown",))
+        self.assertEqual(result.episode_state.executed_invocation_ids, ("unknown",))
+        self.assertEqual(result.episode_state.executed_order_ids, ("unknown",))
+
+    def test_e16_release_and_expire_semantics_are_reconstructed_not_trusted(self):
+        first = arbitrate("e16-resource", self.market, (self.retail,), (action("claim", "retail", 1, conflict="scarce"),))
+        release = action("release", "retail", 1, conflict="scarce", conflict_transition=ConflictTransition.RELEASE)
+        second = arbitrate("e16-resource-release", self.market, (self.retail,), (release,), prior_episode_state=first.episode_state)
+        self.assertTrue(verify_episode_ledger(second.episode_state).valid)
+        forged_event = replace(second.episode_state.event_dag[-1], accepted=False, outcome_status="INVALID_OR_BLOCKED")
+        self.assertFalse(verify_episode_ledger(rehashed_episode(
+            second.episode_state, event_dag=second.episode_state.event_dag[:-1] + (forged_event,),
+        )).valid)
+        expire = action("expire", "retail", 1, conflict="scarce", conflict_transition=ConflictTransition.EXPIRE)
+        third = arbitrate("e16-resource-expire", self.market, (self.retail,), (expire,), prior_episode_state=first.episode_state)
+        self.assertTrue(verify_episode_ledger(third.episode_state).valid)
+
+    def test_e16_recomputed_episode_step_tampering_is_rejected(self):
+        result = arbitrate("e16-step", self.market, (self.retail,), (action("buy", "retail", 1),))
+        forged = rehashed_episode(result.episode_state, step_index=result.episode_state.step_index + 1)
+        self.assertFalse(verify_episode_ledger(forged).valid)
 
 
 if __name__ == "__main__":
