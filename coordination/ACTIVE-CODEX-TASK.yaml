@@ -1,4 +1,4 @@
-schema_version: "16.0"
+schema_version: "17.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -14,8 +14,9 @@ active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 103, 105]
 superseded_pull_requests: [102]
-reviewed_core_head: "9e694d1cca3fd867fe5b1d2deb6a7c3868546ae6"
-reviewed_evaluation_head: "3eec58a815aa9139fcf4d37a11c4b2aa9b3779c0"
+reviewed_core_head: "b4a544063e0ef7056f9e0f97ef8d130c36c149b4"
+reviewed_core_tested_head: "9a1c50eb2fd26bbf4dfd029152cceaca15bf1a3d"
+reviewed_evaluation_head: "3eec58a815aa0640fde30014446145a289b3d9bc"
 reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
@@ -24,265 +25,211 @@ accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
 # -----------------------------------------------------------------------------
 # ACTIVE LEASE
 # -----------------------------------------------------------------------------
-task_id: "CODEX-D2-SEQUENTIAL-SEMANTIC-PROOF-EVALUATION-V2-QUARANTINE-AND-PREREG-CLOSURE-0007-E15"
+task_id: "CODEX-D2-INDEPENDENT-EVENT-RECONSTRUCTION-AND-BLOCKED-IDENTITY-CLOSURE-0008-E16"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2单主线语义证明、评测V2、隔离与预注册顺序封口E15"
+mode_label: "【Codex模式：目标模式】D2独立事件重建、协调篡改与阻断身份闭环E16"
 mode_reason: >-
-  Independent GPT review found no new Codex delivery after Epoch 14 was issued. The E14 technical goals remain valid, but four
-  simultaneously open work surfaces create avoidable WIP and make it easier to produce downstream documents before the upstream
-  semantic proof exists. Epoch 15 therefore preserves every accepted E14 boundary and converts execution into four strict sequential
-  gates. Only one substantive implementation PR may be active at a time. Codex retains high autonomy inside the current gate and may
-  complete authorized AMED A/B adjacent improvements with evidence, but may not begin later gates until the previous tested head,
-  receipt head and external anchors are complete.
+  Gate A has a valid two-commit machine shape and useful immutable episode, resource-lifecycle and open-versus-peer accounting work.
+  Independent GPT code review nevertheless found a bounded semantic-proof defect: the verifier still trusts stored event.accepted to decide
+  whether the reducer executes, does not recompute event_id, does not fully bind stored event semantics to the action and reducer result,
+  and does not consume all blocked identities episode-wide. The target is precise and the repair surface is limited to the existing D2 core,
+  focused tests and a receipt, so target mode is appropriate. Gate B, Gate C, Gate D and Issue #92 remain closed.
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
-branch: null
-reviewed_or_base_head: "9e694d1cca3fd867fe5b1d2deb6a7c3868546ae6"
+branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
+reviewed_or_base_head: "b4a544063e0ef7056f9e0f97ef8d130c36c149b4"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 15
-route_issued_at: "2026-07-27T10:35:00+08:00"
-route_issued_against_main: "db05baf2c6e9047f1b2d2171b806186036894322"
-completion_signal: "CODEX_E15_D2_SEQUENTIAL_PROOF_EVALUATION_QUARANTINE_AND_PREREG_READY_FOR_GPT_REVIEW"
+route_epoch: 16
+route_issued_at: "2026-07-29"
+route_issued_against_main: "922c83af6181f12246e7c74eb757d97c676d58a9"
+completion_signal: "CODEX_E16_D2_INDEPENDENT_EVENT_RECONSTRUCTION_AND_BLOCKED_IDENTITY_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-D2-INTEGRATED-SEMANTIC-PROOF-EVALUATION-V2-AND-D3A-PREREGISTRATION-CLOSURE-0006-E14@route_epoch:14"
+  - "CODEX-D2-SEQUENTIAL-SEMANTIC-PROOF-EVALUATION-V2-QUARANTINE-AND-PREREG-CLOSURE-0007-E15@route_epoch:15"
 
 # -----------------------------------------------------------------------------
-# REVIEW DISPOSITION AND OPTIMIZATION
+# INDEPENDENT REVIEW DISPOSITION
 # -----------------------------------------------------------------------------
 review_disposition:
-  classification: "NO_NEW_E14_DELIVERY_ACCEPTED_E14_GOALS_PRESERVED_AND_REISSUED_AS_SEQUENTIAL_E15"
-  verified_current_state:
-    - "PR #101 remains at 9e694d1cca3fd867fe5b1d2deb6a7c3868546ae6."
-    - "PR #103 remains at e65f9466e7f488ac7990b2424807e2b7e347219b."
-    - "PR #105 remains at 327ed56cd1208d26636c1fb9487b387e384fa75d."
-    - "PR #102 remains frozen at 3eec58a815aa9139fcf4d37a11c4b2aa9b3779c0."
-    - "Recent main changes are governance updates, not Codex task delivery."
-  accepted_boundaries_preserved:
-    - "PR #101 persistent shared state, cross-step replay rejection direction and non-executable BLOCKED semantics remain useful candidate foundations."
-    - "PR #103 table-derived ontology mapping and structured three-run attestation direction remain useful candidate foundations."
-    - "PR #105 remains an isolated preregistration-only scaffold and must not be interpreted as a valid preregistration."
-    - "PR #102 remains historical evidence only and receives no new commits."
-  optimization_decision:
-    - "Maximum simultaneous substantive implementation PRs is one."
-    - "Gate A must finish before Evaluation V2 is created."
-    - "Gate B must finish before Gate C resumes."
-    - "Gate D requires the immutable Gate B fixture manifest and Gate C receipt."
-    - "No downstream gate receives credit for plans, placeholder files or unexecuted contracts."
-  issue92: "BLOCKED_NOT_RELEASED"
+  classification: "GATE_A_MACHINE_SHAPE_PASS_SEMANTIC_PROOF_FAIL_RETURN_FOR_BOUNDED_REMEDIATION"
+  accepted_and_frozen_as_useful_base:
+    - "Tested commit 9a1c50eb2fd26bbf4dfd029152cceaca15bf1a3d is exactly one commit after reviewed E15 head."
+    - "Receipt commit b4a544063e0ef7056f9e0f97ef8d130c36c149b4 is exactly one receipt-only commit after the tested head."
+    - "Substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; receipt delta is limited to E15-GATE-A-RECEIPT.md."
+    - "36 focused tests, three clean archive runs, deterministic output and Python 3.11/3.13 CI evidence are preserved."
+    - "Immutable EpisodeState, CLAIM/RELEASE/EXPIRE, external-flow accounting, peer-transfer accounting and reducer-based portfolio reconstruction are useful foundations."
+  blocking_findings:
+    - id: "E16-B01-STORED-ACCEPTED-ORACLE"
+      severity: "BLOCKER"
+      finding: >-
+        verify_episode_ledger branches on stored event.accepted. A coordinated forgery can change a previously accepted event into a no-op,
+        roll current_agents and external flows back, recompute pre/post hashes and episode.state_hash, and potentially pass because the verifier
+        does not independently derive whether the action must execute from immutable action semantics and reducer output.
+    - id: "E16-B02-EVENT-ID-NOT-RECONSTRUCTED"
+      severity: "BLOCKER"
+      finding: >-
+        event_id is checked only for uniqueness. It is never recomputed, and EpisodeState does not currently retain enough immutable run/event
+        identity input to reproduce _event_id. Coordinated replacement of event IDs plus claim, flow, causal references and hashes is therefore
+        not independently disproved.
+    - id: "E16-B03-INCOMPLETE-EVENT-ACTION-BINDING"
+      severity: "BLOCKER"
+      finding: >-
+        The verifier does not fully prove equality for accepted, label, rejected_reason_codes, cause_refs, causal_parent_event_ids, invocation_id,
+        liquidity_mode, conflict_transition, counterparty_agent_id and peer_transfer_id against the immutable action registry and reconstructed transition.
+    - id: "E16-B04-BLOCKED-IDENTITY-REPLAY-GAP"
+      severity: "BLOCKER"
+      finding: >-
+        Declared ABSTAIN/BLOCKED identities are consumed, but invalid-agent, unknown-agent, invalid-parent, conflict and other generated blocked events
+        are not uniformly added to episode-wide executed/rejected action and invocation identity sets. A different action_id can therefore reuse an
+        invocation after a generated block, contrary to the Gate A replay contract.
+    - id: "E16-B05-STEP-AND-CAUSAL-BINDING"
+      severity: "MAJOR"
+      finding: >-
+        step_index is hashed but not independently reconstructed, and an event may substitute a different already-known causal parent without proving
+        equality to CandidateAction.causal_parent_event_ids.
+  decision:
+    gate_a: "NOT_ACCEPTED"
+    gate_b: "FROZEN"
+    gate_c: "FROZEN"
+    gate_d: "FROZEN"
+    issue92: "BLOCKED_NOT_RELEASED"
+    merge: false
 
 # -----------------------------------------------------------------------------
-# RESOURCE, AUTONOMY AND FIRST ACTION
+# RESOURCE, AUTONOMY AND VISIBILITY
 # -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "EXTREMELY_HEAVY_SEQUENTIAL_SINGLE_WIP_SEMANTIC_CLOSURE"
-  research_trigger: "L2_TARGETED_PRIMARY_TECHNICAL_RESEARCH_WHEN_NEEDED"
-  checkpoints: [5, 15, 30, 45, 60, 75, 90, 100]
+  task_weight: "HEAVY_BOUNDED_SEMANTIC_SECURITY_REMEDIATION"
+  research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_NEEDED"
+  checkpoints: [10, 30, 60, 85, 100]
   first_checkpoint_required:
-    - "Exact latest remote main head and Epoch 15 lease echo."
-    - "Exact current PR #101 head and clean-worktree status."
-    - "Chosen EpisodeState, identity and liquidity-accounting architecture with alternatives considered."
-    - "At least one executable failing test or minimal reproduction for each principal Gate A defect before implementation claims."
+    - "Echo schema 17.0, route_epoch 16, exact remote main and exact PR #101 head."
+    - "Provide executable minimal reproductions for E16-B01 through E16-B05 before claiming fixes."
+    - "State the chosen immutable event-identity architecture and rejected alternatives."
   checkpoint_behavior: >-
-    Continue inside the current gate when executable evidence passes. Report exact heads, changed semantic risks, AMED A/B improvements,
-    rejected alternatives, negative results and UNKNOWNs. Do not begin a later gate until the current gate's machine gate is PASS.
+    Continue autonomously inside Gate A-R1 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
+    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E16 reviewed base.
 
 exploration_budget:
-  primary_delivery_share: "60-70%"
-  active_discovery_share: "20-30%"
-  system_opportunity_share: "5-15%"
-  maximum_new_branches: 2
-  maximum_new_draft_prs: 1
-  maximum_unplanned_files_inside_authorized_paths: 32
+  primary_delivery_share: "70-80%"
+  active_discovery_share: "15-25%"
+  system_opportunity_share: "0-10%"
+  maximum_new_branches: 1
+  maximum_new_draft_prs: 0
+  maximum_unplanned_files_inside_authorized_paths: 4
   maximum_simultaneous_substantive_prs: 1
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_ENHANCED_AUTONOMY_HIGH_WITH_SINGLE_ACTIVE_GATE"
+  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R1"
   architecture_choice_inside_current_gate: true
-  module_layout_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_paths: true
-  may_add_contracts_validators_negative_tests_observability_and_receipts: true
+  may_add_fail_closed_validators_negative_tests_and_trace_helpers: true
   may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
-  may_adjust_current_gate_plan_when_evidence_changes: true
   may_continue_within_current_gate_without_gpt: true
-  may_advance_to_next_gate_without_new_gpt_message_only_when_machine_gate_passes: true
-  may_create_fresh_evaluation_v2_branch_at_gate_b: true
-  maximum_new_branches: 2
-  maximum_new_draft_prs: 1
-  may_work_on_multiple_substantive_prs_concurrently: false
+  may_advance_to_next_gate_without_new_gpt_message: false
   final_self_approval: false
   decision_log_required: true
   alternatives_considered_required: true
-  assumption_registry_required: true
-  unknown_and_abstention_registry_required: true
-  surviving_mutants_must_be_preserved: true
-
-amed_task_contract:
-  improvement_authority:
-    A_SAFE_LOCAL_AUTONOMOUS: "IMPLEMENT_AND_TEST"
-    B_BOUNDED_IMPLEMENT_AND_REPORT: "IMPLEMENT_TEST_AND_SEPARATELY_REPORT"
-    C_PROPOSAL_ONLY: "RFC_ADR_OR_FOLLOW_UP_ONLY"
-    D_PROHIBITED_OR_USER_GATE: "STOP_AND_ESCALATE"
-  high_value_adjacent_work_expected: true
-  proactive_delivery_sections_required: true
+  surviving_exploit_or_unknown_must_be_preserved: true
 
 # -----------------------------------------------------------------------------
-# SEQUENTIAL MACHINE GATES
+# ACTIVE GATE A-R1
 # -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_PR101_CORE_PROOF"
-  later_gates_status: "WAITING_FOR_PREDECESSOR_MACHINE_PASS"
-  gate_pass_requires:
-    - "Exactly one substantive tested commit from the reviewed gate head."
-    - "Exactly one receipt-only commit whose parent is the tested head."
-    - "Allowed-file delta verified."
-    - "Exact tested and receipt full SHAs, parents and trees recorded."
-    - "Exact commands, exits, stdout/stderr SHA-256 and environment recorded."
-    - "Three clean Git-archive runs with distinct PYTHONHASHSEED values."
-    - "No placeholder, TBD, guessed receipt SHA or self-referential hash."
-    - "External completion anchors on the gate PR, Issue #23 and Issue #31."
-    - "Latest main and active route re-read before advancing."
-  gate_failure_behavior: "STOP_CURRENT_GATE_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
+  active_gate: "A_R1_PR101_INDEPENDENT_EVENT_RECONSTRUCTION"
+  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E16"
+  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
 
 stage_plan:
-  - gate_id: "A_PR101_CORE_PROOF"
+  - gate_id: "A_R1_PR101_INDEPENDENT_EVENT_RECONSTRUCTION"
     status: "ACTIVE"
     owner_pr: 101
-    reviewed_head: "9e694d1cca3fd867fe5b1d2deb6a7c3868546ae6"
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT"
+    reviewed_head: "b4a544063e0ef7056f9e0f97ef8d130c36c149b4"
+    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E16_REVIEWED_HEAD"
+    allowed_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E16-GATE-A-R1-RECEIPT.md"
     objective: >-
-      Make episode identity, resource lifecycle, open-versus-peer liquidity accounting, causal ancestry and ledger reconstruction
-      independently provable from immutable inputs.
+      Make each episode event independently reproducible from immutable initial state, immutable action registry, prior reconstructed state and explicit
+      event identity inputs. Stored event fields must be evidence to compare, never control inputs that decide the reconstructed transition.
     required_results:
-      - "Define one explicit EpisodeState or equivalent immutable carrier for agents, market/shared state, resource lifecycle, action/order/invocation identities, event DAG and step index."
-      - "Validate replay/idempotency before ABSTAIN/BLOCKED event emission so reused identities cannot create duplicate or ambiguous events."
-      - "Enforce episode-wide uniqueness of event_id, action_id, order_id and invocation_id."
-      - "Validate causal-parent existence, acyclicity, step order and no forward ancestry."
-      - "Implement explicit conflict-resource CLAIM, RELEASE and EXPIRE transitions."
-      - "Separate EXTERNAL_SYNTHETIC_LIQUIDITY from PEER_TO_PEER_TRANSFER. Exogenous deltas require explicit external-flow events; peer transfer requires matched counterpart deltas."
-      - "Build an independent EpisodeLedgerVerifier that reconstructs owner/shared/system pre-post states and hashes from immutable initial state, action registry and events."
-      - "Detect coordinated tampering where stored events, portfolios and hashes agree with each other but disagree with reducer reconstruction."
-      - "Preserve D1 reducer ownership, four participant families, nine subtypes, numerical bounds, synthetic-only and NO_TRADE boundaries."
-      - "Add at least 32 focused semantic tests, including identity reuse, ABSTAIN/BLOCKED replay, release/reclaim, forged DAG, forged deltas, swapped portfolios, external flow and peer transfer."
-    encouraged_initiative:
-      - "Choose the cleanest immutable EpisodeState and event-DAG representation."
-      - "Add counterexample minimization, trace tools and invariant registries when they materially improve diagnosis."
-      - "Repair adjacent fail-closed, typing or boundedness defects inside PR #101 paths with separate ledger entries."
+      - "Introduce an immutable episode/run identity or content-addressed event-key contract sufficient to recompute every event_id."
+      - "Derive expected accepted/status/fill/reasons/state transition from action semantics, prior reconstructed state and the D1 reducer; never branch on stored event.accepted as the oracle."
+      - "Compare every stored semantic field with the reconstructed event: event_id, ordinal, agent_id, action_id, invocation_id, label, accepted, outcome_status, filled_quantity, rejected_reason_codes, cause_refs, causal parents, liquidity mode, conflict transition, counterparty and peer-transfer ID."
+      - "Bind CandidateAction.causal_parent_event_ids exactly to the event and verify parent existence, strict prior order, acyclicity and no substitution with another valid prior event."
+      - "Reconstruct and validate step_index from an explicit step-boundary contract rather than trusting the stored integer."
+      - "Consume action and invocation identity for every emitted terminal event, including generated blocks. Define and test whether an unexecuted order ID is reserved or reusable; apply one explicit rule consistently."
+      - "Perform all prior-episode identity and action-registry collision checks before constructing a new event."
+      - "Preserve external-versus-peer accounting, resource lifecycle, four families, nine subtypes, bounds, synthetic-only and NO_TRADE boundaries."
+    mandatory_exploit_tests:
+      - "Coordinated accepted-to-no-op forgery with portfolios, flows and hashes recomputed must fail."
+      - "Event-ID replacement with claim/flow/causal references and hashes recomputed must fail."
+      - "accepted/label/status/reason/cause/invocation/liquidity/transition field substitution must fail independently."
+      - "Causal parent substitution with a different existing prior event must fail."
+      - "Generated blocked-event invocation replay across steps with a different action_id must fail before event construction."
+      - "Generated blocked-event action replay and the chosen blocked-order identity rule must be tested."
+      - "step_index modification with a recomputed episode hash must fail."
+      - "Release/expire accepted and ownership semantics must be independently reconstructed."
+    minimum_tests:
+      total_focused_semantic_tests: 48
+      new_blocker_regressions: 12
+      clean_git_archive_runs: 3
+      distinct_pythonhashseed_values: 3
+    evidence_required:
+      - "Exact substantive and receipt SHAs, parents, trees and allowed-file deltas."
+      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform and elapsed time."
+      - "Three clean Git-archive runs plus deterministic trace/hash equality."
+      - "CI status for all configured Python versions."
+      - "External completion anchors on PR #101, Issue #23 and Issue #31."
     caution:
-      - "Do not modify D1, D0, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105 during Gate A."
-      - "Do not call open-system inventory creation conservation."
-      - "Do not start Evaluation V2 before Gate A receipt and anchors exist."
+      - "Do not weaken tests, delete E15 evidence or rewrite published history."
+      - "Do not modify D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
+      - "Do not start Evaluation V2 or any downstream gate."
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GATE_A"
-    start_gate: "Gate A machine PASS; branch base equals Gate A final receipt head."
+    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E16"
     required_new_draft_pr: true
-    branch_prefix: "codex/a-share-multi-agent-game-engine-0001-d2-evaluation-v2-e15-"
-    output_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/"
     superseded_source_pr: 102
-    objective: "Build executable semantic proof against the finished Gate A core; port useful old ideas only with explicit lineage."
-    minimum_requirements:
-      semantic_scenarios: 128
-      semantic_invariants: 128
-      negative_cases: 64
-      stateful_episodes: 48
-      counterfactual_pairs: 64
-      executable_mutants: 24
-      metamorphic_properties: 12
-      mutation_operator_families: 10
-    semantic_rules:
-      - "Every mutant must alter executable code, data or state and must be killed by the original semantic oracle to receive credit."
-      - "Publish a mutation registry, kill matrix, exact test IDs and surviving-mutant UNKNOWN dispositions."
-      - "Metamorphic properties must compare preserved original/transformed traces, not only counts, file presence or hashes."
-      - "Cover all D1 synthetic session phases, open/peer liquidity, replay identities, resource lifecycle, DAG ancestry and coordinated tampering."
-      - "No smoke/count/presence checks may dominate the semantic invariant total."
-    encouraged_initiative:
-      - "Choose a maintainable mutation execution framework and metamorphic registry."
-      - "Add deterministic trace shrinking and failure reproduction bundles."
-    caution:
-      - "PR #102 remains frozen and receives no commits."
-      - "Do not weaken Gate A contracts to make evaluation pass."
+    start_gate: "GPT accepts E16 Gate A-R1 tested and receipt heads and explicitly releases Gate B."
+    frozen_requirements_ref: "schema 16.0 Gate B requirements remain preserved"
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
     status: "WAITING_FOR_GATE_B"
     owner_pr: 103
     reviewed_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
-    start_gate: "Gate B machine PASS and immutable Evaluation V2 contract available."
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT"
-    required_results:
-      - "Bind every RunAttestation.command exactly to CandidateEnvelope.verifier_command and a permitted command identity."
-      - "Bind verifier evidence hashes to exact run records, source lock, artifact hashes and normalized package hash."
-      - "Version and hash the immutable ontology translation table."
-      - "Require explicit TTL/expiry semantics and bounded reference count, per-value length and total serialized size."
-      - "Reject duplicate run evidence, forged status text, unequal hashes, unknown commands, stale evidence and oversized envelopes."
-      - "Provide at least 24 meaningful tests and three clean archive runs."
-      - "Remain schema-only, synthetic-fixture-only and candidate-only."
-    encouraged_initiative:
-      - "Improve canonical serialization and reason-code diagnostics without importing candidate claims."
-    caution:
-      - "Do not consume QQ content as fact, identity, probability, signal or runtime authority."
+    frozen_requirements_ref: "schema 16.0 Gate C requirements remain preserved"
 
   - gate_id: "D_PR105_IMMUTABLE_D3A_PREREG"
     status: "WAITING_FOR_GATES_B_AND_C"
     owner_pr: 105
     reviewed_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
-    start_gate: "Gate B immutable fixture manifest and receipt plus Gate C machine PASS."
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT"
-    required_results:
-      - "Replace placeholder split hashes with hashes recomputed from the exact immutable Evaluation V2 fixture manifest and Git blobs."
-      - "Prove train/dev/lockbox disjointness, exhaustiveness and deterministic generation."
-      - "Freeze source evaluation head, manifest hash, validator hash and fixture IDs before any fitting."
-      - "Define Brier score, log loss, ECE, slope, intercept and abstention coverage precisely."
-      - "Freeze absolute/relative thresholds, baseline comparisons, placebo, sensitivity, subgroup, multiple-testing and FAIL/ABSTAIN rules before fitting."
-      - "Use strict YAML duplicate-key rejection and typed schema validation."
-      - "Provide at least 16 negative tests for overlap, forged hash, post-hoc edits, placeholder values, probability-language inflation and lockbox leakage."
-      - "No model fitting, score computation, calibration runtime or lockbox execution."
-    encouraged_initiative:
-      - "Use primary statistical references when needed and record threshold rationale, alternatives and failure implications."
-    caution:
-      - "Do not set thresholds after observing any model or lockbox result."
-      - "Do not describe synthetic calibration as market prediction, alpha, profitability or trading readiness."
+    frozen_requirements_ref: "schema 16.0 Gate D requirements remain preserved"
 
 # -----------------------------------------------------------------------------
-# EVIDENCE AND COMPLETION
+# EVIDENCE, BOUNDARY AND COMPLETION
 # -----------------------------------------------------------------------------
-evidence_requirements:
-  - "Each gate must publish tested and receipt SHAs, parents and trees."
-  - "Every direct command has its own exact command string, exit, stdout SHA-256 and stderr SHA-256."
-  - "Record Python/platform/environment, elapsed time, peak memory where feasible and fixture/package hashes."
-  - "Record all failures, skips, surviving mutants and UNKNOWNs without suppression."
-  - "Record proactive improvements, alternatives, rollback and adjacent-scope impact."
-  - "Final integrated handoff maps Gate A through D heads and proves dependency order."
-
-local_credential_note:
-  standing_authorization: true
-  rule: >-
-    Local Codex may directly read and use existing WorkBuddy MCP, TDX, TQ, WeStock or other authorized local credentials under
-    the local credential protocol. This Epoch 15 task is synthetic and does not require those credentials. Credential availability
-    must not be used to pull real data, release Issue #92 or expand replay/backtest/fitting/account/order/trade authority.
-
 forbidden:
-  - "No direct main write, merge, auto-merge, force push or history rewrite."
-  - "No edits to D1, D0, QCLAW, WorkBuddy or frozen PR #102."
-  - "No concurrent substantive implementation in more than one gate."
-  - "No real market data, source activation, labels, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
-  - "No placeholder, TBD, silent test weakening, deleted negative evidence or self-approval."
+  - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
+  - "No concurrent substantive implementation outside PR #101 Gate A-R1."
+  - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
+  - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
 
 after_completion:
   final_state: "WAITING_FOR_GPT_INDEPENDENT_REVIEW"
   merge: false
   release_issue92: false
-  completion_comment_targets: ["Gate PRs", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E15_D2_SEQUENTIAL_PROOF_EVALUATION_QUARANTINE_AND_PREREG_READY_FOR_GPT_REVIEW"
+  completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
+  required_signal: "CODEX_E16_D2_INDEPENDENT_EVENT_RECONSTRUCTION_AND_BLOCKED_IDENTITY_READY_FOR_GPT_REVIEW"
 
-boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / PREREGISTRATION_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-27T10:35:00+08:00"
+updated_at: "2026-07-29"
