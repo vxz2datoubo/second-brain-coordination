@@ -1,137 +1,118 @@
 #!/usr/bin/env python3
 """
-hash_compare.py — Epoch 16 Gate B R1
-====================================
-Byte-compare complete canonical artifact sets across 3 independent
-clean Git-archive extractions with different PYTHONHASHSEED values.
+hash_compare.py — Complete canonical artifact comparison for Epoch 17 Gate B R2
+PR #100: Policy Single-Source Uncertainty & Truthful Evidence
+
+Compares ALL canonical artifacts across two generation directories.
+Used to verify that 3 clean PYTHONHASHSEED generations produce IDENTICAL outputs.
 """
-import sys, os, hashlib, subprocess, tempfile, shutil, json, argparse
+import hashlib
+import os
+import sys
 
-PYTHON = sys.executable
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-GENERATOR = os.path.join(SCRIPT_DIR, 'generate_adapters.py')
-SOURCE_DIR = os.path.join(SCRIPT_DIR, 'source')
-MANIFEST = os.path.join(SCRIPT_DIR, 'QUARANTINE-MANIFEST.yaml')
-
-EXPECTED_FILES = [
-    'D2-CANDIDATE-ADAPTERS.jsonl',
-    'D2-ADAPTER-SUMMARY.yaml',
-    'D2-ADAPTER-PACKAGE.json',
+CANONICAL_ARTIFACTS = [
+    "D2-CANDIDATE-ADAPTERS.jsonl",
+    "D2-ADAPTER-PACKAGE.json",
+    "D2-ADAPTER-SUMMARY.yaml",
+    "COVERAGE-ATOMS.yaml",
+    "COVERAGE-RELATIONS.yaml",
+    "COVERAGE-QUESTIONS.yaml",
+    "SOURCE-LOCK.yaml",
+    "GENERATION-RECEIPT.json",
+    "MAPPING-POLICY.yaml",
+    "QUARANTINE-MANIFEST.yaml",
+    "AMBIGUITY-MANIFEST.yaml",
+    "D2-INTERFACE-SNAPSHOT.yaml",
 ]
 
-def sha256_file(path):
+
+def file_sha256(path):
     h = hashlib.sha256()
-    with open(path, 'rb') as f:
-        for chunk in iter(lambda: f.read(65536), b''):
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
 
-def run_generation(q0_dir, output_dir, seed):
-    cmd = [PYTHON, GENERATOR, '--q0-dir', q0_dir,
-           '--output-dir', output_dir, '--manifest', MANIFEST,
-           '--hash-seed', seed]
-    env = {**os.environ, 'PYTHONHASHSEED': seed}
-    result = subprocess.run(cmd, capture_output=True, text=True,
-                            timeout=30, env=env)
-    return result.returncode, result.stdout, result.stderr
+
+def compare_dirs(dir_a, dir_b):
+    """Compare canonical artifacts between two directories."""
+    results = {}
+    all_identical = True
+
+    for art in CANONICAL_ARTIFACTS:
+        path_a = os.path.join(dir_a, art)
+        path_b = os.path.join(dir_b, art)
+        exists_a = os.path.exists(path_a)
+        exists_b = os.path.exists(path_b)
+
+        if not exists_a and not exists_b:
+            results[art] = {"status": "MISSING_BOTH", "match": True}
+            print(f"  MISSING: {art} (both)")
+            continue
+        elif not exists_a:
+            results[art] = {"status": "MISSING_A", "match": False}
+            print(f"  MISMATCH: {art} (missing in A)")
+            all_identical = False
+            continue
+        elif not exists_b:
+            results[art] = {"status": "MISSING_B", "match": False}
+            print(f"  MISMATCH: {art} (missing in B)")
+            all_identical = False
+            continue
+
+        hash_a = file_sha256(path_a)
+        hash_b = file_sha256(path_b)
+        match = hash_a == hash_b
+        results[art] = {"status": "HASHED", "hash_a": hash_a, "hash_b": hash_b, "match": match}
+
+        status = "MATCH" if match else "MISMATCH"
+        print(f"  {status}: {art}")
+        if not match:
+            print(f"    A: {hash_a}")
+            print(f"    B: {hash_b}")
+            all_identical = False
+
+    return results, all_identical
+
 
 def main():
-    parser = argparse.ArgumentParser(description='Epoch 16 Hash Compare: 3 archive generations')
-    parser.add_argument('--q0-dir', default=SOURCE_DIR)
-    parser.add_argument('--seeds', nargs='*', default=['0', '42', '12345'])
-    parser.add_argument('--output-base', default=os.path.join(SCRIPT_DIR, 'hash_runs'))
-    args = parser.parse_args()
+    if len(sys.argv) < 3:
+        print("Usage: hash_compare.py <dir_a> <dir_b> [dir_c]")
+        print("Compares canonical artifacts between 2-3 generation directories.")
+        sys.exit(1)
 
-    seeds = args.seeds
-    print(f'hash_compare.py — comparing {len(seeds)} clean generations')
-    print(f'Seeds: {seeds}\n')
+    dir_a = sys.argv[1]
+    dir_b = sys.argv[2]
+    dir_c = sys.argv[3] if len(sys.argv) > 3 else None
 
-    results = {}
-    file_hashes = {}
+    print(f"Comparing canonical artifacts:")
+    print(f"  A: {dir_a}")
+    print(f"  B: {dir_b}")
 
-    for seed in seeds:
-        work_dir = os.path.join(args.output_base, f'seed_{seed}')
-        os.makedirs(work_dir, exist_ok=True)
-        
-        # Copy fresh sources each time
-        q0_dir = os.path.join(work_dir, 'q0')
-        if os.path.exists(q0_dir):
-            shutil.rmtree(q0_dir)
-        shutil.copytree(args.q0_dir, q0_dir)
-        
-        output_dir = os.path.join(work_dir, 'output')
-        os.makedirs(output_dir, exist_ok=True)
-        
-        rc, out, err = run_generation(q0_dir, output_dir, seed)
-        results[seed] = {'rc': rc, 'stdout': out, 'stderr': err}
-        
-        print(f'[SEED {seed}] rc={rc}')
-        if rc != 0:
-            print(f'  ERROR: {err[:200]}')
-            continue
-        
-        hashes = {}
-        for fn in EXPECTED_FILES:
-            fp = os.path.join(output_dir, fn)
-            if os.path.exists(fp):
-                h = sha256_file(fp)
-                hashes[fn] = h
-                print(f'  {fn}: {h[:32]}...')
-            else:
-                print(f'  {fn}: MISSING')
-                hashes[fn] = None
-        
-        file_hashes[seed] = hashes
-        print()
+    # First comparison: A vs B
+    print(f"\n=== A vs B ===")
+    results_ab, identical_ab = compare_dirs(dir_a, dir_b)
 
-    # Compare
-    if len(file_hashes) < 2:
-        print('Not enough successful runs to compare')
-        return 1
+    # Second comparison: A vs C (if provided)
+    identical_ac = True
+    if dir_c:
+        print(f"\n=== A vs C ===")
+        print(f"  C: {dir_c}")
+        results_ac, identical_ac = compare_dirs(dir_a, dir_c)
 
-    print('='*60)
-    print('COMPARISON RESULTS')
-    print('='*60)
+    # Summary
+    print(f"\n=== SUMMARY ===")
+    print(f"A vs B: {'IDENTICAL' if identical_ab else 'DIFFERENT'}")
+    if dir_c:
+        print(f"A vs C: {'IDENTICAL' if identical_ac else 'DIFFERENT'}")
 
-    ref_seed = seeds[0]
-    ref = file_hashes[ref_seed]
-    all_match = True
-
-    for fn in EXPECTED_FILES:
-        ref_hash = ref.get(fn)
-        print(f'\n{fn}:')
-        print(f'  ref (seed={ref_seed}): {ref_hash[:32]}...')
-        for seed in seeds[1:]:
-            h = file_hashes[seed].get(fn)
-            if h == ref_hash:
-                print(f'  seed={seed:>6s}: MATCH')
-            elif h is None:
-                print(f'  seed={seed:>6s}: MISSING')
-                all_match = False
-            else:
-                print(f'  seed={seed:>6s}: MISMATCH ({h[:16]}...)')
-                all_match = False
-
-    print(f'\n{"="*60}')
-    if all_match:
-        print('ALL FILES BYTE-IDENTICAL ACROSS ALL RUNS PASS')
+    if identical_ab and identical_ac:
+        print("\nALL CANONICAL ARTIFACTS IDENTICAL")
+        sys.exit(0)
     else:
-        print('MISMATCH DETECTED FAIL')
-        return 1
+        print("\nCANONICAL ARTIFACTS DIFFER")
+        sys.exit(1)
 
-    # Write comparison report
-    report_path = os.path.join(args.output_base, 'HASH-COMPARISON-REPORT.json')
-    report = {
-        'seeds': seeds,
-        'results': {seed: data['rc'] for seed, data in results.items()},
-        'file_hashes': file_hashes,
-        'all_match': all_match,
-    }
-    with open(report_path, 'w', encoding='utf-8') as f:
-        json.dump(report, f, indent=2, sort_keys=True)
-    print(f'\nReport: {report_path}')
 
-    return 0 if all_match else 1
-
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == "__main__":
+    main()

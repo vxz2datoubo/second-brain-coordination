@@ -1,0 +1,98 @@
+# AMBIGUITY-MANIFEST.yaml
+# Epoch 17, Schema 24.0
+# Task: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+#
+# Every AMBIGUOUS hypothesis MUST come from this manifest.
+# No sorted-family convenience fallback. No lexicographic guess.
+# Each entry: deterministic_id + hypotheses + rationale + source references.
+#
+# When an atom has a recognized subject_family but NO subject_subtype,
+# and its deterministic_id appears in this manifest → disposition is AMBIGUOUS.
+# Otherwise → UNMAPPED.
+
+manifest:
+  version: "17.0"
+  task_id: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+
+ambiguity_entries:
+  # --- Atom 54: RetailPopulationFamily, no subtype ---
+  - deterministic_id: "db22ee9eb4a69febbb09fff5d1766bd8c0e6b7302518f0df37b7916e23981815"
+    atom_index: 54
+    evidence_family: "RetailPopulationFamily"
+    rationale: >
+      Atom describes retail investor information asymmetry — a structural claim about the
+      RetailPopulationFamily as a whole, not attributable to any single subtype.
+      The family is known (RetailPopulationFamily) but no specific subtype evidence exists.
+    hypotheses:
+      - d2_subtype: "retail_liquidity_taker"
+        confidence: "SPECULATIVE"
+        basis: "Information asymmetry is most acute for active/liquidity-taking retail"
+      - d2_subtype: "retail_anchored_holder"
+        confidence: "SPECULATIVE"
+        basis: "Buy-and-hold retail may be structurally disadvantaged by information lag"
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
+      - "Q0 PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml v1.0"
+
+  # --- Atom 57: QuantStrategyFamily, no subtype ---
+  - deterministic_id: "cca90a864dc8d0f0ac8dba5cc28453437ebb4a668f09b64ae6191caac1710a12"
+    atom_index: 57
+    evidence_family: "QuantStrategyFamily"
+    rationale: >
+      Atom describes quant strategy crowding and diminishing returns — a structural
+      claim about quant strategies broadly, not evidence for any specific quant subtype.
+    hypotheses:
+      - d2_subtype: "systematic_rebalancer"
+        confidence: "SPECULATIVE"
+        basis: "Crowding dynamics most pronounced in systematic/factor strategies"
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
+
+  # --- Atom 61: ActiveSpeculativeCapitalFamily, no subtype ---
+  - deterministic_id: "cc9f6dd82ae77691d47fdc0e5cd32da428110b5e922ef87c4f24ab8a2c931849"
+    atom_index: 61
+    evidence_family: "ActiveSpeculativeCapitalFamily"
+    rationale: >
+      Atom describes the speculative hype→retail→exit→bag-holding cycle — a
+      system-level narrative about ActiveSpeculativeCapitalFamily dynamics.
+      No specific subtype (SwingSpeculator vs ThemeCoordinator) is evidenced.
+    hypotheses:
+      - d2_subtype: "short_horizon_momentum"
+        confidence: "SPECULATIVE"
+        basis: "Hype-driven cycle aligns with momentum-oriented speculative activity"
+      - d2_subtype: "event_driven_active"
+        confidence: "SPECULATIVE"
+        basis: "Could involve event-coordinated activity if triggered by themes"
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
+
+  # --- Atom 67: QuantStrategyFamily, no subtype ---
+  - deterministic_id: "650c697145ccba4b4ffbfd77982661586c11d855763757809aa191d3fb383cca"
+    atom_index: 67
+    evidence_family: "QuantStrategyFamily"
+    rationale: >
+      Atom is a COUNTEREXAMPLE — some quant strategies don't fit the crowding model.
+      This is about a class of quant strategies, not a specific subtype instance.
+    hypotheses:
+      - d2_subtype: "systematic_rebalancer"
+        confidence: "SPECULATIVE"
+        basis: "Counterexamples likely emerge in systematic/factor model contexts"
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
+
+  # --- Atom 68: RetailPopulationFamily, no subtype ---
+  - deterministic_id: "1a57e2ebf0c87e1643dae5bc16d570075a353cd51caf6eb03931d375a30e14be"
+    atom_index: 68
+    evidence_family: "RetailPopulationFamily"
+    rationale: >
+      Atom is a COUNTEREXAMPLE — some retail bridge the information/tool gap.
+      This is about aggregate retail behavior, not a specific subtype.
+    hypotheses:
+      - d2_subtype: "retail_liquidity_taker"
+        confidence: "SPECULATIVE"
+        basis: "Tool upgrades most relevant for actively trading retail"
+      - d2_subtype: "retail_anchored_holder"
+        confidence: "SPECULATIVE"
+        basis: "Anchored holders may upgrade for research rather than execution"
+    source_refs:
+      - "A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md Four-Family Matrix"

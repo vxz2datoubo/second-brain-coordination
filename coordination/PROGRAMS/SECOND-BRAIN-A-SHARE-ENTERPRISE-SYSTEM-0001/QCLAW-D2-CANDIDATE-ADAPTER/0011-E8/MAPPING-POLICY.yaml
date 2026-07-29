@@ -1,154 +1,115 @@
-# MAPPING-POLICY.yaml
-# Source-field-driven classification rules for D2 adapter generation
+# MAPPING-POLICY.yaml — Single Source of Mapping Truth
+# Epoch 17, Schema 24.0
+# Task: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+# This file is THE authority for Q0→D2 family/subtype mapping.
+# Generator and validator MUST both independently parse and compare this same locked policy.
+# NO hard-coded Python mapping tables — all mapping decisions flow from this file.
+
+policy:
+  name: MAPPING-POLICY
+  version: "17.0"
+  schema: "24.0"
+  task_id: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+  epoch: 17
+
+source_lock:
+  d2_interface_sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+  d2_interface_commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+  q0_atoms_sha256: "47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d"
+  q0_relations_sha256: "39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a"
+  q0_questions_sha256: "2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927"
+  q0_family_map_sha256: "f526d66f4c6d2de1b904607e07fa92d7691a00a4ebaa5d1844bac1378d645d25"
+
+# === FAMILY-LEVEL MAPPING (Q0 family → D2 family) ===
+# LargeCapitalFamily maps to UNSPECIFIED because its subtypes resolve to different D2 families
+# (public/private funds → institutional_quant; stabilization/industrial/foreign → policy_industrial_foreign_aggregate)
+Q0_TO_D2_FAMILY:
+  RetailPopulationFamily: retail
+  QuantStrategyFamily: institutional_quant
+  ActiveSpeculativeCapitalFamily: active_capital
+  LargeCapitalFamily: UNSPECIFIED
+
+# === SUBTYPE-LEVEL MAPPING (Q0 subtype → D2 subtype) ===
+# Every entry is SOURCE-DERIVED from Q0 PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml v1.0
+# Mapped against D2 canonical SUBTYPE_FAMILY contract (d2_game_core.py @ d6f9e2e)
 #
-# Route epoch: 16, Schema: 23.0
-# Task ID: QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16
+# CORRECT D2 SUBTYPE_FAMILY (the TRUTH):
+#   RETAIL_LIQUIDITY_TAKER → RETAIL
+#   RETAIL_ANCHORED_HOLDER → RETAIL
+#   SYSTEMATIC_REBALANCER → INSTITUTIONAL_QUANT
+#   LONG_HORIZON_FUND → INSTITUTIONAL_QUANT       ← E16 had this WRONG (active_capital)
+#   EVENT_DRIVEN_ACTIVE → ACTIVE_CAPITAL
+#   SHORT_HORIZON_MOMENTUM → ACTIVE_CAPITAL
+#   POLICY_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE   ← E16 had this WRONG
+#   INDUSTRIAL_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+#   FOREIGN_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+Q0_TO_D2_SUBTYPE:
+  # --- RetailPopulationFamily subtypes → RETAIL variants ---
+  DayTraderRetail: retail_liquidity_taker
+  PositionalRetail: retail_anchored_holder
+  IPOReversalRetail: retail_liquidity_taker
+  SmallCapHunterRetail: retail_liquidity_taker
+  IndexETFInvestor: retail_anchored_holder
+  SocialMediaFollowerRetail: retail_liquidity_taker
+  # --- LargeCapitalFamily subtypes → institutional_quant / policy_industrial_foreign_aggregate ---
+  PublicFundSubtype: long_horizon_fund
+  PrivateFundSubtype: long_horizon_fund
+  StabilizationCapitalSubtype: policy_aggregate
+  IndustrialCapitalSubtype: industrial_aggregate
+  ForeignCapitalSubtype: foreign_aggregate
+  # --- QuantStrategyFamily subtypes → INSTITUTIONAL_QUANT variants ---
+  StatisticalArbitrageQuant: systematic_rebalancer
+  HighFrequencyQuant: systematic_rebalancer
+  FactorModelQuant: systematic_rebalancer
+  # --- ActiveSpeculativeCapitalFamily subtypes → ACTIVE_CAPITAL variants ---
+  SwingSpeculator: short_horizon_momentum
+  ThemeCoordinator: event_driven_active
 
-document_type: MAPPING-POLICY
-version: "1.0"
-
-# Q0 source families → D2 family mapping
-family_mapping:
-  RetailPopulationFamily:
-    d2_family: "retail"
-    description: "散户群体各类子类型"
-  QuantStrategyFamily:
-    d2_family: "institutional_quant"
-    description: "量化策略家族各类子类型"
-  ActiveSpeculativeCapitalFamily:
-    d2_family: "active_capital"
-    description: "主动投机资本各类子类型"
-  LargeCapitalFamily:
-    d2_family: "needs_subtype_resolution"
-    description: "大资金根据子类型进一步解析"
-
-# Q0 source subtypes → D2 subtype mapping
-subtype_mapping:
-  # Retail family subtypes
-  DayTraderRetail:
-    d2_subtype: "retail_liquidity_taker"
-  PositionalRetail:
-    d2_subtype: "retail_anchored_holder"
-  IPOReversalRetail:
-    d2_subtype: "retail_liquidity_taker"
-  SmallCapHunterRetail:
-    d2_subtype: "retail_liquidity_taker"
-  IndexETFInvestor:
-    d2_subtype: "retail_anchored_holder"
-  SocialMediaFollowerRetail:
-    d2_subtype: "retail_liquidity_taker"
-
-  # Large Capital family subtypes
-  PublicFundSubtype:
-    d2_subtype: "long_horizon_fund"
-  PrivateFundSubtype:
-    d2_subtype: "long_horizon_fund"
-  StabilizationCapitalSubtype:
-    d2_subtype: "policy_aggregate"
-  IndustrialCapitalSubtype:
-    d2_subtype: "industrial_aggregate"
-  ForeignCapitalSubtype:
-    d2_subtype: "foreign_aggregate"
-
-  # Quant Strategy family subtypes
-  StatisticalArbitrageQuant:
-    d2_subtype: "systematic_rebalancer"
-  HighFrequencyQuant:
-    d2_subtype: "systematic_rebalancer"
-  FactorModelQuant:
-    d2_subtype: "systematic_rebalancer"
-
-  # Active Speculative Capital family subtypes
-  SwingSpeculator:
-    d2_subtype: "short_horizon_momentum"
-  ThemeCoordinator:
-    d2_subtype: "event_driven_active"
-
-# D2 valid families
-d2_families:
-  - retail
-  - institutional_quant
-  - active_capital
-  - long_horizon_fund
-  - policy_aggregate
-  - industrial_aggregate
-  - foreign_aggregate
-
-# D2 valid subtypes
-d2_subtypes:
-  - retail_liquidity_taker
-  - retail_anchored_holder
-  - systematic_rebalancer
-  - short_horizon_momentum
-  - event_driven_active
-  - long_horizon_fund
-  - policy_aggregate
-  - industrial_aggregate
-  - foreign_aggregate
-
-# Subtype → family consistency check
-subtype_family_map:
+# === SUBTYPE-LEVEL FAMILY RESOLUTION ===
+# After subtype mapping, resolve D2 family using canonical SUBTYPE_FAMILY contract
+# Required because LargeCapitalFamily subtypes span multiple D2 families
+SUBTYPE_TO_FAMILY:
   retail_liquidity_taker: retail
   retail_anchored_holder: retail
   systematic_rebalancer: institutional_quant
-  short_horizon_momentum: active_capital
+  long_horizon_fund: institutional_quant
   event_driven_active: active_capital
-  long_horizon_fund: active_capital  # NOTE: needs subtype-level resolution for LargeCapital
-  policy_aggregate: active_capital   # NOTE: LargeCapital resolves via subtype
-  industrial_aggregate: active_capital  # NOTE: LargeCapital resolves via subtype
-  foreign_aggregate: active_capital     # NOTE: LargeCapital resolves via subtype
+  short_horizon_momentum: active_capital
+  policy_aggregate: policy_industrial_foreign_aggregate
+  industrial_aggregate: policy_industrial_foreign_aggregate
+  foreign_aggregate: policy_industrial_foreign_aggregate
 
-# Classification algorithm
+# === CLASSIFICATION RULES (in priority order) ===
 classification_rules:
-  - rule: "named_person_quarantine"
+  - name: QUARANTINE_CHECK
     priority: 1
     description: >
-      If atom deterministic_id is in QUARANTINE-MANIFEST.yaml, classify as PERSON_IDENTITY_QUARANTINED.
-      No family/subtype/agent identity emitted.
-
-  - rule: "source_field_driven_mapping"
+      If deterministic_id is in QUARANTINE-MANIFEST.yaml → PERSON_IDENTITY_QUARANTINED.
+      This handles named-person atoms that should not be treated as generic participant adapters.
+  - name: FULL_MAPPING
     priority: 2
     description: >
-      If atom has recognized subject_family that maps to a D2 family:
-      a) If confidence=LOW AND misclassification_risk=HIGH → AMBIGUOUS with multiple hypotheses
-      b) Otherwise → MAPPED with d2_family + d2_subtype (resolved via mapping tables)
-      Subject_family takes precedence over perspective_class.
-
-  - rule: "no_subject_family"
+      If atom has BOTH recognized subject_family AND subject_subtype:
+      map subtype via Q0_TO_D2_SUBTYPE, then resolve family via SUBTYPE_TO_FAMILY → MAPPED
+  - name: AMBIGUITY_CHECK
     priority: 3
     description: >
-      If atom has NO subject_family:
-      a) atom_type in (FACT, CONSTRAINT, RISK) + perspective_class= MARKET_STRUCTURE → CONTEXT_ONLY
-      b) atom_type=VALIDATION_TASK → UNMAPPED
-      c) atom_type=HYPOTHESIS + perspective_class=NORMATIVE_ADVICE → CONTEXT_ONLY
-      d) Others → UNMAPPED
-
-  - rule: "unmapped_family"
+      If atom has recognized subject_family but NO subject_subtype:
+      check AMBIGUITY-MANIFEST.yaml. If deterministic_id is listed → AMBIGUOUS with hypotheses.
+      Otherwise → UNMAPPED (no default subtype from family alone).
+  - name: CONTEXT_ONLY
     priority: 4
     description: >
-      If atom has subject_family but not in mapping table → UNMAPPED
-
-  - rule: "no_unmapped_unknown_family"
+      If atom has NO subject_family AND perspective_class is MARKET_STRUCTURE
+      AND no participant evidence → CONTEXT_ONLY.
+  - name: UNMAPPED
     priority: 5
-    description: >
-      UNMAPPED_UNKNOWN must NEVER appear as a family value.
-      UNMAPPED disposition uses no family field.
+    description: All other atoms → UNMAPPED
 
-# Lossless field preservation
-preserved_fields:
-  - source_deterministic_id
-  - source_atom_type
-  - source_confidence
-  - source_evidence_status
-  - source_evidence_references
-  - source_counterevidence_references
-  - source_unknown_state
-  - source_field_hash
-
-# No authority upgrade rules
-no_upgrade_rules:
-  - description: "CLAIM must NOT be upgraded to source_atom_type=FACT"
-  - description: "HYPOTHESIS must NOT be upgraded to CLAIM"
-  - description: "UNKNOWN must NOT be upgraded to any higher certainty type"
-  - description: "confidence must NOT increase from source value"
-  - description: "evidence_status must NOT be upgraded from source value"
+# === NO-DEFAULT POLICY ===
+no_default_policy:
+  rule: "Family-only evidence NEVER produces a specific default subtype"
+  rationale: >
+    E16 defect: family-only atoms were assigned default subtypes (e.g., RetailPopulationFamily → DayTraderRetail).
+    This is WRONG. Without explicit subtype evidence, classification is AMBIGUOUS (if in manifest) or UNMAPPED.
+  test_enforcement: "Test #9: family-only source → no default subtype (UNMAPPED, not mapped)"
