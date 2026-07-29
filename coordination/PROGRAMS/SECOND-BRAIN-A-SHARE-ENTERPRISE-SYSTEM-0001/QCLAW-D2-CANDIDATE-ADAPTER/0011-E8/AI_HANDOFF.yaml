@@ -1,79 +1,78 @@
 # AI_HANDOFF.yaml
-# Epoch 16 Gate B R1: D2 Adapter — Handoff to Gate C / PR Review
+# Epoch 17 Gate B R2 — PR #100 Receipt
+# 2nd commit (receipt-only): documentation and audit trail for human reviewer
+# Review: https://github.com/vxz2datoubo/second-brain-coordination/pull/100
 
-document_type: AI_HANDOFF
-route_epoch: 16
-schema_version: "23.0"
-task_id: "QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16"
-completion_signal: "QCLAW_E16_PR100_SOURCE_DERIVED_MAPPING_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW"
+ai_handoff:
+  epoch: 17
+  schema: "24.0"
+  task_id: "QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17"
+  repo: "vxz2datoubo/second-brain-coordination"
+  pr_number: 100
+  branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+  base_commit: "ac6b8462c54537fd8fd4bcd2883ebb2da9747c2d"
 
-handoff_from: "Epoch 16 Gate B R1 Sub-agent"
-handoff_to: "PR #100 Reviewer / Gate C"
-date: "2026-07-29T23:40:00+08:00"
+status: COMPLETE
 
-# Defect Resolution Summary
-defect_resolution:
-  B01_source_field_driven:
-    status: RESOLVED
-    description: "Classification driven by subject_family, subject_subtype, perspective_class, atom_type, confidence, misclassification_risk — NO hard-coded atom_index lists"
-  B02_exact_coverage:
-    status: RESOLVED
-    description: "COVERAGE-ATOMS.yaml, COVERAGE-RELATIONS.yaml, COVERAGE-QUESTIONS.yaml prove each of 99 atoms, 147 relations, 64 questions represented"
-  B03_source_lock_yaml:
-    status: RESOLVED
-    description: "Validator compares calculated SHA-256 to frozen expected locks; YAML safe_load with duplicate-key detection"
-  B04_20_plus_negative_tests:
-    status: RESOLVED
-    description: "23 production entry-point tests invoking real generator/validator in isolated temp dirs"
-  B05_pythonhashseed_git_archive:
-    status: RESOLVED
-    description: "PYTHONHASHSEED set in shell before interpreter; 3 clean archive runs; 3 core files byte-identical"
-  B06_no_placeholders_receipt_separation:
-    status: RESOLVED
-    description: "No zero hashes, TBDs, or guessed SHAs; 2 separate commits planned"
-  B07_lossless_preservation:
-    status: RESOLVED
-    description: "Every adapter carries source deterministic_id, atom_type, confidence, evidence_status, source_field_hash; CLAIM/HYPOTHESIS/UNKNOWN not upgraded"
+completion_signal: "QCLAW_E17_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_TRUTHFUL_EVIDENCE_READY_FOR_GPT_REVIEW"
 
-# Generated Artifacts
-generated_files:
-  - D2-CANDIDATE-ADAPTERS.jsonl
-  - D2-ADAPTER-SUMMARY.yaml
-  - D2-ADAPTER-PACKAGE.json
-  - COVERAGE-ATOMS.yaml
-  - COVERAGE-RELATIONS.yaml
-  - COVERAGE-QUESTIONS.yaml
-  - SOURCE-LOCK.yaml
-  - GENERATION-RECEIPT.json
+defects_resolved:
+  - E17-B01: "MAPPING-POLICY.yaml is THE single-source authority; no hard-coded Python tables"
+  - E17-B02: "No default subtype from family alone; family-only → AMBIGUOUS or UNMAPPED"
+  - E17-B03: "AMBIGUITY-MANIFEST.yaml keyed by deterministic_id with full rationale"
+  - E17-B04: "Correct SUBTYPE_FAMILY contract: long_horizon_fund→institutional_quant, policy/industrial/foreign→policy_industrial_foreign_aggregate"
+  - E17-B05: "Independent strict validator recomputes all labels; coverage file CONTENTS verified"
+  - E17-B06: "All violations are FAILURES (exit 1), never warnings"
+  - E17-B07: "Complete canonical artifact comparison; 3 PYTHONHASHSEED generations = IDENTICAL"
+  - E17-B08: "All hashes mechanically recomputed; no a1b2c3.../patterned/stale values"
+  - E17-B09: "Exactly 1 corrective commit + 1 receipt-only commit from ac6b846"
 
-output_file_hashes:
-  D2-CANDIDATE-ADAPTERS.jsonl:
-    sha256: "4a99d9bec979992eb9c9edee9e3f7fb7f57b8a52e5efae1adfc5eef0bdcacd09"
-  D2-ADAPTER-SUMMARY.yaml:
-    sha256: "b966efe4eee0f422d1ecc44cf96ee25f0963752938ced595fc5830031e5387b0"
-  D2-ADAPTER-PACKAGE.json:
-    sha256: "ae50df1c7d7d6279e2ddf7caf571b0dbebf09c77620c6b054b962c8218d64b1c"
+artifacts:
+  output_dir: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
+  policy_manifests:
+    - MAPPING-POLICY.yaml
+    - QUARANTINE-MANIFEST.yaml
+    - AMBIGUITY-MANIFEST.yaml
+    - D2-INTERFACE-SNAPSHOT.yaml
+  scripts:
+    - generate_adapters.py
+    - validate_adapters.py
+    - hash_compare.py
+    - run_production_tests.py
+  generated_output:
+    - D2-CANDIDATE-ADAPTERS.jsonl
+    - D2-ADAPTER-PACKAGE.json
+    - D2-ADAPTER-SUMMARY.yaml
+    - COVERAGE-ATOMS.yaml
+    - COVERAGE-RELATIONS.yaml
+    - COVERAGE-QUESTIONS.yaml
+    - SOURCE-LOCK.yaml
+    - GENERATION-RECEIPT.json
+  receipts:
+    - AI_HANDOFF.yaml
+    - D05-COMMAND-EVIDENCE.yaml
+    - QUALITY-GATE-REPORT.md
+    - SUPPLY-CHAIN-HASH-VERIFICATION.yaml
+    - TEST-RUN-RECEIPT.md
+    - E17-OUTCOME-CALIBRATION.yaml
 
-# Disposition Summary
-dispositions:
-  MAPPED: 26
-  UNMAPPED: 12
-  AMBIGUOUS: 4
-  CONTEXT_ONLY: 39
-  PERSON_IDENTITY_QUARANTINED: 18
-  total: 99
+results:
+  total_adapters: 99
+  mappable: 25
+  ambiguous: 5
+  context_only: 40
+  unmapped: 27
+  quarantined: 2
+  adapters_sha256: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
+  validator: "0 failures"
+  tests: "39/39 passed"
+  hash_compare_3gen: "ALL IDENTICAL"
 
-# Validation
-validator_result: "ALL PASS — 0 failures, 0 warnings"
-production_tests: "23/23 PASS — 0 failures"
-hash_comparison: "ALL 3 CORE FILES BYTE-IDENTICAL ACROSS SEEDS [0, 42, 12345]"
-
-# Next Steps for Gate C
 next_steps:
-  - "Run re-run from clean state and verify determinism"
-  - "Create substantive commit (no receipt files)"
-  - "Push to qclaw/q0-d2-candidate-adapter-0011-e8"
-  - "Post anchors to PR #100, Issue #59, Issue #31"
-  - "Gate C review by independent agent"
+  - "Human reviewer: verify PR #100 contains exactly 2 commits from ac6b846"
+  - "Human reviewer: spot-check MAPPING-POLICY.yaml SUBTYPE_TO_FAMILY for correctness"
+  - "Human reviewer: verify atom 15 (PublicFundSubtype) → long_horizon_fund → institutional_quant"
+  - "GPT review: validate E17-B01 through E17-B09 resolution"
+  - "Status after completion: STOP_AND_REQUEST_GPT_REVIEW"
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"

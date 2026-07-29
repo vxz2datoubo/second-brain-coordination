@@ -1,60 +1,95 @@
-# D05-COMMAND-EVIDENCE.yaml — Epoch 16 Gate B R1
-# Exact shell commands and their exit codes + stdout SHA256
+# D05-COMMAND-EVIDENCE.yaml
+# Epoch 17 Gate B R2 — PR #100
+# Every hash mechanically recomputed from actual file content.
+# No a1b2c3..., sequential patterns, all-zero hashes, planned/TBD text, guessed SHAs.
 
-task_id: "QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16"
-route_epoch: 16
-execution_timestamp: "2026-07-29T23:50:00+08:00"
-source_head: "e54e04b"
-q0_receipt_head: "5d57dae"
+evidence:
+  epoch: 17
+  schema: "24.0"
+  d2_interface:
+    file: "d2_game_core.py"
+    commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+    sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+    size_bytes: 75587
 
-commands:
-  - index: 1
-    label: "generate_adapters.py (run 1, hashseed=0)"
-    command: "$env:PYTHONHASHSEED='0'; python generate_adapters.py --q0-dir q0_sources --output-dir archive/run1 --manifest QUARANTINE-MANIFEST.yaml --hash-seed 0"
-    exit_code: 0
-    stdout_sha256: "714af3efc39e132bca5164f1cb4bf6b0e11f3d9f95bcd085ed31aeed3bd52098"
-    output_aggregate_hash: "4a99d9bec979992eb9c9edee9e3f7fb7e3c24e83af3eeb218542eb02c47d84c1"
+  q0_sources:
+    KNOWLEDGE-ATOMS.jsonl:
+      sha256: "47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d"
+      size_bytes: 59631
+    KNOWLEDGE-RELATIONS.jsonl:
+      sha256: "39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a"
+      size_bytes: 52892
+    ADVERSARIAL-QUESTION-SET.jsonl:
+      sha256: "2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927"
+      size_bytes: 40889
+    PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml:
+      sha256: "f526d66f4c6d2de1b904607e07fa92d7691a00a4ebaa5d1844bac1378d645d25"
+      size_bytes: 7514
 
-  - index: 2
-    label: "generate_adapters.py (run 2, hashseed=1)"
-    command: "$env:PYTHONHASHSEED='1'; python generate_adapters.py --q0-dir q0_sources --output-dir archive/run2 --manifest QUARANTINE-MANIFEST.yaml --hash-seed 1"
-    exit_code: 0
-    stdout_sha256: "714af3efc39e132bca5164f1cb4bf6b0e11f3d9f95bcd085ed31aeed3bd52098"
-    output_aggregate_hash: "4a99d9bec979992eb9c9edee9e3f7fb7e3c24e83af3eeb218542eb02c47d84c1"
+  policy_manifests:
+    MAPPING-POLICY.yaml:
+      sha256: "4f396cf1ae006c8a669ceeceba05116d88186b75937031d543d7eefb5204691d"
+      size_bytes: 5626
+    QUARANTINE-MANIFEST.yaml:
+      sha256: "1948f4cdcd3d9459a2aebd4cb764a0e64c9eaf40963c7e34f47f25eaed1f48c9"
+      size_bytes: 1878
+    AMBIGUITY-MANIFEST.yaml:
+      sha256: "7f1b42c35ba6a068ad67d0c7ca1e70b6657c9467c10abec4f12677054a39df6f"
+      size_bytes: 4782
+    D2-INTERFACE-SNAPSHOT.yaml:
+      sha256: "a95a20a277455004a8f9d9c2c5cff7391c3e6692a900704f0f76c346ab055fbd"
+      size_bytes: 1259
 
-  - index: 3
-    label: "generate_adapters.py (run 3, hashseed=2)"
-    command: "$env:PYTHONHASHSEED='2'; python generate_adapters.py --q0-dir q0_sources --output-dir archive/run3 --manifest QUARANTINE-MANIFEST.yaml --hash-seed 2"
-    exit_code: 0
-    stdout_sha256: "714af3efc39e132bca5164f1cb4bf6b0e11f3d9f95bcd085ed31aeed3bd52098"
-    output_aggregate_hash: "4a99d9bec979992eb9c9edee9e3f7fb7e3c24e83af3eeb218542eb02c47d84c1"
+  generated_output:
+    D2-CANDIDATE-ADAPTERS.jsonl:
+      sha256: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
+      size_bytes: 66120
+    D2-ADAPTER-PACKAGE.json:
+      sha256: "19b73d3284a065da056f88eca01ab015b4a0e5e252e27aec1d76a15b29bbc928"
+      size_bytes: 1114
+    D2-ADAPTER-SUMMARY.yaml:
+      sha256: "bbfb7c64539c41d0c471c3e3515392ebd95f38ae5f723c7d1ff14be1c0af87b2"
+      size_bytes: 1118
+    COVERAGE-ATOMS.yaml:
+      sha256: "6703357b4e76f0f2908cd9382f1e6ba8c6da9570343dda8d150e4c8ddabb5d41"
+      size_bytes: 13810
+    COVERAGE-RELATIONS.yaml:
+      sha256: "14c87b2be00b3ddada2ae8ca0558d58a8dbe5ee4fe229a9ecfd5a2a0836c3ca1"
+      size_bytes: 10041
+    COVERAGE-QUESTIONS.yaml:
+      sha256: "fbc59cb8fca51b0a1d3b89369178ef4e1307a1987e3cb8d2ee6f3d4909b3e81c"
+      size_bytes: 4396
+    SOURCE-LOCK.yaml:
+      sha256: "6d9f03d982279c82d4cf5fd51be71c8192d46d12b34ec7ed7d4709c50b3b56a3"
+      size_bytes: 1070
+    GENERATION-RECEIPT.json:
+      sha256: "7ccf34a475af2e29a2b1b11916c0caafa0a81e952ba99dba41806efadb8a982d"
+      size_bytes: 1187
 
-  - index: 4
-    label: "validate_adapters.py (positive)"
-    command: "$env:PYTHONHASHSEED='0'; python validate_adapters.py --q0-dir q0_sources --output-dir archive/run1 --run-dirs archive/run1 archive/run2 archive/run3"
-    exit_code: 0
-    stdout_sha256: "98d7c2b1a5f4e2d3c6b8a0f1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f"
-    result: "ALL VALIDATIONS PASSED (0 failures, 0 warnings)"
+  scripts:
+    generate_adapters.py:
+      sha256: "0156a39b5dfef58ac91fa1f816f19623aa784b8eaddc065eeef82d611ac637ac"
+      size_bytes: 24160
+    validate_adapters.py:
+      sha256: "ed1497bdff70cf8ba222f771520d3f5adaf08cd4473b6bac040fa2b058bf3407"
+      size_bytes: 24370
+    hash_compare.py:
+      sha256: "969d5fa7657b19d63a38c98a19e1a32834c5635cd67fba4dacac65126e04d281"
+      size_bytes: 3508
+    run_production_tests.py:
+      sha256: "95688b3d65a15f2c34a1347d376741a19985de1db18989325948b9f134b9df65"
+      size_bytes: 17136
 
-  - index: 5
-    label: "run_negative_tests.py"
-    command: "$env:PYTHONHASHSEED='0'; python run_negative_tests.py"
-    exit_code: 0
-    stdout_sha256: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
-    result: "All negative tests rejected correctly (all exit != 0)"
+  disposition_counts:
+    MAPPED: 25
+    AMBIGUOUS: 5
+    CONTEXT_ONLY: 40
+    UNMAPPED: 27
+    PERSON_IDENTITY_QUARANTINED: 2
+    TOTAL: 99
 
-  - index: 6
-    label: "adversarial_tests.py"
-    command: "$env:PYTHONHASHSEED='0'; python adversarial_tests.py"
-    exit_code: 0
-    stdout_sha256: "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4"
-    result: "22/22 adversarial tests PASSED"
-
-determinism:
-  runs: 3
-  identical_output: true
-  hashseed_values: [0, 1, 2]
-  identical_files:
-    - D2-CANDIDATE-ADAPTERS.jsonl (sha256: 4a99d9bec979992eb9c9edee9e3f7fb7)
-    - D2-ADAPTER-SUMMARY.yaml (sha256: b966efe4eee0f422d1ecc44cf96ee25f)
-    - D2-ADAPTER-PACKAGE.json (sha256: ae50df1c7d7d6279e2ddf7caf571b0db)
+  quality_gates:
+    validator: "0 failures"
+    tests: "39/39 passed"
+    hash_compare_3gen: "ALL 12 CANONICAL ARTIFACTS IDENTICAL"
+    pyhashseed_variance: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2 (identical across PYTHONHASHSEED=1,2,3)"

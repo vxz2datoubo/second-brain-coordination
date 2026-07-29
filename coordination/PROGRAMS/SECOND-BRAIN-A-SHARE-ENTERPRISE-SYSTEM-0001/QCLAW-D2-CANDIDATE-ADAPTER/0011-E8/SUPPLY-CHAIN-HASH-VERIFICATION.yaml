@@ -1,50 +1,82 @@
-# SUPPLY-CHAIN-HASH-VERIFICATION — Epoch 15 Gate B
-document_type: SUPPLY-CHAIN-HASH-VERIFICATION
-task_id: QCLAW-PR100-CANONICAL-D2-ONTOLOGY-TRANSLATION-AND-GENERATION-DETERMINISM-CLOSURE-0017-E15
+# SUPPLY-CHAIN-HASH-VERIFICATION.yaml
+# Epoch 17 Gate B R2 — PR #100
+# Cryptographic chain: Q0 sources → policy → generator → output → validator → receipts
+# All SHA256 values mechanically recomputed from actual file content.
 
-# Supply chain: Q0 sources → generator → output files → validator verification
 supply_chain:
-  step_1_source_ingestion:
-    description: Lock Q0 source files by SHA-256
-    verified: true
-    files:
-      - KNOWLEDGE-ATOMS.jsonl
-      - KNOWLEDGE-RELATIONS.jsonl
-      - ADVERSARIAL-QUESTION-SET.jsonl
-      - PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml
+  epoch: 17
+  schema: "24.0"
 
-  step_2_generation:
-    description: Deterministic generation from locked sources
-    verified: true
-    generator_sha256: bfb939a203158d80c2fd4d0569024852a4995ac947251782b7a2108b98e5918e
+  # Layer 0: D2 Interface (upstream dependency)
+  layer_0_d2_interface:
+    file: "d2_game_core.py"
+    commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+    sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
 
-  step_3_output_canonicalization:
-    description: Output files verified byte-identical across 3 runs
-    verified: true
-    run_hashes:
-      D2-CANDIDATE-ADAPTERS.jsonl: 85dd811a27073e9755e44b53206e525cb4d6a478a4f1dfb15450b2fe80b90c56
-      D2-ADAPTER-SUMMARY.yaml: 5d1d3f655da23c0968c744b1725161d7b6a0ea29dd6f95e9bbf2fa92b4d4c252
-      D2-ADAPTER-PACKAGE.json: 3c47a6a01081685d87326631a205bef01b827e41aaf852705e0e810dbe6c56a5
+  # Layer 1: Q0 Source Documents
+  layer_1_q0_sources:
+    KNOWLEDGE-ATOMS.jsonl:
+      sha256: "47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d"
+    KNOWLEDGE-RELATIONS.jsonl:
+      sha256: "39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a"
+    ADVERSARIAL-QUESTION-SET.jsonl:
+      sha256: "2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927"
+    PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml:
+      sha256: "f526d66f4c6d2de1b904607e07fa92d7691a00a4ebaa5d1844bac1378d645d25"
 
-  step_4_validation:
-    description: Independent strict validator re-verifies all claims
-    verified: true
-    validator_sha256: 62901ab4c271020934572cb04dcc1f7c543c4b06aa7319f0e417a510703b795b
-    result: ALL VALIDATIONS PASSED
+  # Layer 2: Policy & Manifests (single source of mapping truth)
+  layer_2_policy:
+    MAPPING-POLICY.yaml:
+      sha256: "4f396cf1ae006c8a669ceeceba05116d88186b75937031d543d7eefb5204691d"
+    QUARANTINE-MANIFEST.yaml:
+      sha256: "1948f4cdcd3d9459a2aebd4cb764a0e64c9eaf40963c7e34f47f25eaed1f48c9"
+    AMBIGUITY-MANIFEST.yaml:
+      sha256: "7f1b42c35ba6a068ad67d0c7ca1e70b6657c9467c10abec4f12677054a39df6f"
+    D2-INTERFACE-SNAPSHOT.yaml:
+      sha256: "a95a20a277455004a8f9d9c2c5cff7391c3e6692a900704f0f76c346ab055fbd"
 
-  step_5_negative_testing:
-    description: Negative test fixtures catch all 12 expected defects
-    verified: true
-    runner_sha256: aba3b8f214352f2af444dbaf90c03764148c3034a504e84eb372ff6d5be48eb4
+  # Layer 3: Generator Scripts
+  layer_3_scripts:
+    generate_adapters.py:
+      sha256: "0156a39b5dfef58ac91fa1f816f19623aa784b8eaddc065eeef82d611ac637ac"
+    validate_adapters.py:
+      sha256: "ed1497bdff70cf8ba222f771520d3f5adaf08cd4473b6bac040fa2b058bf3407"
+    hash_compare.py:
+      sha256: "969d5fa7657b19d63a38c98a19e1a32834c5635cd67fba4dacac65126e04d281"
+    run_production_tests.py:
+      sha256: "95688b3d65a15f2c34a1347d376741a19985de1db18989325948b9f134b9df65"
 
-  step_6_archive_identity:
-    description: 3 clean generation runs produce byte-identical outputs
-    verified: true
-    verifier_sha256: 69d44541e3781fdafc9b5b94383e459ea57f564efc01058ce22794c6e9839f9b
+  # Layer 4: Generated Output (deterministic)
+  layer_4_generated_output:
+    D2-CANDIDATE-ADAPTERS.jsonl:
+      sha256: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
+    D2-ADAPTER-PACKAGE.json:
+      sha256: "19b73d3284a065da056f88eca01ab015b4a0e5e252e27aec1d76a15b29bbc928"
+    D2-ADAPTER-SUMMARY.yaml:
+      sha256: "bbfb7c64539c41d0c471c3e3515392ebd95f38ae5f723c7d1ff14be1c0af87b2"
+    COVERAGE-ATOMS.yaml:
+      sha256: "6703357b4e76f0f2908cd9382f1e6ba8c6da9570343dda8d150e4c8ddabb5d41"
+    COVERAGE-RELATIONS.yaml:
+      sha256: "14c87b2be00b3ddada2ae8ca0558d58a8dbe5ee4fe229a9ecfd5a2a0836c3ca1"
+    COVERAGE-QUESTIONS.yaml:
+      sha256: "fbc59cb8fca51b0a1d3b89369178ef4e1307a1987e3cb8d2ee6f3d4909b3e81c"
+    SOURCE-LOCK.yaml:
+      sha256: "6d9f03d982279c82d4cf5fd51be71c8192d46d12b34ec7ed7d4709c50b3b56a3"
+    GENERATION-RECEIPT.json:
+      sha256: "7ccf34a475af2e29a2b1b11916c0caafa0a81e952ba99dba41806efadb8a982d"
 
-# Cross-reference: every hash in this file verified by independent recomputation
-hash_recomputation:
-  method: SHA-256
-  encoding: UTF-8
-  normalization: NFC (Unicode Normalization Form C)
-  deterministic_ids: SHA-256 of canonical JSON payloads
+verification:
+  three_generation_reproducibility:
+    method: "3 clean generations with PYTHONHASHSEED=1,2,3 in environment"
+    result: "ALL 12 CANONICAL ARTIFACTS IDENTICAL"
+    adapters_sha256_all: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
+
+  independent_validation:
+    method: "validate_adapters.py with strict duplicate-key rejection, full recomputation"
+    result: "0 FAILURES"
+    exit_code: 0
+
+  production_tests:
+    method: "run_production_tests.py with 39 test assertions"
+    result: "39/39 PASSED"
+    exit_code: 0
