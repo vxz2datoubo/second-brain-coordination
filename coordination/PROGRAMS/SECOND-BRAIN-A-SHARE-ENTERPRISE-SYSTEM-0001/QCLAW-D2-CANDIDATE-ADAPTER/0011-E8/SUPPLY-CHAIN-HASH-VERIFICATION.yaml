@@ -1,0 +1,50 @@
+# SUPPLY-CHAIN-HASH-VERIFICATION — Epoch 15 Gate B
+document_type: SUPPLY-CHAIN-HASH-VERIFICATION
+task_id: QCLAW-PR100-CANONICAL-D2-ONTOLOGY-TRANSLATION-AND-GENERATION-DETERMINISM-CLOSURE-0017-E15
+
+# Supply chain: Q0 sources → generator → output files → validator verification
+supply_chain:
+  step_1_source_ingestion:
+    description: Lock Q0 source files by SHA-256
+    verified: true
+    files:
+      - KNOWLEDGE-ATOMS.jsonl
+      - KNOWLEDGE-RELATIONS.jsonl
+      - ADVERSARIAL-QUESTION-SET.jsonl
+      - PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml
+
+  step_2_generation:
+    description: Deterministic generation from locked sources
+    verified: true
+    generator_sha256: bfb939a203158d80c2fd4d0569024852a4995ac947251782b7a2108b98e5918e
+
+  step_3_output_canonicalization:
+    description: Output files verified byte-identical across 3 runs
+    verified: true
+    run_hashes:
+      D2-CANDIDATE-ADAPTERS.jsonl: 85dd811a27073e9755e44b53206e525cb4d6a478a4f1dfb15450b2fe80b90c56
+      D2-ADAPTER-SUMMARY.yaml: 5d1d3f655da23c0968c744b1725161d7b6a0ea29dd6f95e9bbf2fa92b4d4c252
+      D2-ADAPTER-PACKAGE.json: 3c47a6a01081685d87326631a205bef01b827e41aaf852705e0e810dbe6c56a5
+
+  step_4_validation:
+    description: Independent strict validator re-verifies all claims
+    verified: true
+    validator_sha256: 62901ab4c271020934572cb04dcc1f7c543c4b06aa7319f0e417a510703b795b
+    result: ALL VALIDATIONS PASSED
+
+  step_5_negative_testing:
+    description: Negative test fixtures catch all 12 expected defects
+    verified: true
+    runner_sha256: aba3b8f214352f2af444dbaf90c03764148c3034a504e84eb372ff6d5be48eb4
+
+  step_6_archive_identity:
+    description: 3 clean generation runs produce byte-identical outputs
+    verified: true
+    verifier_sha256: 69d44541e3781fdafc9b5b94383e459ea57f564efc01058ce22794c6e9839f9b
+
+# Cross-reference: every hash in this file verified by independent recomputation
+hash_recomputation:
+  method: SHA-256
+  encoding: UTF-8
+  normalization: NFC (Unicode Normalization Form C)
+  deterministic_ids: SHA-256 of canonical JSON payloads
