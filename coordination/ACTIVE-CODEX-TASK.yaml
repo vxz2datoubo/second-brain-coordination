@@ -1,4 +1,4 @@
-schema_version: "20.0"
+schema_version: "21.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -21,20 +21,20 @@ reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20.yaml"
 
 # -----------------------------------------------------------------------------
 # ACTIVE LEASE
 # -----------------------------------------------------------------------------
-task_id: "CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19"
+task_id: "CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2类型优先身份提取与公共API后置条件闭环E19"
+mode_label: "【Codex模式：目标模式】D2双入口类型优先仲裁与验证器总函数闭环E20"
 mode_reason: >-
-  E18 successfully distinguishes verifier-valid declaration aborts from forged incomplete peer histories and delivers the required
-  two-commit shape with 91 focused tests. Independent GPT review found a narrower public-boundary defect: _arbitrate_internal extracts
-  order IDs, invocation IDs, action IDs and arrival identities through attribute access, hashing and set construction before _validate_action
-  establishes their types. A non-SyntheticOrder value can reach action.order.order_id and unhashable malformed IDs can fail before the
-  declared disposition policy. The defect is executable, bounded and must close before Evaluation V2 freezes the API, so target mode applies.
+  Epoch 19 correctly selected a type-first repair for arbitrate, but independent task review occurred before any E19 implementation and found the
+  same defect class in verify_episode_ledger. The verifier checks outer dataclass membership, then constructs sets and dictionaries from nested IDs,
+  sorts actions by arrival_sequence and enters semantic reconstruction before proving those nested values safe. A malformed dataclass-shaped
+  EpisodeState can therefore raise accidental Python exceptions instead of returning a deterministic invalid verification result. The repair remains
+  precise and bounded to two public entry points in one D2 file and test suite, so target mode applies rather than project-plan mode.
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
@@ -45,59 +45,55 @@ reviewed_or_base_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 19
+route_epoch: 20
 route_issued_at: "2026-07-29"
-route_issued_against_main: "f7a1ce8407404572eb6aa7ebbe7f244bfd22681f"
-completion_signal: "CODEX_E19_D2_TYPE_FIRST_IDENTITY_EXTRACTION_AND_PUBLIC_API_POSTCONDITION_READY_FOR_GPT_REVIEW"
+route_issued_against_main: "c6759e6a20dbdb25c89518f427290ca49cfb0ba9"
+completion_signal: "CODEX_E20_D2_DUAL_ENTRY_TYPE_FIRST_ARBITRATION_AND_VERIFIER_TOTALITY_READY_FOR_GPT_REVIEW"
 supersedes:
+  - "CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19@route_epoch:19@SUPERSEDED_BEFORE_EXECUTION"
   - "CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18@route_epoch:18"
 
 # -----------------------------------------------------------------------------
-# INDEPENDENT REVIEW DISPOSITION
+# INDEPENDENT TASK REVIEW DISPOSITION
 # -----------------------------------------------------------------------------
 review_disposition:
-  classification: "E18_DECLARATION_COMPOSABILITY_ACCEPTED_AS_BASE_GATE_A_FAILS_TYPE_FIRST_PUBLIC_API_TOTALITY"
+  classification: "E19_DIRECTION_VALID_BUT_INCOMPLETE_SUPERSEDED_BEFORE_EXECUTION_BY_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
   accepted_and_frozen_as_useful_base:
-    - "E18 tested commit 6ddd68e8c244d7296f5f980cc93b0a5677f25180 is exactly one substantive commit after the E18 reviewed base."
-    - "E18 receipt commit d6f9e2e4d38861e91353be177c9ceacedde6d7ee is exactly one receipt-only commit after the tested head."
-    - "The substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; the receipt delta is limited to E18-GATE-A-R3-RECEIPT.md."
-    - "91 focused tests, three byte-stable Git archives and deterministic ledger output are accepted as evidence for the tested cases."
-    - "Honest malformed peer declarations now produce deterministic zero-mutation declaration aborts that verify and compose across later steps."
-    - "E18 separation between declaration abort, settlement abort, valid commit and forged member/event mutation is accepted as the new base."
+    - "E18 tested commit 6ddd68e8c244d7296f5f980cc93b0a5677f25180 and receipt commit d6f9e2e4d38861e91353be177c9ceacedde6d7ee remain the exact code base."
+    - "E18 verifier-valid declaration aborts, E17 atomic peer settlement and E16 independent reconstruction remain accepted as preserved semantics."
+    - "E19 correctly identified arbitration-side pre-validation order and identity consumption."
+    - "PR #101 head did not move after E19 publication; no E19 implementation, checkpoint or completion evidence exists, so scope can be corrected without code rollback."
   blocking_findings:
-    - id: "E19-B01-ORDER-ID-DEREFERENCE-BEFORE-TYPE-VALIDATION"
+    - id: "E20-B01-ARBITRATION-NESTED-FIELDS-CONSUMED-BEFORE-STRUCTURAL-PROOF"
       severity: "BLOCKER"
       finding: >-
-        _arbitrate_internal constructs order_ids with action.order.order_id for every non-None order before _validate_action runs.
-        A CandidateAction carrying object(), a dict or another non-SyntheticOrder value can therefore raise AttributeError or a related
-        Python exception instead of receiving the documented deterministic pre-construction rejection or fail-closed terminal disposition.
-    - id: "E19-B02-UNHASHABLE-IDENTITIES-BEFORE-VALIDATION"
+        arbitrate extracts order_id and builds sets, dictionaries, sorted collections and registry membership from CandidateAction and AgentState
+        nested fields before the exact types and bounded contracts required by those operations are established.
+    - id: "E20-B02-VERIFIER-NESTED-FIELDS-CONSUMED-BEFORE-DEEP-VALIDATION"
       severity: "BLOCKER"
       finding: >-
-        Duplicate checks and registry sets consume action_id, arrival_sequence, effective_invocation_id, order_id and peer_transfer_id before
-        their bounded-text/integer/type contracts are established. Lists, dictionaries or other unhashable values can fail during set construction,
-        sorting or membership tests before the public contract selects an intentional disposition.
-    - id: "E19-B03-E18-RECEIPT-TEST-CODE-DISCREPANCY"
+        verify_episode_ledger confirms only outer dataclass tuple membership, then builds a set from initial_agents[*].agent_id, a dictionary from
+        action_registry[*].action_id and sorts boundary actions by arrival_sequence. Unhashable or incomparable nested values can escape as TypeError.
+    - id: "E20-B03-VERIFIER-IS-NOT-A-TOTAL-PUBLIC-TRUST-BOUNDARY"
+      severity: "BLOCKER"
+      finding: >-
+        The verifier should return EpisodeLedgerVerification(valid=false, reason_codes=...) for malformed stored state, but dataclass-shaped adversarial
+        values can crash before a canonical invalid result is produced. Evaluation V2 cannot freeze that behavior.
+    - id: "E20-B04-SPLIT-VALIDATOR-DRIFT-RISK"
       severity: "MAJOR"
       finding: >-
-        The E18 receipt claims that an arbitrary non-SyntheticOrder peer value is rejected before attribute access, but the tested code still
-        dereferences order.order_id before _validate_action and the E18 regression suite covers order=None rather than an arbitrary object value.
-        Preserve this discrepancy as evidence; do not rewrite the E18 receipt or represent the claim as proven.
-    - id: "E19-B04-PUBLIC-POSTCONDITION-MATRIX-IS-NOT-TYPE-ADVERSARIAL"
-      severity: "MAJOR"
-      finding: >-
-        The E18 terminal matrix covers semantic peer branches with normally typed dataclass fields, but it does not cover malformed field types,
-        unhashable identifiers, deceptive order objects or multi-fault precedence. Gate A cannot claim a total public boundary until those paths
-        are intentional, deterministic and tested.
+        Repairing only arbitrate would create two structural contracts: one safe writer and one unsafe reader. Shared narrow validators or an equivalent
+        common structural contract are required to prevent future divergence.
   preserved_unknowns:
     - id: "ROOT-CAPSULE-ORIGIN-AUTHENTICATION"
-      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_AN_E19_BLOCKER"
+      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_AN_E20_BLOCKER"
       finding: "External signature, trusted timestamp and canonical registry publication remain outside Gate A."
     - id: "ATOMIC-PEER-RESOURCE-EFFECTS"
       disposition: "NOT_IMPLEMENTED_YET_FAIL_CLOSED_PRESERVE_FOR_SEPARATE_GATE"
-      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E19."
+      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E20."
   decision:
-    e18_declaration_composability_repairs: "ACCEPTED_AS_NEW_BASE"
+    e18_semantics: "ACCEPTED_AS_CODE_BASE"
+    e19_task: "SUPERSEDED_BEFORE_EXECUTION_NO_CODE_ACCEPTED_OR_REJECTED"
     gate_a_overall: "NOT_ACCEPTED"
     gate_b: "FROZEN"
     gate_c: "FROZEN"
@@ -110,17 +106,17 @@ review_disposition:
 # -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "MEDIUM_BOUNDED_TYPE_FIRST_API_CLOSURE"
+  task_weight: "MEDIUM_HEAVY_BOUNDED_DUAL_ENTRY_PUBLIC_BOUNDARY_CLOSURE"
   research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_NEEDED"
   checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo schema 20.0, route_epoch 19, exact remote main and exact PR #101 head."
-    - "Publish executable baseline reproductions for object() as order, unhashable action/invocation/transfer identifiers and invalid arrival types."
-    - "Provide a table showing every field consumed before event construction, its validator, its intentional failure disposition and precedence."
-    - "State the selected architecture, rejected catch-all-exception alternative and rollback."
+    - "Echo schema 21.0, route_epoch 20, exact remote main and exact PR #101 head."
+    - "Publish executable baseline reproductions for arbitrate(order=object), unhashable action/invocation/transfer IDs, verifier(initial agent_id=list), verifier(action_id=dict) and verifier(wrong-type arrival_sequence)."
+    - "Provide one dual-entry field-consumption table covering each operation, validator, intentional disposition and deterministic precedence."
+    - "State the selected shared-validator architecture, rejected catch-all alternative, compatibility impact and rollback."
   checkpoint_behavior: >-
-    Continue autonomously inside Gate A-R4 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
-    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E19 reviewed base.
+    Continue autonomously inside Gate A-R5 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
+    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E20 reviewed base.
 
 exploration_budget:
   primary_delivery_share: "75-85%"
@@ -133,11 +129,11 @@ exploration_budget:
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R4"
+  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R5"
   architecture_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_paths: true
-  may_add_structural_validators_disposition_tables_negative_tests_and_trace_helpers: true
+  may_add_shared_structural_validators_reason_taxonomies_negative_tests_and_trace_helpers: true
   may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
   may_continue_within_current_gate_without_gpt: true
   may_advance_to_next_gate_without_new_gpt_message: false
@@ -147,78 +143,81 @@ autonomy_grant:
   surviving_exploit_or_unknown_must_be_preserved: true
 
 # -----------------------------------------------------------------------------
-# ACTIVE GATE A-R4
+# ACTIVE GATE A-R5
 # -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_R4_PR101_TYPE_FIRST_PUBLIC_API_TOTALITY"
-  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E19"
+  active_gate: "A_R5_PR101_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
+  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E20"
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
 
 stage_plan:
-  - gate_id: "A_R4_PR101_TYPE_FIRST_PUBLIC_API_TOTALITY"
+  - gate_id: "A_R5_PR101_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
     status: "ACTIVE"
     owner_pr: 101
     reviewed_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E19_REVIEWED_HEAD"
+    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E20_REVIEWED_HEAD"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E19-GATE-A-R4-RECEIPT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E20-GATE-A-R5-RECEIPT.md"
     objective: >-
-      Establish one type-first public arbitration boundary: no CandidateAction field may be dereferenced, hashed, compared, sorted,
-      inserted into a set or used as a registry key before the exact structural contract needed for that operation has been proven.
-      Every returned GameRun must contain a verifier-valid EpisodeState; every rejected malformed input must fail intentionally before
-      any event, identity reservation or episode mutation under a documented deterministic precedence rule.
+      Establish one shared type-first structural contract across arbitrate and verify_episode_ledger. No nested field may be dereferenced, hashed,
+      compared, sorted, inserted into a set/dict or used as a registry key before the exact contract needed for that operation is proven. Every returned
+      GameRun must contain a verifier-valid EpisodeState. Every malformed arbitration input must be intentionally rejected before construction, and every
+      malformed stored episode must yield a deterministic invalid EpisodeLedgerVerification rather than an accidental Python exception.
     required_results:
-      - "Inventory every pre-event field consumption for action_id, agent_id, arrival_sequence, invocation_id, order, order_id, peer_transfer_id, counterparty_agent_id, conflict_key, references and scheduled_step_index."
-      - "Introduce an explicit structural preflight or equivalent safe-access architecture before duplicate checks, sorting, hashing, registry construction and order-ID extraction."
-      - "Freeze a disposition table: which malformed fields become pre-construction ValueError and which well-typed semantic failures become verifier-valid terminal events."
-      - "Do not construct a partial event, step boundary, action registry or identity reservation before any pre-construction rejection."
-      - "Use narrow explicit validators; do not add broad catch-all AttributeError/TypeError handling that masks programmer defects."
-      - "Make arbitrary non-SyntheticOrder values safe, including object(), dict, list and a deceptive object exposing only some expected attributes."
-      - "Make unhashable or wrong-type action, invocation, order, transfer and arrival identities deterministic without accidental Python exceptions."
-      - "Define and test deterministic error precedence for actions with multiple malformed fields."
-      - "Add a public API totality matrix: every non-exceptional terminal branch verifies, and every intentional exception is the documented ValueError before construction."
-      - "Preserve all E16 independent reconstruction, E17 atomic settlement and E18 declaration-abort composability/forgery guarantees."
-      - "Do not edit or delete E18 evidence; explicitly record the E18 receipt-versus-code discrepancy and its E19 closure."
+      - "Inventory every pre-event and pre-verification field consumption across AgentState, CandidateAction, SyntheticOrder, LedgerEvent, ExternalLiquidityFlowEvent, SharedMarketState, EpisodeStepBoundary and EpisodeState."
+      - "Implement shared narrow structural validators or an equivalent single-source contract used by both arbitration and verification."
+      - "Arbitrate must reject malformed structure before event, boundary, registry, replay identity or portfolio/resource mutation."
+      - "verify_episode_ledger must be total over arbitrary Python objects and dataclass-shaped malformed EpisodeState values, returning stable invalid reason codes without mutation."
+      - "Freeze a deterministic error taxonomy and precedence: top-level type, collection shape/limit, nested field structure, identity uniqueness, schedule/boundary structure, semantic invariants, reconstruction mismatch."
+      - "Do not coerce malformed identifiers to strings, tuples or hashable stand-ins."
+      - "Do not use a broad catch-all TypeError/AttributeError wrapper around either public entry point."
+      - "Cover arbitrary object/dict/list/deceptive order values and unhashable or incomparable nested identifiers."
+      - "Cover custom adversarial values whose __hash__, __eq__, __lt__ or partial attributes raise; invalid types must be rejected without invoking unsafe operations."
+      - "Every non-exceptional arbitrate branch must return a verifier-valid episode; every intentional arbitration exception must occur before construction."
+      - "Every verifier call must return EpisodeLedgerVerification and must never leak accidental exceptions for malformed user-supplied state."
+      - "Preserve E16 independent reconstruction, E17 atomic settlement, E18 declaration-abort composability and all existing negative evidence."
+      - "Record that E19 was superseded before execution and do not create or edit an E19 receipt."
     mandatory_exploit_tests:
-      - "Peer CandidateAction with order=object() must not reach order.order_id; it must receive the selected intentional disposition."
-      - "External CandidateAction with order=dict/list/object must not crash through identity extraction or reduce_order."
-      - "Unhashable action_id, invocation_id and peer_transfer_id values must fail intentionally before set construction or registry mutation."
-      - "Wrong-type arrival_sequence must fail before duplicate-set and sort operations."
-      - "A deceptive order object with order_id but missing side/quantity must not pass structural preflight."
-      - "Malformed order_id inside an otherwise SyntheticOrder-compatible path must follow the frozen contract without accidental hashing/set failure."
-      - "Multi-fault actions must produce deterministic precedence independent of PYTHONHASHSEED and input collection representation."
-      - "After every verifier-valid semantic block/abort, a valid external action and atomic peer pair remain composable."
-      - "All E18 declaration injection, relabeling, identity-reuse and terminal-matrix regressions remain passing."
-      - "A source-level regression or executable guard proves no order.order_id access occurs before order type validation."
+      - "Arbitrate peer and external actions with order=object(), dict, list and a deceptive partial-order object."
+      - "Arbitrate with unhashable action_id, agent_id, invocation_id, order_id, peer_transfer_id, counterparty ID and conflict key."
+      - "Arbitrate with wrong-type or incomparable arrival_sequence and scheduled_step_index values before any sort or set operation."
+      - "Verify EpisodeState whose initial AgentState has agent_id=list/dict and whose action registry has action_id=list/dict."
+      - "Verify EpisodeState whose arrival_sequence cannot be sorted, whose boundary action IDs are unhashable, and whose event IDs/references are malformed."
+      - "Verify malformed SharedMarketState claims, external flow IDs and nested SyntheticOrder fields without accidental hash/attribute errors."
+      - "Use adversarial custom objects with raising __hash__, __eq__, __lt__ or missing attributes to prove unsafe operations are not reached."
+      - "Multi-fault inputs must produce the frozen first reason independent of PYTHONHASHSEED and list/tuple representation where both are supported."
+      - "Valid E18 declaration aborts, valid external actions, atomic peer commits, settlement aborts and forged-history rejection remain unchanged."
+      - "Source-level or executable guards prove no protected field consumption precedes the shared structural preflight."
     minimum_tests:
-      total_focused_semantic_tests: 108
-      new_type_boundary_regressions: 16
+      total_focused_semantic_tests: 124
+      new_dual_entry_boundary_regressions: 32
       clean_git_archive_runs: 3
       distinct_pythonhashseed_values: 3
     evidence_required:
       - "Exact substantive and receipt SHAs, parents, trees and allowed-file deltas."
-      - "Exact baseline exploit commands/results and final regression IDs."
+      - "Exact baseline exploit commands/results and final regression IDs for both public entry points."
       - "Exact commands, exits, stdout/stderr SHA-256, Python/platform and elapsed time."
-      - "Three clean Git-archive runs plus deterministic trace/hash equality."
-      - "CI status for all configured Python versions."
+      - "Three clean Git-archive runs plus deterministic trace/hash and reason-order equality."
+      - "CI status for Python 3.11 and 3.13."
       - "External completion anchors on PR #101, Issue #23 and Issue #31."
-      - "OutcomeCalibrationReview comparing the E19 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
+      - "OutcomeCalibrationReview comparing the E20 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
     caution:
-      - "Do not fix this by wrapping the whole reducer in catch-all exception handling."
-      - "Do not weaken validation to make malformed values hashable through string coercion."
-      - "Do not rewrite the E18 receipt or delete the discrepancy evidence."
-      - "Do not weaken or delete E15/E16/E17/E18 tests."
+      - "Do not fix verifier totality by returning a single generic INVALID_EPISODE for all nested failures."
+      - "Do not catch programmer defects with broad exception handling."
+      - "Do not normalize malformed values into valid-looking identifiers."
+      - "Do not weaken or delete E15/E16/E17/E18 tests or evidence."
+      - "Do not create an E19 receipt or represent E19 as executed."
       - "Do not modify D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
       - "Do not start Evaluation V2 or any downstream gate."
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E19"
+    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E20"
     required_new_draft_pr: true
     superseded_source_pr: 102
-    start_gate: "GPT accepts E19 Gate A-R4 tested and receipt heads and explicitly releases Gate B."
+    start_gate: "GPT accepts E20 Gate A-R5 tested and receipt heads and explicitly releases Gate B."
     frozen_requirements_ref: "schema 16.0 Gate B requirements remain preserved"
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
@@ -238,7 +237,7 @@ stage_plan:
 # -----------------------------------------------------------------------------
 forbidden:
   - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
-  - "No concurrent substantive implementation outside PR #101 Gate A-R4."
+  - "No concurrent substantive implementation outside PR #101 Gate A-R5."
   - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
   - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
 
@@ -247,7 +246,7 @@ after_completion:
   merge: false
   release_issue92: false
   completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E19_D2_TYPE_FIRST_IDENTITY_EXTRACTION_AND_PUBLIC_API_POSTCONDITION_READY_FOR_GPT_REVIEW"
+  required_signal: "CODEX_E20_D2_DUAL_ENTRY_TYPE_FIRST_ARBITRATION_AND_VERIFIER_TOTALITY_READY_FOR_GPT_REVIEW"
 
 boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
