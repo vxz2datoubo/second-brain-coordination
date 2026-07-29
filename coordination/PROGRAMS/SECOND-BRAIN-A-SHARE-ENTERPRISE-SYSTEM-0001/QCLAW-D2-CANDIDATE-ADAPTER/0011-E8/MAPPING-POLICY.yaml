@@ -1,0 +1,154 @@
+# MAPPING-POLICY.yaml
+# Source-field-driven classification rules for D2 adapter generation
+#
+# Route epoch: 16, Schema: 23.0
+# Task ID: QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16
+
+document_type: MAPPING-POLICY
+version: "1.0"
+
+# Q0 source families → D2 family mapping
+family_mapping:
+  RetailPopulationFamily:
+    d2_family: "retail"
+    description: "散户群体各类子类型"
+  QuantStrategyFamily:
+    d2_family: "institutional_quant"
+    description: "量化策略家族各类子类型"
+  ActiveSpeculativeCapitalFamily:
+    d2_family: "active_capital"
+    description: "主动投机资本各类子类型"
+  LargeCapitalFamily:
+    d2_family: "needs_subtype_resolution"
+    description: "大资金根据子类型进一步解析"
+
+# Q0 source subtypes → D2 subtype mapping
+subtype_mapping:
+  # Retail family subtypes
+  DayTraderRetail:
+    d2_subtype: "retail_liquidity_taker"
+  PositionalRetail:
+    d2_subtype: "retail_anchored_holder"
+  IPOReversalRetail:
+    d2_subtype: "retail_liquidity_taker"
+  SmallCapHunterRetail:
+    d2_subtype: "retail_liquidity_taker"
+  IndexETFInvestor:
+    d2_subtype: "retail_anchored_holder"
+  SocialMediaFollowerRetail:
+    d2_subtype: "retail_liquidity_taker"
+
+  # Large Capital family subtypes
+  PublicFundSubtype:
+    d2_subtype: "long_horizon_fund"
+  PrivateFundSubtype:
+    d2_subtype: "long_horizon_fund"
+  StabilizationCapitalSubtype:
+    d2_subtype: "policy_aggregate"
+  IndustrialCapitalSubtype:
+    d2_subtype: "industrial_aggregate"
+  ForeignCapitalSubtype:
+    d2_subtype: "foreign_aggregate"
+
+  # Quant Strategy family subtypes
+  StatisticalArbitrageQuant:
+    d2_subtype: "systematic_rebalancer"
+  HighFrequencyQuant:
+    d2_subtype: "systematic_rebalancer"
+  FactorModelQuant:
+    d2_subtype: "systematic_rebalancer"
+
+  # Active Speculative Capital family subtypes
+  SwingSpeculator:
+    d2_subtype: "short_horizon_momentum"
+  ThemeCoordinator:
+    d2_subtype: "event_driven_active"
+
+# D2 valid families
+d2_families:
+  - retail
+  - institutional_quant
+  - active_capital
+  - long_horizon_fund
+  - policy_aggregate
+  - industrial_aggregate
+  - foreign_aggregate
+
+# D2 valid subtypes
+d2_subtypes:
+  - retail_liquidity_taker
+  - retail_anchored_holder
+  - systematic_rebalancer
+  - short_horizon_momentum
+  - event_driven_active
+  - long_horizon_fund
+  - policy_aggregate
+  - industrial_aggregate
+  - foreign_aggregate
+
+# Subtype → family consistency check
+subtype_family_map:
+  retail_liquidity_taker: retail
+  retail_anchored_holder: retail
+  systematic_rebalancer: institutional_quant
+  short_horizon_momentum: active_capital
+  event_driven_active: active_capital
+  long_horizon_fund: active_capital  # NOTE: needs subtype-level resolution for LargeCapital
+  policy_aggregate: active_capital   # NOTE: LargeCapital resolves via subtype
+  industrial_aggregate: active_capital  # NOTE: LargeCapital resolves via subtype
+  foreign_aggregate: active_capital     # NOTE: LargeCapital resolves via subtype
+
+# Classification algorithm
+classification_rules:
+  - rule: "named_person_quarantine"
+    priority: 1
+    description: >
+      If atom deterministic_id is in QUARANTINE-MANIFEST.yaml, classify as PERSON_IDENTITY_QUARANTINED.
+      No family/subtype/agent identity emitted.
+
+  - rule: "source_field_driven_mapping"
+    priority: 2
+    description: >
+      If atom has recognized subject_family that maps to a D2 family:
+      a) If confidence=LOW AND misclassification_risk=HIGH → AMBIGUOUS with multiple hypotheses
+      b) Otherwise → MAPPED with d2_family + d2_subtype (resolved via mapping tables)
+      Subject_family takes precedence over perspective_class.
+
+  - rule: "no_subject_family"
+    priority: 3
+    description: >
+      If atom has NO subject_family:
+      a) atom_type in (FACT, CONSTRAINT, RISK) + perspective_class= MARKET_STRUCTURE → CONTEXT_ONLY
+      b) atom_type=VALIDATION_TASK → UNMAPPED
+      c) atom_type=HYPOTHESIS + perspective_class=NORMATIVE_ADVICE → CONTEXT_ONLY
+      d) Others → UNMAPPED
+
+  - rule: "unmapped_family"
+    priority: 4
+    description: >
+      If atom has subject_family but not in mapping table → UNMAPPED
+
+  - rule: "no_unmapped_unknown_family"
+    priority: 5
+    description: >
+      UNMAPPED_UNKNOWN must NEVER appear as a family value.
+      UNMAPPED disposition uses no family field.
+
+# Lossless field preservation
+preserved_fields:
+  - source_deterministic_id
+  - source_atom_type
+  - source_confidence
+  - source_evidence_status
+  - source_evidence_references
+  - source_counterevidence_references
+  - source_unknown_state
+  - source_field_hash
+
+# No authority upgrade rules
+no_upgrade_rules:
+  - description: "CLAIM must NOT be upgraded to source_atom_type=FACT"
+  - description: "HYPOTHESIS must NOT be upgraded to CLAIM"
+  - description: "UNKNOWN must NOT be upgraded to any higher certainty type"
+  - description: "confidence must NOT increase from source value"
+  - description: "evidence_status must NOT be upgraded from source value"
