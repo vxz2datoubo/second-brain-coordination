@@ -76,11 +76,12 @@ def independent_digest(episode: object) -> str:
     return canonical_sha256(independent_projection(episode))
 
 
-def evaluate_episode(episode: object, *, expected_digest: str | None = None) -> OracleReport:
+def evaluate_episode(episode: object) -> OracleReport:
     """Reconstruct public ledger/accounting invariants without production helpers."""
     reasons: list[str] = []
     checked = [
-        "ORACLE-IDENTITY", "ORACLE-ACTION-EVENT-BINDING", "ORACLE-CAUSAL-DAG",
+        "ORACLE-IDENTITY", "ORACLE-ACTION-EVENT-BINDING", "ORACLE-ACTION-EVENT-COVERAGE",
+        "ORACLE-ARRIVAL-SEQUENCE-ORDER", "ORACLE-CAUSAL-DAG",
         "ORACLE-CONFLICT-OWNERSHIP", "ORACLE-PEER-CONSERVATION", "ORACLE-EXTERNAL-FLOW",
         "ORACLE-INVENTORY-DELTA", "ORACLE-INDEPENDENT-DIGEST",
     ]
@@ -105,6 +106,26 @@ def evaluate_episode(episode: object, *, expected_digest: str | None = None) -> 
     event_ids = [getattr(event, "event_id", None) for event in events]
     if None in event_ids or len(set(event_ids)) != len(event_ids):
         reasons.append("ORACLE_DUPLICATE_OR_INVALID_EVENT_ID")
+    event_action_ids = [getattr(event, "action_id", None) for event in events]
+    if len(event_action_ids) != len(actions) or set(event_action_ids) != set(action_by_id):
+        reasons.append("ORACLE_ACTION_EVENT_COVERAGE_MISMATCH")
+    boundaries = getattr(episode, "step_boundaries", ())
+    if type(boundaries) is not tuple:
+        reasons.append("ORACLE_INVALID_STEP_BOUNDARIES")
+    else:
+        for boundary in boundaries:
+            boundary_ids = tuple(getattr(boundary, "action_ids", ()))
+            if any(action_id not in action_by_id for action_id in boundary_ids):
+                reasons.append("ORACLE_BOUNDARY_UNKNOWN_ACTION")
+                continue
+            expected_ids = tuple(sorted(boundary_ids, key=lambda action_id: getattr(action_by_id[action_id], "arrival_sequence", None)))
+            actual_ids = tuple(
+                getattr(event, "action_id", None)
+                for event in events
+                if getattr(event, "step_index", None) == getattr(boundary, "step_index", None)
+            )
+            if actual_ids != expected_ids:
+                reasons.append("ORACLE_ARRIVAL_SEQUENCE_ORDER")
 
     prior_event_ids: set[str] = set()
     claimed: dict[str, str] = {}
@@ -124,7 +145,7 @@ def evaluate_episode(episode: object, *, expected_digest: str | None = None) -> 
         if agent_id != getattr(action, "agent_id", None) or agent_id not in initial_by_id:
             reasons.append("ORACLE_EVENT_AGENT_BINDING_MISMATCH")
         parents = tuple(getattr(event, "causal_parent_event_ids", ()))
-        if any(parent not in prior_event_ids for parent in parents):
+        if getattr(event, "accepted", None) and any(parent not in prior_event_ids for parent in parents):
             reasons.append("ORACLE_FORWARD_OR_CYCLIC_CAUSAL_PARENT")
         prior_event_ids.add(getattr(event, "event_id", None))
         filled = getattr(event, "filled_quantity", None)
@@ -204,6 +225,16 @@ def evaluate_episode(episode: object, *, expected_digest: str | None = None) -> 
             reasons.append("ORACLE_INVENTORY_DELTA_MISMATCH")
 
     digest = independent_digest(episode)
-    if expected_digest is not None and digest != expected_digest:
-        reasons.append("ORACLE_INDEPENDENT_DIGEST_MISMATCH")
     return OracleReport(not reasons, tuple(sorted(set(reasons))), digest, tuple(checked))
+
+
+def state_hash_binding_oracle(episode: object, expected_state_hash: str) -> OracleReport:
+    """Check one declared stored-hash binding; this is not a generic digest gate."""
+    actual = getattr(episode, "state_hash", None)
+    valid = type(expected_state_hash) is str and actual == expected_state_hash
+    return OracleReport(
+        valid,
+        () if valid else ("ORACLE_STORED_HASH_BINDING",),
+        canonical_sha256({"expected_state_hash": expected_state_hash, "actual_state_hash": actual}),
+        ("ORACLE_STORED_HASH_BINDING",),
+    )

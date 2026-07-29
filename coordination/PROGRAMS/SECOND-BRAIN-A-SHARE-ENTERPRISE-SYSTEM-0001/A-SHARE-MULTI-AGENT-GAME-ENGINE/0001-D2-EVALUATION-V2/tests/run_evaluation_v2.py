@@ -1,4 +1,4 @@
-"""Emit a deterministic public-safe E22 summary; no external inputs or writes."""
+"""Emit a deterministic public-safe E23 summary; no external inputs or writes."""
 from __future__ import annotations
 
 import json
