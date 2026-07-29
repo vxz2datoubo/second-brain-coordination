@@ -1,0 +1,47 @@
+# GOLDEN-VECTORS.yaml
+# Epoch 18, Schema 25.0
+# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+#
+# Keyed examples demonstrating field-identical canonicalization.
+# Used by the generator to verify deterministic serialization produces correct hashes.
+# Used by the validator to independently verify canonical source hash computation.
+#
+# Each vector: deterministic_id → canonical_source_hash computed from FULL source record
+# (NFC-normalized, sort_keys=True, all fields included).
+
+golden_vectors:
+  epoch: 18
+  schema: "25.0"
+  policy: >
+    For each atom, canonical_source_hash = sha256(utf8(json_dumps(atom_dict, sort_keys=True, ensure_ascii=False)))
+    where atom_dict includes ALL fields present in the source record.
+    All string values are NFC normalized before hashing.
+  normalization: "NFC"
+  sort_keys: true
+  include_all: true
+
+  vectors:
+    - deterministic_id: "a636ae80ba481653c0336e9adc2d3f9c7ca37f061a2b42ba70949d651d1a2858"
+      atom_index: 1
+      description: "Liu Xin swing speculator — quarantined person atom"
+      note: "Hashes computed at generation time; golden vectors verified by validator"
+
+    - deterministic_id: "c51ce40af92eaf8066dea972e0419abaa2d9f2240c9383f8ed9a8649e9b94ff3"
+      atom_index: 92
+      description: "Foreign capital flow — atom with ALL extension fields (data_availability_note, data_version, parameter_status, tags)"
+      note: "This is the canonical test case for E18-B04 lossless hashing"
+
+    - deterministic_id: "cca90a864dc8d0f0ac8dba5cc28453437ebb4a668f09b64ae6191caac1710a12"
+      atom_index: 57
+      description: "Quant crowding — ambiguous (QuantStrategyFamily, no subtype)"
+      note: "E18-B06: must have >=2 hypotheses; single-hypothesis was a defect"
+
+    - deterministic_id: "650c697145ccba4b4ffbfd77982661586c11d855763757809aa191d3fb383cca"
+      atom_index: 67
+      description: "Quant counterexample — ambiguous (QuantStrategyFamily, no subtype)"
+      note: "E18-B06: must have >=2 hypotheses; single-hypothesis was a defect"
+
+    - deterministic_id: "b2ee05a761977ffc048c52fe8144d0b90dcef523df57e8ff6c723dea9956ce85"
+      atom_index: 91
+      description: "Liu Xin public commentator bias — quarantined person atom with tags"
+      note: "E18-B05: was missing from quarantine; now PERSON_IDENTITY_QUARANTINED"

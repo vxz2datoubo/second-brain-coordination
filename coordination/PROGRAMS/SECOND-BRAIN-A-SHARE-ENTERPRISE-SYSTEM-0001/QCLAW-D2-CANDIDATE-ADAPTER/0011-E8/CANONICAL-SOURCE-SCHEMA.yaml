@@ -1,0 +1,74 @@
+# CANONICAL-SOURCE-SCHEMA.yaml
+# v1.0 — Defines canonical source record field ordering, extension field policy,
+# and deterministic serialization rules for lossless adapter generation.
+# Epoch 18, Schema 25.0
+# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+
+schema:
+  version: "1.0"
+  epoch: 18
+  schema_version: "25.0"
+  task_id: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+
+# === CANONICAL FIELD ORDER (sort-key order for deterministic serialization) ===
+# Fields are sorted alphabetically for deterministic JSON output.
+# Content hash must cover ALL fields present in the source record.
+canonical_field_order_policy:
+  rule: "ALPHA_SORT_ALL_FIELDS"
+  description: >
+    All fields present in the source atom record are included.
+    No field is excluded from canonicalization.
+    Fields are sorted alphabetically for deterministic serialization.
+  normalization: "NFC (Unicode Normalization Form C) applied to all string values"
+
+# === KNOWN SOURCE FIELDS (discovered from Q0 KNOWLEDGE-ATOMS.jsonl @ e54e04b) ===
+all_source_fields:
+  - atom_index             # integer: sequential index 1-99
+  - atom_type              # string: CLAIM | COUNTEREXAMPLE | RISK | HYPOTHESIS | CAUSAL_CLAIM | etc.
+  - capacity_assumption    # string (optional): participant capacity assumption
+  - confidence             # string: LOW | MEDIUM | HIGH
+  - content_en             # string: English rendering
+  - content_zh             # string: Chinese rendering (source language)
+  - data_availability_note # string (optional): notes on data availability
+  - data_version           # string (optional): data version info
+  - deterministic_id       # string: sha256 deterministic ID
+  - evidence_status        # string: UNTESTED | PARTIALLY_VERIFIED | WELL_ESTABLISHED
+  - legal_basis            # string (optional): legal basis info
+  - misclassification_risk # string: LOW | MEDIUM | HIGH
+  - parameter_status       # string (optional): parameter calibration status
+  - perspective_class      # string: SELF_ATTRIBUTION | OTHER_ACTOR_OBSERVATION | MARKET_STRUCTURE
+  - source_file            # string: source document filename
+  - source_section         # string: source document section
+  - subject_family         # string | null: Q0 family classification
+  - subject_subtype        # string | null: Q0 subtype classification
+  - tags                   # list[string] (optional): categorization tags
+  - timing_observability   # string (optional): timing observability notes
+
+# === EXTENSION FIELD POLICY ===
+extension_field_policy:
+  rule: "PRESERVE_ALL_UNKNOWN_FIELDS"
+  description: >
+    Any field present in the source record that is not listed above
+    MUST still be included in the canonical source record.
+    Unknown fields are harmless — dropping them is lossy.
+  rationale: >
+    E18-B04: source_field_hash only covered a subset of fields.
+    Atom 92 had data_availability_note, data_version, parameter_status,
+    tags, and content_en fields being dropped from hash computation.
+    This schema mandates ALL fields be included.
+
+# === ADAPTER CANONICAL SOURCE RECORD ===
+adapter_canonical_source_policy:
+  field_order: "ALPHA_SORT_ALL_FIELDS"
+  normalize: "NFC"
+  include_all: true
+  hash_function: "sha256"
+  hash_encoding: "hex"
+  description: >
+    The canonical_source_hash is computed as:
+    sha256(NFC-normalized json.dumps(all_source_fields, sort_keys=True, ensure_ascii=False))
+    The full canonical source record is embedded in every adapter output
+    under the 'canonical_source_record' key.
+
+# === GOLDEN EXAMPLES (keyed) ===
+# See GOLDEN-VECTORS.yaml for field-identical canonicalization examples.

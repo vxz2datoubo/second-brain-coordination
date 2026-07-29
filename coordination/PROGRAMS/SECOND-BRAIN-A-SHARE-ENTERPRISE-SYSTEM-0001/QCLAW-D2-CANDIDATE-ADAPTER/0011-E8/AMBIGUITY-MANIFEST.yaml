@@ -1,18 +1,21 @@
 # AMBIGUITY-MANIFEST.yaml
-# Epoch 17, Schema 24.0
-# Task: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+# Epoch 18, Schema 25.0
+# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
 #
 # Every AMBIGUOUS hypothesis MUST come from this manifest.
-# No sorted-family convenience fallback. No lexicographic guess.
-# Each entry: deterministic_id + hypotheses + rationale + source references.
+# E18-B06 fix: EVERY entry must have >=2 distinct D2-compatible hypotheses.
+# Single-hypothesis entries (atoms 57, 67 in E17) → removed from AMBIGUOUS → now UNMAPPED.
 #
-# When an atom has a recognized subject_family but NO subject_subtype,
-# and its deterministic_id appears in this manifest → disposition is AMBIGUOUS.
+# Rule: When an atom has a recognized subject_family but NO subject_subtype,
+# and its deterministic_id appears in this manifest → AMBIGUOUS with 2+ hypotheses.
 # Otherwise → UNMAPPED.
 
 manifest:
-  version: "17.0"
-  task_id: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+  version: "18.0"
+  schema: "25.0"
+  epoch: 18
+  task_id: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+  total_ambiguous: 3
 
 ambiguity_entries:
   # --- Atom 54: RetailPopulationFamily, no subtype ---
@@ -34,20 +37,6 @@ ambiguity_entries:
       - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
       - "Q0 PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml v1.0"
 
-  # --- Atom 57: QuantStrategyFamily, no subtype ---
-  - deterministic_id: "cca90a864dc8d0f0ac8dba5cc28453437ebb4a668f09b64ae6191caac1710a12"
-    atom_index: 57
-    evidence_family: "QuantStrategyFamily"
-    rationale: >
-      Atom describes quant strategy crowding and diminishing returns — a structural
-      claim about quant strategies broadly, not evidence for any specific quant subtype.
-    hypotheses:
-      - d2_subtype: "systematic_rebalancer"
-        confidence: "SPECULATIVE"
-        basis: "Crowding dynamics most pronounced in systematic/factor strategies"
-    source_refs:
-      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
-
   # --- Atom 61: ActiveSpeculativeCapitalFamily, no subtype ---
   - deterministic_id: "cc9f6dd82ae77691d47fdc0e5cd32da428110b5e922ef87c4f24ab8a2c931849"
     atom_index: 61
@@ -63,20 +52,6 @@ ambiguity_entries:
       - d2_subtype: "event_driven_active"
         confidence: "SPECULATIVE"
         basis: "Could involve event-coordinated activity if triggered by themes"
-    source_refs:
-      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
-
-  # --- Atom 67: QuantStrategyFamily, no subtype ---
-  - deterministic_id: "650c697145ccba4b4ffbfd77982661586c11d855763757809aa191d3fb383cca"
-    atom_index: 67
-    evidence_family: "QuantStrategyFamily"
-    rationale: >
-      Atom is a COUNTEREXAMPLE — some quant strategies don't fit the crowding model.
-      This is about a class of quant strategies, not a specific subtype instance.
-    hypotheses:
-      - d2_subtype: "systematic_rebalancer"
-        confidence: "SPECULATIVE"
-        basis: "Counterexamples likely emerge in systematic/factor model contexts"
     source_refs:
       - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 4"
 
@@ -96,3 +71,18 @@ ambiguity_entries:
         basis: "Anchored holders may upgrade for research rather than execution"
     source_refs:
       - "A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md Four-Family Matrix"
+
+# === E18-B06 REMOVED ENTRIES (single hypothesis, now UNMAPPED) ===
+removed_entries:
+  - atom_index: 57
+    deterministic_id: "cca90a864dc8d0f0ac8dba5cc28453437ebb4a668f09b64ae6191caac1710a12"
+    reason: >
+      Only 1 D2-compatible hypothesis (systematic_rebalancer).
+      E18-B06 mandates >=2 distinct hypotheses per AMBIGUOUS entry.
+      This atom is now UNMAPPED (family=QuantStrategyFamily, no subtype, no 2+ hypotheses).
+  - atom_index: 67
+    deterministic_id: "650c697145ccba4b4ffbfd77982661586c11d855763757809aa191d3fb383cca"
+    reason: >
+      Only 1 D2-compatible hypothesis (systematic_rebalancer).
+      E18-B06 mandates >=2 distinct hypotheses per AMBIGUOUS entry.
+      This atom is now UNMAPPED (family=QuantStrategyFamily, no subtype, no 2+ hypotheses).

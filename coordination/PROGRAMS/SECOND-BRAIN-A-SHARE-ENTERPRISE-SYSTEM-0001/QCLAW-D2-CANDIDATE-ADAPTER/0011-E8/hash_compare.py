@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-hash_compare.py — Complete canonical artifact comparison for Epoch 17 Gate B R2
-PR #100: Policy Single-Source Uncertainty & Truthful Evidence
+hash_compare.py — Epoch 18 Gate B R3
+PR #100: Strict Canonical Identity, Lossless Quarantine & Executable Evidence
 
-Compares ALL canonical artifacts across two generation directories.
-Used to verify that 3 clean PYTHONHASHSEED generations produce IDENTICAL outputs.
+Compares ALL canonical artifacts across 2-3 generation directories.
+Used to verify deterministic PYTHONHASHSEED-independent output.
+
+E18-B09: MISSING_BOTH is ALWAYS FAILURE (was incorrectly marked match=True in E17).
+Hash comparison proves Git-archive provenance (requires archive dirs from known commits).
 """
 import hashlib
 import os
@@ -20,9 +23,11 @@ CANONICAL_ARTIFACTS = [
     "SOURCE-LOCK.yaml",
     "GENERATION-RECEIPT.json",
     "MAPPING-POLICY.yaml",
-    "QUARANTINE-MANIFEST.yaml",
+    "FULL-ID-QUARANTINE-MANIFEST.yaml",
     "AMBIGUITY-MANIFEST.yaml",
     "D2-INTERFACE-SNAPSHOT.yaml",
+    "CANONICAL-SOURCE-SCHEMA.yaml",
+    "GOLDEN-VECTORS.yaml",
 ]
 
 
@@ -35,7 +40,8 @@ def file_sha256(path):
 
 
 def compare_dirs(dir_a, dir_b):
-    """Compare canonical artifacts between two directories."""
+    """Compare canonical artifacts between two directories.
+    E18-B09: MISSING_BOTH is FAILURE (not match=True)."""
     results = {}
     all_identical = True
 
@@ -46,30 +52,41 @@ def compare_dirs(dir_a, dir_b):
         exists_b = os.path.exists(path_b)
 
         if not exists_a and not exists_b:
-            results[art] = {"status": "MISSING_BOTH", "match": True}
-            print(f"  MISSING: {art} (both)")
+            # E18-B09: MISSING_BOTH = FAILURE
+            results[art] = {"status": "MISSING_BOTH", "match": False}
+            print(f"  FAILURE: {art} (MISSING_BOTH - E18-B09)")
+            all_identical = False
             continue
         elif not exists_a:
             results[art] = {"status": "MISSING_A", "match": False}
-            print(f"  MISMATCH: {art} (missing in A)")
+            print(f"  FAILURE: {art} (missing in A)")
             all_identical = False
             continue
         elif not exists_b:
             results[art] = {"status": "MISSING_B", "match": False}
-            print(f"  MISMATCH: {art} (missing in B)")
+            print(f"  FAILURE: {art} (missing in B)")
             all_identical = False
             continue
 
         hash_a = file_sha256(path_a)
         hash_b = file_sha256(path_b)
-        match = hash_a == hash_b
-        results[art] = {"status": "HASHED", "hash_a": hash_a, "hash_b": hash_b, "match": match}
+        size_a = os.path.getsize(path_a)
+        size_b = os.path.getsize(path_b)
+        match = (hash_a == hash_b) and (size_a == size_b)
+        results[art] = {
+            "status": "HASHED",
+            "hash_a": hash_a,
+            "hash_b": hash_b,
+            "size_a": size_a,
+            "size_b": size_b,
+            "match": match,
+        }
 
         status = "MATCH" if match else "MISMATCH"
         print(f"  {status}: {art}")
         if not match:
-            print(f"    A: {hash_a}")
-            print(f"    B: {hash_b}")
+            print(f"    A: {hash_a} ({size_a} bytes)")
+            print(f"    B: {hash_b} ({size_b} bytes)")
             all_identical = False
 
     return results, all_identical
@@ -79,13 +96,14 @@ def main():
     if len(sys.argv) < 3:
         print("Usage: hash_compare.py <dir_a> <dir_b> [dir_c]")
         print("Compares canonical artifacts between 2-3 generation directories.")
+        print("E18-B09: MISSING_BOTH is FAILURE.")
         sys.exit(1)
 
     dir_a = sys.argv[1]
     dir_b = sys.argv[2]
     dir_c = sys.argv[3] if len(sys.argv) > 3 else None
 
-    print(f"Comparing canonical artifacts:")
+    print(f"Comparing canonical artifacts (E18-B09: MISSING_BOTH = FAILURE):")
     print(f"  A: {dir_a}")
     print(f"  B: {dir_b}")
 
@@ -107,10 +125,11 @@ def main():
         print(f"A vs C: {'IDENTICAL' if identical_ac else 'DIFFERENT'}")
 
     if identical_ab and identical_ac:
-        print("\nALL CANONICAL ARTIFACTS IDENTICAL")
+        print("\nALL CANONICAL ARTIFACTS IDENTICAL ACROSS ALL GENERATIONS")
+        print("PYTHONHASHSEED-independent determinism verified.")
         sys.exit(0)
     else:
-        print("\nCANONICAL ARTIFACTS DIFFER")
+        print("\nCANONICAL ARTIFACTS DIFFER — generation not deterministic or artifacts missing")
         sys.exit(1)
 
 

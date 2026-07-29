@@ -1,19 +1,19 @@
 # MAPPING-POLICY.yaml — Single Source of Mapping Truth
-# Epoch 17, Schema 24.0
-# Task: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+# Epoch 18, Schema 25.0
+# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
 # This file is THE authority for Q0→D2 family/subtype mapping.
 # Generator and validator MUST both independently parse and compare this same locked policy.
 # NO hard-coded Python mapping tables — all mapping decisions flow from this file.
 
 policy:
   name: MAPPING-POLICY
-  version: "17.0"
-  schema: "24.0"
-  task_id: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
-  epoch: 17
+  version: "18.0"
+  schema: "25.0"
+  task_id: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+  epoch: 18
 
 source_lock:
-  d2_interface_sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+  d2_interface_sha256: "a95a20a277455004a8f9d9c2c5cff7391c3e6692a900704f0f76c346ab055fbd"
   d2_interface_commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
   q0_atoms_sha256: "47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d"
   q0_relations_sha256: "39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a"
@@ -84,8 +84,9 @@ classification_rules:
   - name: QUARANTINE_CHECK
     priority: 1
     description: >
-      If deterministic_id is in QUARANTINE-MANIFEST.yaml → PERSON_IDENTITY_QUARANTINED.
-      This handles named-person atoms that should not be treated as generic participant adapters.
+      If deterministic_id is in FULL-ID-QUARANTINE-MANIFEST.yaml → PERSON_IDENTITY_QUARANTINED.
+      This handles named-person atoms (Liu Xin) that should not be treated as generic participant adapters.
+      E18-B05: Quarantine now covers ALL 15 Liu Xin atoms, not just atoms 1 and 32.
   - name: FULL_MAPPING
     priority: 2
     description: >
