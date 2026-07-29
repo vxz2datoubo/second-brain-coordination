@@ -20,7 +20,7 @@ Receipt commit `5d57dae029632fcceb9cfcd4ab242b34ad200f1f` changed exactly 1 file
 ## Receipt Files (E14 post-correction, actual on-disk)
 | File | Size | SHA-256 |
 |------|------|---------|
-| AI_HANDOFF.yaml | 902 | 5a70aaeaed05b027df56173f857dff5e1ff877c41850c389c1a254af9ec0eab5 |
+| AI_HANDOFF.yaml | 962 | 195adcc5bfcec3a68fd868da22b58cd50ff80f3f37ed0d19ce894202a18099bf |
 | CROSS-RECEIPT-CONSISTENCY.yaml | 1244 | 920652eb7840190dc83dd0cbb899727c78b96a1844705d85155b2adc469e03c3 |
 | D05-COMMAND-EVIDENCE.yaml | 1189 | fc445b2aa1f54824e354b426e63a4eccd6e3010289a97e68b7aad425089cecad |
 | R1-TWO-RUN-DETERMINISM-RECEIPT.yaml | 688 | 36501878b098c45e1529268ed345847a7a6629bf88393a11fccee65a32e64b4e |
