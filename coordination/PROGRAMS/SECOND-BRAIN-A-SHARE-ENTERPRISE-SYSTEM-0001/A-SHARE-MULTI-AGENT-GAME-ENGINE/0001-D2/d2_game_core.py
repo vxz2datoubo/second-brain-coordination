@@ -339,6 +339,23 @@ class EpisodeLedgerVerification:
     reconstructed_state_hash: str
 
 
+@dataclass(frozen=True)
+class _PeerSettlementPlan:
+    """One all-or-nothing synthetic peer settlement over one shared pre-state."""
+
+    transfer_id: str
+    actions: Tuple[CandidateAction, CandidateAction]
+    commit: bool
+    outcomes: Tuple[SyntheticMatchOutcome, SyntheticMatchOutcome] = ()
+    reason_codes: Tuple[str, ...] = ()
+
+    def outcome_for(self, action_id: str) -> SyntheticMatchOutcome:
+        for action, outcome in zip(self.actions, self.outcomes):
+            if action.action_id == action_id:
+                return outcome
+        raise KeyError("UNKNOWN_PEER_SETTLEMENT_ACTION")
+
+
 def verify_episode_ledger(episode: object) -> EpisodeLedgerVerification:
     """Rebuild every transition from frozen inputs; stored events are comparisons only."""
     if not isinstance(episode, EpisodeState):
@@ -391,6 +408,7 @@ def verify_episode_ledger(episode: object) -> EpisodeLedgerVerification:
         reasons.append("EPISODE_STEP_BOUNDARY_MISMATCH")
     if reasons:
         return EpisodeLedgerVerification(False, tuple(sorted(set(reasons))), "")
+    peer_group_reasons = _peer_group_invariant_reasons(episode)
 
     reconstructed: Optional[EpisodeState] = None
     try:
@@ -438,6 +456,7 @@ def verify_episode_ledger(episode: object) -> EpisodeLedgerVerification:
     for stored, expected in zip(episode.event_dag, reconstructed.event_dag):
         if stored.filled_quantity != expected.filled_quantity or stored.outcome_status != expected.outcome_status:
             reasons.append("FORGED_EVENT_OUTCOME")
+    reasons.extend(peer_group_reasons)
     if episode.state_hash != reconstructed.state_hash:
         reasons.append("EPISODE_STATE_HASH_MISMATCH")
     return EpisodeLedgerVerification(not reasons, tuple(sorted(set(reasons))), reconstructed.state_hash)
@@ -715,6 +734,178 @@ def _validate_peer_transfer_pairs(actions: Sequence[CandidateAction]) -> dict[st
     return reasons
 
 
+def _valid_peer_pair_map(actions: Sequence[CandidateAction]) -> dict[str, Tuple[CandidateAction, CandidateAction]]:
+    """Return only structurally valid, same-step candidate pairs.
+
+    Malformed declarations deliberately remain ordinary fail-closed actions.  A
+    valid pair, by contrast, is required to pass through the atomic plan below.
+    """
+    shape_failures = _validate_peer_transfer_pairs(actions)
+    grouped: dict[str, list[CandidateAction]] = {}
+    for action in actions:
+        if action.liquidity_mode is LiquidityMode.PEER_TO_PEER_TRANSFER and action.peer_transfer_id is not None:
+            grouped.setdefault(action.peer_transfer_id, []).append(action)
+    pairs: dict[str, Tuple[CandidateAction, CandidateAction]] = {}
+    for transfer_id, group in grouped.items():
+        if len(group) != 2 or any(action.action_id in shape_failures for action in group):
+            continue
+        first, second = tuple(sorted(group, key=lambda action: action.arrival_sequence))
+        pairs[first.action_id] = (first, second)
+        pairs[second.action_id] = (first, second)
+    return pairs
+
+
+def _peer_abort_reasons(*reason_groups: Sequence[str] | str) -> Tuple[str, ...]:
+    reasons = {"PEER_GROUP_ABORTED"}
+    for group in reason_groups:
+        if isinstance(group, str):
+            reasons.add(group)
+        else:
+            reasons.update(group)
+    return tuple(sorted(reasons))
+
+
+def _plan_peer_settlement(
+    pair: Tuple[CandidateAction, CandidateAction],
+    *,
+    market: MarketState,
+    agents_by_id: dict[str, AgentState],
+    portfolios: dict[str, AgentPortfolioState],
+    known_parent_ids: set[str],
+    invalid_agents: dict[str, Tuple[str, ...]],
+    invalid_actions: dict[str, Tuple[str, ...]],
+) -> _PeerSettlementPlan:
+    """Preflight both legs against one immutable shared state before mutation."""
+    first, second = pair
+    transfer_id = first.peer_transfer_id or second.peer_transfer_id or "UNKNOWN_PEER_TRANSFER"
+    reasons: list[str] = []
+    for action in pair:
+        reasons.extend(invalid_actions.get(action.action_id, ()))
+        if action.agent_id not in agents_by_id or action.agent_id not in portfolios:
+            reasons.append("PEER_GROUP_UNKNOWN_AGENT")
+        reasons.extend(invalid_agents.get(action.agent_id, ()))
+        if action.label in (ActionLabel.ABSTAIN, ActionLabel.BLOCKED):
+            reasons.append("PEER_GROUP_NONEXECUTABLE_ACTION")
+        if action.order is None:
+            reasons.append("PEER_GROUP_MISSING_SYNTHETIC_ORDER")
+        if any(parent not in known_parent_ids for parent in action.causal_parent_event_ids):
+            reasons.append("PEER_GROUP_UNKNOWN_OR_FORWARD_CAUSAL_PARENT")
+        agent = agents_by_id.get(action.agent_id)
+        if action.requires_complete_information and agent is not None and agent.information.unknowns:
+            reasons.append("PEER_GROUP_INCOMPLETE_INFORMATION")
+        # D2 has no atomic shared-resource transfer semantics yet.  Prohibit
+        # every resource-affecting peer declaration before either leg mutates.
+        if action.conflict_key is not None or action.conflict_transition in (ConflictTransition.RELEASE, ConflictTransition.EXPIRE):
+            reasons.append("UNSUPPORTED_PEER_CONFLICT_RESOURCE")
+    if reasons:
+        return _PeerSettlementPlan(transfer_id, pair, False, (), _peer_abort_reasons(tuple(reasons)))
+
+    first_owner, second_owner = portfolios[first.agent_id], portfolios[second.agent_id]
+    first_outcome = reduce_order(market, first_owner.final_inventory, first.order)
+    second_outcome = reduce_order(market, second_owner.final_inventory, second.order)
+    outcomes = (first_outcome, second_outcome)
+    if any(outcome.status in (OutcomeStatus.INVALID_OR_BLOCKED, OutcomeStatus.UNKNOWN_OUTCOME) for outcome in outcomes):
+        details = tuple(sorted({reason for outcome in outcomes for reason in outcome.reason_codes}))
+        return _PeerSettlementPlan(transfer_id, pair, False, (), _peer_abort_reasons("PEER_GROUP_ORDER_OUTCOME_INVALID", details))
+    if first_outcome.filled_quantity != second_outcome.filled_quantity:
+        return _PeerSettlementPlan(transfer_id, pair, False, (), _peer_abort_reasons("PEER_GROUP_OUTCOME_MISMATCH"))
+    signed_first = first_outcome.filled_quantity if first.order.side.value == "BUY" else -first_outcome.filled_quantity
+    signed_second = second_outcome.filled_quantity if second.order.side.value == "BUY" else -second_outcome.filled_quantity
+    if signed_first + signed_second != 0:
+        return _PeerSettlementPlan(transfer_id, pair, False, (), _peer_abort_reasons("PEER_GROUP_NONCOMPLEMENTARY_DELTA"))
+    return _PeerSettlementPlan(transfer_id, pair, True, outcomes, ())
+
+
+def _peer_group_invariant_reasons(episode: EpisodeState) -> Tuple[str, ...]:
+    """Independently check closed-system peer semantics, not reducer agreement."""
+    peer_actions = [
+        action for action in episode.action_registry
+        if action.liquidity_mode is LiquidityMode.PEER_TO_PEER_TRANSFER
+    ]
+    if not peer_actions:
+        return ()
+    groups: dict[str, list[CandidateAction]] = {}
+    for action in peer_actions:
+        if action.peer_transfer_id is None:
+            return ("PEER_GROUP_MISSING_TRANSFER_ID",)
+        groups.setdefault(action.peer_transfer_id, []).append(action)
+    reasons: set[str] = set()
+    for transfer_id, group in groups.items():
+        ordered_actions = tuple(sorted(group, key=lambda action: action.arrival_sequence))
+        action_ids = {action.action_id for action in ordered_actions}
+        group_events = [
+            event for event in episode.event_dag
+            if event.action_id in action_ids or event.peer_transfer_id == transfer_id
+        ]
+        if len(ordered_actions) != 2:
+            reasons.add("PEER_GROUP_INCOMPLETE_RECIPROCAL_MEMBERSHIP")
+            continue
+        if len({action.scheduled_step_index for action in ordered_actions}) != 1:
+            reasons.add("PEER_GROUP_CROSS_STEP_MEMBERSHIP")
+        if _validate_peer_transfer_pairs(ordered_actions):
+            reasons.add("PEER_GROUP_INVALID_RECIPROCAL_ACTIONS")
+        has_unsupported_resource_effect = any(
+            action.conflict_key is not None
+            or action.conflict_transition in (ConflictTransition.RELEASE, ConflictTransition.EXPIRE)
+            for action in ordered_actions
+        )
+        event_by_action: dict[str, list[LedgerEvent]] = {action.action_id: [] for action in ordered_actions}
+        for event in group_events:
+            if event.action_id in event_by_action:
+                event_by_action[event.action_id].append(event)
+            else:
+                reasons.add("PEER_GROUP_EVENT_MEMBERSHIP_MISMATCH")
+        if len(group_events) != 2 or any(len(items) != 1 for items in event_by_action.values()):
+            reasons.add("PEER_GROUP_EVENT_MEMBERSHIP_MISMATCH")
+            continue
+        ordered_events = tuple(event_by_action[action.action_id][0] for action in ordered_actions)
+        if tuple(event.action_id for event in sorted(ordered_events, key=lambda event: event.ordinal)) != tuple(action.action_id for action in ordered_actions):
+            reasons.add("PEER_GROUP_NONDETERMINISTIC_EVENT_ORDER")
+        if any(
+            event.peer_transfer_id != transfer_id
+            or event.counterparty_agent_id != action.counterparty_agent_id
+            or event.step_index != action.scheduled_step_index
+            for action, event in zip(ordered_actions, ordered_events)
+        ):
+            reasons.add("PEER_GROUP_EVENT_ACTION_BINDING_MISMATCH")
+        peer_event_ids = {event.event_id for event in ordered_events}
+        if any(flow.ledger_event_id in peer_event_ids for flow in episode.external_liquidity_flows):
+            reasons.add("PEER_GROUP_EXTERNAL_FLOW_PRESENT")
+        accepted = tuple(event for event in ordered_events if event.accepted)
+        if len(accepted) == 1:
+            reasons.add("PEER_GROUP_PARTIAL_COMMIT")
+            continue
+        if len(accepted) == 0:
+            if any(
+                event.filled_quantity != 0
+                or event.owner_pre_state_hash != event.owner_post_state_hash
+                or event.label is not ActionLabel.BLOCKED
+                for event in ordered_events
+            ):
+                reasons.add("PEER_GROUP_ABORT_MUTATED_STATE")
+            continue
+        if any(event.filled_quantity < 0 or event.label is ActionLabel.BLOCKED for event in ordered_events):
+            reasons.add("PEER_GROUP_INVALID_COMMIT_EVENT")
+            continue
+        if has_unsupported_resource_effect:
+            reasons.add("PEER_GROUP_UNSUPPORTED_RESOURCE_EFFECT")
+        signed = tuple(
+            event.filled_quantity if action.order and action.order.side.value == "BUY" else -event.filled_quantity
+            for action, event in zip(ordered_actions, ordered_events)
+        )
+        if signed[0] + signed[1] != 0 or ordered_events[0].filled_quantity != ordered_events[1].filled_quantity:
+            reasons.add("PEER_GROUP_NONCOMPLEMENTARY_DELTA")
+
+    if len(peer_actions) == len(episode.action_registry):
+        initial_total = sum(_inventory_quantity(agent.inventory) for agent in episode.initial_agents)
+        current_total = sum(_inventory_quantity(agent.inventory) for agent in episode.current_agents)
+        if episode.external_liquidity_flows:
+            reasons.add("PEER_ONLY_EXTERNAL_FLOW_PRESENT")
+        if initial_total != current_total:
+            reasons.add("PEER_ONLY_TOTAL_SYSTEM_NOT_CONSERVED")
+    return tuple(sorted(reasons))
+
+
 def _flow_for_event(event: LedgerEvent, action: CandidateAction) -> ExternalLiquidityFlowEvent:
     signed = event.filled_quantity if action.order and action.order.side.value == "BUY" else -event.filled_quantity
     return ExternalLiquidityFlowEvent(
@@ -866,10 +1057,18 @@ def _arbitrate_internal(
     prior_registry_action_ids = {action.action_id for action in prior_registry}
     prior_registry_invocation_ids = {action.effective_invocation_id for action in prior_registry}
     prior_registry_order_ids = {action.order.order_id for action in prior_registry if action.order is not None}
+    prior_registry_peer_transfer_ids = {
+        action.peer_transfer_id for action in prior_registry
+        if action.peer_transfer_id is not None
+    }
     if (
         any(action.action_id in prior_registry_action_ids for action in action_tuple)
         or any(invocation_id in prior_registry_invocation_ids for invocation_id in invocation_ids)
         or any(order_id in prior_registry_order_ids for order_id in order_ids)
+        or any(
+            action.peer_transfer_id is not None and action.peer_transfer_id in prior_registry_peer_transfer_ids
+            for action in action_tuple
+        )
     ):
         raise ValueError("PRIOR_ACTION_REGISTRY_COLLISION")
     # This must happen before the first event can be constructed.
@@ -881,7 +1080,8 @@ def _arbitrate_internal(
     agent_by_id = {agent.agent_id: agent for agent in agent_tuple}
     invalid_agents = {agent.agent_id: _validate_agent(agent, market)[1] for agent in agent_tuple if not _validate_agent(agent, market)[0]}
     invalid_actions = {action.action_id: _validate_action(action)[1] for action in action_tuple if not _validate_action(action)[0]}
-    invalid_actions.update(_validate_peer_transfer_pairs(action_tuple))
+    peer_shape_failures = _validate_peer_transfer_pairs(action_tuple)
+    invalid_actions.update(peer_shape_failures)
     portfolios = _build_portfolios(agent_tuple)
     events: list[LedgerEvent] = []
     prior_ids = tuple(event.event_id for event in prior_events)
@@ -896,17 +1096,13 @@ def _arbitrate_internal(
         or any(order_id in executed_order_ids for order_id in order_ids)
     ):
         raise ValueError("REPLAYED_ACTION_OR_ORDER_REJECTED")
-    peer_pairs: dict[str, CandidateAction] = {}
-    for action in action_tuple:
-        if action.liquidity_mode is LiquidityMode.PEER_TO_PEER_TRANSFER and action.peer_transfer_id is not None:
-            candidates = [
-                other for other in action_tuple
-                if other.peer_transfer_id == action.peer_transfer_id and other.action_id != action.action_id
-            ]
-            if len(candidates) == 1:
-                peer_pairs[action.action_id] = candidates[0]
-    peer_outcomes: dict[str, SyntheticMatchOutcome] = {}
-    peer_failure_reasons: dict[str, Tuple[str, ...]] = {}
+    peer_pairs = _valid_peer_pair_map(action_tuple)
+    processed_peer_action_ids: set[str] = set()
+    ordered_actions = tuple(sorted(action_tuple, key=lambda item: item.arrival_sequence))
+    ordinal_by_action_id = {
+        action.action_id: ordinal
+        for ordinal, action in enumerate(ordered_actions, start=len(prior_events) + 1)
+    }
     external_flows: list[ExternalLiquidityFlowEvent] = []
 
     def emit(event: LedgerEvent, action: CandidateAction) -> None:
@@ -918,10 +1114,59 @@ def _arbitrate_internal(
         if action.order is not None:
             executed_order_ids.add(action.order.order_id)
 
-    for ordinal, action in enumerate(sorted(action_tuple, key=lambda item: item.arrival_sequence), start=len(prior_events) + 1):
+    for ordinal, action in enumerate(ordered_actions, start=len(prior_events) + 1):
+        if action.action_id in processed_peer_action_ids:
+            continue
         owner = portfolios.get(action.agent_id)
         owner_hash = owner.post_state_hash if owner is not None else "UNKNOWN_OWNER_STATE"
         system_before = _system_hash(portfolios, market, claimed_conflicts, prior_ids + tuple(event.event_id for event in events))
+        if action.action_id in peer_pairs:
+            plan = _plan_peer_settlement(
+                peer_pairs[action.action_id], market=market, agents_by_id=agent_by_id,
+                portfolios=portfolios, known_parent_ids=known_parent_ids,
+                invalid_agents=invalid_agents, invalid_actions=invalid_actions,
+            )
+            processed_peer_action_ids.update(item.action_id for item in plan.actions)
+            if not plan.commit:
+                for peer_action in plan.actions:
+                    peer_owner = portfolios.get(peer_action.agent_id)
+                    peer_hash = peer_owner.post_state_hash if peer_owner is not None else "UNKNOWN_OWNER_STATE"
+                    emit(_blocked_event(
+                        episode_id, current_step, ordinal_by_action_id[peer_action.action_id], peer_action,
+                        plan.reason_codes, peer_hash, system_before,
+                    ), peer_action)
+                continue
+
+            next_portfolios = dict(portfolios)
+            owner_hashes: dict[str, Tuple[str, str]] = {}
+            for peer_action in plan.actions:
+                peer_owner = portfolios[peer_action.agent_id]
+                peer_outcome = plan.outcome_for(peer_action.action_id)
+                next_inventory = peer_outcome.inventory
+                next_hash = _portfolio_hash(peer_action.agent_id, next_inventory)
+                signed_fill = peer_outcome.filled_quantity if peer_action.order and peer_action.order.side.value == "BUY" else -peer_outcome.filled_quantity
+                next_portfolios[peer_action.agent_id] = AgentPortfolioState(
+                    peer_action.agent_id, peer_owner.initial_inventory, next_inventory,
+                    peer_owner.pre_state_hash, next_hash, peer_owner.net_filled_quantity + signed_fill,
+                )
+                owner_hashes[peer_action.action_id] = (peer_owner.post_state_hash, next_hash)
+            system_after = _system_hash(
+                next_portfolios, market, claimed_conflicts,
+                prior_ids + tuple(event.event_id for event in events),
+            )
+            portfolios = next_portfolios
+            for peer_action in plan.actions:
+                peer_outcome = plan.outcome_for(peer_action.action_id)
+                owner_pre_hash, owner_post_hash = owner_hashes[peer_action.action_id]
+                emit(_event_from_semantics(
+                    episode_id, current_step, ordinal_by_action_id[peer_action.action_id], peer_action,
+                    label=peer_action.label, accepted=True, outcome_status=peer_outcome.status.value,
+                    filled_quantity=peer_outcome.filled_quantity,
+                    rejected_reason_codes=tuple(peer_outcome.reason_codes),
+                    owner_pre_state_hash=owner_pre_hash, owner_post_state_hash=owner_post_hash,
+                    system_pre_state_hash=system_before, system_post_state_hash=system_after,
+                ), peer_action)
+            continue
         if action.action_id in invalid_actions:
             emit(_blocked_event(episode_id, current_step, ordinal, action, invalid_actions[action.action_id], owner_hash, system_before), action)
             continue
@@ -975,39 +1220,7 @@ def _arbitrate_internal(
         if action.conflict_key and action.conflict_key in claimed_conflicts:
             emit(_blocked_event(episode_id, current_step, ordinal, action, ("CONFLICT_RESOURCE_ALREADY_CLAIMED",), owner_hash, system_before), action)
             continue
-        if action.action_id in peer_failure_reasons:
-            emit(_blocked_event(episode_id, current_step, ordinal, action, peer_failure_reasons[action.action_id], owner_hash, system_before), action)
-            continue
-        if action.liquidity_mode is LiquidityMode.PEER_TO_PEER_TRANSFER and action.action_id not in peer_outcomes:
-            counterpart = peer_pairs.get(action.action_id)
-            counterpart_owner = portfolios.get(counterpart.agent_id) if counterpart else None
-            if (
-                counterpart is None
-                or counterpart_owner is None
-                or counterpart.action_id in invalid_actions
-                or counterpart.agent_id in invalid_agents
-                or counterpart.label in (ActionLabel.ABSTAIN, ActionLabel.BLOCKED)
-                or counterpart.requires_complete_information and agent_by_id[counterpart.agent_id].information.unknowns
-            ):
-                peer_failure_reasons[action.action_id] = ("UNMATCHED_OR_INFEASIBLE_PEER_TRANSFER",)
-                if counterpart is not None:
-                    peer_failure_reasons[counterpart.action_id] = ("UNMATCHED_OR_INFEASIBLE_PEER_TRANSFER",)
-                emit(_blocked_event(episode_id, current_step, ordinal, action, peer_failure_reasons[action.action_id], owner_hash, system_before), action)
-                continue
-            own_outcome = reduce_order(market, owner.final_inventory, action.order)
-            counterpart_outcome = reduce_order(market, counterpart_owner.final_inventory, counterpart.order)
-            if (
-                own_outcome.status is OutcomeStatus.INVALID_OR_BLOCKED
-                or counterpart_outcome.status is OutcomeStatus.INVALID_OR_BLOCKED
-                or own_outcome.filled_quantity != counterpart_outcome.filled_quantity
-            ):
-                peer_failure_reasons[action.action_id] = ("PEER_TRANSFER_OUTCOME_MISMATCH",)
-                peer_failure_reasons[counterpart.action_id] = ("PEER_TRANSFER_OUTCOME_MISMATCH",)
-                emit(_blocked_event(episode_id, current_step, ordinal, action, peer_failure_reasons[action.action_id], owner_hash, system_before), action)
-                continue
-            peer_outcomes[action.action_id] = own_outcome
-            peer_outcomes[counterpart.action_id] = counterpart_outcome
-        outcome: SyntheticMatchOutcome = peer_outcomes.pop(action.action_id, None) or reduce_order(market, owner.final_inventory, action.order)
+        outcome: SyntheticMatchOutcome = reduce_order(market, owner.final_inventory, action.order)
         accepted = outcome.status is not OutcomeStatus.INVALID_OR_BLOCKED
         next_inventory = outcome.inventory
         next_owner_hash = _portfolio_hash(action.agent_id, next_inventory)
@@ -1145,6 +1358,12 @@ def total_system_conserved(initial_agents: Sequence[AgentState], result: GameRun
                 return False
         elif event.filled_quantity != 0:
             return False
+    if sum(recomputed.values()) != 0:
+        return False
+    if sum(_inventory_quantity(item.inventory) for item in initial_agents) != sum(
+        _inventory_quantity(portfolio.final_inventory) for portfolio in result.final_agent_portfolios
+    ):
+        return False
     return all(
         initial_by_id.get(portfolio.agent_id) == portfolio.initial_inventory
         and _inventory_quantity(portfolio.final_inventory) - _inventory_quantity(portfolio.initial_inventory) == recomputed.get(portfolio.agent_id)
