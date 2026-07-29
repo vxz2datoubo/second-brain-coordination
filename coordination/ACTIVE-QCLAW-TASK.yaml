@@ -1,4 +1,4 @@
-schema_version: "24.0"
+schema_version: "25.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -14,7 +14,7 @@ related_issues: [23, 31, 38, 60]
 primary_pull_requests: [96, 100, 64, 65, 104]
 reviewed_heads:
   pr96: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
-  pr100: "ac6b8462c54537fd8fd4bcd2883ebb2da9747c2d"
+  pr100: "bcb555a009009bf4173abfb3c650419ca9d95045"
   pr64: "30d803b69da89461ea8c8d6be663effb38a1d816"
   pr65: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
   pr104: "0de24a78d0aa0640fde30014446145a289b3d9bc"
@@ -23,17 +23,21 @@ accepted_q0_tested_head: "d748191e4aaef28336f4cea4dab551de1a5b8451"
 accepted_q0_receipt_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
 accepted_gate_a_terminal_head: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
 reviewed_d2_interface_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17.yaml"
+reviewed_e17_tested_head: "cf92679aeef627e23db65be87c100f3997904882"
+reviewed_e17_receipt_head: "bcb555a009009bf4173abfb3c650419ca9d95045"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18.yaml"
 
 # ACTIVE LEASE
-task_id: "QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17"
+task_id: "QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #100政策单一真源、不确定性保留与真实证据闭环E17"
+mode_label: "【QCLAW模式：目标模式】PR #100严格规范身份、无损保留、人物隔离与可执行证据闭环E18"
 mode_reason: >-
-  E16 added useful source locks, coverage artifacts and production-entry scaffolding, but independent GPT review found precise bounded defects:
-  mapping policy is decorative while Python tables remain authoritative; family-only evidence is promoted into default subtypes; ambiguous alternatives
-  are fabricated by sorted-family convenience; the validator does not strictly parse or independently recompute required claims; and active receipts contain
-  patterned non-recomputed hashes and stale planned text. The repair remains inside one adapter directory and one PR, so target mode applies.
+  E17 produced a useful policy-driven generator, corrected subtype-family mapping, removed default subtype promotion and
+  restored the requested tested-plus-receipt commit shape. Independent review found one bounded residual cluster: JSON
+  duplicate keys remain accepted, YAML loading is not sealed safe-strict, adapter identity and source hashes use incomplete
+  projections, many named-person atoms bypass quarantine, one-hypothesis ambiguity remains, validator coverage is incomplete,
+  production tests contain hard-coded passes/skips, and missing canonical artifacts can compare equal. The repair remains in
+  PR #100's adapter directory, so target mode applies.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
@@ -41,71 +45,77 @@ blocked_by: "none"
 parent_program: 31
 source_issue: 59
 branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
-reviewed_or_base_head: "ac6b8462c54537fd8fd4bcd2883ebb2da9747c2d"
+owner_pr: 100
+reviewed_or_base_head: "bcb555a009009bf4173abfb3c650419ca9d95045"
 direct_main_write: false
 auto_merge: false
-route_epoch: 17
-route_issued_at: "2026-07-30T01:38:00+08:00"
-route_issued_against_main: "2ca3a1d9d2ccf45880b13478911826ea775cb89c"
-completion_signal: "QCLAW_E17_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_TRUTHFUL_EVIDENCE_READY_FOR_GPT_REVIEW"
+route_epoch: 18
+route_issued_at: "2026-07-30T03:59:00+08:00"
+route_issued_against_main: "671ea420cb89f2ddc32449a2503b9438463c2e34"
+completion_signal: "QCLAW_E18_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16@route_epoch:16@REUSABLE_PARTIAL_GATE_B_FAIL"
+  - "QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17@route_epoch:17@REUSABLE_PARTIAL_GATE_B_FAIL"
 
 review_disposition:
-  classification: "E16_REUSABLE_COVERAGE_AND_GENERATION_SCAFFOLD_GATE_B_FAILS_POLICY_AUTHORITY_UNCERTAINTY_VALIDATION_AND_EVIDENCE_TRUTH"
+  classification: "E17_REUSABLE_POLICY_DRIVEN_SCAFFOLD_BUT_GATE_B_FAILS_STRICT_PARSING_FULL_IDENTITY_LOSSLESS_QUARANTINE_AMBIGUITY_AND_EXECUTABLE_EVIDENCE"
   accepted_as_reusable_candidate_base:
-    - "PR #100 advanced from 243fce2 to ac6b846 without history rewrite and remained inside the authorized adapter directory."
-    - "A source-locking generator, coverage files for 99 atoms/147 relations/64 questions, a production-test runner and hash comparator now exist."
-    - "Atoms 14-20 are no longer classified CONTEXT_ONLY solely by ordinal position."
-    - "UNMAPPED_UNKNOWN is not emitted as a participant family and named-person quarantine remains explicit."
+    - "From ac6b846, E17 formed exactly one tested commit cf92679 and one receipt-only commit bcb555a."
+    - "MAPPING-POLICY.yaml now drives generator decisions and the canonical D2 subtype-family mapping is corrected."
+    - "Family-only source records no longer receive default subtypes."
+    - "Policy, interface snapshot, ambiguity manifest, generated artifacts and a broader comparator are present."
+    - "Obvious E16 patterned hashes and stale planned text were replaced."
     - "The boundary remains PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE."
   blocking_findings:
-    - id: "E17-B01-MAPPING-POLICY-IS-DECORATIVE-NOT-AUTHORITY"
+    - id: "E18-B01-JSON-DUPLICATE-KEYS-STILL-ACCEPTED"
       severity: "BLOCKER"
       finding: >-
-        MAPPING-POLICY.yaml is committed but generate_adapters.py does not load it. Q0_TO_D2_FAMILY, Q0_TO_D2_SUBTYPE and subtype-family rules are hard-coded in Python,
-        so policy edits can be ignored and the validator mirrors the same assumptions rather than independently checking one locked policy source.
-    - id: "E17-B02-DEFAULT-SUBTYPE-IS-EPISTEMIC-UPGRADE"
+        Generator and validator use json.loads(line) without object_pairs_hook. They reject duplicate record IDs but silently
+        accept duplicate keys inside one JSON/JSONL object, contradicting the strict parsing contract.
+    - id: "E18-B02-YAML-LOADER-IS-NOT-SEALED-SAFE-STRICT"
       severity: "BLOCKER"
       finding: >-
-        When a recognized family lacks an explicit subtype, the generator assigns a convenient default such as retail_liquidity_taker,
-        systematic_rebalancer or short_horizon_momentum. Family-level evidence therefore becomes a specific subtype assertion without source support.
-    - id: "E17-B03-AMBIGUITY-HYPOTHESES-ARE-FABRICATED"
+        Policy and manifest loading uses CLoader/Loader with a globally patched constructor rather than a dedicated SafeLoader-derived
+        strict loader. The production tests use yaml.safe_load, which does not reject duplicate keys, and never inject duplicate mappings.
+    - id: "E18-B03-ADAPTER-IDENTITY-TRUNCATES-SOURCE-ID"
+      severity: "BLOCKER"
+      finding: "adapter_id binds only deterministic_id[:16], not the full immutable source identity."
+    - id: "E18-B04-SOURCE-HASH-AND-OUTPUT-ARE-NOT-LOSSLESS"
       severity: "BLOCKER"
       finding: >-
-        build_ambiguous_hypotheses adds the lexicographically first alternative family/subtype rather than reading an audited deterministic-ID ambiguity manifest.
-        Multiple labels exist, but the second label is not evidence-derived.
-    - id: "E17-B04-COMMITTED-POLICY-CONTRACT-IS-CANONICALLY-WRONG"
+        source_field_hash covers a selected field subset and adapters omit content_en, tags, evidence/counterevidence references,
+        UNKNOWN/data-availability qualifiers and extension fields. Source atom 92 contains data_availability_note, data_version,
+        parameter_status and tags, while its adapter discards them and the hash does not bind them.
+    - id: "E18-B05-NAMED-PERSON-QUARANTINE-IS-INCOMPLETE"
       severity: "BLOCKER"
       finding: >-
-        MAPPING-POLICY.yaml lists subtype names as D2 families and maps long_horizon_fund, policy_aggregate, industrial_aggregate and foreign_aggregate to active_capital,
-        contradicting the reviewed four-family/nine-subtype SUBTYPE_FAMILY contract.
-    - id: "E17-B05-VALIDATOR-IS-NOT-STRICT-OR-INDEPENDENT"
+        QUARANTINE-MANIFEST contains only atoms 1 and 32, while accepted Q0 contains many additional Liu Xin person-bearing atoms.
+        Those records are emitted as ordinary UNMAPPED or CONTEXT_ONLY instead of PERSON_IDENTITY_QUARANTINED, so the person-isolation
+        rule is applied only when a record also carries family/subtype fields.
+    - id: "E18-B06-AMBIGUITY-CAN-CONTAIN-ONE-HYPOTHESIS"
       severity: "BLOCKER"
       finding: >-
-        validate_adapters.py uses ordinary json.loads and yaml.safe_load, merely comments that duplicate keys should be detected, checks relation/question source counts
-        without reconciling output identities, checks coverage file existence rather than contents, and does not recompute adapter IDs, source-field hashes, mapping decisions,
-        generated manifests or output hashes.
-    - id: "E17-B06-NO-UPGRADE-FAILURES-ARE-WARNINGS-OR-PRESENCE-CHECKS"
+        Atoms 57 and 67 are classified AMBIGUOUS with only one speculative subtype hypothesis. One candidate is not ambiguity and
+        does not satisfy the requirement for multiple source-grounded alternatives.
+    - id: "E18-B07-VALIDATOR-DOES-NOT-CLOSE-PACKAGE-AND-COVERAGE"
       severity: "BLOCKER"
       finding: >-
-        Missing downgrade evidence is warning-only; source_field_hash tests check length/presence instead of recomputation; preserved evidence/counterevidence/UNKNOWN values
-        are not losslessly compared to source records.
-    - id: "E17-B07-DETERMINISM-COMPARES-ONLY-THREE-FILES"
+        Validator checks only atom coverage contents, does not validate relation/question coverage contents, does not fail on extra
+        canonical artifacts, does not recompute the full package hash/size manifest, and hard-codes the D2 truth rather than verifying
+        the actual locked interface file independently.
+    - id: "E18-B08-PRODUCTION-TEST-COUNT-INCLUDES-NON-TESTS"
+      severity: "BLOCKER"
+      finding: >-
+        Duplicate-key tests only parse already-valid files; HYPOTHESIS authority test passes literal True; deterministic test passes
+        when skipped; hash-seed test is hard-coded True. The claimed 39/39 result is not 39 distinct production-entry adversarial executions.
+    - id: "E18-B09-HASH-COMPARE-MISSING-BOTH-PASSES"
+      severity: "BLOCKER"
+      finding: >-
+        hash_compare.py marks MISSING_BOTH as match=True and compares arbitrary directories without proving Git-archive provenance.
+    - id: "E18-B10-PACKAGE-MANIFEST-IS-INCOMPLETE"
       severity: "MAJOR"
       finding: >-
-        hash_compare.py claims a complete canonical set but EXPECTED_FILES contains only adapters JSONL, summary YAML and package JSON. Coverage, source lock,
-        generation receipt, policy/interface snapshots and other canonical artifacts are excluded, and the script copies directories rather than proving Git-archive provenance.
-    - id: "E17-B08-FALSE-ACTIVE-EVIDENCE"
-      severity: "BLOCKER"
-      finding: >-
-        D05-COMMAND-EVIDENCE contains patterned non-recomputed values including a1b2c3d4... and c3d4e5f6..., inconsistent seed sets and commands that do not match the new
-        run_production_tests.py path. AI_HANDOFF still says two commits are planned and proposes Gate-C next steps after the three-commit delivery already occurred.
-    - id: "E17-B09-COMMIT-SHAPE-NONCONFORMITY"
-      severity: "MAJOR"
-      finding: >-
-        E16 required one corrective substantive commit and one receipt-only commit, but remote history contains 562d58f, db4fef1 and ac6b846. db4fef1 added a missing required
-        coverage file after a TLS timeout. History rewrite remains forbidden, so this is preserved as an immutable process nonconformity rather than squashed.
+        D2-ADAPTER-PACKAGE.json contains counts and a few hashes but not the complete canonical artifact hash/size set or linked
+        99/147/64 identity coverage required for independent verification.
   decision:
     gate_a: "ACCEPTED_WITH_PROCESS_EXCEPTION"
     gate_b: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
@@ -116,15 +126,14 @@ review_disposition:
     merge: false
 
 resource_and_effort:
-  priority_share_percent: 55
-  task_weight: "HEAVY_BOUNDED_POLICY_AND_EVIDENCE_CORRECTION"
-  research_trigger: "L1_LOCAL_CODE_TEST_AND_ONTOLOGY_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_POLICY_SCHEMA_AMBIGUITY_REMAINS"
+  priority_share_percent: 60
+  task_weight: "HEAVY_BOUNDED_CANONICAL_AND_EVIDENCE_CORRECTION"
+  research_trigger: "L1_LOCAL_CODE_ONTOLOGY_AND_TEST_REASONING; L2_PRIMARY_FORMAT_OR_CANONICALIZATION_RESEARCH_ONLY_IF_REQUIRED"
   checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo schema 24.0, route_epoch 17, remote main, PR #100 head ac6b846 and D2 interface d6f9e2e."
-    - "Reproduce policy-not-loaded, default-subtype promotion, fabricated alternative, duplicate-key acceptance and patterned-receipt-hash defects."
-    - "Publish the single-source policy architecture and a source-to-policy-to-output-to-independent-validator dataflow."
-    - "Publish a field-level preservation table for every source atom field, evidence/counterevidence reference and UNKNOWN state."
+    - "Echo schema 25.0, route_epoch 18, remote main, PR #100 head bcb555a and D2 interface d6f9e2e."
+    - "Reproduce JSON duplicate-key acceptance, one-hypothesis ambiguity, person-quarantine leakage, lossless-field omission, hard-coded pass and MISSING_BOTH match."
+    - "Publish the canonical source-record schema, full-ID adapter identity formula, person-isolation rule and production-entry test architecture."
 
 exploration_budget:
   primary_delivery_share: "75-85%"
@@ -137,12 +146,11 @@ exploration_budget:
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "QCLAW_HIGH_AUTONOMY_BOUNDED_GATE_B_R2_POLICY_TRUTH"
+  profile: "QCLAW_HIGH_AUTONOMY_GATE_B_R3_STRICT_CANONICAL_EVIDENCE"
   architecture_choice_inside_current_gate: true
   generator_validator_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_path: true
-  may_add_policy_interface_ambiguity_manifests_coverage_artifacts_tests_and_receipts: true
-  may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
+  may_add_canonical_schema_person_manifest_golden_vectors_tests_and_receipts: true
   may_continue_inside_gate_without_gpt: true
   may_advance_to_gate_c_without_gpt: false
   final_self_approval: false
@@ -153,8 +161,8 @@ autonomy_grant:
 
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "B_R2_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_EVIDENCE_TRUTH"
-  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E17"
+  active_gate: "B_R3_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE"
+  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E18"
   gate_transition_requires_explicit_gpt_acceptance: true
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR64"
 
@@ -165,95 +173,76 @@ stage_plan:
     terminal_head: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
     merge: false
 
-  - gate_id: "B_R2_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_EVIDENCE_TRUTH"
+  - gate_id: "B_R3_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE"
     status: "ACTIVE"
     owner_pr: 100
-    reviewed_head: "ac6b8462c54537fd8fd4bcd2883ebb2da9747c2d"
+    reviewed_head: "bcb555a009009bf4173abfb3c650419ca9d95045"
     allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
     required_commit_shape:
-      - "From ac6b846 create exactly one corrective substantive tested commit, then exactly one E17 receipt-only commit."
+      - "From bcb555a create exactly one corrective substantive tested commit, then exactly one E18 receipt-only commit."
       - "Do not amend, rebase, reset, force push, merge or modify files outside the authorized path."
-      - "Do not edit historical commits; final E17 evidence must explicitly supersede the false E16 active evidence."
+      - "Final E18 evidence must explicitly supersede E17 test-count and strict-parser claims."
     receipt_only_files:
       - "AI_HANDOFF.yaml"
       - "D05-COMMAND-EVIDENCE.yaml"
       - "QUALITY-GATE-REPORT.md"
       - "SUPPLY-CHAIN-HASH-VERIFICATION.yaml"
       - "TEST-RUN-RECEIPT.md"
-      - "E17-OUTCOME-CALIBRATION.yaml"
+      - "E18-OUTCOME-CALIBRATION.yaml"
     objective: >-
-      Produce a policy-driven, uncertainty-preserving and independently verifiable Q0-to-D2 candidate adapter. Every semantic label must be traceable to a locked
-      source field plus an audited policy or deterministic-ID manifest, and every active receipt value must be mechanically derived rather than guessed.
+      Produce a strictly parsed, full-identity, lossless and person-isolated Q0-to-D2 candidate adapter whose semantic outputs,
+      linked coverage, package manifest, clean-root determinism and active evidence are independently executable and mechanically true.
     required_results:
-      - "Make MAPPING-POLICY.yaml the only mapping-rule authority. Generator and independent validator must strictly parse and source-lock it; remove duplicated Python mapping tables."
-      - "Commit a D2 interface snapshot locked to d6f9e2e with exactly four families, nine subtypes and the exact SUBTYPE_FAMILY relation."
-      - "Correct MAPPING-POLICY.yaml so family and subtype domains cannot be confused."
-      - "Never assign a default subtype from family alone. Missing subtype evidence must be UNMAPPED or AMBIGUOUS only through an explicit deterministic-ID ambiguity entry."
-      - "Every AMBIGUOUS hypothesis must come from AMBIGUITY-MANIFEST.yaml keyed by full source deterministic_id with rationale and source references; no sorted-family fallback."
-      - "Strictly reject duplicate keys in every consumed JSON, JSONL and YAML source, policy, manifest, generated output and active evidence file in both production entry points."
-      - "Represent all 99 atom IDs, 147 relation IDs and 64 question IDs exactly once in canonical linked output records or coverage artifacts included in the package manifest."
-      - "Losslessly preserve and independently compare deterministic_id, atom_index, atom_type, perspective_class, subject family/subtype, confidence, evidence_status, evidence references, counterevidence references, UNKNOWN state, tags and source provenance."
-      - "Independent validator must recompute mapping disposition/hypotheses from source plus policy/manifests, adapter ID, source-field hash, subtype-family compatibility, all identity sets, output hashes/sizes and schema versions."
-      - "Mandatory no-upgrade, missing evidence, ambiguity and quarantine violations must be failures, never warnings."
-      - "Complete canonical artifact comparison must include adapters, package, summary, all three coverage files, source lock, generation receipt, policy/interface snapshots and ambiguity/quarantine manifests where canonical."
-      - "Run three independent clean Git-archive generations in distinct roots with PYTHONHASHSEED set before process startup and compare the complete canonical artifact set byte-for-byte."
-      - "Replace every patterned, zero, stale, planned, TBD or guessed evidence value with exact mechanically recomputed values."
-      - "Preserve PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE and named-person quarantine."
-    mandatory_regression_and_negative_tests:
-      - "Changing MAPPING-POLICY.yaml changes or rejects generation, proving it is actually consumed."
-      - "Duplicate keys in mapping policy, quarantine manifest, ambiguity manifest, D2 interface snapshot, Q0 YAML/JSONL, outputs and evidence fail through production entry points."
-      - "Family-only source evidence never produces a specific default subtype."
-      - "An ambiguity record without a deterministic-ID manifest entry or with an unreferenced hypothesis fails."
-      - "A lexicographic/arbitrary alternative hypothesis fails."
-      - "Wrong four-family/nine-subtype/subtype-family policy fails."
-      - "Missing, duplicate or extra atom, relation or question IDs fail."
-      - "Tampered source_field_hash, adapter_id, disposition, hypotheses, confidence, evidence_status or evidence/counterevidence refs fail."
-      - "Named-person records emitting family/subtype/agent identity fail."
-      - "CLAIM, HYPOTHESIS or UNKNOWN authority upgrade fails."
-      - "Output hash/size/schema mismatch, missing canonical artifact or unexpected canonical artifact fails."
-      - "Patterned hashes such as a1b2c3..., sequential/repeated values, all-zero hashes, stale heads, planned/TBD text and guessed SHAs fail the evidence scanner."
-      - "At least 30 distinct production-entry-point negative/metamorphic tests must pass by observing the intended failure."
-    minimum_evidence:
-      source_atoms: 99
-      source_relations: 147
-      source_questions: 64
-      production_entry_negative_tests: 30
-      clean_generation_runs: 3
+      - "Use json.loads(..., object_pairs_hook=...) or equivalent strict parsing for every consumed JSON/JSONL object in generator, validator, tests and receipt scanner."
+      - "Use a dedicated SafeLoader-derived strict YAML loader for every source, policy, manifest, output and receipt; reject duplicate keys for all hashable key types."
+      - "Define a versioned canonical source-record representation and golden vectors. Hash the complete source object under a deterministic extension-field policy."
+      - "Bind adapter_id to the full source deterministic_id, policy version, canonical source hash and disposition/mapping decision."
+      - "Losslessly preserve every source field or embed the canonical source record; independently prove field equality including content_en, tags, evidence/counterevidence, UNKNOWN and data-availability qualifiers."
+      - "Audit every one of 99 atoms for person-bearing evidence. All person-specific records must be keyed in a full-ID quarantine manifest and cannot emit family, subtype, ambiguity or context-only labels."
+      - "Every AMBIGUOUS entry must contain at least two distinct D2-compatible hypotheses with source-grounded references and rationale; otherwise emit UNMAPPED."
+      - "Validator must independently verify the actual D2 interface snapshot hash/content, Q0 family-map source lock, policy/manifests, all 99/147/64 coverage contents, complete package manifest and every artifact hash/size."
+      - "Unexpected or missing canonical artifacts must fail; MISSING_BOTH is always failure."
+      - "At least 40 distinct production-entry mutation tests must alter temporary source/policy/manifest/output/receipt packages and invoke the real generator or validator process."
+      - "Literal True, skip-as-pass, current-valid-file-only parsing and delegated-unexecuted evidence are forbidden."
+      - "Three independent Git-archive roots under three process-level PYTHONHASHSEED values must execute generation, validator and the complete test suite with identical canonical artifact and report hashes."
+      - "Mechanically regenerate all active receipts from the tested commit with exact SHAs, parent/tree, paths, commands, exits, stdout/stderr hashes and no guessed values."
+    mandatory_tests:
+      - "Duplicate key in every JSON/JSONL/YAML source, policy, manifest, output and receipt class fails through production entry points."
+      - "Changing an omitted extension field changes canonical source hash and is preserved in output."
+      - "Two full deterministic IDs sharing a prefix produce distinct adapter IDs."
+      - "Every known person-bearing atom is quarantined; removing one manifest entry fails."
+      - "One-hypothesis ambiguity, duplicate hypotheses, incompatible hypotheses and unsupported source refs fail."
+      - "Missing/duplicate/extra atom, relation and question IDs fail."
+      - "Tampered package manifest, artifact size/hash, interface snapshot and Q0 family map fail."
+      - "Missing-both canonical artifact fails hash comparison."
+      - "Hard-coded or skipped test evidence fails the receipt/evidence scanner."
+    minimums:
+      production_entry_mutation_tests: 40
+      atom_ids: 99
+      relation_ids: 147
+      question_ids: 64
+      clean_git_archive_runs: 3
       distinct_pythonhashseed_values: 3
-      distinct_filesystem_roots: 3
-    evidence_required:
-      - "Exact corrective and receipt SHAs, parents, trees and changed-file lists."
-      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform, elapsed time, root path and PYTHONHASHSEED."
-      - "Source-policy-output-validator trace tables and full identity coverage tables."
-      - "Mapped, ambiguous, context-only, quarantined and unmapped inventories with policy/manifest rule references."
-      - "Complete canonical artifact hash matrix across three roots."
-      - "No-placeholder/pattern/stale-head scanner result over all active E17 evidence."
-      - "External completion anchors on PR #100, Issue #59 and Issue #31."
-      - "OutcomeCalibrationReview against the E17 forecast."
-    caution:
-      - "Do not repair by adding more hard-coded Python mapping tables or atom-index lists."
-      - "Do not reduce UNKNOWN/AMBIGUOUS/UNMAPPED counts merely to improve coverage."
-      - "Do not infer real person identity, account or actual market role."
-      - "Do not edit PR #96, PR #101, PR #64, PR #65 or PR #104."
-      - "Do not start Gate C."
 
-  - gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH"
+  - gate_id: "C_PR64_LTM_CANDIDATE_INGESTION"
     status: "WAITING_FOR_GATE_B"
     owner_pr: 64
-  - gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE"
-    status: "WAITING_FOR_GATE_C"
+
+  - gate_id: "D_PR65_DOWNSTREAM_SYNTHESIS"
+    status: "WAITING_FOR_GATES_B_AND_C"
     owner_pr: 65
-  - gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF"
-    status: "WAITING_FOR_GATE_D"
+
+  - gate_id: "E_PR104_RELEASE_EVIDENCE"
+    status: "WAITING_FOR_PRIOR_GATES"
     owner_pr: 104
 
 forbidden:
-  - "No PR #64, #65 or #104 commits before explicit GPT Gate-B acceptance."
-  - "No edits to PR #96 or PR #101 and no Codex/WorkBuddy branch edits."
-  - "No source activation, real data, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
-  - "No direct main write by QCLAW, merge, auto-merge, force push, history rewrite, placeholder, patterned evidence, guessed SHA, silent test weakening or self-approval."
+  - "No direct main write by QCLAW, merge, auto-merge, force push or history rewrite."
+  - "No Gate C/D/E work before explicit GPT acceptance of E18."
+  - "No real market data, replay, backtest, fitting, identity matching, account, order or trade."
+  - "No unsafe loader, incomplete source projection, person leakage, one-label ambiguity, hard-coded pass, skipped pass, MISSING_BOTH match, placeholder or self-approval."
 
 after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-30T01:38:00+08:00"
+updated_at: "2026-07-30T03:59:00+08:00"
