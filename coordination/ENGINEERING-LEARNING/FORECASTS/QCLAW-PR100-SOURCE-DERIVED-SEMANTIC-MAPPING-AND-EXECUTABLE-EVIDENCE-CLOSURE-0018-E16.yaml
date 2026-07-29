@@ -1,0 +1,51 @@
+schema_version: "1.0"
+document_type: TaskImpactForecast
+task_id: "QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16"
+agent: "QCLAW"
+route_epoch: 16
+created_at: "2026-07-29T17:32:00+08:00"
+reviewed_base: "243fce2cc921a7af1c2e0cdad60bf5c4023d9569"
+decision: "PROCEED_WITH_CONTROLS"
+intent: >-
+  Correct the PR #100 adapter so semantic disposition is derived from explicit source fields and audited policy rather than atom-index allowlists,
+  prove exact 99/147/64 source coverage, exercise the real generator and validator through adversarial tests, and replace placeholder evidence with exact remote-verifiable receipts.
+expected_benefits:
+  - "Prevents explicit participant-family atoms from being silently downgraded to CONTEXT_ONLY because of their ordinal position."
+  - "Makes relation and adversarial-question coverage machine-verifiable by exact identifiers rather than counts alone."
+  - "Turns negative tests into executable tests of production entry points rather than duplicate toy implementations."
+  - "Produces auditable command, hash, lineage and determinism evidence without placeholders."
+expected_harms_and_costs:
+  - "Requires refactoring generator classification and regenerating candidate outputs."
+  - "May increase UNMAPPED or AMBIGUOUS results when the source does not justify a single D2 subtype."
+  - "Adds policy and coverage artifacts inside the existing authorized adapter directory."
+main_risks:
+  - id: "R1-POLICY-OVERFIT"
+    risk: "Replacing index lists with a policy manifest could merely move hardcoding into another opaque file."
+    control: "Every exception must key by immutable source deterministic_id, include rationale and source evidence, and be independently validated against source fields."
+  - id: "R2-SELF-VALIDATING-TESTS"
+    risk: "Negative tests may continue reimplementing checks instead of invoking production generator and validator."
+    control: "Require subprocess execution against temporary mutated packages and assert exact non-zero exits/reason codes."
+  - id: "R3-FALSE-DETERMINISM"
+    risk: "Runtime assignment of PYTHONHASHSEED or selective file comparison may create a false determinism claim."
+    control: "Set PYTHONHASHSEED before interpreter start, use three clean Git archives, and compare the complete canonical generated artifact set."
+  - id: "R4-EVIDENCE-DRIFT"
+    risk: "Checked-in receipts may describe a pre-push tree or retain zero/TBD hashes."
+    control: "Final receipt-only commit, exact parent/tree/file deltas, placeholder scanner, and external anchors after push."
+alternatives_considered:
+  - option: "Accept E15 and only add a receipt commit"
+    rejected_because: "Would freeze a proven semantic misclassification and non-independent validation architecture."
+  - option: "Rewrite or squash E15"
+    rejected_because: "History rewrite and force push are forbidden; the failed candidate must remain auditable."
+  - option: "Discard PR #100 and start a new PR"
+    rejected_because: "The current generator, D2 enums and output structure contain reusable value; bounded remediation is lower cost."
+success_signals:
+  - "Explicit participant family/subtype atoms such as Q0 atoms 14-20 are not classified CONTEXT_ONLY solely due to perspective_class or atom_index."
+  - "Exact 99 atom IDs, 147 relation IDs and 64 question IDs are each represented exactly once in coverage artifacts."
+  - "At least 20 adversarial tests invoke production entry points and all expected failures are observed."
+  - "Three clean archive generations under distinct process-level PYTHONHASHSEED values are byte-identical for the full canonical artifact set."
+  - "No zero hash, placeholder, TBD, guessed SHA or stale head remains in active E16 evidence."
+stop_conditions:
+  - "Any attempt to edit PR #96, PR #101, PR #64, PR #65 or PR #104."
+  - "Any real data, source activation, identity inference, replay, backtest, account, order or trade surface."
+  - "Any need for history rewrite, force push or merge."
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
