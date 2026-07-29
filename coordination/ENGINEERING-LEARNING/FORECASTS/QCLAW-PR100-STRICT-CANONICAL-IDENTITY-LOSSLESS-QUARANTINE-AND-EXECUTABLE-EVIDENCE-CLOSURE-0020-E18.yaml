@@ -1,0 +1,73 @@
+schema_version: "1.0"
+document_type: TaskImpactForecast
+task_id: "QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18"
+agent: "QCLAW"
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】PR #100严格规范身份、无损保留、人物隔离与可执行证据闭环E18"
+forecasted_at: "2026-07-30T03:56:00+08:00"
+reviewed_base: "bcb555a009009bf4173abfb3c650419ca9d95045"
+owner_pr: 100
+active_gate: "B_R3_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE"
+
+trigger:
+  classification: "E17_REUSABLE_POLICY_DRIVEN_SCAFFOLD_BUT_GATE_B_FAILS_STRICT_PARSING_FULL_IDENTITY_LOSSLESS_QUARANTINE_AMBIGUITY_AND_EXECUTABLE_EVIDENCE"
+  summary: >-
+    E17 corrected the D2 subtype-family contract, made the policy file operational, removed family-only default subtypes,
+    produced the requested two-commit shape and replaced obvious patterned hashes. Independent review found that JSON/JSONL
+    still use ordinary json.loads and therefore accept duplicate object keys, YAML uses a broad Loader rather than a sealed
+    safe strict loader, adapter identity truncates the source deterministic ID, source-field hashing and adapter records omit
+    material source fields, named-person quarantine covers only two of many person-bearing atoms, some AMBIGUOUS records contain
+    only one hypothesis, production tests contain hard-coded passes/skips instead of mutated entry-point executions, and archive
+    comparison treats artifacts missing from both directories as matching.
+
+expected_benefits:
+  - "Make every consumed structured artifact reject duplicate keys before semantic use."
+  - "Bind adapter identity and source hashes to the full canonical source record rather than a selected projection or ID prefix."
+  - "Prevent all named-person evidence from leaking into generic participant/context outputs."
+  - "Preserve every source field, evidence/counterevidence reference, UNKNOWN marker and data-availability qualifier without silent loss."
+  - "Ensure ambiguity means at least two source-grounded compatible hypotheses rather than a single speculative label."
+  - "Replace test-count claims with distinct production-entry mutations and true clean-archive evidence."
+
+risks:
+  - id: "E18-R01-CANONICALIZATION-DRIFT"
+    severity: "HIGH"
+    mitigation: "Define one versioned canonical source-record schema and independently reimplement its hash in generator and validator with golden vectors."
+  - id: "E18-R02-OVERQUARANTINE"
+    severity: "MEDIUM"
+    mitigation: "Use an audited deterministic-ID manifest plus explicit person-bearing evidence rules; preserve contextual records but never emit participant family/subtype."
+  - id: "E18-R03-AMBIGUITY-INVENTION"
+    severity: "HIGH"
+    mitigation: "Require at least two distinct D2-compatible hypotheses, each with source references and rationale; otherwise disposition is UNMAPPED."
+  - id: "E18-R04-TEST-THEATRE"
+    severity: "HIGH"
+    mitigation: "Every negative test mutates a temporary package and invokes the real generator or validator; hard-coded true, skip-as-pass and presence-only tests are forbidden."
+  - id: "E18-R05-EVIDENCE-SELF_REFERENCE"
+    severity: "MEDIUM"
+    mitigation: "Separate canonical generated artifacts from receipt artifacts and mechanically produce a complete hash/size manifest after tested commit creation."
+
+success_observables:
+  - "JSON and JSONL use object_pairs_hook duplicate-key rejection; YAML uses a safe strict loader with duplicate-key rejection for every mapping key type."
+  - "Adapter IDs bind the full source deterministic_id and versioned mapping decision; no prefix truncation."
+  - "source_record_hash covers the complete canonical source object, including unknown future fields under a deterministic extension policy."
+  - "Adapters preserve the complete source record or an explicitly lossless canonical projection with field-by-field equality proof."
+  - "All person-bearing atoms are either PERSON_IDENTITY_QUARANTINED or explicitly justified non-person records; zero person identity reaches family/subtype/context-only output."
+  - "Every AMBIGUOUS record has at least two distinct compatible hypotheses from the manifest; one-hypothesis entries fail."
+  - "Validator checks atom, relation and question coverage contents, full package manifest, all hashes/sizes, policy, Q0 family map and actual D2 interface snapshot."
+  - "At least 40 distinct production-entry mutation tests execute real generator/validator processes and all pass."
+  - "Three true Git-archive roots under three process-level seeds contain every canonical artifact; missing-both is a failure and reports are byte-identical."
+  - "Receipts contain only mechanically derived current SHAs, commands, exits and output hashes."
+
+failure_signals:
+  - "Any json.loads call consumes untrusted JSON/JSONL without object_pairs_hook."
+  - "Any yaml.Loader/CLoader unsafe or non-strict path consumes policy, source, manifest, output or receipt YAML."
+  - "Adapter ID uses a deterministic-ID prefix or source hash omits fields present in the source record."
+  - "A named-person atom is emitted as MAPPED, AMBIGUOUS, CONTEXT_ONLY or ordinary UNMAPPED without explicit person quarantine."
+  - "An AMBIGUOUS record contains fewer than two hypotheses or unsupported speculative basis."
+  - "A test passes by literal True, skipped-as-pass, checking only the current valid file, or relying on another script without invoking it."
+  - "hash_compare marks MISSING_BOTH as a match or lacks Git-archive provenance."
+
+rollback:
+  - "Revert only the E18 corrective and receipt commits on PR #100."
+  - "Preserve E16/E17 historical evidence and do not rewrite, rebase or force push."
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
