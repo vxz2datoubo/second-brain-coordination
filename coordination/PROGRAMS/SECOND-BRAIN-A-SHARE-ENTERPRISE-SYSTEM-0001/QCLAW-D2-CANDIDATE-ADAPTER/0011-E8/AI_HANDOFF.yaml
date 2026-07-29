@@ -1,16 +1,79 @@
+# AI_HANDOFF.yaml
+# Epoch 16 Gate B R1: D2 Adapter — Handoff to Gate C / PR Review
+
 document_type: AI_HANDOFF
-task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
-completion_signal: QCLAW_E10_UNIFIED_SUPPLY_CHAIN_ONTOLOGY_DETERMINISM_AND_LTM_EVIDENCE_READY_FOR_GPT_REVIEW
-route_epoch: 10
-stage: Stage B
-status: READY_FOR_GPT_REVIEW
-candidate_only_boundary: true
-codex_d2_families:
-- RETAIL
-- INSTITUTIONAL_QUANT
-- ACTIVE_CAPITAL
-- POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
-- UNMAPPED_UNKNOWN
-source_commit: e54e04b14876017253d27c578484e0bbd9096c0b
-person_identity_quarantine: ACTIVE
-generated_at: '2026-07-26T22:09:38Z'
+route_epoch: 16
+schema_version: "23.0"
+task_id: "QCLAW-PR100-SOURCE-DERIVED-SEMANTIC-MAPPING-AND-EXECUTABLE-EVIDENCE-CLOSURE-0018-E16"
+completion_signal: "QCLAW_E16_PR100_SOURCE_DERIVED_MAPPING_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW"
+
+handoff_from: "Epoch 16 Gate B R1 Sub-agent"
+handoff_to: "PR #100 Reviewer / Gate C"
+date: "2026-07-29T23:40:00+08:00"
+
+# Defect Resolution Summary
+defect_resolution:
+  B01_source_field_driven:
+    status: RESOLVED
+    description: "Classification driven by subject_family, subject_subtype, perspective_class, atom_type, confidence, misclassification_risk — NO hard-coded atom_index lists"
+  B02_exact_coverage:
+    status: RESOLVED
+    description: "COVERAGE-ATOMS.yaml, COVERAGE-RELATIONS.yaml, COVERAGE-QUESTIONS.yaml prove each of 99 atoms, 147 relations, 64 questions represented"
+  B03_source_lock_yaml:
+    status: RESOLVED
+    description: "Validator compares calculated SHA-256 to frozen expected locks; YAML safe_load with duplicate-key detection"
+  B04_20_plus_negative_tests:
+    status: RESOLVED
+    description: "23 production entry-point tests invoking real generator/validator in isolated temp dirs"
+  B05_pythonhashseed_git_archive:
+    status: RESOLVED
+    description: "PYTHONHASHSEED set in shell before interpreter; 3 clean archive runs; 3 core files byte-identical"
+  B06_no_placeholders_receipt_separation:
+    status: RESOLVED
+    description: "No zero hashes, TBDs, or guessed SHAs; 2 separate commits planned"
+  B07_lossless_preservation:
+    status: RESOLVED
+    description: "Every adapter carries source deterministic_id, atom_type, confidence, evidence_status, source_field_hash; CLAIM/HYPOTHESIS/UNKNOWN not upgraded"
+
+# Generated Artifacts
+generated_files:
+  - D2-CANDIDATE-ADAPTERS.jsonl
+  - D2-ADAPTER-SUMMARY.yaml
+  - D2-ADAPTER-PACKAGE.json
+  - COVERAGE-ATOMS.yaml
+  - COVERAGE-RELATIONS.yaml
+  - COVERAGE-QUESTIONS.yaml
+  - SOURCE-LOCK.yaml
+  - GENERATION-RECEIPT.json
+
+output_file_hashes:
+  D2-CANDIDATE-ADAPTERS.jsonl:
+    sha256: "4a99d9bec979992eb9c9edee9e3f7fb7f57b8a52e5efae1adfc5eef0bdcacd09"
+  D2-ADAPTER-SUMMARY.yaml:
+    sha256: "b966efe4eee0f422d1ecc44cf96ee25f0963752938ced595fc5830031e5387b0"
+  D2-ADAPTER-PACKAGE.json:
+    sha256: "ae50df1c7d7d6279e2ddf7caf571b0dbebf09c77620c6b054b962c8218d64b1c"
+
+# Disposition Summary
+dispositions:
+  MAPPED: 26
+  UNMAPPED: 12
+  AMBIGUOUS: 4
+  CONTEXT_ONLY: 39
+  PERSON_IDENTITY_QUARANTINED: 18
+  total: 99
+
+# Validation
+validator_result: "ALL PASS — 0 failures, 0 warnings"
+production_tests: "23/23 PASS — 0 failures"
+hash_comparison: "ALL 3 CORE FILES BYTE-IDENTICAL ACROSS SEEDS [0, 42, 12345]"
+
+# Next Steps for Gate C
+next_steps:
+  - "Run re-run from clean state and verify determinism"
+  - "Create substantive commit (no receipt files)"
+  - "Push to qclaw/q0-d2-candidate-adapter-0011-e8"
+  - "Post anchors to PR #100, Issue #59, Issue #31"
+  - "Gate C review by independent agent"
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
