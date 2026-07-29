@@ -1,4 +1,4 @@
-schema_version: "19.0"
+schema_version: "20.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -14,89 +14,90 @@ active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 103, 105]
 superseded_pull_requests: [102]
-reviewed_core_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
-reviewed_core_tested_head: "a1a4aa2b31c137e65d687ca50e571c6f52e62579"
+reviewed_core_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+reviewed_core_tested_head: "6ddd68e8c244d7296f5f980cc93b0a5677f25180"
 reviewed_evaluation_head: "3eec58a815aa0640fde30014446145a289b3d9bc"
 reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19.yaml"
 
 # -----------------------------------------------------------------------------
 # ACTIVE LEASE
 # -----------------------------------------------------------------------------
-task_id: "CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18"
+task_id: "CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2失败关闭的peer声明与可续接episode证明E18"
+mode_label: "【Codex模式：目标模式】D2类型优先身份提取与公共API后置条件闭环E19"
 mode_reason: >-
-  E17 successfully closes the one-legged peer-commit defect with a shared-prestate settlement plan, paired commit-or-abort semantics,
-  independent peer conservation checks, 76 focused tests, clean archives and dual-version CI. Independent GPT review found one remaining
-  bounded Gate-A contradiction: malformed peer declarations are emitted as deterministic BLOCKED events, but the peer-group oracle then marks
-  the resulting action registry incomplete or invalid. Public arbitrate can return an EpisodeState that its own verifier rejects, so the safe
-  rejection cannot be supplied as prior_episode_state. The defect is precise and confined to D2 disposition/verifier semantics, therefore target mode applies.
+  E18 successfully distinguishes verifier-valid declaration aborts from forged incomplete peer histories and delivers the required
+  two-commit shape with 91 focused tests. Independent GPT review found a narrower public-boundary defect: _arbitrate_internal extracts
+  order IDs, invocation IDs, action IDs and arrival identities through attribute access, hashing and set construction before _validate_action
+  establishes their types. A non-SyntheticOrder value can reach action.order.order_id and unhashable malformed IDs can fail before the
+  declared disposition policy. The defect is executable, bounded and must close before Evaluation V2 freezes the API, so target mode applies.
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
 branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
-reviewed_or_base_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
+reviewed_or_base_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 18
+route_epoch: 19
 route_issued_at: "2026-07-29"
-route_issued_against_main: "e6d0be3e3574fe3fa82cf75d166a82f1fcaaa7c4"
-completion_signal: "CODEX_E18_D2_FAIL_CLOSED_PEER_DECLARATION_AND_COMPOSABLE_EPISODE_READY_FOR_GPT_REVIEW"
+route_issued_against_main: "f7a1ce8407404572eb6aa7ebbe7f244bfd22681f"
+completion_signal: "CODEX_E19_D2_TYPE_FIRST_IDENTITY_EXTRACTION_AND_PUBLIC_API_POSTCONDITION_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-D2-ATOMIC-PEER-TRANSFER-AND-CLOSED-SYSTEM-SETTLEMENT-PROOF-0009-E17@route_epoch:17"
+  - "CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18@route_epoch:18"
 
 # -----------------------------------------------------------------------------
 # INDEPENDENT REVIEW DISPOSITION
 # -----------------------------------------------------------------------------
 review_disposition:
-  classification: "E17_ATOMIC_SETTLEMENT_ACCEPTED_AS_BASE_GATE_A_FAILS_FAIL_CLOSED_EPISODE_COMPOSABILITY"
+  classification: "E18_DECLARATION_COMPOSABILITY_ACCEPTED_AS_BASE_GATE_A_FAILS_TYPE_FIRST_PUBLIC_API_TOTALITY"
   accepted_and_frozen_as_useful_base:
-    - "E17 tested commit a1a4aa2b31c137e65d687ca50e571c6f52e62579 is exactly one substantive commit after the E17 reviewed base."
-    - "E17 receipt commit 9c3bc2c6797c68a457b28cf2f28d4da1680e626d is exactly one receipt-only commit after the tested head."
-    - "The substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; the receipt delta is limited to E17-GATE-A-R2-RECEIPT.md."
-    - "76 focused tests, three clean Git-archive runs, deterministic output and Python 3.11/3.13 CI are accepted as evidence."
-    - "Structurally valid peer pairs now preflight both legs over one shared pre-state and commit or abort without one-legged inventory mutation."
-    - "E17 one-legged causal-parent and resource/lifecycle exploits, paired identity reservation, zero external flow and complementary delta proof are accepted as the new base."
+    - "E18 tested commit 6ddd68e8c244d7296f5f980cc93b0a5677f25180 is exactly one substantive commit after the E18 reviewed base."
+    - "E18 receipt commit d6f9e2e4d38861e91353be177c9ceacedde6d7ee is exactly one receipt-only commit after the tested head."
+    - "The substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; the receipt delta is limited to E18-GATE-A-R3-RECEIPT.md."
+    - "91 focused tests, three byte-stable Git archives and deterministic ledger output are accepted as evidence for the tested cases."
+    - "Honest malformed peer declarations now produce deterministic zero-mutation declaration aborts that verify and compose across later steps."
+    - "E18 separation between declaration abort, settlement abort, valid commit and forged member/event mutation is accepted as the new base."
   blocking_findings:
-    - id: "E18-B01-PUBLIC-API-RETURNS-UNVERIFIABLE-EPISODE"
+    - id: "E19-B01-ORDER-ID-DEREFERENCE-BEFORE-TYPE-VALIDATION"
       severity: "BLOCKER"
       finding: >-
-        _validate_peer_transfer_pairs marks a lone or malformed peer declaration invalid and arbitrate emits deterministic zero-fill BLOCKED events.
-        _peer_group_invariant_reasons independently adds PEER_GROUP_INCOMPLETE_RECIPROCAL_MEMBERSHIP or PEER_GROUP_INVALID_RECIPROCAL_ACTIONS,
-        so verify_episode_ledger rejects the exact EpisodeState returned by the public API.
-    - id: "E18-B02-FAIL-CLOSED-AND-FORGERY-STATES-CONFLATED"
+        _arbitrate_internal constructs order_ids with action.order.order_id for every non-None order before _validate_action runs.
+        A CandidateAction carrying object(), a dict or another non-SyntheticOrder value can therefore raise AttributeError or a related
+        Python exception instead of receiving the documented deterministic pre-construction rejection or fail-closed terminal disposition.
+    - id: "E19-B02-UNHASHABLE-IDENTITIES-BEFORE-VALIDATION"
       severity: "BLOCKER"
       finding: >-
-        The verifier does not distinguish an honestly malformed declaration that was safely rejected from a forged history where a member or event
-        was deleted from an originally valid pair. Both are represented as incomplete membership even though their immutable action registries and
-        expected terminal semantics differ.
-    - id: "E18-B03-BLOCKED-EPISODE-NOT-COMPOSABLE"
-      severity: "BLOCKER"
-      finding: >-
-        Because _arbitrate_internal verifies prior_episode_state before continuing, a malformed peer declaration can permanently stop the episode chain
-        with UNVERIFIABLE_PRIOR_EPISODE_STATE despite producing no inventory, resource or external-flow mutation.
-    - id: "E18-B04-E17-COMMENT-CONTRACT-CONTRADICTION"
+        Duplicate checks and registry sets consume action_id, arrival_sequence, effective_invocation_id, order_id and peer_transfer_id before
+        their bounded-text/integer/type contracts are established. Lists, dictionaries or other unhashable values can fail during set construction,
+        sorting or membership tests before the public contract selects an intentional disposition.
+    - id: "E19-B03-E18-RECEIPT-TEST-CODE-DISCREPANCY"
       severity: "MAJOR"
       finding: >-
-        _valid_peer_pair_map states malformed declarations remain ordinary fail-closed actions, but the canonical verifier treats those generated
-        fail-closed episodes as invalid. The public disposition contract must select one coherent behavior before Evaluation V2 begins.
+        The E18 receipt claims that an arbitrary non-SyntheticOrder peer value is rejected before attribute access, but the tested code still
+        dereferences order.order_id before _validate_action and the E18 regression suite covers order=None rather than an arbitrary object value.
+        Preserve this discrepancy as evidence; do not rewrite the E18 receipt or represent the claim as proven.
+    - id: "E19-B04-PUBLIC-POSTCONDITION-MATRIX-IS-NOT-TYPE-ADVERSARIAL"
+      severity: "MAJOR"
+      finding: >-
+        The E18 terminal matrix covers semantic peer branches with normally typed dataclass fields, but it does not cover malformed field types,
+        unhashable identifiers, deceptive order objects or multi-fault precedence. Gate A cannot claim a total public boundary until those paths
+        are intentional, deterministic and tested.
   preserved_unknowns:
     - id: "ROOT-CAPSULE-ORIGIN-AUTHENTICATION"
-      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_A_GATE_A_COMPOSABILITY_BLOCKER"
-      finding: >-
-        Internal reconstruction does not authenticate a wholly replaced root capsule with an external signature, trusted timestamp or canonical publication.
+      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_AN_E19_BLOCKER"
+      finding: "External signature, trusted timestamp and canonical registry publication remain outside Gate A."
     - id: "ATOMIC-PEER-RESOURCE-EFFECTS"
       disposition: "NOT_IMPLEMENTED_YET_FAIL_CLOSED_PRESERVE_FOR_SEPARATE_GATE"
-      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E18."
+      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E19."
   decision:
-    e17_atomic_settlement_repairs: "ACCEPTED_AS_NEW_BASE"
+    e18_declaration_composability_repairs: "ACCEPTED_AS_NEW_BASE"
     gate_a_overall: "NOT_ACCEPTED"
     gate_b: "FROZEN"
     gate_c: "FROZEN"
@@ -109,16 +110,17 @@ review_disposition:
 # -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "MEDIUM_BOUNDED_FAIL_CLOSED_SEMANTIC_CLOSURE"
+  task_weight: "MEDIUM_BOUNDED_TYPE_FIRST_API_CLOSURE"
   research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_NEEDED"
   checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo schema 19.0, route_epoch 18, exact remote main and exact PR #101 head."
-    - "Publish executable baseline reproductions for a lone peer action and a malformed two-action pair where arbitrate returns events but verify_episode_ledger is false."
-    - "State the selected declaration disposition contract, compatibility analysis, rejected alternative and rollback."
+    - "Echo schema 20.0, route_epoch 19, exact remote main and exact PR #101 head."
+    - "Publish executable baseline reproductions for object() as order, unhashable action/invocation/transfer identifiers and invalid arrival types."
+    - "Provide a table showing every field consumed before event construction, its validator, its intentional failure disposition and precedence."
+    - "State the selected architecture, rejected catch-all-exception alternative and rollback."
   checkpoint_behavior: >-
-    Continue autonomously inside Gate A-R3 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
-    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E18 reviewed base.
+    Continue autonomously inside Gate A-R4 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
+    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E19 reviewed base.
 
 exploration_budget:
   primary_delivery_share: "75-85%"
@@ -131,11 +133,11 @@ exploration_budget:
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R3"
+  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R4"
   architecture_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_paths: true
-  may_add_disposition_types_fail_closed_validators_negative_tests_and_trace_helpers: true
+  may_add_structural_validators_disposition_tables_negative_tests_and_trace_helpers: true
   may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
   may_continue_within_current_gate_without_gpt: true
   may_advance_to_next_gate_without_new_gpt_message: false
@@ -145,51 +147,55 @@ autonomy_grant:
   surviving_exploit_or_unknown_must_be_preserved: true
 
 # -----------------------------------------------------------------------------
-# ACTIVE GATE A-R3
+# ACTIVE GATE A-R4
 # -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_R3_PR101_FAIL_CLOSED_PEER_COMPOSABILITY"
-  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E18"
+  active_gate: "A_R4_PR101_TYPE_FIRST_PUBLIC_API_TOTALITY"
+  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E19"
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
 
 stage_plan:
-  - gate_id: "A_R3_PR101_FAIL_CLOSED_PEER_COMPOSABILITY"
+  - gate_id: "A_R4_PR101_TYPE_FIRST_PUBLIC_API_TOTALITY"
     status: "ACTIVE"
     owner_pr: 101
-    reviewed_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E18_REVIEWED_HEAD"
+    reviewed_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E19_REVIEWED_HEAD"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E18-GATE-A-R3-RECEIPT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E19-GATE-A-R4-RECEIPT.md"
     objective: >-
-      Give every malformed peer declaration one explicit, deterministic, fail-closed disposition that is distinguishable from ledger forgery.
-      Every successful public arbitrate return must contain an EpisodeState accepted by verify_episode_ledger and usable as prior_episode_state,
-      or the input must be rejected before any event or episode is constructed under a documented compatibility-safe policy.
+      Establish one type-first public arbitration boundary: no CandidateAction field may be dereferenced, hashed, compared, sorted,
+      inserted into a set or used as a registry key before the exact structural contract needed for that operation has been proven.
+      Every returned GameRun must contain a verifier-valid EpisodeState; every rejected malformed input must fail intentionally before
+      any event, identity reservation or episode mutation under a documented deterministic precedence rule.
     required_results:
-      - "Define three separate semantic dispositions: valid peer COMMIT, valid-group SETTLEMENT_ABORT, and malformed DECLARATION_ABORT or an explicitly justified pre-construction rejection."
-      - "Prefer verifier-valid DECLARATION_ABORT to preserve current fail-closed event behavior. If strict ValueError-before-event is selected, prove compatibility, identity and caller semantics and update all affected tests explicitly."
-      - "For declaration abort, bind immutable action-registry shape to exact deterministic terminal event membership, reason codes, zero fill, zero portfolio/resource mutation, zero external flow and terminal identity reservation."
-      - "Do not weaken forged-history detection: deleting or injecting a member/event from a valid pair, relabeling abort as commit, or coordinating hashes must remain invalid."
-      - "Make the lone-action, missing transfer-ID, three-member, mismatched-quantity, same-side, nonreciprocal-counterparty, nonadjacent-arrival and invalid-order paths explicit and symmetric."
-      - "Prove continuation: after each verifier-valid fail-closed malformed declaration episode, a later valid non-peer action and a later valid peer pair can execute using prior_episode_state."
-      - "Freeze action, invocation, supplied-order and peer-transfer-ID reservation for every declaration-abort path and test later-step collision rejection."
-      - "Add a public API postcondition test matrix: every non-exceptional arbitrate result across all terminal branches must satisfy verify_episode_ledger(result.episode_state).valid."
-      - "Preserve E16 independent reconstruction and all E17 atomic commit/settlement-abort invariants."
+      - "Inventory every pre-event field consumption for action_id, agent_id, arrival_sequence, invocation_id, order, order_id, peer_transfer_id, counterparty_agent_id, conflict_key, references and scheduled_step_index."
+      - "Introduce an explicit structural preflight or equivalent safe-access architecture before duplicate checks, sorting, hashing, registry construction and order-ID extraction."
+      - "Freeze a disposition table: which malformed fields become pre-construction ValueError and which well-typed semantic failures become verifier-valid terminal events."
+      - "Do not construct a partial event, step boundary, action registry or identity reservation before any pre-construction rejection."
+      - "Use narrow explicit validators; do not add broad catch-all AttributeError/TypeError handling that masks programmer defects."
+      - "Make arbitrary non-SyntheticOrder values safe, including object(), dict, list and a deceptive object exposing only some expected attributes."
+      - "Make unhashable or wrong-type action, invocation, order, transfer and arrival identities deterministic without accidental Python exceptions."
+      - "Define and test deterministic error precedence for actions with multiple malformed fields."
+      - "Add a public API totality matrix: every non-exceptional terminal branch verifies, and every intentional exception is the documented ValueError before construction."
+      - "Preserve all E16 independent reconstruction, E17 atomic settlement and E18 declaration-abort composability/forgery guarantees."
+      - "Do not edit or delete E18 evidence; explicitly record the E18 receipt-versus-code discrepancy and its E19 closure."
     mandatory_exploit_tests:
-      - "Lone peer action currently returns BLOCKED but verifier false; repaired disposition must be verifier-valid and composable, or rejected before construction."
-      - "Two actions with one transfer ID but mismatched quantities currently return BLOCKED but verifier false; repaired disposition must be coherent."
-      - "Same-side, nonreciprocal-counterparty, nonadjacent-arrival, missing-ID and three-member groups receive deterministic dispositions without mutation."
-      - "A valid pair with one terminal event deleted must remain invalid and must not be confused with an originally lone declaration."
-      - "Inject a second forged action/event into an originally lone declaration and recompute hashes; verification must reject."
-      - "Turn a declaration abort into one-leg or two-leg accepted events while recomputing state and hashes; verification must reject."
-      - "Declaration-abort action, invocation, order and transfer IDs cannot be reused in a later step."
-      - "Each declaration-abort episode successfully chains into one valid external action and one valid atomic peer commit."
-      - "All prior E17 valid full-fill, partial-fill, no-fill, causal-parent abort and resource fail-closed tests remain passing."
+      - "Peer CandidateAction with order=object() must not reach order.order_id; it must receive the selected intentional disposition."
+      - "External CandidateAction with order=dict/list/object must not crash through identity extraction or reduce_order."
+      - "Unhashable action_id, invocation_id and peer_transfer_id values must fail intentionally before set construction or registry mutation."
+      - "Wrong-type arrival_sequence must fail before duplicate-set and sort operations."
+      - "A deceptive order object with order_id but missing side/quantity must not pass structural preflight."
+      - "Malformed order_id inside an otherwise SyntheticOrder-compatible path must follow the frozen contract without accidental hashing/set failure."
+      - "Multi-fault actions must produce deterministic precedence independent of PYTHONHASHSEED and input collection representation."
+      - "After every verifier-valid semantic block/abort, a valid external action and atomic peer pair remain composable."
+      - "All E18 declaration injection, relabeling, identity-reuse and terminal-matrix regressions remain passing."
+      - "A source-level regression or executable guard proves no order.order_id access occurs before order type validation."
     minimum_tests:
-      total_focused_semantic_tests: 90
-      new_composability_regressions: 14
+      total_focused_semantic_tests: 108
+      new_type_boundary_regressions: 16
       clean_git_archive_runs: 3
       distinct_pythonhashseed_values: 3
     evidence_required:
@@ -199,19 +205,20 @@ stage_plan:
       - "Three clean Git-archive runs plus deterministic trace/hash equality."
       - "CI status for all configured Python versions."
       - "External completion anchors on PR #101, Issue #23 and Issue #31."
-      - "OutcomeCalibrationReview comparing the E18 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
+      - "OutcomeCalibrationReview comparing the E19 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
     caution:
-      - "Do not make the verifier accept incomplete membership merely by deleting checks."
-      - "Do not hide malformed peer actions by reclassifying them as external liquidity."
-      - "Do not weaken or delete E15/E16/E17 tests or evidence."
+      - "Do not fix this by wrapping the whole reducer in catch-all exception handling."
+      - "Do not weaken validation to make malformed values hashable through string coercion."
+      - "Do not rewrite the E18 receipt or delete the discrepancy evidence."
+      - "Do not weaken or delete E15/E16/E17/E18 tests."
       - "Do not modify D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
       - "Do not start Evaluation V2 or any downstream gate."
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E18"
+    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E19"
     required_new_draft_pr: true
     superseded_source_pr: 102
-    start_gate: "GPT accepts E18 Gate A-R3 tested and receipt heads and explicitly releases Gate B."
+    start_gate: "GPT accepts E19 Gate A-R4 tested and receipt heads and explicitly releases Gate B."
     frozen_requirements_ref: "schema 16.0 Gate B requirements remain preserved"
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
@@ -231,7 +238,7 @@ stage_plan:
 # -----------------------------------------------------------------------------
 forbidden:
   - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
-  - "No concurrent substantive implementation outside PR #101 Gate A-R3."
+  - "No concurrent substantive implementation outside PR #101 Gate A-R4."
   - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
   - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
 
@@ -240,7 +247,7 @@ after_completion:
   merge: false
   release_issue92: false
   completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E18_D2_FAIL_CLOSED_PEER_DECLARATION_AND_COMPOSABLE_EPISODE_READY_FOR_GPT_REVIEW"
+  required_signal: "CODEX_E19_D2_TYPE_FIRST_IDENTITY_EXTRACTION_AND_PUBLIC_API_POSTCONDITION_READY_FOR_GPT_REVIEW"
 
 boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
