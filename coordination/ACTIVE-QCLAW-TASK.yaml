@@ -1,4 +1,4 @@
-schema_version: "21.0"
+schema_version: "22.0"
 router_protocol: "coordination/QCLAW-TASK-ROUTER.md"
 role_charter: "coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
@@ -13,133 +13,236 @@ active_issue: 59
 related_issues: [23, 31, 38, 60]
 primary_pull_requests: [96, 100, 64, 65, 104]
 reviewed_heads:
-  pr96: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+  pr96: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
   pr100: "76d447f0bfc9896ee530808238fcda1527809fc1"
   pr64: "30d803b69da89461ea8c8d6be663effb38a1d816"
   pr65: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
   pr104: "0de24a78d0aa0640fde30014446145a289b3d9bc"
 accepted_q0_source_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
+accepted_q0_tested_head: "d748191e4aaef28336f4cea4dab551de1a5b8451"
+accepted_q0_receipt_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+accepted_gate_a_terminal_head: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
+reviewed_d2_interface_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-CANONICAL-D2-ONTOLOGY-TRANSLATION-AND-GENERATION-DETERMINISM-CLOSURE-0017-E15.yaml"
 
 # ACTIVE LEASE
-task_id: "QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14"
+task_id: "QCLAW-PR100-CANONICAL-D2-ONTOLOGY-TRANSLATION-AND-GENERATION-DETERMINISM-CLOSURE-0017-E15"
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #96远端谱系真值与外部证明校正E14"
+mode_label: "【QCLAW模式：目标模式】PR #100规范D2本体翻译与生成确定性闭环E15"
 mode_reason: >-
-  GPT reviewed PR #96 through remote head 5d57dae029632fcceb9cfcd4ab242b34ad200f1f. Epoch 13 preserved valid
-  archive and negative-test evidence, and created a non-empty receipt commit, but the final remote tree still binds stale heads:
-  AI_HANDOFF records gate_reviewed_head=b5c4ec6..., gate_tested_head=713c035d..., and receipt_parent=9dd292c..., while the actual
-  Epoch 13 chain is reviewed=9dd292c..., tested=d748191e..., receipt=5d57dae.... The receipt commit also changed only one file,
-  although its message and receipt metadata claim six. Epoch 14 is therefore a narrow remote-lineage truth correction. It must not
-  repeat broad validator work or begin Gate B.
+  GPT independently reviewed PR #96 through 91c9227fba66d2412e39fac33bcf26d05bce12c2. The remote-lineage values,
+  receipt-parent truth and one-file Epoch-13 receipt delta are now materially correct. Epoch 14 violated its one-commit/four-file execution
+  shape by producing three commits and touching six metadata files, but the two unplanned files changed only task/epoch metadata and the two
+  follow-up commits only completed gate_receipt_head and synchronized its recorded hash. Because history rewrite and force push are forbidden,
+  GPT records this as an immutable process exception instead of creating an endless correction loop. Gate A is therefore boundedly accepted.
+  Independent proactive review of PR #100 found a higher-value Gate-B defect: its static validator does not prove generation determinism,
+  source-set equality, strict parsing or canonical D2 compatibility. It also treats UNMAPPED_UNKNOWN as a D2 family and maps contextual
+  MarketStructure knowledge into a participant family. These are bounded adapter defects, so target mode applies.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
 blocked_by: "none"
 parent_program: 31
 source_issue: 59
-branch: "qclaw/participant-evidence-digest-0010-q0"
-reviewed_or_base_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+reviewed_or_base_head: "76d447f0bfc9896ee530808238fcda1527809fc1"
 direct_main_write: false
 auto_merge: false
-route_epoch: 14
-route_issued_at: "2026-07-28T04:45:00+08:00"
-completion_signal: "QCLAW_E14_PR96_REMOTE_LINEAGE_TRUTH_AND_EXTERNAL_ATTESTATION_READY_FOR_GPT_REVIEW"
+
+route_epoch: 15
+route_issued_at: "2026-07-29T16:11:00+08:00"
+route_issued_against_main: "38de5bff6dcfa008967fc8b7191388e7ef798ab3"
+completion_signal: "QCLAW_E15_PR100_CANONICAL_D2_TRANSLATION_AND_GENERATION_DETERMINISM_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "QCLAW-PR96-RECEIPT-LINEAGE-POST-PUSH-ATTESTATION-FINALIZATION-0015-E13@route_epoch:13"
+  - "QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14@route_epoch:14@BOUNDED_ACCEPT_WITH_PROCESS_EXCEPTION"
+  - "QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10@PR100_CANDIDATE_BASE"
 
 review_disposition:
-  classification: "PARTIAL_ACCEPT_PRESERVE_TEST_EVIDENCE_RETURN_REMOTE_LINEAGE_AND_RECEIPT_TRUTH"
+  classification: "E14_SEMANTIC_TRUTH_ACCEPTED_WITH_IMMUTABLE_PROCESS_EXCEPTION_GATE_B_RELEASED"
   accepted_value:
-    - "Three clean archive positive runs remain recorded as exit 0 with identical normalized stdout."
-    - "Four negative fixtures remain non-zero."
-    - "Q0 semantic content 99/147/64 remains unchanged."
-    - "Epoch 13 created an actual non-empty receipt commit."
-  blocking_findings:
-    - "Actual chain is 9dd292c... -> d748191e... -> 5d57dae...."
-    - "Final AI_HANDOFF still records stale gate_reviewed_head=b5c4ec6..., gate_tested_head=713c035d..., receipt_parent=9dd292c...."
-    - "Receipt commit 5d57dae... modifies only CROSS-RECEIPT-CONSISTENCY.yaml, not six files as claimed."
-    - "CROSS-RECEIPT-CONSISTENCY marks post_push_receipt_identity as AWAITING_PUSH even though the branch is already pushed."
-    - "Commit messages and metadata overclaim the remote changed-file set."
-  gate_b_status: "FROZEN_PENDING_EXPLICIT_GPT_ACCEPTANCE"
-  issue92: "BLOCKED_NOT_RELEASED"
+    - "Epoch 13 actual Git chain is 9dd292c... -> d748191e... -> 5d57dae...."
+    - "Epoch 13 receipt commit changes exactly CROSS-RECEIPT-CONSISTENCY.yaml, confirmed by remote compare."
+    - "Final AI_HANDOFF records source=e54e04b..., reviewed=9dd292c..., tested=d748191e..., receipt=5d57dae... and receipt_parent=d748191e...."
+    - "Three archive validations, four non-zero negative fixtures and unchanged 99/147/64 Q0 content remain preserved evidence."
+    - "R1 adds the missing gate_receipt_head; R2 synchronizes only the corresponding AI_HANDOFF content hash."
+  process_exceptions_preserved:
+    - id: "E14-X01-COMMIT-SHAPE"
+      finding: "Route required exactly one correction commit, but remote history contains 99518db..., 97d8616... and 91c9227...."
+      disposition: "ACCEPTED_AS_IMMUTABLE_NONCONFORMITY; NO REBASE, SQUASH OR FORCE PUSH."
+    - id: "E14-X02-ALLOWED-FILE-SET"
+      finding: "R0 touched six metadata files although only four were allowed; D05 and R1 changed task_id/route_epoch/stage only."
+      disposition: "NO SEMANTIC TEST-EVIDENCE CHANGE; RECORDED AS GOVERNANCE NONCONFORMITY."
+    - id: "E14-X03-FINAL-ANCHOR-DRIFT"
+      finding: "R2 was posted on PR #96 but not independently posted to Issue #59 and Issue #31 before GPT review."
+      disposition: "GPT WILL PUBLISH THE FINAL TERMINAL HEAD ANCHOR; NO NEW QCLAW COMMIT."
+    - id: "E14-X04-PR-MERGEABILITY"
+      finding: "PR #96 is currently non-mergeable against moving main."
+      disposition: "NOT A GATE-A CONTENT BLOCKER; PR REMAINS DRAFT AND UNMERGED."
+  decision:
+    gate_a: "ACCEPTED_WITH_PROCESS_EXCEPTION"
+    gate_b: "RELEASED_ACTIVE"
+    gate_c: "FROZEN"
+    gate_d: "FROZEN"
+    gate_e: "FROZEN"
+    issue92: "BLOCKED_NOT_RELEASED"
+    merge: false
 
 resource_and_effort:
-  priority_share_percent: 30
-  task_weight: "SMALL_STRICT_REMOTE_TRUTH_CORRECTION"
-  checkpoints: [50, 100]
+  priority_share_percent: 45
+  task_weight: "STANDARD_BOUNDED_CANONICAL_ADAPTER_AND_DETERMINISM_CLOSURE"
+  research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_INTERFACE_AMBIGUITY_REMAINS"
+  checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo remote main, Epoch 14, PR #96 head 5d57dae... and FINAL_REMOTE_TRUTH_ONLY."
-    - "Use GitHub-visible commit/compare results as the authority, not local assumptions."
-    - "Show the exact actual chain and receipt changed-file list before editing."
+    - "Echo schema 22.0, route_epoch 15, remote main, PR #100 head 76d447f... and reviewed D2 interface head d6f9e2e...."
+    - "Publish a field-by-field comparison between PR #100 contract targets and the real ParticipantFamily/ParticipantSubtype enums in d2_game_core.py."
+    - "Reproduce at least four baseline defects: UNMAPPED_UNKNOWN-as-family, MarketStructure forced mapping, missing generator reproducibility, and validator failure to prove exact source-set equality."
+    - "State the selected generator-plus-validator architecture, compatibility boundary, rollback and rejected static-file-only alternative."
 
 exploration_budget:
-  primary_delivery_share: "95-100%"
-  active_discovery_share: "0-5%"
+  primary_delivery_share: "75-85%"
+  active_discovery_share: "10-20%"
+  system_opportunity_share: "0-10%"
   maximum_new_branches: 0
   maximum_new_draft_prs: 0
   maximum_simultaneous_substantive_prs: 1
-  maximum_unplanned_files_inside_authorized_paths: 0
+  maximum_unplanned_files_inside_authorized_paths: 5
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "QCLAW_MINIMAL_REMOTE_TRUTH_CORRECTION_SINGLE_PR"
+  profile: "QCLAW_HIGH_AUTONOMY_BOUNDED_GATE_B_CANONICAL_ADAPTER"
+  architecture_choice_inside_current_gate: true
+  generator_and_validator_framework_choice_inside_current_gate: true
+  may_refactor_within_authorized_path: true
+  may_add_generator_tests_fixtures_and_receipts: true
+  may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
   may_continue_inside_gate_without_gpt: true
-  may_advance_to_gate_b_without_gpt: false
+  may_advance_to_gate_c_without_gpt: false
   final_self_approval: false
   history_rewrite: false
   force_push: false
+  alternatives_considered_required: true
+  surviving_unknowns_required: true
 
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
-  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE"
+  active_gate: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM"
+  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E15"
   gate_transition_requires_explicit_gpt_acceptance: true
-  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR100"
+  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR64"
 
 stage_plan:
   - gate_id: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
-    status: "ACTIVE"
+    status: "ACCEPTED_WITH_PROCESS_EXCEPTION"
     owner_pr: 96
-    reviewed_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
-    objective: "Correct the final remote receipt metadata to the actual Git lineage and publish truthful external attestation."
-    exact_commit_shape:
-      - "From 5d57dae..., create exactly one non-empty metadata-correction commit."
-      - "Do not create another tested commit and do not rerun or modify validator logic unless the existing remote evidence is disproved."
-      - "No amend, rebase, reset, force push or merge."
-    allowed_files:
-      - "AI_HANDOFF.yaml"
-      - "TEST-RUN-RECEIPT.md"
-      - "QUALITY-GATE-REPORT.md"
-      - "CROSS-RECEIPT-CONSISTENCY.yaml"
-    required_remote_truth:
-      source_q0_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
-      gate_reviewed_head: "9dd292c910142b56303a46ea7136eaafb5610132"
-      gate_tested_head: "d748191e4aaef28336f4cea4dab551de1a5b8451"
-      gate_receipt_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
-      receipt_parent: "d748191e4aaef28336f4cea4dab551de1a5b8451"
-      actual_receipt_changed_files:
-        - "CROSS-RECEIPT-CONSISTENCY.yaml"
-    requirements:
-      - "Remove all stale b5c4ec6..., 713c035d... and incorrect receipt_parent=9dd292c... claims from final receipt metadata."
-      - "State truthfully that Epoch 13 receipt commit changed exactly one file, not six."
-      - "Mark post_push_receipt_identity VERIFIED only after reading the remote branch head as 5d57dae...."
-      - "Do not write the new correction commit's own SHA into its own files; bind it through post-push comments."
-      - "After push, post the correction head, parent, tree, exact changed files and remote compare result to PR #96, Issue #59 and Issue #31."
-      - "Stop for GPT review. Gate B remains frozen."
+    terminal_head: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
+    merge: false
 
-later_gates:
-  - {gate_id: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM", status: "FROZEN_PENDING_GPT_ACCEPTANCE", owner_pr: 100}
-  - {gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH", status: "WAITING_FOR_GATE_B", owner_pr: 64}
-  - {gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE", status: "WAITING_FOR_GATE_C", owner_pr: 65}
-  - {gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF", status: "WAITING_FOR_GATE_D", owner_pr: 104}
+  - gate_id: "B_PR100_DERIVED_ONTOLOGY_AND_GENERATION_DETERMINISM"
+    status: "ACTIVE"
+    owner_pr: 100
+    reviewed_head: "76d447f0bfc9896ee530808238fcda1527809fc1"
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
+    required_commit_shape:
+      - "From 76d447f..., create one substantive tested commit and then one receipt-only commit."
+      - "No amend, rebase, reset, force push, merge or edits outside the authorized path."
+    objective: >-
+      Build a committed deterministic generator and an independent strict validator that translate the accepted Q0 package into the exact reviewed
+      D2 participant ontology without silently dropping source records, promoting epistemic authority, inferring people or forcing contextual knowledge
+      into participant identities. The output remains candidate-only and is not consumed as trading truth.
+    source_locks:
+      q0_source_head: "e54e04b14876017253d27c578484e0bbd9096c0b"
+      q0_tested_head: "d748191e4aaef28336f4cea4dab551de1a5b8451"
+      q0_receipt_head: "5d57dae029632fcceb9cfcd4ab242b34ad200f1f"
+      d2_interface_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+      d2_core_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
+    canonical_d2_contract:
+      participant_families:
+        - "RETAIL"
+        - "INSTITUTIONAL_QUANT"
+        - "ACTIVE_CAPITAL"
+        - "POLICY_INDUSTRIAL_FOREIGN_AGGREGATE"
+      participant_subtypes:
+        - "RETAIL_LIQUIDITY_TAKER"
+        - "RETAIL_ANCHORED_HOLDER"
+        - "SYSTEMATIC_REBALANCER"
+        - "LONG_HORIZON_FUND"
+        - "EVENT_DRIVEN_ACTIVE"
+        - "SHORT_HORIZON_MOMENTUM"
+        - "POLICY_AGGREGATE"
+        - "INDUSTRIAL_AGGREGATE"
+        - "FOREIGN_AGGREGATE"
+      adapter_dispositions:
+        - "MAPPED"
+        - "UNMAPPED"
+        - "AMBIGUOUS"
+        - "CONTEXT_ONLY"
+        - "PERSON_IDENTITY_QUARANTINED"
+      hard_rule: "UNMAPPED_UNKNOWN is not a D2 ParticipantFamily and must be represented only as an adapter disposition/status."
+    required_results:
+      - "Commit the actual generator used to produce every derived artifact; do not reference a missing generate_adapters script."
+      - "Commit an independent validator that does not trust generated counts, output hashes, mapping labels or receipts."
+      - "Lock and verify KNOWLEDGE-ATOMS.jsonl, KNOWLEDGE-RELATIONS.jsonl, ADVERSARIAL-QUESTION-SET.jsonl and every mapping-policy input by full SHA-256 and size."
+      - "Prove exact source-set equality: 99 atom IDs exactly once, 147 relation IDs exactly once and all 64 adversarial question IDs preserved."
+      - "Preserve original deterministic_id, atom_type, confidence, evidence_status, evidence/counterevidence references and UNKNOWN state without upgrade."
+      - "Map only to the exact four D2 families and compatible nine subtypes. Every mapped subtype must agree with SUBTYPE_FAMILY."
+      - "MarketStructure, MethodologyNormative and other non-participant/contextual atoms must be CONTEXT_ONLY or UNMAPPED unless explicit participant evidence exists."
+      - "Ambiguous LargeCapital/Quant/active-capital cases must remain AMBIGUOUS or carry multiple candidate hypotheses; no convenient single-label coercion."
+      - "Named-person content remains quarantined and cannot produce an agent identity, subtype assignment or participant fact."
+      - "Use strict YAML/JSON/JSONL duplicate-key rejection and recompute every derived deterministic ID from documented canonical inputs."
+      - "Verify output file hashes, sizes, schema versions, count reconciliation, no extras, no omissions and no wall-clock-generated nondeterminism."
+      - "Replace static-validator repetition with three independent clean Git-archive generations followed by independent validation and byte comparison of all generated outputs."
+      - "Provide at least 64 source-derived adversarial cases plus at least 16 adapter-specific negative cases."
+      - "Keep every result PUBLIC_SAFE, CANDIDATE_ONLY and fail-closed for Codex consumption."
+    mandatory_negative_tests:
+      - "Duplicate JSON, JSONL and YAML keys."
+      - "Missing source atom/relation/question and unexpected extra output record."
+      - "Duplicate or non-recomputed deterministic ID."
+      - "UNMAPPED_UNKNOWN emitted as ParticipantFamily."
+      - "Invalid family, invalid subtype and subtype-family mismatch."
+      - "MarketStructure or MethodologyNormative forced into a participant family."
+      - "CLAIM/HYPOTHESIS/UNKNOWN upgraded to FACT or confidence/evidence authority upgraded."
+      - "Named-person claim converted into an agent or subtype."
+      - "Source hash/size mismatch and output hash mismatch."
+      - "Generation differs across archives, hash seeds or filesystem roots."
+    minimum_evidence:
+      source_atoms: 99
+      source_relations: 147
+      source_questions: 64
+      adapter_specific_negative_cases: 16
+      clean_generation_runs: 3
+      distinct_pythonhashseed_values: 3
+    evidence_required:
+      - "Exact substantive and receipt SHAs, parents, trees and changed-file lists."
+      - "Exact generation and validation commands, exits, stdout/stderr SHA-256, Python/platform and elapsed time."
+      - "Three clean archive paths and byte-level output hash equality."
+      - "Source-to-output coverage tables and unmapped/ambiguous/context-only inventories."
+      - "External anchors on PR #100, Issue #59 and Issue #31."
+      - "OutcomeCalibrationReview against the E15 TaskImpactForecast."
+    caution:
+      - "Do not edit PR #96 or rewrite E14 history."
+      - "Do not edit Codex D2 core or pretend PR #100 owns the canonical ontology."
+      - "Do not treat validator success on static files as generation determinism."
+      - "Do not reduce UNKNOWN/AMBIGUOUS counts merely to improve coverage."
+      - "Do not begin PR #64, #65 or #104."
+
+  - gate_id: "C_PR64_CLEAN_EXTRACTION_ARCHITECTURE_TRUTH"
+    status: "WAITING_FOR_GATE_B"
+    owner_pr: 64
+  - gate_id: "D_PR65_STRICT_LTM_PLAN_EVIDENCE"
+    status: "WAITING_FOR_GATE_C"
+    owner_pr: 65
+  - gate_id: "E_PR104_PARALLEL_OBJECT_MODEL_AND_REMOTE_SUPPLY_CHAIN_PROOF"
+    status: "WAITING_FOR_GATE_D"
+    owner_pr: 104
 
 forbidden:
-  - "No PR #100, #64, #65 or #104 commits before explicit GPT Gate A acceptance."
-  - "No Codex or WorkBuddy branch edits and no runtime handoff."
-  - "No source activation, labels, real data, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
+  - "No PR #64, #65 or #104 commits before explicit GPT Gate-B acceptance."
+  - "No edits to PR #96 or PR #101 and no Codex/WorkBuddy branch edits."
+  - "No source activation, real data, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
   - "No direct main write, merge, auto-merge, force push or published-history rewrite."
+  - "No placeholder, guessed hashes, deleted negative evidence, silent test weakening or self-approval."
 
-after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_B"
+after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-28T04:45:00+08:00"
+updated_at: "2026-07-29T16:11:00+08:00"
