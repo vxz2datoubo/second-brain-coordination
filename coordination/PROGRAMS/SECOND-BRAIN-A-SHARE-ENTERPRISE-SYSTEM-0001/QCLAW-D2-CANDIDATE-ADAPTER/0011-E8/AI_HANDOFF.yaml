@@ -1,78 +1,120 @@
 # AI_HANDOFF.yaml
-# Epoch 17 Gate B R2 — PR #100 Receipt
-# 2nd commit (receipt-only): documentation and audit trail for human reviewer
-# Review: https://github.com/vxz2datoubo/second-brain-coordination/pull/100
+# Handover file for AI reviewer (GPT-based) to validate E18 PR#100 deliverables.
+# Epoch 18, Schema 25.0
+# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
+# Generation timestamp: 2026-07-30T06:10:00+08:00
 
-ai_handoff:
-  epoch: 17
-  schema: "24.0"
-  task_id: "QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17"
-  repo: "vxz2datoubo/second-brain-coordination"
+handoff:
+  epoch: 18
+  schema: "25.0"
+  task_id: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
   pr_number: 100
-  branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
-  base_commit: "ac6b8462c54537fd8fd4bcd2883ebb2da9747c2d"
+  branch: qclaw/q0-d2-candidate-adapter-0011-e8
+  gate: "Gate B R3"
+  status: READY_FOR_REVIEW
 
-status: COMPLETE
+  completion_signal: QCLAW_E18_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW
 
-completion_signal: "QCLAW_E17_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_TRUTHFUL_EVIDENCE_READY_FOR_GPT_REVIEW"
+generated_artifacts:
+  - D2-CANDIDATE-ADAPTERS.jsonl
+  - D2-ADAPTER-PACKAGE.json
+  - D2-ADAPTER-SUMMARY.yaml
+  - COVERAGE-ATOMS.yaml
+  - COVERAGE-RELATIONS.yaml
+  - COVERAGE-QUESTIONS.yaml
+  - SOURCE-LOCK.yaml
+  - GENERATION-RECEIPT.json
 
-defects_resolved:
-  - E17-B01: "MAPPING-POLICY.yaml is THE single-source authority; no hard-coded Python tables"
-  - E17-B02: "No default subtype from family alone; family-only → AMBIGUOUS or UNMAPPED"
-  - E17-B03: "AMBIGUITY-MANIFEST.yaml keyed by deterministic_id with full rationale"
-  - E17-B04: "Correct SUBTYPE_FAMILY contract: long_horizon_fund→institutional_quant, policy/industrial/foreign→policy_industrial_foreign_aggregate"
-  - E17-B05: "Independent strict validator recomputes all labels; coverage file CONTENTS verified"
-  - E17-B06: "All violations are FAILURES (exit 1), never warnings"
-  - E17-B07: "Complete canonical artifact comparison; 3 PYTHONHASHSEED generations = IDENTICAL"
-  - E17-B08: "All hashes mechanically recomputed; no a1b2c3.../patterned/stale values"
-  - E17-B09: "Exactly 1 corrective commit + 1 receipt-only commit from ac6b846"
+policy_files:
+  - MAPPING-POLICY.yaml
+  - FULL-ID-QUARANTINE-MANIFEST.yaml
+  - AMBIGUITY-MANIFEST.yaml
+  - D2-INTERFACE-SNAPSHOT.yaml
+  - CANONICAL-SOURCE-SCHEMA.yaml
+  - GOLDEN-VECTORS.yaml
 
-artifacts:
-  output_dir: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
-  policy_manifests:
-    - MAPPING-POLICY.yaml
-    - QUARANTINE-MANIFEST.yaml
-    - AMBIGUITY-MANIFEST.yaml
-    - D2-INTERFACE-SNAPSHOT.yaml
-  scripts:
-    - generate_adapters.py
-    - validate_adapters.py
-    - hash_compare.py
-    - run_production_tests.py
-  generated_output:
-    - D2-CANDIDATE-ADAPTERS.jsonl
-    - D2-ADAPTER-PACKAGE.json
-    - D2-ADAPTER-SUMMARY.yaml
-    - COVERAGE-ATOMS.yaml
-    - COVERAGE-RELATIONS.yaml
-    - COVERAGE-QUESTIONS.yaml
-    - SOURCE-LOCK.yaml
-    - GENERATION-RECEIPT.json
-  receipts:
-    - AI_HANDOFF.yaml
-    - D05-COMMAND-EVIDENCE.yaml
-    - QUALITY-GATE-REPORT.md
-    - SUPPLY-CHAIN-HASH-VERIFICATION.yaml
-    - TEST-RUN-RECEIPT.md
-    - E17-OUTCOME-CALIBRATION.yaml
+scripts:
+  - generate_adapters.py
+  - validate_adapters.py
+  - hash_compare.py
+  - run_production_tests.py
 
-results:
-  total_adapters: 99
-  mappable: 25
-  ambiguous: 5
-  context_only: 40
-  unmapped: 27
-  quarantined: 2
-  adapters_sha256: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
-  validator: "0 failures"
-  tests: "39/39 passed"
-  hash_compare_3gen: "ALL IDENTICAL"
+receipt_files:
+  - AI_HANDOFF.yaml
+  - D05-COMMAND-EVIDENCE.yaml
+  - QUALITY-GATE-REPORT.md
+  - SUPPLY-CHAIN-HASH-VERIFICATION.yaml
+  - TEST-RUN-RECEIPT.md
+  - E18-OUTCOME-CALIBRATION.yaml
 
-next_steps:
-  - "Human reviewer: verify PR #100 contains exactly 2 commits from ac6b846"
-  - "Human reviewer: spot-check MAPPING-POLICY.yaml SUBTYPE_TO_FAMILY for correctness"
-  - "Human reviewer: verify atom 15 (PublicFundSubtype) → long_horizon_fund → institutional_quant"
-  - "GPT review: validate E17-B01 through E17-B09 resolution"
-  - "Status after completion: STOP_AND_REQUEST_GPT_REVIEW"
+defects_fixed:
+  E18-B01:
+    name: "JSON DUPLICATE KEYS STILL ACCEPTED"
+    status: FIXED
+    description: "json.loads(…, object_pairs_hook=OrderedDict) with explicit duplicate key rejection in all JSON/JSONL parsers"
 
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+  E18-B02:
+    name: "YAML LOADER NOT SEALED SAFE-STRICT"
+    status: FIXED
+    description: "Dedicated StrictSafeLoader class extending yaml.SafeLoader. No global YAML patching."
+
+  E18-B03:
+    name: "ADAPTER IDENTITY TRUNCATES SOURCE ID"
+    status: FIXED
+    description: "adapter_id = sha256(full_deterministic_id || policy_version || canonical_source_hash || disposition)"
+
+  E18-B04:
+    name: "SOURCE HASH AND OUTPUT NOT LOSSLESS"
+    status: FIXED
+    description: "Canonical source hash covers ALL fields (NFC-normalized, alphabetical). Adapter embeds complete canonical_source_record."
+
+  E18-B05:
+    name: "NAMED-PERSON QUARANTINE IS INCOMPLETE"
+    status: FIXED
+    description: "Full audit of all 99 atoms. All 15 Liu Xin atoms now in FULL-ID-QUARANTINE-MANIFEST.yaml."
+
+  E18-B06:
+    name: "AMBIGUITY WITH ONE HYPOTHESIS"
+    status: FIXED
+    description: "Every AMBIGUOUS entry has >=2 distinct D2-compatible hypotheses. Atoms 57/67 moved to UNMAPPED."
+
+  E18-B07:
+    name: "VALIDATOR DOES NOT CLOSE PACKAGE AND COVERAGE"
+    status: FIXED
+    description: "Validator independently verifies atoms + relations + questions coverage, D2 interface sha256, package manifest completeness."
+
+  E18-B08:
+    name: "PRODUCTION TEST COUNT INCLUDES NON-TESTS"
+    status: FIXED
+    description: "54 distinct subprocess-based mutation tests. No hard-coded True, no skip-as-pass."
+
+  E18-B09:
+    name: "HASH COMPARE MATCHES MISSING_BOTH"
+    status: FIXED
+    description: "MISSING_BOTH is always FAILURE. Hash comparison verifies Git-archive provenance."
+
+  E18-B10:
+    name: "PACKAGE MANIFEST INCOMPLETE"
+    status: FIXED
+    description: "D2-ADAPTER-PACKAGE.json includes all 99/147/64 IDs with canonical source hashes, adapter identity coverage."
+
+disposition_summary:
+  MAPPED: 25
+  AMBIGUOUS: 3
+  CONTEXT_ONLY: 38
+  UNMAPPED: 18
+  PERSON_IDENTITY_QUARANTINED: 15
+  total: 99
+
+validation_results:
+  validator: PASSED (0 failures)
+  production_tests: "54/54 PASSED"
+  deterministic_output: VERIFIED (PYTHONHASHSEED 0 vs 42 = identical)
+  d2_interface_verified: true
+  source_hashes_verified: true
+  canonical_artifacts: "14/14 present"
+
+review_instructions: >
+  Run generate_adapters.py / validate_adapters.py / run_production_tests.py using the Python executable at:
+  F:\Program Files (x86)\QClaw\v0.2.35.624\resources\python\python.exe
+  All source paths, commit references, and hashes are embedded in MAPPING-POLICY.yaml source_lock.
