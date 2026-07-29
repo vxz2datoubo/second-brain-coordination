@@ -722,8 +722,8 @@ def _validate_peer_transfer_pairs(actions: Sequence[CandidateAction]) -> dict[st
             first.counterparty_agent_id == second.agent_id
             and second.counterparty_agent_id == first.agent_id
             and first.agent_id != second.agent_id
-            and first.order is not None
-            and second.order is not None
+            and isinstance(first.order, SyntheticOrder)
+            and isinstance(second.order, SyntheticOrder)
             and first.order.side != second.order.side
             and first.order.quantity == second.order.quantity
             and second.arrival_sequence == first.arrival_sequence + 1
@@ -734,13 +734,54 @@ def _validate_peer_transfer_pairs(actions: Sequence[CandidateAction]) -> dict[st
     return reasons
 
 
+def _peer_declaration_failure_map(actions: Sequence[CandidateAction]) -> dict[str, Tuple[str, ...]]:
+    """Classify malformed peer declarations before any settlement can occur.
+
+    A declaration failure is distinct from a structurally valid peer pair that
+    later aborts its shared settlement plan.  The distinction lets the
+    verifier accept an honestly emitted, zero-mutation declaration abort while
+    retaining the normal strict checks for forged or truncated valid pairs.
+    """
+    failure_sets: dict[str, set[str]] = {}
+
+    def add_failure(action_id: str, reason: str) -> None:
+        failure_sets.setdefault(action_id, set()).add(reason)
+
+    for action in actions:
+        if action.liquidity_mode is not LiquidityMode.PEER_TO_PEER_TRANSFER:
+            continue
+        if action.peer_transfer_id is None:
+            add_failure(action.action_id, "PEER_TRANSFER_REQUIRES_TRANSFER_ID")
+        elif not _bounded_text(action.peer_transfer_id):
+            add_failure(action.action_id, "INVALID_PEER_TRANSFER_ID")
+        if action.counterparty_agent_id is None:
+            add_failure(action.action_id, "PEER_TRANSFER_REQUIRES_COUNTERPARTY")
+        elif not _bounded_text(action.counterparty_agent_id):
+            add_failure(action.action_id, "INVALID_COUNTERPARTY_AGENT_ID")
+        if not isinstance(action.order, SyntheticOrder):
+            add_failure(action.action_id, "INVALID_SYNTHETIC_ORDER")
+
+    # A malformed group remains visible to every member while each action also
+    # retains its own precise declaration fault.  This keeps a deterministic
+    # DECLARATION_ABORT explainable without turning a pair-shape error into a
+    # false reciprocal settlement.
+    for action_id, reasons in _validate_peer_transfer_pairs(actions).items():
+        for reason in reasons:
+            add_failure(action_id, reason)
+
+    return {
+        action_id: tuple(sorted(reasons))
+        for action_id, reasons in failure_sets.items()
+    }
+
+
 def _valid_peer_pair_map(actions: Sequence[CandidateAction]) -> dict[str, Tuple[CandidateAction, CandidateAction]]:
     """Return only structurally valid, same-step candidate pairs.
 
     Malformed declarations deliberately remain ordinary fail-closed actions.  A
     valid pair, by contrast, is required to pass through the atomic plan below.
     """
-    shape_failures = _validate_peer_transfer_pairs(actions)
+    shape_failures = _peer_declaration_failure_map(actions)
     grouped: dict[str, list[CandidateAction]] = {}
     for action in actions:
         if action.liquidity_mode is LiquidityMode.PEER_TO_PEER_TRANSFER and action.peer_transfer_id is not None:
@@ -824,25 +865,74 @@ def _peer_group_invariant_reasons(episode: EpisodeState) -> Tuple[str, ...]:
     ]
     if not peer_actions:
         return ()
+    declaration_failures = _peer_declaration_failure_map(peer_actions)
     groups: dict[str, list[CandidateAction]] = {}
     for action in peer_actions:
-        if action.peer_transfer_id is None:
-            return ("PEER_GROUP_MISSING_TRANSFER_ID",)
-        groups.setdefault(action.peer_transfer_id, []).append(action)
+        group_id = action.peer_transfer_id
+        if group_id is None:
+            group_id = "__MISSING_PEER_TRANSFER_ID__:" + action.action_id
+        groups.setdefault(group_id, []).append(action)
     reasons: set[str] = set()
-    for transfer_id, group in groups.items():
+    for _, group in groups.items():
         ordered_actions = tuple(sorted(group, key=lambda action: action.arrival_sequence))
         action_ids = {action.action_id for action in ordered_actions}
+        transfer_id = ordered_actions[0].peer_transfer_id
         group_events = [
             event for event in episode.event_dag
-            if event.action_id in action_ids or event.peer_transfer_id == transfer_id
+            if event.action_id in action_ids or (
+                transfer_id is not None and event.peer_transfer_id == transfer_id
+            )
         ]
+        declaration_abort_ids = {
+            action.action_id for action in ordered_actions if action.action_id in declaration_failures
+        }
+        if declaration_abort_ids:
+            event_by_action: dict[str, list[LedgerEvent]] = {action.action_id: [] for action in ordered_actions}
+            for event in group_events:
+                if event.action_id in event_by_action:
+                    event_by_action[event.action_id].append(event)
+                else:
+                    reasons.add("PEER_DECLARATION_ABORT_EVENT_MEMBERSHIP_MISMATCH")
+            if len(group_events) != len(ordered_actions) or any(len(items) != 1 for items in event_by_action.values()):
+                reasons.add("PEER_DECLARATION_ABORT_EVENT_MEMBERSHIP_MISMATCH")
+                continue
+            ordered_events = tuple(event_by_action[action.action_id][0] for action in ordered_actions)
+            if tuple(event.action_id for event in sorted(ordered_events, key=lambda event: event.ordinal)) != tuple(action.action_id for action in ordered_actions):
+                reasons.add("PEER_DECLARATION_ABORT_NONDETERMINISTIC_EVENT_ORDER")
+            for action, event in zip(ordered_actions, ordered_events):
+                expected_reasons = set(declaration_failures.get(action.action_id, ()))
+                if (
+                    event.peer_transfer_id != action.peer_transfer_id
+                    or event.counterparty_agent_id != action.counterparty_agent_id
+                    or event.step_index != action.scheduled_step_index
+                ):
+                    reasons.add("PEER_DECLARATION_ABORT_EVENT_ACTION_BINDING_MISMATCH")
+                if (
+                    event.accepted
+                    or event.filled_quantity != 0
+                    or event.label is not ActionLabel.BLOCKED
+                    or event.owner_pre_state_hash != event.owner_post_state_hash
+                    or event.system_pre_state_hash != event.system_post_state_hash
+                ):
+                    reasons.add("PEER_DECLARATION_ABORT_MUTATED_STATE")
+                    # A changed, previously reciprocal peer action must not be
+                    # laundered into a declaration abort.  Preserve the
+                    # reciprocal-action failure as an independent signal for
+                    # forged histories, while honest zero-mutation declaration
+                    # aborts remain verifier-valid.
+                    reasons.add("PEER_GROUP_INVALID_RECIPROCAL_ACTIONS")
+                if not expected_reasons.issubset(set(event.rejected_reason_codes)):
+                    reasons.add("PEER_DECLARATION_ABORT_REASON_MISMATCH")
+            declaration_event_ids = {event.event_id for event in ordered_events}
+            if any(flow.ledger_event_id in declaration_event_ids for flow in episode.external_liquidity_flows):
+                reasons.add("PEER_DECLARATION_ABORT_EXTERNAL_FLOW_PRESENT")
+            continue
         if len(ordered_actions) != 2:
             reasons.add("PEER_GROUP_INCOMPLETE_RECIPROCAL_MEMBERSHIP")
             continue
         if len({action.scheduled_step_index for action in ordered_actions}) != 1:
             reasons.add("PEER_GROUP_CROSS_STEP_MEMBERSHIP")
-        if _validate_peer_transfer_pairs(ordered_actions):
+        if _peer_declaration_failure_map(ordered_actions):
             reasons.add("PEER_GROUP_INVALID_RECIPROCAL_ACTIONS")
         has_unsupported_resource_effect = any(
             action.conflict_key is not None
@@ -1080,7 +1170,7 @@ def _arbitrate_internal(
     agent_by_id = {agent.agent_id: agent for agent in agent_tuple}
     invalid_agents = {agent.agent_id: _validate_agent(agent, market)[1] for agent in agent_tuple if not _validate_agent(agent, market)[0]}
     invalid_actions = {action.action_id: _validate_action(action)[1] for action in action_tuple if not _validate_action(action)[0]}
-    peer_shape_failures = _validate_peer_transfer_pairs(action_tuple)
+    peer_shape_failures = _peer_declaration_failure_map(action_tuple)
     invalid_actions.update(peer_shape_failures)
     portfolios = _build_portfolios(agent_tuple)
     events: list[LedgerEvent] = []

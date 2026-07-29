@@ -84,6 +84,18 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.assertTrue(total_system_conserved((self.retail, self.quant), result))
         self.assertTrue(total_system_accounted((self.retail, self.quant), result))
 
+    def assert_declaration_abort(self, result, reason):
+        self.assertTrue(result.events)
+        self.assertTrue(all(not event.accepted and event.filled_quantity == 0 for event in result.events))
+        self.assertTrue(all(event.label is ActionLabel.BLOCKED for event in result.events))
+        self.assertTrue(all(reason in event.rejected_reason_codes for event in result.events))
+        self.assertEqual(result.episode_state.external_liquidity_flows, ())
+        for state in result.final_agent_portfolios:
+            self.assertEqual(state.initial_inventory, state.final_inventory)
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        self.assertTrue(total_system_conserved(result.episode_state.initial_agents, result))
+        self.assertTrue(total_system_accounted(result.episode_state.initial_agents, result))
+
     def test_canonical_four_families_and_nine_subtypes_remain_defined(self):
         self.assertEqual(len(ParticipantFamily), 4)
         self.assertEqual(len(ParticipantSubtype), 9)
@@ -765,6 +777,189 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         )
         self.assertNotIn("scarce", expired.shared_market_state.claimed_conflict_keys)
         self.assertTrue(verify_episode_ledger(expired.episode_state).valid)
+
+    # E18: malformed peer declarations are deterministic, verifier-valid aborts.
+    def test_e18_lone_peer_declaration_abort_is_composable(self):
+        lone = action(
+            "e18-lone", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-lone-transfer",
+        )
+        blocked = arbitrate("e18-lone", self.market, (self.retail, self.quant), (lone,))
+        self.assert_declaration_abort(blocked, "PEER_TRANSFER_REQUIRES_EXACTLY_TWO_ACTIONS")
+        external = arbitrate(
+            "e18-lone-external", self.market, (self.retail, self.quant),
+            (action("e18-after-lone-external", "retail", 1),),
+            prior_episode_state=blocked.episode_state,
+        )
+        self.assertTrue(verify_episode_ledger(external.episode_state).valid)
+        peer = arbitrate(
+            "e18-lone-peer", self.market, (self.retail, self.quant), self.peer_pair("e18-after-lone-peer"),
+            prior_episode_state=external.episode_state,
+        )
+        self.assertTrue(verify_episode_ledger(peer.episode_state).valid)
+        self.assertTrue(total_system_accounted(peer.episode_state.initial_agents, peer))
+
+    def test_e18_mismatched_quantity_declaration_abort_is_composable(self):
+        buy, sell = self.peer_pair("e18-mismatch", qty=2)
+        sell = replace(sell, order=replace(sell.order, quantity=1))
+        blocked = arbitrate("e18-mismatch", self.market, (self.retail, self.quant), (buy, sell))
+        self.assert_declaration_abort(blocked, "INVALID_PEER_TRANSFER_PAIR")
+        continued = arbitrate(
+            "e18-mismatch-next", self.market, (self.retail, self.quant), self.peer_pair("e18-mismatch-next"),
+            prior_episode_state=blocked.episode_state,
+        )
+        self.assertTrue(verify_episode_ledger(continued.episode_state).valid)
+
+    def test_e18_missing_transfer_id_is_verifier_valid_declaration_abort(self):
+        missing = action(
+            "e18-missing-transfer", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="placeholder",
+        )
+        result = arbitrate(
+            "e18-missing-transfer", self.market, (self.retail, self.quant),
+            (replace(missing, peer_transfer_id=None),),
+        )
+        self.assert_declaration_abort(result, "PEER_TRANSFER_REQUIRES_TRANSFER_ID")
+
+    def test_e18_missing_counterparty_is_verifier_valid_declaration_abort(self):
+        missing = action(
+            "e18-missing-counterparty", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-missing-counterparty-transfer",
+        )
+        result = arbitrate(
+            "e18-missing-counterparty", self.market, (self.retail, self.quant),
+            (replace(missing, counterparty_agent_id=None),),
+        )
+        self.assert_declaration_abort(result, "PEER_TRANSFER_REQUIRES_COUNTERPARTY")
+
+    def test_e18_three_member_peer_declaration_is_verifier_valid_abort(self):
+        buy, sell = self.peer_pair("e18-three")
+        third = action(
+            "e18-third", "active", 3, side=OrderSide.BUY,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="retail", peer_transfer_id="e18-three",
+        )
+        result = arbitrate("e18-three", self.market, (self.retail, self.quant, self.active), (buy, sell, third))
+        self.assert_declaration_abort(result, "PEER_TRANSFER_REQUIRES_EXACTLY_TWO_ACTIONS")
+
+    def test_e18_same_side_peer_declaration_is_verifier_valid_abort(self):
+        buy, sell = self.peer_pair("e18-same-side")
+        sell = replace(sell, order=replace(sell.order, side=OrderSide.BUY))
+        result = arbitrate("e18-same-side", self.market, (self.retail, self.quant), (buy, sell))
+        self.assert_declaration_abort(result, "INVALID_PEER_TRANSFER_PAIR")
+
+    def test_e18_nonreciprocal_counterparty_is_verifier_valid_abort(self):
+        buy, sell = self.peer_pair("e18-nonreciprocal")
+        sell = replace(sell, counterparty_agent_id="active")
+        result = arbitrate("e18-nonreciprocal", self.market, (self.retail, self.quant, self.active), (buy, sell))
+        self.assert_declaration_abort(result, "INVALID_PEER_TRANSFER_PAIR")
+
+    def test_e18_nonadjacent_peer_declaration_is_verifier_valid_abort(self):
+        buy, sell = self.peer_pair("e18-nonadjacent")
+        sell = replace(sell, arrival_sequence=3)
+        result = arbitrate("e18-nonadjacent", self.market, (self.retail, self.quant), (buy, sell))
+        self.assert_declaration_abort(result, "INVALID_PEER_TRANSFER_PAIR")
+
+    def test_e18_missing_order_peer_declaration_is_verifier_valid_abort(self):
+        buy, sell = self.peer_pair("e18-missing-order")
+        result = arbitrate("e18-missing-order", self.market, (self.retail, self.quant), (replace(buy, order=None), sell))
+        self.assert_declaration_abort(result, "INVALID_PEER_TRANSFER_PAIR")
+
+    def test_e18_declaration_abort_action_id_cannot_be_reused(self):
+        lone = action(
+            "e18-reuse-action", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-reuse-action-transfer",
+        )
+        first = arbitrate("e18-reuse-action", self.market, (self.retail, self.quant), (lone,))
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e18-reuse-action-next", self.market, (self.retail, self.quant), (lone,), prior_episode_state=first.episode_state)
+
+    def test_e18_declaration_abort_invocation_and_order_cannot_be_reused(self):
+        lone = action(
+            "e18-reuse-identities", "retail", 1, invocation_id="e18-reused-invocation",
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-reuse-identities-transfer",
+        )
+        first = arbitrate("e18-reuse-identities", self.market, (self.retail, self.quant), (lone,))
+        reused_invocation = replace(action("e18-new-invocation", "retail", 1), invocation_id=lone.effective_invocation_id)
+        reused_order = replace(action("e18-new-order", "retail", 1), order=lone.order)
+        for candidate in (reused_invocation, reused_order):
+            with self.subTest(candidate=candidate.action_id):
+                with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+                    arbitrate("e18-reuse-identities-next-" + candidate.action_id, self.market, (self.retail, self.quant), (candidate,), prior_episode_state=first.episode_state)
+
+    def test_e18_declaration_abort_peer_transfer_id_cannot_be_reused(self):
+        lone = action(
+            "e18-reuse-transfer", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-reused-transfer-id",
+        )
+        first = arbitrate("e18-reuse-transfer", self.market, (self.retail, self.quant), (lone,))
+        next_pair = tuple(replace(item, peer_transfer_id="e18-reused-transfer-id") for item in self.peer_pair("e18-new-transfer"))
+        with self.assertRaisesRegex(ValueError, "PRIOR_ACTION_REGISTRY_COLLISION"):
+            arbitrate("e18-reuse-transfer-next", self.market, (self.retail, self.quant), next_pair, prior_episode_state=first.episode_state)
+
+    def test_e18_injected_member_and_event_into_lone_declaration_is_rejected(self):
+        lone = action(
+            "e18-forge-lone", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-forge-lone-transfer",
+        )
+        result = arbitrate("e18-forge-lone", self.market, (self.retail, self.quant), (lone,))
+        injected = replace(
+            self.peer_pair("e18-injected")[1], action_id="e18-injected-member",
+            peer_transfer_id=lone.peer_transfer_id, scheduled_step_index=1,
+        )
+        injected_event = replace(
+            result.episode_state.event_dag[0], event_id="e18-injected-event", ordinal=2,
+            action_id=injected.action_id, agent_id=injected.agent_id,
+            peer_transfer_id=injected.peer_transfer_id, counterparty_agent_id=injected.counterparty_agent_id,
+        )
+        forged = rehashed_episode(
+            result.episode_state,
+            action_registry=result.episode_state.action_registry + (injected,),
+            event_dag=result.episode_state.event_dag + (injected_event,),
+        )
+        self.assertFalse(verify_episode_ledger(forged).valid)
+
+    def test_e18_relabeling_declaration_abort_as_commit_is_rejected(self):
+        lone = action(
+            "e18-relabel", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-relabel-transfer",
+        )
+        result = arbitrate("e18-relabel", self.market, (self.retail, self.quant), (lone,))
+        forged_event = replace(
+            result.episode_state.event_dag[0], label=ActionLabel.FEASIBLE, accepted=True,
+            outcome_status="FILLED", filled_quantity=1, rejected_reason_codes=(),
+        )
+        self.assertFalse(verify_episode_ledger(rehashed_episode(result.episode_state, event_dag=(forged_event,))).valid)
+
+    def test_e18_public_arbitrate_peer_terminal_matrix_is_always_verifier_valid(self):
+        lone = action(
+            "e18-matrix-lone", "retail", 1,
+            liquidity_mode=LiquidityMode.PEER_TO_PEER_TRANSFER,
+            counterparty_agent_id="quant", peer_transfer_id="e18-matrix-lone-transfer",
+        )
+        mismatch_buy, mismatch_sell = self.peer_pair("e18-matrix-mismatch")
+        mismatch_sell = replace(mismatch_sell, order=replace(mismatch_sell.order, quantity=1))
+        missing_id = replace(lone, action_id="e18-matrix-missing-id", peer_transfer_id=None)
+        valid_abort = self.peer_pair("e18-matrix-settlement-abort", second_options={"causal_parent_event_ids": ("missing-parent",)})
+        cases = (
+            ("valid-commit", self.peer_pair("e18-matrix-commit")),
+            ("settlement-abort", valid_abort),
+            ("lone-declaration", (lone,)),
+            ("mismatch-declaration", (mismatch_buy, mismatch_sell)),
+            ("missing-id-declaration", (missing_id,)),
+        )
+        for name, actions in cases:
+            with self.subTest(name=name):
+                result = arbitrate("e18-matrix-" + name, self.market, (self.retail, self.quant), actions)
+                self.assertTrue(verify_episode_ledger(result.episode_state).valid)
 
 
 if __name__ == "__main__":
