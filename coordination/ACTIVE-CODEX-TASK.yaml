@@ -1,4 +1,4 @@
-schema_version: "21.0"
+schema_version: "22.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -14,87 +14,93 @@ active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 103, 105]
 superseded_pull_requests: [102]
-reviewed_core_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-reviewed_core_tested_head: "6ddd68e8c244d7296f5f980cc93b0a5677f25180"
+accepted_core_base_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+reviewed_core_candidate_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
+reviewed_e20_tested_head: "7a290873f23b9f9218c02540b28862cdc8b9629a"
 reviewed_evaluation_head: "3eec58a815aa0640fde30014446145a289b3d9bc"
 reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EXACT-PRIMITIVE-ENUM-AND-CARRIER-OPERATION-SAFETY-CLOSURE-0013-E21.yaml"
 
 # -----------------------------------------------------------------------------
 # ACTIVE LEASE
 # -----------------------------------------------------------------------------
-task_id: "CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20"
+task_id: "CODEX-D2-EXACT-PRIMITIVE-ENUM-AND-CARRIER-OPERATION-SAFETY-CLOSURE-0013-E21"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2双入口类型优先仲裁与验证器总函数闭环E20"
+mode_label: "【Codex模式：目标模式】D2精确原语、枚举与载体操作安全闭环E21"
 mode_reason: >-
-  Epoch 19 correctly selected a type-first repair for arbitrate, but independent task review occurred before any E19 implementation and found the
-  same defect class in verify_episode_ledger. The verifier checks outer dataclass membership, then constructs sets and dictionaries from nested IDs,
-  sorts actions by arrival_sequence and enters semantic reconstruction before proving those nested values safe. A malformed dataclass-shaped
-  EpisodeState can therefore raise accidental Python exceptions instead of returning a deterministic invalid verification result. The repair remains
-  precise and bounded to two public entry points in one D2 file and test suite, so target mode applies rather than project-plan mode.
+  E20 established a valuable shared structural preflight and closed ordinary object/list/dict malformed inputs, but independent GPT review found one
+  bounded residual defect class. The preflight proves nominal isinstance membership rather than operation safety: str and int subclasses can override
+  hashing, equality and ordering while still passing _bounded_text/_safe_int; accepted dataclass subclasses can override attribute access; and the enum
+  helper accepts text fallbacks or any base Enum for some fields. Both public paths later create sets/dicts, sort values, compare carriers and canonicalize
+  Enum.value. The repair is precise, remains inside the same D2 core/test surface and does not require project-plan mode.
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
 branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
-reviewed_or_base_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+reviewed_or_base_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 20
-route_issued_at: "2026-07-29"
-route_issued_against_main: "c6759e6a20dbdb25c89518f427290ca49cfb0ba9"
-completion_signal: "CODEX_E20_D2_DUAL_ENTRY_TYPE_FIRST_ARBITRATION_AND_VERIFIER_TOTALITY_READY_FOR_GPT_REVIEW"
+route_epoch: 21
+route_issued_at: "2026-07-29T23:41:00+08:00"
+route_issued_against_main: "f3e936c1ee716cabf263eb134ff7c9d1a15390c2"
+completion_signal: "CODEX_E21_D2_EXACT_PRIMITIVE_ENUM_AND_CARRIER_OPERATION_SAFETY_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19@route_epoch:19@SUPERSEDED_BEFORE_EXECUTION"
-  - "CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18@route_epoch:18"
+  - "CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20@route_epoch:20@VALUABLE_PARTIAL_NOT_ACCEPTED"
 
 # -----------------------------------------------------------------------------
-# INDEPENDENT TASK REVIEW DISPOSITION
+# INDEPENDENT E20 REVIEW DISPOSITION
 # -----------------------------------------------------------------------------
 review_disposition:
-  classification: "E19_DIRECTION_VALID_BUT_INCOMPLETE_SUPERSEDED_BEFORE_EXECUTION_BY_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
-  accepted_and_frozen_as_useful_base:
-    - "E18 tested commit 6ddd68e8c244d7296f5f980cc93b0a5677f25180 and receipt commit d6f9e2e4d38861e91353be177c9ceacedde6d7ee remain the exact code base."
-    - "E18 verifier-valid declaration aborts, E17 atomic peer settlement and E16 independent reconstruction remain accepted as preserved semantics."
-    - "E19 correctly identified arbitration-side pre-validation order and identity consumption."
-    - "PR #101 head did not move after E19 publication; no E19 implementation, checkpoint or completion evidence exists, so scope can be corrected without code rollback."
+  classification: "E20_VALUABLE_SHARED_PREFLIGHT_BUT_OPERATION_SAFE_TOTALITY_NOT_PROVEN"
+  accepted_as_reusable_candidate_base:
+    - "From d6f9e2e... E20 produced exactly one substantive commit 7a290873... and one receipt-only commit bf9c726...."
+    - "Only d2_game_core.py, tests/test_d2_game_core.py and E20-GATE-A-R5-RECEIPT.md changed."
+    - "The shared preflight blocks ordinary object, dict, list, unhashable container and wrong outer-dataclass cases before the previous unsafe paths."
+    - "124 focused tests pass and GitHub Actions passed on Python 3.11 and Python 3.13."
+    - "E16 independent reconstruction, E17 atomic peer settlement and E18 declaration-abort semantics remain preserved."
+    - "The boundary remains SYNTHETIC_ONLY, CANDIDATE_ONLY, research_only and NO_TRADE."
   blocking_findings:
-    - id: "E20-B01-ARBITRATION-NESTED-FIELDS-CONSUMED-BEFORE-STRUCTURAL-PROOF"
+    - id: "E21-B01-NOMINAL-STR-INT-SUBCLASSES-REMAIN-OPERATION-UNSAFE"
       severity: "BLOCKER"
       finding: >-
-        arbitrate extracts order_id and builds sets, dictionaries, sorted collections and registry membership from CandidateAction and AgentState
-        nested fields before the exact types and bounded contracts required by those operations are established.
-    - id: "E20-B02-VERIFIER-NESTED-FIELDS-CONSUMED-BEFORE-DEEP-VALIDATION"
+        _bounded_text uses isinstance(value, str) and _safe_int uses isinstance(value, int). A hostile str/int subclass can pass these checks while
+        overriding __hash__, __eq__, __lt__, __le__, __str__, encode or numeric comparison. Arbitration and verification subsequently place these values
+        into sets/dicts, sort them and compare them, so accidental user-defined exceptions can still escape.
+    - id: "E21-B02-CARRIER-SUBCLASSES-CAN-BYPASS-NOMINAL-DATACLASS-CHECKS"
       severity: "BLOCKER"
       finding: >-
-        verify_episode_ledger confirms only outer dataclass tuple membership, then builds a set from initial_agents[*].agent_id, a dictionary from
-        action_registry[*].action_id and sorts boundary actions by arrival_sequence. Unhashable or incomparable nested values can escape as TypeError.
-    - id: "E20-B03-VERIFIER-IS-NOT-A-TOTAL-PUBLIC-TRUST-BOUNDARY"
+        Structural checks accept subclasses of EpisodeState, CandidateAction, AgentState, LedgerEvent and imported D1 carriers. A hostile subclass can
+        override __getattribute__, __eq__ or related behavior and be dereferenced or compared after passing isinstance.
+    - id: "E21-B03-ENUM-PROOF-IS-NOT-EXACT"
       severity: "BLOCKER"
       finding: >-
-        The verifier should return EpisodeLedgerVerification(valid=false, reason_codes=...) for malformed stored state, but dataclass-shaped adversarial
-        values can crash before a canonical invalid result is produced. Evaluation V2 cannot freeze that behavior.
-    - id: "E20-B04-SPLIT-VALIDATOR-DRIFT-RISK"
+        _safe_enum_text_or_none accepts bounded strings for enum fields, and MarketState.phase plus permitted phases are checked against the base Enum
+        class. A wrong Enum with an unsafe/non-JSON value can reach _primitive/_canonical, while wrong text enum stand-ins are not proven as their exact
+        documented contract before later use.
+    - id: "E21-B04-E20-ADVERSARIAL-TESTS-MISS-HOSTILE-NOMINAL-SUBTYPES"
+      severity: "BLOCKER"
+      finding: >-
+        The 33 new E20 cases use one ordinary explosive object and list/dict fixtures. They do not use malicious str/int subclasses, carrier subclasses or
+        wrong Enum values, despite the E20 route requiring exact contracts and custom __hash__/__eq__/__lt__ adversaries.
+    - id: "E21-B05-CLEAN-ARCHIVE-EXECUTION-EVIDENCE-INCOMPLETE"
       severity: "MAJOR"
       finding: >-
-        Repairing only arbitrate would create two structural contracts: one safe writer and one unsafe reader. Shared narrow validators or an equivalent
-        common structural contract are required to prevent future divergence.
-  preserved_unknowns:
-    - id: "ROOT-CAPSULE-ORIGIN-AUTHENTICATION"
-      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_AN_E20_BLOCKER"
-      finding: "External signature, trusted timestamp and canonical registry publication remain outside Gate A."
-    - id: "ATOMIC-PEER-RESOURCE-EFFECTS"
-      disposition: "NOT_IMPLEMENTED_YET_FAIL_CLOSED_PRESERVE_FOR_SEPARATE_GATE"
-      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E20."
+        The E20 receipt records three identical tar hashes, but does not prove three distinct archive extractions and focused-suite executions in different
+        roots with process-level seeds, exact command exits, stdout/stderr hashes and reason-order trace equality.
+    - id: "E21-B06-E20-RECEIPT-CALIBRATION-AND-FINAL-GIT-METADATA-INCOMPLETE"
+      severity: "MAJOR"
+      finding: >-
+        The receipt records tested commit/tree but does not contain or externally reconcile the full receipt commit parent/tree metadata and does not
+        provide the required OutcomeCalibrationReview against the E20 forecast.
   decision:
-    e18_semantics: "ACCEPTED_AS_CODE_BASE"
-    e19_task: "SUPERSEDED_BEFORE_EXECUTION_NO_CODE_ACCEPTED_OR_REJECTED"
-    gate_a_overall: "NOT_ACCEPTED"
+    e20_candidate: "PRESERVED_AS_REUSABLE_PARTIAL_BASE"
+    gate_a_overall: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
     gate_b: "FROZEN"
     gate_c: "FROZEN"
     gate_d: "FROZEN"
@@ -106,34 +112,34 @@ review_disposition:
 # -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "MEDIUM_HEAVY_BOUNDED_DUAL_ENTRY_PUBLIC_BOUNDARY_CLOSURE"
-  research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_NEEDED"
+  task_weight: "MEDIUM_BOUNDED_EXACT_OPERATION_SAFETY_CLOSURE"
+  research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_PYTHON_DATA_MODEL_AMBIGUITY_REMAINS"
   checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo schema 21.0, route_epoch 20, exact remote main and exact PR #101 head."
-    - "Publish executable baseline reproductions for arbitrate(order=object), unhashable action/invocation/transfer IDs, verifier(initial agent_id=list), verifier(action_id=dict) and verifier(wrong-type arrival_sequence)."
-    - "Provide one dual-entry field-consumption table covering each operation, validator, intentional disposition and deterministic precedence."
-    - "State the selected shared-validator architecture, rejected catch-all alternative, compatibility impact and rollback."
+    - "Echo schema 22.0, route_epoch 21, exact remote main, PR #101 head bf9c726... and tested parent 7a290873...."
+    - "Reproduce at least one hostile str subclass hash/equality/order escape, one hostile int subclass comparison/order escape, one carrier-subclass attribute escape and one wrong Enum canonicalization escape on the E20 head."
+    - "Publish an operation-consumption table distinguishing exact primitive type, exact enum type, exact carrier type and semantic validation."
+    - "State the selected closed-carrier architecture, compatibility impact, rejected catch-all/coercion alternatives and rollback."
   checkpoint_behavior: >-
-    Continue autonomously inside Gate A-R5 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
-    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E20 reviewed base.
+    Continue autonomously inside Gate A-R6 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when substantive. Do not push
+    intermediate commits; preserve the final two-commit shape from bf9c726....
 
 exploration_budget:
   primary_delivery_share: "75-85%"
   active_discovery_share: "10-20%"
   system_opportunity_share: "0-10%"
-  maximum_new_branches: 1
+  maximum_new_branches: 0
   maximum_new_draft_prs: 0
-  maximum_unplanned_files_inside_authorized_paths: 4
+  maximum_unplanned_files_inside_authorized_paths: 3
   maximum_simultaneous_substantive_prs: 1
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R5"
+  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R6_OPERATION_SAFETY"
   architecture_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_paths: true
-  may_add_shared_structural_validators_reason_taxonomies_negative_tests_and_trace_helpers: true
+  may_add_exact_type_helpers_reason_taxonomies_hostile_subclass_tests_and_trace_helpers: true
   may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
   may_continue_within_current_gate_without_gpt: true
   may_advance_to_next_gate_without_new_gpt_message: false
@@ -141,103 +147,97 @@ autonomy_grant:
   decision_log_required: true
   alternatives_considered_required: true
   surviving_exploit_or_unknown_must_be_preserved: true
+  history_rewrite: false
+  force_push: false
 
 # -----------------------------------------------------------------------------
-# ACTIVE GATE A-R5
+# ACTIVE GATE A-R6
 # -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_R5_PR101_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
-  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E20"
+  active_gate: "A_R6_PR101_EXACT_OPERATION_SAFE_PUBLIC_BOUNDARIES"
+  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E21"
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
 
 stage_plan:
-  - gate_id: "A_R5_PR101_DUAL_ENTRY_PUBLIC_BOUNDARY_TOTALITY"
+  - gate_id: "A_R6_PR101_EXACT_OPERATION_SAFE_PUBLIC_BOUNDARIES"
     status: "ACTIVE"
     owner_pr: 101
-    reviewed_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E20_REVIEWED_HEAD"
+    reviewed_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
+    required_commit_shape: "ONE_CORRECTIVE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_E21_RECEIPT_ONLY_COMMIT_FROM_BF9C726"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E20-GATE-A-R5-RECEIPT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E21-GATE-A-R6-RECEIPT.md"
     objective: >-
-      Establish one shared type-first structural contract across arbitrate and verify_episode_ledger. No nested field may be dereferenced, hashed,
-      compared, sorted, inserted into a set/dict or used as a registry key before the exact contract needed for that operation is proven. Every returned
-      GameRun must contain a verifier-valid EpisodeState. Every malformed arbitration input must be intentionally rejected before construction, and every
-      malformed stored episode must yield a deterministic invalid EpisodeLedgerVerification rather than an accidental Python exception.
+      Convert the E20 nominal type-first preflight into an exact operation-safe public contract. No hostile nominal subtype, wrong enum or carrier subclass may
+      execute user-controlled hashing, equality, ordering, attribute access or canonicalization before intentional rejection. Both public entry points must
+      remain deterministic and preserve all accepted D2 semantics.
     required_results:
-      - "Inventory every pre-event and pre-verification field consumption across AgentState, CandidateAction, SyntheticOrder, LedgerEvent, ExternalLiquidityFlowEvent, SharedMarketState, EpisodeStepBoundary and EpisodeState."
-      - "Implement shared narrow structural validators or an equivalent single-source contract used by both arbitration and verification."
-      - "Arbitrate must reject malformed structure before event, boundary, registry, replay identity or portfolio/resource mutation."
-      - "verify_episode_ledger must be total over arbitrary Python objects and dataclass-shaped malformed EpisodeState values, returning stable invalid reason codes without mutation."
-      - "Freeze a deterministic error taxonomy and precedence: top-level type, collection shape/limit, nested field structure, identity uniqueness, schedule/boundary structure, semantic invariants, reconstruction mismatch."
-      - "Do not coerce malformed identifiers to strings, tuples or hashable stand-ins."
-      - "Do not use a broad catch-all TypeError/AttributeError wrapper around either public entry point."
-      - "Cover arbitrary object/dict/list/deceptive order values and unhashable or incomparable nested identifiers."
-      - "Cover custom adversarial values whose __hash__, __eq__, __lt__ or partial attributes raise; invalid types must be rejected without invoking unsafe operations."
-      - "Every non-exceptional arbitrate branch must return a verifier-valid episode; every intentional arbitration exception must occur before construction."
-      - "Every verifier call must return EpisodeLedgerVerification and must never leak accidental exceptions for malformed user-supplied state."
-      - "Preserve E16 independent reconstruction, E17 atomic settlement, E18 declaration-abort composability and all existing negative evidence."
-      - "Record that E19 was superseded before execution and do not create or edit an E19 receipt."
+      - "Use exact built-in primitive checks for untrusted identifiers and integers before len, bool, bounds comparison, hashing, equality or sorting."
+      - "Reject or otherwise safely seal str/int subclasses whose magic methods can be user-controlled; do not normalize or copy them into trusted values."
+      - "Use exact documented enum classes for SessionPhase, SecurityStatus, OrderSide, MatchMode, ParticipantSubtype, ActionLabel, ConflictTransition and LiquidityMode; no base Enum wildcard and no text fallback as structural proof."
+      - "Use exact public carrier contracts or an equivalent sealed-carrier proof before dereferencing/comparing EpisodeState, CandidateAction, AgentState, LedgerEvent, ExternalLiquidityFlowEvent, SharedMarketState, EpisodeStepBoundary and D1 carrier objects."
+      - "Harden _primitive/_canonical so unsupported or unsafe values cannot invoke str coercion, arbitrary Enum.value serialization or user-controlled dictionary-key behavior."
+      - "Keep one shared validator/taxonomy used by arbitrate and verify_episode_ledger; no split drift."
+      - "Arbitrate must raise an intentional deterministic ValueError before construction; verifier must return one deterministic invalid EpisodeLedgerVerification."
+      - "Freeze first-reason precedence for multi-fault hostile-subclass inputs independent of PYTHONHASHSEED, root path and tuple/list representation where supported."
+      - "Preserve all E16/E17/E18/E20 tests and semantics; no broad catch-all and no generic INVALID_EPISODE collapse."
+      - "Mark E20 as valuable partial but superseded for final Gate A totality; do not edit the historical E20 receipt."
     mandatory_exploit_tests:
-      - "Arbitrate peer and external actions with order=object(), dict, list and a deceptive partial-order object."
-      - "Arbitrate with unhashable action_id, agent_id, invocation_id, order_id, peer_transfer_id, counterparty ID and conflict key."
-      - "Arbitrate with wrong-type or incomparable arrival_sequence and scheduled_step_index values before any sort or set operation."
-      - "Verify EpisodeState whose initial AgentState has agent_id=list/dict and whose action registry has action_id=list/dict."
-      - "Verify EpisodeState whose arrival_sequence cannot be sorted, whose boundary action IDs are unhashable, and whose event IDs/references are malformed."
-      - "Verify malformed SharedMarketState claims, external flow IDs and nested SyntheticOrder fields without accidental hash/attribute errors."
-      - "Use adversarial custom objects with raising __hash__, __eq__, __lt__ or missing attributes to prove unsafe operations are not reached."
-      - "Multi-fault inputs must produce the frozen first reason independent of PYTHONHASHSEED and list/tuple representation where both are supported."
-      - "Valid E18 declaration aborts, valid external actions, atomic peer commits, settlement aborts and forged-history rejection remain unchanged."
-      - "Source-level or executable guards prove no protected field consumption precedes the shared structural preflight."
+      - "Hostile str subclasses raising in __hash__, __eq__, __lt__, __str__ or encode across run, agent, action, invocation, order, peer, conflict, event, boundary, flow and state identifiers."
+      - "Hostile int subclasses raising in comparison/hash/order across arrival_sequence, scheduled_step_index, step index, ordinal, quantities and timestamps."
+      - "Hostile subclasses of public dataclass carriers raising on nested attribute access or equality."
+      - "Wrong Enum classes and Enums with non-JSON/hostile values in MarketState.phase and rule permitted phases."
+      - "Wrong string stand-ins for exact enum fields fail intentionally before any enum .value access."
+      - "Verifier multi-fault episodes produce the frozen first reason and never leak RuntimeError, AssertionError, TypeError or AttributeError."
+      - "Arbitration multi-fault inputs fail before boundary, registry, identity, event, portfolio or shared-state construction."
+      - "Canonicalizer rejects unsupported values without string coercion or user-defined key ordering."
     minimum_tests:
-      total_focused_semantic_tests: 124
-      new_dual_entry_boundary_regressions: 32
-      clean_git_archive_runs: 3
+      total_focused_semantic_tests: 148
+      new_e21_operation_safety_regressions: 24
+      clean_git_archive_executions: 3
       distinct_pythonhashseed_values: 3
+      distinct_filesystem_roots: 3
     evidence_required:
-      - "Exact substantive and receipt SHAs, parents, trees and allowed-file deltas."
-      - "Exact baseline exploit commands/results and final regression IDs for both public entry points."
-      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform and elapsed time."
-      - "Three clean Git-archive runs plus deterministic trace/hash and reason-order equality."
-      - "CI status for Python 3.11 and 3.13."
+      - "Exact substantive and receipt SHAs, parents, trees and changed-file lists."
+      - "Exact exploit reproductions before and after, with sentinel magic-method invocation counters proving zero unsafe calls after repair."
+      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform, root path, PYTHONHASHSEED and elapsed time."
+      - "Three independently extracted Git archives, each executing the focused suite and reason-order trace from a distinct root."
+      - "Identical semantic/reason-order trace hashes across seeds and roots."
+      - "CI status and job evidence for Python 3.11 and 3.13."
+      - "No-placeholder/secret/diff-hygiene scans."
       - "External completion anchors on PR #101, Issue #23 and Issue #31."
-      - "OutcomeCalibrationReview comparing the E20 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
+      - "OutcomeCalibrationReview comparing the E21 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
     caution:
-      - "Do not fix verifier totality by returning a single generic INVALID_EPISODE for all nested failures."
-      - "Do not catch programmer defects with broad exception handling."
-      - "Do not normalize malformed values into valid-looking identifiers."
-      - "Do not weaken or delete E15/E16/E17/E18 tests or evidence."
-      - "Do not create an E19 receipt or represent E19 as executed."
-      - "Do not modify D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
+      - "Do not solve this by copying hostile subclasses into plain str/int values."
+      - "Do not catch BaseException, Exception, TypeError or AttributeError around the whole public entry point."
+      - "Do not weaken accepted semantic validation or allow invalid enum strings to look canonical."
+      - "Do not edit E20 receipt, D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
       - "Do not start Evaluation V2 or any downstream gate."
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E20"
+    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E21"
     required_new_draft_pr: true
     superseded_source_pr: 102
-    start_gate: "GPT accepts E20 Gate A-R5 tested and receipt heads and explicitly releases Gate B."
-    frozen_requirements_ref: "schema 16.0 Gate B requirements remain preserved"
+    start_gate: "GPT accepts E21 Gate A-R6 tested and receipt heads and explicitly releases Gate B."
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
     status: "WAITING_FOR_GATE_B"
     owner_pr: 103
     reviewed_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
-    frozen_requirements_ref: "schema 16.0 Gate C requirements remain preserved"
 
   - gate_id: "D_PR105_IMMUTABLE_D3A_PREREG"
     status: "WAITING_FOR_GATES_B_AND_C"
     owner_pr: 105
     reviewed_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
-    frozen_requirements_ref: "schema 16.0 Gate D requirements remain preserved"
 
 # -----------------------------------------------------------------------------
 # EVIDENCE, BOUNDARY AND COMPLETION
 # -----------------------------------------------------------------------------
 forbidden:
   - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
-  - "No concurrent substantive implementation outside PR #101 Gate A-R5."
+  - "No concurrent substantive implementation outside PR #101 Gate A-R6."
   - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
   - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
 
@@ -246,8 +246,8 @@ after_completion:
   merge: false
   release_issue92: false
   completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E20_D2_DUAL_ENTRY_TYPE_FIRST_ARBITRATION_AND_VERIFIER_TOTALITY_READY_FOR_GPT_REVIEW"
+  required_signal: "CODEX_E21_D2_EXACT_PRIMITIVE_ENUM_AND_CARRIER_OPERATION_SAFETY_READY_FOR_GPT_REVIEW"
 
 boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-29"
+updated_at: "2026-07-29T23:41:00+08:00"
