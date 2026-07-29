@@ -96,6 +96,24 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         self.assertTrue(total_system_conserved(result.episode_state.initial_agents, result))
         self.assertTrue(total_system_accounted(result.episode_state.initial_agents, result))
 
+    def e20_valid_episode(self, name):
+        result = arbitrate(
+            "e20-" + name,
+            self.market,
+            (self.retail, self.quant),
+            (action("e20-" + name + "-buy", "retail", 1),),
+        )
+        self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+        return result.episode_state
+
+    def assert_e20_verifier_fails_closed(self, episode, expected_reason):
+        try:
+            verification = verify_episode_ledger(episode)
+        except Exception as exc:  # The public verifier must be total for hostile stored state.
+            self.fail(f"verifier leaked {type(exc).__name__}: {exc}")
+        self.assertFalse(verification.valid)
+        self.assertEqual(verification.reason_codes, (expected_reason,))
+
     def test_canonical_four_families_and_nine_subtypes_remain_defined(self):
         self.assertEqual(len(ParticipantFamily), 4)
         self.assertEqual(len(ParticipantSubtype), 9)
@@ -960,6 +978,89 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
             with self.subTest(name=name):
                 result = arbitrate("e18-matrix-" + name, self.market, (self.retail, self.quant), actions)
                 self.assertTrue(verify_episode_ledger(result.episode_state).valid)
+
+
+class _E20ExplosiveObject:
+    """Proves structural guards reject values before comparison, hashing, or introspection."""
+
+    def __hash__(self):
+        raise AssertionError("unexpected hash")
+
+    def __eq__(self, other):
+        raise AssertionError("unexpected equality")
+
+    def __lt__(self, other):
+        raise AssertionError("unexpected ordering")
+
+    @property
+    def order_id(self):
+        raise AssertionError("unexpected nested order dereference")
+
+
+def _e20_arbitration_regression(name, mutate, expected_reason):
+    def test(self):
+        base = action("e20-" + name, "retail", 1)
+        malformed = mutate(base)
+        with self.assertRaisesRegex(ValueError, expected_reason):
+            arbitrate("e20-" + name, self.market, (self.retail, self.quant), (malformed,))
+
+    test.__name__ = "test_e20_arbitrate_" + name
+    return test
+
+
+def _e20_verifier_regression(name, mutate, expected_reason):
+    def test(self):
+        episode = self.e20_valid_episode(name)
+        self.assert_e20_verifier_fails_closed(mutate(episode), expected_reason)
+
+    test.__name__ = "test_e20_verify_" + name
+    return test
+
+
+_E20_ARBITRATION_CASES = (
+    ("arbitrary_order_object", lambda item: replace(item, order=_E20ExplosiveObject()), "INVALID_SYNTHETIC_ORDER_STRUCTURE"),
+    ("mapping_order", lambda item: replace(item, order={"order": "not-a-contract"}), "INVALID_SYNTHETIC_ORDER_STRUCTURE"),
+    ("list_order_identifier", lambda item: replace(item, order=replace(item.order, order_id=[])), "INVALID_ORDER_ID_STRUCTURE"),
+    ("list_action_identifier", lambda item: replace(item, action_id=[]), "INVALID_ACTION_ID_STRUCTURE"),
+    ("mapping_agent_identifier", lambda item: replace(item, agent_id={"agent": "retail"}), "INVALID_ACTION_ID_STRUCTURE"),
+    ("nested_list_assumption_reference", lambda item: replace(item, assumption_ids=([],)), "INVALID_ACTION_REFERENCE_STRUCTURE"),
+    ("nested_mapping_evidence_reference", lambda item: replace(item, evidence_refs=({},)), "INVALID_ACTION_REFERENCE_STRUCTURE"),
+    ("list_conflict_key", lambda item: replace(item, conflict_key=[]), "INVALID_ACTION_CONFLICT_STRUCTURE"),
+    ("mapping_causal_parent", lambda item: replace(item, causal_parent_event_ids=({},)), "INVALID_ACTION_CAUSAL_STRUCTURE"),
+    ("explosive_arrival_sequence", lambda item: replace(item, arrival_sequence=_E20ExplosiveObject()), "INVALID_ARRIVAL_SEQUENCE"),
+    ("mapping_invocation_identifier", lambda item: replace(item, invocation_id={"id": "x"}), "INVALID_INVOCATION_ID_STRUCTURE"),
+    ("list_conflict_transition", lambda item: replace(item, conflict_transition=[]), "INVALID_CONFLICT_TRANSITION_STRUCTURE"),
+    ("mapping_liquidity_mode", lambda item: replace(item, liquidity_mode={"mode": "x"}), "INVALID_LIQUIDITY_MODE_STRUCTURE"),
+    ("list_counterparty_identifier", lambda item: replace(item, counterparty_agent_id=[]), "INVALID_PEER_IDENTIFIER_STRUCTURE"),
+    ("mapping_peer_transfer_identifier", lambda item: replace(item, peer_transfer_id={"id": "x"}), "INVALID_PEER_IDENTIFIER_STRUCTURE"),
+    ("list_scheduled_step", lambda item: replace(item, scheduled_step_index=[]), "INVALID_SCHEDULED_STEP_STRUCTURE"),
+)
+
+_E20_VERIFIER_CASES = (
+    ("list_initial_agent_identifier", lambda episode: replace(episode, initial_agents=(replace(episode.initial_agents[0], agent_id=[]),)), "INVALID_AGENT_ID_STRUCTURE"),
+    ("mapping_current_agent_identifier", lambda episode: replace(episode, current_agents=(replace(episode.current_agents[0], agent_id={"agent": "retail"}),) + episode.current_agents[1:]), "INVALID_AGENT_ID_STRUCTURE"),
+    ("list_action_identifier", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], action_id=[]),)), "INVALID_ACTION_ID_STRUCTURE"),
+    ("mapping_action_agent_identifier", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], agent_id={"agent": "retail"}),)), "INVALID_ACTION_ID_STRUCTURE"),
+    ("list_order_identifier", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], order=replace(episode.action_registry[0].order, order_id=[])),)), "INVALID_ORDER_ID_STRUCTURE"),
+    ("nested_list_assumption_reference", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], assumption_ids=([],)),)), "INVALID_ACTION_REFERENCE_STRUCTURE"),
+    ("nested_mapping_causal_parent", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], causal_parent_event_ids=({},)),)), "INVALID_ACTION_CAUSAL_STRUCTURE"),
+    ("explosive_arrival_sequence", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], arrival_sequence=_E20ExplosiveObject()),)), "INVALID_ARRIVAL_SEQUENCE"),
+    ("list_event_identifier", lambda episode: replace(episode, event_dag=(replace(episode.event_dag[0], event_id=[]),)), "INVALID_LEDGER_EVENT_IDENTIFIER_STRUCTURE"),
+    ("mapping_event_invocation_identifier", lambda episode: replace(episode, event_dag=(replace(episode.event_dag[0], invocation_id={"id": "x"}),)), "INVALID_LEDGER_EVENT_IDENTIFIER_STRUCTURE"),
+    ("nested_list_event_cause_reference", lambda episode: replace(episode, event_dag=(replace(episode.event_dag[0], cause_refs=([],)),)), "INVALID_LEDGER_EVENT_REFERENCE_STRUCTURE"),
+    ("list_event_step", lambda episode: replace(episode, event_dag=(replace(episode.event_dag[0], step_index=[]),)), "INVALID_LEDGER_EVENT_STEP_STRUCTURE"),
+    ("mapping_external_flow_identifier", lambda episode: replace(episode, external_liquidity_flows=(replace(episode.external_liquidity_flows[0], flow_id={"flow": "x"}),)), "INVALID_EXTERNAL_FLOW_IDENTIFIER_STRUCTURE"),
+    ("list_external_flow_delta", lambda episode: replace(episode, external_liquidity_flows=(replace(episode.external_liquidity_flows[0], agent_inventory_delta=[]),)), "INVALID_EXTERNAL_FLOW_DELTA_STRUCTURE"),
+    ("nested_list_shared_claim_key", lambda episode: replace(episode, shared_market_state=replace(episode.shared_market_state, claimed_conflict_keys=([],))), "INVALID_SHARED_CLAIM_KEY_STRUCTURE"),
+    ("nested_list_shared_claim_map", lambda episode: replace(episode, shared_market_state=replace(episode.shared_market_state, conflict_claim_event_ids=(([], "event"),))), "INVALID_SHARED_CLAIM_MAP_STRUCTURE"),
+    ("nested_list_boundary_action_identifier", lambda episode: replace(episode, step_boundaries=(replace(episode.step_boundaries[0], action_ids=([],)),)), "INVALID_STEP_BOUNDARY_ACTION_IDS"),
+)
+
+for _name, _mutate, _reason in _E20_ARBITRATION_CASES:
+    setattr(StatefulMultiAgentCoreTests, "test_e20_arbitrate_" + _name, _e20_arbitration_regression(_name, _mutate, _reason))
+
+for _name, _mutate, _reason in _E20_VERIFIER_CASES:
+    setattr(StatefulMultiAgentCoreTests, "test_e20_verify_" + _name, _e20_verifier_regression(_name, _mutate, _reason))
 
 
 if __name__ == "__main__":
