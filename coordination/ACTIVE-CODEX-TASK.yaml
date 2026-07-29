@@ -1,11 +1,10 @@
-schema_version: "22.0"
+schema_version: "23.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
 initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
 review_publish_semantics: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
-local_credential_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
@@ -14,213 +13,174 @@ active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 103, 105]
 superseded_pull_requests: [102]
-accepted_core_base_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-reviewed_core_candidate_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
-reviewed_e20_tested_head: "7a290873f23b9f9218c02540b28862cdc8b9629a"
-reviewed_evaluation_head: "3eec58a815aa0640fde30014446145a289b3d9bc"
+accepted_gate_a_receipt_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
+accepted_gate_a_tested_head: "d51857a93d716e6e9e1d0816a453eb8688588cdb"
+accepted_gate_a_base_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
+reviewed_evaluation_legacy_head: "3eec58a815aa9139fcf4d37a11c4b2aa9b3779c0"
 reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
-accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
-accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EXACT-PRIMITIVE-ENUM-AND-CARRIER-OPERATION-SAFETY-CLOSURE-0013-E21.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-EXECUTABLE-MUTATION-METAMORPHIC-AND-FAIL-CLOSED-EVIDENCE-0014-E22.yaml"
 
-# -----------------------------------------------------------------------------
 # ACTIVE LEASE
-# -----------------------------------------------------------------------------
-task_id: "CODEX-D2-EXACT-PRIMITIVE-ENUM-AND-CARRIER-OPERATION-SAFETY-CLOSURE-0013-E21"
-mode: "target"
-mode_label: "【Codex模式：目标模式】D2精确原语、枚举与载体操作安全闭环E21"
+task_id: "CODEX-D2-EVALUATION-V2-EXECUTABLE-MUTATION-METAMORPHIC-AND-FAIL-CLOSED-EVIDENCE-0014-E22"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】D2 Evaluation V2可执行突变、蜕变性质与失效闭环E22"
 mode_reason: >-
-  E20 established a valuable shared structural preflight and closed ordinary object/list/dict malformed inputs, but independent GPT review found one
-  bounded residual defect class. The preflight proves nominal isinstance membership rather than operation safety: str and int subclasses can override
-  hashing, equality and ordering while still passing _bounded_text/_safe_int; accepted dataclass subclasses can override attribute access; and the enum
-  helper accepts text fallbacks or any base Enum for some fields. Both public paths later create sets/dicts, sort values, compare carriers and canonicalize
-  Enum.value. The repair is precise, remains inside the same D2 core/test surface and does not require project-plan mode.
+  Gate A is now semantically closed at fa68186, but Gate B is a new evaluation architecture rather than a bounded bug fix.
+  It requires a fresh PR, executable mutation registry, independent oracles, metamorphic properties, scenario/invariant reconciliation,
+  clean-root evidence and a migration decision for useful ideas from frozen PR #102. The direction is known but the internal architecture
+  and work decomposition contain several interacting unknowns, so Codex must first publish a self-contained repository-grounded project plan.
 status: "READY"
 execution_allowed: true
+automatic_resume: false
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
-branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
-reviewed_or_base_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
+planned_branch: "codex/d2-evaluation-v2-0014-e22"
+required_new_draft_pr: true
+required_pr_base_branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
+reviewed_or_base_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
 direct_main_write: false
 auto_merge: false
-
-route_epoch: 21
-route_issued_at: "2026-07-29T23:41:00+08:00"
-route_issued_against_main: "f3e936c1ee716cabf263eb134ff7c9d1a15390c2"
-completion_signal: "CODEX_E21_D2_EXACT_PRIMITIVE_ENUM_AND_CARRIER_OPERATION_SAFETY_READY_FOR_GPT_REVIEW"
+route_epoch: 22
+route_issued_at: "2026-07-30T01:38:00+08:00"
+route_issued_against_main: "ddca02ed975e8c1999769bc9bb7ca8ca0bf29e68"
+completion_signal: "CODEX_E22_D2_EVALUATION_V2_EXECUTABLE_MUTATION_METAMORPHIC_AND_FAIL_CLOSED_EVIDENCE_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-D2-DUAL-ENTRY-TYPE-FIRST-ARBITRATION-AND-VERIFIER-TOTALITY-CLOSURE-0012-E20@route_epoch:20@VALUABLE_PARTIAL_NOT_ACCEPTED"
+  - "CODEX-D2-EXACT-PRIMITIVE-ENUM-AND-CARRIER-OPERATION-SAFETY-CLOSURE-0013-E21@route_epoch:21@ACCEPTED_WITH_EVIDENCE_EXCEPTION"
+  - "PR102@FROZEN_HISTORICAL_CANDIDATE_DO_NOT_REUSE_AS_ACTIVE_BRANCH"
 
-# -----------------------------------------------------------------------------
-# INDEPENDENT E20 REVIEW DISPOSITION
-# -----------------------------------------------------------------------------
 review_disposition:
-  classification: "E20_VALUABLE_SHARED_PREFLIGHT_BUT_OPERATION_SAFE_TOTALITY_NOT_PROVEN"
-  accepted_as_reusable_candidate_base:
-    - "From d6f9e2e... E20 produced exactly one substantive commit 7a290873... and one receipt-only commit bf9c726...."
-    - "Only d2_game_core.py, tests/test_d2_game_core.py and E20-GATE-A-R5-RECEIPT.md changed."
-    - "The shared preflight blocks ordinary object, dict, list, unhashable container and wrong outer-dataclass cases before the previous unsafe paths."
-    - "124 focused tests pass and GitHub Actions passed on Python 3.11 and Python 3.13."
-    - "E16 independent reconstruction, E17 atomic peer settlement and E18 declaration-abort semantics remain preserved."
-    - "The boundary remains SYNTHETIC_ONLY, CANDIDATE_ONLY, research_only and NO_TRADE."
-  blocking_findings:
-    - id: "E21-B01-NOMINAL-STR-INT-SUBCLASSES-REMAIN-OPERATION-UNSAFE"
-      severity: "BLOCKER"
-      finding: >-
-        _bounded_text uses isinstance(value, str) and _safe_int uses isinstance(value, int). A hostile str/int subclass can pass these checks while
-        overriding __hash__, __eq__, __lt__, __le__, __str__, encode or numeric comparison. Arbitration and verification subsequently place these values
-        into sets/dicts, sort them and compare them, so accidental user-defined exceptions can still escape.
-    - id: "E21-B02-CARRIER-SUBCLASSES-CAN-BYPASS-NOMINAL-DATACLASS-CHECKS"
-      severity: "BLOCKER"
-      finding: >-
-        Structural checks accept subclasses of EpisodeState, CandidateAction, AgentState, LedgerEvent and imported D1 carriers. A hostile subclass can
-        override __getattribute__, __eq__ or related behavior and be dereferenced or compared after passing isinstance.
-    - id: "E21-B03-ENUM-PROOF-IS-NOT-EXACT"
-      severity: "BLOCKER"
-      finding: >-
-        _safe_enum_text_or_none accepts bounded strings for enum fields, and MarketState.phase plus permitted phases are checked against the base Enum
-        class. A wrong Enum with an unsafe/non-JSON value can reach _primitive/_canonical, while wrong text enum stand-ins are not proven as their exact
-        documented contract before later use.
-    - id: "E21-B04-E20-ADVERSARIAL-TESTS-MISS-HOSTILE-NOMINAL-SUBTYPES"
-      severity: "BLOCKER"
-      finding: >-
-        The 33 new E20 cases use one ordinary explosive object and list/dict fixtures. They do not use malicious str/int subclasses, carrier subclasses or
-        wrong Enum values, despite the E20 route requiring exact contracts and custom __hash__/__eq__/__lt__ adversaries.
-    - id: "E21-B05-CLEAN-ARCHIVE-EXECUTION-EVIDENCE-INCOMPLETE"
-      severity: "MAJOR"
-      finding: >-
-        The E20 receipt records three identical tar hashes, but does not prove three distinct archive extractions and focused-suite executions in different
-        roots with process-level seeds, exact command exits, stdout/stderr hashes and reason-order trace equality.
-    - id: "E21-B06-E20-RECEIPT-CALIBRATION-AND-FINAL-GIT-METADATA-INCOMPLETE"
-      severity: "MAJOR"
-      finding: >-
-        The receipt records tested commit/tree but does not contain or externally reconcile the full receipt commit parent/tree metadata and does not
-        provide the required OutcomeCalibrationReview against the E20 forecast.
+  classification: "E21_GATE_A_SEMANTIC_TOTALITY_ACCEPTED_WITH_BOUNDED_EVIDENCE_EXCEPTION_GATE_B_RELEASED"
+  accepted_value:
+    - "From bf9c726 E21 formed exactly one substantive tested commit d51857a and one receipt-only commit fa68186."
+    - "Only d2_game_core.py, test_d2_game_core.py and E21-GATE-A-R6-RECEIPT.md changed."
+    - "Public boundaries now require exact built-in primitives, exact documented enum classes and exact carrier classes."
+    - "The canonical serializer is closed over explicit D1/D2 carriers, exact enums, exact primitives/containers and exact string keys."
+    - "153 focused D2 tests including 29 E21 regressions passed; D1 plus D2 total was 179."
+    - "GitHub Actions run 30469993484 passed Python 3.11 and Python 3.13."
+    - "Three independently extracted archive roots ran the D1/D2 suite under seeds 1, 7 and 97 with identical semantic trace hashes."
+    - "E16 reconstruction, E17 atomic peer settlement, E18 declaration-abort and E20 shared-preflight semantics remain preserved."
+  evidence_exceptions:
+    - id: "E21-X01-REPRESENTATIVE-NOT-EXHAUSTIVE-FIELD-FIXTURES"
+      finding: "The route listed hostile subclasses across every identifier category; the tests use representative fields plus shared exact-type helpers rather than one fixture per field."
+      disposition: "ACCEPTED because the same closed helper is applied before every relevant field consumption and no unguarded alternate path was found."
+    - id: "E21-X02-PER-RUN-RECEIPT-GRANULARITY"
+      finding: "The receipt does not enumerate every temporary root, elapsed time and per-run stdout/stderr hash."
+      disposition: "RECORDED AS EVIDENCE GRANULARITY EXCEPTION; archive/root/seed/test and remote CI evidence are sufficient for Gate-A semantic acceptance."
   decision:
-    e20_candidate: "PRESERVED_AS_REUSABLE_PARTIAL_BASE"
-    gate_a_overall: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
-    gate_b: "FROZEN"
+    gate_a: "ACCEPTED_WITH_EVIDENCE_EXCEPTION"
+    gate_b: "RELEASED_ACTIVE"
     gate_c: "FROZEN"
     gate_d: "FROZEN"
     issue92: "BLOCKED_NOT_RELEASED"
     merge: false
 
-# -----------------------------------------------------------------------------
-# RESOURCE, AUTONOMY AND VISIBILITY
-# -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "MEDIUM_BOUNDED_EXACT_OPERATION_SAFETY_CLOSURE"
-  research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_PYTHON_DATA_MODEL_AMBIGUITY_REMAINS"
-  checkpoints: [10, 35, 70, 100]
+  task_weight: "HEAVY_NEW_EVALUATION_ARCHITECTURE"
+  research_trigger: "L1_REPOSITORY_AND_TEST_DESIGN; L2_PRIMARY_SOFTWARE_TESTING_RESEARCH_IF_MUTATION_OR_METAMORPHIC_ORACLE_AMBIGUITY_REMAINS"
+  checkpoints: [10, 30, 60, 85, 100]
   first_checkpoint_required:
-    - "Echo schema 22.0, route_epoch 21, exact remote main, PR #101 head bf9c726... and tested parent 7a290873...."
-    - "Reproduce at least one hostile str subclass hash/equality/order escape, one hostile int subclass comparison/order escape, one carrier-subclass attribute escape and one wrong Enum canonicalization escape on the E20 head."
-    - "Publish an operation-consumption table distinguishing exact primitive type, exact enum type, exact carrier type and semantic validation."
-    - "State the selected closed-carrier architecture, compatibility impact, rejected catch-all/coercion alternatives and rollback."
-  checkpoint_behavior: >-
-    Continue autonomously inside Gate A-R6 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when substantive. Do not push
-    intermediate commits; preserve the final two-commit shape from bf9c726....
+    - "Echo schema 23.0, route_epoch 22, remote main, fa68186 accepted base and frozen PR #102 status."
+    - "Publish a field-by-field inventory of useful PR #102 concepts, rejected implementation details and explicit port/no-port decisions."
+    - "Publish E22-EXECUTION-PLAN.md with architecture, files, mutation model, independent oracles, metamorphic properties, evidence pipeline, rollback and surviving unknowns."
+    - "Create a fresh branch from fa68186 and open a new Draft PR; never add commits to PR #102."
 
 exploration_budget:
-  primary_delivery_share: "75-85%"
-  active_discovery_share: "10-20%"
+  primary_delivery_share: "70-80%"
+  active_discovery_share: "15-25%"
   system_opportunity_share: "0-10%"
-  maximum_new_branches: 0
-  maximum_new_draft_prs: 0
-  maximum_unplanned_files_inside_authorized_paths: 3
+  maximum_new_branches: 1
+  maximum_new_draft_prs: 1
   maximum_simultaneous_substantive_prs: 1
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R6_OPERATION_SAFETY"
+  profile: "CODEX_HIGH_AUTONOMY_PROJECT_PLAN_GATE_B_EVALUATION_V2"
   architecture_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
-  may_refactor_within_authorized_paths: true
-  may_add_exact_type_helpers_reason_taxonomies_hostile_subclass_tests_and_trace_helpers: true
-  may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
-  may_continue_within_current_gate_without_gpt: true
-  may_advance_to_next_gate_without_new_gpt_message: false
+  may_create_fresh_branch_and_draft_pr: true
+  may_port_explicitly_attributed_ideas_from_pr102: true
+  may_add_evaluation_harness_catalogs_mutants_oracles_tests_and_receipts: true
+  may_continue_after_plan_checkpoint_without_gpt: true
+  may_advance_to_gate_c_without_gpt: false
   final_self_approval: false
-  decision_log_required: true
-  alternatives_considered_required: true
-  surviving_exploit_or_unknown_must_be_preserved: true
   history_rewrite: false
   force_push: false
+  alternatives_considered_required: true
+  surviving_unknowns_required: true
 
-# -----------------------------------------------------------------------------
-# ACTIVE GATE A-R6
-# -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_R6_PR101_EXACT_OPERATION_SAFE_PUBLIC_BOUNDARIES"
-  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E21"
-  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
+  active_gate: "B_NEW_EVALUATION_V2"
+  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E22"
+  gate_transition_requires_explicit_gpt_acceptance: true
+  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR103_OR_PR105"
 
 stage_plan:
-  - gate_id: "A_R6_PR101_EXACT_OPERATION_SAFE_PUBLIC_BOUNDARIES"
-    status: "ACTIVE"
+  - gate_id: "A_PR101_D2_CORE_TOTALITY"
+    status: "ACCEPTED_WITH_EVIDENCE_EXCEPTION"
     owner_pr: 101
-    reviewed_head: "bf9c726de6f48a27612971f94fee1d12cc26cb5b"
-    required_commit_shape: "ONE_CORRECTIVE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_E21_RECEIPT_ONLY_COMMIT_FROM_BF9C726"
-    allowed_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E21-GATE-A-R6-RECEIPT.md"
-    objective: >-
-      Convert the E20 nominal type-first preflight into an exact operation-safe public contract. No hostile nominal subtype, wrong enum or carrier subclass may
-      execute user-controlled hashing, equality, ordering, attribute access or canonicalization before intentional rejection. Both public entry points must
-      remain deterministic and preserve all accepted D2 semantics.
-    required_results:
-      - "Use exact built-in primitive checks for untrusted identifiers and integers before len, bool, bounds comparison, hashing, equality or sorting."
-      - "Reject or otherwise safely seal str/int subclasses whose magic methods can be user-controlled; do not normalize or copy them into trusted values."
-      - "Use exact documented enum classes for SessionPhase, SecurityStatus, OrderSide, MatchMode, ParticipantSubtype, ActionLabel, ConflictTransition and LiquidityMode; no base Enum wildcard and no text fallback as structural proof."
-      - "Use exact public carrier contracts or an equivalent sealed-carrier proof before dereferencing/comparing EpisodeState, CandidateAction, AgentState, LedgerEvent, ExternalLiquidityFlowEvent, SharedMarketState, EpisodeStepBoundary and D1 carrier objects."
-      - "Harden _primitive/_canonical so unsupported or unsafe values cannot invoke str coercion, arbitrary Enum.value serialization or user-controlled dictionary-key behavior."
-      - "Keep one shared validator/taxonomy used by arbitrate and verify_episode_ledger; no split drift."
-      - "Arbitrate must raise an intentional deterministic ValueError before construction; verifier must return one deterministic invalid EpisodeLedgerVerification."
-      - "Freeze first-reason precedence for multi-fault hostile-subclass inputs independent of PYTHONHASHSEED, root path and tuple/list representation where supported."
-      - "Preserve all E16/E17/E18/E20 tests and semantics; no broad catch-all and no generic INVALID_EPISODE collapse."
-      - "Mark E20 as valuable partial but superseded for final Gate A totality; do not edit the historical E20 receipt."
-    mandatory_exploit_tests:
-      - "Hostile str subclasses raising in __hash__, __eq__, __lt__, __str__ or encode across run, agent, action, invocation, order, peer, conflict, event, boundary, flow and state identifiers."
-      - "Hostile int subclasses raising in comparison/hash/order across arrival_sequence, scheduled_step_index, step index, ordinal, quantities and timestamps."
-      - "Hostile subclasses of public dataclass carriers raising on nested attribute access or equality."
-      - "Wrong Enum classes and Enums with non-JSON/hostile values in MarketState.phase and rule permitted phases."
-      - "Wrong string stand-ins for exact enum fields fail intentionally before any enum .value access."
-      - "Verifier multi-fault episodes produce the frozen first reason and never leak RuntimeError, AssertionError, TypeError or AttributeError."
-      - "Arbitration multi-fault inputs fail before boundary, registry, identity, event, portfolio or shared-state construction."
-      - "Canonicalizer rejects unsupported values without string coercion or user-defined key ordering."
-    minimum_tests:
-      total_focused_semantic_tests: 148
-      new_e21_operation_safety_regressions: 24
-      clean_git_archive_executions: 3
-      distinct_pythonhashseed_values: 3
-      distinct_filesystem_roots: 3
-    evidence_required:
-      - "Exact substantive and receipt SHAs, parents, trees and changed-file lists."
-      - "Exact exploit reproductions before and after, with sentinel magic-method invocation counters proving zero unsafe calls after repair."
-      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform, root path, PYTHONHASHSEED and elapsed time."
-      - "Three independently extracted Git archives, each executing the focused suite and reason-order trace from a distinct root."
-      - "Identical semantic/reason-order trace hashes across seeds and roots."
-      - "CI status and job evidence for Python 3.11 and 3.13."
-      - "No-placeholder/secret/diff-hygiene scans."
-      - "External completion anchors on PR #101, Issue #23 and Issue #31."
-      - "OutcomeCalibrationReview comparing the E21 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
-    caution:
-      - "Do not solve this by copying hostile subclasses into plain str/int values."
-      - "Do not catch BaseException, Exception, TypeError or AttributeError around the whole public entry point."
-      - "Do not weaken accepted semantic validation or allow invalid enum strings to look canonical."
-      - "Do not edit E20 receipt, D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
-      - "Do not start Evaluation V2 or any downstream gate."
+    tested_head: "d51857a93d716e6e9e1d0816a453eb8688588cdb"
+    receipt_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
+    further_commits_authorized: false
+    merge: false
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E21"
-    required_new_draft_pr: true
-    superseded_source_pr: 102
-    start_gate: "GPT accepts E21 Gate A-R6 tested and receipt heads and explicitly releases Gate B."
+    status: "ACTIVE"
+    owner_pr: "TO_BE_CREATED_BY_CODEX"
+    frozen_legacy_pr: 102
+    branch: "codex/d2-evaluation-v2-0014-e22"
+    base_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
+    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/"
+    required_commit_shape:
+      - "Commit 1: plan-only E22-EXECUTION-PLAN.md and open the fresh Draft PR."
+      - "Commit 2: one substantive tested implementation commit; the plan may be updated in this commit to reflect verified decisions."
+      - "Commit 3: one receipt-only commit containing final evidence and OutcomeCalibrationReview."
+      - "No amend, rebase, reset, force push, merge or edits to PR #101/#102/#103/#105."
+    objective: >-
+      Build an independent, executable and deterministic Evaluation V2 that can falsify D2 semantic defects through real mutants,
+      metamorphic properties and ledger/state oracles without importing production decision logic as the oracle.
+    minimums:
+      synthetic_scenarios: 72
+      semantic_executable_invariants: 80
+      negative_cases: 37
+      stateful_multi_step_episodes: 24
+      counterfactual_pairs: 36
+      cross_family_interaction_scenarios: 24
+      clean_git_archive_runs: 3
+      distinct_pythonhashseed_values: 3
+    required_results:
+      - "Lock the exact core base fa68186 and fail if the imported D2 core differs."
+      - "Every invariant must have invariant_id, requirement_id, fixture_ids, executable failure oracle and mapped test ID; count-only invariants are forbidden."
+      - "Implement an executable mutation registry. Every mandatory mutant must alter real behavior, publish activation evidence and be killed by at least one test."
+      - "Publish a mutant-by-test kill matrix, mutation score, surviving-mutant inventory and rationale; no decorative boolean mutant predicates."
+      - "Use independent ledger/state accounting oracles that do not copy production branches or trust stored hashes, events or net-filled summaries."
+      - "Implement metamorphic properties for input permutation with fixed arrival order, consistent identifier alpha-renaming, episode continuation equivalence, duplicate/replay rejection, peer closed-system conservation, external-flow accounting and tamper detection."
+      - "Exercise exact primitive/enum/carrier rejection, multi-fault reason precedence and verifier totality inherited from E21."
+      - "Reconcile scenario, invariant, negative, episode, counterfactual and cross-family catalogs to actual executable test IDs with no orphan rows."
+      - "Three clean Git-archive roots must execute the complete Evaluation V2 under three process-level hash seeds with identical semantic, mutation and reason-order reports."
+      - "Python 3.11 and 3.13 CI must pass."
+      - "Keep all outputs PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE."
+    mandatory_mutant_families:
+      - "arrival-order replaced by agent/action identifier order"
+      - "duplicate/replay identity reservation moved after terminal branching"
+      - "peer transfer partially commits one side"
+      - "external flow omitted or sign-inverted"
+      - "stored ledger/hash trusted instead of reconstructed"
+      - "causal parent forward/cycle acceptance"
+      - "conflict CLAIM/RELEASE/EXPIRE ownership bypass"
+      - "exact primitive/enum/carrier boundary weakened to nominal isinstance/string fallback"
+    evidence_required:
+      - "Exact plan, substantive and receipt SHAs, parents, trees and changed-file lists."
+      - "Exact commands, exits, stdout/stderr SHA-256, Python/platform, elapsed time, root path and PYTHONHASHSEED."
+      - "Scenario/invariant/negative coverage matrices and executable IDs."
+      - "Mutation registry, activation log, kill matrix, score and surviving-mutant inventory."
+      - "Metamorphic property report and independent-oracle report."
+      - "Three clean archive execution reports and byte-identical canonical report hashes."
+      - "External completion anchors on the new PR, Issue #23 and Issue #31."
+      - "OutcomeCalibrationReview against the E22 forecast."
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
     status: "WAITING_FOR_GATE_B"
@@ -232,22 +192,13 @@ stage_plan:
     owner_pr: 105
     reviewed_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 
-# -----------------------------------------------------------------------------
-# EVIDENCE, BOUNDARY AND COMPLETION
-# -----------------------------------------------------------------------------
 forbidden:
-  - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
-  - "No concurrent substantive implementation outside PR #101 Gate A-R6."
-  - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
-  - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
+  - "No further commits to PR #101 or PR #102."
+  - "No PR #103 or PR #105 work before explicit GPT Gate-B acceptance."
+  - "No real market data, source activation, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
+  - "No direct main write by Codex, merge, auto-merge, force push, history rewrite, placeholder, guessed SHA or self-approval."
 
-after_completion:
-  final_state: "WAITING_FOR_GPT_INDEPENDENT_REVIEW"
-  merge: false
-  release_issue92: false
-  completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E21_D2_EXACT_PRIMITIVE_ENUM_AND_CARRIER_OPERATION_SAFETY_READY_FOR_GPT_REVIEW"
-
+after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
 boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
-updated_at: "2026-07-29T23:41:00+08:00"
+updated_at: "2026-07-30T01:38:00+08:00"
