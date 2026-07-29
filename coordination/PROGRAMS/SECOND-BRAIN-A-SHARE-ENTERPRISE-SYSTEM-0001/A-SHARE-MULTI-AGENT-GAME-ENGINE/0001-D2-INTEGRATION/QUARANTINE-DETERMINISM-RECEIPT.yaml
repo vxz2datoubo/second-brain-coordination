@@ -1,0 +1,24 @@
+agent_id: "CODEX"
+fact_class: "VERIFIED_TEST"
+execution_carrier_commit: "c79cfcdf2668c3482e04594df0160ba6cd9ca54e"
+method: "three isolated Git archive ZIP extractions"
+command: "python 0001-D2-INTEGRATION/tests/test_candidate_quarantine.py"
+runs:
+  - seed: 1
+    test_exit: 0
+    stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    stderr_sha256: "9c03283afeae9802ea991ccc91d3651885956a2a4c506f6f1d80b3ad29c73508"
+    elapsed_ms: 165
+  - seed: 777
+    test_exit: 0
+    stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    stderr_sha256: "9c03283afeae9802ea991ccc91d3651885956a2a4c506f6f1d80b3ad29c73508"
+    elapsed_ms: 148
+  - seed: 31337
+    test_exit: 0
+    stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    stderr_sha256: "d5b768587246cc67fcf5d6769d336264860cc8dacc91657ba1891309b64390af"
+    elapsed_ms: 148
+exit_codes_match_across_all_runs: true
+stderr_variance_explanation: "the final unittest footer contains the extracted temporary path."
+boundary: "Synthetic fixture validation only; no external candidate content is imported."

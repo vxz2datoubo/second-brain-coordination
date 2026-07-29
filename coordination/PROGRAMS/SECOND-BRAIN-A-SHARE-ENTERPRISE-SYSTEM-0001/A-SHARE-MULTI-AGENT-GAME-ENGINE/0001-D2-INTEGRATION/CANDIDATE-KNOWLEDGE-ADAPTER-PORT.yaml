@@ -1,0 +1,28 @@
+port_name: "D2_CANDIDATE_KNOWLEDGE_ADAPTER_PORT"
+port_schema_version: "1.0"
+mode: "FAIL_CLOSED / SYNTHETIC_COMPATIBILITY_ONLY"
+version_negotiation:
+  compatible_source_major: 1
+  reject_incompatible_major: true
+candidate_envelope:
+  required:
+    - "source_schema_version"
+    - "source_commit_lock: full lowercase SHA-1 length 40"
+    - "artifact_hashes: one or more SHA-256 length 64"
+    - "verifier_command"
+    - "verifier_evidence_hashes"
+    - "status: CANDIDATE"
+    - "authority_write: false"
+    - "source_capability: SYNTHETIC_RESEARCH_ONLY"
+    - "target_kind: CANDIDATE_CLAIM"
+  rejects:
+    - "abbreviated source locks"
+    - "missing verifier command or hashes"
+    - "HARDCODED_PASS determinism status"
+    - "identity or authority promotion"
+    - "claim to fact or runtime promotion"
+claim_evidence_counter_unknown_envelope:
+  expiry_required: true
+  promotion: "CANDIDATE_ONLY"
+  source_payload_policy: "synthetic fixtures only; external candidate text is never loaded"
+authority: "No authority write, fact assertion, probability, identity, signal, or runtime action is emitted."
