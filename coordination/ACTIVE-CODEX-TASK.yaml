@@ -1,4 +1,4 @@
-schema_version: "18.0"
+schema_version: "19.0"
 router_protocol: "coordination/CODEX-TASK-ROUTER.md"
 task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
@@ -14,86 +14,89 @@ active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 103, 105]
 superseded_pull_requests: [102]
-reviewed_core_head: "ff942e345e92374cd9653533b9cb9549b25949fc"
-reviewed_core_tested_head: "bf128db6077b505cb646acb9ea97ed8a00775fa6"
+reviewed_core_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
+reviewed_core_tested_head: "a1a4aa2b31c137e65d687ca50e571c6f52e62579"
 reviewed_evaluation_head: "3eec58a815aa0640fde30014446145a289b3d9bc"
 reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
 reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 accepted_d1_receipt_head: "8ab71bcd4224bbbab703e1fae94cc98ac5964eba"
 accepted_h1_receipt_head: "94dcfea9a2b0d5093b7ebcdec2e4cc1ec8d09b8a"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-ATOMIC-PEER-TRANSFER-AND-CLOSED-SYSTEM-SETTLEMENT-PROOF-0009-E17.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18.yaml"
 
 # -----------------------------------------------------------------------------
 # ACTIVE LEASE
 # -----------------------------------------------------------------------------
-task_id: "CODEX-D2-ATOMIC-PEER-TRANSFER-AND-CLOSED-SYSTEM-SETTLEMENT-PROOF-0009-E17"
+task_id: "CODEX-D2-FAIL-CLOSED-PEER-DECLARATION-AND-COMPOSABLE-EPISODE-PROOF-0010-E18"
 mode: "target"
-mode_label: "【Codex模式：目标模式】D2点对点转移原子结算与封闭系统守恒证明E17"
+mode_label: "【Codex模式：目标模式】D2失败关闭的peer声明与可续接episode证明E18"
 mode_reason: >-
-  E16 successfully closes the five independent-event reconstruction defects and provides a valid two-commit delivery with 54 tests,
-  clean archives, deterministic traces and dual-version CI. Independent GPT review found a new bounded Gate-A defect outside those five
-  remediations: a syntactically valid PEER_TO_PEER_TRANSFER pair is not executed atomically. The first leg can mutate inventory before the
-  second leg is rejected by causal-parent, conflict-resource, lifecycle or other terminal conditions; the verifier then faithfully reconstructs
-  the same invalid one-legged history. The defect and repair surface are precise, so target mode is required. Gate B/C/D and Issue #92 remain closed.
+  E17 successfully closes the one-legged peer-commit defect with a shared-prestate settlement plan, paired commit-or-abort semantics,
+  independent peer conservation checks, 76 focused tests, clean archives and dual-version CI. Independent GPT review found one remaining
+  bounded Gate-A contradiction: malformed peer declarations are emitted as deterministic BLOCKED events, but the peer-group oracle then marks
+  the resulting action registry incomplete or invalid. Public arbitrate can return an EpisodeState that its own verifier rejects, so the safe
+  rejection cannot be supplied as prior_episode_state. The defect is precise and confined to D2 disposition/verifier semantics, therefore target mode applies.
 status: "READY"
 execution_allowed: true
 blocked_by: "none"
 parent_program: 31
 source_issue: 23
 branch: "codex/a-share-multi-agent-game-engine-0001-d2-e10"
-reviewed_or_base_head: "ff942e345e92374cd9653533b9cb9549b25949fc"
+reviewed_or_base_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
 direct_main_write: false
 auto_merge: false
 
-route_epoch: 17
+route_epoch: 18
 route_issued_at: "2026-07-29"
-route_issued_against_main: "ff2dd3863d257e3bcaf3be38164c0bf3c813813b"
-completion_signal: "CODEX_E17_D2_ATOMIC_PEER_TRANSFER_AND_CLOSED_SYSTEM_SETTLEMENT_READY_FOR_GPT_REVIEW"
+route_issued_against_main: "e6d0be3e3574fe3fa82cf75d166a82f1fcaaa7c4"
+completion_signal: "CODEX_E18_D2_FAIL_CLOSED_PEER_DECLARATION_AND_COMPOSABLE_EPISODE_READY_FOR_GPT_REVIEW"
 supersedes:
-  - "CODEX-D2-INDEPENDENT-EVENT-RECONSTRUCTION-AND-BLOCKED-IDENTITY-CLOSURE-0008-E16@route_epoch:16"
+  - "CODEX-D2-ATOMIC-PEER-TRANSFER-AND-CLOSED-SYSTEM-SETTLEMENT-PROOF-0009-E17@route_epoch:17"
 
 # -----------------------------------------------------------------------------
 # INDEPENDENT REVIEW DISPOSITION
 # -----------------------------------------------------------------------------
 review_disposition:
-  classification: "E16_RECONSTRUCTION_ACCEPTED_AS_BASE_GATE_A_STILL_FAILS_ATOMIC_PEER_SETTLEMENT"
+  classification: "E17_ATOMIC_SETTLEMENT_ACCEPTED_AS_BASE_GATE_A_FAILS_FAIL_CLOSED_EPISODE_COMPOSABILITY"
   accepted_and_frozen_as_useful_base:
-    - "E16 substantive tested commit bf128db6077b505cb646acb9ea97ed8a00775fa6 is exactly one commit after the E16 reviewed base."
-    - "E16 receipt commit ff942e345e92374cd9653533b9cb9549b25949fc is exactly one receipt-only commit after the tested head."
-    - "The substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; the receipt delta is limited to E16-GATE-A-R1-RECEIPT.md."
-    - "54 focused tests, three clean Git-archive runs, deterministic output and Python 3.11/3.13 CI are accepted as evidence."
-    - "Stored event.accepted no longer controls reconstruction; event IDs, full terminal semantics, step boundaries and generated-block identities are independently reconstructed."
-    - "E16-B01 through E16-B05 are treated as closed unless a new executable counterexample reopens them."
+    - "E17 tested commit a1a4aa2b31c137e65d687ca50e571c6f52e62579 is exactly one substantive commit after the E17 reviewed base."
+    - "E17 receipt commit 9c3bc2c6797c68a457b28cf2f28d4da1680e626d is exactly one receipt-only commit after the tested head."
+    - "The substantive delta is limited to d2_game_core.py and tests/test_d2_game_core.py; the receipt delta is limited to E17-GATE-A-R2-RECEIPT.md."
+    - "76 focused tests, three clean Git-archive runs, deterministic output and Python 3.11/3.13 CI are accepted as evidence."
+    - "Structurally valid peer pairs now preflight both legs over one shared pre-state and commit or abort without one-legged inventory mutation."
+    - "E17 one-legged causal-parent and resource/lifecycle exploits, paired identity reservation, zero external flow and complementary delta proof are accepted as the new base."
   blocking_findings:
-    - id: "E17-B01-ONE-LEGGED-PEER-COMMIT"
+    - id: "E18-B01-PUBLIC-API-RETURNS-UNVERIFIABLE-EPISODE"
       severity: "BLOCKER"
       finding: >-
-        The first PEER_TO_PEER_TRANSFER action may execute after only partial counterpart preflight. If the second action later fails an
-        UNKNOWN_OR_FORWARD_CAUSAL_PARENT check, conflict-resource availability/ownership check, RELEASE/EXPIRE path or another terminal guard,
-        the first inventory delta remains committed while the second leg is BLOCKED. No external-flow record offsets the created or destroyed inventory.
-    - id: "E17-B02-PEER-GROUP-NOT-ATOMIC"
+        _validate_peer_transfer_pairs marks a lone or malformed peer declaration invalid and arbitrate emits deterministic zero-fill BLOCKED events.
+        _peer_group_invariant_reasons independently adds PEER_GROUP_INCOMPLETE_RECIPROCAL_MEMBERSHIP or PEER_GROUP_INVALID_RECIPROCAL_ACTIONS,
+        so verify_episode_ledger rejects the exact EpisodeState returned by the public API.
+    - id: "E18-B02-FAIL-CLOSED-AND-FORGERY-STATES-CONFLATED"
       severity: "BLOCKER"
       finding: >-
-        Peer pairing validates reciprocal IDs, sides, quantity and adjacent arrival sequence, but there is no shared pre-state settlement plan,
-        no all-or-none commit point, and no rollback-free atomic abort contract covering both actions and resource effects.
-    - id: "E17-B03-VERIFIER-REPLAYS-INVALID-SETTLEMENT"
+        The verifier does not distinguish an honestly malformed declaration that was safely rejected from a forged history where a member or event
+        was deleted from an originally valid pair. Both are represented as incomplete membership even though their immutable action registries and
+        expected terminal semantics differ.
+    - id: "E18-B03-BLOCKED-EPISODE-NOT-COMPOSABLE"
       severity: "BLOCKER"
       finding: >-
-        E16 reconstruction correctly reproduces the reducer, but it has no independent peer-group semantic invariant. A one-legged peer history can
-        therefore be internally reproducible and verify as valid even though total_system_conserved and total_system_accounted are false.
-    - id: "E17-B04-RESOURCE-AND-IDENTITY-ABORT-SEMANTICS"
+        Because _arbitrate_internal verifies prior_episode_state before continuing, a malformed peer declaration can permanently stop the episode chain
+        with UNVERIFIABLE_PRIOR_EPISODE_STATE despite producing no inventory, resource or external-flow mutation.
+    - id: "E18-B04-E17-COMMENT-CONTRACT-CONTRADICTION"
       severity: "MAJOR"
       finding: >-
-        The contract does not freeze how claims, RELEASE/EXPIRE transitions, action/invocation/order identities and terminal events behave when a
-        peer group aborts. This must be explicit and deterministic before Evaluation V2 freezes the semantics.
+        _valid_peer_pair_map states malformed declarations remain ordinary fail-closed actions, but the canonical verifier treats those generated
+        fail-closed episodes as invalid. The public disposition contract must select one coherent behavior before Evaluation V2 begins.
   preserved_unknowns:
     - id: "ROOT-CAPSULE-ORIGIN-AUTHENTICATION"
-      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_A_GATE_A_ATOMICITY_BLOCKER"
+      disposition: "DOWNSTREAM_TRUST_ANCHOR_REQUIRED_NOT_A_GATE_A_COMPOSABILITY_BLOCKER"
       finding: >-
-        Internal reconstruction proves consistency relative to declared root inputs, but does not authenticate a wholly replaced root capsule with
-        an external signature, trusted timestamp or canonical registry publication. Preserve this UNKNOWN for the downstream trust-anchor/evaluation gate.
+        Internal reconstruction does not authenticate a wholly replaced root capsule with an external signature, trusted timestamp or canonical publication.
+    - id: "ATOMIC-PEER-RESOURCE-EFFECTS"
+      disposition: "NOT_IMPLEMENTED_YET_FAIL_CLOSED_PRESERVE_FOR_SEPARATE_GATE"
+      finding: "Peer CLAIM/RELEASE/EXPIRE effects remain prohibited before mutation and are not part of E18."
   decision:
-    e16_specific_repairs: "ACCEPTED_AS_NEW_BASE"
+    e17_atomic_settlement_repairs: "ACCEPTED_AS_NEW_BASE"
     gate_a_overall: "NOT_ACCEPTED"
     gate_b: "FROZEN"
     gate_c: "FROZEN"
@@ -106,20 +109,20 @@ review_disposition:
 # -----------------------------------------------------------------------------
 resource_and_effort:
   priority_share_percent: 100
-  task_weight: "HEAVY_BOUNDED_ATOMIC_SETTLEMENT_REMEDIATION"
+  task_weight: "MEDIUM_BOUNDED_FAIL_CLOSED_SEMANTIC_CLOSURE"
   research_trigger: "L1_LOCAL_CODE_AND_TEST_REASONING; L2_PRIMARY_TECHNICAL_RESEARCH_ONLY_IF_NEEDED"
-  checkpoints: [10, 30, 60, 85, 100]
+  checkpoints: [10, 35, 70, 100]
   first_checkpoint_required:
-    - "Echo schema 18.0, route_epoch 17, exact remote main and exact PR #101 head."
-    - "Run and publish minimal baseline reproductions for a causal-parent one-legged peer transfer and a conflict-resource or lifecycle one-legged peer transfer."
-    - "State the selected atomic settlement architecture, abort identity/resource semantics, rejected alternatives and rollback."
+    - "Echo schema 19.0, route_epoch 18, exact remote main and exact PR #101 head."
+    - "Publish executable baseline reproductions for a lone peer action and a malformed two-action pair where arbitrate returns events but verify_episode_ledger is false."
+    - "State the selected declaration disposition contract, compatibility analysis, rejected alternative and rollback."
   checkpoint_behavior: >-
-    Continue autonomously inside Gate A-R2 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
-    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E17 reviewed base.
+    Continue autonomously inside Gate A-R3 when evidence passes. Publish one PUBLIC_SAFE InProgressVisibilityPacket when a substantive partial exists.
+    Do not push intermediate commits to PR #101; preserve the final two-commit shape from the E18 reviewed base.
 
 exploration_budget:
-  primary_delivery_share: "70-80%"
-  active_discovery_share: "15-25%"
+  primary_delivery_share: "75-85%"
+  active_discovery_share: "10-20%"
   system_opportunity_share: "0-10%"
   maximum_new_branches: 1
   maximum_new_draft_prs: 0
@@ -128,11 +131,11 @@ exploration_budget:
   scope_expansion_without_gate: false
 
 autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R2"
+  profile: "CODEX_HIGH_AUTONOMY_BOUNDED_GATE_A_R3"
   architecture_choice_inside_current_gate: true
   algorithm_and_test_framework_choice_inside_current_gate: true
   may_refactor_within_authorized_paths: true
-  may_add_atomic_settlement_types_validators_negative_tests_and_trace_helpers: true
+  may_add_disposition_types_fail_closed_validators_negative_tests_and_trace_helpers: true
   may_fix_adjacent_AMED_A_B_defects_inside_current_gate: true
   may_continue_within_current_gate_without_gpt: true
   may_advance_to_next_gate_without_new_gpt_message: false
@@ -142,53 +145,51 @@ autonomy_grant:
   surviving_exploit_or_unknown_must_be_preserved: true
 
 # -----------------------------------------------------------------------------
-# ACTIVE GATE A-R2
+# ACTIVE GATE A-R3
 # -----------------------------------------------------------------------------
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "A_R2_PR101_ATOMIC_PEER_SETTLEMENT"
-  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E17"
+  active_gate: "A_R3_PR101_FAIL_CLOSED_PEER_COMPOSABILITY"
+  later_gates_status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E18"
   gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_REPORT_UNKNOWN_DO_NOT_START_NEXT_GATE"
 
 stage_plan:
-  - gate_id: "A_R2_PR101_ATOMIC_PEER_SETTLEMENT"
+  - gate_id: "A_R3_PR101_FAIL_CLOSED_PEER_COMPOSABILITY"
     status: "ACTIVE"
     owner_pr: 101
-    reviewed_head: "ff942e345e92374cd9653533b9cb9549b25949fc"
-    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E17_REVIEWED_HEAD"
+    reviewed_head: "9c3bc2c6797c68a457b28cf2f28d4da1680e626d"
+    required_commit_shape: "ONE_SUBSTANTIVE_TESTED_COMMIT_PLUS_ONE_RECEIPT_ONLY_COMMIT_FROM_E18_REVIEWED_HEAD"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/d2_game_core.py"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/tests/test_d2_game_core.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E17-GATE-A-R2-RECEIPT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2/E18-GATE-A-R3-RECEIPT.md"
     objective: >-
-      Make every PEER_TO_PEER_TRANSFER group a deterministic atomic settlement over one shared pre-state. Both reciprocal legs must commit with
-      matched complementary deltas and valid resource effects, or both must terminate without inventory or resource mutation. The independent verifier
-      must reject any one-legged or partially committed group even when stored events, state and hashes are coordinated and reducer reconstruction agrees.
+      Give every malformed peer declaration one explicit, deterministic, fail-closed disposition that is distinguishable from ledger forgery.
+      Every successful public arbitrate return must contain an EpisodeState accepted by verify_episode_ledger and usable as prior_episode_state,
+      or the input must be rejected before any event or episode is constructed under a documented compatibility-safe policy.
     required_results:
-      - "Resolve each peer_transfer_id into exactly two reciprocal actions in the same step boundary before any peer leg mutates state."
-      - "Preflight both agents, actions, causal parents, information requirements, labels, orders, D1 outcomes, conflict resources, CLAIM/RELEASE/EXPIRE semantics and all terminal guards against one shared immutable pre-state snapshot."
-      - "Implement an explicit atomic settlement plan or equivalent two-phase plan/commit contract; do not use compensating rollback events."
-      - "On COMMIT, emit exactly two deterministically ordered terminal peer events, apply equal filled quantities with complementary signed inventory deltas, create no external-liquidity flow, and prove zero aggregate closed-system delta."
-      - "On ABORT, emit exactly two deterministic non-mutating terminal events or one explicitly justified group terminal representation; in either design no leg may mutate inventory or conflict-resource state."
-      - "Freeze and test action, invocation and supplied-order identity consumption for both committed and aborted groups; remain consistent with the E16 terminal identity rule."
-      - "Freeze how conflict CLAIM/RELEASE/EXPIRE interacts with a peer group. Either prohibit unsupported combinations fail-closed before mutation or include their resource effects atomically in the settlement plan."
-      - "Add an independent verifier peer-group invariant that does not merely trust reducer reconstruction: every group must have complete reciprocal membership, same-step coverage, deterministic event membership, complementary deltas, zero external flow and valid commit/abort disposition."
-      - "Make total_system_conserved and total_system_accounted true for every verifier-valid peer-only episode; otherwise verification must fail."
-      - "Preserve all E16 event reconstruction, event-ID, step-boundary, causal-parent and blocked-identity guarantees."
+      - "Define three separate semantic dispositions: valid peer COMMIT, valid-group SETTLEMENT_ABORT, and malformed DECLARATION_ABORT or an explicitly justified pre-construction rejection."
+      - "Prefer verifier-valid DECLARATION_ABORT to preserve current fail-closed event behavior. If strict ValueError-before-event is selected, prove compatibility, identity and caller semantics and update all affected tests explicitly."
+      - "For declaration abort, bind immutable action-registry shape to exact deterministic terminal event membership, reason codes, zero fill, zero portfolio/resource mutation, zero external flow and terminal identity reservation."
+      - "Do not weaken forged-history detection: deleting or injecting a member/event from a valid pair, relabeling abort as commit, or coordinating hashes must remain invalid."
+      - "Make the lone-action, missing transfer-ID, three-member, mismatched-quantity, same-side, nonreciprocal-counterparty, nonadjacent-arrival and invalid-order paths explicit and symmetric."
+      - "Prove continuation: after each verifier-valid fail-closed malformed declaration episode, a later valid non-peer action and a later valid peer pair can execute using prior_episode_state."
+      - "Freeze action, invocation, supplied-order and peer-transfer-ID reservation for every declaration-abort path and test later-step collision rejection."
+      - "Add a public API postcondition test matrix: every non-exceptional arbitrate result across all terminal branches must satisfy verify_episode_ledger(result.episode_state).valid."
+      - "Preserve E16 independent reconstruction and all E17 atomic commit/settlement-abort invariants."
     mandatory_exploit_tests:
-      - "Baseline pair shape is valid; the second leg has an unknown or forward causal parent. Old core accepts the first leg and blocks the second; repaired core must atomically abort both."
-      - "The second leg conflicts with an already claimed resource or lacks resource ownership. No first-leg mutation may survive."
-      - "One leg uses RELEASE or EXPIRE semantics in a peer group. Unsupported combinations must fail both before mutation, or supported combinations must commit atomically with proven resource state."
-      - "Swap which leg carries each failure; behavior must be symmetric and independent of arrival order except for deterministic event ordering."
-      - "Coordinate stored events, portfolios, peer IDs, claims and hashes to represent a one-legged transfer. Independent verification must reject it."
-      - "Delete or duplicate one peer terminal event while recomputing state hash. Verification must reject it."
-      - "Make both events accepted but quantities, sides, counterpart IDs, transfer IDs, step indices or signed deltas non-complementary. Verification must reject each mutation."
-      - "Aborted pair identities cannot be reused across a later step under the frozen terminal-identity rule."
-      - "A valid no-fill pair and a valid partial-fill pair must have explicitly tested dispositions and zero aggregate local delta."
-      - "Interaction with a successful CLAIM followed by later RELEASE/EXPIRE must preserve resource ownership and event lineage."
+      - "Lone peer action currently returns BLOCKED but verifier false; repaired disposition must be verifier-valid and composable, or rejected before construction."
+      - "Two actions with one transfer ID but mismatched quantities currently return BLOCKED but verifier false; repaired disposition must be coherent."
+      - "Same-side, nonreciprocal-counterparty, nonadjacent-arrival, missing-ID and three-member groups receive deterministic dispositions without mutation."
+      - "A valid pair with one terminal event deleted must remain invalid and must not be confused with an originally lone declaration."
+      - "Inject a second forged action/event into an originally lone declaration and recompute hashes; verification must reject."
+      - "Turn a declaration abort into one-leg or two-leg accepted events while recomputing state and hashes; verification must reject."
+      - "Declaration-abort action, invocation, order and transfer IDs cannot be reused in a later step."
+      - "Each declaration-abort episode successfully chains into one valid external action and one valid atomic peer commit."
+      - "All prior E17 valid full-fill, partial-fill, no-fill, causal-parent abort and resource fail-closed tests remain passing."
     minimum_tests:
-      total_focused_semantic_tests: 66
-      new_atomicity_regressions: 12
+      total_focused_semantic_tests: 90
+      new_composability_regressions: 14
       clean_git_archive_runs: 3
       distinct_pythonhashseed_values: 3
     evidence_required:
@@ -198,18 +199,19 @@ stage_plan:
       - "Three clean Git-archive runs plus deterministic trace/hash equality."
       - "CI status for all configured Python versions."
       - "External completion anchors on PR #101, Issue #23 and Issue #31."
-      - "OutcomeCalibrationReview comparing the E17 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
+      - "OutcomeCalibrationReview comparing the E18 forecast with observed benefits, harms, costs, surprises and residual UNKNOWNs."
     caution:
-      - "Do not weaken or delete E15/E16 tests or evidence."
-      - "Do not solve atomicity by relabeling peer inventory changes as external liquidity."
+      - "Do not make the verifier accept incomplete membership merely by deleting checks."
+      - "Do not hide malformed peer actions by reclassifying them as external liquidity."
+      - "Do not weaken or delete E15/E16/E17 tests or evidence."
       - "Do not modify D0, D1, QCLAW, WorkBuddy, PR #102, PR #103 or PR #105."
       - "Do not start Evaluation V2 or any downstream gate."
 
   - gate_id: "B_NEW_EVALUATION_V2"
-    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E17"
+    status: "WAITING_FOR_GPT_ACCEPTANCE_OF_E18"
     required_new_draft_pr: true
     superseded_source_pr: 102
-    start_gate: "GPT accepts E17 Gate A-R2 tested and receipt heads and explicitly releases Gate B."
+    start_gate: "GPT accepts E18 Gate A-R3 tested and receipt heads and explicitly releases Gate B."
     frozen_requirements_ref: "schema 16.0 Gate B requirements remain preserved"
 
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
@@ -229,7 +231,7 @@ stage_plan:
 # -----------------------------------------------------------------------------
 forbidden:
   - "No direct main write by Codex, merge, auto-merge, force push or history rewrite."
-  - "No concurrent substantive implementation outside PR #101 Gate A-R2."
+  - "No concurrent substantive implementation outside PR #101 Gate A-R3."
   - "No real market data, source activation, replay, backtest, fitting, performance claim, identity inference, account, order or trade."
   - "No placeholder, TBD, guessed receipt SHA, silent test weakening, deleted negative evidence or self-approval."
 
@@ -238,7 +240,7 @@ after_completion:
   merge: false
   release_issue92: false
   completion_comment_targets: ["PR #101", "Issue #23", "Issue #31"]
-  required_signal: "CODEX_E17_D2_ATOMIC_PEER_TRANSFER_AND_CLOSED_SYSTEM_SETTLEMENT_READY_FOR_GPT_REVIEW"
+  required_signal: "CODEX_E18_D2_FAIL_CLOSED_PEER_DECLARATION_AND_COMPOSABLE_EPISODE_READY_FOR_GPT_REVIEW"
 
 boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
 updated_by: "GPT"
