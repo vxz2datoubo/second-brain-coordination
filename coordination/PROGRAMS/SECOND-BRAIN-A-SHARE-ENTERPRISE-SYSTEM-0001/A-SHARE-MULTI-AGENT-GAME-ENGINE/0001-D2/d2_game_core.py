@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from dataclasses import asdict, dataclass, is_dataclass, replace
+from dataclasses import dataclass, fields, replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Sequence, Tuple
@@ -28,6 +28,7 @@ from synthetic_engine.types import (  # noqa: E402
     MarketState,
     OrderSide,
     OutcomeStatus,
+    SessionPhase,
     SecurityStatus,
     SyntheticMatchOutcome,
     SyntheticLot,
@@ -135,7 +136,7 @@ class HiddenTypePosterior:
         if abs(sum(weights) - 1.0) > 1e-9:
             return False, ("POSTERIOR_NOT_NORMALIZED",)
         for item in self.hypotheses:
-            if not isinstance(item.subtype, ParticipantSubtype):
+            if type(item.subtype) is not ParticipantSubtype:
                 return False, ("UNKNOWN_PARTICIPANT_SUBTYPE",)
             if not _valid_refs(item.evidence_refs) or not _valid_refs(item.counterevidence_refs):
                 return False, ("INVALID_POSTERIOR_REFERENCE",)
@@ -367,7 +368,7 @@ def verify_episode_ledger(episode: object) -> EpisodeLedgerVerification:
     structure_reason = _episode_structure_reason(episode)
     if structure_reason:
         return EpisodeLedgerVerification(False, (structure_reason,), "")
-    assert isinstance(episode, EpisodeState)
+    assert type(episode) is EpisodeState
     reasons: list[str] = []
 
     if len({agent.agent_id for agent in episode.initial_agents}) != len(episode.initial_agents):
@@ -457,23 +458,23 @@ def verify_episode_ledger(episode: object) -> EpisodeLedgerVerification:
 
 
 def _finite_number(value: object) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and abs(value) <= MAX_FEATURE_MAGNITUDE
+    return type(value) in (int, float) and abs(value) <= MAX_FEATURE_MAGNITUDE
 
 
 def _bounded_text(value: object, *, allow_empty: bool = False) -> bool:
-    return isinstance(value, str) and len(value) <= MAX_IDENTIFIER_LENGTH and (allow_empty or bool(value))
+    return type(value) is str and len(value) <= MAX_IDENTIFIER_LENGTH and (allow_empty or bool(value))
 
 
 def _typed_tuple(value: object, expected_type: type, limit: int) -> bool:
-    return isinstance(value, tuple) and bool(value) and len(value) <= limit and all(isinstance(item, expected_type) for item in value)
+    return type(value) is tuple and bool(value) and len(value) <= limit and all(type(item) is expected_type for item in value)
 
 
 def _valid_refs(value: object, *, allow_empty: bool = False, limit: int = MAX_REFERENCE_COUNT) -> bool:
-    return isinstance(value, tuple) and len(value) <= limit and (allow_empty or bool(value)) and all(_bounded_text(item) for item in value)
+    return type(value) is tuple and len(value) <= limit and (allow_empty or bool(value)) and all(_bounded_text(item) for item in value)
 
 
 def _safe_int(value: object, *, minimum: int = -MAX_FEATURE_MAGNITUDE) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool) and minimum <= value <= MAX_FEATURE_MAGNITUDE
+    return type(value) is int and minimum <= value <= MAX_FEATURE_MAGNITUDE
 
 
 def _safe_optional_int(value: object, *, minimum: int = -MAX_FEATURE_MAGNITUDE) -> bool:
@@ -484,26 +485,36 @@ def _safe_optional_text(value: object) -> bool:
     return value is None or _bounded_text(value)
 
 
-def _safe_enum_text_or_none(value: object, enum_type: type[Enum]) -> bool:
-    return value is None or isinstance(value, enum_type) or _bounded_text(value)
+def _safe_exact_enum_or_none(value: object, enum_type: type[Enum]) -> bool:
+    """Accept only the documented enum class; no string or broad-Enum stand-ins."""
+    return value is None or type(value) is enum_type
 
 
 def _safe_text_tuple(value: object, *, limit: int = MAX_REFERENCE_COUNT) -> bool:
-    return isinstance(value, tuple) and len(value) <= limit and all(_bounded_text(item) for item in value)
+    return type(value) is tuple and len(value) <= limit and all(_bounded_text(item) for item in value)
+
+
+def _safe_exact_sequence(value: object) -> bool:
+    """Public arbitrator accepts only exact tuple/list carriers before iteration."""
+    return type(value) in (tuple, list)
+
+
+def _safe_text_sequence(value: object, *, limit: int = MAX_REFERENCE_COUNT) -> bool:
+    return _safe_exact_sequence(value) and len(value) <= limit and all(_bounded_text(item) for item in value)
 
 
 def _market_structure_reason(market: object) -> Optional[str]:
     """Validate only safe field shapes before D1 or hashing can consume them."""
-    if not isinstance(market, MarketState):
+    if type(market) is not MarketState:
         return "INVALID_MARKET_STATE"
-    if not _safe_enum_text_or_none(market.phase, Enum):
+    if not _safe_exact_enum_or_none(market.phase, SessionPhase):
         return "INVALID_MARKET_PHASE_STRUCTURE"
     if not _safe_optional_text(market.trade_date):
         return "INVALID_MARKET_DATE_STRUCTURE"
-    if not _safe_enum_text_or_none(market.security_status, SecurityStatus):
+    if not _safe_exact_enum_or_none(market.security_status, SecurityStatus):
         return "INVALID_MARKET_SECURITY_STATUS_STRUCTURE"
     if market.information is not None:
-        if not isinstance(market.information, InformationSet):
+        if type(market.information) is not InformationSet:
             return "INVALID_MARKET_INFORMATION_STRUCTURE"
         info = market.information
         if not _safe_optional_text(info.source_capability) or not _safe_optional_int(info.available_at_ns, minimum=0):
@@ -511,7 +522,7 @@ def _market_structure_reason(market: object) -> Optional[str]:
         if not _safe_optional_int(info.source_sequence, minimum=0):
             return "INVALID_MARKET_INFORMATION_FIELD"
     if market.rule_snapshot is not None:
-        if not isinstance(market.rule_snapshot, SyntheticRuleSnapshot):
+        if type(market.rule_snapshot) is not SyntheticRuleSnapshot:
             return "INVALID_RULE_SNAPSHOT_STRUCTURE"
         rule = market.rule_snapshot
         if not all(_safe_optional_text(value) for value in (
@@ -521,26 +532,26 @@ def _market_structure_reason(market: object) -> Optional[str]:
             return "INVALID_RULE_SNAPSHOT_FIELD"
         if not _safe_optional_int(rule.price_limit_low) or not _safe_optional_int(rule.price_limit_high):
             return "INVALID_RULE_SNAPSHOT_FIELD"
-        if not isinstance(rule.t_plus_one_enabled, bool):
+        if type(rule.t_plus_one_enabled) is not bool:
             return "INVALID_RULE_SNAPSHOT_FIELD"
-        if not isinstance(rule.permitted_phases, tuple) or len(rule.permitted_phases) > MAX_REFERENCE_COUNT:
+        if type(rule.permitted_phases) is not tuple or len(rule.permitted_phases) > MAX_REFERENCE_COUNT:
             return "INVALID_RULE_SNAPSHOT_FIELD"
-        if not all(_safe_enum_text_or_none(phase, Enum) for phase in rule.permitted_phases):
+        if not all(_safe_exact_enum_or_none(phase, SessionPhase) for phase in rule.permitted_phases):
             return "INVALID_RULE_SNAPSHOT_FIELD"
     return None
 
 
 def _inventory_structure_reason(inventory: object) -> Optional[str]:
-    if not isinstance(inventory, InventoryState):
+    if type(inventory) is not InventoryState:
         return "INVALID_INVENTORY_STRUCTURE"
-    if not isinstance(inventory.lots, tuple) or len(inventory.lots) > MAX_EVENT_COUNT:
+    if type(inventory.lots) is not tuple or len(inventory.lots) > MAX_EVENT_COUNT:
         return "INVALID_INVENTORY_LOT_COLLECTION"
     if not _safe_optional_int(inventory.pending_buy_quantity, minimum=0) or not _safe_optional_int(inventory.pending_sell_quantity, minimum=0):
         return "INVALID_INVENTORY_PENDING_QUANTITY"
     if not _safe_optional_text(inventory.settled_trade_date):
         return "INVALID_INVENTORY_SETTLEMENT_DATE"
     for lot in inventory.lots:
-        if not isinstance(lot, SyntheticLot):
+        if type(lot) is not SyntheticLot:
             return "INVALID_INVENTORY_LOT"
         if not _safe_optional_text(lot.lot_id) or not _safe_optional_text(lot.acquired_trade_date):
             return "INVALID_INVENTORY_LOT_FIELD"
@@ -550,17 +561,17 @@ def _inventory_structure_reason(inventory: object) -> Optional[str]:
 
 
 def _order_structure_reason(order: object) -> Optional[str]:
-    if not isinstance(order, SyntheticOrder):
+    if type(order) is not SyntheticOrder:
         return "INVALID_SYNTHETIC_ORDER_STRUCTURE"
     if not _safe_optional_text(order.order_id):
         return "INVALID_ORDER_ID_STRUCTURE"
-    if not _safe_enum_text_or_none(order.side, OrderSide):
+    if not _safe_exact_enum_or_none(order.side, OrderSide):
         return "INVALID_ORDER_SIDE_STRUCTURE"
     if not _safe_optional_int(order.quantity, minimum=0) or not _safe_optional_int(order.limit_price):
         return "INVALID_ORDER_NUMERIC_STRUCTURE"
     if not _safe_optional_int(order.available_at_ns, minimum=0):
         return "INVALID_ORDER_TIME_STRUCTURE"
-    if not _safe_enum_text_or_none(order.match_mode, MatchMode):
+    if not _safe_exact_enum_or_none(order.match_mode, MatchMode):
         return "INVALID_ORDER_MATCH_MODE_STRUCTURE"
     if not _safe_optional_int(order.partial_fill_quantity, minimum=0):
         return "INVALID_ORDER_PARTIAL_FILL_STRUCTURE"
@@ -568,18 +579,18 @@ def _order_structure_reason(order: object) -> Optional[str]:
 
 
 def _agent_structure_reason(agent: object) -> Optional[str]:
-    if not isinstance(agent, AgentState):
+    if type(agent) is not AgentState:
         return "INVALID_AGENT_OBJECT"
     if not _safe_optional_text(agent.agent_id):
         return "INVALID_AGENT_ID_STRUCTURE"
-    if not isinstance(agent.posterior, HiddenTypePosterior):
+    if type(agent.posterior) is not HiddenTypePosterior:
         return "INVALID_AGENT_POSTERIOR_STRUCTURE"
-    if not isinstance(agent.posterior.hypotheses, tuple) or len(agent.posterior.hypotheses) > MAX_REFERENCE_COUNT:
+    if type(agent.posterior.hypotheses) is not tuple or len(agent.posterior.hypotheses) > MAX_REFERENCE_COUNT:
         return "INVALID_AGENT_POSTERIOR_STRUCTURE"
     for hypothesis in agent.posterior.hypotheses:
-        if not isinstance(hypothesis, ParticipantArchetypeHypothesis):
+        if type(hypothesis) is not ParticipantArchetypeHypothesis:
             return "INVALID_AGENT_POSTERIOR_STRUCTURE"
-        if not _safe_enum_text_or_none(hypothesis.subtype, ParticipantSubtype):
+        if not _safe_exact_enum_or_none(hypothesis.subtype, ParticipantSubtype):
             return "INVALID_AGENT_POSTERIOR_FIELD"
         if not _finite_number(hypothesis.normalized_weight):
             return "INVALID_AGENT_POSTERIOR_FIELD"
@@ -589,7 +600,7 @@ def _agent_structure_reason(agent: object) -> Optional[str]:
             return "INVALID_AGENT_POSTERIOR_FIELD"
     if not _safe_optional_text(agent.posterior.status):
         return "INVALID_AGENT_POSTERIOR_FIELD"
-    if not isinstance(agent.information, AgentInformationSet):
+    if type(agent.information) is not AgentInformationSet:
         return "INVALID_AGENT_INFORMATION_STRUCTURE"
     info = agent.information
     if not _safe_optional_int(info.available_at_ns, minimum=0):
@@ -602,11 +613,11 @@ def _agent_structure_reason(agent: object) -> Optional[str]:
 
 
 def _action_structure_reason(action: object) -> Optional[str]:
-    if not isinstance(action, CandidateAction):
+    if type(action) is not CandidateAction:
         return "INVALID_ACTION_OBJECT"
     if not _safe_optional_text(action.action_id) or not _safe_optional_text(action.agent_id):
         return "INVALID_ACTION_ID_STRUCTURE"
-    if not _safe_enum_text_or_none(action.label, ActionLabel):
+    if not _safe_exact_enum_or_none(action.label, ActionLabel):
         return "INVALID_ACTION_LABEL_STRUCTURE"
     if action.order is not None:
         order_reason = _order_structure_reason(action.order)
@@ -614,7 +625,7 @@ def _action_structure_reason(action: object) -> Optional[str]:
             return order_reason
     if not _safe_text_tuple(action.assumption_ids) or not _safe_text_tuple(action.evidence_refs):
         return "INVALID_ACTION_REFERENCE_STRUCTURE"
-    if not _safe_optional_text(action.conflict_key) or not isinstance(action.requires_complete_information, bool):
+    if not _safe_optional_text(action.conflict_key) or type(action.requires_complete_information) is not bool:
         return "INVALID_ACTION_CONFLICT_STRUCTURE"
     if not _safe_text_tuple(action.causal_parent_event_ids, limit=MAX_CAUSAL_PARENT_COUNT):
         return "INVALID_ACTION_CAUSAL_STRUCTURE"
@@ -622,9 +633,9 @@ def _action_structure_reason(action: object) -> Optional[str]:
         return "INVALID_ARRIVAL_SEQUENCE"
     if not _safe_optional_text(action.invocation_id):
         return "INVALID_INVOCATION_ID_STRUCTURE"
-    if not _safe_enum_text_or_none(action.conflict_transition, ConflictTransition):
+    if not _safe_exact_enum_or_none(action.conflict_transition, ConflictTransition):
         return "INVALID_CONFLICT_TRANSITION_STRUCTURE"
-    if not _safe_enum_text_or_none(action.liquidity_mode, LiquidityMode):
+    if not _safe_exact_enum_or_none(action.liquidity_mode, LiquidityMode):
         return "INVALID_LIQUIDITY_MODE_STRUCTURE"
     if not _safe_optional_text(action.counterparty_agent_id) or not _safe_optional_text(action.peer_transfer_id):
         return "INVALID_PEER_IDENTIFIER_STRUCTURE"
@@ -634,7 +645,7 @@ def _action_structure_reason(action: object) -> Optional[str]:
 
 
 def _ledger_event_structure_reason(event: object) -> Optional[str]:
-    if not isinstance(event, LedgerEvent):
+    if type(event) is not LedgerEvent:
         return "INVALID_LEDGER_EVENT_OBJECT"
     if not all(_safe_optional_text(value) for value in (
         event.event_id, event.agent_id, event.action_id, event.owner_pre_state_hash,
@@ -644,17 +655,17 @@ def _ledger_event_structure_reason(event: object) -> Optional[str]:
         return "INVALID_LEDGER_EVENT_IDENTIFIER_STRUCTURE"
     if not _safe_int(event.ordinal, minimum=1) or not _safe_int(event.filled_quantity):
         return "INVALID_LEDGER_EVENT_NUMERIC_STRUCTURE"
-    if not isinstance(event.accepted, bool):
+    if type(event.accepted) is not bool:
         return "INVALID_LEDGER_EVENT_ACCEPTED_STRUCTURE"
-    if not _safe_enum_text_or_none(event.label, ActionLabel) or not _safe_optional_text(event.outcome_status):
+    if not _safe_exact_enum_or_none(event.label, ActionLabel) or not _safe_optional_text(event.outcome_status):
         return "INVALID_LEDGER_EVENT_SEMANTIC_STRUCTURE"
     if not all(_safe_text_tuple(value) for value in (
         event.rejected_reason_codes, event.cause_refs, event.causal_parent_event_ids,
     )):
         return "INVALID_LEDGER_EVENT_REFERENCE_STRUCTURE"
-    if not _safe_enum_text_or_none(event.liquidity_mode, LiquidityMode):
+    if not _safe_exact_enum_or_none(event.liquidity_mode, LiquidityMode):
         return "INVALID_LEDGER_EVENT_LIQUIDITY_STRUCTURE"
-    if not _safe_enum_text_or_none(event.conflict_transition, ConflictTransition):
+    if not _safe_exact_enum_or_none(event.conflict_transition, ConflictTransition):
         return "INVALID_LEDGER_EVENT_CONFLICT_STRUCTURE"
     if not _safe_int(event.step_index, minimum=1):
         return "INVALID_LEDGER_EVENT_STEP_STRUCTURE"
@@ -662,7 +673,7 @@ def _ledger_event_structure_reason(event: object) -> Optional[str]:
 
 
 def _flow_structure_reason(flow: object) -> Optional[str]:
-    if not isinstance(flow, ExternalLiquidityFlowEvent):
+    if type(flow) is not ExternalLiquidityFlowEvent:
         return "INVALID_EXTERNAL_FLOW_OBJECT"
     if not all(_safe_optional_text(value) for value in (flow.flow_id, flow.ledger_event_id, flow.agent_id)):
         return "INVALID_EXTERNAL_FLOW_IDENTIFIER_STRUCTURE"
@@ -672,17 +683,17 @@ def _flow_structure_reason(flow: object) -> Optional[str]:
 
 
 def _shared_market_structure_reason(shared: object) -> Optional[str]:
-    if not isinstance(shared, SharedMarketState):
+    if type(shared) is not SharedMarketState:
         return "INVALID_SHARED_MARKET_STATE"
     market_reason = _market_structure_reason(shared.market)
     if market_reason:
         return market_reason
     if not _safe_text_tuple(shared.claimed_conflict_keys, limit=MAX_EVENT_COUNT):
         return "INVALID_SHARED_CLAIM_KEY_STRUCTURE"
-    if not isinstance(shared.conflict_claim_event_ids, tuple) or len(shared.conflict_claim_event_ids) > MAX_EVENT_COUNT:
+    if type(shared.conflict_claim_event_ids) is not tuple or len(shared.conflict_claim_event_ids) > MAX_EVENT_COUNT:
         return "INVALID_SHARED_CLAIM_MAP_STRUCTURE"
     for pair in shared.conflict_claim_event_ids:
-        if not isinstance(pair, tuple) or len(pair) != 2 or not all(_bounded_text(item) for item in pair):
+        if type(pair) is not tuple or len(pair) != 2 or not all(_bounded_text(item) for item in pair):
             return "INVALID_SHARED_CLAIM_MAP_STRUCTURE"
     if not _safe_optional_text(shared.state_hash) or not _safe_optional_text(shared.contract):
         return "INVALID_SHARED_MARKET_HASH_STRUCTURE"
@@ -690,7 +701,7 @@ def _shared_market_structure_reason(shared: object) -> Optional[str]:
 
 
 def _boundary_structure_reason(boundary: object) -> Optional[str]:
-    if not isinstance(boundary, EpisodeStepBoundary):
+    if type(boundary) is not EpisodeStepBoundary:
         return "INVALID_STEP_BOUNDARY_OBJECT"
     if not _safe_int(boundary.step_index, minimum=1):
         return "INVALID_STEP_BOUNDARY_INDEX"
@@ -701,7 +712,7 @@ def _boundary_structure_reason(boundary: object) -> Optional[str]:
 
 def _episode_structure_reason(episode: object) -> Optional[str]:
     """Total, non-mutating preflight for the verifier's public trust boundary."""
-    if not isinstance(episode, EpisodeState):
+    if type(episode) is not EpisodeState:
         return "INVALID_EPISODE_STATE"
     if not _bounded_text(episode.root_run_id) or not _bounded_text(episode.episode_id):
         return "MISSING_IMMUTABLE_EPISODE_IDENTITY"
@@ -721,10 +732,10 @@ def _episode_structure_reason(episode: object) -> Optional[str]:
     )
     for reason, value, expected_type, allow_empty in collections:
         if (
-            not isinstance(value, tuple)
+            type(value) is not tuple
             or len(value) > MAX_EVENT_COUNT
             or (not allow_empty and not value)
-            or not all(isinstance(item, expected_type) for item in value)
+            or not all(type(item) is expected_type for item in value)
         ):
             return reason
     for identifiers in (episode.executed_action_ids, episode.executed_order_ids, episode.executed_invocation_ids):
@@ -732,7 +743,7 @@ def _episode_structure_reason(episode: object) -> Optional[str]:
             return "INVALID_EPISODE_EXECUTED_ID_REGISTRY"
     if not _bounded_text(episode.state_hash):
         return "INVALID_EPISODE_STATE_HASH_STRUCTURE"
-    for agent in tuple(episode.initial_agents) + tuple(episode.current_agents):
+    for agent in episode.initial_agents + episode.current_agents:
         agent_reason = _agent_structure_reason(agent)
         if agent_reason:
             return agent_reason
@@ -773,17 +784,17 @@ def _arbitration_structure_error(
     market_reason = _market_structure_reason(market)
     if market_reason:
         return market_reason
-    if not isinstance(agents, (tuple, list)) or not isinstance(actions, (tuple, list)):
+    if not _safe_exact_sequence(agents) or not _safe_exact_sequence(actions):
         return "INVALID_TOP_LEVEL_COLLECTION"
     if not 1 <= len(agents) <= MAX_AGENT_COUNT:
         return "INVALID_AGENT_COUNT"
     if len(actions) > MAX_ACTION_COUNT:
         return "ACTION_LIMIT_EXCEEDED"
-    if not isinstance(prior_events, (tuple, list)) or len(prior_events) > MAX_EVENT_COUNT:
+    if not _safe_exact_sequence(prior_events) or len(prior_events) > MAX_EVENT_COUNT:
         return "INVALID_PRIOR_EVENT_COLLECTION"
-    if not isinstance(prior_executed_action_ids, (tuple, list)) or not isinstance(prior_executed_order_ids, (tuple, list)):
+    if not _safe_exact_sequence(prior_executed_action_ids) or not _safe_exact_sequence(prior_executed_order_ids):
         return "INVALID_PRIOR_EXECUTION_COLLECTION"
-    if not _safe_text_tuple(tuple(prior_executed_action_ids), limit=MAX_EVENT_COUNT) or not _safe_text_tuple(tuple(prior_executed_order_ids), limit=MAX_EVENT_COUNT):
+    if not _safe_text_sequence(prior_executed_action_ids, limit=MAX_EVENT_COUNT) or not _safe_text_sequence(prior_executed_order_ids, limit=MAX_EVENT_COUNT):
         return "INVALID_PRIOR_EXECUTION_ID"
     for event in prior_events:
         event_reason = _ledger_event_structure_reason(event)
@@ -808,16 +819,40 @@ def _arbitration_structure_error(
     return None
 
 
+_CANONICAL_ENUM_TYPES = (
+    SessionPhase, SecurityStatus, OrderSide, MatchMode, OutcomeStatus,
+    ParticipantFamily, ParticipantSubtype, ActionLabel, ConflictTransition,
+    LiquidityMode, NarrativeStatus,
+)
+
+_CANONICAL_DATACLASS_TYPES = (
+    InformationSet, InventoryState, MarketState, SyntheticMatchOutcome,
+    SyntheticLot, SyntheticOrder, SyntheticRuleSnapshot,
+    ParticipantArchetypeHypothesis, HiddenTypePosterior, AgentInformationSet,
+    AgentState, CandidateAction, AgentPortfolioState, SharedMarketState,
+    LedgerEvent, ExternalLiquidityFlowEvent, ParticipantAlignmentScore,
+    ParticipantMismatchRisk, NarrativeForecastRecord, GameRun,
+    CounterfactualResult, BoundedCounterfactualEpisode, EpisodeState,
+    EpisodeStepBoundary, EpisodeLedgerVerification, _PeerSettlementPlan,
+)
+
+
 def _primitive(value: Any) -> Any:
-    if isinstance(value, Enum):
-        return value.value
-    if is_dataclass(value):
-        return _primitive(asdict(value))
-    if isinstance(value, dict):
-        return {str(key): _primitive(item) for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))}
-    if isinstance(value, (list, tuple)):
+    """Serialize only exact, closed carrier types without user-defined coercion."""
+    value_type = type(value)
+    if value is None or value_type in (str, int, float, bool):
+        return value
+    if value_type in _CANONICAL_ENUM_TYPES:
+        return _primitive(value.value)
+    if value_type in _CANONICAL_DATACLASS_TYPES:
+        return {field.name: _primitive(getattr(value, field.name)) for field in fields(value)}
+    if value_type in (list, tuple):
         return [_primitive(item) for item in value]
-    return value
+    if value_type is dict:
+        if any(type(key) is not str for key in value):
+            raise ValueError("UNSUPPORTED_CANONICAL_MAPPING_KEY")
+        return {key: _primitive(value[key]) for key in sorted(value)}
+    raise ValueError("UNSUPPORTED_CANONICAL_VALUE")
 
 
 def _canonical(value: object) -> bytes:
@@ -829,7 +864,7 @@ def _sha(value: object) -> str:
 
 
 def _inventory_quantity(inventory: InventoryState) -> int:
-    return sum(lot.quantity for lot in inventory.lots if isinstance(lot.quantity, int) and not isinstance(lot.quantity, bool))
+    return sum(lot.quantity for lot in inventory.lots if type(lot.quantity) is int)
 
 
 def _portfolio_hash(agent_id: str, inventory: InventoryState) -> str:
@@ -920,13 +955,13 @@ def _event_from_semantics(
 
 
 def _validate_agent(agent: object, market: MarketState) -> Tuple[bool, Tuple[str, ...]]:
-    if not isinstance(agent, AgentState):
+    if type(agent) is not AgentState:
         return False, ("INVALID_AGENT_OBJECT",)
     if not _bounded_text(agent.agent_id):
         return False, ("INVALID_AGENT_ID",)
-    if not isinstance(agent.posterior, HiddenTypePosterior) or not isinstance(agent.information, AgentInformationSet):
+    if type(agent.posterior) is not HiddenTypePosterior or type(agent.information) is not AgentInformationSet:
         return False, ("INVALID_AGENT_COMPONENT",)
-    if not isinstance(agent.inventory, InventoryState):
+    if type(agent.inventory) is not InventoryState:
         return False, ("INVALID_AGENT_INVENTORY",)
     valid_posterior, posterior_reasons = agent.posterior.validate()
     if not valid_posterior:
@@ -938,9 +973,9 @@ def _validate_agent(agent: object, market: MarketState) -> Tuple[bool, Tuple[str
         return False, ("INVALID_AGENT_INFORMATION_REFERENCE",)
     if not _valid_refs(info.unknowns, allow_empty=True):
         return False, ("INVALID_AGENT_UNKNOWN_COLLECTION",)
-    if not isinstance(info.available_at_ns, int) or isinstance(info.available_at_ns, bool) or info.available_at_ns < 0:
+    if type(info.available_at_ns) is not int or info.available_at_ns < 0:
         return False, ("UNKNOWN_OR_INVALID_AGENT_INFORMATION_TIME",)
-    if not isinstance(market, MarketState) or market.information is None or market.information.available_at_ns is None:
+    if type(market) is not MarketState or market.information is None or market.information.available_at_ns is None:
         return False, ("UNKNOWN_MARKET_INFORMATION_TIME",)
     if info.available_at_ns > market.information.available_at_ns:
         return False, ("AGENT_FUTURE_INFORMATION",)
@@ -948,13 +983,13 @@ def _validate_agent(agent: object, market: MarketState) -> Tuple[bool, Tuple[str
 
 
 def _validate_action(action: object) -> Tuple[bool, Tuple[str, ...]]:
-    if not isinstance(action, CandidateAction):
+    if type(action) is not CandidateAction:
         return False, ("INVALID_ACTION_OBJECT",)
     if not _bounded_text(action.action_id) or not _bounded_text(action.agent_id):
         return False, ("INVALID_ACTION_OR_AGENT_ID",)
-    if not isinstance(action.label, ActionLabel):
+    if type(action.label) is not ActionLabel:
         return False, ("INVALID_ACTION_LABEL",)
-    if not isinstance(action.arrival_sequence, int) or isinstance(action.arrival_sequence, bool) or action.arrival_sequence < 0:
+    if type(action.arrival_sequence) is not int or action.arrival_sequence < 0:
         return False, ("INVALID_ARRIVAL_SEQUENCE",)
     if not _valid_refs(action.assumption_ids) or not _valid_refs(action.evidence_refs):
         return False, ("INVALID_ACTION_REFERENCE",)
@@ -962,21 +997,20 @@ def _validate_action(action: object) -> Tuple[bool, Tuple[str, ...]]:
         return False, ("INVALID_CAUSAL_PARENT_REFERENCE",)
     if action.conflict_key is not None and not _bounded_text(action.conflict_key):
         return False, ("INVALID_CONFLICT_KEY",)
-    if not isinstance(action.requires_complete_information, bool):
+    if type(action.requires_complete_information) is not bool:
         return False, ("INVALID_COMPLETE_INFORMATION_FLAG",)
-    if action.order is not None and not isinstance(action.order, SyntheticOrder):
+    if action.order is not None and type(action.order) is not SyntheticOrder:
         return False, ("INVALID_SYNTHETIC_ORDER",)
     if action.invocation_id is not None and not _bounded_text(action.invocation_id):
         return False, ("INVALID_INVOCATION_ID",)
-    if not isinstance(action.conflict_transition, ConflictTransition) or not isinstance(action.liquidity_mode, LiquidityMode):
+    if type(action.conflict_transition) is not ConflictTransition or type(action.liquidity_mode) is not LiquidityMode:
         return False, ("INVALID_ACTION_SEMANTICS",)
     if action.counterparty_agent_id is not None and not _bounded_text(action.counterparty_agent_id):
         return False, ("INVALID_COUNTERPARTY_AGENT_ID",)
     if action.peer_transfer_id is not None and not _bounded_text(action.peer_transfer_id):
         return False, ("INVALID_PEER_TRANSFER_ID",)
     if action.scheduled_step_index is not None and (
-        not isinstance(action.scheduled_step_index, int)
-        or isinstance(action.scheduled_step_index, bool)
+        type(action.scheduled_step_index) is not int
         or action.scheduled_step_index < 1
     ):
         return False, ("INVALID_SCHEDULED_STEP_INDEX",)
@@ -992,7 +1026,7 @@ def _merge_action_registry(
     prior: Sequence[CandidateAction], current: Sequence[CandidateAction],
 ) -> Tuple[CandidateAction, ...]:
     merged = tuple(prior) + tuple(current)
-    if any(not isinstance(action, CandidateAction) for action in merged):
+    if any(type(action) is not CandidateAction for action in merged):
         raise ValueError("INVALID_ACTION_REGISTRY")
     if len({action.action_id for action in merged}) != len(merged):
         raise ValueError("DUPLICATE_ACTION_REGISTRY_ID")
@@ -1052,8 +1086,8 @@ def _validate_peer_transfer_pairs(actions: Sequence[CandidateAction]) -> dict[st
             first.counterparty_agent_id == second.agent_id
             and second.counterparty_agent_id == first.agent_id
             and first.agent_id != second.agent_id
-            and isinstance(first.order, SyntheticOrder)
-            and isinstance(second.order, SyntheticOrder)
+            and type(first.order) is SyntheticOrder
+            and type(second.order) is SyntheticOrder
             and first.order.side != second.order.side
             and first.order.quantity == second.order.quantity
             and second.arrival_sequence == first.arrival_sequence + 1
@@ -1088,7 +1122,7 @@ def _peer_declaration_failure_map(actions: Sequence[CandidateAction]) -> dict[st
             add_failure(action.action_id, "PEER_TRANSFER_REQUIRES_COUNTERPARTY")
         elif not _bounded_text(action.counterparty_agent_id):
             add_failure(action.action_id, "INVALID_COUNTERPARTY_AGENT_ID")
-        if not isinstance(action.order, SyntheticOrder):
+        if type(action.order) is not SyntheticOrder:
             add_failure(action.action_id, "INVALID_SYNTHETIC_ORDER")
 
     # A malformed group remains visible to every member while each action also
@@ -1417,17 +1451,17 @@ def _arbitrate_internal(
     )
     if structure_error:
         raise ValueError(structure_error)
-    assert isinstance(market, MarketState)
-    assert isinstance(agents, (tuple, list)) and isinstance(actions, (tuple, list))
-    assert isinstance(prior_events, (tuple, list))
-    assert isinstance(prior_executed_action_ids, (tuple, list))
-    assert isinstance(prior_executed_order_ids, (tuple, list))
+    assert type(market) is MarketState
+    assert _safe_exact_sequence(agents) and _safe_exact_sequence(actions)
+    assert _safe_exact_sequence(prior_events)
+    assert _safe_exact_sequence(prior_executed_action_ids)
+    assert _safe_exact_sequence(prior_executed_order_ids)
     if len({event.event_id for event in prior_events}) != len(prior_events):
         raise ValueError("DUPLICATE_PRIOR_EVENT_ID")
     if len(set(prior_executed_action_ids)) != len(prior_executed_action_ids) or len(set(prior_executed_order_ids)) != len(prior_executed_order_ids):
         raise ValueError("DUPLICATE_PRIOR_EXECUTION_ID")
     if prior_episode_state is not None:
-        assert isinstance(prior_episode_state, EpisodeState)
+        assert type(prior_episode_state) is EpisodeState
         if prior_episode_state.shared_market_state.market != market:
             raise ValueError("INVALID_PRIOR_EPISODE_STATE")
         if _verify_prior and not verify_episode_ledger(prior_episode_state).valid:
@@ -1437,7 +1471,7 @@ def _arbitrate_internal(
         prior_executed_action_ids = prior_episode_state.executed_action_ids
         prior_executed_order_ids = prior_episode_state.executed_order_ids
     if prior_shared_market_state is not None:
-        assert isinstance(prior_shared_market_state, SharedMarketState)
+        assert type(prior_shared_market_state) is SharedMarketState
         if prior_shared_market_state.market != market:
             raise ValueError("INVALID_OR_CHANGED_PRIOR_SHARED_MARKET_STATE")
     agent_tuple, raw_action_tuple = tuple(agents), tuple(actions)

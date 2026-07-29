@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 import unittest
 from dataclasses import replace
+from enum import Enum
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +19,7 @@ from d2_game_core import (  # noqa: E402
     ExternalLiquidityFlowEvent, SharedMarketState, _sha, _system_hash,
 )
 from synthetic_engine.fixtures import INVENTORY, market, order  # noqa: E402
-from synthetic_engine.types import InventoryState, MatchMode, OrderSide, SyntheticLot  # noqa: E402
+from synthetic_engine.types import InventoryState, MarketState, MatchMode, OrderSide, SyntheticLot  # noqa: E402
 
 
 def posterior(subtype=ParticipantSubtype.RETAIL_LIQUIDITY_TAKER, weight=1.0):
@@ -172,9 +173,8 @@ class StatefulMultiAgentCoreTests(unittest.TestCase):
         invalid = replace(invalid, posterior=HiddenTypePosterior((ParticipantArchetypeHypothesis(
             "not-subtype", 1.0, ("synthetic:evidence",), (), "alternative",
         ),)))
-        result = arbitrate("invalid-posterior", self.market, (invalid,), (action("bad", "invalid", 1),))
-        self.assertFalse(result.events[0].accepted)
-        self.assertIn("UNKNOWN_PARTICIPANT_SUBTYPE", result.events[0].rejected_reason_codes)
+        with self.assertRaisesRegex(ValueError, "INVALID_AGENT_POSTERIOR_FIELD"):
+            arbitrate("invalid-posterior", self.market, (invalid,), (action("bad", "invalid", 1),))
 
     def test_unknown_agent_blocked_and_existing_owner_preserved(self):
         result = arbitrate("unknown-agent", self.market, (self.retail,), (action("unknown", "nobody", 1),))
@@ -1061,6 +1061,166 @@ for _name, _mutate, _reason in _E20_ARBITRATION_CASES:
 
 for _name, _mutate, _reason in _E20_VERIFIER_CASES:
     setattr(StatefulMultiAgentCoreTests, "test_e20_verify_" + _name, _e20_verifier_regression(_name, _mutate, _reason))
+
+
+class _E21HostileText(str):
+    """Every overloaded primitive operation is a test failure if it is reached."""
+
+    def __len__(self):
+        raise AssertionError("unexpected hostile text length")
+
+    def __bool__(self):
+        raise AssertionError("unexpected hostile text truthiness")
+
+    def __hash__(self):
+        raise AssertionError("unexpected hostile text hash")
+
+
+class _E21HostileInt(int):
+    def __ge__(self, other):
+        raise AssertionError("unexpected hostile integer comparison")
+
+    def __hash__(self):
+        raise AssertionError("unexpected hostile integer hash")
+
+
+class _E21HostileTuple(tuple):
+    def __len__(self):
+        raise AssertionError("unexpected hostile tuple length")
+
+    def __iter__(self):
+        raise AssertionError("unexpected hostile tuple iteration")
+
+
+class _E21WrongEnum(Enum):
+    UNSAFE = "unsafe"
+
+
+class _E21HostileCandidateAction(CandidateAction):
+    def __getattribute__(self, name):
+        if name == "action_id":
+            raise AssertionError("unexpected hostile action dereference")
+        return super().__getattribute__(name)
+
+
+class _E21HostileAgentState(AgentState):
+    def __getattribute__(self, name):
+        if name == "agent_id":
+            raise AssertionError("unexpected hostile agent dereference")
+        return super().__getattribute__(name)
+
+
+class _E21MarketState(MarketState):
+    pass
+
+
+class _E21SharedMarketState(SharedMarketState):
+    pass
+
+
+def _e21_arbitration_regression(name, mutate, expected_reason):
+    def test(self):
+        base = action("e21-" + name, "retail", 1)
+        arguments, keyword_arguments = mutate(self, base)
+        with self.assertRaisesRegex(ValueError, expected_reason):
+            arbitrate(*arguments, **keyword_arguments)
+
+    test.__name__ = "test_e21_arbitrate_" + name
+    return test
+
+
+def _e21_verifier_regression(name, mutate, expected_reason):
+    def test(self):
+        episode = self.e20_valid_episode("e21-" + name)
+        self.assert_e20_verifier_fails_closed(mutate(episode), expected_reason)
+
+    test.__name__ = "test_e21_verify_" + name
+    return test
+
+
+_E21_ARBITRATION_CASES = (
+    ("text_subclass_action_id", lambda self, item: (("e21-text", self.market, (self.retail,), (replace(item, action_id=_E21HostileText("x")),)), {}), "INVALID_ACTION_ID_STRUCTURE"),
+    ("integer_subclass_arrival", lambda self, item: (("e21-int", self.market, (self.retail,), (replace(item, arrival_sequence=_E21HostileInt(1)),)), {}), "INVALID_ARRIVAL_SEQUENCE"),
+    ("action_carrier_subclass", lambda self, item: (("e21-carrier", self.market, (self.retail,), (_E21HostileCandidateAction(**item.__dict__),)), {}), "INVALID_ACTION_OBJECT"),
+    ("agent_carrier_subclass", lambda self, item: (("e21-agent", self.market, (_E21HostileAgentState(**self.retail.__dict__),), (item,)), {}), "INVALID_AGENT_OBJECT"),
+    ("market_carrier_subclass", lambda self, item: (("e21-market", _E21MarketState(**self.market.__dict__), (self.retail,), (item,)), {}), "INVALID_MARKET_STATE"),
+    ("broad_enum_market_phase", lambda self, item: (("e21-phase", replace(self.market, phase=_E21WrongEnum.UNSAFE), (self.retail,), (item,)), {}), "INVALID_MARKET_PHASE_STRUCTURE"),
+    ("broad_enum_action_label", lambda self, item: (("e21-label", self.market, (self.retail,), (replace(item, label=_E21WrongEnum.UNSAFE),)), {}), "INVALID_ACTION_LABEL_STRUCTURE"),
+    ("broad_enum_order_side", lambda self, item: (("e21-side", self.market, (self.retail,), (replace(item, order=replace(item.order, side=_E21WrongEnum.UNSAFE)),)), {}), "INVALID_ORDER_SIDE_STRUCTURE"),
+    ("broad_enum_liquidity_mode", lambda self, item: (("e21-liquidity", self.market, (self.retail,), (replace(item, liquidity_mode=_E21WrongEnum.UNSAFE),)), {}), "INVALID_LIQUIDITY_MODE_STRUCTURE"),
+    ("tuple_subclass_agents", lambda self, item: (("e21-tuple", self.market, _E21HostileTuple((self.retail,)), (item,)), {}), "INVALID_TOP_LEVEL_COLLECTION"),
+    ("tuple_subclass_prior_ids", lambda self, item: (("e21-prior", self.market, (self.retail,), (item,)), {"prior_executed_action_ids": _E21HostileTuple(("old",))}), "INVALID_PRIOR_EXECUTION_COLLECTION"),
+    ("inventory_carrier_subclass", lambda self, item: (("e21-inventory", self.market, (replace(self.retail, inventory=type("UnsafeInventory", (InventoryState,), {})(**self.retail.inventory.__dict__)),), (item,)), {}), "INVALID_INVENTORY_STRUCTURE"),
+)
+
+_E21_VERIFIER_CASES = (
+    ("episode_carrier_subclass", lambda episode: type("UnsafeEpisode", (type(episode),), {})(**episode.__dict__), "INVALID_EPISODE_STATE"),
+    ("initial_agent_carrier_subclass", lambda episode: replace(episode, initial_agents=(_E21HostileAgentState(**episode.initial_agents[0].__dict__),)), "INVALID_INITIAL_AGENT_REGISTRY"),
+    ("current_agent_carrier_subclass", lambda episode: replace(episode, current_agents=(_E21HostileAgentState(**episode.current_agents[0].__dict__),)), "INVALID_CURRENT_AGENT_REGISTRY"),
+    ("market_carrier_subclass", lambda episode: replace(episode, shared_market_state=replace(episode.shared_market_state, market=_E21MarketState(**episode.shared_market_state.market.__dict__))), "INVALID_MARKET_STATE"),
+    ("shared_market_carrier_subclass", lambda episode: replace(episode, shared_market_state=_E21SharedMarketState(**episode.shared_market_state.__dict__)), "INVALID_SHARED_MARKET_STATE"),
+    ("action_carrier_subclass", lambda episode: replace(episode, action_registry=(_E21HostileCandidateAction(**episode.action_registry[0].__dict__),)), "INVALID_ACTION_REGISTRY"),
+    ("hostile_text_action_identifier", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], action_id=_E21HostileText("x")),)), "INVALID_ACTION_ID_STRUCTURE"),
+    ("hostile_integer_arrival", lambda episode: replace(episode, action_registry=(replace(episode.action_registry[0], arrival_sequence=_E21HostileInt(1)),)), "INVALID_ARRIVAL_SEQUENCE"),
+    ("ledger_carrier_subclass", lambda episode: replace(episode, event_dag=(type("UnsafeLedger", (type(episode.event_dag[0]),), {})(**episode.event_dag[0].__dict__),)), "INVALID_EVENT_DAG"),
+    ("broad_enum_ledger_label", lambda episode: replace(episode, event_dag=(replace(episode.event_dag[0], label=_E21WrongEnum.UNSAFE),)), "INVALID_LEDGER_EVENT_SEMANTIC_STRUCTURE"),
+    ("flow_carrier_subclass", lambda episode: replace(episode, external_liquidity_flows=(type("UnsafeFlow", (type(episode.external_liquidity_flows[0]),), {})(**episode.external_liquidity_flows[0].__dict__),)), "INVALID_EXTERNAL_FLOW_REGISTRY"),
+    ("tuple_subclass_boundary_ids", lambda episode: replace(episode, step_boundaries=(replace(episode.step_boundaries[0], action_ids=_E21HostileTuple(episode.step_boundaries[0].action_ids)),)), "INVALID_STEP_BOUNDARY_ACTION_IDS"),
+)
+
+for _name, _mutate, _reason in _E21_ARBITRATION_CASES:
+    setattr(StatefulMultiAgentCoreTests, "test_e21_arbitrate_" + _name, _e21_arbitration_regression(_name, _mutate, _reason))
+
+for _name, _mutate, _reason in _E21_VERIFIER_CASES:
+    setattr(StatefulMultiAgentCoreTests, "test_e21_verify_" + _name, _e21_verifier_regression(_name, _mutate, _reason))
+
+
+def _e21_canonical_rejects_unsafe_mapping_key(self):
+    original_hash = _E21HostileText.__hash__
+    _E21HostileText.__hash__ = str.__hash__
+    try:
+        payload = {_E21HostileText("unsafe"): "value"}
+    finally:
+        _E21HostileText.__hash__ = original_hash
+    with self.assertRaisesRegex(ValueError, "UNSUPPORTED_CANONICAL_MAPPING_KEY"):
+        _sha(payload)
+
+
+def _e21_canonical_rejects_unsafe_enum(self):
+    with self.assertRaisesRegex(ValueError, "UNSUPPORTED_CANONICAL_VALUE"):
+        _sha(_E21WrongEnum.UNSAFE)
+
+
+def _e21_canonical_rejects_unsafe_primitive_subclass(self):
+    with self.assertRaisesRegex(ValueError, "UNSUPPORTED_CANONICAL_VALUE"):
+        _sha(_E21HostileText("unsafe"))
+
+
+def _e21_multifault_precedence_is_stable(self):
+    reasons = []
+    for _ in range(3):
+        with self.assertRaises(ValueError) as captured:
+            arbitrate(object(), replace(self.market, phase=_E21WrongEnum.UNSAFE), _E21HostileTuple((self.retail,)), ())
+        reasons.append(str(captured.exception))
+    self.assertEqual(reasons, ["INVALID_RUN_ID", "INVALID_RUN_ID", "INVALID_RUN_ID"])
+
+
+def _e21_verifier_multifault_precedence_is_stable(self):
+    episode = self.e20_valid_episode("e21-multifault")
+    malformed = replace(
+        episode,
+        root_run_id=_E21HostileText("unsafe"),
+        shared_market_state=_E21SharedMarketState(**episode.shared_market_state.__dict__),
+    )
+    results = [verify_episode_ledger(malformed).reason_codes for _ in range(3)]
+    self.assertEqual(results, [("MISSING_IMMUTABLE_EPISODE_IDENTITY",)] * 3)
+
+
+setattr(StatefulMultiAgentCoreTests, "test_e21_canonical_rejects_unsafe_mapping_key", _e21_canonical_rejects_unsafe_mapping_key)
+setattr(StatefulMultiAgentCoreTests, "test_e21_canonical_rejects_unsafe_enum", _e21_canonical_rejects_unsafe_enum)
+setattr(StatefulMultiAgentCoreTests, "test_e21_canonical_rejects_unsafe_primitive_subclass", _e21_canonical_rejects_unsafe_primitive_subclass)
+setattr(StatefulMultiAgentCoreTests, "test_e21_multifault_precedence_is_stable", _e21_multifault_precedence_is_stable)
+setattr(StatefulMultiAgentCoreTests, "test_e21_verifier_multifault_precedence_is_stable", _e21_verifier_multifault_precedence_is_stable)
 
 
 if __name__ == "__main__":
