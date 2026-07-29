@@ -1,0 +1,13 @@
+improvements:
+  - id: "E22-UI-001"
+    class: "B_BOUNDED_IMPLEMENTED"
+    discovery: "A tuple permutation leaves a correctly arrival-sorted SUT unchanged and would create a decorative mutation."
+    improvement: "Re-number the identifier-sorted actions during mutant activation so the fault changes the actual priority relation."
+    evidence: "MUT-001 activation changed from survivor to KILLED; focused suite passed."
+    rollback: "Revert mutation_registry.py with substantive commit 696ed005add87301f5f1bdbb13732d154a58da8e."
+  - id: "E22-UI-002"
+    class: "B_BOUNDED_IMPLEMENTED"
+    discovery: "A precomputed cross-family matrix would reuse one mutation/property outcome and overstate interaction execution."
+    improvement: "Each of 24 cross-family rows re-activates its mutant and reruns its named metamorphic property."
+    evidence: "run_evaluation() fails if any re-executed row fails; 24 rows passed."
+    rollback: "Revert evaluation_v2_harness.py with substantive commit 696ed005add87301f5f1bdbb13732d154a58da8e."
