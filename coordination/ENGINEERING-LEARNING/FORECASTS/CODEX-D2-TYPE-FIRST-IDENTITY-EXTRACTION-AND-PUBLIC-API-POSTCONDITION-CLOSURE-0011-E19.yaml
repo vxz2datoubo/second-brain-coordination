@@ -1,0 +1,89 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "CODEX-D2-TYPE-FIRST-IDENTITY-EXTRACTION-AND-PUBLIC-API-POSTCONDITION-CLOSURE-0011-E19"
+issue_or_pr: "Issue #23 / PR #101"
+prepared_by: "GPT"
+prepared_at: "2026-07-29"
+mode: "target"
+
+first_principles:
+  fundamental_goal: >-
+    Close the last Gate-A public-API totality gap by ensuring malformed CandidateAction fields are validated before hashing,
+    set construction, sorting, order-ID extraction or other field-specific dereference, while preserving E16-E18 ledger semantics.
+  current_state_to_change: >-
+    E18 correctly records malformed peer declarations as verifier-valid declaration aborts, but _arbitrate_internal still extracts
+    action/order/invocation identities before _validate_action. A non-SyntheticOrder value can therefore raise AttributeError at
+    action.order.order_id, and malformed unhashable IDs can fail during set construction before the declared fail-closed policy runs.
+  causal_mechanism:
+    - "Move or redesign structural validation so every dereference and identity extraction has a proven type contract."
+    - "Separate pre-construction rejection from terminal fail-closed event semantics and test both as explicit public contracts."
+    - "Require a public postcondition matrix across all non-exceptional terminal branches and adversarial malformed-field inputs."
+  constraints:
+    - "Preserve E16 independent reconstruction, E17 atomic settlement and E18 declaration-abort composability."
+    - "Synthetic-only, candidate-only, research_only and NO_TRADE."
+    - "No Evaluation V2, real data, replay, backtest, fitting, account, order routing or trade."
+  required_evidence:
+    - "Executable reproductions for non-SyntheticOrder, unhashable action/invocation/order/transfer identities and invalid arrival values."
+    - "Proof that no field is dereferenced, hashed, sorted or inserted into a set before its type contract is established."
+    - "Three clean archives, deterministic output and Python 3.11/3.13 CI."
+  alternatives_considered:
+    - option: "Release Gate B because E18 peer tests pass."
+      reason_not_selected: "The public API still has a pre-validation crash path and the E18 receipt overstates the implemented guard."
+    - option: "Catch AttributeError broadly around arbitration."
+      reason_not_selected: "Broad exception masking would hide the offending field, weaken deterministic semantics and risk partial construction."
+  stop_conditions:
+    - "Any attempted solution weakens E16-E18 forgery detection or peer atomicity."
+    - "Any malformed input creates a partial event/episode before an exception."
+    - "Scope expands into Evaluation V2 or downstream gates without GPT acceptance."
+
+expected_benefits:
+  - benefit_id: "B1"
+    description: "Makes public arbitration type-total at its declared boundary."
+    probability: "high"
+    impact: "high"
+    validation_signal: "All adversarial malformed-field cases have deterministic documented dispositions without accidental Python exceptions."
+  - benefit_id: "B2"
+    description: "Aligns receipt claims, tests and actual implementation."
+    probability: "high"
+    impact: "medium"
+    validation_signal: "The tested code contains and exercises the exact guard claimed in the E19 receipt."
+  - benefit_id: "B3"
+    description: "Prevents Evaluation V2 from freezing an API whose totality depends on well-behaved callers."
+    probability: "high"
+    impact: "high"
+    validation_signal: "Gate-A public API postcondition matrix passes before Gate B release."
+
+expected_harms:
+  - harm_id: "H1"
+    description: "Changing validation order may alter which error code wins when several fields are malformed."
+    probability: "medium"
+    severity: "medium"
+    mitigation: "Freeze deterministic precedence and add multi-fault tests."
+  - harm_id: "H2"
+    description: "Over-generalized exception handling could convert programmer defects into apparently valid terminal states."
+    probability: "medium"
+    severity: "high"
+    mitigation: "Use explicit field validators and narrow exceptions only; forbid catch-all masking."
+
+cost_forecast:
+  time: "low to medium"
+  token_or_compute: "low"
+  maintenance: "low"
+  opportunity_cost: "Delays Gate B briefly but prevents a larger Evaluation V2 semantic rollback."
+
+net_value_assessment:
+  expected_net_value: "strongly_positive"
+  confidence: "high"
+  rationale: "The blocker is executable, bounded and sits directly on the public API trust boundary."
+
+risk_gate:
+  approval_required: false
+  decision: "PROCEED_WITH_CONTROLS"
+
+execution_observation_requirements:
+  - "Track exact malformed-field precedence and whether callers receive ValueError or verifier-valid terminal states."
+  - "Report any surviving pre-validation dereference or unhashable-field crash immediately."
+  - "Preserve the discrepancy between the E18 receipt claim and E18 tested code as regression evidence."
+
+post_delivery_review_required: true
+linked_outcome_review: "pending"
