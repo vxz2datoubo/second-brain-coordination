@@ -10,3 +10,14 @@ e25_remediation:
     - "Episodes and counterfactuals retain first-execution artifacts for signatures."
   unresolved:
     - "Fresh archive evidence is NOT_ACCEPTED after bounded Windows archive and capture failures."
+e27_route_and_evidence_research:
+  trigger_level: "L1_REUSE_AND_QUICK_CHECK"
+  sources: ["canonical git ls-remote", "GitHub PR #106", "workflow 30590950622"]
+  verified:
+    - "Canonical main and local origin identity match at E27 claim."
+    - "Workflow dispatch ran b45ab1 exact archive evidence on Python 3.11 and 3.13."
+  counterevidence:
+    - "PR event workflow archive used merge SHA c311af..., not b45ab1."
+  inference:
+    - "Prior E24 route observation was a remote-tracking freshness lag; root cause remains UNKNOWN."
+  applicability: "Evaluation V2 synthetic public-safe evidence only"
