@@ -2,7 +2,7 @@ schema_version: "1.0"
 plan_id: "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PLAN-0011"
 agent_id: "CODEX"
 reviewer: "GPT"
-status: "IN_PROGRESS"
+status: "IMPLEMENTATION_COMPLETE_PENDING_EXTERNAL_GPT_REVIEW"
 authority: "USER_AUTHORIZED_CANDIDATE_WORKLINE"
 boundary: "research_only / NO_TRADE"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -35,24 +35,27 @@ phases:
       - "src/vendor_neutral_agent_kernel"
   - id: P2
     name: "PEOS and integration blueprint candidate"
-    status: IN_PROGRESS
+    status: COMPLETE
     evidence:
       - "INTEGRATION-DELTA.md"
   - id: P3
     name: "Named Skill and runtime prompt"
-    status: IN_PROGRESS
+    status: COMPLETE
     evidence:
       - "AGENT-OPERATING-KERNEL-PROMPT-v1.0.md"
   - id: P4
     name: "Conformance and public-safety validation"
-    status: IN_PROGRESS
+    status: COMPLETE
     evidence:
       - "tests"
       - "CONFORMANCE-TEST-MATRIX.md"
   - id: P5
     name: "GitHub Draft PR and GPT review handoff"
-    status: PENDING
-    evidence: []
+    status: READY_FOR_EXTERNAL_ANCHOR
+    evidence:
+      - "GPT-REVIEW-PACKET.md"
+      - "AI_HANDOFF.yaml"
+      - "TEST-RUN-RECEIPT.md"
 
 success_criteria:
   - "No raw third-party prompt is committed."
