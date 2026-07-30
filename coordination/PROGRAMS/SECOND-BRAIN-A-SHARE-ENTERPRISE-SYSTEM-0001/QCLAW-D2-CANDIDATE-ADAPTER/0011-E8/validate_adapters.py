@@ -584,11 +584,13 @@ def main():
             if q_ids_in_pkg != {q["question_id"] for q in questions}:
                 failures.append(fail("Package question_ids set doesn't match source"))
 
-            # E19-B06: Actually compare computed vs declared hash/size for all artifact entries
+            # E20: Compare computed vs declared hash/size for all artifact entries
+            # Skip self-referencing D2-ADAPTER-PACKAGE.json (inherently circular)
             manifest = pkg.get("artifact_hash_size_manifest", {})
             if manifest:
                 for fname, declared in manifest.items():
-                    # Resolve file path
+                    if fname == "D2-ADAPTER-PACKAGE.json":
+                        continue  # skip self-referencing entry
                     fpath = os.path.join(output_dir, fname)
                     if not os.path.exists(fpath):
                         fpath = os.path.join(os.path.dirname(output_dir), fname)
