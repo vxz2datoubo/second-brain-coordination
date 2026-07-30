@@ -32,14 +32,11 @@ epistemic_lanes:
   - OUTCOME
   - UNKNOWN
 
-authority_precedence:
-  - USER_EXPLICIT_DECISION
-  - PROJECT_CHARTER
-  - ACTIVE_ROUTE
-  - AGENT_ROLE
-  - SKILL_CONTRACT
-  - TOOL_CAPABILITY
-  - MODEL_PROFILE
+authority_layers:
+  hard_restrictions: "Cumulative denials; never overridden."
+  user_scope: "Objective, cancellation, narrowing, and approval request only."
+  active_route_lease: "W1 task, agent, branch, paths, actions, and WIP owner."
+  execution_feasibility: "Agent, Skill, tool, and model may restrict or describe only."
 
 contracts:
   AuthorityResolution:
@@ -51,12 +48,17 @@ contracts:
       - allowed_actions
       - forbidden_actions
       - approval_requirements
+      - verified_approval_actions
       - conflicts
       - resolution_evidence
+      - resolution_status
       - authority_hash
     invariants:
       - "Allowed and forbidden actions are disjoint."
-      - "Same-rank contradictions fail closed and remain visible."
+      - "Allowed paths are an authorization-scope intersection."
+      - "Forbidden actions are a cumulative union."
+      - "Verified approvals can only originate from the active W1 route."
+      - "Same-layer contradictions fail closed and remain visible."
       - "Input order does not change the authority hash."
 
   TaskIntent:
@@ -153,7 +155,7 @@ contracts:
       - external_anchors
     invariants:
       - "Side-effect idempotency keys are unique."
-      - "Authority or external-anchor drift is detected before resume."
+      - "Authority and external-anchor drift both remain visible before resume."
 
   CompletionReceipt:
     required:

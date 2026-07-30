@@ -81,3 +81,44 @@ The evidence proves the candidate reference implementation and documentation
 behave as tested. It does not prove cross-model equivalence, production
 readiness, provider optimality, or market validity. Runtime activation remains
 disabled.
+
+## GPT Review Remediation Evidence (2026-07-30)
+
+This receipt supersedes the earlier 73-test local receipt for the current
+candidate review. It is anchored to the substantive hardening commits rather
+than to its own future commit:
+
+| Item | Value |
+|---|---|
+| Hardening commit | `67a4c68c290d8b7db02b5c44d553c7add3b0cd5e` |
+| Archive-safety commit | `7ff963753f1ef50c56635bcef872f05f584b5dcb` |
+| Reviewed tree | `bd7daaf9d38cb89c419559340e6b625bf6e22242` |
+| Draft PR | [#107](https://github.com/vxz2datoubo/second-brain-coordination/pull/107) |
+| Parent issue | [#31](https://github.com/vxz2datoubo/second-brain-coordination/issues/31) |
+
+Validated locally in an isolated test environment:
+
+```text
+PASS_84_OF_84
+Draft202012 meta-schema: PASS
+serialized instances for all 10 contracts: PASS
+AST files: 20
+strict YAML files: 8
+changed-file secret matches: 0
+common-prompt vendor matches: 0
+raw capture files: 0
+machine evidence sha256: b06c5088d8a141f7f83e1ba135136cc70306decb866d7a5841bcff0b0b29b00e
+```
+
+Three separately generated clean Git archives ran the same machine-readable
+verification under `PYTHONHASHSEED=1`, `2`, and `3`. All emitted the identical
+report hash:
+
+```text
+8ee88ceec3dc4cae385d6a26133210c374208c30872782f869ee49e080a65954
+```
+
+The initial archive run found a hidden `.git` dependency in the
+public-neutrality test. Commit `7ff9637` replaces it with a fixed repository
+layout reference; the three subsequent clean-archive runs passed. This is a
+test-hardening finding, not evidence of runtime activation.

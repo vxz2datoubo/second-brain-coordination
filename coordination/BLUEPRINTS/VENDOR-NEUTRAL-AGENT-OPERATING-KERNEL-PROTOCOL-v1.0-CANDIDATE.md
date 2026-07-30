@@ -97,13 +97,10 @@ AuthorityResolver
 建议的项目级优先序：
 
 ```text
-USER_EXPLICIT_DECISION
-> PROJECT_CHARTER
-> ACTIVE_ROUTE
-> AGENT_ROLE
-> SKILL_CONTRACT
-> TOOL_CAPABILITY
-> MODEL_PROFILE
+HARD_RESTRICTIONS (cumulative denies)
++ USER_OBJECTIVE_AND_APPROVAL_REQUEST (cannot expand lease)
++ W1_ACTIVE_ROUTE_LEASE (task, agent, branch, paths, actions, WIP)
++ EXECUTION_FEASIBILITY (role, Skill, tool, model: restrict or describe only)
 ```
 
 同级冲突必须显式保留并失败关闭，不能按输入顺序或最后写入者决定。

@@ -8,7 +8,7 @@ canonical blueprints or the active E24 workline.
 ## Implemented
 
 - Ten immutable public contracts with shared provenance metadata.
-- Deterministic project-authority resolver.
+- Layered fail-closed authority resolver; user scope cannot expand a W1 lease.
 - Task-intent compiler.
 - Eight-lane epistemic claim model.
 - Candidate-only memory proposal and immutable claim revision.
@@ -20,6 +20,7 @@ canonical blueprints or the active E24 workline.
 - Named project Skill candidate.
 - PEOS addendum, protocol blueprint, and v1.5 integration-index candidate.
 - Automated runtime, Schema, provenance, recovery, and neutrality tests.
+- Dedicated Python 3.11/3.13 CI with three clean archive reproductions.
 
 ## Explicitly Not Implemented
 
@@ -31,6 +32,19 @@ canonical blueprints or the active E24 workline.
 - Production provider calibration.
 - Root `AGENTS.md` pointer.
 - Any trading or brokerage capability.
+
+## GPT Review Remediation
+
+- The earlier rank-ordered authority claim was replaced with cumulative hard
+  denials, W1 lease ownership, intersected path scopes, and verified approvals.
+- `ModelBehaviorProfile`, Skills, and tool descriptors can describe or narrow
+  feasibility, but cannot grant authority.
+- A simultaneous authority change and external-anchor drift now remains a
+  combined blocking recovery state.
+- The JSON Schema is checked against Draft 2020-12 and validates serialized
+  instances of all ten public contracts.
+- A clean archive test uncovered and removed a hidden `.git` dependency in the
+  public-neutrality test.
 
 ## Main Finding
 

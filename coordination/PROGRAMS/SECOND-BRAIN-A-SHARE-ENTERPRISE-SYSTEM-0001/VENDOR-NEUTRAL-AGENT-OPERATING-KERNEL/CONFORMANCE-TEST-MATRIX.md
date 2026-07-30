@@ -8,20 +8,21 @@
 
 | Area | Required behavior | Automated evidence |
 |---|---|---|
-| Authority | Higher authority wins; same-rank conflicts fail closed | `test_authority_intent.py` |
+| Authority | Hard denials accumulate; W1 lease scopes intersect; same-layer conflicts fail closed | `test_authority_intent.py` |
 | Determinism | Directive and provider input order do not change hashes | `test_authority_intent.py`, `test_routing.py` |
 | Intent | Duplicate requirements and invalid budgets are rejected | `test_authority_intent.py` |
 | Provenance | Inference requires evidence; UNKNOWN has confidence 0 | `test_contracts.py`, `test_epistemic_memory.py` |
 | Memory | Candidate-only, idempotent, no canonical self-promotion | `test_epistemic_memory.py` |
 | Routing | Brand display name does not affect score or hash | `test_routing.py` |
 | Fail closed | Stale, unavailable, over-cost, over-latency, and side-effect routes reject | `test_routing.py` |
-| Recovery | Authority drift, external drift, and duplicate side effects detect | `test_recovery_completion.py` |
+| Recovery | Authority drift, external drift, their combined state, and duplicate effects detect | `test_recovery_completion.py` |
 | Completion | Requirement-evidence scope prevents overclaim | `test_recovery_completion.py` |
-| Schema | Ten contracts match dataclass fields and reject unknown fields | `test_schema_surface.py` |
+| Schema | Draft 2020-12 validates all ten serialized contract instances | `test_schema_surface.py`, `test_schema_instances.py` |
 | Public neutrality | Common Prompt has no named vendor/product | `test_public_neutrality.py` |
 | Source boundary | Raw capture is absent and source remains unverified | `test_public_neutrality.py` |
 | Blueprint protection | Canonical PEOS hash remains unchanged | `test_public_neutrality.py` |
 | Activation | Candidate status and disabled activation remain explicit | `test_public_neutrality.py` |
+| Archive evidence | Three clean archives have stable machine-readable reports | `ci_verify.py`, dedicated CI workflow |
 
 ## Claim Limits
 

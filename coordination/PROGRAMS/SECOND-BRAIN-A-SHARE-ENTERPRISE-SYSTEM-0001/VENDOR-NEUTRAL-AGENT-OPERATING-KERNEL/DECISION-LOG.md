@@ -64,3 +64,29 @@ not modify the E24 branch or PR #106.
 
 **Reason:** The user authorized completion before GPT review, but existing
 official work must remain untouched.
+
+## D-009: Replace precedence ranking with a layered authority model
+
+**Decision:** Treat hard restrictions as cumulative denials, W1 as the active
+lease owner, and user instructions as objective/narrowing/approval input that
+cannot expand the lease without a W1 route bridge.
+
+**Reason:** A highest-rank model could silently let natural language, a tool,
+or a model profile select authority it does not own.
+
+## D-010: Make approval executable only after W1 verification
+
+**Decision:** Preserve approval requirements separately from allowed actions;
+only verified approval actions supplied by the active W1 route make the action
+executable.
+
+**Reason:** An allowed action is not the same as an approved action.
+
+## D-011: Require clean-archive evidence
+
+**Decision:** Add an independent CI verifier that runs the complete suite,
+schema instances, static gates, all changed-file scans, and three archive roots
+under different hash seeds.
+
+**Reason:** A normal worktree can hide dependencies on `.git`, local files, or
+non-deterministic process state.

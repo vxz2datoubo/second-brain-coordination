@@ -5,7 +5,7 @@ target_agent: "GPT"
 reviewer: "GPT"
 actual_executor: "CODEX"
 task_id: "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROPOSAL-0011"
-status: "READY_FOR_GPT_REVIEW"
+status: "REVISED_PENDING_GPT_REVIEW"
 authority: "CANDIDATE_ONLY"
 boundary: "research_only / NO_TRADE"
 
@@ -14,11 +14,11 @@ git:
   branch: "codex/vendor-neutral-agent-operating-kernel-0011"
   worktree: "F:/aidanao-worktrees/codex-vendor-neutral-agent-operating-kernel-0011"
   base: "5a36ebcfaf3bd890d7c2a4a16c29a4b03cb02398"
-  parent: "be60caad11f37d87c4e43710959882cb3cc76937"
-  tree: "663e7392f31c2d70e19042e7a942ea2ccef4c2d2"
-  tested_head: "216ff0e053907d5eecad9fe4245cc163991cb69f"
-  receipt_head: "RESOLVE_FROM_THIS_FILE_COMMIT"
-  draft_pr: "PENDING_EXTERNAL_CREATION"
+  parent: "67a4c68c290d8b7db02b5c44d553c7add3b0cd5e"
+  reviewed_tree: "bd7daaf9d38cb89c419559340e6b625bf6e22242"
+  tested_head: "7ff963753f1ef50c56635bcef872f05f584b5dcb"
+  draft_pr: "https://github.com/vxz2datoubo/second-brain-coordination/pull/107"
+  review_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/31"
 
 owned_paths:
   - "coordination/BLUEPRINTS/*AGENT-KERNEL*"
@@ -34,7 +34,9 @@ completed:
   - "Deterministic authority, memory, routing, recovery, and completion runtime."
   - "PEOS addendum, protocol blueprint, and integration-index candidate."
   - "Named project Skill candidate."
-  - "73 passing tests plus static and public scans."
+  - "84 passing tests plus Draft 2020-12 instance validation, public scans, and three clean archive runs."
+  - "Layered fail-closed authority: user scope cannot expand a W1 active lease."
+  - "Archive-safe validation and public source expression audit."
 
 remaining:
   - "GPT ownership and non-duplication review."
@@ -45,9 +47,11 @@ remaining:
 
 tests:
   command: "python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/run_all_tests.py"
-  result: "PASS_73_OF_73"
-  output_sha256: "740adf67176d4fe1dd6c459353c5f5a7b1ffbb44d1e9c0e79ab0e4acadde0139"
-  static: "AST_18 JSON_1 YAML_6 STRICT_YAML_6"
+  result: "PASS_84_OF_84"
+  machine_evidence_sha256: "b06c5088d8a141f7f83e1ba135136cc70306decb866d7a5841bcff0b0b29b00e"
+  static: "AST_20 JSON_SCHEMA_DRAFT_2020_12 YAML_8 STRICT_YAML_8"
+  clean_archive_runs: 3
+  clean_archive_report_sha256: "8ee88ceec3dc4cae385d6a26133210c374208c30872782f869ee49e080a65954"
   changed_file_secret_scan_matches: 0
 
 unknowns:
