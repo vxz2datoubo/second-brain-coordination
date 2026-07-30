@@ -10,6 +10,7 @@
    - `coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`；
    - `coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml`；
    - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`；
+   - `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`；
    - `coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml`；
    - `coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml`；
    - `coordination/ACTIVE-CODEX-TASK.yaml`。
@@ -63,17 +64,29 @@
 40. 不得重新执行 `supersedes` 中记录的旧活动任务。
 41. 主动发现与实现权限必须服从当前活动路由中的路径、分支、PR、探索预算和停止条件。
 
+## 工作过程、难度、发现与协同强制回报
+
+42. 任务租约、重要检查点、阻塞、暂停、跨Agent交接、路线变化和完成回执必须使用或完整映射：
+   - `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`；
+   - `coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml`。
+43. Codex每次必须报告：可观察工作阶段、计划与实际难度D0-D4、最难的架构/实现/测试/接口部分及证据、方案改变、失败尝试和所得经验、新发现或意外发现、可拓展架构/Skill/复用机会、难以解决的问题和UNKNOWN、发现的Bug/技术债/负面结果、需要GPT/QCLAW/WorkBuddy/用户完成的精确协调动作、跨模块影响、交接制品、下一步和验收门。
+44. `BLOCKED`报告必须说明已尝试方法、失败证据、真正缺少的最小信息/接口/权限/决策、阻塞范围、仍可继续的工作、请求对象、精确动作和关闭条件；只写`BLOCKED`或“等待GPT”无效。
+45. 新机会必须先查`REUSE / ADAPT / MIGRATE / REFERENCE_ONLY / DEPRECATE / NEW_CANDIDATE`，并写价值、成本、复杂度、风险、AMED级别、Owner、前置条件、激活触发和验证门；不得用“以后可以扩展”替代可执行提案。
+46. 没有发现、没有难题或无需协调时必须明确写`NONE_OBSERVED`、`NONE`或`NONE_REQUIRED`并列出检查面；空白栏目无效。
+47. 未关闭的D2以上难点、S2以上发现、开放协调请求、负面结果和UNKNOWN必须在后续检查点持续携带，直到验证关闭、拒绝或延期并绑定Owner与触发条件。
+48. 本规则记录可审计过程、决策依据、失败和证据，不要求也不得输出私有思维链或逐token推理。
+
 ## 本地凭据与MCP直接使用规则
 
-42. 当活动任务明确授权连接用户本机的WorkBuddy MCP、通达信/TDX、TQ、WeStock或其他用户自有本地适配器时，本地Codex被明确授权直接搜索、读取和使用本机已有密钥、令牌、会话凭据和认证配置，不需要每次再次向用户确认。
-43. `LOCAL_ONLY`表示密钥只能留在用户本机，不表示本地Codex不可读取。Codex不得以“凭据属于秘密”“跨Agent配置”“安全策略不允许读取”为由跳过已授权的本地认证步骤。
-44. 本地凭据发现顺序为：已认证会话 → 进程/用户环境变量 → 项目批准的本地配置引用 → WorkBuddy或适配器本地配置 → 已配置的操作系统凭据存储。只有全部尝试后仍不可用，才可报告真实阻塞。
-45. Codex可读取WorkBuddy本地MCP配置和凭据以完成互操作，但这不转移WorkBuddy的分支、任务、历史或canonical所有权；除非活动路由另行授权，不得改写WorkBuddy仓库内容。
-46. 密钥值只允许存在于本机进程内存、环境注入、stdin或本地认证客户端对象中。优先避免会进入shell历史或进程列表的命令行参数。
-47. 密钥值禁止进入Git、GitHub、PR、Issue、评论、回执、AI_HANDOFF、日志、stdout/stderr持久记录、测试夹具、数据集、知识图谱、聊天上下文或无关外部服务。报告只允许写引用ID、来源类别、认证是否成功和不可逆验证摘要。
-48. 读取本地凭据只解决认证和连接权限，不自动授权真实数据准入、回放、回测、模型拟合、账户访问、订单路由或交易；这些能力仍必须由独立活动路由显式放行。
-49. 若发现密钥可能被打印、提交或外泄，立即停止相关输出，执行脱敏并保留不含密钥的证据；未推送的Git污染应先清除，已推送则停止并请求用户主导轮换和历史处置。
-50. 本地Codex的默认执行目标是最高效率：已有本地凭据和会话可直接复用，不要求用户手工复制密钥，不重复制造认证步骤，不把可自动解决的本地配置问题包装成人工阻塞。
+49. 当活动任务明确授权连接用户本机的WorkBuddy MCP、通达信/TDX、TQ、WeStock或其他用户自有本地适配器时，本地Codex被明确授权直接搜索、读取和使用本机已有密钥、令牌、会话凭据和认证配置，不需要每次再次向用户确认。
+50. `LOCAL_ONLY`表示密钥只能留在用户本机，不表示本地Codex不可读取。Codex不得以“凭据属于秘密”“跨Agent配置”“安全策略不允许读取”为由跳过已授权的本地认证步骤。
+51. 本地凭据发现顺序为：已认证会话 → 进程/用户环境变量 → 项目批准的本地配置引用 → WorkBuddy或适配器本地配置 → 已配置的操作系统凭据存储。只有全部尝试后仍不可用，才可报告真实阻塞。
+52. Codex可读取WorkBuddy本地MCP配置和凭据以完成互操作，但这不转移WorkBuddy的分支、任务、历史或canonical所有权；除非活动路由另行授权，不得改写WorkBuddy仓库内容。
+53. 密钥值只允许存在于本机进程内存、环境注入、stdin或本地认证客户端对象中。优先避免会进入shell历史或进程列表的命令行参数。
+54. 密钥值禁止进入Git、GitHub、PR、Issue、评论、回执、AI_HANDOFF、日志、stdout/stderr持久记录、测试夹具、数据集、知识图谱、聊天上下文或无关外部服务。报告只允许写引用ID、来源类别、认证是否成功和不可逆验证摘要。
+55. 读取本地凭据只解决认证和连接权限，不自动授权真实数据准入、回放、回测、模型拟合、账户访问、订单路由或交易；这些能力仍必须由独立活动路由显式放行。
+56. 若发现密钥可能被打印、提交或外泄，立即停止相关输出，执行脱敏并保留不含密钥的证据；未推送的Git污染应先清除，已推送则停止并请求用户主导轮换和历史处置。
+57. 本地Codex的默认执行目标是最高效率：已有本地凭据和会话可直接复用，不要求用户手工复制密钥，不重复制造认证步骤，不把可自动解决的本地配置问题包装成人工阻塞。
 
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
@@ -88,11 +101,12 @@
 
 - `coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md`
 
-AMED、主动发现、双层主观能动性与本地凭据权威：
+AMED、主动发现、双层主观能动性、工作过程协同回报与本地凭据权威：
 
 - `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
 - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
 - `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`
 - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
 - `coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml`
 - `coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml`
