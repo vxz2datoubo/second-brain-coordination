@@ -1,0 +1,210 @@
+schema_version: "1.0"
+report_id: "<AGENT>-<TASK>-<CHECKPOINT_OR_COMPLETION>-<SEQUENCE>"
+report_type: "LEASE_CLAIM | CHECKPOINT | BLOCKER_OR_ESCALATION | COMPLETION | HANDOFF_OR_ROUTE_CHANGE"
+reporting_agent: "GPT | CODEX | QCLAW | WORKBUDDY | FUTURE_AGENT"
+created_at: "<ISO-8601>"
+protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+
+route_context:
+  repository: "vxz2datoubo/second-brain-coordination"
+  task_id: "<FULL_TASK_ID>"
+  route_epoch: 0
+  active_issue: 0
+  pull_request: 0
+  branch: "<BRANCH>"
+  gate: "<GATE>"
+  remote_main_head: "<40_HEX_SHA>"
+  reviewed_or_base_head: "<40_HEX_SHA>"
+  current_head: "<40_HEX_SHA_OR_LOCAL_UNVERIFIABLE>"
+  completion_or_checkpoint_signal: "<SIGNAL>"
+
+plain_language_summary:
+  what_happened: "<ONE_TO_THREE_SENTENCES>"
+  why_it_matters: "<ONE_TO_THREE_SENTENCES>"
+  current_status: "<READY | IN_PROGRESS | PARTIAL | BLOCKED | READY_FOR_REVIEW | COMPLETED_WITH_GPT_GATE>"
+
+primary_work_and_process_trace:
+  original_goal: "<GOAL>"
+  work_stages_completed:
+    - stage: "<STAGE_ID>"
+      action: "<OBSERVABLE_ACTION>"
+      result: "<RESULT>"
+      evidence: ["<FILE_COMMIT_TEST_OR_SOURCE>"]
+  current_state: "<STATE>"
+  approach_taken: ["<APPROACH_STEP>"]
+  approach_changes_and_why:
+    - from: "<OLD_APPROACH>"
+      to: "<NEW_APPROACH>"
+      trigger_evidence: "<EVIDENCE>"
+      reason: "<WHY>"
+  failed_or_discarded_attempts:
+    - attempt: "<ATTEMPT>"
+      observable_failure: "<FAILURE>"
+      learning: "<LEARNING>"
+      regression_or_rule_added: "<TEST_RULE_OR_NONE_WITH_REASON>"
+  evidence_and_validation:
+    commands: ["<EXACT_COMMAND>"]
+    tests: ["<TEST_AND_RESULT>"]
+    artifacts: ["<ARTIFACT_AND_HASH>"]
+  remaining_work: ["<REMAINING_ITEM_OR_NONE>"]
+
+# Do not provide private chain-of-thought. Record observable stages, decisions, pivots, tests and concise rationale only.
+difficulty_and_complexity:
+  planned_difficulty: "D0_ROUTINE | D1_MODERATE | D2_HARD | D3_VERY_HARD | D4_RESEARCH_UNKNOWN"
+  actual_difficulty: "D0_ROUTINE | D1_MODERATE | D2_HARD | D3_VERY_HARD | D4_RESEARCH_UNKNOWN"
+  hardest_parts:
+    - part: "<PART>"
+      why_hard: "<CONSTRAINT_CONFLICT_UNKNOWN_OR_REPRODUCTION_DIFFICULTY>"
+      evidence: ["<FAILED_TEST_PIVOT_DEPENDENCY_OR_MEASUREMENT>"]
+      resolved: false
+      resolution_or_residual: "<RESULT_OR_REMAINING_DIFFICULTY>"
+  complexity_sources: ["<INTERFACE | DATA | ENVIRONMENT | EVIDENCE | ALGORITHM | GOVERNANCE | DEPENDENCY | UNKNOWN>"]
+  effort_or_iteration_deviation:
+    expected: "<EXPECTED_STAGES_OR_ATTEMPTS>"
+    actual: "<ACTUAL_STAGES_OR_ATTEMPTS>"
+    reason: "<REASON>"
+  simplifications_found: ["<SIMPLIFICATION_OR_NONE_OBSERVED>"]
+  residual_difficulty: "<WHAT_REMAINS_HARD_OR_NONE>"
+
+new_and_unexpected_discoveries:
+  status: "FOUND | NONE_OBSERVED"
+  checks_performed_if_none: ["<CHECKED_REPOSITORY_TEST_INTERFACE_SOURCE_OR_LOCAL_REALITY>"]
+  items:
+    - discovery_id: "<DISC-ID>"
+      expected_or_unexpected: "EXPECTED_CONFIRMATION | UNEXPECTED_POSITIVE | UNEXPECTED_NEGATIVE | CONTRADICTION | NEW_UNKNOWN"
+      discovery_type: "<PDER_TYPE_OR_OTHER_DEFINED_TYPE>"
+      verified_fact: "<FACT_OR_NONE>"
+      inference_or_hypothesis: "<INFERENCE_OR_NONE>"
+      evidence: ["<REFERENCE>"]
+      severity: "S0_NOTE | S1_MINOR | S2_MATERIAL | S3_MAJOR | S4_CRITICAL"
+      affected_scope: "<SCOPE>"
+      immediate_impact: "<IMPACT>"
+      downstream_impact: "<IMPACT>"
+      what_it_does_not_prove: "<BOUNDARY>"
+      action_taken: "<ACTION>"
+      recommended_disposition: "<ACCEPT_IN_CURRENT_TASK | PROPOSE_FOLLOW_UP | ARCHITECTURE_DECISION | USER_GATE | REJECT | UNKNOWN>"
+
+expandable_ideas_and_high_value_opportunities:
+  status: "FOUND | NONE_OBSERVED"
+  items:
+    - opportunity_id: "<OPP-ID>"
+      idea: "<IDEA>"
+      originating_observation: "<OBSERVATION>"
+      expected_value: "<VALUE>"
+      reuse_or_duplication_check: "<REUSE | ADAPT | MIGRATE | REFERENCE_ONLY | DEPRECATE | NEW_CANDIDATE>"
+      estimated_cost_and_complexity: "<COST_AND_DIFFICULTY>"
+      risks_and_negative_effects: ["<RISK>"]
+      AMED_class: "A_SAFE_LOCAL_AUTONOMOUS | B_BOUNDED_IMPLEMENT_AND_REPORT | C_PROPOSAL_ONLY | D_PROHIBITED_OR_USER_GATE"
+      recommended_owner: "<OWNER>"
+      recommended_mode: "<PROJECT_PLAN | TARGET | RESEARCH_TASK | NONE>"
+      prerequisites: ["<PREREQUISITE>"]
+      validation_gate: "<GATE>"
+      activation_trigger: "<TRIGGER>"
+      current_disposition: "<IMPLEMENTED | PROPOSED | DEFERRED | REJECTED | NEEDS_DECISION>"
+
+unresolved_hard_problems_and_unknowns:
+  status: "OPEN | NONE"
+  items:
+    - problem_id: "<PROBLEM-ID>"
+      plain_language_problem: "<PROBLEM>"
+      why_difficult: "<WHY>"
+      attempts_made: ["<ATTEMPT_AND_RESULT>"]
+      evidence_obtained: ["<EVIDENCE>"]
+      current_unknowns: ["<UNKNOWN>"]
+      blocked_by: ["<DEPENDENCY_OR_NONE>"]
+      minimum_information_or_capability_needed: "<NEED>"
+      safe_workaround_or_abstention: "<WORKAROUND | ABSTAIN_OR_STOP>"
+      risk_if_deferred: "<RISK>"
+      owner: "<OWNER>"
+      escalation_level: "<D2 | D3 | D4 | S2 | S3 | S4>"
+      closure_condition: "<CONDITION>"
+
+problems_failures_and_negative_results:
+  status: "FOUND | NONE_OBSERVED"
+  items:
+    - problem_id: "<FAIL-ID>"
+      symptom: "<SYMPTOM>"
+      root_cause_or_best_current_hypothesis: "<CAUSE_OR_HYPOTHESIS>"
+      evidence: ["<REFERENCE>"]
+      severity: "<S0-S4>"
+      affected_scope: "<SCOPE>"
+      reproduction: "<EXACT_REPRODUCTION_OR_NOT_REPRODUCIBLE_WITH_REASON>"
+      temporary_mitigation: "<MITIGATION_OR_NONE>"
+      permanent_fix_or_follow_up: "<FIX_OR_TASK>"
+      regression_protection: "<TEST_RULE_OR_NONE_WITH_REASON>"
+      status: "OPEN | MITIGATED | FIXED_TESTED | DEFERRED | REJECTED"
+
+coordination_requests:
+  status: "NONE_REQUIRED | OPEN_REQUESTS | ALL_SATISFIED"
+  items:
+    - request_id: "<REQ-ID>"
+      requested_from: "GPT | CODEX | QCLAW | WORKBUDDY | USER | EXTERNAL_OWNER"
+      exact_action_input_access_or_decision_needed: "<EXACT_REQUEST>"
+      reason: "<WHY>"
+      evidence_or_handoff_reference: ["<FILE_COMMIT_PACKET_OR_LINK>"
+      ]
+      urgency: "LOW | NORMAL | HIGH | IMMEDIATE"
+      dependency_or_blocked_gate: "<DEPENDENCY_OR_NONE>"
+      work_that_can_continue_without_it: ["<UNAFFECTED_SCOPE_OR_NONE>"
+      ]
+      deadline_or_activation_trigger: "<DATE_OR_TRIGGER>"
+      privacy_permission_or_user_gate: "<NONE | REQUIRED_WITH_REASON>"
+      status: "REQUESTED | ACKNOWLEDGED | IN_PROGRESS | SATISFIED | DEFERRED_WITH_TRIGGER | REJECTED_WITH_REASON"
+
+cross_agent_handoff_and_system_impact:
+  incoming_dependencies:
+    - owner: "<OWNER>"
+      artifact_or_decision: "<ITEM>"
+      status: "<STATUS>"
+  outgoing_handoffs:
+    - receiving_owner: "<OWNER>"
+      artifact_or_decision: "<ITEM>"
+      exact_verification_required: "<WHAT_RECEIVER_MUST_CHECK>"
+      status: "<STATUS>"
+  authoritative_source_of_truth: ["<SOR>"]
+  files_commits_or_artifacts: ["<REFERENCE>"]
+  interface_assumptions: ["<ASSUMPTION>"]
+  disagreements_or_conflicts: ["<CONFLICT_OR_NONE>"
+  ]
+  affected_agents_modules_or_tasks: ["<AFFECTED_ITEM_OR_NONE>"
+  ]
+  ownership_boundary: "<BOUNDARY>"
+  acceptance_gate: "<GATE>"
+  rollback_or_recovery: "<PLAN>"
+
+decisions_alternatives_and_lessons:
+  key_decisions:
+    - decision: "<DECISION>"
+      basis: "<EVIDENCE_AND_REASON>"
+      affected_scope: "<SCOPE>"
+  alternatives_considered:
+    - alternative: "<ALTERNATIVE>"
+      disposition: "USED | REJECTED | DEFERRED"
+      reason: "<WHY>"
+  reusable_lessons:
+    - lesson: "<LESSON>"
+      applies_when: "<CONDITIONS>"
+      fails_when: "<FAILURE_CONDITIONS>"
+      permanent_update_candidate: "<PROTOCOL_TEMPLATE_TEST_BLUEPRINT_OR_NONE>"
+
+next_action_and_gate:
+  recommended_next_action: "<ACTION>"
+  owner: "<OWNER>"
+  priority: "LOW | NORMAL | HIGH | CRITICAL"
+  prerequisites: ["<PREREQUISITE_OR_NONE>"
+  ]
+  success_gate: "<GATE>"
+  stop_condition: "<STOP_CONDITION>"
+  route_or_task_change_required: false
+  user_decision_required: false
+  completion_or_checkpoint_signal: "<SIGNAL>"
+
+report_validation:
+  no_blank_mandatory_sections: true
+  no_placeholders_in_submitted_report: true
+  all_open_D2_plus_difficulties_carried_forward: true
+  all_open_S2_plus_discoveries_carried_forward: true
+  all_open_coordination_requests_carried_forward: true
+  all_unresolved_hard_problems_carried_forward: true
+  private_chain_of_thought_excluded: true
+  secret_values_excluded: true
