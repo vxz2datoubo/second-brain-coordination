@@ -1,14 +1,126 @@
-task_id: CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24
-agent: CODEX
-mode: target
-route_epoch: 24
-schema_version: "25.0"
-reviewed_base: c21be383027b2c4ef74a830f4ed394a3f77f3afc
+schema_version: "2.0"
+record_type: "TaskImpactForecast"
+task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
+agent: "CODEX"
+mode: "target"
+route_epoch: 25
+reviewed_base: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
 owner_pr: 106
+task_weight: "STANDARD"
+research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
+
+first_principles:
+  real_goal: >-
+    Ensure every unit counted by Evaluation V2 corresponds to a genuinely distinct executable behavior and expected relation,
+    rather than a distinct author label or unused metadata field.
+  causal_mechanism:
+    - "Construct the actual public input consumed by execution."
+    - "Normalize away identity-only fields while preserving behaviorally consumed fields."
+    - "Execute the named predicate and failure oracle for every invariant row."
+    - "Derive relation signatures from declared contracts plus observed normalized relations."
+    - "Reject duplicate, orphan, unknown and unexecuted rows before coverage credit is granted."
+  constraints:
+    - "Synthetic-only candidate evaluation; no production D2 changes."
+    - "One corrective substantive tested commit plus one receipt-only commit."
+    - "Preserve E23 mutation, metamorphic, archive and Python 3.11/3.13 evidence."
+    - "Gate C/D, Issue #92 and PR #101/#102/#103/#105 remain frozen."
+  key_evidence:
+    - "E23 tested head 8dba2d17601f735e710d1c1ba5a62c058d9b5748."
+    - "E23 receipt head c21be383027b2c4ef74a830f4ed394a3f77f3afc."
+    - "Independent GPT review identified metadata-only uniqueness and non-dispatched invariant predicates/oracles."
+  failure_modes:
+    - "Identity or unused fields continue to create counted uniqueness."
+    - "Multiple declared modes collapse to the same runtime behavior but retain separate coverage credit."
+    - "Invariant IDs exist without executing their named predicate/oracle."
+    - "The repair weakens true-SUT mutation, metamorphic properties or inherited regressions."
+    - "Evidence files overclaim what the tested executable surface proves."
+  alternatives_considered:
+    - option: "Keep E23 catalog counts and document the limitation."
+      disposition: "REJECTED"
+      reason: "Would preserve false confidence and violate the executable-invariant requirement."
+    - option: "Delete all duplicate rows until signatures are unique."
+      disposition: "BOUNDED_FALLBACK"
+      reason: "Acceptable only when distinct executable behavior cannot be constructed without scope expansion."
+    - option: "Make currently unused variant/mode fields executable."
+      disposition: "PREFERRED_WHEN_SEMANTICALLY_JUSTIFIED"
+      reason: "Preserves intended coverage only when each field changes consumed input or expected relation and is independently tested."
+    - option: "Replace Evaluation V2 or modify production D2."
+      disposition: "PROHIBITED"
+      reason: "Unnecessary scope expansion and ownership violation."
+
+expected_positive_benefits:
+  - id: "E24-BENEFIT-01"
+    benefit: "Coverage counts become execution-derived and resistant to metadata inflation."
+    validation_signal: "No two counted rows share the same normalized executable input-plus-relation signature."
+  - id: "E24-BENEFIT-02"
+    benefit: "Every invariant becomes an executable contract rather than a named catalog entry."
+    validation_signal: "Each predicate has a controlled violating fixture detected by its named failure oracle."
+  - id: "E24-BENEFIT-03"
+    benefit: "Gate B evidence becomes independently reviewable and suitable for later-gate release decisions."
+    validation_signal: "Row-to-executable-case matrix has no orphan, unknown, unexecuted or duplicate entries."
+  - id: "E24-BENEFIT-04"
+    benefit: "Existing E23 mutation and metamorphic investment remains reusable."
+    validation_signal: "All eight mutants, family killers, eight properties and inherited D1/D2 regressions remain green."
+
+expected_negative_impacts:
+  - id: "E24-RISK-01"
+    impact: "Reported catalog counts may decrease when metadata-only duplicates are removed."
+    control: "Treat lower truthful counts as a positive correction, not a regression; preserve removed-row evidence."
+  - id: "E24-RISK-02"
+    impact: "Normalization may accidentally erase a behaviorally meaningful field."
+    control: "Mutation tests must show consumed-field changes alter signatures while identity-only changes do not."
+  - id: "E24-RISK-03"
+    impact: "Adding per-row predicate/oracle dispatch increases test runtime and implementation complexity."
+    control: "Keep dispatch deterministic, bounded to the existing package and measured in CI."
+  - id: "E24-RISK-04"
+    impact: "Receipt and evidence work may drift into implementation or later-gate claims."
+    control: "Use a strict tested-head/receipt-head allowlist and stop after GPT review request."
+
+execution_cost:
+  engineering_complexity: "MEDIUM"
+  expected_changed_surface: "Evaluation V2 package plus one existing CI workflow"
+  expected_compute: "Bounded synthetic test matrix on Python 3.11 and 3.13 plus three archive/hash-seed runs"
+  coordination_cost: "One Codex implementation pass and one GPT seven-gate second-pass audit"
+
+opportunity_cost:
+  - "Gate C and Gate D remain delayed while Gate B evidence is corrected."
+  - "Issue #108 PEOS Kernel work remains queued until E24 disposition."
+  - "Additional catalog growth is deferred in favor of correctness and auditability."
+
+net_value_assessment:
+  expected_net_value: "HIGH_POSITIVE"
+  rationale: >-
+    The repair is bounded and reversible, while preventing inflated coverage and false executable-evidence claims from propagating
+    into later gates. Truthful reduction of counts is preferable to advancing with structurally invalid evidence.
+
 success_criteria:
-  - execution-derived catalog uniqueness
-  - every invariant executes its named oracle
-  - no unused metadata field may create coverage credit
-  - preserve E23 mutation, metamorphic and CI passes
-  - one tested commit plus one receipt-only commit
-boundary: SYNTHETIC_ONLY_RESEARCH_ONLY
+  - "Execution-derived catalog uniqueness for all counted surfaces."
+  - "Every invariant executes its named predicate and failure oracle."
+  - "No unused metadata field or collapsed mode creates coverage credit."
+  - "Unknown predicate/oracle, orphan row, unexecuted row and duplicate behavioral signature fail closed."
+  - "E23 mutation, metamorphic, inherited tests, archive determinism and Python 3.11/3.13 CI remain green."
+  - "One tested commit plus one receipt-only commit from the authorized base."
+
+stop_conditions:
+  - "Latest remote main no longer authorizes this task_id/route_epoch."
+  - "PR #106 head or branch no longer matches the lease claim without an explicit route bridge."
+  - "The repair requires production D2, Gate C/D, unauthorized files, real data, secrets, accounts, orders or trading."
+  - "A high-severity unintended regression cannot be isolated and rolled back within the authorized surface."
+
+observation_plan:
+  during_execution:
+    - "Track actual unique executable signatures versus declared catalog rows by family."
+    - "Track predicate/oracle dispatch coverage, controlled violations and detection results."
+    - "Track test runtime, failures, skips, UNKNOWN and mutation survivors."
+    - "Track whether any proposed fix needs scope or ownership expansion."
+  at_completion:
+    - "Compare expected benefits and risks with actual results in E24-OUTCOME-CALIBRATION.yaml."
+    - "Report count decreases, removed duplicates and negative results without concealment."
+    - "Record complexity/runtime deviations and any side effects of stronger validation."
+
+rollback:
+  method: >-
+    Revert the single E24 substantive tested commit and the single receipt-only commit from PR #106.
+    No production, database, account, order, service or real-data state is modified.
+
+boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
