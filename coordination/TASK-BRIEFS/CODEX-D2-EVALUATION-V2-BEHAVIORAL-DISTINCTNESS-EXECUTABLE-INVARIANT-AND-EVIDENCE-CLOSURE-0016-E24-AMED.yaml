@@ -1,0 +1,182 @@
+schema_version: "1.0"
+record_type: "AMEDTaskBrief"
+task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
+issue_or_pr: "Issue #23 / Draft PR #106"
+assigned_agent: "CODEX"
+mode: "target"
+mode_reason: >-
+  The remaining work is a bounded repair inside the existing Evaluation V2 candidate package:
+  derive behavioral signatures from actual executable inputs and relations, dispatch every named
+  invariant predicate/oracle, and close evidence without entering later gates.
+task_weight: "STANDARD"
+
+mission_intent:
+  fundamental_goal: >-
+    Make every counted Evaluation V2 case represent a distinct executable input-plus-relation behavior,
+    and make every invariant row execute its declared predicate and failure oracle.
+  user_capability_outcome: >-
+    Provide a trustworthy synthetic evaluation gate that cannot gain coverage credit from IDs,
+    unused metadata, collapsed modes, or undeclared oracle behavior.
+  current_state_to_change: >-
+    E23 provides true SUT mutation, family-specific killers, metamorphic execution and dual-Python CI,
+    but catalog distinctness still trusts author-declared metadata and invariant rows are not dispatched
+    through their named predicates and failure oracles.
+  causal_mechanism:
+    - "Construct public executable inputs first, then derive normalized input signatures from consumed fields only."
+    - "Derive relation signatures from the actual named predicate/oracle contract and normalized observed result."
+    - "Reject duplicate input-plus-relation signatures, orphan rows, unknown predicates/oracles and unexecuted rows."
+    - "Use controlled violating fixtures to prove each named failure oracle can detect its intended breach."
+  success_criteria:
+    - "Every counted scenario, invariant, negative, episode, counterfactual and cross-family row has a unique execution-derived input-plus-relation signature."
+    - "Changing only identity fields, slot, unused variant or collapsed mode cannot create new coverage credit."
+    - "Every invariant row invokes its named predicate and named failure oracle."
+    - "All E23 mutation, metamorphic, inherited D1/D2, archive determinism and Python 3.11/3.13 CI evidence remains green."
+    - "Exactly one corrective substantive tested commit and one E24 receipt-only commit descend from c21be383027b2c4ef74a830f4ed394a3f77f3afc."
+  failure_conditions:
+    - "Any catalog row remains unique only because of an unconsumed or identity-only field."
+    - "Any counted row is not executed through its declared behavior and relation oracle."
+    - "Any E23 true-SUT mutant, family-specific kill, metamorphic property or inherited regression is weakened or removed."
+    - "Delivery changes production D2, later gates, unauthorized PRs or real-data/trading surfaces."
+  stop_conditions:
+    - "Remote main route no longer matches this task_id and route_epoch."
+    - "PR #106 head no longer equals the authorized reviewed/base head before the first E24 commit, unless GPT publishes an explicit route bridge."
+    - "A required fix needs production D2, Gate C/D, cross-agent ownership, secrets, real data, accounts, orders or trading."
+    - "Authorized path, commit-shape, AMED, lease or evidence requirements cannot be satisfied without scope expansion."
+
+system_position:
+  workstream: "A-SHARE-MULTI-AGENT-GAME-ENGINE / Gate B Evaluation V2"
+  bounded_context: "Synthetic-only evaluation correctness and evidence"
+  systems_of_record:
+    - "coordination/ACTIVE-CODEX-TASK.yaml"
+    - "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+    - "Issue #23 and Draft PR #106"
+    - "accepted Gate A receipt head fa68186ea81644b406b58e2ab56d65feeb4d4d94"
+  upstream_dependencies:
+    - "E23 tested head 8dba2d17601f735e710d1c1ba5a62c058d9b5748"
+    - "E23 receipt head c21be383027b2c4ef74a830f4ed394a3f77f3afc"
+    - "Python 3.11/3.13 workflow execution in run 30493601388"
+  downstream_consumers:
+    - "GPT Gate B acceptance review"
+    - "Gate C PR #103 only after explicit GPT release"
+    - "Gate D PR #105 only after Gates B and C acceptance"
+  read_only_dependencies:
+    - "AGENTS.md"
+    - "coordination/CODEX-TASK-ROUTER.md"
+    - "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+    - "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
+    - "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
+    - "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24.yaml"
+  canonical_components_not_to_duplicate:
+    - "accepted D2 production core and its canonical reducer/verifier/hash helpers"
+    - "W1 task routing and lease authority"
+    - "existing E23 mutation and metamorphic registries"
+  related_active_tasks:
+    - "Only this Codex Gate B route may modify PR #106. QCLAW and WorkBuddy routes remain isolated."
+
+hard_boundaries:
+  security:
+    - "No credentials, tokens, local paths, private logs or secret-bearing artifacts."
+  privacy:
+    - "PUBLIC_SAFE and synthetic fixtures only."
+  license:
+    - "No restricted third-party capture, licensed dataset or copied proprietary implementation."
+  file_and_branch_ownership:
+    - "Only PR #106 branch codex/d2-evaluation-v2-0014-e22."
+    - "Only the Evaluation V2 package and the authorized workflow file may change."
+    - "No direct main write, amend, rebase, reset, force-push or merge."
+  wip_and_routing:
+    - "One active Gate only: Gate B. Gate C/D and Issue #92 remain frozen."
+    - "No edits to PR #101, #102, #103 or #105."
+  trade_and_account:
+    - "No real data, account, order, broker, execution, performance or trading claim."
+  fact_inference_boundary:
+    - "Synthetic evaluation correctness is not evidence of market realism, participant identity, profitability or live readiness."
+
+active_discovery_duty:
+  required_checks:
+    - WRONG_OR_STALE_ASSUMPTION
+    - MISSING_REQUIREMENT
+    - DUPLICATE_RUNTIME_OR_SKILL
+    - INTERFACE_GAP
+    - REUSABLE_CAPABILITY
+    - SIMPLER_OR_BETTER_METHOD
+    - CROSS_MODULE_LINKAGE
+    - HIDDEN_COST_OR_RISK
+    - NEGATIVE_OR_COUNTERINTUITIVE_RESULT
+  required_output: "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT"
+
+research_trigger:
+  level: "L1_REUSE_AND_QUICK_CHECK"
+  trigger_reasons:
+    - "Bounded repository implementation and test-design repair; no new external domain or policy freshness question."
+    - "Repository and existing engineering evidence are sufficient unless a material contradiction is discovered."
+  required_source_classes:
+    - "VERIFIED_REPOSITORY"
+    - "VERIFIED_TEST"
+    - "INHERITED_REPORT"
+    - "UNKNOWN"
+  a_share_adaptation_required: false
+  research_ledger_required: true
+
+exploration_budget:
+  primary_delivery_share: "80%"
+  active_discovery_share: "15%"
+  system_opportunity_share: "5%"
+  max_new_architecture_proposals: 1
+  max_new_skill_candidates: 0
+  max_unplanned_files: 2
+  scope_expansion_without_gate: false
+
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    allowed_examples:
+      - "Refactor internal Evaluation V2 helpers within authorized paths when behavior and contracts remain bounded and tests prove equivalence."
+      - "Add focused negative tests, deterministic normalization helpers and clearer failure diagnostics."
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    allowed_examples:
+      - "Add backward-compatible internal case-manifest or relation-normalization support required to make the active acceptance gate executable."
+      - "Strengthen the authorized CI workflow without changing unrelated jobs or external contracts."
+  C_PROPOSAL_ONLY:
+    examples:
+      - "Cross-module evaluation framework reuse, canonical schema changes or later-gate architecture improvements."
+  D_PROHIBITED_OR_USER_GATE:
+    examples:
+      - "Production D2 changes, authority migration, new data admission, secrets, real market data, accounts, orders, trading or Gate C/D execution."
+
+required_evidence:
+  fact_classes:
+    - VERIFIED_REPOSITORY
+    - VERIFIED_LOCAL
+    - VERIFIED_TEST
+    - INFERENCE
+    - INHERITED_REPORT
+    - ACCESS_NOT_AVAILABLE
+    - UNKNOWN
+  commands_and_exit_codes: true
+  tests_pass_fail_skip: true
+  negative_results: true
+  alternatives_and_tradeoffs: true
+  rollback: true
+
+mandatory_delivery_artifacts:
+  - AMED-AGENT-EXECUTION-RECEIPT.yaml
+  - AMED-RESEARCH-LEDGER.yaml
+  - UNPLANNED-IMPROVEMENT-LEDGER.yaml
+  - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md
+  - E24-EVALUATION-V2-RECEIPT.md
+  - E24-EVIDENCE-MATRIX.md
+  - E24-OUTCOME-CALIBRATION.yaml
+  - UNKNOWN-REGISTRY.yaml
+  - AI_HANDOFF.yaml
+
+second_pass_audit:
+  required: true
+  reviewer: "GPT"
+  gates:
+    - TASK_COMPLETENESS_GATE
+    - FACT_EVIDENCE_GATE
+    - RESEARCH_QUALITY_GATE
+    - ENGINEERING_CORRECTNESS_GATE
+    - IMPROVEMENT_VALUE_GATE
+    - SYSTEM_EVOLUTION_GATE
+    - NEXT_ACTION_GATE
