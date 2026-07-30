@@ -132,3 +132,14 @@ Adapter 或 Skill，不得写入公共权威内核。
 
 本增量是独立候选文件。拒绝或关闭 PR 即可完整回滚；现有 PEOS v1.0
 没有被修改。
+
+## GPT Review Remediation 2026-07-30
+
+This addendum is protocol stewardship only. W10/PEOS may define candidate
+semantic links, but W1 remains the sole owner of authority resolution, leases,
+approval evidence, and completion acceptance; W3 owns evidence and memory;
+W8 owns capability registration, checkpoints, side-effect ledgers, and runtime
+orchestration; W9 owns model-profile evaluation and calibration. The reference
+implementation is a pure-function candidate and cannot act as a W1 producer.
+Hard restrictions accumulate, allowed path scopes intersect, and natural
+language never expands an active lease without an explicit W1 route bridge.

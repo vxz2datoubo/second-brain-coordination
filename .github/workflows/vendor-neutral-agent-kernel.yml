@@ -1,0 +1,73 @@
+name: Vendor-neutral agent kernel
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/vendor-neutral-agent-kernel.yml"
+      - "coordination/BLUEPRINTS/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROTOCOL-v1.0-CANDIDATE.md"
+      - "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-AGENT-KERNEL-ADDENDUM-v1.0-CANDIDATE.md"
+      - "coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.5-CANDIDATE.md"
+      - "coordination/SKILLS/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-GOVERNANCE-SKILL-v1.0.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  candidate-evidence:
+    name: Candidate evidence (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only dependencies
+        run: python -m pip install --disable-pip-version-check -r coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/requirements-ci.txt
+      - name: Resolve immutable evidence context
+        id: context
+        shell: bash
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.sha }}"
+          head="${{ github.sha }}"
+          git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
+          echo "commit=$head" >> "$GITHUB_OUTPUT"
+          echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"
+          echo "changed_files=$RUNNER_TEMP/changed-files.txt" >> "$GITHUB_OUTPUT"
+      - name: Run complete candidate suite and static gates
+        run: >-
+          python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py
+          --changed-files "${{ steps.context.outputs.changed_files }}"
+          --commit "${{ steps.context.outputs.commit }}"
+          --tree "${{ steps.context.outputs.tree }}"
+      - name: Reproduce clean Git archive evidence under three hash seeds
+        shell: bash
+        run: |
+          set -euo pipefail
+          reports=()
+          for seed in 1 2 3; do
+            archive_root="$(mktemp -d)"
+            git archive "${{ steps.context.outputs.commit }}" | tar -x -C "$archive_root"
+            PYTHONHASHSEED="$seed" python -B "$archive_root/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py" \
+              --changed-files "${{ steps.context.outputs.changed_files }}" \
+              --commit "${{ steps.context.outputs.commit }}" \
+              --tree "${{ steps.context.outputs.tree }}" > "$RUNNER_TEMP/archive-$seed.json"
+            reports+=("$(sha256sum "$RUNNER_TEMP/archive-$seed.json" | awk '{print $1}')")
+          done
+          printf '%s\n' "${reports[@]}" | sort -u | tee "$RUNNER_TEMP/archive-report-hashes.txt"
+          test "$(sort -u "$RUNNER_TEMP/archive-report-hashes.txt" | wc -l)" -eq 1
+      - name: Upload machine-readable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: vendor-neutral-agent-kernel-evidence-py${{ matrix.python-version }}
+          path: |
+            ${{ runner.temp }}/changed-files.txt
+            ${{ runner.temp }}/archive-*.json
+            ${{ runner.temp }}/archive-report-hashes.txt

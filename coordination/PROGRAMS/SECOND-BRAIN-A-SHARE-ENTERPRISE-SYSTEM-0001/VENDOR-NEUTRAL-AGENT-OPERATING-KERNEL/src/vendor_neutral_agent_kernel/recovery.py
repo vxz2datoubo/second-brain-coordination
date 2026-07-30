@@ -72,9 +72,9 @@ def resume_checkpoint(
     observed_external_anchors: tuple[str, ...],
 ) -> ResumeDecision:
     findings: list[str] = []
-    status = "READY"
+    blocking_states: list[str] = []
     if current_authority_hash != checkpoint.authority_hash:
-        status = "REVALIDATE_AUTHORITY"
+        blocking_states.append("REVALIDATE_AUTHORITY")
         findings.append("AUTHORITY_CHANGED")
     missing_anchors = tuple(
         anchor
@@ -82,8 +82,9 @@ def resume_checkpoint(
         if anchor not in observed_external_anchors
     )
     if missing_anchors:
-        status = "EXTERNAL_DRIFT"
+        blocking_states.append("EXTERNAL_DRIFT")
         findings.append("MISSING_EXTERNAL_ANCHORS:" + ",".join(missing_anchors))
+    status = "READY" if not blocking_states else "_AND_".join(blocking_states)
     return ResumeDecision(
         status=status,
         already_completed=checkpoint.completed_steps,

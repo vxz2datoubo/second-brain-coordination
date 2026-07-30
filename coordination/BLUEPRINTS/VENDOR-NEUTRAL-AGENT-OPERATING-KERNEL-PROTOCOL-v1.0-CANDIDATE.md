@@ -363,3 +363,42 @@ DecisionEpisode、W11、W7 和订单边界，内核不能绕过。
 - 不修改现有 canonical 蓝图即可恢复原状态；
 - 运行时启用必须使用 feature flag；
 - 回滚不能抹除审计、失败和来源记录。
+
+## GPT Review Remediation 2026-07-30
+
+This candidate correction replaces the earlier single precedence list with a
+layered fail-closed authority model:
+
+1. Canonical hard restrictions, unique ownership, and the project boundary are
+   cumulative denials and cannot be overridden.
+2. User input sets objective, cancellation, narrowing, and approval requests;
+   it cannot enlarge owned paths or supersede an active lease by itself.
+3. W1 owns `AuthorityResolution`, the active task lease, approval evidence, and
+   completion acceptance. A route bridge is required before an interruption
+   changes task, branch, paths, actions, or WIP.
+4. Agent roles, Skills, tool capabilities, and `ModelBehaviorProfile` only
+   constrain or describe execution feasibility. They never grant authority.
+
+Allowed paths are the intersection of canonical ownership, the active lease,
+and any explicit authorized narrowing. Forbidden actions are a cumulative union.
+Approval remains required even for an otherwise allowed action until a W1
+adapter supplies verified approval evidence. Same-layer task, path, or action
+conflicts produce `BLOCKED_AUTHORITY_CONFLICT`; the resolver must not select a
+winner by input order or source ID.
+
+Ownership remains non-duplicative:
+
+- W3 owns memory, evidence, and conflict state; Phase 3 is its governed
+  implementation path.
+- W8 owns capability registration, route binding, checkpoints, side-effect
+  ledgers, handoff, feature flags, and runtime orchestration.
+- W10/PEOS owns protocol semantics and links to `TaskIntent`, `ContextBundle`,
+  and `DecisionEpisode`, but not W1/W3/W8 authority.
+- W9 owns `ModelBehaviorProfile` evaluation, drift, and shadow calibration;
+  W8 binds approved profiles to runtime.
+- An executing agent may propose a `CompletionReceipt`; W1/GPT accepts it and
+  W9 consumes it for evaluation.
+
+The reference package is a pure-function candidate. It cannot act as a W1
+authority producer, write canonical memory, activate adapters, or operate a
+runtime until owner-specific adapters are separately approved.

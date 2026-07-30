@@ -7,6 +7,7 @@ from _support import meta
 from vendor_neutral_agent_kernel.authority import (
     AuthorityDirective,
     AuthorityKind,
+    is_action_executable,
     resolve_authority,
 )
 from vendor_neutral_agent_kernel.contracts import SideEffectClass
@@ -14,7 +15,7 @@ from vendor_neutral_agent_kernel.intent import compile_intent
 
 
 class AuthorityIntentTests(unittest.TestCase):
-    def test_user_explicit_decision_overrides_lower_route_action(self):
+    def test_user_cannot_override_active_route_hard_deny(self):
         directives = (
             AuthorityDirective(
                 AuthorityKind.ACTIVE_ROUTE,
@@ -30,10 +31,10 @@ class AuthorityIntentTests(unittest.TestCase):
             ),
         )
         result = resolve_authority(meta("authority"), directives, agent_id="CODEX")
-        self.assertIn("create_candidate_branch", result.allowed_actions)
-        self.assertNotIn("create_candidate_branch", result.forbidden_actions)
-        self.assertEqual(result.effective_task_id, "task-kernel")
-        self.assertTrue(any(item.startswith("OVERRIDDEN_ACTION") for item in result.conflicts))
+        self.assertNotIn("create_candidate_branch", result.allowed_actions)
+        self.assertIn("create_candidate_branch", result.forbidden_actions)
+        self.assertEqual(result.effective_task_id, "task-route")
+        self.assertFalse(is_action_executable(result, "create_candidate_branch"))
 
     def test_route_overrides_skill_when_user_has_no_override(self):
         directives = (
@@ -69,26 +70,53 @@ class AuthorityIntentTests(unittest.TestCase):
         )
         result = resolve_authority(meta("authority"), directives, agent_id="CODEX")
         self.assertIn("publish", result.forbidden_actions)
-        self.assertIn("SAME_RANK_ACTION_CONFLICT:publish", result.conflicts)
+        self.assertEqual(result.resolution_status, "BLOCKED_AUTHORITY_CONFLICT")
+        self.assertIn(
+            "BLOCKED_AUTHORITY_CONFLICT:SAME_RANK_ACTION:ACTIVE_ROUTE:publish",
+            result.conflicts,
+        )
 
-    def test_highest_nonempty_path_scope_wins(self):
+    def test_path_scope_is_intersection_not_highest_nonempty_scope(self):
         directives = (
             AuthorityDirective(
                 AuthorityKind.USER_EXPLICIT_DECISION,
                 "user:scope",
-                task_id="task",
                 allowed_paths=("coordination/BLUEPRINTS/",),
             ),
             AuthorityDirective(
                 AuthorityKind.ACTIVE_ROUTE,
                 "route:scope",
-                task_id="old-task",
-                allowed_paths=("other/",),
+                task_id="task",
+                allowed_paths=("coordination/",),
             ),
         )
         result = resolve_authority(meta("authority"), directives, agent_id="CODEX")
         self.assertEqual(result.allowed_paths, ("coordination/BLUEPRINTS/",))
-        self.assertTrue(any(item.startswith("OVERRIDDEN_PATH_SCOPE") for item in result.conflicts))
+
+    def test_nonoverlapping_authorized_path_scopes_fail_closed(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(
+                    AuthorityKind.PROJECT_CHARTER,
+                    "charter:scope",
+                    allowed_paths=("coordination/",),
+                ),
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE,
+                    "route:scope",
+                    task_id="task",
+                    allowed_paths=("src/",),
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertEqual(result.resolution_status, "BLOCKED_AUTHORITY_CONFLICT")
+        self.assertEqual(result.allowed_paths, ())
+        self.assertIn(
+            "BLOCKED_AUTHORITY_CONFLICT:PATH_SCOPE_INTERSECTION_EMPTY",
+            result.conflicts,
+        )
 
     def test_directive_input_order_does_not_change_resolution(self):
         first = AuthorityDirective(
@@ -107,11 +135,11 @@ class AuthorityIntentTests(unittest.TestCase):
         self.assertEqual(left.authority_hash, right.authority_hash)
         self.assertEqual(left.allowed_actions, right.allowed_actions)
 
-    def test_authority_requires_task_identity(self):
-        with self.assertRaisesRegex(ValueError, "EFFECTIVE_TASK_ID_UNRESOLVED"):
+    def test_authority_requires_active_route_task_identity(self):
+        with self.assertRaisesRegex(ValueError, "ACTIVE_ROUTE_TASK_REQUIRED"):
             resolve_authority(
                 meta("authority"),
-                (AuthorityDirective(AuthorityKind.SKILL_CONTRACT, "skill"),),
+                (AuthorityDirective(AuthorityKind.USER_EXPLICIT_DECISION, "user"),),
                 agent_id="CODEX",
             )
 
@@ -124,6 +152,106 @@ class AuthorityIntentTests(unittest.TestCase):
                 allowed_actions=("write",),
                 forbidden_actions=("write",),
             )
+
+    def test_tool_and_model_can_not_grant_action_authority(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(AuthorityKind.ACTIVE_ROUTE, "route", task_id="task"),
+                AuthorityDirective(
+                    AuthorityKind.TOOL_CAPABILITY,
+                    "tool",
+                    allowed_actions=("activate_runtime",),
+                ),
+                AuthorityDirective(
+                    AuthorityKind.MODEL_PROFILE,
+                    "model",
+                    allowed_actions=("activate_runtime",),
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertNotIn("activate_runtime", result.allowed_actions)
+        self.assertFalse(is_action_executable(result, "activate_runtime"))
+        self.assertIn("NONAUTHORITY_ALLOW_IGNORED:activate_runtime", result.conflicts)
+
+    def test_tool_feasibility_can_add_a_deny_without_granting_authority(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE,
+                    "route",
+                    task_id="task",
+                    allowed_actions=("read_private_artifact",),
+                ),
+                AuthorityDirective(
+                    AuthorityKind.TOOL_CAPABILITY,
+                    "tool",
+                    forbidden_actions=("read_private_artifact",),
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertIn("read_private_artifact", result.forbidden_actions)
+        self.assertFalse(is_action_executable(result, "read_private_artifact"))
+
+    def test_approval_is_required_even_when_action_is_otherwise_allowed(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE,
+                    "route",
+                    task_id="task",
+                    allowed_actions=("publish_candidate",),
+                    approval_requirements=("publish_candidate",),
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertIn("publish_candidate", result.allowed_actions)
+        self.assertIn("publish_candidate", result.approval_requirements)
+        self.assertFalse(is_action_executable(result, "publish_candidate"))
+
+    def test_verified_route_approval_unblocks_required_action(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE,
+                    "route",
+                    task_id="task",
+                    allowed_actions=("publish_candidate",),
+                    approval_requirements=("publish_candidate",),
+                    verified_approval_actions=("publish_candidate",),
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertTrue(is_action_executable(result, "publish_candidate"))
+
+    def test_only_active_route_may_supply_verified_approval(self):
+        with self.assertRaisesRegex(ValueError, "VERIFIED_APPROVALS_REQUIRE_ACTIVE_ROUTE"):
+            AuthorityDirective(
+                AuthorityKind.USER_EXPLICIT_DECISION,
+                "user",
+                approval_requirements=("publish_candidate",),
+                verified_approval_actions=("publish_candidate",),
+            )
+
+    def test_conflicting_active_route_tasks_do_not_choose_by_source_id(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(AuthorityKind.ACTIVE_ROUTE, "route:a", task_id="task-a"),
+                AuthorityDirective(AuthorityKind.ACTIVE_ROUTE, "route:z", task_id="task-z"),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertEqual(result.effective_task_id, "UNRESOLVED")
+        self.assertEqual(result.resolution_status, "BLOCKED_AUTHORITY_CONFLICT")
+        self.assertIn("BLOCKED_AUTHORITY_CONFLICT:ACTIVE_ROUTE_TASK", result.conflicts)
 
     def test_compile_intent_produces_sealed_contract(self):
         result = compile_intent(

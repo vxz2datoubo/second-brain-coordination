@@ -101,8 +101,10 @@ class AuthorityResolution:
     allowed_actions: tuple[str, ...]
     forbidden_actions: tuple[str, ...]
     approval_requirements: tuple[str, ...]
+    verified_approval_actions: tuple[str, ...]
     conflicts: tuple[str, ...]
     resolution_evidence: tuple[str, ...]
+    resolution_status: str
     authority_hash: str
 
     def __post_init__(self) -> None:
@@ -113,12 +115,16 @@ class AuthorityResolution:
             "allowed_actions",
             "forbidden_actions",
             "approval_requirements",
+            "verified_approval_actions",
             "conflicts",
             "resolution_evidence",
         ):
             _unique(field_name.upper(), getattr(self, field_name))
         if set(self.allowed_actions) & set(self.forbidden_actions):
             raise ValueError("AUTHORITY_ACTION_CONTRADICTION")
+        if not set(self.verified_approval_actions) <= set(self.approval_requirements):
+            raise ValueError("VERIFIED_APPROVAL_NOT_REQUIRED")
+        _nonempty("RESOLUTION_STATUS", self.resolution_status)
         _nonempty("AUTHORITY_HASH", self.authority_hash)
 
 

@@ -42,7 +42,8 @@ v1.5 候选在 v1.4 的 W1 至 W13、0010 至 0019 架构上登记一个
 | 0018 | House-Edge Survival and Operating Control | W7＋W9＋W11 | CONTRACTED_NOT_IMPLEMENTED |
 | 0019 | Enterprise Blueprint Convergence | W1 | ACTIVE_PROJECT_PLAN |
 
-`0010-KERNEL` 是子协议标签，不是新的模块编号或工作流。
+`0010-KERNEL` 是 `PEOS/W10 protocol stewardship + W1/W3/W8 governed runtime adapters`
+的子协议标签，不是新的模块编号、平行权威或工作流。
 
 ## 四、唯一权威表
 
@@ -137,6 +138,16 @@ W1 AuthorityResolution
 - DecisionEpisode 仍由 W10 拥有；
 - 最终风险否决仍由 W7 拥有；
 - Agent 内核不能启动订单或修改生产审批。
+
+## GPT Review Remediation 2026-07-30
+
+The candidate reference implementation is not an authority producer. Before
+adapter-specific acceptance, it is limited to deterministic contract parsing,
+candidate-only planning, and synthetic tests. W1 owns authority and leases; W3
+owns evidence and memory; W8 owns runtime orchestration and side-effect state;
+W10/PEOS owns protocol semantics; W9 owns profile evaluation and calibration.
+`ModelBehaviorProfile`, Skills, and tools cannot grant authority. All future
+adapters remain separate tasks and this candidate stays disabled.
 
 ## 九、成熟度
 

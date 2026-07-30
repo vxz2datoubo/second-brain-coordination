@@ -105,6 +105,18 @@ class RecoveryCompletionTests(unittest.TestCase):
         self.assertEqual(result.status, "EXTERNAL_DRIFT")
         self.assertTrue(any(item.startswith("MISSING_EXTERNAL_ANCHORS") for item in result.findings))
 
+    def test_resume_preserves_authority_and_external_drift(self):
+        result = resume_checkpoint(
+            self.checkpoint(),
+            current_authority_hash="different",
+            observed_external_anchors=(),
+        )
+        self.assertEqual(result.status, "REVALIDATE_AUTHORITY_AND_EXTERNAL_DRIFT")
+        self.assertEqual(
+            result.findings,
+            ("AUTHORITY_CHANGED", "MISSING_EXTERNAL_ANCHORS:anchor:remote"),
+        )
+
     def test_complete_exact_evidence_is_success_clean(self):
         result = audit_completion(
             meta("receipt"),
