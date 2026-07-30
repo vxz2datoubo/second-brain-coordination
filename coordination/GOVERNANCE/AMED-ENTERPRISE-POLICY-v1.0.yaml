@@ -1,10 +1,12 @@
-schema_version: "1.1"
+schema_version: "1.2"
 policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
 short_name: "AMED"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
 blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+work_process_reporting_template: "coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml"
 local_secret_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
 user_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
@@ -23,12 +25,14 @@ mandatory_task_fields:
   - exploration_budget
   - improvement_authority
   - evidence_requirements
+  - work_process_reporting
   - second_pass_audit_required
 
 execution_chains:
   primary_delivery: true
   active_discovery: true
   system_evolution_proposal: true
+  work_process_and_coordination_reporting: true
 
 research_trigger_levels:
   L1_REUSE_AND_QUICK_CHECK:
@@ -132,11 +136,13 @@ mandatory_delivery_artifacts:
     - TEST_RECEIPT
     - ACTIVE_DISCOVERY_SUMMARY
     - UNKNOWN_SUMMARY
+    - WORK_PROCESS_AND_COORDINATION_REPORT_COMPACT
   STANDARD:
     - AGENT_EXECUTION_RECEIPT
     - RESEARCH_LEDGER
     - UNPLANNED_IMPROVEMENT_LEDGER
     - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
+    - WORK_PROCESS_AND_COORDINATION_REPORT
     - TEST_RUN_RECEIPT
     - UNKNOWN_REGISTRY
     - AI_HANDOFF
@@ -146,11 +152,49 @@ mandatory_delivery_artifacts:
     - RESEARCH_LEDGER
     - UNPLANNED_IMPROVEMENT_LEDGER
     - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
+    - WORK_PROCESS_AND_COORDINATION_REPORT
     - ALTERNATIVE_AND_TRADEOFF_MATRIX
     - INDEPENDENT_VALIDATION_PACKAGE
     - TEST_RUN_RECEIPT
     - UNKNOWN_REGISTRY
     - AI_HANDOFF
+
+work_process_reporting:
+  required_moments:
+    - LEASE_CLAIM
+    - MATERIAL_CHECKPOINT
+    - BLOCKER_OR_ESCALATION
+    - HANDOFF_OR_ROUTE_CHANGE
+    - COMPLETION
+  mandatory_sections:
+    - PRIMARY_WORK_AND_PROCESS_TRACE
+    - DIFFICULTY_AND_COMPLEXITY
+    - NEW_AND_UNEXPECTED_DISCOVERIES
+    - EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES
+    - UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS
+    - PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS
+    - COORDINATION_REQUESTS
+    - CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT
+    - DECISIONS_ALTERNATIVES_AND_LESSONS
+    - NEXT_ACTION_AND_GATE
+  no_empty_section_rule: true
+  none_values_require_checks_performed: true
+  difficulty_scale: [D0_ROUTINE, D1_MODERATE, D2_HARD, D3_VERY_HARD, D4_RESEARCH_UNKNOWN]
+  carry_forward_until_closed:
+    - D2_PLUS_DIFFICULTIES
+    - S2_PLUS_DISCOVERIES
+    - OPEN_COORDINATION_REQUESTS
+    - UNRESOLVED_HARD_PROBLEMS
+    - NEGATIVE_RESULTS_WITH_DECISION_IMPACT
+  invalid_report_patterns:
+    - "BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_REQUEST"
+    - "DIFFICULTY_WITHOUT_EVIDENCE"
+    - "IDEA_WITHOUT_OWNER_TRIGGER_AND_GATE"
+    - "PLACEHOLDER_OR_BLANK_MANDATORY_SECTION"
+    - "COMPLETION_SIGNAL_WITHOUT_CUMULATIVE_REPORT"
+  active_task_inheritance: >-
+    Existing active tasks inherit the reporting obligation without changing task_id, route_epoch, branch, PR, scope or completion signal.
+    No route reissue is required solely for adopting this protocol.
 
 fact_classes:
   - VERIFIED_REPOSITORY
@@ -179,6 +223,7 @@ gpt_second_pass_gates:
   - RESEARCH_QUALITY_GATE
   - ENGINEERING_CORRECTNESS_GATE
   - IMPROVEMENT_VALUE_GATE
+  - PROCESS_DIFFICULTY_COORDINATION_GATE
   - SYSTEM_EVOLUTION_GATE
   - NEXT_ACTION_GATE
 
@@ -199,6 +244,7 @@ anti_scope_explosion:
   negative_results_must_be_preserved: true
   executor_cannot_self_approve_major_expansion: true
   every_proposal_requires_owner_gate_and_close_condition: true
+  reporting_difficulty_does_not_authorize_scope_expansion: true
 
 local_runtime_credentials:
   policy: "LOCAL_CREDENTIAL_DIRECT_USE_AND_NON_EXPORT"
@@ -225,3 +271,6 @@ security_and_trade:
   broker_account_access_denied: true
   real_trade_denied: true
   bypass_license_paywall_captcha_denied: true
+
+updated_by: "GPT"
+updated_at: "2026-07-31T04:35:00+08:00"
