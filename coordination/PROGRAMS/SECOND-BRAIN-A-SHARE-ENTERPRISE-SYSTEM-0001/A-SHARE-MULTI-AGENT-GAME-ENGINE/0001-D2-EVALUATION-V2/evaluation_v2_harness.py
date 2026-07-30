@@ -71,6 +71,32 @@ def _run_input(run) -> dict[str, object]:
     return {"actions": tuple(actions)}
 
 
+def _counterfactual_catalog_case(result) -> dict[str, object]:
+    """Build a trace only from the already-executed counterfactual result.
+
+    ``CounterfactualSpec`` is an instruction to produce the result, not proof
+    of what the SUT actually consumed.  Keeping it out of this projection
+    makes a later spec/formula drift visible in the catalog signature.
+    """
+    baseline_run_id = result.baseline.run_id
+    if not baseline_run_id.endswith(":baseline"):
+        raise AssertionError("E26_COUNTERFACTUAL_EXECUTION_ID_MISSING_BASELINE_SUFFIX")
+    return _case(
+        baseline_run_id.removesuffix(":baseline"),
+        {
+            "baseline": _run_input(result.baseline),
+            "alternative": _run_input(result.alternative),
+            "changed_assumption_id": result.changed_assumption_id,
+        },
+        {
+            "changed_action_ids": result.changed_action_ids,
+            "baseline_state_hash": result.baseline.episode_state.state_hash,
+            "alternative_state_hash": result.alternative.episode_state.state_hash,
+            "changed_action_count": len(result.changed_action_ids),
+        },
+    )
+
+
 def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
     fingerprint = assert_accepted_sut_fingerprint()
     scenarios = scenario_catalog()
@@ -193,20 +219,10 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
                 "final_state_hash": episode_executions[spec.episode_id][1].episode_state.state_hash,
             },
         ) for spec, row in zip(episodes, episode_results)],
-        "counterfactuals": [_case(
-            spec.pair_id,
-            {
-                "baseline": _run_input(counterfactual_executions[spec.pair_id].baseline),
-                "alternative": _run_input(counterfactual_executions[spec.pair_id].alternative),
-                "changed_assumption_id": counterfactual_executions[spec.pair_id].changed_assumption_id,
-            },
-            {
-                "changed_action_ids": counterfactual_executions[spec.pair_id].changed_action_ids,
-                "baseline_state_hash": counterfactual_executions[spec.pair_id].baseline.episode_state.state_hash,
-                "alternative_state_hash": counterfactual_executions[spec.pair_id].alternative.episode_state.state_hash,
-                "passed": row["passed"],
-            },
-        ) for spec, row in zip(counterfactuals, counterfactual_results)],
+        "counterfactuals": [
+            _counterfactual_catalog_case(counterfactual_executions[spec.pair_id])
+            for spec in counterfactuals
+        ],
         "cross_family": [_case(spec.interaction_id, {"mutant": spec.mutant_id, "property": spec.property_id, "variant": spec.fixture_variant}, {"passed": row["passed"]}) for spec, row in zip(cross_family, cross_results)],
     }
     assert_catalogs_distinct(catalogs)

@@ -205,9 +205,41 @@ def _predicate_portfolio_delta_explained(run: GameRun) -> bool:
     return _predicate_report_has_no(run, "ORACLE_INVENTORY_DELTA_MISMATCH")
 
 
-def _object_oracle(oracle_id: str, run: GameRun, predicate: Predicate, reason_code: str) -> NamedOracleEvidence:
-    detected = not predicate(run)
-    return NamedOracleEvidence(oracle_id, detected, (reason_code,) if detected else (), _artifact_sha256(run))
+def _inspect_missing_episode(run: GameRun) -> NamedOracleEvidence:
+    """Inspect the carrier directly; this must not reuse HAS_EPISODE."""
+    detected = getattr(run, "episode_state", None) is None
+    return NamedOracleEvidence(
+        "ORACLE-HAS_EPISODE", detected,
+        ("ORACLE_MISSING_EPISODE",) if detected else (), _artifact_sha256(run),
+    )
+
+
+def _inspect_empty_run_events(run: GameRun) -> NamedOracleEvidence:
+    """Inspect the GameRun event carrier directly, not NONEMPTY_EVENTS."""
+    events = getattr(run, "events", None)
+    detected = type(events) is not tuple or not events
+    return NamedOracleEvidence(
+        "ORACLE-NONEMPTY_EVENTS", detected,
+        ("ORACLE_EMPTY_RUN_EVENTS",) if detected else (), _artifact_sha256(run),
+    )
+
+
+def _inspect_nonmonotonic_step_boundary(run: GameRun) -> NamedOracleEvidence:
+    """Independently derive schedule consistency from the stored episode shape."""
+    episode = getattr(run, "episode_state", None)
+    boundaries = getattr(episode, "step_boundaries", None)
+    if type(boundaries) is not tuple:
+        return NamedOracleEvidence(
+            "ORACLE-STEP_MONOTONIC", True, ("ORACLE_INVALID_STEP_BOUNDARY_COLLECTION",), _artifact_sha256(run),
+        )
+    expected_steps = tuple(range(1, len(boundaries) + 1))
+    observed_steps = tuple(getattr(boundary, "step_index", None) for boundary in boundaries)
+    stored_step_index = getattr(episode, "step_index", None)
+    detected = stored_step_index != len(boundaries) or observed_steps != expected_steps
+    return NamedOracleEvidence(
+        "ORACLE-STEP_MONOTONIC", detected,
+        ("ORACLE_STEP_BOUNDARY_MONOTONICITY",) if detected else (), _artifact_sha256(run),
+    )
 
 
 def _independent_oracle(oracle_id: str, run: GameRun, expected_reason: str) -> NamedOracleEvidence:
@@ -219,11 +251,11 @@ def _rule_registry() -> dict[str, InvariantRule]:
     return {
         "HAS_EPISODE": InvariantRule(
             "HAS_EPISODE", "ORACLE-HAS_EPISODE", _predicate_has_episode, _violate_has_episode,
-            lambda run: _object_oracle("ORACLE-HAS_EPISODE", run, _predicate_has_episode, "ORACLE_MISSING_EPISODE"),
+            _inspect_missing_episode,
         ),
         "NONEMPTY_EVENTS": InvariantRule(
             "NONEMPTY_EVENTS", "ORACLE-NONEMPTY_EVENTS", _predicate_nonempty_events, _violate_nonempty_events,
-            lambda run: _object_oracle("ORACLE-NONEMPTY_EVENTS", run, _predicate_nonempty_events, "ORACLE_EMPTY_RUN_EVENTS"),
+            _inspect_empty_run_events,
         ),
         "UNIQUE_EVENT_IDS": InvariantRule(
             "UNIQUE_EVENT_IDS", "ORACLE-UNIQUE_EVENT_IDS", _predicate_unique_event_ids, _violate_unique_event_ids,
@@ -251,7 +283,7 @@ def _rule_registry() -> dict[str, InvariantRule]:
         ),
         "STEP_MONOTONIC": InvariantRule(
             "STEP_MONOTONIC", "ORACLE-STEP_MONOTONIC", _predicate_step_monotonic, _violate_step_monotonic,
-            lambda run: _object_oracle("ORACLE-STEP_MONOTONIC", run, _predicate_step_monotonic, "ORACLE_STEP_BOUNDARY_MONOTONICITY"),
+            _inspect_nonmonotonic_step_boundary,
         ),
         "PORTFOLIO_DELTA_EXPLAINED": InvariantRule(
             "PORTFOLIO_DELTA_EXPLAINED", "ORACLE-PORTFOLIO_DELTA_EXPLAINED", _predicate_portfolio_delta_explained, _corrupt_current_inventory,
@@ -287,6 +319,25 @@ def validate_invariant_registry(
             raise AssertionError("E25_INVALID_FAILURE_ORACLE_ID:" + predicate_id)
         if not callable(rule.predicate) or not callable(rule.controlled_violation) or not callable(rule.failure_oracle):
             raise AssertionError("E25_INCOMPLETE_INVARIANT_RULE:" + predicate_id)
+        _assert_oracle_independence(rule)
+
+
+def _assert_oracle_independence(rule: InvariantRule) -> None:
+    """Reject a failure oracle that closes over its paired predicate or rule."""
+    pending = list(getattr(rule.failure_oracle, "__closure__", ()) or ())
+    seen: set[int] = set()
+    while pending:
+        value = pending.pop().cell_contents
+        marker = id(value)
+        if marker in seen:
+            continue
+        seen.add(marker)
+        if value is rule.predicate:
+            raise AssertionError("E26_ORACLE_DEPENDS_ON_PAIRED_PREDICATE:" + rule.predicate_id)
+        if isinstance(value, InvariantRule):
+            pending.extend(getattr(value.failure_oracle, "__closure__", ()) or ())
+            if value.predicate is rule.predicate:
+                raise AssertionError("E26_ORACLE_DEPENDS_ON_PAIRED_PREDICATE:" + rule.predicate_id)
 
 
 def execute_controlled_violation(predicate_id: str, valid_run: GameRun) -> ControlledViolationEvidence:
