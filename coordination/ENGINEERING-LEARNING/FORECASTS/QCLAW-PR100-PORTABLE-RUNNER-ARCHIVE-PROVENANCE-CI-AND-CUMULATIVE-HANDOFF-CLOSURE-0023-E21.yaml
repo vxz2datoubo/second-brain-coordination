@@ -1,0 +1,88 @@
+schema_version: "1.0"
+record_type: "TaskImpactForecast"
+task_id: "QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21"
+agent: "QCLAW"
+mode: "target"
+created_at: "2026-07-31T05:22:00+08:00"
+reviewed_base: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+
+first_principles:
+  real_goal: "Turn local machine evidence into portable, exact-commit, independently replayable candidate evidence."
+  causal_mechanism:
+    - "Relative paths and sys.executable remove hidden installation coupling."
+    - "Three archive roots prove the archived tree is the executed source."
+    - "Relevant dual-Python CI proves portability beyond the author machine."
+    - "Cumulative WPDCR and handoffs prevent successful counts from hiding process failures and UNKNOWNs."
+  constraints:
+    - "Same PR #100 and branch; one tested plus one receipt commit."
+    - "Candidate-only/public-safe; later gates and canonical promotion frozen."
+  failure_modes:
+    - "Commands call the old e17_gate_b_r2 workspace or a fixed QClaw Python."
+    - "D05 lists seeds but not roots, commit, commands or hashes."
+    - "CI green without running the QCLAW suite."
+    - "Untracked Q0 inputs silently leak into archive evidence."
+    - "Historical negative evidence or required process sections are overwritten or omitted."
+  observability:
+    - "Static path scans and adversarial external-path tests."
+    - "Per-root command and artifact matrices."
+    - "Python 3.11/3.13 workflow logs."
+    - "Remote compare, cumulative receipts and exact SHA anchors."
+  alternatives_considered:
+    - option: "Accept E20 as local-only evidence"
+      rejected_reason: "The active Gate-B route explicitly requires archive independence and relevant CI."
+    - option: "Discard the 42-case ledger"
+      rejected_reason: "The cases are useful and should be made portable rather than rebuilt."
+    - option: "Move evidence work to Codex"
+      rejected_reason: "PR #100 and its candidate evidence remain QCLAW-owned; transfer would violate ownership and lose context."
+  stop_conditions:
+    - "Tracked exact source fixtures cannot be supplied without private or unlicensed material."
+    - "Route/base/path mismatch or S4/D4 risk."
+
+expected_positive_impacts:
+  - impact: "Portable QCLAW evidence"
+    signal: "No absolute external paths and clean archive commands pass."
+  - impact: "Independent replayability"
+    signal: "Three exact-tested-commit roots produce identical canonical artifact hashes."
+  - impact: "Relevant CI"
+    signal: "Both Python jobs visibly execute generator, validator, 42 cases and receipt check."
+  - impact: "Better cross-agent handoff"
+    signal: "Full WPDCR and cumulative evidence state exact difficulties, discoveries, unknowns and coordination."
+
+expected_negative_impacts:
+  - impact: "Need to package or locate tracked Q0 fixtures"
+    severity: "MODERATE"
+    control: "Use hash-locked tracked fixtures only; otherwise abstain and request exact owner action."
+  - impact: "Longer CI runtime"
+    severity: "LOW_TO_MODERATE"
+    control: "Keep 42 bounded subprocess cases and avoid unrelated workflows."
+  - impact: "Potential Windows/Linux behavior differences"
+    severity: "MODERATE"
+    control: "Use portable APIs and explicit encoding; preserve platform-specific failures."
+
+execution_cost:
+  estimated: "D2_HARD / bounded STANDARD task"
+  main_cost_drivers:
+    - "Portable path/input refactor"
+    - "Archive harness and source-fixture reconciliation"
+    - "CI and cumulative receipt closure"
+  opportunity_cost: "Temporarily delays QQ return to continuous digestion, but prevents nonportable evidence from entering later gates."
+  expected_net_value: "HIGH_POSITIVE"
+
+risk_gates:
+  - gate: "NO_EXTERNAL_WORKSPACE_DEPENDENCY"
+    stop_if: "Any archive run invokes a file outside its declared root."
+  - gate: "NO_UNTRACKED_SOURCE_LEAKAGE"
+    stop_if: "Required Q0 fixtures cannot be matched to tracked locked hashes."
+  - gate: "NO_UNRELATED_GREEN_CI"
+    stop_if: "Workflow does not execute E21 commands."
+  - gate: "NO_SCOPE_OR_AUTHORITY_EXPANSION"
+    stop_if: "Canonical, private, licensed, real-data or later-gate authority is required."
+
+calibration_requirements:
+  compare_expected_to_actual:
+    - "Difficulty and iteration deviation"
+    - "Tracked-fixture availability"
+    - "Cross-platform failures"
+    - "Complexity added versus portability gained"
+    - "Coordination requests and closure"
+  outcome_classes: [PREDICTION_ERROR, EXECUTION_ERROR, ENVIRONMENT_CHANGE, MEASUREMENT_ERROR, UNKNOWN_UNKNOWN]
