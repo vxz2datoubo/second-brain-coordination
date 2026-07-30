@@ -1,0 +1,298 @@
+document_type: PARTICIPANT-FAMILY-AND-SUBTYPE-MAP
+task_id: QCLAW-PR93-PARTICIPANT-EVIDENCE-DIGEST-0010-Q0
+ontology_version: v1.0
+source_groups: 9
+target_families: 4
+total_subtypes: 13
+families:
+- family_name: RetailPopulationFamily
+  family_display: 散户群体家族
+  source_groups:
+  - 零售/个人投资者
+  subtypes:
+  - subtype_name: DayTraderRetail
+    display: 日内交易散户
+    structural_advantages:
+    - 高灵活性
+    - 无组织负担
+    - 快速反应
+    structural_weaknesses:
+    - 高交易成本
+    - T+1暴露
+    - 信息劣势
+    observable_signatures:
+    - 高换手率
+    - 龙虎榜小额交易
+    - 追涨杀跌
+    misclassification_risks:
+    - 与小私募混淆
+    - 与量化散户混淆
+    calibration_status: UNTESTED
+  - subtype_name: PositionalRetail
+    display: 持仓型散户
+    structural_advantages:
+    - 耐心
+    - 本地信息
+    - 供给锁定
+    structural_weaknesses:
+    - 行为偏差
+    - 信息滞后
+    - T+1暴露
+    observable_signatures:
+    - 较长持仓周期
+    - 低换手率
+    - 基本面叙事敏感
+    misclassification_risks:
+    - 与小型私募重叠
+    calibration_status: UNTESTED
+  - subtype_name: IPOReversalRetail
+    display: 打新散户
+    structural_advantages:
+    - IPO套利
+    - 中签随机性
+    structural_weaknesses:
+    - 高叙事污染
+    - 高成本敏感
+    observable_signatures:
+    - 新股高参与
+    - 上市首日卖出
+    misclassification_risks:
+    - 与机构打新混淆
+    calibration_status: UNTESTED
+  - subtype_name: SmallCapHunterRetail
+    display: 小盘捕手散户
+    structural_advantages:
+    - 小市值弹性
+    - 灵活进出
+    structural_weaknesses:
+    - 流动性陷阱
+    - 信息陷阱
+    - 叙事污染
+    observable_signatures:
+    - 偏好小市值
+    - 题材敏感
+    misclassification_risks:
+    - 与游资混淆
+    calibration_status: UNTESTED
+  - subtype_name: IndexETFInvestor
+    display: 指数ETF投资者
+    structural_advantages:
+    - 低成本
+    - 分散化
+    structural_weaknesses:
+    - 丧失Alpha
+    - Beta依赖
+    observable_signatures:
+    - ETF持有
+    - 定投模式
+    misclassification_risks:
+    - 与机构ETF配置混淆
+    calibration_status: UNTESTED
+  - subtype_name: SocialMediaFollowerRetail
+    display: 社交媒体跟风散户
+    structural_advantages:
+    - 快速信息获取
+    - 社区共振
+    structural_weaknesses:
+    - 极端叙事污染
+    - 羊群效应
+    - 确认偏误
+    observable_signatures:
+    - 社交媒体敏感
+    - 跟风交易
+    - 高情绪波动
+    misclassification_risks:
+    - 与游资议程设置混淆
+    calibration_status: UNTESTED
+- family_name: LargeCapitalFamily
+  family_display: 大资金家族
+  source_groups:
+  - 公募基金
+  - 私募基金
+  - 稳定资本
+  - 产业资本
+  - 外资
+  subtypes:
+  - subtype_name: PublicFundSubtype
+    display: 公募基金
+    structural_advantages:
+    - 研究深度
+    - 组合视角
+    - 正规执行
+    structural_weaknesses:
+    - 排名约束
+    - 合规约束
+    - 规模暴露
+    - 反应迟缓
+    observable_signatures:
+    - 季度披露
+    - 季报/年报
+    - 排名指标
+    misclassification_risks:
+    - 专户与公募混淆
+    calibration_status: UNTESTED
+  - subtype_name: PrivateFundSubtype
+    display: 私募基金
+    structural_advantages:
+    - 灵活策略
+    - 绝对收益
+    - 少披露
+    structural_weaknesses:
+    - 透明度低
+    - 赎回压力
+    - 规模上限
+    observable_signatures:
+    - 非公开持仓
+    - 灵活仓位
+    misclassification_risks:
+    - 与游资混淆
+    calibration_status: UNTESTED
+  - subtype_name: StabilizationCapitalSubtype
+    display: 稳定资本
+    structural_advantages:
+    - 有界容量 + UNKNOWN 授权规模/时机/法律基础/可观测性
+    - 政策信息
+    - 逆周期
+    structural_weaknesses:
+    - 政策依赖
+    - 市场扭曲
+    - 退出困境
+    observable_signatures:
+    - 蓝筹ETF增持
+    - 恐慌逆市买入
+    misclassification_risks:
+    - 与一般机构混淆
+    calibration_status: UNTESTED
+  - subtype_name: IndustrialCapitalSubtype
+    display: 产业资本
+    structural_advantages:
+    - 深度信息
+    - 耐心资本
+    - 控制权
+    structural_weaknesses:
+    - 价值陷阱
+    - 流动性差
+    - 利益输送
+    observable_signatures:
+    - 增减持公告
+    - 大股东质押
+    misclassification_risks:
+    - 战略vs财务增减持混淆
+    calibration_status: UNTESTED
+  - subtype_name: ForeignCapitalSubtype
+    display: 外资
+    structural_advantages:
+    - 全球视角
+    - 估值纪律
+    - 长期导向
+    structural_weaknesses:
+    - 额度限制
+    - 地缘政治
+    - 政策不确定
+    observable_signatures:
+    - 版本化公开聚合活动（市场级、非逐笔）+ UNKNOWN 参与者归因
+    - QFII持仓
+    misclassification_risks:
+    - 假外资混淆
+    - 交易vs配置型混淆
+    calibration_status: UNTESTED
+- family_name: QuantStrategyFamily
+  family_display: 量化策略家族
+  source_groups:
+  - 量化策略
+  subtypes:
+  - subtype_name: StatisticalArbitrageQuant
+    display: 统计套利量化
+    structural_advantages:
+    - 速度
+    - 数据处理
+    - 回测可复制
+    structural_weaknesses:
+    - 拥挤
+    - 模型风险
+    - 体制转换
+    observable_signatures:
+    - 高换手
+    - 统计因子暴露
+    misclassification_risks:
+    - 与高频混淆
+    calibration_status: UNTESTED
+  - subtype_name: HighFrequencyQuant
+    display: 高频量化
+    structural_advantages:
+    - 极低延迟
+    - 执行优势
+    structural_weaknesses:
+    - 监管风险
+    - 技术依赖
+    - 小容量
+    observable_signatures:
+    - 微秒交易
+    - Level-2依赖
+    misclassification_risks:
+    - 与统计套利混淆
+    calibration_status: UNTESTED
+  - subtype_name: FactorModelQuant
+    display: 因子模型量化
+    structural_advantages:
+    - 系统性
+    - 透明化
+    - 大容量
+    structural_weaknesses:
+    - 因子拥挤
+    - 衰变
+    - 尾部风险
+    observable_signatures:
+    - 因子暴露报告
+    - Smart Beta
+    misclassification_risks:
+    - 与基本面选股混淆
+    calibration_status: UNTESTED
+- family_name: ActiveSpeculativeCapitalFamily
+  family_display: 游资/牛散家族
+  source_groups:
+  - 游资/牛散
+  subtypes:
+  - subtype_name: SwingSpeculator
+    display: 波段游资
+    structural_advantages:
+    - 叙事敏感度
+    - 情绪解读
+    - 协调能力
+    structural_weaknesses:
+    - 容量限制
+    - 拥挤
+    - 换手成本
+    - 隔夜风险
+    observable_signatures:
+    - 龙虎榜席位
+    - 题材龙头
+    - 高换手
+    misclassification_risks:
+    - 与主题协调型混淆
+    calibration_status: UNTESTED
+  - subtype_name: ThemeCoordinator
+    display: 主题协调型游资
+    structural_advantages:
+    - 叙事构建
+    - 社交媒体
+    - 非线性收益
+    structural_weaknesses:
+    - 叙事依赖
+    - 路径依赖
+    - 监管风险
+    observable_signatures:
+    - 主题预埋
+    - 多票共振
+    - 信息节奏
+    misclassification_risks:
+    - 与正常轮动混淆
+    calibration_status: UNTESTED
+unknown_actor_cluster_rule:
+  rule_id: UNKNOWN_ACTOR_CLUSTER-001
+  description: 无法归入四大家族者归入UNKNOWN_ACTOR_CLUSTER
+  trigger_conditions:
+  - 不匹配signatures
+  - 多家族特征均匀
+  - 信息不足分类
+  default_action: 标记UNASSIGNED排队人工审核
