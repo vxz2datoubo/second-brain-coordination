@@ -1,37 +1,22 @@
-schema_version: "24.0"
-router_protocol: "coordination/CODEX-TASK-ROUTER.md"
-task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
-discovery_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
-amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
-review_publish_semantics: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
+schema_version: "25.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
-
 active_issue: 23
 related_issues: [31, 59, 89]
 primary_pull_requests: [101, 106, 103, 105]
-superseded_pull_requests: [102]
 accepted_gate_a_receipt_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
-accepted_gate_a_tested_head: "d51857a93d716e6e9e1d0816a453eb8688588cdb"
-reviewed_e22_plan_head: "0441f84367ccabe6072c144abb014c8ca16011b1"
-reviewed_e22_tested_head: "696ed005add87301f5f1bdbb13732d154a58da8e"
-reviewed_e22_receipt_head: "15517600a0c8141bdfc6dac82ba45d4fdba22e1d"
-reviewed_quarantine_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
-reviewed_d3a_preregistration_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-TRUE-SUT-MUTATION-DISTINCT-CATALOG-METAMORPHIC-AND-CI-CLOSURE-0015-E23.yaml"
+reviewed_e23_tested_head: "8dba2d17601f735e710d1c1ba5a62c058d9b5748"
+reviewed_e23_receipt_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24.yaml"
 
-# ACTIVE LEASE
-task_id: "CODEX-D2-EVALUATION-V2-TRUE-SUT-MUTATION-DISTINCT-CATALOG-METAMORPHIC-AND-CI-CLOSURE-0015-E23"
+task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
 mode: "target"
-mode_label: "【Codex模式：目标模式】Evaluation V2真实SUT突变、差异化目录、蜕变性质与CI闭环E23"
+mode_label: "【Codex模式：目标模式】Evaluation V2行为级去重、可执行不变量与证据闭环E24"
 mode_reason: >-
-  E22 created a useful fresh Evaluation V2 scaffold, accepted-core fingerprint, independent accounting code, deterministic
-  reports and the required three-commit shape. Independent review found one bounded defect cluster: most mutants corrupt
-  emitted records instead of changing executable SUT behavior, generic expected-digest mismatch kills any changed artifact,
-  catalog minimums cycle a handful of templates, several metamorphic properties are repetitions or ordinary negative tests,
-  and existing CI never invokes Evaluation V2. The corrective architecture is precise and remains on PR #106, so target mode applies.
+  E23 correctly implemented source-derived shadow SUT mutants, family-specific killers, real transformed inputs and Python 3.11/3.13 CI.
+  Independent review found one bounded residual cluster: catalog uniqueness still trusts author-declared metadata that is not consumed by execution,
+  and invariant rows are counted without invoking their named predicates and failure oracles. The repair remains in PR #106, so target mode applies.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
@@ -40,61 +25,48 @@ parent_program: 31
 source_issue: 23
 branch: "codex/d2-evaluation-v2-0014-e22"
 owner_pr: 106
-reviewed_or_base_head: "15517600a0c8141bdfc6dac82ba45d4fdba22e1d"
+reviewed_or_base_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
 direct_main_write: false
 auto_merge: false
-route_epoch: 23
-route_issued_at: "2026-07-30T03:58:00+08:00"
-route_issued_against_main: "3ea76109869a5f6b6f1987b6ba307bf7ec483619"
-completion_signal: "CODEX_E23_D2_EVALUATION_V2_TRUE_SUT_MUTATION_DISTINCT_CATALOG_METAMORPHIC_AND_CI_READY_FOR_GPT_REVIEW"
-supersedes:
-  - "CODEX-D2-EVALUATION-V2-EXECUTABLE-MUTATION-METAMORPHIC-AND-FAIL-CLOSED-EVIDENCE-0014-E22@route_epoch:22@REUSABLE_PARTIAL_GATE_B_FAIL"
+route_epoch: 24
+route_issued_at: "2026-07-30T08:20:00+08:00"
+route_issued_against_main: "9ffcb3f0e6af97883ff7c43e29bc97543873214a"
+completion_signal: "CODEX_E24_D2_EVALUATION_V2_BEHAVIORAL_DISTINCTNESS_EXECUTABLE_INVARIANT_AND_EVIDENCE_READY_FOR_GPT_REVIEW"
 
 review_disposition:
-  classification: "E22_REUSABLE_EVALUATION_SCAFFOLD_BUT_GATE_B_FAILS_TRUE_MUTATION_DISTINCT_COVERAGE_METAMORPHIC_VALIDITY_AND_CI_EXECUTION"
+  classification: "E23_TRUE_MUTATION_METAMORPHIC_AND_CI_ACCEPTED_AS_REUSABLE_BUT_GATE_B_FAILS_BEHAVIORAL_DISTINCTNESS_AND_EXECUTABLE_INVARIANTS"
   accepted_as_reusable_candidate_base:
-    - "PR #106 was created from fa68186 and contains exactly plan 0441f843, tested implementation 696ed005 and receipt 15517600."
-    - "Only the authorized 0001-D2-EVALUATION-V2 directory changed."
-    - "The imported D2 core is fingerprint-locked and a separate accounting oracle exists without calling the production verifier."
-    - "Three local Git-archive roots produced a stable canonical report and inherited D1/D2 regressions passed."
-    - "The package remains PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE."
+    - "From 15517600, E23 formed one substantive tested commit 8dba2d1 and one receipt-only commit c21be38."
+    - "Eight mutants are compiled from the fingerprint-locked D2 source in memory and change callable behavior."
+    - "Each kill uses a family-specific oracle; generic digest mismatch is not the sole killer."
+    - "Eight transformed-input properties execute against baseline and paired mutant."
+    - "GitHub Actions run 30493601388 executed E23 successfully on Python 3.11 and 3.13."
   blocking_findings:
-    - id: "E23-B01-MOST-MUTANTS-DO-NOT-MUTATE-EXECUTABLE-SUT"
+    - id: "E24-B01-INVARIANT-SLOT-CREATES-METADATA-ONLY-UNIQUENESS"
       severity: "BLOCKER"
       finding: >-
-        MUT-002 through MUT-007 mainly use dataclasses.replace on an already-emitted EpisodeState, event or flow. They test
-        tamper detection, not whether the evaluation suite kills a D2 implementation in which replay reservation, peer settlement,
-        external-flow creation, causal validation, stored-hash trust or conflict ownership logic is actually defective.
-    - id: "E23-B02-GENERIC-DIGEST-MISMATCH-IS-A-TAUTOLOGICAL-KILLER"
+        invariant_catalog creates 80 rows from 72 fixtures and adds slot=index//72 to semantic_input. Slot is not consumed by execute_scenario,
+        any predicate, or any oracle, so the last eight rows can receive unique signatures without unique executable semantics.
+    - id: "E24-B02-INVARIANT-ROWS-DO-NOT-EXECUTE-NAMED-ORACLES"
       severity: "BLOCKER"
       finding: >-
-        _oracle_invalid_kill passes each mutated episode with expected_digest equal to the baseline digest. The independent oracle
-        appends ORACLE_INDEPENDENT_DIGEST_MISMATCH whenever any normalized artifact changes, so a mutant can be killed without
-        exercising the family-specific semantic rule it claims to test.
-    - id: "E23-B03-BOUNDARY-MUTANT-IS-CURRENT-NEGATIVE-TEST"
+        The invariant test checks only that failure_oracle_id starts with ORACLE- and that IDs are unique. It never dispatches each row's predicate_id
+        or failure_oracle_id against its fixture, violating the explicit E23 requirement.
+    - id: "E24-B03-NEGATIVE-VARIANTS-CONTAIN-UNUSED-DIVERSITY"
       severity: "BLOCKER"
       finding: >-
-        MUT-008 does not weaken exact primitive/enum/carrier validation. It submits invalid lookalikes to the already-correct SUT
-        and declares the current rejection a killed mutant.
-    - id: "E23-B04-CATALOG-MINIMUMS-ARE-TEMPLATE-MULTIPLICATION"
-      severity: "BLOCKER"
-      finding: >-
-        Seventy-two scenarios cycle eight families, eighty invariants cycle five predicates, thirty-seven negatives cycle eight
-        families, and the episode/counterfactual/cross-family counts repeat one construction with different IDs. These are rows,
-        not distinct semantic cases or independently mapped executable tests.
-    - id: "E23-B05-METAMORPHIC-SUITE-CONTAINS-NON-TRANSFORMATIONS"
-      severity: "BLOCKER"
-      finding: >-
-        Episode continuation runs the same constructor twice; peer and external properties compare an episode digest with itself;
-        replay and exact-boundary properties are ordinary negative tests. They do not establish the stated transformed relations.
-    - id: "E23-B06-E22-CI-NOT-EXECUTED"
-      severity: "BLOCKER"
-      finding: >-
-        GitHub Actions run 30482793009 passed Python 3.11 and 3.13, but its steps run older Phase 3 suites and the public scan.
-        No E22/Evaluation V2 entry point is invoked, so the route's Python 3.11/3.13 CI condition is unmet.
-    - id: "E23-B07-CHECKPOINT-EVIDENCE-CONTAINS-LITERAL-PLACEHOLDERS"
+        Several negative families include variant in declared semantic_input while execute_negative ignores it except for identifiers. Duplicate invocation,
+        duplicate order, prior replay, agent/action subclass and bool-arrival rows therefore gain coverage credit without distinct behavior.
+    - id: "E24-B04-COUNTERFACTUAL-SIGNATURES-OVERSTATE-EXECUTION-DIVERSITY"
       severity: "MAJOR"
-      finding: "Early PR checkpoints contain literal $head, $parent, $tree and $files values; final evidence must supersede these explicitly."
+      finding: >-
+        counterfactual_catalog declares multiple conflict_mode values, but execution collapses every value >=2 to the same non-null conflict key behavior.
+        Declared metadata rather than derived executable input controls distinctness.
+    - id: "E24-B05-CATALOG-VALIDATOR-TRUSTS-AUTHOR-DECLARED-SIGNATURES"
+      severity: "BLOCKER"
+      finding: >-
+        catalog_validation hashes spec.semantic_input and expected_relation supplied by the catalog author. It does not derive signatures from the actual
+        constructed input, executed trace, predicate dispatch or oracle relation, so unused fields can defeat duplicate detection.
   decision:
     gate_a: "ACCEPTED_WITH_EVIDENCE_EXCEPTION"
     gate_b: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
@@ -103,123 +75,54 @@ review_disposition:
     issue92: "BLOCKED_NOT_RELEASED"
     merge: false
 
-resource_and_effort:
-  priority_share_percent: 100
-  task_weight: "HEAVY_BOUNDED_EVALUATION_CORRECTION"
-  research_trigger: "L1_REPOSITORY_TEST_ARCHITECTURE; L2_PRIMARY_MUTATION_AND_METAMORPHIC_TESTING_RESEARCH_IF_SEAM_DESIGN_REMAINS_AMBIGUOUS"
-  checkpoints: [10, 35, 70, 100]
-  first_checkpoint_required:
-    - "Echo schema 24.0, route_epoch 23, main head, PR #106 head 15517600 and accepted SUT head fa68186."
-    - "Reproduce one post-hoc-record mutant falsely counted as a SUT mutant, one digest-only kill, one duplicate catalog signature and one non-transforming property."
-    - "Publish the selected true mutation seam architecture, baseline/mutant symmetry, CI path and rollback."
-
-exploration_budget:
-  primary_delivery_share: "75-85%"
-  active_discovery_share: "10-20%"
-  system_opportunity_share: "0-10%"
-  maximum_new_branches: 0
-  maximum_new_draft_prs: 0
-  maximum_simultaneous_substantive_prs: 1
-  scope_expansion_without_gate: false
-
-autonomy_grant:
-  profile: "CODEX_HIGH_AUTONOMY_GATE_B_R1_TRUE_MUTATION_AND_CI"
-  architecture_choice_inside_current_gate: true
-  algorithm_and_test_framework_choice_inside_current_gate: true
-  may_refactor_within_evaluation_v2_path: true
-  may_edit_exact_workflow_path: true
-  exact_workflow_path: ".github/workflows/phase3-integrated-offline-memory.yml"
-  may_continue_inside_gate_without_gpt: true
-  may_advance_to_gate_c_without_gpt: false
-  final_self_approval: false
-  history_rewrite: false
-  force_push: false
-  alternatives_considered_required: true
-  surviving_unknowns_required: true
-
 sequential_gate_policy:
   only_one_active_gate: true
-  active_gate: "B_R1_PR106_TRUE_SUT_MUTATION_DISTINCT_CATALOG_METAMORPHIC_AND_CI"
-  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E23"
+  active_gate: "B_R2_PR106_BEHAVIORAL_DISTINCTNESS_AND_EXECUTABLE_INVARIANTS"
+  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E24"
   gate_transition_requires_explicit_gpt_acceptance: true
-  gate_failure_behavior: "STOP_PRESERVE_EVIDENCE_DO_NOT_START_PR103_OR_PR105"
 
 stage_plan:
   - gate_id: "A_PR101_D2_CORE_TOTALITY"
     status: "ACCEPTED_WITH_EVIDENCE_EXCEPTION"
     owner_pr: 101
-    tested_head: "d51857a93d716e6e9e1d0816a453eb8688588cdb"
-    receipt_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
     further_commits_authorized: false
-    merge: false
-
-  - gate_id: "B_R1_PR106_TRUE_SUT_MUTATION_DISTINCT_CATALOG_METAMORPHIC_AND_CI"
+  - gate_id: "B_R2_PR106_BEHAVIORAL_DISTINCTNESS_AND_EXECUTABLE_INVARIANTS"
     status: "ACTIVE"
     owner_pr: 106
-    reviewed_head: "15517600a0c8141bdfc6dac82ba45d4fdba22e1d"
+    reviewed_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/"
       - ".github/workflows/phase3-integrated-offline-memory.yml"
     required_commit_shape:
-      - "From 15517600 create exactly one corrective substantive tested commit, then exactly one E23 receipt-only commit."
-      - "The workflow edit belongs in the substantive commit."
-      - "Do not amend, rebase, reset, force push, merge or modify PR #101/#102/#103/#105."
+      - "From c21be38 create exactly one corrective substantive tested commit, then exactly one E24 receipt-only commit."
+      - "No amend, rebase, reset, force push, merge or edits to PR #101/#102/#103/#105."
     receipt_only_files:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E23-EVALUATION-V2-RECEIPT.md"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E23-OUTCOME-CALIBRATION.yaml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E23-EVIDENCE-MATRIX.md"
-    objective: >-
-      Convert Evaluation V2 from a deterministic tamper-check scaffold into a genuine falsification harness whose mutants
-      alter callable D2 semantics, whose catalog rows are semantically distinct, whose metamorphic relations are real
-      transformations, and whose exact entry point executes in Python 3.11/3.13 CI.
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-EVALUATION-V2-RECEIPT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-OUTCOME-CALIBRATION.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-EVIDENCE-MATRIX.md"
     required_results:
-      - "Implement true SUT mutation through source-derived shadow modules, narrowly injected governed seams or an equivalent executable architecture; post-hoc EpisodeState corruption alone is not a SUT mutant."
-      - "Run baseline and mutant with the same fixture and same named oracle; baseline must pass, mutant must fail."
-      - "Every kill must include at least one family-specific reason code; ORACLE_INDEPENDENT_DIGEST_MISMATCH cannot be the sole killer."
-      - "MUT-008 must actually weaken exact type/enum/carrier behavior in the mutant SUT and be killed by boundary tests."
-      - "Publish normalized input-signature and expected-relation hashes for every catalog row. Duplicate semantic signatures do not count toward minimums."
-      - "Maintain minimums 72/80/37/24/36/24 only with distinct normalized cases and concrete executable case IDs."
-      - "Each invariant row must execute its named predicate/oracle, not merely possess metadata."
-      - "Implement eight genuine metamorphic transformations; same-run repetition, identity transform and ordinary rejection tests do not qualify."
-      - "Pair applicable metamorphic properties with mutants and prove the transformed relation detects the defect."
-      - "Update the exact existing workflow so Evaluation V2 runs on Python 3.11 and 3.13 and upload or print canonical report hashes."
-      - "Three clean Git-archive roots under three process-level seeds must run the complete E23 suite and emit identical semantic, mutation, metamorphic and reason-order reports."
-      - "Supersede literal checkpoint placeholders with exact final SHAs, trees, files and mechanically derived command evidence."
+      - "Derive catalog input signatures from the actual constructed public input after removing identity-only fields; do not trust author-declared semantic_input."
+      - "Derive relation signatures from the actual named predicate/oracle contract and normalized observed relation."
+      - "Every counted scenario, invariant, negative, episode, counterfactual and cross-family row must have a unique execution-derived input-plus-relation signature."
+      - "Remove rows that differ only by IDs, slot, unused variant or collapsed mode, or make their executable inputs and expected relations genuinely different."
+      - "Implement execute_invariant or equivalent dispatch so every invariant row invokes its named predicate and named failure oracle on its fixture."
+      - "Publish a row-to-executable-case matrix and fail on orphan row, unknown predicate, unknown oracle, unexecuted row or duplicate behavioral signature."
+      - "Preserve all eight E23 mutants, family-specific kills, transformed properties, archive determinism and Python 3.11/3.13 CI."
     mandatory_tests:
-      - "Each of eight mutant families: baseline-pass, behavior-delta, family-specific-kill, no digest-only kill."
-      - "Duplicate normalized scenario/invariant/negative/episode/counterfactual/cross-family signatures fail."
-      - "Mutant activation that changes only stored output after SUT execution fails registration."
-      - "Identity/no-op metamorphic transform fails registration."
-      - "CI entry-point smoke test proves the workflow invokes tests/run_evaluation_v2.py or the governed equivalent."
-    minimums:
-      true_executable_mutant_families: 8
-      genuine_metamorphic_properties: 8
-      distinct_synthetic_scenarios: 72
-      distinct_semantic_invariants: 80
-      distinct_negative_cases: 37
-      distinct_stateful_episodes: 24
-      distinct_counterfactual_pairs: 36
-      distinct_cross_family_cases: 24
-      clean_git_archive_runs: 3
-      python_ci_versions: ["3.11", "3.13"]
-
+      - "Changing only scenario_id, invariant_id, slot, unused variant or unused mode must not create a new counted signature."
+      - "Each invariant predicate is deliberately violated by at least one controlled fixture and its named failure oracle detects it."
+      - "Unknown predicate/oracle and metadata-only duplicate rows fail closed."
+      - "E23 true-SUT mutation and metamorphic suites remain green."
   - gate_id: "C_PR103_QUARANTINE_EVIDENCE"
     status: "WAITING_FOR_GATE_B"
     owner_pr: 103
-    reviewed_head: "e65f9466e7f488ac7990b2424807e2b7e347219b"
-
   - gate_id: "D_PR105_IMMUTABLE_D3A_PREREG"
     status: "WAITING_FOR_GATES_B_AND_C"
     owner_pr: 105
-    reviewed_head: "327ed56cd1208d26636c1fb9487b387e384fa75d"
 
 forbidden:
-  - "No production D2 core edit, merge, auto-merge, force push or history rewrite."
-  - "No Gate C/D work before explicit GPT acceptance of E23."
-  - "No real market data, replay, backtest, fitting, performance claim, identity/account inference, order or trade."
-  - "No decorative mutants, digest-only kills, duplicate count rows, identity metamorphic transforms, placeholder or self-approval."
-
+  - "No production D2 edits."
+  - "No later-gate work, merge, force push or history rewrite."
+  - "No real data, accounts, orders, execution or performance claims."
 after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
-boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
-updated_by: "GPT"
-updated_at: "2026-07-30T03:58:00+08:00"
+boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
