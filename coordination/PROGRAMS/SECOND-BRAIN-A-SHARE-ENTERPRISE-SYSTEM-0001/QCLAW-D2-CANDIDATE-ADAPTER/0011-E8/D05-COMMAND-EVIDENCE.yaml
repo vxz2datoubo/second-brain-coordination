@@ -1,60 +1,22 @@
-# D05-COMMAND-EVIDENCE.yaml
-# Evidence of the exact commands run to produce E18 Gate B R3 outputs.
-# Epoch 18, Schema 25.0
-# Task: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
-
-command_evidence:
-  epoch: 18
-  schema: "25.0"
-  task_id: QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18
-
-  environment:
-    python: "F:\\Program Files (x86)\\QClaw\\v0.2.35.624\\resources\\python\\python.exe"
-    python_version: "3.11"
-    os: "Windows_NT 10.0.22631"
-    encoding: "UTF-8"
-
-  generation_command:
-    description: "Generate D2 candidate adapters from Q0 knowledge atoms"
-    env_vars:
-      PYTHONIOENCODING: "utf-8"
-      Q0_SRC_DIR: "q0_sources/"
-      POLICY_DIR: "0011-E8/"
-      OUTPUT_DIR: "0011-E8/"
-    command: "python generate_adapters.py"
-    exit_code: 0
-    adapters_produced: 99
-
-  validation_command:
-    description: "Independent validation of all adapters, coverage, package, and hashes"
-    env_vars:
-      PYTHONIOENCODING: "utf-8"
-      Q0_SRC_DIR: "q0_sources/"
-      POLICY_DIR: "0011-E8/"
-      OUTPUT_DIR: "0011-E8/"
-    command: "python validate_adapters.py"
-    exit_code: 0
-    failures: 0
-
-  test_command:
-    description: "54 production-entry mutation tests"
-    env_vars:
-      PYTHONIOENCODING: "utf-8"
-      Q0_SRC_DIR: "q0_sources/"
-      POLICY_DIR: "0011-E8/"
-      OUTPUT_DIR: "0011-E8/"
-    command: "python run_production_tests.py"
-    exit_code: 0
-    passed: 54
-    failed: 0
-
-  deterministic_verification:
-    description: "PYTHONHASHSEED variance test"
-    seed_0_hash: "verified identical"
-    seed_42_hash: "verified identical"
-    result: "IDENTICAL"
-
-  hash_compare:
-    description: "Cross-generation artifact comparison"
-    command: "python hash_compare.py <dir_a> <dir_b>"
-    miss_both_policy: "FAILURE (E18-B09)"
+archive_evidence:
+- seed: 0
+  root_path: C:\Users\Administrator\.openclaw\workspace\e17_gate_b_r2\coordination\PROGRAMS\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\QCLAW-D2-CANDIDATE-ADAPTER\0011-E8
+  commit: TBD_TESTED_COMMIT
+  command: PYTHONHASHSEED=0 python generate_adapters.py ...
+  exit_code: 0
+  stdout_sha: fa6f3b25cbcc09420a7cffa7b886da66
+  stderr_sha: 7fd62ab6993eb72f2a63254e0390a439
+- seed: 42
+  root_path: C:\Users\Administrator\.openclaw\workspace\e17_gate_b_r2\coordination\PROGRAMS\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\QCLAW-D2-CANDIDATE-ADAPTER\0011-E8
+  commit: TBD_TESTED_COMMIT
+  command: PYTHONHASHSEED=42 python generate_adapters.py ...
+  exit_code: 0
+  stdout_sha: fa6f3b25cbcc09420a7cffa7b886da66
+  stderr_sha: 7fd62ab6993eb72f2a63254e0390a439
+- seed: 137
+  root_path: C:\Users\Administrator\.openclaw\workspace\e17_gate_b_r2\coordination\PROGRAMS\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\QCLAW-D2-CANDIDATE-ADAPTER\0011-E8
+  commit: TBD_TESTED_COMMIT
+  command: PYTHONHASHSEED=137 python generate_adapters.py ...
+  exit_code: 0
+  stdout_sha: fa6f3b25cbcc09420a7cffa7b886da66
+  stderr_sha: 7fd62ab6993eb72f2a63254e0390a439
