@@ -5,6 +5,7 @@ from dataclasses import replace
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 D2_ROOT = ROOT.parent / "0001-D2"
@@ -13,7 +14,15 @@ for item in (ROOT, D2_ROOT):
         sys.path.insert(0, str(item))
 
 from catalog_validation import assert_catalogs_distinct, assert_distinct_execution_cases
-from evaluation_v2_harness import _invariant_oracle, assert_accepted_sut_fingerprint, run_evaluation
+from evaluation_v2_harness import assert_accepted_sut_fingerprint, run_evaluation
+from invariant_registry import (
+    InvariantRule,
+    execute_controlled_violation,
+    execute_invariant_rule,
+    invariant_registry,
+    rule_for,
+    validate_invariant_registry,
+)
 from independent_oracle import evaluate_episode
 from metamorphic_properties import (
     property_function_map,
@@ -63,9 +72,68 @@ class EvaluationV2Tests(unittest.TestCase):
         self.assertEqual(len({item.invariant_id for item in invariants}), 80)
         summary, report = run_evaluation()
         self.assertEqual(summary.invariant_count, 80)
-        self.assertTrue(all(row["passed"] and row["oracle_detects_controlled_violation"] for row in report["invariants"]))
-        with self.assertRaisesRegex(ValueError, "UNKNOWN_INVARIANT_ORACLE"):
-            _invariant_oracle("NOT_REGISTERED", False)
+        self.assertTrue(all(
+            row["passed"]
+            and row["controlled_violation_rejected"]
+            and row["oracle_detects_controlled_violation"]
+            and row["oracle_reason_codes"]
+            and row["valid_artifact_sha256"] != row["violating_artifact_sha256"]
+            and row["violating_artifact_sha256"] == row["oracle_artifact_sha256"]
+            for row in report["invariants"]
+        ))
+        with self.assertRaisesRegex(ValueError, "UNKNOWN_INVARIANT_PREDICATE"):
+            rule_for("NOT_REGISTERED")
+
+    def test_invariant_registry_fails_closed_for_orphan_and_incomplete_rules(self):
+        registry = invariant_registry()
+        with self.assertRaisesRegex(AssertionError, "E25_UNMAPPED_INVARIANT_PREDICATE"):
+            validate_invariant_registry(("HAS_EPISODE", "NOT_REGISTERED"), registry)
+        broken = dict(registry)
+        original = broken["HAS_EPISODE"]
+        broken["HAS_EPISODE"] = InvariantRule(
+            original.predicate_id,
+            original.failure_oracle_id,
+            original.predicate,
+            None,
+            original.failure_oracle,
+        )
+        with self.assertRaisesRegex(AssertionError, "E25_INCOMPLETE_INVARIANT_RULE"):
+            validate_invariant_registry(tuple(sorted(registry)), broken)
+
+    def test_controlled_violation_cannot_be_replaced_with_a_valid_artifact(self):
+        valid_run = execute_scenario(scenario_catalog()[0])
+        rule = rule_for("HAS_EPISODE")
+        decorative = replace(rule, controlled_violation=lambda run: run)
+        with self.assertRaisesRegex(AssertionError, "DECORATIVE_OR_NON_VIOLATING_FIXTURE:HAS_EPISODE"):
+            execute_invariant_rule(decorative, valid_run)
+
+    def test_trace_catalogs_reuse_the_single_actual_episode_and_counterfactual_execution(self):
+        with patch("evaluation_v2_harness.execute_episode", wraps=execute_episode) as episode_call, patch(
+            "evaluation_v2_harness.execute_counterfactual", wraps=execute_counterfactual,
+        ) as counterfactual_call:
+            _summary, report = run_evaluation()
+        self.assertEqual(episode_call.call_count, 24)
+        self.assertEqual(counterfactual_call.call_count, 32)
+        self.assertTrue(all(
+            row["observed_relation"]["final_state_hash"]
+            for row in report["catalog_signatures"]["episodes"]
+        ))
+        self.assertTrue(all(
+            row["observed_relation"]["baseline_state_hash"]
+            and row["observed_relation"]["alternative_state_hash"]
+            for row in report["catalog_signatures"]["counterfactuals"]
+        ))
+
+    def test_catalog_signatures_change_only_when_actual_consumed_input_or_observation_changes(self):
+        base = {"id": "base", "executed_input": {"quantity": 1}, "observed_relation": {"accepted": True}}
+        changed_input = {"id": "renamed", "executed_input": {"quantity": 2}, "observed_relation": {"accepted": True}}
+        changed_relation = {"id": "same-input", "executed_input": {"quantity": 1}, "observed_relation": {"accepted": False}}
+        assert_distinct_execution_cases("trace", [base, changed_input, changed_relation])
+        self.assertNotEqual(base["execution_signatures"][0], changed_input["execution_signatures"][0])
+        self.assertNotEqual(base["execution_signatures"][1], changed_relation["execution_signatures"][1])
+        duplicate = {"id": "formula-label-only", "executed_input": {"quantity": 1}, "observed_relation": {"accepted": True}}
+        with self.assertRaisesRegex(AssertionError, "E24_DUPLICATE_EXECUTION_SIGNATURE:trace"):
+            assert_distinct_execution_cases("trace", [base, duplicate])
 
     def test_unique_negative_families_fail_closed(self):
         negatives = negative_catalog()
@@ -193,6 +261,27 @@ for _property_id, _function in property_function_map().items():
 
 for _kind in ("scenarios", "invariants", "negatives", "episodes", "counterfactuals", "cross_family"):
     setattr(EvaluationV2Tests, "test_rejects_metadata_only_duplicate_" + _kind, _make_execution_duplicate_test(_kind))
+
+
+def _make_controlled_violation_test(predicate_id):
+    def test(self):
+        valid_run = execute_scenario(scenario_catalog()[0])
+        evidence = execute_controlled_violation(predicate_id, valid_run)
+        self.assertTrue(evidence.valid_predicate_passed)
+        self.assertFalse(evidence.violating_predicate_passed)
+        self.assertTrue(evidence.oracle.detected)
+        self.assertTrue(evidence.oracle.reason_codes)
+        self.assertNotEqual(evidence.valid_artifact_sha256, evidence.violating_artifact_sha256)
+        self.assertEqual(evidence.violating_artifact_sha256, evidence.oracle.artifact_sha256)
+    return test
+
+
+for _predicate_id in sorted(invariant_registry()):
+    setattr(
+        EvaluationV2Tests,
+        "test_controlled_violation_" + _predicate_id.lower(),
+        _make_controlled_violation_test(_predicate_id),
+    )
 
 
 if __name__ == "__main__":

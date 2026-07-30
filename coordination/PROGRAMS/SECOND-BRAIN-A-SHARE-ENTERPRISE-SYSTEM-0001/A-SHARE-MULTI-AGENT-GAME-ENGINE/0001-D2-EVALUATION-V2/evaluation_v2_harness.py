@@ -9,6 +9,7 @@ import importlib
 from catalog_validation import assert_catalogs_distinct
 from evaluation_v2_contract import EXPECTED_D2_CORE_SHA256, canonical_sha256, report_row
 from independent_oracle import evaluate_episode
+from invariant_registry import execute_controlled_violation, validate_invariant_registry
 from metamorphic_properties import property_function_map, run_metamorphic_properties
 from mutation_registry import execute_mutation, execute_mutation_registry, mutation_property_pairs, mutation_registry
 from synthetic_cases import (
@@ -48,33 +49,6 @@ def assert_accepted_sut_fingerprint() -> str:
     return actual
 
 
-def _invariant_passes(predicate_id: str, run) -> bool:
-    episode = run.episode_state
-    report = evaluate_episode(episode)
-    if predicate_id == "HAS_EPISODE":
-        return episode is not None and episode.step_index >= 1
-    if predicate_id == "NONEMPTY_EVENTS":
-        return bool(run.events)
-    if predicate_id == "UNIQUE_EVENT_IDS":
-        return len({event.event_id for event in episode.event_dag}) == len(episode.event_dag)
-    if predicate_id == "ACTION_EVENT_BINDING":
-        actions = {action.action_id: action for action in episode.action_registry}
-        return all(actions.get(event.action_id) is not None and actions[event.action_id].agent_id == event.agent_id for event in episode.event_dag)
-    if predicate_id == "INDEPENDENT_ACCOUNTING":
-        return report.valid
-    if predicate_id == "BOUNDARY_ORDER":
-        return "ORACLE_ARRIVAL_SEQUENCE_ORDER" not in report.reason_codes
-    if predicate_id == "NO_UNEXPLAINED_FLOW":
-        return not any(code.startswith("ORACLE_EXTERNAL_FLOW") or code == "ORACLE_UNEXPLAINED_EXTERNAL_FLOW" for code in report.reason_codes)
-    if predicate_id == "TERMINAL_ACTION_COVERAGE":
-        return "ORACLE_ACTION_EVENT_COVERAGE_MISMATCH" not in report.reason_codes
-    if predicate_id == "STEP_MONOTONIC":
-        return tuple(item.step_index for item in episode.step_boundaries) == tuple(range(1, episode.step_index + 1))
-    if predicate_id == "PORTFOLIO_DELTA_EXPLAINED":
-        return "ORACLE_INVENTORY_DELTA_MISMATCH" not in report.reason_codes
-    raise ValueError("UNKNOWN_INVARIANT_PREDICATE:" + predicate_id)
-
-
 def _case(identifier: str, executed_input: dict[str, object], observed_relation: dict[str, object]) -> dict[str, object]:
     return {"id": identifier, "executed_input": executed_input, "observed_relation": observed_relation}
 
@@ -86,23 +60,15 @@ def _run_input(run) -> dict[str, object]:
     for action in run.episode_state.action_registry:
         actions.append({
             "agent": agent_order[action.agent_id], "arrival": action.arrival_sequence,
-            "label": action.label.value, "side": action.order.side.value,
-            "quantity": action.order.quantity, "requires_complete_information": action.requires_complete_information,
+            "label": action.label.value,
+            "side": None if action.order is None else action.order.side.value,
+            "quantity": None if action.order is None else action.order.quantity,
+            "requires_complete_information": action.requires_complete_information,
             "transition": action.conflict_transition.value, "liquidity": action.liquidity_mode.value,
             "has_conflict": action.conflict_key is not None,
             "has_counterparty": action.counterparty_agent_id is not None,
         })
     return {"actions": tuple(actions)}
-
-
-def _invariant_oracle(predicate_id: str, predicate_passed: bool) -> bool:
-    if predicate_id not in {
-        "HAS_EPISODE", "NONEMPTY_EVENTS", "UNIQUE_EVENT_IDS", "ACTION_EVENT_BINDING",
-        "INDEPENDENT_ACCOUNTING", "BOUNDARY_ORDER", "NO_UNEXPLAINED_FLOW",
-        "TERMINAL_ACTION_COVERAGE", "STEP_MONOTONIC", "PORTFOLIO_DELTA_EXPLAINED",
-    }:
-        raise ValueError("UNKNOWN_INVARIANT_ORACLE:" + predicate_id)
-    return not predicate_passed
 
 
 def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
@@ -113,21 +79,36 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
     episodes = episode_catalog()
     counterfactuals = counterfactual_catalog()
     cross_family = cross_family_catalog(mutation_property_pairs())
+    validate_invariant_registry(tuple(sorted({spec.predicate_id for spec in invariants})))
     outcomes = {spec.scenario_id: execute_scenario(spec) for spec in scenarios}
     scenario_results = tuple({"scenario_id": spec.scenario_id, "passed": evaluate_episode(outcomes[spec.scenario_id].episode_state).valid} for spec in scenarios)
     if not all(row["passed"] for row in scenario_results):
         raise AssertionError("E23_SCENARIO_ORACLE_FAILURE")
 
-    invariant_results = tuple({
-        "invariant_id": spec.invariant_id,
-        "fixture_id": spec.fixture_id,
-        "predicate_id": spec.predicate_id,
-        "failure_oracle_id": spec.failure_oracle_id,
-        "test_id": spec.test_id,
-        "passed": _invariant_passes(spec.predicate_id, outcomes[spec.fixture_id]),
-        "oracle_detects_controlled_violation": _invariant_oracle(spec.predicate_id, False),
-    } for spec in invariants)
-    if not all(row["passed"] and row["oracle_detects_controlled_violation"] for row in invariant_results):
+    invariant_results = []
+    for spec in invariants:
+        evidence = execute_controlled_violation(spec.predicate_id, outcomes[spec.fixture_id])
+        if evidence.failure_oracle_id != spec.failure_oracle_id:
+            raise AssertionError("E25_INVARIANT_ORACLE_MAPPING_MISMATCH:" + spec.invariant_id)
+        invariant_results.append({
+            "invariant_id": spec.invariant_id,
+            "fixture_id": spec.fixture_id,
+            "predicate_id": spec.predicate_id,
+            "failure_oracle_id": spec.failure_oracle_id,
+            "test_id": spec.test_id,
+            "passed": evidence.valid_predicate_passed,
+            "controlled_violation_rejected": not evidence.violating_predicate_passed,
+            "oracle_detects_controlled_violation": evidence.oracle.detected,
+            "oracle_reason_codes": evidence.oracle.reason_codes,
+            "valid_artifact_sha256": evidence.valid_artifact_sha256,
+            "violating_artifact_sha256": evidence.violating_artifact_sha256,
+            "oracle_artifact_sha256": evidence.oracle.artifact_sha256,
+        })
+    invariant_results = tuple(invariant_results)
+    if not all(
+        row["passed"] and row["controlled_violation_rejected"] and row["oracle_detects_controlled_violation"]
+        for row in invariant_results
+    ):
         raise AssertionError("E23_INVARIANT_FAILURE")
 
     negative_results = []
@@ -142,16 +123,20 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
         raise AssertionError("E23_NEGATIVE_CASE_ACCEPTED")
 
     episode_results = []
+    episode_executions = {}
     for spec in episodes:
         one, two = execute_episode(spec)
+        episode_executions[spec.episode_id] = (one, two)
         report = evaluate_episode(two.episode_state)
         episode_results.append({"episode_id": spec.episode_id, "passed": one.episode_state.step_index == 1 and two.episode_state.step_index == 2 and report.valid})
     if not all(row["passed"] for row in episode_results):
         raise AssertionError("E23_EPISODE_FAILURE")
 
     counterfactual_results = []
+    counterfactual_executions = {}
     for spec in counterfactuals:
         result = execute_counterfactual(spec)
+        counterfactual_executions[spec.pair_id] = result
         counterfactual_results.append({"pair_id": spec.pair_id, "passed": len(result.changed_action_ids) == 1})
     if not all(row["passed"] for row in counterfactual_results):
         raise AssertionError("E23_COUNTERFACTUAL_FAILURE")
@@ -186,10 +171,42 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
 
     catalogs = {
         "scenarios": [_case(spec.scenario_id, _run_input(outcomes[spec.scenario_id]), {"valid": row["passed"]}) for spec, row in zip(scenarios, scenario_results)],
-        "invariants": [_case(spec.invariant_id, {"fixture": _run_input(outcomes[spec.fixture_id]), "predicate": spec.predicate_id}, {"predicate_passed": row["passed"], "failure_oracle_detects_violation": row["oracle_detects_controlled_violation"]}) for spec, row in zip(invariants, invariant_results)],
+        "invariants": [_case(
+            spec.invariant_id,
+            {"fixture": _run_input(outcomes[spec.fixture_id]), "predicate": spec.predicate_id},
+            {
+                "predicate_passed": row["passed"],
+                "controlled_violation_rejected": row["controlled_violation_rejected"],
+                "failure_oracle_detects_violation": row["oracle_detects_controlled_violation"],
+                "oracle_reason_codes": row["oracle_reason_codes"],
+                "valid_artifact_sha256": row["valid_artifact_sha256"],
+                "violating_artifact_sha256": row["violating_artifact_sha256"],
+            },
+        ) for spec, row in zip(invariants, invariant_results)],
         "negatives": [_case(spec.negative_id, {"family": spec.family}, {"raised": row["raised"], "expected": spec.expected_failure_class}) for spec, row in zip(negatives, negative_results)],
-        "episodes": [_case(spec.episode_id, {"first": _run_input(execute_episode(spec)[0]), "second": _run_input(execute_episode(spec)[1])}, {"steps": 2, "valid": row["passed"]}) for spec, row in zip(episodes, episode_results)],
-        "counterfactuals": [_case(spec.pair_id, {"quantity": ((spec.variant - 1) % 8) + 1, "side": "BUY" if ((spec.variant - 1) // 8) % 2 == 0 else "SELL", "requires_complete_information": bool((spec.variant - 1) // 16)}, {"changed_actions": 1, "passed": row["passed"]}) for spec, row in zip(counterfactuals, counterfactual_results)],
+        "episodes": [_case(
+            spec.episode_id,
+            {"first": _run_input(episode_executions[spec.episode_id][0]), "second": _run_input(episode_executions[spec.episode_id][1])},
+            {
+                "steps": episode_executions[spec.episode_id][1].episode_state.step_index,
+                "valid": row["passed"],
+                "final_state_hash": episode_executions[spec.episode_id][1].episode_state.state_hash,
+            },
+        ) for spec, row in zip(episodes, episode_results)],
+        "counterfactuals": [_case(
+            spec.pair_id,
+            {
+                "baseline": _run_input(counterfactual_executions[spec.pair_id].baseline),
+                "alternative": _run_input(counterfactual_executions[spec.pair_id].alternative),
+                "changed_assumption_id": counterfactual_executions[spec.pair_id].changed_assumption_id,
+            },
+            {
+                "changed_action_ids": counterfactual_executions[spec.pair_id].changed_action_ids,
+                "baseline_state_hash": counterfactual_executions[spec.pair_id].baseline.episode_state.state_hash,
+                "alternative_state_hash": counterfactual_executions[spec.pair_id].alternative.episode_state.state_hash,
+                "passed": row["passed"],
+            },
+        ) for spec, row in zip(counterfactuals, counterfactual_results)],
         "cross_family": [_case(spec.interaction_id, {"mutant": spec.mutant_id, "property": spec.property_id, "variant": spec.fixture_variant}, {"passed": row["passed"]}) for spec, row in zip(cross_family, cross_results)],
     }
     assert_catalogs_distinct(catalogs)
