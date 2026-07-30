@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-0001"
 short_name: "WPDCR"
 status: "ACTIVE_ENTERPRISE_STANDARD"
@@ -8,324 +8,141 @@ parent_policies:
   - "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
   - "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
   - "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
+  - "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 template: "coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml"
 boundary: "PUBLIC_SAFE / authority_bounded / research_only / NO_TRADE unless separately authorized"
 
 purpose: >-
-  Make every coordination report explain not only what was completed, but how the work unfolded, what made it difficult,
-  what changed unexpectedly, what new opportunities appeared, what remains hard or unresolved, what problems were found,
-  and exactly what coordination or decision is required from another agent, GPT or the user. The protocol prevents
-  completion-only reporting, hidden struggle, late blocker disclosure, lost discoveries and vague handoffs.
+  Make every coordination report explain what was completed, how work unfolded, what made it difficult, what changed unexpectedly,
+  what opportunities appeared, what remains unresolved, what problems were found, what coordination is required and whether the
+  agent actually executed after claiming the task. Prevent completion-only reports, hidden struggle, late blockers, lost discoveries,
+  vague handoffs and read-only acknowledgements disguised as progress.
 
 core_principles:
   - id: "P1_PROCESS_IS_EVIDENCE"
-    rule: "Important changes of approach, failed attempts, pivots and validation steps are part of the auditable evidence, not disposable chat history."
+    rule: "Meaningful approach changes, failed attempts, pivots and validation steps are auditable evidence."
   - id: "P2_DIFFICULTY_MUST_BE_EXPLAINED_NOT_PERFORMED"
-    rule: "Difficulty claims require concrete causes and evidence; they may not be used to inflate progress, excuse missing evidence or dramatize routine work."
+    rule: "Difficulty claims require concrete causes/evidence and cannot excuse missing delivery."
   - id: "P3_UNEXPECTED_FINDINGS_ARE_FIRST_CLASS_OUTPUTS"
-    rule: "Unexpected positive, negative, contradictory and unknown findings must be separated from planned deliverables and preserved."
+    rule: "Unexpected positive, negative, contradictory and unknown findings are preserved separately."
   - id: "P4_COORDINATION_REQUESTS_MUST_BE_ACTIONABLE"
-    rule: "A request must name the owner, exact needed action or decision, evidence package, urgency, dependency and whether unaffected work can continue."
+    rule: "Requests name owner, exact action/input/decision, evidence, urgency, dependency and unaffected work."
   - id: "P5_NO_SILENT_EMPTY_SECTIONS"
-    rule: "Every mandatory section must be populated or explicitly state NONE_OBSERVED / NONE_REQUIRED with the checks performed."
+    rule: "Every section is populated or explicitly states NONE_OBSERVED/NONE_REQUIRED with checks."
   - id: "P6_REPORT_BEFORE_SCOPE_OR_AUTHORITY_CHANGE"
-    rule: "A discovery or difficult problem does not authorize task switching, cross-agent takeover, canonical promotion or safety-boundary expansion."
+    rule: "Discovery or difficulty does not authorize task switching, takeover, canonical promotion or safety expansion."
   - id: "P7_PLAIN_LANGUAGE_AND_MACHINE_TRUTH"
-    rule: "Material findings require both machine-readable fields and a plain-language explanation of meaning, impact and what the evidence does not prove."
+    rule: "Material findings have machine fields and plain-language meaning/limits."
+  - id: "P8_EXECUTION_AFTER_CLAIM_IS_REPORTABLE_TRUTH"
+    rule: "A lease claim or task summary is not substantive progress; reports must identify the first actual authorized action and evidence."
 
 mandatory_reporting_moments:
   LEASE_CLAIM:
     required: true
-    purpose: "Confirm task truth and surface expected hard parts, dependencies and likely coordination needs before implementation."
+    purpose: "Confirm route truth, command semantics, expected hard parts and likely coordination before implementation."
+  FIRST_SUBSTANTIVE_ACTION:
+    required: true
+    purpose: "Prove 读取任务 led to execution rather than acknowledgement or plan-only stop."
   CHECKPOINT:
     required: true
-    triggers:
-      - "A major milestone or validation gate is reached."
-      - "The implementation approach changes materially."
-      - "A difficulty reaches D2_HARD or above."
-      - "An S2+ discovery, meaningful negative result or cross-agent dependency appears."
-      - "Work pauses, is handed off, or remote visibility is required."
+    triggers: ["major milestone", "material approach change", "D2+ difficulty", "S2+ discovery", "meaningful negative result", "cross-agent dependency", "pause/handoff/visibility"]
   BLOCKER_OR_ESCALATION:
     required: true
     timing: "IMMEDIATE_FOR_S3_S4_OR_D3_D4; NEXT_CHECKPOINT_FOR_S2_OR_D2"
   COMPLETION:
     required: true
-    purpose: "Provide cumulative work-process, difficulty, discovery, unresolved-problem and coordination truth alongside tested deliverables."
+    purpose: "Provide cumulative process, difficulty, discovery, unresolved-problem and coordination truth with tested delivery."
   HANDOFF_OR_ROUTE_CHANGE:
     required: true
-    purpose: "Prevent loss of context when work changes agent, PR, Gate, route epoch or owner."
+    purpose: "Prevent context loss across Agent, PR, Gate, epoch or owner changes."
 
 mandatory_report_sections:
-  - section: "PRIMARY_WORK_AND_PROCESS_TRACE"
-    required_fields:
-      - original_goal
-      - work_stages_completed
-      - current_state
-      - approach_taken
-      - approach_changes_and_why
-      - failed_or_discarded_attempts
-      - evidence_and_validation
-      - remaining_work
-    rules:
-      - "Report meaningful process transitions, not private chain-of-thought or token-by-token narration."
-      - "Each failed attempt must state what was learned and whether a regression test or rule was added."
+  - PRIMARY_WORK_AND_PROCESS_TRACE
+  - COMMAND_CLAIM_AND_EXECUTION_TRACE
+  - DIFFICULTY_AND_COMPLEXITY
+  - NEW_AND_UNEXPECTED_DISCOVERIES
+  - EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES
+  - UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS
+  - PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS
+  - COORDINATION_REQUESTS
+  - CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT
+  - DECISIONS_ALTERNATIVES_AND_LESSONS
+  - NEXT_ACTION_AND_GATE
 
-  - section: "DIFFICULTY_AND_COMPLEXITY"
-    required_fields:
-      - planned_difficulty
-      - actual_difficulty
-      - hardest_parts
-      - why_each_part_was_hard
-      - evidence_of_difficulty
-      - complexity_sources
-      - effort_or_iteration_deviation
-      - simplifications_found
-      - residual_difficulty
+section_contracts:
+  PRIMARY_WORK_AND_PROCESS_TRACE:
+    required_fields: [original_goal, work_stages_completed, current_state, approach_taken, approach_changes_and_why, failed_or_discarded_attempts, evidence_and_validation, remaining_work]
+    rules:
+      - "Report observable transitions, not private chain-of-thought."
+      - "Each failed attempt states learning and regression/control added."
+  COMMAND_CLAIM_AND_EXECUTION_TRACE:
+    required_fields: [trigger_phrase, route_read, lease_claimed, lease_fields_verified, first_substantive_action, first_action_evidence, time_or_order_relative_to_claim, checkpoint_or_stop_reason]
+    rules:
+      - "When route was READY, first_substantive_action cannot be NONE, task summary or plan creation alone."
+      - "If no execution occurred, classify READ_ONLY_ACKNOWLEDGEMENT_WITHOUT_EXECUTION or PLAN_ONLY_RESPONSE_WHEN_READY and explain root cause."
+      - "When route was not executable, include exact failed field, attempts, minimum missing capability, affected/unaffected scope, owner request and reactivation condition."
+  DIFFICULTY_AND_COMPLEXITY:
+    required_fields: [planned_difficulty, actual_difficulty, hardest_parts, why_each_part_was_hard, evidence_of_difficulty, complexity_sources, effort_or_iteration_deviation, simplifications_found, residual_difficulty]
     difficulty_scale:
-      D0_ROUTINE: "Known path, deterministic edit or check, no material uncertainty."
-      D1_MODERATE: "Several dependent steps or nontrivial validation, but known solution family."
-      D2_HARD: "Multiple failed attempts, conflicting constraints, hidden dependency or difficult reproduction."
-      D3_VERY_HARD: "Core assumption invalid, cross-module conflict, major blocker or uncertain solution requiring coordination."
-      D4_RESEARCH_UNKNOWN: "No reliable solution path, new domain or evidence gap requiring independent research or user decision."
-    evidence_examples:
-      - "Number and identity of failed tests or reproductions."
-      - "Approach pivots, incompatible interfaces, missing evidence or dependency conflicts."
-      - "Changed-file, runtime, data, performance or environment complexity."
-    prohibitions:
-      - "Do not infer difficulty from elapsed time alone."
-      - "Do not label work hard merely because the report is long."
-      - "Do not hide an easier valid solution to justify a preferred architecture."
-
-  - section: "NEW_AND_UNEXPECTED_DISCOVERIES"
-    required_fields:
-      - discovery_id
-      - expected_or_unexpected
-      - discovery_type
-      - verified_fact
-      - inference_or_hypothesis
-      - evidence
-      - severity
-      - affected_scope
-      - immediate_impact
-      - downstream_impact
-      - what_it_does_not_prove
-      - action_taken
-      - recommended_disposition
-    discovery_classes:
-      - EXPECTED_CONFIRMATION
-      - UNEXPECTED_POSITIVE
-      - UNEXPECTED_NEGATIVE
-      - CONTRADICTION
-      - NEW_UNKNOWN
-      - REUSE_OPPORTUNITY
-      - DUPLICATION_OR_DEPRECATION_CANDIDATE
-      - CROSS_MODULE_EFFECT
-      - USER_REQUIREMENT_MISMATCH
-    no_discovery_rule: >-
-      When no material discovery exists, report NONE_OBSERVED and list the repository, tests, interfaces, sources or local reality
-      that were checked. A blank section is invalid.
-
-  - section: "EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES"
-    required_fields:
-      - opportunity_id
-      - idea
-      - originating_observation
-      - expected_value
-      - system_reuse_or_duplication_check
-      - estimated_cost_and_complexity
-      - risks_and_negative_effects
-      - AMED_class
-      - recommended_owner
-      - recommended_mode
-      - prerequisites
-      - validation_gate
-      - activation_trigger
-      - current_disposition
-    rules:
-      - "Separate implemented A/B improvements from C proposals and D/user-gated ideas."
-      - "An attractive idea without owner, trigger and validation gate is not an actionable proposal."
-      - "Do not create a new workstream when reuse, adaptation, migration or deprecation is better."
-
-  - section: "UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS"
-    required_fields:
-      - problem_id
-      - plain_language_problem
-      - why_difficult
-      - attempts_made
-      - evidence_obtained
-      - current_unknowns
-      - blocked_by
-      - minimum_information_or_capability_needed
-      - safe_workaround_or_abstention
-      - risk_if_deferred
-      - owner
-      - escalation_level
-      - closure_condition
-    rules:
-      - "Do not report a blocker without stating what was attempted."
-      - "Do not turn lack of effort into UNKNOWN."
-      - "If no reliable workaround exists, state ABSTAIN_OR_STOP rather than guess."
-
-  - section: "PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS"
-    required_fields:
-      - problem_id
-      - symptom
-      - root_cause_or_best_current_hypothesis
-      - evidence
-      - severity
-      - affected_scope
-      - reproduction
-      - temporary_mitigation
-      - permanent_fix_or_follow_up
-      - regression_protection
-      - status
-    rules:
-      - "Preserve no-increment, failed, contradictory and simpler-baseline-wins results."
-      - "A green final run does not erase failures encountered during the work."
-
-  - section: "COORDINATION_REQUESTS"
-    required_fields:
-      - request_id
-      - requested_from
-      - exact_action_input_access_or_decision_needed
-      - reason
-      - evidence_or_handoff_reference
-      - urgency
-      - dependency_or_blocked_gate
-      - work_that_can_continue_without_it
-      - deadline_or_activation_trigger
-      - privacy_permission_or_user_gate
-      - status
-    statuses:
-      - NONE_REQUIRED
-      - REQUESTED
-      - ACKNOWLEDGED
-      - IN_PROGRESS
-      - SATISFIED
-      - DEFERRED_WITH_TRIGGER
-      - REJECTED_WITH_REASON
-    rules:
-      - "Avoid vague requests such as please coordinate or need more information."
-      - "Name the exact file, field, decision, environment access, test or review needed."
-      - "State whether the request blocks all work or only an affected scope."
-
-  - section: "CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT"
-    required_fields:
-      - incoming_dependencies
-      - outgoing_handoffs
-      - authoritative_source_of_truth
-      - files_commits_or_artifacts
-      - interface_assumptions
-      - disagreements_or_conflicts
-      - affected_agents_modules_or_tasks
-      - ownership_boundary
-      - acceptance_gate
-      - rollback_or_recovery
-    rules:
-      - "Preserve disagreements; do not rewrite evidence to manufacture consensus."
-      - "Every handoff must identify the receiving owner and what the receiver should verify rather than merely trust."
-
-  - section: "DECISIONS_ALTERNATIVES_AND_LESSONS"
-    required_fields:
-      - key_decisions
-      - decision_basis
-      - alternatives_considered
-      - alternatives_rejected_and_why
-      - reusable_lessons
-      - rules_templates_tests_or_blueprints_to_update
-    rules:
-      - "Record decision pivots caused by new evidence."
-      - "A reusable lesson requires applicability conditions and failure conditions."
-
-  - section: "NEXT_ACTION_AND_GATE"
-    required_fields:
-      - recommended_next_action
-      - owner
-      - priority
-      - prerequisites
-      - success_gate
-      - stop_condition
-      - route_or_task_change_required
-      - user_decision_required
-      - completion_or_checkpoint_signal
+      D0_ROUTINE: "Known deterministic path."
+      D1_MODERATE: "Dependent steps/nontrivial validation with known solution family."
+      D2_HARD: "Failed attempts, conflicting constraints, hidden dependency or difficult reproduction."
+      D3_VERY_HARD: "Core assumption invalid, cross-module conflict or major blocker requiring coordination."
+      D4_RESEARCH_UNKNOWN: "No reliable path; independent research or user decision required."
+    prohibitions: ["No difficulty from elapsed time alone", "No difficulty from report length", "Do not hide easier valid solution"]
+  NEW_AND_UNEXPECTED_DISCOVERIES:
+    required_fields: [discovery_id, expected_or_unexpected, discovery_type, verified_fact, inference_or_hypothesis, evidence, severity, affected_scope, immediate_impact, downstream_impact, what_it_does_not_prove, action_taken, recommended_disposition]
+    discovery_classes: [EXPECTED_CONFIRMATION, UNEXPECTED_POSITIVE, UNEXPECTED_NEGATIVE, CONTRADICTION, NEW_UNKNOWN, REUSE_OPPORTUNITY, DUPLICATION_OR_DEPRECATION_CANDIDATE, CROSS_MODULE_EFFECT, USER_REQUIREMENT_MISMATCH]
+    no_discovery_rule: "Report NONE_OBSERVED and checked surfaces; blank invalid."
+  EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES:
+    required_fields: [opportunity_id, idea, originating_observation, expected_value, system_reuse_or_duplication_check, estimated_cost_and_complexity, risks_and_negative_effects, AMED_class, recommended_owner, recommended_mode, prerequisites, validation_gate, activation_trigger, current_disposition]
+    rules: ["Separate implemented A/B from C proposals and D/user gates", "Owner/trigger/validation required", "Prefer reuse/adapt/migrate/deprecate over duplicate"]
+  UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS:
+    required_fields: [problem_id, plain_language_problem, why_difficult, attempts_made, evidence_obtained, current_unknowns, blocked_by, minimum_information_or_capability_needed, safe_workaround_or_abstention, risk_if_deferred, owner, escalation_level, closure_condition]
+    rules: ["No blocker without attempts", "No lack of effort as UNKNOWN", "Use ABSTAIN_OR_STOP when no reliable workaround"]
+  PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS:
+    required_fields: [problem_id, symptom, root_cause_or_best_current_hypothesis, evidence, severity, affected_scope, reproduction, temporary_mitigation, permanent_fix_or_follow_up, regression_protection, status]
+    rules: ["Preserve no-increment, failed, contradictory and simpler-baseline-wins results", "Green final run does not erase encountered failures"]
+  COORDINATION_REQUESTS:
+    required_fields: [request_id, requested_from, exact_action_input_access_or_decision_needed, reason, evidence_or_handoff_reference, urgency, dependency_or_blocked_gate, work_that_can_continue_without_it, deadline_or_activation_trigger, privacy_permission_or_user_gate, status]
+    statuses: [NONE_REQUIRED, REQUESTED, ACKNOWLEDGED, IN_PROGRESS, SATISFIED, DEFERRED_WITH_TRIGGER, REJECTED_WITH_REASON]
+    rules: ["No vague coordinate/more-information request", "Name exact file/field/decision/access/test/review", "State blocked scope"]
+  CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT:
+    required_fields: [incoming_dependencies, outgoing_handoffs, authoritative_source_of_truth, files_commits_or_artifacts, interface_assumptions, disagreements_or_conflicts, affected_agents_modules_or_tasks, ownership_boundary, acceptance_gate, rollback_or_recovery]
+    rules: ["Preserve disagreements", "Receiver verifies rather than trusts"]
+  DECISIONS_ALTERNATIVES_AND_LESSONS:
+    required_fields: [key_decisions, decision_basis, alternatives_considered, alternatives_rejected_and_why, reusable_lessons, rules_templates_tests_or_blueprints_to_update]
+    rules: ["Record evidence-driven pivots", "Reusable lesson needs applicability/failure conditions"]
+  NEXT_ACTION_AND_GATE:
+    required_fields: [recommended_next_action, owner, priority, prerequisites, success_gate, stop_condition, route_or_task_change_required, user_decision_required, completion_or_checkpoint_signal]
 
 report_completeness_rules:
   all_sections_required_for_standard_and_strategic: true
   light_tasks:
     compact_inline_report_allowed: true
-    must_include:
-      - "work process"
-      - "actual difficulty"
-      - "discoveries or NONE_OBSERVED"
-      - "unresolved problems or NONE"
-      - "coordination requests or NONE_REQUIRED"
-      - "next action"
-  blank_section_invalid: true
-  placeholder_values_invalid:
-    - TBD
-    - TODO
-    - UNKNOWN_WITHOUT_REASON
-    - VAR
-    - ELLIPSIS
-    - N_A_WITHOUT_EXPLANATION
-  completion_signal_without_report_invalid: true
-  difficulty_without_evidence_invalid: true
-  blocker_without_attempts_and_exact_request_invalid: true
-  opportunity_without_owner_trigger_and_gate_invalid: true
+    must_include: [work_process, command_execution_trace, actual_difficulty, discoveries_or_NONE, unresolved_or_NONE, coordination_or_NONE, next_action]
+  no_blank_sections: true
+  none_values_require_checks_performed: true
+  carry_forward_until_closed: [D2_PLUS_DIFFICULTIES, S2_PLUS_DISCOVERIES, OPEN_COORDINATION_REQUESTS, UNRESOLVED_HARD_PROBLEMS, NEGATIVE_RESULTS_WITH_DECISION_IMPACT]
+  invalid_patterns:
+    - READ_ONLY_ACKNOWLEDGEMENT_WITHOUT_EXECUTION
+    - PLAN_ONLY_RESPONSE_WHEN_READY
+    - SECOND_START_COMMAND_REQUESTED
+    - BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_REQUEST
+    - DIFFICULTY_WITHOUT_EVIDENCE
+    - IDEA_WITHOUT_OWNER_TRIGGER_AND_GATE
+    - PLACEHOLDER_OR_BLANK_MANDATORY_SECTION
+    - COMPLETION_SIGNAL_WITHOUT_CUMULATIVE_REPORT
 
-checkpoint_delta_rule: >-
-  Checkpoint reports may include only changes since the prior accepted report, but must carry forward all unresolved D2+ difficulties,
-  S2+ discoveries, open coordination requests, unresolved hard problems and negative results until explicitly closed.
-
-agent_specific_emphasis:
-  CODEX:
-    - "Architecture and implementation pivots, test difficulty, hidden dependencies, technical debt and cross-module interface requests."
-  QCLAW:
-    - "Source conflicts, knowledge gaps, contradictory evidence, maturity inflation, unexpected conceptual links and research coordination."
-  WORKBUDDY:
-    - "Local environment difficulty, permissions, service state, path and deployment surprises, data-quality problems and required access."
-  GPT:
-    - "Cross-agent synthesis, priority conflict, ownership, route changes, acceptance decisions and user-facing explanation."
-
-GPT_obligations:
-  - "Reject or remediate reports that omit mandatory sections or use placeholders."
-  - "Distinguish execution difficulty from poor planning, missing evidence, environment change and unknown unknown."
-  - "Route actionable coordination requests to the correct owner and track them until satisfied, rejected or deferred with a trigger."
-  - "Convert accepted reusable lessons into permanent protocol, template, test, blueprint or task-route updates."
-  - "Summarize material difficulty, unexpected discovery and unresolved risk to the user rather than reporting only PASS/FAIL."
-  - "Do not expose private chain-of-thought; request concise decision rationale, observable process and evidence instead."
-
-anti_patterns:
-  - "COMPLETION_ONLY_REPORT"
-  - "ALL_TESTS_PASS_SO_NO_PROBLEMS_EXIST"
-  - "VAGUE_DIFFICULTY_CLAIM"
-  - "BLOCKED_WITHOUT_ATTEMPTS"
-  - "COORDINATION_REQUEST_WITHOUT_OWNER_OR_ACTION"
-  - "DISCOVERY_HIDDEN_UNTIL_COMPLETION"
-  - "IDEA_DUMP_WITHOUT_VALUE_COST_OWNER_OR_GATE"
-  - "SILENT_HANDOFF"
-  - "ERASING_FAILED_APPROACHES"
-  - "USING_PRIVATE_CHAIN_OF_THOUGHT_AS_REQUIRED_EVIDENCE"
-
-integration_requirements:
-  AGENTS_must_reference: true
-  task_routers_must_reference: [CODEX, QCLAW, WORKBUDDY]
-  AMED_delivery_must_include_report: true
-  active_tasks_inherit_without_route_reissue: true
-  inheritance_rule: >-
-    Existing active tasks inherit this reporting protocol for all future checkpoints, handoffs and completion reports. The protocol
-    does not change their task_id, route_epoch, branch, PR, scope or completion signal, so no lease reissue is required solely for adoption.
-  future_task_briefs_must_reference: true
-  final_handoff_must_include_report_or_exact_link: true
-
-security:
-  public_safe_remote_reports_only: true
+security_and_privacy:
   private_chain_of_thought_not_required: true
-  secret_values_denied: true
-  restricted_raw_data_denied: true
-  direct_main_write_by_executors: false
-  auto_merge: false
-  real_trade_denied: true
+  public_safe_remote_outputs_only: true
+  secrets_private_data_and_restricted_source_text_denied: true
+  no_authority_or_trade_expansion: true
+
+active_task_inheritance: >-
+  Existing active tasks inherit process/difficulty/discovery/coordination and command-execution reporting without changing task ID,
+  epoch, PR, branch, scope or completion signal. Route reissue is required only for actual task/authority changes.
 
 updated_by: "GPT"
-updated_at: "2026-07-31T04:35:00+08:00"
+updated_at: "2026-07-31T05:37:00+08:00"
