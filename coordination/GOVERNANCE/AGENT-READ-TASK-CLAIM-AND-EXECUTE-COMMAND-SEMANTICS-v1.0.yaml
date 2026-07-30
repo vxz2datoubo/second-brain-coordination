@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-0001"
 short_name: "RTCE"
 status: "ACTIVE_PERMANENT_PROJECT_RULE"
@@ -10,10 +10,21 @@ parent_policies:
   - "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 boundary: "authority_bounded / PUBLIC_SAFE_REMOTE_OUTPUTS / NO_TRADE unless separately authorized"
 
+canonical_remote_identity:
+  repository_full_name: "vxz2datoubo/second-brain-coordination"
+  canonical_https_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
+  canonical_main_ref: "refs/heads/main"
+  local_origin_is_authoritative_only_when_identity_matches: true
+  local_remote_tracking_ref_is_not_sufficient_proof_of_freshness: true
+  rule: >-
+    A local remote named origin is only a transport configuration. It may be stale, point to a mirror, fork, cached repository or
+    different URL, and must never override the declared repository_full_name and the exact canonical remote identity.
+
 purpose: >-
   Give the user command 读取任务 and its synonyms one stable end-to-end meaning: read the latest authoritative route,
   claim the valid lease, and immediately execute the active task with bounded initiative. The command is not a request to
   summarize, paraphrase, wait for a second start command, or ask the user to repeat instructions already present in the route.
+  Remote freshness must be resolved against the canonical repository identity, not merely a locally configured origin/main.
 
 trigger_phrases:
   - "读取任务"
@@ -22,12 +33,16 @@ trigger_phrases:
   - "读取并执行任务"
 
 canonical_meaning: >-
-  In one continuous invocation, synchronize or remotely read latest main; resolve the agent's own active route; verify READY,
-  execution_allowed, dependencies, lease freshness, proactive mission fields, allowed paths and safety boundaries; publish the
-  lease claim; then begin and continue substantive execution until a required checkpoint, a truthful blocker/stop condition,
-  or completion. Reading and execution are one command, not two phases requiring another user message.
+  In one continuous invocation, verify the canonical repository identity; fetch or remotely read the latest canonical main;
+  resolve the agent's own active route; verify READY, execution_allowed, dependencies, lease freshness, proactive mission fields,
+  allowed paths and safety boundaries; publish the lease claim; then begin and continue substantive execution until a required
+  checkpoint, a truthful blocker/stop condition, or completion. Reading and execution are one command, not two phases requiring
+  another user message.
 
 mandatory_sequence:
+  - "VERIFY_CANONICAL_REPOSITORY_IDENTITY_AND_REMOTE_URL"
+  - "READ_OR_FETCH_EXACT_CANONICAL_MAIN_NOT_ONLY_LOCAL_ORIGIN_MAIN"
+  - "COMPARE_CANONICAL_MAIN_ROUTE_WITH_LOCAL_REMOTE_TRACKING_STATE"
   - "READ_LATEST_REMOTE_MAIN_AND_AGENT_SPECIFIC_ROUTE"
   - "VERIFY_TASK_ID_ROUTE_EPOCH_ISSUE_PR_BRANCH_BASE_STATUS_AND_DEPENDENCIES"
   - "VERIFY_AMED_PMA_BIG_WPDCR_PDER_LEASE_VISIBILITY_AND_SAFETY_FIELDS"
@@ -36,6 +51,41 @@ mandatory_sequence:
   - "USE_BOUNDED_INITIATIVE_AND_ANSWER_MANDATORY_DISCOVERY_QUESTIONS"
   - "RUN_TESTS_AND_CAPTURE_EVIDENCE"
   - "PUBLISH_REQUIRED_CHECKPOINT_BLOCKER_OR_COMPLETION_REPORT"
+
+canonical_remote_verification:
+  required_checks:
+    - "Record git remote -v or equivalent configured transport identity without exposing credentials."
+    - "Resolve the exact canonical HTTPS repository or approved authenticated equivalent."
+    - "Query canonical refs/heads/main using git ls-remote, a one-off fetch, approved connector or GitHub API/read operation."
+    - "Read coordination/ACTIVE-<AGENT>-TASK.yaml from that canonical main and record its task_id and route_epoch."
+    - "Compare canonical truth with local origin/main and remote-tracking refs before declaring a stale route."
+  safe_methods:
+    - "Use a one-off fetch from the exact canonical URL into a dedicated remote-tracking ref."
+    - "Add a non-destructive read-only alias such as coordination-canonical when local origin cannot be changed safely."
+    - "Use the approved GitHub connector/API to read main when the local worktree cannot safely synchronize."
+  prohibited:
+    - "Treating the name origin as proof that the repository is canonical."
+    - "Allowing a stale fork, mirror or cached remote to supersede canonical GitHub main."
+    - "Resetting, rebasing, cleaning or discarding local work merely to resolve remote identity."
+    - "Printing embedded credentials or authenticated remote secrets."
+
+remote_identity_mismatch_behavior:
+  packet: "RemoteIdentityMismatchPacket"
+  required_fields:
+    - configured_remote_names_and_redacted_urls
+    - canonical_repository_full_name_and_url
+    - local_origin_main_sha
+    - canonical_main_sha
+    - active_route_task_id_and_epoch_from_each_source
+    - preserved_local_commit_parent_tree_and_changed_paths
+    - checks_and_commands_with_exit_codes_and_hashes
+    - exact_coordination_request
+    - safe_resume_condition
+  rules:
+    - "Preserve local commits and worktree state; do not reset, rebase, amend or force push."
+    - "If canonical truth is independently reachable, local origin disagreement alone is not permission to revert to an older route."
+    - "Continue only when the active route already authorizes canonical-remote fallback or GPT publishes an explicit bridge route."
+    - "If canonical truth cannot be verified, stop and report rather than guess."
 
 no_read_only_stop_rule:
   forbidden_when_route_is_executable:
@@ -60,7 +110,8 @@ executable_route_behavior:
   stop_only_for:
     - "EXPLICIT_ROUTE_STOP_CONDITION"
     - "PDER_S4_OR_D4_USER_GATE"
-    - "UNSATISFIED_DEPENDENCY_OR_STALE_ROUTE"
+    - "UNSATISFIED_DEPENDENCY_OR_CANONICALLY_VERIFIED_STALE_ROUTE"
+    - "UNRESOLVED_CANONICAL_REMOTE_IDENTITY_MISMATCH"
     - "UNSAFE_OR_UNAUTHORIZED_OPERATION"
     - "REQUIRED_GPT_OR_USER_DECISION"
     - "COMPLETION"
@@ -97,7 +148,8 @@ agent_specific_application:
     rule: >-
       读取任务 always means read, claim and execute. Codex may not finish its response after printing a task summary or plan when
       the route is READY. It must begin repository work, testing or evidence capture immediately and proceed to checkpoint,
-      truthful blocker or completion.
+      truthful blocker or completion. Codex must verify the exact canonical repository before allowing a local origin/main to
+      invalidate a route, and must preserve any local substantive commit during remote-identity reconciliation.
   QCLAW:
     rule: >-
       读取任务 means execute the current QCLAW route, not inspect Codex/WorkBuddy routes, and proactively perform knowledge,
@@ -120,6 +172,9 @@ invalid_behavior_codes:
   - "SECOND_START_COMMAND_REQUESTED"
   - "TASK_ALREADY_DEFINED_BUT_AGENT_ASKS_WHAT_TO_DO"
   - "OLD_ROUTE_OR_WRONG_AGENT_ROUTE_SELECTED"
+  - "LOCAL_ORIGIN_OVERRIDES_CANONICAL_REMOTE_IDENTITY"
+  - "STALE_ROUTE_DECLARED_WITHOUT_CANONICAL_REMOTE_CHECK"
+  - "LOCAL_WORK_DISCARDED_DURING_REMOTE_IDENTITY_MISMATCH"
   - "BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST"
 
 memory_and_persistence:
@@ -134,6 +189,7 @@ security:
   force_push: false
   history_rewrite: false
   real_data_or_trade_implicit_release: false
+  secret_bearing_remote_urls_must_be_redacted: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T05:16:00+08:00"
+updated_at: "2026-07-31T07:05:00+08:00"
