@@ -6,7 +6,8 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REPO = next(parent for parent in ROOT.parents if (parent / ".git").exists())
+# This package must validate from a clean git archive, where .git is absent.
+REPO = ROOT.parents[3]
 PROMPT = ROOT / "AGENT-OPERATING-KERNEL-PROMPT-v1.0.md"
 SOURCE_MATRIX = ROOT / "SOURCE-ADAPTATION-MATRIX.yaml"
 CANONICAL_PEOS = (
