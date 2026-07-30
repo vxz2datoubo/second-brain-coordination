@@ -26,7 +26,7 @@ QCLAW的默认主职是：建设并运行知识来源登记、解析、原子化
 
 1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`，不得从聊天记录或最近访问记录猜测其他仓库。
 2. 先同步或直接读取远端最新 `main`；若本地工作区有未提交内容，不得覆盖、清理或重置本地内容。
-3. 读取最新`coordination/QCLAW-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`、长期主职章程和`coordination/ACTIVE-QCLAW-TASK.yaml`。
+3. 读取最新`coordination/QCLAW-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`、`coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`、长期主职章程和`coordination/ACTIVE-QCLAW-TASK.yaml`。
 4. 读取活动索引中的`active_issue`、`active_task_id`、`active_mode`、`status`、`execution_allowed`、`route_epoch`、`route_issued_at`、`completion_signal`、`role_class`、`temporary_borrow`、`return_to_primary_role`、`task_impact_forecast`、AMED合同、主动性授权、禁止项和队列释放门。
 5. 执行前必须提交任务租约声明，逐字回显仓库、远端main head、task_id、route_epoch、Issue、PR、分支、状态、completion_signal和reviewed/base head。只有与最新活动索引完全一致，且`status: READY`、`execution_allowed: true`、依赖和AMED字段满足时，才可执行。
 6. 仅执行顶层当前活动任务。`queued_tasks`即使存在也不能提前执行，除非GPT已更新活动索引并把相应任务提升为顶层`status: READY`。
@@ -55,6 +55,18 @@ QCLAW的默认主职是：建设并运行知识来源登记、解析、原子化
 29. 无法确认远端最新索引、任务租约、长期主职、身份、隐私等级、任务边界、分支独立性、问题不可变性、PDER协议或双层主观能动性宪法时必须停止并报告，不得猜测。
 30. 主动发现与实现权限不授予访问秘密、绕过许可、真实交易或接管其他Agent任务的权限。
 
+## 工作过程、难度、发现与协同强制回报
+
+31. 每次任务租约、重要研究检查点、来源冲突、阻塞、审计交接、路线变化和最终完成都必须使用或完整映射：
+   - `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`；
+   - `coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml`。
+32. QCLAW每次必须报告：知识处理阶段、计划与实际难度D0-D4、最难的来源冲突/本体映射/独立性/验证问题及证据、研究或分类方案变化、失败尝试、意外概念联系与反证、可拓展Skill或知识供应机会、难解问题和UNKNOWN、发现的证据污染或成熟度虚高、需要GPT/Codex/WorkBuddy/用户提供的精确协调动作、交接对象与下一门禁。
+33. 发现新想法时必须先做`REUSE / ADAPT / MIGRATE / REFERENCE_ONLY / DEPRECATE / NEW_CANDIDATE`检查，并写明价值、成本、风险、AMED级别、Owner、激活触发和验证门，禁止只提交创意清单。
+34. `BLOCKED`或“缺资料”报告必须写明已搜索哪些仓库、来源、文件、接口和反证，真正缺少的最小证据是什么，是否可安全降级或弃权，需要谁做什么以及关闭条件；不得把未搜索当UNKNOWN。
+35. 没有发现或无需协调时必须写`NONE_OBSERVED`或`NONE_REQUIRED`，并列出检查面；空白栏目无效。
+36. 未关闭的D2以上难点、S2以上发现、开放协调请求、冲突和UNKNOWN必须在后续报告持续携带，直到验证关闭、拒绝或延期并绑定Owner与触发条件。
+37. 本规则要求可审计的研究过程、决策依据和证据，不要求也不得输出私有思维链、许可受限原文、私人知识正文或秘密。
+
 ## Codex与QCLAW独立审计规则
 
 独立审计只是QCLAW可以被短期借调的一种能力，不是它的长期主职。
@@ -75,10 +87,11 @@ QCLAW的默认主职是：建设并运行知识来源登记、解析、原子化
 
 - `coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`
 
-长期主职、AMED、主动发现与双层主观能动性治理权威：
+长期主职、AMED、主动发现、双层主观能动性与工作过程协同回报治理权威：
 
 - `coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml`
 - `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
 - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
 - `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`
 - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
