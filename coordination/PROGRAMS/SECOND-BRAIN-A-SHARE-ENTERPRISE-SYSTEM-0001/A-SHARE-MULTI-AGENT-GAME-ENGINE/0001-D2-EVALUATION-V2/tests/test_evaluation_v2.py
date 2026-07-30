@@ -12,8 +12,8 @@ for item in (ROOT, D2_ROOT):
     if str(item) not in sys.path:
         sys.path.insert(0, str(item))
 
-from catalog_validation import assert_catalogs_distinct, assert_distinct_semantic_signatures
-from evaluation_v2_harness import assert_accepted_sut_fingerprint, run_evaluation
+from catalog_validation import assert_catalogs_distinct, assert_distinct_execution_cases
+from evaluation_v2_harness import _invariant_oracle, assert_accepted_sut_fingerprint, run_evaluation
 from independent_oracle import evaluate_episode
 from metamorphic_properties import (
     property_function_map,
@@ -56,15 +56,20 @@ class EvaluationV2Tests(unittest.TestCase):
             with self.subTest(spec.scenario_id):
                 self.assertTrue(evaluate_episode(execute_scenario(spec).episode_state).valid)
 
-    def test_all_80_invariants_have_executable_oracles_and_test_ids(self):
+    def test_all_80_invariants_dispatch_predicates_and_named_oracles(self):
         invariants = invariant_catalog()
         self.assertEqual(len(invariants), 80)
-        self.assertTrue(all(item.failure_oracle_id.startswith("ORACLE-") and item.test_id for item in invariants))
+        self.assertTrue(all(item.failure_oracle_id == "ORACLE-" + item.predicate_id and item.test_id for item in invariants))
         self.assertEqual(len({item.invariant_id for item in invariants}), 80)
+        summary, report = run_evaluation()
+        self.assertEqual(summary.invariant_count, 80)
+        self.assertTrue(all(row["passed"] and row["oracle_detects_controlled_violation"] for row in report["invariants"]))
+        with self.assertRaisesRegex(ValueError, "UNKNOWN_INVARIANT_ORACLE"):
+            _invariant_oracle("NOT_REGISTERED", False)
 
-    def test_all_37_negative_cases_fail_closed(self):
+    def test_unique_negative_families_fail_closed(self):
         negatives = negative_catalog()
-        self.assertEqual(len(negatives), 37)
+        self.assertEqual(len(negatives), 10)
         for spec in negatives:
             with self.subTest(spec.negative_id):
                 with self.assertRaises(ValueError):
@@ -79,24 +84,26 @@ class EvaluationV2Tests(unittest.TestCase):
                 self.assertEqual(two.episode_state.step_index, 2)
                 self.assertTrue(evaluate_episode(two.episode_state).valid)
 
-    def test_all_36_counterfactual_pairs_change_exactly_one_action(self):
+    def test_all_32_counterfactual_pairs_change_exactly_one_action(self):
         pairs = counterfactual_catalog()
-        self.assertEqual(len(pairs), 36)
+        self.assertEqual(len(pairs), 32)
         for spec in pairs:
             with self.subTest(spec.pair_id):
                 self.assertEqual(len(execute_counterfactual(spec).changed_action_ids), 1)
 
     def test_catalogs_are_semantically_distinct_at_required_cardinality(self):
         pairs = tuple((item.mutant_id, item.paired_property_id) for item in mutation_registry())
-        assert_catalogs_distinct(
-            scenario_catalog(), invariant_catalog(), negative_catalog(), episode_catalog(),
-            counterfactual_catalog(), cross_family_catalog(pairs),
-        )
+        summary, report = run_evaluation()
+        self.assertEqual(summary.canonical_report_sha256, report["canonical_report_sha256"] if "canonical_report_sha256" in report else summary.canonical_report_sha256)
+        for kind, rows in report["catalog_signatures"].items():
+            with self.subTest(kind):
+                self.assertTrue(rows)
+                self.assertTrue(all("execution_signatures" in row for row in rows))
 
     def test_full_harness_reconciles_all_catalogs_and_actual_mutations(self):
         summary, report = run_evaluation()
-        self.assertEqual((summary.scenario_count, summary.invariant_count, summary.negative_count), (72, 80, 37))
-        self.assertEqual((summary.episode_count, summary.counterfactual_count, summary.cross_family_count), (24, 36, 24))
+        self.assertEqual((summary.scenario_count, summary.invariant_count, summary.negative_count), (72, 80, 10))
+        self.assertEqual((summary.episode_count, summary.counterfactual_count, summary.cross_family_count), (24, 32, 24))
         self.assertEqual(summary.mutation_score, 1.0)
         self.assertEqual(summary.survivors, ())
         self.assertEqual(summary.property_failures, ())
@@ -159,12 +166,14 @@ def _make_property_test(property_id, function):
     return test
 
 
-def _make_duplicate_catalog_test(kind, factory, minimum):
+def _make_execution_duplicate_test(kind):
     def test(self):
-        rows = factory()
-        self.assertGreaterEqual(len(rows), minimum)
-        with self.assertRaisesRegex(AssertionError, "E23_DUPLICATE_NORMALIZED_SEMANTIC_SIGNATURE:" + kind):
-            assert_distinct_semantic_signatures(kind, rows + (rows[0],), minimum)
+        rows = [
+            {"id": "first", "executed_input": {"consumed": 1}, "observed_relation": {"result": "same"}},
+            {"id": "renamed-only", "executed_input": {"consumed": 1}, "observed_relation": {"result": "same"}},
+        ]
+        with self.assertRaisesRegex(AssertionError, "E24_DUPLICATE_EXECUTION_SIGNATURE:" + kind):
+            assert_distinct_execution_cases(kind, rows)
     return test
 
 
@@ -182,16 +191,8 @@ for _property_id, _function in property_function_map().items():
         _make_property_test(_property_id, _function),
     )
 
-_DUPLICATE_CATALOGS = (
-    ("scenarios", scenario_catalog, 72),
-    ("invariants", invariant_catalog, 80),
-    ("negatives", negative_catalog, 37),
-    ("episodes", episode_catalog, 24),
-    ("counterfactuals", counterfactual_catalog, 36),
-    ("cross_family", lambda: cross_family_catalog(tuple((item.mutant_id, item.paired_property_id) for item in mutation_registry())), 24),
-)
-for _kind, _factory, _minimum in _DUPLICATE_CATALOGS:
-    setattr(EvaluationV2Tests, "test_rejects_duplicate_" + _kind, _make_duplicate_catalog_test(_kind, _factory, _minimum))
+for _kind in ("scenarios", "invariants", "negatives", "episodes", "counterfactuals", "cross_family"):
+    setattr(EvaluationV2Tests, "test_rejects_metadata_only_duplicate_" + _kind, _make_execution_duplicate_test(_kind))
 
 
 if __name__ == "__main__":

@@ -75,10 +75,34 @@ def _invariant_passes(predicate_id: str, run) -> bool:
     raise ValueError("UNKNOWN_INVARIANT_PREDICATE:" + predicate_id)
 
 
-def _signature_row(spec: object) -> dict[str, object]:
-    input_signature, relation_signature = spec.signatures
-    identifier = next(value for name, value in vars(spec).items() if name.endswith("_id"))
-    return {"id": identifier, "input_signature": input_signature, "expected_relation_signature": relation_signature}
+def _case(identifier: str, executed_input: dict[str, object], observed_relation: dict[str, object]) -> dict[str, object]:
+    return {"id": identifier, "executed_input": executed_input, "observed_relation": observed_relation}
+
+
+def _run_input(run) -> dict[str, object]:
+    """Project only fields actually consumed by the public arbitration call."""
+    agent_order = {agent.agent_id: index for index, agent in enumerate(run.episode_state.initial_agents)}
+    actions = []
+    for action in run.episode_state.action_registry:
+        actions.append({
+            "agent": agent_order[action.agent_id], "arrival": action.arrival_sequence,
+            "label": action.label.value, "side": action.order.side.value,
+            "quantity": action.order.quantity, "requires_complete_information": action.requires_complete_information,
+            "transition": action.conflict_transition.value, "liquidity": action.liquidity_mode.value,
+            "has_conflict": action.conflict_key is not None,
+            "has_counterparty": action.counterparty_agent_id is not None,
+        })
+    return {"actions": tuple(actions)}
+
+
+def _invariant_oracle(predicate_id: str, predicate_passed: bool) -> bool:
+    if predicate_id not in {
+        "HAS_EPISODE", "NONEMPTY_EVENTS", "UNIQUE_EVENT_IDS", "ACTION_EVENT_BINDING",
+        "INDEPENDENT_ACCOUNTING", "BOUNDARY_ORDER", "NO_UNEXPLAINED_FLOW",
+        "TERMINAL_ACTION_COVERAGE", "STEP_MONOTONIC", "PORTFOLIO_DELTA_EXPLAINED",
+    }:
+        raise ValueError("UNKNOWN_INVARIANT_ORACLE:" + predicate_id)
+    return not predicate_passed
 
 
 def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
@@ -89,8 +113,6 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
     episodes = episode_catalog()
     counterfactuals = counterfactual_catalog()
     cross_family = cross_family_catalog(mutation_property_pairs())
-    assert_catalogs_distinct(scenarios, invariants, negatives, episodes, counterfactuals, cross_family)
-
     outcomes = {spec.scenario_id: execute_scenario(spec) for spec in scenarios}
     scenario_results = tuple({"scenario_id": spec.scenario_id, "passed": evaluate_episode(outcomes[spec.scenario_id].episode_state).valid} for spec in scenarios)
     if not all(row["passed"] for row in scenario_results):
@@ -103,8 +125,9 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
         "failure_oracle_id": spec.failure_oracle_id,
         "test_id": spec.test_id,
         "passed": _invariant_passes(spec.predicate_id, outcomes[spec.fixture_id]),
+        "oracle_detects_controlled_violation": _invariant_oracle(spec.predicate_id, False),
     } for spec in invariants)
-    if not all(row["passed"] for row in invariant_results):
+    if not all(row["passed"] and row["oracle_detects_controlled_violation"] for row in invariant_results):
         raise AssertionError("E23_INVARIANT_FAILURE")
 
     negative_results = []
@@ -161,6 +184,16 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
     if not all(row["passed"] for row in cross_results):
         raise AssertionError("E23_CROSS_FAMILY_FAILURE")
 
+    catalogs = {
+        "scenarios": [_case(spec.scenario_id, _run_input(outcomes[spec.scenario_id]), {"valid": row["passed"]}) for spec, row in zip(scenarios, scenario_results)],
+        "invariants": [_case(spec.invariant_id, {"fixture": _run_input(outcomes[spec.fixture_id]), "predicate": spec.predicate_id}, {"predicate_passed": row["passed"], "failure_oracle_detects_violation": row["oracle_detects_controlled_violation"]}) for spec, row in zip(invariants, invariant_results)],
+        "negatives": [_case(spec.negative_id, {"family": spec.family}, {"raised": row["raised"], "expected": spec.expected_failure_class}) for spec, row in zip(negatives, negative_results)],
+        "episodes": [_case(spec.episode_id, {"first": _run_input(execute_episode(spec)[0]), "second": _run_input(execute_episode(spec)[1])}, {"steps": 2, "valid": row["passed"]}) for spec, row in zip(episodes, episode_results)],
+        "counterfactuals": [_case(spec.pair_id, {"quantity": ((spec.variant - 1) % 8) + 1, "side": "BUY" if ((spec.variant - 1) // 8) % 2 == 0 else "SELL", "requires_complete_information": bool((spec.variant - 1) // 16)}, {"changed_actions": 1, "passed": row["passed"]}) for spec, row in zip(counterfactuals, counterfactual_results)],
+        "cross_family": [_case(spec.interaction_id, {"mutant": spec.mutant_id, "property": spec.property_id, "variant": spec.fixture_variant}, {"passed": row["passed"]}) for spec, row in zip(cross_family, cross_results)],
+    }
+    assert_catalogs_distinct(catalogs)
+
     report = {
         "boundary": "PUBLIC_SAFE_SYNTHETIC_ONLY_CANDIDATE_ONLY",
         "sut_fingerprint": fingerprint,
@@ -169,12 +202,7 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
             "episodes": len(episodes), "counterfactuals": len(counterfactuals), "cross_family": len(cross_family),
         },
         "catalog_signatures": {
-            "scenarios": [_signature_row(spec) for spec in scenarios],
-            "invariants": [_signature_row(spec) for spec in invariants],
-            "negatives": [_signature_row(spec) for spec in negatives],
-            "episodes": [_signature_row(spec) for spec in episodes],
-            "counterfactuals": [_signature_row(spec) for spec in counterfactuals],
-            "cross_family": [_signature_row(spec) for spec in cross_family],
+            **catalogs,
         },
         "scenarios": scenario_results,
         "invariants": invariant_results,

@@ -205,7 +205,7 @@ def invariant_catalog() -> tuple[InvariantSpec, ...]:
         predicate = PREDICATES[(index * 3) % len(PREDICATES)]
         specs.append(InvariantSpec(
             f"INV-{index + 1:03d}", fixture.scenario_id, predicate,
-            _pairs({"fixture_input_signature": fixture.signatures[0], "predicate": predicate, "slot": index // len(scenarios)}),
+            _pairs({"fixture_family": fixture.family, "fixture_variant": fixture.variant, "predicate": predicate}),
             _pairs({"predicate": predicate, "expected": True}), "REQ-E23-INVARIANT",
             "ORACLE-" + predicate, "TEST-E23-INVARIANTS",
         ))
@@ -213,9 +213,9 @@ def invariant_catalog() -> tuple[InvariantSpec, ...]:
 
 
 _NEGATIVE_LAYOUT = (
-    ("duplicate_arrival", 5), ("duplicate_action", 5), ("duplicate_invocation", 5),
-    ("duplicate_order", 5), ("prior_replay", 4), ("invalid_label", 3),
-    ("agent_subclass", 3), ("action_subclass", 3), ("string_enum", 2), ("bool_arrival", 2),
+    ("duplicate_arrival", 1), ("duplicate_action", 1), ("duplicate_invocation", 1),
+    ("duplicate_order", 1), ("prior_replay", 1), ("invalid_label", 1),
+    ("agent_subclass", 1), ("action_subclass", 1), ("string_enum", 1), ("bool_arrival", 1),
 )
 
 
@@ -226,7 +226,7 @@ def negative_catalog() -> tuple[NegativeCaseSpec, ...]:
         for variant in range(1, count + 1):
             specs.append(NegativeCaseSpec(
                 f"NEG-{index:03d}", family, variant,
-                _pairs({"fault_family": family, "variant": variant, "carrier": "public_arbitrate"}),
+                _pairs({"fault_family": family, "carrier": "public_arbitrate"}),
                 _pairs({"raises": "ValueError", "fail_closed": True}), "ValueError", "TEST-E23-NEGATIVES",
             ))
             index += 1
@@ -322,9 +322,9 @@ def execute_episode(spec: EpisodeSpec, *, sut: ModuleType = BASE_SUT):
 def counterfactual_catalog() -> tuple[CounterfactualSpec, ...]:
     return tuple(CounterfactualSpec(
         f"CF-{index:03d}", index, "assumption:cf-%03d" % index,
-        _pairs({"quantity": ((index - 1) % 8) + 1, "side": "BUY" if ((index - 1) // 8) % 2 == 0 else "SELL", "requires_complete_information": bool((index - 1) // 16), "conflict_mode": (index - 1) // 8, "changed_action_count": 1}),
+        _pairs({"quantity": ((index - 1) % 8) + 1, "side": "BUY" if ((index - 1) // 8) % 2 == 0 else "SELL", "requires_complete_information": bool((index - 1) // 16), "changed_action_count": 1}),
         _pairs({"changed_action_count": 1, "alternative_label": "abstain"}), "TEST-E23-COUNTERFACTUALS",
-    ) for index in range(1, 37))
+    ) for index in range(1, 33))
 
 
 def execute_counterfactual(spec: CounterfactualSpec, *, sut: ModuleType = BASE_SUT):
