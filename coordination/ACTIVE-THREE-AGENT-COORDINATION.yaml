@@ -1,9 +1,9 @@
-schema_version: "28.0"
+schema_version: "29.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E26_GATE_B_ACTIVE_QCLAW_E21_GATE_B_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E27_REMOTE_BRIDGE_ACTIVE_QCLAW_E22_EVIDENCE_REMEDIATION_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-07-31T05:33:00+08:00"
+updated_at: "2026-07-31T07:16:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command:
@@ -12,15 +12,17 @@ permanent_command_semantics:
     protocol: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
   agent_read_command:
     trigger: "读取任务"
-    meaning: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+    meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
     protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+    canonical_repository_full_name: "vxz2datoubo/second-brain-coordination"
+    local_origin_is_not_authority_without_identity_match: true
     read_only_acknowledgement_forbidden: true
     second_start_command_required: false
 
 permanent_operating_model:
   status: "ACTIVE_PROGRAM_RULE"
   agent_layer: "Execute primary mission plus authorized A/B improvements; actively discover, coordinate and feed back system lessons."
-  GPT_layer: "On 审查任务, review evidence and task quality, repair control plane, then publish or reaffirm correct routes."
+  GPT_layer: "On 审查任务, review implementation, evidence, task quality and process; repair control plane; publish or reaffirm routes."
   final_authority: "GPT_FINAL_GATE_WITH_USER_STRATEGIC_AND_HIGH_RISK_APPROVAL"
   automatic_self_approval_by_agents: false
 
@@ -28,34 +30,37 @@ agents:
   CODEX:
     active_issue: 23
     pull_request: 106
-    task_id: "CODEX-D2-EVALUATION-V2-INDEPENDENT-ORACLE-PORTABLE-ARCHIVE-AND-COMPLETION-TRUTH-CLOSURE-0018-E26"
-    route_epoch: 27
+    task_id: "CODEX-E26-CANONICAL-REMOTE-IDENTITY-BRIDGE-PRESERVED-COMMIT-AND-EVIDENCE-RESUME-0019-E27"
+    route_epoch: 28
     mode: "target"
+    mode_reason: "Preserve E26 local progress and resolve the bounded canonical-remote identity and evidence-publication failure."
     status: "READY"
     execution_allowed: true
-    active_gate: "B_R4_PR106_INDEPENDENT_ORACLE_PORTABLE_ARCHIVE_COMPLETION_TRUTH"
+    active_gate: "B_R5_PR106_CANONICAL_REMOTE_BRIDGE_PRESERVED_COMMIT_REMOTE_EVIDENCE"
     reviewed_base: "e06f58944723ed4d2bc22c3fe30862f69091fef4"
-    completion_signal: "CODEX_E26_D2_EVALUATION_V2_INDEPENDENT_ORACLE_PORTABLE_ARCHIVE_AND_COMPLETION_TRUTH_READY_FOR_GPT_REVIEW"
+    preserved_local_substantive_commit: "b45ab1e27b066edfdf8354c580702406bc4a49ae"
+    completion_signal: "CODEX_E27_E26_CANONICAL_REMOTE_IDENTITY_BRIDGE_PRESERVED_COMMIT_AND_EVIDENCE_READY_FOR_GPT_REVIEW"
     command: "读取任务"
-    command_behavior: "CLAIM_AND_EXECUTE_NOW"
+    command_behavior: "VERIFY_CANONICAL_REMOTE_CLAIM_AND_EXECUTE_NOW"
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
     pull_request: 100
-    task_id: "QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21"
-    route_epoch: 21
+    task_id: "QCLAW-PR100-E21-EVIDENCE-PROVENANCE-SELF-AUDIT-EXACT-COMMIT-CI-AND-CUMULATIVE-TRUTH-CLOSURE-0024-E22"
+    route_epoch: 22
     mode: "target"
+    mode_reason: "Preserve portable source scaffolding but rebuild invalid E21 provenance, tested-commit, CI and cumulative evidence in the same PR."
     status: "READY"
     execution_allowed: true
-    active_gate: "B_R6_PR100_PORTABLE_RUNNER_ARCHIVE_CI_HANDOFF"
-    reviewed_base: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
-    completion_signal: "QCLAW_E21_PR100_PORTABLE_RUNNER_ARCHIVE_PROVENANCE_CI_AND_CUMULATIVE_HANDOFF_READY_FOR_GPT_REVIEW"
+    active_gate: "B_R7_PR100_EXACT_TESTED_COMMIT_PORTABLE_EVIDENCE_CUMULATIVE_TRUTH"
+    reviewed_base: "66972dfc790b2a8d1ce0a5c6aae692f021736825"
+    completion_signal: "QCLAW_E22_PR100_EXACT_TESTED_COMMIT_PORTABLE_EVIDENCE_AND_CUMULATIVE_TRUTH_READY_FOR_GPT_REVIEW"
     command: "读取任务"
-    command_behavior: "CLAIM_AND_EXECUTE_NOW"
+    command_behavior: "VERIFY_CANONICAL_REMOTE_CLAIM_AND_EXECUTE_NOW"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     task_id: "WORKBUDDY-PAUSED-NO-ACTIVE-ROUTE"
-    route_epoch: 21
+    route_epoch: 22
     mode: "paused"
     status: "PAUSED"
     execution_allowed: false
@@ -64,51 +69,53 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E25:
-    classification: "CONTROLLED_ARTIFACT_TRACE_AND_CI_REUSABLE_ORACLE_ARCHIVE_COMPLETION_TRUTH_FAILED"
-    accepted:
-      - "Controlled artifacts and 80-row valid/invalid execution."
-      - "Retained episode/counterfactual traces."
-      - "49-test dual-Python CI and truthful counts."
-    returned:
-      - "Three same-predicate object oracles."
-      - "Missing real spec/execution divergence test."
-      - "Fresh archive evidence NOT_ACCEPTED."
-      - "Incomplete WPDCR/AMED and wrong receipt anchor."
-  QCLAW_E20:
-    classification: "42_CASE_LEDGER_AND_SOURCE_LOCK_REUSABLE_PORTABILITY_ARCHIVE_CI_HANDOFF_FAILED"
-    accepted:
-      - "42 tracked adversarial cases."
-      - "D2 and Q0 source locks."
-    returned:
-      - "Hard-coded stale workspace and Python path."
-      - "D05 lacks exact archive provenance."
-      - "Green CI does not run QCLAW evidence."
-      - "Cumulative handoff/WPDCR incomplete."
+  CODEX_E26:
+    classification: "PROCESS_COMPLIANCE_AND_LOCAL_PROGRESS_REUSABLE_REMOTE_IDENTITY_AND_REMOTE_EVIDENCE_UNRESOLVED"
+    accepted_as_reusable:
+      - "Codex obeyed read-claim-execute semantics and performed substantive work."
+      - "It preserved local commit b45ab1, tests, archive claims, negative timing evidence and an exact coordination request."
+      - "It stopped rather than emitting a false completion signal when remote routes conflicted."
+    not_accepted:
+      - "Unpushed implementation or archive correctness."
+      - "Local origin/main as authority."
+      - "Remote CI, cumulative receipt or external anchors."
+    system_feedback:
+      - "RTCE upgraded to v1.1 with canonical remote identity verification and RemoteIdentityMismatchPacket."
+      - "Codex router now prevents stale/wrong local origin from overriding canonical GitHub main."
+  QCLAW_E21:
+    classification: "PORTABLE_SOURCE_SCAFFOLD_REUSABLE_COMMITTED_RUN_PROVENANCE_EXACT_COMMIT_CI_AND_CUMULATIVE_TRUTH_FAILED"
+    accepted_as_reusable:
+      - "Path(__file__), sys.executable, self-contained q0_sources and 42-case source scaffolding."
+    not_accepted:
+      - "Receipt and JSON generated from fixed QClaw Python and e17_gate_b_r2."
+      - "Truncated commands and incorrect actual_result semantics."
+      - "D05 ancestor commit 30b991, weak validators, no relevant CI and stale E18 handoff."
+    system_feedback:
+      - "E22 must preserve E21 invalid evidence explicitly and add exact-set, archive and stale-path fail-closed validators."
 
 resource_model:
   CODEX:
-    share_percent: 65
-    weight: "STANDARD_BOUNDED_GATE_B_CLOSURE"
+    share_percent: 55
+    weight: "STANDARD_CANONICAL_REMOTE_AND_REMOTE_EVIDENCE_BRIDGE"
   QCLAW:
-    share_percent: 35
-    weight: "STANDARD_PORTABILITY_AND_EVIDENCE_CLOSURE"
+    share_percent: 45
+    weight: "STANDARD_EVIDENCE_PROVENANCE_AND_CUMULATIVE_TRUTH_REMEDIATION"
   WORKBUDDY:
     share_percent: 0
     weight: "PAUSED"
 
 execution_plan:
   - owner: "CODEX"
-    task: "On 读取任务, claim and immediately execute E26 on PR #106."
+    task: "On 读取任务, verify canonical remote, preserve and push b45ab1 unchanged, then obtain remote CI and receipt evidence."
   - owner: "QCLAW"
-    task: "On 读取任务, claim and immediately execute E21 on PR #100."
+    task: "On 读取任务, execute E22 from head 66972df, rebuild evidence and preserve E21 invalid history."
   - owner: "WORKBUDDY"
     task: "Remain paused; do not auto-resume."
   - owner: "GPT"
-    task: "On next 审查任务, perform full review-optimize-publish cycle."
+    task: "On next 审查任务, review remote code/CI/evidence and publish the next bounded disposition."
 
 cross_lane_firewalls:
-  - "Codex owns PR #106 Evaluation V2; QCLAW may not edit it."
+  - "Codex owns PR #106 Evaluation V2 and remote bridge; QCLAW may not edit it."
   - "QCLAW owns PR #100 candidate adapter evidence; Codex may not edit it."
   - "WorkBuddy is paused and cannot auto-resume."
   - "No direct main writes, merges, force pushes or history rewrites by executors."
