@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 record_type: "AMEDTaskBrief"
 task_id: ""
 issue_or_pr: ""
@@ -6,6 +6,8 @@ assigned_agent: ""
 mode: ""
 mode_reason: ""
 task_weight: "LIGHT | STANDARD | STRATEGIC"
+proactive_mission_authoring_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 
 mission_intent:
   fundamental_goal: ""
@@ -13,11 +15,25 @@ mission_intent:
   current_state_to_change: ""
   causal_mechanism:
     - ""
+  observable_success:
+    - ""
   success_criteria:
     - ""
   failure_conditions:
     - ""
   stop_conditions:
+    - ""
+
+primary_delivery_and_non_negotiables:
+  minimum_required_deliverables:
+    - ""
+  frozen_constraints:
+    - ""
+  required_commit_or_artifact_shape:
+    - ""
+  evidence_gates:
+    - ""
+  excluded_work:
     - ""
 
 system_position:
@@ -36,6 +52,111 @@ system_position:
   related_active_tasks:
     - ""
 
+proactive_mission_assignment:
+  initiative_required: true
+  optimize_for_fundamental_goal_not_literal_steps: true
+  better_than_minimum_is_expected_when_evidence_supports_it: true
+  executor_may_choose:
+    - "internal implementation method"
+    - "validation and test design"
+    - "bounded architecture and sequencing inside authorized paths"
+    - "AMED A/B adjacent improvements that pass value, evidence and rollback tests"
+  executor_must_not_wait_for_extra_instruction_to:
+    - "challenge stale or false assumptions"
+    - "inspect relevant adjacent modules, tests, interfaces and existing capabilities"
+    - "use a simpler or more reliable method when it better serves the fundamental goal"
+    - "report material discoveries, hard problems and precise coordination requests"
+  better_method_value_test:
+    - "materially improves correctness, safety, reproducibility, integration, maintainability, cost or future leverage"
+    - "does not weaken evidence or hide negative results"
+    - "complexity is proportionate to value"
+    - "can be tested and rolled back"
+    - "does not change canonical authority, ownership, permissions or safety boundaries"
+  proposal_or_stop_when:
+    - "the opportunity requires a new canonical runtime or system of record"
+    - "the work belongs to another active owner or protected branch"
+    - "the exploration budget would be exceeded"
+    - "private, licensed, real-data, account, order, destructive or user-gated authority is required"
+    - "no reliable solution is supported by current evidence"
+
+mandatory_discovery_questions:
+  - "What can be done more reliably, simply, safely or completely than the literal wording?"
+  - "Which assumptions, dependencies, requirements, tests, interfaces or source claims may be wrong, stale or missing?"
+  - "What can be reused, adapted, integrated, generalized, simplified, migrated or deprecated instead of duplicated?"
+  - "What valuable extension or adjacent capability becomes visible, and what evidence would justify it?"
+  - "What remains unresolved or cannot be solved reliably inside the current evidence, authority or budget?"
+  - "Who needs to coordinate exactly what input, access, decision, test or review?"
+  - "Which discoveries should feed back into protocols, templates, tests, blueprints, skills, routes, lessons or future tasks?"
+
+active_discovery_duty:
+  required_checks:
+    - WRONG_OR_STALE_ASSUMPTION
+    - MISSING_REQUIREMENT
+    - DUPLICATE_RUNTIME_OR_SKILL
+    - INTERFACE_GAP
+    - REUSABLE_CAPABILITY
+    - SIMPLER_OR_BETTER_METHOD
+    - CROSS_MODULE_LINKAGE
+    - HIDDEN_COST_OR_RISK
+    - NEGATIVE_OR_COUNTERINTUITIVE_RESULT
+    - NEW_UNKNOWN
+    - COORDINATION_DEPENDENCY
+    - SYSTEM_FEEDBACK_OPPORTUNITY
+  required_output: "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT"
+  no_material_discovery_rule: "Report NONE_OBSERVED and list checks performed."
+
+anticipated_difficulty_and_unknowns:
+  planned_difficulty: "D0_ROUTINE | D1_MODERATE | D2_HARD | D3_VERY_HARD | D4_RESEARCH_UNKNOWN"
+  expected_hard_parts:
+    - ""
+  likely_hidden_dependencies:
+    - ""
+  expected_unknowns:
+    - ""
+  evidence_required_before_declaring_blocked:
+    - "attempts made"
+    - "observed results"
+    - "minimum missing information or capability"
+    - "affected scope"
+    - "work that can continue"
+  safe_degradation_or_abstention_rule: ""
+
+coordination_and_handoff_design:
+  likely_coordination_owners:
+    - "GPT"
+    - "CODEX | QCLAW | WORKBUDDY | USER | OTHER"
+  incoming_dependencies:
+    - ""
+  outgoing_handoffs:
+    - ""
+  authoritative_source_of_truth:
+    - ""
+  exact_request_must_include:
+    - requested_from
+    - exact_action_input_access_or_decision_needed
+    - reason
+    - evidence_or_handoff_reference
+    - urgency
+    - dependency_or_blocked_gate
+    - work_that_can_continue_without_it
+    - activation_trigger_or_deadline
+    - closure_condition
+  acceptance_and_closure_gate:
+    - ""
+
+system_feedback_and_double_loop_targets:
+  protocols_or_templates_to_reconsider:
+    - ""
+  tests_or_validators_to_strengthen:
+    - ""
+  blueprints_skills_or_interfaces_to_link:
+    - ""
+  engineering_lessons_or_deprecations_to_record:
+    - ""
+  follow_up_task_candidate_rules:
+    - "owner, prerequisite, trigger, cost, risk, validation gate and close condition required"
+  GPT_acceptance_required: true
+
 hard_boundaries:
   security:
     - ""
@@ -51,19 +172,6 @@ hard_boundaries:
     - ""
   fact_inference_boundary:
     - ""
-
-active_discovery_duty:
-  required_checks:
-    - WRONG_OR_STALE_ASSUMPTION
-    - MISSING_REQUIREMENT
-    - DUPLICATE_RUNTIME_OR_SKILL
-    - INTERFACE_GAP
-    - REUSABLE_CAPABILITY
-    - SIMPLER_OR_BETTER_METHOD
-    - CROSS_MODULE_LINKAGE
-    - HIDDEN_COST_OR_RISK
-    - NEGATIVE_OR_COUNTERINTUITIVE_RESULT
-  required_output: "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT"
 
 research_trigger:
   level: "L1_REUSE_AND_QUICK_CHECK | L2_TARGETED_PROFESSIONAL_RESEARCH | L3_INDEPENDENT_RESEARCH_TASK"
@@ -81,6 +189,7 @@ exploration_budget:
   max_new_architecture_proposals: 0
   max_new_skill_candidates: 0
   max_unplanned_files: 0
+  max_unplanned_pull_requests: 0
   scope_expansion_without_gate: false
 
 improvement_authority:
@@ -97,6 +206,40 @@ improvement_authority:
     examples:
       - ""
 
+agent_specific_initiative:
+  emphasis:
+    - ""
+  adjacent_scope_to_scan:
+    - ""
+  high_value_opportunity_categories:
+    - ""
+  decisions_executor_may_make_without_waiting:
+    - ""
+  decisions_requiring_GPT_or_user_gate:
+    - ""
+
+work_process_reporting:
+  required: true
+  required_moments:
+    - LEASE_CLAIM
+    - MATERIAL_CHECKPOINT
+    - BLOCKER_OR_ESCALATION
+    - HANDOFF_OR_ROUTE_CHANGE
+    - COMPLETION
+  mandatory_sections:
+    - PRIMARY_WORK_AND_PROCESS_TRACE
+    - DIFFICULTY_AND_COMPLEXITY
+    - NEW_AND_UNEXPECTED_DISCOVERIES
+    - EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES
+    - UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS
+    - PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS
+    - COORDINATION_REQUESTS
+    - CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT
+    - DECISIONS_ALTERNATIVES_AND_LESSONS
+    - NEXT_ACTION_AND_GATE
+  no_empty_section_rule: true
+  carry_open_items_forward_until_closed: true
+
 required_evidence:
   fact_classes:
     - VERIFIED_REPOSITORY
@@ -112,24 +255,38 @@ required_evidence:
   negative_results: true
   alternatives_and_tradeoffs: true
   rollback: true
+  process_and_difficulty_evidence: true
+  discovery_and_coordination_evidence: true
 
 mandatory_delivery_artifacts:
   - AGENT-EXECUTION-RECEIPT
   - RESEARCH-LEDGER
   - UNPLANNED-IMPROVEMENT-LEDGER
   - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT
+  - WORK-PROCESS-AND-COORDINATION-REPORT
   - TEST-RUN-RECEIPT
   - UNKNOWN-REGISTRY
   - AI_HANDOFF
+
+executor_lease_acknowledgement:
+  required: true
+  statements:
+    - "I understand the fundamental goal, not only the checklist."
+    - "I will seek a better bounded method and adjacent defects."
+    - "I will report discoveries, opportunities, unresolved problems and precise coordination needs."
+    - "I will implement only authorized A/B improvements and preserve C/D gates."
+    - "I will identify system-feedback candidates without self-approving canonical changes."
 
 second_pass_audit:
   required: true
   reviewer: "GPT"
   gates:
+    - TASK_ASSIGNMENT_INITIATIVE_QUALITY_GATE
     - TASK_COMPLETENESS_GATE
     - FACT_EVIDENCE_GATE
     - RESEARCH_QUALITY_GATE
     - ENGINEERING_CORRECTNESS_GATE
     - IMPROVEMENT_VALUE_GATE
+    - PROCESS_DIFFICULTY_COORDINATION_GATE
     - SYSTEM_EVOLUTION_GATE
     - NEXT_ACTION_GATE
