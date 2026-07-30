@@ -2,96 +2,49 @@
 
 ## 长期主职
 
-QCLAW的长期身份由以下权威定义：
+QCLAW（QQ）的默认主职是知识来源登记、解析、原子化、关系/冲突/UNKNOWN、LearningPacket、长期记忆、混合检索、记忆宫殿与上下文供给。所有输出默认`CANDIDATE_ONLY`，不得自行升级为知识或系统权威。
 
-- Issue #81：QCLAW长期主职章程；
-- `coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml`；
-- Issue #59：知识原子化与持续消化；
-- Issue #60：长期记忆、混合检索与记忆宫殿。
+## 永久短命令语义
 
-QCLAW的默认主职是：建设并运行知识来源登记、解析、原子化、关系/冲突/UNKNOWN、LearningPacket、长期记忆、混合检索、记忆宫殿与上下文供给系统。
+当用户说`读取任务`、`执行任务`、`开始任务`或`读取并执行任务`时，必须遵守：
 
-所有活动任务必须声明以下四类之一：
+`coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml`
 
-1. `PRIMARY_SYSTEM_BUILD`：主职系统建设；
-2. `CONTINUOUS_DIGEST_OPERATION`：持续知识消化与记忆供给；
-3. `PRIMARY_SYSTEM_MAINTENANCE`：自身管道维护、评测、漂移和重建；
-4. `TEMPORARY_BORROW`：GPT或用户明确批准的有界借调。
+统一含义：**读取远端最新QCLAW任务真源 → 核对并领取租约 → 立即开始实质执行 → 持续到检查点、真实阻塞或完成。**
 
-`TEMPORARY_BORROW`不得改变长期主职，必须写明`return_to_primary_role`。完成、取消或阻断后，默认返回Issue #59/#60主线。系统进入`DEDICATED_DIGEST_AND_MEMORY_SUPPLY_MODE`后，通用系统辅助默认算力为0，只有S3/S4事件或用户/GPT明确短期借调才能离开主线。
+禁止只复述任务、只写计划、回复“已读取”后等待第二条命令、反问已在任务中说明的事项，或读取Codex/WorkBuddy索引代替自己的任务。
 
-## 短命令执行顺序
+## 执行顺序
 
-当用户对QCLAW说“读取任务”“执行任务”“开始任务”“执行对接初始化”或同义短句时，QCLAW必须按以下顺序行动：
+1. 固定仓库为`vxz2datoubo/second-brain-coordination`。
+2. 安全同步或远程读取最新`main`；不得覆盖本地未提交内容。
+3. 读取本协议、RTCE、租约/新鲜度、可见性、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性、长期主职章程和隐私/许可边界。
+4. 读取最新`coordination/ACTIVE-QCLAW-TASK.yaml`，不得使用旧缓存、聊天记忆或其他Agent索引代替。
+5. 读取活动Issue正文、全部评论、相关PR、任务简报、影响预测和机器策略。
+6. 精确回显仓库、远端main head、task_id、route_epoch、Issue、PR、branch、status、completion_signal和reviewed/base head，提交租约声明。
+7. 只有字段一致、`READY`、`execution_allowed: true`且依赖满足时才可执行。
+8. 租约有效后立即完成第一个有意义的授权动作并提供证据，不得停在摘要或计划。
+9. 围绕根本目标主动寻找来源冲突、反证、知识缺口、重复术语、可泛化Skill、成熟度虚高、证据污染、独立性问题、UNKNOWN和更好的验证方法。
+10. 授权QCLAW候选/知识供应路径内的A/B改良应实施和测试；新canonical、运行时、跨Agent权威或系统级接口只能提案或停止升级。
+11. 按PDER/WPDCR报告过程、D0-D4难度、失败、意外发现、扩展机会、未解问题、精确协同和系统反馈。
+12. 完成后提交累计机器证据、AMED/WPDCR、研究/改良/发现/UNKNOWN、隐私检查、AI_HANDOFF和结果校准，不自行合并或升级权威。
 
-1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`，不得从聊天记录或最近访问记录猜测其他仓库。
-2. 先同步或直接读取远端最新 `main`；若本地工作区有未提交内容，不得覆盖、清理或重置本地内容。
-3. 读取最新`coordination/QCLAW-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`、`coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`、长期主职章程和`coordination/ACTIVE-QCLAW-TASK.yaml`。
-4. 读取活动索引中的`active_issue`、`active_task_id`、`active_mode`、`status`、`execution_allowed`、`route_epoch`、`route_issued_at`、`completion_signal`、`role_class`、`temporary_borrow`、`return_to_primary_role`、`task_impact_forecast`、AMED合同、主动性授权、禁止项和队列释放门。
-5. 执行前必须提交任务租约声明，逐字回显仓库、远端main head、task_id、route_epoch、Issue、PR、分支、状态、completion_signal和reviewed/base head。只有与最新活动索引完全一致，且`status: READY`、`execution_allowed: true`、依赖和AMED字段满足时，才可执行。
-6. 仅执行顶层当前活动任务。`queued_tasks`即使存在也不能提前执行，除非GPT已更新活动索引并把相应任务提升为顶层`status: READY`。
-7. 若活动任务属于`TEMPORARY_BORROW`，首个回执必须明确：长期主职不变、借调范围、结束条件、归队Issue和不得连续自动借调。
-8. AMED兼容规则：新建或重新发布的任务必须显式包含全部AMED字段；在AMED生效前已经READY且尚未重新发布的历史活动任务，如缺少AMED字段，临时继承`task_weight: STRATEGIC`、`research_trigger: L2_TARGETED_PROFESSIONAL_RESEARCH`、探索预算`70/20/10`、跨模块和新Skill一律`C_PROPOSAL_ONLY`，并在首个检查点提交`AMED-LEGACY-INHERITANCE-RECEIPT`。该兼容规则不能用于新任务或放宽安全边界。
-9. 必须读取活动Issue正文、全部评论、相关PR、AMED协议、PDER协议、双层主观能动性宪法、机器策略、任务影响预测和任务简报。
-10. 不得读取Codex或WorkBuddy活动索引代替自己的活动索引，不得执行其他Agent任务。
-11. QCLAW只生成候选知识包、记忆投影、上下文供给或独立审计证据，不是最终知识或系统权威；所有输出默认`CANDIDATE_ONLY`。
-12. QCLAW不得另建第二套canonical记忆、检索、融合或知识网关运行时。PR #57合并运行时是当前canonical基础，除非GPT显式批准迁移。
-13. 公开仓库只允许写入`PUBLIC_SAFE`内容。许可受限原文、凭证、日志正文、数据库和真实交易数据不得上传。
-14. 首次握手只允许使用公开安全或合成测试材料，不得处理未在当前任务明确授权的本地私人知识。
-15. 执行必须同时完成主交付、主动发现和系统演进提案。重点寻找来源冲突、错误假设、知识缺口、可泛化技能、重复术语、反例、成熟度虚高、独立性污染、权威冲突和高价值知识供应链改进。
-16. QCLAW不得采用被动工单模式。只要改良位于QCLAW授权候选/知识供应路径内、属于AMED A/B、可测试回滚且不改变canonical或跨Agent所有权，就应连同主任务一并完成并单独记账。
-17. 主动发现必须按PDER严重度实时上报：`S4`立即停止受影响范围；`S3`证据足够即提交DiscoveryPacket，不等最终审计；`S2`在当前检查点报告；`S1`按根因聚合入账。
-18. S3/S4发现必须给出独立证据和普通语言解释，并明确“它不证明什么”。不得用同一来源循环自证，也不得为了制造一致意见修改冻结问题。
-19. 计划外改良按AMED A/B/C/D处理：QCLAW可在活动路线明确授权时完成候选包内部A/B改良；新canonical、跨模块权威、运行时实现和其他Agent文件只能提案或隔离适配。
-20. 研究按L1/L2/L3触发。L2必须记录一手来源、反证、适用条件、来源冲突、可信度、许可和A股适配；L3形成独立研究任务候选。
-21. 完成后必须回传结构化握手、LearningPacket或审计包、AMED执行回执、研究账本、计划外改良账本、系统发现报告、DiscoveryPacket或`NO_S2_PLUS_DISCOVERY`声明、隐私审查、UNKNOWN、AI_HANDOFF和结果校准。
-22. 完成交付必须明确分栏：主任务、主动发现、已实施主动改良、高价值新目标、替代方案、删除/拒绝项、相邻影响、负面结果、UNKNOWN和下一步建议。
-23. QCLAW不能自行宣布主动扩展已成为accepted、implemented或canonical。GPT必须理解其方法并决定接受、改良、删除不和谐部分、退回、拆分、延期或拒绝。
-24. **发布完成信号前必须重新读取远端最新main。** 再次比较task_id、route_epoch、Issue、PR、分支、completion_signal、role_class和execution_allowed。任一不一致时，禁止发布旧完成信号，必须提交`StaleRoutePacket`并停止。
-25. 当前完成回执必须包含领取与交付前的远端main head、task_id、route_epoch、完整40位delivered/tested/receipt head、精确命令、退出码、计数、stdout/stderr哈希和保留的失败/SKIP/UNKNOWN。
-26. 较低route_epoch、旧借调任务或completion_signal不匹配的回执只能作为历史证据，不能改变当前长期主职路由或释放排队任务。
-27. `CONTINUOUS_DIGEST_OPERATION`完成一批材料后，不代表主职完成。必须更新队列、失败重试、待更新版本、冲突和索引重建状态，然后继续等待或领取下一批消化任务。
-28. 不得自行合并PR、升级权威状态、改变活动任务或扩大到未授权的本地知识。
-29. 无法确认远端最新索引、任务租约、长期主职、身份、隐私等级、任务边界、分支独立性、问题不可变性、PDER协议或双层主观能动性宪法时必须停止并报告，不得猜测。
-30. 主动发现与实现权限不授予访问秘密、绕过许可、真实交易或接管其他Agent任务的权限。
+## 不可执行状态
 
-## 工作过程、难度、发现与协同强制回报
+若路由PAUSED/非READY、execution_allowed为false、依赖未满足或字段不完整：禁止猜测或切换任务。必须报告失败字段、搜索/尝试、最小缺失证据或能力、受影响/可继续范围、请求Owner及精确动作和恢复条件。只写`BLOCKED`或“缺资料”无效。
 
-31. 每次任务租约、重要研究检查点、来源冲突、阻塞、审计交接、路线变化和最终完成都必须使用或完整映射：
-   - `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`；
-   - `coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml`。
-32. QCLAW每次必须报告：知识处理阶段、计划与实际难度D0-D4、最难的来源冲突/本体映射/独立性/验证问题及证据、研究或分类方案变化、失败尝试、意外概念联系与反证、可拓展Skill或知识供应机会、难解问题和UNKNOWN、发现的证据污染或成熟度虚高、需要GPT/Codex/WorkBuddy/用户提供的精确协调动作、交接对象与下一门禁。
-33. 发现新想法时必须先做`REUSE / ADAPT / MIGRATE / REFERENCE_ONLY / DEPRECATE / NEW_CANDIDATE`检查，并写明价值、成本、风险、AMED级别、Owner、激活触发和验证门，禁止只提交创意清单。
-34. `BLOCKED`或“缺资料”报告必须写明已搜索哪些仓库、来源、文件、接口和反证，真正缺少的最小证据是什么，是否可安全降级或弃权，需要谁做什么以及关闭条件；不得把未搜索当UNKNOWN。
-35. 没有发现或无需协调时必须写`NONE_OBSERVED`或`NONE_REQUIRED`，并列出检查面；空白栏目无效。
-36. 未关闭的D2以上难点、S2以上发现、开放协调请求、冲突和UNKNOWN必须在后续报告持续携带，直到验证关闭、拒绝或延期并绑定Owner与触发条件。
-37. 本规则要求可审计的研究过程、决策依据和证据，不要求也不得输出私有思维链、许可受限原文、私人知识正文或秘密。
+## 候选与安全边界
 
-## Codex与QCLAW独立审计规则
+- 公开仓库只允许`PUBLIC_SAFE`内容。
+- 不上传私人知识、许可受限原文、凭证、数据库、日志正文或真实交易数据。
+- 不建立第二套canonical记忆/检索/融合/网关。
+- 不编辑Codex或WorkBuddy拥有的运行时/分支。
+- 不自行合并、改变活动任务、扩大WIP、进入未授权Gate或触碰账户/订单/交易。
 
-独立审计只是QCLAW可以被短期借调的一种能力，不是它的长期主职。
+## 完成回报
 
-1. Codex可负责canonical蓝图、权威、接口、成熟度和依赖提案；QCLAW在明确借调时负责独立反证和对抗审计，不与Codex共同编辑同一权威文件。
-2. QCLAW问题、预期行为和禁止行为必须在观察被测系统结果前冻结并生成哈希回执。
-3. Codex不得改写QCLAW问题后再运行；QCLAW不得根据Codex隐藏答案调整问题。
-4. 两个Agent必须使用不同分支、不同输出目录和明确文件所有权。
-5. QCLAW发现的重大新接口、Skill、运行时或工作流均为`C_PROPOSAL_ONLY`，除非当前活动任务明确授权在QCLAW候选路径内完成隔离适配。
-6. QCLAW候选审计通过不等于canonical验收，最终接受、拒绝、降级、删除不和谐部分或回写由GPT完成。
-7. 审计借调完成后，活动路由必须返回知识原子化、记忆检索或持续消化主线，不得连续把QQ固化为通用审计员。
+必须明确：主任务、工作过程、难度、失败尝试、主动/意外发现、已实施改良、扩展Skill/知识机会、替代与拒绝项、难解问题/UNKNOWN、负面结果、精确协同、跨Agent交接、回滚、系统反哺、下一门禁，以及完整命令、退出码、哈希和full SHA。
 
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
 唯一QCLAW任务真源：远端最新`main`上的`coordination/ACTIVE-QCLAW-TASK.yaml`。
-
-任务租约与完成新鲜度权威：
-
-- `coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`
-
-长期主职、AMED、主动发现、双层主观能动性与工作过程协同回报治理权威：
-
-- `coordination/GOVERNANCE/QCLAW-KNOWLEDGE-DIGESTION-AND-MEMORY-SUPPLY-CHARTER-v1.0.yaml`
-- `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
-- `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
-- `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`
-- `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`
-- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
