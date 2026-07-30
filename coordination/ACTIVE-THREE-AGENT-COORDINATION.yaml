@@ -1,138 +1,120 @@
-schema_version: "26.0"
+schema_version: "28.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
-task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
-in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
-initiative_and_orchestration_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
-review_publish_semantics: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
-local_credential_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
-local_credential_execution_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
 program_issue: 31
-status: "CODEX_E15_GATE_A_ACTIVE_QCLAW_E14_REMOTE_TRUTH_CORRECTION_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E26_GATE_B_ACTIVE_QCLAW_E21_GATE_B_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-07-28T04:48:00+08:00"
+updated_at: "2026-07-31T05:33:00+08:00"
+
+permanent_command_semantics:
+  GPT_review_command:
+    trigger: "审查任务"
+    meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"
+    protocol: "coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml"
+  agent_read_command:
+    trigger: "读取任务"
+    meaning: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+    protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+    read_only_acknowledgement_forbidden: true
+    second_start_command_required: false
 
 permanent_operating_model:
   status: "ACTIVE_PROGRAM_RULE"
-  agent_layer: "Complete primary missions and authorized high-value adjacent AMED A/B improvements with evidence."
-  GPT_layer: "Review complete evidence, optimize architecture and task rhythm, then accept, refine, remove, return, split, defer or reject."
-  codex_priority: "Codex receives the largest safe autonomy budget inside explicit single-gate firewalls."
-  qclaw_role: "QCLAW supplies candidate knowledge, ontology, adversarial evidence and truth-preserving validators only."
+  agent_layer: "Execute primary mission plus authorized A/B improvements; actively discover, coordinate and feed back system lessons."
+  GPT_layer: "On 审查任务, review evidence and task quality, repair control plane, then publish or reaffirm correct routes."
   final_authority: "GPT_FINAL_GATE_WITH_USER_STRATEGIC_AND_HIGH_RISK_APPROVAL"
   automatic_self_approval_by_agents: false
-
-local_credential_execution:
-  status: "ACTIVE_STANDING_USER_AUTHORIZATION"
-  applies_to: [WORKBUDDY_MCP, TDX, TQ, WESTOCK, AUTHORIZED_LOCAL_MCP]
-  local_codex_direct_read_and_use: true
-  repeated_confirmation_required: false
-  secret_export_denied: true
-  source_manifest_admission_implied: false
-  issue92_release_implied: false
-  broker_account_order_trade_authority_implied: false
-  current_codex_need: "NOT_REQUIRED_SYNTHETIC_TASK"
-  current_qclaw_need: "NOT_REQUIRED_PUBLIC_SAFE_KNOWLEDGE_TASK"
-
-review_summary:
-  classification: "QCLAW_E13_PARTIAL_VALUE_PRESERVED_REMOTE_LINEAGE_FALSE_CLAIMS_RETURNED_AS_E14_CODEX_E15_UNCHANGED"
-  verified:
-    - "Codex remains Epoch 15 Gate A on PR #101."
-    - "QCLAW PR #96 advanced to remote head 5d57dae029632fcceb9cfcd4ab242b34ad200f1f."
-    - "Actual Epoch 13 chain is 9dd292c910142b56303a46ea7136eaafb5610132 -> d748191e4aaef28336f4cea4dab551de1a5b8451 -> 5d57dae029632fcceb9cfcd4ab242b34ad200f1f."
-    - "Receipt commit 5d57dae... modifies only CROSS-RECEIPT-CONSISTENCY.yaml."
-    - "Final AI_HANDOFF still records stale reviewed/tested/parent heads."
-    - "PR #100, #64, #65 and #104 remain frozen."
-    - "WorkBuddy remains paused."
-  accepted_qclaw_value:
-    - "Three clean archive runs recorded as exit 0 with identical normalized stdout."
-    - "Four non-zero negative fixtures and unchanged 99/147/64 semantic content."
-    - "A non-empty Epoch 13 receipt commit now exists."
-  returned_qclaw_boundaries:
-    - "Remote Git truth overrides local or commit-message assertions."
-    - "Stale lineage fields must be corrected to the actual remote chain."
-    - "Changed-file claims must equal remote compare output."
-    - "Gate B remains frozen pending explicit GPT acceptance."
-  qclaw_optimization:
-    - "Epoch 14 is one metadata-only correction commit from 5d57dae...."
-    - "No broad validator rerun or new tested commit is allowed unless existing evidence is disproved."
-    - "Post-push external attestation binds the new correction head."
-
-resource_model:
-  CODEX:
-    share_percent: 70
-    weight: "EXTREMELY_HEAVY_SINGLE_GATE_SEQUENTIAL_SEMANTIC_CLOSURE"
-    reason: "Primary runtime and D2 semantic-proof lane."
-  QCLAW:
-    share_percent: 30
-    weight: "SMALL_STRICT_REMOTE_TRUTH_CORRECTION"
-    reason: "Correct PR #96 remote lineage metadata without opening Gate B."
-  WORKBUDDY:
-    share_percent: 0
-    weight: "PAUSED_COMPUTE_UNAVAILABLE"
-    reason: "No active task and no automatic resume."
 
 agents:
   CODEX:
     active_issue: 23
-    related_issues: [31, 59, 89]
-    primary_pull_requests: [101, 103, 105]
-    superseded_pull_requests: [102]
-    task_id: "CODEX-D2-SEQUENTIAL-SEMANTIC-PROOF-EVALUATION-V2-QUARANTINE-AND-PREREG-CLOSURE-0007-E15"
-    route_epoch: 15
+    pull_request: 106
+    task_id: "CODEX-D2-EVALUATION-V2-INDEPENDENT-ORACLE-PORTABLE-ARCHIVE-AND-COMPLETION-TRUTH-CLOSURE-0018-E26"
+    route_epoch: 27
     mode: "target"
     status: "READY"
     execution_allowed: true
-    active_gate: "A_PR101_CORE_PROOF"
-    maximum_simultaneous_substantive_prs: 1
-    completion_signal: "CODEX_E15_D2_SEQUENTIAL_PROOF_EVALUATION_QUARANTINE_AND_PREREG_READY_FOR_GPT_REVIEW"
+    active_gate: "B_R4_PR106_INDEPENDENT_ORACLE_PORTABLE_ARCHIVE_COMPLETION_TRUTH"
+    reviewed_base: "e06f58944723ed4d2bc22c3fe30862f69091fef4"
+    completion_signal: "CODEX_E26_D2_EVALUATION_V2_INDEPENDENT_ORACLE_PORTABLE_ARCHIVE_AND_COMPLETION_TRUTH_READY_FOR_GPT_REVIEW"
+    command: "读取任务"
+    command_behavior: "CLAIM_AND_EXECUTE_NOW"
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
-    related_issues: [23, 31, 38, 60]
-    primary_pull_requests: [96, 100, 64, 65, 104]
-    task_id: "QCLAW-PR96-REMOTE-LINEAGE-TRUTH-AND-EXTERNAL-ATTESTATION-CORRECTION-0016-E14"
-    route_epoch: 14
+    pull_request: 100
+    task_id: "QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21"
+    route_epoch: 21
     mode: "target"
     status: "READY"
     execution_allowed: true
-    active_gate: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
-    maximum_simultaneous_substantive_prs: 1
-    completion_signal: "QCLAW_E14_PR96_REMOTE_LINEAGE_TRUTH_AND_EXTERNAL_ATTESTATION_READY_FOR_GPT_REVIEW"
-    autonomy:
-      profile: "QCLAW_MINIMAL_REMOTE_TRUTH_CORRECTION_SINGLE_PR"
-      internal_gate_continuation_after_machine_pass: false
-      gate_transition_requires_gpt: true
-      final_self_approval: false
+    active_gate: "B_R6_PR100_PORTABLE_RUNNER_ARCHIVE_CI_HANDOFF"
+    reviewed_base: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+    completion_signal: "QCLAW_E21_PR100_PORTABLE_RUNNER_ARCHIVE_PROVENANCE_CI_AND_CUMULATIVE_HANDOFF_READY_FOR_GPT_REVIEW"
+    command: "读取任务"
+    command_behavior: "CLAIM_AND_EXECUTE_NOW"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
-    task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
-    route_epoch: 15
+    task_id: "WORKBUDDY-PAUSED-NO-ACTIVE-ROUTE"
+    route_epoch: 21
     mode: "paused"
-    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    status: "PAUSED"
     execution_allowed: false
     automatic_resume: false
+    command_behavior: "READ_AND_REPORT_PAUSE_DO_NOT_EXECUTE"
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+
+review_summary:
+  CODEX_E25:
+    classification: "CONTROLLED_ARTIFACT_TRACE_AND_CI_REUSABLE_ORACLE_ARCHIVE_COMPLETION_TRUTH_FAILED"
+    accepted:
+      - "Controlled artifacts and 80-row valid/invalid execution."
+      - "Retained episode/counterfactual traces."
+      - "49-test dual-Python CI and truthful counts."
+    returned:
+      - "Three same-predicate object oracles."
+      - "Missing real spec/execution divergence test."
+      - "Fresh archive evidence NOT_ACCEPTED."
+      - "Incomplete WPDCR/AMED and wrong receipt anchor."
+  QCLAW_E20:
+    classification: "42_CASE_LEDGER_AND_SOURCE_LOCK_REUSABLE_PORTABILITY_ARCHIVE_CI_HANDOFF_FAILED"
+    accepted:
+      - "42 tracked adversarial cases."
+      - "D2 and Q0 source locks."
+    returned:
+      - "Hard-coded stale workspace and Python path."
+      - "D05 lacks exact archive provenance."
+      - "Green CI does not run QCLAW evidence."
+      - "Cumulative handoff/WPDCR incomplete."
+
+resource_model:
+  CODEX:
+    share_percent: 65
+    weight: "STANDARD_BOUNDED_GATE_B_CLOSURE"
+  QCLAW:
+    share_percent: 35
+    weight: "STANDARD_PORTABILITY_AND_EVIDENCE_CLOSURE"
+  WORKBUDDY:
+    share_percent: 0
+    weight: "PAUSED"
 
 execution_plan:
   - owner: "CODEX"
-    task: "Continue Epoch 15 Gate A only."
+    task: "On 读取任务, claim and immediately execute E26 on PR #106."
   - owner: "QCLAW"
-    task: "Execute Epoch 14 PR #96 remote-lineage metadata correction only; stop for GPT review."
+    task: "On 读取任务, claim and immediately execute E21 on PR #100."
   - owner: "WORKBUDDY"
-    task: "Remain paused and make no changes."
+    task: "Remain paused; do not auto-resume."
   - owner: "GPT"
-    task: "Review remote Git chain, exact changed-file truth and external attestation."
+    task: "On next 审查任务, perform full review-optimize-publish cycle."
 
 cross_lane_firewalls:
-  - "Codex owns synthetic D2 core, Evaluation V2, quarantine schema and D3A preregistration within Epoch 15 Gates."
-  - "QCLAW may not modify Codex or WorkBuddy branches or promote candidate output to runtime truth."
-  - "PR #100, #64, #65 and #104 remain frozen during QCLAW Epoch 14."
+  - "Codex owns PR #106 Evaluation V2; QCLAW may not edit it."
+  - "QCLAW owns PR #100 candidate adapter evidence; Codex may not edit it."
+  - "WorkBuddy is paused and cannot auto-resume."
   - "No direct main writes, merges, force pushes or history rewrites by executors."
 
 issue92_gate:
   status: "BLOCKED_NOT_RELEASED"
-  still_required_before_release:
-    - "Exactly one SourceManifest candidate explicitly approved."
-    - "A separate explicit GPT READY route for Issue #92."
   forbidden_before_release: [source_activation, labels, real_market_replay, backtest, performance_claim, account, order, trade]
 
-boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE_REMOTE_OUTPUTS / SYNTHETIC_OR_CANDIDATE_ONLY / research_only / NO_TRADE"
