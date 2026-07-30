@@ -1,241 +1,205 @@
-schema_version: "27.0"
+schema_version: "28.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-trigger_phrases: ["读取任务", "执行任务", "开始任务"]
+trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
+trigger_semantics: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 
 active_issue: 59
 related_issues: [23, 31, 38, 60]
-primary_pull_requests: [96, 100, 64, 65, 104]
 parent_program: 31
 source_issue: 59
 owner_pr: 100
 branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+reviewed_or_base_head: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+reviewed_e20_receipt_head: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
 
-reviewed_heads:
-  pr96: "91c9227fba66d2412e39fac33bcf26d05bce12c2"
-  pr100_e18_receipt: "742a6e4b73af8e1a9e0926dd69b4b26f16fb793d"
-  pr100_e19_tested: "9a577c49b2742311176e27767c81491ff762dc50"
-  pr100_e19_receipt: "089040784d87d45a0ab89f51d9404d6bfd813b4e"
-reviewed_d2_interface_head: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
-reviewed_or_base_head: "089040784d87d45a0ab89f51d9404d6bfd813b4e"
-
-task_id: "QCLAW-PR100-MACHINE-EVIDENCE-ARCHIVE-INDEPENDENCE-AND-RECEIPT-FRESHNESS-CLOSURE-0022-E20"
+task_id: "QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21"
+route_epoch: 21
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #100机器证据、独立archive、验证器自证消除与回执新鲜度闭环E20"
+mode_label: "【QCLAW模式：目标模式】PR #100可移植Runner、Archive来源、相关CI与累计交接闭环E21"
 mode_reason: >-
-  E19 contains reusable implementation corrections, but the remaining failures are a bounded evidence-truth cluster
-  in the same PR: the tracked runner is still E18, the referenced machine result is absent, receipts contain placeholders,
-  archive rows are same-directory declarations, validator checks field presence rather than provenance, and stale E17/E18
-  handoff surfaces remain active. Target mode applies.
+  E20 produced a reusable 42-case machine ledger and stronger source locks, but the runner hard-codes an old local workspace,
+  Q0 directory and QClaw Python executable; D05 does not prove three independent exact-commit archives; green CI does not run
+  PR #100; and cumulative handoff/WPDCR evidence is incomplete. The repair is bounded to the same candidate PR.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
-blocked_by: []
 direct_main_write: false
 auto_merge: false
-route_epoch: 20
-route_issued_at: "2026-07-31T03:38:00+08:00"
-route_issued_against_main: "43d587f3477fa6601b3ed3ea0b32d52635928f87"
-completion_signal: "QCLAW_E20_PR100_MACHINE_EVIDENCE_ARCHIVE_INDEPENDENCE_AND_RECEIPT_FRESHNESS_READY_FOR_GPT_REVIEW"
+blocked_by: []
+route_issued_at: "2026-07-31T05:26:00+08:00"
+route_issued_against_main: "791e9d92f60d3da9e164a726114706c64a77a1bd"
+completion_signal: "QCLAW_E21_PR100_PORTABLE_RUNNER_ARCHIVE_PROVENANCE_CI_AND_CUMULATIVE_HANDOFF_READY_FOR_GPT_REVIEW"
 
 role_class: "PRIMARY_SYSTEM_MAINTENANCE"
 temporary_borrow: false
 return_to_primary_role:
   issues: [59, 60]
-  condition: "After GPT disposition, remain on QCLAW knowledge digestion and memory-supply mainline."
+  condition: "After GPT E21 disposition, return to QCLAW knowledge digestion and memory-supply mainline."
+
+command_execution_contract:
+  on_trigger: "CLAIM_AND_EXECUTE_NOW"
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  plan_only_response_when_ready_forbidden: true
+  minimum_progress_before_return: "Complete the first meaningful authorized E21 action and evidence; continue to checkpoint, truthful blocker or completion."
+  lease_acknowledgement_must_confirm:
+    - "读取任务 means read, claim and execute, not summarize and stop."
+    - "Route epoch 21, Issue #59, PR #100, branch, base and completion signal match latest main."
+    - "PMA-BIG discovery questions, WPDCR reporting and candidate-only A/B/C/D boundaries are understood."
+
+supersedes:
+  - task_id: "QCLAW-PR100-MACHINE-EVIDENCE-ARCHIVE-INDEPENDENCE-AND-RECEIPT-FRESHNESS-CLOSURE-0022-E20"
+    route_epoch: 20
+    receipt_head: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+    disposition: "PARTIAL_REUSABLE_MACHINE_LEDGER_AND_SOURCE_LOCK_REMEDIATION_REQUIRED"
+    reusable:
+      - "Exactly 42 tracked adversarial machine cases with case ID, command, exit, expected/actual result and stdout/stderr SHA-256."
+      - "Source lock includes D2 commit/hash/size and Q0 source hashes/sizes."
+      - "One corrective substantive commit plus one receipt commit from the E19 base."
+    not_accepted:
+      - "Portable execution from the current or archived tree."
+      - "Three independent Git archive roots from the exact tested commit with full command/hash provenance."
+      - "Relevant Python 3.11/3.13 CI that executes PR #100's generator, validator and machine suite."
+      - "Cumulative AI_HANDOFF, QUALITY-GATE, SUPPLY-CHAIN, AMED, UNKNOWN and WPDCR evidence."
+      - "Immutable external tested/receipt SHA anchors."
+    completion_credit: false
+
+review_disposition:
+  classification: "E20_42_CASE_MACHINE_LEDGER_AND_SOURCE_LOCK_REUSABLE_BUT_PORTABILITY_ARCHIVE_CI_AND_HANDOFF_TRUTH_FAILED"
+  gate_b: "NOT_ACCEPTED_E21_REMEDIATION_ACTIVE"
+  gate_c: "FROZEN"
+  gate_d: "FROZEN"
+  gate_e: "FROZEN"
+  issue92: "BLOCKED_NOT_RELEASED"
+  merge: false
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
 lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
 pder_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
+proactive_mission_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-amed_task_brief: "coordination/TASK-BRIEFS/QCLAW-PR100-MACHINE-EVIDENCE-ARCHIVE-INDEPENDENCE-AND-RECEIPT-FRESHNESS-CLOSURE-0022-E20-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-MACHINE-EVIDENCE-ARCHIVE-INDEPENDENCE-AND-RECEIPT-FRESHNESS-CLOSURE-0022-E20.yaml"
+amed_task_brief: "coordination/TASK-BRIEFS/QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21-AMED.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21.yaml"
 
 task_weight: "STANDARD"
 research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
-research_trigger:
-  reasons:
-    - "Blocking defects are directly observable in PR #100 tracked code, receipts, comments, topology and CI jobs."
-    - "No external research domain is required."
-  required_actions:
-    - "Read E17-E19 runner, validator, audit, package, D05, handoffs, active route and PR comments."
-    - "Preserve contradictory and stale evidence as explicit negative history."
 exploration_budget:
-  primary_delivery_share: "85%"
-  active_discovery_share: "10%"
+  primary_delivery_share: "80%"
+  active_discovery_share: "15%"
   system_opportunity_share: "5%"
   max_new_architecture_proposals: 1
-  max_new_skill_candidates: 0
-  max_unplanned_files: 2
+  max_new_skill_candidates: 1
+  max_unplanned_files: 3
   scope_expansion_without_gate: false
-
-improvement_authority:
-  A_SAFE_LOCAL_AUTONOMOUS:
-    implementation_allowed: true
-    allowed:
-      - "Runner/result/receipt schemas, exact-set validators, archive provenance checks and fail-closed diagnostics inside the authorized PR #100 path."
-      - "Tests that expose placeholders, truncated hashes, same-root archives, stale handoffs and missing audit rows."
-  B_BOUNDED_IMPLEMENT_AND_REPORT:
-    implementation_allowed: true
-    allowed:
-      - "Minimal workflow edits needed to execute PR #100 on Python 3.11 and 3.13."
-      - "Backward-compatible internal evidence carriers and cumulative receipt files."
-    report_required: true
-  C_PROPOSAL_ONLY:
-    implementation_allowed: false
-    examples:
-      - "New canonical knowledge runtime, cross-module evidence schema or Gate C architecture."
-  D_PROHIBITED_OR_USER_GATE:
-    implementation_allowed: false
-    stop_and_escalate: true
-    examples:
-      - "Secrets, private source material, real data, accounts, orders, trading, canonical promotion, merge or ownership migration."
 
 autonomy_grant:
   level: "ENHANCED_BOUNDED"
   may_choose:
-    - "Machine result format, adversarial case organization, archive harness layout and internal validation order."
-    - "A/B improvements inside allowed paths with tests and rollback."
+    - "Portable runner layout, archive harness, exact-case reconciliation and test ordering."
+    - "AMED A/B improvements inside authorized candidate paths when tested and reversible."
+  must_act_without_micro_approval:
+    - "Replace hard-coded paths with simpler portable resolution."
+    - "Inspect source fixtures, manifests, receipts, CI and reusable capabilities."
+    - "Report conflicts, discoveries, unresolved problems, exact coordination and system feedback."
   may_not_choose:
-    - "A different PR, branch, gate, owner, completion signal or system of record."
-    - "Merge, canonical admission, real-data access or later-gate release."
-
-supersedes:
-  - task_id: "QCLAW-PR100-PERSON-AUDIT-VALIDATOR-FAIL-CLOSED-RECEIPT-TRUTH-AND-ARCHIVE-CLOSURE-0021-E19"
-    route_epoch: 19
-    tested_head: "9a577c49b2742311176e27767c81491ff762dc50"
-    receipt_head: "089040784d87d45a0ab89f51d9404d6bfd813b4e"
-    disposition: "PARTIAL_REUSABLE_IMPLEMENTATION_REMEDIATION_REQUIRED_EVIDENCE_INVALID"
-    reusable:
-      - "Linear one-tested-plus-one-receipt commit topology from E18."
-      - "PERSON-EVIDENCE-AUDIT candidate with declared 99 rows / 18 person-bearing and atoms 39, 69, 72 included."
-      - "Missing D2 path fails closed."
-      - "Recursive canonical source value comparison."
-      - "Hash/size comparison for package manifest entries that are present."
-      - "Disposition counts 25/3/38/15/18."
-    not_accepted:
-      - "At least 40 distinct adversarial production-entry mutations."
-      - "Machine-generated result/receipt identity and complete case reconciliation."
-      - "Three independent Git archive roots and full provenance."
-      - "Person-audit exact source-set completeness."
-      - "D2 commit/size lock and ambiguity source/family compatibility."
-      - "Complete package artifact manifest."
-      - "Cumulative AMED, handoff, supply-chain and completion-freshness evidence."
-      - "Relevant dual-Python CI."
-    completion_credit: false
-
-review_disposition:
-  classification: "E19_PERSON_AUDIT_AND_DEEP_COMPARE_SCAFFOLD_REUSABLE_BUT_GATE_B_FAILS_MACHINE_EVIDENCE_ARCHIVE_INDEPENDENCE_AND_RECEIPT_TRUTH"
-  decision:
-    gate_a: "ACCEPTED_WITH_PROCESS_EXCEPTION"
-    gate_b: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
-    gate_c: "FROZEN"
-    gate_d: "FROZEN"
-    gate_e: "FROZEN"
-    issue92: "BLOCKED_NOT_RELEASED"
-    merge: false
-  blocking_findings:
-    - "Tracked runner remains E18, was not changed in E19 and includes baseline/non-adversarial credit plus stale 15-person expectations."
-    - "Referenced e19_test_results.json is absent; TEST-RUN-RECEIPT uses abcd/var placeholders and only partial T01-T16 descriptions."
-    - "Receipt validation checks marker text and runner SHA presence, not complete machine outcomes or hashes."
-    - "D05 uses one repeated root, TBD_TESTED_COMMIT, ellipsis commands and truncated 32-hex values."
-    - "D05 validator checks field presence and seed labels, not archive provenance or distinct roots."
-    - "Person audit is not reconciled to exactly 99 unique source IDs/indexes and can omit a person row alongside quarantine."
-    - "D2 validation does not bind source-lock commit and size and duplicates subtype truth in Python."
-    - "Ambiguity validation does not verify source_refs or evidence-family compatibility."
-    - "Package validator accepts incomplete manifest sets and computes pkg_hash_actual without using it."
-    - "AI_HANDOFF and QUALITY-GATE remain E18; SUPPLY-CHAIN remains E17; all contradict E19 counts and claims."
-    - "Workflow run 30572371886 is unrelated Phase 3 CI and does not execute PR #100."
+    - "Different task, PR, branch, Gate, owner, canonical runtime, permission or safety boundary."
 
 mission_intent: >-
-  Replace hand-written completion theatre with reproducible machine evidence: exact adversarial case execution,
-  exact tested-commit provenance, three truly independent Git archive roots, complete expected-set validation,
-  and cumulative E20 receipts that supersede stale E17-E19 claims without deleting history.
-fundamental_goal: >-
-  Prevent placeholders, marker strings, field-presence checks, same-directory reruns, absent result files,
-  stale handoffs or unrelated green CI from manufacturing Gate B confidence.
+  Make E20's useful machine ledger and source locks independently replayable from exact clean archives and relevant dual-Python CI,
+  while preserving cumulative candidate-only process, difficulty, discovery, UNKNOWN and handoff truth.
 
-sequential_gate_policy:
-  only_one_active_gate: true
-  active_gate: "B_R5_PR100_MACHINE_EVIDENCE_ARCHIVE_AND_RECEIPT_TRUTH"
-  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E20"
-  gate_transition_requires_explicit_gpt_acceptance: true
-stage_plan:
-  - gate_id: "A_PR96_REMOTE_LINEAGE_TRUTH_CORRECTION"
-    status: "ACCEPTED_WITH_PROCESS_EXCEPTION"
-    owner_pr: 96
-  - gate_id: "B_R5_PR100_MACHINE_EVIDENCE_ARCHIVE_AND_RECEIPT_TRUTH"
-    status: "ACTIVE"
-    owner_pr: 100
-    reviewed_head: "089040784d87d45a0ab89f51d9404d6bfd813b4e"
-    allowed_path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
-    required_commit_shape:
-      - "From 0890407 create exactly one corrective substantive tested commit, then exactly one E20 receipt-only commit."
-      - "No amend, rebase, reset, force push, merge or edits outside authorized paths."
-    required_results:
-      - ">=40 unique adversarial machine cases, each mutating a distinct consumed input and invoking the real generator or validator in isolation."
-      - "Tracked E20 machine result artifact and receipt with exact case IDs/outcomes/commands/exits/full stdout and stderr SHA-256."
-      - "Receipt validator rejects absent result file, missing/extra/duplicate/drifted cases, placeholders and truncated hashes."
-      - "Three different git-archive extraction roots from the exact tested commit under three process seeds."
-      - "Archive validator proves distinct roots, exact full tested commit, full hashes and byte-identical canonical artifacts."
-      - "PERSON-EVIDENCE-AUDIT exact equality with all 99 source IDs/indexes and internally consistent counts/rationales."
-      - "D2 path/commit/size/hash binding and complete locked subtype-family derivation."
-      - "Ambiguity source-reference and evidence-family compatibility validation."
-      - "Exact package manifest set equality and complete size/hash recomputation."
-      - "Cumulative E20 AI_HANDOFF, QUALITY-GATE, SUPPLY-CHAIN, AMED, UNKNOWN and outcome calibration."
-      - "Relevant Python 3.11/3.13 CI that actually runs PR #100."
-  - gate_id: "C_PR64_NEXT_GATE"
-    status: "WAITING_FOR_GATE_B"
-    owner_pr: 64
-  - gate_id: "D_PR65_LATER_GATE"
-    status: "WAITING_FOR_GATE_C"
-    owner_pr: 65
-  - gate_id: "E_PR104_LATER_GATE"
-    status: "WAITING_FOR_GATES_C_AND_D"
-    owner_pr: 104
+mandatory_discovery_questions:
+  - "What can be made more portable, deterministic, independently replayable or simpler than the literal minimum?"
+  - "Which paths, inputs, manifests, receipts, CI assumptions or source claims remain stale or missing?"
+  - "What can be reused, adapted, integrated, generalized, migrated or deprecated instead of duplicated?"
+  - "What valuable knowledge-supply or evidence capability becomes visible and what gate would justify it?"
+  - "What remains unresolved inside current evidence, authority or budget?"
+  - "Who must coordinate exactly what input, access, decision, test or review?"
+  - "Which findings should update protocols, templates, validators, blueprints, skills, routes or tasks?"
+
+improvement_authority:
+  A_SAFE_LOCAL_AUTONOMOUS:
+    implementation_allowed: true
+    allowed: ["relative-path resolution", "external-path fail-closed tests", "case/receipt reconciliation"]
+  B_BOUNDED_IMPLEMENT_AND_REPORT:
+    implementation_allowed: true
+    allowed: ["portable archive evidence carrier", "minimal relevant CI steps"]
+    report_required: true
+  C_PROPOSAL_ONLY:
+    implementation_allowed: false
+    examples: ["cross-module evidence schema", "new canonical knowledge runtime", "Gate C architecture"]
+  D_PROHIBITED_OR_USER_GATE:
+    implementation_allowed: false
+    stop_and_escalate: true
+    examples: ["private knowledge", "credentials", "real data", "accounts", "orders", "trading", "merge"]
+
+hard_boundaries:
+  - "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+  - "No Gate C/D/E, Issue #92, canonical promotion or edits to Codex/WorkBuddy ownership."
+  - "No private/licensed source publication, secrets, real data, accounts, orders or trading."
+  - "No amend, rebase, reset, force push, merge or direct main write."
 
 allowed_changed_files:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/**"
   - ".github/workflows/phase3-integrated-offline-memory.yml"
-receipt_only_files:
+
+required_results:
+  - "Remove all hard-coded user/workspace/Python absolute paths; use Path(__file__), explicit CLI/env inputs and sys.executable."
+  - "Prove every machine command executes generator/validator from the declared current/archive root; external-workspace leakage fails closed."
+  - "Preserve and exactly reconcile the 42-case ledger among expected cases, result JSON and generated receipt."
+  - "Create three distinct git-archive roots from the exact E21 tested commit and record root, commit, seed, full command, exit, stdout/stderr hashes and per-artifact size/hash equality."
+  - "Add relevant Python 3.11/3.13 CI steps that execute generator, validator, 42 cases and receipt/provenance validation."
+  - "Cumulatively update WPDCR, AI_HANDOFF, QUALITY-GATE, SUPPLY-CHAIN, D05, AMED, discovery, improvement, UNKNOWN and outcome evidence."
+  - "Post exact E21 tested/receipt SHAs and completion signal in PR #100 and Issue #59 after push."
+
+mandatory_tests:
+  - "Static and runtime tests reject old e17_gate_b_r2, fixed QClaw Python or any external absolute workspace path."
+  - "Wrong or missing archive root/commit, same root repeated, truncated hash, placeholder or external command path fails closed."
+  - "Missing/extra/duplicate/drifted machine case fails receipt validation."
+  - "CI job inspection proves E21 commands run on both Python versions."
+  - "Historical E17-E20 negative evidence and current 42 cases remain present."
+
+commit_shape:
+  reviewed_base: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+  substantive:
+    count: 1
+    requirement: "Portable code/tests/archive harness/workflow changes; pass relevant CI before receipt creation."
+  receipt:
+    count: 1
+    requirement: "Receipt-only cumulative evidence; no executable changes; external SHA anchors after push."
+  prohibited: [amend, rebase, reset, force_push, merge, direct_main_write]
+
+mandatory_delivery_artifacts:
+  - "E21-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
+  - "E21-PORTABLE-COMMAND-LEDGER.json"
+  - "E21-ARCHIVE-PROVENANCE-MATRIX.yaml"
+  - "E21-TEST-RUN-RECEIPT.md"
+  - "E21-OUTCOME-CALIBRATION.yaml"
   - "AI_HANDOFF.yaml"
-  - "D05-COMMAND-EVIDENCE.yaml"
   - "QUALITY-GATE-REPORT.md"
   - "SUPPLY-CHAIN-HASH-VERIFICATION.yaml"
-  - "TEST-RUN-RECEIPT.md"
-  - "E20-TEST-RESULTS.json"
-  - "E20-OUTCOME-CALIBRATION.yaml"
+  - "D05-COMMAND-EVIDENCE.yaml"
   - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
   - "AMED-RESEARCH-LEDGER.yaml"
   - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
   - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
   - "UNKNOWN-REGISTRY.yaml"
 
-mandatory_negative_tests:
-  - "Delete one audit row and the same quarantine row; source-set inequality must fail."
-  - "Duplicate audit atom_index or deterministic_id; fail."
-  - "Change audit person_bearing_count; fail."
-  - "Remove ambiguity source_refs or use an unlocked reference; fail."
-  - "Use a hypothesis subtype incompatible with evidence_family; fail."
-  - "Remove a required package manifest artifact; fail."
-  - "Use TBD, ellipsis, abcd, var, truncated hash or wrong tested commit in evidence; fail."
-  - "Reuse one archive root for multiple seeds; fail."
-  - "Drift one receipt case ID/outcome/hash from machine results; fail."
-  - "Change D2 size or commit while preserving hash declaration; fail."
+visibility_checkpoints:
+  - percent: 10
+    required: "Lease claim plus first substantive portable-path action; task summary alone is invalid."
+  - percent: 45
+    required: "Portable runner, exact-case reconciliation and external-path negative tests."
+  - percent: 75
+    required: "Three exact-commit archive roots and relevant dual-Python CI."
+  - percent: 100
+    required: "Cumulative WPDCR/handoff receipts and external tested/receipt SHA anchors."
+  escalation: "S3/S4 and D3/D4 report immediately with exact coordination request."
 
-completion_requirements:
-  - "Re-read remote main immediately before completion and compare route_epoch, task_id, role, issue, PR, branch and completion_signal."
-  - "Record claim-time and completion-time remote main heads."
-  - "Record full 40-character reviewed/tested/receipt heads."
-  - "Record exact commands, exits, counts, stdout/stderr SHA-256 and retained failures/SKIP/UNKNOWN."
-  - "Publish one completion signal only after the receipt commit exists remotely."
-  - "Stop and request GPT review; do not release Gate C."
-
-forbidden:
-  - "No later-gate work, merge, force push, reset, rebase or history rewrite."
-  - "No edits to PR #96, #64, #65, #104 or Codex PRs."
-  - "No real data activation, private source upload, account inference, order or execution path."
-after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS_DO_NOT_ENTER_GATE_C_D_E_OR_ISSUE_92"
