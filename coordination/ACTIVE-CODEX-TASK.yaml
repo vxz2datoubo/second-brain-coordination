@@ -1,4 +1,4 @@
-schema_version: "26.0"
+schema_version: "27.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务"]
@@ -6,7 +6,7 @@ trigger_phrases: ["读取任务", "执行任务", "开始任务"]
 active_issue: 23
 pull_request: 106
 branch: "codex/d2-evaluation-v2-0014-e22"
-related_issues: [31, 59, 89]
+related_issues: [31, 59, 89, 108]
 primary_pull_requests: [101, 106, 103, 105]
 parent_program: 31
 source_issue: 23
@@ -14,15 +14,19 @@ source_issue: 23
 accepted_gate_a_receipt_head: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
 reviewed_e23_tested_head: "8dba2d17601f735e710d1c1ba5a62c058d9b5748"
 reviewed_e23_receipt_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
-reviewed_or_base_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
+reviewed_e24_tested_head: "b708dee265278682a2921a91047cae877d6b7ad2"
+reviewed_e24_receipt_head: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
+reviewed_or_base_head: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
 
-task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
+task_id: "CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25"
 mode: "target"
-mode_label: "【Codex模式：目标模式】Evaluation V2行为级去重、可执行不变量与证据闭环E24"
+mode_label: "【Codex模式：目标模式】Evaluation V2受控违例、执行轨迹同源与证据保全闭环E25"
 mode_reason: >-
-  E23 already established true-SUT mutation, family-specific killers, real transformed inputs and Python 3.11/3.13 CI.
-  The remaining defect cluster is bounded to execution-derived catalog distinctness, named invariant predicate/oracle dispatch
-  and truthful evidence closure inside PR #106, so target mode applies.
+  E24 established a reusable execution-derived duplicate correction and real Python 3.11/3.13 CI,
+  but the remaining failure cluster is bounded: invariant failure oracles are self-certified by boolean
+  inversion rather than executed on controlled violating artifacts, some signatures are reconstructed
+  separately from the exact evaluated trace, and completion evidence is incomplete and non-cumulative.
+  The repair remains inside PR #106, so target mode applies.
 
 status: "READY"
 execution_allowed: true
@@ -31,40 +35,55 @@ direct_main_write: false
 auto_merge: false
 blocked_by: []
 
-route_epoch: 25
-route_issued_at: "2026-07-30T18:09:00+08:00"
-route_issued_against_main: "4f56306de95de7bb0052a22deb12a7672256be6d"
-completion_signal: "CODEX_E24_D2_EVALUATION_V2_BEHAVIORAL_DISTINCTNESS_EXECUTABLE_INVARIANT_AND_EVIDENCE_READY_FOR_GPT_REVIEW"
+route_epoch: 26
+route_issued_at: "2026-07-31T03:24:00+08:00"
+route_issued_against_main: "e42c9a9d5cbc0b3cbd6eccbdd7a17f8d09dc92fc"
+completion_signal: "CODEX_E25_D2_EVALUATION_V2_CONTROLLED_VIOLATION_TRACE_PROVENANCE_AND_EVIDENCE_PRESERVATION_READY_FOR_GPT_REVIEW"
 
 supersedes:
   - task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
+    route_epoch: 25
+    tested_head: "b708dee265278682a2921a91047cae877d6b7ad2"
+    receipt_head: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
+    disposition: "PARTIAL_REUSABLE_CI_AND_COUNT_CORRECTION_REMEDIATION_REQUIRED"
+    reusable:
+      - "Execution-derived duplicate rejection scaffold."
+      - "Truthful reduced counts: 72 scenarios, 80 invariants, 10 negatives, 24 episodes, 32 counterfactuals, 24 cross-family rows."
+      - "Python 3.11/3.13 GitHub Actions run 30535795631."
+      - "Eight E23 source-derived mutations and eight metamorphic properties remain green."
+    not_accepted:
+      - "Controlled invariant violation and named failure-oracle execution."
+      - "Exact execution-trace provenance for every catalog signature."
+      - "AMED and completion-freshness evidence package."
+    completion_credit: false
+  - task_id: "CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24"
     route_epoch: 24
     disposition: "SUPERSEDED_INVALID_INCOMPLETE_LEASE_AND_AMED_CONTRACT"
-    execution_credit: false
+    completion_credit: false
   - task_id: "CODEX-D2-EVALUATION-V2-TRUE-SUT-MUTATION-DISTINCT-CATALOG-METAMORPHIC-AND-CI-CLOSURE-0015-E23"
     route_epoch: 23
     receipt_head: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
-    disposition: "HISTORICAL_REVIEWED_BASE_DO_NOT_REEXECUTE"
+    disposition: "HISTORICAL_REVIEWED_REUSABLE_BASE_DO_NOT_REEXECUTE_AS_TASK"
 
 lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
 pder_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
 initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
 amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-amed_task_brief: "coordination/TASK-BRIEFS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24.yaml"
+amed_task_brief: "coordination/TASK-BRIEFS/CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25-AMED.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25.yaml"
 
 task_weight: "STANDARD"
 research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
 research_trigger:
   level: "L1_REUSE_AND_QUICK_CHECK"
   reasons:
-    - "The repair is bounded to repository implementation, tests and evidence already present in PR #106."
-    - "No new external domain, law, standard, licensed source or material policy freshness question is required."
+    - "The blocking defects are directly observable in PR #106 code, tests, receipts and CI logs."
+    - "No new external domain, standard, licensed source or policy-freshness question is required."
   required_actions:
-    - "Inspect repository blueprints, existing Evaluation V2 implementation, tests, PR history and engineering learning."
-    - "Record contradictory evidence, negative results and UNKNOWN rather than hiding reduced catalog counts."
-  escalation_rule: "Any L2/L3 trigger becomes a proposal or BLOCKED report; it does not expand E24 silently."
+    - "Inspect the current evaluator, tests, E22-E24 receipts, PR comments, CI logs and engineering-learning records."
+    - "Preserve contradictory evidence, count reductions, negative results and UNKNOWN."
+  escalation_rule: "Any L2/L3 trigger becomes a proposal or BLOCKED report; it does not expand E25 silently."
 
 exploration_budget:
   primary_delivery_share: "80%"
@@ -79,69 +98,71 @@ improvement_authority:
   A_SAFE_LOCAL_AUTONOMOUS:
     implementation_allowed: true
     allowed:
-      - "Internal deterministic refactors and focused tests inside the authorized Evaluation V2 package."
-      - "Clearer fail-closed diagnostics and normalization helpers that do not change external authority or production D2."
+      - "Internal predicate/oracle registries, controlled violation fixtures and trace carriers inside Evaluation V2."
+      - "Clearer fail-closed diagnostics and focused tests."
   B_BOUNDED_IMPLEMENT_AND_REPORT:
     implementation_allowed: true
     allowed:
-      - "Backward-compatible internal case-manifest or relation-normalization support required by this Gate."
-      - "Minimal edits to the authorized workflow so E24 tests actually run on Python 3.11 and 3.13."
+      - "Backward-compatible internal structures that bind exact executed artifacts to signatures."
+      - "Minimal authorized workflow naming or command correction required for E25 dual-Python execution."
     report_required: true
   C_PROPOSAL_ONLY:
     implementation_allowed: false
     examples:
-      - "Cross-module reuse, canonical schema change, later-gate design or new evaluation architecture."
+      - "Cross-module evaluator reuse, new canonical evidence schema, Gate C integration or new evaluation architecture."
   D_PROHIBITED_OR_USER_GATE:
     implementation_allowed: false
     stop_and_escalate: true
     examples:
-      - "Production D2 changes, ownership migration, secrets, real data, accounts, orders, trading or Gate C/D execution."
+      - "Production D2 changes, ownership migration, secrets, real data, accounts, orders, trading, merge or Gate C/D execution."
 
 autonomy_grant:
   level: "ENHANCED_BOUNDED"
   may_choose:
-    - "Internal algorithm, helper layout, deterministic normalization strategy, fixture design and test order."
-    - "A/B improvements within allowed files, exploration budget and rollback requirements."
+    - "Internal controlled-violation representation, predicate/oracle registry layout, trace carrier design and test order."
+    - "A/B improvements within allowed paths, exploration budget and rollback requirements."
   may_not_choose:
-    - "A different top-level task, PR, branch, Gate, owner, system of record or completion signal."
+    - "A different task, PR, branch, Gate, owner, system of record or completion signal."
     - "Canonical promotion, merge, real-data admission, account/order access or trade authority."
 
 mission_intent: >-
-  Repair Evaluation V2 so every counted catalog row represents a distinct executable input-plus-relation behavior,
-  every invariant executes its declared predicate and failure oracle, and the resulting evidence is truthful and reproducible.
+  Replace invariant self-certification with executable positive-and-controlled-negative evidence,
+  derive each catalog signature from the exact execution artifact and observed relation used for evaluation,
+  and publish a complete cumulative E25 receipt that satisfies lease freshness and AMED evidence rules.
 fundamental_goal: >-
-  Prevent IDs, slots, unused variants, unused modes or author-declared metadata from manufacturing coverage credit.
+  Prevent green tests, caller-supplied booleans, duplicated signature formulas or abbreviated receipts from
+  manufacturing Gate B confidence.
 
 system_position:
   workstream: "A-SHARE-MULTI-AGENT-GAME-ENGINE"
-  gate: "B_R2_PR106_BEHAVIORAL_DISTINCTNESS_AND_EXECUTABLE_INVARIANTS"
+  gate: "B_R3_PR106_CONTROLLED_VIOLATIONS_TRACE_PROVENANCE_AND_EVIDENCE_PRESERVATION"
   bounded_context: "Synthetic-only Evaluation V2 correctness and evidence"
 
 systems_of_record:
   - "remote main coordination/ACTIVE-CODEX-TASK.yaml for execution authority"
   - "Issue #23 and Draft PR #106 for task/evidence discussion"
-  - "accepted Gate A receipt head fa68186ea81644b406b58e2ab56d65feeb4d4d94"
-  - "E23 reviewed receipt head c21be383027b2c4ef74a830f4ed394a3f77f3afc as E24 code base"
+  - "E24 receipt head 3dd2bf116d018a2dfa132cdbb22de5fd11547d61 as E25 code base"
+  - "accepted Gate A receipt fa68186ea81644b406b58e2ab56d65feeb4d4d94 for frozen production D2"
 
 dependencies:
-  - id: "GATE_A_ACCEPTED_BASE"
+  - id: "E24_REVIEWED_TESTED_HEAD"
+    status: "SATISFIED_PARTIAL_REUSABLE"
+    evidence: "b708dee265278682a2921a91047cae877d6b7ad2"
+  - id: "E24_REVIEWED_RECEIPT_HEAD"
+    status: "SATISFIED_AS_REMEDIATION_BASE_NOT_ACCEPTED_COMPLETION"
+    evidence: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
+  - id: "E24_DUAL_PYTHON_CI"
+    status: "SATISFIED_REUSABLE"
+    evidence: "GitHub Actions run 30535795631"
+  - id: "E25_AMED_TASK_BRIEF"
     status: "SATISFIED"
-    evidence: "fa68186ea81644b406b58e2ab56d65feeb4d4d94"
-  - id: "E23_REVIEWED_TESTED_HEAD"
+    evidence: "coordination/TASK-BRIEFS/CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25-AMED.yaml"
+  - id: "E25_TASK_IMPACT_FORECAST"
     status: "SATISFIED"
-    evidence: "8dba2d17601f735e710d1c1ba5a62c058d9b5748"
-  - id: "E23_REVIEWED_RECEIPT_HEAD"
-    status: "SATISFIED"
-    evidence: "c21be383027b2c4ef74a830f4ed394a3f77f3afc"
-  - id: "E24_AMED_TASK_BRIEF"
-    status: "SATISFIED"
-    evidence: "coordination/TASK-BRIEFS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24-AMED.yaml"
-  - id: "E24_TASK_IMPACT_FORECAST"
-    status: "SATISFIED"
-    evidence: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-BEHAVIORAL-DISTINCTNESS-EXECUTABLE-INVARIANT-AND-EVIDENCE-CLOSURE-0016-E24.yaml"
+    evidence: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25.yaml"
   - id: "PR106_HEAD_MATCH_AT_LEASE_CLAIM"
     status: "MUST_VERIFY"
-    expected: "c21be383027b2c4ef74a830f4ed394a3f77f3afc before the first E24 commit"
+    expected: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61 before the first E25 commit"
 
 hard_boundaries:
   - "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
@@ -156,9 +177,12 @@ allowed_changed_files:
   - ".github/workflows/phase3-integrated-offline-memory.yml"
 
 receipt_only_files:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-EVALUATION-V2-RECEIPT.md"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-OUTCOME-CALIBRATION.yaml"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E24-EVIDENCE-MATRIX.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-EVALUATION-V2-RECEIPT.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-TEST-RUN-RECEIPT.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-EVIDENCE-MATRIX.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-CONTROLLED-INVARIANT-EVIDENCE-MATRIX.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-EXECUTION-TRACE-PROVENANCE-MATRIX.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/E25-OUTCOME-CALIBRATION.yaml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/AMED-AGENT-EXECUTION-RECEIPT.yaml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/AMED-RESEARCH-LEDGER.yaml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/A-SHARE-MULTI-AGENT-GAME-ENGINE/0001-D2-EVALUATION-V2/UNPLANNED-IMPROVEMENT-LEDGER.yaml"
@@ -170,103 +194,109 @@ receipt_only_files:
 acceptance_gates:
   - "LEASE_CLAIM_EXACT_MATCH"
   - "AUTHORIZED_DELIVERY_SURFACE"
-  - "EXECUTION_DERIVED_INPUT_SIGNATURES"
-  - "EXECUTION_DERIVED_RELATION_SIGNATURES"
-  - "NO_METADATA_ONLY_COVERAGE_CREDIT"
-  - "NAMED_INVARIANT_PREDICATE_AND_ORACLE_DISPATCH"
-  - "ORPHAN_UNKNOWN_UNEXECUTED_DUPLICATE_FAIL_CLOSED"
-  - "E23_TRUE_SUT_MUTATION_AND_METAMORPHIC_REGRESSION"
+  - "TEN_PREDICATE_EXECUTABLE_REGISTRY"
+  - "REAL_CONTROLLED_VIOLATION_ARTIFACTS"
+  - "POSITIVE_TRUE_NEGATIVE_FALSE_PREDICATE_EXECUTION"
+  - "NAMED_ORACLE_ARTIFACT_DERIVED_EVIDENCE"
+  - "ALL_80_INVARIANT_ROWS_MAPPED_AND_EXECUTED"
+  - "NO_BOOLEAN_INVERSION_SELF_CERTIFICATION"
+  - "EXACT_EXECUTION_TRACE_SIGNATURE_PROVENANCE"
+  - "NO_PARALLEL_SIGNATURE_FORMULA_OR_SIGNATURE_REEXECUTION"
+  - "IDENTITY_DUPLICATE_CONSUMED_INPUT_AND_RELATION_DISTINCTION_TESTS"
+  - "E23_E24_REUSABLE_REGRESSION"
   - "PYTHON_3_11_AND_3_13_CI_EXECUTION"
   - "THREE_ARCHIVE_HASH_SEED_DETERMINISM"
+  - "CUMULATIVE_EVIDENCE_PRESERVATION"
+  - "COMPLETE_LEASE_PROTOCOL_RECEIPT_FIELDS"
+  - "EXTERNAL_FULL_RECEIPT_SHA_ANCHORS"
   - "TESTED_HEAD_AND_RECEIPT_HEAD_SHAPE"
   - "AMED_STANDARD_DELIVERY_ARTIFACTS"
   - "GPT_SECOND_PASS_AUDIT"
 
-success_criteria:
-  - "Derive catalog input signatures from actual constructed public inputs after removing only identity fields that are proven unconsumed."
-  - "Derive relation signatures from named predicate/oracle contracts and normalized observed relations."
-  - "Every counted scenario, invariant, negative, episode, counterfactual and cross-family row has a unique execution-derived input-plus-relation signature."
-  - "Rows differing only by IDs, slot, unused variant or collapsed mode are removed or made genuinely executable and relationally distinct."
-  - "Every invariant invokes its named predicate and named failure oracle on a controlled fixture."
-  - "Unknown predicate/oracle, orphan row, unexecuted row and duplicate behavioral signature fail closed."
-  - "All eight E23 mutants, family-specific kills, eight metamorphic properties, inherited D1/D2 tests, archive determinism and Python 3.11/3.13 CI remain green."
-  - "Exactly one corrective substantive tested commit and exactly one E24 receipt-only commit descend from the authorized base."
-
-stop_conditions:
-  - "Remote main task_id, route_epoch, active_issue, pull_request, branch, completion_signal or execution_allowed no longer matches the claimed lease."
-  - "PR #106 head differs from the authorized base before E24 implementation and no explicit GPT route bridge exists."
-  - "Required work needs production D2, later gates, unauthorized files, cross-agent ownership or canonical changes."
-  - "Secrets, private/restricted data, real market data, account/order/trading access or irreversible state are encountered."
-  - "A S4 critical or uncontainable S3 major issue is found."
-
-required_commit_shape:
-  - "From c21be383027b2c4ef74a830f4ed394a3f77f3afc create exactly one corrective substantive tested commit."
-  - "Push it and obtain actual Python 3.11/3.13 CI evidence."
-  - "Create exactly one receipt-only commit changing only receipt_only_files."
+required_results:
+  - "Create one registry covering all ten predicate IDs; each entry has a predicate function, controlled violation constructor and named failure oracle."
+  - "For every predicate family, execute a valid artifact and observe true; execute the controlled violating artifact and observe false."
+  - "Failure oracle evidence must inspect the violating artifact or its independently derived report and emit predicate-specific evidence; caller-provided booleans, constants and `not predicate_passed` are forbidden."
+  - "Map every one of the 80 invariant rows to a registered predicate and an actually executed controlled violation case; fail on unknown, orphan, unexecuted or decorative violation."
+  - "Retain the exact scenario, invariant, negative, episode, counterfactual and cross-family execution artifacts used for verdicts and build signatures from those same objects and observed relations."
+  - "Do not re-run an episode/counterfactual only to build its signature and do not duplicate constructor formulas in the harness."
+  - "Preserve E24 truthful counts unless executable evidence requires another documented reduction."
+  - "Preserve all historical E22-E24 negative results, discoveries, implemented improvements and UNKNOWN entries; append E25 evidence rather than replacing history with stubs."
+  - "Publish complete completion-freshness evidence and externally anchor the full E25 receipt SHA in PR #106 and Issue #23 after pushing the receipt commit."
 
 mandatory_tests:
-  - "Changing only scenario_id, invariant_id, slot, unused variant or unused mode must not create a new counted signature."
-  - "Each invariant predicate is deliberately violated by at least one controlled fixture and its named failure oracle detects it."
-  - "Unknown predicate/oracle and metadata-only duplicate rows fail closed."
-  - "Every counted row appears exactly once in the row-to-executable-case matrix and was actually executed."
-  - "E23 true-SUT mutation and metamorphic suites remain green."
-  - "Inherited D1 and D2 regressions remain green."
+  - "Each of the ten predicate families has one controlled fixture that makes its predicate false and its named oracle detect the intended breach."
+  - "Replacing a violation constructor with its valid fixture causes the suite to fail as DECORATIVE_OR_NON_VIOLATING_FIXTURE."
+  - "Unknown predicate, unknown oracle, missing violation constructor and unmapped invariant row fail closed."
+  - "Changing only IDs or labels on the same executed artifact does not create a distinct signature."
+  - "Changing a behaviorally consumed field on the executed artifact creates a distinct input signature."
+  - "Changing the observed relation creates a distinct relation signature."
+  - "A test deliberately makes a specification/formula disagree with the actual executed artifact; signature provenance must follow the actual artifact."
+  - "Execution call counters prove each retained episode/counterfactual artifact is reused for verdict and signature instead of being re-executed for signature construction."
+  - "All E23 source-derived mutations, metamorphic properties, E24 truthful counts and inherited D1/D2 regressions remain green."
+  - "Receipt preservation check proves named E22/E23/E24 UNKNOWN and improvement IDs remain present after E25 receipt updates."
 
-visibility_requirements:
-  checkpoints:
-    - "10% lease claim and route/base/working-tree echo"
-    - "35% executable-signature and invariant-dispatch design"
-    - "70% substantive commit, tests and CI evidence"
-    - "100% tested/receipt heads, complete evidence and remaining UNKNOWN"
-  immediate_escalation:
-    - "S4_CRITICAL"
-    - "S3_MAJOR"
-  no_progress_rule: "If no substantive local progress exists, publish IDLE_OR_NO_LOCAL_PROGRESS rather than claiming completion."
+commit_shape:
+  reviewed_base: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
+  substantive:
+    count: 1
+    requirements:
+      - "Contains all code, tests, workflow changes and executable provenance mechanisms."
+      - "Must be locally tested, pushed and pass Python 3.11/3.13 GitHub CI before receipt creation."
+  receipt:
+    count: 1
+    requirements:
+      - "Changes only receipt_only_files."
+      - "Contains no code, schema, helper, workflow or executable change."
+      - "Uses receipt_head_ref=THIS_COMMIT and external full-SHA anchors; no self-reference placeholder."
+  prohibited: [amend, rebase, reset, force_push, merge, direct_main_write]
 
-evidence_requirements:
-  - "Lease claim remote main full SHA and route_epoch 25."
-  - "Full 40-character base, tested and receipt heads plus trees and parents."
-  - "Exact commands, exit codes, pass/fail/skip counts and normalized stdout/stderr SHA256."
-  - "Row-to-executable-case matrix and removed/merged duplicate inventory."
-  - "Three clean git archive roots under distinct process-level PYTHONHASHSEED values with identical canonical report hash."
-  - "Complete reviewed-base...receipt-head delivery-surface and public-safety scan."
-  - "Negative results, alternatives, tradeoffs, rollback and UNKNOWN."
+completion_receipt_requirements:
+  required_fields:
+    - task_id
+    - route_epoch
+    - remote_main_head_at_claim
+    - remote_main_head_at_pre_completion_revalidation
+    - completion_signal
+    - active_issue
+    - pull_request
+    - branch
+    - authorized_reviewed_or_base_head
+    - delivered_head_full_sha
+    - tested_head_full_sha
+    - receipt_head_ref_or_NOT_APPLICABLE
+    - receipt_head_full_sha_external_anchor_or_NOT_APPLICABLE
+    - tested_to_receipt_changed_files
+    - reviewed_to_tested_changed_files
+    - exact_commands
+    - exit_codes
+    - counts
+    - normalized_stdout_sha256
+    - normalized_stderr_sha256
+    - preserved_failures_skips_unknowns
+  hash_labels:
+    - "Canonical report SHA, raw/normalized stdout SHA and artifact SHA must be separately named and never conflated."
+  external_anchors:
+    - "Post full receipt SHA, tested SHA, task ID, route epoch and completion signal in PR #106."
+    - "Post the same immutable anchors in Issue #23."
 
-required_delivery_artifacts:
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-  - "E24-EVALUATION-V2-RECEIPT.md"
-  - "E24-EVIDENCE-MATRIX.md"
-  - "E24-OUTCOME-CALIBRATION.yaml"
-  - "UNKNOWN-REGISTRY.yaml"
-  - "AI_HANDOFF.yaml"
-
-second_pass_audit_required: true
-second_pass_reviewer: "GPT"
-
-review_disposition:
-  classification: "E23_REUSABLE_BASE_BUT_GATE_B_REMEDIATION_ACTIVE"
-  gate_a: "ACCEPTED_WITH_EVIDENCE_EXCEPTION"
-  gate_b: "NOT_ACCEPTED_REMEDIATION_ACTIVE"
-  gate_c: "FROZEN"
-  gate_d: "FROZEN"
-  issue92: "BLOCKED_NOT_RELEASED"
-  merge: false
-
-sequential_gate_policy:
-  only_one_active_gate: true
-  active_gate: "B_R2_PR106_BEHAVIORAL_DISTINCTNESS_AND_EXECUTABLE_INVARIANTS"
-  later_gates_status: "FROZEN_FOR_GPT_ACCEPTANCE_OF_E24"
-  gate_transition_requires_explicit_gpt_acceptance: true
+visibility_checkpoints:
+  - percent: 10
+    required: "Lease claim: remote main head, route epoch 26, Issue #23, PR #106, branch, base 3dd2bf and allowed paths."
+  - percent: 45
+    required: "Predicate/violation/oracle registry and one evidence row for each of ten predicate families."
+  - percent: 75
+    required: "Exact trace provenance design, anti-divergence tests and truthful catalog counts."
+  - percent: 100
+    required: "Tested head, dual-Python CI, archive evidence, receipt head, cumulative evidence check and remaining UNKNOWN."
+  escalation: "S3/S4 findings are reported immediately and do not wait for checkpoints."
 
 forbidden:
   - "No production D2 edits."
-  - "No later-gate work, merge, force push or history rewrite."
-  - "No edits to PR #101, #102, #103 or #105."
-  - "No real data, accounts, orders, execution, performance or profitability claims."
-  - "No canonical promotion or downstream task activation."
+  - "No Gate C, Gate D, Issue #92 or queued Issue #108 execution."
+  - "No merge, force push, history rewrite or automatic downstream transition."
+  - "No real data, private data, credentials, accounts, orders, trading or performance claims."
+  - "No evidence deletion disguised as concise cumulative update."
 
-after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C"
+after_completion: "STOP_AND_REQUEST_GPT_REVIEW_DO_NOT_ENTER_GATE_C_OR_ISSUE_108"
 boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
