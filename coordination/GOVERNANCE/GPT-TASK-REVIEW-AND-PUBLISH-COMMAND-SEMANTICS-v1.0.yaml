@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 protocol_id: "GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-0001"
 short_name: "GRPC-S"
 status: "ACTIVE_PERMANENT_PROJECT_RULE"
@@ -12,243 +12,147 @@ agent_read_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-
 in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
 
 purpose: >-
-  Give the user phrases 审查任务 and 发布任务 stable durable meanings. A bare 审查任务 command means the whole orchestration
-  cycle: independently inspect current agent work and task quality, accept useful value, identify defects and discoveries,
-  improve contracts or control-plane rules, and publish or reaffirm the correct executable next route. GPT must not treat it
-  as a shallow summary request and must not require the user to separately say 发布任务.
+  Give 审查任务 and 发布任务 durable meanings. A bare 审查任务 is the whole review-optimize-publish cycle for all materially
+  relevant active/newly completed lanes, not a shallow summary. GPT independently audits evidence and task quality, repairs its
+  own control plane, and publishes or reaffirms correct executable routes without asking the user for a separate 发布任务 command.
 
 trigger_commands:
   REVIEW_TASK:
     exact_phrases: ["审查任务", "审核任务", "验收任务", "审查成果", "审核成果"]
-    default_scope: >-
-      Review all currently active or newly completed agent lanes that are materially relevant, including Codex and QCLAW by
-      default and WorkBuddy when active or when its dependency state matters. When the user names one agent or PR, narrow the
-      primary focus but still inspect cross-agent and whole-system effects.
-    default_meaning: >-
-      Execute visibility preflight and independent evidence review; assess the assignment itself, execution process, difficulty,
-      discoveries, expandable ideas, unresolved problems, failures, exact coordination needs and system feedback; decide what is
-      accepted, refined, removed, returned, split, deferred or rejected; directly repair GPT-owned control-plane defects; then
-      publish the appropriate remediation, next mission, route reaffirmation or blocked state with exact gates.
-    automatic_follow_through:
-      review: true
-      optimize_and_repair_GPT_owned_control_plane: true
-      publish_or_reaffirm_correct_route: true
-      synchronize_PR_and_issue_anchors: true
-      update_system_learning_when_reusable: true
-      ask_user_for_separate_publish_command: false
+    default_scope:
+      include_by_default: [CODEX, QCLAW]
+      include_when_active_or_dependency_relevant: [WORKBUDDY, FUTURE_AGENT]
+      named_focus_rule: "When user names one Agent/PR, prioritize it but still inspect material cross-agent/system effects."
+    default_meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"
+    automatic_actions:
+      - "Read latest remote main and all relevant active routes."
+      - "Perform visibility preflight and fetch complete reports, PRs, commits, tests, CI and receipts."
+      - "Review assignment quality, execution, process, difficulty, failures, discoveries, expansions, unresolved problems, coordination and system feedback."
+      - "Accept reusable value and preserve negative evidence."
+      - "Directly repair GPT-owned task, route, protocol or coordination defects."
+      - "Publish remediation/next mission, reaffirm valid route or publish precise blocked state."
+      - "Synchronize PR/Issue/central coordination anchors."
+      - "Update reusable system lessons and templates when justified."
+    separate_publish_command_required: false
     does_not_mean:
-      - "Read only the latest summary or completion comment."
-      - "Accept an agent's self-declared completion."
-      - "Check only whether a checklist count was reached."
-      - "Review one PR in isolation when the task spans multiple PRs or interfaces."
-      - "Infer that no local progress exists merely because the remote PR head is unchanged."
-      - "Return only an opinion while leaving a known control-plane or routing defect unfixed."
-      - "Wait for the user to separately say 发布任务 after the review."
-      - "Create a new epoch when the current executable task has not started or remains the correct active route."
+      - "Read only latest summary/comment."
+      - "Accept self-declared completion."
+      - "Check only checklist counts."
+      - "Review one PR in isolation when interfaces are material."
+      - "Infer no local progress from unchanged remote head."
+      - "Return only an opinion while leaving known GPT control-plane defects unfixed."
+      - "Wait for user to say 发布任务."
+      - "Create an empty epoch when current valid route simply has not executed."
   PUBLISH_TASK:
     exact_phrases: ["发布任务", "派发任务", "重新分配任务", "继续发布任务"]
-    default_meaning: >-
-      Convert the latest valid review state and global roadmap into executable machine routes and human-readable proactive mission
-      contracts. Grant each agent an autonomy budget appropriate to its capability, explicitly state where initiative is required,
-      where caution and hard gates apply, preserve material local work through route bridges, and preserve GPT control of overall
-      sequencing, integration and release.
+    default_meaning: "AUTHOR_AND_PUBLISH_PROACTIVE_EXECUTABLE_MISSION_FROM_LATEST_VALID_REVIEW"
     does_not_mean:
-      - "Copy the agent's own proposed next step without independent review."
-      - "Issue many tiny one-line tickets when a coherent bounded mission is safer and more efficient."
-      - "Give unrestricted freedom without path, branch, PR, authority and stop-condition firewalls."
-      - "Silently abandon reported or potentially existing local progress when superseding a route."
-      - "Release real data, replay, backtest, account, order or trading authority implicitly."
+      - "Copy agent's own next step without review."
+      - "Issue unnecessary micro-remediations."
+      - "Give freedom without firewalls."
+      - "Abandon local progress silently."
+      - "Implicitly release real data, replay, backtest, account, order or trade."
 
 review_task_protocol:
-  evidence_scope_must_include_when_relevant:
-    - "Latest remote main and all agent-specific active task routes."
-    - "Complete task brief, impact forecast, Issue body and all comments."
-    - "Complete agent report, checkpoints, completion comments, WPDCR and handoffs."
-    - "Related PR metadata, commit chains, changed files, patches and exact heads."
-    - "Tests, commands, exits, stdout/stderr hashes, receipts, CI jobs/logs and reproducibility evidence."
-    - "InProgressVisibilityPacket, StaleRoutePacket, PARTIAL, CHECKPOINT, RECOVERY_POINT and IDLE_OR_NO_LOCAL_PROGRESS records."
-    - "Authorized checkpoint branches or checkpoint SHAs named by the agent."
-    - "User-supplied local SHA or local report that may not yet be remotely resolvable."
-    - "Proactive discoveries, unplanned improvements, alternatives, rejected ideas and UNKNOWN registries."
-    - "Negative results, surviving mutants, skipped cases, stale assumptions and contradictions."
-    - "Cross-agent interfaces, canonical ownership, existing runtimes and duplicate-system risk."
-    - "Relevant issues, parent program decisions, dependency gates and current pauses."
+  evidence_scope:
+    - "Latest main and agent-specific active routes."
+    - "Task brief, forecast, Issue body and all comments."
+    - "Complete reports, WPDCR, checkpoints, completion comments and handoffs."
+    - "PR metadata, exact commit topology, changed files and patches."
+    - "Commands, exits, stdout/stderr hashes, tests, receipts, CI jobs/logs and reproducibility."
+    - "Visibility/StaleRoute/PARTIAL/CHECKPOINT/RECOVERY/IDLE packets and checkpoint refs."
+    - "Proactive discoveries, improvements, alternatives, rejected ideas and UNKNOWNs."
+    - "Negative results, survivors, SKIP, stale assumptions and contradictions."
+    - "Cross-agent interfaces, canonical ownership, runtimes, dependencies and pauses."
   visibility_preflight:
     mandatory: true
-    steps:
-      - "Check active PR heads and exact commit topology."
-      - "Search PR and Issue comments for current visibility packets and local-progress language."
-      - "Fetch any named public-safe checkpoint ref."
-      - "Determine whether the remote branch is complete, local progress is reported, local state is unknown, or the agent explicitly reports no local work."
     inference_rules:
-      - "An unchanged PR head proves only NO_REMOTE_VERIFIABLE_DELIVERY."
-      - "Do not state NO_NEW_PROGRESS unless current evidence supports it."
-      - "A reported local commit is LOCAL_PROGRESS_REPORTED_NOT_VERIFIED until remotely fetchable."
-      - "A checkpoint can guide preservation and routing but cannot satisfy final acceptance gates."
+      - "Unchanged PR head proves only no new remote-verifiable delivery."
+      - "Reported local work remains reported-not-verified until remotely fetchable."
+      - "Checkpoint helps preserve/route but cannot satisfy final acceptance."
   task_authoring_quality_review:
     mandatory: true
     questions:
-      - "Did GPT state the fundamental goal and causal mechanism rather than only a checklist?"
-      - "Was the mode explicitly labeled with a reason?"
-      - "Did the assignment grant meaningful bounded initiative and better-method freedom?"
-      - "Were the seven mandatory discovery questions, expected hard parts and UNKNOWN duties included?"
-      - "Were exact coordination request shapes and system-feedback targets designed in advance?"
-      - "Did the route preserve branch/path/WIP/canonical/privacy/license/safety firewalls?"
-      - "Could task wording itself have caused passive, plan-only or evidence-theatre behavior?"
-    rule: >-
-      When assignment defects contributed to weak execution, GPT must repair the task-authoring and command semantics in addition
-      to returning executor defects. Do not blame only the agent for a mechanically authored task.
+      - "Was mode and reason explicit?"
+      - "Did task state fundamental goal and mechanism?"
+      - "Did it separate minimum delivery from executor choices?"
+      - "Did it grant bounded better-method/A-B initiative?"
+      - "Did it require seven discovery questions, difficulty/UNKNOWN, exact coordination and system feedback?"
+      - "Did it include RTCE: 读取任务 means claim and execute?"
+      - "Could wording have caused passive, plan-only or evidence-theatre behavior?"
+    repair_rule: "Repair authoring/command semantics as well as executor defects when task design contributed."
   execution_review_dimensions:
     - "Primary mission completeness and semantic correctness."
-    - "Observable work process, approach changes and failed attempts."
+    - "Whether valid 读取任务 led to substantive execution."
+    - "Observable process, pivots and failed attempts."
     - "Planned versus actual difficulty with evidence."
-    - "New expected and unexpected findings, including what they do not prove."
-    - "Expandable ideas with reuse check, owner, cost, risk, trigger and validation gate."
-    - "Unresolved hard problems, attempts, missing capability and abstention."
-    - "Problems, failures, negative results and regression protection."
-    - "Exact coordination requests and unaffected work."
+    - "Expected/unexpected findings and limits."
+    - "Expandable ideas with reuse, owner, cost, risk, trigger and gate."
+    - "Unresolved problems, attempts, missing capability and abstention."
+    - "Failures, negative results and regression protection."
+    - "Exact coordination and unaffected work."
     - "Cross-agent handoff, authority and system impact."
     - "Reusable lessons and system feedback."
-  no_summary_only_rule: true
-  remote_truth_over_report_rule: true
-  remote_absence_does_not_prove_local_absence: true
+  independent_reasoning_required: true
+  remote_truth_over_report: true
   agent_self_approval_forbidden: true
-  GPT_independent_reasoning_required: true
-  system_level_questions:
-    - "Does the implementation solve the underlying goal rather than literal wording?"
-    - "Which proactive additions are valuable, evidence-backed and compatible?"
-    - "Which additions duplicate, conflict with or weaken canonical capabilities?"
-    - "Are interfaces, ownership, schemas and authority boundaries coherent?"
-    - "Are tests semantically meaningful or merely count, presence or self-consistency checks?"
-    - "What evidence would falsify the result, and was it actually exercised?"
-    - "What remains unresolved, difficult or dependent on exact coordination?"
-    - "Which discoveries should be absorbed into protocols, templates, tests, blueprints, skills, routes or tasks?"
-    - "Does acceptance improve total-system operability and future leverage?"
-  required_component_dispositions:
-    - "ACCEPT_AS_IS"
-    - "ACCEPT_AND_INTEGRATE"
-    - "ACCEPT_WITH_GPT_REFINEMENT"
-    - "PARTIAL_ACCEPT_REMOVE_INCOHERENT_PORTIONS"
-    - "RETURN_FOR_REMEDIATION"
-    - "SPLIT_AND_ROUTE"
-    - "DEFER_WITH_OWNER_AND_TRIGGER"
-    - "REJECT_PRESERVE_EVIDENCE"
-  review_output_must_separate:
-    - "Accepted facts and implementation boundaries."
-    - "Useful proactive additions accepted for integration."
-    - "GPT-owned improvements applied directly."
-    - "Defects returned with exact acceptance gates."
-    - "Duplicate or incoherent parts to remove or deprecate."
-    - "New high-value goals and adjacent candidates."
-    - "Unresolved UNKNOWNs, difficulty, negative findings and risks."
-    - "Exact coordination requests and owners."
-    - "Remote-verifiable versus local-reported or unknown state."
-    - "Whole-system fit, dependency impact and release consequences."
-  post_review_action_rule:
-    delivery_present:
-      - "Freeze accepted reusable value."
-      - "Publish the smallest coherent remediation or next mission when acceptance is incomplete."
-      - "Publish the next gate only when all prerequisites are independently accepted."
-    no_new_delivery_and_current_route_valid:
-      - "Do not create an empty new epoch."
-      - "Reaffirm the current route and its read-and-execute trigger."
-      - "Repair any route or command-semantics defect that prevents execution."
-    route_invalid_or_incomplete:
-      - "Repair or reissue the route with full AMED/PMA-BIG/WPDCR/lease fields before execution."
-    high_risk_user_gate:
-      - "Stop only the affected scope and present the exact user decision required."
-  architecture_integrity_gate:
-    must_pass:
-      - "No second canonical system without an explicit migration decision."
-      - "No cross-agent ownership collision or silent branch takeover."
-      - "No incompatible schema or interface drift left unaccounted for."
-      - "No candidate, plan or self-report silently promoted to implemented fact or authority."
-      - "No weakening or deletion of negative evidence to manufacture success."
-      - "No unauthorized real-data, replay, backtest, fitting, performance, account, order or trade expansion."
-      - "The accepted subset can be integrated, tested, rolled back and operated coherently."
+  required_dispositions: [ACCEPT_AS_IS, ACCEPT_AND_INTEGRATE, ACCEPT_WITH_GPT_REFINEMENT, PARTIAL_ACCEPT_REMOVE_INCOHERENT_PORTIONS, RETURN_FOR_REMEDIATION, SPLIT_AND_ROUTE, DEFER_WITH_OWNER_AND_TRIGGER, REJECT_PRESERVE_EVIDENCE]
+  output_must_separate:
+    - "Accepted facts and boundaries."
+    - "Useful proactive additions."
+    - "GPT-owned fixes applied."
+    - "Returned defects with gates."
+    - "Duplicate/incoherent parts."
+    - "New high-value goals."
+    - "Unresolved difficulty/UNKNOWN/negative risks."
+    - "Exact coordination."
+    - "Remote-verifiable versus reported/unknown state."
+    - "Whole-system and release consequences."
+  post_review_action:
+    delivery_incomplete: "Publish smallest coherent remediation preserving accepted value."
+    delivery_accepted: "Publish next gate only when prerequisites independently pass."
+    no_new_delivery_current_route_valid: "Do not create empty epoch; reaffirm route and repair execution semantics if needed."
+    route_invalid_or_incomplete: "Repair/reissue route before execution."
+    high_risk_user_gate: "Stop affected scope and present exact decision."
 
 publish_task_protocol:
-  prerequisite: >-
-    Use the latest valid review state. Refresh the review whenever material evidence changed. Before superseding an active route,
-    inspect visibility state and preserve or explicitly disposition local work.
-  task_design_defaults:
-    - "Write a proactive mission around the fundamental goal, not a passive checklist."
-    - "Prefer coherent multi-stage missions over repeated micro-remediation when boundaries are explicit."
-    - "Preserve accepted work and repair only defective boundaries."
-    - "Grant better-method freedom and authorized A/B initiative."
-    - "Require the seven discovery questions, difficulty/UNKNOWN duties, exact coordination and system feedback."
-    - "Absorb safe high-value adjacent discoveries without scope explosion."
-    - "Separate different authority surfaces or ownership boundaries into different PRs."
-    - "Define internal stage gates that permit autonomous continuation when evidence passes."
-    - "Require machine evidence, WPDCR and final GPT second-pass review."
-    - "When local progress is reported or unknown, include preserve, bridge, isolate or discard-with-reason policy."
-  autonomy_allocation:
-    CODEX:
-      default: "HIGH_WITH_EXPLICIT_FIREWALLS"
-      encouraged_freedom:
-        - "Architecture, module layout, algorithms, internal order and test framework."
-        - "Authorized AMED A/B adjacent defect repair and high-value capability improvement."
-        - "Additional contracts, validators, observability, negative tests and reproducibility evidence."
-        - "Evidence-driven replanning between internal gates without micro-approval."
-      hard_gates:
-        - "No self-approval, merge, direct main write, force push or history rewrite."
-        - "No ownership takeover, second canonical runtime or unsupported claim promotion."
-        - "No real-data, replay, backtest, fitting, account, order or trade without separate release."
-    QCLAW:
-      default: "KNOWLEDGE_SUPPLY_BOUNDED_AUTONOMY"
-      encouraged_freedom:
-        - "Source conflict, counterevidence, atomization, relations, UNKNOWNs, validators and candidate adapters."
-        - "Safe AMED A/B repairs inside QCLAW candidate and knowledge-supply paths."
-      hard_gates:
-        - "All outputs remain candidate until GPT acceptance."
-        - "No second canonical memory or edits to Codex/WorkBuddy runtime ownership."
-    WORKBUDDY:
-      default: "LOCAL_REALITY_BOUNDED_AUTONOMY_WHEN_EXPLICITLY_ACTIVE"
-      encouraged_freedom:
-        - "Local capability, deployment, data quality, permissions, services, performance and failure reproduction."
-      hard_gates:
-        - "No automatic resume while paused."
-        - "No unapproved service lifecycle, credential export, real-data admission or trading."
+  prerequisite: "Use latest valid review and preserve/disposition local work before superseding."
+  defaults:
+    - "Proactive mission around fundamental goal, not passive checklist."
+    - "Preserve useful work and repair defective boundary."
+    - "Grant better-method and A/B initiative."
+    - "Require seven discovery questions, difficulty/UNKNOWN, exact coordination and system feedback."
+    - "Define internal evidence gates and WPDCR."
+    - "State 读取任务 means read, claim and immediately execute."
   every_published_task_must_define:
-    - "Mode label and reason."
-    - "Fundamental goal, causal mechanism and system position."
-    - "Minimum non-negotiable delivery versus executor-controlled choices."
+    - "Mode and reason."
+    - "Goal, mechanism and system position."
+    - "Minimum delivery versus choices."
     - "Reviewed/base heads and accepted boundaries."
-    - "Autonomy level, better-method mandate and A/B/C/D boundaries."
-    - "Seven mandatory discovery questions."
-    - "Expected difficulty, UNKNOWNs, blocker evidence and abstention."
-    - "Coordination owners, exact request shape, unaffected work and closure gates."
-    - "System-feedback destinations and GPT acceptance boundary."
-    - "Authorized paths, branches, PR/WIP budget and cross-agent firewalls."
-    - "Visibility, evidence, negative-test, reproducibility, WPDCR and receipt requirements."
-    - "Dependencies, downstream integration and rollback."
-    - "Exact completion signal and GPT final-review requirement."
-    - "读取任务 means claim and execute, not read-only acknowledgement."
+    - "Autonomy, better-method mandate and A/B/C/D."
+    - "Seven discovery questions."
+    - "Difficulty, UNKNOWN, blocker evidence and abstention."
+    - "Coordination owners/requests/unaffected work/closure."
+    - "System-feedback destinations and GPT gate."
+    - "Paths, branch, PR/WIP and safety firewalls."
+    - "Visibility, evidence, tests, reproducibility, WPDCR and receipts."
+    - "Completion signal and GPT second pass."
+    - "RTCE one-command execution semantics."
   publication_actions:
-    - "Write or update the machine-readable active route on latest main."
-    - "Synchronize PR titles/bodies and source/parent Issue comments."
-    - "Update central coordination and resource allocation when materially changed."
-    - "Preserve paused agents as execution_allowed false unless explicitly reactivated."
-    - "State route-transition treatment of reported or unknown local work."
-    - "Read back the remote route and human entrypoints after publication."
-  final_control_rule: >-
-    Agent autonomy is broad inside the task firewall. GPT retains control of roadmap, tempo, cross-agent integration, acceptance,
-    release and total-system coherence.
+    - "Update machine route on latest main."
+    - "Synchronize PR/Issue/central coordination."
+    - "Preserve paused Agents unless explicitly reactivated."
+    - "Read back remote route and human anchors."
 
 command_relationships:
   REVIEW_TASK_includes_publish_follow_through: true
-  explicit_combined_phrases: ["审查并发布任务", "审核成果后重新分配任务", "验收并派发下一轮"]
-  required_order:
-    - "Complete review and visibility preflight first."
-    - "Freeze accepted boundaries and unresolved findings."
-    - "Then optimize and publish or reaffirm the route."
-  forbidden_shortcut: "Do not publish first and retrofit review afterward."
+  required_order: [REVIEW_AND_VISIBILITY_PREFLIGHT, FREEZE_DISPOSITION_AND_BOUNDARIES, OPTIMIZE_AND_PUBLISH_OR_REAFFIRM]
+  forbidden_shortcut: "No publish-first retrofit."
 
 memory_and_persistence:
   user_intent: "PERMANENT_LONG_TERM_OPERATING_RULE"
   applies_to_future_conversations: true
   applies_across_agent_and_epoch_changes: true
-  not_limited_to_current_task: true
   default_user_shorthand:
     审查任务: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"
     读取任务: "AGENT_READ_CLAIM_AND_EXECUTE_CYCLE"
@@ -259,9 +163,7 @@ security_and_release_boundaries:
   force_push: false
   history_rewrite: false
   issue92_implicit_release: false
-  real_data_implicit_release: false
-  replay_backtest_fitting_implicit_release: false
-  account_order_trade_implicit_release: false
+  real_data_replay_backtest_fitting_account_order_trade_implicit_release: false
 
 updated_by: "GPT"
-updated_at: "2026-07-31T05:18:00+08:00"
+updated_at: "2026-07-31T05:42:00+08:00"
