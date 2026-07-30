@@ -1,0 +1,72 @@
+schema_version: "1.1"
+record_type: "OutcomeCalibrationReview"
+task_id: "QCLAW-PR100-MACHINE-EVIDENCE-ARCHIVE-INDEPENDENCE-AND-RECEIPT-FRESHNESS-CLOSURE-0022-E20"
+reviewed_receipt_head: "1e5e44ff346e568dee9eba0afc9062abb2c2a07c"
+reviewer: "GPT"
+reviewed_at: "2026-07-31T05:31:00+08:00"
+classification: "E20_42_CASE_MACHINE_LEDGER_AND_SOURCE_LOCK_REUSABLE_BUT_PORTABILITY_ARCHIVE_CI_AND_HANDOFF_TRUTH_FAILED"
+
+expected_positive_outcomes:
+  machine_case_ledger:
+    expected: "At least 40 real production-entry mutations with complete machine fields."
+    actual: "42 tracked cases with ID, command, exit, expected/actual outcome and stdout/stderr hashes."
+    calibration: "ACHIEVED_REUSABLE"
+  source_lock:
+    expected: "Bind D2 and Q0 source identities."
+    actual: "D2 commit/hash/size and Q0 hashes/sizes are present."
+    calibration: "ACHIEVED_REUSABLE"
+  archive_independence:
+    expected: "Three distinct exact-tested-commit archive roots with complete provenance."
+    actual: "D05 records seeds and exits only; no roots, tested commit, commands, output hashes or per-root artifacts."
+    calibration: "NOT_ACHIEVED"
+  portability:
+    expected: "Runner executes from current/archive root."
+    actual: "Runner hard-codes old e17_gate_b_r2 workspace, q0_sources and QClaw Python executable."
+    calibration: "NOT_ACHIEVED_UNEXPECTED_NEGATIVE"
+  relevant_CI:
+    expected: "Python 3.11 and 3.13 execute PR #100 evidence."
+    actual: "Workflow run 30580735871 is green but has no QCLAW E20 generator/validator/runner step."
+    calibration: "NOT_ACHIEVED"
+  cumulative_handoff:
+    expected: "Fresh cumulative AMED/WPDCR/AI_HANDOFF/quality/supply-chain/UNKNOWN evidence."
+    actual: "Required cumulative files were not all updated and no complete WPDCR followed inheritance."
+    calibration: "NOT_ACHIEVED"
+
+unexpected_findings:
+  - type: "UNEXPECTED_NEGATIVE"
+    fact: "The machine ledger's commands themselves prove dependence on a stale local workspace."
+    impact: "Tests are locally informative but not archive-independent or CI-portable."
+    what_it_does_not_prove: "It does not invalidate the 42 mutation ideas or source-lock fields."
+  - type: "SYSTEM_FEEDBACK_OPPORTUNITY"
+    fact: "The user command 读取任务 previously allowed read-only acknowledgement."
+    action: "Permanent RTCE protocol added; E21 route requires immediate execution."
+
+process_and_difficulty_review:
+  observed_process: "E20 replaced placeholders with machine-generated records and hardened validator/source locks, but stopped before portable archive and relevant CI closure."
+  actual_difficulty: "D2_HARD"
+  difficulty_evidence:
+    - "Local path and fixture coupling across generator, validator and archive tests."
+    - "Need to reconcile tracked Q0 fixtures with clean archive roots."
+  missing_report: "Full WPDCR process/difficulty/discovery/coordination report not delivered after protocol inheritance."
+
+accepted_reusable_value:
+  - "42-case machine ledger and receipt generation concept."
+  - "D2 commit/hash/size and Q0 source locks."
+  - "Two-commit E20 topology."
+
+returned_defects:
+  - "Portable repository/archive-root execution."
+  - "Three exact-commit archive provenance matrix."
+  - "Relevant dual-Python CI."
+  - "Cumulative handoff and WPDCR evidence."
+  - "External tested/receipt SHA anchors."
+
+next_action:
+  task_id: "QCLAW-PR100-PORTABLE-RUNNER-ARCHIVE-PROVENANCE-CI-AND-CUMULATIVE-HANDOFF-CLOSURE-0023-E21"
+  route_epoch: 21
+  mode: "target"
+  owner: "QCLAW"
+  trigger: "读取任务"
+  trigger_meaning: "READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
+  completion_signal: "QCLAW_E21_PR100_PORTABLE_RUNNER_ARCHIVE_PROVENANCE_CI_AND_CUMULATIVE_HANDOFF_READY_FOR_GPT_REVIEW"
+  gate_c_d_e: "FROZEN"
