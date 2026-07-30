@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-0001"
 short_name: "PMA-BIG"
 status: "ACTIVE_ENTERPRISE_STANDARD"
@@ -9,231 +9,148 @@ parent_policies:
   - "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
   - "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
   - "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+  - "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
 boundary: "PUBLIC_SAFE / authority_bounded / research_only / NO_TRADE unless separately authorized"
 
 purpose: >-
-  Require every non-trivial task to be authored as a bounded proactive mission rather than a passive checklist. The assignment must
-  explicitly authorize the executor to optimize for the fundamental goal, choose better internal methods, discover adjacent defects,
-  identify reusable or expandable opportunities, surface unresolved problems, request precise coordination and propose evidence-backed
-  system feedback, while preserving ownership, WIP, privacy, license, canonical and safety firewalls.
+  Require every non-trivial task to be authored as a bounded proactive mission rather than a passive checklist. The assignment
+  explicitly authorizes optimization for the fundamental goal, better internal methods, discovery, unresolved-problem truth,
+  precise coordination and system feedback. It also makes 读取任务 a one-command read-claim-execute cycle rather than a read-only step.
 
 assignment_principles:
   - id: "A1_FUNDAMENTAL_GOAL_OVER_LITERAL_CHECKLIST"
-    rule: >-
-      The executor is responsible for the real outcome and causal mechanism, not only literal completion of listed steps. Listed steps
-      are minimum constraints unless explicitly frozen as the only allowed implementation.
+    rule: "The executor is responsible for the real outcome and causal mechanism, not literal step completion only."
   - id: "A2_INITIATIVE_MUST_BE_EXPLICITLY_GRANTED"
-    rule: >-
-      Every assignment must state what the executor may choose, improve, inspect and implement, and what remains proposal-only or prohibited.
-      Vague phrases such as use judgment or feel free to improve are insufficient.
+    rule: "Every assignment states what may be chosen, inspected, improved and implemented, and what remains proposal-only/prohibited."
   - id: "A3_BETTER_THAN_REQUESTED_WITH_EVIDENCE"
-    rule: >-
-      Inside AMED A/B authority, branch/path scope and exploration budget, the executor should implement a demonstrably better method,
-      test, validator, interface, observability or simplification when it materially improves the fundamental goal. More output is not
-      automatically better; improvement requires evidence, proportional complexity and rollback.
+    rule: "Inside A/B authority and scope, implement demonstrably better methods when value, evidence, complexity and rollback tests pass."
   - id: "A4_DISCOVERY_IS_A_PRIMARY_ASSIGNMENT_OUTPUT"
-    rule: >-
-      The assignment must require active search for false assumptions, hidden dependencies, missing requirements, negative results,
-      simpler alternatives, reusable capabilities, duplication, interface gaps, system opportunities and new UNKNOWNs.
+    rule: "Require search for false assumptions, dependencies, missing requirements, negative results, alternatives, reuse, duplication, gaps and UNKNOWNs."
   - id: "A5_UNSOLVED_TRUTH_OVER_GUESSED_COMPLETION"
-    rule: >-
-      The executor must identify what remains unsolved, why, what was attempted, what minimum evidence or capability is missing and when
-      abstention or a new task is safer than a guessed answer.
+    rule: "Identify what remains unsolved, attempts, missing evidence/capability and safe abstention."
   - id: "A6_COORDINATION_MUST_BE_DESIGNED_IN_ADVANCE"
-    rule: >-
-      Each assignment must name likely upstream and downstream owners, expected handoffs, decision gates and the required shape of any
-      coordination request. A blocker is not complete until the exact requested action, evidence and affected scope are stated.
+    rule: "Name upstream/downstream owners, handoffs, decision gates and exact coordination request shape."
   - id: "A7_SYSTEM_FEEDBACK_IS_REQUIRED_BUT_GATED"
-    rule: >-
-      Every assignment must ask whether discoveries should update a protocol, template, test, blueprint, skill, route, deprecation record,
-      engineering lesson or follow-up task. Executors may implement only authorized A/B feedback; C/D changes remain proposal or user-gated.
+    rule: "Ask whether findings update protocols, templates, tests, blueprints, skills, routes, deprecations, lessons or tasks; major changes need GPT/user gates."
   - id: "A8_INITIATIVE_DOES_NOT_AUTHORIZE_SCOPE_EXPLOSION"
+    rule: "Primary mission first; no unrelated workstream, ownership takeover, second canonical, test weakening or ungated implementation."
+  - id: "A9_READ_TASK_MEANS_EXECUTE"
     rule: >-
-      The primary mission remains first. Executors may not start unrelated workstreams, take another agent's ownership, create a second
-      canonical runtime, weaken tests, hide negative evidence or convert an attractive idea into implementation without the required gate.
+      Every published route states that 读取任务 means read latest truth, claim a valid lease and immediately begin substantive
+      execution. A summary-only or plan-only response and a request for a second start command are invalid.
 
 mandatory_assignment_sections:
-  - section: "FUNDAMENTAL_GOAL_AND_SUCCESS_MODEL"
-    required_fields:
-      - fundamental_goal
-      - user_capability_outcome
-      - causal_mechanism
-      - observable_success
-      - failure_conditions
-      - stop_conditions
-  - section: "PRIMARY_DELIVERY_AND_NON_NEGOTIABLES"
-    required_fields:
-      - minimum_required_deliverables
-      - frozen_constraints
-      - evidence_gates
-      - required_commit_or_artifact_shape
-      - excluded_work
-  - section: "PROACTIVE_MISSION_AND_BETTER_METHOD_MANDATE"
-    required_fields:
-      - initiative_required
-      - optimize_for_fundamental_goal_not_literal_steps
-      - internal_decisions_executor_may_choose
-      - better_than_minimum_improvements_expected
-      - conditions_for_implementing_adjacent_A_or_B_work
-      - conditions_for_proposal_only_or_stop
-  - section: "MANDATORY_DISCOVERY_QUESTIONS"
-    required_questions:
-      - "What can be done more reliably, simply, safely or completely than the literal task wording?"
-      - "Which assumptions, dependencies, requirements, tests, interfaces or source claims may be wrong, stale or missing?"
-      - "What can be reused, adapted, integrated, generalized, simplified, migrated or deprecated instead of newly duplicated?"
-      - "What valuable extension or adjacent capability becomes visible from the work, and what evidence would justify it?"
-      - "What remains unresolved or cannot be solved reliably inside the current evidence, authority or exploration budget?"
-      - "Who needs to coordinate exactly what input, access, decision, test or review, and what work can continue meanwhile?"
-      - "Which discoveries should feed back into protocols, templates, tests, blueprints, skills, routes, lessons or future tasks?"
-  - section: "AUTHORIZED_ADJACENT_SCOPE_AND_AUTONOMY"
-    required_fields:
-      - autonomy_level
-      - allowed_paths_and_branches
-      - exploration_budget
-      - AMED_A_examples
-      - AMED_B_examples
-      - AMED_C_proposal_only_examples
-      - AMED_D_or_user_gate_examples
-      - maximum_unplanned_files_or_PRs
-      - rollback_requirement
-  - section: "EXPECTED_EXPANSION_AND_OPPORTUNITY_OUTPUT"
-    required_fields:
-      - opportunity_categories_to_scan
-      - reuse_and_duplication_check_required
-      - owner_trigger_gate_required_for_each_proposal
-      - expected_cost_risk_and_negative_effect_analysis
-      - maximum_proposal_budget
-  - section: "UNRESOLVED_PROBLEM_AND_ABSTENTION_DUTY"
-    required_fields:
-      - expected_unknowns_or_hard_parts
-      - attempts_and_evidence_required_before_blocking
-      - minimum_information_or_capability_request_format
-      - safe_degradation_or_abstention_rule
-      - escalation_threshold
-  - section: "COORDINATION_AND_HANDOFF_DESIGN"
-    required_fields:
-      - likely_coordination_owners
-      - incoming_dependencies
-      - outgoing_handoffs
-      - authoritative_source_of_truth
-      - exact_request_schema
-      - unaffected_work_continuation_rule
-      - acceptance_and_closure_gate
-  - section: "SYSTEM_FEEDBACK_AND_DOUBLE_LOOP_TARGETS"
-    required_fields:
-      - protocols_or_templates_to_reconsider
-      - tests_or_validators_to_strengthen
-      - blueprints_skills_or_interfaces_to_link
-      - lessons_or_deprecations_to_record
-      - follow_up_task_candidate_rules
-      - GPT_acceptance_required
-  - section: "REPORTING_AND_SECOND_PASS_REVIEW"
-    required_fields:
-      - process_difficulty_discovery_coordination_report_required
-      - checkpoint_triggers
-      - no_empty_section_rule
-      - GPT_independent_review_questions
-      - final_disposition_owner
+  - FUNDAMENTAL_GOAL_AND_SUCCESS_MODEL
+  - PRIMARY_DELIVERY_AND_NON_NEGOTIABLES
+  - PROACTIVE_MISSION_AND_BETTER_METHOD_MANDATE
+  - READ_CLAIM_EXECUTE_CONTRACT
+  - MANDATORY_DISCOVERY_QUESTIONS
+  - ANTICIPATED_DIFFICULTY_AND_UNKNOWNS
+  - EXPLORATION_AND_AUTHORITY_BUDGET
+  - COORDINATION_AND_HANDOFF_DESIGN
+  - SYSTEM_FEEDBACK_AND_DOUBLE_LOOP_TARGETS
+  - EVIDENCE_REPORTING_AND_SECOND_PASS
 
-agent_specific_assignment_emphasis:
-  CODEX:
-    emphasize:
-      - "architecture and implementation correctness"
-      - "testability, determinism and fail-closed behavior"
-      - "interface gaps, duplicate runtime and technical debt"
-      - "simpler designs and high-leverage reusable foundations"
-    default_autonomy: "HIGH_WITHIN_EXPLICIT_BRANCH_PATH_GATE_AND_EVIDENCE_FIREWALLS"
-  QCLAW:
-    emphasize:
-      - "source conflict, counterevidence and maturity inflation"
-      - "knowledge gaps, ontology mismatch and candidate skill opportunities"
-      - "person, privacy, license and authority quarantine"
-      - "adversarial validation and abstention"
-    default_autonomy: "HIGH_INSIDE_CANDIDATE_KNOWLEDGE_AND_PUBLIC_SAFE_BOUNDARIES"
-  WORKBUDDY:
-    emphasize:
-      - "local reality, deployment, paths, permissions and service behavior"
-      - "data quality, latency, performance, observability and operational failure"
-      - "cloud-design versus local-environment mismatch"
-      - "precise access and coordination requirements"
-    default_autonomy: "HIGH_INSIDE_EXPLICIT_LOCAL_PATH_SERVICE_AND_SAFETY_BOUNDARIES"
+read_claim_execute_contract:
+  required_fields:
+    - trigger_phrases
+    - canonical_action
+    - second_user_start_command_required
+    - read_only_acknowledgement_forbidden
+    - plan_only_response_when_ready_forbidden
+    - minimum_progress_before_return
+    - non_executable_route_report_shape
+  required_values:
+    canonical_action: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+    second_user_start_command_required: false
+    read_only_acknowledgement_forbidden: true
+    plan_only_response_when_ready_forbidden: true
 
-mode_authoring_rules:
-  PROJECT_PLAN_MODE:
-    use_when:
-      - "Large system, multiple stages, major unknowns, cross-module dependencies or long-running architecture work."
-    initiative_shape:
-      - "Give broad internal planning freedom with explicit phase gates, WIP budget and cross-agent firewalls."
-      - "Require discovery-driven plan updates and system-level opportunity proposals."
-  TARGET_MODE:
-    use_when:
-      - "Goal and acceptance boundary are clear but implementation path or bounded defects require autonomous problem solving."
-    initiative_shape:
-      - "Authorize internal method choice, adjacent A/B fixes and precise C proposals inside one bounded target."
-  L3_INDEPENDENT_RESEARCH_TASK:
-    use_when:
-      - "No reliable solution path, major evidence gap, new canonical interface, formal backtest, paid data or user decision is required."
-    initiative_shape:
-      - "Research and proposal only until the required authority or user gate is released."
-
-GPT_task_authoring_preflight:
-  required_checks:
-    - "Search existing tasks, PRs, blueprints, skills, interfaces and engineering lessons before assigning new construction."
-    - "Identify the most capable and correctly owned agent for the task."
-    - "State the selected mode and why."
-    - "Define the fundamental outcome and minimum non-negotiable deliverables."
-    - "Grant meaningful internal decision freedom rather than prescribing every low-level step."
-    - "Define mandatory discovery questions and system-feedback targets."
-    - "Define A/B implementable scope, C proposal-only scope and D/user gates."
-    - "Define expected hard parts, coordination owners, checkpoints and stop conditions."
-    - "Require WPDCR reporting and independent GPT second-pass review."
-  READY_gate: >-
-    A non-trivial task may not be marked READY when the proactive mission assignment, autonomy grant, discovery questions, expansion duty,
-    unresolved-problem duty, coordination design, system-feedback targets, exploration budget or firewalls are absent.
-
-executor_lease_acknowledgement:
-  required: true
-  must_confirm:
-    - "I understand the fundamental goal, not only the checklist."
-    - "I will actively seek a better bounded method and adjacent defects."
-    - "I will report discoveries, opportunities, unresolved problems and precise coordination needs."
-    - "I will implement only authorized A/B improvements and preserve C/D gates."
-    - "I will identify system-feedback candidates without self-approving canonical changes."
+mandatory_discovery_questions:
+  - "What can be done more reliably, simply, safely or completely than the literal wording?"
+  - "Which assumptions, dependencies, requirements, tests, interfaces or sources may be wrong, stale or missing?"
+  - "What can be reused, adapted, integrated, generalized, simplified, migrated or deprecated?"
+  - "What valuable extension becomes visible and what evidence would justify it?"
+  - "What remains unresolved inside current evidence, authority or budget?"
+  - "Who needs to coordinate exactly what input, access, decision, test or review?"
+  - "Which discoveries should feed back into protocols, templates, tests, blueprints, skills, routes, lessons or tasks?"
 
 assignment_quality_gate:
-  valid_only_if:
-    - "The task gives both direction and meaningful decision freedom."
-    - "The executor knows what better means and how it will be validated."
-    - "Discovery and expansion duties are concrete rather than decorative."
-    - "Unresolved problems and coordination requests have required evidence shapes."
-    - "System feedback has explicit destinations and GPT acceptance gates."
-    - "Autonomy is balanced by branch, path, WIP, permission, evidence and stop boundaries."
-  invalid_patterns:
-    - "LITERAL_CHECKLIST_WITH_NO_FUNDAMENTAL_GOAL"
-    - "VAGUE_USE_YOUR_JUDGMENT_WITH_NO_AUTHORITY_BOUNDARY"
-    - "DISCOVER_MORE_WITH_NO_QUESTIONS_BUDGET_OR_OUTPUT"
-    - "DO_MORE_WITHOUT_VALUE_TEST_OR_ROLLBACK"
-    - "PROPOSE_IDEAS_WITHOUT_OWNER_TRIGGER_COST_RISK_AND_GATE"
-    - "BLOCKED_ALLOWED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST"
-    - "SYSTEM_FEEDBACK_REQUESTED_WITHOUT_GPT_ACCEPTANCE_BOUNDARY"
-    - "AUTONOMY_THAT_SILENTLY_CHANGES_SCOPE_OWNER_CANONICAL_OR_SAFETY"
+  required_before_READY:
+    - "Mode and reason are explicit."
+    - "Fundamental goal, mechanism, success, failure and stop conditions exist."
+    - "Minimum delivery and frozen constraints are separated from executor choices."
+    - "Meaningful bounded initiative and A/B/C/D boundaries exist."
+    - "Seven discovery questions exist."
+    - "Expected difficulty/UNKNOWNs and blocker evidence exist."
+    - "Coordination design and system-feedback targets exist."
+    - "Exploration, ownership, path, WIP, privacy, license, canonical and safety firewalls exist."
+    - "WPDCR and read-claim-execute semantics exist."
+  executor_must_be_authorized_to:
+    - "Choose better internal methods when value/evidence/boundary/rollback tests pass."
+    - "Inspect relevant adjacent modules, tests, interfaces, capabilities and lessons."
+    - "Implement authorized A/B improvements without micro-instructions."
+    - "Propose C opportunities with owner, trigger, cost, risk, validation and closure."
+    - "Stop/abstain on D/user-gated or unsupported work rather than guess."
+  invalid_assignment_patterns:
+    - LITERAL_CHECKLIST_WITH_NO_FUNDAMENTAL_GOAL
+    - VAGUE_USE_YOUR_JUDGMENT_WITH_NO_AUTHORITY_BOUNDARY
+    - DISCOVER_MORE_WITH_NO_QUESTIONS_BUDGET_OR_OUTPUT
+    - DO_MORE_WITHOUT_VALUE_TEST_OR_ROLLBACK
+    - PROPOSE_IDEAS_WITHOUT_OWNER_TRIGGER_COST_RISK_AND_GATE
+    - BLOCKED_ALLOWED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST
+    - SYSTEM_FEEDBACK_WITHOUT_GPT_ACCEPTANCE_BOUNDARY
+    - AUTONOMY_THAT_CHANGES_SCOPE_OWNER_CANONICAL_PERMISSION_OR_SAFETY
+    - READ_TASK_AS_NAVIGATION_OR_SUMMARY
+    - SECOND_START_COMMAND_REQUIRED_WHEN_ROUTE_IS_READY
+  READY_gate: >-
+    A non-trivial task may not be READY when proactive mission, discovery questions, difficulty/UNKNOWNs, coordination, system
+    feedback, exploration/firewalls, WPDCR or read-claim-execute semantics are absent.
+
+executor_acceptance_duty:
+  lease_claim_must_confirm:
+    - "fundamental goal"
+    - "authorized methods and A/B/C/D boundary"
+    - "seven discovery questions"
+    - "difficulty/UNKNOWN and exact coordination duties"
+    - "system-feedback duty"
+    - "读取任务 means immediate execution after claim"
+  first_response_after_trigger:
+    READY_route: "Perform first meaningful authorized action and evidence before returning."
+    non_executable_route: "Report exact failed field, attempts, minimum missing capability, affected/unaffected scope, exact owner request and reactivation condition."
+
+anti_scope_explosion:
+  primary_task_first: true
+  more_output_is_not_better: true
+  reuse_before_new: true
+  A_B_may_implement: true
+  C_proposal_only: true
+  D_stop_and_escalate: true
+  executor_self_approval_forbidden: true
+
+agent_specific_authoring:
+  CODEX:
+    emphasize: [architecture, implementation, tests, determinism, interfaces, foundational_defects, immediate_execution]
+  QCLAW:
+    emphasize: [source_conflict, counterevidence, knowledge_gaps, candidate_skills, maturity_audit, immediate_execution]
+  WORKBUDDY:
+    emphasize: [local_reality, permissions, paths, services, data_quality, performance, deployment, pause_gate]
+
+GPT_review_duty:
+  - "Review whether task authoring gave enough direction and bounded freedom."
+  - "Review whether executor actually executed after 读取任务 or stopped after reading/planning."
+  - "Repair task/command semantics when authoring caused passive behavior."
+  - "Do not blame only the executor for a mechanically authored task."
 
 active_task_inheritance: >-
-  Existing active non-trivial tasks immediately inherit the proactive mission questions, better-method duty, unresolved-problem duty,
-  precise coordination duty and system-feedback duty. This does not by itself expand authorized paths, branches, permissions, WIP,
-  canonical authority, real-data access or completion signals, so no route reissue is required unless a genuine scope or authority change is needed.
+  Existing active tasks inherit better-method, discovery, unresolved-problem, precise-coordination, system-feedback and read-claim-
+  execute duties without expanding scope or authority. Route reissue is needed only when actual task, owner, scope or safety changes.
 
-security_and_control:
-  primary_mission_first: true
-  executor_final_self_approval: false
-  GPT_final_acceptance_gate: true
-  direct_main_write_by_executors: false
-  auto_merge: false
-  cross_agent_takeover: false
-  canonical_promotion_without_gate: false
-  secret_or_private_data_expansion_without_gate: false
-  real_trade_or_order_authority: false
+memory_and_persistence:
+  user_intent: "PERMANENT_LONG_TERM_OPERATING_RULE"
+  applies_to_future_conversations: true
+  applies_across_agent_and_epoch_changes: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T04:55:00+08:00"
+updated_at: "2026-07-31T05:35:00+08:00"
