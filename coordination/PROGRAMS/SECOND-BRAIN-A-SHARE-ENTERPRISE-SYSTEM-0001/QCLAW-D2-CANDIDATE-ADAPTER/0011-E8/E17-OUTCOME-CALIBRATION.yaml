@@ -1,0 +1,67 @@
+# E17-OUTCOME-CALIBRATION.yaml
+# Epoch 17 Gate B R2 — Outcome Calibration
+# PR #100 completion audit for GPT review
+
+calibration:
+  epoch: 17
+  gate: "B R2"
+  task_id: "QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17"
+
+outcomes:
+  e17_b01_mapping_policy_authority:
+    status: RESOLVED
+    evidence: "MAPPING-POLICY.yaml is single source; generator + validator both parse independently"
+    validation: "validate_adapters.py recomputes all decisions from same locked policy"
+
+  e17_b02_no_default_subtype:
+    status: RESOLVED
+    evidence: "5 family-only atoms → AMBIGUOUS (0 defaulted, 0 MAPPED)"
+    atoms_checked: [54, 57, 61, 67, 68]
+
+  e17_b03_ambiguity_manifest:
+    status: RESOLVED
+    evidence: "AMBIGUITY-MANIFEST.yaml with 5 entries, all keyed by deterministic_id, full rationale"
+    no_fallback: "No sorted-family convenience fallback"
+
+  e17_b04_correct_subtype_family:
+    status: RESOLVED
+    evidence: "SUBTYPE_TO_FAMILY matches canonical D2 SUBTYPE_FAMILY from d6f9e2e"
+    fix_highlights:
+      - "long_horizon_fund → institutional_quant (was active_capital in E16)"
+      - "policy_aggregate → policy_industrial_foreign_aggregate (was active_capital)"
+      - "industrial_aggregate → policy_industrial_foreign_aggregate (was active_capital)"
+      - "foreign_aggregate → policy_industrial_foreign_aggregate (was active_capital)"
+
+  e17_b05_independent_strict_validator:
+    status: RESOLVED
+    evidence: "validate_adapters.py: strict YAML/JSONL, recomputes all labels, checks coverage CONTENTS"
+    result: "0 FAILURES"
+
+  e17_b06_violations_are_failures:
+    status: RESOLVED
+    evidence: "All violations trigger exit(1) via fail() — no warnings"
+    checks: "downgrade_note, source_field_hash, family-only subtype, authority upgrades, tampered hashes"
+
+  e17_b07_canonical_hash_comparison:
+    status: RESOLVED
+    evidence: "3 PYTHONHASHSEED generations → ALL 12 CANONICAL ARTIFACTS IDENTICAL"
+    adapters_sha256: "ed3e70ea4d859be8a14bb3fa6d935afe80c58efb5a42ad016b2f04545fe7b5b2"
+
+  e17_b08_mechanically_recomputed_evidence:
+    status: RESOLVED
+    evidence: "Every SHA256 in D05-COMMAND-EVIDENCE.yaml computed from actual file content"
+    no_patterned: "No a1b2c3..., sequential, all-zero, planned/TBD, guessed SHAs"
+
+  e17_b09_commit_shape:
+    status: RESOLVED
+    evidence: "1 corrective commit (code + policy + output) + 1 receipt-only commit from ac6b846"
+    no_amend: "History not amended"
+
+summary:
+  defects_resolved: 9
+  defects_outstanding: 0
+  production_tests: "39/39 passed"
+  validator: "0 failures"
+  three_gen_reproducibility: "ALL IDENTICAL"
+  completion_signal: "QCLAW_E17_PR100_POLICY_SINGLE_SOURCE_UNCERTAINTY_AND_TRUTHFUL_EVIDENCE_READY_FOR_GPT_REVIEW"
+  status_after: "STOP_AND_REQUEST_GPT_REVIEW"

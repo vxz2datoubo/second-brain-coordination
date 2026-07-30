@@ -1,0 +1,38 @@
+# QUARANTINE-MANIFEST.yaml
+# Epoch 17, Schema 24.0
+# Task: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+#
+# Lists deterministic_ids that must be PERSON_IDENTITY_QUARANTINED.
+# These are atoms about named individuals (Liu Xin) that carry family/subtype fields
+# but should NOT become generic participant adapters — they represent a specific
+# named person and carry person-level evidence, not population-level mapping.
+#
+# Rule: Whenever an atom's deterministic_id appears here, the adapter disposition
+# must be PERSON_IDENTITY_QUARANTINED regardless of family/subtype presence.
+
+manifest:
+  version: "17.0"
+  task_id: QCLAW-PR100-POLICY-SINGLE-SOURCE-UNCERTAINTY-PRESERVATION-AND-TRUTHFUL-EVIDENCE-CLOSURE-0019-E17
+
+quarantine_entries:
+  - deterministic_id: "a636ae80ba481653c0336e9adc2d3f9c7ca37f061a2b42ba70949d651d1a2858"
+    atom_index: 1
+    rationale: >
+      Atom about named individual Liu Xin (public market participant identity).
+      Subject is a specific person, not a population-level participant subtype.
+      Quarantined to prevent treating personal evidence as generic adapter.
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 2"
+    original_family: "ActiveSpeculativeCapitalFamily"
+    original_subtype: "SwingSpeculator"
+
+  - deterministic_id: "5f250f0df35dbb3cd1af0199504b0ce82b7cf16633e409c91d3879aefba5b75e"
+    atom_index: 32
+    rationale: >
+      Atom about named individual Liu Xin structural observations.
+      CLAIM about specific person's statements, not population-level behavior.
+      Quarantined to prevent personal evidence contamination.
+    source_refs:
+      - "A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md Section 12"
+    original_family: "ActiveSpeculativeCapitalFamily"
+    original_subtype: "SwingSpeculator"

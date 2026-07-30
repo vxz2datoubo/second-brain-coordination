@@ -1,0 +1,116 @@
+# MAPPING-POLICY.yaml — Single Source of Mapping Truth
+# Epoch 19, Schema 26.0
+# Task: QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE
+# This file is THE authority for Q0→D2 family/subtype mapping.
+# Generator and validator MUST both independently parse and compare this same locked policy.
+# NO hard-coded Python mapping tables — all mapping decisions flow from this file.
+
+policy:
+  name: MAPPING-POLICY
+  version: "19.0"
+  schema: "26.0"
+  task_id: QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE
+  epoch: 19
+
+source_lock:
+  d2_interface_sha256: "a95a20a277455004a8f9d9c2c5cff7391c3e6692a900704f0f76c346ab055fbd"
+  d2_interface_commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+  q0_atoms_sha256: "47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d"
+  q0_relations_sha256: "39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a"
+  q0_questions_sha256: "2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927"
+  q0_family_map_sha256: "f526d66f4c6d2de1b904607e07fa92d7691a00a4ebaa5d1844bac1378d645d25"
+
+# === FAMILY-LEVEL MAPPING (Q0 family → D2 family) ===
+# LargeCapitalFamily maps to UNSPECIFIED because its subtypes resolve to different D2 families
+# (public/private funds → institutional_quant; stabilization/industrial/foreign → policy_industrial_foreign_aggregate)
+Q0_TO_D2_FAMILY:
+  RetailPopulationFamily: retail
+  QuantStrategyFamily: institutional_quant
+  ActiveSpeculativeCapitalFamily: active_capital
+  LargeCapitalFamily: UNSPECIFIED
+
+# === SUBTYPE-LEVEL MAPPING (Q0 subtype → D2 subtype) ===
+# Every entry is SOURCE-DERIVED from Q0 PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml v1.0
+# Mapped against D2 canonical SUBTYPE_FAMILY contract (d2_game_core.py @ d6f9e2e)
+#
+# CORRECT D2 SUBTYPE_FAMILY (the TRUTH):
+#   RETAIL_LIQUIDITY_TAKER → RETAIL
+#   RETAIL_ANCHORED_HOLDER → RETAIL
+#   SYSTEMATIC_REBALANCER → INSTITUTIONAL_QUANT
+#   LONG_HORIZON_FUND → INSTITUTIONAL_QUANT       ← E16 had this WRONG (active_capital)
+#   EVENT_DRIVEN_ACTIVE → ACTIVE_CAPITAL
+#   SHORT_HORIZON_MOMENTUM → ACTIVE_CAPITAL
+#   POLICY_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE   ← E16 had this WRONG
+#   INDUSTRIAL_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+#   FOREIGN_AGGREGATE → POLICY_INDUSTRIAL_FOREIGN_AGGREGATE
+Q0_TO_D2_SUBTYPE:
+  # --- RetailPopulationFamily subtypes → RETAIL variants ---
+  DayTraderRetail: retail_liquidity_taker
+  PositionalRetail: retail_anchored_holder
+  IPOReversalRetail: retail_liquidity_taker
+  SmallCapHunterRetail: retail_liquidity_taker
+  IndexETFInvestor: retail_anchored_holder
+  SocialMediaFollowerRetail: retail_liquidity_taker
+  # --- LargeCapitalFamily subtypes → institutional_quant / policy_industrial_foreign_aggregate ---
+  PublicFundSubtype: long_horizon_fund
+  PrivateFundSubtype: long_horizon_fund
+  StabilizationCapitalSubtype: policy_aggregate
+  IndustrialCapitalSubtype: industrial_aggregate
+  ForeignCapitalSubtype: foreign_aggregate
+  # --- QuantStrategyFamily subtypes → INSTITUTIONAL_QUANT variants ---
+  StatisticalArbitrageQuant: systematic_rebalancer
+  HighFrequencyQuant: systematic_rebalancer
+  FactorModelQuant: systematic_rebalancer
+  # --- ActiveSpeculativeCapitalFamily subtypes → ACTIVE_CAPITAL variants ---
+  SwingSpeculator: short_horizon_momentum
+  ThemeCoordinator: event_driven_active
+
+# === SUBTYPE-LEVEL FAMILY RESOLUTION ===
+# After subtype mapping, resolve D2 family using canonical SUBTYPE_FAMILY contract
+# Required because LargeCapitalFamily subtypes span multiple D2 families
+SUBTYPE_TO_FAMILY:
+  retail_liquidity_taker: retail
+  retail_anchored_holder: retail
+  systematic_rebalancer: institutional_quant
+  long_horizon_fund: institutional_quant
+  event_driven_active: active_capital
+  short_horizon_momentum: active_capital
+  policy_aggregate: policy_industrial_foreign_aggregate
+  industrial_aggregate: policy_industrial_foreign_aggregate
+  foreign_aggregate: policy_industrial_foreign_aggregate
+
+# === CLASSIFICATION RULES (in priority order) ===
+classification_rules:
+  - name: QUARANTINE_CHECK
+    priority: 1
+    description: >
+      If deterministic_id is in FULL-ID-QUARANTINE-MANIFEST.yaml → PERSON_IDENTITY_QUARANTINED.
+      This handles named-person atoms (Liu Xin) that should not be treated as generic participant adapters.
+      E19-B01/B02: Quarantine now covers ALL 18 Liu Xin atoms (incl. 39, 69, 72), derived from PERSON-EVIDENCE-AUDIT.yaml.
+  - name: FULL_MAPPING
+    priority: 2
+    description: >
+      If atom has BOTH recognized subject_family AND subject_subtype:
+      map subtype via Q0_TO_D2_SUBTYPE, then resolve family via SUBTYPE_TO_FAMILY → MAPPED
+  - name: AMBIGUITY_CHECK
+    priority: 3
+    description: >
+      If atom has recognized subject_family but NO subject_subtype:
+      check AMBIGUITY-MANIFEST.yaml. If deterministic_id is listed → AMBIGUOUS with hypotheses.
+      Otherwise → UNMAPPED (no default subtype from family alone).
+  - name: CONTEXT_ONLY
+    priority: 4
+    description: >
+      If atom has NO subject_family AND perspective_class is MARKET_STRUCTURE
+      AND no participant evidence → CONTEXT_ONLY.
+  - name: UNMAPPED
+    priority: 5
+    description: All other atoms → UNMAPPED
+
+# === NO-DEFAULT POLICY ===
+no_default_policy:
+  rule: "Family-only evidence NEVER produces a specific default subtype"
+  rationale: >
+    E16 defect: family-only atoms were assigned default subtypes (e.g., RetailPopulationFamily → DayTraderRetail).
+    This is WRONG. Without explicit subtype evidence, classification is AMBIGUOUS (if in manifest) or UNMAPPED.
+  test_enforcement: "Test #9: family-only source → no default subtype (UNMAPPED, not mapped)"
