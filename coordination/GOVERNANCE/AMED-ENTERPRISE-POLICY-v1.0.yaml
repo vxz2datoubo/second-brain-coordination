@@ -1,10 +1,12 @@
-schema_version: "1.2"
+schema_version: "1.3"
 policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
 short_name: "AMED"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_agent_tasks"
 applies_to: [GPT, CODEX, WORKBUDDY, QCLAW, FUTURE_AGENT]
 blueprint: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+proactive_mission_authoring_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
 work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 work_process_reporting_template: "coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml"
 local_secret_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
@@ -14,9 +16,15 @@ boundary: "research_only / NO_TRADE unless separately authorized"
 mandatory_task_fields:
   - mission_intent
   - fundamental_goal
+  - primary_delivery_and_non_negotiables
   - system_position
   - systems_of_record
   - dependencies
+  - proactive_mission_assignment
+  - mandatory_discovery_questions
+  - anticipated_difficulty_and_unknowns
+  - coordination_and_handoff_design
+  - system_feedback_and_double_loop_targets
   - hard_boundaries
   - success_criteria
   - stop_conditions
@@ -24,15 +32,59 @@ mandatory_task_fields:
   - research_trigger_level
   - exploration_budget
   - improvement_authority
+  - agent_specific_initiative
   - evidence_requirements
   - work_process_reporting
+  - executor_lease_acknowledgement
   - second_pass_audit_required
 
 execution_chains:
   primary_delivery: true
+  proactive_mission_authoring: true
   active_discovery: true
+  better_method_selection: true
+  bounded_adjacent_improvement: true
+  unresolved_problem_and_abstention: true
+  precise_coordination: true
   system_evolution_proposal: true
   work_process_and_coordination_reporting: true
+
+task_assignment_authoring:
+  task_author: "GPT_OR_AUTHORIZED_ORCHESTRATOR"
+  optimize_for: "FUNDAMENTAL_GOAL_AND_SYSTEM_VALUE_NOT_LITERAL_CHECKLIST_ONLY"
+  required_before_READY:
+    - "State the selected agent mode and why."
+    - "Define the fundamental goal, causal mechanism, observable success, failures and stops."
+    - "Separate minimum non-negotiable delivery from executor-controlled implementation choices."
+    - "Grant meaningful internal decision freedom and bounded A/B improvement authority."
+    - "Require the seven mandatory discovery questions from the proactive mission authoring protocol."
+    - "Define expected hard parts, UNKNOWNs, evidence required before blocking and safe abstention."
+    - "Define likely coordination owners, exact request shape, unaffected work and closure gates."
+    - "Define system-feedback destinations: protocols, templates, tests, blueprints, skills, routes, lessons, deprecations or follow-up tasks."
+    - "Define exploration, branch, path, PR, WIP, privacy, license, canonical and safety firewalls."
+    - "Require WPDCR reporting and independent GPT second-pass review."
+  executor_must_be_authorized_to:
+    - "Choose a better internal method when it improves the fundamental goal and passes evidence, value, boundary and rollback tests."
+    - "Inspect relevant adjacent modules, tests, interfaces, existing capabilities and engineering lessons."
+    - "Implement authorized AMED A/B improvements without waiting for low-level instructions."
+    - "Report and propose C opportunities with owner, trigger, cost, risk, validation and close conditions."
+    - "Stop or abstain on D/user-gated or unsupported work rather than guess."
+  invalid_assignment_patterns:
+    - LITERAL_CHECKLIST_WITH_NO_FUNDAMENTAL_GOAL
+    - VAGUE_USE_YOUR_JUDGMENT_WITH_NO_AUTHORITY_BOUNDARY
+    - DISCOVER_MORE_WITH_NO_QUESTIONS_BUDGET_OR_OUTPUT
+    - DO_MORE_WITHOUT_VALUE_TEST_OR_ROLLBACK
+    - PROPOSE_IDEAS_WITHOUT_OWNER_TRIGGER_COST_RISK_AND_GATE
+    - BLOCKED_ALLOWED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST
+    - SYSTEM_FEEDBACK_WITHOUT_GPT_ACCEPTANCE_BOUNDARY
+    - AUTONOMY_THAT_CHANGES_SCOPE_OWNER_CANONICAL_PERMISSION_OR_SAFETY
+  READY_gate: >-
+    A non-trivial task may not be marked READY when its proactive mission assignment, discovery questions, better-method mandate,
+    anticipated difficulty and UNKNOWNs, coordination design, system-feedback targets, exploration budget or authority firewalls are absent.
+  active_task_inheritance: >-
+    Existing active tasks inherit the better-method, discovery, unresolved-problem, precise-coordination and system-feedback duties without
+    changing task_id, route_epoch, PR, branch, allowed paths, permissions, scope or completion signal. A route reissue is required only when
+    the actual scope, authority, ownership or safety boundary changes.
 
 research_trigger_levels:
   L1_REUSE_AND_QUICK_CHECK:
@@ -218,6 +270,7 @@ proposal_dispositions:
   - UNKNOWN
 
 gpt_second_pass_gates:
+  - TASK_ASSIGNMENT_INITIATIVE_QUALITY_GATE
   - TASK_COMPLETENESS_GATE
   - FACT_EVIDENCE_GATE
   - RESEARCH_QUALITY_GATE
@@ -245,6 +298,7 @@ anti_scope_explosion:
   executor_cannot_self_approve_major_expansion: true
   every_proposal_requires_owner_gate_and_close_condition: true
   reporting_difficulty_does_not_authorize_scope_expansion: true
+  better_than_minimum_does_not_mean_more_features: true
 
 local_runtime_credentials:
   policy: "LOCAL_CREDENTIAL_DIRECT_USE_AND_NON_EXPORT"
@@ -273,4 +327,4 @@ security_and_trade:
   bypass_license_paywall_captcha_denied: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T04:35:00+08:00"
+updated_at: "2026-07-31T05:01:00+08:00"
