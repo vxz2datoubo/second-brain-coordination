@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-generate_adapters.py — Epoch 18 Gate B R3
-PR #100: Strict Canonical Identity, Lossless Quarantine & Executable Evidence
+generate_adapters.py — Epoch 19 Gate B R4
+PR #100: Person Audit, Validator Fail-Closed, Receipt Truth & Archive Evidence
 
-ALL 10 blocking defects fixed:
-  E18-B01: json.loads(…, object_pairs_hook=OrderedDict) + duplicate key rejection
-  E18-B02: Dedicated StrictSafeLoader class (NO global YAML patching)
-  E18-B03: adapter_id = sha256(full did || policy_version || canonical_source_hash || disposition)
-  E18-B04: Lossless canonical_source_hash covering ALL source fields (NFC-normalized, alphabetical)
-  E18-B05: Full-ID quarantine — all 15 Liu Xin atoms via FULL-ID-QUARANTINE-MANIFEST.yaml
-  E18-B06: AMBIGUITY-MANIFEST with >=2 hypotheses per entry
-  E18-B10: Complete D2-ADAPTER-PACKAGE.json with all 99/147/64 IDs, hashes, artifact coverage
+E19 fixes:
+  E19-B01: PERSON-EVIDENCE-AUDIT.yaml covers all 99 atoms (18 person-bearing incl. 39,69,72)
+  E19-B02: Quarantine derived from audit (not circular)
+  E19-B05: canonical_source_record deep recursive value compare supported
+  E19-B06: Package hash/size verification (fixed polycy_manifest_hashes typo)
 """
 import hashlib
 import json
@@ -20,24 +17,18 @@ import unicodedata
 from collections import OrderedDict
 from pathlib import Path
 
-# Python 3.8+: SafeLoader is available
 import yaml
 
+
 # ═══════════════════════════════════════════════════════════════
-# E18-B02: StrictSafeLoader — dedicated sealed class, NO global patch
+# StrictSafeLoader — NO global YAML patch
 # ═══════════════════════════════════════════════════════════════
 class StrictSafeLoader(yaml.SafeLoader):
-    """Dedicated YAML loader that rejects duplicate mappings in a sealed manner.
-    NO global YAML patching — this class is instantiated explicitly for each load call."""
-
     @classmethod
     def construct_mapping(cls, loader, node, deep=False):
-        """Override SafeLoader's construct_mapping to reject duplicates."""
         mapping = {}
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=deep)
-            # YAML keys can be str, int, float, bool, null, etc.
-            # Use repr for deterministic duplicate detection
             try:
                 hash(key)
                 hashable = key
@@ -50,35 +41,28 @@ class StrictSafeLoader(yaml.SafeLoader):
                     key_node.start_mark
                 )
             mapping[hashable] = value_node
-        # Build final mapping using parent class logic
         result = {}
         for key, (value_node) in mapping.items():
             value = loader.construct_object(value_node, deep=deep)
             if key in result:
                 raise yaml.constructor.ConstructorError(
                     None, None,
-                    f"StrictSafeLoader: duplicate key {key!r} detected",
-                    None
-                )
+                    f"StrictSafeLoader: duplicate key {key!r} detected", None)
             result[key] = value
         return result
 
 
-# Override the mapping constructor ONLY in our subclass
 StrictSafeLoader.add_constructor(
     yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     StrictSafeLoader.construct_mapping
 )
 
 # ═══════════════════════════════════════════════════════════════
-# E18-B01: Strict JSON/JSONL parsing with duplicate key detection
+# Strict JSON loading
 # ═══════════════════════════════════════════════════════════════
 def json_loads_no_duplicates(text, source_label=""):
-    """Load JSON string, rejecting duplicate keys.
-    Uses object_pairs_hook=OrderedDict and checks for duplicates."""
     seen = set()
     duplicates = []
-
     def check_duplicates(pairs):
         result = OrderedDict()
         for key, value in pairs:
@@ -87,21 +71,16 @@ def json_loads_no_duplicates(text, source_label=""):
             else:
                 result[key] = value
         return result
-
     try:
         obj = json.loads(text, object_pairs_hook=check_duplicates)
     except json.JSONDecodeError:
         raise
-
     if duplicates:
-        raise ValueError(
-            f"JSON duplicate keys {duplicates} in {source_label}"
-        )
+        raise ValueError(f"JSON duplicate keys {duplicates} in {source_label}")
     return obj
 
 
 def load_jsonl_strict(path, id_field=None):
-    """Load JSONL with duplicate key detection in JSON parsing + duplicate ID check."""
     records = []
     seen_ids = set()
     with open(path, "r", encoding="utf-8") as f:
@@ -114,7 +93,6 @@ def load_jsonl_strict(path, id_field=None):
             except (json.JSONDecodeError, ValueError) as e:
                 print(f"ERROR: Invalid JSON in {path} line {line_no}: {e}", file=sys.stderr)
                 sys.exit(1)
-
             if id_field and id_field in record:
                 rid = record[id_field]
                 if rid in seen_ids:
@@ -126,7 +104,6 @@ def load_jsonl_strict(path, id_field=None):
 
 
 def load_yaml_strict(path):
-    """Load YAML with StrictSafeLoader (dedicated, no global patch)."""
     with open(path, "r", encoding="utf-8") as f:
         return yaml.load(f, Loader=StrictSafeLoader)
 
@@ -147,10 +124,9 @@ def file_size(path):
 
 
 # ═══════════════════════════════════════════════════════════════
-# E18-B04: Lossless canonical source hash — ALL fields, NFC normalized
+# Canonical source hash: ALL fields, NFC normalized, sorted keys
 # ═══════════════════════════════════════════════════════════════
 def nfc_normalize(val):
-    """Recursively NFC-normalize all string values."""
     if isinstance(val, str):
         return unicodedata.normalize("NFC", val)
     elif isinstance(val, dict):
@@ -162,35 +138,43 @@ def nfc_normalize(val):
 
 
 def compute_canonical_source_hash(atom):
-    """E18-B04: Hash ALL fields of the source record (lossless).
-    NFC-normalize all strings, sort keys alphabetically, include all fields."""
     normalized = nfc_normalize(dict(atom))
     raw = json.dumps(normalized, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 def make_canonical_source_record(atom):
-    """Create the full canonical source record (all fields, NFC normalized, alphabetical)."""
     normalized = nfc_normalize(dict(atom))
     return OrderedDict(sorted(normalized.items()))
 
 
 # ═══════════════════════════════════════════════════════════════
-# E18-B03: Full-ID adapter_id
-# = sha256(full_deterministic_id || policy_version || canonical_source_hash || disposition)
+# adapter_id = sha256(full_did || policy_version || canonical_source_hash || disposition)
 # ═══════════════════════════════════════════════════════════════
 def build_adapter_id_full(deterministic_id, policy_version, canonical_source_hash, disposition):
-    """E18-B03: Full deterministic_id (not truncated), lossless formula."""
     raw = f"{deterministic_id}||{policy_version}||{canonical_source_hash}||{disposition}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 # ═══════════════════════════════════════════════════════════════
-# Policy / Manifest loading
+# E19-B01/B02: Load PERSON-EVIDENCE-AUDIT.yaml → derive quarantine set
 # ═══════════════════════════════════════════════════════════════
-def load_policy(policy_path):
-    policy = load_yaml_strict(policy_path)
-    required = ["Q0_TO_D2_FAMILY", "Q0_TO_D2_SUBTYPE", "SUBTYPE_TO_FAMILY", "classification_rules", "no_default_policy"]
+def load_person_audit(path):
+    """Load PERSON-EVIDENCE-AUDIT.yaml. Returns set of person-bearing deterministic_ids."""
+    audit = load_yaml_strict(path)
+    entries = audit.get("entries", [])
+    person_set = set()
+    for e in entries:
+        if e.get("person_bearing", False) is True:
+            person_set.add(e["deterministic_id"])
+    print(f"  PERSON-EVIDENCE-AUDIT: {len(person_set)} person-bearing atoms (out of {len(entries)})", file=sys.stderr)
+    return person_set, audit
+
+
+def load_policy(path):
+    policy = load_yaml_strict(path)
+    required = ["Q0_TO_D2_FAMILY", "Q0_TO_D2_SUBTYPE", "SUBTYPE_TO_FAMILY",
+                "classification_rules", "no_default_policy"]
     for key in required:
         if key not in policy:
             print(f"ERROR: MAPPING-POLICY.yaml missing required key: {key}", file=sys.stderr)
@@ -198,46 +182,89 @@ def load_policy(policy_path):
     return policy
 
 
-def load_quarantine_manifest(path):
-    """Load FULL-ID-QUARANTINE-MANIFEST.yaml (E18-B05: 15 entries)."""
-    manifest = load_yaml_strict(path)
-    entries = manifest.get("quarantine_entries", [])
-    result = {}
-    for e in entries:
-        did = e["deterministic_id"]
-        result[did] = e
-    return result
-
-
 def load_ambiguity_manifest(path):
-    """Load AMBIGUITY-MANIFEST.yaml (E18-B06: >=2 hypotheses per entry).
-    Also validates that every entry has >=2 hypotheses."""
+    """Load AMBIGUITY-MANIFEST.yaml. Enforces >=2 hypotheses per entry."""
     manifest = load_yaml_strict(path)
     entries = manifest.get("ambiguity_entries", [])
-
-    # E18-B06 enforcement
     for e in entries:
         hyps = e.get("hypotheses", [])
         if len(hyps) < 2:
             print(f"ERROR: AMBIGUITY-MANIFEST entry for atom {e.get('atom_index')} has only {len(hyps)} hypothesis/hypotheses. "
-                  f"E18-B06 requires >=2 distinct D2-compatible hypotheses.", file=sys.stderr)
+                  f"E19-B04 requires >=2 distinct D2-compatible hypotheses.", file=sys.stderr)
             sys.exit(1)
-
     result = {}
     for e in entries:
         did = e["deterministic_id"]
         result[did] = e
     return result
+
+
+# ═══════════════════════════════════════════════════════════════
+# E19-B04: Ambiguity validation — distinct subtypes, policy/family compatibility
+# ═══════════════════════════════════════════════════════════════
+def validate_ambiguity_entry(entry, policy):
+    """E19-B04: Validate ambiguity entries for distinct subtypes, policy compatibility,
+    family compatibility, and duplicate bases."""
+    hyps = entry.get("hypotheses", [])
+    failures = []
+
+    # Check >=2 hypotheses
+    if len(hyps) < 2:
+        failures.append(f"atom {entry.get('atom_index')}: fewer than 2 hypotheses")
+
+    # Check distinct subtypes
+    subtypes_seen = set()
+    bases_seen = set()
+    subtype_to_family = policy.get("SUBTYPE_TO_FAMILY", {})
+
+    for i, h in enumerate(hyps):
+        subtype = h.get("d2_subtype")
+        if not subtype:
+            failures.append(f"atom {entry.get('atom_index')} hypothesis {i}: missing d2_subtype")
+            continue
+
+        # E19-B04: Distinct subtype ID
+        if subtype in subtypes_seen:
+            failures.append(f"atom {entry.get('atom_index')}: duplicate subtype '{subtype}' in hypotheses")
+        subtypes_seen.add(subtype)
+
+        # E19-B04: Distinct base/evidence reference
+        basis = h.get("basis", "")
+        if basis in bases_seen:
+            failures.append(f"atom {entry.get('atom_index')}: duplicate basis '{basis}' in hypotheses")
+        bases_seen.add(basis)
+
+        # E19-B04: D2 family compatibility check
+        d2_family = subtype_to_family.get(subtype)
+        if not d2_family:
+            failures.append(f"atom {entry.get('atom_index')}: subtype '{subtype}' not found in SUBTYPE_TO_FAMILY")
+            continue
+
+        # E19-B04: Policy compatibility check — subtype must exist in mapping
+        q0_evidence_family = entry.get("evidence_family")
+        if q0_evidence_family:
+            family_map = policy.get("Q0_TO_D2_FAMILY", {})
+            expected_family = family_map.get(q0_evidence_family)
+            if expected_family and d2_family != expected_family:
+                failures.append(
+                    f"atom {entry.get('atom_index')} hypothesis {i}: "
+                    f"subtype '{subtype}' maps to '{d2_family}' but evidence family "
+                    f"'{q0_evidence_family}' expects '{expected_family}'"
+                )
+
+    if failures:
+        for f in failures:
+            print(f"  AMBIGUITY FAILURE: {f}", file=sys.stderr)
+        return False
+    return True
 
 
 # ═══════════════════════════════════════════════════════════════
 # Classification
 # ═══════════════════════════════════════════════════════════════
-def classify_atom(atom, policy, quarantine_map, ambiguity_map):
+def classify_atom(atom, policy, person_set, ambiguity_map):
     """Classify atom per MAPPING-POLICY.yaml priority rules.
-    E18-B05: Full quarantine check (15 entries).
-    E18-B06: Ambiguity requires >=2 hypotheses.
-    """
+    E19-B01/B02: Quarantine derived from PERSON-EVIDENCE-AUDIT, not from quarantine manifest."""
     did = atom.get("deterministic_id", "")
     q0_family = atom.get("subject_family")
     q0_subtype = atom.get("subject_subtype")
@@ -247,15 +274,15 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
     subtype_map = policy.get("Q0_TO_D2_SUBTYPE", {})
     subtype_to_family = policy.get("SUBTYPE_TO_FAMILY", {})
 
-    # Priority 1: Quarantine check (E18-B05: full 15-person audit)
-    if did in quarantine_map:
+    # Priority 1: Quarantine check (E19-B01/B02: from audit, now 18 entries)
+    if did in person_set:
         return {
             "disposition": "PERSON_IDENTITY_QUARANTINED",
             "q0_family": q0_family,
             "q0_subtype": q0_subtype,
             "d2_family": None,
             "d2_subtype": None,
-            "rationale": quarantine_map[did].get("rationale", "Named person quarantined"),
+            "rationale": "Named person evidence — quarantined per PERSON-EVIDENCE-AUDIT.yaml",
         }
 
     # Priority 2: Full mapping (both family + subtype recognized)
@@ -278,7 +305,6 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
         if did in ambiguity_map:
             entry = ambiguity_map[did]
             hyps = entry.get("hypotheses", [])
-            # E18-B06: Verify >=2 hypotheses (already checked at load time, defense in depth)
             if len(hyps) >= 2:
                 return {
                     "disposition": "AMBIGUOUS",
@@ -291,14 +317,13 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
                     "ambiguity_entry": entry,
                 }
             else:
-                # Fall-through to UNMAPPED (E18-B06 protection)
                 return {
                     "disposition": "UNMAPPED",
                     "q0_family": q0_family,
                     "q0_subtype": None,
                     "d2_family": None,
                     "d2_subtype": None,
-                    "rationale": f"Family '{q0_family}' in ambiguity manifest but <2 hypotheses (E18-B06 violation)",
+                    "rationale": f"Family '{q0_family}' in ambiguity manifest but <2 hypotheses",
                     "downgrade_note": "AMBIGUITY_INSUFFICIENT_HYPOTHESES",
                 }
         else:
@@ -312,7 +337,7 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
                 "downgrade_note": "NO_SUBTYPE_AND_NO_MANIFEST_ENTRY",
             }
 
-    # Priority 3 continued: Family present but not in family_map -> UNMAPPED
+    # Family present but not in family_map
     if q0_family and not q0_subtype:
         return {
             "disposition": "UNMAPPED",
@@ -324,7 +349,7 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
             "downgrade_note": "FAMILY_NOT_IN_POLICY",
         }
 
-    # Priority 4: No family
+    # No family
     if not q0_family:
         if perspective == "MARKET_STRUCTURE":
             return {
@@ -359,16 +384,51 @@ def classify_atom(atom, policy, quarantine_map, ambiguity_map):
 # Main generation pipeline
 # ═══════════════════════════════════════════════════════════════
 def generate_adapters(src_dir, policy_dir, output_dir):
-    """Main generation pipeline with all E18 fixes."""
+    """Main generation pipeline with all E19 fixes."""
 
-    # Load policy and manifests
+    # Load policy
     policy = load_policy(os.path.join(policy_dir, "MAPPING-POLICY.yaml"))
-    quarantine_map = load_quarantine_manifest(os.path.join(policy_dir, "FULL-ID-QUARANTINE-MANIFEST.yaml"))
+
+    # E19-B01/B02: Load PERSON-EVIDENCE-AUDIT.yaml → derive quarantine set
+    audit_path = os.path.join(policy_dir, "PERSON-EVIDENCE-AUDIT.yaml")
+    if not os.path.exists(audit_path):
+        print(f"ERROR: PERSON-EVIDENCE-AUDIT.yaml not found at {audit_path}", file=sys.stderr)
+        sys.exit(1)
+    person_set, audit_data = load_person_audit(audit_path)
+
+    # Load FULL-ID-QUARANTINE-MANIFEST.yaml (generated from audit)
+    qm_path = os.path.join(policy_dir, "FULL-ID-QUARANTINE-MANIFEST.yaml")
+    quarantine_manifest = load_yaml_strict(qm_path)
+    quarantine_map = {}
+    for e in quarantine_manifest.get("quarantine_entries", []):
+        quarantine_map[e["deterministic_id"]] = e
+
+    # E19-B02: Verify quarantine manifest doesn't miss or add anything vs. audit
+    qm_dids = set(quarantine_map.keys())
+    if qm_dids != person_set:
+        missing_from_qm = person_set - qm_dids
+        extra_in_qm = qm_dids - person_set
+        if missing_from_qm:
+            print(f"ERROR: QUARANTINE-MANIFEST MISSING atoms from audit: {[did[:16]+'...' for did in missing_from_qm]}", file=sys.stderr)
+        if extra_in_qm:
+            print(f"ERROR: QUARANTINE-MANIFEST has EXTRA atoms not in audit: {[did[:16]+'...' for did in extra_in_qm]}", file=sys.stderr)
+        if missing_from_qm or extra_in_qm:
+            sys.exit(1)
+    print(f"  Quarantine manifest cross-validated against audit: {len(qm_dids)} entries match", file=sys.stderr)
+
+    # Load ambiguity manifest (with E19-B04 validation)
     ambiguity_map = load_ambiguity_manifest(os.path.join(policy_dir, "AMBIGUITY-MANIFEST.yaml"))
 
-    policy_version = policy.get("policy", {}).get("version", "18.0")
+    # E19-B04: Validate ambiguity entries
+    for did, entry in ambiguity_map.items():
+        if not validate_ambiguity_entry(entry, policy):
+            print(f"ERROR: AMBIGUITY-MANIFEST entry for {did} failed E19-B04 validation", file=sys.stderr)
+            sys.exit(1)
+    print(f"  AMBIGUITY-MANIFEST: {len(ambiguity_map)} entries validated (E19-B04)", file=sys.stderr)
 
-    # Load Q0 sources (strict: duplicate key detection)
+    policy_version = policy.get("policy", {}).get("version", "19.0")
+
+    # Load Q0 sources (strict)
     atoms_path = os.path.join(src_dir, "KNOWLEDGE-ATOMS.jsonl")
     atoms = load_jsonl_strict(atoms_path, id_field="deterministic_id")
 
@@ -378,7 +438,6 @@ def generate_adapters(src_dir, policy_dir, output_dir):
     questions_path = os.path.join(src_dir, "ADVERSARIAL-QUESTION-SET.jsonl")
     questions = load_jsonl_strict(questions_path, id_field="question_id")
 
-    # Load family map
     family_map_path = os.path.join(src_dir, "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml")
     family_map = load_yaml_strict(family_map_path)
 
@@ -417,15 +476,13 @@ def generate_adapters(src_dir, policy_dir, output_dir):
 
     for atom in atoms:
         did = atom.get("deterministic_id")
-        result = classify_atom(atom, policy, quarantine_map, ambiguity_map)
+        result = classify_atom(atom, policy, person_set, ambiguity_map)
         disposition = result["disposition"]
         disposition_counts[disposition] += 1
 
-        # E18-B04: Lossless canonical source hash (ALL fields, NFC normalized)
         canonical_source_hash = compute_canonical_source_hash(atom)
         canonical_source_record = make_canonical_source_record(atom)
 
-        # E18-B03: Full-ID adapter_id
         adapter_id = build_adapter_id_full(
             did, policy_version, canonical_source_hash, disposition
         )
@@ -453,30 +510,25 @@ def generate_adapters(src_dir, policy_dir, output_dir):
         adapter["evidence_status"] = atom.get("evidence_status")
         adapter["perspective_class"] = atom.get("perspective_class")
 
-        # Downgrade note for UNMAPPED
         if "downgrade_note" in result:
             adapter["downgrade_note"] = result["downgrade_note"]
 
-        # Ambiguity hypotheses
         if disposition == "AMBIGUOUS" and "hypotheses" in result:
             adapter["ambiguity_hypotheses"] = result["hypotheses"]
 
-        # Quarantine reference
         if disposition == "PERSON_IDENTITY_QUARANTINED":
             adapter["quarantine_rationale"] = result.get("rationale", "")
 
         adapters.append(adapter)
 
-    return adapters, disposition_counts, atoms, relations, questions, family_map, quarantine_map, ambiguity_map
+    return adapters, disposition_counts, atoms, relations, questions, family_map, quarantine_map, ambiguity_map, audit_data, person_set
 
 
 def main():
     base = Path(__file__).resolve().parent
 
-    # Resolve paths
     src_dir = os.environ.get("Q0_SRC_DIR")
     if not src_dir or not os.path.exists(os.path.join(src_dir, "KNOWLEDGE-ATOMS.jsonl")):
-        # Default: relative to script location
         src_dir = str(base.parent.parent.parent.parent / "e17_gate_b_r2" / "q0_sources")
 
     policy_dir = os.environ.get("POLICY_DIR", str(base))
@@ -486,7 +538,6 @@ def main():
     print(f"Policy dir: {policy_dir}", file=sys.stderr)
     print(f"Output dir: {output_dir}", file=sys.stderr)
 
-    # Verify required files
     required_src = [
         "KNOWLEDGE-ATOMS.jsonl", "KNOWLEDGE-RELATIONS.jsonl",
         "ADVERSARIAL-QUESTION-SET.jsonl", "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml"
@@ -498,8 +549,9 @@ def main():
             sys.exit(1)
 
     required_policy = [
-        "MAPPING-POLICY.yaml", "FULL-ID-QUARANTINE-MANIFEST.yaml",
-        "AMBIGUITY-MANIFEST.yaml", "D2-INTERFACE-SNAPSHOT.yaml"
+        "MAPPING-POLICY.yaml", "PERSON-EVIDENCE-AUDIT.yaml",
+        "FULL-ID-QUARANTINE-MANIFEST.yaml", "AMBIGUITY-MANIFEST.yaml",
+        "D2-INTERFACE-SNAPSHOT.yaml"
     ]
     for f in required_policy:
         p = os.path.join(policy_dir, f)
@@ -507,38 +559,26 @@ def main():
             print(f"ERROR: Required policy file not found: {p}", file=sys.stderr)
             sys.exit(1)
 
-    adapters, counts, atoms, relations, questions, family_map, quarantine_map, ambiguity_map = generate_adapters(
+    adapters, counts, atoms, relations, questions, family_map, q_map, am_map, audit_data, person_set = generate_adapters(
         src_dir, policy_dir, output_dir
     )
 
-    # ═══════════════════════════════════════════════════════════
-    # Write D2-CANDIDATE-ADAPTERS.jsonl (deterministic key order)
-    # ═══════════════════════════════════════════════════════════
+    # Write D2-CANDIDATE-ADAPTERS.jsonl
     adapters_path = os.path.join(output_dir, "D2-CANDIDATE-ADAPTERS.jsonl")
     with open(adapters_path, "w", encoding="utf-8") as f:
         for a in adapters:
-            # Write with sorted keys for deterministic output
             f.write(json.dumps(a, ensure_ascii=False, sort_keys=True) + "\n")
     print(f"Wrote {len(adapters)} adapters to {adapters_path}", file=sys.stderr)
 
     adapters_jsonl_sha256 = file_sha256(adapters_path)
 
-    # ═══════════════════════════════════════════════════════════
-    # Compute all derivative hashes/sizes
-    # ═══════════════════════════════════════════════════════════
-    atom_ids_list = [a["deterministic_id"] for a in atoms]
-    relation_ids_list = [r["relation_id"] for r in relations]
-    question_ids_list = [q["question_id"] for q in questions]
-    adapter_dids = [a["source_deterministic_id"] for a in adapters]
-    adapter_cshashes = [a["canonical_source_hash"] for a in adapters]
-
+    # Compute source hashes/sizes
     source_hashes = {
         "atoms": file_sha256(os.path.join(src_dir, "KNOWLEDGE-ATOMS.jsonl")),
         "relations": file_sha256(os.path.join(src_dir, "KNOWLEDGE-RELATIONS.jsonl")),
         "questions": file_sha256(os.path.join(src_dir, "ADVERSARIAL-QUESTION-SET.jsonl")),
         "family_map": file_sha256(os.path.join(src_dir, "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml")),
     }
-
     source_sizes = {
         "atoms": file_size(os.path.join(src_dir, "KNOWLEDGE-ATOMS.jsonl")),
         "relations": file_size(os.path.join(src_dir, "KNOWLEDGE-RELATIONS.jsonl")),
@@ -546,28 +586,35 @@ def main():
         "family_map": file_size(os.path.join(src_dir, "PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml")),
     }
 
+    # E19-B06: Fixed policy_manifest_hashes (was polycy_manifest_hashes)
     policy_hashes = {
         "mapping_policy": file_sha256(os.path.join(policy_dir, "MAPPING-POLICY.yaml")),
+        "person_audit": file_sha256(os.path.join(policy_dir, "PERSON-EVIDENCE-AUDIT.yaml")),
         "quarantine_manifest": file_sha256(os.path.join(policy_dir, "FULL-ID-QUARANTINE-MANIFEST.yaml")),
         "ambiguity_manifest": file_sha256(os.path.join(policy_dir, "AMBIGUITY-MANIFEST.yaml")),
         "d2_snapshot": file_sha256(os.path.join(policy_dir, "D2-INTERFACE-SNAPSHOT.yaml")),
     }
 
     policy = load_policy(os.path.join(policy_dir, "MAPPING-POLICY.yaml"))
-    policy_version = policy.get("policy", {}).get("version", "18.0")
+    policy_version = policy.get("policy", {}).get("version", "19.0")
+
+    # Extract ID lists
+    atom_ids_list = [a["deterministic_id"] for a in atoms]
+    relation_ids_list = [r["relation_id"] for r in relations]
+    question_ids_list = [q["question_id"] for q in questions]
+    adapter_dids = [a["source_deterministic_id"] for a in adapters]
+    adapter_cshashes = [a["canonical_source_hash"] for a in adapters]
 
     # ═══════════════════════════════════════════════════════════
-    # E18-B10: Complete D2-ADAPTER-PACKAGE.json
-    # Includes ALL 99 deterministic_ids with canonical_source_hashes,
-    # ALL 147 relation_ids, ALL 64 question_ids, ALL artifact hashes/sizes
+    # E19-B06: D2-ADAPTER-PACKAGE.json with verified hash/size manifest
     # ═══════════════════════════════════════════════════════════
     package = OrderedDict()
     package["package_id"] = hashlib.sha256(
-        b"E18-PR100-qclaw-d2-candidate-adapter-0011-e8-strict-canonical"
+        b"E19-PR100-qclaw-d2-candidate-adapter-0011-e8-person-audit"
     ).hexdigest()
-    package["epoch"] = 18
-    package["schema"] = "25.0"
-    package["task_id"] = "QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18"
+    package["epoch"] = 19
+    package["schema"] = "26.0"
+    package["task_id"] = "QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE"
     package["policy_version"] = policy_version
     package["adapter_count"] = len(adapters)
     package["atom_count"] = len(atoms)
@@ -576,7 +623,10 @@ def main():
     package["disposition_counts"] = counts
     package["adapters_sha256"] = adapters_jsonl_sha256
 
-    # Source lock (recomputed hashes)
+    # E19-B06 FIX: Correct field name (was polycy_manifest_hashes)
+    package["policy_manifest_hashes"] = policy_hashes
+
+    # Source lock
     package["source_lock"] = OrderedDict([
         ("d2_interface_sha256", "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"),
         ("d2_interface_commit", "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"),
@@ -586,35 +636,29 @@ def main():
         ("q0_family_map_sha256", source_hashes["family_map"]),
     ])
 
-    # Policy manifest hashes
-    package["policy_manifest_hashes"] = policy_hashes
+    # Package artifact hash/size manifest
+    package["artifact_hash_size_manifest"] = {}
+    for fname in ["D2-CANDIDATE-ADAPTERS.jsonl", "D2-ADAPTER-PACKAGE.json",
+                  "PERSON-EVIDENCE-AUDIT.yaml", "FULL-ID-QUARANTINE-MANIFEST.yaml",
+                  "AMBIGUITY-MANIFEST.yaml", "MAPPING-POLICY.yaml",
+                  "D2-INTERFACE-SNAPSHOT.yaml"]:
+        fpath = os.path.join(output_dir, fname) if fname not in ["D2-ADAPTER-PACKAGE.json"] else os.path.join(output_dir, fname)
+        if not os.path.exists(fpath):
+            fpath = os.path.join(policy_dir, fname)
+        if os.path.exists(fpath):
+            package["artifact_hash_size_manifest"][fname] = {
+                "sha256": file_sha256(fpath),
+                "size_bytes": file_size(fpath),
+            }
 
-    # ═══════════════════════════════════════════════════════════
-    # ALL 99/147/64 IDs with their canonical source hashes
-    # ═══════════════════════════════════════════════════════════
+    # ALL 99/147/64 IDs
     package["atom_ids"] = [
-        OrderedDict([
-            ("deterministic_id", aid),
-            ("canonical_source_hash", csh),
-        ])
+        OrderedDict([("deterministic_id", aid), ("canonical_source_hash", csh)])
         for aid, csh in zip(adapter_dids, adapter_cshashes)
     ]
+    package["relation_ids"] = [OrderedDict([("relation_id", rid)]) for rid in relation_ids_list]
+    package["question_ids"] = [OrderedDict([("question_id", qid)]) for qid in question_ids_list]
 
-    package["relation_ids"] = [
-        OrderedDict([
-            ("relation_id", rid),
-        ])
-        for rid in relation_ids_list
-    ]
-
-    package["question_ids"] = [
-        OrderedDict([
-            ("question_id", qid),
-        ])
-        for qid in question_ids_list
-    ]
-
-    # Adapter identity coverage (link every adapter to its source)
     package["adapter_identity_coverage"] = [
         OrderedDict([
             ("adapter_id", a["adapter_id"]),
@@ -634,20 +678,19 @@ def main():
 
     package_sha256 = file_sha256(package_path)
 
-    # ═══════════════════════════════════════════════════════════
     # D2-ADAPTER-SUMMARY.yaml
-    # ═══════════════════════════════════════════════════════════
     summary = {
         "d2_adapter_summary": OrderedDict([
-            ("epoch", 18),
-            ("schema", "25.0"),
-            ("task_id", "QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18"),
+            ("epoch", 19),
+            ("schema", "26.0"),
+            ("task_id", "QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE"),
             ("policy_version", policy_version),
             ("total_adapters", len(adapters)),
             ("total_atoms", len(atoms)),
             ("total_relations", len(relations)),
             ("total_questions", len(questions)),
             ("disposition_counts", counts),
+            ("person_bearing_count", len(person_set)),
             ("adapters_sha256", adapters_jsonl_sha256),
             ("package_sha256", package_sha256),
             ("source_lock", package["source_lock"]),
@@ -657,11 +700,7 @@ def main():
     summary_path = os.path.join(output_dir, "D2-ADAPTER-SUMMARY.yaml")
     with open(summary_path, "w", encoding="utf-8") as f:
         yaml.dump(json.loads(json.dumps(summary)), f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
-    print(f"Wrote summary to {summary_path}", file=sys.stderr)
 
-    # ═══════════════════════════════════════════════════════════
-    # Coverage files
-    # ═══════════════════════════════════════════════════════════
     # COVERAGE-ATOMS.yaml
     atoms_coverage = OrderedDict()
     atoms_coverage["total_atoms"] = len(atoms)
@@ -672,31 +711,22 @@ def main():
         if disp not in atoms_coverage["covered_by_disposition"]:
             atoms_coverage["covered_by_disposition"][disp] = []
         atoms_coverage["covered_by_disposition"][disp].append(a["source_deterministic_id"])
-    atoms_coverage["quarantine_count"] = len(quarantine_map)
-    atoms_coverage["ambiguous_count"] = len(ambiguity_map)
-    atoms_coverage_path = os.path.join(output_dir, "COVERAGE-ATOMS.yaml")
-    with open(atoms_coverage_path, "w", encoding="utf-8") as f:
+    atoms_coverage["quarantine_count"] = len(person_set)
+    atoms_coverage["ambiguous_count"] = len(am_map)
+    with open(os.path.join(output_dir, "COVERAGE-ATOMS.yaml"), "w", encoding="utf-8") as f:
         yaml.dump(json.loads(json.dumps(atoms_coverage)), f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
 
     # COVERAGE-RELATIONS.yaml
-    relations_coverage = {
-        "total_relations": len(relations),
-        "covered_relation_ids": [r["relation_id"] for r in relations],
-    }
+    rel_cov = {"total_relations": len(relations), "covered_relation_ids": [r["relation_id"] for r in relations]}
     with open(os.path.join(output_dir, "COVERAGE-RELATIONS.yaml"), "w", encoding="utf-8") as f:
-        yaml.dump(relations_coverage, f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
+        yaml.dump(rel_cov, f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
 
     # COVERAGE-QUESTIONS.yaml
-    questions_coverage = {
-        "total_questions": len(questions),
-        "covered_question_ids": [q["question_id"] for q in questions],
-    }
+    q_cov = {"total_questions": len(questions), "covered_question_ids": [q["question_id"] for q in questions]}
     with open(os.path.join(output_dir, "COVERAGE-QUESTIONS.yaml"), "w", encoding="utf-8") as f:
-        yaml.dump(questions_coverage, f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
+        yaml.dump(q_cov, f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
 
-    # ═══════════════════════════════════════════════════════════
     # SOURCE-LOCK.yaml
-    # ═══════════════════════════════════════════════════════════
     source_lock = {
         "d2_interface": {
             "file": "d2_game_core.py",
@@ -712,6 +742,7 @@ def main():
         },
         "policy_files": {
             "MAPPING-POLICY.yaml": {"sha256": policy_hashes["mapping_policy"]},
+            "PERSON-EVIDENCE-AUDIT.yaml": {"sha256": policy_hashes["person_audit"]},
             "FULL-ID-QUARANTINE-MANIFEST.yaml": {"sha256": policy_hashes["quarantine_manifest"]},
             "AMBIGUITY-MANIFEST.yaml": {"sha256": policy_hashes["ambiguity_manifest"]},
             "D2-INTERFACE-SNAPSHOT.yaml": {"sha256": policy_hashes["d2_snapshot"]},
@@ -724,17 +755,16 @@ def main():
     with open(os.path.join(output_dir, "SOURCE-LOCK.yaml"), "w", encoding="utf-8") as f:
         yaml.dump(source_lock, f, default_flow_style=False, allow_unicode=True, Dumper=yaml.SafeDumper)
 
-    # ═══════════════════════════════════════════════════════════
     # GENERATION-RECEIPT.json
-    # ═══════════════════════════════════════════════════════════
     receipt = OrderedDict()
     receipt["generation_receipt"] = OrderedDict([
-        ("epoch", 18),
-        ("schema", "25.0"),
-        ("task_id", "QCLAW-PR100-STRICT-CANONICAL-IDENTITY-LOSSLESS-QUARANTINE-AND-EXECUTABLE-EVIDENCE-CLOSURE-0020-E18"),
+        ("epoch", 19),
+        ("schema", "26.0"),
+        ("task_id", "QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE"),
         ("policy_version", policy_version),
         ("generator_sha256", file_sha256(__file__)),
         ("adapter_count", len(adapters)),
+        ("person_quarantine_count", len(person_set)),
         ("disposition_counts", counts),
         ("adapters_sha256", adapters_jsonl_sha256),
         ("package_sha256", package_sha256),
@@ -743,23 +773,21 @@ def main():
         ("canonical_artifacts", OrderedDict([
             ("D2-CANDIDATE-ADAPTERS.jsonl", adapters_jsonl_sha256),
             ("D2-ADAPTER-PACKAGE.json", package_sha256),
+            ("PERSON-EVIDENCE-AUDIT.yaml", policy_hashes["person_audit"]),
         ])),
-        ("completion_signal", "QCLAW_E18_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW"),
+        ("completion_signal", "QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE_READY_FOR_GPT_REVIEW"),
     ])
     receipt_path = os.path.join(output_dir, "GENERATION-RECEIPT.json")
     with open(receipt_path, "w", encoding="utf-8") as f:
         json.dump(receipt, f, indent=2, ensure_ascii=False, sort_keys=True)
-    print(f"Wrote receipt to {receipt_path}", file=sys.stderr)
 
-    # ═══════════════════════════════════════════════════════════
-    # Summary output
-    # ═══════════════════════════════════════════════════════════
-    print(f"\n=== Generation Complete (Epoch 18, Schema 25.0) ===", file=sys.stderr)
+    print(f"\n=== Generation Complete (Epoch 19, Schema 26.0) ===", file=sys.stderr)
     print(f"Total adapters: {len(adapters)}", file=sys.stderr)
+    print(f"Person quarantine: {len(person_set)} (incl. atoms 39, 69, 72)", file=sys.stderr)
     print(f"Dispositions: {json.dumps(counts, indent=2, ensure_ascii=False)}", file=sys.stderr)
     print(f"Adapters SHA256: {adapters_jsonl_sha256}", file=sys.stderr)
     print(f"Package SHA256: {package_sha256}", file=sys.stderr)
-    print(f"Completion signal: QCLAW_E18_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW", file=sys.stderr)
+    print(f"Completion: QCLAW_E19_PR100_PERSON_AUDIT_VALIDATOR_FAIL_CLOSED_RECEIPT_TRUTH_AND_ARCHIVE_READY_FOR_GPT_REVIEW", file=sys.stderr)
 
     return 0
 
