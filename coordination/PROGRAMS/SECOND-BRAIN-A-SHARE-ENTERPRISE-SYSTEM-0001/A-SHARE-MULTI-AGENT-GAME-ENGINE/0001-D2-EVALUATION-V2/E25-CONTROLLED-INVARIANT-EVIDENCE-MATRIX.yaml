@@ -1,0 +1,20 @@
+task_id: "CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25"
+status: "READY_FOR_GPT_REVIEW"
+tested_commit: "5c10a31326eb873fd02233a445f9a5d6c17a1c3c"
+invariant_row_count: 80
+registry:
+  - {predicate_id: "HAS_EPISODE", constructor: "GameRun.episode_state=None", oracle: "ORACLE_MISSING_EPISODE"}
+  - {predicate_id: "NONEMPTY_EVENTS", constructor: "GameRun.events=()", oracle: "ORACLE_EMPTY_RUN_EVENTS"}
+  - {predicate_id: "UNIQUE_EVENT_IDS", constructor: "duplicate event_id", oracle: "ORACLE_DUPLICATE_OR_INVALID_EVENT_ID"}
+  - {predicate_id: "ACTION_EVENT_BINDING", constructor: "forge event agent_id", oracle: "ORACLE_EVENT_AGENT_BINDING_MISMATCH"}
+  - {predicate_id: "INDEPENDENT_ACCOUNTING", constructor: "unexplained inventory increase", oracle: "ORACLE_INVENTORY_DELTA_MISMATCH"}
+  - {predicate_id: "BOUNDARY_ORDER", constructor: "move event outside boundary", oracle: "ORACLE_ARRIVAL_SEQUENCE_ORDER"}
+  - {predicate_id: "NO_UNEXPLAINED_FLOW", constructor: "append unlinked external flow", oracle: "ORACLE_UNEXPLAINED_EXTERNAL_FLOW"}
+  - {predicate_id: "TERMINAL_ACTION_COVERAGE", constructor: "remove terminal event", oracle: "ORACLE_ACTION_EVENT_COVERAGE_MISMATCH"}
+  - {predicate_id: "STEP_MONOTONIC", constructor: "step_index=0", oracle: "ORACLE_STEP_BOUNDARY_MONOTONICITY"}
+  - {predicate_id: "PORTFOLIO_DELTA_EXPLAINED", constructor: "unexplained inventory increase", oracle: "ORACLE_INVENTORY_DELTA_MISMATCH"}
+fail_closed:
+  valid_fixture_rejected: "E25_VALID_FIXTURE_REJECTED"
+  identity_constructor: "DECORATIVE_OR_NON_VIOLATING_FIXTURE"
+  missing_oracle: "E25_INCOMPLETE_INVARIANT_RULE"
+  unmapped_predicate: "E25_UNMAPPED_INVARIANT_PREDICATE"
