@@ -7,7 +7,7 @@
 3. 用户直接对WorkBuddy发出短命令时，不得跳转Issue #7，不得进入 `CodexDispatch` 等待态，也不得反问用户当前要做什么。
 4. Issue #26及父Issue #22已完成关闭，不得继续把“等待GPT处理Issue #26”作为当前状态或阻断理由。
 5. 先同步或直接读取远端最新 `main`。若本地工作区不适合快进、存在未提交内容或本地网络无法安全同步，不得覆盖工作区，应直接读取GitHub远端最新文件。
-6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml` 和 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`、`coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`、`coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`、`coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml` 和 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
 7. 读取活动索引中的 `active_issue`、`mode`、`status`、`execution_allowed`、`route_epoch`、`route_issued_at`、`completion_signal`、`dependencies`、`task_impact_forecast`、`amed_policy`、`task_weight`、`research_trigger`、`exploration_budget`、`autonomy_grant`、`required_action`、`routing_guard` 和 `safety_boundary`。
 8. 执行前必须提交任务租约声明，逐字回显：仓库、读取到的远端main head、task_id、route_epoch、Issue、PR、分支、状态、completion_signal和reviewed/base head。只有与最新活动索引完全一致，且 `status: READY`、`execution_allowed: true`、依赖满足、影响预测存在、AMED字段完整时，才可执行。
 9. 如果活动索引为`PAUSED`、`execution_allowed: false`或尚未到显式恢复门，必须停止，不得因为主动性规则自行恢复、创建分支、提交或推送。
@@ -31,6 +31,17 @@
 27. 无法确认远端最新索引、任务租约协议、AMED字段、PDER协议、双层主观能动性宪法、权限边界、路径允许列表或安全状态时，停止并报告，不得回退到旧调度器猜任务。
 28. 主动发现与实现权限不授予跨模块接管、服务生命周期变更、凭证访问、自动恢复或实盘权限。
 
+## 工作过程、难度、发现与协同强制回报
+
+29. 任务租约、每个重要检查点、阻塞、暂停、现场交接、路线变化和完成回执必须使用或完整映射：
+   - `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`；
+   - `coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml`。
+30. WorkBuddy每次必须报告：现场操作阶段、计划与实际难度D0-D4、最难路径/权限/服务/数据问题及证据、方案改变、失败尝试、意外环境发现、可拓展现场能力、未解决难题、发现的故障与负面结果、需要GPT/Codex/QCLAW/用户提供的精确协调动作、仍可继续的范围、交接制品和下一门禁。
+31. `BLOCKED`报告若没有已尝试方法、日志或可验证摘要、真正缺少的最小权限/路径/服务/输入、受阻范围、仍可继续工作、请求对象与关闭条件，一律视为不完整阻塞报告。
+32. 没有发现或不需要协调时必须明确写`NONE_OBSERVED`或`NONE_REQUIRED`，并列出检查过的本地服务、路径、权限、数据或部署面；不得留空。
+33. 所有未关闭的D2以上难点、S2以上发现、协调请求和UNKNOWN必须在后续检查点持续携带，直到被验证关闭、拒绝或延期并写明Owner与触发条件。
+34. 本规则只要求可审计操作过程、决策依据和证据，不要求也不得输出私有思维链、秘密值或受限原始数据。
+
 固定仓库：`vxz2datoubo/second-brain-coordination`
 
 唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
@@ -39,9 +50,10 @@
 
 - `coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml`
 
-AMED、主动发现与双层主观能动性权威：
+AMED、主动发现、双层主观能动性与工作过程协同回报权威：
 
 - `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
 - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
 - `coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml`
 - `coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
