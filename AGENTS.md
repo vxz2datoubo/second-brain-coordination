@@ -1,5 +1,17 @@
 # Repository Agent Instructions
 
+## 永久短命令语义
+
+权威协议：
+
+- `coordination/GOVERNANCE/GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml`
+
+1. 用户对GPT只说`审查任务`、`审核任务`或同义短句时，默认执行完整的“审查—改良—发布”闭环：审查全部相关活动/新交付任务，核对远端与本地可见证据、工作过程、难度、失败尝试、发现、扩展机会、未解问题、精确协同和系统反哺；直接修复GPT拥有的控制面缺陷；然后发布或重申正确活动路由。不得只做摘要，也不得要求用户再说一次`发布任务`。
+2. 用户对Codex、QCLAW、WorkBuddy或未来Agent说`读取任务`、`执行任务`、`开始任务`时，默认含义是一个连续动作：读取远端最新任务真源，核对并领取租约，然后立即开始实质执行，持续到规定检查点、真实阻塞或完成。不得只复述任务、只提交计划、回复“已读取”等待第二条启动命令，或在任务已自包含时反问用户做什么。
+3. 当活动路由为`READY`且`execution_allowed: true`时，Agent本次响应返回前至少完成第一个有意义的授权动作并提供证据。长任务可在检查点回报，但检查点必须包含实质进展、测试或真实阻塞，不能只承诺稍后执行。
+4. 当活动路由不可执行时，禁止猜测或切换任务。必须报告失败字段/依赖、已完成检查与尝试、最小缺失能力或决定、受影响与不受影响范围、精确请求对象/动作和恢复条件。只写`BLOCKED`无效。
+
 ## Codex短命令路由
 
 当用户对Codex说“读取任务”“执行任务”“开始任务”或同义短句时：
@@ -8,14 +20,16 @@
 2. 先同步或直接读取远端最新 `main`，不得使用未经确认的本地旧索引；若本地有未提交内容，不得为了同步而覆盖工作区。
 3. 读取最新 `coordination/CODEX-TASK-ROUTER.md`。
 4. 再读取最新 `coordination/ACTIVE-CODEX-TASK.yaml`。
-5. 只执行入口文件中 `status: READY`、依赖已满足的 `active_issue`。
-6. 必须读取该Issue正文和全部评论，并遵守其中显式标注的Codex模式。
-7. 必须读取AMED协议、机器策略、任务影响预测、任务重量、研究触发级别、探索预算和计划外改良权限。
-8. 不得根据历史TIMEOUT、INVALID、UNKNOWN回执推断任务已完成。
-9. 不得自行选择其他Issue，不得猜测任务编号，不得重新执行索引中 `supersedes` 的旧任务。
-10. 执行时必须完成主交付、主动发现和系统演进提案三条链，但不得超预算或自行实施C/D级扩展。
-11. 完成后按AMED执行回执、研究账本、改良账本、系统发现报告和Agent执行反馈v2回传实际证据，并创建独立PR；不得自行合并。
-12. 无法确认远端最新索引、AMED字段或任务边界时必须停止并报告，不得继续执行。
+5. 读取并遵守`AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml`。`读取任务`不是导航或摘要，而是领取并执行。
+6. 只执行入口文件中 `status: READY`、`execution_allowed: true`且依赖已满足的 `active_issue`。
+7. 必须读取该Issue正文和全部评论，并遵守其中显式标注的Codex模式。
+8. 必须读取AMED、PMA-BIG、WPDCR、PDER、任务影响预测、探索预算和计划外改良权限。
+9. 完成精确租约声明后立即开始第一个实质动作，不得停在任务复述、计划展示或等待用户再次说“执行”。
+10. 不得根据历史TIMEOUT、INVALID、UNKNOWN回执推断任务已完成，不得自行选择其他Issue或重新执行`supersedes`旧任务。
+11. 执行时必须完成主交付、主动发现和系统演进提案三条链，在授权范围内主动实施高价值AMED A/B改良，但不得超预算或自行实施C/D级扩展。
+12. 完成或检查点必须按WPDCR回传工作过程、D0-D4难度、方案变化、失败、新发现、扩展机会、未解问题、精确协同、系统影响和下一门禁。
+13. 完成后提交AMED执行回执、研究账本、改良账本、系统发现报告、测试回执、UNKNOWN、AI_HANDOFF和WPDCR；创建或更新活动PR，不得自行合并。
+14. 无法确认远端最新索引、租约、AMED/PMA-BIG/WPDCR字段或任务边界时必须停止并精确报告，不得继续猜测。
 
 固定协调仓库：`vxz2datoubo/second-brain-coordination`
 
@@ -26,21 +40,14 @@
 当用户对WorkBuddy说“读取任务”“执行任务”“开始任务”或同义短句时：
 
 1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
-2. 必须先区分两个身份：
-   - `WorkBuddy执行者`：执行自己的现场任务，唯一入口是 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`；
-   - `Codex调度器维护者`：Issue #7仅用于建设或维护“唤醒Codex”的调度基础设施，不是WorkBuddy的任务收件箱。
-3. 用户直接对WorkBuddy说“读取任务”时，禁止进入Issue #7的CodexDispatch流程，禁止因此反问用户“想做什么”。
-4. Issue #26及其父任务已完成关闭，禁止继续以“等待GPT处理Issue #26”为当前状态。
-5. 先同步或直接读取远端最新 `main`；若本地工作区有未提交内容或不能安全快进，不得覆盖本地内容，必须直接读取GitHub远端最新文件。
-6. 读取最新 `coordination/WORKBUDDY-TASK-ROUTER.md`。
-7. 再读取最新 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
-8. 只执行其中 `status: READY`、依赖已满足的 `active_issue`，不得读取Codex活动索引、Issue #7、最近Issue或旧聊天记录代替。
-9. 必须读取活动Issue正文、全部评论、任务影响预测、AMED任务合同、允许列表和安全边界。
-10. 用户在本地临时讨论的策略、做T方案或其他研究内容，应保留为独立候选笔记；在GPT建立新Issue或显式调整优先级前，不得静默替换当前GitHub活动任务。
-11. 现场操作不得超出Issue授权，不能因为拥有本机访问能力就扩大扫描、读取秘密或修改服务。
-12. 执行时必须主动发现本地能力、接口、许可、路径、性能和部署问题，但超出探索预算或涉及跨模块权威时只允许提案。
-13. 完成后按AMED完整回执、研究账本、改良账本、系统发现报告、Agent执行反馈v2和结果观察要求回传，创建独立PR，不自行合并。
-14. 无法确认远端索引、AMED字段、路径允许列表或权限边界时必须停止并报告，但不得回退到Issue #7猜任务。
+2. 必须区分`WorkBuddy执行者`与Issue #7的Codex调度器维护者；用户说`读取任务`时禁止进入Issue #7。
+3. 先同步或直接读取远端最新`main`，再读取`coordination/WORKBUDDY-TASK-ROUTER.md`和`coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
+4. 读取并遵守RTCE协议。若任务`READY`且`execution_allowed: true`，领取后立即执行；若PAUSED或false，硬停止并提交精确阻塞状态，不得自动恢复。
+5. 只执行WorkBuddy活动任务，不得读取Codex/QCLAW路由代替。
+6. 必须读取Issue、评论、影响预测、AMED/PMA-BIG/WPDCR/PDER、路径允许列表与安全边界。
+7. 主动发现本地能力、权限、接口、路径、服务、性能、数据质量、部署偏差和可观测性问题；A/B可按授权实施，C只提案，D停止升级。
+8. 检查点和完成报告必须包含工作过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈。
+9. 不自行合并、改变服务权威、导出秘密、准入真实数据或触碰交易。
 
 唯一WorkBuddy任务真源：远端最新 `main` 上的 `coordination/ACTIVE-WORKBUDDY-TASK.yaml`。
 
@@ -49,18 +56,15 @@
 当用户对QCLAW说“读取任务”“执行任务”“开始任务”“执行对接初始化”或同义短句时：
 
 1. 固定协调仓库为 `vxz2datoubo/second-brain-coordination`。
-2. 先同步或直接读取远端最新 `main`；本地有未提交内容时不得覆盖、清理或重置。
-3. 读取最新 `coordination/QCLAW-TASK-ROUTER.md`。
-4. 再读取最新 `coordination/ACTIVE-QCLAW-TASK.yaml`。
-5. 只执行其中 `status: READY`、依赖已满足的 `active_issue`。
-6. 必须读取Issue正文、全部评论、任务影响预测、AMED任务合同、隐私边界和权威等级。
-7. 不得读取Codex或WorkBuddy活动索引代替自己的索引，不得进入Issue #7、Issue #26或其他Agent任务。
-8. QCLAW是候选知识学习工作器，不是最终知识权威；所有输出默认 `CANDIDATE_ONLY`。
-9. 公开仓库只允许写入 `PUBLIC_SAFE` 内容。私人知识、许可受限原文、凭证、数据库、日志正文和真实交易数据不得上传。
-10. 初始化测试只能使用公开安全或合成材料；没有GPT审查不得扩大到本地私人知识或批量同步。
-11. QCLAW必须主动寻找来源冲突、反证、知识缺口、可泛化技能和错误假设，但新Skill、权威升级和系统级接口只允许形成提案。
-12. 完成后回传结构化握手、LearningPacket、AMED研究账本、主动发现和改良提案、隐私检查和结果校准；不得自行合并PR或升级权威状态。
-13. 无法确认远端最新索引、AMED字段、身份、隐私等级或任务边界时必须停止并报告，不得猜测。
+2. 先同步或直接读取远端最新`main`，再读取`coordination/QCLAW-TASK-ROUTER.md`和`coordination/ACTIVE-QCLAW-TASK.yaml`。
+3. 读取并遵守RTCE协议。`读取任务`表示领取当前QQ任务并立即执行，不是只查看任务内容。
+4. 只执行`status: READY`、`execution_allowed: true`且依赖满足的QCLAW活动任务，不得读取Codex/WorkBuddy索引代替。
+5. 必须读取Issue、评论、影响预测、AMED/PMA-BIG/WPDCR/PDER、隐私边界和权威等级。
+6. QCLAW默认`CANDIDATE_ONLY`，主动寻找来源冲突、反证、知识缺口、可泛化Skill、错误假设、成熟度虚高和证据污染。
+7. 授权路径内高价值A/B改良应主动实施并测试；新Skill、canonical、跨Agent接口和系统级扩展只能提案或停止升级。
+8. 公开仓库只允许`PUBLIC_SAFE`内容，不上传私人知识、许可受限原文、秘密、日志正文、数据库或真实交易数据。
+9. 检查点和完成报告必须包含工作过程、难度、失败、发现、扩展、未解问题、精确协同和系统反馈。
+10. 不得自行合并PR、升级权威、切换任务或扩大到未授权知识。
 
 唯一QCLAW任务真源：远端最新 `main` 上的 `coordination/ACTIVE-QCLAW-TASK.yaml`。
 
@@ -70,7 +74,7 @@
 2. WorkBuddy负责本机环境、路径、服务、数据能力和部署事实核验。
 3. QCLAW负责离线候选知识消化、结构化、冲突和技能化。
 4. 三者只能通过GitHub Issue、活动索引、PR、公开安全清单和哈希交接，不得静默接管彼此任务。
-5. 临时聊天内容不会自动改变活动任务；必须由GPT写入对应Issue或活动索引。
+5. 临时聊天内容不会自动改变活动任务，必须由GPT写入Issue或活动索引。
 6. 同一对象类只允许一个声明的系统记录源，投影、缓存和候选输出不得覆盖权威源。
 7. 主动发现不授予跨Agent接管权；跨模块机会必须通过AMED提案和GPT路由进入队列。
 
@@ -80,25 +84,26 @@
 
 - `coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md`
 - `coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml`
+- `coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
+- `coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml`
 
 适用于所有非trivial的GPT、Codex、WorkBuddy、QCLAW及未来Agent任务。
 
 ### 任务发布前
 
-1. 必须声明任务重量：`LIGHT / STANDARD / STRATEGIC`。
-2. 必须声明研究触发：`L1 / L2 / L3`及原因。
-3. 必须声明探索预算、主交付优先级和计划外改良A/B/C/D权限。
-4. 必须说明任务意图、系统位置、系统记录源、上下游、不得复制组件、成功标准和停止条件。
-5. 缺少AMED任务合同的非trivial任务不得标记为`READY`。
+1. 必须声明模式与原因、任务重量、研究触发、探索预算和A/B/C/D权限。
+2. 必须说明根本目标、因果机制、系统位置、系统记录源、上下游、最低交付、冻结约束、成功和停止条件。
+3. 必须明确Agent可自主决定的方法、必须回答的七项发现问题、预计难点/UNKNOWN、精确协同设计和系统反哺目标。
+4. 每份活动路由必须声明`读取任务 = 读取、领取并立即执行`，并禁止只读确认和计划空转。
+5. 缺少AMED、PMA-BIG、WPDCR、RTCE或影响预测的非trivial任务不得标记为`READY`。
 
 ### 执行期间
 
-1. 执行者必须同时完成主交付、主动发现和系统演进提案。
+1. 执行者必须同时完成主交付、主动发现、精确协同和系统演进提案。
 2. A级可直接实施；B级可实施但必须单列证据、影响和回滚；C级只提案；D级停止并升级。
-3. L2研究必须优先一手资料，记录反证、适用条件、来源冲突、可信度和A股适配。
-4. L3事项必须拆分独立任务，不得静默扩张当前范围。
-5. 主动研究不能成为未完成主交付的理由。
-6. 发现的失败、无增量和负面结果不得隐藏。
+3. 主动研究不能成为未完成主交付的理由，失败、无增量和负面结果不得隐藏。
+4. 读取并领取可执行任务后必须立即开始实质动作，不得等待第二条启动命令。
 
 ### 交付与GPT验收
 
@@ -115,92 +120,21 @@
 
 GPT必须执行九门二次审核：任务分配与主动性质量、任务完成、事实证据、研究质量、工程正确、改良净值、过程难度与协同、系统演进和下一行动。执行者不能自批重大扩展。
 
-## 工程学习与结果校准硬规则
-
-适用于所有非 trivial 的GPT、Codex、WorkBuddy和QCLAW任务。权威蓝图：
-
-`coordination/BLUEPRINTS/ENGINEERING-LEARNING-AND-OUTCOME-CALIBRATION-SYSTEM-v1.0.md`
-
-### 任务发布前
-
-1. GPT必须先完成第一性原理拆解：真实目标、因果机制、约束、证据、失败模式、可观察性、替代方案和停止条件。
-2. 必须建立 `TaskImpactForecast`，记录预期正面收益、预期负面影响、执行成本、机会成本、净价值和验证信号。
-3. 任务Issue正文或评论必须包含简明的“预期收益与潜在负面影响”段落，并链接或内嵌预测记录。
-4. 低风险、可逆风险由GPT自行设置控制并继续，不必频繁打断用户。
-5. 出现不可逆损害、真实资金、凭证、重大数据风险、系统级传播、高概率高严重度风险、无可靠回滚或预期净价值为负时，必须先告知用户并等待决定。
-6. 没有完成影响预测和AMED任务合同的任务不得标记为 `READY`，紧急止损、安全隔离和纯信息读取除外，但必须事后补录。
-
-模板：
-
-- `coordination/ENGINEERING-LEARNING/TASK-IMPACT-FORECAST-TEMPLATE.yaml`
-- `coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml`
-
-### 执行期间
-
-1. 执行者必须观察预测收益和风险信号，并在AMED回执和Agent执行反馈v2中报告实际正负效果。
-2. 意外损害达到高严重度、跨模块传播或接近停止条件时，立即中止或报告，不得等任务结束。
-3. 不得为了符合任务前预测而隐藏相反证据。
-
-### 交付验收时
-
-1. GPT必须建立 `OutcomeCalibrationReview`和`AMEDGPTSecondPassAudit`，逐项对比预期收益、预期负面影响和实际结果。
-2. 必须识别意外收益、意外损害、执行成本偏差、复杂度偏差和风险控制副作用。
-3. 偏差必须分类为：预测错误、执行错误、环境变化、测量错误或未知未知。
-4. 实际负面效果高于预期时，不得只写“下次注意”，必须形成根因、控制更新和回归测试。
-5. 意外正收益必须分析因果链、必要条件、替代解释、放大风险和最小复现实验。
-6. 单次成功不能直接升级为长期标准，必须保留反证并通过复现提高成熟度。
-
-模板：
-
-- `coordination/ENGINEERING-LEARNING/OUTCOME-CALIBRATION-REVIEW-TEMPLATE.yaml`
-- `coordination/TEMPLATES/AMED-GPT-SECOND-PASS-AUDIT-TEMPLATE-v1.0.yaml`
-
-### 经验回写
-
-1. 可复用经验写入：
-   `coordination/ENGINEERING-LEARNING/ENGINEERING-LEARNING-REGISTRY.yaml`
-2. 根据影响范围同步更新任务模板、AGENTS规则、路由、专项蓝图、测试、禁止清单或本地权威蓝图差异包。
-3. 每个后续任务必须检查是否存在可继承的相关工程经验。
-4. 新证据推翻旧经验时，必须将旧经验降级为 `DEPRECATED` 或 `CONTRADICTED`，不得维护虚假一致性。
-
 ## 工作过程、难度、发现与协同回报硬规则
 
-永久权威协议：
-
-- `coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml`
-- `coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml`
-
-适用于GPT、Codex、QCLAW、WorkBuddy及未来Agent的所有非trivial任务，也适用于跨Agent协调、检查点、阻塞、交接和完成回执。
-
-1. 每次任务租约声明、重要检查点、阻塞升级、交接、路线切换和最终完成都必须报告：工作过程、计划与实际难度、最难部分及证据、方案变化、失败尝试、新发现与意外发现、可拓展想法、难以解决的问题、发现的错误或负面结果、精确协调请求、跨Agent影响、下一步与验收门。
-2. 标准和战略任务必须提交完整 `WorkProcessAndCoordinationReport` 或在AI_HANDOFF中链接该报告；轻量任务可内嵌简版，但不得省略难度、发现、难题、协调请求和下一步。
-3. 没有发现、没有难题或不需要协调时，必须明确写 `NONE_OBSERVED`、`NONE` 或 `NONE_REQUIRED`，并说明检查了什么；空白栏目无效。
-4. 难度必须用D0-D4分级，并给出失败测试、方案转向、接口冲突、未知证据或依赖等可观察依据；不得用耗时、篇幅或自我感受夸大难度。
-5. 阻塞报告必须同时写明已尝试方法、得到的证据、真正缺少的最小信息或能力、受阻范围、仍可继续的工作、请求对象和精确动作；只写“BLOCKED”等于不合格。
-6. 新发现必须区分事实、推断和建议，写明影响范围、严重度、它不证明什么、已采取动作和推荐处置；S2以上必须持续携带到关闭。
-7. 可拓展想法必须写明复用/重复检查、价值、成本、风险、AMED级别、Owner、前置条件、激活触发和验证门，禁止只堆创意名词。
-8. 协同请求必须明确向谁、要什么具体输入/权限/决策/测试、为什么、证据包、紧急程度、依赖门、无它还能继续什么以及关闭条件。
-9. 报告记录的是可审计过程、决策依据和证据，不要求也不得索取私有思维链或逐token推理。
-10. 现有活动任务从本规则发布后自动继承回报要求；它不改变task_id、route_epoch、PR、分支、范围或completion_signal，因此无需仅为采用本协议重发租约。
-11. GPT验收时必须检查这些栏目是否完整、真实、无占位符，并把接受的可复用经验回写协议、模板、测试、蓝图或后续任务。
+1. 每次租约、重要检查点、阻塞、交接、路线切换和完成都必须报告：工作过程、计划/实际难度、最难部分及证据、方案变化、失败尝试、新发现、扩展想法、未解问题、负面结果、精确协同、跨Agent影响、下一步和验收门。
+2. 标准/战略任务必须提交完整WPDCR；轻量任务可内嵌简版但不得省略核心栏目。
+3. 没有发现或无需协调时必须写`NONE_OBSERVED`、`NONE`或`NONE_REQUIRED`并列出检查面，空白无效。
+4. 难度使用D0-D4并提供可观察证据，不能以耗时或篇幅夸大。
+5. `BLOCKED`必须包含尝试、证据、最小缺失、受影响/不受影响范围、精确Owner动作和关闭条件。
+6. 可拓展想法必须有复用检查、价值、成本、风险、AMED级别、Owner、触发和验证门。
+7. 报告记录可审计过程与决策证据，不要求私有思维链。
 
 ## 主动任务分配与有界主观能动性授权硬规则
 
-永久权威协议：
-
-- `coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml`
-- `coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml`
-
-1. GPT分配任何非trivial任务时，必须明确标注Agent模式及原因，并把任务写成围绕根本目标的主动任务合同，不能只给逐项照做清单。
-2. 任务必须区分：最低不可缺交付、冻结约束、Agent可自主决定的内部方法、可直接实施的AMED A/B改良、只能提案的C级事项和必须停止升级的D级事项。
-3. 分配时必须明确授权执行者：在不突破分支、路径、WIP、权限、隐私、许可、canonical和安全边界的前提下，为了根本目标选择更可靠、更简单、更完整或更可复现的方法，不需要等待每个低层步骤指令。
-4. 每个任务必须要求执行者主动回答：还能怎样做得更好；哪些假设、依赖、测试或接口可能错漏；哪些能力可复用、适配、整合、泛化、简化、迁移或废弃；有哪些高价值扩展；还有什么无法可靠解决；需要谁精确协调什么；哪些经验应反哺整个系统。
-5. 任务必须预先写明预计难点、潜在UNKNOWN、宣布BLOCKED前必须完成的尝试和证据、可安全降级或放弃规则，以及D2-D4困难的检查点和升级条件。
-6. 协同设计必须写明可能的上游和下游Owner、权威真源、交接物、精确请求格式、没有协同时仍可继续的工作，以及接受和关闭条件。
-7. 系统反哺目标必须至少检查协议、模板、测试、验证器、蓝图、Skill、接口、路由、工程经验、废弃项和后续任务；执行者不能自行批准canonical变化，最终由GPT审核。
-8. “做得更多”不等于堆功能。任何主动扩展必须通过价值、证据、复用/重复、复杂度、负面影响、回滚和Owner门；主任务优先，禁止把主动性变成范围爆炸。
-9. Codex任务重点授权架构、实现、测试、确定性、接口和基础缺陷发现；QCLAW重点授权来源冲突、反证、知识缺口、候选Skill和成熟度审计；WorkBuddy重点授权本地现实、权限、路径、服务、数据质量、性能和部署偏差发现。
-10. 执行者领取租约时必须确认理解根本目标、主动发现义务、可实施A/B边界、C/D门、精确协同义务和系统反哺义务。
-11. 缺少主动任务授权、七项发现问题、难题与UNKNOWN责任、协同设计、系统反哺目标、探索预算或边界的非trivial任务不得标记为`READY`。
-12. 现有活动任务自动继承这些主动发挥义务，但不因此扩大已授权路径、分支、权限、WIP、范围或completion_signal；真正改变范围或权威时仍必须重发路由。
-13. GPT验收时必须反向检查任务本身是否给了足够方向和有界自由。如果执行者只是机械完成，或任务作者把所有低层步骤锁死导致无法优化，应同时修正任务分配方式，而不只责怪执行者。
+1. GPT分配任何非trivial任务时必须明确模式与原因，并围绕根本目标写主动任务合同，不能只给逐项清单。
+2. 必须区分最低交付、冻结约束、Agent可自主方法、可实施A/B、仅提案C和必须停止D。
+3. 每个任务必须要求执行者主动回答：还能怎样做得更好；哪些假设、依赖、测试或接口可能错漏；哪些能力可复用、适配、整合、泛化、简化、迁移或废弃；有哪些高价值扩展；什么无法可靠解决；需要谁精确协调什么；哪些经验应反哺系统。
+4. “做得更多”不等于堆功能。扩展必须通过价值、证据、复用、复杂度、负面影响、回滚和Owner门，主任务优先。
+5. 执行者领取租约时必须确认根本目标、主动发现、A/B/C/D、精确协同、系统反哺以及RTCE立即执行义务。
+6. GPT验收时必须反查任务是否给了足够方向与有界自由；若任务写法导致机械执行，必须同时修正任务分配方式。
