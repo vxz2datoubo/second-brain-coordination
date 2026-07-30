@@ -1,0 +1,139 @@
+schema_version: "1.0"
+protocol_id: "AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-0001"
+short_name: "RTCE"
+status: "ACTIVE_PERMANENT_PROJECT_RULE"
+authority_scope: "user_to_agent_short_command_execution_semantics"
+applies_to: [CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
+parent_policies:
+  - "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  - "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+  - "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+boundary: "authority_bounded / PUBLIC_SAFE_REMOTE_OUTPUTS / NO_TRADE unless separately authorized"
+
+purpose: >-
+  Give the user command 读取任务 and its synonyms one stable end-to-end meaning: read the latest authoritative route,
+  claim the valid lease, and immediately execute the active task with bounded initiative. The command is not a request to
+  summarize, paraphrase, wait for a second start command, or ask the user to repeat instructions already present in the route.
+
+trigger_phrases:
+  - "读取任务"
+  - "执行任务"
+  - "开始任务"
+  - "读取并执行任务"
+
+canonical_meaning: >-
+  In one continuous invocation, synchronize or remotely read latest main; resolve the agent's own active route; verify READY,
+  execution_allowed, dependencies, lease freshness, proactive mission fields, allowed paths and safety boundaries; publish the
+  lease claim; then begin and continue substantive execution until a required checkpoint, a truthful blocker/stop condition,
+  or completion. Reading and execution are one command, not two phases requiring another user message.
+
+mandatory_sequence:
+  - "READ_LATEST_REMOTE_MAIN_AND_AGENT_SPECIFIC_ROUTE"
+  - "VERIFY_TASK_ID_ROUTE_EPOCH_ISSUE_PR_BRANCH_BASE_STATUS_AND_DEPENDENCIES"
+  - "VERIFY_AMED_PMA_BIG_WPDCR_PDER_LEASE_VISIBILITY_AND_SAFETY_FIELDS"
+  - "PUBLISH_EXACT_LEASE_CLAIM"
+  - "START_SUBSTANTIVE_EXECUTION_IMMEDIATELY"
+  - "USE_BOUNDED_INITIATIVE_AND_ANSWER_MANDATORY_DISCOVERY_QUESTIONS"
+  - "RUN_TESTS_AND_CAPTURE_EVIDENCE"
+  - "PUBLISH_REQUIRED_CHECKPOINT_BLOCKER_OR_COMPLETION_REPORT"
+
+no_read_only_stop_rule:
+  forbidden_when_route_is_executable:
+    - "Only restate the task and stop."
+    - "Reply that the task has been read and wait for the user to say execute or continue."
+    - "Ask what to do when the active route and Issue already define the work."
+    - "Provide a plan without beginning the first authorized substantive action."
+    - "Treat 读取任务 as navigation, summarization or acknowledgement only."
+  minimum_progress_before_return: >-
+    When the route is READY and executable, the agent must complete at least the first meaningful authorized action and its
+    evidence, not merely environmental preflight. For long tasks it may return at a configured checkpoint, but the checkpoint
+    must contain substantive progress, tests or a truthful blocker rather than a promise to work later.
+
+executable_route_behavior:
+  status_required: "READY"
+  execution_allowed_required: true
+  dependencies_must_be_satisfied: true
+  action: "CLAIM_AND_EXECUTE_NOW"
+  second_user_start_command_required: false
+  low_level_confirmation_required: false
+  continue_between_internal_gates_when_authorized: true
+  stop_only_for:
+    - "EXPLICIT_ROUTE_STOP_CONDITION"
+    - "PDER_S4_OR_D4_USER_GATE"
+    - "UNSATISFIED_DEPENDENCY_OR_STALE_ROUTE"
+    - "UNSAFE_OR_UNAUTHORIZED_OPERATION"
+    - "REQUIRED_GPT_OR_USER_DECISION"
+    - "COMPLETION"
+
+non_executable_route_behavior:
+  action: "DO_NOT_GUESS_OR_SWITCH_TASK"
+  required_report:
+    - "exact failed field or dependency"
+    - "checks and attempts performed"
+    - "minimum missing information, capability or decision"
+    - "affected scope and unaffected work"
+    - "requested owner and exact action"
+    - "reactivation or closure condition"
+  prohibited:
+    - "Silent fallback to an old route"
+    - "Choosing another Issue"
+    - "Reporting only BLOCKED"
+
+bounded_initiative_during_execution:
+  required: true
+  executor_must:
+    - "Optimize for the fundamental goal rather than literal checklist completion."
+    - "Choose a better internal method when evidence, value, scope and rollback tests pass."
+    - "Inspect adjacent tests, interfaces, dependencies, reusable capabilities and stale assumptions."
+    - "Implement authorized AMED A/B improvements without waiting for micro-instructions."
+    - "Surface unresolved problems, precise coordination requests and system-feedback opportunities."
+    - "Preserve negative results, disagreements and UNKNOWNs."
+  executor_must_not:
+    - "Change the active task, owner, route, PR, branch, canonical authority, permissions or safety boundary."
+    - "Use initiative to hide incomplete primary delivery or expand WIP without a gate."
+
+agent_specific_application:
+  CODEX:
+    rule: >-
+      读取任务 always means read, claim and execute. Codex may not finish its response after printing a task summary or plan when
+      the route is READY. It must begin repository work, testing or evidence capture immediately and proceed to checkpoint,
+      truthful blocker or completion.
+  QCLAW:
+    rule: >-
+      读取任务 means execute the current QCLAW route, not inspect Codex/WorkBuddy routes, and proactively perform knowledge,
+      counterevidence, validator or candidate-supply work within its candidate-only boundary.
+  WORKBUDDY:
+    rule: >-
+      读取任务 means execute the current WorkBuddy route only when explicitly READY; PAUSED or execution_allowed false remains a
+      hard stop and may not be auto-resumed.
+
+reporting_and_evidence:
+  lease_claim_required: true
+  WPDCR_required: true
+  substantive_checkpoint_required_for_long_tasks: true
+  completion_self_approval_forbidden: true
+  GPT_second_pass_required: true
+
+invalid_behavior_codes:
+  - "READ_ONLY_ACKNOWLEDGEMENT_WITHOUT_EXECUTION"
+  - "PLAN_ONLY_RESPONSE_WHEN_READY"
+  - "SECOND_START_COMMAND_REQUESTED"
+  - "TASK_ALREADY_DEFINED_BUT_AGENT_ASKS_WHAT_TO_DO"
+  - "OLD_ROUTE_OR_WRONG_AGENT_ROUTE_SELECTED"
+  - "BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST"
+
+memory_and_persistence:
+  user_intent: "PERMANENT_LONG_TERM_OPERATING_RULE"
+  applies_to_future_conversations: true
+  applies_across_agent_and_epoch_changes: true
+  not_limited_to_current_tasks: true
+
+security:
+  direct_main_write_by_executors: false
+  auto_merge: false
+  force_push: false
+  history_rewrite: false
+  real_data_or_trade_implicit_release: false
+
+updated_by: "GPT"
+updated_at: "2026-07-31T05:16:00+08:00"
