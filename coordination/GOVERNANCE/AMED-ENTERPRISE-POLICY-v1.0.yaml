@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 policy_id: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
 short_name: "AMED"
 status: "ACTIVE_ENTERPRISE_STANDARD"
@@ -9,6 +9,7 @@ proactive_mission_authoring_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION
 task_brief_template: "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
 work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 work_process_reporting_template: "coordination/TEMPLATES/AGENT-WORK-PROCESS-AND-COORDINATION-REPORT-TEMPLATE-v1.0.yaml"
+read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 local_secret_protocol: "coordination/GOVERNANCE/LOCAL-CREDENTIAL-DIRECT-USE-AND-NON-EXPORT-PROTOCOL-v1.0.yaml"
 user_authorization_record: "coordination/AUTHORIZATION/CREDENTIAL-SECRETS-LOCAL-ONLY-v1.0.yaml"
 boundary: "research_only / NO_TRADE unless separately authorized"
@@ -35,6 +36,7 @@ mandatory_task_fields:
   - agent_specific_initiative
   - evidence_requirements
   - work_process_reporting
+  - read_claim_execute_semantics
   - executor_lease_acknowledgement
   - second_pass_audit_required
 
@@ -48,43 +50,16 @@ execution_chains:
   precise_coordination: true
   system_evolution_proposal: true
   work_process_and_coordination_reporting: true
+  read_claim_and_execute: true
 
-task_assignment_authoring:
-  task_author: "GPT_OR_AUTHORIZED_ORCHESTRATOR"
-  optimize_for: "FUNDAMENTAL_GOAL_AND_SYSTEM_VALUE_NOT_LITERAL_CHECKLIST_ONLY"
-  required_before_READY:
-    - "State the selected agent mode and why."
-    - "Define the fundamental goal, causal mechanism, observable success, failures and stops."
-    - "Separate minimum non-negotiable delivery from executor-controlled implementation choices."
-    - "Grant meaningful internal decision freedom and bounded A/B improvement authority."
-    - "Require the seven mandatory discovery questions from the proactive mission authoring protocol."
-    - "Define expected hard parts, UNKNOWNs, evidence required before blocking and safe abstention."
-    - "Define likely coordination owners, exact request shape, unaffected work and closure gates."
-    - "Define system-feedback destinations: protocols, templates, tests, blueprints, skills, routes, lessons, deprecations or follow-up tasks."
-    - "Define exploration, branch, path, PR, WIP, privacy, license, canonical and safety firewalls."
-    - "Require WPDCR reporting and independent GPT second-pass review."
-  executor_must_be_authorized_to:
-    - "Choose a better internal method when it improves the fundamental goal and passes evidence, value, boundary and rollback tests."
-    - "Inspect relevant adjacent modules, tests, interfaces, existing capabilities and engineering lessons."
-    - "Implement authorized AMED A/B improvements without waiting for low-level instructions."
-    - "Report and propose C opportunities with owner, trigger, cost, risk, validation and close conditions."
-    - "Stop or abstain on D/user-gated or unsupported work rather than guess."
-  invalid_assignment_patterns:
-    - LITERAL_CHECKLIST_WITH_NO_FUNDAMENTAL_GOAL
-    - VAGUE_USE_YOUR_JUDGMENT_WITH_NO_AUTHORITY_BOUNDARY
-    - DISCOVER_MORE_WITH_NO_QUESTIONS_BUDGET_OR_OUTPUT
-    - DO_MORE_WITHOUT_VALUE_TEST_OR_ROLLBACK
-    - PROPOSE_IDEAS_WITHOUT_OWNER_TRIGGER_COST_RISK_AND_GATE
-    - BLOCKED_ALLOWED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST
-    - SYSTEM_FEEDBACK_WITHOUT_GPT_ACCEPTANCE_BOUNDARY
-    - AUTONOMY_THAT_CHANGES_SCOPE_OWNER_CANONICAL_PERMISSION_OR_SAFETY
-  READY_gate: >-
-    A non-trivial task may not be marked READY when its proactive mission assignment, discovery questions, better-method mandate,
-    anticipated difficulty and UNKNOWNs, coordination design, system-feedback targets, exploration budget or authority firewalls are absent.
-  active_task_inheritance: >-
-    Existing active tasks inherit the better-method, discovery, unresolved-problem, precise-coordination and system-feedback duties without
-    changing task_id, route_epoch, PR, branch, allowed paths, permissions, scope or completion signal. A route reissue is required only when
-    the actual scope, authority, ownership or safety boundary changes.
+read_claim_execute_semantics:
+  trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
+  canonical_action: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
+  second_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  plan_only_response_when_ready_forbidden: true
+  first_substantive_action_required_before_return: true
+  stop_only_for: [COMPLETION, REQUIRED_CHECKPOINT, TRUTHFUL_BLOCKER, STALE_OR_INVALID_ROUTE, S4_D4_OR_USER_GATE]
 
 research_trigger_levels:
   L1_REUSE_AND_QUICK_CHECK:
@@ -94,63 +69,21 @@ research_trigger_levels:
       - "Search repository blueprints, issues, PRs, skills, tests and engineering learning."
       - "Check duplication, stale assumptions and obvious reusable capabilities."
   L2_TARGETED_PROFESSIONAL_RESEARCH:
-    triggers:
-      - NEW_DOMAIN
-      - BLUEPRINT_GAP
-      - SOURCE_CONFLICT
-      - RULE_OR_POLICY_FRESHNESS
-      - HIGH_IMPACT_ARCHITECTURE_OR_CAPITAL_DECISION
-      - MISSING_PRIMARY_EVIDENCE
-      - THEORY_BACKTEST_CONTRADICTION
-      - CROSS_MODULE_INTERFACE_CONFLICT
-      - MATERIAL_UNCERTAINTY
-    source_priority:
-      - OFFICIAL_PRIMARY
-      - ORIGINAL_RESEARCH_PAPER
-      - OFFICIAL_STANDARD
-      - UNIVERSITY_COURSE_OR_LAB
-      - REPRODUCIBLE_REAL_PROJECT
-      - INSTITUTIONAL_CASE
-      - PROFESSIONAL_SECONDARY
-    required_outputs:
-      - RESEARCH_LEDGER
-      - SOURCE_CONFLICTS
-      - A_SHARE_APPLICABILITY
-      - COUNTEREVIDENCE
-      - CONFIDENCE_AND_UNKNOWNS
+    triggers: [NEW_DOMAIN, BLUEPRINT_GAP, SOURCE_CONFLICT, RULE_OR_POLICY_FRESHNESS, HIGH_IMPACT_ARCHITECTURE_OR_CAPITAL_DECISION, MISSING_PRIMARY_EVIDENCE, THEORY_BACKTEST_CONTRADICTION, CROSS_MODULE_INTERFACE_CONFLICT, MATERIAL_UNCERTAINTY]
+    source_priority: [OFFICIAL_PRIMARY, ORIGINAL_RESEARCH_PAPER, OFFICIAL_STANDARD, UNIVERSITY_COURSE_OR_LAB, REPRODUCIBLE_REAL_PROJECT, INSTITUTIONAL_CASE, PROFESSIONAL_SECONDARY]
+    required_outputs: [RESEARCH_LEDGER, SOURCE_CONFLICTS, A_SHARE_APPLICABILITY, COUNTEREVIDENCE, CONFIDENCE_AND_UNKNOWNS]
   L3_INDEPENDENT_RESEARCH_TASK:
-    triggers:
-      - CANONICAL_RUNTIME_CHANGE
-      - SYSTEM_OF_RECORD_CHANGE
-      - CROSS_MODULE_AUTHORITY_MIGRATION
-      - NEW_INDEPENDENT_SKILL
-      - NEW_PAID_OR_LICENSED_DATA
-      - LARGE_HISTORICAL_DATASET
-      - FORMAL_BACKTEST_PROGRAM
-      - EXPLORATION_BUDGET_EXCEEDED
-      - INDEPENDENT_ADVERSARIAL_VALIDATION_REQUIRED
-      - USER_DECISION_REQUIRED
+    triggers: [CANONICAL_RUNTIME_CHANGE, SYSTEM_OF_RECORD_CHANGE, CROSS_MODULE_AUTHORITY_MIGRATION, NEW_INDEPENDENT_SKILL, NEW_PAID_OR_LICENSED_DATA, LARGE_HISTORICAL_DATASET, FORMAL_BACKTEST_PROGRAM, EXPLORATION_BUDGET_EXCEEDED, INDEPENDENT_ADVERSARIAL_VALIDATION_REQUIRED, USER_DECISION_REQUIRED]
     action: "PROPOSAL_ONLY_AND_CREATE_TASK_CANDIDATE"
 
 improvement_authority:
   A_SAFE_LOCAL_AUTONOMOUS:
     implementation_allowed: true
-    conditions:
-      - CURRENT_BRANCH_ONLY
-      - NO_EXTERNAL_CONTRACT_CHANGE
-      - NO_AUTHORITY_CHANGE
-      - NO_PERMISSION_EXPANSION_EXCEPT_CANONICAL_LOCAL_CREDENTIAL_PROTOCOL
-      - NO_OTHER_ACTIVE_TASK_IMPACT
-      - TESTED
-      - EASY_ROLLBACK
+    conditions: [CURRENT_BRANCH_ONLY, NO_EXTERNAL_CONTRACT_CHANGE, NO_AUTHORITY_CHANGE, NO_PERMISSION_EXPANSION_EXCEPT_CANONICAL_LOCAL_CREDENTIAL_PROTOCOL, NO_OTHER_ACTIVE_TASK_IMPACT, TESTED, EASY_ROLLBACK]
   B_BOUNDED_IMPLEMENT_AND_REPORT:
     implementation_allowed: true
     report_required: true
-    conditions:
-      - BACKWARD_COMPATIBLE
-      - LOCAL_OR_INTERNAL
-      - TESTED
-      - ROLLBACK_DOCUMENTED
+    conditions: [BACKWARD_COMPATIBLE, LOCAL_OR_INTERNAL, TESTED, ROLLBACK_DOCUMENTED]
   C_PROPOSAL_ONLY:
     implementation_allowed: false
     outputs: [RFC, ADR, SCHEMA_PROPOSAL, FOLLOW_UP_TASK_CANDIDATE]
@@ -183,91 +116,41 @@ exploration_budget_defaults:
   scope_expansion_without_gate: false
 
 mandatory_delivery_artifacts:
-  LIGHT:
-    - EXECUTION_RECEIPT
-    - TEST_RECEIPT
-    - ACTIVE_DISCOVERY_SUMMARY
-    - UNKNOWN_SUMMARY
-    - WORK_PROCESS_AND_COORDINATION_REPORT_COMPACT
-  STANDARD:
-    - AGENT_EXECUTION_RECEIPT
-    - RESEARCH_LEDGER
-    - UNPLANNED_IMPROVEMENT_LEDGER
-    - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
-    - WORK_PROCESS_AND_COORDINATION_REPORT
-    - TEST_RUN_RECEIPT
-    - UNKNOWN_REGISTRY
-    - AI_HANDOFF
-  STRATEGIC:
-    - TASK_IMPACT_FORECAST
-    - AGENT_EXECUTION_RECEIPT
-    - RESEARCH_LEDGER
-    - UNPLANNED_IMPROVEMENT_LEDGER
-    - SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT
-    - WORK_PROCESS_AND_COORDINATION_REPORT
-    - ALTERNATIVE_AND_TRADEOFF_MATRIX
-    - INDEPENDENT_VALIDATION_PACKAGE
-    - TEST_RUN_RECEIPT
-    - UNKNOWN_REGISTRY
-    - AI_HANDOFF
+  LIGHT: [EXECUTION_RECEIPT, TEST_RECEIPT, ACTIVE_DISCOVERY_SUMMARY, UNKNOWN_SUMMARY, WORK_PROCESS_AND_COORDINATION_REPORT_COMPACT]
+  STANDARD: [AGENT_EXECUTION_RECEIPT, RESEARCH_LEDGER, UNPLANNED_IMPROVEMENT_LEDGER, SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT, WORK_PROCESS_AND_COORDINATION_REPORT, TEST_RUN_RECEIPT, UNKNOWN_REGISTRY, AI_HANDOFF]
+  STRATEGIC: [TASK_IMPACT_FORECAST, AGENT_EXECUTION_RECEIPT, RESEARCH_LEDGER, UNPLANNED_IMPROVEMENT_LEDGER, SYSTEM_DISCOVERY_AND_OPPORTUNITY_REPORT, WORK_PROCESS_AND_COORDINATION_REPORT, ALTERNATIVE_AND_TRADEOFF_MATRIX, INDEPENDENT_VALIDATION_PACKAGE, TEST_RUN_RECEIPT, UNKNOWN_REGISTRY, AI_HANDOFF]
 
 work_process_reporting:
-  required_moments:
-    - LEASE_CLAIM
-    - MATERIAL_CHECKPOINT
-    - BLOCKER_OR_ESCALATION
-    - HANDOFF_OR_ROUTE_CHANGE
-    - COMPLETION
-  mandatory_sections:
-    - PRIMARY_WORK_AND_PROCESS_TRACE
-    - DIFFICULTY_AND_COMPLEXITY
-    - NEW_AND_UNEXPECTED_DISCOVERIES
-    - EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES
-    - UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS
-    - PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS
-    - COORDINATION_REQUESTS
-    - CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT
-    - DECISIONS_ALTERNATIVES_AND_LESSONS
-    - NEXT_ACTION_AND_GATE
+  required_moments: [LEASE_CLAIM, MATERIAL_CHECKPOINT, BLOCKER_OR_ESCALATION, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
+  mandatory_sections: [PRIMARY_WORK_AND_PROCESS_TRACE, DIFFICULTY_AND_COMPLEXITY, NEW_AND_UNEXPECTED_DISCOVERIES, EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES, UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS, PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS, COORDINATION_REQUESTS, CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT, DECISIONS_ALTERNATIVES_AND_LESSONS, NEXT_ACTION_AND_GATE]
   no_empty_section_rule: true
   none_values_require_checks_performed: true
   difficulty_scale: [D0_ROUTINE, D1_MODERATE, D2_HARD, D3_VERY_HARD, D4_RESEARCH_UNKNOWN]
-  carry_forward_until_closed:
-    - D2_PLUS_DIFFICULTIES
-    - S2_PLUS_DISCOVERIES
-    - OPEN_COORDINATION_REQUESTS
-    - UNRESOLVED_HARD_PROBLEMS
-    - NEGATIVE_RESULTS_WITH_DECISION_IMPACT
-  invalid_report_patterns:
-    - "BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_REQUEST"
-    - "DIFFICULTY_WITHOUT_EVIDENCE"
-    - "IDEA_WITHOUT_OWNER_TRIGGER_AND_GATE"
-    - "PLACEHOLDER_OR_BLANK_MANDATORY_SECTION"
-    - "COMPLETION_SIGNAL_WITHOUT_CUMULATIVE_REPORT"
+  carry_forward_until_closed: [D2_PLUS_DIFFICULTIES, S2_PLUS_DISCOVERIES, OPEN_COORDINATION_REQUESTS, UNRESOLVED_HARD_PROBLEMS, NEGATIVE_RESULTS_WITH_DECISION_IMPACT]
+  invalid_report_patterns: [BLOCKED_WITHOUT_ATTEMPTS_AND_EXACT_REQUEST, DIFFICULTY_WITHOUT_EVIDENCE, IDEA_WITHOUT_OWNER_TRIGGER_AND_GATE, PLACEHOLDER_OR_BLANK_MANDATORY_SECTION, COMPLETION_SIGNAL_WITHOUT_CUMULATIVE_REPORT]
+
+proactive_task_assignment:
+  required_before_READY:
+    - "Mode and reason."
+    - "Fundamental goal, causal mechanism, success, failures and stops."
+    - "Minimum delivery separated from executor-controlled choices."
+    - "Meaningful bounded initiative and A/B/C/D authority."
+    - "Seven mandatory discovery questions."
+    - "Expected difficulty, UNKNOWNs, blocker evidence and abstention."
+    - "Coordination owners, exact requests, unaffected work and closure gates."
+    - "System-feedback destinations and GPT acceptance boundary."
+    - "Exploration, branch, path, WIP, privacy, license, canonical and safety firewalls."
+    - "WPDCR and RTCE command semantics."
+  invalid_assignment_patterns: [LITERAL_CHECKLIST_WITH_NO_FUNDAMENTAL_GOAL, VAGUE_USE_YOUR_JUDGMENT_WITH_NO_AUTHORITY_BOUNDARY, DISCOVER_MORE_WITH_NO_QUESTIONS_BUDGET_OR_OUTPUT, DO_MORE_WITHOUT_VALUE_TEST_OR_ROLLBACK, PROPOSE_IDEAS_WITHOUT_OWNER_TRIGGER_COST_RISK_AND_GATE, BLOCKED_ALLOWED_WITHOUT_ATTEMPTS_AND_EXACT_COORDINATION_REQUEST, SYSTEM_FEEDBACK_WITHOUT_GPT_ACCEPTANCE_BOUNDARY, AUTONOMY_THAT_CHANGES_SCOPE_OWNER_CANONICAL_PERMISSION_OR_SAFETY, READ_TASK_MEANS_SUMMARY_ONLY]
+  READY_gate: >-
+    A non-trivial task may not be READY when proactive mission assignment, discovery questions, difficulty/UNKNOWN duties,
+    coordination design, system-feedback targets, exploration/firewalls, WPDCR or read-claim-execute semantics are absent.
   active_task_inheritance: >-
-    Existing active tasks inherit the reporting obligation without changing task_id, route_epoch, branch, PR, scope or completion signal.
-    No route reissue is required solely for adopting this protocol.
+    Existing tasks inherit better-method, discovery, unresolved-problem, precise-coordination, system-feedback and read-claim-execute
+    duties without expanding scope or authority. Reissue only when route, scope, ownership or safety boundary changes.
 
-fact_classes:
-  - VERIFIED_REPOSITORY
-  - VERIFIED_LOCAL
-  - VERIFIED_OFFICIAL_SOURCE
-  - VERIFIED_TEST
-  - INFERENCE
-  - INHERITED_REPORT
-  - ACCESS_NOT_AVAILABLE
-  - UNKNOWN
-
-proposal_dispositions:
-  - ACCEPT_IN_CURRENT_TASK
-  - PROPOSE_FOLLOW_UP
-  - PROPOSE_ARCHITECTURE_DECISION
-  - PROPOSE_NEW_SKILL
-  - PROPOSE_DEPRECATION
-  - NEEDS_INDEPENDENT_RESEARCH
-  - NEEDS_USER_DECISION
-  - REJECTED_AFTER_RESEARCH
-  - UNKNOWN
+fact_classes: [VERIFIED_REPOSITORY, VERIFIED_LOCAL, VERIFIED_OFFICIAL_SOURCE, VERIFIED_TEST, INFERENCE, INHERITED_REPORT, ACCESS_NOT_AVAILABLE, UNKNOWN]
+proposal_dispositions: [ACCEPT_IN_CURRENT_TASK, PROPOSE_FOLLOW_UP, PROPOSE_ARCHITECTURE_DECISION, PROPOSE_NEW_SKILL, PROPOSE_DEPRECATION, NEEDS_INDEPENDENT_RESEARCH, NEEDS_USER_DECISION, REJECTED_AFTER_RESEARCH, UNKNOWN]
 
 gpt_second_pass_gates:
   - TASK_ASSIGNMENT_INITIATIVE_QUALITY_GATE
@@ -280,15 +163,7 @@ gpt_second_pass_gates:
   - SYSTEM_EVOLUTION_GATE
   - NEXT_ACTION_GATE
 
-gpt_verdicts:
-  - ACCEPTED
-  - ACCEPTED_WITH_BOUNDED_AMENDMENT
-  - REMEDIATION_REQUIRED
-  - INDEPENDENT_VALIDATION_REQUIRED
-  - SPLIT_INTO_NEW_TASK
-  - ARCHITECTURE_DECISION_REQUIRED
-  - USER_DECISION_REQUIRED
-  - REJECTED
+gpt_verdicts: [ACCEPTED, ACCEPTED_WITH_BOUNDED_AMENDMENT, REMEDIATION_REQUIRED, INDEPENDENT_VALIDATION_REQUIRED, SPLIT_INTO_NEW_TASK, ARCHITECTURE_DECISION_REQUIRED, USER_DECISION_REQUIRED, REJECTED]
 
 anti_scope_explosion:
   primary_task_must_complete_first: true
@@ -298,7 +173,6 @@ anti_scope_explosion:
   executor_cannot_self_approve_major_expansion: true
   every_proposal_requires_owner_gate_and_close_condition: true
   reporting_difficulty_does_not_authorize_scope_expansion: true
-  better_than_minimum_does_not_mean_more_features: true
 
 local_runtime_credentials:
   policy: "LOCAL_CREDENTIAL_DIRECT_USE_AND_NON_EXPORT"
@@ -311,7 +185,6 @@ local_runtime_credentials:
   raw_secret_reporting: false
   repository_secret_write: false
   remote_secret_publication: false
-  overrides_generic_credentials_denied_for_local_runtime_use: true
   does_not_authorize_source_admission: true
   does_not_authorize_account_order_or_trade: true
 
@@ -319,7 +192,6 @@ security_and_trade:
   direct_main_write: false
   auto_merge: false
   local_task_credentials_allowed_under_canonical_protocol: true
-  credentials_denied_globally: false
   remote_secret_disclosure_denied: true
   repository_secret_write_denied: true
   broker_account_access_denied: true
@@ -327,4 +199,4 @@ security_and_trade:
   bypass_license_paywall_captcha_denied: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T05:01:00+08:00"
+updated_at: "2026-07-31T05:28:00+08:00"
