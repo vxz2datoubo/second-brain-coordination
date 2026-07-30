@@ -1,0 +1,115 @@
+schema_version: "2.0"
+record_type: "TaskImpactForecast"
+task_id: "CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25"
+agent: "CODEX"
+mode: "target"
+route_epoch: 26
+reviewed_base: "3dd2bf116d018a2dfa132cdbb22de5fd11547d61"
+owner_pr: 106
+task_weight: "STANDARD"
+research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
+
+first_principles:
+  real_goal: >-
+    Ensure Gate B counts only invariants that can pass on a valid artifact and fail on an
+    actually constructed controlled violation, while binding every signature and receipt
+    claim to the exact execution and immutable control-plane anchors that produced it.
+  causal_mechanism:
+    - "Replace boolean-inversion oracle self-certification with executable predicate, violation-constructor and evidence-oracle triples."
+    - "Retain exact execution artifacts and derive signatures from those objects, eliminating duplicated constructor formulas and re-execution drift."
+    - "Make cumulative ledgers append-only in meaning and publish all mandatory lease/freshness evidence with external receipt anchors."
+  constraints:
+    - "Same Draft PR #106 and branch; no new PR, merge or history rewrite."
+    - "Exactly one corrective substantive tested commit plus one receipt-only commit from 3dd2bf116d018a2dfa132cdbb22de5fd11547d61."
+    - "Synthetic-only candidate evaluation; production D2 and later gates remain frozen."
+    - "Preserve E24 truthful reduced counts unless new executable evidence justifies a further truthful change."
+  key_evidence:
+    - "E24 tested head b708dee265278682a2921a91047cae877d6b7ad2 and receipt head 3dd2bf116d018a2dfa132cdbb22de5fd11547d61."
+    - "evaluation_v2_harness.py lines 100-107 implement `_invariant_oracle` as registered-ID check plus boolean inversion."
+    - "run_evaluation invokes `_invariant_oracle(spec.predicate_id, False)` without constructing a violating artifact."
+    - "E24 receipt and AMED execution receipt omit mandatory completion-freshness fields and cumulative evidence was shortened."
+    - "GitHub Actions run 30535795631 genuinely ran 35 focused tests on Python 3.11 and 3.13; this is reusable, not sufficient for Gate B acceptance."
+  failure_modes:
+    - "Violation factories create decorative changes that do not make the named predicate fail."
+    - "Failure oracle and predicate share the same trivial boolean and therefore reproduce common-mode error."
+    - "Exact execution artifacts are discarded and signature inputs are regenerated from parallel formulas."
+    - "Receipt fields are present but not tied to immutable full-SHA anchors or exact command hashes."
+    - "Historical negatives and unknowns disappear during cumulative file updates."
+  alternatives_considered:
+    - option: "Accept E24 because CI is green."
+      disposition: "REJECTED"
+      reason: "CI executes the current self-certifying test and therefore cannot establish the missing controlled violation semantics."
+    - option: "Fix receipts only."
+      disposition: "REJECTED"
+      reason: "Would leave the central invariant-oracle defect untouched."
+    - option: "Replace Evaluation V2 or modify production D2."
+      disposition: "PROHIBITED"
+      reason: "The defect is bounded to the evaluator and evidence layer."
+    - option: "Narrow E25 on the same PR with one tested and one receipt commit."
+      disposition: "SELECTED"
+      reason: "Preserves reusable E23/E24 work while directly closing the residual correctness and governance defects."
+
+expected_positive_benefits:
+  - id: "E25-BENEFIT-01"
+    benefit: "Every named invariant has real positive and controlled-negative executable evidence."
+    validation_signal: "For all ten predicate families, valid fixture returns true, controlled violation returns false, and named oracle emits predicate-specific evidence."
+  - id: "E25-BENEFIT-02"
+    benefit: "Catalog distinctness becomes trace-bound rather than formula-bound."
+    validation_signal: "The same exact execution artifacts feed outcome checks and signature construction; divergence mutation tests fail closed."
+  - id: "E25-BENEFIT-03"
+    benefit: "Completion evidence becomes independently reproducible and freshness-safe."
+    validation_signal: "All lease protocol fields, exact commands, exits, hashes, CI jobs, archive seeds and external full-SHA anchors are present and verified."
+  - id: "E25-BENEFIT-04"
+    benefit: "Engineering history remains cumulative instead of being silently compressed."
+    validation_signal: "E22-E24 negative results, discoveries, improvements and UNKNOWN entries remain available alongside E25 records."
+
+expected_negative_impacts:
+  - id: "E25-RISK-01"
+    impact: "Controlled corruption fixtures may increase test complexity and runtime."
+    control: "Use a small registry of ten predicate families and reuse each violation across mapped invariant rows; record runtime in CI."
+  - id: "E25-RISK-02"
+    impact: "Constructing invalid immutable carriers may accidentally test dataclass mechanics rather than the intended invariant."
+    control: "Each violation case must name the changed field, expected predicate failure and independent evidence code; include negative controls."
+  - id: "E25-RISK-03"
+    impact: "Cumulative receipts may become verbose."
+    control: "Use structured epoch-scoped matrices and concise shared indexes without deleting prior evidence."
+  - id: "E25-RISK-04"
+    impact: "A further truthful count reduction may appear to be regression."
+    control: "Treat count reductions as corrections when duplicate execution traces are proven; preserve removed-row mapping."
+
+execution_cost:
+  engineering_complexity: "MEDIUM"
+  expected_changed_surface: "Evaluation V2 package plus minimal authorized workflow adjustment"
+  opportunity_cost: "Issue #108 and Gate C remain queued until Gate B is truthful"
+  rollback_cost: "LOW; revert E25 receipt commit then E25 substantive commit"
+
+net_value:
+  expected: "HIGH_POSITIVE"
+  rationale: >-
+    The task prevents a green-but-self-certifying evaluation gate from releasing later work.
+    It is narrow, reversible and reuses the majority of E23/E24 implementation and CI investment.
+
+observable_signals:
+  - "Controlled violation registry has exactly ten known predicate families and no unknown/orphan entry."
+  - "Each predicate is observed true on valid input and false on its constructed violation."
+  - "Named oracle evidence is derived from the violating object and is not equal to a caller-provided boolean."
+  - "Execution trace provenance matrix links fixture construction, executed artifact, observed relation and signatures."
+  - "Python 3.11/3.13 CI executes E25 tests and public runner."
+  - "Three clean archives produce stable, clearly labeled canonical-report and stdout hashes."
+  - "Final comments externally anchor the full receipt SHA in PR #106 and Issue #23."
+
+stop_and_escalation:
+  - "A controlled violation requires production D2 modification or violates another system-of-record owner."
+  - "Remote route or PR head changes before lease claim or completion revalidation."
+  - "Any real data, secret, account, order, trade or Gate C/D work appears."
+  - "The correction cannot preserve E23/E24 accepted behavior without a broader architecture change."
+
+post_delivery_calibration_required:
+  compare_expected_and_actual: true
+  classify_deviation_as:
+    - FORECAST_ERROR
+    - EXECUTION_ERROR
+    - ENVIRONMENT_CHANGE
+    - MEASUREMENT_ERROR
+    - UNKNOWN_UNKNOWN
+  required_reviewer: "GPT"
