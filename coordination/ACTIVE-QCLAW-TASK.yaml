@@ -1,45 +1,65 @@
-schema_version: "30.0"
+schema_version: "31.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
-read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 
 active_issue: 59
-related_issues: [23, 31, 38, 60, 92]
-parent_program: 31
-source_issue: 59
 owner_pr: 100
 branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
-reviewed_or_base_head: "ca3b6b7e638b7f4f42cc58b2b0dbe1025672eb99"
-reviewed_e22_tested_head: "4733f186439a580f31e136bf429a4de5ad8476c2"
-reviewed_e22_receipt_head: "ca3b6b7e638b7f4f42cc58b2b0dbe1025672eb99"
+parent_program: 31
+source_issue: 59
+reviewed_or_base_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
 
-task_id: "QCLAW-PR100-EXACT-RUNTIME-MATRIX-ARCHIVE-REPLAY-RECEIPT-AND-WPDCR-TRUTH-CLOSURE-0025-E23"
-route_epoch: 23
+task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
+route_epoch: 24
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】PR #100精确3.11/3.13矩阵、Archive真实回放、Receipt与WPDCR真值闭环E23"
+mode_label: "【QCLAW模式：目标模式】E23共享CI、D2权威、自证环、Archive、WPDCR与Handoff重建E24"
 mode_reason: >-
-  E22 improved symbolic commands and result semantics, but completion truth failed: Python 3.12 substituted for required 3.13,
-  completion signal was renamed, no relevant CI exists, D05 uses short wrong commit and archive-creation-only evidence, cumulative
-  handoff remains E18, mandatory reports are absent and the claimed receipt-only commit is empty.
+  E23 source changes contain some reusable intent but the completion claim fails: no lease/checkpoint/completion anchor, no visible CI,
+  shared project CI was replaced, D2 authority was reconstructed into a candidate-owned self-proof loop, WPDCR is a file inventory,
+  and E18 remains top-level handoff authority. Repair remains bounded to PR #100 Gate B.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-route_issued_at: "2026-07-31T16:08:00+08:00"
-route_issued_against_main: "e9ed51ccfe70fb87f95c0e51d397bb310c06acf8"
-completion_signal: "QCLAW_E23_PR100_EXACT_311_313_CI_ARCHIVE_REPLAY_RECEIPT_AND_WPDCR_TRUTH_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW"
 
-role_class: "PRIMARY_SYSTEM_MAINTENANCE"
-temporary_borrow: false
-return_to_primary_role:
-  issues: [59, 60]
-  condition: "After GPT E23 disposition, return to QCLAW knowledge digestion and memory-supply mainline."
+model_reasoning_execution_profile:
+  preferred_model: "gpt-5.6-terra"
+  reasoning_effort: "high"
+  execution_intensity: "X2_SUSTAINED"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  minimum_model: "gpt-5.6-terra"
+  allowed_upgrade: {model: "gpt-5.6-sol", reasoning_effort: "xhigh", execution_intensity: "X3_DEEP"}
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+
+supersedes:
+  task_id: "QCLAW-PR100-EXACT-RUNTIME-MATRIX-ARCHIVE-REPLAY-RECEIPT-AND-WPDCR-TRUTH-CLOSURE-0025-E23"
+  route_epoch: 23
+  delivered_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+  classification: "E23_PARTIAL_INTENT_REUSABLE_BUT_SHARED_CI_AUTHORITY_ARCHIVE_WPDCR_HANDOFF_AND_PROCESS_TRUTH_FAILED"
+  reusable:
+    - "Two-commit shape includes a non-empty evidence commit."
+    - "Literal E23 signal and nominal 3.11/3.13 matrix intent are present."
+    - "Negative-history and outcome-calibration file concepts are reusable after full-SHA and evidence correction."
+  not_accepted:
+    - "No E23 lease claim, first substantive action, checkpoint or external completion anchor."
+    - "No workflow run or commit status for 09b03df."
+    - "Shared Phase-3 workflow was replaced and lost existing regressions and public-safety scan."
+    - "Workflow only runs generator and validator; no 42-case, exact-set, receipt, archive or WPDCR verification."
+    - "actions and PyYAML are unpinned relative to current project standard."
+    - "Candidate-owned d2_game_core.py was reconstructed from snapshot and snapshot hash was changed from accepted full-file 33a7... to local self-copy df419...."
+    - "AI_HANDOFF remains E18 at the top and retains fixed QClaw Python plus 3.12 evidence."
+    - "E23-WPDCR is only a 17-file hash/size list, not enterprise WPDCR."
+    - "TEST-RUN-RECEIPT records only generator/validator exits and no commands, streams, cases, archive or CI identity."
+    - "Required E23 archive/runtime, portable-command, exact-set, AMED, research, unknown and system-discovery artifacts are absent."
+  completion_credit: false
 
 command_execution_contract:
   on_trigger: "VERIFY_CANONICAL_REMOTE_CLAIM_AND_EXECUTE_NOW"
@@ -47,150 +67,65 @@ command_execution_contract:
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify canonical head ca3b6b7, claim E23 and complete the first runtime-matrix, archive-replay or receipt-topology correction;
-    continue to checkpoint, truthful blocker or completion.
-  lease_acknowledgement_must_confirm:
-    - "读取任务 means canonical verify, claim and execute immediately."
-    - "Route epoch 23, Issue #59, PR #100, branch, base and literal completion signal match canonical main."
-    - "Python 3.11 plus 3.12 is not a substitute for required 3.11 plus 3.13."
-    - "E22 renamed signal, short 5154bf5 archive claim and empty receipt commit are negative history, not completion proof."
+    Claim E24 and perform the first real restoration action: verify and restore the shared workflow from canonical main or remove the
+    candidate-owned D2 self-proof surface; continue to checkpoint, truthful blocker or completion.
+  lease_must_confirm: ["canonical main", "task_id", "route_epoch 24", "Issue #59", "PR #100", "branch", "base 09b03df", "literal completion signal", "model profile", "R0/R1 envelope"]
 
-supersedes:
-  - task_id: "QCLAW-PR100-E21-EVIDENCE-PROVENANCE-SELF-AUDIT-EXACT-COMMIT-CI-AND-CUMULATIVE-TRUTH-CLOSURE-0024-E22"
-    route_epoch: 22
-    tested_head: "4733f186439a580f31e136bf429a4de5ad8476c2"
-    receipt_head: "ca3b6b7e638b7f4f42cc58b2b0dbe1025672eb99"
-    disposition: "SYMBOLIC_COMMAND_AND_RESULT_SEMANTICS_REUSABLE_EVIDENCE_TRUTH_FAILED"
-    reusable:
-      - "Symbolic command capture and removal of command truncation in new runner output."
-      - "Correct EXPECTED_FAIL/UNEXPECTED_PASS/PASS/UNEXPECTED_FAIL semantics."
-      - "Forty-two adversarial case scaffold."
-      - "Local Python 3.11 and 3.12 42-case results as non-route candidate evidence only."
-    not_accepted:
-      - "Python 3.12 substitution for route-required Python 3.13."
-      - "No relevant GitHub workflow run for tested or receipt head and no workflow change."
-      - "Completion signal differs from the route literal."
-      - "D05 E22 section uses short 5154bf5 rather than remote tested 4733f186 and keeps stale E21 evidence in the active carrier."
-      - "Archives are created and hashed but not extracted and executed in three roots."
-      - "Seed labels as proof of independent execution, with no root identities, commands, exits, streams or per-artifact equality."
-      - "AI_HANDOFF remains E18 at the authoritative top and still instructs fixed QClaw Python."
-      - "Mandatory E21/E22 invalid-evidence disposition and E22 WPDCR files are absent."
-      - "ca3b6b7 is an empty commit; cumulative evidence was placed in tested commit rather than a non-empty receipt-only commit."
-    completion_credit: false
-
-review_disposition:
-  classification: "E22_SYMBOLIC_RUNNER_AND_RESULT_SEMANTICS_REUSABLE_BUT_EXACT_RUNTIME_ARCHIVE_REPLAY_RECEIPT_WPDCR_AND_SIGNAL_TRUTH_FAILED"
-  gate_b: "NOT_ACCEPTED_E23_REMEDIATION_ACTIVE"
-  gate_c: "FROZEN"
-  gate_d: "FROZEN"
-  gate_e: "FROZEN"
-  issue92: "BLOCKED_NOT_RELEASED"
-  merge: false
-
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
-visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
-pder_protocol: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
-initiative_constitution: "coordination/GOVERNANCE/DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-CONSTITUTION-v1.0.yaml"
-proactive_mission_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
-work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
-amed_policy: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
-amed_task_brief: "coordination/TASK-BRIEFS/QCLAW-PR100-EXACT-RUNTIME-MATRIX-ARCHIVE-REPLAY-RECEIPT-AND-WPDCR-TRUTH-CLOSURE-0025-E23-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-EXACT-RUNTIME-MATRIX-ARCHIVE-REPLAY-RECEIPT-AND-WPDCR-TRUTH-CLOSURE-0025-E23.yaml"
-archive_runtime_template: "coordination/TEMPLATES/EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE-TEMPLATE-v1.0.yaml"
-
-task_weight: "STANDARD"
-research_trigger_level: "L1_REUSE_AND_QUICK_CHECK"
-exploration_budget:
-  primary_delivery_share: "85%"
-  active_discovery_share: "10%"
-  system_opportunity_share: "5%"
-  max_new_architecture_proposals: 1
-  max_new_skill_candidates: 1
-  max_unplanned_files: 3
-  scope_expansion_without_gate: false
-
-autonomy_grant:
-  level: "ENHANCED_BOUNDED"
-  may_choose:
-    - "Exact branch workflow_dispatch or explicit checkout-ref method."
-    - "Portable archive replay, exact-set validator and receipt evidence layout."
-  must_act_without_micro_approval:
-    - "Audit all E21/E22 artifacts for stale epoch, path, runtime, signal and commit truth."
-    - "Use the enterprise archive/runtime template and exact WPDCR contract."
-    - "Report discoveries, failures, unresolved problems, exact coordination and system feedback."
-  may_not_choose:
-    - "Different task, PR, branch, Gate, owner, canonical runtime, permission or safety boundary."
-
-hard_boundaries:
-  - "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
-  - "No Gate C/D/E, Issue #92, canonical promotion or edits to Codex/WorkBuddy ownership."
-  - "No private/licensed source publication, secrets, real data, accounts, orders or trading."
-  - "No amend, rebase, reset, force push, merge or direct main write."
+protocols:
+  read_claim_execute: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+  lease_completion: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  proactive_mission: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+  autonomy: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
+  model_routing: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
+  WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
+  task_brief: "coordination/TASK-BRIEFS/QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24.yaml"
 
 allowed_changed_files:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/**"
   - ".github/workflows/phase3-integrated-offline-memory.yml"
+  - ".github/workflows/qclaw-pr100-e24-evidence.yml"
 
 required_results:
-  - "Preserve E21/E22 invalid evidence explicitly; do not relabel it as valid."
-  - "Create one E23 tested commit and run exact-branch CI checking out its full SHA on Python 3.11 and 3.13."
-  - "Run generator, validator, 42-case runner, receipt validator and archive replay on both required versions."
-  - "Create three distinct extracted roots from exact tested commit and execute full root-contained commands in each."
-  - "Record root identities, full commands, exits, streams and per-artifact hash/size equality."
-  - "Exactly reconcile 42 expected IDs, JSON and receipts on both runtimes."
-  - "Replace stale handoff with genuinely cumulative E23 WPDCR/AMED/quality/supply/UNKNOWN evidence."
-  - "After CI passes create one later non-empty receipt-only commit containing no executable changes."
-  - "Post exact tested/receipt SHAs and literal E23 completion signal in PR #100 and Issue #59."
-
-mandatory_tests:
-  - "3.11/3.12 or any wrong runtime version set fails closed."
-  - "Renamed completion signal fails closed."
-  - "Short/wrong/ancestor tested SHA and CI checkout mismatch fail closed."
-  - "Archive creation without extraction/execution, repeated root, external command path and artifact drift fail closed."
-  - "Missing/extra/duplicate/drifted case or outcome fails exact-set validation."
-  - "Empty receipt commit, stale E18 handoff and missing WPDCR section fail closed."
-  - "Historical E17-E22 negative evidence and 42-case catalog remain present."
+  - "Restore shared phase3 workflow exactly to canonical main-at-claim blob and record that blob SHA."
+  - "Add a dedicated QQ E24 workflow with exact tested-SHA identity on Python 3.11 and 3.13."
+  - "Run generator, validator, 42-case runner, exact-set, receipt, archive, WPDCR and public-safety checks."
+  - "Delete candidate-owned reconstructed d2_game_core.py and restore D2 snapshot to accepted commit d6f9e2e4... and full-file hash 33a7d821...."
+  - "Verify D2 through canonical exact-commit/archive source, not a candidate-owned duplicate."
+  - "Execute three distinct exact-tested-commit archive roots with root-contained full commands, exits, stream hashes and per-artifact equality."
+  - "Replace stale top-level E18 handoff with cumulative E24 authority and preserve E18-E23 only as history."
+  - "Deliver full WPDCR union including AUTONOMOUS_REMEDIATION_LEDGER and MODEL_REASONING_AND_EXECUTION_PROFILE."
+  - "After final tested head is green, create one later non-empty receipt-only commit and post full-SHA anchors."
 
 commit_shape:
-  reviewed_base: "ca3b6b7e638b7f4f42cc58b2b0dbe1025672eb99"
-  substantive:
-    count: 1
-    requirement: "All E23 code/tests/workflow corrections; pass exact-branch 3.11/3.13 CI before receipt."
-  receipt:
-    count: 1
-    requirement: "Later non-empty receipt-only cumulative evidence; no executable changes."
-  prohibited: [amend, rebase, reset, force_push, merge, direct_main_write]
+  planned_corrective_substantive_commits: 1
+  BAR_MBR_additional_R0_R1_commits: 2
+  final_non_empty_receipt_only_commits: 1
+  receipt_after_final_green_only: true
+  prohibited: [amend, reset, rebase, force_push, merge, direct_main_write]
 
-mandatory_delivery_artifacts:
-  - "E21-E22-INVALID-EVIDENCE-DISPOSITION.yaml"
-  - "E23-EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE.yaml"
-  - "E23-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
-  - "E23-PORTABLE-COMMAND-LEDGER.json"
-  - "E23-ARCHIVE-PROVENANCE-MATRIX.yaml"
-  - "E23-TEST-RUN-RECEIPT-3-11.md"
-  - "E23-TEST-RUN-RECEIPT-3-13.md"
-  - "E23-OUTCOME-CALIBRATION.yaml"
-  - "AI_HANDOFF.yaml"
-  - "QUALITY-GATE-REPORT.md"
-  - "SUPPLY-CHAIN-HASH-VERIFICATION.yaml"
-  - "D05-COMMAND-EVIDENCE.yaml"
-  - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
-  - "AMED-RESEARCH-LEDGER.yaml"
-  - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
-  - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-  - "UNKNOWN-REGISTRY.yaml"
+remediation_envelope:
+  allowed_classes: [R0_ROUTINE_LOCAL_REPAIR, R1_BOUNDED_TOOL_RUNTIME_TEST_OR_PORTABILITY_REPAIR]
+  max_attempt_cycles: 5
+  max_unplanned_files: 5
+  max_dependency_additions: 1
+  max_workflow_files_changed: 2
+  max_external_cost: 0
+  persistent_environment_change_allowed: false
 
-visibility_checkpoints:
-  - percent: 10
-    required: "Lease plus first runtime/signal/archive/receipt correction."
-  - percent: 45
-    required: "Exact-set, stale-handoff and receipt-topology validators."
-  - percent: 75
-    required: "Three real archive replays and exact-branch Python 3.11/3.13 CI."
-  - percent: 100
-    required: "Exact WPDCR, non-empty receipt-only commit and external full-SHA anchors."
-  escalation: "S3/S4 or D3/D4 immediately with exact coordination request."
+mandatory_tests:
+  - "Shared workflow drift fails closed."
+  - "Candidate-owned D2 duplicate or self-referential snapshot fails closed."
+  - "Wrong runtime set, wrong checkout SHA, absent CI, short SHA and renamed signal fail closed."
+  - "Archive creation without three extracted executions, repeated roots, external paths and artifact drift fail closed."
+  - "Missing/extra/duplicate/drifted 42-case IDs or outcomes fail exact-set validation."
+  - "E18 top-level handoff, flat WPDCR, missing autonomy/model sections and empty receipt fail closed."
 
-after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS_DO_NOT_ENTER_GATE_C_D_E_OR_ISSUE_92"
+hard_boundaries:
+  - "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+  - "No canonical D2 edits, Gate C/D/E, Issue #92, Codex/WorkBuddy surfaces, private/licensed source publication, production, account, order, trade or merge."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+updated_by: "GPT"
+updated_at: "2026-07-31T23:48:00+08:00"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
