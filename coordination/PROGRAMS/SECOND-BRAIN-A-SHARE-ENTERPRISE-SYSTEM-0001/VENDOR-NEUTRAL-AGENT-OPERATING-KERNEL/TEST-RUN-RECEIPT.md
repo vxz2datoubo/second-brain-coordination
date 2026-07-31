@@ -123,12 +123,24 @@ public-neutrality test. Commit `7ff9637` replaces it with a fixed repository
 layout reference; the three subsequent clean-archive runs passed. This is a
 test-hardening finding, not evidence of runtime activation.
 
-## E29 Current-Head Revalidation
+## E29 Final Tested Evidence
 
-The E29 route revalidated PR #107 head `ccbdcd27a8e4da0b653de3c387a18e87e3a33e92`
-before adding the bounded K2 specifications and disabled K3/K4 gate contracts.
-The current local suite reports `PASS_91_OF_91`; the machine-readable verifier
-also checks a frozen 91-case manifest, exact commit/tree identity when Git
-metadata is present, strict YAML, Draft 2020-12 instances, AST, secret,
-raw-capture and vendor-leakage scans. Final tested-head hashes and archive
-roots are intentionally left for the post-implementation green run.
+The E29 route revalidated PR #107 from reviewed head
+`ccbdcd27a8e4da0b653de3c387a18e87e3a33e92` and finished at tested head
+`686518aa93e37613d6c8e4ab936d0fdd816b403c` with tree
+`4b95f956eb0bd120deff2d3462fa0da9077843bc`. The substantive E29 commit is
+`e16878a4007e67718d6419d0f7fa9dca490dfa7a`; the two bounded corrective commits
+are `b8332f7b33c56c1ed9898e37cbcee2b688072018` and
+`686518aa93e37613d6c8e4ab936d0fdd816b403c`.
+
+The local command passed 91/91 tests. The pull-request CI run
+`30669990210` passed on Python 3.11 and 3.13 with 51 changed files scanned,
+21 AST files, 14 strict YAML files, 0 secret matches, 0 raw-capture files and
+0 vendor-leakage matches. The manual corroborating run was `30669990212`.
+
+Three clean archive runs under `PYTHONHASHSEED=1`, `2` and `3` produced the
+same machine-readable report hash:
+`f04fc18f4d7f34fb24cb5242511e1d7af7b641dfff7d60466b05f4d167d758cc`.
+The verifier reported exact head/tree context, Draft 2020-12 validation,
+strict duplicate-key rejection and a frozen 91-case manifest. Adapter
+implementation, cross-model evaluation and shadow activation remain disabled.
