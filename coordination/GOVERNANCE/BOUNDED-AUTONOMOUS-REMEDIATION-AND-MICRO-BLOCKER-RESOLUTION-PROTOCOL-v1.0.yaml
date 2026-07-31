@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-0001"
 short_name: "BAR-MBR"
 chinese_name: "有界自主补障与微阻塞消解协议"
@@ -8,247 +8,113 @@ applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
 mandatory_overlay_over:
   - "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
   - "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
-  - "coordination/TEMPLATES/AMED-TASK-BRIEF-TEMPLATE-v1.0.yaml"
 task_section_template: "coordination/TEMPLATES/AUTONOMOUS-REMEDIATION-ENVELOPE-TEMPLATE-v1.0.yaml"
 boundary: "PUBLIC_SAFE / authority_bounded / research_only / NO_TRADE unless separately authorized"
 
 purpose: >-
-  Give executors enough authority to resolve ordinary in-task blockers without repeated stop-report-read cycles, while preventing
-  local repairs from silently changing acceptance criteria, architecture, ownership, canonical authority, security, privacy,
-  licensing, external cost or production/trading boundaries. Every autonomous action remains evidence-bearing and must be included
-  in the cumulative WPDCR report.
-
-adjudication:
-  worth_doing: true
-  verdict: "ADOPT_AS_DEFAULT_WITH_EXPLICIT_ENVELOPE_AND_FAIL_CLOSED_ESCALATION"
-  current_system_state: >-
-    Existing PMA-BIG already grants A/B initiative and WPDCR already requires process/failure reporting, so this is not a new
-    philosophy. The missing layer is an operational boundary for tools, runtimes, dependencies, retries, compute/time and small
-    reversible changes, plus an explicit rule that micro-remediations are aggregated rather than reported one by one.
-  expected_benefits:
-    - "Fewer avoidable pauses and repeated task rereads."
-    - "Faster recovery from missing runtimes, tools, paths, APIs and ordinary CI failures."
-    - "More truthful evidence because the executor records attempts and repairs rather than hiding them."
-    - "Higher task completion rate without weakening standards."
-  principal_risks:
-    - "Scope creep disguised as blocker repair."
-    - "Acceptance-criteria substitution, such as using Python 3.12 instead of required 3.13."
-    - "Unreviewed dependency, license, supply-chain or security exposure."
-    - "Persistent environment drift or cross-agent ownership collision."
-    - "Compute/time consumption without proportional value."
-  risk_controls:
-    - "Six boundary tests before autonomous action."
-    - "Task-specific remediation budget."
-    - "No standard weakening or authority expansion."
-    - "Reversibility, tests and rollback required."
-    - "Cumulative remediation ledger plus immediate escalation triggers."
+  Let executors resolve ordinary in-task blockers without repeated stop-report-read loops while preventing repairs from changing
+  acceptance criteria, architecture, ownership, canonical authority, security, privacy, licensing, external cost, production or
+  trading boundaries. Every autonomous action remains testable, reversible and cumulatively reportable.
 
 core_rule: >-
-  When a problem can be solved inside the current fundamental goal, authorized paths and ownership, without weakening acceptance
-  criteria or crossing security/privacy/license/cost/canonical boundaries, and the change is reversible, testable and inside the
-  published remediation budget, the executor SHALL solve it autonomously and record it for the next scheduled checkpoint or
-  completion report. It SHALL NOT stop merely to request permission for that micro-remediation.
+  When a problem stays inside the current fundamental goal, authorized paths and ownership, preserves or strengthens every exact
+  requirement, is reversible and testable, adds no forbidden authority or external cost, and remains inside the published budget,
+  the executor SHALL solve it and aggregate the evidence at the next checkpoint or completion. It SHALL NOT stop merely for
+  micro-approval.
 
 six_boundary_tests:
-  T1_SAME_GOAL:
-    pass_when: "The action directly restores or improves delivery of the current task's fundamental goal."
-    fail_examples: ["starting a different feature", "entering a later Gate", "solving an adjacent agent's task"]
-  T2_SAME_AUTHORITY_AND_OWNERSHIP:
-    pass_when: "All edits and actions stay inside authorized paths, branch, PR, owner and system-of-record boundaries."
-    fail_examples: ["editing another agent branch", "direct main write", "changing canonical ownership"]
-  T3_NO_STANDARD_WEAKENING:
-    pass_when: "Acceptance criteria, required runtime matrix, tests, evidence and safety controls remain equal or stronger."
-    fail_examples: ["Python 3.12 substituted for required 3.13", "removing a failing test", "renaming a required signal"]
-  T4_REVERSIBLE_AND_TESTABLE:
-    pass_when: "The change has a bounded rollback and can be validated with deterministic or explicit evidence."
-    fail_examples: ["irreversible migration", "history rewrite", "destructive cleanup without preserved state"]
-  T5_NO_NEW_EXTERNAL_AUTHORITY_OR_RISK:
-    pass_when: "No new credentials, secrets, private data, paid service, ambiguous license, unrestricted network egress or production side effect is required."
-    fail_examples: ["buying a service", "requesting account credentials", "uploading private data", "installing an unreviewed binary"]
-  T6_INSIDE_REMEDIATION_BUDGET:
-    pass_when: "Attempts, files, dependencies, workflow edits, compute/time and external cost remain inside the task-published envelope."
-    fail_examples: ["unbounded retries", "multi-module redesign", "external spend above zero without approval"]
+  T1_SAME_GOAL: "Directly restores or improves the current task; no adjacent feature or later Gate."
+  T2_SAME_AUTHORITY_AND_OWNERSHIP: "Same branch, PR, owner, paths and system of record."
+  T3_NO_STANDARD_WEAKENING: "No runtime, model, test, signal, evidence or safety substitution."
+  T4_REVERSIBLE_AND_TESTABLE: "Bounded rollback and explicit validation exist."
+  T5_NO_NEW_EXTERNAL_AUTHORITY_OR_RISK: "No new credential, private data, paid service, ambiguous license, production side effect or unrestricted egress."
+  T6_INSIDE_REMEDIATION_BUDGET: "Attempts, files, dependencies, workflow changes, compute and cost remain within the task envelope."
 
 remediation_classes:
   R0_ROUTINE_LOCAL_REPAIR:
     action: "SOLVE_NOW_AND_AGGREGATE_REPORT"
-    description: "No semantic architecture change; local, reversible and low-risk."
-    examples:
-      - "Correct a path, quoting, encoding, environment variable or compatible API call."
-      - "Retry a transient network/read operation with bounded backoff."
-      - "Use an already approved tool or dependency correctly."
-      - "Remove generated unstaged cache files without touching tracked evidence."
-    reporting: "Record in AUTONOMOUS_REMEDIATION_LEDGER at next scheduled checkpoint or completion; no immediate interruption."
-  R1_BOUNDED_TOOL_RUNTIME_OR_TEST_REPAIR:
+    examples: ["path/quoting/encoding/environment correction", "bounded transient retry", "approved tool used correctly"]
+  R1_BOUNDED_TOOL_RUNTIME_TEST_OR_PORTABILITY_REPAIR:
     action: "SOLVE_NOW_VALIDATE_AND_AGGREGATE_REPORT"
-    description: "Small method/tool/runtime/workflow change inside explicit task authority."
     examples:
-      - "Install the exact missing Python runtime in an ephemeral CI or task-local environment from an official source."
-      - "Add the required Python 3.13 matrix entry without substituting another version."
-      - "Add a small helper, validator, test fixture or compatibility shim inside allowed paths."
-      - "Pin an approved package version/hash and record its source/license."
-    conditions:
-      - "Official or already approved source."
-      - "Task-local or ephemeral installation by default."
-      - "Exact requirement preserved."
-      - "Tests and rollback recorded."
-    reporting: "Aggregate at next scheduled checkpoint or completion unless a material approach change or D2+ difficulty occurs."
+      - "Install an exact required runtime in an official task-local or ephemeral environment."
+      - "Add an exact runtime matrix entry without adjacent-version substitution."
+      - "Add a small helper, validator, test fixture, compatibility shim or cross-platform path normalization."
+    conditions: ["official or approved source", "exact requirement preserved", "tests and rollback recorded"]
   R2_MATERIAL_BUT_REVERSIBLE_REPAIR:
-    action: "PROCEED_ONLY_IF_EXPLICITLY_PREAUTHORIZED_THEN_CHECKPOINT"
-    description: "Cross-file or workflow-level change with meaningful but bounded semantic impact."
-    examples:
-      - "One authorized workflow file change that alters execution topology."
-      - "One dependency addition with reviewed license and supply-chain evidence."
-      - "Small internal interface change whose consumers are entirely inside the same owned task surface."
-    requirements:
-      - "Named in task envelope or clearly inside its numeric budget."
-      - "Immediate remote checkpoint after first tested result."
-      - "No cross-agent or canonical interface impact."
+    action: "ONLY_IF_EXPLICITLY_PREAUTHORIZED_THEN_CHECKPOINT"
+    examples: ["one execution-topology workflow change", "one reviewed dependency", "small same-owner internal interface change"]
   R3_STOP_AND_COORDINATE:
     action: "STOP_PRESERVE_AND_REQUEST_EXACT_DECISION"
     triggers:
       - "Any boundary test fails."
-      - "Acceptance criteria, runtime requirement or evidence standard would change."
-      - "New credential, private data, paid cost, ambiguous license or external service is required."
-      - "Persistent system-wide installation or production environment change is required."
-      - "Canonical schema, public API, system of record, architecture, branch, PR, owner, Gate or authority would change."
-      - "Another agent's protected work or cross-agent interface is affected."
-      - "Destructive, irreversible, history-rewriting, merge, release, account, order or trading action is involved."
-      - "Budget would be exceeded or the repair has failed after the allowed attempt cycles."
-      - "Difficulty reaches D3/D4 or discovery reaches S3/S4."
-    report_shape:
-      - "exact blocker and failed boundary test"
-      - "attempts and observed evidence"
-      - "minimum permission, capability, access or decision needed"
-      - "affected and unaffected scope"
-      - "safe preserved state and rollback"
-      - "exact requested owner/action and closure condition"
+      - "A standard, runtime, model minimum, signal, evidence contract or safety boundary would change."
+      - "New credentials, private data, paid cost, ambiguous license, persistent system installation or external service is required."
+      - "Canonical schema/API/system-of-record, owner, branch, PR, Gate, production or trading scope would change."
+      - "Another agent surface, destructive/history-rewriting action, merge or release is affected."
+      - "Budget is exhausted or difficulty/discovery reaches D3/D4 or S3/S4."
+
+commit_topology_and_route_bridge:
+  principle: >-
+    Planned substantive commit counts describe the expected implementation shape, but SHALL NOT turn a later test-discovered R0/R1
+    defect into an avoidable governance deadlock. A bounded remediation commit may be added without amending or rewriting history
+    when all six tests pass.
+  default_standard_allowance:
+    max_additional_R0_R1_corrective_commits: 2
+    each_commit_must_be: "narrow, independently reviewable, inside allowed paths, and linked to one recorded remediation item"
+  hard_cap_rule: >-
+    A task may prohibit all additional corrective commits only when it explicitly labels the commit count as a safety-critical hard
+    cap and explains why. Merely saying exactly one substantive commit is not enough to disable BAR-MBR.
+  route_bridge_without_new_epoch:
+    allowed_when:
+      - "Task, fundamental goal, owner, PR, branch, Gate, completion signal and safety boundary remain unchanged."
+      - "The repair is R0/R1 and the current route merely omitted or contradicted the remediation allowance."
+    required_fields: [current_tested_head, discovered_defect, exact_allowed_surface, max_additional_commits, required_revalidation, receipt_condition]
+    behavior: "GPT may amend the active route in place; no empty new epoch or second task is required."
+  evidence_reset_rule: >-
+    After any corrective source commit, all acceptance evidence binds to the new final tested head. Earlier green CI remains diagnostic
+    only. The receipt-only commit is forbidden until every required platform, archive, test and validator is green on that final head.
+  prohibitions: [amend, reset, rebase, force_push, hidden_squash, receipt_mislabeling]
 
 runtime_and_tool_rules:
   exact_requirement_must_be_preserved: true
   adjacent_version_substitution_forbidden: true
-  preferred_installation_order:
-    - "existing approved local/runtime capability"
-    - "official task-local or ephemeral installer"
-    - "official CI setup action pinned to an approved major/full SHA when required"
-    - "small source-level compatibility shim inside allowed paths"
-    - "R3 coordination"
-  system_wide_persistent_install_default: "PROHIBITED_UNLESS_TASK_EXPLICITLY_AUTHORIZES"
-  paid_external_resource_default: "ZERO_WITHOUT_USER_OR_GPT_GATE"
-  unreviewed_binary_or_license: "R3_STOP_AND_COORDINATE"
-  evidence_required:
-    - "tool/runtime identity and exact version"
-    - "source and license status"
-    - "installation scope"
-    - "commands and exits"
-    - "files/environment changed"
-    - "validation and rollback"
-
-mandatory_task_remediation_envelope:
-  required_before_READY: true
-  required_fields:
-    - enabled
-    - allowed_classes
-    - allowed_problem_families
-    - exact_preserved_requirements
-    - allowed_paths_and_ownership
-    - max_autonomous_attempt_cycles
-    - max_unplanned_files
-    - max_dependency_additions
-    - max_workflow_files_changed
-    - max_compute_multiplier_or_share
-    - max_external_cost
-    - persistent_environment_change_allowed
-    - immediate_checkpoint_triggers
-    - stop_and_coordinate_triggers
-  default_when_task_omits_field: "FAIL_CLOSED_NOT_READY"
+  preferred_order: ["existing approved capability", "official task-local/ephemeral setup", "pinned official CI action", "small owned compatibility shim", "R3 coordination"]
+  persistent_system_install_default: "PROHIBITED_UNLESS_EXPLICIT"
+  external_cost_default: 0
+  evidence_required: ["identity/version/source/license", "installation scope", "commands/exits", "changed surface", "validation", "rollback"]
 
 recommended_default_budgets:
-  LIGHT:
-    allowed_classes: [R0]
-    max_autonomous_attempt_cycles: 2
-    max_unplanned_files: 1
-    max_dependency_additions: 0
-    max_workflow_files_changed: 0
-    max_compute_multiplier_or_share: "1.10x or 10%"
-    max_external_cost: 0
-  STANDARD:
-    allowed_classes: [R0, R1]
-    max_autonomous_attempt_cycles: 3
-    max_unplanned_files: 5
-    max_dependency_additions: 1
-    max_workflow_files_changed: 1
-    max_compute_multiplier_or_share: "1.25x or 25%"
-    max_external_cost: 0
-  STRATEGIC:
-    allowed_classes: [R0, R1, R2]
-    max_autonomous_attempt_cycles: 5
-    max_unplanned_files: "task-specific"
-    max_dependency_additions: "task-specific"
-    max_workflow_files_changed: "task-specific"
-    max_compute_multiplier_or_share: "task-specific, explicitly published"
-    max_external_cost: 0
+  LIGHT: {allowed_classes: [R0_ROUTINE_LOCAL_REPAIR], max_attempt_cycles: 2, max_unplanned_files: 1, max_dependencies: 0, max_workflows: 0, max_compute: "1.10x", max_external_cost: 0}
+  STANDARD: {allowed_classes: [R0_ROUTINE_LOCAL_REPAIR, R1_BOUNDED_TOOL_RUNTIME_TEST_OR_PORTABILITY_REPAIR], max_attempt_cycles: 3, max_unplanned_files: 5, max_dependencies: 1, max_workflows: 1, max_compute: "1.25x", max_external_cost: 0}
+  STRATEGIC: {allowed_classes: [R0_ROUTINE_LOCAL_REPAIR, R1_BOUNDED_TOOL_RUNTIME_TEST_OR_PORTABILITY_REPAIR, R2_MATERIAL_BUT_REVERSIBLE_REPAIR], max_attempt_cycles: 5, max_external_cost: 0}
 
 reporting_and_visibility:
   mandatory_WPDCR_section: "AUTONOMOUS_REMEDIATION_LEDGER"
-  ledger_required_fields:
-    - remediation_id
-    - trigger_problem
-    - remediation_class
-    - authority_and_boundary_test_results
-    - action_taken
-    - commands_and_exit_codes
-    - files_dependencies_runtime_or_environment_changed
-    - compute_time_or_attempt_cost
-    - validation_evidence
-    - rollback
-    - outcome
-    - residual_risk_or_unknown
-    - why_prior_coordination_was_not_required
-  no_remediation_rule: "Report NONE_USED and checks performed."
-  aggregation_rule: >-
-    R0/R1 actions are not separate stop-and-report events. They are accumulated and reported at the next already scheduled checkpoint
-    or completion. R2 creates a checkpoint after the first tested result. R3 requires immediate coordination before crossing the boundary.
+  required_fields: [remediation_id, trigger_problem, class, boundary_tests, action, commands_and_exits, changed_surface, cost, validation, rollback, outcome, residual_risk, no_prior_coordination_reason]
+  aggregation_rule: "R0/R1 aggregate until an existing checkpoint or completion; R2 checkpoints after first tested result; R3 reports immediately."
   no_silent_action_rule: "Autonomy removes prior approval, not retrospective accountability. Missing ledger entries invalidate completion."
 
 anti_patterns:
-  - MICRO_BLOCKER_ESCALATED_WITHOUT_ANY_AUTHORIZED_ATTEMPT
-  - REPEATED_STOP_REPORT_READ_LOOP_FOR_R0_OR_R1
+  - MICRO_BLOCKER_ESCALATED_WITHOUT_AUTHORIZED_ATTEMPT
+  - REPEATED_STOP_REPORT_READ_LOOP_FOR_R0_R1
   - SILENT_REMEDIATION_WITHOUT_LEDGER
   - REQUIREMENT_SUBSTITUTION_DISGUISED_AS_REPAIR
-  - TOOL_INSTALL_WITHOUT_SOURCE_VERSION_LICENSE_OR_SCOPE
-  - UNBOUNDED_RETRY_OR_COMPUTE_SPEND
-  - PERSISTENT_ENVIRONMENT_DRIFT_WITHOUT_AUTHORITY
-  - SMALL_FIX_USED_TO_EXPAND_SCOPE_OR_OWNERSHIP
-  - TEST_WEAKENING_OR_NEGATIVE_EVIDENCE_ERASURE
+  - COMMIT_COUNT_DEADLOCK_FOR_TEST_DISCOVERED_R0_R1
+  - EARLIER_CI_REUSED_AFTER_CORRECTIVE_SOURCE_COMMIT
+  - EMPTY_OR_EXECUTABLE_RECEIPT_MISLABELING
+  - UNBOUNDED_RETRY_COMPUTE_OR_ENVIRONMENT_DRIFT
 
 GPT_task_authoring_duty:
-  - "Publish a concrete remediation envelope, not vague permission to use judgment."
-  - "Grant R0/R1 by default for STANDARD tasks unless a specific risk requires narrower authority."
-  - "Name exact requirements that may not be substituted."
-  - "Set numeric or bounded budgets proportionate to task weight."
+  - "Publish a concrete remediation envelope and numeric budget."
+  - "Grant R0/R1 by default for STANDARD tasks."
+  - "Separate planned commit shape from corrective-remediation allowance."
   - "Do not require micro-approval for actions already inside the envelope."
-  - "Audit both unauthorized overreach and unnecessary underuse of granted autonomy."
-
-GPT_second_pass_audit:
-  verify:
-    - "Every autonomous repair passed the six boundary tests."
-    - "No acceptance criterion, runtime matrix, test or signal was weakened or substituted."
-    - "The repair remained inside budget and ownership."
-    - "Runtime/tool source, version, license, scope, commands, tests and rollback are present."
-    - "R0/R1 were aggregated rather than causing avoidable coordination loops."
-    - "R2/R3 visibility and escalation timing were correct."
-  classifications:
-    - "GOOD_AUTONOMOUS_REMEDIATION"
-    - "UNNECESSARY_ESCALATION_AND_UNDERUSED_AUTHORITY"
-    - "AUTHORIZED_BUDGET_EXCEEDED"
-    - "UNREPORTED_AUTONOMOUS_CHANGE"
-    - "REQUIREMENT_OR_AUTHORITY_DRIFT"
+  - "Audit both unauthorized overreach and unnecessary underuse of authority."
 
 active_task_inheritance: >-
-  Existing READY tasks immediately inherit R0 and R1 authority only where the action passes all six boundary tests, remains inside
-  their existing allowed paths, ownership, hard boundaries and exploration budgets, and adds no external cost. This inheritance does
-  not change task ID, epoch, PR, branch, Gate, completion signal or scope. R2 still requires explicit task authorization; R3 always stops.
+  Existing READY or truthfully BLOCKED tasks inherit R0/R1 and the route-bridge rule where all six tests pass, allowed paths and hard
+  boundaries remain unchanged, and external cost is zero. This does not change task ID, epoch, PR, branch, Gate or completion signal.
 
 memory_and_persistence:
   user_intent: "PERMANENT_LONG_TERM_OPERATING_RULE"
@@ -257,4 +123,4 @@ memory_and_persistence:
   applies_across_agent_and_epoch_changes: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T16:36:00+08:00"
+updated_at: "2026-07-31T23:40:00+08:00"
