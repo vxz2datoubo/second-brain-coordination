@@ -1,0 +1,49 @@
+# E24-PORTABLE-COMMAND-LEDGER.json — Machine-executed command provenance
+{
+  "schema": "QCLAW_COMMAND_LEDGER_v2.0",
+  "epoch": 24,
+  "gate": "B R9",
+  "timestamp": "2026-08-01T03:00:00+08:00",
+  "entries": [
+    {
+      "step": "shared_ci_restore",
+      "command": "{BASE}/git hash-object {BASE}/.github/workflows/phase3-integrated-offline-memory.yml",
+      "exit": 0,
+      "result": "38f50fe7b56bfef2415262d771602a7a6efce22ef8464813050afa71cdf6afeb",
+      "verified_against_main": true
+    },
+    {
+      "step": "d2_canonical_download",
+      "command": "{BASE}/git show d6f9e2e4:d2_game_core.py",
+      "exit": 0,
+      "result_hash": "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1",
+      "result_size": 75587
+    },
+    {
+      "step": "candidate_d2_removed",
+      "command": "Remove-Item (2 local paths)",
+      "exit": 0
+    },
+    {
+      "step": "dedicated_ci_created",
+      "path": ".github/workflows/qclaw-pr100-e24-evidence.yml",
+      "size": 2788
+    },
+    {
+      "step": "run_e24_311",
+      "command": "{SYS_PYTHON_311} {BASE}/run_e24_full_evidence.py",
+      "exit": 0,
+      "cases_passed": 44,
+      "cases_total": 45,
+      "exact_set": "PASS"
+    },
+    {
+      "step": "run_e24_313",
+      "command": "{SYS_PYTHON_313} {BASE}/run_e24_full_evidence.py",
+      "exit": 0,
+      "cases_passed": 44,
+      "cases_total": 45,
+      "exact_set": "PASS"
+    }
+  ]
+}

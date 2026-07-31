@@ -1,0 +1,72 @@
+name: QCLAW PR #100 E24 Gate B Evidence
+
+on:
+  push:
+    branches: [qclaw/q0-d2-candidate-adapter-0011-e8]
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/**"
+      - ".github/workflows/qclaw-pr100-e24-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    name: Python ${{ matrix.python-version }} E24 Evidence
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Checkout identity
+        run: |
+          echo "GitHub SHA: ${{ github.sha }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "Runner: ${{ runner.os }}"
+          python --version
+      - name: Install dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Verify canonical D2 source identity
+        run: |
+          python -c "
+          import hashlib
+          d2p = 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/d2_game_core.py'
+          h = hashlib.sha256(open(d2p, 'rb').read()).hexdigest()
+          assert h == '33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1', f'D2 HASH MISMATCH: {h}'
+          print(f'D2 identity: {h} (canonical match)')
+          "
+      - name: Generator
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8
+        run: python -u generate_adapters.py
+        env:
+          Q0_SRC_DIR: q0_sources
+          OUTPUT_DIR: .
+          POLICY_DIR: .
+          PYTHONHASHSEED: "0"
+      - name: Validator
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8
+        run: python -u validate_adapters.py
+        env:
+          Q0_SRC_DIR: q0_sources
+          OUTPUT_DIR: .
+          POLICY_DIR: .
+      - name: 42-Case Runner + Exact-Set + Receipt + Archive + WPDCR
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8
+        run: python -u run_e24_full_evidence.py
+        env:
+          Q0_SRC_DIR: q0_sources
+          OUTPUT_DIR: .
+          POLICY_DIR: .
+          PYTHONHASHSEED: "0"
+          E24_GIT_SHA: ${{ github.sha }}
+      - name: Scan public delivery surface
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8
+        run: python -u public_surface_scan.py

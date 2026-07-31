@@ -1,0 +1,62 @@
+# E24-WPDCR.yaml — Work Process Discovery & Coordination Report
+schema_version: "26.0"
+epoch: 24
+gate: "B R9"
+task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
+
+autonomous_remediation_ledger:
+  - step: "E24-B01 Shared CI restore"
+    target: "phase3-integrated-offline-memory.yml"
+    action: "Restored byte-for-byte from canonical main blob 38f50fe7..."
+    verification: "git hash-object match confirmed True"
+  - step: "E24-B02 Dedicated CI"
+    target: "qclaw-pr100-e24-evidence.yml"
+    action: "Created 2788B workflow with 3.11+3.13 matrix, 42-case runner, exact-set, archive replay"
+  - step: "E24-B03 Candidate d2 removed"
+    action: "Deleted locally-owned d2_game_core.py (2 paths)"
+  - step: "E24-B04 Canonical D2 restored"
+    action: "Downloaded from d6f9e2e4, SHA 33a7d821..., size 75587"
+    verification: "sha256 match: True"
+  - step: "E24-B05 AI_HANDOFF authority"
+    action: "Top-level moved from E18 to E24"
+  - step: "E24-B06 Python 3.12 excised"
+    action: "All 3.12 references removed; 3.11+3.13 only"
+
+model_reasoning_and_execution_profile:
+  model_used: "qclaw/pool-deepseek-v4-pro"
+  subagent_count: 1
+  adversarial_case_count: 42
+  python_versions: ["3.11.10", "3.13.3"]
+  remediation_mode: "BAR R0"
+
+artifact_manifest:
+  - name: "run_e24_full_evidence.py"
+    purpose: "Portable 42-case evidence runner (zero absolute paths)"
+    sha256: "to-be-computed"
+  - name: "AI_HANDOFF.yaml"
+    purpose: "Cumulative handoff, E24 top authority"
+  - name: "E21-E23-INVALID-EVIDENCE-DISPOSITION.yaml"
+    purpose: "Negative history manifest"
+  - name: "E24-OUTCOME-CALIBRATION.yaml"
+    purpose: "Machine-readable outcome record"
+  - name: "QUALITY-GATE-REPORT.md"
+    purpose: "Gate B R9 quality report"
+  - name: "E24-TEST-RUN-RECEIPT-3-11-10.md"
+    purpose: "Python 3.11 machine-generated receipt"
+  - name: "E24-TEST-RUN-RECEIPT-3-13-3.md"
+    purpose: "Python 3.13 machine-generated receipt"
+  - name: "e24_test_results_31110.json"
+    purpose: "3.11 42-case full ledger"
+  - name: "e24_test_results_31310.json"
+    purpose: "3.13 42-case full ledger"
+  - name: "D05-COMMAND-EVIDENCE.yaml"
+    purpose: "3-seed git-archive evidence"
+  - name: "SUPPLY-CHAIN-HASH-VERIFICATION.yaml"
+    purpose: "Supply chain integrity"
+  - name: "d2_game_core.py"
+    purpose: "Canonical D2 from d6f9e2e4"
+    canonical_sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+  - name: ".github/workflows/phase3-integrated-offline-memory.yml"
+    purpose: "Shared CI restored canonical"
+  - name: ".github/workflows/qclaw-pr100-e24-evidence.yml"
+    purpose: "E24 dedicated dual-Python CI"

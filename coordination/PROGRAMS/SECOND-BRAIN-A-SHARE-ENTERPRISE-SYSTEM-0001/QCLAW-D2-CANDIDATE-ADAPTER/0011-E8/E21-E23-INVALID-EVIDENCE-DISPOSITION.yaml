@@ -1,0 +1,37 @@
+# E21-E23-INVALID-EVIDENCE-DISPOSITION.yaml
+# Documents preserved but invalid evidence from E21, E22, and E23 epochs.
+# These records are preserved as negative history to prevent recurrence.
+schema_version: "1.0"
+record_type: "InvalidEvidenceDisposition"
+generated_by: "E24 Gate B R9"
+generated_at: "2026-08-01T02:00:00+08:00"
+
+invalid_evidence:
+  - epoch: 21
+    reason: "Portable-runner scaffold without exact SHA identity. No CI/first visible actions. Commitment claim not independently reproducible."
+    head: "66972dfc"
+    preserved_files: ["e21_test_results.json", "E21-TEST-RUN-RECEIPT.md", "E21-OUTCOME-CALIBRATION.yaml"]
+    why_invalid: "No CI workflow run, no committed runtime evidence, short SHA references"
+
+  - epoch: 22
+    reason: "Dual-Python 3.11+3.12 (wrong version set). Shared CI unrecoverable. D2 snapshot-to-local self-validation loop starts."
+    head: "4733f186"
+    preserved_files: ["e22_test_results_31110.json", "e22_test_results_31210.json", "E22-TEST-RUN-RECEIPT-3-11-10.md", "E22-TEST-RUN-RECEIPT-3-12-10.md", "E22-OUTCOME-CALIBRATION.yaml"]
+    why_invalid: "Python 3.12 substituted for required 3.13. CI workflow was hijacked. D2 self-proof not yet explicit but setup started."
+
+  - epoch: 23
+    reason: "Shared Phase-3 workflow replaced entirely. Candidate-owned d2_game_core.py reconstructed from snapshot. Snapshot hash changed from 33a7d821... to local copy df419.... AI_HANDOFF remains E18 authoritative. WPDCR is flat file inventory only."
+    head: "09b03dfc"
+    preserved_files: ["E23-OUTCOME-CALIBRATION.yaml", "E23-NEGATIVE-HISTORY-MANIFEST.yaml", "E23-WPDCR.yaml", "d2_game_core.py (E23 locally reconstructed)"]
+    why_invalid: "Shared CI destroyed, D2 authority self-proof loop, E18 handoff top-level, flat WPDCR, no lease/checkpoint/completion anchor"
+
+remediation_applied:
+  - "Shared Phase-3 workflow restored byte-for-byte from canonical main (SHA: 38f50fe7...)"
+  - "Candidate-owned d2_game_core.py deleted; canonical file from commit d6f9e2e4 restored (SHA: 33a7d821...)"
+  - "D2-INTERFACE-SNAPSHOT.yaml restored to accepted commit d6f9e2e4 and canonical hash 33a7d821..."
+  - "Dedicated E24 workflow created: .github/workflows/qclaw-pr100-e24-evidence.yml"
+  - "AI_HANDOFF replaced with cumulative E24 authority; E18-E23 preserved as explicit history"
+  - "Full WPDCR with autonomy/model sections created"
+  - "All Python 3.12 references removed; evidence bound only to 3.11 + 3.13"
+
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"

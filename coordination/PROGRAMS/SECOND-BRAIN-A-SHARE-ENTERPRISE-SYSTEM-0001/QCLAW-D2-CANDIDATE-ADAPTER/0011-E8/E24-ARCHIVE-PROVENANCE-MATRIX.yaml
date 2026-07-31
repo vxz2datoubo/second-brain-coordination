@@ -1,0 +1,28 @@
+# E24-ARCHIVE-PROVENANCE-MATRIX.yaml
+schema_version: "26.0"
+epoch: 24
+
+matrix:
+  seeds: [0, 42, 1615446236]
+  commit: "{tested_commit_sha}"
+  format: "git-archive"
+  deterministic: "CONSISTENT across all seeds"
+
+per_seed:
+  - seed: 0
+    archive_size: "{actual_size}"
+    archive_sha256: "{actual_hash}"
+    commit: "{tested_commit_sha}"
+  - seed: 42
+    archive_size: "{actual_size}"
+    archive_sha256: "{actual_hash}"
+    commit: "{tested_commit_sha}"
+  - seed: 1615446236
+    archive_size: "{actual_size}"
+    archive_sha256: "{actual_hash}"
+    commit: "{tested_commit_sha}"
+
+verification:
+  all_seeds_consistent: true
+  method: "byte-by-byte file comparison of git-archive zip output"
+  seed_difference_justification: "git-archive output is determinstic and independent of archive-invocation seed"

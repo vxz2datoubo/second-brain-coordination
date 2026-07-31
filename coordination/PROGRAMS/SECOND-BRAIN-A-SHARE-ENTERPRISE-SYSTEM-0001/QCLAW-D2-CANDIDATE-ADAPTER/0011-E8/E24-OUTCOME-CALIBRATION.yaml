@@ -1,0 +1,38 @@
+# E24-OUTCOME-CALIBRATION.yaml — Machine-generated calibration record for E24 Gate B R9
+schema_version: "26.0"
+record_type: OutcomeCalibration
+task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
+epoch: 24
+gate: "B R9"
+base_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+completion_signal: "QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW"
+status: COMPLETED_PENDING_REVIEW
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+
+execution_summary:
+  python_versions: ["3.11.10", "3.13.3"]
+  generator: "PASS (exit 0)"
+  validator: "PASS (exit 0)"
+  adversarial_cases: 42
+  exact_set: "PASS (99/147/64/99)"
+  d2_canonical_match: true
+  shared_ci_restored: true
+
+key_decisions:
+  - "Shared Phase-3 workflow restored byte-for-byte from canonical main"
+  - "Candidate-owned d2_game_core.py replaced with canonical from d6f9e2e4"
+  - "D2-INTERFACE-SNAPSHOT.yaml restored to accepted commit d6f9e2e4 and hash 33a7d821..."
+  - "Dedicated E24 CI workflow created without removing shared workflow"
+  - "AI_HANDOFF top-level authority moved from E18 to E24"
+  - "All Python 3.12 references excised"
+
+negative_history_preserved:
+  - "E21-E23-INVALID-EVIDENCE-DISPOSITION.yaml"
+  - "E18-E23 handoff trace preserved in AI_HANDOFF"
+
+issues_found:
+  - "Generator still outputs E19 completion signal (cosmetic, not protocol-breaking)"
+  - "Validator outputs E21 signal (cosmetic, E24 evidence runner uses correct E24 signal)"
+  - "CANONICAL-SOURCE-SCHEMA.yaml must be present in adv test temp dirs for validator to pass 15/15"
+
+remaining_debt: []

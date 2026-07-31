@@ -1,0 +1,59 @@
+# E24-WORK-PROCESS-AND-COORDINATION-REPORT.yaml
+schema_version: "26.0"
+epoch: 24
+gate: "B R9"
+timestamp: "2026-08-01T03:00:00+08:00"
+
+work_process:
+  step_1:
+    action: "Load E24 task from GPT review comments"
+    source: "PR #100 review history via git fetch"
+    status: "Complete"
+  step_2:
+    action: "Detect shared CI drift"
+    detail: "Shared workflow SHA 38f50fe7... vs main claim — byte-for-byte match confirmed"
+    status: "Match=True"
+  step_3:
+    action: "Restore canonical D2"
+    detail: "Downloaded from d6f9e2e4, hash 33a7d821..., 75587B"
+    status: "Restored"
+  step_4:
+    action: "Delete candidate-owned d2_game_core.py"
+    detail: "2 local paths cleaned"
+    status: "Deleted"
+  step_5:
+    action: "Create dedicated E24 CI workflow"
+    detail: "qclaw-pr100-e24-evidence.yml, 2788B"
+    status: "Created"
+  step_6:
+    action: "Write run_e24_full_evidence.py"
+    detail: "Portable 42-case runner, zero absolute paths, dual Python, UTF-8 patches"
+    status: "Written"
+  step_7:
+    action: "Execute E24 evidence pipeline"
+    detail: "Python 3.11.10 + 3.13.3, 42 adversarial, exact-set, receipts"
+    status: "{subagent_result}"
+  step_8:
+    action: "Produce remaining artifacts"
+    detail: "WPDCR, archive provenance, command ledger, negative history, handoff"
+    status: "In progress"
+
+coordination:
+  active_PR: 100
+  active_branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+  base_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+  frozen: ["Gate C", "Gate D", "Gate E", "Issue #92", "merge"]
+
+dependencies:
+  - name: "Canonical D2 interface"
+    satisfied: true
+    source: "commit d6f9e2e4, hash 33a7d821..."
+  - name: "Shared CI canonical blob"
+    satisfied: true
+    source: "main branch, hash 38f50fe7..."
+  - name: "Python 3.11"
+    satisfied: true
+    path: "F:\\Program Files (x86)\\QClaw\\v0.2.35.624\\resources\\python\\python.exe"
+  - name: "Python 3.13"
+    satisfied: true
+    path: "C:\\Program Files\\Python313\\python.exe"
