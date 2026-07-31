@@ -16,7 +16,23 @@ WPDCR_REQUIRED_SECTIONS = frozenset({
     "decisions_alternatives_and_lessons",
     "next_action_and_gate",
     "report_integrity",
+    "AUTONOMOUS_REMEDIATION_LEDGER",
+    "MODEL_REASONING_AND_EXECUTION_PROFILE",
 })
+
+WPDCR_EXTENSION_REQUIRED_FIELDS = {
+    "AUTONOMOUS_REMEDIATION_LEDGER": frozenset({
+        "remediation_id", "trigger_problem", "class", "boundary_tests", "action",
+        "commands_and_exits", "changed_surface", "cost", "validation", "rollback",
+        "outcome", "residual_risk", "no_prior_coordination_reason",
+    }),
+    "MODEL_REASONING_AND_EXECUTION_PROFILE": frozenset({
+        "requested_model", "actual_model", "requested_reasoning_effort", "actual_reasoning_effort",
+        "requested_execution_intensity", "actual_execution_intensity", "permission_profile_used",
+        "availability_preflight_result", "fallback_or_escalation_events", "compute_or_attempt_budget_used",
+        "material_quality_effect", "residual_uncertainty",
+    }),
+}
 
 ARCHIVE_RECEIPT_REQUIRED_FIELDS = frozenset({
     "archive_run_id", "commit", "archive_sha256", "archive_size_bytes",
@@ -46,6 +62,15 @@ def validate_wpdcr_sections(wpdcr: dict[str, object]) -> None:
         raise ValueError("E28_WPDCR_REQUIRED_SECTION_MISSING:" + ",".join(missing))
     if any(wpdcr[section] in (None, "", [], {}) for section in WPDCR_REQUIRED_SECTIONS):
         raise ValueError("E28_WPDCR_REQUIRED_SECTION_EMPTY")
+    for section, required_fields in WPDCR_EXTENSION_REQUIRED_FIELDS.items():
+        value = wpdcr[section]
+        if not isinstance(value, dict):
+            raise ValueError("E28_WPDCR_EXTENSION_SECTION_NOT_A_MAPPING:" + section)
+        missing_fields = sorted(required_fields - set(value))
+        if missing_fields:
+            raise ValueError("E28_WPDCR_EXTENSION_FIELD_MISSING:%s:%s" % (section, ",".join(missing_fields)))
+        if any(value[field] in (None, "", [], {}) for field in required_fields):
+            raise ValueError("E28_WPDCR_EXTENSION_FIELD_EMPTY:" + section)
 
 
 def validate_archive_evidence(archive_evidence: dict[str, object], expected_commit: str) -> None:

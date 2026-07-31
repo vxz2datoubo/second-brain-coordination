@@ -99,7 +99,7 @@ def require_within_archive_root(archive_root: Path, candidate: Path) -> Path:
 def _run_archive_command(archive_root: Path, script_relative_path: str) -> CommandReceipt:
     evaluation_root = require_within_archive_root(archive_root, archive_root / EVALUATION_RELATIVE_ROOT)
     script_path = require_within_archive_root(evaluation_root, evaluation_root / script_relative_path)
-    command = (sys.executable, "-B", str(script_path.relative_to(evaluation_root)))
+    command = (sys.executable, "-B", script_path.relative_to(evaluation_root).as_posix())
     result = subprocess.run(command, cwd=evaluation_root, capture_output=True, check=False)
     receipt = CommandReceipt(
         next(name for name, scripts in COMMANDS if scripts == (script_relative_path,)),

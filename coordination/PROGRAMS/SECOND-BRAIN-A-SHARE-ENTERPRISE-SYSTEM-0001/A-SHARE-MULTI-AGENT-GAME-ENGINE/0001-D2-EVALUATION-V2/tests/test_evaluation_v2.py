@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import sys
+from subprocess import CompletedProcess
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -47,10 +48,11 @@ from portable_archive_evidence import (
     ArchiveReceipt,
     CommandReceipt,
     EVALUATION_RELATIVE_ROOT,
+    _run_archive_command,
     require_within_archive_root,
     validate_archive_receipts,
 )
-from receipt_validation import WPDCR_REQUIRED_SECTIONS, validate_completion_evidence
+from receipt_validation import WPDCR_EXTENSION_REQUIRED_FIELDS, WPDCR_REQUIRED_SECTIONS, validate_completion_evidence
 from shadow_sut import SourceReplacement
 from synthetic_cases import (
     counterfactual_catalog,
@@ -64,6 +66,17 @@ from synthetic_cases import (
     negative_catalog,
     scenario_catalog,
 )
+
+
+def _valid_wpdcr():
+    report = {
+        section: {"present": True}
+        for section in WPDCR_REQUIRED_SECTIONS
+        if section not in WPDCR_EXTENSION_REQUIRED_FIELDS
+    }
+    for section, fields in WPDCR_EXTENSION_REQUIRED_FIELDS.items():
+        report[section] = {field: ["checked"] for field in fields}
+    return report
 
 
 class EvaluationV2Tests(unittest.TestCase):
@@ -228,6 +241,17 @@ class EvaluationV2Tests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "E26_ARCHIVE_EXECUTION_ESCAPES_ROOT"):
                 require_within_archive_root(archive_root, archive_root.parent / "outside.py")
 
+    def test_archive_command_receipt_uses_canonical_posix_path(self):
+        with TemporaryDirectory() as temporary:
+            archive_root = Path(temporary) / "archive"
+            (archive_root / EVALUATION_RELATIVE_ROOT).mkdir(parents=True)
+            completed = CompletedProcess(("python",), 0, b"", b"")
+            with patch("portable_archive_evidence.subprocess.run", return_value=completed):
+                receipt = _run_archive_command(archive_root, "tests/run_evaluation_v2.py")
+        self.assertEqual(receipt.script_relative_path, "tests/run_evaluation_v2.py")
+        self.assertEqual(receipt.command[-1], "tests/run_evaluation_v2.py")
+        self.assertNotIn("\\", receipt.command[-1])
+
     def test_completion_evidence_rejects_missing_and_placeholder_fields(self):
         with self.assertRaisesRegex(ValueError, "E26_COMPLETION_EVIDENCE_MISSING"):
             validate_completion_evidence({})
@@ -239,7 +263,7 @@ class EvaluationV2Tests(unittest.TestCase):
             "tested_parent": "e" * 40, "receipt_commit": "THIS_COMMIT_AFTER_PUSH",
             "changed_files": [], "commands": [], "unknowns": [], "negative_findings": [],
             "archive_evidence": {"exact_commit": "d" * 40},
-            "wpdcr": {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS},
+            "wpdcr": _valid_wpdcr(),
         }
         with self.assertRaisesRegex(ValueError, "E26_COMPLETION_EVIDENCE_PLACEHOLDER:receipt_commit"):
             validate_completion_evidence(carrier)
@@ -283,7 +307,7 @@ class EvaluationV2Tests(unittest.TestCase):
                 "exact_commit": commit,
                 "archive_receipts": [archive_receipt(index) for index in (1, 2, 3)],
             },
-            "wpdcr": {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS},
+            "wpdcr": _valid_wpdcr(),
         }
         validate_completion_evidence(carrier)
         with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_COMPLETION_SIGNAL_MISMATCH"):
@@ -292,6 +316,16 @@ class EvaluationV2Tests(unittest.TestCase):
         missing_wpdcr["wpdcr"] = {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS - {"next_action_and_gate"}}
         with self.assertRaisesRegex(ValueError, "E28_WPDCR_REQUIRED_SECTION_MISSING:next_action_and_gate"):
             validate_completion_evidence(missing_wpdcr)
+        missing_extension_field = dict(carrier)
+        missing_extension_field["wpdcr"] = _valid_wpdcr()
+        del missing_extension_field["wpdcr"]["MODEL_REASONING_AND_EXECUTION_PROFILE"]["actual_model"]
+        with self.assertRaisesRegex(ValueError, "E28_WPDCR_EXTENSION_FIELD_MISSING:MODEL_REASONING_AND_EXECUTION_PROFILE:actual_model"):
+            validate_completion_evidence(missing_extension_field)
+        blank_extension_section = dict(carrier)
+        blank_extension_section["wpdcr"] = _valid_wpdcr()
+        blank_extension_section["wpdcr"]["AUTONOMOUS_REMEDIATION_LEDGER"] = {}
+        with self.assertRaisesRegex(ValueError, "E28_WPDCR_REQUIRED_SECTION_EMPTY"):
+            validate_completion_evidence(blank_extension_section)
         repeated_root = dict(carrier)
         repeated_root["archive_evidence"] = {
             "exact_commit": commit,
