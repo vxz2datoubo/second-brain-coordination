@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import subprocess
 import unittest
 
 import yaml
@@ -25,6 +26,7 @@ SKILL_PATH = (
     / "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-GOVERNANCE-SKILL-v1.0.yaml"
 )
 SOURCE_AUDIT_PATH = KERNEL_ROOT / "SOURCE-EXPRESSION-AUDIT.yaml"
+CASE_MANIFEST_PATH = KERNEL_ROOT / "CASE-MANIFEST.yaml"
 
 
 class _StrictLoader(yaml.SafeLoader):
@@ -122,6 +124,33 @@ def _read_changed_files(path: Path | None) -> tuple[Path, ...]:
     return tuple(sorted(set(changed)))
 
 
+def _verify_exact_context(commit: str, tree: str) -> dict[str, str]:
+    if not re.fullmatch(r"[0-9a-f]{40}", commit) or not re.fullmatch(r"[0-9a-f]{40}", tree):
+        raise ValueError("IMMUTABLE_CONTEXT_SHA_INVALID")
+    git_dir = REPOSITORY_ROOT / ".git"
+    if not git_dir.exists():
+        return {"requested_commit": commit, "requested_tree": tree, "repository_check": "ARCHIVE_NO_GIT_METADATA"}
+    head = subprocess.check_output(
+        ["git", "-C", str(REPOSITORY_ROOT), "rev-parse", "HEAD"], text=True
+    ).strip()
+    actual_tree = subprocess.check_output(
+        ["git", "-C", str(REPOSITORY_ROOT), "rev-parse", f"{head}^{{tree}}"], text=True
+    ).strip()
+    if head != commit or actual_tree != tree:
+        raise ValueError("IMMUTABLE_CONTEXT_MISMATCH")
+    return {"requested_commit": commit, "requested_tree": tree, "repository_check": "EXACT_HEAD_AND_TREE"}
+
+
+def _case_manifest_check(case_ids: tuple[str, ...]) -> int:
+    manifest = yaml.load(_read_text(CASE_MANIFEST_PATH), Loader=_StrictLoader)
+    if not isinstance(manifest, dict) or manifest.get("status") != "FROZEN_CANDIDATE_MANIFEST":
+        raise ValueError("CASE_MANIFEST_STATUS_INVALID")
+    expected = tuple(manifest.get("case_ids", ()))
+    if expected != case_ids:
+        raise ValueError("CASE_MANIFEST_MISMATCH")
+    return len(expected)
+
+
 def _public_safety_check(changed_files: tuple[Path, ...]) -> dict[str, int]:
     secret_pattern = re.compile(
         r"(?:ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16})"
@@ -176,6 +205,8 @@ def main() -> int:
     error_ids = tuple(sorted(result.error_ids))
     failure_ids = tuple(sorted(result.failure_ids))
     skipped_ids = tuple(sorted(result.skipped_ids))
+    manifest_count = _case_manifest_check(case_ids)
+    exact_context = _verify_exact_context(args.commit, args.tree)
     status = "PASS" if not error_ids and not failure_ids else "FAIL"
     report = {
         "schema": "VNAK_CI_EVIDENCE_v1",
@@ -190,6 +221,8 @@ def main() -> int:
         "stdout_sha256": _sha256_text("\n".join(case_ids)),
         "stderr_sha256": _sha256_text("\n".join(error_ids + failure_ids)),
         "checks": static,
+        "case_manifest_count": manifest_count,
+        "exact_context": exact_context,
     }
     print(json.dumps(report, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
     return 0 if status == "PASS" else 1

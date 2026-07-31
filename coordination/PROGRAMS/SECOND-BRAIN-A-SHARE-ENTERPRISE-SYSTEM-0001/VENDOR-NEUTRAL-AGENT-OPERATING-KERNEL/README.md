@@ -123,3 +123,15 @@ before any candidate is promoted or referenced from canonical `AGENTS.md`.
 - Treating a model profile as project authority.
 - Storing credential values.
 - Enabling real trading.
+# E29 Extension Boundary
+
+E29 adds candidate-only specifications for W1 Authority/Lease, W3 Phase 3
+Epistemic Memory, and W8 Capability/Execution/Recovery adapters. It also adds
+machine-readable K3 cross-model and K4 Shadow-0/1/2 gate definitions. All five
+are `SPEC_ONLY_NOT_IMPLEMENTED` or `DISABLED_NOT_RUN`; no adapter, evaluation,
+feature flag, live route, account, order, trade, or canonical memory write is
+enabled by these files.
+
+The E29 verifier freezes the discovered test-case manifest and checks exact
+commit/tree identity when Git metadata is available. Archive execution remains
+supported without Git metadata and is still required to be root-contained.

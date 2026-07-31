@@ -122,3 +122,13 @@ The initial archive run found a hidden `.git` dependency in the
 public-neutrality test. Commit `7ff9637` replaces it with a fixed repository
 layout reference; the three subsequent clean-archive runs passed. This is a
 test-hardening finding, not evidence of runtime activation.
+
+## E29 Current-Head Revalidation
+
+The E29 route revalidated PR #107 head `ccbdcd27a8e4da0b653de3c387a18e87e3a33e92`
+before adding the bounded K2 specifications and disabled K3/K4 gate contracts.
+The current local suite reports `PASS_91_OF_91`; the machine-readable verifier
+also checks a frozen 91-case manifest, exact commit/tree identity when Git
+metadata is present, strict YAML, Draft 2020-12 instances, AST, secret,
+raw-capture and vendor-leakage scans. Final tested-head hashes and archive
+roots are intentionally left for the post-implementation green run.

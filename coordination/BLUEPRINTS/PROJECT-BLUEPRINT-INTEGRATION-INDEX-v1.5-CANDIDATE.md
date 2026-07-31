@@ -33,7 +33,7 @@ v1.5 候选在 v1.4 的 W1 至 W13、0010 至 0019 架构上登记一个
 | ID | 名称 | 归属 | 成熟度 |
 |---|---|---|---|
 | 0010 | Personal Epistemic Cognitive OS | W10 | CONTRACTED_NOT_IMPLEMENTED |
-| 0010-KERNEL | Vendor-Neutral Agent Operating Kernel Protocol | W10 runtime + W1/W3/W8 interfaces | IMPLEMENTED_CANDIDATE_PENDING_GPT_REVIEW |
+| 0010-KERNEL | Vendor-Neutral Agent Operating Kernel Protocol | PEOS/W10 protocol stewardship + W1/W3/W8 governed runtime adapters | IMPLEMENTED_CANDIDATE_PENDING_GPT_REVIEW |
 | 0011 | Kelly-Thorp Expected Value and Capital Allocation | W11 | CONTRACTED_NOT_IMPLEMENTED |
 | 0012 | Decision Science Skill Family | W12 | D0_COMPLETE_PENDING_MERGE |
 | 0014 | Daily Participant Capital-Flow Intelligence | W13 | CONTRACTED_NOT_IMPLEMENTED |

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 
 from .canonical import canonical_sha256, seal_contract
@@ -71,6 +72,55 @@ class AuthorityDirective:
             raise ValueError("VERIFIED_APPROVAL_NOT_REQUIRED")
 
 
+@dataclass(frozen=True)
+class ApprovalEvidence:
+    """Candidate W1 approval envelope; adapters must persist consumption state."""
+
+    approval_id: str
+    task_id: str
+    action: str
+    issued_at: str
+    expires_at: str
+    nonce: str
+
+    def __post_init__(self) -> None:
+        for name in ("approval_id", "task_id", "action", "issued_at", "expires_at", "nonce"):
+            if type(getattr(self, name)) is not str or not getattr(self, name).strip():
+                raise ValueError("APPROVAL_" + name.upper() + "_REQUIRED")
+        try:
+            issued = datetime.fromisoformat(self.issued_at)
+            expires = datetime.fromisoformat(self.expires_at)
+        except ValueError as exc:
+            raise ValueError("APPROVAL_TIMESTAMP_INVALID") from exc
+        if expires <= issued:
+            raise ValueError("APPROVAL_EXPIRY_NOT_AFTER_ISSUED")
+
+
+def validate_approval_evidence(
+    evidence: ApprovalEvidence,
+    *,
+    task_id: str,
+    action: str,
+    observed_at: str,
+    consumed_approval_ids: tuple[str, ...] = (),
+) -> None:
+    """Validate task binding, expiry and replay before a W1 adapter accepts it."""
+
+    if evidence.task_id != task_id:
+        raise ValueError("APPROVAL_TASK_MISMATCH")
+    if evidence.action != action:
+        raise ValueError("APPROVAL_ACTION_MISMATCH")
+    if evidence.approval_id in set(consumed_approval_ids):
+        raise ValueError("APPROVAL_REPLAY_DETECTED")
+    try:
+        observed = datetime.fromisoformat(observed_at)
+        expires = datetime.fromisoformat(evidence.expires_at)
+    except ValueError as exc:
+        raise ValueError("APPROVAL_TIMESTAMP_INVALID") from exc
+    if observed >= expires:
+        raise ValueError("APPROVAL_EXPIRED")
+
+
 def _normalise_scope(scope: str) -> str:
     return scope.rstrip("*").rstrip("/")
 
@@ -121,6 +171,16 @@ def _same_kind_conflicts(
     }
     for kind in AuthorityKind:
         peers = tuple(item for item in directives if item.kind is kind)
+        task_ids = {item.task_id for item in peers if item.task_id}
+        if len(task_ids) > 1:
+            conflicts.add(
+                "BLOCKED_AUTHORITY_CONFLICT:SAME_RANK_TASK:" + kind.value
+            )
+        path_groups = tuple(item.allowed_paths for item in peers if item.allowed_paths)
+        if len(path_groups) > 1 and not _intersect_path_scopes(path_groups):
+            conflicts.add(
+                "BLOCKED_AUTHORITY_CONFLICT:SAME_RANK_PATH:" + kind.value
+            )
         for action in actions:
             allowed = any(action in item.allowed_actions for item in peers)
             forbidden = any(action in item.forbidden_actions for item in peers)

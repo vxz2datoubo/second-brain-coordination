@@ -35,8 +35,8 @@ jobs:
         id: context
         shell: bash
         run: |
-          base="${{ github.event.pull_request.base.sha || github.sha }}"
-          head="${{ github.sha }}"
+          base="${{ github.event.pull_request.base.sha || github.event.before || github.sha }}"
+          head="${{ github.event.pull_request.head.sha || github.sha }}"
           git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
           echo "commit=$head" >> "$GITHUB_OUTPUT"
           echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"

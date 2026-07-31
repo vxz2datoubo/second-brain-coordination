@@ -5,16 +5,93 @@ import unittest
 
 from _support import meta
 from vendor_neutral_agent_kernel.authority import (
+    ApprovalEvidence,
     AuthorityDirective,
     AuthorityKind,
     is_action_executable,
     resolve_authority,
+    validate_approval_evidence,
 )
 from vendor_neutral_agent_kernel.contracts import SideEffectClass
 from vendor_neutral_agent_kernel.intent import compile_intent
 
 
 class AuthorityIntentTests(unittest.TestCase):
+    def test_same_rank_task_conflict_fails_closed(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(AuthorityKind.ACTIVE_ROUTE, "route:a", task_id="task-a"),
+                AuthorityDirective(AuthorityKind.ACTIVE_ROUTE, "route:b", task_id="task-b"),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertEqual(result.resolution_status, "BLOCKED_AUTHORITY_CONFLICT")
+        self.assertIn("BLOCKED_AUTHORITY_CONFLICT:SAME_RANK_TASK:ACTIVE_ROUTE", result.conflicts)
+
+    def test_same_rank_path_conflict_fails_closed(self):
+        result = resolve_authority(
+            meta("authority"),
+            (
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE, "route:a", task_id="task", allowed_paths=("src/",)
+                ),
+                AuthorityDirective(
+                    AuthorityKind.ACTIVE_ROUTE, "route:b", task_id="task", allowed_paths=("docs/",)
+                ),
+            ),
+            agent_id="CODEX",
+        )
+        self.assertEqual(result.resolution_status, "BLOCKED_AUTHORITY_CONFLICT")
+        self.assertIn("BLOCKED_AUTHORITY_CONFLICT:SAME_RANK_PATH:ACTIVE_ROUTE", result.conflicts)
+
+    def test_approval_evidence_is_task_bound_and_non_replayable(self):
+        evidence = ApprovalEvidence(
+            approval_id="approval-1",
+            task_id="task",
+            action="publish_candidate",
+            issued_at="2026-08-01T09:00:00+08:00",
+            expires_at="2026-08-01T10:00:00+08:00",
+            nonce="nonce-1",
+        )
+        validate_approval_evidence(
+            evidence,
+            task_id="task",
+            action="publish_candidate",
+            observed_at="2026-08-01T09:30:00+08:00",
+        )
+        with self.assertRaisesRegex(ValueError, "APPROVAL_REPLAY_DETECTED"):
+            validate_approval_evidence(
+                evidence,
+                task_id="task",
+                action="publish_candidate",
+                observed_at="2026-08-01T09:30:00+08:00",
+                consumed_approval_ids=("approval-1",),
+            )
+
+    def test_approval_evidence_rejects_expiry_and_wrong_task(self):
+        evidence = ApprovalEvidence(
+            approval_id="approval-2",
+            task_id="task",
+            action="publish_candidate",
+            issued_at="2026-08-01T09:00:00+08:00",
+            expires_at="2026-08-01T10:00:00+08:00",
+            nonce="nonce-2",
+        )
+        with self.assertRaisesRegex(ValueError, "APPROVAL_TASK_MISMATCH"):
+            validate_approval_evidence(
+                evidence,
+                task_id="other-task",
+                action="publish_candidate",
+                observed_at="2026-08-01T09:30:00+08:00",
+            )
+        with self.assertRaisesRegex(ValueError, "APPROVAL_EXPIRED"):
+            validate_approval_evidence(
+                evidence,
+                task_id="task",
+                action="publish_candidate",
+                observed_at="2026-08-01T10:00:00+08:00",
+            )
     def test_user_cannot_override_active_route_hard_deny(self):
         directives = (
             AuthorityDirective(
