@@ -1,0 +1,138 @@
+schema_version: "1.0"
+record_type: "AMEDTaskBrief"
+task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
+issue_or_pr: "Issue #59 / PR #100"
+assigned_agent: "QCLAW"
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】E23共享CI、D2权威、自证环、Archive、WPDCR与Handoff重建E24"
+mode_reason: >-
+  E23 produced two commits but no lease/checkpoint/completion anchors and no visible CI. It replaced the shared Phase-3 workflow with
+  a two-command branch workflow, reconstructed a local D2 core from its own snapshot, rewrote the snapshot hash to that local copy,
+  appended E23 fields beneath an E18-authoritative handoff, and mislabeled a file-hash list as WPDCR. The defects and repair path are
+  concrete and remain bounded to PR #100 Gate B.
+task_weight: "STANDARD"
+
+model_reasoning_execution_profile:
+  preferred_model_tier: "TERRA"
+  preferred_model_id: "gpt-5.6-terra"
+  minimum_acceptable_model: "gpt-5.6-terra"
+  reasoning_effort: "high"
+  execution_intensity: "X2_SUSTAINED"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  selection_rationale: "Evidence reconstruction and workflow repair require nontrivial engineering judgment, but not a new architecture."
+  availability_preflight: ["model selectable", "high effort supported", "usage window sufficient", "Python 3.11/3.13 and git available"]
+  fallback_policy:
+    silent_downgrade_forbidden: true
+    allowed_upgrade: {model: "gpt-5.6-sol", reasoning_effort: "xhigh", execution_intensity: "X3_DEEP"}
+    downgrade: "PROHIBITED"
+  escalation_triggers: ["canonical D2 source cannot be reproduced", "shared workflow cannot be safely restored", "two evidence designs remain after two tested cycles"]
+  resource_budget: {max_hypothesis_cycles: 3, max_attempt_cycles: 5, max_parallel_subtasks: 3, max_external_cost: 0}
+
+mission_intent:
+  fundamental_goal: >-
+    Restore PR #100 to an independently reviewable candidate adapter whose CI, D2 authority, archive execution, receipts, WPDCR and
+    handoff all bind to one exact tested commit without damaging shared project workflows or creating a self-validating local D2 truth.
+  observable_success:
+    - "The shared Phase-3 workflow equals canonical main at the E24 claim and is no longer repurposed for QQ-only tests."
+    - "A dedicated PR #100 workflow runs exact tested SHA on Python 3.11 and 3.13."
+    - "No locally reconstructed d2_game_core.py is treated as canonical; D2 snapshot binds accepted commit d6f9e2e... and full file hash 33a7d821...."
+    - "Generator, validator, 42-case runner, exact-set verifier, receipt verifier, archive replay and WPDCR verifier all run on both versions."
+    - "Three exact-commit archive roots execute root-contained commands and match per-artifact hashes/sizes."
+    - "AI_HANDOFF begins with E24 authority and preserves E18-E23 only as explicit history."
+    - "WPDCR conforms to the base contract plus autonomy and model-profile sections."
+  failure_conditions:
+    - "Any shared workflow regression, D2 self-proof, missing CI, short/ancestor SHA, fake archive replay, stale top-level authority or flat hash-only WPDCR."
+  stop_conditions:
+    - "Repair requires another owner's branch, canonical D2 modification, new credential/private data/paid service or later Gate."
+
+reviewed_base_and_negative_history:
+  reviewed_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+  preserve_as_negative_evidence:
+    - "E23 claims Python 3.11/3.13 but no workflow run or commit status exists for head."
+    - "Shared workflow was reduced from Phase-3 regressions/safety scan to generator+validator only."
+    - "Workflow does not run the 42-case runner, receipt/archive/exact-set/WPDCR validators."
+    - "AI_HANDOFF remains E18 at the authoritative top and still names fixed QClaw Python and 3.12 evidence."
+    - "E23-WPDCR is only a 17-file hash/size inventory."
+    - "TEST-RUN-RECEIPT contains only gen/val exits and no cases, commands, streams, archive or CI identity."
+    - "d2_game_core.py is a reduced local reconstruction; D2-INTERFACE-SNAPSHOT was changed from accepted full-file hash 33a7... to self-copy hash df419...."
+    - "No E23 lease claim, first-action checkpoint or external completion anchor exists."
+
+primary_delivery_and_non_negotiables:
+  branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/**"
+    - ".github/workflows/phase3-integrated-offline-memory.yml"
+    - ".github/workflows/qclaw-pr100-e24-evidence.yml"
+  required_work:
+    - "Restore phase3-integrated-offline-memory.yml byte-for-byte to canonical main at claim; record blob SHA."
+    - "Create dedicated qclaw-pr100-e24-evidence.yml without deleting existing project CI coverage."
+    - "Delete local reconstructed d2_game_core.py and restore D2-INTERFACE-SNAPSHOT to accepted commit/hash semantics."
+    - "Bind validation to the accepted canonical D2 source through exact commit/archive evidence, not a candidate-owned duplicate."
+    - "Implement exact 42-ID set reconciliation across catalog, runtime JSON and receipts on 3.11 and 3.13."
+    - "Implement three-root exact-commit archive replay with full commands, exits, stdout/stderr hashes and per-artifact equality."
+    - "Replace AI_HANDOFF, WPDCR, quality/supply/UNKNOWN and receipts with cumulative E24 truth."
+  exact_preserved_requirements:
+    - "Python 3.11 and 3.13; no adjacent substitution."
+    - "Literal completion signal."
+    - "99 atoms, 147 relations and 64 questions remain exact."
+    - "Candidate-only, no authority promotion."
+  commit_shape:
+    planned_corrective_substantive_commits: 1
+    BAR_MBR_additional_R0_R1_commits: 2
+    final_non_empty_receipt_only_commits: 1
+    no_history_rewrite: true
+    receipt_only_after_final_head_green: true
+
+workflow_contract:
+  shared_workflow: "RESTORE_ONLY"
+  dedicated_workflow_required: true
+  exact_checkout_identity_check: true
+  python_matrix: ["3.11", "3.13"]
+  dependency: "PyYAML==6.0.2 or existing approved lock"
+  required_steps: ["canonical D2 source/hash check", "generator", "validator", "42-case runner", "exact-set verifier", "receipt verifier", "three-root archive replay", "WPDCR verifier", "public-safety scan"]
+
+remediation_envelope:
+  enabled: true
+  allowed_classes: [R0_ROUTINE_LOCAL_REPAIR, R1_BOUNDED_TOOL_RUNTIME_TEST_OR_PORTABILITY_REPAIR]
+  max_attempt_cycles: 5
+  max_unplanned_files: 5
+  max_dependency_additions: 1
+  max_workflow_files_changed: 2
+  max_external_cost: 0
+  persistent_environment_change_allowed: false
+
+mandatory_reporting:
+  WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
+  required_sections: [PRIMARY_WORK_AND_PROCESS_TRACE, COMMAND_CLAIM_AND_EXECUTION_TRACE, DIFFICULTY_AND_COMPLEXITY, NEW_AND_UNEXPECTED_DISCOVERIES, EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES, UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS, PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS, COORDINATION_REQUESTS, CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT, DECISIONS_ALTERNATIVES_AND_LESSONS, NEXT_ACTION_AND_GATE, AUTONOMOUS_REMEDIATION_LEDGER, MODEL_REASONING_AND_EXECUTION_PROFILE]
+  required_artifacts:
+    - "E21-E23-INVALID-EVIDENCE-DISPOSITION.yaml"
+    - "E24-EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE.yaml"
+    - "E24-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
+    - "E24-PORTABLE-COMMAND-LEDGER.json"
+    - "E24-ARCHIVE-PROVENANCE-MATRIX.yaml"
+    - "E24-TEST-RUN-RECEIPT-3-11.md"
+    - "E24-TEST-RUN-RECEIPT-3-13.md"
+    - "AI_HANDOFF.yaml"
+    - "QUALITY-GATE-REPORT.md"
+    - "SUPPLY-CHAIN-HASH-VERIFICATION.yaml"
+    - "UNKNOWN-REGISTRY.yaml"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
+    - "AMED-RESEARCH-LEDGER.yaml"
+    - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+
+mandatory_discovery_questions:
+  - "Why did E23 run without a visible lease or completion anchor?"
+  - "Why was shared project CI replaced instead of adding a dedicated workflow?"
+  - "Why did the snapshot become authoritative for a reconstructed local D2 file?"
+  - "Which E23 claims are direct evidence versus inherited text?"
+  - "What validator allowed a file inventory to be named WPDCR?"
+  - "What can be reused without preserving false completion credit?"
+  - "Which protocol, template or test prevents recurrence?"
+
+hard_boundaries:
+  - "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+  - "No canonical D2 edits, Gate C/D/E, Issue #92, Codex/WorkBuddy branches, private data, production, account, order, trade or merge."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
