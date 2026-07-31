@@ -1,0 +1,38 @@
+schema_version: "1.0"
+record_type: "AutonomousRemediationEnvelope"
+protocol: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
+
+remediation_envelope:
+  enabled: true
+  allowed_classes: [R0_ROUTINE_LOCAL_REPAIR, R1_BOUNDED_TOOL_RUNTIME_OR_TEST_REPAIR]
+  allowed_problem_families: [path_or_encoding, exact_runtime_or_test_tool, compatible_api, small_helper_or_validator, bounded_retry]
+  exact_preserved_requirements: []
+  allowed_paths_and_ownership: []
+  budget:
+    max_autonomous_attempt_cycles: 3
+    max_unplanned_files: 5
+    max_dependency_additions: 1
+    max_workflow_files_changed: 1
+    max_compute_multiplier_or_share: "1.25x_or_25_percent"
+    max_external_cost: 0
+    persistent_environment_change_allowed: false
+  runtime_and_tool_policy:
+    approved_sources: [official_source, already_approved_project_dependency]
+    task_local_or_ephemeral_installation_preferred: true
+    exact_version_required: true
+    adjacent_version_substitution_forbidden: true
+    license_and_supply_chain_evidence_required: true
+  immediate_checkpoint_triggers: [R2, material_approach_change, D2_plus, S2_plus, first_tested_workflow_or_dependency_change]
+  stop_and_coordinate_triggers: [boundary_test_failure, new_external_authority, persistent_environment_change, canonical_or_owner_change, cross_agent_surface, destructive_or_release_action, budget_exhausted, D3_D4_or_S3_S4]
+  reporting:
+    WPDCR_section: "AUTONOMOUS_REMEDIATION_LEDGER"
+    aggregate_R0_R1_until_next_checkpoint_or_completion: true
+    immediate_report_for_R2_R3: true
+    required_ledger_fields: [remediation_id, trigger_problem, remediation_class, boundary_test_results, action_taken, commands_and_exits, changed_surface, cost, validation, rollback, outcome, residual_risk, no_prior_coordination_reason]
+
+executor_lease_acknowledgement:
+  must_confirm:
+    - "R0/R1 are solved without micro-approval when all six boundary tests pass."
+    - "Exact requirements cannot be replaced by adjacent versions or weaker evidence."
+    - "Every autonomous action enters the cumulative WPDCR remediation ledger."
+    - "R2 requires explicit authorization and checkpoint; R3 requires stop and coordination."
