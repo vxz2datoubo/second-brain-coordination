@@ -35,3 +35,22 @@ the evidence carrier requires a particular commit object.
 The current canonical repository identity is verified. The earlier E24 view is
 best explained by local tracking-ref freshness lag, but that diagnosis remains
 an inference rather than an infrastructure fact.
+
+## E28 Discovery And Opportunity Addendum
+
+E28/R1 confirmed that a host-native path representation can invalidate an
+otherwise correct archive receipt on Windows. The corrective commit
+`b578a14b613a9d34e058e951eb342f395b00c073` uses canonical POSIX relative
+paths and adds regression coverage. This is evidence-contract infrastructure,
+not a market or trading capability.
+
+The WPDCR overlay is now enforced for both
+`AUTONOMOUS_REMEDIATION_LEDGER` and
+`MODEL_REASONING_AND_EXECUTION_PROFILE`, including missing and blank-field
+negative tests. Actual model metadata remains `ACCESS_NOT_EXPOSED` and is not
+inferred.
+
+The later opportunity to inventory other evidence serializers for a shared
+path helper is proposal-only and outside E28's authorized surface. The
+cross-market theme-transmission idea remains a candidate research question,
+not an implementation or causal conclusion.

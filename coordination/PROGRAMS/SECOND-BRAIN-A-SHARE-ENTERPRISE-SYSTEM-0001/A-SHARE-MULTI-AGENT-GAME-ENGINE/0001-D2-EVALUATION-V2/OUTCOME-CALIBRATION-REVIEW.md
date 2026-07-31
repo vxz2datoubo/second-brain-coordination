@@ -24,3 +24,14 @@ created.
 | A green PR event proves the required commit archive. | It archived merge SHA `c311af...`, not the branch commit. | Refuted; corrected by `workflow_dispatch`. |
 
 No evidence here changes the synthetic-only, candidate-only boundary.
+
+## E28 Calibration Addendum
+
+| Forecast item | Observed result | Calibration |
+| --- | --- | --- |
+| The R1 path and WPDCR corrections would close the remaining E28 harness blockers. | `b578a14` passed 60 local tests, the public runner, three local archive roots, and exact-branch Python 3.11/3.13 CI. | Supported within the synthetic evidence boundary. |
+| A green PR-event workflow is sufficient to prove exact tested-head archive evidence. | The PR-event carrier used a merge SHA; exact-branch `workflow_dispatch` was required and passed. | Refuted; retained as negative evidence. |
+| The system can report the actual executor model profile from this surface. | Runtime model, effort and execution intensity were not exposed. | Unknown; reported as `ACCESS_NOT_EXPOSED`. |
+
+No E28 evidence changes the `research_only / NO_TRADE` boundary or establishes
+market realism, profitability, identity inference, or production readiness.
