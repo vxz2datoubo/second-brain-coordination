@@ -32,9 +32,18 @@ COMMANDS = (
 class CommandReceipt:
     name: str
     command: tuple[str, ...]
+    working_directory_relative: str
+    script_relative_path: str
     exit_code: int
     stdout_sha256: str
     stderr_sha256: str
+
+
+@dataclass(frozen=True)
+class ArtifactReceipt:
+    relative_path: str
+    sha256: str
+    size_bytes: int
 
 
 @dataclass(frozen=True)
@@ -44,6 +53,9 @@ class ArchiveReceipt:
     archive_sha256: str
     archive_size_bytes: int
     extracted_file_count: int
+    root_id: str
+    root_path_sha256: str
+    artifacts: tuple[ArtifactReceipt, ...]
     commands: tuple[CommandReceipt, ...]
 
 
@@ -92,6 +104,8 @@ def _run_archive_command(archive_root: Path, script_relative_path: str) -> Comma
     receipt = CommandReceipt(
         next(name for name, scripts in COMMANDS if scripts == (script_relative_path,)),
         command,
+        EVALUATION_RELATIVE_ROOT.as_posix(),
+        script_relative_path,
         result.returncode,
         _sha256_bytes(result.stdout),
         _sha256_bytes(result.stderr),
@@ -99,6 +113,16 @@ def _run_archive_command(archive_root: Path, script_relative_path: str) -> Comma
     if receipt.exit_code != 0:
         raise RuntimeError("E26_ARCHIVE_COMMAND_FAILED:%s:%s" % (receipt.name, receipt.exit_code))
     return receipt
+
+
+def _artifact_receipts(extraction_root: Path) -> tuple[ArtifactReceipt, ...]:
+    """Return a complete, root-relative manifest for independent archive comparison."""
+    records = []
+    for path in sorted((item for item in extraction_root.rglob("*") if item.is_file()), key=lambda item: item.as_posix()):
+        relative_path = path.relative_to(extraction_root).as_posix()
+        contents = path.read_bytes()
+        records.append(ArtifactReceipt(relative_path, _sha256_bytes(contents), len(contents)))
+    return tuple(records)
 
 
 def _archive_once(commit: str, *, run_index: int, temporary_root: Path) -> ArchiveReceipt:
@@ -123,6 +147,9 @@ def _archive_once(commit: str, *, run_index: int, temporary_root: Path) -> Archi
         _sha256_bytes(archive_bytes),
         len(archive_bytes),
         sum(1 for path in extraction_root.rglob("*") if path.is_file()),
+        "archive-root-%03d" % run_index,
+        _sha256_bytes(str(extraction_root.resolve()).encode("utf-8")),
+        _artifact_receipts(extraction_root),
         commands,
     )
 
@@ -132,15 +159,49 @@ def validate_archive_receipts(receipts: tuple[ArchiveReceipt, ...], expected_com
         raise AssertionError("E26_ARCHIVE_RECEIPT_COUNT_MISMATCH")
     if len({receipt.archive_run_id for receipt in receipts}) != len(receipts):
         raise AssertionError("E26_ARCHIVE_ROOT_NOT_DISTINCT")
+    if any(not receipt.root_id or not receipt.root_path_sha256 for receipt in receipts):
+        raise AssertionError("E28_ARCHIVE_ROOT_IDENTITY_MISSING")
+    if len({receipt.root_id for receipt in receipts}) != len(receipts):
+        raise AssertionError("E28_ARCHIVE_ROOT_ID_NOT_DISTINCT")
+    if len({receipt.root_path_sha256 for receipt in receipts}) != len(receipts):
+        raise AssertionError("E28_ARCHIVE_ROOT_PATH_NOT_DISTINCT")
     if any(receipt.commit != expected_commit for receipt in receipts):
         raise AssertionError("E26_ARCHIVE_COMMIT_MISMATCH")
     if any(not receipt.archive_sha256 or receipt.extracted_file_count < 1 for receipt in receipts):
         raise AssertionError("E26_ARCHIVE_RECEIPT_INCOMPLETE")
+    if len({receipt.archive_sha256 for receipt in receipts}) != 1 or len({receipt.archive_size_bytes for receipt in receipts}) != 1:
+        raise AssertionError("E28_ARCHIVE_BYTES_NOT_IDENTICAL")
+    if any(not receipt.artifacts for receipt in receipts):
+        raise AssertionError("E28_ARCHIVE_ARTIFACT_MANIFEST_MISSING")
+    baseline_artifacts = receipts[0].artifacts
+    if not baseline_artifacts:
+        raise AssertionError("E28_ARCHIVE_ARTIFACT_MANIFEST_MISSING")
+    if any(receipt.artifacts != baseline_artifacts for receipt in receipts[1:]):
+        raise AssertionError("E28_ARCHIVE_ARTIFACT_MANIFEST_DRIFT")
+    artifact_paths = tuple(item.relative_path for item in baseline_artifacts)
+    if len(set(artifact_paths)) != len(artifact_paths):
+        raise AssertionError("E28_ARCHIVE_ARTIFACT_PATH_DUPLICATE")
+    if any(
+        not item.relative_path
+        or Path(item.relative_path).is_absolute()
+        or ".." in Path(item.relative_path).parts
+        or not item.sha256
+        or item.size_bytes < 0
+        for item in baseline_artifacts
+    ):
+        raise AssertionError("E28_ARCHIVE_ARTIFACT_MANIFEST_INVALID")
     for receipt in receipts:
         if tuple(command.name for command in receipt.commands) != tuple(name for name, _scripts in COMMANDS):
             raise AssertionError("E26_ARCHIVE_COMMAND_SET_MISMATCH")
         if any(command.exit_code != 0 for command in receipt.commands):
             raise AssertionError("E26_ARCHIVE_COMMAND_NOT_GREEN")
+        for command in receipt.commands:
+            if command.working_directory_relative != EVALUATION_RELATIVE_ROOT.as_posix():
+                raise AssertionError("E28_ARCHIVE_COMMAND_WORKING_DIRECTORY_INVALID")
+            if command.script_relative_path not in tuple(scripts[0] for _name, scripts in COMMANDS):
+                raise AssertionError("E28_ARCHIVE_COMMAND_SCRIPT_INVALID")
+            if not command.command or Path(command.command[-1]).is_absolute() or command.command[-1] != command.script_relative_path:
+                raise AssertionError("E28_ARCHIVE_COMMAND_ESCAPES_ROOT")
     runner_hashes = {
         command.stdout_sha256
         for receipt in receipts

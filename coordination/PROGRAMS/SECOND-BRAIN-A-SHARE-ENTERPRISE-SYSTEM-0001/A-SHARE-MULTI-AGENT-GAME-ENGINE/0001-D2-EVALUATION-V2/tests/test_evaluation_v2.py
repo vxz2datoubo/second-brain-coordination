@@ -43,12 +43,14 @@ from mutation_registry import (
     validate_true_sut_mutation,
 )
 from portable_archive_evidence import (
+    ArtifactReceipt,
     ArchiveReceipt,
     CommandReceipt,
+    EVALUATION_RELATIVE_ROOT,
     require_within_archive_root,
     validate_archive_receipts,
 )
-from receipt_validation import validate_completion_evidence
+from receipt_validation import WPDCR_REQUIRED_SECTIONS, validate_completion_evidence
 from shadow_sut import SourceReplacement
 from synthetic_cases import (
     counterfactual_catalog,
@@ -136,9 +138,8 @@ class EvaluationV2Tests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "E26_ORACLE_DEPENDS_ON_PAIRED_PREDICATE:HAS_EPISODE"):
             validate_invariant_registry(tuple(sorted(corrupted)), corrupted)
 
-    def test_counterfactual_trace_uses_actual_execution_not_spec_formula(self):
+    def test_harness_injects_declared_spec_disagreement_without_changing_execution_signature(self):
         actual_spec = counterfactual_catalog()[0]
-        actual_result = execute_counterfactual(actual_spec)
         misleading_spec = replace(
             actual_spec,
             variant=999,
@@ -146,28 +147,56 @@ class EvaluationV2Tests(unittest.TestCase):
             expected_relation=(("changed_action_count", 999999),),
         )
 
-        trace = _counterfactual_catalog_case(actual_result)
-        self.assertEqual(trace["id"], actual_result.baseline.run_id.removesuffix(":baseline"))
-        self.assertEqual(
-            trace["executed_input"]["changed_assumption_id"],
-            actual_result.changed_assumption_id,
+        _baseline_summary, baseline_report = run_evaluation()
+        _declared_summary, declared_report = run_evaluation(
+            declared_counterfactual_specs={actual_spec.pair_id: misleading_spec},
         )
-        self.assertEqual(trace["observed_relation"]["changed_action_count"], 1)
-        self.assertNotIn("999999", repr(trace))
-        self.assertNotIn("FORGED", repr(trace))
-        self.assertNotEqual(misleading_spec.variant, actual_spec.variant)
+        baseline_trace = next(
+            row for row in baseline_report["catalog_signatures"]["counterfactuals"]
+            if row["id"] == actual_spec.pair_id
+        )
+        declared_trace = next(
+            row for row in declared_report["catalog_signatures"]["counterfactuals"]
+            if row["id"] == actual_spec.pair_id
+        )
+        self.assertEqual(baseline_trace["execution_signatures"], declared_trace["execution_signatures"])
+        self.assertTrue(declared_trace["specification_disagreement"])
+        self.assertEqual(declared_trace["declared_specification"]["variant"], 999)
+        self.assertIn("999999", repr(declared_trace["declared_specification"]))
+        self.assertNotIn("999999", repr(declared_trace["executed_input"]))
+        self.assertNotIn("FORGED", repr(declared_trace["observed_relation"]))
 
-    def test_archive_receipts_fail_closed_for_commit_or_root_disagreement(self):
+    def test_actual_counterfactual_execution_change_changes_execution_signature(self):
+        actual_spec = counterfactual_catalog()[0]
+        changed_execution_spec = replace(actual_spec, variant=2, changed_assumption_id="assumption:cf-002")
+        actual_trace = _counterfactual_catalog_case(execute_counterfactual(actual_spec), actual_spec)
+        changed_trace = _counterfactual_catalog_case(
+            execute_counterfactual(changed_execution_spec),
+            changed_execution_spec,
+        )
+        assert_distinct_execution_cases("counterfactual-proof", [actual_trace, changed_trace])
+        self.assertNotEqual(
+            actual_trace["execution_signatures"],
+            changed_trace["execution_signatures"],
+        )
+
+    def test_archive_receipts_fail_closed_for_independent_root_or_artifact_disagreement(self):
         def receipt(run_id, commit):
             return ArchiveReceipt(
                 run_id,
                 commit,
-                "archive-sha-" + run_id,
+                "archive-sha-identical",
                 123,
                 10,
+                "root-" + run_id,
+                "root-path-hash-" + run_id,
                 (
-                    CommandReceipt("focused_tests", ("python", "tests/test_evaluation_v2.py"), 0, "test", ""),
-                    CommandReceipt("public_runner", ("python", "tests/run_evaluation_v2.py"), 0, "runner", ""),
+                    ArtifactReceipt("tests/test_evaluation_v2.py", "artifact-test", 100),
+                    ArtifactReceipt("tests/run_evaluation_v2.py", "artifact-runner", 200),
+                ),
+                (
+                    CommandReceipt("focused_tests", ("python", "-B", "tests/test_evaluation_v2.py"), EVALUATION_RELATIVE_ROOT.as_posix(), "tests/test_evaluation_v2.py", 0, "test", ""),
+                    CommandReceipt("public_runner", ("python", "-B", "tests/run_evaluation_v2.py"), EVALUATION_RELATIVE_ROOT.as_posix(), "tests/run_evaluation_v2.py", 0, "runner", ""),
                 ),
             )
 
@@ -178,6 +207,18 @@ class EvaluationV2Tests(unittest.TestCase):
             validate_archive_receipts(valid[:2] + (receipt("archive-run-003", "b" * 40),), expected_commit)
         with self.assertRaisesRegex(AssertionError, "E26_ARCHIVE_ROOT_NOT_DISTINCT"):
             validate_archive_receipts((valid[0], valid[0], valid[2]), expected_commit)
+        with self.assertRaisesRegex(AssertionError, "E28_ARCHIVE_ARTIFACT_MANIFEST_DRIFT"):
+            drifted = replace(
+                valid[2],
+                artifacts=(ArtifactReceipt("tests/test_evaluation_v2.py", "artifact-test", 101),),
+            )
+            validate_archive_receipts(valid[:2] + (drifted,), expected_commit)
+        with self.assertRaisesRegex(AssertionError, "E28_ARCHIVE_ROOT_PATH_NOT_DISTINCT"):
+            repeated_path = replace(valid[2], root_path_sha256=valid[0].root_path_sha256)
+            validate_archive_receipts(valid[:2] + (repeated_path,), expected_commit)
+        with self.assertRaisesRegex(AssertionError, "E28_ARCHIVE_ARTIFACT_MANIFEST_MISSING"):
+            missing_artifacts = replace(valid[2], artifacts=())
+            validate_archive_receipts(valid[:2] + (missing_artifacts,), expected_commit)
 
     def test_archive_execution_path_cannot_escape_extracted_root(self):
         with TemporaryDirectory() as temporary:
@@ -198,9 +239,95 @@ class EvaluationV2Tests(unittest.TestCase):
             "tested_parent": "e" * 40, "receipt_commit": "THIS_COMMIT_AFTER_PUSH",
             "changed_files": [], "commands": [], "unknowns": [], "negative_findings": [],
             "archive_evidence": {"exact_commit": "d" * 40},
+            "wpdcr": {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS},
         }
         with self.assertRaisesRegex(ValueError, "E26_COMPLETION_EVIDENCE_PLACEHOLDER:receipt_commit"):
             validate_completion_evidence(carrier)
+
+    def test_completion_evidence_fails_closed_for_wpdcr_and_archive_root_contracts(self):
+        commit = "d" * 40
+
+        def archive_receipt(index, *, root_id=None, root_path_sha256=None, artifact_size=10, script="tests/run_evaluation_v2.py"):
+            return {
+                "archive_run_id": "archive-run-%03d" % index,
+                "commit": commit,
+                "archive_sha256": "archive-identical",
+                "archive_size_bytes": 100,
+                "extracted_file_count": 2,
+                "root_id": "root-%03d" % index if root_id is None else root_id,
+                "root_path_sha256": "root-path-%03d" % index if root_path_sha256 is None else root_path_sha256,
+                "artifacts": [
+                    {"relative_path": "tests/test_evaluation_v2.py", "sha256": "test", "size_bytes": artifact_size},
+                ],
+                "commands": [
+                    {
+                        "name": "public_runner",
+                        "command": ["python", "-B", script],
+                        "working_directory_relative": EVALUATION_RELATIVE_ROOT.as_posix(),
+                        "script_relative_path": script,
+                        "exit_code": 0,
+                        "stdout_sha256": "stdout",
+                        "stderr_sha256": "stderr",
+                    },
+                ],
+            }
+
+        carrier = {
+            "task_id": "E28", "route_epoch": 29, "completion_signal": "SIGNAL",
+            "pull_request": 106, "issue": 23, "branch": "codex/example",
+            "reviewed_base": "a" * 40, "remote_main_before": "b" * 40,
+            "remote_main_after": "c" * 40, "tested_commit": commit,
+            "tested_parent": "e" * 40, "receipt_commit": "f" * 40,
+            "changed_files": [], "commands": [], "unknowns": [], "negative_findings": [],
+            "archive_evidence": {
+                "exact_commit": commit,
+                "archive_receipts": [archive_receipt(index) for index in (1, 2, 3)],
+            },
+            "wpdcr": {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS},
+        }
+        validate_completion_evidence(carrier)
+        with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_COMPLETION_SIGNAL_MISMATCH"):
+            validate_completion_evidence(carrier, expected_completion_signal="OTHER_SIGNAL")
+        missing_wpdcr = dict(carrier)
+        missing_wpdcr["wpdcr"] = {section: {"present": True} for section in WPDCR_REQUIRED_SECTIONS - {"next_action_and_gate"}}
+        with self.assertRaisesRegex(ValueError, "E28_WPDCR_REQUIRED_SECTION_MISSING:next_action_and_gate"):
+            validate_completion_evidence(missing_wpdcr)
+        repeated_root = dict(carrier)
+        repeated_root["archive_evidence"] = {
+            "exact_commit": commit,
+            "archive_receipts": [
+                archive_receipt(1), archive_receipt(2, root_id="root-001"), archive_receipt(3),
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_ARCHIVE_ROOT_NOT_DISTINCT"):
+            validate_completion_evidence(repeated_root)
+        missing_root = dict(carrier)
+        missing_root["archive_evidence"] = {
+            "exact_commit": commit,
+            "archive_receipts": [
+                archive_receipt(1), archive_receipt(2, root_path_sha256=""), archive_receipt(3),
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_ARCHIVE_ROOT_MISSING"):
+            validate_completion_evidence(missing_root)
+        external_command = dict(carrier)
+        external_command["archive_evidence"] = {
+            "exact_commit": commit,
+            "archive_receipts": [
+                archive_receipt(1), archive_receipt(2), archive_receipt(3, script="C:/outside.py"),
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_ARCHIVE_COMMAND_ESCAPES_ROOT"):
+            validate_completion_evidence(external_command)
+        artifact_drift = dict(carrier)
+        artifact_drift["archive_evidence"] = {
+            "exact_commit": commit,
+            "archive_receipts": [
+                archive_receipt(1), archive_receipt(2), archive_receipt(3, artifact_size=11),
+            ],
+        }
+        with self.assertRaisesRegex(ValueError, "E28_COMPLETION_EVIDENCE_ARCHIVE_ARTIFACT_MANIFEST_DRIFT"):
+            validate_completion_evidence(artifact_drift)
 
     def test_trace_catalogs_reuse_the_single_actual_episode_and_counterfactual_execution(self):
         with patch("evaluation_v2_harness.execute_episode", wraps=execute_episode) as episode_call, patch(

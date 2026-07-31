@@ -5,9 +5,10 @@ from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 import importlib
+from typing import Mapping
 
 from catalog_validation import assert_catalogs_distinct
-from evaluation_v2_contract import EXPECTED_D2_CORE_SHA256, canonical_sha256, report_row
+from evaluation_v2_contract import CounterfactualSpec, EXPECTED_D2_CORE_SHA256, canonical_sha256, report_row
 from independent_oracle import evaluate_episode
 from invariant_registry import execute_controlled_violation, validate_invariant_registry
 from metamorphic_properties import property_function_map, run_metamorphic_properties
@@ -71,17 +72,35 @@ def _run_input(run) -> dict[str, object]:
     return {"actions": tuple(actions)}
 
 
-def _counterfactual_catalog_case(result) -> dict[str, object]:
+def _specification_projection(specification: CounterfactualSpec) -> dict[str, object]:
+    """Preserve declared formula provenance without granting it execution evidence."""
+    return {
+        "pair_id": specification.pair_id,
+        "variant": specification.variant,
+        "changed_assumption_id": specification.changed_assumption_id,
+        "semantic_input": specification.semantic_input,
+        "expected_relation": specification.expected_relation,
+        "test_id": specification.test_id,
+    }
+
+
+def _counterfactual_catalog_case(
+    result,
+    execution_specification: CounterfactualSpec,
+    declared_specification: CounterfactualSpec | None = None,
+) -> dict[str, object]:
     """Build a trace only from the already-executed counterfactual result.
 
-    ``CounterfactualSpec`` is an instruction to produce the result, not proof
-    of what the SUT actually consumed.  Keeping it out of this projection
-    makes a later spec/formula drift visible in the catalog signature.
+    The execution specification and any separately declared formula are both
+    retained as provenance, but neither participates in the execution
+    signature.  Only the retained result object contributes execution input
+    and observation evidence.
     """
+    declared_specification = declared_specification or execution_specification
     baseline_run_id = result.baseline.run_id
     if not baseline_run_id.endswith(":baseline"):
         raise AssertionError("E26_COUNTERFACTUAL_EXECUTION_ID_MISSING_BASELINE_SUFFIX")
-    return _case(
+    trace = _case(
         baseline_run_id.removesuffix(":baseline"),
         {
             "baseline": _run_input(result.baseline),
@@ -95,15 +114,44 @@ def _counterfactual_catalog_case(result) -> dict[str, object]:
             "changed_action_count": len(result.changed_action_ids),
         },
     )
+    trace["execution_specification"] = _specification_projection(execution_specification)
+    trace["declared_specification"] = _specification_projection(declared_specification)
+    trace["specification_disagreement"] = (
+        trace["execution_specification"] != trace["declared_specification"]
+    )
+    return trace
 
 
-def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
+def _resolve_declared_counterfactual_specs(
+    counterfactuals: tuple[CounterfactualSpec, ...],
+    declared_counterfactual_specs: Mapping[str, CounterfactualSpec] | None,
+) -> dict[str, CounterfactualSpec]:
+    if declared_counterfactual_specs is None:
+        return {}
+    known_ids = {spec.pair_id for spec in counterfactuals}
+    declarations = dict(declared_counterfactual_specs)
+    unknown_ids = sorted(set(declarations) - known_ids)
+    if unknown_ids:
+        raise ValueError("E28_DECLARED_COUNTERFACTUAL_UNKNOWN_PAIR:" + ",".join(unknown_ids))
+    for pair_id, declaration in declarations.items():
+        if not isinstance(declaration, CounterfactualSpec):
+            raise TypeError("E28_DECLARED_COUNTERFACTUAL_INVALID_TYPE:" + pair_id)
+        if declaration.pair_id != pair_id:
+            raise ValueError("E28_DECLARED_COUNTERFACTUAL_PAIR_MISMATCH:" + pair_id)
+    return declarations
+
+
+def run_evaluation(
+    *,
+    declared_counterfactual_specs: Mapping[str, CounterfactualSpec] | None = None,
+) -> tuple[EvaluationSummary, dict[str, object]]:
     fingerprint = assert_accepted_sut_fingerprint()
     scenarios = scenario_catalog()
     invariants = invariant_catalog()
     negatives = negative_catalog()
     episodes = episode_catalog()
     counterfactuals = counterfactual_catalog()
+    declarations = _resolve_declared_counterfactual_specs(counterfactuals, declared_counterfactual_specs)
     cross_family = cross_family_catalog(mutation_property_pairs())
     validate_invariant_registry(tuple(sorted({spec.predicate_id for spec in invariants})))
     outcomes = {spec.scenario_id: execute_scenario(spec) for spec in scenarios}
@@ -160,9 +208,13 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
 
     counterfactual_results = []
     counterfactual_executions = {}
+    counterfactual_traces = []
     for spec in counterfactuals:
         result = execute_counterfactual(spec)
         counterfactual_executions[spec.pair_id] = result
+        counterfactual_traces.append(
+            _counterfactual_catalog_case(result, spec, declarations.get(spec.pair_id, spec)),
+        )
         counterfactual_results.append({"pair_id": spec.pair_id, "passed": len(result.changed_action_ids) == 1})
     if not all(row["passed"] for row in counterfactual_results):
         raise AssertionError("E23_COUNTERFACTUAL_FAILURE")
@@ -219,10 +271,7 @@ def run_evaluation() -> tuple[EvaluationSummary, dict[str, object]]:
                 "final_state_hash": episode_executions[spec.episode_id][1].episode_state.state_hash,
             },
         ) for spec, row in zip(episodes, episode_results)],
-        "counterfactuals": [
-            _counterfactual_catalog_case(counterfactual_executions[spec.pair_id])
-            for spec in counterfactuals
-        ],
+        "counterfactuals": counterfactual_traces,
         "cross_family": [_case(spec.interaction_id, {"mutant": spec.mutant_id, "property": spec.property_id, "variant": spec.fixture_variant}, {"passed": row["passed"]}) for spec, row in zip(cross_family, cross_results)],
     }
     assert_catalogs_distinct(catalogs)
