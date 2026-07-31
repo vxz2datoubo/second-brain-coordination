@@ -1,0 +1,52 @@
+schema_version: "1.0"
+record_type: "ModelReasoningExecutionProfile"
+protocol: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
+
+model_reasoning_execution_profile:
+  preferred_model_tier: "SOL | TERRA | LUNA"
+  preferred_model_id: "gpt-5.6-sol | gpt-5.6-terra | gpt-5.6-luna"
+  minimum_acceptable_model: ""
+  reasoning_effort: "none | low | medium | high | xhigh | max"
+  execution_intensity: "X0_RECONNAISSANCE | X1_STANDARD | X2_SUSTAINED | X3_DEEP | X4_MAXIMUM"
+  permission_profile: "P0_STANDARD_BOUNDED | P1_ENHANCED_BOUNDED | P2_STRATEGIC_BOUNDED | P3_USER_OR_GOVERNANCE_GATE"
+  selection_rationale:
+    task_difficulty: ""
+    uncertainty_or_ambiguity: ""
+    local_exploration_need: ""
+    error_cost_or_quality_need: ""
+    why_not_smaller_or_lower_effort: ""
+  availability_preflight:
+    required: true
+    checks: [model_selectable, reasoning_effort_supported, usage_window_sufficient, tools_and_environment_available]
+  fallback_policy:
+    mode: "REQUIRED_EXACT | EXPLICIT_ALLOWED_FALLBACK | DECOMPOSE_AND_ROUTE"
+    silent_downgrade_forbidden: true
+    named_fallback_model: ""
+    named_fallback_reasoning_effort: ""
+    acceptance_criteria_must_remain_unchanged: true
+  escalation_triggers:
+    - "current reasoning/attempt budget exhausted without reliable closure"
+    - "two or more plausible hypotheses remain"
+    - "difficulty increases to D3/D4"
+    - "material architecture or evidence-truth conflict appears"
+  resource_budget:
+    max_hypothesis_cycles: 0
+    max_autonomous_attempt_cycles: 0
+    max_compute_multiplier_or_share: ""
+    max_parallel_subtasks: 0
+    max_external_cost: 0
+    checkpoint_frequency: ""
+  authority_limits:
+    no_canonical_authority_change: true
+    no_owner_or_gate_change: true
+    no_privacy_security_license_expansion: true
+    no_production_or_trade_authority: true
+  actual_profile_reporting:
+    WPDCR_section: "MODEL_REASONING_AND_EXECUTION_PROFILE"
+    required_fields: [requested_model, actual_model, requested_reasoning_effort, actual_reasoning_effort, requested_execution_intensity, actual_execution_intensity, permission_profile_used, availability_preflight_result, fallback_or_escalation_events, budget_used, quality_effect, residual_uncertainty]
+
+executor_lease_acknowledgement:
+  must_confirm:
+    - "The recommended model, reasoning effort, execution intensity and permission profile were read before execution."
+    - "No silent downgrade or adjacent-model substitution is allowed."
+    - "Actual model/effort/intensity and every escalation or fallback will be reported."
