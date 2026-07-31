@@ -1,0 +1,12 @@
+task_id: "CODEX-D2-EVALUATION-V2-CONTROLLED-VIOLATION-TRACE-PROVENANCE-AND-EVIDENCE-PRESERVATION-CLOSURE-0017-E25"
+tested_commit: "5c10a31326eb873fd02233a445f9a5d6c17a1c3c"
+trace_policy:
+  scenarios: {executions: 72, catalog_source: "retained scenario outcome"}
+  invariants: {rows: 80, catalog_source: "retained fixture plus controlled evidence"}
+  episodes: {executions: 24, required_call_count: 24, catalog_source: "same retained one/two GameRun objects", forbidden: "signature-only rerun"}
+  counterfactuals: {executions: 32, required_call_count: 32, catalog_source: "same retained CounterfactualResult", forbidden: "parallel variant formula"}
+signature_rules:
+  consumed_input_change: "changes input signature"
+  observed_relation_change: "changes relation signature"
+  identifier_only_change: "does not create coverage credit"
+  absent_order: "represented as order=None"

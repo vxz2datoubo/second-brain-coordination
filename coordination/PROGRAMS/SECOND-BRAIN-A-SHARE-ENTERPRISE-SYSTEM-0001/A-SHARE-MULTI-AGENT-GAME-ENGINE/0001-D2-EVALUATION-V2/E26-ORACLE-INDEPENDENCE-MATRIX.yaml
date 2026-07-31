@@ -1,0 +1,20 @@
+task_id: "CODEX-E26-CANONICAL-REMOTE-IDENTITY-BRIDGE-PRESERVED-COMMIT-AND-EVIDENCE-RESUME-0019-E27"
+tested_commit: "b45ab1e27b066edfdf8354c580702406bc4a49ae"
+status: "REMOTE_CI_VERIFIED"
+direct_object_oracles:
+  - {predicate_id: "HAS_EPISODE", oracle_id: "ORACLE-HAS_EPISODE", artifact_check: "GameRun.episode_state is None", tamper_test: "fails_closed"}
+  - {predicate_id: "NONEMPTY_EVENTS", oracle_id: "ORACLE-NONEMPTY_EVENTS", artifact_check: "GameRun.events is tuple and nonempty", tamper_test: "fails_closed"}
+  - {predicate_id: "STEP_MONOTONIC", oracle_id: "ORACLE-STEP_MONOTONIC", artifact_check: "stored boundaries and step index are independently derived", tamper_test: "fails_closed"}
+registry_guard:
+  forbidden: "failure oracle closes over paired predicate or rule"
+  failure_code: "E26_ORACLE_DEPENDS_ON_PAIRED_PREDICATE"
+trace_provenance:
+  counterfactual_signature_source: "retained CounterfactualResult baseline/alternative runs only"
+  spec_formula_input: "NOT_USED_FOR_SIGNATURE"
+  divergence_test: "spec fields may disagree while the observed execution trace remains fixed"
+remote_test_evidence:
+  workflow_dispatch_run: "30590950622"
+  python_311: "PASS"
+  python_313: "PASS"
+  focused_test_count: 57
+non_claim: "Synthetic Evaluation V2 oracle behavior only; no market, identity, profitability, or production claim."

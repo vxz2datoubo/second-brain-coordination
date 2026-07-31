@@ -1,0 +1,26 @@
+task_id: "CODEX-E26-CANONICAL-REMOTE-IDENTITY-BRIDGE-PRESERVED-COMMIT-AND-EVIDENCE-RESUME-0019-E27"
+exact_commit: "b45ab1e27b066edfdf8354c580702406bc4a49ae"
+remote_run:
+  id: "30590950622"
+  event: "workflow_dispatch"
+  conclusion: "success"
+  archive_commit: "b45ab1e27b066edfdf8354c580702406bc4a49ae"
+  archive_sha256: "d9c76f45250be180efd17a0ef12f294ddc379161d12aa39c7528395c3b4194d0"
+  archive_size_bytes: 887569
+  extracted_file_count: 413
+  archive_runs: ["archive-run-001", "archive-run-002", "archive-run-003"]
+  runner_stdout_sha256: "05cf11b1bf10231decab7940793f2493762cc45d57d7273de158d7fbd20aa168"
+  runner_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  python_versions: ["3.11.15", "3.13.14"]
+  exit_codes: [0, 0]
+determinism:
+  runner_output_identical_across_archive_runs_and_python_versions: true
+  unittest_stderr_identical: false
+  unittest_stderr_reason: "unittest duration appears in stderr and varies"
+local_archive_evidence:
+  exact_commit: "b45ab1e27b066edfdf8354c580702406bc4a49ae"
+  archive_sha256: "e11b8ab7263e45c1bc1d9e0d8b078825a40128467157c06a21b4d31094ac1275"
+  runner_stdout_sha256: "39eca6cce4fc99ed6fed4227838d8ae7bc6364e01ed4bb25963e27665a2a3e9e"
+negative_evidence:
+  - "Run 30590806984 passed but archived merge SHA c311af..., not b45ab1."
+  - "E25 Windows tar pipeline was corrupt; accepted evidence uses Git ZIP and standard-library extraction."

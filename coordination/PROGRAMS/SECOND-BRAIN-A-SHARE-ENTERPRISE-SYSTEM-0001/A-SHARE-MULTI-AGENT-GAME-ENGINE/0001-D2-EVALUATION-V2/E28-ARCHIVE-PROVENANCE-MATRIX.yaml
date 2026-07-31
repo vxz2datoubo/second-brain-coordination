@@ -1,0 +1,41 @@
+task_id: "CODEX-E26-HARNESS-LEVEL-DIVERGENCE-ARCHIVE-MANIFEST-WPDCR-CONFORMANCE-CLOSURE-0020-E28"
+route_epoch: 29
+tested_commit: "b578a14b613a9d34e058e951eb342f395b00c073"
+tested_parent: "c790d0ee40a78b7a40644e22764c2409fcf12a85"
+tested_tree: "d3f6b0854bbec8230ec605c32413ecfdd86ff8d8"
+local_platform: "Windows"
+archive_format: "zip"
+archive_sha256: "f5dbe7557d90cc62025bdf9ffb337c5d25c3105dfa0aca9b5ede880dd72e0c6a"
+archive_size_bytes: 901766
+archive_receipts:
+  - run_id: "archive-run-001"
+    root_id: "archive-root-001"
+    root_path_sha256: "1d434dbbcf676a3f3cfff2a69a93bbbcd3f895f88c7dfeb55bcdc43c189240b9"
+    exact_commit: "b578a14b613a9d34e058e951eb342f395b00c073"
+    extracted_file_count: 419
+    artifact_count: 419
+  - run_id: "archive-run-002"
+    root_id: "archive-root-002"
+    root_path_sha256: "9bb1ca43bf45987e8717bcd142c08f0d2180d391e45af2ad67e49a18a8499a49"
+    exact_commit: "b578a14b613a9d34e058e951eb342f395b00c073"
+    extracted_file_count: 419
+    artifact_count: 419
+  - run_id: "archive-run-003"
+    root_id: "archive-root-003"
+    root_path_sha256: "e7d2818124e129f0e31326a16e314504d4910e6d1387ef80701587de064786e2"
+    exact_commit: "b578a14b613a9d34e058e951eb342f395b00c073"
+    extracted_file_count: 419
+    artifact_count: 419
+cross_root_checks:
+  exact_commit_equality: true
+  distinct_root_identity: true
+  command_path_contained_in_root: true
+  required_command_set_equality: true
+  exit_zero_for_required_commands: true
+  per_artifact_hash_and_size_equality: true
+  public_runner_stdout_hash_equality: true
+  public_runner_stdout_sha256: "4213c14d1ba0e8edf7ff18275980b2387d663f6ac74643c27b80c170cc90a044"
+full_manifest: "E28-COMPLETION-EVIDENCE.json"
+negative_history:
+  - "c790d0e Linux CI was green but Windows replay exposed host separator drift."
+  - "The Windows failure was fixed by b578a14 and rerun on the final head."
