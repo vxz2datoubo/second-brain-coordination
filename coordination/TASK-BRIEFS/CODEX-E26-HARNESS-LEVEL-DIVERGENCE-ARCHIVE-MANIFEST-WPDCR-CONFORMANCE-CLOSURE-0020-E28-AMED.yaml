@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 record_type: "AMEDTaskBrief"
 task_id: "CODEX-E26-HARNESS-LEVEL-DIVERGENCE-ARCHIVE-MANIFEST-WPDCR-CONFORMANCE-CLOSURE-0020-E28"
 issue_or_pr: "Issue #23 / PR #106"
@@ -14,7 +14,61 @@ task_weight: "STANDARD"
 read_claim_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 completion_freshness_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+autonomous_remediation_protocol: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
+model_reasoning_execution_protocol: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
+model_reasoning_execution_template: "coordination/TEMPLATES/MODEL-REASONING-EXECUTION-PROFILE-TEMPLATE-v1.0.yaml"
 archive_runtime_template: "coordination/TEMPLATES/EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE-TEMPLATE-v1.0.yaml"
+
+model_reasoning_execution_profile:
+  preferred_model_tier: "SOL"
+  preferred_model_id: "gpt-5.6-sol"
+  minimum_acceptable_model: "gpt-5.6-terra"
+  reasoning_effort: "xhigh"
+  execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  selection_rationale:
+    task_difficulty: "D2_HARD with possible D3 escalation"
+    uncertainty_or_ambiguity: >-
+      The task must separate observed execution truth from specification-propagated metadata, construct a real harness disagreement,
+      and validate subtle archive/WPDCR evidence boundaries. A shallow or purely mechanical pass is likely to reproduce the same false proof.
+    local_exploration_need: >-
+      Codex can inspect and execute the local repository, test multiple dependency-injection seams and validate exact branch/runtime
+      behavior that GPT remote review cannot reproduce directly.
+    error_cost_or_quality_need: "A false green result would contaminate Gate B evidence and later architecture decisions."
+    why_not_smaller_or_lower_effort: "Terra/high is acceptable only as an explicit fallback; Luna or low/medium reasoning is insufficient for the core ambiguity."
+  availability_preflight:
+    required: true
+    checks: ["gpt-5.6-sol selectable", "xhigh supported", "usage window sufficient", "required local tools and Python runtimes available"]
+  fallback_policy:
+    mode: "EXPLICIT_ALLOWED_FALLBACK"
+    silent_downgrade_forbidden: true
+    named_fallback_model: "gpt-5.6-terra"
+    named_fallback_reasoning_effort: "high"
+    conditions:
+      - "Sol/xhigh is unavailable after a real preflight check."
+      - "Acceptance criteria, runtime matrix, tests and completion signal remain unchanged."
+      - "Fallback is recorded before substantive execution in MODEL_REASONING_AND_EXECUTION_PROFILE."
+      - "Escalate rather than continue if Terra/high cannot isolate the harness boundary after two hypothesis cycles."
+  escalation_triggers:
+    - "Two plausible execution/spec boundary designs remain after two tested hypothesis cycles."
+    - "A clean isolation seam appears to require architecture beyond the current Evaluation V2 surface."
+    - "Difficulty rises to D3/D4 or evidence remains contradictory."
+  escalation_profile:
+    model: "gpt-5.6-sol"
+    reasoning_effort: "max"
+    execution_intensity: "X4_MAXIMUM"
+    permission_profile: "P1_ENHANCED_BOUNDED"
+    note: "Reasoning and persistence may rise; ownership, paths, Gate, safety and authority do not."
+  resource_budget:
+    max_hypothesis_cycles: 4
+    max_autonomous_attempt_cycles: 5
+    max_compute_multiplier_or_share: "1.50x or 50% above STANDARD baseline"
+    max_parallel_subtasks: 3
+    max_external_cost: 0
+    checkpoint_frequency: "After the first real harness disagreement, first tested archive manifest, any max escalation, and completion."
+  actual_profile_reporting:
+    WPDCR_section: "MODEL_REASONING_AND_EXECUTION_PROFILE"
+    required_fields: [requested_model, actual_model, requested_reasoning_effort, actual_reasoning_effort, requested_execution_intensity, actual_execution_intensity, permission_profile_used, availability_preflight_result, fallback_or_escalation_events, compute_or_attempt_budget_used, material_quality_effect, residual_uncertainty]
 
 mission_intent:
   fundamental_goal: >-
@@ -71,6 +125,7 @@ proactive_mission_assignment:
     - "Inspect adjacent signature, archive, receipt and workflow assumptions."
     - "Preserve failed approaches and merge-SHA evidence."
     - "Implement safe A/B improvements that make evidence more falsifiable and reusable."
+    - "Use Sol/xhigh as the recommended profile and escalate to Sol/max only on the published triggers."
   proposal_only:
     - "Cross-project evidence service or organization-wide CI architecture."
 
@@ -98,13 +153,21 @@ mandatory_delivery_artifacts:
   - "E28-TEST-RUN-RECEIPT.md"
   - "AMED-AGENT-EXECUTION-RECEIPT.yaml"
   - "AMED-RESEARCH-LEDGER.yaml"
+  - "AUTONOMOUS-REMEDIATION-LEDGER.yaml"
   - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
   - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
   - "UNKNOWN-REGISTRY.yaml"
   - "AI_HANDOFF.yaml"
 
 coordination_and_handoff_design:
-  acceptance_gate: "GPT verifies remote code, real harness disagreement, root/artifact manifests, exact WPDCR schema and exact-branch 3.11/3.13 CI."
+  acceptance_gate: "GPT verifies remote code, real harness disagreement, root/artifact manifests, exact WPDCR schema, actual model profile and exact-branch 3.11/3.13 CI."
   exact_request_shape: "Owner, exact file/test/decision, evidence, blocked gate, unaffected work and closure condition."
+
+executor_lease_acknowledgement:
+  must_confirm:
+    - "Recommended profile is GPT-5.6 Sol, xhigh, X3_DEEP, P1_ENHANCED_BOUNDED."
+    - "Sol/max escalation is allowed only on the named triggers and does not expand authority."
+    - "No silent downgrade; Terra/high fallback is allowed only under the named conditions."
+    - "Actual model, reasoning effort, execution intensity and budget use must be reported."
 
 boundary: "PUBLIC_SAFE / SYNTHETIC_ONLY / CANDIDATE_ONLY / research_only / NO_TRADE"
