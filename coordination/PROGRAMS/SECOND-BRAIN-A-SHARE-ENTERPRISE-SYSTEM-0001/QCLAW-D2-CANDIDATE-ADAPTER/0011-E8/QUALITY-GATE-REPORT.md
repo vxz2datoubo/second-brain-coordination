@@ -63,3 +63,13 @@
 ```
 QCLAW_E18_PR100_STRICT_CANONICAL_IDENTITY_LOSSLESS_QUARANTINE_AND_EXECUTABLE_EVIDENCE_READY_FOR_GPT_REVIEW
 ```
+
+
+## E22 Gate B R7 - 2026-07-31T08:23:00+08:00
+
+### Status: PASSED - PENDING GPT REVIEW
+- **Dual Python:** 3.11.10 42/42, 3.12.10 42/42
+- **Commands:** Symbolic (zero hardcoded paths)
+- **D05:** Git-archive bound to exact E22 tested commit
+- **Receipts:** Machine-generated, runner-SHA-bound
+- **actual_result:** EXPECTED_FAIL / UNEXPECTED_FAIL / PASS (safe semantics)
