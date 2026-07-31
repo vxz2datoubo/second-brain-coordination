@@ -1,0 +1,21 @@
+schema_version: "1.0"
+record_type: "EngineeringDifficultyForecast"
+task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
+route_epoch: 31
+planned_difficulty: "D2_HARD"
+expected_failure_modes:
+  - "A current packet is appended below stale 73/84-test authority instead of replacing the primary identity."
+  - "Archive roots differ only by seed label and do not prove distinct extraction or execution."
+  - "WPDCR names the two overlay sections but leaves required fields blank or reports requested model as actual."
+  - "Receipt-only commit silently includes validator, workflow, schema, task spec or gate changes."
+  - "A new evidence correction changes executable files but reuses CI from 686518aa."
+expected_hard_parts:
+  - "Self-reference-safe tested/receipt identity without stale authority."
+  - "Full per-artifact equality across three roots without an impractically opaque report."
+  - "Preserving historical 73/84 evidence as history while making E30 current truth unambiguous."
+validation_strategy:
+  - "Negative tests for stale head, repeated root, external path, missing streams, artifact drift, blank WPDCR overlay and wrong literal signal."
+  - "Exact final tested SHA on Python 3.11 and 3.13."
+  - "Receipt-only diff allowlist and external SHA anchors."
+expected_reuse: "E29 functional code/spec/gates remain unchanged unless a concrete test failure proves a defect."
+forecast_owner: "GPT"
