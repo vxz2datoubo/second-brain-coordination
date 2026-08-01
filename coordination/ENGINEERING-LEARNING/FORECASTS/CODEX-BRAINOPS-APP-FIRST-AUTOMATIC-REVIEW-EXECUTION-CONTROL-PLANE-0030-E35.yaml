@@ -1,0 +1,68 @@
+schema_version: "1.0"
+forecast_id: "CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35"
+agent_id: "CODEX"
+mode: "project_plan"
+route_epoch: 36
+created_by: "GPT"
+created_at: "2026-08-02T00:34:00+08:00"
+
+mission: >-
+  Establish the evidence-based App-first BrainOps control-plane foundation for visible, reversible and later
+  bounded automation between GitHub review requests, GPT task publication, Codex App execution and local
+  Second Brain/MaiBot services.
+
+expected_positive_effects:
+  - id: "P1"
+    hypothesis: "A visible localhost console will reduce uncertainty about whether Codex and background services are running."
+    evidence_to_collect: ["dashboard screenshots or test artifacts", "state reconciliation tests", "user-visible service/port inventory"]
+  - id: "P2"
+    hypothesis: "App-first execution will preserve human supervision, review queues and interactive recovery better than CLI-only automation."
+    evidence_to_collect: ["local App capability matrix", "Automation interval/thread/review-queue observations", "App-vs-CLI ADR"]
+  - id: "P3"
+    hypothesis: "Event-driven intake plus a 30-minute anti-entropy scan will reduce missed review/task handoffs."
+    evidence_to_collect: ["missed-event fixtures", "duplicate-event fixtures", "reconciliation latency and deduplication results"]
+  - id: "P4"
+    hypothesis: "Execution ownership fencing will prevent App and CLI from executing the same route epoch."
+    evidence_to_collect: ["concurrency tests", "stale-owner tests", "idempotency and lease audit events"]
+  - id: "P5"
+    hypothesis: "A shared service and port registry will provide a reusable foundation for Second Brain and future MaiBot voice components."
+    evidence_to_collect: ["typed manifests", "port collision fixtures", "MaiBot component map"]
+
+expected_negative_effects:
+  - id: "N1"
+    risk: "Codex App may not expose a supported external trigger or 30-minute Automation interval."
+    control: "Classify honestly and retain CLI/manual fallback without UI automation hacks."
+  - id: "N2"
+    risk: "The control-plane scope may expand into an oversized platform before a usable MVP exists."
+    control: "Stop at P0/P1/P3 read-only and shadow gates; require GPT review before mutations."
+  - id: "N3"
+    risk: "Desktop and CLI executors may race or duplicate work."
+    control: "One-owner-per-route fencing, leases, idempotency and disabled automatic dispatch."
+  - id: "N4"
+    risk: "A localhost management UI can become an arbitrary command or credential exfiltration surface."
+    control: "Loopback-only, allowlisted manifests, no arbitrary shell, secret redaction and adversarial tests."
+  - id: "N5"
+    risk: "Running environment probes may disturb unrelated local services."
+    control: "Read-only probes and isolated temporary fixtures only."
+
+success_indicators:
+  - "Every local capability is SUPPORTED/UNSUPPORTED/UNKNOWN/BLOCKED with evidence."
+  - "A clean checkout runs the read-only console and shadow reconciler."
+  - "No service, startup, firewall, existing process or automatic executor is mutated."
+  - "App/CLI ownership and route gates fail closed under adversarial tests."
+  - "Exact-head tests and final single receipt topology are truthful."
+
+failure_indicators:
+  - "Claims App activation without a supported or locally verified interface."
+  - "Uses mouse/keyboard UI automation as the production mechanism."
+  - "Stores credentials or exposes management endpoints beyond loopback."
+  - "Dispatches Codex or QQ automatically during this route."
+  - "Creates a second task authority, memory runtime or unbounded service manager."
+
+calibration_requirements:
+  - "Compare forecast with actual local App and CLI capability evidence."
+  - "Report unexpected benefits and harms."
+  - "Report actual model/reasoning profile or ACCESS_NOT_EXPOSED."
+  - "Recommend the smallest safe next route: manual control, App Automation setup, or bounded CLI fallback."
+
+boundary: "LOCAL_FIRST / APP_FIRST / READ_ONLY_AND_SHADOW_ONLY / NO_TRADE"
