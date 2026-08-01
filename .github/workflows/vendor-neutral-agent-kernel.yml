@@ -41,6 +41,15 @@ jobs:
           git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
           echo "commit=$head" >> "$GITHUB_OUTPUT"
           echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E30-COMPLETION-EVIDENCE.json"
+          python - "$evidence" <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import sys
+          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          identity = evidence["primary_tested_identity"]
+          print(f"tested_commit={identity['tested_commit']}")
+          print(f"tested_tree={identity['tested_tree']}")
+          PY
           echo "changed_files=$RUNNER_TEMP/changed-files.txt" >> "$GITHUB_OUTPUT"
       - name: Run complete candidate suite and static gates
         run: >-
@@ -48,6 +57,8 @@ jobs:
           --changed-files "${{ steps.context.outputs.changed_files }}"
           --commit "${{ steps.context.outputs.commit }}"
           --tree "${{ steps.context.outputs.tree }}"
+          --tested-commit "${{ steps.context.outputs.tested_commit }}"
+          --tested-tree "${{ steps.context.outputs.tested_tree }}"
       - name: Reproduce clean Git archive evidence under three hash seeds
         shell: bash
         run: |
@@ -59,7 +70,9 @@ jobs:
             PYTHONHASHSEED="$seed" python -B "$archive_root/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py" \
               --changed-files "${{ steps.context.outputs.changed_files }}" \
               --commit "${{ steps.context.outputs.commit }}" \
-              --tree "${{ steps.context.outputs.tree }}" > "$RUNNER_TEMP/archive-$seed.json"
+              --tree "${{ steps.context.outputs.tree }}" \
+              --tested-commit "${{ steps.context.outputs.tested_commit }}" \
+              --tested-tree "${{ steps.context.outputs.tested_tree }}" > "$RUNNER_TEMP/archive-$seed.json"
             reports+=("$(sha256sum "$RUNNER_TEMP/archive-$seed.json" | awk '{print $1}')")
           done
           printf '%s\n' "${reports[@]}" | sort -u | tee "$RUNNER_TEMP/archive-report-hashes.txt"
