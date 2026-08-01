@@ -42,7 +42,15 @@ class E31EvidenceTests(unittest.TestCase):
         return directory
 
     def test_current_in_progress_contract_is_semantically_valid(self):
-        result = validate_e31_evidence(ROOT)
+        evidence = self._evidence()
+        evidence["status"] = "IN_PROGRESS"
+        evidence["receipt_head_identity"]["binding"] = "CURRENT_PR_HEAD"
+        wpdcr = yaml.safe_load(
+            (ROOT / "E31-WORK-PROCESS-AND-COORDINATION-REPORT.yaml").read_text(encoding="utf-8")
+        )
+        wpdcr["status"] = "IN_PROGRESS"
+        root = self._write_fixture(evidence=evidence, wpdcr=wpdcr)
+        result = validate_e31_evidence(root)
         self.assertEqual(result["status"], "IN_PROGRESS")
         self.assertEqual(result["archive"]["root_count"], 3)
         self.assertGreaterEqual(result["archive"]["artifact_count"], 2)
@@ -120,7 +128,8 @@ class E31EvidenceTests(unittest.TestCase):
 
     def test_root_command_placeholder_fails_closed(self):
         archive = self._archive()
-        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace("d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b", "PLACEHOLDER")
+        tested_commit = archive["tested_identity"]["tested_commit"]
+        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(tested_commit, "PLACEHOLDER")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "archive.yaml"
             path.write_text(yaml.safe_dump(archive, sort_keys=False), encoding="utf-8")
