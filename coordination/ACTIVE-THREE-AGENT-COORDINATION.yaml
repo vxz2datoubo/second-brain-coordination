@@ -1,12 +1,12 @@
-schema_version: "33.0"
+schema_version: "34.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E30_EVIDENCE_TRUTH_ACTIVE_QCLAW_E25_SHARED_CI_AND_EVIDENCE_TRUTH_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E31_COMMITTED_EVIDENCE_TRUTH_ACTIVE_QCLAW_E25_NOT_STARTED_ROUTE_VALID_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-01T07:50:00+08:00"
+updated_at: "2026-08-01T09:38:00+08:00"
 
 permanent_command_semantics:
-  GPT_review_command: {trigger: ["审查任务", "审核任务"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
+  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
   agent_read_command: {trigger: "读取任务", meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY", second_start_command_required: false}
 
 parallel_route_rule: >-
@@ -20,30 +20,31 @@ permanent_governance:
   final_head_rule: "Any executable correction invalidates earlier CI/archive acceptance; final evidence binds to one exact final tested SHA."
   receipt_rule: "Receipt-only commits may contain evidence/report artifacts only and require external full-SHA anchors."
   direct_observation_rule: "A recorded hash or narrative claim cannot override direct branch-file or GitHub CI observation."
+  semantic_evidence_rule: "Listing required WPDCR section names or root labels is not evidence; required sections and root/artifact records must contain independently checkable payloads."
 
 agents:
   CODEX:
     active_issue: 108
     pull_request: 107
-    task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
-    route_epoch: 31
+    task_id: "CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31"
+    route_epoch: 32
     status: "READY"
     execution_allowed: true
-    reviewed_base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+    reviewed_base: "93b61b055e13c04431236214a599a9f0f325b3ce"
     mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "xhigh"
     execution_intensity: "X3_DEEP"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_E30_PEOS_0010_E29_WPDCR_ARCHIVE_MANIFEST_PACKET_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
-    current_action: "Preserve E29 specs/gates and close current packet, WPDCR, full three-root manifest and receipt truth."
+    completion_signal: "CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW"
+    current_action: "Populate full WPDCR sections, commit FINAL distinct-root/full-artifact archive truth, remove pending receipt markers and close external-anchor semantics."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
     pull_request: 100
     task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
     route_epoch: 25
-    status: "READY"
+    status: "READY_NOT_STARTED"
     execution_allowed: true
     reviewed_base: "b654b1a3f18f769d8b7741ef618405e4337bbe63"
     mode: "target"
@@ -52,7 +53,7 @@ agents:
     execution_intensity: "X3_DEEP"
     permission_profile: "P1_ENHANCED_BOUNDED"
     completion_signal: "QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_EXACT_SHA_CI_ARCHIVE_WPDCR_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
-    current_action: "Actually restore shared CI, remove D2 self-proof copy, eliminate placeholders/multi-SHA contradictions and produce exact-head dual-Python three-root evidence."
+    current_action: "Read and execute the existing E25 route; first restore shared CI or remove the D2 self-proof copy."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -63,29 +64,24 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E29:
-    classification: "FUNCTIONAL_AND_CI_REUSABLE_EVIDENCE_CONTRACT_FAILED"
+  CODEX_E30:
+    classification: "REAL_103_CASE_DUAL_PYTHON_AND_RECEIPT_HEAD_CI_REUSABLE_COMMITTED_EVIDENCE_CONTRACT_FAILED"
     accepted_reusable:
-      - "Functional tested head 686518aa and exact dual-Python run 30669990210."
-      - "Three adapter specs and two disabled evaluation/shadow gates."
-      - "91-case/schema/strict/public-safety behavior."
+      - "Executable tested parent d9b0bfdd and receipt head 93b61b05."
+      - "Exact Python 3.11/3.13 receipt-head run 30676551612 and parent run 30676183695."
+      - "103-case manifest, current packet and evidence-only receipt file set."
+      - "Autonomy/model profile fields and truthful ACCESS_NOT_EXPOSED actual profile."
     returned:
-      - "Stale 73/84 primary packet and receipt identities."
-      - "Missing enterprise WPDCR autonomy/model overlays."
-      - "No full distinct-root/per-artifact archive manifest."
-      - "Stale remaining receipt/anchor claim."
-  QCLAW_E24:
-    classification: "DIRECTIONAL_REPAIR_REUSABLE_DIRECT_REMOTE_TRUTH_AND_EVIDENCE_CONTRACT_FAILED"
-    accepted_reusable:
-      - "Dedicated workflow and dual-Python intent."
-      - "Cumulative handoff/negative-history and evidence-runner scaffolding."
-      - "Canonical D2 target identity and non-empty receipt concept."
-    returned:
-      - "Shared workflow remains E23 hijacked at branch head."
-      - "Candidate-owned D2 copy and self-proof remain."
-      - "No visible exact-head CI."
-      - "1e78d353 versus 625cb250 identity conflict and receipt placeholder."
-      - "Brace/local-test placeholders, 44/45 contradiction and seed-only partial archive proof."
+      - "WPDCR lists base section names without section payloads."
+      - "Committed archive manifest remains REQUIRED, cites parent run and contains PENDING tested arguments."
+      - "Synthetic root labels lack root_path_sha256."
+      - "Singleton ci-report inventory does not prove the complete declared artifact surface."
+      - "AI_HANDOFF retains pending receipt self-reference and stale future-work wording."
+  QCLAW_E25:
+    classification: "NOT_STARTED_ACTIVE_ROUTE_STILL_VALID_NO_NEW_EPOCH"
+    evidence:
+      - "PR #100 head remains b654b1a3."
+      - "No E25 completion signal, lease checkpoint, corrective commit or visible E25 CI."
 
 frozen:
   - "No merge."
