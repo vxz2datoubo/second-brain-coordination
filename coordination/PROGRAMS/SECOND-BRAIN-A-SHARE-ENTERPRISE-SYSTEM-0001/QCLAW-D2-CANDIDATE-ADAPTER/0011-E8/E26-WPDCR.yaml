@@ -1,0 +1,67 @@
+# E26-WPDCR.yaml — Work Process Discovery & Coordination Report
+schema_version: "26.0"
+epoch: 26
+gate: "B R11"
+task_id: "QCLAW-PR100-E25-D2-SELF-PROOF-CI-ARCHIVE-CASE-SEMANTICS-WPDCR-AND-SINGLE-RECEIPT-CLOSURE-0028-E26"
+
+autonomous_remediation_ledger:
+  - step: "E26-B01 Delete D2 self-proof copy"
+    target: "d2_game_core.py in 0011-E8/"
+    action: "Removed local d2_game_core.py (33a7d821..., 75587B)"
+    action2: "Rewrote run_e26_full_evidence.py to extract D2 via 'git show d6f9e2e4d38861e91353be177c9ceacedde6d7ee:<path>' in each sandbox"
+    verification: "No local d2_game_core.py exists; sandboxes get canonical D2 from commit"
+    previous_failure: "E25 committed local D2 copy; runner copied it into every adversarial sandbox (self-proof)"
+
+  - step: "E26-B02 Delete __pycache__ bytecode"
+    target: "__pycache__/ in 0011-E8/"
+    action: "Deleted all .pyc files; created .gitignore with __pycache__/ and *.pyc"
+    verification: "No __pycache__ directory; .gitignore present"
+    previous_failure: "E25 committed 5 .pyc files (generate_adapters, validate_adapters, run_e25 for both 3.11 and 3.13)"
+
+  - step: "E26-B03 Delete stale E25 workflow"
+    target: ".github/workflows/qclaw-pr100-e25-evidence.yml"
+    action: "Deleted; created .github/workflows/qclaw-pr100-e26-evidence.yml (3524B)"
+    previous_failure: "E25 committed E25 workflow, GPT said it validated local D2 copy"
+
+  - step: "E26-B04 Clean stale E25 artifacts"
+    action: "Removed 10 E25-stale files (receipts, test results, WPDCR, calibration)"
+    previous_failure: "Receipts used local-e25-test, epoch 24, stale completion signal"
+
+  - step: "E26-B05 Fix receipt timestamps/epoch/completion signal"
+    action: "run_e26_full_evidence.py uses E26_GIT_SHA env var; epoch 26; E26 completion signal"
+    previous_failure: "E25 receipts had local-e25-test, epoch 24, E25 signal"
+
+  - step: "E26-B06 Single evidence-only receipt"
+    plan: "Exactly one non-empty receipt-only commit directly parented by tested head, no post-receipt commits"
+    previous_failure: "E25 had empty receipt 42065bda + BAR R0/R1 modifying AI_HANDOFF"
+
+  - step: "E26-B07 42 true adversarial cases"
+    plan: "A01-A42 exclude baseline gen/val (which pass); all 42 are fail-closed adversarial"
+
+  - step: "E26-B08 Three distinct exact-head archive roots"
+    plan: "git archive from tested commit with 3 seeds, same --prefix, compare SHA256"
+
+  - step: "E26-B09 Visible CI anchors"
+    plan: "Dedicated workflow with exact checkout sha; CI run/job/artifact publicly visible"
+
+  - step: "E26-B10 WPDCR truthful"
+    action: "This WPDCR accurately reflects: D2 deleted, __pycache__ deleted, E25 WF deleted"
+
+  - step: "E26-B11 AI_HANDOFF E26 top authority"
+    action: "E26 authoritative; E25 superseded with truthful reason"
+
+model_reasoning_and_execution_profile:
+  model_used: "qclaw/pool-deepseek-v4-pro"
+  adversarial_case_count: 42
+  python_versions: ["3.11.10", "3.13.3"]
+  remediation_mode: "BAR R0"
+
+artifact_manifest:
+  - name: ".gitignore"
+    purpose: "Prevent bytecode commits"
+  - name: "run_e26_full_evidence.py"
+    purpose: "Portable 42-case evidence runner (D2 from git show, not local copy)"
+  - name: ".github/workflows/qclaw-pr100-e26-evidence.yml"
+    purpose: "E26 dedicated dual-Python CI with isolated D2 extraction"
+  - name: "AI_HANDOFF.yaml"
+    purpose: "Cumulative handoff, E26 top authority"

@@ -1,0 +1,16 @@
+# E26-ARCHIVE-PROVENANCE-MATRIX.yaml
+schema_version: "26.0"
+epoch: 26
+gate: "B R11"
+
+matrix:
+  seeds: [0, 42, 1615446236]
+  tested_commit: "{tested_commit_sha}"
+  format: "git-archive"
+  prefix: "second-brain-coordination-archive/"
+  method: "git archive --prefix=second-brain-coordination-archive/ --format=zip --output=archive_seed{N}.zip {tested_commit_sha}"
+  expected: "All 3 seeds produce identical SHA256 (same prefix ensures deterministic zip)"
+  verification: "Compare sha256sum of all 3 archive zips"
+
+per_seed: []
+verification: "To be completed after corrective commit pushed to GitHub"

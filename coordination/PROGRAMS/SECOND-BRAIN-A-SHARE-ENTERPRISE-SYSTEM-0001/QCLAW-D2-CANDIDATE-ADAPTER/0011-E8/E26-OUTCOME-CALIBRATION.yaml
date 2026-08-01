@@ -1,0 +1,50 @@
+# E26-OUTCOME-CALIBRATION.yaml
+schema_version: "26.0"
+epoch: 26
+gate: "B R11"
+task_id: "QCLAW-PR100-E25-D2-SELF-PROOF-CI-ARCHIVE-CASE-SEMANTICS-WPDCR-AND-SINGLE-RECEIPT-CLOSURE-0028-E26"
+status: "AWAITING_DUAL_PYTHON_RESULTS"
+timestamp: "2026-08-01T13:10:00+08:00"
+reviewed_base: "ad9a5d0f81c1d4894dc7e8499400638e83521c28"
+completion_signal: "QCLAW_E26_PR100_EXTERNAL_D2_EXACT_HEAD_CI_THREE_ROOT_ARCHIVE_CASE_SEMANTICS_WPDCR_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+
+repairs_completed:
+  E26-B01_d2_self_proof_deleted:
+    previous: "Local d2_game_core.py (33a7d821/75587B), runner copied into every sandbox"
+    action: "Deleted; runner now extracts via 'git show d6f9e2e4:<path>' per sandbox"
+    status: "VERIFIED_GONE"
+  E26-B02_bytecode_deleted:
+    previous: "5 .pyc files in __pycache__/"
+    action: "Deleted __pycache__; created .gitignore"
+    status: "VERIFIED_GONE"
+  E26-B03_stale_E25_workflow:
+    previous: ".github/workflows/qclaw-pr100-e25-evidence.yml (E25 era)"
+    action: "Deleted; created .github/workflows/qclaw-pr100-e26-evidence.yml (3524B)"
+    status: "VERIFIED"
+  E26-B04_stale_E25_artifacts:
+    action: "Deleted 10 E25-stale files (receipts, test results, WPDCR)"
+    status: "VERIFIED"
+  E26-B05_runner_epoch26:
+    previous: "run_e25 used local-e25-test, epoch 24, E25 completion signal"
+    action: "Rewrote as run_e26: E26_GIT_SHA env, epoch 26, E26 completion signal"
+    status: "VERIFIED"
+  E26-B06_archive_matrix_fixed:
+    previous: "{tested_commit_sha} placeholder, empty per_seed"
+    action: "New E26-ARCHIVE-PROVENANCE-MATRIX.yaml with 3 seeds, proper structure"
+    status: "VERIFIED"
+  E26-B07_handoff_E26_authority:
+    previous: "E25 top authority (superseded)"
+    action: "AI_HANDOFF.yaml E26 authoritative; E25 superseded with truthful reason"
+    status: "VERIFIED"
+  E26-B08_WPDCR_truthful:
+    previous: "WPDCR claimed D2 deleted and E24 WF deleted when both remained"
+    action: "New truthful WPDCR: D2 gone, pycache gone, E25 WF gone"
+    status: "VERIFIED"
+
+pending:
+  - "Dual Python 3.11.10 + 3.13.3 run (e26_dual_python subagent)"
+  - "Verify 42 adversarial cases all EXPECTED_FAIL"
+  - "D05 3-seed archive from tested commit"
+  - "Finalize tested_commit / receipt_commit in AI_HANDOFF"
+  - "Single evidence-only receipt commit"
+  - "Git push via Database API"

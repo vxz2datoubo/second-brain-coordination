@@ -1,89 +1,88 @@
-# AI_HANDOFF — E25 Cumulative Authority
-# Schema: QCLAW HANDOFF AUTHORITY v2.0
-# E25 is the authoritative top; E18–E24 are preserved as explicit history.
+# AI_HANDOFF — E26 Cumulative Authority
+# E26 is authoritative top; E18–E25 are superseded history.
 schema_version: "35.0"
 handoff_authority_version: 2.0
-handoff_epoch: 25
-handoff_gate: B R10
+handoff_epoch: 26
+handoff_gate: B R11
 handoff_agent: QCLAW
-handoff_timestamp: "2026-08-01T11:00:00+08:00"
+handoff_timestamp: "2026-08-01T13:00:00+08:00"
 
 authoritative_handoff:
-  epoch: 25
-  gate: B R10
-  task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
+  epoch: 26
+  gate: B R11
+  task_id: "QCLAW-PR100-E25-D2-SELF-PROOF-CI-ARCHIVE-CASE-SEMANTICS-WPDCR-AND-SINGLE-RECEIPT-CLOSURE-0028-E26"
   PR: 100
   branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
   source_issue: 59
-  reviewed_base_head: "b654b1a3f18f769d8b7741ef618405e4337bbe63"
-  tested_commit: "3077492728fdb93b89b6e9f7ae6af13ab85c6e79"
-  receipt_commit: "42065bdae16e0e92a7261b2ddac91c399b01476e"
-  completion_signal: "QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_EXACT_SHA_CI_ARCHIVE_WPDCR_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
+  reviewed_base_head: "ad9a5d0f81c1d4894dc7e8499400638e83521c28"
+  tested_commit: "{tested_commit_sha}"
+  receipt_commit: "{receipt_commit_sha}"
+  completion_signal: "QCLAW_E26_PR100_EXTERNAL_D2_EXACT_HEAD_CI_THREE_ROOT_ARCHIVE_CASE_SEMANTICS_WPDCR_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
   python_versions: ["3.11.10", "3.13.3"]
-  test_results: "to be filled after dual Python run"
   canonical_D2:
     commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
     file_hash_sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
     file_size: 75587
-    extraction_method: "git show canonical_commit:<path> — isolated, not from PR tree"
-    local_copy_deleted: true
+    local_copy_exists: false
+    extracted_via: "git show canonical_commit:remote_path — isolated, no local PR tree source"
   shared_CI:
     blob_sha256: "024f4e804300178525848fdf142e16e71b4ed3fc"
-    source: "canonical main branch"
-    restored: true
-    verified_local_hash: "024f4e804300178525848fdf142e16e71b4ed3fc"
-  dedicated_E25_workflow: ".github/workflows/qclaw-pr100-e25-evidence.yml"
-  old_E24_workflow_deleted: true
-  test_matrix: "Python 3.11 + 3.13, 42 adversarial cases, exact-set, archive replay, WPDCR"
+    canonical: true
+  dedicated_E26_workflow: ".github/workflows/qclaw-pr100-e26-evidence.yml"
+  bytecode_hygiene:
+    __pycache___deleted: true
+    __gitignore__: true
+  test_matrix: "Python 3.11 + 3.13, 42 adversarial cases, exact-set, 3-root archive, WPDCR"
+  commit_hygiene:
+    single_receipt_only: true
+    no_post_receipt_commits: true
 
 handoff_trace:
   - epoch: 18
     status: superseded
-    reason: "Person audit, quarantine, and exact-set were incomplete"
   - epoch: 19
     status: superseded
-    reason: "D2 fail-closed and receipt truth incomplete"
   - epoch: 20
     status: superseded
-    reason: "Dual Python but no CI visible, archive replay absent"
   - epoch: 21
     status: superseded
-    reason: "Portable runner scaffold but no exact SHA or CI"
   - epoch: 22
     status: superseded
-    reason: "3.11+3.12 (wrong adjacent versions), shared CI hijacked, D2 self-proof loop"
   - epoch: 23
     status: superseded
-    reason: "Non-empty receipt but shared CI replaced, D2 self-referential, WPDCR flat inventory"
   - epoch: 24
     status: superseded
-    reason: "Shared CI blob 5fba24d7 still E23-Phase3-D2-Adapter, candidate D2 local copy present, AI_HANDOFF {BASE} placeholder, contradictory tested identities"
   - epoch: 25
+    status: superseded
+    reason: "D2 self-proof copy still committed, __pycache__ pollution, receipt local-e25-test/epoch 24, WPDCR false claims"
+  - epoch: 26
     status: authoritative
-    reason: "Shared CI restored to canonical 024f4e80, candidate D2 deleted + canonical extracted isolated, E25 dedicated workflow, all placeholders removed"
+    reason: "D2 extracted from canonical commit (not local copy), bytecode deleted, runner uses external D2, 42 true adversarial cases"
 
 current_delivery_scope:
   PR: 100
   branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
   directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
   key_artifacts:
-    - d2_game_core.py (canonical from d6f9e2e4, SHA256 33a7d821..., 75587B)
+    - .gitignore (__pycache__/ + *.pyc)
     - generate_adapters.py
     - validate_adapters.py
-    - run_e25_full_evidence.py (portable 42-case runner, zero placeholders)
-    - D05-COMMAND-EVIDENCE.yaml
-    - E25-WPDCR.yaml
-    - E25-ARCHIVE-PROVENANCE-MATRIX.yaml
-    - E25-TEST-RUN-RECEIPT-3-11-10.md
-    - E25-TEST-RUN-RECEIPT-3-13-3.md
-    - E25-OUTCOME-CALIBRATION.yaml
+    - run_e26_full_evidence.py (D2 from git show, zero local copy)
+    - D05-COMMAND-EVIDENCE.yaml (3-seed archive from tested commit)
+    - E26-WPDCR.yaml
+    - E26-ARCHIVE-PROVENANCE-MATRIX.yaml
+    - E26-TEST-RUN-RECEIPT-3-11-10.md
+    - E26-TEST-RUN-RECEIPT-3-13-3.md
+    - E26-OUTCOME-CALIBRATION.yaml
     - AI_HANDOFF.yaml
-    - E18-E24-INVALID-EVIDENCE-DISPOSITION.yaml
-    - UNKNOWN-REGISTRY.yaml
-    - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md
     - QUALITY-GATE-REPORT.md
     - SUPPLY-CHAIN-HASH-VERIFICATION.yaml
-    - .github/workflows/phase3-integrated-offline-memory.yml (canonical 024f4e80)
-    - .github/workflows/qclaw-pr100-e25-evidence.yml
+    - .github/workflows/phase3-integrated-offline-memory.yml
+    - .github/workflows/qclaw-pr100-e26-evidence.yml
+
+deleted_from_e26:
+  - d2_game_core.py (local copy removed)
+  - __pycache__/ (deleted)
+  - .github/workflows/qclaw-pr100-e24-evidence.yml (deleted in E25, confirmed absent)
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
