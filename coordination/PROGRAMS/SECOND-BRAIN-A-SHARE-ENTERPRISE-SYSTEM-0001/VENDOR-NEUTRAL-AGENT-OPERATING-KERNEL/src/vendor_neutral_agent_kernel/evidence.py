@@ -35,7 +35,7 @@ def _require(mapping: dict[str, Any], *keys: str) -> None:
 
 
 def _require_sha(value: Any, kind: str) -> None:
-    pattern = SHA40_RE if kind == "commit" else SHA256_RE
+    pattern = SHA40_RE if kind in {"commit", "tree"} else SHA256_RE
     if not isinstance(value, str) or not pattern.fullmatch(value):
         raise ValueError(f"E30_INVALID_{kind.upper()}_SHA")
 
@@ -127,7 +127,7 @@ def validate_e30_evidence(
         raise ValueError("E30_PRIMARY_AUTHORITY_INVALID")
     if evidence["status"] == "FINAL":
         _require_sha(identity["tested_commit"], "commit")
-        _require_sha(identity["tested_tree"], "sha256")
+        _require_sha(identity["tested_tree"], "tree")
         expected_commit = tested_commit or current_commit
         expected_tree = tested_tree or current_tree
         if expected_commit and identity["tested_commit"] != expected_commit:

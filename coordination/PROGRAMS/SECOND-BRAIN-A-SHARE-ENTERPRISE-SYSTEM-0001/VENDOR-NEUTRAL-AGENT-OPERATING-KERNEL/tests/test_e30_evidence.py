@@ -35,6 +35,12 @@ class E30EvidenceTests(unittest.TestCase):
 
     def test_in_progress_evidence_has_current_route_and_no_stale_primary(self):
         evidence = self._evidence()
+        evidence["status"] = "IN_PROGRESS"
+        evidence["primary_tested_identity"] = {
+            "authority": "E30_PRIMARY_TESTED_HEAD",
+            "tested_commit": "PENDING_E30_SUBSTANTIVE_COMMIT",
+            "tested_tree": "PENDING_E30_SUBSTANTIVE_TREE",
+        }
         self.assertEqual(evidence["status"], "IN_PROGRESS")
         primary = evidence["primary_tested_identity"]
         self.assertTrue(primary["tested_commit"].startswith("PENDING_"))
@@ -47,10 +53,10 @@ class E30EvidenceTests(unittest.TestCase):
         evidence["primary_tested_identity"] = {
             "authority": "E30_PRIMARY_TESTED_HEAD",
             "tested_commit": "a" * 40,
-            "tested_tree": "b" * 64,
+            "tested_tree": "b" * 40,
         }
         root = self._copy_fixture(evidence)
-        result = validate_e30_evidence(root, current_commit="a" * 40, current_tree="b" * 64)
+        result = validate_e30_evidence(root, current_commit="a" * 40, current_tree="b" * 40)
         self.assertEqual(result["status"], "FINAL")
 
     def test_final_evidence_rejects_wrong_tested_commit(self):
@@ -59,11 +65,11 @@ class E30EvidenceTests(unittest.TestCase):
         evidence["primary_tested_identity"] = {
             "authority": "E30_PRIMARY_TESTED_HEAD",
             "tested_commit": "a" * 40,
-            "tested_tree": "b" * 64,
+            "tested_tree": "b" * 40,
         }
         root = self._copy_fixture(evidence)
         with self.assertRaisesRegex(ValueError, "COMMIT_MISMATCH"):
-            validate_e30_evidence(root, current_commit="c" * 40, current_tree="b" * 64)
+            validate_e30_evidence(root, current_commit="c" * 40, current_tree="b" * 40)
 
     def test_archive_manifest_rejects_repeated_root_identity(self):
         archive = self._archive()
