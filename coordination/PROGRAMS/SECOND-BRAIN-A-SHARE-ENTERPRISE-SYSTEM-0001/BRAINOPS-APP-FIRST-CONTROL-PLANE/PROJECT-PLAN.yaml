@@ -51,3 +51,11 @@ recovery:
   command: "git switch codex/brainops-app-first-automatic-chain-0030-e35"
   checkpoint_rule: "Each committed checkpoint records its parent and exact test command in STATUS.yaml."
   rollback: "Revert only the task-owned commit(s); no shared worktree changes are involved."
+receipt_topology:
+  tested_head_rule: "The final tested head is the last commit that changes code, tests, contracts, plans, acceptance criteria, or validator behavior."
+  evidence_only_allowlist:
+    - "RECEIPTS/E35-FINAL-RECEIPT.md"
+  receipt_constraints:
+    - "The receipt must be non-empty and have the tested head as its direct parent."
+    - "The receipt contains commands, hashes, commit/tree identities, scope and externally published anchor references only."
+    - "No code, test, schema, plan, acceptance, route, or state change may follow the receipt."
