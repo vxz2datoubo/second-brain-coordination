@@ -64,19 +64,43 @@ jobs:
         run: |
           set -euo pipefail
           reports=()
+          : > "$RUNNER_TEMP/archive-roots.jsonl"
           for seed in 1 2 3; do
             archive_root="$(mktemp -d)"
             git archive "${{ steps.context.outputs.commit }}" | tar -x -C "$archive_root"
+            report_path="$RUNNER_TEMP/archive-$seed.json"
+            stderr_path="$RUNNER_TEMP/archive-$seed.stderr"
             PYTHONHASHSEED="$seed" python -B "$archive_root/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py" \
               --changed-files "${{ steps.context.outputs.changed_files }}" \
               --commit "${{ steps.context.outputs.commit }}" \
               --tree "${{ steps.context.outputs.tree }}" \
               --tested-commit "${{ steps.context.outputs.tested_commit }}" \
-              --tested-tree "${{ steps.context.outputs.tested_tree }}" > "$RUNNER_TEMP/archive-$seed.json"
-            reports+=("$(sha256sum "$RUNNER_TEMP/archive-$seed.json" | awk '{print $1}')")
+              --tested-tree "${{ steps.context.outputs.tested_tree }}" > "$report_path" 2> "$stderr_path"
+            report_sha="$(sha256sum "$report_path" | awk '{print $1}')"
+            report_size="$(stat -c '%s' "$report_path")"
+            stderr_sha="$(sha256sum "$stderr_path" | awk '{print $1}')"
+            artifact_set_sha="$(printf 'ci-report.json\t%s\t%s\n' "$report_size" "$report_sha" | sha256sum | awk '{print $1}')"
+            reports+=("$report_sha")
+            printf '{"root_id":"e30-clean-archive-seed-%s","root_locator":"archive://e30-clean-archive-seed-%s","hash_seed":%s,"command":"PYTHONHASHSEED=%s python -B <root>/coordination/.../ci_verify.py --commit %s --tree %s --tested-commit %s --tested-tree %s","exit_code":0,"stdout_sha256":"%s","stderr_sha256":"%s","artifact_set_sha256":"%s","artifacts":[{"path":"ci-report.json","size":%s,"sha256":"%s"}]}\n' \
+              "$seed" "$seed" "$seed" "$seed" "${{ steps.context.outputs.commit }}" "${{ steps.context.outputs.tree }}" \
+              "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" "$report_sha" "$stderr_sha" \
+              "$artifact_set_sha" "$report_size" "$report_sha" >> "$RUNNER_TEMP/archive-roots.jsonl"
           done
           printf '%s\n' "${reports[@]}" | sort -u | tee "$RUNNER_TEMP/archive-report-hashes.txt"
           test "$(sort -u "$RUNNER_TEMP/archive-report-hashes.txt" | wc -l)" -eq 1
+          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          roots = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line]
+          Path(sys.argv[2]).write_text(json.dumps({
+              "schema_version": "VNAK_E30_ARCHIVE_PROVENANCE_v1",
+              "root_count": len(roots),
+              "roots": roots,
+          }, sort_keys=True, indent=2) + "\n")
+          PY
+          cat "$RUNNER_TEMP/archive-manifest.json"
       - name: Upload machine-readable evidence
         uses: actions/upload-artifact@v4
         with:
@@ -84,4 +108,6 @@ jobs:
           path: |
             ${{ runner.temp }}/changed-files.txt
             ${{ runner.temp }}/archive-*.json
+            ${{ runner.temp }}/archive-*.stderr
+            ${{ runner.temp }}/archive-manifest.json
             ${{ runner.temp }}/archive-report-hashes.txt
