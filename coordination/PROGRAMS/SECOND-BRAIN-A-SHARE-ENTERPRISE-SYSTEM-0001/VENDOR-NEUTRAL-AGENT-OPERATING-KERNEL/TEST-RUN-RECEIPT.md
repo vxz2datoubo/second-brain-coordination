@@ -11,7 +11,7 @@ reviewer: GPT
 - reviewed_base: 93b61b055e13c04431236214a599a9f0f325b3ce
 - tested_substantive_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
 - tested_substantive_tree: 288ba2d8e111cb11d51e4f40bbbc6fa5a88f308c
-- receipt_parent_commit: 13d7b9e429102c57e512410e9f096192d3aaceda
+- receipt_parent_commit: ca5581f6b4ebc67ab5fab1a696a6108e2962357b
 - status: FINAL
 - authority: CANDIDATE_ONLY
 - activation: DISABLED
@@ -31,11 +31,11 @@ reviewer: GPT
 ## Remote verification
 
 - provenance workflow run: 30680004228, conclusion success;
-- final receipt validation workflow run: 30680889526, conclusion success;
-- Python 3.11 job: 91317523584, 116/116 PASS;
-- Python 3.13 job: 91317523607, 116/116 PASS;
-- Python 3.11 artifact: 8812160178, digest sha256:bab1ddbff025f56a701ea3b863da9d47bc2355bfe66d1d06d9de1a6deb972b40;
-- Python 3.13 artifact: 8812160697, digest sha256:5099fae5c34033f9bdae6fca208e281909fd5c04657c1520a308e445e1ab5082;
+- final receipt validation workflow run: 30681105004, conclusion success;
+- Python 3.11 job: 91318135917, 116/116 PASS;
+- Python 3.13 job: 91318135873, 116/116 PASS;
+- Python 3.11 artifact: 8812235424, digest sha256:466d6b70f2af6c04eaa9cd8a82eb4016f5299ade8f9c162159fb1703155eb597;
+- Python 3.13 artifact: 8812234199, digest sha256:6608ed52e332b49f76bceb479da21a7e1cdb912f4063bc3778bbfeef3db8d8e2;
 - final manifest: status FINAL, 3 roots per job, 58 artifacts per root;
 - archive content SHA256: 2cdcf3116b56b491830187be906873973ea484a1c3e3b0233ad7fb45f5fb2c93;
 - archive size: 2058240 bytes;
