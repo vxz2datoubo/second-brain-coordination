@@ -1,54 +1,58 @@
-schema_version: "32.0"
+schema_version: "33.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E29_PEOS_KERNEL_CURRENT_HEAD_ACTIVE_QCLAW_E24_NOT_STARTED_ROUTE_VALID_WORKBUDDY_PAUSED"
+status: "CODEX_E30_EVIDENCE_TRUTH_ACTIVE_QCLAW_E25_SHARED_CI_AND_EVIDENCE_TRUTH_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-01T05:45:00+08:00"
+updated_at: "2026-08-01T07:50:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
   agent_read_command: {trigger: "读取任务", meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY", second_start_command_required: false}
 
+parallel_route_rule: >-
+  Codex and QQ are independent active lanes. Completion, blockage or correction in one lane must not suspend, overwrite or silently
+  advance the other lane. Each lane keeps its own task_id, epoch, PR, branch, tested identity, model profile and completion signal.
+
 permanent_governance:
   autonomy_protocol: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
   model_routing_protocol: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
   extended_WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
-  route_bridge_rule: "R0/R1 same-goal repairs may use a bounded route bridge instead of an empty epoch."
-  stale_base_rule: "A queued task must be rewritten before activation when its required start head differs from the current remote head."
-  final_head_rule: "Any executable correction invalidates earlier acceptance evidence; final tests/CI/archive must bind to the final tested head."
+  final_head_rule: "Any executable correction invalidates earlier CI/archive acceptance; final evidence binds to one exact final tested SHA."
+  receipt_rule: "Receipt-only commits may contain evidence/report artifacts only and require external full-SHA anchors."
+  direct_observation_rule: "A recorded hash or narrative claim cannot override direct branch-file or GitHub CI observation."
 
 agents:
   CODEX:
     active_issue: 108
     pull_request: 107
-    task_id: "CODEX-PEOS-0010-CURRENT-HEAD-AUTHORITY-REVALIDATION-ADAPTER-SPECS-AND-EVALUATION-GATES-0021-E29"
-    route_epoch: 30
+    task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
+    route_epoch: 31
     status: "READY"
     execution_allowed: true
-    reviewed_base: "ccbdcd27a8e4da0b653de3c387a18e87e3a33e92"
-    mode: "project_plan"
+    reviewed_base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+    mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "xhigh"
     execution_intensity: "X3_DEEP"
-    permission_profile: "P2_STRATEGIC_BOUNDED"
-    completion_signal: "CODEX_E29_PEOS_0010_CURRENT_HEAD_AUTHORITY_ADAPTER_SPECS_AND_EVALUATION_GATES_READY_FOR_GPT_REVIEW"
-    current_action: "Revalidate K0/K1 current head, create three K2 task specs and two disabled K3/K4 gate files, then final-head CI/archive/WPDCR/receipt."
+    permission_profile: "P1_ENHANCED_BOUNDED"
+    completion_signal: "CODEX_E30_PEOS_0010_E29_WPDCR_ARCHIVE_MANIFEST_PACKET_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
+    current_action: "Preserve E29 specs/gates and close current packet, WPDCR, full three-root manifest and receipt truth."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
     pull_request: 100
-    task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
-    route_epoch: 24
-    status: "READY_NOT_STARTED"
+    task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
+    route_epoch: 25
+    status: "READY"
     execution_allowed: true
-    reviewed_base: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+    reviewed_base: "b654b1a3f18f769d8b7741ef618405e4337bbe63"
     mode: "target"
-    model: "gpt-5.6-terra"
-    reasoning_effort: "high"
-    execution_intensity: "X2_SUSTAINED"
+    model: "gpt-5.6-sol"
+    reasoning_effort: "xhigh"
+    execution_intensity: "X3_DEEP"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW"
-    current_action: "Read and execute the existing E24 route; restore shared CI and canonical D2 authority before rebuilding evidence."
+    completion_signal: "QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_EXACT_SHA_CI_ARCHIVE_WPDCR_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
+    current_action: "Actually restore shared CI, remove D2 self-proof copy, eliminate placeholders/multi-SHA contradictions and produce exact-head dual-Python three-root evidence."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -59,32 +63,36 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E28_FINAL:
-    classification: "E28_ACCEPTED_EXACT_FINAL_HEAD_WINDOWS_311_313_ARCHIVE_WPDCR_AND_RECEIPT_TRUTH_CLOSED"
-    tested_head: "b578a14b613a9d34e058e951eb342f395b00c073"
-    receipt_head: "45dead36db7716c23f7f3039cea6ee09dc92dc54"
-    accepted:
-      - "60 local tests and public runner."
-      - "Exact Python 3.11/3.13 workflow-dispatch run 30649533447."
-      - "Three distinct Windows archive roots with 419 identical artifacts each."
-      - "Full WPDCR plus autonomy/model overlays and truthful ACCESS_NOT_EXPOSED model metadata."
-      - "Non-empty evidence-only receipt commit with external full-SHA anchors."
-    frozen: ["PR #106 remains Draft/unmerged", "no later Gate", "no real data or trading"]
-  CODEX_E29_ROUTE_CORRECTION:
-    classification: "STALE_C5CF_START_REPLACED_WITH_CURRENT_CCBD_HEAD_AND_MISSING_DELIVERABLE_SCOPE"
-    current_head: "ccbdcd27a8e4da0b653de3c387a18e87e3a33e92"
-    reusable: ["layered authority", "dedicated dual-Python CI", "ten contracts and 84 tests"]
-    missing: ["three adapter task specs", "cross-model gate", "shadow gate", "current enterprise final-head evidence"]
+  CODEX_E29:
+    classification: "FUNCTIONAL_AND_CI_REUSABLE_EVIDENCE_CONTRACT_FAILED"
+    accepted_reusable:
+      - "Functional tested head 686518aa and exact dual-Python run 30669990210."
+      - "Three adapter specs and two disabled evaluation/shadow gates."
+      - "91-case/schema/strict/public-safety behavior."
+    returned:
+      - "Stale 73/84 primary packet and receipt identities."
+      - "Missing enterprise WPDCR autonomy/model overlays."
+      - "No full distinct-root/per-artifact archive manifest."
+      - "Stale remaining receipt/anchor claim."
   QCLAW_E24:
-    classification: "NOT_STARTED_ACTIVE_ROUTE_STILL_VALID_NO_NEW_EPOCH"
-    evidence: ["PR #100 head remains 09b03df", "no E24 lease/checkpoint/commit/completion anchor"]
+    classification: "DIRECTIONAL_REPAIR_REUSABLE_DIRECT_REMOTE_TRUTH_AND_EVIDENCE_CONTRACT_FAILED"
+    accepted_reusable:
+      - "Dedicated workflow and dual-Python intent."
+      - "Cumulative handoff/negative-history and evidence-runner scaffolding."
+      - "Canonical D2 target identity and non-empty receipt concept."
+    returned:
+      - "Shared workflow remains E23 hijacked at branch head."
+      - "Candidate-owned D2 copy and self-proof remain."
+      - "No visible exact-head CI."
+      - "1e78d353 versus 625cb250 identity conflict and receipt placeholder."
+      - "Brace/local-test placeholders, 44/45 contradiction and seed-only partial archive proof."
 
 frozen:
   - "No merge."
   - "No Gate C/D/E or Issue #92 execution."
-  - "No W1/W3/W8 adapter implementation."
-  - "No K3 cross-model execution or K4 Shadow activation."
-  - "No real/private data, production, replay, backtest, accounts, orders or trades."
+  - "No adapter implementation, cross-model evaluation or Shadow activation."
+  - "No canonical D2/PEOS/index/AGENTS mutation."
+  - "No private/real data, production, replay, backtest, accounts, orders or trades."
   - "WorkBuddy remains paused."
 
 next_commands:
