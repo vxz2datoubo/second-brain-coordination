@@ -5,7 +5,7 @@ target_agent: "GPT"
 reviewer: "GPT"
 actual_executor: "CODEX"
 task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
-status: "E30_IN_PROGRESS"
+status: "E30_READY_FOR_GPT_REVIEW"
 authority: "CANDIDATE_ONLY"
 activation: "DISABLED"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
@@ -19,9 +19,9 @@ git:
   branch: "codex/vendor-neutral-agent-operating-kernel-0011"
   worktree: "F:/aidanao-worktrees/codex-vendor-neutral-agent-operating-kernel-0011"
   reviewed_base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
-  primary_tested_commit: "PENDING_E30_SUBSTANTIVE_COMMIT"
-  primary_tested_tree: "PENDING_E30_SUBSTANTIVE_TREE"
-  receipt_commit: "EXTERNAL_ANCHOR_REQUIRED_AFTER_FINAL_RECEIPT"
+  primary_tested_commit: "d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b"
+  primary_tested_tree: "746a0318cbbc773c975d327bb7bff8636752030d"
+  receipt_commit: "PENDING_E30_RECEIPT_ONLY_COMMIT"
   draft_pr: "https://github.com/vxz2datoubo/second-brain-coordination/pull/107"
   parent_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/31"
   active_issue_url: "https://github.com/vxz2datoubo/second-brain-coordination/issues/108"
@@ -34,16 +34,14 @@ delivered:
   - "Current E30 review packet and test receipt; older evidence is history only."
 
 remaining:
-  - "Run complete suite in an environment containing the declared CI dependencies."
-  - "Create the E30 substantive commit and fill its exact tested SHA/tree."
-  - "Run three clean archives and populate exact root hashes and artifact manifest."
-  - "Create one later non-empty receipt-only commit and publish external anchors."
+  - "Create one later non-empty receipt-only commit and publish its external anchor."
   - "GPT second-pass review; do not merge or activate."
 
 tests:
   focused_e30: "PASS_12_OF_12"
   full_local: "NOT_COMPLETE_LOCAL_JSONSCHEMA_MISSING"
-  remote_python: "PENDING_FINAL_HEAD_CI"
+  remote_python: "PASS_103_OF_103_PY311_AND_PY313"
+  workflow_run: 30676183695
   declared_dependencies: "requirements-ci.txt"
 
 unknowns:
