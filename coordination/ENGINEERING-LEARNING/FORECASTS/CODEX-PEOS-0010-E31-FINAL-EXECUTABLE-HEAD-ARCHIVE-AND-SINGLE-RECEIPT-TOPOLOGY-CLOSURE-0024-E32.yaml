@@ -1,0 +1,38 @@
+schema_version: "1.0"
+forecast_id: "CODEX-E32-FINAL-EXECUTABLE-HEAD-TOPOLOGY"
+task_id: "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32"
+planned_difficulty: "D2_HARD_BOUNDED"
+confidence: 0.88
+
+expected_work:
+  - "One Git-topology validator correction or no executable correction if current code can be reused unchanged."
+  - "One exact final-tested-head dual-Python run with three-root complete artifact archives."
+  - "One later evidence-only receipt commit and one receipt-head validation run."
+
+primary_risks:
+  - risk: "Another evidence correction modifies validator or tests after tested head."
+    prevention: "Hard two-commit topology and Git diff fail-closed validation."
+  - risk: "Archive continues binding fb30f1b8 instead of the final executable head."
+    prevention: "Archive tested commit/tree must equal the last executable-class commit/tree."
+  - risk: "Narrative receipt labels mask executable changes."
+    prevention: "Classify commits from changed paths and semantic effect, never commit messages."
+  - risk: "Run IDs become stale after a later receipt correction."
+    prevention: "No correction chain; one receipt head and external anchors only."
+
+success_indicators:
+  - "tested_head..receipt_head contains exactly one commit."
+  - "tested_head..receipt_parent contains no changes because receipt_parent equals tested_head."
+  - "Receipt commit changes only the declared evidence allowlist."
+  - "Python 3.11 and 3.13 pass on exact tested head and exact receipt head."
+  - "Archive commit/tree equals tested head/tree and all three roots have complete equal inventories."
+
+failure_indicators:
+  - "Any post-tested .py, workflow, test, schema or validator-semantic change."
+  - "More than one receipt/evidence correction commit."
+  - "Archive or WPDCR still names fb30f1b8 as current tested authority."
+  - "PR head advances after final external anchors without route reopening."
+
+system_learning: >-
+  Evidence completeness is not only a document-content property. It is also a commit-graph property. A validator that accepts a coherent
+  report about an obsolete executable state creates a self-consistent but false proof bubble.
+boundary: "CONTROL_PLANE_ONLY / NO_TRADE"
