@@ -61,6 +61,8 @@ jobs:
           --tested-tree "${{ steps.context.outputs.tested_tree }}"
       - name: Reproduce clean Git archive evidence under three hash seeds
         shell: bash
+        env:
+          E31_JOB_ID: candidate-evidence-py${{ matrix.python-version }}
         run: |
           set -euo pipefail
           : > "$RUNNER_TEMP/archive-roots.jsonl"
@@ -91,10 +93,10 @@ jobs:
                 --changed-files ./.e31-changed-files.txt \
                 --commit "$archive_target" \
                 --tree "$archive_tree" \
-                --tested-commit "${{ steps.context.outputs.tested_commit }}" \
-                --tested-tree "${{ steps.context.outputs.tested_tree }}"
+                --tested-commit "$archive_target" \
+                --tested-tree "$archive_tree"
             ) > "$report_path" 2> "$stderr_path"
-            python - "$archive_root" "$report_path" "$stderr_path" "$archive_path" "$archive_target" "$archive_tree" "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" "$seed" "$RUNNER_TEMP/archive-roots.jsonl" <<'PY'
+            python - "$archive_root" "$report_path" "$stderr_path" "$archive_path" "$archive_target" "$archive_tree" "$seed" "$RUNNER_TEMP/archive-roots.jsonl" <<'PY'
           import hashlib
           import json
           import os
@@ -107,10 +109,10 @@ jobs:
           archive = Path(sys.argv[4])
           archive_commit = sys.argv[5]
           archive_tree = sys.argv[6]
-          tested_commit = sys.argv[7]
-          tested_tree = sys.argv[8]
-          seed = sys.argv[9]
-          output = Path(sys.argv[10])
+          tested_commit = archive_commit
+          tested_tree = archive_tree
+          seed = sys.argv[7]
+          output = Path(sys.argv[8])
           # The candidate surface is explicit and excludes the temporary input list.
           kernel_prefix = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL")
           paths = [Path(".github/workflows/vendor-neutral-agent-kernel.yml")]
@@ -127,11 +129,12 @@ jobs:
           record = {
               "root_id": f"e31-clean-archive-seed-{seed}",
               "run_id": os.environ["GITHUB_RUN_ID"],
-              "job_id": os.environ["GITHUB_JOB"] + "-py" + os.environ.get("pythonLocation", "unknown").split("/")[-1],
+              "job_id": os.environ.get("E31_JOB_ID", os.environ["GITHUB_JOB"]),
               "root_locator": f"github-actions://{os.environ['GITHUB_RUN_ID']}/{os.environ['GITHUB_JOB']}/e31-clean-archive-seed-{seed}",
               "root_path_sha256": hashlib.sha256(str(root).encode("utf-8")).hexdigest(),
               "archive_content_sha256": hashlib.sha256(Path(archive).read_bytes()).hexdigest(),
               "archive_size_bytes": Path(archive).stat().st_size,
+              "archive_git_commit": archive_commit,
               "archive_git_tree_sha": archive_tree,
               "archive_content_tree_sha256": hashlib.sha256(content_canonical.encode("utf-8")).hexdigest(),
               "cwd": ".",
@@ -146,7 +149,7 @@ jobs:
               handle.write(json.dumps(record, sort_keys=True) + "\n")
           PY
           done
-          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" <<'PY'
+          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" <<'PY'
           import json
           import sys
           from pathlib import Path
@@ -161,8 +164,8 @@ jobs:
               "required_root_count": 3,
               "tested_identity": {
                   "authority": "E31_TESTED_SUBSTANTIVE_COMMIT",
-                  "tested_commit": sys.argv[3],
-                  "tested_tree": sys.argv[4],
+                  "tested_commit": roots[0]["archive_git_commit"],
+                  "tested_tree": roots[0]["archive_git_tree_sha"],
                   "source_run": roots[0]["run_id"],
               },
               "declared_artifact_surface": {
