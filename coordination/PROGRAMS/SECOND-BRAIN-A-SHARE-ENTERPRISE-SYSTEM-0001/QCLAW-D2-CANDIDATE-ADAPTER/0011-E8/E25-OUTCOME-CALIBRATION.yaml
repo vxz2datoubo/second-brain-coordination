@@ -1,0 +1,35 @@
+# E25-OUTCOME-CALIBRATION.yaml
+schema_version: "26.0"
+epoch: 25
+gate: "B R10"
+task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
+status: "AWAITING_DUAL_PYTHON_RESULTS"
+timestamp: "2026-08-01T11:05:00+08:00"
+
+repairs_completed:
+  B01_shared_ci_canonical:
+    blob: "024f4e804300178525848fdf142e16e71b4ed3fc"
+    status: "VERIFIED_LOCAL_MATCH"
+  B02_candidate_d2_deleted:
+    previous_self_proof_sha: "df419831ca6278b0849821f3f705103d709d0af290e3ecbb3e4c81fac817e90e"
+    canonical_extracted_sha: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+    status: "VERIFIED_MATCH"
+  B03_e25_workflow:
+    path: ".github/workflows/qclaw-pr100-e25-evidence.yml"
+    size: 3705
+    status: "CREATED"
+    e24_deleted: true
+  B04_placeholders_removed:
+    files: ["AI_HANDOFF.yaml", "E24-PORTABLE-COMMAND-LEDGER.json", "run_e25_full_evidence.py"]
+    status: "CLEANED"
+  B05_handoff_authority:
+    top_epoch: 25
+    e24_disposition: "superseded"
+    status: "UPDATED"
+
+pending:
+  - "Dual Python 3.11.10 + 3.13.3 run (e25_dual_python subagent)"
+  - "D05 archive provenance (3 seeds from tested commit)"
+  - "Update tested_commit / receipt_commit in AI_HANDOFF"
+  - "Git push via Database API"
+  - "Request GPT second-pass"

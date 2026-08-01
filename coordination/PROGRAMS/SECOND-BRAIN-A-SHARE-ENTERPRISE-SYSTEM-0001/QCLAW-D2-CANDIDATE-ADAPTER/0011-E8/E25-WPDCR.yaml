@@ -1,0 +1,45 @@
+# E25-WPDCR.yaml — Work Process Discovery & Coordination Report
+schema_version: "26.0"
+epoch: 25
+gate: "B R10"
+task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
+
+autonomous_remediation_ledger:
+  - step: "E25-B01 Shared CI canonical restore"
+    target: "phase3-integrated-offline-memory.yml"
+    action: "Restored byte-for-byte from canonical main blob 024f4e80..."
+    verification: "git hash-object match confirmed 024f4e80"
+    previous_failure: "E24 claimed restore but blob 5fba24d7 was still E23-Phase3-D2-Adapter downgrade"
+  - step: "E25-B02 Candidate D2 deleted + canonical extracted"
+    action: "Deleted local candidate d2_game_core.py (df419831..., 1246B, E23 self-proof copy)"
+    action2: "Extracted canonical from d6f9e2e4 via GitHub Blob API (not from PR tree)"
+    verification: "SHA256 33a7d821..., 75587B match confirmed"
+  - step: "E25-B03 Dedicated E25 CI"
+    target: "qclaw-pr100-e25-evidence.yml"
+    action: "Created 3705B workflow with 3.11+3.13 matrix, canonical D2 extraction step, fail-closed checks"
+    old_E24_deleted: true
+  - step: "E25-B04 Placeholder removal"
+    files_cleaned: ["AI_HANDOFF.yaml", "E24-PORTABLE-COMMAND-LEDGER.json", "run_e25_full_evidence.py"]
+    removed_tokens: ["{BASE}", "{GIT_SHA}", "{PY_MAJOR_MINOR}", "{PY_VER}", "{Q0_SRC}", "{BASE_DIR}", "{SYS_PYTHON_311}", "{SYS_PYTHON_313}"]
+  - step: "E25-B05 AI_HANDOFF authority"
+    action: "E25 top authority; E24 classified as superseded (shared CI still hijacked)"
+
+model_reasoning_and_execution_profile:
+  model_used: "qclaw/pool-deepseek-v4-pro"
+  adversarial_case_count: 42
+  python_versions: ["3.11.10", "3.13.3"]
+  remediation_mode: "BAR R0"
+
+artifact_manifest:
+  - name: "d2_game_core.py"
+    purpose: "Canonical D2 from commit d6f9e2e4 (isolated extraction)"
+    sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+    size: 75587
+  - name: "run_e25_full_evidence.py"
+    purpose: "Portable 42-case evidence runner (zero placeholders)"
+  - name: "AI_HANDOFF.yaml"
+    purpose: "Cumulative handoff, E25 top authority, zero placeholders"
+  - name: ".github/workflows/phase3-integrated-offline-memory.yml"
+    purpose: "Shared CI restored to canonical 024f4e80"
+  - name: ".github/workflows/qclaw-pr100-e25-evidence.yml"
+    purpose: "E25 dedicated dual-Python CI with isolated D2 extraction"

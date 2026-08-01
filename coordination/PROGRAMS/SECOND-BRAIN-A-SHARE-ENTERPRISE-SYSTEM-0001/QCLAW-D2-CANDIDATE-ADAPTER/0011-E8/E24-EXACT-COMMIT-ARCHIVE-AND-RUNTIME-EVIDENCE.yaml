@@ -1,0 +1,75 @@
+# E24-EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE.yaml
+schema_version: "26.0"
+epoch: 24
+gate: "B R9"
+base: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
+tested_commit: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+
+runtimes:
+  - python_version: "3.11.10"
+    path: "F:\\Program Files (x86)\\QClaw\\v0.2.35.624\\resources\\python\\python.exe"
+    arch: "AMD64"
+    msc: "v.1929"
+    verified: true
+    test_result: "45/45 passed, 0 failures, exact-set PASS"
+  - python_version: "3.13.3"
+    path: "C:\\Program Files\\Python313\\python.exe"
+    arch: "AMD64"
+    msc: "v.1943"
+    verified: true
+    test_result: "45/45 passed, 0 failures, exact-set PASS"
+  cross_version_consistency: "byte-identical results between 3.11.10 and 3.13.3"
+
+archive_roots:
+  - seed: 0
+    commit: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+    format: "git-archive"
+    sha256: "649f28bc230be27a1a0f9b5050f1d2cceb85ec08f3b83be7806cfd7c8d535c0e"
+    size: 1039097
+  - seed: 42
+    commit: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+    format: "git-archive"
+    sha256: "649f28bc230be27a1a0f9b5050f1d2cceb85ec08f3b83be7806cfd7c8d535c0e"
+    size: 1039097
+  - seed: 1615446236
+    commit: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+    format: "git-archive"
+    sha256: "649f28bc230be27a1a0f9b5050f1d2cceb85ec08f3b83be7806cfd7c8d535c0e"
+    size: 1039097
+  determinism_verdict: "CONSISTENT (all 3 seeds identical, sha256 649f28bc...)"
+
+canonical_artifacts:
+  d2_game_core:
+    sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
+    commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
+    size: 75587
+    source: "canonical (not locally generated)"
+  shared_ci:
+    path: ".github/workflows/phase3-integrated-offline-memory.yml"
+    sha256: "38f50fe7b56bfef2415262d771602a7a6efce22ef8464813050afa71cdf6afeb"
+    size: 1424
+    verified_against_main: true
+  dedicated_ci:
+    path: ".github/workflows/qclaw-pr100-e24-evidence.yml"
+    size: 2788
+
+q0_sources:
+  - KNOWLEDGE-ATOMS.jsonl (59631B)
+  - KNOWLEDGE-RELATIONS.jsonl (52892B)
+  - ADVERSARIAL-QUESTION-SET.jsonl (40889B)
+  - PARTICIPANT-FAMILY-AND-SUBTYPE-MAP.yaml (7514B)
+
+adapter_distribution:
+  MAPPED: 25
+  AMBIGUOUS: 3
+  CONTEXT_ONLY: 38
+  UNMAPPED: 15
+  PERSON_IDENTITY_QUARANTINED: 18
+
+exact_set:
+  atoms: 99
+  relations: 147
+  questions: 64
+  adapters: 99
+  verdict: "PASS on both Python versions"

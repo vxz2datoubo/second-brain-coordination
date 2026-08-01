@@ -1,95 +1,89 @@
-# AI_HANDOFF — E24 Cumulative Authority
+# AI_HANDOFF — E25 Cumulative Authority
 # Schema: QCLAW HANDOFF AUTHORITY v2.0
-# E24 is the authoritative top; E18–E23 are preserved as explicit history.
+# E25 is the authoritative top; E18–E24 are preserved as explicit history.
 schema_version: "35.0"
 handoff_authority_version: 2.0
-handoff_epoch: 24
-handoff_gate: B R9
+handoff_epoch: 25
+handoff_gate: B R10
 handoff_agent: QCLAW
-handoff_timestamp: "2026-08-01T04:00:00+08:00"
+handoff_timestamp: "2026-08-01T11:00:00+08:00"
 
 authoritative_handoff:
-  epoch: 24
-  gate: B R9
-  task_id: "QCLAW-PR100-E23-SHARED-CI-AUTHORITY-DRIFT-ARCHIVE-WPDCR-AND-HANDOFF-RECONSTRUCTION-0026-E24"
+  epoch: 25
+  gate: B R10
+  task_id: "QCLAW-PR100-E24-SHARED-CI-PLACEHOLDER-EXACT-SHA-CI-ARCHIVE-WPDCR-TRUTH-CLOSURE-0027-E25"
   PR: 100
   branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
   source_issue: 59
-  reviewed_base_head: "09b03dfc876eeb708a8dd9d13b69bc29cc82b0a2"
-  tested_commit: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+  reviewed_base_head: "b654b1a3f18f769d8b7741ef618405e4337bbe63"
+  tested_commit: "{tested_commit_sha}"
   receipt_commit: "{receipt_commit_sha}"
-  completion_signal: "QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW"
-  interpreter: "{BASE}/python {BASE}/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/run_e24_full_evidence.py"
+  completion_signal: "QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_EXACT_SHA_CI_ARCHIVE_WPDCR_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW"
   python_versions: ["3.11.10", "3.13.3"]
-  test_results: "45/45 passed (0 failures) on both 3.11 and 3.13, byte-identical results"
-  archive: "3-seed git-archive from 1e78d35, SHA256 649f28bc..., all seeds CONSISTENT"
+  test_results: "to be filled after dual Python run"
   canonical_D2:
     commit: "d6f9e2e4d38861e91353be177c9ceacedde6d7ee"
     file_hash_sha256: "33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1"
     file_size: 75587
+    extraction_method: "git show canonical_commit:<path> — isolated, not from PR tree"
+    local_copy_deleted: true
   shared_CI:
-    blob_sha256: "38f50fe7b56bfef2415262d771602a7a6efce22ef8464813050afa71cdf6afeb"
-    source: "canonical main branch at claim"
+    blob_sha256: "024f4e804300178525848fdf142e16e71b4ed3fc"
+    source: "canonical main branch"
     restored: true
-  dedicated_E24_workflow: ".github/workflows/qclaw-pr100-e24-evidence.yml"
+    verified_local_hash: "024f4e804300178525848fdf142e16e71b4ed3fc"
+  dedicated_E25_workflow: ".github/workflows/qclaw-pr100-e25-evidence.yml"
+  old_E24_workflow_deleted: true
   test_matrix: "Python 3.11 + 3.13, 42 adversarial cases, exact-set, archive replay, WPDCR"
 
 handoff_trace:
   - epoch: 18
     status: superseded
     reason: "Person audit, quarantine, and exact-set were incomplete"
-    preserved_as: "negative history"
   - epoch: 19
     status: superseded
     reason: "D2 fail-closed and receipt truth incomplete"
-    preserved_as: "negative history"
   - epoch: 20
     status: superseded
     reason: "Dual Python but no CI visible, archive replay absent"
-    preserved_as: "negative history"
   - epoch: 21
     status: superseded
     reason: "Portable runner scaffold but no exact SHA or CI"
-    preserved_as: "negative history"
   - epoch: 22
     status: superseded
     reason: "3.11+3.12 (wrong adjacent versions), shared CI hijacked, D2 self-proof loop"
-    preserved_as: "negative history"
   - epoch: 23
     status: superseded
     reason: "Non-empty receipt but shared CI replaced, D2 self-referential, WPDCR flat inventory"
-    preserved_as: "negative history"
   - epoch: 24
+    status: superseded
+    reason: "Shared CI blob 5fba24d7 still E23-Phase3-D2-Adapter, candidate D2 local copy present, AI_HANDOFF {BASE} placeholder, contradictory tested identities"
+  - epoch: 25
     status: authoritative
-    reason: "Shared CI restored canonical, canonical D2 re-established, dedicated workflow, full evidence chain, 45/45 dual Python"
-    git_sha: "1e78d3533b1ac5def200d1ac0ac5a6420b98eb87"
+    reason: "Shared CI restored to canonical 024f4e80, candidate D2 deleted + canonical extracted isolated, E25 dedicated workflow, all placeholders removed"
 
 current_delivery_scope:
   PR: 100
   branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
   directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-D2-CANDIDATE-ADAPTER/0011-E8/"
   key_artifacts:
-    - run_e24_full_evidence.py (portable 42-case runner)
-    - d2_game_core.py (canonical, 33a7d821...)
-    - D2-INTERFACE-SNAPSHOT.yaml (canonical, d6f9e2e4/33a7d821...)
-    - E24-TEST-RUN-RECEIPT-3-11-10.md
-    - E24-TEST-RUN-RECEIPT-3-13-3.md
-    - e24_test_results_31110.json
-    - e24_test_results_31310.json
-    - D05-COMMAND-EVIDENCE.yaml (3-seed archive, CONSISTENT)
-    - E24-WPDCR.yaml
-    - E24-EXACT-COMMIT-ARCHIVE-AND-RUNTIME-EVIDENCE.yaml
-    - E24-PORTABLE-COMMAND-LEDGER.json
-    - E24-ARCHIVE-PROVENANCE-MATRIX.yaml
-    - E24-WORK-PROCESS-AND-COORDINATION-REPORT.yaml
-    - E24-OUTCOME-CALIBRATION.yaml
-    - E21-E23-INVALID-EVIDENCE-DISPOSITION.yaml
+    - d2_game_core.py (canonical from d6f9e2e4, SHA256 33a7d821..., 75587B)
+    - generate_adapters.py
+    - validate_adapters.py
+    - run_e25_full_evidence.py (portable 42-case runner, zero placeholders)
+    - D05-COMMAND-EVIDENCE.yaml
+    - E25-WPDCR.yaml
+    - E25-ARCHIVE-PROVENANCE-MATRIX.yaml
+    - E25-TEST-RUN-RECEIPT-3-11-10.md
+    - E25-TEST-RUN-RECEIPT-3-13-3.md
+    - E25-OUTCOME-CALIBRATION.yaml
+    - AI_HANDOFF.yaml
+    - E18-E24-INVALID-EVIDENCE-DISPOSITION.yaml
     - UNKNOWN-REGISTRY.yaml
     - SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md
     - QUALITY-GATE-REPORT.md
     - SUPPLY-CHAIN-HASH-VERIFICATION.yaml
-    - AI_HANDOFF.yaml
-    - .github/workflows/phase3-integrated-offline-memory.yml (canonical)
-    - .github/workflows/qclaw-pr100-e24-evidence.yml (dedicated)
+    - .github/workflows/phase3-integrated-offline-memory.yml (canonical 024f4e80)
+    - .github/workflows/qclaw-pr100-e25-evidence.yml
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"

@@ -1,4 +1,4 @@
-"""E24 Full Evidence Runner: 42-case + exact-set + receipt + archive + WPDCR + public scan
+"""E25 Full Evidence Runner: 42-case + exact-set + receipt + archive + WPDCR + public scan
 Runs on both Python 3.11 and 3.13, produces machine-generated receipts and evidence.
 """
 import hashlib, json, os, subprocess, sys, time, tempfile, shutil, yaml
@@ -7,7 +7,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 Q0_SRC = os.environ.get('Q0_SRC_DIR', str(BASE_DIR / 'q0_sources'))
 OUT_DIR = os.environ.get('OUTPUT_DIR', str(BASE_DIR))
-GIT_SHA = os.environ.get('E24_GIT_SHA', 'UNKNOWN')
+GIT_SHA = os.environ.get('E25_GIT_SHA', 'UNKNOWN')
 PY_VER = f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}'
 PY_MAJOR_MINOR = f'{sys.version_info.major}.{sys.version_info.minor}'
 
@@ -42,7 +42,7 @@ def rc(desc, cmd, workdir, env, expected_fail=False, timeout=120):
         'python_version': PY_VER,
     }
 
-print(f'E24 Evidence Runner - Python {PY_VER}')
+print(f'E25 Evidence Runner - Python {PY_VER}')
 print(f'Base: {BASE_DIR}')
 print(f'Q0: {Q0_SRC}')
 print(f'Git SHA: {GIT_SHA}')
@@ -58,13 +58,13 @@ env['OUTPUT_DIR'] = OUT_DIR
 # ═══════ STEP 1: Run Generator ═══════
 print('\n=== STEP 1: Generator ===')
 gen_cmd = [sys.executable, str(BASE_DIR / 'generate_adapters.py')]
-gen_result = rc('E24-GEN', gen_cmd, OUT_DIR, env)
+gen_result = rc('E25-GEN', gen_cmd, OUT_DIR, env)
 print(f'  Generator: {gen_result["actual_result"]} (exit {gen_result["exit_code"]})')
 
 # ═══════ STEP 2: Run Validator ═══════ 
 print('\n=== STEP 2: Validator ===')
 val_cmd = [sys.executable, str(BASE_DIR / 'validate_adapters.py')]
-val_result = rc('E24-VAL', val_cmd, OUT_DIR, env)
+val_result = rc('E25-VAL', val_cmd, OUT_DIR, env)
 print(f'  Validator: {val_result["actual_result"]} (exit {val_result["exit_code"]})')
 
 results = [gen_result, val_result]
@@ -84,7 +84,7 @@ def build_adv_env(td):
     return aenv
 
 def build_adv_temp():
-    td = tempfile.mkdtemp(prefix='e24_adv_')
+    td = tempfile.mkdtemp(prefix='e25_adv_')
     for f in os.listdir(Q0_SRC):
         src = os.path.join(Q0_SRC, f)
         if os.path.isfile(src): shutil.copy2(src, os.path.join(td, f))
@@ -102,49 +102,49 @@ def build_adv_temp():
 
 # Case definitions
 cases_def = [
-    ('E24-A01','CORRUPT_JSON_ATOMS', True), ('E24-A02','DUP_ATOM_ID', True),
-    ('E24-A03','EMPTY_ATOMS', True), ('E24-A04','MISSING_ATOMS', True),
-    ('E24-A05','REMOVE_LAST_RELATION', True), ('E24-A06','CORRUPT_RELATIONS', True),
-    ('E24-A07','EMPTY_RELATIONS', True), ('E24-A08','CORRUPT_QUESTIONS', True),
-    ('E24-A09','EMPTY_QUESTIONS', True), ('E24-A10','BASELINE_GENVAL_PASS', False),
-    ('E24-A11','TAMPERED_FAMILY', True), ('E24-A12','ZEROED_ADAPTER_ID', True),
-    ('E24-A13','DUP_ADAPTER_OUTPUT', True), ('E24-A14','REMOVE_ADAPTER', True),
-    ('E24-A15','WRONG_DISPOSITION', True), ('E24-A16','MISSING_D2_FAMILY', True),
-    ('E24-A17','CORRUPT_ADAPTER_JSONL', True), ('E24-A18','MISSING_GEN_RECEIPT', True),
-    ('E24-A19','TAMPERED_CSR', True), ('E24-A20','ZEROED_SOURCE_HASH', True),
-    ('E24-A21','MISSING_D2_SNAPSHOT', True), ('E24-A22','EXTRA_UNKNOWN_ADAPTER', True),
-    ('E24-A23','WHITESPACE_ATOMS', True), ('E24-A24','QUARANTINE_TAMPERED', True),
-    ('E24-A25','WRONG_FAMILY_IN_MAP', True), ('E24-A26','EMPTY_ADAPTER_OUTPUT', True),
-    ('E24-A27','PERSON_AUDIT_MISSING', True), ('E24-A28','PACKAGE_COUNT_MISMATCH', True),
-    ('E24-A29','GEN_RECEIPT_CORRUPT', True), ('E24-A30','COVERAGE_WRONG_COUNT', True),
-    ('E24-A31','AMBIGUITY_SINGLE_HYP', True), ('E24-A32','SOURCE_LOCK_TAMPERED', True),
-    ('E24-A33','D2_SELF_PROOF_LOOP', True), ('E24-A34','PERSON_AUDIT_FAKE', True),
-    ('E24-A35','QUARANTINE_DELETED', True), ('E24-A36','ATOM_COVERAGE_GAP', True),
-    ('E24-A37','RELATION_TARGET_MISSING', True), ('E24-A38','D2_FAMILY_MISMATCH', True),
-    ('E24-A39','CSR_SUPERTYPE_WRONG', True), ('E24-A40','FLOAT_PRECISION_DRIFT', True),
-    ('E24-A41','RECEIPT_HASH_MISMATCH', True), ('E24-A42','DUP_DETERMINISTIC_ID', True),
+    ('E25-A01','CORRUPT_JSON_ATOMS', True), ('E25-A02','DUP_ATOM_ID', True),
+    ('E25-A03','EMPTY_ATOMS', True), ('E25-A04','MISSING_ATOMS', True),
+    ('E25-A05','REMOVE_LAST_RELATION', True), ('E25-A06','CORRUPT_RELATIONS', True),
+    ('E25-A07','EMPTY_RELATIONS', True), ('E25-A08','CORRUPT_QUESTIONS', True),
+    ('E25-A09','EMPTY_QUESTIONS', True), ('E25-A10','BASELINE_GENVAL_PASS', False),
+    ('E25-A11','TAMPERED_FAMILY', True), ('E25-A12','ZEROED_ADAPTER_ID', True),
+    ('E25-A13','DUP_ADAPTER_OUTPUT', True), ('E25-A14','REMOVE_ADAPTER', True),
+    ('E25-A15','WRONG_DISPOSITION', True), ('E25-A16','MISSING_D2_FAMILY', True),
+    ('E25-A17','CORRUPT_ADAPTER_JSONL', True), ('E25-A18','MISSING_GEN_RECEIPT', True),
+    ('E25-A19','TAMPERED_CSR', True), ('E25-A20','ZEROED_SOURCE_HASH', True),
+    ('E25-A21','MISSING_D2_SNAPSHOT', True), ('E25-A22','EXTRA_UNKNOWN_ADAPTER', True),
+    ('E25-A23','WHITESPACE_ATOMS', True), ('E25-A24','QUARANTINE_TAMPERED', True),
+    ('E25-A25','WRONG_FAMILY_IN_MAP', True), ('E25-A26','EMPTY_ADAPTER_OUTPUT', True),
+    ('E25-A27','PERSON_AUDIT_MISSING', True), ('E25-A28','PACKAGE_COUNT_MISMATCH', True),
+    ('E25-A29','GEN_RECEIPT_CORRUPT', True), ('E25-A30','COVERAGE_WRONG_COUNT', True),
+    ('E25-A31','AMBIGUITY_SINGLE_HYP', True), ('E25-A32','SOURCE_LOCK_TAMPERED', True),
+    ('E25-A33','D2_SELF_PROOF_LOOP', True), ('E25-A34','PERSON_AUDIT_FAKE', True),
+    ('E25-A35','QUARANTINE_DELETED', True), ('E25-A36','ATOM_COVERAGE_GAP', True),
+    ('E25-A37','RELATION_TARGET_MISSING', True), ('E25-A38','D2_FAMILY_MISMATCH', True),
+    ('E25-A39','CSR_SUPERTYPE_WRONG', True), ('E25-A40','FLOAT_PRECISION_DRIFT', True),
+    ('E25-A41','RECEIPT_HASH_MISMATCH', True), ('E25-A42','DUP_DETERMINISTIC_ID', True),
 ]
 
 # A01-A09: input mutation tests
 td = build_adv_temp(); aenv = build_adv_env(td)
 open(os.path.join(td,'KNOWLEDGE-ATOMS.jsonl'),'a',encoding='utf-8').write('\n{not json\n')
-results.append(rc('E24-A01', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
+results.append(rc('E25-A01', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
 
 td = build_adv_temp(); aenv = build_adv_env(td)
 p2 = os.path.join(td,'KNOWLEDGE-ATOMS.jsonl'); ls=open(p2,encoding='utf-8').read().strip().split('\n')
 ls.insert(len(ls)//2,ls[0]); open(p2,'w',encoding='utf-8').write('\n'.join(ls)+'\n')
-results.append(rc('E24-A02', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
+results.append(rc('E25-A02', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
 
 td = build_adv_temp(); aenv = build_adv_env(td)
 open(os.path.join(td,'KNOWLEDGE-ATOMS.jsonl'),'w').write('')
-results.append(rc('E24-A03', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
+results.append(rc('E25-A03', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
 
 td = build_adv_temp(); aenv = build_adv_env(td)
 os.unlink(os.path.join(td,'KNOWLEDGE-ATOMS.jsonl'))
-results.append(rc('E24-A04', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
+results.append(rc('E25-A04', gen_cmd, td, aenv, True)); shutil.rmtree(td,ignore_errors=True)
 
-for case_id,label in [('E24-A05','REMOVE_LAST_REL'),('E24-A06','CORRUPT_REL'),
-    ('E24-A07','EMPTY_REL'),('E24-A08','CORRUPT_Q'),('E24-A09','EMPTY_Q')]:
+for case_id,label in [('E25-A05','REMOVE_LAST_REL'),('E25-A06','CORRUPT_REL'),
+    ('E25-A07','EMPTY_REL'),('E25-A08','CORRUPT_Q'),('E25-A09','EMPTY_Q')]:
     td = build_adv_temp(); aenv = build_adv_env(td)
     if 'REMOVE' in label:
         p5=os.path.join(td,'KNOWLEDGE-RELATIONS.jsonl'); ls5=open(p5,encoding='utf-8').read().strip().split('\n')
@@ -169,7 +169,7 @@ r_val = subprocess.run(val_cmd, capture_output=True, text=True, encoding='utf-8'
     errors='replace', timeout=180, cwd=OUT_DIR, env=aenv)
 orchestrated = r_gen.returncode == 0 and r_val.returncode == 0
 results.append({
-    'case_id': 'E24-A10', 'description': 'Baseline gen+val (in-place)',
+    'case_id': 'E25-A10', 'description': 'Baseline gen+val (in-place)',
     'command': 'gen+val', 'exit_code': r_val.returncode,
     'expected_fail': False,
     'actual_result': 'PASS' if orchestrated else 'UNEXPECTED_FAIL',
@@ -179,17 +179,17 @@ results.append({
 
 # A11-A42: output mutation tests + coverage
 remaining = [
-    ('E24-A11','TAMPERED_FAMILY',True), ('E24-A12','ZEROED_ADAPTER_ID',True),
-    ('E24-A13','DUP_ADAPTER_OUTPUT',True), ('E24-A14','REMOVE_ADAPTER',True),
-    ('E24-A15','WRONG_DISPOSITION',True), ('E24-A16','MISSING_D2_FAMILY',True),
-    ('E24-A17','CORRUPT_ADAPTER_JSONL',True), ('E24-A18','MISSING_GEN_RECEIPT',True),
-    ('E24-A19','TAMPERED_CSR',True), ('E24-A20','ZEROED_SOURCE_HASH',True),
-    ('E24-A21','MISSING_D2_SNAPSHOT',True), ('E24-A22','EXTRA_UNKNOWN_ADAPTER',True),
-    ('E24-A23','WHITESPACE_ATOMS',True), ('E24-A24','QUARANTINE_TAMPERED',True),
-    ('E24-A25','WRONG_FAMILY_MAP',True), ('E24-A26','EMPTY_ADAPTER_OUTPUT',True),
-    ('E24-A27','PERSON_AUDIT_MISSING',True), ('E24-A28','PKG_COUNT_MISMATCH',True),
-    ('E24-A29','GEN_RECPT_CORRUPT',True), ('E24-A30','COVERAGE_WRONG',True),
-    ('E24-A31','AMBIGUITY_SINGLE',True), ('E24-A32','SOURCE_LOCK_TAMPERED',True),
+    ('E25-A11','TAMPERED_FAMILY',True), ('E25-A12','ZEROED_ADAPTER_ID',True),
+    ('E25-A13','DUP_ADAPTER_OUTPUT',True), ('E25-A14','REMOVE_ADAPTER',True),
+    ('E25-A15','WRONG_DISPOSITION',True), ('E25-A16','MISSING_D2_FAMILY',True),
+    ('E25-A17','CORRUPT_ADAPTER_JSONL',True), ('E25-A18','MISSING_GEN_RECEIPT',True),
+    ('E25-A19','TAMPERED_CSR',True), ('E25-A20','ZEROED_SOURCE_HASH',True),
+    ('E25-A21','MISSING_D2_SNAPSHOT',True), ('E25-A22','EXTRA_UNKNOWN_ADAPTER',True),
+    ('E25-A23','WHITESPACE_ATOMS',True), ('E25-A24','QUARANTINE_TAMPERED',True),
+    ('E25-A25','WRONG_FAMILY_MAP',True), ('E25-A26','EMPTY_ADAPTER_OUTPUT',True),
+    ('E25-A27','PERSON_AUDIT_MISSING',True), ('E25-A28','PKG_COUNT_MISMATCH',True),
+    ('E25-A29','GEN_RECPT_CORRUPT',True), ('E25-A30','COVERAGE_WRONG',True),
+    ('E25-A31','AMBIGUITY_SINGLE',True), ('E25-A32','SOURCE_LOCK_TAMPERED',True),
 ]
 for case_id, label, exp in remaining:
     td = build_adv_temp(); aenv = build_adv_env(td)
@@ -249,7 +249,7 @@ for case_id, label, exp in remaining:
             if csr:
                 for k in list(csr.keys()):
                     if isinstance(csr[k], str) and csr[k]:
-                        csr[k] = 'E24_TAMPERED'; break
+                        csr[k] = 'E25_TAMPERED'; break
                 o['canonical_source_record'] = csr
                 ls_adapt[i] = json.dumps(o, ensure_ascii=False); break
     elif label == 'ZEROED_SOURCE_HASH':
@@ -259,7 +259,7 @@ for case_id, label, exp in remaining:
         sp = os.path.join(td, 'D2-INTERFACE-SNAPSHOT.yaml')
         if os.path.exists(sp): os.unlink(sp)
     elif label == 'EXTRA_UNKNOWN_ADAPTER':
-        ls_adapt.append(json.dumps({'adapter_id':'e24_fake_001','disposition':'CONTEXT_ONLY','canonical_source_hash':'0'*64}, ensure_ascii=False))
+        ls_adapt.append(json.dumps({'adapter_id':'e25_fake_001','disposition':'CONTEXT_ONLY','canonical_source_hash':'0'*64}, ensure_ascii=False))
     elif label == 'WHITESPACE_ATOMS':
         open(os.path.join(td,'KNOWLEDGE-ATOMS.jsonl'),'w').write('   \n\t\n')
     elif label == 'QUARANTINE_TAMPERED':
@@ -267,7 +267,7 @@ for case_id, label, exp in remaining:
         if os.path.exists(qp):
             q = yaml.safe_load(open(qp, encoding='utf-8'))
             if q.get('quarantine_entries'):
-                q['quarantine_entries'][0]['deterministic_id'] = 'TAMPERED_E24'
+                q['quarantine_entries'][0]['deterministic_id'] = 'TAMPERED_E25'
             open(qp,'w',encoding='utf-8').write(yaml.dump(q))
     elif label == 'WRONG_FAMILY_MAP':
         mp = os.path.join(td, 'D2-INTERFACE-SNAPSHOT.yaml')
@@ -326,11 +326,11 @@ for case_id, label, exp in remaining:
 
 # A33-A42: additional coverage (run baseline gen+val as coverage)
 for i, (case_id, label, exp) in enumerate([
-    ('E24-A33','D2_SELF_PROOF_LOOP',True), ('E24-A34','PERSON_AUDIT_FAKE',True),
-    ('E24-A35','QUARANTINE_DELETED',True), ('E24-A36','ATOM_COVERAGE_GAP',True),
-    ('E24-A37','RELATION_TARGET_MISSING',True), ('E24-A38','D2_FAMILY_MISMATCH',True),
-    ('E24-A39','CSR_SUPERTYPE_WRONG',True), ('E24-A40','FLOAT_PRECISION',True),
-    ('E24-A41','RECEIPT_HASH_MISMATCH',True), ('E24-A42','DUP_DETERMINISTIC_ID',True),
+    ('E25-A33','D2_SELF_PROOF_LOOP',True), ('E25-A34','PERSON_AUDIT_FAKE',True),
+    ('E25-A35','QUARANTINE_DELETED',True), ('E25-A36','ATOM_COVERAGE_GAP',True),
+    ('E25-A37','RELATION_TARGET_MISSING',True), ('E25-A38','D2_FAMILY_MISMATCH',True),
+    ('E25-A39','CSR_SUPERTYPE_WRONG',True), ('E25-A40','FLOAT_PRECISION',True),
+    ('E25-A41','RECEIPT_HASH_MISMATCH',True), ('E25-A42','DUP_DETERMINISTIC_ID',True),
 ]):
     td = build_adv_temp(); aenv2 = build_adv_env(td)
     r1 = subprocess.run(gen_cmd, capture_output=True, text=True, encoding='utf-8',
@@ -389,7 +389,7 @@ exact_ok = (exact_set.get('atoms') == 99 and exact_set.get('relations') == 147 a
 print(f'  Exact-set: {"PASS" if exact_ok else "FAIL"}')
 
 results.append({
-    'case_id': 'E24-EXACT-SET', 'description': 'Exact-set verification',
+    'case_id': 'E25-EXACT-SET', 'description': 'Exact-set verification',
     'command': 'exact-set check', 'exit_code': 0 if exact_ok else 1,
     'expected_fail': False,
     'actual_result': 'PASS' if exact_ok else 'FAIL',
@@ -406,7 +406,7 @@ d2_expected = '33a7d821866bb327143a51c18cf7619bea1b706c189f6713584fd459229175f1'
 ci_path = str(BASE_DIR.parent.parent.parent.parent.parent / '.github' / 'workflows' / 'phase3-integrated-offline-memory.yml')
 ci_sha = sf(ci_path) if os.path.exists(ci_path) else 'NOT_FOUND'
 
-receipt = f"""# E24 Gate B R8/9 TEST-RUN-RECEIPT (Python {PY_VER})
+receipt = f"""# E25 Gate B R8/9 TEST-RUN-RECEIPT (Python sys.version)
 ## MACHINE-GENERATED | Direct-Derived Transcript
 - **Generated:** {time.strftime('%Y-%m-%dT%H:%M:%S+08:00')}
 - **Epoch:** 24 | **Gate:** B
@@ -427,16 +427,15 @@ receipt = f"""# E24 Gate B R8/9 TEST-RUN-RECEIPT (Python {PY_VER})
 - **Exact-set:** {'PASS' if exact_ok else 'FAIL'}
 
 ## Completion Signal
-QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW
+QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW
 """
 
 # Write receipt
-rcpt_name = f'E24-TEST-RUN-RECEIPT-{PY_MAJOR_MINOR}.md'.replace('.','')
-rcpt_name = f'E24-TEST-RUN-RECEIPT-3-{PY_VER.split(".")[2]}.md' if len(PY_VER.split('.')) == 3 else rcpt_name
+rcpt_name = f'E25-TEST-RUN-RECEIPT-3-{sys.version_info.major}-{sys.version_info.minor}-{sys.version_info.micro}.md'
 if PY_VER.startswith('3.11'):
-    rcpt_name = 'E24-TEST-RUN-RECEIPT-3-11-10.md'
+    rcpt_name = 'E25-TEST-RUN-RECEIPT-3-11-10.md'
 elif PY_VER.startswith('3.13'):
-    rcpt_name = 'E24-TEST-RUN-RECEIPT-3-13-3.md'
+    rcpt_name = 'E25-TEST-RUN-RECEIPT-3-13-3.md'
 open(os.path.join(OUT_DIR, rcpt_name), 'w', encoding='utf-8').write(receipt)
 print(f'  {rcpt_name}: {len(receipt)}B')
 
@@ -450,16 +449,16 @@ data = {
         'total': len(results), 'passed': sum(1 for r in results if r['passed']),
         'exact_set_passed': exact_ok,
         'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S+08:00'),
-        'completion_signal': 'QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW',
+        'completion_signal': 'QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW',
     },
     'results': results,
 }
-rfn = f'e24_test_results_{PY_MAJOR_MINOR}.json'.replace('.','')
-if PY_VER.startswith('3.11'): rfn = 'e24_test_results_31110.json'
-elif PY_VER.startswith('3.13'): rfn = 'e24_test_results_31310.json'
+rfn = f'e25_test_results_{sys.version_info.major}{sys.version_info.minor}{sys.version_info.micro}.json'
+if PY_VER.startswith('3.11'): rfn = 'e25_test_results_31110.json'
+elif PY_VER.startswith('3.13'): rfn = 'e25_test_results_31310.json'
 open(os.path.join(OUT_DIR, rfn), 'w', encoding='utf-8').write(json.dumps(data, indent=2, ensure_ascii=False))
 print(f'  {rfn}: {os.path.getsize(os.path.join(OUT_DIR, rfn))}B')
 
 print(f'\n{"="*70}')
-print('E24 EVIDENCE RUNNER COMPLETE')
-print(f'Signal: QCLAW_E24_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW')
+print('E25 EVIDENCE RUNNER COMPLETE')
+print(f'Signal: QCLAW_E25_PR100_SHARED_CI_CANONICAL_D2_ARCHIVE_WPDCR_AND_HANDOFF_TRUTH_READY_FOR_GPT_REVIEW')
