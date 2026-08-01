@@ -1,45 +1,43 @@
-schema_version: "37.0"
+schema_version: "38.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E33_REMOTE_OBJECT_INTEGRITY_ACTIVE_QCLAW_E26_PAUSED_COMPUTE_EXHAUSTED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
+status: "CODEX_E34_PHASE_BOUND_ARCHIVE_TOKEN_ACTIVE_QCLAW_E26_PAUSED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-01T15:32:00+08:00"
+updated_at: "2026-08-01T22:20:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
   agent_read_command: {trigger: "读取任务", meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY", second_start_command_required: false}
 
 parallel_route_rule: >-
-  Codex and QQ remain separate provenance lanes. A transfer must be explicit, preserve the source head, use a new branch and Draft PR,
-  and must not silently mutate the original agent branch. Queued takeover work cannot start until its dependency and GPT activation are satisfied.
+  Codex and QQ remain separate provenance lanes. A transfer must preserve the source head, use a new clean-room branch and Draft PR,
+  and cannot start until its explicit dependency and GPT activation are satisfied.
 
 permanent_governance:
-  autonomy_protocol: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
-  model_routing_protocol: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
-  extended_WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
   final_head_topology_protocol: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
-  final_head_rule: "Any executable-class correction invalidates earlier CI/archive acceptance and moves the tested identity forward."
+  final_head_rule: "Any validator, test, workflow, schema or executable semantic correction moves the tested identity forward and resets CI/archive acceptance."
   receipt_rule: "A final receipt is exactly one later non-empty evidence-only commit whose parent equals the final tested executable head."
-  direct_observation_rule: "Git object topology, remote bytes, workflow runs and diffs override narrative labels."
-  adversarial_semantics_rule: "Setup failure cannot count as adversarial success; each case must prove its intended mutation and expected failure identifier."
+  direct_observation_rule: "Git topology, remote bytes, workflow logs and artifact manifests override narrative labels."
+  phase_token_rule: "Archive root command tokens are bound to archive schema/authority generation; cross-generation token substitution is forbidden."
   transfer_rule: "Cross-agent takeover requires explicit queue, dependency, clean-room branch, new Draft PR and immutable source-agent history."
 
 agents:
   CODEX:
     active_issue: 108
     pull_request: 107
-    task_id: "CODEX-PEOS-0010-E32-REMOTE-OBJECT-INTEGRITY-EXACT-CI-AND-SINGLE-RECEIPT-CLOSURE-0025-E33"
-    route_epoch: 34
+    task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
+    route_epoch: 35
     status: "READY"
     execution_allowed: true
-    reviewed_base: "cd59d223f43f611e36f4aec22bf81aaa15edb54a"
+    reviewed_base: "10849643745f0962673efcbd425c66824bae7b70"
+    reviewed_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
     mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "xhigh"
     execution_intensity: "X3_DEEP"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_E33_PEOS_0010_REMOTE_OBJECT_INTEGRITY_EXACT_CI_ARCHIVE_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
-    current_action: "Repair corrupted remote executable object, prove remote/local byte equality, then close exact-head CI/archive/single-receipt topology."
+    completion_signal: "CODEX_E34_PEOS_0010_PHASE_BOUND_ARCHIVE_COMMAND_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+    current_action: "Make archive changed-files token validation phase/schema-aware, rerun exact-head evidence, then create one receipt."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
     forbidden_while_active: "Do not start queued QQ takeover E27."
   QCLAW:
@@ -56,46 +54,40 @@ agents:
   CODEX_QUEUED_QCLAW_TAKEOVER:
     task_id: "CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27"
     route_epoch: 27
-    status: "QUEUED_BLOCKED_BY_CODEX_E33_GPT_ACCEPTANCE"
+    status: "QUEUED_BLOCKED_BY_CODEX_E34_GPT_ACCEPTANCE"
     execution_allowed: false
     source_head: "0b0d22c68b3ad025924f6f48c0625fe6b00d2049"
-    activation_condition: "GPT_ACCEPTS_CODEX_E33_AND_EXPLICITLY_ACTIVATES_E27"
+    activation_condition: "GPT_ACCEPTS_CODEX_E34_AND_EXPLICITLY_ACTIVATES_E27"
     required_branch: "codex/qclaw-pr100-e26-cleanroom-takeover-0029-e27"
     required_pr: "NEW_DRAFT_PR_TO_MAIN"
     direct_edit_of_qclaw_branch_forbidden: true
     task_brief: "coordination/TASK-BRIEFS/CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27-AMED.yaml"
   WORKBUDDY:
-    task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
-    route_epoch: 15
     status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
     automatic_resume: false
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E32:
-    classification: "LOCAL_122_PASS_AND_SINGLE_EXECUTABLE_COMMIT_INTENT_REUSABLE_REMOTE_OBJECT_INTEGRITY_AND_DUAL_PYTHON_CI_FAILED"
+  CODEX_E33:
+    classification: "REMOTE_OBJECT_INTEGRITY_AND_EXACT_TESTED_HEAD_ACCEPTED_RECEIPT_BLOCKED_BY_PHASE_TOKEN_CONTRACT_DRIFT"
+    completion_credit: false
+    substantive_tested_head_credit: true
     evidence:
-      - "Run 30685277875 failed on jobs 91329683930 and 91329683953."
-      - "Remote evidence.py contains invalid non-printable U+05CF."
-      - "Archive and artifact steps were skipped."
-      - "Phase 3 run 30685277898 succeeded but does not satisfy candidate evidence acceptance."
-  QCLAW_E26:
-    classification: "LOCAL_PROGRESS_REUSABLE_D2_FALLBACK_LOCAL_DUPLICATE_ADVERSARIAL_SEMANTICS_ARCHIVE_CI_AND_RECEIPT_TOPOLOGY_FAILED"
-    evidence:
-      - "Candidate-local d2_game_core.py remains."
-      - "Runner has historical candidate D2 fallback and still includes baseline A10 in the declared 42 cases."
-      - "Archive matrix per_seed is empty and verification is deferred."
-      - "No exact-head Actions run or status exists for 0b0d22c6."
-      - "Multiple receipt/correction commits violate the single-receipt contract."
+      - "Head/tree 10849643745f0962673efcbd425c66824bae7b70 / c515cd8028659888e522c5a67f9e78dc260537c5."
+      - "Run 30691866084 succeeded on jobs 91347896860 and 91347896832, 122/122 each."
+      - "Three archive roots per runtime completed and artifacts 8815937925 / 8815938406 exist."
+      - "Truthful archive commands use ./.e32-changed-files.txt."
+      - "Legacy validator requires ./.e31-changed-files.txt and blocks receipt preflight."
+      - "No receipt was created, correctly avoiding false evidence."
 
 frozen:
   - "No merge."
-  - "No Gate C/D/E or Issue #92 execution."
+  - "No adapter implementation, K3 cross-model execution or K4 Shadow activation."
   - "No canonical D2/PEOS/index/AGENTS mutation."
   - "No private/real data, production, replay, backtest, accounts, orders or trades."
   - "QQ and WorkBuddy remain paused."
-  - "Codex E27 takeover remains queued until E33 GPT acceptance."
+  - "Codex E27 takeover remains queued until E34 GPT acceptance."
 
 next_commands:
   CODEX: "读取任务"
