@@ -1,9 +1,9 @@
-schema_version: "41.0"
+schema_version: "42.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E37_PRE_CANARY_SECURITY_CLOSURE_ACTIVE_QCLAW_E28_ATOMIZATION_TRUTH_CLOSURE_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E38_TRUSTED_AUTHORITY_EXACT_HEAD_CI_ACTIVE_QCLAW_E28_ATOMIZATION_TRUTH_CLOSURE_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T06:19:00+08:00"
+updated_at: "2026-08-02T07:02:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
@@ -12,33 +12,36 @@ permanent_command_semantics:
 permanent_governance:
   final_head_rule: "Executable, validator, workflow, schema or test-semantic changes move the tested identity forward."
   receipt_rule: "One non-empty evidence-only commit directly after the final tested head; receipt-head validation; no later commit."
-  direct_observation_rule: "Git topology, remote workflow logs and verified source bytes override narrative labels."
+  exact_head_ci_rule: "A pull_request merge ref is not the candidate head. CI must checkout and assert github.event.pull_request.head.sha."
+  verification_factory_rule: "A VERIFIED object is authority only when external callers cannot mint it and a trusted verifier derives it from source evidence."
+  approval_body_rule: "Comment metadata and body hash alone are insufficient; the canonical approval body must parse to the exact bindings and an authorized actor."
+  git_membership_rule: "Self-consistent bytes and hashes are not remote proof; ref/commit/tree/path/blob/content membership must be independently established."
   knowledge_loss_rule: "Knowledge atomization must never silently drop, truncate, replace or path/time-mutate source semantics."
   source_truth_rule: "A real digest batch requires immutable commit/blob/path/content identities and exact source spans."
   secret_rule: "Raw and derived authentication/access/financial secret values are forbidden; surrounding authorized knowledge must be preserved."
   automation_claim_rule: "A branch, PR, workflow or completion comment is not proof that automatic dispatch or GPT auto-review occurred."
-  canary_rule: "Normal automatic dispatch remains disabled; no canary may execute before E37 security closure and later explicit approval."
+  canary_rule: "Normal automatic dispatch remains disabled; no canary may execute before E38 trust closure and a later explicit approval route."
   transfer_rule: "Cross-agent takeover requires separate branch, Draft PR and explicit activation; an unactivated queue may be retired when the source lane resumes."
 
 agents:
   CODEX:
-    active_issue: 114
-    source_pull_request: 113
-    task_id: "CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37"
-    route_epoch: 38
+    active_issue: 116
+    source_pull_request: 115
+    task_id: "CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38"
+    route_epoch: 39
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    planned_branch: "codex/brainops-canary-authority-proof-0032-e37"
-    reviewed_base: "dd8aab05109d4b0adec901ace277633546563354"
+    planned_branch: "codex/brainops-trusted-authority-exact-ci-0033-e38"
+    reviewed_base: "a5164849defd4ebd0944552a83076f71c3490c15"
     mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "max"
     execution_intensity: "X4_MAXIMUM"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_BRAINOPS_E37_CANARY_NONCE_AUTHORITY_ROUTE_PROOF_READY_FOR_GPT_REVIEW"
-    current_action: "Close approval nonce replay, immutable approval provenance and exact route-state proof before any canary execution."
+    completion_signal: "CODEX_BRAINOPS_E38_TRUSTED_APPROVAL_GIT_TREE_EXACT_HEAD_CI_READY_FOR_GPT_REVIEW"
+    current_action: "Close trusted approval parsing/actor authority, Git tree membership and exact PR-head CI before any canary."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
@@ -65,7 +68,7 @@ agents:
     status: "CANCELLED_NOT_ACTIVATED_SUPERSEDED_BY_QCLAW_MAINLINE_RESUMPTION"
     execution_allowed: false
     source_head: "0b0d22c68b3ad025924f6f48c0625fe6b00d2049"
-    reason: "QQ compute reset and QCLAW resumed its primary knowledge-atomization lane. PR #100 remains frozen historical evidence and the unused Codex queue must not start."
+    reason: "QQ compute reset and QCLAW resumed its primary knowledge-atomization lane."
     reactivation_requires_new_task: true
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -74,14 +77,26 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E36:
-    classification: "E36_HARDENING_REUSABLE_BUT_NONCE_AUTHORITY_ROUTE_PROOF_AND_AUTOMATIC_TRIGGER_NOT_READY"
+  CODEX_E37:
+    classification: "E37_NONCE_TRANSACTION_REUSABLE_BUT_APPROVAL_ROUTE_AUTHORITY_AND_EXACT_HEAD_CI_NOT_CLOSED"
     completion_credit: false
     substantive_hardening_credit: true
-    tested_head: "7012ed7681d16d936d3ea5ce1311c13b5be46337"
-    receipt_head: "d22aeffc30e5848f2e0cbdb22742ad129f386275"
-    substantive_ci_run: 30717574429
-    receipt_ci_run: 30718668128
+    source_pr: 115
+    tested_head: "0221d629a80afe1232ebe4b1e05a77af64940851"
+    receipt_head: "665bed5411248f0b9926c4beac4529694387ff70"
+    tested_ci_run: 30721817476
+    receipt_ci_run: 30722131766
+    evidence:
+      - "Nonce consumption, event reservation and verified-route persistence are atomic."
+      - "Nonce replay with changed event, idempotency and payload is suppressed."
+      - "The receipt is one non-empty evidence-only commit after the tested head."
+      - "Python 3.11 and 3.13 each passed 103 tests on PR merge refs."
+    blockers:
+      - "Public verified() factories allow caller-forged VERIFIED results."
+      - "Approval bindings are not parsed from the comment body and no authorized actor policy is enforced."
+      - "Route proof lacks commit-tree path/blob membership and a trusted read-only transport."
+      - "The tested run checked out c6f3099..., not 0221d629...."
+      - "The receipt run checked out 7e22dcf..., not 665bed541...."
   QCLAW_E27:
     classification: "E27_PROTOTYPE_REUSABLE_BUT_SEMANTIC_LOSS_DETERMINISM_SOURCE_TRUTH_CI_AND_RECEIPT_FAILED"
     completion_credit: false
@@ -89,26 +104,14 @@ review_summary:
     source_pr: 111
     substantive_head: "aa7ab8398f46ee77ce8f4f407aa7cea1ac4aebd1"
     invalid_empty_receipt_head: "1524ede4f6fbeb7176bcf7e8a0f1c52766ced5c2"
-    evidence:
-      - "The claimed receipt is an empty commit."
-      - "PR #111 was not actually Draft."
-      - "No independently visible exact-head remote CI/status anchors the claimed final identities."
-      - "Prototype locally reported 79 tests on Python 3.11/3.13 and delivered atomization/redaction scaffolds."
-    blockers:
-      - "Silent short-segment deletion, long-segment truncation, code-fence delimiter loss and invalid-UTF8 replacement."
-      - "Wall-clock and local-path nondeterminism."
-      - "Incomplete semantic fields and source spans."
-      - "Packet hashes omit complete semantic payload and lineage."
-      - "Self-authored fixture mislabeled as a real repository digest batch."
-      - "Global redaction replacement and secret-derived hashes."
 
 frozen:
-  - "No merge or further commits on PR #113, PR #111, PR #110, PR #107 or PR #100."
-  - "No start of the cancelled Codex PR #100 takeover queue."
+  - "No merge or further commits on PR #115, PR #113, PR #111, PR #110, PR #107 or PR #100."
   - "No canary execution and no normal automatic dispatch."
+  - "No start of the cancelled Codex PR #100 takeover queue."
   - "No second canonical memory/store/fusion/retrieval runtime."
-  - "No raw or derived authentication/access/financial secret values."
-  - "No agent main mutation, private production data, accounts, orders or trades."
+  - "No credentials, tokens, cookies, sessions, raw or derived authentication/access/financial secrets."
+  - "No agent main mutation, production data, accounts, orders or trades."
   - "WorkBuddy remains paused."
 
 next_commands:
@@ -116,4 +119,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "PARALLEL_DISJOINT_LANES / PUBLIC_SAFE_AND_USER_AUTHORIZED_KNOWLEDGE / CANDIDATE_ONLY / SECRET_VALUES_DENIED / NO_TRADE"
+boundary: "PARALLEL_DISJOINT_LANES / PRE_CANARY_TRUST_CLOSURE / KNOWLEDGE_TRUTH_CLOSURE / NO_TRADE"
