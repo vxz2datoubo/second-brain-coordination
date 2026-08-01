@@ -29,7 +29,7 @@ SOURCE_AUDIT_PATH = KERNEL_ROOT / "SOURCE-EXPRESSION-AUDIT.yaml"
 CASE_MANIFEST_PATH = KERNEL_ROOT / "CASE-MANIFEST.yaml"
 sys.path.insert(0, str(SOURCE_ROOT))
 
-from vendor_neutral_agent_kernel.evidence import validate_e31_evidence
+from vendor_neutral_agent_kernel.evidence import validate_e32_archive_manifest, validate_e32_topology
 
 
 class _StrictLoader(yaml.SafeLoader):
@@ -196,8 +196,8 @@ def main() -> int:
     parser.add_argument("--changed-files", type=Path)
     parser.add_argument("--commit", required=True)
     parser.add_argument("--tree", required=True)
-    parser.add_argument("--tested-commit")
-    parser.add_argument("--tested-tree")
+    parser.add_argument("--tested-commit", required=True)
+    parser.add_argument("--tested-tree", required=True)
     args = parser.parse_args()
 
     result = _run_tests()
@@ -212,12 +212,18 @@ def main() -> int:
     skipped_ids = tuple(sorted(result.skipped_ids))
     manifest_count = _case_manifest_check(case_ids)
     exact_context = _verify_exact_context(args.commit, args.tree)
-    e31 = validate_e31_evidence(
+    e32 = validate_e32_topology(
         KERNEL_ROOT,
         current_commit=args.commit,
         current_tree=args.tree,
         tested_commit=args.tested_commit,
         tested_tree=args.tested_tree,
+    )
+    archive = validate_e32_archive_manifest(
+        KERNEL_ROOT / "E32-ARCHIVE-PROVENANCE-MATRIX.yaml",
+        tested_commit=args.tested_commit,
+        tested_tree=args.tested_tree,
+        require_final=e32["phase"] == "RECEIPT_HEAD",
     )
     status = "PASS" if not error_ids and not failure_ids else "FAIL"
     report = {
@@ -235,7 +241,8 @@ def main() -> int:
         "checks": static,
         "case_manifest_count": manifest_count,
         "exact_context": exact_context,
-        "e31_evidence": e31,
+        "e32_topology": e32,
+        "e32_archive": archive,
     }
     print(json.dumps(report, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
     return 0 if status == "PASS" else 1

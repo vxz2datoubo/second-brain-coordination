@@ -41,14 +41,18 @@ jobs:
           git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
           echo "commit=$head" >> "$GITHUB_OUTPUT"
           echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"
-          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E31-COMPLETION-EVIDENCE.json"
-          python - "$evidence" <<'PY' >> "$GITHUB_OUTPUT"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TOPOLOGY-EVIDENCE.json"
+          python - "$evidence" "$head" "$(git rev-parse "$head^{tree}")" <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import sys
           evidence = json.load(open(sys.argv[1], encoding="utf-8"))
-          identity = evidence["tested_parent_identity"]
-          print(f"tested_commit={identity['tested_commit']}")
-          print(f"tested_tree={identity['tested_tree']}")
+          if evidence["status"] == "RECEIPT_HEAD":
+              identity = evidence["tested_identity"]
+              print(f"tested_commit={identity['commit']}")
+              print(f"tested_tree={identity['tree']}")
+          else:
+              print(f"tested_commit={sys.argv[2]}")
+              print(f"tested_tree={sys.argv[3]}")
           PY
           echo "changed_files=$RUNNER_TEMP/changed-files.txt" >> "$GITHUB_OUTPUT"
       - name: Run complete candidate suite and static gates
@@ -62,20 +66,20 @@ jobs:
       - name: Reproduce clean Git archive evidence under three hash seeds
         shell: bash
         env:
-          E31_JOB_ID: candidate-evidence-py${{ matrix.python-version }}
+          E32_JOB_ID: candidate-evidence-py${{ matrix.python-version }}
         run: |
           set -euo pipefail
           : > "$RUNNER_TEMP/archive-roots.jsonl"
-          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E31-COMPLETION-EVIDENCE.json"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TOPOLOGY-EVIDENCE.json"
           evidence_status="$(python - "$evidence" <<'PY'
           import json
           import sys
-          print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])
+            print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])
           PY
           )"
           archive_target="${{ steps.context.outputs.commit }}"
           archive_tree="${{ steps.context.outputs.tree }}"
-          if [[ "$evidence_status" == "FINAL" ]]; then
+          if [[ "$evidence_status" == "RECEIPT_HEAD" ]]; then
             archive_target="${{ steps.context.outputs.tested_commit }}"
             archive_tree="${{ steps.context.outputs.tested_tree }}"
           fi
@@ -84,13 +88,13 @@ jobs:
             archive_path="$RUNNER_TEMP/archive-$seed.tar"
             git archive "$archive_target" > "$archive_path"
             tar -xf "$archive_path" -C "$archive_root"
-            cp "${{ steps.context.outputs.changed_files }}" "$archive_root/.e31-changed-files.txt"
+            cp "${{ steps.context.outputs.changed_files }}" "$archive_root/.e32-changed-files.txt"
             report_path="$archive_root/ci-report.json"
             stderr_path="$archive_root/ci-report.stderr"
             (
               cd "$archive_root"
               PYTHONHASHSEED="$seed" python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py \
-                --changed-files ./.e31-changed-files.txt \
+                --changed-files ./.e32-changed-files.txt \
                 --commit "$archive_target" \
                 --tree "$archive_tree" \
                 --tested-commit "$archive_target" \
@@ -127,10 +131,10 @@ jobs:
           canonical = "".join(f"{item['path']}\t{item['size']}\t{item['sha256']}\n" for item in entries)
           content_canonical = "".join(f"{item['path']}\0{item['size']}\0{item['sha256']}\n" for item in entries)
           record = {
-              "root_id": f"e31-clean-archive-seed-{seed}",
+              "root_id": f"e32-clean-archive-seed-{seed}",
               "run_id": os.environ["GITHUB_RUN_ID"],
-              "job_id": os.environ.get("E31_JOB_ID", os.environ["GITHUB_JOB"]),
-              "root_locator": f"github-actions://{os.environ['GITHUB_RUN_ID']}/{os.environ['GITHUB_JOB']}/e31-clean-archive-seed-{seed}",
+              "job_id": os.environ.get("E32_JOB_ID", os.environ["GITHUB_JOB"]),
+              "root_locator": f"github-actions://{os.environ['GITHUB_RUN_ID']}/{os.environ['GITHUB_JOB']}/e32-clean-archive-seed-{seed}",
               "root_path_sha256": hashlib.sha256(str(root).encode("utf-8")).hexdigest(),
               "archive_content_sha256": hashlib.sha256(Path(archive).read_bytes()).hexdigest(),
               "archive_size_bytes": Path(archive).stat().st_size,
@@ -138,7 +142,7 @@ jobs:
               "archive_git_tree_sha": archive_tree,
               "archive_content_tree_sha256": hashlib.sha256(content_canonical.encode("utf-8")).hexdigest(),
               "cwd": ".",
-              "command": f"PYTHONHASHSEED={seed} python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py --changed-files ./.e31-changed-files.txt --commit {archive_commit} --tree {archive_tree} --tested-commit {tested_commit} --tested-tree {tested_tree}",
+              "command": f"PYTHONHASHSEED={seed} python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py --changed-files ./.e32-changed-files.txt --commit {archive_commit} --tree {archive_tree} --tested-commit {tested_commit} --tested-tree {tested_tree}",
               "exit_code": 0,
               "stdout_sha256": hashlib.sha256(Path(report).read_bytes()).hexdigest(),
               "stderr_sha256": hashlib.sha256(Path(stderr).read_bytes()).hexdigest(),
@@ -157,13 +161,13 @@ jobs:
           roots = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line]
           paths = roots[0]["artifacts"]
           Path(sys.argv[2]).write_text(json.dumps({
-              "schema_version": "VNAK_E31_ARCHIVE_PROVENANCE_v1",
-              "task_id": "CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31",
+              "schema_version": "VNAK_E32_ARCHIVE_PROVENANCE_v1",
+              "task_id": "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32",
               "status": "FINAL",
               "root_count": len(roots),
               "required_root_count": 3,
               "tested_identity": {
-                  "authority": "E31_TESTED_SUBSTANTIVE_COMMIT",
+                  "authority": "E32_FINAL_TESTED_HEAD",
                   "tested_commit": roots[0]["archive_git_commit"],
                   "tested_tree": roots[0]["archive_git_tree_sha"],
                   "source_run": roots[0]["run_id"],

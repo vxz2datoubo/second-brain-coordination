@@ -1,0 +1,51 @@
+schema_version: "VNAK_E32_WPDCR_v1"
+task_id: "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32"
+route_epoch: 33
+agent_id: "CODEX"
+actual_executor: "CODEX"
+reviewer: "GPT"
+status: "TESTED_HEAD"
+mode: "target"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+
+work_process:
+  difficulty: "D2_HARD_BOUNDED"
+  goal: "Move acceptance evidence to one executable tested head and one evidence-only receipt head."
+  planned_commits: "At most one executable correction and exactly one later evidence-only receipt."
+  current_phase: "TESTED_HEAD_TEMPLATE"
+  known_defect: "E31 final CI validated f3d062b8 but archived obsolete fb30f1b8 executable state."
+
+autonomous_remediation_ledger:
+  - id: "E32-R1-001"
+    class: "R1_BOUNDED_CONTRACT_AND_TEST_REPAIR"
+    action: "Add Git-object parent/diff topology validation and bind archive selection to the current tested head."
+    boundary_tests: ["T1_SAME_GOAL", "T2_SAME_AUTHORITY_AND_OWNERSHIP", "T3_NO_STANDARD_WEAKENING", "T4_REVERSIBLE_AND_TESTABLE", "T5_NO_NEW_EXTERNAL_AUTHORITY_OR_RISK", "T6_INSIDE_REMEDIATION_BUDGET"]
+    validation: "Pending exact E32 dual-Python run"
+    rollback: "Revert the single E32 executable correction commit"
+
+model_reasoning_and_execution_profile:
+  requested_model: "gpt-5.6-sol"
+  actual_model: "ACCESS_NOT_EXPOSED"
+  requested_reasoning_effort: "xhigh"
+  actual_reasoning_effort: "ACCESS_NOT_EXPOSED"
+  requested_execution_intensity: "X3_DEEP"
+  actual_execution_intensity: "ACCESS_NOT_EXPOSED"
+  permission_profile_used: "P1_ENHANCED_BOUNDED"
+  availability_preflight_result: "ACCESS_NOT_EXPOSED"
+  fallback_or_escalation_events: []
+  compute_or_attempt_budget_used: "within E32 hard two-commit topology"
+  material_quality_effect: "Not claimed before CI"
+  residual_uncertainty: "Exact remote commit identity is bound after GitHub API commit creation"
+
+unknowns:
+  - "Runtime model metadata is ACCESS_NOT_EXPOSED."
+  - "Final run/job/artifact IDs are not known until the exact tested head runs."
+negative_results:
+  - "No adapter, Shadow, canonical promotion, account, order or trade path is executed."
+coordination:
+  upstream: "GPT route epoch 33 / Issue #108"
+  downstream: "GPT second-pass review of PR #107"
+  requests: ["Keep PR #107 Draft; keep later Gates frozen"]
+rollback:
+  logical: "Close PR #107 or revert the E32 candidate commits"
+  production_state_changed: false
