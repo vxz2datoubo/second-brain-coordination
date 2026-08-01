@@ -9,6 +9,7 @@ from pathlib import Path
 
 SRC_DIR = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SRC_DIR))
+from qclaw_knowledge_digest.redact import redact, verify_zero_secrets
 from qclaw_knowledge_digest.atomizer import (
     sha256, deterministic_atom_id, SCHEMA_VERSION,
     atomize_document, generate_learning_packet, run_digest_queue,
@@ -280,6 +281,43 @@ def test_sycophancy():
     assert_true("ADV-06: no crash", len(r["atoms"]) >= 0)
 
 # ── Main ───────────────────────────────────────────────────────────────
+
+def test_redaction_core():
+    print("\n[17] Redaction Core Tests")
+    cases = [
+        ("API_KEY = sk-abcdef1234567890abcdef1234567890abc", True),
+        ("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0", True),
+        ("mysql://admin:realpassword@db.example.com:3306/mydb", True),
+        ("api_key = 'your_key_here'", False),
+        ("token = 'example_token_placeholder'", False),
+        ("The API endpoint is https://api.openai.com", False),
+        ("api_key parameter is passed to the constructor", False),
+    ]
+    for i, (text, expect) in enumerate(cases):
+        redacted, log = redact(text, f"t{i}")
+        assert_eq(f"RDC-{i}: redact={'YES' if expect else 'NO'}", len(log) > 0, expect)
+        if len(log) > 0:
+            assert_true(f"RDC-{i}-clean: zero remaining", verify_zero_secrets(redacted))
+
+def test_redaction_mixed_document():
+    print("\n[18] Mixed Document Redaction + Atomization")
+    import os
+    q = FIXTURES_DIR.parent / "digest_queue" / "batch_002"
+    if q.exists():
+        for f in q.iterdir():
+            if f.suffix == ".md":
+                with open(f, "r", encoding="utf-8") as fp:
+                    raw = fp.read()
+                redacted, log = redact(raw, str(f))
+                assert_true("RDX-01: redactions applied", len(log) > 0, f"got {len(log)} redactions, expecting >0 for batch_002 mixed doc")
+                assert_true("RDX-02: zero secrets after redact", verify_zero_secrets(redacted), f"redactions={len(log)}")
+                # Verify secret markers were replaced
+                assert_true("RDX-03: contains REDACTED marker", "[REDACTED:" in redacted)
+                assert_true("RDX-04: sk-proj key redacted", "sk-proj" not in redacted)
+                assert_true("RDX-05: realPass not in output", "realPass" not in redacted)
+                return
+    assert_true("RDX-01", False, "batch_002 not found")
+
 def main():
     global passed, failed
     print("=" * 60)
@@ -301,6 +339,8 @@ def main():
     test_binary()
     test_order_sensitivity()
     test_sycophancy()
+    test_redaction_core()
+    test_redaction_mixed_document()
     total = passed + failed
     print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{total} PASSED, {failed}/{total} FAILED")

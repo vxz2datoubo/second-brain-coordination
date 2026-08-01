@@ -1,6 +1,6 @@
-# QCLAW E27 — First Delivery Test Run Receipt
+# QCLAW E27 R1 — Test Run Receipt (Batch 001 + 002, Redaction)
 
-- **Pipeline**: QCLAW-KNOWLEDGE-ATOMIZATION-CONTINUOUS-DIGESTION-0008-E27
+- **Pipeline**: QCLAW-KNOWLEDGE-ATOMIZATION-CONTINUOUS-DIGESTION-0008-E27 R1
 - **Test Suite**: tests/run_all_tests.py
 - **Python 3.11.10**: F:/Program Files (x86)/QClaw/v0.2.35.624/resources/python/python.exe
 - **Python 3.13.3**: C:/Program Files/Python313/python.exe
@@ -8,24 +8,19 @@
 
 ## Results
 
-| Metric | Value |
-|--------|-------|
-| Tests Passed | 64/64 (100%) |
-| Tests Failed | 0 |
-| Python 3.11 exit code | 0 |
-| Python 3.13 exit code | 0 |
-| Dual Python byte-consistency | ✅ IDENTICAL |
+| Metric | 3.11.10 | 3.13.3 |
+|--------|---------|--------|
+| Tests Passed | 79/79 (100%) | 79/79 (100%) |
+| Tests Failed | 0 | 0 |
+| Exit Code | 0 | 0 |
+| Dual Python Consistency | ✅ IDENTICAL | ✅ IDENTICAL |
 
-## Digest Pipeline Results
+## Integrated Pipeline
 
-| Metric | 3.11.10 | 3.13.3 | Match |
-|--------|---------|--------|-------|
-| Atoms | 61 | 61 | ✅ |
-| Relations | 4 | 4 | ✅ |
-| Unknowns | 6 | 6 | ✅ |
-| Conflicts | 3 | 3 | ✅ |
-| Packet ID | 3f1daf01069b... | 3f1daf01069b... | ✅ |
-| Content Hash | d6c39347a3e0... | d6c39347a3e0... | ✅ |
+| Batch | Files | Atoms | Relations | Unknowns | Conflicts | Redactions | Zero-Secret |
+|-------|-------|-------|-----------|----------|-----------|------------|-------------|
+| 001 | 1 | 61 | 4 | 6 | 3 | 0 | ✅ N/A |
+| 002 | 1 | 22 | 0 | 0 | 1 | 3 | ✅ VERIFIED |
 
 ## Command Evidence
 
@@ -34,6 +29,5 @@ PYTHONHASHSEED=0 PYTHONIOENCODING=utf-8 PYTHONPATH=src \
   python tests/run_all_tests.py
 
 PYTHONHASHSEED=0 PYTHONIOENCODING=utf-8 PYTHONPATH=src \
-  python -m qclaw_knowledge_digest.cli digest \
-  digest_queue/batch_001 --output output_batch_001
+  python run_integrated_pipeline.py
 ```
