@@ -8,11 +8,14 @@ Target implementer: Codex after explicit route activation
 
 Boundary: `LOCAL_FIRST / PUBLIC_SAFE_REPOSITORY_METADATA_ONLY / NO_TRADE / NO_REAL_ACCOUNT_ACTION`
 
+> **Architecture update:** Read `BRAINOPS-CODEX-APP-FIRST-ACTIVATION-ADDENDUM-v1.1.md` together with this document. The integrated ChatGPT desktop application's Codex view is now the preferred user-facing execution and supervision surface. Codex CLI/SDK is a bounded, disabled-by-default fallback. Where this v1.0 document speaks of direct CLI dispatch as the normal path, the v1.1 addendum supersedes that interpretation.
+
 ## 1. Fundamental goal
 
 Create one visible local operations console for the Second Brain ecosystem that can safely show, start, stop, restart, pause and diagnose:
 
-- the Codex route reconciler and task executor;
+- the Codex App route reconciler and task executor;
+- the optional Codex CLI/SDK fallback executor;
 - the GPT review-request watcher;
 - Second Brain backend APIs, databases and retrieval workers;
 - future MaiBot voice, microphone, speech-to-text, text-to-speech and terminal endpoints;
@@ -34,7 +37,8 @@ The first delivery must not:
 - activate QQ while `execution_allowed: false`;
 - run real trading, account, order or broker actions;
 - replace existing task-route, lease, route-epoch, receipt or GPT review protocols;
-- force Codex into a Windows system account that cannot access the user OAuth session;
+- force ChatGPT/Codex or CLI fallback into a Windows system account that cannot access the user OAuth session;
+- use simulated mouse/keyboard input, accessibility scraping or undocumented process injection to control the Codex App;
 - install Docker, .NET SDK, databases or system services without an explicit capability report and approval gate.
 
 ## 3. Selected architecture
@@ -63,10 +67,11 @@ Default management endpoint: `127.0.0.1:32100`, configurable and protected by a 
 
 A user-session process launched at login, initially through Windows Task Scheduler or a startup shortcut.
 
-It owns processes that require the user's profile, OAuth session or desktop-local files, especially:
+It coordinates components that require the user's profile, OAuth session or desktop-local files, especially:
 
-- Codex CLI `codex exec`;
-- Codex OAuth-authenticated task sessions;
+- integrated ChatGPT desktop application / Codex view availability;
+- Codex App Automation state and route reconciliation;
+- optional Codex CLI/SDK fallback execution;
 - QQ/QCLAW local client if a controllable interface is later discovered;
 - MaiBot user-session microphone and audio-device processes;
 - interactive tools that cannot run under `LocalSystem` or `LocalService`.
@@ -90,13 +95,15 @@ The Host Service and User Agent communicate through an authenticated local chann
 
 Define one adapter interface and separate implementations:
 
-1. `NativeProcessAdapter`
-2. `WindowsServiceAdapter`
-3. `DockerComposeAdapter`
-4. `ExternalEndpointAdapter`
-5. `CodexExecutorAdapter`
-6. `ScheduledReconcilerAdapter`
-7. future `MaiBotVoiceAdapter`
+1. `CodexDesktopHostAdapter`
+2. `CodexAppAutomationAdapter`
+3. `CodexCliFallbackAdapter`
+4. `NativeProcessAdapter`
+5. `WindowsServiceAdapter`
+6. `DockerComposeAdapter`
+7. `ExternalEndpointAdapter`
+8. `ScheduledReconcilerAdapter`
+9. future `MaiBotVoiceAdapter`
 
 No adapter may accept arbitrary executable paths or shell strings from UI input. Executables, work directories and arguments come from an allowlisted service manifest committed to Git or a locally approved override.
 
@@ -110,13 +117,14 @@ For each registered component it stores:
 - `observed_state`: UNKNOWN, STARTING, HEALTHY, DEGRADED, UNHEALTHY, STOPPING, STOPPED, BLOCKED;
 - generation and fencing token;
 - owning adapter;
-- process/service/container identity;
+- App automation/thread identity or process/service/container identity;
 - configured and observed ports;
 - health checks;
 - dependency graph;
 - restart policy;
 - last transition and actor;
-- current lease or task route when applicable.
+- current lease or task route when applicable;
+- dispatch owner: APP_AUTOMATION, CLI_FALLBACK, MANUAL_APP or NONE.
 
 The controller repeatedly compares desired and observed state. It performs only the smallest authorized transition and records every action.
 
@@ -149,9 +157,11 @@ Default policy:
 
 ## 6. Process supervision
 
-On Windows, supervised native process trees should be placed in a Windows Job Object when compatible. Closing or terminating the job must terminate the complete managed process group and prevent orphaned Codex, Python, Node or audio subprocesses.
+On Windows, supervised native process trees should be placed in a Windows Job Object when compatible. Closing or terminating the job must terminate the complete managed process group and prevent orphaned CLI, Python, Node or audio subprocesses.
 
-Required lifecycle:
+The integrated ChatGPT desktop application is external user software by default. BrainOps must not treat the entire application as a disposable child process or kill it merely to stop one task, except through an explicit user-confirmed emergency action.
+
+Required lifecycle for managed native processes:
 
 1. validate manifest and permissions;
 2. validate dependency health;
@@ -167,7 +177,7 @@ Required lifecycle:
 
 ## 7. Codex automation path
 
-The Codex executor remains user-session hosted.
+The preferred Codex executor is App-native and user-session hosted. CLI/SDK remains a bounded fallback.
 
 ### 7.1 Review intake
 
@@ -177,9 +187,11 @@ GitHub events create a structured GPT review request. A scheduled anti-entropy s
 
 GPT publishes a review decision plus a new task route and activation manifest. The activation manifest must contain an idempotency key, route epoch, reviewed base, target agent, execution permission, user-approval requirement and safety boundary.
 
-### 7.3 Local dispatch
+### 7.3 App-first local dispatch
 
-The BrainOps User Agent checks every 30 minutes and may also accept a local event signal. It dispatches only when all gates pass:
+Prefer one dedicated Codex App Automation/reconciler thread that checks the canonical route on a supported schedule, ideally every 30 minutes after local verification.
+
+It may dispatch only when all gates pass:
 
 - target agent is CODEX;
 - route status is READY;
@@ -191,21 +203,29 @@ The BrainOps User Agent checks every 30 minutes and may also accept a local even
 - activation manifest is internally consistent;
 - no live lease exists;
 - user approval is not required;
-- global and per-service automation switches are enabled.
+- global and per-service automation switches are enabled;
+- runner-owner fencing grants ownership to APP_AUTOMATION.
 
-Codex must run non-interactively with structured JSONL output. The controller records the Codex session ID so a permitted resume can use the exact prior session rather than an unrelated `--last` session.
+The App path must expose task/thread identity, approvals, review queue state, last/next automation run and usage-limit/attention state.
 
-### 7.4 Immediate stop
+### 7.4 CLI/SDK fallback
+
+CLI/SDK may be enabled only when an App limitation is evidenced and a separate gate permits it. It uses the same lease, fencing, route and idempotency contract and cannot run concurrently with the App owner.
+
+When automated, CLI output must be structured JSONL. The controller records the exact session ID so a permitted resume uses the same session rather than an unrelated latest-session shortcut.
+
+### 7.5 Immediate stop
 
 The dashboard must provide:
 
 - `Pause new dispatches`;
+- `Pause App reconciliation`;
 - `Stop after current safe checkpoint`;
-- `Terminate current executor`;
+- `Terminate current managed fallback executor`;
 - `Disable automatic execution`;
 - `Emergency stop all managed user processes`.
 
-Emergency stop is always local and must not require GitHub availability.
+Emergency stop is always local and must not require GitHub availability. Terminating the entire ChatGPT desktop app is a separate explicit emergency action, not the normal task-stop path.
 
 ## 8. Dashboard requirements
 
@@ -214,7 +234,10 @@ The first useful dashboard should show:
 ### Summary cards
 
 - global automation enabled/disabled;
-- Codex executor state;
+- ChatGPT desktop/Codex host availability;
+- Codex App Automation state, last/next run and thread identity;
+- current dispatch owner;
+- CLI fallback enabled/disabled and state;
 - pending GPT review requests;
 - active route epoch and task ID;
 - number of healthy/degraded/unhealthy services;
@@ -230,7 +253,7 @@ Columns:
 - type/adapter;
 - desired state;
 - observed health;
-- PID/service/container ID;
+- automation/thread or PID/service/container identity;
 - ports;
 - uptime;
 - restart count;
@@ -245,10 +268,10 @@ Columns:
 - dependencies;
 - health history;
 - recent structured logs;
-- process tree;
+- process tree where applicable;
 - port ownership;
 - action/audit history;
-- exact command hash, with secrets redacted;
+- exact command hash for fallback processes, with secrets redacted;
 - GitHub task/review anchors for agent services.
 
 ## 9. Persistence and observability
@@ -260,7 +283,8 @@ Use SQLite for:
 - audit records;
 - leases and fencing generations;
 - port allocations;
-- health history summaries.
+- health history summaries;
+- safe App automation/thread identifiers and fallback session identifiers.
 
 Do not store raw secrets.
 
@@ -275,41 +299,50 @@ SignalR pushes current state to the dashboard. Polling remains as a fallback so 
 - Require anti-CSRF protections for state-changing browser requests.
 - Separate read-only status endpoints from mutating control endpoints.
 - Never expose arbitrary command execution.
-- Allowlist executable path, working directory, argument template and environment-variable names.
+- Never control Codex App with simulated UI or undocumented process hooks.
+- Allowlist executable path, working directory, argument template and environment-variable names for native fallback runners.
 - Redact token-like values before logs are written.
 - Codex uses the narrowest permission profile that can complete the active task.
 - Deny reads of `.env`, credential stores and unrelated directories unless an explicit route grants them.
 - Network destinations are deny-by-default and allowlisted per adapter/task.
 - All start/stop/restart/configuration actions generate an audit record.
 - Use generation/fencing tokens so stale controllers or executors cannot update new state.
+- Use runner-owner fencing to prevent App and CLI from claiming the same route.
 - Automatic retries are bounded and use idempotency keys.
 - Repeated failures open a circuit breaker and require manual reset.
 
 ## 11. Service manifest sketch
 
 ```yaml
-schema_version: "1.0"
+schema_version: "1.1"
 service_id: "codex.route-reconciler"
-display_name: "Codex Route Reconciler"
-adapter: "codex_executor"
+display_name: "Codex App Route Reconciler"
+adapter: "codex_app_automation"
 run_context: "USER_SESSION"
 auto_start: true
 automation_default: false
-executable:
-  path: "codex"
+app:
+  host: "chatgpt_desktop"
+  view: "codex"
+  automation_identity: "LOCAL_DISCOVERY_REQUIRED"
+  thread_identity: "LOCAL_DISCOVERY_REQUIRED"
+fallback:
+  adapter: "codex_cli"
+  enabled: false
+  executable: "codex"
   working_directory: "F:/aidanao"
   arguments_template: ["exec", "--json", "--cd", "{worktree}", "-"]
 permissions_profile: "brainops-codex-workspace"
 ports: []
 health:
-  type: "heartbeat_file"
-  timeout_seconds: 90
+  type: "app_automation_heartbeat"
+  timeout_seconds: 2100
 restart_policy:
-  mode: "on_failure"
-  max_retries: 2
-  backoff_seconds: [10, 60]
+  mode: "manual_or_app_native"
 safety:
   arbitrary_arguments_forbidden: true
+  ui_automation_forbidden: true
+  concurrent_runner_forbidden: true
   public_binding_forbidden: true
   secrets_in_manifest_forbidden: true
 ```
@@ -330,7 +363,7 @@ The console must show the audio device, protocol, port/pipe, latency, buffer sta
 
 ## 13. Docker and native-process boundary
 
-Containerize stable infrastructure when useful, such as databases, queues, vector stores and isolated APIs. Keep Codex and audio-device processes native unless capability evidence proves containers are appropriate.
+Containerize stable infrastructure when useful, such as databases, queues, vector stores and isolated APIs. Keep ChatGPT/Codex App and audio-device processes native. Keep CLI fallback native unless capability evidence proves another host is appropriate.
 
 The Docker adapter should support Compose profiles, dependency health, restart and stop. Docker is optional: absence of Docker must not block the native-process MVP.
 
@@ -338,7 +371,8 @@ The Docker adapter should support Compose profiles, dependency health, restart a
 
 ### P0: discovery and architecture
 
-- inventory operating system, .NET SDK, Codex CLI, Docker, repository and current local processes;
+- inventory operating system, .NET SDK, ChatGPT desktop/Codex view, App Automations, Codex CLI fallback, Docker, repository and current local processes;
+- identify App cadence, same-thread, review queue, host-awake and trigger/API constraints;
 - identify credential/session constraints;
 - write ADRs and threat model;
 - produce service/port manifest schemas;
@@ -348,42 +382,45 @@ The Docker adapter should support Compose profiles, dependency health, restart a
 
 - ASP.NET Core/Blazor skeleton;
 - SQLite registry;
-- process, Windows Service, port and Docker discovery;
+- App host/automation, process, Windows Service, port and Docker discovery;
 - dashboard and logs;
 - no start/stop actions.
 
 ### P2: bounded manual control
 
-- allowlisted start/stop/restart;
-- Job Object process supervision;
+- allowlisted BrainOps state controls;
+- no simulated App UI control;
+- Job Object supervision for native fallback processes;
 - dependency and health checks;
 - local audit log;
-- global kill switch;
+- global kill switch design;
 - automation remains disabled.
 
-### P3: Codex route reconciler shadow mode
+### P3: Codex App route reconciler shadow mode
 
-- 30-minute route scan;
+- desired 30-minute route scan, subject to local capability proof;
 - validate and report what would execute;
-- no Codex dispatch;
+- no Codex App or CLI dispatch;
 - exercise READY, BLOCKED, PAUSED, stale epoch and duplicate cases.
 
-### P4: Codex manual dispatch
+### P4: Codex manual App-first dispatch
 
-- dashboard button performs the same gates and launches one Codex task;
-- JSONL event capture and session identity;
-- pause/terminate controls;
+- user-visible Codex thread performs the same gates and launches one task;
+- App task/thread and review-queue identity capture;
+- pause/attention controls;
+- CLI fallback disabled;
 - no unattended automatic dispatch.
 
-### P5: bounded automatic dispatch
+### P5: bounded App-native automatic dispatch
 
 - enable per-service and global switches;
-- event plus 30-minute anti-entropy scan;
+- periodic anti-entropy scan;
 - lease/fencing/idempotency/circuit breaker;
 - automatic dispatch only for routes explicitly permitting it.
 
-### P6: optional Windows Host Service and MaiBot adapters
+### P6: optional CLI/SDK event fallback, Windows Host Service and MaiBot adapters
 
+- event-driven fallback only after separate approval;
 - system infrastructure service;
 - named-pipe bridge to user agent;
 - Docker profiles;
@@ -395,30 +432,39 @@ The Docker adapter should support Compose profiles, dependency health, restart a
 - schema validation and duplicate-key rejection;
 - path traversal and executable substitution rejection;
 - arbitrary argument injection rejection;
+- undocumented App UI automation rejection;
 - public bind rejection;
 - port collision and release tests;
-- process-tree stop and orphan detection;
+- fallback process-tree stop and orphan detection;
 - restart-loop circuit breaker;
 - stale route-epoch fencing;
 - duplicate activation idempotency;
-- concurrent controller/lease race tests;
+- App/CLI runner-owner concurrency rejection;
 - READY/BLOCKED/PAUSED/disabled route tests;
+- App unavailable, closed, asleep and usage-limited behavior;
 - QQ `execution_allowed: false` never dispatches;
 - corrupted GitHub response and offline behavior;
 - UI reconnect and state resynchronization;
 - secret redaction tests;
-- shutdown while a Codex child process is active;
+- shutdown while a managed fallback process is active;
 - database migration, backup and rollback tests.
 
 ## 16. Acceptance boundary for the first implementation route
 
-The first activated Codex route should deliver P0 plus a minimal P1 read-only prototype only. It must not install a Windows Service, enable automatic dispatch or control real project processes. GPT reviews the architecture, threat model, schemas, capability probes and read-only dashboard before any mutating adapter is released.
+The first activated Codex route should deliver P0 plus a minimal P1 read-only prototype only. It must not install a Windows Service, create an App Automation, enable automatic dispatch or control real project processes. GPT reviews the App/Automation/CLI capability evidence, architecture, threat model, schemas and read-only dashboard before any mutating adapter is released.
 
 ## 17. Known unknowns
 
+- exact installed ChatGPT desktop app version;
+- whether the ChatGPT/Codex global switcher and Codex view are available on this account;
+- whether Codex App Automations support an exact 30-minute recurrence;
+- whether an Automation can return to the same Codex thread and review queue;
+- whether the local App exposes a documented trigger/deep link/API/App Intent;
+- whether App and CLI share configuration/session history in the installed build;
+- whether mobile/remote and voice coordination are available for this Windows host;
 - exact installed .NET SDK version;
-- whether Codex user OAuth can be used safely by a scheduled user-session process;
-- whether the local Codex build exposes a stable app-server interface suitable for later integration;
+- whether Codex OAuth can be used safely by a scheduled user-session fallback process;
+- whether the local Codex CLI build exposes a stable app-server interface suitable for later integration;
 - QQ/QCLAW external trigger and status APIs;
 - current Second Brain service inventory and port map;
 - MaiBot voice stack, audio-device constraints and protocol choices;
@@ -433,7 +479,7 @@ Unknowns must remain explicit and be closed by capability evidence. They must no
 
 Implementation research should prefer current official documentation for:
 
-- OpenAI Codex CLI, non-interactive execution, permissions, App Server, MCP Server and GitHub Action;
+- OpenAI ChatGPT desktop app, Codex view, Codex App Automations, remote access, voice coordination, CLI/SDK fallback and permissions;
 - Microsoft .NET Worker Services, ASP.NET Core Windows Service hosting, Health Checks, SignalR and Windows Job Objects;
 - GitHub Actions events, schedules, concurrency and repository dispatch;
 - Docker Compose profiles, health dependencies and restart behavior;
