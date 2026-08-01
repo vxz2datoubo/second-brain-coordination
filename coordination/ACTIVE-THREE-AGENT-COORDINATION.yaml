@@ -1,45 +1,43 @@
-schema_version: "38.0"
+schema_version: "39.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E34_PHASE_BOUND_ARCHIVE_TOKEN_ACTIVE_QCLAW_E26_PAUSED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
+status: "CODEX_E36_ONE_SHOT_TRIGGER_CANARY_ACTIVE_QCLAW_E26_PAUSED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-01T22:20:00+08:00"
+updated_at: "2026-08-02T03:36:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
   agent_read_command: {trigger: "读取任务", meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY", second_start_command_required: false}
 
-parallel_route_rule: >-
-  Codex and QQ remain separate provenance lanes. A transfer must preserve the source head, use a new clean-room branch and Draft PR,
-  and cannot start until its explicit dependency and GPT activation are satisfied.
-
 permanent_governance:
-  final_head_topology_protocol: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
-  final_head_rule: "Any validator, test, workflow, schema or executable semantic correction moves the tested identity forward and resets CI/archive acceptance."
-  receipt_rule: "A final receipt is exactly one later non-empty evidence-only commit whose parent equals the final tested executable head."
-  direct_observation_rule: "Git topology, remote bytes, workflow logs and artifact manifests override narrative labels."
-  phase_token_rule: "Archive root command tokens are bound to archive schema/authority generation; cross-generation token substitution is forbidden."
-  transfer_rule: "Cross-agent takeover requires explicit queue, dependency, clean-room branch, new Draft PR and immutable source-agent history."
+  final_head_rule: "Executable, validator, workflow, schema or test-semantic changes move the tested identity forward."
+  receipt_rule: "One non-empty evidence-only commit directly after the final tested head; receipt-head validation; no later commit."
+  direct_observation_rule: "Git topology, remote workflow logs and local capability observations override labels or assumptions."
+  automation_claim_rule: "A branch, PR or workflow appearing is not proof that App/CLI automatic dispatch or GPT auto-review occurred."
+  canary_rule: "Normal automatic dispatch remains disabled; only one exact-ID, bound-approval, duplicate-suppressed canary may be tested."
+  transfer_rule: "Cross-agent takeover requires separate branch, Draft PR and explicit activation."
 
 agents:
   CODEX:
-    active_issue: 108
-    pull_request: 107
-    task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
-    route_epoch: 35
+    active_issue: 112
+    source_pull_request: 110
+    task_id: "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
+    route_epoch: 37
     status: "READY"
     execution_allowed: true
-    reviewed_base: "10849643745f0962673efcbd425c66824bae7b70"
-    reviewed_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
-    mode: "target"
+    automatic_dispatch_allowed: false
+    one_shot_canary_build_allowed: true
+    one_shot_canary_execution_requires_explicit_bound_approval: true
+    planned_branch: "codex/brainops-observable-trigger-canary-0031-e36"
+    reviewed_base: "f52a817135a0b15d8f89a55a159c8371928f5347"
+    mode: "project_plan"
     model: "gpt-5.6-sol"
-    reasoning_effort: "xhigh"
-    execution_intensity: "X3_DEEP"
+    reasoning_effort: "max"
+    execution_intensity: "X4_MAXIMUM"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_E34_PEOS_0010_PHASE_BOUND_ARCHIVE_COMMAND_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
-    current_action: "Make archive changed-files token validation phase/schema-aware, rerun exact-head evidence, then create one receipt."
+    completion_signal: "CODEX_BRAINOPS_E36_OBSERVABLE_ONE_SHOT_TRIGGER_CANARY_READY_FOR_GPT_REVIEW"
+    current_action: "Verify a supported trigger surface, harden E35 contracts and build only the exact one-shot canary if capability is proven."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
-    forbidden_while_active: "Do not start queued QQ takeover E27."
   QCLAW:
     active_issue: 59
     pull_request: 100
@@ -54,14 +52,11 @@ agents:
   CODEX_QUEUED_QCLAW_TAKEOVER:
     task_id: "CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27"
     route_epoch: 27
-    status: "QUEUED_BLOCKED_BY_CODEX_E34_GPT_ACCEPTANCE"
+    status: "QUEUED_NOT_ACTIVATED"
     execution_allowed: false
     source_head: "0b0d22c68b3ad025924f6f48c0625fe6b00d2049"
-    activation_condition: "GPT_ACCEPTS_CODEX_E34_AND_EXPLICITLY_ACTIVATES_E27"
     required_branch: "codex/qclaw-pr100-e26-cleanroom-takeover-0029-e27"
-    required_pr: "NEW_DRAFT_PR_TO_MAIN"
     direct_edit_of_qclaw_branch_forbidden: true
-    task_brief: "coordination/TASK-BRIEFS/CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27-AMED.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
@@ -69,29 +64,33 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E33:
-    classification: "REMOTE_OBJECT_INTEGRITY_AND_EXACT_TESTED_HEAD_ACCEPTED_RECEIPT_BLOCKED_BY_PHASE_TOKEN_CONTRACT_DRIFT"
-    completion_credit: false
-    substantive_tested_head_credit: true
+  CODEX_E35:
+    classification: "E35_ACCEPTED_AS_READ_ONLY_SHADOW_CONTROL_PLANE_WITH_FINDINGS_AUTOMATIC_TRIGGER_NOT_PROVEN"
+    completion_credit: true
+    tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
+    receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
+    receipt_ci_run: 30711045839
     evidence:
-      - "Head/tree 10849643745f0962673efcbd425c66824bae7b70 / c515cd8028659888e522c5a67f9e78dc260537c5."
-      - "Run 30691866084 succeeded on jobs 91347896860 and 91347896832, 122/122 each."
-      - "Three archive roots per runtime completed and artifacts 8815937925 / 8815938406 exist."
-      - "Truthful archive commands use ./.e32-changed-files.txt."
-      - "Legacy validator requires ./.e31-changed-files.txt and blocks receipt preflight."
-      - "No receipt was created, correctly avoiding false evidence."
+      - "Receipt is exactly one commit after tested head and changes only RECEIPTS/E35-FINAL-RECEIPT.md."
+      - "Python 3.11 job 91398438794 and Python 3.13 job 91398438851 each passed 48 tests."
+      - "GitHub Actions automatic PR triggering worked."
+      - "E35 code contains no executor; watcher consumes supplied metadata only and schedule is a fixture."
+      - "automatic_dispatch_allowed was false and the completion handoff did not automatically invoke GPT review."
+    required_followup:
+      - "Supported trigger-surface proof."
+      - "Manual-owner separation, exact hash validation, bound approvals, lease expiry/fencing, idempotency and value-aware secret scanning."
+      - "One observable one-shot canary only."
 
 frozen:
-  - "No merge."
-  - "No adapter implementation, K3 cross-model execution or K4 Shadow activation."
-  - "No canonical D2/PEOS/index/AGENTS mutation."
-  - "No private/real data, production, replay, backtest, accounts, orders or trades."
-  - "QQ and WorkBuddy remain paused."
-  - "Codex E27 takeover remains queued until E34 GPT acceptance."
+  - "No merge of PR #107, PR #110 or PR #100."
+  - "No normal automatic dispatch."
+  - "No UI automation, private IPC, session-secret inspection, service installation or non-loopback bind."
+  - "No main mutation by agents, private/real data, production, replay, backtest, accounts, orders or trades."
+  - "QQ and WorkBuddy remain paused; Codex E27 remains queued."
 
 next_commands:
   CODEX: "读取任务"
   QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+boundary: "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
