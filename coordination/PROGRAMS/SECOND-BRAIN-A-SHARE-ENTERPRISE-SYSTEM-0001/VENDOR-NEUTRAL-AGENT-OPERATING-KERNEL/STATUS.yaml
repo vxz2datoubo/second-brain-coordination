@@ -2,51 +2,42 @@ schema_version: "1.0"
 proposal_id: "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROPOSAL-0011"
 agent_id: "CODEX"
 reviewer: "GPT"
-status: "E29_IMPLEMENTED_CANDIDATE_READY_FOR_GPT_REVIEW"
+task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
+route_epoch: 31
+status: "E30_IN_PROGRESS"
 maturity: "IMPLEMENTED_NOT_INTEGRATED"
 authority: "CANDIDATE_ONLY"
 activation: "DISABLED"
-boundary: "research_only / NO_TRADE"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
 source_authenticity: "UNVERIFIED_THIRD_PARTY_CAPTURE"
 raw_source_committed: false
 canonical_blueprints_modified: false
-reference_runtime:
-  implemented: true
-  writes_canonical_memory: false
-  executes_tools: false
-  enables_trading: false
+reviewed_base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+primary_tested_identity:
+  authority: "E30_PRIMARY_TESTED_HEAD"
+  tested_commit: "PENDING_E30_SUBSTANTIVE_COMMIT"
+  tested_tree: "PENDING_E30_SUBSTANTIVE_TREE"
+historical_evidence:
+  e29_functional_tested_head: "686518aa93e37613d6c8e4ab936d0fdd816b403c"
+  e29_receipt_head: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+  retention: "Lineage only; never primary E30 evidence."
 tests:
-  latest_result: "PASS_91_OF_91"
-  command: "python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/run_all_tests.py"
-  exit_code: 0
-  machine_evidence_sha256: "55e897b16b9bed222e7589140c321f236cc50e7f77f5d50d5ef38d1643acd2cc"
-  archive_roots: 3
-  archive_report_hash: "f04fc18f4d7f34fb24cb5242511e1d7af7b641dfff7d60466b05f4d167d758cc"
-git:
-  base: "ccbdcd27a8e4da0b653de3c387a18e87e3a33e92"
-  branch: "codex/vendor-neutral-agent-operating-kernel-0011"
-  reviewed_tree: "4b95f956eb0bd120deff2d3462fa0da9077843bc"
-  draft_pr: "https://github.com/vxz2datoubo/second-brain-coordination/pull/107"
-  review_issue: "https://github.com/vxz2datoubo/second-brain-coordination/issues/31"
+  focused_e30_result: "PASS_12_OF_12"
+  full_local_result: "NOT_COMPLETE_LOCAL_JSONSCHEMA_MISSING"
+  remote_dual_python: "PENDING_FINAL_HEAD_CI"
+  command: "python -B .../run_all_tests.py"
+e30_deliverables:
+  wpdcr: "E30-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
+  archive_manifest: "E30-ARCHIVE-PROVENANCE-MATRIX.yaml"
+  completion_evidence: "E30-COMPLETION-EVIDENCE.json"
+  validator: "src/vendor_neutral_agent_kernel/evidence.py"
+  focused_tests: "tests/test_e30_evidence.py"
 review_gates:
-  - "GPT confirms PEOS/W10 stewardship and W1/W3/W8 governed adapter ownership."
-  - "GPT confirms the layered authority model and owner-specific adapters."
-  - "GPT decides whether to merge, revise, or reject."
-  - "Canonical AGENTS pointer remains absent until approval."
-  - "E29 K2 specifications are machine-readable and implementation-disabled."
-  - "E29 K3/K4 gates are machine-readable and disabled; no evaluation or shadow run was performed."
-
-e29:
-  route_epoch: 30
-  issue: 108
-  draft_pr: 107
-  reviewed_head: "ccbdcd27a8e4da0b653de3c387a18e87e3a33e92"
-  status: "SUBSTANTIVE_TESTED_READY_FOR_GPT_REVIEW"
-  adapter_specs: ["W1", "W3_PHASE3", "W8"]
-  disabled_gates: ["K3_CROSS_MODEL", "K4_SHADOW_0_1_2"]
-  current_test_count: 91
-  no_runtime_activation: true
-  tested_head: "686518aa93e37613d6c8e4ab936d0fdd816b403c"
-  tested_tree: "4b95f956eb0bd120deff2d3462fa0da9077843bc"
-  pull_request_ci_run: 30669990210
-  manual_ci_run: 30669990212
+  - "Primary E30 tested identity must be exact and current."
+  - "WPDCR autonomy and model-profile overlays must be non-empty."
+  - "Three archive roots must be distinct and artifact-equal."
+  - "GPT must review final tested and receipt anchors."
+rollback:
+  logical: "Close Draft PR #107 or revert E30 candidate commits."
+  byte_level: "Restore the d64c1ee2 tree for all E30 paths."
+production_state_changed: false
