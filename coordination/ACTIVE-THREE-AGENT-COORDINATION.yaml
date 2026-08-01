@@ -1,9 +1,9 @@
-schema_version: "39.0"
+schema_version: "40.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E36_ONE_SHOT_TRIGGER_CANARY_ACTIVE_QCLAW_E26_PAUSED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
+status: "CODEX_E37_PRE_CANARY_SECURITY_CLOSURE_ACTIVE_QCLAW_E26_PAUSED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T03:36:00+08:00"
+updated_at: "2026-08-02T05:55:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
@@ -12,31 +12,32 @@ permanent_command_semantics:
 permanent_governance:
   final_head_rule: "Executable, validator, workflow, schema or test-semantic changes move the tested identity forward."
   receipt_rule: "One non-empty evidence-only commit directly after the final tested head; receipt-head validation; no later commit."
-  direct_observation_rule: "Git topology, remote workflow logs and local capability observations override labels or assumptions."
-  automation_claim_rule: "A branch, PR or workflow appearing is not proof that App/CLI automatic dispatch or GPT auto-review occurred."
-  canary_rule: "Normal automatic dispatch remains disabled; only one exact-ID, bound-approval, duplicate-suppressed canary may be tested."
+  direct_observation_rule: "Git topology, remote workflow logs and verified local/remote capability observations override labels or assumptions."
+  automation_claim_rule: "A branch, PR, workflow or completion comment is not proof that App/CLI automatic dispatch or GPT auto-review occurred."
+  canary_rule: "Normal automatic dispatch remains disabled; no canary may execute before atomic nonce consumption and independently verified approval/route proof."
+  approval_rule: "A free-form approval_ref or matching nonce string is not authority. Approval must be immutable, source-bound, unexpired and consumed once."
+  route_proof_rule: "Caller-provided hashes are not proof; exact remote commit/path/blob/content identities and freshness are required."
   transfer_rule: "Cross-agent takeover requires separate branch, Draft PR and explicit activation."
 
 agents:
   CODEX:
-    active_issue: 112
-    source_pull_request: 110
-    task_id: "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
-    route_epoch: 37
+    active_issue: 114
+    source_pull_request: 113
+    task_id: "CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37"
+    route_epoch: 38
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
-    one_shot_canary_build_allowed: true
-    one_shot_canary_execution_requires_explicit_bound_approval: true
-    planned_branch: "codex/brainops-observable-trigger-canary-0031-e36"
-    reviewed_base: "f52a817135a0b15d8f89a55a159c8371928f5347"
-    mode: "project_plan"
+    canary_execution_allowed: false
+    planned_branch: "codex/brainops-canary-authority-proof-0032-e37"
+    reviewed_base: "dd8aab05109d4b0adec901ace277633546563354"
+    mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "max"
     execution_intensity: "X4_MAXIMUM"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_BRAINOPS_E36_OBSERVABLE_ONE_SHOT_TRIGGER_CANARY_READY_FOR_GPT_REVIEW"
-    current_action: "Verify a supported trigger surface, harden E35 contracts and build only the exact one-shot canary if capability is proven."
+    completion_signal: "CODEX_BRAINOPS_E37_CANARY_NONCE_AUTHORITY_ROUTE_PROOF_READY_FOR_GPT_REVIEW"
+    current_action: "Close approval nonce replay, immutable approval provenance and exact route-state proof before any canary execution."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 59
@@ -64,26 +65,27 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E35:
-    classification: "E35_ACCEPTED_AS_READ_ONLY_SHADOW_CONTROL_PLANE_WITH_FINDINGS_AUTOMATIC_TRIGGER_NOT_PROVEN"
-    completion_credit: true
-    tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
-    receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
-    receipt_ci_run: 30711045839
+  CODEX_E36:
+    classification: "E36_HARDENING_REUSABLE_BUT_NONCE_AUTHORITY_ROUTE_PROOF_AND_AUTOMATIC_TRIGGER_NOT_READY"
+    completion_credit: false
+    substantive_hardening_credit: true
+    tested_head: "7012ed7681d16d936d3ea5ce1311c13b5be46337"
+    receipt_head: "d22aeffc30e5848f2e0cbdb22742ad129f386275"
+    substantive_ci_run: 30717574429
+    receipt_ci_run: 30718668128
     evidence:
-      - "Receipt is exactly one commit after tested head and changes only RECEIPTS/E35-FINAL-RECEIPT.md."
-      - "Python 3.11 job 91398438794 and Python 3.13 job 91398438851 each passed 48 tests."
-      - "GitHub Actions automatic PR triggering worked."
-      - "E35 code contains no executor; watcher consumes supplied metadata only and schedule is a fixture."
-      - "automatic_dispatch_allowed was false and the completion handoff did not automatically invoke GPT review."
-    required_followup:
-      - "Supported trigger-surface proof."
-      - "Manual-owner separation, exact hash validation, bound approvals, lease expiry/fencing, idempotency and value-aware secret scanning."
-      - "One observable one-shot canary only."
+      - "Receipt is exactly one commit after tested head and changes only E36/RECEIPTS/E36-FINAL-RECEIPT.md."
+      - "Python 3.11 and 3.13 passed 81 tests on substantive and receipt heads."
+      - "Exact event hash, approval fields, manual-owner exclusion, persistent event/idempotency, lease/fencing and value redaction are reusable."
+      - "No canary, App/CLI dispatch or automatic GPT review occurred."
+    blockers:
+      - "Approval nonce is not stored or atomically consumed and can be replayed with new event/idempotency IDs."
+      - "approval_ref is not tied to immutable GitHub source, actor and body hash."
+      - "Route-state hashes are caller supplied and freshness is not enforced."
 
 frozen:
-  - "No merge of PR #107, PR #110 or PR #100."
-  - "No normal automatic dispatch."
+  - "No merge or further commits on PR #113, PR #110, PR #107 or PR #100."
+  - "No canary execution and no normal automatic dispatch."
   - "No UI automation, private IPC, session-secret inspection, service installation or non-loopback bind."
   - "No main mutation by agents, private/real data, production, replay, backtest, accounts, orders or trades."
   - "QQ and WorkBuddy remain paused; Codex E27 remains queued."
@@ -93,4 +95,4 @@ next_commands:
   QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
+boundary: "LOCAL_FIRST / APP_FIRST / PRE_CANARY_SECURITY_CLOSURE_ONLY / PUBLIC_SAFE / NO_TRADE"
