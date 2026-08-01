@@ -1,0 +1,69 @@
+schema_version: "1.0.0"
+handoff_epoch: 27
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CONTINUOUS-DIGESTION-0008-E27"
+route_epoch: 27
+gate: "E27 FIRST DELIVERY"
+pr: null  # to be set after PR creation
+branch: "qclaw/knowledge-atomization-digestion-0008-e27"
+source_issue: 59
+reviewed_base_head: "ddec3c63f05ad0fe89620ae449b10bf613fb26ef"
+tested_commit: null  # set after commit
+receipt_commit: null
+completion_signal: "QCLAW_KNOWLEDGE_ATOMIZATION_CONTINUOUS_DIGESTION_0008_E27_READY_FOR_GPT_REVIEW"
+
+authority_boundary: "PUBLIC_SAFE_AND_USER_AUTHORIZED_KNOWLEDGE/CANDIDATE_ONLY/SECRET_VALUES_DENIED/NO_TRADE"
+
+runtimes:
+  python_3_11_10: "F:/Program Files (x86)/QClaw/v0.2.35.624/resources/python/python.exe"
+  python_3_13_3: "C:/Program Files/Python313/python.exe"
+
+key_artifacts:
+  schema: "schemas/knowledge_atom.schema.json"
+  atomizer: "src/qclaw_knowledge_digest/atomizer.py"
+  cli: "src/qclaw_knowledge_digest/cli.py"
+  tests: "tests/run_all_tests.py"
+  ci_workflow: ".github/workflows/qclaw-e27-knowledge-atomization.yml"
+  pipeline_config: "E27-PIPELINE-CONFIG.yaml"
+  digest_queue_batch_001: "digest_queue/batch_001/01_knowledge_atomization_principles.md"
+
+handoff_trace:
+  - epoch: 27
+    status: "FIRST_DELIVERY_COMPLETE"
+    superseded: false
+    authoritative: true
+    summary: "Built runnable knowledge atomization pipeline. 21 content types, conditions/exceptions/negations/conflicts/UNKNOWNs preserved. 64/64 tests pass on both Python 3.11.10 and 3.13.3 with byte-identical output. First real digest batch completed: 61 atoms, 4 relations, 6 unknowns, 3 conflicts."
+
+results:
+  test_suite: "64/64 PASSED, 0 FAILED"
+  dual_python_consistency: "ATOM_ID_MATCH, PACKET_ID_MATCH, CONTENT_HASH_MATCH"
+  pipeline:
+    batch_001:
+      atoms: 61
+      relations: 4
+      unknowns: 6
+      conflicts: 3
+      content_types_preserved: ["statement_fact", "condition_precondition", "condition_trigger", "condition_stop", "exception_explicit", "negation", "failure_condition", "counterexample", "temporal_scope", "method", "skill", "decision_chain", "definition", "constraint", "statement_claim", "statement_opinion", "source_meta"]
+      secret_scan: "PASSED - zero secrets in output"
+
+superseded_epochs:
+  - epoch: 26
+    reason: "PR #100 E26 frozen - evidence/receipt/CI gates failed"
+  - epoch: 25
+    reason: "PR #100 E25 frozen - shared CI hijacked"
+  - epoch: 24
+    reason: "PR #100 E24 frozen - shared CI authority drift"
+  - epoch: 23
+    reason: "PR #100 E23 frozen - shared CI authority/archive/WPDCR/handoff failed"
+  - epoch: 22
+    reason: "PR #100 E22 frozen - symbolic runner failed 8 defects"
+  - epoch: 21
+    reason: "PR #100 E21 frozen - committed runner paths failed"
+
+dependencies_satisfied:
+  - "PR #100 frozen, not reused"
+  - "No Codex branch edits"
+  - "No second canonical runtime built"
+  - "No secret values in any output"
+
+updated_by: "QCLAW"
+updated_at: "2026-08-02T01:30:00+08:00"

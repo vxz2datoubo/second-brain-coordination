@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:qclaw:e27:KnowledgeAtom:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "atom_id", "schema_version", "status", "content_type",
+    "canonical_text", "source_refs", "confidence", "authority_separation",
+    "supersession_chain", "no_trade_gate", "created_by"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "pattern": "^1\.[0-9]+\.[0-9]+$" },
+    "atom_id": { "type": "string", "minLength": 1, "description": "Deterministic SHA-256 ID from canonical_text + source_refs" },
+    "status": { "enum": ["candidate", "accepted", "superseded", "conflicted", "UNKNOWN", "error"] },
+    "content_type": {
+      "enum": [
+        "statement_fact", "statement_claim", "statement_opinion",
+        "condition_precondition", "condition_trigger", "condition_stop",
+        "exception_explicit", "exception_implicit",
+        "negation", "failure_condition", "counterexample",
+        "temporal_scope", "temporal_assertion",
+        "method", "decision_chain", "skill",
+        "definition", "constraint", "metric",
+        "source_meta", "evidence_chain"
+      ]
+    },
+    "canonical_text": { "type": "string", "minLength": 1 },
+    "semantic_unit_type": { "enum": ["minimum_complete_unit", "compound", "reference"] },
+    "source_refs": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "confidence": {
+      "type": "object",
+      "required": ["level", "basis"],
+      "properties": {
+        "level": { "enum": ["established_knowledge", "empirical_evidence", "expert_consensus", "plausible_hypothesis", "speculative", "unknown"] },
+        "basis": { "type": "string" },
+        "counterevidence_acknowledged": { "type": "boolean" }
+      }
+    },
+    "authority_separation": { "type": "object", "properties": { "source_type": { "type": "string" }, "can_upgrade": { "type": "boolean" }, "restrictions": { "type": "array" } } },
+    "conditions": { "type": "array", "items": { "type": "object" }, "description": "When this atom is applicable" },
+    "exceptions": { "type": "array", "items": { "type": "object" }, "description": "When this atom does NOT apply" },
+    "negations": { "type": "array", "items": { "type": "object" }, "description": "Explicit negative forms or anti-patterns" },
+    "failure_conditions": { "type": "array", "items": { "type": "object" } },
+    "counterexamples": { "type": "array", "items": { "type": "object" } },
+    "temporal_scope": { "type": "object", "properties": { "valid_from": { "type": "string" }, "valid_until": { "type": "string" }, "is_timeless": { "type": "boolean" } } },
+    "conflicts_with": { "type": "array", "items": { "type": "string" }, "description": "atom_ids this atom conflicts with" },
+    "related_to": { "type": "array", "items": { "type": "string" }, "description": "related atom_ids" },
+    "supersession_chain": { "type": "array", "items": { "type": "string" } },
+    "version_info": { "type": "object", "properties": { "version": { "type": "integer" }, "previous_atom_id": { "type": "string" }, "change_reason": { "type": "string" } } },
+    "privacy_class": { "enum": ["public_safe", "user_authorized_private", "user_authorized_internal", "license_restricted", "secret_value_redacted"] },
+    "no_trade_gate": { "const": true },
+    "created_by": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "deterministic_id_fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

@@ -1,0 +1,42 @@
+# QCLAW E27 — E27 Digest Pipeline Configuration
+schema_version: "1.0.0"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CONTINUOUS-DIGESTION-0008-E27"
+route_epoch: 27
+pipeline_version: "1.0.0"
+
+digest_queue:
+  batch_001:
+    description: "First public-safe knowledge digest batch"
+    source_type: "canonical_contracts_and_knowledge_corpus"
+    privacy_class: "public_safe"
+    files:
+      - "01_knowledge_atomization_principles.md"
+    priority: "P1_IMMEDIATE"
+
+output:
+  format: "json"
+  schema: "LearningPacket_1.0.0"
+  packet_dir: "output_batch_001"
+  report: "QUEUE-REPORT.json"
+  status: "candidate_only"
+
+adversarial:
+  semantic_tests: true
+  deterministic_tests: true
+  duplicate_tests: true
+  conflict_tests: true
+  unknown_tests: true
+  zero_secret_tests: true
+  empty_input_tests: true
+  order_sensitivity_tests: true
+  sycophancy_tests: true
+  binary_content_tests: true
+  contract_conformance_tests: true
+
+hard_boundaries:
+  no_second_runtime: true
+  no_secret_values: true
+  no_authority_upgrade: true
+  no_direct_main_write: true
+  candidate_only: true
+  no_trade: true
