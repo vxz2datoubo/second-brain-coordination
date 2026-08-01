@@ -38,12 +38,12 @@ class E30EvidenceTests(unittest.TestCase):
         evidence["status"] = "IN_PROGRESS"
         evidence["primary_tested_identity"] = {
             "authority": "E30_PRIMARY_TESTED_HEAD",
-            "tested_commit": "PENDING_E30_SUBSTANTIVE_COMMIT",
-            "tested_tree": "PENDING_E30_SUBSTANTIVE_TREE",
+            "tested_commit": "UNRESOLVED_PRIMARY_COMMIT",
+            "tested_tree": "UNRESOLVED_PRIMARY_TREE",
         }
         self.assertEqual(evidence["status"], "IN_PROGRESS")
         primary = evidence["primary_tested_identity"]
-        self.assertTrue(primary["tested_commit"].startswith("PENDING_"))
+        self.assertTrue(primary["tested_commit"].startswith("UNRESOLVED_"))
         self.assertNotIn("216ff0e", primary["tested_commit"])
         self.assertNotIn("663e7392", primary["tested_tree"])
 

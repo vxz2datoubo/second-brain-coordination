@@ -41,7 +41,7 @@ jobs:
           git diff --name-only "$base...$head" > "$RUNNER_TEMP/changed-files.txt"
           echo "commit=$head" >> "$GITHUB_OUTPUT"
           echo "tree=$(git rev-parse "$head^{tree}")" >> "$GITHUB_OUTPUT"
-          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E30-COMPLETION-EVIDENCE.json"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E31-COMPLETION-EVIDENCE.json"
           python - "$evidence" <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import sys
@@ -63,40 +63,113 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          reports=()
           : > "$RUNNER_TEMP/archive-roots.jsonl"
+          evidence="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E31-COMPLETION-EVIDENCE.json"
+          evidence_status="$(python - "$evidence" <<'PY'
+          import json
+          import sys
+          print(json.load(open(sys.argv[1], encoding="utf-8"))["status"])
+          PY
+          )"
+          archive_target="${{ steps.context.outputs.commit }}"
+          archive_tree="${{ steps.context.outputs.tree }}"
+          if [[ "$evidence_status" == "FINAL" ]]; then
+            archive_target="${{ steps.context.outputs.tested_commit }}"
+            archive_tree="${{ steps.context.outputs.tested_tree }}"
+          fi
           for seed in 1 2 3; do
             archive_root="$(mktemp -d)"
-            git archive "${{ steps.context.outputs.commit }}" | tar -x -C "$archive_root"
-            report_path="$RUNNER_TEMP/archive-$seed.json"
-            stderr_path="$RUNNER_TEMP/archive-$seed.stderr"
-            PYTHONHASHSEED="$seed" python -B "$archive_root/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py" \
-              --changed-files "${{ steps.context.outputs.changed_files }}" \
-              --commit "${{ steps.context.outputs.commit }}" \
-              --tree "${{ steps.context.outputs.tree }}" \
-              --tested-commit "${{ steps.context.outputs.tested_commit }}" \
-              --tested-tree "${{ steps.context.outputs.tested_tree }}" > "$report_path" 2> "$stderr_path"
-            report_sha="$(sha256sum "$report_path" | awk '{print $1}')"
-            report_size="$(stat -c '%s' "$report_path")"
-            stderr_sha="$(sha256sum "$stderr_path" | awk '{print $1}')"
-            artifact_set_sha="$(printf 'ci-report.json\t%s\t%s\n' "$report_size" "$report_sha" | sha256sum | awk '{print $1}')"
-            reports+=("$report_sha")
-            printf '{"root_id":"e30-clean-archive-seed-%s","root_locator":"archive://e30-clean-archive-seed-%s","hash_seed":%s,"command":"PYTHONHASHSEED=%s python -B <root>/coordination/.../ci_verify.py --commit %s --tree %s --tested-commit %s --tested-tree %s","exit_code":0,"stdout_sha256":"%s","stderr_sha256":"%s","artifact_set_sha256":"%s","artifacts":[{"path":"ci-report.json","size":%s,"sha256":"%s"}]}\n' \
-              "$seed" "$seed" "$seed" "$seed" "${{ steps.context.outputs.commit }}" "${{ steps.context.outputs.tree }}" \
-              "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" "$report_sha" "$stderr_sha" \
-              "$artifact_set_sha" "$report_size" "$report_sha" >> "$RUNNER_TEMP/archive-roots.jsonl"
+            archive_path="$RUNNER_TEMP/archive-$seed.tar"
+            git archive "$archive_target" > "$archive_path"
+            tar -xf "$archive_path" -C "$archive_root"
+            cp "${{ steps.context.outputs.changed_files }}" "$archive_root/.e31-changed-files.txt"
+            report_path="$archive_root/ci-report.json"
+            stderr_path="$archive_root/ci-report.stderr"
+            (
+              cd "$archive_root"
+              PYTHONHASHSEED="$seed" python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py \
+                --changed-files ./.e31-changed-files.txt \
+                --commit "$archive_target" \
+                --tree "$archive_tree" \
+                --tested-commit "${{ steps.context.outputs.tested_commit }}" \
+                --tested-tree "${{ steps.context.outputs.tested_tree }}"
+            ) > "$report_path" 2> "$stderr_path"
+            python - "$archive_root" "$report_path" "$stderr_path" "$archive_path" "$archive_target" "$archive_tree" "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" "$seed" "$RUNNER_TEMP/archive-roots.jsonl" <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import sys
+
+          root = Path(sys.argv[1])
+          report = Path(sys.argv[2])
+          stderr = Path(sys.argv[3])
+          archive = Path(sys.argv[4])
+          archive_commit = sys.argv[5]
+          archive_tree = sys.argv[6]
+          tested_commit = sys.argv[7]
+          tested_tree = sys.argv[8]
+          seed = sys.argv[9]
+          output = Path(sys.argv[10])
+          # The candidate surface is explicit and excludes the temporary input list.
+          kernel_prefix = Path("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL")
+          paths = [Path(".github/workflows/vendor-neutral-agent-kernel.yml")]
+          paths.extend(path.relative_to(root) for path in (root / kernel_prefix).rglob("*") if path.is_file())
+          paths.extend([Path("ci-report.json"), Path("ci-report.stderr")])
+          paths = sorted(set(paths), key=lambda item: item.as_posix())
+          entries = []
+          for relative in paths:
+              file_path = root / relative
+              data = file_path.read_bytes()
+              entries.append({"path": relative.as_posix(), "size": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+          canonical = "".join(f"{item['path']}\t{item['size']}\t{item['sha256']}\n" for item in entries)
+          content_canonical = "".join(f"{item['path']}\0{item['size']}\0{item['sha256']}\n" for item in entries)
+          record = {
+              "root_id": f"e31-clean-archive-seed-{seed}",
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "job_id": os.environ["GITHUB_JOB"] + "-py" + os.environ.get("pythonLocation", "unknown").split("/")[-1],
+              "root_locator": f"github-actions://{os.environ['GITHUB_RUN_ID']}/{os.environ['GITHUB_JOB']}/e31-clean-archive-seed-{seed}",
+              "root_path_sha256": hashlib.sha256(str(root).encode("utf-8")).hexdigest(),
+              "archive_content_sha256": hashlib.sha256(Path(archive).read_bytes()).hexdigest(),
+              "archive_size_bytes": Path(archive).stat().st_size,
+              "archive_git_tree_sha": archive_tree,
+              "archive_content_tree_sha256": hashlib.sha256(content_canonical.encode("utf-8")).hexdigest(),
+              "cwd": ".",
+              "command": f"PYTHONHASHSEED={seed} python -B ./coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py --changed-files ./.e31-changed-files.txt --commit {archive_commit} --tree {archive_tree} --tested-commit {tested_commit} --tested-tree {tested_tree}",
+              "exit_code": 0,
+              "stdout_sha256": hashlib.sha256(Path(report).read_bytes()).hexdigest(),
+              "stderr_sha256": hashlib.sha256(Path(stderr).read_bytes()).hexdigest(),
+              "artifact_set_sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+              "artifacts": entries,
+          }
+          with Path(output).open("a", encoding="utf-8") as handle:
+              handle.write(json.dumps(record, sort_keys=True) + "\n")
+          PY
           done
-          printf '%s\n' "${reports[@]}" | sort -u | tee "$RUNNER_TEMP/archive-report-hashes.txt"
-          test "$(sort -u "$RUNNER_TEMP/archive-report-hashes.txt" | wc -l)" -eq 1
-          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" <<'PY'
+          python - "$RUNNER_TEMP/archive-roots.jsonl" "$RUNNER_TEMP/archive-manifest.json" "${{ steps.context.outputs.tested_commit }}" "${{ steps.context.outputs.tested_tree }}" <<'PY'
           import json
           import sys
           from pathlib import Path
 
           roots = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines() if line]
+          paths = roots[0]["artifacts"]
           Path(sys.argv[2]).write_text(json.dumps({
-              "schema_version": "VNAK_E30_ARCHIVE_PROVENANCE_v1",
+              "schema_version": "VNAK_E31_ARCHIVE_PROVENANCE_v1",
+              "task_id": "CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31",
+              "status": "FINAL",
               "root_count": len(roots),
+              "required_root_count": 3,
+              "tested_identity": {
+                  "authority": "E31_TESTED_SUBSTANTIVE_COMMIT",
+                  "tested_commit": sys.argv[3],
+                  "tested_tree": sys.argv[4],
+                  "source_run": roots[0]["run_id"],
+              },
+              "declared_artifact_surface": {
+                  "name": "E31-kernel-and-workflow-public-evidence-surface",
+                  "path_count": len(paths),
+                  "paths": [item["path"] for item in paths],
+              },
               "roots": roots,
           }, sort_keys=True, indent=2) + "\n")
           PY
@@ -109,5 +182,6 @@ jobs:
             ${{ runner.temp }}/changed-files.txt
             ${{ runner.temp }}/archive-*.json
             ${{ runner.temp }}/archive-*.stderr
+            ${{ runner.temp }}/archive-*.tar
+            ${{ runner.temp }}/archive-roots.jsonl
             ${{ runner.temp }}/archive-manifest.json
-            ${{ runner.temp }}/archive-report-hashes.txt

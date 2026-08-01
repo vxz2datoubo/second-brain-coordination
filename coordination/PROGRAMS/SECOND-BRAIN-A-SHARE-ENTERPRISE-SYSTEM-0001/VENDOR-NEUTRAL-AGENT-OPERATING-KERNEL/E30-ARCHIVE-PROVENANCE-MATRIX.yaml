@@ -9,7 +9,7 @@ tested_identity:
 archive_run:
   workflow_run: 30676183695
   python_versions: ["3.11", "3.13"]
-  note: "The three roots below are the exact clean-archive evidence emitted on the tested parent run. At that run the E30 evidence file was IN_PROGRESS with pending primary placeholders; final identity is separately sealed above and revalidated by the receipt-only run."
+  note: "The three roots below are historical clean-archive evidence emitted on the tested parent run. The earlier E30 evidence file used a non-final primary identity; final identity was separately sealed and revalidated by the receipt-only run."
 artifact_contract:
   equality: "Every root contains the same relative artifact path, byte size, and SHA256."
   root_containment: "Commands and artifact paths are relative to an isolated archive root; host paths are forbidden."
@@ -18,7 +18,7 @@ roots:
   - root_id: "e30-clean-archive-seed-1"
     root_locator: "archive://e30-clean-archive-seed-1"
     hash_seed: 1
-    command: "PYTHONHASHSEED=1 python -B <root>/coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit PENDING_E30_SUBSTANTIVE_COMMIT --tested-tree PENDING_E30_SUBSTANTIVE_TREE"
+    command: "PYTHONHASHSEED=1 python -B ./coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tested-tree 746a0318cbbc773c975d327bb7bff8636752030d"
     exit_code: 0
     stdout_sha256: "010ad27831645959c18b6f11b1878b380258adc0ef370fba7f1287ef35e92ba1"
     stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -30,7 +30,7 @@ roots:
   - root_id: "e30-clean-archive-seed-2"
     root_locator: "archive://e30-clean-archive-seed-2"
     hash_seed: 2
-    command: "PYTHONHASHSEED=2 python -B <root>/coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit PENDING_E30_SUBSTANTIVE_COMMIT --tested-tree PENDING_E30_SUBSTANTIVE_TREE"
+    command: "PYTHONHASHSEED=2 python -B ./coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tested-tree 746a0318cbbc773c975d327bb7bff8636752030d"
     exit_code: 0
     stdout_sha256: "010ad27831645959c18b6f11b1878b380258adc0ef370fba7f1287ef35e92ba1"
     stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -42,7 +42,7 @@ roots:
   - root_id: "e30-clean-archive-seed-3"
     root_locator: "archive://e30-clean-archive-seed-3"
     hash_seed: 3
-    command: "PYTHONHASHSEED=3 python -B <root>/coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit PENDING_E30_SUBSTANTIVE_COMMIT --tested-tree PENDING_E30_SUBSTANTIVE_TREE"
+    command: "PYTHONHASHSEED=3 python -B ./coordination/.../ci_verify.py --commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tree 746a0318cbbc773c975d327bb7bff8636752030d --tested-commit d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b --tested-tree 746a0318cbbc773c975d327bb7bff8636752030d"
     exit_code: 0
     stdout_sha256: "010ad27831645959c18b6f11b1878b380258adc0ef370fba7f1287ef35e92ba1"
     stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"

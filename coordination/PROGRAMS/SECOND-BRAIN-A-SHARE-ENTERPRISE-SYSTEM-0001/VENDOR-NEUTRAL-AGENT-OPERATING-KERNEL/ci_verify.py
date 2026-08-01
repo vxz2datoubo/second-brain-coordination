@@ -29,7 +29,7 @@ SOURCE_AUDIT_PATH = KERNEL_ROOT / "SOURCE-EXPRESSION-AUDIT.yaml"
 CASE_MANIFEST_PATH = KERNEL_ROOT / "CASE-MANIFEST.yaml"
 sys.path.insert(0, str(SOURCE_ROOT))
 
-from vendor_neutral_agent_kernel.evidence import validate_e30_evidence
+from vendor_neutral_agent_kernel.evidence import validate_e31_evidence
 
 
 class _StrictLoader(yaml.SafeLoader):
@@ -212,7 +212,7 @@ def main() -> int:
     skipped_ids = tuple(sorted(result.skipped_ids))
     manifest_count = _case_manifest_check(case_ids)
     exact_context = _verify_exact_context(args.commit, args.tree)
-    e30 = validate_e30_evidence(
+    e31 = validate_e31_evidence(
         KERNEL_ROOT,
         current_commit=args.commit,
         current_tree=args.tree,
@@ -235,7 +235,7 @@ def main() -> int:
         "checks": static,
         "case_manifest_count": manifest_count,
         "exact_context": exact_context,
-        "e30_evidence": e30,
+        "e31_evidence": e31,
     }
     print(json.dumps(report, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
     return 0 if status == "PASS" else 1

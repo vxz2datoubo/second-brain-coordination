@@ -1,63 +1,41 @@
-# Test Run Receipt — E30
+# Test Run Receipt - E31
 
 `agent_id: CODEX`
 
-## Primary status
+## Route
 
-- `task_id`: `CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30`
-- `route_epoch`: `31`
-- `reviewed_base`: `d64c1ee2d3fc3e6a70a5b20d0720de60d320970a`
-- `status`: `READY_FOR_GPT_REVIEW`
+- `task_id`: `CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31`
+- `route_epoch`: `32`
+- `reviewed_base`: `93b61b055e13c04431236214a599a9f0f325b3ce`
+- `status`: `IN_PROGRESS`
 - `authority`: `CANDIDATE_ONLY`
 - `activation`: `DISABLED`
 - `boundary`: `PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE`
-- `completion_signal`: `CODEX_E30_PEOS_0010_E29_WPDCR_ARCHIVE_MANIFEST_PACKET_AND_RECEIPT_TRUTH_READY_FOR_GPT_REVIEW`
+- `completion_signal`: `CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW`
 
-The E30 primary tested identity is the exact tested parent below. A later
-receipt-only commit is metadata-only and does not replace this identity.
+## Local verification
 
-- `tested_commit`: `d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b`
-- `tested_tree`: `746a0318cbbc773c975d327bb7bff8636752030d`
+- focused E30 and E31 evidence tests: `37/37 PASS`;
+- full candidate suite: `116/116 PASS` after installing the already-declared CI test dependencies;
+- Python syntax check: `PASS`;
+- YAML parse: `PASS`;
+- candidate `ci_verify.py`: `PASS`, 116 cases, 24 Python files, 18 strict YAML files, 0 secret matches, 0 raw captures;
+- local execution used the preserved E30 receipt tree and the E31 in-progress contract. Remote dual-Python and clean archive values are recorded only after the substantive commit run.
 
-## Commands
+## E31 evidence gates
 
-```text
-python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/run_all_tests.py
-python -B coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/ci_verify.py --changed-files <changed-files.txt> --commit <tested-commit> --tree <tested-tree> --tested-commit <tested-commit> --tested-tree <tested-tree>
-```
+- semantic WPDCR section payloads are required instead of a list of names;
+- the archive contract requires three distinct root identities, root-path hashes,
+  archive hashes, root-contained commands, stream hashes and complete per-file
+  path/size/SHA256 equality;
+- the tested substantive parent and later receipt head are separate identities;
+- the receipt is externally bound to the Draft PR head; its full SHA is published
+  outside the self-referential commit after the final green run;
+- incomplete identity markers, non-FINAL manifests, root drift and partial
+  artifact inventories fail closed.
 
-## Current local evidence
-
-- E30 focused evidence tests: `12/12 PASS`;
-- full local suite: `NOT_COMPLETE` because the selected local Python environment
-  lacks the already-declared CI dependency `jsonschema==4.25.1`;
-- no dependency was installed or changed by E30;
-- remote Python 3.11/3.13: `103/103 PASS` in workflow `30676183695`;
-- the same workflow completed three clean archive roots with equal artifacts.
-
-## E30 evidence requirements
-
-- three distinct archive root identities;
-- root-contained command, exit code, stdout hash and stderr hash per root;
-- identical relative artifact path/size/SHA256 set in all roots;
-- non-empty autonomy and model-profile WPDCR overlays;
-- fail-closed negative tests for stale identity, repeated roots, external paths,
-  artifact drift, missing stream hashes, non-zero exits, stale remaining work
-  and wrong completion signal.
-
-Archive evidence details are in `E30-ARCHIVE-PROVENANCE-MATRIX.yaml` and the
-machine-readable CI artifacts from workflow `30676183695`.
-
-## Historical lineage (not primary)
-
-The following values are retained only for lineage and cannot satisfy E30:
-
-- E29 functional tested head: `686518aa93e37613d6c8e4ab936d0fdd816b403c`;
-- E29 receipt head: `d64c1ee2d3fc3e6a70a5b20d0720de60d320970a`;
-- earlier pre-E29 receipt evidence is historical and not an E30 authority.
-
-## Safety
+## Safety and scope
 
 No real/private data, credentials, production, account, order or trade path was
-accessed. K3/K4 and Shadow remain disabled. The Draft PR must not be merged by
-this task.
+accessed. Adapters, cross-model evaluation, Shadow, canonical promotion and
+Gate C/D remain disabled. This receipt is not a merge or activation request.
