@@ -293,11 +293,20 @@ def validate_e31_evidence(
     _require_sha(tested["tested_commit"], "commit")
     _require_sha(tested["tested_tree"], "tree")
     if evidence["status"] == "FINAL":
-        _require(receipt, "authority", "binding", "parent_commit")
+        _require(receipt, "authority", "binding", "parent_commit", "tested_parent_commit", "correction_chain")
         if receipt["authority"] != "E31_RECEIPT_HEAD" or receipt["binding"] != "CURRENT_PR_HEAD":
             raise ValueError("E31_RECEIPT_BINDING_INVALID")
-        if receipt["parent_commit"] != tested["tested_commit"]:
-            raise ValueError("E31_RECEIPT_PARENT_MISMATCH")
+        _require_sha(receipt["parent_commit"], "commit")
+        _require_sha(receipt["tested_parent_commit"], "commit")
+        if receipt["tested_parent_commit"] != tested["tested_commit"]:
+            raise ValueError("E31_RECEIPT_TESTED_PARENT_MISMATCH")
+        chain = receipt["correction_chain"]
+        if not isinstance(chain, list) or not chain:
+            raise ValueError("E31_RECEIPT_CORRECTION_CHAIN_INVALID")
+        if any(not isinstance(item, str) or not SHA40_RE.fullmatch(item) for item in chain):
+            raise ValueError("E31_RECEIPT_CORRECTION_CHAIN_SHA_INVALID")
+        if chain[0] != tested["tested_commit"] or chain[-1] != receipt["parent_commit"]:
+            raise ValueError("E31_RECEIPT_CORRECTION_CHAIN_ENDPOINT_MISMATCH")
         if not isinstance(evidence["external_anchor"], dict):
             raise ValueError("E31_EXTERNAL_ANCHOR_REQUIRED")
         _require(evidence["external_anchor"], "kind", "url", "binding")

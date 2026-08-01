@@ -149,6 +149,8 @@ class E31EvidenceTests(unittest.TestCase):
             "authority": "E31_RECEIPT_HEAD",
             "binding": "CURRENT_PR_HEAD",
             "parent_commit": "a" * 40,
+            "tested_parent_commit": "a" * 40,
+            "correction_chain": ["a" * 40],
         }
         evidence["external_anchor"]["observed_commit"] = "c" * 40
         evidence["external_anchor"]["observed_tree"] = "d" * 40
@@ -166,6 +168,8 @@ class E31EvidenceTests(unittest.TestCase):
             "authority": "E31_RECEIPT_HEAD",
             "binding": "CURRENT_PR_HEAD",
             "parent_commit": evidence["tested_parent_identity"]["tested_commit"],
+            "tested_parent_commit": evidence["tested_parent_identity"]["tested_commit"],
+            "correction_chain": [evidence["tested_parent_identity"]["tested_commit"]],
         }
         evidence["external_anchor"]["observed_commit"] = "c" * 40
         evidence["external_anchor"]["observed_tree"] = "d" * 40
@@ -180,6 +184,8 @@ class E31EvidenceTests(unittest.TestCase):
             "authority": "E31_RECEIPT_HEAD",
             "binding": "CURRENT_PR_HEAD",
             "parent_commit": evidence["tested_parent_identity"]["tested_commit"],
+            "tested_parent_commit": evidence["tested_parent_identity"]["tested_commit"],
+            "correction_chain": [evidence["tested_parent_identity"]["tested_commit"]],
         }
         root = self._write_fixture(evidence=evidence)
         with self.assertRaisesRegex(ValueError, "TESTED_COMMIT_MISMATCH"):
