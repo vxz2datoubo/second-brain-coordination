@@ -1,0 +1,41 @@
+task_id: CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37
+agent_id: CODEX
+route_epoch: 38
+mode: target
+status: IN_PROGRESS
+remote_main_head_at_claim: 2dafb6383ceac86b2e06b16110067a6229a4d467
+reviewed_base: dd8aab05109d4b0adec901ace277633546563354
+source:
+  pull_request: 113
+  tested_head: 7012ed7681d16d936d3ea5ce1311c13b5be46337
+  receipt_head: d22aeffc30e5848f2e0cbdb22742ad129f386275
+branch: codex/brainops-canary-authority-proof-0032-e37
+completion_signal: CODEX_BRAINOPS_E37_CANARY_NONCE_AUTHORITY_ROUTE_PROOF_READY_FOR_GPT_REVIEW
+actual_profile: ACCESS_NOT_EXPOSED
+hard_boundary:
+  - LOCAL_FIRST
+  - APP_FIRST
+  - PRE_CANARY_SECURITY_CLOSURE_ONLY
+  - PUBLIC_SAFE
+  - NO_TRADE
+forbidden_actions:
+  - canary_execution
+  - automatic_dispatch
+  - app_automation
+  - codex_cli
+  - gpt_auto_review
+  - ui_or_private_ipc
+  - credential_or_account_access
+  - order_or_trade
+  - main_write_or_merge
+phases:
+  - name: immutable_source_import_and_plan
+    acceptance: E35_E36_code_is_imported_without_old_route_files_and_E37_plan_is_recorded
+  - name: pre_canary_proof_closure
+    acceptance: atomic_nonce_approval_provenance_and_remote_route_proof_tests_pass
+  - name: tested_head_and_receipt
+    acceptance: exact_head_dual_python_CI_and_one_non_empty_evidence_only_receipt_are_published
+recovery:
+  command: git status --short && git log --oneline -8
+  rollback: git revert <E37_commit_sha>
+  stop_after_completion: request_GPT_second_pass
