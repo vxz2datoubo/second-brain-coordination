@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import datetime, timezone
 from enum import Enum
 import hashlib
 import json
@@ -39,17 +40,50 @@ class RouteState(str, Enum):
 class ShadowOutcome(str, Enum):
     WOULD_DISPATCH = "WOULD_DISPATCH"
     WOULD_BLOCK = "WOULD_BLOCK"
+    WOULD_REQUIRE_MANUAL = "WOULD_REQUIRE_MANUAL"
+    DUPLICATE_SUPPRESSED = "DUPLICATE_SUPPRESSED"
+    CANARY_ELIGIBLE_SHADOW_ONLY = "CANARY_ELIGIBLE_SHADOW_ONLY"
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{1,127}$")
+_SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 _SENSITIVE_KEY = re.compile(r"(?:token|secret|password|cookie|credential|authorization|api[_-]?key)", re.I)
 _FORBIDDEN_COMMAND_FIELD = re.compile(r"(?:command|executable|argument|shell|script|path)", re.I)
+_VALUE_SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("github_token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b")),
+    ("github_pat", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b")),
+    ("bearer_token", re.compile(r"\bBearer\s+[A-Za-z0-9._~-]{20,}\b", re.I)),
+    ("private_key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")),
+    ("aws_access_key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+)
 
 
 def require_identifier(value: str, label: str) -> str:
     if not isinstance(value, str) or not _IDENTIFIER.fullmatch(value):
         raise ValidationError(f"{label} must be a stable identifier")
     return value
+
+
+def require_sha256(value: str, label: str) -> str:
+    if not is_sha256_hex(value):
+        raise ValidationError(f"{label} must be exactly 64 lowercase hexadecimal characters")
+    return value
+
+
+def is_sha256_hex(value: object) -> bool:
+    return isinstance(value, str) and _SHA256_HEX.fullmatch(value) is not None
+
+
+def parse_rfc3339_utc(value: str, label: str) -> datetime:
+    if not isinstance(value, str) or not value.endswith("Z"):
+        raise ValidationError(f"{label} must be an RFC3339 UTC timestamp ending in Z")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValidationError(f"{label} must be a valid RFC3339 UTC timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        raise ValidationError(f"{label} must be expressed in UTC")
+    return parsed
 
 
 def strict_json_loads(text: str) -> Any:
@@ -69,6 +103,30 @@ def strict_json_loads(text: str) -> Any:
         raise ValidationError("invalid JSON") from exc
 
 
+@dataclass(frozen=True)
+class SecretValueFinding:
+    path: str
+    category: str
+
+
+def find_secret_values(value: Any, path: str = "$") -> tuple[SecretValueFinding, ...]:
+    """Identify secret-shaped values without returning their contents."""
+    findings: list[SecretValueFinding] = []
+    if is_dataclass(value):
+        return find_secret_values(asdict(value), path)
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            findings.extend(find_secret_values(item, f"{path}.{key}"))
+    elif isinstance(value, (list, tuple)):
+        for index, item in enumerate(value):
+            findings.extend(find_secret_values(item, f"{path}[{index}]"))
+    elif isinstance(value, str):
+        for category, pattern in _VALUE_SECRET_PATTERNS:
+            if pattern.search(value):
+                findings.append(SecretValueFinding(path=path, category=category))
+    return tuple(findings)
+
+
 def redact(value: Any) -> Any:
     """Remove secret-like values before anything reaches SQLite or an API."""
 
@@ -81,6 +139,8 @@ def redact(value: Any) -> Any:
         }
     if isinstance(value, (list, tuple)):
         return [redact(item) for item in value]
+    if isinstance(value, str) and find_secret_values(value):
+        return "[REDACTED]"
     return value
 
 
@@ -176,16 +236,93 @@ class ActivationManifest:
     route: RouteRef
     expected_epoch: int
     idempotency_key: str
-    user_approval_required: bool
-    user_approval_granted: bool
+    canary_id: str
+    task_id: str
+    scope: str
+    approval_nonce: str
+    approval: "BoundCanaryApproval | None" = None
 
     def __post_init__(self) -> None:
         require_identifier(self.activation_id, "activation_id")
         require_identifier(self.idempotency_key, "idempotency_key")
+        require_identifier(self.canary_id, "canary_id")
+        require_identifier(self.task_id, "task_id")
+        require_identifier(self.scope, "scope")
+        require_identifier(self.approval_nonce, "approval_nonce")
         if self.expected_epoch != self.route.route_epoch:
             raise ValidationError("activation expected_epoch must equal its route epoch")
-        if self.user_approval_granted and not self.user_approval_required:
-            raise ValidationError("approval cannot be granted when approval is not required")
+
+
+@dataclass(frozen=True)
+class BoundCanaryApproval:
+    """A non-secret, expiry-bound approval record for one exact canary."""
+
+    canary_id: str
+    task_id: str
+    route_epoch: int
+    scope: str
+    expires_at: str
+    nonce: str
+    approval_ref: str
+
+    def __post_init__(self) -> None:
+        require_identifier(self.canary_id, "canary_id")
+        require_identifier(self.task_id, "task_id")
+        require_identifier(self.scope, "scope")
+        require_identifier(self.nonce, "nonce")
+        require_identifier(self.approval_ref, "approval_ref")
+        if not isinstance(self.route_epoch, int) or self.route_epoch < 0:
+            raise ValidationError("approval route_epoch must be a non-negative integer")
+        parse_rfc3339_utc(self.expires_at, "approval expires_at")
+
+    def validates(self, activation: ActivationManifest, now: str) -> str | None:
+        now_value = parse_rfc3339_utc(now, "approval validation time")
+        if self.canary_id != activation.canary_id:
+            return "approval_canary_mismatch"
+        if self.task_id != activation.task_id:
+            return "approval_task_mismatch"
+        if self.route_epoch != activation.expected_epoch:
+            return "approval_epoch_mismatch"
+        if self.scope != activation.scope:
+            return "approval_scope_mismatch"
+        if self.nonce != activation.approval_nonce:
+            return "approval_nonce_mismatch"
+        if now_value >= parse_rfc3339_utc(self.expires_at, "approval expires_at"):
+            return "approval_expired"
+        return None
+
+
+@dataclass(frozen=True)
+class CanaryEvent:
+    event_id: str
+    source: str
+    route: RouteRef
+    canary_id: str
+    idempotency_key: str
+    payload_hash: str
+
+    def __post_init__(self) -> None:
+        require_identifier(self.event_id, "event_id")
+        require_identifier(self.canary_id, "canary_id")
+        require_identifier(self.idempotency_key, "idempotency_key")
+        if self.source != "GITHUB":
+            raise ValidationError("canary event source must be GITHUB")
+        require_sha256(self.payload_hash, "payload_hash")
+
+
+@dataclass(frozen=True)
+class RouteStateEvidence:
+    """A single synchronized observation of the two authoritative route views."""
+
+    route: RouteRef
+    active_task_hash: str
+    coordination_hash: str
+    observed_at: str
+
+    def __post_init__(self) -> None:
+        require_sha256(self.active_task_hash, "active_task_hash")
+        require_sha256(self.coordination_hash, "coordination_hash")
+        parse_rfc3339_utc(self.observed_at, "route state observed_at")
 
 
 @dataclass(frozen=True)
@@ -227,6 +364,8 @@ class Lease:
             raise ValidationError("NONE cannot acquire a lease")
         if not isinstance(self.fencing_generation, int) or self.fencing_generation < 1:
             raise ValidationError("fencing_generation must be positive")
+        if parse_rfc3339_utc(self.expires_at, "lease expires_at") <= parse_rfc3339_utc(self.acquired_at, "lease acquired_at"):
+            raise ValidationError("lease expires_at must be after acquired_at")
 
 
 @dataclass(frozen=True)

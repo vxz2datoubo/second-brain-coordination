@@ -10,6 +10,7 @@ from .models import (
     CapabilitySet,
     CapabilityStatus,
     ExecutionOwner,
+    is_sha256_hex,
     RouteState,
     ShadowDecision,
     ShadowOutcome,
@@ -24,7 +25,7 @@ class ReconciliationContext:
     capabilities: CapabilitySet
     remote_available: bool
     automatic_dispatch_allowed: bool
-    duplicate_idempotency_key: bool = False
+    approval_checked_at: str = "2026-08-02T00:00:00Z"
     active_lease: bool = False
     existing_owner: ExecutionOwner = ExecutionOwner.NONE
 
@@ -68,6 +69,8 @@ class ShadowReviewWatcher:
             return WatchObservation(False, "invalid_event_epoch", event.event_id)
         if not event.payload_hash:
             return WatchObservation(False, "missing_event_payload_hash", event.event_id)
+        if not is_sha256_hex(event.payload_hash):
+            return WatchObservation(False, "invalid_event_payload_hash", event.event_id)
         return WatchObservation(True, "shadow_event_recorded", event.event_id)
 
 
@@ -78,6 +81,15 @@ def select_owner(capabilities: CapabilitySet) -> ExecutionOwner:
         return ExecutionOwner.CLI_FALLBACK
     if capabilities.manual_app is CapabilityStatus.SUPPORTED:
         return ExecutionOwner.MANUAL_APP
+    return ExecutionOwner.NONE
+
+
+def select_automatic_owner(capabilities: CapabilitySet) -> ExecutionOwner:
+    """Select only a supported non-manual owner for an automatic route."""
+    if capabilities.app_automation is CapabilityStatus.SUPPORTED:
+        return ExecutionOwner.APP_AUTOMATION
+    if capabilities.cli_fallback is CapabilityStatus.SUPPORTED:
+        return ExecutionOwner.CLI_FALLBACK
     return ExecutionOwner.NONE
 
 
@@ -102,18 +114,27 @@ class ShadowReconciler:
             return self._block(f"route_{context.route_state.value.lower()}", owner, context, evidence)
         if context.observed_epoch != context.activation.expected_epoch:
             return self._block("stale_epoch", owner, context, evidence)
-        if context.duplicate_idempotency_key:
-            return self._block("duplicate_activation", owner, context, evidence)
         if context.active_lease:
             return self._block("active_lease", owner, context, evidence)
         if context.existing_owner is not ExecutionOwner.NONE and context.existing_owner is not owner:
             return self._block("ownership_fenced", owner, context, evidence)
-        if context.activation.user_approval_required and not context.activation.user_approval_granted:
-            return self._block("user_approval_required", owner, context, evidence)
+        if context.activation.approval is None:
+            return self._block("bound_approval_missing", owner, context, evidence)
+        approval_error = context.activation.approval.validates(context.activation, context.approval_checked_at)
+        if approval_error is not None:
+            return self._block(approval_error, owner, context, evidence)
         if not context.automatic_dispatch_allowed:
             return self._block("automation_disabled", owner, context, evidence)
         if owner is ExecutionOwner.NONE:
             return self._block("no_supported_owner", owner, context, evidence)
+        if owner is ExecutionOwner.MANUAL_APP:
+            return ShadowDecision(
+                outcome=ShadowOutcome.WOULD_REQUIRE_MANUAL,
+                reason_code="manual_app_requires_operator",
+                selected_owner=owner,
+                route=route,
+                evidence=evidence,
+            )
         evidence["counterfactual_only"] = True
         return ShadowDecision(
             outcome=ShadowOutcome.WOULD_DISPATCH,

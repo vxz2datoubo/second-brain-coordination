@@ -17,6 +17,7 @@ from brainops_control_plane.discovery import ReadOnlyDiscovery
 from brainops_control_plane.models import (
     ActivationManifest,
     AppAutomationIdentity,
+    BoundCanaryApproval,
     CapabilitySet,
     CapabilityStatus,
     CliSession,
@@ -31,6 +32,7 @@ from brainops_control_plane.models import (
     ShadowOutcome,
     ValidationError,
     canonical_hash,
+    find_secret_values,
     redact,
     reject_command_like_fields,
     safe_database_path,
@@ -51,14 +53,29 @@ from brainops_control_plane.web import ConsoleSnapshot, ReadOnlyControlServer, U
 ROUTE = RouteRef("brainops.e35", "CODEX", 36)
 
 
-def activation(*, target: str = "CODEX", epoch: int = 36, approval_required: bool = False, approved: bool = False) -> ActivationManifest:
+def approval(
+    *,
+    canary_id: str = "BRAINOPS-E35-CANARY-0001",
+    task_id: str = "CODEX-BRAINOPS-E35",
+    epoch: int = 36,
+    scope: str = "shadow_control_plane",
+    expires_at: str = "2026-08-02T01:00:00Z",
+) -> BoundCanaryApproval:
+    return BoundCanaryApproval(canary_id, task_id, epoch, scope, expires_at, "nonce.e35", "approval.e35")
+
+
+def activation(*, target: str = "CODEX", epoch: int = 36, bound_approval: BoundCanaryApproval | None | object = ...) -> ActivationManifest:
+    selected_approval = approval() if bound_approval is ... else bound_approval
     return ActivationManifest(
         activation_id="activation.e35",
         route=RouteRef("brainops.e35", target, epoch),
         expected_epoch=epoch,
         idempotency_key="idem.e35",
-        user_approval_required=approval_required,
-        user_approval_granted=approved,
+        canary_id="BRAINOPS-E35-CANARY-0001",
+        task_id="CODEX-BRAINOPS-E35",
+        scope="shadow_control_plane",
+        approval_nonce="nonce.e35",
+        approval=selected_approval,  # type: ignore[arg-type]
     )
 
 
@@ -131,11 +148,11 @@ class ContractTests(unittest.TestCase):
 
     def test_activation_epoch_mismatch_is_rejected(self) -> None:
         with self.assertRaises(ValidationError):
-            ActivationManifest("activation.e35", ROUTE, 35, "idem.e35", False, False)
+            ActivationManifest("activation.e35", ROUTE, 35, "idem.e35", "BRAINOPS-E35-CANARY-0001", "CODEX-BRAINOPS-E35", "shadow_control_plane", "nonce.e35")
 
-    def test_approval_cannot_be_granted_when_not_required(self) -> None:
+    def test_bound_approval_requires_utc_expiry(self) -> None:
         with self.assertRaises(ValidationError):
-            activation(approval_required=False, approved=True)
+            approval(expires_at="2026-08-02T01:00:00+08:00")
 
     def test_desired_and_observed_state_are_explicit_contracts(self) -> None:
         desired = DesiredState(RouteState.READY, automatic_dispatch_allowed=False, requested_owner=ExecutionOwner.NONE)
@@ -187,10 +204,6 @@ class ReconciliationTests(unittest.TestCase):
         decision = self.reconciler.reconcile(context(observed_epoch=35))
         self.assertEqual(decision.reason_code, "stale_epoch")
 
-    def test_duplicate_activation_blocks(self) -> None:
-        decision = self.reconciler.reconcile(context(duplicate_idempotency_key=True))
-        self.assertEqual(decision.reason_code, "duplicate_activation")
-
     def test_active_lease_blocks(self) -> None:
         decision = self.reconciler.reconcile(context(active_lease=True))
         self.assertEqual(decision.reason_code, "active_lease")
@@ -207,9 +220,9 @@ class ReconciliationTests(unittest.TestCase):
         decision = self.reconciler.reconcile(context(route_state=RouteState.BLOCKED))
         self.assertEqual(decision.reason_code, "route_blocked")
 
-    def test_user_approval_required_blocks(self) -> None:
-        decision = self.reconciler.reconcile(context(activation=activation(approval_required=True)))
-        self.assertEqual(decision.reason_code, "user_approval_required")
+    def test_missing_bound_approval_blocks(self) -> None:
+        decision = self.reconciler.reconcile(context(activation=activation(bound_approval=None)))
+        self.assertEqual(decision.reason_code, "bound_approval_missing")
 
     def test_automation_disabled_blocks_the_live_route(self) -> None:
         decision = self.reconciler.reconcile(context(automatic_dispatch_allowed=False))
@@ -233,6 +246,13 @@ class ReconciliationTests(unittest.TestCase):
 
     def test_owner_selection_can_require_manual_app(self) -> None:
         self.assertEqual(select_owner(CapabilitySet(CapabilityStatus.UNKNOWN, CapabilityStatus.UNKNOWN, CapabilityStatus.SUPPORTED)), ExecutionOwner.MANUAL_APP)
+
+    def test_manual_app_never_emits_would_dispatch(self) -> None:
+        decision = self.reconciler.reconcile(
+            context(capabilities=CapabilitySet(CapabilityStatus.UNKNOWN, CapabilityStatus.UNKNOWN, CapabilityStatus.SUPPORTED))
+        )
+        self.assertEqual(decision.outcome, ShadowOutcome.WOULD_REQUIRE_MANUAL)
+        self.assertEqual(decision.reason_code, "manual_app_requires_operator")
 
     def test_owner_selection_can_fail_closed(self) -> None:
         self.assertEqual(select_owner(CapabilitySet()), ExecutionOwner.NONE)
@@ -258,10 +278,15 @@ class ReconciliationTests(unittest.TestCase):
         self.assertFalse(observation.accepted)
         self.assertEqual(observation.reason_code, "missing_event_payload_hash")
 
+    def test_shadow_watcher_rejects_uppercase_hash(self) -> None:
+        observation = ShadowReviewWatcher().observe(ReviewRequestEvent("evt.e35", "GITHUB", "brainops.e35", 36, RouteState.READY, "A" * 64))
+        self.assertFalse(observation.accepted)
+        self.assertEqual(observation.reason_code, "invalid_event_payload_hash")
+
 
 class StoreTests(unittest.TestCase):
-    def _lease(self, identifier: str) -> Lease:
-        return Lease(identifier, ROUTE, ExecutionOwner.MANUAL_APP, 1, "2026-08-02T00:00:00Z", "2026-08-02T00:30:00Z")
+    def _lease(self, identifier: str, generation: int = 1, expires_at: str = "2026-08-02T00:30:00Z") -> Lease:
+        return Lease(identifier, ROUTE, ExecutionOwner.MANUAL_APP, generation, "2026-08-02T00:00:00Z", expires_at)
 
     def test_audit_redacts_before_persistence(self) -> None:
         with TemporaryDirectory() as temp:
@@ -288,7 +313,7 @@ class StoreTests(unittest.TestCase):
             try:
                 self.assertTrue(store.acquire_lease(self._lease("lease.one")))
                 self.assertTrue(store.release_lease("lease.one", "2026-08-02T00:05:00Z"))
-                self.assertTrue(store.acquire_lease(self._lease("lease.two")))
+                self.assertTrue(store.acquire_lease(self._lease("lease.two", 2)))
             finally:
                 store.close()
 
