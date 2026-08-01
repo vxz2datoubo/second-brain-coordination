@@ -1,62 +1,69 @@
-schema_version: "37.0"
+schema_version: "38.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
 
-active_issue: 108
-pull_request: 107
-branch: "codex/vendor-neutral-agent-operating-kernel-0011"
+active_issue: 31
+source_blueprint_pr: 109
+source_blueprint_branch: "gpt/brainops-control-plane-blueprint-0001"
+source_blueprint_head: "96f926eacaf52221ac4630c8bb0039bfe05216d2"
+planned_branch: "codex/brainops-app-first-automatic-chain-0030-e35"
+planned_draft_pr: true
 parent_program: 31
-source_issue: 108
-reviewed_or_base_head: "10849643745f0962673efcbd425c66824bae7b70"
-reviewed_or_base_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
+reviewed_or_base_head: "e7cbbf03c87b0c2a5d452596390179f13351a71f"
 
-task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
-route_epoch: 35
-mode: "target"
-mode_label: "【Codex模式：目标模式】E33归档Changed-Files令牌契约与单一Receipt闭环E34"
+task_id: "CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35"
+route_epoch: 36
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】BrainOps App-first 自动审查—发布—执行控制链 E35"
 mode_reason: >-
-  E33 restored remote object integrity and produced a valid exact tested head with dual-Python 122/122 CI and three clean archive roots per runtime.
-  Receipt preflight correctly exposed one inherited E31/E32 command-token contradiction. The remaining work is a narrowly bounded phase-aware
-  validator correction, exact-head evidence reset and single-receipt closure.
+  The task spans the unified ChatGPT/Codex desktop app, Codex App Automations, GitHub review/task routes,
+  a visible local service/port console, App/CLI ownership, leases, fencing, security and future Second Brain/MaiBot
+  services. Local capabilities and supported App invocation surfaces must be proven before automation is enabled.
 status: "READY"
 execution_allowed: true
+automatic_dispatch_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "CODEX_E34_PEOS_0010_PHASE_BOUND_ARCHIVE_COMMAND_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_BRAINOPS_APP_FIRST_P0_P1_P3_CONTROL_PLANE_READY_FOR_GPT_REVIEW"
 
 supersedes:
-  task_id: "CODEX-PEOS-0010-E32-REMOTE-OBJECT-INTEGRITY-EXACT-CI-AND-SINGLE-RECEIPT-CLOSURE-0025-E33"
-  route_epoch: 34
-  delivered_head: "10849643745f0962673efcbd425c66824bae7b70"
-  delivered_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
-  classification: "E33_REMOTE_OBJECT_INTEGRITY_AND_EXACT_TESTED_HEAD_ACCEPTED_RECEIPT_BLOCKED_BY_PHASE_TOKEN_CONTRACT_DRIFT"
+  task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
+  route_epoch: 35
+  pull_request: 107
+  tested_substantive_head: "c2f3aef1fdc40da5b7f119654ec9f65f597dccca"
+  receipt_head: "a8994693b6cf7245dc9adf6ec6c40d653db5e96b"
+  tested_ci_run: 30706808220
+  receipt_ci_run: 30707492422
+  classification: "E34_SUBSTANTIVE_HEAD_REUSABLE_RECEIPT_HEAD_VALIDATION_POLICY_BLOCKED_AND_FROZEN"
   completion_credit: false
   substantive_tested_head_credit: true
+  frozen_for_later_route: true
   reusable:
-    - "Remote evidence.py bytes/blob/size/UTF-8/non-printable integrity restored."
-    - "Exact CI run 30691866084 succeeded on Python 3.11 job 91347896860 and Python 3.13 job 91347896832."
-    - "Each runtime passed 122/122 and completed three clean archive roots."
-    - "Artifacts 8815937925 and 8815938406 are present and bound to head 10849643745f0962673efcbd425c66824bae7b70."
-    - "No receipt was created after failed preflight, preserving truthful topology."
+    - "Dedicated Vendor-neutral agent kernel CI passed on the exact substantive head."
+    - "Both Python 3.11 and 3.13 passed 122/122 with three clean archive roots per runtime."
+    - "The receipt is a direct evidence-only child of the tested head."
   remaining_blocker:
-    - "Workflow truthfully emits --changed-files ./.e32-changed-files.txt."
-    - "evidence.py unconditionally requires legacy ./.e31-changed-files.txt."
-    - "Receipt preflight fails with E31_ROOT_COMMAND_INCOMPLETE:./.e31-changed-files.txt."
+    - "Receipt-head CI exposes two pre-existing tests that assume TESTED_HEAD/RUNTIME_EXPECTED instead of receipt-aware validation."
+    - "No post-receipt repair is allowed; PR #107 remains frozen until a separately reviewed topology-policy route."
 
 model_reasoning_execution_profile:
-  preferred_model: "gpt-5.6-sol"
-  reasoning_effort: "xhigh"
-  execution_intensity: "X3_DEEP"
+  requested_model: "gpt-5.6-sol"
+  reasoning_effort: "max"
+  execution_intensity: "X4_MAXIMUM"
   permission_profile: "P1_ENHANCED_BOUNDED"
-  minimum_acceptable_fallback: {model: "gpt-5.6-terra", reasoning_effort: "high", use: "deterministic phase/token inventory only"}
   silent_downgrade_forbidden: true
   actual_profile_reporting_required: true
   inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+  minimum_acceptable_fallback:
+    model: "gpt-5.6-terra"
+    reasoning_effort: "xhigh"
+    permitted_scope: "deterministic inventory, schema and test work only"
+    must_report_before_use: true
 
 command_execution_contract:
   on_trigger: "VERIFY_CANONICAL_REMOTE_CLAIM_AND_EXECUTE_NOW"
@@ -64,45 +71,46 @@ command_execution_contract:
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify PR #107 head 10849643745f0962673efcbd425c66824bae7b70, run 30691866084 and the observed E31/E32 token contradiction,
-    claim route_epoch 35, implement the phase/schema-bound token resolver and its fail-closed tests, then continue through exact-head CI or a truthful blocker.
+    Verify main reviewed base e7cbbf03c87b0c2a5d452596390179f13351a71f and PR #109 exact head
+    96f926eacaf52221ac4630c8bb0039bfe05216d2, claim route_epoch 36, create the fresh planned branch and Draft PR,
+    complete local capability discovery and start the bounded P0/P1/P3 implementation or return a truthful blocker.
   lease_must_confirm:
-    - "Issue #108 / PR #107 / reviewed base 10849643745f0962673efcbd425c66824bae7b70."
-    - "Literal E34 completion signal and Sol/xhigh/X3/P1 profile."
-    - "One executable validator/test repair commit maximum plus one non-empty evidence-only receipt."
-    - "QQ E27 takeover remains non-executable until GPT accepts E34."
+    - "Exact task ID, route epoch 36 and completion signal."
+    - "Requested Sol/max/X4/P1 profile and actual-profile reporting rule."
+    - "App-first / CLI-fallback architecture."
+    - "First delivery is read-only console plus shadow reconciliation; no unattended dispatch."
+    - "PR #107 and PR #100 are frozen and must not be modified."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34.yaml"
-  queued_qclaw_takeover: "coordination/TASK-BRIEFS/CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27-AMED.yaml"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35.yaml"
+  source_blueprint_pr: 109
   final_head_topology: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
   autonomy: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
   WPDCR: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
 
 required_results:
-  - "Resolve expected changed-files token from archive schema/authority rather than an unconditional E31 literal."
-  - "E31 requires exactly ./.e31-changed-files.txt; VNAK_E32_ARCHIVE_PROVENANCE_v1 and E32/E33 authority require exactly ./.e32-changed-files.txt."
-  - "Reject cross-phase mismatch, both-token ambiguity, missing token, absolute/external path, traversal and lookalike token."
-  - "Preserve all other root-command requirements."
-  - "Do not alter truthful existing archive commands to impersonate E31."
-  - "Move tested identity to the E34 executable repair commit."
-  - "Run exact final-head Python 3.11 and 3.13 CI and three-root archives per runtime."
-  - "Create exactly one later non-empty evidence-only receipt whose parent equals tested head."
-  - "Validate receipt head on Python 3.11 and 3.13 and create no later commit."
-  - "Stop and request GPT second pass without starting QQ E27."
+  - "Verify local ChatGPT/Codex unified desktop App, Codex view, Automations, schedule intervals and supported trigger surfaces."
+  - "Prefer Codex App Automation; retain CLI/SDK as explicit fenced fallback only."
+  - "Build a loopback-only read-only BrainOps console and metadata/audit skeleton."
+  - "Discover processes, services, ports, Docker availability, App and CLI capability without reading secrets or mutating existing services."
+  - "Implement shadow GitHub review/task reconciliation with event intake plus a 30-minute anti-entropy schedule fixture."
+  - "Implement APP_AUTOMATION / CLI_FALLBACK / MANUAL_APP / NONE ownership fencing and WOULD_DISPATCH / WOULD_BLOCK tests."
+  - "Design visible start/stop/pause/kill switches and future Second Brain/MaiBot port registry, but keep mutating controls disabled."
+  - "Run exact-head tests and create one final non-empty evidence-only receipt directly after the tested head."
 
-commit_shape:
-  corrective_executable_commits_max: 1
-  final_non_empty_evidence_only_receipt_commits: 1
-  receipt_parent_must_equal_tested_head: true
-  prohibited: ["amend", "rebase", "reset", "force_push", "merge", "direct_main_write", "receipt_correction_chain", "post_receipt_commit", "evidence_relabeling"]
+concurrency:
+  qclaw_parallel_route_allowed: true
+  reason: "QCLAW E27 uses a fresh branch and dedicated knowledge-atomization ownership; no shared-file writes are allowed."
 
 hard_boundaries:
-  - "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
-  - "No QQ PR/branch edits, no queued takeover execution, no adapter implementation, cross-model evaluation, Shadow activation, canonical PEOS/index/AGENTS change, merge, private/real data, production, account, order or trade."
+  - "LOCAL_FIRST / APP_FIRST / READ_ONLY_AND_SHADOW_ONLY / PUBLIC_SAFE / NO_TRADE"
+  - "No mouse/keyboard UI automation or reverse-engineered private App IPC as production control."
+  - "No actual unattended Codex dispatch, Windows Service/startup installation, firewall change or non-loopback bind."
+  - "No PR #107, PR #100 or QCLAW branch edits."
+  - "No credentials, accounts, orders, brokers, production services or real trading."
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-01T22:20:00+08:00"
-boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+updated_at: "2026-08-02T00:34:00+08:00"
+boundary: "LOCAL_FIRST / APP_FIRST / READ_ONLY_AND_SHADOW_ONLY / PUBLIC_SAFE / NO_TRADE"
