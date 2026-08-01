@@ -1,0 +1,106 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
+route_epoch: 37
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】BrainOps可观察一次性自动触发Canary E36"
+owner_agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 112
+source_pull_request: 110
+source_receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
+source_tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
+reviewed_base: "f52a817135a0b15d8f89a55a159c8371928f5347"
+planned_branch: "codex/brainops-observable-trigger-canary-0031-e36"
+planned_draft_pr: true
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+one_shot_canary_build_allowed: true
+one_shot_canary_execution_requires_explicit_bound_approval: true
+completion_signal: "CODEX_BRAINOPS_E36_OBSERVABLE_ONE_SHOT_TRIGGER_CANARY_READY_FOR_GPT_REVIEW"
+
+objective: >-
+  Convert the accepted E35 read-only shadow control plane into a provable but still fenced trigger canary. First determine whether an official
+  Codex App Automation or supported non-interactive CLI trigger exists locally. If it does, build one exact-ID, one-shot, approval-bound canary
+  that can write only a non-executing receipt on a dedicated branch/Draft PR and proves duplicate suppression. If no supported trigger exists,
+  preserve UNKNOWN and return a truthful blocker with capability evidence. Ordinary unattended task dispatch remains disabled.
+
+accepted_e35_evidence:
+  classification: "E35_ACCEPTED_AS_READ_ONLY_SHADOW_CONTROL_PLANE_WITH_FINDINGS_AUTOMATIC_TRIGGER_NOT_PROVEN"
+  completion_credit: true
+  tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
+  receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
+  receipt_delta: "RECEIPTS/E35-FINAL-RECEIPT.md only"
+  receipt_ci_run: 30711045839
+  python_jobs: [91398438794, 91398438851]
+  tests_each_runtime: 48
+  findings:
+    - "GitHub Actions auto-triggered after the PR update."
+    - "The E35 branch, Draft PR and completion receipt were created."
+    - "No evidence proves that E35 itself automatically dispatched Codex or automatically invoked GPT review."
+    - "The completion handoff remained unreviewed until the user manually issued 审查任务."
+
+required_corrections_before_any_canary:
+  - "Require payload_hash to be exactly 64 lowercase hexadecimal characters, not merely non-empty."
+  - "Separate MANUAL_APP from automatic dispatch; a manual-only owner must yield WOULD_REQUIRE_MANUAL or WOULD_BLOCK, never WOULD_DISPATCH."
+  - "Replace bare approval booleans with an approval record bound to canary_id, task_id, route_epoch, scope, expiry and nonce."
+  - "Expire stale leases deterministically and enforce monotonic fencing_generation."
+  - "Persist event idempotency and prove that the same canary event cannot dispatch twice."
+  - "Keep secret scanning value-aware before persistence; key-name redaction alone is insufficient for untrusted event payloads."
+  - "Synchronize ACTIVE-CODEX-TASK and ACTIVE-THREE-AGENT-COORDINATION atomically in the task evidence."
+
+capability_discovery:
+  preferred_surface: "OFFICIAL_CODEX_APP_AUTOMATION"
+  fallback_surface: "SUPPORTED_NONINTERACTIVE_CODEX_CLI"
+  forbidden_surfaces:
+    - "mouse or keyboard UI automation"
+    - "reverse-engineered or private App IPC"
+    - "browser-profile or session-token inspection"
+    - "unbounded shell execution"
+  unknown_policy: "If the supported trigger surface cannot be independently verified, do not simulate success; return BLOCKED_TRIGGER_SURFACE_UNKNOWN."
+
+canary_contract:
+  canary_id: "BRAINOPS-E36-CANARY-0001"
+  target: "CODEX_CANARY_ONLY"
+  allowed_effect: "Create exactly one non-empty public-safe trigger receipt on the dedicated E36 canary branch/Draft PR."
+  forbidden_effects:
+    - "No main write or merge."
+    - "No modification of PR #107, PR #110, PR #100 or QQ branches."
+    - "No normal Codex task execution, service/process lifecycle, scheduler installation, account, broker or trading action."
+  duplicate_test: "A second observation of the same event/idempotency key must produce DUPLICATE_SUPPRESSED with no new commit, PR or receipt."
+  approval_test: "Wrong task, epoch, canary ID, scope, nonce or expired approval must fail closed."
+  ownership_test: "APP_AUTOMATION may own an automatic canary only with local verified evidence; CLI fallback requires explicit route permission; MANUAL_APP cannot be auto owner."
+  audit_required:
+    - "trigger source and capability evidence"
+    - "event ID, payload hash, route epoch and timestamps"
+    - "approval identity without secret values"
+    - "owner selection, lease and fencing generation"
+    - "first dispatch result and duplicate-suppression result"
+    - "all Git commit, PR, workflow and receipt anchors"
+
+ci_and_topology:
+  exact_tested_head_dual_python_required: true
+  tested_head_must_have_remote_run: true
+  receipt_commits_allowed: 1
+  receipt_commit_class: "NON_EMPTY_EVIDENCE_ONLY"
+  receipt_parent_must_equal_tested_head: true
+  receipt_head_dual_python_validation_required: true
+  no_post_receipt_commit: true
+
+model_reasoning_execution_profile:
+  requested_model: "gpt-5.6-sol"
+  reasoning_effort: "max"
+  execution_intensity: "X4_MAXIMUM"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+
+hard_boundaries:
+  - "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
+  - "Ordinary automatic dispatch remains false."
+  - "No credentials, private session material, production service, account, order or trade access."
+  - "QQ E26 and WorkBuddy remain paused; Codex QQ takeover E27 remains queued and non-executable."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+boundary: "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
