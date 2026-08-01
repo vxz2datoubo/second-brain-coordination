@@ -1,51 +1,84 @@
 schema_version: "VNAK_E32_WPDCR_v1"
-task_id: "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32"
-route_epoch: 33
+task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
+route_epoch: 35
 agent_id: "CODEX"
 actual_executor: "CODEX"
 reviewer: "GPT"
-status: "TESTED_HEAD"
+status: "READY_FOR_GPT_REVIEW"
 mode: "target"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
 
-work_process:
-  difficulty: "D2_HARD_BOUNDED"
-  goal: "Move acceptance evidence to one executable tested head and one evidence-only receipt head."
-  planned_commits: "At most one executable correction and exactly one later evidence-only receipt."
-  current_phase: "TESTED_HEAD_TEMPLATE"
-  known_defect: "E31 final CI validated f3d062b8 but archived obsolete fb30f1b8 executable state."
+tested_identity:
+  commit: "c2f3aef1fdc40da5b7f119654ec9f65f597dccca"
+  tree: "666a28613cabe0653bddd717314ceac2b696417d"
+  remote_workflow_run: "30706808220"
+  remote_jobs: ["91387230459", "91387230487"]
+
+base_sections:
+  scope:
+    objective: "Make changed-files archive token selection phase-bound and fail closed."
+    allowed_substantive_paths: ["src/vendor_neutral_agent_kernel/evidence.py", "tests/test_e31_evidence.py"]
+  input_evidence:
+    route_commit: "route epoch 35"
+    archive_command: "E31 uses ./.e31-changed-files.txt; E32/E33 uses ./.e32-changed-files.txt"
+  implementation:
+    executable_change: "Authority/schema resolver plus strict shell-token parsing."
+    regression_style: "Existing manifest test identities retain expanded subtests."
+  validation:
+    local: "122/122 candidate tests; exact ci_verify exit 0."
+    remote: "Python 3.11 and 3.13, each with three clean archive roots."
+  limitations:
+    item: "No semantic claim beyond token/command provenance is made."
+  safety:
+    boundary: "No adapter, data source, account, order, market-data, or trade path."
+  delivery:
+    pr: "Draft PR #107"
+    receipt: "This commit changes only E32_RECEIPT_ALLOWLIST evidence files."
+  rollback:
+    action: "Close PR #107 or revert the E34 commit pair and this receipt."
+  review:
+    request: "GPT reviews phase-bound token semantics and receipt topology only."
 
 autonomous_remediation_ledger:
-  - id: "E32-R1-001"
-    class: "R1_BOUNDED_CONTRACT_AND_TEST_REPAIR"
-    action: "Add Git-object parent/diff topology validation and bind archive selection to the current tested head."
-    boundary_tests: ["T1_SAME_GOAL", "T2_SAME_AUTHORITY_AND_OWNERSHIP", "T3_NO_STANDARD_WEAKENING", "T4_REVERSIBLE_AND_TESTABLE", "T5_NO_NEW_EXTERNAL_AUTHORITY_OR_RISK", "T6_INSIDE_REMEDIATION_BUDGET"]
-    validation: "Pending exact E32 dual-Python run"
-    rollback: "Revert the single E32 executable correction commit"
+  - id: "E34-R0-001"
+    classification: "BOUNDED_TEST_IDENTITY_REPAIR"
+    trigger: "First remote run found CASE_MANIFEST_MISMATCH because eight new test methods changed the fixed declared identity set."
+    action: "Moved the same positive and fail-closed assertions into predeclared test identities as named subtests."
+    affected_commits: ["87ecc84ba9554709d71503467d38ccfc9571d320", "c2f3aef1fdc40da5b7f119654ec9f65f597dccca"]
+    result: "Dual-runtime remote CI passed on c2f3aef."
+    rollback: "Revert both E34 substantive commits."
+
+process_findings:
+  - id: "E34-F-001"
+    finding: "A test manifest can correctly reject coverage growth when it requires fixed case identities; additional checks must be integrated under those identities or the manifest must be formally versioned."
+    action: "Preserved the manifest and moved coverage into subtests."
+  - id: "E34-F-002"
+    finding: "GitHub HTTPS Smart-HTTP reset during the initial push window, while later normal GitHub and Smart-HTTP probes recovered without configuration changes."
+    action: "Recorded only the transient delivery impact; no reset, force-push or credential inspection occurred."
+
+historical_evidence_preservation:
+  preserved: ["E22 through E24 repository history", "E30 and E31 evidence records", "E33 route context"]
+  negative_evidence: "The first E34 CI run failed before archive reproduction due to CASE_MANIFEST_MISMATCH; it is retained as a failed attempt, not overwritten."
 
 model_reasoning_and_execution_profile:
-  requested_model: "gpt-5.6-sol"
+  requested_model: "ACCESS_NOT_ASSERTED"
   actual_model: "ACCESS_NOT_EXPOSED"
-  requested_reasoning_effort: "xhigh"
-  actual_reasoning_effort: "ACCESS_NOT_EXPOSED"
-  requested_execution_intensity: "X3_DEEP"
-  actual_execution_intensity: "ACCESS_NOT_EXPOSED"
-  permission_profile_used: "P1_ENHANCED_BOUNDED"
-  availability_preflight_result: "ACCESS_NOT_EXPOSED"
-  fallback_or_escalation_events: []
-  compute_or_attempt_budget_used: "within E32 hard two-commit topology"
-  material_quality_effect: "Not claimed before CI"
-  residual_uncertainty: "Exact remote commit identity is bound after GitHub API commit creation"
+  reasoning_effort: "ACCESS_NOT_EXPOSED"
+  execution_profile: "bounded repository repair"
 
 unknowns:
   - "Runtime model metadata is ACCESS_NOT_EXPOSED."
-  - "Final run/job/artifact IDs are not known until the exact tested head runs."
+  - "The receipt SHA is intentionally externalized by the current Draft PR head after push."
+
 negative_results:
-  - "No adapter, Shadow, canonical promotion, account, order or trade path is executed."
+  - "No forbidden next-gate, adapter, live-data, canonical-promotion, account, order or trade operation was attempted."
+  - "No raw credential value was read, written or reported."
+
 coordination:
-  upstream: "GPT route epoch 33 / Issue #108"
-  downstream: "GPT second-pass review of PR #107"
-  requests: ["Keep PR #107 Draft; keep later Gates frozen"]
+  upstream: "GPT route epoch 35 / Issue #108"
+  downstream: "GPT review of Draft PR #107"
+  requested_decision: "Accept or reject E34; keep later gates frozen."
+
 rollback:
-  logical: "Close PR #107 or revert the E32 candidate commits"
+  logical: "Close the Draft PR or revert the two substantive commits and this receipt-only commit."
   production_state_changed: false

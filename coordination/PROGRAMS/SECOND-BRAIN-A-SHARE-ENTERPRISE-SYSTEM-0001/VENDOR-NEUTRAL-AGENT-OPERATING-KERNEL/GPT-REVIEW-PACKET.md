@@ -1,51 +1,34 @@
-# GPT Review Packet - E31
+# E34 Review Packet
 
-## Current authority
+**Task:** `CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34`
+**Route epoch:** `35`
+**Actual executor:** CODEX
+**Actual reviewer requested:** GPT
+**Status:** `READY_FOR_GPT_REVIEW`
+**Boundary:** `PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE`
 
-- task_id: CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31
-- route_epoch: 32
-- actual_executor: CODEX
-- reviewer: GPT
-- reviewed_base: 93b61b055e13c04431236214a599a9f0f325b3ce
-- tested_substantive_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
-- tested_substantive_tree: 288ba2d8e111cb11d51e4f40bbbc6fa5a88f308c
-- receipt_parent_commit: ca5581f6b4ebc67ab5fab1a696a6108e2962357b
-- primary_evidence: E31-COMPLETION-EVIDENCE.json
-- archive_evidence: E31-ARCHIVE-PROVENANCE-MATRIX.yaml
-- wpdcr: E31-WORK-PROCESS-AND-COORDINATION-REPORT.yaml
-- status: FINAL
-- boundary: PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE
-- completion_signal: CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW
+## Review target
 
-## E31 scope
+The tested substantive head is `c2f3aef1fdc40da5b7f119654ec9f65f597dccca` (tree `666a28613cabe0653bddd717314ceac2b696417d`). It makes archive changed-file arguments phase-bound:
 
-E31 closes the six evidence-truth defects identified in GPT review 4833184709: semantic WPDCR payloads, a FINAL full-artifact three-root manifest, independent root-path identity, tested substantive commit versus receipt-head truth, removal of incomplete identity markers, and fail-closed validators.
+- E31 contract accepts exactly `./.e31-changed-files.txt`.
+- E32 and E33 authority accepts exactly `./.e32-changed-files.txt`.
+- Cross-phase, both-token, missing-token, absolute, traversal and lookalike forms fail closed.
 
-E29/E30 functional behavior and candidate specifications remain historical and reusable only. No adapter is implemented, no cross-model evaluation is run, no Shadow flag is enabled, and no canonical or production route is activated.
+## Independent evidence
 
-## Verified evidence
+- GitHub Actions run `30706808220` completed `122/122` tests on Python 3.11 and Python 3.13.
+- Each runtime produced three clean Git-archive roots with a shared archive-content checksum `7c0110fbeae6b7a8613b157e1162e613d75e26177475ddb4b104a53346acebb5` and artifact-set checksum `83c89e43f25e9962c8115464c20e9e41d88e83b5287551867fc9359699e53e40`.
+- The receipt's topology file binds its direct parent to the tested head and its diff to the exact seven-file `E32_RECEIPT_ALLOWLIST`.
 
-- Local focused E30/E31 tests: 37/37 PASS.
-- Local candidate suite: 116/116 PASS.
-- Provenance workflow 30680004228: Python 3.11 and 3.13 both 116/116 PASS.
-- Final receipt validation workflow 30681105004: Python 3.11 and 3.13 both 116/116 PASS.
-- Each remote job produced three clean archive roots and a complete 58-file artifact inventory.
-- Archive SHA256: 2cdcf3116b56b491830187be906873973ea484a1c3e3b0233ad7fb45f5fb2c93.
-- Archive content tree SHA256: 9a325b3a69723ad7bc24810e5ff1b6415b7ba32ab6d9ac5599a66f4dbf408ea7.
-- Artifact-set SHA256: c789408b028b35bd12a5721797fbf127e12fb73c4a06e1083da410094c06a1ed.
-- Root identities are distinct within each job and root contents agree.
-- Final artifact digests: Python 3.11 466d6b70f2af6c04eaa9cd8a82eb4016f5299ade8f9c162159fb1703155eb597; Python 3.13 6608ed52e332b49f76bceb479da21a7e1cdb912f4063bc3778bbfeef3db8d8e2.
+## Known remediation history
 
-## Findings retained for GPT
+The first substantive attempt used eight new test methods and failed `CASE_MANIFEST_MISMATCH`; it did not reach archive reproduction. The correction retained the same checks under existing manifest identities as named subtests. This is recorded in the work-process report and remains part of the review evidence.
 
-- A prior workflow failed with an obsolete primary identity lookup; its failed run is retained as evidence, not ignored.
-- Run 30679651468 was green but exposed top-level tested-identity drift and a runner-derived job label. R1 fixed both and run 30680004228 is the corrected evidence source.
-- The receipt-only commit cannot contain its own final SHA; the contract binds it to CURRENT_PR_HEAD, records the direct parent and tested-parent correction chain, and publishes the full head externally after commit creation.
+## Requested GPT decision
 
-## Review request
+1. Verify the phase/token separation and all fail-closed cases.
+2. Verify the receipt commit is a direct child of the tested head and changes only the seven declared evidence paths.
+3. Keep PR #107 Draft and all later gates frozen pending the decision.
 
-Review the final substantive tested commit, the complete three-root manifest, the receipt-only head and its external PR anchor. Keep Draft PR #107 unmerged and Gate C/D frozen.
-
-## Rollback
-
-Close Draft PR #107 or revert only E31 allowed-path commits. E30 and E29 history remain preserved; no production state changed.
+No production, account, order, market-data, or trade behavior is included.
