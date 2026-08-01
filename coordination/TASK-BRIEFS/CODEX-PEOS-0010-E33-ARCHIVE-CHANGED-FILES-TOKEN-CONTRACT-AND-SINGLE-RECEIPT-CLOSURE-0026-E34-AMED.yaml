@@ -1,0 +1,85 @@
+schema_version: "1.0"
+task_id: "CODEX-PEOS-0010-E33-ARCHIVE-CHANGED-FILES-TOKEN-CONTRACT-AND-SINGLE-RECEIPT-CLOSURE-0026-E34"
+route_epoch: 35
+mode: "target"
+mode_label: "【Codex模式：目标模式】E33归档Changed-Files令牌契约与单一Receipt闭环E34"
+owner_agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 108
+pull_request: 107
+branch: "codex/vendor-neutral-agent-operating-kernel-0011"
+reviewed_base: "10849643745f0962673efcbd425c66824bae7b70"
+reviewed_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
+status: "READY"
+execution_allowed: true
+completion_signal: "CODEX_E34_PEOS_0010_PHASE_BOUND_ARCHIVE_COMMAND_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+
+objective: >-
+  Repair exactly one inherited archive-command validation contradiction: E31 manifests must require ./.e31-changed-files.txt,
+  while VNAK_E32_ARCHIVE_PROVENANCE_v1 and E32/E33 authority must require the truthful ./.e32-changed-files.txt emitted by the workflow.
+  Then move the tested identity to the repair commit, rerun exact-head dual-Python CI and three-root archives, create exactly one later
+  non-empty evidence-only receipt, validate receipt head, and stop.
+
+verified_input_evidence:
+  tested_head: "10849643745f0962673efcbd425c66824bae7b70"
+  tested_tree: "c515cd8028659888e522c5a67f9e78dc260537c5"
+  exact_ci_run: 30691866084
+  python_311_job: 91347896860
+  python_313_job: 91347896832
+  tests_each_runtime: "122/122 PASS"
+  roots_each_runtime: 3
+  artifact_ids: [8815937925, 8815938406]
+  observed_true_command_token: "--changed-files ./.e32-changed-files.txt"
+  conflicting_validator_token: "./.e31-changed-files.txt"
+  current_failure: "E31_ROOT_COMMAND_INCOMPLETE:./.e31-changed-files.txt"
+
+required_implementation:
+  - "Replace the unconditional E31 changed-files token requirement with a phase/schema-bound resolver."
+  - "For E31 archive schema/authority, require exactly ./.e31-changed-files.txt."
+  - "For VNAK_E32_ARCHIVE_PROVENANCE_v1 or E32/E33 archive authority, require exactly ./.e32-changed-files.txt."
+  - "Do not accept arbitrary changed-files paths, both tokens simultaneously, traversal paths, absolute paths, aliases or substring tricks."
+  - "Preserve all existing command requirements: ./coordination/, ci_verify.py, --commit, --tree, --tested-commit and --tested-tree."
+  - "Add positive tests for valid E31 and valid E32 commands."
+  - "Add negative tests for cross-phase token mismatch, both-token ambiguity, missing token, external/absolute path and lookalike token."
+  - "Do not edit existing archive evidence to falsely claim the E31 token."
+
+commit_and_evidence_shape:
+  corrective_executable_commits_max: 1
+  final_tested_head: "THE_E34_VALIDATOR_AND_TEST_REPAIR_COMMIT"
+  exact_head_ci_required: ["Python 3.11", "Python 3.13"]
+  three_archive_roots_per_runtime_required: true
+  receipt_commits_allowed: 1
+  receipt_commit_class: "NON_EMPTY_EVIDENCE_ONLY"
+  receipt_parent_must_equal_tested_head: true
+  receipt_head_dual_python_validation_required: true
+  post_receipt_commit_forbidden: true
+  prohibited: ["amend", "rebase", "reset", "force_push", "merge", "receipt_correction_chain", "evidence_relabeling"]
+
+allowed_changed_files:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/src/vendor_neutral_agent_kernel/evidence.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/tests/test_e31_evidence.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/tests/test_e32_topology.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-ARCHIVE-PROVENANCE-MATRIX.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-COMPLETION-EVIDENCE.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TEST-RUN-RECEIPT.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-TOPOLOGY-EVIDENCE.json"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/AI_HANDOFF.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/STATUS.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/GPT-REVIEW-PACKET.md"
+
+model_reasoning_execution_profile:
+  preferred_model: "gpt-5.6-sol"
+  reasoning_effort: "xhigh"
+  execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  actual_profile_reporting_required: true
+  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+
+hard_boundaries:
+  - "QQ E27 takeover remains queued and non-executable until GPT accepts E34."
+  - "Do not edit QQ PR #100 or its branch."
+  - "No adapter implementation, K3 cross-model execution, K4 Shadow activation, canonical promotion, merge, private/real data, production, accounts, orders or trades."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
