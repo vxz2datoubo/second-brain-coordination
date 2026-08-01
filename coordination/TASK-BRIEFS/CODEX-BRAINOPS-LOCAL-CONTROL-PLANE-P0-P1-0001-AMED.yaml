@@ -1,0 +1,155 @@
+schema_version: "1.0"
+kind: "AMED_TASK_BRIEF"
+
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】BrainOps本地Agent、服务与端口控制平面P0-P1"
+mode_reason: >-
+  This is a new cross-cutting local operations subsystem spanning Windows user sessions, optional Windows Services,
+  process supervision, ports, browser UI, persistence, GitHub route reconciliation, Codex non-interactive execution,
+  Docker adapters, security boundaries and future MaiBot voice services. Multiple capability unknowns and architecture
+  decisions must be resolved before mutating process control is safe, so project-plan mode is mandatory.
+
+task_id: "CODEX-BRAINOPS-LOCAL-CONTROL-PLANE-P0-P1-0001"
+target_agent: "CODEX"
+status: "QUEUED_BLOCKED_BY_CODEX_E34_GPT_ACCEPTANCE_AND_EXPLICIT_ACTIVATION"
+execution_allowed: false
+automatic_dispatch_allowed: false
+automatic_resume: false
+direct_main_write: false
+auto_merge: false
+
+repository: "vxz2datoubo/second-brain-coordination"
+planned_branch: "codex/brainops-local-control-plane-p0-p1-0001"
+planned_pr_base: "main"
+blueprint: "coordination/BLUEPRINTS/BRAINOPS-LOCAL-AGENT-SERVICE-AND-PORT-CONTROL-PLANE-v1.0.md"
+skill: ".agents/skills/brainops-control-plane/SKILL.md"
+
+activation_dependencies:
+  - "GPT independently accepts the currently active Codex E34 task or explicitly releases a separate non-conflicting worktree route."
+  - "GPT publishes a fresh ACTIVE-CODEX-TASK route with an exact reviewed base and route epoch."
+  - "The user confirms that local read-only capability discovery may inspect installed tools and running service metadata."
+
+fundamental_goal: >-
+  Build the trustworthy local control surface that makes Second Brain automation visible, stoppable, auditable and extensible,
+  without silently converting user-authenticated agents into system services or exposing arbitrary shell and ports.
+
+scope_class: "P0_DISCOVERY_AND_P1_READ_ONLY_PROTOTYPE"
+
+required_outputs:
+  - "A repository and local-environment capability inventory with SUPPORTED / UNSUPPORTED / UNKNOWN / BLOCKED classifications."
+  - "Architecture decision records for split User Agent versus optional Windows Host Service, UI packaging, persistence and process supervision."
+  - "Threat model covering local web control, credentials, prompt injection, arbitrary command execution, public binding, stale routes, duplicate dispatch and orphan processes."
+  - "Typed schemas for service manifests, port manifests, observed state, desired state, health results, audit events, leases, activation manifests and Codex sessions."
+  - "A minimal ASP.NET Core read-only prototype, preferably Blazor, bound to loopback only."
+  - "SQLite-backed registry and audit skeleton with no secret storage."
+  - "Read-only discovery adapters for native processes, Windows Services, listening ports and Docker Compose availability."
+  - "SignalR or equivalent real-time dashboard updates with polling reconciliation fallback."
+  - "A mock/shadow Codex route reconciler that reads fixtures and reports WOULD_DISPATCH / WOULD_BLOCK without invoking Codex."
+  - "Unit, integration and adversarial tests for schema, redaction, loopback binding, route fencing, duplicate activation and QQ execution denial."
+  - "Installer/startup options report; do not install any service or startup task in this route."
+  - "WPDCR report with actual difficulty, failed approaches, unknowns, opportunities and exact coordination requests."
+
+mandatory_architecture_constraints:
+  - "Codex OAuth/user-profile execution belongs to a user-session agent, not LocalSystem/LocalService by default."
+  - "The optional system Host Service may control only infrastructure that does not require interactive user credentials."
+  - "No arbitrary shell command API or free-form executable path may exist."
+  - "Management endpoints bind to 127.0.0.1 only in P0-P1."
+  - "All executable paths, work directories and argument templates are allowlisted manifests."
+  - "SQLite stores metadata and audit state only; secrets remain outside Git and database records."
+  - "Native process supervision must plan for Windows Job Objects or an equivalently verified whole-process-tree mechanism."
+  - "Docker is optional and absence of Docker must not block the prototype."
+  - "QQ/QCLAW remains non-executable whenever its canonical route says execution_allowed: false."
+  - "No automatic Codex dispatch, no process start/stop and no Windows Service installation in this route."
+
+capability_probe_requirements:
+  operating_system:
+    - "Windows version and architecture"
+    - "current user/session type"
+    - "administrator availability without using it"
+  dotnet:
+    - "installed SDK/runtime versions"
+    - "preferred current supported LTS target"
+  codex:
+    - "CLI version"
+    - "login status without revealing credentials"
+    - "codex exec availability"
+    - "JSONL support"
+    - "permission-profile support"
+    - "doctor output with secrets redacted"
+    - "app-server and mcp-server feature maturity only; do not depend on experimental APIs"
+  github:
+    - "repository accessibility"
+    - "current route files"
+    - "Actions and connector permissions"
+  docker:
+    - "Docker Desktop and compose availability"
+  local_services:
+    - "read-only inventory of relevant Second Brain, Codex, QQ and candidate MaiBot processes/ports"
+
+prototype_ui_requirements:
+  summary_cards:
+    - "global automation status fixture"
+    - "Codex executor fixture state"
+    - "pending review request count fixture"
+    - "service health counts"
+    - "port conflict count"
+    - "last sync and action"
+  service_table:
+    - "service name and adapter"
+    - "desired and observed state"
+    - "PID/service/container identity"
+    - "ports and health"
+    - "uptime/restart count"
+    - "last error"
+  controls:
+    - "All mutating controls visually present only if useful but disabled with explicit P1_READ_ONLY reason."
+    - "A visible global kill-switch design must exist but cannot perform mutations in this route."
+
+security_tests:
+  - "Reject 0.0.0.0 and non-loopback management binding."
+  - "Reject path traversal, executable substitution and arbitrary arguments."
+  - "Reject secrets and token-like values in manifests and logs."
+  - "Reject duplicate YAML/JSON keys where schemas are security-relevant."
+  - "Reject stale route epochs and duplicate activation idempotency keys."
+  - "Reject dispatch for PAUSED, BLOCKED, DISABLED and execution_allowed:false fixtures."
+  - "Prove QQ paused fixture cannot become WOULD_DISPATCH."
+  - "Prove UI mutating endpoints are absent or hard-disabled in P1."
+
+preferred_stack:
+  control_plane: "ASP.NET Core on the newest installed supported LTS; prefer .NET 10 if available, otherwise report a justified supported fallback."
+  ui: "Blazor Web App or an equally low-dependency ASP.NET Core UI."
+  realtime: "SignalR."
+  persistence: "EF Core SQLite."
+  telemetry: "Structured local logs; OpenTelemetry-compatible instrumentation may be scaffolded but no external collector required."
+  tests: "xUnit or equivalent, plus process/port fixture tests that do not disturb unrelated local services."
+
+forbidden_actions:
+  - "Do not modify ACTIVE-CODEX-TASK or ACTIVE-QCLAW-TASK in this queued task."
+  - "Do not claim or execute before a fresh GPT route."
+  - "Do not install .NET, Docker, Windows Services, scheduled tasks or startup entries."
+  - "Do not start, stop or kill existing local processes."
+  - "Do not bind a management endpoint beyond loopback."
+  - "Do not read or export OAuth tokens, API keys, browser profiles or credential stores."
+  - "Do not implement automatic Codex execution."
+  - "Do not add trade, account, broker, replay or production-market capabilities."
+
+acceptance_gates:
+  G0_route_truth:
+    - "Fresh route and exact reviewed base are verified after activation."
+  G1_discovery_truth:
+    - "Every capability is evidence-classified; unknowns remain unknown."
+  G2_architecture:
+    - "Split-host architecture and rejected alternatives are documented."
+  G3_security:
+    - "Threat model and fail-closed tests pass."
+  G4_prototype:
+    - "Read-only loopback dashboard and registry operate from a clean checkout."
+  G5_no_mutation:
+    - "No process, service, startup or port state was modified outside the prototype's own loopback listener and temporary test fixtures."
+  G6_review:
+    - "One tested substantive commit followed by one non-empty evidence-only receipt, then stop for GPT review."
+
+completion_signal: "CODEX_BRAINOPS_P0_P1_DISCOVERY_ARCHITECTURE_AND_READ_ONLY_CONTROL_PLANE_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+
+boundary: "LOCAL_FIRST / READ_ONLY_DISCOVERY / PROTOTYPE_ONLY / NO_TRADE"
