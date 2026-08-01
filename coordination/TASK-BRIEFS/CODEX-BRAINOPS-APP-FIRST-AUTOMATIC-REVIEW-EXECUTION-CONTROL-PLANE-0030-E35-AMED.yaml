@@ -1,0 +1,156 @@
+schema_version: "1.0"
+kind: "AMED_TASK_BRIEF"
+
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】BrainOps App-first 自动审查—发布—执行控制链 E35"
+mode_reason: >-
+  This task introduces a cross-cutting local control plane spanning the unified ChatGPT/Codex desktop app,
+  Codex App Automations, GitHub review/task routes, a visible local operations console, process and port
+  supervision, leases, fencing, idempotency, App/CLI execution ownership and future Second Brain/MaiBot services.
+  The local Codex App capabilities and stable external invocation surface must be proven rather than assumed,
+  so project-plan mode with staged implementation and evidence gates is mandatory.
+
+task_id: "CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35"
+target_agent: "CODEX"
+route_epoch: 36
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+automatic_resume: false
+direct_main_write: false
+auto_merge: false
+second_user_start_command_required: false
+
+repository: "vxz2datoubo/second-brain-coordination"
+source_blueprint_pr: 109
+source_blueprint_head: "96f926eacaf52221ac4630c8bb0039bfe05216d2"
+source_blueprint_branch: "gpt/brainops-control-plane-blueprint-0001"
+planned_branch: "codex/brainops-app-first-automatic-chain-0030-e35"
+planned_draft_pr: true
+parent_program: 31
+
+predecessor_review:
+  pr: 107
+  delivered_receipt_head: "a8994693b6cf7245dc9adf6ec6c40d653db5e96b"
+  tested_substantive_head: "c2f3aef1fdc40da5b7f119654ec9f65f597dccca"
+  exact_tested_ci_run: 30706808220
+  exact_tested_ci_result: "SUCCESS"
+  receipt_ci_run: 30707492422
+  receipt_ci_result: "FAILED"
+  classification: "E34_SUBSTANTIVE_HEAD_ACCEPTED_AS_REUSABLE_RECEIPT_HEAD_VALIDATION_POLICY_BLOCKED"
+  completion_credit: false
+  reusable_credit: true
+  frozen: true
+  reason: >-
+    The substantive head passed the dedicated dual-Python 122/122 CI and three clean archive roots per runtime.
+    The receipt head then exposed two pre-existing topology tests that incorrectly require TESTED_HEAD/RUNTIME_EXPECTED
+    when validating a RECEIPT_HEAD. Repair after the receipt would violate the single-receipt topology, so PR #107 is
+    frozen for a later receipt-aware policy route and must not be silently rewritten in this task.
+
+model_reasoning_execution_profile:
+  requested_model: "gpt-5.6-sol"
+  reasoning_effort: "max"
+  execution_intensity: "X4_MAXIMUM"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+  minimum_acceptable_fallback:
+    model: "gpt-5.6-terra"
+    reasoning_effort: "xhigh"
+    permitted_scope: "deterministic inventory, schema and test work only"
+    must_report_before_use: true
+
+fundamental_goal: >-
+  Build the first trustworthy, visible and reversible BrainOps control plane that prefers the Codex view and
+  Codex App Automations inside the unified ChatGPT desktop app, while retaining Codex CLI/SDK only as an explicit
+  fallback. The user must be able to see whether the chain is running, pause or disable it, inspect routes, sessions,
+  logs and ports, and eventually manage Second Brain and MaiBot services from one localhost console.
+
+first_delivery_scope: "P0_DISCOVERY + P1_READ_ONLY_CONSOLE + P3_SHADOW_RECONCILIATION"
+
+required_reading:
+  - "Draft PR #109 at exact head 96f926eacaf52221ac4630c8bb0039bfe05216d2"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
+  - "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
+  - "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
+
+mandatory_capability_probe:
+  desktop_app:
+    - "Installed ChatGPT desktop version and Windows package identity without reading secrets."
+    - "Presence of the unified ChatGPT/Codex global switcher and Codex view."
+    - "Presence and exact UI/API-observable behavior of Codex App Automations."
+    - "Supported schedule intervals, specifically whether a 30-minute interval is available."
+    - "Whether an automation runs in a visible Codex thread and returns results to a review queue."
+    - "Whether the app must remain running and the PC awake."
+    - "Whether official deep link, URI handler, local API, App Intent or other supported external trigger exists."
+    - "Whether App and CLI share authentication/config/session state, with evidence and no credential disclosure."
+  codex_cli_fallback:
+    - "CLI version, login status, codex exec, JSONL, session resume and permission-profile support."
+    - "Do not make CLI the primary path when App Automation is supported."
+  host_environment:
+    - "Windows version/session, .NET SDK/runtime, Docker availability, Git, repository/worktree and relevant ports."
+
+capability_classification:
+  allowed_values: ["SUPPORTED", "UNSUPPORTED", "UNKNOWN", "BLOCKED"]
+  rule: "Documentation alone is not local capability evidence; unknowns remain UNKNOWN."
+
+required_outputs:
+  - "App-first versus CLI-fallback architecture ADR with current official/local evidence and rejected alternatives."
+  - "Threat model for desktop automation, GitHub prompt injection, OAuth/session boundaries, localhost control and arbitrary-command denial."
+  - "Typed schemas for service manifests, port manifests, desired/observed state, activation manifests, leases, fencing generations, idempotency, execution ownership, Codex App automation identity and CLI sessions."
+  - "Loopback-only ASP.NET Core/Blazor read-only control console, or a better justified low-dependency equivalent."
+  - "SQLite metadata/audit skeleton with no secret storage."
+  - "Read-only discovery adapters for processes, Windows Services, listening ports, Docker availability, ChatGPT/Codex desktop presence and Codex CLI capability."
+  - "SignalR or equivalent live status with polling recovery."
+  - "Shadow review-request watcher and route reconciler that checks GitHub events plus a 30-minute anti-entropy schedule fixture."
+  - "Shadow ownership selector with APP_AUTOMATION / CLI_FALLBACK / MANUAL_APP / NONE and one-owner-per-route fencing."
+  - "Exact Codex App Automation prompt and manual setup instructions when the capability is supported."
+  - "WOULD_DISPATCH / WOULD_BLOCK evidence for READY, BLOCKED, PAUSED, stale epoch, duplicate activation, active lease, user-approval-required and automation-disabled cases."
+  - "Visible UI designs for global automation switch, per-service switch, pause dispatch, safe stop, terminate fallback executor and emergency stop, all mutating actions disabled in this delivery."
+  - "Port and future MaiBot component registry design covering capture, VAD, STT, dialogue, TTS, playback and terminal/websocket gateway."
+  - "WPDCR report, actual model/profile report, failed approaches, unknowns, opportunities and next bounded route recommendation."
+
+app_first_rules:
+  - "Codex App/Codex view is the preferred human-visible execution surface."
+  - "Codex CLI/SDK is an explicit fallback, not a hidden parallel executor."
+  - "Do not use UI mouse/keyboard automation, screen-coordinate clicking or reverse-engineered private IPC as production control."
+  - "Do not claim direct App activation unless an official supported interface or locally verified App Automation path exists."
+  - "The management console must not kill the whole ChatGPT app merely to stop one task; whole-app termination requires a separate explicit emergency action design."
+  - "App and CLI must never claim the same route epoch; execution ownership is fenced and auditable."
+
+security_and_boundary_rules:
+  - "Management endpoints bind to 127.0.0.1 only."
+  - "No arbitrary shell, executable path or free-form argument API."
+  - "No credential, OAuth token, cookie, browser-profile or secret inspection/output."
+  - "No Windows Service installation, startup registration, Task Scheduler mutation, firewall change or public/LAN bind in this route."
+  - "No actual Codex unattended dispatch in this route; shadow only."
+  - "Do not modify or continue PR #107, PR #100 or their branches."
+  - "Do not dispatch QQ; QQ has a separate authority route."
+  - "No trading, account, order, broker, real-market execution or production activation."
+
+mandatory_tests:
+  - "Loopback binding enforcement and public-bind rejection."
+  - "Schema duplicate-key, traversal, executable substitution, argument injection and secret-redaction tests."
+  - "Stale epoch fencing, duplicate idempotency, concurrent lease and one-owner-per-route races."
+  - "READY/BLOCKED/PAUSED/DISABLED/approval-required fixtures."
+  - "QQ route cannot be dispatched by the Codex controller."
+  - "App-unavailable and CLI-unavailable degradation without false success."
+  - "Offline GitHub behavior and later reconciliation."
+  - "UI reconnect/state resynchronization."
+  - "All P1/P3 mutating endpoints absent or fail closed."
+
+commit_and_evidence_shape:
+  substantive_commits: "one or a small project-plan series justified in the plan"
+  final_receipt: "one non-empty evidence-only receipt directly after the exact tested head"
+  receipt_parent_must_equal_tested_head: true
+  exact_head_ci_required: true
+  required_runtimes: ["supported .NET target", "repository-required Python checks where applicable"]
+  prohibited: ["amend", "rebase", "reset", "force_push", "direct_main_write", "auto_merge", "post_receipt_commit"]
+
+completion_signal: "CODEX_BRAINOPS_APP_FIRST_P0_P1_P3_CONTROL_PLANE_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+
+boundary: "LOCAL_FIRST / APP_FIRST / READ_ONLY_AND_SHADOW_ONLY / PUBLIC_SAFE / NO_TRADE"
