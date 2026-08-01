@@ -1,17 +1,17 @@
-schema_version: "36.0"
+schema_version: "37.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E32_ACTIVE_QCLAW_E26_EVIDENCE_AND_TOPOLOGY_CLOSURE_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E33_REMOTE_OBJECT_INTEGRITY_ACTIVE_QCLAW_E26_PAUSED_COMPUTE_EXHAUSTED_CODEX_E27_TAKEOVER_QUEUED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-01T11:48:00+08:00"
+updated_at: "2026-08-01T15:32:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE"}
   agent_read_command: {trigger: "读取任务", meaning: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY", second_start_command_required: false}
 
 parallel_route_rule: >-
-  Codex and QQ are independent active lanes. Completion, blockage or correction in one lane must not suspend, overwrite or silently
-  advance the other lane. Each lane keeps its own task_id, epoch, PR, branch, tested identity, model profile and completion signal.
+  Codex and QQ remain separate provenance lanes. A transfer must be explicit, preserve the source head, use a new branch and Draft PR,
+  and must not silently mutate the original agent branch. Queued takeover work cannot start until its dependency and GPT activation are satisfied.
 
 permanent_governance:
   autonomy_protocol: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
@@ -20,41 +20,50 @@ permanent_governance:
   final_head_topology_protocol: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
   final_head_rule: "Any executable-class correction invalidates earlier CI/archive acceptance and moves the tested identity forward."
   receipt_rule: "A final receipt is exactly one later non-empty evidence-only commit whose parent equals the final tested executable head."
-  direct_observation_rule: "Git object topology and diffs override narrative commit labels and declared correction chains."
-  adversarial_semantics_rule: "Setup failure cannot count as adversarial success; each case must prove the intended mutation and expected failure identifier."
+  direct_observation_rule: "Git object topology, remote bytes, workflow runs and diffs override narrative labels."
+  adversarial_semantics_rule: "Setup failure cannot count as adversarial success; each case must prove its intended mutation and expected failure identifier."
+  transfer_rule: "Cross-agent takeover requires explicit queue, dependency, clean-room branch, new Draft PR and immutable source-agent history."
 
 agents:
   CODEX:
     active_issue: 108
     pull_request: 107
-    task_id: "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32"
-    route_epoch: 33
+    task_id: "CODEX-PEOS-0010-E32-REMOTE-OBJECT-INTEGRITY-EXACT-CI-AND-SINGLE-RECEIPT-CLOSURE-0025-E33"
+    route_epoch: 34
     status: "READY"
     execution_allowed: true
-    reviewed_base: "f3d062b82262aa5c977800a2d5a91ee7fb089cb8"
+    reviewed_base: "cd59d223f43f611e36f4aec22bf81aaa15edb54a"
     mode: "target"
     model: "gpt-5.6-sol"
     reasoning_effort: "xhigh"
     execution_intensity: "X3_DEEP"
     permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "CODEX_E32_PEOS_0010_FINAL_EXECUTABLE_HEAD_ARCHIVE_AND_SINGLE_RECEIPT_TOPOLOGY_READY_FOR_GPT_REVIEW"
+    completion_signal: "CODEX_E33_PEOS_0010_REMOTE_OBJECT_INTEGRITY_EXACT_CI_ARCHIVE_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+    current_action: "Repair corrupted remote executable object, prove remote/local byte equality, then close exact-head CI/archive/single-receipt topology."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+    forbidden_while_active: "Do not start queued QQ takeover E27."
   QCLAW:
     active_issue: 59
     pull_request: 100
     task_id: "QCLAW-PR100-E25-D2-SELF-PROOF-CI-ARCHIVE-CASE-SEMANTICS-WPDCR-AND-SINGLE-RECEIPT-CLOSURE-0028-E26"
     route_epoch: 26
-    status: "READY"
-    execution_allowed: true
-    reviewed_base: "ad9a5d0f81c1d4894dc7e8499400638e83521c28"
-    mode: "target"
-    model: "gpt-5.6-sol"
-    reasoning_effort: "xhigh"
-    execution_intensity: "X3_DEEP"
-    permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "QCLAW_E26_PR100_EXTERNAL_D2_EXACT_HEAD_CI_THREE_ROOT_ARCHIVE_CASE_SEMANTICS_WPDCR_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
-    current_action: "Remove local D2 self-proof and stale workflow/bytecode, repair adversarial semantics, implement exact-head three-root evidence and close with one receipt."
+    status: "PAUSED_COMPUTE_EXHAUSTED_TRANSFER_QUEUED"
+    execution_allowed: false
+    automatic_resume: false
+    reviewed_base: "0b0d22c68b3ad025924f6f48c0625fe6b00d2049"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    next_command: "DO_NOT_EXECUTE"
+  CODEX_QUEUED_QCLAW_TAKEOVER:
+    task_id: "CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27"
+    route_epoch: 27
+    status: "QUEUED_BLOCKED_BY_CODEX_E33_GPT_ACCEPTANCE"
+    execution_allowed: false
+    source_head: "0b0d22c68b3ad025924f6f48c0625fe6b00d2049"
+    activation_condition: "GPT_ACCEPTS_CODEX_E33_AND_EXPLICITLY_ACTIVATES_E27"
+    required_branch: "codex/qclaw-pr100-e26-cleanroom-takeover-0029-e27"
+    required_pr: "NEW_DRAFT_PR_TO_MAIN"
+    direct_edit_of_qclaw_branch_forbidden: true
+    task_brief: "coordination/TASK-BRIEFS/CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27-AMED.yaml"
   WORKBUDDY:
     task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
     route_epoch: 15
@@ -64,32 +73,33 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  QCLAW_E25:
-    classification: "SHARED_CI_RESTORED_LOCAL_DUAL_PYTHON_REUSABLE_BUT_D2_SELF_PROOF_ARCHIVE_CI_CASE_SEMANTICS_WPDCR_AND_RECEIPT_TOPOLOGY_FAILED"
-    accepted_reusable:
-      - "Shared Phase-3 workflow exact canonical blob 024f4e80."
-      - "Local Python 3.11.10 and 3.13.3 diagnostic 45/45 runs."
-      - "Canonical D2 commit/hash identity and dedicated workflow scaffold."
-    returned:
-      - "Candidate D2 and legacy E24 self-proof workflow remain."
-      - "Runner copies local D2 and does not execute three archive roots."
-      - "Only 41 true adversarial cases; setup failure can inflate pass counts."
-      - "Archive manifest and receipts retain placeholders/local identity/stale epoch and signal."
-      - "No visible exact-head CI anchors."
-      - "WPDCR contains directly false deletion claims."
-      - "Receipt is empty and followed by two later commits."
-      - "Committed pyc files violate deterministic evidence hygiene."
+  CODEX_E32:
+    classification: "LOCAL_122_PASS_AND_SINGLE_EXECUTABLE_COMMIT_INTENT_REUSABLE_REMOTE_OBJECT_INTEGRITY_AND_DUAL_PYTHON_CI_FAILED"
+    evidence:
+      - "Run 30685277875 failed on jobs 91329683930 and 91329683953."
+      - "Remote evidence.py contains invalid non-printable U+05CF."
+      - "Archive and artifact steps were skipped."
+      - "Phase 3 run 30685277898 succeeded but does not satisfy candidate evidence acceptance."
+  QCLAW_E26:
+    classification: "LOCAL_PROGRESS_REUSABLE_D2_FALLBACK_LOCAL_DUPLICATE_ADVERSARIAL_SEMANTICS_ARCHIVE_CI_AND_RECEIPT_TOPOLOGY_FAILED"
+    evidence:
+      - "Candidate-local d2_game_core.py remains."
+      - "Runner has historical candidate D2 fallback and still includes baseline A10 in the declared 42 cases."
+      - "Archive matrix per_seed is empty and verification is deferred."
+      - "No exact-head Actions run or status exists for 0b0d22c6."
+      - "Multiple receipt/correction commits violate the single-receipt contract."
 
 frozen:
   - "No merge."
   - "No Gate C/D/E or Issue #92 execution."
   - "No canonical D2/PEOS/index/AGENTS mutation."
   - "No private/real data, production, replay, backtest, accounts, orders or trades."
-  - "WorkBuddy remains paused."
+  - "QQ and WorkBuddy remain paused."
+  - "Codex E27 takeover remains queued until E33 GPT acceptance."
 
 next_commands:
   CODEX: "读取任务"
-  QCLAW: "读取任务"
+  QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
