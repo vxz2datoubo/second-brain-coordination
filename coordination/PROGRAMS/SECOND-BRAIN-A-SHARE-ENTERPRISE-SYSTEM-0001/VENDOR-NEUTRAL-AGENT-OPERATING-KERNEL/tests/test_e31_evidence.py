@@ -100,56 +100,13 @@ class E31EvidenceTests(unittest.TestCase):
             path.write_text(yaml.safe_dump(archive, sort_keys=False), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "STATUS_NOT_FINAL"):
                 validate_e31_archive_manifest(path)
-
-    def test_e31_archive_accepts_only_its_exact_changed_files_token(self):
-        result = self._validate_archive(self._archive())
-        self.assertEqual(result["root_count"], 3)
-
-    def test_e32_archive_accepts_its_exact_changed_files_token(self):
-        result = self._validate_archive(self._e32_archive(), e32=True)
-        self.assertEqual(result["root_count"], 3)
-
-    def test_e33_authority_accepts_e32_changed_files_token(self):
-        result = self._validate_archive(self._e32_archive("E33_FINAL_TESTED_HEAD"), e32=True)
-        self.assertEqual(result["root_count"], 3)
-
-    def test_cross_phase_changed_files_token_fails_closed(self):
-        archive = self._archive()
-        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
-            "./.e31-changed-files.txt", "./.e32-changed-files.txt"
-        )
-        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_TOKEN_MISMATCH"):
-            self._validate_archive(archive)
-
-    def test_both_changed_files_tokens_fail_closed(self):
-        archive = self._archive()
-        archive["roots"][0]["command"] += " --changed-files ./.e32-changed-files.txt"
-        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_ARGUMENT_INVALID|LOOKALIKE_OR_AMBIGUOUS"):
-            self._validate_archive(archive)
-
-    def test_missing_changed_files_token_fails_closed(self):
-        archive = self._archive()
-        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
-            "--changed-files ./.e31-changed-files.txt ", ""
-        )
-        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_ARGUMENT_INVALID"):
-            self._validate_archive(archive)
-
-    def test_external_and_traversal_changed_files_tokens_fail_closed(self):
-        for token in ("/tmp/e31-changed-files.txt", "./archive/../.e31-changed-files.txt"):
-            with self.subTest(token=token):
-                archive = self._archive()
-                archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
-                    "./.e31-changed-files.txt", token
-                )
-                with self.assertRaisesRegex(ValueError, "CHANGED_FILES_TOKEN_MISMATCH|LOOKALIKE_OR_AMBIGUOUS"):
-                    self._validate_archive(archive)
-
-    def test_lookalike_changed_files_token_fails_closed(self):
-        archive = self._archive()
-        archive["roots"][0]["command"] += " ./.e31-changed-files.txt.bak"
-        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_LOOKALIKE_OR_AMBIGUOUS"):
-            self._validate_archive(archive)
+        for label, candidate, e32 in (
+            ("e31", self._archive(), False),
+            ("e32", self._e32_archive(), True),
+            ("e33-authority", self._e32_archive("E33_FINAL_TESTED_HEAD"), True),
+        ):
+            with self.subTest(contract=label):
+                self.assertEqual(self._validate_archive(candidate, e32=e32)["root_count"], 3)
 
     def test_missing_root_path_hash_fails_closed(self):
         archive = self._archive()
@@ -208,6 +165,23 @@ class E31EvidenceTests(unittest.TestCase):
             path.write_text(yaml.safe_dump(archive, sort_keys=False), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "UNRESOLVED_MARKER"):
                 validate_e31_archive_manifest(path)
+
+        e31_token = "./.e31-changed-files.txt"
+        e32_token = "./.e32-changed-files.txt"
+        cases = (
+            ("cross-phase", lambda command: command.replace(e31_token, e32_token), "CHANGED_FILES_TOKEN_MISMATCH"),
+            ("both-tokens", lambda command: command + " --changed-files " + e32_token, "CHANGED_FILES_ARGUMENT_INVALID|LOOKALIKE_OR_AMBIGUOUS"),
+            ("missing", lambda command: command.replace("--changed-files " + e31_token + " ", ""), "CHANGED_FILES_ARGUMENT_INVALID"),
+            ("absolute", lambda command: command.replace(e31_token, "/tmp/e31-changed-files.txt"), "CHANGED_FILES_TOKEN_MISMATCH|LOOKALIKE_OR_AMBIGUOUS"),
+            ("traversal", lambda command: command.replace(e31_token, "./archive/../.e31-changed-files.txt"), "CHANGED_FILES_TOKEN_MISMATCH|LOOKALIKE_OR_AMBIGUOUS"),
+            ("lookalike", lambda command: command + " ./.e31-changed-files.txt.bak", "CHANGED_FILES_LOOKALIKE_OR_AMBIGUOUS"),
+        )
+        for label, mutate, error in cases:
+            with self.subTest(changed_files_case=label):
+                archive = self._archive()
+                archive["roots"][0]["command"] = mutate(archive["roots"][0]["command"])
+                with self.assertRaisesRegex(ValueError, error):
+                    self._validate_archive(archive)
 
     def test_final_receipt_binds_to_current_head_and_tested_parent(self):
         evidence = self._evidence()
