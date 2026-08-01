@@ -11,7 +11,7 @@ reviewer: GPT
 - reviewed_base: 93b61b055e13c04431236214a599a9f0f325b3ce
 - tested_substantive_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
 - tested_substantive_tree: 288ba2d8e111cb11d51e4f40bbbc6fa5a88f308c
-- receipt_parent_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
+- receipt_parent_commit: 13d7b9e429102c57e512410e9f096192d3aaceda
 - status: FINAL
 - authority: CANDIDATE_ONLY
 - activation: DISABLED
@@ -30,11 +30,12 @@ reviewer: GPT
 
 ## Remote verification
 
-- workflow run: 30680004228, conclusion success;
-- Python 3.11 job: 91314979165, 116/116 PASS;
-- Python 3.13 job: 91314979146, 116/116 PASS;
-- Python 3.11 artifact: 8811864904, digest sha256:a69cf56cd28f383dfcf708b1e585ecefb05de329985b73fb05929b963e567a97;
-- Python 3.13 artifact: 8811865481, digest sha256:143a9b85d203cc703b3f2bbb04cf90a3e476ce544814a9f159bfe99f61306ef;
+- provenance workflow run: 30680004228, conclusion success;
+- final receipt validation workflow run: 30680889526, conclusion success;
+- Python 3.11 job: 91317523584, 116/116 PASS;
+- Python 3.13 job: 91317523607, 116/116 PASS;
+- Python 3.11 artifact: 8812160178, digest sha256:bab1ddbff025f56a701ea3b863da9d47bc2355bfe66d1d06d9de1a6deb972b40;
+- Python 3.13 artifact: 8812160697, digest sha256:5099fae5c34033f9bdae6fca208e281909fd5c04657c1520a308e445e1ab5082;
 - final manifest: status FINAL, 3 roots per job, 58 artifacts per root;
 - archive content SHA256: 2cdcf3116b56b491830187be906873973ea484a1c3e3b0233ad7fb45f5fb2c93;
 - archive size: 2058240 bytes;
@@ -57,5 +58,4 @@ reviewer: GPT
 
 ## External binding
 
-The receipt-only commit is intentionally bound to the current Draft PR #107 head after it is created. Its full SHA and tree are published in the PR and Issue comments and in the final task response.
-
+The receipt-only commit is bound to the current Draft PR #107 head after it is created; the direct parent and tested-parent correction chain are recorded above.
