@@ -1,0 +1,85 @@
+schema_version: "1.0"
+task_id: "CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31"
+route_epoch: 32
+agent: "CODEX"
+mode: "target"
+mode_label: "【Codex模式：目标模式】E30提交态WPDCR、Archive Root与Receipt Anchor真值闭环E31"
+issue: 108
+pull_request: 107
+branch: "codex/vendor-neutral-agent-operating-kernel-0011"
+reviewed_base: "93b61b055e13c04431236214a599a9f0f325b3ce"
+status: "READY"
+execution_allowed: true
+completion_signal: "CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+
+model_profile:
+  preferred_model: "gpt-5.6-sol"
+  reasoning_effort: "xhigh"
+  execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  fallback: {model: "gpt-5.6-terra", reasoning_effort: "high", use: "deterministic inventory/formatting only"}
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+
+accepted_reusable:
+  - "E30 executable tested parent d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b."
+  - "Receipt head 93b61b055e13c04431236214a599a9f0f325b3ce changes only evidence/report files."
+  - "Exact receipt-head Python 3.11/3.13 run 30676551612 and parent run 30676183695 succeeded with 103 tests."
+  - "Current review packet, completion evidence, autonomy ledger and ACCESS_NOT_EXPOSED model reporting are directionally reusable."
+  - "E29 adapter specifications and disabled K3/K4 gates remain preserved and unimplemented."
+
+blocking_findings:
+  - id: "E31-B01"
+    finding: "The committed WPDCR only lists base section names and does not contain the required non-empty section payloads."
+  - id: "E31-B02"
+    finding: "The committed archive manifest status remains E30_ARCHIVE_PROVENANCE_REQUIRED and cites parent run 30676183695 rather than final receipt-head validation."
+  - id: "E31-B03"
+    finding: "Committed root commands contain PENDING_E30_SUBSTANTIVE_COMMIT/TREE."
+  - id: "E31-B04"
+    finding: "root_locator is a synthetic archive:// label without an independently verifiable extracted-root path hash."
+  - id: "E31-B05"
+    finding: "Each root inventories only ci-report.json, not the complete declared candidate evidence/delivery artifact set."
+  - id: "E31-B06"
+    finding: "AI_HANDOFF retains PENDING_E30_RECEIPT_ONLY_COMMIT and future-receipt wording after the receipt exists."
+  - id: "E31-B07"
+    finding: "The validator accepts the above contradictions, so green CI is real but broader completion truth is not proven."
+
+required_results:
+  - "Replace list-only WPDCR base_sections with actual non-empty enterprise sections: task result/scope; verified facts/evidence; work trace; difficulty/AMED; plan-vs-actual; failures/discoveries; changed files/commands/tests; decisions/alternatives/rationale; UNKNOWN/risks; coordination/cross-agent impact; rollback/next gate; plus autonomy and model-profile overlays."
+  - "Commit a FINAL archive manifest bound to one exact executable tested commit/tree and distinguish tested-parent run from receipt-head validation run."
+  - "For each of three genuinely distinct extracted roots, record root_id, job/run identity, root_path_sha256, archive content tree hash, root-contained full command, cwd/root containment proof, exit code, stdout/stderr hashes."
+  - "Enumerate the full declared candidate evidence/delivery surface per root as relative path, size and SHA256; singleton ci-report-only manifests are invalid."
+  - "Remove every PENDING marker from final committed evidence. Resolve receipt self-reference through an explicit external-anchor scheme and publish the exact receipt SHA in PR/Issue comments after push."
+  - "Add fail-closed tests for list-only/blank WPDCR sections, non-FINAL archive status, PENDING command identity, absent root_path_sha256, incomplete artifact inventory, stale run identity, receipt pending marker, artifact drift and wrong signal."
+  - "Run exact final tested SHA under Python 3.11 and 3.13; after green evidence create one later non-empty evidence-only receipt commit, then validate the receipt head and publish external full-SHA anchors."
+
+allowed_changed_files:
+  - ".github/workflows/vendor-neutral-agent-kernel.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/**"
+
+preserve_without_reimplementation:
+  - "TASK-SPEC-W1-AUTHORITY-LEASE-ADAPTER-R1.yaml"
+  - "TASK-SPEC-W3-PHASE3-EPISTEMIC-MEMORY-ADAPTER-R1.yaml"
+  - "TASK-SPEC-W8-CAPABILITY-EXECUTION-RECOVERY-ADAPTER-R1.yaml"
+  - "CROSS-MODEL-EVALUATION-GATE-v1.0-CANDIDATE.yaml"
+  - "FEATURE-FLAG-SHADOW-GATE-v1.0-CANDIDATE.yaml"
+
+commit_shape:
+  reviewed_base: "93b61b055e13c04431236214a599a9f0f325b3ce"
+  planned_corrective_substantive_commits: 1
+  additional_BAR_MBR_R0_R1_commits: 2
+  final_non_empty_receipt_only_commits: 1
+  receipt_after_final_green_only: true
+  prohibited: ["amend", "rebase", "reset", "force_push", "merge", "direct_main_write"]
+
+remediation_envelope:
+  allowed_classes: ["R0_ROUTINE_LOCAL_REPAIR", "R1_BOUNDED_TOOL_RUNTIME_OR_TEST_REPAIR"]
+  max_attempt_cycles: 4
+  max_unplanned_files: 5
+  max_dependency_additions: 0
+  max_workflow_files_changed: 1
+  max_external_cost: 0
+  persistent_environment_change_allowed: false
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
