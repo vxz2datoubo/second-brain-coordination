@@ -8,7 +8,13 @@ import unittest
 
 import yaml
 
-from vendor_neutral_agent_kernel.evidence import validate_e31_archive_manifest, validate_e31_evidence
+from vendor_neutral_agent_kernel.evidence import (
+    E32_ARCHIVE_SCHEMA,
+    E32_TASK,
+    validate_e31_archive_manifest,
+    validate_e31_evidence,
+    validate_e32_archive_manifest,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +26,23 @@ class E31EvidenceTests(unittest.TestCase):
 
     def _archive(self) -> dict:
         return yaml.safe_load((ROOT / "E31-ARCHIVE-PROVENANCE-MATRIX.yaml").read_text(encoding="utf-8"))
+
+    def _e32_archive(self, authority: str = "E32_FINAL_TESTED_HEAD") -> dict:
+        archive = self._archive()
+        archive["schema_version"] = E32_ARCHIVE_SCHEMA
+        archive["task_id"] = E32_TASK
+        archive["tested_identity"]["authority"] = authority
+        for root in archive["roots"]:
+            root["command"] = root["command"].replace(
+                "./.e31-changed-files.txt", "./.e32-changed-files.txt"
+            )
+        return archive
+
+    def _validate_archive(self, archive: dict, *, e32: bool = False) -> dict:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "archive.yaml"
+            path.write_text(yaml.safe_dump(archive, sort_keys=False), encoding="utf-8")
+            return validate_e32_archive_manifest(path) if e32 else validate_e31_archive_manifest(path)
 
     def _write_fixture(self, evidence: dict | None = None, archive: dict | None = None, wpdcr: dict | None = None) -> Path:
         directory = Path(tempfile.mkdtemp(prefix="e31-evidence-"))
@@ -77,6 +100,56 @@ class E31EvidenceTests(unittest.TestCase):
             path.write_text(yaml.safe_dump(archive, sort_keys=False), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "STATUS_NOT_FINAL"):
                 validate_e31_archive_manifest(path)
+
+    def test_e31_archive_accepts_only_its_exact_changed_files_token(self):
+        result = self._validate_archive(self._archive())
+        self.assertEqual(result["root_count"], 3)
+
+    def test_e32_archive_accepts_its_exact_changed_files_token(self):
+        result = self._validate_archive(self._e32_archive(), e32=True)
+        self.assertEqual(result["root_count"], 3)
+
+    def test_e33_authority_accepts_e32_changed_files_token(self):
+        result = self._validate_archive(self._e32_archive("E33_FINAL_TESTED_HEAD"), e32=True)
+        self.assertEqual(result["root_count"], 3)
+
+    def test_cross_phase_changed_files_token_fails_closed(self):
+        archive = self._archive()
+        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
+            "./.e31-changed-files.txt", "./.e32-changed-files.txt"
+        )
+        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_TOKEN_MISMATCH"):
+            self._validate_archive(archive)
+
+    def test_both_changed_files_tokens_fail_closed(self):
+        archive = self._archive()
+        archive["roots"][0]["command"] += " --changed-files ./.e32-changed-files.txt"
+        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_ARGUMENT_INVALID|LOOKALIKE_OR_AMBIGUOUS"):
+            self._validate_archive(archive)
+
+    def test_missing_changed_files_token_fails_closed(self):
+        archive = self._archive()
+        archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
+            "--changed-files ./.e31-changed-files.txt ", ""
+        )
+        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_ARGUMENT_INVALID"):
+            self._validate_archive(archive)
+
+    def test_external_and_traversal_changed_files_tokens_fail_closed(self):
+        for token in ("/tmp/e31-changed-files.txt", "./archive/../.e31-changed-files.txt"):
+            with self.subTest(token=token):
+                archive = self._archive()
+                archive["roots"][0]["command"] = archive["roots"][0]["command"].replace(
+                    "./.e31-changed-files.txt", token
+                )
+                with self.assertRaisesRegex(ValueError, "CHANGED_FILES_TOKEN_MISMATCH|LOOKALIKE_OR_AMBIGUOUS"):
+                    self._validate_archive(archive)
+
+    def test_lookalike_changed_files_token_fails_closed(self):
+        archive = self._archive()
+        archive["roots"][0]["command"] += " ./.e31-changed-files.txt.bak"
+        with self.assertRaisesRegex(ValueError, "CHANGED_FILES_LOOKALIKE_OR_AMBIGUOUS"):
+            self._validate_archive(archive)
 
     def test_missing_root_path_hash_fails_closed(self):
         archive = self._archive()

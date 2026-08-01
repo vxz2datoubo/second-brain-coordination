@@ -6,6 +6,7 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
+import shlex
 import subprocess
 from typing import Any
 
@@ -42,6 +43,52 @@ E32_RECEIPT_ALLOWLIST = (
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/E32-WORK-PROCESS-AND-COORDINATION-REPORT.yaml",
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/GPT-REVIEW-PACKET.md",
 )
+
+
+def _expected_changed_files_token(
+    *,
+    expected_task: str,
+    expected_schema: str,
+    tested_authority: Any,
+) -> str:
+    """Return the one changed-files token allowed by a final archive contract."""
+    if (
+        expected_task == E31_TASK
+        and expected_schema == "VNAK_E31_ARCHIVE_PROVENANCE_v1"
+        and tested_authority == "E31_TESTED_SUBSTANTIVE_COMMIT"
+    ):
+        return "./.e31-changed-files.txt"
+    if (
+        expected_task == E32_TASK
+        and expected_schema == E32_ARCHIVE_SCHEMA
+        and tested_authority in {"E32_FINAL_TESTED_HEAD", "E33_FINAL_TESTED_HEAD"}
+    ):
+        return "./.e32-changed-files.txt"
+    raise ValueError("E31_ARCHIVE_SCHEMA_AUTHORITY_CONTRACT_INVALID")
+
+
+def _validate_changed_files_argument(command: str, expected_token: str) -> None:
+    """Require one exact changed-files argument and reject phase/path ambiguity."""
+    try:
+        argv = shlex.split(command, posix=True)
+    except ValueError as exc:
+        raise ValueError("E31_ROOT_COMMAND_TOKENIZATION_INVALID") from exc
+
+    occurrences = [index for index, value in enumerate(argv) if value == "--changed-files"]
+    if len(occurrences) != 1 or occurrences[0] + 1 >= len(argv):
+        raise ValueError("E31_ROOT_CHANGED_FILES_ARGUMENT_INVALID")
+    if any(value.startswith("--changed-files=") for value in argv):
+        raise ValueError("E31_ROOT_CHANGED_FILES_ARGUMENT_INVALID")
+
+    actual_token = argv[occurrences[0] + 1]
+    known_phase_tokens = {"./.e31-changed-files.txt", "./.e32-changed-files.txt"}
+    if actual_token in known_phase_tokens and actual_token != expected_token:
+        raise ValueError("E31_ROOT_CHANGED_FILES_TOKEN_MISMATCH")
+    for value in argv:
+        if "changed-files" in value and value not in {"--changed-files", expected_token}:
+            raise ValueError("E31_ROOT_CHANGED_FILES_LOOKALIKE_OR_AMBIGUOUS")
+    if actual_token != expected_token:
+        raise ValueError("E31_ROOT_CHANGED_FILES_TOKEN_MISMATCH")
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -193,8 +240,11 @@ def validate_e31_archive_manifest(
     if not isinstance(tested, dict):
         raise ValueError("E31_TESTED_IDENTITY_OBJECT_REQUIRED")
     _require(tested, "authority", "tested_commit", "tested_tree", "source_run")
-    if tested["authority"] != "E31_TESTED_SUBSTANTIVE_COMMIT":
-        raise ValueError("E31_TESTED_AUTHORITY_INVALID")
+    expected_changed_files_token = _expected_changed_files_token(
+        expected_task=expected_task,
+        expected_schema=expected_schema,
+        tested_authority=tested["authority"],
+    )
     _require_sha(tested["tested_commit"], "commit")
     _require_sha(tested["tested_tree"], "tree")
     if not isinstance(tested["source_run"], (str, int)):
@@ -238,9 +288,10 @@ def validate_e31_archive_manifest(
         if root["cwd"] != "." or not isinstance(root["command"], str):
             raise ValueError("E31_ROOT_COMMAND_CONTEXT_INVALID")
         command = root["command"]
-        for token in ("./coordination/", "./.e31-changed-files.txt", "ci_verify.py", "--commit", "--tree", "--tested-commit", "--tested-tree"):
+        for token in ("./coordination/", "ci_verify.py", "--commit", "--tree", "--tested-commit", "--tested-tree"):
             if token not in command:
                 raise ValueError("E31_ROOT_COMMAND_INCOMPLETE:" + token)
+        _validate_changed_files_argument(command, expected_changed_files_token)
         _reject_unresolved_marker(command, root_id + ":command")
         if root["exit_code"] != 0:
             raise ValueError("E31_ROOT_NONZERO_EXIT")
