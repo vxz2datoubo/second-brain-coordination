@@ -4,64 +4,69 @@ route_epoch: 32
 agent_id: "CODEX"
 actual_executor: "CODEX"
 reviewer: "GPT"
-status: "IN_PROGRESS"
+status: "READY_FOR_GPT_REVIEW"
 mode: "target"
 base: "93b61b055e13c04431236214a599a9f0f325b3ce"
+tested_substantive_commit: "fb30f1b8edc04ba2b4f50f1d45303145d9706d5e"
+tested_substantive_tree: "288ba2d8e111cb11d51e4f40bbbc6fa5a88f308c"
+receipt_parent_commit: "fb30f1b8edc04ba2b4f50f1d45303145d9706d5e"
 boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
 
 base_sections:
   task_result_and_current_scope:
-    summary: "E31 closes only evidence truth defects inherited from E30: semantic WPDCR payloads, final archive roots, complete artifact equality, receipt-head binding and fail-closed validation."
+    summary: "E31 closes the E30 evidence defects: semantic WPDCR payloads, final archive roots, complete artifact equality, receipt-head binding and fail-closed validation."
     allowed_paths:
       - ".github/workflows/vendor-neutral-agent-kernel.yml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL/**"
     excluded: "Adapters, cross-model runs, Shadow activation, canonical promotion, production, accounts, orders and trading remain excluded."
   verified_remote_and_local_facts:
-    summary: "The canonical main readback is e2118d94dcd100cd6e11cc22f965728cfb1c63de; the active route points to Issue 108 and Draft PR 107."
-    remote_branch: "The remote E30 receipt is 93b61b055e13c04431236214a599a9f0f325b3ce with tree 4b1e6161336c3530129c924940fb9657dfb0360a."
-    local_preservation: "The local worktree is clean at d77b1fb0dcc370c62bb01719e9f5926464b72021 with the same tree; the differing commit identity is retained without rewrite."
+    summary: "Canonical main at route claim was e2118d94dcd100cd6e11cc22f965728cfb1c63de; E31 remote branch is on fb30f1b8... with tree 288ba2d8...."
+    remote_validation: "Workflow 30680004228 passed on Python 3.11 and 3.13; each produced three roots with 58 artifacts."
+    identity_chain: "Reviewed base 93b61b0... -> E30 receipt lineage -> E31 substantive and corrective evidence head fb30f1b8...."
   work_process_and_difficulty:
     difficulty: "D3_VERY_HARD"
     hardest_parts:
-      - "Separating a tested substantive parent from a later evidence-only receipt without allowing self-referential commit markers."
-      - "Making archive roots independently checkable while keeping host paths private and artifact inventories complete."
-    evidence: "E30 review 4833184709 identified all six defects; E31 validator tests each defect as a fail-closed condition."
+      - "Separating a tested substantive parent from a later evidence-only receipt without self-referential commit markers."
+      - "Making archive roots independently checkable while keeping host paths private and inventories complete."
+      - "Correcting the first green archive run whose top-level tested identity still pointed to the historical parent."
+    evidence: "E30 review 4833184709 identified the six defects; E31 validator tests each defect as a fail-closed condition; corrective run 30680004228 validates the repaired identity."
   plan_vs_actual_and_failures:
-    planned: "Implement one E31 validator contract, update the archive workflow, add focused regressions, then run dual-Python CI before the receipt-only commit."
-    actual: "The first implementation action added the E31 contract and switched ci_verify.py to it; archive values will be replaced by the receipt-only evidence commit after CI produces real roots."
-    retained_failure: "The E30 synthetic roots and list-only WPDCR are retained only as historical inputs and are not accepted by E31."
+    planned: "Implement one E31 validator contract, update the archive workflow, add focused regressions, run dual-Python CI, then create the receipt-only commit."
+    actual: "The first E31 workflow 30679560837 failed on an outdated primary identity lookup; the corrected run 30679651468 passed, then R1 corrected archive identity and job labeling; run 30680004228 passed with final identity."
+    retained_failure: "Historical synthetic roots and list-only WPDCR remain preserved as rejected evidence inputs and are not accepted by E31."
   changed_files_and_tests:
     code_changes:
-      - "src/vendor_neutral_agent_kernel/evidence.py: E31 semantic validator and historical E30 compatibility."
-      - "ci_verify.py: E31 evidence is now the active verification target."
-    tests: "E31 focused tests will cover semantic emptiness, root identity, full artifact surface, manifest FINAL status, receipt binding and incomplete identity markers."
+      - "src/vendor_neutral_agent_kernel/evidence.py: semantic WPDCR, manifest and receipt validator."
+      - "ci_verify.py: E31 evidence is the active verification target."
+      - ".github/workflows/vendor-neutral-agent-kernel.yml: exact tested identity, full archive surface and explicit Python job identity."
+    tests: "E31 focused tests cover semantic emptiness, root identity, full artifact surface, manifest FINAL status, receipt binding and incomplete identity markers."
     test_policy: "No test uses a production adapter, private data, account, order or trade path."
   discoveries_and_opportunities:
     discovery: "A green boolean predicate can conceal a non-existent controlled violation; the same evidence principle applies to archive records and WPDCR sections."
-    opportunity: "The artifact-set hash and content-tree hash can become a reusable public evidence primitive for future candidate-only kernels."
+    opportunity: "Artifact-set and content-tree hashes are reusable public evidence primitives for candidate-only kernels."
     value: "This reduces review ambiguity without creating a second runtime authority."
   unknowns_and_negative_results:
     unknowns:
-      - "GitHub Actions run identifiers and runner-specific root path hashes are not known until the substantive commit runs remotely."
-      - "The runtime model identity remains ACCESS_NOT_EXPOSED."
+      - "Runtime model identity remains ACCESS_NOT_EXPOSED."
+      - "The receipt-only commit is externally anchored through Draft PR #107 because a commit cannot contain its own final SHA."
     negative_results:
       - "No adapters, cross-model evaluation, Shadow behavior, canonical promotion, production or trading path was executed."
       - "No private data, credentials or vendor-restricted material was accessed."
   coordination_and_system_feedback:
     upstream: "GPT route epoch 32 and PR review 4833184709."
-    downstream: "GPT must review the final substantive tested SHA, receipt head, three-root manifest and external PR anchor."
+    downstream: "GPT must compare the external PR-head SHA with E31 receipt_head_identity after the receipt-only commit."
     requests:
-      - "Keep Issue 108 active until the final receipt has been independently reviewed."
+      - "Keep Issue 108 active for GPT review."
       - "Keep Gate C and Gate D frozen."
-    system_feedback: "The route should keep semantic evidence requirements in the shared governance rule, not only in a task-local test."
+    system_feedback: "Semantic evidence requirements belong in shared governance validation, not only in task-local tests."
   rollback_and_next_gate:
-    logical_rollback: "Close Draft PR 107 or revert only the E31 candidate commits; E30 and E29 history remain intact."
-    byte_level_rollback: "Restore the reviewed E30 receipt tree 4b1e6161336c3530129c924940fb9657dfb0360a for the allowed paths."
-    next_gate: "Run dual-Python tests and clean archive evidence; create the receipt-only commit only after the substantive tested head is externally observable."
+    logical_rollback: "Close Draft PR 107 or revert only E31 candidate commits; E30 and E29 history remain intact."
+    byte_level_rollback: "Restore the pre-E31 allowed-path tree from remote receipt 93b61b055e13c04431236214a599a9f0f325b3ce."
+    next_gate: "Wait for GPT review; do not start Gate C or Gate D."
 
 autonomous_remediation_ledger:
   - id: "E31-R0-001"
-    action: "Replace list-only WPDCR sections with non-empty payload maps and preserve the enterprise overlays."
+    action: "Replace list-only WPDCR sections with non-empty payload maps and preserve enterprise overlays."
     class: "R0_ROUTINE_LOCAL_REPAIR"
     owner: "CODEX"
     evidence: "E31-WORK-PROCESS-AND-COORDINATION-REPORT.yaml and evidence.py"
@@ -71,12 +76,18 @@ autonomous_remediation_ledger:
     class: "R1_BOUNDED_EVIDENCE_AND_CONFIGURATION_REPAIR"
     owner: "CODEX"
     evidence: "E31-ARCHIVE-PROVENANCE-MATRIX.yaml, evidence.py and the workflow."
-    rollback: "Restore the E30 archive validation path without changing runtime kernel behavior."
+    rollback: "Restore the historical archive validation path without changing runtime kernel behavior."
   - id: "E31-R1-002"
-    action: "Remove incomplete receipt markers and distinguish current PR-head validation from tested-parent validation."
+    action: "Bind the manifest to the actual tested root commit and name the Python job identity explicitly."
+    class: "R1_BOUNDED_EVIDENCE_AND_CONFIGURATION_REPAIR"
+    owner: "CODEX"
+    evidence: "Workflow run 30680004228 and its machine-readable manifest."
+    rollback: "Revert the workflow-only corrective commit."
+  - id: "E31-R1-003"
+    action: "Bind the final receipt to the current Draft PR head with the tested substantive parent recorded in the evidence contract."
     class: "R1_BOUNDED_CONTRACT_AND_TEST_REPAIR"
     owner: "CODEX"
-    evidence: "E31-COMPLETION-EVIDENCE.json, AI_HANDOFF.yaml and E31 tests."
+    evidence: "E31-COMPLETION-EVIDENCE.json, AI_HANDOFF.yaml and the E31 tests."
     rollback: "Revert evidence-only changes; no production state is involved."
 
 model_reasoning_and_execution_profile:
@@ -88,22 +99,36 @@ model_reasoning_and_execution_profile:
   silent_downgrade: false
   note: "Routing metadata is recorded as metadata and is not claimed as runtime evidence."
 
-unknowns:
-  - "Remote CI root path hashes, job IDs and full artifact digests require the E31 workflow run."
-  - "The local Python environment may not match the declared CI dependency set."
-  - "The E30 local commit SHA differs from its remote API-created receipt SHA although the tree is equal."
-
-negative_results:
-  - "No real data, account, order, trade, production or private route was accessed."
-  - "No canonical PEOS, AGENTS or shared memory authority was changed."
+remote_evidence:
+  run_id: "30680004228"
+  jobs:
+    python_3_11:
+      job_id: "91314979165"
+      result: "116/116 PASS"
+      artifact_id: "8811864904"
+      artifact_digest: "sha256:a69cf56cd28f383dfcf708b1e585ecefb05de329985b73fb05929b963e567a97"
+    python_3_13:
+      job_id: "91314979146"
+      result: "116/116 PASS"
+      artifact_id: "8811865481"
+      artifact_digest: "sha256:143a9b85d203cc703b3f2bbb04cf90a3e476ce544814a9f159bfe99f61306ef"
+  archive:
+    status: "FINAL"
+    root_count: 3
+    artifacts_per_root: 58
+    archive_content_sha256: "2cdcf3116b56b491830187be906873973ea484a1c3e3b0233ad7fb45f5fb2c93"
+    archive_size_bytes: 2058240
+    archive_content_tree_sha256: "9a325b3a69723ad7bc24810e5ff1b6415b7ba32ab6d9ac5599a66f4dbf408ea7"
+    artifact_set_sha256: "c789408b028b35bd12a5721797fbf127e12fb73c4a06e1083da410094c06a1ed"
 
 coordination:
   upstream: "GPT active route in coordination/ACTIVE-CODEX-TASK.yaml."
   downstream: "GPT second-pass review of PR 107; WorkBuddy and QCLAW are not asked to modify this workline."
   cross_agent_requests:
-    - "GPT should compare the external PR-head SHA with E31 receipt_head_identity after the receipt-only commit."
+    - "GPT should compare PR #107 current head with receipt_head_identity after the receipt-only commit."
 
 rollback:
-  logical: "Close Draft PR 107 or revert E31 commits; no merge or activation."
+  logical: "Close Draft PR #107 or revert E31 commits; no merge or activation."
   byte_level: "Restore the pre-E31 allowed-path tree from remote receipt 93b61b055e13c04431236214a599a9f0f325b3ce."
   production_state_changed: false
+

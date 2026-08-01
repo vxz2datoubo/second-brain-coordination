@@ -2,44 +2,49 @@
 
 ## Current authority
 
-- `task_id`: `CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31`
-- `route_epoch`: `32`
-- `actual_executor`: `CODEX`
-- `reviewer`: `GPT`
-- `reviewed_base`: `93b61b055e13c04431236214a599a9f0f325b3ce`
-- `primary_evidence`: `E31-COMPLETION-EVIDENCE.json`
-- `archive_evidence`: `E31-ARCHIVE-PROVENANCE-MATRIX.yaml`
-- `wpdcr`: `E31-WORK-PROCESS-AND-COORDINATION-REPORT.yaml`
-- `status`: `IN_PROGRESS`
-- `boundary`: `PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE`
-- `completion_signal`: `CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW`
+- task_id: CODEX-PEOS-0010-E30-COMMITTED-WPDCR-ARCHIVE-ROOT-AND-RECEIPT-ANCHOR-TRUTH-CLOSURE-0023-E31
+- route_epoch: 32
+- actual_executor: CODEX
+- reviewer: GPT
+- reviewed_base: 93b61b055e13c04431236214a599a9f0f325b3ce
+- tested_substantive_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
+- tested_substantive_tree: 288ba2d8e111cb11d51e4f40bbbc6fa5a88f308c
+- receipt_parent_commit: fb30f1b8edc04ba2b4f50f1d45303145d9706d5e
+- primary_evidence: E31-COMPLETION-EVIDENCE.json
+- archive_evidence: E31-ARCHIVE-PROVENANCE-MATRIX.yaml
+- wpdcr: E31-WORK-PROCESS-AND-COORDINATION-REPORT.yaml
+- status: FINAL
+- boundary: PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE
+- completion_signal: CODEX_E31_PEOS_0010_COMMITTED_WPDCR_ARCHIVE_ROOT_AND_RECEIPT_ANCHOR_TRUTH_READY_FOR_GPT_REVIEW
 
 ## E31 scope
 
-E31 closes only the six evidence-truth defects identified in GPT review
-`4833184709`: semantic WPDCR payloads, a FINAL full-artifact three-root
-manifest, independent root-path identity, tested-parent versus receipt-head
-truth, removal of incomplete receipt markers, and fail-closed validators.
+E31 closes the six evidence-truth defects identified in GPT review 4833184709: semantic WPDCR payloads, a FINAL full-artifact three-root manifest, independent root-path identity, tested substantive commit versus receipt-head truth, removal of incomplete identity markers, and fail-closed validators.
 
-E29/E30 functional behavior and candidate specifications remain historical and
-reusable only. No adapter is implemented, no cross-model evaluation is run, no
-Shadow flag is enabled, and no canonical or production route is activated.
+E29/E30 functional behavior and candidate specifications remain historical and reusable only. No adapter is implemented, no cross-model evaluation is run, no Shadow flag is enabled, and no canonical or production route is activated.
 
-## Local evidence
+## Verified evidence
 
-- 37 focused E30/E31 evidence tests passed;
-- 116 candidate cases passed after the declared CI test dependencies were installed;
-- Python syntax, strict YAML, secret scan and raw-capture checks passed;
-- remote dual-Python and three-root archive anchors are intentionally obtained
-  from the substantive E31 workflow run before the receipt-only commit.
+- Local focused E30/E31 tests: 37/37 PASS.
+- Local candidate suite: 116/116 PASS.
+- Remote workflow 30680004228: Python 3.11 and 3.13 both 116/116 PASS.
+- Each remote job produced three clean archive roots and a complete 58-file artifact inventory.
+- Archive SHA256: 2cdcf3116b56b491830187be906873973ea484a1c3e3b0233ad7fb45f5fb2c93.
+- Archive content tree SHA256: 9a325b3a69723ad7bc24810e5ff1b6415b7ba32ab6d9ac5599a66f4dbf408ea7.
+- Artifact-set SHA256: c789408b028b35bd12a5721797fbf127e12fb73c4a06e1083da410094c06a1ed.
+- Root identities are distinct within each job and root contents agree.
+- Artifact digests: Python 3.11 a69cf56cd28f383dfcf708b1e585ecefb05de329985b73fb05929b963e567a97; Python 3.13 143a9b85d203cc703b3f2bbb04cf90a3e476ce544814a9f159bfe99f61306ef.
+
+## Findings retained for GPT
+
+- A prior workflow failed with an obsolete primary identity lookup; its failed run is retained as evidence, not ignored.
+- Run 30679651468 was green but exposed top-level tested-identity drift and a runner-derived job label. R1 fixed both and run 30680004228 is the corrected evidence source.
+- The receipt-only commit cannot contain its own final SHA; the contract binds it to CURRENT_PR_HEAD and publishes the full head externally after commit creation.
 
 ## Review request
 
-GPT should review the final substantive tested SHA, the generated three-root
-artifact manifest, the receipt-only head and its external PR anchor. The Draft
-PR must remain unmerged and Gate C/D must remain frozen.
+Review the final substantive tested commit, the complete three-root manifest, the receipt-only head and its external PR anchor. Keep Draft PR #107 unmerged and Gate C/D frozen.
 
 ## Rollback
 
-Close Draft PR #107 or revert only E31 allowed-path commits. The E30 and E29
-history remains preserved; no production state changed.
+Close Draft PR #107 or revert only E31 allowed-path commits. E30 and E29 history remain preserved; no production state changed.
