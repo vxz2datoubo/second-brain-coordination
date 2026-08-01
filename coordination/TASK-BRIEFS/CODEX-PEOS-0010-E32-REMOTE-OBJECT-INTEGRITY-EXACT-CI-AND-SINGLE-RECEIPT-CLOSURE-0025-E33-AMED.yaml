@@ -1,0 +1,68 @@
+schema_version: "1.0"
+task_id: "CODEX-PEOS-0010-E32-REMOTE-OBJECT-INTEGRITY-EXACT-CI-AND-SINGLE-RECEIPT-CLOSURE-0025-E33"
+agent: "CODEX"
+mode: "target"
+mode_label: "【Codex模式：目标模式】E32远端对象完整性、精确CI与单一Receipt闭环E33"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 108
+pull_request: 107
+branch: "codex/vendor-neutral-agent-operating-kernel-0011"
+reviewed_base: "cd59d223f43f611e36f4aec22bf81aaa15edb54a"
+route_epoch: 34
+status: "READY"
+
+why_this_task: >-
+  E32 produced one intended executable correction commit and local 122/122 evidence, but the remote Git object for evidence.py is corrupted.
+  Exact-head Python 3.11 and 3.13 jobs fail with U+05CF before archive execution. This is a bounded remote-object integrity and evidence reset,
+  not new architecture and not permission to start the queued QQ takeover.
+
+verified_facts:
+  - "PR #107 remote head is cd59d223f43f611e36f4aec22bf81aaa15edb54a."
+  - "Run 30685277875 failed on Python 3.11 job 91329683930 and Python 3.13 job 91329683953."
+  - "Both jobs fail importing evidence.py with invalid non-printable character U+05CF."
+  - "Phase 3 run 30685277898 succeeded, but it does not satisfy the candidate evidence gate."
+  - "No valid receipt-only commit exists after a green final tested head."
+
+model_reasoning_execution_profile:
+  preferred_model: "gpt-5.6-sol"
+  reasoning_effort: "xhigh"
+  execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  minimum_acceptable_fallback: {model: "gpt-5.6-terra", reasoning_effort: "high", use: "deterministic Git/object inventory only"}
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+
+required_results:
+  - "Reconstruct evidence.py from an independently verified UTF-8 source and replace the corrupted remote blob."
+  - "Before claiming success, fetch the remote file/blob back from GitHub and prove local bytes, remote bytes, blob SHA, size and UTF-8/non-printable scan agree."
+  - "Add or preserve a fail-closed source-integrity gate that rejects invalid control/non-printable code points in executable Python surfaces."
+  - "Treat the repair commit as the new final executable tested head; cd59d223 is historical failed evidence only."
+  - "Run exact final-head Python 3.11 and 3.13 candidate CI; both must pass the full suite and static gates."
+  - "Run three distinct clean archive roots per runtime with root/path/content hashes and complete artifact equality."
+  - "Publish current run/job/artifact anchors and one full tested commit/tree identity."
+  - "Create exactly one later non-empty evidence-only receipt whose parent equals the final tested head."
+  - "Validate the receipt head on Python 3.11 and 3.13 and create no later commit."
+  - "Stop and request GPT second pass. Do not begin the queued QCLAW takeover."
+
+mandatory_negative_tests:
+  - "Remote/local blob mismatch fails."
+  - "Invalid non-printable executable character fails."
+  - "Candidate CI absent, skipped, wrong runtime or wrong head fails."
+  - "Archive bound to a historical head or repeated root fails."
+  - "Empty receipt, wrong parent, executable receipt or post-receipt commit fails."
+
+commit_shape:
+  corrective_executable_commits_max: 1
+  final_non_empty_evidence_only_receipt_commits: 1
+  receipt_parent_must_equal_tested_head: true
+  prohibited: ["amend", "rebase", "reset", "force_push", "merge", "receipt_correction_chain", "post_receipt_commit"]
+
+hard_boundaries:
+  - "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+  - "No QQ PR/branch edit, no queued takeover execution, no adapters, cross-model execution, Shadow activation, canonical promotion, private/real data, production, account, order or trade."
+
+completion_signal: "CODEX_E33_PEOS_0010_REMOTE_OBJECT_INTEGRITY_EXACT_CI_ARCHIVE_AND_SINGLE_RECEIPT_READY_FOR_GPT_REVIEW"
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+updated_by: "GPT"
+updated_at: "2026-08-01T15:32:00+08:00"
