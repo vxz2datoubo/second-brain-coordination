@@ -1,58 +1,59 @@
-schema_version: "39.0"
+schema_version: "40.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
 
-active_issue: 112
-source_pull_request: 110
-source_receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
-source_tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
-planned_branch: "codex/brainops-observable-trigger-canary-0031-e36"
+active_issue: 114
+source_pull_request: 113
+source_tested_head: "7012ed7681d16d936d3ea5ce1311c13b5be46337"
+source_receipt_head: "d22aeffc30e5848f2e0cbdb22742ad129f386275"
+planned_branch: "codex/brainops-canary-authority-proof-0032-e37"
 planned_draft_pr: true
 parent_program: 31
-reviewed_or_base_head: "f52a817135a0b15d8f89a55a159c8371928f5347"
+reviewed_or_base_head: "dd8aab05109d4b0adec901ace277633546563354"
 
-task_id: "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
-route_epoch: 37
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】BrainOps可观察一次性自动触发Canary E36"
+task_id: "CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37"
+route_epoch: 38
+mode: "target"
+mode_label: "【Codex模式：目标模式】BrainOps Canary Nonce、Approval Authority与Route Proof闭环 E37"
 mode_reason: >-
-  E35 completed the read-only shadow plane and proved GitHub workflow triggering, but it did not prove App/CLI automatic dispatch or automatic GPT review wake-up.
-  E36 must first verify a supported trigger surface and then, only if verified, build one exact-ID, approval-bound, duplicate-suppressed canary.
+  E36 delivered useful hardening and green dual-Python evidence, but its approval nonce is not consumed, approval provenance is not independently verified,
+  and route-state hashes are caller supplied. E37 is a bounded pre-canary security correction. It must not execute any canary or automatic dispatch.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
-one_shot_canary_build_allowed: true
-one_shot_canary_execution_requires_explicit_bound_approval: true
+canary_execution_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "CODEX_BRAINOPS_E36_OBSERVABLE_ONE_SHOT_TRIGGER_CANARY_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_BRAINOPS_E37_CANARY_NONCE_AUTHORITY_ROUTE_PROOF_READY_FOR_GPT_REVIEW"
 
 supersedes:
-  task_id: "CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35"
-  route_epoch: 36
-  pull_request: 110
-  tested_head: "d63c19f6bd5fe42258f99e3a4c53d7e3f2028698"
-  receipt_head: "2e1c67a992cc354f36e260d9c7cf7ad66db08d11"
-  receipt_ci_run: 30711045839
-  classification: "E35_ACCEPTED_AS_READ_ONLY_SHADOW_CONTROL_PLANE_WITH_FINDINGS_AUTOMATIC_TRIGGER_NOT_PROVEN"
-  completion_credit: true
+  task_id: "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
+  route_epoch: 37
+  pull_request: 113
+  tested_head: "7012ed7681d16d936d3ea5ce1311c13b5be46337"
+  receipt_head: "d22aeffc30e5848f2e0cbdb22742ad129f386275"
+  substantive_ci_run: 30717574429
+  receipt_ci_run: 30718668128
+  classification: "E36_HARDENING_REUSABLE_BUT_NONCE_AUTHORITY_ROUTE_PROOF_AND_AUTOMATIC_TRIGGER_NOT_READY"
+  completion_credit: false
+  substantive_hardening_credit: true
+  frozen_for_later_route: true
   reusable:
-    - "Read-only loopback console, redacted metadata store and shadow reconciliation."
-    - "Direct one-file evidence-only receipt after tested head."
-    - "Python 3.11 and 3.13 receipt-head CI each passed 48 tests."
-    - "GitHub Actions automatically triggered after PR update."
-  findings:
-    - "No supported App Automation, schedule or external trigger surface was proven."
-    - "ShadowReviewWatcher consumes supplied metadata only; it does not call GitHub or dispatch Codex."
-    - "The 30-minute schedule is a strict data fixture, not a running scheduler."
-    - "The E35 completion handoff did not automatically invoke GPT review; the user manually issued 审查任务."
-    - "MANUAL_APP can currently be selected as a WOULD_DISPATCH owner in counterfactual tests."
-    - "Payload hash validation, approval binding, lease expiry/fencing and value-aware secret scanning need hardening before any canary."
+    - "Exact SHA256 event contract and bound approval fields."
+    - "MANUAL_APP excluded from automatic ownership."
+    - "Persistent event/idempotency suppression, lease expiry/fencing and value-aware secret redaction."
+    - "Tested head plus one evidence-only receipt; receipt-head Python 3.11/3.13 each passed 81 tests."
+  blocking_findings:
+    - "Approval nonce is not persisted or consumed; one approval can be replayed with different event and idempotency IDs."
+    - "approval_ref is only syntax-checked and not tied to immutable GitHub actor/comment/body evidence."
+    - "RouteStateEvidence accepts caller-provided hashes without remote blob/content recomputation."
+    - "Route-state freshness relative to checked_at is not enforced."
+    - "No automatic canary and no automatic GPT review wake-up occurred."
 
 model_reasoning_execution_profile:
   requested_model: "gpt-5.6-sol"
@@ -65,7 +66,7 @@ model_reasoning_execution_profile:
   minimum_acceptable_fallback:
     model: "gpt-5.6-terra"
     reasoning_effort: "xhigh"
-    permitted_scope: "deterministic capability inventory, schema and tests only"
+    permitted_scope: "deterministic schema, SQLite transaction and test work only"
     must_report_before_use: true
 
 command_execution_contract:
@@ -74,40 +75,41 @@ command_execution_contract:
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #112, PR #110 receipt head 2e1c67a and route_epoch 37; create the fresh E36 branch and Draft PR; inspect supported App/CLI trigger surfaces without secrets;
-    harden the shadow contracts; then either build the exact one-shot canary or return BLOCKED_TRIGGER_SURFACE_UNKNOWN with evidence.
+    Verify Issue #114, source PR #113 receipt d22aeffc and route_epoch 38; create the fresh E37 branch and Draft PR; implement atomic nonce consumption,
+    immutable approval evidence and remote route-state proof; run bounded tests or return a truthful blocker. Do not run the canary.
   lease_must_confirm:
-    - "Exact task ID, route epoch 37 and completion signal."
+    - "Exact task ID, route epoch 38 and completion signal."
     - "Sol/max/X4/P1 requested profile and actual-profile reporting."
-    - "Ordinary automatic dispatch remains disabled."
-    - "Only canary BRAINOPS-E36-CANARY-0001 may become eligible after exact bound approval."
-    - "PR #107, PR #110, PR #100, QQ routes and main are immutable execution targets."
+    - "automatic_dispatch_allowed=false and canary_execution_allowed=false."
+    - "PR #113/#110/#107/#100 and QQ branches are immutable."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36.yaml"
-  source_control_plane_pr: 110
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37.yaml"
+  source_control_plane_pr: 113
   final_head_topology: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
   autonomy: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
 
 required_results:
-  - "Verify an official App Automation or supported non-interactive CLI trigger surface, or preserve UNKNOWN and block truthfully."
-  - "Require canonical 64-hex event hashes and value-aware secret scanning before persistence."
-  - "Make MANUAL_APP non-automatic and introduce an explicit manual-required outcome."
-  - "Bind approval to canary ID, task, route epoch, scope, expiry and nonce."
-  - "Expire stale leases, enforce monotonic fencing and persist idempotency."
-  - "If supported, execute only BRAINOPS-E36-CANARY-0001 once on a dedicated branch/Draft PR and prove duplicate suppression."
-  - "Do not claim automatic GPT review unless an independently observable ChatGPT automation run exists."
-  - "Run exact tested-head Python 3.11/3.13 CI, create one evidence-only receipt, then validate receipt head and stop."
+  - "Persist and atomically consume approval nonce keyed by task, epoch, canary and nonce."
+  - "Reject reused nonce even when event ID, idempotency key and payload all change."
+  - "Bind approval to immutable repository, issue/comment ID, actor, issued_at and body SHA256 evidence."
+  - "Require independently verified approval evidence; arbitrary approval_ref is insufficient."
+  - "Bind route proof to exact main commit, file paths, Git blob SHAs and recomputed content hashes."
+  - "Reject caller-only hashes, wrong ref/path/blob/content, future observations and stale observations."
+  - "Consume nonce, reserve event and persist route proof in one transaction with rollback tests."
+  - "Never persist raw approval/comment/event bodies or secret-like values."
+  - "Do not execute canary, App Automation, Codex CLI or automatic GPT review."
+  - "Run exact tested-head Python 3.11/3.13 CI, create one evidence-only receipt, validate receipt head and stop."
 
 hard_boundaries:
-  - "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
-  - "No UI mouse/keyboard automation, reverse-engineered private IPC, session-token inspection or unbounded shell."
-  - "No normal unattended dispatch, main write, merge, service installation, firewall change or non-loopback bind."
-  - "No PR #107, PR #110, PR #100, QQ branch, credential, account, order or trading access."
-  - "QQ and WorkBuddy remain paused; Codex QQ takeover E27 remains queued and non-executable."
+  - "LOCAL_FIRST / APP_FIRST / PRE_CANARY_SECURITY_CLOSURE_ONLY / PUBLIC_SAFE / NO_TRADE"
+  - "No actual canary, automatic dispatch, App Automation call, Codex CLI invocation, GPT auto-review, UI automation or private IPC."
+  - "No PR #113/#110/#107/#100 or QQ branch edits; use a new branch and Draft PR."
+  - "No agent main write, merge, service install, firewall change, non-loopback bind, credentials, accounts, orders or trades."
+  - "QQ and WorkBuddy remain paused; Codex QQ takeover E27 remains queued."
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T03:36:00+08:00"
-boundary: "LOCAL_FIRST / APP_FIRST / ONE_SHOT_CANARY_ONLY / PUBLIC_SAFE / NO_TRADE"
+updated_at: "2026-08-02T05:55:00+08:00"
+boundary: "LOCAL_FIRST / APP_FIRST / PRE_CANARY_SECURITY_CLOSURE_ONLY / PUBLIC_SAFE / NO_TRADE"
