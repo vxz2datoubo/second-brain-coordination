@@ -12,12 +12,12 @@ from .models import (
     CanaryEvent,
     find_secret_values,
     Lease,
-    RouteStateEvidence,
     ValidationError,
     parse_rfc3339_utc,
     redact,
     safe_database_path,
 )
+from .proofs import ApprovalVerificationResult, RouteProofVerification
 
 
 class MetadataStore:
@@ -74,6 +74,43 @@ class MetadataStore:
                 coordination_hash TEXT NOT NULL,
                 observed_at TEXT NOT NULL,
                 UNIQUE(route_id, route_epoch, active_task_hash, coordination_hash)
+            );
+            CREATE TABLE IF NOT EXISTS approval_consumptions (
+                task_id TEXT NOT NULL,
+                route_epoch INTEGER NOT NULL,
+                canary_id TEXT NOT NULL,
+                approval_nonce TEXT NOT NULL,
+                repository TEXT NOT NULL,
+                issue_number INTEGER NOT NULL,
+                comment_id INTEGER NOT NULL,
+                actor TEXT NOT NULL,
+                issued_at TEXT NOT NULL,
+                body_sha256 TEXT NOT NULL,
+                approval_ref TEXT NOT NULL,
+                binding_payload_sha256 TEXT NOT NULL,
+                consumed_at TEXT NOT NULL,
+                PRIMARY KEY(task_id, route_epoch, canary_id, approval_nonce)
+            );
+            CREATE TABLE IF NOT EXISTS verified_route_state_evidence (
+                evidence_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                route_id TEXT NOT NULL,
+                route_epoch INTEGER NOT NULL,
+                repository TEXT NOT NULL,
+                ref TEXT NOT NULL,
+                main_commit_sha1 TEXT NOT NULL,
+                active_task_path TEXT NOT NULL,
+                active_task_blob_sha1 TEXT NOT NULL,
+                active_task_content_sha256 TEXT NOT NULL,
+                coordination_path TEXT NOT NULL,
+                coordination_blob_sha1 TEXT NOT NULL,
+                coordination_content_sha256 TEXT NOT NULL,
+                observed_at TEXT NOT NULL,
+                verified_at TEXT NOT NULL,
+                UNIQUE(
+                    route_id, route_epoch, repository, ref, main_commit_sha1,
+                    active_task_blob_sha1, active_task_content_sha256,
+                    coordination_blob_sha1, coordination_content_sha256
+                )
             );
             """
         )
@@ -196,20 +233,63 @@ class MetadataStore:
     def reserve_canary_event(
         self,
         event: CanaryEvent,
-        route_state: RouteStateEvidence,
+        activation: Any,
+        approval_verification: ApprovalVerificationResult,
+        route_proof: RouteProofVerification,
         created_at: str,
     ) -> bool:
-        """Persist one event and its synchronized route proof in one transaction.
+        """Atomically consume approval, reserve one event, and retain route proof.
 
-        The unique event ID and idempotency key prevent a second external effect.
-        Only hashes and public-safe metadata are stored; no event body is accepted.
+        A unique approval nonce prevents a second event even when the caller
+        changes the event ID, idempotency key, or payload hash. Only hashes and
+        public metadata are stored; no approval/comment/event body is accepted.
         """
         parse_rfc3339_utc(created_at, "canary event created_at")
-        if event.route != route_state.route:
-            raise ValidationError("canary event and route-state evidence must bind the same route")
+        approval = getattr(activation, "approval", None)
+        if approval is None:
+            raise ValidationError("canary reservation requires a bound approval")
+        if event.route != activation.route:
+            raise ValidationError("canary event and activation must bind the same route")
+        if event.canary_id != activation.canary_id or event.idempotency_key != activation.idempotency_key:
+            raise ValidationError("canary event must bind the activation canary and idempotency key")
+        approval_error = approval.validates(activation, created_at)
+        if approval_error is not None:
+            raise ValidationError(approval_error)
+        verification_error = approval_verification.validates(approval, created_at)
+        if verification_error is not None:
+            raise ValidationError(verification_error)
+        route_error = route_proof.validates(event.route)
+        if route_error is not None:
+            raise ValidationError(route_error)
+        evidence = approval_verification.evidence
+        route_evidence = route_proof.evidence
+        assert evidence is not None
+        assert route_evidence is not None
         with self._lock:
             try:
                 self._connection.execute("BEGIN IMMEDIATE")
+                self._connection.execute(
+                    """INSERT INTO approval_consumptions(
+                        task_id, route_epoch, canary_id, approval_nonce,
+                        repository, issue_number, comment_id, actor, issued_at,
+                        body_sha256, approval_ref, binding_payload_sha256, consumed_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        activation.task_id,
+                        activation.expected_epoch,
+                        activation.canary_id,
+                        activation.approval_nonce,
+                        evidence.repository,
+                        evidence.issue_number,
+                        evidence.comment_id,
+                        evidence.actor,
+                        evidence.issued_at,
+                        evidence.body_sha256,
+                        evidence.approval_ref,
+                        evidence.binding_payload_sha256,
+                        created_at,
+                    ),
+                )
                 self._connection.execute(
                     """INSERT INTO canary_events(
                         event_id, idempotency_key, route_id, route_epoch, canary_id, payload_hash, created_at
@@ -225,16 +305,31 @@ class MetadataStore:
                     ),
                 )
                 self._connection.execute(
-                    """INSERT INTO route_state_evidence(
-                        route_id, route_epoch, active_task_hash, coordination_hash, observed_at
-                    ) VALUES (?, ?, ?, ?, ?)
-                    ON CONFLICT(route_id, route_epoch, active_task_hash, coordination_hash) DO NOTHING""",
+                    """INSERT INTO verified_route_state_evidence(
+                        route_id, route_epoch, repository, ref, main_commit_sha1,
+                        active_task_path, active_task_blob_sha1, active_task_content_sha256,
+                        coordination_path, coordination_blob_sha1, coordination_content_sha256,
+                        observed_at, verified_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(
+                        route_id, route_epoch, repository, ref, main_commit_sha1,
+                        active_task_blob_sha1, active_task_content_sha256,
+                        coordination_blob_sha1, coordination_content_sha256
+                    ) DO NOTHING""",
                     (
-                        route_state.route.route_id,
-                        route_state.route.route_epoch,
-                        route_state.active_task_hash,
-                        route_state.coordination_hash,
-                        route_state.observed_at,
+                        route_evidence.route.route_id,
+                        route_evidence.route.route_epoch,
+                        route_evidence.repository,
+                        route_evidence.ref,
+                        route_evidence.main_commit_sha1,
+                        route_evidence.active_task.path,
+                        route_evidence.active_task.blob_sha1,
+                        route_evidence.active_task.content_sha256,
+                        route_evidence.coordination.path,
+                        route_evidence.coordination.blob_sha1,
+                        route_evidence.coordination.content_sha256,
+                        route_evidence.observed_at,
+                        route_proof.verified_at,
                     ),
                 )
                 self._connection.execute("COMMIT")
@@ -257,5 +352,24 @@ class MetadataStore:
         rows = self._connection.execute(
             """SELECT route_id, route_epoch, active_task_hash, coordination_hash, observed_at
                FROM route_state_evidence ORDER BY evidence_id"""
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def list_approval_consumptions(self) -> list[dict[str, Any]]:
+        rows = self._connection.execute(
+            """SELECT task_id, route_epoch, canary_id, approval_nonce, repository,
+               issue_number, comment_id, actor, issued_at, body_sha256, approval_ref,
+               binding_payload_sha256, consumed_at
+               FROM approval_consumptions ORDER BY consumed_at, task_id, canary_id"""
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def list_verified_route_state_evidence(self) -> list[dict[str, Any]]:
+        rows = self._connection.execute(
+            """SELECT route_id, route_epoch, repository, ref, main_commit_sha1,
+               active_task_path, active_task_blob_sha1, active_task_content_sha256,
+               coordination_path, coordination_blob_sha1, coordination_content_sha256,
+               observed_at, verified_at
+               FROM verified_route_state_evidence ORDER BY evidence_id"""
         ).fetchall()
         return [dict(row) for row in rows]

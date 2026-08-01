@@ -47,6 +47,7 @@ class ShadowOutcome(str, Enum):
 
 _IDENTIFIER = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{1,127}$")
 _SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
+_SHA1_HEX = re.compile(r"^[0-9a-f]{40}$")
 _SENSITIVE_KEY = re.compile(r"(?:token|secret|password|cookie|credential|authorization|api[_-]?key)", re.I)
 _FORBIDDEN_COMMAND_FIELD = re.compile(r"(?:command|executable|argument|shell|script|path)", re.I)
 _VALUE_SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
@@ -67,6 +68,12 @@ def require_identifier(value: str, label: str) -> str:
 def require_sha256(value: str, label: str) -> str:
     if not is_sha256_hex(value):
         raise ValidationError(f"{label} must be exactly 64 lowercase hexadecimal characters")
+    return value
+
+
+def require_sha1(value: str, label: str) -> str:
+    if not isinstance(value, str) or _SHA1_HEX.fullmatch(value) is None:
+        raise ValidationError(f"{label} must be exactly 40 lowercase hexadecimal characters")
     return value
 
 
@@ -264,16 +271,37 @@ class BoundCanaryApproval:
     expires_at: str
     nonce: str
     approval_ref: str
+    repository: str | None = None
+    issue_number: int | None = None
+    comment_id: int | None = None
+    actor: str | None = None
+    issued_at: str | None = None
+    body_sha256: str | None = None
 
     def __post_init__(self) -> None:
         require_identifier(self.canary_id, "canary_id")
         require_identifier(self.task_id, "task_id")
         require_identifier(self.scope, "scope")
         require_identifier(self.nonce, "nonce")
-        require_identifier(self.approval_ref, "approval_ref")
+        if not isinstance(self.approval_ref, str) or not self.approval_ref:
+            raise ValidationError("approval_ref must be a non-empty public reference")
         if not isinstance(self.route_epoch, int) or self.route_epoch < 0:
             raise ValidationError("approval route_epoch must be a non-negative integer")
         parse_rfc3339_utc(self.expires_at, "approval expires_at")
+
+    def binding_payload_hash(self) -> str:
+        """Hash only the exact approval bindings, never a raw comment body."""
+        return canonical_hash(
+            {
+                "canary_id": self.canary_id,
+                "task_id": self.task_id,
+                "route_epoch": self.route_epoch,
+                "scope": self.scope,
+                "expires_at": self.expires_at,
+                "nonce": self.nonce,
+                "approval_ref": self.approval_ref,
+            }
+        )
 
     def validates(self, activation: ActivationManifest, now: str) -> str | None:
         now_value = parse_rfc3339_utc(now, "approval validation time")

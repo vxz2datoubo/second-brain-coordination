@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -19,10 +20,22 @@ from brainops_control_plane.models import (
     Lease,
     RouteRef,
     RouteState,
-    RouteStateEvidence,
     ShadowOutcome,
     ValidationError,
     find_secret_values,
+)
+from brainops_control_plane.proofs import (
+    CANONICAL_ACTIVE_TASK_PATH,
+    CANONICAL_COORDINATION_PATH,
+    ApprovalVerificationResult,
+    ReadOnlyApprovalDocument,
+    ReadOnlyApprovalVerifier,
+    ReadOnlyRouteProofVerifier,
+    RouteFileIdentity,
+    RouteProofVerification,
+    RouteStateEvidence,
+    VerificationStatus,
+    canonical_approval_ref,
 )
 from brainops_control_plane.store import MetadataStore
 
@@ -33,6 +46,12 @@ NOW = "2026-08-02T00:00:00Z"
 FUTURE = "2026-08-02T01:00:00Z"
 ACTIVE_HASH = "a" * 64
 COORDINATION_HASH = "b" * 64
+REPOSITORY = "vxz2datoubo/second-brain-coordination"
+ISSUE_NUMBER = 114
+COMMENT_ID = 114038
+ACTOR = "gpt"
+APPROVAL_BODY = "synthetic E37 approval only"
+MAIN_COMMIT = "d" * 40
 
 
 def approval(
@@ -44,7 +63,21 @@ def approval(
     expires_at: str = FUTURE,
     nonce: str = "nonce.e36.one",
 ) -> BoundCanaryApproval:
-    return BoundCanaryApproval(canary_id, task_id, route_epoch, scope, expires_at, nonce, "approval.e36")
+    return BoundCanaryApproval(
+        canary_id,
+        task_id,
+        route_epoch,
+        scope,
+        expires_at,
+        nonce,
+        canonical_approval_ref(REPOSITORY, ISSUE_NUMBER, COMMENT_ID),
+        REPOSITORY,
+        ISSUE_NUMBER,
+        COMMENT_ID,
+        ACTOR,
+        NOW,
+        hashlib.sha256(APPROVAL_BODY.encode("utf-8")).hexdigest(),
+    )
 
 
 def activation(*, bound: BoundCanaryApproval | None | object = ..., automatic_key: str = "idem.e36.one") -> ActivationManifest:
@@ -66,23 +99,62 @@ def event(*, event_id: str = "event.e36.one", route: RouteRef = ROUTE, canary_id
     return CanaryEvent(event_id, "GITHUB", route, canary_id, key, payload_hash)
 
 
-def evidence(route: RouteRef = ROUTE, active_hash: str = ACTIVE_HASH, coordination_hash: str = COORDINATION_HASH) -> RouteStateEvidence:
-    return RouteStateEvidence(route, active_hash, coordination_hash, NOW)
+def _blob_sha1(content: bytes) -> str:
+    return hashlib.sha1(f"blob {len(content)}\0".encode("ascii") + content).hexdigest()
+
+
+def route_evidence(route: RouteRef = ROUTE, active_content: bytes = b"active task", coordination_content: bytes = b"coordination") -> RouteStateEvidence:
+    return RouteStateEvidence(
+        route,
+        REPOSITORY,
+        "refs/heads/main",
+        MAIN_COMMIT,
+        RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, _blob_sha1(active_content), hashlib.sha256(active_content).hexdigest()),
+        RouteFileIdentity(CANONICAL_COORDINATION_PATH, _blob_sha1(coordination_content), hashlib.sha256(coordination_content).hexdigest()),
+        NOW,
+    )
+
+
+def route_proof(route: RouteRef = ROUTE, active_content: bytes = b"active task", coordination_content: bytes = b"coordination") -> RouteProofVerification:
+    evidence_value = route_evidence(route, active_content, coordination_content)
+    return ReadOnlyRouteProofVerifier().verify(
+        evidence_value,
+        {CANONICAL_ACTIVE_TASK_PATH: active_content, CANONICAL_COORDINATION_PATH: coordination_content},
+        REPOSITORY,
+        MAIN_COMMIT,
+        NOW,
+    )
+
+
+def approval_verification(bound: BoundCanaryApproval) -> ApprovalVerificationResult:
+    document = ReadOnlyApprovalDocument(REPOSITORY, ISSUE_NUMBER, COMMENT_ID, ACTOR, NOW, APPROVAL_BODY)
+    return ReadOnlyApprovalVerifier().verify(bound, document, NOW)
 
 
 def context(**overrides: object) -> CanaryGateContext:
+    default_activation = activation()
     values: dict[str, object] = {
-        "activation": activation(),
+        "activation": default_activation,
         "route_state": RouteState.READY,
         "observed_epoch": 37,
         "capabilities": CapabilitySet(CapabilityStatus.SUPPORTED, CapabilityStatus.SUPPORTED, CapabilityStatus.SUPPORTED),
         "remote_available": True,
         "automatic_dispatch_allowed": True,
         "cli_fallback_permitted": False,
-        "route_state_evidence": evidence(),
+        "approval_verification": approval_verification(default_activation.approval),
+        "route_proof": route_proof(),
         "checked_at": NOW,
     }
     values.update(overrides)
+    selected_activation = values["activation"]
+    assert isinstance(selected_activation, ActivationManifest)
+    if "approval_verification" not in overrides:
+        if selected_activation.approval is None:
+            values["approval_verification"] = ApprovalVerificationResult.unknown(NOW, "bound_approval_missing")
+        else:
+            values["approval_verification"] = approval_verification(selected_activation.approval)
+    if "route_proof" not in overrides:
+        values["route_proof"] = route_proof(selected_activation.route)
     return CanaryGateContext(**values)  # type: ignore[arg-type]
 
 
@@ -132,14 +204,14 @@ class E36ContractTests(unittest.TestCase):
     def test_app_is_preferred_to_cli(self) -> None:
         self.assertEqual(select_canary_owner(CapabilitySet(CapabilityStatus.SUPPORTED, CapabilityStatus.SUPPORTED), True), ExecutionOwner.APP_AUTOMATION)
 
-    def test_route_state_evidence_rejects_non_hash(self) -> None:
+    def test_route_state_evidence_rejects_non_blob_hash(self) -> None:
         with self.assertRaises(ValidationError):
-            evidence(active_hash="not-a-hash")
+            RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, "not-a-hash", ACTIVE_HASH)
 
     def test_context_rejects_unbound_state_evidence(self) -> None:
         other_route = RouteRef("brainops.other", "CODEX", 37)
         with self.assertRaises(ValidationError):
-            context(route_state_evidence=evidence(other_route))
+            context(route_proof=route_proof(other_route))
 
     def test_value_scanner_reports_category_not_secret_contents(self) -> None:
         fixture = "ghp_" + ("x" * 36)
@@ -232,7 +304,8 @@ class E36GateTests(unittest.TestCase):
             self.assertEqual(decision.outcome, ShadowOutcome.CANARY_ELIGIBLE_SHADOW_ONLY)
             self.assertFalse(decision.actual_dispatch_performed)
             self.assertEqual(len(store.list_canary_events()), 1)
-            self.assertEqual(len(store.list_route_state_evidence()), 1)
+            self.assertEqual(len(store.list_approval_consumptions()), 1)
+            self.assertEqual(len(store.list_verified_route_state_evidence()), 1)
         finally:
             store.close()
 
@@ -246,7 +319,8 @@ class E36GateTests(unittest.TestCase):
             self.assertEqual(first.outcome, ShadowOutcome.CANARY_ELIGIBLE_SHADOW_ONLY)
             self.assertEqual(second.outcome, ShadowOutcome.DUPLICATE_SUPPRESSED)
             self.assertEqual(len(store.list_canary_events()), 1)
-            self.assertEqual(len(store.list_route_state_evidence()), 1)
+            self.assertEqual(len(store.list_approval_consumptions()), 1)
+            self.assertEqual(len(store.list_verified_route_state_evidence()), 1)
         finally:
             store.close()
 
@@ -262,16 +336,16 @@ class E36GateTests(unittest.TestCase):
         finally:
             store.close()
 
-    def test_changed_state_evidence_cannot_add_a_second_effect_for_duplicate(self) -> None:
+    def test_changed_route_proof_cannot_add_a_second_effect_for_duplicate(self) -> None:
         self.temp = TemporaryDirectory()
         store = MetadataStore(Path(self.temp.name))
         try:
             gate = OneShotCanaryGate()
             gate.evaluate(store, event(), context())
-            changed = context(route_state_evidence=evidence(coordination_hash="d" * 64))
+            changed = context(route_proof=route_proof(coordination_content=b"changed coordination"))
             duplicate = gate.evaluate(store, event(), changed)
             self.assertEqual(duplicate.outcome, ShadowOutcome.DUPLICATE_SUPPRESSED)
-            self.assertEqual(len(store.list_route_state_evidence()), 1)
+            self.assertEqual(len(store.list_verified_route_state_evidence()), 1)
         finally:
             store.close()
 
@@ -319,10 +393,14 @@ class E36StoreTests(unittest.TestCase):
         with TemporaryDirectory() as temp:
             store = MetadataStore(Path(temp))
             try:
-                self.assertTrue(store.reserve_canary_event(event(), evidence(), NOW))
-                self.assertFalse(store.reserve_canary_event(event(), evidence(coordination_hash="d" * 64), NOW))
+                selected_activation = activation()
+                assert selected_activation.approval is not None
+                verification = approval_verification(selected_activation.approval)
+                self.assertTrue(store.reserve_canary_event(event(), selected_activation, verification, route_proof(), NOW))
+                self.assertFalse(store.reserve_canary_event(event(), selected_activation, verification, route_proof(coordination_content=b"changed"), NOW))
                 self.assertEqual(len(store.list_canary_events()), 1)
-                self.assertEqual(len(store.list_route_state_evidence()), 1)
+                self.assertEqual(len(store.list_approval_consumptions()), 1)
+                self.assertEqual(len(store.list_verified_route_state_evidence()), 1)
             finally:
                 store.close()
 

@@ -11,12 +11,12 @@ from .models import (
     CapabilityStatus,
     ExecutionOwner,
     RouteState,
-    RouteStateEvidence,
     ShadowDecision,
     ShadowOutcome,
     ValidationError,
     parse_rfc3339_utc,
 )
+from .proofs import ApprovalVerificationResult, RouteProofVerification
 from .store import MetadataStore
 
 
@@ -32,13 +32,14 @@ class CanaryGateContext:
     remote_available: bool
     automatic_dispatch_allowed: bool
     cli_fallback_permitted: bool
-    route_state_evidence: RouteStateEvidence
+    approval_verification: ApprovalVerificationResult
+    route_proof: RouteProofVerification
     checked_at: str
 
     def __post_init__(self) -> None:
         parse_rfc3339_utc(self.checked_at, "canary checked_at")
-        if self.activation.route != self.route_state_evidence.route:
-            raise ValidationError("activation and synchronized route-state evidence must bind the same route")
+        if self.route_proof.evidence is not None and self.activation.route != self.route_proof.evidence.route:
+            raise ValidationError("activation and synchronized route proof must bind the same route")
 
 
 def select_canary_owner(capabilities: CapabilitySet, cli_fallback_permitted: bool) -> ExecutionOwner:
@@ -65,7 +66,8 @@ class OneShotCanaryGate:
             "canary_id": event.canary_id,
             "shadow_only": True,
             "automatic_dispatch_performed": False,
-            "route_state_hashes_bound": True,
+            "route_state_proof_required": True,
+            "approval_provenance_required": True,
         }
         if event.canary_id != E36_CANARY_ID:
             return self._block("canary_id_not_allowlisted", owner, context, evidence)
@@ -86,11 +88,23 @@ class OneShotCanaryGate:
         approval_error = activation.approval.validates(activation, context.checked_at)
         if approval_error is not None:
             return self._block(approval_error, owner, context, evidence)
+        verification_error = context.approval_verification.validates(activation.approval, context.checked_at)
+        if verification_error is not None:
+            return self._block(verification_error, owner, context, evidence)
+        route_proof_error = context.route_proof.validates(activation.route)
+        if route_proof_error is not None:
+            return self._block(route_proof_error, owner, context, evidence)
         if not context.automatic_dispatch_allowed:
             return self._block("automation_disabled", owner, context, evidence)
         if owner is ExecutionOwner.NONE:
             return self._block("no_supported_automatic_owner", owner, context, evidence)
-        if not store.reserve_canary_event(event, context.route_state_evidence, context.checked_at):
+        if not store.reserve_canary_event(
+            event,
+            activation,
+            context.approval_verification,
+            context.route_proof,
+            context.checked_at,
+        ):
             return ShadowDecision(
                 outcome=ShadowOutcome.DUPLICATE_SUPPRESSED,
                 reason_code="persistent_idempotency_duplicate",
@@ -99,6 +113,9 @@ class OneShotCanaryGate:
                 evidence=evidence,
             )
         evidence["idempotency_reservation"] = "persisted"
+        evidence["approval_nonce_consumption"] = "persisted"
+        evidence["approval_verification"] = context.approval_verification.status.value
+        evidence["route_proof_verification"] = context.route_proof.status.value
         evidence["external_effect"] = "none"
         return ShadowDecision(
             outcome=ShadowOutcome.CANARY_ELIGIBLE_SHADOW_ONLY,
