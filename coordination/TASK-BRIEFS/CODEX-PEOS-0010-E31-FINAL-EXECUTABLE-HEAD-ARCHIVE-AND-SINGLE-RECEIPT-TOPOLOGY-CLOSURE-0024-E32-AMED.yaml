@@ -1,0 +1,73 @@
+schema_version: "1.0"
+task_id: "CODEX-PEOS-0010-E31-FINAL-EXECUTABLE-HEAD-ARCHIVE-AND-SINGLE-RECEIPT-TOPOLOGY-CLOSURE-0024-E32"
+route_epoch: 33
+agent: "CODEX"
+mode: "target"
+mode_label: "【Codex模式：目标模式】E31最终可执行Head、Archive与单一Receipt拓扑闭环E32"
+issue: 108
+pull_request: 107
+branch: "codex/vendor-neutral-agent-operating-kernel-0011"
+reviewed_base: "f3d062b82262aa5c977800a2d5a91ee7fb089cb8"
+status: "READY"
+execution_allowed: true
+completion_signal: "CODEX_E32_PEOS_0010_FINAL_EXECUTABLE_HEAD_ARCHIVE_AND_SINGLE_RECEIPT_TOPOLOGY_READY_FOR_GPT_REVIEW"
+
+review_disposition:
+  classification: "E31_WPDCR_ARCHIVE_AND_DUAL_PYTHON_IMPLEMENTATION_REUSABLE_BUT_FINAL_TESTED_HEAD_TOPOLOGY_INVALIDATED_BY_POST_TEST_EXECUTABLE_CHANGES"
+  completion_credit: false
+  reusable:
+    - "Semantic WPDCR with nine non-empty enterprise sections plus autonomy/model overlays."
+    - "Real three-root archive machinery with root-path hashes, content hashes and 58-file equality."
+    - "Exact final-head Python 3.11/3.13 run 30681518491 with 116/116 tests."
+    - "Candidate-only, disabled, no-adapter/no-shadow/no-trade boundaries."
+  blocker: >-
+    E31 declares fb30f1b8 as the tested substantive commit, but seven later commits lead to f3d062b8 and the diff includes
+    src/vendor_neutral_agent_kernel/evidence.py and tests/test_e31_evidence.py. Those executable-class changes invalidate fb30f1b8 as
+    final tested head. Current CI archives fb30f1b8, so archive truth binds an obsolete validator/test state.
+
+required_results:
+  - "Treat every current commit through f3d062b8 as pre-E32 history; do not preserve fb30f1b8 as final tested identity."
+  - "Inspect the full f3d062b8 tree and make at most one bounded corrective executable commit if the final-head topology validator is incomplete."
+  - "Implement Git-object comparison from final tested head to receipt parent and reject executable-class or semantic-validator drift."
+  - "Bind the FINAL archive commit/tree to the new final executable tested commit/tree, not fb30f1b8."
+  - "Run the full suite and static gates on the exact new final tested head under Python 3.11 and 3.13."
+  - "Run three distinct exact-tested-commit archive roots per Python job with the complete declared artifact surface."
+  - "After all tested-head evidence is green, create exactly one later non-empty evidence-only receipt commit."
+  - "Validate the receipt head without changing executable code, tests, workflow, schemas, contracts or acceptance semantics."
+  - "Publish current full tested commit/tree, receipt commit/tree, run/job IDs and artifact digests in PR and Issue external anchors."
+  - "Remove or mark superseded every stale run ID and every correction-chain claim that preserves fb30f1b8 as current authority."
+
+mandatory_negative_tests:
+  - "Any .py, workflow, test, schema, dependency or semantic-validator change after tested head fails."
+  - "A commit message containing receipt or evidence cannot override its Git diff classification."
+  - "Archive commit/tree differing from final tested executable commit/tree fails."
+  - "More than one post-tested evidence commit fails unless the route is explicitly reopened and evidence reset."
+  - "Stale run/job/artifact IDs fail when a later final-head run exists."
+  - "Receipt parent not equal to final tested head fails."
+
+commit_shape:
+  corrective_executable_commits_max: 1
+  final_non_empty_evidence_only_receipt_commits: 1
+  hard_cap_no_remediation_override: true
+  rationale: "E31 accumulated seven post-tested correction commits; E32 exists to collapse the topology to one final tested head and one receipt."
+  prohibited: ["amend", "rebase", "reset", "force_push", "merge", "direct_main_write", "receipt_correction_chain"]
+
+model_reasoning_execution_profile:
+  preferred_model: "gpt-5.6-sol"
+  reasoning_effort: "xhigh"
+  execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  silent_downgrade_forbidden: true
+  actual_profile_reporting_required: true
+  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
+
+protocols:
+  final_head_topology: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
+  autonomy: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
+  WPDCR: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
+
+hard_boundaries:
+  - "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+  - "No W1/W3/W8 adapter implementation, cross-model execution, Shadow activation, canonical promotion, merge, private/real data, production, account, order or trade."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
