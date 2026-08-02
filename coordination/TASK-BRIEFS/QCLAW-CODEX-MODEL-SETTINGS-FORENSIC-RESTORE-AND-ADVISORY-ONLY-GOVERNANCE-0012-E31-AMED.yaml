@@ -1,0 +1,94 @@
+schema_version: "1.0"
+task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
+route_epoch: 31
+target_agent: "QCLAW"
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】恢复Codex原有模型设置并关闭代理自动改模权 E31"
+active_issue: 125
+status: "READY"
+execution_allowed: true
+completion_signal: "QCLAW_E31_CODEX_MODEL_SETTINGS_RESTORED_AND_ADVISORY_ONLY_GOVERNANCE_READY_FOR_GPT_REVIEW"
+
+operator_model_advisory:
+  recommendation_level: "HIGH"
+  recommended_model_or_picker_label: "highest available model"
+  recommended_reasoning_level: "high or highest"
+  selection_owner: "USER_ONLY"
+  user_action_required: "User manually selects or keeps the current QQ setting."
+  agent_setting_mutation_forbidden: true
+
+objective: >-
+  Undo only the model/reasoning software-setting changes actually caused by QQ, returning Codex/ChatGPT to the exact trustworthy
+  pre-change state. Do not choose a new model. Convert the project-wide model-routing concept to advisory-only user notification.
+
+preconditions:
+  - "User explicitly stopped QCLAW E30."
+  - "User explicitly requested restoration of the prior Codex state."
+  - "Governance protocol v1.1 makes all model recommendations advisory-only and user-controlled."
+
+phase_0_freeze:
+  - "Do not continue E30 or any knowledge-atomization work."
+  - "Do not modify any model/reasoning setting while discovery is incomplete."
+  - "Do not start Codex or a Canary."
+
+phase_1_read_only_forensics:
+  inspect_sources:
+    - "QQ's own command/action/session history for the model-setting mutation."
+    - "QQ-created backups or pre-change snapshots."
+    - "File metadata and version/transaction history for user/project Codex configuration."
+    - "Codex/ChatGPT thread, workspace, agent and application model-setting layers."
+    - "Environment or IDE/workspace overrides that QQ may have changed."
+  output_limits:
+    - "Report only path category, field name, timestamp, hash and redacted before/after difference."
+    - "Never reveal complete private configuration, token, cookie, session, credential or secret."
+  required_finding:
+    - "Which exact actor/action changed which exact model/reasoning fields."
+    - "What trustworthy evidence establishes the pre-change value."
+
+phase_2_exact_restore:
+  allowed_only_if: "A trustworthy exact pre-change state exists."
+  evidence_priority:
+    - "QQ-created backup or pre-change snapshot."
+    - "Verified version/transaction history."
+    - "Explicit pre-existing automatic/default marker proven to have existed before QQ's mutation."
+  action:
+    - "Restore only QQ-caused changed fields or exact bytes."
+    - "Preserve every unrelated byte and setting."
+    - "Make a private local rollback backup before writing, without committing or exposing it."
+  forbidden_restore_sources:
+    - "This task's model recommendation."
+    - "The governance model matrix."
+    - "A web result or current product default."
+    - "A guessed model that seems normal."
+  no_evidence_result: "BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE"
+
+phase_3_validation:
+  - "Verify the restored fields equal the proven pre-change state."
+  - "Verify unrelated configuration is byte-identical or semantically unchanged."
+  - "Verify no persistent model override created by QQ remains."
+  - "Use only minimal refresh/restart required for the exact restore."
+  - "Do not update/reinstall, clear cache, sign out or delete sessions."
+
+phase_4_public_safe_handoff:
+  required_report:
+    - "Task ID, epoch, actual execution profile or ACCESS_NOT_EXPOSED."
+    - "Detected mutation surfaces, field names and redacted hashes."
+    - "Evidence used for the pre-change state."
+    - "Exact restoration result or BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE."
+    - "Proof unrelated settings did not drift."
+    - "Confirmation that no model recommendation was written as a software setting."
+  private_data_rule: "No local configuration/session content may be committed to GitHub."
+
+hard_boundaries:
+  - "No autonomous model selection or model/reasoning software mutation."
+  - "Only exact user-requested rollback of proven QQ-caused fields."
+  - "No E30 continuation, no Codex Canary, no automatic dispatch."
+  - "No credential, session, account, order or trade action."
+
+stop_conditions:
+  - "Success after exact restoration and validation."
+  - "BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE before any write."
+  - "Unexpected secret/private-data exposure risk."
+  - "Evidence shows the change was not caused by QQ or is outside authorized rollback scope."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
