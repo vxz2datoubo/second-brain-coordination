@@ -1,0 +1,56 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+task_id: "CODEX-BRAINOPS-TERMINAL-EXECUTION-ATTESTATION-RECOVERY-AUTHORITY-AND-FRESHNESS-CLOSURE-0039-E43"
+route_epoch: 45
+status: "PLANNED_SELECTED_IMPORT"
+source:
+  pull_request: 133
+  tested_head: "7d288a35674f7947536de85a647ab88c2d04028e"
+  receipt_head: "d38d2e71f86bdfcd3915ae5bd8b2d6e8b97b3189"
+  frozen: true
+policy:
+  whole_branch_merge: false
+  cherry_pick: false
+  source_branch_mutation: false
+  source_import_only: true
+  exact_blob_required: true
+imports:
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/__init__.py"
+    blob_sha: "5a7d1f3565a0dc52872f40fd10eebdb9ab35a74d"
+    disposition: "ADAPT_E43_EXPORT_SURFACE"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/ci_identity.py"
+    blob_sha: "e5d5cfae44af46f0ec571027e3608795fd2642de"
+    disposition: "REUSE_EXACT_HEAD_GUARD"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/durable_authority.py"
+    blob_sha: "c52cbe6b76cdbd61388b88f7ba58d7777b827687"
+    disposition: "ADAPT_LIFECYCLE_RECOVERY_AND_ERROR_CODES"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/execution_evidence.py"
+    blob_sha: "6a8380c40f3a4467f5f520bead6566280f2f1c51"
+    disposition: "REPLACE_WITH_CHALLENGE_FRESH_TRANSPORT_ENVELOPES"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_contents_cas.py"
+    blob_sha: "23285861c4e0d4eb5bb811ce2ba4f0cfd5c6651b"
+    disposition: "REUSE_SYNTHETIC_CAS_TEST_SUPPORT_ONLY"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_transport.py"
+    blob_sha: "c9b6f1d6a65b392cdf42e209bb664bb2296ef596"
+    disposition: "ADAPT_BOUNDED_TRANSPORT_PROTOCOL"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/models.py"
+    blob_sha: "29ef12affde7220dc55bb90556e9c36d921dacba"
+    disposition: "REUSE_SHARED_VALIDATION_PRIMITIVES"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/proofs.py"
+    blob_sha: "852488d2d790b0d9635592b2db55eae4391a4dc1"
+    disposition: "REUSE_PROVENANCE_PRIMITIVES"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/route_terminalization.py"
+    blob_sha: "8caed9f4f4ec0fa10374f749c4b5d9dfa06874b7"
+    disposition: "ADAPT_TERMINAL_RECONCILIATION_GATE"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e42_trusted_authority.py"
+    blob_sha: "247742df07bf8bbcb3309a049546f8c877cdc030"
+    disposition: "REFERENCE_AND_ADAPT_AS_E43_REGRESSION_BASE"
+excluded:
+  - path_prefix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E42/"
+    reason: "Historical E42 accountability artifacts remain frozen and are referenced by commit SHA only."
+  - path: ".github/workflows/brainops-e42.yml"
+    reason: "E43 requires an independent exact-head workflow."
+verification:
+  command: "git ls-tree -r d38d2e71f86bdfcd3915ae5bd8b2d6e8b97b3189 -- <listed paths>"
+  source_branch_mutated: false
+  whole_branch_history_imported: false
