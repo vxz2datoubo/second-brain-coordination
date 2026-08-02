@@ -1,0 +1,50 @@
+schema_version: "1.0"
+record_type: "RemotePublicationAndTreeEqualityReceipt"
+status: "R3_RECEIPT_PENDING_EXTERNAL_ANCHOR"
+task_id: "CODEX-PR95-R3-REMOTE-PUBLICATION-PROOF-AND-FINAL-RECEIPT-CLOSURE"
+branch: "codex/a-share-multi-agent-game-engine-0001-d0"
+prior_reviewed_remote_head: "150e339a98ba07a70a369c33d46a10b077707cee"
+prior_local_tested_head: "e5ac551e15d804417f1e1c1d8fa77f0032a7bb23"
+prior_local_receipt_head: "2c00ae6fd9e98aaf385c3f5779bb9be7344b17fb"
+prior_remote_parent: "6df84217c484dcfa9b3042104064857084d71dd5"
+prior_equal_content_tree: "5d5b3fa1149034e09024b9be10b067bfe7bd741d"
+prior_api_created_remote_head: "150e339a98ba07a70a369c33d46a10b077707cee"
+r3_reviewed_head: "653fcff04ba5fa7701c943596189371251b0c6a7"
+r3_reviewed_parent: "af0589692041430a6d7c24182fbc5b47e9f2d609"
+r3_reviewed_tree: "c8b7f6704f9c4f920034d397ed4376bcd9cba8a7"
+r3_receipt_parent: "653fcff04ba5fa7701c943596189371251b0c6a7"
+r3_command_evidence:
+  - command: "git show -s --format=reviewed=%H%nparent=%P%ntree=%T 653fcff04ba5fa7701c943596189371251b0c6a7"
+    exit_code: 0
+    stdout_sha256: "01420979d00edf107655fb0ce0584bfb64b7c100aadd0b294a1e00ff440a5c9e"
+    stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  - command: "git merge-base --is-ancestor 653fcff04ba5fa7701c943596189371251b0c6a7 HEAD"
+    exit_code: 0
+    stdout_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+prior_equality_method:
+  method: "Compare local and remote Git tree object SHA after an API-created commit was built from the same parent and four public receipt files."
+  conclusion: "Tree equality was verified; local and remote commit SHAs were intentionally not represented as identical."
+  commands:
+    - "git show -s --format=%T <local_receipt_head>"
+    - "gh api repos/<repository>/git/commits/<remote_head>"
+    - "compare tree.sha values; require equality"
+  exit_codes: [0, 0, 0]
+  normalized_stdout_sha256: "NOT_RECORDED_IN_R1_RECEIPT"
+  normalized_stderr_sha256: "NOT_RECORDED_IN_R1_RECEIPT"
+r2_receipt_identity:
+  tested_head_full_sha: "3963792bfcc47ad4d8fcd80fe5edde7ae4729003"
+  receipt_head_ref: "THIS_COMMIT"
+  receipt_parent_tested_head_full_sha: "3963792bfcc47ad4d8fcd80fe5edde7ae4729003"
+  external_remote_receipt_head_full_sha: "NOT_APPLICABLE_IN_SELF_REFERENTIAL_RECEIPT"
+  external_anchor_required_at: "PR #95 and Issue #23 completion comment after push"
+  rule: "The final R2 receipt never claims a self-referential SHA inside its own tree; the concrete SHA is externally anchored after publication."
+r3_receipt_identity:
+  receipt_head_ref: "THIS_COMMIT"
+  external_anchor_required_at: "PR #95 and Issues #23/#31 completion comment after push"
+  assertion: "The final receipt tree SHA is externally anchored because embedding it would alter the tree."
+public_safety:
+  local_path_scan_scope: "every file changed from prior_reviewed_remote_head through final R2 receipt head"
+  credential_value_scan_scope: "every file changed from prior_reviewed_remote_head through final R2 receipt head"
+  raw_data_or_private_blueprint_allowed: false
+  expected_result: "zero physical local paths and zero credential values"
