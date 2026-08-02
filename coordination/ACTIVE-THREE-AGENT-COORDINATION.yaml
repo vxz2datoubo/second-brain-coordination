@@ -1,76 +1,69 @@
-schema_version: "53.0"
+schema_version: "54.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E43_TERMINAL_ATTESTATION_READY_QCLAW_E34_CLEAN_ATOMIZATION_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E44_DURABLE_CHALLENGE_READY_QCLAW_E34_IMPLEMENTATION_CONTINUE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-03T02:47:00+08:00"
+updated_at: "2026-08-03T04:32:00+08:00"
 
 permanent_command_semantics:
-  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OLD_AND_PUBLISH_NEXT_ROUTE"}
+  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
   agent_read_command: {trigger: "读取任务", meaning: "EXECUTE_ONLY_WHEN_AGENT_ROUTE_IS_READY_AND_EXECUTION_ALLOWED", second_start_command_required: false}
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  temporary_profile_rule: "A requested current model/reasoning profile is not permission to persist it."
-  all_agent_model_mutation_rule: "Agents may not read or modify persistent model/provider/reasoning/default/thread/subagent settings unless a separately reviewed route explicitly permits deletion of their own proven override."
-  qclaw_config_incident_rule: "After E32, QCLAW has no authority to read, comment, uncomment or modify model/provider/reasoning/default/thread/subagent/workspace/session/private configuration."
+  all_agent_model_mutation_rule: "Agents may not read or modify persistent model/provider/reasoning/default/thread/subagent settings."
+  qclaw_config_incident_rule: "QCLAW has no authority to read, comment, uncomment or modify model/provider/reasoning/default/thread/subagent/workspace/session/private configuration."
   repository_scope_rule: "Engineering routes require exact allowed paths; agents block rather than infer."
-  source_trust_rule: "Frozen prototype files and old local test claims are candidate inputs only until reverified in the current task."
+  source_trust_rule: "UTF-8 or AST parse success is only structural admission, not semantic proof; frozen prototype code remains untrusted until adapted and retested."
   base64_rule: "Base64-wrapped repository objects are not source code evidence and may not be decoded and copied into a clean route."
-  terminal_execution_rule: "Positive terminal App/CLI execution classification requires matching durable terminal reconciliation; CLAIMED alone is in-progress or unreconciled."
-  freshness_rule: "Capability and invocation observations require bounded freshness, expiry and one-shot challenge binding to task, epoch, canary, nonce and owner instance."
-  transport_attestation_rule: "A caller-provided transport identity string is not trusted evidence; bounded transport-attested envelopes are required."
-  recovery_rule: "A separately governed recovery principal may reconcile timeouts but may never receive an effect permit, attach a new invocation or impersonate the claim holder."
-  production_cas_rule: "Production-shaped synthetic contracts are not live production authority or runtime proof."
-  budget_truth_rule: "GPT and agents cannot read provider point meters; budgets are relative scope estimates, not billing guarantees."
+  capability_gate_rule: "Legacy capability observations are observational only; positive capability requires a fresh challenge-bound transport-attested decision."
+  durable_challenge_rule: "Challenge and recovery authorization consumption must be globally one-shot across instances, restarts and processes."
+  owner_terminal_rule: "Manual App, App Automation and CLI terminal evidence must use mutually exclusive owner-specific schemas and terminal semantics."
+  production_cas_rule: "Synthetic contracts are not live production authority or runtime proof."
+  budget_truth_rule: "GPT and agents cannot read provider point meters; budgets are relative scope estimates."
   secret_rule: "No credential/session/key/private-config disclosure or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
 agents:
   CODEX:
-    active_issue: 134
-    source_issue: 132
-    source_pull_request: 133
-    source_tested_head: "7d288a35674f7947536de85a647ab88c2d04028e"
-    source_receipt_head: "d38d2e71f86bdfcd3915ae5bd8b2d6e8b97b3189"
-    task_id: "CODEX-BRAINOPS-TERMINAL-EXECUTION-ATTESTATION-RECOVERY-AUTHORITY-AND-FRESHNESS-CLOSURE-0039-E43"
-    route_epoch: 45
+    active_issue: 138
+    source_issue: 134
+    source_pull_request: 136
+    source_tested_head: "80d3d87d0caad132bb59a5dfe0bc6878a6af7ec7"
+    source_receipt_head: "630feade7c43d9a193d7e71578bb0d3b6e91e6b8"
+    task_id: "CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44"
+    route_epoch: 46
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    automatic_resume: false
-    planned_branch: "codex/brainops-terminal-attestation-recovery-freshness-0039-e43"
-    source_classification: "E42_PRODUCTION_SHAPED_CAS_AND_PROVENANCE_CONTRACTS_ACCEPTED_BUT_TERMINAL_EXECUTION_ATTESTATION_RECOVERY_AND_RUNTIME_TRUST_NOT_CLOSED"
+    planned_branch: "codex/brainops-durable-challenge-owner-terminal-0040-e44"
+    source_classification: "E43_LIFECYCLE_RECONCILIATION_AND_RECOVERY_SCAFFOLD_ACCEPTED_BUT_DURABLE_CHALLENGE_CAPABILITY_GATE_AND_OWNER_SPECIFIC_TERMINAL_SEMANTICS_NOT_CLOSED"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-      - ".github/workflows/brainops-e43.yml"
-    current_action: "Close terminal lifecycle, challenge freshness, transport attestation and least-privilege recovery contracts using synthetic tests only."
+      - ".github/workflows/brainops-e44.yml"
+    current_action: "Close legacy capability bypass, durable challenge/recovery consumption, and owner-specific terminal evidence contracts."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 135
-    source_issues: [129, 130]
-    source_pull_requests: [111, 118, 122]
+    active_pull_request: 137
+    checkpoint_head: "284e72ba5770e6457d07c23620dd33584e86f153"
     task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-CORRECTED-SOURCE-TRUST-AND-EXACT-EVIDENCE-0015-E34"
     route_epoch: 34
     mode: "project_plan"
-    status: "READY"
+    status: "READY_CONTINUE_IMPLEMENTATION"
     execution_allowed: true
-    automatic_resume: false
     planned_branch: "qclaw/knowledge-atomization-clean-utf8-corrected-trust-0015-e34"
-    source_classifications:
-      E32: "E32_FINAL_USER_CONTROL_RESTORED_AFTER_SERIOUS_OUT_OF_SCOPE_PROVIDER_MUTATION"
-      E33: "E33_RECOVERY_INVENTORY_STRUCTURE_ACCEPTED_BUT_SOURCE_PROOF_LABELS_OVERCREDITED"
+    checkpoint_classification: "E34_PLAN_CHECKPOINT_CREATED_BUT_EXECUTION_CONTRACT_VIOLATED_AND_SOURCE_ADMISSION_INSUFFICIENT"
+    plan_checkpoint_credit: true
+    implementation_credit: false
+    new_plan_or_new_pr_forbidden: true
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-0015-E34/**"
       - ".github/workflows/qclaw-e34-knowledge-atomization.yml"
     model_or_private_config_access_allowed: false
-    budget:
-      relative_target: "450-650"
-      hard_stop_before_estimated: 700
-      provider_meter_visible: false
-    current_action: "Rebuild a clean UTF-8 lossless atomization pipeline after per-file source admission; old prototypes are untrusted candidates only."
+    current_action: "Continue S1-S4 implementation on existing PR #137; no further planning checkpoint or GPT wait."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -79,42 +72,35 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E42:
-    pull_request: 133
-    tested_head: "7d288a35674f7947536de85a647ab88c2d04028e"
-    receipt_head: "d38d2e71f86bdfcd3915ae5bd8b2d6e8b97b3189"
-    classification: "E42_PRODUCTION_SHAPED_CAS_AND_PROVENANCE_CONTRACTS_ACCEPTED_BUT_TERMINAL_EXECUTION_ATTESTATION_RECOVERY_AND_RUNTIME_TRUST_NOT_CLOSED"
+  CODEX_E43:
+    pull_request: 136
+    tested_head: "80d3d87d0caad132bb59a5dfe0bc6878a6af7ec7"
+    receipt_head: "630feade7c43d9a193d7e71578bb0d3b6e91e6b8"
+    classification: "E43_LIFECYCLE_RECONCILIATION_AND_RECOVERY_SCAFFOLD_ACCEPTED_BUT_DURABLE_CHALLENGE_CAPABILITY_GATE_AND_OWNER_SPECIFIC_TERMINAL_SEMANTICS_NOT_CLOSED"
     accepted:
-      - "Three-commit topology, authorized 23-file surface and exact tested/receipt CI with 52 tests."
-      - "Production-shaped fixed-scope CAS, exact route/approval binding, closed owner and effect-permit direction."
-      - "No live authority write, Canary, App/CLI, credentials, model changes or trading."
+      - "Three commits, Draft state, authorized 27-file surface and exact Python 3.11/3.13 CI with 71 tests."
+      - "Durable-terminal reconciliation, bounded freshness envelope and least-privilege recovery direction."
     blockers:
-      - "Terminal-looking receipt can classify while claim remains CLAIMED."
-      - "Transport trust is still same-process cooperative API control."
-      - "Capability observations lack expiry, maximum age and challenge binding."
-      - "Recovery requires the crashed original holder."
-      - "Validation failures can be misreported as provenance mismatch."
+      - "Legacy evaluate_capability still returns positive SUPPORTED without E43 challenge."
+      - "Challenge replay protection is process-local only."
+      - "OwnerType/evidence/target and Automation/CLI-specific fields are not enforced in the E43 terminal path."
+      - "CLI exit code is not bound to terminal semantics."
+      - "Recovery authorization lacks exact provenance/storage binding and durable one-shot consumption."
     frozen: true
-  QCLAW_E32:
-    issue: 129
-    classification: "E32_FINAL_USER_CONTROL_RESTORED_AFTER_SERIOUS_OUT_OF_SCOPE_PROVIDER_MUTATION"
-    final_state_recovery_credit: true
-    clean_execution_credit: false
-    scope_compliance_credit: false
-    frozen: true
-  QCLAW_E33:
-    issue: 130
-    classification: "E33_RECOVERY_INVENTORY_STRUCTURE_ACCEPTED_BUT_SOURCE_PROOF_LABELS_OVERCREDITED"
-    inventory_structure_credit: true
-    old_source_proof_credit: false
-    frozen: true
+  QCLAW_E34_CHECKPOINT:
+    pull_request: 137
+    checkpoint_head: "284e72ba5770e6457d07c23620dd33584e86f153"
+    classification: "E34_PLAN_CHECKPOINT_CREATED_BUT_EXECUTION_CONTRACT_VIOLATED_AND_SOURCE_ADMISSION_INSUFFICIENT"
+    plan_checkpoint_credit: true
+    implementation_credit: false
+    completion_credit: false
+    disposition: "CONTINUE_EXISTING_ROUTE_BRANCH_AND_PR"
 
 frozen:
-  - "PR #133 and Codex E42 are frozen; no further commits or merge."
-  - "PR #131 and Codex E41 remain frozen."
-  - "QCLAW E32 and E33 are frozen; no further local config action."
-  - "PRs #111/#118/#122 remain frozen and are not authoritative source baselines."
-  - "No E43 live authority write, Canary, App Automation or Codex CLI invocation."
+  - "PR #136 and Codex E43 are frozen; no further commits or merge."
+  - "PR #133 and earlier Codex routes remain frozen."
+  - "QCLAW E32/E33 and PRs #111/#118/#122 remain frozen; they are not authoritative source baselines."
+  - "No E44 live authority write, Canary, App Automation or Codex CLI invocation."
   - "WorkBuddy remains paused."
   - "No secrets, accounts, orders or trades."
 
@@ -123,4 +109,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E43_TERMINAL_ATTESTATION_ENGINEERING / QCLAW_E34_CLEAN_UTF8_RECONSTRUCTION_NO_LOCAL_CONFIG / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E44_DURABLE_CHALLENGE_ENGINEERING / QCLAW_E34_EXISTING_PR_IMPLEMENTATION / USER_CONTROLS_MODELS / NO_TRADE"
