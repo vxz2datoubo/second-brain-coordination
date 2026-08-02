@@ -1,0 +1,122 @@
+# ============================================================================
+# 0013A PACKAGE MANIFEST
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A
+# ============================================================================
+
+package:
+  id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A"
+  version: "1.0.0"
+  status: "CANDIDATE_DELIVERY"
+  boundary: "PUBLIC_SAFE / NO_CREDENTIAL_VALUES / NO_PRIVATE_BODY / CANDIDATE_ONLY"
+
+target:
+  issue: "#38 — P4 Full Knowledge Gateway"
+  pr: "#58 — Codex Phase 4 knowledge gateway at 90%"
+  consumer: "CODEX — runs as-is, records per-case results, does not modify"
+  reviewer: "GPT — verifies independence, coverage, secret/injection gates"
+
+design_constraints:
+  - "QCLAW has NEVER read Codex source code, tests, or answer keys"
+  - "Expected atoms are derived from QCLAW's own knowledge atomization output"
+  - "No query was designed with knowledge of Codex's internal answers"
+  - "All atom IDs referenced are from QCLAW workspace atoms (0008/0010/0011/0012)"
+  - "PUBLIC_SAFE: no credential values, no private body text, no API keys"
+
+query_categories:
+  - id: "AC-01"
+    name: "Precise Facts vs Near-Interference"
+    file: "AC-01-precise-facts.v2.yaml"
+    queries: 8
+    description: "Tests exact factual retrieval vs confusable near-matches"
+    
+  - id: "AC-02"
+    name: "Negation & Double Negation"
+    file: "AC-02-negation.yaml"
+    queries: 8
+    description: "Simple/double/implicit negation, prohibition preservation"
+
+  - id: "AC-03"
+    name: "Premises & Exceptions"
+    file: "AC-03-premises-exceptions.yaml"
+    queries: 8
+    description: "Missing premises, exception applicability, conditional truth"
+
+  - id: "AC-04"
+    name: "Current vs Historical Versions"
+    file: "AC-04-historical-versions.yaml"
+    queries: 8
+    description: "Superseded content, time-bound rules, PR absorption, lifecycle"
+
+  - id: "AC-05"
+    name: "Conflict Recall"
+    file: "AC-05-conflicts.yaml"
+    queries: 8
+    description: "Direct/implicit conflicts, boundary disputes, unresolved questions"
+
+  - id: "AC-06"
+    name: "UNKNOWN Recall & Abstention"
+    file: "AC-06-unknown-abstain.yaml"
+    queries: 10
+    description: "Known UNKNOWNs, genuine absences, abstention precision"
+
+  - id: "AC-07"
+    name: "Forbidden Recall"
+    file: "AC-07-forbidden-recall.yaml"
+    queries: 8
+    description: "CREDENTIAL_VALUE exclusion, authority boundaries, cross-agent"
+
+  - id: "AC-08"
+    name: "Source Requirements"
+    file: "AC-08-source-requirements.yaml"
+    queries: 8
+    description: "Single/multi-source, quality hierarchy, lineage chain"
+
+  - id: "AC-09"
+    name: "Filter Tests"
+    file: "AC-09-filter-tests.yaml"
+    queries: 8
+    description: "Time/scope/type/state/confidence/language/negative filters"
+
+  - id: "AC-10"
+    name: "Relationship Traversal"
+    file: "AC-10-relationship-traversal.yaml"
+    queries: 8
+    description: "1-hop/2-hop/reverse/cross-issue/cycle detection"
+
+  - id: "AC-11"
+    name: "Language & Encoding Stress"
+    file: "AC-11-language-encoding.yaml"
+    queries: 10
+    description: "Mixed language, full-width, synonyms, Unicode, abbreviations"
+
+  - id: "AC-12"
+    name: "Budget & Omission"
+    file: "AC-12-budget-omission.yaml"
+    queries: 8
+    description: "Budget overflow, quality pruning, conflict/UNKNOWN reservation"
+
+  - id: "AC-13"
+    name: "Security Attacks"
+    file: "AC-13-security-attacks.yaml"
+    queries: 8
+    description: "Credential induction, injection, authority escalation, path traversal"
+
+statistics:
+  total_files: 13
+  total_queries: 110
+  total_bytes: ~117KB
+  categories: 13
+  difficulty_levels:
+    HARD: ~50
+    MODERATE: ~50
+    EASY: ~10
+  credential_attack_queries: 8
+  authority_attack_queries: 7
+  must_abstain_queries: 25
+  cross_language_queries: 12
+
+delivery:
+  recommended_branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+  delivery_directory: "QCLAW-ADVERSARIAL-EVIDENCE/0013A/"
+  independence_statement: "README.md"
+  ai_handoff: "AI_HANDOFF.yaml"

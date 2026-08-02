@@ -1,0 +1,92 @@
+# AMED-AGENT-EXECUTION-RECEIPT
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4
+# Generated: 2026-07-23T10:35:00+08:00
+
+schema_version: "1.0"
+receipt_id: "AMED-EXEC-RECEIPT-0013A-R4"
+
+task:
+  task_id: "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4"
+  mode: "目标模式 — PR70 清洁纠正、真实YAML解析与最终头部数据收口"
+  issue: 59
+  pull_request: 70
+  target_pr: 58
+  branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+  final_head_sha: "75d2563338b22e8c6c3e3fc104b9f15e1630f00c"
+
+amed_contract:
+  authority: "coordination/ACTIVE-QCLAW-TASK.yaml v3.2 (GPT-updated 2026-07-23)"
+  research_trigger: "L1_REUSE_AND_QUICK_CHECK"
+  task_weight: STANDARD
+  exploration_budget:
+    primary_delivery_share: "95%"
+    active_discovery_share: "4%"
+    system_opportunity_share: "1%"
+    max_new_architecture_proposals: 0
+    max_new_skill_candidates: 0
+    max_unplanned_files: 3
+    scope_expansion_without_gate: false
+  cross_module_policy: C_PROPOSAL_ONLY
+  second_pass_audit_required: true
+
+execution:
+  phase_r1:
+    description: "Original 110-query adversarial evidence package"
+    start: "2026-07-23T00:30:00+08:00"
+    end: "2026-07-23T05:05:00+08:00"
+    commit_sha: "4bb0bdaf279a3df490381be7f8b95888b59a7bdd"
+    status: COMPLETED
+
+  phase_r2:
+    description: "AMED receipt closure, immutability proof, handoff"
+    start: "2026-07-23T07:10:00+08:00"
+    end: "2026-07-23T07:18:00+08:00"
+    commit_sha: "8ce5d9292f2a92ba6e533e1106985d9886f0c519"
+    status: COMPLETED
+
+  phase_r3:
+    description: "Bounded GPT amendment: commit SHA, times, machine validator, IN_PROGRESS→COMPLETED, L2→L1"
+    start: "2026-07-23T07:35:00+08:00"
+    end: "2026-07-23T08:15:00+08:00"
+    commit_sha: "8d2edce769e9be0ce3ca88b9ff1f6e3764ac0480"
+    status: COMPLETED
+
+  phase_r4:
+    description: "Bounded GPT amendment: corrigendum, amendment log, real YAML parser (PyYAML 6.0.3, dup-key reject), fix head/times/immutability, AI_HANDOFF"
+    start: "2026-07-23T10:18:00+08:00"
+    end: "2026-07-23T10:42:00+08:00"
+    commit_sha: "75d2563338b22e8c6c3e3fc104b9f15e1630f00c"
+    deliverables:
+      - "CORRIGENDUM.yaml (3 corrigenda: AC-01 count, AC-06 format, combined hash)"
+      - "AMENDMENT-LOG.yaml (full R2/R3/R4 metadata change log)"
+      - "TEST-RUN-RECEIPT.md (updated: actual SHA, real times, PyYAML 6.0.3 validator output)"
+      - "AMED-AGENT-EXECUTION-RECEIPT.yaml (updated: final SHA, phase_r4, L1/95-4-1 contract)"
+      - "AI_HANDOFF.yaml (updated: R4 completion signal)"
+      - "validate_r4.py (canonical machine validator: PyYAML 6.0.3, dup-key rejection)"
+    frozen_not_modified:
+      - "13 adversarial query files (SHA256 unchanged)"
+      - "MANIFEST.yaml (AC-01 count error preserved, CORRIGENDUM)"
+      - "README.md"
+      - "All other R2 receipts"
+    status: COMPLETED
+
+forbidden_actions_compliance:
+  - rule: "No modification of frozen queries, MANIFEST, or README"
+    status: COMPLIANT_R4
+  - rule: "No modification of Codex PR #58 source, tests, hidden answers"
+    status: COMPLIANT_R1_R2_R3_R4
+  - rule: "No Issue #72/#73 files on PR #70 branch"
+    status: COMPLIANT_R1_R2_R3_R4
+  - rule: "No runtime, authority, account, credential, trading, auto-merge changes"
+    status: COMPLIANT_R1_R2_R3_R4
+  - rule: "UNKNOWN registry entries preserved"
+    status: COMPLIANT_R4
+
+completion_signal: "QCLAW_PR70_R4_CORRIGENDUM_AND_MACHINE_YAML_VERIFIED_FOR_GPT_ACCEPTANCE"
+completion_status: DONE
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T10:35:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

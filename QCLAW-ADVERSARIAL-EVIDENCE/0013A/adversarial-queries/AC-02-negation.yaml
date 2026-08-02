@@ -1,0 +1,201 @@
+# ============================================================================
+# AC-02 NEGATION & DOUBLE NEGATION — ADVERSARIAL QUERY SET
+# Tests: simple negation, double negation, implicit negation, scope ambiguity,
+# prohibition, exception-as-negation, negation-preserving retrieval, anti-cheat
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "NEGATION_AND_DOUBLE_NEGATION"
+total_queries: 8
+
+queries:
+  - query_id: "AC02-SN-001"
+    sub_pattern: 1
+    query: >
+      Does QCLAW implement the Kelly criterion optimizer?
+    language: "en"
+    domain_scope: "Agent Boundary / Capability"
+    expected_atom_ids: ["qclaw-does-not-implement-kelly"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Simple negation. The correct answer is an explicit NO: QCLAW does
+      NOT implement the Kelly optimizer. The gateway must return the
+      negation atom itself. Silently omitting the negation and returning
+      only what QCLAW DOES implement (atomization, evaluation packets)
+      would fail: the user asked a yes/no and the negation IS the answer.
+
+  - query_id: "AC02-DN-002"
+    sub_pattern: 2
+    query: >
+      Is it true that QCLAW is NOT forbidden from reading authorized
+      private knowledge for atomization?
+    language: "en"
+    domain_scope: "Security / Authorization Boundary"
+    expected_atom_ids: ["qclaw-can-read-authorized-private-knowledge"]
+    forbidden_atom_ids: ["qclaw-cannot-read-any-private-knowledge"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Double negation. "NOT forbidden from reading" = "permitted to read."
+      The corrected boundary from Issue #59 comment 1 states: QCLAW MAY
+      read authorized private/internal/paid knowledge for atomization;
+      only secret values (API keys, tokens, private keys) are permanently
+      forbidden. The gateway must resolve the double negation to the
+      affirmative permission, not flip to the original prohibition.
+
+  - query_id: "AC02-IN-003"
+    sub_pattern: 3
+    query: >
+      What happens when a knowledge source does NOT have an authorized
+      local adapter?
+    language: "en"
+    domain_scope: "Knowledge Gateway / Adapter Boundary"
+    expected_atom_ids: ["waiting-local-evidence-status"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Implicit negation in condition. The query asks about the state when
+      a condition is NOT met. The answer is WAITING_LOCAL_EVIDENCE, a
+      specific status atom. The gateway must check for absence of the
+      "adapter exists" condition and return the correct negative-branch
+      status, not silently default to the positive branch.
+
+  - query_id: "AC02-SA-004"
+    sub_pattern: 4
+    query: >
+      QCLAW does NOT implement Kelly AND does NOT create a second memory
+      runtime. Confirm both individually.
+    language: "en"
+    domain_scope: "Agent Boundary / Multi-Negation"
+    expected_atom_ids:
+      - "qclaw-does-not-implement-kelly"
+      - "qclaw-does-not-create-second-runtime"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Negation scope ambiguity. The query asserts two independent
+      negations in a conjunction. The gateway must confirm BOTH
+      independently — returning only one negation and being silent
+      on the other is a failure. The two negations must not collapse
+      into one "QCLAW doesn't do runtime stuff" generalization.
+
+  - query_id: "AC02-PR-005"
+    sub_pattern: 5
+    query: >
+      Must storage targets be controlled by privacy_class?
+    language: "en"
+    domain_scope: "Architecture / Prohibition Rule"
+    expected_atom_ids: ["storage-targets-not-controlled-by-privacy-class"]
+    forbidden_atom_ids: ["privacy-class-controls-storage"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Negated prohibition. "Storage targets MUST NOT be controlled by
+      privacy_class" — the negation IS the rule. The gateway must return
+      the explicit prohibition atom. Returning a general description of
+      storage_targets without the MUST NOT clause is a failure.
+
+  - query_id: "AC02-EX-006"
+    sub_pattern: 6
+    query: >
+      Can all knowledge atoms be stored in github_public?
+    language: "en"
+    domain_scope: "Architecture / Storage Exception"
+    expected_atom_ids: ["credential-value-storage-exception", "financial-value-storage-exception"]
+    forbidden_atom_ids: ["all-atoms-public-storage"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Exception as negation. The correct answer is "all atoms EXCEPT
+      CREDENTIAL_VALUE and FINANCIAL_VALUE." The exception IS the
+      negation of the universal claim. The gateway must return the
+      exception atoms, not a blanket "all atoms go to public."
+
+  - query_id: "AC02-ZH-007"
+    sub_pattern: 7
+    query: >
+      不得建立第二运行时。这条规则在哪里？
+    language: "zh"
+    domain_scope: "Architecture / Prohibition Retrieval"
+    expected_atom_ids: ["no-second-runtime-prohibition"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Negation-preserving Chinese retrieval. The keyword "不得" is
+      an explicit prohibition marker. The gateway must find the atom
+      that contains the prohibition, not the nearest positive statement
+      about "single runtime architecture." The Chinese negation keyword
+      must drive retrieval, not be ignored as a stop word.
+
+  - query_id: "AC02-AC-008"
+    sub_pattern: 8
+    query: >
+      Summarize the knowledge atom about QCLAW not building a second
+      runtime.
+    language: "en"
+    domain_scope: "Anti-Cheat / Verb Preservation"
+    expected_atom_ids: ["no-second-runtime-prohibition"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Anti-cheat negation check. The query asks to "summarize," but the
+      atom itself is a prohibition: "DO NOT build a second runtime."
+      The gateway must preserve the imperative/negation quality of the
+      atom, not soften it into a descriptive statement. If the response
+      says "QCLAW focuses on atomization rather than runtime" without
+      the explicit prohibition, this is a failure.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - simple_negation
+    - double_negation
+    - implicit_negation_condition
+    - negation_scope_ambiguity
+    - negated_prohibition
+    - exception_as_negation
+    - chinese_negation_preservation
+    - anti_cheat_negation_verbatim
+  difficulty_distribution: { HARD: 4, MODERATE: 4 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

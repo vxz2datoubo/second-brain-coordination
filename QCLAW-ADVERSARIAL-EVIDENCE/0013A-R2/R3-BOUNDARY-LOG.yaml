@@ -1,0 +1,110 @@
+# R3-BOUNDARY-LOG
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R3
+# Generated: 2026-07-23T08:05:00+08:00
+#
+# Documents exactly what R3 changed and did NOT change.
+# Per GPT amendment: "R3只允许修改R2收据目录和R1 AI_HANDOFF.yaml的状态/指针"
+
+schema_version: "1.0"
+log_id: "R3-BOUNDARY-0013A-R3"
+
+# === GPT AMENDMENT SOURCE ===
+amendment_ref: "https://github.com/vxz2datoubo/second-brain-coordination/pull/70#pullrequestreview-3091991467"
+amendment_conclusion: "BOUNDED_REMEDIATION_REQUIRED_BEFORE_ACCEPTANCE"
+amendment_items: 6
+
+# === R3 CHANGED FILES ===
+
+changed:
+  - file: "0013A-R2/TEST-RUN-RECEIPT.md"
+    amendment_item: 1
+    changes:
+      - "R1 commit SHA: 4bb0... (incorrect) → actual R2 head 8ce5d92 (correct)"
+      - "R2 end time: 'estimated'/'~0.3h' → actual 2026-07-23T07:18:00+08:00/~0.13h"
+      - "YAML validation: 'Manual inspection' → machine validator with exit_code=0, full stdout, 5 checks"
+      - "Added validator command, time, SHA, per-file PASS/FAIL output verbatim"
+    reason: "GPT item 1: incorrect commit SHA, estimated times, missing machine validation evidence"
+
+  - file: "0013A-R2/AMED-AGENT-EXECUTION-RECEIPT.yaml"
+    amendment_items: "3, 4"
+    changes:
+      - "phase_r2.status: IN_PROGRESS → COMPLETED"
+      - "completion_status: PENDING_R2_UPLOAD → DONE"
+      - "phase_r2.end: '2026-07-23T07:30:00+08:00 (est.)' → actual '2026-07-23T07:18:00+08:00'"
+      - "amed_contract.research_trigger: L2_TARGETED_PROFESSIONAL_RESEARCH → L1_REUSE_AND_QUICK_CHECK"
+      - "exploration_budget: 70/20/10 → 80/15/5"
+      - "Added contract_clarification_ref pointing to AMED-CONTRACT-CLARIFICATION.yaml"
+      - "Added phase_r3 with R3 amendments list"
+      - "Added completeness_signal for R3"
+    reason: "GPT items 3+4: IN_PROGRESS/PENDING_UPLOAD contradiction, L2/L1 contract conflict"
+
+  - file: "0013A-R2/AMED-CONTRACT-CLARIFICATION.yaml [NEW]"
+    amendment_item: 4
+    description: "Documents L1 (R2/R3 explicit routing) vs L2 (Issue #59 legacy) distinction. L1 is authoritative for R2+. Legacy preserved in AMED-LEGACY-INHERITANCE-RECEIPT.yaml as historical."
+    reason: "GPT item 4: L2 70/20/10 must not be the authoritative R2 contract"
+
+  - file: "0013A-R2/R3-BOUNDARY-LOG.yaml [NEW]"
+    amendment_item: 5
+    description: "This file. Documents all R3 changes and non-changes."
+    reason: "GPT item 5: traceability of what R3 did and did not touch"
+
+  - file: "0013A/AI_HANDOFF.yaml"
+    amendment_item: "2 (indirect), 5"
+    changes:
+      - "completion_signal: QCLAW_PR70_EVIDENCE_PACKAGE_READY_FOR_GPT_AND_PR58_CONSUMPTION → QCLAW_PR70_R3_RECEIPTS_VERIFIED_FOR_GPT_ACCEPTANCE"
+      - "status: READY_FOR_CONSUMPTION → R3_AMENDED_AWAITING_GPT_REVIEW"
+    reason: "GPT item 5: update AI_HANDOFF to R3 completion signal"
+
+# === R3 UNCHANGED FILES (DELIBERATELY FROZEN) ===
+
+unchanged:
+  queries:
+    - "adversarial-queries/AC-01-precise-facts.v2.yaml (10 queries, SHA 63E3E0DB...)"
+    - "adversarial-queries/AC-02-negation.yaml (8 queries, SHA A3CE603D...)"
+    - "adversarial-queries/AC-03-premises-exceptions.yaml (8 queries, SHA E440914F...)"
+    - "adversarial-queries/AC-04-historical-versions.yaml (8 queries, SHA 90A14B84...)"
+    - "adversarial-queries/AC-05-conflicts.yaml (8 queries, SHA E6ABBFA3...)"
+    - "adversarial-queries/AC-06-unknown-abstain.yaml (10 queries, SHA B6755F36...)"
+    - "adversarial-queries/AC-07-forbidden-recall.yaml (8 queries, SHA 4B86D577...)"
+    - "adversarial-queries/AC-08-source-requirements.yaml (8 queries, SHA C73B1E3B...)"
+    - "adversarial-queries/AC-09-filter-tests.yaml (8 queries, SHA 9B224E41...)"
+    - "adversarial-queries/AC-10-relationship-traversal.yaml (8 queries, SHA 4B35AE8D...)"
+    - "adversarial-queries/AC-11-language-encoding.yaml (10 queries, SHA 7567FCD3...)"
+    - "adversarial-queries/AC-12-budget-omission.yaml (8 queries, SHA 1CBA4401...)"
+    - "adversarial-queries/AC-13-security-attacks.yaml (8 queries, SHA 79EFC17F...)"
+  packaging:
+    - "MANIFEST.yaml (SHA 9B6143C1...)"
+    - "README.md (SHA EFEDB7A5...)"
+  r2_receipts_preserved:
+    - "AMED-LEGACY-INHERITANCE-RECEIPT.yaml (historical, not authoritative for R2+)"
+    - "AMED-RESEARCH-LEDGER.yaml"
+    - "UNPLANNED-IMPROVEMENT-LEDGER.yaml"
+    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+    - "UNKNOWN-REGISTRY.yaml"
+    - "PACKAGE-IMMUTABILITY-AND-HASH-RECEIPT.yaml"
+    - "INDEPENDENCE-AND-NON-CONTAMINATION-ATTESTATION.yaml"
+
+# === UNKNOWN REGISTRY PRESERVATION ===
+#
+# GPT item 6: "UNKNOWN中关于格式适配、atom ID映射、UNKNOWN/ABSTAIN语义和类别覆盖必须保留"
+# All 9 UNKNOWN entries in UNKNOWN-REGISTRY.yaml are preserved unchanged.
+# Format adapter (UNK-0013A-007), atom ID mapping (UNK-0013A-002), UNKNOWN/ABSTAIN semantics (UNK-0013A-003),
+# and category coverage (UNK-0013A-001) are all present and unchanged.
+
+unknown_registry_preserved: true
+unknown_entries_preserved_count: 9
+
+# === VERIFICATION ===
+
+verification:
+  method: "R3 validator (TEST-RUN-RECEIPT.md machine output)"
+  exit_code: 0
+  all_frozen_files_unchanged: true
+  per_file_sha256_match: true
+  combined_sha256_match: true
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T08:05:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY

@@ -1,0 +1,250 @@
+# ============================================================================
+# AC-01 PRECISE FACTS vs NEAR-INTERFERENCE — ADVERSARIAL QUERY SET
+# Module: QCLAW-ADVERSARIAL-EVIDENCE / 0013A
+# Task: QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A
+# Boundary: PUBLIC_SAFE / CANDIDATE_ONLY / NO_TRADE
+#
+# Tests factual precision: the gateway must retrieve exact atoms, not
+# semantically-similar-but-wrong near-matches.
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "PRECISE_FACTS_VS_NEAR_INTERFERENCE"
+total_queries: 10
+
+queries:
+  - query_id: "AC01-PF-001"
+    sub_pattern: 1
+    query: >
+      What storage_target controls whether an atom goes to github_public
+      versus local_only?
+    language: "en"
+    domain_scope: "Storage Transport Architecture"
+    expected_atom_ids: ["storage-targets-control-storage"]
+    forbidden_atom_ids: ["privacy-class-controls-storage"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Storage target vs privacy class confusion. The canonical rule is
+      "storage_targets control storage location; privacy_class does NOT
+      control storage." This query directly tests whether the gateway
+      retrieves the correct atom about storage_targets rather than the
+      incorrect conflation with privacy_class. A system that returns
+      privacy_class metadata as if it controls storage fails this test.
+
+  - query_id: "AC01-PF-002"
+    sub_pattern: 2
+    query: >
+      What is the single canonical memory runtime after PR #57 merge?
+    language: "en"
+    domain_scope: "System Architecture / Runtime Authority"
+    expected_atom_ids: ["single-memory-runtime-declaration", "pr57-is-canonical-runtime"]
+    forbidden_atom_ids: ["second-runtime-permitted", "parallel-runtime-declaration"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Single runtime enforcement. PR #57 merged Phase 3 as the ONLY
+      canonical runtime. QCLAW must not build a second store, fusion
+      engine, query planner, or context assembler. The gateway must
+      return the single-runtime declaration and must NOT suggest any
+      parallel/second/independent runtime is permitted.
+
+  - query_id: "AC01-PF-003"
+    sub_pattern: 3
+    query: >
+      The Kelly criterion optimal fraction f* equals (p × b − q) / b.
+      What λ adjustment is required for A-share market conditions?
+    language: "en"
+    domain_scope: "Kelly Criterion / Application Domain"
+    expected_atom_ids: ["kelly-lambda-drivers", "kelly-fractional-adjustment"]
+    forbidden_atom_ids: ["kelly-full-fraction-naive"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Precision under domain shift. The naive Kelly formula f*=(pb−q)/b
+      applies to binary bets with known p and b. For A-share markets with
+      parameter uncertainty, the correct answer includes λ<1 (fractional),
+      with at least 11 distinct λ adjustment drivers documented in the
+      Kelly knowledge atoms. The gateway must return the fractional
+      adjustment atoms, not the naive full-Kelly formula.
+
+  - query_id: "AC01-PF-004"
+    sub_pattern: 4
+    query: >
+      Issue #38 current status?
+    language: "en"
+    domain_scope: "Task Management / Issue Lifecycle"
+    expected_atom_ids: ["issue-38-paused-preserved"]
+    forbidden_atom_ids: ["issue-38-complete", "issue-38-cancelled"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Issue #38 is PAUSED_PRESERVED, not COMPLETE or CANCELLED. The
+      gateway must return the precise status and must not report it as
+      finished. PR #58 sits at 90% waiting for the independent QCLAW
+      adversarial evidence package — this is the exact package being
+      built here.
+
+  - query_id: "AC01-PF-005"
+    sub_pattern: 5
+    query: >
+      What does QCLAW implement?
+    language: "en"
+    domain_scope: "Agent Boundary / Capability Declaration"
+    expected_atom_ids: ["qclaw-implements-knowledge-atomization", "qclaw-implements-evaluation-packet"]
+    forbidden_atom_ids: ["qclaw-implements-kelly-optimizer", "qclaw-implements-memory-runtime"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Agent boundary precision. QCLAW produces knowledge atoms, schema
+      candidates, adversarial fixtures, and research digestion — it does
+      NOT implement the Kelly optimizer, portfolio management, or any
+      second canonical runtime. The gateway must distinguish QCLAW's
+      actual scope from confusable capabilities of other agents.
+
+  - query_id: "AC01-PF-006"
+    sub_pattern: 6
+    query: >
+      Does privacy_class control storage transport?
+    language: "en"
+    domain_scope: "Architecture / Privacy vs Storage"
+    expected_atom_ids: ["privacy-class-does-not-control-storage"]
+    forbidden_atom_ids: ["privacy-class-controls-storage"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Negative precision. The answer is explicitly NO: privacy_class does
+      NOT control storage transport. Storage is controlled by storage_targets.
+      This test checks that the gateway correctly retrieves the negative
+      (exclusion) rule rather than a positive (inclusion) counterpart.
+
+  - query_id: "AC01-PF-007"
+    sub_pattern: 7
+    query: >
+      T+1交易规则在A股什么时候生效的？
+    language: "zh"
+    domain_scope: "A-Share Market / Settlement Rules"
+    expected_atom_ids: ["ashare-t1-settlement-rule"]
+    forbidden_atom_ids: ["ashare-t0-historical-rule"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Time-sensitive A-share rule. T+1 is the current settlement rule.
+      The gateway must return the CURRENT T+1 rule atom, not any historical
+      T+0 rule. This tests temporal precision under Chinese-language query.
+
+  - query_id: "AC01-PF-008"
+    sub_pattern: 8
+    query: >
+      What was the merge SHA of PR #57?
+    language: "en"
+    domain_scope: "Version Control / Canonical Runtime"
+    expected_atom_ids: ["pr57-merge-sha"]
+    forbidden_atom_ids: ["pr45-interim-sha", "pr46-interim-sha"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Precise SHA retrieval. PR #57 merged at 473d0ec15b28ac5e1b70db0b8a6a9ab17738161b.
+      The gateway must return the exact merge commit SHA, not any interim
+      SHA from absorbed predecessor PRs #45 or #46.
+
+  - query_id: "AC01-PF-009"
+    sub_pattern: 9
+    query: >
+      Which issue currently holds the active QCLAW task?
+    language: "en"
+    domain_scope: "Task Management / Active Route"
+    expected_atom_ids: ["issue-59-active-qclaw-task"]
+    forbidden_atom_ids: ["issue-38-active-qclaw-task"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Active task precision. QCLAW's active task route is Issue #59
+      (knowledge atomization), not Issue #38 (which was reassigned).
+      The gateway must return the current active issue, not the legacy one.
+
+  - query_id: "AC01-PF-010"
+    sub_pattern: 10
+    query: >
+      What does the DS-01 Decision Framing skill require as input?
+    language: "en"
+    domain_scope: "Decision Science / Skill Contract"
+    expected_atom_ids: ["ds01-input-contract"]
+    forbidden_atom_ids: ["ds02-input-contract", "ds03-input-contract"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    min_quality: "HIGH"
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Skill contract precision. DS-01 Decision Framing has specific input
+      requirements (decision context, options, criteria). The gateway must
+      return DS-01's specific contract, not DS-02 Probability Fusion or
+      DS-03 Information Value, which have different input schemas even
+      though they are in the same 13-skill lifecycle.
+
+suite_summary:
+  total_queries: 10
+  sub_patterns:
+    - storage_control_confusion
+    - single_runtime_authority
+    - domain_specific_adjustment
+    - lifecycle_status_precision
+    - agent_boundary_precision
+    - negative_exclusion_rule
+    - temporal_t1_settlement
+    - sha_precision
+    - active_task_routing
+    - skill_contract_precision
+  difficulty_distribution: { HARD: 6, MODERATE: 4 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

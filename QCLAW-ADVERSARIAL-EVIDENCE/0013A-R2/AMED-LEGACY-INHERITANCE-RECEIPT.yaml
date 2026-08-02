@@ -1,0 +1,65 @@
+# AMED-LEGACY-INHERITANCE-RECEIPT
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+receipt_id: "AMED-LEGACY-INHERITANCE-0013A-R2"
+amed_policy_ref: "coordination/BLUEPRINTS/ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-PROTOCOL-v1.0.md"
+amed_governance_ref: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+
+# === INHERITANCE CONTEXT ===
+
+inheritance_basis:
+  reason: >
+    Issue #59 was READY before AMED took effect. Per AMED compatibility rule
+    (QCLAW-TASK-ROUTER.md §6), this task inherits default AMED fields via
+    one-time historical compatibility.
+  rule_citation: "QCLAW-TASK-ROUTER.md Section 6"
+  rule_text: >
+    "在AMED生效前已经READY且尚未重新发布的历史活动任务，如缺少AMED字段，
+    临时继承：task_weight: STRATEGIC、research_trigger: L2_TARGETED_PROFESSIONAL_RESEARCH、
+    探索预算70/20/10、跨模块和新Skill一律C_PROPOSAL_ONLY"
+
+inherited_values:
+  task_weight: STRATEGIC
+  research_trigger: L2_TARGETED_PROFESSIONAL_RESEARCH
+  exploration_budget:
+    main_delivery: 70
+    active_discovery: 20
+    system_evolution: 10
+  cross_module_and_new_skill_policy: C_PROPOSAL_ONLY
+
+applicability_scope:
+  applies_to:
+    - "QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2 (this task)"
+  does_not_apply_to:
+    - "Any future QCLAW task (new tasks must supply explicit AMED fields)"
+    - "Codex tasks (governed by separate AMED contract)"
+    - "Issue #73 (already has explicit AMED contract in its Issue body)"
+
+boundary_clarification:
+  privacy_boundary_unchanged: >
+    The AMED inheritance does NOT alter the security boundary:
+    CREDENTIAL/ACCESS/FINANCIAL secret values remain the only hard-sensitive
+    class. PUBLIC_SAFE / CANDIDATE_ONLY / NO_TRADE remain in force.
+  authority_unchanged: >
+    QCLAW remains CANDIDATE_ONLY. No authority upgrade is implied.
+  branch_ownership_unchanged: >
+    PR #70 branch remains QCLAW-owned. No auto-merge.
+  task_scope_unchanged: >
+    The primary objective (deliver 110 independent adversarial queries as an
+    immutable evidence package for PR #58 consumption) is unchanged.
+
+still_ambiguous_boundaries:
+  - "Whether AMED A-class self-improvements on the audit package itself
+     (spelling, formatting) require separate AMED receipts per action or
+     can be batched under this single legacy receipt."
+  - "Whether L2 research trigger applies retroactively to the R1 work
+     (atomization research from Issues #59-#63) or only to R2 new work.
+     Ruling: L2 applies to atomization research already completed; R2
+     new research is limited to system discovery."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"
+  safety: PUBLIC_SAFE

@@ -1,0 +1,205 @@
+# ============================================================================
+# AC-08 SOURCE MINIMUM REQUIREMENTS — ADVERSARIAL QUERY SET
+# Tests: single-source fact, multi-source verification, source quality,
+# missing/revoked source, authoritative hierarchy, lineage chain,
+# extracted-vs-original, cross-issue source
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "SOURCE_MINIMUM_REQUIREMENTS"
+total_queries: 8
+
+queries:
+  - query_id: "AC08-SS-001"
+    sub_pattern: 1
+    query: >
+      What is the merge SHA of PR #57?
+    language: "en"
+    domain_scope: "Version Control / Single Source"
+    expected_atom_ids: ["pr57-merge-sha"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Single-source fact. The PR #57 merge SHA (473d0ec...) should be
+      cited from one canonical source (the PR metadata). This tests
+      that the gateway correctly identifies a single authoritative
+      source rather than fabricating multiple references.
+
+  - query_id: "AC08-MS-002"
+    sub_pattern: 2
+    query: >
+      Confirm that QCLAW must not build a second memory runtime.
+    language: "en"
+    domain_scope: "Architecture / Multi-Source Verification"
+    expected_atom_ids:
+      - "no-second-runtime-issue38"
+      - "no-second-runtime-issue59"
+      - "single-runtime-declaration"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Multi-source verification. The "no second runtime" rule appears
+      in both Issue #38 specification AND Issue #59 context. Both
+      sources must be cited. A single-source citation is insufficient
+      for a rule this critical.
+
+  - query_id: "AC08-SQ-003"
+    sub_pattern: 3
+    query: >
+      What is the λ adjustment for Kelly on A-shares?
+    language: "en"
+    domain_scope: "Kelly / Source Quality Discrimination"
+    expected_atom_ids:
+      - "kelly-lambda-drivers-primary"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Source quality. The Kelly lambda drivers come from two types of
+      sources: primary research literature (high quality) and QCLAW
+      research digestion (candidate quality). The gateway must
+      distinguish between these quality levels. Returning only
+      candidate-quality sources when primary literature exists
+      is a source-quality failure.
+
+  - query_id: "AC08-RS-004"
+    sub_pattern: 4
+    query: >
+      What were the storage rules before the current version?
+    language: "en"
+    domain_scope: "Architecture / Revoked Source"
+    expected_atom_ids:
+      - "storage-targets-superseded-patch"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Revoked/missing source. If a source was revoked (superseded patch),
+      the gateway must note the revocation status while still returning
+      the historical content. Omitting the revocation flag is a failure.
+
+  - query_id: "AC05-AH-005"
+    sub_pattern: 5
+    query: >
+      Does QCLAW have write authority over the canonical runtime?
+    language: "en"
+    domain_scope: "Architecture / Authoritative Source Hierarchy"
+    expected_atom_ids: ["qclaw-no-write-authority-runtime"]
+    forbidden_atom_ids: ["qclaw-write-authority"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Authoritative source hierarchy. The authoritative source for
+      this rule is Issue #38 (the specification), not QCLAW's own
+      deductions. The gateway must cite the Issue #38 specification
+      as the authoritative source, with higher weight than any
+      secondary interpretation.
+
+  - query_id: "AC08-LC-006"
+    sub_pattern: 6
+    query: >
+      Trace the full lineage of the "storage_target controls storage" atom.
+    language: "en"
+    domain_scope: "Architecture / Lineage Chain"
+    expected_atom_ids:
+      - "storage-targets-atom-source"
+      - "storage-targets-atom-digest"
+      - "storage-targets-atom-current"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 3
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Lineage chain. The atom should trace: source (Issue #59 comment)
+      → atomization (QCLAW digest-001) → current state. All three
+      lineage steps must be present. Missing the digest step or the
+      source step is a partial lineage failure.
+
+  - query_id: "AC08-EO-007"
+    sub_pattern: 7
+    query: >
+      What is the "privacy_class does not control storage" rule?
+      Show the atom content and the source text.
+    language: "en"
+    domain_scope: "Architecture / Extracted vs Original"
+    expected_atom_ids:
+      - "privacy-class-does-not-control-storage"
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Extracted vs original. The query asks for BOTH the atom content
+      (extracted/atomized form) AND the original source text. The
+      gateway must return the atom AND link to the source that the
+      atom was extracted from. Returning only the atom without source
+      linkage is a lineage failure.
+
+  - query_id: "AC08-CI-008"
+    sub_pattern: 8
+    query: >
+      What rules govern authorized private knowledge transport to GitHub?
+    language: "en"
+    domain_scope: "Security / Cross-Issue Source"
+    expected_atom_ids:
+      - "authorized-private-can-enter-github-i59"
+      - "no-private-body-to-public-repo-i38"
+      - "secret-values-never-github-i59"
+    forbidden_atom_ids: []
+    required_conflict_ids: ["private-github-tension"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Cross-issue source. The full ruleset spans Issue #38 (original
+      boundary: no private body to public repo) and Issue #59 (correction:
+      authorized private CAN go to GitHub with desensitization; secret
+      values never). The gateway must cite BOTH issue sources. Citing
+      only one is incomplete.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - single_source_fact
+    - multi_source_verification
+    - source_quality_discrimination
+    - revoked_source
+    - authoritative_hierarchy
+    - lineage_chain
+    - extracted_vs_original
+    - cross_issue_source
+  difficulty_distribution: { HARD: 4, MODERATE: 4 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

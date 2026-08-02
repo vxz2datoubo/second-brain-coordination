@@ -1,0 +1,206 @@
+# ============================================================================
+# AC-03 PREMISES & EXCEPTIONS — ADVERSARIAL QUERY SET
+# Tests: missing premise detection, exception applicability, conditional truth,
+# scope exception, authorization boundary, method applicability, time-bound,
+# domain exception
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "PREMISES_AND_EXCEPTIONS"
+total_queries: 8
+
+queries:
+  - query_id: "AC03-MP-001"
+    sub_pattern: 1
+    query: >
+      Apply the Kelly criterion to this bet with unknown probability p.
+      What is f*?
+    language: "en"
+    domain_scope: "Kelly Criterion / Missing Premise"
+    expected_atom_ids: ["kelly-requires-known-p-and-b"]
+    forbidden_atom_ids: ["kelly-f-star-formula"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Missing premise detection. The Kelly formula f*=(pb−q)/b requires
+      known p and b. The query explicitly states p is unknown, so the
+      gateway must surface the missing-premise atom ("Kelly requires
+      known p and b") rather than returning f* as if the premise were
+      satisfied. This tests whether the system checks premises before
+      applying formulas.
+
+  - query_id: "AC03-EA-002"
+    sub_pattern: 2
+    query: >
+      The Kelly criterion applies to all betting scenarios. Is this correct?
+    language: "en"
+    domain_scope: "Kelly Criterion / Exception Applicability"
+    expected_atom_ids: ["kelly-not-for-nonpositive-ev", "kelly-binary-bets-only"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Exception applicability. The universal claim is false. The gateway
+      must surface exceptions: Kelly only applies to binary bets with
+      known p and b, and only to positive-EV bets. Non-positive EV bets
+      and multi-outcome bets are not covered by the basic formula.
+      Returning the formula without exceptions is a failure.
+
+  - query_id: "AC03-CT-003"
+    sub_pattern: 3
+    query: >
+      What is the λ adjustment for the A-share market?
+    language: "en"
+    domain_scope: "Kelly Criterion / Conditional Truth"
+    expected_atom_ids: ["kelly-lambda-drivers"]
+    forbidden_atom_ids: ["kelly-single-lambda-value"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Conditional truth. The answer is not a single λ value; there are
+      at least 11 distinct λ adjustment drivers (parameter uncertainty,
+      estimation error, non-normal returns, transaction costs, liquidity
+      constraints, regulatory limits, etc.). The gateway must return the
+      full set of drivers rather than a simplified "λ ≈ 0.5" number.
+
+  - query_id: "AC04-SE-004"
+    sub_pattern: 4
+    query: >
+      All knowledge atoms use the same storage target. True or false?
+    language: "en"
+    domain_scope: "Architecture / Scope Exception"
+    expected_atom_ids: ["credential-value-storage-none", "financial-value-storage-none"]
+    forbidden_atom_ids: []
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Scope exception. The universal claim is FALSE. CREDENTIAL_VALUE
+      atoms have storage_target: NONE and FINANCIAL_VALUE atoms also
+      have storage_target: NONE. The gateway must return both exception
+      categories rather than confirming the false universal.
+
+  - query_id: "AC03-AB-005"
+    sub_pattern: 5
+    query: >
+      Private knowledge can be written to public GitHub repositories.
+    language: "en"
+    domain_scope: "Security / Authorization Boundary Exception"
+    expected_atom_ids: ["authorized-private-can-enter-github", "secret-values-never-github"]
+    forbidden_atom_ids: []
+    required_conflict_ids: ["private-github-tension"]
+    required_unknown_ids: []
+    min_sources: 2
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Authorization boundary with exception. The statement as stated is
+      partially true but incomplete. Authorized private/internal/paid
+      knowledge CAN enter public GitHub (per Issue #59 comment 1 correction),
+      but ONLY if precisely desensitized. Secret values (API keys, tokens,
+      private keys, etc.) MUST NEVER enter public GitHub. The gateway must
+      surface BOTH the authorization rule AND the secret-value exception,
+      with the tension between them as a conflict.
+
+  - query_id: "AC03-MA-006"
+    sub_pattern: 6
+    query: >
+      Use the Kelly formula f*=(pb−q)/b to size positions in the
+      CSI 300 index.
+    language: "en"
+    domain_scope: "Kelly Criterion / Method Applicability"
+    expected_atom_ids: ["kelly-requires-known-p-and-b", "kelly-binary-bets-only"]
+    forbidden_atom_ids: ["kelly-f-star-formula"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Method applicability exception. CSI 300 positions are NOT binary
+      bets with known p and b — they are multi-outcome, continuous
+      returns, with unknown true probability distributions. The gateway
+      must surface the premise exceptions (needs p and b, needs binary
+      structure) rather than naively applying f*.
+
+  - query_id: "AC03-TB-007"
+    sub_pattern: 7
+    query: >
+      What were the A-share settlement rules on 2024-01-15?
+    language: "en"
+    domain_scope: "A-Share / Time-Bound Exception"
+    expected_atom_ids: ["ashare-t0-historical-rule"]
+    forbidden_atom_ids: ["ashare-t1-settlement-rule"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Time-bounded exception. On 2024-01-15, A-share settlement was T+0
+      (the T+1 rule took effect later). The gateway must return the
+      historically-correct rule for the specified date, not the current
+      (T+1) rule. This tests temporal condition checking.
+
+  - query_id: "AC03-DE-008"
+    sub_pattern: 8
+    query: >
+      What is the optimal Kelly fraction for real-world A-share position
+      sizing?
+    language: "en"
+    domain_scope: "Kelly Criterion / Domain Exception"
+    expected_atom_ids:
+      - "kelly-lambda-drivers"
+      - "kelly-parameter-uncertainty"
+      - "kelly-transaction-costs"
+      - "kelly-liquidity-constraint"
+    forbidden_atom_ids: ["kelly-full-fraction-naive"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 4
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    rationale: >
+      Domain exception. The "optimal" fraction is NOT a single number.
+      It requires λ < 1 (fractional Kelly) with adjustments for at least
+      11 drivers: parameter uncertainty, estimation error, non-normal
+      returns, transaction costs, liquidity constraints, regulatory
+      limits, market impact, position concentration, drawdown control,
+      correlation effects, and time-horizon effects. The gateway must
+      enumerate the λ drivers, not return a simplified "use 0.5× f*."
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - missing_premise
+    - exception_applicability
+    - conditional_truth
+    - scope_exception
+    - authorization_boundary_exception
+    - method_applicability
+    - time_bound_exception
+    - domain_exception
+  difficulty_distribution: { HARD: 5, MODERATE: 3 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

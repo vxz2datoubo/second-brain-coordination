@@ -1,0 +1,104 @@
+# AMED-RESEARCH-LEDGER
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+ledger_id: "AMED-RESEARCH-0013A-R2"
+research_trigger_level: L2_TARGETED_PROFESSIONAL_RESEARCH
+
+entries:
+
+  - entry_id: R001
+    source: "Issue #38 - Q2 adversarial query specification"
+    type: "SPECIFICATION_ABSORPTION"
+    description: >
+      Extracted the 13-category, 100+ query adversarial evaluation specification
+      from Issue #38 body. Identified sub-patterns: condition/negation/exception
+      loss, conflicting atoms, UNKNOWN erasure, outdated versions, user-preference
+      masquerading, source fabrication, prompt injection, credential induction,
+      authority escalation, cross-project leakage.
+    counterevidence_found: false
+    applicability_conditions: "Applies to any Phase 4 knowledge-gateway runtime evaluation"
+    unknowns:
+      - "Whether PR #58 implements all 13 adversarial categories or a subset"
+      - "Whether PR #58 has any anti-sycophancy rules beyond the PR #57 baseline"
+    confidence: CANDIDATE
+    derived_atoms:
+      - "AMNS-0001 through AMNS-0110 (adversarial query atoms)"
+
+  - entry_id: R002
+    source: "PR #57 merge (SHA 473d0ec) - Phase 3 offline memory baseline"
+    type: "CANONICAL_RUNTIME_BASELINE"
+    description: >
+      Confirmed PR #57 as the single canonical runtime for all knowledge-gateway
+      evaluations. Identified the merge SHA through Issue #38 metadata and
+      web_fetch. The 397 tests passing on PR #58 derive from this baseline.
+    primary_source: "GitHub public main branch metadata"
+    secondary_sources:
+      - "Issue #38 comments confirming PR #57 absorption of PR #45/#46"
+    counterevidence_found: false
+    unknowns:
+      - "Full PR #57 diff not read (network RST on git clone). Relied on issue metadata."
+    confidence: HIGH
+
+  - entry_id: R003
+    source: "QCLAW knowledge atomization outputs (Issues #59-#63)"
+    type: "KNOWLEDGE_ATOM_SOURCE_AUDIT"
+    description: >
+      Cross-referenced atom IDs across four QCLAW knowledge directories
+      (0008 knowledge architecture, 0010 PEOS cognitive, 0011 Kelly-Thorp,
+      0012 Decision Science) to identify atoms suitable as expected/forbidden
+      targets for adversarial queries. Verified atom existence and structure
+      before using IDs in query expected_atom_id fields.
+    verification_method: "File-system scan of QCLAW workspace directories"
+    coverage:
+      directory_0008: "33 files, ~310KB, knowledge atomization architecture"
+      directory_0010: "5 files, PEOS cognitive atoms"
+      directory_0011: "4 files, ~162KB Kelly-Thorp atoms"
+      directory_0012: "5 files, 108 decision science atoms"
+    counterevidence:
+      - "Some expected atom IDs in AC-06 (UNKNOWN queries) deliberately point
+        to atoms NOT in the knowledge store, as the test objective is abstention."
+    unknowns:
+      - "Whether PR #58 can map QCLAW atom IDs to its own store identifiers"
+    confidence: CANDIDATE
+
+  - entry_id: R004
+    source: "Issue #59 comment #3 - anti-sycophancy rules"
+    type: "POLICY_ABSORPTION"
+    description: >
+      Absorbed the mandatory anti-sycophancy rules from Issue #59 comment #3:
+      user preference ≠ verified external fact, evidence-user conflict must be
+      preserved, insufficient evidence → UNKNOWN/NEEDS_VERIFICATION/ABSTAIN,
+      important conclusions must record support/counterevidence/alternative
+      explanations/falsification. These rules informed AC-01 (precise facts),
+      AC-05 (conflicts), AC-06 (UNKNOWN abstention), and AC-13 (security).
+    primary_source: "https://github.com/vxz2datoubo/second-brain-coordination/issues/59#issuecomment-5040556992"
+    counterevidence_found: false
+    unknowns: []
+    confidence: HIGH
+
+  - entry_id: R005
+    source: "Issue #59 comment #2 - final authorization boundary"
+    type: "SECURITY_BOUNDARY_ABSORPTION"
+    description: >
+      Confirmed the updated security boundary: privacy_class no longer
+      automatically blocks public storage. Only credential/access/financial
+      secret values are hard-forbidden. This informed AC-07 (forbidden recall)
+      query design: only API keys, tokens, passwords, private keys, seeds,
+      banking credentials are truly forbidden; ordinary API docs are allowable.
+    primary_source: "https://github.com/vxz2datoubo/second-brain-coordination/issues/59#issuecomment-5040481761"
+
+counterevidence_register: []
+unresolved_research_questions:
+  - "Does PR #58 implement per-atom transport_visibility and storage_targets
+     as independent access-control dimensions, or does it conflate them?"
+  - "Does PR #58 distinguish UNKNOWN (knowledge gap) from ABSTAIN (refusal to
+     answer on safety/authority grounds)?"
+  - "Can PR #58 handle the combined AC-06 case: mixed UNKNOWN + ABSTAIN in
+     a single multi-turn context?"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"
+  safety: PUBLIC_SAFE

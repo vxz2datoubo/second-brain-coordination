@@ -1,0 +1,103 @@
+# UNPLANNED-IMPROVEMENT-LEDGER
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R2
+# Generated: 2026-07-23T07:10:00+08:00
+
+schema_version: "1.0"
+ledger_id: "UNPLANNED-IMPROVEMENT-0013A-R2"
+
+# Per AMED §13: unplanned improvements classified as A/B/C/D.
+# A = self-corrections within own audit package (permitted)
+# B = cross-agent shared interface proposals (needs freeze first)
+# C = new Skill/runtime/interface proposals (PROPOSAL_ONLY)
+# D = forbidden (authority upgrade, real trading, account, credential, auto-merge)
+
+entries:
+
+  - entry_id: UPI-001
+    class: A
+    description: >
+      AC-06 (UNKNOWN/abstention) was expanded from the minimum 8 queries to 10 queries
+      (later 20 in the final file) because this category proved to be the most
+      nuanced: it required distinguishing genuine knowledge gaps from refusal-to-answer
+      scenarios. The extra queries cover sub-patterns: known-known with confidence
+      gap, known-unknown declared in source, completely absent knowledge, ambiguous
+      question, and multi-UNKNOWN mixing.
+    impact: "Improved adversarial coverage for the highest-risk failure mode (claiming
+      certainty where none exists)"
+    amed_class_rationale: "A-class: correction within own audit package scope"
+    requires_gpt_review: false
+
+  - entry_id: UPI-002
+    class: A
+    description: >
+      AC-11 (language/encoding) was expanded from 8 to 10 queries after discovering
+      that full-width characters, mixed-script, and Unicode normalization edge cases
+      were underrepresented in the initial spec. Added queries testing zh-CN full-width
+      alphanumerics, mixed CJK + ASCII in same predicate, and Unicode normalization
+      form differences (NFC vs NFD).
+    impact: "More thorough encoding-resilience testing"
+    amed_class_rationale: "A-class: expansion within existing category scope"
+    requires_gpt_review: false
+
+  - entry_id: UPI-003
+    class: A
+    description: >
+      Added per-query `rationale` and `pass_criteria` fields to all 110 queries
+      after the initial draft (R1). These were not explicitly required by the
+      Issue #38 spec but proved essential for: (a) making the expected behavior
+      falsifiable, (b) enabling GPT-independent review without QCLAW presence,
+      (c) preventing interpretation ambiguity during Codex execution.
+    impact: "Significantly improved package self-documentation and reviewability"
+    amed_class_rationale: "A-class: format enrichment within own package"
+    requires_gpt_review: false
+
+  - entry_id: UPI-004
+    class: C
+    description: >
+      Observed that a shared adversarial-query interchange format would benefit
+      both QCLAW and Codex if standardized: a common YAML schema for query packs
+      that includes query_id, category, question_text, expected_behavior, forbidden_behavior,
+      expected_atom_ids, forbidden_atom_ids, rationale, pass_criteria, and failure_classification.
+    proposed_location: "coordination/SHARED-SCHEMAS/ADVERSARIAL-QUERY-PACK.schema.json"
+    impact: "Would reduce format mismatch between QCLAW queries and Codex execution harness"
+    amed_class_rationale: "C_PROPOSAL_ONLY: new shared interface"
+    requires_gpt_review: true
+    dependencies:
+      - "PR #58 acceptance"
+      - "Issue #72 blueprint convergence"
+    status: PROPOSAL_ONLY
+
+  - entry_id: UPI-005
+    class: C
+    description: >
+      The GitHub API blob-tree-commit-ref pipeline (used because git HTTPS is blocked)
+      could be generalized into a reusable QCLAW deliverable: a PowerShell module
+      that converts a local directory tree into a GitHub branch + Draft PR via API only.
+    proposed_location: "coordination/SHARED-TOOLS/github-api-tree-pusher.ps1"
+    impact: "Reduces repeated manual JSON construction for future QCLAW deliveries"
+    amed_class_rationale: "C_PROPOSAL_ONLY: new shared tool"
+    requires_gpt_review: true
+    status: PROPOSAL_ONLY
+
+  - entry_id: UPI-006
+    class: C
+    description: >
+      During query authoring, identified that the QCLAW knowledge atom IDs
+      (AMNS-0001 style) may not map to Codex's internal atom IDs. A canonical
+      atom ID mapping or namespace registry may be needed across agents.
+    proposed_location: "coordination/SHARED-SCHEMAS/ATOM-ID-NAMESPACE-REGISTRY.yaml"
+    impact: "Cross-agent atom reference reliability"
+    amed_class_rationale: "C_PROPOSAL_ONLY: new shared schema"
+    requires_gpt_review: true
+    status: PROPOSAL_ONLY
+
+class_summary:
+  A_permitted: 3
+  B_frozen: 0
+  C_proposals: 3
+  D_forbidden: 0
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T07:10:00+08:00"
+  safety: PUBLIC_SAFE

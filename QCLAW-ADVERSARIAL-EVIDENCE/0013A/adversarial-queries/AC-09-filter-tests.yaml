@@ -1,0 +1,197 @@
+# ============================================================================
+# AC-09 FILTER TESTS — ADVERSARIAL QUERY SET
+# Tests: time filter, scope filter, type filter, state filter, combined
+# filters, confidence filter, language filter, negative filter
+# ============================================================================
+
+schema_version: "1.0"
+creation_date: "2026-07-23T00:30:00Z"
+module_id: "QCLAW-ADVERSARIAL-EVIDENCE-0013A"
+test_category: "FILTER_TESTS"
+total_queries: 8
+
+queries:
+  - query_id: "AC09-TF-001"
+    sub_pattern: 1
+    query: >
+      List all knowledge atoms created or modified after 2026-07-21T00:00:00Z.
+    language: "en"
+    domain_scope: "Knowledge Management / Temporal Filter"
+    expected_atom_ids: ["ALL-ATOMS-AFTER-2026-07-21"]
+    forbidden_atom_ids: ["ATOMS-BEFORE-2026-07-21"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { time_after: "2026-07-21T00:00:00Z" }
+    rationale: >
+      Time filter. The gateway must honor the temporal filter and return
+      only atoms created/modified after the cutoff. Atoms from earlier
+      dates (e.g., PR #57 merge at an earlier time) must be excluded.
+      Including pre-cutoff atoms is a filter failure.
+
+  - query_id: "AC09-SC-002"
+    sub_pattern: 2
+    query: >
+      Show only knowledge atoms from Issue #59.
+    language: "en"
+    domain_scope: "Knowledge Management / Scope Filter"
+    expected_atom_ids: ["ALL-ATOMS-ISSUE-59"]
+    forbidden_atom_ids: ["ATOMS-ISSUE-60", "ATOMS-ISSUE-61", "ATOMS-ISSUE-62", "ATOMS-ISSUE-63"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { scope: "issue-59" }
+    rationale: >
+      Scope filter. Only atoms originating from Issue #59 (knowledge
+      atomization) should be returned. Atoms from Issues #60 (long-term
+      memory), #61 (PEOS), #62 (Kelly), or #63 (decision science) must
+      be excluded.
+
+  - query_id: "AC09-TY-003"
+    sub_pattern: 3
+    query: >
+      Return only RULE-type knowledge atoms.
+    language: "en"
+    domain_scope: "Knowledge Management / Type Filter"
+    expected_atom_ids: ["ALL-RULE-ATOMS"]
+    forbidden_atom_ids: ["CONCEPT-ATOMS", "FACT-ATOMS", "UNKNOWN-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { atom_type: "RULE" }
+    rationale: >
+      Type filter. Only atoms with type "RULE" should be returned.
+      CONCEPT, FACT, UNKNOWN, SKILL, and other atom types must be
+      excluded. Including a CONCEPT atom in a RULE-only query is
+      a type-filter failure.
+
+  - query_id: "AC09-ST-004"
+    sub_pattern: 4
+    query: >
+      List all known superseded knowledge atoms.
+    language: "en"
+    domain_scope: "Knowledge Management / State Filter"
+    expected_atom_ids: ["ALL-SUPERSEDED-ATOMS"]
+    forbidden_atom_ids: ["ALL-CURRENT-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { status: "superseded" }
+    rationale: >
+      State filter. The gateway must honor the status filter and return
+      only atoms marked "superseded." Current/active atoms must be
+      excluded. This is the inverse of the default (current-only) behavior.
+
+  - query_id: "AC09-CB-005"
+    sub_pattern: 5
+    query: >
+      Current RULE atoms from Issue #62 about Kelly criterion.
+    language: "en"
+    domain_scope: "Kelly / Combined Multi-Filter"
+    expected_atom_ids: ["CURRENT-RULE-KELLY-ISSUE62"]
+    forbidden_atom_ids: ["SUPERSEDED-KELLY", "CONCEPT-KELLY", "KELLY-ISSUE59"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter:
+      { status: "current", atom_type: "RULE", scope: "issue-62" }
+    rationale: >
+      Combined multi-filter. Three simultaneous constraints: only current
+      atoms, only RULE type, only from Issue #62. All three must hold
+      simultaneously. Returning a superseded RULE from Issue #62, or a
+      current RULE from Issue #59, or a current CONCEPT from Issue #62,
+      are each a filter failure.
+
+  - query_id: "AC09-CF-006"
+    sub_pattern: 6
+    query: >
+      Only high-confidence knowledge atoms about PEOS.
+    language: "en"
+    domain_scope: "PEOS / Confidence Filter"
+    expected_atom_ids: ["HIGH-CONFIDENCE-PEOS-ATOMS"]
+    forbidden_atom_ids: ["LOW-CONFIDENCE-PEOS-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { confidence: "HIGH", domain: "peos" }
+    rationale: >
+      Confidence filter. Only PEOS atoms with confidence ≥ HIGH should
+      be returned. LOW or MEDIUM confidence atoms must be excluded. If
+      the confidence metric is unavailable for some atoms, they should
+      be excluded (unavailable ≠ HIGH).
+
+  - query_id: "AC09-LF-007"
+    sub_pattern: 7
+    query: >
+      列出所有中文知识原子。
+    language: "zh"
+    domain_scope: "Knowledge Management / Language Filter"
+    expected_atom_ids: ["ALL-CHINESE-ATOMS"]
+    forbidden_atom_ids: ["ALL-ENGLISH-ONLY-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { language: "zh" }
+    rationale: >
+      Language filter. The query is in Chinese and requests only
+      Chinese-language atoms. English-only atoms must be excluded.
+      Bilingual atoms (those with both Chinese and English fields)
+      should be included since they satisfy the language constraint.
+
+  - query_id: "AC09-NF-008"
+    sub_pattern: 8
+    query: >
+      List all knowledge atoms EXCEPT those from the PEOS blueprint.
+    language: "en"
+    domain_scope: "Knowledge Management / Negative Filter"
+    expected_atom_ids: ["ALL-NON-PEOS-ATOMS"]
+    forbidden_atom_ids: ["ALL-PEOS-ATOMS"]
+    required_conflict_ids: []
+    required_unknown_ids: []
+    min_sources: 1
+    must_abstain: false
+    credential_attack: false
+    authority_attack: false
+    filter: { exclude_scope: "peos-blueprint" }
+    rationale: >
+      Negative/exclusion filter. The query explicitly excludes PEOS
+      blueprint atoms. The gateway must honor the exclusion and return
+      atoms from all other domains (Kelly, decision science, atomization
+      architecture, long-term memory). Including any PEOS atom is a
+      negative-filter failure.
+
+suite_summary:
+  total_queries: 8
+  sub_patterns:
+    - time_filter
+    - scope_filter
+    - type_filter
+    - state_filter
+    - combined_multifilter
+    - confidence_filter
+    - language_filter
+    - negative_filter
+  difficulty_distribution: { HARD: 3, MODERATE: 5 }
+  status: "CANDIDATE"
+  boundary: "PUBLIC_SAFE / NO_SECRET_VALUES"

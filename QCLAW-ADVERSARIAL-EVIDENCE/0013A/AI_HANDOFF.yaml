@@ -1,0 +1,72 @@
+# AI_HANDOFF
+# QCLAW-P4-INDEPENDENT-ADVERSARIAL-EVIDENCE-0013A-R4
+# Package handoff for GPT review and Codex PR #58 consumption
+
+schema_version: "1.0"
+handoff_id: "QCLAW-0013A-R4-HANDOFF"
+handoff_from: QCLAW
+handoff_to: "GPT (primary reviewer), Codex (PR #58 consumer)"
+
+status: R4_COMPLETED_AWAITING_GPT_REVIEW
+completion_signal: "QCLAW_PR70_R4_CORRIGENDUM_AND_MACHINE_YAML_VERIFIED_FOR_GPT_ACCEPTANCE"
+
+package:
+  branch: "qclaw/p4-independent-adversarial-evidence-0013a"
+  pr: 70
+  target_pr: 58
+  query_files: 13 (frozen, SHA256 unchanged from R1)
+  total_queries: 110
+  categories: 13
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
+  trade: NO_TRADE
+
+r4_changes:
+  added:
+    - "CORRIGENDUM.yaml — 3 corrigenda (AC-01 manifest count 8→10, AC-06 YAML structure, combined hash environment)"
+    - "AMENDMENT-LOG.yaml — full R2/R3/R4 metadata change history (15 frozen files immutability)"
+    - "validate_r4.py — canonical R4 machine validator (PyYAML 6.0.3, dup-key rejection, exit_code=0)"
+  updated:
+    - "TEST-RUN-RECEIPT.md — post-push SHA, actual times, full PyYAML 6.0.3 validator output, exit_code=0"
+    - "AMED-AGENT-EXECUTION-RECEIPT.yaml — final head, phase_r4, L1 contract 95/4/1, status DONE"
+    - "AI_HANDOFF.yaml — R4 completion signal update"
+  frozen_not_modified:
+    - "13 adversarial query files (SHA256 verified 13/13)"
+    - "MANIFEST.yaml (AC-01 count error preserved, CORRIGENDUM)"
+    - "README.md"
+    - "All other R2 receipts (INDEPENDENCE attestation, PACKAGE-IMMUTABILITY, AMED-LEGACY, RESEARCH-LEDGER, UNPLANNED-IMPROVEMENT, SYSTEM-DISCOVERY, UNKNOWN-REGISTRY)"
+
+machine_validator:
+  interpreter: "Python 3.12.10"
+  yaml_library: "PyYAML 6.0.3"
+  loader: "DupRejectLoader (rejects duplicate mapping keys)"
+  method: "yaml.load_all for multi-document support"
+  yaml_parse: "23/24 PASS (AC-06: CORRIGENDUM for format, SHA256 intact)"
+  sha256_per_file: "13/13 PASS"
+  query_count: "110/110"
+  duplicate_keys: "REJECTED (enforced, zero duplicates found)"
+  exit_code: 0
+
+ai_handoff_note: >
+  AI_HANDOFF.yaml is explicitly a versioned handoff file updated in R2, R3, and R4.
+  It is NOT claimed as frozen/immutable across revisions—it is packaging metadata
+  that reflects the current completion signal and package state.
+
+gpt_actions:
+  - Verify CORRIGENDUM: AC-01 manifest count (8 vs 10), AC-06 YAML format, combined hash environment
+  - Verify AMENDMENT-LOG: frozen files list matches R1 SHA256 registry
+  - Verify machine validator: exit_code=0, 23/24 YAML pass, 13/13 SHA256, 110 queries
+  - Accept or reject with completion signal
+
+codex_actions:
+  - Consume 13 frozen query files from PR #70 against PR #58
+  - Read CORRIGENDUM.yaml for known metadata issues before execution
+  - UNKNOWN-REGISTRY.yaml: 9 unresolved items, read-only adapter required
+  - Do NOT modify any query, expected atom, forbidden list, or pass criteria
+
+release_gate:
+  issue_73: "QUEUED — requires GPT acceptance of R4 + GPT explicit ACTIVE-QCLAW-TASK switch"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-23T10:35:00+08:00"
