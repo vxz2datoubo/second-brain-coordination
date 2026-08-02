@@ -1,0 +1,91 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
+route_epoch: 43
+agent: "CODEX"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】持久化一次性消费与真实执行证据闭环 E41"
+active_issue: 128
+source_pull_request: 127
+source_tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
+source_receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
+planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+planned_draft_pr: true
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
+completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
+
+operator_model_advisory:
+  recommendation_level: "HIGH"
+  recommended_model_or_picker_label: "highest suitable model visible to the user"
+  recommended_reasoning_level: "high or highest"
+  rationale: "Crash consistency, distributed uniqueness and evidence semantics are architecture-sensitive."
+  lower_cost_alternative: "balanced model with high reasoning only for deterministic test expansion"
+  quality_risk_if_underpowered: "May confuse local idempotency with global authority or claim labels with real invocation proof."
+  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  agent_setting_mutation_forbidden: true
+
+accepted_source_only:
+  - "Bounded public GitHub route and approval transport/verifiers."
+  - "Atomic single-store reservation and terminal state machine as a local primitive, not global authority."
+  - "Exact-head CI helper and Python 3.11/3.13 workflow shape."
+  - "E40R1 tests as regression seeds after correcting their scope claims."
+
+rejected_source_claims:
+  - "selected_owner=CODEX_APP proves an App Automation invocation."
+  - "ephemeral local SQLite consumption proves global one-shot execution."
+  - "default app_available=true is a capability observation."
+  - "a SUCCEEDED database row proves external engineering execution."
+
+staged_plan:
+  P0_truth_model:
+    - "Define exact terms for manual current-session execution, App Automation new-run dispatch, CLI process invocation and claim-only state."
+    - "Map current evidence to the correct type and add fail-closed conversion rules."
+  P1_global_claim_authority:
+    - "Choose a fixed-repository atomic GitHub CAS/ref/object protocol or another explicit single-writer durable authority."
+    - "Prove cross-process, restart and fresh-database uniqueness without exposing credentials."
+    - "Design crash-after-claim recovery and terminal outcome persistence."
+  P2_route_terminalization:
+    - "Define canonical CONSUMED/FAILED terminal route and verifier behavior."
+    - "Reject any execution when an older READY route conflicts with durable consumed authority."
+  P3_invocation_evidence:
+    - "Define bounded capability adapters without default booleans."
+    - "Define invocation receipt: invocation_id, parent_correlation_id, owner_type, started_at, ended_at, terminal_or_exit, log_hash, non_attempted_owner, cleanup_proof."
+    - "No live App/CLI invocation in E41."
+  P4_adversarial_validation:
+    - "Fresh process and fresh database replay."
+    - "Four-process claim race."
+    - "Crash after durable claim and before invocation."
+    - "Invocation timeout and duplicate callback."
+    - "App/CLI double-run attempt."
+    - "Old approval/nonce replay."
+    - "Consumed authority versus stale READY route."
+  P5_evidence_closure:
+    - "Exact tested-head Python 3.11/3.13 CI."
+    - "Exactly one non-empty evidence-only receipt commit."
+    - "Receipt-head exact CI and stop for GPT review."
+
+success_criteria:
+  - "No E40R1 authority is reused."
+  - "Global consumption survives process exit, restart and fresh local state."
+  - "No claim-only artifact can be classified as real App/CLI invocation."
+  - "Capability preflight is evidence-backed or UNKNOWN/blocked."
+  - "Terminal durable authority overrides stale READY route content."
+  - "All adversarial tests pass on exact tested and receipt heads."
+
+hard_boundaries:
+  - "No new Canary, App Automation or Codex CLI invocation."
+  - "No use of approval comment 5155930613 or its nonce as executable authority."
+  - "No model-setting mutation."
+  - "No secret/private configuration reads or persistence."
+  - "No trading, accounts, orders, funds or irreversible production/service changes."
+  - "No direct main write by Codex, merge, force push, rebase or other-agent branch edits."
+
+reporting_required:
+  - "WPDCR including hypotheses, discarded designs, commands/exits, changed paths, tests and residual risks."
+  - "Global authority threat model and rollback procedure."
+  - "Execution-evidence type table with positive and negative examples."
+  - "Exact CI run/job IDs and receipt topology."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
