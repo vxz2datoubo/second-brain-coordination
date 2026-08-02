@@ -1,0 +1,43 @@
+schema_version: "1.0"
+record_type: "DecisionScienceSkillFamilyRegistry"
+task_id: "CODEX-W12-D0-COMBINED-SKILL-GAP-AND-LOCAL-REALITY-AUDIT-0013B"
+authority: "D0 planning registry; not runtime authority"
+boundary: "research_only / NO_TRADE"
+skills:
+  - {id: "DS-01", name: "Decision Framing and Influence Diagram", lifecycle: "FRAME", priority: "P0", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12"}
+  - {id: "DS-02", name: "Bayesian Belief Update and Forecast Fusion", lifecycle: "BELIEVE", priority: "P0", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12_DS02_PROBABILITY_ESTIMATE"}
+  - {id: "DS-03", name: "Value of Information and Research Stopping", lifecycle: "LEARN", priority: "P0_AFTER_FIRST_THREE", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12"}
+  - {id: "DS-04", name: "Robust Ambiguity and Minimax Regret", lifecycle: "CHOOSE", priority: "P0_AFTER_FIRST_THREE", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12_ENVELOPE_ONLY_NO_KELLY"}
+  - {id: "DS-05", name: "Sequential Decision and Optimal Stopping", lifecycle: "TIME", priority: "P2", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12"}
+  - {id: "DS-06", name: "Exploration Exploitation and Adaptive Experiment", lifecycle: "LEARN", priority: "P2", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12"}
+  - {id: "DS-07", name: "Portfolio Belief to Weights", lifecycle: "PORTFOLIO", priority: "P1", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "EXISTING_SKILL_SUBCAPABILITY", owner: "W11_WITH_W12_CONTRACT_INPUT"}
+  - {id: "DS-08", name: "Risk Budget Downside and Survival", lifecycle: "SURVIVE", priority: "P1", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "EXISTING_SKILL_SUBCAPABILITY", owner: "DS08_ENVELOPE_WITH_W7_FINAL_GATE"}
+  - {id: "DS-09", name: "Optimal Execution and Implementation Shortfall", lifecycle: "EXECUTE", priority: "P1", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "EXISTING_SKILL_SUBCAPABILITY", owner: "EXECUTION_OMS"}
+  - {id: "DS-10", name: "Multiple Testing and Backtest Overfitting Audit", lifecycle: "VALIDATE", priority: "P0", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12_USES_W7_EVIDENCE"}
+  - {id: "DS-11", name: "Regime Change and Model Decay", lifecycle: "MONITOR", priority: "P1", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12_WITH_W2_RULE_INPUT"}
+  - {id: "DS-12", name: "Performance Decision and Execution Attribution", lifecycle: "ATTRIBUTE", priority: "P1", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W12_CROSS_SYSTEM"}
+  - {id: "DS-13", name: "Multi Objective Utility and Capital Rationing", lifecycle: "CHOOSE", priority: "P2", maturity: "CANDIDATE_SKILL_REGISTERED", classification: "CANDIDATE_INDEPENDENT_SKILL", owner: "W11_WITH_W12_CONTRACT_INPUT"}
+first_authorized_candidates: ["DS-01", "DS-02", "DS-10"]
+meta_infrastructure_not_child_slot: "Blueprint-to-Skill Gap Compiler"
+post_d0_governance_deltas:
+  - id: "W13"
+    module: "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-0014"
+    maturity: "REGISTERED_READY_FOR_D0_PROJECT_PLAN"
+    implementation: "NOT_IMPLEMENTED"
+    backtest: "NOT_BACKTESTED"
+    trade_boundary: "NO_TRADE"
+    relationship_to_w12: "Consumes DS-02/03/04/10 contracts; does not own probability or validation authority."
+  - id: "W5-PMN"
+    module: "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-0015"
+    maturity: "REGISTERED_QUEUED_FOR_D0_PROJECT_PLAN"
+    implementation: "NOT_IMPLEMENTED"
+    backtest: "NOT_BACKTESTED"
+    trade_boundary: "NO_TRADE"
+    relationship_to_w12: "Consumes shared ProbabilityEstimate and DS-10 gates; W5 remains event/evidence owner."
+  - id: "AMED"
+    module: "ADAPTIVE-MISSION-EXECUTION-AND-DOUBLE-LOOP-EVOLUTION-0001"
+    maturity: "ACTIVE_ENTERPRISE_STANDARD"
+    implementation: "GOVERNANCE_ONLY"
+    business_runtime: "NO_BUSINESS_RUNTIME"
+    trade_boundary: "NO_TRADE"
+    relationship_to_w12: "Governs task execution and review; does not alter W12 business objects or runtime authority."

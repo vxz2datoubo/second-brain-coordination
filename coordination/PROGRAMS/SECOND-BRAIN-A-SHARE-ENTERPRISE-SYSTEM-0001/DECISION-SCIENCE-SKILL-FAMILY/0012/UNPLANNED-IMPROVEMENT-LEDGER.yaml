@@ -1,0 +1,46 @@
+schema_version: "1.0"
+record_type: "UnplannedImprovementLedger"
+task_id: "CODEX-W12-D0-PR66-REBASE-W13-PMN-AMED-ABSORPTION-0013B-R3"
+agent_id: "CODEX"
+entries:
+  - id: "UI-W12-R3-001"
+    class: "A_SAFE_LOCAL_AUTONOMOUS"
+    title: "Separate repository API health from git transport health"
+    trigger: "GitHub API returned current data while two HTTPS fetch attempts reset."
+    action: "Record both states independently and fail closed on local history."
+    implemented: true
+    evidence: "AMED-AGENT-EXECUTION-RECEIPT.yaml and STATUS.yaml"
+    impact: "Prevents stale local history from entering the PR."
+    rollback: "Remove the additional receipt fields; no runtime dependency exists."
+  - id: "UI-W12-R3-002"
+    class: "B_BOUNDED_IMPLEMENT_AND_REPORT"
+    title: "Make post-D0 module maturity machine readable"
+    trigger: "W13, PMN and AMED arrived after the original D0 artifact set."
+    action: "Add backward-compatible post_d0_governance_deltas and DAG nodes."
+    implemented: true
+    evidence: "DECISION-SCIENCE-SKILL-FAMILY-REGISTRY.yaml and PRIORITY-DEPENDENCY-DAG.yaml"
+    impact: "Prevents document existence from being misreported as runtime capability."
+    rollback: "Revert the two governance-only sections."
+  - id: "UI-W12-R3-003"
+    class: "C_PROPOSAL_ONLY"
+    title: "Reusable Git Data API exact-parent publication preflight"
+    trigger: "Normal fetch remained unavailable."
+    action: "Proposal only: standardize parent, tree, artifact-count and post-publish comparison checks."
+    implemented: false
+    owner_gate: "GPT"
+    close_condition: "Accepted into a future repository-governance task or rejected."
+  - id: "UI-W12-R3-004"
+    class: "C_PROPOSAL_ONLY"
+    title: "Shared evidence-cluster dependency contract for W13 and PMN"
+    trigger: "Both modules can consume correlated sources and W12 probabilities."
+    action: "Proposal only: freeze a non-duplication contract during their D0 plans."
+    implemented: false
+    owner_gate: "GPT"
+    close_condition: "Issue #67 and #68 D0 plans disposition the proposal."
+counts:
+  A: 1
+  B: 1
+  C: 2
+  D: 0
+new_skill_candidates: 0
+new_runtime_or_source_implementations: 0

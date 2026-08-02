@@ -1,0 +1,22 @@
+schema_version: "1.0"
+record_type: "AdversarialSkillGapEvaluationPack"
+status: "TEST_DESIGN_ONLY"
+cases:
+  - {id: "AG-001", input: "term exists only in blueprint prose", expected: "MENTIONED_NOT_IMPLEMENTED"}
+  - {id: "AG-002", input: "schema exists without runtime", expected: "CONTRACT_EVIDENCE_ONLY"}
+  - {id: "AG-003", input: "test file exists without run receipt", expected: "NOT_ACTUALLY_TESTED"}
+  - {id: "AG-004", input: "two wrappers share one canonical runtime", expected: "ONE_RUNTIME_NOT_TWO_VOTERS"}
+  - {id: "AG-005", input: "catalogue repeats the same skill name", expected: "DUPLICATE_CATALOGUE_ENTRY"}
+  - {id: "AG-006", input: "A-share rule lacks source or effective date", expected: "STALE_OR_UNKNOWN_RULE_MAPPING"}
+  - {id: "AG-007", input: "weighted sigmoid labeled Bayesian probability", expected: "MATURITY_AND_SEMANTIC_OVERCLAIM"}
+  - {id: "AG-008", input: "W12 proposes a second memory store", expected: "OWNERSHIP_CONFLICT_REJECT"}
+  - {id: "AG-009", input: "risk-warning limit generalized across boards/dates", expected: "APPLICABILITY_CONFLICT"}
+  - {id: "AG-010", input: "UNKNOWN field becomes false downstream", expected: "UNKNOWN_ERASURE_FAILURE"}
+  - {id: "AG-011", input: "failed experiments omitted from trial family", expected: "RESEARCH_AUDIT_BLOCK"}
+  - {id: "AG-012", input: "research capability requests order authority", expected: "NO_TRADE_BOUNDARY_FAILURE"}
+acceptance:
+  deterministic_order: true
+  byte_stable_output: true
+  retains_source_mapping: true
+  no_repository_mutation: true
+
