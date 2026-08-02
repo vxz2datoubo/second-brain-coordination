@@ -1,0 +1,122 @@
+schema_version: "1.0"
+protocol_id: "E28-PROJECT-EXECUTION-PLAN"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-SEMANTIC-LOSSLESS-DETERMINISM-SOURCE-LINEAGE-AND-RECEIPT-CLOSURE-0009-E28"
+route_epoch: 28
+mode: "project_plan"
+status: "ACTIVE"
+base_commit: "aa7ab8398f46ee77ce8f4f407aa7cea1ac4aebd1"
+source_issue: 59
+frozen_prs: [100, 111]
+
+stages:
+  - id: "S0_LEASE_AND_ENVIRONMENT"
+    description: "Verify canonical task, environment, and freeze constraints."
+    deliverables:
+      - "AI_HANDOFF.yaml (S0)"
+      - "Environment report (Python 3.11/3.13, git, gh)"
+    gates:
+      - "Exact task_id, route_epoch 28, completion_signal confirmed"
+      - "Fresh branch verified, PR #111/#100 untouched"
+    status: "PENDING"
+
+  - id: "S1_LOSSLESS_PARSER"
+    description: "Fix all parser loss: short-content drop, long-content truncation, code-fence loss, UTF-8 replacement, empty receipt."
+    deliverables:
+      - "src/qclaw_knowledge_digest/parser.py — strict UTF-8, exact-span, no-silent-drop"
+      - "tests/test_parser.py — zero-loss adversarial fixtures"
+      - "schemas/source_manifest.schema.json"
+    contracts:
+      - "Every source byte is either an atom byte or in a parse_report gap entry with reason"
+      - "Code fences are atoms with content_type=code_block"
+      - "Invalid UTF-8 fails closed (rejected, not replaced)"
+      - "Short headings are atoms with content_type=heading"
+    status: "PENDING"
+
+  - id: "S2_DETERMINISTIC_IDENTITY"
+    description: "Remove wall-clock timestamps, filesystem paths, and hash-seed variance from canonical output."
+    deliverables:
+      - "Remove created_at from atoms (use source commit timestamp)"
+      - "Remove local file paths from source_refs (use repo-relative + commit-locked)"
+      - "Zero timestamp/path in canonical packet"
+      - "tests/test_determinism.py — cross-root, cross-seed, dual-Python byte-identical"
+    contracts:
+      - "Canonical packet sha256 identical across runs, roots, PYTHONHASHSEED=0/42/random"
+      - "No datetime.now() or os.path.abspath() in canonical output path"
+    status: "PENDING"
+
+  - id: "S3_COMPLETE_SEMANTICS"
+    description: "Full structured fields: conditions, exceptions, negations, failures, counterexamples, temporal_scope, authority, verification."
+    deliverables:
+      - "Updated atom schema with all semantic subfields"
+      - "Semantic extractor for each field type"
+      - "Conservative CLAIM/OPINION/HYPOTHESIS/UNKNOWN classification"
+      - "No lexical fact/causality promotion (negative tests)"
+    contracts:
+      - "Every condition/exception/negation in source → structured field in atom"
+      - "statements default to CLAIM unless source-evidence upgrade"
+    status: "PENDING"
+
+  - id: "S4_CANONICAL_PACKET_HASH"
+    description: "Packet ID and content hash cover full semantics including relations, conflicts, UNKNOWNs, lineage."
+    deliverables:
+      - "Full canonical serialization (sorted, normalized)"
+      - "Packet hash = SHA-256(canonical_form)"
+      - "tests/test_packet_hash.py — cross-run reproducibility"
+    contracts:
+      - "Hash covers atoms, relations, all unknowns, all conflicts, source lineage"
+      - "Byte-identical across PYTHONHASHSEED values"
+    status: "PENDING"
+
+  - id: "S5_SPAN_REDACTION"
+    description: "Span-based redaction (no global replacement), no secret-derived hashes, overlap resolution."
+    deliverables:
+      - "src/qclaw_knowledge_digest/redact_v2.py — span planner"
+      - "Overlap resolution (longer match takes priority)"
+      - "No sha256(secret) stored anywhere"
+      - "tests/test_redaction.py — overlap, repetition, mixed-document"
+    contracts:
+      - "Redacted output contains zero raw secrets"
+      - "No secret-derived fingerprint or hash in log/atom/output"
+      - "Surrounding knowledge preserved at byte level outside redacted spans"
+    status: "PENDING"
+
+  - id: "S6_REAL_DIGEST_BATCH"
+    description: "Digest at least one pre-existing public-safe repository document with exact commit/blob/path/content hash anchoring."
+    deliverables:
+      - "Anchor manifest: commit SHA, blob SHA, path, content SHA-256"
+      - "Digest output: atoms, relations, UNKNOWNs, conflicts"
+      - "Verification: exact-match to source blob from remote"
+    contracts:
+      - "Source is NOT task-authored (pre-existing in repository)"
+      - "All atoms have exact source-span references"
+    status: "PENDING"
+
+  - id: "S7_EXACT_EVIDENCE"
+    description: "Exact-head dual-Python CI, three isolated-root identity evidence, non-empty evidence-only receipt."
+    deliverables:
+      - ".github/workflows/qclaw-e28-evidence.yml"
+      - "3-root archive evidence (PYTHONHASHSEED 0/42/random)"
+      - "run_e28_full_evidence.py"
+      - "Non-empty evidence-only receipt commit"
+    contracts:
+      - "FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION v1.0"
+      - "Receipt commit non-empty, evidence-only files"
+      - "External anchors: full commit SHA, tree SHA"
+    status: "PENDING"
+
+dependencies:
+  - "S1 must complete before S3 (semantic extraction needs exact content)"
+  - "S1 must complete before S6 (real digest needs lossless parser)"
+  - "S2 must complete before S4 (canonical hash needs deterministic output)"
+  - "S5 is parallel with S1-S4"
+  - "S7 must be last (evidence binds final tested head)"
+
+hard_boundaries:
+  - "No wall-clock timestamps in canonical output"
+  - "No filesystem paths in canonical output"
+  - "No secret-derived hashes"
+  - "No silent content drop/truncation/encoding replacement"
+  - "No second memory/fusion/retrieval/QueryPlan/ContextBundle runtime"
+  - "No PR #100/#111 modification"
+  - "No Codex branch edits"
+  - "No direct main write"
