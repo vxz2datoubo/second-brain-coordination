@@ -1,0 +1,245 @@
+# BAR-ONLY-SCOPE-GUARD (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# This file is a permanent guardrail. P1 evaluator MUST reference it.
+
+schema_version: "1.0"
+guard_id: "QCLAW-0020Q-P0-BAR-ONLY-001"
+
+# ============================================================================
+# BAR_ONLY BOUNDARY — HARD SCOPE
+# ============================================================================
+# Issue #69 and Issue #76 both mandate: VS1 BAR_ONLY uses ONLY
+# point-in-time bar data (OHLCV). This guard defines what IS and IS NOT
+# allowed within BAR_ONLY scope. Any future Codex D0 submission that
+# crosses into forbidden data types is a scope violation.
+# ============================================================================
+
+allowed_data_types:
+  - data_type: "POINT_IN_TIME_BAR"
+    description: "Minute and daily OHLCV bars with PIT timestamp"
+    includes:
+      - "open, high, low, close, volume (OHLCV)"
+      - "timestamp (accurate to bar period, not tick)"
+      - "bar_period (1min, 5min, 15min, 30min, 60min, daily)"
+    excludes:
+      - "intra-bar tick sequence"
+      - "intra-bar order arrival order"
+      - "intra-bar execution priority"
+
+  - data_type: "REFERENCE_ZONE_DEFINITION"
+    description: "Pre-defined price/volume reference zones"
+    includes:
+      - "price levels from pre-zone analysis only"
+      - "volume-weighted average price within PIT windows"
+      - "static support/resistance from historical bar data"
+    excludes:
+      - "dynamic zones computed from future bars (look-ahead)"
+      - "L2 order-book-derived depth zones"
+      - "participant-identity-tagged zones"
+
+  - data_type: "MARKET_STATE_CLASSIFICATION"
+    description: "Broad market/industry classification"
+    includes:
+      - "sector, industry, market-cap classification (PIT)"
+      - "bull/bear/range/sideways from PIT bar data only"
+      - "high/low volatility regime from PIT bar data only"
+    excludes:
+      - "order-flow-derived stress indicators"
+      - "hidden-liquidity classifications"
+
+  - data_type: "T1_INVENTORY"
+    description: "T+1 lot-level inventory from bar-level aggregation"
+    includes:
+      - "sellable quantity (PIT, bar resolution)"
+      - "frozen quantity (PIT, bar resolution)"
+      - "overnight gap flag"
+    excludes:
+      - "intra-day lot-level tracking below bar resolution"
+      - "order-flow-derived inventory signals"
+
+  - data_type: "RULE_SNAPSHOT"
+    description: "Versioned A-share rule snapshots"
+    includes:
+      - "T+1 settlement rules"
+      - "price limit rules (涨跌停 10%/20%/etc)"
+      - "call auction rules"
+      - "suspension/trading halt rules"
+    excludes:
+      - "real-time rule change notifications"
+      - "future unpublished rule changes"
+
+  - data_type: "COST_MODEL"
+    description: "Bar-level cost and slippage estimates"
+    includes:
+      - "commission rates (PIT)"
+      - "stamp duty"
+      - "bar-level spread estimates"
+      - "slippage models based on bar volatility"
+    excludes:
+      - "order-book-depth-derived impact models"
+      - "tick-level execution simulation"
+
+forbidden_data_types:
+  - data_type: "L2_ORDER_BOOK"
+    reason: "NOT BAR_ONLY. Provides queue, depth, and hidden-liquidity inference.
+      Violates BAR_ONLY contract per Issue #69."
+    examples:
+      - "five-level bid/ask snapshots"
+      - "order-book depth charts"
+      - "displayed-depth aggregates"
+
+  - data_type: "L3_TICK_BY_TICK"
+    reason: "NOT BAR_ONLY. Provides trade-level sequence, arrival order,
+      and execution priority inference not available at bar resolution."
+    examples:
+      - "逐笔成交 (tick-by-tick trades)"
+      - "逐笔委托 (tick-by-tick orders)"
+      - "trade-and-quote (TAQ) data"
+
+  - data_type: "DDX_DDY"
+    reason: "NOT BAR_ONLY. Derived order-flow metrics that attempt to
+      infer participant type and hidden intent from aggregate data."
+    examples:
+      - "DDX (大单动向)"
+      - "DDY (涨跌动因)"
+      - "DDZ (大单差分)"
+
+  - data_type: "PSEUDO_DELTA_CVD_OFI"
+    reason: "NOT BAR_ONLY. Attempt to reconstruct order flow from bar data.
+      Issue #69 explicitly forbids pseudo-Delta/CVD/OFI."
+    examples:
+      - "OHLCV-derived Delta"
+      - "Cumulative Volume Delta (CVD) from bar data"
+      - "Order Flow Imbalance (OFI) from bar data"
+      - "Bar-level net buying pressure proxies"
+
+  - data_type: "PARTICIPANT_IDENTITY"
+    reason: "NOT BAR_ONLY. Infers institutional/retail/main-force identity.
+      Violates NO_TRADE and research_only boundaries."
+    examples:
+      - "主力资金 (main force capital)"
+      - "机构 vs 散户 (institutional vs retail classification)"
+      - "游资 (hot money)"
+      - "北向资金 (northbound flow attribution)"
+
+  - data_type: "HIDDEN_INTENT"
+    reason: "NOT BAR_ONLY. Infers unobservable intent from price/volume."
+    examples:
+      - "扫止损 (stop-loss sweep)"
+      - "吸筹/出货 (accumulation/distribution)"
+      - "护盘 (price defense)"
+      - "假突破 (false breakout with intent)"
+
+  - data_type: "PROBABILITY_ENGINE"
+    reason: "NOT BAR_ONLY. Probability estimation belongs to W12.
+      0017 BAR_ONLY produces labels, not distributions."
+    examples:
+      - "breach probability"
+      - "reclaim confidence intervals"
+      - "p-values or statistical tests"
+
+  - data_type: "ALLOCATION_ORDERS"
+    reason: "NOT BAR_ONLY. Capital allocation belongs to W11.
+      0017 is research validation only."
+    examples:
+      - "position sizing recommendations"
+      - "capital allocation percentages"
+      - "trade signals or order generation"
+
+# ============================================================================
+# SCOPE VIOLATION DETECTION RULES
+# ============================================================================
+# These rules will be applied during P1 evaluation. Any Codex D0 output
+# that triggers a violation must be flagged.
+
+scope_violation_rules:
+  - rule: "SV-001"
+    description: "L2 order-book data referenced as input"
+    detection: "Grep for L2, order_book, bid_ask_snapshot, depth_level in
+      data path declarations and dependency lists."
+    severity: "BLOCKING"
+
+  - rule: "SV-002"
+    description: "Tick/L3 data referenced as input"
+    detection: "Grep for tick, 逐笔, L3, TAQ, trade-level in declarations."
+    severity: "BLOCKING"
+
+  - rule: "SV-003"
+    description: "DDX/DDY/DDZ referenced as input"
+    detection: "Grep for DDX, DDY, DDZ, 大单, ddx, ddy."
+    severity: "BLOCKING"
+
+  - rule: "SV-004"
+    description: "Pseudo-Delta/CVD/OFI computed from bar data"
+    detection: "Grep for delta, CVD, OFI, order_flow_imbalance,
+      cumulative_volume_delta in computation logic."
+    severity: "BLOCKING"
+
+  - rule: "SV-005"
+    description: "Participant identity inferred"
+    detection: "Grep for 主力, 机构, 散户, 游资, 北向, participant,
+      main_force, institution in output labels."
+    severity: "BLOCKING"
+
+  - rule: "SV-006"
+    description: "Hidden intent claimed"
+    detection: "Grep for 扫止损, 吸筹, 出货, 护盘, 假突破, stop_loss_sweep,
+      accumulation, distribution, price_defense in analysis."
+    severity: "BLOCKING"
+
+  - rule: "SV-007"
+    description: "Probability distributions produced"
+    detection: "Grep for probability, confidence_interval, p_value,
+      distribution, statistical_test in statistical outputs."
+    severity: "BLOCKING"
+
+  - rule: "SV-008"
+    description: "Order or allocation signals generated"
+    detection: "Grep for trade_signal, order, allocation, position_size,
+      buy, sell in actionable outputs."
+    severity: "BLOCKING"
+
+# ============================================================================
+# BOUNDARY-EDGE CASES
+# ============================================================================
+# These are areas where the BAR_ONLY boundary may be ambiguous.
+# P1 evaluator must use these rules.
+
+edge_cases:
+  - case: "BAR_DERIVED_INDICATORS"
+    rule: "Standard TA indicators computed from OHLCV bars (SMA, EMA,
+      RSI, MACD, Bollinger, ATR, volume profile, VWAP) are ALLOWED
+      as long as they use ONLY PIT bar inputs and do not inject
+      order-flow assumptions."
+    examples_allowed: ["SMA(close, 20)", "ATR(14)", "VWAP(bar)"]
+    examples_forbidden: ["Delta(close)", "CVD(volume, close)"]
+
+  - case: "MULTI_TIMEFRAME"
+    rule: "Using multiple bar periods (1min + daily) is ALLOWED as long
+      as ALL periods are bar-level and no tick interleaving is used."
+    examples_allowed: ["daily zone + 5min breach detection"]
+
+  - case: "T1_INVENTORY_FROM_BARS"
+    rule: "T+1 inventory computed from bar-level trade aggregation
+      is ALLOWED. Inventory computed from tick-by-tick matching
+      is FORBIDDEN."
+
+  - case: "DISPLAYED_DEPTH_CANDIDATE"
+    rule: "If Codex has access to real-time L1 five-level snapshots
+      and these ARE part of 0017, they fall outside BAR_ONLY.
+      The output name 'DISPLAYED_DEPTH_SUPPORT_CANDIDATE' must be
+      marked as NOT_BAR_ONLY and flagged. If no L1 data exists,
+      this output type must be OMITTED entirely."
+
+  - case: "RULE_SNAPSHOT_WITH_FUTURE_EFFECTIVE_DATES"
+    rule: "Using a rule snapshot that was published before the bar's
+      timestamp but takes effect after it is ALLOWED as long as
+      the available_at is the publication date, not the bar date."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
+  immutable_after_freeze: true

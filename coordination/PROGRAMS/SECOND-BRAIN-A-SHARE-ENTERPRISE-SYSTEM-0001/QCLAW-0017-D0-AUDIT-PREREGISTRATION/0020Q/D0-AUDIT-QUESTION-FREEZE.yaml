@@ -1,0 +1,514 @@
+# D0-AUDIT-QUESTION-FREEZE (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# WARNING: This file is IMMUTABLE after freeze. No P1 amendments.
+# Future changes ONLY via AMENDMENT-PROPOSAL files.
+
+schema_version: "1.0"
+freeze_id: "QCLAW-0020Q-P0-QUESTIONS-001"
+questions_total: 42
+dimensions: 10
+
+# ============================================================================
+# DIMENSION 1: REFERENCE ZONE DEFINABILITY (Q01-Q04)
+# ============================================================================
+D1_REFERENCE_ZONE_DEFINABILITY:
+  id: "D1"
+  dimension: "Can reference zones be defined from PIT bar data without future leakage?"
+  weight: 10.0
+
+  Q01:
+    id: "Q01"
+    question: "For each reference zone type used in the D0 plan, state: (a) the exact PIT bar data
+      fields used to define it, (b) the bar lookback window, and (c) whether ANY field in the zone
+      definition uses data that would not have been available at bar close time."
+    evidence_type: "data_path_table"
+    must_cover: ["price_level_zone", "volume_zone", "volatility_zone"]
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q02:
+    id: "Q02"
+    question: "Demonstrate that the reference zone timestamp (available_at) for every zone is
+      STRICTLY ≤ the bar timestamp of the breach event being tested. Provide the computation
+      that guarantees no look-ahead: if zone is defined at T, it cannot be used for breach
+      detection at any time < T."
+    evidence_type: "timestamp_causality_proof"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q03:
+    id: "Q03"
+    question: "If reference zones are updated over time (rolling window, regime change),
+      specify the exact rule for when a new zone becomes valid AND the rule for which
+      zone version applies to which time period. No version ambiguity."
+    evidence_type: "zone_versioning_contract"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q04:
+    id: "Q04"
+    question: "Describe any reference zone that uses multi-timeframe data (e.g., daily zone
+      used with 5-minute breach detection). Show that intra-day bar data cannot leak
+      information from the same day's close into the zone definition before that close
+      occurs."
+    evidence_type: "multi_timeframe_causality"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 2: BAR_ONLY SCOPE ENFORCEMENT (Q05-Q09)
+# ============================================================================
+D2_BAR_ONLY_SCOPE:
+  id: "D2"
+  dimension: "Is the D0 plan strictly BAR_ONLY per Issue #69 and BAR-ONLY-SCOPE-GUARD.yaml?"
+  weight: 15.0
+
+  Q05:
+    id: "Q05"
+    question: "List EVERY data source, field, and file referenced in the D0 plan. For each,
+      classify as ALLOWED_BAR_ONLY or FORBIDDEN per BAR-ONLY-SCOPE-GUARD.yaml. Any
+      forbidden item without an explicit exclusion statement is a scope violation."
+    evidence_type: "complete_data_inventory_with_classification"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q06:
+    id: "Q06"
+    question: "If L2 order-book snapshots exist in accessible local data, does the D0 plan
+      (a) explicitly declare them as NOT_BAR_ONLY and EXCLUDE them from the D0 scope, or
+      (b) include them without scope demarcation? Check for five-level depth,
+      displayed_depth, bid_ask_snapshot, order_book keywords."
+    evidence_type: "l2_scope_demarcation"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q07:
+    id: "Q07"
+    question: "Does the D0 plan contain ANY reference to DDX, DDY, DDZ, Delta, CVD, OFI,
+      net buying pressure, or order flow imbalance computed from bar data? If yes, is each
+      instance (a) explicitly flagged as FORBIDDEN, or (b) presented as if it were BAR_ONLY?"
+    evidence_type: "order_flow_proxy_scan"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q08:
+    id: "Q08"
+    question: "For the five mandatory output objects (ReferenceLiquidityZone,
+      ReferenceZoneBreachEvent, ReclaimAssessment, PostSweepStabilizationAssessment,
+      TPlusOneInventoryState), confirm that every field's data source is BAR_ONLY.
+      Produce a field-by-field source audit table."
+    evidence_type: "field_source_audit_table"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q09:
+    id: "Q09"
+    question: "BAR_ONLY boundary cases: (a) If VWAP is computed, is it from bar-level
+      (HL3 × volume) or tick-level? (b) If ATR is used, is it from bar-level true range?
+      (c) If volume_profile is used, is it from bar-level volume-at-price or tick-level?
+      Answer for each indicator used."
+    evidence_type: "indicator_computation_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 3: T+1, PRICE LIMITS & UNTRADEABLE SCENARIOS (Q10-Q14)
+# ============================================================================
+D3_T1_AND_UNTRADEABLE:
+  id: "D3"
+  dimension: "Does the D0 plan model T+1 inventory, overnight gaps, price limits, and
+    untradeable scenarios as first-class objects?"
+  weight: 12.0
+
+  Q10:
+    id: "Q10"
+    question: "Describe the T+1 inventory model: (a) how sellable_quantity and frozen_quantity
+      are computed from bar-level data, (b) how the overnight gap (today's close to next
+      day's open) is modeled, and (c) how T+1 settlement lag affects the tradability of
+      breach/reclaim signals."
+    evidence_type: "t1_inventory_model_description"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q11:
+    id: "Q11"
+    question: "For A-share price limits (10%/20% for ChiNext/STAR, 5% for ST), provide the
+      rule snapshot source and effective dates. Show that: (a) limit-hit bars are flagged,
+      (b) consecutive limit hits are tracked, and (c) untradeable-at-limit scenarios are
+      excluded from false-reclaim or false-continuation labeling."
+    evidence_type: "price_limit_handling_documentation"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q12:
+    id: "Q12"
+    question: "How does the D0 plan handle trading suspensions (停牌)? Specify: (a) suspension
+      detection from bar data, (b) treatment of pre-suspension and post-resumption bars,
+      (c) whether suspended periods create gaps in the breach/reclaim timeline that could
+      produce false labels."
+    evidence_type: "suspension_handling_documentation"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q13:
+    id: "Q13"
+    question: "For call auction periods (集合竞价, 9:15-9:25, 14:57-15:00), specify how
+      the D0 plan treats these: (a) are auction bars included or excluded from breach
+      detection? (b) is the auction price used as the opening/closing bar price?
+      (c) what is the timestamp convention?"
+    evidence_type: "call_auction_handling"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q14:
+    id: "Q14"
+    question: "Quantify the untradeable-event rate: in the historical dataset, what
+      percentage of breach/reclaim candidate events occur during price-limit-hit,
+      suspended, or call-auction-only periods where a trade could not actually be
+      placed? If not quantified, mark as UNKNOWN."
+    evidence_type: "untradeable_rate_quantification"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 4: DATA PATH, COVERAGE, REPRODUCIBILITY (Q15-Q19)
+# ============================================================================
+D4_DATA_REPRODUCIBILITY:
+  id: "D4"
+  dimension: "Are data paths, coverage, timestamps, timezones, missing values, field types,
+    and rule snapshots fully specified and reproducible?"
+  weight: 10.0
+
+  Q15:
+    id: "Q15"
+    question: "Provide a complete data inventory table with columns: field_name, source_file
+      or source_path, data_type (float/int/string/datetime), bar_period, start_date,
+      end_date, timezone, missing_value_policy (drop/forward_fill/interpolate/mark_NULL),
+      and known_gaps. Every field used in any computation must appear."
+    evidence_type: "complete_data_inventory_table"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q16:
+    id: "Q16"
+    question: "For every data file: (a) record a SHA-256 hash at D0 freeze time,
+      (b) state whether the file is reproducible from public sources or vendor-specific,
+      and (c) if vendor-specific, state the vendor, license terms, and whether a
+      QCLAW-equivalent dataset can be obtained."
+    evidence_type: "data_hash_and_provenance_table"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q17:
+    id: "Q17"
+    question: "How are missing bars (market holidays, early closes, data feed gaps)
+      detected and handled? Show: (a) the expected bar count per trading day,
+      (b) the gap detection logic, and (c) the gap handling policy for each
+      downstream computation that could be affected."
+    evidence_type: "missing_data_handling_policy"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q18:
+    id: "Q18"
+    question: "Demonstrate that the D0 plan's data paths can be reproduced on a machine
+      that does NOT have access to F:/aidanao/brain_core or any WorkBuddy-local
+      paths. If any path points to brain_core, mark as UNKNOWN_REPRODUCIBILITY and
+      state whether an alternative path exists."
+    evidence_type: "path_reproducibility_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q19:
+    id: "Q19"
+    question: "For rule snapshots (T+1, price limits, trading calendar): state the
+      effective_date for each rule version, the source document/publication, and
+      whether the rule change date aligns with the bar timestamps in the data.
+      Rule snapshot mismatches (e.g., applying post-2023 rules to 2020 data)
+      must be explicitly declared."
+    evidence_type: "rule_snapshot_timeline"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 5: LABEL DETERMINISM (Q20-Q23)
+# ============================================================================
+D5_LABEL_DETERMINISM:
+  id: "D5"
+  dimension: "Are breach, reclaim, stabilization, continuation, and failed-reclaim labels
+    deterministic and reproducible?"
+  weight: 8.0
+
+  Q20:
+    id: "Q20"
+    question: "For each label type (REFERENCE_ZONE_BREACH, INTRABAR_REENTRY,
+      BAR_CLOSE_RECLAIM, SUSTAINED_RECLAIM, FAILED_RECLAIM, CONTINUATION_AFTER_BREACH,
+      POST_SWEEP_STABILIZATION), provide the EXACT parameterized definition:
+      (a) input fields, (b) threshold values, (c) time window parameters,
+      (d) confirmation conditions, and (e) the Python/pseudocode label assignment
+      function that is deterministic given the same input data."
+    evidence_type: "label_definition_table_with_parameters"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q21:
+    id: "Q21"
+    question: "Demonstrate label consistency across bar periods: if a 5-minute bar
+      set labels an event, does the 1-minute bar set of the same time period
+      produce consistent labels? If not, which labels are period-dependent and
+      how should this be interpreted?"
+    evidence_type: "label_consistency_analysis"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q22:
+    id: "Q22"
+    question: "How does the labeler handle events near data boundaries (first N bars,
+      last N bars, near gaps, near suspensions)? Labeler must either (a) skip
+      boundary-affected events or (b) produce labels with explicit boundary
+      caveat flags. Undefined boundary behavior is a FAIL."
+    evidence_type: "boundary_handling_policy"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q23:
+    id: "Q23"
+    question: "Provide a reproducible label-generation script or specification
+      that, when run on the same input data, produces byte-identical label output.
+      Include the exact random seed (if any), library versions, and Docker or
+      environment specification needed for reproduction."
+    evidence_type: "reproducible_label_script_or_spec"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 6: COSTS, SLIPPAGE, EXECUTION FEASIBILITY (Q24-Q27)
+# ============================================================================
+D6_COSTS_AND_EXECUTION:
+  id: "D6"
+  dimension: "Are costs, slippage, non-execution, and execution feasibility modeled?"
+  weight: 8.0
+
+  Q24:
+    id: "Q24"
+    question: "Specify the cost model: (a) commission rate, (b) stamp duty (印花税),
+      (c) exchange fees, (d) bar-level spread estimate method, and (e) slippage
+      model. State effective dates for each cost component."
+    evidence_type: "cost_model_specification"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q25:
+    id: "Q25"
+    question: "For events where the breach/reclaim signal occurs during a limit-hit
+      bar, a suspended period, or a call auction: is the signal considered
+      executable? If not, how does the D0 plan distinguish between a
+      'theoretical signal' and an 'executable signal'?"
+    evidence_type: "executability_assessment"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q26:
+    id: "Q26"
+    question: "What is the estimated capacity (position size as % of daily volume)
+      for acting on breach/reclaim signals, broken down by market-cap quintile?
+      If the signal only works at sizes below a practical minimum, this must
+      be stated."
+    evidence_type: "capacity_estimation"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q27:
+    id: "Q27"
+    question: "For the proposed validation design: (a) specify the walk-forward scheme
+      (purged or non-purged), (b) the embargo period between train and test,
+      (c) the nested selection protocol, and (d) the lockbox period.
+      If any of these is undefined, state UNDEFINED."
+    evidence_type: "walkforward_validation_design"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 7: BASELINES, NEGATIVE CONTROLS, INCREMENTALITY (Q28-Q32)
+# ============================================================================
+D7_BASELINES_AND_NEGATIVES:
+  id: "D7"
+  dimension: "Does the D0 plan include baselines, negative controls, null-increment
+    tests, and inverse result preservation?"
+  weight: 12.0
+
+  Q28:
+    id: "Q28"
+    question: "Define the simple baseline comparison set: (a) random-level breach,
+      (b) simple touch of reference zone boundary, (c) simple breakout (no reclaim),
+      (d) simple reversal (no zone definition), (e) volatility-only signal,
+      and (f) volume-only signal. For each, state the exact computation."
+    evidence_type: "baseline_definitions"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q29:
+    id: "Q29"
+    question: "Does the validation plan include a NULL_INCREMENT test: comparing
+      the full B3 system PLUS 0017 against B3 alone? If 0017 adds zero or
+      negative marginal value, this must be reported, not suppressed."
+    evidence_type: "null_increment_design"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q30:
+    id: "Q30"
+    question: "For any statistical tests of breach/reclaim efficacy (White Reality Check,
+      Hansen SPA, PBO, Deflated Sharpe, Romano-Wolf): state (a) which tests are
+      planned, (b) the multiple-testing correction, and (c) whether negative or
+      non-significant results will be preserved and reported."
+    evidence_type: "statistical_test_plan"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q31:
+    id: "Q31"
+    question: "Does the D0 plan commit to publishing BOTH positive and negative
+      results? Specifically: (a) all null-increment findings, (b) all failed
+      hypothesis tests, (c) all cases where simple baselines outperform the
+      breach/reclaim signal, and (d) all inverse (opposite-direction) results.
+      A 'publish all results' commitment is required."
+    evidence_type: "negative_result_commitment"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q32:
+    id: "Q32"
+    question: "For multi-period analysis (1/3/5/10/20 trading days + minute-level
+      event windows), define: (a) how MFE and MAE are computed, (b) the reclaim
+      persistence rate, (c) the failure rate, (d) the next-day tradable rate,
+      and (e) the untradeable exit rate. Provide the exact formulas."
+    evidence_type: "multi_period_metric_definitions"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 8: SELF-VERIFICATION LOOP GUARD (Q33-Q36)
+# ============================================================================
+D8_SELF_VERIFICATION_GUARD:
+  id: "D8"
+  dimension: "With WorkBuddy scope transferred to Codex, are there self-verification
+    loop risks?"
+  weight: 10.0
+
+  Q33:
+    id: "Q33"
+    question: "Codex now owns both the implementation AND the verification of 0017
+      (previously WorkBuddy roles). Describe: (a) which verification steps
+      Codex performs on its own code, (b) which steps require external data
+      or tooling that Codex does not control, and (c) which steps are
+      delegated to QCLAW's frozen P1 audit instrument."
+    evidence_type: "verification_role_separation"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q34:
+    id: "Q34"
+    question: "Does the D0 plan's machine-reproducible test receipt include:
+      (a) the exact command executed, (b) the exit code, (c) the runtime
+      environment (Python version, OS, library versions), and (d) a
+      checksum of the test output? Can a third party run this receipt
+      and get identical results?"
+    evidence_type: "machine_receipt_design"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q35:
+    id: "Q35"
+    question: "If Codex's D0 plan uses the same data validation framework that
+      was used in PR #57 or PR #74, state: (a) whether the validation code
+      has been adapted for 0017-specific checks, (b) whether the validation
+      code itself is auditable (open-source, readable), and (c) whether
+      any validation step depends on pre-computed answers or golden files
+      that cannot be independently regenerated."
+    evidence_type: "validation_framework_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q36:
+    id: "Q36"
+    question: "Does the D0 plan contain ANY code, configuration, or workflow that:
+      (a) auto-validates Codex's own output, (b) compares to a golden answer
+      produced by the same Codex agent, or (c) claims a check 'passed' based
+      on Codex's own earlier determination? If yes, each instance must be
+      flagged as a SELF-VERIFICATION-LOOP."
+    evidence_type: "self_verification_loop_scan"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 9: ARCHITECTURE EXPANSION GUARD (Q37-Q39)
+# ============================================================================
+D9_ARCHITECTURE_GUARD:
+  id: "D9"
+  dimension: "Does the D0 plan introduce unauthorized new interfaces, data sources,
+    runtimes, Skills, or architecture expansions?"
+  weight: 8.0
+
+  Q37:
+    id: "Q37"
+    question: "List every new interface, data source, runtime, Skill, or architecture
+      component proposed or implied by the D0 plan. For each: (a) classify as
+      EXISTING_AND_REUSED, NEW_BUT_C_PROPOSAL_ONLY, or NEW_AND_IMPLEMENTED,
+      and (b) state whether GPT approval has been obtained for any NEW implementation."
+    evidence_type: "architecture_expansion_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q38:
+    id: "Q38"
+    question: "Does the D0 plan reuse any existing Codex W2 (event pipeline),
+      W4 (backtesting), W7 (risk decision), W9 (order generator), or W13
+      (participant bulletin) interfaces? If yes: (a) state the exact interface,
+      (b) state its current maturity/merge status, and (c) state whether the
+      dependency is blocking or optional."
+    evidence_type: "dependency_maturity_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q39:
+    id: "Q39"
+    question: "Is the D0 plan SELF-CONTAINED for its stated scope, such that it can
+      be audited without running W2/W4/W7/W9/W13 runtimes? If not, which
+      runtimes MUST be operational for D0 auditability? State the minimal
+      audit environment."
+    evidence_type: "self_containment_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# DIMENSION 10: LEGACY & W3 SOR GUARD (Q40-Q42)
+# ============================================================================
+D10_LEGACY_AND_W3_GUARD:
+  id: "D10"
+  dimension: "Legacy asset disposition and W3 physical SoR UNKNOWN guard."
+  weight: 7.0
+
+  Q40:
+    id: "Q40"
+    question: "For every legacy liquidity-sweep/reclaim/absorption/support-resistance/
+      false-breakout candidate found in the repository, Skill workspace, or
+      accessible local paths: classify as REUSE, ADAPT, MIGRATE, REFERENCE_ONLY,
+      or DEPRECATE. Provide rationale for each."
+    evidence_type: "legacy_asset_disposition_table"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q41:
+    id: "Q41"
+    question: "Does the D0 plan depend on W3 (Knowledge & Evidence) or C3_KNOWLEDGE
+      interface for any storage, retrieval, or evidence chain? If W3's physical
+      SoR is UNKNOWN_MIGRATION_REQUIRED: (a) state whether this blocks D0,
+      (b) state what minimal local storage alternative is used, and (c) confirm
+      that W3 UNKNOWN is NOT silently promoted to canonical or used as an excuse
+      to block self-contained D0 planning."
+    evidence_type: "w3_dependency_and_guard"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+  Q42:
+    id: "Q42"
+    question: "Issue #42 资金意图蓝图 and A-SHARE-INDICATOR-KNOWLEDGE-MAP-0016 are
+      cited as dependencies. State: (a) which elements of these are reused,
+      (b) which elements overlap with 0017 and must avoid duplication, and
+      (c) whether any conflict exists between 0017's BAR_ONLY scope and the
+      broader indicator map's capabilities."
+    evidence_type: "dependency_reuse_boundary_audit"
+    scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+
+# ============================================================================
+# FROZEN MANIFEST
+# ============================================================================
+
+frozen_manifest:
+  status: "FROZEN"
+  total_questions: 42
+  total_dimensions: 10
+  dimension_weights:
+    D1_REFERENCE_ZONE: 10.0
+    D2_BAR_ONLY: 15.0
+    D3_T1_UNTRADEABLE: 12.0
+    D4_DATA_REPRODUCIBILITY: 10.0
+    D5_LABEL_DETERMINISM: 8.0
+    D6_COSTS_EXECUTION: 8.0
+    D7_BASELINES_NEGATIVES: 12.0
+    D8_SELF_VERIFICATION: 10.0
+    D9_ARCHITECTURE: 8.0
+    D10_LEGACY_W3: 7.0
+  sum_weights: 100.0
+  question_scoring: {satisfies_contract: 1.0, partially_satisfies: 0.5, fails_or_missing: 0.0}
+  maximum_possible: 42.0
+  immutable_after_freeze: true
+  amendment_policy: "AMENDMENT-PROPOSAL only. No silent edits to frozen questions."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  safety: PUBLIC_SAFE
+  authority: CANDIDATE_ONLY
+  no_codex_d0_exists: true

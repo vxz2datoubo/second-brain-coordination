@@ -1,0 +1,114 @@
+# LOCAL-REALITY-AND-REPLAY-RECEIPT-CHECKLIST (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# When Codex delivers D0, QCLAW must verify local-reality and replay
+# feasibility using this checklist. P1 evaluation is against this file.
+
+schema_version: "1.0"
+checklist_id: "QCLAW-0020Q-P0-LOCAL-001"
+
+# ============================================================================
+# LOCAL REALITY CHECKS
+# ============================================================================
+# Can a QCLAW-equivalent auditor independently confirm the D0 plan's
+# factual claims about data, rules, and reproducibility?
+
+local_reality_checks:
+  - id: "LR-01"
+    question: "Can the data inventory from Q15 be independently verified?"
+    check: "For each data file in Codex's inventory: (a) is the SHA-256 reproducible from the
+      declared source? (b) can a QCLAW-equivalent dataset be acquired? (c) if brain_core
+      paths are used, is there a public alternative?"
+    verdicts: ["CONFIRMED", "PARTIALLY_CONFIRMED", "CANNOT_CONFIRM", "UNKNOWN"]
+
+  - id: "LR-02"
+    question: "Do Rule Snapshots match regulatory reality?"
+    check: "For each rule snapshot (T+1, price limits, stamp duty, trading calendar): verify
+      the effective date against public SSEx/SZSE announcements. Flag any mismatch."
+    verdicts: ["MATCH", "MISMATCH", "CANNOT_VERIFY"]
+
+  - id: "LR-03"
+    question: "Is the cost model realistic for A-share market?"
+    check: "Compare Codex's cost model against: (a) current SSEx/SZSE fee schedules,
+      (b) broker commission range (万1-万3), (c) stamp duty (0.05% sell-side),
+      (d) bar-level spread estimates against known A-share spread patterns."
+    verdicts: ["REALISTIC", "UNDERESTIMATED", "OVERESTIMATED", "CANNOT_VERIFY"]
+
+  - id: "LR-04"
+    question: "Are BAR_ONLY labels conceptually coherent?"
+    check: "Can a human trader familiar with A-shares interpret the label definitions
+      and map them to recognizable market phenomena WITHOUT invoking hidden intent?"
+    verdicts: ["COHERENT", "PARTIALLY_COHERENT", "INCOHERENT", "NEEDS_CLARIFICATION"]
+
+  - id: "LR-05"
+    question: "Is the untradeable rate estimate realistic?"
+    check: "Compare Codex's untradeable rate (Q14) against known A-share statistics:
+      limit-hit frequency (~2-5% on volatile days for individual stocks), suspension
+      frequency, call auction periods."
+    verdicts: ["REALISTIC", "UNDERESTIMATED", "OVERESTIMATED", "NOT_PROVIDED"]
+
+# ============================================================================
+# REPLAY VERIFICATION CHECKS
+# ============================================================================
+# Can a third party replay the D0 validation design?
+
+replay_checks:
+  - id: "RP-01"
+    question: "Is the labeler specification machine-reproducible?"
+    check: "Take Codex's label definition (Q20) and attempt to reimplement it from the spec
+      alone. Check: (a) are all parameters specified? (b) is the behavior at boundaries
+      specified? (c) can the labeler be implemented without accessing Codex source code?"
+    verdicts: ["REPRODUCIBLE_FROM_SPEC", "PARTIALLY_REPRODUCIBLE", "REQUIRES_SOURCE_CODE"]
+
+  - id: "RP-02"
+    question: "Is the walk-forward design reproducible?"
+    check: "Take Codex's walk-forward specification (Q27) and verify: (a) are train/test
+      date ranges unambiguous? (b) is the purge rule mathematically specified? (c) is
+      the embargo period explicit? (d) is the lockbox period defined in calendar dates?"
+    verdicts: ["FULLY_SPECIFIED", "PARTIALLY_SPECIFIED", "UNDERSPECIFIED"]
+
+  - id: "RP-03"
+    question: "Can the machine receipt be independently executed?"
+    check: "Take Codex's machine receipt (Q34) and: (a) run the exact command, (b) verify
+      the exit code, (c) check the environment matches, (d) verify the checksum.
+      If the command fails, mark as NOT_REPRODUCIBLE."
+    verdicts: ["REPRODUCED", "FAILED_TO_REPRODUCE", "NOT_PROVIDED"]
+
+  - id: "RP-04"
+    question: "Are baseline comparisons independently producible?"
+    check: "Take Codex's baseline definitions (Q28) and independently implement each
+      baseline. Compare results. If Codex provides baseline comparison data, verify
+      that the same baselines produce the same results."
+    verdicts: ["INDEPENDENTLY_VERIFIED", "CODE_ONLY", "NOT_PROVIDED"]
+
+# ============================================================================
+# HISTORICAL FAILURE CHECKS (from Issue #73)
+# ============================================================================
+
+historical_gate_checks:
+  - id: "HG-01"
+    question: "Was the D0 audit instrument (questions, rubric, behavior, evidence,
+      UNKNOWN, BAR_ONLY guard, local-reality checklist) frozen BEFORE Codex
+      D0 existed?"
+    check: "Verify that this file's freeze timestamp (2026-07-24T02:30:00+08:00)
+      is before any Codex D0 Draft PR creation timestamp."
+    expected: "CODEX_D0_DOES_NOT_EXIST_AT_FREEZE_TIME"
+    type: "GATE"
+
+  - id: "HG-02"
+    question: "Were historical PR #75 failure modes prevented?"
+    check: "Verify: (a) questions and rubric frozen BEFORE behavior contract,
+      (b) scoring rubric and question freeze are in separate files committed
+      together, (c) BAR_ONLY scope guard exists separately from audit questions."
+    type: "PROTOCOL"
+
+  - id: "HG-03"
+    question: "Are pre-publication hashes recorded?"
+    check: "Verify that FROZEN-MANIFEST.yaml records Git blob SHA and SHA-256
+      for every frozen core file before the first push."
+    type: "GATE"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  immutable_after_freeze: true

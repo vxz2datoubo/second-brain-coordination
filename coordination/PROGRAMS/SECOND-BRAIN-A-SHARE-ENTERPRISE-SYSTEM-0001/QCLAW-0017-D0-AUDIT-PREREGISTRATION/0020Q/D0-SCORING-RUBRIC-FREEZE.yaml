@@ -1,0 +1,79 @@
+# D0-SCORING-RUBRIC-FREEZE (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# IMMUTABLE after freeze.
+
+schema_version: "1.0"
+rubric_id: "QCLAW-0020Q-P0-RUBRIC-001"
+
+# The rubric maps the frozen D0-AUDIT-QUESTION-FREEZE.yaml questions
+# to a weighted total score. Each question scores 0.0, 0.5, or 1.0.
+# Rubric is derived from Issue #69 D0 requirements + known boundaries.
+
+dimension_weights:
+  D1: {name: "Reference Zone Definability", weight: 0.10, questions: 4, max_raw: 4.0}
+  D2: {name: "BAR_ONLY Scope Enforcement", weight: 0.15, questions: 5, max_raw: 5.0}
+  D3: {name: "T+1, Limits & Untradeable", weight: 0.12, questions: 5, max_raw: 5.0}
+  D4: {name: "Data Reproducibility", weight: 0.10, questions: 5, max_raw: 5.0}
+  D5: {name: "Label Determinism", weight: 0.08, questions: 4, max_raw: 4.0}
+  D6: {name: "Costs & Execution", weight: 0.08, questions: 4, max_raw: 4.0}
+  D7: {name: "Baselines & Negatives", weight: 0.12, questions: 5, max_raw: 5.0}
+  D8: {name: "Self-Verification Guard", weight: 0.10, questions: 4, max_raw: 4.0}
+  D9: {name: "Architecture Guard", weight: 0.08, questions: 3, max_raw: 3.0}
+  D10: {name: "Legacy & W3 Guard", weight: 0.07, questions: 3, max_raw: 3.0}
+
+total_max_raw: 42
+total_questions: 42
+
+# Each question scores: 0.0 (fails or missing), 0.5 (partially satisfies), 1.0 (satisfies contract)
+# Negative findings do NOT reduce score; they are evidence quality.
+# Rubric does NOT penalize honest UNKNOWN or honest negative results.
+
+scoring_formula:
+  raw_score: "sum of all question scores (0.0-42.0)"
+  weighted_score: "sum over dimensions of (dimension_weight × sum_dim_questions / max_dim_questions)"
+  max_weighted: 1.0
+  formula: "weighted_score = Σ(d)[ weight_d × raw_d / max_raw_d ]"
+
+thresholds:
+  - level: "PASS"
+    weighted_min: 0.80
+    description: "D0 plan is thorough, contract-satisfying, and auditable."
+  - level: "CONDITIONAL_PASS"
+    weighted_min: 0.65
+    description: "D0 plan has remediable gaps. Minor scope/documentation fixes needed."
+  - level: "BOUNDED_REMEDIATION_REQUIRED"
+    weighted_min: 0.50
+    description: "Material gaps in several dimensions. Bounded fixes required."
+  - level: "FAIL_INCOMPLETE"
+    weighted_min: 0.0
+    description: "D0 plan does not meet the minimum audit threshold."
+
+blocking_failure_modes:
+  - mode: "BAR_ONLY_VIOLATION"
+    description: "Any SV-001 through SV-008 from BAR-ONLY-SCOPE-GUARD.yaml triggered.
+      AUTOMATIC FAIL regardless of weighted score."
+  - mode: "SELF_VERIFICATION_LOOP"
+    description: "Q36 detects self-verification loop with no independent verification.
+      AUTOMATIC FAIL."
+  - mode: "LOOK_AHEAD_LEAKAGE"
+    description: "Q02 demonstrates look-ahead bias not resolved. AUTOMATIC FAIL."
+  - mode: "MISSING_MANDATORY_OBJECT"
+    description: "Any of the 7 Issue #69 mandatory objects missing entirely.
+      AUTOMATIC FAIL."
+
+# Evidentiary weight modifiers (does not change score, changes P1 verdict framing)
+evidence_quality_modifiers:
+  - modifier: "MACHINE_VERIFIED"
+    effect: "Evidence is machine-reproducible with SHA-256 verified outputs."
+  - modifier: "SELF_REPORTED"
+    effect: "Evidence is attested by Codex but not independently verifiable."
+  - modifier: "THIRD_PARTY_CORROBORATED"
+    effect: "Evidence is corroborated by independent data or tool."
+  - modifier: "UNKNOWN_EVIDENCE_QUALITY"
+    effect: "Evidence type not machine-verifiable from P0 plan."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  immutable_after_freeze: true

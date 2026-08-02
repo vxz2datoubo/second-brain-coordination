@@ -1,0 +1,155 @@
+# EXPECTED-AND-FORBIDDEN-BEHAVIOR (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# Defines what a well-structured D0 plan SHOULD and MUST NOT contain.
+
+schema_version: "1.0"
+contract_id: "QCLAW-0020Q-P0-BEHAVIOR-001"
+
+# ============================================================================
+# EXPECTED BEHAVIORS — WHAT A GOOD D0 PLAN SHOULD CONTAIN
+# ============================================================================
+
+expected_behaviors:
+  - id: "EXP-001"
+    category: "scope"
+    description: "D0 scope is explicitly D0 project planning only. D0 says what WILL be built and
+      how it WILL be validated, not what already exists. D0 does not contain implemented code."
+    detection: "Grep for implementation markers: 'def ', 'class ', 'import ', '.py file', 'runs on',
+      'executes', 'outputs' in non-plan context."
+
+  - id: "EXP-002"
+    category: "data"
+    description: "Every data source is listed with path, coverage dates, field schema, timezone,
+      and missing-value policy. The inventory is complete enough for a third party to locate
+      or acquire equivalent data."
+    detection: "Check for a data inventory table covering all referenced fields."
+
+  - id: "EXP-003"
+    category: "reproducibility"
+    description: "D0 plan contains hash-locked data references. Each data file used has a SHA-256
+      at plan freeze time. Rule snapshots have effective dates. Reproducibility is a first-class
+      concern."
+    detection: "Grep for SHA256, sha256, sha-256, hash: in data references."
+
+  - id: "EXP-004"
+    category: "labels"
+    description: "All 7 label types have exact parameterized definitions. Label boundaries and
+      edge cases are addressed. A third party could reimplement the labeler from the spec."
+    detection: "Check each of the 7 label types for threshold values, time windows, and confirmation rules."
+
+  - id: "EXP-005"
+    category: "validation"
+    description: "D0 plan includes a complete validation design: purged walk-forward, embargo,
+      nested selection, lockbox, out-of-sample periods, multiple market regimes."
+    detection: "Check for walk-forward scheme, embargo period, lockbox definition."
+
+  - id: "EXP-006"
+    category: "baselines"
+    description: "D0 plan defines simple baselines (random, touch, breakout, reversal, vol-only,
+      volume-only) and commits to comparing 0017 against all of them."
+    detection: "Check for baseline comparison table with at least 4 baselines."
+
+  - id: "EXP-007"
+    category: "negative_results"
+    description: "D0 plan commits to publishing ALL results: positive, negative, null-increment,
+      inverse, and baseline-defeated. There is a specific section or statement committing to
+      result transparency."
+    detection: "Grep for 'negative result', 'null result', 'null-increment', 'all results'."
+
+  - id: "EXP-008"
+    category: "self_containment"
+    description: "D0 is self-contained for planning purposes. W3 UNKNOWN does not block D0.
+      Dependencies are stated with maturity level. The plan can be audited without operational
+      runtimes."
+    detection: "Check that W3 UNKNOWN is handled as a known risk, not an excuse to block."
+
+  - id: "EXP-009"
+    category: "legacy"
+    description: "All legacy assets are dispositioned with rationale. No orphaned or unexamined
+      old liquidity-sweep code is silently absorbed."
+    detection: "Check for disposition table with REUSE/ADAPT/MIGRATE/REFERENCE_ONLY/DEPRECATE."
+
+  - id: "EXP-010"
+    category: "receipt"
+    description: "D0 plan includes or commits to a machine-test-receipt: command, exit code,
+      environment, checksums. Verification is not narrative."
+    detection: "Check for machine receipt commitment or prototype."
+
+# ============================================================================
+# FORBIDDEN BEHAVIORS — WHAT MUST NOT APPEAR IN D0
+# ============================================================================
+
+forbidden_behaviors:
+  - id: "FOR-001"
+    category: "scope_creep"
+    description: "D0 MUST NOT contain implemented business logic. D0 is a plan, not a runtime.
+      No 'def compute_breach()', no import of trading libraries, no backtest execution."
+    severity: "BLOCKING"
+
+  - id: "FOR-002"
+    category: "bar_only_violation"
+    description: "D0 MUST NOT reference L2, tick, L3, DDX, DDY, DDZ, Delta, CVD, OFI,
+      participant identity, hidden intent, probability, or allocation data as inputs.
+      Violations are AUTOMATIC FAIL per BAR-ONLY-SCOPE-GUARD.yaml."
+    severity: "BLOCKING"
+
+  - id: "FOR-003"
+    category: "look_ahead"
+    description: "D0 MUST NOT contain any reference zone definition, label computation, or
+      rule application that uses future-available data. Any 'look_ahead' or future leakage
+      in the plan is AUTOMATIC FAIL."
+    severity: "BLOCKING"
+
+  - id: "FOR-004"
+    category: "self_verification"
+    description: "D0 MUST NOT contain a validation framework where the same agent that writes
+      the code also writes the golden answer file and declares it correct. Self-verification
+      loops are AUTOMATIC FAIL."
+    severity: "BLOCKING"
+
+  - id: "FOR-005"
+    category: "claim_no_trade_violation"
+    description: "D0 MUST NOT generate trade signals, order instructions, position sizes,
+      or allocation percentages. NO_TRADE boundary is absolute."
+    severity: "BLOCKING"
+
+  - id: "FOR-006"
+    category: "w3_promotion"
+    description: "D0 MUST NOT silently promote W3 UNKNOWN to canonical. W3 gap may be noted
+      as a risk. It may NOT be used to declare 'data available from W3' as if W3 were
+      operational."
+    severity: "HARD"
+
+  - id: "FOR-007"
+    category: "hidden_intent"
+    description: "D0 MUST NOT use terms: stop-loss sweep (扫止损), accumulation (吸筹),
+      distribution (出货), price defense (护盘), main force (主力), or any hidden-intent
+      language in the analysis framework."
+    severity: "BLOCKING"
+
+  - id: "FOR-008"
+    category: "unauthorized_architecture"
+    description: "D0 MUST NOT introduce new interfaces, data sources, runtimes, Skills, or
+      architecture expansions without C_PROPOSAL_ONLY markers and explicit GPT approval
+      statements. Any stealth implementation is a violation."
+    severity: "HARD"
+
+  - id: "FOR-009"
+    category: "probability_claim"
+    description: "D0 MUST NOT produce probability estimates, confidence intervals, p-values,
+      or statistical distributions. 0017 produces labels, not probabilities. Probability
+      belongs to W12."
+    severity: "BLOCKING"
+
+  - id: "FOR-010"
+    category: "missing_unknowns"
+    description: "D0 MUST NOT present all findings as known/solved. The UNKNOWN sections
+      (data gaps, rule uncertainties, market regime unknowns, cost model limitations)
+      must be explicitly present. A D0 plan with zero UNKNOWNs is suspicious."
+    severity: "HARD"
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  immutable_after_freeze: true

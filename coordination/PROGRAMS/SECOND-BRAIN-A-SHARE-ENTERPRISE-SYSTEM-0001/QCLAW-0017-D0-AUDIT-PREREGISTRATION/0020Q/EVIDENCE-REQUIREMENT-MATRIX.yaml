@@ -1,0 +1,73 @@
+# EVIDENCE-REQUIREMENT-MATRIX (P0)
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-PREREGISTRATION-0020Q-P0
+# Frozen: 2026-07-24T02:30:00+08:00
+# Defines what evidence is REQUIRED to answer each audit question.
+
+schema_version: "1.0"
+matrix_id: "QCLAW-0020Q-P0-EVIDENCE-001"
+frozen_questions: "D0-AUDIT-QUESTION-FREEZE.yaml"
+
+question_evidence_map:
+  Q01: { required_format: "table", min_columns: 4, must_include: ["zone_type", "bar_fields", "lookback_window", "available_at_guarantee"] }
+  Q02: { required_format: "proof", must_include: ["timestamp chain", "zone definition time T", "breach event time T'", "proof that T ≤ T'"] }
+  Q03: { required_format: "contract", must_include: ["versioning rule", "zone update trigger", "applicable version per time period"] }
+  Q04: { required_format: "proof", must_include: ["multi-timeframe causation diagram", "daily→intraday information flow", "no same-day close leakage proof"] }
+  Q05: { required_format: "table", min_columns: 5, must_include: ["field_name", "source", "bar_period", "classification", "exclusion statement if forbidden"] }
+  Q06: { required_format: "audit", must_include: ["l2 scan results", "declared scope boundary", "explicit exclusion or violation flag"] }
+  Q07: { required_format: "audit", must_include: ["proxy scan pattern list", "hit or clean per pattern", "explicit violation flag per hit"] }
+  Q08: { required_format: "table", min_columns: 5, must_include: ["object", "field", "data_source", "source_type", "bar_only_check"] }
+  Q09: { required_format: "audit", must_include: ["indicator list", "computation method per indicator", "bar_only compliance per indicator"] }
+  Q10: { required_format: "model", must_include: ["sellable_quantity logic", "frozen_quantity logic", "overnight gap formula", "T+1 lag diagram"] }
+  Q11: { required_format: "documentation", must_include: ["rule source", "effective dates", "limit-hit flagging logic", "untradeable exclusion rules"] }
+  Q12: { required_format: "documentation", must_include: ["suspension detection method", "pre/post treatment", "gap impact on labeling"] }
+  Q13: { required_format: "documentation", must_include: ["auction period rules", "inclusion/exclusion policy", "timestamp convention"] }
+  Q14: { required_format: "quantification", must_include: ["untradeable event rate", "breakdown by cause", "or explicit UNKNOWN"] }
+  Q15: { required_format: "table", min_columns: 7, must_include: ["field_name", "source", "data_type", "bar_period", "date_range", "timezone", "missing_policy"] }
+  Q16: { required_format: "table", min_columns: 4, must_include: ["file", "sha256", "reproducibility", "license"] }
+  Q17: { required_format: "policy", must_include: ["expected bar count", "gap detection", "gap handling per downstream computation"] }
+  Q18: { required_format: "audit", must_include: ["path list", "brain_core references", "alternative path for each brain_core reference", "reproducibility verdict"] }
+  Q19: { required_format: "timeline", must_include: ["rule name", "effective date", "source", "bar timestamp alignment verdict"] }
+  Q20: { required_format: "definition_table", must_include: ["label name", "inputs", "thresholds", "windows", "confirmation conditions", "pseudocode"] }
+  Q21: { required_format: "analysis", must_include: ["multi-period comparison", "consistency verdict per label type", "period-dependent labels list"] }
+  Q22: { required_format: "policy", must_include: ["boundary detection", "skip or flag policy", "edge case catalogue"] }
+  Q23: { required_format: "script_or_spec", must_include: ["reproducible labeler", "random seed", "library versions", "environment spec"] }
+  Q24: { required_format: "specification", must_include: ["commission", "stamp_duty", "exchange_fees", "spread_method", "slippage_model", "effective_dates"] }
+  Q25: { required_format: "assessment", must_include: ["executability per event type", "theoretical vs executable distinction", "untradeable flag logic"] }
+  Q26: { required_format: "estimation", must_include: ["capacity per market-cap quintile", "practical minimum", "or explicit UNKNOWN"] }
+  Q27: { required_format: "design", must_include: ["walk-forward scheme", "embargo period", "nested selection", "lockbox period"] }
+  Q28: { required_format: "definitions", must_include: ["6 baseline types", "exact computation per baseline"] }
+  Q29: { required_format: "design", must_include: ["B3 vs B3+0017 comparison design", "null-increment reporting commitment"] }
+  Q30: { required_format: "plan", must_include: ["test list", "multiple-testing correction", "negative result preservation commitment"] }
+  Q31: { required_format: "commitment", must_include: ["all-results publication statement", "negative/inverse/null-increment categories"] }
+  Q32: { required_format: "definitions", must_include: ["MFE formula", "MAE formula", "persistence rate", "failure rate", "tradable rate", "untradeable exit rate"] }
+  Q33: { required_format: "audit", must_include: ["verification role map", "Codex-only steps", "external verification steps", "QCLAW delegated steps"] }
+  Q34: { required_format: "design", must_include: ["command", "exit_code", "environment", "checksum", "third-party reproducibility"] }
+  Q35: { required_format: "audit", must_include: ["PR57/PR74 framework reuse audit", "0017-specific adaptation list", "auditability assessment"] }
+  Q36: { required_format: "scan", must_include: ["auto-validation detection", "golden answer detection", "self-loop instances", "flag per instance"] }
+  Q37: { required_format: "audit", must_include: ["new component list", "classification per component", "GPT approval status per NEW implementation"] }
+  Q38: { required_format: "audit", must_include: ["interface list", "maturity per interface", "blocking vs optional"] }
+  Q39: { required_format: "audit", must_include: ["self-containment verdict", "required runtimes list", "minimal audit environment"] }
+  Q40: { required_format: "table", min_columns: 3, must_include: ["asset", "disposition", "rationale"] }
+  Q41: { required_format: "audit", must_include: ["W3 dependency declaration", "W3 blocking assessment", "local alternative", "non-promotion guarantee"] }
+  Q42: { required_format: "audit", must_include: ["reused elements", "overlap avoidance", "BAR_ONLY conflict check"] }
+
+# Evidence that must be EXTERNAL (not Codex-self-generated)
+external_only:
+  - question: "Q18 (path reproducibility)"
+    reason: "Codex cannot self-audit whether its paths are brain_core-free."
+  - question: "Q36 (self-verification loop)"
+    reason: "Loop detection must be external."
+  - question: "Q39 (self-containment)"
+    reason: "Runtime dependency is audited externally."
+
+# Evidence that is ACCEPTABLE as Codex-self-reported with caveat
+self_reported_acceptable:
+  - question: "Q15 (data inventory)"
+    note: "Data inventory from Codex is acceptable if hash-locked."
+  - question: "Q20 (label definitions)"
+    note: "Codex definitions are acceptable if machine-reproducible."
+
+signed:
+  agent: QCLAW
+  timestamp: "2026-07-24T02:30:00+08:00"
+  immutable_after_freeze: true
