@@ -1,0 +1,119 @@
+# DETERMINISM-RECEIPT.yaml
+# Stage D — PR #65 Deterministic Validation Receipt
+# At least 2 isolated runs of validate_plan.py with identical results
+
+document_type: DETERMINISM_RECEIPT
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: D
+target_pr: 65
+
+## Determinism Claim
+
+The validate_plan.py validator produces **identical deterministic results** across
+independent runs when the input file is unchanged. This receipt records two isolated
+runs with matching outputs to establish determinism evidence.
+
+## Input State
+
+cases_file: "PLAN-ADVERSARIAL-CASES.yaml"
+cases_sha256: "c4ab30bab332aa2636bea12afa5772c22a1018df33d16958fdbab4c750a0c687"
+cases_file_size_bytes: 51544
+validator_sha256: "af973a8019bda9294eb60493a886bd52d6916597729b9ca4c906c929f7dc1b63"
+expected_min_cases: 48
+required_categories_count: 12
+
+## Isolated Run 1
+
+run:
+  id: "determinism-run-1"
+  timestamp: "2026-07-26T22:48:47Z"
+  exit_code: 0
+  valid: true
+  total_cases_parsed: 48
+  categories_found: 12
+  categories_missing: 0
+  total_errors: 0
+  category_distribution:
+    STALE_MEMORY: 4
+    SUPERSESSION: 4
+    CONFLICT: 4
+    UNKNOWN: 4
+    ROLEPLAY_CONTAMINATION: 4
+    PRIVACY_BOUNDARY: 4
+    SOURCE_AUTHORITY: 4
+    PLAN_VS_IMPLEMENTED: 4
+    D2_SEPARATION: 4
+    CANDIDATE_PROMOTION: 4
+    COUNT_DRIFT: 4
+    CANONICAL_RUNTIME_CLAIM: 4
+  authority_distribution:
+    PLAN: 29
+    CONTRACT: 19
+    IMPLEMENTED: 0
+
+## Isolated Run 2
+
+run:
+  id: "determinism-run-2"
+  timestamp: "2026-07-26T22:49:08Z"
+  exit_code: 0
+  valid: true
+  total_cases_parsed: 48
+  categories_found: 12
+  categories_missing: 0
+  total_errors: 0
+  category_distribution:
+    STALE_MEMORY: 4
+    SUPERSESSION: 4
+    CONFLICT: 4
+    UNKNOWN: 4
+    ROLEPLAY_CONTAMINATION: 4
+    PRIVACY_BOUNDARY: 4
+    SOURCE_AUTHORITY: 4
+    PLAN_VS_IMPLEMENTED: 4
+    D2_SEPARATION: 4
+    CANDIDATE_PROMOTION: 4
+    COUNT_DRIFT: 4
+    CANONICAL_RUNTIME_CLAIM: 4
+  authority_distribution:
+    PLAN: 29
+    CONTRACT: 19
+    IMPLEMENTED: 0
+
+## Determinism Verification
+
+match_result: >
+  Both runs produced identical output for all fields:
+  exit_code, valid, total_cases_parsed, categories_found, categories_missing,
+  total_errors, category_distribution, and authority_distribution.
+  The only differing field is timestamp (expected — records when each run occurred).
+
+deterministic: true
+runs_match: true
+matching_fields:
+  - exit_code: 0
+  - valid: true
+  - total_cases_parsed: 48
+  - categories_found: 12
+  - categories_missing: 0
+  - total_errors: 0
+  - category_distribution (all 12 categories): identical
+  - authority_distribution (PLAN/CONTRACT/IMPLEMENTED): identical
+
+## Negative Determinism
+
+Tampered inputs reliably produce exit=1 with specific, deterministic error messages.
+See TEST-RUN-RECEIPT.yaml for negative test details.
+
+deterministic_on_tampered: true
+negative_runs_match: true
+
+## Conclusion
+
+validate_plan.py produces fully deterministic results:
+- Same input → same output across all isolated runs
+- Tampered input → reliable failure with specific error messages
+- No non-deterministic dependencies (no network, no random, no time-based logic beyond timestamps)
+
+NO_TRADE | PUBLIC_SAFE | CANDIDATE_ONLY
