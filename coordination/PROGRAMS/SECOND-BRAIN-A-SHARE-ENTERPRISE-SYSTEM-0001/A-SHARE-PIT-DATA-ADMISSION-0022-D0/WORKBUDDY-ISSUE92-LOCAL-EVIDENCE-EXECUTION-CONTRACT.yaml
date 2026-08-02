@@ -1,0 +1,27 @@
+schema_version: '1.0.0'
+consumer: WORKBUDDY
+issue: 92
+state: QUEUED_UNTIL_GPT_RELEASE
+scope: exactly_one_GPT_or_user_approved_candidate_manifest
+permitted_after_release:
+  - read_only_metadata_and_private_hash_verification
+  - provider_documentation_to_field_mapping
+  - synthetic_fixture_validation
+  - private_machine_receipt_generation
+required_private_receipt:
+  - manifest_id
+  - artifact_sha256
+  - source_version
+  - field_semantics_version
+  - PIT_and_correction_policy_evidence
+  - unit_adjustment_and_corporate_action_evidence
+  - rule_snapshot_coverage
+  - PASS_FAIL_UNKNOWN_reason_codes
+public_output: status_reason_codes_non_sensitive_hashes_and_coverage_summary_only
+forbidden:
+  - branch_or_PR_before_release
+  - multiple_source_audit
+  - raw_data_or_absolute_path_publication
+  - PR51_gate_modification
+  - labels_replay_backtest_or_trade
+stop_conditions: [license_or_privacy_conflict, credential_encountered, missing_manifest, source_hash_mismatch, unclear_authority]

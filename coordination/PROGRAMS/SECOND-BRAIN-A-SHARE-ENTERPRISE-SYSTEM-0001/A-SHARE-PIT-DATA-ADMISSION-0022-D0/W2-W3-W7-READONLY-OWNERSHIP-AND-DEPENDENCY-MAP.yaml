@@ -1,0 +1,16 @@
+schema_version: '1.0.0'
+mode: READONLY_DEPENDENCY
+dependencies:
+  - workstream: W2
+    owns: market_data_PIT_rule_and_replay_semantics
+    D0_use: reference contracts only
+    forbidden: run_or_replace_replay
+  - workstream: W3
+    owns: SourceRecord_EvidenceItem_KnowledgeAtom
+    D0_use: future candidate evidence reference only
+    forbidden: authority_write_or_promotion
+  - workstream: W7
+    owns: ValidationReport_and_final_risk_veto
+    D0_use: future admission validation input reference only
+    forbidden: risk_clearance_or_trading_approval
+propagation: BLOCKED_BY_POLICY_UNKNOWN_and_ABSTAIN must remain explicit across every dependency boundary.

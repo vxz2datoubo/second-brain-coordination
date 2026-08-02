@@ -1,0 +1,21 @@
+schema_version: '1.0.0'
+task_id: CODEX-A-SHARE-PIT-DATA-ADMISSION-CONTRACT-AND-RULE-EVIDENCE-0022-D0
+agent_id: CODEX
+status: COMPLETE_PENDING_GPT_REVIEW
+boundary: PUBLIC_SAFE_CANDIDATE_ONLY_RESEARCH_ONLY_NO_TRADE
+baseline:
+  remote_main: 22e42f9401ff48b1c5a1436af6edc7debb28f124
+  pr51_merge: 499e44d7bb25fb15b0778a86f0858d81f506cad6
+  pr79_fixed_head: b515b66290944af3d3e1d3285e95cb6162736d41
+phases:
+  - id: D0
+    state: COMPLETE_PENDING_GPT_REVIEW
+    output: admission contract and rule-evidence plan
+  - id: ISSUE92_L0
+    state: QUEUED_OWNER_WORKBUDDY
+    entry_gate: GPT accepts D0 and explicitly releases Issue 92
+  - id: D1
+    state: PROHIBITED
+    entry_gate: separate routed task after accepted local evidence
+recovery: Re-read remote ACTIVE-CODEX-TASK.yaml and start only from the first explicitly released phase.
+rollback: Revert this package commit; no runtime, source, or canonical contract was changed.
