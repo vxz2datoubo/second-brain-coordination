@@ -1,0 +1,80 @@
+document_type: TEST-RUN-RECEIPT
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: Stage C: PR #64 Executable Architecture Truth
+pr_number: 64
+
+test_runner: verify_counts.py
+test_runner_sha256: TBD
+test_date: 2026-07-27T06:40:00+08:00
+python_version: 3.12
+
+runs:
+  run_1:
+    exit_code: 0
+    output_sha256: TBD
+    atoms_validated: 99
+    relations_validated: 147
+    questions_validated: 64
+    atom_types_distribution:
+      CAUSAL_CLAIM: 3
+      CLAIM: 18
+      CONSTRAINT: 13
+      COUNTEREXAMPLE: 3
+      EXCEPTION: 3
+      FACT: 29
+      HYPOTHESIS: 6
+      RISK: 6
+      UNKNOWN: 11
+      VALIDATION_TASK: 7
+    relation_types_distribution:
+      CONTRADICTS: 10
+      DEPENDS_ON: 21
+      FAILS_WHEN: 12
+      RAISES_UNKNOWN: 14
+      REFINES: 17
+      SUPPORTS: 65
+      VERIFIED_BY: 8
+    q0_atom_file_sha256: 47c000176360eb8069e71d3112343df07ad1234589d29e4cebd603374ed75e4d
+    q0_relation_file_sha256: 39156e3ca1ed42fd5dff6c1cb1376e68baccb2441fae8caa83e0de27799f612a
+    q0_question_file_sha256: 2d76c2b26faf333c60ce37d662db31f86bc0f9b0e92058fb2534970cfc9a0927
+  run_2:
+    exit_code: 0
+    output_sha256: TBD
+    atoms_validated: 99
+    relations_validated: 147
+    questions_validated: 64
+    deterministic_match: true
+
+negative_tests:
+  corrupted_atom_count:
+    file: ATOM-TYPE-TAXONOMY.yaml
+    corruption: "FACT count: 29 -> 30"
+    expected_exit: 1
+    actual_exit: 1
+    verification: PASS
+
+checks_performed:
+- count_drift_detection
+- type_distribution_drift_detection
+- missing_relation_type_detection
+- duplicate_key_detection
+- stale_source_lock_detection
+- template_zero_reintroduction_detection
+- C_prefix_reference_detection
+- YAML_integrity
+
+removed_cross_pr_files:
+- KNOWLEDGE-SUPPLY-CHAIN-INDEX.md
+- AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml
+- COUNT-SOURCE-OF-TRUTH-MANIFEST.yaml
+- CODEX-D2-CANDIDATE-HANDOFF.yaml
+
+source_lock:
+  q0_head: e54e04b14876017253d27c578484e0bbd9096c0b
+  q0_branch: qclaw/q0-knowledge-atomization-0010
+
+status: ALL_CHECKS_PASSED
+authority: CANDIDATE_ONLY
+no_trade: true
+public_safe: true

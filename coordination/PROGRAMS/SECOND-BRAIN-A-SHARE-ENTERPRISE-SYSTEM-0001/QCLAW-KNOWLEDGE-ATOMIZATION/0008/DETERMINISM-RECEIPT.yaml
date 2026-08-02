@@ -1,0 +1,45 @@
+document_type: DETERMINISM-RECEIPT
+task_id: QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+route_epoch: 10
+stage: Stage C: PR #64 Executable Architecture Truth
+pr_number: 64
+
+determinism_verification:
+  validator: verify_counts.py
+  run_count: 2
+  both_passed: true
+  output_identical: true
+  exit_code_identical: true
+
+run_1:
+  exit_code: 0
+  stdout_sha256: TBD
+  hash_output:
+    ARCHITECTURE.md: 29c2eab0c725c0a3f0fb4fd04d369d72671424ab87c9b2ede73ba76ea54a19d5
+    ATOM-TYPE-TAXONOMY.yaml: f1fcd3b01c6baf709339ca6c3da7f76edfb37c81cee6465ab5097fe72fb4920c
+    RELATION-TAXONOMY.yaml: 88c211126cb09849e1371d9782964730b4e534f1e1848ef3c4d5ce97a9e46feb
+    AUTHORITY-MATRIX.yaml: 85810ba1a4f8c8ccfdd51cfdb5dd66d015aa0ffca758bc26dbba55b348cf30ce
+
+run_2:
+  exit_code: 0
+  stdout_sha256: TBD
+  hash_output:
+    ARCHITECTURE.md: 29c2eab0c725c0a3f0fb4fd04d369d72671424ab87c9b2ede73ba76ea54a19d5
+    ATOM-TYPE-TAXONOMY.yaml: f1fcd3b01c6baf709339ca6c3da7f76edfb37c81cee6465ab5097fe72fb4920c
+    RELATION-TAXONOMY.yaml: 88c211126cb09849e1371d9782964730b4e534f1e1848ef3c4d5ce97a9e46feb
+    AUTHORITY-MATRIX.yaml: 85810ba1a4f8c8ccfdd51cfdb5dd66d015aa0ffca758bc26dbba55b348cf30ce
+
+hash_match_verification:
+  all_hashes_identical: true
+  verified_by: "--hash-only flag"
+
+negative_determinism:
+  corrupted_count_test_exit: 1
+  restored_count_test_exit: 0
+  corruption_type: FACT_COUNT_DRIFT_29_TO_30
+
+idempotency: confirmed
+candidate_only: true
+no_trade: true
+public_safe: true
+timestamp: 2026-07-27T06:40:00+08:00
