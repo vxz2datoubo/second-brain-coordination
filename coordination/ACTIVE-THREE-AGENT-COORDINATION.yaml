@@ -1,40 +1,59 @@
-schema_version: "45.0"
+schema_version: "46.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E40_WAITING_USER_APPROVAL_QCLAW_E31_MODEL_SETTING_RESTORE_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E40R1_ONE_SHOT_CANARY_READY_QCLAW_E31_RESTORE_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T12:40:00+08:00"
+updated_at: "2026-08-02T14:25:00+08:00"
 
 permanent_command_semantics:
-  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_MODEL_SETTING_OR_CANARY_APPROVAL"}
-  agent_read_command: {trigger: "读取任务", meaning: "EXECUTE_ONLY_WHEN_THE_AGENT_ROUTE_HAS_EXECUTION_ALLOWED_TRUE", second_start_command_required: false}
+  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_MODEL_SETTING_APPROVAL"}
+  agent_read_command: {trigger: "读取任务", meaning: "EXECUTE_ONLY_WHEN_AGENT_ROUTE_IS_READY_AND_EXECUTION_ALLOWED", second_start_command_required: false}
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  model_advisory_rule: "GPT tells the user the recommended model level/exact model and reasoning level; the user changes or keeps the software setting."
+  model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never change software settings."
   model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings."
-  recommendation_not_authority: "Task, route, AGENTS, fallback and requested_model fields are advisory only."
-  restoration_exception: "Only explicit user-requested forensic restoration of exact proven pre-change fields is allowed; otherwise no write."
-  no_before_state_rule: "Return BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE and make no model-setting write."
-  private_config_rule: "Never expose or commit local config, sessions, tokens, cookies or secrets."
-  final_head_rule: "Executable, validator, workflow, schema or test-semantic changes move the tested identity forward."
-  receipt_rule: "One non-empty evidence-only commit directly after final tested head; receipt-head validation; no later commit."
-  exact_head_ci_rule: "CI must checkout and print/assert the exact pull-request branch head; a merge ref is not candidate identity."
-  repository_object_rule: "Workflow, executable, configuration, schema and documentation files must contain real source bytes; whole-file Base64 wrappers fail closed."
-  canary_rule: "Review/read commands and ordinary consent are not canary approval."
+  approval_rule: "Executable Canary requires exact public approval body, actor, task, epoch, scope, expiry, nonce and route proof."
+  one_shot_rule: "App and CLI share one nonce/count; an attempted invocation consumes it on success or failure; no retry or second owner."
+  final_head_rule: "Executable/test/workflow changes move tested identity forward."
+  receipt_rule: "Exactly one non-empty evidence-only commit follows final tested head; no later commit."
+  exact_head_ci_rule: "Tested and receipt heads explicitly checkout/assert PR head on Python 3.11 and 3.13."
+  secret_rule: "No credential/session/key/private-config read or persistence."
+  trade_rule: "No real trading, account, order, position or funds operation."
 
 agents:
   CODEX:
-    active_issue: 123
-    task_id: "CODEX-BRAINOPS-BOUND-ONE-SHOT-CANARY-EXPLICIT-AUTHORIZATION-GATE-0035-E40"
-    route_epoch: 41
-    status: "WAITING_USER_EXPLICIT_APPROVAL"
-    execution_allowed: false
-    automatic_dispatch_allowed: false
-    canary_execution_allowed: false
+    active_issue: 126
+    draft_pull_request: 127
+    task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
+    route_epoch: 42
+    status: "READY"
+    execution_allowed: true
+    automatic_dispatch_allowed: true
+    automatic_dispatch_scope: "THIS_BOUND_CANARY_ONLY"
+    canary_execution_allowed: true
+    normal_dispatch_after_canary: false
+    automatic_resume: false
+    baseline_commit: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
+    lease_seed_commit: "eeeb8087c603200595349f0e64cbf813d47747bd"
+    branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
+    canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
+    nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
+    expires_at: "2026-08-02T18:25:00Z"
+    max_execution_count: 1
+    approval_issue: 126
+    approval_comment_id: 5155930613
+    authorized_approval_actors: [vxz2datoubo]
+    preferred_owner: "CODEX_APP"
+    fallback_owner: "CODEX_CLI_BEFORE_ANY_APP_ATTEMPT_ONLY"
+    nested_codex_forbidden: true
+    A_level_improvements_allowed: true
+    B_level_improvements_allowed: true
+    C_or_higher_allowed: false
     model_selection_owner: "USER_ONLY"
     agent_model_setting_mutation_forbidden: true
-    current_action: "Do not execute. Wait for separate exact user canary approval and a newly published route."
+    completion_signal: "CODEX_BRAINOPS_E40R1_ONE_SHOT_BOUNDED_ENGINEERING_CANARY_READY_FOR_GPT_REVIEW"
+    current_action: "Verify exact route/approval, atomically reserve nonce and execute the bounded engineering Canary once."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 125
@@ -42,31 +61,39 @@ agents:
     route_epoch: 31
     status: "READY"
     execution_allowed: true
-    source_stopped_task: "QCLAW E30"
-    mode: "target"
-    operator_model_advisory: "User manually selects highest available model with high/highest reasoning for this delicate restoration."
+    current_action: "Restore only exact proven QQ-caused Codex model-setting changes; otherwise block without writing."
     agent_model_setting_mutation_forbidden: true
-    exact_restore_exception_active: true
-    current_action: "Forensically identify QQ-caused Codex model-setting changes and restore only exact proven pre-change fields."
-    blocked_result_if_no_before_state: "BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
     automatic_resume: false
-    agent_model_setting_mutation_forbidden: true
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
+codex_canary_authority:
+  approval_comment: "https://github.com/vxz2datoubo/second-brain-coordination/issues/126#issuecomment-5155930613"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1.yaml"
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e40r1.yml"
+  hard_denials:
+    - "real trading/accounts/orders/funds"
+    - "keys/tokens/cookies/sessions/credentials/private configuration"
+    - "model setting changes"
+    - "irreversible production/service/system changes"
+    - "public network bind"
+    - "main direct write/merge/force push/rebase"
+    - "second Canary/retry/nested Codex/post-expiry execution"
+
 frozen:
-  - "QCLAW E30 / Issue #124 is stopped and may not resume without a new GPT route."
-  - "PR #122/#118/#111/#100 and their branches remain frozen."
-  - "Codex E40 remains non-executable and canary unauthorized."
-  - "No autonomous model-setting changes by any agent."
-  - "No credentials, sessions, accounts, orders or trades."
+  - "Codex E40 waiting Issue #123 is superseded by exact E40R1 route epoch 42."
+  - "QCLAW E30 remains stopped; PR #122/#118/#111/#100 remain frozen."
+  - "WorkBuddy remains paused."
 
 next_commands:
-  CODEX: "DO_NOT_EXECUTE"
-  QCLAW: "读取任务"
+  CODEX: "读取任务"
+  QCLAW: "读取任务 only for E31 restoration when the user chooses to resume QQ"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "USER_CONTROLS_MODELS / EXACT_QQ_CAUSED_RESTORE_ONLY / CODEX_WAITING / NO_TRADE"
+boundary: "EXACT_ONE_SHOT_CODEX_CANARY / A_B_BOUNDED_AUTOMATION / QQ_EXACT_RESTORE_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
