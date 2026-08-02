@@ -1,0 +1,69 @@
+schema_version: "1.0"
+record_type: "OutputFormatMatrix"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+verified_at: "2026-07-20T14:43:00Z"
+
+qclaw_bridge_output:
+  method: "QClawBridge.ask(prompt, save_as=..., max_tokens=1500)"
+  returns: "Tuple[str, str] — (content, output_file_path)"
+  default_dir: "F:/aidanao/qclaw-output/"
+  format: "纯文本/Markdown, no structured schema enforcement"
+  idempotency: "无 — 文件名由 save_as 或时间戳决定，无内容哈希"
+  privacy_classification: "无 — 不区分公开/私有/敏感"
+  version_tracking: "无 — 不含处理器版本或基础知识版本"
+
+qclaw_output_inventory:
+  total_files: 207
+  by_format:
+    markdown: 142
+    json: 40
+    csv: 17
+    jsonl: 4
+  sample_types:
+    - "brain-audit.json: 第二大脑审计记录"
+    - "finance-*-.md: 金融AI日度工作流/配置文档"
+    - "finance-*-items-*.jsonl: 金融日报项JSONL格式"
+    - "codex-*.md: Codex执行记录"
+    - "luoxue-*: 珞雪项目提示词包"
+    - "qclaw-*: QCLAW自我分析与修复计划"
+    - "[END-LUOXUE-META].md: 项目结束元标记"
+  structure: "完全扁平, 无目录层级"
+  manifest: "无 — 没有清单文件记录产出物身份和来源"
+
+qclaw_batch_output:
+  config: "recipes.json"
+  entry: "qclaw_batch.py"
+  purpose: "批量提示词处理"
+  output_format: "unknown (not audited)"
+
+data_dir_formats:
+  knowledge_graph:
+    path: "F:/aidanao/data/knowledge-graph.json"
+    format: "JSON (nodes + edges)"
+    has_id: true
+    has_hash: false
+  category_index:
+    path: "F:/aidanao/data/category-index.json"
+    format: "JSON"
+  news_index:
+    path: "F:/aidanao/data/news_index/exports/"
+    format: "CSV (因子导出)"
+    has_id: true (date+code key)
+  raw_tushare:
+    path: "F:/aidanao/data/raw/tushare/"
+    format: "mixed CSV/JSON"
+    has_id: false (filenames only)
+
+capability_gap:
+  no_packet_manifest: true
+  no_content_hash: true
+  no_privacy_tag: true
+  no_processor_version: true
+  no_state_machine: true
+  no_idempotency_key_in_output: true
+  flat_structure_no_separation: true
+  no_review_queue: true
+  no_sync_outbox: true
+
+ready_for_knowledge_packets: false
+reason: "QCLAW输出为扁平Markdown/JSON文件, 不含LearningPacket所需的id/hash/状态/隐私/版本字段。需要wrapper层包装QClawBridge输出为结构化候选包。"

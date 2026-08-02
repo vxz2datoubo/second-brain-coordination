@@ -1,0 +1,143 @@
+schema_version: "1.0"
+record_type: "CandidatePathAllowList"
+task_id: "QCLAW-OFFLINE-FIRST-KNOWLEDGE-SYNC-0001-PHASE0"
+agent_id: "WORKBUDDY"
+verified_at: "2026-07-20T14:43:00Z"
+mode: "read-only-field-audit"
+boundary: "local-read-only"
+
+paths:
+  qclaw_entry_points:
+    - path: "F:/aidanao/core/qclaw.py"
+      role: "主桥接层"
+      lines: 407
+      access: "Python import"
+      class: "QClawBridge"
+      config_source: "~/.qclaw/qclaw.json"
+      port_detection: "dynamic (read qclaw.json port field, fallback 8234)"
+      token_resolution: "env→qclaw.json→openclaw.json priority chain"
+      state: "active"
+
+    - path: "F:/aidanao/mcp/qclaw_bridge.py"
+      role: "MCP stdin/stdout协议服务器"
+      lines: 89
+      access: "stdio MCP"
+      tools: ["qclaw_ask", "qclaw_analyze_douyin"]
+      dependency: "core.qclaw.QClawBridge"
+      state: "defined, not verified as running"
+
+    - path: "F:/aidanao/mcp/core/qclaw.py"
+      role: "MCP核心模块空壳"
+      lines: 4
+      access: "import-only pass-through"
+      state: "wrapper"
+
+    - path: "F:/aidanao/tools/run_qclaw_analysis.py"
+      role: "命令行一次性分析工具"
+      lines: 11
+      state: "simple script"
+
+    - path: "F:/aidanao/tools/qclaw_dev_assist.py"
+      role: "开发辅助工具"
+      lines: 32
+      state: "simple script"
+
+    - path: "F:/aidanao/qclaw-batch/qclaw_batch.py"
+      role: "批量处理脚本"
+      lines: ~200
+      config: "recipes.json"
+      state: "batch tool"
+
+  qclaw_runtime:
+    - path: "~/.qclaw/qclaw.json"
+      role: "QCLAW桌面应用运行时配置"
+      port: 8618
+      pid: 14100
+      version: "0.2.33"
+      platform: "win32"
+      state: "active"
+
+    - path: "~/.qclaw/openclaw.json"
+      role: "QCLAW核心配置(Agent/LLM/gateway)"
+      state: "active, but 150+ invalid backup files exist"
+      risk: "HIGH — repeated config corruption/invalid writes"
+
+    - path: "C:/Users/Administrator/.qclaw/"
+      role: "QCLAW完整状态目录"
+      total_size_estimate: "8-9 GB"
+      subdirs:
+        workspace: "7.1 GB (multiple agent workspaces)"
+        skills: "46 MB"
+        state: "25 MB"
+        logs: "348 KB"
+        qmemory: "49 KB"
+        plugins: "9 KB"
+      note: "workspace/ contains 40+ agent workspace subdirs, major disk consumer"
+      risk: "workspace blob growth, no cleanup policy visible"
+
+  qclaw_output:
+    - path: "F:/aidanao/qclaw-output/"
+      role: "QCLAW产出物保存目录(QClawBridge.ask()默认输出)"
+      size: "2.0 MB"
+      file_count: 207
+      formats:
+        markdown: 142
+        json: 40
+        csv: 17
+        jsonl: 4
+      subdirs:
+        codex-runs: "5 Codex execution records"
+      structure: "flat — no candidate packet hierarchy, no versioning"
+      state: "active but unstructured"
+
+    - path: "F:/ai/qclaw-output/"
+      role: "历史QCLAW产出目录(F:/ai迁移残留)"
+      size: "16 KB"
+      file_count: 1
+      state: "inactive artifact"
+
+  knowledge_adjacent:
+    - path: "F:/aidanao/data/"
+      role: "第二大脑知识图谱+股票数据"
+      size: "203 MB"
+      subdirs:
+        raw: "153 MB (tushare + westock_info)"
+        audit: "13 MB"
+        unified: "1.4 MB"
+        news_db: "1.4 MB"
+      state: "active"
+
+    - path: "F:/aidanao/second_brain/"
+      role: "高级认知模块(6层架构)"
+      size: "153 KB"
+      state: "active but small"
+
+    - path: "F:/aidanao/super-jarvis/"
+      role: "跨Agent调度协议目录"
+      size: "242 KB"
+      state: "protocol framework"
+
+  server_backend:
+    - path: "F:/aidanao/server.py"
+      role: "第二大脑HTTP服务器 (SB-HTTP-8766)"
+      bind: "0.0.0.0:8766"
+      pid: 24344
+      started: "2026-07-18"
+      state: "active, confirmed during Phase B verification"
+
+  git_status:
+    F_ai_secondary_brain: "git repo (workbuddy/qclaw-offline-sync-0001-phase0)"
+    F_aidanao: "git repo"
+    F_aidanao_data: "NOT a git worktree"
+    qclaw_state_dir: "NOT a git worktree"
+    qclaw_output: "inside F:/aidanao git, but untracked or ignored"
+
+privacy_notes:
+  - "以上路径全部脱敏，不含 Token/密码/账户/交易数据"
+  - "~/.qclaw/openclaw.json 含 gateway.auth.token，已识别为敏感但未读取"
+  - "data/raw/tushare/ 含历史行情数据，不含实时持仓或交易"
+
+unknowns:
+  - "qclaw-batch/recipes.json 的实际批处理配置内容"
+  - "~/.qclaw/workspace-*/ 各 Agent 工作空间的内容和用途"
+  - "F:/ai/ 历史残留目录的完整清单（超出本任务优先范围）"
