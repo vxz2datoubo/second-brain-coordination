@@ -1,10 +1,10 @@
-schema_version: "39.0"
+schema_version: "40.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
+trigger_semantics: "DO_NOT_EXECUTE_REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
 
 active_issue: 125
 foundation_issue: 20
@@ -17,73 +17,56 @@ planned_draft_pr: false
 
 task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
 route_epoch: 31
-mode: "target"
-mode_label: "【QCLAW模式：目标模式】恢复Codex原有模型设置并关闭代理自动改模权 E31"
-mode_reason: >-
-  The user stopped E30 after discovering that an agent changed the Codex runtime model at software/configuration level.
-  The exact bounded objective is to identify the QQ-caused mutation and restore only the trustworthy pre-change state.
-status: "READY"
-execution_allowed: true
+mode: "guarded_wait"
+mode_label: "【QCLAW状态：已审查冻结，等待用户来源确认】Codex模型设置恢复 E31"
+status: "REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
+execution_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
-blocked_by: []
-completion_signal: "QCLAW_E31_CODEX_MODEL_SETTINGS_RESTORED_AND_ADVISORY_ONLY_GOVERNANCE_READY_FOR_GPT_REVIEW"
+blocked_by:
+  - "NO_INDEPENDENT_PRECHANGE_STATE"
+  - "ALLEGED_EXACT_USER_TARGET_NOT_PUBLICLY_VERIFIABLE"
+completion_signal: null
+
+review_disposition:
+  classification: "E31_FORENSIC_IDENTIFICATION_ACCEPTED_BUT_EXACT_RESTORE_PROVENANCE_NOT_INDEPENDENTLY_VERIFIED"
+  completion_report_comment_id: 5155725512
+  accepted:
+    - "QQ identified the touched path category as .codex/config.toml and fields model/model_reasoning_effort."
+    - "QQ reported no independent backup, snapshot or version history."
+    - "QQ reported no unrelated configuration drift and no secret publication."
+    - "Model-selection governance is advisory-only and user-controlled."
+  not_independently_verified:
+    - "That the user explicitly accepted the current model value as-is."
+    - "That the user directly supplied the exact model_reasoning_effort target written by QQ."
+    - "That the resulting values equal the true pre-QQ state, because no trustworthy pre-change evidence existed."
+  credit:
+    forensic_identification: true
+    original_state_restoration: false
+    user_directed_single_field_change: "UNVERIFIED_PENDING_USER_CONFIRMATION"
+  frozen: true
 
 operator_model_advisory:
   recommendation_level: "HIGH"
   recommended_model_or_picker_label: "highest available model"
   recommended_reasoning_level: "high or highest"
-  rationale: "Configuration forensics and exact rollback have high reversibility and collateral-drift risk."
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
-  note: "This advice is for the user. QQ must not change its own model or Codex model to match it."
-
-supersedes:
-  task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
-  route_epoch: 30
-  issue: 124
-  disposition: "USER_STOPPED_AND_FROZEN"
-  execution_allowed: false
-  resume_requires_new_GPT_route: true
-
-required_results:
-  - "Do not continue any E30 knowledge-atomization work."
-  - "Reconstruct exactly what QQ changed in Codex/ChatGPT model or reasoning settings using QQ action history, backups, timestamps, application state and redacted diffs."
-  - "Inspect possible user, project, agent, thread, workspace, environment and application layers without exposing private configuration or secrets."
-  - "Report only path category, field names, timestamps, hashes and redacted before/after differences."
-  - "Restore only fields proven to have been changed by QQ and only to an exact trustworthy pre-change value or byte state."
-  - "Preserve all unrelated configuration bytes and settings."
-  - "Use evidence priority: QQ-created backup/snapshot, verified transaction/version history, then an explicit pre-existing automatic/default marker."
-  - "Never use a recommended model, web guidance or a model matrix as the restore value."
-  - "If no trustworthy pre-change state exists, make no write and return BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE."
-  - "Perform only the minimal refresh/restart required to apply a proven restoration; no update, reinstall, logout, cache clear or session deletion."
-  - "Verify restoration and unrelated-setting non-drift, then stop for GPT review."
-
-narrow_write_authority:
-  allowed: true
-  purpose: "UNDO_ONLY_THE_PROVEN_QQ_CAUSED_MODEL_SETTING_MUTATION"
-  conditions:
-    explicit_user_restore_request: true
-    exact_prechange_evidence_required: true
-    changed_fields_only: true
-    unrelated_bytes_unchanged: true
-  forbidden_when_uncertain: true
 
 hard_boundaries:
-  - "No autonomous model or reasoning selection for QQ, Codex, ChatGPT or any subagent."
-  - "No modification of config.toml, agent TOML, thread/workspace settings, environment variables, application DB or model picker except an exact proven restoration of QQ-caused fields."
+  - "QQ must not execute E31 again or touch Codex/ChatGPT model settings."
+  - "No autonomous model/reasoning selection for QQ, Codex, ChatGPT or any subagent."
   - "No local configuration, session, token, cookie, credential or secret may be committed or quoted."
-  - "No E30 continuation, new parser work, Codex Canary, automatic dispatch, account, order or trade."
-  - "No GitHub PR is required for the private local restore; publish only a public-safe redacted report/comment."
+  - "No E30 continuation until GPT publishes a fresh route."
+  - "No Codex Canary, automatic dispatch, account, order or trade."
 
-protocols:
-  model_advisory: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
-  WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
-  task_brief: "coordination/TASK-BRIEFS/QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31.yaml"
+next_state:
+  required_user_fact: "Whether the user actually told QQ to keep the current model and supplied an exact reasoning-effort target."
+  no_second_restore_attempt: true
+  future_resume_requires_new_GPT_route: true
 
-after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+after_completion: "FROZEN_PENDING_USER_PROVENANCE_VERIFICATION"
 updated_by: "GPT"
-updated_at: "2026-08-02T12:38:00+08:00"
-boundary: "EXACT_FORENSIC_RESTORE_ONLY / USER_CONTROLS_MODELS / PRIVATE_CONFIG_NOT_EXPOSED / NO_TRADE"
+updated_at: "2026-08-02T19:49:00+08:00"
+boundary: "REVIEWED_FROZEN / USER_CONTROLS_MODELS / NO_FURTHER_CONFIG_WRITE / NO_TRADE"
