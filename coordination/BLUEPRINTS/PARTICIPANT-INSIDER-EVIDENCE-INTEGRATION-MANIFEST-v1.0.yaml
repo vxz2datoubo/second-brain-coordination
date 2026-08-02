@@ -1,0 +1,118 @@
+schema_version: 1.0
+manifest_id: PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-0001
+status: SPECIALIZED_BLUEPRINT_REGISTERED
+boundary: research_only / NO_TRADE
+agent_id: GPT
+pull_request: 93
+parent_module:
+  module_id: A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-0001
+  implementation_issue: 23
+  registration_comment_id: 5073145424
+parent_blueprints:
+  - coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md
+  - coordination/BLUEPRINTS/A-SHARE-MULTI-AGENT-FAMILY-ADVANTAGE-WEAKNESS-MATRIX-v1.0.md
+  - coordination/BLUEPRINTS/PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.0.md
+new_artifacts:
+  - coordination/BLUEPRINTS/A-SHARE-PARTICIPANT-INSIDER-EVIDENCE-GOVERNANCE-ADDENDUM-v1.0.md
+  - coordination/BLUEPRINTS/EXPERT-SOURCE-PROFILES/XINDUODUO-LIUXIN-2026-07.yaml
+source_sample:
+  source_id: xinduoduo-liuxin-2026-07
+  source_role: expert_elicitation_candidate
+  claimed_participant_groups:
+    - retail
+    - public_funds
+    - private_funds
+    - quant
+    - stabilization_capital
+    - industrial_capital
+    - foreign_capital
+    - active_speculative_capital
+    - other_core_asset_groups
+credibility_policy:
+  authority_by_wealth: prohibited
+  total_rejection_by_single_loss: prohibited
+  self_claims:
+    default_prior: LOW_TO_MEDIUM
+    required_checks:
+      - position_relevance
+      - financing_exposure
+      - reputation_incentive
+      - prior_public_statements
+      - observable_behavior
+  claims_about_others:
+    default_prior: MEDIUM
+    possible_bonus: access_advantage
+    required_checks:
+      - direct_conflict_of_interest
+      - independent_corroboration
+      - official_or_market_data
+      - regime_dependence
+  market_outlook:
+    default_prior: LOW
+    allowed_use: narrative_forecast_calibration_only
+mapping_delta:
+  large_capital_family_subtypes:
+    - public_fund
+    - private_fund
+    - stabilization_capital
+    - industrial_capital
+    - foreign_capital
+  active_speculative_family_subtypes:
+    - active_hot_money
+    - large_individual_investor
+  retail_family_subtypes:
+    - emotional_swing
+    - attention_chasing
+    - social_following
+    - trapped_waiting
+    - long_horizon
+    - independent_high_cognition
+  unknown_rule: unclear actors must remain UNKNOWN_ACTOR_CLUSTER
+new_capabilities:
+  - ExpertSourceProfile
+  - InsiderClaimRecord
+  - ClaimCredibilityVector
+  - ParticipantAlignmentScore
+  - ParticipantMismatchRisk
+  - NarrativeForecastLedger
+required_codex_deliverables:
+  - EXPERT-SOURCE-PROFILE-SCHEMA.yaml
+  - INSIDER-CLAIM-RECORD-SCHEMA.yaml
+  - CLAIM-CREDIBILITY-MODEL.md
+  - PERSPECTIVE-ASYMMETRY-CALIBRATION-PLAN.md
+  - NINE-GROUP-TO-FOUR-FAMILY-MAPPING.yaml
+  - PARTICIPANT-ALIGNMENT-SCORE-SPEC.md
+  - PARTICIPANT-MISMATCH-RISK-SPEC.md
+  - NARRATIVE-FORECAST-LEDGER-SCHEMA.yaml
+  - EXPERT-ELICITATION-VALIDATION-BACKLOG.md
+protected_blueprint_backwrite:
+  trading_system:
+    - expert elicitation ingestion
+    - source conflict-of-interest model
+    - participant alignment score
+    - participant mismatch risk
+  second_brain:
+    - perspective-aware credibility
+    - self-versus-other claim asymmetry
+    - public statement versus later behavior conflict detection
+  collaboration:
+    - GPT source decomposition and acceptance
+    - Codex schema and validation implementation
+    - WorkBuddy public-data wiring and replay evidence
+acceptance_gates:
+  - source and publication time traceable
+  - claim perspective classified
+  - conflict of interest assessed
+  - independent corroboration present
+  - counterevidence and invalidation conditions present
+  - out-of-sample or cross-event validation planned
+  - no identity certainty from behavior
+  - no live trading connection
+current_state:
+  specialized_addendum: COMPLETE
+  source_profile: COMPLETE
+  issue_23_registration: COMPLETE
+  public_pr: DRAFT_OPEN
+  protected_master_backwrite: PENDING
+  runtime: NOT_IMPLEMENTED
+  validation: NOT_STARTED
