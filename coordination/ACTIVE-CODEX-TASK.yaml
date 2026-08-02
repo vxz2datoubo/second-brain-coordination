@@ -1,33 +1,29 @@
-schema_version: "47.0"
+schema_version: "48.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_ENGINEERING_ONLY"
 
-active_issue: 128
+active_issue: 132
 parent_program: 31
-source_pull_request: 127
-source_tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
-source_receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
-source_canary_issue: 126
-source_approval_comment_id: 5155930613
-source_canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
-source_nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
-source_authorization_status: "CONSUMED_AND_NOT_REUSABLE"
-planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+source_issue: 128
+source_pull_request: 131
+source_tested_head: "ee83b857e6d6287ef50779c664d6db3c4cf12029"
+source_receipt_head: "75ee411aa3319b4c1f789e38d8841edb1c3d024c"
+source_classification: "E41_DURABLE_CAS_AND_EVIDENCE_TYPE_SCAFFOLD_ACCEPTED_BUT_TRUSTED_PROVENANCE_OWNER_BINDING_AND_PRODUCTION_AUTHORITY_NOT_CLOSED"
+source_status: "REVIEWED_AND_FROZEN"
+planned_branch: "codex/brainops-trusted-durable-authority-provenance-0038-e42"
 planned_draft_pr: true
-lease_claim_comment_id: 5157671368
-lease_claim_status: "ACCEPTED_SCOPE_GAP_RESOLVED"
 
-task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
-route_epoch: 43
+task_id: "CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42"
+route_epoch: 44
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】持久化一次性消费与真实执行证据闭环 E41"
+mode_label: "【Codex模式：项目计划模式】可信持久权威、来源绑定与生产CAS闭环 E42"
 mode_reason: >-
-  E40R1 produced reusable route/approval verification, a local one-process terminal state machine, exact-head CI and a clean receipt.
-  However it did not prove a real App/CLI invocation or globally durable consumption. E41 must build durable authority,
-  route terminalization and truthful evidence types in a fresh branch and Draft PR.
+  E41 correctly separated local metadata from a future durable CAS and produced exact-head synthetic evidence, but the production CAS
+  remained a Protocol and critical provenance, capability, invocation and terminalization objects could still be constructed by
+  ordinary callers. These trust boundaries are coupled and require a fresh staged architecture task.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -37,64 +33,78 @@ direct_main_write: false
 auto_merge: false
 blocked_by: []
 authorized_approval_actors: []
-completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_BRAINOPS_E42_TRUSTED_DURABLE_AUTHORITY_PROVENANCE_OWNER_BINDING_PRODUCTION_CAS_READY_FOR_GPT_REVIEW"
 
 operator_model_advisory:
   recommendation_level: "HIGH"
   recommended_model_or_picker_label: "highest suitable model visible to the user"
   recommended_reasoning_level: "high or highest"
+  rationale: "Trusted provenance, owner-instance binding, CAS failure semantics and evidence-classification boundaries are architecture-sensitive."
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
 
 repository_scope:
   allowed_paths:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-    - ".github/workflows/brainops-e41.yml"
-  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_127_ONLY"
+    - ".github/workflows/brainops-e42.yml"
+  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_131_ONLY"
   imported_source_must_be_listed_in_manifest: true
   whole_branch_merge_or_cherry_pick_forbidden: true
   frozen_source_pr_mutation_forbidden: true
-  task_branch_only: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+  task_branch_only: "codex/brainops-trusted-durable-authority-provenance-0038-e42"
   sole_draft_pr_required: true
 
 supersedes:
-  task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
-  route_epoch: 42
-  issue: 126
-  pull_request: 127
-  classification: "E40R1_CONTROL_PLANE_CLAIM_AND_EXACT_CI_REUSABLE_BUT_REAL_APP_AUTOMATION_AND_GLOBAL_ONE_SHOT_EXECUTION_NOT_PROVEN"
-  approval_reusable: false
+  task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
+  route_epoch: 43
+  issue: 128
+  pull_request: 131
+  tested_head: "ee83b857e6d6287ef50779c664d6db3c4cf12029"
+  receipt_head: "75ee411aa3319b4c1f789e38d8841edb1c3d024c"
+  classification: "E41_DURABLE_CAS_AND_EVIDENCE_TYPE_SCAFFOLD_ACCEPTED_BUT_TRUSTED_PROVENANCE_OWNER_BINDING_AND_PRODUCTION_AUTHORITY_NOT_CLOSED"
+  implementation_scaffold_credit: true
+  exact_ci_credit: true
+  production_durable_authority_credit: false
+  trusted_execution_evidence_credit: false
   frozen: true
 
 required_results:
-  - "Create the first non-empty staged project-plan commit on the existing fresh E41 branch and open the sole Draft PR."
-  - "Import only selected source files from frozen PR #127 and record every imported path/SHA in a manifest."
-  - "Implement a cross-process, cross-restart, concurrency-safe global consumption authority; temporary SQLite alone is forbidden."
-  - "Require durable claim before any future App/CLI side effect and durable terminal outcome on success, failure, timeout or crash recovery."
-  - "Make canonical route terminalization verifiable so consumed authority overrides stale READY content."
-  - "Distinguish CURRENT_CODEX_APP_SESSION_MANUAL_EXECUTION, APP_AUTOMATION_DISPATCHED_NEW_RUN, CODEX_CLI_PROCESS_INVOKED and CONTROL_PLANE_CLAIM_ONLY."
-  - "Remove default-true capability preflight; evidence-backed availability or UNKNOWN/blocked only."
-  - "Define invocation receipt fields including invocation/correlation IDs, owner, start/end, exit/terminal, log hash, non-attempted owner and cleanup proof."
-  - "Add adversarial restart, fresh-database, multi-process race, crash-after-claim, timeout, dual-owner, replay and stale-READY tests."
-  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI and create one non-empty evidence-only receipt."
+  - "Create a fresh branch, non-empty project-plan commit and sole Draft PR; PR #131 remains immutable."
+  - "Import only selected E41 files and bind every source path/blob/adaptation in a manifest."
+  - "Implement a production-capable fixed-repository/ref/path GitHub Contents/ref CAS adapter using a bounded injected transport, without live writes."
+  - "Verify create/update expected-SHA semantics, exact response identity, conflict/error mapping, redirect rejection and fail-closed recovery."
+  - "Bind durable claims to exact verified route commit/tree/path/blob/content and approval repository/comment/actor/time/body/scope/expiry/task/epoch/canary/nonce identities."
+  - "Use closed owner types plus owner instance and claimant correlation; the same claim holder is required for attach/finalize/recovery."
+  - "Return a sealed DURABLE_CLAIM_ACQUIRED_EFFECT_MAY_PROCEED permit only to the verified CAS winner with verified provenance."
+  - "Separate Raw and Verified capability, invocation and canonical-terminalization objects; ordinary caller-created objects must not classify as verified."
+  - "Enforce owner/evidence-type compatibility, time ordering, process/callback identity, terminal semantics and non-attempted-owner mutual exclusion."
+  - "Build verified canonical route terminalization from bounded exact remote route evidence and the matching durable final state."
+  - "Add adversarial forged-evidence, wrong-owner, route/approval substitution, HTTP/CAS failure, replay, race, crash and stale-route tests."
+  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI and create exactly one non-empty evidence-only receipt."
 
 hard_boundaries:
-  - "ENGINEERING_AND_TESTS_ONLY / NO_NEW_CANARY / NO_APP_OR_CLI_INVOCATION."
-  - "Do not reuse approval comment 5155930613, its nonce or any E40R1 execution authority."
+  - "ENGINEERING_AND_SYNTHETIC_TESTS_ONLY / NO_NEW_CANARY / NO_APP_OR_CLI_INVOCATION."
+  - "No live GitHub authority write."
+  - "Do not reuse E40R1 approval, nonce or execution authority."
   - "No model/reasoning/default/thread/subagent setting mutation."
   - "No keys, tokens, cookies, sessions, credentials or private configuration reads."
   - "No real trading, accounts, orders, funds or irreversible production/service/system changes."
   - "No direct main write, merge, force push, rebase, QQ or WorkBuddy branch mutation."
 
+protocols:
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42.yaml"
+
 command_execution_contract:
-  on_trigger: "REFETCH_SCOPE_CREATE_PLAN_COMMIT_OPEN_DRAFT_PR_AND_CONTINUE_ENGINEERING"
+  on_trigger: "VERIFY_E42_ROUTE_CREATE_FRESH_PLAN_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
   second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Re-read Issue #128 and this route, verify the accepted lease and repository scope, create a non-empty staged project-plan commit,
-    open the sole Draft PR, publish the source-import manifest and begin durable-authority contracts without App/CLI invocation.
+    Verify Issue #132, frozen PR #131 exact heads and route epoch 44; create the fresh E42 branch and non-empty plan commit; open the
+    sole Draft PR; publish the import manifest; begin production-CAS and trusted-provenance contracts without any live write or App/CLI call.
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T20:12:00+08:00"
-boundary: "DURABLE_AUTHORITY_ENGINEERING_ONLY / EXPLICIT_PATH_SCOPE / E40R1_AUTHORITY_CONSUMED / USER_CONTROLS_MODELS / NO_TRADE"
+updated_at: "2026-08-02T21:32:00+08:00"
+boundary: "TRUSTED_DURABLE_AUTHORITY_ENGINEERING_ONLY / E41_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
