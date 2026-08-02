@@ -1,9 +1,9 @@
-schema_version: "49.0"
+schema_version: "50.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E41_ENGINEERING_READY_QCLAW_E32_MODEL_UNPIN_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E41_SCOPE_CLARIFIED_QCLAW_E32_MODEL_UNPIN_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T20:00:00+08:00"
+updated_at: "2026-08-02T20:13:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
@@ -15,9 +15,9 @@ permanent_governance:
   model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never persist or select it."
   model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may set persistent model/reasoning/default/thread/subagent values."
   unpin_exception_rule: "A route may remove only proven agent-created persistent model overrides to restore user control; it may not write replacement values."
-  exact_restore_rule: "Without trustworthy pre-change evidence, do not claim restoration to historical values. Restoring an unpinned user-controlled state is a separate explicit objective."
   claim_not_execution_rule: "A route claim, selected_owner label or terminal database row is not proof that App Automation or CLI was actually invoked."
   global_one_shot_rule: "One-shot consumption must survive process exit, restart and fresh local databases; ephemeral SQLite alone is not global authority."
+  repository_scope_rule: "Agent engineering routes must state exact allowed paths and source-import policy; agents must block rather than infer missing authority."
   secret_rule: "No credential/session/key/private-config read or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
@@ -32,11 +32,17 @@ agents:
     canary_execution_allowed: false
     automatic_resume: false
     planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+    lease_claim_comment_id: 5157671368
+    lease_claim_disposition: "ACCEPTED_SCOPE_GAP_RESOLVED"
+    allowed_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e41.yml"
+    source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_127_ONLY_WITH_MANIFEST"
     mode: "project_plan"
     model_selection_owner: "USER_ONLY"
     agent_model_setting_mutation_forbidden: true
     completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
-    current_action: "Engineer durable global consumption, route terminalization and truthful invocation evidence; do not run a Canary."
+    current_action: "Re-read clarified scope, create non-empty plan commit and sole Draft PR, then engineer durable authority without Canary/App/CLI invocation."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 129
@@ -46,6 +52,7 @@ agents:
     status: "READY"
     execution_allowed: true
     automatic_resume: false
+    completion_report_received: false
     temporary_requested_profile: "GPT-5.6 Terra + xhigh"
     temporary_profile_not_persistent_default: true
     desired_end_state: "USER_SELECTABLE_MODEL_AND_REASONING_NO_AGENT_PERSISTENT_PIN"
@@ -62,12 +69,17 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  QCLAW_E31:
-    classification: "USER_INTENT_MISINTERPRETED_PERSISTENT_PIN_NOT_DESIRED"
-    forensic_identification_credit: true
-    original_state_restoration_credit: false
-    user_clarification: "Terra+xhigh was a temporary requested profile; desired result was free user model selection."
-    frozen: true
+  CODEX_E41:
+    lease_claim_credit: true
+    first_investigation_credit: true
+    agent_behavior: "Correctly blocked on missing allowed_paths rather than self-authorizing."
+    route_defect: "GPT publication omitted repository_scope."
+    remediation: "Issue, active route and AMED now bind exact paths and manifest-only selected import from PR #127."
+    completion_review_available: false
+  QCLAW_E32:
+    route_publication_verified: true
+    completion_review_available: false
+    finding: "Only the publication anchor exists; no execution or completion report has been submitted."
 
 frozen:
   - "QCLAW E31 is frozen and may not run again."
@@ -82,4 +94,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E41_ENGINEERING_ONLY / QQ_E32_REMOVE_PERSISTENT_PIN_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E41_ENGINEERING_ONLY_WITH_EXPLICIT_SCOPE / QQ_E32_REMOVE_PERSISTENT_PIN_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
