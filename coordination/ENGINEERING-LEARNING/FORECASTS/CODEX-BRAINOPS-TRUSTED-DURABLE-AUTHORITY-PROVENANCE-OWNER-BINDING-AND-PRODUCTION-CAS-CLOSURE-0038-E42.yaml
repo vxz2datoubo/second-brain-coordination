@@ -1,0 +1,45 @@
+schema_version: "1.0"
+forecast_id: "CODEX-E42-TRUSTED-DURABLE-AUTHORITY-FORECAST"
+task_id: "CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42"
+route_epoch: 44
+agent: "CODEX"
+mode: "project_plan"
+planned_difficulty: "D3"
+
+forecast:
+  primary_hypothesis: >-
+    A fixed-scope production-capable GitHub CAS adapter plus transport-minted verified provenance objects can close the E41 trust gap
+    without performing any live write or App/CLI invocation.
+  likely_failure_modes:
+    - "Treating HTTP success as proof without verifying repository/ref/path/blob/content response identity."
+    - "Allowing public constructors or ordinary dataclasses to mint VERIFIED capability, receipt or terminalization objects."
+    - "Binding claim_id but not owner instance, route proof and approval proof."
+    - "Testing a different invocation ID while claiming to test a different owner."
+    - "Returning an execution permit before the durable CAS winner and exact provenance are both verified."
+    - "Failing open after transport outage, CAS conflict, redirect or stale response."
+    - "Overclaiming synthetic transport tests as a live GitHub authority proof."
+  falsifiers:
+    - "Any code path accepts caller-asserted SUPPORTED capability as verified."
+    - "Any raw receipt can directly classify App Automation or CLI execution."
+    - "Any claimant other than the exact CAS winner can obtain an effect permit or finalize."
+    - "Any generic BLOCKED route object is accepted as canonical terminalization."
+    - "Any test or implementation performs a live authority write or App/CLI call."
+  evidence_required:
+    - "Exact source-import manifest from frozen PR #131."
+    - "Adversarial tests for forged evidence and owner-instance mismatch."
+    - "Synthetic HTTP fixtures covering 404/409/412/422, timeout, redirect and response drift."
+    - "Exact tested and receipt CI on Python 3.11/3.13."
+  rollback:
+    - "Revert only E42 task-owned branch commits; no external authority object should exist."
+
+unknowns:
+  - "Actual GitHub write permissions, rate limits and branch-protection behavior remain untested until separately authorized."
+  - "Actual Codex App Automation callback and CLI process evidence transports remain unavailable in E42."
+  - "Python private/sealed objects are trusted-process API controls, not cryptographic hostile same-process isolation."
+
+success_prediction:
+  probability: 0.68
+  confidence: "MEDIUM"
+  rationale: >-
+    The code surface is bounded and E41 provides reusable primitives, but correctly separating raw from verified evidence and mapping
+    GitHub CAS semantics without accidental live writes is subtle and likely to reveal at least one additional design finding.
