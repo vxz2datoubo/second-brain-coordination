@@ -1,9 +1,9 @@
-schema_version: "51.0"
+schema_version: "52.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E41_SCOPE_CLARIFIED_QCLAW_E32_THEN_LOW_BUDGET_E33_WORKBUDDY_PAUSED"
+status: "CODEX_E42_TRUSTED_AUTHORITY_READY_QCLAW_E32_THEN_LOW_BUDGET_E33_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T20:30:00+08:00"
+updated_at: "2026-08-02T21:33:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
@@ -15,22 +15,38 @@ permanent_governance:
   model_mutation_rule: "Agents may not set persistent model/reasoning/default/thread/subagent values."
   unpin_exception_rule: "Only proven agent-created persistent overrides may be deleted to restore user control; no replacement values."
   repository_scope_rule: "Engineering routes require exact allowed paths; agents block rather than infer."
+  verified_evidence_rule: "Caller-created raw objects are not trusted route, approval, capability, invocation or terminalization evidence."
+  claim_holder_rule: "Only the exact verified durable CAS winner bound to route, approval, owner instance and correlation may receive a future effect permit."
+  production_cas_rule: "A Protocol or synthetic file CAS is not production global authority; production-capable fixed-scope adapter semantics must be implemented and reviewed before live use."
   budget_truth_rule: "GPT and agents cannot read provider point meters; point budgets are relative scope estimates, not billing guarantees."
   secret_rule: "No credential/session/key/private-config disclosure or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
 agents:
   CODEX:
-    active_issue: 128
-    task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
-    route_epoch: 43
+    active_issue: 132
+    source_issue: 128
+    source_pull_request: 131
+    source_tested_head: "ee83b857e6d6287ef50779c664d6db3c4cf12029"
+    source_receipt_head: "75ee411aa3319b4c1f789e38d8841edb1c3d024c"
+    task_id: "CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42"
+    route_epoch: 44
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
-    lease_claim_disposition: "ACCEPTED_SCOPE_GAP_RESOLVED"
-    current_action: "Continue scoped E41 engineering only; no Canary/App/CLI invocation."
+    automatic_resume: false
+    planned_branch: "codex/brainops-trusted-durable-authority-provenance-0038-e42"
+    mode: "project_plan"
+    source_classification: "E41_DURABLE_CAS_AND_EVIDENCE_TYPE_SCAFFOLD_ACCEPTED_BUT_TRUSTED_PROVENANCE_OWNER_BINDING_AND_PRODUCTION_AUTHORITY_NOT_CLOSED"
+    allowed_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e42.yml"
+    source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_131_ONLY_WITH_MANIFEST"
+    model_selection_owner: "USER_ONLY"
+    agent_model_setting_mutation_forbidden: true
+    completion_signal: "CODEX_BRAINOPS_E42_TRUSTED_DURABLE_AUTHORITY_PROVENANCE_OWNER_BINDING_PRODUCTION_CAS_READY_FOR_GPT_REVIEW"
+    current_action: "Build production-capable CAS semantics and trusted provenance/owner/evidence contracts using synthetic tests only; no live write or Canary."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 129
@@ -67,6 +83,23 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
+  CODEX_E41:
+    pull_request: 131
+    tested_head: "ee83b857e6d6287ef50779c664d6db3c4cf12029"
+    receipt_head: "75ee411aa3319b4c1f789e38d8841edb1c3d024c"
+    classification: "E41_DURABLE_CAS_AND_EVIDENCE_TYPE_SCAFFOLD_ACCEPTED_BUT_TRUSTED_PROVENANCE_OWNER_BINDING_AND_PRODUCTION_AUTHORITY_NOT_CLOSED"
+    accepted:
+      - "Authorized file scope and three-commit topology."
+      - "Exact tested/receipt Python 3.11/3.13 CI with 37 synthetic tests."
+      - "Synthetic durable CAS and execution-type separation as reusable scaffolding."
+      - "No Canary, App/CLI, live CAS, model-setting, secret or trading action."
+    blockers:
+      - "Production CAS is only an injected Protocol."
+      - "Route/approval provenance is not durably bound."
+      - "Owner tests do not test owner identity."
+      - "Capability, receipt and terminalization objects can be caller-created."
+      - "No verified claim-holder effect permit exists."
+    frozen: true
   QCLAW_E32:
     completion_review_available: false
     finding: "Issue #129 contains only publication evidence; no QCLAW completion report is present."
@@ -77,10 +110,11 @@ review_summary:
     rationale: "Uses remaining daily budget to prepare tomorrow's exact restart without paying branch/CI/code costs."
 
 frozen:
+  - "PR #131 and Codex E41 are frozen; no further commits or merge."
+  - "PR #127 and E40R1 authority remain frozen/consumed."
+  - "No E42 Canary, live GitHub authority write, App Automation or Codex CLI invocation."
   - "QCLAW E31 is frozen."
   - "QCLAW E30 implementation remains stopped."
-  - "PR #127 and E40R1 authority remain frozen/consumed."
-  - "No E41 Canary, App Automation or Codex CLI invocation."
   - "WorkBuddy remains paused."
   - "No secrets, accounts, orders or trades."
 
@@ -89,4 +123,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E41_ENGINEERING_ONLY / QCLAW_E32_PROOF_THEN_E33_READ_ONLY_BUDGETED / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E42_TRUSTED_AUTHORITY_ENGINEERING_ONLY / QCLAW_E32_PROOF_THEN_E33_READ_ONLY_BUDGETED / USER_CONTROLS_MODELS / NO_TRADE"
