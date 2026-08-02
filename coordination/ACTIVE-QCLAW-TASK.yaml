@@ -1,4 +1,4 @@
-schema_version: "38.0"
+schema_version: "39.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "QCLAW"
@@ -6,121 +6,84 @@ aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
 
-active_issue: 124
+active_issue: 125
 foundation_issue: 20
 parent_program: 31
-source_pull_request: 122
-source_branch: "qclaw/knowledge-atomization-structural-atomicity-0010-e29"
-source_malformed_head: "7ee8054a97177ab255bc8d20117f5709776706cf"
-planned_branch: "qclaw/knowledge-atomization-clean-publication-0011-e30"
-planned_draft_pr: true
-reviewed_or_base_head: "047a0eb01046d231b40b06b38bd01d992a7f072e"
+source_issue: 124
+source_task: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
+source_status: "USER_STOPPED_SUPERSEDED_BY_MODEL_SETTING_RESTORE"
+planned_branch: null
+planned_draft_pr: false
 
-task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
-route_epoch: 30
-mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】清洁UTF-8发布、精确CI与回执重建 E30"
+task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
+route_epoch: 31
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】恢复Codex原有模型设置并关闭代理自动改模权 E31"
 mode_reason: >-
-  E29's intended parser, classifier, canonicalization and redaction improvements may be reusable after reconstruction,
-  but the committed repository objects are whole-file Base64 text rather than executable UTF-8 source and YAML.
-  Workflow recognition, remote execution and evidence topology must therefore be rebuilt from a fresh branch.
+  The user stopped E30 after discovering that an agent changed the Codex runtime model at software/configuration level.
+  The exact bounded objective is to identify the QQ-caused mutation and restore only the trustworthy pre-change state.
 status: "READY"
 execution_allowed: true
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "QCLAW_KNOWLEDGE_ATOMIZATION_E30_CLEAN_UTF8_PUBLICATION_EXACT_CI_AND_RECEIPT_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E31_CODEX_MODEL_SETTINGS_RESTORED_AND_ADVISORY_ONLY_GOVERNANCE_READY_FOR_GPT_REVIEW"
+
+operator_model_advisory:
+  recommendation_level: "HIGH"
+  recommended_model_or_picker_label: "highest available model"
+  recommended_reasoning_level: "high or highest"
+  rationale: "Configuration forensics and exact rollback have high reversibility and collateral-drift risk."
+  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  agent_setting_mutation_forbidden: true
+  note: "This advice is for the user. QQ must not change its own model or Codex model to match it."
 
 supersedes:
-  task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-STRUCTURE-AWARE-MINIMUM-SEMANTIC-UNIT-AND-EXACT-CI-CLOSURE-0010-E29"
-  route_epoch: 29
-  pull_request: 122
-  malformed_head: "7ee8054a97177ab255bc8d20117f5709776706cf"
-  classification: "E29_IMPLEMENTATION_INTENT_REUSABLE_BUT_REPOSITORY_OBJECTS_BASE64_WRAPPED_WORKFLOW_INVISIBLE_AND_EVIDENCE_INVALID"
-  completion_credit: false
-  intent_credit: true
-  frozen: true
-  branch_reuse_forbidden: true
-  reusable_only:
-    - "The intended architecture separates Markdown, TXT, JSON, JSONL and conversation adapters."
-    - "The intended classifier defaults to CLAIM and aims to isolate sibling UNKNOWN markers."
-    - "The intended canonical hash includes source spans and semantic fields."
-    - "The intended redaction design expands taxonomy and character-to-byte mapping."
-    - "Local diagnostic claims are retained only as non-authoritative reconstruction guidance."
-  blockers:
-    - "The committed E29 workflow file is a one-line Base64 payload, not YAML, so GitHub did not recognize or run it."
-    - "Python source files such as adapters.py are Base64 payload text and cannot be imported or reviewed as source."
-    - "Only an unrelated Phase 3 workflow ran on the E29 head; no E29 exact-head CI exists."
-    - "PR #122 contains one commit and has no tested-head to non-empty evidence-only receipt topology."
-    - "The PR completion signal does not match the canonical route completion signal."
-    - "Claims of 28 tests and 36 atoms lack executable remote source and independent CI evidence."
-
-model_reasoning_execution_profile:
-  requested_model: "gpt-5.6-sol"
-  reasoning_effort: "max"
-  execution_intensity: "X4_MAXIMUM"
-  permission_profile: "P1_ENHANCED_BOUNDED"
-  silent_downgrade_forbidden: true
-  actual_profile_reporting_required: true
-  inaccessible_actual_profile_value: "ACCESS_NOT_EXPOSED"
-  minimum_acceptable_fallback:
-    model: "gpt-5.6-terra"
-    reasoning_effort: "xhigh"
-    permitted_scope: "UTF-8 source reconstruction, parser, schema, redaction, tests and evidence only"
-    must_report_before_use: true
-
-command_execution_contract:
-  on_trigger: "VERIFY_CANONICAL_REMOTE_CLAIM_AND_EXECUTE_NOW"
-  second_user_start_command_required: false
-  read_only_acknowledgement_forbidden: true
-  plan_only_response_when_ready_forbidden: true
-  minimum_progress_before_return: >-
-    Verify Issue #124, frozen malformed PR #122 and route_epoch 30; create the fresh E30 branch and a new Draft PR;
-    publish the staged project plan; reconstruct real UTF-8 YAML/Python/Markdown/JSON files; add whole-file Base64-wrapper rejection;
-    begin exact-head workflow and semantic regression work, or return a truthful compute/capability blocker.
-  lease_must_confirm:
-    - "Exact E30 task ID, route epoch 30 and completion signal."
-    - "Fresh branch and new Draft PR; PR #122/#118/#111/#100 remain immutable."
-    - "Sol/max/X4/P1 requested profile and actual-profile reporting."
-    - "Repository objects must be real UTF-8 source, not Base64 text wrappers."
-    - "One canonical Phase-3/W3 runtime; no parallel memory/store/fusion/retrieval runtime."
-    - "No raw or derived authentication/access/financial secret values."
-
-protocols:
-  task_brief: "coordination/TASK-BRIEFS/QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30.yaml"
-  charter_issue: 124
-  foundation_issue: 20
-  final_head_topology: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
+  task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
+  route_epoch: 30
+  issue: 124
+  disposition: "USER_STOPPED_AND_FROZEN"
+  execution_allowed: false
+  resume_requires_new_GPT_route: true
 
 required_results:
-  - "Commit actual UTF-8 YAML, Python, Markdown and JSON source bytes; whole-file Base64 payload wrappers are forbidden."
-  - "Add a repository-level fail-closed detector for likely whole-file Base64 wrappers in executable, workflow, configuration and documentation paths."
-  - "Restore structure-aware Markdown, TXT, JSON, JSONL and conversation adapters with exact byte spans and parent/context relations."
-  - "Split numbered and bulleted siblings into independently judgeable atoms without cross-sibling UNKNOWN or negation contamination."
-  - "No lexical FACT or CAUSAL_CLAIM promotion without explicit evidence metadata."
-  - "No fixed-length semantic truncation; canonicalization covers source spans and every semantic/lineage field."
-  - "Separate original-byte reconstruction, declared whitespace normalization and semantic-preservation evidence."
-  - "Span redaction covers repeated/partial overlap, Unicode-to-byte mapping and the prohibited secret taxonomy."
-  - "Regenerate and manually inspect a real repository digest for atomicity and type correctness."
-  - "Use a pull_request exact-head workflow with explicit checkout and identity assertion."
-  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI."
-  - "Create exactly one non-empty evidence-only receipt directly after the final tested head and stop."
+  - "Do not continue any E30 knowledge-atomization work."
+  - "Reconstruct exactly what QQ changed in Codex/ChatGPT model or reasoning settings using QQ action history, backups, timestamps, application state and redacted diffs."
+  - "Inspect possible user, project, agent, thread, workspace, environment and application layers without exposing private configuration or secrets."
+  - "Report only path category, field names, timestamps, hashes and redacted before/after differences."
+  - "Restore only fields proven to have been changed by QQ and only to an exact trustworthy pre-change value or byte state."
+  - "Preserve all unrelated configuration bytes and settings."
+  - "Use evidence priority: QQ-created backup/snapshot, verified transaction/version history, then an explicit pre-existing automatic/default marker."
+  - "Never use a recommended model, web guidance or a model matrix as the restore value."
+  - "If no trustworthy pre-change state exists, make no write and return BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE."
+  - "Perform only the minimal refresh/restart required to apply a proven restoration; no update, reinstall, logout, cache clear or session deletion."
+  - "Verify restoration and unrelated-setting non-drift, then stop for GPT review."
 
-concurrency:
-  codex_parallel_route_allowed: false
-  reason: "Codex is waiting for explicit user canary approval and must not execute."
+narrow_write_authority:
+  allowed: true
+  purpose: "UNDO_ONLY_THE_PROVEN_QQ_CAUSED_MODEL_SETTING_MUTATION"
+  conditions:
+    explicit_user_restore_request: true
+    exact_prechange_evidence_required: true
+    changed_fields_only: true
+    unrelated_bytes_unchanged: true
+  forbidden_when_uncertain: true
 
 hard_boundaries:
-  - "PR #122, PR #118, PR #111, PR #100 and their branches are frozen."
-  - "No Codex PR or implementation branch edits."
-  - "No second canonical memory/database/fusion/retrieval/QueryPlan/ContextBundle runtime."
-  - "No raw or derived authentication, access, payment, banking, broker or trading secret values."
-  - "No direct main write, merge, force push, rebase, reset, account, order, trade or production activation."
+  - "No autonomous model or reasoning selection for QQ, Codex, ChatGPT or any subagent."
+  - "No modification of config.toml, agent TOML, thread/workspace settings, environment variables, application DB or model picker except an exact proven restoration of QQ-caused fields."
+  - "No local configuration, session, token, cookie, credential or secret may be committed or quoted."
+  - "No E30 continuation, new parser work, Codex Canary, automatic dispatch, account, order or trade."
+  - "No GitHub PR is required for the private local restore; publish only a public-safe redacted report/comment."
 
-next_command: "READ_VERIFY_CLAIM_AND_EXECUTE"
+protocols:
+  model_advisory: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
+  WPDCR_overlay: "coordination/GOVERNANCE/WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-v1.0.yaml"
+  task_brief: "coordination/TASK-BRIEFS/QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31.yaml"
+
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T11:33:00+08:00"
-boundary: "CLEAN_UTF8_PUBLICATION / STRUCTURAL_ATOMICITY / CANDIDATE_ONLY / NO_TRADE"
+updated_at: "2026-08-02T12:38:00+08:00"
+boundary: "EXACT_FORENSIC_RESTORE_ONLY / USER_CONTROLS_MODELS / PRIVATE_CONFIG_NOT_EXPOSED / NO_TRADE"
