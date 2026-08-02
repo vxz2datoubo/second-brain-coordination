@@ -1,0 +1,53 @@
+schema_version: "1.0"
+task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
+route_epoch: 31
+forecast_class: "CONFIGURATION_FORENSICS_AND_EXACT_ROLLBACK"
+planned_difficulty: "D2"
+recommended_operator_profile: "highest available model with high/highest reasoning, manually selected by user"
+agent_may_apply_recommendation_to_software: false
+
+primary_risks:
+  - id: "R1_NO_PRECHANGE_STATE"
+    probability: "medium"
+    impact: "high"
+    mitigation: "Fail closed with BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE; never guess a restore value."
+  - id: "R2_MULTIPLE_CONFIGURATION_LAYERS"
+    probability: "high"
+    impact: "high"
+    mitigation: "Map user/project/agent/thread/workspace/environment/app layers and identify the actual QQ-touched layer before writing."
+  - id: "R3_COLLATERAL_CONFIG_DRIFT"
+    probability: "medium"
+    impact: "high"
+    mitigation: "Restore only proven fields, make a private rollback backup and compare unrelated bytes/settings before and after."
+  - id: "R4_PRIVATE_DATA_EXPOSURE"
+    probability: "medium"
+    impact: "critical"
+    mitigation: "Public report only categories, field names, timestamps and hashes; never quote or commit complete local config/session data."
+  - id: "R5_RECOMMENDATION_REAPPLIED_AS_SETTING"
+    probability: "medium"
+    impact: "high"
+    mitigation: "Protocol v1.1 and task explicitly forbid using recommended model/effort as a restore value."
+  - id: "R6_APP_STATE_REQUIRES_REFRESH"
+    probability: "medium"
+    impact: "medium"
+    mitigation: "Use minimal refresh/restart only after an exact restore; no reinstall/update/logout/cache clear."
+
+success_criteria:
+  - "E30 remains stopped."
+  - "QQ-caused mutation is identified with trustworthy evidence."
+  - "Exact prior state is restored, or the task blocks before writing."
+  - "No unrelated configuration drift."
+  - "No private configuration or secrets are exposed or committed."
+  - "All future model-routing metadata is advisory-only and user-controlled."
+
+negative_tests:
+  - "No backup or history exists -> no write."
+  - "Current product default differs from proven old value -> use proven old value, not current default."
+  - "Recommendation says highest model -> do not write highest model."
+  - "QQ changed one field in a multi-field file -> preserve all other bytes/settings."
+  - "A config file contains tokens or sessions -> redact and never commit."
+
+rollback:
+  before_write: "Create a private local backup of the exact current state."
+  after_write_failure: "Restore that private backup immediately and report failure without exposing contents."
+  github_rollback: "No local private configuration is ever committed, so GitHub rollback is not used for the software restore."
