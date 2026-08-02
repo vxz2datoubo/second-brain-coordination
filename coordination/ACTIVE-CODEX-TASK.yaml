@@ -1,4 +1,4 @@
-schema_version: "46.0"
+schema_version: "47.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
@@ -17,6 +17,8 @@ source_nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
 source_authorization_status: "CONSUMED_AND_NOT_REUSABLE"
 planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
 planned_draft_pr: true
+lease_claim_comment_id: 5157671368
+lease_claim_status: "ACCEPTED_SCOPE_GAP_RESOLVED"
 
 task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
 route_epoch: 43
@@ -24,9 +26,8 @@ mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】持久化一次性消费与真实执行证据闭环 E41"
 mode_reason: >-
   E40R1 produced reusable route/approval verification, a local one-process terminal state machine, exact-head CI and a clean receipt.
-  However the execution log states that no Codex App or CLI process was invoked, the owner preflight used default booleans, and nonce
-  consumption lived only in an ephemeral local store while the canonical route remained READY. Durable global consumption, route
-  terminalization and truthful execution-evidence types are coupled and require a fresh staged engineering task.
+  However it did not prove a real App/CLI invocation or globally durable consumption. E41 must build durable authority,
+  route terminalization and truthful evidence types in a fresh branch and Draft PR.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -42,65 +43,58 @@ operator_model_advisory:
   recommendation_level: "HIGH"
   recommended_model_or_picker_label: "highest suitable model visible to the user"
   recommended_reasoning_level: "high or highest"
-  rationale: "Cross-process authority, crash consistency and execution-evidence truth are architecture-sensitive."
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
+
+repository_scope:
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e41.yml"
+  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_127_ONLY"
+  imported_source_must_be_listed_in_manifest: true
+  whole_branch_merge_or_cherry_pick_forbidden: true
+  frozen_source_pr_mutation_forbidden: true
+  task_branch_only: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+  sole_draft_pr_required: true
 
 supersedes:
   task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
   route_epoch: 42
   issue: 126
   pull_request: 127
-  tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
-  receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
   classification: "E40R1_CONTROL_PLANE_CLAIM_AND_EXACT_CI_REUSABLE_BUT_REAL_APP_AUTOMATION_AND_GLOBAL_ONE_SHOT_EXECUTION_NOT_PROVEN"
-  implementation_credit: true
-  real_automatic_execution_credit: false
-  globally_durable_one_shot_credit: false
   approval_reusable: false
   frozen: true
-  retained_evidence:
-    - "Tested and receipt heads each passed exact-head Python 3.11/3.13 CI with 126 tests."
-    - "Receipt is exactly one non-empty evidence-only file after the tested head."
-    - "Public route and approval provenance were independently verified."
-    - "Single-process ephemeral-store nonce/idempotency/terminal tests passed."
-  blockers:
-    - "Execution log says no Codex App or CLI process was invoked; only a control-plane claim was recorded."
-    - "one_shot_canary.py explicitly has no subprocess, App transport, CLI or execution callback."
-    - "OwnerPreflight defaults app_available=true and cli_available=false without live capability evidence."
-    - "Nonce consumption and terminal state were stored only in an ephemeral local metadata store."
-    - "Canonical route remained READY with execution switches enabled after claimed terminal success."
 
 required_results:
-  - "Create a fresh branch and Draft PR; PR #127 and its branch remain immutable."
+  - "Create the first non-empty staged project-plan commit on the existing fresh E41 branch and open the sole Draft PR."
+  - "Import only selected source files from frozen PR #127 and record every imported path/SHA in a manifest."
   - "Implement a cross-process, cross-restart, concurrency-safe global consumption authority; temporary SQLite alone is forbidden."
-  - "Use an atomic fixed-repository GitHub CAS/ref/object claim or another explicitly single-writer durable authority with rollback and threat analysis."
   - "Require durable claim before any future App/CLI side effect and durable terminal outcome on success, failure, timeout or crash recovery."
-  - "Make canonical route terminalization verifiable so a consumed route cannot remain READY or authorize replay."
+  - "Make canonical route terminalization verifiable so consumed authority overrides stale READY content."
   - "Distinguish CURRENT_CODEX_APP_SESSION_MANUAL_EXECUTION, APP_AUTOMATION_DISPATCHED_NEW_RUN, CODEX_CLI_PROCESS_INVOKED and CONTROL_PLANE_CLAIM_ONLY."
-  - "Remove default-true capability preflight; availability must come from a bounded evidence adapter or remain UNKNOWN/blocked."
-  - "Define invocation receipt fields: invocation/correlation ID, owner, start/end, exit/terminal, parent link, non-attempted owner, log hash and cleanup proof."
-  - "Add adversarial restart, fresh-database, multi-process race, crash-after-claim, timeout, dual-owner, old-approval replay and still-READY-route tests."
+  - "Remove default-true capability preflight; evidence-backed availability or UNKNOWN/blocked only."
+  - "Define invocation receipt fields including invocation/correlation IDs, owner, start/end, exit/terminal, log hash, non-attempted owner and cleanup proof."
+  - "Add adversarial restart, fresh-database, multi-process race, crash-after-claim, timeout, dual-owner, replay and stale-READY tests."
   - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI and create one non-empty evidence-only receipt."
 
 hard_boundaries:
   - "ENGINEERING_AND_TESTS_ONLY / NO_NEW_CANARY / NO_APP_OR_CLI_INVOCATION."
-  - "Do not reuse approval comment 5155930613, nonce e40r1-20260802-1425-c7a93f1b6d2e4a80 or any E40R1 authority."
+  - "Do not reuse approval comment 5155930613, its nonce or any E40R1 execution authority."
   - "No model/reasoning/default/thread/subagent setting mutation."
   - "No keys, tokens, cookies, sessions, credentials or private configuration reads."
   - "No real trading, accounts, orders, funds or irreversible production/service/system changes."
   - "No direct main write, merge, force push, rebase, QQ or WorkBuddy branch mutation."
 
 command_execution_contract:
-  on_trigger: "VERIFY_ROUTE_CLAIM_FRESH_BRANCH_AND_EXECUTE_ENGINEERING_NOW"
+  on_trigger: "REFETCH_SCOPE_CREATE_PLAN_COMMIT_OPEN_DRAFT_PR_AND_CONTINUE_ENGINEERING"
   second_user_start_command_required: false
-  read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #128, frozen PR #127 heads and route epoch 43; create the fresh E41 branch and Draft PR; publish the staged project
-    plan and begin durable global-claim and truthful execution-evidence contracts without invoking any App/CLI Canary.
+    Re-read Issue #128 and this route, verify the accepted lease and repository scope, create a non-empty staged project-plan commit,
+    open the sole Draft PR, publish the source-import manifest and begin durable-authority contracts without App/CLI invocation.
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T19:43:00+08:00"
-boundary: "DURABLE_AUTHORITY_ENGINEERING_ONLY / E40R1_AUTHORITY_CONSUMED / USER_CONTROLS_MODELS / NO_TRADE"
+updated_at: "2026-08-02T20:12:00+08:00"
+boundary: "DURABLE_AUTHORITY_ENGINEERING_ONLY / EXPLICIT_PATH_SCOPE / E40R1_AUTHORITY_CONSUMED / USER_CONTROLS_MODELS / NO_TRADE"
