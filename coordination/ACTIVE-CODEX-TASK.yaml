@@ -1,4 +1,4 @@
-schema_version: "43.0"
+schema_version: "44.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
@@ -10,17 +10,11 @@ parent_program: 31
 source_pull_request: 121
 source_tested_head: "4ab455c657821018a74c38d7d043a13852d34f14"
 source_receipt_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
-planned_branch: null
-planned_draft_pr: false
-reviewed_or_base_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
 
 task_id: "CODEX-BRAINOPS-BOUND-ONE-SHOT-CANARY-EXPLICIT-AUTHORIZATION-GATE-0035-E40"
 route_epoch: 41
 mode: "guarded_wait"
 mode_label: "【Codex状态：等待用户单独明确批准】BrainOps一次性Canary授权门 E40"
-mode_reason: >-
-  E39 independently proved the live route authority, the repository-owner actor policy and the exact no-approval blocked state.
-  Any actual canary is a distinct higher-risk action and requires a new exact user approval plus a newly published route.
 status: "WAITING_USER_EXPLICIT_APPROVAL"
 execution_allowed: false
 automatic_dispatch_allowed: false
@@ -34,61 +28,38 @@ approval_policy_scope: "WAITING_GATE_ONLY_NOT_CANARY_AUTHORIZATION"
 completion_signal: null
 activation_requires_new_route: true
 
+model_and_reasoning_control:
+  selection_owner: "USER_ONLY"
+  protocol: "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
+  recommendations_are_advisory_only: true
+  codex_must_not_change_software_settings: true
+  forbidden_surfaces:
+    - "model picker or thread model"
+    - "reasoning/thinking/pro mode"
+    - "user or project config.toml model fields"
+    - "agent TOML model fields"
+    - "workspace, environment, registry, application DB or automation defaults"
+  historical_requested_model_fields_are_not_authority: true
+  restoration_exception: "Only a separate explicit user-requested exact forensic restoration may restore proven pre-change fields."
+
 supersedes:
   task_id: "CODEX-BRAINOPS-LIVE-ROUTE-ACTOR-POLICY-AND-PRE-CANARY-READINESS-PROOF-0034-E39"
   route_epoch: 40
   pull_request: 121
   tested_head: "4ab455c657821018a74c38d7d043a13852d34f14"
   receipt_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
-  tested_ci_run: 30728010349
-  tested_ci_jobs: {python_3_11: 91443198224, python_3_13: 91443198233}
-  receipt_ci_run: 30728105005
-  receipt_ci_jobs: {python_3_11: 91443450818, python_3_13: 91443450786}
   classification: "E39_LIVE_ROUTE_AUTHORITY_AND_NO_APPROVAL_BLOCKING_ACCEPTED_CANARY_REMAINS_UNAUTHORIZED"
   implementation_completion_credit: true
   canary_authorization_credit: false
   frozen: true
-  reusable:
-    - "Bounded public main-route observation proved the exact commit, tree, route blobs and content hashes."
-    - "Both route views matched task, epoch, READY, execution flags and authorized_approval_actors=[vxz2datoubo]."
-    - "No approval returned APPROVAL_NOT_SUPPLIED_CANARY_BLOCKED."
-    - "Exact tested and receipt heads each passed 112 tests on Python 3.11 and 3.13."
-    - "One non-empty evidence-only receipt directly followed the tested head."
-  retained_findings:
-    - "No approval comment was supplied, consumed, reserved or simulated as live approval."
-    - "The E39 observer treats any non-None approval verification object as present for display only; a future canary route must require READ_ONLY_FETCH_VERIFIED with complete evidence."
-    - "Python process boundaries are trusted execution boundaries, not cryptographic same-process isolation."
-
-approval_contract_for_future_route:
-  explicit_user_approval_required: true
-  ordinary_consent_is_not_approval: true
-  review_command_is_not_approval: true
-  read_command_is_not_approval: true
-  required_binding_fields: ["canary_id", "task_id", "route_epoch", "scope", "expires_at", "nonce"]
-  canonical_github_comment_required: true
-  only_status_counting_as_approval: "READ_ONLY_FETCH_VERIFIED"
-  rejected_or_unknown_must_not_count: true
-  nonempty_object_must_not_count: true
-
-command_execution_contract:
-  on_trigger: "DO_NOT_EXECUTE_WHILE_WAITING_USER_EXPLICIT_APPROVAL"
-  second_user_start_command_required: true
-  read_only_acknowledgement_forbidden: false
-  plan_only_response_when_ready_forbidden: false
-  minimum_progress_before_return: "Do not create a branch, PR, approval, event, nonce reservation, canary or dispatch. Report WAITING_USER_EXPLICIT_APPROVAL."
-  lease_must_confirm:
-    - "E40 is not executable."
-    - "Issue #123 is a waiting gate, not an approval."
-    - "A new GPT-published route is required after exact user approval."
 
 hard_boundaries:
-  - "NO_CANARY / NO_APPROVAL_CREATION / NO_DISPATCH / NO_TRADE"
-  - "No App Automation, Codex CLI invocation, UI automation or private IPC."
-  - "No credentials, tokens, cookies, sessions, service install, firewall change or non-loopback bind."
-  - "No branch, PR, main write, merge, force push, rebase, account, order or trade."
+  - "Do not execute on 读取任务 while this route is waiting."
+  - "No model/reasoning software-setting mutation."
+  - "No approval creation, canary, dispatch, App Automation, Codex CLI invocation, service, credential, account, order or trade."
+  - "No direct main write, merge, force push or rebase."
 
-next_command: "DO_NOT_EXECUTE_AWAIT_EXPLICIT_USER_CANARY_APPROVAL"
-after_completion: "NOT_APPLICABLE_UNTIL_NEW_ROUTE"
+after_user_approval: "GPT_MUST_PUBLISH_A_NEW_EXACT_BOUND_ROUTE; THIS_FILE_IS_NOT_APPROVAL"
 updated_by: "GPT"
-updated_at: "2026-08-02T11:33:00+08:00"
-boundary: "WAITING_USER_EXPLICIT_APPROVAL / CANARY_UNAUTHORIZED / NO_TRADE"
+updated_at: "2026-08-02T12:39:00+08:00"
+boundary: "WAITING_USER_APPROVAL / USER_CONTROLS_MODEL_SETTINGS / NO_EXECUTION / NO_TRADE"
