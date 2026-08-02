@@ -1,72 +1,92 @@
-schema_version: "40.0"
+schema_version: "41.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "DO_NOT_EXECUTE_REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
+trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_REMOVE_PROVEN_PERSISTENT_MODEL_PIN"
 
-active_issue: 125
+active_issue: 129
 foundation_issue: 20
 parent_program: 31
-source_issue: 124
-source_task: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
-source_status: "USER_STOPPED_SUPERSEDED_BY_MODEL_SETTING_RESTORE"
+source_issue: 125
+source_completion_report_comment_id: 5155725512
 planned_branch: null
 planned_draft_pr: false
 
-task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
-route_epoch: 31
-mode: "guarded_wait"
-mode_label: "【QCLAW状态：已审查冻结，等待用户来源确认】Codex模型设置恢复 E31"
-status: "REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
-execution_allowed: false
+task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+route_epoch: 32
+mode: "target"
+mode_label: "【QCLAW模式：目标模式】移除Codex持久模型锁定并恢复用户自主选择 E32"
+mode_reason: >-
+  The user clarified that GPT-5.6 Terra plus xhigh was a temporary desired operating profile, not authorization to persist those values.
+  The intended result is an unpinned Codex state where the user can choose different models and reasoning levels in the UI/current session.
+status: "READY"
+execution_allowed: true
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
-blocked_by:
-  - "NO_INDEPENDENT_PRECHANGE_STATE"
-  - "ALLEGED_EXACT_USER_TARGET_NOT_PUBLICLY_VERIFIABLE"
-completion_signal: null
-
-review_disposition:
-  classification: "E31_FORENSIC_IDENTIFICATION_ACCEPTED_BUT_EXACT_RESTORE_PROVENANCE_NOT_INDEPENDENTLY_VERIFIED"
-  completion_report_comment_id: 5155725512
-  accepted:
-    - "QQ identified the touched path category as .codex/config.toml and fields model/model_reasoning_effort."
-    - "QQ reported no independent backup, snapshot or version history."
-    - "QQ reported no unrelated configuration drift and no secret publication."
-    - "Model-selection governance is advisory-only and user-controlled."
-  not_independently_verified:
-    - "That the user explicitly accepted the current model value as-is."
-    - "That the user directly supplied the exact model_reasoning_effort target written by QQ."
-    - "That the resulting values equal the true pre-QQ state, because no trustworthy pre-change evidence existed."
-  credit:
-    forensic_identification: true
-    original_state_restoration: false
-    user_directed_single_field_change: "UNVERIFIED_PENDING_USER_CONFIRMATION"
-  frozen: true
+blocked_by: []
+completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
 
 operator_model_advisory:
   recommendation_level: "HIGH"
-  recommended_model_or_picker_label: "highest available model"
+  recommended_model_or_picker_label: "highest suitable model visible to the user"
   recommended_reasoning_level: "high or highest"
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
+  note: "QQ must not persist Terra, xhigh or any replacement value."
+
+supersedes:
+  task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
+  route_epoch: 31
+  issue: 125
+  disposition: "USER_INTENT_MISINTERPRETED_PERSISTENT_PIN_NOT_DESIRED"
+  forensic_identification_credit: true
+  original_state_restoration_credit: false
+  frozen: true
+
+user_intent_binding:
+  temporary_requested_profile: "GPT-5.6 Terra + xhigh"
+  temporary_profile_not_persistent_default: true
+  desired_end_state: "USER_SELECTABLE_MODEL_AND_REASONING_NO_AGENT_PERSISTENT_PIN"
+
+required_results:
+  - "Read-only confirm the currently effective config layer and the QQ-touched model/model_reasoning_effort fields."
+  - "Remove only the proven QQ-owned persistent overrides; do not set any replacement model or reasoning value."
+  - "Preserve every unrelated config byte, comment, order and setting."
+  - "Use only the minimal reload/restart required to re-read configuration."
+  - "Verify Codex starts and no QQ-owned persistent model/reasoning override remains."
+  - "Verify control is returned to the user interface/current session; QQ must not make a UI model selection."
+  - "Publish only redacted field-presence, hashes, timestamps and non-drift evidence."
+
+narrow_write_authority:
+  allowed: true
+  path_category: ".codex/config.toml"
+  exact_fields: ["model", "model_reasoning_effort"]
+  operation: "DELETE_PROVEN_QQ_OWNED_PERSISTENT_OVERRIDE_ONLY"
+  replacement_values_forbidden: true
+  unrelated_bytes_unchanged: true
+  minimal_reload_only: true
+
+fail_closed:
+  - "BLOCKED_FIELD_OWNERSHIP_NOT_PROVEN if QQ cannot prove these are the fields it touched."
+  - "BLOCKED_NON_MINIMAL_CONFIG_MUTATION if removal requires rewriting unrelated content."
+  - "UNKNOWN_USER_SELECTABLE_STATE if picker control cannot be verified without exposing private data; do not broaden writes."
 
 hard_boundaries:
-  - "QQ must not execute E31 again or touch Codex/ChatGPT model settings."
-  - "No autonomous model/reasoning selection for QQ, Codex, ChatGPT or any subagent."
-  - "No local configuration, session, token, cookie, credential or secret may be committed or quoted."
-  - "No E30 continuation until GPT publishes a fresh route."
-  - "No Codex Canary, automatic dispatch, account, order or trade."
+  - "Do not write GPT-5.6 Terra, xhigh or any other model/reasoning value."
+  - "Do not choose a model for the user in the UI."
+  - "Do not modify agent, thread, workspace, environment, app database, credentials or sessions."
+  - "Do not upgrade, reinstall, logout, clear cache or delete sessions."
+  - "Do not continue E30, modify Codex E41, run Canary, or perform account/order/trade actions."
+  - "Do not publish local configuration contents or secrets."
 
-next_state:
-  required_user_fact: "Whether the user actually told QQ to keep the current model and supplied an exact reasoning-effort target."
-  no_second_restore_attempt: true
-  future_resume_requires_new_GPT_route: true
+protocols:
+  task_brief: "coordination/TASK-BRIEFS/QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32.yaml"
 
-after_completion: "FROZEN_PENDING_USER_PROVENANCE_VERIFICATION"
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T19:49:00+08:00"
-boundary: "REVIEWED_FROZEN / USER_CONTROLS_MODELS / NO_FURTHER_CONFIG_WRITE / NO_TRADE"
+updated_at: "2026-08-02T20:00:00+08:00"
+boundary: "REMOVE_PERSISTENT_MODEL_PIN_ONLY / USER_CONTROLS_MODELS / PRIVATE_CONFIG_NOT_EXPOSED / NO_TRADE"
