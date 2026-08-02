@@ -1,227 +1,143 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-0001"
 short_name: "MREI-DIR"
-chinese_name: "模型级别、推理强度、推进强度与委托智能调度协议"
+chinese_name: "模型与推理等级用户通知和手动选择协议"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 authority_scope: "all_non_trivial_task_authoring_execution_and_second_pass_review"
 applies_to_task_authors: [GPT, FUTURE_ORCHESTRATOR]
 applies_to_executors: [CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
-mandatory_overlay_over:
-  - "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
-  - "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
-  - "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 profile_template: "coordination/TEMPLATES/MODEL-REASONING-EXECUTION-PROFILE-TEMPLATE-v1.0.yaml"
-boundary: "PUBLIC_SAFE / authority_bounded / research_only / NO_TRADE unless separately authorized"
+boundary: "ADVISORY_ONLY / USER_SELECTS / AGENT_SETTING_MUTATION_FORBIDDEN / NO_TRADE unless separately authorized"
 
 purpose: >-
-  Make every non-trivial task explicitly state the recommended model tier, reasoning effort, execution intensity, delegated authority,
-  fallback policy and reporting obligations. Use stronger models and deeper reasoning where uncertainty, architecture, local exploration,
-  long-horizon execution or independent adversarial review justify them, while avoiding waste on deterministic repetitive work.
+  For every non-trivial task, tell the user which model class or exact model and which reasoning level are recommended,
+  explain the quality/cost reason, and let the user make the software selection. Model advice is planning metadata only.
+  It is never authority for GPT, Codex, QCLAW, WorkBuddy, scripts, agents or automations to alter application/runtime settings.
 
-verified_model_snapshot:
-  observed_at: "2026-07-31"
-  source_class: "OFFICIAL_OPENAI_DOCUMENTATION"
-  availability_note: >-
-    GPT-5.6 Sol, Terra and Luna are official models available through supported Codex/API experiences for eligible access. Availability
-    is account- and rollout-dependent and must be checked at task claim; no task may assume access without a preflight result.
-  tiers:
-    SOL:
-      model_id: "gpt-5.6-sol"
-      role: "FLAGSHIP_FRONTIER"
-      intended_use: ["frontier reasoning", "long-horizon agentic work", "complex software engineering", "architecture", "scientific or adversarial analysis"]
-    TERRA:
-      model_id: "gpt-5.6-terra"
-      role: "BALANCED_INTELLIGENCE_COST"
-      intended_use: ["standard implementation", "bounded research", "moderate debugging", "integration", "routine review"]
-    LUNA:
-      model_id: "gpt-5.6-luna"
-      role: "FAST_EFFICIENT_HIGH_VOLUME"
-      intended_use: ["deterministic scans", "repetitive transformations", "simple validation", "formatting", "high-volume low-ambiguity work"]
-  reasoning_effort_values: [none, low, medium, high, xhigh, max]
+selection_authority:
+  owner: "USER_ONLY"
+  rule: >-
+    Only the user may change the selected model, reasoning level, default model, thread model, subagent model or persisted
+    model configuration in ChatGPT, Codex or another agent product.
+  task_author_duty: "Notify the user of the recommendation before execution when a change from the current selection would matter."
+  executor_duty: "Use the user-selected/current environment as found; report limitations or mismatch, but do not change it."
 
-core_principles:
-  - "Choose the least expensive model/effort that can reliably satisfy the quality gate, then escalate when evidence or uncertainty justifies it."
-  - "Model strength, reasoning effort, execution intensity and authority are separate controls; one does not silently imply the others."
-  - "A stronger model grants more cognitive budget, not canonical authority, production authority, privacy access or permission to weaken evidence."
-  - "No silent model downgrade, adjacent-model substitution or reasoning-effort reduction when the task declares an exact minimum."
-  - "Actual model, effort and execution profile are reportable evidence, not hidden implementation detail."
+hard_prohibition_on_setting_mutation:
+  enabled: true
+  prohibited_actors: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT, SCRIPT, AUTOMATION]
+  prohibited_actions:
+    - "Change a ChatGPT or Codex model picker selection."
+    - "Change reasoning effort, thinking level, pro/standard mode or default execution profile."
+    - "Write model or reasoning fields into user-level or project-level Codex configuration."
+    - "Create or edit agent TOML files to force a model or reasoning level."
+    - "Change environment variables, registry/application state, workspace settings, thread settings or automation defaults for model routing."
+    - "Restart, reinstall, reset, sign out, clear state or migrate configuration merely to apply a model recommendation."
+  examples_of_protected_surfaces:
+    - "ChatGPT/Codex model picker and thread settings"
+    - "user and project Codex config.toml"
+    - ".codex/agents and user agent configuration"
+    - "IDE/workspace model settings"
+    - "application databases, preferences and automation defaults"
+  recommendation_is_not_permission: true
+  task_metadata_is_not_permission: true
+  route_metadata_is_not_permission: true
 
-model_selection_matrix:
-  D0_D1_LOW_AMBIGUITY:
-    preferred: "gpt-5.6-luna"
-    reasoning: [low, medium]
-    examples: ["format conversion", "known-path validator execution", "deterministic file inventory", "repetitive receipt reconciliation"]
-  D1_D2_STANDARD_ENGINEERING:
-    preferred: "gpt-5.6-terra"
-    reasoning: [medium, high]
-    examples: ["bounded implementation", "CI repair", "ordinary refactor", "targeted research", "standard second-pass review"]
-  D2_D3_COMPLEX_OR_AMBIGUOUS:
-    preferred: "gpt-5.6-sol"
-    reasoning: [high, xhigh]
-    examples: ["cross-module invariants", "architecture boundary", "difficult debugging", "local exploratory engineering", "multi-hypothesis root cause"]
-  D3_D4_FRONTIER_OR_FINAL_ARBITER:
-    preferred: "gpt-5.6-sol"
-    reasoning: [xhigh, max]
-    examples: ["no reliable known path", "major system design", "conflicting evidence", "highest-stakes final adversarial review", "GPT uncertainty requiring delegated investigation"]
+narrow_restoration_exception:
+  allowed_only_when: >-
+    The user explicitly asks to undo an earlier agent-caused model-setting change and trustworthy evidence identifies the exact
+    pre-change value or exact pre-change bytes.
+  requirements:
+    - "Identify the agent-caused mutation before writing."
+    - "Prefer an exact backup, snapshot, transaction log or verified before-state."
+    - "Restore only the proven changed fields; preserve all unrelated bytes/settings."
+    - "Never infer the old value from this protocol, a model matrix, web guidance or a recommendation."
+    - "If no trustworthy before-state exists, stop with BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE and make no write."
+    - "Never expose or commit local secrets, sessions, tokens, cookies or complete private configuration."
 
-reasoning_effort_policy:
-  none_low:
-    use_when: "The path is deterministic, low-risk and tool execution dominates reasoning."
-  medium:
-    use_when: "Balanced default for ordinary bounded work."
-  high:
-    use_when: "Multiple dependencies, nontrivial validation or design tradeoffs exist."
-  xhigh:
-    use_when: "Complex architecture, long-horizon coding, subtle evidence truth or difficult local exploration exists."
-  max:
-    use_when: >-
-      D3/D4 difficulty, unresolved conflicting hypotheses, system-wide design, final independent arbiter work or a task explicitly
-      delegated because GPT cannot confidently resolve it from remote evidence alone.
-  max_not_default: true
-  escalation_rule: "Escalate one level when the current effort exhausts its task-published hypothesis/attempt budget without reliable closure."
+operator_advisory_levels:
+  FAST_LOW:
+    description: "Fast/low-cost model with low or medium reasoning."
+    use_when: ["formatting", "deterministic scans", "repetitive validation", "simple known-path edits"]
+  BALANCED:
+    description: "Balanced model with medium or high reasoning."
+    use_when: ["ordinary implementation", "bounded debugging", "standard integration", "routine review"]
+  HIGH:
+    description: "Highest suitable model with high or extra-high reasoning."
+    use_when: ["architecture", "subtle evidence truth", "cross-module invariants", "difficult restoration", "security review"]
+  MAXIMUM:
+    description: "Highest available model with maximum reasoning, reserved for rare quality-first work."
+    use_when: ["major ambiguous system design", "final adversarial arbitration", "high-cost error with no reliable known path"]
 
-execution_intensity_levels:
-  X0_RECONNAISSANCE:
-    meaning: "Inspect, reproduce and map the problem; minimal change authority."
-    persistence: "One bounded pass plus evidence."
-  X1_STANDARD:
-    meaning: "Normal implementation and validation to the next checkpoint or completion."
-    persistence: "Use normal R0/R1 remediation budget."
-  X2_SUSTAINED:
-    meaning: "Continue through ordinary blockers, test multiple approaches and complete broader regression evidence."
-    persistence: "Do not stop for solvable R0/R1 issues; checkpoint on material method change."
-  X3_DEEP:
-    meaning: "Long-horizon multi-hypothesis exploration, implementation, independent validation and self-critique."
-    persistence: "Use enhanced compute/attempt budget and preserve failed hypotheses."
-  X4_MAXIMUM:
-    meaning: "Highest authorized sustained attack on a D3/D4 or strategic problem with Sol xhigh/max and explicit resource ceiling."
-    persistence: "Continue until success, exact budget exhaustion or an R3 boundary; never convert persistence into unbounded work."
+advisory_selection_rule:
+  - "Recommend the least expensive level likely to pass the quality gate."
+  - "Increase the recommendation when uncertainty, reversibility risk or error cost justifies it."
+  - "State whether the advice is a generic level or an exact currently visible model name."
+  - "Do not assume a model is available; ask the user to choose the closest visible option when exact availability differs."
+  - "Do not block deterministic work solely because the user keeps the current model, unless quality/safety would become unreliable."
 
-permission_profiles:
-  P0_STANDARD_BOUNDED:
-    authority: "Current task paths and normal R0 remediation only."
-  P1_ENHANCED_BOUNDED:
-    authority: >-
-      Current task paths plus R0/R1 autonomous remediation, bounded local exploration, helper/test/workflow improvements and method
-      selection inside the published budget. This is the default Codex profile for STANDARD engineering tasks.
-  P2_STRATEGIC_BOUNDED:
-    authority: >-
-      Explicitly named R2 changes, broader exploration and higher compute budget inside one owned workstream. Requires task-specific
-      paths, budgets, checkpoints and rollback; it still cannot change canonical authority, owner, Gate, privacy, external spend,
-      production or trading boundaries.
-  P3_USER_OR_GOVERNANCE_GATE:
-    authority: "No autonomous execution; exact decision or permission required."
-
-codex_specific_policy:
-  default_permission_profile: "P1_ENHANCED_BOUNDED"
-  default_for_standard_code_task:
-    preferred_model: "gpt-5.6-terra"
-    reasoning_effort: "high"
-    execution_intensity: "X2_SUSTAINED"
-  escalate_to_sol_when:
-    - "Architecture or interface boundaries are ambiguous."
-    - "The task needs substantial local exploration unavailable to GPT remote review."
-    - "Cross-module invariants, concurrency, determinism or evidence truth are subtle."
-    - "Two plausible approaches remain after one bounded investigation pass."
-    - "GPT explicitly delegates an uncertain design, root-cause or independent review question."
-  use_sol_xhigh_or_max_when:
-    - "D3/D4 or strategic difficulty is declared."
-    - "A final adversarial review could prevent a costly architecture or evidence mistake."
-    - "The task requires long-horizon implementation with repeated tool use and self-correction."
-  delegated_intelligence_role: >-
-    Codex may be used as a high-capability local investigator, architect, implementer or adversarial reviewer when its repository and
-    environment access or stronger long-horizon coding/reasoning capability is useful. Its result is evidence and a recommendation;
-    GPT/user governance remains the canonical acceptance authority.
-  no_blanket_superiority_claim: >-
-    Sol is the flagship model and may be more capable for long-horizon software engineering and agentic reasoning, but no protocol may
-    claim universal superiority across every task or use model size as a substitute for evidence.
-
-mandatory_task_profile:
+mandatory_task_advisory:
   required_before_READY: true
-  required_fields:
-    - preferred_model_tier
-    - preferred_model_id
-    - minimum_acceptable_model
-    - reasoning_effort
-    - execution_intensity
-    - permission_profile
-    - selection_rationale
-    - availability_preflight
-    - fallback_policy
-    - escalation_triggers
-    - resource_budget
-    - actual_profile_reporting
-  visible_placement: "Near the task mode/reason, not buried only in an appendix."
-  invalid_when_missing: "TASK_MODEL_REASONING_EXECUTION_PROFILE_MISSING"
+  fields:
+    - recommendation_level
+    - recommended_model_or_picker_label
+    - recommended_reasoning_level
+    - rationale
+    - lower_cost_alternative
+    - quality_risk_if_underpowered
+    - user_action_required
+    - agent_setting_mutation_forbidden
+  user_action_required_value: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  agent_setting_mutation_forbidden_value: true
+  visible_placement: "Near the task mode/reason and in the user-facing dispatch message."
 
-availability_and_fallback:
-  preflight_required: true
-  preflight_checks: ["model visible/selectable", "reasoning effort supported", "usage/credit window sufficient", "required tools/environment available"]
-  silent_downgrade_forbidden: true
-  fallback_modes:
-    REQUIRED_EXACT:
-      behavior: "Stop and report exact unavailable model/effort, checks, unaffected work and activation condition."
-    EXPLICIT_ALLOWED_FALLBACK:
-      behavior: "Use only the named fallback model/effort if acceptance criteria remain unchanged and record the substitution before substantive execution."
-    DECOMPOSE_AND_ROUTE:
-      behavior: "Use Luna/Terra for deterministic subwork and reserve Sol for critical architecture, synthesis or final review."
-  fallback_may_not:
-    - "Weaken tests, runtime matrix, evidence, completion signal or safety controls."
-    - "Use an adjacent model/version not named by the task."
-    - "Hide the actual model or effort."
-
-resource_and_efficiency_policy:
-  model_size_is_not_execution_intensity: true
-  recommended_pattern:
-    - "Use Luna for repetitive deterministic substeps."
-    - "Use Terra for standard implementation and ordinary review."
-    - "Use Sol for ambiguity, architecture, local exploration, root-cause synthesis and final adversarial review."
-  maximum_profile_requires:
-    - "Explicit value/risk rationale."
-    - "Attempt or compute ceiling."
-    - "Checkpoint and stop conditions."
-    - "Evidence that lower profile is insufficient or the expected error cost justifies maximum effort."
-  external_cost_default: 0
+execution_behavior:
+  before_substantive_work:
+    - "Read the advisory as planning context only."
+    - "Do not inspect or modify private model settings unless the active task is the narrow restoration exception."
+    - "If runtime metadata is exposed, record it without changing it."
+    - "If runtime metadata is not exposed, report ACCESS_NOT_EXPOSED; never guess."
+  mismatch_behavior:
+    - "Do not silently mutate settings to match the advisory."
+    - "Report that the current selection may be underpowered or overpowered."
+    - "For safety-critical quality gaps, stop and ask the user to select the recommended level."
+    - "For ordinary work, continue only when acceptance criteria remain reliable."
 
 reporting_contract:
-  mandatory_WPDCR_section: "MODEL_REASONING_AND_EXECUTION_PROFILE"
+  mandatory_WPDCR_section: "MODEL_REASONING_AND_EXECUTION_ADVISORY"
   required_fields:
-    - requested_model
-    - actual_model
-    - requested_reasoning_effort
-    - actual_reasoning_effort
-    - requested_execution_intensity
-    - actual_execution_intensity
-    - permission_profile_used
-    - availability_preflight_result
-    - fallback_or_escalation_events
-    - why_the_profile_was_sufficient_or_insufficient
-    - compute_or_attempt_budget_used
-    - material_quality_effect
-    - residual_uncertainty
-  no_hidden_change_rule: "Any model, effort, intensity or permission-profile change must be recorded."
+    - recommended_model_or_level
+    - recommended_reasoning_level
+    - recommendation_rationale
+    - user_was_notified
+    - user_selection_observed_or_ACCESS_NOT_EXPOSED
+    - agent_changed_model_setting
+    - restoration_exception_used
+    - quality_effect_or_residual_uncertainty
+  invariant: "agent_changed_model_setting must be false unless the exact user-requested forensic restoration exception was used."
 
 GPT_authoring_and_review_duty:
   authoring:
-    - "Every Codex task must prominently name recommended model, reasoning effort and execution intensity."
-    - "Choose Sol xhigh/max for genuinely difficult or uncertain work, not as decorative overprovisioning."
-    - "Use Codex as a delegated local intelligence source when GPT lacks local evidence or confidence."
-    - "Give Codex P1 enhanced bounded authority by default for standard engineering; P2 only with explicit scope and budgets."
+    - "Tell the user what model level and reasoning level to select; do not select it in software."
+    - "Use exact model names only as recommendations when they are currently visible/known; otherwise use high/balanced/fast labels."
+    - "Never place model mutation instructions in an executable task, AGENTS.md, script or automation."
   review:
-    - "Check whether the assigned model/effort matched actual difficulty."
-    - "Penalize silent downgrade, unnecessary maximum usage, underpowered execution and unauthorized escalation."
-    - "Compare quality and cost effects so future routing improves."
+    - "Reject any agent-authored change to model/runtime settings unless it is an exact, user-requested restoration."
+    - "Verify the user was notified and that recommendation metadata did not become runtime authority."
+    - "Treat unauthorized model-setting mutation as a governance incident requiring immediate task freeze."
 
-active_task_inheritance: >-
-  Existing READY Codex tasks inherit the requirement to report actual model, reasoning effort and execution intensity. A current task
-  receives a concrete profile through its active route/task brief without changing task ID, epoch, branch, Gate or completion signal.
-  Other active agents inherit reporting only until their next route explicitly publishes a profile.
+historical_and_active_task_interpretation:
+  rule: >-
+    All existing requested_model, preferred_model, reasoning_effort, fallback and execution-profile fields are reinterpreted as
+    non-binding operator advice. They do not authorize any software/configuration mutation. This v1.1 rule overrides conflicting
+    wording in historical task briefs, routes, templates, AGENTS files and reports.
+  active_agents_must_not_autocorrect_settings: true
 
 memory_and_persistence:
   user_intent: "PERMANENT_LONG_TERM_OPERATING_RULE"
   applies_to_future_tasks: true
-  applies_to_active_codex_tasks: true
+  applies_to_active_tasks: true
   applies_across_agent_and_epoch_changes: true
 
 updated_by: "GPT"
-updated_at: "2026-07-31T16:55:00+08:00"
+updated_at: "2026-08-02T12:35:00+08:00"
+change_reason: "User corrected that model/reasoning choices must be communicated for manual selection, never changed by agents at software level."
