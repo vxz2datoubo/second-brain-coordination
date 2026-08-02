@@ -1,0 +1,187 @@
+schema_version: "1.0"
+kind: "AMED_TASK_BRIEF"
+task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
+route_epoch: 42
+mode: "target"
+mode_label: "【Codex模式：目标模式】一次性受限工程Canary E40R1"
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: true
+canary_execution_allowed: true
+automatic_resume: false
+direct_main_write: false
+auto_merge: false
+
+operator_model_advisory:
+  recommendation_level: "HIGH"
+  recommended_model_or_picker_label: "highest suitable model visible to the user"
+  recommended_reasoning_level: "high or highest"
+  rationale: "One-shot authorization, idempotency, rollback and evidence truth are subtle and failure is not retryable."
+  lower_cost_alternative: "balanced model with high reasoning only if the user prefers lower usage"
+  quality_risk_if_underpowered: "route/nonce or rollback mistakes may consume the only execution without trustworthy closure"
+  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  agent_setting_mutation_forbidden: true
+
+source_authorization:
+  project_owner: "vxz2datoubo"
+  chat_authorization_observed_at: "2026-08-02T06:25:00Z"
+  issue: 126
+  approval_comment_id: 5155930613
+  authorized_actor: "vxz2datoubo"
+  canonical_approval_block_version: "brainops-approval-v1"
+
+canary_binding:
+  canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
+  nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
+  issued_at: "2026-08-02T06:25:00Z"
+  expires_at: "2026-08-02T18:25:00Z"
+  max_execution_count: 1
+  scope: "brainops_one_shot_engineering_canary_app_first_cli_fallback_no_trade"
+  idempotency_tuple:
+    - "task_id"
+    - "route_epoch"
+    - "canary_id"
+    - "nonce"
+  execution_consumption_rule: >-
+    Atomically consume the nonce immediately before the first external Codex route-claim execution. Once the App or CLI invocation
+    has been attempted, success or failure consumes the only count. No retry, second owner, concurrent duplicate or later replay.
+  owner_selection:
+    preferred: "CODEX_APP"
+    fallback: "CODEX_CLI"
+    fallback_allowed_only_when: "App invocation has not been attempted and preflight proves App route unavailable."
+    mutual_exclusion: true
+    current_route_claim_is_the_canary_execution: true
+    nested_codex_or_subagent_invocation_forbidden: true
+
+repository_delivery:
+  repository: "vxz2datoubo/second-brain-coordination"
+  baseline_commit: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
+  lease_seed_commit: "eeeb8087c603200595349f0e64cbf813d47747bd"
+  issue: 126
+  draft_pull_request: 127
+  branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
+  target_branch: "main"
+  completion_signal: "CODEX_BRAINOPS_E40R1_ONE_SHOT_BOUNDED_ENGINEERING_CANARY_READY_FOR_GPT_REVIEW"
+
+concrete_execution_scope:
+  objective: >-
+    Execute one end-to-end bounded BrainOps engineering canary: verify the canonical READY route and public approval comment,
+    atomically reserve the nonce, claim this exact task once, implement/harden the one-shot executor and its safety contracts,
+    run local tests, update Draft PR #127, obtain exact-head remote CI, write one evidence-only receipt and stop for GPT review.
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e40r1.yml"
+  allowed_repository_actions:
+    - "Read canonical public main, Issue #126, approval comment 5155930613 and Draft PR #127."
+    - "Create and use one isolated worktree for the authorized branch."
+    - "Commit and push only to codex/brainops-one-shot-bounded-canary-0036-e40r1."
+    - "Update Draft PR #127 body/comments with public-safe progress and evidence."
+    - "Run deterministic tests, compilation, static scans and exact-head GitHub Actions."
+  required_implementation:
+    - "Extend route verification to support an exact executable-canary policy without weakening historical fail-closed routes."
+    - "Bind approval, route commit/tree/blob/content, event, selected owner and nonce in one atomic reservation."
+    - "Enforce App/CLI mutual exclusion and failure-consumes-count semantics."
+    - "Persist hashes and public metadata only; no raw session, credential or private configuration."
+    - "Provide a deterministic rollback/cleanup controller and one-shot terminal state."
+    - "After completion or failure, normal automatic dispatch returns to disabled."
+
+active_improvement_authority:
+  A_LEVEL:
+    allowed: true
+    definition: "Small reversible improvements directly necessary to pass the published acceptance criteria."
+    examples:
+      - "test, logging, error-code and validation hardening"
+      - "small refactors inside task-owned BrainOps files"
+      - "CI identity, receipt topology and deterministic cleanup fixes"
+    conditions:
+      - "same task-owned paths"
+      - "no new external dependency or persistent service"
+      - "fully covered by tests and rollback note"
+  B_LEVEL:
+    allowed: true
+    definition: "Material but bounded design improvements inside the Canary engineering surface."
+    examples:
+      - "one new executor/adapter/helper module"
+      - "interface refactor needed for atomic one-shot ownership"
+      - "temporary loopback-only test process or isolated worktree harness"
+      - "workflow and evidence-schema improvement for exact-head proof"
+    conditions:
+      - "record trigger, rationale, alternatives, changed surface, validation and rollback in the remediation ledger"
+      - "remain inside BrainOps and the single E40R1 workflow"
+      - "no canonical route self-expansion, model-setting change, secret access or production activation"
+      - "no second external Codex invocation"
+  C_OR_HIGHER:
+    allowed: false
+    rule: "Stop and request a new user/GPT route."
+
+logging_requirements:
+  public_safe_log_must_include:
+    - "claim time, task ID, route epoch, canary ID and nonce hash"
+    - "main ref/commit/tree and both route path/blob/content hashes"
+    - "approval repository, issue, comment ID, actor, issued time, body SHA256 and verification status"
+    - "owner preflight, selected owner and proof that the other owner was not attempted"
+    - "atomic reservation result, execution-attempt timestamp and terminal one-shot state"
+    - "commands, exit codes, test counts, changed files and commit SHAs"
+    - "CI run/job IDs for tested and receipt heads"
+    - "rollback checkpoint, cleanup actions and residual risks"
+    - "A/B improvement ledger or NONE_USED_WITH_CHECKS"
+    - "explicit negative assertions for model settings, secrets, services, accounts, orders and trades"
+  forbidden_log_content:
+    - "tokens, cookies, sessions, API keys, credentials or complete local configuration"
+    - "raw private environment values"
+    - "raw approval body outside its public GitHub source; persist body hash instead"
+
+required_tests:
+  local_and_remote:
+    - "valid exact approval and live route succeeds once"
+    - "expired approval rejects before execution"
+    - "wrong actor, issue, comment, task, epoch, scope, nonce or canary rejects"
+    - "main ref drift, tree/path/blob/content mismatch rejects"
+    - "duplicate/replay/concurrent claim produces no second effect"
+    - "App attempt prevents CLI fallback; CLI is allowed only after App preflight-unavailable"
+    - "failed external attempt consumes the count and cannot retry"
+    - "forbidden path, command, public bind, persistent service and model-setting mutation are rejected"
+    - "rollback cleanup is deterministic and leaves no process/worktree/lease drift"
+    - "historical E35-E39 fail-closed regression remains green"
+  exact_head_matrix:
+    python_versions: ["3.11", "3.13"]
+    workflow: ".github/workflows/brainops-e40r1.yml"
+    checkout: "github.event.pull_request.head.sha"
+    assert_git_head_equals_expected: true
+    required_for: ["final_substantive_tested_head", "final_receipt_head"]
+
+rollback_contract:
+  pre_execution_checkpoint: "eeeb8087c603200595349f0e64cbf813d47747bd"
+  before_substantive_write: "Record branch/worktree status and create task-local rollback metadata without secrets."
+  before_external_attempt: "Finish route, approval, owner and nonce validation; no reservation means no invocation."
+  after_external_attempt_failure: >-
+    Mark the nonce consumed and terminal failure, do not retry, revert task-owned code to the last safe branch checkpoint if needed,
+    terminate only task-created processes, remove only task-created worktrees/temp files and report the failure.
+  repository_rollback: "Revert E40R1 task-owned commits on the branch; never rewrite main or force-push."
+  production_rollback: "Not applicable; production mutation is forbidden."
+
+acceptance_and_handoff:
+  required:
+    - "Exactly one execution attempt or a pre-invocation fail-closed result; never two attempts."
+    - "If executed, the one-shot task reaches a recorded terminal success or failure and normal dispatch is disabled afterward."
+    - "All allowed engineering changes are in Draft PR #127 and no forbidden surface changed."
+    - "Final substantive head passes exact Python 3.11/3.13 CI."
+    - "Exactly one non-empty evidence-only receipt commit follows the final tested head."
+    - "Receipt head repeats exact Python 3.11/3.13 CI."
+    - "WPDCR includes complete logs, tests, rollback, A/B ledger and residual uncertainty."
+    - "Codex stops and requests GPT second-pass review; no merge."
+  completion_signal: "CODEX_BRAINOPS_E40R1_ONE_SHOT_BOUNDED_ENGINEERING_CANARY_READY_FOR_GPT_REVIEW"
+
+hard_prohibitions:
+  - "No real trading, broker/exchange/account/order/position/fund operation or market execution."
+  - "No key, token, cookie, session, credential or private configuration reading."
+  - "No model/reasoning/default/thread/subagent setting mutation."
+  - "No irreversible production change, service installation, firewall change, scheduled task or system startup registration."
+  - "No public/LAN bind; temporary test listeners must be loopback-only and terminated."
+  - "No direct main write, merge, force push, rebase or modification of QQ/WorkBuddy branches."
+  - "No nested Codex/subagent execution, second Canary, automatic retry or post-expiry execution."
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+updated_by: "GPT"
+updated_at: "2026-08-02T14:25:00+08:00"
+boundary: "ONE_SHOT_ENGINEERING_CANARY / APP_FIRST_CLI_FALLBACK / A_B_BOUNDED_IMPROVEMENT / NO_TRADE"
