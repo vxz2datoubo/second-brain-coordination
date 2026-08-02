@@ -1,0 +1,106 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-TRUSTED-DURABLE-AUTHORITY-PROVENANCE-OWNER-BINDING-AND-PRODUCTION-CAS-CLOSURE-0038-E42"
+route_epoch: 44
+agent: "CODEX"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】可信持久权威、来源绑定与生产CAS闭环 E42"
+active_issue: 132
+source_issue: 128
+source_pull_request: 131
+source_tested_head: "ee83b857e6d6287ef50779c664d6db3c4cf12029"
+source_receipt_head: "75ee411aa3319b4c1f789e38d8841edb1c3d024c"
+planned_branch: "codex/brainops-trusted-durable-authority-provenance-0038-e42"
+planned_draft_pr: true
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
+completion_signal: "CODEX_BRAINOPS_E42_TRUSTED_DURABLE_AUTHORITY_PROVENANCE_OWNER_BINDING_PRODUCTION_CAS_READY_FOR_GPT_REVIEW"
+
+mode_reason: >-
+  E41 produced useful CAS and evidence-type scaffolding, but production CAS remained only a Protocol and all critical verified
+  provenance objects could still be constructed by ordinary callers. Provenance, owner identity, execution permission and canonical
+  route terminalization are coupled trust-boundary problems and require a staged architecture task.
+
+accepted_source_only:
+  - "Three-commit plan/tested/receipt topology and exact-head CI shape."
+  - "SyntheticFileCasGateway only as a test double, never as production authority."
+  - "Durable claim state machine and immutable terminal-state direction."
+  - "Four disjoint execution-evidence concepts and no-default capability direction."
+  - "Stale READY route must be blocked by durable authority."
+
+rejected_or_incomplete_source_claims:
+  - "A Protocol-only injected client is a completed production GitHub CAS adapter."
+  - "Caller-created CapabilityObservation is trusted capability evidence."
+  - "Caller-created InvocationReceipt proves App Automation or CLI execution."
+  - "Changing invocation_id tests a different owner."
+  - "Matching claim_id alone proves the same claim holder."
+  - "Caller-created CanonicalRouteTerminalization proves canonical publication."
+  - "A route evaluator that never emits claimant execution permission closes the pre-effect gate."
+
+repository_scope:
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e42.yml"
+  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_131_ONLY"
+  imported_source_must_be_listed_in_manifest: true
+  whole_branch_merge_or_cherry_pick_forbidden: true
+  frozen_source_pr_mutation_forbidden: true
+
+staged_plan:
+  P0_accountability:
+    - "Create a fresh branch, non-empty project-plan commit and sole Draft PR."
+    - "List every imported E41 path/blob and adaptation disposition."
+  P1_production_cas_adapter:
+    - "Implement a fixed repository/ref/path GitHub Contents/ref CAS client with bounded injected transport."
+    - "Handle create/update expected-SHA semantics, 404, 409, 412, 422, timeout, retries and exact response identity."
+    - "Reject redirects and repository/ref/path/content drift; perform no live write."
+  P2_verified_provenance:
+    - "Bind durable authority to verified route commit/tree/path/blob/content identities."
+    - "Bind exact approval repository/comment/actor/time/body/scope/expiry/task/epoch/canary/nonce identities."
+    - "Use Raw versus Verified objects and a trusted verifier boundary."
+  P3_owner_and_effect_gate:
+    - "Use closed owner enums and owner instance identity."
+    - "Require the same claim holder for attach/finalize/recovery."
+    - "Return a sealed durable-claim-acquired effect permit only after verified route+approval and successful CAS."
+  P4_evidence_and_terminalization:
+    - "Verify capability, manual App, App Automation and CLI evidence through bounded adapters."
+    - "Validate owner compatibility, time ordering, process/callback identity, terminal result and mutual exclusion."
+    - "Build verified canonical terminalization only from exact remote route evidence."
+  P5_adversarial_validation:
+    - "Forged capability/receipt/terminalization objects."
+    - "Wrong owner instance, route/approval substitutions, HTTP/CAS failures and drift."
+    - "Crash/restart, four-process race, replay, duplicate callback and stale READY conflict."
+  P6_evidence_closure:
+    - "Exact tested-head Python 3.11/3.13 CI."
+    - "Exactly one non-empty evidence-only receipt commit."
+    - "Receipt-head exact CI and stop for GPT review."
+
+success_criteria:
+  - "Production-capable GitHub CAS adapter code exists and is tested without live writes."
+  - "No ordinary caller-created object can be accepted as verified route, approval, capability, invocation or terminalization evidence."
+  - "Durable claim records bind exact verified route and approval provenance."
+  - "Owner and owner-instance mismatches fail closed for claim, receipt and finalization."
+  - "Only the verified CAS winner receives an effect-permit object."
+  - "Manual App, App Automation and CLI cannot be cross-promoted."
+  - "Canonical terminalization requires exact remote route identity and durable final-state binding."
+  - "All transport and CAS failures become explicit fail-closed results."
+  - "No Canary, App/CLI process or live authority write occurs."
+
+hard_boundaries:
+  - "No new Canary, App Automation or Codex CLI invocation."
+  - "No live GitHub authority write."
+  - "No reuse of E40R1 approval, nonce or execution authority."
+  - "No model/reasoning/default/thread/subagent setting mutation."
+  - "No secrets, credentials, private configuration or session reads."
+  - "No direct main write by Codex, merge, force push, rebase or other-agent branch edits."
+  - "No account, order, funds or trading operations."
+
+operator_model_advisory:
+  recommendation_level: "HIGH"
+  recommended_model_or_picker_label: "highest suitable model visible to the user"
+  recommended_reasoning_level: "high or highest"
+  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  agent_setting_mutation_forbidden: true
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
