@@ -1,128 +1,106 @@
-schema_version: "45.0"
+schema_version: "46.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_EXACT_ROUTE_APPROVAL_RESERVE_NONCE_AND_EXECUTE_ONCE"
+trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_ENGINEERING_ONLY"
 
-active_issue: 126
+active_issue: 128
 parent_program: 31
-source_waiting_issue: 123
-source_pull_request: 121
-baseline_commit: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
-lease_seed_commit: "eeeb8087c603200595349f0e64cbf813d47747bd"
-planned_branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
-draft_pull_request: 127
+source_pull_request: 127
+source_tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
+source_receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
+source_canary_issue: 126
+source_approval_comment_id: 5155930613
+source_canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
+source_nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
+source_authorization_status: "CONSUMED_AND_NOT_REUSABLE"
+planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+planned_draft_pr: true
 
-task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
-route_epoch: 42
-mode: "target"
-mode_label: "【Codex模式：目标模式】一次性受限工程Canary E40R1"
+task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
+route_epoch: 43
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】持久化一次性消费与真实执行证据闭环 E41"
 mode_reason: >-
-  The user explicitly released E40 and authorized one exact, reversible engineering Canary. The route is bounded by a public
-  canonical approval, one nonce, one execution count, one branch and one Draft PR.
+  E40R1 produced reusable route/approval verification, a local one-process terminal state machine, exact-head CI and a clean receipt.
+  However the execution log states that no Codex App or CLI process was invoked, the owner preflight used default booleans, and nonce
+  consumption lived only in an ephemeral local store while the canonical route remained READY. Durable global consumption, route
+  terminalization and truthful execution-evidence types are coupled and require a fresh staged engineering task.
 status: "READY"
 execution_allowed: true
-automatic_dispatch_allowed: true
-automatic_dispatch_scope: "THIS_BOUND_CANARY_ONLY"
-canary_execution_allowed: true
-normal_dispatch_after_canary: false
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-authorized_approval_actors: [vxz2datoubo]
-completion_signal: "CODEX_BRAINOPS_E40R1_ONE_SHOT_BOUNDED_ENGINEERING_CANARY_READY_FOR_GPT_REVIEW"
+authorized_approval_actors: []
+completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
 
 operator_model_advisory:
   recommendation_level: "HIGH"
   recommended_model_or_picker_label: "highest suitable model visible to the user"
   recommended_reasoning_level: "high or highest"
+  rationale: "Cross-process authority, crash consistency and execution-evidence truth are architecture-sensitive."
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
 
-approval:
-  repository: "vxz2datoubo/second-brain-coordination"
-  issue_number: 126
-  comment_id: 5155930613
-  actor: "vxz2datoubo"
-  block_version: "brainops-approval-v1"
-  issued_at: "2026-08-02T06:25:00Z"
-  expires_at: "2026-08-02T18:25:00Z"
-  canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
-  nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
-  scope: "brainops_one_shot_engineering_canary_app_first_cli_fallback_no_trade"
-  max_execution_count: 1
-
-one_shot_execution_contract:
-  route_claim_is_the_authorized_canary_execution: true
-  preferred_owner: "CODEX_APP"
-  fallback_owner: "CODEX_CLI"
-  fallback_allowed_only_before_any_app_attempt: true
-  app_cli_mutually_exclusive: true
-  nested_codex_or_subagent_invocation_forbidden: true
-  atomic_nonce_reservation_required: true
-  attempted_invocation_consumes_count_on_success_or_failure: true
-  automatic_retry_forbidden: true
-  concurrent_or_replay_execution_forbidden: true
-  expiry_rule: "Approval must be unexpired at atomic reservation; no later retry."
-
-repository_scope:
-  allowed_paths:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-    - ".github/workflows/brainops-e40r1.yml"
-  allowed_branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
-  allowed_pull_request: 127
-  isolated_worktree_allowed: true
-  branch_push_allowed: true
-  pr_comment_and_body_update_allowed: true
-
-active_improvement_authority:
-  A_LEVEL:
-    allowed: true
-    scope: "reversible test, logging, validation, cleanup, CI and small task-owned refactors"
-  B_LEVEL:
-    allowed: true
-    scope: "one bounded executor/adapter/helper, interface refactor, isolated harness or loopback-only temporary test process"
-    ledger_required: true
-    no_scope_or_authority_self_expansion: true
-  C_OR_HIGHER:
-    allowed: false
-    action: "STOP_AND_REQUEST_NEW_ROUTE"
+supersedes:
+  task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
+  route_epoch: 42
+  issue: 126
+  pull_request: 127
+  tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
+  receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
+  classification: "E40R1_CONTROL_PLANE_CLAIM_AND_EXACT_CI_REUSABLE_BUT_REAL_APP_AUTOMATION_AND_GLOBAL_ONE_SHOT_EXECUTION_NOT_PROVEN"
+  implementation_credit: true
+  real_automatic_execution_credit: false
+  globally_durable_one_shot_credit: false
+  approval_reusable: false
+  frozen: true
+  retained_evidence:
+    - "Tested and receipt heads each passed exact-head Python 3.11/3.13 CI with 126 tests."
+    - "Receipt is exactly one non-empty evidence-only file after the tested head."
+    - "Public route and approval provenance were independently verified."
+    - "Single-process ephemeral-store nonce/idempotency/terminal tests passed."
+  blockers:
+    - "Execution log says no Codex App or CLI process was invoked; only a control-plane claim was recorded."
+    - "one_shot_canary.py explicitly has no subprocess, App transport, CLI or execution callback."
+    - "OwnerPreflight defaults app_available=true and cli_available=false without live capability evidence."
+    - "Nonce consumption and terminal state were stored only in an ephemeral local metadata store."
+    - "Canonical route remained READY with execution switches enabled after claimed terminal success."
 
 required_results:
-  - "Verify the live main ref, commit, tree, both route blobs/content and approval comment before reservation."
-  - "Atomically bind approval, route proof, event, owner and nonce; permit at most one execution attempt."
-  - "Implement/harden exact executable-canary support without weakening historical fail-closed behavior."
-  - "Record public-safe logs, commands, exits, tests, commits, selected owner, non-attempted owner, rollback and A/B ledger."
-  - "Run exact final substantive-head Python 3.11/3.13 CI."
-  - "Create exactly one non-empty evidence-only receipt commit after the tested head and rerun exact CI."
-  - "Disable normal automatic dispatch after terminal success/failure and stop for GPT review."
-
-protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1.yaml"
-  approval_comment: "https://github.com/vxz2datoubo/second-brain-coordination/issues/126#issuecomment-5155930613"
-  draft_pull_request: "https://github.com/vxz2datoubo/second-brain-coordination/pull/127"
+  - "Create a fresh branch and Draft PR; PR #127 and its branch remain immutable."
+  - "Implement a cross-process, cross-restart, concurrency-safe global consumption authority; temporary SQLite alone is forbidden."
+  - "Use an atomic fixed-repository GitHub CAS/ref/object claim or another explicitly single-writer durable authority with rollback and threat analysis."
+  - "Require durable claim before any future App/CLI side effect and durable terminal outcome on success, failure, timeout or crash recovery."
+  - "Make canonical route terminalization verifiable so a consumed route cannot remain READY or authorize replay."
+  - "Distinguish CURRENT_CODEX_APP_SESSION_MANUAL_EXECUTION, APP_AUTOMATION_DISPATCHED_NEW_RUN, CODEX_CLI_PROCESS_INVOKED and CONTROL_PLANE_CLAIM_ONLY."
+  - "Remove default-true capability preflight; availability must come from a bounded evidence adapter or remain UNKNOWN/blocked."
+  - "Define invocation receipt fields: invocation/correlation ID, owner, start/end, exit/terminal, parent link, non-attempted owner, log hash and cleanup proof."
+  - "Add adversarial restart, fresh-database, multi-process race, crash-after-claim, timeout, dual-owner, old-approval replay and still-READY-route tests."
+  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI and create one non-empty evidence-only receipt."
 
 hard_boundaries:
-  - "No real trading, account, order, position, funds or market execution."
-  - "No key, token, cookie, session, credential or private configuration read."
+  - "ENGINEERING_AND_TESTS_ONLY / NO_NEW_CANARY / NO_APP_OR_CLI_INVOCATION."
+  - "Do not reuse approval comment 5155930613, nonce e40r1-20260802-1425-c7a93f1b6d2e4a80 or any E40R1 authority."
   - "No model/reasoning/default/thread/subagent setting mutation."
-  - "No irreversible production change, service installation, scheduler/startup registration or firewall change."
-  - "No public/LAN bind; temporary loopback test resources must be cleaned."
+  - "No keys, tokens, cookies, sessions, credentials or private configuration reads."
+  - "No real trading, accounts, orders, funds or irreversible production/service/system changes."
   - "No direct main write, merge, force push, rebase, QQ or WorkBuddy branch mutation."
-  - "No second Canary, retry, nested Codex or post-expiry execution."
 
 command_execution_contract:
-  on_trigger: "VERIFY_CLAIM_RESERVE_AND_EXECUTE_ONCE_NOW"
+  on_trigger: "VERIFY_ROUTE_CLAIM_FRESH_BRANCH_AND_EXECUTE_ENGINEERING_NOW"
   second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #126, comment 5155930613, route epoch 42, baseline 30abdb6, branch and PR #127; claim the branch/worktree,
-    prove live route and approval, atomically reserve the nonce, then begin the authorized one-shot engineering execution.
+    Verify Issue #128, frozen PR #127 heads and route epoch 43; create the fresh E41 branch and Draft PR; publish the staged project
+    plan and begin durable global-claim and truthful execution-evidence contracts without invoking any App/CLI Canary.
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T14:25:00+08:00"
-boundary: "EXACT_ONE_SHOT_CANARY / A_B_BOUNDED_AUTOMATION / USER_CONTROLS_MODELS / NO_TRADE"
+updated_at: "2026-08-02T19:43:00+08:00"
+boundary: "DURABLE_AUTHORITY_ENGINEERING_ONLY / E40R1_AUTHORITY_CONSUMED / USER_CONTROLS_MODELS / NO_TRADE"
