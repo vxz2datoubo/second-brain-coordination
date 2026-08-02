@@ -1,9 +1,9 @@
-schema_version: "47.0"
+schema_version: "48.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E41_DURABLE_ONE_SHOT_ENGINEERING_ACTIVE_QCLAW_E31_RESTORE_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E41_ENGINEERING_READY_QCLAW_E31_REVIEWED_FROZEN_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T19:44:00+08:00"
+updated_at: "2026-08-02T19:49:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
@@ -12,16 +12,12 @@ permanent_command_semantics:
 permanent_governance:
   model_selection_owner: "USER_ONLY"
   model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never change software settings."
-  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings."
+  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings except a separately authorized exact rollback with trustworthy pre-change evidence."
+  exact_restore_rule: "Without trustworthy pre-change evidence, no agent may claim restoration to the original state. A later user-directed value is a new user setting, not forensic restoration."
   claim_not_execution_rule: "A route claim, selected_owner label or terminal database row is not proof that App Automation or CLI was actually invoked."
   execution_evidence_rule: "Automatic invocation requires a bounded transport/callback receipt with invocation ID, parent correlation, start/end, terminal/exit, log hash and cleanup proof."
-  owner_type_rule: "CURRENT_CODEX_APP_SESSION_MANUAL_EXECUTION, APP_AUTOMATION_DISPATCHED_NEW_RUN, CODEX_CLI_PROCESS_INVOKED and CONTROL_PLANE_CLAIM_ONLY are distinct and may not be conflated."
   global_one_shot_rule: "One-shot consumption must survive process exit, restart and fresh local databases; ephemeral SQLite alone is not global authority."
   route_terminalization_rule: "After terminal success/failure, the authoritative route must become non-executable/CONSUMED before old READY content can authorize replay."
-  approval_exhaustion_rule: "Approval comment 5155930613 and its nonce are consumed historical evidence and may never authorize E41 or a second Canary."
-  final_head_rule: "Executable/test/workflow changes move tested identity forward."
-  receipt_rule: "Exactly one non-empty evidence-only commit follows final tested head; no later commit."
-  exact_head_ci_rule: "Tested and receipt heads explicitly checkout/assert PR head on Python 3.11 and 3.13."
   secret_rule: "No credential/session/key/private-config read or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
@@ -29,8 +25,6 @@ agents:
   CODEX:
     active_issue: 128
     source_pull_request: 127
-    source_tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
-    source_receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
     task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
     route_epoch: 43
     status: "READY"
@@ -49,9 +43,12 @@ agents:
     active_issue: 125
     task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
     route_epoch: 31
-    status: "READY"
-    execution_allowed: true
-    current_action: "Restore only exact proven QQ-caused Codex model-setting changes; otherwise block without writing."
+    status: "REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
+    execution_allowed: false
+    automatic_resume: false
+    classification: "E31_FORENSIC_IDENTIFICATION_ACCEPTED_BUT_EXACT_RESTORE_PROVENANCE_NOT_INDEPENDENTLY_VERIFIED"
+    completion_report_comment_id: 5155725512
+    current_action: "DO_NOT_EXECUTE; wait for user provenance confirmation and a fresh GPT route."
     agent_model_setting_mutation_forbidden: true
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
@@ -61,34 +58,30 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E40R1:
-    classification: "E40R1_CONTROL_PLANE_CLAIM_AND_EXACT_CI_REUSABLE_BUT_REAL_APP_AUTOMATION_AND_GLOBAL_ONE_SHOT_EXECUTION_NOT_PROVEN"
-    source_pr: 127
-    tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
-    receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
-    tested_ci_run: 30744993129
-    receipt_ci_run: 30745078646
-    implementation_credit: true
-    real_automatic_execution_credit: false
-    globally_durable_one_shot_credit: false
+  QCLAW_E31:
+    accepted:
+      - "Identified .codex/config.toml and fields model/model_reasoning_effort as QQ-touched."
+      - "Reported no independent backup, snapshot or version history."
+      - "Reported no unrelated drift and no secret publication."
+    unresolved:
+      - "No independent evidence that the user accepted the current model value."
+      - "No independent evidence of the exact reasoning-effort target allegedly supplied by the user."
+      - "No proof that resulting values equal the pre-QQ state."
+    forensic_identification_credit: true
+    original_state_restoration_credit: false
     frozen: true
-    findings:
-      - "Execution log states no Codex App or CLI process was invoked; only the route claim was recorded."
-      - "Owner preflight used default booleans rather than verified live capability evidence."
-      - "Nonce/terminal state existed only in an ephemeral local metadata store."
-      - "Canonical route remained READY with execution switches enabled after claimed success."
 
 frozen:
-  - "PR #127 and branch codex/brainops-one-shot-bounded-canary-0036-e40r1 are immutable and unmerged."
-  - "E40R1 approval comment 5155930613 and nonce e40r1-20260802-1425-c7a93f1b6d2e4a80 are exhausted and non-reusable."
+  - "QCLAW E31 may not run again or modify model settings."
+  - "QCLAW E30 remains stopped; resumption requires a new GPT route."
+  - "PR #127 and E40R1 authorization remain frozen/consumed."
   - "No E41 Canary, App Automation or Codex CLI invocation."
-  - "QCLAW E30 remains stopped; PR #122/#118/#111/#100 remain frozen."
   - "WorkBuddy remains paused."
-  - "No model-setting changes, secrets, accounts, orders or trades."
+  - "No secrets, accounts, orders or trades."
 
 next_commands:
   CODEX: "读取任务"
-  QCLAW: "读取任务 only for E31 exact restoration when the user chooses to resume QQ"
+  QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "DURABLE_ONE_SHOT_ENGINEERING_ONLY / OLD_CANARY_AUTHORITY_CONSUMED / QQ_EXACT_RESTORE_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E41_ENGINEERING_ONLY / QQ_E31_REVIEWED_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
