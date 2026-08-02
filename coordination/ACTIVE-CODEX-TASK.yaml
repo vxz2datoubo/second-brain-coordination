@@ -1,27 +1,27 @@
-schema_version: "41.0"
+schema_version: "42.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
 trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_EXECUTE_IMMEDIATELY"
 
-active_issue: 116
-source_pull_request: 115
-source_tested_head: "0221d629a80afe1232ebe4b1e05a77af64940851"
-source_receipt_head: "665bed5411248f0b9926c4beac4529694387ff70"
-planned_branch: "codex/brainops-trusted-authority-exact-ci-0033-e38"
-planned_draft_pr: true
+active_issue: 119
 parent_program: 31
-reviewed_or_base_head: "a5164849defd4ebd0944552a83076f71c3490c15"
+source_pull_request: 117
+source_tested_head: "7e823f49cc472cc859e34ce6b3f6ee93b5975d41"
+source_receipt_head: "1d214ace0ad49091c58622150bd86fd1170a6335"
+planned_branch: "codex/brainops-live-route-readiness-0034-e39"
+planned_draft_pr: true
+reviewed_or_base_head: "8bc3a5beabcb5bec78abe3c0f0b8e89727851df3"
 
-task_id: "CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38"
-route_epoch: 39
+task_id: "CODEX-BRAINOPS-LIVE-ROUTE-ACTOR-POLICY-AND-PRE-CANARY-READINESS-PROOF-0034-E39"
+route_epoch: 40
 mode: "target"
-mode_label: "【Codex模式：目标模式】BrainOps可信批准、Git Tree与精确Head CI闭环 E38"
+mode_label: "【Codex模式：目标模式】BrainOps现场Route Actor策略与Pre-Canary就绪证明 E39"
 mode_reason: >-
-  E37 correctly closed atomic nonce replay and rollback, but its VERIFIED result factories remain publicly forgeable,
-  approval bindings are not parsed from authoritative comment text, route bytes are not proven as members of the declared main commit tree,
-  and both reported CI runs checked out PR merge commits rather than the declared exact heads. E38 is a bounded pre-canary trust correction.
+  E38 completed bounded public GitHub transport, strict approval-body parsing, API-level verified-result construction control,
+  commit-tree membership and exact tested/receipt-head CI. The remaining bounded step is to observe the live canonical route
+  with an explicit authorized actor policy while proving that no approval comment means the canary remains blocked.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -30,34 +30,35 @@ automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "CODEX_BRAINOPS_E38_TRUSTED_APPROVAL_GIT_TREE_EXACT_HEAD_CI_READY_FOR_GPT_REVIEW"
+authorized_approval_actors: [vxz2datoubo]
+approval_policy_scope: "ROUTE_AUTHORITY_VERIFICATION_ONLY_NO_CANARY_AUTHORIZATION"
+completion_signal: "CODEX_BRAINOPS_E39_LIVE_ROUTE_ACTOR_POLICY_PRE_CANARY_READINESS_READY_FOR_GPT_REVIEW"
 
 supersedes:
-  task_id: "CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37"
-  route_epoch: 38
-  pull_request: 115
-  tested_head: "0221d629a80afe1232ebe4b1e05a77af64940851"
-  receipt_head: "665bed5411248f0b9926c4beac4529694387ff70"
-  tested_ci_run: 30721817476
-  receipt_ci_run: 30722131766
-  classification: "E37_NONCE_TRANSACTION_REUSABLE_BUT_APPROVAL_ROUTE_AUTHORITY_AND_EXACT_HEAD_CI_NOT_CLOSED"
-  completion_credit: false
-  substantive_hardening_credit: true
+  task_id: "CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38"
+  route_epoch: 39
+  pull_request: 117
+  tested_head: "7e823f49cc472cc859e34ce6b3f6ee93b5975d41"
+  receipt_head: "1d214ace0ad49091c58622150bd86fd1170a6335"
+  tested_ci_run: 30724692850
+  tested_ci_jobs: {python_3_11: 91434096054, python_3_13: 91434096097}
+  receipt_ci_run: 30725011625
+  receipt_ci_jobs: {python_3_11: 91434934444, python_3_13: 91434934488}
+  classification: "E38_TRUSTED_PRIMITIVES_AND_EXACT_HEAD_CI_ACCEPTED_WITH_FINDINGS_LIVE_ACTOR_POLICY_NOT_ACTIVATED"
+  implementation_completion_credit: true
+  pre_canary_readiness_credit: false
   frozen: true
   reusable:
-    - "Atomic approval nonce consumption, event reservation and route-proof persistence in one SQLite transaction."
-    - "Nonce replay suppression across changed event ID, idempotency key and payload."
-    - "Rollback after downstream insert failure and no raw approval/comment/event body persistence."
-    - "Exactly one non-empty evidence-only receipt directly after the declared tested head."
-    - "Python 3.11 and 3.13 each passed 103 tests on PR merge refs."
-  blocking_findings:
-    - "ApprovalVerificationResult.verified and RouteProofVerification.verified are publicly callable forge paths."
-    - "Approval binding payload is copied from caller data rather than parsed from the GitHub comment body."
-    - "No authorized approval actor policy is enforced."
-    - "Route proof does not prove commit-tree path-to-blob membership and still trusts caller-supplied documents."
-    - "No bounded trusted read-only GitHub transport exists."
-    - "Run 30721817476 checked out merge commit c6f3099..., not tested head 0221d629...."
-    - "Run 30722131766 checked out merge commit 7e22dcf..., not receipt head 665bed5...."
+    - "Strict compact approval block parsing with duplicate/extra/missing key rejection."
+    - "Bounded unauthenticated fixed-repository GitHub reader with redirect, media-type, size and main-ref drift rejection."
+    - "Main ref to commit/tree/path/blob/content membership proof for both route files."
+    - "API-level verified-result construction is internal to the verifier path."
+    - "Exact substantive and receipt heads each passed 103 tests on Python 3.11 and 3.13."
+    - "One non-empty evidence-only receipt directly after the tested head."
+  retained_findings:
+    - "The E38 live route lacked authorized_approval_actors and correctly failed closed."
+    - "Python module underscores/seals are API integrity controls, not hostile-code cryptographic isolation inside the same process."
+    - "No canonical approval comment was supplied or consumed and no canary was executed."
 
 model_reasoning_execution_profile:
   requested_model: "gpt-5.6-sol"
@@ -70,7 +71,7 @@ model_reasoning_execution_profile:
   minimum_acceptable_fallback:
     model: "gpt-5.6-terra"
     reasoning_effort: "xhigh"
-    permitted_scope: "deterministic parser, read-only transport, Git identity and CI evidence work only"
+    permitted_scope: "read-only public route observation, deterministic proof and exact-head CI only"
     must_report_before_use: true
 
 command_execution_contract:
@@ -79,43 +80,38 @@ command_execution_contract:
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #116, source PR #115 receipt 665bed541 and route_epoch 39; create the fresh E38 branch and Draft PR;
-    remove forgeable VERIFIED result paths, implement strict approval-body parsing and authorized actor policy,
-    establish bounded public read-only GitHub commit/tree/blob transport, and correct exact-head CI checkout or return a truthful blocker.
-    Do not execute the canary.
+    Verify Issue #119, PR #117 receipt 1d214ace and route_epoch 40; create the fresh E39 branch and Draft PR;
+    use the bounded public reader to observe live main route authority with actor policy vxz2datoubo; produce the exact
+    APPROVAL_NOT_SUPPLIED_CANARY_BLOCKED state and begin exact-head evidence work. Do not create or consume an approval comment.
   lease_must_confirm:
-    - "Exact E38 task ID, route epoch 39 and completion signal."
-    - "Sol/max/X4/P1 requested profile and actual-profile reporting."
+    - "Exact E39 task ID, route epoch 40 and completion signal."
+    - "authorized_approval_actors=[vxz2datoubo] in both canonical route views."
     - "automatic_dispatch_allowed=false and canary_execution_allowed=false."
-    - "PR #115/#113/#111/#110/#107/#100 and QQ branches are immutable."
+    - "PR #117/#115/#113/#111/#110/#107/#100 and QQ branches are immutable."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38.yaml"
-  source_control_plane_pr: 115
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-LIVE-ROUTE-ACTOR-POLICY-AND-PRE-CANARY-READINESS-PROOF-0034-E39-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-LIVE-ROUTE-ACTOR-POLICY-AND-PRE-CANARY-READINESS-PROOF-0034-E39.yaml"
+  source_control_plane_pr: 117
   final_head_topology: "coordination/GOVERNANCE/FINAL-TESTED-HEAD-AND-RECEIPT-TOPOLOGY-VALIDATION-PROTOCOL-v1.0.yaml"
-  autonomy: "coordination/GOVERNANCE/BOUNDED-AUTONOMOUS-REMEDIATION-AND-MICRO-BLOCKER-RESOLUTION-PROTOCOL-v1.0.yaml"
 
 required_results:
-  - "Eliminate every public path that can mint VERIFIED approval or route results outside the trusted verifier."
-  - "Parse one strict canonical approval block from fetched comment text with duplicate-key rejection and exact binding equality."
-  - "Require an explicit authorized approval actor policy from the active route."
-  - "Implement bounded unauthenticated read-only GitHub transport for this public repository, or return BLOCKED_TRUSTED_TRANSPORT_UNAVAILABLE."
-  - "Prove refs/heads/main to commit to tree/path to blob to content linkage for both route files."
-  - "Parse both route YAML files and require matching task ID, epoch, READY, execution_allowed=true, automatic_dispatch_allowed=false and canary_execution_allowed=false."
-  - "Reject untrusted redirects, oversized responses, mutable ref drift, wrong path/blob/content and ambiguous approval documents."
-  - "Checkout github.event.pull_request.head.sha explicitly and assert git rev-parse HEAD equals the expected SHA."
-  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI with printed verified identities."
-  - "Create one final non-empty evidence-only receipt directly after the final tested head and stop."
+  - "Independently observe the live public main ref, commit, tree, both route paths, blob SHAs and content SHA256 values."
+  - "Verify task ID, epoch 40, READY, execution_allowed=true, automatic_dispatch_allowed=false, canary_execution_allowed=false and authorized actor policy in both route views."
+  - "Define the Python process as the trusted execution boundary; do not claim cryptographic isolation from malicious same-process code."
+  - "Compose route observation and verification without accepting caller-minted VERIFIED evidence."
+  - "Do not create, fetch as approval, consume or reserve any approval comment/event/nonce."
+  - "Return APPROVAL_NOT_SUPPLIED_CANARY_BLOCKED after route authority succeeds."
+  - "Run exact substantive-head and receipt-head Python 3.11/3.13 CI with printed identities."
+  - "Create one final non-empty evidence-only receipt directly after tested head and stop."
 
 hard_boundaries:
-  - "PRE_CANARY_TRUST_CLOSURE_ONLY / PUBLIC_READ_ONLY / NO_TRADE"
-  - "No canary, automatic dispatch, App Automation, Codex CLI invocation, GPT auto-review, UI automation or private IPC."
-  - "No credentials, tokens, cookies, sessions, arbitrary URLs or non-GitHub transport."
-  - "No PR #115/#113/#111/#110/#107/#100 or QQ branch edits; use a new branch and Draft PR."
-  - "No agent main write, merge, service install, firewall change, account, order or trade."
+  - "PRE_CANARY_LIVE_ROUTE_AUTHORITY_PROOF_ONLY / PUBLIC_READ_ONLY / NO_TRADE"
+  - "No canary, automatic dispatch, App Automation, Codex CLI invocation or GPT auto-review."
+  - "No credentials, tokens, cookies, sessions, arbitrary URLs, service install, firewall change or non-loopback bind."
+  - "No direct main write, merge, force push, rebase, account, order or trade."
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T07:10:00+08:00"
-boundary: "PRE_CANARY_TRUST_CLOSURE_ONLY / PUBLIC_READ_ONLY / NO_TRADE"
+updated_at: "2026-08-02T09:15:00+08:00"
+boundary: "LIVE_PUBLIC_ROUTE_PROOF / APPROVAL_NOT_SUPPLIED / CANARY_BLOCKED / NO_TRADE"
