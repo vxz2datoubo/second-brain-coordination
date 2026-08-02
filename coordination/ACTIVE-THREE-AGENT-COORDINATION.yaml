@@ -1,20 +1,24 @@
-schema_version: "46.0"
+schema_version: "47.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E40R1_ONE_SHOT_CANARY_READY_QCLAW_E31_RESTORE_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E41_DURABLE_ONE_SHOT_ENGINEERING_ACTIVE_QCLAW_E31_RESTORE_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T14:25:00+08:00"
+updated_at: "2026-08-02T19:44:00+08:00"
 
 permanent_command_semantics:
-  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_MODEL_SETTING_APPROVAL"}
+  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
   agent_read_command: {trigger: "读取任务", meaning: "EXECUTE_ONLY_WHEN_AGENT_ROUTE_IS_READY_AND_EXECUTION_ALLOWED", second_start_command_required: false}
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
   model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never change software settings."
   model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings."
-  approval_rule: "Executable Canary requires exact public approval body, actor, task, epoch, scope, expiry, nonce and route proof."
-  one_shot_rule: "App and CLI share one nonce/count; an attempted invocation consumes it on success or failure; no retry or second owner."
+  claim_not_execution_rule: "A route claim, selected_owner label or terminal database row is not proof that App Automation or CLI was actually invoked."
+  execution_evidence_rule: "Automatic invocation requires a bounded transport/callback receipt with invocation ID, parent correlation, start/end, terminal/exit, log hash and cleanup proof."
+  owner_type_rule: "CURRENT_CODEX_APP_SESSION_MANUAL_EXECUTION, APP_AUTOMATION_DISPATCHED_NEW_RUN, CODEX_CLI_PROCESS_INVOKED and CONTROL_PLANE_CLAIM_ONLY are distinct and may not be conflated."
+  global_one_shot_rule: "One-shot consumption must survive process exit, restart and fresh local databases; ephemeral SQLite alone is not global authority."
+  route_terminalization_rule: "After terminal success/failure, the authoritative route must become non-executable/CONSUMED before old READY content can authorize replay."
+  approval_exhaustion_rule: "Approval comment 5155930613 and its nonce are consumed historical evidence and may never authorize E41 or a second Canary."
   final_head_rule: "Executable/test/workflow changes move tested identity forward."
   receipt_rule: "Exactly one non-empty evidence-only commit follows final tested head; no later commit."
   exact_head_ci_rule: "Tested and receipt heads explicitly checkout/assert PR head on Python 3.11 and 3.13."
@@ -23,37 +27,23 @@ permanent_governance:
 
 agents:
   CODEX:
-    active_issue: 126
-    draft_pull_request: 127
-    task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
-    route_epoch: 42
+    active_issue: 128
+    source_pull_request: 127
+    source_tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
+    source_receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
+    task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
+    route_epoch: 43
     status: "READY"
     execution_allowed: true
-    automatic_dispatch_allowed: true
-    automatic_dispatch_scope: "THIS_BOUND_CANARY_ONLY"
-    canary_execution_allowed: true
-    normal_dispatch_after_canary: false
+    automatic_dispatch_allowed: false
+    canary_execution_allowed: false
     automatic_resume: false
-    baseline_commit: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
-    lease_seed_commit: "eeeb8087c603200595349f0e64cbf813d47747bd"
-    branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
-    canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
-    nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
-    expires_at: "2026-08-02T18:25:00Z"
-    max_execution_count: 1
-    approval_issue: 126
-    approval_comment_id: 5155930613
-    authorized_approval_actors: [vxz2datoubo]
-    preferred_owner: "CODEX_APP"
-    fallback_owner: "CODEX_CLI_BEFORE_ANY_APP_ATTEMPT_ONLY"
-    nested_codex_forbidden: true
-    A_level_improvements_allowed: true
-    B_level_improvements_allowed: true
-    C_or_higher_allowed: false
+    planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
+    mode: "project_plan"
     model_selection_owner: "USER_ONLY"
     agent_model_setting_mutation_forbidden: true
-    completion_signal: "CODEX_BRAINOPS_E40R1_ONE_SHOT_BOUNDED_ENGINEERING_CANARY_READY_FOR_GPT_REVIEW"
-    current_action: "Verify exact route/approval, atomically reserve nonce and execute the bounded engineering Canary once."
+    completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
+    current_action: "Engineer durable global consumption, route terminalization and truthful invocation evidence; do not run a Canary."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 125
@@ -70,30 +60,35 @@ agents:
     automatic_resume: false
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
-codex_canary_authority:
-  approval_comment: "https://github.com/vxz2datoubo/second-brain-coordination/issues/126#issuecomment-5155930613"
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1.yaml"
-  allowed_paths:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-    - ".github/workflows/brainops-e40r1.yml"
-  hard_denials:
-    - "real trading/accounts/orders/funds"
-    - "keys/tokens/cookies/sessions/credentials/private configuration"
-    - "model setting changes"
-    - "irreversible production/service/system changes"
-    - "public network bind"
-    - "main direct write/merge/force push/rebase"
-    - "second Canary/retry/nested Codex/post-expiry execution"
+review_summary:
+  CODEX_E40R1:
+    classification: "E40R1_CONTROL_PLANE_CLAIM_AND_EXACT_CI_REUSABLE_BUT_REAL_APP_AUTOMATION_AND_GLOBAL_ONE_SHOT_EXECUTION_NOT_PROVEN"
+    source_pr: 127
+    tested_head: "2606c4d3722d79f17699d823a8859904e2b6afb2"
+    receipt_head: "b7c83e503b4ed69156627a8ba594d1682c37de5e"
+    tested_ci_run: 30744993129
+    receipt_ci_run: 30745078646
+    implementation_credit: true
+    real_automatic_execution_credit: false
+    globally_durable_one_shot_credit: false
+    frozen: true
+    findings:
+      - "Execution log states no Codex App or CLI process was invoked; only the route claim was recorded."
+      - "Owner preflight used default booleans rather than verified live capability evidence."
+      - "Nonce/terminal state existed only in an ephemeral local metadata store."
+      - "Canonical route remained READY with execution switches enabled after claimed success."
 
 frozen:
-  - "Codex E40 waiting Issue #123 is superseded by exact E40R1 route epoch 42."
+  - "PR #127 and branch codex/brainops-one-shot-bounded-canary-0036-e40r1 are immutable and unmerged."
+  - "E40R1 approval comment 5155930613 and nonce e40r1-20260802-1425-c7a93f1b6d2e4a80 are exhausted and non-reusable."
+  - "No E41 Canary, App Automation or Codex CLI invocation."
   - "QCLAW E30 remains stopped; PR #122/#118/#111/#100 remain frozen."
   - "WorkBuddy remains paused."
+  - "No model-setting changes, secrets, accounts, orders or trades."
 
 next_commands:
   CODEX: "读取任务"
-  QCLAW: "读取任务 only for E31 restoration when the user chooses to resume QQ"
+  QCLAW: "读取任务 only for E31 exact restoration when the user chooses to resume QQ"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "EXACT_ONE_SHOT_CODEX_CANARY / A_B_BOUNDED_AUTOMATION / QQ_EXACT_RESTORE_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "DURABLE_ONE_SHOT_ENGINEERING_ONLY / OLD_CANARY_AUTHORITY_CONSUMED / QQ_EXACT_RESTORE_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
