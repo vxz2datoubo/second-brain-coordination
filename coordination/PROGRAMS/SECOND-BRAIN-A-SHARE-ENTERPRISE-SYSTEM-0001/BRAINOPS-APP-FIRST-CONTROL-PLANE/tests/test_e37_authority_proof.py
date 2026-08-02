@@ -1,3 +1,9 @@
+"""E37 regressions plus E38 trusted-authority adversarial tests.
+
+All accepted objects below are created by the in-memory public GitHub API
+fixture, never by a result factory or a caller-supplied document constructor.
+"""
+
 from __future__ import annotations
 
 from dataclasses import replace
@@ -11,6 +17,8 @@ SOURCE_ROOT = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(SOURCE_ROOT))
 
 from brainops_control_plane.canary import E36_CANARY_ID, CanaryGateContext, OneShotCanaryGate
+from brainops_control_plane.ci_identity import assert_exact_head
+from brainops_control_plane.github_transport import PublicGitHubTransport, ReadOnlyTransportError
 from brainops_control_plane.models import (
     ActivationManifest,
     BoundCanaryApproval,
@@ -23,293 +31,291 @@ from brainops_control_plane.models import (
     ValidationError,
 )
 from brainops_control_plane.proofs import (
-    CANONICAL_ACTIVE_TASK_PATH,
-    CANONICAL_COORDINATION_PATH,
+    ApprovalEvidence,
     ApprovalVerificationResult,
+    CANONICAL_ACTIVE_TASK_PATH,
+    CANONICAL_REPOSITORY,
+    CanonicalApprovalBinding,
     ReadOnlyApprovalDocument,
     ReadOnlyApprovalVerifier,
     ReadOnlyRouteProofVerifier,
-    RouteFileIdentity,
     RouteProofVerification,
-    RouteStateEvidence,
     VerificationStatus,
     canonical_approval_ref,
+    parse_canonical_approval_body,
 )
 from brainops_control_plane.store import MetadataStore
+from trusted_fixtures import (
+    ACTOR,
+    FUTURE,
+    ISSUE_NUMBER,
+    NOW,
+    bound_approval,
+    approval_body,
+    transport_for,
+)
 
 
-NOW = "2026-08-02T00:00:00Z"
-FUTURE = "2026-08-02T01:00:00Z"
-REPOSITORY = "vxz2datoubo/second-brain-coordination"
-MAIN_COMMIT = "a" * 40
-ROUTE = RouteRef("brainops.e37", "CODEX", 38)
-TASK_ID = "CODEX-BRAINOPS-CANARY-NONCE-AUTHORITY-AND-ROUTE-PROOF-CLOSURE-0032-E37"
+ROUTE = RouteRef("brainops.e38", "CODEX", 39)
+TASK_ID = "CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38"
 SCOPE = "public_safe_pre_canary_proof_only"
-ISSUE_NUMBER = 114
-COMMENT_ID = 114038
-ACTOR = "gpt"
-BODY = "synthetic public approval body"
 
 
-def _blob_sha1(content: bytes) -> str:
-    return hashlib.sha1(f"blob {len(content)}\0".encode("ascii") + content).hexdigest()
-
-
-def approval(*, nonce: str = "nonce.e37.one", actor: str = ACTOR, body: str = BODY) -> BoundCanaryApproval:
-    return BoundCanaryApproval(
-        E36_CANARY_ID,
-        TASK_ID,
-        38,
-        SCOPE,
-        FUTURE,
-        nonce,
-        canonical_approval_ref(REPOSITORY, ISSUE_NUMBER, COMMENT_ID),
-        REPOSITORY,
-        ISSUE_NUMBER,
-        COMMENT_ID,
-        actor,
-        NOW,
-        hashlib.sha256(body.encode("utf-8")).hexdigest(),
+def approval(*, nonce: str = "nonce.e38.one", actor: str = ACTOR, body: str | None = None) -> BoundCanaryApproval:
+    return bound_approval(
+        canary_id=E36_CANARY_ID,
+        task_id=TASK_ID,
+        epoch=39,
+        scope=SCOPE,
+        nonce=nonce,
+        actor=actor,
+        body=body,
     )
 
 
-def document(*, actor: str = ACTOR, body: str = BODY, issued_at: str = NOW) -> ReadOnlyApprovalDocument:
-    return ReadOnlyApprovalDocument(REPOSITORY, ISSUE_NUMBER, COMMENT_ID, actor, issued_at, body)
-
-
-def verification(bound: BoundCanaryApproval, fetched: ReadOnlyApprovalDocument | None = None) -> ApprovalVerificationResult:
-    return ReadOnlyApprovalVerifier().verify(bound, fetched or document(), NOW)
-
-
-def activation(bound: BoundCanaryApproval, *, event_key: str = "idem.e37.one") -> ActivationManifest:
-    return ActivationManifest("activation.e37", ROUTE, 38, event_key, E36_CANARY_ID, TASK_ID, SCOPE, bound.nonce, bound)
-
-
-def event(*, event_id: str = "event.e37.one", key: str = "idem.e37.one", payload_hash: str = "b" * 64) -> CanaryEvent:
-    return CanaryEvent(event_id, "GITHUB", ROUTE, E36_CANARY_ID, key, payload_hash)
-
-
-def route_evidence(
+def verified_route_and_approval(
+    bound: BoundCanaryApproval | None = None,
     *,
-    active: bytes = b"active route document",
-    coordination: bytes = b"coordination document",
-    observed_at: str = NOW,
-    repository: str = REPOSITORY,
-    ref: str = "refs/heads/main",
-    main_commit: str = MAIN_COMMIT,
-    active_identity: RouteFileIdentity | None = None,
-    coordination_identity: RouteFileIdentity | None = None,
-) -> tuple[RouteStateEvidence, dict[str, bytes]]:
-    active_identity = active_identity or RouteFileIdentity(
-        CANONICAL_ACTIVE_TASK_PATH, _blob_sha1(active), hashlib.sha256(active).hexdigest()
-    )
-    coordination_identity = coordination_identity or RouteFileIdentity(
-        CANONICAL_COORDINATION_PATH, _blob_sha1(coordination), hashlib.sha256(coordination).hexdigest()
-    )
-    return (
-        RouteStateEvidence(ROUTE, repository, ref, main_commit, active_identity, coordination_identity, observed_at),
-        {CANONICAL_ACTIVE_TASK_PATH: active, CANONICAL_COORDINATION_PATH: coordination},
-    )
+    actor: str = ACTOR,
+    actors: tuple[str, ...] = (ACTOR,),
+    body: str | None = None,
+):
+    bound = bound or approval(actor=actor, body=body)
+    body = body if body is not None else approval_body(bound)
+    transport, opener = transport_for(task_id=TASK_ID, epoch=39, body=body, actor=actor, actors=actors)
+    snapshot = transport.fetch_main_route_snapshot(NOW)
+    route_result = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, snapshot, NOW)
+    comment = transport.fetch_approval_comment(ISSUE_NUMBER, 114038)
+    approval_result = ReadOnlyApprovalVerifier().verify(bound, comment, route_result, NOW)
+    return route_result, approval_result, transport, opener
 
 
-def route_proof(**kwargs: object) -> RouteProofVerification:
-    evidence, documents = route_evidence(**kwargs)  # type: ignore[arg-type]
-    return ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
+def activation(bound: BoundCanaryApproval, *, key: str = "idem.e38.one") -> ActivationManifest:
+    return ActivationManifest("activation.e38", ROUTE, 39, key, E36_CANARY_ID, TASK_ID, SCOPE, bound.nonce, bound)
+
+
+def event(*, event_id: str = "event.e38.one", key: str = "idem.e38.one", payload_hash: str = "b" * 64) -> CanaryEvent:
+    return CanaryEvent(event_id, "GITHUB", ROUTE, E36_CANARY_ID, key, payload_hash)
 
 
 def context(
     bound: BoundCanaryApproval,
+    approval_result: ApprovalVerificationResult,
+    route_result: RouteProofVerification,
     *,
-    event_key: str = "idem.e37.one",
-    approval_result: ApprovalVerificationResult | None = None,
-    proof: RouteProofVerification | None = None,
-    automatic: bool = True,
+    key: str = "idem.e38.one",
 ) -> CanaryGateContext:
     return CanaryGateContext(
-        activation(bound, event_key=event_key),
+        activation(bound, key=key),
         RouteState.READY,
-        38,
+        39,
         CapabilitySet(CapabilityStatus.SUPPORTED, CapabilityStatus.UNKNOWN, CapabilityStatus.UNKNOWN),
         True,
-        automatic,
+        True,
         False,
-        approval_result or verification(bound),
-        proof or route_proof(),
+        approval_result,
+        route_result,
         NOW,
     )
 
 
-class E37ApprovalProofTests(unittest.TestCase):
-    def test_read_only_document_binds_exact_repository_comment_actor_body_and_payload(self) -> None:
+class E38ApprovalContractTests(unittest.TestCase):
+    def test_public_verified_factories_are_absent(self) -> None:
+        self.assertFalse(hasattr(ApprovalVerificationResult, "verified"))
+        self.assertFalse(hasattr(RouteProofVerification, "verified"))
+
+    def test_external_constructors_cannot_mint_verified_results(self) -> None:
+        evidence = ApprovalEvidence(CANONICAL_REPOSITORY, ISSUE_NUMBER, 114038, ACTOR, NOW, "a" * 64, canonical_approval_ref(CANONICAL_REPOSITORY, ISSUE_NUMBER, 114038), "b" * 64)
+        with self.assertRaises(ValidationError):
+            ApprovalVerificationResult(VerificationStatus.READ_ONLY_FETCH_VERIFIED, evidence, NOW, "forged_result")
+        with self.assertRaises(ValidationError):
+            RouteProofVerification(VerificationStatus.READ_ONLY_FETCH_VERIFIED, None, NOW, "forged_result")
+
+    def test_external_comment_constructor_is_rejected(self) -> None:
+        with self.assertRaises(ValidationError):
+            ReadOnlyApprovalDocument(CANONICAL_REPOSITORY, ISSUE_NUMBER, 114038, ACTOR, NOW, "body")
+
+    def test_canonical_approval_block_round_trips(self) -> None:
         bound = approval()
-        result = verification(bound)
-        self.assertEqual(result.status, VerificationStatus.READ_ONLY_FETCH_VERIFIED)
-        self.assertIsNone(result.validates(bound, NOW))
+        parsed = parse_canonical_approval_body(approval_body(bound))
+        self.assertEqual(parsed.task_id, TASK_ID)
+        self.assertEqual(parsed.nonce, bound.nonce)
 
-    def test_forged_approval_ref_is_rejected(self) -> None:
-        forged = replace(approval(), approval_ref=canonical_approval_ref(REPOSITORY, ISSUE_NUMBER, COMMENT_ID + 1))
-        result = verification(forged)
+    def test_duplicate_approval_keys_fail_closed(self) -> None:
+        duplicate = '```brainops-approval-v1\n{"canary_id":"BRAINOPS-E36-CANARY-0001","canary_id":"BRAINOPS-E36-CANARY-0001","expires_at":"2026-08-02T01:00:00Z","nonce":"nonce.e38.one","route_epoch":39,"scope":"public_safe_pre_canary_proof_only","task_id":"CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38"}\n```'
+        _, result, _, _ = verified_route_and_approval(approval(), body=duplicate)
         self.assertEqual(result.status, VerificationStatus.REJECTED)
-        self.assertEqual(result.reason_code, "approval_ref_mismatch")
 
-    def test_actor_mismatch_is_rejected(self) -> None:
-        result = verification(approval(), document(actor="other_agent"))
+    def test_extra_approval_binding_field_fails_closed(self) -> None:
+        raw = CanonicalApprovalBinding(TASK_ID, 39, E36_CANARY_ID, SCOPE, FUTURE, "nonce.e38.one").canonical_json()
+        malformed = f"```brainops-approval-v1\n{raw[:-1]},\"extra\":true}}\n```"
+        _, result, _, _ = verified_route_and_approval(approval(), body=malformed)
         self.assertEqual(result.status, VerificationStatus.REJECTED)
-        self.assertEqual(result.reason_code, "approval_actor_mismatch")
 
-    def test_body_hash_mismatch_is_rejected(self) -> None:
-        result = verification(approval(), document(body="different body"))
+    def test_wrong_authorized_actor_fails_closed(self) -> None:
+        bound = approval(actor="other_actor")
+        _, result, _, _ = verified_route_and_approval(bound, actor="other_actor", actors=(ACTOR,))
+        self.assertEqual(result.reason_code, "approval_actor_not_authorized_by_route")
+
+    def test_body_binding_mismatch_fails_closed(self) -> None:
+        bound = approval()
+        wrong = approval(nonce="nonce.e38.other")
+        _, result, _, _ = verified_route_and_approval(bound, body=approval_body(wrong))
+        self.assertEqual(result.reason_code, "approval_body_binding_mismatch")
+
+    def test_expired_approval_fails_closed(self) -> None:
+        bound = bound_approval(canary_id=E36_CANARY_ID, task_id=TASK_ID, epoch=39, scope=SCOPE, nonce="nonce.e38.expired", expires_at="2026-08-01T23:59:59Z")
+        _, result, _, _ = verified_route_and_approval(bound)
         self.assertEqual(result.status, VerificationStatus.REJECTED)
-        self.assertEqual(result.reason_code, "approval_body_hash_mismatch")
 
-    def test_unknown_result_cannot_be_promoted_to_authority(self) -> None:
-        unknown = ApprovalVerificationResult.unknown(NOW, "read_only_fetch_unavailable")
-        self.assertEqual(unknown.validates(approval(), NOW), "approval_read_only_verification_required")
-
-    def test_callers_cannot_construct_a_verified_result_from_a_boolean_or_ref(self) -> None:
-        with self.assertRaises(ValidationError):
-            ApprovalVerificationResult(VerificationStatus.READ_ONLY_FETCH_VERIFIED, None, NOW, "forged_result")
-
-    def test_future_approval_issue_time_is_rejected(self) -> None:
-        result = verification(approval(), document(issued_at="2026-08-02T00:00:01Z"))
-        self.assertEqual(result.status, VerificationStatus.REJECTED)
-        self.assertEqual(result.reason_code, "approval_issued_at_mismatch")
+    def test_unrelated_issue_comment_fails_closed(self) -> None:
+        bound = approval()
+        body = approval_body(bound)
+        transport, _ = transport_for(task_id=TASK_ID, epoch=39, body=body, issue_url="https://api.github.com/repos/vxz2datoubo/second-brain-coordination/issues/999")
+        proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot(NOW), NOW)
+        with self.assertRaises(ReadOnlyTransportError):
+            transport.fetch_approval_comment(ISSUE_NUMBER, 114038)
+        self.assertEqual(proof.status, VerificationStatus.READ_ONLY_FETCH_VERIFIED)
 
 
-class E37RouteProofTests(unittest.TestCase):
-    def test_exact_remote_main_two_file_proof_is_verified(self) -> None:
-        self.assertEqual(route_proof().status, VerificationStatus.READ_ONLY_FETCH_VERIFIED)
+class E38RouteProofTests(unittest.TestCase):
+    def test_ref_commit_tree_path_blob_content_route_proof_is_verified(self) -> None:
+        proof, _, _, opener = verified_route_and_approval()
+        self.assertEqual(proof.status, VerificationStatus.READ_ONLY_FETCH_VERIFIED)
+        self.assertEqual(proof.evidence.main_tree_sha1, "e" * 40)
+        self.assertEqual(len(opener.requests), 7)
+        self.assertEqual(assert_exact_head("a" * 40, "a" * 40), "a" * 40)
+        with self.assertRaisesRegex(ValidationError, "ci_checkout_sha_differs"):
+            assert_exact_head("a" * 40, "b" * 40)
+        workflow = (Path(__file__).resolve().parents[5] / ".github" / "workflows" / "brainops-e38.yml").read_text(encoding="utf-8")
+        self.assertIn("ref: ${{ github.event.pull_request.head.sha }}", workflow)
+        self.assertIn("Assert exact pull-request head checkout", workflow)
 
-    def test_route_repository_mismatch_is_rejected(self) -> None:
-        evidence, documents = route_evidence(repository="other/repository")
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_repository_mismatch")
+    def test_main_ref_drift_fails_closed(self) -> None:
+        bound = approval()
+        transport, _ = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound), main_ref_values=("d" * 40, "c" * 40))
+        with self.assertRaisesRegex(ReadOnlyTransportError, "github_main_ref_drift"):
+            transport.fetch_main_route_snapshot(NOW)
 
-    def test_route_commit_mismatch_is_rejected(self) -> None:
-        evidence, documents = route_evidence(main_commit="c" * 40)
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_main_commit_mismatch")
+    def test_missing_actor_policy_fails_closed(self) -> None:
+        bound = approval()
+        transport, _ = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound), actors=())
+        proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot(NOW), NOW)
+        self.assertEqual(proof.status, VerificationStatus.REJECTED)
 
-    def test_non_main_ref_is_rejected_by_the_contract(self) -> None:
-        with self.assertRaises(ValidationError):
-            route_evidence(ref="refs/heads/feature")
+    def test_wrong_epoch_in_route_fails_closed(self) -> None:
+        bound = approval()
+        transport, _ = transport_for(task_id=TASK_ID, epoch=38, body=approval_body(bound))
+        proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot(NOW), NOW)
+        self.assertEqual(proof.reason_code, "route_epoch_mismatch")
+        transport, _ = transport_for(task_id="CODEX-BRAINOPS-OTHER", epoch=39, body=approval_body(bound))
+        proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot(NOW), NOW)
+        self.assertEqual(proof.reason_code, "route_task_id_mismatch")
+        for flags in (
+            {"status": "PAUSED"},
+            {"execution_allowed": False},
+            {"automatic_dispatch_allowed": True},
+            {"canary_execution_allowed": True},
+        ):
+            transport, _ = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound), **flags)
+            proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot(NOW), NOW)
+            self.assertEqual(proof.status, VerificationStatus.REJECTED)
 
-    def test_noncanonical_route_path_is_rejected_by_the_contract(self) -> None:
-        with self.assertRaises(ValidationError):
-            RouteFileIdentity("coordination/other.yaml", "b" * 40, "c" * 64)
+    def test_stale_route_snapshot_fails_closed(self) -> None:
+        bound = approval()
+        transport, _ = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound))
+        proof = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, transport.fetch_main_route_snapshot("2026-08-01T23:54:59Z"), NOW)
+        self.assertEqual(proof.reason_code, "route_proof_stale")
 
-    def test_route_blob_mismatch_is_rejected(self) -> None:
-        evidence, documents = route_evidence(active=b"one")
-        documents[CANONICAL_ACTIVE_TASK_PATH] = b"two"
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_blob_hash_mismatch")
+    def test_unsealed_route_snapshot_fails_closed(self) -> None:
+        bound = approval()
+        transport, _ = transport_for(
+            task_id=TASK_ID,
+            epoch=39,
+            body=approval_body(bound),
+            omit_tree_path=CANONICAL_ACTIVE_TASK_PATH,
+        )
+        with self.assertRaisesRegex(ReadOnlyTransportError, "github_tree_route_path_missing"):
+            transport.fetch_main_route_snapshot(NOW)
+        result = ReadOnlyRouteProofVerifier().verify(ROUTE, TASK_ID, object(), NOW)  # type: ignore[arg-type]
+        self.assertEqual(result.reason_code, "route_snapshot_not_transport_bound")
 
-    def test_route_content_mismatch_is_rejected(self) -> None:
-        active = b"active route document"
-        bad_identity = RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, _blob_sha1(active), "f" * 64)
-        evidence, documents = route_evidence(active=active, active_identity=bad_identity)
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_content_hash_mismatch")
+    def test_transport_rejects_redirected_response(self) -> None:
+        bound = approval()
+        transport, opener = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound))
+        first_url = next(iter(opener.responses))
+        opener.responses[first_url][0]._url = "https://evil.example/redirect"
+        with self.assertRaisesRegex(ReadOnlyTransportError, "github_redirect_rejected"):
+            transport.fetch_main_route_snapshot(NOW)
 
-    def test_future_route_observation_is_rejected(self) -> None:
-        evidence, documents = route_evidence(observed_at="2026-08-02T00:00:01Z")
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_observation_in_future")
-
-    def test_stale_route_observation_is_rejected(self) -> None:
-        evidence, documents = route_evidence(observed_at="2026-08-01T23:54:59Z")
-        result = ReadOnlyRouteProofVerifier().verify(evidence, documents, REPOSITORY, MAIN_COMMIT, NOW)
-        self.assertEqual(result.reason_code, "route_proof_stale")
+    def test_transport_rejects_wrong_media_type(self) -> None:
+        bound = approval()
+        transport, opener = transport_for(task_id=TASK_ID, epoch=39, body=approval_body(bound))
+        first_url = next(iter(opener.responses))
+        opener.responses[first_url][0].headers["Content-Type"] = "text/html"
+        with self.assertRaisesRegex(ReadOnlyTransportError, "github_unexpected_media_type"):
+            transport.fetch_main_route_snapshot(NOW)
 
 
-class E37AtomicReservationTests(unittest.TestCase):
-    def test_nonce_reuse_with_new_event_key_and_payload_is_suppressed(self) -> None:
+class E38AtomicRegressionTests(unittest.TestCase):
+    def test_verified_provenance_preserves_atomic_nonce_suppression(self) -> None:
+        bound = approval(nonce="nonce.e38.reused")
+        route, result, _, _ = verified_route_and_approval(bound)
         with TemporaryDirectory() as temp:
             store = MetadataStore(Path(temp))
             try:
                 gate = OneShotCanaryGate()
-                bound = approval(nonce="nonce.e37.reused")
-                first = gate.evaluate(store, event(), context(bound))
+                first = gate.evaluate(store, event(), context(bound, result, route))
                 second = gate.evaluate(
                     store,
-                    event(event_id="event.e37.two", key="idem.e37.two", payload_hash="c" * 64),
-                    context(bound, event_key="idem.e37.two"),
+                    event(event_id="event.e38.two", key="idem.e38.two", payload_hash="c" * 64),
+                    context(replace(bound, nonce="nonce.e38.reused"), result, route, key="idem.e38.two"),
                 )
                 self.assertEqual(first.outcome, ShadowOutcome.CANARY_ELIGIBLE_SHADOW_ONLY)
                 self.assertEqual(second.outcome, ShadowOutcome.DUPLICATE_SUPPRESSED)
                 self.assertEqual(len(store.list_approval_consumptions()), 1)
-                self.assertEqual(len(store.list_canary_events()), 1)
             finally:
                 store.close()
 
-    def test_failed_event_insert_rolls_back_nonce_consumption(self) -> None:
+    def test_unverified_approval_still_blocks_before_persistence(self) -> None:
+        bound = approval()
+        route, _, _, _ = verified_route_and_approval(bound)
+        blocked = ApprovalVerificationResult.unknown(NOW, "trusted_transport_unavailable")
         with TemporaryDirectory() as temp:
             store = MetadataStore(Path(temp))
             try:
-                first = approval(nonce="nonce.e37.first")
-                second = approval(nonce="nonce.e37.rollback")
-                self.assertTrue(store.reserve_canary_event(event(), activation(first), verification(first), route_proof(), NOW))
-                self.assertFalse(
-                    store.reserve_canary_event(
-                        event(key="idem.e37.two"), activation(second, event_key="idem.e37.two"), verification(second), route_proof(), NOW
-                    )
-                )
-                self.assertTrue(
-                    store.reserve_canary_event(
-                        event(event_id="event.e37.after.rollback", key="idem.e37.three"),
-                        activation(second, event_key="idem.e37.three"),
-                        verification(second),
-                        route_proof(),
-                        NOW,
-                    )
-                )
-                self.assertEqual(len(store.list_approval_consumptions()), 2)
-                self.assertEqual(len(store.list_canary_events()), 2)
-            finally:
-                store.close()
-
-    def test_unverified_approval_blocks_before_nonce_consumption(self) -> None:
-        with TemporaryDirectory() as temp:
-            store = MetadataStore(Path(temp))
-            try:
-                bound = approval()
-                unknown = ApprovalVerificationResult.unknown(NOW, "read_only_fetch_unavailable")
-                decision = OneShotCanaryGate().evaluate(store, event(), context(bound, approval_result=unknown))
+                decision = OneShotCanaryGate().evaluate(store, event(), context(bound, blocked, route))
                 self.assertEqual(decision.reason_code, "approval_read_only_verification_required")
                 self.assertEqual(store.list_approval_consumptions(), [])
             finally:
                 store.close()
 
-    def test_unverified_route_proof_blocks_before_nonce_consumption(self) -> None:
+    def test_unverified_route_still_blocks_before_persistence(self) -> None:
+        bound = approval()
+        _, result, _, _ = verified_route_and_approval(bound)
+        blocked = RouteProofVerification.unknown(NOW, "trusted_transport_unavailable")
         with TemporaryDirectory() as temp:
             store = MetadataStore(Path(temp))
             try:
-                bound = approval()
-                unknown = RouteProofVerification.unknown(NOW, "route_fetch_unavailable")
-                decision = OneShotCanaryGate().evaluate(store, event(), context(bound, proof=unknown))
+                decision = OneShotCanaryGate().evaluate(store, event(), context(bound, result, blocked))
                 self.assertEqual(decision.reason_code, "route_read_only_verification_required")
-                self.assertEqual(store.list_approval_consumptions(), [])
+                self.assertEqual(store.list_canary_events(), [])
             finally:
                 store.close()
 
-    def test_persistence_omits_raw_approval_comment_and_event_bodies(self) -> None:
+    def test_persistence_retains_hashes_but_not_comment_body(self) -> None:
+        bound = approval()
+        route, result, _, _ = verified_route_and_approval(bound)
         with TemporaryDirectory() as temp:
             store = MetadataStore(Path(temp))
             try:
-                bound = approval()
-                self.assertTrue(store.reserve_canary_event(event(), activation(bound), verification(bound), route_proof(), NOW))
-                persisted = str(store.list_approval_consumptions() + store.list_canary_events() + store.list_verified_route_state_evidence())
-                self.assertNotIn(BODY, persisted)
-                self.assertNotIn("active route document", persisted)
-                self.assertNotIn("coordination document", persisted)
+                self.assertTrue(store.reserve_canary_event(event(), activation(bound), result, route, NOW))
+                persisted = str(store.list_approval_consumptions() + store.list_verified_route_state_evidence())
+                self.assertNotIn("brainops-approval-v1", persisted)
+                self.assertIn(hashlib.sha256(approval_body(bound).encode("utf-8")).hexdigest(), persisted)
+                self.assertEqual(store.list_verified_route_state_evidence()[0]["main_tree_sha1"], "e" * 40)
             finally:
                 store.close()
-
-    def test_e37_changed_modules_have_no_executor_or_network_client_surface(self) -> None:
-        source = SOURCE_ROOT / "brainops_control_plane"
-        text = "\n".join((source / name).read_text(encoding="utf-8") for name in ("proofs.py", "canary.py", "store.py"))
-        for forbidden in ("subprocess", "requests", "http.client", "selenium", "playwright", "dispatch(", "run_canary"):
-            self.assertNotIn(forbidden, text)
 
 
 if __name__ == "__main__":

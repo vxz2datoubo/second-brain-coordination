@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -26,34 +25,18 @@ from brainops_control_plane.models import (
 )
 from brainops_control_plane.proofs import (
     CANONICAL_ACTIVE_TASK_PATH,
-    CANONICAL_COORDINATION_PATH,
     ApprovalVerificationResult,
-    ReadOnlyApprovalDocument,
-    ReadOnlyApprovalVerifier,
-    ReadOnlyRouteProofVerifier,
     RouteFileIdentity,
     RouteProofVerification,
-    RouteStateEvidence,
-    VerificationStatus,
-    canonical_approval_ref,
 )
 from brainops_control_plane.store import MetadataStore
+from trusted_fixtures import bound_approval, trusted_approval_verification, trusted_route_proof
 
 
 TASK_ID = "CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36"
 ROUTE = RouteRef("brainops.e36", "CODEX", 37)
 NOW = "2026-08-02T00:00:00Z"
 FUTURE = "2026-08-02T01:00:00Z"
-ACTIVE_HASH = "a" * 64
-COORDINATION_HASH = "b" * 64
-REPOSITORY = "vxz2datoubo/second-brain-coordination"
-ISSUE_NUMBER = 114
-COMMENT_ID = 114038
-ACTOR = "gpt"
-APPROVAL_BODY = "synthetic E37 approval only"
-MAIN_COMMIT = "d" * 40
-
-
 def approval(
     *,
     canary_id: str = E36_CANARY_ID,
@@ -63,20 +46,13 @@ def approval(
     expires_at: str = FUTURE,
     nonce: str = "nonce.e36.one",
 ) -> BoundCanaryApproval:
-    return BoundCanaryApproval(
-        canary_id,
-        task_id,
-        route_epoch,
-        scope,
-        expires_at,
-        nonce,
-        canonical_approval_ref(REPOSITORY, ISSUE_NUMBER, COMMENT_ID),
-        REPOSITORY,
-        ISSUE_NUMBER,
-        COMMENT_ID,
-        ACTOR,
-        NOW,
-        hashlib.sha256(APPROVAL_BODY.encode("utf-8")).hexdigest(),
+    return bound_approval(
+        canary_id=canary_id,
+        task_id=task_id,
+        epoch=route_epoch,
+        scope=scope,
+        expires_at=expires_at,
+        nonce=nonce,
     )
 
 
@@ -99,36 +75,13 @@ def event(*, event_id: str = "event.e36.one", route: RouteRef = ROUTE, canary_id
     return CanaryEvent(event_id, "GITHUB", route, canary_id, key, payload_hash)
 
 
-def _blob_sha1(content: bytes) -> str:
-    return hashlib.sha1(f"blob {len(content)}\0".encode("ascii") + content).hexdigest()
-
-
-def route_evidence(route: RouteRef = ROUTE, active_content: bytes = b"active task", coordination_content: bytes = b"coordination") -> RouteStateEvidence:
-    return RouteStateEvidence(
-        route,
-        REPOSITORY,
-        "refs/heads/main",
-        MAIN_COMMIT,
-        RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, _blob_sha1(active_content), hashlib.sha256(active_content).hexdigest()),
-        RouteFileIdentity(CANONICAL_COORDINATION_PATH, _blob_sha1(coordination_content), hashlib.sha256(coordination_content).hexdigest()),
-        NOW,
-    )
-
-
 def route_proof(route: RouteRef = ROUTE, active_content: bytes = b"active task", coordination_content: bytes = b"coordination") -> RouteProofVerification:
-    evidence_value = route_evidence(route, active_content, coordination_content)
-    return ReadOnlyRouteProofVerifier().verify(
-        evidence_value,
-        {CANONICAL_ACTIVE_TASK_PATH: active_content, CANONICAL_COORDINATION_PATH: coordination_content},
-        REPOSITORY,
-        MAIN_COMMIT,
-        NOW,
-    )
+    marker = f"{active_content!r}:{coordination_content!r}"
+    return trusted_route_proof(route, TASK_ID, marker=marker)  # type: ignore[return-value]
 
 
 def approval_verification(bound: BoundCanaryApproval) -> ApprovalVerificationResult:
-    document = ReadOnlyApprovalDocument(REPOSITORY, ISSUE_NUMBER, COMMENT_ID, ACTOR, NOW, APPROVAL_BODY)
-    return ReadOnlyApprovalVerifier().verify(bound, document, NOW)
+    return trusted_approval_verification(bound, ROUTE)  # type: ignore[return-value]
 
 
 def context(**overrides: object) -> CanaryGateContext:
@@ -206,7 +159,7 @@ class E36ContractTests(unittest.TestCase):
 
     def test_route_state_evidence_rejects_non_blob_hash(self) -> None:
         with self.assertRaises(ValidationError):
-            RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, "not-a-hash", ACTIVE_HASH)
+            RouteFileIdentity(CANONICAL_ACTIVE_TASK_PATH, "not-a-hash", "a" * 64)
 
     def test_context_rejects_unbound_state_evidence(self) -> None:
         other_route = RouteRef("brainops.other", "CODEX", 37)

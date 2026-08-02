@@ -98,6 +98,7 @@ class MetadataStore:
                 repository TEXT NOT NULL,
                 ref TEXT NOT NULL,
                 main_commit_sha1 TEXT NOT NULL,
+                main_tree_sha1 TEXT NOT NULL,
                 active_task_path TEXT NOT NULL,
                 active_task_blob_sha1 TEXT NOT NULL,
                 active_task_content_sha256 TEXT NOT NULL,
@@ -114,6 +115,9 @@ class MetadataStore:
             );
             """
         )
+        columns = {row["name"] for row in self._connection.execute("PRAGMA table_info(verified_route_state_evidence)")}
+        if "main_tree_sha1" not in columns:
+            self._connection.execute("ALTER TABLE verified_route_state_evidence ADD COLUMN main_tree_sha1 TEXT")
 
     def close(self) -> None:
         self._connection.close()
@@ -306,11 +310,11 @@ class MetadataStore:
                 )
                 self._connection.execute(
                     """INSERT INTO verified_route_state_evidence(
-                        route_id, route_epoch, repository, ref, main_commit_sha1,
+                        route_id, route_epoch, repository, ref, main_commit_sha1, main_tree_sha1,
                         active_task_path, active_task_blob_sha1, active_task_content_sha256,
                         coordination_path, coordination_blob_sha1, coordination_content_sha256,
                         observed_at, verified_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(
                         route_id, route_epoch, repository, ref, main_commit_sha1,
                         active_task_blob_sha1, active_task_content_sha256,
@@ -322,6 +326,7 @@ class MetadataStore:
                         route_evidence.repository,
                         route_evidence.ref,
                         route_evidence.main_commit_sha1,
+                        route_evidence.main_tree_sha1,
                         route_evidence.active_task.path,
                         route_evidence.active_task.blob_sha1,
                         route_evidence.active_task.content_sha256,
@@ -366,7 +371,7 @@ class MetadataStore:
 
     def list_verified_route_state_evidence(self) -> list[dict[str, Any]]:
         rows = self._connection.execute(
-            """SELECT route_id, route_epoch, repository, ref, main_commit_sha1,
+            """SELECT route_id, route_epoch, repository, ref, main_commit_sha1, main_tree_sha1,
                active_task_path, active_task_blob_sha1, active_task_content_sha256,
                coordination_path, coordination_blob_sha1, coordination_content_sha256,
                observed_at, verified_at
