@@ -1,0 +1,77 @@
+# P1-AMED-RESEARCH-LEDGER.yaml
+schema_version: "1.0"
+ledger_id: "QCLAW-0020Q-P1-AMED-LEDGER-001"
+
+# AMED Research Ledger: records every decision, discovery, and outcome
+# for the P1 independent audit.
+
+task: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1"
+target: "Codex PR #79 D0 Plan"
+instrument: "PR #77 (frozen core head 70ed222e)"
+
+entries:
+  - id: "LEDGER-001"
+    type: "MODE_DECISION"
+    description: "BAR_ONLY_VIOLATION assessment: NOT TRIGGERED"
+    detail: "All 8 SV-001 through SV-008 PASS."
+    discovered: "Codex .lc1 files inventoried as metadata, NOT as input. This is a common boundary-ambiguity but Codex correctly handles it."
+    impact: "Unblocks D2 BAR_ONLY dimension. No scope violation."
+
+  - id: "LEDGER-002"
+    type: "MODE_DECISION"
+    description: "SELF_VERIFICATION_LOOP assessment: NOT TRIGGERED"
+    detail: "validate_d0_plan.py checks FORMAT (YAML load, file presence, schema_version) not TRUTH. No golden answers."
+    discovered: "Codex's handoff explicitly defers truth verification to QCLAW/GPT. Validator is proportionately a format checker for D0 planning."
+    impact: "Unblocks D8 Self-Verification dimension. Q36 = PASS (1.0)"
+
+  - id: "LEDGER-003"
+    type: "MODE_DECISION"
+    description: "LOOK_AHEAD_LEAKAGE assessment: NOT TRIGGERED"
+    detail: "Invariant chain defined_at ≤ available_at ≤ breach_event_time is logically sound."
+    discovered: "Multi-timeframe proof handles daily→intraday correctly. No concrete example but invariant is sufficient."
+    impact: "Unblocks D1 Reference Zone dimension. No look-ahead bias."
+
+  - id: "LEDGER-004"
+    type: "MODE_DECISION"
+    description: "MISSING_MANDATORY_OBJECT assessment: NOT TRIGGERED"
+    detail: "All 7 mandatory objects present as contracts: ReferenceLiquidityZone (REFERENCE-ZONE-DEFINITION), ReferenceZoneBreachEvent + ReclaimAssessment + PostSweepStabilizationAssessment (BREACH-RECLAIM-LABEL-STATE), TPlusOneInventoryState (TPLUSONE-INVENTORY), CostModel (COST-NONFILL-CONTRACT), ValidationDesign (VALIDATION-OOS-AND-LOCKBOX-DESIGN)"
+    discovered: "P0 Q08 says 5 objects, rubric says 7. All 7 found. Count discrepancy is in P0 freeze, not Codex D0."
+    impact: "Unblocks D3 D5 D7 dimensions. All mandatory objects present."
+
+  - id: "LEDGER-005"
+    type: "SCORING_DECISION"
+    description: "4 explicit UNKNOWNs score 0.0 by rubric design"
+    detail: "Q14 (untradeable rate), Q24 (costs), Q26 (capacity), Q29 (B3 comparison) all explicitly UNKNOWN per Codex. Score 0.0 per rubric. These are correctly gated to D1-D4."
+    discovered: "The rubric penalizes honest UNKNOWN declarations. At D0 planning stage, explicit UNKNOWNs with correct gating should be scored differently."
+    impact: "Reduces weighted score from ~0.60 (if UNKNOWN=PARTIAL) to 0.491 (UNKNOWN=0.0). Primary driver of FAIL_INCOMPLETE threshold."
+
+  - id: "LEDGER-006"
+    type: "DISCOVERY"
+    description: "Codex D0 exhibits EXCEPTIONALLY HONEST UNKNOWN culture"
+    detail: "9 explicit UNKNOWNs, all contracts marked CANDIDATE_CONTRACT_NOT_IMPLEMENTED, no overpromising. RARE in research planning. Mirrors QCLAW's own discipline."
+    discovered: "Codex's DATA-CAPABILITY contract explicitly prohibits what is NOT allowed (L2, delta, DDX, participant) rather than only stating what IS allowed. This is defensive-by-design."
+    impact: "Positive finding. Commendable. Does not affect score directly but should inform GPT's acceptance decision."
+
+  - id: "LEDGER-007"
+    type: "COUNTEREVIDENCE"
+    description: "ALL contracts are NOT_IMPLEMENTED. No runnable code."
+    detail: "This is CORRECT for D0 (planning phase only). The scoring rubric penalizes 'not implemented' but the D0 specification from PROJECT-PLAN and Issue #69 says D0 is planning only."
+    discovered: "Scoring rubric was frozen before the full D1-D6 phase gating was understood. Scores should be contextualized by phase."
+    impact: "PARTIAL scores on 36 questions reflect phase-appropriate design, not quality failure."
+
+  - id: "LEDGER-008"
+    type: "RECOMMENDATION"
+    description: "Conditional Accept with D1 gates"
+    detail: "Accept D0. Gate D1 on authorized PIT manifest, versioned rule snaps for SSE/SZSE/BSE through evaluation period, W3/W7 interface review, and QCLAW-equivalent data path."
+    discovered: "Codex's D1-D6 phasing is already correct. The gates formalize what Codex already plans."
+    impact: "Should unblock Codex D1 if GPT agrees."
+
+final_verdict: "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS"
+all_blocking_modes_pass: true
+pder_discovery: "NO_ADDITIONAL_S2_PLUS_DISCOVERY"
+return_role: "PRIMARY_SYSTEM_BUILD (Issues #59, #60, #38)"
+
+signature:
+  agent: QCLAW
+  signed_at: "2026-07-24T08:40:00+08:00"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"

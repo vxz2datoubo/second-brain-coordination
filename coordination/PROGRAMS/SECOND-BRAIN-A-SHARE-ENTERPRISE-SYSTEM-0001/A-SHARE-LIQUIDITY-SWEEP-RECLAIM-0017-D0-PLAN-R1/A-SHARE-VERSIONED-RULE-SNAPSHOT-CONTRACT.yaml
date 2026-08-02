@@ -1,0 +1,39 @@
+schema_version: "1.0"
+record_type: "AShareVersionedRuleSnapshotContract"
+status: "CANDIDATE_CONTRACT_NOT_IMPLEMENTED"
+selection_key: [exchange, board, security_type, risk_warning_status, effective_from, effective_to]
+required_fields: [rule_snapshot_id, source, source_url, publication_date, available_at, effective_from, effective_to, exchange, board, security_type, risk_warning_status, session_calendar_id, auction_policy_id, settlement_policy_id, price_limit_policy_id, suspension_policy_id, missing_error_state]
+rule_selection: "Select the unique snapshot whose full key matches the evaluated security and event date. Zero or multiple matches produces UNKNOWN_RULE_SNAPSHOT and ABSTAIN."
+verified_source_ledger:
+  - id: SSE_2026_TRADING_RULES
+    source: "Shanghai Stock Exchange Trading Rules (2026 revision)"
+    source_url: "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    evidence: "OFFICIAL_PRIMARY; some provisions are stated as temporarily not implemented, so snapshot consumers must select provision-level applicability."
+  - id: SSE_2026_RISK_WARNING_CHANGE
+    source: "Shanghai Stock Exchange 2026 revision explanation"
+    source_url: "https://www.sse.com.cn/aboutus/mediacenter/hotandd/c/c_20260424_10816474.shtml"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    evidence: "OFFICIAL_PRIMARY; confirms main-board risk-warning price-limit treatment changed. Do not backfill this rule into earlier bars."
+  - id: BSE_2026_TRADING_RULES
+    source: "Beijing Stock Exchange Trading Rules (2026 revision)"
+    source_url: "https://www.bse.cn/jygl_list/200028217.html"
+    publication_date: "2026-04-24"
+    effective_from: "2026-07-06"
+    evidence: "OFFICIAL_PRIMARY; some provisions have deferred implementation."
+historical_and_szse_status:
+  status: UNKNOWN_REQUIRES_OFFICIAL_SNAPSHOT_COLLECTION
+  rule: "No generic 10/20/5 percent, auction schedule or T+1 statement becomes executable data logic without a date-bound snapshot for the relevant venue/security."
+price_limit_contract:
+  input: [prior_close, exchange, board, security_type, risk_warning_status, rule_snapshot_id]
+  outputs: [up_limit, down_limit, calculation_rounding, limit_state, consecutive_limit_count, untradeable_state]
+  limit_state: [NOT_NEAR, NEAR, HIT, LOCKED, UNKNOWN]
+  prohibition: "Limit values must not be inferred from a broad label such as ST or ChiNext alone."
+auction_contract:
+  fields: [market_phase, auction_inclusion_policy, timestamp_convention, source_bar_completeness]
+  default: "Auction-only bar is excluded from breach/reclaim labeling until a selected snapshot and source bar semantics permit inclusion."
+suspension_contract:
+  states: [NOT_SUSPENDED, SUSPECTED_GAP, CONFIRMED_SUSPENSION, RESUMPTION_BOUNDARY, UNKNOWN]
+  default: "Missing bars are not proof of suspension; require calendar/source evidence. Affected labels ABSTAIN."

@@ -1,0 +1,35 @@
+schema_version: "1.0"
+record_type: "ValidationOOSAndLockboxDesign"
+status: "PREREGISTERED_DESIGN_NOT_RUN"
+object: SweepReclaimExperimentFamily
+object_report: SweepReclaimValidationReport
+experiment_family_required_fields: [experiment_family_id, source, event_time, observed_at, available_at, rule_version, missing_error_state, zone_family, parameter_space, total_trials, baseline_models, train_windows, validation_windows, lockbox_window, cost_model, rule_versions, negative_results, selection_rule]
+validation_report_required_fields: [dataset_manifest, event_label_metrics, multi_horizon_metrics, regime_results, board_results, t_plus_one_results, cost_capacity_results, baseline_increment, multiple_testing_audit, null_and_negative_results, verdict]
+dataset_admission:
+  - "Manifest hash, source license, timezone, field semantics, calendar and adjustment policy are verified."
+  - "Every bar has a deterministic available_at or the affected study is rejected."
+  - "Rule snapshots match dates/security state; unknown segments are excluded and reported."
+splits:
+  method: "expanding or rolling chronological walk-forward with purging and embargo"
+  purge: "At least the maximum outcome horizon plus any overlapping label/holding window; exact duration preregistered per family."
+  embargo: "At least the maximum information/holding overlap; exact duration preregistered per family."
+  selection: "Nested selection only inside train/validation partitions."
+  final_lockbox: "Date range/hash frozen before parameter selection; no redesign after inspection."
+  shadow: "Separate, untouched post-lockbox evaluation; optional and not D0."
+outcomes:
+  horizons: {intraday_minutes: [1, 5, 15, 30, 60], trading_days: [1, 3, 5, 10, 20]}
+  formulas:
+    mfe: "max favorable eligible-mark price after evaluation minus reference price, expressed with declared direction and horizon"
+    mae: "max adverse eligible-mark price after evaluation minus reference price, expressed with declared direction and horizon"
+    reclaim_persistence_rate: "sustained_reclaim events / assessable reclaim events"
+    failure_rate: "failed_reclaim events / assessable reclaim events"
+    continuation_rate: "continuation events / assessable breach events"
+    next_day_tradable_rate: "events with selected-rule eligible next-day state / assessable events"
+    untradeable_exit_rate: "events whose modeled exit is blocked / events requiring exit evaluation"
+multiple_testing:
+  family_ledger: "Record every zone family, parameter set, horizon, regime, board segment and selection decision."
+  planned_methods: [WHITE_REALITY_CHECK, HANSEN_SPA, PBO, DEFLATED_SHARPE, ROMANO_WOLF]
+  romano_wolf: "Registered for family-wise correction where its assumptions/data are satisfied; otherwise report NOT_APPLICABLE with reason."
+  rule: "Statistical tools cannot repair future leakage, semantic ambiguity or invalid execution assumptions."
+segmentation: [market_regime, volatility_regime, liquidity_proxy_regime, exchange, board, risk_warning_status, event_confounder_status]
+promotion: "No promotion is possible from this report alone. D0-D6 remain candidate research and NO_TRADE."

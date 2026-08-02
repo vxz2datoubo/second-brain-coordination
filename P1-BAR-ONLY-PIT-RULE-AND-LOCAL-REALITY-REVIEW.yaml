@@ -1,0 +1,161 @@
+# P1-BAR-ONLY-PIT-RULE-AND-LOCAL-REALITY-REVIEW.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+# Frozen instrument: BAR-ONLY-SCOPE-GUARD.yaml + D3/D4 questions
+# Evaluated target: Codex PR #79, head b515b662
+
+schema_version: "1.0"
+review_id: "QCLAW-0020Q-P1-BARONLY-REVIEW-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+# ============================================================================
+# SV-001 through SV-008 FULL SCAN
+# ============================================================================
+scope_violation_scan:
+  SV-001_L2:
+    detection: "Grep for L2, order_book, bid_ask_snapshot, depth_level across all 22 D0 files"
+    result: "NOT_FOUND"
+    evidence: "DATA-CAPABILITY-AND-PIT-CONTRACT.yaml capabilities.BAR_ONLY.prohibited explicitly lists l1_depth, l2_depth. REFERENCE-ZONE-DEFINITION-CONTRACT.yaml forbidden_construction includes L1_L2_depth_zone."
+    verdict: "PASS — BAR-ONLY boundary respected, no L2 data referenced as input."
+  
+  SV-002_TICK_L3:
+    detection: "Grep for tick, 逐笔, L3, TAQ, trade-level"
+    result: "NOT_FOUND_AS_INPUT"
+    caveat: "LOCAL-DATA-INVENTORY-AND-RECEIPT.yaml inventories .lc1 files (minute-candidate format, 783KB) and .lc5 files. These are inventoried for metadata only: status UNKNOWN_FORMAT_SEMANTICS, disposition 'excluded from D0 execution'. The inventory act does not constitute using them as input."
+    verdict: "PASS — Tick/L3 data inventoried as metadata but explicitly excluded from D0 execution scope."
+
+  SV-003_DDX_DDY:
+    detection: "Grep for DDX, DDY, DDZ, 大单"
+    result: "NOT_FOUND"
+    evidence: "DATA-CAPABILITY-AND-PIT-CONTRACT explicitly prohibits these in capabilities.BAR_ONLY.prohibited. CURRENT-REPOSITORY-AUDIT explicit: 'explicitly excluded from the 0017 BAR_ONLY input set'."
+    verdict: "PASS — No DDX/DDY/DDZ referenced."
+
+  SV-004_PSEUDO_DELTA:
+    detection: "Grep for delta, CVD, OFI, order_flow_imbalance, cumulative_volume_delta"
+    result: "NOT_FOUND"
+    evidence: "DATA-CAPABILITY-AND-PIT-CONTRACT capabilities.BAR_ONLY.prohibited lists 'vendor_flow_as_order_flow'."
+    verdict: "PASS — No pseudo-Delta/CVD/OFI computed from bar data."
+
+  SV-005_PARTICIPANT_IDENTITY:
+    detection: "Grep for 主力, 机构, 散户, 游资, 北向, participant, main_force, institution"
+    result: "NOT_FOUND"
+    evidence: "DATA-CAPABILITY-AND-PIT-CONTRACT capabilities.BAR_ONLY.prohibited lists participant_identity. CURRENT-REPOSITORY-AUDIT explicitly excludes participant identity."
+    verdict: "PASS — No participant identity inference."
+
+  SV-006_HIDDEN_INTENT:
+    detection: "Grep for 扫止损, 吸筹, 出货, 护盘, 假突破, stop_loss_sweep, accumulation, distribution, price_defense"
+    result: "NOT_FOUND"
+    evidence: "BREACH-RECLAIM-LABEL-STATE-MACHINE.yaml explicitly states 'observable BAR_ONLY labels, not intent or participant labels'. PostSweepStabilizationAssessment includes 'competing_explanations' and 'capability_limit' fields."
+    verdict: "PASS — No hidden intent claims. Stabilization assessment acknowledges competing explanations without claiming intent."
+
+  SV-007_PROBABILITY:
+    detection: "Grep for probability, confidence_interval, p_value, distribution, statistical_test"
+    result: "FOUND_IN_DESIGN_ONLY"
+    evidence: "VALIDATION-OOS-AND-LOCKBOX-DESIGN.yaml section multiple_testing mentions statistical testing plans. BASELINE-MATRIX.yaml references B3 baseline. BUT: PROJECT-PLAN.yaml mission states 'does not implement... probability estimates'. VALIDATION-OOS covers D4 (future phase). STATUS: COVERED_BY_DESIGN, NOT IMPLEMENTED."
+    verdict: "PASS — Statistical tests are preregistered D4 plans, not D0 output. No probability distribution produced in D0."
+
+  SV-008_ALLOCATION:
+    detection: "Grep for trade_signal, order, allocation, position_size"
+    result: "NOT_FOUND"
+    evidence: "COST-NONFILL-CONTRACT.yaml boundary: 'No execution simulator is implemented'. PROJECT-PLAN.yaml mission: does not implement 'allocation or trades'."
+    verdict: "PASS — No order/allocation signals. T+1 inventory is research-simulator only per contract."
+
+=== BAR_ONLY_VIOLATION: ALL 8 SV PASS. NO VIOLATION TRIGGERED. ===
+
+# ============================================================================
+# PIT AND LOOK-AHEAD REVIEW (Q01-Q04)
+# ============================================================================
+pit_and_lookahead:
+  Q01_REFERENCE_ZONE_FIELDS:
+    status: "PARTIAL"
+    evidence: "REFERENCE-ZONE-DEFINITION-CONTRACT.yaml zone_families lists 8 zone types with bar_fields and lookback parameters. Covered 3 mandatory zone types: price_level_zone (PREVIOUS_SESSION_EXTREME, PIT_N_BAR_SWING, PRICE_LIMIT_BOUNDARY, PRE_REGISTERED_ROUND_NUMBER), volume_zone (BAR_VWAP_BAND, BAR_VOLUME_DISTRIBUTION_CANDIDATE), volatility_zone (not explicitly named; nearest is COMPLETED_BAR_LOCAL_EXTREME and OPENING_RANGE which combine price levels. No explicit volatility-only zone family)."
+    score: 0.5
+
+  Q02_TIMESTAMP_CAUSALITY:
+    status: "PARTIAL"
+    evidence: "Invariants: 'defined_at <= available_at' and 'available_at <= breach_event.event_time'. Multi-timeframe proof states daily zone only eligible after day completion. These are CONTRACT statements, not machine-executable proofs. No computational proof that generates a timestamp chain for a concrete example."
+    score: 0.5
+
+  Q03_ZONE_VERSIONING:
+    status: "PARTIAL"
+    evidence: "Invariants: 'zone version changes only at a completed source-bar available_at boundary' and 'expired/superseded zones remain immutable records'. Defines applicable-version rule implicitly: version active at available_at boundary. No explicit per-time-period applicability table for a concrete example."
+    score: 0.5
+
+  Q04_MULTI_TIMEFRAME:
+    status: "PARTIAL"
+    evidence: "Multi-timeframe proof section addresses daily→intraday causality: 'A zone sourced from daily D is only eligible after D has completed', 'never eligible for a minute bar earlier on D'. DATA-CAPABILITY-AND-PIT-CONTRACT timeframe_join_rule provides join semantics. No concrete causation diagram or worked example."
+    score: 0.5
+
+# ============================================================================
+# T+1, LIMITS, UNTRADEABLE REVIEW (Q10-Q14)
+# ============================================================================
+t1_and_untradeable:
+  Q10_T1_INVENTORY_MODEL:
+    status: "PARTIAL"
+    evidence: "TPLUSONE-INVENTORY-AND-UNTRADEABLE-CONTRACT.yaml lot_model provides formulas for sellable_quantity, frozen_quantity, already_sold_quantity. Overnight gap modeled as risk observation. BUT: status is CANDIDATE_CONTRACT_NOT_IMPLEMENTED. Formulas are pseudocode, not runnable. No T+1 lag timing diagram."
+    score: 0.5
+
+  Q11_PRICE_LIMITS:
+    status: "PARTIAL"
+    evidence: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml price_limit_contract defines inputs/outputs. Verified source ledger lists SSE_2026_TRADING_RULES and SSE_2026_RISK_WARNING_CHANGE with source URLs. Effective dates recorded. Historical/SZSE status marked UNKNOWN_REQUIRES_OFFICIAL_SNAPSHOT_COLLECTION. Per corrigendum: hardcoded 10%/20%/5% NOT allowed — rule must be snapshot-derived. Snapshot contract design is correct but incomplete: only SSE 2026 with deferred provisions, no SZSE, no pre-2026."
+    score: 0.5
+
+  Q12_SUSPENSIONS:
+    status: "PARTIAL"
+    evidence: "Suspension contract defines states: NOT_SUSPENDED, SUSPECTED_GAP, CONFIRMED_SUSPENSION, RESUMPTION_BOUNDARY, UNKNOWN. Default: missing bars = SUSPECTED_GAP not CONFIRMED_SUSPENSION. U0017-005: suspension/corporate-action data UNKNOWN. Design is self-aware but not populated."
+    score: 0.5
+
+  Q13_CALL_AUCTIONS:
+    status: "PARTIAL"
+    evidence: "Auction contract fields: market_phase, auction_inclusion_policy, timestamp_convention, source_bar_completeness. Default: 'Auction-only bar is excluded from breach/reclaim labeling'. Contract design is correct. BUT: no specific timestamps (9:15-9:25, 14:57-15:00), no confirmed per-exchange auction schedule data."
+    score: 0.5
+
+  Q14_UNTRADEABLE_RATE:
+    status: "UNKNOWN"
+    evidence: "U0017-008: 'Untradeable-event rate and empirical label stability — Not quantified in D0. Resolution: D3 preregistered run; preserve UNKNOWN until then.' Honest explicit UNKNOWN."
+    score: 0.0
+
+# ============================================================================
+# DATA REPRODUCIBILITY REVIEW (Q15-Q19)
+# ============================================================================
+data_reproducibility:
+  Q15_DATA_INVENTORY:
+    status: "PARTIAL"
+    evidence: "LOCAL-DATA-INVENTORY-AND-RECEIPT.yaml lists 4 file inventories with field names, sizes, SHAs, coverage periods. BUT: data_type column missing, timezone is UNKNOWN for most, missing_value_policy absent. 96K+ vendor files inventoried by count only."
+    score: 0.5
+
+  Q16_DATA_HASHES:
+    status: "PARTIAL"
+    evidence: "SHA-256 recorded for 2 local files (TDX .day and .lc1), prefix-only for 2 others. 'Reproducibility' column present. BUT: vendor-specific files are VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE. No QCLAW-equivalent dataset path. License: UNKNOWN for all."
+    score: 0.5
+
+  Q17_MISSING_BARS:
+    status: "PARTIAL"
+    evidence: "DATA-CAPABILITY-AND-PIT-CONTRACT validation section: 'out-of-order bars retained as evidence but excluded'. Duplicate key defined. Missing_error_state fields present on all objects. BUT: no concrete gap detection logic, no expected-bar-count-per-day, no gap-handling-policy-per-computation."
+    score: 0.5
+
+  Q18_PATH_REPRODUCIBILITY:
+    status: "PARTIAL"
+    evidence: "CURRENT-REPOSITORY-AUDIT: 'brain_core directory [is] not a publicly reproducible repository fact'. Explicit: 'The D0 package is public-safe and reproducible as a planning artifact. It is not independently reproducible as a historical research run.' Codex acknowledges brain_core paths exist locally and marks as UNKNOWN/EXTERNAL_AUDIT_REQUIRED. Honest. BUT per EVIDENCE-REQUIREMENT-MATRIX, Q18 requires 'alternative path for each brain_core reference' — Codex states paths are deliberately absent."
+    score: 0.5
+    external_audit_required: true
+
+  Q19_RULE_SNAPSHOTS:
+    status: "PARTIAL"
+    evidence: "Verified source ledger has 3 entries with source URLs, publication dates, effective dates. BUT: historical and SZSE status is UNKNOWN. No alignment verification with bar timestamps. Pre-2026 rules absent."
+    score: 0.5
+
+# ============================================================================
+# LOCAL REALITY ASSESSMENT
+# ============================================================================
+local_reality:
+  brain_core_references: "Codex explicitly acknowledges local brain_core paths exist and marks as publicly non-reproducible. No raw paths published."
+  vendor_data: "TDX .day/.lc1/.lc5 files inventoried at local installation. SHAs recorded for 2 files. All marked VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE."
+  legacy_modules: "Repository contains MarketDataRecord, PriceBar, FeatureSet, BacktestResult, ValidationReport — names observed only. No content published. Marked ADAPT_PENDING_INTERFACE_AUDIT."
+  reproducibility_verdict: "D0 is public-safe as a PLANNING artifact. Not independently reproducible as a RESEARCH RUN. Q18/Q39/Q36 correctly flagged as requiring external audit."
+  honesty_assessment: "Codex is unusually honest about limits: explicitly marks 9 UNKNOWNs, declares all contracts as NOT_IMPLEMENTED, acknowledges brain_core dependency, and defers self-certification questions to QCLAW/GPT."
+
+conclusion_bar_only: "ALL 8 SV rules PASS. No scope violation. Codex BAR_ONLY boundary is well-defined and respected. D0 is a planning contract package, not an implementation."
+conclusion_pit: "PIT/T+1/rule contracts are well-designed but incomplete per corrigendum: no SZSE, no pre-2026 rules, no concrete worked examples. Partial scores reflect contract-quality gap, not scope violation."
+conclusion_data: "Data reproducibility is the weakest dimension. All real data is VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE. This is honestly admitted."
+signed_by: "QCLAW"
+signed_at: "2026-07-24T07:30:00+08:00"

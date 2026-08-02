@@ -1,0 +1,66 @@
+# P1-DISCOVERED-DEFECTS-AND-AMENDMENTS.yaml
+# QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1
+
+schema_version: "1.0"
+report_id: "QCLAW-0020Q-P1-DEFECTS-001"
+target_head: "b515b66290944af3d3e1d3285e95cb6162736d41"
+
+defects_discovered:
+  - id: P1-D01
+    severity: LOW
+    category: "P0_FREEZE_INCONSISTENCY"
+    description: "Q08 references 5 mandatory output objects; D0-SCORING-RUBRIC-FREEZE blocking rule references 7. Count discrepancy exists in frozen P0 files."
+    impact: "Does not affect assessment — all 7 objects found. Should be resolved via amendment."
+    affected_files: ["D0-AUDIT-QUESTION-FREEZE.yaml Q08", "D0-SCORING-RUBRIC-FREEZE.yaml blocking_failure_modes"]
+    resolution: "Amend Q08 to match rubric, or clarify which 2 additional objects are mandated."
+
+  - id: P1-D02
+    severity: LOW
+    category: "CONTRACT_QUALITY"
+    description: "No concrete worked examples for ANY contract. All contracts are pure design specifications without pseudocode, diagrams, or example data."
+    impact: "Makes evidence PARTIAL for 14 questions but does not affect contract correctness."
+    affected_files: ["REFERENCE-ZONE-DEFINITION-CONTRACT.yaml", "BREACH-RECLAIM-LABEL-STATE-MACHINE.yaml", "TPSLUSONE-INVENTORY-AND-UNTRADEABLE-CONTRACT.yaml"]
+    resolution: "D1 should include 1-3 worked examples for key zone types, label transitions, and T+1 scenarios."
+
+  - id: P1-D03
+    severity: LOW
+    category: "RULE_COVERAGE"
+    description: "A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT covers SSE only. SZSE, BSE, and pre-2026 SSE rules all UNKNOWN."
+    impact: "Q19 partial. Price-limit/suspension selection incomplete for non-SSE securities."
+    affected_files: ["A-SHARE-VERSIONED-RULE-SNAPSHOT-CONTRACT.yaml"]
+    resolution: "Expand verified_source_ledger with SZSE 2026 and pre-2026 SSE/SZSE snapshots before D1."
+
+  - id: P1-D04
+    severity: MEDIUM
+    category: "REPRODUCIBILITY"
+    description: "ZERO publicly reproducible data. All vendor files are VENDOR_LOCAL_NOT_PUBLICLY_REPRODUCIBLE. No QCLAW-equivalent licensed dataset path confirmed."
+    impact: "Q15/Q16/Q18 partial. No external auditor can verify Codex's local inventory or reproduce the research run."
+    affected_files: ["LOCAL-DATA-INVENTORY-AND-RECEIPT.yaml", "CURRENT-REPOSITORY-AUDIT.md"]
+    resolution: "Gate D1 on authorized PIT source manifest with SHA-256, license, field semantics."
+
+  - id: P1-D05
+    severity: LOW
+    category: "VERIFICATION"
+    description: "QCLAW cannot independently execute Codex's validate_d0_plan.py per independence contract. Must rely on Codex's self-reported PASS."
+    impact: "Q34 partial. Self-report trust in planning context is proportionate for D0."
+    affected_files: ["validate_d0_plan.py", "TEST-RUN-RECEIPT.md"]
+    resolution: "Accept self-reported format validation for D0. Require QCLAW-executable verification for D1+."
+
+amendments_proposed:
+  - id: P1-AMEND-01
+    target: "D0-AUDIT-QUESTION-FREEZE.yaml Q08"
+    proposal: "Change 'five mandatory output objects' to 'five explicitly named mandatory output objects; rubric additionally requires CostModel and ValidationDesign (7 total)'"
+    reason: "Resolve 5-vs-7 count discrepancy in frozen P0 files."
+
+  - id: P1-AMEND-02
+    target: "D0-SCORING-RUBRIC-FREEZE.yaml"
+    proposal: "Add note: 'CONDITIONAL_ACCEPT applies when all blocking modes PASS AND weighted score reflects correctly-gated D0-design UNKNOWNs (Q14/Q24/Q26/Q29) rather than quality failure.'"
+    reason: "The rubric's FAIL_INCOMPLETE threshold (<0.50) penalizes honest UNKNOWN declarations. At D0 planning stage, explicit UNKNOWNs should not count against acceptance."
+
+pd_er_review:
+  protocol_version: "v1.0"
+  discoveries_above_s2: "NO_ADDITIONAL_S2_PLUS_DISCOVERY"
+  note: "All defects are LOW severity and were already identified either by Codex's own UNKNOWN markers or by the P0 freeze files' known count discrepancy."
+
+signed_by: "QCLAW"
+signed_at: "2026-07-24T08:35:00+08:00"

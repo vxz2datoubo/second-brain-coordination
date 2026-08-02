@@ -1,0 +1,57 @@
+schema_version: "1.0"
+record_type: "LegacyReuseAndNonDuplicationMatrix"
+task_id: "CODEX-A-SHARE-LIQUIDITY-SWEEP-RECLAIM-0017-D0-PLAN-R1"
+entries:
+  - artifact: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BLUEPRINT-v1.0.md"
+    disposition: REUSE
+    evidence: "Existing candidate authority defines observable labels, boundaries and required objects."
+    action: "This package supplies D0 contracts and receipts; it does not replace the blueprint."
+  - artifact: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    disposition: ADAPT
+    evidence: "Protocol supplies validation intent but lacks an executable D0 source manifest and rule selection contract."
+    action: "Use after the manifest/rule gates in this package are accepted."
+  - artifact: "coordination/BLUEPRINTS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-RESEARCH-VALIDATION-v1.0.md"
+    disposition: REFERENCE_ONLY
+    evidence: "Research supports hypotheses and limitations; it is not A-share empirical validation."
+    action: "Retain external-research limits and competing explanations."
+  - artifact: "coordination/SKILLS/A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-SKILL-v1.0.yaml"
+    disposition: ADAPT
+    evidence: "Registered candidate skill; no implementation maturity."
+    action: "Do not promote maturity until D1-D6 gates complete."
+  - artifact: "PHASE-2-OFFLINE-VERTICAL-SLICE"
+    disposition: ADAPT
+    evidence: "Existing offline/replay architecture candidate."
+    action: "Reuse only manifest/PIT patterns after interface audit; no second replay authority."
+  - artifact: "PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+    disposition: ADAPT
+    evidence: "Existing candidate LearningPacket/memory pattern."
+    action: "Candidate-only downstream receipt; no new memory store."
+  - artifact: "A-SHARE-INDICATOR-KNOWLEDGE-MAP-0016"
+    disposition: MIGRATE
+    evidence: "Referenced by the 0017 blueprint but not found as a current public runtime in this repository."
+    action: "Map qualifying zone/indicator definitions by source hash in a later approved migration; do not copy them now."
+  - artifact: "Issue #42 capital-intent candidates"
+    disposition: REFERENCE_ONLY
+    evidence: "Potential context/legacy source, but participant and hidden-intent semantics conflict with BAR_ONLY."
+    action: "Only observable price/rule/PIT fragments may be considered after separate provenance review."
+  - artifact: "W2 market facts/rules/replay"
+    disposition: ADAPT
+    evidence: "Named authority in the existing 0017 skill."
+    action: "Consume read-only contracts; do not recreate market data authority."
+  - artifact: "W7 validation/risk gate"
+    disposition: REUSE
+    evidence: "Named final validation authority."
+    action: "0017 produces candidate evidence only; W7 retains final gate."
+  - artifact: "W9 shadow calibration"
+    disposition: REFERENCE_ONLY
+    evidence: "Shadow ownership is external to D0."
+    action: "No D0 shadow runtime."
+  - artifact: "W13 participant-flow material"
+    disposition: REFERENCE_ONLY
+    evidence: "Can provide confounder context but conflicts as an identity proof."
+    action: "No W13 input is required for BAR_ONLY VS1."
+  - artifact: "local brain_core/trading modules"
+    disposition: ADAPT
+    evidence: "Accessible-local, other-agent-owned code; not in coordination repository."
+    action: "Future interface audit only; no copying, modification or authority claim."
+duplicate_runtime_prohibitions: [new_market_data_authority, new_memory_store, new_probability_engine, new_allocation_engine, new_order_runtime, bar_derived_order_flow]

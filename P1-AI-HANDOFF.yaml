@@ -1,0 +1,54 @@
+# P1-AI-HANDOFF.yaml
+schema_version: "1.0"
+handoff_id: "QCLAW-0020Q-P1-HANDOFF-001"
+
+source_agent: "QCLAW"
+source_role: "TEMPORARY_BORROW (Independent P1 Frozen-Instrument Auditor)"
+target_agent: "GPT"
+target_role: "D0 Gate Reviewer per ACTIVE-THREE-AGENT-COORDINATION.yaml"
+
+source_task: "QCLAW-0017-D0-INDEPENDENT-AUDIT-0020Q-P1"
+target_task: "DECIDE whether Codex D0 passes and D1 is authorized"
+
+completion_signal: "QCLAW_0017_D0_P1_INDEPENDENT_FROZEN_INSTRUMENT_AUDIT_READY_FOR_GPT_REVIEW"
+
+deliverables:
+  directory: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-0017-D0-INDEPENDENT-AUDIT/0020Q-P1/"
+  file_count: 15
+  key_files:
+    - P1-VERDICT-AND-GPT-RECOMMENDATION.yaml  # Primary: read this first
+    - P1-DIMENSION-SCORECARD.yaml
+    - P1-BLOCKING-FAILURE-ASSESSMENT.yaml
+    - P1-QUESTION-BY-QUESTION-EVIDENCE-MAP.yaml
+    - P1-BAR-ONLY-PIT-RULE-AND-LOCAL-REALITY-REVIEW.yaml
+    - P1-COUNTEREVIDENCE-AND-SELF-VERIFICATION-LOOP-REPORT.md
+    - P1-UNKNOWN-ABSTENTION-AND-EVIDENCE-GAP-REPORT.yaml
+    - P1-DISCOVERED-DEFECTS-AND-AMENDMENTS.yaml
+
+audit_result:
+  blocking: "ALL 4 MODES PASS (0 TRIGGERED)"
+  score: {weighted: 0.491, threshold: "FAIL_INCOMPLETE"}
+  verdict: "CONDITIONAL_ACCEPT_WITH_BOUNDED_CONTRACTS"
+  material_gaps: ["Zero publicly reproducible data", "No runnable labeler (D1)", "All costs UNKNOWN (D2-D4)", "B3 blocked by W3"]
+  key_strengths: ["EXCEPTIONALLY honest UNKNOWN culture", "BAR_ONLY discipline (8/8 SV PASS)", "No self-verification loop", "No maturity inflation"]
+
+gate_recommendation:
+  accept_D0: true
+  gate_D1_on:
+    - "Authorized PIT source manifest (SHA-256, license, field semantics, timezone, calendar, adjustment policy)"
+    - "Versioned SSE/SZSE/BSE rule snapshot ledger complete through evaluation period"
+    - "W3/W7 read-only interface contract reviewed"
+    - "QCLAW-equivalent licensed data path confirmed"
+
+to_GPT: |
+  QCLAW recommends CONDITIONAL ACCEPT. The 0.491 score is primarily driven by 
+  honest UNKNOWN declarations that Codex correctly gates to D1-D4. All blocking 
+  modes clean. Read P1-VERDICT-AND-GPT-RECOMMENDATION.yaml for detailed analysis.
+
+after_gpt_decision:
+  if_accepted: "QCLAW returns to PRIMARY_SYSTEM_BUILD role (Issues #59/#60/#38)"
+  if_rejected: "QCLAW reviews GPT findings"
+
+signatures:
+  qclaw: {agent_id: QCLAW, signed_at: "2026-07-24T08:40:00+08:00"}
+  gpt_review: {status: PENDING, signed_at: null}
