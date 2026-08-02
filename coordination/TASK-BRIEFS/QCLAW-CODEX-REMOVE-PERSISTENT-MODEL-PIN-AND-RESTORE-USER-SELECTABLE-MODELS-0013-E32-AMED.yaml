@@ -1,0 +1,53 @@
+schema_version: "1.0"
+task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+agent: "QCLAW"
+mode: "target"
+issue: 129
+route_epoch: 32
+status: "READY"
+
+user_intent:
+  temporary_requested_profile: "GPT-5.6 Terra + xhigh"
+  temporary_profile_was_not_persistent_default_authorization: true
+  desired_end_state: "USER_CAN_SELECT_MODEL_AND_REASONING_IN_CODEX_UI_OR_CURRENT_SESSION"
+
+objective:
+  - "Remove only QQ-created persistent model and reasoning overrides from the effective Codex config."
+  - "Restore an unpinned state where the user, not an agent-owned config value, controls model selection."
+
+allowed_write:
+  path_category: ".codex/config.toml"
+  exact_fields: ["model", "model_reasoning_effort"]
+  operation: "DELETE_QQ_OWNED_PERSISTENT_OVERRIDE_ONLY"
+  preserve_unrelated_bytes: true
+  minimal_reload_only: true
+
+verification:
+  - "Before/after field-presence proof with redacted hashes."
+  - "All unrelated bytes and settings unchanged."
+  - "Codex starts after minimal reload."
+  - "No persistent QQ-owned model or reasoning override remains."
+  - "User selection remains manual; QQ does not choose a replacement model."
+
+fail_closed:
+  - "If field ownership cannot be proved: BLOCKED_FIELD_OWNERSHIP_NOT_PROVEN."
+  - "If removing the fields would require unrelated rewrites: BLOCKED_NON_MINIMAL_CONFIG_MUTATION."
+  - "If user-selectable state cannot be verified without private-data exposure: stop and report public-safe UNKNOWN."
+
+hard_boundaries:
+  - "Do not write GPT-5.6 Terra, xhigh, or any other model/reasoning value."
+  - "Do not modify agent, thread, workspace, environment, app DB, credentials or sessions."
+  - "Do not continue E30, touch Codex E41, run Canary, or perform account/order/trade actions."
+  - "Do not publish local config contents or secrets."
+
+report:
+  required_sections:
+    - "Lease and route identity"
+    - "User-intent interpretation"
+    - "Touched field ownership evidence"
+    - "Exact minimal mutation"
+    - "Unrelated-byte non-drift"
+    - "Reload/start verification"
+    - "User-selectable-state result"
+    - "Negative assertions"
+  completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
