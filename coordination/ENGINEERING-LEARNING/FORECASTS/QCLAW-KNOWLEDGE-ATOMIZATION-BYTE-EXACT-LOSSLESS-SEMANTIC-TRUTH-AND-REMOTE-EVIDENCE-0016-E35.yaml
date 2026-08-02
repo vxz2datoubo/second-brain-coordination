@@ -1,0 +1,24 @@
+schema_version: "1.0"
+agent_id: "GPT"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-EXACT-LOSSLESS-SEMANTIC-TRUTH-AND-REMOTE-EVIDENCE-0016-E35"
+route_epoch: 35
+forecast_type: "PRE_EXECUTION"
+expected_difficulty: "HIGH_BYTE_EXACT_SEMANTIC_PIPELINE"
+expected_primary_risks:
+  - "Character offsets are mislabeled as byte offsets for multibyte text."
+  - "Coverage silently discards whitespace or structured syntax."
+  - "Relations are invented from adjacency."
+  - "Redaction destroys original lineage or leaks local paths."
+  - "Tests pass without exercising rejection conditions."
+  - "Workflow claims exact remote CI without an exact-head assertion."
+expected_validation:
+  - "Chinese, emoji, combining marks, repeated text and CRLF spans slice back exactly."
+  - "Markdown/TXT/JSON/JSONL/conversation inputs achieve exact 100% explained bytes."
+  - "No relation is created without evidence span or rule source."
+  - "Overlapping synthetic secret spans redact without secret-derived values."
+  - "Absolute paths, Base64 source, placeholders, self-hashes and unexplained bytes fail closed."
+  - "Exact tested/receipt Python 3.11 and 3.13 CI plus three hash seeds."
+non_claims:
+  - "E34 implementation is not an authoritative source baseline."
+  - "No private data or local configuration is authorized."
+stop_condition: "Completion signal posted with exact heads and GPT second-pass requested."
