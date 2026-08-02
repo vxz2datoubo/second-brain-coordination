@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:RevocationReceipt:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "revocation_id", "manifest_id", "reason_code", "previous_status", "current_status", "changed", "removed_current_atom_ids", "historical_atom_ids", "status", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "revocation_id": {"type": "string", "pattern": "^revocation-[0-9a-f]{20}$"},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "reason_code": {"type": "string", "pattern": "^[a-z0-9_:-]{1,80}$"},
+    "previous_status": {"enum": ["ACTIVE", "REVOKED"]},
+    "current_status": {"const": "REVOKED"},
+    "changed": {"type": "boolean"},
+    "removed_current_atom_ids": {"type": "array"},
+    "historical_atom_ids": {"type": "array"},
+    "status": {"const": "REVOKED"},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}

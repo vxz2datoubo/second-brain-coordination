@@ -19,6 +19,34 @@ from .integrated_flow import (
     replay_receipt_to_learning_packet,
     run_integrated_flow,
 )
+from .knowledge_contracts import (
+    KnowledgeAccessDecision,
+    KnowledgeGatewayPolicy,
+    KnowledgeQuery,
+    KnowledgeSourceManifest,
+    LocalKnowledgeReference,
+    evaluate_knowledge_access,
+)
+from .local_knowledge import (
+    ExistingServiceKnowledgeAdapter,
+    LocalDirectoryKnowledgeAdapter,
+    LocalFileKnowledgeAdapter,
+    LocalKnowledgeAdapter,
+    LocalKnowledgeDocument,
+    LocalKnowledgeLoadResult,
+    build_local_knowledge_packet,
+    hash_local_directory,
+    hash_local_file,
+)
+from .answer_evidence import AnswerEvidenceBundle, AnswerEvidenceCompiler
+from .feedback import (
+    FeedbackCommitReceipt,
+    FeedbackLearningPacket,
+    FeedbackProcessor,
+    FeedbackRecord,
+    RevocationReceipt,
+)
+from .recovery import MemoryRebuildBundle, RebuildReceipt, export_rebuild_bundle, rebuild_memory_store
 
 __all__ = [
     "FieldSemanticDecision",
@@ -33,6 +61,28 @@ __all__ = [
     "ReplayReceipt",
     "MemoryStore",
     "IntegratedFlowReceipt",
+    "KnowledgeAccessDecision",
+    "KnowledgeGatewayPolicy",
+    "KnowledgeQuery",
+    "KnowledgeSourceManifest",
+    "LocalKnowledgeReference",
+    "LocalKnowledgeAdapter",
+    "LocalKnowledgeDocument",
+    "LocalKnowledgeLoadResult",
+    "LocalFileKnowledgeAdapter",
+    "LocalDirectoryKnowledgeAdapter",
+    "ExistingServiceKnowledgeAdapter",
+    "AnswerEvidenceBundle",
+    "AnswerEvidenceCompiler",
+    "FeedbackRecord",
+    "FeedbackLearningPacket",
+    "FeedbackCommitReceipt",
+    "FeedbackProcessor",
+    "RevocationReceipt",
+    "MemoryRebuildBundle",
+    "RebuildReceipt",
+    "export_rebuild_bundle",
+    "rebuild_memory_store",
     "QueryPlan",
     "SnapshotManager",
     "TdxDayParser",
@@ -42,6 +92,10 @@ __all__ = [
     "replay_receipt_to_learning_packet",
     "run_integrated_flow",
     "build_learning_packet",
+    "build_local_knowledge_packet",
+    "evaluate_knowledge_access",
+    "hash_local_directory",
+    "hash_local_file",
     "to_p2_bars",
     "verify_learning_packet",
 ]

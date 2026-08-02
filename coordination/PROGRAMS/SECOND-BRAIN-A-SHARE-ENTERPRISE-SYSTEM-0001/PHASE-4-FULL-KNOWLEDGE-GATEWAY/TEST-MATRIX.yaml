@@ -1,0 +1,58 @@
+schema_version: "1.0"
+task_id: CODEX-P4-FULL-KNOWLEDGE-GATEWAY-0007
+baseline:
+  p1_contracts: 12
+  p2_offline_replay: 25
+  p3_local_adapter: 61
+  p3_integrated_runtime: 183
+  distinct_total: 281
+  status: PASS
+planned_suites:
+  source_contracts:
+    cases:
+      - manifest_roundtrip_and_unknown_fields
+      - unknown_license_denial
+      - hash_and_size_binding
+      - privacy_and_transport_boundary
+      - revocation
+  adapters:
+    formats: [markdown, txt, json, jsonl]
+    cases:
+      - read_only
+      - deterministic_chunking
+      - unsupported_format
+      - malformed_payload
+      - path_and_hash_mismatch
+      - private_body_not_in_receipt
+  query_and_evidence:
+    cases:
+      - chinese_english_mixed_fullwidth
+      - explicit_typo_alias
+      - negation_and_exception
+      - current_vs_historical
+      - conflicts_unknowns_and_lineage
+      - source_scope_type_time_confidence_filters
+      - one_and_two_hop_relations
+      - budget_omission_reasons
+      - abstention
+  security:
+    required_zero_failure:
+      - credential_value_success_path
+      - credential_value_error_path
+      - credential_value_audit_path
+      - credential_value_snapshot_and_rollback_path
+      - private_body_public_receipt
+  feedback:
+    classes: [DUPLICATE, SUPPLEMENT, REFINEMENT, CONFLICT, CORRECTION, SUPERSEDES, UNKNOWN_RESOLVED]
+    cases: [preview, commit, idempotency, snapshot, rollback, rebuild, revocation]
+  acceptance:
+    adversarial_queries_minimum: 100
+    passing_or_predeclared_valid_abstention_minimum: 95
+    synthetic_atoms: 2000
+    deterministic_rebuilds: 2
+    mandatory_metrics_100_percent:
+      - conflict_recall
+      - unknown_recall
+      - source_lineage_coverage
+      - forbidden_atom_exclusion
+      - credential_value_exclusion

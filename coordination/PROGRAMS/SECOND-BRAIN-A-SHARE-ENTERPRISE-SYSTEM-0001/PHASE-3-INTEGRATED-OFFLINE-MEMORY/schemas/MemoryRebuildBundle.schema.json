@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:superbrain:p4:MemoryRebuildBundle:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "packets", "knowledge_sources", "unknown_statuses", "feedback_receipts", "bundle_hash", "local_only", "authority_write", "no_trade_gate"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "packets": {"type": "array"},
+    "knowledge_sources": {"type": "array"},
+    "unknown_statuses": {"type": "array"},
+    "feedback_receipts": {"type": "array"},
+    "bundle_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "local_only": {"const": true},
+    "authority_write": {"const": false},
+    "no_trade_gate": {"const": true}
+  }
+}
