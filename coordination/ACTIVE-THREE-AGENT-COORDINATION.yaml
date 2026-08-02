@@ -1,9 +1,9 @@
-schema_version: "50.0"
+schema_version: "51.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E41_SCOPE_CLARIFIED_QCLAW_E32_MODEL_UNPIN_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E41_SCOPE_CLARIFIED_QCLAW_E32_THEN_LOW_BUDGET_E33_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T20:13:00+08:00"
+updated_at: "2026-08-02T20:30:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
@@ -11,14 +11,12 @@ permanent_command_semantics:
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  temporary_profile_rule: "A user-requested model/reasoning combination for current work is not permission to persist it as a default."
-  model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never persist or select it."
-  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may set persistent model/reasoning/default/thread/subagent values."
-  unpin_exception_rule: "A route may remove only proven agent-created persistent model overrides to restore user control; it may not write replacement values."
-  claim_not_execution_rule: "A route claim, selected_owner label or terminal database row is not proof that App Automation or CLI was actually invoked."
-  global_one_shot_rule: "One-shot consumption must survive process exit, restart and fresh local databases; ephemeral SQLite alone is not global authority."
-  repository_scope_rule: "Agent engineering routes must state exact allowed paths and source-import policy; agents must block rather than infer missing authority."
-  secret_rule: "No credential/session/key/private-config read or persistence."
+  temporary_profile_rule: "A requested current model/reasoning profile is not permission to persist it."
+  model_mutation_rule: "Agents may not set persistent model/reasoning/default/thread/subagent values."
+  unpin_exception_rule: "Only proven agent-created persistent overrides may be deleted to restore user control; no replacement values."
+  repository_scope_rule: "Engineering routes require exact allowed paths; agents block rather than infer."
+  budget_truth_rule: "GPT and agents cannot read provider point meters; point budgets are relative scope estimates, not billing guarantees."
+  secret_rule: "No credential/session/key/private-config disclosure or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
 agents:
@@ -30,37 +28,37 @@ agents:
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    automatic_resume: false
     planned_branch: "codex/brainops-durable-one-shot-and-real-execution-evidence-0037-e41"
-    lease_claim_comment_id: 5157671368
     lease_claim_disposition: "ACCEPTED_SCOPE_GAP_RESOLVED"
-    allowed_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-      - ".github/workflows/brainops-e41.yml"
-    source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_127_ONLY_WITH_MANIFEST"
-    mode: "project_plan"
-    model_selection_owner: "USER_ONLY"
-    agent_model_setting_mutation_forbidden: true
-    completion_signal: "CODEX_BRAINOPS_E41_DURABLE_ONE_SHOT_AND_REAL_EXECUTION_EVIDENCE_READY_FOR_GPT_REVIEW"
-    current_action: "Re-read clarified scope, create non-empty plan commit and sole Draft PR, then engineer durable authority without Canary/App/CLI invocation."
+    current_action: "Continue scoped E41 engineering only; no Canary/App/CLI invocation."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 129
-    source_issue: 125
-    task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
-    route_epoch: 32
-    status: "READY"
+    queued_issue: 130
+    status: "READY_TWO_STAGE_BUDGETED"
     execution_allowed: true
-    automatic_resume: false
-    completion_report_received: false
-    temporary_requested_profile: "GPT-5.6 Terra + xhigh"
-    temporary_profile_not_persistent_default: true
-    desired_end_state: "USER_SELECTABLE_MODEL_AND_REASONING_NO_AGENT_PERSISTENT_PIN"
-    allowed_write: "DELETE_ONLY_PROVEN_QQ_OWNED_model_AND_model_reasoning_effort_OVERRIDES"
-    replacement_model_values_forbidden: true
-    current_action: "Remove QQ-created persistent model/reasoning pin and return control to the user; do not choose a replacement model."
-    agent_model_setting_mutation_forbidden: true
-    completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
+    stage_1:
+      task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+      route_epoch: 32
+      status: "AWAITING_EXECUTION_OR_PUBLIC_SAFE_COMPLETION_REPORT"
+      completion_report_received: false
+      objective: "Prove/remove only QQ-owned persistent model/reasoning overrides; write no replacement value."
+    stage_2:
+      task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-LOW-BUDGET-RECOVERY-INVENTORY-AND-RESTART-MANIFEST-0014-E33"
+      route_epoch: 33
+      status: "QUEUED_AFTER_E32_SUCCESS"
+      execution_condition: "E32 success evidence posted and no quota warning."
+      objective: "Read-only recovery inventory and clean UTF-8 restart manifest for frozen knowledge-atomization work."
+      no_branch_pr_commit_ci_or_code: true
+    budget:
+      user_estimated_daily_points: 800
+      user_estimated_used_points: 700
+      user_estimated_remaining_points: "90+"
+      combined_target_points: "65-85"
+      hard_stop_before_estimated_points: 85
+      provider_meter_visible: false
+    second_start_command_required: false
+    after_E33: "STOP_AND_REQUEST_GPT_SECOND_PASS"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -69,22 +67,19 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E41:
-    lease_claim_credit: true
-    first_investigation_credit: true
-    agent_behavior: "Correctly blocked on missing allowed_paths rather than self-authorizing."
-    route_defect: "GPT publication omitted repository_scope."
-    remediation: "Issue, active route and AMED now bind exact paths and manifest-only selected import from PR #127."
-    completion_review_available: false
   QCLAW_E32:
-    route_publication_verified: true
     completion_review_available: false
-    finding: "Only the publication anchor exists; no execution or completion report has been submitted."
+    finding: "Issue #129 contains only publication evidence; no QCLAW completion report is present."
+    disposition: "DO_NOT_CREDIT_COMPLETION; execute or submit public-safe proof first."
+  QCLAW_E33:
+    issue: 130
+    task_size: "SMALL_TO_MEDIUM_READ_ONLY"
+    rationale: "Uses remaining daily budget to prepare tomorrow's exact restart without paying branch/CI/code costs."
 
 frozen:
-  - "QCLAW E31 is frozen and may not run again."
-  - "QCLAW E30 remains stopped; resumption requires a new GPT route."
-  - "PR #127 and E40R1 authorization remain frozen/consumed."
+  - "QCLAW E31 is frozen."
+  - "QCLAW E30 implementation remains stopped."
+  - "PR #127 and E40R1 authority remain frozen/consumed."
   - "No E41 Canary, App Automation or Codex CLI invocation."
   - "WorkBuddy remains paused."
   - "No secrets, accounts, orders or trades."
@@ -94,4 +89,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E41_ENGINEERING_ONLY_WITH_EXPLICIT_SCOPE / QQ_E32_REMOVE_PERSISTENT_PIN_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E41_ENGINEERING_ONLY / QCLAW_E32_PROOF_THEN_E33_READ_ONLY_BUDGETED / USER_CONTROLS_MODELS / NO_TRADE"
