@@ -1,12 +1,13 @@
-schema_version: "41.0"
+schema_version: "42.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_CANONICAL_REMOTE_READ_CLAIM_AND_REMOVE_PROVEN_PERSISTENT_MODEL_PIN"
+trigger_semantics: "VERIFY_CANONICAL_REMOTE_EXECUTE_E32_THEN_CONDITIONALLY_CONTINUE_E33_WITHIN_BUDGET"
 
 active_issue: 129
+queued_issue: 130
 foundation_issue: 20
 parent_program: 31
 source_issue: 125
@@ -14,79 +15,111 @@ source_completion_report_comment_id: 5155725512
 planned_branch: null
 planned_draft_pr: false
 
-task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
-route_epoch: 32
+active_task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+active_route_epoch: 32
 mode: "target"
-mode_label: "【QCLAW模式：目标模式】移除Codex持久模型锁定并恢复用户自主选择 E32"
-mode_reason: >-
-  The user clarified that GPT-5.6 Terra plus xhigh was a temporary desired operating profile, not authorization to persist those values.
-  The intended result is an unpinned Codex state where the user can choose different models and reasoning levels in the UI/current session.
-status: "READY"
+mode_label: "【QCLAW模式：目标模式】先完成模型解锁补证，再执行今日低算力恢复盘点"
+status: "READY_TWO_STAGE_BUDGETED"
 execution_allowed: true
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
+
+stage_1_E32:
+  issue: 129
+  task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+  route_epoch: 32
+  status: "AWAITING_EXECUTION_OR_PUBLIC_SAFE_COMPLETION_REPORT"
+  completion_report_received: false
+  completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
+  objective: "Remove only proven QQ-owned persistent model/model_reasoning_effort overrides and restore user-selectable control."
+  allowed_write:
+    path_category: ".codex/config.toml"
+    exact_fields: ["model", "model_reasoning_effort"]
+    operation: "DELETE_PROVEN_QQ_OWNED_PERSISTENT_OVERRIDE_ONLY"
+    replacement_values_forbidden: true
+    unrelated_bytes_unchanged: true
+  required_public_safe_evidence:
+    - "Whether each field existed before the E32 action and whether it exists after."
+    - "Redacted before/after file hashes and unrelated-byte identity result."
+    - "No replacement model/reasoning value was written."
+    - "Minimal reload/start verification and user-selectable state result or UNKNOWN."
+  fail_closed:
+    - "BLOCKED_FIELD_OWNERSHIP_NOT_PROVEN"
+    - "BLOCKED_NON_MINIMAL_CONFIG_MUTATION"
+    - "UNKNOWN_USER_SELECTABLE_STATE"
+
+stage_2_E33:
+  issue: 130
+  task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-LOW-BUDGET-RECOVERY-INVENTORY-AND-RESTART-MANIFEST-0014-E33"
+  route_epoch: 33
+  status: "QUEUED_AFTER_E32_SUCCESS"
+  execution_allowed_condition: >-
+    Continue in the same user-triggered session only after posting a public-safe E32 completion report that proves no replacement value,
+    no unrelated drift and no scope expansion, and only when no quota warning is present.
+  completion_signal: "QCLAW_E33_LOW_BUDGET_ATOMIZATION_RECOVERY_MANIFEST_READY_FOR_GPT_REVIEW"
+  objective: "Read-only recovery inventory for frozen QCLAW knowledge-atomization PRs and a precise clean-UTF8 restart manifest."
+  public_sources:
+    issues: [124, 120, 59]
+    pull_requests: [122, 118, 111]
+  required_outputs:
+    - "Reusable asset matrix with exact public identities and REUSE_AS_REFERENCE/RECONSTRUCT/REJECT disposition."
+    - "Deduplicated pollution/failure map."
+    - "Minimal clean UTF-8 reconstruction manifest."
+    - "Twelve to twenty highest-value test families, no test code."
+    - "Tomorrow's first executable task draft with mode, paths, criteria, CI/receipt contract and difficulty."
+    - "UNKNOWN and residual risks."
+  hard_limits:
+    max_major_files_reviewed: 20
+    max_test_families: 20
+    no_branch: true
+    no_pull_request: true
+    no_commit: true
+    no_ci: true
+    no_code_change: true
+
+budget_contract:
+  user_estimated_daily_points: 800
+  user_estimated_used_points: 700
+  user_estimated_remaining_points: "90+"
+  provider_meter_visible_to_GPT_or_QCLAW: false
+  stage_1_estimated_points: "10-15"
+  stage_2_estimated_points: "55-70"
+  combined_target_points: "65-85"
+  hard_stop_before_estimated_points: 85
+  stop_on_quota_warning: true
+  partial_E33_report_allowed: true
+  note: "Relative scope estimate only; not a guarantee of provider point accounting."
 
 operator_model_advisory:
-  recommendation_level: "HIGH"
-  recommended_model_or_picker_label: "highest suitable model visible to the user"
-  recommended_reasoning_level: "high or highest"
+  stage_1_recommendation: "user manually keeps/selects a high-capability model; high reasoning is sufficient"
+  stage_2_recommendation: "high-capability model with high reasoning; xhigh not required for read-only inventory"
   user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
   agent_setting_mutation_forbidden: true
-  note: "QQ must not persist Terra, xhigh or any replacement value."
-
-supersedes:
-  task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
-  route_epoch: 31
-  issue: 125
-  disposition: "USER_INTENT_MISINTERPRETED_PERSISTENT_PIN_NOT_DESIRED"
-  forensic_identification_credit: true
-  original_state_restoration_credit: false
-  frozen: true
-
-user_intent_binding:
-  temporary_requested_profile: "GPT-5.6 Terra + xhigh"
-  temporary_profile_not_persistent_default: true
-  desired_end_state: "USER_SELECTABLE_MODEL_AND_REASONING_NO_AGENT_PERSISTENT_PIN"
-
-required_results:
-  - "Read-only confirm the currently effective config layer and the QQ-touched model/model_reasoning_effort fields."
-  - "Remove only the proven QQ-owned persistent overrides; do not set any replacement model or reasoning value."
-  - "Preserve every unrelated config byte, comment, order and setting."
-  - "Use only the minimal reload/restart required to re-read configuration."
-  - "Verify Codex starts and no QQ-owned persistent model/reasoning override remains."
-  - "Verify control is returned to the user interface/current session; QQ must not make a UI model selection."
-  - "Publish only redacted field-presence, hashes, timestamps and non-drift evidence."
-
-narrow_write_authority:
-  allowed: true
-  path_category: ".codex/config.toml"
-  exact_fields: ["model", "model_reasoning_effort"]
-  operation: "DELETE_PROVEN_QQ_OWNED_PERSISTENT_OVERRIDE_ONLY"
-  replacement_values_forbidden: true
-  unrelated_bytes_unchanged: true
-  minimal_reload_only: true
-
-fail_closed:
-  - "BLOCKED_FIELD_OWNERSHIP_NOT_PROVEN if QQ cannot prove these are the fields it touched."
-  - "BLOCKED_NON_MINIMAL_CONFIG_MUTATION if removal requires rewriting unrelated content."
-  - "UNKNOWN_USER_SELECTABLE_STATE if picker control cannot be verified without exposing private data; do not broaden writes."
 
 hard_boundaries:
-  - "Do not write GPT-5.6 Terra, xhigh or any other model/reasoning value."
-  - "Do not choose a model for the user in the UI."
+  - "Do not write GPT-5.6 Terra, xhigh or any replacement model/reasoning value."
+  - "Do not choose a model in the UI."
   - "Do not modify agent, thread, workspace, environment, app database, credentials or sessions."
-  - "Do not upgrade, reinstall, logout, clear cache or delete sessions."
-  - "Do not continue E30, modify Codex E41, run Canary, or perform account/order/trade actions."
-  - "Do not publish local configuration contents or secrets."
+  - "Do not expose local configuration contents or secrets."
+  - "E33 is read-only: no branch, PR, commit, CI, code or tests."
+  - "Do not continue E30 implementation or copy polluted Base64 objects."
+  - "Do not modify Codex E41 or WorkBuddy routes."
+  - "No account, order, funds or trading actions."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32.yaml"
+  E32_task_brief: "coordination/TASK-BRIEFS/QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32-AMED.yaml"
+  E33_task_brief: "coordination/TASK-BRIEFS/QCLAW-KNOWLEDGE-ATOMIZATION-LOW-BUDGET-RECOVERY-INVENTORY-AND-RESTART-MANIFEST-0014-E33-AMED.yaml"
+  E33_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-KNOWLEDGE-ATOMIZATION-LOW-BUDGET-RECOVERY-INVENTORY-AND-RESTART-MANIFEST-0014-E33.yaml"
+
+command_execution_contract:
+  on_trigger: "EXECUTE_OR_REPORT_E32_THEN_CONDITIONALLY_EXECUTE_E33_WITHOUT_SECOND_START_COMMAND"
+  second_user_start_command_required: false
+  stop_after_E33: true
+  after_midnight_auto_resume_forbidden: true
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-02T20:00:00+08:00"
-boundary: "REMOVE_PERSISTENT_MODEL_PIN_ONLY / USER_CONTROLS_MODELS / PRIVATE_CONFIG_NOT_EXPOSED / NO_TRADE"
+updated_at: "2026-08-02T20:29:00+08:00"
+boundary: "E32_UNPIN_PROOF_THEN_E33_READ_ONLY_BUDGETED_INVENTORY / USER_CONTROLS_MODELS / NO_TRADE"
