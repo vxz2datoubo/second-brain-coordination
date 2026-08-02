@@ -1,9 +1,9 @@
-schema_version: "48.0"
+schema_version: "49.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E41_ENGINEERING_READY_QCLAW_E31_REVIEWED_FROZEN_WORKBUDDY_PAUSED"
+status: "CODEX_E41_ENGINEERING_READY_QCLAW_E32_MODEL_UNPIN_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T19:49:00+08:00"
+updated_at: "2026-08-02T20:00:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_OR_MODEL_SETTING_APPROVAL"}
@@ -11,20 +11,19 @@ permanent_command_semantics:
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never change software settings."
-  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings except a separately authorized exact rollback with trustworthy pre-change evidence."
-  exact_restore_rule: "Without trustworthy pre-change evidence, no agent may claim restoration to the original state. A later user-directed value is a new user setting, not forensic restoration."
+  temporary_profile_rule: "A user-requested model/reasoning combination for current work is not permission to persist it as a default."
+  model_advisory_rule: "GPT tells the user the recommended model/reasoning level; agents never persist or select it."
+  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may set persistent model/reasoning/default/thread/subagent values."
+  unpin_exception_rule: "A route may remove only proven agent-created persistent model overrides to restore user control; it may not write replacement values."
+  exact_restore_rule: "Without trustworthy pre-change evidence, do not claim restoration to historical values. Restoring an unpinned user-controlled state is a separate explicit objective."
   claim_not_execution_rule: "A route claim, selected_owner label or terminal database row is not proof that App Automation or CLI was actually invoked."
-  execution_evidence_rule: "Automatic invocation requires a bounded transport/callback receipt with invocation ID, parent correlation, start/end, terminal/exit, log hash and cleanup proof."
   global_one_shot_rule: "One-shot consumption must survive process exit, restart and fresh local databases; ephemeral SQLite alone is not global authority."
-  route_terminalization_rule: "After terminal success/failure, the authoritative route must become non-executable/CONSUMED before old READY content can authorize replay."
   secret_rule: "No credential/session/key/private-config read or persistence."
   trade_rule: "No real trading, account, order, position or funds operation."
 
 agents:
   CODEX:
     active_issue: 128
-    source_pull_request: 127
     task_id: "CODEX-BRAINOPS-DURABLE-GLOBAL-ONE-SHOT-CONSUMPTION-AND-REAL-EXECUTION-EVIDENCE-CLOSURE-0037-E41"
     route_epoch: 43
     status: "READY"
@@ -40,16 +39,21 @@ agents:
     current_action: "Engineer durable global consumption, route terminalization and truthful invocation evidence; do not run a Canary."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
-    active_issue: 125
-    task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
-    route_epoch: 31
-    status: "REVIEWED_WAITING_USER_PROVENANCE_VERIFICATION"
-    execution_allowed: false
+    active_issue: 129
+    source_issue: 125
+    task_id: "QCLAW-CODEX-REMOVE-PERSISTENT-MODEL-PIN-AND-RESTORE-USER-SELECTABLE-MODELS-0013-E32"
+    route_epoch: 32
+    status: "READY"
+    execution_allowed: true
     automatic_resume: false
-    classification: "E31_FORENSIC_IDENTIFICATION_ACCEPTED_BUT_EXACT_RESTORE_PROVENANCE_NOT_INDEPENDENTLY_VERIFIED"
-    completion_report_comment_id: 5155725512
-    current_action: "DO_NOT_EXECUTE; wait for user provenance confirmation and a fresh GPT route."
+    temporary_requested_profile: "GPT-5.6 Terra + xhigh"
+    temporary_profile_not_persistent_default: true
+    desired_end_state: "USER_SELECTABLE_MODEL_AND_REASONING_NO_AGENT_PERSISTENT_PIN"
+    allowed_write: "DELETE_ONLY_PROVEN_QQ_OWNED_model_AND_model_reasoning_effort_OVERRIDES"
+    replacement_model_values_forbidden: true
+    current_action: "Remove QQ-created persistent model/reasoning pin and return control to the user; do not choose a replacement model."
     agent_model_setting_mutation_forbidden: true
+    completion_signal: "QCLAW_E32_PERSISTENT_MODEL_PIN_REMOVED_AND_USER_SELECTION_RESTORED_READY_FOR_GPT_REVIEW"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -59,20 +63,14 @@ agents:
 
 review_summary:
   QCLAW_E31:
-    accepted:
-      - "Identified .codex/config.toml and fields model/model_reasoning_effort as QQ-touched."
-      - "Reported no independent backup, snapshot or version history."
-      - "Reported no unrelated drift and no secret publication."
-    unresolved:
-      - "No independent evidence that the user accepted the current model value."
-      - "No independent evidence of the exact reasoning-effort target allegedly supplied by the user."
-      - "No proof that resulting values equal the pre-QQ state."
+    classification: "USER_INTENT_MISINTERPRETED_PERSISTENT_PIN_NOT_DESIRED"
     forensic_identification_credit: true
     original_state_restoration_credit: false
+    user_clarification: "Terra+xhigh was a temporary requested profile; desired result was free user model selection."
     frozen: true
 
 frozen:
-  - "QCLAW E31 may not run again or modify model settings."
+  - "QCLAW E31 is frozen and may not run again."
   - "QCLAW E30 remains stopped; resumption requires a new GPT route."
   - "PR #127 and E40R1 authorization remain frozen/consumed."
   - "No E41 Canary, App Automation or Codex CLI invocation."
@@ -81,7 +79,7 @@ frozen:
 
 next_commands:
   CODEX: "读取任务"
-  QCLAW: "DO_NOT_EXECUTE"
+  QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E41_ENGINEERING_ONLY / QQ_E31_REVIEWED_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E41_ENGINEERING_ONLY / QQ_E32_REMOVE_PERSISTENT_PIN_ONLY / USER_CONTROLS_MODELS / NO_TRADE"
