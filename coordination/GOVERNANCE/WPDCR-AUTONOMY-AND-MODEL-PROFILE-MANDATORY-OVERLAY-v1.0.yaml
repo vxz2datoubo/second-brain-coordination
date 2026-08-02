@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "WPDCR-AUTONOMY-AND-MODEL-PROFILE-MANDATORY-OVERLAY-0001"
 status: "ACTIVE_ENTERPRISE_STANDARD"
 parent_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
@@ -7,19 +7,43 @@ overlays:
   - "coordination/GOVERNANCE/AGENT-MODEL-REASONING-EXECUTION-INTENSITY-AND-DELEGATED-INTELLIGENCE-ROUTING-PROTOCOL-v1.0.yaml"
 
 purpose: >-
-  Close the machine-enforcement gap created when autonomous-remediation and model-routing duties were added after the base WPDCR
-  protocol. Every STANDARD or STRATEGIC completion report and every validator that claims WPDCR conformance must enforce the union
-  of the base WPDCR sections and the two sections below.
+  Enforce autonomous-remediation reporting and model/reasoning recommendation reporting while preserving the user's exclusive
+  authority over software model settings. Completion reports must prove that recommendations remained advisory and that no agent
+  silently changed ChatGPT, Codex or other agent runtime settings.
 
 additional_mandatory_sections:
   AUTONOMOUS_REMEDIATION_LEDGER:
     required: true
     no_action_value: "NONE_USED_WITH_CHECKS"
     required_fields_when_used: [remediation_id, trigger_problem, class, boundary_tests, action, commands_and_exits, changed_surface, cost, validation, rollback, outcome, residual_risk, no_prior_coordination_reason]
-  MODEL_REASONING_AND_EXECUTION_PROFILE:
+  MODEL_REASONING_AND_EXECUTION_ADVISORY:
     required: true
-    required_fields: [requested_model, actual_model, requested_reasoning_effort, actual_reasoning_effort, requested_execution_intensity, actual_execution_intensity, permission_profile_used, availability_preflight_result, fallback_or_escalation_events, compute_or_attempt_budget_used, material_quality_effect, residual_uncertainty]
-    unknown_rule: "If the executor environment does not expose actual model/effort metadata, report ACCESS_NOT_EXPOSED with checks; never guess."
+    required_fields:
+      - recommended_model_or_level
+      - recommended_reasoning_level
+      - recommendation_rationale
+      - user_was_notified
+      - observed_runtime_model_or_ACCESS_NOT_EXPOSED
+      - observed_reasoning_or_ACCESS_NOT_EXPOSED
+      - agent_changed_model_setting
+      - restoration_exception_used
+      - quality_effect_or_residual_uncertainty
+    required_invariants:
+      - "agent_changed_model_setting=false unless the user explicitly requested exact forensic restoration."
+      - "A recommendation, route field, task brief or fallback policy is not software-setting authority."
+      - "ACCESS_NOT_EXPOSED must be used when runtime metadata is unavailable; never guess."
+      - "Mismatch between recommendation and observed runtime must be reported, not auto-corrected."
+
+forensic_restoration_reporting:
+  when_used_requires:
+    - explicit_user_restore_request
+    - identified_agent_caused_change
+    - trustworthy_prechange_evidence
+    - changed_fields_only
+    - unrelated_configuration_unchanged_proof
+    - no_secret_or_private_config_exposure
+  blocked_value: "BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE"
+  guessed_restore_value_invalid: true
 
 validator_contract:
   effective_required_sections: "BASE_WPDCR_REQUIRED_SECTIONS UNION additional_mandatory_sections"
@@ -27,12 +51,12 @@ validator_contract:
   blank_mapping_not_accepted: true
   custom_flat_summary_not_accepted: true
   completion_without_union: "INVALID_WPDCR_COMPLETION"
+  unauthorized_model_setting_change: "MODEL_SETTING_MUTATION_GOVERNANCE_INCIDENT"
 
-active_task_inheritance: >-
-  Current READY, IN_PROGRESS or BLOCKED tasks inherit these reporting and validator duties without changing task ID, epoch, scope,
-  branch, Gate or completion signal. The executor must report a split-phase profile when the model-routing requirement arrived after
-  work began.
+historical_field_interpretation: >-
+  Historical requested_model, preferred_model, reasoning_effort, fallback and execution-profile fields are advisory-only under
+  protocol v1.1 and cannot be used as evidence that an agent was allowed to change software settings.
 
 updated_by: "GPT"
-updated_at: "2026-07-31T23:41:00+08:00"
-boundary: "PUBLIC_SAFE / authority_bounded / research_only / NO_TRADE"
+updated_at: "2026-08-02T12:36:00+08:00"
+boundary: "ADVISORY_ONLY / USER_SELECTS / EXACT_RESTORE_EXCEPTION_ONLY / NO_TRADE"
