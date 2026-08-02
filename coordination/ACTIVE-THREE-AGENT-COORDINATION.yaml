@@ -1,122 +1,72 @@
-schema_version: "44.0"
+schema_version: "45.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E40_WAITING_USER_EXPLICIT_APPROVAL_QCLAW_E30_CLEAN_PUBLICATION_ACTIVE_WORKBUDDY_PAUSED"
+status: "CODEX_E40_WAITING_USER_APPROVAL_QCLAW_E31_MODEL_SETTING_RESTORE_ACTIVE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-02T11:33:00+08:00"
+updated_at: "2026-08-02T12:40:00+08:00"
 
 permanent_command_semantics:
-  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_CANARY_APPROVAL"}
+  GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_AND_PUBLISH_CYCLE_NOT_MODEL_SETTING_OR_CANARY_APPROVAL"}
   agent_read_command: {trigger: "读取任务", meaning: "EXECUTE_ONLY_WHEN_THE_AGENT_ROUTE_HAS_EXECUTION_ALLOWED_TRUE", second_start_command_required: false}
 
 permanent_governance:
+  model_selection_owner: "USER_ONLY"
+  model_advisory_rule: "GPT tells the user the recommended model level/exact model and reasoning level; the user changes or keeps the software setting."
+  model_mutation_rule: "No GPT, Codex, QCLAW, WorkBuddy, script or automation may change model/reasoning/default/thread/subagent settings."
+  recommendation_not_authority: "Task, route, AGENTS, fallback and requested_model fields are advisory only."
+  restoration_exception: "Only explicit user-requested forensic restoration of exact proven pre-change fields is allowed; otherwise no write."
+  no_before_state_rule: "Return BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE and make no model-setting write."
+  private_config_rule: "Never expose or commit local config, sessions, tokens, cookies or secrets."
   final_head_rule: "Executable, validator, workflow, schema or test-semantic changes move the tested identity forward."
   receipt_rule: "One non-empty evidence-only commit directly after final tested head; receipt-head validation; no later commit."
   exact_head_ci_rule: "CI must checkout and print/assert the exact pull-request branch head; a merge ref is not candidate identity."
-  repository_object_rule: "Workflow, executable, configuration, schema and documentation files must contain their real source bytes; whole-file Base64 text wrappers fail closed."
-  completion_signal_rule: "The reported completion signal must exactly match the canonical active route."
-  trust_boundary_rule: "Python underscores and object seals provide API integrity only; hostile same-process code is outside the trusted process boundary."
-  approval_body_rule: "Approval requires one strict canonical body block, exact bindings, an authorized actor, unexpired evidence and READ_ONLY_FETCH_VERIFIED status."
-  approval_presence_rule: "REJECTED, UNKNOWN or merely non-empty approval objects must not count as supplied or valid approval."
-  git_membership_rule: "Remote proof requires ref/commit/tree/path/blob/content membership and ref-drift rejection."
-  knowledge_atomicity_rule: "Each atom must be independently judgeable; one marker in a list item must not relabel unrelated siblings."
-  knowledge_loss_rule: "Byte accounting, canonical normalization and semantic preservation are separate claims and must all be explicit."
-  evidence_classification_rule: "Lexical words alone must not promote a claim to FACT or CAUSAL_CLAIM."
-  secret_rule: "Raw and derived authentication/access/financial secret values are forbidden; surrounding authorized knowledge must be preserved."
-  automation_claim_rule: "A branch, PR, workflow or completion comment is not proof that automatic dispatch or GPT auto-review occurred."
-  canary_rule: "Review/read commands and ordinary consent are not canary approval; actual canary execution requires a separate exact user approval and a newly published route."
-  transfer_rule: "Cross-agent takeover requires separate branch, Draft PR and explicit activation."
+  repository_object_rule: "Workflow, executable, configuration, schema and documentation files must contain real source bytes; whole-file Base64 wrappers fail closed."
+  canary_rule: "Review/read commands and ordinary consent are not canary approval."
 
 agents:
   CODEX:
     active_issue: 123
-    source_pull_request: 121
     task_id: "CODEX-BRAINOPS-BOUND-ONE-SHOT-CANARY-EXPLICIT-AUTHORIZATION-GATE-0035-E40"
     route_epoch: 41
     status: "WAITING_USER_EXPLICIT_APPROVAL"
     execution_allowed: false
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    automatic_resume: false
-    authorized_approval_actors: [vxz2datoubo]
-    approval_policy_scope: "WAITING_GATE_ONLY_NOT_CANARY_AUTHORIZATION"
-    planned_branch: null
-    mode: "guarded_wait"
-    source_tested_head: "4ab455c657821018a74c38d7d043a13852d34f14"
-    source_receipt_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
+    model_selection_owner: "USER_ONLY"
+    agent_model_setting_mutation_forbidden: true
     current_action: "Do not execute. Wait for separate exact user canary approval and a newly published route."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
-    active_issue: 124
-    source_pull_request: 122
-    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-UTF8-PUBLICATION-EXACT-CI-AND-RECEIPT-RECONSTRUCTION-0011-E30"
-    route_epoch: 30
+    active_issue: 125
+    task_id: "QCLAW-CODEX-MODEL-SETTINGS-FORENSIC-RESTORE-AND-ADVISORY-ONLY-GOVERNANCE-0012-E31"
+    route_epoch: 31
     status: "READY"
     execution_allowed: true
-    automatic_resume: false
-    planned_branch: "qclaw/knowledge-atomization-clean-publication-0011-e30"
-    source_malformed_head: "7ee8054a97177ab255bc8d20117f5709776706cf"
-    mode: "project_plan"
-    model: "gpt-5.6-sol"
-    reasoning_effort: "max"
-    execution_intensity: "X4_MAXIMUM"
-    permission_profile: "P1_ENHANCED_BOUNDED"
-    completion_signal: "QCLAW_KNOWLEDGE_ATOMIZATION_E30_CLEAN_UTF8_PUBLICATION_EXACT_CI_AND_RECEIPT_READY_FOR_GPT_REVIEW"
-    current_action: "Reconstruct real UTF-8 repository source, reject Base64 wrappers and rebuild exact CI/receipt evidence."
+    source_stopped_task: "QCLAW E30"
+    mode: "target"
+    operator_model_advisory: "User manually selects highest available model with high/highest reasoning for this delicate restoration."
+    agent_model_setting_mutation_forbidden: true
+    exact_restore_exception_active: true
+    current_action: "Forensically identify QQ-caused Codex model-setting changes and restore only exact proven pre-change fields."
+    blocked_result_if_no_before_state: "BLOCKED_NO_TRUSTWORTHY_PRECHANGE_STATE"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
-  CODEX_QCLAW_E26_TAKEOVER_HISTORY:
-    task_id: "CODEX-QCLAW-PR100-E26-CLEANROOM-TAKEOVER-AND-EVIDENCE-TRUTH-CLOSURE-0029-E27"
-    route_epoch: 27
-    status: "CANCELLED_NOT_ACTIVATED_SUPERSEDED_BY_QCLAW_MAINLINE_RESUMPTION"
-    execution_allowed: false
-    reactivation_requires_new_task: true
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
     automatic_resume: false
+    agent_model_setting_mutation_forbidden: true
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
-review_summary:
-  CODEX_E39:
-    classification: "E39_LIVE_ROUTE_AUTHORITY_AND_NO_APPROVAL_BLOCKING_ACCEPTED_CANARY_REMAINS_UNAUTHORIZED"
-    implementation_completion_credit: true
-    canary_authorization_credit: false
-    source_pr: 121
-    tested_head: "4ab455c657821018a74c38d7d043a13852d34f14"
-    receipt_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
-    tested_ci_run: 30728010349
-    receipt_ci_run: 30728105005
-    evidence:
-      - "Exact tested and receipt heads each passed 112 tests on Python 3.11 and 3.13."
-      - "Receipt is one non-empty evidence-only file directly after the tested head."
-      - "Live main route authority and authorized actor policy were independently observed."
-      - "No approval produced APPROVAL_NOT_SUPPLIED_CANARY_BLOCKED."
-    findings:
-      - "No approval or canary was supplied or executed."
-      - "Future canary logic must distinguish verified approval from any non-None verification object."
-  QCLAW_E29:
-    classification: "E29_IMPLEMENTATION_INTENT_REUSABLE_BUT_REPOSITORY_OBJECTS_BASE64_WRAPPED_WORKFLOW_INVISIBLE_AND_EVIDENCE_INVALID"
-    completion_credit: false
-    intent_credit: true
-    source_pr: 122
-    malformed_head: "7ee8054a97177ab255bc8d20117f5709776706cf"
-    blockers:
-      - "Workflow and Python files are whole-file Base64 text payloads rather than real source."
-      - "GitHub did not recognize or run E29 CI; only an unrelated Phase 3 workflow ran."
-      - "No tested-head to receipt-head topology exists."
-      - "Completion signal mismatches the canonical route."
-
 frozen:
-  - "No merge or further commits on PR #122, PR #121, PR #118, PR #117, PR #115, PR #113, PR #111, PR #110, PR #107 or PR #100."
-  - "No approval comment, canary execution or normal automatic dispatch."
-  - "No second canonical memory/store/fusion/retrieval runtime."
-  - "No credentials, tokens, cookies, sessions, raw or derived authentication/access/financial secrets."
-  - "No agent main mutation, production data, accounts, orders or trades."
-  - "WorkBuddy remains paused."
+  - "QCLAW E30 / Issue #124 is stopped and may not resume without a new GPT route."
+  - "PR #122/#118/#111/#100 and their branches remain frozen."
+  - "Codex E40 remains non-executable and canary unauthorized."
+  - "No autonomous model-setting changes by any agent."
+  - "No credentials, sessions, accounts, orders or trades."
 
 next_commands:
-  CODEX: "DO_NOT_EXECUTE_AWAIT_EXPLICIT_USER_CANARY_APPROVAL"
+  CODEX: "DO_NOT_EXECUTE"
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_WAITING_EXPLICIT_APPROVAL / QCLAW_CLEAN_UTF8_RECONSTRUCTION / NO_CANARY / NO_TRADE"
+boundary: "USER_CONTROLS_MODELS / EXACT_QQ_CAUSED_RESTORE_ONLY / CODEX_WAITING / NO_TRADE"
