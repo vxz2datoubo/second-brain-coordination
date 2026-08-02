@@ -1,0 +1,41 @@
+name: BrainOps E40R1 exact-head verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e40r1.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Assert exact pull-request head checkout
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          BRAINOPS_SOURCE: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src
+        run: |
+          echo "verified_head=${EXPECTED_HEAD}"
+          PYTHONPATH="$BRAINOPS_SOURCE" python -m brainops_control_plane.ci_identity "$EXPECTED_HEAD"
+      - name: Run BrainOps E35 through E40R1 tests
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests -v
+      - name: Compile BrainOps sources
+        run: |
+          python -m compileall -q coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src

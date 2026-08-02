@@ -1,0 +1,26 @@
+schema_version: "1.0"
+kind: "AI_HANDOFF"
+task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+status: "SUBSTANTIVE_COMMIT_PENDING_REMOTE_CI"
+authority:
+  issue: 126
+  pull_request: 127
+  branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
+  accepted_base: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
+execution:
+  canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
+  terminal_state: "SUCCEEDED"
+  selected_owner: "CODEX_APP"
+  non_attempted_owner: "CODEX_CLI"
+  normal_dispatch_disabled: true
+  proof: "E40/CANARY-EXECUTION-PROOF.json"
+review_requests:
+  - "Confirm that the task-specific executable verifier remains isolated from the accepted read-only verifier."
+  - "Review the one-transaction reservation and terminal-state semantics."
+  - "Inspect exact-head CI for the substantive and receipt-only commits."
+rollback:
+  strategy: "revert E40R1 task-owned commits in reverse order"
+  external_state: "none"

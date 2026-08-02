@@ -1,0 +1,43 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-ONE-SHOT-BOUNDED-ENGINEERING-CANARY-0036-E40R1"
+route_epoch: 42
+agent_id: "CODEX"
+mode: "target"
+status: "SUBSTANTIVE_IMPLEMENTATION_COMPLETE_PENDING_REMOTE_CI"
+authority:
+  canonical_repository: "vxz2datoubo/second-brain-coordination"
+  branch: "codex/brainops-one-shot-bounded-canary-0036-e40r1"
+  accepted_base: "30abdb6beff85d0c7cceee165f4f3b03cfe0d0e6"
+  lease_seed: "eeeb8087c603200595349f0e64cbf813d47747bd"
+  issue: 126
+  pull_request: 127
+  approval_comment_id: 5155930613
+canary:
+  canary_id: "BRAINOPS-E40R1-ONE-SHOT-ENGINEERING-0001"
+  nonce: "e40r1-20260802-1425-c7a93f1b6d2e4a80"
+  selected_owner: "CODEX_APP"
+  fallback_owner: "CODEX_CLI"
+  max_execution_count: 1
+  normal_dispatch_disabled: true
+  scope: "brainops_one_shot_engineering_canary_app_first_cli_fallback_no_trade"
+phases:
+  - id: "P1"
+    name: "Bounded authority and atomic state"
+    status: "COMPLETE"
+  - id: "P2"
+    name: "One-shot execution evidence"
+    status: "COMPLETE"
+  - id: "P3"
+    name: "Exact-head remote validation"
+    status: "PENDING"
+  - id: "P4"
+    name: "Receipt-only commit and GPT review"
+    status: "PENDING"
+rollback:
+  strategy: "Revert the two E40R1 task-owned commits in reverse order after review."
+  protected: ["main", "non-task paths", "real trading and account systems"]
+boundaries:
+  - "research_only / NO_TRADE"
+  - "No account, order, broker, market-data, or credential operation."
+  - "No service, process, model-setting, startup, firewall, or public-bind mutation."
+  - "No retry or second canary execution."

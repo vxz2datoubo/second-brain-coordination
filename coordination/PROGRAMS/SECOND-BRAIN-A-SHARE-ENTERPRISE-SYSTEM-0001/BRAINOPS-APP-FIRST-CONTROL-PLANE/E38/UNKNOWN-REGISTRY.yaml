@@ -1,0 +1,17 @@
+task_id: CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38
+agent_id: CODEX
+unknowns:
+  - id: E38-UNKNOWN-001
+    fact: The current production active route does not declare authorized_approval_actors in both required route documents.
+    status: BLOCKED_APPROVAL_AUTHORITY_UNRESOLVED
+    effect: A real approval cannot become VERIFIED even if its public comment body is well formed.
+    safe_behavior: reject approval and retain PRE_CANARY_TRUST_CLOSURE_ONLY.
+    owner: GPT
+    closure: A later explicit route declares matching non-empty actor policies and passes this verifier.
+  - id: E38-UNKNOWN-002
+    fact: Synthetic tests prove bounded transport behavior but not public GitHub availability in every runtime network.
+    status: NOT_YET_VERIFIED
+    effect: Production verification may return BLOCKED_TRUSTED_TRANSPORT_UNAVAILABLE.
+    safe_behavior: no verification result is promoted; no canary path runs.
+    owner: CODEX
+    closure: A bounded public read succeeds in the approved runtime without credentials and is independently reviewed.
