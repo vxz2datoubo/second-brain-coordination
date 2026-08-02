@@ -1,28 +1,28 @@
-schema_version: "50.0"
+schema_version: "51.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_CANONICAL_REMOTE_CREATE_FRESH_E44_PLAN_PR_AND_EXECUTE_ENGINEERING_ONLY"
+trigger_semantics: "VERIFY_CANONICAL_REMOTE_CREATE_FRESH_E45_PLAN_PR_AND_EXECUTE_ENGINEERING_ONLY"
 
-active_issue: 138
+active_issue: 140
 parent_program: 31
-source_issue: 134
-source_pull_request: 136
-source_tested_head: "80d3d87d0caad132bb59a5dfe0bc6878a6af7ec7"
-source_receipt_head: "630feade7c43d9a193d7e71578bb0d3b6e91e6b8"
-source_classification: "E43_LIFECYCLE_RECONCILIATION_AND_RECOVERY_SCAFFOLD_ACCEPTED_BUT_DURABLE_CHALLENGE_CAPABILITY_GATE_AND_OWNER_SPECIFIC_TERMINAL_SEMANTICS_NOT_CLOSED"
+source_issue: 138
+source_pull_request: 139
+source_tested_head: "1f3e379efd9149722d7f3f210562fd91221e2da0"
+source_receipt_head: "d5bef926abba615dbb5a9303c0422a9543ba51c1"
+source_classification: "E44_DURABLE_LEDGER_AND_OWNER_SCHEMA_PROGRESS_ACCEPTED_BUT_TRANSPORT_WITNESS_CLAIM_BINDING_DECISION_REPLAY_AND_RECOVERY_ENFORCEMENT_NOT_CLOSED"
 source_status: "REVIEWED_AND_FROZEN"
-planned_branch: "codex/brainops-durable-challenge-owner-terminal-0040-e44"
+planned_branch: "codex/brainops-attested-witness-recovery-enforcement-0041-e45"
 planned_draft_pr: true
 
-task_id: "CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44"
-route_epoch: 46
+task_id: "CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45"
+route_epoch: 47
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】持久挑战账本、owner专属终态证据与能力门闭环 E44"
+mode_label: "【Codex模式：项目计划模式】受证明见证、claim绑定能力决策与恢复强制闭环 E45"
 mode_reason: >-
-  E43 correctly introduced lifecycle reconciliation and recovery scaffolding, but legacy capability remains a positive bypass,
-  challenge consumption is process-local, and owner-specific App/Automation/CLI evidence and terminal semantics are incomplete.
+  E44 added durable ledgers and owner-specific schemas, but positive witnesses are still caller-created, decisions are not
+  claim/provenance/use-bound, and the actual recovery mutation can bypass the new ledger. These coupled enforcement gaps require a fresh staged route.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -31,7 +31,7 @@ automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "CODEX_BRAINOPS_E44_DURABLE_CHALLENGE_OWNER_TERMINAL_CAPABILITY_GATE_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_BRAINOPS_E45_ATTESTED_WITNESS_CLAIM_BOUND_RECOVERY_ENFORCEMENT_READY_FOR_GPT_REVIEW"
 
 operator_model_advisory:
   recommendation_level: "HIGH"
@@ -43,39 +43,40 @@ operator_model_advisory:
 repository_scope:
   allowed_paths:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-    - ".github/workflows/brainops-e44.yml"
-  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_136_ONLY"
+    - ".github/workflows/brainops-e45.yml"
+  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_139_ONLY"
   imported_source_must_be_listed_in_manifest: true
   whole_branch_merge_or_cherry_pick_forbidden: true
   frozen_source_pr_mutation_forbidden: true
-  task_branch_only: "codex/brainops-durable-challenge-owner-terminal-0040-e44"
+  task_branch_only: "codex/brainops-attested-witness-recovery-enforcement-0041-e45"
   sole_draft_pr_required: true
 
 supersedes:
-  task_id: "CODEX-BRAINOPS-TERMINAL-EXECUTION-ATTESTATION-RECOVERY-AUTHORITY-AND-FRESHNESS-CLOSURE-0039-E43"
-  route_epoch: 45
-  issue: 134
-  pull_request: 136
-  tested_head: "80d3d87d0caad132bb59a5dfe0bc6878a6af7ec7"
-  receipt_head: "630feade7c43d9a193d7e71578bb0d3b6e91e6b8"
-  classification: "E43_LIFECYCLE_RECONCILIATION_AND_RECOVERY_SCAFFOLD_ACCEPTED_BUT_DURABLE_CHALLENGE_CAPABILITY_GATE_AND_OWNER_SPECIFIC_TERMINAL_SEMANTICS_NOT_CLOSED"
-  lifecycle_scaffold_credit: true
+  task_id: "CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44"
+  route_epoch: 46
+  issue: 138
+  pull_request: 139
+  tested_head: "1f3e379efd9149722d7f3f210562fd91221e2da0"
+  receipt_head: "d5bef926abba615dbb5a9303c0422a9543ba51c1"
+  classification: "E44_DURABLE_LEDGER_AND_OWNER_SCHEMA_PROGRESS_ACCEPTED_BUT_TRANSPORT_WITNESS_CLAIM_BINDING_DECISION_REPLAY_AND_RECOVERY_ENFORCEMENT_NOT_CLOSED"
+  durable_ledger_scaffold_credit: true
+  owner_specific_schema_credit: true
   exact_ci_credit: true
-  globally_durable_challenge_credit: false
-  owner_specific_terminal_evidence_credit: false
-  live_runtime_trust_credit: false
+  trusted_transport_witness_credit: false
+  claim_bound_decision_credit: false
+  governed_recovery_enforcement_credit: false
+  mode_compliance_credit: false
   frozen: true
 
 required_results:
-  - "Create a fresh branch, non-empty project-plan commit and sole Draft PR; PR #136 remains immutable."
-  - "Make all legacy capability objects observational only; positive capability requires a fresh challenge-bound attested decision."
-  - "Implement revisioned-CAS challenge and recovery-authorization ledgers with cross-instance/restart/process one-shot consumption."
-  - "Define mutually exclusive current-session App, App Automation and CLI terminal evidence schemas bound to exact OwnerType and target."
-  - "Enforce Automation dispatch/run/callback identity and CLI launcher/PID/start-token/process identity/exit/cleanup/log evidence."
-  - "Enforce exit-code and terminal-state semantics before durable reconciliation returns a positive execution classification."
-  - "Bind recovery authorization to provenance/storage/task/epoch/canary/nonce/claim/holder and consume it globally once."
-  - "Add replay, restart, multiprocessing, legacy bypass, owner mismatch and terminal mismatch tests."
-  - "Run exact tested-head and receipt-head Python 3.11/3.13 CI and create exactly one non-empty evidence-only receipt."
+  - "Separate raw observations from verifier-minted transport-attested witnesses."
+  - "Bind capability decisions to provenance, storage, claim, invocation, route, holder and target."
+  - "Require expiry recheck and globally one-shot downstream decision-use consumption."
+  - "Cross-bind Manual App, Automation and CLI identities to holder and attested run/process identity."
+  - "Integrate recovery-ledger consumption into the actual governed recovery mutation and disable old bypasses."
+  - "Preserve project_plan mode in every status and evidence artifact."
+  - "Add caller-witness, cross-route, decision replay, recovery bypass, lost-response and identity-splice tests."
+  - "Run exact tested-head and receipt-head Python 3.11/3.13 CI and create exactly one non-empty receipt-only commit."
 
 hard_boundaries:
   - "ENGINEERING_AND_SYNTHETIC_TESTS_ONLY / NO_CANARY / NO_APP_OR_CLI_INVOCATION."
@@ -86,19 +87,20 @@ hard_boundaries:
   - "No direct main write, merge, force push, rebase, QQ or WorkBuddy branch mutation."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44.yaml"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45.yaml"
 
 command_execution_contract:
-  on_trigger: "VERIFY_E44_ROUTE_CREATE_FRESH_PLAN_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
+  on_trigger: "VERIFY_E45_ROUTE_CREATE_FRESH_PLAN_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
   second_user_start_command_required: false
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
+  mode_switch_without_route_update_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #138, frozen PR #136 exact heads and epoch 46; create the E44 branch and non-empty plan commit; open the sole Draft PR;
-    publish the selected-source manifest and begin durable challenge/capability/owner-specific terminal contracts.
+    Verify Issue #140, frozen PR #139 exact heads and epoch 47; create the E45 branch and non-empty plan commit; open the sole Draft PR;
+    publish the selected-source manifest and begin attested-witness, claim-bound decision and recovery-enforcement contracts.
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-03T04:28:00+08:00"
-boundary: "DURABLE_CHALLENGE_AND_OWNER_TERMINAL_ENGINEERING_ONLY / E43_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
+updated_at: "2026-08-03T07:55:00+08:00"
+boundary: "ATTESTED_WITNESS_AND_RECOVERY_ENFORCEMENT_ENGINEERING_ONLY / E44_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
