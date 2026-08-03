@@ -1,0 +1,37 @@
+schema_version: "1.0"
+task_id: CODEX-BRAINOPS-RECOVERABLE-LEASE-TRANSITIONS-CROSS-RECORD-JOURNAL-EXACT-HEAD-CI-AND-RECEIPT-CLOSURE-0043-E47
+agent_id: CODEX
+import_mode: SELECTED_PATH_AND_BLOB_ONLY
+whole_merge: false
+cherry_pick: false
+source:
+  issue: 144
+  pull_request: 146
+  substantive_head: dcf0e099fb2abc50fbb04fb95a1a7c39d4f38231
+  classification: FROZEN_SOURCE_NOT_MUTATED
+selected_blobs:
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/.gitignore, blob_sha1: 43ae0e2a6c6d8fca34872506ca0f2e64194fec7c, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/__init__.py, blob_sha1: a3313dd8880101b2767cb1594c40f84389d0a013, disposition: MODIFY_FOR_E47_EXPORTS}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/ci_identity.py, blob_sha1: 83023f45d293146f640ad6f7d62912815856ca07, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/durable_authority.py, blob_sha1: dfa6dbc31c3c9232878b38b7f0527e64554e471d, disposition: REUSE_FAIL_CLOSED_LEGACY}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/durable_challenge.py, blob_sha1: ee1950a254ed9db9aec82bd7adab51e5fb52bf7c, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/execution_evidence.py, blob_sha1: 1d5270928c1c053c3a6156483b17213c75c3c78e, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/execution_lease.py, blob_sha1: 5c35c5f73651857cd6e08d2edfa9e02898846f89, disposition: REFERENCE_ONLY_FROZEN_E46_RUNTIME}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_contents_cas.py, blob_sha1: 23285861c4e0d4eb5bb811ce2ba4f0cfd5c6651b, disposition: REUSE_NOT_INVOKED}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_transport.py, blob_sha1: 125b55a624705a0d1ea8bb1d2486e4f6fb01f02b, disposition: REUSE_NOT_INVOKED}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/models.py, blob_sha1: 32577f059aca022271de28478c1b208808451427, disposition: REUSE_PUBLIC_SAFE_HASH_RETAINED}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/proofs.py, blob_sha1: c90d15bfa97a52671d2f51d57870c3337fa6f79e, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/route_terminalization.py, blob_sha1: 8caed9f4f4ec0fa10374f749c4b5d9dfa06874b7, disposition: REUSE}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/terminal_attestation.py, blob_sha1: 1d19ee7f9b3d664c3d6f13a9e16d7e1812e3074a, disposition: REUSE_FAIL_CLOSED_LEGACY}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e44_durable_challenge.py, blob_sha1: 9374cc78ea7a266bc7801bdde339f2a96295c38d, disposition: REUSE_REGRESSION}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e45_attested_witness_enforcement.py, blob_sha1: b3cb68ecbdd7b4690bed236daff45a4814d9b9a8, disposition: REUSE_REGRESSION}
+  - {path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e46_execution_lease.py, blob_sha1: edb938dc710b50faa159c65e94623e179f7b64a3, disposition: REUSE_REGRESSION}
+new_e47_paths:
+  - src/brainops_control_plane/recoverable_lifecycle.py
+  - src/brainops_control_plane/pre_receipt_validator.py
+  - tests/test_e47_recoverable_lifecycle.py
+  - tests/test_e47_pre_receipt_validator.py
+excluded_source_paths:
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E46/**
+  - .github/workflows/brainops-e46.yml
+exclusion_reason: E46 is frozen source evidence. E47 creates independent lifecycle, CI, and receipt artifacts.

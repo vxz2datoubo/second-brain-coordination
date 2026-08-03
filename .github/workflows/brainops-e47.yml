@@ -1,0 +1,52 @@
+name: BrainOps E47 Exact Head
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e47.yml"
+  push:
+    branches:
+      - "codex/brainops-recoverable-lease-transitions-exact-ci-0043-e47"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    name: exact-head-py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PROGRAM_ROOT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE
+    steps:
+      - name: Check out the exact event head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Prove the checkout is the requested head
+        shell: bash
+        run: |
+          test -n "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          git cat-file -e HEAD^1
+          git diff --check HEAD^1 HEAD
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile and run the synthetic suite
+        shell: bash
+        run: |
+          export PYTHONPATH="$PROGRAM_ROOT/src"
+          python -m py_compile "$PROGRAM_ROOT"/src/brainops_control_plane/*.py "$PROGRAM_ROOT"/tests/test_e*.py
+          python -m unittest discover -s "$PROGRAM_ROOT/tests" -p "test_e*.py" -v
