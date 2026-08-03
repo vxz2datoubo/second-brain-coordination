@@ -1,0 +1,39 @@
+schema_version: "1.0"
+agent_id: CODEX
+status: PREREGISTRATION_ONLY
+capability: SYNTHETIC_RESEARCH_ONLY
+authority_write: false
+no_trade: true
+hypotheses:
+  - id: H1
+    statement: "Synthetic D2 semantic invariants remain deterministic under approved fixture transformations."
+    prohibited_interpretation: "Not a market forecast, identity inference, or profitability claim."
+synthetic_target:
+  fixture_manifest: SYNTHETIC_ONLY
+  real_data_allowed: false
+split:
+  train: {fixture_ids: [S001, S002], immutable_hash: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+  dev: {fixture_ids: [S003, S004], immutable_hash: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}
+  lockbox: {fixture_ids: [S005, S006], immutable_hash: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+metrics:
+  future_only: [brier_score, log_loss, expected_calibration_error, calibration_slope, calibration_intercept, abstention_rate]
+  current_result: NOT_RUN
+comparators:
+  - no_model_abstention_baseline
+  - deterministic_rule_baseline
+  - permutation_placebo
+controls:
+  multiple_testing: preregistered_familywise_review_required
+  sensitivity: [seed, fixture_permutation, missing_information]
+  subgroup: [session_phase, participant_family, security_status]
+  tuning_budget: {max_experiments: 0, post_lockbox_tuning: forbidden}
+  seed_policy: {fixed_seeds: [11, 29, 47], unregistered_seed_search: forbidden}
+  threshold_policy: NOT_SET_BEFORE_D3_IMPLEMENTATION
+result_template:
+  status: [NOT_RUN, PASS, FAIL, ABSTAIN]
+  required_fields: [run_id, trace_id, fixture_hashes, comparator, metrics, failures, abstentions]
+approaches_not_implemented:
+  - rules_only_baseline
+  - level_k_or_bayesian_opponent_model
+  - self_play_or_marl
+rollback: "Delete this isolated preregistration proposal; no runtime state or authority write exists."
