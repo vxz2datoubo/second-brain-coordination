@@ -1,28 +1,28 @@
-schema_version: "51.0"
+schema_version: "52.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_CANONICAL_REMOTE_CREATE_FRESH_E45_PLAN_PR_AND_EXECUTE_ENGINEERING_ONLY"
+trigger_semantics: "VERIFY_CANONICAL_REMOTE_CREATE_FRESH_E46_PLAN_PR_AND_EXECUTE_ENGINEERING_ONLY"
 
-active_issue: 140
+active_issue: 144
 parent_program: 31
-source_issue: 138
-source_pull_request: 139
-source_tested_head: "1f3e379efd9149722d7f3f210562fd91221e2da0"
-source_receipt_head: "d5bef926abba615dbb5a9303c0422a9543ba51c1"
-source_classification: "E44_DURABLE_LEDGER_AND_OWNER_SCHEMA_PROGRESS_ACCEPTED_BUT_TRANSPORT_WITNESS_CLAIM_BINDING_DECISION_REPLAY_AND_RECOVERY_ENFORCEMENT_NOT_CLOSED"
+source_issue: 140
+source_pull_request: 142
+source_tested_head: "a4fb916d8e0d56cee9085e5e38a04d49175c2218"
+source_receipt_head: "cbb2d964a8dd91f4b9c9754e7af62469637a6d79"
+source_classification: "E45_ATTESTED_WITNESS_AND_RECOVERY_ENTRY_PROGRESS_ACCEPTED_BUT_DECISION_USE_EFFECT_TERMINAL_MUTATION_AND_OWNER_EXECUTION_IDENTITY_ENFORCEMENT_NOT_CLOSED"
 source_status: "REVIEWED_AND_FROZEN"
-planned_branch: "codex/brainops-attested-witness-recovery-enforcement-0041-e45"
+planned_branch: "codex/brainops-mandatory-execution-lease-terminal-mutation-0042-e46"
 planned_draft_pr: true
 
-task_id: "CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45"
-route_epoch: 47
+task_id: "CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46"
+route_epoch: 48
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】受证明见证、claim绑定能力决策与恢复强制闭环 E45"
+mode_label: "【Codex模式：项目计划模式】强制执行租约、受证明终态身份与真实状态迁移闭环 E46"
 mode_reason: >-
-  E44 added durable ledgers and owner-specific schemas, but positive witnesses are still caller-created, decisions are not
-  claim/provenance/use-bound, and the actual recovery mutation can bypass the new ledger. These coupled enforcement gaps require a fresh staged route.
+  E45 added attested-witness and decision-use components, but they remain optional helpers beside effect and terminal mutation entrypoints.
+  A coupled lease state machine is required to make them the sole authority for effect, invocation and terminal transitions.
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -31,7 +31,7 @@ automatic_resume: false
 direct_main_write: false
 auto_merge: false
 blocked_by: []
-completion_signal: "CODEX_BRAINOPS_E45_ATTESTED_WITNESS_CLAIM_BOUND_RECOVERY_ENFORCEMENT_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_BRAINOPS_E46_MANDATORY_EXECUTION_LEASE_ATTESTED_TERMINAL_MUTATION_READY_FOR_GPT_REVIEW"
 
 operator_model_advisory:
   recommendation_level: "HIGH"
@@ -43,64 +43,65 @@ operator_model_advisory:
 repository_scope:
   allowed_paths:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-    - ".github/workflows/brainops-e45.yml"
-  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_139_ONLY"
+    - ".github/workflows/brainops-e46.yml"
+  source_import_policy: "SELECTED_FILES_FROM_FROZEN_PR_142_ONLY"
   imported_source_must_be_listed_in_manifest: true
   whole_branch_merge_or_cherry_pick_forbidden: true
   frozen_source_pr_mutation_forbidden: true
-  task_branch_only: "codex/brainops-attested-witness-recovery-enforcement-0041-e45"
+  task_branch_only: "codex/brainops-mandatory-execution-lease-terminal-mutation-0042-e46"
   sole_draft_pr_required: true
 
 supersedes:
-  task_id: "CODEX-BRAINOPS-DURABLE-CHALLENGE-LEDGER-OWNER-SPECIFIC-TERMINAL-EVIDENCE-AND-CAPABILITY-GATE-CLOSURE-0040-E44"
-  route_epoch: 46
-  issue: 138
-  pull_request: 139
-  tested_head: "1f3e379efd9149722d7f3f210562fd91221e2da0"
-  receipt_head: "d5bef926abba615dbb5a9303c0422a9543ba51c1"
-  classification: "E44_DURABLE_LEDGER_AND_OWNER_SCHEMA_PROGRESS_ACCEPTED_BUT_TRANSPORT_WITNESS_CLAIM_BINDING_DECISION_REPLAY_AND_RECOVERY_ENFORCEMENT_NOT_CLOSED"
-  durable_ledger_scaffold_credit: true
-  owner_specific_schema_credit: true
-  exact_ci_credit: true
-  trusted_transport_witness_credit: false
-  claim_bound_decision_credit: false
-  governed_recovery_enforcement_credit: false
-  mode_compliance_credit: false
+  task_id: "CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46"
+  prior_task_id: "CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45"
+  prior_route_epoch: 47
+  issue: 140
+  pull_request: 142
+  tested_head: "a4fb916d8e0d56cee9085e5e38a04d49175c2218"
+  receipt_head: "cbb2d964a8dd91f4b9c9754e7af62469637a6d79"
+  classification: "E45_ATTESTED_WITNESS_AND_RECOVERY_ENTRY_PROGRESS_ACCEPTED_BUT_DECISION_USE_EFFECT_TERMINAL_MUTATION_AND_OWNER_EXECUTION_IDENTITY_ENFORCEMENT_NOT_CLOSED"
+  attested_witness_scaffold_credit: true
+  decision_use_ledger_scaffold_credit: true
+  governed_recovery_entry_credit: "partial"
+  mandatory_effect_gate_credit: false
+  mandatory_terminal_mutation_credit: false
+  attested_execution_identity_credit: false
   frozen: true
 
 required_results:
-  - "Separate raw observations from verifier-minted transport-attested witnesses."
-  - "Bind capability decisions to provenance, storage, claim, invocation, route, holder and target."
-  - "Require expiry recheck and globally one-shot downstream decision-use consumption."
-  - "Cross-bind Manual App, Automation and CLI identities to holder and attested run/process identity."
-  - "Integrate recovery-ledger consumption into the actual governed recovery mutation and disable old bypasses."
-  - "Preserve project_plan mode in every status and evidence artifact."
-  - "Add caller-witness, cross-route, decision replay, recovery bypass, lost-response and identity-splice tests."
-  - "Run exact tested-head and receipt-head Python 3.11/3.13 CI and create exactly one non-empty receipt-only commit."
+  - "Create one durable monotonic execution lease state machine for capability, effect, invocation and terminal closure."
+  - "Require the lease transition for effect permit issuance and disable the old positive effect-permit path."
+  - "Require the lease and effect permit for unique non-empty invocation attachment."
+  - "Mint Manual App, Automation and CLI execution identities through a verifier, not caller-populated strings."
+  - "Make finalize_with_attested_terminal the only positive terminal mutation and disable old finalize."
+  - "Bind reconciliation and classification to the same lease and terminal commit receipt."
+  - "Remove or permanently downgrade the process-local legacy terminal attestor path."
+  - "Add durable recovery operation journal and post-apply response-loss restart reconciliation."
+  - "Prove old bypasses fail with exact tested-head and receipt-head Python 3.11/3.13 CI."
 
 hard_boundaries:
   - "ENGINEERING_AND_SYNTHETIC_TESTS_ONLY / NO_CANARY / NO_APP_OR_CLI_INVOCATION."
   - "No live GitHub authority write."
-  - "No model/provider/reasoning/default/thread/subagent setting mutation."
-  - "No keys, tokens, cookies, sessions, credentials or private configuration reads."
-  - "No real trading, accounts, orders, funds or irreversible production changes."
+  - "No model/provider/reasoning/default/thread/subagent/workspace/session setting access or mutation."
+  - "No keys, tokens, cookies, credentials or private configuration reads."
+  - "No real trading, accounts, orders, positions, funds or irreversible production changes."
   - "No direct main write, merge, force push, rebase, QQ or WorkBuddy branch mutation."
 
 protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-ATTESTED-WITNESS-CLAIM-BOUND-DECISION-AND-RECOVERY-ENFORCEMENT-CLOSURE-0041-E45.yaml"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46-AMED.yaml"
+  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46.yaml"
 
 command_execution_contract:
-  on_trigger: "VERIFY_E45_ROUTE_CREATE_FRESH_PLAN_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
+  on_trigger: "VERIFY_E46_ROUTE_CREATE_FRESH_PLAN_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
   second_user_start_command_required: false
   read_only_acknowledgement_forbidden: true
   plan_only_response_when_ready_forbidden: true
   mode_switch_without_route_update_forbidden: true
   minimum_progress_before_return: >-
-    Verify Issue #140, frozen PR #139 exact heads and epoch 47; create the E45 branch and non-empty plan commit; open the sole Draft PR;
-    publish the selected-source manifest and begin attested-witness, claim-bound decision and recovery-enforcement contracts.
+    Verify Issue #144, frozen PR #142 exact heads and epoch 48; create the E46 branch and non-empty plan commit; open the sole Draft PR;
+    publish the selected-source manifest and begin the durable execution lease plus mandatory effect-gate implementation.
 
 after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
 updated_by: "GPT"
-updated_at: "2026-08-03T07:55:00+08:00"
-boundary: "ATTESTED_WITNESS_AND_RECOVERY_ENFORCEMENT_ENGINEERING_ONLY / E44_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
+updated_at: "2026-08-03T15:08:00+08:00"
+boundary: "MANDATORY_EXECUTION_LEASE_AND_ATTESTED_TERMINAL_MUTATION / E45_FROZEN / USER_CONTROLS_MODELS / NO_TRADE"
