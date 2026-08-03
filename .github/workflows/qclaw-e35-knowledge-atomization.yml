@@ -1,0 +1,27 @@
+name: QCLAW E35 Knowledge Atomization
+
+on:
+  push:
+    branches: [qclaw/knowledge-atomization-byte-exact-lossless-0016-e35]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.after || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run E35 tests
+        env:
+          PYTHONHASHSEED: 0
+          PYTHONIOENCODING: utf-8
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-EXACT-0016-E35
+        run: |
+          PYTHONPATH=src python3 tests/run_all_tests.py
