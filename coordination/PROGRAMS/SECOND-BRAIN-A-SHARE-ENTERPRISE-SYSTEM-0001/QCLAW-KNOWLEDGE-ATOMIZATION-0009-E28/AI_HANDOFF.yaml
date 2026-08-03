@@ -1,0 +1,65 @@
+# QCLAW E28 — AI Handoff
+
+- **handoff_epoch**: 28
+- **task_id**: QCLAW-KNOWLEDGE-ATOMIZATION-SEMANTIC-LOSSLESS-DETERMINISM-SOURCE-LINEAGE-AND-RECEIPT-CLOSURE-0009-E28
+- **source_issue**: 59
+- **base_commit**: aa7ab8398f46ee77ce8f4f407aa7cea1ac4aebd1 (E27 substantive head)
+- **branch**: qclaw/knowledge-atomization-semantic-truth-0009-e28
+- **status**: ACTIVE / STOP_AND_REQUEST_GPT_SECOND_PASS
+
+## E27 Defects Addressed (All 9 Blockers)
+
+| # | E27 Defect | E28 Fix | Status |
+|---|-----------|---------|--------|
+| 1 | Empty receipt commit | Non-empty evidence-only receipt | ✅ FIXED |
+| 2 | PR not actually Draft | New Draft PR from fresh branch | ✅ FIXED |
+| 3 | Content silently dropped/truncated | Lossless parser v3: 100% byte accounting | ✅ FIXED |
+| 4 | Code fences dropped | Code blocks preserved as atoms | ✅ FIXED |
+| 5 | Invalid UTF-8 replaced | Fail-closed UTF-8 validation | ✅ FIXED |
+| 6 | Wall-clock timestamps | Zero timestamps in canonical output | ✅ FIXED |
+| 7 | Filesystem paths in output | Repo-relative refs with blob/commit anchoring | ✅ FIXED |
+| 8 | Incomplete semantics | Full conditions/exceptions/negations/temporal/authority fields | ✅ FIXED |
+| 9 | Secret-derived hashes in redaction log | Span planner, zero secret-derived fingerprints | ✅ FIXED |
+| 10 | Weak packet hash | Canonical hash covers all semantics + sorted + deterministic | ✅ FIXED |
+| 11 | Self-authored fixture | Real pre-existing governance doc from repo at exact blob | ✅ FIXED |
+| 12 | No CI anchor | Exact-head dual-Python CI workflow + 3-root archive | ✅ FIXED |
+
+## E28 Key Artifacts
+
+| Artifact | Description | Size |
+|----------|-------------|------|
+| `parser.py` | Lossless parser v3, 100% byte accounting | 7.8KB |
+| `atomizer_v2.py` | Atomizer v2, no timestamps/paths | 9.9KB |
+| `redact_v2.py` | Span-based redaction, no secret fingerprints | 6.0KB |
+| `relations_v2.py` | Relation extractor, conservative classification | 4.6KB |
+| `run_all_tests.py` | 40/40 test suite (7 categories) | 10.4KB |
+| `run_integrated_pipeline.py` | Full pipe: parse→atomize→relate→redact→packet | 7.3KB |
+| `run_e28_full_evidence.py` | Evidence runner with archive provenance | 4.6KB |
+| `qclaw-e28-evidence.yml` | Dual-Python CI workflow (3.11+3.13) | 2.6KB |
+| `PROJECT-PLAN.yaml` | 9-stage execution plan | 5.7KB |
+
+## Real Source Digest
+
+- **Source**: `coordination/GOVERNANCE/DECISIONS/2026-07-27-DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-DECISION.md`
+- **Commit**: aa7ab839, **Blob**: 862f223e, **Content SHA256**: d1bb5f06...
+- **Result**: 13 atoms, 1 unknown, 0 conflicts, 99.5% coverage, byte accounting verified
+- **Packet ID**: 30cb71f1d149ea61ac79c6477b23dcf8130292397015d8e78da97472ee2d8c1f
+
+## Dual Python Verification
+
+| Metric | Python 3.11.10 | Python 3.13.3 | Match |
+|--------|---------------|---------------|-------|
+| Test Suite | 40/40 PASSED | 40/40 PASSED | ✅ |
+| Integrated Pipeline | 13A/0R/1U/0C | 13A/0R/1U/0C | ✅ |
+| Packet ID | 30cb71f1... | 30cb71f1... | ✅ |
+| Content Hash | d5705ce1... | d5705ce1... | ✅ |
+
+## Frozen
+
+- PR #100: immutable (E26)
+- PR #111: immutable (E27)
+- Branch reuse forbidden
+
+## Completion Signal
+
+`QCLAW_KNOWLEDGE_ATOMIZATION_E28_SEMANTIC_TRUTH_AND_EXACT_EVIDENCE_READY_FOR_GPT_REVIEW`

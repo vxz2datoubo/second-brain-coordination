@@ -1,0 +1,65 @@
+name: QCLAW E28 Evidence CI
+
+on:
+  push:
+    branches: [qclaw/knowledge-atomization-semantic-truth-0009-e28]
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28/**'
+      - '.github/workflows/qclaw-e28-evidence.yml'
+
+jobs:
+  evidence:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.13']
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: pip install PyYAML==6.0.2
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28
+
+      - name: Verify source identity
+        run: |
+          python -c "
+          import hashlib, urllib.request, json
+          d = json.loads(urllib.request.urlopen(
+            'https://api.github.com/repos/vxz2datoubo/second-brain-coordination/contents/coordination/GOVERNANCE/DECISIONS/2026-07-27-DUAL-LAYER-INITIATIVE-AND-GPT-ORCHESTRATION-DECISION.md?ref=aa7ab8398f46ee77ce8f4f407aa7cea1ac4aebd1',
+            headers={'Accept':'application/vnd.github.raw+json'}).read().decode())
+          h = 'd1bb5f061ebfecad3ea11aa7cafd83a6707a893c2375f71b01f2cad935d9885c'
+          print('Content SHA256:', hashlib.sha256(d.encode()).hexdigest())
+          assert False, 'Source identity check — run manually with actual hash'
+          " 2>&1
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28
+
+      - name: Test Suite
+        run: |
+          $env:PYTHONPATH = "src"
+          $env:PYTHONHASHSEED = "0"
+          python tests/run_all_tests.py
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28
+        shell: pwsh
+
+      - name: Integrated Pipeline
+        run: |
+          $env:PYTHONPATH = "src"
+          $env:PYTHONHASHSEED = "0"
+          python run_integrated_pipeline.py
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28
+        shell: pwsh
+
+      - name: Run Full Evidence
+        run: |
+          $env:PYTHONPATH = "src"
+          $env:PYTHONHASHSEED = "0"
+          python run_e28_full_evidence.py
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0009-E28
+        shell: pwsh

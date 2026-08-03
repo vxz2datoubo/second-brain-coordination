@@ -1,0 +1,35 @@
+name: "QCLAW-E27 Knowledge Atomization & Continuous Digestion"
+on:
+  push:
+    branches: ["qclaw/knowledge-atomization-digestion-0008-e27"]
+    paths: ["coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0008-E27/**"]
+  workflow_dispatch:
+
+jobs:
+  e27-evidence:
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install dependencies
+        run: pip install PyYAML==6.0.2
+      - name: QCLAW E27 Knowledge Atomization Tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0008-E27
+        env:
+          PYTHONHASHSEED: "0"
+          PYTHONIOENCODING: utf-8
+        run: python tests/run_all_tests.py
+      - name: E27 Digest Pipeline (Batch 001)
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-0008-E27
+        env:
+          PYTHONHASHSEED: "0"
+          PYTHONIOENCODING: utf-8
+        run: python -m qclaw_knowledge_digest.cli digest digest_queue/batch_001 --output output_batch_001
