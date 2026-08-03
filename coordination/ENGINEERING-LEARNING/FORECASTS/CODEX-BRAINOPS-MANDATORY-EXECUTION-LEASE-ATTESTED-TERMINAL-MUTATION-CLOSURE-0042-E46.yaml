@@ -1,0 +1,47 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46"
+route_epoch: 48
+mode: "project_plan"
+active_issue: 144
+source_pull_request: 142
+created_by: "GPT"
+created_at: "2026-08-03T15:08:00+08:00"
+
+forecast:
+  primary_hypothesis: >-
+    E45 components will not become an enforceable execution chain until effect authorization, invocation attachment and durable
+    terminal mutation share one CAS-backed lease state machine and every legacy positive entrypoint is made non-mutating.
+  likely_difficulties:
+    - "Sequencing capability before invocation while still requiring a later non-null invocation binding."
+    - "Avoiding two independent sources of truth between claim state and lease state."
+    - "Designing purpose-aware one-shot transitions without consuming the capability before terminal closure becomes possible."
+    - "Making owner-specific session/run/process identities verifier-minted rather than caller-declared."
+    - "Handling claim-CAS response loss without reporting success or permanently hiding an applied terminal state."
+  expected_failure_modes:
+    - "A helper validates the lease but the actual mutation method still accepts old arguments."
+    - "A compatibility wrapper silently calls the old positive finalize or effect-permit path."
+    - "Lease state and claim state diverge after one CAS succeeds and the other response is lost."
+    - "Tests mutate only obvious fields while copied correct strings still pass as attested identity."
+    - "The old process-local attestor remains reachable through imports or legacy tests."
+  required_disconfirming_tests:
+    - "Old acquire_effect_permit signature cannot return a permit."
+    - "Old finalize signature cannot create a terminal claim."
+    - "Terminal validation without a durable lease transition fails even with all correct strings."
+    - "A caller cannot construct or clone an AttestedExecutionIdentity."
+    - "Cross-instance replay of legacy attestor evidence cannot reach positive classification."
+    - "Post-apply response loss is reconciled after restart from durable state and journal evidence."
+  acceptance_signal: >-
+    The only positive path is capability attestation -> durable lease -> effect permit -> invocation attach -> verifier-minted owner
+    identity -> terminal attestation -> terminal claim CAS -> lease terminal commit -> classification, with exact-head CI proving every old bypass fails.
+
+risk:
+  confidence: "high"
+  severity_if_wrong: "high"
+  reason: >-
+    Treating optional validators as mandatory authority could permit duplicate execution, false terminal success or unrecoverable
+    authorization drift when the later control plane becomes live.
+
+boundaries:
+  - "Synthetic tests only."
+  - "No live authority mutation, Canary, App Automation or CLI invocation."
+  - "No credentials, private config, model settings or trading surfaces."
