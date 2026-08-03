@@ -1,0 +1,38 @@
+task_id: CODEX-BRAINOPS-OBSERVABLE-ONE-SHOT-AUTOMATIC-TRIGGER-CANARY-0031-E36
+agent_id: CODEX
+route_epoch: 37
+mode: goal
+status: IN_PROGRESS
+base:
+  reviewed_base: f52a817135a0b15d8f89a55a159c8371928f5347
+  canonical_main_observed: dd8aab05109d4b0adec901ace277633546563354
+source:
+  pull_request: 110
+  source_receipt_head: 2e1c67a992cc354f36e260d9c7cf7ad66db08d11
+  source_tested_head: d63c19f6bd5fe42258f99e3a4c53d7e3f2028698
+branch: codex/brainops-observable-trigger-canary-0031-e36
+completion_signal: CODEX_BRAINOPS_E36_OBSERVABLE_ONE_SHOT_TRIGGER_CANARY_READY_FOR_GPT_REVIEW
+hard_boundary:
+  - LOCAL_FIRST
+  - APP_FIRST
+  - ONE_SHOT_CANARY_ONLY
+  - PUBLIC_SAFE
+  - NO_TRADE
+execution:
+  automatic_dispatch_allowed: false
+  one_shot_canary_build_allowed: true
+  one_shot_canary_execution_requires_explicit_bound_approval: true
+  current_execution_state: BLOCKED_APPROVAL_NOT_BOUND
+phases:
+  - name: plan_and_provenance
+    completion: plan_control_files_committed
+  - name: contract_and_store_hardening
+    completion: fail_closed_contracts_and_atomic_metadata_tests_pass
+  - name: evidence_and_receipt
+    completion: dual_python_ci_and_receipt_only_commit_published
+recovery:
+  resume_command: git status --short && git log --oneline -8
+  first_incomplete_phase: contract_and_store_hardening
+  rollback: git revert <e36_commit_sha>
+final_receipt_allowlist:
+  - E36/RECEIPTS/E36-FINAL-RECEIPT.md

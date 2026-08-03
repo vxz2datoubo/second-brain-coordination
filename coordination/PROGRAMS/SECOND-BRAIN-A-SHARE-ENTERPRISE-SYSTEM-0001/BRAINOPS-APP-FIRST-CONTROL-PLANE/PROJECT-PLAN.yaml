@@ -1,0 +1,61 @@
+schema_version: "1.0"
+kind: "BRAINOPS_PROJECT_PLAN"
+task_id: "CODEX-BRAINOPS-APP-FIRST-AUTOMATIC-REVIEW-EXECUTION-CONTROL-PLANE-0030-E35"
+route_epoch: 36
+agent_id: "CODEX"
+source_blueprint:
+  pull_request: 109
+  head: "96f926eacaf52221ac4630c8bb0039bfe05216d2"
+base_commit: "e7cbbf03c87b0c2a5d452596390179f13351a71f"
+branch: "codex/brainops-app-first-automatic-chain-0030-e35"
+actual_model_profile: "ACCESS_NOT_EXPOSED"
+boundary: "LOCAL_FIRST / APP_FIRST / READ_ONLY_AND_SHADOW_ONLY / PUBLIC_SAFE / NO_TRADE"
+execution_contract:
+  automatic_dispatch_allowed: false
+  actual_process_dispatch: false
+  public_or_lan_bind: false
+  service_installation: false
+  task_scheduler_mutation: false
+  trading_or_account_access: false
+  frozen_pull_requests: [107, 100]
+  excluded_agent_route: "QQ"
+phases:
+  - id: P0
+    name: "capability discovery"
+    status: complete
+    outputs:
+      - "CAPABILITY-REPORT.yaml"
+      - "UNKNOWN-REGISTRY.yaml"
+    acceptance:
+      - "Local observations are separated from documentation and unknown capabilities remain UNKNOWN."
+      - "No credential, session, or browser-profile material is inspected."
+  - id: P1
+    name: "read-only local console"
+    status: in_progress
+    outputs:
+      - "src/brainops_control_plane/"
+      - "tests/test_control_plane.py"
+    acceptance:
+      - "Only loopback binding is accepted."
+      - "No mutating HTTP endpoint exists."
+      - "SQLite audit storage redacts secret-like values."
+  - id: P3
+    name: "shadow review reconciliation"
+    status: pending
+    outputs:
+      - "shadow route ownership, leases, fencing, idempotency, and anti-entropy fixture"
+    acceptance:
+      - "Every decision is WOULD_DISPATCH or WOULD_BLOCK and never executes a process."
+      - "QQ and stale, duplicate, paused, disabled, unapproved, or leased routes fail closed."
+recovery:
+  command: "git switch codex/brainops-app-first-automatic-chain-0030-e35"
+  checkpoint_rule: "Each committed checkpoint records its parent and exact test command in STATUS.yaml."
+  rollback: "Revert only the task-owned commit(s); no shared worktree changes are involved."
+receipt_topology:
+  tested_head_rule: "The final tested head is the last commit that changes code, tests, contracts, plans, acceptance criteria, or validator behavior."
+  evidence_only_allowlist:
+    - "RECEIPTS/E35-FINAL-RECEIPT.md"
+  receipt_constraints:
+    - "The receipt must be non-empty and have the tested head as its direct parent."
+    - "The receipt contains commands, hashes, commit/tree identities, scope and externally published anchor references only."
+    - "No code, test, schema, plan, acceptance, route, or state change may follow the receipt."

@@ -1,0 +1,37 @@
+schema_version: "1.0"
+kind: "BRAINOPS_CAPABILITY_REPORT"
+observed_at_local: "2026-08-02"
+classification_rule: "Documentation is not local capability evidence."
+desktop:
+  codex_desktop_package:
+    status: "SUPPORTED"
+    evidence: "Windows AppX package OpenAI.Codex version 26.715.2305.0 reported healthy."
+  codex_process:
+    status: "SUPPORTED"
+    evidence: "A Codex executable process was observed during P0."
+  global_switcher: { status: "UNKNOWN" }
+  app_automations: { status: "UNKNOWN" }
+  thirty_minute_schedule: { status: "UNKNOWN" }
+  external_activation: { status: "UNKNOWN" }
+  visible_review_queue: { status: "UNKNOWN" }
+cli:
+  codex_command_discoverable:
+    status: "SUPPORTED"
+    evidence: "codex.exe was discoverable on PATH."
+  login_session_jsonl_resume_permission_profile:
+    status: "UNKNOWN"
+    evidence: "No session state or command execution capability was inspected."
+host:
+  os: "Windows 11 Professional 10.0.22631 x64"
+  python_runtime: "SUPPORTED"
+  dotnet_sdk:
+    status: "BLOCKED"
+    evidence: "A dotnet command stub was discoverable but no usable SDK listing was obtained."
+  docker: { status: "UNKNOWN" }
+  registered_ports:
+    port_8766: "OBSERVED_LISTENING; reserved for SuperBrain and outside this task"
+    port_32100: "NOT_OBSERVED_LISTENING; candidate only, never bound in this task"
+implementation_decision:
+  selected: "Python standard-library low-dependency equivalent"
+  reason: "The repository is coordination/Python-oriented and a usable .NET SDK was not verified."
+  implication: "No ASP.NET or Blazor runtime is claimed or introduced."
