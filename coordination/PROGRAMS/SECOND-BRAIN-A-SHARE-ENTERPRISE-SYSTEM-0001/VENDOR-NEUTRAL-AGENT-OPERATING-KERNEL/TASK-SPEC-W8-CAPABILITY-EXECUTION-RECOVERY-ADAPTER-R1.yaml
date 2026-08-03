@@ -1,0 +1,50 @@
+schema_version: "1.0"
+record_type: "CandidateAdapterTaskSpec"
+task_spec_id: "W8-CAPABILITY-EXECUTION-RECOVERY-ADAPTER-R1"
+status: "SPEC_ONLY_NOT_IMPLEMENTED"
+authority: "CANDIDATE_ONLY"
+owner:
+  workstream: "W8"
+  responsibilities:
+    - "CapabilityDescriptor registry and ToolRouteDecision runtime binding"
+    - "ExecutionCheckpoint, side-effect ledger, AgentHandoff and feature flags"
+  must_not_own: ["authority lease", "knowledge memory", "model evaluation"]
+producer: "W8 runtime orchestration"
+consumers: ["W1 authority adapter", "W3 memory adapter", "W9 profile evaluation", "domain skills"]
+input_contracts:
+  - "CapabilityDescriptor"
+  - "CapabilityRequest"
+  - "AuthorityResolution"
+  - "ExecutionCheckpoint"
+  - "ModelBehaviorProfile"
+output_contracts:
+  - "ToolRouteDecision"
+  - "ExecutionCheckpoint"
+  - "SideEffectRecord"
+  - "AgentHandoff"
+  - "FeatureFlagDecision"
+binding_rules:
+  authority: "capability, Skill and model profile can restrict but never grant authority"
+  route: "provider-neutral deterministic selection; display names cannot affect hash"
+  recovery: "authority drift and external drift are both retained in fixed order"
+  side_effects: "idempotency key uniqueness and explicit status before resume"
+negative_tests:
+  - "unavailable, stale, over-cost, over-latency and disallowed side effects reject"
+  - "provider display name and input order do not change route result"
+  - "capability or model profile alone cannot activate a route"
+  - "duplicate side-effect idempotency key rejects"
+  - "authority plus external drift returns combined blocking status"
+  - "feature flags default disabled and cannot enable K3/K4"
+dependencies:
+  - "W1 AuthorityResolution and active lease"
+  - "W9 ModelBehaviorProfile evidence"
+  - "W8 capability registry and runtime event store"
+shared_interface_write_lock:
+  owner: "W8"
+  locked_objects: ["CapabilityDescriptor", "ToolRouteDecision", "ExecutionCheckpoint", "SideEffectRecord", "FeatureFlagDecision"]
+  W1_W3_objects: "read_only"
+rollback:
+  mode: "disable route binding and resume from last immutable checkpoint"
+  restore: "idempotent checkpoint replay; no live or production side effects"
+completion_signal: "W8_CAPABILITY_EXECUTION_RECOVERY_ADAPTER_R1_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"

@@ -1,0 +1,82 @@
+schema_version: "VNAK_E30_WPDCR_v1"
+task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
+route_epoch: 31
+agent_id: "CODEX"
+actual_executor: "CODEX"
+reviewer: "GPT"
+status: "READY_FOR_GPT_REVIEW"
+mode: "target"
+base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+
+base_sections:
+  - "task_result_and_current_scope"
+  - "verified_remote_and_local_facts"
+  - "work_process_and_difficulty"
+  - "plan_vs_actual_and_failures"
+  - "changed_files_and_tests"
+  - "unknowns_and_negative_results"
+  - "rollback_and_next_gate"
+
+autonomous_remediation_ledger:
+  - id: "E30-R0-001"
+    action: "Replace stale primary evidence identities with one current E30 evidence contract."
+    class: "R0_ROUTINE_LOCAL_REPAIR"
+    owner: "CODEX"
+    evidence: "ci_verify.py and E30-COMPLETION-EVIDENCE.json"
+    rollback: "Close Draft PR or revert candidate commits."
+  - id: "E30-R1-001"
+    action: "Add fail-closed validation for archive roots, stream hashes, artifact equality and WPDCR overlays."
+    class: "R1_BOUNDED_TOOL_RUNTIME_OR_TEST_REPAIR"
+    owner: "CODEX"
+    evidence: "src/vendor_neutral_agent_kernel/evidence.py and test_e30_evidence.py"
+    rollback: "Remove E30 validator and tests from candidate branch."
+  - id: "E30-R1-002"
+    action: "Repair the pre-existing malformed Kernel PROJECT-PLAN YAML and emit complete three-root archive provenance from CI."
+    class: "R1_BOUNDED_EVIDENCE_AND_CONFIGURATION_REPAIR"
+    owner: "CODEX"
+    evidence: "PROJECT-PLAN.yaml, .github/workflows/vendor-neutral-agent-kernel.yml, workflow 30676183695"
+    rollback: "Revert the YAML repair and archive-evidence workflow change."
+  - id: "E30-R1-003"
+    action: "Correct the evidence validator to require Git's 40-character tree identity and align the regression fixtures."
+    class: "R1_BOUNDED_CONTRACT_AND_TEST_REPAIR"
+    owner: "CODEX"
+    evidence: "src/vendor_neutral_agent_kernel/evidence.py and tests/test_e30_evidence.py"
+    rollback: "Revert the tree-identity contract correction and its fixtures."
+
+model_reasoning_and_execution_profile:
+  requested_model: "gpt-5.6-sol"
+  requested_reasoning_effort: "xhigh"
+  requested_execution_intensity: "X3_DEEP"
+  permission_profile: "P1_ENHANCED_BOUNDED"
+  actual_runtime_visibility: "ACCESS_NOT_EXPOSED"
+  silent_downgrade: false
+  note: "This records routing metadata, not a claim that model metadata is runtime evidence."
+
+unknowns:
+  - "The local default Python environment lacks jsonschema; no dependency was installed."
+  - "The candidate third-party source remains authenticity and license UNKNOWN."
+  - "No adapter, cross-model evaluation or Shadow behavior was run."
+
+negative_results:
+  - "Initial local full suite could not complete because jsonschema is absent in the selected environment."
+  - "No real data, private data, account, order, trade or production route was accessed."
+  - "No adapter, cross-model evaluation, Shadow behavior, canonical PEOS or canonical AGENTS content was changed."
+
+coordination:
+  upstream: "GPT route and PR #107 E29 receipt"
+  downstream: "GPT second-pass review; no adapter owner is activated by E30."
+  cross_agent_requests:
+    - "GPT should validate current tested/receipt anchors and decide whether the candidate remains Draft."
+    - "WorkBuddy/QCLAW are not asked to modify this workline."
+  external_evidence:
+    workflow_run: 30676183695
+    python_jobs: [91303811827, 91303811869]
+    archive_artifact_digests:
+      python_3_11: "ddcc8103918fc2032d5df7f1355e0d072672b5e60fa80b263d0132b67882a1c9"
+      python_3_13: "e387e9c9850240248541621de637f355f79c03e0af61ad54fc80c5c7f609787c"
+
+rollback:
+  logical: "Close PR #107 or revert E30 candidate commits; E29 remains in history."
+  byte_level: "Restore the d64c1ee2 tree for all E30 paths."
+  production_state_changed: false

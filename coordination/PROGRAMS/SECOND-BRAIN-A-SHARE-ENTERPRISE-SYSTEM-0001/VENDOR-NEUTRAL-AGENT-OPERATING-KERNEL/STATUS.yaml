@@ -1,0 +1,44 @@
+schema_version: "1.0"
+proposal_id: "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROPOSAL-0011"
+agent_id: "CODEX"
+reviewer: "GPT"
+task_id: "CODEX-PEOS-0010-E29-WPDCR-ARCHIVE-MANIFEST-CURRENT-REVIEW-PACKET-AND-RECEIPT-TRUTH-CLOSURE-0022-E30"
+route_epoch: 31
+status: "E30_READY_FOR_GPT_REVIEW"
+maturity: "IMPLEMENTED_NOT_INTEGRATED"
+authority: "CANDIDATE_ONLY"
+activation: "DISABLED"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"
+source_authenticity: "UNVERIFIED_THIRD_PARTY_CAPTURE"
+raw_source_committed: false
+canonical_blueprints_modified: false
+reviewed_base: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+primary_tested_identity:
+  authority: "E30_PRIMARY_TESTED_HEAD"
+  tested_commit: "d9b0bfdd72485b0aea73cdc6d29ba0b0cbb41a1b"
+  tested_tree: "746a0318cbbc773c975d327bb7bff8636752030d"
+historical_evidence:
+  e29_functional_tested_head: "686518aa93e37613d6c8e4ab936d0fdd816b403c"
+  e29_receipt_head: "d64c1ee2d3fc3e6a70a5b20d0720de60d320970a"
+  retention: "Lineage only; never primary E30 evidence."
+tests:
+  focused_e30_result: "PASS_12_OF_12"
+  full_local_result: "NOT_COMPLETE_LOCAL_JSONSCHEMA_MISSING"
+  remote_dual_python: "PASS_103_OF_103_PY311_AND_PY313"
+  workflow_run: 30676183695
+  command: "python -B .../run_all_tests.py; ci_verify.py; three clean Git archives"
+e30_deliverables:
+  wpdcr: "E30-WORK-PROCESS-AND-COORDINATION-REPORT.yaml"
+  archive_manifest: "E30-ARCHIVE-PROVENANCE-MATRIX.yaml"
+  completion_evidence: "E30-COMPLETION-EVIDENCE.json"
+  validator: "src/vendor_neutral_agent_kernel/evidence.py"
+  focused_tests: "tests/test_e30_evidence.py"
+review_gates:
+  - "Primary E30 tested identity is exact for the tested parent commit; receipt-only metadata must not replace it."
+  - "WPDCR autonomy and model-profile overlays must be non-empty."
+  - "Three archive roots must be distinct and artifact-equal."
+  - "GPT must review the tested parent and final receipt anchors."
+rollback:
+  logical: "Close Draft PR #107 or revert E30 candidate commits."
+  byte_level: "Restore the d64c1ee2 tree for all E30 paths."
+production_state_changed: false

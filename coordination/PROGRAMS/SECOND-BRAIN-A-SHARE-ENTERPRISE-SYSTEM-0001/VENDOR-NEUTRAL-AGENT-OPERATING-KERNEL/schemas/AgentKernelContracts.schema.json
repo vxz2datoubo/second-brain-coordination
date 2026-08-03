@@ -1,0 +1,539 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://second-brain.local/schemas/AgentKernelContracts.schema.json",
+  "title": "Vendor-Neutral Agent Operating Kernel Contracts",
+  "oneOf": [
+    {"$ref": "#/$defs/AuthorityResolution"},
+    {"$ref": "#/$defs/TaskIntent"},
+    {"$ref": "#/$defs/EpistemicClaim"},
+    {"$ref": "#/$defs/MemoryWriteProposal"},
+    {"$ref": "#/$defs/CapabilityDescriptor"},
+    {"$ref": "#/$defs/ToolRouteDecision"},
+    {"$ref": "#/$defs/ExecutionCheckpoint"},
+    {"$ref": "#/$defs/CompletionReceipt"},
+    {"$ref": "#/$defs/AgentHandoff"},
+    {"$ref": "#/$defs/ModelBehaviorProfile"}
+  ],
+  "$defs": {
+    "NonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "StringArray": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/NonEmptyString"},
+      "uniqueItems": true
+    },
+    "NullableString": {
+      "type": ["string", "null"]
+    },
+    "NullableNonnegativeInteger": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "Ratio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "Sha256OrEmpty": {
+      "type": "string",
+      "pattern": "^$|^[a-f0-9]{64}$"
+    },
+    "EpistemicLane": {
+      "enum": [
+        "USER_ASSERTED",
+        "USER_ADOPTED",
+        "TOOL_OBSERVED",
+        "INFERRED",
+        "HYPOTHESIS",
+        "DECISION",
+        "OUTCOME",
+        "UNKNOWN"
+      ]
+    },
+    "QualityStatus": {
+      "enum": [
+        "CANDIDATE",
+        "VALIDATED",
+        "DISPUTED",
+        "STALE",
+        "RETRACTED",
+        "UNKNOWN"
+      ]
+    },
+    "SideEffectClass": {
+      "enum": [
+        "READ_ONLY",
+        "REVERSIBLE_LOCAL",
+        "EXTERNAL_REVERSIBLE",
+        "IRREVERSIBLE_OR_PRODUCTION"
+      ]
+    },
+    "CapabilityAvailability": {
+      "enum": [
+        "AVAILABLE",
+        "DEGRADED",
+        "RATE_LIMITED",
+        "UNAVAILABLE",
+        "UNKNOWN"
+      ]
+    },
+    "CompletionStatus": {
+      "enum": [
+        "SUCCESS_CLEAN",
+        "SUCCESS_WITH_FINDINGS",
+        "PARTIAL",
+        "BLOCKED",
+        "FAILED",
+        "NEEDS_APPROVAL"
+      ]
+    },
+    "ExtensionPair": {
+      "type": "array",
+      "prefixItems": [
+        {"$ref": "#/$defs/NonEmptyString"},
+        {}
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ContractMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "object_id",
+        "run_id",
+        "trace_id",
+        "created_at",
+        "source_refs",
+        "epistemic_status",
+        "authority_class",
+        "quality_status",
+        "content_hash",
+        "supersedes",
+        "rollback_ref",
+        "extensions"
+      ],
+      "properties": {
+        "schema_version": {"$ref": "#/$defs/NonEmptyString"},
+        "object_id": {"$ref": "#/$defs/NonEmptyString"},
+        "run_id": {"$ref": "#/$defs/NonEmptyString"},
+        "trace_id": {"$ref": "#/$defs/NonEmptyString"},
+        "created_at": {"$ref": "#/$defs/NonEmptyString"},
+        "source_refs": {"$ref": "#/$defs/StringArray"},
+        "epistemic_status": {"$ref": "#/$defs/EpistemicLane"},
+        "authority_class": {"$ref": "#/$defs/NonEmptyString"},
+        "quality_status": {"$ref": "#/$defs/QualityStatus"},
+        "content_hash": {"$ref": "#/$defs/Sha256OrEmpty"},
+        "supersedes": {"$ref": "#/$defs/NullableString"},
+        "rollback_ref": {"$ref": "#/$defs/NullableString"},
+        "extensions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ExtensionPair"}
+        }
+      }
+    },
+    "AuthorityResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "effective_task_id",
+        "agent_id",
+        "allowed_paths",
+        "allowed_actions",
+        "forbidden_actions",
+        "approval_requirements",
+        "verified_approval_actions",
+        "conflicts",
+        "resolution_evidence",
+        "resolution_status",
+        "authority_hash"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "effective_task_id": {"$ref": "#/$defs/NonEmptyString"},
+        "agent_id": {"$ref": "#/$defs/NonEmptyString"},
+        "allowed_paths": {"$ref": "#/$defs/StringArray"},
+        "allowed_actions": {"$ref": "#/$defs/StringArray"},
+        "forbidden_actions": {"$ref": "#/$defs/StringArray"},
+        "approval_requirements": {"$ref": "#/$defs/StringArray"},
+        "verified_approval_actions": {"$ref": "#/$defs/StringArray"},
+        "conflicts": {"$ref": "#/$defs/StringArray"},
+        "resolution_evidence": {"$ref": "#/$defs/StringArray"},
+        "resolution_status": {"$ref": "#/$defs/NonEmptyString"},
+        "authority_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "TaskIntent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "objective",
+        "explicit_requirements",
+        "success_criteria",
+        "non_goals",
+        "unknowns",
+        "reversibility",
+        "side_effect_class",
+        "evidence_budget",
+        "time_budget_seconds",
+        "autonomy_boundary"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "objective": {"$ref": "#/$defs/NonEmptyString"},
+        "explicit_requirements": {"$ref": "#/$defs/StringArray"},
+        "success_criteria": {"$ref": "#/$defs/StringArray"},
+        "non_goals": {"$ref": "#/$defs/StringArray"},
+        "unknowns": {"$ref": "#/$defs/StringArray"},
+        "reversibility": {"$ref": "#/$defs/NonEmptyString"},
+        "side_effect_class": {"$ref": "#/$defs/SideEffectClass"},
+        "evidence_budget": {"type": "integer", "minimum": 0},
+        "time_budget_seconds": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "autonomy_boundary": {"$ref": "#/$defs/StringArray"}
+      }
+    },
+    "EpistemicClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "canonical_statement",
+        "provenance_lane",
+        "supporting_evidence",
+        "opposing_evidence",
+        "alternative_explanations",
+        "confidence",
+        "confidence_basis",
+        "freshness",
+        "invalidation_conditions",
+        "review_after"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "canonical_statement": {"$ref": "#/$defs/NonEmptyString"},
+        "provenance_lane": {"$ref": "#/$defs/EpistemicLane"},
+        "supporting_evidence": {"$ref": "#/$defs/StringArray"},
+        "opposing_evidence": {"$ref": "#/$defs/StringArray"},
+        "alternative_explanations": {"$ref": "#/$defs/StringArray"},
+        "confidence": {"$ref": "#/$defs/Ratio"},
+        "confidence_basis": {"$ref": "#/$defs/NonEmptyString"},
+        "freshness": {"$ref": "#/$defs/NonEmptyString"},
+        "invalidation_conditions": {"$ref": "#/$defs/StringArray"},
+        "review_after": {"$ref": "#/$defs/NullableString"}
+      }
+    },
+    "MemoryWriteProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "candidate_claims",
+        "destination_scope",
+        "source_provenance",
+        "validation_status",
+        "authority_write",
+        "idempotency_key"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "candidate_claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/EpistemicClaim"}
+        },
+        "destination_scope": {"$ref": "#/$defs/NonEmptyString"},
+        "source_provenance": {"$ref": "#/$defs/StringArray"},
+        "validation_status": {"$ref": "#/$defs/NonEmptyString"},
+        "authority_write": {"const": false},
+        "idempotency_key": {"$ref": "#/$defs/NonEmptyString"}
+      }
+    },
+    "CapabilityDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "provider_id",
+        "provider_display_name",
+        "capability_id",
+        "semantics",
+        "field_semantics_version",
+        "source_quality",
+        "authority_fit",
+        "freshness_ms",
+        "reliability",
+        "latency_ms",
+        "quota_remaining",
+        "cost_units",
+        "side_effect_class",
+        "availability",
+        "failure_modes"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "provider_id": {"$ref": "#/$defs/NonEmptyString"},
+        "provider_display_name": {"$ref": "#/$defs/NonEmptyString"},
+        "capability_id": {"$ref": "#/$defs/NonEmptyString"},
+        "semantics": {"$ref": "#/$defs/StringArray"},
+        "field_semantics_version": {"$ref": "#/$defs/NonEmptyString"},
+        "source_quality": {"$ref": "#/$defs/Ratio"},
+        "authority_fit": {"$ref": "#/$defs/Ratio"},
+        "freshness_ms": {"$ref": "#/$defs/NullableNonnegativeInteger"},
+        "reliability": {"$ref": "#/$defs/Ratio"},
+        "latency_ms": {"$ref": "#/$defs/NullableNonnegativeInteger"},
+        "quota_remaining": {"$ref": "#/$defs/NullableNonnegativeInteger"},
+        "cost_units": {"type": "number", "minimum": 0},
+        "side_effect_class": {"$ref": "#/$defs/SideEffectClass"},
+        "availability": {"$ref": "#/$defs/CapabilityAvailability"},
+        "failure_modes": {"$ref": "#/$defs/StringArray"}
+      }
+    },
+    "RouteCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider_id",
+        "capability_id",
+        "accepted",
+        "score",
+        "components",
+        "rejection_reasons"
+      ],
+      "properties": {
+        "provider_id": {"$ref": "#/$defs/NonEmptyString"},
+        "capability_id": {"$ref": "#/$defs/NonEmptyString"},
+        "accepted": {"type": "boolean"},
+        "score": {"type": "number"},
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {"$ref": "#/$defs/NonEmptyString"},
+              {"type": "number"}
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "rejection_reasons": {"$ref": "#/$defs/StringArray"}
+      }
+    },
+    "ToolRouteDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "requested_capability",
+        "required_semantics",
+        "candidates",
+        "selected_provider_id",
+        "selected_capability_id",
+        "fallback_order",
+        "decision_hash"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "requested_capability": {"$ref": "#/$defs/NonEmptyString"},
+        "required_semantics": {"$ref": "#/$defs/StringArray"},
+        "candidates": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/RouteCandidate"}
+        },
+        "selected_provider_id": {"$ref": "#/$defs/NullableString"},
+        "selected_capability_id": {"$ref": "#/$defs/NullableString"},
+        "fallback_order": {"$ref": "#/$defs/StringArray"},
+        "decision_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "SideEffectRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effect_id",
+        "side_effect_class",
+        "idempotency_key",
+        "external_anchor",
+        "status"
+      ],
+      "properties": {
+        "effect_id": {"$ref": "#/$defs/NonEmptyString"},
+        "side_effect_class": {"$ref": "#/$defs/SideEffectClass"},
+        "idempotency_key": {"$ref": "#/$defs/NonEmptyString"},
+        "external_anchor": {"$ref": "#/$defs/NullableString"},
+        "status": {"$ref": "#/$defs/NonEmptyString"}
+      }
+    },
+    "ExecutionCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "intent_hash",
+        "context_hash",
+        "authority_hash",
+        "completed_steps",
+        "remaining_steps",
+        "artifact_refs",
+        "side_effect_ledger",
+        "test_state",
+        "resume_instructions",
+        "external_anchors"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "intent_hash": {"$ref": "#/$defs/NonEmptyString"},
+        "context_hash": {"$ref": "#/$defs/NonEmptyString"},
+        "authority_hash": {"$ref": "#/$defs/NonEmptyString"},
+        "completed_steps": {"$ref": "#/$defs/StringArray"},
+        "remaining_steps": {"$ref": "#/$defs/StringArray"},
+        "artifact_refs": {"$ref": "#/$defs/StringArray"},
+        "side_effect_ledger": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/SideEffectRecord"}
+        },
+        "test_state": {"$ref": "#/$defs/StringArray"},
+        "resume_instructions": {"$ref": "#/$defs/StringArray"},
+        "external_anchors": {"$ref": "#/$defs/StringArray"}
+      }
+    },
+    "RequirementEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "evidence_refs",
+        "disposition",
+        "scope"
+      ],
+      "properties": {
+        "requirement_id": {"$ref": "#/$defs/NonEmptyString"},
+        "evidence_refs": {"$ref": "#/$defs/StringArray"},
+        "disposition": {"$ref": "#/$defs/NonEmptyString"},
+        "scope": {"$ref": "#/$defs/NonEmptyString"}
+      }
+    },
+    "CompletionReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "requirement_evidence",
+        "changed_files",
+        "tests",
+        "external_anchors",
+        "unknowns",
+        "findings",
+        "rollback",
+        "completion_status"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "requirement_evidence": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/RequirementEvidence"}
+        },
+        "changed_files": {"$ref": "#/$defs/StringArray"},
+        "tests": {"$ref": "#/$defs/StringArray"},
+        "external_anchors": {"$ref": "#/$defs/StringArray"},
+        "unknowns": {"$ref": "#/$defs/StringArray"},
+        "findings": {"$ref": "#/$defs/StringArray"},
+        "rollback": {"$ref": "#/$defs/StringArray"},
+        "completion_status": {"$ref": "#/$defs/CompletionStatus"}
+      }
+    },
+    "AgentHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "source_agent",
+        "target_agent",
+        "reviewer",
+        "task_id",
+        "owned_paths",
+        "base",
+        "parent",
+        "tree",
+        "head",
+        "completed",
+        "remaining",
+        "tests",
+        "unknowns",
+        "rollback"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "source_agent": {"$ref": "#/$defs/NonEmptyString"},
+        "target_agent": {"$ref": "#/$defs/NonEmptyString"},
+        "reviewer": {"$ref": "#/$defs/NonEmptyString"},
+        "task_id": {"$ref": "#/$defs/NonEmptyString"},
+        "owned_paths": {"$ref": "#/$defs/StringArray"},
+        "base": {"$ref": "#/$defs/NonEmptyString"},
+        "parent": {"$ref": "#/$defs/NonEmptyString"},
+        "tree": {"$ref": "#/$defs/NonEmptyString"},
+        "head": {"$ref": "#/$defs/NonEmptyString"},
+        "completed": {"$ref": "#/$defs/StringArray"},
+        "remaining": {"$ref": "#/$defs/StringArray"},
+        "tests": {"$ref": "#/$defs/StringArray"},
+        "unknowns": {"$ref": "#/$defs/StringArray"},
+        "rollback": {"$ref": "#/$defs/StringArray"}
+      }
+    },
+    "ModelBehaviorProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "meta",
+        "model_family",
+        "model_version",
+        "evaluated_at",
+        "evaluation_refs",
+        "task_strengths",
+        "known_failure_modes",
+        "verbosity_profile",
+        "tool_use_profile",
+        "verification_profile",
+        "delegation_profile",
+        "structured_output_profile",
+        "effective_from",
+        "review_after",
+        "authority_overrides"
+      ],
+      "properties": {
+        "meta": {"$ref": "#/$defs/ContractMeta"},
+        "model_family": {"$ref": "#/$defs/NonEmptyString"},
+        "model_version": {"$ref": "#/$defs/NonEmptyString"},
+        "evaluated_at": {"$ref": "#/$defs/NonEmptyString"},
+        "evaluation_refs": {"$ref": "#/$defs/StringArray"},
+        "task_strengths": {"$ref": "#/$defs/StringArray"},
+        "known_failure_modes": {"$ref": "#/$defs/StringArray"},
+        "verbosity_profile": {"$ref": "#/$defs/NonEmptyString"},
+        "tool_use_profile": {"$ref": "#/$defs/NonEmptyString"},
+        "verification_profile": {"$ref": "#/$defs/NonEmptyString"},
+        "delegation_profile": {"$ref": "#/$defs/NonEmptyString"},
+        "structured_output_profile": {"$ref": "#/$defs/NonEmptyString"},
+        "effective_from": {"$ref": "#/$defs/NonEmptyString"},
+        "review_after": {"$ref": "#/$defs/NonEmptyString"},
+        "authority_overrides": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    }
+  }
+}
