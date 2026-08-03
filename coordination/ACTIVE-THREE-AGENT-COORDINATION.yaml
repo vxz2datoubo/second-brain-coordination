@@ -1,9 +1,9 @@
-schema_version: "57.0"
+schema_version: "58.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E46_MANDATORY_EXECUTION_LEASE_READY_QCLAW_E36_ORIGINAL_BYTE_VALIDATORS_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E46_MANDATORY_EXECUTION_LEASE_READY_QCLAW_E37_BYTE_TOKENIZER_MUTATION_CI_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-03T16:19:00+08:00"
+updated_at: "2026-08-03T18:43:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -21,10 +21,12 @@ permanent_governance:
   claim_bound_decision_rule: "Positive decisions bind exact provenance, storage, claim, holder, target and route; invocation becomes non-null only through the unique attach transition."
   recovery_enforcement_rule: "Governed recovery requires exact grant-ledger consumption and durable operation reconciliation; response loss must never be guessed as success."
   original_byte_truth_rule: "Knowledge digestion accepts strict UTF-8 original bytes; parser character positions must be mapped to legal byte boundaries before span creation."
-  exact_coverage_rule: "Every source byte has exactly one ATOM_CANDIDATE, STRUCTURE or UNKNOWN_ERROR owner; overlap, omission, duplicate ownership and out-of-range fail closed."
+  exact_coverage_rule: "Every source byte has exactly one ATOM_CANDIDATE, STRUCTURE or UNKNOWN_ERROR owner; zero-length, overlap, omission, duplicate ownership and out-of-range fail closed."
   relation_truth_rule: "Semantic relations require explicit linking evidence or verifiable rule identity; proximity, adjacency and type pairing never create a relation."
   redaction_lineage_rule: "Redaction is planned on original bytes, emits irreversible original-to-redacted span mapping, and stores no secret text/hash/fingerprint."
-  executable_validator_rule: "Rejection gates must be product validators called by real tests; hardcoded true, fixture self-check and no-crash gates are invalid."
+  executable_validator_rule: "Rejection gates must be product validators called by unittest or pytest; hardcoded true, fixture self-check, custom PASS counters and no-crash gates are invalid."
+  mutation_proof_rule: "Critical validators must be demonstrated by mutations that fail before correction and pass after correction."
+  receipt_topology_rule: "The first task commit is plan-only; receipt is forbidden until complete tested-head remote CI and must be the sole final evidence-only commit."
   exact_ci_rule: "Completion requires exact-head PR/push CI on substantive and receipt heads plus Python 3.11/3.13 three-seed artifact-byte comparison."
   source_trust_rule: "Frozen sources remain failure/design references until current exact tests prove behavior."
   production_cas_rule: "Synthetic contracts are not live production authority or runtime proof."
@@ -53,24 +55,25 @@ agents:
     current_action: "Make one durable execution lease mandatory for effect, invocation, verifier-minted terminal identity and terminal claim mutation."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
-    active_issue: 145
-    source_issue: 141
-    source_pull_request: 143
-    source_tested_head: "d674a04b384c24888529647a0596a8c4145a9905"
-    source_receipt_head: "0834935a0ca11faaf99c013a686b15e69dfeb2f8"
-    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-ORIGINAL-BYTE-PARSER-EXECUTABLE-VALIDATORS-SEMANTIC-EVIDENCE-AND-EXACT-CI-CLOSURE-0017-E36"
-    route_epoch: 36
+    active_issue: 148
+    source_issue: 145
+    source_pull_request: 147
+    source_plan_head: "337cebcd728042aacc9d5352c91b767c10b76618"
+    source_tested_head: "f6adf4ba9bcdaac87a427e209704bf6ba9f3b21a"
+    source_receipt_head: "3483c68af6d1ccb8bb1f9c8bf04ceb6946e05fe4"
+    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-TOKENIZER-MUTATION-TESTS-REDACTION-MAPPING-SEMANTIC-PACKET-AND-EXACT-CI-CLOSURE-0018-E37"
+    route_epoch: 37
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
     automatic_resume: false
-    planned_branch: "qclaw/knowledge-atomization-original-byte-parser-0017-e36"
-    source_classification: "E35_COMMIT_TOPOLOGY_AND_MODULE_SCAFFOLD_PRESENT_BUT_BYTE_INDEXING_LOSSLESS_COVERAGE_REDACTION_LINEAGE_RELATION_TRUTH_VALIDATORS_PACKET_AND_REMOTE_CI_FAILED"
+    planned_branch: "qclaw/knowledge-atomization-byte-tokenizer-mutation-ci-0018-e37"
+    source_classification: "E36_FRESH_ROUTE_AND_PARTIAL_S0_S3_SCAFFOLD_PRESENT_BUT_BYTE_TRUTH_ADAPTERS_JSON_REDACTION_MAPPING_TEST_FRAMEWORK_REMOTE_CI_COMPLETION_AND_RECEIPT_TOPOLOGY_FAILED"
     allowed_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-ORIGINAL-BYTE-0017-E36/**"
-      - ".github/workflows/qclaw-e36-original-byte-atomization.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-TOKENIZER-0018-E37/**"
+      - ".github/workflows/qclaw-e37-byte-tokenizer.yml"
     model_or_private_config_access_allowed: false
-    current_action: "Rebuild from strict original bytes with exact coverage, safe redaction lineage, explicit relation evidence, executable validators and cross-version artifacts."
+    current_action: "Build strict byte token ledgers, mutation-backed validators, irreversible redaction mapping, explicit semantic evidence, canonical packet and exact remote artifacts."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -85,29 +88,32 @@ review_summary:
     receipt_head: "cbb2d964a8dd91f4b9c9754e7af62469637a6d79"
     classification: "E45_ATTESTED_WITNESS_AND_RECOVERY_ENTRY_PROGRESS_ACCEPTED_BUT_DECISION_USE_EFFECT_TERMINAL_MUTATION_AND_OWNER_EXECUTION_IDENTITY_ENFORCEMENT_NOT_CLOSED"
     frozen: true
-  QCLAW_E35:
-    pull_request: 143
-    tested_head: "d674a04b384c24888529647a0596a8c4145a9905"
-    receipt_head: "0834935a0ca11faaf99c013a686b15e69dfeb2f8"
-    classification: "E35_COMMIT_TOPOLOGY_AND_MODULE_SCAFFOLD_PRESENT_BUT_BYTE_INDEXING_LOSSLESS_COVERAGE_REDACTION_LINEAGE_RELATION_TRUTH_VALIDATORS_PACKET_AND_REMOTE_CI_FAILED"
+  QCLAW_E36:
+    issue: 145
+    pull_request: 147
+    plan_head: "337cebcd728042aacc9d5352c91b767c10b76618"
+    tested_head: "f6adf4ba9bcdaac87a427e209704bf6ba9f3b21a"
+    receipt_head: "3483c68af6d1ccb8bb1f9c8bf04ceb6946e05fe4"
+    classification: "E36_FRESH_ROUTE_AND_PARTIAL_S0_S3_SCAFFOLD_PRESENT_BUT_BYTE_TRUTH_ADAPTERS_JSON_REDACTION_MAPPING_TEST_FRAMEWORK_REMOTE_CI_COMPLETION_AND_RECEIPT_TOPOLOGY_FAILED"
     accepted:
-      - "Three-commit Draft topology and receipt-only file surface."
-      - "Module scaffold, conservative CLAIM default and six-type relation enum direction."
+      - "Fresh branch, Draft PR and partial strict UTF-8 / exact coverage direction."
+      - "Partial raw-byte redaction direction without persistent matched secret text."
     blockers:
-      - "Character indexes are still passed as byte offsets."
-      - "Coverage accepts overlap/out-of-range and does not prove exact-once ownership."
-      - "JSON/JSONL and redaction lineage remain approximate or false."
-      - "Relations are invented from proximity/type pairing."
-      - "Packet omits coverage/redaction semantics and can retain secret-derived fingerprints."
-      - "Rejection tests and determinism checks are wrapper positives rather than executable proof."
-      - "No exact-head PR CI or cross-version artifact comparison exists."
+      - "Plan commit mixed implementation and tests; receipt was premature and retained a placeholder."
+      - "Markdown and Conversation reused character indexes as byte offsets."
+      - "JSON used json.loads plus find, collapsed duplicate keys and created overlapping spans."
+      - "Adapters did not emit exact lossless ownership ledgers or invoke product coverage validation."
+      - "Redaction omitted original-to-redacted mapping and robust priority proof."
+      - "Tests were custom chk counters with hardcoded or vacuous passes."
+      - "Atoms, relations, packet, product validators and E36 workflow were absent."
+      - "No tested-head E36 workflow or cross-version artifact evidence existed."
     frozen: true
 
 frozen:
   - "PR #142 and Codex E45 remain frozen; Codex E46 is the sole active Codex route."
-  - "PR #143 and QCLAW E35 are frozen; no further commits or merge."
-  - "PR #137/E34, E29 and earlier QCLAW routes remain historical non-authoritative references."
-  - "No E36 private-config access, E29 decoded copy, real secret fixtures or local private path persistence."
+  - "Issue #145, PR #147 and QCLAW E36 branch are frozen at 3483c68af6d1ccb8bb1f9c8bf04ceb6946e05fe4."
+  - "PR #143/E35, PR #137/E34, E29 and earlier QCLAW routes remain historical non-authoritative references."
+  - "No E37 private-config access, frozen-source whole-file copy, real secret fixtures or local private path persistence."
   - "WorkBuddy remains paused."
   - "No secrets, accounts, orders, positions, funds or trades."
 
@@ -116,4 +122,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E46_MANDATORY_EXECUTION_LEASE / QCLAW_E36_ORIGINAL_BYTE_EXECUTABLE_VALIDATORS / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E46_MANDATORY_EXECUTION_LEASE / QCLAW_E37_BYTE_TOKENIZER_MUTATION_REDACTION_MAPPING_SEMANTIC_PACKET_EXACT_CI / USER_CONTROLS_MODELS / NO_TRADE"
