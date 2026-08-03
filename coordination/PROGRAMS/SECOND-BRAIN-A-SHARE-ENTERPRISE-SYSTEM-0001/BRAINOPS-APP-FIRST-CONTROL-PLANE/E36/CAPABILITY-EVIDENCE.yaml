@@ -1,0 +1,29 @@
+agent_id: CODEX
+evidence:
+  - capability: APP_AUTOMATION_MANAGEMENT_INTERFACE
+    status: SUPPORTED_BY_HOST_TOOL
+    scope: automation_management_only
+    execution_proof: NOT_EXECUTED
+  - capability: NONINTERACTIVE_CODEX_CLI
+    status: LOCAL_VERIFIED
+    version: codex-cli-0.145.0
+    scope: surface_only
+    execution_proof: NOT_EXECUTED
+  - capability: ONE_SHOT_CANARY_EXECUTION
+    status: BLOCKED_APPROVAL_NOT_BOUND
+    required_binding:
+      - canary_id
+      - task_id
+      - route_epoch
+      - scope
+      - expiry
+      - nonce
+  - capability: AUTOMATIC_GPT_REVIEW
+    status: UNKNOWN
+    execution_proof: NOT_EXECUTED
+negative_assertions:
+  - no_ui_automation
+  - no_private_ipc
+  - no_session_inspection
+  - no_actual_dispatch
+  - no_trade
