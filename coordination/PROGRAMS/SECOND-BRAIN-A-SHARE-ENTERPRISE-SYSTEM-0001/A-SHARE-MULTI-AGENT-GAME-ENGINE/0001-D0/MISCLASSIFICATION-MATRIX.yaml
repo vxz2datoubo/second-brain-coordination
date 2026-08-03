@@ -1,0 +1,15 @@
+schema_version: "1.0"
+record_type: "MisclassificationMatrix"
+status: "CANDIDATE_CONTRACT"
+patterns:
+  - observed_pattern: "persistent_price_volume_rise"
+    competing_explanations: ["active_speculative_attention", "multiple_independent_institutions", "index_or_passive_flow", "quant_momentum", "retail_attention"]
+    required_disambiguation: ["point_in_time_event_context", "capability_provenance", "alternative_hypothesis_posterior"]
+  - observed_pattern: "large_aggregate_inflow"
+    competing_explanations: ["vendor_defined_metric", "cross_source_semantic_difference", "institutional_flow_candidate", "retail_aggregation_candidate"]
+    required_disambiguation: ["field_semantics_version", "source_lineage", "independent_corroboration"]
+  - observed_pattern: "thin_liquidity_and_reversal"
+    competing_explanations: ["liquidity_withdrawal", "halt_or_limit_constraint", "event_repricing", "sampling_artifact"]
+    required_disambiguation: ["market_phase", "rule_snapshot", "staleness_and_gap_checks"]
+error_classes: ["identity_error", "strategy_error", "data_semantic_error", "rule_feasibility_error", "causal_attribution_error"]
+rule: "The engine must report alternatives before naming a most-consistent hypothesis."

@@ -1,0 +1,109 @@
+schema_version: "2.0"
+record_type: "WorkBreakdown"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / research_only / NO_TRADE"
+phase_tasks:
+  - task_id: "MAGE-D0-PLAN"
+    phase: "D0"
+    status: "IN_REVIEW"
+    objective: "Deliver a public-safe, independently continuable construction plan."
+    inputs: ["approved_blueprints", "repository_audit", "frozen_candidate_inputs"]
+    outputs: ["contracts", "gap_audit", "task_graph", "publication_receipt", "completeness_matrix"]
+    owner: "CODEX"
+    reviewer: "GPT"
+    prerequisites: ["active_epoch_3_lease"]
+    effort_class: "HEAVY_PLUS"
+    compute_data_needs: "document parsing and static validation only"
+    acceptance_tests: ["strict_parse", "cross_reference", "allowlist", "path_scan", "credential_value_scan"]
+    rollback: "revert task-owned commits; no protected blueprint mutation exists"
+    stop_conditions: ["runtime scope", "source activation", "private disclosure", "route change"]
+    continuation_capsule: "CODEX-CONTINUATION-CAPSULE.md"
+  - task_id: "MAGE-D1-SYNTHETIC-RULES"
+    phase: "D1"
+    status: "Future Roadmap"
+    objective: "Build a deterministic synthetic rules MVP for one market phase and two latent hypotheses."
+    inputs: ["D0_contracts", "synthetic_rule_snapshot", "synthetic_fixtures"]
+    outputs: ["state_reducer", "fixture_suite", "invariant_report"]
+    owner: "CODEX"
+    reviewer: "GPT"
+    prerequisites: ["D0_accepted", "new_task_authorized"]
+    effort_class: "MEDIUM"
+    compute_data_needs: "CPU-only deterministic unit tests; no market data"
+    acceptance_tests: ["12_fixtures", "20_invariants", "determinism", "fresh_lot_rejection"]
+    rollback: "revert D1 implementation commit and generated synthetic-only artifacts"
+    stop_conditions: ["real_source_requirement", "identity_label_requirement"]
+    continuation_capsule: "new_task_required"
+  - task_id: "MAGE-D2-DATA-ADMISSION"
+    phase: "D2"
+    status: "BLOCKED_BY_DATA_ADMISSION"
+    objective: "Establish permitted point-in-time data, rule and security-status evidence."
+    inputs: ["license_terms", "source_capability_cards", "rule_status_snapshots"]
+    outputs: ["admission_manifest", "availability_audit", "rejection_log"]
+    owner: "WORKBUDDY_AND_CODEX"
+    reviewer: "GPT"
+    prerequisites: ["D1_accepted", "data_permission"]
+    effort_class: "HIGH"
+    compute_data_needs: "approved manifest only; raw data remains outside public Git"
+    acceptance_tests: ["point_in_time", "license", "semantic", "rule_effective_date"]
+    rollback: "withdraw manifest and quarantine derived artifacts"
+    stop_conditions: ["license_unknown", "source_semantic_conflict"]
+    continuation_capsule: "new_task_required"
+  - task_id: "MAGE-D3-REPLAY-CALIBRATION"
+    phase: "D3"
+    status: "Future Roadmap"
+    objective: "Calibrate mechanisms against admitted replay without causal or identity inflation."
+    inputs: ["D1_engine", "D2_manifest", "preregistered_baselines"]
+    outputs: ["calibration_report", "coverage_abstention_ledger", "negative_results"]
+    owner: "CODEX"
+    reviewer: "INDEPENDENT_REVIEWER"
+    prerequisites: ["D2_accepted"]
+    effort_class: "HIGH"
+    compute_data_needs: "approved replay environment and versioned costs"
+    acceptance_tests: ["walk_forward", "lockbox", "calibration", "leakage", "costs"]
+    rollback: "retire candidate outputs without deleting audit evidence"
+    stop_conditions: ["future_leakage", "rule_snapshot_gap", "coverage_failure"]
+    continuation_capsule: "new_task_required"
+  - task_id: "MAGE-D4-OPPONENT"
+    phase: "D4"
+    status: "Future Roadmap"
+    objective: "Compare bounded Bayesian and Level-k opponent hypotheses."
+    inputs: ["D3_calibration", "registered_priors", "baseline_results"]
+    outputs: ["posterior_comparison", "model_risk_report"]
+    owner: "CODEX"
+    reviewer: "GPT"
+    prerequisites: ["D3_promoted"]
+    effort_class: "HIGH"
+    compute_data_needs: "registered scenario and seed budget"
+    acceptance_tests: ["baseline_delta", "calibration", "abstention", "sensitivity"]
+    rollback: "freeze or retire candidate model"
+    stop_conditions: ["unstable_posterior", "unregistered_variant_growth"]
+    continuation_capsule: "new_task_required"
+  - task_id: "MAGE-D5-SELFPLAY"
+    phase: "D5"
+    status: "Future Roadmap"
+    objective: "Stress synthetic policy robustness through bounded self-play."
+    inputs: ["D4_model", "synthetic_scenarios", "compute_budget"]
+    outputs: ["seed_ledger", "exploitability_report", "failure_inventory"]
+    owner: "CODEX"
+    reviewer: "INDEPENDENT_REVIEWER"
+    prerequisites: ["D4_accepted", "compute_gate"]
+    effort_class: "VERY_HIGH"
+    compute_data_needs: "isolated synthetic compute only"
+    acceptance_tests: ["seed_reproducibility", "stress", "cancellation", "artifact_retention"]
+    rollback: "delete generated runs per approved retention policy; preserve hashes"
+    stop_conditions: ["ceiling_exceeded", "non_determinism", "scope_to_market_truth"]
+    continuation_capsule: "new_task_required"
+  - task_id: "MAGE-D6-MARL-GATE"
+    phase: "D6"
+    status: "Future Roadmap"
+    objective: "Issue an evidence-based go/no-go decision for MARL."
+    inputs: ["D5_results", "cost_ledger", "independent_validation"]
+    outputs: ["go_no_go_adr_or_rejection"]
+    owner: "GPT"
+    reviewer: "USER"
+    prerequisites: ["D5_accepted", "user_approval"]
+    effort_class: "VERY_HIGH"
+    compute_data_needs: "separate approved budget"
+    acceptance_tests: ["net_value", "independent_review", "risk_budget"]
+    rollback: "reject or defer; no MARL code required"
+    stop_conditions: ["insufficient_incremental_value"]
+    continuation_capsule: "new_task_required"

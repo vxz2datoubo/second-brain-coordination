@@ -1,0 +1,38 @@
+schema_version: "1.0"
+record_type: "IntegrationAcceptanceGates"
+gates:
+  - gate_id: "GATE-001"
+    name: "contract_ownership"
+    pass_condition: "Every proposed object maps to an existing owner or is explicitly candidate-only."
+    evidence_required: ["reuse_matrix", "system_of_record_map", "dependency_graph"]
+    blocking_scope: "all new runtime implementation"
+  - gate_id: "GATE-002"
+    name: "identity_safety"
+    pass_condition: "Every participant output is latent, alternative-aware and has invalidation conditions."
+    evidence_required: ["archetype_ontology", "misclassification_matrix", "counterevidence_refs"]
+    blocking_scope: "identity labels and direct signals"
+  - gate_id: "GATE-003"
+    name: "a_share_feasibility"
+    pass_condition: "Rule snapshots, market phases, price limits, suspension, T+1, inventory and no-fill semantics are represented."
+    evidence_required: ["microstructure_plan", "market_state_contract", "synthetic_fixture_catalogue"]
+    blocking_scope: "matching, feasibility and historical replay"
+  - gate_id: "GATE-004"
+    name: "advanced_model_promotion"
+    pass_condition: "Rules MVP, data admission, point-in-time replay, calibration and OOS gates precede Level-k, self-play and MARL."
+    evidence_required: ["workbreakdown", "calibration_plan", "compute_plan"]
+    blocking_scope: "advanced modeling"
+  - gate_id: "GATE-005"
+    name: "protected_backwrite"
+    pass_condition: "Only chapter-level public-safe delta is present; GPT and user approvals are required before local changes."
+    evidence_required: ["protected_backwrite_package", "pre_post_hash_protocol"]
+    blocking_scope: "protected local blueprints"
+  - gate_id: "GATE-006"
+    name: "delivery_safety"
+    pass_condition: "All files parse, duplicate keys fail closed, complete diff stays allowlisted and safety scan is clean."
+    evidence_required: ["test_receipt", "publication_receipt", "complete_diff_scan"]
+    blocking_scope: "PR review readiness"
+  - gate_id: "GATE-007"
+    name: "no_trade"
+    pass_condition: "No data activation, replay, backtest, account, order, trade or performance claim exists in D0."
+    evidence_required: ["delivery_surface_review", "public_safety_scan"]
+    blocking_scope: "all runtime promotion"

@@ -1,0 +1,18 @@
+schema_version: "1.0"
+record_type: "NarrativeForecastLedgerSchema"
+status: "CANDIDATE_CONTRACT"
+required_fields:
+  - "forecast_id"
+  - "claim_ref"
+  - "forecast_target"
+  - "forecast_window"
+  - "probability_estimate"
+  - "baseline_probability"
+  - "resolution_rule"
+  - "outcome_status"
+  - "calibration_metrics_status"
+  - "forbidden_downstream_use"
+rules:
+  probability_estimate: "A stated probability is not calibrated until resolution and scoring occur."
+  missing_probability: "record as qualitative and exclude from numeric calibration."
+  forbidden_downstream_use: "no direct trade, position sizing or authority upgrade"

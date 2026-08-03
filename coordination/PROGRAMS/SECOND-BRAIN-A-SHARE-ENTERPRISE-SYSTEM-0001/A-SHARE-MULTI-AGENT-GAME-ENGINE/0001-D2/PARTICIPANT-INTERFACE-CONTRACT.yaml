@@ -1,0 +1,28 @@
+status: "SYNTHETIC_HYPOTHESES_ONLY"
+four_canonical_families:
+  retail:
+    subtype_ids: [retail_liquidity_taker, retail_anchored_holder]
+  institutional_quant:
+    subtype_ids: [systematic_rebalancer, long_horizon_fund]
+  active_capital:
+    subtype_ids: [event_driven_active, short_horizon_momentum]
+  policy_industrial_foreign_aggregate:
+    subtype_ids: [policy_aggregate, industrial_aggregate, foreign_aggregate]
+source_ontology_to_d2_translation:
+  retail_like: "retail"
+  systematic_or_fund_like: "institutional_quant"
+  active_or_momentum_like: "active_capital"
+  policy_industrial_or_foreign_like: "policy_industrial_foreign_aggregate"
+  unknown_source_label: "UNKNOWN_REJECT_OR_ABSTAIN"
+required_agent_fields:
+  - "agent_id"
+  - "HiddenTypePosterior with normalized uncalibrated weights"
+  - "public observable references"
+  - "private synthetic observable references"
+  - "availability timestamp"
+  - "explicit UNKNOWN list"
+  - "D1 InventoryState"
+prohibited_interpretation:
+  - "A family/subtype is not a real person, fund, institution, or capital identity."
+  - "A normalized weight is not a calibrated probability."
+  - "Private means synthetic scenario-local, never account or non-public information."

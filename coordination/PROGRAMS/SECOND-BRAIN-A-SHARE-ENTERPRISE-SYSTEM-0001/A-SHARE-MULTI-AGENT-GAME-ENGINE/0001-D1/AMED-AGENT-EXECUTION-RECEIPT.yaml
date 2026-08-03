@@ -1,0 +1,16 @@
+record_type: AMEDAgentExecutionReceipt
+task_id: CODEX-PR98-R3-TOTAL-RUNTIME-FAIL-CLOSED-SETTLEMENT-CAUSALITY-AND-RECEIPT-TRUTH-CLOSURE
+agent_id: CODEX
+status: SUCCESS_WITH_FINDINGS
+actual_positive_effects:
+  - Top-level malformed objects and field types now return structured INVALID_OR_BLOCKED outcomes.
+  - Settlement state, rather than a caller date, is the causal T+1 maturity gate.
+actual_negative_effects:
+  - Git smart-HTTP remained unavailable; exact-parent Git Data API publication was required.
+findings:
+  - id: S2_ROUTE_STALENESS
+    statement: PowerShell binary pipe corrupted a git archive during clean-checkout validation.
+    action: successful evidence uses archive-file extraction; no product code change required.
+unplanned_improvements: []
+research_ledger: synthetic fixtures only; no external research or market-data claim
+rollback: delete the D1 branch or revert its commits; no shared state was modified

@@ -1,0 +1,24 @@
+executable_invariant_count: 30
+negative_case_count: 12
+invariant_groups:
+  determinism: [stable_event_ids, stable_order, action_ids_unique, reasons_stable]
+  accounting: [inventory_conservation, nonnegative_inventory, bounded_inventory, carry_state_visible]
+  information: [no_future_info, missing_evidence_blocks, incomplete_information_abstains, unknown_narrative_retained]
+  governance: [no_real_capability, posterior_not_identity, posterior_normalized, feature_is_uncalibrated, mismatch_is_uncalibrated]
+  d1_composition: [d1_reducer_composed, price_limit_fail_closed, t1_fail_closed, partial_fill_labeled, negative_order_is_blocked]
+  event_safety: [known_agents_only, cause_refs_preserved, labels_declared, conflict_deterministic, causal_parent_unknown_blocks]
+  counterfactual: [counterfactual_single_change]
+negative_cases:
+  - unknown_agent
+  - missing_synthetic_order
+  - missing_evidence
+  - invalid_information_time
+  - empty_posterior
+  - unnormalized_posterior
+  - duplicate_action_id
+  - duplicate_agent_id
+  - multi_target_counterfactual
+  - unbounded_feature_value
+  - empty_feature_names
+  - empty_agent_set
+failure_policy: "structured_block_or_explicit_ValueError; never silent acceptance"

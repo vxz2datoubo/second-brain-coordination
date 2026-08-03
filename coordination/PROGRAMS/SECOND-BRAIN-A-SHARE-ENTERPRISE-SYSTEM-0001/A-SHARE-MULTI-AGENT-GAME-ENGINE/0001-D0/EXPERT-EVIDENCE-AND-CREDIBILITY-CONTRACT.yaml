@@ -1,0 +1,46 @@
+schema_version: "1.0"
+record_type: "ExpertEvidenceAndCredibilityContract"
+status: "CANDIDATE_CONTRACT"
+source_rule: "Expert assertions are evidence candidates, not market facts."
+perspectives:
+  self_attribution:
+    initial_reliability_band: "low_to_medium"
+    primary_confounds: ["position_interest", "financing_interest", "reputation_management", "selective_disclosure", "hindsight_rationalization"]
+  observation_of_other_participants:
+    initial_reliability_band: "medium"
+    primary_confounds: ["access_asymmetry", "network_bias", "conflict_of_interest", "nonrepresentative_sample"]
+  market_structure_claim:
+    initial_reliability_band: "unknown_until_officially_checked"
+    required_corroboration: "official_rule_or_primary_data"
+  market_outlook:
+    initial_reliability_band: "low_for_direction"
+    required_use: "narrative_forecast_ledger_only"
+  normative_recommendation:
+    initial_reliability_band: "opinion"
+    required_use: "research_hypothesis_only"
+claim_required_fields:
+  - "claim_id"
+  - "source_record_ref"
+  - "perspective"
+  - "claim_text_hash_or_safe_summary"
+  - "scope_and_time_horizon"
+  - "interest_conflicts"
+  - "access_advantage"
+  - "verifiability"
+  - "independent_corroboration_refs"
+  - "counterevidence_refs"
+  - "credibility_vector"
+  - "forbidden_downstream_use"
+credibility_vector_fields:
+  - "source_provenance"
+  - "claim_specificity"
+  - "testability"
+  - "independence"
+  - "timeliness"
+  - "interest_conflict_risk"
+  - "calibration_history"
+correlation_rule: "Claims that share an author, channel, funding interest or uncited common source cannot be counted as independent corroboration."
+forbidden_uses:
+  - "direct_buy_sell_or_position_signal"
+  - "identity_confirmation"
+  - "automatic_authority_upgrade"
