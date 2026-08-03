@@ -1,0 +1,38 @@
+name: BrainOps E46
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/brainops-e46.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+  push:
+    branches:
+      - "codex/brainops-mandatory-execution-lease-terminal-mutation-0042-e46"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contracts:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile contracts and tests
+        run: >-
+          python -m compileall -q
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests
+      - name: Run imported regression and E46 adversarial tests
+        run: >-
+          python -m unittest discover
+          -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests
+          -p 'test_e*.py'
+      - name: Enforce whitespace safety
+        run: git diff --check HEAD^ HEAD
