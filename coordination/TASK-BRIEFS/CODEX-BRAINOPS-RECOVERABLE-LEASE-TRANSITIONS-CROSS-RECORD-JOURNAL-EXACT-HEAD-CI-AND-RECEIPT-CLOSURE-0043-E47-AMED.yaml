@@ -1,0 +1,159 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-RECOVERABLE-LEASE-TRANSITIONS-CROSS-RECORD-JOURNAL-EXACT-HEAD-CI-AND-RECEIPT-CLOSURE-0043-E47"
+route_epoch: 49
+target_agent: "CODEX"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】可恢复执行租约、跨记录事务日志、精确Head CI与最终回执闭环 E47"
+mode_reason: >-
+  E46 closed major legacy bypasses but durable states still emitted process-local permits and terminal authorizations that cannot be recovered after a post-apply response loss.
+  Cross-record invocation transitions and exact-head CI also remain incomplete, so the coupled lifecycle requires a fresh staged route.
+active_issue: 150
+parent_program: 31
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
+automatic_resume: false
+
+source:
+  issue: 144
+  pull_request: 146
+  plan_head: "2753e994f845a9d9264d8ef4edf0474839ddc33d"
+  substantive_head: "dcf0e099fb2abc50fbb04fb95a1a7c39d4f38231"
+  receipt_head: null
+  classification: "E46_MANDATORY_LEASE_AND_FAIL_CLOSED_LEGACY_PATHS_IMPLEMENTED_WITH_REAL_TEST_PROGRESS_BUT_INTERMEDIATE_RESPONSE_LOSS_RECOVERY_EXACT_HEAD_CI_COMPLETION_AND_RECEIPT_TOPOLOGY_FAILED"
+  frozen: true
+
+objective: >-
+  Build one recoverable and idempotent durable lifecycle in which every applied transition can be safely identified and resumed after response loss or restart,
+  all claim/lease cross-record mutations are journaled and reconciled, legacy positive bypasses remain closed, and exact tested-head plus receipt-head Python 3.11/3.13 CI is verified before completion.
+
+required_results:
+  - "Persist or deterministically recover the exact authority needed after EFFECT_AUTHORIZED and TERMINAL_ATTESTED; no critical authorization may exist only in a function return value."
+  - "Return an ALREADY_* recovery result for an identical already-applied request and reject any state-matched but request-mismatched replay."
+  - "Journal effect authorization, claim invocation attach, lease invocation attach, terminal attestation, claim terminal CAS and lease terminal commit."
+  - "Reconcile every partial cross-record state without repeating an already-applied mutation."
+  - "Retain fail-closed legacy effect, direct invocation and direct finalize entrypoints."
+  - "Retain verifier-minted synthetic Manual App, Automation and CLI identity binding without claiming a production trust root."
+  - "Add mutation-backed tests for post-apply response loss at every positive lifecycle stage."
+  - "Use exact-head PR/push CI on Python 3.11 and 3.13 at the tested and receipt heads."
+  - "Create a pre-receipt validator that rejects missing CI, wrong SHA, placeholders, incomplete stage coverage and invalid receipt topology."
+
+architecture_constraints:
+  states:
+    - "CAPABILITY_ATTESTED"
+    - "EFFECT_AUTHORIZED"
+    - "CLAIM_INVOCATION_ATTACHED"
+    - "LEASE_INVOCATION_ATTACHED"
+    - "TERMINAL_ATTESTED"
+    - "CLAIM_TERMINAL_COMMITTED"
+    - "LEASE_TERMINAL_COMMITTED"
+  journal_binding:
+    - "request_digest"
+    - "purpose"
+    - "lease_id"
+    - "claim_id"
+    - "provenance_digest"
+    - "storage_id"
+    - "holder"
+    - "target"
+    - "task_id"
+    - "route_epoch"
+    - "invocation_id when available"
+    - "terminal evidence digest when available"
+  idempotency_rule: >-
+    An identical request against an already-applied stage must produce a stable recoverable result without a second mutation.
+    A different request against that stage must fail closed.
+
+mandatory_negative_families:
+  - "effect authorization CAS applied then response lost"
+  - "claim invocation CAS applied then response lost"
+  - "lease invocation CAS applied then response lost"
+  - "terminal attestation CAS applied then response lost"
+  - "claim terminal CAS and lease terminal commit response loss"
+  - "cross-claim, cross-route, cross-holder, cross-target, cross-invocation and cross-evidence replay"
+  - "journal phase skip, repeat, reversal, purpose substitution and record tampering"
+  - "deleted or substituted durable request digest"
+  - "legacy effect, direct attach and direct finalize bypass attempts"
+  - "caller-cloned Manual App, Automation and CLI identity fields"
+  - "workflow merge-ref checkout or wrong exact SHA"
+  - "receipt attempted before green tested-head CI"
+
+commit_topology:
+  first_commit: "STRICT_PLAN_ONLY_SINGLE_PLAN_FILE"
+  implementation_commits: "ONE_OR_MORE_ALLOWED_BEFORE_TESTED_HEAD"
+  tested_head_rule: "DESIGNATE_ONLY_AFTER_IMPLEMENTATION_TESTS_WORKFLOW_AND_VALIDATORS_ARE_COMPLETE"
+  receipt_rule: "EXACTLY_ONE_NONEMPTY_EVIDENCE_ONLY_FINAL_COMMIT_AFTER_GREEN_EXACT_TESTED_HEAD_CI"
+  post_receipt_commits_forbidden: true
+
+ci_contract:
+  workflow: ".github/workflows/brainops-e47.yml"
+  expected_ref_expression: "github.event.pull_request.head.sha || github.sha"
+  exact_head_assertion_required: true
+  python_versions: ["3.11", "3.13"]
+  tested_head_success_required: true
+  receipt_head_success_required: true
+  unrelated_workflows_receive_credit: false
+
+repository_scope:
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e47.yml"
+  task_branch_only: "codex/brainops-recoverable-lease-transitions-exact-ci-0043-e47"
+  sole_draft_pr_required: true
+  source_import_policy: "SELECTED_PATH_AND_BLOB_FROM_FROZEN_E46_ONLY"
+  imported_source_manifest_required: true
+  whole_branch_merge_forbidden: true
+  cherry_pick_forbidden: true
+  source_pr_mutation_forbidden: true
+  direct_main_write_forbidden: true
+  merge_force_push_rebase_forbidden: true
+
+identity_unknown:
+  observation: "E46 Git author/committer metadata displayed 迪迪(WorkBuddy) while commit messages declared agent:CODEX."
+  required_action: >-
+    Inspect and report the local git identity source, correct future task-branch commit identity if needed, and retain the cause as UNKNOWN until evidenced.
+    Do not read or modify model/provider/reasoning/private application settings and do not infer unauthorized WorkBuddy execution without proof.
+
+hard_boundaries:
+  - "ENGINEERING_AND_SYNTHETIC_TESTS_ONLY"
+  - "NO_LIVE_GITHUB_AUTHORITY_WRITE"
+  - "NO_CANARY"
+  - "NO_CODEX_APP_AUTOMATION_OR_CLI_INVOCATION"
+  - "NO_MODEL_PROVIDER_REASONING_OR_PRIVATE_CONFIG_ACCESS_OR_MUTATION"
+  - "NO_KEYS_TOKENS_COOKIES_CREDENTIALS_OR_PRIVATE_CONFIGURATION"
+  - "NO_ACCOUNTS_ORDERS_POSITIONS_FUNDS_OR_TRADING"
+  - "NO_QCLAW_OR_WORKBUDDY_ROUTE_MUTATION"
+
+report_contract:
+  required_fields:
+    - "task_id"
+    - "mode"
+    - "current_goal"
+    - "success_criteria"
+    - "current_phase"
+    - "completion_percentage"
+    - "verified_facts"
+    - "unknowns"
+    - "changed_files"
+    - "commands_tests_results"
+    - "difficulty_and_unexpected_findings"
+    - "decisions_and_alternatives"
+    - "risks_and_rollback"
+    - "extensible_ideas"
+    - "system_learning_feedback"
+    - "next_step"
+    - "AI_Handoff"
+
+command_execution_contract:
+  on_trigger: "VERIFY_E47_ROUTE_CREATE_FRESH_PLAN_ONLY_COMMIT_OPEN_DRAFT_PR_AND_EXECUTE_ENGINEERING_NOW"
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  plan_only_response_when_ready_forbidden: true
+  minimum_progress_before_return: >-
+    Verify Issue #150, E46 frozen heads and current main; create the fresh E47 branch; commit exactly one plan file as the first commit; open the sole Draft PR;
+    begin failing-then-passing mutation tests for effect-authorization response loss and terminal-attestation response loss.
+
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+completion_signal: "CODEX_BRAINOPS_E47_RECOVERABLE_LEASE_TRANSITIONS_EXACT_HEAD_CI_RECEIPT_READY_FOR_GPT_REVIEW"
+boundary: "RECOVERABLE_DURABLE_LIFECYCLE / E46_FROZEN / EXACT_HEAD_CI / USER_CONTROLS_MODELS / NO_TRADE"
