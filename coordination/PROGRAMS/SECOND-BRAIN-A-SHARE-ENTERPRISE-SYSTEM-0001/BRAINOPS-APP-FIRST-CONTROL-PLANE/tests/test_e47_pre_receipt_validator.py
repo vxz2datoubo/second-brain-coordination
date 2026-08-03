@@ -43,6 +43,10 @@ class E47PreReceiptValidatorTests(unittest.TestCase):
     def test_ready_after_exact_tested_head_ci_and_stage_coverage(self):
         self.assertEqual(validate_pre_receipt(_ready_input()), PreReceiptCode.READY)
 
+    def test_numeric_provider_run_reference_is_accepted(self):
+        evidence = ExactHeadCiEvidence("brainops-e47", SHA_A, frozenset({"3.11", "3.13"}), "success", "30849595054")
+        self.assertTrue(evidence.successful_exact_matrix)
+
     def test_missing_tested_ci_fails_closed(self):
         self.assertEqual(validate_pre_receipt(_ready_input(tested_head_ci=None)), PreReceiptCode.TESTED_HEAD_CI_MISSING)
 

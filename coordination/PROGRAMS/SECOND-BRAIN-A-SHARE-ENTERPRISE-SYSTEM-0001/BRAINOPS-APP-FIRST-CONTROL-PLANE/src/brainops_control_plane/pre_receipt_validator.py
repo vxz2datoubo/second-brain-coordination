@@ -47,7 +47,10 @@ class ExactHeadCiEvidence:
         require_identifier(self.workflow, "CI workflow")
         require_sha1(self.head_sha1, "CI head SHA")
         require_identifier(self.conclusion, "CI conclusion")
-        require_identifier(self.run_reference, "CI run reference")
+        # GitHub Actions run IDs are commonly all digits.  Prefixing the
+        # opaque reference preserves the existing stable-identifier grammar
+        # without pretending a provider-issued numeric ID is a route name.
+        require_identifier(f"ci.{self.run_reference}", "CI run reference")
         if not self.python_versions:
             raise ValidationError("CI python version set must be nonempty")
 
