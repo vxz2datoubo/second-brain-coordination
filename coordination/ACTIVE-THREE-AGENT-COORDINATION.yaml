@@ -1,9 +1,9 @@
-schema_version: "58.0"
+schema_version: "59.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E46_MANDATORY_EXECUTION_LEASE_READY_QCLAW_E37_BYTE_TOKENIZER_MUTATION_CI_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E47_RECOVERABLE_LEASE_TRANSITIONS_EXACT_CI_READY_QCLAW_E37_BYTE_TOKENIZER_MUTATION_CI_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-03T18:43:00+08:00"
+updated_at: "2026-08-03T19:39:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -16,6 +16,9 @@ permanent_governance:
   mode_integrity_rule: "An agent may not change project_plan/objective/target mode unless GPT publishes the change in the canonical route."
   capability_witness_rule: "Caller-created observations or copied identity strings cannot create positive capability or execution identity."
   mandatory_execution_lease_rule: "Effect permits, invocation attachment, terminal mutation and positive classification must share one durable monotonic execution lease; optional validators are not authority."
+  recoverable_transition_rule: "A durable state transition is incomplete unless an identical post-apply retry can recover the same authority or continuation result after restart without a second mutation."
+  request_identity_rule: "Idempotency is granted only to the exact durable request digest and purpose; same-state requests with changed bindings fail closed."
+  cross_record_journal_rule: "Every claim/lease multi-record positive transition requires a purpose-bound durable operation journal and explicit partial-state reconciliation."
   effect_gate_rule: "No lease means no effect permit. Legacy claim/holder-only permit entrypoints must be non-mutating."
   terminal_mutation_rule: "No verifier-minted owner execution identity and current lease state means no terminal claim mutation. Legacy finalize must be non-mutating."
   claim_bound_decision_rule: "Positive decisions bind exact provenance, storage, claim, holder, target and route; invocation becomes non-null only through the unique attach transition."
@@ -26,8 +29,8 @@ permanent_governance:
   redaction_lineage_rule: "Redaction is planned on original bytes, emits irreversible original-to-redacted span mapping, and stores no secret text/hash/fingerprint."
   executable_validator_rule: "Rejection gates must be product validators called by unittest or pytest; hardcoded true, fixture self-check, custom PASS counters and no-crash gates are invalid."
   mutation_proof_rule: "Critical validators must be demonstrated by mutations that fail before correction and pass after correction."
-  receipt_topology_rule: "The first task commit is plan-only; receipt is forbidden until complete tested-head remote CI and must be the sole final evidence-only commit."
-  exact_ci_rule: "Completion requires exact-head PR/push CI on substantive and receipt heads plus Python 3.11/3.13 three-seed artifact-byte comparison."
+  receipt_topology_rule: "The first task commit is plan-only; implementation may use multiple pre-tested commits; receipt is forbidden until complete exact tested-head remote CI and must be the sole final evidence-only commit."
+  exact_ci_rule: "Completion requires checkout and assertion of the exact event head on substantive and receipt heads with Python 3.11/3.13 task-named CI; a PR merge ref or unrelated green workflow earns no credit."
   source_trust_rule: "Frozen sources remain failure/design references until current exact tests prove behavior."
   production_cas_rule: "Synthetic contracts are not live production authority or runtime proof."
   secret_rule: "No credential/session/key/private-config disclosure or persistence."
@@ -35,24 +38,26 @@ permanent_governance:
 
 agents:
   CODEX:
-    active_issue: 144
-    source_issue: 140
-    source_pull_request: 142
-    source_tested_head: "a4fb916d8e0d56cee9085e5e38a04d49175c2218"
-    source_receipt_head: "cbb2d964a8dd91f4b9c9754e7af62469637a6d79"
-    task_id: "CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46"
-    route_epoch: 48
+    active_issue: 150
+    source_issue: 144
+    source_pull_request: 146
+    source_plan_head: "2753e994f845a9d9264d8ef4edf0474839ddc33d"
+    source_substantive_head: "dcf0e099fb2abc50fbb04fb95a1a7c39d4f38231"
+    source_receipt_head: null
+    task_id: "CODEX-BRAINOPS-RECOVERABLE-LEASE-TRANSITIONS-CROSS-RECORD-JOURNAL-EXACT-HEAD-CI-AND-RECEIPT-CLOSURE-0043-E47"
+    route_epoch: 49
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
-    planned_branch: "codex/brainops-mandatory-execution-lease-terminal-mutation-0042-e46"
-    source_classification: "E45_ATTESTED_WITNESS_AND_RECOVERY_ENTRY_PROGRESS_ACCEPTED_BUT_DECISION_USE_EFFECT_TERMINAL_MUTATION_AND_OWNER_EXECUTION_IDENTITY_ENFORCEMENT_NOT_CLOSED"
+    automatic_resume: false
+    planned_branch: "codex/brainops-recoverable-lease-transitions-exact-ci-0043-e47"
+    source_classification: "E46_MANDATORY_LEASE_AND_FAIL_CLOSED_LEGACY_PATHS_IMPLEMENTED_WITH_REAL_TEST_PROGRESS_BUT_INTERMEDIATE_RESPONSE_LOSS_RECOVERY_EXACT_HEAD_CI_COMPLETION_AND_RECEIPT_TOPOLOGY_FAILED"
     allowed_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
-      - ".github/workflows/brainops-e46.yml"
-    current_action: "Make one durable execution lease mandatory for effect, invocation, verifier-minted terminal identity and terminal claim mutation."
+      - ".github/workflows/brainops-e47.yml"
+    current_action: "Make every applied lease transition restart-recoverable, journal all cross-record mutations, and prove exact tested/receipt heads in CI."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 148
@@ -82,11 +87,28 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E45:
-    pull_request: 142
-    tested_head: "a4fb916d8e0d56cee9085e5e38a04d49175c2218"
-    receipt_head: "cbb2d964a8dd91f4b9c9754e7af62469637a6d79"
-    classification: "E45_ATTESTED_WITNESS_AND_RECOVERY_ENTRY_PROGRESS_ACCEPTED_BUT_DECISION_USE_EFFECT_TERMINAL_MUTATION_AND_OWNER_EXECUTION_IDENTITY_ENFORCEMENT_NOT_CLOSED"
+  CODEX_E46:
+    issue: 144
+    pull_request: 146
+    plan_head: "2753e994f845a9d9264d8ef4edf0474839ddc33d"
+    substantive_head: "dcf0e099fb2abc50fbb04fb95a1a7c39d4f38231"
+    receipt_head: null
+    classification: "E46_MANDATORY_LEASE_AND_FAIL_CLOSED_LEGACY_PATHS_IMPLEMENTED_WITH_REAL_TEST_PROGRESS_BUT_INTERMEDIATE_RESPONSE_LOSS_RECOVERY_EXACT_HEAD_CI_COMPLETION_AND_RECEIPT_TOPOLOGY_FAILED"
+    accepted:
+      - "Fresh route, sole Draft PR and strict plan-only first commit."
+      - "Selected-source manifest and authorized file surface."
+      - "Legacy effect, direct invocation and direct finalize positive paths fail closed."
+      - "Verifier-minted synthetic identity and lease-bound terminal mutation direction."
+      - "GitHub Python 3.11 and 3.13 each executed 148 real unittest cases successfully before a later workflow failure."
+      - "Codex stopped at NEEDS_APPROVAL and did not create a false receipt."
+    blockers:
+      - "Workflow checked out the PR merge ref rather than asserting the exact substantive head."
+      - "Effect and terminal authorization existed only as process-local return objects after durable state application."
+      - "Invocation claim/lease dual writes lacked a full cross-record journal and recovery contract."
+      - "Post-apply response-loss tests did not cover effect, invocation and terminal-attestation stages."
+      - "E46 task workflow remained red; no exact tested-head success, receipt or receipt-head CI existed."
+      - "The original immutable three-commit topology was no longer satisfiable without prohibited history rewriting or additional implementation commits."
+    provenance_unknown: "Git author/committer displayed 迪迪(WorkBuddy) while messages declared agent:CODEX; cause unverified and not proof of unauthorized execution."
     frozen: true
   QCLAW_E36:
     issue: 145
@@ -110,10 +132,11 @@ review_summary:
     frozen: true
 
 frozen:
-  - "PR #142 and Codex E45 remain frozen; Codex E46 is the sole active Codex route."
+  - "Issue #144, PR #146 and Codex E46 branch are frozen at dcf0e099fb2abc50fbb04fb95a1a7c39d4f38231; no receipt, merge or further commit."
+  - "PR #142 and Codex E45 remain frozen historical references."
   - "Issue #145, PR #147 and QCLAW E36 branch are frozen at 3483c68af6d1ccb8bb1f9c8bf04ceb6946e05fe4."
   - "PR #143/E35, PR #137/E34, E29 and earlier QCLAW routes remain historical non-authoritative references."
-  - "No E37 private-config access, frozen-source whole-file copy, real secret fixtures or local private path persistence."
+  - "No E47 private-config access, frozen-source whole-branch copy, live authority, Canary, App/CLI invocation or production mutation."
   - "WorkBuddy remains paused."
   - "No secrets, accounts, orders, positions, funds or trades."
 
@@ -122,4 +145,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E46_MANDATORY_EXECUTION_LEASE / QCLAW_E37_BYTE_TOKENIZER_MUTATION_REDACTION_MAPPING_SEMANTIC_PACKET_EXACT_CI / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E47_RECOVERABLE_LEASE_TRANSITIONS_CROSS_RECORD_JOURNAL_EXACT_CI / QCLAW_E37_BYTE_TOKENIZER_MUTATION_REDACTION_MAPPING_SEMANTIC_PACKET_EXACT_CI / USER_CONTROLS_MODELS / NO_TRADE"
