@@ -294,22 +294,32 @@ def _receipt_schema_result(
     if manifest.get("receipt_commit_identity") != "EXTERNAL_POST_COMMIT_PROVIDER_FACT":
         return None, E50ReleaseResult(E50ReleaseCode.RECEIPT_SCHEMA_INVALID, ("external_identity_marker_missing",))
     command = manifest.get("reproduction_command")
-    required_arguments = {
-        "-m",
-        "brainops_control_plane.e50_release_verifier",
+    required_arguments = (
         "--repository-root",
         "--trusted-attestation",
         "--base-head",
         "--plan-head",
         "--tested-head",
         "--receipt-head",
-    }
-    if (
-        not isinstance(command, list)
-        or not all(isinstance(argument, str) and argument for argument in command)
-        or not required_arguments.issubset(command)
+    )
+    if not isinstance(command, list) or not all(isinstance(argument, str) and argument for argument in command):
+        return None, E50ReleaseResult(E50ReleaseCode.RECEIPT_SCHEMA_INVALID, ("reproduction_command_schema_invalid",))
+    if command[:3] != ["python", "-m", "brainops_control_plane.e50_release_verifier"]:
+        return None, E50ReleaseResult(E50ReleaseCode.RECEIPT_SCHEMA_INVALID, ("reproduction_command_not_executable_shape",))
+    positions = {argument: command.index(argument) for argument in required_arguments if argument in command}
+    if len(positions) != len(required_arguments) or any(
+        positions[argument] + 1 >= len(command) for argument in required_arguments
     ):
         return None, E50ReleaseResult(E50ReleaseCode.RECEIPT_SCHEMA_INVALID, ("reproduction_command_schema_invalid",))
+    if (
+        command[positions["--repository-root"] + 1] != "."
+        or command[positions["--receipt-head"] + 1] != "@HEAD"
+        or command[positions["--base-head"] + 1] != base_head
+        or command[positions["--plan-head"] + 1] != plan_head
+        or command[positions["--tested-head"] + 1] != tested_head
+        or not Path(command[positions["--trusted-attestation"] + 1]).is_absolute()
+    ):
+        return None, E50ReleaseResult(E50ReleaseCode.RECEIPT_SCHEMA_INVALID, ("reproduction_command_argument_mismatch",))
     return structured, None
 
 

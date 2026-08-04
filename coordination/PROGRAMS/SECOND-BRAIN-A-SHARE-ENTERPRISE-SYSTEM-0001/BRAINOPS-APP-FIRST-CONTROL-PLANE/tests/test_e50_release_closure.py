@@ -17,6 +17,7 @@ sys.path.insert(0, str(PROGRAM_ROOT / "src"))
 from brainops_control_plane.e50_release_verifier import (  # noqa: E402
     E50GitGraphCode,
     E50ProviderAuthorityCode,
+    _validate_provider_run,
     evaluate_git_ancestry,
     reject_caller_provider_document,
 )
@@ -71,3 +72,62 @@ class E50ReleaseClosureTests(unittest.TestCase):
 
         self.assertEqual(result.code, E50ProviderAuthorityCode.UNTRUSTED_CALLER_DOCUMENT)
 
+    def test_provider_run_rejects_wrong_job_head(self):
+        head = "a" * 40
+        run = {
+            "head_sha": head,
+            "status": "completed",
+            "conclusion": "success",
+            "jobs": [
+                {"job_id": 11, "python_version": "3.11", "head_sha": "b" * 40, "conclusion": "success"},
+                {"job_id": 13, "python_version": "3.13", "head_sha": head, "conclusion": "success"},
+            ],
+            "artifacts": [
+                {
+                    "artifact_id": 17,
+                    "name": "e50-release-evidence-3.11",
+                    "head_sha": head,
+                    "digest": "sha256:" + "1" * 64,
+                    "expired": False,
+                },
+                {
+                    "artifact_id": 19,
+                    "name": "e50-release-evidence-3.13",
+                    "head_sha": head,
+                    "digest": "sha256:" + "2" * 64,
+                    "expired": False,
+                },
+            ],
+        }
+
+        self.assertFalse(_validate_provider_run(run, head))
+
+    def test_provider_run_rejects_expired_artifact(self):
+        head = "a" * 40
+        run = {
+            "head_sha": head,
+            "status": "completed",
+            "conclusion": "success",
+            "jobs": [
+                {"job_id": 11, "python_version": "3.11", "head_sha": head, "conclusion": "success"},
+                {"job_id": 13, "python_version": "3.13", "head_sha": head, "conclusion": "success"},
+            ],
+            "artifacts": [
+                {
+                    "artifact_id": 17,
+                    "name": "e50-release-evidence-3.11",
+                    "head_sha": head,
+                    "digest": "sha256:" + "1" * 64,
+                    "expired": False,
+                },
+                {
+                    "artifact_id": 19,
+                    "name": "e50-release-evidence-3.13",
+                    "head_sha": head,
+                    "digest": "sha256:" + "2" * 64,
+                    "expired": True,
+                },
+            ],
+        }
+
+        self.assertFalse(_validate_provider_run(run, head))

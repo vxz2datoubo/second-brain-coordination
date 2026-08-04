@@ -19,8 +19,10 @@ the plan SHA. The command communicates ancestry through its exit status:
 `0` is ancestor, `1` is not ancestor, and other results are unavailable. E50
 will implement that distinction and prove it on a real temporary graph.
 
-Provider authority must be derived from a direct read-only GitHub provider
-adapter with immutable response identities and canonical payload digests. An
+Provider authority uses the approved alternative to a direct provider adapter:
+GPT creates a post-run, canonical-`main` attestation with immutable source
+commit, blob and payload identities. The external envelope only carries those
+identities and a byte-identical payload; it is not authority by itself. An
 arbitrary JSON document, a caller marker, task-branch data, or an in-job
 success statement is never final provider authority.
 
