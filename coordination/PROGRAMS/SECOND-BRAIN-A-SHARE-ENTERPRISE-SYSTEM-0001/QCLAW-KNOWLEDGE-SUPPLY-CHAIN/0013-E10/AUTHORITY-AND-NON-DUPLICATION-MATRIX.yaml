@@ -1,0 +1,134 @@
+# ============================================================================
+# AUTHORITY-AND-NON-DUPLICATION-MATRIX
+# QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+# Stage E — Cross-PR Authority Assignment
+# ============================================================================
+
+package:
+  id: "QCLAW-E10-STAGE-E-AUTHORITY-MATRIX"
+  stage: "E"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY"
+  generated: "2026-07-27T07:04:00+08:00"
+  purpose: >
+    One-owner-per-artifact-class matrix.
+    Declares exactly one PR as canonical owner for each of the 6 artifact classes.
+    Marks Stage C/D removed duplicates with pointer to this Stage E file.
+
+# ============================================================================
+# AUTHORITY MATRIX — One Owner Per Artifact Class
+# ============================================================================
+
+authority_matrix:
+  - artifact_class: "Atoms"
+    owner_pr: 64
+    owner_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
+    owner_head: "30d803b69da89461ea8c8d6be663effb38a1d816"
+    authority_state: "CANDIDATE"
+    description: >
+      Knowledge atoms produced by QCLAW atomization pipeline.
+      PR #64 is the single canonical source for atoms in Epoch 10.
+    duplicate_removal: "Stage C/D removed 4 duplicate atom files from 0008/ — see DECISION-AND-REMOVAL-LEDGER.yaml"
+
+  - artifact_class: "Relations"
+    owner_pr: null
+    owner_branch: null
+    owner_head: null
+    authority_state: "NOT_YET_PRODUCED"
+    description: >
+      Relations are synthesized downstream by the D2 pipeline from Atoms (PR #64).
+      They do not exist as a standalone artifact class yet.
+      PR #100 (D2 Adapter) enables this synthesis but does NOT own the output.
+    duplicate_removal: "N/A — not yet materialized as files"
+
+  - artifact_class: "Questions"
+    owner_pr: null
+    owner_branch: null
+    owner_head: null
+    authority_state: "NOT_YET_PRODUCED"
+    description: >
+      Questions are synthesized downstream by the D2 pipeline from Atoms (PR #64).
+      They do not exist as a standalone artifact class yet.
+    duplicate_removal: "N/A — not yet materialized as files"
+
+  - artifact_class: "Receipts"
+    owner_pr: 96
+    owner_branch: "qclaw/participant-evidence-digest-0010-q0"
+    owner_head: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
+    authority_state: "CANDIDATE"
+    description: >
+      Receipt truth — actual command evidence from clean re-run.
+      PR #96 is the single canonical source for Q0 receipts.
+    duplicate_removal: "No duplicates found in receipts domain"
+
+  - artifact_class: "D2 Adapter"
+    owner_pr: 100
+    owner_branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+    owner_head: "76d447f0bfc9896ee530808238fcda1527809fc1"
+    authority_state: "CANDIDATE"
+    description: >
+      Canonical ontology and semantic determinism adapter.
+      Bridges Q0 format (accepted head e54e04b) to D2 pipeline.
+      PR #100 is the single canonical source for the D2 adapter.
+    duplicate_removal: "No duplicates — adapter is unique cross-PR translation layer"
+
+  - artifact_class: "LTM Plan"
+    owner_pr: 65
+    owner_branch: "qclaw/long-term-memory-palace-hybrid-retrieval-0009"
+    owner_head: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
+    authority_state: "CANDIDATE"
+    description: >
+      Meaningful long-term-memory plan evidence.
+      PR #65 is the single canonical source for the LTM plan in Epoch 10.
+    duplicate_removal: "Stage C/D removed 4 duplicate LTM files from 0009/ — see DECISION-AND-REMOVAL-LEDGER.yaml"
+
+# ============================================================================
+# NON-DUPLICATION ENFORCEMENT
+# ============================================================================
+
+non_duplication_rules:
+  - rule: "Each artifact class has EXACTLY ONE owner PR"
+    status: "ENFORCED"
+    verification: >
+      The 6 artifact classes map to at most 4 distinct PRs (plus 2 TBD).
+      No artifact class appears under more than one owner.
+
+  - rule: "Stage C/D removed duplicates refer here"
+    status: "ENFORCED"
+    verification: >
+      All 8 removed duplicate files (4 from 0008/ + 4 from 0009/) carry a
+      pointer to this Stage E file as the authority for non-duplication.
+      See DECISION-AND-REMOVAL-LEDGER.yaml for full accounting.
+
+  - rule: "Cross-PR files MUST NOT duplicate authority scope"
+    status: "ENFORCED"
+    verification: >
+      No two PRs claim ownership of the same artifact class.
+      D2 Adapter (PR #100) and Atoms (PR #64) share a dependency but NOT scope.
+
+# ============================================================================
+# STALE / OVERRIDDEN AUTHORITY
+# ============================================================================
+
+stale_authority:
+  - entry: "PR #57 (merged offline memory)"
+    note: >
+      PR #57 is MERGED canonical and IS authoritative for offline memory.
+      It is NOT an Epoch 10 active PR and does not conflict with any E10 owner.
+    stale: false
+
+  - entry: "PR #58 (Codex P4 knowledge gateway)"
+    note: >
+      PR #58 is an OPEN CANDIDATE, NOT authoritative for any QCLAW artifact class.
+      It is a consumer (Codex-side), not a supplier.
+    stale: false
+    warning: "DO NOT promote PR #58 to canonical — it is a Codex artifact"
+
+# ============================================================================
+# SIGN-OFF
+# ============================================================================
+
+sign_off:
+  stage: "E"
+  validator: "SUPPLY-CHAIN-VALIDATOR.py"
+  date: "2026-07-27T07:04:00+08:00"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / NO CLAIM PROMOTION"

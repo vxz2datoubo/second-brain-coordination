@@ -1,0 +1,180 @@
+# ============================================================================
+# DECISION-AND-REMOVAL-LEDGER
+# QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+# Stage E — Duplicate Removal Documentation
+# ============================================================================
+
+package:
+  id: "QCLAW-E10-STAGE-E-REMOVAL-LEDGER"
+  stage: "E"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY"
+  generated: "2026-07-27T07:04:00+08:00"
+  purpose: >
+    Document all 8 removed duplicate files (4 from 0008/ + 4 from 0009/),
+    alternatives considered, and rationale for removal rather than retention.
+
+# ============================================================================
+# REMOVED FILES — 0008 (Atoms) — 4 Duplicates
+# ============================================================================
+
+removed_files:
+  # ========================
+  # ATOM DUPLICATES (0008/)
+  # ========================
+  - removal_id: "RM-0001"
+    source_dir: "0008/knowledge-atomization-digestion-adversarial/"
+    file: "atoms-batch-1-duplicate.yaml"
+    duplicate_of: "atoms-batch-1.yaml (canonical in same PR)"
+    reason: >
+      Batch-1 atoms appeared in two files with identical content but different
+      file names. The duplicate was a side effect of a re-run.
+    alternative_considered: "KEEP"
+    why_not_kept: >
+      Keeping would cause downstream D2 pipeline to double-count atoms,
+      inflating the count from 64 to 65+. Deterministic count = 64 atoms
+      requires removal.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml for canonical owner"
+
+  - removal_id: "RM-0002"
+    source_dir: "0008/knowledge-atomization-digestion-adversarial/"
+    file: "atoms-batch-3-v2-duplicate.yaml"
+    duplicate_of: "atoms-batch-3.yaml (canonical)"
+    reason: >
+      Batch-3 atoms had a version-tagged duplicate (v2) that contained
+      the same atoms with only timestamp/metadata changes. Content identity
+      confirmed.
+    alternative_considered: "MERGE"
+    why_not_kept: >
+      Merging would introduce unnecessary versioning complexity for identical
+      atomic content. The canonical batch-3 already represents the latest version.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  - removal_id: "RM-0003"
+    source_dir: "0008/knowledge-atomization-digestion-adversarial/"
+    file: "atoms-conflict-resolution-stale.yaml"
+    duplicate_of: "atoms-conflict-resolution.yaml (canonical)"
+    reason: >
+      Stale copy from an earlier adversarial digestion run. The newer
+      resolution file superseded it with updated conflict annotations.
+    alternative_considered: "ARCHIVE"
+    why_not_kept: >
+      Archiving stale copies could cause reingestion by unaware consumers.
+      Removal ensures only the current resolution is feedable to D2.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  - removal_id: "RM-0004"
+    source_dir: "0008/knowledge-atomization-digestion-adversarial/"
+    file: "atoms-edge-case-copy.yaml"
+    duplicate_of: "atoms-edge-cases.yaml (canonical)"
+    reason: >
+      Accidental copy from filesystem backup during atom generation.
+      Content hash identical to canonical edge-cases file.
+    alternative_considered: "KEEP with suffix"
+    why_not_kept: >
+      Adding suffix creates ambiguity — downstream consumers would not know
+      which file to read. Removal eliminates the ambiguity.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  # ========================
+  # LTM PLAN DUPLICATES (0009/)
+  # ========================
+  - removal_id: "RM-0005"
+    source_dir: "0009/long-term-memory-palace-hybrid-retrieval/"
+    file: "ltm-architecture-v1-duplicate.yaml"
+    duplicate_of: "ltm-architecture.yaml (canonical in same PR)"
+    reason: >
+      Architecture plan had a duplicate file (v1 suffix) from iteration.
+      The canonical file already represents the final architecture.
+    alternative_considered: "KEEP as version history"
+    why_not_kept: >
+      Version history would require a versioning policy not in scope for
+      Epoch 10. The canonical file is the single LTM plan for this epoch.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  - removal_id: "RM-0006"
+    source_dir: "0009/long-term-memory-palace-hybrid-retrieval/"
+    file: "retrieval-strategy-alt-duplicate.yaml"
+    duplicate_of: "retrieval-strategy.yaml (canonical)"
+    reason: >
+      Alternative strategy design was folded into the canonical strategy
+      file but the old separate file remained.
+    alternative_considered: "CONSOLIDATE"
+    why_not_kept: >
+      Consolidation was attempted but the canonical file already absorbed
+      all alternative content. The separate file was 100% redundant.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  - removal_id: "RM-0007"
+    source_dir: "0009/long-term-memory-palace-hybrid-retrieval/"
+    file: "memory-palace-diagram-stale.yaml"
+    duplicate_of: "memory-palace-diagram.yaml (canonical)"
+    reason: >
+      Stale version of the memory palace schema from an earlier draft.
+      The canonical diagram has been updated with hybrid retrieval annotations.
+    alternative_considered: "KEEP as historical artifact"
+    why_not_kept: >
+      Historical artifacts should be tracked by git history, not as
+      separate files. Git already preserves the stale version.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+  - removal_id: "RM-0008"
+    source_dir: "0009/long-term-memory-palace-hybrid-retrieval/"
+    file: "hybrid-retrieval-benchmark-backup.yaml"
+    duplicate_of: "hybrid-retrieval-benchmark.yaml (canonical)"
+    reason: >
+      Backup copy of benchmark results from a re-run. Identical content
+      to canonical benchmark file.
+    alternative_considered: "KEEP with 'backup' suffix"
+    why_not_kept: >
+      Backup files are a repository hygiene issue. Git and PR history
+      already provide backup capability.
+    pointer: "See AUTHORITY-AND-NON-DUPLICATION-MATRIX.yaml"
+
+# ============================================================================
+# REMOVAL SUMMARY
+# ============================================================================
+
+summary:
+  total_removed: 8
+  from_0008_atoms: 4
+  from_0009_ltm: 4
+  removal_categories:
+    accidental_copy: 2   # RM-0004, RM-0008
+    stale_version: 2     # RM-0003, RM-0007
+    re_run_duplicate: 2  # RM-0001, RM-0006
+    version_tagged_duplicate: 2  # RM-0002, RM-0005
+
+# ============================================================================
+# ALTERNATIVES CONSIDERED (GLOBAL)
+# ============================================================================
+
+global_alternatives:
+  - alternative: "Keep all duplicates with _copy / _v2 / _stale suffixes"
+    decision: "REJECTED"
+    rationale: >
+      Creates ambiguity for downstream consumers. Violates single-owner
+      artifact class principle. Requires every consumer to implement
+      filename-level deduplication — not their responsibility.
+
+  - alternative: "Move duplicates to an archive/ subdirectory"
+    decision: "REJECTED"
+    rationale: >
+      Archive directories inside active PRs are confusing. Git history
+      is the correct archive mechanism. Archive directories risk
+      accidental reingestion.
+
+  - alternative: "Merge duplicates into parent files"
+    decision: "PARTIALLY USED (where content differed)"
+    rationale: >
+      Where duplicates had genuinely different content, it was merged.
+      Where content was byte-identical, removal was chosen instead.
+
+# ============================================================================
+# SIGN-OFF
+# ============================================================================
+
+sign_off:
+  stage: "E"
+  date: "2026-07-27T07:04:00+08:00"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY"
+  validation: "SUPPLY-CHAIN-VALIDATOR.py confirms exactly 8 removals"

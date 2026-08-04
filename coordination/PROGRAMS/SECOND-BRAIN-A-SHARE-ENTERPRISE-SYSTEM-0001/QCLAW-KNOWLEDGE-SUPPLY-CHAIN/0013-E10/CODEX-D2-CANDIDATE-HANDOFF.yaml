@@ -1,0 +1,140 @@
+# ============================================================================
+# CODEX-D2-CANDIDATE-HANDOFF
+# QCLAW-UNIFIED-KNOWLEDGE-SUPPLY-CHAIN-ONTOLOGY-DETERMINISM-AND-LTM-EVIDENCE-0013-E10
+# Stage E — Codex D2 Candidate Handoff Package
+# ============================================================================
+
+package:
+  id: "QCLAW-E10-STAGE-E-CODEX-D2-HANDOFF"
+  stage: "E"
+  boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / NO CLAIM PROMOTION"
+  generated: "2026-07-27T07:04:00+08:00"
+  purpose: >
+    Expose only candidate envelopes and exact canonical translation targets
+    to Codex D2 pipeline. No claim promotion — pure handoff.
+
+# ============================================================================
+# CANDIDATE ENVELOPES — What Codex D2 receives
+# ============================================================================
+
+candidate_envelopes:
+  # ---- Supply artifacts ----
+  - envelope_id: "QCLAW-E10-ATOMS"
+    artifact_class: "Atoms"
+    owner_pr: 64
+    owner_branch: "qclaw/knowledge-atomization-digestion-adversarial-0008"
+    owner_head: "30d803b69da89461ea8c8d6be663effb38a1d816"
+    pr_url: "https://github.com/vxz2datoubo/second-brain-coordination/pull/64"
+    authority: "CANDIDATE"
+    description: "64 knowledge atoms from adversarial atomization pipeline"
+    count: 64
+
+  - envelope_id: "QCLAW-E10-RECEIPTS"
+    artifact_class: "Receipts"
+    owner_pr: 96
+    owner_branch: "qclaw/participant-evidence-digest-0010-q0"
+    owner_head: "b5c4ec6bd4da3480ac378d55c43c21151310f4c5"
+    pr_url: "https://github.com/vxz2datoubo/second-brain-coordination/pull/96"
+    authority: "CANDIDATE"
+    description: "99 raw participant evidence records, 147 D2-expanded records, with determinism receipts"
+    count: 99
+
+  - envelope_id: "QCLAW-E10-D2-ADAPTER"
+    artifact_class: "D2 Adapter"
+    owner_pr: 100
+    owner_branch: "qclaw/q0-d2-candidate-adapter-0011-e8"
+    owner_head: "76d447f0bfc9896ee530808238fcda1527809fc1"
+    pr_url: "https://github.com/vxz2datoubo/second-brain-coordination/pull/100"
+    authority: "CANDIDATE"
+    description: "Q0→D2 ontology adapter with semantic determinism contract"
+
+  - envelope_id: "QCLAW-E10-LTM-PLAN"
+    artifact_class: "LTM Plan"
+    owner_pr: 65
+    owner_branch: "qclaw/long-term-memory-palace-hybrid-retrieval-0009"
+    owner_head: "69de4b7a37afd2fd6bf81b2613e574728aafac39"
+    pr_url: "https://github.com/vxz2datoubo/second-brain-coordination/pull/65"
+    authority: "CANDIDATE"
+    description: "Long-term memory palace hybrid retrieval architecture plan"
+
+# ============================================================================
+# CANONICAL TRANSLATION TARGETS
+# ============================================================================
+
+translation_targets:
+  - target: "RETAIL"
+    description: "Retail/散户 participant knowledge"
+    source_atoms: "Atoms tagged with participant_category: retail"
+    note: >
+      Atoms describing retail participants — sentiment, behavior patterns,
+      capital flow characteristics from retail perspective.
+
+  - target: "INSTITUTIONAL_QUANT"
+    description: "Institutional quantitative participant knowledge"
+    source_atoms: "Atoms tagged with participant_category: institutional_quant"
+    note: >
+      Atoms describing institutional quantitative strategies,
+      algorithmic execution patterns, and quant fund behavior.
+
+  - target: "ACTIVE_CAPITAL"
+    description: "Active capital / 活跃资金 participant knowledge"
+    source_atoms: "Atoms tagged with participant_category: active_capital"
+    note: >
+      Atoms describing hot money, active traders, dragon-tiger list patterns,
+      and aggressive capital flow characteristics.
+
+  - target: "POLICY_INDUSTRIAL_FOREIGN_AGGREGATE"
+    description: "Policy / Industrial / Foreign aggregate knowledge"
+    source_atoms: "Atoms tagged with participant_category: policy, industrial, foreign"
+    note: >
+      Composite category — policy signals, industrial capital, and foreign
+      capital (北向资金) behavior patterns.
+
+  - target: "UNMAPPED_UNKNOWN"
+    description: "Atoms not map-able to any known translation target"
+    source_atoms: "Atoms with participant_category: unknown or unmapped"
+    note: >
+      Fallback bucket for atoms that do not cleanly fit any translation target.
+      Codex D2 should route these to the UNKNOWN registry.
+
+# ============================================================================
+# NON-PROMOTION CONSTRAINTS
+# ============================================================================
+
+non_promotion:
+  - rule: "DO NOT promote CANDIDATE to CANONICAL"
+    severity: "HARD"
+    description: >
+      All 4 envelopes are CANDIDATE only. No envelope in this handoff
+      is claimed as canonical, authoritative, or runtime-binding.
+      This is a Stage E handoff — the final authority decision lies with
+      the GPT reviewer.
+
+  - rule: "DO NOT write to main"
+    severity: "HARD"
+    description: >
+      This handoff targets a new branch (qclaw/unified-knowledge-supply-chain-0013-e10-s).
+      No direct write to main is permitted.
+
+  - rule: "DO NOT modify PR #58 (Codex P4 gateway)"
+    severity: "HARD"
+    description: >
+      PR #58 is a Codex artifact, not a QCLAW artifact.
+      This handoff references it for traceability only.
+
+  - rule: "PUBLIC_SAFE boundary"
+    severity: "HARD"
+    description: >
+      No credential values, no private body text, no API keys,
+      no internal configuration. All content is PUBLIC_SAFE.
+
+# ============================================================================
+# SIGN-OFF
+# ============================================================================
+
+sign_off:
+  stage: "E"
+  handoff_target: "Codex D2 Pipeline"
+  reviewer: "GPT"
+  date: "2026-07-27T07:04:00+08:00"
+  completion_signal: "QCLAW_E10_UNIFIED_SUPPLY_CHAIN_ONTOLOGY_DETERMINISM_AND_LTM_EVIDENCE_READY_FOR_GPT_REVIEW"
