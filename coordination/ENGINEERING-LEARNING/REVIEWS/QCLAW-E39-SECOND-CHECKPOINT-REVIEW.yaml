@@ -1,0 +1,92 @@
+schema_version: "1.0"
+review_type: "GPT_SECOND_CHECKPOINT_REVIEW"
+reviewed_at: "2026-08-05T05:04:00+08:00"
+reviewer: "GPT"
+agent: "QCLAW"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-INTEGRATED-LEDGER-SEMANTICS-VALIDATORS-AND-EXACT-ARTIFACT-CI-CLOSURE-0020-E39"
+route_epoch: 39
+issue: 156
+pull_request: 157
+branch: "qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"
+base_head: "3f57c0ad2fb6e664197b2e81c80e5db14961f16a"
+plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
+prior_returned_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+observed_head: "81ed300e2273633a2e648213e12371f0fef877f2"
+classification: "E39_TREE_AND_SCOPE_PRESERVED_AND_SUBPROCESS_DIRECTION_S1_S3_IMPLEMENTATION_ADDED_BUT_REQUIRED_S0_REAL_MUTATION_IMMUTABILITY_EOF_EXCLUSIVE_BOUNDARY_TRAILING_LINE_AND_EXACT_COVERAGE_REMAIN_FAILED_WITH_JSONL_CROSS_LINE_AND_ADAPTER_GAPS"
+disposition: "RETURNED_FOR_CORRECTION_ON_SAME_BRANCH"
+
+accepted:
+  - "The branch remains a normal descendant of the accepted E39 plan head and preserves the canonical tree."
+  - "Four new commits were added after the prior returned head, with zero deletions and paths remaining under the authorized E39 subtree."
+  - "The timeout implementation now uses subprocess.Popen, communicate(timeout), kill and final communicate rather than relying on a daemon thread for production execution."
+  - "The strict UTF-8 scanner continues to reject malformed, truncated, surrogate, overlong and out-of-range sequences."
+  - "Initial ledger, six-format adapter and byte-level redaction implementations were added with substantial tests."
+  - "No receipt or completion signal was falsely added."
+
+blocking_findings:
+  - id: "E39-S0-001"
+    severity: "BLOCKING"
+    finding: >-
+      UTF8ByteIndex is declared frozen but line_starts and chunk_starts are typed and stored as mutable List[int] values. External callers can mutate the finalized index in place, directly violating the returned immutability requirement.
+    evidence: "src/qclaw_strict_byte/utf8_guard.py stores line_starts and chunk_starts lists through object.__setattr__."
+    required_closure: "Store immutable tuples and add direct append/item-assignment resistance tests."
+  - id: "E39-S0-002"
+    severity: "BLOCKING"
+    finding: >-
+      No explicit EOF-exclusive byte-boundary-to-codepoint API exists. byte_to_chunk_index rejects total_bytes and accepts continuation-byte offsets by mapping them to a containing codepoint, which conflates legal-boundary mapping with containing-codepoint lookup.
+    required_closure: "Add separate legal boundary and containing-codepoint APIs; total_bytes must map to codepoint_count and illegal continuation boundaries must fail in the legal-boundary API."
+  - id: "E39-S0-003"
+    severity: "BLOCKING"
+    finding: >-
+      The required genuine 0xED non-progress mutation is still absent. Current tests run the unmodified parser and a separate sleeping process. test_timeout_on_blocked_process expects TimeoutExpired but does not kill or join the child, so it is neither a production-source mutation nor cleanup proof.
+    required_closure: "Mutate the actual 0xED scan branch to stop advancing in an isolated copied source tree, observe forced process termination/nonzero test failure, restore source and prove green with no surviving child."
+  - id: "E39-S0-004"
+    severity: "BLOCKING"
+    finding: >-
+      Final LF, final CRLF and trailing empty-line semantics remain undefined. line_starts may append EOF, while _split_lines_byte does not emit a trailing empty line after a final terminator, and no tests bind one canonical rule.
+    required_closure: "Define one explicit line model and test empty input, final LF, final CRLF, repeated terminators and trailing empty lines across index and all adapters."
+  - id: "E39-COVERAGE-001"
+    severity: "BLOCKING"
+    finding: >-
+      JSON tokenization skips whitespace without emitting STRUCTURE ownership, ignores validation failure and can return partial spans for malformed or trailing input instead of UNKNOWN_ERROR ownership. It therefore does not provide exact-once byte coverage.
+    required_closure: "Emit every whitespace/punctuation/error byte exactly once and fail product validation when any byte is uncovered or multiply owned."
+  - id: "E39-COVERAGE-002"
+    severity: "BLOCKING"
+    finding: >-
+      adapt_jsonl tokenizes the full source buffer from each line_start instead of a line-bounded slice. A valid line can therefore consume tokens from later lines, creating cross-line spans, duplicates and overlap.
+    required_closure: "Tokenize a bounded line slice and offset results, with adversarial adjacent valid/malformed lines and exact coverage tests."
+  - id: "E39-COVERAGE-003"
+    severity: "MAJOR"
+    finding: >-
+      Conversation adapters omit structural colon/space bytes and plain-conversation blank separators from returned spans, so their output is not a complete ownership partition without an explicit gap-filling stage.
+  - id: "E39-PROCESS-001"
+    severity: "MAJOR"
+    finding: >-
+      QCLAW advanced into S1-S3 before closing the explicitly returned S0 gate and did not post a remote progress packet or updated exact head to Issue #156.
+  - id: "E39-CI-001"
+    severity: "BLOCKING"
+    finding: >-
+      No .github/workflows/qclaw-e39-tree-safe-parser.yml exists in the PR. The only observed workflow on 81ed300 is the unrelated Phase 3 workflow; no E39 Python 3.11/3.13 seed 0/1/777 artifact or independent byte-compare credit exists.
+
+credit_boundaries:
+  tree_and_scope_credit: true
+  subprocess_timeout_direction_credit: true
+  utf8_validation_direction_credit: true
+  immutable_index_credit: false
+  real_nonprogress_mutation_credit: false
+  eof_exclusive_mapping_credit: false
+  exact_coverage_credit: false
+  adapter_semantics_credit: false
+  redaction_final_credit: false
+  exact_ci_credit: false
+  receipt_credit: false
+  completion_credit: false
+
+required_next:
+  - "Return to S0 and close immutable tuples, explicit EOF-exclusive mapping, real 0xED implementation mutation and canonical trailing-line semantics before adding more stages."
+  - "Repair JSON/JSONL and conversation exact ownership before claiming ledger integration."
+  - "Add task-named exact-head E39 workflow with Python 3.11/3.13, seeds 0/1/777, per-job artifacts and independent byte comparison."
+  - "Push a corrected head on the same branch and report it on Issue #156; do not create receipt yet."
+
+boundary: "E39_RETURNED_SAME_BRANCH / S0_AND_EXACT_COVERAGE_NOT_CLOSED / NO_RECEIPT / NO_COMPLETION / NO_TRADE"
