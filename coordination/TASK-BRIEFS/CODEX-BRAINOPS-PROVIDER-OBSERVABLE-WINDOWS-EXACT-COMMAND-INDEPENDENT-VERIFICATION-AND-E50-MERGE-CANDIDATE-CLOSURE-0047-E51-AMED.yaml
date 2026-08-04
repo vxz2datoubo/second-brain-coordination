@@ -1,0 +1,99 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51"
+route_epoch: 53
+target_agent: "CODEX"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】E50 Provider 可观察 Windows 原命令独立验证 E51"
+active_issue: 162
+parent_program: 31
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
+automatic_resume: false
+planned_branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
+completion_signal: "CODEX_BRAINOPS_E51_E50_PROVIDER_OBSERVABLE_FINAL_VERIFICATION_READY_FOR_GPT_REVIEW"
+
+source:
+  issue: 160
+  pull_request: 161
+  base_head: "7481fb645e8fd7b032fab6451128eecfadfedfaa"
+  plan_head: "1ca2e59283c154f5256132e0b25f2e5544116d51"
+  tested_head: "49ee251ed33c1f33e336bc59b0c485c279e9eaa3"
+  receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+  attestation_commit: "edf9708360fb8d05a94f8a7711017db33ea8c342"
+  attestation_blob: "e1ecdf118ae5be51486b15516c497bc596bb9a6f"
+  attestation_payload_sha256: "00125ad915a4a2723d60195115d5114a75cab4f18626e10429137f82e3bf0b02"
+  expected_stdout_sha256: "0e1c50869dd3818fa98794f6de671daefc11df3e5a19a161428c75fc1beee7e0"
+  review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E50-INDEPENDENT-FINAL-REVIEW.yaml"
+  review_record_commit: "432812e727fbfd23e963df918b4e1e40353e5c6b"
+  status: "REVIEWED_AND_FROZEN"
+
+fundamental_rules:
+  - "Executor-authored SUCCESS text is not provider-observable execution evidence."
+  - "E51 validates E50 without mutating E50 or its receipt."
+  - "The exact committed receipt command is executed as an array on a GitHub Windows runner."
+  - "Every final fact is recoverable from GitHub run, job, log and artifact."
+
+required_results:
+  - "Strict one-file E51 plan-only first commit from the exact canonical main at claim."
+  - "A sole Draft PR with .github/workflows/brainops-e51-e50-independent-final-verification.yml."
+  - "windows-latest Python 3.11 and 3.13 jobs that independently re-fetch E50 branch and canonical main."
+  - "Remote E50 branch head must equal 9e87bc2f6e705b65a35b92f09d7e7848abc5768a before and after execution."
+  - "Canonical-main attestation commit, fixed path blob and canonical payload digest must exactly match the frozen facts."
+  - "Disposable clone must use core.longpaths=true and checkout the exact E50 receipt head."
+  - "External envelope must be generated outside the clone with exactly source_commit, source_path, source_blob_sha1, payload_sha256 and payload."
+  - "Envelope must be materialized at the exact Windows path recorded by E50 receipt manifest."
+  - "The command array must be read from the actual E50 RECEIPT-MANIFEST.json and executed unchanged."
+  - "Exit code 0, empty stderr, exact canonical stdout and expected stdout SHA-256 are mandatory."
+  - "Provider artifact must preserve command array, remote facts, clone HEAD, attestation facts, envelope digest, stdout, stderr, exit code and environment summary."
+  - "Negative runs for modified blob, payload, receipt head, completion signal and post-receipt commit must fail nonzero."
+  - "Exact tested-head and receipt-head E51 Windows Python 3.11/3.13 CI and artifacts."
+
+workflow_contract:
+  path: ".github/workflows/brainops-e51-e50-independent-final-verification.yml"
+  runners: ["windows-latest"]
+  python_versions: ["3.11", "3.13"]
+  exact_event_head_checkout: true
+  e50_branch_remote_recheck: true
+  e50_receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+  core_longpaths_clone: true
+  exact_manifest_command_execution: true
+  artifact_upload_per_job: true
+  active_negative_verification: true
+
+commit_topology:
+  first_commit: "STRICT_PLAN_ONLY_SINGLE_E51_PLAN_FILE"
+  implementation_commits: "WORKFLOW_AND_PUBLIC_SAFE_VERIFICATION_CODE_ONLY"
+  tested_head_gate: "WINDOWS_3_11_AND_3_13_EXACT_COMMAND_PROVIDER_RUN_AND_NEGATIVE_CASES_GREEN"
+  final_commit: "EXACTLY_ONE_NONEMPTY_E51_RECEIPT_ONLY_COMMIT"
+  receipt_must_be_final_head: true
+  post_receipt_commit_forbidden: true
+
+repository_scope:
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E51/**"
+    - ".github/workflows/brainops-e51-e50-independent-final-verification.yml"
+  task_branch_only: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
+  e50_branch_mutation_forbidden: true
+  e50_receipt_mutation_forbidden: true
+  attestation_mutation_forbidden: true
+  sole_draft_pr_required: true
+
+hard_boundaries:
+  - "PROVIDER_OBSERVABLE_PUBLIC_SAFE_VERIFICATION_ONLY."
+  - "No E50 branch write, merge, rebase, force-push or cherry-pick."
+  - "No model/provider/reasoning/default/thread/subagent/workspace/session/private-config access or mutation."
+  - "No credentials, accounts, orders, positions, funds, market data or trading."
+  - "No live authority, Canary, application automation or real Codex CLI action."
+  - "No direct main write by CODEX or other-agent route mutation."
+
+command_execution_contract:
+  on_trigger: "VERIFY_ISSUE_162_FROZEN_E50_AND_CURRENT_MAIN_CREATE_E51_PLAN_ONLY_PR_THEN_EXECUTE_PROVIDER_OBSERVABLE_WINDOWS_EXACT_COMMAND"
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  minimum_progress_before_return: >-
+    Verify Issue #162, E50 Issue #160/PR #161 exact frozen heads, GPT review and current canonical main; create the E51 branch and one-file plan commit; open the sole Draft PR; add the windows-latest workflow and immediately execute the exact provider-observable verification.
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+
+boundary: "E50_FROZEN / WINDOWS_PROVIDER_RUN / EXACT_RECEIPT_COMMAND / NO_E50_MUTATION / NO_MERGE / NO_TRADE"
