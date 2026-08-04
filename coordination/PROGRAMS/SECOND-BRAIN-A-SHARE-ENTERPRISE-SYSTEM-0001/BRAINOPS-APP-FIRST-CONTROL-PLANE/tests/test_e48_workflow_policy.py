@@ -34,3 +34,16 @@ class E48WorkflowPolicyTests(unittest.TestCase):
             )
             result = validate_e48_workflow(workflow)
         self.assertEqual(result.code, WorkflowPolicyCode.MISSING_EXACT_HEAD)
+
+    def test_repository_generated_evidence_fixture_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workflow = Path(directory) / "brainops-e48.yml"
+            text = (REPOSITORY_ROOT / ".github" / "workflows" / "brainops-e48.yml").read_text(
+                encoding="utf-8"
+            )
+            workflow.write_text(
+                text.replace("E48_EVIDENCE_DIR=$RUNNER_TEMP/e48-", "E48_EVIDENCE_DIR=."),
+                encoding="utf-8",
+            )
+            result = validate_e48_workflow(workflow)
+        self.assertEqual(result.code, WorkflowPolicyCode.MISSING_EXTERNAL_EVIDENCE_DIR)

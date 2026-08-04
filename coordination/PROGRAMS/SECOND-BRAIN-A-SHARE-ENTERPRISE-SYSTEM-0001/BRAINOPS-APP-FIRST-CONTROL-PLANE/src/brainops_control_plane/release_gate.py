@@ -114,11 +114,15 @@ def _provider_pre_evidence(path: Path | None, head: str) -> tuple[dict[str, obje
     expected = {
         "workflow": "brainops-e48.yml",
         "head_sha": head,
-        "python_versions": ["3.11", "3.13"],
+        "required_python_versions": ["3.11", "3.13"],
+        "evidence_class": "IN_JOB_POLICY_AND_CURRENT_JOB_OBSERVATION_ONLY",
     }
     if any(value.get(key) != expected[key] for key in expected):
         return None, "provider_pre_evidence_binding_mismatch"
-    return {key: value[key] for key in expected}, None
+    job_python_version = value.get("job_python_version")
+    if job_python_version not in {"3.11", "3.13"}:
+        return None, "provider_pre_evidence_job_version_invalid"
+    return {**{key: value[key] for key in expected}, "job_python_version": job_python_version}, None
 
 
 def validate_repository_release_gate(

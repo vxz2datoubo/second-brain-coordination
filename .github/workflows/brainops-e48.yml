@@ -37,11 +37,15 @@ jobs:
         run: |
           PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
             python -m brainops_control_plane.workflow_policy --workflow .github/workflows/brainops-e48.yml
+      - name: Prepare external evidence directory
+        run: |
+          echo "E48_EVIDENCE_DIR=$RUNNER_TEMP/e48-${{ github.run_id }}-${{ matrix.python-version }}" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/e48-${{ github.run_id }}-${{ matrix.python-version }}"
       - name: Generate provider pre-evidence
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          printf '{"head_sha":"%s","python_versions":["3.11","3.13"],"workflow":"brainops-e48.yml"}\n' "$EXPECTED_HEAD" > e48-provider-pre-evidence.json
+          printf '{"evidence_class":"IN_JOB_POLICY_AND_CURRENT_JOB_OBSERVATION_ONLY","head_sha":"%s","job_python_version":"%s","required_python_versions":["3.11","3.13"],"workflow":"brainops-e48.yml"}\n' "$EXPECTED_HEAD" "${{ matrix.python-version }}" > "$E48_EVIDENCE_DIR/e48-provider-pre-evidence.json"
       - name: Run repository-backed pre-receipt gate
         env:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -53,8 +57,8 @@ jobs:
               --program-root coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE \
               --expected-head "$EXPECTED_HEAD" \
               --base-head "$BASE_HEAD" \
-              --provider-pre-evidence e48-provider-pre-evidence.json \
-              --output e48-release-pre-evidence.json
+              --provider-pre-evidence "$E48_EVIDENCE_DIR/e48-provider-pre-evidence.json" \
+              --output "$E48_EVIDENCE_DIR/e48-release-pre-evidence.json"
       - name: Run active mutation harness
         run: |
           PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
@@ -63,11 +67,8 @@ jobs:
               --repository-root . \
               --base-head "$(git merge-base origin/main HEAD)" \
               --expected-head "${{ github.event.pull_request.head.sha || github.sha }}" \
-              --output e48-mutation-evidence.json
+              --output "$E48_EVIDENCE_DIR/e48-mutation-evidence.json"
       - uses: actions/upload-artifact@v4
         with:
           name: e48-pre-evidence-${{ matrix.python-version }}
-          path: |
-            e48-provider-pre-evidence.json
-            e48-release-pre-evidence.json
-            e48-mutation-evidence.json
+          path: ${{ runner.temp }}/e48-${{ github.run_id }}-${{ matrix.python-version }}

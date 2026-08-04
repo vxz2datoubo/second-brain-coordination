@@ -19,6 +19,7 @@ class WorkflowPolicyCode(str, Enum):
     UNREADABLE = "UNREADABLE"
     MISSING_EXACT_HEAD = "MISSING_EXACT_HEAD"
     MISSING_REQUIRED_STEP = "MISSING_REQUIRED_STEP"
+    MISSING_EXTERNAL_EVIDENCE_DIR = "MISSING_EXTERNAL_EVIDENCE_DIR"
 
 
 @dataclass(frozen=True)
@@ -38,6 +39,13 @@ _REQUIRED_STEPS = (
     "brainops_control_plane.release_gate",
     "brainops_control_plane.mutation_harness",
     "python-version: [\"3.11\", \"3.13\"]",
+    "IN_JOB_POLICY_AND_CURRENT_JOB_OBSERVATION_ONLY",
+)
+_EXTERNAL_EVIDENCE_DIRECTORY = "E48_EVIDENCE_DIR=$RUNNER_TEMP/e48-"
+_EXTERNAL_EVIDENCE_OUTPUTS = (
+    '"$E48_EVIDENCE_DIR/e48-provider-pre-evidence.json"',
+    '"$E48_EVIDENCE_DIR/e48-release-pre-evidence.json"',
+    '"$E48_EVIDENCE_DIR/e48-mutation-evidence.json"',
 )
 
 
@@ -54,6 +62,15 @@ def validate_e48_workflow(path: Path) -> WorkflowPolicyResult:
     missing = tuple(step for step in _REQUIRED_STEPS if step not in text)
     if missing:
         return WorkflowPolicyResult(WorkflowPolicyCode.MISSING_REQUIRED_STEP, missing)
+    evidence_missing = tuple(
+        value
+        for value in (_EXTERNAL_EVIDENCE_DIRECTORY, *_EXTERNAL_EVIDENCE_OUTPUTS)
+        if value not in text
+    )
+    if evidence_missing:
+        return WorkflowPolicyResult(
+            WorkflowPolicyCode.MISSING_EXTERNAL_EVIDENCE_DIR, evidence_missing
+        )
     return WorkflowPolicyResult(WorkflowPolicyCode.READY)
 
 

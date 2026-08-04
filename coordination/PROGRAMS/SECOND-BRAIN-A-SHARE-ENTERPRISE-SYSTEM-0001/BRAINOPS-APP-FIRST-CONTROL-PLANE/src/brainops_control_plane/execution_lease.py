@@ -124,6 +124,24 @@ class CapabilityOperationPhase(str, Enum):
     COMPLETED = "COMPLETED"
 
 
+class LeaseStageOperationPurpose(str, Enum):
+    """A recovery journal has one non-interchangeable positive-stage purpose."""
+
+    EFFECT_AUTHORIZATION = "EFFECT_AUTHORIZATION"
+    INVOCATION_ATTACHMENT = "INVOCATION_ATTACHMENT"
+
+
+class LeaseStageOperationPhase(str, Enum):
+    REQUESTED = "REQUESTED"
+    BINDINGS_VERIFIED = "BINDINGS_VERIFIED"
+    CLAIM_MUTATION_APPLIED = "CLAIM_MUTATION_APPLIED"
+    LEASE_MUTATION_APPLIED = "LEASE_MUTATION_APPLIED"
+    RESPONSE_LOST = "RESPONSE_LOST"
+    RECONCILIATION_REQUIRED = "RECONCILIATION_REQUIRED"
+    RECONCILED = "RECONCILED"
+    COMPLETED = "COMPLETED"
+
+
 _JOURNAL_TRANSITIONS = {
     OperationPhase.REQUESTED: {
         OperationPhase.CLAIM_NOT_APPLIED,
@@ -167,6 +185,29 @@ _CAPABILITY_JOURNAL_TRANSITIONS = {
     },
     CapabilityOperationPhase.RECONCILED: {CapabilityOperationPhase.COMPLETED},
     CapabilityOperationPhase.COMPLETED: set(),
+}
+
+
+_LEASE_STAGE_JOURNAL_TRANSITIONS = {
+    LeaseStageOperationPhase.REQUESTED: {LeaseStageOperationPhase.BINDINGS_VERIFIED},
+    LeaseStageOperationPhase.BINDINGS_VERIFIED: {
+        LeaseStageOperationPhase.CLAIM_MUTATION_APPLIED,
+        LeaseStageOperationPhase.LEASE_MUTATION_APPLIED,
+        LeaseStageOperationPhase.RESPONSE_LOST,
+    },
+    LeaseStageOperationPhase.CLAIM_MUTATION_APPLIED: {
+        LeaseStageOperationPhase.LEASE_MUTATION_APPLIED,
+        LeaseStageOperationPhase.RESPONSE_LOST,
+    },
+    LeaseStageOperationPhase.LEASE_MUTATION_APPLIED: {LeaseStageOperationPhase.COMPLETED},
+    LeaseStageOperationPhase.RESPONSE_LOST: {LeaseStageOperationPhase.RECONCILIATION_REQUIRED},
+    LeaseStageOperationPhase.RECONCILIATION_REQUIRED: {
+        LeaseStageOperationPhase.CLAIM_MUTATION_APPLIED,
+        LeaseStageOperationPhase.LEASE_MUTATION_APPLIED,
+        LeaseStageOperationPhase.RECONCILED,
+    },
+    LeaseStageOperationPhase.RECONCILED: {LeaseStageOperationPhase.COMPLETED},
+    LeaseStageOperationPhase.COMPLETED: set(),
 }
 
 
@@ -367,6 +408,232 @@ class DurableCapabilityOperationJournal:
         write = self._gateway.compare_and_set(object_id, snapshot.revision, updated.document_bytes)
         if not write.applied:
             raise ValidationError("capability journal CAS conflict")
+        return updated
+
+
+@dataclass(frozen=True)
+class LeaseStageOperationEvent:
+    phase: LeaseStageOperationPhase
+    at: str
+    detail_hash: str
+    previous_hash: str | None
+    event_hash: str
+
+    @classmethod
+    def mint(
+        cls,
+        phase: LeaseStageOperationPhase,
+        at: str,
+        detail: str,
+        previous_hash: str | None,
+    ) -> "LeaseStageOperationEvent":
+        parse_rfc3339_utc(at, "lease-stage operation event at")
+        detail_hash = canonical_hash({"detail": detail})
+        event_hash = canonical_hash(
+            {
+                "phase": phase.value,
+                "at": at,
+                "detail_hash": detail_hash,
+                "previous_hash": previous_hash,
+            }
+        )
+        return cls(phase, at, detail_hash, previous_hash, event_hash)
+
+    def validate(self, previous_hash: str | None) -> None:
+        if self.previous_hash != previous_hash:
+            raise ValidationError("lease-stage journal chain mismatch")
+        expected = canonical_hash(
+            {
+                "phase": self.phase.value,
+                "at": self.at,
+                "detail_hash": self.detail_hash,
+                "previous_hash": self.previous_hash,
+            }
+        )
+        if self.event_hash != expected:
+            raise ValidationError("lease-stage journal event hash mismatch")
+
+
+@dataclass(frozen=True)
+class LeaseStageOperationJournalRecord:
+    purpose: LeaseStageOperationPurpose
+    operation_id: str
+    request_digest: str
+    lease_id: str
+    claim_id: str
+    invocation_id: str | None
+    events: tuple[LeaseStageOperationEvent, ...]
+
+    def __post_init__(self) -> None:
+        for value, label in (
+            (self.operation_id, "lease-stage operation_id"),
+            (self.request_digest, "lease-stage request_digest"),
+            (self.lease_id, "lease-stage lease_id"),
+        ):
+            require_sha256(value, label)
+        require_identifier(self.claim_id, "lease-stage claim_id")
+        if self.purpose is LeaseStageOperationPurpose.INVOCATION_ATTACHMENT:
+            require_identifier(self.invocation_id, "lease-stage invocation_id")
+        elif self.invocation_id is not None:
+            raise ValidationError("effect journal may not bind an invocation")
+        if not self.events or self.events[0].phase is not LeaseStageOperationPhase.REQUESTED:
+            raise ValidationError("lease-stage journal must start with REQUESTED")
+        previous_hash = None
+        for index, event in enumerate(self.events):
+            event.validate(previous_hash)
+            if index and event.phase not in _LEASE_STAGE_JOURNAL_TRANSITIONS[self.events[index - 1].phase]:
+                raise ValidationError("lease-stage journal transition invalid")
+            previous_hash = event.event_hash
+
+    @property
+    def phase(self) -> LeaseStageOperationPhase:
+        return self.events[-1].phase
+
+    def document(self) -> dict[str, object]:
+        payload = {
+            "schema_version": "1.0",
+            "purpose": self.purpose.value,
+            "operation_id": self.operation_id,
+            "request_digest": self.request_digest,
+            "lease_id": self.lease_id,
+            "claim_id": self.claim_id,
+            "invocation_id": self.invocation_id,
+            "events": [
+                {
+                    "phase": event.phase.value,
+                    "at": event.at,
+                    "detail_hash": event.detail_hash,
+                    "previous_hash": event.previous_hash,
+                    "event_hash": event.event_hash,
+                }
+                for event in self.events
+            ],
+        }
+        return {**payload, "record_hash": canonical_hash(payload)}
+
+    @property
+    def document_bytes(self) -> bytes:
+        return json.dumps(self.document(), ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+    @classmethod
+    def from_document_bytes(cls, payload: bytes) -> "LeaseStageOperationJournalRecord":
+        try:
+            value = strict_json_loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, ValidationError) as exc:
+            raise ValidationError("lease-stage journal document invalid") from exc
+        if not isinstance(value, dict) or value.get("schema_version") != "1.0":
+            raise ValidationError("lease-stage journal schema unsupported")
+        record_hash = value.pop("record_hash", None)
+        if not isinstance(record_hash, str) or record_hash != canonical_hash(value):
+            raise ValidationError("lease-stage journal record hash mismatch")
+        try:
+            events = tuple(
+                LeaseStageOperationEvent(
+                    LeaseStageOperationPhase(item["phase"]),
+                    item["at"],
+                    item["detail_hash"],
+                    item.get("previous_hash"),
+                    item["event_hash"],
+                )
+                for item in value["events"]
+            )
+            return cls(
+                LeaseStageOperationPurpose(value["purpose"]),
+                value["operation_id"],
+                value["request_digest"],
+                value["lease_id"],
+                value["claim_id"],
+                value.get("invocation_id"),
+                events,
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValidationError("lease-stage journal document fields invalid") from exc
+
+
+class DurableLeaseStageOperationJournal:
+    """Purpose-bound recovery facts for effect and invocation lease stages."""
+
+    def __init__(self, namespace: str, gateway: RevisionedObjectGateway) -> None:
+        require_identifier(namespace, "lease-stage journal namespace")
+        self._namespace = namespace
+        self._gateway = gateway
+
+    def _object_id(self, operation_id: str) -> str:
+        require_sha256(operation_id, "lease-stage operation_id")
+        return f"{self._namespace}.stage.{operation_id}"
+
+    def begin(
+        self,
+        purpose: LeaseStageOperationPurpose,
+        request_digest: str,
+        lease_id: str,
+        claim_id: str,
+        invocation_id: str | None,
+        requested_at: str,
+    ) -> LeaseStageOperationJournalRecord:
+        operation_id = canonical_hash(
+            {"purpose": purpose.value, "request_digest": request_digest}
+        )
+        object_id = self._object_id(operation_id)
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is not None:
+            existing = LeaseStageOperationJournalRecord.from_document_bytes(snapshot.payload)
+            if (
+                existing.purpose is not purpose
+                or existing.request_digest != request_digest
+                or existing.lease_id != lease_id
+                or existing.claim_id != claim_id
+                or existing.invocation_id != invocation_id
+            ):
+                raise ValidationError("lease-stage journal request substitution")
+            return existing
+        initial = LeaseStageOperationJournalRecord(
+            purpose,
+            operation_id,
+            request_digest,
+            lease_id,
+            claim_id,
+            invocation_id,
+            (
+                LeaseStageOperationEvent.mint(
+                    LeaseStageOperationPhase.REQUESTED,
+                    requested_at,
+                    "request_bound",
+                    None,
+                ),
+            ),
+        )
+        write = self._gateway.compare_and_set(object_id, None, initial.document_bytes)
+        if write.applied:
+            return initial
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is None:
+            raise ValidationError("lease-stage journal CAS conflict")
+        return LeaseStageOperationJournalRecord.from_document_bytes(snapshot.payload)
+
+    def advance(
+        self,
+        operation_id: str,
+        phase: LeaseStageOperationPhase,
+        at: str,
+        detail: str,
+    ) -> LeaseStageOperationJournalRecord:
+        object_id = self._object_id(operation_id)
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is None:
+            raise ValidationError("lease-stage journal missing")
+        current = LeaseStageOperationJournalRecord.from_document_bytes(snapshot.payload)
+        if current.phase is phase:
+            return current
+        if phase not in _LEASE_STAGE_JOURNAL_TRANSITIONS[current.phase]:
+            raise ValidationError("lease-stage journal illegal transition")
+        event = LeaseStageOperationEvent.mint(
+            phase, at, detail, current.events[-1].event_hash
+        )
+        updated = replace(current, events=current.events + (event,))
+        write = self._gateway.compare_and_set(object_id, snapshot.revision, updated.document_bytes)
+        if not write.applied:
+            raise ValidationError("lease-stage journal CAS conflict")
         return updated
 
 
@@ -1361,6 +1628,7 @@ class DurableExecutionLeaseAuthority:
         self._claim_authority = claim_authority
         self._journal = DurableOperationJournal(namespace, gateway)
         self._capability_journal = DurableCapabilityOperationJournal(namespace, gateway)
+        self._stage_journal = DurableLeaseStageOperationJournal(namespace, gateway)
 
     def _object_id(self, storage_id: str) -> str:
         require_sha256(storage_id, "lease storage_id")
@@ -1411,6 +1679,116 @@ class DurableExecutionLeaseAuthority:
             and record.nonce == claim.provenance.nonce
         )
 
+    @staticmethod
+    def _matches_capability_request(
+        existing: ExecutionLeaseRecord, proposed: ExecutionLeaseRecord
+    ) -> bool:
+        """Compare immutable capability bindings while allowing later lease stages."""
+
+        return (
+            existing.lease_id == proposed.lease_id
+            and existing.provenance_digest == proposed.provenance_digest
+            and existing.storage_id == proposed.storage_id
+            and existing.claim_id == proposed.claim_id
+            and existing.holder == proposed.holder
+            and existing.target is proposed.target
+            and existing.task_id == proposed.task_id
+            and existing.route_epoch == proposed.route_epoch
+            and existing.canary_id == proposed.canary_id
+            and existing.nonce == proposed.nonce
+            and existing.capability_decision_digest == proposed.capability_decision_digest
+            and existing.capability_attestation_hash == proposed.capability_attestation_hash
+            and existing.capability_transport_id == proposed.capability_transport_id
+            and existing.expires_at == proposed.expires_at
+        )
+
+    @staticmethod
+    def _stage_request_digest(
+        purpose: LeaseStageOperationPurpose,
+        record: ExecutionLeaseRecord,
+        at: str,
+        invocation_id: str | None = None,
+    ) -> str:
+        return canonical_hash(
+            {
+                "purpose": purpose.value,
+                "lease_id": record.lease_id,
+                "claim_id": record.claim_id,
+                "holder": _holder_document(record.holder),
+                "target": record.target.value,
+                "provenance_digest": record.provenance_digest,
+                "at": at,
+                "invocation_id": invocation_id,
+            }
+        )
+
+    def _begin_stage_operation(
+        self,
+        purpose: LeaseStageOperationPurpose,
+        record: ExecutionLeaseRecord,
+        at: str,
+        invocation_id: str | None = None,
+    ) -> LeaseStageOperationJournalRecord:
+        request_digest = self._stage_request_digest(purpose, record, at, invocation_id)
+        journal = self._stage_journal.begin(
+            purpose,
+            request_digest,
+            record.lease_id,
+            record.claim_id,
+            invocation_id,
+            at,
+        )
+        if journal.phase is LeaseStageOperationPhase.REQUESTED:
+            journal = self._stage_journal.advance(
+                journal.operation_id,
+                LeaseStageOperationPhase.BINDINGS_VERIFIED,
+                at,
+                "actual_lease_and_claim_bindings_verified",
+            )
+        return journal
+
+    def _recover_stage_completion(
+        self, journal: LeaseStageOperationJournalRecord, at: str, detail: str
+    ) -> LeaseStageOperationJournalRecord:
+        if journal.phase is LeaseStageOperationPhase.RESPONSE_LOST:
+            journal = self._stage_journal.advance(
+                journal.operation_id,
+                LeaseStageOperationPhase.RECONCILIATION_REQUIRED,
+                at,
+                "durable_reread_required",
+            )
+        if journal.phase is LeaseStageOperationPhase.RECONCILIATION_REQUIRED:
+            journal = self._stage_journal.advance(
+                journal.operation_id,
+                LeaseStageOperationPhase.RECONCILED,
+                at,
+                detail,
+            )
+        if journal.phase is LeaseStageOperationPhase.RECONCILED:
+            journal = self._stage_journal.advance(
+                journal.operation_id,
+                LeaseStageOperationPhase.COMPLETED,
+                at,
+                "recovery_complete",
+            )
+        return journal
+
+    def _record_stage_response_loss(
+        self, journal: LeaseStageOperationJournalRecord, at: str, detail: str
+    ) -> None:
+        journal = self._stage_journal.advance(
+            journal.operation_id,
+            LeaseStageOperationPhase.RESPONSE_LOST,
+            at,
+            detail,
+        )
+        self._stage_journal.advance(
+            journal.operation_id,
+            LeaseStageOperationPhase.RECONCILIATION_REQUIRED,
+            at,
+            "durable_reread_required",
+        )
+
     def attest_capability(
         self,
         provenance: VerifiedAuthorityProvenance,
@@ -1429,9 +1807,7 @@ class DurableExecutionLeaseAuthority:
         challenge = capability.challenge
         witness = capability.witness
         if (
-            claim.state is not DurableClaimState.CLAIMED
-            or claim.invocation_id is not None
-            or claim.claim_id != claim_id
+            claim.claim_id != claim_id
             or claim.holder != holder
             or challenge.holder != holder
             or challenge.target is not target
@@ -1459,6 +1835,78 @@ class DurableExecutionLeaseAuthority:
             "target": target.value,
             "decision_digest": decision_digest,
         })
+        request_digest = canonical_hash(
+            {
+                "provenance_digest": claim.provenance.digest,
+                "storage_id": claim.key.storage_id,
+                "claim_id": claim.claim_id,
+                "holder": _holder_document(holder),
+                "target": target.value,
+                "decision_digest": decision_digest,
+            }
+        )
+        existing_result = self.read(provenance, lease_id, checked_at=attested_at)
+        if existing_result.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return existing_result
+        if existing_result.record is not None:
+            proposed_for_match = ExecutionLeaseRecord(
+                lease_id=lease_id,
+                provenance_digest=claim.provenance.digest,
+                storage_id=claim.key.storage_id,
+                claim_id=claim.claim_id,
+                holder=holder,
+                target=target,
+                task_id=claim.provenance.task_id,
+                route_epoch=claim.provenance.route_epoch,
+                canary_id=claim.provenance.canary_id,
+                nonce=claim.provenance.nonce,
+                state=ExecutionLeaseState.CAPABILITY_ATTESTED,
+                version=1,
+                capability_decision_digest=decision_digest,
+                capability_attestation_hash=witness.attestation_hash,
+                capability_transport_id=witness.transport_id,
+                created_at=attested_at,
+                expires_at=challenge.expires_at if challenge_expiry <= approval_expiry else provenance.binding.expires_at,
+            )
+            if not self._matches_capability_request(existing_result.record, proposed_for_match):
+                return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, existing_result.record)
+            try:
+                journal = self._capability_journal.begin(
+                    lease_id,
+                    request_digest,
+                    lease_id,
+                    claim.claim_id,
+                    attested_at,
+                )
+                if journal.phase is CapabilityOperationPhase.RESPONSE_LOST:
+                    journal = self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.RECONCILIATION_REQUIRED,
+                        attested_at,
+                        "response_lost_reread",
+                    )
+                if journal.phase is CapabilityOperationPhase.RECONCILIATION_REQUIRED:
+                    journal = self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.RECONCILED,
+                        attested_at,
+                        "exact_lease_found",
+                    )
+                if journal.phase in {
+                    CapabilityOperationPhase.RECONCILED,
+                    CapabilityOperationPhase.LEASE_CREATED,
+                }:
+                    self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.COMPLETED,
+                        attested_at,
+                        "capability_lease_complete",
+                    )
+            except Exception:
+                return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE)
+            return ExecutionLeaseResult(existing_result.code, existing_result.record)
+        if claim.state is not DurableClaimState.CLAIMED or claim.invocation_id is not None:
+            return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH)
         record = ExecutionLeaseRecord(
             lease_id=lease_id,
             provenance_digest=claim.provenance.digest,
@@ -1477,16 +1925,6 @@ class DurableExecutionLeaseAuthority:
             capability_transport_id=witness.transport_id,
             created_at=attested_at,
             expires_at=expires_at,
-        )
-        request_digest = canonical_hash(
-            {
-                "provenance_digest": claim.provenance.digest,
-                "storage_id": claim.key.storage_id,
-                "claim_id": claim.claim_id,
-                "holder": _holder_document(holder),
-                "target": target.value,
-                "decision_digest": decision_digest,
-            }
         )
         try:
             journal = self._capability_journal.begin(
@@ -1517,7 +1955,7 @@ class DurableExecutionLeaseAuthority:
             snapshot = self._gateway.read(object_id)
             if snapshot.payload is not None:
                 existing = ExecutionLeaseRecord.from_document_bytes(snapshot.payload, provenance)
-                if existing != record:
+                if not self._matches_capability_request(existing, record):
                     return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, existing)
                 if journal.phase is CapabilityOperationPhase.RESPONSE_LOST:
                     journal = self._capability_journal.advance(
@@ -1634,13 +2072,51 @@ class DurableExecutionLeaseAuthority:
         if record is None:
             return current
         claim = self._claim_authority.read(provenance).record
-        if claim is None or not self._matches_claim(record, claim) or holder != record.holder or target is not record.target or claim.state is not DurableClaimState.CLAIMED or claim.invocation_id is not None:
+        if claim is None or not self._matches_claim(record, claim) or holder != record.holder or target is not record.target:
             return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
-        transitioned = self._transition(provenance, lease_id, ExecutionLeaseState.CAPABILITY_ATTESTED, ExecutionLeaseState.EFFECT_AUTHORIZED, authorized_at, effect_authorized_at=authorized_at)
-        if transitioned.code is ExecutionLeaseCode.EFFECT_AUTHORIZED:
-            permit = LeaseEffectPermit(transitioned.record, _seal=_EFFECT_PERMIT_SEAL)
-            return replace(transitioned, effect_permit=permit)
-        return transitioned
+        try:
+            journal = self._begin_stage_operation(
+                LeaseStageOperationPurpose.EFFECT_AUTHORIZATION, record, authorized_at
+            )
+            if record.state is ExecutionLeaseState.EFFECT_AUTHORIZED:
+                self._recover_stage_completion(journal, authorized_at, "effect_lease_found")
+                permit = LeaseEffectPermit(record, _seal=_EFFECT_PERMIT_SEAL)
+                return ExecutionLeaseResult(ExecutionLeaseCode.EFFECT_AUTHORIZED, record, effect_permit=permit)
+            if record.state is not ExecutionLeaseState.CAPABILITY_ATTESTED:
+                return ExecutionLeaseResult(current.code, record)
+            if claim.state is not DurableClaimState.CLAIMED or claim.invocation_id is not None:
+                return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
+            transitioned = self._transition(
+                provenance,
+                lease_id,
+                ExecutionLeaseState.CAPABILITY_ATTESTED,
+                ExecutionLeaseState.EFFECT_AUTHORIZED,
+                authorized_at,
+                effect_authorized_at=authorized_at,
+            )
+            if transitioned.code is ExecutionLeaseCode.EFFECT_AUTHORIZED:
+                journal = self._stage_journal.advance(
+                    journal.operation_id,
+                    LeaseStageOperationPhase.LEASE_MUTATION_APPLIED,
+                    authorized_at,
+                    "effect_lease_cas_applied",
+                )
+                self._stage_journal.advance(
+                    journal.operation_id,
+                    LeaseStageOperationPhase.COMPLETED,
+                    authorized_at,
+                    "effect_authorization_complete",
+                )
+                permit = LeaseEffectPermit(transitioned.record, _seal=_EFFECT_PERMIT_SEAL)
+                return replace(transitioned, effect_permit=permit)
+            if transitioned.code is ExecutionLeaseCode.AUTHORITY_UNAVAILABLE:
+                self._record_stage_response_loss(
+                    journal, authorized_at, "effect_lease_write_or_response_unknown"
+                )
+                return ExecutionLeaseResult(ExecutionLeaseCode.RECONCILIATION_REQUIRED, record)
+            return transitioned
+        except Exception:
+            return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE, record)
 
     def attach_invocation(self, provenance: VerifiedAuthorityProvenance, permit: object, invocation_id: str, attached_at: str) -> ExecutionLeaseResult:
         try:
@@ -1656,21 +2132,96 @@ class DurableExecutionLeaseAuthority:
         if record is None:
             return current
         if (
-            record.state is not ExecutionLeaseState.EFFECT_AUTHORIZED
-            or permit.lease_version != record.version
-            or permit.provenance_digest != record.provenance_digest
+            permit.provenance_digest != record.provenance_digest
             or permit.storage_id != record.storage_id
             or permit.claim_id != record.claim_id
             or permit.holder != record.holder
             or permit.target is not record.target
         ):
             return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
-        attached = self._claim_authority.attach_invocation_with_effect_permit(provenance, permit, invocation_id)
-        if attached.code not in {DurableClaimResultCode.INVOCATION_ATTACHED, DurableClaimResultCode.DUPLICATE_INVOCATION}:
-            code = ExecutionLeaseCode.INVOCATION_MISMATCH if attached.code is DurableClaimResultCode.INVOCATION_MISMATCH else ExecutionLeaseCode.CLAIM_NOT_APPLIED
-            return ExecutionLeaseResult(code, record)
-        transitioned = self._transition(provenance, permit.lease_id, ExecutionLeaseState.EFFECT_AUTHORIZED, ExecutionLeaseState.INVOCATION_ATTACHED, attached_at, invocation_id=invocation_id, invocation_attached_at=attached_at)
-        return transitioned
+        try:
+            journal = self._begin_stage_operation(
+                LeaseStageOperationPurpose.INVOCATION_ATTACHMENT,
+                record,
+                attached_at,
+                invocation_id,
+            )
+        except Exception:
+            return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE, record)
+        claim = self._claim_authority.read(provenance).record
+        if claim is None or not self._matches_claim(record, claim):
+            return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
+        if record.state is ExecutionLeaseState.INVOCATION_ATTACHED:
+            if record.invocation_id != invocation_id or claim.invocation_id != invocation_id:
+                return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
+            try:
+                self._recover_stage_completion(journal, attached_at, "invocation_lease_found")
+            except Exception:
+                return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE, record)
+            return ExecutionLeaseResult(ExecutionLeaseCode.INVOCATION_ATTACHED, record)
+        if record.state is not ExecutionLeaseState.EFFECT_AUTHORIZED:
+            return ExecutionLeaseResult(current.code, record)
+        if (
+            permit.lease_version != record.version
+            or claim.state is not DurableClaimState.CLAIMED
+        ):
+            return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
+        try:
+            if claim.invocation_id is None:
+                attached = self._claim_authority.attach_invocation_with_effect_permit(
+                    provenance, permit, invocation_id
+                )
+                if attached.code is DurableClaimResultCode.AUTHORITY_UNAVAILABLE:
+                    self._record_stage_response_loss(
+                        journal, attached_at, "claim_invocation_write_or_response_unknown"
+                    )
+                    return ExecutionLeaseResult(ExecutionLeaseCode.RECONCILIATION_REQUIRED, record)
+                if attached.code is not DurableClaimResultCode.INVOCATION_ATTACHED:
+                    code = (
+                        ExecutionLeaseCode.INVOCATION_MISMATCH
+                        if attached.code is DurableClaimResultCode.INVOCATION_MISMATCH
+                        else ExecutionLeaseCode.CLAIM_NOT_APPLIED
+                    )
+                    return ExecutionLeaseResult(code, record)
+            elif claim.invocation_id != invocation_id:
+                return ExecutionLeaseResult(ExecutionLeaseCode.INVOCATION_MISMATCH, record)
+            journal = self._stage_journal.advance(
+                journal.operation_id,
+                LeaseStageOperationPhase.CLAIM_MUTATION_APPLIED,
+                attached_at,
+                "actual_claim_invocation_confirmed",
+            )
+            transitioned = self._transition(
+                provenance,
+                permit.lease_id,
+                ExecutionLeaseState.EFFECT_AUTHORIZED,
+                ExecutionLeaseState.INVOCATION_ATTACHED,
+                attached_at,
+                invocation_id=invocation_id,
+                invocation_attached_at=attached_at,
+            )
+            if transitioned.code is ExecutionLeaseCode.INVOCATION_ATTACHED:
+                journal = self._stage_journal.advance(
+                    journal.operation_id,
+                    LeaseStageOperationPhase.LEASE_MUTATION_APPLIED,
+                    attached_at,
+                    "invocation_lease_cas_applied",
+                )
+                self._stage_journal.advance(
+                    journal.operation_id,
+                    LeaseStageOperationPhase.COMPLETED,
+                    attached_at,
+                    "invocation_attachment_complete",
+                )
+                return transitioned
+            if transitioned.code is ExecutionLeaseCode.AUTHORITY_UNAVAILABLE:
+                self._record_stage_response_loss(
+                    journal, attached_at, "invocation_lease_write_or_response_unknown"
+                )
+                return ExecutionLeaseResult(ExecutionLeaseCode.RECONCILIATION_REQUIRED, record)
+            return transitioned
+        except Exception:
+            return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE, record)
 
     def attest_terminal(self, provenance: VerifiedAuthorityProvenance, evidence: object, attested_at: str) -> ExecutionLeaseResult:
         if not isinstance(evidence, AttestedTerminalEvidence):

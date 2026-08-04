@@ -281,13 +281,14 @@ class E46ExecutionLeaseTests(unittest.TestCase):
             result = context["manager"].authorize_effect(context["provenance"], context["created"].record.lease_id, context["holder"], CapabilityTarget.CODEX_CLI, EFFECT_AT)
         self.assertEqual(result.code, ExecutionLeaseCode.BINDING_MISMATCH)
 
-    def test_effect_authorization_is_one_transition(self):
+    def test_effect_authorization_retry_returns_the_same_recoverable_continuation(self):
         with tempfile.TemporaryDirectory() as directory:
             context = self._context(Path(directory))
             first = context["manager"].authorize_effect(context["provenance"], context["created"].record.lease_id, context["holder"], context["target"], EFFECT_AT)
             second = context["manager"].authorize_effect(context["provenance"], context["created"].record.lease_id, context["holder"], context["target"], EFFECT_AT)
         self.assertEqual(first.code, ExecutionLeaseCode.EFFECT_AUTHORIZED)
-        self.assertEqual(second.code, ExecutionLeaseCode.ILLEGAL_TRANSITION)
+        self.assertEqual(second.code, ExecutionLeaseCode.EFFECT_AUTHORIZED)
+        self.assertEqual(second.effect_permit.permit_id, first.effect_permit.permit_id)
 
     def test_legacy_effect_permit_is_blocked(self):
         with tempfile.TemporaryDirectory() as directory:

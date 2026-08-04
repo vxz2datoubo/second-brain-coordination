@@ -26,6 +26,6 @@ class E48MutationHarnessTests(unittest.TestCase):
             "ac17da81cd2ea019786e9f1d229eaede944756d9",
             head,
         )
-        self.assertEqual(len(observations), 9)
+        self.assertEqual(len(observations), 14)
         self.assertTrue(all(item.killed for item in observations))
         self.assertTrue(all(len(item.output_sha256) == 64 for item in observations))

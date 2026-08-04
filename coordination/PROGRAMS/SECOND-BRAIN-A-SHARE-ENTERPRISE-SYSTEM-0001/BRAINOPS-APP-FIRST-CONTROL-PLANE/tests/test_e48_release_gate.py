@@ -45,7 +45,9 @@ class E48ReleaseGateTests(unittest.TestCase):
                     {
                         "workflow": "fabricated.yml",
                         "head_sha": self._head(),
-                        "python_versions": ["3.11", "3.13"],
+                        "required_python_versions": ["3.11", "3.13"],
+                        "job_python_version": "3.13",
+                        "evidence_class": "IN_JOB_POLICY_AND_CURRENT_JOB_OBSERVATION_ONLY",
                     }
                 ),
                 encoding="utf-8",
