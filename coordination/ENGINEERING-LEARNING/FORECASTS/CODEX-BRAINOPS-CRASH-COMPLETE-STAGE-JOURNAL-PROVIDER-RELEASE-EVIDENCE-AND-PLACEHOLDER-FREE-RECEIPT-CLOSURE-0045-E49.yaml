@@ -1,0 +1,59 @@
+schema_version: "1.0"
+forecast_type: "PRE_EXECUTION_ENGINEERING_FORECAST"
+created_at: "2026-08-04T21:29:00+08:00"
+agent: "CODEX"
+task_id: "CODEX-BRAINOPS-CRASH-COMPLETE-STAGE-JOURNAL-PROVIDER-RELEASE-EVIDENCE-AND-PLACEHOLDER-FREE-RECEIPT-CLOSURE-0045-E49"
+route_epoch: 51
+source_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E48-INDEPENDENT-REVIEW.yaml"
+
+estimated_difficulty: "D4"
+primary_risk: >-
+  The code may appear restart-safe under applied-write-then-exception gateways while still failing if the process dies before it can record RESPONSE_LOST or advance the journal. Correct closure requires durable-state reconciliation, not broader exception handling.
+
+predicted_failure_modes:
+  - id: "E49-FC-001"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "Positive continuation returns while journal remains BINDINGS_VERIFIED, CLAIM_MUTATION_APPLIED or LEASE_MUTATION_APPLIED."
+    mitigation: "Enumerate claim/lease/journal state matrix and require terminal journal completion after restart."
+  - id: "E49-FC-002"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "Fault injection throws an exception rather than terminating the process, giving cleanup code a chance to run."
+    mitigation: "Use a child process and os._exit/forced termination immediately after durable CAS."
+  - id: "E49-FC-003"
+    likelihood: "MEDIUM"
+    impact: "BLOCKING"
+    signal: "Provider verifier trusts a JSON manifest written by the code under test without checking GitHub provider state."
+    mitigation: "Separate in-job pre-evidence from post-run read-only provider facts and validate exact IDs/digests."
+  - id: "E49-FC-004"
+    likelihood: "HIGH"
+    impact: "MAJOR"
+    signal: "Receipt attempts to self-embed its own SHA or leaves a future placeholder."
+    mitigation: "Use external post-commit identity marker and store actual receipt identity in GPT review/main route only."
+  - id: "E49-FC-005"
+    likelihood: "MEDIUM"
+    impact: "MAJOR"
+    signal: "Reproduction commands pass a fixture validator but fail in a clean clone because of working-directory or argument drift."
+    mitigation: "Execute commands from a temporary clean clone in CI and validate exact CLI schemas."
+  - id: "E49-FC-006"
+    likelihood: "MEDIUM"
+    impact: "BLOCKING"
+    signal: "Receipt topology function exists but the product CLI never invokes it."
+    mitigation: "Require end-to-end CLI mutation that removes the topology call and observes nonzero failure."
+
+success_signals:
+  - "Every legal hard-crash partial state recovers to a completed journal without a second claim or lease business mutation."
+  - "Changed bindings, purpose, time or expiry fail closed during all recovery paths."
+  - "Provider verifier rejects wrong run, wrong job, wrong artifact, wrong head, expired artifact and caller-declared success."
+  - "Receipt contains no placeholder or self-SHA field and records complete tested provider evidence."
+  - "All reproduction commands execute successfully in a clean clone."
+  - "Tested and receipt heads have exact E49 Python 3.11/3.13 CI and remote branch remains at receipt during GPT review."
+
+conservative_controls:
+  - "No receipt until provider evidence for tested head is independently available and validated."
+  - "No post-receipt correction commit; any receipt defect forces freeze and successor route."
+  - "No production or live authority claims from synthetic CAS testing."
+  - "No model/private-config, credential, account or trading access."
+
+boundary: "FORECAST_ONLY / NOT_EXECUTION_EVIDENCE / NO_LIVE_AUTHORITY / NO_TRADE"
