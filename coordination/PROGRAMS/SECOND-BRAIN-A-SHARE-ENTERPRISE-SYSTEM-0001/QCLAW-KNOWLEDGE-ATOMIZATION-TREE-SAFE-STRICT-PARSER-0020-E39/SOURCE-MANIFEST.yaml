@@ -1,0 +1,97 @@
+# E39 SOURCE-MANIFEST
+# Each source file with blob SHA-256 and provenance
+canonical_repo: vxz2datoubo/second-brain-coordination
+epoch: 39
+branch: qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39
+build_commit: "${E39_TESTED_HEAD}"  # placeholder — filled at tested_head time
+
+sources:
+  - path: src/qclaw_strict_byte/__init__.py
+    description: Package init
+    size_bytes: 112
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/utf8_guard.py
+    description: Strict UTF-8 byte scanner with ternary process-timeout gates
+    size_bytes: 11521
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/ledger.py
+    description: Exact-once byte-range owner ledger with freeze semantics
+    size_bytes: 8866
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/adapter.py
+    description: 6-format byte-position adapters, JSON byte-level tokenizer
+    size_bytes: 23932
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/redact.py
+    description: Irreversible byte-level redaction with priority overlap resolution
+    size_bytes: 13122
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/atoms.py
+    description: Conservative atom extraction, CLAIM default, no auto-FACT
+    size_bytes: 5657
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/relations.py
+    description: Evidence-only relations, adjacency blocked
+    size_bytes: 4184
+    review_status: ORIGINAL_E39
+
+  - path: src/qclaw_strict_byte/packet.py
+    description: Deterministic packet with full semantic hash, no self-reference
+    size_bytes: 5074
+    review_status: ORIGINAL_E39
+
+  - path: tests/__init__.py
+    description: Test package init
+    size_bytes: 0
+    review_status: ORIGINAL_E39
+
+  - path: tests/test_utf8_guard.py
+    description: UTF-8 guard tests with subprocess timeout families
+    size_bytes: 12466
+    review_status: ORIGINAL_E39
+
+  - path: tests/test_ledger.py
+    description: ByteLedger exact-once coverage + mutation rejection
+    size_bytes: 10793
+    review_status: ORIGINAL_E39
+
+  - path: tests/test_adapter.py
+    description: 6-format adapter tests with byte-vs-char mutation proof
+    size_bytes: 11882
+    review_status: ORIGINAL_E39
+
+  - path: tests/test_redact.py
+    description: Redaction engine tests with safe-example bypass proof
+    size_bytes: 11091
+    review_status: ORIGINAL_E39
+
+  - path: tests/test_s4.py
+    description: Atoms/relations/packet tests with mutation families
+    size_bytes: 10633
+    review_status: ORIGINAL_E39
+
+  - path: PROJECT-PLAN.md
+    description: E39 project plan (plan-only commit)
+    size_bytes: 2892
+    review_status: ORIGINAL_E39
+
+  - path: SOURCE-MANIFEST.yaml
+    description: This manifest
+    size_bytes: 0  # placeholder
+    review_status: ORIGINAL_E39
+
+  - path: .github/workflows/qclaw-e39-tree-safe-parser.yml
+    description: CI workflow for E39
+    review_status: ORIGINAL_E39
+
+ci_workflow: .github/workflows/qclaw-e39-tree-safe-parser.yml
+forbidden_sources: [E34, E35, E36, E37, E38]
+whole_file_copy_blocked: true
+reviewed_sources:
+  E38: FAILURE_REFERENCE_ONLY
