@@ -1,0 +1,99 @@
+schema_version: "1.0"
+review_type: "GPT_INDEPENDENT_FINAL_REVIEW"
+reviewed_at: "2026-08-04T21:29:00+08:00"
+reviewer: "GPT"
+agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "CODEX-BRAINOPS-INTEGRATED-RECOVERABLE-MANDATORY-AUTHORITY-ATTESTED-IDENTITY-EXPIRY-AND-EXECUTABLE-RELEASE-GATE-CLOSURE-0044-E48"
+route_epoch: 50
+issue: 152
+pull_request: 154
+branch: "codex/brainops-integrated-recoverable-authority-release-gate-0044-e48"
+base_head: "ac17da81cd2ea019786e9f1d229eaede944756d9"
+plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
+tested_head: "00c2e805a5e74354698c2c47822c59b83d219566"
+receipt_head: "6bf4ab05096e16f889733e42603bdf1f068380d3"
+classification: "E48_PLAN_SCOPE_SINGLE_AUTHORITY_TESTED_AND_RECEIPT_EXACT_CI_TOPOLOGY_ARTIFACTS_AND_CORE_RESPONSE_LOSS_RECOVERY_ACCEPTED_BUT_HARD_CRASH_STAGE_JOURNAL_RELEASE_GATE_PROVIDER_TOPOLOGY_PLACEHOLDER_SCAN_AND_RECEIPT_INTEGRITY_FAILED"
+disposition: "REVIEWED_AND_FROZEN_WITH_SUCCESSOR_REQUIRED"
+
+accepted:
+  - "The first task commit is a valid one-file plan-only commit."
+  - "All implementation and workflow changes remain inside the authorized BrainOps and E48 workflow paths."
+  - "The positive path uses the actual DurableClaimAuthority and DurableExecutionLeaseAuthority rather than a second public lifecycle authority."
+  - "Verifier-minted execution identity and terminal evidence remain mandatory on the tested synthetic authority path."
+  - "Effect response-loss, claim-applied/lease-missing invocation recovery, lease-applied response-loss recovery, delayed identical capability replay and expiry fail-closed behavior have executable tests against the actual durable authorities."
+  - "The tested head and receipt head both have exact-head E48 Python 3.11 and 3.13 successful CI with 272 tests per job, workflow-policy validation, repository pre-gate execution, active mutations and uploaded artifacts."
+  - "The receipt is the direct nonempty child of the tested head and changes exactly nine files under E48/RECEIPT."
+  - "At independent review time the remote branch still equals the receipt head and no post-receipt commit exists."
+  - "No live authority, Canary, credential, account, order, position, funds or trading action occurred."
+
+provider_evidence:
+  tested_pr_run:
+    run_id: 30910879350
+    conclusion: "success"
+    head_sha: "00c2e805a5e74354698c2c47822c59b83d219566"
+    jobs:
+      - {job_id: 91997046028, python: "3.11", conclusion: "success", test_count: 272}
+      - {job_id: 91997046144, python: "3.13", conclusion: "success", test_count: 272}
+    artifacts:
+      - {artifact_id: 8893003887, name: "e48-pre-evidence-3.11", digest: "sha256:eb08e1c7ab5baf1024fe57c56638479cebf9149ee6c897302aa4c757cee0c430"}
+      - {artifact_id: 8893011684, name: "e48-pre-evidence-3.13", digest: "sha256:8369434334780569294765bc4617c2d8f44aced51b92354fa0394aee6999aafb"}
+  receipt_pr_run:
+    run_id: 30912028223
+    conclusion: "success"
+    head_sha: "6bf4ab05096e16f889733e42603bdf1f068380d3"
+    jobs:
+      - {job_id: 92000860058, python: "3.11", conclusion: "success", test_count: 272}
+      - {job_id: 92000860059, python: "3.13", conclusion: "success", test_count: 272}
+    artifacts:
+      - {artifact_id: 8893464626, name: "e48-pre-evidence-3.11", digest: "sha256:55f76c03be70e89c30929046c2779489130129468f48204cef2174e132dc7e16"}
+      - {artifact_id: 8893466657, name: "e48-pre-evidence-3.13", digest: "sha256:eda6cb14d55ff37e17a17c181f185bbe8be96ae293bf5d4c8d0a55c604d640eb"}
+
+blocking_findings:
+  - id: "E48-FINAL-001"
+    severity: "BLOCKING"
+    finding: >-
+      The durable stage journal does not reconcile every durable partial state after a hard process crash. If a lease mutation succeeds and the process dies before RESPONSE_LOST or the next journal event is written, restart may observe BINDINGS_VERIFIED, CLAIM_MUTATION_APPLIED or LEASE_MUTATION_APPLIED. The current recovery helper advances only RESPONSE_LOST, RECONCILIATION_REQUIRED and RECONCILED, so it can return a positive continuation while leaving the durable journal incomplete.
+    evidence_gap: "Tests simulate an applied write followed by an exception, allowing the exception handler to write response-loss metadata; they do not kill the process between the durable record CAS and journal CAS."
+    required_closure: "Reconcile all journal-only and record-only partial combinations from actual durable state and prove them with hard process-kill fault injection."
+  - id: "E48-FINAL-002"
+    severity: "BLOCKING"
+    finding: >-
+      The product release gate does not implement the task's full provider/release contract. It validates exact local git head, cleanliness, ancestry, path scope, workflow policy and the authority surface, but does not read and bind the active route/task brief, inspect actual completed GitHub runs/jobs/artifacts, invoke receipt topology in its CLI path, scan the final receipt for placeholders/forbidden content, or validate required evidence families.
+    proof: "The receipt-head gate returned PRE_EVIDENCE_READY even though the final receipt contains an unresolved receipt_commit_sha placeholder."
+  - id: "E48-FINAL-003"
+    severity: "BLOCKING"
+    finding: "E48/RECEIPT/RECEIPT-MANIFEST.json contains receipt_commit_sha: RESOLVED_MECHANICALLY_AFTER_COMMIT instead of an authoritative identity or an explicit non-self-referential design."
+  - id: "E48-FINAL-004"
+    severity: "MAJOR"
+    finding: "RESEARCH-LEDGER.md publishes non-executable reproduction commands using an incorrect base SHA, obsolete option names and missing required arguments."
+  - id: "E48-FINAL-005"
+    severity: "MAJOR"
+    finding: "TEST-RUN-RECEIPT.json omits the actual provider job IDs, artifact IDs, artifact names and artifact digests that were later verified independently."
+
+credit_boundaries:
+  production_authority_credit: false
+  live_transport_credit: false
+  provider_release_gate_completion_credit: false
+  hard_crash_recovery_credit: false
+  receipt_integrity_credit: false
+  merge_credit: false
+  engineering_scaffold_and_exact_ci_credit: true
+
+freeze:
+  frozen: true
+  frozen_head: "6bf4ab05096e16f889733e42603bdf1f068380d3"
+  further_commit_forbidden: true
+  merge_forbidden: true
+  rebase_forbidden: true
+  force_push_forbidden: true
+  cherry_pick_as_authority_forbidden: true
+
+successor:
+  required: true
+  route_epoch: 51
+  task_id: "CODEX-BRAINOPS-CRASH-COMPLETE-STAGE-JOURNAL-PROVIDER-RELEASE-EVIDENCE-AND-PLACEHOLDER-FREE-RECEIPT-CLOSURE-0045-E49"
+  planned_branch: "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
+  completion_signal: "CODEX_BRAINOPS_E49_CRASH_COMPLETE_STAGE_JOURNAL_RELEASE_EVIDENCE_READY_FOR_GPT_REVIEW"
+
+boundary: "E48_FROZEN / ENGINEERING_CREDIT_ONLY / HARD_CRASH_AND_RELEASE_EVIDENCE_PENDING / NO_LIVE_AUTHORITY / NO_TRADE"
