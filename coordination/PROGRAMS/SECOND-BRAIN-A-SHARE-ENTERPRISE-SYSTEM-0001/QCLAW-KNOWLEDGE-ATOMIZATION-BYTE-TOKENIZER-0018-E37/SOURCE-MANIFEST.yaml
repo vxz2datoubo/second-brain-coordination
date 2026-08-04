@@ -1,0 +1,86 @@
+# E37 SOURCE-MANIFEST — exact blob identity for every source file
+# Branch: qclaw/knowledge-atomization-byte-tokenizer-mutation-ci-0018-e37
+# Head commit: add32dc94a4334499b4ebb2e0f216507ceea8bb1
+# Tree: 52e4f79ae6e122f4dbcad30e07a8daa835451fa7
+# Generated: 2026-08-04
+# Do NOT edit manually after receipt — this is evidence identity.
+manifest_version: "1.0"
+branch: "qclaw/knowledge-atomization-byte-tokenizer-mutation-ci-0018-e37"
+head_commit: "add32dc94a4334499b4ebb2e0f216507ceea8bb1"
+tree_sha: "52e4f79ae6e122f4dbcad30e07a8daa835451fa7"
+commit_chain:
+  - {sha: "8e771c9e31c2de6d428ac940c3b6b64b40e1a8f8", role: "plan-only", desc: "PROJECT-PLAN.md only"}
+  - {sha: "34f2f4b95da6870d6569ad92cac759f211ffa976", role: "implementation", desc: "S0+S1: boundary_table + ledger"}
+  - {sha: "abce0fd4e820649eda1a90d2c14517a2febcc71a", role: "implementation", desc: "S2: adapter + redact"}
+  - {sha: "add32dc94a4334499b4ebb2e0f216507ceea8bb1", role: "implementation", desc: "S3+S4: atoms + relations + packet"}
+source_files:
+  - file: "PROJECT-PLAN.md"
+    blob_sha: "bd87e848f40c040c0990b3349a9535a5475132b2"
+    size: 4665
+    role: "plan_document"
+  - file: "src/qclaw_byte_tokenizer/__init__.py"
+    blob_sha: "71e3a94c099e26ac070216ea842e20dffb17dc47"
+    size: 92
+    role: "package_init"
+  - file: "src/qclaw_byte_tokenizer/boundary_table.py"
+    blob_sha: "f801cd8c97ace25bbc95cb6e13c1ef064c61d1a8"
+    size: 15691
+    role: "utf8_boundary_index"
+  - file: "src/qclaw_byte_tokenizer/ledger.py"
+    blob_sha: "9f2367dc21661e23273347f1556b046dbdb64672"
+    size: 5773
+    role: "byte_ownership_ledger"
+  - file: "src/qclaw_byte_tokenizer/adapter.py"
+    blob_sha: "c5d0bdf9b51de1c372f3de81b456495b32a181a1"
+    size: 11411
+    role: "byte_level_adapter_6_formats"
+  - file: "src/qclaw_byte_tokenizer/redact.py"
+    blob_sha: "936176ba4d0ff9b2a3cc743e31d740032419c341"
+    size: 8300
+    role: "redaction_engine"
+  - file: "src/qclaw_byte_tokenizer/atoms.py"
+    blob_sha: "b7d3b9ac7bdc122d0a214f971f046c6a8767f99d"
+    size: 5045
+    role: "atom_extraction_and_classification"
+  - file: "src/qclaw_byte_tokenizer/relations.py"
+    blob_sha: "ea80470d8796a163c16754a29c8b5b87db4f6808"
+    size: 3287
+    role: "explicit_link_only_relations"
+  - file: "src/qclaw_byte_tokenizer/packet.py"
+    blob_sha: "95482ab1dcb4c78cf1ec60e31cd5f31a9523f9cc"
+    size: 4386
+    role: "semantic_packet_builder"
+  - file: "tests/__init__.py"
+    blob_sha: "524b8216d935bc86f128e2a29397f1e55d84f264"
+    size: 18
+    role: "test_package_init"
+  - file: "tests/test_s0_s1.py"
+    blob_sha: "67549b4de5925e59c5c1c036f482b2a465cf52ab"
+    size: 16218
+    role: "unittest_S0_S1_boundary_ledger"
+  - file: "tests/test_s2_s3.py"
+    blob_sha: "1101cb90766e2785533a8c885ca12ae08b88e50c"
+    size: 17575
+    role: "unittest_S2_adapter_redact"
+  - file: "tests/test_s3_s4.py"
+    blob_sha: "fc062034f5b231710877dc96c734a59908f5530b"
+    size: 16944
+    role: "unittest_S3_S4_atoms_relations_packet_validators_mutation"
+total_source_files: 13
+total_bytes: 109405
+test_count: 147  # 67 (S0+S1) + 44 (S2) + 36 (S3+S4)
+covered_modules:
+  - "boundary_table: StrictUTF8Validation 16 tests, OriginalByteIndex 17 tests"
+  - "ledger: OwnerSpan + ByteLedger + mutation (ledger + UTF8) 34 tests"
+  - "adapter: 6 formats (txt/markdown/json/jsonl/conversation) 44 tests"
+  - "redact: find/resolve/apply + mutation 10 tests"
+  - "atoms: extract/coverage/gaps/class/default/no_fact 9 tests"
+  - "relations: 6 types/illegal/adjacency/type-pairing/confidence 8 tests"
+  - "packet: build/determinism/redact/gaps/self-reference 8 tests"
+  - "validators: placeholder/path/base64/overlap/missing_field 5 tests"
+  - "mutation: char≠byte/determinism/overlap/secret_hash/coverage/relation_id 6 tests"
+python_versions: ["3.11.10", "3.13.3"]
+test_status:
+  3_11: "S0+S1 per-class PASS, S2+S3+S4 80/80 PASS"
+  3_13: "S2+S3+S4 80/80 PASS; S0+S1 per-class PASS (full suite SIGKILL due to PowerShell GBK pipe, env not code)"
+  cross_version_match: true
