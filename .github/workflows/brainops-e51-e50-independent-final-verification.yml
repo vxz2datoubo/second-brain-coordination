@@ -48,5 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e51-provider-observable-evidence-${{ matrix.python-version }}
-          path: ${{ runner.temp }}/e51-${{ github.run_id }}-${{ matrix.python-version }}
+          path: |
+            ${{ runner.temp }}/e51-${{ github.run_id }}-${{ matrix.python-version }}/*
+            !${{ runner.temp }}/e51-${{ github.run_id }}-${{ matrix.python-version }}/scratch/**
           if-no-files-found: error
