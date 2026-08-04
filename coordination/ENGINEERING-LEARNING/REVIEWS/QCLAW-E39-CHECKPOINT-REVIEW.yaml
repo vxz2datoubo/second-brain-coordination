@@ -1,0 +1,79 @@
+schema_version: "1.0"
+review_type: "INDEPENDENT_CHECKPOINT_REVIEW"
+reviewer: "GPT"
+agent: "QCLAW"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-INTEGRATED-LEDGER-SEMANTICS-VALIDATORS-AND-EXACT-ARTIFACT-CI-CLOSURE-0020-E39"
+issue: 156
+pull_request: 157
+route_epoch: 39
+reviewed_at: "2026-08-04T19:40:00+08:00"
+base_head: "3f57c0ad2fb6e664197b2e81c80e5db14961f16a"
+plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
+reviewed_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+classification: "E39_TREE_SCOPE_AND_PLAN_ONLY_ACCEPTED_BUT_S0_TIMEOUT_MUTATION_IMMUTABILITY_AND_EOF_EXCLUSIVE_MAPPING_REQUIRE_CORRECTION"
+status: "RETURNED_FOR_CORRECTION"
+
+accepted:
+  - "The task branch is a normal descendant of canonical main."
+  - "The plan head is exactly one commit after base and adds only PROJECT-PLAN.md."
+  - "The current PR changes five files, all inside the E39 authorized program path, with zero deletions."
+  - "The manual UTF-8 scanner rejects surrogate, malformed continuation, truncated and out-of-range sequences and advances on every successful branch."
+  - "No receipt, completion signal or E39 tested-head CI credit has been claimed."
+
+blocking_findings:
+  - id: "E39-S0-TIMEOUT-001"
+    confidence: "HIGH"
+    finding: >-
+      with_timeout uses a daemon thread. When the target does not terminate, the caller raises TimeoutError but the worker continues running and cannot be killed. This is not process termination proof and is unsafe for an actual infinite-loop mutation.
+    required_correction: >-
+      Replace the timeout proof with an isolated subprocess or multiprocessing worker that is forcibly terminated and joined. Record exit status, timeout classification and cleanup proof.
+  - id: "E39-S0-MUTATION-002"
+    confidence: "HIGH"
+    finding: >-
+      test_0xED_loop_mutation_detected does not mutate the parser or simulate a non-progressing loop. It only passes a truncated 0xED byte to the already-correct implementation and observes a normal exception.
+    required_correction: >-
+      Apply an actual isolated mutation that removes cursor progress or rejection for the 0xED branch, execute it under the process timeout gate, observe forced termination/nonzero failure, restore the source and prove green recovery.
+  - id: "E39-S0-IMMUTABILITY-003"
+    confidence: "HIGH"
+    finding: >-
+      UTF8ByteIndex is frozen but line_starts and chunk_starts are mutable lists. External callers can modify the finalized index after construction.
+    required_correction: >-
+      Store immutable tuples or an equivalent immutable representation and add tests proving mutation attempts cannot alter the index.
+  - id: "E39-S0-EOF-004"
+    confidence: "HIGH"
+    finding: >-
+      byte_to_chunk_index(total_bytes) is explicitly rejected and no separate API maps the EOF-exclusive byte boundary to codepoint_count. This leaves the required exclusive span-end mapping incomplete.
+    required_correction: >-
+      Add an explicit byte-boundary-to-codepoint API where total_bytes maps to codepoint_count, while interior continuation bytes remain rejected or are handled by a separately documented containing-codepoint API.
+  - id: "E39-S0-LINE-005"
+    confidence: "MEDIUM"
+    finding: >-
+      Final LF/CRLF and empty trailing-line semantics are not explicitly tested; the current line-start loop does not append EOF for a final LF because it requires pos + 1 < total.
+    required_correction: >-
+      Define and test trailing LF, trailing CRLF, empty input and final empty-line semantics consistently with EOF-exclusive boundaries.
+
+ci_and_evidence:
+  task_named_workflow_present: false
+  observed_workflow_runs:
+    - run_id: 30905550424
+      workflow: "Phase 3 integrated offline memory"
+      status: "queued"
+      credit: false
+  local_pass_claim: "45/45 PASS in commit message"
+  local_pass_credit: false
+  reason: "No independent E39 exact-head Python 3.11/3.13 provider evidence exists."
+
+routing_decision:
+  freeze_branch: false
+  supersede_task: false
+  continue_same_issue: true
+  continue_same_pull_request: true
+  no_receipt_authorized: true
+  next_action: >-
+    Correct the S0 timeout, active mutation, immutable index and EOF-exclusive mapping on PR #157; add red-to-green evidence; then continue S1-S6 only after the corrected S0 checkpoint is green.
+
+boundaries:
+  - "Engineering and synthetic/public-safe fixtures only."
+  - "No model/provider/reasoning/private configuration access or mutation."
+  - "No secrets, accounts, orders, positions, funds or trading."
+  - "No direct main write, merge, rebase, force-push or other-agent route mutation."
