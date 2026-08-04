@@ -1,48 +1,87 @@
-schema_version: "58.0"
+schema_version: "59.0"
 repository: "vxz2datoubo/second-brain-coordination"
 canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_ISSUE_162_FROZEN_E50_AND_CURRENT_MAIN_CREATE_E51_PLAN_ONLY_PR_THEN_EXECUTE_PROVIDER_OBSERVABLE_WINDOWS_EXACT_COMMAND"
+trigger_semantics: "NO_EXECUTION_E51_REVIEWED_AND_FROZEN_WAIT_FOR_EXPLICIT_USER_APPROVED_INTEGRATION_OR_NEW_ROUTE"
 
 active_issue: 162
+active_pull_request: 163
 parent_program: 31
 task_id: "CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51"
 route_epoch: 53
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】E50 Provider 可观察 Windows 原命令独立验证 E51"
-status: "READY"
-execution_allowed: true
+status: "REVIEWED_AND_FROZEN_AWAIT_USER_DIRECTION"
+execution_allowed: false
 automatic_dispatch_allowed: false
 canary_execution_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
-blocked_by: []
-planned_branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
-planned_draft_pr: true
+blocked_by: ["EXPLICIT_USER_APPROVAL_REQUIRED_FOR_ANY_MERGE_OR_NEW_CODEX_ROUTE"]
+branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
+base_head: "bfcb7f65c3f1d862bcd17df2319803000c5c0ec9"
+plan_head: "73ceb6902a60ff2440cdfba1c94865ec26b73ac7"
+tested_head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
+receipt_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
 completion_signal: "CODEX_BRAINOPS_E51_E50_PROVIDER_OBSERVABLE_FINAL_VERIFICATION_READY_FOR_GPT_REVIEW"
+classification: "E51_PLAN_SCOPE_EXACT_WINDOWS_PROVIDER_EXECUTION_RAW_AND_CANONICAL_STREAM_EVIDENCE_NEGATIVE_CASES_TESTED_AND_RECEIPT_EXACT_CI_AND_ARTIFACTS_ACCEPTED_E50_FINAL_RELEASE_GATE_CLOSED_WITH_NONBLOCKING_GOVERNANCE_FINDINGS"
+disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR"
 
-source:
+source_e50:
   issue: 160
   pull_request: 161
-  base_head: "7481fb645e8fd7b032fab6451128eecfadfedfaa"
-  plan_head: "1ca2e59283c154f5256132e0b25f2e5544116d51"
-  tested_head: "49ee251ed33c1f33e336bc59b0c485c279e9eaa3"
   receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
   attestation_commit: "edf9708360fb8d05a94f8a7711017db33ea8c342"
   attestation_blob: "e1ecdf118ae5be51486b15516c497bc596bb9a6f"
   attestation_payload_sha256: "00125ad915a4a2723d60195115d5114a75cab4f18626e10429137f82e3bf0b02"
-  classification: "E50_PLAN_SCOPE_REAL_GIT_GRAPH_TRUSTED_MAIN_ATTESTATION_STRICT_RECEIPT_EXACT_CI_AND_LOCAL_CLEAN_CLONE_RESULT_ACCEPTED_BUT_FINAL_EXECUTION_REMAINS_EXECUTOR_SELF_REPORTED_AND_WINDOWS_PATH_BOUND_PROVIDER_OBSERVABLE_INDEPENDENT_PROOF_REQUIRED"
+  final_release_gate_credit: true
+  merge_candidate_evidence_credit: true
+  merge_authorized: false
   status: "REVIEWED_AND_FROZEN"
-  review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E50-INDEPENDENT-FINAL-REVIEW.yaml"
-  review_record_commit: "432812e727fbfd23e963df918b4e1e40353e5c6b"
+
+provider_evidence:
+  tested:
+    run_id: 30954673634
+    head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
+    jobs: [92144804443, 92144804448]
+    artifacts: [8910528351, 8910528401]
+  receipt:
+    run_id: 30955095735
+    head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+    jobs: [92146152403, 92146152418]
+    artifacts: [8910693046, 8910688655]
+  exact_argv_json_sha256: "b7bb5564cdc64f741e7a7b5e7d109ecb3437be2e7435d9332d77be5488de1aae"
+  positive_stdout_sha256_raw: "b498b65dfadae6bc0da965ecc5cec4e93590f57ac21746be69c7ef61c1fe3c65"
+  positive_stdout_sha256_normalized: "0e1c50869dd3818fa98794f6de671daefc11df3e5a19a161428c75fc1beee7e0"
+  positive_stderr_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  negative_cases: ["modified_blob", "modified_payload", "modified_receipt_head", "modified_completion_signal", "post_receipt_commit"]
+
+canonical_main_attestation:
+  path: "coordination/PROVIDER-ATTESTATIONS/CODEX-E51-POST-RUN-PROVIDER-ATTESTATION.json"
+  commit: "edcf799ae1621b07e558d672a7ed740c080ff22d"
+  blob: "b027a8163c71af5973b0262a37eb3f73405e1aa2"
+  canonical_payload_sha256: "656b6b8b3adb7094d54114df682a9b2e32ea84620d3dada8eb75fdcc48895122"
+
+review:
+  record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E51-INDEPENDENT-FINAL-REVIEW.yaml"
+  commit: "75ac32d0e8dc3cab1a869357548b8aff6b149fda"
+  accepted:
+    - "Exact one-file plan-only start, authorized zero-deletion scope and direct ten-file receipt topology."
+    - "Exact Windows Python 3.11/3.13 tested and receipt provider runs with unexpired artifacts."
+    - "Canonical-main E50 attestation ancestry/blob/payload validation and exact five-field envelope."
+    - "Disposable core.longpaths clone at frozen E50 head and unchanged manifest argv execution."
+    - "Raw stream preservation, canonical CRLF-to-LF comparison and five fail-closed negative cases."
+  nonblocking_findings:
+    - "Plan wording was corrected during implementation to preserve literal @HEAD execution."
+    - "Windows raw CRLF is separately hashed before LF canonical comparison."
+    - "Shared Git identity metadata limits attribution clarity for some implementation commits."
+    - "E50 workflow identity and positive run_id schema checks remain future hardening candidates."
 
 operator_model_advisory:
-  recommendation_level: "HIGH"
-  recommended_model_or_picker_label: "highest suitable model visible to the user"
-  recommended_reasoning_level: "high or highest"
-  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
+  recommendation_level: "NONE_WHILE_FROZEN"
+  user_action_required: "USER_EXPLICITLY_APPROVES_ANY_FUTURE_MERGE_OR_NEW_ROUTE"
   agent_setting_mutation_forbidden: true
 
 permanent_local_config_boundary:
@@ -50,79 +89,31 @@ permanent_local_config_boundary:
   modify_model_provider_reasoning_default_thread_subagent_workspace_session_or_private_config: false
   comment_or_uncomment_any_such_field: false
 
-accepted_source_credit:
-  - "E50 strict plan and authorized zero-deletion topology."
-  - "Correct real git ancestry semantics and trusted canonical-main attestation."
-  - "Strict receipt binding, exact tested/receipt CI and twelve active mutations."
-  - "Executor local clean-clone result direction and canonical stdout hash."
-
-fundamental_rules:
-  - "Executor-authored SUCCESS text is not provider-observable final execution evidence."
-  - "E51 validates E50 without mutating E50 or its receipt."
-  - "The exact E50 receipt command array is executed on GitHub windows-latest."
-  - "Final facts must be visible in GitHub run, job, log and artifact."
-
-required_results:
-  - "Strict one-file E51 plan-only first commit from exact canonical main at claim."
-  - "Sole Draft PR and windows-latest Python 3.11/3.13 workflow."
-  - "Independent remote E50 branch-head and canonical-main attestation commit/blob/payload rechecks."
-  - "core.longpaths=true disposable clone at exact E50 receipt head."
-  - "External envelope with exact five-field shape generated from canonical-main bytes outside the clone."
-  - "Envelope materialized at the exact Windows path recorded in E50 RECEIPT-MANIFEST.json."
-  - "Actual command array loaded from manifest and executed unchanged."
-  - "Exit 0, empty stderr, canonical READY stdout and expected SHA-256."
-  - "Provider artifacts preserving exact argv, remote facts, clone head, envelope digest, stdout, stderr, exit and environment."
-  - "Negative blob, payload, receipt-head, signal and post-receipt cases fail nonzero."
-  - "Exact E51 tested and receipt Windows Python 3.11/3.13 CI before final review."
-
-repository_scope:
-  allowed_paths:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E51/**"
-    - ".github/workflows/brainops-e51-e50-independent-final-verification.yml"
-  task_branch_only: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
-  e50_branch_mutation_forbidden: true
-  e50_receipt_mutation_forbidden: true
-  attestation_mutation_forbidden: true
-  sole_draft_pr_required: true
-
-commit_topology:
-  first_commit: "STRICT_PLAN_ONLY_SINGLE_E51_PLAN_FILE"
-  implementation_commits: "WORKFLOW_AND_PUBLIC_SAFE_VERIFICATION_CODE_ONLY"
-  tested_head_gate: "WINDOWS_3_11_AND_3_13_PROVIDER_RUN_AND_NEGATIVE_CASES_GREEN"
-  final_commit: "EXACTLY_ONE_NONEMPTY_E51_RECEIPT_ONLY_COMMIT"
-  receipt_must_be_final_head: true
-  post_receipt_commit_forbidden: true
-
-ci_contract:
-  workflow: ".github/workflows/brainops-e51-e50-independent-final-verification.yml"
-  runners: ["windows-latest"]
-  python_versions: ["3.11", "3.13"]
-  exact_event_head_checkout: true
-  exact_manifest_command_execution: true
-  provider_artifact_per_job: true
-  tested_head_success_required: true
-  receipt_head_success_required: true
-
-protocols:
-  task_brief: "coordination/TASK-BRIEFS/CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51-AMED.yaml"
-  forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51.yaml"
-  source_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E50-INDEPENDENT-FINAL-REVIEW.yaml"
+freeze:
+  e51_frozen: true
+  e51_frozen_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+  e50_frozen: true
+  e50_frozen_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+  further_commit_forbidden: true
+  merge_requires_user_approval: true
+  rebase_forbidden: true
+  force_push_forbidden: true
+  successor_required: false
 
 hard_boundaries:
-  - "PROVIDER_OBSERVABLE_PUBLIC_SAFE_VERIFICATION_ONLY."
-  - "No E50 branch write, merge, rebase, force-push or cherry-pick."
+  - "NO_CODEX_EXECUTION_UNTIL_EXPLICIT_NEW_ROUTE_OR_USER_APPROVED_INTEGRATION."
+  - "No E50 or E51 branch write, merge, rebase, force-push or cherry-pick without a separately reviewed user-approved route."
   - "No model/provider/reasoning/default/thread/subagent/workspace/session/private-config access or mutation."
   - "No credentials, accounts, orders, positions, funds, market data or trading."
   - "No live authority, Canary, application automation or real Codex CLI action."
-  - "No direct main write by CODEX or other-agent route mutation."
 
 command_execution_contract:
-  on_trigger: "VERIFY_ISSUE_162_FROZEN_E50_AND_CURRENT_MAIN_CREATE_E51_PLAN_ONLY_PR_THEN_EXECUTE_PROVIDER_OBSERVABLE_WINDOWS_EXACT_COMMAND"
+  on_trigger: "DO_NOT_EXECUTE_CURRENT_FROZEN_ROUTE"
   second_user_start_command_required: false
-  read_only_acknowledgement_forbidden: true
-  minimum_progress_before_return: >-
-    Verify Issue #162, frozen E50 Issue #160/PR #161 exact heads, GPT review and current canonical main; create the E51 branch and strict one-file plan commit; open the sole Draft PR; add the windows-latest workflow and immediately execute provider-observable verification.
-after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+  read_only_acknowledgement_forbidden: false
+  minimum_progress_before_return: "None. E51 is complete and frozen."
+  after_completion: "AWAIT_EXPLICIT_USER_DIRECTION"
+
 updated_by: "GPT"
-updated_at: "2026-08-05T05:04:00+08:00"
-boundary: "E50_FROZEN / WINDOWS_PROVIDER_RUN / EXACT_RECEIPT_COMMAND / NO_E50_MUTATION / USER_CONTROLS_MODELS / NO_MERGE / NO_TRADE"
+updated_at: "2026-08-05T06:12:00+08:00"
+boundary: "E51_ACCEPTED_AND_FROZEN / E50_FINAL_RELEASE_GATE_CLOSED / NO_ACTIVE_CODEX_EXECUTION / MERGE_REQUIRES_USER_APPROVAL / NO_LIVE_AUTHORITY / NO_TRADE"
