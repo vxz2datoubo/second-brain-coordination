@@ -1,0 +1,31 @@
+schema_version: "1.0"
+reviewed_by: "GPT"
+reviewed_at: "2026-08-04T18:55:00+08:00"
+agent: "CODEX"
+task_id: "CODEX-BRAINOPS-INTEGRATED-RECOVERABLE-MANDATORY-AUTHORITY-ATTESTED-IDENTITY-EXPIRY-AND-EXECUTABLE-RELEASE-GATE-CLOSURE-0044-E48"
+issue: 152
+pull_request: 154
+plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
+current_head: "0dad099dbf3faf5a3964d5a84fa19661cfca5af7"
+classification: "E48_PLAN_ONLY_SCOPE_AND_PARTIAL_INTEGRATED_AUTHORITY_PROGRESS_ACCEPTED_BUT_EFFECT_AND_INVOCATION_RECOVERY_RELEASE_GATE_EXECUTION_REMOTE_CI_AND_RECEIPT_CLOSURE_PENDING"
+status: "RETURN_FOR_CORRECTION_AND_CONTINUATION"
+accepted:
+  - "Strict one-file plan-only first commit is valid."
+  - "All current changes remain inside the authorized BrainOps path and E48 workflow."
+  - "Parallel RecoverableLifecycleAuthority is excluded and the public surface validator targets the actual DurableClaimAuthority and DurableExecutionLeaseAuthority path."
+  - "Capability creation and terminal claim/lease commit gained durable recovery journals and verifier-minted identity/evidence checks."
+  - "No receipt was created before remote tested-head CI."
+blockers:
+  - "authorize_effect still uses a bare lease CAS without a purpose-bound recovery journal; a post-apply response loss cannot recover the same continuation."
+  - "lease-side attach_invocation still lacks a recoverable operation journal; a post-apply lease CAS response loss retries into a later state instead of recovering the original result."
+  - "attest_capability compares an existing later-stage lease to a newly constructed CAPABILITY_ATTESTED record and may return BINDING_MISMATCH for an identical delayed retry after later progress."
+  - "The workflow creates e48-provider-pre-evidence.json before the release gate, while the gate rejects every untracked path through git status --porcelain --untracked-files=all; the gate therefore fails on its own generated evidence."
+  - "The provider pre-evidence declares both Python versions from a single matrix job and must be labeled as policy/input metadata rather than observed provider completion."
+  - "The required E48 exact-head runs are still queued; no provider job/artifact success and no receipt-head evidence exist."
+required_corrections:
+  - "Journal and reconcile effect authorization and lease invocation transitions, including claim-applied/lease-not-applied, lease-applied-response-lost, restart and expiry cases."
+  - "Return exact current continuation for identical capability retries after later valid stages, while rejecting changed bindings and all post-expiry retries."
+  - "Make release-gate cleanliness inspect the committed tree before generated outputs, or generate evidence outside the repository worktree and explicitly allow only controlled outputs."
+  - "Add red-to-green tests and active mutations for the two intermediate response-loss stages and delayed capability replay."
+  - "Wait for exact-head Python 3.11/3.13 CI and artifacts before creating the sole evidence-only receipt."
+boundary: "ENGINEERING_AND_SYNTHETIC_ONLY / NO_LIVE_AUTHORITY / USER_CONTROLS_MODELS / NO_TRADE"
