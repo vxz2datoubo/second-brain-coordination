@@ -111,6 +111,19 @@ class OperationPhase(str, Enum):
     TERMINAL_COMMITTED = "TERMINAL_COMMITTED"
 
 
+class CapabilityOperationPhase(str, Enum):
+    """Durable recovery states for the single capability-to-lease transition."""
+
+    REQUESTED = "REQUESTED"
+    CLAIM_FOUND_OR_ACQUIRED = "CLAIM_FOUND_OR_ACQUIRED"
+    CAPABILITY_DECISION_VALIDATED = "CAPABILITY_DECISION_VALIDATED"
+    LEASE_CREATED = "LEASE_CREATED"
+    RESPONSE_LOST = "RESPONSE_LOST"
+    RECONCILIATION_REQUIRED = "RECONCILIATION_REQUIRED"
+    RECONCILED = "RECONCILED"
+    COMPLETED = "COMPLETED"
+
+
 _JOURNAL_TRANSITIONS = {
     OperationPhase.REQUESTED: {
         OperationPhase.CLAIM_NOT_APPLIED,
@@ -130,6 +143,231 @@ _JOURNAL_TRANSITIONS = {
     OperationPhase.RECONCILED: {OperationPhase.TERMINAL_COMMITTED},
     OperationPhase.CLAIM_APPLIED: {OperationPhase.RECONCILIATION_REQUIRED, OperationPhase.TERMINAL_COMMITTED},
 }
+
+
+_CAPABILITY_JOURNAL_TRANSITIONS = {
+    CapabilityOperationPhase.REQUESTED: {
+        CapabilityOperationPhase.CLAIM_FOUND_OR_ACQUIRED,
+        CapabilityOperationPhase.RESPONSE_LOST,
+    },
+    CapabilityOperationPhase.CLAIM_FOUND_OR_ACQUIRED: {
+        CapabilityOperationPhase.CAPABILITY_DECISION_VALIDATED,
+        CapabilityOperationPhase.RESPONSE_LOST,
+    },
+    CapabilityOperationPhase.CAPABILITY_DECISION_VALIDATED: {
+        CapabilityOperationPhase.LEASE_CREATED,
+        CapabilityOperationPhase.RESPONSE_LOST,
+        CapabilityOperationPhase.RECONCILIATION_REQUIRED,
+    },
+    CapabilityOperationPhase.LEASE_CREATED: {CapabilityOperationPhase.COMPLETED},
+    CapabilityOperationPhase.RESPONSE_LOST: {CapabilityOperationPhase.RECONCILIATION_REQUIRED},
+    CapabilityOperationPhase.RECONCILIATION_REQUIRED: {
+        CapabilityOperationPhase.RECONCILED,
+        CapabilityOperationPhase.COMPLETED,
+    },
+    CapabilityOperationPhase.RECONCILED: {CapabilityOperationPhase.COMPLETED},
+    CapabilityOperationPhase.COMPLETED: set(),
+}
+
+
+@dataclass(frozen=True)
+class CapabilityOperationEvent:
+    phase: CapabilityOperationPhase
+    at: str
+    detail_hash: str
+    previous_hash: str | None
+    event_hash: str
+
+    @classmethod
+    def mint(
+        cls,
+        phase: CapabilityOperationPhase,
+        at: str,
+        detail: str,
+        previous_hash: str | None,
+    ) -> "CapabilityOperationEvent":
+        parse_rfc3339_utc(at, "capability operation event at")
+        detail_hash = canonical_hash({"detail": detail})
+        event_hash = canonical_hash(
+            {
+                "phase": phase.value,
+                "at": at,
+                "detail_hash": detail_hash,
+                "previous_hash": previous_hash,
+            }
+        )
+        return cls(phase, at, detail_hash, previous_hash, event_hash)
+
+    def validate(self, previous_hash: str | None) -> None:
+        if self.previous_hash != previous_hash:
+            raise ValidationError("capability operation journal chain mismatch")
+        if self.event_hash != canonical_hash(
+            {
+                "phase": self.phase.value,
+                "at": self.at,
+                "detail_hash": self.detail_hash,
+                "previous_hash": self.previous_hash,
+            }
+        ):
+            raise ValidationError("capability operation journal event hash mismatch")
+
+
+@dataclass(frozen=True)
+class CapabilityOperationJournalRecord:
+    operation_id: str
+    request_digest: str
+    lease_id: str
+    claim_id: str
+    events: tuple[CapabilityOperationEvent, ...]
+
+    def __post_init__(self) -> None:
+        for value, label in (
+            (self.operation_id, "capability operation_id"),
+            (self.request_digest, "capability request_digest"),
+            (self.lease_id, "capability lease_id"),
+        ):
+            require_sha256(value, label)
+        require_identifier(self.claim_id, "capability journal claim_id")
+        if not self.events or self.events[0].phase is not CapabilityOperationPhase.REQUESTED:
+            raise ValidationError("capability journal must start with REQUESTED")
+        previous = None
+        for index, event in enumerate(self.events):
+            event.validate(previous)
+            if index and event.phase not in _CAPABILITY_JOURNAL_TRANSITIONS[self.events[index - 1].phase]:
+                raise ValidationError("capability journal transition invalid")
+            previous = event.event_hash
+
+    @property
+    def phase(self) -> CapabilityOperationPhase:
+        return self.events[-1].phase
+
+    def document(self) -> dict[str, object]:
+        payload = {
+            "schema_version": "1.0",
+            "operation_id": self.operation_id,
+            "request_digest": self.request_digest,
+            "lease_id": self.lease_id,
+            "claim_id": self.claim_id,
+            "events": [
+                {
+                    "phase": event.phase.value,
+                    "at": event.at,
+                    "detail_hash": event.detail_hash,
+                    "previous_hash": event.previous_hash,
+                    "event_hash": event.event_hash,
+                }
+                for event in self.events
+            ],
+        }
+        return {**payload, "record_hash": canonical_hash(payload)}
+
+    @property
+    def document_bytes(self) -> bytes:
+        return json.dumps(self.document(), ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+    @classmethod
+    def from_document_bytes(cls, payload: bytes) -> "CapabilityOperationJournalRecord":
+        try:
+            value = strict_json_loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, ValidationError) as exc:
+            raise ValidationError("capability journal document invalid") from exc
+        if not isinstance(value, dict) or value.get("schema_version") != "1.0":
+            raise ValidationError("capability journal document schema unsupported")
+        record_hash = value.pop("record_hash", None)
+        if not isinstance(record_hash, str) or record_hash != canonical_hash(value):
+            raise ValidationError("capability journal record hash mismatch")
+        try:
+            events = tuple(
+                CapabilityOperationEvent(
+                    CapabilityOperationPhase(item["phase"]),
+                    item["at"],
+                    item["detail_hash"],
+                    item.get("previous_hash"),
+                    item["event_hash"],
+                )
+                for item in value["events"]
+            )
+            return cls(value["operation_id"], value["request_digest"], value["lease_id"], value["claim_id"], events)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValidationError("capability journal document fields invalid") from exc
+
+
+class DurableCapabilityOperationJournal:
+    """Internal journal; it records recovery facts and never grants authority."""
+
+    def __init__(self, namespace: str, gateway: RevisionedObjectGateway) -> None:
+        require_identifier(namespace, "capability journal namespace")
+        self._namespace = namespace
+        self._gateway = gateway
+
+    def _object_id(self, operation_id: str) -> str:
+        require_sha256(operation_id, "capability operation_id")
+        return f"{self._namespace}.capability.{operation_id}"
+
+    def read(self, operation_id: str) -> CapabilityOperationJournalRecord | None:
+        snapshot = self._gateway.read(self._object_id(operation_id))
+        return (
+            None
+            if snapshot.payload is None
+            else CapabilityOperationJournalRecord.from_document_bytes(snapshot.payload)
+        )
+
+    def begin(
+        self,
+        operation_id: str,
+        request_digest: str,
+        lease_id: str,
+        claim_id: str,
+        requested_at: str,
+    ) -> CapabilityOperationJournalRecord:
+        object_id = self._object_id(operation_id)
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is not None:
+            record = CapabilityOperationJournalRecord.from_document_bytes(snapshot.payload)
+            if (
+                record.request_digest != request_digest
+                or record.lease_id != lease_id
+                or record.claim_id != claim_id
+            ):
+                raise ValidationError("capability journal request substitution")
+            return record
+        initial = CapabilityOperationJournalRecord(
+            operation_id,
+            request_digest,
+            lease_id,
+            claim_id,
+            (CapabilityOperationEvent.mint(CapabilityOperationPhase.REQUESTED, requested_at, "request_bound", None),),
+        )
+        write = self._gateway.compare_and_set(object_id, None, initial.document_bytes)
+        if write.applied:
+            return initial
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is None:
+            raise ValidationError("capability journal CAS conflict")
+        return CapabilityOperationJournalRecord.from_document_bytes(snapshot.payload)
+
+    def advance(
+        self,
+        operation_id: str,
+        phase: CapabilityOperationPhase,
+        at: str,
+        detail: str,
+    ) -> CapabilityOperationJournalRecord:
+        object_id = self._object_id(operation_id)
+        snapshot = self._gateway.read(object_id)
+        if snapshot.payload is None:
+            raise ValidationError("capability journal missing")
+        current = CapabilityOperationJournalRecord.from_document_bytes(snapshot.payload)
+        if current.phase is phase:
+            return current
+        if phase not in _CAPABILITY_JOURNAL_TRANSITIONS[current.phase]:
+            raise ValidationError("capability journal illegal transition")
+        event = CapabilityOperationEvent.mint(phase, at, detail, current.events[-1].event_hash)
+        updated = replace(current, events=current.events + (event,))
+        write = self._gateway.compare_and_set(object_id, snapshot.revision, updated.document_bytes)
+        if not write.applied:
+            raise ValidationError("capability journal CAS conflict")
+        return updated
 
 
 def _holder_document(holder: ClaimHolder) -> dict[str, str]:
@@ -1122,6 +1360,7 @@ class DurableExecutionLeaseAuthority:
         self._gateway = gateway
         self._claim_authority = claim_authority
         self._journal = DurableOperationJournal(namespace, gateway)
+        self._capability_journal = DurableCapabilityOperationJournal(namespace, gateway)
 
     def _object_id(self, storage_id: str) -> str:
         require_sha256(storage_id, "lease storage_id")
@@ -1133,7 +1372,17 @@ class DurableExecutionLeaseAuthority:
         record = None if snapshot.payload is None else ExecutionLeaseRecord.from_document_bytes(snapshot.payload, provenance)
         return snapshot, record
 
-    def read(self, provenance: VerifiedAuthorityProvenance, lease_id: str) -> ExecutionLeaseResult:
+    @staticmethod
+    def _expired(record: ExecutionLeaseRecord, checked_at: str) -> bool:
+        return parse_rfc3339_utc(checked_at, "lease checked_at") >= parse_rfc3339_utc(record.expires_at, "lease expires_at")
+
+    def read(
+        self,
+        provenance: VerifiedAuthorityProvenance,
+        lease_id: str,
+        *,
+        checked_at: str | None = None,
+    ) -> ExecutionLeaseResult:
         try:
             _snapshot, record = self._read_snapshot(provenance)
         except ValidationError:
@@ -1144,6 +1393,8 @@ class DurableExecutionLeaseAuthority:
             return ExecutionLeaseResult(ExecutionLeaseCode.LEASE_NOT_FOUND)
         if record.lease_id != lease_id:
             return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, record)
+        if checked_at is not None and self._expired(record, checked_at):
+            return ExecutionLeaseResult(ExecutionLeaseCode.LEASE_EXPIRED, record)
         code = ExecutionLeaseCode.ALREADY_COMMITTED if record.state is ExecutionLeaseState.TERMINAL_COMMITTED else ExecutionLeaseCode.ALREADY_EXISTS
         return ExecutionLeaseResult(code, record)
 
@@ -1195,6 +1446,8 @@ class DurableExecutionLeaseAuthority:
         if checked < parse_rfc3339_utc(capability.consumed_at, "capability consumed_at") or checked >= parse_rfc3339_utc(challenge.expires_at, "challenge expires_at"):
             return ExecutionLeaseResult(ExecutionLeaseCode.LEASE_EXPIRED)
         approval_expiry = parse_rfc3339_utc(provenance.binding.expires_at, "approval expires_at")
+        if checked >= approval_expiry:
+            return ExecutionLeaseResult(ExecutionLeaseCode.LEASE_EXPIRED)
         challenge_expiry = parse_rfc3339_utc(challenge.expires_at, "challenge expires_at")
         expires_at = challenge.expires_at if challenge_expiry <= approval_expiry else provenance.binding.expires_at
         decision_digest = _decision_digest(capability)
@@ -1225,18 +1478,114 @@ class DurableExecutionLeaseAuthority:
             created_at=attested_at,
             expires_at=expires_at,
         )
+        request_digest = canonical_hash(
+            {
+                "provenance_digest": claim.provenance.digest,
+                "storage_id": claim.key.storage_id,
+                "claim_id": claim.claim_id,
+                "holder": _holder_document(holder),
+                "target": target.value,
+                "decision_digest": decision_digest,
+            }
+        )
+        try:
+            journal = self._capability_journal.begin(
+                lease_id,
+                request_digest,
+                lease_id,
+                claim.claim_id,
+                attested_at,
+            )
+            if journal.phase is CapabilityOperationPhase.REQUESTED:
+                journal = self._capability_journal.advance(
+                    journal.operation_id,
+                    CapabilityOperationPhase.CLAIM_FOUND_OR_ACQUIRED,
+                    attested_at,
+                    "actual_claim_read",
+                )
+            if journal.phase is CapabilityOperationPhase.CLAIM_FOUND_OR_ACQUIRED:
+                journal = self._capability_journal.advance(
+                    journal.operation_id,
+                    CapabilityOperationPhase.CAPABILITY_DECISION_VALIDATED,
+                    attested_at,
+                    "sealed_consumed_decision_validated",
+                )
+        except Exception:
+            return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE)
         try:
             object_id = self._object_id(record.storage_id)
             snapshot = self._gateway.read(object_id)
             if snapshot.payload is not None:
                 existing = ExecutionLeaseRecord.from_document_bytes(snapshot.payload, provenance)
+                if existing != record:
+                    return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH, existing)
+                if journal.phase is CapabilityOperationPhase.RESPONSE_LOST:
+                    journal = self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.RECONCILIATION_REQUIRED,
+                        attested_at,
+                        "response_lost_reread",
+                    )
+                if journal.phase is CapabilityOperationPhase.RECONCILIATION_REQUIRED:
+                    journal = self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.RECONCILED,
+                        attested_at,
+                        "exact_lease_found",
+                    )
+                if journal.phase is CapabilityOperationPhase.CAPABILITY_DECISION_VALIDATED:
+                    journal = self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.LEASE_CREATED,
+                        attested_at,
+                        "exact_lease_found_without_response",
+                    )
+                if journal.phase in {
+                    CapabilityOperationPhase.LEASE_CREATED,
+                    CapabilityOperationPhase.RECONCILED,
+                }:
+                    self._capability_journal.advance(
+                        journal.operation_id,
+                        CapabilityOperationPhase.COMPLETED,
+                        attested_at,
+                        "capability_lease_complete",
+                    )
                 return ExecutionLeaseResult(ExecutionLeaseCode.ALREADY_EXISTS, existing)
             write = self._gateway.compare_and_set(object_id, None, record.document_bytes)
-            return ExecutionLeaseResult(ExecutionLeaseCode.CAPABILITY_ATTESTED if write.applied else ExecutionLeaseCode.CAS_CONFLICT, record if write.applied else None)
+            if not write.applied:
+                return ExecutionLeaseResult(ExecutionLeaseCode.CAS_CONFLICT)
+            journal = self._capability_journal.advance(
+                journal.operation_id,
+                CapabilityOperationPhase.LEASE_CREATED,
+                attested_at,
+                "lease_cas_applied",
+            )
+            self._capability_journal.advance(
+                journal.operation_id,
+                CapabilityOperationPhase.COMPLETED,
+                attested_at,
+                "capability_lease_complete",
+            )
+            return ExecutionLeaseResult(ExecutionLeaseCode.CAPABILITY_ATTESTED, record)
         except ValidationError:
             return ExecutionLeaseResult(ExecutionLeaseCode.TAMPERED)
         except Exception:
-            return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE)
+            try:
+                journal = self._capability_journal.advance(
+                    journal.operation_id,
+                    CapabilityOperationPhase.RESPONSE_LOST,
+                    attested_at,
+                    "lease_write_or_response_unknown",
+                )
+                self._capability_journal.advance(
+                    journal.operation_id,
+                    CapabilityOperationPhase.RECONCILIATION_REQUIRED,
+                    attested_at,
+                    "durable_reread_required",
+                )
+            except Exception:
+                return ExecutionLeaseResult(ExecutionLeaseCode.AUTHORITY_UNAVAILABLE)
+            return ExecutionLeaseResult(ExecutionLeaseCode.RECONCILIATION_REQUIRED)
 
     def _transition(
         self,
@@ -1260,7 +1609,7 @@ class DurableExecutionLeaseAuthority:
         if current.state is not expected or new_state.version != expected.version + 1:
             return ExecutionLeaseResult(ExecutionLeaseCode.ILLEGAL_TRANSITION, current)
         checked = parse_rfc3339_utc(checked_at, "lease transition checked_at")
-        if expected.version < ExecutionLeaseState.TERMINAL_ATTESTED.version and checked >= parse_rfc3339_utc(current.expires_at, "lease expires_at"):
+        if checked >= parse_rfc3339_utc(current.expires_at, "lease expires_at"):
             return ExecutionLeaseResult(ExecutionLeaseCode.LEASE_EXPIRED, current)
         updated = replace(current, state=new_state, version=new_state.version, **changes)
         try:
@@ -1278,7 +1627,9 @@ class DurableExecutionLeaseAuthority:
         return ExecutionLeaseResult(code, updated)
 
     def authorize_effect(self, provenance: VerifiedAuthorityProvenance, lease_id: str, holder: ClaimHolder, target: CapabilityTarget, authorized_at: str) -> ExecutionLeaseResult:
-        current = self.read(provenance, lease_id)
+        current = self.read(provenance, lease_id, checked_at=authorized_at)
+        if current.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return current
         record = current.record
         if record is None:
             return current
@@ -1298,7 +1649,9 @@ class DurableExecutionLeaseAuthority:
             return ExecutionLeaseResult(ExecutionLeaseCode.INVOCATION_INVALID)
         if not isinstance(permit, LeaseEffectPermit):
             return ExecutionLeaseResult(ExecutionLeaseCode.BINDING_MISMATCH)
-        current = self.read(provenance, permit.lease_id)
+        current = self.read(provenance, permit.lease_id, checked_at=attached_at)
+        if current.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return current
         record = current.record
         if record is None:
             return current
@@ -1322,7 +1675,9 @@ class DurableExecutionLeaseAuthority:
     def attest_terminal(self, provenance: VerifiedAuthorityProvenance, evidence: object, attested_at: str) -> ExecutionLeaseResult:
         if not isinstance(evidence, AttestedTerminalEvidence):
             return ExecutionLeaseResult(ExecutionLeaseCode.TERMINAL_EVIDENCE_REQUIRED)
-        current = self.read(provenance, evidence.lease_id)
+        current = self.read(provenance, evidence.lease_id, checked_at=attested_at)
+        if current.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return current
         record = current.record
         if record is None:
             return current
@@ -1373,7 +1728,9 @@ class DurableExecutionLeaseAuthority:
         )
 
     def _commit_lease(self, provenance: VerifiedAuthorityProvenance, authorization: TerminalMutationAuthorization, claim: DurableClaimRecord, committed_at: str) -> ExecutionLeaseResult:
-        current = self.read(provenance, authorization.lease_id)
+        current = self.read(provenance, authorization.lease_id, checked_at=committed_at)
+        if current.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return current
         if current.record is None:
             return current
         if current.record.state is ExecutionLeaseState.TERMINAL_COMMITTED:
@@ -1399,7 +1756,9 @@ class DurableExecutionLeaseAuthority:
     def finalize_with_attested_terminal(self, provenance: VerifiedAuthorityProvenance, authorization: object, committed_at: str) -> ExecutionLeaseResult:
         if not isinstance(authorization, TerminalMutationAuthorization):
             return ExecutionLeaseResult(ExecutionLeaseCode.TERMINAL_EVIDENCE_REQUIRED)
-        current = self.read(provenance, authorization.lease_id)
+        current = self.read(provenance, authorization.lease_id, checked_at=committed_at)
+        if current.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return current
         record = current.record
         if record is None:
             return current
@@ -1455,8 +1814,10 @@ class DurableExecutionLeaseAuthority:
     def reconcile_terminal(self, provenance: VerifiedAuthorityProvenance, authorization: object, reconciled_at: str) -> ExecutionLeaseResult:
         if not isinstance(authorization, TerminalMutationAuthorization):
             return ExecutionLeaseResult(ExecutionLeaseCode.TERMINAL_EVIDENCE_REQUIRED)
+        lease_result = self.read(provenance, authorization.lease_id, checked_at=reconciled_at)
+        if lease_result.code is ExecutionLeaseCode.LEASE_EXPIRED:
+            return lease_result
         journal = self._journal.begin(authorization, reconciled_at)
-        lease_result = self.read(provenance, authorization.lease_id)
         record = lease_result.record
         claim = self._claim_authority.read(provenance).record
         if record is None or claim is None:

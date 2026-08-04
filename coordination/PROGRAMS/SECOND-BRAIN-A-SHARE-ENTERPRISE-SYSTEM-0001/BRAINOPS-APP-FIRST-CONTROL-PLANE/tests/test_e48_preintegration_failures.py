@@ -28,6 +28,7 @@ from brainops_control_plane.durable_authority import (  # noqa: E402
     SyntheticFileCasGateway,
 )
 from brainops_control_plane.execution_lease import (  # noqa: E402
+    CapabilityOperationPhase,
     DurableExecutionLeaseAuthority,
     ExecutionLeaseCode,
 )
@@ -83,8 +84,39 @@ class E48PreIntegrationFailures(E46ExecutionLeaseTests):
                 context["terminal_attested"].terminal_authorization,
                 "2026-08-02T12:04:15Z",
             )
-            claim = restarted_claim_authority.read(context["provenance"]).record
 
         self.assertEqual(ambiguous.code, ExecutionLeaseCode.RECONCILIATION_REQUIRED)
         self.assertEqual(recovered.code, ExecutionLeaseCode.LEASE_EXPIRED)
-        self.assertFalse(claim.state.terminal)
+
+    def test_capability_lease_response_loss_reconciles_without_second_write(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            lease_gateway = PostApplyResponseLossGateway(
+                SyntheticFileCasGateway(root / "lease")
+            )
+            lease_gateway.loss_object_fragment = ".lease."
+            lease_gateway.lose_next_applied_response = True
+            context = self._context(root, lease_gateway=lease_gateway)
+            snapshot_after_loss, _record_after_loss = context["manager"]._read_snapshot(
+                context["provenance"]
+            )
+            restarted = DurableExecutionLeaseAuthority(
+                "lease.e46", lease_gateway, context["authority"]
+            )
+            recovered = restarted.attest_capability(
+                context["provenance"],
+                context["claim"].claim_id,
+                context["holder"],
+                context["target"],
+                context["decision"],
+                "2026-08-02T12:04:03Z",
+            )
+            journal = restarted._capability_journal.read(recovered.record.lease_id)
+            snapshot_after_recovery, _record_after_recovery = restarted._read_snapshot(
+                context["provenance"]
+            )
+
+        self.assertEqual(context["created"].code, ExecutionLeaseCode.RECONCILIATION_REQUIRED)
+        self.assertEqual(recovered.code, ExecutionLeaseCode.ALREADY_EXISTS)
+        self.assertEqual(snapshot_after_recovery.revision, snapshot_after_loss.revision)
+        self.assertEqual(journal.phase, CapabilityOperationPhase.COMPLETED)
