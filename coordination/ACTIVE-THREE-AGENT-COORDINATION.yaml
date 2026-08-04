@@ -1,13 +1,13 @@
-schema_version: "62.0"
+schema_version: "63.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E48_RETURNED_FOR_INTERMEDIATE_RECOVERY_AND_RELEASE_GATE_FIX_QCLAW_E39_TREE_SAFE_STRICT_PARSER_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E48_RETURNED_NO_NEW_HEAD_QCLAW_E39_TREE_SAFE_PLAN_ACCEPTED_S0_RETURNED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-04T19:11:00+08:00"
+updated_at: "2026-08-04T19:40:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
-  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_WHEN_ROUTE_READY", second_start_command_required: false}
+  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_WHEN_ROUTE_READY_OR_RETURNED_FOR_CORRECTION", second_start_command_required: false}
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
@@ -16,10 +16,13 @@ permanent_governance:
   repository_scope_rule: "Only exact allowed paths may change."
   plan_only_rule: "The first task commit changes exactly one plan document and no other canonical path."
   single_positive_authority_rule: "BrainOps exposes exactly one actual durable claim and execution lease positive authority chain."
-  recoverable_transition_rule: "Every positive transition, including effect and invocation, must recover an identical post-apply retry after restart without second mutation."
+  recoverable_transition_rule: "Every positive transition, including effect and invocation, recovers an identical post-apply retry after restart without second mutation."
   expiry_rule: "Expiry and provenance are rechecked at every positive transition, reconciliation and ALREADY result."
   original_byte_truth_rule: "Knowledge digestion uses strict UTF-8 original bytes and legal byte boundaries."
-  parser_progress_rule: "Every scan advances monotonically or fails with a structured error and timeout proof."
+  parser_progress_rule: "Every scan advances monotonically or is terminated in an isolated killable worker with cleanup proof."
+  parser_mutation_rule: "A malformed-input timeout test is not mutation proof unless implementation is actually weakened and the weakened process is observed failing or terminated."
+  immutable_index_rule: "Frozen parser/index records contain no externally mutable list or map state."
+  eof_exclusive_rule: "The exclusive source byte boundary maps to the exclusive codepoint count through an explicit API."
   exact_coverage_rule: "Every source byte has exactly one ATOM_CANDIDATE, STRUCTURE or UNKNOWN_ERROR owner."
   relation_truth_rule: "Relations require executable linking evidence; proximity and caller labels grant no relation."
   redaction_lineage_rule: "Redaction uses original source spans, source-order application and no secret text/hash/fingerprint persistence."
@@ -43,7 +46,15 @@ agents:
     branch: "codex/brainops-integrated-recoverable-authority-release-gate-0044-e48"
     plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
     returned_head: "0dad099dbf3faf5a3964d5a84fa19661cfca5af7"
+    current_remote_head: "0dad099dbf3faf5a3964d5a84fa19661cfca5af7"
+    new_progress_since_previous_review: false
     classification: "E48_PLAN_ONLY_SCOPE_AND_PARTIAL_INTEGRATED_AUTHORITY_PROGRESS_ACCEPTED_BUT_EFFECT_AND_INVOCATION_RECOVERY_RELEASE_GATE_EXECUTION_REMOTE_CI_AND_RECEIPT_CLOSURE_PENDING"
+    ci_state:
+      run_id: 30901753780
+      workflow: "BrainOps E48 exact-head synthetic gate"
+      status: "queued"
+      jobs: ["91967438410:queued:3.13", "91967438444:queued:3.11"]
+      credit: false
     required_next:
       - "Add recoverable journals and reconciliation for effect authorization and lease invocation."
       - "Recover identical delayed capability retries at later valid stages; fail after expiry."
@@ -52,15 +63,28 @@ agents:
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 156
+    active_pull_request: 157
     task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-INTEGRATED-LEDGER-SEMANTICS-VALIDATORS-AND-EXACT-ARTIFACT-CI-CLOSURE-0020-E39"
     route_epoch: 39
     mode: "project_plan"
-    status: "READY"
+    status: "RETURNED_FOR_CORRECTION"
     execution_allowed: true
     automatic_resume: false
-    planned_branch: "qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"
-    classification: "E39_FRESH_TREE_SAFE_SUCCESSOR_TO_FROZEN_E38"
-    first_gate: "one-file plan commit preserving every canonical base path before Draft PR"
+    branch: "qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"
+    base_head: "3f57c0ad2fb6e664197b2e81c80e5db14961f16a"
+    plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
+    returned_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+    classification: "E39_TREE_SCOPE_AND_PLAN_ONLY_ACCEPTED_BUT_S0_TIMEOUT_MUTATION_IMMUTABILITY_AND_EOF_EXCLUSIVE_MAPPING_REQUIRE_CORRECTION"
+    accepted:
+      - "Normal descendant branch and exact one-file plan-only first commit."
+      - "Five authorized changed files, zero deletions."
+      - "Manual UTF-8 rejection and monotonic-success progress direction."
+    required_next:
+      - "Replace daemon-thread timeout with killable isolated process execution."
+      - "Run a genuine 0xED non-progress source mutation and observe forced timeout/nonzero failure."
+      - "Make finalized index collections immutable."
+      - "Add EOF-exclusive byte-to-codepoint mapping and trailing newline semantics tests."
+      - "Do not use unrelated Phase 3 queued workflow as E39 CI credit."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -69,6 +93,16 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
+  QCLAW_E39_CHECKPOINT:
+    issue: 156
+    pull_request: 157
+    base_head: "3f57c0ad2fb6e664197b2e81c80e5db14961f16a"
+    plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
+    reviewed_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+    accepted: ["tree preservation", "one-file plan topology", "authorized scope", "strict rejection direction"]
+    blockers: ["unkillable daemon-thread timeout", "no actual infinite-loop mutation", "mutable frozen lists", "missing EOF-exclusive mapping", "no task-named CI"]
+    frozen: false
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E39-CHECKPOINT-REVIEW.yaml"
   QCLAW_E38:
     issue: 153
     pull_request: 155
@@ -76,8 +110,6 @@ review_summary:
     changed_files: 411
     deletions: 40762
     classification: "E38_TERMINATING_UTF8_S0_DIRECTION_PARTIALLY_ACCEPTED_BUT_PLAN_ONLY_SCOPE_AND_BRANCH_TREE_FAILED_DUE_TO_REPOSITORY_WIDE_DELETION"
-    accepted: ["terminating strict UTF-8 S0 direction", "0xED and timeout test direction"]
-    blockers: ["repository-wide deletions", "false plan-only topology", "out-of-scope branch tree", "no complete implementation or evidence"]
     frozen: true
   CODEX_E48_CHECKPOINT:
     pull_request: 154
@@ -97,4 +129,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E48_RETURNED_REPAIRABLE / QCLAW_E39_TREE_SAFE_READY / USER_CONTROLS_MODELS / NO_TRADE"
+boundary: "CODEX_E48_RETURNED_NO_NEW_HEAD / QCLAW_E39_VALID_PLAN_RETURNED_S0 / USER_CONTROLS_MODELS / NO_TRADE"
