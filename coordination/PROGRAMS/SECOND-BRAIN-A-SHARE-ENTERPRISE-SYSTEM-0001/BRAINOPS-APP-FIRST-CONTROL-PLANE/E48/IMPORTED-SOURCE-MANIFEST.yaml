@@ -1,0 +1,34 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+task_id: "CODEX-BRAINOPS-INTEGRATED-RECOVERABLE-MANDATORY-AUTHORITY-ATTESTED-IDENTITY-EXPIRY-AND-EXECUTABLE-RELEASE-GATE-CLOSURE-0044-E48"
+source:
+  pull_request: 151
+  branch: "codex/brainops-recoverable-lease-transitions-exact-ci-0043-e47"
+  frozen_receipt_head: "20fc964e6f67c817742e8e8a7a34858a8305fea9"
+  selection_method: "path_and_git_blob_only"
+imports:
+  - {path: "src/brainops_control_plane/__init__.py", blob: "3e0dcfd1561f188924742ee2781ed6502f3f24d7", disposition: "MERGE_REMOVE_E47_PARALLEL_EXPORTS"}
+  - {path: "src/brainops_control_plane/ci_identity.py", blob: "83023f45d293146f640ad6f7d62912815856ca07", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/durable_authority.py", blob: "dfa6dbc31c3c9232878b38b7f0527e64554e471d", disposition: "MERGE_INTEGRATE_RECOVERY"}
+  - {path: "src/brainops_control_plane/durable_challenge.py", blob: "ee1950a254ed9db9aec82bd7adab51e5fb52bf7c", disposition: "MERGE_CAPABILITY_PROVENANCE"}
+  - {path: "src/brainops_control_plane/execution_evidence.py", blob: "1d5270928c1c053c3a6156483b17213c75c3c78e", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/execution_lease.py", blob: "5c35c5f73651857cd6e08d2edfa9e02898846f89", disposition: "MERGE_INTEGRATE_RECOVERY"}
+  - {path: "src/brainops_control_plane/github_contents_cas.py", blob: "23285861c4e0d4eb5bb811ce2ba4f0cfd5c6651b", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/github_transport.py", blob: "125b55a624705a0d1ea8bb1d2486e4f6fb01f02b", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/models.py", blob: "32577f059aca022271de28478c1b208808451427", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/proofs.py", blob: "c90d15bfa97a52671d2f51d57870c3337fa6f79e", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/route_terminalization.py", blob: "8caed9f4f4ec0fa10374f749c4b5d9dfa06874b7", disposition: "REUSE"}
+  - {path: "src/brainops_control_plane/terminal_attestation.py", blob: "1d19ee7f9b3d664c3d6f13a9e16d7e1812e3074a", disposition: "REUSE"}
+  - {path: "tests/test_e44_durable_challenge.py", blob: "9374cc78ea7a266bc7801bdde339f2a96295c38d", disposition: "REUSE_REGRESSION"}
+  - {path: "tests/test_e45_attested_witness_enforcement.py", blob: "b3cb68ecbdd7b4690bed236daff45a4814d9b9a8", disposition: "REUSE_REGRESSION"}
+  - {path: "tests/test_e46_execution_lease.py", blob: "edb938dc710b50faa159c65e94623e179f7b64a3", disposition: "REUSE_REGRESSION"}
+exclusions:
+  - {path: "src/brainops_control_plane/recoverable_lifecycle.py", reason: "E47 parallel caller-usable positive authority is forbidden in E48"}
+  - {path: "tests/test_e47_recoverable_lifecycle.py", reason: "tests an explicitly rejected parallel authority"}
+  - {path: "src/brainops_control_plane/pre_receipt_validator.py", reason: "caller-supplied success model is replaced by repository-backed E48 release gate"}
+  - {path: "tests/test_e47_pre_receipt_validator.py", reason: "tests an explicitly rejected caller-supplied release model"}
+integrity:
+  source_branch_merge: false
+  source_branch_cherry_pick: false
+  source_pr_mutated: false
+  selected_path_blob_only: true
