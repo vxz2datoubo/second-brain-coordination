@@ -1,13 +1,13 @@
-schema_version: "67.0"
+schema_version: "68.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E51_READY_QCLAW_E40_INTEGRATED_STRICT_BYTE_CLOSURE_READY_E39_FROZEN_WORKBUDDY_PAUSED"
+status: "CODEX_E51_ACCEPTED_FROZEN_NO_ACTIVE_EXECUTION_QCLAW_E40_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-05T05:53:00+08:00"
+updated_at: "2026-08-05T06:12:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
-  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_WHEN_ROUTE_READY", second_start_command_required: false}
+  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_ONLY_WHEN_ROUTE_READY", second_start_command_required: false}
 
 permanent_governance:
   model_selection_owner: "USER_ONLY"
@@ -15,6 +15,11 @@ permanent_governance:
   repository_tree_rule: "Every task branch preserves the canonical base tree; orphan, sparse or replacement trees and out-of-scope deletions fail closed."
   plan_only_rule: "The first task commit changes exactly one plan document."
   frozen_source_rule: "A frozen branch is imported only by selected path/blob with recorded provenance; whole-branch merge/cherry-pick is forbidden."
+  provider_authority_rule: "Executor SUCCESS text is not final evidence; provider run, jobs, logs, artifacts and canonical GPT attestation are required."
+  exact_command_rule: "A receipt command is loaded from the frozen manifest and executed without argument substitution."
+  raw_stream_rule: "Cross-platform canonical comparison never discards raw stdout/stderr bytes or their hashes."
+  receipt_topology_rule: "Receipt is the sole final evidence-only commit after exact tested-head provider CI."
+  receipt_identity_rule: "No future self-SHA placeholders; an external post-push provider fact binds receipt identity."
   immutable_index_rule: "Finalized parser/index/ledger collections contain no externally mutable state."
   parser_mutation_rule: "Mutation proof weakens actual production source and observes forced failure/termination with child cleanup."
   eof_exclusive_rule: "total_bytes maps to codepoint_count through an explicit legal-boundary API; containing lookup is separate."
@@ -22,26 +27,31 @@ permanent_governance:
   semantic_evidence_rule: "Atom fields and relations require explicit source rules and executable evidence."
   complete_packet_rule: "Canonical packets serialize complete content, not counts-only summaries."
   executable_validator_rule: "assertTrue(True), import-only, existence-only, documentation-only and print-only gates receive no credit."
-  provider_observable_execution_rule: "Final execution and CI facts require independently readable run, job, log and artifact."
-  artifact_rule: "Each declared matrix artifact must be created, uploaded with missing-file failure, and independently byte-compared."
-  receipt_topology_rule: "Receipt is the sole final evidence-only commit after exact tested-head provider CI."
-  receipt_identity_rule: "No future self-SHA placeholders; external post-commit provider fact binds receipt identity."
+  artifact_rule: "Each declared matrix artifact must be created, uploaded with missing-file failure, and independently compared."
   secret_rule: "No real credentials, private configuration or secret-derived persistence."
   trade_rule: "No accounts, orders, positions, funds or real trades."
 
 agents:
   CODEX:
     active_issue: 162
+    active_pull_request: 163
     task_id: "CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51"
     route_epoch: 53
     mode: "project_plan"
-    status: "READY"
-    execution_allowed: true
-    planned_branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
-    source_issue: 160
-    source_pull_request: 161
-    source_receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
-    current_action: "Execute the exact E50 receipt command on GitHub windows-latest and expose provider run, jobs, logs and artifacts without modifying E50."
+    status: "REVIEWED_AND_FROZEN_AWAIT_USER_DIRECTION"
+    execution_allowed: false
+    automatic_dispatch_allowed: false
+    automatic_resume: false
+    branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
+    tested_head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
+    frozen_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+    source_e50_receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+    classification: "E51_PLAN_SCOPE_EXACT_WINDOWS_PROVIDER_EXECUTION_RAW_AND_CANONICAL_STREAM_EVIDENCE_NEGATIVE_CASES_TESTED_AND_RECEIPT_EXACT_CI_AND_ARTIFACTS_ACCEPTED_E50_FINAL_RELEASE_GATE_CLOSED_WITH_NONBLOCKING_GOVERNANCE_FINDINGS"
+    disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR"
+    e50_final_release_gate_credit: true
+    e50_merge_candidate_evidence_credit: true
+    merge_authorized: false
+    current_action: "None. Await explicit user approval for any integration/merge or a separately published new route."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 164
@@ -66,32 +76,45 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
+  CODEX_E51_FINAL:
+    issue: 162
+    pull_request: 163
+    base_head: "bfcb7f65c3f1d862bcd17df2319803000c5c0ec9"
+    plan_head: "73ceb6902a60ff2440cdfba1c94865ec26b73ac7"
+    tested_head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
+    receipt_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+    tested_run: 30954673634
+    receipt_run: 30955095735
+    accepted: ["plan/scope", "exact Windows argv execution", "raw and canonical stream evidence", "five negative cases", "tested/receipt exact CI", "provider artifacts", "canonical E51 attestation"]
+    nonblocking_findings: ["post-plan wording correction", "raw CRLF plus LF canonical comparison", "shared Git identity attribution ambiguity", "future E50 schema hardening"]
+    disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR"
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E51-INDEPENDENT-FINAL-REVIEW.yaml"
+    provider_attestation: "coordination/PROVIDER-ATTESTATIONS/CODEX-E51-POST-RUN-PROVIDER-ATTESTATION.json"
   CODEX_E50_FINAL:
     issue: 160
     pull_request: 161
     frozen_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
-    disposition: "FROZEN_WITH_E51_PROVIDER_OBSERVABLE_SUCCESSOR"
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E50-INDEPENDENT-FINAL-REVIEW.yaml"
+    final_release_gate_credit: true
+    merge_candidate_evidence_credit: true
+    merge_authorized: false
+    disposition: "FROZEN_PROVIDER_OBSERVABLE_GAP_CLOSED_BY_E51"
   QCLAW_E39_COMPLETE_UPLOAD:
     issue: 156
     pull_request: 157
-    plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
-    tested_claim: "71dc7588dc1e8439803472b7350f5027ffe7f028"
     frozen_head: "ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4"
-    accepted: ["tree/scope", "subprocess timeout direction", "strict UTF8 rejection direction", "candidate ledger/adapters/redaction/atoms/relations/packet", "local 207-test direction"]
-    blockers: ["mutable indexes", "missing EOF-exclusive API", "no real 0xED source mutation", "inconsistent line model", "JSON gaps", "JSONL cross-line", "conversation gaps", "default-only semantics", "counts-only packet", "shallow validators", "broken artifact workflow", "no provider CI", "future placeholders", "premature receipt"]
     disposition: "REVIEWED_AND_FROZEN_WITH_E40_SUCCESSOR"
     review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E39-COMPLETE-UPLOAD-FINAL-REVIEW.yaml"
 
 frozen:
-  - "Issue #160, PR #161 and Codex E50 remain frozen at 9e87bc2f6e705b65a35b92f09d7e7848abc5768a."
-  - "Issue #156, PR #157 and QCLAW E39 are frozen at ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4; no further commit, merge, rebase or force-push."
+  - "Issue #162, PR #163 and Codex E51 are frozen at a05e42b8138f7f9215d20e5a72b90384b8e51d0b; no further commit, merge, rebase or force-push without explicit user-approved route."
+  - "Issue #160, PR #161 and Codex E50 remain frozen at 9e87bc2f6e705b65a35b92f09d7e7848abc5768a; its final provider-observable release gate is now closed."
+  - "Issue #156, PR #157 and QCLAW E39 remain frozen at ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4."
   - "Earlier frozen Codex and QCLAW routes remain frozen."
   - "No private-config access, live authority, Canary, credentials or production/trading action."
 
 next_commands:
-  CODEX: "读取任务"
+  CODEX: "DO_NOT_EXECUTE"
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E51_READY / QCLAW_E40_READY / E39_FROZEN / SELECTED_IMPORT_ONLY / USER_CONTROLS_MODELS / NO_MERGE / NO_LIVE_AUTHORITY / NO_TRADE"
+boundary: "CODEX_E51_ACCEPTED_FROZEN / E50_FINAL_RELEASE_GATE_CLOSED / QCLAW_E40_READY / USER_APPROVAL_REQUIRED_FOR_MERGE / NO_LIVE_AUTHORITY / NO_TRADE"
