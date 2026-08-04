@@ -1,0 +1,57 @@
+# E37 D05-COMMAND-EVIDENCE — exact commands that produced test results
+command_evidence_version: "1.0"
+epoch: "E37"
+tested_head: "55b8a01d156f77df713c3b07aee9f036802d7f8b"
+
+commands:
+  - name: "S2+S3+S4+pre_receipt (3.13)"
+    python: "C:\\Program Files\\Python313\\python.exe"
+    command: |
+      import unittest, test_s2_s3, test_s3_s4, test_pre_receipt
+      loader = unittest.TestLoader()
+      for mod in [test_s2_s3, test_s3_s4, test_pre_receipt]:
+          suite = loader.loadTestsFromModule(mod)
+          res = unittest.TextTestRunner(verbosity=0).run(suite)
+    result: "89/89 PASS (44+36+9)"
+    seed: default
+
+  - name: "S0+S1 per-class (3.13)"
+    python: "C:\\Program Files\\Python313\\python.exe"
+    command: |
+      import unittest, test_s0_s1
+      classes = [TestStrictUTF8Validation, TestOriginalByteIndex, TestOwnerSpan,
+                 TestByteLedger, TestMutationLedgerOwners, TestMutationUTF8]
+      for cls in classes:
+          suite = unittest.TestLoader().loadTestsFromTestCase(cls)
+          unittest.TextTestRunner(verbosity=0).run(suite)
+    result: "67/67 PASS (all 6 classes individually)"
+    seed: default
+    note: "Full-discover SIGKILL due to Windows PowerShell GBK pipe overflow; per-class verified OK"
+
+  - name: "S2+S3+S4+pre_receipt (3.11)"
+    python: "F:\\Program Files (x86)\\QClaw\\v0.2.35.624\\resources\\python\\python.exe"
+    command: same as 3.13 S2+S3+S4
+    result: "89/89 PASS"
+    cross_version_match: true
+
+  - name: "pre_receipt_validator standalone"
+    python: "C:\\Program Files\\Python313\\python.exe"
+    command: python -m unittest test_pre_receipt -v
+    result: "9/9 PASS"
+    checks:
+      - all_modules_importable: PASS
+      - no_planned_todo_in_source: PASS
+      - no_placeholder_sha_in_source: PASS
+      - full_pipeline_smoke: PASS
+      - redaction_pipeline: PASS
+      - spans_on_byte_boundaries: PASS
+      - deterministic_ids: PASS
+      - no_fact_from_vocabulary: PASS
+      - no_adjacency_relations: PASS
+
+environment:
+  os: Windows 10.0.22631
+  shell: PowerShell
+  encoding_fix: "chcp 65001 + PYTHONIOENCODING=utf-8"
+  gh_cli: authenticated as vxz2datoubo
+  git_push: unavailable (network blocked) → all commits via GitHub API
