@@ -42,9 +42,9 @@ For each matrix job, the workflow will:
 6. Materialize that envelope at the literal Windows path recorded in E50's
    committed `RECEIPT-MANIFEST.json`. No substitute path or verifier argv is
    permitted.
-7. Load the `reproduction_command` JSON array from that manifest, replace only
-   the manifest's documented `@HEAD` token with the disposable clone's verified
-   E50 receipt head, and execute the resulting argv unchanged from the clone.
+7. Load the `reproduction_command` JSON array from that manifest and execute
+   that argv unchanged from the clone. Its documented `@HEAD` token is resolved
+   only by the frozen E50 verifier itself.
 8. Require exit `0`, empty stderr, the canonical READY JSON line, and stdout
    SHA-256 `0e1c50869dd3818fa98794f6de671daefc11df3e5a19a161428c75fc1beee7e0`.
 9. Run isolated negative variants for blob, payload, receipt head, completion
