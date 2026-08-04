@@ -1,0 +1,144 @@
+schema_version: "1.0"
+task_id: "CODEX-BRAINOPS-CRASH-COMPLETE-STAGE-JOURNAL-PROVIDER-RELEASE-EVIDENCE-AND-PLACEHOLDER-FREE-RECEIPT-CLOSURE-0045-E49"
+route_epoch: 51
+target_agent: "CODEX"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】硬崩溃完整阶段恢复、真实Provider发布证据与无占位符回执 E49"
+mode_reason: >-
+  E48 proved exact-head CI and several actual-authority response-loss paths, but its recovery depends on exception handlers writing RESPONSE_LOST and does not close hard-crash gaps between record CAS and journal CAS. Its product release gate also omits provider run/job/artifact authority, receipt topology integration, placeholder scanning and receipt evidence-family checks.
+active_issue: 158
+parent_program: 31
+status: "READY"
+execution_allowed: true
+automatic_dispatch_allowed: false
+canary_execution_allowed: false
+automatic_resume: false
+
+source:
+  issue: 152
+  pull_request: 154
+  plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
+  tested_head: "00c2e805a5e74354698c2c47822c59b83d219566"
+  receipt_head: "6bf4ab05096e16f889733e42603bdf1f068380d3"
+  review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E48-INDEPENDENT-REVIEW.yaml"
+  classification: "E48_PLAN_SCOPE_SINGLE_AUTHORITY_TESTED_AND_RECEIPT_EXACT_CI_TOPOLOGY_ARTIFACTS_AND_CORE_RESPONSE_LOSS_RECOVERY_ACCEPTED_BUT_HARD_CRASH_STAGE_JOURNAL_RELEASE_GATE_PROVIDER_TOPOLOGY_PLACEHOLDER_SCAN_AND_RECEIPT_INTEGRITY_FAILED"
+  frozen: true
+
+planned_branch: "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
+completion_signal: "CODEX_BRAINOPS_E49_CRASH_COMPLETE_STAGE_JOURNAL_RELEASE_EVIDENCE_READY_FOR_GPT_REVIEW"
+
+fundamental_rule: >-
+  A durable positive transition is incomplete unless every possible hard-crash cut between record mutation and journal mutation is reconciled from actual durable state after restart, without relying on an exception handler and without a second business mutation.
+
+required_results:
+  - "Build an explicit effect/invocation record-journal state matrix and reconcile every legal partial combination."
+  - "Prove hard process death after durable CAS and before journal CAS using isolated process fault injection."
+  - "Complete missing BINDINGS_VERIFIED, CLAIM_MUTATION_APPLIED and LEASE_MUTATION_APPLIED journal phases from actual durable claim/lease state."
+  - "Reject changed purpose, request digest, holder, target, invocation, provenance, route, time or expired recovery."
+  - "Implement a product release verifier that binds canonical route/task brief, git graph, tested/receipt topology and completed GitHub provider runs/jobs/artifacts."
+  - "Invoke receipt topology, placeholder/forbidden-content, required evidence-family and reproduction-command validators."
+  - "Use a non-self-referential receipt identity design and place actual receipt/provider identities in GPT's post-commit review record."
+  - "Record tested-head run/job/artifact IDs, names, head SHAs and digests in the receipt without future placeholders."
+  - "Run active mutations for hard-crash gaps, provider substitution, skipped topology, placeholder injection and invalid reproduction commands."
+  - "Obtain E49 exact-head Python 3.11/3.13 tested and receipt CI before requesting final review."
+
+hard_crash_matrix:
+  effect:
+    - "journal REQUESTED or BINDINGS_VERIFIED; lease CAPABILITY_ATTESTED"
+    - "journal BINDINGS_VERIFIED; lease EFFECT_AUTHORIZED"
+    - "journal LEASE_MUTATION_APPLIED; lease EFFECT_AUTHORIZED"
+  invocation:
+    - "journal BINDINGS_VERIFIED; claim invocation absent; lease EFFECT_AUTHORIZED"
+    - "journal BINDINGS_VERIFIED; claim invocation present; lease EFFECT_AUTHORIZED"
+    - "journal CLAIM_MUTATION_APPLIED; claim invocation present; lease EFFECT_AUTHORIZED"
+    - "journal CLAIM_MUTATION_APPLIED; claim invocation present; lease INVOCATION_ATTACHED"
+    - "journal LEASE_MUTATION_APPLIED; claim invocation present; lease INVOCATION_ATTACHED"
+  recovery_rule: "Derive the sole legal next action from actual claim, lease and journal facts; only fill missing phases; never repeat a business mutation."
+
+provider_release_contract:
+  required_sources:
+    - "canonical ACTIVE-CODEX-TASK.yaml and E49 task brief"
+    - "actual git commit graph, parents, ancestry and diff/name-status"
+    - "completed E49 GitHub workflow runs at exact tested and receipt heads"
+    - "actual Python 3.11 and 3.13 job IDs and conclusions"
+    - "actual artifact IDs, names, digests, head SHAs and expiry state"
+    - "receipt files and required evidence-family inventory"
+  required_checks:
+    - "route/task/epoch/branch/scope consistency"
+    - "one-file plan-only first commit"
+    - "tested-to-receipt direct parent and evidence-only scope"
+    - "placeholder, TODO, abbreviation, false SHA and forbidden-content scan"
+    - "executable reproduction commands in a clean clone"
+    - "no post-receipt commit at independent review time"
+  in_job_self_certification_forbidden: true
+  caller_declared_success_authoritative: false
+
+receipt_contract:
+  self_commit_sha_field_forbidden: true
+  external_identity_marker: "receipt_commit_identity: EXTERNAL_POST_COMMIT_PROVIDER_FACT"
+  tested_provider_evidence_required: true
+  receipt_provider_evidence_recorded_by_gpt_review: true
+  placeholder_free: true
+  executable_reproduction_commands: true
+  post_receipt_commit_forbidden: true
+
+mandatory_mutations:
+  - "hard kill after effect lease CAS before journal CAS"
+  - "hard kill after claim invocation CAS before journal CAS"
+  - "hard kill after invocation lease CAS before journal CAS"
+  - "journal stopped at LEASE_MUTATION_APPLIED"
+  - "receipt topology validator bypass"
+  - "wrong provider run/job/artifact/head accepted"
+  - "placeholder or TODO inserted into receipt"
+  - "tested provider job/artifact identity omitted"
+  - "obsolete CLI parameter or wrong base SHA in reproduction command"
+  - "commit after receipt"
+
+commit_topology:
+  first_commit: "STRICT_PLAN_ONLY_SINGLE_E49_PLAN_FILE"
+  implementation_commits: "ONE_OR_MORE_ALLOWED_BEFORE_TESTED_HEAD"
+  tested_head_gate: "HARD_CRASH_MATRIX_PROVIDER_VERIFIER_RECEIPT_VALIDATORS_AND_MUTATIONS_COMPLETE"
+  tested_remote_gate: "E49_EXACT_HEAD_PYTHON_3_11_AND_3_13_PROVIDER_ARTIFACT_SUCCESS"
+  final_commit: "EXACTLY_ONE_NONEMPTY_EVIDENCE_ONLY_PLACEHOLDER_FREE_RECEIPT"
+  receipt_must_be_final_head: true
+
+repository_scope:
+  allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+    - ".github/workflows/brainops-e49.yml"
+  task_branch_only: "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
+  source_import_policy: "SELECTED_PATH_AND_BLOB_FROM_FROZEN_E48_ONLY"
+  imported_source_manifest_required: true
+  whole_branch_merge_or_cherry_pick_forbidden: true
+  frozen_source_mutation_forbidden: true
+  sole_draft_pr_required: true
+
+ci_contract:
+  workflow: ".github/workflows/brainops-e49.yml"
+  event_head_expression: "github.event.pull_request.head.sha || github.sha"
+  exact_head_assertion_required: true
+  python_versions: ["3.11", "3.13"]
+  full_regression_and_e49_tests: true
+  provider_release_verifier: true
+  active_mutation_harness: true
+  evidence_artifacts: true
+  tested_head_success_required: true
+  receipt_head_success_required: true
+
+hard_boundaries:
+  - "ENGINEERING_AND_SYNTHETIC_PUBLIC_SAFE_FIXTURES_ONLY."
+  - "No live authority, Canary, App Automation or CLI invocation."
+  - "No model/provider/reasoning/default/thread/subagent/workspace/session/private-config access or mutation."
+  - "No credentials, accounts, orders, positions, funds or trading."
+  - "No direct main write, merge, force-push, rebase, branch-protection or repository-setting mutation."
+  - "No QCLAW or WorkBuddy route mutation."
+
+command_execution_contract:
+  on_trigger: "VERIFY_E49_ROUTE_AND_FROZEN_E48_CREATE_FRESH_PLAN_ONLY_PR_THEN_EXECUTE_HARD_CRASH_AND_PROVIDER_EVIDENCE_CLOSURE"
+  second_user_start_command_required: false
+  read_only_acknowledgement_forbidden: true
+  minimum_progress_before_return: >-
+    Verify Issue #158, frozen E48 exact heads and current canonical main; create the fresh E49 branch; commit exactly one plan file; open the sole Draft PR; add failing hard-process-kill tests at record-CAS/journal-CAS cut points and failing receipt placeholder/reproduction-command validators, then immediately begin implementation.
+after_completion: "STOP_AND_REQUEST_GPT_SECOND_PASS"
+
+boundary: "HARD_CRASH_COMPLETE_RECOVERY / PROVIDER_RELEASE_AUTHORITY / PLACEHOLDER_FREE_RECEIPT / E48_FROZEN / NO_LIVE_AUTHORITY / NO_TRADE"
