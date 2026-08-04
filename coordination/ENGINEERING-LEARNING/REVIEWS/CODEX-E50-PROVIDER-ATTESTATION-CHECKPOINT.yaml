@@ -1,0 +1,97 @@
+schema_version: "1.0"
+review_type: "GPT_PROVIDER_ATTESTATION_CHECKPOINT"
+reviewed_at: "2026-08-05T04:14:00+08:00"
+reviewer: "GPT"
+agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "CODEX-BRAINOPS-TRUSTED-PROVIDER-ATTESTATION-CORRECT-GIT-GRAPH-CLEAN-CLONE-REPRODUCTION-AND-STRICT-RECEIPT-VALIDATION-CLOSURE-0046-E50"
+route_epoch: 52
+issue: 160
+pull_request: 161
+branch: "codex/brainops-trusted-provider-release-validation-0046-e50"
+base_head: "7481fb645e8fd7b032fab6451128eecfadfedfaa"
+plan_head: "1ca2e59283c154f5256132e0b25f2e5544116d51"
+tested_head: "49ee251ed33c1f33e336bc59b0c485c279e9eaa3"
+receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+disposition: "PROVIDER_ATTESTATION_ISSUED_FINAL_EXTERNAL_CLEAN_CLONE_VERIFICATION_PENDING"
+classification: "E50_PLAN_TOPOLOGY_TESTED_AND_RECEIPT_EXACT_CI_REAL_GIT_GRAPH_TRUSTED_MAIN_ATTESTATION_DESIGN_PROVIDER_FACTS_AND_MUTATIONS_ACCEPTED_PENDING_ACTUAL_RECEIPT_COMMAND_EXECUTION_AND_FINAL_INDEPENDENT_REVIEW"
+
+accepted:
+  - "The branch starts from canonical main 7481fb645e8fd7b032fab6451128eecfadfedfaa."
+  - "The first E50 commit is a strict one-file plan-only commit at 1ca2e59283c154f5256132e0b25f2e5544116d51."
+  - "The tested head is a normal descendant of the plan and all changed paths remain within the authorized BrainOps subtree or .github/workflows/brainops-e50.yml, with zero deletions."
+  - "The receipt head is the direct child of the tested head and changes exactly ten nonempty files under E50/RECEIPT only."
+  - "The remote PR head still equals the receipt head and no post-receipt commit was observed."
+  - "Git ancestry now uses the documented subprocess return code and real positive and negative temporary git graphs."
+  - "Arbitrary caller JSON is excluded from provider authority; final authority is bound to a canonical-main commit, exact blob and canonical payload digest."
+  - "Receipt documents require common route/task/head/signal metadata, provider tested facts, executable command shape and external identity marker."
+  - "The clean-clone test executes the final verifier in a disposable clone and exercises tampered head, missing provider document, post-receipt commit, non-main attestation, blob/payload mismatch, bad command and signal mismatch."
+  - "Twelve active E50 mutations were killed by named tests."
+
+provider_facts:
+  tested:
+    run_id: 30934411646
+    workflow: "BrainOps E50 trusted-provider release validation gate"
+    head_sha: "49ee251ed33c1f33e336bc59b0c485c279e9eaa3"
+    status: "completed"
+    conclusion: "success"
+    jobs:
+      - {job_id: 92076785376, python_version: "3.11", conclusion: "success"}
+      - {job_id: 92076785479, python_version: "3.13", conclusion: "success"}
+    artifacts:
+      - {artifact_id: 8902510435, name: "e50-release-evidence-3.11", digest: "sha256:8c2d959e1e82fc00a535eaed3feb9962b42c7515459c928f3321e6bd9415cd0d", expired: false}
+      - {artifact_id: 8902515773, name: "e50-release-evidence-3.13", digest: "sha256:7f3970fff4e52a6544b0d3970dcf12bf6edb1bb4bc5db9253271dd82d1ea8216", expired: false}
+  receipt:
+    run_id: 30935066632
+    workflow: "BrainOps E50 trusted-provider release validation gate"
+    head_sha: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+    remote_branch_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+    status: "completed"
+    conclusion: "success"
+    jobs:
+      - {job_id: 92079027555, python_version: "3.11", conclusion: "success"}
+      - {job_id: 92079027524, python_version: "3.13", conclusion: "success"}
+    artifacts:
+      - {artifact_id: 8902780353, name: "e50-release-evidence-3.11", digest: "sha256:ea9d73d05a1adc9368ca2c161eeb6a6f29e0221de01771cefe804f17dc74f5f2", expired: false}
+      - {artifact_id: 8902780105, name: "e50-release-evidence-3.13", digest: "sha256:0ebc287601feb91f356c63c85a313a58935c482f86b74f9fecac18e9f4484288", expired: false}
+
+canonical_main_attestation:
+  path: "coordination/PROVIDER-ATTESTATIONS/CODEX-E50-POST-RUN-PROVIDER-ATTESTATION.json"
+  commit_sha: "edf9708360fb8d05a94f8a7711017db33ea8c342"
+  blob_sha1: "e1ecdf118ae5be51486b15516c497bc596bb9a6f"
+  payload_sha256: "00125ad915a4a2723d60195115d5114a75cab4f18626e10429137f82e3bf0b02"
+  independently_verified_provider_facts: true
+
+pending_gate:
+  required: true
+  owner: "CODEX"
+  action: >-
+    Generate the external envelope outside the repository using the exact attestation commit, path, blob and canonical payload; create a fresh clean clone at receipt head; execute the exact reproduction command recorded in RECEIPT-MANIFEST.json; preserve stdout, stderr, exit code, clone HEAD, remote branch recheck and external envelope digest; then stop for GPT final review.
+  branch_mutation_allowed: false
+  expected_result: "READY_FOR_INDEPENDENT_REVIEW"
+
+findings_to_preserve:
+  - id: "E50-CHECKPOINT-001"
+    severity: "MAJOR"
+    finding: >-
+      The committed receipt command contains a Windows-specific absolute temporary path. This is valid for the current local Windows executor but is not portable to Linux runners; the actual receipt command has not yet been independently executed after the canonical-main attestation.
+  - id: "E50-CHECKPOINT-002"
+    severity: "MINOR"
+    finding: >-
+      The trusted attestation is the semantic authority for exact provider IDs. The internal provider-run schema validates heads, conclusions, positive job/artifact IDs, names, digest shape and expiry, but does not independently require workflow identity or validate run_id presence/positivity. Preserve this as a hardening candidate unless the final external run exposes a functional failure.
+  - id: "E50-CHECKPOINT-003"
+    severity: "TOOL_LIMITATION"
+    finding: >-
+      GPT could not independently clone GitHub in the local container because outbound DNS was unavailable. Provider facts were therefore independently verified through the GitHub connector, while the actual external clean-clone command remains the required next executor proof.
+
+credit_boundaries:
+  plan_and_scope_credit: true
+  tested_and_receipt_exact_ci_credit: true
+  provider_fact_accuracy_credit: true
+  canonical_main_attestation_credit: true
+  mutation_credit: true
+  actual_receipt_command_execution_credit: false
+  final_release_gate_credit: false
+  merge_credit: false
+
+boundary: "ATTESTATION_ISSUED / FINAL_EXTERNAL_EXECUTION_PENDING / RECEIPT_BRANCH_FROZEN / NO_LIVE_AUTHORITY / NO_TRADE"
