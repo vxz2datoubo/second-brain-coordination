@@ -1,0 +1,59 @@
+schema_version: "1.0"
+forecast_type: "PRE_EXECUTION_ENGINEERING_FORECAST"
+created_at: "2026-08-04T23:30:00+08:00"
+agent: "CODEX"
+task_id: "CODEX-BRAINOPS-TRUSTED-PROVIDER-ATTESTATION-CORRECT-GIT-GRAPH-CLEAN-CLONE-REPRODUCTION-AND-STRICT-RECEIPT-VALIDATION-CLOSURE-0046-E50"
+route_epoch: 52
+source_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E49-INDEPENDENT-REVIEW.yaml"
+
+estimated_difficulty: "D4"
+primary_risk: >-
+  The verifier may fix the visible ancestry line while still treating a caller-authored provider document and receipt strings as final authority. The core E50 risk is false independence: evidence that looks external but is still generated or fully controlled by the task branch.
+
+predicted_failure_modes:
+  - id: "E50-FC-001"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "A JSON file with provider_source EXTERNAL_READ_ONLY_API and fabricated matching fields reaches READY."
+    mitigation: "Bind provider facts to direct read-only provider retrieval or a canonical-main GPT attestation with exact payload digest."
+  - id: "E50-FC-002"
+    likelihood: "MEDIUM"
+    impact: "BLOCKING"
+    signal: "Ancestry tests use mocked stdout rather than a real git graph and miss exit-status semantics again."
+    mitigation: "Create actual base-plan-tested-receipt commits in a temporary repository and test both ancestor and non-ancestor return codes."
+  - id: "E50-FC-003"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "Receipt validation checks filenames and keywords but accepts empty or malformed structured documents."
+    mitigation: "Define strict JSON/YAML schemas and cross-document invariants, then actively mutate each required field."
+  - id: "E50-FC-004"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "The reproduction validator checks command text without executing it in a clean clone."
+    mitigation: "Run the exact command in an ephemeral clean clone with external provider attestation mounted outside the repository."
+  - id: "E50-FC-005"
+    likelihood: "MEDIUM"
+    impact: "MAJOR"
+    signal: "A main attestation is referenced by path but its blob/commit/payload digest is not verified."
+    mitigation: "Bind source branch/ref, commit SHA, blob SHA and canonical payload digest."
+  - id: "E50-FC-006"
+    likelihood: "MEDIUM"
+    impact: "MAJOR"
+    signal: "The route and receipt completion signals differ by one token while validators accept both."
+    mitigation: "Require byte-exact completion signal from active route in all receipt and provider schemas."
+
+success_signals:
+  - "A positive real git graph reaches READY and an unrelated/non-ancestor graph fails for the documented reason."
+  - "A fully fabricated external-provider JSON fails even when all run/job/artifact values look valid."
+  - "Trusted provider facts are independently anchored and cross-checked against exact tested and receipt heads."
+  - "All receipt documents parse and satisfy strict cross-document invariants."
+  - "The documented final command succeeds in a clean clone and fails when any provider or topology fact changes."
+  - "Tested and receipt exact-head Python 3.11/3.13 CI and artifacts succeed, with no post-receipt commit."
+
+conservative_controls:
+  - "No receipt until the positive final verifier path succeeds against trusted provider evidence."
+  - "No post-receipt correction; any final receipt or verifier defect freezes E50 and requires a successor."
+  - "No production authority claim from synthetic crash or provider fixtures."
+  - "No private configuration, credential, account or trading access."
+
+boundary: "FORECAST_ONLY / NOT_EXECUTION_EVIDENCE / NO_LIVE_AUTHORITY / NO_TRADE"
