@@ -189,6 +189,8 @@ class E50CleanCloneReproductionTests(unittest.TestCase):
             external.write_text(json.dumps(envelope, sort_keys=True) + "\n", encoding="utf-8")
             clone = root / "clean-clone"
             self._git(root, "clone", "-q", "--branch", "e50", str(remote), str(clone))
+            self._git(clone, "config", "user.email", "e50@example.invalid")
+            self._git(clone, "config", "user.name", "E50 Test")
             self._git(clone, "fetch", "-q", "origin", "forged-attestation")
             manifest = json.loads(
                 (clone / PROGRAM_RELATIVE / "E50" / "RECEIPT" / "RECEIPT-MANIFEST.json").read_text(encoding="utf-8")
