@@ -1,0 +1,48 @@
+{
+  "agent_id": "CODEX",
+  "tested_head": "a87fd73b473c8476259038e797e288521a2d804c",
+  "local_commands": [
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py' -q",
+      "exit_code": 0,
+      "result": "343 passed; 4 explicit frozen E48 skips",
+      "stdout_stderr_sha256": "ec2aa5236dd2b8f5eec55bfc20d65ee4b8b5ef2781f471871508f4119aa45aaf"
+    },
+    {
+      "command": "PYTHONPATH=src python -m brainops_control_plane.e49_mutation_harness --program-root .",
+      "exit_code": 0,
+      "result": "13 of 13 named mutations killed by their named validators",
+      "stdout_stderr_sha256": "bea0ea7a026725f8a3bce55ff4d5377cf6e51c3b081bce928d0d122098c58581"
+    },
+    {
+      "command": "python -m py_compile src/brainops_control_plane/*.py",
+      "exit_code": 0,
+      "result": "all BrainOps Python modules compiled",
+      "stdout_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "external_tested_head_runs": [
+    {
+      "run_id": 30919991270,
+      "event": "push",
+      "workflow": "brainops-e49.yml",
+      "head_sha": "a87fd73b473c8476259038e797e288521a2d804c",
+      "conclusion": "success",
+      "jobs": [
+        {"job_id": 92027772851, "python_version": "3.11", "conclusion": "success", "test_count": 343},
+        {"job_id": 92027772992, "python_version": "3.13", "conclusion": "success", "test_count": 343}
+      ]
+    },
+    {
+      "run_id": 30919999484,
+      "event": "pull_request",
+      "workflow": "brainops-e49.yml",
+      "head_sha": "a87fd73b473c8476259038e797e288521a2d804c",
+      "conclusion": "success",
+      "jobs": [
+        {"job_id": 92027802449, "python_version": "3.11", "conclusion": "success", "test_count": 343},
+        {"job_id": 92027802200, "python_version": "3.13", "conclusion": "success", "test_count": 343}
+      ]
+    }
+  ]
+}
