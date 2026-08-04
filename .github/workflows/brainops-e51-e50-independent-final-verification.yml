@@ -18,7 +18,6 @@ jobs:
         python-version: ["3.11", "3.13"]
     env:
       EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-      E51_ARTIFACT_DIR: ${{ runner.temp }}\\e51-${{ github.run_id }}-${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,9 +39,10 @@ jobs:
       - name: Execute exact frozen E50 receipt argv on independent Windows clone
         shell: pwsh
         run: |
+          $artifactDir = Join-Path $env:RUNNER_TEMP "e51-${{ github.run_id }}-${{ matrix.python-version }}"
           python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E51/e51_provider_verifier.py `
             --workspace-root "$env:GITHUB_WORKSPACE" `
-            --artifact-dir "$env:E51_ARTIFACT_DIR"
+            --artifact-dir "$artifactDir"
       - name: Upload E51 provider evidence
         if: always()
         uses: actions/upload-artifact@v4
