@@ -1,0 +1,52 @@
+schema_version: "1.0"
+forecast_type: "PRE_EXECUTION_ENGINEERING_FORECAST"
+created_at: "2026-08-05T05:04:00+08:00"
+agent: "CODEX"
+task_id: "CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51"
+route_epoch: 53
+source_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E50-INDEPENDENT-FINAL-REVIEW.yaml"
+estimated_difficulty: "D3"
+primary_risk: >-
+  The workflow may appear provider-observable while quietly reconstructing a substitute command, using a different envelope path or validating its own branch rather than the frozen E50 receipt. The proof must execute the exact manifest array against a fresh E50 clone.
+
+predicted_failure_modes:
+  - id: "E51-FC-001"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "windows-latest cannot create the hardcoded C:\\Users\\Administrator\\AppData\\Local\\Temp path."
+    mitigation: "Use runner administrator privileges only to create the exact directory; do not change the receipt command. Fail transparently if the path cannot be materialized."
+  - id: "E51-FC-002"
+    likelihood: "MEDIUM"
+    impact: "BLOCKING"
+    signal: "Long canonical paths fail during clone or checkout."
+    mitigation: "Use git -c core.longpaths=true clone and verify the option is scoped to the disposable operation."
+  - id: "E51-FC-003"
+    likelihood: "HIGH"
+    impact: "BLOCKING"
+    signal: "Workflow handwrites a semantically equivalent verifier command instead of loading the manifest array."
+    mitigation: "Artifact must include the raw manifest and exact parsed argv; tests mutate the manifest and prove the workflow detects substitution."
+  - id: "E51-FC-004"
+    likelihood: "MEDIUM"
+    impact: "BLOCKING"
+    signal: "The external envelope is generated from task-branch content instead of canonical-main attestation bytes."
+    mitigation: "Use git show of the fixed attestation commit/path, verify blob and payload SHA before envelope creation."
+  - id: "E51-FC-005"
+    likelihood: "MEDIUM"
+    impact: "MAJOR"
+    signal: "Only one Python version or no receipt-head rerun is produced."
+    mitigation: "Matrix 3.11/3.13 and exact tested/receipt head CI are mandatory."
+
+success_signals:
+  - "GitHub Windows jobs expose the exact E50 receipt head, remote branch recheck and canonical-main attestation facts."
+  - "The exact manifest command returns exit 0 and canonical READY stdout on Python 3.11 and 3.13."
+  - "Negative envelope, head, signal and post-receipt cases fail nonzero."
+  - "Artifacts contain enough public-safe data for GPT to reproduce every hash and compare the exact argv."
+  - "E50 branch remains byte-for-byte unchanged at its frozen receipt head."
+
+conservative_controls:
+  - "No E50 modification or merge."
+  - "No local-only result receives final credit."
+  - "No real credentials or private provider payload."
+  - "Any inability to materialize the exact Windows path is reported as a genuine E50 portability limitation, not bypassed."
+
+boundary: "FORECAST_ONLY / PROVIDER_OBSERVABLE_WINDOWS_VERIFICATION / NO_E50_MUTATION / NO_MERGE / NO_TRADE"
