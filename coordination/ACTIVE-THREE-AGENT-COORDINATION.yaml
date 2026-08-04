@@ -1,9 +1,9 @@
-schema_version: "64.0"
+schema_version: "65.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E49_HARD_CRASH_PROVIDER_RELEASE_READY_QCLAW_E39_RETURNED_FOR_S0_CORRECTION_WORKBUDDY_PAUSED"
+status: "CODEX_E50_TRUSTED_PROVIDER_RELEASE_READY_QCLAW_E39_RETURNED_NO_NEW_PROGRESS_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-04T21:29:00+08:00"
+updated_at: "2026-08-04T23:30:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -19,7 +19,10 @@ permanent_governance:
   recoverable_transition_rule: "Every positive transition recovers after restart without a second business mutation."
   hard_crash_rule: "Correctness may not depend on exception handlers; every record-CAS/journal-CAS crash cut is reconciled from actual durable state."
   expiry_rule: "Expiry and provenance are rechecked at every positive transition, reconciliation and ALREADY result."
-  provider_release_rule: "Final release evidence binds canonical route/task, git topology, completed exact-head runs/jobs/artifacts and receipt integrity; caller-written success is never authority."
+  provider_authority_rule: "A caller-authored marker or success-shaped JSON never creates provider authority; provider facts require direct read-only retrieval or a canonical-main GPT attestation bound by commit/blob/payload digest."
+  git_predicate_rule: "Git predicates use documented exit status and are tested on real positive and negative graphs."
+  clean_clone_rule: "A reproduction claim requires executing the exact documented command in an ephemeral clean clone/worktree."
+  strict_receipt_schema_rule: "Every required receipt family is parsed against a strict schema and cross-bound to route, topology, provider facts and exact completion signal."
   receipt_identity_rule: "A receipt does not self-embed its own commit SHA and contains no future placeholder; actual receipt identity is a GPT post-commit provider fact."
   original_byte_truth_rule: "Knowledge digestion uses strict UTF-8 original bytes and legal byte boundaries."
   parser_progress_rule: "Every scan advances monotonically or is terminated in an isolated killable worker with cleanup proof."
@@ -38,23 +41,24 @@ permanent_governance:
 
 agents:
   CODEX:
-    active_issue: 158
-    task_id: "CODEX-BRAINOPS-CRASH-COMPLETE-STAGE-JOURNAL-PROVIDER-RELEASE-EVIDENCE-AND-PLACEHOLDER-FREE-RECEIPT-CLOSURE-0045-E49"
-    route_epoch: 51
+    active_issue: 160
+    task_id: "CODEX-BRAINOPS-TRUSTED-PROVIDER-ATTESTATION-CORRECT-GIT-GRAPH-CLEAN-CLONE-REPRODUCTION-AND-STRICT-RECEIPT-VALIDATION-CLOSURE-0046-E50"
+    route_epoch: 52
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
     automatic_dispatch_allowed: false
     canary_execution_allowed: false
     automatic_resume: false
-    planned_branch: "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
-    source_issue: 152
-    source_pull_request: 154
-    source_plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
-    source_tested_head: "00c2e805a5e74354698c2c47822c59b83d219566"
-    source_receipt_head: "6bf4ab05096e16f889733e42603bdf1f068380d3"
-    source_classification: "E48_PLAN_SCOPE_SINGLE_AUTHORITY_TESTED_AND_RECEIPT_EXACT_CI_TOPOLOGY_ARTIFACTS_AND_CORE_RESPONSE_LOSS_RECOVERY_ACCEPTED_BUT_HARD_CRASH_STAGE_JOURNAL_RELEASE_GATE_PROVIDER_TOPOLOGY_PLACEHOLDER_SCAN_AND_RECEIPT_INTEGRITY_FAILED"
-    current_action: "Close hard-crash journal cut points, implement provider-backed release evidence and produce a placeholder-free non-self-referential receipt."
+    planned_branch: "codex/brainops-trusted-provider-release-validation-0046-e50"
+    source_issue: 158
+    source_pull_request: 159
+    source_base_head: "8db26c0bcf5759425117061f8507dea31dac01e9"
+    source_plan_head: "f3c7dda8dc1f953d1071fd4bd4796fbda7ac5f4f"
+    source_tested_head: "a87fd73b473c8476259038e797e288521a2d804c"
+    source_receipt_head: "ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd"
+    source_classification: "E49_PLAN_TOPOLOGY_HARD_CRASH_SYNTHETIC_RECOVERY_TESTED_AND_RECEIPT_EXACT_CI_PROVIDER_FACTS_AND_PLACEHOLDER_FREE_RECEIPT_ACCEPTED_BUT_FINAL_GIT_ANCESTRY_PREDICATE_EXTERNAL_PROVIDER_AUTHORITY_CLEAN_CLONE_REPRODUCTION_RECEIPT_SCHEMA_ENFORCEMENT_AND_END_TO_END_MUTATION_FAILED"
+    current_action: "Correct real git graph semantics, anchor provider authority externally, execute clean-clone reproduction and enforce strict receipt schemas."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 156
@@ -62,20 +66,22 @@ agents:
     task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-INTEGRATED-LEDGER-SEMANTICS-VALIDATORS-AND-EXACT-ARTIFACT-CI-CLOSURE-0020-E39"
     route_epoch: 39
     mode: "project_plan"
-    status: "RETURNED_FOR_CORRECTION"
+    status: "RETURNED_FOR_CORRECTION_NO_NEW_REMOTE_PROGRESS"
     execution_allowed: true
     automatic_resume: false
     branch: "qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"
     base_head: "3f57c0ad2fb6e664197b2e81c80e5db14961f16a"
     plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
     returned_head: "28ae81374da09630c560a3e263d77ff355ed913b"
-    classification: "E39_TREE_SCOPE_AND_PLAN_ONLY_ACCEPTED_BUT_S0_TIMEOUT_MUTATION_IMMUTABILITY_AND_EOF_EXCLUSIVE_MAPPING_REQUIRE_CORRECTION"
+    current_remote_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+    new_progress_since_previous_review: false
+    classification: "E39_NO_NEW_REMOTE_PROGRESS_SINCE_RETURNED_HEAD_PROCESS_TIMEOUT_MUTATION_IMMUTABILITY_AND_EOF_EXCLUSIVE_CORRECTIONS_STILL_REQUIRED"
     required_next:
       - "Replace daemon-thread timeout with killable isolated process execution."
       - "Run a genuine 0xED non-progress source mutation and observe forced timeout/nonzero failure."
       - "Make finalized index collections immutable."
-      - "Add EOF-exclusive byte-to-codepoint mapping and trailing newline semantics tests."
-      - "Do not use unrelated workflow as E39 exact-head CI credit."
+      - "Add EOF-exclusive byte-to-codepoint mapping and trailing LF/CRLF/empty-line tests."
+      - "Obtain task-named E39 exact-head Python 3.11/3.13 seed 0/1/777 artifact CI before receipt."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -84,42 +90,38 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
-  CODEX_E48_FINAL:
-    issue: 152
-    pull_request: 154
-    plan_head: "e932a9520f05701e92da63e361590e36eaa1a985"
-    tested_head: "00c2e805a5e74354698c2c47822c59b83d219566"
-    receipt_head: "6bf4ab05096e16f889733e42603bdf1f068380d3"
-    classification: "E48_PLAN_SCOPE_SINGLE_AUTHORITY_TESTED_AND_RECEIPT_EXACT_CI_TOPOLOGY_ARTIFACTS_AND_CORE_RESPONSE_LOSS_RECOVERY_ACCEPTED_BUT_HARD_CRASH_STAGE_JOURNAL_RELEASE_GATE_PROVIDER_TOPOLOGY_PLACEHOLDER_SCAN_AND_RECEIPT_INTEGRITY_FAILED"
+  CODEX_E49_FINAL:
+    issue: 158
+    pull_request: 159
+    base_head: "8db26c0bcf5759425117061f8507dea31dac01e9"
+    plan_head: "f3c7dda8dc1f953d1071fd4bd4796fbda7ac5f4f"
+    tested_head: "a87fd73b473c8476259038e797e288521a2d804c"
+    receipt_head: "ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd"
+    classification: "E49_PLAN_TOPOLOGY_HARD_CRASH_SYNTHETIC_RECOVERY_TESTED_AND_RECEIPT_EXACT_CI_PROVIDER_FACTS_AND_PLACEHOLDER_FREE_RECEIPT_ACCEPTED_BUT_FINAL_GIT_ANCESTRY_PREDICATE_EXTERNAL_PROVIDER_AUTHORITY_CLEAN_CLONE_REPRODUCTION_RECEIPT_SCHEMA_ENFORCEMENT_AND_END_TO_END_MUTATION_FAILED"
     accepted:
-      - "One-file plan-only and authorized scope."
-      - "Single actual authority direction and verifier-owned identity/evidence."
-      - "Core response-loss tests and 14 active mutations."
-      - "Tested and receipt exact-head E48 Python 3.11/3.13 CI with 272 tests and artifacts."
-      - "Direct nonempty evidence-only receipt topology and no post-receipt commit at review time."
+      - "Strict one-file plan-only, authorized zero-deletion implementation and direct receipt topology."
+      - "Hard-process crash tests and synthetic no-second-mutation recovery."
+      - "Tested and receipt exact-head E49 Python 3.11/3.13 CI, 343 tests, 13 mutations and artifacts."
+      - "Accurate tested provider facts and placeholder-free external receipt identity design."
     blockers:
-      - "Hard crash after durable CAS before journal CAS can leave BINDINGS_VERIFIED, CLAIM_MUTATION_APPLIED or LEASE_MUTATION_APPLIED incomplete."
-      - "Release gate does not validate actual provider run/job/artifact facts, canonical route/task, receipt topology, placeholder scan or evidence families."
-      - "Final receipt contains an unresolved receipt_commit_sha placeholder."
-      - "Reproduction commands use a wrong base SHA and obsolete arguments."
-      - "Receipt omits tested provider job/artifact identities and digests."
+      - "Broken merge-base --is-ancestor stdout predicate rejects every valid graph."
+      - "Caller-authored EXTERNAL_READ_ONLY_API JSON remains forgeable provider authority."
+      - "Reproduction command is text-matched rather than executed in a clean clone."
+      - "Receipt schemas and tested provider document are not strictly enforced."
+      - "Mutations miss the real final-path, forged provider and completion-signal defects."
     frozen: true
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E48-INDEPENDENT-REVIEW.yaml"
-  QCLAW_E39_CHECKPOINT:
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E49-INDEPENDENT-REVIEW.yaml"
+  QCLAW_E39_RECHECK:
     issue: 156
     pull_request: 157
-    plan_head: "943c23ba61970a4a9bc3decf4811bb40c9b664a8"
-    reviewed_head: "28ae81374da09630c560a3e263d77ff355ed913b"
-    classification: "E39_TREE_SCOPE_AND_PLAN_ONLY_ACCEPTED_BUT_S0_TIMEOUT_MUTATION_IMMUTABILITY_AND_EOF_EXCLUSIVE_MAPPING_REQUIRE_CORRECTION"
-    frozen: false
-  QCLAW_E38:
-    issue: 153
-    pull_request: 155
-    frozen_head: "4ecc53b28109e5f905a8e5c5d1e1727dcd89beef"
-    frozen: true
+    observed_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+    new_remote_progress: false
+    disposition: "KEEP_RETURNED_FOR_CORRECTION"
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E39-NO-PROGRESS-RECHECK.yaml"
 
 frozen:
-  - "Issue #152, PR #154 and Codex E48 branch are frozen at 6bf4ab05096e16f889733e42603bdf1f068380d3; no merge or further commit."
+  - "Issue #158, PR #159 and Codex E49 branch are frozen at ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd; no merge or further commit."
+  - "Issue #152, PR #154 and Codex E48 remain frozen."
   - "Issue #150, PR #151 and Codex E47 remain frozen."
   - "Issue #153, PR #155 and QCLAW E38 remain frozen."
   - "Issue #148, PR #149 and QCLAW E37 remain frozen."
@@ -130,4 +132,4 @@ next_commands:
   QCLAW: "读取任务"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E49_HARD_CRASH_PROVIDER_RELEASE_READY / QCLAW_E39_RETURNED / USER_CONTROLS_MODELS / NO_LIVE_AUTHORITY / NO_TRADE"
+boundary: "CODEX_E50_TRUSTED_PROVIDER_RELEASE_READY / QCLAW_E39_RETURNED_NO_NEW_PROGRESS / USER_CONTROLS_MODELS / NO_LIVE_AUTHORITY / NO_TRADE"
