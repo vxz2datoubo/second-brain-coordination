@@ -1,0 +1,131 @@
+schema_version: "1.0"
+review_type: "GPT_INDEPENDENT_FINAL_REVIEW"
+reviewed_at: "2026-08-04T23:30:00+08:00"
+reviewer: "GPT"
+agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "CODEX-BRAINOPS-CRASH-COMPLETE-STAGE-JOURNAL-PROVIDER-RELEASE-EVIDENCE-AND-PLACEHOLDER-FREE-RECEIPT-CLOSURE-0045-E49"
+route_epoch: 51
+issue: 158
+pull_request: 159
+branch: "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
+base_head: "8db26c0bcf5759425117061f8507dea31dac01e9"
+plan_head: "f3c7dda8dc1f953d1071fd4bd4796fbda7ac5f4f"
+tested_head: "a87fd73b473c8476259038e797e288521a2d804c"
+receipt_head: "ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd"
+classification: "E49_PLAN_TOPOLOGY_HARD_CRASH_SYNTHETIC_RECOVERY_TESTED_AND_RECEIPT_EXACT_CI_PROVIDER_FACTS_AND_PLACEHOLDER_FREE_RECEIPT_ACCEPTED_BUT_FINAL_GIT_ANCESTRY_PREDICATE_EXTERNAL_PROVIDER_AUTHORITY_CLEAN_CLONE_REPRODUCTION_RECEIPT_SCHEMA_ENFORCEMENT_AND_END_TO_END_MUTATION_FAILED"
+disposition: "REVIEWED_AND_FROZEN_WITH_SUCCESSOR_REQUIRED"
+
+accepted:
+  - "The fresh E49 branch starts from the reviewed canonical main and the first task commit adds exactly one E49 execution plan file."
+  - "The implementation commit is a direct descendant of the plan and all changed paths remain inside the authorized BrainOps subtree or .github/workflows/brainops-e49.yml, with zero deletions."
+  - "The receipt is a direct nonempty child of the tested head and changes exactly ten files under E49/RECEIPT only."
+  - "Hard-process tests use os._exit(86) after actual durable compare-and-swap cut points and reconstruct authorities in a fresh process."
+  - "Effect lease, claim invocation, invocation lease and journal-before-completion crash cuts recover the durable continuation without a second business mutation in the synthetic file-CAS model."
+  - "Changed-time recovery fails closed before allocating a second stage operation."
+  - "The tested and receipt heads have successful exact-head E49 Python 3.11 and 3.13 GitHub Actions runs with full regression, workflow-policy, pre-review boundary, active mutation and artifact steps."
+  - "The tested-head receipt facts for run, jobs, artifacts, exact head and digests match independently observed GitHub provider facts."
+  - "The receipt uses a non-self-referential EXTERNAL_POST_COMMIT_PROVIDER_FACT marker and contains no E48-style future receipt SHA placeholder."
+  - "At independent review time the remote branch still equals the receipt head and no post-receipt commit exists."
+  - "No live authority, Canary, application or CLI automation, credential, account, order, position, funds or trading action occurred."
+
+provider_evidence:
+  tested_push_run:
+    run_id: 30919991270
+    conclusion: "success"
+    head_sha: "a87fd73b473c8476259038e797e288521a2d804c"
+    jobs:
+      - {job_id: 92027772851, python: "3.11", conclusion: "success", test_count: 343}
+      - {job_id: 92027772992, python: "3.13", conclusion: "success", test_count: 343}
+    artifacts:
+      - {artifact_id: 8896654945, name: "e49-release-evidence-3.11", digest: "sha256:8a6ebd178c78f2be98cc2b09bed6f160441ecb712bd734bf40960ba9b29dbb13", expired: false}
+      - {artifact_id: 8896653074, name: "e49-release-evidence-3.13", digest: "sha256:ecff40dfe83c807bb6b88fbdf49813d368d5c7e271cf7edcf98a3d95f923d117", expired: false}
+  tested_pr_run:
+    run_id: 30919999484
+    conclusion: "success"
+    jobs:
+      - {job_id: 92027802449, python: "3.11", conclusion: "success", test_count: 343}
+      - {job_id: 92027802200, python: "3.13", conclusion: "success", test_count: 343}
+  receipt_push_run:
+    run_id: 30920987426
+    conclusion: "success"
+    head_sha: "ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd"
+    jobs:
+      - {job_id: 92031222840, python: "3.11", conclusion: "success"}
+      - {job_id: 92031222986, python: "3.13", conclusion: "success"}
+    artifacts:
+      - {artifact_id: 8897061690, name: "e49-release-evidence-3.11", digest: "sha256:466e99d221d2aa7d06df5e25268f0f572252bd8ab351c8c9b1066bdcf37193f9", expired: false}
+      - {artifact_id: 8897065005, name: "e49-release-evidence-3.13", digest: "sha256:257f06261bee8314a754dd47ffcb105d7747dc80318b072bde0c09b97ba78477", expired: false}
+  receipt_pr_run:
+    run_id: 30920994210
+    conclusion: "success"
+    jobs:
+      - {job_id: 92031245603, python: "3.11", conclusion: "success"}
+      - {job_id: 92031245734, python: "3.13", conclusion: "success"}
+
+blocking_findings:
+  - id: "E49-FINAL-001"
+    severity: "BLOCKING"
+    finding: >-
+      The final git ancestry predicate is implemented incorrectly. git merge-base --is-ancestor intentionally returns success by exit code with empty stdout, but release_verifier compares captured stdout to the plan SHA. Every valid plan-to-tested ancestry therefore fails with plan_not_ancestor_of_tested.
+    required_closure: "Use the subprocess return code as the authority and add a positive end-to-end final-path regression that reaches READY_FOR_INDEPENDENT_REVIEW on a real valid graph."
+  - id: "E49-FINAL-002"
+    severity: "BLOCKING"
+    finding: >-
+      Final provider authority remains caller-forgeable. E49ProviderEvidence is populated from an ordinary JSON document and the verifier trusts the magic provider_source value EXTERNAL_READ_ONLY_API plus caller-supplied run, job, artifact and remote-head fields. The implementation does not fetch GitHub provider state itself, verify a signed/immutable provider attestation or require a GPT-main post-run attestation.
+    required_closure: "Consume provider facts through a trusted read-only adapter or a GPT-main committed post-run attestation whose source identity and payload digest are independently bound."
+  - id: "E49-FINAL-003"
+    severity: "BLOCKING"
+    finding: >-
+      The reproduction validator is textual, not executable. It checks only that receipt text contains the release_verifier module string and tested SHA. It does not parse required arguments or run the command in a clean clone. The published command also depends on an external C:\\temp provider JSON and is not a self-contained clean-clone proof.
+    required_closure: "Execute the exact documented command in an ephemeral clean clone/worktree with a trusted materialized provider attestation and require a READY result."
+  - id: "E49-FINAL-004"
+    severity: "BLOCKING"
+    finding: >-
+      Receipt schema enforcement is shallow. The validator requires nine standard filenames but does not require or parse PROVIDER-EVIDENCE-TESTED-HEAD.json, validate the structured run/job/artifact identities and digests, or validate meaningful schemas for the remaining receipt documents. Unit fixtures demonstrate that empty JSON and minimal arbitrary strings satisfy most evidence-family checks.
+    required_closure: "Define and validate strict schemas for every receipt family and require tested provider evidence as a first-class document."
+  - id: "E49-FINAL-005"
+    severity: "MAJOR"
+    finding: >-
+      The thirteen active mutations do not cover the actual final-path ancestry defect, a fully forged EXTERNAL_READ_ONLY_API document, textual-but-unexecutable reproduction commands, missing structured provider evidence or the final completion-signal mismatch.
+  - id: "E49-FINAL-006"
+    severity: "MAJOR"
+    finding: >-
+      The AMED receipt completion signal CODEX_BRAINOPS_E49_CRASH_COMPLETE_STAGE_JOURNAL_PROVIDER_RELEASE_EVIDENCE_READY_FOR_GPT_REVIEW does not exactly match the active route completion signal CODEX_BRAINOPS_E49_CRASH_COMPLETE_STAGE_JOURNAL_RELEASE_EVIDENCE_READY_FOR_GPT_REVIEW.
+
+credit_boundaries:
+  hard_crash_synthetic_recovery_credit: true
+  exact_ci_credit: true
+  tested_provider_fact_accuracy_credit: true
+  receipt_topology_credit: true
+  placeholder_free_receipt_design_credit: true
+  production_provider_authority_credit: false
+  clean_clone_reproduction_credit: false
+  strict_receipt_schema_credit: false
+  final_release_gate_credit: false
+  merge_credit: false
+
+freeze:
+  frozen: true
+  frozen_head: "ee702cc596fd4aec3a0f9940f63ba914d5cb1bbd"
+  further_commit_forbidden: true
+  merge_forbidden: true
+  rebase_forbidden: true
+  force_push_forbidden: true
+  cherry_pick_as_authority_forbidden: true
+
+successor:
+  required: true
+  route_epoch: 52
+  task_id: "CODEX-BRAINOPS-TRUSTED-PROVIDER-ATTESTATION-CORRECT-GIT-GRAPH-CLEAN-CLONE-REPRODUCTION-AND-STRICT-RECEIPT-VALIDATION-CLOSURE-0046-E50"
+  planned_branch: "codex/brainops-trusted-provider-release-validation-0046-e50"
+  completion_signal: "CODEX_BRAINOPS_E50_TRUSTED_PROVIDER_RELEASE_VALIDATION_READY_FOR_GPT_REVIEW"
+
+qclaw_parallel_recheck:
+  task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-INTEGRATED-LEDGER-SEMANTICS-VALIDATORS-AND-EXACT-ARTIFACT-CI-CLOSURE-0020-E39"
+  pull_request: 157
+  observed_head: "28ae81374da09630c560a3e263d77ff355ed913b"
+  new_remote_progress: false
+  disposition: "KEEP_RETURNED_FOR_CORRECTION"
+
+boundary: "E49_FROZEN / HARD_CRASH_SYNTHETIC_CREDIT / TRUSTED_PROVIDER_AND_FINAL_RELEASE_GATE_PENDING / QCLAW_E39_NO_NEW_PROGRESS / NO_LIVE_AUTHORITY / NO_TRADE"
