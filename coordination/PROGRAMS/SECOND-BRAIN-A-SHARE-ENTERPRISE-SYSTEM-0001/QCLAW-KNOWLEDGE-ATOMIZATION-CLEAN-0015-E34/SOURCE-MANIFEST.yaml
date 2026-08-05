@@ -1,0 +1,76 @@
+# QCLAW E34 Source-Origin Manifest
+# Every file: exact source PR, commit SHA, blob SHA, known failure history, disposition
+# E29 is DESIGN_REFERENCE_ONLY — zero decoded byte copy
+entries:
+  - file: schemas/knowledge_atom.schema.json
+    source: E27 PR#111
+    commit: 1524ede4f6fb
+    blob: 580420d2973a5a4c60a138c9a57bd8e64c3fea5f
+    encoding: utf-8
+    parser_check: JSON valid after regex fix
+    known_failures: ["E27_PROTOTYPE_REUSABLE_SEMANTIC_LOSS"]
+    disposition: ADAPT_AND_RETEST
+
+  - file: src/qclaw_knowledge_digest/parser.py
+    source: E28 PR#118 atomizer_v2 repository
+    commit: 8b3a696d6370
+    blob: 7e9c055ffe3b7476aeaf86309586f4b2d8d11cea
+    encoding: utf-8
+    parser_check: ast.parse OK
+    known_failures: ["E28_ATOMICITY_AND_RECEIPT_FAILED"]
+    disposition: ADAPT_AND_RETEST
+    adaptation_notes: "byte-exact accounting logic preserved; rewritten for clean E34 pipeline"
+  
+  - file: src/qclaw_knowledge_digest/atomizer.py
+    source: E27 PR#111 + E28 PR#118 + E29 design
+    commit: 1524ede4f6fb (E27), 8b3a696d6370 (E28), 7ee8054a9717 (E29 design)
+    blob: f55d2453af792321b2a10f1c14e2c4cb14cb90de (E27)
+    encoding: utf-8
+    parser_check: ast.parse OK (E27)
+    known_failures: ["E27_SEMANTIC_LOSS", "E28_ATOMICITY_FAILURE", "E29_BASE64_POLLUTED"]
+    disposition: ADAPT_AND_RETEST
+    adaptation_notes: "21 content types from E27; structure-aware splitting from E29 design; combined"
+
+  - file: src/qclaw_knowledge_digest/classifier.py
+    source: E29 design only
+    design_pr: 122
+    encoding: utf-8
+    parser_check: NOT_APPLICABLE (fresh reconstruction)
+    known_failures: ["E29_BASE64_POLLUTED_SOURCE_NOT_COPIED"]
+    disposition: REFERENCE_ONLY_DESIGN_RECONSTRUCTED
+    adaptation_notes: "conservative classification: default CLAIM, no lexical FACT promotion"
+
+  - file: src/qclaw_knowledge_digest/redact.py
+    source: E27 PR#111 + E29 design
+    commit: 1524ede4f6fb (E27)
+    blob: 922c0557ab0751b228ec6e85758b0f719fb3d821 (E27)
+    encoding: utf-8
+    parser_check: ast.parse OK (E27)
+    known_failures: ["E27_PROTOTYPE", "E29_BASE64"]
+    disposition: ADAPT_AND_RETEST
+    adaptation_notes: "span-based redaction; no secret-derived hashes; safe example values only"
+
+  - file: src/qclaw_knowledge_digest/relations.py
+    source: E28 PR#118
+    commit: 8b3a696d6370
+    blob: a4d3704b0080f20bd2644520e0cf7c6f5ef22aea
+    encoding: utf-8
+    parser_check: ast.parse OK
+    known_failures: ["E28_ATOMICITY_FAILURE"]
+    disposition: ADAPT_AND_RETEST
+
+  - file: src/qclaw_knowledge_digest/cli.py
+    source: E27 PR#111
+    commit: 1524ede4f6fb
+    blob: 0b7d4aa9fec632c60e6e367e7c36045dff55a85f
+    encoding: utf-8
+    parser_check: ast.parse OK
+    known_failures: ["E27_PROTOTYPE"]
+    disposition: ADAPT_AND_RETEST
+
+  - file: .gitignore
+    source: E27 PR#111
+    commit: 1524ede4f6fb
+    blob: 83f14870ce95521a56ded6f8f542a92de67e2fce
+    encoding: utf-8
+    disposition: REFERENCE_ONLY_ADOPTED

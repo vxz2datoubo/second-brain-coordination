@@ -1,0 +1,27 @@
+name: QCLAW E34 Knowledge Atomization
+
+on:
+  push:
+    branches: [qclaw/knowledge-atomization-clean-utf8-corrected-trust-0015-e34]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.after || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run E34 tests
+        env:
+          PYTHONHASHSEED: 0
+          PYTHONIOENCODING: utf-8
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-CLEAN-0015-E34
+        run: |
+          PYTHONPATH=src python3 tests/run_all_tests.py
