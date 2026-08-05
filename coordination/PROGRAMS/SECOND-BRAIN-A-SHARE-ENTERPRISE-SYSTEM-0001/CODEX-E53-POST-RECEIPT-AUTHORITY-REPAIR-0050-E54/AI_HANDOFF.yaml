@@ -1,0 +1,26 @@
+handoff_schema: ai-handoff-v1
+task_id: CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-FORMAT-OWNERSHIP-MANIFEST-IMMUTABILITY-RELATION-EVIDENCE-MUTATION-COVERAGE-AND-PROVIDER-RECERTIFICATION-0050-E54
+source_agent: CODEX
+target_agent: GPT
+reviewer: GPT
+issue: 170
+pull_request: 174
+branch: codex/e53-post-receipt-authority-repair-0050-e54
+tested_sha: 794fd7f7fb9096b25e51cb51e9c14fc14b533a59
+tested_provider_run: 31053881904
+handoff_state: AWAITING_RECEIPT_HEAD_EXTERNAL_ANCHOR_THEN_GPT_REVIEW
+review_inputs:
+  - AMED-AGENT-EXECUTION-RECEIPT.yaml
+  - FINAL-E54-REPORT.md
+  - RUN-RECEIPT.md
+  - STATUS.yaml
+  - external Issue 170 and PR 174 anchor packets
+required_reviewer_checks:
+  - receipt_head_matches_external_anchor
+  - receipt_tree_matches_external_anchor
+  - receipt_provider_matrix_has_six_canonical_six_environment_and_one_compare_artifact
+  - receipt_commit_changes_only_allowlisted_paths
+  - no_merge_or_authority_promotion
+rollback:
+  method: close_or_discard_draft_branch_after_review
+  protected_inputs: E53_issue_168_PR_169_and_receipt_95f3d4b9e2149c5bce4e22d94755900335ae75d1
