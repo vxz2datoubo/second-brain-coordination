@@ -1,0 +1,56 @@
+# E41-SOURCE-SELECTION.yaml
+# E42 source selection from frozen E41 PR #176
+# Only these exact blobs are authorized for reference/adaptation
+
+source_epoch: 41
+source_pull_request: 176
+source_frozen_head: "24eed791e2e1aa0de1941741cadf0fdfb1d029dd"
+selection_policy: "ALL_REWRITE_NO_WHOLE_FILE_COPY"
+
+selections:
+  - path: "src/qclaw_e41_knowledge/taxonomy.py"
+    blob_sha1: "c262067903167f266b98d04029247443d197bd80"
+    disposition: REWRITE
+    reason: "Atom is publicly forgeable; need evaluator-controlled factory, deep immutability, derived authority"
+  - path: "src/qclaw_e41_knowledge/digestion.py"
+    blob_sha1: "3cc2eef53648c370097ae00af2bf653363995b6b"
+    disposition: REWRITE
+    reason: "SourceSpan not bound to immutable SourceDocument; strip/reconstruction loses offsets"
+  - path: "src/qclaw_e41_knowledge/contradiction.py"
+    blob_sha1: "a5c6539009b97a46f67a12e9f8e5a02f3d8d82be"
+    disposition: REWRITE
+    reason: "Content-hash identity creates duplicate masters; heuristic conflict classification; silent overwrite after first event"
+  - path: "src/qclaw_e41_knowledge/cognition.py"
+    blob_sha1: "dc687568fb204c8e29ab5a57ac009a03fe05e2d2"
+    disposition: REWRITE
+    reason: "Caller-authored CognitionEntry; booleans not evidence objects"
+  - path: "src/qclaw_e41_knowledge/skill_lifecycle.py"
+    blob_sha1: "c39d188ac2db27d251929f3f8ea5e3cf0f8a6d9f"
+    disposition: REWRITE
+    reason: "Caller-forgeable SkillPromotionGate; direct FORMAL construction allowed"
+  - path: "src/qclaw_e41_knowledge/corpus.py"
+    blob_sha1: "9ce6a662778c636e6798f0ea221215b6076a0b40"
+    disposition: REWRITE
+    reason: "Corpus identity excludes ground truth; invalid AtomType members; not executed end-to-end"
+  - path: "tests/test_q1_q6.py"
+    blob_sha1: "a7c5fd0af3851e30b8e9ebd423a2b8e1770844c1"
+    disposition: REWRITE
+    reason: "Tests pass without proving authority; need evaluator-backed assertions"
+  - path: "tests/test_q7.py"
+    blob_sha1: "5ab9abeff619f89cd87d1afd497e6e22022a5a8a"
+    disposition: REWRITE
+    reason: "Contains import-only test, fake mutations; need real copied-production mutation harness"
+  - path: "OVERLAP-EXCLUSION.yaml"
+    blob_sha1: "56f3d9e6542df9bc0447a89efe5f7e6501b32e27"
+    disposition: REWRITE
+    reason: "Internally contradictory: assigns mutation/Provider to E54 while E41 requires them"
+  - path: ".github/workflows/qclaw-e41-knowledge-digestion-evaluation.yml"
+    blob_sha1: "e9bda1f40b695a0af8835e6261f5a5d3b1cf9cf0"
+    disposition: REWRITE
+    reason: "No head assertion, no environment evidence, no canonical evaluator output, no if-no-files-found:error"
+
+rewrite_contract:
+  no_whole_file_copy: true
+  design_reference_only: true
+  exact_blob_content_verification_source_only: true
+  e41_source_branch_write_forbidden: true
