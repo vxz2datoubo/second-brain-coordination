@@ -27,8 +27,10 @@ class HygieneReport:
     head_sha: str
     commits: tuple[str, ...]
     history_paths: tuple[HistoryPath, ...]
+    base_tree_paths: tuple[str, ...]
     final_tree_paths: tuple[str, ...]
     forbidden_history_paths: tuple[HistoryPath, ...]
+    inherited_forbidden_final_paths: tuple[str, ...]
     forbidden_final_paths: tuple[str, ...]
 
     @property
@@ -62,7 +64,9 @@ def scan_commit_range(repo: Path, base_sha: str, head: str = "HEAD") -> HygieneR
             for path in columns[1:]:
                 normalized = path.replace("\\", "/")
                 entries.append(HistoryPath(commit, kind, normalized, is_forbidden_path(normalized)))
+    base_tree = tuple(sorted(item for item in _git(repo, "ls-tree", "-r", "--name-only", base_sha).splitlines() if item))
     final_tree = tuple(sorted(item for item in _git(repo, "ls-tree", "-r", "--name-only", resolved_head).splitlines() if item))
     bad_history = tuple(item for item in entries if item.forbidden)
-    bad_final = tuple(item for item in final_tree if is_forbidden_path(item))
-    return HygieneReport(base_sha, resolved_head, commits, tuple(entries), final_tree, bad_history, bad_final)
+    inherited = tuple(item for item in final_tree if item in base_tree and is_forbidden_path(item))
+    bad_final = tuple(item for item in final_tree if item not in base_tree and is_forbidden_path(item))
+    return HygieneReport(base_sha, resolved_head, commits, tuple(entries), base_tree, final_tree, bad_history, inherited, bad_final)

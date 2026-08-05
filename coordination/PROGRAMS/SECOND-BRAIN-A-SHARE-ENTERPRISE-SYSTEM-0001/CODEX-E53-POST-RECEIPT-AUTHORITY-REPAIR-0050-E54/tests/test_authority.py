@@ -243,6 +243,23 @@ class HygieneAndTopologyTests(unittest.TestCase):
             self.assertIn("generated.db", [item.path for item in report.forbidden_history_paths])
             self.assertNotIn("generated.db", report.final_tree_paths)
 
+    def test_hygiene_reports_but_does_not_block_inherited_baseline_fixture(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repo = Path(temporary)
+            self._git(repo, "init")
+            self._git(repo, "config", "user.email", "e54@example.invalid")
+            self._git(repo, "config", "user.name", "E54")
+            (repo / "fixture.jsonl").write_text('{"synthetic":true}\n', encoding="utf-8")
+            self._git(repo, "add", "fixture.jsonl")
+            self._git(repo, "commit", "-m", "base fixture")
+            base = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+            (repo / "change.txt").write_text("allowed", encoding="utf-8")
+            self._git(repo, "add", "change.txt")
+            self._git(repo, "commit", "-m", "allowed change")
+            report = scan_commit_range(repo, base)
+            self.assertTrue(report.clean)
+            self.assertEqual(report.inherited_forbidden_final_paths, ("fixture.jsonl",))
+
     def test_receipt_requires_real_identity_shapes_and_binding(self) -> None:
         sha = "a" * 40
         receipt = {

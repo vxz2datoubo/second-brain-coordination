@@ -58,6 +58,7 @@ MUTATION_SPECS: tuple[MutationSpec, ...] = (
     MutationSpec("MUT-PACKET-GRAPH", "authority.py", "packet.canonical_json == expected_json", "True", "packet canonical body is not compared to rebuilt graph"),
     MutationSpec("MUT-REDACTION-BLOCK", "authority.py", "if private_marker in data or b\"ghp_\" in data or b\"sk-\" in data:", "if False:", "private or credential-shaped marker enters source graph"),
     MutationSpec("MUT-HISTORY-ADD-DELETE", "hygiene.py", "bad_history = tuple(item for item in entries if item.forbidden)", "bad_history = ()", "historical generated file is ignored"),
+    MutationSpec("MUT-HYGIENE-BASELINE", "hygiene.py", "bad_final = tuple(item for item in final_tree if item not in base_tree and is_forbidden_path(item))", "bad_final = tuple(item for item in final_tree if is_forbidden_path(item))", "baseline-only forbidden path incorrectly blocks the task"),
     MutationSpec("MUT-RECEIPT-SHA", "topology.py", "for field in (\"base_sha\", \"plan_sha\", \"tested_sha\", \"receipt_sha\"):", "for field in ():", "placeholder SHA shapes are accepted"),
     MutationSpec("MUT-RECEIPT-FINAL-HEAD", "topology.py", "if head != receipt_sha:", "if False:", "post-receipt commit is accepted"),
     MutationSpec("MUT-PROVIDER-HEAD", "provider.py", "if environment.get(\"head_sha\") != expected_head:", "if False:", "changed Provider artifact head is accepted"),
