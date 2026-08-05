@@ -1,0 +1,144 @@
+schema_version: "1.0"
+review_type: "GPT_INDEPENDENT_FINAL_AUDIT"
+reviewed_at: "2026-08-06T06:28:00+08:00"
+reviewer: "GPT"
+source_agent: "QCLAW"
+repository: "vxz2datoubo/second-brain-coordination"
+source_task_id: "QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-TAXONOMY-EVIDENCE-CONTRADICTION-SKILL-PROMOTION-AND-EVALUATION-CORPUS-0022-E41"
+source_route_epoch: 41
+source_issue: 175
+source_pull_request: 176
+source_branch: "qclaw/knowledge-digestion-atomic-learning-system-0022-e41"
+base_sha: "8c1a352900d590fa18a239e2b0b26b0d826e15de"
+plan_sha: "dcd7056c1ef4484c7c4071be3ce18d2727b0a226"
+claimed_tested_sha: "72d61f974d2318af5d10563707063087b15a3964"
+receipt_and_current_head: "24eed791e2e1aa0de1941741cadf0fdfb1d029dd"
+classification: "E41_CLEAN_PLAN_AND_USEFUL_SEMANTIC_SCAFFOLD_PRESENT_BUT_SOURCE_TRACEABILITY_AUTHORITY_DERIVATION_MASTER_RECORD_CONTRADICTION_COGNITION_SKILL_PROMOTION_CORPUS_EVALUATOR_REAL_MUTATIONS_PROVIDER_AND_RECEIPT_AUTHORITY_FAILED"
+disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_NO_PROVIDER_NO_RECEIPT_NO_MERGE"
+
+verified_topology:
+  plan_is_direct_child_of_base: true
+  plan_ahead_by: 1
+  plan_changed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41/PROJECT-PLAN.md"
+  draft_pr_open: true
+  merged: false
+  receipt_direct_child_of_claimed_tested: true
+  receipt_changed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41/AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41/D05-COMMAND-EVIDENCE.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41/TEST-RUN-RECEIPT.md"
+  post_receipt_commit_detected: false
+  frozen_e40_or_codex_e54_path_modified: false
+
+accepted_candidate_credit:
+  - "Fresh normal descendant branch and strict one-file plan-only first commit."
+  - "Draft PR #176 is open, unmerged and limited to the E41 workflow plus E41 subtree."
+  - "Useful initial enums and conceptual scaffolds exist for twelve atom types, six evidence layers, digestion phases, contradiction/version events, cognition layers and skill states."
+  - "The implementation defaults unsupported evidence classification to author_claim rather than automatically claiming source fact."
+  - "A ten-case public-safe synthetic corpus and sixty local tests provide candidate-direction evidence."
+  - "The receipt commit is a direct child of the claimed tested head and changes three evidence files only."
+
+blocking_findings:
+  - id: "E41-BLOCKER-001"
+    area: "ATOM_AUTHORITY_AND_IMMUTABILITY"
+    finding: >-
+      Atom is publicly constructible with caller-supplied atom_id, evidence_layer, confidence, verification_state, source_reference and provenance. Atom.create also accepts HIGH confidence and VERIFIED state without evaluator evidence. validate_atom does not recompute the ID or prove source, confidence or verification authority. Frozen dataclasses retain mutable list aliases such as invalidation_conditions.
+  - id: "E41-BLOCKER-002"
+    area: "SOURCE_TRACEABILITY"
+    finding: >-
+      extract() splits on double newlines, strips each paragraph and creates a new SourceSpan around the stripped content with offsets 0..entire-content. Original whitespace, delimiters and offsets are lost. SourceSpan accepts arbitrary ranges and is not bound to an immutable source document or digest, so the claimed exact traceability is false.
+  - id: "E41-BLOCKER-003"
+    area: "DIGESTED_GRAPH"
+    finding: >-
+      DigestedSegment and SourceSpan are publicly forgeable; linked_atom_ids is a mutable list; link() accepts arbitrary atom IDs without a verified registry; normalize() performs unbounded string replacement and drops parts of prior state. The complete interpretation/linking graph is not revalidated.
+  - id: "E41-BLOCKER-004"
+    area: "MASTER_RECORD_AND_DEDUP"
+    finding: >-
+      compute_object_id hashes the current content, so any revised or conflicting content becomes a different object instead of a new version of one knowledge object. merge_duplicates merges exact text only. Different content creates another master record and does not create a contradiction or version event, contrary to the function documentation and task objective.
+  - id: "E41-BLOCKER-005"
+    area: "CONTRADICTION_AND_VERSION_GOVERNANCE"
+    finding: >-
+      classify_conflict auto-labels definition_mismatch or scenario_difference from word-overlap thresholds without evidence. add_version_event does not verify previous_content against the current record or require provenance. prohibit_silent_overwrite stops enforcing once any historical event exists, permitting later unrelated content changes without a new event. Lists and dictionaries remain mutable aliases.
+  - id: "E41-BLOCKER-006"
+    area: "COGNITION_AND_MEMORY_AUTHORITY"
+    finding: >-
+      CognitionEntry is publicly constructible with EXPLICIT_USER_FACT and GLOBAL memory. classify_quality trusts caller booleans rather than evidence objects. route_to_memory can treat KNOWN_BUT_UNSTATED as an explicit user fact. validate_memory_route checks only a few combinations and does not prove that the assigned destination equals an evaluator-derived route.
+  - id: "E41-BLOCKER-007"
+    area: "SKILL_PROMOTION_AUTHORITY"
+    finding: >-
+      Skill and SkillPromotionGate are caller-authored. A caller can directly construct EXPERIMENTAL and provide fabricated counts/booleans to become FORMAL. Gate fields are not derived from actual test receipts, distinct cases, counterexamples, scope, failure conditions or rollback evidence. Candidate to experimental requires only one arbitrary string. Transition history and replacement identity validation are absent.
+  - id: "E41-BLOCKER-008"
+    area: "CORPUS_SCHEMA_AND_GROUND_TRUTH"
+    finding: >-
+      Several expected_atom_types use evidence-layer names that are not members of AtomType, including author_claim, hypothesis and value_judgment. corpus_seed hashes only case ID/type/input and omits all expected outputs and ground truth, so evaluation answers can change without changing the corpus identity. The corpus is not executed end-to-end against a deterministic evaluator.
+  - id: "E41-BLOCKER-009"
+    area: "MUTATION_PROOF"
+    finding: >-
+      The seven claimed active mutations are ordinary tests against unmodified production functions. No copied production source is changed, no exact anchor or source hash is recorded, no mutant suite exits nonzero and no pristine restoration reruns green. test_q7 also contains an import-only self.assertTrue(True) and an existence-only workflow test, both explicitly forbidden by the task.
+  - id: "E41-BLOCKER-010"
+    area: "PROVIDER_WORKFLOW"
+    finding: >-
+      The workflow lacks an explicit git rev-parse HEAD equality assertion, separated environment evidence, if-no-files-found:error and a canonical semantic evaluation output. It creates source-file inventory text rather than evaluator results. Neither tested nor receipt head has an E41 workflow run; only unrelated Phase 3 integrated offline memory runs are visible.
+  - id: "E41-BLOCKER-011"
+    area: "PREMATURE_RECEIPT"
+    finding: >-
+      Receipt 24eed791 was created without required tested-head Provider success, six jobs, six canonical artifacts, environment artifacts or a compare job. No E41 receipt-head Provider run exists. Local assertions of 60/60 and dual-Python consistency are not Provider evidence.
+  - id: "E41-BLOCKER-012"
+    area: "BOUNDARY_CONTRACT_CONTRADICTION"
+    finding: >-
+      OVERLAP-EXCLUSION assigns mutation infrastructure, Provider recertification and receipt topology entirely to E54 and declares them outside E41, while the E41 task explicitly requires an E41 mutation harness, Provider workflow and tested/receipt certification. E41 nevertheless implemented all three. The authority boundary is therefore internally contradictory and must be rewritten precisely.
+  - id: "E41-BLOCKER-013"
+    area: "REPORT_COMPLETENESS"
+    finding: >-
+      Q8 required exact parents/trees, all commands, exit codes, durations, stream hashes, corpus evaluation outcomes, mutation anchors/restoration and Provider run/job/artifact identities. The three receipt files contain only summary counts and abbreviated commands and do not satisfy the report contract.
+
+provider_observation:
+  claimed_tested_head: "72d61f974d2318af5d10563707063087b15a3964"
+  tested_visible_runs:
+    - {run_id: 31051884690, workflow: "Phase 3 integrated offline memory", conclusion: "success", relevance: "UNRELATED"}
+  receipt_head: "24eed791e2e1aa0de1941741cadf0fdfb1d029dd"
+  receipt_visible_runs:
+    - {run_id: 31051934979, workflow: "Phase 3 integrated offline memory", conclusion: "success", relevance: "UNRELATED"}
+  e41_provider_matrix_visible: false
+  e41_artifacts_visible: false
+  e41_compare_job_visible: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+
+credit_state:
+  strict_plan_only_credit: true
+  draft_unmerged_scope_credit: true
+  semantic_taxonomy_scaffold_credit: true
+  local_test_direction_credit: true
+  exact_source_traceability_credit: false
+  evaluator_derived_atom_authority_credit: false
+  master_record_and_contradiction_credit: false
+  cognition_memory_authority_credit: false
+  formal_skill_promotion_credit: false
+  executable_corpus_evaluator_credit: false
+  copied_production_mutation_credit: false
+  provider_credit: false
+  receipt_credit: false
+  completion_credit: false
+  merge_credit: false
+
+required_successor_properties:
+  fresh_branch_from_latest_main: true
+  strict_plan_only_first_commit: true
+  exact_path_blob_content_selection_from_e41_only: true
+  whole_branch_merge_or_cherry_pick_forbidden: true
+  deep_immutable_evaluator_derived_authority: true
+  exact_source_document_span_traceability: true
+  semantic_object_identity_separate_from_version_content: true
+  evidence_based_conflict_and_memory_routing: true
+  evidence_receipt_bound_skill_transitions: true
+  schema_consistent_ground_truth_in_corpus_digest: true
+  end_to_end_evaluator: true
+  real_copied_production_mutations: true
+  tested_and_receipt_provider_recertification: true
+
+risk: >-
+  Treating E41 as an authoritative learning system would allow ordinary callers to mint verified/high-confidence atoms, explicit user facts, global-memory records and formal skills; it would lose exact source offsets, split revisions into duplicate masters, silently overwrite after one version event, and certify inconsistent corpus answers without Provider evidence.
+confidence: "HIGH"
+boundary: "QCLAW_E41_PROVIDERLESS_SEMANTIC_SCAFFOLD_FROZEN / CLEAN_E42_REQUIRED / CODEX_E54_PARALLEL_UNTOUCHED / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
