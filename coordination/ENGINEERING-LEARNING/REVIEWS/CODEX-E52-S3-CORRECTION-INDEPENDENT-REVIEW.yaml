@@ -1,0 +1,135 @@
+schema_version: "1.0"
+review_type: "GPT_INDEPENDENT_S3_CORRECTION_REVIEW"
+reviewed_at: "2026-08-05T11:43:00+08:00"
+reviewer: "GPT"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "CODEX-QCLAW-E40-TAKEOVER-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-CLOSURE-0048-E52"
+route_epoch: 54
+issue: 166
+pull_request: 167
+branch: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
+base_head: "3d15f0c62877db5841b985f740e9bc348f65ddc5"
+prior_reviewed_head: "d46464e830279a265c7f95ba37f4e188e09b0c94"
+reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
+corrected_plan_head: "875a7281b21dbb74dc9021b3ad159d05cdd2eb08"
+classification: "E52_S3_CORRECTION_CLOSES_PLAN_IDENTITY_LEDGER_ADAPTER_DEEP_FREEZE_FIELD_RULE_AND_RELATION_BYTE_BINDING_GAPS_BUT_CANONICAL_ATOM_AND_PACKET_PROVENANCE_REMAINS_BYPASSABLE"
+disposition: "RETURNED_FOR_SECOND_CORRECTION_AT_S3_NO_S4_AUTHORITY"
+completion_credit: false
+provider_ci_credit: false
+receipt_authority_credit: false
+merge_authorized: false
+
+verified_topology:
+  plan_identity_resolved: true
+  plan_parent: "3d15f0c62877db5841b985f740e9bc348f65ddc5"
+  base_to_plan_commit_count: 1
+  base_to_plan_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-CLOSURE-0048-E52/PROJECT-PLAN.md"
+  prior_to_correction_commit_count: 1
+  correction_head_parent: "d46464e830279a265c7f95ba37f4e188e09b0c94"
+  correction_changed_paths: 12
+  pull_request_commits: 8
+  pull_request_changed_files: 21
+  pull_request_draft: true
+  pull_request_merged: false
+
+accepted_corrections:
+  - id: "E52-S3C-ACCEPT-001"
+    finding: "The true plan commit is provider-resolvable as 875a7281b21dbb74dc9021b3ad159d05cdd2eb08 and base-to-plan is exactly one commit adding only PROJECT-PLAN.md."
+  - id: "E52-S3C-ACCEPT-002"
+    finding: "FinalizedLedger now freezes private state and exposes tuple/frozen value objects plus nested mapping proxies."
+  - id: "E52-S3C-ACCEPT-003"
+    finding: "TXT blank separators and Markdown headings, blockquotes, lists, tables, fences, bodies and terminators now receive format-specific ownership labels."
+  - id: "E52-S3C-ACCEPT-004"
+    finding: "JSON object-key body, quote and escape bytes are structural while value-string content remains atom eligible."
+  - id: "E52-S3C-ACCEPT-005"
+    finding: "Atom field mappings and CanonicalPacket nested mappings/sequences are copied into immutable canonical containers, preventing ordinary caller-alias mutation."
+  - id: "E52-S3C-ACCEPT-006"
+    finding: "All seven semantic fields now have field-specific schemas, defaults, source rules and UNKNOWN reasons; automatic extraction remains CLAIM-only."
+  - id: "E52-S3C-ACCEPT-007"
+    finding: "extract_claim and relation builders recompute source SHA-256, validate legal UTF-8 boundaries and reject caller digest mismatch."
+  - id: "E52-S3C-ACCEPT-008"
+    finding: "Relation type is an enum bound to evidence type; validate_relation recomputes source/evidence digests and requires exact [[source_id->target_id]] bytes plus registered endpoints."
+  - id: "E52-S3C-ACCEPT-009"
+    finding: "CanonicalPacket now has a basic fail-closed validate/finalize gate for identity, configuration, coverage declaration, redaction declaration and validator booleans."
+  - id: "E52-S3C-ACCEPT-010"
+    finding: "Current E52 tree contains .gitignore and a current-tree hygiene gate for generated paths."
+  - id: "E52-S3C-ACCEPT-011"
+    finding: "Reported 41 local synthetic tests are consistent with the committed test inventory, but remain local checkpoint evidence only."
+
+blocking_findings:
+  - id: "E52-S3C-BLOCKER-001"
+    severity: "CRITICAL"
+    area: "ATOM_PROVENANCE_BYPASS"
+    finding: >-
+      Atom remains a public dataclass constructor. A caller may directly create Atom with an arbitrary atom_id, fabricated text, any in-range byte_span and a syntactically valid source_digest. Atom.__post_init__ does not recompute atom_id, bind text to source bytes, or prove that evidence_refs describe the source slice. The committed correction tests intentionally construct such manual atoms and accept them.
+    required_correction: >-
+      Make canonical atom creation factory-controlled or add an immutable SourceEvidence object carrying exact source bytes/index/ledger identity. Atom finalization must recompute source digest, evidence digest, decoded text and deterministic atom_id from the exact source slice. Direct manual construction that cannot prove those facts must fail.
+  - id: "E52-S3C-BLOCKER-002"
+    severity: "CRITICAL"
+    area: "PACKET_SOURCE_BINDING"
+    finding: >-
+      CanonicalPacket contains only a declared source_identity mapping, not source bytes or a provider-resolvable immutable source evidence object. validate() checks digest shape and byte_length but cannot recompute either. A packet may therefore claim any 64-hex digest and length while carrying fabricated atoms that merely repeat that declaration.
+    required_correction: >-
+      Packet finalization must receive and freeze exact source evidence or a verified SourceEvidence/ByteTruthIndex identity whose digest and byte length are recomputed. Every atom and relation must be validated against that same evidence before canonical bytes or packet_id are available.
+  - id: "E52-S3C-BLOCKER-003"
+    severity: "HIGH"
+    area: "COVERAGE_MANIFEST_BINDING"
+    finding: >-
+      Packet coverage validation checks only declared total_bytes and finalized:true. It does not consume a FinalizedLedger, recompute owner-byte totals, verify span_count, detect gaps/overlaps, or bind a coverage digest to the packet source.
+    required_correction: >-
+      CanonicalPacket must accept a finalized immutable ledger or a verified immutable ledger manifest produced by that ledger. Recompute total bytes, owner totals, span count and a deterministic coverage digest and reject caller-authored coverage mappings.
+  - id: "E52-S3C-BLOCKER-004"
+    severity: "HIGH"
+    area: "FIELD_EVIDENCE_VALUE_BINDING"
+    finding: >-
+      EXTRACTED semantic fields prove only that an evidence span lies inside the atom span. The field value is not checked against the exact source slice or a declared deterministic extractor, so arbitrary text can be attached to a real span.
+    required_correction: >-
+      Field evidence must carry a deterministic extractor/rule and evidence digest, and validation must recompute the source slice plus the rule output. Unsupported interpretation remains field-specific UNKNOWN rather than caller-authored EXTRACTED.
+  - id: "E52-S3C-BLOCKER-005"
+    severity: "HIGH"
+    area: "RELATION_ENDPOINT_INHERITED_BYPASS"
+    finding: >-
+      Relation evidence bytes are now verified, but endpoint Atom objects can still be manually forged while sharing the declared source digest. Relation validation therefore inherits the Atom provenance bypass.
+    required_correction: "Only verified/finalized atoms from the same immutable source registry may be admitted as relation endpoints."
+  - id: "E52-S3C-BLOCKER-006"
+    severity: "MEDIUM"
+    area: "HISTORY_HYGIENE"
+    finding: >-
+      Current-tree hygiene is clean, but an earlier E52 commit introduced __pycache__/immutable_index.cpython-313.pyc. The new hygiene gate scans the current filesystem only and does not detect forbidden paths anywhere in base..head commit history.
+    required_correction: >-
+      Add a commit-range hygiene validator that inspects every changed path in each E52 commit and records the historical exception. Because history rewrite is forbidden, classify the contaminated checkpoint as quarantined and require any future merge candidate to be produced through a clean selective integration route that never includes the generated blob.
+  - id: "E52-S3C-BLOCKER-007"
+    severity: "MEDIUM"
+    area: "CANONICAL_VALUE_DOMAIN"
+    finding: >-
+      Canonical nested values permit arbitrary floats, including NaN and infinities, while json.dumps default behavior emits non-standard JSON tokens. This weakens cross-runtime canonical evidence.
+    required_correction: "Reject non-finite floats and restrict canonical packet values to a documented deterministic JSON domain."
+
+provider_observation:
+  reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
+  relevant_e52_provider_runs: []
+  visible_unrelated_runs:
+    - {run_id: 30971487570, workflow: "Phase 3 integrated offline memory", conclusion: "success", relevance: "UNRELATED"}
+  s4_credit: false
+  s5_credit: false
+  s6_credit: false
+
+next_gate:
+  status: "USER_RETRIGGER_REQUIRED"
+  command: "读取任务"
+  mandatory_order:
+    - "SOURCE_EVIDENCE_AND_FACTORY_CONTROLLED_ATOMS"
+    - "LEDGER_BOUND_PACKET_FINALIZATION"
+    - "FIELD_VALUE_EVIDENCE_BINDING"
+    - "VERIFIED_ATOM_RELATION_REGISTRY"
+    - "COMMIT_RANGE_HYGIENE_AND_CLEAN_INTEGRATION_DECLARATION"
+    - "CANONICAL_JSON_DOMAIN"
+    - "ONLY_THEN_S4_PRODUCT_MUTATIONS"
+    - "S5_PROVIDER_MATRIX_AND_ARTIFACTS"
+    - "S6_STRICT_RECEIPT"
+
+confidence: "HIGH"
+risk: >-
+  Proceeding to S4 now would mutation-test a product whose canonical packet can still admit fabricated atoms and caller-authored source/coverage identity. Provider-green evidence would then certify the validators rather than the claimed source truth.
+boundary: "E52_S3_SECOND_RETURN / NO_S4 / NO_PROVIDER_CREDIT / NO_RECEIPT / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
