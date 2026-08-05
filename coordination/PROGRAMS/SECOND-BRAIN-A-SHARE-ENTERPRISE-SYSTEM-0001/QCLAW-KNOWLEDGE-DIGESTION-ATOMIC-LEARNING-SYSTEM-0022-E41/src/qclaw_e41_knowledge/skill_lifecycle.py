@@ -35,6 +35,7 @@ class SkillPromotionGate:
         return (
             self.reproducible_tests_count >= 3
             and self.distinct_cases_count >= 2
+            and self.counterexamples_documented >= 1
             and self.scope_defined
             and self.failure_conditions_documented
             and self.rollback_plan_exists

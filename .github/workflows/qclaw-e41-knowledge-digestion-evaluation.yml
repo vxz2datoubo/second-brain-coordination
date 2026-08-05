@@ -1,0 +1,76 @@
+name: QCLAW E41 Knowledge Digestion Evaluation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - qclaw/knowledge-digestion-atomic-learning-system-0022-e41
+
+jobs:
+  evaluate:
+    if: ${{ !contains(github.event.head_commit.message, '[receipt]') }}
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+        seed: ["0", "1", "777"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run tests
+        env:
+          PYTHONHASHSEED: ${{ matrix.seed }}
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41/tests -p "test_*.py" -v
+      - name: Generate canonical summary
+        env:
+          PYTHONHASHSEED: ${{ matrix.seed }}
+        run: |
+          python -c "
+          import hashlib, os
+          root='coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-0022-E41'
+          lines=[]
+          for r,ds,fs in os.walk(root):
+            ds[:]=[d for d in ds if d!='__pycache__']
+            for f in sorted(fs):
+              if f.endswith('.pyc'): continue
+              if f.endswith('.py') or f.endswith('.yaml') or f.endswith('.md'):
+                path=os.path.join(r,f); size=os.path.getsize(path)
+                h=hashlib.sha256(open(path,'rb').read()).hexdigest()
+                lines.append(f'{h} {size} {path}')
+          open(f'e41-summary-py{str(${{ matrix.python }}).replace(\".\",\"\")}-s${{ matrix.seed }}.txt','w').write('\n'.join(lines))
+          "
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e41-summary-py${{ replace(matrix.python, '.', '') }}-s${{ matrix.seed }}
+          path: e41-summary-py${{ replace(matrix.python, '.', '') }}-s${{ matrix.seed }}.txt
+
+  compare:
+    needs: evaluate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - name: Byte-exact compare all 6 artifacts
+        run: |
+          set -e
+          HASHES=""
+          for f in e41-summary-py311-s0/e41-summary-py311-s0.txt \
+                   e41-summary-py311-s1/e41-summary-py311-s1.txt \
+                   e41-summary-py311-s777/e41-summary-py311-s777.txt \
+                   e41-summary-py313-s0/e41-summary-py313-s0.txt \
+                   e41-summary-py313-s1/e41-summary-py313-s1.txt \
+                   e41-summary-py313-s777/e41-summary-py313-s777.txt; do
+            H=$(sha256sum "$f" | cut -d' ' -f1)
+            HASHES="$HASHES $H"
+            echo "$H $f"
+          done
+          UNIQUE=$(echo $HASHES | tr ' ' '\n' | sort -u | wc -l)
+          echo "Unique hashes: $UNIQUE (expected 1)"
+          test "$UNIQUE" -eq 1
