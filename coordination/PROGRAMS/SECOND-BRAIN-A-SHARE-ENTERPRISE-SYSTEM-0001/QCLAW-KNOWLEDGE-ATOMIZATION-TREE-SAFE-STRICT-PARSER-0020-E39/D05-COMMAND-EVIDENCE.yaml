@@ -1,0 +1,33 @@
+# E39 D05 COMMAND EVIDENCE
+# Exact commands used to produce verified test results
+
+# -------- Python 3.13.3 --------
+# Full suite:
+#   set PYTHONIOENCODING=utf-8
+#   "C:\Program Files\Python313\python.exe" -m unittest discover -s "coordination\PROGRAMS\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-0020-E39\tests" -v
+#   Result: Ran 207 tests in 2.396s OK
+#
+# -------- Python 3.11.10 --------
+# Full suite:
+#   set PYTHONIOENCODING=utf-8
+#   "F:\Program Files (x86)\QClaw\v0.2.35.624\resources\python\python.exe" -m unittest discover -s "coordination\PROGRAMS\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-0020-E39\tests" -v
+#   Result: Ran 207 tests in 2.353s OK
+#
+# -------- Source artifact hash computation --------
+#   "F:\Program Files (x86)\QClaw\v0.2.35.624\resources\python\python.exe" -c "..."
+#   (SHA-256 of all 17 source files excluding __pycache__)
+#   combined_source_artifact_hash: fb3c3a7532d0166f031fe79579af81ef488fbfa7861f0d781d36207154f93603
+#
+# -------- CI workflow --------
+#   Workflow: .github/workflows/qclaw-e39-tree-safe-parser.yml
+#   Listen: push + pull_request on branch qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39
+#   Matrix: python-version [3.11, 3.13] x seed [0, 1, 777]
+#   Compare: byte-compare job after all test jobs
+
+command_evidence:
+  - command: 'python -m unittest discover -s <tests_dir>'
+    python: "3.11.10"
+    result: "PASS 207/207"
+  - command: 'python -m unittest discover -s <tests_dir>'
+    python: "3.13.3"
+    result: "PASS 207/207"
