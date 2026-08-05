@@ -1,0 +1,71 @@
+name: BrainOps E49 exact-head crash and release-evidence gate
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e49.yml"
+  push:
+    branches:
+      - "codex/brainops-crash-complete-stage-journal-release-evidence-0045-e49"
+
+jobs:
+  e49:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Assert exact checkout
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.ci_identity "$EXPECTED_HEAD"
+      - name: Run full synthetic regression
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE
+        run: python -m unittest discover -s tests -p "test_*.py" -q
+      - name: Validate E49 workflow policy
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.e49_workflow_policy --workflow .github/workflows/brainops-e49.yml
+      - name: Prepare external evidence directory
+        run: |
+          echo "E49_EVIDENCE_DIR=$RUNNER_TEMP/e49-${{ github.run_id }}-${{ matrix.python-version }}" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/e49-${{ github.run_id }}-${{ matrix.python-version }}"
+      - name: Generate in-job provider observation
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          printf '{"provider_source":"IN_JOB_POLICY_AND_CURRENT_JOB_OBSERVATION_ONLY","tested_head":"%s","job_python_version":"%s"}\n' "$EXPECTED_HEAD" "${{ matrix.python-version }}" > "$E49_EVIDENCE_DIR/e49-provider-pre-evidence.json"
+      - name: Validate pre-review evidence boundary
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.release_verifier \
+              --repository-root . \
+              --provider-evidence "$E49_EVIDENCE_DIR/e49-provider-pre-evidence.json" \
+              --tested-head "$EXPECTED_HEAD" \
+              --mode pre_review \
+              --output "$E49_EVIDENCE_DIR/e49-pre-review.json"
+      - name: Run active E49 mutation harness
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.e49_mutation_harness \
+              --program-root coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE \
+              --output "$E49_EVIDENCE_DIR/e49-mutation-evidence.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e49-release-evidence-${{ matrix.python-version }}
+          path: ${{ runner.temp }}/e49-${{ github.run_id }}-${{ matrix.python-version }}
