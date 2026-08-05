@@ -1,0 +1,43 @@
+name: BrainOps E43 terminal attestation contracts
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e43.yml"
+  push:
+    branches:
+      - "codex/brainops-terminal-attestation-recovery-freshness-0039-e43"
+
+jobs:
+  exact-head-contracts:
+    name: Python ${{ matrix.python-version }} exact-head contracts
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify checked-out pull-request head
+        shell: bash
+        run: |
+          expected="${{ github.event.pull_request.head.sha || github.sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected"
+          printf 'verified_head=%s\n' "$actual"
+      - name: Compile E43 contracts
+        run: >-
+          python -m py_compile
+          coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/*.py
+      - name: Run E43 synthetic tests
+        run: >-
+          python -m unittest discover
+          -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests
+          -p "test_e43_*.py" -v
