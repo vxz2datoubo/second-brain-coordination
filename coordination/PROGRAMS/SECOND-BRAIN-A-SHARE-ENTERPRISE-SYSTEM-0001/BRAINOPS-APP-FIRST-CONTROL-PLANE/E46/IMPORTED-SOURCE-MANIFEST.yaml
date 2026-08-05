@@ -1,0 +1,61 @@
+schema_version: "1.0"
+task_id: CODEX-BRAINOPS-MANDATORY-EXECUTION-LEASE-ATTESTED-TERMINAL-MUTATION-CLOSURE-0042-E46
+agent_id: CODEX
+import_mode: SELECTED_PATH_AND_BLOB_ONLY
+whole_merge: false
+cherry_pick: false
+source:
+  pull_request: 142
+  tested_head: a4fb916d8e0d56cee9085e5e38a04d49175c2218
+  receipt_head: cbb2d964a8dd91f4b9c9754e7af62469637a6d79
+  source_frozen: true
+selected_blobs:
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/.gitignore
+    blob_sha1: 43ae0e2a6c6d8fca34872506ca0f2e64194fec7c
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/__init__.py
+    blob_sha1: 9bddf554f5613dba9841a9f70b6799ce5f1076a2
+    disposition: MODIFY_FOR_E46_EXPORTS
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/ci_identity.py
+    blob_sha1: 83023f45d293146f640ad6f7d62912815856ca07
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/durable_authority.py
+    blob_sha1: 0a1d87e86d53c3d45915591a3f8ee62666b04080
+    disposition: MODIFY_FAIL_CLOSED_AND_ADD_ATTESTED_BOUNDARIES
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/durable_challenge.py
+    blob_sha1: 7457c01998c3cae31209deb7e696507797cf69e1
+    disposition: MODIFY_REJECT_NULL_INVOCATION_AND_LEGACY_TERMINAL
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/execution_evidence.py
+    blob_sha1: 1d5270928c1c053c3a6156483b17213c75c3c78e
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_contents_cas.py
+    blob_sha1: 23285861c4e0d4eb5bb811ce2ba4f0cfd5c6651b
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_transport.py
+    blob_sha1: 125b55a624705a0d1ea8bb1d2486e4f6fb01f02b
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/models.py
+    blob_sha1: 32577f059aca022271de28478c1b208808451427
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/proofs.py
+    blob_sha1: c90d15bfa97a52671d2f51d57870c3337fa6f79e
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/route_terminalization.py
+    blob_sha1: 8caed9f4f4ec0fa10374f749c4b5d9dfa06874b7
+    disposition: REUSE
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/terminal_attestation.py
+    blob_sha1: c431469605ace10836aad823f4a8303b8fff578f
+    disposition: MODIFY_REQUIRE_DURABLE_TERMINAL_COMMIT_RECEIPT
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e44_durable_challenge.py
+    blob_sha1: d3c78bb8c56b3ecdebdafb15637b9164fa1ac01f
+    disposition: MODIFY_FOR_FAIL_CLOSED_REGRESSION_EXPECTATIONS
+  - path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/tests/test_e45_attested_witness_enforcement.py
+    blob_sha1: 13bd045da0eee0cdd93efb72ab18b149b4b95c6f
+    disposition: MODIFY_FOR_NONEMPTY_INVOCATION_REGRESSION
+excluded_source_paths:
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/E45/**
+  - .github/workflows/brainops-e45.yml
+exclusion_reason: >-
+  E45 plans, status, receipts, handoff, and workflow remain frozen historical
+  evidence. E46 creates its own route-scoped evidence and CI without reviving
+  PR 142.
