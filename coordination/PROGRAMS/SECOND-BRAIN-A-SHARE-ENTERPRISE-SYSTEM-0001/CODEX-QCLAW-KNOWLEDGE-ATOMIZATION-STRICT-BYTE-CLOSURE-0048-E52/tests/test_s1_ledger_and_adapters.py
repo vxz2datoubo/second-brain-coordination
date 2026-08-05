@@ -46,9 +46,10 @@ class TestSixFormatAdapters(unittest.TestCase):
         return result
 
     def test_txt_and_markdown_keep_terminators(self):
+        expected_label = {"txt": "txt_terminator", "markdown": "markdown_terminator"}
         for format_name in ("txt", "markdown"):
             result = self.assert_exact_partition(b"one\r\n\r\ntwo\n", format_name)
-            self.assertTrue(any(span.label == "line_terminator" for span in result.ledger.spans()))
+            self.assertTrue(any(span.label == expected_label[format_name] for span in result.ledger.spans()))
 
     def test_json_valid_is_partitioned_and_trailing_is_unknown(self):
         valid = self.assert_exact_partition(b'{"a":"x\\u4e2d","b":true}', "json")

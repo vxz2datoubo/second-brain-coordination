@@ -5,7 +5,7 @@ This namespace is independent from the frozen E40 candidate namespace.
 
 from .index import ByteTruthIndex, Chunk, LineRecord, ScannerProgressError
 from .redaction import RedactionCategory, RedactionMapping, RedactionResult, redact
-from .semantics import Atom, AtomClassification, CanonicalPacket, Relation, RelationEvidence, RelationEvidenceType
+from .semantics import Atom, AtomClassification, CanonicalPacket, Relation, RelationEvidence, RelationEvidenceType, RelationType
 
 __all__ = [
     "ByteTruthIndex",
@@ -22,4 +22,5 @@ __all__ = [
     "Relation",
     "RelationEvidence",
     "RelationEvidenceType",
+    "RelationType",
 ]

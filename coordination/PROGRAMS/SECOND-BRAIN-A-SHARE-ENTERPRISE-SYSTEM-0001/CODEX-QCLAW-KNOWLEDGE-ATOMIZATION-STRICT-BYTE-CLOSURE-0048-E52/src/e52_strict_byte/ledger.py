@@ -28,22 +28,29 @@ class OwnershipSpan:
 class FinalizedLedger:
     """Immutable, sorted byte ownership partition."""
 
-    __slots__ = ("_total_bytes", "_spans", "_manifest")
+    __slots__ = ("_total_bytes", "_spans", "_manifest", "_frozen")
 
     def __init__(self, total_bytes: int, spans: tuple[OwnershipSpan, ...]):
-        self._total_bytes = total_bytes
-        self._spans = spans
+        object.__setattr__(self, "_frozen", False)
+        object.__setattr__(self, "_total_bytes", int(total_bytes))
+        object.__setattr__(self, "_spans", tuple(spans))
         counts: dict[str, int] = {owner.value: 0 for owner in Owner}
         for span in spans:
             counts[span.owner.value] += span.byte_end - span.byte_start
-        self._manifest = MappingProxyType(
+        object.__setattr__(self, "_manifest", MappingProxyType(
             {
                 "total_bytes": total_bytes,
                 "span_count": len(spans),
                 "owner_bytes": MappingProxyType(counts),
                 "finalized": True,
             }
-        )
+        ))
+        object.__setattr__(self, "_frozen", True)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if getattr(self, "_frozen", False):
+            raise AttributeError(f"FinalizedLedger is immutable: {name}")
+        object.__setattr__(self, name, value)
 
     @property
     def total_bytes(self) -> int:
