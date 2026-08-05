@@ -1,9 +1,9 @@
-schema_version: "74.0"
+schema_version: "75.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E54_CORRECTION_READY_QCLAW_E41_KNOWLEDGE_DIGESTION_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E54_CORRECTION_READY_QCLAW_E42_SEMANTIC_AUTHORITY_CORRECTION_READY_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-06T05:48:00+08:00"
+updated_at: "2026-08-06T06:28:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -12,12 +12,15 @@ permanent_command_semantics:
 permanent_governance:
   model_selection_owner: "USER_ONLY"
   model_config_rule: "Agents may not read or modify model/provider/reasoning/default/thread/subagent/workspace/session/private configuration."
-  task_separation_rule: "Codex E54 owns low-level source-bound authority repair; QCLAW E41 owns semantic knowledge digestion, learning governance and evaluation. Overlap is recorded and deferred to GPT."
-  source_truth_rule: "Canonical authority requires exact source bytes, legal spans, deep immutable manifests, deterministic IDs and fully recomputed object graphs."
-  knowledge_digestion_rule: "Faithful extraction precedes interpretation; fact, claim, evidence, inference, hypothesis and value judgment remain distinct."
-  contradiction_rule: "Conflicting claims retain provenance and are classified by time, scope, definition or probable error; silent overwrite is forbidden."
-  skill_promotion_rule: "Candidate skills require reproducible tests, counterexamples, scope and failure conditions before formal promotion."
-  provider_authority_rule: "Exact-head Provider green proves only the submitted implementation and tests; independent invariant review remains mandatory."
+  task_separation_rule: "Codex E54 owns low-level source-bound authority repair. QCLAW E42 owns its semantic authority, exact traceability, master-record governance, skill evidence, corpus evaluator and E42-specific mutations/Provider/receipt. Cross-branch edits are forbidden."
+  source_truth_rule: "Canonical authority requires exact immutable source records, legal spans, deterministic IDs and complete recomputation."
+  knowledge_authority_rule: "Confidence, verification, evidence layer, cognition quality, memory route and skill state are evaluator-derived, not caller-authored authority labels."
+  knowledge_digestion_rule: "Faithful extraction preserves original offsets and source identity before interpretation or normalization."
+  contradiction_rule: "Stable semantic object identity is separate from version content; conflicts retain evidence and silent overwrite is rejected on every transition."
+  skill_promotion_rule: "Promotion derives from concrete test receipts, distinct cases, counterexamples, scope, failure conditions and rollback evidence."
+  corpus_rule: "Ground truth is schema-consistent, included in corpus identity and executed end-to-end against the real evaluator."
+  mutation_rule: "Claimed mutations modify copied actual production source, force nonzero mutant failure and prove restored green state."
+  provider_authority_rule: "Exact-head Provider runs, jobs, artifacts and byte comparison are required before tested or receipt authority; independent GPT review remains mandatory."
   receipt_rule: "A final receipt branch cannot receive correction commits; defects require a fresh clean successor route."
   trade_rule: "No accounts, orders, positions, funds, market data or real trades."
 
@@ -42,24 +45,24 @@ agents:
     role_boundary: "LOW_LEVEL_SOURCE_BOUND_AUTHORITY_FORMAT_OWNERSHIP_MUTATION_PROVIDER_RECEIPT"
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
-    active_issue: 175
+    active_issue: 177
     active_pull_request: null
-    task_id: "QCLAW-KNOWLEDGE-DIGESTION-ATOMIC-LEARNING-SYSTEM-TAXONOMY-EVIDENCE-CONTRADICTION-SKILL-PROMOTION-AND-EVALUATION-CORPUS-0022-E41"
-    route_epoch: 41
+    task_id: "QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-TRACEABILITY-MASTER-RECORD-SKILL-EVIDENCE-CORPUS-EVALUATOR-AND-PROVIDER-CLOSURE-0023-E42"
+    route_epoch: 42
     mode: "project_plan"
-    mode_label: "【QCLAW模式：项目计划模式】E41 原子级知识消化与学习系统"
-    status: "READY_ATOMIC_KNOWLEDGE_DIGESTION_E41"
+    mode_label: "【QCLAW模式：项目计划模式】E42 语义权威、精确溯源、技能证据与 Provider 修复"
+    status: "RETURNED_FOR_CLEAN_E42_SEMANTIC_AUTHORITY_CORRECTION"
     execution_allowed: true
     automatic_resume: true
     second_user_start_command_required: false
-    planned_branch: "qclaw/knowledge-digestion-atomic-learning-system-0022-e41"
-    completion_signal: "QCLAW_E41_ATOMIC_KNOWLEDGE_DIGESTION_LEARNING_EVALUATION_READY_FOR_GPT_REVIEW"
+    planned_branch: "qclaw/e41-post-receipt-semantic-authority-repair-0023-e42"
+    completion_signal: "QCLAW_E42_SEMANTIC_AUTHORITY_TRACEABILITY_EVALUATOR_PROVIDER_CLOSURE_READY_FOR_GPT_REVIEW"
     completion_credit: false
     provider_authority_credit: false
     receipt_authority_credit: false
     merge_authorized: false
-    role_boundary: "SEMANTIC_KNOWLEDGE_DIGESTION_CONTRADICTION_VERSION_COGNITION_SKILL_PROMOTION_EVALUATION"
-    overlap_rule: "Do not modify Codex E54 or frozen E40 paths; publish BOUNDARY_CONFLICT for GPT arbitration."
+    role_boundary: "SEMANTIC_AUTHORITY_EXACT_TRACEABILITY_MASTER_RECORD_COGNITION_SKILL_CORPUS_EVALUATOR_E42_MUTATION_PROVIDER_RECEIPT"
+    overlap_rule: "Do not modify Codex E54 or frozen QCLAW predecessor paths; publish BOUNDARY_CONFLICT for GPT arbitration."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -68,6 +71,23 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 source_routes:
+  QCLAW_E41:
+    issue: 175
+    pull_request: 176
+    base_sha: "8c1a352900d590fa18a239e2b0b26b0d826e15de"
+    plan_sha: "dcd7056c1ef4484c7c4071be3ce18d2727b0a226"
+    claimed_tested_sha: "72d61f974d2318af5d10563707063087b15a3964"
+    frozen_head: "24eed791e2e1aa0de1941741cadf0fdfb1d029dd"
+    status: "FROZEN_PROVIDERLESS_SEMANTIC_SCAFFOLD_REJECTED_AS_FINAL"
+    execution_allowed: false
+    completion_credit: false
+    provider_authority_credit: false
+    receipt_authority_credit: false
+    further_commit_forbidden: true
+    whole_branch_integration_forbidden: true
+    exact_path_blob_content_selection_only: true
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E41-INDEPENDENT-AUDIT-RETURN-TO-E42.yaml"
+    review_commit: "d6fc809ffad15cd1e89ca40ed6283e77177e25a4"
   QCLAW_E40:
     issue: 164
     pull_request: 165
@@ -77,7 +97,6 @@ source_routes:
     further_commit_forbidden: true
     whole_branch_integration_forbidden: true
     review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E40-FROZEN-HEAD-REVALIDATION-2026-08-06.yaml"
-    review_commit: "7097491245af7f436d76b58887791117733f3785"
   CODEX_E53:
     issue: 168
     pull_request: 169
@@ -94,6 +113,23 @@ source_routes:
     status: "FROZEN_REVIEWED_PARTIAL_CANDIDATE"
     execution_allowed: false
 
+review_summary:
+  QCLAW_E41:
+    disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_NO_PROVIDER_NO_RECEIPT_NO_MERGE"
+    accepted:
+      - "Strict one-file plan-only direct child of canonical main."
+      - "Draft open unmerged PR with no E40/E54 path edits."
+      - "Useful semantic enum/scaffold and local-test direction."
+      - "Receipt is a direct child of the claimed tested head and changes three evidence files only."
+    blockers:
+      - "Caller-forgeable Atom, confidence, verification, cognition, memory and skill authority."
+      - "Lossy stripped source spans and mutable nested aliases."
+      - "Content-derived duplicate masters and unsupported contradiction heuristics."
+      - "Corpus AtomType/evidence-layer inconsistency and ground truth absent from digest."
+      - "Ordinary tests mislabeled as copied-production mutations, including forbidden shallow tests."
+      - "No E41 tested-head or receipt-head Provider matrix/artifacts."
+      - "Premature receipt and incomplete final report."
+
 parallel_controls:
   shared_main_at_claim: "Each agent independently verifies exact latest origin/main before its plan-only branch."
   cross_branch_edits_forbidden: true
@@ -107,9 +143,10 @@ next_commands:
   WORKBUDDY: "DO_NOT_EXECUTE"
 
 frozen:
+  - "Issue #175 / PR #176 QCLAW E41 are frozen at 24eed791e2e1aa0de1941741cadf0fdfb1d029dd."
   - "Issue #164 / PR #165 QCLAW E40 remain frozen at e58b39fcabbe9dae4f75a6570c86a88754176766."
   - "Issue #168 / PR #169 E53 remain frozen at 95f3d4b9e2149c5bce4e22d94755900335ae75d1."
   - "Issue #166 / PR #167 E52 remain frozen at 62f12f563797c643714fe0ad40e3e9ea5291693d."
   - "No merge, main implementation write, private-config access, credentials, market data or trading."
 
-boundary: "CODEX_E54_AND_QCLAW_E41_PARALLEL_READY / DISTINCT_SCOPES / FROZEN_PREDECESSORS / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+boundary: "CODEX_E54_AND_QCLAW_E42_PARALLEL_READY / DISTINCT_SCOPES / E41_FROZEN / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
