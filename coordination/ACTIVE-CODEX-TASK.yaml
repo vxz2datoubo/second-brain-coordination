@@ -1,9 +1,8 @@
-schema_version: "61.0"
+schema_version: "62.0"
 repository: "vxz2datoubo/second-brain-coordination"
-canonical_remote_url: "https://github.com/vxz2datoubo/second-brain-coordination.git"
 target_agent: "CODEX"
 trigger_phrases: ["读取任务", "执行任务", "开始任务", "读取并执行任务"]
-trigger_semantics: "VERIFY_E52_S3_CHECKPOINT_REVIEW_AND_LIVE_BRANCH_CORRECT_LEDGER_ADAPTER_SEMANTICS_BEFORE_S4_THEN_COMPLETE_PROVIDER_AND_RECEIPT"
+trigger_semantics: "VERIFY_E52_SECOND_S3_REVIEW_AND_CORRECT_SOURCE_ATOM_LEDGER_PACKET_PROVENANCE_BEFORE_S4"
 
 active_issue: 166
 active_pull_request: 167
@@ -11,47 +10,49 @@ parent_program: 31
 task_id: "CODEX-QCLAW-E40-TAKEOVER-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-CLOSURE-0048-E52"
 route_epoch: 54
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E52 S3 审查退回修正"
-status: "RETURNED_FOR_CORRECTION_AT_S3"
+mode_label: "【Codex模式：项目计划模式】E52 S3 第二次审查退回：来源与 packet 证据绑定"
+status: "RETURNED_FOR_SECOND_CORRECTION_AT_S3"
 execution_allowed: true
 automatic_dispatch_allowed: false
 automatic_resume: false
 direct_main_write: false
 auto_merge: false
-blocked_by: []
+merge_authorized: false
 branch: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
 base_head: "3d15f0c62877db5841b985f740e9bc348f65ddc5"
-reviewed_head: "d46464e830279a265c7f95ba37f4e188e09b0c94"
-reported_plan_head_requires_correction: "875a728b739af4b1b976b4cab08b28fe6c9a8e14"
+plan_head: "875a7281b21dbb74dc9021b3ad159d05cdd2eb08"
+prior_reviewed_head: "d46464e830279a265c7f95ba37f4e188e09b0c94"
+reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
 completion_signal: "CODEX_E52_QCLAW_E40_TAKEOVER_STRICT_BYTE_PROVIDER_CLOSURE_READY_FOR_GPT_REVIEW"
 completion_credit: false
 provider_ci_credit: false
 receipt_authority_credit: false
-merge_authorized: false
 
-checkpoint_review:
-  disposition: "RETURNED_FOR_CORRECTION_AT_S3_NO_COMPLETION_CREDIT"
-  record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E52-S3-CHECKPOINT-INDEPENDENT-REVIEW.yaml"
-  commit: "45198116acc64e0279fe1f59158859dc53c2187f"
-  accepted_credit:
-    - "Fresh descendant branch and Draft PR."
-    - "Exact E40 source/blob inventory and isolated untrusted candidate."
-    - "Improved S0 boundary APIs and genuine copied-production 0xED mutation/reap proof."
-    - "Exact-coverage ledger direction, no production safe-example bypass, CLAIM-only extraction and full-content packet serialization direction."
-    - "Thirty local synthetic tests receive checkpoint direction credit only."
+second_checkpoint_review:
+  disposition: "RETURNED_FOR_SECOND_CORRECTION_AT_S3_NO_S4_AUTHORITY"
+  record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E52-S3-CORRECTION-INDEPENDENT-REVIEW.yaml"
+  commit: "9c0cc3105e5c6db6f7dba2b18d8a4b7b698edbb2"
+  accepted:
+    - "Correct plan identity and one-file plan topology."
+    - "Immutable FinalizedLedger under ordinary assignment/item/alias mutation."
+    - "Format-specific TXT/Markdown roles and structural JSON keys."
+    - "Deep-frozen ordinary Atom/Packet aliases."
+    - "Field-specific schemas/defaults/UNKNOWN reasons."
+    - "Source-digest and UTF-8-boundary recomputation in extract_claim and relation builders."
+    - "Exact relation evidence bytes and endpoint registry checks."
+    - "Basic packet validate/finalize gate."
+    - "Forty-one local tests receive checkpoint direction credit only."
 
 mandatory_corrections_before_s4:
-  - "Re-derive exact live first plan commit SHA and prove base-to-plan is one commit adding only PROJECT-PLAN.md; correct TaskLeaseClaim and STATUS identities."
-  - "Add .gitignore and product gate rejecting __pycache__, *.pyc and generated files from E52 commits and artifacts."
-  - "Make FinalizedLedger private state immutable and test direct assignment, item mutation and alias mutation."
-  - "Implement format-specific TXT/Markdown ownership for headings, code fences/bodies, lists, tables, blockquotes, blank separators and terminators."
-  - "Separate JSON key identity from atom-eligible value strings and preserve quote/escape/punctuation byte roles."
-  - "Deep-freeze or canonical-copy Atom and CanonicalPacket nested mappings and sequences; caller aliases must not change canonical bytes or packet_id."
-  - "Give all seven atom fields declared value schemas, field-specific default/source rules and evidence spans or field-specific unknown reasons."
-  - "Recompute source SHA-256 inside atom/relation builders and validate every span against exact source length and legal UTF-8 boundaries."
-  - "Use an enum relation type bound to evidence type; verify exact evidence bytes, digest and both endpoint atoms in one registry."
-  - "Add packet finalization gate validating nonempty identity/config, coverage consistency, all atom/relation identities, redaction lineage and validator results."
-  - "After corrections only, implement S4 production-source mutations, S5 exact-head six-artifact Provider CI and S6 strict receipt."
+  - "Remove the public provenance bypass: canonical Atom creation must be factory-controlled or bound to immutable SourceEvidence."
+  - "Recompute atom text, evidence digest and deterministic atom_id from exact source bytes; reject unverifiable manual Atom construction."
+  - "Packet finalization must bind exact immutable source evidence, not a caller-authored source_identity mapping."
+  - "Packet coverage must be produced from a finalized ledger and recompute owner totals, spans and coverage digest."
+  - "EXTRACTED semantic field values must be recomputed from evidence bytes and a deterministic field rule; otherwise remain field-specific UNKNOWN."
+  - "Relations may use only verified finalized atoms from the same source registry."
+  - "Add base-to-head commit-range hygiene validation; record the historical pyc checkpoint as quarantined and require clean selective integration for any future merge candidate."
+  - "Reject NaN, infinities and other non-deterministic/non-standard canonical JSON values."
+  - "Only after these corrections may S4 production mutations begin."
 
 source_qclaw_e40:
   issue: 164
@@ -60,7 +61,6 @@ source_qclaw_e40:
   status: "PARTIAL_CANDIDATE_FROZEN"
   source_branch_write_forbidden: true
   whole_branch_merge_or_cherry_pick_forbidden: true
-  selected_path_or_blob_import_only: true
 
 repository_scope:
   allowed_paths:
@@ -69,43 +69,27 @@ repository_scope:
   task_branch_only: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
   sole_draft_pr_required: true
 
-ci_contract:
-  workflow: ".github/workflows/codex-e52-qclaw-strict-byte-closure.yml"
-  run_while_draft: true
-  exact_event_head_assertion: true
-  python_versions: ["3.11", "3.13"]
-  hash_seeds: ["0", "1", "777"]
-  expected_matrix_jobs: 6
-  canonical_artifact_per_job: true
-  environment_evidence_per_job: true
-  if_no_files_found: "error"
-  exact_artifact_count_gate: true
-  independent_byte_compare_required: true
-  tested_head_success_required: true
-  receipt_head_success_required: true
-
-operator_model_advisory:
-  recommendation_level: "HIGH"
-  recommended_model_or_picker_label: "highest suitable model visible to the user"
-  recommended_reasoning_level: "high or highest"
-  user_action_required: "USER_MANUALLY_SELECTS_OR_KEEPS_CURRENT_SETTING"
-  agent_setting_mutation_forbidden: true
+phase_authority:
+  S3_second_correction: true
+  S4_product_mutations: false
+  S5_provider_ci: false
+  S6_receipt: false
 
 hard_boundaries:
   - "ENGINEERING_AND_SYNTHETIC_PUBLIC_SAFE_FIXTURES_ONLY."
-  - "No QCLAW E40 branch write, merge, rebase, force-push or whole-branch cherry-pick."
+  - "No QCLAW branch mutation, merge, rebase, force-push or whole-branch cherry-pick."
   - "No model/provider/reasoning/default/thread/subagent/workspace/session/private-config access or mutation."
-  - "No real secrets, credentials, accounts, orders, positions, funds, market data or trading."
-  - "No WorkBuddy route mutation, repository setting change, direct main write or merge."
+  - "No credentials, accounts, orders, positions, funds, market data or trading."
+  - "No direct main write by agent, repository setting change or merge."
 
 command_execution_contract:
-  on_trigger: "VERIFY_ISSUE_166_PR_167_REVIEW_COMMIT_4519811_AND_LIVE_BRANCH_THEN_CORRECT_S1_S3_BEFORE_S4"
+  on_trigger: "VERIFY_REVIEW_9C0CC31_AND_HEAD_62F12F5_THEN_CORRECT_SOURCE_ATOM_LEDGER_PACKET_BINDING_BEFORE_S4"
   second_user_start_command_required: false
   read_only_acknowledgement_forbidden: true
   minimum_progress_before_return: >-
-    Verify the GPT checkpoint review and current live PR head; resolve the real plan commit identity; add generated-file rejection; add failing tests for FinalizedLedger mutation, Markdown/TXT structures, JSON key atom eligibility, nested alias mutation, source digest/span verification, relation evidence binding and packet finalization; then repair them before beginning S4.
-  after_completion: "STOP_AND_REQUEST_GPT_INDEPENDENT_REVIEW"
+    Publish a correction checkpoint that demonstrates a forged manual Atom and caller-authored packet identity fail; bind packet finalization to exact SourceEvidence and FinalizedLedger; bind field extraction and relations to verified source slices; add commit-range hygiene and deterministic JSON-domain gates.
+  after_correction: "STOP_AND_REQUEST_GPT_REVIEW_BEFORE_S4"
 
 updated_by: "GPT"
-updated_at: "2026-08-05T10:19:00+08:00"
-boundary: "CODEX_E52_RETURNED_AT_S3 / USER_RETRIGGER_REQUIRED / NO_COMPLETION_CREDIT / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+updated_at: "2026-08-05T11:43:00+08:00"
+boundary: "E52_S3_SECOND_RETURN / NO_S4 / NO_PROVIDER_CREDIT / NO_RECEIPT / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
