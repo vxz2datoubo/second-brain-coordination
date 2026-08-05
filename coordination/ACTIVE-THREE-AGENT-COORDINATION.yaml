@@ -1,43 +1,52 @@
-schema_version: "71.0"
+schema_version: "72.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E52_SECOND_RETURN_AT_S3_USER_RETRIGGER_REQUIRED_QCLAW_E40_FROZEN_WORKBUDDY_PAUSED"
+status: "CODEX_E53_NIGHT_READY_E52_FROZEN_QCLAW_E40_FROZEN_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-05T11:43:00+08:00"
+updated_at: "2026-08-06T00:30:00+08:00"
+
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
-  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_ONLY_WHEN_ROUTE_READY_OR_RETURNED_FOR_CORRECTION", second_start_command_required: false}
+  agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_CURRENT_READY_ROUTE", second_start_command_required: false}
+
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  source_truth_rule: "Canonical atoms and packets must bind recomputable exact source bytes, legal spans, deterministic IDs and finalized ownership ledgers."
+  model_config_rule: "Agents may not read or modify model/provider/reasoning/default/thread/subagent/workspace/session/private configuration."
+  source_truth_rule: "Canonical atoms and packets bind recomputable exact source bytes, legal spans, deterministic IDs and finalized ownership ledgers."
   factory_rule: "Public constructors may not bypass source-bound factory validation."
   field_evidence_rule: "EXTRACTED values are recomputed from exact source bytes and deterministic rules; unsupported interpretation stays UNKNOWN."
   exact_coverage_rule: "Packet coverage is generated from FinalizedLedger and recomputes totals, spans and coverage digest."
-  canonical_json_rule: "Canonical evidence excludes NaN, infinities and non-standard values."
-  generated_file_rule: "Current tree and commit range are scanned; historical generated checkpoints are quarantined from clean integration."
-  provider_authority_rule: "Local reports are not final authority; exact-head Provider runs, artifacts and GPT review are required."
-  receipt_rule: "Receipt is one final evidence-only commit after tested-head Provider success."
+  canonical_json_rule: "Canonical evidence excludes NaN, infinities, environment data and non-standard values."
+  generated_file_rule: "Current tree and commit range are scanned; contaminated predecessor checkpoints are quarantined from clean integration."
+  mutation_rule: "Mutations modify actual copied production source, force the intended product gate nonzero and prove restored green state."
+  provider_authority_rule: "Local reports are not final authority; exact-head Provider runs, jobs, artifacts, logs and GPT review are required."
+  receipt_rule: "Receipt is one final evidence-only commit after tested-head Provider success and is followed only by receipt-head Provider verification, not another commit."
+  long_run_rule: "Long tasks use substantive work packages; artificial sleep or idle padding is forbidden."
   trade_rule: "No accounts, orders, positions, funds, market data or real trades."
+
 agents:
   CODEX:
-    active_issue: 166
-    active_pull_request: 167
-    task_id: "CODEX-QCLAW-E40-TAKEOVER-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-CLOSURE-0048-E52"
-    route_epoch: 54
+    active_issue: 168
+    active_pull_request: null
+    task_id: "CODEX-NIGHT-CLEAN-SOURCE-BOUND-ATOMIZATION-AUTHORITY-ADVERSARIAL-PROVIDER-AND-RECEIPT-CLOSURE-0049-E53"
+    route_epoch: 55
     mode: "project_plan"
-    status: "RETURNED_FOR_SECOND_CORRECTION_AT_S3"
+    mode_label: "【Codex模式：项目计划模式】E53 夜间长跑工程任务"
+    status: "READY_NIGHT_AUTONOMOUS_ENGINEERING"
     execution_allowed: true
-    automatic_resume: false
-    branch: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
-    base_head: "3d15f0c62877db5841b985f740e9bc348f65ddc5"
-    plan_head: "875a7281b21dbb74dc9021b3ad159d05cdd2eb08"
-    reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
-    review_commit: "9c0cc3105e5c6db6f7dba2b18d8a4b7b698edbb2"
+    automatic_resume_within_task: true
+    second_user_start_command_required: false
+    intermediate_gpt_review_required: false
+    planned_branch: "codex/night-clean-atomization-authority-0049-e53"
+    completion_signal: "CODEX_E53_NIGHT_CLEAN_ATOMIZATION_PROVIDER_RECEIPT_CLOSURE_READY_FOR_GPT_REVIEW"
+    intended_substantive_engineering_window: ">=4 hours"
+    artificial_waiting_forbidden: true
     completion_credit: false
     provider_ci_credit: false
     receipt_authority_credit: false
     merge_authorized: false
-    current_action: "On one user trigger, close source/atom/ledger/packet provenance bypasses and stop for GPT review before S4."
+    current_action: >-
+      On one user trigger, claim Issue #168, create a fresh plan-only branch from exact latest main, selectively integrate clean E52 path/blob material, complete source-bound atoms, ledger-bound packets, executable field/relation evidence, commit-range hygiene, adversarial product mutations, exact-head six-matrix Provider artifacts, strict receipt topology and an independently checkable final report. Continue across WP0-WP8 without intermediate user commands unless a hard unauthorized boundary blocks progress.
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 164
@@ -53,25 +62,42 @@ agents:
     execution_allowed: false
     automatic_resume: false
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-review_summary:
-  CODEX_E52_S3_CORRECTION:
-    reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
-    disposition: "RETURNED_FOR_SECOND_CORRECTION_AT_S3_NO_S4_AUTHORITY"
+
+source_routes:
+  CODEX_E52:
+    issue: 166
+    pull_request: 167
+    frozen_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
+    status: "FROZEN_REVIEWED_PARTIAL_CANDIDATE_TRANSFERRED_TO_E53"
+    execution_allowed: false
+    automatic_resume: false
+    whole_branch_integration_forbidden: true
+    exact_path_blob_selection_only: true
     review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E52-S3-CORRECTION-INDEPENDENT-REVIEW.yaml"
-    blockers:
-      - "Manual Atom construction can forge atom_id, text and source linkage."
-      - "Packet source identity and coverage remain caller-authored."
-      - "EXTRACTED field values are not recomputed from evidence bytes."
-      - "Relations inherit forged endpoint risk."
-      - "Commit-range hygiene does not detect historical pyc checkpoint."
-      - "Canonical values allow non-finite floats."
-      - "S4, S5 and S6 remain absent."
+  QCLAW_E40:
+    issue: 164
+    pull_request: 165
+    frozen_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+    status: "FROZEN_PARTIAL_CANDIDATE_TRANSFERRED"
+
+night_task_controls:
+  work_packages: ["WP0", "WP1", "WP2", "WP3", "WP4", "WP5", "WP6", "WP7", "WP8"]
+  visibility_packet_each_boundary: true
+  report_summary_only_forbidden: true
+  architecture_decisions_and_alternatives_required: true
+  commands_tests_mutations_provider_objects_required: true
+  if_early_core_completion: "Continue counterexample search, mutation expansion, determinism, resource cleanup, clean integration and evidence audit."
+  stop_only_on: ["FULL_OBJECTIVE_CLOSURE", "GENUINE_HARD_UNAUTHORIZED_BLOCK"]
+
 frozen:
-  - "QCLAW E40 remains frozen."
+  - "Issue #166 / PR #167 E52 are frozen at 62f12f563797c643714fe0ad40e3e9ea5291693d."
+  - "Issue #164 / PR #165 QCLAW E40 remain frozen at e58b39fcabbe9dae4f75a6570c86a88754176766."
   - "Codex E50/E51 and earlier accepted routes remain frozen."
-  - "No merge, private-config access, credentials or trading."
+  - "No merge, main write, private-config access, credentials, market data or trading."
+
 next_commands:
   CODEX: "读取任务"
   QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
-boundary: "CODEX_E52_SECOND_S3_RETURN / USER_RETRIGGER_REQUIRED / QCLAW_FROZEN / NO_S4 / NO_PROVIDER / NO_RECEIPT / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+
+boundary: "CODEX_E53_NIGHT_READY / E52_AND_QCLAW_FROZEN / USER_ONE_COMMAND / AUTONOMOUS_WP0_WP8 / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
