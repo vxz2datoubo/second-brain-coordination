@@ -1,0 +1,51 @@
+# E37 AI_HANDOFF
+handoff_version: "1.0"
+epoch: "E37"
+task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-TOKENIZER-MUTATION-TESTS-REDACTION-MAPPING-SEMANTIC-PACKET-AND-EXACT-CI-CLOSURE-0018-E37"
+issue: 148
+pr: 149
+branch: "qclaw/knowledge-atomization-byte-tokenizer-mutation-ci-0018-e37"
+tested_head: "55b8a01d156f77df713c3b07aee9f036802d7f8b"
+receipt_head: "b94e0115ce67a7bb6e97a4b9279b46e28c75c435"  # patched after receipt commit is pushed
+classification: "E37_PRE_RECEIPT_VALIDATOR_PASSED_AWAITING_RECEIPT_COMMIT_AND_GPT_REVIEW"
+combined_source_artifact_hash: "ffe4de9cb08407727d7476672a60d84407d75d43db1295d360f56116127d7cf4"
+
+status:
+  tested_head_pushed: true
+  pre_receipt_passed: true  # 9/9
+  receipt_committed: false  # next step
+  signal_sent: false
+  gpt_review: pending
+
+test_summary:
+  total_tests: 156
+  s0_s1: 67   # boundary_table + ledger, per-class verified both 3.11+3.13
+  s2: 44      # adapter + redact
+  s3_s4: 36   # atoms + relations + packet + validators + mutation
+  pre_receipt: 9  # module import, no Planned|TODO, no placeholder, pipeline smoke, redaction, byte boundaries, deterministic IDs, no FACT from vocabulary, no adjacency
+  cross_version: true
+  all_pass: true
+
+modules_delivered:
+  - boundary_table: strict UTF-8 index, CJK/emoji/BOM/CRLF/combining
+  - ledger: ATOM_CANDIDATE/STRUCTURE/UNKNOWN_ERROR exact-once ownership
+  - adapter: markdown/txt/json/jsonl/conversation_structured/conversation_plain byte-level
+  - redact: find/resolve/apply, category priority+longest-match, irreversible
+  - atoms: structurally-driven classification, default CLAIM, no vocabulary FACT
+  - relations: 6 legal types, explicit-link-only, adjacency/type-pairing always empty
+  - packet: full hash coverage (atoms+relations+unknowns+conflicts+redact+lineage)
+  - pre_receipt_validator: 9 product-level checks
+
+known_risks:
+  - S0+S1 discover-mode SIGKILL on Windows PowerShell (env limitation, all classes pass individually)
+  - CI workflow not yet triggered on GitHub runners (requires actual push+branch event)
+  - 3-seed PYTHONHASHSEED byte-for-byte compare not yet confirmed on CI
+
+next_actions:
+  - Push receipt-only commit (TEST-RUN-RECEIPT.md + AI_HANDOFF.yaml + D05-COMMAND-EVIDENCE.yaml)
+  - Send completion signal to PR #149
+  - STOP_AND_REQUEST_GPT_SECOND_PASS
+
+handoff_from: "qclaw/pool-deepseek-v4-pro"
+handoff_to: "GPT (second-pass review)"
+timestamp: "2026-08-04T14:29:00+08:00"

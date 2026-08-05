@@ -1,0 +1,43 @@
+name: QCLAW E37 Byte Tokenizer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["main"]
+  push:
+    branches: ["qclaw/knowledge-atomization-byte-tokenizer-mutation-ci-0018-e37"]
+
+jobs:
+  test-311:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        seed: ["42", "123", "777"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run all E37 tests
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-TOKENIZER-0018-E37/tests -p "test_*.py" -v
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONHASHSEED: ${{ matrix.seed }}
+
+  test-313:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        seed: ["42", "123", "777"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Run all E37 tests
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-BYTE-TOKENIZER-0018-E37/tests -p "test_*.py" -v
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONHASHSEED: ${{ matrix.seed }}
