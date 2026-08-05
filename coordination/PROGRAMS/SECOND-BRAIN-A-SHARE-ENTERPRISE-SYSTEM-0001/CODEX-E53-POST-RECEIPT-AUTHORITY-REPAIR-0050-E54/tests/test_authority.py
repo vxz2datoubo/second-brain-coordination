@@ -17,6 +17,7 @@ from e54_authority import (
     VerifiedAtomRegistry,
     build_ledger,
     scan_commit_range,
+    validate_external_receipt_anchor,
     validate_receipt_fields,
     validate_environment_evidence,
     validate_matrix,
@@ -222,6 +223,48 @@ class HygieneAndTopologyTests(unittest.TestCase):
     def _git(self, directory: Path, *args: str) -> None:
         subprocess.run(["git", "-C", str(directory), *args], check=True, capture_output=True, text=True)
 
+    def _receipt(self, sha: str = "a" * 40) -> dict[str, object]:
+        return {
+            "task_id": "task",
+            "route_epoch": 56,
+            "base_sha": sha,
+            "plan_sha": sha,
+            "tested_sha": sha,
+            "workflow": "workflow.yml",
+            "tested_run_id": 1,
+            "completion_signal": "signal",
+            "external_receipt_binding": {
+                "schema": "external-receipt-head-v1",
+                "issue": 170,
+                "pull_request": 174,
+                "receipt_parent_sha": sha,
+                "required_anchor_fields": [
+                    "schema", "task_id", "route_epoch", "issue", "pull_request", "completion_signal",
+                    "receipt_head_sha", "receipt_tree_sha", "receipt_parent_sha", "receipt_run_id",
+                    "canonical_artifact_ids", "environment_artifact_ids", "compare_artifact_id",
+                    "compare_artifact_sha256",
+                ],
+            },
+        }
+
+    def _anchor(self, *, parent_sha: str = "a" * 40, receipt_sha: str = "b" * 40, tree_sha: str = "c" * 40) -> dict[str, object]:
+        return {
+            "schema": "external-receipt-head-v1",
+            "task_id": "task",
+            "route_epoch": 56,
+            "issue": 170,
+            "pull_request": 174,
+            "completion_signal": "signal",
+            "receipt_head_sha": receipt_sha,
+            "receipt_tree_sha": tree_sha,
+            "receipt_parent_sha": parent_sha,
+            "receipt_run_id": 2,
+            "canonical_artifact_ids": [1, 2, 3, 4, 5, 6],
+            "environment_artifact_ids": [7, 8, 9, 10, 11, 12],
+            "compare_artifact_id": 13,
+            "compare_artifact_sha256": "d" * 64,
+        }
+
     def test_hygiene_sees_generated_file_added_then_deleted(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             repo = Path(temporary)
@@ -262,33 +305,36 @@ class HygieneAndTopologyTests(unittest.TestCase):
 
     def test_receipt_requires_real_identity_shapes_and_binding(self) -> None:
         sha = "a" * 40
-        receipt = {
-            "task_id": "task", "route_epoch": 56, "base_sha": sha, "plan_sha": sha,
-            "tested_sha": sha, "receipt_sha": sha, "workflow": "workflow.yml",
-            "tested_run_id": 1, "receipt_run_id": 2, "completion_signal": "signal",
-            "external_receipt_binding": {"head_sha": sha, "canonical_artifact_ids": [1, 2, 3, 4, 5, 6], "compare_artifact_sha256": "b" * 64},
-        }
-        validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml")
+        receipt = self._receipt(sha)
+        validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml", issue=170, pull_request=174)
 
-    def test_receipt_rejects_placeholder_sha_and_wrong_artifact_count(self) -> None:
-        receipt = {
-            "task_id": "task", "route_epoch": 56, "base_sha": "x", "plan_sha": "a" * 40,
-            "tested_sha": "a" * 40, "receipt_sha": "a" * 40, "workflow": "workflow.yml",
-            "tested_run_id": 1, "receipt_run_id": 2, "completion_signal": "signal",
-            "external_receipt_binding": {"head_sha": "a" * 40, "canonical_artifact_ids": [1], "compare_artifact_sha256": "b" * 64},
-        }
+    def test_receipt_rejects_placeholder_sha_and_self_reference(self) -> None:
+        receipt = self._receipt("a" * 40)
+        receipt["base_sha"] = "x"
+        with self.assertRaises(AuthorityError):
+            validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml")
+        receipt = self._receipt("a" * 40)
+        receipt["receipt_sha"] = "a" * 40
         with self.assertRaises(AuthorityError):
             validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml")
 
-    def test_receipt_rejects_short_sha_even_when_artifacts_are_valid(self) -> None:
-        receipt = {
-            "task_id": "task", "route_epoch": 56, "base_sha": "x", "plan_sha": "a" * 40,
-            "tested_sha": "a" * 40, "receipt_sha": "a" * 40, "workflow": "workflow.yml",
-            "tested_run_id": 1, "receipt_run_id": 2, "completion_signal": "signal",
-            "external_receipt_binding": {"head_sha": "a" * 40, "canonical_artifact_ids": [1, 2, 3, 4, 5, 6], "compare_artifact_sha256": "b" * 64},
-        }
+    def test_receipt_rejects_binding_parent_other_than_tested_head(self) -> None:
+        receipt = self._receipt("a" * 40)
+        receipt["external_receipt_binding"]["receipt_parent_sha"] = "b" * 40
         with self.assertRaises(AuthorityError):
             validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml")
+
+    def test_external_anchor_requires_distinct_six_by_six_artifacts(self) -> None:
+        receipt = self._receipt()
+        anchor = self._anchor()
+        validate_external_receipt_anchor(receipt, anchor)
+        anchor["canonical_artifact_ids"] = [1]
+        with self.assertRaises(AuthorityError):
+            validate_external_receipt_anchor(receipt, anchor)
+        anchor = self._anchor()
+        anchor["environment_artifact_ids"] = [1, 7, 8, 9, 10, 11]
+        with self.assertRaises(AuthorityError):
+            validate_external_receipt_anchor(receipt, anchor)
 
     def test_provider_environment_rejects_changed_head(self) -> None:
         head = "a" * 40
@@ -345,13 +391,8 @@ class HygieneAndTopologyTests(unittest.TestCase):
         self.assertEqual([item["format"] for item in body["fixtures"]], ["json", "jsonl", "markdown"])
 
     def test_receipt_rejects_signal_mismatch(self) -> None:
-        sha = "a" * 40
-        receipt = {
-            "task_id": "task", "route_epoch": 56, "base_sha": sha, "plan_sha": sha,
-            "tested_sha": sha, "receipt_sha": sha, "workflow": "workflow.yml",
-            "tested_run_id": 1, "receipt_run_id": 2, "completion_signal": "wrong",
-            "external_receipt_binding": {"head_sha": sha, "canonical_artifact_ids": [1, 2, 3, 4, 5, 6], "compare_artifact_sha256": "b" * 64},
-        }
+        receipt = self._receipt()
+        receipt["completion_signal"] = "wrong"
         with self.assertRaises(AuthorityError):
             validate_receipt_fields(receipt, task_id="task", completion_signal="signal", workflow="workflow.yml")
 
@@ -368,6 +409,13 @@ class HygieneAndTopologyTests(unittest.TestCase):
             self._git(repo, "add", "receipt.md")
             self._git(repo, "commit", "-m", "receipt")
             receipt = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+            parent = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"{receipt}^"], text=True).strip()
+            tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", f"{receipt}^{{tree}}"], text=True).strip()
+            receipt_body = self._receipt(parent)
+            anchor = self._anchor(parent_sha=parent, receipt_sha=receipt, tree_sha=tree)
+            report = verify_final_receipt(repo, receipt, ["receipt.md"], receipt=receipt_body, external_anchor=anchor)
+            self.assertTrue(report.externally_anchored)
+            self.assertEqual(report.tree_sha, tree)
             (repo / "later.txt").write_text("later", encoding="utf-8")
             self._git(repo, "add", "later.txt")
             self._git(repo, "commit", "-m", "post receipt")

@@ -22,7 +22,7 @@ from .authority import (
     thaw,
 )
 from .hygiene import HygieneReport, HistoryPath, scan_commit_range
-from .topology import ReceiptTopologyReport, validate_receipt_fields, verify_final_receipt
+from .topology import ReceiptTopologyReport, validate_external_receipt_anchor, validate_receipt_fields, verify_final_receipt
 from .provider import validate_environment_evidence, validate_matrix
 from .mutations import MUTATION_SPECS, MutationResult, MutationSpec, run_mutation_matrix
 from .provider_evidence import build_canonical_evidence, build_environment_evidence
