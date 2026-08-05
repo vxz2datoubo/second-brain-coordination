@@ -21,10 +21,12 @@ class TestProductMutations(unittest.TestCase):
         self.assertEqual({item.mutation_id for item in results}, {"MUT-UTF8-STRICT", "MUT-ATOM-LEDGER", "MUT-JSON-NAN"})
         for result in results:
             with self.subTest(result.mutation_id):
-                self.assertEqual(result.replacement_count, 1)
+                self.assertTrue(all(count == 1 for count in result.replacement_counts))
                 self.assertNotEqual(result.original_sha256, result.mutated_sha256)
                 self.assertTrue(result.detected)
                 self.assertFalse(result.killed)
+                self.assertNotEqual(result.mutated_test_exit_code, 0)
+                self.assertEqual(result.restored_test_exit_code, 0)
 
     def test_mutation_harness_restores_copied_sources(self) -> None:
         before = (HERE / "src" / "e53_authority" / "atoms.py").read_bytes()

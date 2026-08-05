@@ -12,14 +12,15 @@ factory plus recomputation from the retained `SourceEvidence` bytes.
 
 | Mutation | Actual copied source | Exact replacement | Bad input | Required observation |
 | --- | --- | --- | --- | --- |
-| `MUT-UTF8-STRICT` | `src/e53_authority/utf8_index.py` | strict UTF-8 decoder -> Latin-1 decoder | isolated byte `0xED` | rejection probe incorrectly exits `0`; mutant is killed |
-| `MUT-ATOM-LEDGER` | `src/e53_authority/atoms.py` | exact candidate-span guard -> `if False` | subspan `0:1` of `alpha\n` | rejection probe incorrectly exits `0`; mutant is killed |
-| `MUT-JSON-NAN` | `src/e53_authority/atoms.py` | finite-float guard -> `if False` | `NaN` canonical value | rejection probe incorrectly exits `0`; mutant is killed |
+| `MUT-UTF8-STRICT` | `src/e53_authority/utf8_index.py` | strict UTF-8 decoder -> Latin-1 decoder | isolated byte `0xED` | copied real product suite exits nonzero; mutant is killed |
+| `MUT-ATOM-LEDGER` | `src/e53_authority/atoms.py` | exact candidate-span guard -> `if False` | subspan `0:1` of `alpha\n` | copied real product suite exits nonzero; mutant is killed |
+| `MUT-JSON-NAN` | `src/e53_authority/packet.py` | validation normalization plus JSON finite guard weakened together | `NaN` canonical value | copied real product suite exits nonzero; mutant is killed |
 
 The harness copies only the E53 source package into a temporary directory,
-checks that each target anchor occurs exactly once, runs each isolated probe,
-restores the copied source and verifies restoration.  No repository code is
-mutated during the test.
+checks that each target anchor occurs exactly once, runs the copied real
+product test suite so the target gate fails nonzero, restores the copied source
+from the original E53 worktree and reruns that suite green.  No repository code
+is mutated during the test.
 
 ## Counterexample corpus
 
