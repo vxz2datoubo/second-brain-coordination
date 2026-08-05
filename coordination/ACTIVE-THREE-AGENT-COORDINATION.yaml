@@ -1,9 +1,9 @@
-schema_version: "68.0"
+schema_version: "69.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E51_ACCEPTED_FROZEN_NO_ACTIVE_EXECUTION_QCLAW_E40_READY_WORKBUDDY_PAUSED"
+status: "CODEX_E52_READY_QCLAW_E40_FROZEN_COMPUTE_EXHAUSTED_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-05T06:12:00+08:00"
+updated_at: "2026-08-05T08:18:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -15,59 +15,55 @@ permanent_governance:
   repository_tree_rule: "Every task branch preserves the canonical base tree; orphan, sparse or replacement trees and out-of-scope deletions fail closed."
   plan_only_rule: "The first task commit changes exactly one plan document."
   frozen_source_rule: "A frozen branch is imported only by selected path/blob with recorded provenance; whole-branch merge/cherry-pick is forbidden."
+  cross_agent_transfer_rule: "A successor agent starts a fresh branch from current main; source code remains untrusted until reproduced, repaired and provider-verified."
   provider_authority_rule: "Executor SUCCESS text is not final evidence; provider run, jobs, logs, artifacts and canonical GPT attestation are required."
   exact_command_rule: "A receipt command is loaded from the frozen manifest and executed without argument substitution."
   raw_stream_rule: "Cross-platform canonical comparison never discards raw stdout/stderr bytes or their hashes."
-  receipt_topology_rule: "Receipt is the sole final evidence-only commit after exact tested-head provider CI."
-  receipt_identity_rule: "No future self-SHA placeholders; an external post-push provider fact binds receipt identity."
-  immutable_index_rule: "Finalized parser/index/ledger collections contain no externally mutable state."
-  parser_mutation_rule: "Mutation proof weakens actual production source and observes forced failure/termination with child cleanup."
-  eof_exclusive_rule: "total_bytes maps to codepoint_count through an explicit legal-boundary API; containing lookup is separate."
+  immutable_index_rule: "Finalized parser/index/ledger collections and private state resist direct, item and alias mutation."
+  parser_mutation_rule: "Mutation proof weakens actual copied production source and observes forced failure/termination with child cleanup."
+  eof_exclusive_rule: "An explicit legal-boundary API maps total_bytes to codepoint_count; containing lookup is a separate contract."
+  line_model_rule: "One canonical line-record model governs content, terminators, blank lines and final terminators without zero-length ownership spans."
   exact_coverage_rule: "Every original byte has exactly one ATOM_CANDIDATE, STRUCTURE or UNKNOWN_ERROR owner."
-  semantic_evidence_rule: "Atom fields and relations require explicit source rules and executable evidence."
-  complete_packet_rule: "Canonical packets serialize complete content, not counts-only summaries."
+  semantic_evidence_rule: "Atom fields and relations require explicit schemas, provenance and executable evidence."
+  complete_packet_rule: "Canonical packets serialize full content, not counts-only or hashes-only summaries."
   executable_validator_rule: "assertTrue(True), import-only, existence-only, documentation-only and print-only gates receive no credit."
-  artifact_rule: "Each declared matrix artifact must be created, uploaded with missing-file failure, and independently compared."
-  secret_rule: "No real credentials, private configuration or secret-derived persistence."
+  artifact_rule: "Each declared matrix job creates a fixed canonical artifact; missing files fail and compare jobs verify exact count and bytes."
+  receipt_topology_rule: "Receipt is the sole final evidence-only commit after exact tested-head provider CI."
+  receipt_identity_rule: "No future self-SHA placeholders; external post-commit provider fact binds receipt identity."
+  secret_rule: "Production redaction has no bypass and no real or secret-derived material is returned or persisted."
   trade_rule: "No accounts, orders, positions, funds or real trades."
 
 agents:
   CODEX:
-    active_issue: 162
-    active_pull_request: 163
-    task_id: "CODEX-BRAINOPS-PROVIDER-OBSERVABLE-WINDOWS-EXACT-COMMAND-INDEPENDENT-VERIFICATION-AND-E50-MERGE-CANDIDATE-CLOSURE-0047-E51"
-    route_epoch: 53
-    mode: "project_plan"
-    status: "REVIEWED_AND_FROZEN_AWAIT_USER_DIRECTION"
-    execution_allowed: false
-    automatic_dispatch_allowed: false
-    automatic_resume: false
-    branch: "codex/brainops-e50-provider-observable-final-verification-0047-e51"
-    tested_head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
-    frozen_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
-    source_e50_receipt_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
-    classification: "E51_PLAN_SCOPE_EXACT_WINDOWS_PROVIDER_EXECUTION_RAW_AND_CANONICAL_STREAM_EVIDENCE_NEGATIVE_CASES_TESTED_AND_RECEIPT_EXACT_CI_AND_ARTIFACTS_ACCEPTED_E50_FINAL_RELEASE_GATE_CLOSED_WITH_NONBLOCKING_GOVERNANCE_FINDINGS"
-    disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR"
-    e50_final_release_gate_credit: true
-    e50_merge_candidate_evidence_credit: true
-    merge_authorized: false
-    current_action: "None. Await explicit user approval for any integration/merge or a separately published new route."
-    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
-  QCLAW:
-    active_issue: 164
-    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-ARTIFACT-CLOSURE-0021-E40"
-    route_epoch: 40
+    active_issue: 166
+    task_id: "CODEX-QCLAW-E40-TAKEOVER-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-CLOSURE-0048-E52"
+    route_epoch: 54
     mode: "project_plan"
     status: "READY"
     execution_allowed: true
+    automatic_dispatch_allowed: false
     automatic_resume: false
-    planned_branch: "qclaw/knowledge-atomization-strict-byte-evidence-closure-0021-e40"
-    source_issue: 156
-    source_pull_request: 157
-    source_frozen_head: "ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4"
-    source_review_commit: "1677cab9f82299372b21792ea86aa52b4df07f84"
-    source_classification: "E39_TREE_SCOPE_SUBPROCESS_UTF8_DIRECTION_LEDGER_ADAPTER_REDACTION_ATOM_RELATION_PACKET_CANDIDATES_AND_LOCAL_207_TESTS_PRESENT_BUT_S0_REAL_MUTATION_IMMUTABILITY_EOF_LINE_MODEL_EXACT_BYTE_OWNERSHIP_PRODUCT_VALIDATORS_REMOTE_ARTIFACT_CI_AND_PLACEHOLDER_FREE_RECEIPT_FAILED"
-    current_action: "Create a fresh E40 plan-only route, selectively import valid E39 candidates, close S0 and exact ownership first, then semantic evidence, validators, real provider artifacts and placeholder-free receipt."
+    planned_branch: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
+    source_issue: 164
+    source_pull_request: 165
+    source_frozen_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+    source_review_commit: "4117ca2f7b2caf0360edfe9321c9f0220aa86384"
+    source_classification: "E40_PLAN_SCOPE_AND_LOCAL_CANDIDATE_CODE_PRESENT_BUT_IMMUTABILITY_REAL_MUTATION_EXACT_OWNERSHIP_REDACTION_SEMANTICS_PRODUCT_VALIDATORS_PROVIDER_CI_AND_RECEIPT_AUTHORITY_NOT_ESTABLISHED"
+    current_action: "Create a fresh E52 plan-only route, reproduce E40 defects, selectively import exact candidate blobs, then close S0, exact ownership, secret safety, semantics, real mutations, provider artifacts and strict receipt."
+    source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
+  QCLAW:
+    active_issue: 164
+    active_pull_request: 165
+    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-ARTIFACT-CLOSURE-0021-E40"
+    route_epoch: 40
+    mode: "project_plan"
+    status: "PAUSED_COMPUTE_EXHAUSTED_TRANSFERRED_TO_CODEX"
+    execution_allowed: false
+    automatic_resume: false
+    branch: "qclaw/knowledge-atomization-strict-byte-evidence-closure-0021-e40"
+    frozen_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+    disposition: "PARTIAL_CANDIDATE_FROZEN_AND_TRANSFERRED_TO_CODEX"
+    current_action: "None. QQ compute is exhausted for today and E40 is frozen."
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
@@ -76,20 +72,23 @@ agents:
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
 review_summary:
+  QCLAW_E40_TRANSFER:
+    issue: 164
+    pull_request: 165
+    base_head: "4ad60d9205e50f5a9525beff5734b543ed828837"
+    plan_head: "6738383e1e724a81da7a2bf8ee3199f933de5fd5"
+    claimed_tested_head: "83a728e2c52f2b3a35d58aafe282b0f084198ae5"
+    frozen_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+    accepted: ["plan/scope", "zero deletions", "candidate modules", "local 105-test direction", "direct receipt shape"]
+    blockers: ["mutable index", "missing boundary mapping", "fake 0xED mutation", "line zero-length risk", "no integrated exact ledger", "JSON/JSONL/conversation ownership gaps", "redaction bypass/secret exposure", "default-only semantics", "arbitrary relations", "counts/hashes packet", "shallow validators", "broken/no provider CI", "placeholder/signal-mismatch receipt"]
+    disposition: "PARTIAL_CANDIDATE_FROZEN_AND_TRANSFERRED_TO_CODEX"
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E40-TRANSFER-TO-CODEX-REVIEW.yaml"
   CODEX_E51_FINAL:
     issue: 162
     pull_request: 163
-    base_head: "bfcb7f65c3f1d862bcd17df2319803000c5c0ec9"
-    plan_head: "73ceb6902a60ff2440cdfba1c94865ec26b73ac7"
-    tested_head: "8853d436bb06dd3bcfb8a36e419cb1470cf3c75e"
-    receipt_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
-    tested_run: 30954673634
-    receipt_run: 30955095735
-    accepted: ["plan/scope", "exact Windows argv execution", "raw and canonical stream evidence", "five negative cases", "tested/receipt exact CI", "provider artifacts", "canonical E51 attestation"]
-    nonblocking_findings: ["post-plan wording correction", "raw CRLF plus LF canonical comparison", "shared Git identity attribution ambiguity", "future E50 schema hardening"]
-    disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR"
+    frozen_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+    disposition: "ACCEPTED_AND_FROZEN_NO_SUCCESSOR_WITHIN_BRAINOPS_LINE"
     review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E51-INDEPENDENT-FINAL-REVIEW.yaml"
-    provider_attestation: "coordination/PROVIDER-ATTESTATIONS/CODEX-E51-POST-RUN-PROVIDER-ATTESTATION.json"
   CODEX_E50_FINAL:
     issue: 160
     pull_request: 161
@@ -97,24 +96,17 @@ review_summary:
     final_release_gate_credit: true
     merge_candidate_evidence_credit: true
     merge_authorized: false
-    disposition: "FROZEN_PROVIDER_OBSERVABLE_GAP_CLOSED_BY_E51"
-  QCLAW_E39_COMPLETE_UPLOAD:
-    issue: 156
-    pull_request: 157
-    frozen_head: "ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4"
-    disposition: "REVIEWED_AND_FROZEN_WITH_E40_SUCCESSOR"
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E39-COMPLETE-UPLOAD-FINAL-REVIEW.yaml"
 
 frozen:
-  - "Issue #162, PR #163 and Codex E51 are frozen at a05e42b8138f7f9215d20e5a72b90384b8e51d0b; no further commit, merge, rebase or force-push without explicit user-approved route."
-  - "Issue #160, PR #161 and Codex E50 remain frozen at 9e87bc2f6e705b65a35b92f09d7e7848abc5768a; its final provider-observable release gate is now closed."
-  - "Issue #156, PR #157 and QCLAW E39 remain frozen at ed5f307fa7fbfd015b21c89b54917faa3fe4cbd4."
-  - "Earlier frozen Codex and QCLAW routes remain frozen."
+  - "Issue #164, PR #165 and QCLAW E40 are frozen at e58b39fcabbe9dae4f75a6570c86a88754176766; no further QCLAW execution or source-branch mutation."
+  - "Issue #162, PR #163 and Codex E51 remain frozen at a05e42b8138f7f9215d20e5a72b90384b8e51d0b."
+  - "Issue #160, PR #161 and Codex E50 remain frozen at 9e87bc2f6e705b65a35b92f09d7e7848abc5768a."
+  - "Earlier frozen routes remain frozen."
   - "No private-config access, live authority, Canary, credentials or production/trading action."
 
 next_commands:
-  CODEX: "DO_NOT_EXECUTE"
-  QCLAW: "读取任务"
+  CODEX: "读取任务"
+  QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
 
-boundary: "CODEX_E51_ACCEPTED_FROZEN / E50_FINAL_RELEASE_GATE_CLOSED / QCLAW_E40_READY / USER_APPROVAL_REQUIRED_FOR_MERGE / NO_LIVE_AUTHORITY / NO_TRADE"
+boundary: "CODEX_E52_READY / QCLAW_E40_FROZEN_COMPUTE_EXHAUSTED / SELECTED_IMPORT_ONLY / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
