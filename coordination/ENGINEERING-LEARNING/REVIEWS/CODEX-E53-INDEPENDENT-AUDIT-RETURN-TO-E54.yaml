@@ -1,0 +1,131 @@
+schema_version: "1.0"
+review_id: "CODEX-E53-INDEPENDENT-AUDIT-RETURN-TO-E54"
+reviewer: "GPT"
+reviewed_at: "2026-08-06T05:06:00+08:00"
+repository: "vxz2datoubo/second-brain-coordination"
+source_issue: 168
+source_pull_request: 169
+source_branch: "codex/night-clean-atomization-authority-0049-e53"
+base_sha: "a1f7146469082a975dce069942ca0965e7771ab3"
+plan_sha: "3566f238e46685d17f23da693e0399a96e1afbe3"
+intermediate_sha: "2ec33f71f9fab3ed2c13da7b83f836c8d489cf5e"
+tested_sha: "0e6b921ef39c11b932fe7f5624db993fcddc80c2"
+receipt_sha: "95f3d4b9e2149c5bce4e22d94755900335ae75d1"
+source_provider_run: 31029691235
+receipt_provider_run: 31030075606
+successor_issue: 170
+successor_task: "CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-FORMAT-OWNERSHIP-MANIFEST-IMMUTABILITY-RELATION-EVIDENCE-MUTATION-COVERAGE-AND-PROVIDER-RECERTIFICATION-0050-E54"
+
+disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_NO_MERGE"
+completion_credit: false
+canonical_authority_credit: false
+provider_execution_evidence_exists: true
+provider_authority_credit: false
+receipt_topology_evidence_exists: true
+receipt_authority_credit: false
+merge_authorized: false
+
+accepted_verified_facts:
+  - "PR #169 is open, Draft and unmerged at receipt head 95f3d4b9e2149c5bce4e22d94755900335ae75d1."
+  - "Plan commit 3566f238e46685d17f23da693e0399a96e1afbe3 is a direct child of base and adds one PROJECT-PLAN.md path."
+  - "Tested-head run 31029691235 and receipt-head run 31030075606 each contain six Python/hash-seed authority jobs plus one compare job, all reported success."
+  - "Exactly six canonical artifacts plus six environment artifacts and one compare artifact exist on the receipt run."
+  - "The executor preserved its first weaker mutation checkpoint and created a separate corrective tested commit instead of rewriting history."
+  - "E53 remains isolated on a Draft PR with no merge, main write, credential, account, market-data or trading authority."
+
+blocking_findings:
+  - id: "E53-CRITICAL-DEEP-MANIFEST-ALIAS"
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    fact: >-
+      FinalizedLedger.finalize stores source_identity as a normal nested dict inside an outer MappingProxyType. A normal caller can mutate ledger.coverage_manifest['source_identity']. FinalizedLedger.verify checks only coverage_sha256 and does not recompute source identity, byte length, span count, owner totals, totality, boundaries or evidence verification.
+    impact: >-
+      Caller-authored nested coverage metadata can remain accepted and can enter a packet canonical body. Packet exposed coverage may diverge from its canonical bytes while packet verification still succeeds.
+    required_fix: "Deep-freeze all nested values and fully recompute the complete manifest and packet projections from exact evidence and spans."
+  - id: "E53-CRITICAL-FORMAT-OWNERSHIP-REGRESSION"
+    severity: "CRITICAL"
+    confidence: "HIGH"
+    fact: >-
+      adapters.py marks the entire JSON document as ATOM_CANDIDATE and every nonblank JSONL line as ATOM_CANDIDATE. Markdown only treats blank lines, headings and literal [REDACTED] as non-atoms; blockquotes, list markers, tables, code fences, code bodies and terminators become atom candidates.
+    impact: "JSON keys and structural syntax can be promoted to canonical atoms; Markdown structural content is misowned."
+    required_fix: "Restore exact format-specific structural/value ownership with byte-complete coverage and adversarial tests/mutations."
+  - id: "E53-HIGH-RELATION-EVIDENCE-DIGEST"
+    severity: "HIGH"
+    confidence: "HIGH"
+    fact: >-
+      TypedRelation.evidence_sha256 is assigned the full SourceEvidence SHA-256 rather than SHA-256 of the exact relation evidence slice. Source identity and evidence identity are conflated.
+    impact: "Relation evidence does not prove the exact bytes identified by relation.start/end."
+    required_fix: "Separate source_sha256 and exact evidence_sha256 and bind both plus exact bytes/span/endpoints/type into relation verification and ID."
+  - id: "E53-HIGH-PACKET-NOT-REBUILT"
+    severity: "HIGH"
+    confidence: "HIGH"
+    fact: >-
+      CanonicalPacketFactory.verify canonicalizes packet.canonical_json and compares packet ID/source/coverage projections, but it does not reconstruct the body from retained verified atoms, relations, unknowns, conflicts, redaction lineage and validation results.
+    impact: "Divergence between the issued graph, exposed projections and canonical bytes is not comprehensively detected."
+    required_fix: "Retain immutable finalized graph/snapshots and rebuild the complete canonical body during verify."
+  - id: "E53-HIGH-HYGIENE-FINAL-DIFF-ONLY"
+    severity: "HIGH"
+    confidence: "HIGH"
+    fact: >-
+      scan_commit_range uses git diff --name-only base..head. It does not enumerate every commit. A generated file added and deleted inside the range can disappear from the final diff and evade the gate.
+    impact: "The claimed every-commit history hygiene invariant is not implemented."
+    required_fix: "Enumerate all commits and changed paths/tree entries, plus final-tree scan and add-then-delete adversarial coverage."
+  - id: "E53-HIGH-MUTATION-COVERAGE-UNDERDELIVERED"
+    severity: "HIGH"
+    confidence: "HIGH"
+    fact: >-
+      The production-source mutation harness implements only MUT-UTF8-STRICT, MUT-ATOM-LEDGER and MUT-JSON-NAN. Required mutation classes for manifest aliases, JSON/JSONL ownership, Markdown structures, field provenance, relation evidence/endpoints, packet graph reconstruction, redaction, historical generated files, artifacts and receipt topology are absent as real source mutations.
+    impact: "Green tests certify a much narrower surface than the published task contract."
+    required_fix: "Implement the full copied-production mutation matrix with exact anchors, nonzero failure and restored-green evidence."
+  - id: "E53-MEDIUM-PROVIDER-EVIDENCE-INCOMPLETE"
+    severity: "MEDIUM"
+    confidence: "HIGH"
+    fact: >-
+      environment-evidence.json records head, Python, implementation, hash seed and platform but omits the required test count, mutation count, mutation IDs and command/result hashes. Canonical evidence uses only one text fixture.
+    impact: "Provider artifacts are deterministic but do not expose the full declared verification surface."
+    required_fix: "Add exact counts/IDs/hashes and corrected multi-format authority fixtures before recertification."
+  - id: "E53-MEDIUM-RECEIPT-VALIDATOR-WEAK"
+    severity: "MEDIUM"
+    confidence: "HIGH"
+    fact: >-
+      validate_receipt_fields checks only nonempty strings and four placeholder words; tests explicitly accept one-character SHA values. It does not validate SHA format, exact task/signal/workflow identities, run bindings or provider object shapes.
+    impact: "The reusable topology validator can accept structurally fake receipts."
+    required_fix: "Validate exact identifiers, SHA-40, numeric run/job/artifact bindings, allowlist topology and external receipt-head binding schema."
+  - id: "E53-MEDIUM-DURATION-MISMATCH"
+    severity: "MEDIUM"
+    confidence: "HIGH"
+    fact: >-
+      Plan commit was created at 2026-08-05T16:52:43Z and receipt commit at 2026-08-05T17:26:55Z, an evidence window of about 34 minutes, not the user-requested four-hour substantive engineering run.
+    impact: "The requested night-run depth was not achieved; the narrow test/mutation surface confirms under-scoping rather than exceptional completion."
+    required_fix: "E54 must earn depth through the complete correction and mutation scope without artificial delay."
+
+provider_observations:
+  tested_run:
+    id: 31029691235
+    result: "success"
+    head: "0e6b921ef39c11b932fe7f5624db993fcddc80c2"
+    authority_jobs: 6
+    compare_jobs: 1
+  receipt_run:
+    id: 31030075606
+    result: "success"
+    head: "95f3d4b9e2149c5bce4e22d94755900335ae75d1"
+    authority_jobs: 6
+    compare_jobs: 1
+    canonical_artifacts: 6
+    environment_artifacts: 6
+    compare_artifacts: 1
+  interpretation: >-
+    Provider execution is real and exact-head, but it certifies the submitted implementation and test suite. Because the suite omits critical invariants and the implementation contains direct ordinary-caller bypasses, Provider green does not establish canonical authority.
+
+route_decision:
+  freeze_source_issue: 168
+  freeze_source_pull_request: 169
+  frozen_head: "95f3d4b9e2149c5bce4e22d94755900335ae75d1"
+  no_post_receipt_commit: true
+  corrective_successor_issue: 170
+  corrective_mode: "project_plan"
+  one_user_command: "读取任务"
+  reason: "Appending a correction to PR #169 would violate its final receipt-only topology; a clean successor is required."
+
+boundary: "E53_FROZEN_PARTIAL_CANDIDATE / E54_CORRECTION_REQUIRED / NO_COMPLETION / NO_PROVIDER_AUTHORITY / NO_RECEIPT_AUTHORITY / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
