@@ -1,0 +1,39 @@
+schema_version: "1.0"
+receipt_type: "AMEDAgentExecutionReceipt"
+agent_id: "CODEX"
+task_id: "CODEX-BRAINOPS-INTEGRATED-RECOVERABLE-MANDATORY-AUTHORITY-ATTESTED-IDENTITY-EXPIRY-AND-EXECUTABLE-RELEASE-GATE-CLOSURE-0044-E48"
+route_epoch: 50
+issue: 152
+pull_request: 154
+branch: "codex/brainops-integrated-recoverable-authority-release-gate-0044-e48"
+tested_head: "00c2e805a5e74354698c2c47822c59b83d219566"
+tested_tree: "0bee5aaa7ac97871a7f7b46776bc8257d23d6d0b"
+base_head: "ac17da81cd2ea019786e9f1d229eaede944756d9"
+mode: "project_plan"
+status: "TESTED_HEAD_CI_GREEN_RECEIPT_HEAD_CI_PENDING"
+completion_signal: "CODEX_BRAINOPS_E48_INTEGRATED_RECOVERABLE_AUTHORITY_RELEASE_GATE_READY_FOR_GPT_REVIEW"
+primary_delivery:
+  one_positive_authority_chain: "DurableClaimAuthority plus DurableExecutionLeaseAuthority only"
+  recovered_stages:
+    - "capability creation"
+    - "effect authorization"
+    - "claim invocation plus lease invocation"
+    - "terminal claim plus lease commit"
+  fail_closed_rechecks: "expiry and binding checks precede positive, replay, and reconciliation results"
+  release_gate: "repository-derived, exact-head, clean-tree, scoped, workflow-policy checked"
+  mutation_harness: "14 isolated mutations executed against copied code or workflow policy validators"
+tested_head_evidence:
+  local_full_regression: "272 tests passed on Python 3.13"
+  remote_push_run: 30910876727
+  remote_pr_run: 30910879350
+  remote_python_versions: ["3.11", "3.13"]
+  remote_artifacts_present: true
+provider_finality: "PENDING_INDEPENDENT_GPT_REVIEW"
+post_receipt_immutability: "PENDING_GPT_REMOTE_HEAD_RECHECK"
+boundaries_observed:
+  - "ENGINEERING_AND_SYNTHETIC_TESTS_ONLY"
+  - "NO_LIVE_AUTHORITY_OR_CANARY"
+  - "NO_CREDENTIALS_OR_PRIVATE_CONFIGURATION"
+  - "NO_ACCOUNTS_ORDERS_POSITIONS_FUNDS_OR_TRADING"
+  - "NO_DIRECT_MAIN_WRITE_MERGE_OR_HISTORY_REWRITE"
+rollback: "Revert this receipt commit, then revert 00c2e805 only if GPT rejects the tested implementation. No external mutable state was created."
