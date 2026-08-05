@@ -1,0 +1,69 @@
+name: QCLAW E40 Strict Byte Evidence CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches:
+      - qclaw/knowledge-atomization-strict-byte-evidence-closure-0021-e40
+
+jobs:
+  test:
+    if: ${{ github.event.pull_request.draft == false && !contains(github.event.head_commit.message, '[receipt]') }}
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+        seed: [0, 1, 777]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run tests
+        run: |
+          PYTHONHASHSEED=${{ matrix.seed }} python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-EVIDENCE-CLOSURE-0021-E40/tests -p "test_*.py" -v
+      - name: Save artifacts
+        run: |
+          python -c "
+          import hashlib, os
+          root='coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-EVIDENCE-CLOSURE-0021-E40'
+          lines=[]
+          for r,_,fs in os.walk(root):
+            for f in sorted(fs):
+              if f.endswith('.pyc'): continue
+              path=os.path.join(r,f); size=os.path.getsize(path)
+              h=hashlib.sha256(open(path,'rb').read()).hexdigest()
+              lines.append(f'{h} {size} {path}')
+          open(f'artifacts-3{str(matrix.python).replace(".","")}-s{matrix.seed}.txt','w').write('\n'.join(lines))
+          " python
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-3${{ replace(matrix.python, '.', '') }}-s${{ matrix.seed }}
+          path: artifacts-3${{ replace(matrix.python, '.', '') }}-s${{ matrix.seed }}.txt
+
+  compare:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - name: Byte-compare all 6 artifacts
+        run: |
+          set -e
+          HASHES=""
+          for f in artifacts-311-s0/artifacts-311-s0.txt \
+                   artifacts-311-s1/artifacts-311-s1.txt \
+                   artifacts-311-s777/artifacts-311-s777.txt \
+                   artifacts-313-s0/artifacts-313-s0.txt \
+                   artifacts-313-s1/artifacts-313-s1.txt \
+                   artifacts-313-s777/artifacts-313-s777.txt; do
+            H=$(sha256sum "$f" | cut -d' ' -f1)
+            HASHES="$HASHES $H"
+            echo "$H $f"
+          done
+          UNIQUE=$(echo $HASHES | tr ' ' '\n' | sort -u | wc -l)
+          echo "Unique hashes: $UNIQUE (expected 1)"
+          test "$UNIQUE" -eq 1
