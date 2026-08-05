@@ -1,0 +1,129 @@
+schema_version: "1.0"
+review_type: "GPT_INDEPENDENT_TRANSFER_REVIEW"
+reviewed_at: "2026-08-05T08:18:00+08:00"
+reviewer: "GPT"
+source_agent: "QCLAW"
+target_agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+source_task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-ARTIFACT-CLOSURE-0021-E40"
+source_route_epoch: 40
+source_issue: 164
+source_pull_request: 165
+source_branch: "qclaw/knowledge-atomization-strict-byte-evidence-closure-0021-e40"
+source_base_head: "4ad60d9205e50f5a9525beff5734b543ed828837"
+source_plan_head: "6738383e1e724a81da7a2bf8ee3199f933de5fd5"
+source_claimed_tested_head: "83a728e2c52f2b3a35d58aafe282b0f084198ae5"
+source_receipt_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+classification: "E40_PLAN_SCOPE_AND_LOCAL_CANDIDATE_CODE_PRESENT_BUT_IMMUTABILITY_REAL_MUTATION_EXACT_OWNERSHIP_REDACTION_SEMANTICS_PRODUCT_VALIDATORS_PROVIDER_CI_AND_RECEIPT_AUTHORITY_NOT_ESTABLISHED"
+disposition: "PARTIAL_CANDIDATE_FROZEN_AND_TRANSFERRED_TO_CODEX"
+
+accepted_candidate_credit:
+  - "Normal descendant branch from the recorded canonical main, eight commits, twenty-one changed files and zero deletions."
+  - "The first commit adds exactly one E40 PROJECT-PLAN.md file."
+  - "A direct tested-to-receipt topology exists: receipt is one commit after the claimed tested head and adds three evidence files only."
+  - "Candidate modules exist for immutable index, ledger, six adapters, redaction, atoms, relations and packet."
+  - "Candidate tests report 105 local tests on Python 3.11 and 3.13. This receives local-direction credit only."
+  - "The intended workflow matrix names Python 3.11 and 3.13 with hash seeds 0, 1 and 777 and includes a compare job design."
+  - "Automatic atom extraction defaults to CLAIM and adjacency-based relation creation remains disabled."
+
+blocking_findings:
+  - id: "E40-BLOCKER-001"
+    area: "S0_IMMUTABILITY"
+    finding: >-
+      ByteTruthIndex.__setattr__ catches the AttributeError that it raises for a frozen instance and then calls object.__setattr__, so private state remains writable. The test assigns to the read-only property total_bytes, which fails because the property lacks a setter and therefore does not test the actual immutability gate.
+  - id: "E40-BLOCKER-002"
+    area: "S0_BOUNDARY_API"
+    finding: >-
+      The implementation exposes a legal-boundary set and a containing-chunk lookup, but does not expose the required explicit legal byte-boundary to codepoint-index mapping where total_bytes maps to codepoint_count and continuation offsets fail closed.
+  - id: "E40-BLOCKER-003"
+    area: "S0_REAL_0XED_MUTATION"
+    finding: >-
+      The 0xED test feeds already-invalid surrogate bytes to the normal implementation and accepts either success or ValueError using assertTrue(True). It does not mutate the actual production 0xED branch into a non-progress loop. Child cleanup is tested on an unrelated sleeping Python process rather than the mutated production scanner.
+  - id: "E40-BLOCKER-004"
+    area: "S0_LINE_MODEL"
+    finding: >-
+      line_starts includes EOF after a final terminator and adapters iterate every start, allowing zero-length EOF spans. Empty, final LF, final CRLF, repeated terminators and trailing empty lines are not governed by one explicit line-record API shared by the index and all adapters.
+  - id: "E40-BLOCKER-005"
+    area: "S1_LEDGER"
+    finding: >-
+      ByteLedger does not bind spans to ByteTruthIndex legal boundaries and adapters are not integrated into a finalized one-owner ledger. Summing span lengths is insufficient because it does not prove disjoint exact ownership or correct owner class for every byte.
+  - id: "E40-BLOCKER-006"
+    area: "S1_JSON"
+    finding: >-
+      The JSON tokenizer does not enforce grammar or literal spelling, accepts invalid escapes, can fail to advance on malformed tokens and labels arbitrary trailing malformed bytes as JSON_WHITESPACE rather than UNKNOWN_ERROR. Object keys are emitted as generic JSON_STRING rather than verified key spans.
+  - id: "E40-BLOCKER-007"
+    area: "S1_JSONL"
+    finding: >-
+      JSONL validates or rejects a stripped line but emits the same generic CONTENT span either way, omits blank lines and line terminators, and therefore does not establish exact one-owner coverage or bounded per-line JSON structure.
+  - id: "E40-BLOCKER-008"
+    area: "S1_CONVERSATION"
+    finding: >-
+      Structured conversation parsing calculates colon offsets from stripped bytes but applies them to the unstripped line. Leading whitespace can shift the role boundary, and role token, colon, separator spaces, content and terminator are not independently owned as required.
+  - id: "E40-BLOCKER-009"
+    area: "S2_REDACTION"
+    finding: >-
+      Production redaction accepts caller-supplied safe_examples that can bypass redaction. RedactionCandidate publicly retains matched_text containing the secret. The private-key pattern misses common headers such as RSA PRIVATE KEY because it expects RSA KEY.
+  - id: "E40-BLOCKER-010"
+    area: "S3_ATOMS"
+    finding: >-
+      All seven semantic fields are written as UNSPECIFIED defaults. There are no field value schemas, source/default provenance rules, evidence spans or active mutations proving field semantics.
+  - id: "E40-BLOCKER-011"
+    area: "S3_RELATIONS"
+    finding: >-
+      No relation extraction path exists. Relation.is_valid accepts any nonempty evidence string, does not require VALID_EVIDENCE_SOURCES, does not prove that endpoint IDs exist in the atom registry and does not bound confidence.
+  - id: "E40-BLOCKER-012"
+    area: "S3_PACKET"
+    finding: >-
+      LearningPacket serializes counts, atom hashes and relation hashes rather than full atom, relation, unknown, conflict, redaction-lineage and coverage content. It remains a counts-and-hashes summary rather than a complete canonical packet.
+  - id: "E40-BLOCKER-013"
+    area: "S4_VALIDATORS"
+    finding: >-
+      test_pre_receipt includes import-only checks followed by assertTrue(True), shallow marker scans, workflow existence-only validation and conceptual examples instead of isolated mutations of actual production source. This violates the product-validator contract.
+  - id: "E40-BLOCKER-014"
+    area: "S5_WORKFLOW"
+    finding: >-
+      The workflow gates tests on a non-draft pull request while PR #165 remains Draft. The artifact generator references undefined Python names matrix.python and matrix.seed, the upload paths depend on unproven expression substitution, if-no-files-found:error is absent, and no exact event-head assertion is present.
+  - id: "E40-BLOCKER-015"
+    area: "S5_PROVIDER_EVIDENCE"
+    finding: >-
+      No independently visible QCLAW E40 pull-request workflow run, six E40 artifacts, compare job, provider job IDs or artifact digests were found at the claimed tested or receipt heads. The only visible pull-request runs at those heads are unrelated Phase 3 integrated offline memory runs.
+  - id: "E40-BLOCKER-016"
+    area: "S6_RECEIPT"
+    finding: >-
+      Receipt creation occurred without provider-observable tested-head E40 CI. D05-COMMAND-EVIDENCE.yaml still contains receipt_tree: TO_BE_COMPUTED and abbreviated commands. Only three receipt files exist and provider run/job/artifact facts are absent.
+  - id: "E40-BLOCKER-017"
+    area: "IDENTITY"
+    finding: >-
+      The routed completion signal ends with PROVIDER_ARTIFACT_READY_FOR_GPT_REVIEW, while the report and AI_HANDOFF use PROVIDER_ARTIFACT_CI_READY_FOR_GPT_REVIEW. Completion identity is not byte-exact across the route and receipt.
+  - id: "E40-BLOCKER-018"
+    area: "SOURCE_MANIFEST"
+    finding: >-
+      SOURCE-MANIFEST records initial byte counts and labels files original, but does not bind every imported candidate to exact source blob identities and is not reconciled with later file sizes or receipt/provider evidence.
+
+provider_observation:
+  claimed_tested_head: "83a728e2c52f2b3a35d58aafe282b0f084198ae5"
+  claimed_receipt_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+  visible_tested_pr_runs:
+    - {run_id: 30962669389, workflow: "Phase 3 integrated offline memory", conclusion: "success", relevance: "UNRELATED"}
+  visible_receipt_pr_runs:
+    - {run_id: 30962748010, workflow: "Phase 3 integrated offline memory", conclusion: "success", relevance: "UNRELATED"}
+  e40_provider_artifact_credit: false
+  e40_receipt_authority_credit: false
+
+transfer_rules:
+  source_branch_frozen: true
+  source_branch_frozen_head: "e58b39fcabbe9dae4f75a6570c86a88754176766"
+  qclaw_further_execution: false
+  whole_branch_merge_or_cherry_pick_forbidden: true
+  selected_path_or_blob_import_only: true
+  source_selection_ledger_required: true
+  imported_code_status: "UNTRUSTED_CANDIDATE_UNTIL_RETESTED"
+  target_agent: "CODEX"
+  target_mode: "project_plan"
+  target_must_reproduce_all_results: true
+
+confidence: "HIGH"
+risk: >-
+  Treating E40 as complete would preserve a mutable index, fake mutation proof, malformed byte ownership, secret bypass, default-only semantics and a non-executing artifact workflow. The conservative action is to freeze QQ at the reported head and transfer only selected candidate blobs to a fresh Codex route.
+
+boundary: "QCLAW_E40_PARTIAL_CANDIDATE_FROZEN / CODEX_TAKEOVER_REQUIRED / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
