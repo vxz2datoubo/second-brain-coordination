@@ -1,0 +1,85 @@
+name: Codex E54 authority recertification
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54/**"
+      - ".github/workflows/codex-e54-authority-recertification.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authority:
+    name: authority-py${{ matrix.python }}-seed${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+        seed: ["0", "1", "777"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Test exact checked-out head
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54"
+          HEAD="$(git rev-parse HEAD)"
+          EVENT_HEAD="${{ github.event.pull_request.head.sha }}"
+          if [ -n "$EVENT_HEAD" ] && [ "$HEAD" != "$EVENT_HEAD" ]; then
+            echo "event head and checked-out head differ" >&2
+            exit 1
+          fi
+          export PYTHONPATH="$ROOT/src"
+          export PYTHONHASHSEED="${{ matrix.seed }}"
+          mkdir -p "$ROOT/provider-artifacts"
+          python -m unittest discover -s "$ROOT/tests" -v > "$ROOT/provider-artifacts/test.stdout" 2> "$ROOT/provider-artifacts/test.stderr"
+          TEST_COUNT="$(sed -nE 's/^Ran ([0-9]+) tests? .*/\1/p' "$ROOT/provider-artifacts/test.stderr")"
+          test -n "$TEST_COUNT"
+          python "$ROOT/tools/write_provider_evidence.py" \
+            --head-sha "$HEAD" \
+            --test-count "$TEST_COUNT" \
+            --command "python -m unittest discover -s $ROOT/tests -v" \
+            --stdout "$ROOT/provider-artifacts/test.stdout" \
+            --stderr "$ROOT/provider-artifacts/test.stderr" \
+            --canonical-output "$ROOT/provider-artifacts/canonical.json" \
+            --environment-output "$ROOT/provider-artifacts/environment.json" \
+            --hash-seed "${{ matrix.seed }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e54-canonical-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54/provider-artifacts/canonical.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e54-environment-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54/provider-artifacts/environment.json
+          if-no-files-found: error
+
+  compare:
+    name: authority-canonical-byte-compare
+    needs: authority
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e54-canonical-*
+          path: e54-canonical-artifacts
+      - name: Compare exactly six canonical artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54"
+          export PYTHONPATH="$ROOT/src"
+          mapfile -t ARTIFACTS < <(find e54-canonical-artifacts -type f -name canonical.json | sort)
+          test "${#ARTIFACTS[@]}" -eq 6
+          python "$ROOT/tools/compare_provider_artifacts.py" --expected-count 6 "${ARTIFACTS[@]}"
