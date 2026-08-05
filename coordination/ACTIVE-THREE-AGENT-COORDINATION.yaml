@@ -4,27 +4,20 @@ program_issue: 31
 status: "CODEX_E52_SECOND_RETURN_AT_S3_USER_RETRIGGER_REQUIRED_QCLAW_E40_FROZEN_WORKBUDDY_PAUSED"
 updated_by: "GPT"
 updated_at: "2026-08-05T11:43:00+08:00"
-
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
   agent_read_command: {trigger: "读取任务", meaning: "READ_CLAIM_AND_EXECUTE_ONLY_WHEN_ROUTE_READY_OR_RETURNED_FOR_CORRECTION", second_start_command_required: false}
-
 permanent_governance:
   model_selection_owner: "USER_ONLY"
-  agent_model_config_rule: "Agents may not read or modify model/provider/reasoning/default/thread/subagent/workspace/session/private settings."
-  plan_identity_rule: "The first plan commit must be provider-resolvable and exactly one commit after base with one plan path only."
-  frozen_source_rule: "Frozen agent branches are read-only candidate evidence; whole-branch merge/cherry-pick is forbidden."
   source_truth_rule: "Canonical atoms and packets must bind recomputable exact source bytes, legal spans, deterministic IDs and finalized ownership ledgers."
-  factory_rule: "Public constructors may not bypass source-bound factory validation for canonical atoms, relations or packets."
-  field_evidence_rule: "EXTRACTED semantic values must be recomputable from exact source bytes and deterministic rules; unsupported interpretation remains UNKNOWN."
-  immutable_state_rule: "Finalized index, ledger, atom, relation and packet state resists assignment, item and caller-alias mutation."
-  exact_coverage_rule: "Packet coverage is generated from a finalized ledger and recomputes owner totals, spans and coverage digest."
-  canonical_json_rule: "Canonical evidence excludes NaN, infinities and non-deterministic/non-standard JSON values."
-  generated_file_rule: "Current tree and every task commit path are scanned for __pycache__, pyc and generated runtime files; historical exceptions are quarantined and excluded from clean integration."
-  provider_authority_rule: "Executor reports and local tests are not final authority; exact-head runs, jobs, artifacts and GPT independent review are required."
-  receipt_rule: "Receipt is one final evidence-only commit after tested-head Provider success and is followed by receipt-head verification."
+  factory_rule: "Public constructors may not bypass source-bound factory validation."
+  field_evidence_rule: "EXTRACTED values are recomputed from exact source bytes and deterministic rules; unsupported interpretation stays UNKNOWN."
+  exact_coverage_rule: "Packet coverage is generated from FinalizedLedger and recomputes totals, spans and coverage digest."
+  canonical_json_rule: "Canonical evidence excludes NaN, infinities and non-standard values."
+  generated_file_rule: "Current tree and commit range are scanned; historical generated checkpoints are quarantined from clean integration."
+  provider_authority_rule: "Local reports are not final authority; exact-head Provider runs, artifacts and GPT review are required."
+  receipt_rule: "Receipt is one final evidence-only commit after tested-head Provider success."
   trade_rule: "No accounts, orders, positions, funds, market data or real trades."
-
 agents:
   CODEX:
     active_issue: 166
@@ -34,7 +27,6 @@ agents:
     mode: "project_plan"
     status: "RETURNED_FOR_SECOND_CORRECTION_AT_S3"
     execution_allowed: true
-    automatic_dispatch_allowed: false
     automatic_resume: false
     branch: "codex/qclaw-e40-takeover-strict-byte-closure-0048-e52"
     base_head: "3d15f0c62877db5841b985f740e9bc348f65ddc5"
@@ -45,14 +37,11 @@ agents:
     provider_ci_credit: false
     receipt_authority_credit: false
     merge_authorized: false
-    current_action: >-
-      On one user trigger, close the manual Atom and caller-authored packet provenance bypass, bind packet coverage to FinalizedLedger, bind field values and relations to verified source slices, add commit-range hygiene and deterministic JSON-domain gates, then stop for GPT review before S4.
+    current_action: "On one user trigger, close source/atom/ledger/packet provenance bypasses and stop for GPT review before S4."
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
   QCLAW:
     active_issue: 164
     active_pull_request: 165
-    task_id: "QCLAW-KNOWLEDGE-ATOMIZATION-STRICT-BYTE-TRUTH-EXACT-OWNERSHIP-SEMANTIC-EVIDENCE-AND-PROVIDER-ARTIFACT-CLOSURE-0021-E40"
-    route_epoch: 40
     status: "PAUSED_COMPUTE_EXHAUSTED_TRANSFERRED_TO_CODEX"
     execution_allowed: false
     automatic_resume: false
@@ -64,35 +53,25 @@ agents:
     execution_allowed: false
     automatic_resume: false
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-
 review_summary:
   CODEX_E52_S3_CORRECTION:
     reviewed_head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
-    accepted:
-      - "Correct plan identity."
-      - "Immutable ledger and deep-frozen ordinary aliases."
-      - "Format-specific Markdown/TXT and JSON key roles."
-      - "Field-specific rules and exact relation evidence bytes."
-      - "Basic packet finalization."
+    disposition: "RETURNED_FOR_SECOND_CORRECTION_AT_S3_NO_S4_AUTHORITY"
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E52-S3-CORRECTION-INDEPENDENT-REVIEW.yaml"
     blockers:
       - "Manual Atom construction can forge atom_id, text and source linkage."
-      - "Packet source identity and coverage remain caller-authored rather than source/ledger-derived."
+      - "Packet source identity and coverage remain caller-authored."
       - "EXTRACTED field values are not recomputed from evidence bytes."
       - "Relations inherit forged endpoint risk."
       - "Commit-range hygiene does not detect historical pyc checkpoint."
       - "Canonical values allow non-finite floats."
       - "S4, S5 and S6 remain absent."
-    disposition: "RETURNED_FOR_SECOND_CORRECTION_AT_S3_NO_S4_AUTHORITY"
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E52-S3-CORRECTION-INDEPENDENT-REVIEW.yaml"
-
 frozen:
-  - "QCLAW E40 remains frozen at e58b39fcabbe9dae4f75a6570c86a88754176766."
+  - "QCLAW E40 remains frozen."
   - "Codex E50/E51 and earlier accepted routes remain frozen."
-  - "No merge, private-config access, live authority, credentials or trading."
-
+  - "No merge, private-config access, credentials or trading."
 next_commands:
   CODEX: "读取任务"
   QCLAW: "DO_NOT_EXECUTE"
   WORKBUDDY: "DO_NOT_EXECUTE"
-
 boundary: "CODEX_E52_SECOND_S3_RETURN / USER_RETRIGGER_REQUIRED / QCLAW_FROZEN / NO_S4 / NO_PROVIDER / NO_RECEIPT / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
