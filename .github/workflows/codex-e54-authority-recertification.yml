@@ -84,4 +84,9 @@ jobs:
           export PYTHONPATH="$ROOT/src"
           mapfile -t ARTIFACTS < <(find e54-canonical-artifacts -type f -name canonical.json | sort)
           test "${#ARTIFACTS[@]}" -eq 6
-          python "$ROOT/tools/compare_provider_artifacts.py" --expected-count 6 "${ARTIFACTS[@]}"
+          python "$ROOT/tools/compare_provider_artifacts.py" --expected-count 6 "${ARTIFACTS[@]}" | tee e54-canonical-compare.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e54-canonical-compare
+          path: e54-canonical-compare.txt
+          if-no-files-found: error
