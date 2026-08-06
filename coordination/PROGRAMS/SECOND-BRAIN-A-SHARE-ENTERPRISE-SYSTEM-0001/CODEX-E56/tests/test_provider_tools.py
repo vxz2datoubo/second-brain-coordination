@@ -49,6 +49,11 @@ class ProviderTests(unittest.TestCase):
         second = build_canonical_evaluation(ROOT / "src" / "e56_authority", test_result={"test_count": 1, "exit_code": 0}, mutation_summary=[])
         self.assertEqual(canonical_artifact_bytes(first), canonical_artifact_bytes(second))
 
+    def test_canonical_excludes_executor_command_details(self):
+        first = build_canonical_evaluation(ROOT / "src" / "e56_authority", test_result={"test_count": 1, "exit_code": 0, "command": ["/py311/python"]}, mutation_summary=[])
+        second = build_canonical_evaluation(ROOT / "src" / "e56_authority", test_result={"test_count": 1, "exit_code": 0, "command": ["/py313/python"]}, mutation_summary=[])
+        self.assertEqual(canonical_artifact_bytes(first), canonical_artifact_bytes(second))
+
     def test_versioned_provider_contract_is_loaded_from_its_own_file(self):
         loaded = load_provider_contract(CONTRACT_PATH)
         self.assertEqual(loaded, DEFAULT_PROVIDER_CONTRACT)

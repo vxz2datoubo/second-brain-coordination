@@ -145,6 +145,18 @@ def _fixture_outcomes() -> tuple[Mapping[str, object], ...]:
     )
 
 
+def _canonical_test_result(value: Mapping[str, object]) -> Mapping[str, object]:
+    """Keep executable outcome in canonical evidence; keep executor details outside it."""
+
+    test_count = value.get("test_count")
+    exit_code = value.get("exit_code")
+    if not isinstance(test_count, int) or isinstance(test_count, bool) or test_count < 0:
+        raise AuthorityError("canonical test count is invalid")
+    if not isinstance(exit_code, int) or isinstance(exit_code, bool):
+        raise AuthorityError("canonical test exit code is invalid")
+    return {"suite_id": "e56-product-suite-v1", "test_count": test_count, "exit_code": exit_code}
+
+
 def build_canonical_evaluation(
     package_root: Path,
     *,
@@ -154,6 +166,7 @@ def build_canonical_evaluation(
     """Build the canonical payload from executed fixtures and actual results."""
 
     fixture_outcomes = _fixture_outcomes()
+    normalized_test_result = _canonical_test_result(test_result)
     if any(item["observed"] != item["expected"] for item in fixture_outcomes):
         raise AuthorityError("an adversarial fixture did not produce its expected authority outcome")
     ordered_mutations = tuple(sorted((dict(item) for item in mutation_summary), key=lambda item: str(item["mutation_id"])))
@@ -163,7 +176,7 @@ def build_canonical_evaluation(
         "production_source_hashes": [{"path": path, "sha256": value} for path, value in source_hashes(package_root)],
         "fixture_outcomes": fixture_outcomes,
         "fixture_digest": stable_digest(fixture_outcomes),
-        "test_result_digest": stable_digest(test_result),
+        "test_result_digest": stable_digest(normalized_test_result),
         "mutation_summary": ordered_mutations,
         "mutation_summary_digest": stable_digest(ordered_mutations),
         "graph_evaluation_digest": stable_digest([item.get("graph_digest", "") for item in fixture_outcomes]),

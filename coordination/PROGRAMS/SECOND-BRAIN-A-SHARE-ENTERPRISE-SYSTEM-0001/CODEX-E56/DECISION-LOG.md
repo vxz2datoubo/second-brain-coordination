@@ -23,3 +23,7 @@ E56 mutations intentionally alter a real E56 source/tool file for one named test
 ## D-006: Provider labels bind to observed runtime evidence
 
 Artifact names, logical job names, GitHub job IDs and artifact IDs are not interchangeable. The independent contract supplies expected names; each environment artifact carries a hash-bound job-evidence payload with head, run ID and logical job name; the compare stage checks the actual Python version and hash seed too. The public collector later resolves GitHub job IDs and archive bytes from the exact workflow run.
+
+## D-007: Canonical payload excludes executor command paths
+
+The first exact-head GitHub matrix showed all six authority jobs passed while canonical equality failed solely because `test_result_digest` included the Python executable path. Canonical evidence now retains only the suite identity, exit code and test count; command paths, stream hashes, duration, interpreter version and seed remain environment evidence. The failure is preserved in the negative ledger and requires a new exact-head run.
