@@ -1,0 +1,105 @@
+schema_version: "1.0"
+review_id: "CODEX-E57-INDEPENDENT-AUDIT-RETURN-TO-E58"
+reviewer: "GPT"
+repository: "vxz2datoubo/second-brain-coordination"
+reviewed_issue: 190
+reviewed_pull_request: 191
+reviewed_branch: "codex/e56-post-receipt-capability-authority-closure-0053-e57"
+base_sha: "437b0f7e1a78d868342a0a4b205e47ffb719aebb"
+plan_sha: "b283056b43c8d46f83d9b46cc8db6961158db0c3"
+tested_sha: "7eb7f0fd4bb2e60622bd4f177a128355a39d0430"
+receipt_and_frozen_head: "603768e08e27cf554f9a5ee231b13d51a563abe1"
+tested_provider_run: 31123089194
+receipt_provider_run: 31129898078
+status: "FROZEN_DUAL_PROVIDER_GREEN_RECEIPT_PRESENT_SUBSTANTIAL_CANDIDATE_REJECTED_AS_FINAL"
+disposition: "RETURNED_FOR_CLEAN_E58_SEMANTIC_EXECUTION_AND_VERIFIER_CAPABILITY_CLOSURE_NO_COMPLETION_NO_MERGE"
+merge_authorized: false
+further_commit_authorized: false
+
+verified_positive_evidence:
+  - "Draft PR #191 is open, unmerged and based on 437b0f7e1a78d868342a0a4b205e47ffb719aebb."
+  - "Receipt head 603768e08e27cf554f9a5ee231b13d51a563abe1 is exactly one commit ahead of tested head 7eb7f0fd4bb2e60622bd4f177a128355a39d0430."
+  - "The receipt-only commit adds exactly FINAL-E57-REPORT.md, RECEIPT-HEAD-DECLARATION.json and RUN-RECEIPT.md."
+  - "Tested Provider run 31123089194 completed success with six matrix jobs, one compare job and thirteen artifacts bound to the exact tested head."
+  - "Receipt Provider run 31129898078 completed success with six matrix jobs, one compare job and thirteen artifacts bound to the exact receipt head."
+  - "The branch preserves the earlier transient bytecode-file hygiene defect without history rewrite."
+  - "Fifteen task-local mutations alter copied production bytes, restore exact bytes and are executed in the Provider suite."
+
+blocking_findings:
+  - id: "E57-B1-CALLER-AUTHORED-EVALUATOR-RECEIPT"
+    severity: "CRITICAL"
+    fact: >-
+      EvaluatorReceipt is a public dataclass. verify_shape checks only nonempty strings and PASS/FAIL. issue_validation accepts any
+      caller-created receipt whose input_digest equals evidence.payload_digest. No evaluator registry, execution transcript,
+      issued receipt, signature or independently verified run exists.
+    consequence: "A caller can manufacture VALIDATION PASS or FAIL while satisfying every current test and mutation."
+  - id: "E57-B2-NON-OPPOSING-CONFLICT"
+    severity: "MAJOR"
+    fact: >-
+      issue_conflict proves only that two evidence records are distinct and have different source_record_id values. It does not
+      prove that their propositions, polarity, subject, predicate, scope or time are opposed.
+    consequence: "Any two unrelated independently sourced facts can be promoted to a CONFLICT packet."
+  - id: "E57-B3-CIRCULAR-RELATION-EVIDENCE"
+    severity: "MAJOR"
+    fact: >-
+      issue_evidence accepts endpoint_ids directly from the caller. issue_relation later treats equality with those caller values
+      as proof that the evidence is relevant to both endpoints.
+    consequence: "Endpoint relevance is self-asserted rather than derived from verified content or evaluator execution."
+  - id: "E57-B4-UNVERIFIED-REDACTION-POLICY"
+    severity: "MATERIAL"
+    fact: >-
+      issue_redaction binds a byte range but accepts any nonempty reason_policy_id. There is no registered policy identity,
+      policy-version lookup, classification execution or lineage receipt.
+  - id: "E57-B5-NO-PUBLIC-VERIFIER-ONLY-CAPABILITY"
+    severity: "MAJOR"
+    fact: >-
+      The implementation documents that consumers should receive records plus a verifier facade, but exposes only
+      AuthoritySession, which contains both issuer and verifier connections and a public issue method. A caller may instantiate a
+      new session and choose issuer_id. There is no externally distinguishable canonical verifier-only capability.
+    consequence: "The claimed service boundary exists as convention, not as a consumable enforced interface."
+  - id: "E57-B6-JSONL-WHOLE-SOURCE-OWNERSHIP-INCOMPLETE"
+    severity: "MATERIAL"
+    fact: >-
+      parse_jsonl_ownership strips line terminators, skips blank lines and returns per-line ranges starting at zero. It does not
+      preserve global byte offsets or prove a complete partition of the original JSONL byte stream.
+  - id: "E57-B7-SURROGATE-EDGE-NOT-CLOSED"
+    severity: "MATERIAL"
+    fact: >-
+      The parser covers a valid surrogate pair but has no explicit isolated-high/low-surrogate policy. A lone surrogate may reach
+      canonical UTF-8 encoding and raise an uncaught UnicodeEncodeError rather than a typed UNKNOWN or AuthorityError.
+  - id: "E57-B8-MUTATION-COVERAGE-OMITS-REAL-BYPASSES"
+    severity: "MAJOR"
+    fact: >-
+      Current mutations cover receipt input binding, same-source conflict and caller endpoint equality, but not caller-created
+      evaluator receipts, unrelated-source conflict, caller-declared endpoint relevance, arbitrary policy IDs, missing verifier
+      facade, JSONL global ownership or isolated-surrogate behavior.
+
+independent_audit_conclusion:
+  provider_execution_credit: true
+  provider_authority_credit: false
+  receipt_topology_credit: true
+  receipt_authority_credit: false
+  genuine_mutation_execution_credit: true
+  full_mutation_coverage_credit: false
+  low_level_process_isolation_candidate_credit: true
+  semantic_record_authority_credit: false
+  completion_credit: false
+
+required_successor_corrections:
+  - "Introduce an issued evaluator execution receipt that is impossible to construct through caller fields alone."
+  - "Define proposition identity, polarity, scope and time; require verified opposition before CONFLICT issuance."
+  - "Derive relation relevance from verified proposition/endpoint mappings or a registered evaluator receipt, never endpoint_ids supplied by the caller."
+  - "Bind redaction to a registered versioned policy and classification execution receipt."
+  - "Expose a real verifier-only capability with a canonical issuer identity distinct from the trusted issuer command capability."
+  - "Preserve whole-source JSONL byte ownership including blank lines, terminators and global offsets."
+  - "Define and test isolated surrogate behavior with deterministic typed failure."
+  - "Add genuine mutations for every listed bypass and make canonical output change on coverage/outcome changes."
+  - "Repeat separate tested and receipt Provider evidence and literal post-receipt external anchor on the clean successor."
+
+freeze_rules:
+  - "No merge, rebase, amend, force-push, history rewrite or additional commit on PR #191."
+  - "E57 may be used only as exact commit/path/blob/content source evidence by E58."
+  - "No QCLAW route may consume E57 as accepted authority."
+
+confidence: "HIGH"
+reviewed_at: "2026-08-07T07:23:00+08:00"
