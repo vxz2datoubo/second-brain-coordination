@@ -1,4 +1,4 @@
-schema_version: "67.0"
+schema_version: "68.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 190
@@ -7,7 +7,8 @@ task_id: "CODEX-E56-POST-RECEIPT-ORDINARY-CALLER-CAPABILITY-REGISTRY-SEMANTIC-RE
 route_epoch: 59
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】E57 普通调用者签发、语义记录与双 Provider 回执权威闭环"
-status: "RETURNED_FOR_CLEAN_E57_CAPABILITY_AUTHORITY_CLOSURE"
+mode_reason: "目标固定，但可信 issuer 边界、真实对抗验证、双 Provider 锚点与回执闭环需要分阶段架构、实现和验证。"
+status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
 automatic_resume_within_task: true
@@ -20,6 +21,78 @@ planned_branch: "codex/e56-post-receipt-capability-authority-closure-0053-e57"
 planned_draft_pr: true
 completion_signal: "CODEX_E57_CAPABILITY_REGISTRY_SEMANTIC_RECORD_DUAL_PROVIDER_RECEIPT_AUTHORITY_READY_FOR_GPT_REVIEW"
 artificial_waiting_forbidden: true
+
+route_contract:
+  path: "coordination/ROUTES/CODEX-E57-ACTIVE-ROUTE-CONTRACT.yaml"
+  publication_commit: "151e3860131bccacb252e3abb85e2e0291b784ed"
+  status: "ACTIVE"
+  contains: [AMED_TASK_BRIEF, PMA_BIG_GRANT, PDER_RULES, WPDCR_CONTRACT, TASK_IMPACT_FORECAST, AUTHORIZED_PATHS, EXECUTION_CONTRACT]
+
+task_brief:
+  issue: 190
+  formal_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E56-INDEPENDENT-AUDIT-RETURN-TO-E57.yaml"
+  fundamental_goal: "Eliminate ordinary-consumer authority forgery and independently bind actual adversarial execution, separate tested/receipt Provider evidence and exact receipt topology."
+  task_weight: "STRATEGIC"
+  planned_difficulty: "D3_VERY_HARD"
+  research_trigger_level: "L1_REPOSITORY_AND_PRIMARY_EVIDENCE; L3_PROPOSAL_ONLY_FOR_PROCESS_ISOLATION_OR_CROSS_SYSTEM_AUTHORITY"
+  exploration_budget: "STRATEGIC"
+  second_pass_audit_required: true
+
+task_impact_forecast:
+  classification: "STRATEGIC_INTERNAL_AUTHORITY"
+  direct_scope:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/**"
+    - ".github/workflows/codex-e57-capability-authority-closure.yml"
+  downstream_scope:
+    - "QCLAW E44 verified-capability consumption after independent review"
+    - "Future evidence, knowledge and skill authority gates"
+  principal_risks:
+    - "False authority from reachable registries, signing state or caller labels"
+    - "Conflation of tested and receipt Provider evidence"
+    - "Cross-agent duplication or semantic-boundary drift"
+  rollback: "No merge; freeze and route a clean successor from exact latest main if a post-receipt defect remains."
+
+authorized_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/**"
+  - ".github/workflows/codex-e57-capability-authority-closure.yml"
+first_commit_exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/PROJECT-PLAN.md"
+all_other_paths: "READ_ONLY"
+
+protocol_bindings:
+  AMED: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
+  PMA_BIG: "coordination/GOVERNANCE/PROACTIVE-MISSION-AUTHORING-AND-BOUNDED-INITIATIVE-GRANT-PROTOCOL-v1.0.yaml"
+  WPDCR: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
+  PDER: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
+  RTCE: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
+  LEASE: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+
+proactive_mission_assignment:
+  AMED_A: "Implement safe task-local tests, validators, fixtures, observability and deterministic tools."
+  AMED_B: "Implement tested backward-compatible E57 internal improvements and report them."
+  AMED_C: "Proposal only for a separate issuer service, cross-agent contract change or new canonical system."
+  AMED_D: "Stop for credentials, private configuration, accounts, permissions, destructive actions, market data or trading."
+  mandatory_discovery_questions:
+    - "Can an ordinary consumer import or reach any state that permits insertion, replacement or same-ID substitution?"
+    - "Does the claimed boundary require process isolation or a signing capability unavailable to consumers?"
+    - "Which E56 mechanisms are safely reusable and which remain tainted by self-verification?"
+    - "Are conflict, validation, redaction and relation outputs execution-derived rather than caller labels?"
+    - "Which raw/decoded, typed JSON and Markdown constructs remain unsupported or ambiguous?"
+    - "Can both Provider evidence sets be reconstructed without trusting producer summaries?"
+    - "Which findings should feed back into protocols, tests, interfaces or task templates after GPT review?"
+
+dependencies:
+  - id: "E56_FROZEN"
+    status: "SATISFIED"
+    evidence: "Issue #185 / PR #186 frozen at e98102f2753086ede2471f6176ee6a761b0df431"
+  - id: "E56_FORMAL_REVIEW"
+    status: "SATISFIED"
+    evidence: "de6ebeb3e81fb56c73e6e9654b924f87fb576843"
+  - id: "QCLAW_E44_BOUNDARY"
+    status: "SATISFIED"
+    evidence: "Issue #187 / Draft PR #189 remains separate and read-only to Codex"
+  - id: "TASK_ROUTE_CONTRACT"
+    status: "SATISFIED"
+    evidence: "coordination/ROUTES/CODEX-E57-ACTIVE-ROUTE-CONTRACT.yaml at 151e3860131bccacb252e3abb85e2e0291b784ed"
 
 source_e56:
   issue: 185
@@ -51,30 +124,20 @@ formal_review:
   disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_TESTED_AND_RECEIPT_PROVIDER_EXECUTION_ACCEPTED_REAL_MUTATION_PARTIAL_CREDIT_NO_PROVIDER_AUTHORITY_NO_RECEIPT_NO_MERGE"
 
 blocking_corrections:
-  - "Eliminate ordinary-import self-registration through module _ADMISSION_STATES and every factory _issued registry, or narrow the claim to an honest process/service capability boundary."
-  - "Test actual module-global enumeration, registry insertion, foreign issuer, copied-state and same-ID attacks for Source/Atom/Evidence/Packet/Relation objects."
-  - "Require verified two-sided conflict evidence, evaluator execution receipts for validation, exact redaction ranges and endpoint-relevant relation evidence."
-  - "Preserve complete raw-to-decoded per-character evidence and typed JSON string/number/boolean/null ownership; publish unsupported Markdown constructs as typed UNKNOWNs."
+  - "Eliminate ordinary-import self-registration through module and factory registries, or narrow the claim to an honest isolated issuer boundary."
+  - "Test real global enumeration, registry insertion, foreign issuer, copied-state and same-ID attacks for every authority object."
+  - "Require verified two-sided conflict evidence, evaluator receipts for validation, exact redaction ranges and endpoint-relevant relation evidence."
+  - "Preserve complete raw-to-decoded per-character evidence and typed JSON values; expose unsupported Markdown as typed UNKNOWN."
   - "Expand canonical adversarial cases and genuine mutations to every surviving bypass."
   - "Represent tested and receipt Provider evidence as separate complete seven-job/thirteen-artifact downloaded-byte records."
-  - "Run actual route topology and history hygiene verification, not mocked topology tests alone."
-  - "Publish a literal post-receipt external anchor without control-character escaping and add no later commit."
-
-first_actions:
-  - "Read Issue #190 and the formal E56 review."
-  - "Verify exact latest origin/main, frozen E56 PR #186 at e98102f2753086ede2471f6176ee6a761b0df431, and parallel QCLAW E44 Issue #187 / PR #189."
-  - "Create a fresh E57 branch from exact latest main."
-  - "First E57 task commit adds exactly one E57 PROJECT-PLAN.md path."
-  - "Open one Draft PR, publish TaskLeaseClaim with literal parent/head/tree values and continue directly."
-  - "Create E56-SOURCE-SELECTION.yaml with exact source head, source commit per path, full blob SHA-1 and content SHA-256 before copying any E56 material."
+  - "Run actual route topology and history hygiene verification."
+  - "Publish a literal post-receipt external anchor without control-character corruption and add no later commit."
 
 provider_contract:
   workflow: ".github/workflows/codex-e57-capability-authority-closure.yml"
   python_versions: ["3.11", "3.13"]
   hash_seeds: ["0", "1", "777"]
-  expected_matrix_jobs: 6
-  expected_compare_jobs: 1
-  expected_total_jobs: 7
+  expected_total_jobs_per_run: 7
   expected_artifacts_per_run: 13
   tested_and_receipt_evidence_sets_separate: true
   complete_tests_adversarial_cases_and_mutations_per_job: true
@@ -83,13 +146,18 @@ provider_contract:
   tested_head_success_required: true
   receipt_head_success_required: true
 
+work_process_reporting:
+  WPDCR_required: true
+  required_moments: [LEASE_CLAIM, FIRST_SUBSTANTIVE_ACTION, MATERIAL_CHECKPOINT, BLOCKER_OR_ESCALATION, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
+  mandatory_sections: [PRIMARY_WORK_AND_PROCESS_TRACE, COMMAND_CLAIM_AND_EXECUTION_TRACE, DIFFICULTY_AND_COMPLEXITY, NEW_AND_UNEXPECTED_DISCOVERIES, EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES, UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS, PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS, COORDINATION_REQUESTS, CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT, DECISIONS_ALTERNATIVES_AND_LESSONS, NEXT_ACTION_AND_GATE]
+
 parallel_boundary:
   active_qclaw_e44:
     issue: 187
     pull_request: 189
     role: "VERIFIED_CAPABILITY_CONSUMPTION_DERIVED_SEMANTIC_EVIDENCE_MASTER_COGNITION_SKILL_NON_TAUTOLOGICAL_EVALUATOR"
     modification_by_codex_forbidden: true
-  overlap_rule: "E57 owns the low-level issuer/capability, format, generic record/topology, Provider and receipt boundary. Do not modify QCLAW E44 paths; publish BOUNDARY_CONFLICT for GPT arbitration."
+  overlap_rule: "E57 owns low-level issuer/capability, format, generic records/topology, Provider and receipt. Publish BOUNDARY_CONFLICT instead of editing QCLAW E44."
 
 hard_boundaries:
   - "Synthetic/public-safe engineering fixtures only."
@@ -98,12 +166,19 @@ hard_boundaries:
   - "No direct main implementation write, merge, auto-merge, force-push, rebase, amend, history rewrite, repository-setting or branch-protection change."
   - "No E56/E55/E54/E53/E52 or QCLAW frozen/active branch mutation."
 
+stop_conditions:
+  - "Status is no longer READY or exact task/epoch/Issue/branch fields change."
+  - "Required work needs an unauthorized path or QCLAW implementation edit."
+  - "A truthful issuer boundary requires a proposal-only architecture or user decision."
+  - "Canonical remote identity cannot be verified."
+
 command_execution_contract:
   on_trigger: "READ_CLAIM_AND_EXECUTE_CURRENT_E57_ROUTE"
   user_command: "读取任务"
   second_start_command_required: false
+  minimum_progress_before_return: "Create the one-file plan-only first commit, open the sole Draft PR, publish the exact TaskLeaseClaim and continue directly."
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-06T22:55:00+08:00"
-boundary: "E57_CAPABILITY_AUTHORITY_CLOSURE_READY / E56_E55_E54_E53_E52_FROZEN / QCLAW_E44_PARALLEL / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+updated_at: "2026-08-06T23:36:00+08:00"
+boundary: "E57_READY_WITH_COMPLETE_ROUTE_CONTRACT / E56_E55_E54_E53_E52_FROZEN / QCLAW_E44_PARALLEL / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
