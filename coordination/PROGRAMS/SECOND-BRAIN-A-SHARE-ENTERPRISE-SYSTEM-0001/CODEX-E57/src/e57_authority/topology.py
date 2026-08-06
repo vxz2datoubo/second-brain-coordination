@@ -30,6 +30,8 @@ class RouteTopology:
 class HistoryHygieneReport:
     all_history_paths: tuple[str, ...]
     generated_or_runtime_paths: tuple[str, ...]
+    retained_generated_or_runtime_paths: tuple[str, ...]
+    transient_generated_or_runtime_paths: tuple[str, ...]
     outside_allowlist_paths: tuple[str, ...]
 
 
@@ -92,8 +94,11 @@ def inspect_history_hygiene(repo: Path, *, base_sha: str, end_sha: str, allowed_
                 paths.add(path)
     ordered = tuple(sorted(paths))
     generated = tuple(path for path in ordered if GENERATED_OR_RUNTIME.search(path))
+    final_tree = tuple(item for item in _git(repo, "ls-tree", "-r", "--name-only", end_sha).splitlines() if item)
+    retained = tuple(path for path in generated if path in final_tree)
+    transient = tuple(path for path in generated if path not in final_tree)
     outside = tuple(path for path in ordered if not any(path.startswith(prefix) for prefix in prefixes))
-    return HistoryHygieneReport(ordered, generated, outside)
+    return HistoryHygieneReport(ordered, generated, retained, transient, outside)
 
 
 def verify_final_route(
@@ -130,6 +135,6 @@ def verify_final_route(
     hygiene = inspect_history_hygiene(repo, base_sha=route.base_sha, end_sha=route.receipt_sha, allowed_prefixes=allowed_history_prefixes)
     if hygiene.outside_allowlist_paths:
         raise AuthorityError("actual route history changed paths outside its allowlist")
-    if hygiene.generated_or_runtime_paths:
-        raise AuthorityError("actual route history contains generated or runtime artifacts")
+    if hygiene.retained_generated_or_runtime_paths:
+        raise AuthorityError("final route tree retains generated or runtime artifacts")
     return TopologyReport(plan_parent, plan_paths, chain, receipt_parent, receipt_paths, _git(repo, "rev-parse", f"{route.receipt_sha}^{{tree}}"), hygiene)

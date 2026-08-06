@@ -99,4 +99,6 @@ class ProviderTopologyTests(unittest.TestCase):
             allowed_prefixes=("coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/",),
         )
         self.assertGreaterEqual(len(report.generated_or_runtime_paths), 7)
+        self.assertFalse(report.retained_generated_or_runtime_paths)
+        self.assertGreaterEqual(len(report.transient_generated_or_runtime_paths), 7)
         self.assertFalse(report.outside_allowlist_paths)

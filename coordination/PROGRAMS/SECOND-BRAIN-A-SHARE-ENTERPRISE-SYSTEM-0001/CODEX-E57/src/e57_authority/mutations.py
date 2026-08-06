@@ -150,6 +150,13 @@ CATALOG: tuple[MutationDefinition, ...] = (
         b"generated = ()",
         "tests.test_provider_topology.ProviderTopologyTests.test_history_hygiene_reports_generated_paths_in_real_range",
     ),
+    MutationDefinition(
+        "MUT-POST-RECEIPT-COMPLETION-OMISSION",
+        "src/e57_authority/receipt.py",
+        b"if missing:\n        raise AuthorityError(\"post-receipt anchor omits a required literal identity\")",
+        b"if False:\n        raise AuthorityError(\"post-receipt anchor omits a required literal identity\")",
+        "tests.test_receipt_anchor.ReceiptAnchorTests.test_missing_completion_signal_is_rejected",
+    ),
 )
 
 
@@ -173,6 +180,7 @@ def run_mutation(task_root: Path, definition: MutationDefinition) -> MutationRes
         sandbox = Path(temporary) / "CODEX-E57"
         shutil.copytree(task_root / "src", sandbox / "src")
         shutil.copytree(task_root / "tests", sandbox / "tests")
+        shutil.copy2(task_root / "PROVIDER-CONTRACT.json", sandbox / "PROVIDER-CONTRACT.json")
         target = sandbox / definition.relative_path
         original = target.read_bytes()
         before = _digest(original)

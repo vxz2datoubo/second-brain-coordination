@@ -13,7 +13,7 @@ from e57_authority.mutations import CATALOG, catalog_digest, run_catalog
 
 class GenuineMutationTests(unittest.TestCase):
     def test_catalog_has_unique_ids_and_targets(self) -> None:
-        self.assertEqual(len(CATALOG), 13)
+        self.assertEqual(len(CATALOG), 14)
         self.assertEqual(len({item.mutation_id for item in CATALOG}), len(CATALOG))
         self.assertEqual(len({(item.relative_path, item.old) for item in CATALOG}), len(CATALOG))
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import sha256
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -36,6 +37,28 @@ def _source_hashes(task_root: Path) -> tuple[tuple[str, str], ...]:
     return tuple((path.relative_to(task_root).as_posix(), sha256(path.read_bytes()).hexdigest()) for path in sorted(source_root.glob("*.py")))
 
 
+def load_evaluation_contract(task_root: Path) -> Mapping[str, object]:
+    path = task_root / "PROVIDER-CONTRACT.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        evaluation = payload["evaluation"]
+        matrix = payload["matrix"]
+        if (
+            payload["schema"] != "e57-provider-route-contract-v1"
+            or payload["workflow"] != ".github/workflows/codex-e57-capability-authority-closure.yml"
+            or not isinstance(evaluation["exact_test_count"], int)
+            or not isinstance(evaluation["mutation_ids"], list)
+            or matrix["job_count"] != 7
+            or matrix["artifact_count"] != 13
+        ):
+            raise AuthorityError("Provider route contract is incompatible")
+        return payload
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        if isinstance(exc, AuthorityError):
+            raise
+        raise AuthorityError("Provider route contract is malformed") from exc
+
+
 def run_product_suite(task_root: Path) -> ProductRun:
     command = (sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v")
     environment = {**__import__("os").environ, "PYTHONPATH": str(task_root / "src")}
@@ -60,15 +83,21 @@ def _stable_mutation_result(result: MutationResult) -> Mapping[str, object]:
 
 
 def build_canonical_payload(task_root: Path, product: ProductRun, mutations: tuple[MutationResult, ...]) -> Mapping[str, object]:
-    if product.exit_code != 0 or product.test_count <= 0:
-        raise AuthorityError("canonical evaluation refuses a failed or uncounted product suite")
+    contract = load_evaluation_contract(task_root)
+    expected_count = contract["evaluation"]["exact_test_count"]
+    expected_mutations = tuple(contract["evaluation"]["mutation_ids"])
+    if product.exit_code != 0 or product.test_count != expected_count:
+        raise AuthorityError("canonical evaluation refuses a failed or contract-mismatched product suite")
     if any(not (item.changed and item.named_invariant_failed and item.restored_exactly) for item in mutations):
         raise AuthorityError("canonical evaluation refuses incomplete genuine mutation evidence")
+    if tuple(item.mutation_id for item in mutations) != expected_mutations:
+        raise AuthorityError("canonical evaluation mutation identities differ from the route contract")
     payload: dict[str, object] = {
         "schema": "e57-canonical-evaluation-v1",
         "product_command": ["python", "-m", "unittest", "discover", "-s", "tests", "-v"],
         "product_exit_code": product.exit_code,
         "product_test_count": product.test_count,
+        "route_contract_sha256": sha256((task_root / "PROVIDER-CONTRACT.json").read_bytes()).hexdigest(),
         "source_hashes": [{"path": path, "sha256": digest} for path, digest in _source_hashes(task_root)],
         "mutation_catalog_digest": catalog_digest(),
         "mutations": [_stable_mutation_result(item) for item in mutations],

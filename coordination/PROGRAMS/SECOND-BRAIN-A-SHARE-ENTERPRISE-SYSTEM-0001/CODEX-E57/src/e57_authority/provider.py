@@ -107,6 +107,63 @@ class DualProviderEvidence:
     receipt_provider_evidence: ProviderEvidenceSet
 
 
+def provider_evidence_to_mapping(evidence: ProviderEvidenceSet) -> Mapping[str, object]:
+    return {
+        "evidence_role": evidence.evidence_role,
+        "workflow": evidence.workflow,
+        "branch": evidence.branch,
+        "head_sha": evidence.head_sha,
+        "run_id": evidence.run_id,
+        "jobs": [
+            {"job_id": job.job_id, "name": job.name, "run_id": job.run_id, "head_sha": job.head_sha, "conclusion": job.conclusion}
+            for job in evidence.jobs
+        ],
+        "artifacts": [
+            {
+                "artifact_id": artifact.artifact_id,
+                "name": artifact.name,
+                "run_id": artifact.run_id,
+                "job_id": artifact.job_id,
+                "archive_sha256": artifact.archive_sha256,
+                "inner_payload_sha256": artifact.inner_payload_sha256,
+            }
+            for artifact in evidence.artifacts
+        ],
+        "verifier_output_sha256": evidence.verifier_output_sha256,
+    }
+
+
+def provider_evidence_from_mapping(value: Mapping[str, object]) -> ProviderEvidenceSet:
+    try:
+        jobs = tuple(
+            ProviderJob(int(item["job_id"]), str(item["name"]), int(item["run_id"]), str(item["head_sha"]), str(item["conclusion"]))
+            for item in value["jobs"]
+        )
+        artifacts = tuple(
+            ProviderArtifact(
+                int(item["artifact_id"]),
+                str(item["name"]),
+                int(item["run_id"]),
+                int(item["job_id"]),
+                str(item["archive_sha256"]),
+                str(item["inner_payload_sha256"]),
+            )
+            for item in value["artifacts"]
+        )
+        return ProviderEvidenceSet(
+            str(value["evidence_role"]),
+            str(value["workflow"]),
+            str(value["branch"]),
+            str(value["head_sha"]),
+            int(value["run_id"]),
+            jobs,
+            artifacts,
+            str(value["verifier_output_sha256"]),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise AuthorityError("Provider evidence mapping is malformed") from exc
+
+
 def _check_sha(value: str, width: int, label: str) -> None:
     matcher = SHA40 if width == 40 else SHA64
     if not isinstance(value, str) or not matcher.fullmatch(value):
