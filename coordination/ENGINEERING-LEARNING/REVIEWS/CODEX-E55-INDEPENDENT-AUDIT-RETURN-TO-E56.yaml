@@ -1,0 +1,175 @@
+schema_version: "1.0"
+review_id: "CODEX-E55-INDEPENDENT-AUDIT-RETURN-TO-E56"
+reviewer: "GPT"
+reviewed_at: "2026-08-06T11:00:00+08:00"
+repository: "vxz2datoubo/second-brain-coordination"
+agent: "CODEX"
+mode: "project_plan"
+source_route:
+  issue: 179
+  pull_request: 182
+  branch: "codex/e54-post-receipt-authority-closure-0051-e55"
+  base_sha: "71221117b2e15a5437bed27b95fced5e00d11157"
+  plan_sha: "257bcc90b7c2a7a3942a735f61343bd339c8dea8"
+  tested_sha: "1377d7cc298c9c1db6c5c05c69971551330afba8"
+  tested_tree: "827eacf70a6863ff33ef52b695b4b89eed489fe5"
+  receipt_sha: "414c24f557bdaa5d8ec9ebdd1279bf33cb147a81"
+  receipt_parent: "1377d7cc298c9c1db6c5c05c69971551330afba8"
+  receipt_tree: "955f78bebe82859b0d1a49351790e83f534bd663"
+  tested_provider_run: 31064395077
+  receipt_provider_run: 31065254116
+  current_head: "414c24f557bdaa5d8ec9ebdd1279bf33cb147a81"
+  draft: true
+  merged: false
+successor_route:
+  issue: 185
+  route_epoch: 58
+  task_id: "CODEX-E55-POST-RECEIPT-CANONICAL-EVALUATION-FORMAT-OWNERSHIP-PROVIDER-COMPARE-MUTATION-RESULT-TOPOLOGY-HYGIENE-AND-RECEIPT-CLOSURE-0052-E56"
+  planned_branch: "codex/e55-post-receipt-canonical-authority-closure-0052-e56"
+  completion_signal: "CODEX_E56_CANONICAL_EVALUATION_PROVIDER_RECEIPT_AUTHORITY_READY_FOR_GPT_REVIEW"
+disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_PROVIDER_EXECUTION_ACCEPTED_REAL_MUTATION_PARTIAL_CREDIT_NO_PROVIDER_AUTHORITY_NO_RECEIPT_NO_MERGE"
+credits:
+  plan_topology_credit: true
+  source_selection_candidate_credit: true
+  substantive_implementation_credit: true
+  tested_provider_execution_credit: true
+  receipt_provider_execution_credit: true
+  genuine_mutation_execution_credit: true
+  full_mutation_coverage_credit: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  completion_credit: false
+  merge_authorized: false
+accepted_evidence:
+  - "TaskLeaseClaim binds Issue #179, PR #182, base 71221117, plan 257bcc90 and route epoch 57."
+  - "Base-to-plan comparison contains exactly one E55 PROJECT-PLAN.md path."
+  - "Receipt 414c24f is a direct child of tested head 1377d7c and changes exactly five declared receipt files."
+  - "No post-receipt commit is visible; PR remains Draft, open and unmerged."
+  - "Tested run 31064395077 and receipt run 31065254116 each contain six successful Python/version-seed jobs plus one successful compare job."
+  - "Both runs expose thirteen artifacts with route-matching head SHAs and expected canonical/environment/compare names."
+  - "Eleven task-local production mutations genuinely modify source, require a nonzero mutant result, restore byte-identically and rerun green."
+  - "Controlled source admission, JSON token mapping, semantic relation evidence, typed packet records, history scanning and external artifact fetching are substantial improvements over E54."
+blocking_findings:
+  - id: "E55-BLOCKER-001"
+    severity: "S3_CRITICAL"
+    title: "ordinary callers can forge issuance authority through mutable factory internals"
+    evidence:
+      - "SourceAdmissionFactory exposes mutable policy, _seal and _issued attributes."
+      - "An ordinary caller can reuse _seal and insert a forged object into _issued, or replace policy with a permissive object, defeating the stated issuance boundary."
+      - "Tests access _seal but do not test self-registration, seal reuse, registry substitution or policy replacement."
+    required: "Opaque capability, encapsulated immutable policy/registry state and mutations for all ordinary-caller bypasses."
+  - id: "E55-BLOCKER-002"
+    severity: "S3_CRITICAL"
+    title: "text and Markdown format ownership regresses to whole-line atomization"
+    evidence:
+      - "The non-JSON branch marks every nonblank, non-[REDACTED] line as ATOM_CANDIDATE."
+      - "Markdown headings, list markers, blockquotes, fences, code and tables therefore become semantic evidence rather than structural ownership."
+      - "The test suite explicitly treats ordinary text and Markdown lines identically and lacks structural-format adversarial cases."
+    required: "Versioned format tokenizer with total ownership partition for text, Markdown, JSON and JSONL."
+  - id: "E55-BLOCKER-003"
+    severity: "S2_MATERIAL"
+    title: "escaped JSON values are dropped rather than represented by exact decoded evidence"
+    evidence:
+      - "Any JSON value token containing escape syntax is excluded from semantic spans."
+      - "The tokenizer records raw-to-decoded character mapping but the authority layer does not issue a decoded evidence record for it."
+    required: "Exact raw/decoded evidence binding that keeps syntax structural without silently discarding decoded content."
+  - id: "E55-BLOCKER-004"
+    severity: "S3_CRITICAL"
+    title: "evidence and packet subrecord semantics remain caller-authored"
+    evidence:
+      - "EvidenceRecordFactory accepts arbitrary purpose and statement text without requiring the statement to equal or derive from the admitted span."
+      - "PacketSubrecordFactory accepts one generic value/status schema for UNKNOWN, CONFLICT, REDACTION and VALIDATION, permitting semantically invalid kind/status combinations."
+    required: "Kind-specific schemas, evidence derivation and transition rules with full graph reconstruction."
+  - id: "E55-BLOCKER-005"
+    severity: "S3_CRITICAL"
+    title: "topology verifier does not prove the strict plan-only and exact linear chain"
+    evidence:
+      - "verify_final_receipt checks ancestry but does not require plan parent to equal base."
+      - "It does not inspect base-to-plan changed paths or prove the first commit added exactly one PROJECT-PLAN.md."
+      - "It does not reject merge commits or unexpected intermediate parents."
+      - "External anchor validation accepts only a shape-valid provider compare digest and does not bind both run/job/artifact sets."
+    required: "Observed direct-parent/path/linearity checks and exact tested/receipt external identities."
+  - id: "E55-BLOCKER-006"
+    severity: "S3_CRITICAL"
+    title: "Provider canonical artifact is a declaration, not an executed authority result"
+    evidence:
+      - "canonical_payload contains only schema, task-root name, ordinary test module names and mutation IDs."
+      - "It contains no production source digest, adversarial fixture outcomes, ownership graph, packet result, test result digest, mutation result summary or graph-evaluation digest."
+      - "Therefore substantial implementation or fixture changes can leave canonical bytes unchanged."
+    required: "Deterministic canonical result from actual production pipeline and ground-truth evaluation."
+  - id: "E55-BLOCKER-007"
+    severity: "S3_CRITICAL"
+    title: "Provider compare job does not require six canonical artifacts to be byte-identical"
+    evidence:
+      - "compare_provider_artifacts.py hashes six canonical and six environment files and combines all twelve digests without asserting canonical equality."
+      - "test_tools.py intentionally generates six different canonical payloads and expects the compare tool to return success."
+      - "The later external verifier checks equality, but the required Provider compare job and compare artifact themselves do not prove it."
+    required: "Fail the compare job on any canonical byte difference and emit explicit canonical equality evidence."
+  - id: "E55-BLOCKER-008"
+    severity: "S3_CRITICAL"
+    title: "independent Provider verification does not verify mutation-results payloads"
+    evidence:
+      - "Environment artifacts contain environment.json and mutation-results.json."
+      - "verify_provider_run.py extracts environment.json but never extracts mutation-results.json or compares it with mutation_result_sha256."
+      - "It does not independently validate per-mutation anchors, exits, restoration hashes, command hashes or stream hashes."
+    required: "Download, extract, digest-bind and semantically validate every mutation-result record."
+  - id: "E55-BLOCKER-009"
+    severity: "S2_MATERIAL"
+    title: "Provider job/artifact contract remains partially self-described"
+    evidence:
+      - "Expected test count is taken from observed environment payloads rather than a versioned route contract."
+      - "The verifier does not require exactly seven total jobs, bind the compare artifact to the compare job, or reject all unexpected jobs."
+      - "Provider validation omits command/stream/graph digests and exact mutation result content."
+    required: "Independent expected contract plus exact run/job/artifact and inner-byte validation."
+  - id: "E55-BLOCKER-010"
+    severity: "S2_MATERIAL"
+    title: "real mutation execution is incomplete against the E55 contract"
+    evidence:
+      - "Eleven mutants are genuinely killed, but there are no mutants for policy replacement, self-registration, Markdown ownership, escaped-value loss, evidence-statement mismatch, kind/status mismatch, strict plan-only verification, canonical-result omission, unequal-canonical compare acceptance, mutation-results omission, compare-job binding or unexpected Provider jobs/artifacts."
+    required: "Expand copied-production mutations across every remaining authority surface."
+  - id: "E55-BLOCKER-011"
+    severity: "S2_MATERIAL"
+    title: "history hygiene lacks task-defined patterns and exact merge-parent provenance"
+    evidence:
+      - "Built-in patterns are broader, but scan_commit_range accepts no versioned task-defined pattern set."
+      - "Merge-parent attribution is explicitly best-effort and increments parent assignment per status line rather than preserving exact parent groups."
+    required: "Versioned task patterns and exact parent-specific history evidence."
+  - id: "E55-BLOCKER-012"
+    severity: "S1_REPORTING"
+    title: "visibility packets retain unresolved shell placeholders"
+    evidence:
+      - "Two Issue #179 progress comments publish literal $parent, $head and $tree values even after a correction comment."
+    required: "Publish literal verified values and ensure reporting templates fail on placeholders."
+  - id: "E55-BLOCKER-013"
+    severity: "S2_MATERIAL"
+    title: "executor attribution remains unresolved"
+    evidence:
+      - "Commit messages state [agent:CODEX] while public GitHub metadata displays 迪迪(WorkBuddy) as author and committer."
+      - "E55 records the inconsistency but cannot prove actual executor from public evidence."
+    required: "Preserve UNKNOWN or establish public attribution evidence without private-config access."
+provider_observations:
+  tested:
+    run_id: 31064395077
+    head: "1377d7cc298c9c1db6c5c05c69971551330afba8"
+    matrix_jobs: 6
+    compare_jobs: 1
+    artifacts: 13
+    conclusion: "success"
+  receipt:
+    run_id: 31065254116
+    head: "414c24f557bdaa5d8ec9ebdd1279bf33cb147a81"
+    matrix_jobs: 6
+    compare_jobs: 1
+    artifacts: 13
+    conclusion: "success"
+  interpretation: "Real execution evidence is accepted. It does not prove canonical authority because the submitted canonical, compare and mutation-result validators omit required invariants."
+risk:
+  confidence: "HIGH"
+  worst_case: "A green Provider matrix can certify divergent or shallow canonical outputs and unverified mutation evidence, while ordinary callers can forge admitted source authority."
+  conservative_action: "Freeze E55 receipt head and require clean E56 successor; no merge or production promotion."
+boundaries:
+  - "No merge."
+  - "No post-receipt correction on E55."
+  - "No whole-branch integration."
+  - "No private configuration, credentials, accounts, market data or trading."
+  - "QCLAW E43 remains a distinct parallel semantic-authority route."
