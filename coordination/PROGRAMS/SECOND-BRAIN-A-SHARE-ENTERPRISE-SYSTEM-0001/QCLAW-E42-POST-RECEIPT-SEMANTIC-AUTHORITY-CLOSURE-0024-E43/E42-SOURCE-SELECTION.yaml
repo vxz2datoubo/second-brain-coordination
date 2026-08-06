@@ -1,0 +1,64 @@
+# E42-SOURCE-SELECTION.yaml — E43
+# E42 frozen at 1cc7922628191a4ee054557090ff07478e83edc0
+# E43 selects only by exact source commit/path/blob/content SHA. No whole-file copy.
+
+source_head: 1cc7922628191a4ee054557090ff07478e83edc0
+source_branch: qclaw/e41-post-receipt-semantic-authority-repair-0023-e42
+review_disposition: RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION
+review_file: coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E42-INDEPENDENT-AUDIT-RETURN-TO-E43.yaml
+
+selections:
+  - source_path: src/qclaw_e42/authority.py
+    source_commit: d5ed37cb18d46825082b7a80e34f4559ebce8606
+    blob_sha: 4787ab686754
+    content_sha256: 774f2b11548bc296b8d09dd6e5d3e5bf675d2d0bf5aaa4c65f335280a4c10795
+    disposition: REWRITE
+    reason: "E43 requires registry-controlled Evidence/Atom with HMAC signing; E42 factory_issued flag bypassable. Design reference only."
+
+  - source_path: src/qclaw_e42/source_trace.py
+    source_commit: 0b32d097d652148553d131dab96d836fce8400b1
+    blob_sha: 48fc7803433f
+    content_sha256: aa5fcf77c7c78d27bc621237cb3749af473fb4667db3deb9a0201e09a1c0fda9
+    disposition: REWRITE
+    reason: "E43 requires self-verifying SourceDocument (computed length/digest, no caller-supplied), strict UTF-8 (no errors=replace), total legal byte partition. Design reference."
+
+  - source_path: src/qclaw_e42/master_record.py
+    source_commit: 0b32d097d652148553d131dab96d836fce8400b1
+    blob_sha: 073386e1ce9a
+    content_sha256: 5b4774403d7349965d5bbeb4b99f34eabdaf669ad15f0c470841c7ce5a296f21
+    disposition: REWRITE
+    reason: "E43 requires registry-controlled MasterRecord/VersionEvent, evidence-backed identity rule detecting paraphrase duplicates. Design reference."
+
+  - source_path: src/qclaw_e42/cognition.py
+    source_commit: 0b32d097d652148553d131dab96d836fce8400b1
+    blob_sha: 114066406aed
+    content_sha256: 2d897fad117e9b82b27c768f78c23577fce7072ff47492baf56e639ecee21db3
+    disposition: REWRITE
+    reason: "E43 removes authoritative caller booleans (has_user_origin_evidence, is_known, is_stated). Evidence-derived only. Design reference."
+
+  - source_path: src/qclaw_e42/skill_lifecycle.py
+    source_commit: 0b32d097d652148553d131dab96d836fce8400b1
+    blob_sha: 4a2ed83ef0f6
+    content_sha256: d85c016b2c396e9e076989f495e4e461215b5cb23aee0822441219cc2fa413ab
+    disposition: REWRITE
+    reason: "E43 requires registry-verified transitions, separate evidence thresholds per gate. Design reference."
+
+  - source_path: src/qclaw_e42/corpus.py
+    source_commit: 34c22a9c61149c281a5ff4d1bfd5cf80ec5bc181
+    blob_sha: 8775af1898ba
+    content_sha256: 454ff941e66cac2b9047c55a1e6510600d541d15bc8c6036859ac33fa7e73952
+    disposition: REWRITE
+    reason: "E43 requires end-to-end evaluator running real pipeline, not just static corpus fixture. Design reference."
+
+  - source_path: src/qclaw_e42/mutations.py
+    source_commit: 3c5a451ee28e1e13fca4e0a58e2046d70b0f7e5c
+    blob_sha: c894a5ca1d18
+    content_sha256: 2f4ed274834802d657e2a7bc92ce6ea054b8d13363e21aae63eca11bdcad04d0
+    disposition: REWRITE
+    reason: "E43 requires real mutation execution (copy source, mutate, run tests, check exit, restore, verify hash). E42 only registered mutations without execution. Design reference."
+
+status: SELECTION_COMPLETE
+total_selections: 7
+adopt: 0
+rewrite: 7
+reject: 0
