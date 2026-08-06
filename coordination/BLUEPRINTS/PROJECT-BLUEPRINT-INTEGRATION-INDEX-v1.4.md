@@ -10,7 +10,7 @@
 
 ## 一、版本目的
 
-v1.4将近期新增的AMED、W13、PMN、0017和0018与既有W1-W12重新收敛，建立统一的职责、权威、接口、成熟度和任务顺序。它不新增W14，也不授权任何业务运行时、回测执行或交易。
+v1.4将近期新增的AMED、W13、PMN、0013、0017和0018与既有W1-W12重新收敛，建立统一的职责、权威、接口、成熟度和任务顺序。它不新增W14，也不授权任何业务运行时、回测执行或交易。
 
 权威收敛蓝图：
 
@@ -33,11 +33,20 @@ v1.4将近期新增的AMED、W13、PMN、0017和0018与既有W1-W12重新收敛�
 | 0010 | Personal Epistemic Cognitive OS | W10 | 61 | CONTRACTED_NOT_IMPLEMENTED |
 | 0011 | Kelly-Thorp Expected Value and Capital Allocation | W11 | 62 | CONTRACTED_NOT_IMPLEMENTED |
 | 0012 | Decision Science Skill Family | W12 | 63 / PR66 | D0_COMPLETE_PENDING_MERGE |
+| 0013 | Intraday Extrema Interval and Weak-Drive State | W4＋W7＋W12 | 188 | CONTRACTED_NOT_IMPLEMENTED_DATA_PENDING |
 | 0014 | Daily Participant Capital-Flow Intelligence | W13 | 67 | CONTRACTED_NOT_IMPLEMENTED |
 | 0015 | Policy Macro News Cross-Asset Intelligence | W5 | 68 | CONTRACTED_NOT_IMPLEMENTED |
 | 0017 | Liquidity Sweep/Reclaim Validation | W4＋W7 | 69 | CONTRACTED_NOT_IMPLEMENTED |
 | 0018 | House-Edge Survival and Operating Control | W7＋W9＋W11 | 71 | CONTRACTED_NOT_IMPLEMENTED |
 | 0019 | Enterprise Blueprint Convergence | W1 | 72 | ACTIVE_PROJECT_PLAN |
+
+0013正式登记的权威工件：
+
+- `coordination/BLUEPRINTS/A-SHARE-INTRADAY-EXTREMA-INTERVAL-WEAK-DRIVE-SKILL-BLUEPRINT-v1.0.md`
+- `coordination/BLUEPRINTS/A-SHARE-INTRADAY-EXTREMA-INTERVAL-RESEARCH-VALIDATION-v1.0.md`
+- `coordination/SKILLS/A-SHARE-INTRADAY-EXTREMA-INTERVAL-WEAK-DRIVE-SKILL-v1.0.yaml`
+
+其“弱驱动时极值常相隔20至30分钟”仍为`UNVERIFIED_CANDIDATE`，不是交易规则。
 
 ## 四、唯一权威表
 
@@ -57,13 +66,13 @@ v1.4将近期新增的AMED、W13、PMN、0017和0018与既有W1-W12重新收敛�
 | 统一验证和最终风险否决 | W7 |
 | 结果校准和工程学习 | W9 |
 
-0017和0018均为嵌入式跨模块能力，不拥有上述平行权威。
+0013、0017和0018均为嵌入式跨模块能力，不拥有上述平行权威。0013只生产候选持续时间、风险率和弱驱动代理特征；市场事实由W2写，策略实验由W4写，最终概率由W12写，验证与否决由W7写。
 
 ## 五、核心决策链
 
 ```text
 W2/W3/W5/W13事实与证据
-→ W4策略实验＋W6竞争性假设
+→ W4策略实验、0013日内持续时间特征、0017流动性扫掠候选＋W6竞争性假设
 → W12问题框定、ProbabilityEstimate和研究真实性
 → W10 DecisionEpisode与用户上下文
 → W11净期望和资本配置
@@ -72,7 +81,7 @@ W2/W3/W5/W13事实与证据
 → W9影子结果、归因、校准和成熟度回写
 ```
 
-0017可作为W4策略/事件候选进入W7验证，但不得直接产生主力意图或订单。
+0013和0017可作为W4策略/事件候选进入W7验证，但不得直接产生主力意图、买卖指令或订单。
 
 ## 六、共享合同
 
@@ -88,29 +97,44 @@ W2/W3/W5/W13事实与证据
 10. `W7RiskEnvelope/ValidationReport`，W7写；
 11. `OutcomeCalibrationRecord`，W9写。
 
-完整producer/consumer约束见机器注册表。
+0013消费1、2、6、7和10，输出非权威的`IntradayExtremaTimingAssessment`候选，不新建共享事实或概率权威。完整producer/consumer约束见机器注册表。
 
 ## 七、非重复边界
 
 - AMED只治理任务和系统演进，不建业务运行时；
 - W13只提供公开参与者活动证据，不确认真实账户身份；
 - PMN不复制事件、市场、概率或风险系统；
+- 0013不把OHLCV、五档或供应商资金流称为真实主动买卖，不把20至30分钟写成固定反转规则，不直接输出BUY/SELL；
 - 0017不使用DDX/DDY、伪逐笔、伪Delta/CVD/OFI或主力意图；
 - 0018不复制W12概率、W11 Kelly、W7风险和订单系统；
 - W10个人模型不能静默修改概率、效用或风险上限；
 - W12子技能不能绕过W11和W7；
 - 所有模块复用W2的A股规则和点时回放。
 
-## 八、当前关键路径
+## 八、0013专属验证门
+
+1. 使用有效交易分钟，午休、停牌和无效bar不计时；
+2. 区分固定窗口、对称局部极值、方向变化和首次到达；
+3. 极值事后标签与实时已确认状态完全隔离；
+4. 20至30分钟是预注册假设区间，不作为参数优化目标；
+5. 点时证券池包含退市、停牌、多个板块和流动性层；
+6. 多时期purged walk-forward、embargo、lockbox和多重检验；
+7. 先验证分布、生存、风险率和概率校准，再评估组合经济价值；
+8. 与VWAP、市场状态、量价效率、0017和真实订单流增强做消融；
+9. A股T+1、涨跌停、不可成交、费用和可卖库存进入决策映射；
+10. 没有经过审计的点时分钟数据时，状态保持`DATA_PENDING`。
+
+## 九、当前关键路径
 
 1. PR #66已完成R3并获得GPT有界验收记录，保持不自动合并；
 2. Issue #72成为唯一活动Codex任务，完成蓝图、权威、接口和依赖冻结；
-3. 完成后重新排序W13、PMN、0017、0018、W11和W12首批切片；
-4. 每次只激活一个业务纵向切片；
-5. 业务切片先单独验证，再做联合经济增量；
-6. 所有资本成熟度升级必须经过W11、0018和W7共同门禁。
+3. Issue #188仅为0013未来实现与回测锚点，不得在当前Codex活动任务完成前自动领取；
+4. 完成收敛后重新排序W13、PMN、0013、0017、0018、W11和W12首批切片；
+5. 每次只激活一个业务纵向切片；
+6. 业务切片先单独验证，再做联合经济增量；
+7. 所有资本成熟度升级必须经过W11、0018和W7共同门禁。
 
-## 九、统一成熟度定义
+## 十、统一成熟度定义
 
 - `BLUEPRINT_ONLY`：仅概念和蓝图；
 - `REGISTERED_CANDIDATE`：有Issue和候选对象；
@@ -121,7 +145,7 @@ W2/W3/W5/W13事实与证据
 - `VALIDATED_RESEARCH_CAPABILITY`：GPT验收后的研究能力；
 - `LIVE_TRADING`：本工程当前禁止。
 
-## 十、WIP规则
+## 十一、WIP规则
 
 - Codex一个活动任务；
 - 首批业务纵向切片最多一个；
@@ -130,11 +154,11 @@ W2/W3/W5/W13事实与证据
 - 发现的新Skill默认C类提案；
 - 不自动合并，不进入真实交易。
 
-## 十一、Issue #72验收门
+## 十二、Issue #72验收门
 
 - PROGRAM-INDEX、集成索引、执行序列和ACTIVE路由一致；
 - 所有核心对象只有一个写权威；
-- 0017/0018正式嵌入原工作流；
+- 0013/0017/0018正式嵌入原工作流；
 - 模块成熟度有证据；
 - 重复、孤儿、幽灵和过时引用有处置；
 - 下一纵向切片排序有数据准备度、价值、依赖、风险和成本依据；
