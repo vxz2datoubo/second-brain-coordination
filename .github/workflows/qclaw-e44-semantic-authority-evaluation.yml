@@ -1,0 +1,71 @@
+name: QCLAW E44 Semantic Authority Evaluation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - qclaw/e43-post-receipt-semantic-authority-closure-0025-e44
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+        hash-seed: [0, 1, 777]
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Run E44 full test suite
+        run: |
+          PYTHONHASHSEED=${{ matrix.hash-seed }} python -m unittest discover -s tests -p "test_q*.py" -v
+
+      - name: Emit canonical artifact
+        run: |
+          echo "head=${{ github.event.pull_request.head.sha || github.sha }}" > e44-evaluation.txt
+          echo "python=${{ matrix.python }}" >> e44-evaluation.txt
+          echo "seed=${{ matrix.hash-seed }}" >> e44-evaluation.txt
+          echo "timestamp=$(date -u +%s)" >> e44-evaluation.txt
+          sha256sum tests/test_q*.py src/qclaw_e44/*.py > e44-source-hashes.txt
+
+      - name: Upload evaluation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e44-eval-py${{ matrix.python }}-seed${{ matrix.hash-seed }}
+          path: e44-evaluation.txt
+          if-no-files-found: error
+
+      - name: Upload source hash artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e44-hashes-py${{ matrix.python }}-seed${{ matrix.hash-seed }}
+          path: e44-source-hashes.txt
+          if-no-files-found: error
+
+  compare:
+    runs-on: ubuntu-latest
+    needs: evaluate
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Byte-exact compare canonical files
+        run: |
+          set -e
+          echo "Comparing 6 evaluation artifacts..."
+          cmp artifacts/e44-eval-py3.11-seed0/e44-evaluation.txt artifacts/e44-eval-py3.13-seed0/e44-evaluation.txt || { echo "MISMATCH seed0"; exit 1; }
+          cmp artifacts/e44-eval-py3.11-seed1/e44-evaluation.txt artifacts/e44-eval-py3.13-seed1/e44-evaluation.txt || { echo "MISMATCH seed1"; exit 1; }
+          cmp artifacts/e44-eval-py3.11-seed777/e44-evaluation.txt artifacts/e44-eval-py3.13-seed777/e44-evaluation.txt || { echo "MISMATCH seed777"; exit 1; }
+          echo "All 3 cross-version comparisons PASS"
