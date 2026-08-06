@@ -40,7 +40,7 @@ def main() -> int:
     args = parser.parse_args()
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    command = (sys.executable, "-m", "unittest", "test_authority", "test_hygiene_topology_provider", "-v")
+    command = (sys.executable, "-m", "unittest", "test_authority", "test_hygiene_topology_provider", "test_tools", "-v")
     environment = {
         **os.environ,
         "PYTHONPATH": os.pathsep.join((str(ROOT / "src"), str(ROOT / "tests"))),
@@ -67,7 +67,7 @@ def main() -> int:
     canonical = {
         "schema": "e55-provider-canonical-v1",
         "task_root": ROOT.name,
-        "ordinary_test_modules": ["test_authority", "test_hygiene_topology_provider"],
+        "ordinary_test_modules": ["test_authority", "test_hygiene_topology_provider", "test_tools"],
         "mutation_ids": [item.mutation_id for item in MUTATION_SPECS],
         "mutation_result_sha256": digest(mutation_payload),
         "mutation_count": len(mutation_results),

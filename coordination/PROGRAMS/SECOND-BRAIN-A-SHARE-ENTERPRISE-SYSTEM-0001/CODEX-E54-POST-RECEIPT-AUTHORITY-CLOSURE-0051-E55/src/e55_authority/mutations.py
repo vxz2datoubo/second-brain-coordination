@@ -122,7 +122,7 @@ def run_production_source_mutations(
     # Exclude ``test_mutations`` itself: otherwise a mutation verification
     # would recursively start another mutation matrix instead of testing the
     # same ordinary production suite that the matrix is intended to challenge.
-    command = (sys.executable, "-m", "unittest", "test_authority", "test_hygiene_topology_provider", "-v")
+    command = (sys.executable, "-m", "unittest", "test_authority", "test_hygiene_topology_provider", "test_tools", "-v")
     inherited_path = os.environ.get("PYTHONPATH", "")
     environment = {
         **os.environ,

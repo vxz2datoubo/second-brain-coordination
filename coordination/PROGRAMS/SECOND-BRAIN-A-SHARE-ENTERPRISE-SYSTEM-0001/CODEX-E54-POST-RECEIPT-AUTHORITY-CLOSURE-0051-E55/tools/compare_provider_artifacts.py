@@ -20,7 +20,10 @@ def main() -> int:
     root = Path(args.root)
     artifacts: list[dict[str, object]] = []
     for environment in sorted(root.rglob("environment.json")):
-        canonical = environment.with_name("canonical.json")
+        directory = environment.parent
+        if not directory.name.startswith("environment-"):
+            raise RuntimeError(f"unexpected environment artifact directory {directory.name}")
+        canonical = root / directory.name.replace("environment-", "canonical-", 1) / "canonical.json"
         if not canonical.exists():
             raise RuntimeError(f"missing canonical peer for {environment}")
         artifacts.append({"path": environment.relative_to(root).as_posix(), "sha256": digest(environment)})
