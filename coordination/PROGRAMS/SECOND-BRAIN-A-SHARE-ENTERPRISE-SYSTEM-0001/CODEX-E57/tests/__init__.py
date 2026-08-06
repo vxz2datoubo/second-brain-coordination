@@ -1,1 +1,1 @@
-"""E57 synthetic adversarial tests."""
+"""E57 test package with explicitly reusable synthetic fixtures."""

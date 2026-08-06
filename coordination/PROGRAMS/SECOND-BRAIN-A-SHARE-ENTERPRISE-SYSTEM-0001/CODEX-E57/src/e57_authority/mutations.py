@@ -144,6 +144,13 @@ CATALOG: tuple[MutationDefinition, ...] = (
         "tests.test_provider_topology.ProviderTopologyTests.test_shared_artifact_ids_are_rejected",
     ),
     MutationDefinition(
+        "MUT-EXTERNAL-DIGEST-OMISSION",
+        "src/e57_authority/provider_verify.py",
+        b"if tested_digest is None or receipt_digest is None:\n        raise AuthorityError(\"both external Provider evidence digests are required\")",
+        b"if False:\n        raise AuthorityError(\"both external Provider evidence digests are required\")",
+        "tests.test_provider_serialization.ProviderSerializationTests.test_missing_external_digests_fail_closed",
+    ),
+    MutationDefinition(
         "MUT-ROUTE-HYGIENE-GENERATED-BYPASS",
         "src/e57_authority/topology.py",
         b"generated = tuple(path for path in ordered if GENERATED_OR_RUNTIME.search(path))",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -13,7 +14,8 @@ from e57_authority.mutations import CATALOG, catalog_digest, run_catalog
 
 class GenuineMutationTests(unittest.TestCase):
     def test_catalog_has_unique_ids_and_targets(self) -> None:
-        self.assertEqual(len(CATALOG), 14)
+        contract = json.loads((TASK_ROOT / "PROVIDER-CONTRACT.json").read_text(encoding="utf-8"))
+        self.assertEqual(tuple(item.mutation_id for item in CATALOG), tuple(contract["evaluation"]["mutation_ids"]))
         self.assertEqual(len({item.mutation_id for item in CATALOG}), len(CATALOG))
         self.assertEqual(len({(item.relative_path, item.old) for item in CATALOG}), len(CATALOG))
 

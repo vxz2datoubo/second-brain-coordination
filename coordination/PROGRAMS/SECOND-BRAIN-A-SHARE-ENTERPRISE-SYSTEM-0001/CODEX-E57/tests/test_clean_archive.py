@@ -14,7 +14,7 @@ sys.path.insert(0, str(TASK_ROOT / "src"))
 
 from e57_authority.clean_archive import TASK_RELATIVE, verify_from_clean_archive
 from e57_authority.provider import provider_evidence_to_mapping
-from test_provider_topology import evidence
+from tests.e57_fixtures import provider_evidence as evidence
 
 
 class CleanArchiveTests(unittest.TestCase):
