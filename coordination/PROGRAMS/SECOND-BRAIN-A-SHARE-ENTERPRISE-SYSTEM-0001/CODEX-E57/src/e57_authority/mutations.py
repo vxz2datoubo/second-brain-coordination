@@ -129,6 +129,27 @@ CATALOG: tuple[MutationDefinition, ...] = (
         b"if False:\n                raise AuthorityError(\"raw ownership has a gap or overlap\")",
         "tests.test_semantic_records.SemanticRecordTests.test_partition_gap_is_rejected",
     ),
+    MutationDefinition(
+        "MUT-DUAL-RUN-SUBSTITUTION",
+        "src/e57_authority/provider.py",
+        b"if tested.run_id == receipt.run_id:",
+        b"if False:",
+        "tests.test_provider_topology.ProviderTopologyTests.test_shared_run_is_rejected",
+    ),
+    MutationDefinition(
+        "MUT-DUAL-ARTIFACT-SUBSTITUTION",
+        "src/e57_authority/provider.py",
+        b"if {artifact.artifact_id for artifact in tested.artifacts} & {artifact.artifact_id for artifact in receipt.artifacts}:",
+        b"if False:",
+        "tests.test_provider_topology.ProviderTopologyTests.test_shared_artifact_ids_are_rejected",
+    ),
+    MutationDefinition(
+        "MUT-ROUTE-HYGIENE-GENERATED-BYPASS",
+        "src/e57_authority/topology.py",
+        b"generated = tuple(path for path in ordered if GENERATED_OR_RUNTIME.search(path))",
+        b"generated = ()",
+        "tests.test_provider_topology.ProviderTopologyTests.test_history_hygiene_reports_generated_paths_in_real_range",
+    ),
 )
 
 
@@ -160,6 +181,7 @@ def run_mutation(task_root: Path, definition: MutationDefinition) -> MutationRes
         target.write_bytes(mutated)
         environment = dict(os.environ)
         environment["PYTHONPATH"] = str(sandbox / "src")
+        environment["E57_REPO_ROOT"] = str(task_root.parents[3])
         try:
             completed = subprocess.run(
                 [sys.executable, "-m", "unittest", definition.invariant_test],
