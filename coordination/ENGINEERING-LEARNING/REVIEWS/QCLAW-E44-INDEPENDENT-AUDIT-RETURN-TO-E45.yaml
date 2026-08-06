@@ -1,0 +1,127 @@
+schema_version: "1.0"
+review_id: "QCLAW-E44-INDEPENDENT-AUDIT-RETURN-TO-E45"
+reviewer: "GPT"
+repository: "vxz2datoubo/second-brain-coordination"
+reviewed_issue: 187
+reviewed_pull_request: 189
+reviewed_branch: "qclaw/e43-post-receipt-semantic-authority-closure-0025-e44"
+base_sha: "1ab27bb2b87340e61d29f6506ad98bb4dff4c22b"
+frozen_head: "846861da346039dd12c2e58fb5fc16d045a4d0c3"
+workflow_run: 31130562655
+status: "FROZEN_ROUTE_INVALID_CI_FAILED_CALLER_CONTROLLED_AUTHORITY_NO_PROVIDER_NO_RECEIPT_REJECTED_AS_FINAL"
+disposition: "RETURNED_FOR_CLEAN_E45_VERIFIED_CAPABILITY_CONSUMPTION_AND_REAL_SEMANTIC_PROVIDER_CLOSURE_NO_COMPLETION_NO_MERGE"
+merge_authorized: false
+further_commit_authorized: false
+
+verified_positive_evidence:
+  - "Draft PR #189 is open, unmerged and exactly three commits ahead of base 1ab27bb2b87340e61d29f6506ad98bb4dff4c22b."
+  - "All implementation changes remain inside the E44 task root plus one task-specific workflow."
+  - "The candidate contains a substantial semantic model, corpus, master/cognition/skill modules and tests."
+  - "The exact-head workflow checked out 846861da346039dd12c2e58fb5fc16d045a4d0c3."
+
+blocking_findings:
+  - id: "E44-B1-NONEXECUTABLE-ROUTE-USED"
+    severity: "CRITICAL_GOVERNANCE"
+    fact: >-
+      ACTIVE-QCLAW-TASK.yaml and Issue #187 use status RETURNED_FOR_CLEAN_E44_SEMANTIC_AUTHORITY_CLOSURE rather than literal READY.
+      No TaskLeaseClaim, in-progress packet or completion report was published to Issue #187 or PR #189.
+    consequence: "The implementation was created without a valid current lease under RTCE and lease protocols."
+  - id: "E44-B2-CI-FAILED-BEFORE-TEST-EXECUTION"
+    severity: "CRITICAL"
+    fact: >-
+      Workflow run 31130562655 failed. Job 92718248200 invoked unittest discovery at repository-root tests and raised
+      ImportError: Start directory is not importable: 'tests'. Remaining matrix jobs were cancelled and compare was skipped.
+    consequence: "There is no exact-head remote test execution, Provider matrix, compare artifact or receipt basis."
+  - id: "E44-B3-WORKFLOW-CANONICAL-CONTRACT-IMPOSSIBLE"
+    severity: "CRITICAL"
+    fact: >-
+      The proposed canonical file includes python version, hash seed and a wall-clock timestamp, then uses cmp across different
+      Python versions. Those files are intentionally different and cannot provide six byte-identical semantic outcomes.
+      The workflow emits evaluation and source-hash artifacts only; it does not emit the required semantic canonical,
+      environment and real mutation-result payload contract.
+  - id: "E44-B4-TRUNCATED-SOURCE-PROVENANCE"
+    severity: "MAJOR"
+    fact: >-
+      E43-SOURCE-SELECTION.yaml records abbreviated source_blob values containing ellipses instead of full 40-hex Git blob SHA-1
+      and omits independent content SHA-256 values required by the route.
+  - id: "E44-B5-CALLER-CREATED-CAPABILITY-VERIFIER"
+    severity: "CRITICAL"
+    fact: >-
+      CapabilityVerifier is publicly constructible with caller-chosen issuer and policy, and owns a caller-reachable mutable
+      _issued set. Any caller can create a verifier and manufacture a capability chain.
+  - id: "E44-B6-CAPABILITY-REVERIFY-OMITS-AUTHORITY-FIELDS"
+    severity: "CRITICAL"
+    fact: >-
+      re_verify checks issuer, schema, policy, deterministic ID and membership only. The ID excludes evidence_digest,
+      origin_class and verified_at_ns. A copied or object-mutated capability can alter origin_class/evidence_digest while retaining
+      the same accepted ID.
+  - id: "E44-B7-USER-ORIGIN-IS-TEXT-HEURISTIC"
+    severity: "CRITICAL"
+    fact: >-
+      USER_EXPLICIT is inferred from phrases such as 'I know' or 'my experience' in caller-supplied bytes. source_id is also
+      caller-supplied. No verified user message, account/session origin or E58 capability proves that the user said it.
+    consequence: "Arbitrary documents can create KNOWN_AND_STATED and personal-memory authority."
+  - id: "E44-B8-EVIDENCE-FACTORY-TRUSTS-UNVERIFIED-CAPABILITY"
+    severity: "CRITICAL"
+    fact: >-
+      EvidenceFactory.create_record never calls capability.verify_integrity or a canonical verifier. EvidenceRegistry and
+      EvidenceFactory are caller-created; the HMAC key is caller-provided and stored in _signing_key; registry dictionaries are
+      caller-reachable.
+  - id: "E44-B9-BUNDLE-AND-ATOM-INPUTS-NOT-VERIFIED"
+    severity: "MAJOR"
+    fact: >-
+      create_bundle does not verify every supplied record against the registry/factory and accepts caller scope_override.
+      create_atom does not verify the bundle and accepts caller text and atom type as authority.
+  - id: "E44-B10-SIGNATURES-COVER-PARTIAL-FIELDS"
+    severity: "MAJOR"
+    fact: >-
+      Record signatures omit capability_id, origin_class, source_digest, policy_version and issued_at_ns; bundle and atom
+      signatures also omit multiple derived fields. Registry identity checks do not protect against in-place object mutation of
+      the same stored object.
+  - id: "E44-B11-PRODUCTION-RECEIVES-GROUND-TRUTH-OBJECT"
+    severity: "CRITICAL"
+    fact: >-
+      run_pipeline accepts a full CorpusCase containing expected_origin, expected_layer, expected cognition/memory/skill states,
+      should_fail and anti_pattern. A signature-name test merely checks that no parameter is named 'expected'.
+    consequence: "The production boundary receives the ground-truth object despite the stated non-tautological requirement."
+  - id: "E44-B12-MUTATION-RUNNER-NONFUNCTIONAL"
+    severity: "CRITICAL"
+    fact: >-
+      The mutation runner hardcodes C:/Program Files/Python313/python.exe, defines _copy_tests twice, inserts a generic return True
+      after arbitrary anchors, runs only test_q6q7.py for every mutation, and references undefined p2 during restored execution.
+      Tests verify anchors and invoke only one runner without requiring PASS; they do not execute and validate all mutations.
+  - id: "E44-B13-NO-PROVIDER-OR-RECEIPT"
+    severity: "CRITICAL"
+    fact: "The failed exact-head run produced no accepted matrix/compare evidence; no tested head, receipt-only child, receipt-head run or external anchor exists."
+
+independent_audit_conclusion:
+  candidate_scaffold_credit: true
+  local_test_claim_credit: false
+  route_lease_credit: false
+  capability_authority_credit: false
+  evidence_atom_authority_credit: false
+  user_origin_memory_authority_credit: false
+  evaluator_authority_credit: false
+  mutation_execution_credit: false
+  provider_execution_credit: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  completion_credit: false
+
+required_successor_corrections:
+  - "Publish a literal READY task-level route contract before execution."
+  - "Consume only a verifier-only accepted E58 capability; local test doubles must be visibly UNTRUSTED and impossible to promote."
+  - "Remove text heuristics as proof of user origin; require exact verified user-message capability."
+  - "Recompute and verify every capability/evidence/bundle/atom field; eliminate caller registries, keys, scope overrides and partial signatures."
+  - "Split production input from ground truth into different types and objects; production must never receive a corpus case containing expected data."
+  - "Build a functioning isolated mutation runner with one unique real byte mutation and named invariant per attack, complete restoration and restored-green evidence."
+  - "Create a deterministic semantic canonical artifact without environment or timestamp fields; emit separate environment/mutation evidence."
+  - "Run exact Python 3.11/3.13 x seeds 0/1/777, strict compare, independent downloaded-byte verification, receipt-only child and receipt-head Provider."
+
+freeze_rules:
+  - "No merge, rebase, amend, force-push, history rewrite or additional commit on PR #189."
+  - "E44 may be used only as exact commit/path/blob/content source evidence by E45."
+  - "No E44 claim may be written to the formal knowledge base, cognition model, memory or skill library."
+
+confidence: "HIGH"
+reviewed_at: "2026-08-07T07:23:00+08:00"
