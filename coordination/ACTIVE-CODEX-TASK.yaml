@@ -1,13 +1,13 @@
-schema_version: "68.0"
+schema_version: "69.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 190
+active_issue: 192
 active_pull_request: null
-task_id: "CODEX-E56-POST-RECEIPT-ORDINARY-CALLER-CAPABILITY-REGISTRY-SEMANTIC-RECORD-RAW-DECODED-DUAL-PROVIDER-ANCHOR-AND-RECEIPT-CLOSURE-0053-E57"
-route_epoch: 59
+task_id: "CODEX-E57-POST-RECEIPT-SEMANTIC-EXECUTION-VERIFIER-CAPABILITY-RAW-JSONL-AND-DUAL-PROVIDER-CLOSURE-0054-E58"
+route_epoch: 60
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E57 普通调用者签发、语义记录与双 Provider 回执权威闭环"
-mode_reason: "目标固定，但可信 issuer 边界、真实对抗验证、双 Provider 锚点与回执闭环需要分阶段架构、实现和验证。"
+mode_label: "【Codex模式：项目计划模式】E58 语义执行回执、只验证能力与全源字节权威闭环"
+mode_reason: "E57 已形成真实双 Provider 与 receipt，但调用者仍可构造语义回执、冲突、关系和策略权威，需要干净继任进行跨层修复与重新认证。"
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -17,45 +17,43 @@ intermediate_gpt_review_required: false
 merge_authorized: false
 direct_main_write: false
 auto_merge: false
-planned_branch: "codex/e56-post-receipt-capability-authority-closure-0053-e57"
+planned_branch: "codex/e57-post-receipt-semantic-execution-verifier-closure-0054-e58"
 planned_draft_pr: true
-completion_signal: "CODEX_E57_CAPABILITY_REGISTRY_SEMANTIC_RECORD_DUAL_PROVIDER_RECEIPT_AUTHORITY_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E58_SEMANTIC_EXECUTION_VERIFIER_CAPABILITY_JSONL_DUAL_PROVIDER_RECEIPT_READY_FOR_GPT_REVIEW"
 artificial_waiting_forbidden: true
 
 route_contract:
-  path: "coordination/ROUTES/CODEX-E57-ACTIVE-ROUTE-CONTRACT.yaml"
-  publication_commit: "151e3860131bccacb252e3abb85e2e0291b784ed"
+  path: "coordination/ROUTES/CODEX-E58-ACTIVE-ROUTE-CONTRACT.yaml"
+  publication_commit: "f413c3e73f0f141202f47686c0b98a25a1f8f512"
   status: "ACTIVE"
   contains: [AMED_TASK_BRIEF, PMA_BIG_GRANT, PDER_RULES, WPDCR_CONTRACT, TASK_IMPACT_FORECAST, AUTHORIZED_PATHS, EXECUTION_CONTRACT]
 
 task_brief:
-  issue: 190
-  formal_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E56-INDEPENDENT-AUDIT-RETURN-TO-E57.yaml"
-  fundamental_goal: "Eliminate ordinary-consumer authority forgery and independently bind actual adversarial execution, separate tested/receipt Provider evidence and exact receipt topology."
+  fundamental_goal: "Eliminate caller-authored semantic authority and expose a real verifier-only capability with exact whole-source ownership and dual Provider receipt evidence."
   task_weight: "STRATEGIC"
   planned_difficulty: "D3_VERY_HARD"
-  research_trigger_level: "L1_REPOSITORY_AND_PRIMARY_EVIDENCE; L3_PROPOSAL_ONLY_FOR_PROCESS_ISOLATION_OR_CROSS_SYSTEM_AUTHORITY"
   exploration_budget: "STRATEGIC"
   second_pass_audit_required: true
 
 task_impact_forecast:
   classification: "STRATEGIC_INTERNAL_AUTHORITY"
   direct_scope:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/**"
-    - ".github/workflows/codex-e57-capability-authority-closure.yml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/**"
+    - ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
   downstream_scope:
-    - "QCLAW E44 verified-capability consumption after independent review"
-    - "Future evidence, knowledge and skill authority gates"
+    - "QCLAW E45 verifier-only capability consumption"
+    - "Future evidence, memory and skill authority gates"
   principal_risks:
-    - "False authority from reachable registries, signing state or caller labels"
-    - "Conflation of tested and receipt Provider evidence"
-    - "Cross-agent duplication or semantic-boundary drift"
-  rollback: "No merge; freeze and route a clean successor from exact latest main if a post-receipt defect remains."
+    - "Caller-created evaluator receipts or local issuer substitution"
+    - "False conflict/relation/redaction semantics"
+    - "Incomplete JSONL/Unicode ownership"
+    - "Provider-green evidence without attack coverage"
+  rollback: "No merge; freeze and route a clean successor from exact latest main after any receipt defect."
 
 authorized_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/**"
-  - ".github/workflows/codex-e57-capability-authority-closure.yml"
-first_commit_exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/PROJECT-PLAN.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/**"
+  - ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
+first_commit_exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/PROJECT-PLAN.md"
 all_other_paths: "READ_ONLY"
 
 protocol_bindings:
@@ -66,119 +64,95 @@ protocol_bindings:
   RTCE: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
   LEASE: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
 
-proactive_mission_assignment:
-  AMED_A: "Implement safe task-local tests, validators, fixtures, observability and deterministic tools."
-  AMED_B: "Implement tested backward-compatible E57 internal improvements and report them."
-  AMED_C: "Proposal only for a separate issuer service, cross-agent contract change or new canonical system."
-  AMED_D: "Stop for credentials, private configuration, accounts, permissions, destructive actions, market data or trading."
-  mandatory_discovery_questions:
-    - "Can an ordinary consumer import or reach any state that permits insertion, replacement or same-ID substitution?"
-    - "Does the claimed boundary require process isolation or a signing capability unavailable to consumers?"
-    - "Which E56 mechanisms are safely reusable and which remain tainted by self-verification?"
-    - "Are conflict, validation, redaction and relation outputs execution-derived rather than caller labels?"
-    - "Which raw/decoded, typed JSON and Markdown constructs remain unsupported or ambiguous?"
-    - "Can both Provider evidence sets be reconstructed without trusting producer summaries?"
-    - "Which findings should feed back into protocols, tests, interfaces or task templates after GPT review?"
-
-dependencies:
-  - id: "E56_FROZEN"
-    status: "SATISFIED"
-    evidence: "Issue #185 / PR #186 frozen at e98102f2753086ede2471f6176ee6a761b0df431"
-  - id: "E56_FORMAL_REVIEW"
-    status: "SATISFIED"
-    evidence: "de6ebeb3e81fb56c73e6e9654b924f87fb576843"
-  - id: "QCLAW_E44_BOUNDARY"
-    status: "SATISFIED"
-    evidence: "Issue #187 / Draft PR #189 remains separate and read-only to Codex"
-  - id: "TASK_ROUTE_CONTRACT"
-    status: "SATISFIED"
-    evidence: "coordination/ROUTES/CODEX-E57-ACTIVE-ROUTE-CONTRACT.yaml at 151e3860131bccacb252e3abb85e2e0291b784ed"
-
-source_e56:
-  issue: 185
-  pull_request: 186
-  base_sha: "64f6219057252a310953e8faf84eae560dbed045"
-  plan_sha: "e2300bc361267a0843f7616009472c1e9a5903ac"
-  substantive_sha: "be8822aef7dd0794695b6854f6087226280a7f68"
-  remediation_sha: "725e15dd1b2f04cc7c9d25ec7d9943485d07e8f6"
-  tested_sha: "fd26669a5286be9d967f96afe363093189f26c8d"
-  receipt_and_frozen_head: "e98102f2753086ede2471f6176ee6a761b0df431"
-  tested_provider_run: 31110242028
-  receipt_provider_run: 31110844386
-  status: "FROZEN_DUAL_PROVIDER_GREEN_REAL_MUTATIONS_SUBSTANTIAL_CANDIDATE_REJECTED_AS_FINAL"
+source_e57:
+  issue: 190
+  pull_request: 191
+  base_sha: "437b0f7e1a78d868342a0a4b205e47ffb719aebb"
+  plan_sha: "b283056b43c8d46f83d9b46cc8db6961158db0c3"
+  tested_sha: "7eb7f0fd4bb2e60622bd4f177a128355a39d0430"
+  receipt_and_frozen_head: "603768e08e27cf554f9a5ee231b13d51a563abe1"
+  tested_provider_run: 31123089194
+  receipt_provider_run: 31129898078
+  status: "FROZEN_DUAL_PROVIDER_GREEN_RECEIPT_PRESENT_SUBSTANTIAL_CANDIDATE_REJECTED_AS_FINAL"
   execution_allowed: false
   source_branch_write_forbidden: true
   whole_branch_merge_or_cherry_pick_forbidden: true
   exact_source_head_commit_path_blob_content_selection_only: true
-  provider_execution_evidence_credit: true
-  genuine_mutation_execution_credit: true
-  full_mutation_coverage_credit: false
+  provider_execution_credit: true
+  receipt_topology_credit: true
   provider_authority_credit: false
   receipt_authority_credit: false
   completion_credit: false
-  imported_code_trust: "UNTRUSTED_UNTIL_E57_REPAIRED_ADVERSARIALLY_EVALUATED_AND_DUAL_ANCHORED"
 
 formal_review:
-  path: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E56-INDEPENDENT-AUDIT-RETURN-TO-E57.yaml"
-  commit: "de6ebeb3e81fb56c73e6e9654b924f87fb576843"
-  disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_TESTED_AND_RECEIPT_PROVIDER_EXECUTION_ACCEPTED_REAL_MUTATION_PARTIAL_CREDIT_NO_PROVIDER_AUTHORITY_NO_RECEIPT_NO_MERGE"
+  path: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E57-INDEPENDENT-AUDIT-RETURN-TO-E58.yaml"
+  commit: "e9622893e1feb681c1d54a9f9df1edbedc517792"
+  disposition: "RETURNED_FOR_CLEAN_E58_SEMANTIC_EXECUTION_AND_VERIFIER_CAPABILITY_CLOSURE_NO_COMPLETION_NO_MERGE"
 
 blocking_corrections:
-  - "Eliminate ordinary-import self-registration through module and factory registries, or narrow the claim to an honest isolated issuer boundary."
-  - "Test real global enumeration, registry insertion, foreign issuer, copied-state and same-ID attacks for every authority object."
-  - "Require verified two-sided conflict evidence, evaluator receipts for validation, exact redaction ranges and endpoint-relevant relation evidence."
-  - "Preserve complete raw-to-decoded per-character evidence and typed JSON values; expose unsupported Markdown as typed UNKNOWN."
-  - "Expand canonical adversarial cases and genuine mutations to every surviving bypass."
-  - "Represent tested and receipt Provider evidence as separate complete seven-job/thirteen-artifact downloaded-byte records."
-  - "Run actual route topology and history hygiene verification."
-  - "Publish a literal post-receipt external anchor without control-character corruption and add no later commit."
+  - "Replace caller-created EvaluatorReceipt with an issued, independently verifiable execution receipt."
+  - "Prove proposition opposition before CONFLICT, not merely different source IDs."
+  - "Derive relation relevance rather than trusting caller endpoint_ids."
+  - "Bind redaction to registered policy execution and lineage."
+  - "Expose a distinct verifier-only canonical capability; local sessions/issuer IDs cannot become authority."
+  - "Preserve complete JSONL bytes/global offsets and deterministic isolated-surrogate behavior."
+  - "Add genuine mutations for every real bypass and rerun separate tested/receipt Provider evidence."
+
+proactive_mission_assignment:
+  AMED_A: "Implement safe E58-local tests, validators, fixtures and deterministic tooling."
+  AMED_B: "Implement tested backward-compatible E58 internal improvements."
+  AMED_C: "Proposal only for deployed service/process architecture or cross-agent authority migration."
+  AMED_D: "Stop for private configuration, credentials, accounts, market data, trading, destructive or permission changes."
+  mandatory_discovery_questions:
+    - "Can a consumer construct or substitute an evaluator receipt without execution?"
+    - "What proves semantic opposition?"
+    - "What proves relation relevance without caller labels?"
+    - "Can a locally created issuer/verifier be mistaken for canonical?"
+    - "Does every JSONL byte have one global owner?"
+    - "How are isolated surrogates classified?"
+    - "Which findings require protocol/interface feedback?"
+
+dependencies:
+  - {id: "E57_FROZEN", status: "SATISFIED", evidence: "PR #191 frozen at 603768e08e27cf554f9a5ee231b13d51a563abe1"}
+  - {id: "E57_FORMAL_REVIEW", status: "SATISFIED", evidence: "e9622893e1feb681c1d54a9f9df1edbedc517792"}
+  - {id: "QCLAW_E45_BOUNDARY", status: "SATISFIED", evidence: "Issue #193 separate read-only consumer boundary"}
 
 provider_contract:
-  workflow: ".github/workflows/codex-e57-capability-authority-closure.yml"
+  workflow: ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
   python_versions: ["3.11", "3.13"]
   hash_seeds: ["0", "1", "777"]
   expected_total_jobs_per_run: 7
   expected_artifacts_per_run: 13
   tested_and_receipt_evidence_sets_separate: true
-  complete_tests_adversarial_cases_and_mutations_per_job: true
-  six_canonical_inner_files_byte_identical: true
   independent_downloaded_archive_and_inner_byte_binding: true
-  tested_head_success_required: true
-  receipt_head_success_required: true
-
-work_process_reporting:
-  WPDCR_required: true
-  required_moments: [LEASE_CLAIM, FIRST_SUBSTANTIVE_ACTION, MATERIAL_CHECKPOINT, BLOCKER_OR_ESCALATION, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
-  mandatory_sections: [PRIMARY_WORK_AND_PROCESS_TRACE, COMMAND_CLAIM_AND_EXECUTION_TRACE, DIFFICULTY_AND_COMPLEXITY, NEW_AND_UNEXPECTED_DISCOVERIES, EXPANDABLE_IDEAS_AND_HIGH_VALUE_OPPORTUNITIES, UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS, PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS, COORDINATION_REQUESTS, CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT, DECISIONS_ALTERNATIVES_AND_LESSONS, NEXT_ACTION_AND_GATE]
 
 parallel_boundary:
-  active_qclaw_e44:
-    issue: 187
-    pull_request: 189
-    role: "VERIFIED_CAPABILITY_CONSUMPTION_DERIVED_SEMANTIC_EVIDENCE_MASTER_COGNITION_SKILL_NON_TAUTOLOGICAL_EVALUATOR"
+  active_qclaw_e45:
+    issue: 193
+    role: "VERIFIER_ONLY_CAPABILITY_CONSUMER_SEMANTIC_EVIDENCE_MASTER_COGNITION_SKILL_EVALUATOR"
     modification_by_codex_forbidden: true
-  overlap_rule: "E57 owns low-level issuer/capability, format, generic records/topology, Provider and receipt. Publish BOUNDARY_CONFLICT instead of editing QCLAW E44."
+  overlap_rule: "E58 owns issuer/verifier, generic execution receipts, format ownership, Provider and receipt. Publish BOUNDARY_CONFLICT instead of editing QCLAW E45."
 
 hard_boundaries:
-  - "Synthetic/public-safe engineering fixtures only."
-  - "No model/provider/reasoning/default/thread/subagent/workspace/session/private-config access or mutation."
-  - "No credentials, accounts, orders, positions, funds, market data or trading."
-  - "No direct main implementation write, merge, auto-merge, force-push, rebase, amend, history rewrite, repository-setting or branch-protection change."
-  - "No E56/E55/E54/E53/E52 or QCLAW frozen/active branch mutation."
+  - "Synthetic/public-safe fixtures only."
+  - "No private model/provider/reasoning/workspace/session configuration."
+  - "No credentials, accounts, positions, funds, market data, orders or trading."
+  - "No merge, direct main implementation write, rebase, force-push, amend, history rewrite or repository-setting change."
+  - "No E57/predecessor or QCLAW active/frozen branch mutation."
 
 stop_conditions:
-  - "Status is no longer READY or exact task/epoch/Issue/branch fields change."
+  - "Status no longer READY or exact task/epoch/Issue/branch fields change."
   - "Required work needs an unauthorized path or QCLAW implementation edit."
-  - "A truthful issuer boundary requires a proposal-only architecture or user decision."
+  - "Truthful closure requires C/D architecture or user decision."
   - "Canonical remote identity cannot be verified."
 
 command_execution_contract:
-  on_trigger: "READ_CLAIM_AND_EXECUTE_CURRENT_E57_ROUTE"
+  on_trigger: "READ_CLAIM_AND_EXECUTE_CURRENT_E58_ROUTE"
   user_command: "读取任务"
   second_start_command_required: false
-  minimum_progress_before_return: "Create the one-file plan-only first commit, open the sole Draft PR, publish the exact TaskLeaseClaim and continue directly."
+  minimum_progress_before_return: "Create one-file plan-only first commit, Draft PR, TaskLeaseClaim and continue to E57 source selection."
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-06T23:36:00+08:00"
-boundary: "E57_READY_WITH_COMPLETE_ROUTE_CONTRACT / E56_E55_E54_E53_E52_FROZEN / QCLAW_E44_PARALLEL / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+updated_at: "2026-08-07T07:23:00+08:00"
+boundary: "E58_READY / E57_AND_PREDECESSORS_FROZEN / QCLAW_E45_PARALLEL / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
