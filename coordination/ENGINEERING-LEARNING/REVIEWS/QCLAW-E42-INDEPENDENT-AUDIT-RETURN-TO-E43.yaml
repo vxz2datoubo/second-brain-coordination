@@ -1,0 +1,267 @@
+schema_version: "1.0"
+review_id: "QCLAW-E42-INDEPENDENT-AUDIT-RETURN-TO-E43"
+reviewer: "GPT"
+reviewed_at: "2026-08-06T08:48:00+08:00"
+repository: "vxz2datoubo/second-brain-coordination"
+agent: "QCLAW"
+mode: "project_plan"
+
+reviewed_route:
+  issue: 177
+  pull_request: 178
+  task_id: "QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-TRACEABILITY-MASTER-RECORD-SKILL-EVIDENCE-CORPUS-EVALUATOR-AND-PROVIDER-CLOSURE-0023-E42"
+  route_epoch: 42
+  branch: "qclaw/e41-post-receipt-semantic-authority-repair-0023-e42"
+  base_sha: "7d11c596c28249367d86c53601ecd7abd6c6d9a5"
+  tested_sha: "3c5a451ee28e1e13fca4e0a58e2046d70b0f7e5c"
+  tested_tree_claimed: "4c31db6ad18c08bbaacd2aa20be21d92230c9343"
+  receipt_sha: "1cc7922628191a4ee054557090ff07478e83edc0"
+  current_head: "1cc7922628191a4ee054557090ff07478e83edc0"
+  draft: true
+  merged: false
+  commits_ahead_of_base: 7
+  deletions: 0
+  changed_files: 21
+
+plan_identity:
+  strict_e42_plan_only_first_commit_observed: true
+  evidence: "The first E42 task commit adds only the E42 PROJECT-PLAN.md; the second commit f3076f86c12804cacb599154c067bb1caad53f09 adds only E41-SOURCE-SELECTION.yaml."
+  exact_e42_plan_sha_reported_by_qclaw: false
+  incorrect_reported_plan_sha: "dcd7056c1ef4484c7c4071be3ce18d2727b0a226"
+  incorrect_sha_identity: "QCLAW E41 plan commit, not E42 plan"
+  required_correction: "E43 must publish and bind its actual one-file plan SHA, parent and tree."
+
+receipt_topology:
+  receipt_is_direct_child_of_claimed_tested_head: true
+  receipt_changed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-REPAIR-0023-E42/AI_HANDOFF.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-REPAIR-0023-E42/D05-COMMAND-EVIDENCE.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-REPAIR-0023-E42/TEST-RUN-RECEIPT.md"
+  post_receipt_commit_observed: false
+  topology_candidate_credit: true
+  receipt_authority_credit: false
+
+visibility_and_claim:
+  issue_task_lease_claim_present: false
+  work_package_visibility_present: false
+  final_pr_completion_comment_id: 5198903430
+  completion_signal_claimed: "QCLAW_E42_SEMANTIC_AUTHORITY_TRACEABILITY_EVALUATOR_PROVIDER_CLOSURE_READY_FOR_GPT_REVIEW"
+  completion_claim_supported: false
+
+provider_evidence:
+  required_workflow: ".github/workflows/qclaw-e42-semantic-authority-evaluation.yml"
+  submitted_workflow: ".github/workflows/qclaw-e42-semantic-authority.yml"
+  tested_head_e42_run_present: false
+  tested_head_only_observed_run:
+    run_id: 31058841940
+    workflow: "Phase 3 integrated offline memory"
+    relevance: "UNRELATED"
+  receipt_head_e42_run_present: false
+  receipt_head_only_observed_run:
+    run_id: 31059030732
+    workflow: "Phase 3 integrated offline memory"
+    relevance: "UNRELATED"
+  receipt_combined_status_contexts: 0
+  six_matrix_jobs_observed: false
+  canonical_semantic_artifacts_observed: false
+  environment_artifacts_observed: false
+  compare_artifact_observed: false
+  tested_provider_execution_credit: false
+  receipt_provider_execution_credit: false
+  provider_authority_credit: false
+
+accepted_candidate_credit:
+  - "Fresh branch is a normal descendant of the observed canonical base and remains Draft/open/unmerged."
+  - "The first E42 task commit is plan-only and the source-selection ledger precedes production implementation."
+  - "E42 introduces substantial semantic scaffolding across evidence, atoms, source traceability, master records, cognition, skill lifecycle and corpus fixtures."
+  - "Receipt is a direct child of the claimed tested head and changes only three evidence files."
+  - "No Codex E54/E55 or frozen predecessor implementation path is modified."
+  - "Local test structure is broader than E41 and exposes several intended governance concepts."
+
+blocking_findings:
+  - id: "E42-B01-CALLER-FORGEABLE-EVIDENCE"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/authority.py"
+      - "tests/test_q1.py"
+    finding: >-
+      EvidenceRecord is a public dataclass. The caller chooses record_id, source_document_id, offsets, evidence_type and verification_status. SOURCE_FACT authority is obtained by simply passing VerificationState.VERIFIED. No verified source-span registry or verifier receipt is required.
+    consequence: "Confidence, verification and evidence-layer authority are derived from caller-created records rather than verified evidence."
+    required_correction: "Factory/evaluator issuance, exact source binding and registry verification for every evidence record."
+
+  - id: "E42-B02-BUNDLE-AND-ATOM-FORGEABILITY"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/authority.py"
+    finding: >-
+      EvidenceBundle accepts caller bundle_id. Atom can be directly created with _factory_issued=True; atom IDs and signatures are publicly reproducible. Atom identity omits provenance, scope, invalidation conditions and canonical_payload, and no factory registry verification method proves object identity.
+    consequence: "A caller can mint or alter objects that look factory-issued and canonical."
+    required_correction: "Opaque factory capability, registry-issued records and full-payload recomputation including every exposed authoritative field."
+
+  - id: "E42-B03-SOURCE-DOCUMENT-AND-SPAN-FORGEABILITY"
+    severity: "high"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/source_trace.py"
+    finding: >-
+      SourceDocument is publicly constructible with arbitrary raw bytes, length and digest and has no verify method. SourceSpan trusts that object. Canonical text decoding uses errors='replace'.
+    consequence: "Forged identity and lossy UTF-8 replacement can enter semantic evidence."
+    required_correction: "Controlled self-verifying documents, strict UTF-8 or explicit binary typing, and exact span digest verification."
+
+  - id: "E42-B04-NO-TOTAL-STRUCTURE-PARTITION"
+    severity: "high"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/source_trace.py"
+      - "tests/test_q2.py"
+    finding: >-
+      extract_paragraphs claims structure preservation but executes pass for leading blank lines, trims terminators, drops whitespace-only material and returns only content spans. Tests merely check content paragraphs and in-range offsets.
+    consequence: "Original source structure and complete offsets are not preserved as claimed."
+    required_correction: "Total legal source partition with explicit structure ownership and byte-complete verification."
+
+  - id: "E42-B05-FORGEABLE-DIGESTION-AND-LINKS"
+    severity: "high"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/source_trace.py"
+    finding: >-
+      DigestedSegment, interpretation_status, normalized_text, terminology mappings and provenance are caller-authored. LinkRegistry.create accepts any set of strings rather than verified atom registry members.
+    consequence: "Interpretation and link authority can be fabricated without evidence."
+    required_correction: "Factory-issued evidence-bound segments, rules and verified links."
+
+  - id: "E42-B06-MASTER-REGISTRY-OVERWRITE"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/master_record.py"
+    finding: >-
+      MasterRecordRegistry.update directly replaces a record by object_id without validating a version event, prior content, evidence, ordering or resulting identity. Public constructors and caller-selected semantic keys also allow alternate-key duplicate masters.
+    consequence: "Silent overwrite and duplicate-master authority remain possible despite the stated governance rule."
+    required_correction: "Registry-controlled transitions and evidence-backed semantic identity resolution."
+
+  - id: "E42-B07-CALLER-CONFLICT-CLASSIFICATION"
+    severity: "high"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/master_record.py"
+      - "tests/test_q3q5.py"
+    finding: >-
+      classify_conflict trusts an arbitrary dictionary such as {time_change: true}; with_conflict accepts a caller-selected ConflictClass and evidence_id string.
+    consequence: "The caller can promote a conflict from UNRESOLVED to an authoritative class."
+    required_correction: "Verified evidence records and evaluator policy with immutable classification history."
+
+  - id: "E42-B08-COGNITION-BOOLEAN-AUTHORITY"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/cognition.py"
+      - "tests/test_q3q5.py"
+    finding: >-
+      CognitionEngine accepts caller booleans for stated/known/readable, user-origin evidence, corroboration and direct evidence. Setting them true plus one arbitrary evidence ID creates an EXPLICIT_USER_FACT and GLOBAL memory route. CognitionEntry is directly constructible and validate only returns a violation list.
+    consequence: "User facts, inference quality and persistent memory destination can be fabricated."
+    required_correction: "Verified message/source evidence, evaluator-derived cognition and registry-verified write candidates."
+
+  - id: "E42-B09-SKILL-LIFECYCLE-FORGEABILITY"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/skill_lifecycle.py"
+      - "tests/test_q3q5.py"
+    finding: >-
+      Skill and TransitionReceipt are public constructors. Receipts, case IDs and counterexamples are arbitrary strings. Formal promotion can use one case and does not require nonempty counterexample_ids. single_sample_not_formal() is a constant True placeholder. Tests explicitly acknowledge direct construction is possible.
+    consequence: "A caller can fabricate experimental/formal skill authority and promotion evidence."
+    required_correction: "Factory-issued lifecycle records bound to reproducible run/test/case/counterexample evidence and explicit thresholds."
+
+  - id: "E42-B10-NO-END-TO-END-CORPUS-EVALUATOR"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/corpus.py"
+      - "tests/test_q6.py"
+    finding: >-
+      The corpus contains 13 fixtures but no corpus digest and no evaluator that runs the production pipeline. Tests check counts, enums and fixture properties only; no complete outcome is compared to ground truth and ground-truth drift cannot affect a corpus identity that does not exist.
+    consequence: "The claimed semantic evaluator and ground-truth closure are absent."
+    required_correction: "Canonical end-to-end evaluator, complete expected outcomes, corpus digest and per-case evidence."
+
+  - id: "E42-B11-FAKE-MUTATION-EXECUTION"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - "src/qclaw_e42/mutations.py"
+      - "tests/test_q7.py"
+    finding: >-
+      MutationHarness copies and edits production files but never runs tests or an evaluator. It pre-populates test_exit_code=-1 and failed=True, leaves restoration fields empty/false, performs no per-mutant restoration and then deletes the temporary tree. test_q7 never calls run_all and includes import-only self.assertTrue(True) tests.
+    consequence: "The claimed 15 real mutations have no execution, failure or restoration evidence."
+    required_correction: "Actual copied-production mutation execution with nonzero mutant result, exact restoration, green rerun and complete command/stream evidence."
+
+  - id: "E42-B12-WORKFLOW-INVALID-AND-NONAUTHORITATIVE"
+    severity: "critical"
+    confidence: "high"
+    files:
+      - ".github/workflows/qclaw-e42-semantic-authority.yml"
+    finding: >-
+      The workflow filename differs from the route contract, places if-no-files-found at job level, does not explicitly checkout the PR head, suppresses a test command with '|| true', never executes mutations or a corpus evaluator, emits source concatenation rather than semantic evaluation, compares only source files and emits no separate environment evidence.
+    consequence: "Even if triggered, it would not satisfy Provider authority."
+    required_correction: "Valid exact-head workflow running complete tests, mutations and corpus evaluation with six canonical and six environment artifacts plus byte compare."
+
+  - id: "E42-B13-NO-PROVIDER-RUNS"
+    severity: "critical"
+    confidence: "high"
+    finding: >-
+      Neither tested head 3c5a451e nor receipt head 1cc79226 has an E42 workflow run. The only observed runs are unrelated Phase 3 integrated offline memory runs. No E42 jobs, artifacts, compare evidence or statuses exist.
+    consequence: "Provider completion and receipt claims are unsupported."
+    required_correction: "Independent exact-head tested and receipt Provider matrices."
+
+  - id: "E42-B14-INCOMPLETE-SOURCE-SELECTION"
+    severity: "high"
+    confidence: "high"
+    files:
+      - "E41-SOURCE-SELECTION.yaml"
+    finding: >-
+      The ledger records the frozen head and per-path blob SHA-1, but omits the per-path source commit and content SHA-256 required by Issue #177.
+    consequence: "Exact source content provenance cannot be independently reconstructed from the ledger alone."
+    required_correction: "Source commit, blob and content SHA-256 per selected path."
+
+  - id: "E42-B15-REPORT-AND-COMPLETION-TRUTH"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      Receipt evidence reports the E41 plan SHA dcd7056c as the E42 plan, claims 15 real mutations and Provider closure despite no mutation execution or E42 run, and omits command durations, stream hashes, failure/retry records and Provider identities. No TaskLeaseClaim or work-package visibility was posted on Issue #177.
+    consequence: "The completion packet is not independently reviewable and contains materially false execution claims."
+    required_correction: "Truthful exact route identity and complete independently observable evidence."
+
+assessment:
+  local_test_claim_credit: "UNVERIFIED_LOCAL_DIRECTION_ONLY"
+  mutation_execution_credit: false
+  corpus_evaluator_credit: false
+  provider_execution_credit: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  merge_authorized: false
+
+disposition:
+  status: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION"
+  completion_credit: false
+  candidate_scaffold_credit: true
+  topology_candidate_credit: true
+  mutation_execution_credit: false
+  provider_execution_credit: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  merge_authorized: false
+  frozen_issue: 177
+  frozen_pull_request: 178
+  frozen_head: "1cc7922628191a4ee054557090ff07478e83edc0"
+  successor_issue: 183
+  successor_epoch: 43
+  successor_task_id: "QCLAW-E42-POST-RECEIPT-EVIDENCE-ISSUANCE-EXACT-TRACEABILITY-MASTER-COGNITION-SKILL-CORPUS-EVALUATOR-REAL-MUTATION-AND-PROVIDER-CLOSURE-0024-E43"
+  whole_branch_integration_forbidden: true
+  exact_source_commit_path_blob_content_selection_only: true
+
+boundaries:
+  - "No merge or main implementation write."
+  - "No post-receipt E42 commit."
+  - "No QCLAW E40/E41 or Codex E52/E53/E54/E55 branch mutation."
+  - "No model/private configuration, credentials, accounts, market data or trading."
