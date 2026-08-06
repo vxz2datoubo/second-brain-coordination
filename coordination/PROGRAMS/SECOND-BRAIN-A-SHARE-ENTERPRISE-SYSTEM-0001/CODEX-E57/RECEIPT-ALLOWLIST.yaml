@@ -1,0 +1,16 @@
+schema_version: "e57-receipt-allowlist-v1"
+status: "DECLARED_BEFORE_TESTED_HEAD"
+receipt_commit_constraints:
+  parent_must_equal: "FINAL_TESTED_HEAD"
+  exact_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/RUN-RECEIPT.md"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/RECEIPT-HEAD-DECLARATION.json"
+  each_path_must_be_nonempty: true
+  no_later_commit_allowed: true
+receipt_content_constraints:
+  - "The receipt declares task, route, tested-parent, boundary, command and external-anchor publication obligation."
+  - "The receipt does not self-assert completed receipt-head Provider evidence."
+  - "Exact receipt-head Provider run, artifacts and external anchor are published after CI through immutable GitHub records."
+validation:
+  topology_function: "e57_authority.topology.verify_final_route"
+  literal_anchor_function: "e57_authority.receipt.verify_literal_anchor"
