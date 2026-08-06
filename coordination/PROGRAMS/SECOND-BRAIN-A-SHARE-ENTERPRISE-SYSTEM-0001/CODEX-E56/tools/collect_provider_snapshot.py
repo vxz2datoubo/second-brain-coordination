@@ -121,7 +121,10 @@ def collect(repo: str, run_id: int, archive_root: Path, expected_head: str) -> d
         if not isinstance(artifact_id, int):
             raise RuntimeError("GitHub artifact lacks a numeric id")
         destination = archive_root / f"artifact-{artifact_id}.zip"
-        result = subprocess.run(("gh", "api", f"repos/{repo}/actions/artifacts/{artifact_id}/zip", "--output", str(destination)), capture_output=True, check=False)
+        # Older bundled gh clients do not offer `gh api --output`; write the
+        # binary API stream directly so PowerShell never text-transcodes ZIP bytes.
+        with destination.open("wb") as output:
+            result = subprocess.run(("gh", "api", f"repos/{repo}/actions/artifacts/{artifact_id}/zip"), stdout=output, stderr=subprocess.PIPE, check=False)
         if result.returncode or not destination.is_file():
             raise RuntimeError("GitHub artifact download failed without exposing output in the public receipt")
         archives[artifact_id] = {"archive_file": destination.name, "archive_sha256": digest(destination.read_bytes())}
