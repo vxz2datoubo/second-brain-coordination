@@ -9,9 +9,18 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+
+import provider_runner  # noqa: E402
 
 
 class ProviderArtifactToolTests(unittest.TestCase):
+    def test_canonical_payload_excludes_environment_specific_mutation_results(self) -> None:
+        payload = provider_runner.canonical_payload()
+        self.assertEqual(payload["schema"], "e55-provider-canonical-v1")
+        self.assertNotIn("mutation_result_sha256", payload)
+        self.assertNotIn("mutation_count", payload)
+
     def test_parallel_downloaded_artifact_directories_are_compared(self) -> None:
         with tempfile.TemporaryDirectory(prefix="e55-artifacts-") as temporary:
             root = Path(temporary) / "provider-artifacts"

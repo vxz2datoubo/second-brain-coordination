@@ -31,6 +31,16 @@ def git_head() -> str:
     return result.stdout.decode("ascii", "strict").strip()
 
 
+def canonical_payload() -> dict[str, object]:
+    """Return cross-version evidence only; no timing or mutation run output."""
+    return {
+        "schema": "e55-provider-canonical-v1",
+        "task_root": ROOT.name,
+        "ordinary_test_modules": ["test_authority", "test_hygiene_topology_provider", "test_tools"],
+        "mutation_ids": [item.mutation_id for item in MUTATION_SPECS],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True)
@@ -64,14 +74,7 @@ def main() -> int:
         separators=(",", ":"),
     ).encode("utf-8")
     (output / "mutation-results.json").write_bytes(mutation_payload)
-    canonical = {
-        "schema": "e55-provider-canonical-v1",
-        "task_root": ROOT.name,
-        "ordinary_test_modules": ["test_authority", "test_hygiene_topology_provider", "test_tools"],
-        "mutation_ids": [item.mutation_id for item in MUTATION_SPECS],
-        "mutation_result_sha256": digest(mutation_payload),
-        "mutation_count": len(mutation_results),
-    }
+    canonical = canonical_payload()
     (output / "canonical.json").write_bytes(json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8"))
     evidence = {
         "schema": "e55-provider-environment-v1",
@@ -84,6 +87,8 @@ def main() -> int:
         "command_sha256": digest("\0".join(command).encode("utf-8")),
         "test_count": int(match.group(1)),
         "mutation_ids": [item.mutation_id for item in MUTATION_SPECS],
+        "mutation_result_sha256": digest(mutation_payload),
+        "mutation_count": len(mutation_results),
         "stdout_sha256": digest(stdout),
         "stderr_sha256": digest(stderr),
         "duration_ns": duration,
