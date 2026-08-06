@@ -1,0 +1,129 @@
+schema_version: "independent-audit-v1"
+review_id: "CODEX-E56-INDEPENDENT-AUDIT-RETURN-TO-E57"
+reviewer: "GPT"
+reviewed_agent: "CODEX"
+reviewed_issue: 185
+reviewed_pull_request: 186
+task_id: "CODEX-E55-POST-RECEIPT-CANONICAL-EVALUATION-FORMAT-OWNERSHIP-PROVIDER-COMPARE-MUTATION-RESULT-TOPOLOGY-HYGIENE-AND-RECEIPT-CLOSURE-0052-E56"
+route_epoch: 58
+mode: "project_plan"
+base_sha: "64f6219057252a310953e8faf84eae560dbed045"
+plan_sha: "e2300bc361267a0843f7616009472c1e9a5903ac"
+substantive_sha: "be8822aef7dd0794695b6854f6087226280a7f68"
+remediation_sha: "725e15dd1b2f04cc7c9d25ec7d9943485d07e8f6"
+tested_sha: "fd26669a5286be9d967f96afe363093189f26c8d"
+receipt_and_frozen_head: "e98102f2753086ede2471f6176ee6a761b0df431"
+tested_provider_run: 31110242028
+receipt_provider_run: 31110844386
+disposition: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION_NO_COMPLETION_TESTED_AND_RECEIPT_PROVIDER_EXECUTION_ACCEPTED_REAL_MUTATION_PARTIAL_CREDIT_NO_PROVIDER_AUTHORITY_NO_RECEIPT_NO_MERGE"
+execution_allowed: false
+merge_authorized: false
+
+accepted_credit:
+  - "Fresh branch from the then-current main and a strict one-file PROJECT-PLAN first commit."
+  - "Exact E55 source-selection ledger before implementation and no whole-branch merge/cherry-pick."
+  - "A direct linear base-to-plan-to-stage-to-tested-to-receipt chain with a direct receipt-only child and no later commit."
+  - "Substantial improvements to text/Markdown/JSON/JSONL ownership, escaped JSON evidence, canonical outcomes, compare equality, mutation-result extraction, topology, Provider tooling and history hygiene."
+  - "Nineteen genuine task-local source/tool mutations that changed actual bytes, failed the named test, restored exact bytes and reran green."
+  - "Real exact-head tested and receipt Provider runs; each exposed six successful matrix jobs, one successful compare job and thirteen route-matching artifacts."
+
+blocking_findings:
+  ordinary_caller_registry_bypass:
+    severity: "CRITICAL"
+    facts:
+      - "authority.py stores admission authority in the module-global mutable _ADMISSION_STATES dictionary."
+      - "The module also exports _AdmissionState and _IssuedSourceRecord; an ordinary importer can construct a SourceEvidence, insert an issued record into _ADMISSION_STATES[id(admission)].issued and satisfy verify without reflection."
+      - "AtomFactory, EvidenceFactory, PacketFactory and RelationFactory expose mutable _issued dictionaries. Public deterministic objects can be constructed and self-inserted before verify."
+      - "Existing tests check that the SourceAdmission instance has no policy/_issued/_seal attributes, but do not attack module-global state or the other factory registries."
+      - "MUT-ADMISSION-SELF-REGISTRATION changes the missing-record branch to True; it does not execute an actual reachable self-registration attack."
+    effect: "E56 did not close the exact ordinary-caller self-registration and registry-substitution blocker inherited from E55."
+
+  packet_and_relation_authority:
+    severity: "HIGH"
+    facts:
+      - "CONFLICT accepts any distinct string beginning with evidence: and does not require the referenced opposing evidence to exist or verify."
+      - "VALIDATION accepts a caller-chosen rule_id and PASS/FAIL without a registered evaluator execution receipt."
+      - "REDACTION is not bound to an exact redacted source range, and relation evidence can be an unrelated same-source span."
+    effect: "Record shapes are improved, but semantic authority is still partly caller-authored."
+
+  raw_decoded_and_format_limits:
+    severity: "MEDIUM"
+    facts:
+      - "SemanticSpan retains raw ranges and decoded text but not a complete per-decoded-character mapping with escaped flags."
+      - "JSON number, boolean and null values are never admitted as typed semantic values."
+      - "The Markdown tokenizer is a compact heuristic, not a complete versioned grammar; its limits are not represented as typed UNKNOWNs."
+    effect: "The claimed complete format-ownership boundary is broader than the verified implementation."
+
+  canonical_and_mutation_coverage:
+    severity: "HIGH"
+    facts:
+      - "Canonical evaluation runs only four primary authority fixtures and therefore remains green while the reachable registry attacks survive."
+      - "The mutation set omits module-global admission-state insertion; Atom/Evidence/Packet/Relation registry insertion; nonexistent conflict evidence; caller-declared validation PASS; complete decoded mapping loss; and incomplete receipt external anchoring."
+      - "The independent mutation verifier checks declared mutation identities, hashes and exit shapes against the same incomplete registered mutation set."
+    effect: "Provider execution is genuine, but its canonical result proves only an incomplete contract."
+
+  receipt_provider_anchor_incomplete:
+    severity: "CRITICAL"
+    facts:
+      - "The committed EXTERNAL-PROVIDER-ANCHOR.json binds only tested run 31110242028 and explicitly leaves receipt_head_provider_state pending."
+      - "RUN-RECEIPT.md, FINAL-E56-REPORT.md, STATUS.yaml and UNKNOWN-REGISTRY.yaml all state receipt-head Provider validation or completion remains pending."
+      - "Receipt run 31110844386 and its seven jobs/thirteen artifacts exist and are green, but no complete independently downloaded receipt-run archive/inner-byte anchor was published after that run."
+      - "The final Issue comment is truncated/corrupted by control-character escapes and omits the receipt run/job/artifact/archive identities and a literal completion signal."
+    effect: "Receipt execution credit exists; receipt authority does not."
+
+  external_anchor_schema:
+    severity: "HIGH"
+    facts:
+      - "ExternalProviderAnchor has two run IDs but only one set of six matrix job IDs, one compare job ID and thirteen artifact records."
+      - "verify_topology does not prove which evidence set belongs to tested versus receipt run, does not verify exact workflow/branch constants, and does not require compare_job_id to be distinct from matrix IDs."
+      - "Topology tests mock Git and cover parent/path linearity, not an actual full-route anchor verification against both public runs."
+    effect: "The type cannot represent the two exact Provider evidence sets required by the route contract."
+
+  reporting_consistency:
+    severity: "MEDIUM"
+    facts:
+      - "Public visibility comments corrupt SHAs beginning with be/fd through backspace/form-feed escape sequences."
+      - "STATUS.yaml still lists the receipt commit itself as pending after the receipt already exists and reports stale 40/18 counts while TEST-RUN-RECEIPT reports 41/19."
+      - "PR body asserts Actual executor: CODEX while public Git author/committer metadata remains inconsistent; E56's own UNKNOWN registry correctly says attribution is unresolved."
+    effect: "Independent reviewers cannot treat the self-report as the source of truth."
+
+credit_state:
+  candidate_implementation_credit: true
+  topology_candidate_credit: true
+  tested_provider_execution_credit: true
+  receipt_provider_execution_credit: true
+  genuine_mutation_execution_credit: true
+  full_mutation_coverage_credit: false
+  canonical_authority_credit: false
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  completion_credit: false
+  merge_authorized: false
+
+freeze:
+  issue: 185
+  pull_request: 186
+  head: "e98102f2753086ede2471f6176ee6a761b0df431"
+  further_commit_forbidden: true
+  whole_branch_integration_forbidden: true
+  exact_source_commit_path_blob_content_selection_only: true
+
+successor_requirements:
+  - "Start E57 from exact latest canonical main and make the first task commit exactly one E57 PROJECT-PLAN path."
+  - "Select E56 source material by exact source head, per-path source commit, full Git blob SHA-1 and content SHA-256 before copying."
+  - "Define an honest same-process threat model. If pure Python cannot protect against arbitrary same-process code, do not claim an unforgeable security boundary; use a narrow issuer service/process boundary or signed capability whose signing secret is unavailable to consumers."
+  - "Add real ordinary-import attacks that enumerate module globals and attempt module-state and every factory-registry self-registration, foreign-factory substitution and copied-object insertion."
+  - "Remove or encapsulate public mutable _issued registries and verify issuer/policy/registry identity through a capability that ordinary consumers cannot mint or insert."
+  - "Require verified two-sided evidence for conflict, evaluator/run receipts for validation PASS/FAIL, exact source ranges for redaction and endpoint-relevant evidence rules for relations."
+  - "Represent complete raw-to-decoded per-character provenance, escaped flags and a typed policy for string/number/boolean/null values; publish format limitations explicitly."
+  - "Expand canonical fixtures and genuine mutations to cover every surviving attack and make any failed adversarial case exit nonzero."
+  - "Create separate tested and receipt Provider anchor records, each with exact run, seven jobs, thirteen artifacts, downloaded archive hashes, inner payload hashes and verification output."
+  - "Publish a literal post-receipt external anchor without control-character escaping; do not append any correction to E56."
+  - "Execute production topology and hygiene verification against the actual E57 route, not mocked fixtures alone."
+
+boundaries:
+  - "PUBLIC_SAFE_SYNTHETIC_ONLY"
+  - "NO_PRIVATE_CONFIGURATION"
+  - "NO_CREDENTIALS_ACCOUNTS_MARKET_DATA_OR_TRADING"
+  - "NO_MERGE_REBASE_FORCE_PUSH_AMEND_OR_HISTORY_REWRITE"
+  - "QCLAW_E44_REMAINS_DISTINCT_AND_UNMODIFIED"
