@@ -1,0 +1,199 @@
+schema_version: "1.0"
+review_id: "CODEX-E54-INDEPENDENT-AUDIT-RETURN-TO-E55"
+reviewer: "GPT"
+reviewed_at: "2026-08-06T08:16:00+08:00"
+repository: "vxz2datoubo/second-brain-coordination"
+agent: "CODEX"
+mode: "project_plan"
+
+reviewed_route:
+  issue: 170
+  pull_request: 174
+  task_id: "CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-FORMAT-OWNERSHIP-MANIFEST-IMMUTABILITY-RELATION-EVIDENCE-MUTATION-COVERAGE-AND-PROVIDER-RECERTIFICATION-0050-E54"
+  route_epoch: 56
+  branch: "codex/e53-post-receipt-authority-repair-0050-e54"
+  base_sha: "67f6f82236f25009a628a8db86570eefec67e4aa"
+  plan_sha: "d2a81611635c9ef6661e197479cd364db0a6b36c"
+  tested_sha: "794fd7f7fb9096b25e51cb51e9c14fc14b533a59"
+  tested_tree: "662d7589c0a91733fd03844ac2f7636ad6d044c1"
+  receipt_sha: "1c0bdc3b337828f6e9734823cef73d06e7cd3a20"
+  receipt_parent_sha: "794fd7f7fb9096b25e51cb51e9c14fc14b533a59"
+  receipt_tree: "ba9f15e545a370ae7763a6febfa0e761cdc3dbad"
+  current_head: "1c0bdc3b337828f6e9734823cef73d06e7cd3a20"
+  draft: true
+  merged: false
+
+provider_evidence:
+  execution_evidence_accepted: true
+  tested_run:
+    run_id: 31053881904
+    head_sha: "794fd7f7fb9096b25e51cb51e9c14fc14b533a59"
+    conclusion: "success"
+    matrix_jobs: 6
+    compare_jobs: 1
+    canonical_artifacts: 6
+    environment_artifacts: 6
+    compare_artifacts: 1
+  receipt_run:
+    run_id: 31054442031
+    head_sha: "1c0bdc3b337828f6e9734823cef73d06e7cd3a20"
+    conclusion: "success"
+    matrix_jobs: 6
+    compare_jobs: 1
+    canonical_artifact_ids: [8949700264, 8949701263, 8949700591, 8949699875, 8949700827, 8949700972]
+    environment_artifact_ids: [8949700671, 8949701522, 8949700850, 8949700060, 8949701011, 8949701221]
+    compare_artifact_id: 8949708682
+    canonical_inner_sha256: "ca67022131274c4551bbbd7e3b070fcae75d697d3210bd6b88b681c0f3710ed8"
+  downloaded_artifact_recheck:
+    environment_head: "1c0bdc3b337828f6e9734823cef73d06e7cd3a20"
+    environment_test_count: 41
+    environment_mutation_count: 22
+    environment_python: "3.11"
+    environment_seed: "0"
+    canonical_fixture_formats: ["json", "jsonl", "markdown"]
+    compare_matches_canonical_inner_digest: true
+
+accepted_engineering:
+  - "Strict one-file plan-only direct child of the observed canonical base."
+  - "Draft open unmerged PR and final receipt-only head with no observed post-receipt commit."
+  - "Exact E53 path/blob/content inventory and explicit rejection of whole-branch trust."
+  - "Recursive manifest freezing and recomputation from source bytes and complete ownership partition."
+  - "Substantial JSON, JSONL and Markdown format-specific ownership repair."
+  - "Separate relation source and exact-slice evidence digests."
+  - "Packet canonical-body reconstruction from retained atom, relation and field snapshots."
+  - "Per-commit and final-tree history scanning direction."
+  - "Twenty-two genuine copied-production source mutations with nonzero mutant exits and restored green runs."
+  - "Real tested-head and receipt-head Python 3.11/3.13 by seeds 0/1/777 Provider runs and artifacts."
+
+blocking_findings:
+  - id: "E54-B01-SOURCE-EVIDENCE-CONSTRUCTOR"
+    severity: "critical"
+    confidence: "high"
+    finding: >-
+      SourceEvidence is a publicly constructible dataclass. An ordinary caller can directly supply bytes, source_id, format_name and a matching digest, bypassing from_bytes admission. verify() only recomputes the digest and does not re-run strict UTF-8, allowed-format, source-id or blocked-content checks.
+    consequence: "Invalid or credential/private-key-shaped source bytes can become verified ledger and packet inputs."
+    required_correction: "Controlled issuance plus verification that re-runs every source-admission invariant from retained exact bytes."
+
+  - id: "E54-B02-JSON-ESCAPE-OWNERSHIP"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      The JSON scanner marks all raw bytes between value quotes as atom content. Backslashes, escaped quote syntax and Unicode escape syntax are therefore atom-owned rather than structural. Existing tests check surrounding syntax but do not assert escape-byte ownership.
+    consequence: "Syntax enters canonical atom evidence and encoded blocked content can bypass raw-marker checks."
+    required_correction: "Parser/tokenizer-based raw/decoded mapping with all escape syntax structural and safety checks applied before and after decoding."
+
+  - id: "E54-B03-INCOMPLETE-BLOCKED-CONTENT-POLICY"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      Source admission blocks only a narrow exact generic PRIVATE KEY marker plus ghp_ and sk-. It misses RSA, EC, DSA, OPENSSH, ENCRYPTED key boundaries, partial/truncated boundaries and other encoded/token families.
+    consequence: "Private or credential-shaped material can enter a public-safe authority graph."
+    required_correction: "Versioned comprehensive raw and decoded admission policy with adversarial partial and encoded cases."
+
+  - id: "E54-B04-UNVERIFIED-PACKET-SUBRECORDS"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      Packet unknowns, conflicts and redaction lineage are arbitrary caller strings, while validation is an arbitrary caller mapping. They are frozen and reserialized but are not factory-issued, evidence-bound or registry-verified records.
+    consequence: "A caller can mint canonical validation-pass, conflict, unknown and redaction assertions."
+    required_correction: "Typed immutable evidence-bound record factories and registries included in full graph verification."
+
+  - id: "E54-B05-RELATION-STRUCTURAL-EVIDENCE"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      RelationFactory accepts any nonempty source slice. The test and canonical Provider fixture use source byte 0:1, which is the JSON structural delimiter '{', as relation evidence.
+    consequence: "Exact hashing is proven, but semantic evidence admission is not."
+    required_correction: "Relations must reference a verified admitted evidence record/span; structural punctuation must fail."
+
+  - id: "E54-B06-RECEIPT-ACTUAL-PARENT-NOT-BOUND"
+    severity: "critical"
+    confidence: "high"
+    finding: >-
+      verify_final_receipt computes the observed Git parent but never compares it with receipt tested_sha or the external anchor parent. The receipt and external anchor can agree with each other while the actual receipt commit has a different parent.
+    consequence: "A receipt built on an untested commit can satisfy the current validator."
+    required_correction: "Compare actual Git parent directly to tested_sha and anchor parent, and verify base-plan-tested-receipt ancestry."
+
+  - id: "E54-B07-ARTIFACT-BINDING-SHAPE-ONLY"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      External anchor validation checks positive unique IDs, list lengths and hex digest shape, but does not bind the run to the receipt head/workflow/branch, jobs to the exact matrix, artifact IDs/names to that run, the compare ID as distinct from all job artifacts, or downloaded bytes to recorded digests.
+    consequence: "Unrelated or invented artifact metadata can pass the local validator."
+    required_correction: "Validate independently fetched run/job/artifact metadata and downloaded artifact bytes."
+
+  - id: "E54-B08-INCOMPLETE-RECEIPT-ROUTE-TOPOLOGY"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      Route epoch is only checked as positive, base/plan/tested SHAs are not tied to observed topology, receipt paths need only be a nonempty subset of the allowlist, and verify_final_receipt does not itself require validate_receipt_fields.
+    consequence: "A structurally different route or partial receipt can pass local validation."
+    required_correction: "Bind all expected route identities, exact ancestry and exact receipt path set in one fail-closed verifier."
+
+  - id: "E54-B09-HYGIENE-PATTERN-GAPS"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      History hygiene omits .generated, .generated.json, .tmp, .coverage, .pytest_cache and generic artifact directories. Its add-delete test uses generated.db, which is detected by the .db suffix and does not prove generic generated-file detection.
+    consequence: "Forbidden transient/generated files can enter and disappear from history undetected."
+    required_correction: "Expand patterns and test each distinct class, including merge-parent history where applicable."
+
+  - id: "E54-B10-MUTATION-EVIDENCE-AND-COVERAGE"
+    severity: "high"
+    confidence: "high"
+    finding: >-
+      Mutation execution is genuine, but result records omit restoration stdout/stderr hashes, command identity/hash, duration, exact anchor position and counterexample identity. The matrix also omits the source-constructor, JSON escape, packet-subrecord, structural-relation, actual-parent, real artifact-binding and broader hygiene bypasses.
+    consequence: "The current mutation certificate does not cover all remaining authority surfaces or satisfy its own reporting gate."
+    required_correction: "Expand real mutations and emit complete mutation/restoration evidence."
+
+  - id: "E54-B11-ATTRIBUTION-METADATA-CONFLICT"
+    severity: "medium"
+    confidence: "medium"
+    finding: >-
+      The E54 plan commit subject says agent CODEX while GitHub displays 迪迪(WorkBuddy) as author and committer, despite WorkBuddy being recorded paused.
+    consequence: "Executor attribution and separation cannot be independently resolved from current public metadata."
+    required_correction: "Record whether this is a shared application identity or an execution-boundary violation without accessing private configuration."
+
+provider_assessment:
+  execution_evidence: "ACCEPTED"
+  authority_credit: false
+  reason: "Provider proves the submitted implementation and current tests, not the untested independent invariants above."
+
+receipt_assessment:
+  topology_partial_credit: true
+  authority_credit: false
+  reason: "Receipt is the final direct child of the tested head and changes five allowlisted files, but current validator does not prove actual-parent and external artifact binding invariants generically."
+
+disposition:
+  status: "RETURNED_FOR_CLEAN_SUCCESSOR_CORRECTION"
+  completion_credit: false
+  provider_execution_evidence_credit: true
+  provider_authority_credit: false
+  receipt_authority_credit: false
+  merge_authorized: false
+  frozen_issue: 170
+  frozen_pull_request: 174
+  frozen_head: "1c0bdc3b337828f6e9734823cef73d06e7cd3a20"
+  successor_issue: 179
+  successor_epoch: 57
+  successor_task_id: "CODEX-E54-POST-RECEIPT-SOURCE-ADMISSION-VERIFIED-RECORD-RELATION-EVIDENCE-RECEIPT-PARENT-ARTIFACT-BINDING-HYGIENE-AND-PROVIDER-RECERTIFICATION-0051-E55"
+  whole_branch_integration_forbidden: true
+  exact_path_blob_content_selection_only: true
+
+E52_recheck:
+  issue: 166
+  pull_request: 167
+  head: "62f12f563797c643714fe0ad40e3e9ea5291693d"
+  status: "FROZEN_REVIEWED_PARTIAL_CANDIDATE_TRANSFERRED_TO_E53"
+  execution_allowed: false
+  completion_credit: false
+  provider_credit: false
+  receipt_credit: false
+  merge_authorized: false
+  conclusion: "E52 was not unfrozen or repaired on its original branch. Its selected direction was superseded through E53 and then E54/E55."
+
+boundaries:
+  - "No merge or main implementation write."
+  - "No post-receipt E54 commit."
+  - "No E52, E53, QCLAW or other frozen-branch mutation."
+  - "No private configuration, model/provider settings, credentials, accounts, market data or trading."
