@@ -1,0 +1,392 @@
+schema_version: "skill-contract-v1"
+skill_id: "A-SHARE-INTRADAY-EXTREMA-INTERVAL-WEAK-DRIVE-SKILL-0013"
+module_id: "A-SHARE-INTRADAY-EXTREMA-INTERVAL-0013"
+version: "1.0.0"
+name_zh: "A股日内极值间隔与弱驱动状态识别"
+category: "FEATURE_RESEARCH"
+status: "DRAFT_CANDIDATE_UNVALIDATED"
+implementation_issue: 188
+owner: "GPT_RESEARCH_DESIGN_CODEX_FUTURE_IMPLEMENTATION"
+boundary:
+  research_only: true
+  no_trade: true
+  direct_buy_sell_output: false
+  real_order_flow_claim_without_verified_l2: false
+  user_approval_required_for_activation: true
+
+claim_under_test:
+  text: "在没有强烈买入或卖出的日内阶段，阶段最高点与最低点常相差约20至30分钟"
+  status: "UNVERIFIED_CANDIDATE"
+  primary_band_active_minutes: [20, 30]
+  preregistered: true
+  optimization_target_forbidden: true
+  current_confidence: "LOW"
+
+non_goals:
+  - "Predict the exact future high or low"
+  - "Use future-confirmed extrema as online features"
+  - "Create a standalone reversal trading strategy"
+  - "Infer real aggressive buying or selling from OHLCV or vendor fund-flow buckets"
+  - "Hard-code a universal 20-30 minute reversal clock"
+  - "Bypass A-share T+1, price limits, halts, liquidity or rule versions"
+
+knowledge_map:
+  user_known_and_stated:
+    - "Intraday movement has stages and local highs/lows"
+    - "Weak apparent buying/selling may coincide with a 20-30 minute extrema interval"
+    - "The observation requires multi-period backtesting and multi-skill linkage"
+  user_known_but_unstated:
+    - "Opening, midday, afternoon restart and close have different dynamics"
+    - "Trend and event days are likely invalid regimes"
+    - "Extrema need confirmation and therefore have latency"
+    - "Lunch break must not be counted as active market time"
+  easy_new_concepts:
+    - "directional_change"
+    - "intrinsic_time"
+    - "first_passage_time"
+    - "survival_function"
+    - "conditional_hazard"
+    - "intraday_seasonality_normalization"
+  advanced_hidden_complexity:
+    - "stopping_times"
+    - "right_censoring"
+    - "competing_risks"
+    - "point_processes_and_hawkes"
+    - "microstructure_noise"
+    - "multiple_testing_pbo_dsr"
+
+required_capabilities:
+  - "A_SHARE_RULE_ENGINE_VERSIONED"
+  - "POINT_IN_TIME_MINUTE_DATASET"
+  - "INTRADAY_SESSION_CLOCK"
+  - "DATA_QUALITY_AND_FRESHNESS"
+  - "BACKTEST_INTEGRITY_AUDIT"
+  - "PURGED_WALK_FORWARD_AND_LOCKBOX"
+
+optional_capabilities:
+  - "FIVE_LEVEL_BOOK_VERIFIED"
+  - "TDXQUANT_AGGREGATE_FIELDS_VERIFIED"
+  - "RAW_TRADE_AND_ORDER_EVENTS_VERIFIED"
+  - "EVENT_INTELLIGENCE_POINT_IN_TIME"
+  - "SECTOR_AND_INDEX_MINUTE_CONTEXT"
+
+input_schema:
+  name: "IntradayExtremaTimingRequest"
+  fields:
+    instrument_id: {type: string, required: true}
+    as_of: {type: timestamp, required: true}
+    market_bars_ref: {type: artifact_ref, required: true}
+    security_master_snapshot_id: {type: string, required: true}
+    rule_snapshot_id: {type: string, required: true}
+    data_quality_snapshot_id: {type: string, required: true}
+    market_context_ref: {type: artifact_ref, required: true}
+    sector_context_ref: {type: artifact_ref, required: false}
+    event_context_ref: {type: artifact_ref, required: false}
+    book_context_ref: {type: artifact_ref, required: false}
+    position_inventory_ref: {type: artifact_ref, required: false}
+    mode:
+      type: enum
+      values: [DESCRIPTIVE_RESEARCH, OOS_EVALUATION, SHADOW_ASSESSMENT]
+      required: true
+
+session_clock:
+  unit: "ACTIVE_TRADING_MINUTE"
+  exclude_lunch_break: true
+  exclude_halts: true
+  exclude_missing_or_stale_bars: true
+  opening_call_auction_separate: true
+  closing_call_auction_separate: true
+  continuous_auction_phases_loaded_from_rule_snapshot: true
+  hard_coded_calendar_forbidden: true
+
+extremum_definitions:
+  FIXED_WINDOW:
+    purpose: "artifact_and_simple_baseline_only"
+    parameter_grid_minutes: [10, 15, 20, 30, 45, 60]
+    online_use: false
+  SYMMETRIC_LOCAL_LABEL:
+    purpose: "ex_post_label_only"
+    neighbor_grid_bars: [2, 3, 5, 10]
+    online_use: false
+    confirmation_latency_required: true
+  DIRECTIONAL_CHANGE:
+    purpose: "primary_event_definition"
+    fixed_threshold_bps: [10, 20, 30, 50, 80, 120]
+    volatility_scaled_k_grid: [0.5, 0.75, 1.0, 1.25, 1.5]
+    optimize_for_20_30_band_forbidden: true
+    online_state_uses_confirmed_events_only: true
+  FIRST_PASSAGE:
+    purpose: "threshold_and_vwap_return_control"
+    thresholds_preregistered: true
+
+weak_drive_proxy:
+  output_states:
+    - WEAK_DRIVE_PROXY
+    - STRONG_UP_DRIVE_PROXY
+    - STRONG_DOWN_DRIVE_PROXY
+    - MIXED_OR_CONFLICTED
+    - INSUFFICIENT_DATA
+  minimum_price_volume_features:
+    - absolute_abnormal_return_5m_15m_30m
+    - path_efficiency_ratio_15m_30m
+    - realized_volatility_percentile
+    - true_range_percentile
+    - relative_volume_same_stock_same_phase
+    - vwap_slope_normalized
+    - vwap_deviation_and_reclaim_speed
+    - index_sector_residual
+    - limit_proximity
+    - halt_and_data_gap_flags
+  optional_book_features:
+    - spread_shock
+    - depth_shock
+    - five_level_imbalance
+    - quote_freshness
+  verified_l2_features_only:
+    - order_flow_imbalance
+    - trade_delta
+    - cumulative_volume_delta
+    - cancellation_intensity
+    - queue_replenishment
+    - impact_efficiency
+  terminology_rule: "OHLCV_OR_BOOK_PROXY_MUST_NOT_BE_CALLED_REAL_BUY_SELL_INTENT"
+
+output_schema:
+  name: "IntradayExtremaTimingAssessment"
+  fields:
+    instrument_id: string
+    as_of: timestamp
+    event_definition: enum
+    threshold_version: string
+    session_phase: string
+    drive_state: enum
+    drive_evidence: list
+    last_confirmed_extremum: object_or_null
+    event_time: timestamp_or_null
+    confirmation_time: timestamp_or_null
+    elapsed_active_minutes: number_or_null
+    duration_quantiles: object
+    band_20_30_probability: number_or_null
+    matched_baseline_probability: number_or_null
+    incremental_band_support: number_or_null
+    survival_probability: number_or_null
+    next_5m_hazard: number_or_null
+    next_10m_hazard: number_or_null
+    calibration_status: string
+    confidence: enum
+    evidence_refs: list
+    invalidation_conditions: list
+    action_class:
+      type: enum
+      values: [MONITOR, WAIT, DEFER, ABSTAIN, RESEARCH_ONLY]
+    no_trade: {type: boolean, constant: true}
+
+primary_estimands:
+  - "P(20<=T<=30 | weak_drive_proxy, phase, liquidity, regime, threshold)"
+  - "matched_incremental_band_mass"
+  - "survival_S_t"
+  - "conditional_hazard_h_t"
+  - "next_5m_and_10m_confirmed_extremum_probability"
+  - "incremental_calibration_over_phase_volatility_baseline"
+
+linked_skills:
+  required:
+    - a-share-rule-engine
+    - market-context
+    - opening-range
+    - vwap-analyzer
+    - volume-battle-analyzer
+    - probability-fusion
+    - backtest-integrity-audit
+    - t1-lockup-tracking
+  conditional:
+    - liquidity-sweep
+    - order-flow-microstructure
+    - delta-cvd
+    - absorption-detection
+    - sector-flow-radar
+    - event-radar
+  linkage_rule: "TIME_FEATURE_IS_ONE_CONDITIONAL_EVIDENCE_SOURCE_NOT_A_MASTER_SCORE"
+
+point_in_time_universe:
+  required: true
+  core_groups:
+    - CSI300
+    - CSI500
+    - CSI1000
+    - MAIN_BOARD
+    - CHINEXT
+    - STAR_MARKET
+    - BSE
+    - BROAD_ETF
+    - LOW_LIQUIDITY_STRESS
+  user_focus_instruments:
+    - 300418.SZ
+    - 300058.SZ
+  interface_and_baseline_instruments:
+    - 600519.SH
+    - 510300.SH
+  delisted_and_halted_samples_required: true
+
+historical_regimes:
+  target_ranges:
+    - "2007-2009"
+    - "2014-2016"
+    - "2018"
+    - "2020"
+    - "2021-2022"
+    - "2023-2024"
+    - "2025-current"
+  missing_period_policy: "EXPLICIT_EVIDENCE_GAP_NO_SILENT_SCOPE_EXPANSION"
+
+validation_protocol:
+  descriptive_first: true
+  predictive_before_pnl: true
+  matched_context_controls:
+    - instrument
+    - session_phase
+    - volatility
+    - relative_volume
+    - liquidity
+    - market_and_sector_regime
+    - event_category
+  statistics:
+    - sample_count_stock_count_day_count
+    - mean_median_iqr_quantiles
+    - band_mass_20_30
+    - survival_curve
+    - discrete_hazard
+    - clustered_or_hierarchical_bootstrap_intervals
+    - censoring_and_tail_report
+  falsification:
+    - fixed_window_artifact_test
+    - one_minute_vs_five_minute_quantization_test
+    - bar_origin_shift_test
+    - circular_intraday_permutation
+    - matched_non_weak_drive_control
+    - neighboring_preregistered_duration_bands
+    - threshold_neighborhood_sensitivity
+  predictive_metrics:
+    - brier_score
+    - log_loss
+    - calibration_slope_intercept
+    - reliability_curve
+    - time_dependent_auc_secondary
+  splitting:
+    purged_walk_forward: true
+    embargo: true
+    lockbox_single_open: true
+    point_in_time_constituents: true
+  overfitting_audit:
+    record_all_trials: true
+    pbo_cscv: true
+    deflated_sharpe_or_equivalent: true
+    failed_trials_retained: true
+
+combination_experiments:
+  - id: C0
+    description: "existing_signal_without_duration_feature"
+  - id: C1
+    description: "weak_drive_plus_vwap_reclaim_plus_duration_hazard"
+  - id: C2
+    description: "liquidity_sweep_state_machine_plus_duration_hazard"
+  - id: C3
+    description: "effort_result_residual_plus_duration_hazard"
+  - id: C4
+    description: "market_sector_residual_reversion_plus_duration_hazard"
+  - id: C5
+    description: "verified_order_flow_plus_resilience_plus_duration_hazard"
+    requires_verified_level_c_data: true
+  ablation_required: true
+  standalone_duration_trade_forbidden: true
+
+execution_constraints:
+  a_share_t_plus_one: true
+  distinguish_existing_sellable_inventory_and_new_buy: true
+  price_limit_and_queue: true
+  halt_and_resume: true
+  round_lot_and_fees: true
+  slippage_and_impact: true
+  event_time_confirmation_time_execution_time_separate: true
+  impossible_same_day_stop_exit_for_new_buy_forbidden: true
+
+promotion_gates:
+  minimum_oos_regime_count: 4
+  multiple_liquidity_buckets: true
+  multiple_boards: true
+  one_minute_support_required: true
+  at_least_two_non_fixed_window_extremum_definitions: true
+  stable_threshold_neighborhood: true
+  incremental_calibration_over_simple_baseline: true
+  combination_ablation_increment: true
+  costs_and_a_share_rules_do_not_reverse_all_value: true
+  shadow_required_before_any_activation: true
+
+rejection_conditions:
+  - "support_only_from_fixed_20_or_30_minute_window"
+  - "support_only_from_five_minute_bar_quantization"
+  - "support_only_from_opening_half_hour_or_one_stock_or_one_regime"
+  - "out_of_sample_collapse"
+  - "fully_explained_by_phase_volatility_volume_or_event_context"
+  - "future_extremum_leakage"
+  - "lunch_break_counted_as_market_time"
+  - "current_constituent_survivorship_bias"
+  - "unreported_parameter_search"
+  - "real_order_flow_claim_from_unverified_proxy"
+
+required_tests:
+  unit:
+    - active_trading_minute_excludes_lunch
+    - halt_and_missing_bar_clock
+    - rule_version_phase_boundaries
+    - directional_change_confirmation_latency
+    - no_future_extremum_in_online_features
+    - total_nonoverlapping_event_intervals
+    - drive_state_conflict_and_insufficient_data
+  golden:
+    - synthetic_trend_day_rejects_weak_drive
+    - synthetic_range_day_duration_distribution
+    - synthetic_5m_quantization_artifact
+    - synthetic_lunch_crossing_interval
+    - synthetic_limit_and_halt_case
+  point_in_time:
+    - historical_constituent_and_delisting
+    - corporate_action_boundary
+    - event_availability_time
+  statistical:
+    - null_band_mass_calibration
+    - threshold_sensitivity
+    - clustered_bootstrap_reproducibility
+    - walk_forward_purge_and_embargo
+    - lockbox_not_read_during_selection
+  integration:
+    - market_context_and_vwap_ablation
+    - liquidity_sweep_state_machine_boundary
+    - t1_inventory_action_set
+    - no_trade_permission_boundary
+
+artifacts_required_for_validation:
+  - immutable_raw_data_manifest
+  - point_in_time_universe_manifest
+  - rule_snapshot_manifest
+  - experiment_registry_with_failures
+  - feature_and_label_lineage
+  - oos_fold_receipts
+  - lockbox_receipt
+  - cost_and_execution_assumptions
+  - pbo_and_multiple_testing_report
+  - calibration_and_survival_report
+  - skill_combination_ablation_report
+  - minimized_counterexamples
+
+current_state:
+  blueprint: COMPLETE
+  research_validation_design: COMPLETE
+  machine_contract: COMPLETE
+  validated_minute_dataset: NOT_AVAILABLE_TO_GPT_CURRENT_SESSION
+  empirical_backtest: NOT_RUN
+  hypothesis_20_30: UNVERIFIED
+  codex_runtime: NOT_IMPLEMENTED
+  shadow_mode: NOT_STARTED
+  live_use: PROHIBITED
+  future_dispatch: "AFTER_CODEX_E56_AND_EXPLICIT_DATA_GATE_REVIEW"
