@@ -1,9 +1,9 @@
-schema_version: "82.1"
+schema_version: "83.0"
 coordination_type: "GPT_CODEX_QCLAW_WORKBUDDY_ACTIVE_COORDINATION"
 program_issue: 31
-status: "CODEX_E58_READY_QCLAW_E45_READY_WITH_P0_LOCAL_RESOURCE_GUARD_AND_SHARED_HEAVY_MUTEX_WORKBUDDY_PAUSED"
+status: "CODEX_E59_READY_QCLAW_E45_READY_UNCLAIMED_WITH_E59_FINAL_GATE_AND_P0_DESCENDANT_RESOURCE_CLOSURE_WORKBUDDY_PAUSED"
 updated_by: "GPT"
-updated_at: "2026-08-07T08:37:00+08:00"
+updated_at: "2026-08-07T16:00:00+08:00"
 
 permanent_command_semantics:
   GPT_review_command: {trigger: ["审查任务", "审核任务", "审核报告"], meaning: "FULL_REVIEW_OPTIMIZE_FREEZE_OR_RETURN_AND_PUBLISH_ROUTE"}
@@ -13,69 +13,55 @@ permanent_governance:
   model_selection_owner: "USER_ONLY"
   model_config_rule: "Agents may not read or modify model/provider/reasoning/default/thread/subagent/workspace/session/private configuration."
   route_readiness_rule: "Every non-trivial route must be literal READY and bind a complete task contract before claim."
-  capability_separation_rule: "Codex owns issuer/verifier, generic execution receipts, raw-format ownership, Provider and receipt. QCLAW consumes verifier-only capability and owns semantic evidence/atoms, master/cognition/skill and semantic evaluator."
-  source_truth_rule: "Python underscore names, module globals, caller registries, local keys and public mutable state are not authority boundaries."
-  user_origin_rule: "KNOWN_AND_STATED requires exact verified user-message origin; prose heuristics or generic documents cannot create personal/GLOBAL authority."
-  evaluator_rule: "Production receives no ground truth, expected outcomes, should-fail labels or anti-pattern truth objects."
-  canonical_rule: "Canonical artifacts encode actual deterministic outcomes and coverage; environment and mutation evidence remain separate."
-  dual_provider_rule: "Tested and receipt Provider evidence are separate complete exact-head records with independently downloaded archive/inner-byte verification."
-  mutation_rule: "Each credited mutation changes one exact real production byte sequence, fails a named invariant, restores exact bytes and reruns green."
-  receipt_rule: "Receipt is one nonempty direct child containing only authorized evidence paths; no later branch commit."
+  capability_separation_rule: "Codex owns canonical verifier/source-span, generic execution/resource authority, Provider and receipt. QCLAW consumes only GPT-accepted Codex interface and owns semantic master/cognition/skill/evaluator."
+  source_truth_rule: "Caller-created runtime/verifier/source objects, Python underscore names, local keys or mutable registries are not canonical authority."
+  user_origin_rule: "KNOWN_AND_STATED requires exact verified user-message origin."
+  evaluator_rule: "Production receives no ground truth or expected-answer object."
+  local_resource_rule: "User desktop responsiveness outranks throughput; caps apply to complete task-owned descendant trees, not only direct Popen children."
   trade_rule: "No accounts, orders, positions, funds, market data or real trades."
-  local_resource_rule: "User desktop responsiveness outranks local throughput. Every agent must obey the binding process budget, own every child PID, disable nested parallelism, use the shared heavy-stage mutex and prove zero task-owned orphans after every task."
 
 local_execution_resource_governance:
   protocol: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
-  protocol_commit: "e262be7436a4a7f08ac1c6e543076362890cff22"
   incident_issue: 194
-  incident_record: "coordination/INCIDENTS/LOCAL-PYTHON-PROCESS-EXPLOSION-INCIDENT-0001.yaml"
-  incident_record_commit: "46c62af68e03c923dda8dd67a1b104fd32e32340"
   observed_python_process_peak: 119
   user_machine: "Windows / Intel i7-6700 4C8T 3.4GHz / 32GiB RAM / RTX 2070"
-  global_project_python_process_hard_cap: 8
+  global_project_python_process_hard_cap_including_descendants: 8
   global_cpu_bound_worker_hard_cap: 4
-  single_agent_python_process_hard_cap: 6
+  single_agent_python_process_hard_cap_including_descendants: 6
   single_agent_cpu_bound_worker_cap: 3
-  dual_agent_python_process_cap_per_agent: 4
+  dual_agent_python_process_cap_per_agent_including_descendants: 4
   dual_agent_cpu_bound_worker_cap_per_agent: 2
+  combined_cpu_target_percent: 55
+  throttle_above_percent_for_15_seconds: 70
   project_ram_target_gib: 8
   project_ram_hard_cap_gib: 10
   minimum_available_ram_gib: 8
-  combined_cpu_target_percent: 55
-  throttle_above_percent_for_15_seconds: 70
-  windows_worker_priority: "BELOW_NORMAL"
   nested_parallelism: "FORBIDDEN"
   local_mutation_provider_default: "SEQUENTIAL"
-  remote_github_actions_parallelism: "ALLOWED_REMOTE_ONLY"
+  remote_matrix_parallelism: "ALLOWED"
   heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
-  heavy_stage_rule: "Codex and QCLAW may do light analysis concurrently; only one may execute a local heavy test/mutation/provider stage."
-  process_ownership_rule: "Track PID, PPID, creation time, command digest and task ownership; never kill by executable name alone."
-  cleanup_rule: "Clean the complete verified task-owned tree on success, error, timeout, cancellation and Ctrl-C; postflight owned process count and orphan count must both be zero."
-  persistent_daemon_rule: "Zero by default; any persistent service requires a named allowlist, unique port, pidfile, healthcheck and shutdown command."
-  violation_response: "Stop new workers, clean owned processes, publish RESOURCE_BUDGET_VIOLATION and return the task for repair."
-  completion_fields: ["preflight_python_process_count", "peak_task_owned_python_process_count", "peak_combined_project_python_process_count", "configured_worker_limits", "peak_cpu_percent", "peak_ram_gib", "spawned_pid_count", "cleaned_pid_count", "postflight_task_owned_process_count", "orphan_count", "persistent_services_remaining", "heavy_stage_mutex_usage"]
+  descendant_cleanup_required: true
+  historical_root_cause_status: "UNRESOLVED; E59 MUST CLASSIFY HISTORICAL_UNRECOVERABLE_VS_EXPERIMENTALLY_TESTED_CURRENT_FAILURE_MODES"
 
 agents:
   CODEX:
-    active_issue: 192
+    active_issue: 197
     active_pull_request: null
-    task_id: "CODEX-E57-POST-RECEIPT-SEMANTIC-EXECUTION-VERIFIER-CAPABILITY-RAW-JSONL-AND-DUAL-PROVIDER-CLOSURE-0054-E58"
-    route_epoch: 60
+    task_id: "CODEX-E58-POST-RECEIPT-CANONICAL-VERIFIER-SOURCE-BOUND-EVIDENCE-RELATION-ONTOLOGY-DESCENDANT-PROCESS-TREE-AND-P0-CLOSURE-0055-E59"
+    route_epoch: 61
     mode: "project_plan"
-    mode_label: "【Codex模式：项目计划模式】E58 语义执行回执、只验证能力、全源字节与本机进程生命周期闭环"
+    mode_label: "【Codex模式：项目计划模式】E59 canonical verifier、source-bound evidence 与完整进程树闭环"
     status: "READY"
     execution_allowed: true
     automatic_resume_within_task: true
     second_user_start_command_required: false
-    planned_branch: "codex/e57-post-receipt-semantic-execution-verifier-closure-0054-e58"
-    completion_signal: "CODEX_E58_SEMANTIC_EXECUTION_VERIFIER_CAPABILITY_JSONL_DUAL_PROVIDER_RECEIPT_READY_FOR_GPT_REVIEW"
-    route_contract: "coordination/ROUTES/CODEX-E58-ACTIVE-ROUTE-CONTRACT.yaml"
-    route_contract_commit: "94c82fc2639ec35b36dc2282114fbb5efbff0a25"
-    active_route_commit: "678f12fbc38c338ae5a0f2f2959d4096c7e8d6a1"
-    p0_resource_role: "PRIMARY_ROOT_CAUSE_OWNER"
-    local_heavy_stage_mutex_required: true
+    planned_branch: "codex/e58-post-receipt-canonical-trust-process-tree-closure-0055-e59"
+    completion_signal: "CODEX_E59_CANONICAL_VERIFIER_SOURCE_EVIDENCE_DESCENDANT_TREE_P0_DUAL_PROVIDER_READY_FOR_GPT_REVIEW"
+    route_contract: "coordination/ROUTES/CODEX-E59-ACTIVE-ROUTE-CONTRACT.yaml"
+    route_contract_commit: "260f20031aa10bdfe522e50f0797e689e64a36dd"
+    active_route_commit: "0f7dfd96db3cb5ea523e027e6de65d18388cf1bf"
+    p0_resource_role: "PRIMARY_CANONICAL_RESOURCE_ROOT_CAUSE_AND_PREVENTION_OWNER"
     merge_authorized: false
-    role_boundary: "ISSUER_VERIFIER_EXECUTION_RECEIPT_FORMAT_PROVIDER_RECEIPT_AND_PRIMARY_PROCESS_ROOT_CAUSE"
     source_of_truth: "coordination/ACTIVE-CODEX-TASK.yaml"
 
   QCLAW:
@@ -84,62 +70,58 @@ agents:
     task_id: "QCLAW-E44-POST-AUDIT-VERIFIER-ONLY-CAPABILITY-USER-ORIGIN-SEMANTIC-EVALUATOR-REAL-MUTATION-AND-DUAL-PROVIDER-CLOSURE-0026-E45"
     route_epoch: 45
     mode: "project_plan"
-    mode_label: "【QCLAW模式：项目计划模式】E45 只验证能力消费、用户来源、真实语义 Provider 与本机进程生命周期闭环"
-    status: "READY"
+    mode_label: "【QCLAW模式：项目计划模式】E45 语义消费、用户来源、真实 evaluator/mutation 与本机进程树闭环"
+    status: "READY_UNCLAIMED"
     execution_allowed: true
     automatic_resume: true
     second_user_start_command_required: false
     planned_branch: "qclaw/e44-post-audit-semantic-authority-closure-0026-e45"
     completion_signal: "QCLAW_E45_VERIFIER_ONLY_CAPABILITY_USER_ORIGIN_REAL_EVALUATOR_MUTATION_DUAL_PROVIDER_READY_FOR_GPT_REVIEW"
     route_contract: "coordination/ROUTES/QCLAW-E45-ACTIVE-ROUTE-CONTRACT.yaml"
-    route_contract_commit: "2e9a6b116e7cb9c5a82292406c3e5b9981178b27"
-    active_route_commit: "471106eab1255a3ccbdfc7942d1bed506b27d027"
-    p0_resource_role: "INDEPENDENT_SELF_AUDIT_AND_RUNTIME_EVIDENCE_CONTRIBUTOR"
-    local_heavy_stage_mutex_required: true
-    final_completion_dependency: "GPT_ACCEPTED_CODEX_E58_VERIFIER_ONLY_INTERFACE_AND_P0_RESOURCE_INCIDENT_CLOSURE"
+    route_contract_commit: "c609d13458394b017745918560c778ea0005b763"
+    active_route_commit: "92422ac279a0b93f4baeb34680dd687060a38104"
+    final_completion_dependency: "GPT_ACCEPTED_E59_CANONICAL_VERIFIER_SOURCE_SPAN_INTERFACE_AND_P0_RESOURCE_CLOSURE"
+    p0_resource_role: "INDEPENDENT_QCLAW_DESCENDANT_SELF_AUDIT"
     merge_authorized: false
-    role_boundary: "VERIFIER_ONLY_CAPABILITY_CONSUMPTION_SEMANTIC_EVIDENCE_MASTER_COGNITION_SKILL_EVALUATOR"
     source_of_truth: "coordination/ACTIVE-QCLAW-TASK.yaml"
 
   WORKBUDDY:
     status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
     automatic_resume: false
-    local_resource_protocol_binding_required_on_resume: true
     source_of_truth: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
 
-latest_reviews:
-  CODEX_E57:
-    issue: 190
-    pull_request: 191
-    tested_head: "7eb7f0fd4bb2e60622bd4f177a128355a39d0430"
-    frozen_head: "603768e08e27cf554f9a5ee231b13d51a563abe1"
-    tested_provider_run: 31123089194
-    receipt_provider_run: 31129898078
+latest_review:
+  CODEX_E58:
+    issue: 192
+    pull_request: 196
+    base_sha: "7ca1e12bec816db33efae31357e2e06b56b874d1"
+    plan_sha: "045daa092baf898d078d901b4fe3172187912716"
+    tested_head: "44eeca76113bb1376c89af550216a93df824191d"
+    frozen_head: "4d92747098ab18f03c7379b2fa82c5f33251f82c"
+    tested_provider_run: 31142425299
+    receipt_provider_run: 31143145722
+    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E58-INDEPENDENT-AUDIT-RETURN-TO-E59.yaml"
+    review_commit: "66d69a7ee4e9089faeb99f54623a5052a4be0736"
     status: "FROZEN_DUAL_PROVIDER_GREEN_RECEIPT_PRESENT_SUBSTANTIAL_CANDIDATE_REJECTED_AS_FINAL"
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E57-INDEPENDENT-AUDIT-RETURN-TO-E58.yaml"
-    review_commit: "e9622893e1feb681c1d54a9f9df1edbedc517792"
-    further_commit_forbidden: true
-    merge_authorized: false
-
-  QCLAW_E44:
-    issue: 187
-    pull_request: 189
-    frozen_head: "846861da346039dd12c2e58fb5fc16d045a4d0c3"
-    workflow_run: 31130562655
-    status: "FROZEN_ROUTE_INVALID_CI_FAILED_CALLER_CONTROLLED_AUTHORITY_NO_PROVIDER_NO_RECEIPT_REJECTED_AS_FINAL"
-    review_record: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E44-INDEPENDENT-AUDIT-RETURN-TO-E45.yaml"
-    review_commit: "710231a7718526f3fe48da8aa22d4030104cb451"
+    accepted_credit: ["PLAN_TOPOLOGY", "DUAL_PROVIDER_EXECUTION", "RECEIPT_TOPOLOGY", "JSONL_UNICODE_CANDIDATE", "CONFLICT_CANDIDATE", "RESOURCE_THROTTLE_BEHAVIOR"]
+    rejected_credit: ["CANONICAL_VERIFIER_AUTHORITY", "SOURCE_TO_EVIDENCE_AUTHORITY", "RELATION_SEMANTIC_AUTHORITY", "DESCENDANT_PROCESS_LIFECYCLE", "GLOBAL_RESOURCE_ENFORCEMENT", "P0_INCIDENT_CLOSURE", "COMPLETION"]
+    blockers:
+      - "Public bootstrap_trusted_runtime/TrustedSemanticExecutor lets ordinary callers construct a fresh claimed trusted runtime."
+      - "Caller-authored EvidenceStatement is automatically issued PASS without accepted Source/Span authority."
+      - "Relation type remains caller-authored; shared subject does not prove requested relation semantics."
+      - "Actual Windows Job assignment failed; fallback tracks/terminates direct Popen roots only, not grandchildren."
+      - "CPU/RAM/global cross-agent caps are not executable runtime gates."
+      - "Issue #194 root cause remains unresolved."
     further_commit_forbidden: true
     merge_authorized: false
 
 parallel_controls:
-  shared_main_at_claim: "Each agent independently verifies exact latest canonical main."
   cross_branch_edits_forbidden: true
   duplicate_authority_implementation_forbidden: true
   conflict_reporting: "BOUNDARY_CONFLICT"
-  E45_parallel_rule: "E45 may build against an explicitly untrusted protocol test double, but final capability/receipt/completion requires GPT-accepted E58 verifier-only interface."
-  local_heavy_execution_parallel_forbidden: true
+  E45_parallel_rule: "QCLAW may scaffold with UNTRUSTED_TEST_DOUBLE only; final authority/receipt/completion waits for E59 and P0 acceptance."
+  local_heavy_stage_rule: "Only one agent may hold SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK."
   independent_gpt_review_required: true
 
 next_commands:
@@ -148,9 +130,9 @@ next_commands:
   WORKBUDDY: "DO_NOT_EXECUTE"
 
 frozen:
-  - "Issue #190 / PR #191 Codex E57 frozen at 603768e08e27cf554f9a5ee231b13d51a563abe1."
-  - "Issue #187 / PR #189 QCLAW E44 frozen at 846861da346039dd12c2e58fb5fc16d045a4d0c3."
-  - "All earlier predecessors remain frozen under formal reviews."
+  - "Issue #192 / PR #196 Codex E58 frozen at 4d92747098ab18f03c7379b2fa82c5f33251f82c."
+  - "Issue #190 / PR #191 Codex E57 and all earlier Codex predecessors remain frozen."
+  - "Issue #187 / PR #189 QCLAW E44 and all earlier QCLAW predecessors remain frozen."
   - "No merge, main implementation write, private-config access, credentials, market data or trading."
 
-boundary: "CODEX_E58_AND_QCLAW_E45_READY_WITH_BINDING_LOCAL_RESOURCE_CAPS_AND_SHARED_HEAVY_MUTEX / INCIDENT_194_P0 / PREDECESSORS_FROZEN / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+boundary: "CODEX_E59_READY_QCLAW_E45_READY_UNCLAIMED_E59_FINAL_GATE / E58_AND_PREDECESSORS_FROZEN / P0_FULL_DESCENDANT_CLOSURE_REQUIRED / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
