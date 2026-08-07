@@ -1,0 +1,51 @@
+# E44-SOURCE-SELECTION.yaml
+# E45 re-architects semantic authority; E44 used only as design reference.
+# All modules REWRITE — no byte copy, no blob adopt, no source equivalence.
+
+source:
+  issue: 187
+  pr: 189
+  frozen_head: 846861da346039dd12c2e58fb5fc16d045a4d0c3
+
+modules:
+  - path: src/qclaw_e44/capability.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      E44 capability.py had caller-constructible verifiers with HMAC keys.
+      E45 must consume Codex E58 verifier-only interface; no local trusted issuer.
+
+  - path: src/qclaw_e44/authority.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      E44 had mutable issued registries and caller-supplied HMAC.
+      E45 must recompute every field from capability+policy, registry insertion private.
+
+  - path: src/qclaw_e44/master_record.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      Transitions and conflict classifications need independently issued evaluator receipts.
+      Caller counts/booleans/scope overrides forbidden.
+
+  - path: src/qclaw_e44/cognition.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      KNOWN_AND_STATED needs exact verified user-message origin, not prose inference.
+      Generic documents must not create personal/GLOBAL memory authority.
+
+  - path: src/qclaw_e44/skill_lifecycle.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      Skill promotions need independently issued test receipts, not caller counts.
+      Factory must be internal, transitions evidence-bound.
+
+  - path: src/qclaw_e44/corpus.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      Production must never receive ground truth. Input and expected outcomes different types.
+      Evaluator holds ground truth outside production pipeline.
+
+  - path: src/qclaw_e44/mutations.py
+    disposition: DESIGN_REFERENCE_ONLY
+    reason: >
+      E44 lacked real subprocess execution. E45 needs genuine isolated mutation workspace
+      with nonzero mutant exit, exact restoration, stream hashes, per-Provider execution.
