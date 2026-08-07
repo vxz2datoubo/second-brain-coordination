@@ -40,4 +40,4 @@ Selected a local authority host with a pinned descriptor over an in-process priv
 
 ## NEXT_ACTION_AND_GATE
 
-Commit the locally verified remediation, run the tested Provider matrix, then prepare one final receipt-only direct child. Remote Provider and external-anchor gates remain later and must not be pre-claimed.
+The remediation tested Provider is now complete: run `31181719565` passed all seven jobs and its six downloaded canonical inner manifests compare byte-for-byte. Prepare one final receipt-only direct child of `78952931...`, then require a distinct receipt-head Provider matrix. Remote Provider and external-anchor gates remain later and must not be pre-claimed.

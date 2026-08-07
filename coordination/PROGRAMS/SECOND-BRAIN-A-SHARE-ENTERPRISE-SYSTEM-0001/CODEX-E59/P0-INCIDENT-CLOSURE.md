@@ -25,7 +25,7 @@ Verified current categories:
 
 The provisional receipt Provider exposed a valid mutex contention path. The remediation keeps contention fail-closed, but waits at most 30 seconds for a legitimate holder rather than stealing or deleting its lock. Full desktop process scans now enumerate only topology; creation times are read only for a candidate root or descendant before it becomes owned. This retains PID-reuse protection while avoiding a scan delay that could hide short-lived descendants.
 
-The resource protocol requires CPU throttling only after CPU is above 70% for 15 seconds. The gate now records that sustained window instead of rejecting a single 50ms sample. A transient 100% preflight sample occurred during the latest canary; the seven bounded cases completed and postflight was 62.07%. This is evidence for the bounded synthetic canary only, not a claim about system-wide process behavior.
+The resource protocol requires CPU throttling only after CPU is above 70% for 15 seconds. The gate now records that sustained window instead of rejecting a single 50ms sample. A transient 100% preflight sample occurred during the latest canary; the seven bounded cases completed and postflight was 62.07%. Independent run `31181719565` reproduced the bounded P0 receipt as `PASS` in all six Python-version/hash-seed matrix jobs. This is evidence for the bounded synthetic canary only, not a claim about system-wide process behavior.
 
 ## Limits Of This Closure
 

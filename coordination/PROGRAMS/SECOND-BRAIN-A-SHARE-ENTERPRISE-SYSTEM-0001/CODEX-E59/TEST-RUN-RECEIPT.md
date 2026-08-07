@@ -21,6 +21,8 @@ The first public Provider run on `77696d2a4f234f7b23d3dc61e4c1a28dc9dcde35` fail
 
 The local evidence above does not replace remote authority. The required replacement remote Provider matrix below applies only to `b73866d...`; a remediation tested Provider is required before any new final receipt.
 
-## Tested Provider Result
+## Remediation Tested Provider Result
 
-The replacement Provider run [`31175251886`](https://github.com/vxz2datoubo/second-brain-coordination/actions/runs/31175251886) ran against tested head `b73866db1f58bf585219700f3c5bdbd3a1657318` and passed all 7 jobs: Python 3.11/3.13 times seeds `0`, `1`, and `777`, plus an independent canonical-file compare job. It produced 13 artifacts. The downloaded six canonical inner manifests are byte-identical with SHA-256 `4bf119f7eba16eff1b27f4adba9f2ea675841c0682631f9fc5f94cb4d0e2f00f`. Exact job, artifact and downloaded-log hashes are recorded in `TESTED-PROVIDER-EVIDENCE.yaml`.
+The remediation Provider run [`31181719565`](https://github.com/vxz2datoubo/second-brain-coordination/actions/runs/31181719565) ran against exact head `78952931fe459ad1c785ea98ed749df90b39c39a` from `2026-08-07T13:14:31Z` through `2026-08-07T13:21:16Z`. All seven jobs passed: Python 3.11/3.13 times seeds `0`, `1`, and `777`, plus an independent six-canonical-file compare. It produced 13 artifacts. All six downloaded canonical inner manifests are byte-identical with SHA-256 `eab01f2e7129108df4a732f45d07b861d3b8a110871fea79b2265e7570e8f276`; each provider evidence object reports the same serialized canonical manifest SHA-256 `685aed72dcddafaca84801f5df822cba0a6395b7f3955e6160bccd9b6cb0af7a`. Exact job, artifact and downloaded-log hashes are recorded in `TESTED-PROVIDER-EVIDENCE.yaml`.
+
+This verified the remediation's bounded shared-mutex wait, cleanup, candidate-only process identity checks, and CPU sustain semantics on the exact substantive head. It does not accept the older provisional receipt `3ff135b...`; a single new receipt-only direct child and its distinct Provider run remain mandatory.
