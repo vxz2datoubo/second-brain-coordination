@@ -1,0 +1,206 @@
+schema_version: "1.0"
+protocol_id: "LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL"
+status: "ACTIVE_BINDING"
+owner: "GPT"
+applies_to: ["CODEX", "QCLAW", "WORKBUDDY", "LOCAL_TEST_RUNNERS", "LOCAL_MUTATION_HARNESSES", "LOCAL_BACKGROUND_SERVICES"]
+scope: "USER_LOCAL_MACHINE_ONLY"
+remote_github_actions_exempt_from_local_process_caps: true
+
+incident_context:
+  observed_peak_python_processes: 119
+  user_impact: "Computer became nearly unusable; typing, video playback and ordinary interaction were severely impaired."
+  root_cause_status: "UNKNOWN_PENDING_INSTRUMENTED_INVESTIGATION"
+  possible_causes:
+    - "Nested multiprocessing or ProcessPoolExecutor fan-out"
+    - "Test/mutation subprocesses launched concurrently"
+    - "Pools/executors not closed or joined"
+    - "Timeout/cancel/error paths leaving descendants alive"
+    - "Repeated task launches accumulating orphan processes"
+    - "Persistent daemon duplication"
+    - "Codex and QCLAW running heavy local stages simultaneously"
+
+user_machine_profile:
+  operating_system_family: "WINDOWS"
+  cpu: "Intel Core i7-6700 3.4GHz"
+  physical_cores: 4
+  logical_threads: 8
+  ram_gib: 32
+  gpu: "NVIDIA RTX 2070"
+  gpu_rule: "GPU use is zero by default for repository tests and process investigation unless a task explicitly requires and authorizes it."
+  primary_objective: "Preserve smooth typing, browser use, video playback and ordinary desktop interaction while agents work."
+
+resource_budget:
+  global_project_owned_python_process_hard_cap: 8
+  global_project_owned_cpu_bound_worker_hard_cap: 4
+  global_project_owned_ram_target_gib: 8
+  global_project_owned_ram_hard_cap_gib: 10
+  minimum_system_available_ram_gib: 8
+  combined_cpu_target_percent: 55
+  throttle_when_combined_cpu_percent_exceeds: 70
+  throttle_sustained_seconds: 15
+  local_worker_priority_windows: "BELOW_NORMAL"
+
+single_agent_budget:
+  max_cpu_bound_workers: 3
+  max_project_owned_python_processes_including_children: 6
+  max_ram_gib: 7
+  heavy_mutation_or_provider_local_stages_must_be_serial: true
+
+dual_agent_budget:
+  max_cpu_bound_workers_per_agent: 2
+  max_project_owned_python_processes_per_agent_including_children: 4
+  max_ram_gib_per_agent: 4
+  combined_python_process_hard_cap: 8
+  combined_cpu_bound_worker_hard_cap: 4
+  heavy_stage_mutex_required: true
+  heavy_stage_mutex_name: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+  rule: "Codex and QCLAW may perform light planning, file analysis and network work concurrently, but only one may run a local heavy test/mutation/provider stage at a time."
+
+nested_parallelism_policy:
+  nested_parallelism_forbidden: true
+  rule: "When an outer task or harness is parallel, every inner test, mutation, parser, BLAS and tokenizer layer runs serial."
+  required_environment_defaults:
+    OMP_NUM_THREADS: "1"
+    MKL_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+    NUMEXPR_NUM_THREADS: "1"
+    VECLIB_MAXIMUM_THREADS: "1"
+    TOKENIZERS_PARALLELISM: "false"
+    LOKY_MAX_CPU_COUNT: "2"
+  pytest_local_default: "NO_XDIST_OR_-n_0"
+  process_pool_default_max_workers: 2
+  thread_pool_default_max_workers: 4
+  mutation_runner_local_default: "SEQUENTIAL"
+  local_provider_matrix_default: "SEQUENTIAL_OR_MAX_TWO_JOBS; FULL_MATRIX_PARALLELISM_BELONGS_ON_REMOTE_GITHUB_ACTIONS"
+
+process_ownership_and_lifecycle:
+  preflight_required: true
+  preflight_fields:
+    - "PID"
+    - "PPID"
+    - "executable"
+    - "command_line"
+    - "creation_time"
+    - "working_directory_when_available"
+    - "task_id"
+    - "agent_id"
+    - "ownership_classification"
+  ownership_classes: ["PREEXISTING_USER_PROCESS", "TASK_OWNED", "KNOWN_PERSISTENT_SERVICE", "UNKNOWN_DO_NOT_KILL"]
+  task_owned_registry_required: true
+  task_owned_registry_minimum_fields: ["task_id", "agent_id", "root_pid", "child_pids", "start_time", "command_digest", "purpose", "expected_exit"]
+  windows_process_group_or_job_object_required: true
+  normal_exit_cleanup_required: true
+  exception_cleanup_required: true
+  timeout_cleanup_required: true
+  cancellation_cleanup_required: true
+  ctrl_c_cleanup_required: true
+  executor_shutdown_required: "shutdown(wait=True, cancel_futures=True)"
+  multiprocessing_pool_shutdown_required: "close_or_terminate_then_join_in_finally"
+  subprocess_wait_required: true
+  task_end_postflight_required: true
+  postflight_success_condition: "No task-owned Python process or descendant remains; process count returns to the preflight baseline except explicitly allowlisted persistent services."
+  orphan_grace_period_seconds: 10
+  orphan_after_grace_is_failure: true
+  cleanup_failure_blocks_task_completion: true
+
+safe_termination_rules:
+  never_global_kill_python: true
+  never_kill_by_executable_name_alone: true
+  never_kill_preexisting_or_unknown_process: true
+  termination_scope: "Only the recorded task-owned root process tree, matched by PID plus creation time and command digest."
+  preferred_windows_mechanisms:
+    - "Windows Job Object kill-on-close"
+    - "Graceful terminate and wait"
+    - "taskkill /PID <owned-root-pid> /T only after ownership verification"
+  force_kill_allowed_only_after_graceful_timeout: true
+
+persistent_service_rules:
+  default_persistent_processes_allowed: 0
+  explicit_allowlist_required: true
+  one_instance_per_named_service: true
+  required_identity: ["service_name", "task_owner", "port", "pidfile", "healthcheck", "shutdown_command", "restart_policy"]
+  duplicate_instance_is_failure: true
+  unregistered_background_python_is_failure: true
+
+adaptive_throttling:
+  pause_new_worker_launch_when:
+    - "Project-owned Python process count reaches the applicable hard cap"
+    - "Combined CPU exceeds 70 percent for 15 seconds"
+    - "Available RAM falls below 8 GiB"
+    - "Either agent cannot acquire the heavy-stage mutex"
+  response:
+    - "Do not queue additional process creation blindly"
+    - "Wait using one lightweight coordinator process"
+    - "Reduce worker count to one"
+    - "Publish a resource-throttle visibility packet if sustained"
+  user_interactivity_override: "User activity and desktop responsiveness outrank local task throughput."
+
+mandatory_investigation:
+  incident_issue_required: true
+  objective: "Determine whether the 119-process event was concurrent fan-out, accumulated orphan processes, duplicate persistent services or a combination."
+  safe_method:
+    - "Capture baseline before any new task work."
+    - "Map every Python PID to parent, command, creation time and agent/task ownership."
+    - "Do not terminate unrelated or unknown user processes."
+    - "Reproduce only with a two-worker canary and hard process cap."
+    - "Instrument spawn and exit events for tests, mutations, providers and background services."
+    - "Run normal, exception, timeout and cancellation cleanup tests."
+    - "Verify return to baseline after each canary."
+  required_root_cause_categories:
+    - "NESTED_PARALLELISM"
+    - "POOL_OR_EXECUTOR_LEAK"
+    - "ORPHAN_ON_ERROR_TIMEOUT_OR_CANCEL"
+    - "REPEATED_LAUNCH_ACCUMULATION"
+    - "DUPLICATE_PERSISTENT_DAEMON"
+    - "DUAL_AGENT_HEAVY_STAGE_COLLISION"
+    - "OTHER_WITH_EVIDENCE"
+  required_evidence:
+    - "Peak process count and timestamp"
+    - "Per-agent and per-task PID trees"
+    - "Peak CPU and RAM"
+    - "Spawn/exit ledger"
+    - "Cleanup-to-baseline proof"
+    - "Root-cause conclusion with confidence"
+    - "Implemented prevention and regression tests"
+
+required_task_annotation:
+  text: >-
+    LOCAL RESOURCE SAFETY IS BINDING: obey the local process protocol; default to sequential local mutation/provider execution;
+    never exceed the per-agent or global Python process caps; disable nested parallelism; own every child process; clean the full
+    owned process tree on success, error, timeout and cancellation; verify return to baseline; never kill unrelated Python processes.
+  must_appear_in:
+    - "Every active task route contract"
+    - "Every TaskLeaseClaim acknowledgement"
+    - "Every project plan resource section"
+    - "Every completion or blocker report"
+
+completion_gate:
+  required_report_fields:
+    - "preflight_python_process_count"
+    - "preflight_task_owned_process_count"
+    - "peak_task_owned_python_process_count"
+    - "peak_combined_project_python_process_count"
+    - "configured_worker_limits"
+    - "peak_cpu_percent"
+    - "peak_ram_gib"
+    - "spawned_pid_count"
+    - "cleaned_pid_count"
+    - "postflight_task_owned_process_count"
+    - "orphan_count"
+    - "persistent_services_remaining"
+    - "heavy_stage_mutex_usage"
+  hard_acceptance:
+    - "peak counts never exceed applicable caps"
+    - "postflight task-owned process count equals zero"
+    - "orphan count equals zero"
+    - "no unrelated process terminated"
+    - "desktop-responsiveness budget not knowingly violated"
+
+violation_response:
+  first_violation: "Stop launching workers, clean owned processes, publish RESOURCE_BUDGET_VIOLATION and return the task for repair."
+  repeated_or_uncontrolled_violation: "Freeze the branch and route a dedicated runtime/process-lifecycle remediation task before substantive work resumes."
+
+merge_authorized: false
+trade_authorized: false
+private_configuration_access_authorized: false
+published_at: "2026-08-07T08:37:00+08:00"
