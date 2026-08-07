@@ -1,5 +1,5 @@
-schema_version: "1.0"
-amendment_id: "QCLAW-E45-LOW-CREDIT-136-PHASE-A"
+schema_version: "1.1"
+amendment_id: "QCLAW-E45-136-CREDIT-PRE-E59-WORK-PACKAGE"
 status: "ACTIVE_BINDING_BEFORE_CLAIM"
 owner: "GPT"
 repository: "vxz2datoubo/second-brain-coordination"
@@ -11,53 +11,74 @@ reported_available_credits: 136
 reported_model: "DeepSeek V4 Pro"
 credit_meter_authority: "USER_REPORTED_ONLY"
 exact_credit_cost_predictability: "UNKNOWN_PROVIDER_SPECIFIC"
-reason: >-
-  136 remaining credits are not a safe budget for the full E45 semantic/evaluator/mutation/dual-Provider/receipt closure.
-  Preserve today's credits for the highest-value prerequisite work and stop before expensive evidence-generation stages.
+
+calibration:
+  user_observed_prior_start_credits: 100
+  user_observed_prior_end_credits_approx: 50
+  observed_prior_consumption_approx: 50
+  implication: >-
+    The previous estimate was too conservative. A 136-credit balance plausibly supports materially more than a light Phase A,
+    although task-to-task credit usage is nonlinear and cannot be predicted exactly.
+  no_fake_precision: true
 
 execution_scope_override:
-  mode: "LOW_CREDIT_PHASE_A_ONLY"
+  mode: "PRE_E59_MAXIMUM_USEFUL_WORK_WITH_RESERVE"
+  objective: >-
+    Complete as much of E45 as is independently valid before the E59 canonical verifier/source-span dependency, while preserving
+    a clean resumable checkpoint and avoiding waste on work that must be redone after E59.
   final_e45_completion_forbidden_this_claim: true
-  automatic_resume_into_phase_b_forbidden: true
-  phase_a_checkpoint_signal: "QCLAW_E45_LOW_CREDIT_PHASE_A_CHECKPOINT_READY_FOR_GPT_REVIEW"
-  allowed:
-    - "Create the required plan-only first commit, Draft PR and literal TaskLeaseClaim."
-    - "Perform the bounded P0 local-resource descendant self-audit/canary using at most two workers and no nested parallelism."
-    - "Publish exact E44-SOURCE-SELECTION.yaml provenance before any adaptation."
-    - "Define production-vs-ground-truth type separation and an explicit UNTRUSTED_TEST_DOUBLE consumer protocol."
-    - "Implement only the minimum semantic/evaluator scaffolding needed to make the next E45 phase cheaper and deterministic."
-    - "Run focused unit tests for Phase A, with at most two substantive local test passes after the initial canary."
-    - "Publish a concise checkpoint report listing completed files, tests, resource evidence, unresolved items and exact next phase."
-  forbidden_today:
-    - "Full mutation catalog execution."
-    - "GitHub Actions dual Provider evidence cycle."
-    - "Receipt-only commit or receipt Provider."
-    - "Independent download/verification of thirteen-artifact Provider sets."
-    - "Large corpus generation, broad repository research, broad web/paper research, backtesting or unrelated skill expansion."
-    - "Any attempt to consume E58 as accepted authority or to bypass the E59 final dependency."
-    - "Repeated refactor/test loops after Phase A acceptance criteria are met."
+  final_reason: "E59 is not yet GPT-accepted; final capability authority, tested/receipt Provider closure and completion remain dependency-gated."
+  automatic_crossing_of_e59_gate_forbidden: true
+  checkpoint_signal: "QCLAW_E45_PRE_E59_SUBSTANTIAL_CHECKPOINT_READY_FOR_GPT_REVIEW"
+
+allowed_and_expected:
+  - "Create the required plan-only first commit, Draft PR and literal TaskLeaseClaim."
+  - "Complete the bounded P0 descendant/process-lifecycle self-audit with at most two workers and no nested parallelism."
+  - "Publish exact E44-SOURCE-SELECTION.yaml provenance before adaptation."
+  - "Implement production-vs-ground-truth structural separation with executable tests."
+  - "Implement explicit UNTRUSTED_TEST_DOUBLE consumer protocol and ensure it cannot be promoted as authority."
+  - "Implement the semantic evidence/atom/master/cognition/skill candidate pipeline that does not depend on accepted E59 authority."
+  - "Implement verified-user-origin gating as an interface/contract consuming a future accepted Source/Span capability; use only untrusted fixtures locally."
+  - "Implement the semantic evaluator and issued evaluator/test receipt logic on the QCLAW side without duplicating Codex issuer/verifier authority."
+  - "Implement the real isolated mutation harness with restore-in-finally and named invariants."
+  - "Run the full focused pre-E59 local unit suite and as many genuine semantic mutations as can be completed cleanly under the resource budget; prefer completing the catalog if no unexpected repair loop appears."
+  - "Prepare the deterministic Provider workflow/artifact contract and static validation, but do not claim final Provider authority."
+  - "Publish a detailed checkpoint with exact files, tests, mutations, resource evidence, remaining E59-dependent items and next action."
+
+still_forbidden_or_deferred:
+  - "Treating E58 or any QCLAW-local object as accepted canonical verifier/source authority."
+  - "Final E59 interface integration before GPT accepts E59."
+  - "Final tested Provider evidence intended to support E45 completion."
+  - "Receipt-only commit, receipt Provider, final 13-artifact independent receipt verification or final E45 completion signal."
+  - "Large unrelated corpus expansion, broad web/paper research, backtesting or unrelated skill work."
+  - "Repeated speculative refactor loops after all pre-E59 acceptance tests are green."
 
 credit_conservation_policy:
-  objective: "Prefer a clean resumable checkpoint over exhausting the remaining credits."
-  planning_target: "Use materially less than the full 136-credit balance; preserve a safety reserve for reporting or unexpected repair."
-  historical_planning_reference: "Prior ~100-credit situations were treated as light finishing/validation/input-preparation work, not full strategic closure."
-  no_fake_precision: true
-  if_work_expands: "STOP_AND_REPORT_CHECKPOINT; do not self-expand scope."
+  objective: "Use the available balance productively, but do not force the balance toward zero."
+  preferred_reserve_if_balance_is_visible: 25
+  soft_stop_if_balance_is_visible: 30
+  rule_if_balance_is_not_visible: >-
+    Stop after the pre-E59 semantic/evaluator/mutation checkpoint rather than starting any optional expansion or final-evidence cycle.
+  unexpected_repair_rule: >-
+    If a defect creates a broad redesign or repeated repair loop, stop with a truthful checkpoint instead of consuming the reserve.
 
-phase_a_acceptance:
-  - "Plan-only first commit and Draft PR topology is valid."
-  - "TaskLeaseClaim contains resource annotation and low-credit amendment acknowledgement."
-  - "P0 descendant canary runs under the binding process cap and ends with zero owned descendants/orphans."
+pre_e59_acceptance:
+  - "Plan-only first commit and Draft PR topology valid."
+  - "TaskLeaseClaim acknowledges resource limits and this 136-credit amendment."
+  - "P0 descendant canary ends with zero owned descendants/orphans and no unrelated termination."
   - "E44 source selection uses exact commit/path/full blob SHA-1/content SHA-256."
-  - "UNTRUSTED_TEST_DOUBLE boundary is explicit; no local trusted authority claim."
-  - "Production input and ground-truth types are structurally separated in the scaffold or precisely specified with executable tests."
-  - "No Provider, receipt or final E45 completion signal is emitted."
+  - "UNTRUSTED_TEST_DOUBLE boundary is explicit and tested."
+  - "Production and ground truth are structurally separate."
+  - "User-origin gate cannot be satisfied by prose heuristic alone."
+  - "Semantic evaluator/master/cognition/skill pipeline is covered by focused tests without local capability self-certification."
+  - "Mutation harness performs exact mutation, named invariant failure, restore in finally and restored-green verification."
+  - "No final Provider/receipt/completion claim is emitted before E59 acceptance."
   - "Checkpoint signal is published and execution stops."
 
 next_phase_after_gpt_review:
-  name: "E45_PHASE_B"
-  scope: "real semantic evaluator/mutations/Provider preparation, then E59 integration after acceptance"
-  requires_new_user_read_command_or_gpt_route_update: true
+  name: "E45_POST_E59_INTEGRATION_AND_FINAL_EVIDENCE"
+  scope: "consume exact accepted E59 verifier/source-span interface, rerun full mutations, tested Provider, receipt-only child, receipt Provider and final independent evidence"
+  requires_gpt_route_update_after_e59_acceptance: true
 
 merge_authorized: false
 trade_authorized: false
