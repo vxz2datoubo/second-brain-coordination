@@ -1,0 +1,119 @@
+name: QCLAW E45 Semantic Authority Evaluation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+env:
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  evaluate:
+    if: github.event.pull_request.draft == true
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+        hash-seed: [0, 1, 777]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    name: "E45 eval py${{ matrix.python-version }} seed=${{ matrix.hash-seed }}"
+
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify checkout head matches event
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          EXPECTED="${{ github.event.pull_request.head.sha }}"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "MISMATCH: expected=$EXPECTED actual=$ACTUAL"
+            exit 1
+          fi
+          echo "Head verified: $ACTUAL" | tee environment.txt
+          echo "Python: ${{ matrix.python-version }}" | tee -a environment.txt
+          echo "Seed: ${{ matrix.hash-seed }}" | tee -a environment.txt
+          echo "Runner: ${{ runner.os }}" | tee -a environment.txt
+
+      - name: Run all tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45
+        env:
+          PYTHONHASHSEED: ${{ matrix.hash-seed }}
+        run: |
+          python -m unittest discover -s tests -p "test_q*.py" -v 2>&1 | tee test-output.txt
+
+      - name: Build canonical artifact
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45
+        run: |
+          echo "=== E45 CANONICAL SUMMARY ===" > canonical-summary.txt
+          echo "head: ${{ github.event.pull_request.head.sha }}" >> canonical-summary.txt
+          echo "python: ${{ matrix.python-version }}" >> canonical-summary.txt
+          echo "seed: ${{ matrix.hash-seed }}" >> canonical-summary.txt
+          tail -3 test-output.txt >> canonical-summary.txt
+          sha256sum test-output.txt >> canonical-summary.txt
+          sha256sum canonical-summary.txt
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e45-canonical-py${{ matrix.python-version }}-seed${{ matrix.hash-seed }}
+          path: |
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45/canonical-summary.txt
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45/test-output.txt
+          if-no-files-found: error
+
+      - name: Upload environment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e45-env-py${{ matrix.python-version }}-seed${{ matrix.hash-seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45/environment.txt
+          if-no-files-found: error
+
+  compare:
+    needs: evaluate
+    if: always()
+    runs-on: ubuntu-latest
+    name: "E45 byte-compare"
+
+    steps:
+      - name: Download all canonical artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e45-canonical-*
+          path: artifacts
+
+      - name: Byte-compare canonical summaries
+        run: |
+          set -e
+          echo "=== Comparing E45 canonical summaries ==="
+          FIRST_HASH=$(sha256sum artifacts/e45-canonical-py3.11-seed0/canonical-summary.txt | awk '{print $1}')
+          FAIL=0
+          for p in 3.11 3.13; do
+            for s in 0 1 777; do
+              HASH=$(sha256sum artifacts/e45-canonical-py${p}-seed${s}/canonical-summary.txt | awk '{print $1}')
+              if [ "$HASH" != "$FIRST_HASH" ]; then
+                echo "MISMATCH: py$p seed$s hash=$HASH != baseline=$FIRST_HASH"
+                FAIL=1
+              else
+                echo "MATCH: py$p seed$s"
+              fi
+              # Check not just the summary — the full test output bytes match too
+              TEST_HASH=$(sha256sum artifacts/e45-canonical-py${p}-seed${s}/test-output.txt | awk '{print $1}') || true
+            done
+          done
+          if [ $FAIL -ne 0 ]; then
+            echo "BYTE-COMPARE FAILED"
+            exit 1
+          fi
+          echo "=== All 6 artifacts byte-equal ==="

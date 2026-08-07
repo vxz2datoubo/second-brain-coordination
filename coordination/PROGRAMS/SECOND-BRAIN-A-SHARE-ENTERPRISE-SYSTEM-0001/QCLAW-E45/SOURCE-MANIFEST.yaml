@@ -1,0 +1,42 @@
+# E45 Source Manifest
+# Generated: 2026-08-07T06:50:00+08:00
+# Project: QCLAW-E45 verifier-only capability semantic authority closure
+schema_version: "1.0"
+project: "QCLAW-E45"
+commit_chain: "f3486a1a (plan) → f090d272 (Q0+SOURCE-SELECTION) → 94dd4d96 (Q1-Q5) → e8286c5b (Q6-Q7)"
+total_tests: 48
+python_versions: ["3.11.10", "3.13.3"]
+all_pass: true
+
+files:
+  - path: "src/qclaw_e45/__init__.py"
+    role: "package_init"
+  - path: "src/qclaw_e45/capability.py"
+    role: "Q1_verifier_only_capability"
+    note: "UNTRUSTED_TEST_DOUBLE until Codex E58 accepted"
+  - path: "src/qclaw_e45/authority.py"
+    role: "Q2_evidence_factory_registry"
+    note: "All fields derived from capability, not caller"
+  - path: "src/qclaw_e45/master_record.py"
+    role: "Q3_master_record_version_contradiction"
+  - path: "src/qclaw_e45/cognition.py"
+    role: "Q4_evidence_derived_cognition_memory"
+  - path: "src/qclaw_e45/skill_lifecycle.py"
+    role: "Q5_evidence_bound_skill_lifecycle"
+  - path: "src/qclaw_e45/corpus.py"
+    role: "Q6_separated_corpus_evaluator"
+    note: "Input and ground truth are different types"
+  - path: "src/qclaw_e45/mutations.py"
+    role: "Q7_copied_production_mutations"
+    note: "15 anchored mutations; subprocess execution left to CI"
+  - path: "tests/__init__.py"
+    role: "test_package_init"
+  - path: "tests/test_q1.py"
+    role: "Q1_capability_tests"
+    test_count: 12
+  - path: "tests/test_q2q5.py"
+    role: "Q2_Q5_authority_master_cognition_skill_tests"
+    test_count: 24
+  - path: "tests/test_q6q7.py"
+    role: "Q6_Q7_corpus_mutation_tests"
+    test_count: 12
