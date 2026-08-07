@@ -1,0 +1,50 @@
+schema_version: "e57-execution-contract-v1"
+task_id: "CODEX-E56-POST-RECEIPT-ORDINARY-CALLER-CAPABILITY-REGISTRY-SEMANTIC-RECORD-RAW-DECODED-DUAL-PROVIDER-ANCHOR-AND-RECEIPT-CLOSURE-0053-E57"
+route_epoch: 59
+issue: 190
+draft_pr: 191
+branch: "codex/e56-post-receipt-capability-authority-closure-0053-e57"
+base_sha: "437b0f7e1a78d868342a0a4b205e47ffb719aebb"
+completion_signal: "CODEX_E57_CAPABILITY_REGISTRY_SEMANTIC_RECORD_DUAL_PROVIDER_RECEIPT_AUTHORITY_READY_FOR_GPT_REVIEW"
+agent_id: "CODEX"
+status: "EXECUTION_IN_PROGRESS"
+boundary:
+  - "PUBLIC_SAFE_SYNTHETIC_ONLY"
+  - "NO_PRIVATE_CONFIG"
+  - "NO_TRADE"
+  - "NO_MERGE"
+authorized_write_prefixes:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E57/"
+  - ".github/workflows/codex-e57-capability-authority-closure.yml"
+frozen_inputs:
+  e56_reviewed_head: "e98102f2753086ede2471f6176ee6a761b0df431"
+  qclaw_e44: "READ_ONLY"
+execution_gates:
+  issuer_and_semantic:
+    status: "LOCAL_IMPLEMENTED_AND_TESTED"
+    claim_limit: "ordinary importer and direct-constructor attacks only; not arbitrary hostile code inside issuer process"
+  genuine_mutations:
+    status: "LOCAL_IMPLEMENTED_AND_TESTED"
+    required_catalog_count: 15
+  clean_archive_verification:
+    status: "LOCAL_IMPLEMENTED_AND_TESTED"
+  tested_head_provider:
+    status: "PENDING_FINAL_TESTED_HEAD"
+    requirement: "one complete exact-head run with seven successful jobs and thirteen downloaded artifacts"
+  receipt_head_provider:
+    status: "NOT_STARTED"
+    requirement: "a distinct complete exact-head run after the sole receipt-only child commit"
+  external_anchor:
+    status: "NOT_STARTED"
+    requirement: "literal PR and Issue publication after receipt Provider verification, with no later branch commit"
+finalization_order:
+  - "Finish all executable changes and create the final tested commit."
+  - "Run and independently collect tested-head Provider evidence."
+  - "Verify tested evidence from an exact clean archive."
+  - "Create exactly one nonempty receipt-only direct child using RECEIPT-ALLOWLIST.yaml."
+  - "Run and independently collect receipt-head Provider evidence."
+  - "Verify both evidence sets, exact topology, hygiene, and literal external anchor."
+  - "Do not create another commit."
+rollback:
+  before_receipt: "Freeze this Draft PR and route a fresh successor; do not amend, rebase, or force-push."
+  after_receipt: "Do not correct in place. Preserve the branch and route a successor from current canonical main."
