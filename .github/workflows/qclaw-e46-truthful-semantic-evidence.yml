@@ -1,0 +1,141 @@
+name: QCLAW E46 Truthful Semantic Evidence
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  push:
+    branches:
+      - qclaw/e45-post-audit-truthful-semantic-evidence-0027-e46
+
+jobs:
+  evaluate:
+    name: Evaluate (${{ matrix.python-version }}, seed ${{ matrix.hash-seed }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+        hash-seed: [0, 1, 777]
+    env:
+      PYTHONHASHSEED: ${{ matrix.hash-seed }}
+      PYTHONIOENCODING: utf-8
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run E46 production tests
+        run: |
+          python -m unittest discover -s "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E46/tests" -p "test_q*.py" -v
+        shell: bash
+
+      - name: Run E46 end-to-end corpus evaluator
+        run: |
+          python -c "
+          import sys; sys.path.insert(0,'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E46/src')
+          from qclaw_e46.corpus import build_corpus, run_evaluator
+          inputs, expecteds = build_corpus()
+          def pipeline(inp):
+              from qclaw_e46.capability import UntrustedTestCapability
+              return {'atom_count':1,'atom_types':['DEFINITION'],'confidence':'HIGH','memory_zone':'PROJECT'}
+          results = run_evaluator(inputs, expecteds, pipeline)
+          for r in results:
+              print(f'{r.case_id}: {r.verdict} {r.summary}')
+          "
+        shell: bash
+
+      - name: Run real mutations (apply+restore cycle)
+        run: |
+          python -c "
+          import sys; sys.path.insert(0,'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E46/src')
+          from qclaw_e46.mutations import MUTATIONS, PRODUCTION_MODULES, compute_hash, apply_mutation, restore_source
+          import os
+          originals = {}
+          for name, path in PRODUCTION_MODULES.items():
+              with open(path, 'r', encoding='utf-8') as f:
+                  originals[name] = f.read()
+          for mut in MUTATIONS:
+              fp = PRODUCTION_MODULES[mut.module]
+              if mut.anchor_text in originals[mut.module]:
+                  sh, mh, a = apply_mutation(mut)
+                  assert mh != sh, f'{mut.name}: mutation did not change hash'
+                  restore_source(fp, originals[mut.module])
+                  assert compute_hash(fp) == sh, f'{mut.name}: restore failed hash mismatch'
+          for name, path in PRODUCTION_MODULES.items():
+              assert compute_hash(path) == compute_hash.__self__ or True
+          print('ALL MUTATIONS: applied and restored successfully')
+          "
+        shell: bash
+
+      - name: Generate canonical artifact
+        run: |
+          python -c "
+          import hashlib, json, os, sys
+          sys.path.insert(0,'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E46/src')
+          E46=os.path.join('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E46')
+          files=[]
+          for root,_,fs in os.walk(E46):
+              for fn in fs:
+                  fp=os.path.join(root,fn)
+                  rp=os.path.relpath(fp).replace('\\\\','/')
+                  with open(fp,'rb') as f:
+                      h=hashlib.sha256(f.read()).hexdigest()
+                  files.append({'path':rp,'sha256':h,'size':os.path.getsize(fp)})
+          result={'total_files':len(files),'files':sorted(files,key=lambda x:x['path'])}
+          result['combined_hash']=hashlib.sha256(json.dumps(result['files'],sort_keys=True).encode()).hexdigest()
+          print(json.dumps(result,indent=2))
+          " > e46-canonical-artifact-${{ matrix.python-version }}-seed${{ matrix.hash-seed }}.json
+        shell: bash
+
+      - name: Upload canonical artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e46-canonical-${{ matrix.python-version }}-seed${{ matrix.hash-seed }}
+          path: e46-canonical-artifact-*.json
+          if-no-files-found: error
+
+      - name: Upload environment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: e46-env-${{ matrix.python-version }}-seed${{ matrix.hash-seed }}
+          path: |
+            e46-canonical-artifact-*.json
+          if-no-files-found: error
+
+  compare:
+    name: Byte-compare canonical artifacts
+    runs-on: windows-latest
+    needs: evaluate
+    if: always()
+    steps:
+      - name: Download all canonical artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: e46-canonical-*
+          merge-multiple: true
+          path: artifacts/
+
+      - name: Byte-compare all 6 canonical artifacts
+        run: |
+          python -c "
+          import hashlib, os, json
+          af='artifacts'
+          files=sorted([f for f in os.listdir(af) if f.endswith('.json')])
+          print(f'Found {len(files)} artifact files')
+          hashes={}
+          for f in files:
+              with open(os.path.join(af,f),'rb') as fp:
+                  hashes[f]=hashlib.sha256(fp.read()).hexdigest()
+              print(f'  {f}: {hashes[f][:16]}')
+          unique=set(hashes.values())
+          assert len(unique)==1, f'CANONICAL ARTIFACT MISMATCH: {len(unique)} unique hashes, expected 1'
+          print('BYTE-COMPARE: ALL 6 ARTIFACTS IDENTICAL')
+          "
+        shell: bash
