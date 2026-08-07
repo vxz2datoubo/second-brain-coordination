@@ -1,0 +1,23 @@
+schema_version: "e58-resource-baseline-v1"
+captured_at_utc: "2026-08-07T02:06:28.2772166Z"
+capture_method:
+  process: "Win32_Process filtered to python.exe/pythonw.exe; command lines retained only as SHA-256 digests"
+  memory: "Win32_OperatingSystem.FreePhysicalMemory"
+  cpu: "Win32_Processor.LoadPercentage after localized Get-Counter path was unavailable"
+observed:
+  python_process_count: 0
+  task_owned_python_process_count: 0
+  preexisting_project_or_unknown_python_process_count: 0
+  available_ram_gib: 24.736
+  cpu_percent_estimate: 2
+  process_records: []
+limits:
+  single_agent_python_process_hard_cap: 6
+  single_agent_cpu_bound_workers: 3
+  p0_canary_workers: 2
+  global_project_python_process_hard_cap: 8
+  heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+status: "BASELINE_CLEAR_FOR_BOUNDED_TWO_WORKER_CANARY"
+negative_findings:
+  - "English Get-Counter processor path is unavailable on this localized Windows installation; CIM fallback is used."
+  - "Historical 119-process PID tree was not retained, so historical root cause remains UNKNOWN."
