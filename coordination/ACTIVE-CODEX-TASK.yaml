@@ -1,4 +1,4 @@
-schema_version: "69.0"
+schema_version: "69.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 192
@@ -6,8 +6,8 @@ active_pull_request: null
 task_id: "CODEX-E57-POST-RECEIPT-SEMANTIC-EXECUTION-VERIFIER-CAPABILITY-RAW-JSONL-AND-DUAL-PROVIDER-CLOSURE-0054-E58"
 route_epoch: 60
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E58 语义执行回执、只验证能力与全源字节权威闭环"
-mode_reason: "E57 已形成真实双 Provider 与 receipt，但调用者仍可构造语义回执、冲突、关系和策略权威，需要干净继任进行跨层修复与重新认证。"
+mode_label: "【Codex模式：项目计划模式】E58 语义执行回执、只验证能力、全源字节与本机进程生命周期闭环"
+mode_reason: "E57 已形成真实双 Provider 与 receipt，但调用者仍可构造语义权威；同时发生过 119 个 Python 进程导致本机不可用，E58 必须先完成资源取证、限流和清理闭环。"
 status: "READY"
 execution_allowed: true
 automatic_dispatch_allowed: false
@@ -24,31 +24,67 @@ artificial_waiting_forbidden: true
 
 route_contract:
   path: "coordination/ROUTES/CODEX-E58-ACTIVE-ROUTE-CONTRACT.yaml"
-  publication_commit: "f413c3e73f0f141202f47686c0b98a25a1f8f512"
+  publication_commit: "94c82fc2639ec35b36dc2282114fbb5efbff0a25"
   status: "ACTIVE"
-  contains: [AMED_TASK_BRIEF, PMA_BIG_GRANT, PDER_RULES, WPDCR_CONTRACT, TASK_IMPACT_FORECAST, AUTHORIZED_PATHS, EXECUTION_CONTRACT]
+  contains: [AMED_TASK_BRIEF, PMA_BIG_GRANT, PDER_RULES, WPDCR_CONTRACT, TASK_IMPACT_FORECAST, AUTHORIZED_PATHS, EXECUTION_CONTRACT, LOCAL_RESOURCE_BUDGET, PROCESS_LIFECYCLE]
 
 task_brief:
-  fundamental_goal: "Eliminate caller-authored semantic authority and expose a real verifier-only capability with exact whole-source ownership and dual Provider receipt evidence."
+  fundamental_goal: "Eliminate caller-authored semantic authority, expose a real verifier-only capability, preserve exact whole-source ownership and guarantee bounded zero-orphan local execution."
   task_weight: "STRATEGIC"
   planned_difficulty: "D3_VERY_HARD"
   exploration_budget: "STRATEGIC"
   second_pass_audit_required: true
 
+local_resource_safety:
+  binding_protocol: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
+  protocol_commit: "e262be7436a4a7f08ac1c6e543076362890cff22"
+  incident_issue: 194
+  incident_record: "coordination/INCIDENTS/LOCAL-PYTHON-PROCESS-EXPLOSION-INCIDENT-0001.yaml"
+  p0_preflight_required: true
+  primary_root_cause_owner: true
+  annotation: "LOCAL RESOURCE SAFETY IS BINDING: cap local workers/processes, disable nested parallelism, clean owned process trees on every exit path, prove return to baseline, and never kill unrelated Python processes."
+  limits:
+    global_project_python_process_hard_cap: 8
+    single_agent_python_process_hard_cap: 6
+    single_agent_cpu_bound_workers: 3
+    dual_agent_python_process_hard_cap_per_agent: 4
+    dual_agent_cpu_bound_workers_per_agent: 2
+    heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+    local_mutation_and_provider_execution: "SEQUENTIAL_BY_DEFAULT"
+    combined_cpu_target_percent: 55
+    throttle_above_percent_for_15_seconds: 70
+    project_ram_target_gib: 8
+    project_ram_hard_cap_gib: 10
+    minimum_available_ram_gib: 8
+    windows_worker_priority: "BELOW_NORMAL"
+  required_preflight:
+    - "Record baseline PID/PPID/executable/command/create-time and classify ownership."
+    - "Reproduce only with at most two workers."
+    - "Test normal/error/timeout/cancel/Ctrl-C cleanup."
+    - "Verify zero task-owned Python descendants before heavy work."
+  required_postflight:
+    - "Postflight task-owned Python process count equals zero."
+    - "Orphan count equals zero."
+    - "No unrelated or unknown process was terminated."
+    - "Resource evidence and root cause are published to Issue #194."
+  violation_response: "Stop launching workers, clean only verified task-owned process trees, publish RESOURCE_BUDGET_VIOLATION and return for repair."
+
 task_impact_forecast:
-  classification: "STRATEGIC_INTERNAL_AUTHORITY"
+  classification: "STRATEGIC_INTERNAL_AUTHORITY_AND_LOCAL_RUNTIME_SAFETY"
   direct_scope:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/**"
     - ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
   downstream_scope:
     - "QCLAW E45 verifier-only capability consumption"
     - "Future evidence, memory and skill authority gates"
+    - "All future local task responsiveness"
   principal_risks:
     - "Caller-created evaluator receipts or local issuer substitution"
     - "False conflict/relation/redaction semantics"
     - "Incomplete JSONL/Unicode ownership"
     - "Provider-green evidence without attack coverage"
-  rollback: "No merge; freeze and route a clean successor from exact latest main after any receipt defect."
+    - "Nested process fan-out or orphan accumulation"
+  rollback: "Stop and clean owned processes; no merge; freeze and route a clean successor after any authority or resource-lifecycle defect."
 
 authorized_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/**"
@@ -63,6 +99,7 @@ protocol_bindings:
   PDER: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
   RTCE: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
   LEASE: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  LOCAL_RESOURCE: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
 
 source_e57:
   issue: 190
@@ -97,25 +134,27 @@ blocking_corrections:
   - "Expose a distinct verifier-only canonical capability; local sessions/issuer IDs cannot become authority."
   - "Preserve complete JSONL bytes/global offsets and deterministic isolated-surrogate behavior."
   - "Add genuine mutations for every real bypass and rerun separate tested/receipt Provider evidence."
+  - "Diagnose and prevent local Python process explosion and orphan persistence."
 
 proactive_mission_assignment:
-  AMED_A: "Implement safe E58-local tests, validators, fixtures and deterministic tooling."
+  AMED_A: "Implement safe E58-local tests, validators, fixtures, deterministic tooling, process instrumentation, resource leases and cleanup guards."
   AMED_B: "Implement tested backward-compatible E58 internal improvements."
   AMED_C: "Proposal only for deployed service/process architecture or cross-agent authority migration."
   AMED_D: "Stop for private configuration, credentials, accounts, market data, trading, destructive or permission changes."
   mandatory_discovery_questions:
+    - "Which task owned each Python process during the 119-process event?"
+    - "Was the growth concurrent fan-out or accumulated old processes?"
+    - "Can every descendant be cleaned on all exit paths?"
     - "Can a consumer construct or substitute an evaluator receipt without execution?"
-    - "What proves semantic opposition?"
-    - "What proves relation relevance without caller labels?"
-    - "Can a locally created issuer/verifier be mistaken for canonical?"
-    - "Does every JSONL byte have one global owner?"
-    - "How are isolated surrogates classified?"
-    - "Which findings require protocol/interface feedback?"
+    - "What proves semantic opposition and relation relevance?"
+    - "Can a local issuer/verifier be mistaken for canonical?"
+    - "Does every JSONL byte have one global owner and how are isolated surrogates classified?"
 
 dependencies:
   - {id: "E57_FROZEN", status: "SATISFIED", evidence: "PR #191 frozen at 603768e08e27cf554f9a5ee231b13d51a563abe1"}
   - {id: "E57_FORMAL_REVIEW", status: "SATISFIED", evidence: "e9622893e1feb681c1d54a9f9df1edbedc517792"}
   - {id: "QCLAW_E45_BOUNDARY", status: "SATISFIED", evidence: "Issue #193 separate read-only consumer boundary"}
+  - {id: "LOCAL_PROCESS_INCIDENT", status: "P0_REQUIRED", evidence: "Issue #194"}
 
 provider_contract:
   workflow: ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
@@ -125,13 +164,15 @@ provider_contract:
   expected_artifacts_per_run: 13
   tested_and_receipt_evidence_sets_separate: true
   independent_downloaded_archive_and_inner_byte_binding: true
+  local_rule: "Local matrix/mutations run sequentially or at most two bounded jobs; six-way parallelism is remote GitHub Actions only."
 
 parallel_boundary:
   active_qclaw_e45:
     issue: 193
     role: "VERIFIER_ONLY_CAPABILITY_CONSUMER_SEMANTIC_EVIDENCE_MASTER_COGNITION_SKILL_EVALUATOR"
     modification_by_codex_forbidden: true
-  overlap_rule: "E58 owns issuer/verifier, generic execution receipts, format ownership, Provider and receipt. Publish BOUNDARY_CONFLICT instead of editing QCLAW E45."
+  overlap_rule: "E58 owns issuer/verifier, generic execution receipts, format ownership, Provider, receipt and primary process-root-cause work. Publish BOUNDARY_CONFLICT instead of editing QCLAW E45."
+  local_heavy_stage_rule: "Only one agent may hold SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK."
 
 hard_boundaries:
   - "Synthetic/public-safe fixtures only."
@@ -139,9 +180,12 @@ hard_boundaries:
   - "No credentials, accounts, positions, funds, market data, orders or trading."
   - "No merge, direct main implementation write, rebase, force-push, amend, history rewrite or repository-setting change."
   - "No E57/predecessor or QCLAW active/frozen branch mutation."
+  - "Never globally kill Python or terminate by executable name alone."
 
 stop_conditions:
   - "Status no longer READY or exact task/epoch/Issue/branch fields change."
+  - "Applicable process/worker/CPU/RAM hard cap is exceeded."
+  - "Any task-owned orphan remains after the cleanup grace period."
   - "Required work needs an unauthorized path or QCLAW implementation edit."
   - "Truthful closure requires C/D architecture or user decision."
   - "Canonical remote identity cannot be verified."
@@ -150,9 +194,9 @@ command_execution_contract:
   on_trigger: "READ_CLAIM_AND_EXECUTE_CURRENT_E58_ROUTE"
   user_command: "读取任务"
   second_start_command_required: false
-  minimum_progress_before_return: "Create one-file plan-only first commit, Draft PR, TaskLeaseClaim and continue to E57 source selection."
+  minimum_progress_before_return: "Create one-file plan-only first commit, Draft PR and TaskLeaseClaim with resource annotation; capture the resource baseline and begin the safe P0 investigation before heavy execution."
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-07T07:23:00+08:00"
-boundary: "E58_READY / E57_AND_PREDECESSORS_FROZEN / QCLAW_E45_PARALLEL / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
+updated_at: "2026-08-07T08:37:00+08:00"
+boundary: "E58_READY_WITH_P0_LOCAL_RESOURCE_GUARD / E57_AND_PREDECESSORS_FROZEN / QCLAW_E45_PARALLEL_MUTEX / NO_MERGE / NO_PRIVATE_CONFIG / NO_TRADE"
