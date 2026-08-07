@@ -91,6 +91,22 @@ def catalog_digest() -> str:
     return sha256(repr(payload).encode("utf-8")).hexdigest()
 
 
+def _select_unique_byte_mutation(before: bytes, spec: MutationSpec) -> tuple[bytes, bytes]:
+    """Select one exact LF or CRLF spelling without weakening uniqueness."""
+
+    utf8_original = spec.original.encode("utf-8")
+    utf8_replacement = spec.replacement.encode("utf-8")
+    raw_candidates = (
+        (utf8_original, utf8_replacement),
+        (utf8_original.replace(b"\n", b"\r\n"), utf8_replacement.replace(b"\n", b"\r\n")),
+    )
+    candidates = tuple(dict.fromkeys(raw_candidates))
+    matches = [(original, replacement) for original, replacement in candidates if before.count(original) == 1]
+    if len(matches) != 1:
+        raise RuntimeError(f"MUTATION_TARGET_NOT_UNIQUE:{spec.mutation_id}:{len(matches)}")
+    return matches[0]
+
+
 def run_mutation(spec: MutationSpec) -> dict[str, object]:
     """Run one real source mutation in a disposable copy and restore in finally."""
 
@@ -104,10 +120,11 @@ def run_mutation(spec: MutationSpec) -> dict[str, object]:
         target = root / spec.target
         before = target.read_bytes()
         before_hash = sha256(before).hexdigest()
-        count = before.count(spec.original.encode("utf-8"))
-        if count != 1:
-            raise RuntimeError(f"MUTATION_TARGET_NOT_UNIQUE:{spec.mutation_id}:{count}")
-        mutated = before.replace(spec.original.encode("utf-8"), spec.replacement.encode("utf-8"), 1)
+        # GitHub Windows checkout can preserve CRLF while the mutation catalogue
+        # is intentionally LF-normalized. Pick exactly one byte-level spelling;
+        # accepting either spelling never relaxes the unique-target invariant.
+        original, replacement = _select_unique_byte_mutation(before, spec)
+        mutated = before.replace(original, replacement, 1)
         restored_hash = "NOT_RUN"
         completed = False
         try:

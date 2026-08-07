@@ -20,7 +20,7 @@ An externally deployed authority service is valuable but needs a separate C-leve
 
 ## UNRESOLVED_HARD_PROBLEMS_AND_UNKNOWNS
 
-Historical attribution for the 119-process event is unrecoverable from present files. Job Object assignment is not claimed. Provider matrix evidence remains pending.
+Historical attribution for the 119-process event is unrecoverable from present files. Job Object assignment is not claimed. The first Provider matrix exposed a real CRLF-sensitive mutation-target bug in all six jobs; the precise failure was `MUTATION_TARGET_NOT_UNIQUE:E59-M02:0`. A compatibility repair and dedicated regression tests are now ready for a replacement matrix. Provider acceptance remains pending.
 
 ## PROBLEMS_FAILURES_AND_NEGATIVE_RESULTS
 
@@ -28,7 +28,7 @@ Two initial P0 executions timed out due to monitoring overhead. One first author
 
 ## COORDINATION_REQUESTS
 
-No new input is required until the tested commit and Provider runs exist. GPT must independently review the eventual provider artifacts and completion receipt.
+No new input is required until the corrected tested commit and replacement Provider runs exist. GPT must independently review the eventual provider artifacts and completion receipt.
 
 ## CROSS_AGENT_HANDOFF_AND_SYSTEM_IMPACT
 
