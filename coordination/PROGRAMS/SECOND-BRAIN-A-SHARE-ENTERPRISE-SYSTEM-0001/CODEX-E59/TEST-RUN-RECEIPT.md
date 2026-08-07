@@ -18,4 +18,8 @@ Thread controls were set to one for OpenMP, MKL, OpenBLAS, NumExpr, and tokenize
 
 The first public Provider run on `77696d2a4f234f7b23d3dc61e4c1a28dc9dcde35` failed in all six matrix jobs before mutation execution because a multiline mutation catalogue spelling only matched LF while the Windows checkout preserved CRLF. The mutation engine now selects exactly one byte-level LF or CRLF spelling and fails closed for zero, multiple, or mixed dual matches. It has dedicated regression coverage for CRLF, mixed spelling ambiguity, and single-line candidate deduplication. `CODEX-E59/.gitattributes` pins future E59 text checkout to LF without weakening the CRLF capability test.
 
-This receipt is local evidence only. The required replacement remote Provider matrix is still pending and cannot be replaced by this interpreter run.
+The local evidence above does not replace remote authority. The required replacement remote Provider matrix is completed below; the later receipt-head Provider remains pending.
+
+## Tested Provider Result
+
+The replacement Provider run [`31175251886`](https://github.com/vxz2datoubo/second-brain-coordination/actions/runs/31175251886) ran against tested head `b73866db1f58bf585219700f3c5bdbd3a1657318` and passed all 7 jobs: Python 3.11/3.13 times seeds `0`, `1`, and `777`, plus an independent canonical-file compare job. It produced 13 artifacts. The downloaded six canonical inner manifests are byte-identical with SHA-256 `4bf119f7eba16eff1b27f4adba9f2ea675841c0682631f9fc5f94cb4d0e2f00f`. Exact job, artifact and downloaded-log hashes are recorded in `TESTED-PROVIDER-EVIDENCE.yaml`.
