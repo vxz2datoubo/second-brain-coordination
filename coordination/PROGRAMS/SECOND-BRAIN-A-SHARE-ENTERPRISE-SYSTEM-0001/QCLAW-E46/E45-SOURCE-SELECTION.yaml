@@ -1,0 +1,63 @@
+# E45-SOURCE-SELECTION.yaml
+source_commit: "8726164523ae899a731c2342db19ccfaac250c9f"
+source_tree: "16d16a9f808e"
+source_receipt_head: "9e3649b0f6c8d76eaab8c44ee44b9937f0c209a7"
+disposition: ALL_REWRITE_OR_REDESIGN
+reason: "E45 Provider BOTH_FAILED; capability/user-origin/authority/mutation gaps per GPT review 2751db04"
+
+files:
+  - path: "src/qclaw_e45/capability.py"
+    blob_sha1: "8a9207ea4e16"
+    content_sha256: "5b1b5a680f2bfdfc18526278b097551d8742de1f82d1ba41f9b7afed54599ad4"
+    size: 3989
+    disposition: REWRITE
+    reason: "UNTRUSTED_TEST_DOUBLE pattern kept; must add structural anti-forgery"
+
+  - path: "src/qclaw_e45/authority.py"
+    blob_sha1: "5bac3be75d8d"
+    content_sha256: "755b1486b3e69803dac7373aff8e7dc0d6a2b5c90d2c2d026ece10ce664c224b"
+    size: 7655
+    disposition: REWRITE
+    reason: "Caller-constructible records/bundles; registry bypass paths"
+
+  - path: "src/qclaw_e45/master_record.py"
+    blob_sha1: "3608b3438398"
+    content_sha256: "f528e45a3cab4023314da1f539e24d76c3ecc29d8a7e4e342d01f2fb69e19e79"
+    size: 5836
+    disposition: REWRITE
+    reason: "Tautological content hash check; caller evidenceless transitions"
+
+  - path: "src/qclaw_e45/cognition.py"
+    blob_sha1: "5c68185366da"
+    content_sha256: "1850d49633df9e5e40ee2400628cc771eee6411772b95a74f56fd16743dffa7d"
+    size: 3025
+    disposition: REWRITE
+    reason: "Prose name heuristics for user-origin; caller booleans"
+
+  - path: "src/qclaw_e45/skill_lifecycle.py"
+    blob_sha1: "d59ddf3dc7a3"
+    content_sha256: "ef218b3efd82a5f4ecad96699a436dbfd46bcfef85ede7a11cb13e878392e586"
+    size: 4232
+    disposition: REWRITE
+    reason: "Caller-constructible TestReceipt authority"
+
+  - path: "src/qclaw_e45/corpus.py"
+    blob_sha1: "b58b083b0709"
+    content_sha256: "95d6563321ca979bc7c80d4ac2347203c13b49e9e2249e26b3ef247ed4e8200f"
+    size: 5808
+    disposition: REWRITE
+    reason: "Ground truth proximity to production; evaluator gaps"
+
+  - path: "src/qclaw_e45/mutations.py"
+    blob_sha1: "8d47f2984b48"
+    content_sha256: "7d52cdcde55296aa5fe077da88522854cfce6d847de14def41a8927189941e7d"
+    size: 7233
+    disposition: REWRITE
+    reason: "No real isolation/restoration/finally; anchor-only subprocesses"
+
+  - path: "src/qclaw_e45/__init__.py"
+    blob_sha1: "032f14e18c99"
+    content_sha256: "2f58bd91e63d68861ba7858fe79db04b42d85d90e48de758c26cc27740bd6bc9"
+    size: 98
+    disposition: ADAPT
+    reason: "Rename to qclaw_e46; update version"
