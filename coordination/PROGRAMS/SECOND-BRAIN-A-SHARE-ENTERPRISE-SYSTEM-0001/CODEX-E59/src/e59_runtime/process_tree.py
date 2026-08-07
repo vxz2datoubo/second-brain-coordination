@@ -57,7 +57,7 @@ def _digest_command(command: Sequence[str]) -> str:
 
 
 def _windows_snapshot(pids: set[int] | None = None) -> dict[int, ProcessIdentity]:
-    """Return a minimum, redaction-safe process snapshot using CIM on Windows.
+    """Return a minimum, redaction-safe ToolHelp process snapshot on Windows.
 
     Non-Windows test environments return an empty snapshot. The command line is
     hashed immediately and is never exposed by this runtime's reports.
@@ -119,17 +119,22 @@ def _windows_snapshot(pids: set[int] | None = None) -> dict[int, ProcessIdentity
             pid = int(entry.th32ProcessID)
             if pids is None or pid in pids:
                 creation_time = f"UNAVAILABLE:{pid}"
-                process_handle = kernel32.OpenProcess(0x1000, False, pid)
-                if process_handle:
-                    try:
-                        created = wintypes.FILETIME()
-                        exited = wintypes.FILETIME()
-                        kernel_time = wintypes.FILETIME()
-                        user_time = wintypes.FILETIME()
-                        if kernel32.GetProcessTimes(process_handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel_time), ctypes.byref(user_time)):
-                            creation_time = str((int(created.dwHighDateTime) << 32) | int(created.dwLowDateTime))
-                    finally:
-                        kernel32.CloseHandle(process_handle)
+                # Full scans are used only to learn a parent-child topology.
+                # Querying times for every desktop process made discovery slow
+                # enough to hide short-lived roots. Identity-sensitive callers
+                # pass an explicit PID set and receive creation times below.
+                if pids is not None:
+                    process_handle = kernel32.OpenProcess(0x1000, False, pid)
+                    if process_handle:
+                        try:
+                            created = wintypes.FILETIME()
+                            exited = wintypes.FILETIME()
+                            kernel_time = wintypes.FILETIME()
+                            user_time = wintypes.FILETIME()
+                            if kernel32.GetProcessTimes(process_handle, ctypes.byref(created), ctypes.byref(exited), ctypes.byref(kernel_time), ctypes.byref(user_time)):
+                                creation_time = str((int(created.dwHighDateTime) << 32) | int(created.dwLowDateTime))
+                        finally:
+                            kernel32.CloseHandle(process_handle)
                 snapshot[pid] = ProcessIdentity(
                     pid=pid,
                     ppid=int(entry.th32ParentProcessID),
@@ -154,37 +159,56 @@ def resource_snapshot() -> dict[str, object]:
     available_ram_gib: float | None = None
     cpu_percent: float | None = None
     if os.name == "nt":
-        os_data = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                "Get-CimInstance Win32_OperatingSystem | Select FreePhysicalMemory | ConvertTo-Json -Compress",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False,
-        )
-        cpu_data = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                "(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False,
-        )
-        if os_data.returncode == 0:
-            free_kib = float(json.loads(os_data.stdout).get("FreePhysicalMemory", 0))
-            available_ram_gib = round(free_kib / 1024 / 1024, 2)
-        if cpu_data.returncode == 0 and cpu_data.stdout.strip():
-            cpu_percent = float(cpu_data.stdout.strip())
+        import ctypes
+        from ctypes import wintypes
+
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", wintypes.DWORD),
+                ("dwMemoryLoad", wintypes.DWORD),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        def filetime_value(value: wintypes.FILETIME) -> int:
+            return (int(value.dwHighDateTime) << 32) | int(value.dwLowDateTime)
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.GlobalMemoryStatusEx.argtypes = [ctypes.POINTER(MEMORYSTATUSEX)]
+        kernel32.GlobalMemoryStatusEx.restype = wintypes.BOOL
+        memory = MEMORYSTATUSEX()
+        memory.dwLength = ctypes.sizeof(memory)
+        if kernel32.GlobalMemoryStatusEx(ctypes.byref(memory)):
+            available_ram_gib = round(int(memory.ullAvailPhys) / 1024 / 1024 / 1024, 2)
+
+        kernel32.GetSystemTimes.argtypes = [
+            ctypes.POINTER(wintypes.FILETIME),
+            ctypes.POINTER(wintypes.FILETIME),
+            ctypes.POINTER(wintypes.FILETIME),
+        ]
+        kernel32.GetSystemTimes.restype = wintypes.BOOL
+
+        def system_times() -> tuple[int, int] | None:
+            idle = wintypes.FILETIME()
+            kernel = wintypes.FILETIME()
+            user = wintypes.FILETIME()
+            if not kernel32.GetSystemTimes(ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)):
+                return None
+            return filetime_value(idle), filetime_value(kernel) + filetime_value(user)
+
+        before = system_times()
+        time.sleep(0.05)
+        after = system_times()
+        if before is not None and after is not None:
+            idle_delta = after[0] - before[0]
+            total_delta = after[1] - before[1]
+            if total_delta > 0:
+                cpu_percent = round(max(0.0, min(100.0, 100.0 * (total_delta - idle_delta) / total_delta)), 2)
     return {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "python_process_count": python_count,
@@ -213,37 +237,60 @@ class ResourceGate:
         max_shared_processes: int = 8,
         max_task_cpu_workers: int = 3,
         max_shared_cpu_workers: int = 4,
+        mutex_wait_seconds: float = 30.0,
+        cpu_throttle_percent: float = 70.0,
+        cpu_throttle_sustain_seconds: float = 15.0,
     ) -> None:
         self.task_id = task_id
         self.max_task_processes = max_task_processes
         self.max_shared_processes = max_shared_processes
         self.max_task_cpu_workers = max_task_cpu_workers
         self.max_shared_cpu_workers = max_shared_cpu_workers
+        self.mutex_wait_seconds = mutex_wait_seconds
+        self.cpu_throttle_percent = cpu_throttle_percent
+        self.cpu_throttle_sustain_seconds = cpu_throttle_sustain_seconds
         self._held = False
+        self._owner_pid: int | None = None
+        self._cpu_above_threshold_since: float | None = None
         self._last_snapshot: dict[str, object] | None = None
         self._sampled_at = 0.0
 
     def acquire(self) -> None:
         self._ROOT.mkdir(parents=True, exist_ok=True)
-        try:
-            self._LOCK.mkdir()
-        except FileExistsError as exc:
-            raise ResourceViolation("HEAVY_STAGE_MUTEX_UNAVAILABLE") from exc
+        deadline = time.monotonic() + self.mutex_wait_seconds
+        while True:
+            try:
+                self._LOCK.mkdir()
+                break
+            except FileExistsError as exc:
+                if time.monotonic() >= deadline:
+                    raise ResourceViolation("HEAVY_STAGE_MUTEX_UNAVAILABLE") from exc
+                # A valid external holder is never removed or bypassed. Waiting
+                # is bounded so a stale/unknown lock still fails closed.
+                time.sleep(0.05)
         self._held = True
-        snapshot = self._environment_snapshot(force=True)
-        self._write_state(
-            {
-                "task_id": self.task_id,
-                "owner_pid": os.getpid(),
-                "owned_processes": 0,
-                "cpu_workers": 0,
-                "snapshot": snapshot,
-            }
-        )
+        self._owner_pid = os.getpid()
+        try:
+            snapshot = self._environment_snapshot(force=True)
+            self._write_state(
+                {
+                    "task_id": self.task_id,
+                    "owner_pid": self._owner_pid,
+                    "owned_processes": 0,
+                    "cpu_workers": 0,
+                    "snapshot": snapshot,
+                }
+            )
+        except BaseException:
+            self.release()
+            raise
 
     def _environment_snapshot(self, *, force: bool = False) -> dict[str, object]:
         now = time.monotonic()
-        if force or self._last_snapshot is None or now - self._sampled_at >= 15:
+        # Native sampling is bounded and avoids PowerShell/CIM startup. Refresh
+        # often enough to distinguish a sustained overload from one transient
+        # desktop spike, as required by the shared resource protocol.
+        if force or self._last_snapshot is None or now - self._sampled_at >= 1:
             self._last_snapshot = resource_snapshot()
             self._sampled_at = now
         return self._last_snapshot
@@ -305,18 +352,25 @@ class ResourceGate:
         cpu = snapshot["cpu_percent"]
         if available is not None and available < 8:
             raise ResourceViolation("AVAILABLE_RAM_BELOW_8_GIB")
-        if cpu is not None and cpu > 70:
-            raise ResourceViolation("CPU_THROTTLE_REQUIRED")
+        if cpu is not None and cpu > self.cpu_throttle_percent:
+            if self._cpu_above_threshold_since is None:
+                self._cpu_above_threshold_since = time.monotonic()
+            if time.monotonic() - self._cpu_above_threshold_since >= self.cpu_throttle_sustain_seconds:
+                raise ResourceViolation("CPU_THROTTLE_REQUIRED")
+        else:
+            self._cpu_above_threshold_since = None
         if owned_processes > self.max_task_processes or owned_processes > self.max_shared_processes:
             raise ResourceViolation("PROCESS_CAP_EXCEEDED")
         if cpu_workers > self.max_task_cpu_workers or cpu_workers > self.max_shared_cpu_workers:
             raise ResourceViolation("CPU_WORKER_CAP_EXCEEDED")
         self._write_state(
-            {
-                "task_id": self.task_id,
-                "owned_processes": owned_processes,
-                "cpu_workers": cpu_workers,
-                "snapshot": snapshot,
+                {
+                    "task_id": self.task_id,
+                    "owner_pid": self._owner_pid,
+                    "owned_processes": owned_processes,
+                    "cpu_workers": cpu_workers,
+                    "cpu_above_threshold_since_monotonic": self._cpu_above_threshold_since,
+                    "snapshot": snapshot,
             }
         )
 
@@ -335,6 +389,7 @@ class ResourceGate:
                 raise ProcessLifecycleError("HEAVY_STAGE_LOCK_RELEASE_FAILED")
         finally:
             self._held = False
+            self._owner_pid = None
 
     def __enter__(self) -> "ResourceGate":
         self.acquire()
@@ -393,7 +448,7 @@ class OwnedProcessTree:
             env=env,
         )
         time.sleep(0.05)
-        snapshot = _windows_snapshot()
+        snapshot = _windows_snapshot({process.pid})
         item = snapshot.get(process.pid)
         if item is None:
             process.kill()
@@ -426,13 +481,18 @@ class OwnedProcessTree:
             for item in snapshot.values():
                 if item.pid in owned_pids or item.ppid not in owned_pids:
                     continue
+                # Re-read only the candidate PID so its creation time is
+                # trustworthy before it becomes an owned descendant.
+                identified = _windows_snapshot({item.pid}).get(item.pid)
+                if identified is None or identified.ppid != item.ppid:
+                    continue
                 parent = self._owned[item.ppid]
                 descendant = ProcessIdentity(
-                    pid=item.pid,
-                    ppid=item.ppid,
-                    creation_time=item.creation_time,
-                    executable=item.executable,
-                    command_digest=item.command_digest,
+                    pid=identified.pid,
+                    ppid=identified.ppid,
+                    creation_time=identified.creation_time,
+                    executable=identified.executable,
+                    command_digest=identified.command_digest,
                     root_pid=parent.root_pid,
                     discovered_from="OBSERVED_DESCENDANT",
                 )
@@ -481,7 +541,13 @@ class OwnedProcessTree:
             command = ["taskkill", "/PID", str(owned.pid), "/T"]
             if force:
                 command.append("/F")
-            subprocess.run(command, capture_output=True, text=True, timeout=5, check=False)
+            try:
+                subprocess.run(command, capture_output=True, text=True, timeout=5, check=False)
+            except subprocess.TimeoutExpired:
+                # The process identity remains in the current cleanup batch. A
+                # single slow taskkill request must not abandon verified roots,
+                # descendants, descriptor cleanup, or the later force pass.
+                self._record("termination_request_timeout", owned.pid, "force" if force else "soft")
         else:
             os.kill(owned.pid, 9 if force else 15)
 
@@ -501,24 +567,34 @@ class OwnedProcessTree:
         remaining = [item for item in live if self._identity_is_live(item, after_soft)]
         for owned in remaining:
             self._request_termination(owned, force=True)
-        if remaining:
-            time.sleep(0.2)
+        deadline = time.monotonic() + 2.0
         final = _windows_snapshot({item.pid for item in live})
+        while remaining and time.monotonic() < deadline:
+            time.sleep(0.1)
+            final = _windows_snapshot({item.pid for item in live})
+            remaining = [item for item in live if self._identity_is_live(item, final)]
         failed = [item.pid for item in live if self._identity_is_live(item, final)]
-        if failed:
-            for pid in failed:
-                self._record("cleanup_failed", pid, reason)
-            raise ProcessLifecycleError(f"OWNED_PROCESS_CLEANUP_FAILED:{','.join(map(str, failed))}")
+        reap_failure: ProcessLifecycleError | None = None
         for process in self._roots.values():
             try:
                 process.wait(timeout=1)
-            except subprocess.TimeoutExpired as exc:
-                raise ProcessLifecycleError(f"ROOT_REAP_TIMEOUT:{process.pid}") from exc
+            except subprocess.TimeoutExpired:
+                process.kill()
+                try:
+                    process.wait(timeout=1)
+                except subprocess.TimeoutExpired as exc:
+                    reap_failure = ProcessLifecycleError(f"ROOT_REAP_TIMEOUT:{process.pid}")
             finally:
                 if process.stdout is not None:
                     process.stdout.close()
                 if process.stderr is not None:
                     process.stderr.close()
+        if failed:
+            for pid in failed:
+                self._record("cleanup_failed", pid, reason)
+            raise ProcessLifecycleError(f"OWNED_PROCESS_CLEANUP_FAILED:{','.join(map(str, failed))}")
+        if reap_failure is not None:
+            raise reap_failure
         for owned in targets:
             self.cleaned_pids.add(owned.pid)
             self._record("cleanup", owned.pid, reason)

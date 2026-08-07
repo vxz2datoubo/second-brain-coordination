@@ -1,9 +1,9 @@
-# E59 Final Implementation Report Pending Receipt Provider
+# E59 Interim Report: Remediation Provider Pending
 
 `agent_id: CODEX`
 `task_id: CODEX-E58-POST-RECEIPT-CANONICAL-VERIFIER-SOURCE-BOUND-EVIDENCE-RELATION-ONTOLOGY-DESCENDANT-PROCESS-TREE-AND-P0-CLOSURE-0055-E59`
 `route_epoch: 61`
-`status: TESTED_PROVIDER_COMPLETE_RECEIPT_PROVIDER_PENDING`
+`status: REMEDIATION_LOCAL_COMPLETE_TESTED_PROVIDER_PENDING`
 `boundary: PUBLIC_SAFE_SYNTHETIC_ONLY / QCLAW_E45_READ_ONLY / NO_PRIVATE_CONFIG / NO_TRADE / NO_MERGE`
 
 ## Commit Topology
@@ -13,8 +13,9 @@
 | Claim plan | `6045a0f9b417d645af46051f98728f76e392fdd3` | `75371943bd4e5d977ef89c200c8863795e90b276` | `af743ef75b4dd0daaa67814d269807cda684af63` | Exactly `PROJECT-PLAN.md` |
 | Initial implementation | `77696d2a4f234f7b23d3dc61e4c1a28dc9dcde35` | `6045a0f9b417d645af46051f98728f76e392fdd3` | `3ad1bf674b79b2ee29eb412d18311af6ae02ffb5` | E59 allowlist plus task workflow |
 | Corrected tested head | `b73866db1f58bf585219700f3c5bdbd3a1657318` | `77696d2a4f234f7b23d3dc61e4c1a28dc9dcde35` | `c627d502804e6bb1302c26d95c9c0363670d79f3` | E59-only CRLF mutation repair, tests, evidence and text normalization |
+| Provisional receipt | `3ff135b6918bc0d539f68f879eb40f139dec2984` | `b73866db1f58bf585219700f3c5bdbd3a1657318` | `4998d213f084ee133fe8dee049c266f54fb1be07` | Retained evidence-only receipt; its Provider run failed under legitimate shared-mutex contention |
 
-The first Provider run failed before mutation execution on all matrix jobs. Its exact error, affected head, cause and repair are preserved in `TESTED-PROVIDER-EVIDENCE.yaml` and `RESEARCH-LEDGER.md`. The corrected tested head is the only head asserted to have complete Provider success.
+The first Provider run failed before mutation execution on all matrix jobs. Its exact error, affected head, cause and repair are preserved in `TESTED-PROVIDER-EVIDENCE.yaml` and `RESEARCH-LEDGER.md`. The historical corrected tested head is the only head currently asserted to have complete Provider success. It does not cover the pending remediation.
 
 ## Delivered Behavior
 
@@ -25,9 +26,9 @@ The first Provider run failed before mutation execution on all matrix jobs. Its 
 5. The P0 suite executes seven bounded scenarios, including live grandchildren, root-first exit, timeout, exception, Ctrl-C, repeated launch and heavy-mutex contention. It records zero postflight owned descendants, zero orphans and zero unrelated terminations for each completed scenario.
 6. Nine temporary-source mutations are run against disposable copies and restored in `finally`; all are killed by named tests.
 
-## Tests And Provider Evidence
+## Local Tests And Historical Provider Evidence
 
-Local exact commands, exit status and hashes are in `TEST-RUN-RECEIPT.md`. The latest local suite passed 41 focused tests with `ResourceWarning` promoted to error. The corrected Provider run `31175251886` passed 7 jobs: Python 3.11 and 3.13 across seeds `0`, `1`, and `777`, plus a six-artifact byte comparison. It emitted 13 artifacts. Downloaded canonical inner manifests are byte-identical: `4bf119f7eba16eff1b27f4adba9f2ea675841c0682631f9fc5f94cb4d0e2f00f`.
+Local exact commands, exit status and hashes are in `TEST-RUN-RECEIPT.md`. The latest local suite passed 48 focused tests with `ResourceWarning` promoted to error; the P0 seven-scenario canary and all nine temporary-source mutations passed after remediation. The corrected historical Provider run `31175251886` passed 7 jobs: Python 3.11 and 3.13 across seeds `0`, `1`, and `777`, plus a six-artifact byte comparison. It emitted 13 artifacts. Downloaded canonical inner manifests are byte-identical: `4bf119f7eba16eff1b27f4adba9f2ea675841c0682631f9fc5f94cb4d0e2f00f`.
 
 Full job identifiers, artifact identifiers, GitHub artifact digests and downloaded log SHA-256 values are in `TESTED-PROVIDER-EVIDENCE.yaml`. The outer artifact ZIP digest can differ across runs due archive metadata; the inner canonical source manifest is the asserted byte-stable object.
 
@@ -49,4 +50,4 @@ Use normal additive Git history only: revert the eventual receipt-only child fir
 
 ## Remaining Gate
 
-This file belongs to the pending receipt-only child. That child must be a direct child of `b73866d...`, contain no runtime implementation or workflow change, receive a distinct seven-job/13-artifact Provider run, then have its literal SHA externally anchored on Issue #197 and Draft PR #198. Until then the completion signal remains unissued.
+The provisional receipt `3ff135b...` is retained because its Provider run failed; it is not an accepted final receipt. The remediation is append-only and must first receive a fresh seven-job/13-artifact tested Provider run. Only then may a new final receipt-only direct child be created, followed by its distinct Provider run and a literal SHA anchor on Issue #197 and Draft PR #198. Until then the completion signal remains unissued.

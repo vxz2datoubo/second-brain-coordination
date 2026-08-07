@@ -189,27 +189,35 @@ class _SyntheticAuthorityHarness:
         self.issuer: _SemanticIssuer | None = None
 
     def start(self) -> "_SyntheticAuthorityHarness":
-        self._gate.acquire()
-        environment = dict(os.environ)
-        environment["E59_AUTHORITY_SESSION_TOKEN"] = self._token
-        environment["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
-        command = [sys.executable, "-m", "e59_runtime.authority_host", "--ready-file", str(self._ready_file)]
-        self._tree.spawn(command, purpose="canonical-authority-host", env=environment)
-        deadline = time.monotonic() + 5
-        while time.monotonic() < deadline:
-            if self._ready_file.exists():
-                self.descriptor = _descriptor(json.loads(self._ready_file.read_text(encoding="utf-8")))
-                self.anchor = AuthorityAnchor(
-                    authority_id=self.descriptor.authority_id,
-                    descriptor_digest=self.descriptor.descriptor_digest,
-                    protocol_version=self.descriptor.protocol_version,
-                )
-                self.verifier = CanonicalVerifier(self.descriptor, self.anchor, self._token, _factory_marker=_FACTORY_MARKER)
-                self.issuer = _SemanticIssuer(self.verifier)
-                return self
-            time.sleep(0.02)
-        self.close()
-        raise AuthorityError("CANONICAL_AUTHORITY_START_TIMEOUT")
+        try:
+            self._gate.acquire()
+            environment = dict(os.environ)
+            environment["E59_AUTHORITY_SESSION_TOKEN"] = self._token
+            environment["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
+            command = [sys.executable, "-m", "e59_runtime.authority_host", "--ready-file", str(self._ready_file)]
+            self._tree.spawn(command, purpose="canonical-authority-host", env=environment)
+            # This is a bounded local synthetic-host handshake, not an
+            # availability claim about a production provider. Windows process
+            # startup can exceed five seconds on a busy desktop; retain a
+            # finite fail-closed deadline while allowing the owned child to
+            # initialize and write its ready descriptor.
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                if self._ready_file.exists():
+                    self.descriptor = _descriptor(json.loads(self._ready_file.read_text(encoding="utf-8")))
+                    self.anchor = AuthorityAnchor(
+                        authority_id=self.descriptor.authority_id,
+                        descriptor_digest=self.descriptor.descriptor_digest,
+                        protocol_version=self.descriptor.protocol_version,
+                    )
+                    self.verifier = CanonicalVerifier(self.descriptor, self.anchor, self._token, _factory_marker=_FACTORY_MARKER)
+                    self.issuer = _SemanticIssuer(self.verifier)
+                    return self
+                time.sleep(0.02)
+            raise AuthorityError("CANONICAL_AUTHORITY_START_TIMEOUT")
+        except BaseException:
+            self.close()
+            raise
 
     def close(self) -> None:
         try:

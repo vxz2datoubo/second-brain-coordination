@@ -20,7 +20,7 @@ def _run_case(gate: ResourceGate, name: str, *, root_exit_first: bool, cleanup: 
         try:
             with tree:
                 root = tree.spawn(descendant_root_program(grandchildren=2, root_exit_first=root_exit_first), purpose=name)
-                tree.wait_for_descendants(root, minimum=2, timeout_seconds=3)
+                tree.wait_for_descendants(root, minimum=2, timeout_seconds=8)
                 if cleanup == "exception":
                     raise RuntimeError("E59_CONTROLLED_EXCEPTION")
                 raise KeyboardInterrupt("E59_CONTROLLED_CTRL_C")
@@ -30,7 +30,7 @@ def _run_case(gate: ResourceGate, name: str, *, root_exit_first: bool, cleanup: 
             return report
     with tree:
         root = tree.spawn(descendant_root_program(grandchildren=2, root_exit_first=root_exit_first), purpose=name)
-        tree.wait_for_descendants(root, minimum=2, timeout_seconds=3)
+        tree.wait_for_descendants(root, minimum=2, timeout_seconds=8)
         if cleanup == "root_exit":
             tree.wait(root, timeout_seconds=3)
         elif cleanup == "timeout":
@@ -46,7 +46,10 @@ def _run_case(gate: ResourceGate, name: str, *, root_exit_first: bool, cleanup: 
 
 
 def _mutex_contention_case() -> dict[str, object]:
-    contender = ResourceGate("E59-P0-duplicate-daemon-contender")
+    # The outer P0 run already owns the shared gate. A duplicate daemon is a
+    # deterministic contention check, so it must reject immediately rather
+    # than consume the bounded external-holder wait budget.
+    contender = ResourceGate("E59-P0-duplicate-daemon-contender", mutex_wait_seconds=0)
     try:
         contender.acquire()
     except ResourceViolation as exc:

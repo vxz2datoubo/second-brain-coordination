@@ -4,6 +4,7 @@ from dataclasses import replace
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 
 TASK_ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +18,20 @@ from e59_runtime.authority_client import _SyntheticAuthorityHarness  # noqa: E40
 class CanonicalAuthorityBoundaryTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.harness = _SyntheticAuthorityHarness().start()
+        # The semantic boundary suite is not a resource-pressure test. P0
+        # exercises the real gate separately; pinning this fixture prevents a
+        # busy desktop from turning an authority-contract regression into an
+        # unrelated CPU-throttle result.
+        cls._resource_patch = patch(
+            "e59_runtime.process_tree.resource_snapshot",
+            return_value={"available_ram_gib": 16.0, "cpu_percent": 5.0, "python_process_count": 1},
+        )
+        cls._resource_patch.start()
+        try:
+            cls.harness = _SyntheticAuthorityHarness().start()
+        except BaseException:
+            cls._resource_patch.stop()
+            raise
         assert cls.harness.issuer is not None
         assert cls.harness.verifier is not None
         cls.issuer = cls.harness.issuer
@@ -25,7 +39,10 @@ class CanonicalAuthorityBoundaryTests(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        cls.harness.close()
+        try:
+            cls.harness.close()
+        finally:
+            cls._resource_patch.stop()
 
     @staticmethod
     def proposition(*, polarity: str = "AFFIRM", subject: str = "issuer-A", object_value: str = "fact-X") -> Proposition:
@@ -131,15 +148,24 @@ class CanonicalAuthorityBoundaryTests(unittest.TestCase):
 
 class AuthorityLifecycleTests(unittest.TestCase):
     def test_test_authority_host_is_reaped_by_owned_tree(self) -> None:
-        harness = _SyntheticAuthorityHarness().start()
-        try:
-            assert harness.verifier is not None
-            self.assertTrue(harness.verifier._request("describe")["ok"])
-        finally:
-            harness.close()
+        with patch("e59_runtime.process_tree.resource_snapshot", return_value={"available_ram_gib": 16.0, "cpu_percent": 5.0, "python_process_count": 1}):
+            harness = _SyntheticAuthorityHarness().start()
+            try:
+                assert harness.verifier is not None
+                self.assertTrue(harness.verifier._request("describe")["ok"])
+            finally:
+                harness.close()
         report = harness._tree.report()
         self.assertEqual(report["postflight_task_owned_process_count"], 0)
         self.assertEqual(report["orphan_count"], 0)
+
+    def test_failed_authority_start_releases_its_gate(self) -> None:
+        with patch("e59_runtime.process_tree.resource_snapshot", return_value={"available_ram_gib": 16.0, "cpu_percent": 5.0, "python_process_count": 1}):
+            harness = _SyntheticAuthorityHarness()
+            with patch.object(harness._tree, "spawn", side_effect=RuntimeError("spawn failure")):
+                with self.assertRaisesRegex(RuntimeError, "spawn failure"):
+                    harness.start()
+            self.assertFalse(harness._gate._held)
 
 
 if __name__ == "__main__":
