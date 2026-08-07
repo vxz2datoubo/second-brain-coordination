@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 contract_id: "QCLAW-E45-ACTIVE-ROUTE-CONTRACT-0026"
 status: "ACTIVE"
 owner: "GPT"
@@ -8,10 +8,10 @@ active_issue: 193
 task_id: "QCLAW-E44-POST-AUDIT-VERIFIER-ONLY-CAPABILITY-USER-ORIGIN-SEMANTIC-EVALUATOR-REAL-MUTATION-AND-DUAL-PROVIDER-CLOSURE-0026-E45"
 route_epoch: 45
 mode: "project_plan"
-mode_reason: "The predecessor has invalid lease, caller-controlled capability/evidence authority, ground-truth leakage, nonfunctional mutations, failed Provider CI and an unresolved local Python process explosion risk."
+mode_reason: "E44 was invalid and E58 has now been independently rejected as final canonical verifier/resource authority; E45 may proceed only with untrusted semantic scaffolding until E59 is accepted."
 planned_branch: "qclaw/e44-post-audit-semantic-authority-closure-0026-e45"
 completion_signal: "QCLAW_E45_VERIFIER_ONLY_CAPABILITY_USER_ORIGIN_REAL_EVALUATOR_MUTATION_DUAL_PROVIDER_READY_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE_SYNTHETIC_ONLY / E58_VERIFIER_CONSUMER / LOCAL_RESOURCE_GUARDED / NO_PRIVATE_CONFIG / NO_TRADE / NO_MERGE"
+boundary: "PUBLIC_SAFE_SYNTHETIC_ONLY / E59_FINAL_INTERFACE_DEPENDENCY / LOCAL_RESOURCE_GUARDED / NO_PRIVATE_CONFIG / NO_TRADE / NO_MERGE"
 
 protocol_bindings:
   AMED: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
@@ -23,42 +23,52 @@ protocol_bindings:
   LOCAL_RESOURCE: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
 
 mission_intent: >-
-  Rebuild the semantic layer as a strict consumer of an accepted verifier-only capability, with verified user-message origin,
-  non-tautological production/corpus separation, real mutations and dual Provider evidence, while independently auditing QCLAW's
-  own process spawning and ensuring it cannot repeat the 119-Python-process incident.
+  Rebuild semantic evidence, master/cognition/memory candidates, skills, evaluator, mutations and Provider as a strict consumer of a
+  future GPT-accepted E59 canonical verifier/source-span interface. Until that dependency is accepted, all local capability adapters
+  are explicitly untrusted protocol test doubles and cannot create formal authority.
 fundamental_goal: >-
-  No local QCLAW object or prose heuristic can manufacture semantic authority, and no QCLAW task may exceed the local resource
-  budget, leave task-owned Python descendants alive or collide with Codex during a heavy local stage.
+  No QCLAW-local verifier, prose heuristic, caller key/registry, expected-answer object or process leak can create accepted semantic
+  or memory authority, and QCLAW remains within the user's local resource budget.
 
 source_e44:
   issue: 187
   pull_request: 189
   frozen_head: "846861da346039dd12c2e58fb5fc16d045a4d0c3"
-  workflow_run: 31130562655
   formal_review: "coordination/ENGINEERING-LEARNING/REVIEWS/QCLAW-E44-INDEPENDENT-AUDIT-RETURN-TO-E45.yaml"
   formal_review_commit: "710231a7718526f3fe48da8aa22d4030104cb451"
   source_branch_write_forbidden: true
   whole_branch_merge_or_cherry_pick_forbidden: true
-  exact_commit_path_blob_content_selection_only: true
+
+rejected_e58_dependency:
+  issue: 192
+  pull_request: 196
+  frozen_head: "4d92747098ab18f03c7379b2fa82c5f33251f82c"
+  formal_review: "coordination/ENGINEERING-LEARNING/REVIEWS/CODEX-E58-INDEPENDENT-AUDIT-RETURN-TO-E59.yaml"
+  formal_review_commit: "66d69a7ee4e9089faeb99f54623a5052a4be0736"
+  rule: "E58 may be studied as untrusted candidate material only; it is not accepted verifier/source authority."
+
+required_e59_dependency:
+  issue: 197
+  task_id: "CODEX-E58-POST-RECEIPT-CANONICAL-VERIFIER-SOURCE-BOUND-EVIDENCE-RELATION-ONTOLOGY-DESCENDANT-PROCESS-TREE-AND-P0-CLOSURE-0055-E59"
+  status: "PARALLEL_SCAFFOLDING_ALLOWED_FINAL_GATE_PENDING"
+  final_completion_requires: "GPT_ACCEPTED_E59_CANONICAL_VERIFIER_SOURCE_SPAN_INTERFACE_AND_P0_RESOURCE_CLOSURE"
 
 mandatory_p0_local_resource_self_audit:
   incident_issue: 194
-  incident_record: "coordination/INCIDENTS/LOCAL-PYTHON-PROCESS-EXPLOSION-INCIDENT-0001.yaml"
-  protocol_commit: "e262be7436a4a7f08ac1c6e543076362890cff22"
-  primary_root_cause_owner: "CODEX_E58"
+  protocol: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
   qclaw_role: "INDEPENDENT_SELF_AUDIT_AND_RUNTIME_EVIDENCE_CONTRIBUTOR"
   required_before_heavy_local_execution: true
   required_actions:
-    - "Capture QCLAW baseline Python PID/PPID/command/create-time ownership before any local test, mutation or provider work."
-    - "Instrument every QCLAW-spawned subprocess and classify whether QCLAW contributed to nested fan-out, leaked pools, orphans or duplicate daemons."
-    - "Use the shared heavy-stage mutex; do not run local heavy mutation/provider stages while Codex holds it."
-    - "Exercise QCLAW success, error, timeout, cancellation and Ctrl-C cleanup with a two-worker canary."
-    - "Publish self-audit evidence to Issue #194 and prove return to baseline with zero task-owned orphans."
+    - "Capture QCLAW baseline PID/PPID/executable/command/create-time and process-tree ownership."
+    - "Instrument every spawned process and descendant; do not rely on direct-child count only."
+    - "Run bounded descendant canaries for normal/error/timeout/cancel/Ctrl-C and root-exits-first behavior."
+    - "Use SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK; never overlap a local heavy stage with Codex."
+    - "Publish evidence to Issue #194 and prove zero QCLAW-owned descendants/orphans."
   local_limits:
-    global_project_python_process_hard_cap: 8
-    single_agent_python_process_hard_cap: 6
+    global_project_python_process_hard_cap_including_descendants: 8
+    single_agent_python_process_hard_cap_including_descendants: 6
     single_agent_cpu_bound_workers: 3
-    dual_agent_python_process_hard_cap_per_agent: 4
+    dual_agent_python_process_hard_cap_per_agent_including_descendants: 4
     dual_agent_cpu_bound_workers_per_agent: 2
     heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
     local_mutation_and_provider_default: "SEQUENTIAL"
@@ -69,28 +79,20 @@ mandatory_p0_local_resource_self_audit:
     project_ram_target_gib: 8
     project_ram_hard_cap_gib: 10
     minimum_available_ram_gib: 8
-  completion_gate:
-    - "No applicable process or worker cap exceeded."
-    - "Postflight QCLAW-owned Python process count is zero."
-    - "QCLAW orphan count is zero."
-    - "No unrelated or unknown Python process was terminated."
-    - "QCLAW evidence is published to Issue #194."
-  required_lease_annotation: "LOCAL RESOURCE SAFETY IS BINDING: cap local workers/processes, disable nested parallelism, use the shared heavy-stage mutex, clean owned process trees on every exit path, prove return to baseline, and never kill unrelated Python processes."
 
 primary_delivery_and_non_negotiables:
   - "Fresh branch from latest canonical main; first commit exactly one QCLAW-E45/PROJECT-PLAN.md path."
-  - "The plan and TaskLeaseClaim contain the binding local resource annotation and explicit limits."
-  - "Literal TaskLeaseClaim and one Draft PR before adaptation."
-  - "Complete the QCLAW P0 self-audit/canary before any heavy local test or mutation stage."
+  - "Literal TaskLeaseClaim and one Draft PR before adaptation, with resource annotation."
+  - "Complete QCLAW P0 descendant self-audit before heavy local execution."
   - "E44-SOURCE-SELECTION.yaml with exact source commit, full blob SHA-1 and content SHA-256 before reuse."
-  - "Consume a verifier-only E58 capability; local test double remains UNTRUSTED_TEST_DOUBLE and cannot be promoted."
-  - "No locally constructible trusted verifier, caller HMAC key, mutable registry or partial signature."
-  - "Verified user-message origin required for KNOWN_AND_STATED and personal/GLOBAL memory candidates."
-  - "Production input and ground truth are separate types and objects."
-  - "Master, contradiction and skill transitions require issued evaluator/test receipts."
-  - "Real isolated mutations with named invariants, nonzero mutant, exact restore and restored-green evidence."
-  - "Deterministic semantic canonical output separated from environment/mutation evidence."
-  - "Complete tested and receipt Provider evidence and literal external anchor after E58 interface acceptance."
+  - "Use only an explicit UNTRUSTED_TEST_DOUBLE capability adapter until E59 is accepted."
+  - "After E59 acceptance, consume the exact accepted verifier/source-span interface without copying/reimplementing its authority."
+  - "Verified user-message origin is required for KNOWN_AND_STATED and personal/GLOBAL memory candidates."
+  - "Production input and ground truth are different types and objects; no expected data reaches production."
+  - "Master/conflict/skill transitions require independently issued evaluator/test receipts."
+  - "Real isolated mutations with exact named invariants, restore in finally and restored-green evidence."
+  - "Deterministic semantic canonical output separated from environment/resource/mutation evidence."
+  - "Final tested/receipt Provider evidence only after exact E59 interface acceptance and P0 closure."
 
 authorized_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-E45/**"
@@ -99,65 +101,33 @@ first_commit_exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-
 all_other_paths: "READ_ONLY"
 
 proactive_mission_assignment:
-  AMED_A: "Implement safe E45-local semantic tests, corpus separation, mutation harness, deterministic Provider tooling, process instrumentation and cleanup guards."
-  AMED_B: "Implement tested backward-compatible internal improvements inside E45."
-  AMED_C: "Proposal only for E58 interface migration, canonical memory/skill promotion or new cross-agent authority."
+  AMED_A: "Implement E45-local semantic/corpus/evaluator/mutation/resource tests and tooling."
+  AMED_B: "Implement tested backward-compatible E45 internal improvements."
+  AMED_C: "Proposal only for E59 interface migration or formal memory/skill promotion."
   AMED_D: "Stop for private configuration, credentials, accounts, market data, trading, destructive or permission changes."
-  mandatory_discovery_questions:
-    - "Which QCLAW task and parent process produced each local Python child?"
-    - "Did QCLAW accumulate processes after normal, failed or cancelled runs?"
-    - "Can QCLAW prove zero owned descendants after every exit path?"
-    - "Can any locally created object be mistaken for an accepted E58 capability?"
-    - "Can prose or caller source_id create user-origin authority?"
-    - "Are every evidence, bundle, atom, master and skill field recomputed from accepted inputs?"
-    - "Does production receive any object containing expected outcomes or should_fail labels?"
-    - "Does each mutation alter the named production invariant rather than merely create a syntax error?"
-    - "Are canonical, environment and mutation artifacts separated and deterministic?"
-
-task_impact_forecast:
-  classification: "STRATEGIC_SEMANTIC_AUTHORITY_AND_LOCAL_RUNTIME_SAFETY"
-  direct_scope: ["QCLAW-E45 task root", "one E45 workflow", "QCLAW task-local process lifecycle tooling"]
-  downstream_scope: ["knowledge atoms", "cognition and memory write candidates", "skill lifecycle candidates", "all future QCLAW local task responsiveness"]
-  principal_risks: ["self-certified capability", "false user origin", "tautological evaluator", "fake mutation execution", "Provider artifact drift", "local process explosion", "orphan accumulation"]
-  rollback: "Stop workers, clean only owned process trees, do not merge and freeze the Draft PR after any authority or resource-lifecycle defect."
-
-dependencies:
-  - {id: "E44_FROZEN", status: "SATISFIED", evidence: "PR #189 frozen at 846861da346039dd12c2e58fb5fc16d045a4d0c3"}
-  - {id: "E44_FORMAL_REVIEW", status: "SATISFIED", evidence: "710231a7718526f3fe48da8aa22d4030104cb451"}
-  - id: "E58_VERIFIER_INTERFACE"
-    status: "PARTIAL_PARALLEL_ALLOWED_FINAL_GATE_PENDING"
-    evidence: "Codex Issue #192"
-    rule: "Semantic engine/evaluator/mutation/Provider scaffolding may proceed with an untrusted protocol test double; final capability authority, receipt and completion signal require GPT-accepted E58 interface."
-  - {id: "LOCAL_PROCESS_INCIDENT", status: "P0_SELF_AUDIT_REQUIRED", evidence: "Issue #194 and binding resource protocol"}
 
 provider_contract:
   workflow: ".github/workflows/qclaw-e45-semantic-authority-evaluation.yml"
   python_versions: ["3.11", "3.13"]
   hash_seeds: ["0", "1", "777"]
   expected_total_jobs_per_run: 7
-  artifact_contract: "Six deterministic semantic canonical + six separated environment/mutation evidence + one compare = thirteen artifacts."
+  expected_artifacts_per_run: 13
   tested_and_receipt_sets_separate: true
   independent_downloaded_archive_and_inner_byte_binding: true
-  local_execution_rule: "Do not run six local matrix jobs concurrently; local verification is sequential or at most two bounded jobs. Full matrix parallelism belongs to remote GitHub Actions."
-
-work_process_reporting:
-  required: true
-  moments: [LEASE_CLAIM, RESOURCE_PREFLIGHT, FIRST_SUBSTANTIVE_ACTION, MATERIAL_CHECKPOINT, RESOURCE_THROTTLE_OR_VIOLATION, BLOCKER_OR_ESCALATION, RESOURCE_POSTFLIGHT, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
-  resource_fields_required: ["preflight_python_process_count", "peak_task_owned_python_process_count", "peak_combined_project_python_process_count", "configured_worker_limits", "peak_cpu_percent", "peak_ram_gib", "spawned_pid_count", "cleaned_pid_count", "postflight_task_owned_process_count", "orphan_count", "persistent_services_remaining", "heavy_stage_mutex_usage"]
+  local_execution_rule: "sequential or at most two bounded jobs; full six-way matrix is remote-only"
 
 stop_conditions:
   - "Route ceases to be READY or task/epoch/Issue/branch changes."
-  - "Applicable local process, worker, CPU or RAM hard cap is exceeded."
-  - "Any QCLAW-owned orphan remains after the grace period."
-  - "Required work needs an unauthorized path or Codex implementation edit."
-  - "A final capability claim is attempted before GPT accepts the exact E58 verifier-only interface."
+  - "Any process/worker/CPU/RAM hard cap is exceeded or any owned descendant remains."
+  - "Required work needs unauthorized path or Codex implementation edit."
+  - "A final capability/receipt/completion claim is attempted before GPT accepts E59 and closes P0."
   - "Canonical remote identity cannot be verified."
 
 read_claim_execute_semantics:
   trigger: "读取任务"
   action: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
   second_user_start_command_required: false
-  minimum_progress_before_return: "Create the strict plan-only commit, Draft PR and TaskLeaseClaim with resource annotation; then capture QCLAW resource baseline and complete a safe self-audit canary before source adaptation."
+  minimum_progress_before_return: "Create plan-only commit, Draft PR and TaskLeaseClaim; complete bounded descendant self-audit before source adaptation."
 
 merge_authorized: false
 direct_main_implementation_write: false
