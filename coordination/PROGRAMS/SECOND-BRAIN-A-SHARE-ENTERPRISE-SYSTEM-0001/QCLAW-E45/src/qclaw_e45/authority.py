@@ -1,17 +1,15 @@
-"""E45 Q2 — Evidence Registry and Factory
+"""E45 Q2 — Authority: evidence/records/bundles/atoms factory-issued, registry-verified
 
-Fields derived from VerifiedEvidenceCapabilityView + policy.
-No caller-supplied HMAC keys, mutable registries, or partial signatures.
+All fields derived from verifier-only capability. Caller cannot set enums, confidence, or bypass registry.
 """
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 import hashlib
-import uuid
+import time
 
 from qclaw_e45.capability import (
-    VerifiedEvidenceCapabilityView, EvidenceOrigin,
-    VerificationState, ConfidenceBand, UNTRUSTED_TEST_DOUBLE,
+    VerifiedEvidenceCapabilityView, EvidenceOrigin, VerificationState, ConfidenceBand,
 )
 
 
@@ -21,64 +19,64 @@ class AtomType(Enum):
     MECHANISM = "mechanism"
     CAUSAL_CHAIN = "causal_chain"
     CONDITION = "condition"
+    COUNTEREXAMPLE = "counterexample"
     INDICATOR = "indicator"
+    DATA_SOURCE = "data_source"
+    SCOPE = "scope"
     FAILURE_CONDITION = "failure_condition"
+    VERIFICATION_METHOD = "verification_method"
+    EXECUTABLE_ACTION = "executable_action"
+    CLAIM = "claim"
 
+
+# ----- Evidence Record (immutable, factory-issued) -----
 
 @dataclass(frozen=True)
 class EvidenceRecord:
-    """Immutable record derived from capability + policy."""
+    """Immutable record created by EvidenceFactory only."""
     record_id: str
-    source_identity: str
+    decoded_text: str
     origin: EvidenceOrigin
     verification_state: VerificationState
     confidence: ConfidenceBand
-    evidence_digest: str
-    raw_span: tuple
-    decoded_text: str
-    issuer_id: str
-    policy_version: str
+    source_identity: str
+    evidence_layer: str
+    scope: str
+    issuer: str
+    policy_version: str = "1.0"
 
-    def __post_init__(self):
-        # Confidence must match origin + verification
-        if self.origin == EvidenceOrigin.HYPOTHESIS:
-            object.__setattr__(self, "confidence", ConfidenceBand.LOW)
 
+# ----- Evidence Bundle -----
 
 @dataclass(frozen=True)
 class EvidenceBundle:
-    """Ordered collection of records with deterministic identity."""
     bundle_id: str
-    records: tuple  # (EvidenceRecord, ...)
+    records: tuple  # Tuple[EvidenceRecord, ...]
     verification_state: VerificationState
-    derived_origin: EvidenceOrigin
     derived_confidence: ConfidenceBand
+    derived_origin: EvidenceOrigin
+    issuer: str
+    policy_version: str = "1.0"
 
-    @property
-    def record_count(self) -> int:
-        return len(self.records)
 
+# ----- Atom -----
 
 @dataclass(frozen=True)
 class Atom:
-    """Knowledge atom issued by factory — no caller-constructible verified atoms."""
     atom_id: str
     atom_type: AtomType
     bundle_id: str
     content: str
-    verification_hash: str
+    source_identity: str
+    issuer: str
+    provenance: str = "derived"
+    policy_version: str = "1.0"
 
-    def __eq__(self, other):
-        if not isinstance(other, Atom):
-            return False
-        return self.atom_id == other.atom_id
 
-    def __hash__(self):
-        return hash(self.atom_id)
-
+# ----- Registry (private insertion, identity-bound) -----
 
 class EvidenceRegistry:
-    """Private registry. Callers cannot insert directly."""
+    """Private registry. Inserts from factory only."""
     def __init__(self):
         self._records: Dict[str, EvidenceRecord] = {}
         self._bundles: Dict[str, EvidenceBundle] = {}
@@ -102,113 +100,103 @@ class EvidenceRegistry:
     def has_record(self, record_id: str) -> bool:
         return record_id in self._records
 
-    def get_record(self, record_id: str) -> Optional[EvidenceRecord]:
-        return self._records.get(record_id)
+    def has_bundle(self, bundle_id: str) -> bool:
+        return bundle_id in self._bundles
 
-    def get_atom(self, atom_id: str) -> Optional[Atom]:
-        return self._atoms.get(atom_id)
 
+# ----- EvidenceFactory (sole authority) -----
 
 class EvidenceFactory:
-    """Sole evidence producer. Factory issues records/bundles/atoms.
-    
-    Every field is recomputed from the capability + policy.
-    The factory does not expose signing keys or accept caller HMAC.
-    """
+    """Sole authority for creating records, bundles, and atoms."""
 
     def __init__(self, registry: EvidenceRegistry):
         self._registry = registry
         self._factory_id = hashlib.sha256(b"e45_evidence_factory").hexdigest()[:12]
         self._bundle_counter = 0
 
-    def create_record(self, cap: VerifiedEvidenceCapabilityView,
-                     layer: str = "general") -> EvidenceRecord:
-        # Derive confidence from origin + verification
-        if cap.origin in (EvidenceOrigin.HYPOTHESIS, EvidenceOrigin.VALUE_JUDGMENT):
-            confidence = ConfidenceBand.LOW
-        elif cap.is_verified():
-            confidence = ConfidenceBand.HIGH
-        else:
-            confidence = ConfidenceBand.MEDIUM
-
+    def create_record(self, cap: VerifiedEvidenceCapabilityView) -> EvidenceRecord:
+        """Create record from capability. All fields derived from cap, not caller."""
+        text = cap.decoded_text
         record_id = hashlib.sha256(
-            f"{cap.source_identity}:{cap.raw_span}:{cap.evidence_digest}".encode()
+            f"{cap.source_identity}:{cap.raw_span[0]}:{cap.raw_span[1]}:{text[:128]}:{time.time()}".encode()
         ).hexdigest()[:32]
+
+        # Derive confidence from origin + verification
+        if cap.origin == EvidenceOrigin.USER_EXPLICIT_MESSAGE:
+            confidence = ConfidenceBand.HIGH if cap.is_verified() else ConfidenceBand.MEDIUM
+        elif cap.origin == EvidenceOrigin.SOURCE_DOCUMENT:
+            confidence = ConfidenceBand.HIGH if cap.is_verified() else ConfidenceBand.MEDIUM
+        elif cap.origin == EvidenceOrigin.AUTHOR_CLAIM:
+            confidence = ConfidenceBand.MEDIUM
+        elif cap.origin in (EvidenceOrigin.HYPOTHESIS, EvidenceOrigin.VALUE_JUDGMENT):
+            confidence = ConfidenceBand.LOW
+        else:
+            confidence = ConfidenceBand.LOW
+
+        layer = "direct_evidence" if cap.is_verified() else "unverified"
+        scope = "explicit" if cap.origin == EvidenceOrigin.USER_EXPLICIT_MESSAGE else "derived"
 
         rec = EvidenceRecord(
             record_id=record_id,
-            source_identity=cap.source_identity,
+            decoded_text=text,
             origin=cap.origin,
-            verification_state=cap.verification_result,
+            verification_state=VerificationState.VERIFIED if cap.is_verified() else VerificationState.UNVERIFIED,
             confidence=confidence,
-            evidence_digest=cap.evidence_digest,
-            raw_span=cap.raw_span,
-            decoded_text=cap.decoded_text,
-            issuer_id=cap.issuer.issuer_id,
-            policy_version=cap.issuer.policy_version,
+            source_identity=cap.source_identity,
+            evidence_layer=layer,
+            scope=scope,
+            issuer=self._factory_id,
         )
         self._registry._register_record(rec)
         return rec
 
-    def create_bundle(self, records: list) -> EvidenceBundle:
+    def create_bundle(self, records: List[EvidenceRecord]) -> EvidenceBundle:
         if not records:
             raise ValueError("empty bundle rejected")
 
-        # Deterministic bundle identity from all records
-        parts = []
-        for r in records:
-            parts.append(r.record_id)
+        parts = [r.record_id for r in records]
         self._bundle_counter += 1
-        bundle_hash = hashlib.sha256(f"{''.join(sorted(parts))}:{self._bundle_counter}".encode()).hexdigest()[:24]
-        bundle_id = f"bundle-{bundle_hash}"
+        bundle_id = hashlib.sha256(
+            f"{''.join(sorted(parts))}:{self._bundle_counter}".encode()
+        ).hexdigest()[:24]
 
-        # Derive bundle-level properties from records
-        origins = set(r.origin for r in records)
-        if EvidenceOrigin.USER_EXPLICIT_MESSAGE in origins:
-            derived_origin = EvidenceOrigin.USER_EXPLICIT_MESSAGE
-        elif EvidenceOrigin.SOURCE_DOCUMENT in origins:
-            derived_origin = EvidenceOrigin.SOURCE_DOCUMENT
-        else:
-            derived_origin = EvidenceOrigin.UNKNOWN
-
-        states = set(r.verification_state for r in records)
-        if VerificationState.REJECTED in states:
-            bundle_state = VerificationState.REJECTED
-        elif all(s == VerificationState.VERIFIED for s in states):
-            bundle_state = VerificationState.VERIFIED
-        else:
+        # Derive from records
+        states = {r.verification_state for r in records}
+        if VerificationState.UNVERIFIED in states:
             bundle_state = VerificationState.UNVERIFIED
-
-        confidences = set(r.confidence for r in records)
-        if ConfidenceBand.LOW in confidences:
-            derived_confidence = ConfidenceBand.LOW
-        elif ConfidenceBand.MEDIUM in confidences:
-            derived_confidence = ConfidenceBand.MEDIUM
         else:
-            derived_confidence = ConfidenceBand.HIGH
+            bundle_state = VerificationState.VERIFIED
+
+        confidences = [r.confidence for r in records]
+        if all(c == ConfidenceBand.HIGH for c in confidences):
+            bundle_confidence = ConfidenceBand.HIGH
+        elif all(c == ConfidenceBand.LOW for c in confidences):
+            bundle_confidence = ConfidenceBand.LOW
+        else:
+            bundle_confidence = ConfidenceBand.MEDIUM
+
+        origins = [r.origin for r in records]
+        if EvidenceOrigin.USER_EXPLICIT_MESSAGE in origins:
+            bundle_origin = EvidenceOrigin.USER_EXPLICIT_MESSAGE
+        else:
+            bundle_origin = origins[0]
 
         bundle = EvidenceBundle(
             bundle_id=bundle_id,
             records=tuple(records),
             verification_state=bundle_state,
-            derived_origin=derived_origin,
-            derived_confidence=derived_confidence,
+            derived_confidence=bundle_confidence,
+            derived_origin=bundle_origin,
+            issuer=self._factory_id,
         )
         self._registry._register_bundle(bundle)
         return bundle
 
     def create_atom(self, bundle: EvidenceBundle,
-                   atom_type: AtomType = AtomType.CONCEPT) -> Atom:
-        # Atom identity from bundle + type + content
-        content_parts = [r.decoded_text for r in bundle.records]
-        content = " ".join(content_parts)
-        atom_hash = hashlib.sha256(
-            f"{bundle.bundle_id}:{atom_type.value}:{content}".encode()
-        ).hexdigest()[:32]
-        atom_id = f"atom-{atom_hash}"
-
-        verification_hash = hashlib.sha256(
-            f"{atom_id}:{bundle.bundle_id}:{atom_type.value}".encode()
+                    atom_type: AtomType = AtomType.CLAIM) -> Atom:
+        content = " ".join(r.decoded_text for r in bundle.records)
+        atom_id = hashlib.sha256(
+            f"{bundle.bundle_id}:{content[:200]}:{atom_type.value}".encode()
         ).hexdigest()[:32]
 
         atom = Atom(
@@ -216,29 +204,12 @@ class EvidenceFactory:
             atom_type=atom_type,
             bundle_id=bundle.bundle_id,
             content=content,
-            verification_hash=verification_hash,
+            source_identity=bundle.records[0].source_identity,
+            issuer=self._factory_id,
         )
         self._registry._register_atom(atom)
         return atom
 
     def verify_atom(self, atom: Atom) -> bool:
-        """Recompute every field and compare against stored atom."""
-        stored = self._registry.get_atom(atom.atom_id)
-        if stored is None:
-            return False
-        # Must match: atom_id, atom_type, bundle_id, content, verification_hash
-        if stored.atom_id != atom.atom_id:
-            return False
-        if stored.atom_type != atom.atom_type:
-            return False
-        if stored.bundle_id != atom.bundle_id:
-            return False
-        if stored.content != atom.content:
-            return False
-        if stored.verification_hash != atom.verification_hash:
-            return False
-        return True
-
-    @property
-    def factory_id(self) -> str:
-        return self._factory_id
+        """Verify atom is in our registry."""
+        return self._registry._atoms.get(atom.atom_id) is atom
