@@ -1,0 +1,89 @@
+name: codex-e58-semantic-execution-verifier-closure
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_role:
+        description: tested or receipt evidence set
+        required: true
+        type: choice
+        options: [tested, receipt]
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    name: evidence-py${{ matrix.python }}-seed${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+        seed: ["0", "1", "777"]
+    env:
+      PYTHONHASHSEED: ${{ matrix.seed }}
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      LOKY_MAX_CPU_COUNT: "2"
+      TOKENIZERS_PARALLELISM: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Generate public-safe provider evidence
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58
+        run: python tools/run_provider_evidence.py --output provider-artifacts --seed "${{ matrix.seed }}" --role "${{ inputs.evidence_role }}"
+      - name: Upload canonical evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-${{ inputs.evidence_role }}-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/provider-artifacts/canonical.json
+          if-no-files-found: error
+      - name: Upload environment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: environment-${{ inputs.evidence_role }}-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/provider-artifacts/environment.json
+          if-no-files-found: error
+
+  compare:
+    name: compare-canonical-evidence
+    needs: evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: canonical-${{ inputs.evidence_role }}-*
+          path: provider-compare
+          merge-multiple: false
+      - name: Require six byte-identical canonical files
+        shell: bash
+        run: |
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import json
+          files = sorted(Path("provider-compare").glob("*/canonical.json"))
+          if len(files) != 6:
+              raise SystemExit(f"expected 6 canonical files, found {len(files)}")
+          payloads = [path.read_bytes() for path in files]
+          if len(set(payloads)) != 1:
+              raise SystemExit("canonical evidence differs across Python/seed matrix")
+          Path("provider-compare-result.json").write_text(json.dumps({
+              "schema": "e58-provider-compare-v1",
+              "canonical_count": len(files),
+              "canonical_sha256": sha256(payloads[0]).hexdigest(),
+              "files": [path.as_posix() for path in files],
+          }, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
+          PY
+      - name: Upload comparison evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparison-${{ inputs.evidence_role }}
+          path: provider-compare-result.json
+          if-no-files-found: error

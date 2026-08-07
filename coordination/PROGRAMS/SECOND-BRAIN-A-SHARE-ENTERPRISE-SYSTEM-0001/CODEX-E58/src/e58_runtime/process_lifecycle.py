@@ -17,6 +17,7 @@ import os
 import subprocess
 import threading
 import time
+from pathlib import Path
 from typing import Sequence
 
 
@@ -281,7 +282,14 @@ class OwnedProcessRegistry:
     def _command_digest(command: Sequence[str]) -> str:
         return sha256(json.dumps(list(command), ensure_ascii=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
-    def spawn(self, command: Sequence[str], *, purpose: str, expected_exit: int | None = 0) -> int:
+    def spawn(
+        self,
+        command: Sequence[str],
+        *,
+        purpose: str,
+        expected_exit: int | None = 0,
+        cwd: Path | None = None,
+    ) -> int:
         if self._closed:
             raise ProcessLifecycleError("registry is closed")
         if not command or not purpose:
@@ -291,6 +299,8 @@ class OwnedProcessRegistry:
         environment = dict(os.environ)
         environment.update(_THREAD_LIMIT_ENV)
         kwargs: dict[str, object] = {"env": environment, "stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+        if cwd is not None:
+            kwargs["cwd"] = str(cwd)
         if os.name == "nt":
             kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00004000
         else:

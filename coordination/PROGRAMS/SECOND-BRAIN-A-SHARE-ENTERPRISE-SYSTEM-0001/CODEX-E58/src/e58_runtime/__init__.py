@@ -7,6 +7,23 @@ from .process_lifecycle import (
     ResourceBudget,
     ResourceBudgetViolation,
 )
+from .semantic_execution import (
+    ByteRange,
+    EvidenceStatement,
+    ExecutionReceipt,
+    IssuedPacket,
+    JsonlOwnershipError,
+    PolicyRef,
+    Polarity,
+    Proposition,
+    SemanticAtom,
+    SemanticExecutionError,
+    TrustedSemanticExecutor,
+    VerifierCapability,
+    bootstrap_trusted_runtime,
+    parse_jsonl_whole_source,
+)
+from .mutations import MutationResult, MutationSpec, run_catalog
 
 __all__ = [
     "HeavyStageMutex",
@@ -14,4 +31,21 @@ __all__ = [
     "ProcessLifecycleError",
     "ResourceBudget",
     "ResourceBudgetViolation",
+    "ByteRange",
+    "EvidenceStatement",
+    "ExecutionReceipt",
+    "IssuedPacket",
+    "JsonlOwnershipError",
+    "PolicyRef",
+    "Polarity",
+    "Proposition",
+    "SemanticAtom",
+    "SemanticExecutionError",
+    "TrustedSemanticExecutor",
+    "VerifierCapability",
+    "bootstrap_trusted_runtime",
+    "parse_jsonl_whole_source",
+    "MutationResult",
+    "MutationSpec",
+    "run_catalog",
 ]
