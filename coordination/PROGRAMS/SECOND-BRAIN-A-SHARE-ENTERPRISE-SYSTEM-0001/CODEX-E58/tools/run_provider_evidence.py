@@ -79,18 +79,18 @@ def main() -> int:
             for result in mutations
         ],
     }
-    canonical_bytes = _canonical_bytes(canonical)
+    canonical_file_bytes = _canonical_bytes(canonical) + b"\n"
     environment = {
         "schema": "e58-provider-environment-v1",
         "role": arguments.role,
         "python_version": sys.version,
         "python_hash_seed": arguments.seed,
-        "canonical_sha256": sha256(canonical_bytes).hexdigest(),
+        "canonical_file_sha256": sha256(canonical_file_bytes).hexdigest(),
         "stdout_sha256": sha256(stdout).hexdigest(),
         "stderr_sha256": sha256(stderr).hexdigest(),
     }
     arguments.output.mkdir(parents=True, exist_ok=True)
-    (arguments.output / "canonical.json").write_bytes(canonical_bytes + b"\n")
+    (arguments.output / "canonical.json").write_bytes(canonical_file_bytes)
     (arguments.output / "environment.json").write_bytes(_canonical_bytes(environment) + b"\n")
     return 0
 
