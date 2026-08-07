@@ -1,4 +1,4 @@
-schema_version: "60.0"
+schema_version: "60.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -11,7 +11,7 @@ task_id: "QCLAW-E44-POST-AUDIT-VERIFIER-ONLY-CAPABILITY-USER-ORIGIN-SEMANTIC-EVA
 route_epoch: 45
 mode: "project_plan"
 mode_label: "【QCLAW模式：项目计划模式】E45 语义消费、用户来源、真实 evaluator/mutation 与本机进程树闭环"
-mode_reason: "E44 无效；E58 已被独立审查拒绝为最终 canonical verifier/resource authority。E45 尚未领取，可继续以 UNTRUSTED_TEST_DOUBLE 构建语义脚手架，但最终权威依赖 E59。"
+mode_reason: "E44 无效；E58 已被独立审查拒绝为最终 canonical verifier/resource authority。E45 可在 E59 验收前尽量完成全部独立有效工作，但最终权威与双 Provider/receipt 仍依赖 E59。"
 planned_branch: "qclaw/e44-post-audit-semantic-authority-closure-0026-e45"
 planned_draft_pr: true
 completion_signal: "QCLAW_E45_VERIFIER_ONLY_CAPABILITY_USER_ORIGIN_REAL_EVALUATOR_MUTATION_DUAL_PROVIDER_READY_FOR_GPT_REVIEW"
@@ -22,6 +22,30 @@ route_contract:
   path: "coordination/ROUTES/QCLAW-E45-ACTIVE-ROUTE-CONTRACT.yaml"
   publication_commit: "c609d13458394b017745918560c778ea0005b763"
   status: "ACTIVE"
+
+credit_work_package:
+  amendment: "coordination/ROUTES/QCLAW-E45-LOW-CREDIT-136-PHASE-A-AMENDMENT.yaml"
+  amendment_blob_sha: "ee3cc25704578d87d36b9b82f319cddfc2b77e37"
+  mode: "PRE_E59_MAXIMUM_USEFUL_WORK_WITH_RESERVE"
+  user_reported_available_credits: 136
+  user_reported_model: "DeepSeek V4 Pro"
+  preferred_reserve_if_balance_visible: 25
+  soft_stop_if_balance_visible: 30
+  expected_checkpoint_signal: "QCLAW_E45_PRE_E59_SUBSTANTIAL_CHECKPOINT_READY_FOR_GPT_REVIEW"
+  precedence: "This work package overrides narrower/older Phase-A-only wording for the current claim."
+  final_e45_completion_forbidden_before_e59: true
+  allowed_summary:
+    - "Plan-only commit, Draft PR and TaskLeaseClaim."
+    - "P0 full-descendant process self-audit and canaries."
+    - "Exact E44 source provenance."
+    - "Production/ground-truth separation and UNTRUSTED_TEST_DOUBLE boundary."
+    - "Semantic evidence/atom/master/cognition/skill pipeline not dependent on accepted E59 authority."
+    - "User-origin interface gate, evaluator/test receipts, mutation harness, focused tests and as much genuine mutation coverage as can be completed cleanly."
+    - "Provider workflow/artifact contract preparation without final authority claim."
+  deferred_summary:
+    - "Final E59 verifier/source-span integration."
+    - "Final tested Provider intended for E45 completion."
+    - "Receipt-only commit, receipt Provider, final artifact verification and final E45 completion."
 
 source_e44:
   issue: 187
@@ -112,7 +136,14 @@ command_execution_contract:
   second_start_command_required: false
   minimum_progress_before_return: "Create plan-only commit, Draft PR, TaskLeaseClaim and complete bounded descendant self-audit before source adaptation."
 
-next_command: "读取任务"
+latest_dispatch_intent:
+  user_command_observed_by_gpt: "读取任务"
+  observed_at: "2026-08-07T18:23:00+08:00"
+  dispatch_meaning: "QCLAW should now read this exact current route, acknowledge the 136-credit work package, claim a valid TaskLease and execute without a second start command."
+  gpt_does_not_impersonate_taskleaseclaim: true
+  local_executor_direct_invocation_by_gpt: false
+
+next_command: "NONE_AFTER_VALID_QCLAW_CLAIM"
 updated_by: "GPT"
-updated_at: "2026-08-07T16:00:00+08:00"
-boundary: "QCLAW_E45_READY_UNCLAIMED / E59_FINAL_GATE / E58_REJECTED_AS_AUTHORITY / P0_DESCENDANT_SELF_AUDIT_REQUIRED / NO_MERGE / NO_TRADE"
+updated_at: "2026-08-07T18:23:00+08:00"
+boundary: "QCLAW_E45_READY_DISPATCH_INTENT_PUBLISHED / 136_CREDIT_PRE_E59_WORK_PACKAGE / E59_FINAL_GATE / P0_DESCENDANT_SELF_AUDIT_REQUIRED / NO_MERGE / NO_TRADE"
