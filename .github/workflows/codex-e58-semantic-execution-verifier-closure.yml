@@ -1,6 +1,12 @@
 name: codex-e58-semantic-execution-verifier-closure
 
 on:
+  push:
+    branches:
+      - codex/e57-post-receipt-semantic-execution-verifier-closure-0054-e58
+    paths:
+      - .github/workflows/codex-e58-semantic-execution-verifier-closure.yml
+      - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/**
   workflow_dispatch:
     inputs:
       evidence_role:
@@ -11,6 +17,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  E58_EVIDENCE_ROLE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence_role || (contains(github.event.head_commit.message, '[E58-RECEIPT]') && 'receipt' || 'tested') }}
 
 jobs:
   evidence:
@@ -37,17 +46,17 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Generate public-safe provider evidence
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58
-        run: python tools/run_provider_evidence.py --output provider-artifacts --seed "${{ matrix.seed }}" --role "${{ inputs.evidence_role }}"
+        run: python tools/run_provider_evidence.py --output provider-artifacts --seed "${{ matrix.seed }}" --role "${{ env.E58_EVIDENCE_ROLE }}"
       - name: Upload canonical evidence
         uses: actions/upload-artifact@v4
         with:
-          name: canonical-${{ inputs.evidence_role }}-py${{ matrix.python }}-seed${{ matrix.seed }}
+          name: canonical-${{ env.E58_EVIDENCE_ROLE }}-py${{ matrix.python }}-seed${{ matrix.seed }}
           path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/provider-artifacts/canonical.json
           if-no-files-found: error
       - name: Upload environment evidence
         uses: actions/upload-artifact@v4
         with:
-          name: environment-${{ inputs.evidence_role }}-py${{ matrix.python }}-seed${{ matrix.seed }}
+          name: environment-${{ env.E58_EVIDENCE_ROLE }}-py${{ matrix.python }}-seed${{ matrix.seed }}
           path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E58/provider-artifacts/environment.json
           if-no-files-found: error
 
@@ -58,7 +67,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: canonical-${{ inputs.evidence_role }}-*
+          pattern: canonical-${{ env.E58_EVIDENCE_ROLE }}-*
           path: provider-compare
           merge-multiple: false
       - name: Require six byte-identical canonical files
@@ -84,6 +93,6 @@ jobs:
       - name: Upload comparison evidence
         uses: actions/upload-artifact@v4
         with:
-          name: comparison-${{ inputs.evidence_role }}
+          name: comparison-${{ env.E58_EVIDENCE_ROLE }}
           path: provider-compare-result.json
           if-no-files-found: error
