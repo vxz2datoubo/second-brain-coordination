@@ -1,0 +1,139 @@
+schema_version: "1.0"
+review_id: "CODEX-E58-INDEPENDENT-AUDIT-RETURN-TO-E59"
+reviewer: "GPT"
+repository: "vxz2datoubo/second-brain-coordination"
+reviewed_issue: 192
+reviewed_pull_request: 196
+mode: "project_plan"
+route_epoch: 60
+base_sha: "7ca1e12bec816db33efae31357e2e06b56b874d1"
+plan_sha: "045daa092baf898d078d901b4fe3172187912716"
+tested_sha: "44eeca76113bb1376c89af550216a93df824191d"
+receipt_and_frozen_head: "4d92747098ab18f03c7379b2fa82c5f33251f82c"
+tested_provider_run: 31142425299
+receipt_provider_run: 31143145722
+resource_incident_issue: 194
+status: "FROZEN_DUAL_PROVIDER_GREEN_RECEIPT_PRESENT_SUBSTANTIAL_CANDIDATE_REJECTED_AS_FINAL"
+disposition: "RETURNED_FOR_CLEAN_E59_CANONICAL_TRUST_SOURCE_BINDING_AND_DESCENDANT_LIFECYCLE_CLOSURE_NO_COMPLETION_NO_MERGE"
+merge_authorized: false
+further_commit_authorized: false
+
+verified_positive_evidence:
+  - "PR #196 is open, Draft, unmerged and head 4d92747098ab18f03c7379b2fa82c5f33251f82c."
+  - "Base 7ca1e12bec816db33efae31357e2e06b56b874d1 -> plan 045daa092baf898d078d901b4fe3172187912716 is exactly one commit changing only CODEX-E58/PROJECT-PLAN.md."
+  - "Receipt head is exactly one direct child of tested head and changes six declared E58 receipt/evidence paths only."
+  - "Tested Provider run 31142425299 has exactly six Python/seed matrix jobs plus one compare job; all seven succeeded."
+  - "Receipt Provider run 31143145722 has exactly six Python/seed matrix jobs plus one compare job; all seven succeeded."
+  - "Both Provider runs expose thirteen artifacts bound to their respective exact heads."
+  - "Canonical compare jobs succeeded and reported six byte-identical canonical inner files."
+  - "JSONL ownership tests now cover blank lines, CR, LF, CRLF, global offsets and isolated surrogate errors."
+  - "Conflict tests now require the same semantic key, opposite polarity, matching scope/time and independent source IDs."
+  - "Local resource code disables common nested BLAS/tokenizer parallelism and introduces a named heavy-stage mutex."
+  - "Codex observed CPU at 73-74 percent during receipt preparation and correctly skipped another local heavy rerun rather than launching more Python work."
+
+blocking_findings:
+  - id: "E58-B1-PUBLIC-CALLER-BOOTSTRAPS-TRUSTED-RUNTIME"
+    severity: "CRITICAL"
+    fact: >-
+      e58_runtime.__init__ publicly exports TrustedSemanticExecutor and bootstrap_trusted_runtime. bootstrap_trusted_runtime creates
+      TrustedSemanticExecutor(_AuthorityKernel()) with the same public capability_id used by every runtime. Any ordinary caller can
+      therefore construct a fresh object explicitly named trusted runtime plus its own verifier and issued receipts. The tests prove
+      only that runtime A rejects runtime B's receipts when A's verifier object is already pinned; they do not establish who pins the
+      canonical verifier or how a consumer distinguishes the authorized runtime object from an attacker-supplied runtime/verifier.
+    consequence: >-
+      E58 does not provide the canonical verifier-only authority required for QCLAW E45 or future formal knowledge/memory/skill
+      promotion. It is an internally consistent ephemeral pair, not a trusted authority boundary.
+  - id: "E58-B2-CALLER-AUTHORED-EVIDENCE-IS-AUTO-VALIDATED"
+    severity: "CRITICAL"
+    fact: >-
+      EvidenceStatement is a public dataclass containing caller-supplied source_id, Proposition and excerpt. TrustedSemanticExecutor
+      validate_evidence accepts any EvidenceStatement and issues outcome PASS plus an attested VALIDATION packet. No verified source
+      record, raw byte span, ownership digest, source-content hash or source-admission capability is required before semantic evidence
+      is validated.
+    consequence: >-
+      A caller can fabricate source identity, proposition, polarity and excerpt and obtain a valid receipt from the task-local
+      executor. This is a regression from the required source-to-semantic authority chain.
+  - id: "E58-B3-RELATION-TYPE-REMAINS-CALLER-AUTHORED"
+    severity: "MAJOR"
+    fact: >-
+      issue_relation accepts arbitrary caller relation_type. Its relevance evaluator checks only that both validated atoms share an
+      identical subject, then self-issues PASS. Shared subject does not prove a requested relation such as supports, contradicts,
+      causes, supersedes or depends-on. No registered relation ontology/rule implementation derives the caller's relation_type.
+  - id: "E58-B4-P0-DESCENDANT-TRACKING-FAILS-IN-ACTUAL-FALLBACK-MODE"
+    severity: "CRITICAL_LOCAL_SAFETY"
+    fact: >-
+      OwnedProcessRegistry tracks only direct Popen children in _owned. The user's desktop host returned ERROR_ACCESS_DENIED when
+      assigning those children to a nested Windows Job Object, so E58 explicitly used process_group_fallback. In that fallback,
+      cleanup calls terminate/kill on the direct Popen object only and never enumerates or terminates descendants/process groups.
+      active_count and peak counts therefore exclude grandchildren. A direct child can spawn many Python descendants, exit or be
+      terminated, and E58 can still report active_count=0 while descendants remain.
+    consequence: >-
+      The exact failure mode relevant to the historical 119-Python incident is not controlled or measured. Current zero-orphan
+      evidence is zero-direct-child evidence, not zero-descendant evidence.
+  - id: "E58-B5-RESOURCE-HARD-CAPS-NOT-FULLY-ENFORCED"
+    severity: "MAJOR_LOCAL_SAFETY"
+    fact: >-
+      ResourceBudget defines max_cpu_bound_workers but spawn does not classify or enforce CPU-bound worker count. There is no shared
+      global cross-agent process counter, no project RAM hard-cap enforcement, no minimum-free-RAM enforcement and no sustained CPU
+      monitor in OwnedProcessRegistry. The protocol's global and adaptive limits therefore remain policy text rather than runtime gates.
+  - id: "E58-B6-P0-ROOT-CAUSE-CLOSURE-NOT-SATISFIED"
+    severity: "MAJOR_GOVERNANCE"
+    fact: >-
+      Issue #194 requires a root-cause category and confidence before incident closure. E58 repeatedly reports
+      UNKNOWN_PENDING_INSTRUMENTED_REPRODUCTION and has no historical PID/PPID tree. Despite the route stating P0 investigation
+      precedes heavy local execution, E58 subsequently ran the local mutation catalog. The prevention canary is useful, but the P0
+      incident completion signal has not been truthfully established.
+  - id: "E58-B7-LIFECYCLE-CANARY-OMITS-GRANDCHILD-ORPHAN-ATTACK"
+    severity: "MAJOR_LOCAL_SAFETY"
+    fact: >-
+      test_process_lifecycle covers normal/error/timeout/exception/KeyboardInterrupt for direct child processes only. It has no child
+      that deliberately spawns one or more grandchildren, no root-exits-first scenario, no process-group/tree cleanup assertion and
+      no cross-agent/global-cap regression. Thus the tests cannot detect E58-B4.
+  - id: "E58-B8-MUTATION-CATALOG-OMITS-NEW-CRITICAL-BYPASSES"
+    severity: "MAJOR"
+    fact: >-
+      Seven mutations correspond only to the previous E57 blockers. They do not mutate public trusted-runtime bootstrap, fabricated
+      EvidenceStatement source binding, arbitrary relation_type semantics, descendant cleanup, global process caps or CPU/RAM gates.
+  - id: "E58-B9-MUTATION-RESTORE-NOT-IN-FINALLY"
+    severity: "MATERIAL"
+    fact: >-
+      run_catalog restores the temporary target after registry.wait returns. The restoration is not inside a finally block. A timeout
+      or unexpected exception can skip the explicit restoration step, contrary to the route's required restore-in-finally invariant.
+      Temporary-directory deletion still protects the active source tree, so this is not an active-tree corruption claim.
+
+independent_audit_conclusion:
+  plan_topology_credit: true
+  tested_provider_execution_credit: true
+  receipt_provider_execution_credit: true
+  receipt_topology_credit: true
+  jsonl_unicode_candidate_credit: true
+  conflict_candidate_credit: true
+  resource_throttle_behavior_credit: true
+  canonical_verifier_authority_credit: false
+  source_to_evidence_authority_credit: false
+  relation_semantic_authority_credit: false
+  descendant_process_lifecycle_credit: false
+  global_resource_enforcement_credit: false
+  p0_incident_closure_credit: false
+  full_mutation_coverage_credit: false
+  completion_credit: false
+
+required_successor_corrections:
+  - "Establish an externally anchored canonical issuer/verifier identity. Ordinary callers must not be able to bootstrap an equivalent accepted trusted runtime or substitute the verifier object."
+  - "Bind semantic evidence to an accepted low-level Source/Span capability containing exact source digest and raw/decoded ownership. Never issue PASS for a caller-authored EvidenceStatement alone."
+  - "Use a registered relation ontology/rule set. Derive relation_type from verified proposition semantics or reject UNKNOWN; caller relation labels are hints only."
+  - "Replace direct-child accounting with full descendant-tree accounting. On Windows fallback, enumerate/own descendants by verified ancestry and creation identity or use a containment mechanism that actually terminates the entire owned tree."
+  - "Add a canary where a child spawns multiple Python grandchildren, the root exits or is cancelled, and postflight proves every descendant is gone."
+  - "Implement shared project-wide process/worker accounting for Codex+QCLAW and actual CPU/RAM adaptive gates consistent with the binding protocol."
+  - "Close Issue #194 with the strongest truthful root-cause classification possible. If the historic event is irrecoverable, distinguish HISTORICAL_ATTRIBUTION_UNRECOVERABLE from experimentally demonstrated current failure modes and prove prevention against each plausible category."
+  - "Extend genuine mutations to every new blocker and put temporary-source restoration in finally."
+  - "Repeat separate tested and receipt Provider evidence after all corrections; publish a new post-receipt external anchor and no later commit."
+
+freeze_rules:
+  - "PR #196 is frozen at 4d92747098ab18f03c7379b2fa82c5f33251f82c."
+  - "No merge, rebase, amend, force-push, history rewrite or additional commit is authorized on E58."
+  - "E58 may be used only as exact source evidence by E59."
+  - "QCLAW E45 may use E58 only as UNTRUSTED candidate/interface research; it may not treat E58 as accepted verifier authority."
+
+confidence: "HIGH"
+reviewed_at: "2026-08-07T16:00:00+08:00"
