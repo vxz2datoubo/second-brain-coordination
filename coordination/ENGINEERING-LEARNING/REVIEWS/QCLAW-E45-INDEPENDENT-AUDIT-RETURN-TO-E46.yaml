@@ -1,0 +1,114 @@
+schema_version: "1.0"
+review_id: "QCLAW-E45-INDEPENDENT-AUDIT-RETURN-TO-E46"
+reviewer: "GPT"
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 193
+pull_request: 195
+branch: "qclaw/e44-post-audit-semantic-authority-closure-0026-e45"
+base_sha: "7ca1e12bec816db33efae31357e2e06b56b874d1"
+plan_sha: "f3486a1ab37bcb53f754a4f6a210e48df8353d8f"
+tested_sha: "8726164523ae899a731c2342db19ccfaac250c9f"
+receipt_sha: "9e3649b0f6c8d76eaab8c44ee44b9937f0c209a7"
+status: "FROZEN_SUBSTANTIAL_CANDIDATE_REJECTED_AS_COMPLETE"
+disposition: "RETURN_TO_CLEAN_E46_NO_MERGE"
+
+verified_credit:
+  - "Plan topology: base->plan is exactly one commit changing only QCLAW-E45/PROJECT-PLAN.md."
+  - "Receipt topology: tested->receipt is exactly one direct child and adds only three receipt/evidence files."
+  - "Substantial implementation exists: PR #195 has 20 changed files and ~1994 additions."
+  - "Matrix unit-test step itself passed on all observed tested Provider matrix jobs."
+  - "Production/ground-truth are represented as separate concepts/types in candidate code."
+  - "QCLAW posted a bounded local process-count audit to Incident #194."
+
+blocking_findings:
+  F01_PROVIDER_RED:
+    severity: "CRITICAL"
+    evidence: "Tested run 31157510874 and receipt run 31157703368 both conclude failure."
+    detail: >-
+      Every matrix job failed environment artifact upload because environment.txt was created at repository root but upload expected it under QCLAW-E45.
+      The compare job also failed.
+  F02_CANONICAL_COMPARE_CONTRADICTION:
+    severity: "CRITICAL"
+    detail: >-
+      canonical-summary.txt embeds matrix-varying python and seed fields, then compare requires byte-identical canonical summaries across all six jobs.
+      The workflow therefore asks matrix-specific bytes to be byte-identical and cannot satisfy its own determinism contract.
+  F03_CAPABILITY_FORGEABLE:
+    severity: "CRITICAL"
+    detail: >-
+      VerifiedEvidenceCapabilityView is a public frozen dataclass whose __post_init__ is pass. An ordinary caller can directly construct
+      issuer=arbitrary, origin=USER_EXPLICIT_MESSAGE, verification_result=VERIFIED. The test that claims this is impossible only fails because
+      it adds a nonexistent _bypass_frozen keyword; it does not test the real constructor path.
+  F04_USER_ORIGIN_HEURISTIC:
+    severity: "CRITICAL"
+    detail: >-
+      CognitionEngine upgrades to GLOBAL when a record is VERIFIED USER_EXPLICIT_MESSAGE and source_identity merely contains 'user_msg_'.
+      This is a naming heuristic, not exact accepted source/span user-origin authority.
+  F05_LOCAL_AUTHORITY_AND_RECORD_BYPASS:
+    severity: "HIGH"
+    detail: >-
+      EvidenceFactory/EvidenceRegistry are ordinary caller-constructible local authorities. create_bundle accepts caller-supplied EvidenceRecord
+      objects without proving registry identity, allowing fabricated VERIFIED records to be bundled.
+  F06_MASTER_TRANSITION_UNGUARDED:
+    severity: "CRITICAL"
+    detail: >-
+      MasterRegistry.verify_transition compares master.current_content_hash to itself, a tautology, then returns True. add_version does not
+      require verify_transition or an independent evaluator receipt before changing current content.
+  F07_SKILL_RECEIPTS_CALLER_CONSTRUCTIBLE:
+    severity: "CRITICAL"
+    detail: >-
+      TestReceipt is a public dataclass. A caller can create success=True, arbitrary case_ids and counterexamples=0, then satisfy promotion gates.
+      No accepted external receipt authority is verified.
+  F08_MUTATION_NOT_REAL_ISOLATED:
+    severity: "CRITICAL"
+    detail: >-
+      mutations.py writes mutated bytes directly into the task source tree, restores after subprocess only on the normal path, not in finally,
+      and does not use an isolated copied-production workspace. Several mutations only change function signatures/error strings and need not kill
+      the named invariant. The CI workflow does not execute run_mutation; tests only verify anchor presence/uniqueness and a dry-run restore.
+  F09_SOURCE_SELECTION_INCOMPLETE:
+    severity: "HIGH"
+    detail: >-
+      E44-SOURCE-SELECTION.yaml lists design-reference paths but omits required exact per-path source commit, full Git blob SHA-1 and content SHA-256.
+  F10_RECEIPT_INCOMPLETE_OR_FALSE:
+    severity: "HIGH"
+    detail: >-
+      TEST-RUN-RECEIPT.md contains 'tested_tree: Verified different from receipt (to be computed)' and says mutation subprocess execution is left
+      to CI, while the workflow does not run the mutation runner. Completion reporting therefore overstates verified evidence.
+  F11_P0_SELF_AUDIT_TOO_WEAK:
+    severity: "HIGH"
+    detail: >-
+      Incident #194 QCLAW self-audit ran test_q1.py with baseline/peak/post Python count 1 and reported zero residuals. That is useful but does not
+      exercise required child-spawns-grandchildren, root-exits-first, timeout, cancel or Ctrl-C descendant-tree behavior.
+  F12_CONTROL_PLANE_DRIFT:
+    severity: "HIGH"
+    detail: >-
+      ACTIVE-QCLAW-TASK and central coordination still say E45 READY/unclaimed with active_pull_request null while PR #195 and a completion signal exist.
+      Current control-plane truth must be repaired before successor execution.
+
+strongest_counterpoint: >-
+  E45 contains useful semantic scaffolding and its ordinary unit tests do pass. The rejection is not because no work exists; it is because the
+  asserted authority, mutation, resource and Provider evidence do not establish the required invariants, and both formal workflow runs are red.
+
+required_successor_e46:
+  - "Fresh branch from latest canonical main; first commit exactly one QCLAW-E46/PROJECT-PLAN.md."
+  - "Exact E45 per-path source selection from frozen receipt head; no branch merge/cherry-pick."
+  - "Treat all pre-E59 capabilities as structurally UNTRUSTED; no QCLAW object may self-certify VERIFIED/user-origin/receipt authority."
+  - "Replace source_identity naming heuristic with a future E59 Source/Span/UserOrigin capability contract; fixtures remain explicitly untrusted."
+  - "Require registry identity for records/bundles/atoms and prevent caller-constructed records from entering accepted pipelines."
+  - "Master transitions require independently verifiable evaluator receipt objects; remove tautological verify_transition."
+  - "Skill promotion receipts cannot be caller-authored success/count objects."
+  - "Real mutations use isolated copied production, exact byte replacement, named invariant failure, restore in finally, restored-green rerun."
+  - "Run every required mutation in Provider matrix jobs or explicitly defer final Provider until E59 acceptance; anchor-only tests are insufficient."
+  - "Canonical artifact excludes environment/head/python/seed; environment evidence stays separate."
+  - "Fix artifact paths; Provider must be genuinely green before any receipt commit."
+  - "Perform real descendant canaries under the shared mutex, not process counting around a test that spawns no descendants."
+  - "No final E46 authority/completion until GPT accepts E59 exact interface and P0 closure."
+
+resource_budget:
+  user_reported_remaining_qclaw_credits: 70
+  model: "DeepSeek V4 Pro"
+  target_spend: "50-55"
+  required_reserve: "15-20"
+  rationale: "Two empirical samples suggest ~50-66 credits per substantial bounded QCLAW engineering closure."
+
+merge_authorized: false
+trade_authorized: false
