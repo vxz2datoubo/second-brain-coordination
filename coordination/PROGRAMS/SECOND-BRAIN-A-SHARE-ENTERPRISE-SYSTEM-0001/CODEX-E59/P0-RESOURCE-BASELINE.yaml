@@ -1,0 +1,31 @@
+schema_version: "1.0"
+task_id: "CODEX-E59"
+agent_id: "CODEX"
+classification: "VERIFIED_LOCAL"
+first_preflight:
+  observed_at_utc: "2026-08-07T10:40:30Z"
+  cpu_percent: 17
+  available_ram_gib: 16.36
+  python_process_count: 0
+canary_preflight:
+  observed_at_utc: "2026-08-07T11:12:04Z"
+  coordinator_python_process_count: 1
+  available_ram_gib: 19.41
+  cpu_percent: 0.0
+limits:
+  global_python_processes_including_descendants: 8
+  single_agent_python_processes_including_descendants: 6
+  single_agent_cpu_bound_workers: 3
+  dual_agent_python_processes_per_agent: 4
+  dual_agent_cpu_bound_workers_per_agent: 2
+  minimum_available_ram_gib: 8
+  heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+observed_p0_peak_task_owned_processes: 3
+observed_p0_orphan_count: 0
+observed_p0_unrelated_terminated: 0
+command_policy:
+  local_mutation_and_provider: "SEQUENTIAL"
+  nested_parallelism: "DISABLED"
+  process_command_lines: "NOT_ENUMERATED"
+  reason: "Unrelated process command lines can be malformed and may contain sensitive values; task roots receive an exact command digest and descendants use observed ancestry plus PID and creation time."
+status: "P0_CURRENT_PREVENTION_VERIFIED_FOR_BOUNDED_CANARIES"

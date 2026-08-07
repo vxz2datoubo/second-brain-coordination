@@ -1,0 +1,79 @@
+name: codex-e59-canonical-trust-process-tree-closure
+
+on:
+  pull_request:
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/**'
+      - '.github/workflows/codex-e59-canonical-trust-process-tree-closure.yml'
+  workflow_dispatch:
+
+jobs:
+  tested:
+    name: tested-py${{ matrix.python }}-seed${{ matrix.seed }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+        seed: ['0', '1', '777']
+    env:
+      PYTHONHASHSEED: ${{ matrix.seed }}
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run serial E59 regression suite
+        shell: pwsh
+        run: python -W error::ResourceWarning coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/tools/run_local_suite.py
+      - name: Run bounded P0 descendant canaries
+        shell: pwsh
+        run: python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/tools/run_p0_canary.py
+      - name: Run isolated mutation registry
+        shell: pwsh
+        run: python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/tools/run_mutations.py
+      - name: Build deterministic Provider source evidence
+        shell: pwsh
+        run: python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/tools/run_provider_evidence.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e59-provider-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: |
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/provider-evidence.json
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/P0-BOUNDED-DESCENDANT-CANARY-RECEIPT.json
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/MUTATION-EXECUTION-RESULTS.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e59-canonical-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/canonical-source-manifest.json
+  compare:
+    name: compare-six-canonical-inner-files
+    needs: tested
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e59-canonical-*
+          path: provider-artifacts
+          merge-multiple: false
+      - name: Verify six independent canonical inner files
+        shell: pwsh
+        run: python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E59/tools/compare_provider_artifacts.py provider-artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e59-compare
+          path: provider-compare.json
