@@ -1,0 +1,50 @@
+schema_version: "1.0"
+incident_id: "LOCAL-PYTHON-PROCESS-EXPLOSION-INCIDENT-0001"
+status: "OPEN_INVESTIGATION_REQUIRED"
+severity: "SEV-1-LOCAL-USABILITY"
+reported_by: "USER"
+recorded_by: "GPT"
+reported_at: "2026-08-07T08:37:00+08:00"
+
+observed:
+  peak_python_processes: 119
+  lower_observed_problem_range: "30+ processes also materially degrades the machine"
+  impact:
+    - "Typing became nearly impossible"
+    - "Video playback and normal desktop interaction were impaired"
+    - "The user could not continue ordinary work while the agents ran"
+
+machine:
+  cpu: "Intel Core i7-6700 3.4GHz"
+  physical_cores: 4
+  logical_threads: 8
+  ram_gib: 32
+  gpu: "NVIDIA RTX 2070"
+
+unknowns:
+  - "Whether Codex, QCLAW or both caused the peak"
+  - "Whether processes were simultaneously active workers or leaked/orphaned descendants"
+  - "Whether repeated tasks accumulated old background processes"
+  - "Whether nested multiprocessing amplified outer parallel execution"
+  - "Whether duplicate persistent services or ports were involved"
+
+binding_protocol:
+  path: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
+  publication_commit: "e262be7436a4a7f08ac1c6e543076362890cff22"
+
+owners:
+  primary_root_cause_owner: "CODEX_E58"
+  independent_observer_and_self-audit_owner: "QCLAW_E45"
+  final_acceptance_owner: "GPT"
+
+required_outcomes:
+  - "Identify process ownership and root cause with PID/PPID/command/create-time evidence"
+  - "Implement shared local resource lease and heavy-stage mutex"
+  - "Enforce worker/process/RAM/CPU caps"
+  - "Prevent nested parallelism"
+  - "Clean owned process trees on success/error/timeout/cancel"
+  - "Prove zero task-owned orphans after each canary and task"
+  - "Preserve unrelated user Python processes"
+
+execution_rule: "This incident is a mandatory P0 preflight of Codex E58 and QCLAW E45; it does not create a third competing active implementation branch."
+closure_signal: "LOCAL_PYTHON_PROCESS_EXPLOSION_ROOT_CAUSE_AND_LIFECYCLE_GUARDS_READY_FOR_GPT_REVIEW"
