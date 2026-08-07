@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 contract_id: "CODEX-E58-ACTIVE-ROUTE-CONTRACT-0054"
 status: "ACTIVE"
 owner: "GPT"
@@ -8,10 +8,10 @@ active_issue: 192
 task_id: "CODEX-E57-POST-RECEIPT-SEMANTIC-EXECUTION-VERIFIER-CAPABILITY-RAW-JSONL-AND-DUAL-PROVIDER-CLOSURE-0054-E58"
 route_epoch: 60
 mode: "project_plan"
-mode_reason: "The defects cross issuer/verifier interfaces, semantic execution receipts, whole-source parsing, adversarial evaluation, mutations, Provider and receipt topology."
+mode_reason: "The defects cross issuer/verifier interfaces, semantic execution receipts, whole-source parsing, adversarial evaluation, mutations, Provider, receipt topology and local process lifecycle."
 planned_branch: "codex/e57-post-receipt-semantic-execution-verifier-closure-0054-e58"
 completion_signal: "CODEX_E58_SEMANTIC_EXECUTION_VERIFIER_CAPABILITY_JSONL_DUAL_PROVIDER_RECEIPT_READY_FOR_GPT_REVIEW"
-boundary: "PUBLIC_SAFE_SYNTHETIC_ONLY / NO_PRIVATE_CONFIG / NO_TRADE / NO_MERGE"
+boundary: "PUBLIC_SAFE_SYNTHETIC_ONLY / LOCAL_RESOURCE_GUARDED / NO_PRIVATE_CONFIG / NO_TRADE / NO_MERGE"
 
 protocol_bindings:
   AMED: "coordination/GOVERNANCE/AMED-ENTERPRISE-POLICY-v1.0.yaml"
@@ -20,14 +20,15 @@ protocol_bindings:
   PDER: "coordination/GOVERNANCE/AGENT-PROACTIVE-DISCOVERY-AND-REALTIME-ESCALATION-PROTOCOL-v1.0.yaml"
   RTCE: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
   LEASE: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  LOCAL_RESOURCE: "coordination/GOVERNANCE/LOCAL-EXECUTION-RESOURCE-BUDGET-AND-PROCESS-LIFECYCLE-PROTOCOL-v1.0.yaml"
 
 mission_intent: >-
   Turn E57's substantial process-isolation and dual-Provider candidate into an honest verifier-only capability and execution-derived
-  semantic record authority. Remove every caller-authored receipt, relation, conflict or policy claim and close whole-source JSONL
-  and Unicode ownership before another tested/receipt evidence cycle.
+  semantic record authority. Remove every caller-authored receipt, relation, conflict or policy claim, close whole-source JSONL and
+  Unicode ownership, and prevent local process fan-out or orphan accumulation from making the user's computer unusable.
 fundamental_goal: >-
-  A consumer without the trusted issuer command capability cannot manufacture accepted records, execution receipts, semantic
-  opposition, relation relevance or redaction authority, and cannot substitute a locally created issuer/verifier as canonical.
+  A consumer without the trusted issuer command capability cannot manufacture accepted records or semantic authority, and every
+  locally spawned process is resource-bounded, task-owned, cleaned on every exit path and proven absent after task completion.
 
 source_e57:
   issue: 190
@@ -42,9 +43,46 @@ source_e57:
   whole_branch_merge_or_cherry_pick_forbidden: true
   exact_commit_path_blob_content_selection_only: true
 
+mandatory_p0_local_resource_incident:
+  incident_issue: 194
+  incident_record: "coordination/INCIDENTS/LOCAL-PYTHON-PROCESS-EXPLOSION-INCIDENT-0001.yaml"
+  protocol_commit: "e262be7436a4a7f08ac1c6e543076362890cff22"
+  primary_root_cause_owner: "CODEX"
+  required_before_heavy_local_execution: true
+  required_actions:
+    - "Capture baseline Python PID/PPID/command/create-time ownership before any local test, mutation or provider work."
+    - "Determine whether the 119-process event came from nested parallelism, leaked pools, orphaned descendants, repeated launches, duplicate daemons or dual-agent collision."
+    - "Implement or reuse a task-owned process registry and Windows process-group or Job Object lifecycle boundary."
+    - "Exercise success, error, timeout, cancellation and Ctrl-C cleanup with a two-worker canary."
+    - "Prove return to baseline and zero task-owned orphans before proceeding to a heavy stage."
+  local_limits:
+    global_project_python_process_hard_cap: 8
+    single_agent_python_process_hard_cap: 6
+    single_agent_cpu_bound_workers: 3
+    dual_agent_python_process_hard_cap_per_agent: 4
+    dual_agent_cpu_bound_workers_per_agent: 2
+    heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+    local_mutation_and_provider_default: "SEQUENTIAL"
+    nested_parallelism: "FORBIDDEN"
+    worker_priority_windows: "BELOW_NORMAL"
+    combined_cpu_target_percent: 55
+    throttle_above_percent_for_15_seconds: 70
+    project_ram_target_gib: 8
+    project_ram_hard_cap_gib: 10
+    minimum_available_ram_gib: 8
+  completion_gate:
+    - "No applicable process or worker cap exceeded."
+    - "Postflight task-owned Python process count is zero."
+    - "Orphan count is zero."
+    - "No unrelated or unknown Python process was terminated."
+    - "Issue #194 evidence and root-cause conclusion are published."
+  required_lease_annotation: "LOCAL RESOURCE SAFETY IS BINDING: cap local workers/processes, disable nested parallelism, clean owned process trees on every exit path, prove return to baseline, and never kill unrelated Python processes."
+
 primary_delivery_and_non_negotiables:
   - "Fresh branch from exact latest canonical main; first commit exactly one CODEX-E58/PROJECT-PLAN.md path."
+  - "The plan and TaskLeaseClaim contain the binding local resource annotation and explicit limits."
   - "Literal TaskLeaseClaim and one Draft PR before adaptation."
+  - "Complete the P0 local process investigation/canary before any heavy local test or mutation stage."
   - "E57-SOURCE-SELECTION.yaml with exact source commit, full blob SHA-1 and content SHA-256 before reuse."
   - "Issued evaluator execution receipt bound to evaluator/rule/input/run/outcome/output and independently verifiable."
   - "Verified proposition identity and opposition before CONFLICT."
@@ -62,30 +100,33 @@ first_commit_exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-
 all_other_paths: "READ_ONLY"
 
 proactive_mission_assignment:
-  AMED_A: "Implement safe E58-local tests, validators, fixtures, deterministic tooling and observability."
+  AMED_A: "Implement safe E58-local tests, validators, fixtures, deterministic tooling, process instrumentation and cleanup guards."
   AMED_B: "Implement tested backward-compatible internal improvements inside E58."
   AMED_C: "Proposal only for deployed service/process architecture, cross-agent interface migration or new canonical authority."
   AMED_D: "Stop for private configuration, credentials, accounts, market data, trading, destructive or permission changes."
   mandatory_discovery_questions:
+    - "Which task and parent process produced each Python child during the incident?"
+    - "Did process count grow through concurrency or accumulation after earlier tasks?"
+    - "Can every process be cleaned on success, exception, timeout, cancellation and Ctrl-C?"
     - "Can a consumer construct, register or substitute an evaluator receipt without an execution?"
     - "What proves two propositions are truly opposed rather than merely different?"
     - "What proves relation evidence is relevant to both endpoints without caller labels?"
     - "Can a locally created issuer/verifier be distinguished from the canonical verifier-only capability?"
     - "Does every JSONL byte, blank line and terminator have one global owner?"
     - "How are lone and paired surrogates classified deterministically?"
-    - "Which findings require a protocol, interface or successor-task update after GPT review?"
 
 task_impact_forecast:
-  classification: "STRATEGIC_INTERNAL_AUTHORITY"
-  direct_scope: ["CODEX-E58 task root", "one E58 workflow"]
-  downstream_scope: ["QCLAW E45 verifier-only capability consumption", "future evidence and memory authority gates"]
-  principal_risks: ["false execution receipt", "local issuer substitution", "semantic self-certification", "incomplete byte ownership", "dual Provider self-report"]
-  rollback: "No merge; freeze the Draft PR and route a clean successor from latest main after any receipt defect."
+  classification: "STRATEGIC_INTERNAL_AUTHORITY_AND_LOCAL_RUNTIME_SAFETY"
+  direct_scope: ["CODEX-E58 task root", "one E58 workflow", "task-local process lifecycle tooling"]
+  downstream_scope: ["QCLAW E45 verifier-only capability consumption", "future evidence and memory authority gates", "all future local task responsiveness"]
+  principal_risks: ["false execution receipt", "local issuer substitution", "semantic self-certification", "incomplete byte ownership", "dual Provider self-report", "local process explosion", "orphan accumulation"]
+  rollback: "Stop workers, clean only owned process trees, do not merge, freeze the Draft PR and route a clean successor after any authority or resource-lifecycle defect."
 
 dependencies:
   - {id: "E57_FROZEN", status: "SATISFIED", evidence: "PR #191 frozen at 603768e08e27cf554f9a5ee231b13d51a563abe1"}
   - {id: "E57_FORMAL_REVIEW", status: "SATISFIED", evidence: "e9622893e1feb681c1d54a9f9df1edbedc517792"}
   - {id: "QCLAW_E45_BOUNDARY", status: "SATISFIED", evidence: "Issue #193 read-only consumer boundary"}
+  - {id: "LOCAL_PROCESS_INCIDENT", status: "P0_REQUIRED", evidence: "Issue #194 and binding resource protocol"}
 
 provider_contract:
   workflow: ".github/workflows/codex-e58-semantic-execution-verifier-closure.yml"
@@ -96,13 +137,17 @@ provider_contract:
   tested_and_receipt_sets_separate: true
   canonical_inner_files_byte_identical: true
   independent_downloaded_archive_and_inner_byte_binding: true
+  local_execution_rule: "Do not run six local matrix jobs concurrently; local verification is sequential or at most two bounded jobs. Full matrix parallelism belongs to remote GitHub Actions."
 
 work_process_reporting:
   required: true
-  moments: [LEASE_CLAIM, FIRST_SUBSTANTIVE_ACTION, MATERIAL_CHECKPOINT, BLOCKER_OR_ESCALATION, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
+  moments: [LEASE_CLAIM, RESOURCE_PREFLIGHT, FIRST_SUBSTANTIVE_ACTION, MATERIAL_CHECKPOINT, RESOURCE_THROTTLE_OR_VIOLATION, BLOCKER_OR_ESCALATION, RESOURCE_POSTFLIGHT, HANDOFF_OR_ROUTE_CHANGE, COMPLETION]
+  resource_fields_required: ["preflight_python_process_count", "peak_task_owned_python_process_count", "peak_combined_project_python_process_count", "configured_worker_limits", "peak_cpu_percent", "peak_ram_gib", "spawned_pid_count", "cleaned_pid_count", "postflight_task_owned_process_count", "orphan_count", "persistent_services_remaining", "heavy_stage_mutex_usage"]
 
 stop_conditions:
   - "Route ceases to be READY or task/epoch/Issue/branch changes."
+  - "Applicable local process, worker, CPU or RAM hard cap is exceeded."
+  - "Any task-owned orphan remains after the grace period."
   - "Required work needs an unauthorized path or QCLAW implementation edit."
   - "Truthful closure requires a C/D architecture or user decision."
   - "Canonical remote identity cannot be verified."
@@ -111,7 +156,7 @@ read_claim_execute_semantics:
   trigger: "读取任务"
   action: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE_IMMEDIATELY"
   second_user_start_command_required: false
-  minimum_progress_before_return: "Create the strict plan-only commit, Draft PR, TaskLeaseClaim and continue to source selection."
+  minimum_progress_before_return: "Create the strict plan-only commit, Draft PR and TaskLeaseClaim with resource annotation; then capture resource baseline and begin the safe P0 process investigation before source adaptation."
 
 merge_authorized: false
 direct_main_implementation_write: false
