@@ -269,31 +269,39 @@ class CandidateKnowledgePackage:
     skills: Tuple[CandidateSkill, ...] = ()
     summary: str = ""
 
-    def content_hash(self) -> str:
-        """Deterministic hash of all knowledge content.
-
-        EXCLUDES: timestamp, package_version.
-        INCLUDES: source identity + atoms + relations + contradictions
-                  + unknowns + memory + skills + summary.
+    def _canonical_hash_dict(self) -> dict:
+        """Build the canonical serializable dict EXCLUDING non-semantic fields.
+        
+        Built directly without recursion — does NOT call to_dict().
+        Instead constructs the canonical JSON structure from components,
+        excluding ingested_at, package_version, and the self-referential content_hash.
         """
-        raw = self.package_id
-        raw += self.source.identity_hash()
-        for a in sorted(self.atoms, key=lambda x: x.atom_id):
-            raw += a.atom_id + a.atom_type.value + a.content + a.evidence_kind.value
-            for s in a.source_spans:
-                raw += f"{s.byte_start}:{s.byte_end}"
-        for r in sorted(self.relations, key=lambda x: (x.source_atom_id, x.target_atom_id)):
-            raw += r.source_atom_id + r.target_atom_id + r.relation_type.value
-        for c in sorted(self.contradictions, key=lambda x: x.contradiction_id):
-            raw += c.contradiction_id + c.contradiction_class.value
-        for u in sorted(self.unknowns, key=lambda x: x.unknown_id):
-            raw += u.unknown_id + u.question
-        for m in sorted(self.memory_records, key=lambda x: x.record_id):
-            raw += m.record_id + m.statement
-        for s in sorted(self.skills, key=lambda x: x.skill_id):
-            raw += s.skill_id + s.name + s.description
-        raw += self.summary
-        return hashlib.sha256(raw.encode()).hexdigest()[:16]
+        d = {}
+        d["schema"] = "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1"
+        d["package_id"] = self.package_id
+        src = self.source.to_dict()
+        src.pop("ingested_at", None)
+        d["source"] = src
+        d["summary"] = self.summary
+        d["atoms"] = [a.to_dict() for a in self.atoms]
+        d["relations"] = [r.to_dict() for r in self.relations]
+        d["contradictions"] = [c.to_dict() for c in self.contradictions]
+        d["unknowns"] = [u.to_dict() for u in self.unknowns]
+        d["memory_records"] = [m.to_dict() for m in self.memory_records]
+        d["skills"] = [s.to_dict() for s in self.skills]
+        return d
+
+    def content_hash(self) -> str:
+        """Deterministic hash of ALL semantic fields via canonical JSON serialization.
+
+        EXCLUDES: ingested_at, package_version, content_hash (self-referential).
+        INCLUDES: every atom field (confidence, scope, invalidation_conditions etc.),
+                  every relation field (span_index), every contradiction field (atom_ids, detail),
+                  every memory field (confidence, evidence_basis), every skill field (failure_conditions),
+                  every unknown, source identity, summary.
+        """
+        canonical = json.dumps(self._canonical_hash_dict(), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
     def to_dict(self) -> dict:
         """Full serializable dictionary. Suitable for JSON/YAML artifact."""
@@ -301,7 +309,7 @@ class CandidateKnowledgePackage:
             "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
             "package_id": self.package_id,
             "package_version": self.package_version,
-            "content_hash": self.content_hash(),
+            "content_hash": "PLACEHOLDER",  # replaced by caller after hash computed
             "source": self.source.to_dict(),
             "summary": self.summary,
             "atoms": [a.to_dict() for a in self.atoms],
@@ -316,9 +324,18 @@ class CandidateKnowledgePackage:
         return {a.atom_id for a in self.atoms}
 
     def validate(self) -> List[str]:
-        """Self-validate and return list of errors. Empty = valid."""
+        """Self-validate and return list of errors. Empty = valid.
+
+        Covers:
+        - Relation/contradiction/unknown/memory atom ID references
+        - Span bounds (non-negative, non-empty, within source)
+        - SOURCE_EXTRACT atom content must match verbatim source byte span
+        - UTF-8 byte span decode must match line bounds
+        - Span line_start/line_end within source lines
+        """
         errors = []
         ids = self.atom_ids()
+        # --- Referential integrity ---
         for r in self.relations:
             if r.source_atom_id not in ids:
                 errors.append(f"Relation {r.source_atom_id}->{r.target_atom_id}: source not in atoms")
@@ -336,12 +353,35 @@ class CandidateKnowledgePackage:
             for aid in m.source_atom_ids:
                 if aid not in ids:
                     errors.append(f"Memory {m.record_id}: atom {aid} not found")
+        # --- Span structural checks + SOURCE_EXTRACT content verification ---
+        source_lines = self.source.source_content.splitlines()
+        num_lines = len(source_lines) if source_lines and source_lines[-1] != "" else len(source_lines)
+        src_bytes = self.source.source_content.encode("utf-8")
         for a in self.atoms:
             if not a.source_spans:
                 errors.append(f"Atom {a.atom_id}: no source spans")
-            for s in a.source_spans:
-                if s.byte_end <= s.byte_start:
-                    errors.append(f"Atom {a.atom_id}: invalid span {s.byte_start}:{s.byte_end}")
+            for si, s in enumerate(a.source_spans):
+                if s.byte_start < 0 or s.byte_end <= s.byte_start:
+                    errors.append(f"Atom {a.atom_id} span[{si}]: invalid range {s.byte_start}:{s.byte_end}")
+                    continue
                 if s.byte_end > self.source.source_size_bytes:
-                    errors.append(f"Atom {a.atom_id}: span end {s.byte_end} > source size {self.source.source_size_bytes}")
+                    errors.append(f"Atom {a.atom_id} span[{si}]: end {s.byte_end} > source size {self.source.source_size_bytes}")
+                    continue
+                # Verify UTF-8 slice decodes cleanly
+                try:
+                    sliced = src_bytes[s.byte_start:s.byte_end].decode("utf-8")
+                except UnicodeDecodeError as e:
+                    errors.append(f"Atom {a.atom_id} span[{si}]: UTF-8 decode failure at byte span {s.byte_start}:{s.byte_end}: {e}")
+                    continue
+                # Verify line bounds
+                if s.line_start < 1 or s.line_start > num_lines:
+                    errors.append(f"Atom {a.atom_id} span[{si}]: line_start {s.line_start} out of 1..{num_lines}")
+                if s.line_end < s.line_start or s.line_end > num_lines:
+                    errors.append(f"Atom {a.atom_id} span[{si}]: line_end {s.line_end} out of {s.line_start}..{num_lines}")
+                # SOURCE_EXTRACT: verify content IS verbatim source text at span
+                if a.evidence_kind == EvidenceKind.SOURCE_EXTRACT:
+                    if a.content != sliced:
+                        errors.append(
+                            f"Atom {a.atom_id}: SOURCE_EXTRACT content does not match source span {s.byte_start}:{s.byte_end}. "
+                            f"atom='{a.content[:60]}...' vs source='{sliced[:60]}...'")
         return errors
