@@ -1,10 +1,9 @@
-"""Independent E60 attack tests; signing material intentionally stays outside runtime."""
+"""Independent E60 attack tests using fixed, non-signing synthetic vectors."""
 
 from __future__ import annotations
 
-from hashlib import sha256
+from copy import deepcopy
 import importlib
-import json
 import unittest
 
 from e60_runtime import (
@@ -13,80 +12,26 @@ from e60_runtime import (
     ExternalAttestation,
     ProviderEvidenceAggregate,
     SourceSpanGrant,
-    runtime_identity_digest,
+)
+from e60_test_fixtures import (
+    BASE_ATTESTATION,
+    BASE_SOURCE_SPAN,
+    PENDING_ATTESTATION,
+    PROVIDER_MAPPING,
+    RUNTIME_MISMATCH_ATTESTATION,
+    TOPOLOGY_MISMATCH_ATTESTATION,
+    TOPOLOGY_MISMATCH_PROVIDER_MAPPING,
 )
 
 
-_N = int(
-    "4860328296384066339081332229486435989775165605120886380697317341049670319131444432990037230279525616568637811580412731556012931985943462985444097595156577"
-)
-_D = int(
-    "2957712637386351736198509116626913654030748350755011529898689445591695556213965829029713465252272845685574198755116825575907114152172592731323687075189929"
-)
-
-
-def _canonical(value: object) -> bytes:
-    return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("ascii")
-
-
-def _sign(payload: dict[str, object]) -> str:
-    digest = int.from_bytes(sha256(_canonical(payload)).digest(), "big")
-    return format(pow(digest, _D, _N), "x")
-
-
-def _provider_evidence(**overrides: object) -> ProviderEvidenceAggregate:
-    payload: dict[str, object] = {
-        "schema_version": "1.0", "task_id": "E60-test", "provider_run_id": "123",
-        "tested_head": "1" * 40, "tested_parent": "2" * 40, "tested_tree": "3" * 40,
-        "jobs": [
-            {"python_minor": "3.13", "job_id": "456", "artifact_id": "789", "artifact_content_sha256": "d" * 64},
-            {"python_minor": "3.11", "job_id": "457", "artifact_id": "790", "artifact_content_sha256": "e" * 64},
-        ],
-    }
-    payload.update(overrides)
-    return ProviderEvidenceAggregate.from_mapping(payload)
-
-
-def _attestation_payload(**overrides: object) -> dict[str, object]:
-    aggregate = _provider_evidence()
-    payload: dict[str, object] = {
-        "authority_id": "synthetic-authority-1",
-        "source_digest": "a" * 64,
-        "runtime_identity_digest": runtime_identity_digest(),
-        "tested_head": "1" * 40,
-        "tested_parent": "2" * 40,
-        "tested_tree": "3" * 40,
-        "receipt_head": "4" * 40,
-        "receipt_parent": "1" * 40,
-        "receipt_tree": "5" * 40,
-        "provider_evidence_aggregate_digest": aggregate.digest,
-        "reviewer_acceptance_ref": "GITHUB_COMMIT:abcdef",
-        "lifecycle": "ACCEPTED_EXTERNAL",
-        "domain": "SYNTHETIC_EXTERNAL_ATTESTATION_ONLY",
-        "key_id": "E60-SYNTHETIC-TEST-ONLY-RSA-RAW-SHA256-V1",
-    }
-    payload.update(overrides)
-    payload["signature_hex"] = _sign({key: value for key, value in payload.items() if key != "signature_hex"})
-    return payload
+def _provider_evidence(mapping: dict[str, object] | None = None) -> ProviderEvidenceAggregate:
+    return ProviderEvidenceAggregate.from_mapping(deepcopy(PROVIDER_MAPPING if mapping is None else mapping))
 
 
 class AttestationBoundaryTests(unittest.TestCase):
-    def test_external_attestation_and_source_span_are_accepted(self) -> None:
-        attestation = ExternalAttestation.from_mapping(_attestation_payload())
-        unsigned = {
-            "attestation_id": attestation.attestation_id,
-            "source_digest": "a" * 64,
-            "start_byte": 0,
-            "end_byte": 5,
-            "decoded_digest": "d" * 64,
-            "domain": "SYNTHETIC_EXTERNAL_ATTESTATION_ONLY",
-            "key_id": "E60-SYNTHETIC-TEST-ONLY-RSA-RAW-SHA256-V1",
-        }
-        grant = SourceSpanGrant.from_mapping({
-            "attestation_id": unsigned["attestation_id"], "source_digest": unsigned["source_digest"],
-            "start_byte": unsigned["start_byte"], "end_byte": unsigned["end_byte"],
-            "decoded_digest": unsigned["decoded_digest"], "signature_hex": _sign(unsigned),
-        })
+    def test_fixed_synthetic_fixture_accepts_only_its_exact_signed_capability(self) -> None:
+        attestation = ExternalAttestation.from_mapping(deepcopy(BASE_ATTESTATION))
+        grant = SourceSpanGrant.from_mapping(deepcopy(BASE_SOURCE_SPAN))
         verifier = CanonicalVerifier(attestation, _provider_evidence())
         self.assertTrue(verifier.verify_source_span(grant))
         self.assertTrue(verifier.verify_evidence({"source_span": grant, "proposition": {"subject": "a", "predicate": "b", "object": "c", "polarity": "positive"}}))
@@ -97,62 +42,57 @@ class AttestationBoundaryTests(unittest.TestCase):
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module("e60_runtime.authority_client")
 
-    def test_tampered_attestation_fails_even_with_original_signature(self) -> None:
-        payload = _attestation_payload(receipt_head="6" * 40)
+    def test_tampered_attestation_fails_with_original_signature(self) -> None:
+        payload = deepcopy(BASE_ATTESTATION)
         payload["receipt_head"] = "7" * 40
         with self.assertRaisesRegex(AttestationError, "SIGNATURE_INVALID"):
             ExternalAttestation.from_mapping(payload)
 
     def test_arbitrary_raw_bytes_cannot_be_promoted_to_source_span(self) -> None:
-        verifier = CanonicalVerifier(ExternalAttestation.from_mapping(_attestation_payload()), _provider_evidence())
+        verifier = CanonicalVerifier(ExternalAttestation.from_mapping(deepcopy(BASE_ATTESTATION)), _provider_evidence())
         self.assertFalse(verifier.verify_source_span(b"caller supplied source"))
         self.assertFalse(verifier.verify_evidence({"source_span": b"caller supplied source", "proposition": {}}))
 
-    def test_source_digest_substitution_is_rejected(self) -> None:
-        attestation = ExternalAttestation.from_mapping(_attestation_payload())
-        unsigned = {
-            "attestation_id": attestation.attestation_id, "source_digest": "e" * 64,
-            "start_byte": 0, "end_byte": 1, "decoded_digest": "d" * 64,
-            "domain": "SYNTHETIC_EXTERNAL_ATTESTATION_ONLY", "key_id": "E60-SYNTHETIC-TEST-ONLY-RSA-RAW-SHA256-V1",
-        }
-        grant = SourceSpanGrant.from_mapping({
-            "attestation_id": unsigned["attestation_id"], "source_digest": unsigned["source_digest"],
-            "start_byte": 0, "end_byte": 1, "decoded_digest": unsigned["decoded_digest"], "signature_hex": _sign(unsigned),
-        })
-        self.assertFalse(CanonicalVerifier(attestation, _provider_evidence()).verify_source_span(grant))
+    def test_tampered_source_digest_cannot_be_represented_as_a_signed_grant(self) -> None:
+        candidate = deepcopy(BASE_SOURCE_SPAN)
+        candidate["source_digest"] = "e" * 64
+        with self.assertRaisesRegex(AttestationError, "SIGNATURE_INVALID"):
+            SourceSpanGrant.from_mapping(candidate)
 
     def test_pending_attestation_cannot_claim_external_acceptance(self) -> None:
-        payload = _attestation_payload(lifecycle="PENDING_EXTERNAL", reviewer_acceptance_ref="GITHUB_COMMIT:abcdef")
+        payload = deepcopy(PENDING_ATTESTATION)
+        payload["reviewer_acceptance_ref"] = "GITHUB_PR_COMMENT:123"
         with self.assertRaisesRegex(AttestationError, "PENDING_CONTRADICTION"):
             ExternalAttestation.from_mapping(payload)
 
     def test_pending_attestation_cannot_create_verifier(self) -> None:
-        payload = _attestation_payload(lifecycle="PENDING_EXTERNAL", reviewer_acceptance_ref="PENDING_EXTERNAL")
-        attestation = ExternalAttestation.from_mapping(payload)
-        with self.assertRaisesRegex(AttestationError, "REQUIRES_ACCEPTED_EXTERNAL"):
+        attestation = ExternalAttestation.from_mapping(deepcopy(PENDING_ATTESTATION))
+        with self.assertRaisesRegex(AttestationError, "REQUIRES_ACCEPTED_ATTESTATION"):
             CanonicalVerifier(attestation, _provider_evidence())
 
-    def test_attested_runtime_identity_mismatch_cannot_create_verifier(self) -> None:
-        payload = _attestation_payload(runtime_identity_digest="b" * 64)
-        attestation = ExternalAttestation.from_mapping(payload)
+    def test_synthetic_fixture_with_runtime_identity_mismatch_cannot_create_verifier(self) -> None:
+        attestation = ExternalAttestation.from_mapping(deepcopy(RUNTIME_MISMATCH_ATTESTATION))
         with self.assertRaisesRegex(AttestationError, "RUNTIME_IDENTITY_MISMATCH"):
             CanonicalVerifier(attestation, _provider_evidence())
 
     def test_provider_matrix_digest_mismatch_cannot_create_verifier(self) -> None:
-        attestation = ExternalAttestation.from_mapping(_attestation_payload())
-        other = _provider_evidence(jobs=[
-            {"python_minor": "3.11", "job_id": "457", "artifact_id": "790", "artifact_content_sha256": "f" * 64},
-            {"python_minor": "3.13", "job_id": "456", "artifact_id": "789", "artifact_content_sha256": "d" * 64},
-        ])
+        attestation = ExternalAttestation.from_mapping(deepcopy(BASE_ATTESTATION))
+        other_mapping = deepcopy(PROVIDER_MAPPING)
+        other_mapping["jobs"][0]["artifact_content_sha256"] = "f" * 64
         with self.assertRaisesRegex(AttestationError, "PROVIDER_EVIDENCE_DIGEST_MISMATCH"):
-            CanonicalVerifier(attestation, other)
+            CanonicalVerifier(attestation, _provider_evidence(other_mapping))
 
     def test_provider_matrix_topology_mismatch_cannot_create_verifier(self) -> None:
-        other = _provider_evidence(tested_tree="f" * 40)
-        payload = _attestation_payload(provider_evidence_aggregate_digest=other.digest)
-        attestation = ExternalAttestation.from_mapping(payload)
+        attestation = ExternalAttestation.from_mapping(deepcopy(TOPOLOGY_MISMATCH_ATTESTATION))
         with self.assertRaisesRegex(AttestationError, "PROVIDER_EVIDENCE_TOPOLOGY_MISMATCH"):
-            CanonicalVerifier(attestation, other)
+            CanonicalVerifier(attestation, _provider_evidence(TOPOLOGY_MISMATCH_PROVIDER_MAPPING))
+
+    def test_external_lifecycle_rejects_non_comment_reference_before_signature_check(self) -> None:
+        payload = deepcopy(BASE_ATTESTATION)
+        payload["lifecycle"] = "ACCEPTED_EXTERNAL"
+        payload["reviewer_acceptance_ref"] = "GITHUB_COMMIT:abcdef"
+        with self.assertRaisesRegex(AttestationError, "ACCEPTANCE_REFERENCE_INVALID"):
+            ExternalAttestation.from_mapping(payload)
 
 
 if __name__ == "__main__":

@@ -27,6 +27,8 @@ _PUBLIC_MODULUS = int(
 _PUBLIC_EXPONENT = 65537
 _KEY_ID = "E60-SYNTHETIC-TEST-ONLY-RSA-RAW-SHA256-V1"
 _DOMAIN = "SYNTHETIC_EXTERNAL_ATTESTATION_ONLY"
+_SYNTHETIC_FIXTURE_ACCEPTANCE_REF = "SYNTHETIC_FIXTURE_NO_EXTERNAL_REVIEW"
+_GITHUB_PR_COMMENT_REF = re.compile(r"^GITHUB_PR_COMMENT:[1-9][0-9]*$")
 
 
 class AttestationError(ValueError):
@@ -134,11 +136,23 @@ class ExternalAttestation:
         if value["domain"] != _DOMAIN or value["key_id"] != _KEY_ID:
             raise AttestationError("EXTERNAL_ATTESTATION_DOMAIN_MISMATCH")
         lifecycle = str(value["lifecycle"])
-        if lifecycle not in {"PENDING_EXTERNAL", "ACCEPTED_EXTERNAL"}:
+        if lifecycle not in {
+            "PENDING_EXTERNAL",
+            "SYNTHETIC_FIXTURE_ACCEPTED",
+            "ACCEPTED_EXTERNAL",
+        }:
             raise AttestationError("EXTERNAL_ATTESTATION_LIFECYCLE_INVALID")
         if lifecycle == "PENDING_EXTERNAL" and str(value["reviewer_acceptance_ref"]) != "PENDING_EXTERNAL":
             raise AttestationError("EXTERNAL_ATTESTATION_PENDING_CONTRADICTION")
-        if lifecycle == "ACCEPTED_EXTERNAL" and not str(value["reviewer_acceptance_ref"]).startswith("GITHUB_"):
+        if (
+            lifecycle == "SYNTHETIC_FIXTURE_ACCEPTED"
+            and str(value["reviewer_acceptance_ref"]) != _SYNTHETIC_FIXTURE_ACCEPTANCE_REF
+        ):
+            raise AttestationError("EXTERNAL_ATTESTATION_SYNTHETIC_FIXTURE_CONTRADICTION")
+        if (
+            lifecycle == "ACCEPTED_EXTERNAL"
+            and not _GITHUB_PR_COMMENT_REF.fullmatch(str(value["reviewer_acceptance_ref"]))
+        ):
             raise AttestationError("EXTERNAL_ATTESTATION_ACCEPTANCE_REFERENCE_INVALID")
         item = cls(
             authority_id=str(value["authority_id"]),
@@ -222,8 +236,8 @@ class CanonicalVerifier:
     def __init__(self, attestation: ExternalAttestation, provider_evidence: ProviderEvidenceAggregate) -> None:
         if not isinstance(attestation, ExternalAttestation):
             raise AttestationError("CANONICAL_VERIFIER_REQUIRES_EXTERNAL_ATTESTATION")
-        if attestation.lifecycle != "ACCEPTED_EXTERNAL":
-            raise AttestationError("CANONICAL_VERIFIER_REQUIRES_ACCEPTED_EXTERNAL_ATTESTATION")
+        if attestation.lifecycle not in {"SYNTHETIC_FIXTURE_ACCEPTED", "ACCEPTED_EXTERNAL"}:
+            raise AttestationError("CANONICAL_VERIFIER_REQUIRES_ACCEPTED_ATTESTATION")
         if not hmac.compare_digest(attestation.runtime_identity_digest, runtime_identity_digest()):
             raise AttestationError("EXTERNAL_ATTESTATION_RUNTIME_IDENTITY_MISMATCH")
         if not isinstance(provider_evidence, ProviderEvidenceAggregate):
