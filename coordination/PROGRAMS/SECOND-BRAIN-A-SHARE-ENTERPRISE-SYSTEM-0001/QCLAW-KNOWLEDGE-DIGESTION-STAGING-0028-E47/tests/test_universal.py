@@ -471,6 +471,84 @@ class TestDigest003(unittest.TestCase):
         self.assertIn("FAIL", c003.content)
 
 
+# ═══ ROUND-TRIP — serialized content_hash is real, stable, timestamp-immune ═══
+
+class TestSerializedContentHashRoundTrip(unittest.TestCase):
+    """JSON/YAML on disk must contain the real content_hash, not PLACEHOLDER."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.td = tempfile.TemporaryDirectory()
+        cls.hashes = {}
+        for fn in [migrate_digest_001, migrate_digest_002, migrate_digest_003, migrate_digest_004, migrate_digest_005]:
+            pkg = fn()
+            ch = pkg.content_hash()
+            jp, yp = serialize_package(pkg, cls.td.name)
+            cls.hashes[pkg.package_id] = {"pkg_hash": ch, "json_path": jp, "yaml_path": yp}
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.td.cleanup()
+
+    def _check_file(self, path, expected_hash):
+        with open(path, "r", encoding="utf-8") as f:
+            d = json.load(f)
+        actual = d.get("content_hash")
+        self.assertIsNotNone(actual, f"{path}: missing content_hash")
+        self.assertNotEqual(actual, "PLACEHOLDER", f"{path}: content_hash is still PLACEHOLDER")
+        self.assertEqual(actual, expected_hash,
+            f"{path}: content_hash={actual} != pkg.content_hash()={expected_hash}")
+
+    def test_001_json_hash_equals_pkg_hash(self):
+        self._check_file(self.hashes["E47-DIGEST-001"]["json_path"],
+                         self.hashes["E47-DIGEST-001"]["pkg_hash"])
+
+    def test_001_yaml_hash_equals_pkg_hash(self):
+        # YAML may be fallback JSON — still check
+        path = self.hashes["E47-DIGEST-001"]["yaml_path"]
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertNotIn("PLACEHOLDER", content)
+        self.assertIn(self.hashes["E47-DIGEST-001"]["pkg_hash"], content)
+
+    def test_002_json_hash_equals_pkg_hash(self):
+        self._check_file(self.hashes["E47-DIGEST-002"]["json_path"],
+                         self.hashes["E47-DIGEST-002"]["pkg_hash"])
+
+    def test_003_json_hash_equals_pkg_hash(self):
+        self._check_file(self.hashes["E47-DIGEST-003"]["json_path"],
+                         self.hashes["E47-DIGEST-003"]["pkg_hash"])
+
+    def test_004_json_hash_equals_pkg_hash(self):
+        self._check_file(self.hashes["E47-DIGEST-004"]["json_path"],
+                         self.hashes["E47-DIGEST-004"]["pkg_hash"])
+
+    def test_005_json_hash_equals_pkg_hash(self):
+        self._check_file(self.hashes["E47-DIGEST-005"]["json_path"],
+                         self.hashes["E47-DIGEST-005"]["pkg_hash"])
+
+    def test_hash_stable_across_time(self):
+        """Re-calling migrate produces same content_hash despite different timestamps."""
+        import time
+        h1 = migrate_digest_001().content_hash()
+        time.sleep(0.1)
+        h2 = migrate_digest_001().content_hash()
+        self.assertEqual(h1, h2,
+            f"Hash changed across re-generation: {h1} -> {h2}. Timestamp leaked into hash?")
+
+    def test_hash_stable_after_serialize_roundtrip(self):
+        """pkg.content_hash() before and after serialize_package must match."""
+        for fn in [migrate_digest_001, migrate_digest_002]:
+            pkg1 = fn()
+            h_before = pkg1.content_hash()
+            with tempfile.TemporaryDirectory() as td:
+                serialize_package(pkg1, td)
+            pkg2 = fn()
+            h_after = pkg2.content_hash()
+            self.assertEqual(h_before, h_after,
+                f"{pkg1.package_id} hash drifted: {h_before} -> {h_after}")
+
+
 class TestLegacyDigestPackageIdentity(unittest.TestCase):
     def test_package_ids(self):
         for fn in [migrate_digest_001, migrate_digest_002, migrate_digest_003, migrate_digest_004, migrate_digest_005]:

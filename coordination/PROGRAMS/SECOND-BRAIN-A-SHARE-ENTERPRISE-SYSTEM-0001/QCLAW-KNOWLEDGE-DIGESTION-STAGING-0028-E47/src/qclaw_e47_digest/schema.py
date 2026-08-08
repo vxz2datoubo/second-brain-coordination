@@ -309,7 +309,7 @@ class CandidateKnowledgePackage:
             "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
             "package_id": self.package_id,
             "package_version": self.package_version,
-            "content_hash": "PLACEHOLDER",  # replaced by caller after hash computed
+            "content_hash": self.content_hash(),
             "source": self.source.to_dict(),
             "summary": self.summary,
             "atoms": [a.to_dict() for a in self.atoms],
