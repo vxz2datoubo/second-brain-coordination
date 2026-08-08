@@ -7,7 +7,7 @@ import importlib
 import json
 import unittest
 
-from e60_runtime import AttestationError, CanonicalVerifier, ExternalAttestation, SourceSpanGrant
+from e60_runtime import AttestationError, CanonicalVerifier, ExternalAttestation, SourceSpanGrant, runtime_identity_digest
 
 
 _N = int(
@@ -31,7 +31,7 @@ def _attestation_payload(**overrides: object) -> dict[str, object]:
     payload: dict[str, object] = {
         "authority_id": "synthetic-authority-1",
         "source_digest": "a" * 64,
-        "runtime_identity_digest": "b" * 64,
+        "runtime_identity_digest": runtime_identity_digest(),
         "tested_head": "1" * 40,
         "tested_parent": "2" * 40,
         "tested_tree": "3" * 40,
@@ -106,6 +106,12 @@ class AttestationBoundaryTests(unittest.TestCase):
         payload = _attestation_payload(lifecycle="PENDING_EXTERNAL", reviewer_acceptance_ref="GITHUB_COMMIT:abcdef")
         with self.assertRaisesRegex(AttestationError, "PENDING_CONTRADICTION"):
             ExternalAttestation.from_mapping(payload)
+
+    def test_attested_runtime_identity_mismatch_cannot_create_verifier(self) -> None:
+        payload = _attestation_payload(runtime_identity_digest="b" * 64)
+        attestation = ExternalAttestation.from_mapping(payload)
+        with self.assertRaisesRegex(AttestationError, "RUNTIME_IDENTITY_MISMATCH"):
+            CanonicalVerifier(attestation)
 
 
 if __name__ == "__main__":

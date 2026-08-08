@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import time
 
 from e60_runtime.execution import WholeTaskResourceLease
 from e60_runtime.resource_policy import (
@@ -9,7 +10,7 @@ from e60_runtime.resource_policy import (
     ResourceProfile,
     WorkloadClass,
 )
-from e60_runtime.resource_tree import ProcessLifecycleError, descendant_root_program
+from e60_runtime.resource_tree import ProcessLifecycleError, ResourceGate, descendant_root_program
 
 
 class _Samples:
@@ -123,6 +124,15 @@ class AdaptiveResourcePolicyTests(unittest.TestCase):
                     purpose="over-cap",
                     expected_descendants=2,
                 )
+
+    def test_observed_process_recording_remains_available_for_cleanup_under_pressure(self) -> None:
+        gate = ResourceGate("E60-observation-only", cpu_throttle_percent=0.0, cpu_throttle_sustain_seconds=0.0)
+        with gate:
+            gate._last_snapshot = {"available_ram_gib": 16.0, "cpu_percent": 100.0}
+            gate._sampled_at = time.monotonic()
+            with self.assertRaisesRegex(RuntimeError, "CPU_THROTTLE_REQUIRED"):
+                gate.admit(1)
+            gate.record_observed(1)
 
 
 if __name__ == "__main__":

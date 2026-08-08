@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 import hmac
 import json
+from pathlib import Path
 import re
 from typing import Any, Mapping
 
@@ -63,6 +64,25 @@ def _verify_signature(payload: Mapping[str, object], signature_hex: object) -> b
         "big",
     )[-len(digest):]
     return hmac.compare_digest(recovered, digest)
+
+
+def runtime_identity_digest() -> str:
+    """Hash the complete runtime package, excluding generated artifacts.
+
+    A signed attestation binds this exact package manifest.  The function is
+    intentionally deterministic: a new private bootstrap module, a modified
+    verifier, or any other Python source change makes a previously attested
+    runtime ineligible before a verifier instance is created.
+    """
+
+    package_root = Path(__file__).resolve().parent
+    digest = sha256()
+    for source in sorted(package_root.rglob("*.py"), key=lambda item: item.relative_to(package_root).as_posix()):
+        relative = source.relative_to(package_root).as_posix().encode("utf-8")
+        digest.update(len(relative).to_bytes(4, "big"))
+        digest.update(relative)
+        digest.update(sha256(source.read_bytes()).digest())
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
@@ -208,6 +228,8 @@ class CanonicalVerifier:
     def __init__(self, attestation: ExternalAttestation) -> None:
         if not isinstance(attestation, ExternalAttestation):
             raise AttestationError("CANONICAL_VERIFIER_REQUIRES_EXTERNAL_ATTESTATION")
+        if not hmac.compare_digest(attestation.runtime_identity_digest, runtime_identity_digest()):
+            raise AttestationError("EXTERNAL_ATTESTATION_RUNTIME_IDENTITY_MISMATCH")
         self._attestation = attestation
 
     @property

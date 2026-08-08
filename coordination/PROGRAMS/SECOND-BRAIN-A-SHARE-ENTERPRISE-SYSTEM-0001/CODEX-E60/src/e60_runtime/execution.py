@@ -75,13 +75,14 @@ class WholeTaskResourceLease:
         timeout_seconds: float = 5.0,
         expected_descendants: int = 0,
         workload: WorkloadClass = WorkloadClass.LIFECYCLE_CANARY,
+        env: dict[str, str] | None = None,
     ) -> ExecutionReceipt:
         if not self._entered:
             raise ProcessLifecycleError("WHOLE_TASK_RESOURCE_LEASE_NOT_HELD")
         if expected_descendants > 1:
             raise ProcessLifecycleError("LOCAL_CANARY_DESCENDANT_CAP_EXCEEDED")
         resource_decision = self._resources.require_local_spawn(workload)
-        root_pid = self._tree.spawn(command, purpose=purpose)
+        root_pid = self._tree.spawn(command, purpose=purpose, env=env)
         exit_code: int | None = None
         try:
             if expected_descendants:

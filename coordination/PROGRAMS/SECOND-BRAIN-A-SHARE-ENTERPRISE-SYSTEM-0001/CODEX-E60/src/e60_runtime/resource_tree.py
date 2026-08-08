@@ -376,6 +376,28 @@ class ResourceGate:
             }
         )
 
+    def record_observed(self, owned_processes: int, cpu_workers: int = 0) -> None:
+        """Record already-owned processes without turning cleanup into admission.
+
+        Resource pressure must stop a *new* root before spawn.  Once a root or
+        descendant is known to this task, cleanup has priority even if the
+        desktop becomes busy; raising an admission error while discovering an
+        already-owned child could otherwise leave it running.
+        """
+
+        if not self._held:
+            raise ResourceViolation("HEAVY_STAGE_MUTEX_NOT_HELD")
+        self._write_state(
+            {
+                "task_id": self.task_id,
+                "owner_pid": self._owner_pid,
+                "owned_processes": owned_processes,
+                "cpu_workers": cpu_workers,
+                "observation_only": True,
+                "snapshot": self._environment_snapshot(),
+            }
+        )
+
     def release(self) -> None:
         if not self._held:
             return
@@ -472,7 +494,7 @@ class OwnedProcessTree:
 
     def _refresh_peak(self) -> None:
         self.peak_owned_processes = max(self.peak_owned_processes, len(self._owned))
-        self.gate.admit(len(self._owned))
+        self.gate.record_observed(len(self._owned))
 
     def discover_descendants(self) -> tuple[ProcessIdentity, ...]:
         snapshot = _windows_snapshot()

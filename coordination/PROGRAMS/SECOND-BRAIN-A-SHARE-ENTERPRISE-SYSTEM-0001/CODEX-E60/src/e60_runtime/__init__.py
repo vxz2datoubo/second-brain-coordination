@@ -9,6 +9,7 @@ from .attestation import (
     CanonicalVerifier,
     ExternalAttestation,
     SourceSpanGrant,
+    runtime_identity_digest,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "CanonicalVerifier",
     "ExternalAttestation",
     "SourceSpanGrant",
+    "runtime_identity_digest",
 ]
