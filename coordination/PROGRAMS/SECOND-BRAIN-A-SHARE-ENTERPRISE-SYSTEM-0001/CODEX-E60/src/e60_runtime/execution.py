@@ -67,6 +67,11 @@ class WholeTaskResourceLease:
             self._gate.release()
             self._entered = False
 
+    def report(self) -> dict[str, object]:
+        """Return the current ownership-scoped state for exception-path tests."""
+
+        return self._tree.report()
+
     def execute(
         self,
         command: Sequence[str],
