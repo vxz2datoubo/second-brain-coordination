@@ -1,0 +1,116 @@
+{
+  "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
+  "package_id": "E47-DIGEST-005",
+  "package_version": 1,
+  "content_hash": "c237cca17ff0d9ca",
+  "source": {
+    "source_id": "workspace-kelly-thorp-0011",
+    "source_url": "file://workspace/qclaw-kelly-thorp-0011-artifact-20260722.md",
+    "source_title": "QCLAW Kelly-Thorp Position Sizing Knowledge",
+    "source_hash": "33ba624363c0a8527d4ecc138bd04aa16a1dcde4258a7e380955ecbb9f29ae06",
+    "source_size_bytes": 6416,
+    "ingested_at": "2026-08-08T06:24:36.398703+00:00"
+  },
+  "summary": "3 atoms (1 concept, 1 failure condition, 1 indicator). 2 relations. 2 unknowns. 1 memory record. Kelly criterion and practice constraints.",
+  "atoms": [
+    {
+      "atom_id": "K001",
+      "atom_type": "CONCEPT",
+      "content": "Kelly criterion: optimal bet fraction f = (bp - q) / b where b=odds, p=win probability, q=loss probability",
+      "source_spans": [
+        {
+          "byte_start": 0,
+          "byte_end": 6416,
+          "line_start": 1,
+          "line_end": 92,
+          "span_label": "full document"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "HIGH",
+      "scope": "",
+      "invalidation_conditions": ""
+    },
+    {
+      "atom_id": "K002",
+      "atom_type": "FAILURE_CONDITION",
+      "content": "Full Kelly risks: (1) parameter estimation error → overbetting (2) consecutive loss sequence → amplified drawdown (3) non-normal returns → non-zero ruin probability",
+      "source_spans": [
+        {
+          "byte_start": 0,
+          "byte_end": 6416,
+          "line_start": 1,
+          "line_end": 92,
+          "span_label": "full document"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "MEDIUM",
+      "scope": "",
+      "invalidation_conditions": ""
+    },
+    {
+      "atom_id": "K003",
+      "atom_type": "INDICATOR",
+      "content": "Practical practice: Fractional Kelly (1/2, 1/4) reduces ruin probability and increases robustness vs parameter uncertainty",
+      "source_spans": [
+        {
+          "byte_start": 0,
+          "byte_end": 6416,
+          "line_start": 1,
+          "line_end": 92,
+          "span_label": "full document"
+        }
+      ],
+      "evidence_kind": "INFERENCE",
+      "confidence": "MEDIUM",
+      "scope": "",
+      "invalidation_conditions": ""
+    }
+  ],
+  "relations": [
+    {
+      "source_atom_id": "K003",
+      "target_atom_id": "K002",
+      "relation_type": "REFINES",
+      "span_index": -1
+    },
+    {
+      "source_atom_id": "K002",
+      "target_atom_id": "K001",
+      "relation_type": "REFINES",
+      "span_index": -1
+    }
+  ],
+  "contradictions": [],
+  "unknowns": [
+    {
+      "unknown_id": "U013",
+      "question": "How to accurately estimate b (odds) and p (win probability) in A-share intraday context?",
+      "related_atom_ids": [
+        "K001"
+      ]
+    },
+    {
+      "unknown_id": "U014",
+      "question": "Optimal Fractional Kelly ratio for A-share intraday environment?",
+      "related_atom_ids": [
+        "K003"
+      ]
+    }
+  ],
+  "memory_records": [
+    {
+      "record_id": "M006",
+      "statement": "Full Kelly is too risky for actual trading — Fractional Kelly (1/2 or 1/4) is the robust choice",
+      "memory_zone": "CANDIDATE",
+      "confidence": "MEDIUM",
+      "source_atom_ids": [
+        "K002",
+        "K003"
+      ],
+      "evidence_basis": "QCLAW Kelly-Thorp epoch 0011 delivery"
+    }
+  ],
+  "skills": []
+}

@@ -1,0 +1,143 @@
+schema: QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1
+package_id: E47-DIGEST-003
+package_version: 1
+content_hash: c73b4b150c730d33
+source:
+  source_id: workspace-p1-scorecard
+  source_url: file://workspace/P1-DIMENSION-SCORECARD.yaml
+  source_title: 'P1 Frozen-Instrument Audit: Codex PR #79 D0 Dimension Scorecard'
+  source_hash: 3a532523b14cc6bdb8420d51447339b4bfa5139b755641b693c2da2c665b42f0
+  source_size_bytes: 40580
+  ingested_at: '2026-08-08T06:24:36.397034+00:00'
+summary: 6 atoms (1 data source, 1 mechanism, 1 failure condition, 1 indicator, 1 verification, 1 action). 5 relations. 2
+  unknowns. 1 memory record. P1 audit of Codex D0 — 0.237 score, FAIL.
+atoms:
+- atom_id: C001
+  atom_type: DATA_SOURCE
+  content: 'P1 Frozen-Instrument Audit: Codex PR #79 D0 — overall weighted score 0.237 (P1 threshold 0.70, gap -0.463). 10
+    dimensions, 42 questions, 4 blocking modes triggered.'
+  source_spans:
+  - byte_start: 39572
+    byte_end: 39609
+    line_start: 884
+    line_end: 884
+    span_label: threshold_result
+  evidence_kind: INFERENCE
+  confidence: HIGH
+  scope: '2026-07-24 | Target: Codex D0 design phase'
+  invalidation_conditions: ''
+- atom_id: C002
+  atom_type: MECHANISM
+  content: 'Scoring formula: per-dimension weighted = raw/max_raw, overall = sum(weighted_d * dim_weight). 0.0=FAIL, 0.5=PARTIAL,
+    1.0=SATISFIES_CONTRACT.'
+  source_spans:
+  - byte_start: 1445
+    byte_end: 1484
+    line_start: 31
+    line_end: 31
+    span_label: scoring_formula
+  evidence_kind: SOURCE_EXTRACT
+  confidence: HIGH
+  scope: ''
+  invalidation_conditions: ''
+- atom_id: C003
+  atom_type: FAILURE_CONDITION
+  content: 'All 4 blocking failure modes triggered: BAR_ONLY_VIOLATION (contracts at CANDIDATE not FROZEN), SELF_VERIFICATION_LOOP
+    (verifier shares unverified brain_core), LOOK_AHEAD_LEAKAGE (W3/W7 forward references), MISSING_MANDATORY_OBJECT (13/42
+    questions).'
+  source_spans:
+  - byte_start: 33021
+    byte_end: 40580
+    line_start: 757
+    line_end: 901
+    span_label: blocking_modes_and_remediation
+  evidence_kind: SOURCE_EXTRACT
+  confidence: HIGH
+  scope: ''
+  invalidation_conditions: ''
+- atom_id: C004
+  atom_type: INDICATOR
+  content: 'Strongest: D2 Contract Completeness (0.375) and D4 Traceability (0.375).  Weakest: D1 Governance / D3 Data / D5
+    Reproducibility / D10 Self-Containment (all 0.125).'
+  source_spans:
+  - byte_start: 39572
+    byte_end: 39609
+    line_start: 884
+    line_end: 884
+    span_label: threshold_result
+  evidence_kind: INFERENCE
+  confidence: MEDIUM
+  scope: ''
+  invalidation_conditions: ''
+- atom_id: C005
+  atom_type: VERIFICATION_METHOD
+  content: D0 design phase inherently cannot pass P1 frozen-instrument audit — P1 demands executable artifacts, frozen contracts,
+    independent verification, and boundary closure.
+  source_spans:
+  - byte_start: 39572
+    byte_end: 39609
+    line_start: 884
+    line_end: 884
+    span_label: threshold_result
+  evidence_kind: SOURCE_EXTRACT
+  confidence: HIGH
+  scope: ''
+  invalidation_conditions: ''
+- atom_id: C006
+  atom_type: EXECUTABLE_ACTION
+  content: 'Remediation path: (1) Resolve W3/W7 interfaces, (2) Build runnable validation harness, (3) Implement labeler,
+    (4) Populate cost values, (5) Measure capacity, (6) Establish untradeable rate, (7) Obtain authority sign-off.'
+  source_spans:
+  - byte_start: 33021
+    byte_end: 40580
+    line_start: 757
+    line_end: 901
+    span_label: blocking_modes_and_remediation
+  evidence_kind: INFERENCE
+  confidence: MEDIUM
+  scope: D0→D1→P1 transition
+  invalidation_conditions: ''
+relations:
+- source_atom_id: C001
+  target_atom_id: C002
+  relation_type: DEPENDS_ON
+  span_index: -1
+- source_atom_id: C003
+  target_atom_id: C001
+  relation_type: SUPPORTS
+  span_index: -1
+- source_atom_id: C004
+  target_atom_id: C001
+  relation_type: REFINES
+  span_index: -1
+- source_atom_id: C006
+  target_atom_id: C003
+  relation_type: DEPENDS_ON
+  span_index: -1
+- source_atom_id: C005
+  target_atom_id: C003
+  relation_type: RAISES_UNKNOWN
+  span_index: -1
+contradictions: []
+unknowns:
+- unknown_id: U009
+  question: 'D0→D1 transition: will dimension scores improve enough to reach P1 threshold 0.70?'
+  related_atom_ids:
+  - C001
+  - C003
+- unknown_id: U010
+  question: Was the independent validation harness (Q37 requirement) ever built in subsequent QCLAW/Codex epochs?
+  related_atom_ids:
+  - C005
+memory_records:
+- record_id: M004
+  statement: P1 frozen-instrument audit of Codex D0 scored 0.237 — FAIL by 46.3 points. D0 design phase structurally incompatible
+    with P1 audit.
+  memory_zone: CANDIDATE
+  confidence: HIGH
+  source_atom_ids:
+  - C001
+  - C003
+  - C005
+  evidence_basis: P1 DIMENSION SCORECARD (2026-07-24) — 42 questions, 10 dimensions
+skills: []
