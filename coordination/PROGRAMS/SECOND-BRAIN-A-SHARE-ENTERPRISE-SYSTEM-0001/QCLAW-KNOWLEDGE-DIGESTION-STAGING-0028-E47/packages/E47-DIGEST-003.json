@@ -2,42 +2,42 @@
   "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
   "package_id": "E47-DIGEST-003",
   "package_version": 1,
-  "content_hash": "c73b4b150c730d33",
+  "content_hash": "861bbe68524a5795",
   "source": {
     "source_id": "workspace-p1-scorecard",
     "source_url": "file://workspace/P1-DIMENSION-SCORECARD.yaml",
-    "source_title": "P1 Frozen-Instrument Audit: Codex PR #79 D0 Dimension Scorecard",
+    "source_title": "P1 Frozen-Instrument Audit: Codex PR #79 D0",
     "source_hash": "3a532523b14cc6bdb8420d51447339b4bfa5139b755641b693c2da2c665b42f0",
     "source_size_bytes": 40580,
-    "ingested_at": "2026-08-08T06:24:36.397034+00:00"
+    "ingested_at": "2026-08-08T07:45:44.611014+00:00"
   },
-  "summary": "6 atoms (1 data source, 1 mechanism, 1 failure condition, 1 indicator, 1 verification, 1 action). 5 relations. 2 unknowns. 1 memory record. P1 audit of Codex D0 — 0.237 score, FAIL.",
+  "summary": "6 atoms (1 data source, 1 mechanism, 1 failure condition, 1 indicator, 1 verification, 1 action). 5 relations. 2 unknowns. 1 memory. P1 audit of Codex D0 — 0.237 score, FAIL.",
   "atoms": [
     {
       "atom_id": "C001",
       "atom_type": "DATA_SOURCE",
-      "content": "P1 Frozen-Instrument Audit: Codex PR #79 D0 — overall weighted score 0.237 (P1 threshold 0.70, gap -0.463). 10 dimensions, 42 questions, 4 blocking modes triggered.",
+      "content": "overall_weighted_score: 0.237",
       "source_spans": [
         {
-          "byte_start": 39572,
-          "byte_end": 39609,
-          "line_start": 884,
-          "line_end": 884,
-          "span_label": "threshold_result"
+          "byte_start": 30978,
+          "byte_end": 31007,
+          "line_start": 717,
+          "line_end": 717,
+          "span_label": "overall_weighted_score"
         }
       ],
-      "evidence_kind": "INFERENCE",
+      "evidence_kind": "SOURCE_EXTRACT",
       "confidence": "HIGH",
-      "scope": "2026-07-24 | Target: Codex D0 design phase",
+      "scope": "",
       "invalidation_conditions": ""
     },
     {
       "atom_id": "C002",
       "atom_type": "MECHANISM",
-      "content": "Scoring formula: per-dimension weighted = raw/max_raw, overall = sum(weighted_d * dim_weight). 0.0=FAIL, 0.5=PARTIAL, 1.0=SATISFIES_CONTRACT.",
+      "content": "\"sum(weighted_d * dim_weight)\"",
       "source_spans": [
         {
-          "byte_start": 1445,
+          "byte_start": 1454,
           "byte_end": 1484,
           "line_start": 31,
           "line_end": 31,
@@ -52,14 +52,14 @@
     {
       "atom_id": "C003",
       "atom_type": "FAILURE_CONDITION",
-      "content": "All 4 blocking failure modes triggered: BAR_ONLY_VIOLATION (contracts at CANDIDATE not FROZEN), SELF_VERIFICATION_LOOP (verifier shares unverified brain_core), LOOK_AHEAD_LEAKAGE (W3/W7 forward references), MISSING_MANDATORY_OBJECT (13/42 questions).",
+      "content": "\"FAIL — BELOW P1 THRESHOLD\"",
       "source_spans": [
         {
-          "byte_start": 33021,
-          "byte_end": 40580,
-          "line_start": 757,
-          "line_end": 901,
-          "span_label": "blocking_modes_and_remediation"
+          "byte_start": 39580,
+          "byte_end": 39609,
+          "line_start": 884,
+          "line_end": 884,
+          "span_label": "threshold_result"
         }
       ],
       "evidence_kind": "SOURCE_EXTRACT",
@@ -70,14 +70,14 @@
     {
       "atom_id": "C004",
       "atom_type": "INDICATOR",
-      "content": "Strongest: D2 Contract Completeness (0.375) and D4 Traceability (0.375).  Weakest: D1 Governance / D3 Data / D5 Reproducibility / D10 Self-Containment (all 0.125).",
+      "content": "Agent对10维度评分分布的综合分析: 最强维度D2(Contract Completeness, 0.375)和D4(Traceability, 0.375); 最弱维度D1/D3/D5/D10(均0.125)。总分0.237 vs P1阈值0.70, 差距-0.463。",
       "source_spans": [
         {
-          "byte_start": 39572,
-          "byte_end": 39609,
-          "line_start": 884,
-          "line_end": 884,
-          "span_label": "threshold_result"
+          "byte_start": 29217,
+          "byte_end": 31699,
+          "line_start": 635,
+          "line_end": 736,
+          "span_label": "overall_scoring_table"
         }
       ],
       "evidence_kind": "INFERENCE",
@@ -88,14 +88,14 @@
     {
       "atom_id": "C005",
       "atom_type": "VERIFICATION_METHOD",
-      "content": "D0 design phase inherently cannot pass P1 frozen-instrument audit — P1 demands executable artifacts, frozen contracts, independent verification, and boundary closure.",
+      "content": "A D0 plan cannot pass a frozen-instrument",
       "source_spans": [
         {
-          "byte_start": 39572,
-          "byte_end": 39609,
-          "line_start": 884,
-          "line_end": 884,
-          "span_label": "threshold_result"
+          "byte_start": 31562,
+          "byte_end": 31603,
+          "line_start": 732,
+          "line_end": 732,
+          "span_label": "methodological_conclusion"
         }
       ],
       "evidence_kind": "SOURCE_EXTRACT",
@@ -106,19 +106,19 @@
     {
       "atom_id": "C006",
       "atom_type": "EXECUTABLE_ACTION",
-      "content": "Remediation path: (1) Resolve W3/W7 interfaces, (2) Build runnable validation harness, (3) Implement labeler, (4) Populate cost values, (5) Measure capacity, (6) Establish untradeable rate, (7) Obtain authority sign-off.",
+      "content": "Agent从blocking_failure_modes节的remediation字段综合的修复路线: (1)解决W3/W7接口; (2)构建可运行验证harness; (3)实现labeler; (4)填充cost值; (5)测量capacity; (6)建立untradeable rate; (7)获得authority sign-off。",
       "source_spans": [
         {
           "byte_start": 33021,
-          "byte_end": 40580,
+          "byte_end": 39461,
           "line_start": 757,
-          "line_end": 901,
-          "span_label": "blocking_modes_and_remediation"
+          "line_end": 880,
+          "span_label": "blocking_modes_section"
         }
       ],
       "evidence_kind": "INFERENCE",
       "confidence": "MEDIUM",
-      "scope": "D0→D1→P1 transition",
+      "scope": "D0→D1过渡",
       "invalidation_conditions": ""
     }
   ],
@@ -158,7 +158,7 @@
   "unknowns": [
     {
       "unknown_id": "U009",
-      "question": "D0→D1 transition: will dimension scores improve enough to reach P1 threshold 0.70?",
+      "question": "D0→D1过渡后各维度评分能否达到P1阈值0.70? (当前0.237)",
       "related_atom_ids": [
         "C001",
         "C003"
@@ -166,7 +166,7 @@
     },
     {
       "unknown_id": "U010",
-      "question": "Was the independent validation harness (Q37 requirement) ever built in subsequent QCLAW/Codex epochs?",
+      "question": "独立验证harness(Q37要求)是否在后续QCLAW/Codex epoch中被构建?",
       "related_atom_ids": [
         "C005"
       ]
@@ -175,15 +175,15 @@
   "memory_records": [
     {
       "record_id": "M004",
-      "statement": "P1 frozen-instrument audit of Codex D0 scored 0.237 — FAIL by 46.3 points. D0 design phase structurally incompatible with P1 audit.",
+      "statement": "[AGENT SYNTHESIS, CANDIDATE] P1冻结工具审计: Codex D0得分0.237/1.0, P1阈值0.70, 差距-0.463。 4个阻断模式全部触发。D0设计阶段与P1冻结工具审计在结构上不兼容。 此结论来源于P1 DIMENSION SCORECARD的审计结果, 非独立实证。",
       "memory_zone": "CANDIDATE",
-      "confidence": "HIGH",
+      "confidence": "MEDIUM",
       "source_atom_ids": [
         "C001",
         "C003",
         "C005"
       ],
-      "evidence_basis": "P1 DIMENSION SCORECARD (2026-07-24) — 42 questions, 10 dimensions"
+      "evidence_basis": "P1 DIMENSION SCORECARD (2026-07-24), 42问题10维度"
     }
   ],
   "skills": []

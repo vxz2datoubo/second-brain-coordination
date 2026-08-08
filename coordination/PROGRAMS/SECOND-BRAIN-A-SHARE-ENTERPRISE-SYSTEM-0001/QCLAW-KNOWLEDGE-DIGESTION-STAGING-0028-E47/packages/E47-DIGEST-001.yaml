@@ -1,120 +1,125 @@
 schema: QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1
 package_id: E47-DIGEST-001
 package_version: 1
-content_hash: 7ff889ee69b7bc70
+content_hash: 67a0350d83f9406c
 source:
   source_id: issue-188
   source_url: https://github.com/vxz2datoubo/second-brain-coordination/issues/188
   source_title: A股弱驱动状态下日内极值间隔研究与技能化
   source_hash: 172c5680f8248e6854dc629ab7b7ff917816ba58280acfe9cd031871cce39b09
   source_size_bytes: 873
-  ingested_at: '2026-08-08T06:14:56.131455+00:00'
+  ingested_at: '2026-08-08T07:45:44.486338+00:00'
 summary: 8 atoms (1 concept, 1 mechanism, 2 scope, 1 hypothesis, 1 verification, 1 failure, 1 action). 7 relations. 5 unknowns.
-  2 candidate memory records. 1 candidate skill. Hypothesis UNVERIFIED_CANDIDATE.
+  2 memory. 1 skill. Hypothesis UNVERIFIED_CANDIDATE.
 atoms:
 - atom_id: A001
   atom_type: CONCEPT
-  content: '弱驱动状态 (weak-drive state): 市场没有强烈买入或卖出方向，成交量偏低、波动收窄的日内时段'
+  content: '弱驱动状态 (weak-drive): 市场无强烈买卖方向、成交量偏低、波动收窄的日内时段。标题和boundary字段中均隐含此概念，但原文未给出精确定义。'
   source_spans:
   - byte_start: 0
-    byte_end: 873
+    byte_end: 60
     line_start: 1
-    line_end: 21
-    span_label: full source — weak-drive concept derived from title + boundary
+    line_end: 1
+    span_label: title_line
+  - byte_start: 395
+    byte_end: 419
+    line_start: 8
+    line_end: 8
+    span_label: boundary
   evidence_kind: INFERENCE
   confidence: MEDIUM
-  scope: A股日内交易时段
-  invalidation_conditions: 如果当日有强烈方向性驱动（重大新闻/大单流入），此状态不成立
+  scope: A股日内
+  invalidation_conditions: 若当日有强烈方向性驱动则此状态不成立
 - atom_id: A002
   atom_type: MECHANISM
-  content: 弱驱动状态下，日内阶段最高点与最低点之间的时间间隔常约为20至30分钟
+  content: 在没有强烈买入或卖出时，日内阶段最高点与最低点常相差约20至30分钟
   source_spans:
-  - byte_start: 270
-    byte_end: 384
+  - byte_start: 289
+    byte_end: 383
     line_start: 7
     line_end: 7
     span_label: user_observation
   evidence_kind: USER_CLAIM
   confidence: LOW
   scope: A股弱驱动日内
-  invalidation_conditions: 需实证验证；如果20-30分钟间隔在随机游走中出现概率≥p_threshold则假设被拒绝
+  invalidation_conditions: 需实证验证；若20-30min间隔在随机游走中出现概率≥阈值则假设被拒绝
 - atom_id: A003
   atom_type: SCOPE
-  content: 该假设仅适用于弱驱动状态下的A股日内交易，不适用于强趋势日、开盘/收盘异常波动时段
+  content: research_only / NO_TRADE
   source_spans:
-  - byte_start: 385
-    byte_end: 419
-    line_start: 8
-    line_end: 8
-    span_label: boundary
-  evidence_kind: SOURCE_EXTRACT
-  confidence: MEDIUM
-  scope: A股日内
-  invalidation_conditions: ''
-- atom_id: A004
-  atom_type: HYPOTHESIS
-  content: 弱驱动极值间隔模式可能源于：市场在无方向时的均值回归惯性 + 做市商价差约束
-  source_spans:
-  - byte_start: 270
-    byte_end: 384
-    line_start: 7
-    line_end: 7
-    span_label: user_observation
-  evidence_kind: INFERENCE
-  confidence: LOW
-  scope: A股日内
-  invalidation_conditions: 如果实证表明极值间隔服从均匀分布而非聚类，此机制推测失效
-- atom_id: A005
-  atom_type: VERIFICATION_METHOD
-  content: 验证方法：对A股历史日内数据，筛选弱驱动时段（可用ATR/成交量分位数定义），统计阶段极值间隔分布并与随机游走基线比较
-  source_spans:
-  - byte_start: 521
-    byte_end: 595
-    line_start: 13
-    line_end: 14
-    span_label: research_question
-  evidence_kind: INFERENCE
-  confidence: MEDIUM
-  scope: 研究设计级别
-  invalidation_conditions: ''
-- atom_id: A006
-  atom_type: SCOPE
-  content: 研究边界：research_only / NO_TRADE — Codex派发未授权（E56活跃中），WorkBuddy运行时暂停
-  source_spans:
-  - byte_start: 385
+  - byte_start: 395
     byte_end: 419
     line_start: 8
     line_end: 8
     span_label: boundary
   evidence_kind: SOURCE_EXTRACT
   confidence: HIGH
-  scope: ''
+  scope: A股日内
+  invalidation_conditions: ''
+- atom_id: A004
+  atom_type: HYPOTHESIS
+  content: 弱驱动极值间隔模式的可能来源：市场无方向时的均值回归惯性 + 做市商价差约束。此推测原文中无直接证据，仅从observation派生。
+  source_spans:
+  - byte_start: 289
+    byte_end: 383
+    line_start: 7
+    line_end: 7
+    span_label: user_observation
+  evidence_kind: INFERENCE
+  confidence: LOW
+  scope: A股日内
+  invalidation_conditions: 若实证表明极值间隔服从均匀分布而非聚类，此推测失效
+- atom_id: A005
+  atom_type: VERIFICATION_METHOD
+  content: '验证方案(来自原文Validation design + agent细化): ①定义弱驱动量化标准(ATR/成交量分位数); ②识别日内阶段极值; ③计算间隔分布; ④随机游走基线比较。'
+  source_spans:
+  - byte_start: 705
+    byte_end: 872
+    line_start: 17
+    line_end: 21
+    span_label: validation_design
+  evidence_kind: INFERENCE
+  confidence: MEDIUM
+  scope: 研究设计级别
+  invalidation_conditions: ''
+- atom_id: A006
+  atom_type: SCOPE
+  content: NOT_AUTHORIZED_WHILE_E56_ACTIVE
+  source_spans:
+  - byte_start: 436
+    byte_end: 467
+    line_start: 9
+    line_end: 9
+    span_label: codex_dispatch
+  evidence_kind: SOURCE_EXTRACT
+  confidence: HIGH
+  scope: 组织边界
   invalidation_conditions: ''
 - atom_id: A007
   atom_type: FAILURE_CONDITION
-  content: 如果20-30分钟模式在强驱动日中也以相似频率出现，则弱驱动条件不是该模式的必要前提
+  content: '若20-30分钟模式在强驱动日中以相似频率出现，则弱驱动条件不是该模式的必要前提。失效条件: 对照实验中强驱动日的极值间隔分布与弱驱动日无显著差异。'
   source_spans:
-  - byte_start: 270
-    byte_end: 384
+  - byte_start: 289
+    byte_end: 383
     line_start: 7
     line_end: 7
     span_label: user_observation
   evidence_kind: INFERENCE
   confidence: MEDIUM
   scope: ''
-  invalidation_conditions: 对照实验：强驱动日vs弱驱动日的极值间隔分布比较
+  invalidation_conditions: 强驱动 vs 弱驱动对照实验
 - atom_id: A008
   atom_type: EXECUTABLE_ACTION
-  content: 后续步骤：step1 定义弱驱动量化标准（成交量<20日均量的X%、ATR<Y）→ step2 识别日内阶段极值 → step3 计算间隔分布 → step4 随机游走对照检验
+  content: '执行步骤(来源于Validation design 4步骤的细化): Step1: 量化弱驱动(成交量<20日均量X%, ATR<Y); Step2: 识别日内阶段极值点; Step3: 统计间隔分布; Step4: 随机游走对照检验。'
   source_spans:
-  - byte_start: 521
-    byte_end: 595
-    line_start: 13
-    line_end: 14
-    span_label: research_question
+  - byte_start: 705
+    byte_end: 872
+    line_start: 17
+    line_end: 21
+    span_label: validation_design
   evidence_kind: INFERENCE
   confidence: MEDIUM
-  scope: 研究执行
+  scope: 研究执行阶段
   invalidation_conditions: ''
 relations:
 - source_atom_id: A002
@@ -148,48 +153,49 @@ relations:
 contradictions: []
 unknowns:
 - unknown_id: U001
-  question: 弱驱动的精确定量定义是什么？ATR阈值、成交量分位数阈值
+  question: '弱驱动的精确定量定义: ATR阈值、成交量分位数阈值的具体数值?'
   related_atom_ids:
   - A001
   - A002
   - A008
 - unknown_id: U002
-  question: 20-30分钟间隔是否在不同市值的A股中表现一致？
+  question: 20-30min间隔在不同市值A股中是否一致表现?
   related_atom_ids:
   - A002
 - unknown_id: U003
-  question: 该模式是否存在于其他市场（港股、美股）的弱驱动状态中？
+  question: 该模式是否存在于其他市场(港股、美股)的弱驱动状态?
   related_atom_ids:
   - A002
   - A003
 - unknown_id: U004
-  question: 日内极值间隔的分布是否具有时间聚集性（如上午vs下午差异）？
+  question: 极值间隔分布是否有时间聚集性(上午vs下午)?
   related_atom_ids:
   - A002
 - unknown_id: U005
-  question: 极值间隔模式在不同年份/市场环境（牛市vs熊市）中是否稳定？
+  question: 极值间隔模式在不同年份/市场环境中是否稳定?
   related_atom_ids:
   - A002
   - A003
 memory_records:
 - record_id: M001
-  statement: A股弱驱动状态下存在20-30分钟日内极值间隔现象（待验证）
+  statement: '[USER OBSERVATION, CANDIDATE, UNVERIFIED] 用户报告A股弱驱动状态下存在20-30分钟日内极值间隔现象。此记录来源于用户个人观察(Issue #188), 非实证结论。状态:
+    UNVERIFIED_CANDIDATE。'
   memory_zone: CANDIDATE
   confidence: LOW
   source_atom_ids:
   - A002
-  evidence_basis: '用户观察(Issue #188)，状态UNVERIFIED_CANDIDATE'
+  evidence_basis: issue-188 user_observation字段, 单次观察, 未经验证
 - record_id: M002
-  statement: 弱驱动状态定义为无强烈买卖方向、成交量和波动收窄的日内时段
+  statement: '[AGENT INFERENCE, CANDIDATE] 弱驱动状态的操作性定义: 无强烈买卖方向、成交量和波动收窄的日内时段。此定义由agent从标题和boundary条件推导, 非用户明确表述。'
   memory_zone: CANDIDATE
-  confidence: MEDIUM
+  confidence: LOW
   source_atom_ids:
   - A001
-  evidence_basis: 从用户boundary条件和标题推导
+  evidence_basis: agent从source标题和boundary推导, 非用户原话
 skills:
 - skill_id: S001
   name: 弱驱动日内极值间隔检测
-  description: 在弱驱动A股日内时段检测阶段极值点，统计间隔分布并与随机游走比较
+  description: 在弱驱动A股日内时段检测阶段极值点，统计间隔分布，与随机游走基线比较。全部CANDIDATE，需E60权威。
   state: CANDIDATE
-  failure_conditions: 1) 20-30min模式在强驱动日也出现→弱驱动不是前提 2) 间隔分布与随机游走无显著差异→假设拒绝 3) 小市值股票表现不一致→市值偏倚
+  failure_conditions: ①20-30min模式在强驱动日也出现→弱驱动非前提; ②间隔分布与随机游走无显著差异→假设拒绝; ③小市值股票表现不一致→市值偏倚
   requires_e60_authority: true

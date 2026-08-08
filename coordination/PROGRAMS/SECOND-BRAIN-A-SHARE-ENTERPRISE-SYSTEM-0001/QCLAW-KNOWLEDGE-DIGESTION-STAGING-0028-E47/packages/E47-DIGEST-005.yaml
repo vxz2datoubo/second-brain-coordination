@@ -1,58 +1,57 @@
 schema: QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1
 package_id: E47-DIGEST-005
 package_version: 1
-content_hash: c237cca17ff0d9ca
+content_hash: e169c36be527ffa2
 source:
   source_id: workspace-kelly-thorp-0011
   source_url: file://workspace/qclaw-kelly-thorp-0011-artifact-20260722.md
   source_title: QCLAW Kelly-Thorp Position Sizing Knowledge
   source_hash: 33ba624363c0a8527d4ecc138bd04aa16a1dcde4258a7e380955ecbb9f29ae06
   source_size_bytes: 6416
-  ingested_at: '2026-08-08T06:24:36.398703+00:00'
-summary: 3 atoms (1 concept, 1 failure condition, 1 indicator). 2 relations. 2 unknowns. 1 memory record. Kelly criterion
-  and practice constraints.
+  ingested_at: '2026-08-08T07:45:44.665993+00:00'
+summary: 3 atoms (1 concept, 1 failure condition, 1 indicator). 2 relations. 2 unknowns. 1 memory. 1 skill. Kelly criterion
+  and practice constraints — all INFERENCE from delivered knowledge artifact.
 atoms:
 - atom_id: K001
   atom_type: CONCEPT
-  content: 'Kelly criterion: optimal bet fraction f = (bp - q) / b where b=odds, p=win probability, q=loss probability'
+  content: 'Kelly criterion (Kelly公式): 最优投注比例 f = (bp - q) / b, 其中 b = 赔率(odds), p = 胜率(win probability), q = 败率(loss probability)。此公式来源于信息论和赌博理论,
+    在此文件中作为被引用的已知概念出现。'
   source_spans:
-  - byte_start: 0
-    byte_end: 6416
-    line_start: 1
-    line_end: 92
-    span_label: full document
+  - byte_start: 179
+    byte_end: 333
+    line_start: 5
+    line_end: 7
+    span_label: kelly_concept
   evidence_kind: INFERENCE
   confidence: HIGH
-  scope: ''
+  scope: 信息论/概率论基础
   invalidation_conditions: ''
 - atom_id: K002
   atom_type: FAILURE_CONDITION
-  content: 'Full Kelly risks: (1) parameter estimation error → overbetting (2) consecutive loss sequence → amplified drawdown
-    (3) non-normal returns → non-zero ruin probability'
+  content: 'Agent对Full Kelly实际应用风险的分析(基于源文件中的风险讨论): (1)参数估计误差→过度投注(overbetting); (2)连续亏损序列→回撤放大; (3)非正态收益分布→破产概率非零。'
   source_spans:
-  - byte_start: 0
-    byte_end: 6416
-    line_start: 1
-    line_end: 92
-    span_label: full document
+  - byte_start: 2836
+    byte_end: 3436
+    line_start: 43
+    line_end: 52
+    span_label: kelly_risks
   evidence_kind: INFERENCE
   confidence: MEDIUM
   scope: ''
-  invalidation_conditions: ''
+  invalidation_conditions: 若实证表明Fractional Kelly不产生显著优于Full Kelly的风险调整收益
 - atom_id: K003
   atom_type: INDICATOR
-  content: 'Practical practice: Fractional Kelly (1/2, 1/4) reduces ruin probability and increases robustness vs parameter
-    uncertainty'
+  content: 'Agent从源文件中Fractional Kelly讨论的解读: 实践中常用1/2 Kelly或1/4 Kelly 以降低破产概率并增加对参数不确定性的稳健性。'
   source_spans:
-  - byte_start: 0
-    byte_end: 6416
-    line_start: 1
-    line_end: 92
-    span_label: full document
+  - byte_start: 1093
+    byte_end: 1494
+    line_start: 25
+    line_end: 27
+    span_label: fractional_kelly
   evidence_kind: INFERENCE
   confidence: MEDIUM
   scope: ''
-  invalidation_conditions: ''
+  invalidation_conditions: 最优比例因市场/策略/估计质量而异
 relations:
 - source_atom_id: K003
   target_atom_id: K002
@@ -65,20 +64,27 @@ relations:
 contradictions: []
 unknowns:
 - unknown_id: U013
-  question: How to accurately estimate b (odds) and p (win probability) in A-share intraday context?
+  question: A股日内环境下b(赔率)和p(胜率)的精确估计方法?
   related_atom_ids:
   - K001
 - unknown_id: U014
-  question: Optimal Fractional Kelly ratio for A-share intraday environment?
+  question: 哪种Fractional Kelly比例在A股日内环境下最优?
   related_atom_ids:
   - K003
 memory_records:
 - record_id: M006
-  statement: Full Kelly is too risky for actual trading — Fractional Kelly (1/2 or 1/4) is the robust choice
+  statement: '[AGENT INFERENCE, CANDIDATE] Full Kelly在实际交易中风险过高。 Agent从知识交付文件中推断Fractional Kelly (1/2或1/4)是更稳健的选择。 此结论不是用户的直接声明,
+    而是agent对Kelly-Thorp知识交付材料的解读。'
   memory_zone: CANDIDATE
-  confidence: MEDIUM
+  confidence: LOW
   source_atom_ids:
   - K002
   - K003
-  evidence_basis: QCLAW Kelly-Thorp epoch 0011 delivery
-skills: []
+  evidence_basis: QCLAW Kelly-Thorp knowledge delivery (epoch 0011); 需市场环境特定的实证验证
+skills:
+- skill_id: S004
+  name: Kelly投注规模计算
+  description: 基于胜率和赔率估计计算最优投注比例, 提供Full Kelly和Fractional Kelly选项。全部CANDIDATE, 需E60权威。
+  state: CANDIDATE
+  failure_conditions: ①参数估计误差→过度投注; ②连续亏损→大幅回撤; ③非正态分布→破产风险
+  requires_e60_authority: true

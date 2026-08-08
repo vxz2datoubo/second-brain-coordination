@@ -2,57 +2,57 @@
   "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
   "package_id": "E47-DIGEST-002",
   "package_version": 1,
-  "content_hash": "95d64f5f0a455eb1",
+  "content_hash": "5854158d7f0170ea",
   "source": {
     "source_id": "issue-201",
     "source_url": "https://github.com/vxz2datoubo/second-brain-coordination/issues/201",
     "source_title": "DeepSeek V4 Pro credit-to-workload empirical calibration",
     "source_hash": "32029e1d61f32a2736c942308bd6bab998a62f16a807e68a09994ae0c09eadd0",
     "source_size_bytes": 482,
-    "ingested_at": "2026-08-08T06:14:56.131612+00:00"
+    "ingested_at": "2026-08-08T07:45:44.591129+00:00"
   },
-  "summary": "4 atoms (1 data source, 2 indicators, 1 scope). 3 relations. 3 unknowns. 1 candidate memory record. 1 candidate skill. Single sample — LOW confidence.",
+  "summary": "4 atoms (1 data source, 2 indicators, 1 scope). 3 relations. 3 unknowns. 1 memory. 1 skill. Single sample — LOW confidence.",
   "atoms": [
     {
       "atom_id": "B001",
       "atom_type": "DATA_SOURCE",
-      "content": "用户报告起始余额~100 credits，结束余额~50 credits，消耗~50 credits（对应E17/PR #100工程任务）",
+      "content": "Approximate consumption: ~50 credits",
       "source_spans": [
         {
           "byte_start": 329,
           "byte_end": 365,
           "line_start": 9,
           "line_end": 9,
-          "span_label": "sample_a"
+          "span_label": "sample_a_value"
         }
       ],
       "evidence_kind": "USER_CLAIM",
       "confidence": "MEDIUM",
-      "scope": "QCLAW/DeepSeek V4 Pro, 2026年7月",
+      "scope": "QCLAW/DeepSeek V4 Pro, 2026年7月. 用户报告起始余额~100 credits, 结束余额~50 credits, 消耗~50 credits, 对应E17/PR #100.",
       "invalidation_conditions": ""
     },
     {
       "atom_id": "B002",
       "atom_type": "INDICATOR",
-      "content": "QCLAW substantial bounded closure (完整Gate任务) 消耗约50-58 credits",
+      "content": "从单个样本(Sample A)推导: QCLAW完成一个substantial bounded closure门控任务约消耗50-58 credits。这是agent的推断, 不是源文的直接声明。置信度LOW因仅一个样本。",
       "source_spans": [
         {
-          "byte_start": 329,
-          "byte_end": 365,
-          "line_start": 9,
-          "line_end": 9,
-          "span_label": "sample_a"
+          "byte_start": 196,
+          "byte_end": 421,
+          "line_start": 6,
+          "line_end": 11,
+          "span_label": "sample_a_block"
         }
       ],
       "evidence_kind": "INFERENCE",
       "confidence": "LOW",
       "scope": "DeepSeek V4 Pro模型",
-      "invalidation_conditions": "模型切换、任务复杂度变化或tokenizer改变后需重新校准"
+      "invalidation_conditions": "模型/provider切换、任务复杂度变化后需重新校准"
     },
     {
       "atom_id": "B003",
       "atom_type": "SCOPE",
-      "content": "校准映射仅涉及QCLAW credits消耗与工程任务工作量之间的关系，不涉及token/FLOP/GPU-second/供应商计费单位的直接映射",
+      "content": "NOT a claim about tokens/FLOPs/GPU-seconds",
       "source_spans": [
         {
           "byte_start": 131,
@@ -70,7 +70,7 @@
     {
       "atom_id": "B004",
       "atom_type": "INDICATOR",
-      "content": "推荐的credit预留策略：target spend 50-55，reserve 15-20 credits",
+      "content": "target spend 50-55, reserve 15-20 credits",
       "source_spans": [
         {
           "byte_start": 440,
@@ -110,14 +110,14 @@
   "unknowns": [
     {
       "unknown_id": "U006",
-      "question": "不同模型（如切换为其他provider）的credit消耗是否线性可比较？",
+      "question": "不同模型provider的credit消耗是否线性可比较?",
       "related_atom_ids": [
         "B002"
       ]
     },
     {
       "unknown_id": "U007",
-      "question": "lightweight tasks (纯读取/小修复) 的credit消耗基准是多少？",
+      "question": "lightweight tasks(纯读取/小修复)的credit消耗基准?",
       "related_atom_ids": [
         "B002",
         "B004"
@@ -125,7 +125,7 @@
     },
     {
       "unknown_id": "U008",
-      "question": "E47 staging模式（无Provider/mutation）的credit消耗是否显著低于完整的bounded closure？",
+      "question": "E47 staging模式(无Provider/mutation)的credit消耗是否显著低于完整bounded closure?",
       "related_atom_ids": [
         "B002"
       ]
@@ -134,23 +134,23 @@
   "memory_records": [
     {
       "record_id": "M003",
-      "statement": "QCLAW/DeepSeek V4 Pro完成一个完整Gate任务的credit消耗约50-58",
+      "statement": "[AGENT INFERENCE, LOW CONFIDENCE, CANDIDATE] 单样本观察(Issue #201 Sample A)表明: QCLAW/DeepSeek V4 Pro完成一个完整Gate约消耗50-58 credits。此记录基于agent对单个样本的推断, 不是经过多案例验证的结论。需更多样本。",
       "memory_zone": "CANDIDATE",
       "confidence": "LOW",
       "source_atom_ids": [
         "B001",
         "B002"
       ],
-      "evidence_basis": "单样本观察(Issue #201 Sample A)；需更多样本验证"
+      "evidence_basis": "单样本推断(Issue #201), 需额外校准数据"
     }
   ],
   "skills": [
     {
       "skill_id": "S002",
       "name": "Credit预算预估",
-      "description": "根据任务类型和复杂度预估QCLAW credit消耗，并在到达reserve阈值时触发节约模式",
+      "description": "根据任务类型和复杂度预估QCLAW credit消耗, 在到达reserve阈值时触发节约模式。全部CANDIDATE, 需E60权威。",
       "state": "CANDIDATE",
-      "failure_conditions": "1) 单一样本不足以建立可靠模型 2) 模型/provider切换后估算失效 3) 任务类型差异未被充分捕捉",
+      "failure_conditions": "①单样本不足以建立可靠模型; ②模型/provider切换后估算失效; ③任务类型差异未被充分捕捉",
       "requires_e60_authority": true
     }
   ]

@@ -119,10 +119,15 @@ class SourceSnapshot:
         }
 
     def verify_span(self, span: SourceSpan) -> str:
-        """Verify span bytes match source content. Returns slice or raises."""
+        """Verify span bytes match source content. Returns slice or raises.
+        
+        Note: byte_start/byte_end are positions in source_bytes (UTF-8 encoded).
+        We decode the slice back to str for comparison.
+        """
         if span.byte_start < 0 or span.byte_end > self.source_size_bytes:
             raise ValueError(f"Span out of range: {span.byte_start}:{span.byte_end}")
-        return self.source_content[span.byte_start:span.byte_end]
+        src_bytes = self.source_content.encode("utf-8")
+        return src_bytes[span.byte_start:span.byte_end].decode("utf-8")
 
 
 # === Atom ===
