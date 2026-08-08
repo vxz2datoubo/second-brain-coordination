@@ -64,6 +64,22 @@ def _verify_signature(payload: Mapping[str, object], signature_hex: object) -> b
     return hmac.compare_digest(recovered, digest)
 
 
+def _runtime_identity_digest_for_root(package_root: Path) -> str:
+    """Hash a source tree with checkout-independent Python line endings."""
+
+    digest = sha256()
+    for source in sorted(package_root.rglob("*.py"), key=lambda item: item.relative_to(package_root).as_posix()):
+        relative = source.relative_to(package_root).as_posix().encode("utf-8")
+        # GitHub Windows checkouts may materialize CRLF even when the canonical
+        # Git blob and executable semantics are LF.  Identity must bind source
+        # content, not a local checkout's line-ending policy.
+        normalized = source.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        digest.update(len(relative).to_bytes(4, "big"))
+        digest.update(relative)
+        digest.update(sha256(normalized).digest())
+    return digest.hexdigest()
+
+
 def runtime_identity_digest() -> str:
     """Hash the complete runtime package, excluding generated artifacts.
 
@@ -73,14 +89,7 @@ def runtime_identity_digest() -> str:
     runtime ineligible before a verifier instance is created.
     """
 
-    package_root = Path(__file__).resolve().parent
-    digest = sha256()
-    for source in sorted(package_root.rglob("*.py"), key=lambda item: item.relative_to(package_root).as_posix()):
-        relative = source.relative_to(package_root).as_posix().encode("utf-8")
-        digest.update(len(relative).to_bytes(4, "big"))
-        digest.update(relative)
-        digest.update(sha256(source.read_bytes()).digest())
-    return digest.hexdigest()
+    return _runtime_identity_digest_for_root(Path(__file__).resolve().parent)
 
 
 @dataclass(frozen=True, slots=True)

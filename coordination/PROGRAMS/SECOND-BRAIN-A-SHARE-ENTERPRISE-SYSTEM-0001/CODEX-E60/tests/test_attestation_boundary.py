@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from copy import deepcopy
 import importlib
+from pathlib import Path
+import tempfile
 import unittest
 
 from e60_runtime import (
@@ -13,6 +15,7 @@ from e60_runtime import (
     ProviderEvidenceAggregate,
     SourceSpanGrant,
 )
+from e60_runtime.attestation import _runtime_identity_digest_for_root
 from e60_test_fixtures import (
     BASE_ATTESTATION,
     BASE_SOURCE_SPAN,
@@ -41,6 +44,16 @@ class AttestationBoundaryTests(unittest.TestCase):
         self.assertFalse(hasattr(runtime, "_SyntheticAuthorityHarness"))
         with self.assertRaises(ModuleNotFoundError):
             importlib.import_module("e60_runtime.authority_client")
+
+    def test_runtime_identity_is_stable_across_lf_and_crlf_checkout_forms(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="e60-line-ending-") as temporary:
+            package_root = Path(temporary) / "runtime"
+            package_root.mkdir()
+            source = package_root / "attestation.py"
+            source.write_bytes(b"first = 1\nsecond = 2\n")
+            lf_digest = _runtime_identity_digest_for_root(package_root)
+            source.write_bytes(b"first = 1\r\nsecond = 2\r\n")
+            self.assertEqual(lf_digest, _runtime_identity_digest_for_root(package_root))
 
     def test_tampered_attestation_fails_with_original_signature(self) -> None:
         payload = deepcopy(BASE_ATTESTATION)

@@ -15,8 +15,8 @@ BASE_ATTESTATION = {
     "receipt_parent": "1111111111111111111111111111111111111111",
     "receipt_tree": "5555555555555555555555555555555555555555",
     "reviewer_acceptance_ref": "SYNTHETIC_FIXTURE_NO_EXTERNAL_REVIEW",
-    "runtime_identity_digest": "346291bfd67a3421a74b487a019c35d4fb8ecb466228d7b1697c2602cab12048",
-    "signature_hex": "5aa55db0d40186658e96fc0989c20d51d1f4e83939e6f375a959a95a678f36c312f11e0a660d02391adad3588081cde62b403901154e9a269f4ba5db163e569",
+    "runtime_identity_digest": "61cf55a391c146a54b96cc8f22b3642a47a2dbde4bd720720f56cb5f35368104",
+    "signature_hex": "548f3cbdab6b304226d57b8a15484ae5ef9369c28c2af663fe1551e3e87f5c89c65d25aedf70d1daaa49dbffe1b1fe1c3771325b07b8142b7991faae52308259",
     "source_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "tested_head": "1111111111111111111111111111111111111111",
     "tested_parent": "2222222222222222222222222222222222222222",
@@ -24,10 +24,10 @@ BASE_ATTESTATION = {
 }
 
 BASE_SOURCE_SPAN = {
-    "attestation_id": "6f74cc9b89dd3dc8a9d58d1b1f4379f55aa4a52bf6726f84b60463c7b5e0a97d",
+    "attestation_id": "87ddd6a813af10498ad4b1d13ee1548a373dffeca4e26175c56fa360665de461",
     "decoded_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     "end_byte": 5,
-    "signature_hex": "4dbe7d8a4d5467671bf40cfe98f6be2b38250b7fadbd43a12058fa9a3fd6ce948c0524627dcebc8f46a69672a715aa0c061c4d88988cd800af01d0085c981dbb",
+    "signature_hex": "4d54d2e9798271ecd0662500b371bb53104e2da2ca5f1f7bc660efa4bea0a45c6499c0636c70159cd663e1aba0989a0eaab93461e0ec14a1fd767c0ee6328e33",
     "source_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "start_byte": 0,
 }
@@ -36,7 +36,7 @@ PENDING_ATTESTATION = {
     **BASE_ATTESTATION,
     "lifecycle": "PENDING_EXTERNAL",
     "reviewer_acceptance_ref": "PENDING_EXTERNAL",
-    "signature_hex": "23597e0764533c6b6f6baa3f55e337974eec06667c8e1eedb7b86317617867d948aa4b91ca2001c570aaf1aa6923ed64e44faf249fc3fc52a185f3ae3c95f4c9",
+    "signature_hex": "27ef7ebe30e2b63d047b85f1e2ec8bc704691ff44075842ba34193aaa6b22e0c51c51354e9040a52a7ba9bd624258e23ce1032a3899587d1cdbc97d72c21b19e",
 }
 
 RUNTIME_MISMATCH_ATTESTATION = {
@@ -66,5 +66,5 @@ TOPOLOGY_MISMATCH_PROVIDER_MAPPING = {
 TOPOLOGY_MISMATCH_ATTESTATION = {
     **BASE_ATTESTATION,
     "provider_evidence_aggregate_digest": "7e1bd6302736b1a15870846c762a2d15f836cd12c8edc251ccd4d414fe432558",
-    "signature_hex": "1184ec1c50a816a2388a9c048a8ea0852f2d4d91db7aa7d06f653a0af06a1ecd40c2ec0e86aeaa3d7181c7062b2c35228c616be9817cfc3715299a67e07b39a8",
+    "signature_hex": "518575aec8824dd00b20344b0090619eaeb27004f2fa0238a0dca690b87b5caba522cba2c1e15c5589bdd0c4119d61fb86ceaa2d9c963ba04003a43b322b3e31",
 }
