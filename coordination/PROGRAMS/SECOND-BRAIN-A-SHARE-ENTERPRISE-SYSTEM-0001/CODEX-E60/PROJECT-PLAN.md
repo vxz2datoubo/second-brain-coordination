@@ -87,7 +87,7 @@ Tests must be independent enough to attack the public runtime rather than reprod
 - outer mutation runner with child/grandchild canaries under normal, failure, timeout, cancellation, Ctrl-C, and root-exit-first paths;
 - capacity exhaustion, mutex contention, PID reuse mismatch, and postflight grace expiration.
 
-All local work is serial by default with thread/BLAS/tokenizer parallelism disabled. Remote Provider runs supply the required version/seed matrix. A green ordinary workflow is not accepted as evidence until its checkout SHA, job logs, artifacts, and content digests bind to the tested head.
+All local work is serial by default with thread/BLAS/tokenizer parallelism disabled. The local interruption test is deliberately SKIP-only; a GitHub Actions-only bounded canary uses one leased child and a real Python `KeyboardInterrupt`, then proves zero task-owned descendants, zero orphans, and zero unrelated terminations. Remote Provider runs supply the required version/seed matrix. A green ordinary workflow is not accepted as evidence until its checkout SHA, job logs, artifacts, and content digests bind to the tested head.
 
 ## 7. Reporting, rollback, and open limits
 
