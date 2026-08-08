@@ -1,4 +1,4 @@
-"""Bounded Windows descendant-process ownership for E59 synthetic tests.
+"""Bounded Windows descendant-process ownership for E60 synthetic tests.
 
 This module deliberately does not kill by executable name. A PID is eligible
 for cleanup only after it was observed below an owned root and still matches the
@@ -233,13 +233,13 @@ class ResourceGate:
         self,
         task_id: str,
         *,
-        max_task_processes: int = 6,
-        max_shared_processes: int = 8,
-        max_task_cpu_workers: int = 3,
-        max_shared_cpu_workers: int = 4,
+        max_task_processes: int = 2,
+        max_shared_processes: int = 4,
+        max_task_cpu_workers: int = 1,
+        max_shared_cpu_workers: int = 1,
         mutex_wait_seconds: float = 30.0,
-        cpu_throttle_percent: float = 70.0,
-        cpu_throttle_sustain_seconds: float = 15.0,
+        cpu_throttle_percent: float = 35.0,
+        cpu_throttle_sustain_seconds: float = 3.0,
     ) -> None:
         self.task_id = task_id
         self.max_task_processes = max_task_processes
@@ -352,6 +352,8 @@ class ResourceGate:
         cpu = snapshot["cpu_percent"]
         if available is not None and available < 8:
             raise ResourceViolation("AVAILABLE_RAM_BELOW_8_GIB")
+        if available is not None and available < 10:
+            raise ResourceViolation("NO_NEW_CHILD_BELOW_10_GIB")
         if cpu is not None and cpu > self.cpu_throttle_percent:
             if self._cpu_above_threshold_since is None:
                 self._cpu_above_threshold_since = time.monotonic()
@@ -624,8 +626,8 @@ class OwnedProcessTree:
 def descendant_root_program(*, grandchildren: int, root_exit_first: bool, sleep_seconds: float = 10.0) -> list[str]:
     """Return a public-safe child command that creates bounded Python grandchildren."""
 
-    if grandchildren < 1 or grandchildren > 2:
-        raise ValueError("grandchildren must be between 1 and 2")
+    if grandchildren != 1:
+        raise ValueError("E60 local lifecycle canaries permit exactly one grandchild")
     code = (
         "import subprocess,sys,time; "
         f"children=[subprocess.Popen([sys.executable,'-c','import time; time.sleep({sleep_seconds})']) for _ in range({grandchildren})]; "

@@ -17,6 +17,8 @@ class WholeTaskResourceLeaseTests(unittest.TestCase):
                 expected_descendants=1,
             )
         self.assertEqual(receipt.exit_code, 0)
+        self.assertEqual(receipt.resource_decision["profile"], "FOREGROUND_PRIORITY")
+        self.assertTrue(bool(receipt.resource_decision["allow_local_spawn"]))
         self.assertGreaterEqual(int(receipt.report["peak_task_owned_processes"]), 2)
         self.assertEqual(receipt.report["postflight_task_owned_process_count"], 0)
         self.assertEqual(receipt.report["orphan_count"], 0)

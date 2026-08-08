@@ -7,10 +7,12 @@ same ownership tree until bounded postflight cleanup completes.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Sequence
+from dataclasses import asdict, dataclass
+import time
+from typing import Callable, Mapping, Sequence
 
 from .resource_tree import OwnedProcessTree, ProcessLifecycleError, ResourceGate
+from .resource_policy import AdaptiveResourceController, WorkloadClass
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,23 +20,40 @@ class ExecutionReceipt:
     purpose: str
     root_pid: int
     exit_code: int
+    resource_decision: dict[str, object]
     report: dict[str, object]
 
 
 class WholeTaskResourceLease:
     """Serial E60 lease for a command and all observed descendants."""
 
-    def __init__(self, *, task_id: str = "E60", max_owned_python_processes: int = 4) -> None:
+    def __init__(
+        self,
+        *,
+        task_id: str = "E60",
+        sample_provider: Callable[[], Mapping[str, object]] | None = None,
+        monotonic_clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        sample_provider = sample_provider or self._default_sample_provider
+        self._resources = AdaptiveResourceController(sample_provider, monotonic_clock)
         self._gate = ResourceGate(
             task_id,
-            max_task_processes=max_owned_python_processes,
-            max_shared_processes=max_owned_python_processes,
-            max_task_cpu_workers=2,
-            max_shared_cpu_workers=2,
+            max_task_processes=2,
+            max_shared_processes=4,
+            max_task_cpu_workers=1,
+            max_shared_cpu_workers=1,
             mutex_wait_seconds=1.0,
+            cpu_throttle_percent=35.0,
+            cpu_throttle_sustain_seconds=3.0,
         )
         self._tree = OwnedProcessTree(task_id, gate=self._gate)
         self._entered = False
+
+    @staticmethod
+    def _default_sample_provider() -> Mapping[str, object]:
+        from .resource_tree import resource_snapshot
+
+        return resource_snapshot()
 
     def __enter__(self) -> "WholeTaskResourceLease":
         self._gate.acquire()
@@ -48,9 +67,20 @@ class WholeTaskResourceLease:
             self._gate.release()
             self._entered = False
 
-    def execute(self, command: Sequence[str], *, purpose: str, timeout_seconds: float = 5.0, expected_descendants: int = 0) -> ExecutionReceipt:
+    def execute(
+        self,
+        command: Sequence[str],
+        *,
+        purpose: str,
+        timeout_seconds: float = 5.0,
+        expected_descendants: int = 0,
+        workload: WorkloadClass = WorkloadClass.LIFECYCLE_CANARY,
+    ) -> ExecutionReceipt:
         if not self._entered:
             raise ProcessLifecycleError("WHOLE_TASK_RESOURCE_LEASE_NOT_HELD")
+        if expected_descendants > 1:
+            raise ProcessLifecycleError("LOCAL_CANARY_DESCENDANT_CAP_EXCEEDED")
+        resource_decision = self._resources.require_local_spawn(workload)
         root_pid = self._tree.spawn(command, purpose=purpose)
         exit_code: int | None = None
         try:
@@ -64,4 +94,10 @@ class WholeTaskResourceLease:
             raise ProcessLifecycleError("WHOLE_TASK_EXECUTION_EXIT_CODE_MISSING")
         # A receipt is evidence about the completed lifecycle, not a snapshot
         # taken while a root-exit-first grandchild is still awaiting cleanup.
-        return ExecutionReceipt(purpose=purpose, root_pid=root_pid, exit_code=exit_code, report=self._tree.report())
+        return ExecutionReceipt(
+            purpose=purpose,
+            root_pid=root_pid,
+            exit_code=exit_code,
+            resource_decision=asdict(resource_decision),
+            report=self._tree.report(),
+        )
