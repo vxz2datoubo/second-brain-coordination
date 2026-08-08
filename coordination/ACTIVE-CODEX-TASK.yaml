@@ -1,8 +1,8 @@
-schema_version: "71.0"
+schema_version: "72.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 204
-active_pull_request: null
+active_pull_request: 208
 task_id: "CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60"
 route_epoch: 62
 mode: "project_plan"
@@ -21,6 +21,17 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60.yaml"
+continuation_contract:
+  read_task_command: "读取任务"
+  required_resolution_order:
+    - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
+    - "Read active Issue #204 and Draft PR #208."
+    - "Read the latest GPT-authored PR review/comment on PR #208 after the last Codex checkpoint."
+    - "Treat the latest GPT review as the current continuation delta unless it conflicts with this canonical route or hard boundaries."
+    - "Continue automatically without asking the user to paste the review text or issue a second start command."
+  latest_gpt_review_id: 4889241834
+  latest_gpt_review_purpose: "Provider aggregate manifest -> external attestation -> receipt-only finalization; remote-only bounded interruption canary if still needed; no merge."
+  user_should_not_need_to_copy_prompt: true
 source_e59:
   issue: 197
   pull_request: 198
@@ -29,16 +40,23 @@ source_e59:
   whole_branch_import_forbidden: true
 parallel_qclaw:
   active_issue: 205
+  active_pull_request: 207
   task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
   role: "CANDIDATE_KNOWLEDGE_DIGESTION_ONLY"
   formal_persistence_blocked_until_e60_acceptance: true
 local_resource_safety:
-  global_project_python_process_hard_cap_including_descendants: 8
-  single_agent_python_process_hard_cap_including_descendants: 6
-  dual_agent_python_process_hard_cap_per_agent_including_descendants: 4
+  default_profile: "FOREGROUND_PRIORITY"
+  user_foreground_apps_priority: "HIGHEST"
+  dual_agent_default_task_python_cap_each: 2
+  dual_agent_default_combined_task_python_cap: 4
+  default_cpu_bound_workers_combined: 1
+  idle_batch_combined_task_python_cap: 6
+  idle_batch_cpu_bound_workers_combined: 2
   nested_parallelism: "FORBIDDEN"
   heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
+  heavy_matrix_or_fanout: "REMOTE_CI_PREFERRED_AND_LOCAL_REFUSED"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+  never_kill_by_executable_name: true
 hard_boundaries:
   - "Public-safe synthetic fixtures only."
   - "No private model/provider/reasoning/workspace/session configuration."
@@ -46,4 +64,4 @@ hard_boundaries:
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-08T10:55:00+08:00"
+updated_at: "2026-08-09T06:11:00+08:00"
