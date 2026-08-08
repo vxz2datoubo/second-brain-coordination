@@ -1,0 +1,81 @@
+name: codex-e60-provider-evidence
+
+on:
+  push:
+    branches:
+      - codex/e59-post-audit-canonical-trust-root-resource-closure-0056-e60
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-e60:
+    name: synthetic-e60-python-${{ matrix.python-version }}
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run public-safe synthetic E60 suite
+        id: test
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $ErrorActionPreference = 'Continue'
+          New-Item -ItemType Directory -Force -Path e60-provider-evidence | Out-Null
+          & python -W error::ResourceWarning -m unittest `
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/tests/test_attestation_boundary.py `
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/tests/test_legacy_bootstrap_mutation.py `
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/tests/test_adaptive_resource_policy.py `
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E60/tests/test_whole_task_resource_lease.py -v `
+            1> e60-provider-evidence/stdout.txt 2> e60-provider-evidence/stderr.txt
+          $exitCode = $LASTEXITCODE
+          $head = (git rev-parse HEAD).Trim()
+          $parent = (git rev-parse HEAD^).Trim()
+          $tree = (git rev-parse HEAD^{tree}).Trim()
+          $evidence = [ordered]@{
+            schema_version = '1.0'
+            task_id = 'CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60'
+            github_sha = '${{ github.sha }}'
+            tested_head = $head
+            tested_parent = $parent
+            tested_tree = $tree
+            provider_run_id = '${{ github.run_id }}'
+            provider_job = '${{ github.job }}'
+            python_version = (python --version 2>&1).Trim()
+            command = 'python -W error::ResourceWarning -m unittest E60 public-safe synthetic suite -v'
+            exit_code = $exitCode
+            stdout_sha256 = (Get-FileHash e60-provider-evidence/stdout.txt -Algorithm SHA256).Hash.ToLowerInvariant()
+            stderr_sha256 = (Get-FileHash e60-provider-evidence/stderr.txt -Algorithm SHA256).Hash.ToLowerInvariant()
+          }
+          $evidence | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 e60-provider-evidence/provider-evidence.json
+          "exit_code=$exitCode" | Add-Content $env:GITHUB_OUTPUT
+
+      - name: Upload Provider evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e60-provider-evidence-python-${{ matrix.python-version }}
+          path: e60-provider-evidence
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Enforce test result
+        if: steps.test.outputs.exit_code != '0'
+        shell: pwsh
+        run: exit 1
