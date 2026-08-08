@@ -16,6 +16,8 @@ from pathlib import Path
 import re
 from typing import Any, Mapping
 
+from .provider_evidence import ProviderEvidenceAggregate, canonical_json_bytes
+
 
 _HEX_64 = re.compile(r"^[0-9a-f]{64}$")
 _HEX_40 = re.compile(r"^[0-9a-f]{40}$")
@@ -32,13 +34,7 @@ class AttestationError(ValueError):
 
 
 def _canonical(value: object) -> bytes:
-    return json.dumps(
-        value,
-        ensure_ascii=True,
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    ).encode("ascii")
+    return canonical_json_bytes(value)
 
 
 def _require_hex(value: object, *, length: int, field: str) -> str:
@@ -98,9 +94,7 @@ class ExternalAttestation:
     receipt_head: str
     receipt_parent: str
     receipt_tree: str
-    provider_run_id: str
-    provider_job_id: str
-    artifact_digest: str
+    provider_evidence_aggregate_digest: str
     reviewer_acceptance_ref: str
     lifecycle: str
     signature_hex: str
@@ -120,9 +114,7 @@ class ExternalAttestation:
             "receipt_head": self.receipt_head,
             "receipt_parent": self.receipt_parent,
             "receipt_tree": self.receipt_tree,
-            "provider_run_id": self.provider_run_id,
-            "provider_job_id": self.provider_job_id,
-            "artifact_digest": self.artifact_digest,
+            "provider_evidence_aggregate_digest": self.provider_evidence_aggregate_digest,
             "reviewer_acceptance_ref": self.reviewer_acceptance_ref,
             "lifecycle": self.lifecycle,
             "domain": _DOMAIN,
@@ -134,7 +126,7 @@ class ExternalAttestation:
         required = {
             "authority_id", "source_digest", "runtime_identity_digest", "tested_head",
             "tested_parent", "tested_tree", "receipt_head", "receipt_parent", "receipt_tree",
-            "provider_run_id", "provider_job_id", "artifact_digest", "reviewer_acceptance_ref",
+            "provider_evidence_aggregate_digest", "reviewer_acceptance_ref",
             "lifecycle", "signature_hex", "domain", "key_id",
         }
         if set(value) != required:
@@ -158,14 +150,16 @@ class ExternalAttestation:
             receipt_head=_require_hex(value["receipt_head"], length=40, field="receipt_head"),
             receipt_parent=_require_hex(value["receipt_parent"], length=40, field="receipt_parent"),
             receipt_tree=_require_hex(value["receipt_tree"], length=40, field="receipt_tree"),
-            provider_run_id=str(value["provider_run_id"]),
-            provider_job_id=str(value["provider_job_id"]),
-            artifact_digest=_require_hex(value["artifact_digest"], length=64, field="artifact_digest"),
+            provider_evidence_aggregate_digest=_require_hex(
+                value["provider_evidence_aggregate_digest"],
+                length=64,
+                field="provider_evidence_aggregate_digest",
+            ),
             reviewer_acceptance_ref=str(value["reviewer_acceptance_ref"]),
             lifecycle=lifecycle,
             signature_hex=str(value["signature_hex"]),
         )
-        if not item.authority_id or not item.provider_run_id or not item.provider_job_id:
+        if not item.authority_id:
             raise AttestationError("EXTERNAL_ATTESTATION_REQUIRED_ID_MISSING")
         if item.receipt_parent != item.tested_head:
             raise AttestationError("EXTERNAL_ATTESTATION_RECEIPT_NOT_DIRECT_CHILD")
@@ -225,11 +219,23 @@ class CanonicalVerifier:
 
     __slots__ = ("_attestation",)
 
-    def __init__(self, attestation: ExternalAttestation) -> None:
+    def __init__(self, attestation: ExternalAttestation, provider_evidence: ProviderEvidenceAggregate) -> None:
         if not isinstance(attestation, ExternalAttestation):
             raise AttestationError("CANONICAL_VERIFIER_REQUIRES_EXTERNAL_ATTESTATION")
+        if attestation.lifecycle != "ACCEPTED_EXTERNAL":
+            raise AttestationError("CANONICAL_VERIFIER_REQUIRES_ACCEPTED_EXTERNAL_ATTESTATION")
         if not hmac.compare_digest(attestation.runtime_identity_digest, runtime_identity_digest()):
             raise AttestationError("EXTERNAL_ATTESTATION_RUNTIME_IDENTITY_MISMATCH")
+        if not isinstance(provider_evidence, ProviderEvidenceAggregate):
+            raise AttestationError("CANONICAL_VERIFIER_REQUIRES_PROVIDER_EVIDENCE_AGGREGATE")
+        if not hmac.compare_digest(attestation.provider_evidence_aggregate_digest, provider_evidence.digest):
+            raise AttestationError("EXTERNAL_ATTESTATION_PROVIDER_EVIDENCE_DIGEST_MISMATCH")
+        if (
+            provider_evidence.tested_head != attestation.tested_head
+            or provider_evidence.tested_parent != attestation.tested_parent
+            or provider_evidence.tested_tree != attestation.tested_tree
+        ):
+            raise AttestationError("EXTERNAL_ATTESTATION_PROVIDER_EVIDENCE_TOPOLOGY_MISMATCH")
         self._attestation = attestation
 
     @property

@@ -50,7 +50,7 @@ The verifier public key is an identity anchor, not a claim that repository-local
 
 ### 4.2 External attestation
 
-E60 will define a canonical, content-addressed `ExternalAttestation` schema with full 40-character tested and receipt SHAs, parent/tree SHAs, Provider run/job identifiers, artifact digests, workflow identity, reviewer/GPT acceptance reference, and a signed or independently verified payload digest.
+E60 defines a canonical, content-addressed `ProviderEvidenceAggregate` with one Provider run ID and the required Python 3.11/3.13 numeric job IDs, artifact IDs, artifact-content SHA-256 digests, and exact tested head/parent/tree. `ExternalAttestation` binds the aggregate SHA-256 rather than silently selecting one matrix job. It also carries full 40-character tested and receipt SHAs, parent/tree SHAs, reviewer/GPT acceptance reference, and a signed or independently verified payload digest.
 
 The runtime validates schema, exact-head topology, payload digest, source manifest digest, and non-contradictory lifecycle state. It will reject a mismatched attestation, an attestation for another receipt, truncated SHAs, duplicate conflicting status, and a self-issued runtime attestation. The final external anchor is authored outside the tested code path after Provider results exist. No tested or receipt commit may state that such an anchor has already happened when it has not.
 

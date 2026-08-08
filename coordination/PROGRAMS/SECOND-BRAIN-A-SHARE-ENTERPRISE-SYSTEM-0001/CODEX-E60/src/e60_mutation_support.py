@@ -30,6 +30,7 @@ def run_legacy_bootstrap_injection(
     lease: WholeTaskResourceLease,
     *,
     attestation_payload: Mapping[str, object],
+    provider_evidence_payload: Mapping[str, object],
 ) -> MutationOutcome:
     """Attempt the frozen E59 private-harness injection against a package copy.
 
@@ -50,13 +51,20 @@ def run_legacy_bootstrap_injection(
             encoding="utf-8",
         )
         payload_path = Path(temporary) / "attestation.json"
-        payload_path.write_text(json.dumps(dict(attestation_payload), sort_keys=True), encoding="utf-8")
+        payload_path.write_text(
+            json.dumps(
+                {"attestation": dict(attestation_payload), "provider_evidence": dict(provider_evidence_payload)},
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
         result_path = Path(temporary) / "mutation-result.txt"
         child = """
 import json
 import sys
 from e60_runtime.attestation import AttestationError, CanonicalVerifier, ExternalAttestation
 from e60_runtime.authority_client import _SyntheticAuthorityHarness
+from e60_runtime.provider_evidence import ProviderEvidenceAggregate
 
 payload_path, result_path = sys.argv[1:3]
 payload = json.load(open(payload_path, encoding="utf-8"))
@@ -65,7 +73,10 @@ if raw != b"caller-controlled-raw-evidence":
     open(result_path, "w", encoding="ascii").write("HARNESS_RAW_VALUE_UNEXPECTED")
     raise SystemExit(21)
 try:
-    CanonicalVerifier(ExternalAttestation.from_mapping(payload))
+    CanonicalVerifier(
+        ExternalAttestation.from_mapping(payload["attestation"]),
+        ProviderEvidenceAggregate.from_mapping(payload["provider_evidence"]),
+    )
 except AttestationError as error:
     observed = str(error)
 else:

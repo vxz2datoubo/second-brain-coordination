@@ -11,6 +11,7 @@ from .attestation import (
     SourceSpanGrant,
     runtime_identity_digest,
 )
+from .provider_evidence import ProviderEvidenceAggregate, ProviderEvidenceError, ProviderJobArtifact
 
 __all__ = [
     "AttestationError",
@@ -18,4 +19,7 @@ __all__ = [
     "ExternalAttestation",
     "SourceSpanGrant",
     "runtime_identity_digest",
+    "ProviderEvidenceAggregate",
+    "ProviderEvidenceError",
+    "ProviderJobArtifact",
 ]
