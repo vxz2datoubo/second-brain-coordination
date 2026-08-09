@@ -1,8 +1,8 @@
-schema_version: "64.0"
+schema_version: "65.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "READY"
+status: "REMEDIATION_REQUIRED"
 execution_allowed: true
 automatic_resume: true
 active_issue: 205
@@ -10,9 +10,9 @@ active_pull_request: 207
 task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
 route_epoch: 47
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E47 知识消化、原子化、证据图谱与候选知识包"
+mode_label: "【QCLAW模式：项目计划模式】E47 知识消化语义质量整改与候选包"
 planned_branch: "qclaw/knowledge-digestion-staging-atomization-0028-e47"
-completion_signal: "QCLAW_E47_CANDIDATE_KNOWLEDGE_DIGESTION_STAGING_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E47_SEMANTIC_DIGESTION_CANARY_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 route_contract:
@@ -25,56 +25,49 @@ continuation_contract:
   required_resolution_order:
     - "Read this ACTIVE-QCLAW-TASK.yaml from latest canonical main."
     - "Read active Issue #205 and Draft PR #207."
-    - "Read the latest GPT-authored PR review/comment on PR #207 after the last QCLAW checkpoint."
-    - "Treat the latest GPT review as the current continuation delta unless it conflicts with this canonical route or hard boundaries."
-    - "Continue automatically without asking the user to paste the review text or issue a second start command."
-  latest_gpt_review_id: 4890165634
-  latest_gpt_review_purpose: "E47 serialization/provenance gate accepted; begin USER/GPT-DIRECTED bulk candidate knowledge digestion; do not self-scan arbitrary workspace by default."
+    - "Read latest GPT review 4890430204 on PR #207."
+    - "Treat DIGEST-006/007 batch-2 as rejected candidate output pending regeneration."
+    - "Regenerate only DIGEST-007 AMED as the semantic quality canary; report before any other source."
+  latest_gpt_review_id: 4890430204
+  latest_gpt_review_purpose: "Stop structural markdown dumping; regenerate one AMED source with true semantic atoms/minimal spans/meaningful relations and justified unknown-memory-skill outputs."
   user_should_not_need_to_copy_prompt: true
-source_e46:
-  issue: 202
-  pull_request: 203
-  frozen_head: "0598deeb9ba861eb9206d2686d1f720bcff1e163"
-  execution_allowed: false
-  whole_branch_import_forbidden: true
+batch2_disposition:
+  head: "d19c92a7d59f883de4d9798cd8d847092e129967"
+  digest_006: "REJECTED_CANDIDATE_NOT_ELIGIBLE_FOR_CERTIFICATION"
+  digest_007: "REJECTED_CANDIDATE_REGENERATE_AS_CANARY"
+  reason: "semantic quality regression despite structural tests passing"
+semantic_canary_requirements:
+  source: "DIGEST-007 AMED only"
+  target: "deep semantic digestion, not markdown segmentation"
+  atom_rule: "one claim/mechanism/condition/constraint per atom where practical"
+  span_rule: "exact minimal or multiple supporting spans; no subsection-to-EOF catch-all spans"
+  evidence_rule: "SOURCE_EXTRACT for directly recoverable claims; INFERENCE only for actual inference"
+  relation_rule: "semantic relation types justified by source meaning; adjacency is not a relation"
+  output_rule: "unknowns/contradictions/memory/skills only where justified, but must actively evaluate them"
+  stop_after_canary: true
+source_selection:
+  arbitrary_workspace_self_scan: "FORBIDDEN_BY_DEFAULT"
+  next_new_source_after_canary: "WAIT_FOR_USER_OR_GPT_SELECTION"
 formal_persistence:
   status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
-  e60_synthetic_verifier_credit: true
-  e60_synthetic_verifier_is_not_production_write_authority: true
   required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
   candidate_packages_allowed: true
   authoritative_global_or_project_write_allowed: false
-  formal_master_transition_allowed: false
-  formal_skill_promotion_allowed: false
-knowledge_work_priority:
-  - "user/GPT-selected source ingestion first"
-  - "faithful source extraction"
-  - "deep learning and atomic decomposition"
-  - "fact/source/evidence/inference/value separation"
-  - "mechanism and causal-chain mapping"
-  - "terminology mapping and deduplication"
-  - "contradiction preservation"
-  - "knowledge graph relationships"
-  - "candidate memories and candidate skills"
-  - "explicit unknowns and validation requirements"
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
-  user_foreground_apps_priority: "HIGHEST"
   dual_agent_default_task_python_cap_each: 2
   dual_agent_default_combined_task_python_cap: 4
   default_cpu_bound_workers_combined: 1
-  idle_batch_combined_task_python_cap: 6
-  idle_batch_cpu_bound_workers_combined: 2
   heavy_provider_or_mutation_work: "FORBIDDEN_IN_STAGING_MODE"
   nested_parallelism: "FORBIDDEN"
-  primary_use_of_daily_credits: "USER_KNOWLEDGE_DIGESTION"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "No private model/provider/reasoning/workspace/session configuration."
+  - "No new ingestion infrastructure in this remediation."
+  - "No new source beyond DIGEST-007 until GPT accepts the canary."
+  - "No formal GLOBAL/PROJECT persistence."
   - "No credentials, accounts, market data, orders or trading."
-  - "No formal GLOBAL/PROJECT persistence until GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING."
-  - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
+  - "No merge/direct-main implementation/rebase/force/amend."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T08:20:00+08:00"
+updated_at: "2026-08-09T11:33:00+08:00"
