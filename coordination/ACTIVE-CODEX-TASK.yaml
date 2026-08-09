@@ -1,4 +1,4 @@
-schema_version: "72.0"
+schema_version: "73.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 204
@@ -6,7 +6,7 @@ active_pull_request: 208
 task_id: "CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60"
 route_epoch: 62
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E60 canonical trust root、external attestation 与 whole-task resource closure"
+mode_label: "【Codex模式：项目计划模式】E60 canonical verifier、external evidence 与 whole-task resource synthetic closure"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -14,8 +14,12 @@ second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
 planned_branch: "codex/e59-post-audit-canonical-trust-root-resource-closure-0056-e60"
-completion_signal: "CODEX_E60_CANONICAL_TRUST_ROOT_EXTERNAL_ATTESTATION_RESOURCE_TREE_READY_FOR_GPT_REVIEW"
-accepted_gate: "GPT_ACCEPTED_E60_CANONICAL_VERIFIER_SOURCE_SPAN_EXTERNAL_ATTESTATION_AND_RESOURCE_TREE_CLOSURE"
+completion_signal: "CODEX_E60_SYNTHETIC_VERIFIER_RESOURCE_PROVIDER_CLOSURE_READY_FOR_GPT_REVIEW"
+accepted_gate: "GPT_ACCEPTED_E60_SYNTHETIC_VERIFIER_RESOURCE_PROVIDER_CLOSURE"
+production_authority_gate:
+  status: "NOT_SATISFIED"
+  required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+  formal_knowledge_persistence_unlock_allowed: false
 route_contract:
   path: "coordination/ROUTES/CODEX-E60-ACTIVE-ROUTE-CONTRACT.yaml"
   status: "ACTIVE"
@@ -29,8 +33,8 @@ continuation_contract:
     - "Read the latest GPT-authored PR review/comment on PR #208 after the last Codex checkpoint."
     - "Treat the latest GPT review as the current continuation delta unless it conflicts with this canonical route or hard boundaries."
     - "Continue automatically without asking the user to paste the review text or issue a second start command."
-  latest_gpt_review_id: 4889241834
-  latest_gpt_review_purpose: "Provider aggregate manifest -> external attestation -> receipt-only finalization; remote-only bounded interruption canary if still needed; no merge."
+  latest_gpt_review_id: 4890165988
+  latest_gpt_review_purpose: "Create exactly one receipt-only direct child of executable head 777cbe88..., documenting accepted synthetic verifier/resource/Provider closure while explicitly keeping real production durable authority and E47 formal writes blocked. No executable/runtime/workflow/test changes; no merge."
   user_should_not_need_to_copy_prompt: true
 source_e59:
   issue: 197
@@ -42,8 +46,8 @@ parallel_qclaw:
   active_issue: 205
   active_pull_request: 207
   task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
-  role: "CANDIDATE_KNOWLEDGE_DIGESTION_ONLY"
-  formal_persistence_blocked_until_e60_acceptance: true
+  role: "USER_DIRECTED_CANDIDATE_KNOWLEDGE_DIGESTION"
+  formal_persistence_blocked_until_real_production_authority: true
 local_resource_safety:
   default_profile: "FOREGROUND_PRIORITY"
   user_foreground_apps_priority: "HIGHEST"
@@ -58,10 +62,12 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "Public-safe synthetic fixtures only."
+  - "Public-safe synthetic fixtures only for E60."
+  - "E60 synthetic fixture MUST NOT be described as production-grade durable authority."
   - "No private model/provider/reasoning/workspace/session configuration."
   - "No credentials, accounts, market data, orders or trading."
+  - "No formal knowledge persistence unlock from E60 synthetic closure."
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T06:11:00+08:00"
+updated_at: "2026-08-09T08:20:00+08:00"
