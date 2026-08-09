@@ -1,4 +1,4 @@
-schema_version: "74.0"
+schema_version: "75.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 209
@@ -22,9 +22,19 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
+read_task_preflight:
+  stale_local_main_must_not_imply_no_task: true
+  canonical_source: "origin/main"
+  required_before_no_task_conclusion:
+    - "Perform a read-only remote sync check (git fetch origin main; do not pull/rebase/checkout a dirty worktree)."
+    - "Read origin/main:coordination/ACTIVE-CODEX-TASK.yaml directly, e.g. git show origin/main:coordination/ACTIVE-CODEX-TASK.yaml."
+    - "If local git access is unavailable, query GitHub remote main and active Issue #209 before concluding no task."
+    - "Only conclude NO_NEW_TASK when remote canonical ACTIVE-CODEX-TASK is absent/inactive and Issue #209 contains no executable continuation."
+  local_missing_file_disposition: "STALE_OR_WRONG_VIEW_UNTIL_REMOTE_CANONICAL_CHECKED"
 continuation_contract:
   read_task_command: "读取任务"
   required_resolution_order:
+    - "Run read_task_preflight and resolve latest remote canonical main first."
     - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
     - "Read Issue #209, E61 route contract, AMED task brief and TaskImpactForecast."
     - "Read frozen E60 Issue #204 / PR #208 / receipt e06675f9 only as predecessor evidence."
@@ -66,4 +76,4 @@ hard_boundaries:
   - "No market data, accounts, orders, funds or trading."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T11:34:00+08:00"
+updated_at: "2026-08-09T13:29:00+08:00"
