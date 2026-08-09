@@ -1,0 +1,56 @@
+schema_version: "1.0"
+task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】E61 真实生产 Durable Authority 与知识正式写入门"
+issue: 209
+status: "READY"
+mission_intent:
+  root_goal: "建立普通调用者无法自签、自举或绕过的真实外部生产权威，并为E47候选知识包提供受控认证门。"
+  why_now: "E60仅验收synthetic verifier/resource/Provider闭环，明确不能作为生产信任根。"
+  success_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+system_position:
+  upstream:
+    - "E60 accepted synthetic verifier/source-span/provider/resource evidence"
+    - "E47 CandidateKnowledgePackage staging"
+  downstream:
+    - "formal PROJECT/GLOBAL knowledge certification"
+  system_of_record_rule: "formal write remains disabled until independent GPT acceptance"
+mandatory_steps:
+  - "从领取时最新canonical main新建独立branch和Draft PR，plan-first。"
+  - "审计历史authority/CAS/provenance资产及真实可观察的repo/local控制面；只精确复用已接受内容。"
+  - "查官方一手文档并比较至少两个真正外部控制的生产authority方案。"
+  - "若需要GitHub App、secret、repository setting、permission或其他高风险变更，停止并输出USER_APPROVAL_REQUIRED，不自行修改。"
+  - "实现可行的production verifier/certification adapter；不得让普通caller拥有issuer能力。"
+  - "CandidateKnowledgePackage按content_hash/source provenance进入认证，不重新学习、不静默改写。"
+  - "对self-issuance/bootstrap/replay/stale/wrong-key/wrong-actor/wrong-route/semantic-tamper/duplicate-use/bypass做对抗测试。"
+  - "Provider绑定精确tested head；最终receipt必须经GPT授权后作为direct child。"
+research_discipline:
+  trigger: "L2_TARGETED_PROFESSIONAL_RESEARCH"
+  primary_sources: "official GitHub/service docs, standards, repository/local verified facts"
+  must_record:
+    - "support and counterevidence"
+    - "permission and trust assumptions"
+    - "failure/revocation/rollback"
+resource_policy:
+  profile: "FOREGROUND_PRIORITY"
+  local_task_python_cap: 2
+  combined_dual_agent_cpu_workers: 1
+  heavy_matrix: "REMOTE_CI"
+  nested_parallelism: "FORBIDDEN"
+  postflight: "zero task-owned descendants/orphans"
+hard_boundaries:
+  - "No credentials/private keys in repo or report."
+  - "No production knowledge write before GPT acceptance."
+  - "No merge/direct-main implementation/rebase/force/amend."
+  - "No market/account/order/trade access."
+required_outputs:
+  - "PROJECT-PLAN.md"
+  - "CURRENT-AUTHORITY-AUDIT.yaml"
+  - "AUTHORITY-DESIGN-DECISION.md"
+  - "PRODUCTION-AUTHORITY-CONTRACT.yaml"
+  - "CANDIDATE-CERTIFICATION-CONTRACT.yaml"
+  - "ADVERSARIAL-TEST-REGISTRY.yaml"
+  - "UNKNOWN-REGISTRY.yaml"
+  - "USER-APPROVAL-REQUIREMENTS.yaml when applicable"
+  - "Provider and AMED receipts"
+next_command: "读取任务"
