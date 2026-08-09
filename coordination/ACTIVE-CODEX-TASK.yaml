@@ -1,73 +1,69 @@
-schema_version: "73.0"
+schema_version: "74.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 204
-active_pull_request: 208
-task_id: "CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60"
-route_epoch: 62
+active_issue: 209
+active_pull_request: null
+task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
+route_epoch: 63
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E60 canonical verifier、external evidence 与 whole-task resource synthetic closure"
+mode_label: "【Codex模式：项目计划模式】E61 真实生产 Durable Authority 与知识正式写入门"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
-planned_branch: "codex/e59-post-audit-canonical-trust-root-resource-closure-0056-e60"
-completion_signal: "CODEX_E60_SYNTHETIC_VERIFIER_RESOURCE_PROVIDER_CLOSURE_READY_FOR_GPT_REVIEW"
-accepted_gate: "GPT_ACCEPTED_E60_SYNTHETIC_VERIFIER_RESOURCE_PROVIDER_CLOSURE"
-production_authority_gate:
-  status: "NOT_SATISFIED"
-  required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
-  formal_knowledge_persistence_unlock_allowed: false
+planned_branch: "codex/real-production-durable-authority-0057-e61"
+completion_signal: "CODEX_E61_REAL_PRODUCTION_DURABLE_AUTHORITY_READY_FOR_GPT_REVIEW"
+accepted_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+formal_knowledge_persistence_unlock_allowed: false
 route_contract:
-  path: "coordination/ROUTES/CODEX-E60-ACTIVE-ROUTE-CONTRACT.yaml"
+  path: "coordination/ROUTES/CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml"
   status: "ACTIVE"
-task_brief: "coordination/TASK-BRIEFS/CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-E59-POST-AUDIT-CANONICAL-TRUST-ROOT-EXTERNAL-ATTESTATION-RESOURCE-TREE-CLOSURE-0056-E60.yaml"
+task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
 continuation_contract:
   read_task_command: "读取任务"
   required_resolution_order:
     - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
-    - "Read active Issue #204 and Draft PR #208."
-    - "Read the latest GPT-authored PR review/comment on PR #208 after the last Codex checkpoint."
-    - "Treat the latest GPT review as the current continuation delta unless it conflicts with this canonical route or hard boundaries."
-    - "Continue automatically without asking the user to paste the review text or issue a second start command."
-  latest_gpt_review_id: 4890165988
-  latest_gpt_review_purpose: "Create exactly one receipt-only direct child of executable head 777cbe88..., documenting accepted synthetic verifier/resource/Provider closure while explicitly keeping real production durable authority and E47 formal writes blocked. No executable/runtime/workflow/test changes; no merge."
+    - "Read Issue #209, E61 route contract, AMED task brief and TaskImpactForecast."
+    - "Read frozen E60 Issue #204 / PR #208 / receipt e06675f9 only as predecessor evidence."
+    - "Start E61 from exact latest canonical main; never continue on E60 branch."
+    - "Create fresh branch and Draft PR plan-first, then continue automatically."
   user_should_not_need_to_copy_prompt: true
-source_e59:
-  issue: 197
-  pull_request: 198
-  frozen_head: "4f45114034fa244e044446ca53e05d76e38757e8"
-  execution_allowed: false
+predecessor_e60:
+  issue: 204
+  pull_request: 208
+  receipt_head: "e06675f9faf17abf04d7774e42743f64dc008c00"
+  status: "REVIEWED_FROZEN"
+  accepted_credit: "SYNTHETIC_VERIFIER_SOURCE_SPAN_PROVIDER_RESOURCE_CLOSURE"
+  production_authority_credit: false
   whole_branch_import_forbidden: true
 parallel_qclaw:
   active_issue: 205
   active_pull_request: 207
-  task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
-  role: "USER_DIRECTED_CANDIDATE_KNOWLEDGE_DIGESTION"
-  formal_persistence_blocked_until_real_production_authority: true
+  role: "SEMANTIC_DIGESTION_CANARY_REMEDIATION"
+  formal_persistence_blocked_until_e61_acceptance: true
+user_approval_gate:
+  trigger: "new GitHub App/service/secret/private-key/repository protection/environment/permission or other high-risk production control change is required"
+  action: "STOP_AND_REPORT_USER_APPROVAL_REQUIRED"
+  credentials_must_not_be_requested_or_exposed: true
 local_resource_safety:
   default_profile: "FOREGROUND_PRIORITY"
   user_foreground_apps_priority: "HIGHEST"
   dual_agent_default_task_python_cap_each: 2
   dual_agent_default_combined_task_python_cap: 4
   default_cpu_bound_workers_combined: 1
-  idle_batch_combined_task_python_cap: 6
-  idle_batch_cpu_bound_workers_combined: 2
   nested_parallelism: "FORBIDDEN"
-  heavy_stage_mutex: "SECOND_BRAIN_LOCAL_HEAVY_TEST_LOCK"
-  heavy_matrix_or_fanout: "REMOTE_CI_PREFERRED_AND_LOCAL_REFUSED"
+  heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "Public-safe synthetic fixtures only for E60."
-  - "E60 synthetic fixture MUST NOT be described as production-grade durable authority."
-  - "No private model/provider/reasoning/workspace/session configuration."
-  - "No credentials, accounts, market data, orders or trading."
-  - "No formal knowledge persistence unlock from E60 synthetic closure."
+  - "No credentials/private keys in repository or reports."
+  - "No production formal knowledge write before GPT acceptance."
+  - "No silent repository permission/settings changes; user gate applies."
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
+  - "No market data, accounts, orders, funds or trading."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T08:20:00+08:00"
+updated_at: "2026-08-09T11:34:00+08:00"
