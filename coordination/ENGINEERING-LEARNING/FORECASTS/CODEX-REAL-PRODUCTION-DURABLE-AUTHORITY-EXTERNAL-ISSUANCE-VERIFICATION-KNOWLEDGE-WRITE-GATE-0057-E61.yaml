@@ -1,0 +1,36 @@
+schema_version: "1.0"
+task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
+mode: "project_plan"
+forecast:
+  expected_benefits:
+    - "把E60的synthetic验证模型连接到真正由caller之外控制的生产authority。"
+    - "让E47候选知识未来可在不重新学习的情况下批量认证。"
+    - "显式隔离issuer、verifier、candidate certification和formal write权限。"
+  expected_harms:
+    - "生产authority可能需要额外GitHub App/secret/repository setting或本地受保护服务，增加运维复杂度。"
+    - "若external control选择错误，可能形成表面外部、实际caller可伪造的影子authority。"
+    - "过度治理可能降低知识入库吞吐。"
+  major_risks:
+    - id: "R1"
+      risk: "same-caller self issuance or alternate-key substitution"
+      control: "independent control plane + adversarial tests + fail closed"
+    - id: "R2"
+      risk: "permission/config change exceeds user approval"
+      control: "USER_APPROVAL_REQUIRED before any real setting/secret/app change"
+    - id: "R3"
+      risk: "candidate content changes between digestion and certification"
+      control: "bind exact content_hash + source provenance and reject mutation"
+    - id: "R4"
+      risk: "local resource pressure"
+      control: "foreground priority; bounded local workers; heavy CI remote"
+  falsification_signals:
+    - "ordinary caller can mint an accepted authority/capability"
+    - "verifier key/provider can be replaced from same untrusted path"
+    - "same candidate can replay a single-use authorization"
+    - "formal write can occur before independent GPT acceptance"
+  user_approval_points:
+    - "new app/service installation"
+    - "secret/private-key creation or exposure"
+    - "repository protection/environment/permission changes"
+    - "any irreversible production authority migration"
+  rollback: "No production write is enabled in task baseline; implementation remains branch-isolated and can be frozen without affecting E47 candidate packages."
