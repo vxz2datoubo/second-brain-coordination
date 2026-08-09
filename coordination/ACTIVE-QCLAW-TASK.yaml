@@ -1,4 +1,4 @@
-schema_version: "63.0"
+schema_version: "64.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -28,8 +28,8 @@ continuation_contract:
     - "Read the latest GPT-authored PR review/comment on PR #207 after the last QCLAW checkpoint."
     - "Treat the latest GPT review as the current continuation delta unless it conflicts with this canonical route or hard boundaries."
     - "Continue automatically without asking the user to paste the review text or issue a second start command."
-  latest_gpt_review_id: 4889241144
-  latest_gpt_review_purpose: "Fix serialized content_hash PLACEHOLDER; regenerate DIGEST-001..005; round-trip hash verification; no new ingestion until pass."
+  latest_gpt_review_id: 4890165634
+  latest_gpt_review_purpose: "E47 serialization/provenance gate accepted; begin USER/GPT-DIRECTED bulk candidate knowledge digestion; do not self-scan arbitrary workspace by default."
   user_should_not_need_to_copy_prompt: true
 source_e46:
   issue: 202
@@ -38,13 +38,16 @@ source_e46:
   execution_allowed: false
   whole_branch_import_forbidden: true
 formal_persistence:
-  status: "BLOCKED_PENDING_E60"
-  required_gate: "GPT_ACCEPTED_E60_CANONICAL_VERIFIER_SOURCE_SPAN_EXTERNAL_ATTESTATION_AND_RESOURCE_TREE_CLOSURE"
+  status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
+  e60_synthetic_verifier_credit: true
+  e60_synthetic_verifier_is_not_production_write_authority: true
+  required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
   candidate_packages_allowed: true
   authoritative_global_or_project_write_allowed: false
   formal_master_transition_allowed: false
   formal_skill_promotion_allowed: false
 knowledge_work_priority:
+  - "user/GPT-selected source ingestion first"
   - "faithful source extraction"
   - "deep learning and atomic decomposition"
   - "fact/source/evidence/inference/value separation"
@@ -53,6 +56,7 @@ knowledge_work_priority:
   - "contradiction preservation"
   - "knowledge graph relationships"
   - "candidate memories and candidate skills"
+  - "explicit unknowns and validation requirements"
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
   user_foreground_apps_priority: "HIGHEST"
@@ -69,7 +73,8 @@ resource_policy:
 hard_boundaries:
   - "No private model/provider/reasoning/workspace/session configuration."
   - "No credentials, accounts, market data, orders or trading."
+  - "No formal GLOBAL/PROJECT persistence until GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING."
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T06:11:00+08:00"
+updated_at: "2026-08-09T08:20:00+08:00"
