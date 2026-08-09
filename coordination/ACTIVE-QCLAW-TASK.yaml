@@ -1,4 +1,4 @@
-schema_version: "65.0"
+schema_version: "66.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -20,10 +20,20 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47.yaml"
+read_task_preflight:
+  stale_local_main_must_not_imply_no_task: true
+  canonical_source: "origin/main"
+  required_before_no_task_conclusion:
+    - "Perform a read-only remote sync check (for git environments: git fetch origin main; do not pull/rebase/checkout a dirty worktree)."
+    - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly (for git: git show origin/main:coordination/ACTIVE-QCLAW-TASK.yaml)."
+    - "If local git access is unavailable, query the GitHub remote main file and active Issue #205 before concluding no task."
+    - "Only conclude NO_NEW_TASK when BOTH remote canonical ACTIVE-QCLAW-TASK is absent/inactive AND active Issue/PR contain no executable GPT continuation delta."
+  local_missing_file_disposition: "STALE_OR_WRONG_VIEW_UNTIL_REMOTE_CANONICAL_CHECKED"
 continuation_contract:
   read_task_command: "读取任务"
   required_resolution_order:
-    - "Read this ACTIVE-QCLAW-TASK.yaml from latest canonical main."
+    - "Run read_task_preflight and resolve latest remote canonical main first."
+    - "Read coordination/ACTIVE-QCLAW-TASK.yaml from latest canonical main."
     - "Read active Issue #205 and Draft PR #207."
     - "Read latest GPT review 4890430204 on PR #207."
     - "Treat DIGEST-006/007 batch-2 as rejected candidate output pending regeneration."
@@ -70,4 +80,4 @@ hard_boundaries:
   - "No merge/direct-main implementation/rebase/force/amend."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T11:33:00+08:00"
+updated_at: "2026-08-09T12:57:00+08:00"
