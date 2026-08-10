@@ -1,0 +1,49 @@
+name: QCLAW E39 Tree-Safe Strict Parser
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"]
+  push:
+    branches: ["qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+        seed: [0, 1, 777]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run tests with seed
+        env:
+          PYTHONHASHSEED: ${{ matrix.seed }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          python -m unittest discover -s $(echo "${{ github.workspace }}/coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-KNOWLEDGE-ATOMIZATION-TREE-SAFE-STRICT-PARSER-0020-E39/tests") -v
+      - name: Upload test artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-py${{ matrix.python-version }}-seed${{ matrix.seed }}
+          path: /tmp/e39-test-*.txt
+
+  byte-compare:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Fetch all artifacts
+        uses: actions/download-artifact@v4
+      - name: Print artifact summary
+        run: |
+          find . -name "*.txt" -exec echo "=== {} ===" \; -exec cat {} \;

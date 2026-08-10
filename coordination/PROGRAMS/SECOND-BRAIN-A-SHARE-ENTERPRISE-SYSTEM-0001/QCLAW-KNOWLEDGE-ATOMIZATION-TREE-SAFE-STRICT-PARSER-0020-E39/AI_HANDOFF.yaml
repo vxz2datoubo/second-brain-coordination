@@ -1,0 +1,44 @@
+# E39 AI_HANDOFF.yaml
+# Agent-to-GPT handoff: completion evidence for E39 review
+
+handoff_version: "1.0.0"
+epoch: 39
+issue: 156
+pr: 157
+branch: qclaw/knowledge-atomization-tree-safe-strict-parser-ledger-artifact-ci-0020-e39
+
+tested_head: "71dc7588dc1e8439803472b7350f5027ffe7f028"
+receipt_head: "${THIS_COMMIT}"
+combined_source_artifact_hash: "fb3c3a7532d0166f031fe79579af81ef488fbfa7861f0d781d36207154f93603"
+
+completion_signal: "QCLAW_E39_TREE_SAFE_STRICT_PARSER_LEDGER_ARTIFACT_CI_READY_FOR_GPT_REVIEW"
+
+test_results:
+  total_tests: 207
+  python_3_11_10: "PASS"
+  python_3_13_3: "PASS"
+  framework: unittest
+
+modules:
+  - utf8_guard.py: "Strict UTF-8 byte scanner with ternary process-timeout gates"
+  - ledger.py: "Exact-once byte-range owner ledger with freeze semantics"
+  - adapter.py: "6-format byte-position adapters (txt/md/json/jsonl/conversation_structured/conversation_plain)"
+  - redact.py: "Irreversible byte-level redaction with priority overlap resolution"
+  - atoms.py: "Conservative atom extraction: CLAIM default, no auto-FACT"
+  - relations.py: "Evidence-only relations (6 types), adjacency permanently blocked"
+  - packet.py: "Deterministic packet with full semantic hash, no self-reference"
+
+tree_scope_gate: PASS
+whole_file_copy_blocked: true
+forbidden_sources: [E34, E35, E36, E37, E38]
+
+ci_workflow: ".github/workflows/qclaw-e39-tree-safe-parser.yml"
+
+risks:
+  - "CI requires ubuntu-latest runner — not yet verified on GitHub Actions remote"
+  - "Cross-seed artifact byte-compare not yet proven on remote CI"
+
+next:
+  - "STOP_AND_REQUEST_GPT_SECOND_PASS"
+  - "GPT review of PR #157"
+  - "If accepted: merge freeze epoch"
