@@ -70,15 +70,19 @@ def se(atom_id: str, atom_type: AtomType, excerpt: str, confidence: Confidence,
     return source_extract(atom_id, atom_type, AMED, idx, idx + len(excerpt),
                           confidence=confidence, scope=scope, invalidation=invalidation, label=label)
 
-# Helper: INFERENCE atom — agent's words anchored to a single verbatim source span
-def ie(atom_id: str, atom_type: AtomType, content: str, excerpt: str,
+# Helper: INFERENCE atom — agent's words anchored to one or more verbatim source spans
+def ie(atom_id: str, atom_type: AtomType, content: str, excerpts,
        confidence: Confidence, scope: str = "", invalidation: str = "",
        label: str = "") -> Atom:
-    idx = AMED.find(excerpt)
-    if idx == -1:
-        raise ValueError(f"[{atom_id}] anchor excerpt not found: {excerpt[:50]!r}")
-    span = _make_span(AMED, idx, idx + len(excerpt), label)
-    return inference_atom(atom_id, atom_type, content, (span,),
+    if isinstance(excerpts, str):
+        excerpts = [excerpts]
+    spans = []
+    for i, ex in enumerate(excerpts):
+        idx = AMED.find(ex)
+        if idx == -1:
+            raise ValueError(f"[{atom_id}] anchor[{i}] not found: {ex[:50]!r}")
+        spans.append(_make_span(AMED, idx, idx + len(ex), f"{label}_{i}"))
+    return inference_atom(atom_id, atom_type, content, tuple(spans),
                           confidence=confidence, scope=scope, invalidation=invalidation)
 
 
@@ -193,11 +197,21 @@ atoms += [
 atoms += [
     ie("A024", AtomType.MECHANISM,
        content="AMED §3.6 三层预算（70-80% / 10-20% / 5-10%）与 §10 规则1 共同形成反吞噬保险：探索有时间与比例双层上限，主任务始终占绝对多数；主动研究不可成为未完成主交付的理由。",
-       excerpt="主任务优先，主动研究不能成为未完成主交付的理由；",
+       excerpts=[
+           "primary_delivery_share: \"70-80%\"",
+           "active_discovery_share: \"10-20%\"",
+           "system_opportunity_share: \"5-10%\"",
+           "主任务优先，主动研究不能成为未完成主交付的理由；",
+       ],
        confidence=Confidence.HIGH, scope="AMED §3.6 ∩ §10.1", label="anti_consumption_insurance"),
     ie("A025", AtomType.MECHANISM,
        content="AMED §2 升级门槛、§3.5 四级分级、§7 七道门共同形成证据化升级闭环：单次成功仅产生观察，C 级（PROPOSAL_ONLY）显式禁止自行实现，D 级（PROHIBITED_OR_USER_GATE）要求停止升级，系统级回写必经 GPT 七道门审核。",
-       excerpt="#### C级 `PROPOSAL_ONLY`",
+       excerpts=[
+           "单次成功只形成观察或假设，不能自动升级为企业标准。系统级回写必须经过GPT二次审核、证据复核和必要的独立验证。",
+           "#### C级 `PROPOSAL_ONLY`",
+           "#### D级 `PROHIBITED_OR_USER_GATE`",
+           "## 7. GPT二次审核七道门",
+       ],
        confidence=Confidence.HIGH, scope="AMED §2 ∩ §3.5 ∩ §7", label="layered_authority_loop"),
 ]
 
@@ -227,11 +241,11 @@ relations += [
     Relation("A018", "A017", RelationType.SUPPORTS, span_index=0),    # anti-citation rule supports introspection-not-verification
 ]
 
-# CONTRADICTS — internal tensions worth preserving (not papered over)
-relations += [
-    Relation("A003", "A020", RelationType.CONTRADICTS, span_index=0), # recon chain (active discovery) vs rule 1 (main task priority)
-    Relation("A004", "A021", RelationType.CONTRADICTS, span_index=0), # evolution chain (propose new skill/arch) vs rule 2 (discovery≠implementation)
-]
+# RAISES_TENSION (was: CONTRADICTS) — per review 48904302xx finding #1,
+# X001/X002/X003 are not genuine contradictions. They are constraints/complements/underspecified
+# transitions. Replaced by RAISES_TENSION relation type pointing at UNKNOWN atoms U026/U027.
+# CONTRADICTS deliberately omitted: zero contradictions is valid when source has no real
+# mutually-incompatible claims.
 
 # VERIFIED_BY — explicit verification lineage
 relations += [
@@ -251,28 +265,12 @@ relations += [
 ]
 
 # ───────────────────────────────────────────────────────────
-# CONTRADICTIONS — explicit (real internal tensions)
+# CONTRADICTIONS — per review 48904302xx finding #1, X001/X002/X003 are NOT genuine
+# contradictions (constraints/complements/underspecified transitions). Real ambiguity
+# preserved as UNKNOWNs (U026-U029) and RAISES_TENSION relations. Zero contradictions
+# is valid when the source has no real mutually-incompatible claims.
 # ───────────────────────────────────────────────────────────
-contradictions = [
-    Contradiction(
-        contradiction_id="X001",
-        atom_ids=("A003", "A020"),
-        contradiction_class=ContradictionClass.SCENARIO_DIFFERENCE,
-        detail="§1 现场侦察链授权执行者主动发现错误假设、缺失需求、接口缺口等；§10 规则1 又禁止主动研究成为延误主交付的理由。两条款均要求主动侦察，但当主交付与侦察发现冲突时，规则1 拥有最终约束权。协议不规定如何量化『未完成』或『延误』的阈值，留给执行者按任务档位自行裁剪。这构成场景性矛盾（active vs constrained），而非真正的逻辑冲突。",
-    ),
-    Contradiction(
-        contradiction_id="X002",
-        atom_ids=("A004", "A021"),
-        contradiction_class=ContradictionClass.DEFINITION_MISMATCH,
-        detail="§1 系统演进链授权执行者『将可复用发现形成证据化提案』；§10 规则2 又说『发现不等于实现，C 级默认只提案』。演进链在措辞上同时包含『提案』和『形成证据化提案』，而规则 2 将 C 级（跨模块 / 新 Skill / 新 canonical）显式归入仅提案。两者表面接近，但 §1 的『反哺蓝图、合同、Skill』实际涵盖 A/B/C 级全部范围，规则 2 的 C 级禁令更严。潜在张力：执行者可能将 A 级变更误归为 B 级以绕过 C 级提案门槛。",
-    ),
-    Contradiction(
-        contradiction_id="X003",
-        atom_ids=("A005", "A008"),
-        contradiction_class=ContradictionClass.PROBABLE_ERROR,
-        detail="§1 核心原则要求『有纪律的主动性』，§3.3 要求『不得将推断写成事实』；但 §5 又强调『AI 自我反思不是验证』且 §3.6 探索预算允许 10-20% 的主动发现。当推断未升级为事实却已被纳入发现证据时，三个条款共同形成『纪律性』边界，但协议未明示推断升级路径（A→B→C→D 升级触发条件缺失），导致主动发现的成果在向规则 1/规则 2 转译时易被错误地标为事实证据。",
-    ),
-]
+contradictions = []
 
 # ───────────────────────────────────────────────────────────
 # UNKNOWS — explicit, from protocol gaps
@@ -306,14 +304,14 @@ unknowns = [
 memory_records = [
     CandidateMemory(
         record_id="M007",
-        statement="[AGENT INFERENCE, CANDIDATE] AMED 协议通过 §3.6 三层预算（70-80% / 10-20% / 5-10%）+ §10 规则1 双重约束构建反吞噬保险，使主动研究不会吞没主交付。此结论非协议直接声明，而是从两条条款共同作用域推出的机制性记忆，需在 E60 验收前保持 CANDIDATE 状态。",
+        statement="[AGENT INFERENCE, CANDIDATE] AMED 协议通过 §3.6 三层预算（70-80% / 10-20% / 5-10%）+ §10 规则1 双重约束旨在降低主动研究吞噬主交付的风险。此结论非协议直接声明，而是从两条条款共同作用域推出的机制性记忆；AMED 明记预算为 publisher 默认可调，publisher 仍可按任务档位定制。需在 E61 验收前保持 CANDIDATE 状态。",
         confidence=Confidence.MEDIUM,
         source_atom_ids=("A010", "A011", "A012", "A020", "A024"),
         evidence_basis="AMED v1.0 §3.6 + §10.1 联合作用域；本记忆由 A024 INFERENCE atom 明确支持",
     ),
     CandidateMemory(
         record_id="M008",
-        statement="[AGENT INFERENCE, CANDIDATE] AMED 的双环学习（§2）+ 改进权限分级（§3.5 A/B/C/D）+ GPT 七道门（§7）共同形成证据化升级闭环：单次成功仅产生观察，C 级提案 + 七道门审核才能形成系统级回写。这削弱了执行 AI 自报升级的能力。",
+        statement="[AGENT INFERENCE, CANDIDATE] AMED 的双环学习（§2）+ 改进权限分级（§3.5 A/B/C/D）+ GPT 七道门（§7）共同构成证据化升级路径之一：单次成功仅产生观察，部分路径可经 C 级提案 + 七道门审核形成系统级回写。这削弱了执行 AI 自报升级的能力但非唯一路径。",
         confidence=Confidence.HIGH,
         source_atom_ids=("A007", "A014", "A015", "A019", "A025"),
         evidence_basis="AMED v1.0 §2/§3.5/§7 三层耦合；本记忆由 A025 INFERENCE atom 明确支持",
@@ -328,7 +326,7 @@ skills = [
         skill_id="S005",
         name="AMED 三链预算守护",
         description="在执行多档位任务（轻量/标准/战略）时，按 §3.6 三层预算比例（主交付 70-80% / 主动发现 10-20% / 系统机会 5-10%）切分认知资源，并在主交付未达成时主动收敛主动发现分支。可对每个原子任务输出预算占用百分比与剩余比例，作为下个决策周期的输入。",
-        failure_conditions="①若主交付未达成且主动发现占比 > 20%，触发 §10 规则1 违反；②若系统级提案未经 GPT 七道门即被实施，触发 §10 规则3 反查重违反；③若推断被作为事实证据提交且未明示 evidence_kind，触发 §3.3 推断/事实违反。",
+        failure_conditions="①若主交付未达成且主动发现占比超出 publisher 设定的同档位上限，触发 §10 规则1 违反；②若重复建设项未走 §10 规则3 复用检查，触发反查重违反；③若推断被作为事实证据提交且未明示 evidence_kind，触发 §3.3 推断/事实违反。",
     ),
     CandidateSkill(
         skill_id="S006",
@@ -345,8 +343,8 @@ summary = (
     "25 atoms (1 triple-chain mandate + 3 chain mechanism + 1 core principle + 1 §2 loop concept + "
     "1 §2 promotion gate + 2 §3.3 hard-boundary conditions + 4 §3.6 budget constraints + 3 §3.5 "
     "A/C/D class headers + 2 §5 anti-fraud + 1 §7 seven-gates header + 4 §10 hard rules + 2 "
-    "cross-section INFERENCE syntheses). 20 relations across 5 types (DEPENDS_ON=9, SUPPORTS=4, "
-    "CONTRADICTS=2, VERIFIED_BY=2, RAISES_UNKNOWN=2, REFINES=1). 3 contradictions, 4 unknowns, "
+    "cross-section INFERENCE syntheses). 20 relations across 6 types (DEPENDS_ON=9, SUPPORTS=4, "
+    "VERIFIED_BY=2, RAISES_UNKNOWN=2, RAISES_TENSION=2, REFINES=1). 0 contradictions, 4 unknowns, "
     "2 candidate memories, 2 candidate skills. Source: AMED v1.0 (11041 bytes, sha256=f777b9d2...). "
     "All SOURCE_EXTRACT atoms verified verbatim against source byte spans. CANDIDATE ONLY."
 )
