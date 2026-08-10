@@ -203,7 +203,7 @@ atoms += [
            "system_opportunity_share: \"5-10%\"",
            "主任务优先，主动研究不能成为未完成主交付的理由；",
        ],
-       confidence=Confidence.HIGH, scope="AMED §3.6 ∩ §10.1", label="anti_consumption_insurance"),
+       confidence=Confidence.MEDIUM, scope="AMED §3.6 ∩ §10.1", label="anti_consumption_insurance"),
     ie("A025", AtomType.MECHANISM,
        content="AMED §2 升级门槛、§3.5 四级分级、§7 七道门共同形成证据化升级闭环：单次成功仅产生观察，C 级（PROPOSAL_ONLY）显式禁止自行实现，D 级（PROHIBITED_OR_USER_GATE）要求停止升级，系统级回写必经 GPT 七道门审核。",
        excerpts=[
@@ -212,7 +212,7 @@ atoms += [
            "#### D级 `PROHIBITED_OR_USER_GATE`",
            "## 7. GPT二次审核七道门",
        ],
-       confidence=Confidence.HIGH, scope="AMED §2 ∩ §3.5 ∩ §7", label="layered_authority_loop"),
+       confidence=Confidence.MEDIUM, scope="AMED §2 ∩ §3.5 ∩ §7", label="layered_authority_loop"),
 ]
 
 # ───────────────────────────────────────────────────────────
@@ -312,7 +312,7 @@ memory_records = [
     CandidateMemory(
         record_id="M008",
         statement="[AGENT INFERENCE, CANDIDATE] AMED 的双环学习（§2）+ 改进权限分级（§3.5 A/B/C/D）+ GPT 七道门（§7）共同构成证据化升级路径之一：单次成功仅产生观察，部分路径可经 C 级提案 + 七道门审核形成系统级回写。这削弱了执行 AI 自报升级的能力但非唯一路径。",
-        confidence=Confidence.HIGH,
+        confidence=Confidence.MEDIUM,
         source_atom_ids=("A007", "A014", "A015", "A019", "A025"),
         evidence_basis="AMED v1.0 §2/§3.5/§7 三层耦合；本记忆由 A025 INFERENCE atom 明确支持",
     ),
@@ -337,16 +337,38 @@ skills = [
 ]
 
 # ───────────────────────────────────────────────────────────
-# SUMMARY — candid, no overclaims
+# SUMMARY — derived from the package lists, so summary and serialized
+# payload cannot disagree (per review 4898300855 finding #1).
+# Counts below come from the same lists passed to build_package(...).
 # ───────────────────────────────────────────────────────────
+from collections import Counter as _CounterSummary
+_rel_counts_pre = _CounterSummary(r.relation_type.value for r in relations)
+_rel_breakdown_pre = ", ".join(
+    f"{rt}={n}" for rt, n in sorted(_rel_counts_pre.items(), key=lambda x: -x[1])
+) or "(none)"
+_n_atoms = len(atoms)
+_n_relations = len(relations)
+_n_distinct_types = len(_rel_counts_pre)
+_n_contradictions = len(contradictions)
+_n_unknowns = len(unknowns)
+_n_memories = len(memory_records)
+_n_skills = len(skills)
+
 summary = (
-    "25 atoms (1 triple-chain mandate + 3 chain mechanism + 1 core principle + 1 §2 loop concept + "
-    "1 §2 promotion gate + 2 §3.3 hard-boundary conditions + 4 §3.6 budget constraints + 3 §3.5 "
-    "A/C/D class headers + 2 §5 anti-fraud + 1 §7 seven-gates header + 4 §10 hard rules + 2 "
-    "cross-section INFERENCE syntheses). 20 relations across 6 types (DEPENDS_ON=9, SUPPORTS=4, "
-    "VERIFIED_BY=2, RAISES_UNKNOWN=2, RAISES_TENSION=2, REFINES=1). 0 contradictions, 4 unknowns, "
-    "2 candidate memories, 2 candidate skills. Source: AMED v1.0 (11041 bytes, sha256=f777b9d2...). "
-    "All SOURCE_EXTRACT atoms verified verbatim against source byte spans. CANDIDATE ONLY."
+    "DIGEST-007 of E47-AMED canary. Pure CANDIDATE; SOURCE_EXTRACT atoms are "
+    "verbatim per-byte against the pinned AMED source; INFERENCE atoms are "
+    "agent cross-section syntheses and must remain MEDIUM until independently "
+    "validated. Two INFERENCE atoms anchor to multiple material source spans "
+    "so every factual premise is traceable. The package contains no "
+    "fabricated contradictions; real ambiguity is preserved as UNKNOWNs. "
+    "formal_persistence remains blocked pending E61 "
+    "(GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING).\n\n"
+    "[DERIVED FROM LISTS AT BUILD] atoms={na} relations={nr} "
+    "distinct_relation_types={ndt} contradictions={nc} unknowns={nu} "
+    "memory_records={nm} skills={ns}. relation_breakdown: {rb}.".format(
+        na=_n_atoms, nr=_n_relations, ndt=_n_distinct_types, nc=_n_contradictions,
+        nu=_n_unknowns, nm=_n_memories, ns=_n_skills, rb=_rel_breakdown_pre,
+    )
 )
 
 # ───────────────────────────────────────────────────────────
