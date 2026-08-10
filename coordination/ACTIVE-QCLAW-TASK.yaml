@@ -1,8 +1,8 @@
-schema_version: "69.0"
+schema_version: "70.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "REMEDIATION_REQUIRED"
+status: "ACCEPTED_WITH_BOUNDED_AMENDMENT"
 execution_allowed: true
 automatic_resume: true
 active_issue: 205
@@ -10,9 +10,9 @@ active_pull_request: 207
 task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
 route_epoch: 47
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E47 DIGEST-007 v9 最终一致性与反Goodhart窄修"
+mode_label: "【QCLAW模式：项目计划模式】E47 v10 语义金丝雀已通过；代码卫生与PR快进收口"
 planned_branch: "qclaw/e47-digest-007-amd-canary-regen"
-completion_signal: "QCLAW_E47_DIGEST_007_V9_FINAL_CONSISTENCY_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E47_V10_HYGIENE_AND_PR_FAST_FORWARD_READY_FOR_GPT_STATUS_CHECK"
 second_user_start_command_required: false
 merge_authorized: false
 route_contract:
@@ -27,50 +27,57 @@ read_task_preflight:
     - "If local loader fails, read Issue #205 body; it is sufficient continuation authority for this run."
 continuation_contract:
   read_task_command: "读取任务"
-  current_canary_head: "c9549fc9aca63d109a434c81968ad3dd342ce49c"
-  latest_gpt_review_id: 4898300855
-  latest_gpt_review_purpose: "v9 content acceptable; final bounded summary-consistency, anti-Goodhart test semantics, and inference-confidence calibration."
+  accepted_semantic_canary_head: "ce4a259faf5e0b8fd5a6f6a498fe92b62f398c04"
+  current_pr_head: "d19c92a7d59f883de4d9798cd8d847092e129967"
+  latest_gpt_review_id: 4898451999
+  latest_gpt_review_purpose: "v10 semantic canary accepted; remove one real BOM/stale-header hygiene defect, then fast-forward accepted canary lineage into PR #207."
   required_resolution_order:
     - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
     - "Read Issue #205 current body first."
-    - "Read GPT review 4898300855 on PR #207."
-    - "Treat any local memory/comment saying v9 is merely waiting for GPT as superseded operational state."
-    - "Continue on qclaw/e47-digest-007-amd-canary-regen from canary head c9549fc9..."
-    - "Patch only final DIGEST-007 v9 consistency/test/confidence items; stop after dual-Python verification."
+    - "Read GPT review 4898451999 on PR #207."
+    - "Treat any local memory/comment saying v10 is waiting with no action as superseded."
+    - "Continue on qclaw/e47-digest-007-amd-canary-regen from ce4a259..."
+    - "Perform only hygiene + lightweight verification + normal fast-forward of PR #207 branch; then stop."
   user_should_not_need_to_copy_prompt: true
-final_canary_remediation:
-  serialized_summary_must_match_payload: true
-  actual_relation_count_at_v9: 18
-  actual_relation_type_count_at_v9: 5
-  contradiction_count_at_v9: 0
-  stale_summary_raises_tension_claim_forbidden: true
-  semantic_output_count_quotas_forbidden: true
-  source_extract_percentage_quota_forbidden: true
-  arbitrary_non_refines_minimum_forbidden: true
-  active_output_nonzero_quota_forbidden: true
-  anti_linear_refines_should_detect_specific_bad_pattern: true
-  a024_expected_material_span_count: 4
-  a025_expected_material_span_count: 4
-  m008_confidence_target: "MEDIUM"
-  review_a024_a025_inference_confidence: true
-  current_production_authority_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
-  legacy_requires_e60_authority_field: "SCHEMA_COMPATIBILITY_DEBT_ONLY_NOT_CURRENT_GATE"
-scope:
-  source: "existing AMED source behind DIGEST-007 only"
-  touch_allowed:
-    - "canary/build_digest_007_amend.py"
-    - "canary/test_semantic_quality_gates.py"
-    - "packages/E47-DIGEST-007.json"
-    - "packages/E47-DIGEST-007.yaml"
-  no_new_source: true
-  no_digest_001_to_006: true
-  no_infrastructure_expansion: true
-  stop_after_canary: true
+semantic_canary_disposition:
+  status: "ACCEPTED"
+  accepted_head: "ce4a259faf5e0b8fd5a6f6a498fe92b62f398c04"
+  accepted_content_hash: "379ccafdf592ac75"
+  semantic_changes_forbidden_in_bounded_amendment: true
+  user_or_gpt_directed_candidate_ingestion_after_pr_sync: true
+  arbitrary_workspace_self_scan: "FORBIDDEN_BY_DEFAULT"
+bounded_amendment:
+  kind: "NON_SEMANTIC_HYGIENE_AND_PR_ROUTE_SYNC"
+  build_file_bom_present_at_accepted_head: true
+  raw_bom_bytes: "EF BB BF"
+  stale_module_header_present: "E47 v8 CANARY"
+  actions:
+    - "Remove UTF-8 BOM from canary/build_digest_007_amend.py."
+    - "Update only stale v8/v9 module header/comment wording to v10/current review; do not alter semantic logic."
+    - "Run lightweight Python 3.11 and 3.13 canary tests."
+    - "Assert E47-DIGEST-007 content_hash remains 379ccafdf592ac75."
+    - "Push hygiene commit to qclaw/e47-digest-007-amd-canary-regen."
+    - "Fast-forward qclaw/knowledge-digestion-staging-atomization-0028-e47 from d19c92a... to the hygiene head using a normal fast-forward only."
+    - "Confirm PR #207 head equals hygiene head and stop."
+  force_push: false
+  rebase: false
+  merge_commit: false
+  amend: false
+  history_rewrite: false
+post_sync_state:
+  expected: "WAITING_FOR_USER_OR_GPT_SELECTED_SOURCE"
+  candidate_ingestion_allowed: true
+  formal_persistence_allowed: false
 formal_persistence:
   status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
   required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
   candidate_packages_allowed: true
   authoritative_global_or_project_write_allowed: false
+  formal_master_transition_allowed: false
+  formal_skill_promotion_allowed: false
+schema_debt:
+  legacy_requires_e60_authority_field: "SCHEMA_COMPATIBILITY_DEBT_ONLY_NOT_CURRENT_GATE"
+  current_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
   dual_agent_default_task_python_cap_each: 2
@@ -81,10 +88,11 @@ resource_policy:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "Do not optimize semantic outputs for counts."
+  - "No semantic changes to accepted DIGEST-007 v10 during this amendment."
+  - "No new source or DIGEST-006 work."
   - "No formal GLOBAL/PROJECT persistence."
   - "No credentials, accounts, market data, orders or trading."
-  - "No merge/direct-main implementation/rebase/force/amend."
+  - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-10T23:20:00+08:00"
+updated_at: "2026-08-10T23:40:00+08:00"
