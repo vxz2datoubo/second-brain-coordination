@@ -1,4 +1,4 @@
-schema_version: "66.0"
+schema_version: "67.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -10,54 +10,55 @@ active_pull_request: 207
 task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
 route_epoch: 47
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E47 知识消化语义质量整改与候选包"
-planned_branch: "qclaw/knowledge-digestion-staging-atomization-0028-e47"
-completion_signal: "QCLAW_E47_SEMANTIC_DIGESTION_CANARY_READY_FOR_GPT_REVIEW"
+mode_label: "【QCLAW模式：项目计划模式】E47 DIGEST-007 v8 语义真实性与证据链窄修"
+planned_branch: "qclaw/e47-digest-007-amd-canary-regen"
+completion_signal: "QCLAW_E47_DIGEST_007_V8_BOUNDED_REMEDIATION_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 route_contract:
   path: "coordination/ROUTES/QCLAW-E47-ACTIVE-ROUTE-CONTRACT.yaml"
   status: "ACTIVE"
-task_brief: "coordination/TASK-BRIEFS/QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47.yaml"
 read_task_preflight:
   stale_local_main_must_not_imply_no_task: true
   canonical_source: "origin/main"
   required_before_no_task_conclusion:
-    - "Perform a read-only remote sync check (for git environments: git fetch origin main; do not pull/rebase/checkout a dirty worktree)."
-    - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly (for git: git show origin/main:coordination/ACTIVE-QCLAW-TASK.yaml)."
-    - "If local git access is unavailable, query the GitHub remote main file and active Issue #205 before concluding no task."
-    - "Only conclude NO_NEW_TASK when BOTH remote canonical ACTIVE-QCLAW-TASK is absent/inactive AND active Issue/PR contain no executable GPT continuation delta."
-  local_missing_file_disposition: "STALE_OR_WRONG_VIEW_UNTIL_REMOTE_CANONICAL_CHECKED"
+    - "Fetch/read remote canonical main read-only before concluding no task."
+    - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly."
+    - "If local loader fails, read Issue #205 body; it is sufficient continuation authority for this run."
 continuation_contract:
   read_task_command: "读取任务"
+  current_canary_head: "898bca2c11ef3fdd1579c22109d0a4794230794d"
+  latest_gpt_review_id: 4897619975
+  latest_gpt_review_purpose: "v8 major improvement; narrow semantic truthfulness/provenance remediation only."
   required_resolution_order:
-    - "Run read_task_preflight and resolve latest remote canonical main first."
-    - "Read coordination/ACTIVE-QCLAW-TASK.yaml from latest canonical main."
-    - "Read active Issue #205 and Draft PR #207."
-    - "Read latest GPT review 4890430204 on PR #207."
-    - "Treat DIGEST-006/007 batch-2 as rejected candidate output pending regeneration."
-    - "Regenerate only DIGEST-007 AMED as the semantic quality canary; report before any other source."
-  latest_gpt_review_id: 4890430204
-  latest_gpt_review_purpose: "Stop structural markdown dumping; regenerate one AMED source with true semantic atoms/minimal spans/meaningful relations and justified unknown-memory-skill outputs."
+    - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
+    - "Read Issue #205 current body first."
+    - "Read GPT review 4897619975 on PR #207."
+    - "Continue on qclaw/e47-digest-007-amd-canary-regen from canary head 898bca2c..."
+    - "Patch only DIGEST-007 v8 truthfulness/provenance/test semantics; stop after dual-Python verification."
   user_should_not_need_to_copy_prompt: true
-batch2_disposition:
-  head: "d19c92a7d59f883de4d9798cd8d847092e129967"
-  digest_006: "REJECTED_CANDIDATE_NOT_ELIGIBLE_FOR_CERTIFICATION"
-  digest_007: "REJECTED_CANDIDATE_REGENERATE_AS_CANARY"
-  reason: "semantic quality regression despite structural tests passing"
-semantic_canary_requirements:
-  source: "DIGEST-007 AMED only"
-  target: "deep semantic digestion, not markdown segmentation"
-  atom_rule: "one claim/mechanism/condition/constraint per atom where practical"
-  span_rule: "exact minimal or multiple supporting spans; no subsection-to-EOF catch-all spans"
-  evidence_rule: "SOURCE_EXTRACT for directly recoverable claims; INFERENCE only for actual inference"
-  relation_rule: "semantic relation types justified by source meaning; adjacency is not a relation"
-  output_rule: "unknowns/contradictions/memory/skills only where justified, but must actively evaluate them"
+semantic_remediation:
+  remove_fabricated_contradictions: true
+  contradiction_count_quota_forbidden: true
+  arbitrary_relation_type_quota_forbidden: true
+  inference_requires_all_material_exact_spans: true
+  fix_s005_rule3_miscitation: true
+  default_budget_not_universal_hard_limit: true
+  soften_m007_guarantee_language: true
+  narrow_m008_inference_and_confidence: true
+  production_authority_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+  multi_span_provenance_must_remain_legal: true
+scope:
+  source: "existing AMED source behind DIGEST-007 only"
+  touch_allowed:
+    - "canary/build_digest_007_amend.py"
+    - "canary/test_semantic_quality_gates.py"
+    - "packages/E47-DIGEST-007.json"
+    - "packages/E47-DIGEST-007.yaml"
+  no_new_source: true
+  no_digest_001_to_006: true
+  no_infrastructure_expansion: true
   stop_after_canary: true
-source_selection:
-  arbitrary_workspace_self_scan: "FORBIDDEN_BY_DEFAULT"
-  next_new_source_after_canary: "WAIT_FOR_USER_OR_GPT_SELECTION"
 formal_persistence:
   status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
   required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
@@ -68,16 +69,15 @@ resource_policy:
   dual_agent_default_task_python_cap_each: 2
   dual_agent_default_combined_task_python_cap: 4
   default_cpu_bound_workers_combined: 1
-  heavy_provider_or_mutation_work: "FORBIDDEN_IN_STAGING_MODE"
   nested_parallelism: "FORBIDDEN"
+  heavy_provider_or_mutation_work: "FORBIDDEN_IN_STAGING_MODE"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "No new ingestion infrastructure in this remediation."
-  - "No new source beyond DIGEST-007 until GPT accepts the canary."
+  - "Do not optimize semantic outputs for counts."
   - "No formal GLOBAL/PROJECT persistence."
   - "No credentials, accounts, market data, orders or trading."
   - "No merge/direct-main implementation/rebase/force/amend."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T12:57:00+08:00"
+updated_at: "2026-08-10T22:15:00+08:00"
