@@ -1,4 +1,4 @@
-schema_version: "71.0"
+schema_version: "72.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -35,6 +35,19 @@ continuation_contract:
   user_should_not_need_to_copy_prompt: true
   no_source_behavior: "WAIT; do not self-select arbitrary workspace material."
   assigned_source_behavior: "Resume automatically, digest only the assigned source using the accepted E47 pattern, report candidate package, then stop for GPT review."
+user_source_trigger:
+  canonical_phrase: "消化这份资料"
+  interpretation: "Everything the user supplies in the same message after this trigger is an explicit USER_SELECTED source assignment for E47 candidate ingestion."
+  no_extra_prompt_required: true
+  accepted_equivalent_phrases:
+    - "深度消化这份资料"
+    - "按知识系统消化这份资料"
+    - "把下面内容深度学习并原子化"
+  behavior:
+    - "Treat the supplied content/file/path as the selected source only; do not expand to unrelated workspace files unless explicitly requested."
+    - "Run the accepted E47 semantic knowledge-digestion pattern automatically."
+    - "Do not ask the user to repeat the standard atomization/evidence/graph instructions."
+    - "If the source identity is ambiguous or missing, ask only for the missing source, not for the standard workflow prompt."
 accepted_quality_pattern:
   faithful_extraction: true
   semantic_atoms_not_document_structure_dumping: true
@@ -47,6 +60,14 @@ accepted_quality_pattern:
   candidate_memories_and_skills_require_evidence: true
   goodhart_output_count_quotas_forbidden: true
   inference_confidence_calibration_required: true
+  required_outputs:
+    - "concepts/definitions/mechanisms/causal chains/conditions/counterexamples/indicators/data sources/scopes/failure conditions/validation methods/executable actions where actually supported"
+    - "terminology mapping and deduplication"
+    - "real contradictions with both sides preserved when present"
+    - "knowledge-graph relations that express meaning, not document adjacency"
+    - "UNKNOWNs for genuine gaps"
+    - "candidate memories and candidate skills only when evidence justifies them"
+    - "explicit source/evidence/inference/value separation"
 candidate_ingestion:
   status: "ENABLED_WHEN_SOURCE_ASSIGNED"
   allowed_source_authority:
@@ -82,4 +103,4 @@ hard_boundaries:
   - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-10T23:52:00+08:00"
+updated_at: "2026-08-10T23:55:00+08:00"
