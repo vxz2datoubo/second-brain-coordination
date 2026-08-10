@@ -1,4 +1,4 @@
-schema_version: "67.0"
+schema_version: "68.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -34,9 +34,15 @@ continuation_contract:
     - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
     - "Read Issue #205 current body first."
     - "Read GPT review 4897619975 on PR #207."
+    - "Treat any local memory saying v8 is merely waiting for GPT review as superseded operational state."
     - "Continue on qclaw/e47-digest-007-amd-canary-regen from canary head 898bca2c..."
     - "Patch only DIGEST-007 v8 truthfulness/provenance/test semantics; stop after dual-Python verification."
   user_should_not_need_to_copy_prompt: true
+operational_memory_correction:
+  stale_record: "memory/2026-08-10.md entry saying E47 v8 898bca2 is complete and waiting with no executable action"
+  correction_required: true
+  correction_method: "APPEND_ONLY"
+  instruction: "Append a dated correction stating that GPT review 4897619975 and ACTIVE-QCLAW-TASK schema 68 supersede the waiting-state entry; do not delete or rewrite the historical entry. This is operational routing memory only and does not authorize formal GLOBAL/PROJECT persistence."
 semantic_remediation:
   remove_fabricated_contradictions: true
   contradiction_count_quota_forbidden: true
@@ -80,4 +86,4 @@ hard_boundaries:
   - "No merge/direct-main implementation/rebase/force/amend."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-10T22:15:00+08:00"
+updated_at: "2026-08-10T22:47:00+08:00"
