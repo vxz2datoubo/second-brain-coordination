@@ -1,16 +1,30 @@
-﻿"""E47 v8 CANARY — rebuild DIGEST-007 (AMED) with semantic-quality regen.
+"""E47 v11 CANARY — DIGEST-007 (AMED) build script (hygiene revision only).
 
-Per review 4890430204 (GPT, 2026-08-09):
-1. No subsection-to-EOF catch-all spans — use exact minimal/multiple supporting spans.
-2. SOURCE_EXTRACT for directly recoverable source claims; INFERENCE only for real inference.
-3. ≥ 3 distinct relation types besides REFINES (linear adjacency is not a graph).
-4. Active evaluation of contradictions/unknowns/candidate memories/skills.
-5. Single AMED source — do NOT scan new sources.
-6. STOP after this single canary.
+This script is a self-contained, canary-only package generator for the
+AMED v1.0 source. It does NOT modify any existing DIGEST-001..006 packages
+and does NOT extend the ingestion infrastructure.
 
-Output: replaces coordination/PROGRAMS/.../0028-E47/packages/E47-DIGEST-007.{json,yaml}
+Lifecycle:
+- v8 (898bca2): initial semantic-quality regen per review 4890430204.
+- v9 (c9549fc): addressed v8 findings (fabricated contradictions removed;
+  A024/A025 multi-span provenance; overclaims corrected; E60->E61 wording).
+- v10 (ce4a259): addressed v9 findings (summary derived from lists; remaining
+  Goodhart quotas removed from tests; A024/A025/M008 -> MEDIUM confidence).
+- v11 (this revision): HYGIENE ONLY — no semantic/output changes.
+  - Removed UTF-8 BOM (`EF BB BF`) from file head.
+  - Refreshed module docstring header (prior header still said "v8").
+  - content_hash MUST remain `379ccafdf592ac75` because only docstring
+    and BOM hygiene changed.
 
-CANDIDATE ONLY — no formal authority. Memory/skill states structurally locked.
+Accepted by GPT audit review PRR_kwDOTa4j2s8AAAABI_hyHw
+(2026-08-10 15:37, on v10 head ce4a259); the only remaining finding was
+the BOM + stale docstring header, both addressed here.
+
+Source: AMED v1.0 (sha256 f777b9d2..., 11041 bytes), pinned and not
+re-scanned.
+
+CANDIDATE_ONLY. formal_persistence blocked pending E61
+(GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING).
 """
 import hashlib
 import json
