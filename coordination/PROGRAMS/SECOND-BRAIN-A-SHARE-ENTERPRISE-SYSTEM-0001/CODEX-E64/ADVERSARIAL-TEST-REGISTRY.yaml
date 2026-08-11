@@ -1,16 +1,16 @@
-schema_version: "1.0"
+schema_version: "1.1"
 suite: "tests/test_e64_promotion.py"
 coverage:
-  - exact promotion replay
-  - duplicate approval registration
-  - changed full digest after approval
-  - unaccepted source or provenance status
-  - invalid target scope
-  - wrong immutable repository identity
-  - wrong route epoch
-  - missing GPT review reference
-  - stale expected-parent CAS
-  - expired or revoked approval
-  - private or secret admission attempt
-  - malformed partial approval
-  - concurrent duplicate claim
+  - nonexistent approval evidence
+  - wrong repository, candidate, route, decision, control record, expiry, or evidence hash
+  - changed full digest after canonical evidence
+  - classification evidence mismatch
+  - missing classification evidence
+  - private or credential classification admission attempt
+  - invalid target scope or candidate route
+  - stale expected parent before durable consumption
+  - two independent adapters sharing one durable CAS store
+  - conflicting durable marker already exists
+  - unknown outcome retry has no duplicate capability
+  - idempotent completed receipt has one consumer only
+  - malformed approval packet and unaccepted E48 source status

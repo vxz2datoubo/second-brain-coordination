@@ -33,6 +33,18 @@ HSM-level isolation, or protection from a malicious GitHub administrator.
 | Concurrent main | expected-parent checked again at candidate-promotion time |
 | Private content | admission class rejects non-`PUBLIC_SAFE` before registration |
 
-The later GitHub writer, if authorized by a future route, must use an atomic
-expected-parent update and independently compare the receipt identity. It is
-not part of E64.
+## R1 evidence and cross-run correction
+
+R1 treats every caller-provided locator as untrusted. A read-only resolver must
+retrieve a canonical GitHub approval-control object and verify its immutable
+object hash, repository identity, task/route, exact candidate identity,
+`APPROVE` decision, control-object identity, canonical-main commit and expiry.
+An upstream admission decision is likewise resolver-verified and bound to the
+candidate identity; it never requires private raw source to be published.
+
+The one-time claim is not an in-process lock. A future writer must atomically
+create or advance a durable Git-backed marker only when canonical main is the
+expected parent and the immutable marker is absent. E64 models this behind a
+shared CAS interface for tests. A completed marker returns the same immutable
+receipt idempotently; an unknown outcome must reconcile rather than retrying a
+write. No actual GitHub write is part of E64.

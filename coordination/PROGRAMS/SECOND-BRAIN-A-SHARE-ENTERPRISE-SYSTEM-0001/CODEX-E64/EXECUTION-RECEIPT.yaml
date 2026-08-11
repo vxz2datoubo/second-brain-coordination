@@ -1,15 +1,16 @@
-schema_version: "1.0"
+schema_version: "1.1"
 agent_id: "CODEX"
-task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64"
-route_epoch_observed: 72
-canonical_base: "88367196d8a5985624e62afb960eb0abab34e9a0"
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R1"
+route_epoch_observed: 73
+canonical_base_r1_route: "b13120d08239ffeb2107086f60d6f39721c0d2a1"
 result: "SUCCESS_WITH_FINDINGS"
-completion_signal: "CODEX_E64_GITHUB_ONLY_FORMAL_KNOWLEDGE_PROMOTION_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E64_R1_DURABLE_GITHUB_APPROVAL_AND_CAS_READY_FOR_GPT_REVIEW"
 verification:
   local_python: "3.13.13"
   compileall: "PASS"
-  unittest: "PASS: 16 tests"
-  yaml_contract_parse: "PASS: 5 contracts"
+  unittest: "PASS: 17 tests"
+  task_yaml_parse: "PASS: 7 documents"
+  ci_workflow_yaml_parse: "PASS"
   git_diff_check: "PASS"
   ci_matrix: ["3.11", "3.13"]
 resource_postflight:
@@ -17,12 +18,13 @@ resource_postflight:
   orphan_processes: 0
   unrelated_processes_terminated: 0
 boundaries_confirmed:
-  aws_or_external_issuer_work: false
-  repository_visibility_change: false
-  private_user_source_content: false
+  canonical_evidence_resolver_is_interface_only: true
+  durable_cas_store_is_synthetic_test_model_only: true
+  real_github_write: false
   secret_or_credential_handling: false
-  real_formal_knowledge_write: false
+  private_user_source_content: false
+  aws_or_external_issuer_work: false
   merge: false
 findings:
   - "E48 R1 live producer integration remains BLOCKED_PENDING_E48_R1_ACCEPTANCE."
-  - "The candidate receipt is an in-memory validation result, not a GitHub write capability."
+  - "Future production resolver and Git-backed CAS writer require a separately authorized route."
