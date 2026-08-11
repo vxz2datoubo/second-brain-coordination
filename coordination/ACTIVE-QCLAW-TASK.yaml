@@ -1,99 +1,78 @@
-schema_version: "74.0"
+schema_version: "75.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "READY"
+status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume: true
 active_issue: 216
 active_pull_request: 221
 task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-route_epoch: 49
+route_epoch: 50
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E48 原始资料语义重建 + 神经元式知识图谱投影；远端控制面冷启动恢复"
+mode_label: "【QCLAW模式：项目计划模式】E48 R1 语义重建正确性修复 + 真实端到端Canary + 双版本CI"
 planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
-completion_signal: "QCLAW_E48_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E48_R1_SEMANTIC_RECONSTRUCTION_CORRECTED_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
-route_contract:
-  path: "coordination/ROUTES/QCLAW-E48-ACTIVE-ROUTE-CONTRACT.yaml"
-  status: "ACTIVE"
-task_brief: "coordination/TASK-BRIEFS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48.yaml"
-blueprint: "coordination/BLUEPRINTS/KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-BLUEPRINT-v1.0.md"
-remote_control_plane_recovery:
-  required: true
-  protocol: "coordination/GOVERNANCE/QCLAW-REMOTE-CONTROL-PLANE-BOOTSTRAP-AND-RECOVERY-v1.0.yaml"
-  completion_packet: "QCLAW_CONTROL_PLANE_RECOVERY_READY"
-  stale_local_stop_override: >-
-    Missing/empty memory files, HEARTBEAT.md, MEMORY.md, local task records, or a fresh session are never evidence
-    of NO_TASK. They must not prevent the read-only act of locating/fetching canonical GitHub main and reading the
-    remote ACTIVE-QCLAW-TASK and active Issue.
-  mandatory_before_no_task:
-    - "Verify/locate canonical repo vxz2datoubo/second-brain-coordination."
-    - "Read/fetch remote origin/main read-only; do not pull/rebase/checkout over dirty work."
-    - "Read remote main AGENTS.md and coordination/QCLAW-TASK-ROUTER.md."
-    - "Read remote main coordination/ACTIVE-QCLAW-TASK.yaml directly."
-    - "Read active Issue #216 body and all comments."
-    - "Only conclude NO_NEW_TASK if remote canonical route is absent/inactive and Issue has no executable continuation."
-  wrong_local_conclusion_detected_at: "2026-08-11T13:00:00+08:00"
-  wrong_local_conclusion: "QCLAW inspected local memory/HEARTBEAT/MEMORY only and incorrectly reported no pending task."
-read_task_preflight:
-  stale_local_main_must_not_imply_no_task: true
-  local_memory_must_not_imply_no_task: true
-  canonical_source: "origin/main"
-  required_before_no_task_conclusion:
-    - "Run QCLAW remote control-plane recovery protocol."
-    - "Fetch/read remote canonical main read-only."
-    - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly."
-    - "Read Issue #216 body and comments."
-continuation_contract:
-  read_task_command: "读取任务"
-  user_should_not_need_to_copy_prompt: true
-  required_resolution_order:
-    - "Recover remote control plane first; local memory is not task authority."
-    - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
-    - "Read Issue #216, E48 route contract, AMED task brief, impact forecast and W3 blueprint."
-    - "Read accepted E47 PR #207 implementation/tests as predecessor evidence; do not regenerate DIGEST-007."
-    - "Create a fresh E48 branch/worktree from exact latest canonical main and proceed plan-first."
-    - "Implement the bounded E48 missions, run tests, report new PR/head, then stop for GPT audit."
-  second_user_start_command_required: false
-predecessor_e47:
-  issue: 205
-  pull_request: 207
-  accepted_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
-  accepted_semantic_canary_head: "ce4a259faf5e0b8fd5a6f6a498fe92b62f398c04"
-  accepted_content_hash: "379ccafdf592ac75"
-  status: "ACCEPTED_CANDIDATE_KNOWLEDGE_PATTERN"
-  reuse_required: true
-  semantic_regression_forbidden: true
-pipeline_contract:
-  L0: "RawSourceSnapshot immutable evidence"
-  L1: "NormalizedSemanticView derived/auditable reconstruction"
-  L2: "E47-style CandidateKnowledgeAtoms with evidence traced to L0"
-  L3: "KnowledgeGraphProjection derived visualization/export"
-  raw_source_overwrite_forbidden: true
-  normalized_view_is_authority: false
-  graph_projection_is_authority: false
-  silent_semantic_correction_forbidden: true
-  ambiguous_correction_behavior: "retain alternatives and/or UNKNOWN"
-  private_user_source_in_public_repo: false
-visualization_contract:
-  user_goal: "locally viewable neuron/brain-like force-directed knowledge graph"
-  minimum_features:
-    - "search/filter by atom/relation/evidence/confidence/source"
-    - "node click reveals content, confidence, evidence and provenance context"
-    - "UNKNOWN and CONTRADICTS visually distinguishable"
-    - "library-neutral graph JSON export"
-    - "interoperable graph export when low-cost or explicit documented deferral"
-  fabricated_edges_for_visual_density_forbidden: true
+
+review_return:
+  gpt_review_id: 4904086170
+  reviewed_head: "64bf7103121811f1e9b73a61d7b64fbc0413c6c3"
+  disposition:
+    remote_control_plane_recovery: "ACCEPTED"
+    graph_projection_direction: "REUSABLE_CANDIDATE"
+    full_digest_direction: "REUSABLE_CANDIDATE"
+    l1_semantic_reconstruction: "REJECTED_PENDING_CORRECTION"
+  blocking_findings:
+    - "Generic Han-to-Han punctuation rule corrupts ordinary Chinese words (e.g. 讨论→讨。论, 如果→如。果, 成交→成。交)."
+    - "normalized_text remains identical to raw L0 and overlapping edits are not arbitrated, so L1 is not an applied normalized semantic view."
+    - "Committed canary does not end-to-end produce required ambiguity/UNKNOWN/alias/mid-confidence/cross-sentence semantic behavior; tests substitute manual objects/custom strings."
+    - "raw_artifact_sha256 is computed over ad-hoc serialized bytes that are not persisted as the exact certification candidate artifact."
+    - "Visualization claims self-contained while loading vis-network from CDN."
+    - "No E48-specific Python 3.11/3.13 CI evidence observed; only unrelated Phase 3 workflow ran."
+
+mandatory_r1:
+  - "Remove the generic adjacent-Han punctuation rule. Default automatic punctuation must be conservative/fail-safe and must not split ordinary Chinese words."
+  - "Add golden normalized-output tests for representative Chinese clauses/words, including 讨论/关系/如果/成交/应该 and the full committed canary."
+  - "Implement deterministic edit conflict/overlap arbitration. No two applied edits may silently mutate overlapping L0 ranges. Ambiguous overlaps become alternatives/UNKNOWN or fail closed."
+  - "Materialize NormalizedSegment.normalized_text as the actual accepted normalized display text while retaining exact immutable L0 raw_text and byte provenance."
+  - "Make the single committed noisy-Chinese canary itself exercise all eight required categories through actual generated artifacts: filler/repetition, punctuation, typo, high-confidence homophone, medium-confidence alternative, unresolved UNKNOWN, terminology alias, cross-sentence mechanism/conditional relation."
+  - "Do not satisfy required canary behavior by manually constructing UnknownMarker/alias/relation objects in tests while the reconstructor output remains empty."
+  - "Persist the exact serialized L2 candidate artifact/blob intended for certification and compute raw_artifact_sha256 over those exact bytes. Keep l0_source_sha256 separately."
+  - "Correct all documentation that incorrectly calls raw_artifact_sha256 the L0/raw-source digest."
+  - "Either make the graph HTML actually offline/self-contained or truthfully label it CDN-dependent; GraphML/JSON remain valid offline exports."
+  - "Add bounded task-specific GitHub Actions CI for the exact E48 suite on Python 3.11 and 3.13, with no nested parallelism/heavy local fanout."
+  - "Regenerate all canary outputs and digests after semantic fixes; old generated outputs are not acceptance evidence."
+
+allowed_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48/**"
+  - "coordination/PROJECT-PLANS/QCLAW-E48-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-PLAN-v1.0.md"
+  - ".github/workflows/qclaw-e48-semantic-reconstruction.yml"
+
+branch_policy:
+  keep_current_pr_and_branch: true
+  additive_correction_commits_only: true
+  rebase_required: false
+  force_push_forbidden: true
+  amend_forbidden: true
+  current_pr_mergeable_observed: true
+
+verification_required:
+  - "Exact E48 tests pass on GitHub Actions Python 3.11 and 3.13."
+  - "Golden normalized canary output is semantically readable and contains no word-splitting corruption."
+  - "L0 byte hash remains unchanged."
+  - "Every applied normalized edit maps to exact L0 span and applied edit ranges are non-overlapping."
+  - "Actual canary L1 contains explicit ambiguity/UNKNOWN/alias evidence where required."
+  - "Actual L3 relations/UNKNOWN nodes derive from the generated pipeline, not manually substituted test-only objects."
+  - "raw_artifact_sha256 matches exact persisted candidate artifact bytes."
+  - "Resource postflight: zero task-owned descendants/orphans and no unrelated process termination."
+
 formal_persistence:
-  status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
-  required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
+  status: "BLOCKED"
   candidate_packages_allowed: true
   authoritative_global_or_project_write_allowed: false
-  formal_master_transition_allowed: false
-  formal_skill_promotion_allowed: false
+
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
   qclaw_task_python_cap: 2
@@ -102,16 +81,16 @@ resource_policy:
   nested_parallelism: "FORBIDDEN"
   heavy_matrix_or_dependency_fanout: "REMOTE_CI_OR_BOUNDED_ONLY"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
-  never_kill_by_executable_name: true
+
 hard_boundaries:
-  - "Local memory/HEARTBEAT/MEMORY is not task authority and cannot justify NO_TASK before remote canonical checks."
   - "No private user transcript/content committed to public repo."
-  - "No raw-source rewrite or silent correction."
-  - "No fabricated graph edges, contradiction quotas or normalization quotas."
+  - "No raw-source overwrite or silent semantic correction."
+  - "No fabricated graph edges/relations/UNKNOWN merely to satisfy quotas."
   - "No competing W3 knowledge authority/system-of-record."
-  - "No formal GLOBAL/PROJECT persistence before E61 gate."
+  - "No formal GLOBAL/PROJECT persistence."
   - "No credentials/accounts/orders/trading."
   - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
+
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T15:24:00+08:00"
+updated_at: "2026-08-11T15:51:00+08:00"
