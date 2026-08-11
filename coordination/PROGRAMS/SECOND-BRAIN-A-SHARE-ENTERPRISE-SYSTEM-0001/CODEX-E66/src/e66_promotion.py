@@ -1,7 +1,7 @@
 """E66 public-safe control-plane model; no network credentials or real writes."""
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 import json, os, re, subprocess, time
 from pathlib import Path
@@ -15,6 +15,15 @@ def need_sha(v):
     if not SHA.fullmatch(v): raise Reject("expected sha256")
 def need_commit(v):
     if not COMMIT.fullmatch(v): raise Reject("expected git commit")
+def parse_aware_instant(value):
+    if not isinstance(value,str) or not value: raise Reject("invalid expiry timestamp")
+    try: parsed=datetime.fromisoformat(value.replace("Z","+00:00"))
+    except ValueError as e: raise Reject("malformed expiry timestamp") from e
+    if parsed.tzinfo is None or parsed.utcoffset() is None: raise Reject("naive expiry timestamp")
+    return parsed.astimezone(timezone.utc)
+def safe_marker_name(approval_id):
+    if not isinstance(approval_id,str) or not approval_id or len(approval_id)>128 or any(x in approval_id for x in ("..","/","\\","\x00")) or Path(approval_id).is_absolute(): raise Reject("unsafe approval id")
+    return sha256(approval_id.encode()).hexdigest()+".json"
 
 @dataclass(frozen=True)
 class DigestBundle:
@@ -73,14 +82,17 @@ def parse_approval_control(text:str)->dict:
 def verify_approval(d,candidate,now:datetime,actor_id:str):
     s=candidate.subject
     if (d["repository_id"],d["repository_slug"],d["task_id"],int(d["route_epoch"]),d["candidate_identity_sha256"],d["expected_parent"],d["actor_id"]) != (s.repository_id,s.repository_slug,s.task_id,s.route_epoch,candidate.identity_sha256,s.expected_parent,actor_id): raise Reject("approval binding mismatch")
-    if now.isoformat()>=d["expires_at"]: raise Reject("expired approval")
+    if now.tzinfo is None or now.utcoffset() is None: raise Reject("naive verification time")
+    if now.astimezone(timezone.utc)>=parse_aware_instant(d["expires_at"]): raise Reject("expired approval")
 
 class LocalGitMarkerStore:
     """Synthetic isolated-Git CAS; marker commits are never formal knowledge writes."""
     def __init__(self,repo:Path): self.repo=repo; self.unknown_once=False
     def _git(self,*a): return subprocess.run(["git",*a],cwd=self.repo,text=True,capture_output=True,check=True).stdout.strip()
     def consume(self,approval_id,candidate_id,expected_parent):
-        marker=self.repo/".e66-markers"/(approval_id+".json"); payload=canon({"approval_id":approval_id,"candidate_identity_sha256":candidate_id,"expected_parent":expected_parent})
+        root=(self.repo/".e66-markers").resolve(); marker=(root/safe_marker_name(approval_id)).resolve()
+        if marker.parent!=root: raise Reject("marker path escaped root")
+        payload=canon({"approval_id":approval_id,"candidate_identity_sha256":candidate_id,"expected_parent":expected_parent})
         if marker.exists():
             if marker.read_bytes()!=payload: raise Replay("marker conflict")
             return {"idempotent":True,"marker_sha256":sha256(payload).hexdigest()}

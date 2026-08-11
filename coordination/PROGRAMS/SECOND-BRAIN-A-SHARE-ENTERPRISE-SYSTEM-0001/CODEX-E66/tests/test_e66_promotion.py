@@ -26,6 +26,13 @@ class T(unittest.TestCase):
   for change in ({'actor_id':'other'},{'repository_id':'wrong'},{'task_id':'wrong'},{'route_epoch':'76'},{'expected_parent':'b'*40},{'expires_at':(NOW-timedelta(seconds=1)).isoformat()},{'object_id':''},{'gpt_review_ref':''}):
    with self.assertRaises(Reject): verify_approval(parse_approval_control(approval(c,**change)),c,NOW,'gpt')
   with self.assertRaises(Reject): parse_approval_control(approval(c)+'\nextra')
+ def test_expiry_is_real_timezone_aware_instant(self):
+  c=candidate()
+  for value in ('not-a-time','2026-08-12T00:00:00',(NOW-timedelta(seconds=1)).isoformat(),NOW.replace(tzinfo=None).isoformat()):
+   with self.assertRaises(Reject): verify_approval(parse_approval_control(approval(c,expires_at=value)),c,NOW,'gpt')
+  with self.assertRaises(Reject): verify_approval(parse_approval_control(approval(c,expires_at=NOW.isoformat())),c,NOW,'gpt')
+  verify_approval(parse_approval_control(approval(c,expires_at='2026-08-11T08:01:00+00:00')),c,NOW,'gpt')
+  verify_approval(parse_approval_control(approval(c,expires_at='2026-08-11T16:01:00+08:00')),c,NOW,'gpt')
  def test_git_cas_idempotent_stale_unknown(self):
   with TemporaryDirectory() as td:
    p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True); head=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p);r=store.consume('a',candidate().identity_sha256,head);self.assertFalse(r['idempotent']);self.assertTrue(store.consume('a',candidate().identity_sha256,head)['idempotent']);
@@ -39,7 +46,15 @@ class T(unittest.TestCase):
  def test_two_consumers_mint_one_marker(self):
   with TemporaryDirectory() as td:
    p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True);h=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p);bar=Barrier(2);out=[]
-   def go(): bar.wait();out.append(store.consume('race',candidate().identity_sha256,h))
-   ts=[Thread(target=go),Thread(target=go)];[t.start() for t in ts];[t.join() for t in ts]
-   self.assertEqual(sum(not x['idempotent'] for x in out),1)
+   def go(payload):
+    try: bar.wait();out.append(('result',store.consume('race',payload,h)))
+    except Exception as e: out.append(('error',e))
+   payload=candidate().identity_sha256;ts=[Thread(target=go,args=(payload,)),Thread(target=go,args=(payload,))];[t.start() for t in ts];[t.join() for t in ts]
+   self.assertTrue(all(not t.is_alive() for t in ts));self.assertEqual(len(out),2);self.assertFalse(any(k=='error' for k,_ in out));self.assertEqual(sum(not x['idempotent'] for _,x in out),1)
+ def test_marker_path_rejects_traversal_without_escape(self):
+  with TemporaryDirectory() as td:
+   p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True);h=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p)
+   for aid in ('','../x','a/b','a\\b','x'*129):
+    with self.assertRaises(Reject): store.consume(aid,candidate().identity_sha256,h)
+   self.assertFalse((p/'x').exists())
 if __name__=='__main__': unittest.main()
