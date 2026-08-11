@@ -1,8 +1,8 @@
-schema_version: "1.1"
+schema_version: "1.2"
 record_type: "UserApprovalRequirements"
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-status: "USER_APPROVAL_REQUIRED"
-reason: "The refreshed audit found no protected branch, ruleset, deployment environment, immutable OIDC subject configuration, or independently verifiable reviewer identity. Any authority configuration changes repository/service authority boundaries."
+status: "USER_APPROVAL_NOT_YET_REQUESTED_PENDING_GPT_REVIEW"
+reason: "Route epoch 67 replaces abstract approval items with one provider-specific AWS A1 recommendation. No user configuration action is requested until GPT reviews the V2 package."
 approval_items:
   - approval_id: "E61-APPROVAL-001"
     requested_decision: "Approve or reject Option A as the production authority target: protected GitHub environment plus OIDC federation to an externally operated certification issuer/verifier."
@@ -35,9 +35,9 @@ approval_items:
     credential_request: "NONE"
     agent_action_without_approval: "FORBIDDEN"
   - approval_id: "E61-APPROVAL-006"
-    requested_decision: "Approve or reject creation of a distinct reviewer/control identity that is not the workflow initiator and does not share the ordinary caller authority path."
-    minimum_configuration: "The identity must be independently administered for the certification review role and must not be a cosmetic second account controlled by the same unreviewed caller path."
-    why_needed: "The refreshed read-only repository API shows one direct collaborator, so independent self-review prevention is not currently demonstrable."
+    requested_decision: "Treat a distinct GitHub reviewer as defense-in-depth, not as a prerequisite, when an independently controlled human AWS approval identity with MFA is the actual approval boundary."
+    minimum_configuration: "The AWS human approval identity must not be accessible to Codex/QCLAW/ordinary workflow callers and must not be substituted with an unreviewed cosmetic identity."
+    why_needed: "The refreshed read-only repository API shows one direct collaborator. A second GitHub identity would not by itself be a stronger authority than an independently administered external human control identity."
     credential_request: "NONE"
     agent_action_without_approval: "FORBIDDEN"
 refresh_scope:
@@ -46,6 +46,12 @@ refresh_scope:
   settings_changes_performed: false
   user_decision_package: "REFRESHED-E61-PRODUCTION-AUTHORITY-USER-DECISION-PACKAGE.md"
   no_change_alternative: "Keep E47/E48 outputs CANDIDATE_ONLY or derived, return EXTERNAL_AUTHORITY_NOT_CONFIGURED for all certification attempts, and leave formal PROJECT/GLOBAL writes disabled."
+provider_specific_v2:
+  recommended_architecture: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
+  report: "E61-PROVIDER-SPECIFIC-MINIMUM-AUTHORITY-V2-USER-DECISION-PACKAGE.md"
+  configuration_changes_performed: false
+  formal_store_write_path_status: "SEPARATE_FOLLOW_ON_GATE_REQUIRED"
+  user_choice_after_gpt_review: "APPROVE_RECOMMENDED_ARCHITECTURE | DEFER_AND_REMAIN_CANDIDATE_ONLY"
 explicit_non_requests:
   - "No GitHub token, cloud credential, private key, App key, account password, cookie, or secret value."
   - "No market, broker, account, order, or trading authorization."
