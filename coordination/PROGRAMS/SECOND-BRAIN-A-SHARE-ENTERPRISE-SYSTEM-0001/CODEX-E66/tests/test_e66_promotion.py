@@ -2,6 +2,7 @@ from datetime import datetime,timezone,timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import subprocess,sys,unittest,json
+from threading import Barrier,Thread
 sys.path.insert(0,str(Path(__file__).parents[1]/'src'))
 from e66_promotion import *
 NOW=datetime(2026,8,11,tzinfo=timezone.utc)
@@ -20,8 +21,25 @@ class T(unittest.TestCase):
   c=candidate(); verify_approval(parse_approval_control(approval(c)),c,NOW,'gpt')
   for x in ('bad','E66_APPROVAL_V1\n{}',approval(c,decision='DENY'),approval(c,candidate_identity_sha256='f'*64)):
    with self.assertRaises(Reject): verify_approval(parse_approval_control(x),c,NOW,'gpt')
+ def test_approval_adversarial_bindings(self):
+  c=candidate()
+  for change in ({'actor_id':'other'},{'repository_id':'wrong'},{'task_id':'wrong'},{'route_epoch':'76'},{'expected_parent':'b'*40},{'expires_at':(NOW-timedelta(seconds=1)).isoformat()},{'object_id':''},{'gpt_review_ref':''}):
+   with self.assertRaises(Reject): verify_approval(parse_approval_control(approval(c,**change)),c,NOW,'gpt')
+  with self.assertRaises(Reject): parse_approval_control(approval(c)+'\nextra')
  def test_git_cas_idempotent_stale_unknown(self):
   with TemporaryDirectory() as td:
    p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True); head=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p);r=store.consume('a',candidate().identity_sha256,head);self.assertFalse(r['idempotent']);self.assertTrue(store.consume('a',candidate().identity_sha256,head)['idempotent']);
    with self.assertRaises(Reject): store.consume('b',candidate().identity_sha256,head)
+ def test_unknown_outcome_reconciles_exact_marker_only(self):
+  with TemporaryDirectory() as td:
+   p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True);h=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p);store.unknown_once=True
+   with self.assertRaises(UnknownOutcome): store.consume('u',candidate().identity_sha256,h)
+   self.assertTrue(store.consume('u',candidate().identity_sha256,h)['idempotent'])
+   with self.assertRaises(Replay): store.consume('u','f'*64,h)
+ def test_two_consumers_mint_one_marker(self):
+  with TemporaryDirectory() as td:
+   p=Path(td); subprocess.run(['git','init'],cwd=p,check=True,capture_output=True);subprocess.run(['git','config','user.email','test@example.invalid'],cwd=p,check=True);subprocess.run(['git','config','user.name','test'],cwd=p,check=True);(p/'a').write_text('a');subprocess.run(['git','add','a'],cwd=p,check=True);subprocess.run(['git','commit','-m','init'],cwd=p,check=True,capture_output=True);h=subprocess.run(['git','rev-parse','HEAD'],cwd=p,text=True,capture_output=True,check=True).stdout.strip();store=LocalGitMarkerStore(p);bar=Barrier(2);out=[]
+   def go(): bar.wait();out.append(store.consume('race',candidate().identity_sha256,h))
+   ts=[Thread(target=go),Thread(target=go)];[t.start() for t in ts];[t.join() for t in ts]
+   self.assertEqual(sum(not x['idempotent'] for x in out),1)
 if __name__=='__main__': unittest.main()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from hashlib import sha256
-import json, os, re, subprocess
+import json, os, re, subprocess, time
 from pathlib import Path
 
 SHA=re.compile(r"^[0-9a-f]{64}$"); COMMIT=re.compile(r"^[0-9a-f]{40}$")
@@ -85,7 +85,14 @@ class LocalGitMarkerStore:
             if marker.read_bytes()!=payload: raise Replay("marker conflict")
             return {"idempotent":True,"marker_sha256":sha256(payload).hexdigest()}
         if self._git("rev-parse","HEAD")!=expected_parent: raise Reject("main moved before marker CAS")
-        marker.parent.mkdir(exist_ok=True); fd=os.open(marker,os.O_WRONLY|os.O_CREAT|os.O_EXCL); os.write(fd,payload); os.close(fd)
+        marker.parent.mkdir(exist_ok=True)
+        try: fd=os.open(marker,os.O_WRONLY|os.O_CREAT|os.O_EXCL)
+        except FileExistsError:
+            for _ in range(20):
+                if marker.read_bytes()==payload: return {"idempotent":True,"marker_sha256":sha256(payload).hexdigest()}
+                time.sleep(.001)
+            raise Replay("concurrent marker conflict")
+        os.write(fd,payload); os.close(fd)
         self._git("add",str(marker.relative_to(self.repo))); self._git("commit","-m","test: synthetic E66 marker")
         if self.unknown_once: self.unknown_once=False; raise UnknownOutcome("marker written; reconcile idempotently")
         return {"idempotent":False,"marker_sha256":sha256(payload).hexdigest()}
