@@ -1,0 +1,136 @@
+schema_version: "1.0"
+protocol_id: "CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-0001"
+status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+purpose: >-
+  Make Codex recover the complete project control plane after app reinstall, new window,
+  lost local memory, lost task cache, or changed worktree, and define the durable Codex-to-GPT
+  reporting bridge without depending on any ephemeral chat/session integration.
+
+core_truth:
+  local_chat_memory_is_authoritative: false
+  local_agent_memory_is_authoritative: false
+  canonical_repository: "vxz2datoubo/second-brain-coordination"
+  canonical_task_source: "origin/main:coordination/ACTIVE-CODEX-TASK.yaml"
+  canonical_agent_rules:
+    - "origin/main:AGENTS.md"
+    - "origin/main:coordination/CODEX-TASK-ROUTER.md"
+  gpt_control_plane: >-
+    GPT publishes task authority, reviews, route changes and acceptance decisions through
+    canonical GitHub main control files plus the active Issue/PR review/comment stream.
+  codex_to_gpt_report_bridge: >-
+    Codex reports to GPT by publishing a structured PUBLIC_SAFE packet to the current active
+    GitHub Issue and/or PR. Codex must not search for a separate GPT task/chat endpoint before
+    reporting and must not claim direct delivery into a ChatGPT conversation.
+
+permanent_command_semantics:
+  "读取任务": >-
+    Verify canonical remote, read latest AGENTS.md, CODEX-TASK-ROUTER.md,
+    ACTIVE-CODEX-TASK.yaml, active Issue/PR and required governance, claim the lease,
+    and immediately execute until checkpoint/block/completion.
+  "向GPT报告": >-
+    Publish a GPT_REVIEW_REQUEST packet to the current active Issue or PR using GitHub,
+    including exact task/head/test/blocker/decision-request evidence. Do not create a new
+    arbitrary Codex task merely to represent the report.
+  "报告给GPT": "same_as: 向GPT报告"
+  "请GPT审核": "same_as: 向GPT报告"
+  "让GPT看看怎么处理": "same_as: 向GPT报告"
+
+reinstall_or_new_window_bootstrap:
+  triggers:
+    - "Codex app reinstall"
+    - "new Codex window with missing project context"
+    - "local memory/task cache missing"
+    - "Codex says no GPT reporting endpoint"
+    - "Codex cannot identify current task despite repository availability"
+  steps:
+    - id: B01
+      action: "Locate the repository/worktree and record current branch plus git status read-only."
+      destructive_action_forbidden: true
+    - id: B02
+      action: >-
+        Verify canonical GitHub identity using sanitized git remote -v plus git ls-remote against
+        https://github.com/vxz2datoubo/second-brain-coordination.git or equivalent GitHub API access.
+    - id: B03
+      action: >-
+        Fetch/read canonical main read-only. Dirty worktrees must never be reset, cleaned,
+        stashed, rebased or overwritten merely to restore task context.
+    - id: B04
+      action: "Read origin/main:AGENTS.md and origin/main:coordination/CODEX-TASK-ROUTER.md."
+    - id: B05
+      action: "Read origin/main:coordination/ACTIVE-CODEX-TASK.yaml."
+    - id: B06
+      action: >-
+        Read the active Issue body, all comments, active PR/reviews if any, task brief,
+        route contract and required governance named by ACTIVE-CODEX-TASK.
+    - id: B07
+      action: >-
+        Verify GitHub report capability. Preferred proof is read/write access to the active
+        Issue/PR through gh/API. Never expose tokens, credentials, private keys or credential-bearing URLs.
+    - id: B08
+      action: >-
+        If the current worktree is dirty or belongs to another agent/task, preserve it untouched
+        and create/use a clean dedicated Codex worktree/branch from exact canonical main when the
+        active task authorizes execution. Never clean another agent's worktree.
+    - id: B09
+      action: "Publish CODEX_CONTROL_PLANE_RECOVERY_READY packet to the active Issue and continue the active task automatically if executable."
+
+report_bridge:
+  destination_priority:
+    - "active PR conversation/review stream when active_pull_request exists"
+    - "active Issue conversation when no active PR exists or for pre-PR/blocker reports"
+  packet_marker: "GPT_REVIEW_REQUEST"
+  required_fields:
+    - "task_id"
+    - "route_epoch"
+    - "active_issue"
+    - "active_pull_request"
+    - "branch"
+    - "current_head_sha"
+    - "tested_head_sha_or_NONE"
+    - "status"
+    - "what_changed_or_was_observed"
+    - "commands_and_tests_summary"
+    - "workspace_cleanliness_or_preserved_dirty_state"
+    - "resource_postflight"
+    - "blocking_unknowns"
+    - "exact_gpt_decision_requested"
+    - "next_safe_action_if_no_decision_needed"
+  after_publish_user_message: >-
+    Tell the user the report was written to the active GitHub Issue/PR and give the Issue/PR
+    identifier. Do not say it was delivered directly into GPT/ChatGPT unless such delivery was independently verified.
+  gpt_response_sources:
+    - "PR review"
+    - "Issue/PR comment"
+    - "canonical ACTIVE-CODEX-TASK.yaml update"
+
+recovery_failure_policy:
+  github_read_unavailable:
+    status: "BLOCKED_CONTROL_PLANE_RECOVERY"
+    action: >-
+      Report exact failed command/API, sanitized remote identity, what remains locally preserved,
+      and the minimal user action required to restore GitHub access. Do not guess the task.
+  github_write_unavailable_but_read_available:
+    status: "READ_ONLY_REPORT_BRIDGE_BLOCKED"
+    action: >-
+      Continue only work explicitly allowed without report publication until the next mandatory
+      checkpoint. At the checkpoint stop and request the minimum GitHub authentication/permission action.
+  credentials_policy: "Never request that the user paste secrets/tokens/private keys into chat or repository."
+
+resource_safety:
+  default_profile: "FOREGROUND_PRIORITY"
+  project_owned_python_combined_default_cap: 4
+  per_agent_python_default_cap: 2
+  cpu_bound_workers_combined_default_cap: 1
+  nested_parallelism: "FORBIDDEN"
+  heavy_matrix_or_fanout: "REMOTE_CI"
+  postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+  never_kill_by_executable_name: true
+
+hard_boundaries:
+  - "No reset/clean/stash/rebase/force/amend merely to recover context."
+  - "No deletion or migration of dirty files without GPT/user disposition."
+  - "No direct-main implementation write."
+  - "No merge without explicit authorization."
+  - "No credentials or secrets in reports."
+  - "No market/account/order/trading access."
