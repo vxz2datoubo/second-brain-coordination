@@ -5,10 +5,10 @@ target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-task_id: "CODEX-CLTM-0021-ACTIVATION-PREP"
-route_epoch: 78
+task_id: "CODEX-CLTM-0021-SESSION-A-E-VERTICAL-SLICE"
+route_epoch: 79
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】CLTM-0021 激活准备：先审计PR #229与W3复用，再提交GPT检查点"
+mode_label: "【Codex模式：项目计划模式】CLTM-0021 Session A-E candidate-mode 纵向闭环实现"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -21,79 +21,93 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
 canonical:
-  main_at_activation: "25e65c18cd50fd8bd01cecd0774f9872c914a177"
-  preparation_pull_request: 232
-  preparation_merge: "25e65c18cd50fd8bd01cecd0774f9872c914a177"
+  main_at_route_publish: "f10904dc14c2db9d9d9da7592a96a11ce165a4b8"
   activation_issue: 231
-  candidate_contract: "coordination/ROUTES/CODEX-CLTM-0021-ACTIVATION-CANDIDATE.yaml"
+  activation_prep_pull_request: 234
+  activation_prep_accepted_head: "44bec7498860a763bea30261516d8d91d9c89895"
+  activation_prep_merge: "f10904dc14c2db9d9d9da7592a96a11ce165a4b8"
+  blueprint_source_pull_request: 229
   active_contract: "coordination/ROUTES/CODEX-CLTM-0021-ACTIVE-ROUTE-CONTRACT.yaml"
 
 predecessor:
-  task_id: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
-  issue: 227
-  pull_request: 230
-  accepted_head: "36595402caca05364a73cbd170e1b914f0c9de5a"
-  merged_main: "d240f91ce5992036898cb393d69be36159e8b601"
-  disposition: "GPT_ACCEPTED_WITH_NONBLOCKING_FOLLOWUP"
-  nonblocking_followup: "Add an explicit conflicting-payload two-consumer race test when the production promotion path is next hardened."
+  task_id: "CODEX-CLTM-0021-ACTIVATION-PREP"
+  route_epoch: 78
+  disposition: "GPT_ACCEPTED_R2"
 
-blueprint_source:
-  pull_request: 229
-  branch: "gpt/conversational-long-term-memory-blueprint-v1.5"
-  status: "DESIGN_SOURCE_NOT_CANONICAL"
-  merge_state_at_activation: "DIVERGED_FROM_CURRENT_MAIN"
-  rule: "Do not merge, mechanically rebase, or cherry-pick stale control-plane state from PR #229. Reconstruct valid architecture and registration from latest canonical main."
+root_goal: "Prove the first executable user↔ChatGPT long-term-memory loop on the existing W3 candidate runtime without creating a second memory authority or unlocking formal durable knowledge writes."
 
-root_goal: "Make long-running user↔ChatGPT conversation a first-class W3 experience source so important events, preferences, decisions, corrections, learning, open loops and shared context can be preserved, updated and recalled across sessions without creating a second memory authority."
-
-first_stage:
-  name: "CLTM blueprint compatibility and canonical W3 reuse audit"
-  implementation_allowed: false
-  required_outputs:
-    - "PR229-BLUEPRINT-COMPATIBILITY-REPORT.md"
-    - "CANONICAL-W3-RUNTIME-AUDIT.md"
-    - "EXISTING-MEMORY-REUSE-LEDGER.yaml"
-    - "CLTM-ACTIVATION-PLAN.md"
-    - "PRIVACY-AND-AUTHORITY-BOUNDARY-AUDIT.md"
-    - "SESSION-A-E-VERTICAL-SLICE-PLAN.md"
-    - "UNKNOWN-REGISTRY.yaml"
-    - "AMED-RESEARCH-LEDGER.md"
-    - "UNPLANNED-IMPROVEMENT-LEDGER.md"
-    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
-    - "WPDCR.md"
-    - "AI_HANDOFF.yaml"
-  reuse_decisions: [REUSE, EXTEND, WRAP, MIGRATE, DEPRECATE, REFERENCE_ONLY, UNKNOWN]
-  stop_gate: "Do not begin Session A-E implementation until GPT accepts CODEX_CLTM_0021_ACTIVATION_PREP_READY_FOR_GPT_REVIEW."
+implementation_scope:
+  candidate_mode_only: true
+  synthetic_public_safe_only: true
+  sequence:
+    - "A: synthetic important user statement -> ConversationEpisode/source pointer -> deterministic W3 candidate packet"
+    - "B: later scoped query -> existing QueryPlan/ContextBundle -> recall with provenance"
+    - "C: USER_CORRECTION -> append-preserving correction/supersession -> prior episode remains historical evidence"
+    - "D: current-state query -> only corrected valid in-scope state passes Trust Gate"
+    - "E: explicit historical query -> superseded state only with provenance and valid-time"
+  mandatory_integrity_cases:
+    - "duplicate ingestion and deterministic identity/idempotency"
+    - "conflict and UNKNOWN preservation"
+    - "abstention"
+    - "project bleed prevention"
+    - "user-scope leak prevention"
+    - "secret-value negative"
+    - "prompt-injection memory negative"
+    - "stale/superseded current-query exclusion"
+    - "rollback/rebuild/deterministic replay"
+    - "assistant-analysis vs user-assertion separation"
 
 architecture_invariants:
-  - "ChatGPT mobile/web/desktop conversation is a first-class W3 Source/Experience Source."
   - "W3 remains the single canonical long-term memory authority."
-  - "CLTM must reuse the existing Phase 3/W3 LearningPacket, candidate memory, QueryPlan, ContextBundle, provenance, temporal/version, conflict/UNKNOWN and hybrid-retrieval capabilities wherever equivalent."
+  - "Extend the existing Phase 3 LearningPacket, MemoryStore, QueryPlan, ContextBundle, provenance/conflict/UNKNOWN path; do not fork them."
   - "ConversationEpisode/raw historical evidence remains separate from evolving derived memory."
-  - "Bitemporal valid-time and record-time semantics are required for mutable long-term memory."
-  - "Correction/supersession preserves old history and changes current validity rather than silently rewriting past episodes."
-  - "User assertions/preferences/decisions/corrections must remain distinguishable from assistant analysis/hypotheses/errors."
-  - "MemoryRouter decides whether/what to recall; Memory Trust Gate controls admission into answer context."
-  - "Current queries exclude superseded/revoked/stale memory by default; historical queries may retrieve superseded history with provenance and valid time."
-  - "Cross-project recall is scoped by user, project, privacy, memory type, temporal validity and task relevance."
-  - "MODULE_0020/E48 may supply auditable normalization/graph projection for noisy ASR/OCR/oral inputs but is not a second CLTM authority."
-  - "Hot-path capture remains high-value candidate-first; ordinary greetings/transient trivia do not automatically become canonical long-term memory."
-  - "Daily/Weekly/Monthly consolidation is derived and provenance-linked; summaries never replace inaccessible/raw Episode evidence."
+  - "Bitemporal valid-time and record-time semantics are required for correction history."
+  - "Corrections/supersession preserve history; silent overwrite is forbidden."
+  - "Current queries exclude superseded/revoked/stale memory by default."
+  - "Historical queries may retrieve superseded history only with explicit historical intent, provenance and valid-time."
+  - "User/project/privacy scope is enforced at capture, retrieval and Trust-Gate admission."
+  - "User claims/corrections stay distinguishable from assistant analysis/hypothesis/error."
+  - "No real/private conversation body or secret value is required or allowed in public test fixtures."
+  - "MODULE_0020/E48 is reference-only until E48 R3 is independently accepted."
 
-future_vertical_slice_after_gpt_acceptance:
-  - "Session A: important information/event -> ConversationEpisode -> candidate memory"
-  - "Session B: later session recalls it without user repetition"
-  - "Session C: user corrects or supersedes it"
-  - "Session D: current query uses only corrected current state"
-  - "Session E: historical query retrieves old superseded state with provenance and valid-time"
+implementation_guidance:
+  preferred_branch: "codex/cltm-0021-session-a-e-r79"
+  preferred_surface: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+  reuse_first: true
+  additive_migration_required: true
+  no_mechanical_pr229_application: true
+  first_action: "After exact lease validation, inspect canonical Phase 3 contracts/tests and implement the smallest additive ConversationEpisode + temporal/correction/scoped-recall change that can make Session A pass without regressing the existing suite."
+
+acceptance_gates:
+  - "All existing Phase 3 regression tests plus new CLTM tests pass."
+  - "A-E pass end-to-end using synthetic candidate-mode fixtures."
+  - "Current recall excludes superseded/revoked/stale by default."
+  - "Historical recall is explicit, provenance-bearing and valid-time aware."
+  - "Duplicate ingestion is deterministic/idempotent."
+  - "Project/user scope leak tests fail closed."
+  - "Secret and prompt-injection negatives fail closed."
+  - "Rollback/rebuild/deterministic replay evidence is supplied."
+  - "No second W3 runtime/query/bundle/vector/graph/temporal authority exists."
+
+required_delivery:
+  - "implementation + tests"
+  - "test receipts with exact commands/counts/SHA"
+  - "AMEDAgentExecutionReceipt"
+  - "AMEDResearchLedger"
+  - "UnplannedImprovementLedger"
+  - "SystemDiscoveryAndOpportunityReport"
+  - "WPDCR/PDER"
+  - "UNKNOWN-REGISTRY"
+  - "AI_HANDOFF"
+  - "Draft PR for GPT review; Codex must not self-merge"
 
 impact_prediction:
-  primary_systems: ["W3 Knowledge Authority and Long-Term Memory", "ChatGPT conversational interface", "cross-project context supply"]
-  expected_positive: "Higher continuity and lower user repetition while preserving auditability, temporal correctness and project/privacy scope."
-  principal_risks: ["stale-memory leakage", "cross-project bleed", "assistant-statement promotion into user fact", "privacy leakage", "duplicate memory authority", "incorrect temporal supersession"]
-  rollback: "Route may be replaced by a later GPT epoch; no formal knowledge authority is changed during activation-prep."
+  primary_systems: ["W3 Knowledge Authority and Long-Term Memory", "ChatGPT conversational-memory source contract", "cross-project scoped recall"]
+  expected_positive: "A real correction-aware cross-session memory loop with auditable provenance and privacy/project boundaries."
+  principal_risks: ["migration regression", "silent overwrite", "stale/superseded leakage", "scope bleed", "assistant-to-user fact contamination", "privacy leakage", "duplicate authority"]
+  rollback: "Revert implementation PR or publish a later GPT route; only synthetic candidate-mode state is authorized."
 
-amed_methodologies:
+named_methodologies:
   AMED: "REQUIRED"
   PMA_BIG: "REQUIRED"
   WPDCR: "REQUIRED"
@@ -104,10 +118,10 @@ exploration_budget:
   task_weight: "STRATEGIC"
   difficulty_prediction: "D3"
   research_trigger: true
-  level_A: "May implement bounded corrections to audit artifacts/tests inside the CLTM task branch."
-  level_B: "May implement high-value bounded improvements with explicit evidence, impact and rollback."
-  level_C: "Proposal only; no new canonical runtime, cloud service, private repo, permission model or production integration."
-  level_D: "Stop and escalate to GPT/user."
+  level_A: "Implement bounded A-E code/contracts/tests and directly required correctness fixes with evidence."
+  level_B: "Implement bounded high-value W3 improvements necessary for correctness, separately evidenced and reversible."
+  level_C: "Proposal only: new runtime/storage, vector/graph infrastructure, cloud/private repo, new permission model, MCP/Gateway, live E48."
+  level_D: "Stop and escalate for privacy/authority/production/destructive/cross-agent expansion."
 
 parallel_qclaw:
   active_issue: 216
@@ -118,17 +132,17 @@ parallel_qclaw:
   isolation_rule: "Codex must not enter, modify, recover, stash, reset, clean, copy or merge QCLAW PR #221/worktree."
 
 hard_boundaries:
-  - "No merge or direct-main implementation by Codex."
-  - "No Session A-E implementation before GPT accepts activation-prep checkpoint."
-  - "No formal PROJECT/GLOBAL knowledge write or unlock."
-  - "No live E48 integration before independent E48 R3 acceptance."
-  - "No private conversation body or private user source in public second-brain-coordination."
-  - "No credentials, tokens, secrets, private keys, cookies, session material, MFA or recovery codes in Git/logs/fixtures/embeddings/context."
-  - "No private repository creation or repository visibility/permission changes."
+  - "No direct-main implementation or self-merge by Codex."
+  - "No formal PROJECT/GLOBAL write, approval or unlock."
+  - "No real private conversation body/private user source in public GitHub."
+  - "No credentials/secrets/private keys/cookies/session/MFA/recovery/payment/broker secrets in Git, fixtures, logs, embeddings or context."
+  - "No live E48 integration before E48 R3 acceptance."
+  - "No private repository creation or visibility/permission change."
   - "No production MCP/Memory App/Gateway deployment."
-  - "No creation of a second canonical memory runtime, QueryPlan, ContextBundle, vector authority, graph authority or temporal authority."
+  - "No second canonical memory runtime, QueryPlan, ContextBundle, vector, graph or temporal authority."
+  - "Do not merge/rebase/cherry-pick PR #229 control-plane state."
   - "Do not touch QCLAW PR #221/worktree."
-  - "Do not repair or mutate the previously damaged shared Git object store as part of CLTM."
+  - "Do not repair/mutate the previously damaged shared Git object store as part of CLTM."
   - "No market data, accounts, orders, funds or trading."
 
 local_resource_safety:
@@ -140,8 +154,9 @@ local_resource_safety:
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
-read_task_semantics: "读取任务 = verify canonical remote main -> read router + ACTIVE-CODEX-TASK + Issue #231 and comments -> claim exact epoch-78 lease -> immediately execute the first meaningful authorized audit action; do not stop after summarizing the task."
-completion_signal: "CODEX_CLTM_0021_ACTIVATION_PREP_READY_FOR_GPT_REVIEW"
+read_task_semantics: "读取任务 = verify canonical remote main -> read CODEX-TASK-ROUTER + ACTIVE-CODEX-TASK + this route contract + Issue #231 and comments + canonical activation-prep artifacts -> claim exact epoch-79 lease -> fresh-sync/create codex/cltm-0021-session-a-e-r79 -> immediately implement the first meaningful authorized A-E action; do not stop at task summary or plan."
+completion_signal: "CODEX_CLTM_0021_SESSION_A_E_READY_FOR_GPT_REVIEW"
+architectural_milestone_after_gpt_acceptance: "CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY"
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T21:05:00+08:00"
+updated_at: "2026-08-11T23:48:00+08:00"
