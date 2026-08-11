@@ -1,13 +1,13 @@
-schema_version: "88.0"
+schema_version: "89.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 227
 active_pull_request: null
 task_id: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
-route_epoch: 76
+route_epoch: 77
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E66 继续Codex自己的GitHub-only正式知识提升主线；不接管QQ"
-status: "READY"
+mode_label: "【Codex模式：项目计划模式】E66 独立克隆恢复已接受；继续GitHub-only正式知识提升主线"
+status: "READY_CONTINUE_AFTER_ISOLATED_RECOVERY"
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
@@ -28,6 +28,19 @@ architecture:
   private_repo_work: "DEFERRED_UNTIL_USER_REOPENS"
   primary_goal: "One integrated GitHub-centered workflow with low operational friction."
 
+repository_integrity_checkpoint:
+  damaged_shared_store_status: "FROZEN_UNREPAIRED"
+  local_fsck_missing_blob_reported: true
+  isolated_clone_created: true
+  isolated_clone_base_main: "8a0c1c950de26223f28abbf8a2ab247294b5970c"
+  isolated_clone_common_object_store_independent: "USER/CODEX_REPORTED_PENDING_REMOTE_AUDIT"
+  qclaw_e48_touched: false
+  destructive_repair_performed: false
+  local_plan_reuse_commit_reported: "857ab39cada71bbdd367aa46e17d7e10f174b5fa"
+  local_plan_reuse_commit_remote_visibility: "NOT_YET_VISIBLE_ON_GITHUB_AT_GPT_AUDIT_TIME"
+  gpt_disposition: "RECOVERY_DIRECTION_ACCEPTED_CONTINUE_E66; LOCAL_COMMIT_REQUIRES_LATER_REMOTE_PUBLICATION_FOR_FINAL_AUDIT"
+  rule: "All further E66 implementation must remain inside the healthy isolated clone. Do not write into or repair the damaged shared object store during E66."
+
 accepted_predecessor:
   issue: 224
   pull_request: 225
@@ -43,7 +56,7 @@ accepted_predecessor:
     - "Python 3.11/3.13 CI pattern."
 
 active_e66_scope:
-  - "Start from exact latest canonical main on a fresh Codex branch/worktree; do not extend stale PR #225 directly."
+  - "Use only the isolated healthy clone; leave damaged shared common-dir frozen."
   - "Build an explicit two-stage production-facing PreAdmissionSubject/final-candidate construction API without placeholder evidence hashes."
   - "Define and test a strict GitHub-native approval-control object contract using Issue comments/PR reviews or another existing GitHub control object; free-form prose alone is not approval evidence."
   - "Close expected-parent versus approval-creation sequencing ambiguity and add stale/main-moved/edited-approval adversarial tests."
@@ -51,6 +64,7 @@ active_e66_scope:
   - "Harden PUBLIC_SAFE / PRIVATE_OR_SENSITIVE / SECRET_CREDENTIAL admission evidence and metadata minimization."
   - "Correct stale E64 documentation and security claims before reuse."
   - "Keep live E48 producer integration explicitly blocked pending independent E48 R3 acceptance; typed synthetic fixture only."
+  - "Push/publish the E66 branch and the reported local plan/reuse commit or a descendant before claiming a remotely auditable completion."
   - "Run bounded task-specific Python 3.11/3.13 CI and publish exact evidence/postflight."
 
 parallel_qclaw:
@@ -62,15 +76,10 @@ parallel_qclaw:
   live_integration_gate: "BLOCKED_PENDING_E48_R3_ACCEPTANCE"
   isolation_rule: "Codex must not enter/modify/recover/stash/reset/clean/copy QQ's worktree or PR #221."
 
-superseded_route:
-  issue: 226
-  task: "CODEX-TAKEOVER-QCLAW-E48-R3-SEMANTIC-ATOM-RECOVERY-0061-E65"
-  status: "CANCELLED_NOT_PLANNED"
-  reason: "User clarified Codex should continue its own line and not necessarily take over QQ."
-
 hard_boundaries:
   - "Do not touch QQ/QCLAW E48 local worktree or PR #221."
   - "Do not claim E48 R3 completion or live integration."
+  - "Do not mutate or repair the damaged shared Git common object store during E66."
   - "No merge or direct-main implementation."
   - "No real formal GLOBAL/PROJECT knowledge write or unlock."
   - "No AWS/GCP/external issuer and no private-repository work."
@@ -88,6 +97,6 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
 completion_signal: "CODEX_E66_GITHUB_ONLY_PROMOTION_HARDENING_READY_FOR_GPT_REVIEW"
-next_command: "读取任务"
+next_command: "继续E66"
 updated_by: "GPT"
-updated_at: "2026-08-11T19:04:00+08:00"
+updated_at: "2026-08-11T19:25:00+08:00"
