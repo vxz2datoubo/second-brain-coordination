@@ -1,62 +1,64 @@
-# E61 compatibility digest bundle — added to E48 scope
+# E61 digest bundle note (R1)
 
-> **Source of change:** GitHub Issue #216 comment #5249272794 (GPT/Codex Connector,
-> 2026-08-11T05:18:00Z). Comment is reproduced in `ISSUE-216-COMMENT-2-E61-CROSS-AGENT-DELTA.md`.
+## Scope
 
-## Baseline drift note
+E48 implements a bounded deterministic certification-digest bundle inside the
+E48 module, per Issue #216 comment #5249272794. The bundle is **module-local**
+(does not introduce a new shared canonical schema across W3 modules).
 
-- E48 branch `qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48`
-  was created from canonical main `a6c9b1a2`.
-- Canonical main moved to `f8dfc7295d0af22e0d41e5f1b2b16ad9c7d82772`
-  (commit `route: require provider-specific E61 authority decision before user approval`,
-  authored 2026-08-11T05:15:58Z).
-- We do **not** rebase / force-push / amend existing commits. We add new commits on top
-  and document the drift. The PR description will surface this to GPT for an explicit
-  base-commit choice at handoff time.
+## Three new 64-hex SHA-256 helpers (in `src/qclaw_e48_reconstruction/digests.py`)
 
-## E48 must incorporate (within existing L0→L1→L2→L3 plan)
+| Helper | Covers | Source of bytes | Excludes volatile |
+|--------|--------|-----------------|-------------------|
+| `raw_artifact_sha256` | Exact serialized L2 candidate artifact blob | `canary/out/canary_artifact.json` | Nothing (full coverage) |
+| `canonical_semantic_sha256` | Deterministic canonical semantic dict (volatile-stripped) | L2 candidate package dict | Yes (see `_VOLATILE_FIELDS`) |
+| `l0_provenance_sha256` | Immutable L0 identity + ordered manifest of every L0 span used by L2 | L0 source metadata + atom `source_spans` | Yes |
 
-Three 64-hex SHA-256 digests, each with a precise canonicalization contract:
+`l0_source_sha256` (in `NormalizedSemanticView`) is a **separate** digest that
+identifies the L0 raw text by itself; it is the parent of `l0_provenance_sha256`
+(the latter additionally commits to the exact byte ranges used). Do **not**
+call `raw_artifact_sha256` "the L0/raw-source digest" — it is the artifact
+digest. The L0 digest is `l0_source_sha256` / `source_hash`.
 
-| Field | Input | Excludes | Notes |
-|-------|-------|----------|-------|
-| `raw_artifact_sha256` | exact serialized L2 candidate artifact / bundle bytes | n/a | full 64-hex |
-| `canonical_semantic_sha256` | deterministic canonical semantic representation of the L2 candidate package | volatile ingestion timestamps, UI/layout state, other non-semantic projections | full 64-hex, cross-Python 3.11/3.13 |
-| `l0_provenance_sha256` | immutable L0 raw-source identity + exact source/span/provenance manifest required to verify the L2 evidence chain | lossy normalized substitutes | full 64-hex |
+## Legacy `content_hash` (16-hex)
 
-## Hard rules (verbatim from comment)
+Kept only for E47 compatibility. It is a 16-hex value, NOT a production
+identity, and MUST NOT be relied on for cross-agent identity. It lives in
+the legacy `legacy_content_hash_compat_only` field on `DigestBundle` and in
+the `content_hash` field of the L2 package.
 
-1. Keep the legacy short `content_hash` (16-hex, E47 compatibility) only for compatibility.
-   **Never** call it a production identity.
-2. L1 `NormalizedSemanticView` and L3 `KnowledgeGraphProjection` remain derived
-   projections. Separate derived hashes are allowed but must **not** promote them
-   to authority merely because they have hashes.
-3. `canonical_semantic_sha256` MUST be deterministic across supported Python 3.11/3.13
-   runs and must not drift due to timestamp/order/serialization noise.
-4. `l0_provenance_sha256` MUST preserve traceability to exact L0 spans and MUST NOT
-   replace raw evidence identity with a normalized substitute.
-5. Mutation tests MUST prove:
-   - semantic changes alter `canonical_semantic_sha256`,
-   - source changes alter `l0_provenance_sha256`,
-   - volatile / non-semantic field changes do **not** alter `canonical_semantic_sha256`.
-6. PUBLIC_SAFE synthetic fixtures only. No private user transcript in public tests.
-7. This does **not** authorize formal PROJECT/GLOBAL persistence, new authority, cloud
-   service, credential, merge, or trading action.
+## R1 fix: persisted exact candidate artifact
 
-## Implementation boundary check
+As of R1, `raw_artifact_sha256` is computed over the exact bytes of the
+persisted `canary/out/canary_artifact.json` (the L2 candidate artifact
+serialized once at build time, then hashed). This replaces the prior
+behavior of computing the digest over ad-hoc serialized bytes that
+might be reformatted by downstream tooling.
 
-This addition is **bounded** (Improvement Authority level B — "有界 schema 适配器 / 导出
-/ UI 改良,带证据/测试/回滚"). It is internal to E48 modules:
+The artifact path, size, and the SHA-256 are all reported in
+`canary/out/canary_digests.json` so a downstream auditor can re-hash the
+persisted blob and confirm identity.
 
-- `qclaw_e48_reconstruction/digests.py` — deterministic hash helpers.
-- `qclaw_e48_reconstruction/l1_schema.py` — L1 view carries a derived `view_sha256`.
-- `qclaw_e48_reconstruction/l3_schema.py` — L3 graph carries `projection_sha256`.
-- `tests/test_digests.py` — mutation tests.
-- `tests/test_l1_l3_round_trip.py` — E47 reuse check + digest stability.
+## Determinism contract
 
-We do **not** introduce a new shared canonical schema (level C), we do not mint a new
-authority (level D), we do not implement the external issuer or formal-write gate.
+- `raw_artifact_sha256` is over the artifact bytes — same artifact file
+  → same digest. Re-running `build_canary_projection.py` regenerates the
+  artifact deterministically (sorted keys, UTF-8, no whitespace) so the
+  digest is stable.
+- `canonical_semantic_sha256` is over a canonical dict with volatile fields
+  stripped — same semantic content → same digest across runs and across
+  Python 3.11 / 3.13.
+- `l0_provenance_sha256` is over an ordered manifest — any source mutation
+  or span mutation changes the digest; volatile fields (e.g. timestamps)
+  do not.
 
-## Stop boundary check
+## Mutation-test contract
 
-None of the comment's hard rules triggers a STOP. We proceed and report at handoff.
+- Changing `view.normalized_text` (semantic content) → `canonical_semantic_sha256` changes.
+- Changing `pkg["source"]["source_hash"]` (L0 identity) → `l0_provenance_sha256` changes; `canonical_semantic_sha256` does NOT (source identity is volatile for the canonical semantic digest).
+- Changing `pkg["ingested_at"]` (volatile) → no digest changes.
+- Changing `pkg["content_hash"]` (legacy, volatile) → no digest changes.
+- Changing `canary_artifact.json` bytes (e.g. key ordering) → `raw_artifact_sha256` changes; `canonical_semantic_sha256` does NOT.
+
+Tests covering this contract: `tests/test_digests.py` (R1 mutation tests
+added at the end of the file).

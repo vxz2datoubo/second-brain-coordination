@@ -1,16 +1,21 @@
-"""Generate a self-contained, browser-only visualization HTML from a
-KnowledgeGraphProjection JSON file.
+"""Generate a fully self-contained, offline visualization HTML.
 
-The HTML file embeds vis-network from a CDN pin and reads the projection
-JSON directly from a sibling file (``canary_graph.json``). No web server,
-no Python process at view time, no telemetry, no credentials.
+R1 fix (per Issue #216 GPT review id 4904086170):
+- The previous generator claimed to be "self-contained" while still loading
+  vis-network from a CDN URL. The CDN dependency has been removed: this
+  generator now **inlines** the vis-network library into the output HTML,
+  so the resulting file works fully offline (no network access required at
+  view time). The vendored copy lives next to this script at
+  ``vis-network.min.js`` (689 KB, MIT/Apache-2.0, no telemetry, no auth).
 
 Usage:
     & python.exe visualization/generate_visualization.py \\
-        --projection canary_graph.json \\
-        --output canary_graph.html
+        --projection canary/out/canary_graph.json \\
+        --output canary/out/canary_graph.html
 
-The output is a single HTML file you can open with any modern browser.
+The output is a single HTML file you can open with any modern browser,
+completely offline. Filters, click-to-provenance panel, and
+UNKNOWN / CONTRADICTS visual distinction all remain functional.
 """
 from __future__ import annotations
 
@@ -20,12 +25,7 @@ import json
 from pathlib import Path
 
 
-# vis-network 9.1.9 (vis.js 4.21.0) pinned from cdn.jsdelivr.net.
-# MIT/Apache-2.0 license. No telemetry. No auth required.
-VIS_NETWORK_CDN = (
-    "https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/"
-    "umd/vis-network.min.js"
-)
+VIS_NETWORK_FILE = Path(__file__).resolve().parent / "vis-network.min.js"
 
 
 _HTML_TEMPLATE = """<!DOCTYPE html>
@@ -33,7 +33,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <title>{title}</title>
-<script src="{cdn}"></script>
+<script>{vis_network_inline}</script>
 <style>
   html, body {{ margin: 0; padding: 0; height: 100%; font-family: sans-serif; }}
   #mynetwork {{ position: absolute; left: 0; top: 0; bottom: 0; right: 380px; }}
@@ -46,9 +46,12 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
   .contradicts {{ background: #fff4cc; }}
   .controls label {{ display: block; font-size: 12px; margin-top: 6px; }}
   .controls input {{ width: 100%; box-sizing: border-box; }}
+  .offline-banner {{ background: #efe; padding: 4px 12px; font-size: 11px;
+                     border-bottom: 1px solid #cdc; color: #262; }}
 </style>
 </head>
 <body>
+<div class="offline-banner">Offline visualization — vis-network inlined; no network access required.</div>
 <div id="mynetwork"></div>
 <div id="sidebar">
   <h2 id="sidebar-title">{title}</h2>
@@ -106,7 +109,6 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
     const n = PROJ.nodes.find(x => x.node_id === id);
     document.getElementById('detail').textContent = JSON.stringify(n, null, 2);
   }});
-  // client-side filters
   function applyFilters() {{
     const t = document.getElementById('filter-type').value.trim().toLowerCase();
     const ev = document.getElementById('filter-evidence').value.trim().toLowerCase();
@@ -135,10 +137,29 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
 """
 
 
+def _load_vis_network_inline() -> str:
+    if not VIS_NETWORK_FILE.exists():
+        raise FileNotFoundError(
+            f"vis-network vendor copy not found at {VIS_NETWORK_FILE}. "
+            "Re-download with: "
+            "python -c \"import urllib.request; "
+            "open('vis-network.min.js','wb').write("
+            "urllib.request.urlopen("
+            "'https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js'"
+            ").read())\""
+        )
+    return VIS_NETWORK_FILE.read_text(encoding="utf-8")
+
+
 def render_html(projection: dict, title: str) -> str:
+    vis_inline = _load_vis_network_inline()
+    # Inline JS body must not break the surrounding ``<script>...</script>``
+    # tag: vis-network.min.js contains no ``</script>`` substrings (verified
+    # at vendor time) but we add a defensive split just in case.
+    safe = vis_inline.replace("</script>", "<\\/script>")
     return _HTML_TEMPLATE.format(
         title=html.escape(title),
-        cdn=VIS_NETWORK_CDN,
+        vis_network_inline=safe,
         projection_json=json.dumps(projection, ensure_ascii=False),
     )
 

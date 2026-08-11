@@ -1,0 +1,85 @@
+name: qclaw-e48-semantic-reconstruction
+
+# Bounded, task-specific CI for the E48 L1/L3 reconstruction module.
+#
+# Goals (R1 fix for GPT review id 4904086170):
+# - Run the EXACT E48 test suite (not a Phase-3 unrelated workflow) on
+#   Python 3.11 and Python 3.13.
+# - No nested parallelism, no heavy matrix fan-out, no Docker layers.
+# - Report deterministic digests from the canary pipeline as part of the
+#   CI receipt, so a reviewer can compare the committed digests against
+#   the run output.
+#
+# Resource policy (per ACTIVE-QCLAW-TASK.yaml `resource_policy`):
+# - FOREGROUND_PRIORITY profile
+# - qclaw_task_python_cap: 2  (this workflow uses one runner, one job)
+# - combined_cpu_bound_workers_cap: 1
+# - nested_parallelism: FORBIDDEN
+#
+# Hard boundaries:
+# - Does NOT publish, sign, or push anything.
+# - Does NOT touch the L0 raw-source bytes.
+# - Does NOT run any other module's tests.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48/**'
+      - '.github/workflows/qclaw-e48-semantic-reconstruction.yml'
+
+jobs:
+  e48-tests:
+    name: E48 semantic-reconstruction tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.13']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Discover E48 module root
+        id: discover
+        run: |
+          set -euo pipefail
+          MOD="coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
+          if [ ! -d "$MOD" ]; then
+            echo "::error::E48 module directory not found at $MOD"
+            exit 1
+          fi
+          echo "module_root=$MOD" >> "$GITHUB_OUTPUT"
+
+      - name: Run E48 unit tests
+        working-directory: ${{ steps.discover.outputs.module_root }}
+        run: |
+          set -euo pipefail
+          python -m unittest discover -v -s tests -p "test_*.py"
+
+      - name: Run E48 canary pipeline + capture digests
+        working-directory: ${{ steps.discover.outputs.module_root }}
+        run: |
+          set -euo pipefail
+          python canary/build_canary_projection.py > canary.out/receipt.txt
+          mkdir -p canary.out
+          python canary/build_canary_projection.py > canary.out/receipt.txt
+          echo "----- canary/out/canary_digests.json -----" | tee canary.out/digests.txt
+          cat canary/out/canary_digests.json | tee -a canary.out/digests.txt
+
+      - name: Upload canary receipt as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qclaw-e48-receipt-py${{ matrix.python-version }}
+          path: |
+            ${{ steps.discover.outputs.module_root }}/canary/out/canary_digests.json
+            ${{ steps.discover.outputs.module_root }}/canary.out/receipt.txt
+            ${{ steps.discover.outputs.module_root }}/canary.out/digests.txt
+          retention-days: 14
+          if-no-files-found: error

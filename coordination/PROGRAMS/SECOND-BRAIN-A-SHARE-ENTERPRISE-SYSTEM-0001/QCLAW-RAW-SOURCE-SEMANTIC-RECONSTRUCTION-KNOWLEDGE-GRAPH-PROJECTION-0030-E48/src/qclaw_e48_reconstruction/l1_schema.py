@@ -53,6 +53,9 @@ class NormalizationEdit:
     confidence: float = 1.0   # 0.0–1.0
     rationale: str = ""
     evidence_refs: Tuple[str, ...] = ()  # e.g. ("terminology:quantum-entanglement",)
+    applied: bool = True      # R1: True if this edit was applied to normalized_text;
+                              #       False if it was kept for audit only (e.g. low-confidence,
+                              #       kept uncertain, alternatives retained)
 
     def is_low_confidence(self) -> bool:
         if self.edit_type == EditType.ASR_HOMOPHONE_CORRECTION:
@@ -71,6 +74,7 @@ class NormalizationEdit:
             "confidence": self.confidence,
             "rationale": self.rationale,
             "evidence_refs": list(self.evidence_refs),
+            "applied": self.applied,
         }
 
 

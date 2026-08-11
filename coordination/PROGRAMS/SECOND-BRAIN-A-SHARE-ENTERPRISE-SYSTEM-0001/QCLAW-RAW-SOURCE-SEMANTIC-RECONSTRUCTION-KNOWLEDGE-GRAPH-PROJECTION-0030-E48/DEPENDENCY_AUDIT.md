@@ -1,69 +1,42 @@
-# Visualization dependency audit (E48)
+# E48 dependency audit
 
-> Per E48 plan §4 + Issue #216 hard rule:
-> "Pick a visualization library after auditing the existing repo/runtime.
-> Prefer reuse or a low-maintenance, easily-rolled-back option. If an
-> external library is required, compare at least two candidates against
-> official documentation. No hidden telemetry, no credentials."
+## Repo inventory
 
-## Existing repo / runtime inventory
+The E48 module lives under `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48/`.
+It is a governance/blueprint-only repository — there are no other Python
+projects, no existing visualization dependencies, no prior L1/L2/L3
+implementations to reuse. E47's `qclaw_e47_digest` module is imported as the
+L2 upstream through a thin stub (`tests/_e47_stub.py`) for cross-agent
+contract parity.
 
-```
-$ ls second-brain-coordination/coordination
-BLUEPRINTS/  ENGINEERING-LEARNING/  EVIDENCE/  GOVERNANCE/  INCIDENTS/
-PROGRAMS/    PROVIDER-ATTESTATIONS/  QCLAW-TASK-ROUTER.md  RESULTS/
-ROUTES/      SKILLS/  TASK-BRIEFS/  TEMPLATES/  AGENTS.md  README.md
-```
+## Visualization dependency audit
 
-There are **no Python modules** in this governance / blueprint repository
-(no `*.py`, no `src/`, no `tests/`, no `pyproject.toml`, no `requirements.txt`).
-E47's `qclaw_e47_digest` lives in PR #207's worktree, not on main.
+After re-evaluating the R0 claim of "self-contained HTML" (which actually
+loaded vis-network from a CDN), the R1 visualization is truly offline.
 
-Conclusion: **no existing visualization tooling to reuse**.
+| Library | Version | License | Telemetry | Auth | Notes |
+|---------|---------|---------|-----------|------|-------|
+| vis-network (vendored) | 9.1.9 | MIT / Apache-2.0 | None | None | Selected: inlined into HTML, no CDN, no server, no build step |
+| Cytoscape.js | 3.x | MIT | None | None | Equivalent offline story; larger community but heavier DOM model |
+| Plotly.js | 2.x | MIT | None | None | Heavier; good for metrics but overkill for graph exploration |
+| D3.js | 7.x | ISC | None | None | Maximum flexibility, but every interaction is hand-written |
+| pyvis | 0.3.x | MIT | None | None | Python wrapper around vis-network; adds a server side |
 
-## Candidate comparison (offline-only constraint)
+**Decision (R1):** vendored `vis-network@9.1.9` (689 KB MIT) is inlined into
+the output HTML by `visualization/generate_visualization.py`. The output file
+opens in any modern browser with zero network access. Rollback = delete the
+generated HTML + the vendored `vis-network.min.js`; nothing else to undo.
 
-E48 must run on the QCLAW task machine, which is FOREGROUND_PRIORITY,
-CPU-bound worker count ≤ 1, no cloud services, no network egress at
-runtime. We considered:
+## Python dependencies
 
-| Candidate | License | Bundling | Browser-only? | Rollback cost | Verdict |
-|-----------|---------|----------|---------------|---------------|---------|
-| **vis-network** (visjs.org) | MIT/Apache-2.0 (vis.js) | Single static HTML + CDN pin (or local copy) | Yes | Trivial — delete the HTML artifact | **Chosen** |
-| Cytoscape.js | MIT | Single static HTML + CDN pin | Yes | Trivial | Equal quality, larger bundle |
-| Plotly.js graph | MIT | Larger bundle (~3 MB) | Yes | Trivial | Bigger download, slower for >200 nodes |
-| D3 force | ISC | Hand-rolled UI | Yes | Bigger rewrite | High maintenance, low value |
-| pyvis / networkx + server | BSD/MIT | Requires Python web server | No (server) | Medium | Violates browser-only constraint |
+None beyond the standard library. Tests use `unittest` (stdlib) — no
+`pytest`, no `hypothesis`, no third-party graph libraries. This was
+deliberate to satisfy the FOREGROUND_PRIORITY resource policy (combined
+project Python cap = 4; no nested parallelism; bounded local fanout).
 
-We chose **vis-network** because:
-1. Single static HTML page — no Python web server, no worker process,
-   no port, fully compatible with FOREGROUND_PRIORITY / zero-orphan.
-2. Force-directed layout suitable for 50–500 nodes (typical L3 graphs).
-3. Built-in search, highlight, node click events — covers the required
-   "click a node to display content / confidence / evidence / source /
-   raw / normalized context" requirement without writing UI code.
-4. License is MIT (vis.js) / Apache-2.0 (vis-network fork). No telemetry,
-   no credentials, no network call at runtime if the library is bundled
-   in the artifact (we pin the script tag and serve locally).
-5. Rollback = delete the HTML artifact. Zero coupling to repo Python.
+## CI dependencies (R1)
 
-## Telemetry / credential check
-
-- vis-network source on GitHub: https://github.com/visjs/vis-network
-  Audit confirmed: no analytics endpoints, no required auth, no external
-  API calls. Static JS only.
-- We embed vis-network via a stable CDN pin with `integrity=` attribute.
-  For fully offline operation we ship a vendored copy in `vendor/`
-  (license file included).
-- No env vars, tokens, or credentials are referenced from the HTML or
-  the generator.
-
-## How to roll back
-
-```bash
-git rm coordination/.../E48/visualization/canary_graph.html
-git rm coordination/.../E48/visualization/generate_visualization.py
-git commit -m "qclaw(E48): roll back visualization artifact"
-```
-
-No downstream repo file depends on the HTML. Test suite is unaffected.
+GitHub Actions workflow `.github/workflows/qclaw-e48-semantic-reconstruction.yml`
+runs the E48 test suite on a 2-cell matrix (Python 3.11 + 3.13) using only
+`actions/checkout` and `actions/setup-python`. No nested parallelism, no
+heavy fanout, no matrix fan-out beyond the two language versions.

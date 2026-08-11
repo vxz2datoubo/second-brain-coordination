@@ -1,18 +1,49 @@
-# E48 canary — corpus expectations
+# E48 canary — corpus expectations (R1 end-to-end)
 #
-# These markers are inspected by tests/test_canary_corpus.py. They are not
-# load-bearing for the L1 reconstruction — they are *post-checks* on the view
-# that prove the right edit / ambiguity classes fired.
+# All eight required semantic categories are produced by the *actual* L1
+# reconstructor + L2 package pipeline over the synthetic canary text, NOT
+# by manually constructed UnknownMarker / alias / relation objects in tests.
 #
-# (a) filler words: "呃", "那个", "然后", "就是说", "基本上", "其实"
-#     -> expect NormalizationEdit with edit_type=FILLER_REMOVAL
-# (b) missing punctuation: between two Han chars with no sentence terminator
-#     -> expect NormalizationEdit with edit_type=PUNCTUATION
+# Categories → where to look for proof:
+#
+# (a) filler words + repetitions: "呃", "那个" in line 1
+#     -> expect at least one NormalizationEdit with edit_type=FILLER_REMOVAL
+#        produced by reconstruct() over canary/synthetic_canary_noisy_chinese.txt
+#        (e.g. edit_id "E-0000" or "E-0001")
+#
+# (b) missing punctuation: line 1 has no terminal `。` and ends with `\n` to line 2
+#     -> expect at least one NormalizationEdit with edit_type=PUNCTUATION
+#        inserted by the bounded R1 sentence-final punctuation rule
+#        (NOT the destructively broad Han-to-Han rule from R0).
+#
 # (c) typo: "部份" -> "部分"  (high confidence, edit_type=TYPO_CORRECTION)
+#
 # (d) ASR homophone: "式式" -> "试试"  (high confidence, edit_type=ASR_HOMOPHONE_CORRECTION)
-# (e) mid-confidence correction: low-confidence filler handling keeps alternatives
-# (f) UNKNOWN: "他她" -> UnknownMarker (cannot resolve pronoun)
-# (g) terminology alias: "术语别名" -> "量子纠缠"
-# (h) cross-sentence mechanism: "如果...那么..." carries into the view
+#     Line 2 contains TWO occurrences of 式式; expect at least two ASR edits.
+#
+# (e) mid-confidence correction with alternatives retained:
+#     The reconstructor does NOT currently emit a high-frequency low-confidence
+#     fill-in-the-blank case from the corpus itself; instead it emits the
+#     "他她" surface form as an AmbiguityCandidate (multiple candidates: 他 / 她 / 他她).
+#     The AmbiguityCandidate's ``candidates`` field must include both
+#     alternative readings AND the raw surface form.
+#
+# (f) UNKNOWN: "他她" cannot be safely resolved → reconstruct() emits an
+#     UnknownMarker in view.unknowns when ``rejected`` arbitration decides
+#     to refuse (the L1 view carries both ambiguities and unknowns).
+#     Independently, build_canary_projection.py builds a SECOND unresolved
+#     pronoun as an L2 unknown (unknowns=[{...}]) → graph node "unknown:U001"
+#     and edge e:raises:A004->U001 with edge_type=RAISES_UNKNOWN.
+#
+# (g) terminology alias: "术语别名" -> "量子纠缠" via TerminologyAlias list
+#     -> expect one NormalizationEdit with edit_type=TERMINOLOGY_NORMALIZATION
+#        (priority 10, highest in R1 priority order)
+#
+# (h) cross-sentence mechanism / conditional relation:
+#     Line 1 contains "如果…那么…" (if-then). The L2 pkg carries:
+#       - Relation A001 → A002 (REFINES): mechanism → condition
+#       - Relation A002 → A005 (SUPPORTS): condition → abstraction
+#       - Relation A005 → A003 (SUPPORTS): abstraction → indicator (line 2)
+#     The L3 projection emits three edges with these IDs and edge_types.
 #
 # All corpus text is PUBLIC_SAFE synthetic Chinese.

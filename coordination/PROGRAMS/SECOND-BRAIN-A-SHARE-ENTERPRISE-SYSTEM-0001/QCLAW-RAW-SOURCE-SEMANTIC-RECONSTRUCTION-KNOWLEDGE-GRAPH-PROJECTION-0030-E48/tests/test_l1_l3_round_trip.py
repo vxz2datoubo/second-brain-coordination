@@ -85,11 +85,12 @@ def test_low_confidence_edit_keeps_alternatives() -> None:
     view = reconstruct(l0, ruleset=rules)
     edits = [e for s in view.segments for e in s.edits]
     weak = [e for e in edits if e.edit_type == EditType.TERMINOLOGY_NORMALIZATION]
-    assert weak
+    assert weak, "expected weak alias edits"
     for e in weak:
         assert e.before in e.alternatives, (
             "low-confidence edit MUST keep before in alternatives"
         )
+        assert e.confidence < HIGH_CONFIDENCE_THRESHOLD
 
 
 def test_validation_catches_invalid_span() -> None:

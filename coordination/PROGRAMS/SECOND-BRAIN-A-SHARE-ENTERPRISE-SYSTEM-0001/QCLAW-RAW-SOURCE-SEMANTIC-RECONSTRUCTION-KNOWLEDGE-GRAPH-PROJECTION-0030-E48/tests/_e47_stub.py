@@ -191,3 +191,18 @@ def source_extract(atom_id: str, atom_type: str, source_text: str,
     span = _make_span(source_text, char_start, char_end, label)
     return Atom(atom_id, atom_type, content, (span,), "SOURCE_EXTRACT",
                 confidence, scope, invalidation)
+
+
+def inference_atom(atom_id: str, atom_type: str, source_text: str,
+                   char_start: int, char_end: int, confidence: str,
+                   rationale: str = "") -> Atom:
+    """Build an INFERENCE atom — derived (not directly extracted).
+
+    The E47 stub treats inference_atom like source_extract but tags it as
+    INFERENCE so that downstream stages can apply the E47 quality rule
+    "INFERENCE/VALUE_JUDGMENT atoms must not be read as fact".
+    """
+    content = source_text[char_start:char_end]
+    span = _make_span(source_text, char_start, char_end, "inference")
+    return Atom(atom_id, atom_type, content, (span,), "INFERENCE",
+                confidence, scope="", invalidation_conditions=rationale)
