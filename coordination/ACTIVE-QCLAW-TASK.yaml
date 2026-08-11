@@ -1,4 +1,4 @@
-schema_version: "76.0"
+schema_version: "77.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -8,54 +8,58 @@ automatic_resume: true
 active_issue: 216
 active_pull_request: 221
 task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-route_epoch: 51
+route_epoch: 52
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E48 R2 真实端到端语义Canary修复 + 低置信度Fail-closed + 双版本CI全绿"
+mode_label: "【QCLAW模式：项目计划模式】E48 R3 知识原子语义完整性 + SOURCE_EXTRACT provenance + 条件关系修正"
 planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
-completion_signal: "QCLAW_E48_R2_END_TO_END_SEMANTIC_CANARY_CORRECTED_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E48_R3_SEMANTIC_ATOMS_AND_PROVENANCE_CORRECTED_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 
 review_return:
-  gpt_review_id: 4904583603
-  reviewed_head: "d21aa633166d2a7f968c513d4a2302e6fad35385"
-  disposition: "E48_R1_REJECTED_PENDING_R2_END_TO_END_CANARY_CORRECTION"
-  accepted_r1_subfixes:
-    - "Removed destructive adjacent-Han punctuation rule."
-    - "Materialized normalized_text and added deterministic overlap arbitration."
-    - "Persisted exact candidate artifact for raw_artifact_sha256 direction."
-    - "Vendored/inlined vis-network so HTML can be used offline."
-    - "Added task-specific Python 3.11/3.13 CI definition."
+  gpt_review_id: 4904878067
+  reviewed_head: "ebc822d791bb845d6c73be3631a29bbc5764937e"
+  disposition: "E48_R2_L1_AND_CI_ACCEPTED_L2_L3_SEMANTICS_REJECTED_PENDING_R3"
+  accepted_r2:
+    - "Clean raw semantic canary is separated from explanatory fixture metadata."
+    - "Same committed L1 produces nonzero ambiguity and UNKNOWN evidence."
+    - "Mid/low-confidence edits fail closed and remain unapplied by default."
+    - "Adjacent-Han punctuation corruption remains fixed and normalized_text materialization/overlap arbitration remain accepted."
+    - "Persisted exact candidate artifact and full SHA-256 digest pipeline remain accepted in direction."
+    - "Offline vendored visualization remains accepted."
+    - "Task-specific GitHub Actions run 31478249185 is fully green on Python 3.11 and 3.13 including canary generation and receipt upload."
   blocking_findings:
-    - "Committed canary L1 still contains ambiguities=[] and unknowns=[]; canary_digests reports ambiguity_count=0 and unknown_count=0."
-    - "Mid/low-confidence semantic edits are still applied to normalized_text when they win overlap arbitration; tests do not assert applied=false or generated ambiguity/UNKNOWN."
-    - "Committed canary source mixes explanatory # metadata with semantic body; trigger tokens in comments make presence-only tests pass on metadata instead of the intended Chinese body."
-    - "Persisted L2 canary atoms A001/A002/A003/A004/A005 point to header comment lines rather than the intended volume/price semantic body because the builder assumes semantic data starts at lines 1-3."
-    - "L2 unknowns and relations are still manually injected in build_canary_projection.py rather than derived through the actual semantic/evidence pipeline."
-    - "Dedicated Python 3.11 and 3.13 unit tests pass, but both overall CI jobs are red because the workflow redirects to canary.out/receipt.txt before creating canary.out."
+    - "Normalization operations are promoted as L2 knowledge atoms: filler_removal (including empty content), punctuation, typo and ASR correction nodes pollute the semantic graph."
+    - "Several atoms are marked SOURCE_EXTRACT while atom.content differs from the exact cited L0 byte slice (e.g. 部分 vs 部份, 试试 vs 式式, inserted punctuation/alias replacements), violating direct-evidence semantics."
+    - "Conditional derivation truncates the effect to `价格` because the regex stops at the first whitespace after `那么`; this is not a complete mechanism/effect clause."
+    - "The generated relation `CONDITION -> MECHANISM : REFINES` does not truthfully represent an if/then dependency."
+    - "R2 handoff claims exact golden normalized/atom assertions, but current tests mostly assert presence/count/span-membership; EXPECTED.txt references a nonexistent exact-normalized test."
+    - "The canary is space-separated between nearly every Chinese token, which overfits boundary regexes and is not representative enough of ordinary Chinese ASR/transcript formatting."
 
-mandatory_r2:
-  - "Separate PUBLIC_SAFE fixture metadata/documentation from the immutable raw semantic canary. The raw semantic source consumed by L0 must contain only the intended synthetic transcript/content, not explanatory trigger examples."
-  - "Create one clean committed semantic canary whose actual L1 output itself contains the required high-confidence corrections, at least one medium/low-confidence ambiguity with alternatives, at least one unresolved UNKNOWN, and terminology alias evidence."
-  - "Medium/low-confidence semantic corrections must default fail-closed: do not alter normalized_text unless explicitly resolved by an accepted decision. Represent them as applied=false pending alternatives and/or AmbiguityCandidate/UnknownMarker."
-  - "Add exact golden tests for the whole committed canary: exact normalized_text, exact applied edit list/spans, exact pending ambiguity/UNKNOWN records, and no ordinary Chinese word corruption. Presence-only edit-type assertions are insufficient."
-  - "Fix L2 extraction so atom contents and source spans target the actual semantic body. Add golden assertions for exact A001..An content/span/evidence_kind, not only node counts."
-  - "Do not manually inject UNKNOWN or semantic relations solely to satisfy R2. Implement the smallest deterministic L1/L2 derivation step needed so the committed canary's generated semantic/evidence outputs produce the UNKNOWN and conditional/mechanism relations. If a relation cannot be derived safely, keep it UNKNOWN rather than fabricate it."
-  - "Regenerate L3 only from the corrected generated L1/L2 package and prove every node/edge is traceable to exact L0 evidence or an explicitly labeled inference/unknown."
-  - "Keep the persisted exact L2 candidate artifact and recompute all full SHA-256 digests from the corrected artifact/source."
-  - "Keep the vendored offline visualization fix; regenerate graph JSON/GraphML/HTML from corrected projection."
-  - "Fix CI ordering: create canary.out before any redirect, run canary exactly once per matrix job unless a second deterministic comparison is intentionally asserted, and upload digest/receipt artifacts."
-  - "Require the entire qclaw-e48-semantic-reconstruction workflow to be green on both Python 3.11 and 3.13, not only the unit-test step."
-  - "Keep resource/postflight constraints and publish exact new head + CI run IDs + generated digest bundle, then stop for GPT review."
+mandatory_r3:
+  - "Separate L1 normalization provenance from L2 knowledge semantics. Filler removal, punctuation insertion, typo correction and ASR correction operations must remain L1 audit/provenance records and must not automatically become ordinary CandidateKnowledgeAtoms/L3 knowledge nodes."
+  - "Define/retain only meaningful semantic L2 atoms such as concept/condition/mechanism/claim/inference/unknown according to the E47 candidate-knowledge pattern. Do not create atom quotas."
+  - "Add a hard SOURCE_EXTRACT invariant: for every atom with evidence_kind=SOURCE_EXTRACT, atom.content must exactly equal the decoded L0 byte slice for its cited source span."
+  - "If a useful semantic atom uses normalized wording that differs from L0, classify it as derived/inference/normalized semantic content and carry explicit L0 span + relevant L1 edit provenance; never mislabel it as direct SOURCE_EXTRACT."
+  - "Fix conditional extraction so `如果 成交量 上升 那么 价格 就 倾向 于 上升` yields a complete semantic effect/mechanism span such as `价格 就 倾向 于 上升`, bounded before the next contrast/conditional clause."
+  - "Use an existing truthful relation type/direction from the accepted E47 vocabulary; preferred target is MECHANISM/effect DEPENDS_ON CONDITION when semantically justified. Do not invent a new canonical relation solely for the canary."
+  - "Add exact golden assertions for the full committed canary normalized_text, the complete expected semantic L2 atom list (type/content/evidence_kind/exact span), and the complete semantic relation list (type/direction)."
+  - "Add a regression assertion that no normalization-only edit event becomes an L3 knowledge_atom node."
+  - "Correct EXPECTED.txt and handoff documentation so every referenced test actually exists and every claim matches committed behavior."
+  - "Add at least one small natural-Chinese regression input without word-by-word artificial spaces. It may conservatively retain uncertain filler; the mandatory behavior is no semantic corruption and fail-safe handling."
+  - "Regenerate L2/L3, visualization artifacts and all digests after the semantic fix; preserve exact L0 immutability and the accepted full-digest contracts."
+  - "Run the full task-specific Python 3.11/3.13 workflow green again and publish exact head/run IDs/postflight before GPT re-review."
 
 verification_required:
-  - "Committed clean canary L1 has nonzero ambiguity_count and nonzero unknown_count generated from the same actual source."
-  - "Low-confidence example does not modify normalized_text before explicit resolution."
-  - "Golden normalized output is readable Chinese and preserves intended meaning."
-  - "L2 atoms contain intended semantic content rather than fixture headers/comments."
-  - "L2/L3 UNKNOWN and relation evidence is generated, traceable, and not manually quota-filled."
-  - "raw_artifact_sha256 equals exact persisted candidate artifact bytes; l0_source_sha256 remains separate."
-  - "Python 3.11 and 3.13 full E48 workflow jobs both succeed, including canary generation and receipt upload."
+  - "No filler_removal/punctuation/typo/asr edit-operation nodes appear as ordinary semantic knowledge atoms in the committed canary graph."
+  - "Every SOURCE_EXTRACT content is byte-identical to its exact L0 span."
+  - "Normalized/derived wording that differs from L0 is explicitly typed as derived and traceable to L1 edit provenance."
+  - "Canary CONDITION and MECHANISM/effect atoms have exact complete expected content and spans."
+  - "Conditional relation type and direction express the actual dependency, not REFINES-by-default."
+  - "Exact whole-canary normalized_text golden assertion exists and passes."
+  - "Exact semantic atom/relation golden assertions exist and pass."
+  - "Natural-Chinese no-space regression is fail-safe and uncorrupted."
+  - "Full Python 3.11 and 3.13 E48 workflow jobs succeed."
   - "Resource postflight reports zero task-owned descendants/orphans and no unrelated termination."
 
 branch_policy:
@@ -82,7 +86,7 @@ resource_policy:
 hard_boundaries:
   - "No private user transcript/content committed to public repo."
   - "No raw-source overwrite or silent semantic correction."
-  - "No fabricated graph edges/relations/UNKNOWN merely to satisfy quotas."
+  - "No fabricated graph edges/relations/knowledge atoms merely to satisfy quotas."
   - "No competing W3 knowledge authority/system-of-record."
   - "No formal GLOBAL/PROJECT persistence."
   - "No credentials/accounts/orders/trading."
@@ -90,4 +94,4 @@ hard_boundaries:
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T17:00:00+08:00"
+updated_at: "2026-08-11T17:37:00+08:00"
