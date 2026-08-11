@@ -1,81 +1,72 @@
-schema_version: "72.0"
+schema_version: "73.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "WAITING_FOR_USER_OR_GPT_SELECTED_SOURCE"
-execution_allowed: false
+status: "READY"
+execution_allowed: true
 automatic_resume: true
-active_issue: 205
-active_pull_request: 207
-task_id: "QCLAW-KNOWLEDGE-DIGESTION-STAGING-ATOMIZATION-EVIDENCE-GRAPH-CANDIDATE-PACKAGE-0028-E47"
-route_epoch: 47
+active_issue: 216
+active_pull_request: null
+task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
+route_epoch: 48
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E47 候选知识消化已校准；等待用户/GPT指定资料"
-planned_branch: "qclaw/knowledge-digestion-staging-atomization-0028-e47"
-completion_signal: "QCLAW_E47_SELECTED_SOURCE_CANDIDATE_DIGEST_READY_FOR_GPT_REVIEW"
+mode_label: "【QCLAW模式：项目计划模式】E48 原始资料语义重建 + 神经元式知识图谱投影"
+planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
+completion_signal: "QCLAW_E48_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 route_contract:
-  path: "coordination/ROUTES/QCLAW-E47-ACTIVE-ROUTE-CONTRACT.yaml"
+  path: "coordination/ROUTES/QCLAW-E48-ACTIVE-ROUTE-CONTRACT.yaml"
   status: "ACTIVE"
+task_brief: "coordination/TASK-BRIEFS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48-AMED.yaml"
+task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48.yaml"
+blueprint: "coordination/BLUEPRINTS/KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-BLUEPRINT-v1.0.md"
 read_task_preflight:
   stale_local_main_must_not_imply_no_task: true
   canonical_source: "origin/main"
   required_before_no_task_conclusion:
     - "Fetch/read remote canonical main read-only."
     - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly."
-    - "Read Issue #205 current body if local loader is stale/missing."
+    - "Read Issue #216 body and comments."
 continuation_contract:
   read_task_command: "读取任务"
-  accepted_pr_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
+  user_should_not_need_to_copy_prompt: true
+  required_resolution_order:
+    - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
+    - "Read Issue #216, E48 route contract, AMED task brief, impact forecast and W3 blueprint."
+    - "Read accepted E47 PR #207 implementation/tests as predecessor evidence; do not regenerate DIGEST-007."
+    - "Create a fresh E48 branch/worktree from exact latest canonical main and proceed plan-first."
+    - "Implement the bounded E48 missions, run tests, report new PR/head, then stop for GPT audit."
+  second_user_start_command_required: false
+predecessor_e47:
+  issue: 205
+  pull_request: 207
+  accepted_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
   accepted_semantic_canary_head: "ce4a259faf5e0b8fd5a6f6a498fe92b62f398c04"
   accepted_content_hash: "379ccafdf592ac75"
-  latest_gpt_review_id: 4898565414
-  latest_gpt_review_purpose: "E47 semantic canary + v11 hygiene/PR fast-forward fully accepted; wait for an explicit user/GPT-selected source before the next candidate digestion."
-  user_should_not_need_to_copy_prompt: true
-  no_source_behavior: "WAIT; do not self-select arbitrary workspace material."
-  assigned_source_behavior: "Resume automatically, digest only the assigned source using the accepted E47 pattern, report candidate package, then stop for GPT review."
-user_source_trigger:
-  canonical_phrase: "消化这份资料"
-  interpretation: "Everything the user supplies in the same message after this trigger is an explicit USER_SELECTED source assignment for E47 candidate ingestion."
-  no_extra_prompt_required: true
-  accepted_equivalent_phrases:
-    - "深度消化这份资料"
-    - "按知识系统消化这份资料"
-    - "把下面内容深度学习并原子化"
-  behavior:
-    - "Treat the supplied content/file/path as the selected source only; do not expand to unrelated workspace files unless explicitly requested."
-    - "Run the accepted E47 semantic knowledge-digestion pattern automatically."
-    - "Do not ask the user to repeat the standard atomization/evidence/graph instructions."
-    - "If the source identity is ambiguous or missing, ask only for the missing source, not for the standard workflow prompt."
-accepted_quality_pattern:
-  faithful_extraction: true
-  semantic_atoms_not_document_structure_dumping: true
-  exact_source_spans_and_source_hash: true
-  fact_claim_inference_value_separation: true
-  semantic_relations_only: true
-  fabricated_contradictions_forbidden: true
-  genuine_zero_contradictions_allowed: true
-  unknowns_only_for_real_gaps: true
-  candidate_memories_and_skills_require_evidence: true
-  goodhart_output_count_quotas_forbidden: true
-  inference_confidence_calibration_required: true
-  required_outputs:
-    - "concepts/definitions/mechanisms/causal chains/conditions/counterexamples/indicators/data sources/scopes/failure conditions/validation methods/executable actions where actually supported"
-    - "terminology mapping and deduplication"
-    - "real contradictions with both sides preserved when present"
-    - "knowledge-graph relations that express meaning, not document adjacency"
-    - "UNKNOWNs for genuine gaps"
-    - "candidate memories and candidate skills only when evidence justifies them"
-    - "explicit source/evidence/inference/value separation"
-candidate_ingestion:
-  status: "ENABLED_WHEN_SOURCE_ASSIGNED"
-  allowed_source_authority:
-    - "USER_SELECTED"
-    - "GPT_SELECTED"
-  arbitrary_workspace_self_scan: "FORBIDDEN_BY_DEFAULT"
-  existing_pr_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
-  pr_remains_draft: true
+  status: "ACCEPTED_CANDIDATE_KNOWLEDGE_PATTERN"
+  reuse_required: true
+  semantic_regression_forbidden: true
+pipeline_contract:
+  L0: "RawSourceSnapshot immutable evidence"
+  L1: "NormalizedSemanticView derived/auditable reconstruction"
+  L2: "E47-style CandidateKnowledgeAtoms with evidence traced to L0"
+  L3: "KnowledgeGraphProjection derived visualization/export"
+  raw_source_overwrite_forbidden: true
+  normalized_view_is_authority: false
+  graph_projection_is_authority: false
+  silent_semantic_correction_forbidden: true
+  ambiguous_correction_behavior: "retain alternatives and/or UNKNOWN"
+  private_user_source_in_public_repo: false
+visualization_contract:
+  user_goal: "locally viewable neuron/brain-like force-directed knowledge graph"
+  minimum_features:
+    - "search/filter by atom/relation/evidence/confidence/source"
+    - "node click reveals content, confidence, evidence and provenance context"
+    - "UNKNOWN and CONTRADICTS visually distinguishable"
+    - "library-neutral graph JSON export"
+    - "interoperable graph export when low-cost or explicit documented deferral"
+  fabricated_edges_for_visual_density_forbidden: true
 formal_persistence:
   status: "BLOCKED_PENDING_REAL_PRODUCTION_AUTHORITY"
   required_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
@@ -83,24 +74,23 @@ formal_persistence:
   authoritative_global_or_project_write_allowed: false
   formal_master_transition_allowed: false
   formal_skill_promotion_allowed: false
-schema_debt:
-  legacy_requires_e60_authority_field: "SCHEMA_COMPATIBILITY_DEBT_ONLY_NOT_CURRENT_GATE"
-  current_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
-  dual_agent_default_task_python_cap_each: 2
-  dual_agent_default_combined_task_python_cap: 4
-  default_cpu_bound_workers_combined: 1
+  qclaw_task_python_cap: 2
+  combined_project_python_cap: 4
+  combined_cpu_bound_workers_cap: 1
   nested_parallelism: "FORBIDDEN"
-  heavy_provider_or_mutation_work: "FORBIDDEN_IN_STAGING_MODE"
+  heavy_matrix_or_dependency_fanout: "REMOTE_CI_OR_BOUNDED_ONLY"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "No self-selected arbitrary workspace ingestion."
-  - "No formal GLOBAL/PROJECT persistence before E61 production-authority gate."
-  - "No formal skill promotion."
-  - "No credentials, accounts, market data, orders or trading."
+  - "No private user transcript/content committed to public repo."
+  - "No raw-source rewrite or silent correction."
+  - "No fabricated graph edges, contradiction quotas or normalization quotas."
+  - "No competing W3 knowledge authority/system-of-record."
+  - "No formal GLOBAL/PROJECT persistence before E61 gate."
+  - "No credentials/accounts/orders/trading."
   - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-10T23:55:00+08:00"
+updated_at: "2026-08-11T12:56:00+08:00"
