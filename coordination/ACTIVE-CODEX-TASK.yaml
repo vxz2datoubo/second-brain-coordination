@@ -1,12 +1,12 @@
-schema_version: "81.0"
+schema_version: "82.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 220
 active_pull_request: null
 task_id: "CODEX-AWS-A1-PRODUCTION-CERTIFICATION-AUTHORITY-AND-PRIVATE-GIT-WRITE-GATE-0058-E62"
-route_epoch: 69
+route_epoch: 70
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E62 AWS A1外部认证权威 + private-Git正式写入第二道门实现"
+mode_label: "【Codex模式：项目计划模式】E62 AWS A1外部认证权威 + private-Git正式写入第二道门实现；用户手动AWS注册可行性验证已批准"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -20,10 +20,25 @@ user_architecture_decision:
   decision: "APPROVE_RECOMMENDED_ARCHITECTURE"
   recorded_at: "2026-08-11T15:03:00+08:00"
   approved_target: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
-  meaning: >-
-    The user approves AWS A1 as the target architecture and authorizes the next public-safe implementation/design phase.
-    This does not authorize real AWS account/billing/IAM/KMS/Lambda/DynamoDB resources, GitHub OIDC/environment/ruleset changes,
-    credentials/secrets, real private knowledge repository creation, merge, or formal knowledge-write unlock.
+
+user_manual_signup_feasibility_approval:
+  status: "APPROVED_USER_ONLY"
+  recorded_at: "2026-08-11T15:25:00+08:00"
+  intent: "User may personally register an AWS Inc. account now to verify that China-based identity and payment-method onboarding are workable before E62 production activation."
+  allowed_now:
+    - "User personally opens the official AWS signup flow."
+    - "User personally enters their own email, phone, identity and billing/payment information into the official AWS UI."
+    - "User may choose the Free account plan and Basic Support when offered to minimize accidental charges."
+    - "User may complete ordinary signup identity/payment verification, including a temporary card authorization initiated by AWS."
+    - "User may report only non-secret success/failure status, payment-method type, error category or sanitized screenshots back to GPT."
+  still_not_authorized:
+    - "Codex/QCLAW entering or handling the user's payment card number, password, OTP, MFA seed, recovery code or other credential secret."
+    - "Creating IAM users/roles/policies, KMS keys, Lambda functions, DynamoDB tables, OIDC trusts/providers, environments, rulesets or branch protections."
+    - "Selecting paid support tiers or intentionally provisioning billable AWS resources."
+    - "Creating a real private knowledge repository or enabling formal knowledge writes."
+    - "Merge."
+  result_handling: >-
+    The signup result is a feasibility fact only. Successful account creation does not authorize E62 production activation; failure does not invalidate AWS A1 until the payment/identity failure mode is classified and alternatives are reviewed.
 
 predecessor_e61:
   issue: 209
@@ -31,7 +46,6 @@ predecessor_e61:
   accepted_design_head: "4a13aef4da4f0f780b4eeedb86865282d63d95a4"
   design_status: "PROVIDER_SPECIFIC_ARCHITECTURE_READY_AND_USER_APPROVED"
   implementation_on_pr210_lineage_forbidden: true
-  reason: "PR #210 is retained as stale-lineage design/evidence only; E62 must start from exact latest canonical main."
 
 fundamental_goal: >-
   Implement an independently auditable PUBLIC_SAFE AWS A1 authority candidate and a separate private-Git formal-write gate,
@@ -67,16 +81,17 @@ parallel_qclaw:
   formal_persistence_blocked: true
 
 real_world_stop_gate:
-  approval_required_before:
-    - "AWS account creation or billing enablement"
-    - "human IAM/control identity or MFA setup"
+  user_only_signup_feasibility_exception: "APPROVED"
+  approval_still_required_before:
+    - "paid-plan upgrade if needed for production"
+    - "human IAM/control identity or MFA setup for production authority"
     - "real KMS/Lambda/DynamoDB/IAM creation or modification"
     - "GitHub OIDC provider/trust, environment, ruleset or branch-protection changes"
-    - "secret/key/credential creation or entry"
+    - "secret/key/credential creation or entry by an agent"
     - "real private knowledge repository creation"
     - "real formal knowledge write/unlock"
     - "merge"
-  credential_rule: "Never request the user to paste passwords, API keys, tokens, private keys, recovery codes or session secrets."
+  credential_rule: "Never request the user to paste passwords, full card data, API keys, tokens, private keys, MFA secrets, recovery codes or session secrets."
 
 privacy_authorization:
   protocol: "coordination/GOVERNANCE/USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-v1.0.yaml"
@@ -99,7 +114,7 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
 hard_boundaries:
-  - "No real AWS/GitHub security/control-plane mutation under E62 without a later exact user approval route."
+  - "Only the user may perform the newly approved AWS signup/payment feasibility check; agents still may not handle credential/payment secrets or provision real AWS resources."
   - "No formal GLOBAL/PROJECT knowledge write or unlock."
   - "No private user knowledge/source content committed to public GitHub."
   - "No reset/clean/stash/rebase/checkout over another dirty worktree."
@@ -110,4 +125,4 @@ hard_boundaries:
 completion_signal: "CODEX_E62_AWS_A1_CERTIFICATION_AND_PRIVATE_GIT_WRITE_GATE_IMPLEMENTATION_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T15:03:00+08:00"
+updated_at: "2026-08-11T15:25:00+08:00"
