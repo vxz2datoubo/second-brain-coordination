@@ -1,8 +1,8 @@
-schema_version: "1.0"
+schema_version: "1.1"
 record_type: "UserApprovalRequirements"
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
 status: "USER_APPROVAL_REQUIRED"
-reason: "No observable protected external authority control plane currently exists; configuration would change repository/service authority boundaries."
+reason: "The refreshed audit found no protected branch, ruleset, deployment environment, immutable OIDC subject configuration, or independently verifiable reviewer identity. Any authority configuration changes repository/service authority boundaries."
 approval_items:
   - approval_id: "E61-APPROVAL-001"
     requested_decision: "Approve or reject Option A as the production authority target: protected GitHub environment plus OIDC federation to an externally operated certification issuer/verifier."
@@ -12,7 +12,7 @@ approval_items:
     irreversible_effect: "NONE until later configuration is separately approved."
   - approval_id: "E61-APPROVAL-002"
     requested_decision: "Approve creation and protection of a knowledge-certification deployment environment."
-    minimum_configuration: "Required independent reviewer; prevent self-review; restrict deployment to main; disable administrator bypass where available."
+    minimum_configuration: "Required independent reviewer; prevent self-review; restrict deployment to main; disable administrator bypass where available. Current direct-collaborator count is one, so the independent reviewer must be established before this control can be relied on."
     why_needed: "A workflow reference to an unprotected environment is not an external approval boundary."
     credential_request: "NONE"
     agent_action_without_approval: "FORBIDDEN"
@@ -34,6 +34,18 @@ approval_items:
     why_needed: "The observed repository setting has use_immutable_subject false."
     credential_request: "NONE"
     agent_action_without_approval: "FORBIDDEN"
+  - approval_id: "E61-APPROVAL-006"
+    requested_decision: "Approve or reject creation of a distinct reviewer/control identity that is not the workflow initiator and does not share the ordinary caller authority path."
+    minimum_configuration: "The identity must be independently administered for the certification review role and must not be a cosmetic second account controlled by the same unreviewed caller path."
+    why_needed: "The refreshed read-only repository API shows one direct collaborator, so independent self-review prevention is not currently demonstrable."
+    credential_request: "NONE"
+    agent_action_without_approval: "FORBIDDEN"
+refresh_scope:
+  canonical_main: "e3b03c6096a3a7e981004088ac72abf3b51549e1"
+  route_epoch: 66
+  settings_changes_performed: false
+  user_decision_package: "REFRESHED-E61-PRODUCTION-AUTHORITY-USER-DECISION-PACKAGE.md"
+  no_change_alternative: "Keep E47/E48 outputs CANDIDATE_ONLY or derived, return EXTERNAL_AUTHORITY_NOT_CONFIGURED for all certification attempts, and leave formal PROJECT/GLOBAL writes disabled."
 explicit_non_requests:
   - "No GitHub token, cloud credential, private key, App key, account password, cookie, or secret value."
   - "No market, broker, account, order, or trading authorization."
