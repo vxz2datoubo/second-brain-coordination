@@ -1,12 +1,12 @@
-schema_version: "83.0"
+schema_version: "84.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 223
+active_issue: 224
 active_pull_request: null
-task_id: "CODEX-GITHUB-ONLY-PRIVATE-REPO-AUTHORITY-AND-MULTI-AGENT-ACCESS-CANARY-0059-E63"
-route_epoch: 71
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64"
+route_epoch: 72
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E63 GitHub-only 私有仓控制面简化 + 多AI访问Canary"
+mode_label: "【Codex模式：项目计划模式】E64 当前公开GitHub内的正式知识提升简化；不做私密迁移、不上AWS"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -17,54 +17,71 @@ formal_knowledge_persistence_unlock_allowed: false
 repository_visibility_change_authorized: false
 
 user_architecture_revision:
-  recorded_at: "2026-08-11T15:38:00+08:00"
-  previous_target: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
-  new_preference: "GITHUB_ONLY_PRIVATE_REPOSITORY_CONTROL_PLANE"
-  rationale:
-    - "User prioritizes one integrated system and low operational friction over maximum theoretical external-key isolation."
-    - "Extra AWS account/billing/IAM/KMS/Lambda/DynamoDB hops create setup, copying, maintenance and failure-path complexity that the user judges disproportionate to the practical threat model."
-    - "User prefers making the existing GitHub repository private if all required AI agents can continue to work reliably."
-  aws_a1_status: "DEFERRED_FALLBACK_NOT_DELETED"
+  recorded_at: "2026-08-11T15:51:00+08:00"
+  current_preference: "KEEP_CURRENT_GITHUB_PUBLIC_FOR_NOW"
+  privacy_work_status: "DEFERRED_UNTIL_USER_REOPENS"
+  aws_status: "SUPERSEDED_AS_PRIMARY_PATH"
+  primary_goal: "One integrated GitHub-centered workflow with low operational friction."
+  note: >-
+    Do not spend current engineering effort on converting the repository to private merely for theoretical security.
+    Existing privacy governance still forbids publishing private user source data/credentials to the public repository.
 
-current_verified_github_state:
-  repository: "vxz2datoubo/second-brain-coordination"
-  visibility_at_route_creation: "public"
-  owner_type: "personal_account"
-  chatgpt_github_installation_id: 147071161
-  installation_contains_exact_repository: true
-  connector_observed_permissions: "admin/maintain/pull/push/triage"
-  note: "Re-verify before any visibility transition; current public access success is not proof for QQ/WorkBuddy private access."
+predecessor_reviews:
+  e62:
+    issue: 220
+    pull_request: 222
+    head: "ecdf6fbc2eb678abdce1daed94093a3162a57f22"
+    gpt_review_id: 4904095471
+    status: "FROZEN_REUSABLE_IDEAS_ONLY"
+    reusable:
+      - "candidate full-digest concept after accepted E48 producer semantics"
+      - "replay/duplicate rejection"
+      - "one-time promotion state"
+      - "expected-parent/CAS"
+      - "stale/expired fail-closed behavior"
+    rejected:
+      - "AWS IAM/KMS/Lambda/DynamoDB machinery"
+      - "stale route binding: executable default epoch 69 while actual E62 delivery was epoch 70"
+      - "claimed immutable repository identity not implemented in executable context"
+      - "private-Git second gate lacks independent candidate identity comparison at consume time"
+  e63:
+    issue: 223
+    status: "SUPERSEDED_NOT_PLANNED"
+    reason: "User does not want private-repository work now."
 
 fundamental_goal: >-
-  Prove whether the existing GitHub-centered control plane can be converted to a private-repository workflow while preserving
-  GPT/ChatGPT, Codex, QCLAW/QQ, WorkBuddy/required local Git paths and GitHub Actions. If viable, replace AWS as the primary
-  authority design with the simplest honest GitHub-only candidate-to-formal promotion contract. Keep AWS A1 only as fallback.
+  Build the simplest honest GitHub-native candidate-to-formal promotion mechanism for the actual project threat model,
+  preventing stale/wrong/duplicate promotion and preserving exact provenance without external cloud trust roots or
+  repository-visibility work.
 
 required_sequence:
-  - "Read exact latest canonical main, Issue #223 and this ACTIVE route."
-  - "Stop/freeze E62 AWS implementation; preserve its evidence only."
-  - "Audit exact authentication/access path for GPT/ChatGPT, Codex, QCLAW/QQ, WorkBuddy and Actions without exposing secrets."
-  - "Verify private-repository support and current plan/feature availability from official OpenAI/GitHub documentation and observable account/repository facts."
-  - "Produce a reversible private-repo visibility canary and exact post-change probes/rollback."
-  - "Design GitHub-only formal promotion with exact digest/provenance binding, replay/duplicate rejection and CAS/expected-parent behavior, while narrowing security claims honestly."
-  - "Do not change repository visibility until GPT reviews the canary and the user explicitly activates the switch."
-  - "Publish Draft PR/head/tests/postflight and completion signal, then stop for GPT review."
-
-predecessor_e62:
-  issue: 220
-  status: "FROZEN_FALLBACK"
-  reason: "User rejected AWS as primary due unnecessary cross-system complexity for this project threat model."
+  - "Read exact latest canonical main, Issue #224, this ACTIVE route, E62 GPT review and QCLAW E48 R1 status."
+  - "Start a fresh E64 branch/worktree from exact latest canonical main; do not continue E62/E63 branches."
+  - "Freeze a narrow practical threat model and truthful claim limits."
+  - "Implement GitHub-native approval/promotion contract with exact candidate identity, GPT/user approval reference, one-time promotion marker and expected-parent/CAS."
+  - "Implement PUBLIC_SAFE / PRIVATE_OR_SENSITIVE / SECRET_CREDENTIAL admission boundary for the current public repository."
+  - "Use only typed synthetic E48 fixtures until E48 R1 is independently accepted; do not invent a competing digest schema."
+  - "Add bounded Python 3.11/3.13 task-specific CI and adversarial tests."
+  - "Publish Draft PR/head/tests/postflight and completion signal, then stop for GPT audit."
 
 parallel_qclaw:
   active_issue: 216
-  role: "E48_RAW_SOURCE_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_PROJECTION"
-  formal_persistence_blocked: true
+  active_pull_request: 221
+  route_epoch: 50
+  status: "E48_R1_SEMANTIC_CORRECTNESS_REMEDIATION"
+  integration_gate: "BLOCKED_PENDING_E48_R1_ACCEPTANCE"
+
+privacy_boundary:
+  public_safe: "May be represented/promoted on current GitHub after validation and approval."
+  private_or_sensitive: "Raw content may not be committed to current public GitHub; only redacted metadata/status may appear."
+  secret_credential: "Never commit or echo."
 
 hard_boundaries:
-  - "No repository visibility change under E63 before a later explicit user activation approval."
-  - "No AWS/GCP resource/account/security changes and no continuation of E62 AWS implementation."
-  - "No formal GLOBAL/PROJECT knowledge write or unlock."
+  - "Keep repository visibility unchanged."
+  - "No AWS/GCP/external issuer work."
+  - "No private user source content committed to public GitHub."
   - "No credentials/private keys/tokens/API secrets/session secrets/MFA secrets in repository or reports."
+  - "No formal real-user GLOBAL/PROJECT knowledge write or unlock."
   - "No reset/clean/stash/rebase/checkout over unrelated dirty worktrees."
   - "No merge, direct-main implementation, force-push, amend or history rewrite."
   - "No market data, accounts, orders, funds or trading."
@@ -78,7 +95,7 @@ local_resource_safety:
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
-completion_signal: "CODEX_E63_GITHUB_ONLY_PRIVATE_REPO_CANARY_AND_AUTHORITY_SIMPLIFICATION_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E64_GITHUB_ONLY_FORMAL_KNOWLEDGE_PROMOTION_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T15:38:00+08:00"
+updated_at: "2026-08-11T15:51:00+08:00"
