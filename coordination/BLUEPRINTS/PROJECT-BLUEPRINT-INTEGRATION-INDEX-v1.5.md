@@ -4,7 +4,7 @@
 >
 > `supersedes: PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.4.md`
 >
-> `new_module: CONVERSATIONAL-LONG-TERM-MEMORY-0020`
+> `new_module: CONVERSATIONAL-LONG-TERM-MEMORY-0021`
 >
 > `boundary: research_only / NO_TRADE`
 
@@ -12,9 +12,11 @@
 
 v1.5完整继承v1.4对W1-W13、AMED、0013/0017/0018/0019等模块的职责、权威、接口、成熟度和任务顺序，并新增：
 
-`0020 Conversational Long-Term Memory and Mobile Second Brain`。
+`0021 Conversational Long-Term Memory and Mobile Second Brain`。
 
-0020不是W14，不创建新业务工作流。它是W3长期记忆的核心能力扩展，并与W10个人认知/DecisionEpisode、W8多Agent集成、W9结果学习建立正式接口。
+0021不是W14，不创建新业务工作流。它是W3长期记忆的核心能力扩展，并与W10个人认知/DecisionEpisode、W8多Agent集成、W9结果学习建立正式接口。
+
+现有`0020 Knowledge Source Semantic Reconstruction and Graph Projection`继续承担嘈杂Source的可审计语义重建和派生图谱，0021按需复用。
 
 专项蓝图：
 
@@ -29,7 +31,7 @@ v1.5完整继承v1.4对W1-W13、AMED、0013/0017/0018/0019等模块的职责、�
 | 研究与模型 | W4、W6、W12 | 特征、策略、实验、竞争性假设、概率与决策科学 |
 | 决策与生存 | W7、W10、W11＋0017/0018 | 认知上下文、配置、风险、验证、净优势与关停 |
 
-0020位于W3，但向W10提供个人长期上下文，并向所有授权项目提供受scope控制的MemoryContextBundle。
+0021位于W3，但向W10提供个人长期上下文，并向所有授权项目提供受scope控制的MemoryContextBundle。
 
 ## 三、模块登记
 
@@ -44,17 +46,19 @@ v1.5完整继承v1.4对W1-W13、AMED、0013/0017/0018/0019等模块的职责、�
 | 0017 | Liquidity Sweep/Reclaim Validation | W4＋W7 | 69 | CONTRACTED_NOT_IMPLEMENTED |
 | 0018 | House-Edge Survival and Operating Control | W7＋W9＋W11 | 71 | CONTRACTED_NOT_IMPLEMENTED |
 | 0019 | Enterprise Blueprint Convergence | W1 | 72 | ACTIVE_PROJECT_PLAN |
-| 0020 | Conversational Long-Term Memory and Mobile Second Brain | W3＋W10 consumer interface | TBD | BLUEPRINT_COMPLETE_NOT_IMPLEMENTED |
+| 0020 | Knowledge Source Semantic Reconstruction and Graph Projection | W3 | 216 | ACTIVE_PROJECT_PLAN |
+| 0021 | Conversational Long-Term Memory and Mobile Second Brain | W3＋W10 consumer interface | TBD | BLUEPRINT_COMPLETE_NOT_IMPLEMENTED |
 
-## 四、0020核心定位
+## 四、0021核心定位
 
 用户与ChatGPT的长期对话是第二大脑的重要一等来源，因为用户可以在手机、Web和Desktop随时把真实生活、项目、学习、判断、纠错、计划和未决问题带入系统。
 
-因此0020正式定义：
+因此0021正式定义：
 
 ```text
 Conversation Surface
 → ConversationEpisode / SourceManifest
+→ （ASR/OCR/口语噪声需要时）MODULE_0020 NormalizedSemanticView
 → W3 LearningPacket / KnowledgeAtom / Relation / Conflict / UNKNOWN
 → W3 Canonical Memory Runtime
 → MemoryRouter / Trust Gate / Hybrid Retrieval
@@ -74,6 +78,7 @@ v1.4所有权威继续有效，并补充：
 | 用户长期记忆current/historical version | W3 |
 | Correction / Supersession / Revocation | W3 |
 | MemoryRouter / MemoryContextBundle | W3 |
+| 嘈杂Source的NormalizedSemanticView和派生Graph Projection | W3 / MODULE_0020 projection only |
 | 当前任务中的个人认知模型与DecisionEpisode | W10 |
 | ChatGPT/Agent调用编排 | W8 |
 | 记忆使用结果与质量校准 | W9 |
@@ -95,6 +100,8 @@ W10、AI电影、A股和其他项目不得创建平行用户长期记忆事实�
 20. `MemoryContextBundle`，W3写，ChatGPT/W10/其他授权消费者读。
 
 若现有Phase 3 / Issue #38已有等价对象，必须REUSE/EXTEND，不得因命名差异重复建Schema。
+
+若Conversation来自语音/ASR/OCR且需要语义修复，复用MODULE_0020的NormalizedSemanticView / NormalizationEdit / provenance映射，不创建第二套Normalization对象。
 
 ## 七、跨项目消费规则
 
@@ -135,7 +142,7 @@ A股同理。
 - Schema；
 - 程序；
 - 测试；
--治理；
+- 治理；
 - Agent协作；
 - 脱敏receipt。
 
@@ -184,7 +191,7 @@ W3暴露recall/search/fetch/current-profile/open-loops及受控candidate/correct
 
 L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 
-## 十一、首个0020纵向切片
+## 十一、首个0021纵向切片
 
 固定验收序列：
 
@@ -202,7 +209,7 @@ L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 
 `CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY`
 
-## 十二、0020评测门
+## 十二、0021评测门
 
 至少覆盖：
 
@@ -234,7 +241,8 @@ L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 
 ## 十三、非重复边界新增
 
-- 0020不建立W3之外的长期记忆系统；
+- 0021不建立W3之外的长期记忆系统；
+- 0021复用0020的语义重建，不重复Normalization/Graph Projection；
 - ChatGPT原生Memory不是W3 durable authority；
 - Project Memory不是跨项目用户事实源；
 - GitHub私人仓是数据平面，不是第二运行时；
@@ -245,14 +253,15 @@ L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 
 ## 十四、实施依赖
 
-0020实施前必须核验：
+0021实施前必须核验：
 
+- 最新main和当前控制面；
 - PR #57 current canonical runtime；
 - Issue #38 knowledge gateway；
 - Issue #59 atomization；
 - Issue #60 hybrid retrieval；
-- Issue #209 / E61 durable authority；
-- 当前ACTIVE Codex route；
+- Issue #216 / MODULE_0020 semantic reconstruction；
+- Issue #209 / E61 durable authority及其当前活动路由；
 - OpenAI最新Memory / Projects / Tasks / Apps / MCP能力。
 
 正式写PROJECT/GLOBAL authority不得绕过E61。
@@ -276,9 +285,11 @@ L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 
 ## 十六、WIP与执行顺序
 
-0020属于战略级W3能力，但不得打断当前唯一Codex活动路由。
+0021属于战略级W3能力，但不得盲目覆盖当前活动Codex路由。
 
-在当前活动任务允许后：
+截至本次蓝图审计，仓库已存在`CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml`，因此实施Agent必须先同步最新main并读取实时control plane，不能依赖旧PROGRAM-INDEX中的#72描述。
+
+当控制面允许0021实施时：
 
 1. 建立独立Issue；
 2. Codex项目计划模式；
@@ -292,7 +303,7 @@ L-C解决“每次回答前100%必经长期记忆检索”的硬保证问题。
 ## 十七、当前成熟度
 
 ```yaml
-module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0020
+module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0021
 registered: true
 workstream: W3
 w10_consumer_interface: true
@@ -304,6 +315,7 @@ first_vertical_slice: NOT_IMPLEMENTED
 memory_router: NOT_IMPLEMENTED
 trust_gate: NOT_IMPLEMENTED
 background_consolidation: PARTIAL_TASK_EXISTS
+semantic_reconstruction: REUSE_MODULE_0020
 private_data_plane: BLUEPRINT_DEFINED_NOT_VERIFIED
 formal_authority: E61_DEPENDENT
 no_trade: true
