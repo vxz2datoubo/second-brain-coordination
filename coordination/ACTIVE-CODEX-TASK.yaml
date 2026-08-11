@@ -1,20 +1,20 @@
-schema_version: "77.0"
+schema_version: "78.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 209
-active_pull_request: null
+active_pull_request: 210
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-route_epoch: 65
+route_epoch: 66
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】重装恢复控制面 + 用户PII授权后继续 E61 真实生产 Durable Authority"
+mode_label: "【Codex模式：项目计划模式】E61 控制面恢复已验收；只读刷新生产权威审批包"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
-intermediate_gpt_review_required: false
+intermediate_gpt_review_required: true
 merge_authorized: false
 planned_branch: "codex/real-production-durable-authority-0057-e61"
-completion_signal: "CODEX_E61_REAL_PRODUCTION_DURABLE_AUTHORITY_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E61_REFRESHED_PRODUCTION_AUTHORITY_APPROVAL_PACKAGE_READY_FOR_GPT_REVIEW"
 accepted_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
 formal_knowledge_persistence_unlock_allowed: false
 route_contract:
@@ -22,17 +22,18 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
+recovery_acceptance:
+  status: "GPT_ACCEPTED_CONTROL_PLANE_RECOVERY"
+  evidence_comment: 5249080174
+  recovered_route_epoch: 65
+  github_report_bridge_verified: true
+  dirty_workbuddy_workspace_preserved: true
+  existing_e61_worktree_preserved: true
+  note: "Recovery is accepted; do not repeat reinstall bootstrap unless a new failure occurs."
 privacy_authorization:
   protocol: "coordination/GOVERNANCE/USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-v1.0.yaml"
-  user_authorized_at: "2026-08-11T12:23:00+08:00"
   ordinary_pii_local_private_processing_allowed: true
   ordinary_pii_presence_is_not_a_stop_condition: true
-  examples:
-    - "real names"
-    - "email addresses"
-    - "telephone/mobile numbers"
-    - "WeChat/contact handles"
-    - "ordinary non-secret account/contact identifiers"
   github_public_reports_must_redact_raw_pii: true
   credential_secret_publication_forbidden: true
   credential_secret_examples:
@@ -42,60 +43,51 @@ privacy_authorization:
     - "private/signing keys"
     - "session cookies/bearer credentials"
     - "2FA/OTP/recovery secrets"
-  instruction: >-
-    Do not stop merely because ordinary PII/contact information is present. Continue authorized local/private
-    analysis and publish only PUBLIC_SAFE redacted summaries to GitHub/GPT bridge. Never echo or commit credentials.
-reinstall_recovery_preflight:
-  required: true
-  reason: "Codex app was reinstalled and local GPT/GitHub/reporting/task context was reported lost. Remote governance remains canonical."
-  protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
-  completion_packet: "CODEX_CONTROL_PLANE_RECOVERY_READY"
-  requirements:
-    - "Verify canonical repository identity and sanitized remote URL."
-    - "Read latest remote AGENTS.md, CODEX-TASK-ROUTER.md and this ACTIVE-CODEX-TASK.yaml."
-    - "Read privacy authorization protocol before classifying PII as a blocker."
-    - "Read Issue #209 body plus all comments and required E61 governance files."
-    - "Verify GitHub read access and GitHub Issue/PR report-write capability without exposing credentials."
-    - "Treat GitHub Issue/PR as the durable Codex-to-GPT report bridge; do not search for a separate GPT chat/task endpoint."
-    - "If current worktree is dirty or belongs to WorkBuddy/another task, preserve it untouched and use a clean dedicated Codex worktree for E61."
-    - "Publish CODEX_CONTROL_PLANE_RECOVERY_READY to Issue #209, then continue E61 automatically when all checks pass."
-  destructive_cleanup_forbidden: true
-  github_auth_failure: "STOP_AND_REPORT_MINIMAL_USER_ACTION_REQUIRED"
 reporting_bridge:
-  command_aliases:
-    - "向GPT报告"
-    - "报告给GPT"
-    - "请GPT审核"
-    - "让GPT看看怎么处理"
-  semantics: >-
-    Publish a structured PUBLIC_SAFE GPT_REVIEW_REQUEST packet to the current active Issue or PR.
-    Ordinary PII may be processed locally but must be redacted/minimized in the public report.
-    Do not create a fake GPT task and do not wait for a separate GPT chat endpoint.
   protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
-  current_pre_pr_destination: "Issue #209"
-  after_pr_exists_destination: "active E61 PR first, Issue #209 for route/blocker context"
-read_task_preflight:
-  stale_local_main_must_not_imply_no_task: true
-  canonical_source: "origin/main"
-  required_before_no_task_conclusion:
-    - "Perform a read-only remote sync check (git fetch origin main; do not pull/rebase/checkout a dirty worktree)."
-    - "Read origin/main:coordination/ACTIVE-CODEX-TASK.yaml directly, e.g. git show origin/main:coordination/ACTIVE-CODEX-TASK.yaml."
-    - "If local git access is unavailable, query GitHub remote main and active Issue #209 before concluding no task."
-    - "Only conclude NO_NEW_TASK when remote canonical ACTIVE-CODEX-TASK is absent/inactive and Issue #209 contains no executable continuation."
-  local_missing_file_disposition: "STALE_OR_WRONG_VIEW_UNTIL_REMOTE_CANONICAL_CHECKED"
-continuation_contract:
-  read_task_command: "读取任务"
-  required_resolution_order:
-    - "Run reinstall recovery preflight and canonical remote verification first."
-    - "Read latest remote AGENTS.md and CODEX-TASK-ROUTER.md."
-    - "Read privacy authorization protocol; ordinary PII is not a blocker and GitHub reports must be redacted."
-    - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
-    - "Read Issue #209 body/all comments, E61 route contract, AMED task brief and TaskImpactForecast."
-    - "Read frozen E60 Issue #204 / PR #208 / receipt e06675f9 only as predecessor evidence."
-    - "Publish CODEX_CONTROL_PLANE_RECOVERY_READY to Issue #209 after bridge verification."
-    - "Start E61 from exact latest canonical main; never continue on E60 or another agent's dirty branch."
-    - "Create fresh branch and Draft PR plan-first, then continue automatically."
-  user_should_not_need_to_copy_prompt: true
+  current_destination: "PR #210 for E61 evidence/review; Issue #209 for route and approval context"
+  command_aliases: ["向GPT报告", "报告给GPT", "请GPT审核", "让GPT看看怎么处理"]
+  credentials_must_not_be_exposed: true
+current_truth_refresh:
+  required: true
+  latest_main_seen_by_gpt: "02e2952cef3bf92b400d171938acd55e391aee00"
+  old_e61_plan_base: "f33ba3f698570a39b933f67fcb6f0f95810365c2"
+  stale_fact_correction_required: true
+  required_reads:
+    - "latest canonical main and current ACTIVE-CODEX-TASK schema 78"
+    - "Issue #209 and PR #210 current discussion"
+    - "accepted E47 PR #207 head 476d2a287cffb084c01b54c1d5e5eaf22016aac7"
+    - "QCLAW E48 Issue #216 and current W3 semantic-reconstruction/graph blueprint"
+  note: "Do not rewrite history or rebase PR #210 merely because main advanced; refresh facts and produce bounded follow-up commits only when needed."
+read_only_approval_package_refresh:
+  status: "AUTHORIZED_READ_ONLY"
+  purpose: >-
+    Replace the coarse 2026-08-09 approval request with a current, minimal, concrete production-authority decision package before asking the user to authorize repository settings, environments, external services or permissions.
+  settings_changes_authorized: false
+  environment_creation_authorized: false
+  ruleset_or_branch_protection_changes_authorized: false
+  github_app_installation_authorized: false
+  external_service_creation_authorized: false
+  secret_or_key_creation_authorized: false
+  formal_write_authorized: false
+  mandatory_work:
+    - "Refresh E47 interface facts against accepted PR #207 head 476d2a2; do not cite rejected d19c92a as current."
+    - "Map E48 L0/L1/L2/L3 pipeline implications for E61 certification without modifying QCLAW artifacts."
+    - "Verify current repository protection/environment/OIDC state read-only again."
+    - "Verify actual plan/features available for this public repository using current official GitHub documentation."
+    - "Check whether a genuinely independent deployment reviewer identity is actually available; if not, mark self-review-prevention design infeasible rather than assuming it."
+    - "Compare at least three authority/control-plane families: (A) GitHub protected environment + OIDC to managed KMS/signing plus external conditional single-use ledger; (B) independently controlled GitHub App/deployment-protection service; (C) Sigstore/Fulcio/Rekor or GitHub artifact attestations as keyless provenance evidence, explicitly determining whether they are sufficient authority or only evidence supplements."
+    - "For each option state: trust root, what ordinary Codex/QCLAW can and cannot mint, secrets required, manual user steps, recurring cost/maintenance, rollback, replay/single-use semantics, revocation, failure mode, and whether it really satisfies E61."
+    - "Recommend the minimum-complexity option that still satisfies the threat model; do not prefer complexity for its own sake."
+    - "Produce an exact USER-APPROVAL-REQUIREMENTS.yaml containing only settings/actions that genuinely require the user's approval, each with reversible change, risk, expected benefit and rollback."
+    - "Produce an explicit NO-CHANGE alternative showing what functionality remains available if the user declines production authority for now."
+  anti_overengineering:
+    - "Branch protection/rulesets are supporting controls, not automatically an independent trust root."
+    - "Artifact attestation/provenance alone must not be mislabeled as a single-use formal-write authority."
+    - "Do not require an external cloud merely because it is familiar; prove why it is necessary."
+    - "If the threat model can be satisfied by a simpler independently controlled mechanism, prefer it and document residual risk."
+  deliverable: "REFRESHED-E61-PRODUCTION-AUTHORITY-USER-DECISION-PACKAGE"
+  stop_after_report: true
 predecessor_e60:
   issue: 204
   pull_request: 208
@@ -105,13 +97,16 @@ predecessor_e60:
   production_authority_credit: false
   whole_branch_import_forbidden: true
 parallel_qclaw:
-  active_issue: 205
-  active_pull_request: 207
-  role: "USER_OR_GPT_DIRECTED_CANDIDATE_KNOWLEDGE_INGESTION"
+  active_issue: 216
+  predecessor_issue: 205
+  predecessor_pull_request: 207
+  accepted_e47_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
+  role: "E48_RAW_SOURCE_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_PROJECTION"
   formal_persistence_blocked_until_e61_acceptance: true
 user_approval_gate:
-  trigger: "new GitHub App/service/secret/private-key/repository protection/environment/permission or other high-risk production control change is required"
-  action: "STOP_AND_REPORT_USER_APPROVAL_REQUIRED"
+  current_status: "NOT_YET_REQUESTED_PENDING_REFRESHED_APPROVAL_PACKAGE"
+  trigger: "actual repository protection/environment/OIDC/GitHub App/external service/permission/secret/control-plane change"
+  action: "STOP_AND_REQUEST_EXPLICIT_USER_APPROVAL_WITH_EXACT_CHANGESET"
   credentials_must_not_be_requested_or_exposed: true
 local_resource_safety:
   default_profile: "FOREGROUND_PRIORITY"
@@ -124,14 +119,12 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
-  - "Ordinary PII/contact information is allowed for authorized local/private processing and is not by itself a stop condition."
-  - "Raw PII/contact values must be minimized/redacted in public GitHub reports unless separately authorized for publication."
-  - "No reset/clean/stash/rebase/checkout of another dirty worktree merely to restore context."
+  - "No repository/environment/ruleset/protection/OIDC/GitHub App/external-service setting changes in this refresh."
+  - "No reset/clean/stash/rebase/checkout of another dirty worktree."
   - "No credentials/private keys/tokens/API secrets/session secrets in repository or reports."
-  - "No production formal knowledge write before GPT acceptance."
-  - "No silent repository permission/settings changes; user gate applies."
+  - "No production formal knowledge write before GPT acceptance and explicit configured authority."
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
   - "No market data, accounts, orders, funds or trading."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T12:25:00+08:00"
+updated_at: "2026-08-11T13:02:00+08:00"
