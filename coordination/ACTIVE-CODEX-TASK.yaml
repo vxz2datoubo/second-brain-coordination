@@ -1,59 +1,61 @@
-schema_version: "80.0"
+schema_version: "81.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 209
-active_pull_request: 210
-task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-route_epoch: 68
+active_issue: 220
+active_pull_request: null
+task_id: "CODEX-AWS-A1-PRODUCTION-CERTIFICATION-AUTHORITY-AND-PRIVATE-GIT-WRITE-GATE-0058-E62"
+route_epoch: 69
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E61 AWS A1 供应商级设计已通过GPT审查；等待用户批准或延期"
-status: "WAITING_FOR_USER_ARCHITECTURE_APPROVAL"
-execution_allowed: false
+mode_label: "【Codex模式：项目计划模式】E62 AWS A1外部认证权威 + private-Git正式写入第二道门实现"
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
 accepted_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
-recovery_acceptance:
-  status: "GPT_ACCEPTED_CONTROL_PLANE_RECOVERY"
-  evidence_comment: 5249080174
-  github_report_bridge_verified: true
-  dirty_workbuddy_workspace_preserved: true
-epoch67_design_acceptance:
-  status: "PROVIDER_SPECIFIC_ARCHITECTURE_READY_FOR_USER_APPROVAL"
-  accepted_pr_head: "4a13aef4da4f0f780b4eeedb86865282d63d95a4"
-  gpt_review_id: 4903502643
-  recommended_architecture: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
-  design_summary:
-    - "Human AWS control identity protected by MFA is the independent approval authority and must remain unavailable to Codex/QCLAW/workflow callers."
-    - "GitHub Actions OIDC is requester-only and may invoke only the issuer Lambda; it may not create approvals, mutate arbitrary ledger state, call KMS Sign directly, deploy issuer code, or alter IAM/KMS/Lambda/DynamoDB policy."
-    - "Issuer Lambda matches the exact approved digest/scope/target/expiry/grant_id, conditionally consumes approval state in DynamoDB, and uses an asymmetric KMS key to sign a ProductionCertificationGrant."
-    - "A second GitHub reviewer identity is defense-in-depth, not a prerequisite for the primary independence claim."
-    - "AWS low-volume list-price baseline is approximately USD 1/month for one customer-managed KMS key plus negligible tiny-volume signing; Lambda/DynamoDB are expected to remain inside published free tiers under the stated assumptions."
-  formal_store_boundary:
-    production_certification_authority_bound: "NOT_YET_IMPLEMENTED"
-    formal_private_git_write_path_bound: "NOT_YET_DESIGNED_IMPLEMENTED_ACCEPTED"
-    formal_project_global_write: "DISABLED"
-  mandatory_future_implementation_refinements:
-    - "Bind stable/immutable GitHub OIDC identity claims where supported, including repository_id/owner identity plus exact ref/workflow/audience conditions; do not rely only on mutable repository names."
-    - "Model the DynamoDB-consume/KMS-Sign crash window explicitly. Prove retries cannot create two independently consumable formal-write capabilities; bind one immutable grant_id and make the later private-Git write gate independently enforce single-use and revocation."
-    - "Do not implement production authority on PR #210 lineage. PR #210 is a design/evidence branch rooted at old main and is currently diverged/behind canonical main. After user approval, create a fresh implementation branch/worktree from exact latest canonical main."
-    - "Keep certification authority and FORMAL_PRIVATE_GIT_WRITE_PATH_BOUND as two separately reviewed gates."
-    - "Consume QCLAW E48 full digests raw_artifact_sha256, canonical_semantic_sha256, and l0_provenance_sha256; do not create a competing canonical knowledge schema in E61."
-user_decision_gate:
-  current_status: "USER_DECISION_REQUIRED"
-  allowed_decisions:
-    - "APPROVE_RECOMMENDED_ARCHITECTURE"
-    - "DEFER_AND_REMAIN_CANDIDATE_ONLY"
-  approval_meaning: >-
-    Approves only the AWS A1 architecture as the target for a later separately routed implementation. It does not itself authorize creating an AWS account, enabling billing, changing GitHub security settings, creating IAM/KMS/Lambda/DynamoDB resources, exposing credentials, merging PR #210, or enabling formal knowledge writes.
-  defer_meaning: >-
-    Make no cloud or repository authority changes; keep E47/E48 candidate/derived operation available and keep all formal PROJECT/GLOBAL persistence fail-closed.
-next_route_if_approved:
-  status: "NOT_YET_CREATED"
-  requirement: >-
-    GPT must publish a fresh implementation task from exact latest canonical main with a minimal reversible changeset. User approval is still separately required for actual account/billing/security-control changes. No credential values may be requested or committed.
+
+user_architecture_decision:
+  decision: "APPROVE_RECOMMENDED_ARCHITECTURE"
+  recorded_at: "2026-08-11T15:03:00+08:00"
+  approved_target: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
+  meaning: >-
+    The user approves AWS A1 as the target architecture and authorizes the next public-safe implementation/design phase.
+    This does not authorize real AWS account/billing/IAM/KMS/Lambda/DynamoDB resources, GitHub OIDC/environment/ruleset changes,
+    credentials/secrets, real private knowledge repository creation, merge, or formal knowledge-write unlock.
+
+predecessor_e61:
+  issue: 209
+  pull_request: 210
+  accepted_design_head: "4a13aef4da4f0f780b4eeedb86865282d63d95a4"
+  design_status: "PROVIDER_SPECIFIC_ARCHITECTURE_READY_AND_USER_APPROVED"
+  implementation_on_pr210_lineage_forbidden: true
+  reason: "PR #210 is retained as stale-lineage design/evidence only; E62 must start from exact latest canonical main."
+
+fundamental_goal: >-
+  Implement an independently auditable PUBLIC_SAFE AWS A1 authority candidate and a separate private-Git formal-write gate,
+  proving least privilege, exact digest binding, crash/retry/single-use semantics, verification and adversarial behavior without
+  creating or modifying real AWS/GitHub security resources or writing real formal knowledge.
+
+required_sequence:
+  - "Recover/re-read latest remote control plane and exact canonical main."
+  - "Read Issue #220 body and all E61 review evidence relevant to accepted AWS A1 design."
+  - "Preserve PR #210 and unrelated dirty worktrees; create a fresh E62 branch/worktree from exact latest canonical main."
+  - "Commit plan-first, then implement AWS A1 public-safe contracts/state machine/verifier/IaC templates and tests."
+  - "Consume QCLAW E48 full digest bundle when available; otherwise implement only a narrow typed adapter contract and mark live dependency UNKNOWN."
+  - "Implement PRODUCTION_CERTIFICATION_AUTHORITY_BOUND and FORMAL_PRIVATE_GIT_WRITE_PATH_BOUND as separate gates."
+  - "Publish Draft PR/head/tests/resource postflight and stop for GPT audit before any real-world activation."
+
+mandatory_security_refinements:
+  - "Verify current official AWS/GitHub OIDC documentation before encoding trust conditions; do not invent unsupported IAM claim keys."
+  - "Requester identity may request certification only; it must not create approvals, mutate arbitrary ledger state, call KMS Sign directly, deploy issuer code, or alter IAM/KMS/Lambda/DynamoDB policy."
+  - "Human AWS control identity protected by MFA remains external to Codex/QCLAW/workflow callers."
+  - "Explicitly model DynamoDB/KMS cross-service crash windows and ambiguous KMS outcomes."
+  - "One immutable grant_id must not produce two independently consumable formal-write capabilities."
+  - "The later private-Git write gate independently enforces one-time consumption/revocation and CAS/expected-parent semantics."
+  - "No authority secret/private signing key is committed or exposed."
+
 parallel_qclaw:
   active_issue: 216
   role: "E48_RAW_SOURCE_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_PROJECTION"
@@ -61,27 +63,51 @@ parallel_qclaw:
     - "raw_artifact_sha256"
     - "canonical_semantic_sha256"
     - "l0_provenance_sha256"
+  legacy_short_content_hash: "COMPATIBILITY_ONLY"
   formal_persistence_blocked: true
+
+real_world_stop_gate:
+  approval_required_before:
+    - "AWS account creation or billing enablement"
+    - "human IAM/control identity or MFA setup"
+    - "real KMS/Lambda/DynamoDB/IAM creation or modification"
+    - "GitHub OIDC provider/trust, environment, ruleset or branch-protection changes"
+    - "secret/key/credential creation or entry"
+    - "real private knowledge repository creation"
+    - "real formal knowledge write/unlock"
+    - "merge"
+  credential_rule: "Never request the user to paste passwords, API keys, tokens, private keys, recovery codes or session secrets."
+
 privacy_authorization:
   protocol: "coordination/GOVERNANCE/USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-v1.0.yaml"
   ordinary_pii_local_private_processing_allowed: true
   github_public_reports_must_redact_raw_pii: true
   credential_secret_publication_forbidden: true
+
+recovery_protocol:
+  protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
+  github_report_bridge: "ACTIVE_ISSUE_OR_PR_GPT_REVIEW_REQUEST"
+  local_memory_is_not_task_authority: true
+
 local_resource_safety:
   default_profile: "FOREGROUND_PRIORITY"
-  dual_agent_default_task_python_cap_each: 2
-  dual_agent_default_combined_task_python_cap: 4
-  default_cpu_bound_workers_combined: 1
+  codex_task_python_cap: 2
+  dual_agent_combined_task_python_cap: 4
+  combined_cpu_bound_workers_cap: 1
   nested_parallelism: "FORBIDDEN"
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+
 hard_boundaries:
-  - "No execution while waiting for the user architecture decision."
-  - "No AWS/GCP/GitHub account, billing, IAM, KMS, Lambda, DynamoDB, environment, ruleset, OIDC, App, permission, secret, key, or formal-write changes without a later exact approval route."
-  - "No reset/clean/stash/rebase/checkout of another dirty worktree."
+  - "No real AWS/GitHub security/control-plane mutation under E62 without a later exact user approval route."
+  - "No formal GLOBAL/PROJECT knowledge write or unlock."
+  - "No private user knowledge/source content committed to public GitHub."
+  - "No reset/clean/stash/rebase/checkout over another dirty worktree."
   - "No credentials/private keys/tokens/API secrets/session secrets in repository or reports."
-  - "No merge, direct-main implementation, force-push, amend, or history rewrite."
+  - "No merge, direct-main implementation, force-push, amend, rebase or history rewrite."
   - "No market data, accounts, orders, funds or trading."
-next_command: "等待用户决定"
+
+completion_signal: "CODEX_E62_AWS_A1_CERTIFICATION_AND_PRIVATE_GIT_WRITE_GATE_IMPLEMENTATION_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T14:25:00+08:00"
+updated_at: "2026-08-11T15:03:00+08:00"
