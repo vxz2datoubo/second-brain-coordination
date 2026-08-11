@@ -1,0 +1,72 @@
+schema_version: "1.0"
+protocol_id: "QCLAW-REMOTE-CONTROL-PLANE-BOOTSTRAP-AND-RECOVERY-0001"
+owner: "GPT"
+target_agent: "QCLAW"
+repository: "vxz2datoubo/second-brain-coordination"
+status: "ACTIVE"
+purpose: >-
+  Prevent QCLAW from treating empty/missing local memory, HEARTBEAT, MEMORY.md, stale local task state,
+  or a fresh/reinstalled session as proof that no project task exists. Remote GitHub canonical control-plane truth
+  must be checked before any NO_TASK/NO_PENDING_WORK conclusion.
+canonical_truth:
+  repository: "vxz2datoubo/second-brain-coordination"
+  branch: "main"
+  active_task_path: "coordination/ACTIVE-QCLAW-TASK.yaml"
+  router_path: "coordination/QCLAW-TASK-ROUTER.md"
+  repo_instructions: "AGENTS.md"
+command_semantics:
+  triggers:
+    - "读取任务"
+    - "执行任务"
+    - "开始任务"
+    - "执行对接初始化"
+  meaning: "REMOTE_READ_CLAIM_AND_EXECUTE"
+  local_memory_navigation_only: false
+bootstrap_order:
+  - "Verify or locate the canonical repository vxz2datoubo/second-brain-coordination."
+  - "Perform a read-only remote sync/fetch of origin/main when git is available; do not pull/rebase/checkout over dirty work."
+  - "Read remote main AGENTS.md and coordination/QCLAW-TASK-ROUTER.md."
+  - "Read remote main coordination/ACTIVE-QCLAW-TASK.yaml directly, not a cached/local copy."
+  - "If ACTIVE-QCLAW-TASK declares an active Issue, read that Issue body and all comments from GitHub."
+  - "Read route contract, task brief, impact forecast, blueprint and predecessor evidence named by ACTIVE-QCLAW-TASK."
+  - "If status is READY and execution_allowed is true, claim and immediately begin the first substantive authorized action."
+  - "Only after all remote checks fail or prove inactive may QCLAW report NO_NEW_TASK."
+local_state_rules:
+  missing_memory_file_is_not_no_task: true
+  empty_heartbeat_is_not_no_task: true
+  missing_MEMORY_md_is_not_no_task: true
+  local_task_index_absent_is_not_no_task: true
+  stale_local_main_is_not_no_task: true
+  local_memory_is_authority: false
+  remote_control_plane_is_authority: true
+wrong_behavior_examples:
+  - "MEMORY.md不存在，所以没有任务"
+  - "HEARTBEAT为空，所以没有待办"
+  - "本地 memory 今日为空，所以首次启动，无任务"
+  - "询问用户想让我做什么，而没有先检查远端 ACTIVE-QCLAW-TASK"
+required_recovery_packet:
+  signal: "QCLAW_CONTROL_PLANE_RECOVERY_READY"
+  fields:
+    - "canonical repository identity"
+    - "remote main SHA"
+    - "ACTIVE-QCLAW schema/task/route_epoch"
+    - "active Issue/PR"
+    - "local workspace disposition without destructive cleanup"
+    - "GitHub read/report channel status"
+    - "first substantive action started or exact blocker"
+report_bridge:
+  destination: "active QCLAW Issue/PR"
+  gpt_review_request_supported: true
+  public_safe_only: true
+resource_safety:
+  no_reset_clean_stash_rebase_other_worktree: true
+  never_kill_by_executable_name: true
+  qclaw_python_cap: 2
+  combined_project_python_cap: 4
+  combined_cpu_bound_workers_cap: 1
+  postflight_zero_orphans: true
+hard_boundaries:
+  - "Do not ingest arbitrary workspace content merely to recover task state."
+  - "Do not expose private user source text in public GitHub reports."
+  - "Do not request or publish passwords, tokens, API secrets, private keys or session credentials."
+  - "Do not merge, force push, rebase, amend or write directly to main as executor."
