@@ -1,4 +1,4 @@
-schema_version: "73.0"
+schema_version: "74.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -8,9 +8,9 @@ automatic_resume: true
 active_issue: 216
 active_pull_request: null
 task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-route_epoch: 48
+route_epoch: 49
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E48 原始资料语义重建 + 神经元式知识图谱投影"
+mode_label: "【QCLAW模式：项目计划模式】E48 原始资料语义重建 + 神经元式知识图谱投影；远端控制面冷启动恢复"
 planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
 completion_signal: "QCLAW_E48_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
@@ -21,10 +21,29 @@ route_contract:
 task_brief: "coordination/TASK-BRIEFS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48.yaml"
 blueprint: "coordination/BLUEPRINTS/KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-BLUEPRINT-v1.0.md"
+remote_control_plane_recovery:
+  required: true
+  protocol: "coordination/GOVERNANCE/QCLAW-REMOTE-CONTROL-PLANE-BOOTSTRAP-AND-RECOVERY-v1.0.yaml"
+  completion_packet: "QCLAW_CONTROL_PLANE_RECOVERY_READY"
+  stale_local_stop_override: >-
+    Missing/empty memory files, HEARTBEAT.md, MEMORY.md, local task records, or a fresh session are never evidence
+    of NO_TASK. They must not prevent the read-only act of locating/fetching canonical GitHub main and reading the
+    remote ACTIVE-QCLAW-TASK and active Issue.
+  mandatory_before_no_task:
+    - "Verify/locate canonical repo vxz2datoubo/second-brain-coordination."
+    - "Read/fetch remote origin/main read-only; do not pull/rebase/checkout over dirty work."
+    - "Read remote main AGENTS.md and coordination/QCLAW-TASK-ROUTER.md."
+    - "Read remote main coordination/ACTIVE-QCLAW-TASK.yaml directly."
+    - "Read active Issue #216 body and all comments."
+    - "Only conclude NO_NEW_TASK if remote canonical route is absent/inactive and Issue has no executable continuation."
+  wrong_local_conclusion_detected_at: "2026-08-11T13:00:00+08:00"
+  wrong_local_conclusion: "QCLAW inspected local memory/HEARTBEAT/MEMORY only and incorrectly reported no pending task."
 read_task_preflight:
   stale_local_main_must_not_imply_no_task: true
+  local_memory_must_not_imply_no_task: true
   canonical_source: "origin/main"
   required_before_no_task_conclusion:
+    - "Run QCLAW remote control-plane recovery protocol."
     - "Fetch/read remote canonical main read-only."
     - "Read origin/main:coordination/ACTIVE-QCLAW-TASK.yaml directly."
     - "Read Issue #216 body and comments."
@@ -32,6 +51,7 @@ continuation_contract:
   read_task_command: "读取任务"
   user_should_not_need_to_copy_prompt: true
   required_resolution_order:
+    - "Recover remote control plane first; local memory is not task authority."
     - "Read latest canonical ACTIVE-QCLAW-TASK.yaml."
     - "Read Issue #216, E48 route contract, AMED task brief, impact forecast and W3 blueprint."
     - "Read accepted E47 PR #207 implementation/tests as predecessor evidence; do not regenerate DIGEST-007."
@@ -84,6 +104,7 @@ resource_policy:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
+  - "Local memory/HEARTBEAT/MEMORY is not task authority and cannot justify NO_TASK before remote canonical checks."
   - "No private user transcript/content committed to public repo."
   - "No raw-source rewrite or silent correction."
   - "No fabricated graph edges, contradiction quotas or normalization quotas."
@@ -93,4 +114,4 @@ hard_boundaries:
   - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T12:56:00+08:00"
+updated_at: "2026-08-11T13:04:00+08:00"
