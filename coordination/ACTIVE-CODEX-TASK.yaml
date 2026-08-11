@@ -1,12 +1,12 @@
-schema_version: "85.0"
+schema_version: "86.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 224
 active_pull_request: 225
-task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R1"
-route_epoch: 73
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R2"
+route_epoch: 74
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E64 R1 GitHub-only 正式知识提升：真实批准证据 + 跨运行CAS一次性语义修正"
+mode_label: "【Codex模式：项目计划模式】E64 R2 GitHub-only 正式知识提升：打断分类证据SHA循环 + 对齐E48 R2"
 status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -24,95 +24,65 @@ user_architecture_preference:
 
 reviewed_delivery:
   pull_request: 225
-  reviewed_head: "b2463f38fd8b2ebb5eaf2b4e356ccb7c02170405"
-  base_main: "88367196d8a5985624e62afb960eb0abab34e9a0"
-  gpt_review_id: 4904435939
-  disposition: "BOUNDED_REMEDIATION_REQUIRED"
+  reviewed_head: "813812adf1cd93b1d30e81929e5b5fc5c013521e"
+  prior_r1_plan_commit: "1c2a45714f165bbaa4882c2dd61f9f5889be2a9a"
+  gpt_review_id: 4904698784
+  disposition: "R1_CORE_ACCEPTED_BOUNDED_R2_REQUIRED"
   accepted:
-    - "GitHub-only practical threat model; no AWS/HSM independence claim."
-    - "Correct route epoch 72 and fresh canonical-main lineage."
-    - "Three full E48 digest fields are typed producer-supplied identity; no competing recomputation."
-    - "Repository identity, target scope, candidate identity, expiry/revocation and expected-parent concepts."
-    - "PUBLIC_SAFE vs PRIVATE_OR_SENSITIVE vs SECRET_CREDENTIAL admission classes as a boundary concept."
-    - "Task-specific Python 3.11 + 3.13 GitHub Actions CI; run 31472297059 passed both jobs."
-    - "No real formal write, AWS work, private-repo migration, credentials or trading actions."
+    - "Caller-forgeable approval prose defect is remediated through resolver-returned canonical GitHub approval evidence."
+    - "Durable one-time semantics are modeled behind DurablePromotionStore rather than process-local state."
+    - "Two independent adapters sharing one durable CAS store yield one durable consumption and an idempotent completed receipt."
+    - "Stale parent, conflicting marker and unknown-outcome retry fail closed."
+    - "Admission decision is resolver-verified rather than trusting only a caller-supplied PUBLIC_SAFE label."
+    - "Task-specific GitHub Actions run 31476488843 passed Python 3.11 and 3.13."
+    - "No AWS/private-repo work, real formal write, credentials, merge or trading action occurred."
   blocking_findings:
-    - id: "E64-R1-F1"
-      severity: "P0_P1"
-      finding: "ApprovalPacket trusts arbitrary non-empty approval_actor_ref and gpt_review_ref strings; an applicant can forge approval evidence."
-    - id: "E64-R1-F2"
-      severity: "P0_P1"
-      finding: "Replay/concurrency protection is threading.Lock + process-local dict only; two independent Actions/processes can each claim the same approval."
-    - id: "E64-R1-F3"
+    - id: "E64-R2-F1"
+      severity: "P0"
+      finding: "Final candidate identity includes classification_evidence_object_sha256 while CanonicalAdmissionEvidence binds final candidate_identity_sha256; a truthful evidence-object hash can therefore create a circular fixed-point dependency. Current tests hide this with arbitrary constant CLASS_HASH."
+    - id: "E64-R2-F2"
       severity: "P1"
-      finding: "PUBLIC_SAFE is caller-supplied classification without evidence binding; admission provenance is not tied to candidate identity."
+      finding: "E64 live dependency still says E48 R1, while canonical QCLAW is now E48 R2 remediation."
 
-canonical_github_identity:
-  repository_id: "1303258074"
-  repository_slug: "vxz2datoubo/second-brain-coordination"
-  owner_login: "vxz2datoubo"
-  owner_id: 137051967
-  visibility: "public"
-  source: "GitHub repository metadata observed by GPT during E64 audit"
-
-required_r1_remediation:
-  approval_evidence:
-    goal: "Caller cannot satisfy the approval gate with invented strings."
-    requirements:
-      - "Replace free-form approval_actor_ref/gpt_review_ref trust with structured CanonicalGitHubApprovalEvidence."
-      - "Bind repository_id 1303258074 and slug, exact candidate_identity_sha256, task_id, route_epoch, explicit APPROVE decision, expiry, and exact GitHub/canonical-main evidence identity."
-      - "Prefer a GPT-created approval-control record on canonical main plus exact GitHub numeric review/comment/control evidence; future production writer must fetch canonical evidence rather than trust candidate-supplied prose."
-      - "Define a read-only ApprovalEvidenceResolver/verifier boundary. Synthetic tests may use an in-memory resolver, but production contract must resolve canonical GitHub state."
-      - "Reject nonexistent evidence, wrong repository, wrong candidate, wrong route, non-APPROVE decision, stale/expired evidence, and mismatched evidence hash/object identity."
-      - "Do not claim independence from GitHub or require AWS/external trust roots."
-  durable_one_time_cas:
-    goal: "One approval can be consumed once across independent processes/workflow runs, not merely once per Python process."
-    requirements:
-      - "Define a durable Git-backed promotion marker/receipt keyed by immutable approval_id/promotion_id and candidate identity."
-      - "Future writer semantics must atomically create/advance the marker only when canonical main equals expected parent and marker is absent/unconsumed."
-      - "Put durable state behind a store/CAS interface so tests require no credentials and perform no real formal write."
-      - "Add a two-independent-adapter/process-model test sharing one durable mock/CAS store; exactly one winner is allowed."
-      - "Add marker-already-exists, stale-parent, retry-after-unknown-outcome, and idempotent-receipt regression tests."
-      - "threading.Lock may remain only as local optimization; it cannot be the cross-run security claim."
-  admission_evidence:
-    requirements:
-      - "Bind classification_evidence_ref or upstream admission decision to candidate identity."
-      - "Document that E64 does not independently inspect private raw source in public GitHub."
-      - "Never publish private source text merely to prove classification."
+required_r2_remediation:
+  acyclic_admission_identity:
+    goal: "Classification evidence must be hashable and persistable without a candidate/evidence SHA fixed-point cycle."
+    preferred_minimal_design:
+      - "Define deterministic pre-admission/classification-subject identity from candidate fields available before classification evidence is attached."
+      - "Include repository identity, task/route, full E48 digest bundle, provenance status, target and proposed admission scope/classification subject; exclude classification_evidence_ref and classification_evidence_object_sha256."
+      - "Canonical admission evidence binds pre-admission subject SHA-256 + repository identity + decision PUBLIC_SAFE."
+      - "Compute the admission evidence object SHA-256 from an actual canonical serialized synthetic evidence object."
+      - "Final CandidateKnowledgePackage identity may include classification evidence ref/hash only after the evidence object exists."
+      - "Resolver must verify evidence ref/hash, repository, pre-admission subject hash and PUBLIC_SAFE decision before approval preparation."
+    equivalent_design_allowed: "Any explicitly documented deterministic two-stage identity that is acyclic and preserves the same binding guarantees."
+  tests:
+    - "Serialize a synthetic canonical admission evidence object and compute its real SHA-256; do not rely only on a hard-coded fake hash."
+    - "Build final candidate from that evidence and prove prepare() succeeds."
+    - "Changing the pre-admission subject after classification must reject the evidence."
+    - "Changing evidence bytes/hash must reject the final candidate/evidence binding."
+    - "All R1 approval/CAS/adversarial tests remain green."
+    - "Python 3.11 and 3.13 task-specific CI remain green."
   e48_dependency:
-    status: "BLOCKED_PENDING_E48_R1_ACCEPTANCE"
-    rule: "Continue typed synthetic fixtures only until GPT independently accepts QCLAW E48 R1."
-
-required_tests:
-  - "fake/nonexistent GitHub approval evidence rejected"
-  - "wrong-repo approval evidence rejected"
-  - "wrong-candidate/wrong-route/wrong-decision approval evidence rejected"
-  - "two independent adapter instances sharing one durable CAS store yield exactly one consumer"
-  - "durable marker already exists => replay rejected"
-  - "stale expected parent => no durable consumption"
-  - "unknown outcome retry => no duplicate receipt/write capability"
-  - "idempotent replay of same completed promotion returns/verifies same immutable receipt without second consumption"
-  - "classification evidence mismatch rejected"
-  - "existing E64 adversarial tests remain green"
-  - "Python 3.11 and 3.13 task-specific CI remains green"
+    status: "BLOCKED_PENDING_E48_R2_ACCEPTANCE"
+    rule: "Use typed synthetic E48 fixtures only until GPT independently accepts QCLAW E48 R2."
 
 execution_rules:
-  - "Patch PR #225 with new commits; no rebase, force-push, amend or history rewrite."
-  - "Do not create a new external service/account or repository visibility change."
-  - "Do not perform a real formal knowledge write; model the durable Git/CAS boundary only."
-  - "Do not merge."
-  - "Do not expose private user source, PII, credentials, tokens, cookies, keys or MFA secrets."
-  - "No reset/clean/stash/checkout over unrelated dirty worktrees."
+  - "Patch PR #225 with additive commits only; no new PR and no broad redesign."
+  - "Do not implement real production GitHub writer/resolver in R2; preserve the reviewed interfaces."
+  - "Do not re-open AWS, external cloud or private-repository work."
+  - "Do not perform a real formal knowledge write or merge."
+  - "No credentials/private keys/tokens/API secrets/session secrets/MFA secrets/private user source in public GitHub."
+  - "No reset/clean/stash/rebase/force-push/amend/history rewrite over unrelated worktrees."
   - "Preserve foreground resource caps and zero-orphan postflight."
 
 parallel_qclaw:
   active_issue: 216
   active_pull_request: 221
-  route_epoch: 50
-  status: "E48_R1_SEMANTIC_CORRECTNESS_REMEDIATION"
-  integration_gate: "BLOCKED_PENDING_E48_R1_ACCEPTANCE"
+  route_epoch: 51
+  status: "E48_R2_END_TO_END_SEMANTIC_GROUNDING_REMEDIATION"
+  integration_gate: "BLOCKED_PENDING_E48_R2_ACCEPTANCE"
 
-completion_signal: "CODEX_E64_R1_DURABLE_GITHUB_APPROVAL_AND_CAS_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E64_R2_ACYCLIC_ADMISSION_IDENTITY_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T16:41:00+08:00"
+updated_at: "2026-08-11T17:17:00+08:00"
