@@ -1,0 +1,76 @@
+name: codex-e53-night-clean-atomization-closure
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  authority-matrix:
+    if: github.event.pull_request.draft == true
+    name: authority-py${{ matrix.python }}-seed${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+        seed: ["0", "1", "777"]
+    env:
+      PYTHONHASHSEED: ${{ matrix.seed }}
+      PYTHONDONTWRITEBYTECODE: "1"
+      E53: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-NIGHT-CLEAN-ATOMIZATION-AUTHORITY-0049-E53
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Assert exact pull-request head
+        run: |
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git fetch --no-tags origin "${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run source-bound authority product suite
+        run: python -m unittest discover -s "$E53/tests" -v
+      - name: Emit separated canonical and environment evidence
+        run: python "$E53/tools/write_provider_evidence.py" --output "$RUNNER_TEMP/e53-evidence" --expected-head "$EXPECTED_HEAD"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e53-canonical-py${{ matrix.python }}-seed${{ matrix.seed }}
+          if-no-files-found: error
+          path: ${{ runner.temp }}/e53-evidence/canonical-evidence.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e53-environment-py${{ matrix.python }}-seed${{ matrix.seed }}
+          if-no-files-found: error
+          path: ${{ runner.temp }}/e53-evidence/environment-evidence.json
+
+  compare-canonical-artifacts:
+    if: github.event.pull_request.draft == true
+    needs: authority-matrix
+    runs-on: ubuntu-latest
+    env:
+      E53: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-NIGHT-CLEAN-ATOMIZATION-AUTHORITY-0049-E53
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+      - name: Assert exact pull-request head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: e53-canonical-*
+          path: ${{ runner.temp }}/e53-downloaded
+      - name: Require six exact byte-identical canonical artifacts
+        run: python "$E53/tools/compare_provider_artifacts.py" --artifact-root "$RUNNER_TEMP/e53-downloaded" --output "$RUNNER_TEMP/e53-compare.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e53-compare-evidence
+          if-no-files-found: error
+          path: ${{ runner.temp }}/e53-compare.json
