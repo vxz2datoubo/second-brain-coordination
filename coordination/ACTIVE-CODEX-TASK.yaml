@@ -1,12 +1,12 @@
-schema_version: "75.0"
+schema_version: "76.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 209
 active_pull_request: null
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-route_epoch: 63
+route_epoch: 64
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E61 真实生产 Durable Authority 与知识正式写入门"
+mode_label: "【Codex模式：项目计划模式】重装恢复控制面后继续 E61 真实生产 Durable Authority"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -22,6 +22,33 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
+reinstall_recovery_preflight:
+  required: true
+  reason: "Codex app was reinstalled and local GPT/GitHub/reporting/task context was reported lost. Remote governance remains canonical."
+  protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
+  completion_packet: "CODEX_CONTROL_PLANE_RECOVERY_READY"
+  requirements:
+    - "Verify canonical repository identity and sanitized remote URL."
+    - "Read latest remote AGENTS.md, CODEX-TASK-ROUTER.md and this ACTIVE-CODEX-TASK.yaml."
+    - "Read Issue #209 body plus all comments and required E61 governance files."
+    - "Verify GitHub read access and GitHub Issue/PR report-write capability without exposing credentials."
+    - "Treat GitHub Issue/PR as the durable Codex-to-GPT report bridge; do not search for a separate GPT chat/task endpoint."
+    - "If current worktree is dirty or belongs to WorkBuddy/another task, preserve it untouched and use a clean dedicated Codex worktree for E61."
+    - "Publish CODEX_CONTROL_PLANE_RECOVERY_READY to Issue #209, then continue E61 automatically when all checks pass."
+  destructive_cleanup_forbidden: true
+  github_auth_failure: "STOP_AND_REPORT_MINIMAL_USER_ACTION_REQUIRED"
+reporting_bridge:
+  command_aliases:
+    - "向GPT报告"
+    - "报告给GPT"
+    - "请GPT审核"
+    - "让GPT看看怎么处理"
+  semantics: >-
+    Publish a structured GPT_REVIEW_REQUEST packet to the current active Issue or PR.
+    Do not create a fake GPT task and do not wait for a separate GPT chat endpoint.
+  protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
+  current_pre_pr_destination: "Issue #209"
+  after_pr_exists_destination: "active E61 PR first, Issue #209 for route/blocker context"
 read_task_preflight:
   stale_local_main_must_not_imply_no_task: true
   canonical_source: "origin/main"
@@ -34,11 +61,13 @@ read_task_preflight:
 continuation_contract:
   read_task_command: "读取任务"
   required_resolution_order:
-    - "Run read_task_preflight and resolve latest remote canonical main first."
+    - "Run reinstall recovery preflight and canonical remote verification first."
+    - "Read latest remote AGENTS.md and CODEX-TASK-ROUTER.md."
     - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
-    - "Read Issue #209, E61 route contract, AMED task brief and TaskImpactForecast."
+    - "Read Issue #209 body/all comments, E61 route contract, AMED task brief and TaskImpactForecast."
     - "Read frozen E60 Issue #204 / PR #208 / receipt e06675f9 only as predecessor evidence."
-    - "Start E61 from exact latest canonical main; never continue on E60 branch."
+    - "Publish CODEX_CONTROL_PLANE_RECOVERY_READY to Issue #209 after bridge verification."
+    - "Start E61 from exact latest canonical main; never continue on E60 or another agent's dirty branch."
     - "Create fresh branch and Draft PR plan-first, then continue automatically."
   user_should_not_need_to_copy_prompt: true
 predecessor_e60:
@@ -52,7 +81,7 @@ predecessor_e60:
 parallel_qclaw:
   active_issue: 205
   active_pull_request: 207
-  role: "SEMANTIC_DIGESTION_CANARY_REMEDIATION"
+  role: "USER_OR_GPT_DIRECTED_CANDIDATE_KNOWLEDGE_INGESTION"
   formal_persistence_blocked_until_e61_acceptance: true
 user_approval_gate:
   trigger: "new GitHub App/service/secret/private-key/repository protection/environment/permission or other high-risk production control change is required"
@@ -69,6 +98,7 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
+  - "No reset/clean/stash/rebase/checkout of another dirty worktree merely to restore context."
   - "No credentials/private keys in repository or reports."
   - "No production formal knowledge write before GPT acceptance."
   - "No silent repository permission/settings changes; user gate applies."
@@ -76,4 +106,4 @@ hard_boundaries:
   - "No market data, accounts, orders, funds or trading."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-09T13:29:00+08:00"
+updated_at: "2026-08-11T12:10:00+08:00"
