@@ -1,0 +1,8 @@
+schema_version: "1.0"
+synthetic_only: true
+marker_path: ".e66-markers/<approval_id>.json"
+canonical_marker_fields: [approval_id, candidate_identity_sha256, expected_parent]
+cas: "For absent marker, current HEAD must exactly equal expected_parent before O_EXCL marker creation and local synthetic commit."
+replay: "Exact existing marker returns idempotent receipt; different marker bytes reject."
+unknown_outcome: "After-write-before-response is reconciled by rereading exact marker; never mint another marker."
+formal_knowledge_written: false
