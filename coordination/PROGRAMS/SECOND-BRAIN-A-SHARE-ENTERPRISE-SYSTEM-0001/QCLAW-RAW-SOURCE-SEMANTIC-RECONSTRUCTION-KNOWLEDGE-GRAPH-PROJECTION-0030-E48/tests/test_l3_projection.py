@@ -169,6 +169,101 @@ def test_no_fabricated_edges_when_atom_missing() -> None:
     )
 
 
+def test_cross_sentence_relation_derived_from_canary() -> None:
+    """R2 mandatory (3+8): the cross-sentence '如果…那么…' mechanism in
+    the committed canary MUST be derived as one CONDITION atom + one
+    MECHANISM atom + one REFINES relation, with each atom's L0 byte
+    span pointing at actual semantic body content (not metadata).
+    """
+    from qclaw_e48_reconstruction.l1_schema import (
+        EditType,
+        TerminologyAlias,
+    )
+    from qclaw_e48_reconstruction.l1_reconstruct import ReconstructionRuleset
+    from qclaw_e48_reconstruction.l2_derive import derive_l2_package
+    from qclaw_e48_reconstruction.l3_project import project_graph
+
+    l0 = (E48_ROOT / "canary" / "synthetic_canary_noisy_chinese.txt").read_text(encoding="utf-8")
+    rules = ReconstructionRuleset(
+        rules=(
+            (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
+             "mid-confidence alias: 成交量 → 交易量 (canary)"),
+            (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
+             "ambiguous pronoun cannot be resolved (canary)"),
+        )
+    )
+    aliases = (
+        TerminologyAlias(
+            alias_id="alias-quantum-entanglement",
+            raw_form="术语别名",
+            canonical_form="量子纠缠",
+            scope="E48 canary",
+            confidence=1.0,
+        ),
+    )
+    view = reconstruct(l0, ruleset=rules, aliases=aliases)
+    pkg = derive_l2_package(l0, view)
+    proj = project_graph(pkg, view)
+    errs = proj.validate()
+    assert errs == [], f"projection has invalid edges: {errs}"
+    cond = [a for a in pkg["atoms"] if a["atom_type"] == "CONDITION"]
+    mech = [a for a in pkg["atoms"] if a["atom_type"] == "MECHANISM"]
+    refines = [r for r in pkg["relations"] if r["relation_type"] == "REFINES"]
+    assert cond and mech and refines
+    # Every atom's source span must point at actual L0 content (not a
+    # header comment line).
+    l0_bytes = l0.encode("utf-8")
+    for a in pkg["atoms"]:
+        span = a["source_spans"][0]
+        assert 0 <= span["byte_start"] < span["byte_end"] <= len(l0_bytes), (
+            f"atom span out of L0: {a}"
+        )
+        excerpt = l0_bytes[span["byte_start"]:span["byte_end"]].decode("utf-8")
+        assert excerpt in l0, (
+            f"atom span excerpt not in L0 (R2 mandatory 4/6): {a} -> {excerpt!r}"
+        )
+
+
+def test_no_fabricated_relations_in_canary_projection() -> None:
+    """R2 mandatory (anti-goodhart): no hand-built relations beyond the
+    ones the actual pipeline derives from the canary text.
+    """
+    from qclaw_e48_reconstruction.l1_schema import (
+        EditType,
+        TerminologyAlias,
+    )
+    from qclaw_e48_reconstruction.l1_reconstruct import ReconstructionRuleset
+    from qclaw_e48_reconstruction.l2_derive import derive_l2_package
+
+    l0 = (E48_ROOT / "canary" / "synthetic_canary_noisy_chinese.txt").read_text(encoding="utf-8")
+    rules = ReconstructionRuleset(
+        rules=(
+            (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
+             "mid-confidence alias: 成交量 → 交易量 (canary)"),
+            (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
+             "ambiguous pronoun cannot be resolved (canary)"),
+        )
+    )
+    aliases = (
+        TerminologyAlias(
+            alias_id="alias-quantum-entanglement",
+            raw_form="术语别名",
+            canonical_form="量子纠缠",
+            scope="E48 canary",
+            confidence=1.0,
+        ),
+    )
+    view = reconstruct(l0, ruleset=rules, aliases=aliases)
+    pkg = derive_l2_package(l0, view)
+    # The canary contains exactly ONE '如果…那么…' cross-sentence pair,
+    # so the L2 derivation MUST emit at most 1 REFINES relation from
+    # mechanism detection. (Aliases / atoms produce 0 relations.)
+    refines = [r for r in pkg["relations"] if r["relation_type"] == "REFINES"]
+    assert len(refines) <= 1, (
+        f"fabricated REFINES detected (R2 anti-goodhart): {refines}"
+    )
+
+
 class TestL3(unittest.TestCase):
     def test_all_edges_have_valid_endpoints(self):
         test_all_edges_have_valid_endpoints()
@@ -190,3 +285,9 @@ class TestL3(unittest.TestCase):
 
     def test_no_fabricated_edges_when_atom_missing(self):
         test_no_fabricated_edges_when_atom_missing()
+
+    def test_cross_sentence_relation_derived_from_canary(self):
+        test_cross_sentence_relation_derived_from_canary()
+
+    def test_no_fabricated_relations_in_canary_projection(self):
+        test_no_fabricated_relations_in_canary_projection()

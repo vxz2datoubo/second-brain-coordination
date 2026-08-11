@@ -67,11 +67,10 @@ jobs:
         working-directory: ${{ steps.discover.outputs.module_root }}
         run: |
           set -euo pipefail
-          python canary/build_canary_projection.py > canary.out/receipt.txt
-          mkdir -p canary.out
-          python canary/build_canary_projection.py > canary.out/receipt.txt
-          echo "----- canary/out/canary_digests.json -----" | tee canary.out/digests.txt
-          cat canary/out/canary_digests.json | tee -a canary.out/digests.txt
+          mkdir -p canary/out
+          python canary/build_canary_projection.py > canary/out/receipt.txt
+          echo "----- canary/out/canary_digests.json -----" > canary/out/digests.txt
+          cat canary/out/canary_digests.json >> canary/out/digests.txt
 
       - name: Upload canary receipt as artifact
         uses: actions/upload-artifact@v4
@@ -79,7 +78,10 @@ jobs:
           name: qclaw-e48-receipt-py${{ matrix.python-version }}
           path: |
             ${{ steps.discover.outputs.module_root }}/canary/out/canary_digests.json
-            ${{ steps.discover.outputs.module_root }}/canary.out/receipt.txt
-            ${{ steps.discover.outputs.module_root }}/canary.out/digests.txt
+            ${{ steps.discover.outputs.module_root }}/canary/out/canary_artifact.json
+            ${{ steps.discover.outputs.module_root }}/canary/out/canary_graph.json
+            ${{ steps.discover.outputs.module_root }}/canary/out/canary_l1_view.json
+            ${{ steps.discover.outputs.module_root }}/canary/out/receipt.txt
+            ${{ steps.discover.outputs.module_root }}/canary/out/digests.txt
           retention-days: 14
           if-no-files-found: error

@@ -1,4 +1,4 @@
-"""L1 reconstruction — deterministic, stdlib-only.
+r"""L1 reconstruction — deterministic, stdlib-only.
 
 R1 fixes (per Issue #216 GPT review id 4904086170):
 - The previous Han-to-Han punctuation rule `([一-鿿])(\s*)([一-鿿]) → \1。\3`
@@ -179,6 +179,22 @@ class _PlannedEdit:
     alternatives: Tuple[str, ...] = ()
 
 
+def _is_low_confidence(e: _PlannedEdit) -> bool:
+    """R2 fail-closed predicate.
+
+    Returns True when the planned edit's confidence is below the
+    type-specific HIGH threshold. UNKNOWN_MARKER is treated as
+    always-low-confidence (the surface form is intentionally
+    preserved); it must still appear as an UnknownMarker in the
+    view.unknowns list.
+    """
+    if e.edit_type == EditType.UNKNOWN_MARKER:
+        return True
+    if e.edit_type == EditType.ASR_HOMOPHONE_CORRECTION:
+        return e.confidence < 0.9
+    return e.confidence < 0.7
+
+
 def _plan_edits(
     l0_text: str,
     rules: List[Tuple[re.Pattern, str, float, EditType, str]],
@@ -279,10 +295,31 @@ def _arbitrate_overlaps(
     arbitration is *stable*: ties (same priority, overlapping range) are
     broken by byte_start ascending then byte_end descending, and the
     earlier-listed edit wins.
+
+    R2 fail-closed: edits whose confidence is below the type-specific HIGH
+    threshold are rejected BEFORE arbitration unless the caller explicitly
+    flagged them as resolved (via the ``resolved`` flag on the planned
+    edit — not currently exposed; the safe default is to keep them as
+    AmbiguityCandidate). The audit trail still records the planned edit
+    with ``applied=False``.
     """
     accepted: List[_PlannedEdit] = []
     rejected: List[Tuple[_PlannedEdit, str]] = []
+    # R2: pre-arbitration fail-closed pass. Low-confidence edits must NOT
+    # silently alter normalized_text; they are recorded as pending
+    # AmbiguityCandidates unless an explicit higher-priority edit has
+    # already accepted their byte span.
+    pre_filtered: List[_PlannedEdit] = []
     for e in planned:
+        if _is_low_confidence(e):
+            rejected.append((
+                e,
+                "R2 fail-closed: confidence below HIGH threshold; "
+                "kept as AmbiguityCandidate (alternatives retained)",
+            ))
+            continue
+        pre_filtered.append(e)
+    for e in pre_filtered:
         winner = None
         for a in accepted:
             if a.byte_end <= e.byte_start:
@@ -445,9 +482,19 @@ def reconstruct(
 
     Deterministic. View hash is set by ``with_sha()``. ``view_schema_version``
     is bumped to 1.1 to reflect the R1 changes (bounded punctuation rule,
-    deterministic overlap arbitration, materialized normalized_text).
+    deterministic overlap arbitration, materialized normalized_text), and
+    to 1.2 to reflect the R2 fail-closed behaviour for low-confidence edits.
+
+    R2 rule composition: the BUILTIN ruleset (filler / typo / ASR /
+    punctuation) is ALWAYS applied. A caller-supplied ``ruleset`` is
+    *appended* to the builtin rules, not used in place of them. This
+    keeps the public-safe defaults active while allowing the caller
+    to inject extra rules (e.g. the canary mid-confidence alias and
+    UNKNOWN_MARKER rules). Caller rules run AFTER builtin rules.
     """
-    rules = (ruleset or BUILTIN_RULESET).compile()
+    builtin = BUILTIN_RULESET.compile()
+    extra = ruleset.compile() if ruleset is not None else []
+    rules = builtin + extra
     l0_bytes = l0_text.encode("utf-8")
     l0_hash = hashlib.sha256(l0_bytes).hexdigest()
     planned = _plan_edits(l0_text, rules, aliases)

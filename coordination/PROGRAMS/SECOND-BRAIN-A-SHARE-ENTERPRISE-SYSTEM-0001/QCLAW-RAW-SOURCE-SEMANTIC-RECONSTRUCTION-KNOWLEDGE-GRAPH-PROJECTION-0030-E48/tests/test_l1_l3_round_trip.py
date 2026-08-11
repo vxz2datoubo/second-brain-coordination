@@ -46,8 +46,26 @@ def test_view_is_deterministic() -> None:
 
 
 def test_punctuation_filler_typo_asr_classes_present() -> None:
+    from qclaw_e48_reconstruction.l1_schema import TerminologyAlias
     l0 = _load_canary()
-    view = reconstruct(l0)
+    view = reconstruct(
+        l0,
+        ruleset=ReconstructionRuleset(
+            rules=(
+                (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
+                 "mid-confidence alias: 成交量 → 交易量 (canary)"),
+                (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
+                 "ambiguous pronoun cannot be resolved (canary)"),
+            )
+        ),
+        aliases=(TerminologyAlias(
+            alias_id="alias-quantum-entanglement",
+            raw_form="术语别名",
+            canonical_form="量子纠缠",
+            scope="E48 canary",
+            confidence=1.0,
+        ),),
+    )
     edit_types = {e.edit_type for s in view.segments for e in s.edits}
     assert EditType.PUNCTUATION in edit_types, "missing punctuation edits"
     assert EditType.FILLER_REMOVAL in edit_types, "missing filler edits"

@@ -40,6 +40,7 @@ from .digests import (
     l0_provenance_sha256,
     DigestBundle,
 )
+from .l2_derive import derive_l2_package
 
 __all__ = [
     "NormalizedSemanticView",
@@ -62,4 +63,5 @@ __all__ = [
     "canonical_semantic_sha256",
     "l0_provenance_sha256",
     "DigestBundle",
+    "derive_l2_package",
 ]
