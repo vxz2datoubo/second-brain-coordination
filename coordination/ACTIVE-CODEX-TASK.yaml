@@ -1,12 +1,12 @@
-schema_version: "76.0"
+schema_version: "77.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 209
 active_pull_request: null
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-route_epoch: 64
+route_epoch: 65
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】重装恢复控制面后继续 E61 真实生产 Durable Authority"
+mode_label: "【Codex模式：项目计划模式】重装恢复控制面 + 用户PII授权后继续 E61 真实生产 Durable Authority"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
@@ -22,6 +22,29 @@ route_contract:
   status: "ACTIVE"
 task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
 task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
+privacy_authorization:
+  protocol: "coordination/GOVERNANCE/USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-v1.0.yaml"
+  user_authorized_at: "2026-08-11T12:23:00+08:00"
+  ordinary_pii_local_private_processing_allowed: true
+  ordinary_pii_presence_is_not_a_stop_condition: true
+  examples:
+    - "real names"
+    - "email addresses"
+    - "telephone/mobile numbers"
+    - "WeChat/contact handles"
+    - "ordinary non-secret account/contact identifiers"
+  github_public_reports_must_redact_raw_pii: true
+  credential_secret_publication_forbidden: true
+  credential_secret_examples:
+    - "passwords"
+    - "API keys/secrets"
+    - "access/refresh tokens"
+    - "private/signing keys"
+    - "session cookies/bearer credentials"
+    - "2FA/OTP/recovery secrets"
+  instruction: >-
+    Do not stop merely because ordinary PII/contact information is present. Continue authorized local/private
+    analysis and publish only PUBLIC_SAFE redacted summaries to GitHub/GPT bridge. Never echo or commit credentials.
 reinstall_recovery_preflight:
   required: true
   reason: "Codex app was reinstalled and local GPT/GitHub/reporting/task context was reported lost. Remote governance remains canonical."
@@ -30,6 +53,7 @@ reinstall_recovery_preflight:
   requirements:
     - "Verify canonical repository identity and sanitized remote URL."
     - "Read latest remote AGENTS.md, CODEX-TASK-ROUTER.md and this ACTIVE-CODEX-TASK.yaml."
+    - "Read privacy authorization protocol before classifying PII as a blocker."
     - "Read Issue #209 body plus all comments and required E61 governance files."
     - "Verify GitHub read access and GitHub Issue/PR report-write capability without exposing credentials."
     - "Treat GitHub Issue/PR as the durable Codex-to-GPT report bridge; do not search for a separate GPT chat/task endpoint."
@@ -44,7 +68,8 @@ reporting_bridge:
     - "请GPT审核"
     - "让GPT看看怎么处理"
   semantics: >-
-    Publish a structured GPT_REVIEW_REQUEST packet to the current active Issue or PR.
+    Publish a structured PUBLIC_SAFE GPT_REVIEW_REQUEST packet to the current active Issue or PR.
+    Ordinary PII may be processed locally but must be redacted/minimized in the public report.
     Do not create a fake GPT task and do not wait for a separate GPT chat endpoint.
   protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
   current_pre_pr_destination: "Issue #209"
@@ -63,6 +88,7 @@ continuation_contract:
   required_resolution_order:
     - "Run reinstall recovery preflight and canonical remote verification first."
     - "Read latest remote AGENTS.md and CODEX-TASK-ROUTER.md."
+    - "Read privacy authorization protocol; ordinary PII is not a blocker and GitHub reports must be redacted."
     - "Read this ACTIVE-CODEX-TASK.yaml from latest canonical main."
     - "Read Issue #209 body/all comments, E61 route contract, AMED task brief and TaskImpactForecast."
     - "Read frozen E60 Issue #204 / PR #208 / receipt e06675f9 only as predecessor evidence."
@@ -98,12 +124,14 @@ local_resource_safety:
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
   never_kill_by_executable_name: true
 hard_boundaries:
+  - "Ordinary PII/contact information is allowed for authorized local/private processing and is not by itself a stop condition."
+  - "Raw PII/contact values must be minimized/redacted in public GitHub reports unless separately authorized for publication."
   - "No reset/clean/stash/rebase/checkout of another dirty worktree merely to restore context."
-  - "No credentials/private keys in repository or reports."
+  - "No credentials/private keys/tokens/API secrets/session secrets in repository or reports."
   - "No production formal knowledge write before GPT acceptance."
   - "No silent repository permission/settings changes; user gate applies."
   - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
   - "No market data, accounts, orders, funds or trading."
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T12:10:00+08:00"
+updated_at: "2026-08-11T12:25:00+08:00"
