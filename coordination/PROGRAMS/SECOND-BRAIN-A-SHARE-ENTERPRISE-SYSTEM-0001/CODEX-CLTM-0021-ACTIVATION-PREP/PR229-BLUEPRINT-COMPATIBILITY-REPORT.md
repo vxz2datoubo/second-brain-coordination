@@ -18,7 +18,7 @@ cherry-pick, or merge is appropriate.
 
 | PR #229 path | Decision | Reason |
 | --- | --- | --- |
-| `CONVERSATIONAL-LONG-TERM-MEMORY-AND-MOBILE-SECOND-BRAIN-BLUEPRINT-v1.0.md` | RECONSTRUCT | Strong W3-single-authority, Episode, provenance, correction and scoped-recall goals; its header calls the module `0020`, and its product/control-plane facts are stale. |
+| `CONVERSATIONAL-LONG-TERM-MEMORY-AND-MOBILE-SECOND-BRAIN-BLUEPRINT-v1.0.md` | RECONSTRUCT | Its header correctly identifies `CONVERSATIONAL-LONG-TERM-MEMORY-0021`; retain its W3-single-authority, Episode, provenance, correction and scoped-recall goals while re-verifying stale product and control-plane assertions. |
 | `CONVERSATIONAL-LONG-TERM-MEMORY-RESEARCH-LEDGER-v1.0.md` | REFERENCE_ONLY | Useful research taxonomy; volatile product assertions require execution-time official-doc recheck. |
 | `PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.5.md` | RECONSTRUCT | It is based on a superseded program-index baseline. |
 | `SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-PROGRAM-CHARTER-v1.5.md` | RECONSTRUCT | It changes shared governance from a stale base and cannot silently replace current main. |
@@ -34,10 +34,11 @@ cherry-pick, or merge is appropriate.
 
 ## Blocking incompatibilities corrected by this audit
 
-1. The active module is `CONVERSATIONAL-LONG-TERM-MEMORY-0021`; the blueprint header's `0020` collides with QCLAW semantic reconstruction.
-2. Formal PROJECT/GLOBAL persistence is locked by epoch 78. E66 supplied a public-safe promotion pattern, not permission to write real knowledge.
-3. Private repository creation, visibility changes, and production MCP/Gateway deployment are not authorized. They are future proposals only.
-4. Native ChatGPT product behavior is volatile and cannot be treated as a durable capture guarantee. Inaccessible coverage is `unknown`, never evidence of absence.
+1. The CLTM blueprint header correctly uses `CONVERSATIONAL-LONG-TERM-MEMORY-0021`. `MODULE_0020` is a separate semantic-reconstruction and graph-projection dependency, not a CLTM identity collision.
+2. PR #229 retains stale E61 / Issue #209 control-plane and formal-persistence assumptions. Epoch 78 instead keeps formal PROJECT/GLOBAL persistence locked; E66 supplied a public-safe promotion pattern, not permission to write real knowledge.
+3. Its shared Program Index and charter changes are based on a stale baseline and cannot silently replace current canonical governance.
+4. Its private-repository recommendation is currently unauthorized. Repository visibility changes and production MCP/Gateway deployment are future proposals only.
+5. Native ChatGPT product behavior is volatile and cannot be treated as a durable capture guarantee. It must be re-verified at implementation time; inaccessible coverage is `unknown`, never evidence of absence.
 
 ## Acceptance recommendation
 
