@@ -1,157 +1,87 @@
-schema_version: "79.0"
+schema_version: "80.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 209
 active_pull_request: 210
 task_id: "CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61"
-route_epoch: 67
+route_epoch: 68
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E61 事实刷新已验收；生成供应商级最小生产权威决策包"
-status: "READY"
-execution_allowed: true
+mode_label: "【Codex模式：项目计划模式】E61 AWS A1 供应商级设计已通过GPT审查；等待用户批准或延期"
+status: "WAITING_FOR_USER_ARCHITECTURE_APPROVAL"
+execution_allowed: false
 automatic_resume_within_task: true
 second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
-planned_branch: "codex/real-production-durable-authority-0057-e61"
-completion_signal: "CODEX_E61_PROVIDER_SPECIFIC_MINIMUM_AUTHORITY_V2_READY_FOR_GPT_REVIEW"
-accepted_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
 formal_knowledge_persistence_unlock_allowed: false
-route_contract:
-  path: "coordination/ROUTES/CODEX-E61-ACTIVE-ROUTE-CONTRACT.yaml"
-  status: "ACTIVE"
-task_brief: "coordination/TASK-BRIEFS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61-AMED.yaml"
-task_impact_forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/CODEX-REAL-PRODUCTION-DURABLE-AUTHORITY-EXTERNAL-ISSUANCE-VERIFICATION-KNOWLEDGE-WRITE-GATE-0057-E61.yaml"
+accepted_gate: "GPT_ACCEPTED_REAL_PRODUCTION_DURABLE_AUTHORITY_BINDING"
 recovery_acceptance:
   status: "GPT_ACCEPTED_CONTROL_PLANE_RECOVERY"
   evidence_comment: 5249080174
   github_report_bridge_verified: true
   dirty_workbuddy_workspace_preserved: true
-  note: "Recovery remains accepted; do not repeat reinstall bootstrap unless a new failure occurs."
-epoch66_refresh_acceptance:
-  status: "FACT_REFRESH_ACCEPTED_USER_APPROVAL_NOT_READY"
-  accepted_head: "4f152908d152a18b8616223865f3f9e8a47dd834"
-  gpt_review_id: 4903111950
-  verified_points:
-    - "E47 current accepted head corrected to 476d2a287cffb084c01b54c1d5e5eaf22016aac7."
-    - "E48 L0/L1/L2/L3 implications mapped."
-    - "Repository protection/environment/OIDC/reviewer state refreshed read-only."
-    - "No repository/cloud/security setting was changed."
-  remaining_gaps:
-    - "Provider/operator, concrete account/billing requirement and low-volume recurring cost are not yet selected."
-    - "Distinct GitHub reviewer was treated too much like a hard prerequisite; external human preapproval may satisfy independence more simply."
-    - "Canonical W3 authority targets a future private Git knowledge repository, while current E61 package leaves formal-store binding out of scope."
-    - "Full production digest bundle should be solved cross-agent, not delegated to the user."
+epoch67_design_acceptance:
+  status: "PROVIDER_SPECIFIC_ARCHITECTURE_READY_FOR_USER_APPROVAL"
+  accepted_pr_head: "4a13aef4da4f0f780b4eeedb86865282d63d95a4"
+  gpt_review_id: 4903502643
+  recommended_architecture: "AWS_A1_SERVERLESS_EXTERNAL_HUMAN_PREAPPROVAL_AUTHORITY"
+  design_summary:
+    - "Human AWS control identity protected by MFA is the independent approval authority and must remain unavailable to Codex/QCLAW/workflow callers."
+    - "GitHub Actions OIDC is requester-only and may invoke only the issuer Lambda; it may not create approvals, mutate arbitrary ledger state, call KMS Sign directly, deploy issuer code, or alter IAM/KMS/Lambda/DynamoDB policy."
+    - "Issuer Lambda matches the exact approved digest/scope/target/expiry/grant_id, conditionally consumes approval state in DynamoDB, and uses an asymmetric KMS key to sign a ProductionCertificationGrant."
+    - "A second GitHub reviewer identity is defense-in-depth, not a prerequisite for the primary independence claim."
+    - "AWS low-volume list-price baseline is approximately USD 1/month for one customer-managed KMS key plus negligible tiny-volume signing; Lambda/DynamoDB are expected to remain inside published free tiers under the stated assumptions."
+  formal_store_boundary:
+    production_certification_authority_bound: "NOT_YET_IMPLEMENTED"
+    formal_private_git_write_path_bound: "NOT_YET_DESIGNED_IMPLEMENTED_ACCEPTED"
+    formal_project_global_write: "DISABLED"
+  mandatory_future_implementation_refinements:
+    - "Bind stable/immutable GitHub OIDC identity claims where supported, including repository_id/owner identity plus exact ref/workflow/audience conditions; do not rely only on mutable repository names."
+    - "Model the DynamoDB-consume/KMS-Sign crash window explicitly. Prove retries cannot create two independently consumable formal-write capabilities; bind one immutable grant_id and make the later private-Git write gate independently enforce single-use and revocation."
+    - "Do not implement production authority on PR #210 lineage. PR #210 is a design/evidence branch rooted at old main and is currently diverged/behind canonical main. After user approval, create a fresh implementation branch/worktree from exact latest canonical main."
+    - "Keep certification authority and FORMAL_PRIVATE_GIT_WRITE_PATH_BOUND as two separately reviewed gates."
+    - "Consume QCLAW E48 full digests raw_artifact_sha256, canonical_semantic_sha256, and l0_provenance_sha256; do not create a competing canonical knowledge schema in E61."
+user_decision_gate:
+  current_status: "USER_DECISION_REQUIRED"
+  allowed_decisions:
+    - "APPROVE_RECOMMENDED_ARCHITECTURE"
+    - "DEFER_AND_REMAIN_CANDIDATE_ONLY"
+  approval_meaning: >-
+    Approves only the AWS A1 architecture as the target for a later separately routed implementation. It does not itself authorize creating an AWS account, enabling billing, changing GitHub security settings, creating IAM/KMS/Lambda/DynamoDB resources, exposing credentials, merging PR #210, or enabling formal knowledge writes.
+  defer_meaning: >-
+    Make no cloud or repository authority changes; keep E47/E48 candidate/derived operation available and keep all formal PROJECT/GLOBAL persistence fail-closed.
+next_route_if_approved:
+  status: "NOT_YET_CREATED"
+  requirement: >-
+    GPT must publish a fresh implementation task from exact latest canonical main with a minimal reversible changeset. User approval is still separately required for actual account/billing/security-control changes. No credential values may be requested or committed.
+parallel_qclaw:
+  active_issue: 216
+  role: "E48_RAW_SOURCE_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_PROJECTION"
+  full_digest_bundle_dependency:
+    - "raw_artifact_sha256"
+    - "canonical_semantic_sha256"
+    - "l0_provenance_sha256"
+  formal_persistence_blocked: true
 privacy_authorization:
   protocol: "coordination/GOVERNANCE/USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-v1.0.yaml"
   ordinary_pii_local_private_processing_allowed: true
-  ordinary_pii_presence_is_not_a_stop_condition: true
   github_public_reports_must_redact_raw_pii: true
   credential_secret_publication_forbidden: true
-reporting_bridge:
-  protocol: "coordination/GOVERNANCE/CODEX-REINSTALL-RECOVERY-AND-GPT-REPORT-BRIDGE-v1.0.yaml"
-  current_destination: "PR #210 for E61 evidence/review; Issue #209 for route/blocker context"
-  command_aliases: ["向GPT报告", "报告给GPT", "请GPT审核", "让GPT看看怎么处理"]
-provider_specific_v2:
-  status: "AUTHORIZED_READ_ONLY_DESIGN_ONLY"
-  purpose: >-
-    Turn the abstract authority-family package into one provider-specific minimum-complexity recommendation that the user can actually understand and approve or defer, without changing any repository or cloud control plane.
-  configuration_changes_authorized: false
-  cloud_account_creation_authorized: false
-  billing_enablement_authorized: false
-  repository_settings_changes_authorized: false
-  environment_or_ruleset_changes_authorized: false
-  oidc_setting_changes_authorized: false
-  github_app_changes_authorized: false
-  secrets_or_keys_creation_authorized: false
-  formal_write_authorized: false
-  mandatory_designs:
-    aws_a1:
-      name: "AWS serverless external human-preapproval authority"
-      required_model:
-        - "GitHub Actions OIDC assumes a requester role restricted to the exact repository/ref/workflow/audience/immutable identity policy."
-        - "Requester role may invoke only the issuer function/API; it cannot create approval records, mutate arbitrary ledger state, call KMS Sign, deploy issuer code, or alter IAM/KMS/Lambda/DynamoDB policy."
-        - "A separate human AWS control identity/session with MFA, unavailable to Codex/QCLAW/ordinary caller, creates the approved candidate digest/scope record."
-        - "Issuer Lambda/function validates the request, conditionally consumes the pre-approved single-use record in DynamoDB, and signs the exact grant with an asymmetric KMS key."
-        - "Model fail-closed crash/retry/idempotency behavior and grant replay prevention."
-      required_cost_check:
-        - "Use current official AWS pricing and state region/account assumptions."
-        - "Check current KMS key monthly charge, Sign operation charge, Lambda free tier, DynamoDB free tier, logging/network extras if any."
-    gcp_a2:
-      name: "Google Cloud serverless external human-preapproval authority"
-      required_model:
-        - "GitHub OIDC uses Workload Identity Federation with repository/workflow/ref conditions to obtain an invoker-only principal."
-        - "GitHub workload may invoke only the issuer service; it cannot create approvals, deploy issuer code, alter IAM/KMS policy, or sign directly."
-        - "A separate human Google Cloud control identity/session with MFA, unavailable to agents, creates the approved digest/scope record."
-        - "Cloud Run/Function issuer conditionally consumes Firestore/transactional approval state and signs the exact grant with Cloud KMS."
-        - "Model fail-closed crash/retry/idempotency behavior and grant replay prevention."
-      required_cost_check:
-        - "Use current official Google Cloud pricing and state region/account assumptions."
-        - "Check software KMS key-version monthly charge, crypto operations, Cloud Run/Functions free quota, Firestore free quota, billing prerequisite and any hidden baseline cost."
-    github_app_b:
-      name: "Independent GitHub App/custom deployment protection"
-      requirement: "Keep as a comparison; quantify App registration, private-key lifecycle, hosting, webhook validation, ledger and operational burden."
-    no_change_c:
-      name: "Defer production authority"
-      requirement: "Keep E47/E48 candidate/derived operation available and formal persistence fail-closed."
-  required_reasoning:
-    - "Explicitly test whether a second GitHub reviewer identity is truly required. A human-controlled external cloud approval identity may be the independent authorization boundary while GitHub environment review remains defense-in-depth."
-    - "Do not allow the GitHub workload identity to possess the capability to mint approvals or signatures directly; otherwise the ordinary caller can self-issue."
-    - "Use immutable repository/workflow identifiers where supported and bind exact candidate full digests, scope, target, expiry and nonce/grant ID."
-    - "Separate provenance evidence (GitHub/Sigstore attestations) from authorization. Attestations may supplement but cannot replace the external approval/single-use authority."
-    - "Compare new-account burden, billing/card requirement, MFA/manual approval burden, monthly cost at expected tiny volume, setup difficulty, maintenance, rollback and vendor lock-in."
-  w3_formal_store_boundary:
-    canonical_evidence:
-      - "PHASE-0/ENTERPRISE-TARGET-ARCHITECTURE.md: authority plane includes future private Git knowledge."
-      - "PHASE-0/SYSTEM-OF-RECORD-MATRIX.yaml: approved knowledge authority = future private Git knowledge repository; Supabase/local serving = rebuildable projection."
-    requirement: >-
-      Do not treat ProductionCertificationGrant issuance as equivalent to a completed formal knowledge write. State exactly whether E61 v2 only establishes certification authority or also binds the future private-Git authority write path.
-    allowed_outcomes:
-      - "If end-to-end private-Git write binding can be designed without configuration, include the bounded design and later implementation gate."
-      - "If it is a separate implementation concern, explicitly propose a follow-on gate/task such as FORMAL_PRIVATE_GIT_WRITE_PATH_BINDING and keep formal persistence disabled until both certification and write-path binding are accepted."
-  user_decision_output:
-    target: "ONE_RECOMMENDED_PROVIDER_SPECIFIC_ARCHITECTURE"
-    must_include:
-      - "why it satisfies non-self-issuance"
-      - "whether a second GitHub account/reviewer is required"
-      - "exact new account/billing prerequisite"
-      - "estimated low-volume monthly cost with official-source basis"
-      - "initial manual setup steps understandable to a non-specialist"
-      - "what Codex can automate after approval and what user must personally approve/do"
-      - "revocation/rollback"
-      - "what remains blocked even after this stage"
-    final_choice_format: "APPROVE_RECOMMENDED_ARCHITECTURE | DEFER_AND_REMAIN_CANDIDATE_ONLY"
-  deliverable: "E61-PROVIDER-SPECIFIC-MINIMUM-AUTHORITY-V2-USER-DECISION-PACKAGE"
-  stop_after_report: true
-parallel_qclaw:
-  active_issue: 216
-  predecessor_pull_request: 207
-  accepted_e47_head: "476d2a287cffb084c01b54c1d5e5eaf22016aac7"
-  role: "E48_RAW_SOURCE_SEMANTIC_RECONSTRUCTION_AND_KNOWLEDGE_GRAPH_PROJECTION"
-  formal_persistence_blocked_until_e61_acceptance: true
-  cross_agent_digest_gap_owner: "QCLAW_E48"
-user_approval_gate:
-  current_status: "NOT_YET_REQUESTED_PENDING_PROVIDER_SPECIFIC_V2"
-  trigger: "actual repository/cloud/account/billing/protection/environment/OIDC/App/permission/secret/control-plane change"
-  action: "STOP_AND_REQUEST_EXPLICIT_USER_APPROVAL_WITH_EXACT_CHANGESET"
-  credentials_must_not_be_requested_or_exposed: true
 local_resource_safety:
   default_profile: "FOREGROUND_PRIORITY"
-  user_foreground_apps_priority: "HIGHEST"
   dual_agent_default_task_python_cap_each: 2
   dual_agent_default_combined_task_python_cap: 4
   default_cpu_bound_workers_combined: 1
   nested_parallelism: "FORBIDDEN"
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
-  never_kill_by_executable_name: true
 hard_boundaries:
-  - "No repository/environment/ruleset/protection/OIDC/GitHub App/cloud-service/account/billing setting changes in this pass."
+  - "No execution while waiting for the user architecture decision."
+  - "No AWS/GCP/GitHub account, billing, IAM, KMS, Lambda, DynamoDB, environment, ruleset, OIDC, App, permission, secret, key, or formal-write changes without a later exact approval route."
   - "No reset/clean/stash/rebase/checkout of another dirty worktree."
   - "No credentials/private keys/tokens/API secrets/session secrets in repository or reports."
-  - "No production formal knowledge write before GPT acceptance and configured authority/write-path gates."
-  - "No merge, direct main implementation write, rebase, force-push, amend or history rewrite."
+  - "No merge, direct-main implementation, force-push, amend, or history rewrite."
   - "No market data, accounts, orders, funds or trading."
-next_command: "读取任务"
+next_command: "等待用户决定"
 updated_by: "GPT"
-updated_at: "2026-08-11T13:14:00+08:00"
+updated_at: "2026-08-11T14:25:00+08:00"
