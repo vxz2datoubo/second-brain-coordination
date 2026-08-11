@@ -1,13 +1,13 @@
-schema_version: "84.0"
+schema_version: "85.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 224
-active_pull_request: null
-task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64"
-route_epoch: 72
+active_pull_request: 225
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R1"
+route_epoch: 73
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E64 当前公开GitHub内的正式知识提升简化；不做私密迁移、不上AWS"
-status: "READY"
+mode_label: "【Codex模式：项目计划模式】E64 R1 GitHub-only 正式知识提升：真实批准证据 + 跨运行CAS一次性语义修正"
+status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
@@ -16,53 +16,94 @@ merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
 repository_visibility_change_authorized: false
 
-user_architecture_revision:
-  recorded_at: "2026-08-11T15:51:00+08:00"
-  current_preference: "KEEP_CURRENT_GITHUB_PUBLIC_FOR_NOW"
-  privacy_work_status: "DEFERRED_UNTIL_USER_REOPENS"
-  aws_status: "SUPERSEDED_AS_PRIMARY_PATH"
+user_architecture_preference:
+  current: "KEEP_CURRENT_GITHUB_PUBLIC_FOR_NOW"
+  aws_primary_path: "SUPERSEDED"
+  private_repo_work: "DEFERRED_UNTIL_USER_REOPENS"
   primary_goal: "One integrated GitHub-centered workflow with low operational friction."
-  note: >-
-    Do not spend current engineering effort on converting the repository to private merely for theoretical security.
-    Existing privacy governance still forbids publishing private user source data/credentials to the public repository.
 
-predecessor_reviews:
-  e62:
-    issue: 220
-    pull_request: 222
-    head: "ecdf6fbc2eb678abdce1daed94093a3162a57f22"
-    gpt_review_id: 4904095471
-    status: "FROZEN_REUSABLE_IDEAS_ONLY"
-    reusable:
-      - "candidate full-digest concept after accepted E48 producer semantics"
-      - "replay/duplicate rejection"
-      - "one-time promotion state"
-      - "expected-parent/CAS"
-      - "stale/expired fail-closed behavior"
-    rejected:
-      - "AWS IAM/KMS/Lambda/DynamoDB machinery"
-      - "stale route binding: executable default epoch 69 while actual E62 delivery was epoch 70"
-      - "claimed immutable repository identity not implemented in executable context"
-      - "private-Git second gate lacks independent candidate identity comparison at consume time"
-  e63:
-    issue: 223
-    status: "SUPERSEDED_NOT_PLANNED"
-    reason: "User does not want private-repository work now."
+reviewed_delivery:
+  pull_request: 225
+  reviewed_head: "b2463f38fd8b2ebb5eaf2b4e356ccb7c02170405"
+  base_main: "88367196d8a5985624e62afb960eb0abab34e9a0"
+  gpt_review_id: 4904435939
+  disposition: "BOUNDED_REMEDIATION_REQUIRED"
+  accepted:
+    - "GitHub-only practical threat model; no AWS/HSM independence claim."
+    - "Correct route epoch 72 and fresh canonical-main lineage."
+    - "Three full E48 digest fields are typed producer-supplied identity; no competing recomputation."
+    - "Repository identity, target scope, candidate identity, expiry/revocation and expected-parent concepts."
+    - "PUBLIC_SAFE vs PRIVATE_OR_SENSITIVE vs SECRET_CREDENTIAL admission classes as a boundary concept."
+    - "Task-specific Python 3.11 + 3.13 GitHub Actions CI; run 31472297059 passed both jobs."
+    - "No real formal write, AWS work, private-repo migration, credentials or trading actions."
+  blocking_findings:
+    - id: "E64-R1-F1"
+      severity: "P0_P1"
+      finding: "ApprovalPacket trusts arbitrary non-empty approval_actor_ref and gpt_review_ref strings; an applicant can forge approval evidence."
+    - id: "E64-R1-F2"
+      severity: "P0_P1"
+      finding: "Replay/concurrency protection is threading.Lock + process-local dict only; two independent Actions/processes can each claim the same approval."
+    - id: "E64-R1-F3"
+      severity: "P1"
+      finding: "PUBLIC_SAFE is caller-supplied classification without evidence binding; admission provenance is not tied to candidate identity."
 
-fundamental_goal: >-
-  Build the simplest honest GitHub-native candidate-to-formal promotion mechanism for the actual project threat model,
-  preventing stale/wrong/duplicate promotion and preserving exact provenance without external cloud trust roots or
-  repository-visibility work.
+canonical_github_identity:
+  repository_id: "1303258074"
+  repository_slug: "vxz2datoubo/second-brain-coordination"
+  owner_login: "vxz2datoubo"
+  owner_id: 137051967
+  visibility: "public"
+  source: "GitHub repository metadata observed by GPT during E64 audit"
 
-required_sequence:
-  - "Read exact latest canonical main, Issue #224, this ACTIVE route, E62 GPT review and QCLAW E48 R1 status."
-  - "Start a fresh E64 branch/worktree from exact latest canonical main; do not continue E62/E63 branches."
-  - "Freeze a narrow practical threat model and truthful claim limits."
-  - "Implement GitHub-native approval/promotion contract with exact candidate identity, GPT/user approval reference, one-time promotion marker and expected-parent/CAS."
-  - "Implement PUBLIC_SAFE / PRIVATE_OR_SENSITIVE / SECRET_CREDENTIAL admission boundary for the current public repository."
-  - "Use only typed synthetic E48 fixtures until E48 R1 is independently accepted; do not invent a competing digest schema."
-  - "Add bounded Python 3.11/3.13 task-specific CI and adversarial tests."
-  - "Publish Draft PR/head/tests/postflight and completion signal, then stop for GPT audit."
+required_r1_remediation:
+  approval_evidence:
+    goal: "Caller cannot satisfy the approval gate with invented strings."
+    requirements:
+      - "Replace free-form approval_actor_ref/gpt_review_ref trust with structured CanonicalGitHubApprovalEvidence."
+      - "Bind repository_id 1303258074 and slug, exact candidate_identity_sha256, task_id, route_epoch, explicit APPROVE decision, expiry, and exact GitHub/canonical-main evidence identity."
+      - "Prefer a GPT-created approval-control record on canonical main plus exact GitHub numeric review/comment/control evidence; future production writer must fetch canonical evidence rather than trust candidate-supplied prose."
+      - "Define a read-only ApprovalEvidenceResolver/verifier boundary. Synthetic tests may use an in-memory resolver, but production contract must resolve canonical GitHub state."
+      - "Reject nonexistent evidence, wrong repository, wrong candidate, wrong route, non-APPROVE decision, stale/expired evidence, and mismatched evidence hash/object identity."
+      - "Do not claim independence from GitHub or require AWS/external trust roots."
+  durable_one_time_cas:
+    goal: "One approval can be consumed once across independent processes/workflow runs, not merely once per Python process."
+    requirements:
+      - "Define a durable Git-backed promotion marker/receipt keyed by immutable approval_id/promotion_id and candidate identity."
+      - "Future writer semantics must atomically create/advance the marker only when canonical main equals expected parent and marker is absent/unconsumed."
+      - "Put durable state behind a store/CAS interface so tests require no credentials and perform no real formal write."
+      - "Add a two-independent-adapter/process-model test sharing one durable mock/CAS store; exactly one winner is allowed."
+      - "Add marker-already-exists, stale-parent, retry-after-unknown-outcome, and idempotent-receipt regression tests."
+      - "threading.Lock may remain only as local optimization; it cannot be the cross-run security claim."
+  admission_evidence:
+    requirements:
+      - "Bind classification_evidence_ref or upstream admission decision to candidate identity."
+      - "Document that E64 does not independently inspect private raw source in public GitHub."
+      - "Never publish private source text merely to prove classification."
+  e48_dependency:
+    status: "BLOCKED_PENDING_E48_R1_ACCEPTANCE"
+    rule: "Continue typed synthetic fixtures only until GPT independently accepts QCLAW E48 R1."
+
+required_tests:
+  - "fake/nonexistent GitHub approval evidence rejected"
+  - "wrong-repo approval evidence rejected"
+  - "wrong-candidate/wrong-route/wrong-decision approval evidence rejected"
+  - "two independent adapter instances sharing one durable CAS store yield exactly one consumer"
+  - "durable marker already exists => replay rejected"
+  - "stale expected parent => no durable consumption"
+  - "unknown outcome retry => no duplicate receipt/write capability"
+  - "idempotent replay of same completed promotion returns/verifies same immutable receipt without second consumption"
+  - "classification evidence mismatch rejected"
+  - "existing E64 adversarial tests remain green"
+  - "Python 3.11 and 3.13 task-specific CI remains green"
+
+execution_rules:
+  - "Patch PR #225 with new commits; no rebase, force-push, amend or history rewrite."
+  - "Do not create a new external service/account or repository visibility change."
+  - "Do not perform a real formal knowledge write; model the durable Git/CAS boundary only."
+  - "Do not merge."
+  - "Do not expose private user source, PII, credentials, tokens, cookies, keys or MFA secrets."
+  - "No reset/clean/stash/checkout over unrelated dirty worktrees."
+  - "Preserve foreground resource caps and zero-orphan postflight."
 
 parallel_qclaw:
   active_issue: 216
@@ -71,31 +112,7 @@ parallel_qclaw:
   status: "E48_R1_SEMANTIC_CORRECTNESS_REMEDIATION"
   integration_gate: "BLOCKED_PENDING_E48_R1_ACCEPTANCE"
 
-privacy_boundary:
-  public_safe: "May be represented/promoted on current GitHub after validation and approval."
-  private_or_sensitive: "Raw content may not be committed to current public GitHub; only redacted metadata/status may appear."
-  secret_credential: "Never commit or echo."
-
-hard_boundaries:
-  - "Keep repository visibility unchanged."
-  - "No AWS/GCP/external issuer work."
-  - "No private user source content committed to public GitHub."
-  - "No credentials/private keys/tokens/API secrets/session secrets/MFA secrets in repository or reports."
-  - "No formal real-user GLOBAL/PROJECT knowledge write or unlock."
-  - "No reset/clean/stash/rebase/checkout over unrelated dirty worktrees."
-  - "No merge, direct-main implementation, force-push, amend or history rewrite."
-  - "No market data, accounts, orders, funds or trading."
-
-local_resource_safety:
-  default_profile: "FOREGROUND_PRIORITY"
-  codex_task_python_cap: 2
-  dual_agent_combined_task_python_cap: 4
-  combined_cpu_bound_workers_cap: 1
-  nested_parallelism: "FORBIDDEN"
-  heavy_matrix_or_fanout: "REMOTE_CI"
-  required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
-
-completion_signal: "CODEX_E64_GITHUB_ONLY_FORMAL_KNOWLEDGE_PROMOTION_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_E64_R1_DURABLE_GITHUB_APPROVAL_AND_CAS_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T15:51:00+08:00"
+updated_at: "2026-08-11T16:41:00+08:00"
