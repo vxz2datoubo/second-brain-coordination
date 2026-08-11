@@ -2,7 +2,7 @@
 
 > `agent_id: GPT`
 >
-> `module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0020`
+> `module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0021`
 >
 > `short_name: CLTM`
 >
@@ -773,7 +773,7 @@ Latency
 
 ### P0 Canonical Audit
 
-冻结 PR #57、Issue #38/#59/#60、E61 与 W3 当前真实写/读路径。
+冻结 PR #57、Issue #38/#59/#60、Issue #216 / MODULE_0020、E61 与 W3 当前真实写/读路径。
 
 ### P1 Conversational Vertical Slice
 
@@ -803,7 +803,23 @@ Daily / Weekly / Monthly + stale / correction / profile evolution。
 
 只有出现真实规模/延迟/多设备/多Agent并发需求时才评估 Supabase / pgvector / graph serving。
 
-## 二十五、成功标准
+## 二十五、与MODULE_0020语义重建的关系
+
+现有 `KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-0020` 负责把嘈杂ASR/OCR/口述等Source生成可审计的 `NormalizedSemanticView`，并输出候选知识图谱投影。
+
+CLTM 0021不得重复这套能力。
+
+当Conversation Source来自语音转写、ASR或存在明显口语噪声时：
+
+```text
+Conversation Raw Episode
+→ MODULE_0020 NormalizedSemanticView（derived, auditable）
+→ CLTM/W3 conversation atomization and memory candidate
+```
+
+原始Conversation Episode仍是证据源；NormalizedSemanticView只是派生理解层。
+
+## 二十六、成功标准
 
 1. ChatGPT Conversation 成为 W3 一等 Source；
 2. 手机端自然聊天无需额外记笔记动作即可产生高价值 candidate memory；
@@ -819,12 +835,13 @@ Daily / Weekly / Monthly + stale / correction / profile evolution。
 12. 无凭证值泄漏；
 13. 不创建第二套 canonical runtime；
 14. E61 未放行前不绕过正式 durable authority gate；
-15. 整体仍保持 research_only / NO_TRADE。
+15. 与现有MODULE_0020语义重建复用而非重复；
+16. 整体仍保持 research_only / NO_TRADE。
 
-## 二十六、当前成熟度
+## 二十七、当前成熟度
 
 ```yaml
-module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0020
+module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0021
 architecture_position: W3_CORE_CAPABILITY
 mobile_chat_as_primary_capture_surface: ACCEPTED_BLUEPRINT_DECISION
 conversation_source_contract: TO_IMPLEMENT
@@ -833,6 +850,7 @@ background_consolidation: TASK_EXISTS_BUT_CANONICAL_INGESTION_PENDING
 memory_router: CONTRACT_TO_IMPLEMENT
 trust_gate: CONTRACT_TO_IMPLEMENT
 hybrid_retrieval: PARTIAL_EXISTING_W3_FOUNDATION
+semantic_reconstruction_dependency: REUSE_MODULE_0020_WHEN_NEEDED
 conversation_vertical_slice: NOT_IMPLEMENTED
 chatgpt_level_a_integration: PARTIAL_PRODUCT_CAPABILITY_EXISTS
 chatgpt_level_b_mcp: PRODUCT_PLAN_DEPENDENT
