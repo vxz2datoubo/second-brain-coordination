@@ -1,13 +1,14 @@
-schema_version: "89.0"
+schema_version: "90.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 227
+active_issue: 231
 active_pull_request: null
-task_id: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
-route_epoch: 77
+task_id: "CODEX-CLTM-0021-ACTIVATION-PREP"
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+route_epoch: 78
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E66 独立克隆恢复已接受；继续GitHub-only正式知识提升主线"
-status: "READY_CONTINUE_AFTER_ISOLATED_RECOVERY"
+mode_label: "【Codex模式：项目计划模式】CLTM-0021 正式激活：先完成PR #229兼容性与W3复用审计"
+status: "READY"
 execution_allowed: true
 automatic_resume_within_task: true
 second_user_start_command_required: false
@@ -15,76 +16,98 @@ intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
 repository_visibility_change_authorized: false
+production_mcp_gateway_deployment_authorized: false
+private_repository_creation_authorized: false
 
-user_direction:
-  qclaw_takeover_authorized: false
-  instruction: "QQ ran out of credits, but Codex should continue its own original task rather than taking over QQ's E48 R3."
-  qclaw_worktree_touch_forbidden: true
-  qclaw_pr_221_touch_forbidden: true
+canonical_main_at_activation: "25e65c18cd50fd8bd01cecd0774f9872c914a177"
+route_contract: "coordination/ROUTES/CODEX-CLTM-0021-ACTIVE-ROUTE-CONTRACT.yaml"
+activation_preparation_pull_request: 232
+activation_issue: 231
+blueprint_source_pull_request: 229
+
+predecessor:
+  task_id: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
+  issue: 227
+  pull_request: 230
+  accepted_head: "36595402caca05364a73cbd170e1b914f0c9de5a"
+  merged_main: "d240f91ce5992036898cb393d69be36159e8b601"
+  disposition: "GPT_ACCEPTED_WITH_NONBLOCKING_FOLLOWUP"
+
+first_stage:
+  name: "CLTM blueprint compatibility and canonical W3 reuse audit"
+  implementation_allowed: false
+  required_outputs:
+    - "PR229-BLUEPRINT-COMPATIBILITY-REPORT.md"
+    - "CANONICAL-W3-RUNTIME-AUDIT.md"
+    - "EXISTING-MEMORY-REUSE-LEDGER.yaml"
+    - "CLTM-ACTIVATION-PLAN.md"
+    - "PRIVACY-AND-AUTHORITY-BOUNDARY-AUDIT.md"
+    - "SESSION-A-E-VERTICAL-SLICE-PLAN.md"
+    - "UNKNOWN-REGISTRY.yaml"
+    - "AMED-RESEARCH-LEDGER.md"
+    - "UNPLANNED-IMPROVEMENT-LEDGER.md"
+    - "SYSTEM-DISCOVERY-AND-OPPORTUNITY-REPORT.md"
+    - "WPDCR.md"
+    - "AI_HANDOFF.yaml"
+  completion_gate: "CODEX_CLTM_0021_ACTIVATION_PREP_READY_FOR_GPT_REVIEW"
+  rule: "Do not begin Session A-E implementation until GPT accepts the activation-prep checkpoint."
 
 architecture:
-  primary: "GITHUB_ONLY_CURRENT_PUBLIC_CONTROL_PLANE"
-  aws_primary_path: "SUPERSEDED"
-  private_repo_work: "DEFERRED_UNTIL_USER_REOPENS"
-  primary_goal: "One integrated GitHub-centered workflow with low operational friction."
+  authority: "W3_SINGLE_LONG_TERM_MEMORY_AUTHORITY"
+  conversation_role: "FIRST_CLASS_W3_SOURCE_AND_MOBILE_HUMAN_INTERFACE"
+  raw_episode_rule: "ConversationEpisode/raw historical evidence remains separate from evolving derived memory."
+  temporal_rule: "Bitemporal valid-time and record-time are required for mutable long-term memory."
+  correction_rule: "Corrections/supersession preserve history and change validity; never silently rewrite old episodes."
+  recall_rule: "MemoryRouter + hybrid retrieval + Memory Trust Gate + scoped MemoryContextBundle."
+  module_0020_rule: "Reuse E48/MODULE_0020 for auditable normalization/graph projection when useful; do not create a second normalization or graph authority."
+  project_rule: "Projects consume scoped W3 memory; they do not own duplicate canonical copies of the same user memory."
 
-repository_integrity_checkpoint:
-  damaged_shared_store_status: "FROZEN_UNREPAIRED"
-  local_fsck_missing_blob_reported: true
-  isolated_clone_created: true
-  isolated_clone_base_main: "8a0c1c950de26223f28abbf8a2ab247294b5970c"
-  isolated_clone_common_object_store_independent: "USER/CODEX_REPORTED_PENDING_REMOTE_AUDIT"
-  qclaw_e48_touched: false
-  destructive_repair_performed: false
-  local_plan_reuse_commit_reported: "857ab39cada71bbdd367aa46e17d7e10f174b5fa"
-  local_plan_reuse_commit_remote_visibility: "NOT_YET_VISIBLE_ON_GITHUB_AT_GPT_AUDIT_TIME"
-  gpt_disposition: "RECOVERY_DIRECTION_ACCEPTED_CONTINUE_E66; LOCAL_COMMIT_REQUIRES_LATER_REMOTE_PUBLICATION_FOR_FINAL_AUDIT"
-  rule: "All further E66 implementation must remain inside the healthy isolated clone. Do not write into or repair the damaged shared object store during E66."
-
-accepted_predecessor:
-  issue: 224
-  pull_request: 225
-  accepted_head: "9ede293e316e4936bad6083d68c420807fd7ff6b"
-  gpt_review_id: 4905327662
-  disposition: "E64_R2_CORE_CANDIDATE_ACCEPTED"
-  reusable:
-    - "Acyclic pre-admission subject -> admission evidence hash -> final candidate identity."
-    - "Canonical GitHub approval-evidence resolver boundary."
-    - "Exact repository/task/route/candidate identity bindings."
-    - "Durable CAS/replay/stale-parent/unknown-outcome semantics."
-    - "Typed synthetic E48 full-digest-bundle interface."
-    - "Python 3.11/3.13 CI pattern."
-
-active_e66_scope:
-  - "Use only the isolated healthy clone; leave damaged shared common-dir frozen."
-  - "Build an explicit two-stage production-facing PreAdmissionSubject/final-candidate construction API without placeholder evidence hashes."
-  - "Define and test a strict GitHub-native approval-control object contract using Issue comments/PR reviews or another existing GitHub control object; free-form prose alone is not approval evidence."
-  - "Close expected-parent versus approval-creation sequencing ambiguity and add stale/main-moved/edited-approval adversarial tests."
-  - "Strengthen DurablePromotionStore into a concrete Git-backed marker/CAS contract using isolated synthetic/local Git tests only."
-  - "Harden PUBLIC_SAFE / PRIVATE_OR_SENSITIVE / SECRET_CREDENTIAL admission evidence and metadata minimization."
-  - "Correct stale E64 documentation and security claims before reuse."
-  - "Keep live E48 producer integration explicitly blocked pending independent E48 R3 acceptance; typed synthetic fixture only."
-  - "Push/publish the E66 branch and the reported local plan/reuse commit or a descendant before claiming a remotely auditable completion."
-  - "Run bounded task-specific Python 3.11/3.13 CI and publish exact evidence/postflight."
+blueprint_source:
+  pull_request: 229
+  status: "DESIGN_SOURCE_NOT_CANONICAL"
+  rule: "Do not merge/rebase/cherry-pick stale control-plane state. Reconstruct valid CLTM blueprint and registration from latest canonical main."
 
 parallel_qclaw:
   active_issue: 216
   active_pull_request: 221
   task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-  route_epoch: 52
   status: "E48_R3_INTERRUPTED_BY_CREDITS_USER_WILL_RESUME_LATER"
   live_integration_gate: "BLOCKED_PENDING_E48_R3_ACCEPTANCE"
-  isolation_rule: "Codex must not enter/modify/recover/stash/reset/clean/copy QQ's worktree or PR #221."
+  isolation_rule: "Codex must not enter/modify/recover/stash/reset/clean/copy/merge QCLAW PR #221/worktree."
+
+named_methodologies:
+  AMED: "REQUIRED"
+  PMA_BIG: "REQUIRED"
+  WPDCR: "REQUIRED"
+  PDER: "REQUIRED"
+  RTCE: "REQUIRED"
+
+impact_prediction:
+  expected_positive: "Long-term conversational continuity with lower user repetition and auditable temporal/scoped recall."
+  principal_risks: ["stale-memory leakage", "cross-project bleed", "assistant-to-user fact contamination", "privacy leakage", "duplicate memory authority", "temporal supersession errors"]
+  rollback: "Publish a later GPT route epoch; activation-prep changes no formal knowledge authority."
+
+exploration_budget:
+  task_weight: "STRATEGIC"
+  difficulty_prediction: "D3"
+  research_trigger: true
+  level_A: "Authorized within task scope with tests/evidence."
+  level_B: "Authorized only when bounded, high-value, separately evidenced and reversible."
+  level_C: "Proposal only."
+  level_D: "Stop and escalate."
 
 hard_boundaries:
-  - "Do not touch QQ/QCLAW E48 local worktree or PR #221."
-  - "Do not claim E48 R3 completion or live integration."
-  - "Do not mutate or repair the damaged shared Git common object store during E66."
-  - "No merge or direct-main implementation."
-  - "No real formal GLOBAL/PROJECT knowledge write or unlock."
-  - "No AWS/GCP/external issuer and no private-repository work."
-  - "No credentials/private keys/tokens/API secrets/session secrets/MFA secrets/private user source in public GitHub."
-  - "No reset/clean/stash/rebase/force-push/amend/history rewrite over unrelated worktrees."
+  - "No direct-main implementation or self-merge by Codex."
+  - "No Session A-E implementation before GPT activation-prep acceptance."
+  - "No formal PROJECT/GLOBAL knowledge write or unlock."
+  - "No live E48 integration before E48 R3 acceptance."
+  - "No private conversation body/private user source in public GitHub."
+  - "No credentials/tokens/secrets/private keys/cookies/session/MFA/recovery material in Git/logs/fixtures/embeddings/context."
+  - "No private repo creation or repository visibility/permission change."
+  - "No production MCP/Memory App/Gateway deployment."
+  - "No second canonical memory runtime, QueryPlan, ContextBundle, vector/graph/temporal authority."
+  - "Do not touch QCLAW PR #221/worktree."
+  - "Do not repair/mutate the previously damaged shared Git object store as part of CLTM."
   - "No market data, accounts, orders, funds or trading."
 
 local_resource_safety:
@@ -96,7 +119,8 @@ local_resource_safety:
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
-completion_signal: "CODEX_E66_GITHUB_ONLY_PROMOTION_HARDENING_READY_FOR_GPT_REVIEW"
-next_command: "继续E66"
+read_task_semantics: "读取任务 = verify canonical remote main -> read router + ACTIVE-CODEX-TASK + route contract + Issue #231 and all comments -> claim exact epoch-78 lease -> immediately execute the first meaningful authorized audit action; do not stop after summarizing."
+completion_signal: "CODEX_CLTM_0021_ACTIVATION_PREP_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T19:25:00+08:00"
+updated_at: "2026-08-11T21:05:00+08:00"
