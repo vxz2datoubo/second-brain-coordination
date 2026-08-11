@@ -1,7 +1,7 @@
-schema_version: "1.1"
+schema_version: "1.2"
 agent_id: "CODEX"
-task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R1"
-route_epoch: 73
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R2"
+route_epoch: 74
 claim_boundary: "GitHub-native application/workflow integrity only; no independent external trust root."
 canonical_github_identity:
   repository_id: "1303258074"
@@ -22,6 +22,22 @@ approval_evidence:
     - expires_at
   prohibition: "Non-empty caller prose is not approval evidence."
 candidate_identity:
+  pre_admission_subject:
+    includes:
+      - candidate_package_id
+      - repository_id
+      - repository_slug
+      - task_id
+      - route_epoch
+      - raw_artifact_sha256
+      - canonical_semantic_sha256
+      - l0_provenance_sha256
+      - source_provenance_status
+      - target_scope
+      - admission_class
+      - expected_canonical_main_parent
+    excludes: [classification_evidence_ref, classification_evidence_object_sha256]
+    canonicalization: "UTF-8 JSON with sorted keys and compact separators; SHA-256."
   required:
     - candidate_package_id
     - repository_id
@@ -38,6 +54,11 @@ candidate_identity:
     - classification_evidence_object_sha256
     - expected_canonical_main_parent
   canonicalization: "UTF-8 JSON with sorted keys and compact separators; SHA-256."
+admission_evidence:
+  canonical_object_fields: [evidence_ref, repository_id, pre_admission_subject_sha256, decision]
+  object_hash: "SHA-256 of actual deterministic canonical evidence bytes; the hash is not self-serialized."
+  required_bindings: [repository_id, pre_admission_subject_sha256, decision_PUBLIC_SAFE]
+  acyclic_order: "Compute pre-admission subject, serialize/hash evidence, then build final candidate identity with ref/hash."
 durable_marker_cas:
   marker_key: [approval_id, promotion_id, candidate_identity_sha256]
   production_boundary: "Future Git-backed store atomically creates/advances a marker only if canonical main equals expected parent and marker is absent."

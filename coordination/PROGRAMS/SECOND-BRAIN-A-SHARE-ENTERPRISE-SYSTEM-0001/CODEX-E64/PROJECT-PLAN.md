@@ -14,7 +14,7 @@ unlock a real formal knowledge write.
 
 - Canonical base: `88367196d8a5985624e62afb960eb0abab34e9a0`.
 - Active route: E64, epoch 72, Issue #224.
-- E48 R1 live integration: blocked pending independent acceptance.  Tests use
+- E48 R2 live integration: blocked pending independent acceptance.  Tests use
   typed synthetic E48 digest fixtures only; no competing digest schema is
   introduced.
 - Repository visibility remains public.

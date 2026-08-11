@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+from hashlib import sha256
 from pathlib import Path
 import sys
 from threading import Barrier, Thread
@@ -29,11 +30,10 @@ NOW = datetime(2026, 8, 11, 9, 0, tzinfo=timezone.utc)
 PARENT = "a" * 40
 REPOSITORY_ID = "1303258074"
 REPOSITORY_SLUG = "vxz2datoubo/second-brain-coordination"
-TASK = "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R1"
-ROUTE = 73
+TASK = "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R2"
+ROUTE = 74
 CONTROL = "synthetic-github-control-record-224"
 CLASS_REF = "canonical-main:admission/synthetic-e64-r1"
-CLASS_HASH = "4" * 64
 APPROVAL_REF = "canonical-main:approval/synthetic-e64-r1"
 APPROVAL_HASH = "5" * 64
 
@@ -64,10 +64,19 @@ def candidate(**overrides: object) -> CandidateKnowledgePackage:
         "target_scope": "PROJECT",
         "admission_class": AdmissionClass.PUBLIC_SAFE,
         "classification_evidence_ref": CLASS_REF,
-        "classification_evidence_object_sha256": CLASS_HASH,
+        "classification_evidence_object_sha256": "0" * 64,
         "expected_canonical_main_parent": PARENT,
     }
     values.update(overrides)
+    if "classification_evidence_object_sha256" not in overrides:
+        provisional = CandidateKnowledgePackage(**values)  # type: ignore[arg-type]
+        stored_evidence = CanonicalAdmissionEvidence(
+            evidence_ref=provisional.classification_evidence_ref,
+            repository_id=provisional.repository_id,
+            pre_admission_subject_sha256=provisional.pre_admission_subject_sha256,
+            decision=provisional.admission_class,
+        )
+        values["classification_evidence_object_sha256"] = stored_evidence.evidence_object_sha256
     return CandidateKnowledgePackage(**values)  # type: ignore[arg-type]
 
 
@@ -85,9 +94,8 @@ def policy() -> PromotionPolicy:
 def admission(item: CandidateKnowledgePackage, **overrides: object) -> CanonicalAdmissionEvidence:
     values: dict[str, object] = {
         "evidence_ref": CLASS_REF,
-        "evidence_object_sha256": CLASS_HASH,
         "repository_id": REPOSITORY_ID,
-        "candidate_identity_sha256": item.identity_sha256,
+        "pre_admission_subject_sha256": item.pre_admission_subject_sha256,
         "decision": AdmissionClass.PUBLIC_SAFE,
     }
     values.update(overrides)
@@ -123,7 +131,7 @@ def packet(**overrides: object) -> ApprovalPacket:
     return ApprovalPacket(**values)  # type: ignore[arg-type]
 
 
-class E64R1PromotionTests(unittest.TestCase):
+class E64R2PromotionTests(unittest.TestCase):
     def prepared(self, item: CandidateKnowledgePackage | None = None, **evidence_overrides: object):
         item = item or candidate()
         resolver = MemoryResolver(evidence(item, **evidence_overrides), admission(item))
@@ -193,8 +201,23 @@ class E64R1PromotionTests(unittest.TestCase):
 
     def test_classification_evidence_mismatch_is_rejected(self) -> None:
         item = candidate()
-        bad = admission(item, candidate_identity_sha256="e" * 64)
+        bad = admission(item, pre_admission_subject_sha256="e" * 64)
         adapter = GitHubNativePromotionAdapter(policy(), MemoryResolver(evidence(item), bad), InMemoryDurablePromotionStore())
+        with self.assertRaises(PromotionError):
+            adapter.prepare(item, packet(), NOW)
+
+    def test_serialized_admission_evidence_hash_builds_final_candidate_acyclically(self) -> None:
+        item = candidate()
+        stored = admission(item)
+        self.assertEqual(stored.evidence_object_sha256, sha256(stored.canonical_bytes()).hexdigest())
+        self.assertEqual(item.classification_evidence_object_sha256, stored.evidence_object_sha256)
+        adapter = GitHubNativePromotionAdapter(policy(), MemoryResolver(evidence(item), stored), InMemoryDurablePromotionStore())
+        request = adapter.prepare(item, packet(), NOW)
+        self.assertTrue(adapter.consume_candidate(request, PARENT).consumed_now)
+
+    def test_changed_admission_evidence_hash_is_rejected(self) -> None:
+        item = candidate(classification_evidence_object_sha256="9" * 64)
+        adapter = GitHubNativePromotionAdapter(policy(), MemoryResolver(evidence(item), admission(item)), InMemoryDurablePromotionStore())
         with self.assertRaises(PromotionError):
             adapter.prepare(item, packet(), NOW)
 
@@ -265,7 +288,7 @@ class E64R1PromotionTests(unittest.TestCase):
     def test_malformed_partial_packet_and_wrong_source_fail_closed(self) -> None:
         with self.assertRaises(PromotionError):
             packet(approval_evidence_ref="")
-        item = candidate(source_provenance_status="UNACCEPTED_E48_R1")
+        item = candidate(source_provenance_status="UNACCEPTED_E48_R2")
         with self.assertRaises(PromotionError):
             self.prepared(item)
 

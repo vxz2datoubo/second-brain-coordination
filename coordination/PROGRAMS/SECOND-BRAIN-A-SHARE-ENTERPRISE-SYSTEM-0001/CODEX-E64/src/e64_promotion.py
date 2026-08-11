@@ -1,4 +1,4 @@
-"""E64 R1 public-safe GitHub-native promotion verification model.
+"""E64 R2 public-safe GitHub-native promotion verification model.
 
 No GitHub API client, credential, signing key, or formal-knowledge writer is
 included.  Production integrations must supply a read-only canonical GitHub
@@ -117,6 +117,25 @@ class CandidateKnowledgePackage:
             "expected_canonical_main_parent": self.expected_canonical_main_parent,
         }
 
+    def pre_admission_subject_payload(self) -> dict[str, object]:
+        """Fields that exist before an admission-evidence object is created."""
+        return {
+            "candidate_package_id": self.candidate_package_id,
+            "repository_id": self.repository_id,
+            "repository_slug": self.repository_slug,
+            "task_id": self.task_id,
+            "route_epoch": self.route_epoch,
+            "digest_bundle": self.digest_bundle.as_dict(),
+            "source_provenance_status": self.source_provenance_status,
+            "target_scope": self.target_scope,
+            "admission_class": self.admission_class.value,
+            "expected_canonical_main_parent": self.expected_canonical_main_parent,
+        }
+
+    @property
+    def pre_admission_subject_sha256(self) -> str:
+        return sha256(_canonical_bytes(self.pre_admission_subject_payload())).hexdigest()
+
     @property
     def identity_sha256(self) -> str:
         return sha256(_canonical_bytes(self.identity_payload())).hexdigest()
@@ -164,16 +183,29 @@ class CanonicalGitHubApprovalEvidence:
 @dataclass(frozen=True)
 class CanonicalAdmissionEvidence:
     evidence_ref: str
-    evidence_object_sha256: str
     repository_id: str
-    candidate_identity_sha256: str
+    pre_admission_subject_sha256: str
     decision: AdmissionClass
 
     def __post_init__(self) -> None:
         if not self.evidence_ref or not self.repository_id:
             raise PromotionError("admission evidence is partial")
-        _require_sha256("admission_evidence_object_sha256", self.evidence_object_sha256)
-        _require_sha256("admission_candidate_identity_sha256", self.candidate_identity_sha256)
+        _require_sha256("pre_admission_subject_sha256", self.pre_admission_subject_sha256)
+
+    def canonical_payload(self) -> dict[str, str]:
+        return {
+            "evidence_ref": self.evidence_ref,
+            "repository_id": self.repository_id,
+            "pre_admission_subject_sha256": self.pre_admission_subject_sha256,
+            "decision": self.decision.value,
+        }
+
+    def canonical_bytes(self) -> bytes:
+        return _canonical_bytes(self.canonical_payload())
+
+    @property
+    def evidence_object_sha256(self) -> str:
+        return sha256(self.canonical_bytes()).hexdigest()
 
 
 class ApprovalEvidenceResolver(Protocol):
@@ -298,9 +330,9 @@ class GitHubNativePromotionAdapter:
             raise PromotionError("classification evidence was not found in canonical control state")
         if (admission.evidence_object_sha256 != candidate.classification_evidence_object_sha256
                 or admission.repository_id != candidate.repository_id
-                or admission.candidate_identity_sha256 != candidate.identity_sha256
+                or admission.pre_admission_subject_sha256 != candidate.pre_admission_subject_sha256
                 or admission.decision is not AdmissionClass.PUBLIC_SAFE):
-            raise PromotionError("classification evidence does not bind this public-safe candidate")
+            raise PromotionError("classification evidence does not bind this public-safe subject")
         evidence = self._resolver.resolve_approval(packet.approval_evidence_ref)
         if evidence is None:
             raise PromotionError("approval evidence was not found in canonical GitHub state")

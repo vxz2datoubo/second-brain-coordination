@@ -33,14 +33,17 @@ HSM-level isolation, or protection from a malicious GitHub administrator.
 | Concurrent main | expected-parent checked again at candidate-promotion time |
 | Private content | admission class rejects non-`PUBLIC_SAFE` before registration |
 
-## R1 evidence and cross-run correction
+## R1/R2 evidence, cross-run, and acyclic admission correction
 
 R1 treats every caller-provided locator as untrusted. A read-only resolver must
 retrieve a canonical GitHub approval-control object and verify its immutable
 object hash, repository identity, task/route, exact candidate identity,
 `APPROVE` decision, control-object identity, canonical-main commit and expiry.
-An upstream admission decision is likewise resolver-verified and bound to the
-candidate identity; it never requires private raw source to be published.
+An upstream admission decision is resolver-verified against an acyclic
+pre-admission subject identity. That identity is computed before the admission
+evidence reference and hash exist. The evidence object is then deterministically
+serialized and hashed; only then may the final candidate include its reference
+and hash. It never requires private raw source to be published.
 
 The one-time claim is not an in-process lock. A future writer must atomically
 create or advance a durable Git-backed marker only when canonical main is the
