@@ -1,0 +1,19 @@
+schema_version: "1.0"
+purpose: "Allowlisted public-safe E54 delivery surface."
+test_commit_allowed_prefixes:
+  - .github/workflows/codex-e54-authority-recertification.yml
+  - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-0050-E54/
+forbidden_patterns:
+  - "**/.env"
+  - "**/*.jsonl"
+  - "**/*.sqlite"
+  - "**/*.db"
+  - "**/__pycache__/"
+  - "**/provider-artifacts/"
+  - "**/local-artifacts/"
+  - "**/private/"
+final_tree_checks:
+  - scan every commit in base..head
+  - scan final tree independently
+  - reject generated or transient path even when added then deleted
+source_import_rule: "No E53 source blob is copied verbatim; E53 selection ledger is evidence-only."

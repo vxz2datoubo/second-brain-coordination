@@ -1,0 +1,46 @@
+record_type: TaskImpactForecast
+schema_version: "1.1"
+task_id: CODEX-E53-POST-RECEIPT-AUTHORITY-REPAIR-FORMAT-OWNERSHIP-MANIFEST-IMMUTABILITY-RELATION-EVIDENCE-MUTATION-COVERAGE-AND-PROVIDER-RECERTIFICATION-0050-E54
+issue_or_pr: "Issue #170 / Draft PR #174"
+prepared_by: CODEX
+prepared_at: "2026-08-06T00:00:00Z"
+mode: project_plan
+task_weight: STRATEGIC
+research_trigger_level: L1_REUSE_AND_QUICK_CHECK
+fundamental_goal: >-
+  Replace E53's self-consistent but incomplete authority checks with independently recomputable,
+  source-bound correctness checks and reproducible public-safe evidence.
+expected_benefits:
+  - id: B1
+    description: Immutable, fully recomputed provenance prevents exposed metadata aliases from being accepted.
+    validation_signal: Alias, stale-object, and projection-divergence tests fail closed.
+  - id: B2
+    description: Format structural bytes cannot become canonical atom content.
+    validation_signal: JSON, JSONL, and Markdown adversarial ownership matrix passes.
+  - id: B3
+    description: Provider evidence becomes independently attributable to the exact tested and receipt heads.
+    validation_signal: Six-job matrix plus byte-compare and strict receipt bindings are green.
+expected_harms:
+  - id: H1
+    description: Re-authoring may introduce new compatibility defects.
+    mitigation: Synthetic corpus, mutation matrix, copied negative cases, and isolated Draft PR.
+  - id: H2
+    description: E53 source may be mistaken for authority during porting.
+    mitigation: Exact selection ledger, no verbatim production copy, E53 marked untrusted.
+constraints:
+  - public-safe synthetic fixtures only
+  - no main write or merge
+  - no private configuration, credentials, market data, account, order, or trading access
+  - frozen E53/E52/QCLAW branches remain read-only
+alternatives_considered:
+  - option: Patch E53 after receipt
+    rejected_because: The receipt-only final topology forbids post-receipt corrective commits.
+  - option: Treat E53 Provider green as sufficient
+    rejected_because: The independent review demonstrated missing invariants and shallow mutations.
+stop_conditions:
+  - canonical route becomes stale or execution is revoked
+  - source selection requires non-public-safe data
+  - a required correction cannot be tested without prohibited access
+net_value_assessment: positive
+confidence: high
+boundary: "research_only / NO_TRADE / no_authority_promotion"
