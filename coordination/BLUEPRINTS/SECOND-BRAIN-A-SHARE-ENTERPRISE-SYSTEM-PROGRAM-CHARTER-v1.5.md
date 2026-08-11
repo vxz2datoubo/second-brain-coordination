@@ -6,7 +6,7 @@
 >
 > `incorporates_v1_4_by_reference: true`
 >
-> `new_module: CONVERSATIONAL-LONG-TERM-MEMORY-0020`
+> `new_module: CONVERSATIONAL-LONG-TERM-MEMORY-0021`
 >
 > `specialized_blueprint: coordination/BLUEPRINTS/CONVERSATIONAL-LONG-TERM-MEMORY-AND-MOBILE-SECOND-BRAIN-BLUEPRINT-v1.0.md`
 >
@@ -18,9 +18,11 @@ v1.5完整继承v1.4的AMED企业执行标准、W1-W13工作流、知识权威�
 
 本版本新增并提升：
 
-`CONVERSATIONAL-LONG-TERM-MEMORY-0020`。
+`CONVERSATIONAL-LONG-TERM-MEMORY-0021`。
 
 该模块不是新工作流，也不是独立记忆运行时，而是 **W3 Knowledge Authority and Long-Term Memory 的核心用户入口与核心长期记忆能力**。
+
+现有`KNOWLEDGE-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-0020`继续负责原始ASR/OCR/口述Source的可审计语义重建和图谱投影；0021在需要时复用0020，不重复建设。
 
 ## 二、核心架构决策
 
@@ -33,6 +35,7 @@ v1.5完整继承v1.4的AMED企业执行标准、W1-W13工作流、知识权威�
 ```text
 ChatGPT Conversation
 → ConversationEpisode / SourceManifest
+→ （需要时）MODULE_0020 NormalizedSemanticView
 → W3 LearningPacket / KnowledgeAtom / Relation / Conflict / UNKNOWN
 → W3 canonical memory runtime
 → MemoryRouter + Trust Gate + Hybrid Retrieval
@@ -110,7 +113,7 @@ ChatGPT原生Memory、Reference Chat History、Project Memory、Scheduled Tasks�
 
 ### CLTM-P0 Canonical Audit
 
-核验PR #57、Issue #38/#59/#60、E61和最新main，冻结唯一W3 runtime和读写边界。
+核验最新main、PR #57、Issue #38/#59/#60、Issue #216/MODULE_0020、当前Codex E61活动路由和durable authority状态，冻结唯一W3 runtime和读写边界。
 
 ### CLTM-P1 First Conversational Vertical Slice
 
@@ -148,7 +151,8 @@ Hot Path + Daily / Weekly / Monthly。
 12. 项目scope隔离，防止跨项目记忆污染；
 13. 不以向量相似度作为唯一召回/信任依据；
 14. 不以“记得更多”作为成功，优先“记得正确、能更新、会拒答、不串库”；
-15. 全程research_only / NO_TRADE。
+15. 复用MODULE_0020语义重建，不复制其Normalization/Graph Projection；
+16. 全程research_only / NO_TRADE。
 
 ## 十、专业研究和验证标准
 
@@ -183,19 +187,22 @@ CLTM实施属于STRATEGIC任务，必须使用AMED并执行L2专业研究。
 7. 长期评测覆盖显式事实与隐含用户约束；
 8. 不发生公开仓私人conversation正文泄漏；
 9. 不发生第二套记忆权威；
-10. 不发生stale/superseded记忆无提示压过当前状态。
+10. 不发生stale/superseded记忆无提示压过当前状态；
+11. 与MODULE_0020语义重建无重复运行时。
 
 ## 十二、当前成熟度
 
 ```yaml
 enterprise_charter: ACTIVE_V1_5_CANDIDATE_ON_GPT_BRANCH
 cltm_module: BLUEPRINT_COMPLETE
+cltm_module_id: CONVERSATIONAL-LONG-TERM-MEMORY-0021
 w3_position: CORE_CAPABILITY_ACCEPTED
 conversation_source: NOT_IMPLEMENTED
 conversation_vertical_slice: NOT_IMPLEMENTED
 memory_router: NOT_IMPLEMENTED
 trust_gate: NOT_IMPLEMENTED
 background_daily_task: EXISTS_CANDIDATE_MODE
+semantic_reconstruction: REUSE_MODULE_0020
 private_durable_store: BLUEPRINT_DEFINED_NOT_VERIFIED_CREATED
 formal_persistence_gate: E61_DEPENDENT
 chatgpt_native_integration: PARTIAL_PRODUCT_CAPABILITY
