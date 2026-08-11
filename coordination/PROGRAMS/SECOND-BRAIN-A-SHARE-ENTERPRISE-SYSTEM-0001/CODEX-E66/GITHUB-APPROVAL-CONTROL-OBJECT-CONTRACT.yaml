@@ -1,0 +1,7 @@
+schema_version: "1.0"
+source: "Synthetic/read-only Issue comment or PR review adapter"
+wire_format: "Exactly E66_APPROVAL_V1 newline followed by one compact JSON object; no extra text."
+required: [object_type, object_id, repository_id, repository_slug, actor_id, decision, task_id, route_epoch, candidate_identity_sha256, expected_parent, expires_at, gpt_review_ref]
+decision: "APPROVE only"
+sequencing: "Freeze expected_parent before control object creation; Issue/PR control objects do not move Git main. If main moves before marker CAS, reject and require fresh approval."
+privacy: "No raw conversation or secret may appear in approval payload."
