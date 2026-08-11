@@ -1,0 +1,42 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64"
+route_epoch: 72
+claim_boundary: "GitHub-native application/workflow integrity only; no independent external trust root."
+candidate_identity:
+  required:
+    - candidate_package_id
+    - repository_id
+    - repository_slug
+    - task_id
+    - route_epoch
+    - raw_artifact_sha256
+    - canonical_semantic_sha256
+    - l0_provenance_sha256
+    - source_provenance_status
+    - target_scope
+    - admission_class
+    - expected_canonical_main_parent
+  canonicalization: "UTF-8 JSON with sorted keys and compact separators; SHA-256."
+approval_packet:
+  required:
+    - approval_id
+    - candidate_identity_sha256
+    - approval_actor_ref
+    - gpt_review_ref
+    - approved_at
+    - expires_at
+  binding: "approval candidate_identity_sha256 must exactly equal the candidate identity."
+promotion_state_machine:
+  states: [APPROVED, CLAIMED, PROMOTED_CANDIDATE, REVOKED, EXPIRED]
+  allowed_transitions:
+    APPROVED: [CLAIMED, REVOKED, EXPIRED]
+    CLAIMED: [PROMOTED_CANDIDATE, REVOKED]
+  prohibitions:
+    - "A non-APPROVED approval cannot be claimed again."
+    - "A promotion capability cannot be used twice."
+    - "A promotion fails if observed canonical main parent differs from expected parent."
+execution_status:
+  current: "CANDIDATE_ONLY"
+  formal_knowledge_written: false
+  real_github_write_performed: false

@@ -1,0 +1,14 @@
+schema_version: "1.0"
+repository_visibility: "PUBLIC_UNCHANGED"
+classes:
+  PUBLIC_SAFE:
+    public_repository_action: "Eligible for candidate promotion after validation and approval."
+    raw_content_action: "May be represented only when independently classified PUBLIC_SAFE."
+  PRIVATE_OR_SENSITIVE:
+    public_repository_action: "BLOCKED"
+    raw_content_action: "Never commit raw content; only redacted metadata/status may be public."
+  SECRET_CREDENTIAL:
+    public_repository_action: "BLOCKED"
+    raw_content_action: "Never commit, echo, or place in a report."
+admission_invariant: "The verifier accepts only PUBLIC_SAFE before approval registration."
+non_claim: "Low watcher count or current public visibility does not make private material safe to publish."
