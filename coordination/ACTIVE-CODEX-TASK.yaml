@@ -1,68 +1,77 @@
-schema_version: "87.0"
+schema_version: "88.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 224
-active_pull_request: 225
-task_id: "CODEX-GITHUB-ONLY-FORMAL-KNOWLEDGE-PROMOTION-0060-E64-R2"
-route_epoch: 75
+active_issue: 227
+active_pull_request: null
+task_id: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
+route_epoch: 76
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】E64 R2 核心候选已验收；等待QCLAW E48 R3后再做真实接口集成"
-status: "WAITING_FOR_QCLAW_E48_R3"
-execution_allowed: false
-automatic_resume_within_task: false
+mode_label: "【Codex模式：项目计划模式】E66 继续Codex自己的GitHub-only正式知识提升主线；不接管QQ"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
 second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
 repository_visibility_change_authorized: false
 
-user_architecture_preference:
-  current: "KEEP_CURRENT_GITHUB_PUBLIC_FOR_NOW"
+user_direction:
+  qclaw_takeover_authorized: false
+  instruction: "QQ ran out of credits, but Codex should continue its own original task rather than taking over QQ's E48 R3."
+  qclaw_worktree_touch_forbidden: true
+  qclaw_pr_221_touch_forbidden: true
+
+architecture:
+  primary: "GITHUB_ONLY_CURRENT_PUBLIC_CONTROL_PLANE"
   aws_primary_path: "SUPERSEDED"
   private_repo_work: "DEFERRED_UNTIL_USER_REOPENS"
   primary_goal: "One integrated GitHub-centered workflow with low operational friction."
 
-accepted_delivery:
+accepted_predecessor:
+  issue: 224
   pull_request: 225
   accepted_head: "9ede293e316e4936bad6083d68c420807fd7ff6b"
   gpt_review_id: 4905327662
-  disposition: "E64_R2_CORE_CANDIDATE_ACCEPTED_WAITING_FOR_E48_R3"
-  accepted:
-    - "Acyclic two-stage admission identity removes the prior classification-evidence SHA fixed-point dependency."
-    - "Canonical admission evidence is deterministically serialized and its real object SHA-256 is used by the golden path."
-    - "Changed pre-admission subject/evidence binding fails closed."
-    - "R1 canonical GitHub approval evidence resolver boundary remains intact; caller prose alone cannot satisfy approval."
-    - "R1 DurablePromotionStore/CAS abstraction remains intact for replay, concurrent duplicate, stale parent and unknown-outcome semantics."
-    - "Exact repository identity, full E48 digest bundle, target and expected-parent bindings remain intact."
-    - "Task-specific GitHub Actions run 31477896922 passed Python 3.11 and 3.13."
-    - "No real writer/resolver, formal write, AWS/external cloud, repository-visibility change, credential handling, merge or trading action occurred."
+  disposition: "E64_R2_CORE_CANDIDATE_ACCEPTED"
+  reusable:
+    - "Acyclic pre-admission subject -> admission evidence hash -> final candidate identity."
+    - "Canonical GitHub approval-evidence resolver boundary."
+    - "Exact repository/task/route/candidate identity bindings."
+    - "Durable CAS/replay/stale-parent/unknown-outcome semantics."
+    - "Typed synthetic E48 full-digest-bundle interface."
+    - "Python 3.11/3.13 CI pattern."
 
-nonblocking_integration_followups:
-  - id: "E64-I1"
-    finding: "PR/threat-model prose still contains stale R0 wording such as nonempty approval refs and lock-protected replay; correct before eventual integration/merge."
-  - id: "E64-I2"
-    finding: "Later live adapter should expose an explicit pre-admission builder/subject object instead of requiring a provisional final candidate with placeholder evidence fields; current R2 proof remains acyclic and accepted."
-  - id: "E64-I3"
-    finding: "Future approval evidence must not silently move canonical main after expected_canonical_main_parent is frozen. Prefer a GitHub Issue/PR review/comment control object, or explicitly redesign parent semantics before a real writer is authorized."
-  - id: "E64-I4"
-    finding: "PR #225 currently trails canonical main and is not authorized for merge; preserve evidence lineage and integrate only through a later reviewed route from current main."
+active_e66_scope:
+  - "Start from exact latest canonical main on a fresh Codex branch/worktree; do not extend stale PR #225 directly."
+  - "Build an explicit two-stage production-facing PreAdmissionSubject/final-candidate construction API without placeholder evidence hashes."
+  - "Define and test a strict GitHub-native approval-control object contract using Issue comments/PR reviews or another existing GitHub control object; free-form prose alone is not approval evidence."
+  - "Close expected-parent versus approval-creation sequencing ambiguity and add stale/main-moved/edited-approval adversarial tests."
+  - "Strengthen DurablePromotionStore into a concrete Git-backed marker/CAS contract using isolated synthetic/local Git tests only."
+  - "Harden PUBLIC_SAFE / PRIVATE_OR_SENSITIVE / SECRET_CREDENTIAL admission evidence and metadata minimization."
+  - "Correct stale E64 documentation and security claims before reuse."
+  - "Keep live E48 producer integration explicitly blocked pending independent E48 R3 acceptance; typed synthetic fixture only."
+  - "Run bounded task-specific Python 3.11/3.13 CI and publish exact evidence/postflight."
 
 parallel_qclaw:
   active_issue: 216
   active_pull_request: 221
   task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
   route_epoch: 52
-  status: "E48_R3_SEMANTIC_ATOMS_AND_PROVENANCE_REMEDIATION"
-  integration_gate: "BLOCKED_PENDING_E48_R3_ACCEPTANCE"
-  reason: "GPT accepted E48 R2 L1/CI/digest direction but rejected L2/L3 semantic atom/provenance semantics pending R3."
+  status: "E48_R3_INTERRUPTED_BY_CREDITS_USER_WILL_RESUME_LATER"
+  live_integration_gate: "BLOCKED_PENDING_E48_R3_ACCEPTANCE"
+  isolation_rule: "Codex must not enter/modify/recover/stash/reset/clean/copy QQ's worktree or PR #221."
 
-next_integration_trigger:
-  condition: "QCLAW E48 R3 independently accepted by GPT with exact producer fields and semantic/provenance invariants."
-  action_after_trigger: "Release a fresh Codex integration route from exact latest canonical main. Reuse accepted E64 R2 logic, update documentation/dependency contracts, connect accepted E48 producer, then run end-to-end synthetic promotion verification."
+superseded_route:
+  issue: 226
+  task: "CODEX-TAKEOVER-QCLAW-E48-R3-SEMANTIC-ATOM-RECOVERY-0061-E65"
+  status: "CANCELLED_NOT_PLANNED"
+  reason: "User clarified Codex should continue its own line and not necessarily take over QQ."
 
 hard_boundaries:
-  - "Do not resume Codex E64 implementation while waiting for E48 R3."
-  - "No merge or direct-main implementation from PR #225."
+  - "Do not touch QQ/QCLAW E48 local worktree or PR #221."
+  - "Do not claim E48 R3 completion or live integration."
+  - "No merge or direct-main implementation."
   - "No real formal GLOBAL/PROJECT knowledge write or unlock."
   - "No AWS/GCP/external issuer and no private-repository work."
   - "No credentials/private keys/tokens/API secrets/session secrets/MFA secrets/private user source in public GitHub."
@@ -78,6 +87,7 @@ local_resource_safety:
   heavy_matrix_or_fanout: "REMOTE_CI"
   required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
 
-next_command: "等待QCLAW E48 R3验收"
+completion_signal: "CODEX_E66_GITHUB_ONLY_PROMOTION_HARDENING_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T18:36:00+08:00"
+updated_at: "2026-08-11T19:04:00+08:00"
