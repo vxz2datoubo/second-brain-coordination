@@ -1,0 +1,15 @@
+schema_version: "1.0"
+record_type: "E48FullDigestAdapterContract"
+status: "LIVE_PRODUCER_PENDING_TYPED_ADAPTER_AVAILABLE"
+required_fields:
+  raw_artifact_sha256: "lowercase 64-character SHA-256"
+  canonical_semantic_sha256: "lowercase 64-character SHA-256"
+  l0_provenance_sha256: "lowercase 64-character SHA-256"
+optional_compatibility_field:
+  legacy_short_content_hash: "16-character hash; never a production identity"
+rejections:
+  - "missing any full digest"
+  - "L1 or L3 derived digest substituted for L0 provenance"
+  - "legacy short hash used as the only identity"
+  - "candidate package target changed after approval"
+owner: "QCLAW E48"

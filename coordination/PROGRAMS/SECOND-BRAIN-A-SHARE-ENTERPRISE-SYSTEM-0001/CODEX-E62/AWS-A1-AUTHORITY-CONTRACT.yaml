@@ -1,0 +1,26 @@
+schema_version: "1.0"
+record_type: "AWSA1AuthorityContract"
+agent_id: "CODEX"
+status: "PUBLIC_SAFE_IMPLEMENTATION_CANDIDATE_NOT_ACTIVATED"
+authority_gates:
+  production_certification_authority_bound: false
+  formal_private_git_write_path_bound: false
+  formal_persistence_unlocked: false
+actors:
+  human_aws_control_identity:
+    boundary: "MFA protected and unavailable to Codex/QCLAW/workflow callers"
+    may: [create_exact_approval, revoke_approval, administer_real_authority_infrastructure_after_later_approval]
+  github_oidc_requester:
+    may: [invoke_exact_issuer]
+    must_not: [create_approval, mutate_arbitrary_ledger, kms_sign, deploy_issuer, mutate_iam_policy, mutate_kms_policy, retrieve_secret]
+  issuer_service:
+    may: [validate_exact_request, conditionally_consume_approval, request_kms_sign]
+    must_not: [create_self_approval, issue_without_preapproval, expose_private_key]
+required_binding:
+  requester_context: [immutable_repository_identity, exact_workflow_ref, refs_heads_main, audience, route_epoch, task_id]
+  package: [raw_artifact_sha256, canonical_semantic_sha256, l0_provenance_sha256]
+  grant: [grant_id, scope, target, approval_ref, approval_identity_ref, issued_at, expiry, nonce, key_id, key_version, canonical_payload]
+failure_policy: "FAIL_CLOSED"
+live_dependency:
+  producer: "QCLAW E48 / Issue #216"
+  missing_bundle_behavior: "typed synthetic fixture only; no formal write"
