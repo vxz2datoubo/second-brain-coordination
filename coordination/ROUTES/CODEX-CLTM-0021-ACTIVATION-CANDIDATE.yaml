@@ -1,0 +1,76 @@
+schema_version: "1.0"
+route_status: "PROPOSED_NOT_ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-ACTIVATION-PREP"
+proposed_route_epoch: 78
+mode: "project_plan"
+canonical_base: "d240f91ce5992036898cb393d69be36159e8b601"
+
+predecessor:
+  task: "CODEX-GITHUB-ONLY-FORMAL-PROMOTION-HARDENING-0062-E66"
+  issue: 227
+  pull_request: 230
+  accepted_head: "36595402caca05364a73cbd170e1b914f0c9de5a"
+  merged_main: "d240f91ce5992036898cb393d69be36159e8b601"
+  disposition: "GPT_ACCEPTED_WITH_NONBLOCKING_FOLLOWUP"
+
+blueprint_source:
+  pull_request: 229
+  branch: "gpt/conversational-long-term-memory-blueprint-v1.5"
+  status: "DESIGN_SOURCE_NOT_CANONICAL"
+  merge_state: "DIVERGED_FROM_CURRENT_MAIN"
+  rule: "Do not mechanically rebase or cherry-pick stale control-plane state. Reconcile architecture onto latest canonical main."
+
+first_stage:
+  name: "CLTM blueprint compatibility and W3 reuse audit"
+  implementation_allowed: false
+  required_outputs:
+    - "PR229-BLUEPRINT-COMPATIBILITY-REPORT.md"
+    - "CANONICAL-W3-RUNTIME-AUDIT.md"
+    - "EXISTING-MEMORY-REUSE-LEDGER.yaml"
+    - "CLTM-ACTIVATION-PLAN.md"
+    - "UNKNOWN-REGISTRY.yaml"
+  decisions: [REUSE, EXTEND, WRAP, MIGRATE, DEPRECATE, REFERENCE_ONLY, UNKNOWN]
+
+architecture_invariants:
+  - "ChatGPT mobile/web/desktop conversation is a first-class W3 Source/Experience Source."
+  - "W3 remains the single long-term memory authority."
+  - "ConversationEpisode remains separate from derived/evolving memory."
+  - "Bitemporal valid-time and record-time semantics are required."
+  - "Correction/supersession must preserve history rather than overwrite it."
+  - "MemoryRouter and Memory Trust Gate are required before context admission."
+  - "Cross-project recall must be scoped by user/project/privacy/task relevance."
+  - "Hybrid retrieval must reuse existing W3 lexical/entity/vector/graph/temporal/source/conflict capabilities rather than create a second stack."
+  - "MODULE_0020 may normalize noisy ASR/OCR/oral inputs but does not become CLTM authority."
+  - "Hot-path candidate capture and Daily/Weekly/Monthly consolidation remain candidate-first."
+
+first_vertical_slice_after_gpt_acceptance:
+  - "Session A: important information -> ConversationEpisode -> candidate memory"
+  - "Session B: cross-session recall without user repetition"
+  - "Session C: user correction/supersession"
+  - "Session D: current query uses corrected state"
+  - "Session E: historical query retrieves superseded state with provenance/valid time"
+
+hard_boundaries:
+  - "This candidate route is not ACTIVE until GPT explicitly promotes it."
+  - "Do not merge PR #229 as-is."
+  - "Do not touch QCLAW PR #221/worktree."
+  - "Live E48 integration remains blocked pending E48 R3 acceptance."
+  - "Formal PROJECT/GLOBAL knowledge write remains locked."
+  - "No private conversation body or private user source in public GitHub."
+  - "No credentials, tokens, secrets, private keys, cookies, sessions or MFA material in Git/logs/fixtures/embeddings/context."
+  - "No private repository creation, visibility changes, production MCP/Gateway deployment or formal write unlock without explicit user/GPT authorization."
+  - "No direct-main implementation write and no auto-merge."
+
+local_resource_safety:
+  codex_task_python_cap: 2
+  combined_cpu_bound_workers_cap: 1
+  nested_parallelism: "FORBIDDEN"
+  heavy_matrix_or_fanout: "REMOTE_CI"
+  required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+
+completion_signal: "CODEX_CLTM_0021_ACTIVATION_PREP_READY_FOR_GPT_REVIEW"
+proposed_next_command_after_activation: "读取CLTM任务"
