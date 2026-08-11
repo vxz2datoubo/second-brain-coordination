@@ -1,4 +1,4 @@
-schema_version: "75.0"
+schema_version: "76.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -8,47 +8,55 @@ automatic_resume: true
 active_issue: 216
 active_pull_request: 221
 task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-route_epoch: 50
+route_epoch: 51
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E48 R1 语义重建正确性修复 + 真实端到端Canary + 双版本CI"
+mode_label: "【QCLAW模式：项目计划模式】E48 R2 真实端到端语义Canary修复 + 低置信度Fail-closed + 双版本CI全绿"
 planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
-completion_signal: "QCLAW_E48_R1_SEMANTIC_RECONSTRUCTION_CORRECTED_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E48_R2_END_TO_END_SEMANTIC_CANARY_CORRECTED_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 
 review_return:
-  gpt_review_id: 4904086170
-  reviewed_head: "64bf7103121811f1e9b73a61d7b64fbc0413c6c3"
-  disposition:
-    remote_control_plane_recovery: "ACCEPTED"
-    graph_projection_direction: "REUSABLE_CANDIDATE"
-    full_digest_direction: "REUSABLE_CANDIDATE"
-    l1_semantic_reconstruction: "REJECTED_PENDING_CORRECTION"
+  gpt_review_id: 4904583603
+  reviewed_head: "d21aa633166d2a7f968c513d4a2302e6fad35385"
+  disposition: "E48_R1_REJECTED_PENDING_R2_END_TO_END_CANARY_CORRECTION"
+  accepted_r1_subfixes:
+    - "Removed destructive adjacent-Han punctuation rule."
+    - "Materialized normalized_text and added deterministic overlap arbitration."
+    - "Persisted exact candidate artifact for raw_artifact_sha256 direction."
+    - "Vendored/inlined vis-network so HTML can be used offline."
+    - "Added task-specific Python 3.11/3.13 CI definition."
   blocking_findings:
-    - "Generic Han-to-Han punctuation rule corrupts ordinary Chinese words (e.g. 讨论→讨。论, 如果→如。果, 成交→成。交)."
-    - "normalized_text remains identical to raw L0 and overlapping edits are not arbitrated, so L1 is not an applied normalized semantic view."
-    - "Committed canary does not end-to-end produce required ambiguity/UNKNOWN/alias/mid-confidence/cross-sentence semantic behavior; tests substitute manual objects/custom strings."
-    - "raw_artifact_sha256 is computed over ad-hoc serialized bytes that are not persisted as the exact certification candidate artifact."
-    - "Visualization claims self-contained while loading vis-network from CDN."
-    - "No E48-specific Python 3.11/3.13 CI evidence observed; only unrelated Phase 3 workflow ran."
+    - "Committed canary L1 still contains ambiguities=[] and unknowns=[]; canary_digests reports ambiguity_count=0 and unknown_count=0."
+    - "Mid/low-confidence semantic edits are still applied to normalized_text when they win overlap arbitration; tests do not assert applied=false or generated ambiguity/UNKNOWN."
+    - "Committed canary source mixes explanatory # metadata with semantic body; trigger tokens in comments make presence-only tests pass on metadata instead of the intended Chinese body."
+    - "Persisted L2 canary atoms A001/A002/A003/A004/A005 point to header comment lines rather than the intended volume/price semantic body because the builder assumes semantic data starts at lines 1-3."
+    - "L2 unknowns and relations are still manually injected in build_canary_projection.py rather than derived through the actual semantic/evidence pipeline."
+    - "Dedicated Python 3.11 and 3.13 unit tests pass, but both overall CI jobs are red because the workflow redirects to canary.out/receipt.txt before creating canary.out."
 
-mandatory_r1:
-  - "Remove the generic adjacent-Han punctuation rule. Default automatic punctuation must be conservative/fail-safe and must not split ordinary Chinese words."
-  - "Add golden normalized-output tests for representative Chinese clauses/words, including 讨论/关系/如果/成交/应该 and the full committed canary."
-  - "Implement deterministic edit conflict/overlap arbitration. No two applied edits may silently mutate overlapping L0 ranges. Ambiguous overlaps become alternatives/UNKNOWN or fail closed."
-  - "Materialize NormalizedSegment.normalized_text as the actual accepted normalized display text while retaining exact immutable L0 raw_text and byte provenance."
-  - "Make the single committed noisy-Chinese canary itself exercise all eight required categories through actual generated artifacts: filler/repetition, punctuation, typo, high-confidence homophone, medium-confidence alternative, unresolved UNKNOWN, terminology alias, cross-sentence mechanism/conditional relation."
-  - "Do not satisfy required canary behavior by manually constructing UnknownMarker/alias/relation objects in tests while the reconstructor output remains empty."
-  - "Persist the exact serialized L2 candidate artifact/blob intended for certification and compute raw_artifact_sha256 over those exact bytes. Keep l0_source_sha256 separately."
-  - "Correct all documentation that incorrectly calls raw_artifact_sha256 the L0/raw-source digest."
-  - "Either make the graph HTML actually offline/self-contained or truthfully label it CDN-dependent; GraphML/JSON remain valid offline exports."
-  - "Add bounded task-specific GitHub Actions CI for the exact E48 suite on Python 3.11 and 3.13, with no nested parallelism/heavy local fanout."
-  - "Regenerate all canary outputs and digests after semantic fixes; old generated outputs are not acceptance evidence."
+mandatory_r2:
+  - "Separate PUBLIC_SAFE fixture metadata/documentation from the immutable raw semantic canary. The raw semantic source consumed by L0 must contain only the intended synthetic transcript/content, not explanatory trigger examples."
+  - "Create one clean committed semantic canary whose actual L1 output itself contains the required high-confidence corrections, at least one medium/low-confidence ambiguity with alternatives, at least one unresolved UNKNOWN, and terminology alias evidence."
+  - "Medium/low-confidence semantic corrections must default fail-closed: do not alter normalized_text unless explicitly resolved by an accepted decision. Represent them as applied=false pending alternatives and/or AmbiguityCandidate/UnknownMarker."
+  - "Add exact golden tests for the whole committed canary: exact normalized_text, exact applied edit list/spans, exact pending ambiguity/UNKNOWN records, and no ordinary Chinese word corruption. Presence-only edit-type assertions are insufficient."
+  - "Fix L2 extraction so atom contents and source spans target the actual semantic body. Add golden assertions for exact A001..An content/span/evidence_kind, not only node counts."
+  - "Do not manually inject UNKNOWN or semantic relations solely to satisfy R2. Implement the smallest deterministic L1/L2 derivation step needed so the committed canary's generated semantic/evidence outputs produce the UNKNOWN and conditional/mechanism relations. If a relation cannot be derived safely, keep it UNKNOWN rather than fabricate it."
+  - "Regenerate L3 only from the corrected generated L1/L2 package and prove every node/edge is traceable to exact L0 evidence or an explicitly labeled inference/unknown."
+  - "Keep the persisted exact L2 candidate artifact and recompute all full SHA-256 digests from the corrected artifact/source."
+  - "Keep the vendored offline visualization fix; regenerate graph JSON/GraphML/HTML from corrected projection."
+  - "Fix CI ordering: create canary.out before any redirect, run canary exactly once per matrix job unless a second deterministic comparison is intentionally asserted, and upload digest/receipt artifacts."
+  - "Require the entire qclaw-e48-semantic-reconstruction workflow to be green on both Python 3.11 and 3.13, not only the unit-test step."
+  - "Keep resource/postflight constraints and publish exact new head + CI run IDs + generated digest bundle, then stop for GPT review."
 
-allowed_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48/**"
-  - "coordination/PROJECT-PLANS/QCLAW-E48-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-AND-GRAPH-PROJECTION-PLAN-v1.0.md"
-  - ".github/workflows/qclaw-e48-semantic-reconstruction.yml"
+verification_required:
+  - "Committed clean canary L1 has nonzero ambiguity_count and nonzero unknown_count generated from the same actual source."
+  - "Low-confidence example does not modify normalized_text before explicit resolution."
+  - "Golden normalized output is readable Chinese and preserves intended meaning."
+  - "L2 atoms contain intended semantic content rather than fixture headers/comments."
+  - "L2/L3 UNKNOWN and relation evidence is generated, traceable, and not manually quota-filled."
+  - "raw_artifact_sha256 equals exact persisted candidate artifact bytes; l0_source_sha256 remains separate."
+  - "Python 3.11 and 3.13 full E48 workflow jobs both succeed, including canary generation and receipt upload."
+  - "Resource postflight reports zero task-owned descendants/orphans and no unrelated termination."
 
 branch_policy:
   keep_current_pr_and_branch: true
@@ -56,17 +64,6 @@ branch_policy:
   rebase_required: false
   force_push_forbidden: true
   amend_forbidden: true
-  current_pr_mergeable_observed: true
-
-verification_required:
-  - "Exact E48 tests pass on GitHub Actions Python 3.11 and 3.13."
-  - "Golden normalized canary output is semantically readable and contains no word-splitting corruption."
-  - "L0 byte hash remains unchanged."
-  - "Every applied normalized edit maps to exact L0 span and applied edit ranges are non-overlapping."
-  - "Actual canary L1 contains explicit ambiguity/UNKNOWN/alias evidence where required."
-  - "Actual L3 relations/UNKNOWN nodes derive from the generated pipeline, not manually substituted test-only objects."
-  - "raw_artifact_sha256 matches exact persisted candidate artifact bytes."
-  - "Resource postflight: zero task-owned descendants/orphans and no unrelated process termination."
 
 formal_persistence:
   status: "BLOCKED"
@@ -93,4 +90,4 @@ hard_boundaries:
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T15:51:00+08:00"
+updated_at: "2026-08-11T17:00:00+08:00"
