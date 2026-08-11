@@ -8,7 +8,7 @@ candidate-only LearningPacket shape for later import by ``MemoryStore``.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from .canonical import content_hash, normalize_text
@@ -23,6 +23,12 @@ _ALLOWED_CLAIM_ROLES = {
     "ASSISTANT_ANALYSIS",
     "ASSISTANT_HYPOTHESIS",
 }
+_PROMPT_INJECTION_MARKERS = (
+    "ignore previous instructions",
+    "ignore all instructions",
+    "system prompt",
+    "developer message",
+)
 
 
 @dataclass(frozen=True)
@@ -45,7 +51,7 @@ class ConversationEpisode:
             raise ValueError("conversation_episode_private_source_denied")
         if self.coverage != "synthetic":
             raise ValueError("conversation_episode_coverage_denied")
-        datetime.fromisoformat(self.recorded_at.replace("Z", "+00:00"))
+        _normalized_instant(self.recorded_at)
 
     @property
     def manifest_id(self) -> str:
@@ -70,18 +76,21 @@ def build_conversation_candidate(
         raise ValueError("assistant_claim_cannot_be_user_memory")
     if not normalize_text(statement):
         raise ValueError("conversation_statement_required")
-    datetime.fromisoformat(valid_from.replace("Z", "+00:00"))
-    if valid_to is not None:
-        datetime.fromisoformat(valid_to.replace("Z", "+00:00"))
+    if any(marker in normalize_text(statement).casefold() for marker in _PROMPT_INJECTION_MARKERS):
+        raise ValueError("conversation_prompt_injection_denied")
+    normalized_valid_from = _normalized_instant(valid_from)
+    normalized_valid_to = _normalized_instant(valid_to) if valid_to is not None else None
+    if normalized_valid_to is not None and normalized_valid_to <= normalized_valid_from:
+        raise ValueError("conversation_valid_time_invalid")
     source_ref = "conversation://" + episode.manifest_id
     validation = {
         "episode_id": episode.episode_id,
         "user_scope": episode.user_scope,
         "project_scope": episode.project_scope,
         "claim_role": claim_role,
-        "valid_from": valid_from,
-        "valid_to": valid_to,
-        "recorded_at": episode.recorded_at,
+        "valid_from": normalized_valid_from,
+        "valid_to": normalized_valid_to,
+        "recorded_at": _normalized_instant(episode.recorded_at),
         "privacy_class": episode.privacy_class,
         "source_pointer_hash": content_hash(episode.source_pointer),
     }
@@ -91,10 +100,86 @@ def build_conversation_candidate(
         validation_report=validation,
         evidence_refs=[source_ref],
         atoms=[{
+            "id": _conversation_atom_id(episode, statement, claim_role, normalized_valid_from, normalized_valid_to),
             "statement": statement,
             "atom_type": "conversation_memory",
             "scope": episode.project_scope,
             "source_refs": [source_ref],
             "knowledge_status": "candidate",
+            "memory_metadata": {"conversation": _conversation_metadata(
+                episode, claim_role, normalized_valid_from, normalized_valid_to
+            )},
         }],
     )
+
+
+def build_conversation_correction(
+    *,
+    episode: ConversationEpisode,
+    statement: str,
+    replaces_atom_id: str,
+    valid_from: str,
+    valid_to: str | None = None,
+) -> dict[str, Any]:
+    """Append a USER_CORRECTION linked to a pre-existing candidate atom."""
+    if not replaces_atom_id or len(replaces_atom_id) > 128:
+        raise ValueError("conversation_correction_target_invalid")
+    candidate = build_conversation_candidate(
+        episode=episode,
+        statement=statement,
+        claim_role="USER_CORRECTION",
+        valid_from=valid_from,
+        valid_to=valid_to,
+    )
+    correction_id = candidate["atoms"][0]["id"]
+    candidate["relations"] = [{
+        "source_atom_id": correction_id,
+        "target_atom_id": replaces_atom_id,
+        "relation_type": "supersedes",
+        "context": "append_preserving_user_correction",
+        "target_existing": True,
+    }]
+    # Relations are part of the content-addressed packet; rebuild through the
+    # existing builder so verification, identity, and idempotency remain exact.
+    return build_learning_packet(
+        source_manifest_ids=candidate["source_manifest_ids"],
+        source_hash=candidate["source_hash"],
+        validation_report=candidate["validation_report"],
+        evidence_refs=candidate["evidence_refs"],
+        atoms=candidate["atoms"],
+        relations=candidate["relations"],
+    )
+
+
+def _conversation_metadata(
+    episode: ConversationEpisode, claim_role: str, valid_from: str, valid_to: str | None
+) -> dict[str, str | None]:
+    return {
+        "episode_manifest_id": episode.manifest_id,
+        "user_scope": episode.user_scope,
+        "project_scope": episode.project_scope,
+        "privacy_class": episode.privacy_class,
+        "claim_role": claim_role,
+        "valid_from": valid_from,
+        "valid_to": valid_to,
+        "recorded_at": _normalized_instant(episode.recorded_at),
+    }
+
+
+def _conversation_atom_id(
+    episode: ConversationEpisode, statement: str, claim_role: str, valid_from: str, valid_to: str | None
+) -> str:
+    return "at-conversation-" + content_hash({
+        "episode": episode.manifest_id,
+        "statement": normalize_text(statement),
+        "role": claim_role,
+        "valid_from": valid_from,
+        "valid_to": valid_to,
+    })[:20]
+
+
+def _normalized_instant(value: str) -> str:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("conversation_time_must_be_timezone_aware")
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 from .canonical import content_hash
@@ -14,7 +15,7 @@ class QueryPlan:
     query_text: str = ""
     scopes: tuple[str, ...] = ()
     atom_types: tuple[str, ...] = ()
-    truth_states: tuple[str, ...] = ("candidate", "approved", "conflict", "superseded", "unknown")
+    truth_states: tuple[str, ...] = ("candidate", "approved", "conflict", "unknown")
     min_confidence: float = 0.0
     time_start: str | None = None
     time_end: str | None = None
@@ -22,6 +23,9 @@ class QueryPlan:
     include_unknowns: bool = True
     relation_depth: int = 0
     budget: int = 50
+    intent: str = "CURRENT"
+    user_scope: str | None = None
+    valid_at: str | None = None
     schema_version: str = "1.0.0"
 
     def validate(self) -> None:
@@ -36,6 +40,16 @@ class QueryPlan:
         states = set(self.truth_states)
         if states.intersection(DENIED_TRUTH_STATES) or not states.issubset(ALLOWED_TRUTH_STATES):
             raise ValueError("query_plan_truth_state_denied_or_unknown")
+        if self.intent not in {"CURRENT", "HISTORICAL"}:
+            raise ValueError("query_plan_intent_invalid")
+        if self.intent == "CURRENT" and "superseded" in states:
+            raise ValueError("query_plan_current_superseded_denied")
+        if self.intent == "HISTORICAL" and not self.valid_at:
+            raise ValueError("query_plan_historical_valid_time_required")
+        if self.valid_at:
+            _parse_instant(self.valid_at)
+        if self.user_scope is not None and not self.user_scope:
+            raise ValueError("query_plan_user_scope_invalid")
 
     def to_dict(self) -> dict[str, Any]:
         self.validate()
@@ -76,6 +90,7 @@ class ContextBundle:
     omitted_due_to_budget: tuple[str, ...]
     context_budget: int
     semantic_access_state: str
+    trust_gate: dict[str, Any]
     authority_write: bool = False
     no_trade_gate: bool = True
 
@@ -123,6 +138,7 @@ class ContextAssembler:
         conflicts = tuple(self.store.conflicts_for(selected_set)) if plan.include_conflicts else ()
         unknowns = tuple(self.store.unknowns_for(selected_set, include_all_open=not bool(plan.query_text))) if plan.include_unknowns else ()
         source_lineage = tuple(sorted({source for atom in atoms if atom for source in atom.get("source_refs", [])}))
+        gate = self._trust_gate(plan, atoms)
         return ContextBundle(
             schema_version="1.0.0",
             query_id="query-" + plan.plan_hash[:16],
@@ -136,6 +152,7 @@ class ContextAssembler:
             omitted_due_to_budget=tuple(omitted),
             context_budget=plan.budget,
             semantic_access_state="FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY",
+            trust_gate=gate,
         )
 
     @staticmethod
@@ -158,4 +175,40 @@ class ContextAssembler:
             return False
         if plan.time_end and atom["updated_at"] > plan.time_end:
             return False
+        conversation = atom.get("memory_metadata", {}).get("conversation")
+        if plan.user_scope is not None:
+            if not conversation or conversation.get("user_scope") != plan.user_scope:
+                return False
+        if conversation:
+            if conversation.get("privacy_class") != "PUBLIC_SAFE_SYNTHETIC":
+                return False
+            if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
+                return False
+            instant = _parse_instant(plan.valid_at) if plan.valid_at else datetime.now(timezone.utc)
+            if not _is_valid_at(conversation, instant):
+                return False
         return True
+
+    @staticmethod
+    def _trust_gate(plan: QueryPlan, atoms: tuple[dict[str, Any] | None, ...]) -> dict[str, Any]:
+        admitted = [atom for atom in atoms if atom is not None]
+        if not admitted:
+            return {"outcome": "ABSTAIN", "reason": "no_in_scope_valid_candidate", "intent": plan.intent}
+        return {
+            "outcome": "ADMIT_CANDIDATE_ONLY",
+            "reason": "scope_privacy_status_and_valid_time_passed",
+            "intent": plan.intent,
+        }
+
+
+def _parse_instant(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("query_plan_or_memory_time_must_be_timezone_aware")
+    return parsed.astimezone(timezone.utc)
+
+
+def _is_valid_at(conversation: dict[str, Any], instant: datetime) -> bool:
+    valid_from = _parse_instant(conversation["valid_from"])
+    valid_to = conversation.get("valid_to")
+    return instant >= valid_from and (valid_to is None or instant < _parse_instant(valid_to))

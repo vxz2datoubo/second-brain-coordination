@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS atoms (
     premises TEXT NOT NULL DEFAULT '[]',
     exceptions TEXT NOT NULL DEFAULT '[]',
     failure_conditions TEXT NOT NULL DEFAULT '[]',
+    memory_metadata TEXT NOT NULL DEFAULT '{}',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -142,6 +143,11 @@ class MemoryStore:
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.executescript(SCHEMA)
+        # Existing Phase 3 databases predate conversation metadata.  This
+        # additive migration preserves all atoms and never creates a new store.
+        columns = {row["name"] for row in self._conn.execute("PRAGMA table_info(atoms)")}
+        if "memory_metadata" not in columns:
+            self._conn.execute("ALTER TABLE atoms ADD COLUMN memory_metadata TEXT NOT NULL DEFAULT '{}'")
         self._conn.commit()
         return self
 
@@ -271,9 +277,13 @@ class MemoryStore:
                 self._upsert_atom(connection, atom)
                 self._index_atom(connection, atom)
             for relation in packet.get("relations", []):
+                if relation.get("target_existing") and connection.execute(
+                    "SELECT 1 FROM atoms WHERE id=?", (relation["target_atom_id"],)
+                ).fetchone() is None:
+                    raise ValueError("supersession_target_missing")
                 self._insert_relation(connection, relation)
                 if relation["relation_type"] == "supersedes":
-                    connection.execute("UPDATE atoms SET knowledge_status='superseded' WHERE id=?", (relation["target_atom_id"],))
+                    self._supersede_atom(connection, relation, packet["atoms"])
             for conflict in packet.get("conflicts", []):
                 conflict_id = conflict.get("id") or "conf-" + content_hash(conflict)[:20]
                 connection.execute(
@@ -319,15 +329,47 @@ class MemoryStore:
         connection.execute(
             """INSERT INTO atoms(id, atom_type, canonical_statement, scope, confidence, verification_status, evidence_quality,
                knowledge_status, gpt_access, transport_visibility, authority_level, source_refs, premises, exceptions,
-               failure_conditions, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               failure_conditions, memory_metadata, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(id) DO UPDATE SET atom_type=excluded.atom_type, canonical_statement=excluded.canonical_statement,
                scope=excluded.scope, confidence=excluded.confidence, verification_status=excluded.verification_status,
                evidence_quality=excluded.evidence_quality, knowledge_status=excluded.knowledge_status,
                gpt_access=excluded.gpt_access, transport_visibility=excluded.transport_visibility,
                authority_level=excluded.authority_level, source_refs=excluded.source_refs, premises=excluded.premises,
-               exceptions=excluded.exceptions, failure_conditions=excluded.failure_conditions, updated_at=excluded.updated_at""",
-            (atom["id"], atom["atom_type"], normalize_text(atom["canonical_statement"]), atom.get("scope", ""), float(atom.get("confidence", 0.5)), atom.get("verification_status", "UNVERIFIED"), atom.get("evidence_quality", "UNKNOWN"), atom.get("knowledge_status", "candidate"), atom.get("gpt_access", "FULL_SEMANTIC_ACCESS"), atom.get("transport_visibility", "PUBLIC_SAFE_METADATA_ONLY"), "CANDIDATE_ONLY", json.dumps(atom.get("source_refs", [])), json.dumps(atom.get("premises", [])), json.dumps(atom.get("exceptions", [])), json.dumps(atom.get("failure_conditions", [])), now, now),
+               exceptions=excluded.exceptions, failure_conditions=excluded.failure_conditions,
+               memory_metadata=excluded.memory_metadata, updated_at=excluded.updated_at""",
+            (atom["id"], atom["atom_type"], normalize_text(atom["canonical_statement"]), atom.get("scope", ""), float(atom.get("confidence", 0.5)), atom.get("verification_status", "UNVERIFIED"), atom.get("evidence_quality", "UNKNOWN"), atom.get("knowledge_status", "candidate"), atom.get("gpt_access", "FULL_SEMANTIC_ACCESS"), atom.get("transport_visibility", "PUBLIC_SAFE_METADATA_ONLY"), "CANDIDATE_ONLY", json.dumps(atom.get("source_refs", [])), json.dumps(atom.get("premises", [])), json.dumps(atom.get("exceptions", [])), json.dumps(atom.get("failure_conditions", [])), json.dumps(atom.get("memory_metadata", {}), sort_keys=True), now, now),
         )
+
+    @staticmethod
+    def _supersede_atom(connection: sqlite3.Connection, relation: dict[str, Any], packet_atoms: list[dict[str, Any]]) -> None:
+        """Preserve the old statement while closing its derived valid-time."""
+        target = connection.execute("SELECT * FROM atoms WHERE id=?", (relation["target_atom_id"],)).fetchone()
+        if target is None:
+            raise ValueError("supersession_target_missing")
+        source = next((item for item in packet_atoms if item["id"] == relation["source_atom_id"]), None)
+        if source is None:
+            raise ValueError("supersession_source_missing")
+        source_conversation = source.get("memory_metadata", {}).get("conversation")
+        target_metadata = json.loads(target["memory_metadata"])
+        target_conversation = target_metadata.get("conversation")
+        if source_conversation or target_conversation:
+            if not source_conversation or not target_conversation:
+                raise ValueError("conversation_supersession_metadata_required")
+            if source_conversation.get("claim_role") != "USER_CORRECTION":
+                raise ValueError("conversation_supersession_requires_user_correction")
+            for key in ("user_scope", "project_scope", "privacy_class"):
+                if source_conversation.get(key) != target_conversation.get(key):
+                    raise ValueError("conversation_supersession_scope_mismatch")
+            if source_conversation["valid_from"] <= target_conversation["valid_from"]:
+                raise ValueError("conversation_supersession_valid_time_invalid")
+            target_conversation["valid_to"] = source_conversation["valid_from"]
+            target_conversation["superseded_by"] = source["id"]
+            target_metadata["conversation"] = target_conversation
+        connection.execute(
+            "UPDATE atoms SET knowledge_status='superseded', memory_metadata=?, updated_at=? WHERE id=?",
+            (json.dumps(target_metadata, sort_keys=True), _now(), relation["target_atom_id"]),
+        )
+        MemoryStore._audit(connection, "ATOM_SUPERSEDED", relation["target_atom_id"], "by=" + relation["source_atom_id"])
 
     def _index_atom(self, connection: sqlite3.Connection, atom: dict[str, Any]) -> None:
         connection.execute("DELETE FROM retrieval_terms WHERE atom_id=?", (atom["id"],))
@@ -368,6 +410,8 @@ def _validate_atom(atom: dict[str, Any]) -> None:
         raise ValueError("atom_truth_state_invalid")
     if atom.get("authority_level", "CANDIDATE_ONLY") != "CANDIDATE_ONLY":
         raise ValueError("atom_authority_promotion_denied")
+    if not isinstance(atom.get("memory_metadata", {}), dict):
+        raise ValueError("atom_memory_metadata_invalid")
     if _contains_secret_value(atom):
         raise ValueError("credential_value_denied")
 
@@ -388,7 +432,7 @@ def _contains_secret_value(value: Any) -> bool:
 
 def _atom(row: sqlite3.Row) -> dict[str, Any]:
     result = dict(row)
-    for field in ("source_refs", "premises", "exceptions", "failure_conditions"):
+    for field in ("source_refs", "premises", "exceptions", "failure_conditions", "memory_metadata"):
         result[field] = json.loads(result[field])
     return result
 

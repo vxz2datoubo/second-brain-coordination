@@ -27,7 +27,9 @@ def build_learning_packet(
 ) -> dict[str, Any]:
     normalized_atoms: list[dict[str, Any]] = []
     for atom in atoms:
-        statement = normalize_text(str(atom.get("statement", "")))
+        # Reassembly paths may provide a previously normalized atom; retain
+        # its canonical statement instead of silently replacing it with empty.
+        statement = normalize_text(str(atom.get("statement", atom.get("canonical_statement", ""))))
         atom_type = normalize_text(str(atom.get("atom_type", "observation"))).lower()
         scope = normalize_text(str(atom.get("scope", "")))
         normalized_atoms.append({
@@ -46,6 +48,10 @@ def build_learning_packet(
             "premises": atom.get("premises", []),
             "exceptions": atom.get("exceptions", []),
             "failure_conditions": atom.get("failure_conditions", []),
+            # Additive metadata is retained by the canonical packet/store path.
+            # ConversationEpisode uses it for bitemporal and scope admission;
+            # it deliberately contains no raw source pointer or body.
+            "memory_metadata": atom.get("memory_metadata", {}),
         })
     normalized_atoms.sort(key=lambda item: item["id"])
 
@@ -62,6 +68,9 @@ def build_learning_packet(
             "confidence": float(relation.get("confidence", 0.5)),
             "context": normalize_text(str(relation.get("context", ""))),
             "knowledge_status": relation.get("knowledge_status", "candidate"),
+            # A correction packet may refer to a pre-existing atom.  The store
+            # verifies that endpoint atomically before it writes the relation.
+            "target_existing": bool(relation.get("target_existing", False)),
         })
     normalized_relations.sort(key=lambda item: item["id"])
 
@@ -119,7 +128,9 @@ def verify_learning_packet(packet: dict[str, Any]) -> dict[str, Any]:
         errors.append("atom_identity_invalid")
     atom_set = set(atom_ids)
     for relation in packet.get("relations", []):
-        if relation.get("source_atom_id") not in atom_set or relation.get("target_atom_id") not in atom_set:
+        if relation.get("source_atom_id") not in atom_set:
+            errors.append("relation_endpoint_missing")
+        elif relation.get("target_atom_id") not in atom_set and not relation.get("target_existing", False):
             errors.append("relation_endpoint_missing")
     if packet.get("packet_id") and packet.get("packet_content_hash"):
         expected_key = packet["packet_id"] + "-" + packet["packet_content_hash"][:16]

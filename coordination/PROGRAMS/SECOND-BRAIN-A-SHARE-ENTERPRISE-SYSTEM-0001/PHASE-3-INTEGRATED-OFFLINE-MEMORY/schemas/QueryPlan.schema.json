@@ -3,7 +3,7 @@
   "$id": "urn:superbrain:p3:QueryPlan:1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["query_text", "scopes", "atom_types", "truth_states", "min_confidence", "include_conflicts", "include_unknowns", "relation_depth", "budget", "schema_version"],
+  "required": ["query_text", "scopes", "atom_types", "truth_states", "min_confidence", "include_conflicts", "include_unknowns", "relation_depth", "budget", "intent", "user_scope", "valid_at", "schema_version"],
   "properties": {
     "query_text": {"type": "string"},
     "scopes": {"type": "array"},
@@ -16,6 +16,9 @@
     "include_unknowns": {"type": "boolean"},
     "relation_depth": {"type": "integer", "minimum": 0},
     "budget": {"type": "integer", "minimum": 1},
+    "intent": {"enum": ["CURRENT", "HISTORICAL"]},
+    "user_scope": {"type": ["string", "null"]},
+    "valid_at": {"type": ["string", "null"]},
     "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"}
   }
 }
