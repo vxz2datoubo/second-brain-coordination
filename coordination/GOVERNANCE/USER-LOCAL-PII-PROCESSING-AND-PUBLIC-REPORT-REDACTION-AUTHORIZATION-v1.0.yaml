@@ -1,0 +1,70 @@
+schema_version: "1.0"
+protocol_id: "USER-LOCAL-PII-PROCESSING-AND-PUBLIC-REPORT-REDACTION-AUTHORIZATION-0001"
+status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+user_authorization_recorded_at: "2026-08-11T12:23:00+08:00"
+purpose: >-
+  Record the user's explicit authorization for Codex and approved project agents to read and process
+  ordinary personal/contact information in local/private project context without stopping merely because
+  such information is present, while preserving strict public-repository redaction and credential-secret boundaries.
+
+authorization:
+  local_private_processing_allowed: true
+  stop_merely_because_pii_present: false
+  allowed_examples:
+    - "real names"
+    - "email addresses"
+    - "telephone/mobile numbers"
+    - "WeChat/contact handles"
+    - "ordinary account/contact identifiers that are not authentication secrets"
+  allowed_purposes:
+    - "repository/workspace audit"
+    - "task execution and migration classification"
+    - "local/private knowledge organization"
+    - "debugging and configuration recovery"
+    - "preparing redacted/public-safe GPT review reports"
+
+public_repository_policy:
+  repository_is_treated_as_public_surface: true
+  raw_personal_contact_info_in_github_reports: "FORBIDDEN_BY_DEFAULT"
+  required_behavior: >-
+    GitHub Issues, PRs, reviews, committed reports and other PUBLIC_SAFE artifacts must minimize or redact
+    personal/contact information unless the user separately and explicitly authorizes publication of that exact field.
+  preferred_redaction_examples:
+    - "email -> [REDACTED_EMAIL] or domain-only when needed"
+    - "phone -> [REDACTED_PHONE] or last 2-4 digits only when operationally necessary"
+    - "WeChat/contact handle -> [REDACTED_CONTACT]"
+  hashes_or_counts_allowed_when_sufficient: true
+
+credential_and_secret_boundary:
+  never_publish_or_commit:
+    - "passwords"
+    - "API keys"
+    - "API secrets"
+    - "access tokens"
+    - "refresh tokens"
+    - "private keys / signing keys"
+    - "session cookies / bearer credentials"
+    - "2FA seeds, OTP secrets, recovery codes"
+    - "credential-bearing URLs"
+  do_not_request_user_to_paste_secrets_into_chat_or_repository: true
+  if_secret_encountered_locally: >-
+    Do not echo, commit or report the secret value. Record only a redacted finding such as secret_type,
+    file/path class if PUBLIC_SAFE, exposure risk, and recommended remediation. Preserve evidence locally only
+    when authorized and necessary; do not broaden access.
+
+codex_behavior:
+  when_read_task_or_audit_encounters_allowed_pii: >-
+    Continue the authorized task. Do not stop solely because ordinary PII/contact information exists.
+    Keep raw values local/private and redact them from GitHub/GPT bridge reports.
+  when_gpt_report_is_requested: >-
+    Publish a PUBLIC_SAFE structured report to the active Issue/PR with sensitive values redacted.
+    The existence of PII is not itself a blocker to reporting.
+  when_credentials_or_secrets_are_encountered: >-
+    Continue only if the task can proceed without exposing/copying the secret. Otherwise stop at the smallest
+    necessary boundary and request a safe user action without asking for the secret value.
+
+precedence:
+  - "This authorization supersedes older stop-on-contact-info behavior for Codex project work."
+  - "It does not authorize public disclosure of raw PII or any credential/secret."
+  - "Task-specific higher-risk user approval gates remain in force."
