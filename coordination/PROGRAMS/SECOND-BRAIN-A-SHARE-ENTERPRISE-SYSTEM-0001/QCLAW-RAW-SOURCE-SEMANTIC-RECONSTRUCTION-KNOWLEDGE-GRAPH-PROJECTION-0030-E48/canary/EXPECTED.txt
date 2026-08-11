@@ -1,0 +1,18 @@
+# E48 canary — corpus expectations
+#
+# These markers are inspected by tests/test_canary_corpus.py. They are not
+# load-bearing for the L1 reconstruction — they are *post-checks* on the view
+# that prove the right edit / ambiguity classes fired.
+#
+# (a) filler words: "呃", "那个", "然后", "就是说", "基本上", "其实"
+#     -> expect NormalizationEdit with edit_type=FILLER_REMOVAL
+# (b) missing punctuation: between two Han chars with no sentence terminator
+#     -> expect NormalizationEdit with edit_type=PUNCTUATION
+# (c) typo: "部份" -> "部分"  (high confidence, edit_type=TYPO_CORRECTION)
+# (d) ASR homophone: "式式" -> "试试"  (high confidence, edit_type=ASR_HOMOPHONE_CORRECTION)
+# (e) mid-confidence correction: low-confidence filler handling keeps alternatives
+# (f) UNKNOWN: "他她" -> UnknownMarker (cannot resolve pronoun)
+# (g) terminology alias: "术语别名" -> "量子纠缠"
+# (h) cross-sentence mechanism: "如果...那么..." carries into the view
+#
+# All corpus text is PUBLIC_SAFE synthetic Chinese.
