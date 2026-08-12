@@ -390,6 +390,8 @@ class MemoryStore:
         if source_conversation or target_conversation:
             if not source_conversation or not target_conversation:
                 raise ValueError("conversation_supersession_metadata_required")
+            if target["knowledge_status"] == "superseded" or target_conversation.get("superseded_by"):
+                raise ValueError("conversation_supersession_target_already_closed")
             if source_conversation.get("claim_role") != "USER_CORRECTION":
                 raise ValueError("conversation_supersession_requires_user_correction")
             for key in ("user_scope", "project_scope", "privacy_class"):
@@ -397,9 +399,16 @@ class MemoryStore:
                     raise ValueError("conversation_supersession_scope_mismatch")
             if _instant(source_conversation["valid_from"]) <= _instant(target_conversation["valid_from"]):
                 raise ValueError("conversation_supersession_valid_time_invalid")
-            # Packet-declared valid_to is immutable and packet-bound.  A later
-            # correction adds only an effective closure to persisted state.
-            target_conversation["effective_valid_to"] = source_conversation["valid_from"]
+            # Packet-declared valid_to is immutable and packet-bound. Derived
+            # closure is monotonic: it may only shorten, never extend, the
+            # historical interval.
+            closure_bounds = [source_conversation["valid_from"]]
+            for field in ("valid_to", "effective_valid_to"):
+                if target_conversation.get(field) is not None:
+                    closure_bounds.append(target_conversation[field])
+            target_conversation["effective_valid_to"] = _canonical_instant(
+                min(closure_bounds, key=_instant)
+            )
             target_conversation["superseded_by"] = source["id"]
             target_metadata["conversation"] = target_conversation
         connection.execute(
@@ -486,3 +495,7 @@ def _instant(value: str) -> datetime:
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("conversation_time_must_be_timezone_aware")
     return parsed.astimezone(timezone.utc)
+
+
+def _canonical_instant(value: str) -> str:
+    return _instant(value).isoformat().replace("+00:00", "Z")

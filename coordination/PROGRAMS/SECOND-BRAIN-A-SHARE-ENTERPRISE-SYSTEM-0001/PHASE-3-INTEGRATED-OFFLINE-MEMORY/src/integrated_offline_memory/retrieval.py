@@ -230,5 +230,9 @@ def _parse_instant(value: str) -> datetime:
 
 def _is_valid_at(conversation: dict[str, Any], instant: datetime) -> bool:
     valid_from = _parse_instant(conversation["valid_from"])
-    valid_to = conversation.get("effective_valid_to") or conversation.get("valid_to")
-    return instant >= valid_from and (valid_to is None or instant < _parse_instant(valid_to))
+    ends = [
+        _parse_instant(value)
+        for value in (conversation.get("valid_to"), conversation.get("effective_valid_to"))
+        if value is not None
+    ]
+    return instant >= valid_from and (not ends or instant < min(ends))

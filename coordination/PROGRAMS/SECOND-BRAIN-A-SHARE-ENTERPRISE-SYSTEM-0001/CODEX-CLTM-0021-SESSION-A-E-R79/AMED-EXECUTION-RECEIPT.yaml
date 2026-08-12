@@ -6,9 +6,9 @@ mode: "project_plan"
 task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
 base_sha: "f90d7f5e31e6d8c517ebc1ff5c331dfc21e5bcfa"
-predecessor_head: "3300d35dee022053ec13a3618eb5a40f5b2f5e51"
+predecessor_head: "32092b921c2cfae651331c3ab86a8dd03b421048"
 mission_and_completion:
-  main_delivery_summary: "R4 hardening of the existing W3 candidate path only; this receipt is committed with the implementation, while exact remote SHA and post-commit CI are recorded in the PR handoff to avoid a receipt-commit loop."
+  main_delivery_summary: "R5 monotonic historical-closure hardening of the existing W3 candidate path only; this receipt is committed with the implementation, while exact remote SHA and post-commit CI are recorded in the PR handoff to avoid a receipt-commit loop."
   success_criteria:
     - criterion: "Conversation identity remains valid after derived supersession closure."
       status: "MET"
@@ -22,6 +22,9 @@ mission_and_completion:
     - criterion: "Supersession ordering compares timezone-aware instants."
       status: "MET"
       evidence: "test_r4_non_z_offset_supersession_is_canonicalized_by_instant"
+    - criterion: "Historical closure uses the earliest declared/effective/correction end and cannot be rebound by a second correction."
+      status: "MET"
+      evidence: "test_r5_declared_expiry_is_earliest_historical_closure; test_r5_second_correction_cannot_rebind_closed_target"
 repository_and_environment:
   repository: "vxz2datoubo/second-brain-coordination"
   branch: "codex/cltm-0021-session-a-e-r79"
@@ -33,7 +36,7 @@ commands_and_tests:
   commands:
     - command: "python coordination/.../PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "193/193 PASS"
+      result: "195/195 PASS"
     - command: "python coordination/.../PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
       exit_code: 0
       result: "PASS; 59 Phase 3 package files scanned; 0 issues"
@@ -52,4 +55,4 @@ unknowns:
     - "No real/private conversation source is authorized or used."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "GPT final R4 code review of the exact pushed head; do not self-merge."
+  next_action: "GPT final R5 code review of the exact pushed head; do not self-merge."

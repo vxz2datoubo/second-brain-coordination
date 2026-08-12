@@ -366,6 +366,74 @@ class ConversationCandidateTestCase(unittest.TestCase):
         finally:
             store.close()
 
+    def test_r5_declared_expiry_is_earliest_historical_closure(self) -> None:
+        original = build_conversation_candidate(
+            episode=episode(), statement="declared expiry wins", claim_role="USER_PREFERENCE",
+            valid_from="2026-08-12T08:00:00Z", valid_to="2026-08-12T10:00:00Z",
+        )
+        correction = build_conversation_correction(
+            episode=correction_episode(), statement="later correction", replaces_atom_id=original["atoms"][0]["id"],
+            valid_from="2026-08-12T12:00:00Z",
+        )
+        store = MemoryStore().connect()
+        try:
+            store.import_learning_packet(original)
+            store.import_learning_packet(correction)
+            old_id = original["atoms"][0]["id"]
+            old = store.get_atom(old_id)
+            self.assertEqual(old["memory_metadata"]["conversation"]["valid_to"], "2026-08-12T10:00:00Z")
+            self.assertEqual(old["memory_metadata"]["conversation"]["effective_valid_to"], "2026-08-12T10:00:00Z")
+            assembler = ContextAssembler(store)
+            before_expiry = assembler.assemble(QueryPlan(
+                query_text="declared expiry wins", scopes=("synthetic-project-a",), user_scope="synthetic-user-a",
+                truth_states=("superseded",), intent="HISTORICAL", valid_at="2026-08-12T09:00:00Z",
+            ))
+            after_expiry = assembler.assemble(QueryPlan(
+                query_text="declared expiry wins", scopes=("synthetic-project-a",), user_scope="synthetic-user-a",
+                truth_states=("superseded",), intent="HISTORICAL", valid_at="2026-08-12T11:00:00Z",
+            ))
+            self.assertEqual([atom["id"] for atom in before_expiry.atoms], [old_id])
+            self.assertEqual(after_expiry.atoms, ())
+        finally:
+            store.close()
+
+    def test_r5_second_correction_cannot_rebind_closed_target(self) -> None:
+        original = build_conversation_candidate(
+            episode=episode(), statement="first closure is final", claim_role="USER_PREFERENCE",
+            valid_from="2026-08-12T00:00:00Z",
+        )
+        old_id = original["atoms"][0]["id"]
+        first = build_conversation_correction(
+            episode=correction_episode(), statement="first correction", replaces_atom_id=old_id,
+            valid_from="2026-08-12T02:00:00Z",
+        )
+        second_episode = ConversationEpisode(
+            episode_id="synthetic-episode-second-correction", user_scope="synthetic-user-a",
+            project_scope="synthetic-project-a", source_pointer="synthetic://episode/second-correction",
+            source_hash="e" * 64, privacy_class="PUBLIC_SAFE_SYNTHETIC", recorded_at="2026-08-12T04:00:00Z",
+        )
+        second = build_conversation_correction(
+            episode=second_episode, statement="second correction", replaces_atom_id=old_id,
+            valid_from="2026-08-12T04:00:00Z",
+        )
+        store = MemoryStore().connect()
+        try:
+            store.import_learning_packet(original)
+            store.import_learning_packet(first)
+            first_closed = store.get_atom(old_id)
+            with self.assertRaisesRegex(ValueError, "conversation_supersession_target_already_closed"):
+                store.import_learning_packet(second)
+            after_rejection = store.get_atom(old_id)
+            self.assertEqual(after_rejection["memory_metadata"]["conversation"]["effective_valid_to"], "2026-08-12T02:00:00Z")
+            self.assertEqual(
+                after_rejection["memory_metadata"]["conversation"]["superseded_by"],
+                first["atoms"][0]["id"],
+            )
+            self.assertEqual(after_rejection["memory_metadata"], first_closed["memory_metadata"])
+            self.assertIsNone(store.get_atom(second["atoms"][0]["id"]))
+        finally:
+            store.close()
+
     def test_pre_cltm_schema_payloads_remain_valid_and_stale_current_is_excluded(self) -> None:
         pre_cltm_plan = {
             "query_text": "legacy", "scopes": [], "atom_types": [],
