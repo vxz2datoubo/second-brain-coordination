@@ -1,4 +1,4 @@
-schema_version: "77.0"
+schema_version: "78.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
@@ -7,67 +7,45 @@ execution_allowed: true
 automatic_resume: true
 active_issue: 216
 active_pull_request: 221
-task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-route_epoch: 52
+task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48-R4"
+route_epoch: 53
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E48 R3 知识原子语义完整性 + SOURCE_EXTRACT provenance + 条件关系修正"
+mode_label: "【QCLAW模式：项目计划模式】E48 R4 最后窄修：DEPENDS_ON方向 + CONDITION边界"
 planned_branch: "qclaw/raw-source-semantic-reconstruction-graph-projection-0030-e48"
-completion_signal: "QCLAW_E48_R3_SEMANTIC_ATOMS_AND_PROVENANCE_CORRECTED_READY_FOR_GPT_REVIEW"
+completion_signal: "QCLAW_E48_R4_RELATION_DIRECTION_AND_CONDITION_BOUNDARY_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 
 review_return:
-  gpt_review_id: 4904878067
-  reviewed_head: "ebc822d791bb845d6c73be3631a29bbc5764937e"
-  disposition: "E48_R2_L1_AND_CI_ACCEPTED_L2_L3_SEMANTICS_REJECTED_PENDING_R3"
-  accepted_r2:
-    - "Clean raw semantic canary is separated from explanatory fixture metadata."
-    - "Same committed L1 produces nonzero ambiguity and UNKNOWN evidence."
-    - "Mid/low-confidence edits fail closed and remain unapplied by default."
-    - "Adjacent-Han punctuation corruption remains fixed and normalized_text materialization/overlap arbitration remain accepted."
-    - "Persisted exact candidate artifact and full SHA-256 digest pipeline remain accepted in direction."
-    - "Offline vendored visualization remains accepted."
-    - "Task-specific GitHub Actions run 31478249185 is fully green on Python 3.11 and 3.13 including canary generation and receipt upload."
-  blocking_findings:
-    - "Normalization operations are promoted as L2 knowledge atoms: filler_removal (including empty content), punctuation, typo and ASR correction nodes pollute the semantic graph."
-    - "Several atoms are marked SOURCE_EXTRACT while atom.content differs from the exact cited L0 byte slice (e.g. 部分 vs 部份, 试试 vs 式式, inserted punctuation/alias replacements), violating direct-evidence semantics."
-    - "Conditional derivation truncates the effect to `价格` because the regex stops at the first whitespace after `那么`; this is not a complete mechanism/effect clause."
-    - "The generated relation `CONDITION -> MECHANISM : REFINES` does not truthfully represent an if/then dependency."
-    - "R2 handoff claims exact golden normalized/atom assertions, but current tests mostly assert presence/count/span-membership; EXPECTED.txt references a nonexistent exact-normalized test."
-    - "The canary is space-separated between nearly every Chinese token, which overfits boundary regexes and is not representative enough of ordinary Chinese ASR/transcript formatting."
+  gpt_review_id: 4915073146
+  reviewed_head: "035dc85504787f2a4cfeaf414dd3b55985fde675"
+  disposition: "E48_R3_FOUNDATION_ACCEPTED_NARROW_RELATION_DIRECTION_BLOCKER_PENDING_R4"
+  accepted_r3:
+    - "L1 normalization operations no longer become ordinary L2/L3 semantic knowledge atoms."
+    - "Terminology normalization differing from L0 is represented as DERIVED_CONCEPT/INFERENCE with L1 edit provenance."
+    - "SOURCE_EXTRACT content is generated from exact L0 byte slices."
+    - "Conditional effect extraction preserves complete effect phrase `价格就倾向于上升` instead of truncating to `价格`."
+    - "Same-canary ambiguity and UNKNOWN behavior remains present and fail-closed."
+    - "Natural-Chinese no-word-spacing regression exists and ordinary Chinese corruption remains guarded."
+    - "Persisted L2/L3 artifacts, visualization and full SHA-256 digest bundle were regenerated."
+    - "GitHub Actions run 31552116164 independently verified green on Python 3.11 and 3.13."
+  blocking_r4:
+    - "Current persisted relation is CONDITION(A003) -> DEPENDS_ON -> MECHANISM(A004), while task semantics and implementation rationale require MECHANISM/effect DEPENDS_ON CONDITION/premise."
+    - "Current CONDITION SOURCE_EXTRACT includes the clause delimiter comma (`成交量上升，`) rather than delimiter-free semantic content (`成交量上升`)."
 
-mandatory_r3:
-  - "Separate L1 normalization provenance from L2 knowledge semantics. Filler removal, punctuation insertion, typo correction and ASR correction operations must remain L1 audit/provenance records and must not automatically become ordinary CandidateKnowledgeAtoms/L3 knowledge nodes."
-  - "Define/retain only meaningful semantic L2 atoms such as concept/condition/mechanism/claim/inference/unknown according to the E47 candidate-knowledge pattern. Do not create atom quotas."
-  - "Add a hard SOURCE_EXTRACT invariant: for every atom with evidence_kind=SOURCE_EXTRACT, atom.content must exactly equal the decoded L0 byte slice for its cited source span."
-  - "If a useful semantic atom uses normalized wording that differs from L0, classify it as derived/inference/normalized semantic content and carry explicit L0 span + relevant L1 edit provenance; never mislabel it as direct SOURCE_EXTRACT."
-  - "Fix conditional extraction so `如果 成交量 上升 那么 价格 就 倾向 于 上升` yields a complete semantic effect/mechanism span such as `价格 就 倾向 于 上升`, bounded before the next contrast/conditional clause."
-  - "Use an existing truthful relation type/direction from the accepted E47 vocabulary; preferred target is MECHANISM/effect DEPENDS_ON CONDITION when semantically justified. Do not invent a new canonical relation solely for the canary."
-  - "Add exact golden assertions for the full committed canary normalized_text, the complete expected semantic L2 atom list (type/content/evidence_kind/exact span), and the complete semantic relation list (type/direction)."
-  - "Add a regression assertion that no normalization-only edit event becomes an L3 knowledge_atom node."
-  - "Correct EXPECTED.txt and handoff documentation so every referenced test actually exists and every claim matches committed behavior."
-  - "Add at least one small natural-Chinese regression input without word-by-word artificial spaces. It may conservatively retain uncertain filler; the mandatory behavior is no semantic corruption and fail-safe handling."
-  - "Regenerate L2/L3, visualization artifacts and all digests after the semantic fix; preserve exact L0 immutability and the accepted full-digest contracts."
-  - "Run the full task-specific Python 3.11/3.13 workflow green again and publish exact head/run IDs/postflight before GPT re-review."
+mandatory_r4:
+  - "Flip relation endpoints so MECHANISM/effect is source_atom_id and CONDITION/premise is target_atom_id for DEPENDS_ON."
+  - "Exact golden relation test must assert relation type plus source/target atom IDs/types/direction; merely checking DEPENDS_ON presence is insufficient."
+  - "Adjust CONDITION extraction/source span to exclude clause delimiter punctuation while preserving SOURCE_EXTRACT byte identity; expected canary content is `成交量上升`."
+  - "Regenerate persisted canary artifact, L3 projection, visualization and all six digests after endpoint/span changes."
+  - "Run full E48 tests and task-specific Python 3.11 + 3.13 CI green."
+  - "Preserve all accepted R3 behavior; additive commit only. No redesign, rebase, force, amend, merge or formal persistence."
 
-verification_required:
-  - "No filler_removal/punctuation/typo/asr edit-operation nodes appear as ordinary semantic knowledge atoms in the committed canary graph."
-  - "Every SOURCE_EXTRACT content is byte-identical to its exact L0 span."
-  - "Normalized/derived wording that differs from L0 is explicitly typed as derived and traceable to L1 edit provenance."
-  - "Canary CONDITION and MECHANISM/effect atoms have exact complete expected content and spans."
-  - "Conditional relation type and direction express the actual dependency, not REFINES-by-default."
-  - "Exact whole-canary normalized_text golden assertion exists and passes."
-  - "Exact semantic atom/relation golden assertions exist and pass."
-  - "Natural-Chinese no-space regression is fail-safe and uncorrupted."
-  - "Full Python 3.11 and 3.13 E48 workflow jobs succeed."
-  - "Resource postflight reports zero task-owned descendants/orphans and no unrelated termination."
-
-branch_policy:
-  keep_current_pr_and_branch: true
-  additive_correction_commits_only: true
-  rebase_required: false
-  force_push_forbidden: true
-  amend_forbidden: true
+learning_readiness_after_r4:
+  candidate_reconstruction_atomization_foundation: "INTENDED_ACCEPT_AFTER_R4_GPT_REVIEW"
+  real_material_candidate_learning_pilot: "NEXT_QCLAW_ROUTE_AFTER_R4_ACCEPTANCE"
+  formal_authoritative_project_global_persistence: "BLOCKED_PENDING_CODEX_GITHUB_ONLY_PROMOTION_INTEGRATION"
+  privacy_rule: "Real/private source material may be processed only in approved local/private candidate-learning flow; raw private content must not be committed to the current public GitHub repository."
 
 formal_persistence:
   status: "BLOCKED"
@@ -94,4 +72,4 @@ hard_boundaries:
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-11T17:37:00+08:00"
+updated_at: "2026-08-12T17:34:00+08:00"
