@@ -1,0 +1,215 @@
+schema_version: "1.0"
+registry_id: "SECOND-BRAIN-LOCAL-EXECUTION-ISSUE-PATTERNS-0001"
+registry_type: "LocalExecutionIssuePatternRegistry"
+owner: "GPT"
+status: "ACTIVE"
+scope: "cross_agent_task_authoring_and_execution"
+canonical_path: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+
+purpose: >-
+  Collect recurring local execution, encoding, parser, shell, path and transport failures across Codex, QCLAW, WorkBuddy and future Agents,
+  so task authors can prevent known failure modes before release. Prefer permanent root-cause elimination when safe and authorized; when a
+  permanent fix is not yet proven or would cross an authorization boundary, require a verified containment/workaround and explicit follow-up.
+
+principles:
+  - "Prevention before recurrence: relevant known patterns must be checked before a task is published or claimed."
+  - "Permanent fix first: if root cause is known and a safe authorized durable fix exists, prefer removing the cause over repeating a workaround."
+  - "Contain when uncertain: if root cause is unknown or permanent remediation crosses a user/authority boundary, use the safest verified workaround and preserve the unknown."
+  - "No single-event overpromotion: one incident does not become a STANDARD merely because a repair worked once."
+  - "Actual parser/compiler/runtime validation beats grep-only or visual inspection when the format has a real parser."
+  - "Task-specific prevention only: do not inject every historical problem into every task; match by tool, format, platform and operation."
+  - "Evidence survives failure: recurring failures, failed permanent fixes and negative results remain useful evidence."
+
+maturity_model:
+  authority: "coordination/ENGINEERING-LEARNING/ENGINEERING-LEARNING-REGISTRY.yaml"
+  levels:
+    - OBSERVATION_ONLY
+    - HYPOTHESIS
+    - PARTIALLY_REPLICATED
+    - REPLICATED
+    - STANDARD_CANDIDATE
+    - STANDARD
+    - DEPRECATED
+    - CONTRADICTED
+  rule: "Frequency informs maturity but never promotes a pattern by itself; mechanism evidence, independent replication and regression protection matter."
+
+task_release_gate:
+  applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
+  required_actions:
+    - "Identify the task's operating system, shells, programming languages, file formats, encodings, path characteristics, parsers/compilers and network transports."
+    - "Read only matching ACTIVE patterns from this registry."
+    - "For applicable STANDARD/STANDARD_CANDIDATE/REPLICATED controls, place the required preventive check directly in the task acceptance criteria unless a documented exception applies."
+    - "For applicable OBSERVATION_ONLY/HYPOTHESIS/PARTIALLY_REPLICATED patterns, add a low-cost check when the downside is material and the check does not create greater complexity."
+    - "State whether the task should attempt a permanent fix, use containment only, or collect evidence for root-cause isolation."
+  publish_blockers:
+    - "A known applicable high-impact parser/encoding/shell safety check is omitted without rationale."
+    - "A task proposes another workaround for a repeatedly observed issue but does not assess whether the root cause can be removed."
+
+execution_gate:
+  required_actions:
+    - "Before the first risky write/parse/build/transport action, apply the matched prevention checks."
+    - "If a known pattern recurs, do not merely retry indefinitely; capture exact symptom, command/tool context and verification evidence."
+    - "If a safe permanent fix is within the task's authorization and does not expand scope materially, implement and regression-test it."
+    - "If permanent remediation is outside authorization, create an explicit follow-up candidate with owner, trigger, evidence and safe interim control."
+
+closeout_gate:
+  required_actions:
+    - "Record new reproducible failure patterns or new evidence for existing patterns."
+    - "Increment recurrence/replication evidence only when the occurrence is materially distinct and verifiable."
+    - "Separate root cause from workaround; unknown root cause must stay unknown."
+    - "For any claimed permanent fix, record regression test, affected scope, rollback and evidence that the failure no longer reproduces."
+    - "Feed mature controls back into task templates, Agent routers, blueprints, tests or environment configuration as appropriate."
+
+pattern_schema:
+  required_fields:
+    - pattern_id
+    - title
+    - category
+    - status
+    - maturity
+    - symptom
+    - affected_context
+    - root_cause_status
+    - root_cause
+    - prevention_checks
+    - permanent_fix_policy
+    - workaround
+    - verification
+    - evidence
+    - recurrence
+    - next_validation
+  optional_fields:
+    - source_aliases
+    - regression_assets
+    - owner
+    - last_seen
+    - failure_of_previous_fix
+    - deprecation_reason
+
+patterns:
+  - pattern_id: "LEIP-UNICODE-001"
+    title: "中文、Unicode、符号、路径与编码边界导致的脚本/配置失败"
+    category: "unicode_encoding_path_quoting"
+    status: "ACTIVE"
+    maturity: "OBSERVATION_ONLY"
+    symptom: >-
+      用户长期观察到给Codex/QCLAW等Agent发布本地编程任务时，中文字符、全角/特殊符号、Unicode路径、引号或编码边界会反复造成脚本、配置、命令或解析失败；具体根因并非每次相同。
+    affected_context:
+      platforms: [WINDOWS]
+      agents: [CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
+      surfaces: [UTF8, BOM, CODEPAGE, UNICODE_PATH, SHELL_QUOTING, YAML, JSON, MARKDOWN, PYTHON, POWERSHELL, GIT]
+    root_cause_status: "MULTIPLE_CAUSES_NOT_YET_UNIFIED"
+    root_cause: >-
+      当前只能确认这是一个跨边界问题族，可能涉及文件编码、终端code page、Unicode路径、智能/全角标点、shell quoting、parser规则或工具链默认编码；不得伪装成单一已证实根因。
+    prevention_checks:
+      - "文本/配置文件默认明确使用UTF-8；若工具要求BOM或其他编码，必须显式声明并验证。"
+      - "含中文/Unicode路径或符号时，使用真实目标路径做最小读写/解析测试，而不是仅用ASCII替代样例。"
+      - "YAML/JSON/TOML/XML等有正式parser的格式必须实际parse；代码必须由对应解释器/编译器/测试运行。"
+      - "跨shell传递字符串时避免不必要的多层内联引用；复杂命令优先写受版本控制的脚本文件。"
+      - "禁止盲目把中文标点、路径或编码全局替换成ASCII；只修已定位边界。"
+    permanent_fix_policy: >-
+      优先寻找并标准化仓库、终端、脚本入口和序列化层的编码合同，并为高频边界增加自动preflight/lint/regression；在未确认单一根因前，不允许宣称已永久修复整个问题族。
+    workaround: "对当前任务做最小可复现测试、显式编码、真实parser/compiler验证和精确quoting；若仍失败，缩小到单一边界再处理。"
+    verification:
+      - "目标文件字节/编码与parser均通过。"
+      - "真实中文/Unicode路径或字符round-trip成功。"
+      - "执行命令退出码和关键输出符合预期。"
+    evidence:
+      - "User directive 2026-08-12: recurring Chinese-character/symbol problems across GPT-authored Codex/QQ tasks should be collected and prevented globally."
+    recurrence:
+      reported_frequency: "RECURRING_BY_USER"
+      independently_verified_count: 0
+    next_validation:
+      - "后续每个可复现Unicode/编码事件按具体根因拆分子模式并累计证据。"
+      - "当出现稳定共因后，设计仓库级UTF-8/Unicode preflight并跨Codex/QCLAW/WorkBuddy验证。"
+    owner: "GPT"
+
+  - pattern_id: "LEIP-YAML-001"
+    source_aliases: ["LIP-YAML-001"]
+    title: "YAML列表缩进漂移导致语法失效"
+    category: "yaml_syntax"
+    status: "ACTIVE"
+    maturity: "HYPOTHESIS"
+    symptom: "同一mapping键下的sequence item缩进不一致，文本视觉上接近正确但标准YAML parser报错。"
+    affected_context:
+      platforms: [ANY]
+      agents: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
+      surfaces: [YAML]
+    root_cause_status: "SUPPORTED_SINGLE_INCIDENT"
+    root_cause: "手工/模型编辑时列表项缩进漂移；grep或diff不能验证YAML语法树。"
+    prevention_checks:
+      - "任何YAML修改都使用标准parser实际解析。"
+      - "关键嵌套字段除parse外再做语义断言。"
+    permanent_fix_policy: "优先把YAML parse +关键字段断言加入相关任务/CI/pre-commit验收；是否上升为全仓强制门禁需更多独立复现。"
+    workaround: "修正缩进后用PyYAML或项目指定parser safe_load并读取预期字段。"
+    verification: ["parser_exit_zero", "expected_nested_fields_present"]
+    evidence:
+      - "eustia-ai-film PR #1 second-round GPT review found invalid AI_HANDOFF.yaml indentation; repaired and parsed with PyYAML."
+    recurrence:
+      observed_count: 1
+      independent_replication_count: 1
+    next_validation: ["在后续至少两个独立YAML任务中验证parser gate是否防止同类返工。"]
+    owner: "GPT"
+
+  - pattern_id: "LEIP-PSPY-001"
+    source_aliases: ["LIP-PSPY-001"]
+    title: "PowerShell调用Python -c时多层引号转义失败"
+    category: "cross_shell_quoting"
+    status: "ACTIVE"
+    maturity: "HYPOTHESIS"
+    symptom: "PowerShell传递Python -c源码时嵌套引号被拆分，Python SyntaxError或参数语义漂移，继而造成验证脚本误报。"
+    affected_context:
+      platforms: [WINDOWS]
+      agents: [CODEX, WORKBUDDY, FUTURE_AGENT]
+      surfaces: [POWERSHELL, PYTHON]
+    root_cause_status: "SUPPORTED_SINGLE_INCIDENT"
+    root_cause: "调用shell与内嵌Python源码共享未正确分层的引号/转义语义。"
+    prevention_checks:
+      - "跨shell内联代码先独立运行最小可执行命令。"
+      - "复杂逻辑优先写临时或受版本控制脚本文件，减少多层quoting。"
+      - "调用方检查真实退出码，不把stderr文本存在与否当唯一判断。"
+    permanent_fix_policy: "若该模式继续复现，建立统一Windows command-wrapper/helper并加回归；单次事件先保持HYPOTHESIS。"
+    workaround: "使用外层PowerShell字符串与内层Python字符串分离的引号策略，或改用脚本文件。"
+    verification: ["minimal_command_passes", "caller_checks_LASTEXITCODE", "expected_assertion_passes"]
+    evidence:
+      - "eustia-ai-film PR #1 validation script initially hit PowerShell/Python -c quoting SyntaxError and was repaired."
+    recurrence:
+      observed_count: 1
+      independent_replication_count: 1
+    next_validation: ["记录未来Windows跨shell任务是否再现，并比较脚本文件方案的返工率。"]
+    owner: "GPT"
+
+  - pattern_id: "LEIP-GIT-HTTPS-001"
+    source_aliases: ["LIP-GIT-001"]
+    title: "Git HTTPS瞬时connection reset导致fetch/push失败"
+    category: "git_transport"
+    status: "ACTIVE"
+    maturity: "HYPOTHESIS"
+    symptom: "git fetch/push到github.com出现Recv failure: Connection was reset，而GitHub API或稍后重试可能成功。"
+    affected_context:
+      platforms: [WINDOWS]
+      agents: [CODEX, WORKBUDDY, FUTURE_AGENT]
+      surfaces: [GIT_HTTPS, GITHUB]
+    root_cause_status: "UNKNOWN"
+    root_cause: "尚未确认；目前只能判断为传输层瞬时失败候选，不能归因于鉴权、仓库配置或GitHub服务本身。"
+    prevention_checks:
+      - "保留工作树和本地提交，不因网络失败reset/rebase/clean。"
+      - "用git ls-remote和GitHub API区分远端身份/权限与传输瞬断。"
+      - "成功前不得声称远端已同步；成功后按远端SHA回读。"
+    permanent_fix_policy: >-
+      先累计失败时间、命令、网络环境和成功/失败对照；只有证据指向稳定根因后再修改Git/网络配置。不得把无限重试或改写历史称为永久修复。
+    workaround: "最小范围安全重试；必要时在明确授权且有expected-head/CAS保护时使用GitHub API原子写入，并回读验证。"
+    verification: ["remote_ref_or_API_SHA_matches_expected", "ahead_behind_verified", "no_history_rewrite"]
+    evidence:
+      - "eustia-ai-film PR #1 repair observed multiple Git HTTPS resets; GitHub API remained usable and final remote SHA was verified."
+    recurrence:
+      observed_count: 2
+      independent_replication_count: 1
+    next_validation: ["继续记录跨任务发生率；若跨多个任务/时间段复现，再升级并调查网络/Git配置共因。"]
+    owner: "GPT"
+
+migration_note:
+  source: "eustia-ai-film PR #1 temporary local issue collection"
+  decision: >-
+    The pattern concept is cross-project execution governance and belongs in second-brain-coordination. The film repository should not own this registry; only film-specific production lessons remain there.
+  imported_on: "2026-08-12"
