@@ -20,6 +20,7 @@ for source_root in (
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.cli import main
+from integrated_offline_memory.canonical import content_hash
 from integrated_offline_memory.memory_store import MemoryStore
 from integrated_offline_memory.private_candidate_ingestion import (
     DAILY_MEMORY_CANDIDATE_TRANSPORT_V1,
@@ -44,6 +45,31 @@ def daily_v2_fixture() -> dict:
     """Public-safe compatibility fixture using enabled Daily-v2 report fields."""
 
     return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+def correction_package(*, candidate_id: str, replaces_candidate_id: str, episode_id: str) -> dict:
+    package = daily_v2_fixture()
+    package["CONVERSATION_EPISODES"].append({
+        "episode_id": episode_id, "observed_at": "2026-08-12T02:00:00+08:00",
+        "valid_time": "2026-08-12T02:00:00+08:00", "speaker": "USER",
+        "source_scope": {"user_scope": "opaque-user-a", "project_scope": "opaque-project-a"},
+        "source_ref": "local-private://opaque-fixture/" + episode_id,
+        "provenance": {"kind": "private-local", "opaque_ref": episode_id},
+        "provenance_quality": "DIRECT", "summary": "synthetic correction",
+    })
+    package["MEMORY_CANDIDATES"] = [{
+        "candidate_id": candidate_id, "candidate_type": "USER_CORRECTION",
+        "statement": "synthetic corrected preference " + candidate_id,
+        "supporting_episode_ids": [episode_id], "valid_from": "2026-08-12T02:00:00+08:00",
+        "valid_to": None, "recorded_at": "2026-08-12T02:00:00+08:00",
+        "sensitivity_class": "PRIVATE_OR_SENSITIVE",
+        "correction_target": {"replaces_candidate_id": replaces_candidate_id, "relation_provenance": "daily-v2-user-correction"},
+    }]
+    package["DERIVED_DAILY_PROJECTION"]["supporting_episode_ids"] = [episode_id]
+    package["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"] = [candidate_id]
+    package["VALIDATION"]["candidate_dispositions"] = {candidate_id: "ACCEPTED"}
+    package["VALIDATION"]["sensitivity_by_candidate"] = {candidate_id: "PRIVATE_OR_SENSITIVE"}
+    return package
 
 
 class PrivateCandidateIngestionTestCase(unittest.TestCase):
@@ -211,6 +237,109 @@ class PrivateCandidateIngestionTestCase(unittest.TestCase):
                 ingest_daily_memory_candidate_v2(package, store)
             self.assertEqual(store.stats()["atoms"], 0)
             self.assertEqual(store.stats()["packets"], 0)
+        finally:
+            store.close()
+
+    def test_candidate_missing_times_use_only_its_supporting_episode_or_fail_closed(self) -> None:
+        package = daily_v2_fixture()
+        candidate = package["MEMORY_CANDIDATES"][0]
+        candidate["supporting_episode_ids"] = ["opaque-user-episode-002"]
+        candidate.pop("valid_from")
+        candidate.pop("recorded_at")
+        transport = serialize_daily_memory_candidate_v2_report(package)
+        normalized = transport["candidates"][0]
+        self.assertEqual(normalized["valid_from"], "2026-08-11T16:02:00Z")
+        self.assertEqual(normalized["recorded_at"], "2026-08-11T16:02:00Z")
+        ambiguous = daily_v2_fixture()
+        ambiguous["MEMORY_CANDIDATES"][0].pop("valid_from")
+        ambiguous["MEMORY_CANDIDATES"][0].pop("recorded_at")
+        with self.assertRaisesRegex(ValueError, "candidate_time_ambiguous"):
+            serialize_daily_memory_candidate_v2_report(ambiguous)
+
+    def test_correction_lifecycle_conflicts_leave_daily_package_store_unchanged(self) -> None:
+        store = MemoryStore().connect()
+        try:
+            ingest_daily_memory_candidate_v2(daily_v2_fixture(), store)
+            ingest_daily_memory_candidate_v2(correction_package(
+                candidate_id="opaque-first-correction", replaces_candidate_id="opaque-user-memory-001",
+                episode_id="opaque-first-correction-episode",
+            ), store)
+            before_closed = store.stats()
+            package = daily_v2_fixture()
+            package["MEMORY_CANDIDATES"].append({
+                "candidate_id": "opaque-ordinary-after-closed", "candidate_type": "USER_DECISION",
+                "statement": "synthetic ordinary must not persist", "supporting_episode_ids": ["opaque-user-episode-002"],
+                "valid_from": "2026-08-12T03:00:00+08:00", "valid_to": None,
+                "recorded_at": "2026-08-12T03:00:00+08:00", "sensitivity_class": "PRIVATE_OR_SENSITIVE",
+                "correction_target": None,
+            })
+            closed = correction_package(
+                candidate_id="opaque-closed-target-correction", replaces_candidate_id="opaque-user-memory-001",
+                episode_id="opaque-closed-target-episode",
+            )
+            package["CONVERSATION_EPISODES"].append(closed["CONVERSATION_EPISODES"][-1])
+            package["MEMORY_CANDIDATES"].append(closed["MEMORY_CANDIDATES"][0])
+            package["DERIVED_DAILY_PROJECTION"]["supporting_episode_ids"].append("opaque-closed-target-episode")
+            package["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"].extend([
+                "opaque-ordinary-after-closed", "opaque-closed-target-correction",
+            ])
+            package["VALIDATION"]["candidate_dispositions"].update({
+                "opaque-ordinary-after-closed": "ACCEPTED", "opaque-closed-target-correction": "ACCEPTED",
+            })
+            package["VALIDATION"]["sensitivity_by_candidate"].update({
+                "opaque-ordinary-after-closed": "PRIVATE_OR_SENSITIVE", "opaque-closed-target-correction": "PRIVATE_OR_SENSITIVE",
+            })
+            with self.assertRaisesRegex(ValueError, "target_already_closed"):
+                ingest_daily_memory_candidate_v2(package, store)
+            self.assertEqual(store.stats(), before_closed)
+        finally:
+            store.close()
+
+        store = MemoryStore().connect()
+        try:
+            ingest_daily_memory_candidate_v2(daily_v2_fixture(), store)
+            package = correction_package(
+                candidate_id="opaque-batch-correction-one", replaces_candidate_id="opaque-user-memory-001",
+                episode_id="opaque-batch-correction-episode-one",
+            )
+            duplicate = correction_package(
+                candidate_id="opaque-batch-correction-two", replaces_candidate_id="opaque-user-memory-001",
+                episode_id="opaque-batch-correction-episode-two",
+            )
+            package["CONVERSATION_EPISODES"].append(duplicate["CONVERSATION_EPISODES"][-1])
+            package["MEMORY_CANDIDATES"].append(duplicate["MEMORY_CANDIDATES"][0])
+            package["DERIVED_DAILY_PROJECTION"]["supporting_episode_ids"].append("opaque-batch-correction-episode-two")
+            package["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"].append("opaque-batch-correction-two")
+            package["VALIDATION"]["candidate_dispositions"]["opaque-batch-correction-two"] = "ACCEPTED"
+            package["VALIDATION"]["sensitivity_by_candidate"]["opaque-batch-correction-two"] = "PRIVATE_OR_SENSITIVE"
+            before_duplicate = store.stats()
+            with self.assertRaisesRegex(ValueError, "target_duplicate_in_batch"):
+                ingest_daily_memory_candidate_v2(package, store)
+            self.assertEqual(store.stats(), before_duplicate)
+        finally:
+            store.close()
+
+    def test_external_candidate_aliases_remain_auditable_and_resolve_corrections(self) -> None:
+        first_id, alias_id = "opaque-user-memory-001", "opaque-user-memory-alias-002"
+        store = MemoryStore().connect()
+        try:
+            first = ingest_daily_memory_candidate_v2(daily_v2_fixture(), store)
+            alias = daily_v2_fixture()
+            alias["MEMORY_CANDIDATES"][0]["candidate_id"] = alias_id
+            alias["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"][0] = alias_id
+            alias["VALIDATION"]["candidate_dispositions"] = {alias_id: "ACCEPTED", "opaque-project-state-002": "ACCEPTED"}
+            alias["VALIDATION"]["sensitivity_by_candidate"] = {alias_id: "PRIVATE_OR_SENSITIVE", "opaque-project-state-002": "PRIVATE_OR_SENSITIVE"}
+            second = ingest_daily_memory_candidate_v2(alias, store)
+            atom_id = first.packets[0]["atoms"][0]["id"]
+            self.assertEqual(second.packets[0]["atoms"][0]["id"], atom_id)
+            aliases = store.get_atom(atom_id)["memory_metadata"]["conversation"]["daily_candidate_id_hashes"]
+            self.assertEqual(aliases, sorted([content_hash(first_id), content_hash(alias_id)]))
+            self.assertEqual(store.provenance_for_atom(atom_id)[0]["daily_candidate_id_hashes"], aliases)
+            correction = ingest_daily_memory_candidate_v2(correction_package(
+                candidate_id="opaque-alias-correction", replaces_candidate_id=alias_id,
+                episode_id="opaque-alias-correction-episode",
+            ), store)
+            self.assertEqual(correction.packets[0]["relations"][0]["target_atom_id"], atom_id)
         finally:
             store.close()
 

@@ -30,7 +30,7 @@ _PROMPT_INJECTION_MARKERS = (
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
 _CONVERSATION_OPTIONAL = {
     "source_episode_manifest_ids", "source_episodes", "daily_candidate_id_hash",
-    "candidate_confidence",
+    "daily_candidate_id_hashes", "candidate_confidence",
 }
 
 
@@ -297,6 +297,14 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
     external_id_hash = conversation.get("daily_candidate_id_hash")
     if external_id_hash is not None and (
         not isinstance(external_id_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", external_id_hash)
+    ):
+        return ["conversation_external_candidate_identity_invalid"]
+    external_id_hashes = conversation.get("daily_candidate_id_hashes", [])
+    if (
+        not isinstance(external_id_hashes, list)
+        or external_id_hashes != sorted(set(external_id_hashes))
+        or any(not isinstance(item, str) or not re.fullmatch(r"[0-9a-f]{64}", item) for item in external_id_hashes)
+        or (external_id_hash is not None and external_id_hash not in external_id_hashes)
     ):
         return ["conversation_external_candidate_identity_invalid"]
     confidence = conversation.get("candidate_confidence")

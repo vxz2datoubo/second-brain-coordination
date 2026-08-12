@@ -9,7 +9,7 @@ task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
 local_execution_issues: "LEIP-UNICODE-001 independently verified once during review-thread retrieval; recorded in canonical registry as a contained decoding-boundary occurrence, not a permanent Unicode-family fix."
 mission_and_completion:
-  main_delivery_summary: "R4 makes DailyMemoryCandidateTransport-v1 the strict machine boundary behind a tolerant enabled-report normalizer; it persists only hashed external Daily candidate identity, resolves corrections locally before writes, and preserves candidate confidence plus episode valid-time/provenance quality through existing W3 ContextBundle evidence."
+  main_delivery_summary: "R5 adds true single-transaction Daily-package imports, candidate-owned fail-closed temporal derivation, and a sorted hashed external-identity alias mapping on the existing W3 atom; corrections resolve every retained alias locally without private identifiers entering public evidence."
   success_criteria:
     - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
       status: "MET"
@@ -22,7 +22,13 @@ mission_and_completion:
       evidence: "test_user_correction_uses_canonical_supersession_current_historical using replaces_candidate_id, not a producer-supplied W3 atom ID"
     - criterion: "A malformed later correction cannot partially mutate a Daily package."
       status: "MET"
-      evidence: "test_preflight_invalid_correction_leaves_no_partial_mutation"
+      evidence: "test_preflight_invalid_correction_leaves_no_partial_mutation plus test_correction_lifecycle_conflicts_leave_daily_package_store_unchanged"
+    - criterion: "A candidate missing temporal fields can use only its own unambiguous supporting episode; unrelated package episodes cannot set it."
+      status: "MET"
+      evidence: "test_candidate_missing_times_use_only_its_supporting_episode_or_fail_closed"
+    - criterion: "Distinct producer identities sharing one canonical atom remain auditable and both resolve later corrections."
+      status: "MET"
+      evidence: "test_external_candidate_aliases_remain_auditable_and_resolve_corrections"
     - criterion: "Daily report variants preserve coverage state, actor/source alternatives, confidence, episode valid-time and provenance quality."
       status: "MET"
       evidence: "test_report_variants_confidence_and_episode_evidence_survive"
@@ -45,12 +51,12 @@ scope_accounting:
   completed:
     - "canonical private/local source classification"
     - "tolerant Daily-v2 report normalizer and strict versioned machine transport contract"
-    - "hash-persisted producer candidate identity; local correction resolution and package preflight"
+    - "single-transaction Daily-package import, candidate-owned temporal derivation and stable hash-alias identity mapping"
     - "canonical correction/supersession; explicit non-import/no-op; truthful aggregate receipt"
     - "exact imported-atom recall; data-root policy; source-binding state; confidence and multi-episode ContextBundle provenance"
     - "synthetic/public-safe regression and adversarial coverage"
   not_completed:
-    - "real private source canary (explicitly deferred until GPT R4 acceptance)"
+    - "real private source canary (explicitly deferred until GPT R5 acceptance)"
   deliberately_rejected_or_removed:
     - item: "formal PROJECT/GLOBAL promotion"
       reason: "Route epoch 81 explicitly locks formal persistence."
@@ -79,7 +85,7 @@ commands_and_tests:
   commands:
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "Phase 3 full regression PASS: 205/205 tests in 6.471s. R4 private-candidate compatibility/adversarial coverage PASS: 10/10."
+      result: "Phase 3 full regression PASS: 208/208 tests in 6.522s. R5 private-candidate compatibility/adversarial coverage PASS: 13/13."
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
       exit_code: 0
       result: "PASS: 68 files scanned; 0 issues."
@@ -102,7 +108,7 @@ unknowns:
     - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "GPT R4 review of exact pushed head; do not run real canary, merge, or unlock any gate."
+  next_action: "GPT R5 review of exact pushed head; do not run real canary, merge, or unlock any gate."
 local_execution_issue_details:
   - id: "LEIP-UNICODE-001"
     问题特征: "The bundled review-thread reader used the Windows GBK default and could not decode UTF-8 GitHub review text."

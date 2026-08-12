@@ -8,7 +8,7 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, Sequence
 
 from .canonical import content_hash, normalize_text
 from .learning_packet import _conversation_contract_errors, verify_learning_packet
@@ -204,6 +204,7 @@ class MemoryStore:
 
     def provenance_for_atom(self, atom_id: str) -> list[dict[str, Any]]:
         """Resolve existing W3 packet lineage without exposing a raw pointer."""
+        stored_conversation = (self.get_atom(atom_id) or {}).get("memory_metadata", {}).get("conversation", {})
         rows = self.conn.execute(
             """SELECT packets.id, packets.content_hash, packets.json_blob
                FROM packet_atoms JOIN packets ON packets.id=packet_atoms.packet_id
@@ -238,6 +239,7 @@ class MemoryStore:
                 # Every entry is privacy-minimized: source reference hashes and
                 # opaque episode identifiers only, never raw pointers/bodies.
                 "source_episodes": source_episodes,
+                "daily_candidate_id_hashes": stored_conversation.get("daily_candidate_id_hashes", []),
             })
         return result
 
@@ -304,49 +306,73 @@ class MemoryStore:
         return result
 
     def import_learning_packet(self, packet: dict[str, Any]) -> dict[str, Any]:
-        verdict = verify_learning_packet(packet)
-        if not verdict["valid"]:
-            raise ValueError("invalid_learning_packet:" + ",".join(verdict["errors"]))
-        if _contains_secret_value(packet):
-            raise ValueError("credential_value_denied")
-        existing = self.conn.execute("SELECT id FROM packets WHERE idempotency_key=?", (packet["idempotency_key"],)).fetchone()
-        if existing:
-            return {"status": "IDEMPOTENT_DUPLICATE", "packet_id": existing["id"], "atoms_inserted": 0, "revision_id": self.latest_revision_id()}
+        """Import one packet through the same atomic batch boundary."""
+
+        return self.import_learning_packets_atomic((packet,))[0]
+
+    def import_learning_packets_atomic(self, packets: Sequence[dict[str, Any]]) -> tuple[dict[str, Any], ...]:
+        """Import all packets in one W3 transaction or persist none of them."""
+
+        for packet in packets:
+            verdict = verify_learning_packet(packet)
+            if not verdict["valid"]:
+                raise ValueError("invalid_learning_packet:" + ",".join(verdict["errors"]))
+            if _contains_secret_value(packet):
+                raise ValueError("credential_value_denied")
+        if not packets:
+            return ()
+        results: list[dict[str, Any]] = []
         with self.transaction() as connection:
-            inserted = 0
-            for atom in packet["atoms"]:
-                if connection.execute("SELECT 1 FROM atoms WHERE id=?", (atom["id"],)).fetchone() is None:
-                    inserted += 1
-                self._upsert_atom(connection, atom)
-                self._index_atom(connection, atom)
-            for relation in packet.get("relations", []):
-                if relation.get("target_existing") and connection.execute(
-                    "SELECT 1 FROM atoms WHERE id=?", (relation["target_atom_id"],)
-                ).fetchone() is None:
-                    raise ValueError("supersession_target_missing")
-                self._insert_relation(connection, relation)
-                if relation["relation_type"] == "supersedes":
-                    self._supersede_atom(connection, relation, packet["atoms"])
-            for conflict in packet.get("conflicts", []):
-                conflict_id = conflict.get("id") or "conf-" + content_hash(conflict)[:20]
-                connection.execute(
-                    "INSERT OR IGNORE INTO conflicts(id, atom_id_a, atom_id_b, conflict_type, resolution_status, resolution_note) VALUES(?,?,?,?,?,?)",
-                    (conflict_id, conflict["atom_id_a"], conflict["atom_id_b"], conflict.get("conflict_type", "DIRECT"), conflict.get("resolution_status", "UNRESOLVED"), conflict.get("resolution_note", "")),
-                )
-            for unknown in packet.get("unknowns", []):
-                unknown_id = unknown.get("id") or "unk-" + content_hash(unknown)[:20]
-                connection.execute(
-                    "INSERT OR IGNORE INTO unknowns(id, question, scope, related_atom_ids, source_refs, status) VALUES(?,?,?,?,?,?)",
-                    (unknown_id, unknown["question"], unknown.get("scope", ""), json.dumps(unknown.get("related_atom_ids", [])), json.dumps(unknown.get("source_refs", packet["evidence_refs"])), unknown.get("status", "OPEN")),
-                )
+            for packet in packets:
+                existing = connection.execute(
+                    "SELECT id FROM packets WHERE idempotency_key=?", (packet["idempotency_key"],)
+                ).fetchone()
+                if existing:
+                    results.append({
+                        "status": "IDEMPOTENT_DUPLICATE", "packet_id": existing["id"],
+                        "atoms_inserted": 0, "revision_id": self.latest_revision_id(),
+                    })
+                    continue
+                results.append(self._import_learning_packet_in_transaction(connection, packet))
+        return tuple(results)
+
+    def _import_learning_packet_in_transaction(
+        self, connection: sqlite3.Connection, packet: dict[str, Any],
+    ) -> dict[str, Any]:
+        inserted = 0
+        for atom in packet["atoms"]:
+            if connection.execute("SELECT 1 FROM atoms WHERE id=?", (atom["id"],)).fetchone() is None:
+                inserted += 1
+            self._upsert_atom(connection, atom)
+            self._index_atom(connection, atom)
+        for relation in packet.get("relations", []):
+            if relation.get("target_existing") and connection.execute(
+                "SELECT 1 FROM atoms WHERE id=?", (relation["target_atom_id"],)
+            ).fetchone() is None:
+                raise ValueError("supersession_target_missing")
+            self._insert_relation(connection, relation)
+            if relation["relation_type"] == "supersedes":
+                self._supersede_atom(connection, relation, packet["atoms"])
+        for conflict in packet.get("conflicts", []):
+            conflict_id = conflict.get("id") or "conf-" + content_hash(conflict)[:20]
             connection.execute(
-                "INSERT INTO packets(id, content_hash, idempotency_key, status, authority_write, base_knowledge_version, json_blob, ingested_at) VALUES(?,?,?,?,?,?,?,?)",
-                (packet["packet_id"], packet["packet_content_hash"], packet["idempotency_key"], packet["status"], 0, packet["base_knowledge_version"], json.dumps(packet, ensure_ascii=False, sort_keys=True), _now()),
+                "INSERT OR IGNORE INTO conflicts(id, atom_id_a, atom_id_b, conflict_type, resolution_status, resolution_note) VALUES(?,?,?,?,?,?)",
+                (conflict_id, conflict["atom_id_a"], conflict["atom_id_b"], conflict.get("conflict_type", "DIRECT"), conflict.get("resolution_status", "UNRESOLVED"), conflict.get("resolution_note", "")),
             )
-            for atom in packet["atoms"]:
-                connection.execute("INSERT INTO packet_atoms(packet_id, atom_id) VALUES(?,?)", (packet["packet_id"], atom["id"]))
-            revision_id = self._create_revision(connection, packet["packet_id"])
-            self._audit(connection, "PACKET_IMPORT", packet["packet_id"], f"atoms_inserted={inserted};revision={revision_id}")
+        for unknown in packet.get("unknowns", []):
+            unknown_id = unknown.get("id") or "unk-" + content_hash(unknown)[:20]
+            connection.execute(
+                "INSERT OR IGNORE INTO unknowns(id, question, scope, related_atom_ids, source_refs, status) VALUES(?,?,?,?,?,?)",
+                (unknown_id, unknown["question"], unknown.get("scope", ""), json.dumps(unknown.get("related_atom_ids", [])), json.dumps(unknown.get("source_refs", packet["evidence_refs"])), unknown.get("status", "OPEN")),
+            )
+        connection.execute(
+            "INSERT INTO packets(id, content_hash, idempotency_key, status, authority_write, base_knowledge_version, json_blob, ingested_at) VALUES(?,?,?,?,?,?,?,?)",
+            (packet["packet_id"], packet["packet_content_hash"], packet["idempotency_key"], packet["status"], 0, packet["base_knowledge_version"], json.dumps(packet, ensure_ascii=False, sort_keys=True), _now()),
+        )
+        for atom in packet["atoms"]:
+            connection.execute("INSERT INTO packet_atoms(packet_id, atom_id) VALUES(?,?)", (packet["packet_id"], atom["id"]))
+        revision_id = self._create_revision(connection, packet["packet_id"])
+        self._audit(connection, "PACKET_IMPORT", packet["packet_id"], f"atoms_inserted={inserted};revision={revision_id}")
         return {"status": "IMPORTED", "packet_id": packet["packet_id"], "atoms_inserted": inserted, "revision_id": revision_id}
 
     def latest_revision_id(self) -> str:
@@ -368,6 +394,7 @@ class MemoryStore:
         return {"integrity_ok": not issues, "issues": issues, "stats": self.stats()}
 
     def _upsert_atom(self, connection: sqlite3.Connection, atom: dict[str, Any]) -> None:
+        atom = self._with_merged_daily_candidate_aliases(connection, atom)
         now = _now()
         connection.execute(
             """INSERT INTO atoms(id, atom_type, canonical_statement, scope, confidence, verification_status, evidence_quality,
@@ -382,6 +409,41 @@ class MemoryStore:
                memory_metadata=excluded.memory_metadata, updated_at=excluded.updated_at""",
             (atom["id"], atom["atom_type"], normalize_text(atom["canonical_statement"]), atom.get("scope", ""), float(atom.get("confidence", 0.5)), atom.get("verification_status", "UNVERIFIED"), atom.get("evidence_quality", "UNKNOWN"), atom.get("knowledge_status", "candidate"), atom.get("gpt_access", "FULL_SEMANTIC_ACCESS"), atom.get("transport_visibility", "PUBLIC_SAFE_METADATA_ONLY"), "CANDIDATE_ONLY", json.dumps(atom.get("source_refs", [])), json.dumps(atom.get("premises", [])), json.dumps(atom.get("exceptions", [])), json.dumps(atom.get("failure_conditions", [])), json.dumps(atom.get("memory_metadata", {}), sort_keys=True), now, now),
         )
+
+    @staticmethod
+    def _with_merged_daily_candidate_aliases(
+        connection: sqlite3.Connection, atom: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Preserve every hashed producer identity for one canonical atom."""
+
+        incoming = atom.get("memory_metadata", {}).get("conversation", {})
+        incoming_hash = incoming.get("daily_candidate_id_hash")
+        if incoming_hash is None:
+            return atom
+        existing = connection.execute("SELECT memory_metadata FROM atoms WHERE id=?", (atom["id"],)).fetchone()
+        if existing is None:
+            aliases = sorted(set(incoming.get("daily_candidate_id_hashes", []) + [incoming_hash]))
+            result = dict(atom)
+            metadata = dict(atom.get("memory_metadata", {}))
+            conversation = dict(incoming)
+            conversation["daily_candidate_id_hashes"] = aliases
+            metadata["conversation"] = conversation
+            result["memory_metadata"] = metadata
+            return result
+        existing_conversation = json.loads(existing["memory_metadata"]).get("conversation", {})
+        aliases = set(existing_conversation.get("daily_candidate_id_hashes", []))
+        aliases.update(incoming.get("daily_candidate_id_hashes", []))
+        aliases.update(filter(None, (existing_conversation.get("daily_candidate_id_hash"), incoming_hash)))
+        result = dict(atom)
+        metadata = dict(atom.get("memory_metadata", {}))
+        conversation = dict(incoming)
+        # The first observed external identity remains the stable primary; the
+        # sorted alias list makes later identity additions deterministic.
+        conversation["daily_candidate_id_hash"] = existing_conversation.get("daily_candidate_id_hash") or min(aliases)
+        conversation["daily_candidate_id_hashes"] = sorted(aliases)
+        metadata["conversation"] = conversation
+        result["memory_metadata"] = metadata
+        return result
 
     @staticmethod
     def _supersede_atom(connection: sqlite3.Connection, relation: dict[str, Any], packet_atoms: list[dict[str, Any]]) -> None:

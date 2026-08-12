@@ -20,6 +20,14 @@ The hardest boundary is permitting a local candidate body in the existing candid
 
 An initial synthetic test exposed that a second validation pass had omitted the schema version. This was corrected before the passing focused and full regression runs. LOCAL_EXECUTION_ISSUES = NONE_OBSERVED; the failed assertion was a normal implementation defect, not an environment execution issue.
 
+## R5 remediation evidence
+
+R5 adds a genuine single transaction around all accepted packets in one Daily package at the existing `MemoryStore` authority. Before it enters that boundary, correction identity resolution explicitly rejects an already-superseded target and duplicate target claims within the same package. The adversarial lifecycle test adds an ordinary candidate before the invalid correction and proves the complete store statistics are unchanged; it also proves two corrections to one open target are rejected with zero new store state.
+
+Missing `valid_from` or `recorded_at` is no longer inferred from package episode zero. The normalizer accepts a missing temporal value only when that candidate's own supporting episode set yields exactly one canonical instant; otherwise it fails closed. A distinct producer candidate ID with the same canonical atom is preserved as a sorted set of content-hash aliases in existing W3 conversation metadata. The original primary hash remains stable, provenance exposes only the alias hashes, and a subsequent correction resolves either alias under the existing user/project/time gate.
+
+No real private canary was run. R5 is synthetic/public-safe adversarial hardening only; all formal/private/live gates remain locked pending GPT review.
+
 ## R4 remediation evidence
 
 The R3 audit found five remaining structural blockers. R4 makes DailyMemoryCandidateTransport-v1 the explicit strict machine contract and treats DailyMemoryCandidate-v2 as a human-report input that needs tolerant normalization. The normalizer accepts current producer alternatives such as lower-case coverage, actor/speaker and source-ref/provenance variants, optional candidate timing/sensitivity fields and validation/rejection layouts while retaining partial/unknown coverage and included/excluded-source semantics.

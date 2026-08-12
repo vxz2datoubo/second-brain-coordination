@@ -137,6 +137,7 @@ def build_conversation_candidate(
         "source_pointer_hashes": [content_hash(item.source_pointer) for item in all_episodes],
         "source_episodes": _source_episode_provenance(all_episodes),
         "daily_candidate_id_hash": content_hash(external_candidate_id) if external_candidate_id else None,
+        "daily_candidate_id_hashes": [content_hash(external_candidate_id)] if external_candidate_id else [],
         "candidate_confidence": float(candidate_confidence) if candidate_confidence is not None else None,
     }
     return build_learning_packet(
@@ -240,6 +241,7 @@ def _conversation_metadata(
         ),
         "source_episodes": _source_episode_provenance((episode, *additional_episodes)),
         "daily_candidate_id_hash": content_hash(external_candidate_id) if external_candidate_id else None,
+        "daily_candidate_id_hashes": [content_hash(external_candidate_id)] if external_candidate_id else [],
         "candidate_confidence": float(candidate_confidence) if candidate_confidence is not None else None,
     }
 

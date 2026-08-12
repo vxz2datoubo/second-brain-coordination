@@ -207,6 +207,7 @@ def normalize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dic
     }
     accepted = set(validation.get("accepted_candidate_ids", []))
     sensitivity = dict(validation.get("sensitivity_by_candidate", {})) if isinstance(validation.get("sensitivity_by_candidate", {}), Mapping) else {}
+    episode_by_id = {item["episode_id"]: item for item in normalized_episodes}
     for candidate in candidates:
         _require_fields(candidate, {"candidate_id", "candidate_type", "statement", "supporting_episode_ids"}, "daily_v2_candidate_schema_invalid")
         candidate_id = candidate["candidate_id"]
@@ -221,9 +222,16 @@ def normalize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dic
             raise ValueError("daily_v2_sensitivity_mismatch")
         sensitivity[candidate_id] = candidate_sensitivity
         candidate["sensitivity_class"] = candidate_sensitivity
-        candidate["valid_from"] = candidate.get("valid_from", normalized_episodes[0]["valid_time"])
-        candidate["valid_to"] = candidate.get("valid_to")
-        candidate["recorded_at"] = candidate.get("recorded_at", normalized_episodes[0]["recorded_at"])
+        candidate["valid_from"] = _candidate_temporal_value(
+            candidate, episode_by_id, "valid_from", "valid_time"
+        )
+        candidate["valid_to"] = (
+            _canonical_instant(candidate["valid_to"])
+            if candidate.get("valid_to") is not None else None
+        )
+        candidate["recorded_at"] = _candidate_temporal_value(
+            candidate, episode_by_id, "recorded_at", "recorded_at"
+        )
         candidate["correction_target"] = candidate.get("correction_target")
         candidate["confidence"] = _normalize_confidence(candidate.get("confidence", "MEDIUM"))
     return {
@@ -362,11 +370,11 @@ def ingest_daily_memory_candidate_v2(
         serialize_daily_memory_candidate_v2_report(package)
     )
     resolved = tuple(_resolve_correction_target(envelope, store) for envelope in envelopes)
+    _preflight_correction_lifecycle(resolved, store)
     packets = tuple(build_private_w3_candidate_envelope(envelope) for envelope in resolved)
-    # All packet and correction-target checks above complete before the first
-    # import transaction. A malformed later correction cannot leave an earlier
-    # candidate from this Daily package silently committed.
-    import_results = tuple(store.import_learning_packet(packet) for packet in packets)
+    # The existing W3 store owns one transaction for the entire Daily package.
+    # Any later import invariant failure rolls back every earlier package item.
+    import_results = tuple(store.import_learning_packets_atomic(packets))
     assembler = context_assembler or ContextAssembler(store)
     recalled: set[str] = set()
     for envelope, packet in zip(resolved, packets):
@@ -495,19 +503,61 @@ def _resolve_correction_target(envelope: Mapping[str, Any], store: MemoryStore) 
         return normalized
     wanted = content_hash(normalized["correction_target_candidate_id"])
     matches = []
+    closed_matches = []
     for atom in store.all_atoms():
         conversation = atom.get("memory_metadata", {}).get("conversation", {})
+        aliases = set(conversation.get("daily_candidate_id_hashes", []))
+        if conversation.get("daily_candidate_id_hash"):
+            aliases.add(conversation["daily_candidate_id_hash"])
         if (
-            conversation.get("daily_candidate_id_hash") == wanted
+            wanted in aliases
             and conversation.get("user_scope") == normalized["user_scope"]
             and conversation.get("project_scope") == normalized["project_scope"]
             and _canonical_instant(conversation.get("valid_from")) < _canonical_instant(normalized["valid_from"])
         ):
-            matches.append(atom["id"])
+            (closed_matches if atom.get("knowledge_status") == "superseded" or conversation.get("superseded_by") else matches).append(atom["id"])
+    if closed_matches:
+        raise ValueError("daily_v2_correction_target_already_closed")
     if len(matches) != 1:
         raise ValueError("daily_v2_correction_target_unresolved")
     normalized["correction_target_atom_id"] = matches[0]
     return _validate_w3_private_envelope(normalized)
+
+
+def _preflight_correction_lifecycle(envelopes: Sequence[Mapping[str, Any]], store: MemoryStore) -> None:
+    """Reject lifecycle conflicts before the batch enters the W3 transaction."""
+
+    targets = [
+        envelope["correction_target_atom_id"] for envelope in envelopes
+        if envelope["claim_role"] == "USER_CORRECTION"
+    ]
+    if len(targets) != len(set(targets)):
+        raise ValueError("daily_v2_correction_target_duplicate_in_batch")
+    for target_id in targets:
+        target = store.get_atom(target_id)
+        conversation = (target or {}).get("memory_metadata", {}).get("conversation", {})
+        if target is None or target.get("knowledge_status") == "superseded" or conversation.get("superseded_by"):
+            raise ValueError("daily_v2_correction_target_already_closed")
+
+
+def _candidate_temporal_value(
+    candidate: Mapping[str, Any], episode_by_id: Mapping[str, Mapping[str, Any]], field: str, episode_field: str,
+) -> str:
+    """Use an explicit candidate instant or one unambiguous supporting instant."""
+
+    explicit = candidate.get(field)
+    if explicit is not None:
+        return _canonical_instant(explicit)
+    source_ids = candidate.get("supporting_episode_ids")
+    if not isinstance(source_ids, list) or not source_ids or len(source_ids) != len(set(source_ids)):
+        raise ValueError("daily_v2_candidate_provenance_invalid")
+    try:
+        values = {_canonical_instant(episode_by_id[source_id][episode_field]) for source_id in source_ids}
+    except KeyError as error:
+        raise ValueError("daily_v2_candidate_episode_missing") from error
+    if len(values) != 1:
+        raise ValueError("daily_v2_candidate_time_ambiguous")
+    return values.pop()
 
 
 def _normalize_confidence(value: Any) -> float:
