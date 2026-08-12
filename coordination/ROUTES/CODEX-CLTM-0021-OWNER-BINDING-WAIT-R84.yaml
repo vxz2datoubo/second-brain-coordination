@@ -1,0 +1,80 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-OWNER-BINDING-WAIT"
+route_epoch: 84
+mode: "owner_dependency_wait"
+status: "WAITING_FOR_OWNER_BINDING"
+execution_allowed: false
+automatic_resume_within_task: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: false
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+real_private_raw_body_publication_allowed: false
+private_source_discovery_allowed: false
+repository_visibility_change_authorized: false
+production_mcp_gateway_deployment_authorized: false
+private_repository_creation_authorized: false
+
+canonical_main_at_route_publish: "06474d7386db5a4e416e48d8c81cf0dd327328b3"
+predecessor:
+  task_id: "CODEX-CLTM-0021-PRIVATE-SOURCE-BINDING-CANARY"
+  route_epoch: 83
+  disposition: "GPT_E83_BINDING_CHECKPOINT_ACCEPTED_WAITING"
+  first_wait_checkpoint_comment: 5267088114
+  gpt_wait_audit_comment: 5267249489
+  repeated_binding_result: "PRIVATE_SOURCE_BINDING_WAITING"
+
+wait_reason: >-
+  The merged private-candidate bridge is ready, but no explicit owner-authorized local private data root and no explicit readable
+  DailyMemoryCandidate-v2 package path are configured. Re-running the same binding-status gate without those dependencies is non-productive.
+
+owner_resume_requirements:
+  required_environment:
+    - "CLTM_PRIVATE_DATA_ROOT"
+    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
+  required_source_state:
+    - "The private data root exists outside the public repository."
+    - "The DailyMemoryCandidate-v2 file exists under that private root, is readable, owner-authorized, and validates under the merged transport contract."
+  forbidden_substitutes:
+    - "placeholder paths"
+    - "empty or synthetic file presented as a real private canary source"
+    - "filesystem/home/browser/profile discovery"
+    - "path guessing"
+
+resume_contract:
+  owner_signal: "OWNER_PRIVATE_BINDING_CONFIGURED"
+  next_step: "GPT publishes a later resume route that re-enables only the bounded epoch-83 binding check/canary flow."
+  codex_before_resume: "STOP"
+  repeated_read_task_behavior: "Do not re-run the binding gate while this route remains ACTIVE. Report WAITING_FOR_OWNER_BINDING only."
+
+preserved_milestone:
+  private_candidate_bridge_merged: true
+  implementation_merge_commit: "1963075c05a5d32c8b7df939e77f8cbd3282b4c0"
+  architectural_milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
+
+hard_boundaries:
+  - "No private source discovery, read, normalization, ingestion, store creation or canary while waiting."
+  - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
+  - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
+  - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
+  - "No E48/live integration."
+  - "No private repository creation or visibility/permission change."
+  - "No production MCP/Memory App/Gateway deployment."
+  - "No second canonical memory/query/bundle/vector/graph/temporal authority."
+  - "No trading/accounts/funds actions."
+
+local_execution_learning:
+  pythonpath_observation: "R83-LOCAL-PYTHONPATH-001"
+  maturity: "OBSERVATION_ONLY"
+  registry_status: "NOT_YET_CANONICALIZED"
+  canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+  rule: "Do not claim a permanent fix or global PYTHONPATH standard from one occurrence."
+
+updated_by: "GPT"
+updated_at: "2026-08-12T21:29:00+08:00"
