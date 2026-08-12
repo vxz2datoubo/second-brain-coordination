@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .canonical import content_hash, normalize_text
-from .learning_packet import build_learning_packet
+from .learning_packet import build_learning_packet, conversation_atom_id
 
 
 _ALLOWED_CLAIM_ROLES = {
@@ -100,7 +100,9 @@ def build_conversation_candidate(
         validation_report=validation,
         evidence_refs=[source_ref],
         atoms=[{
-            "id": _conversation_atom_id(episode, statement, claim_role, normalized_valid_from, normalized_valid_to),
+            "id": conversation_atom_id(
+                statement, _conversation_metadata(episode, claim_role, normalized_valid_from, normalized_valid_to)
+            ),
             "statement": statement,
             "atom_type": "conversation_memory",
             "scope": episode.project_scope,
@@ -164,18 +166,6 @@ def _conversation_metadata(
         "valid_to": valid_to,
         "recorded_at": _normalized_instant(episode.recorded_at),
     }
-
-
-def _conversation_atom_id(
-    episode: ConversationEpisode, statement: str, claim_role: str, valid_from: str, valid_to: str | None
-) -> str:
-    return "at-conversation-" + content_hash({
-        "episode": episode.manifest_id,
-        "statement": normalize_text(statement),
-        "role": claim_role,
-        "valid_from": valid_from,
-        "valid_to": valid_to,
-    })[:20]
 
 
 def _normalized_instant(value: str) -> str:

@@ -12,6 +12,8 @@
 - D3: canonical main advanced to `f90d7f5...`; route remained epoch 79, allowing the same branch/PR to continue. Git HTTPS intermittently failed during fetches; no reset, rebase or stale-base implementation was used.
 - D4: real ingestion, durable formal writes, private repository, E48 and production Gateway were not attempted.
 
+R4 discovery and correction: the R3 audit found that a mutable closure field had leaked into atom identity, and that generic/direct paths could bypass packet lineage or adapter-only content checks. The implementation now treats packet-declared valid-time as immutable, stores a derived effective closure separately, requires packet lineage for conversation admission, binds atom metadata to packet validation/provenance, and compares UTC instants rather than timestamp strings. Two failed local targeted test runs exposed a stale helper name and a static-method store-access error; both were corrected before the passing R4 adversarial run.
+
 Hardest part: retaining pre-CLTM 1.0 payload compatibility while making conversation-specific retrieval stricter. The chosen boundary is: legacy payloads parse, but CURRENT admission always excludes superseded/stale/revoked states and conversation atoms require explicit compatible user/project/time binding.
 
 Cross-agent boundary: CODEX owns candidate runtime code and evidence; GPT owns review, merge and any persistence unlock; QCLAW/E48 remains reference-only; USER owns privacy and production authority. The next gate is GPT review of the exact R3 remote head.

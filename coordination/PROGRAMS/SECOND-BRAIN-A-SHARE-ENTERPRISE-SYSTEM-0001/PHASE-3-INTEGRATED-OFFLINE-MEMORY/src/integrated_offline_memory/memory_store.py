@@ -173,6 +173,8 @@ class MemoryStore:
 
     def insert_atom(self, atom: dict[str, Any]) -> str:
         _validate_atom(atom)
+        if atom.get("atom_type") == "conversation_memory":
+            raise ValueError("conversation_requires_learning_packet_import")
         with self.transaction() as connection:
             self._upsert_atom(connection, atom)
             self._index_atom(connection, atom)
@@ -183,6 +185,8 @@ class MemoryStore:
         existing = self.get_atom(atom_id)
         if existing is None:
             return False
+        if existing.get("atom_type") == "conversation_memory":
+            raise ValueError("conversation_update_requires_learning_packet_import")
         merged = {**existing, **updates, "id": atom_id}
         _validate_atom(merged)
         with self.transaction() as connection:
@@ -391,9 +395,11 @@ class MemoryStore:
             for key in ("user_scope", "project_scope", "privacy_class"):
                 if source_conversation.get(key) != target_conversation.get(key):
                     raise ValueError("conversation_supersession_scope_mismatch")
-            if source_conversation["valid_from"] <= target_conversation["valid_from"]:
+            if _instant(source_conversation["valid_from"]) <= _instant(target_conversation["valid_from"]):
                 raise ValueError("conversation_supersession_valid_time_invalid")
-            target_conversation["valid_to"] = source_conversation["valid_from"]
+            # Packet-declared valid_to is immutable and packet-bound.  A later
+            # correction adds only an effective closure to persisted state.
+            target_conversation["effective_valid_to"] = source_conversation["valid_from"]
             target_conversation["superseded_by"] = source["id"]
             target_metadata["conversation"] = target_conversation
         connection.execute(
@@ -473,3 +479,10 @@ def _atom(row: sqlite3.Row) -> dict[str, Any]:
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _instant(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("conversation_time_must_be_timezone_aware")
+    return parsed.astimezone(timezone.utc)

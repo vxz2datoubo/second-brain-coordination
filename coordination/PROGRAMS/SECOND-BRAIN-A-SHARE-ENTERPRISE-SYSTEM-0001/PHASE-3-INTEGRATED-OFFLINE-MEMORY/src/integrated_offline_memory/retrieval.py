@@ -161,8 +161,7 @@ class ContextAssembler:
             provenance=provenance,
         )
 
-    @staticmethod
-    def _allowed(atom: dict[str, Any], plan: QueryPlan) -> bool:
+    def _allowed(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
         if atom["knowledge_status"] not in set(plan.truth_states):
             return False
         if atom["knowledge_status"] in DENIED_TRUTH_STATES:
@@ -201,6 +200,8 @@ class ContextAssembler:
                 return False
             if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
                 return False
+            if not self.store.provenance_for_atom(atom["id"]):
+                return False
             instant = _parse_instant(plan.valid_at)
             if not _is_valid_at(conversation, instant):
                 return False
@@ -229,5 +230,5 @@ def _parse_instant(value: str) -> datetime:
 
 def _is_valid_at(conversation: dict[str, Any], instant: datetime) -> bool:
     valid_from = _parse_instant(conversation["valid_from"])
-    valid_to = conversation.get("valid_to")
+    valid_to = conversation.get("effective_valid_to") or conversation.get("valid_to")
     return instant >= valid_from and (valid_to is None or instant < _parse_instant(valid_to))

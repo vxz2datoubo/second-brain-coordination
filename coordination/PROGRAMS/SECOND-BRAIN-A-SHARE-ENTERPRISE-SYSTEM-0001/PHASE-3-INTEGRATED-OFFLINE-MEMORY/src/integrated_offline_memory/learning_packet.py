@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from typing import Any
 
 from .canonical import atom_id, content_hash, normalize_text, packet_id, relation_id
@@ -16,6 +17,13 @@ _CONVERSATION_REQUIRED = {
     "episode_manifest_id", "user_scope", "project_scope", "privacy_class",
     "claim_role", "valid_from", "recorded_at",
 }
+_PROMPT_INJECTION_MARKERS = (
+    "ignore previous instructions",
+    "ignore all instructions",
+    "system prompt",
+    "developer message",
+)
+_CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
 
 
 def build_learning_packet(
@@ -37,12 +45,22 @@ def build_learning_packet(
         statement = normalize_text(str(atom.get("statement", atom.get("canonical_statement", ""))))
         atom_type = normalize_text(str(atom.get("atom_type", "observation"))).lower()
         scope = normalize_text(str(atom.get("scope", "")))
-        conversation = atom.get("memory_metadata", {}).get("conversation")
-        canonical_id = (
-            _conversation_atom_id(statement, conversation)
-            if atom_type == "conversation_memory" and isinstance(conversation, dict)
-            else atom_id(statement, atom_type, scope)
-        )
+        memory_metadata = atom.get("memory_metadata", {})
+        conversation = memory_metadata.get("conversation") if isinstance(memory_metadata, dict) else None
+        if atom_type == "conversation_memory" and isinstance(conversation, dict):
+            memory_metadata = {
+                **memory_metadata,
+                "conversation": _normalized_conversation_metadata(conversation),
+            }
+            conversation = memory_metadata["conversation"]
+        canonical_id = atom_id(statement, atom_type, scope)
+        if atom_type == "conversation_memory" and isinstance(conversation, dict):
+            # Keep malformed generic input on the verifier path so it receives
+            # a deterministic contract error instead of an identity exception.
+            try:
+                canonical_id = conversation_atom_id(statement, conversation)
+            except (AttributeError, TypeError, ValueError):
+                pass
         normalized_atoms.append({
             "id": atom.get("id") or canonical_id,
             "atom_type": atom_type,
@@ -62,7 +80,7 @@ def build_learning_packet(
             # Additive metadata is retained by the canonical packet/store path.
             # ConversationEpisode uses it for bitemporal and scope admission;
             # it deliberately contains no raw source pointer or body.
-            "memory_metadata": atom.get("memory_metadata", {}),
+            "memory_metadata": memory_metadata,
         })
     normalized_atoms.sort(key=lambda item: item["id"])
 
@@ -145,6 +163,7 @@ def verify_learning_packet(packet: dict[str, Any]) -> dict[str, Any]:
             errors.append("relation_endpoint_missing")
     for atom in packet.get("atoms", []):
         errors.extend(_conversation_contract_errors(atom))
+        errors.extend(_conversation_packet_errors(packet, atom))
     if packet.get("packet_id") and packet.get("packet_content_hash"):
         expected_key = packet["packet_id"] + "-" + packet["packet_content_hash"][:16]
         if packet.get("idempotency_key") != expected_key:
@@ -169,8 +188,6 @@ def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
         return ["conversation_claim_role_denied"]
     if atom.get("scope") != conversation["project_scope"]:
         return ["conversation_project_scope_inconsistent"]
-    if atom.get("id") != _conversation_atom_id(atom.get("canonical_statement", ""), conversation):
-        return ["conversation_identity_invalid"]
     if "conversation://" + conversation["episode_manifest_id"] not in atom.get("source_refs", []):
         return ["conversation_provenance_missing"]
     try:
@@ -178,26 +195,95 @@ def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
         valid_to = conversation.get("valid_to")
         if valid_to is not None and _instant(valid_to) <= valid_from:
             return ["conversation_valid_time_invalid"]
+        effective_valid_to = conversation.get("effective_valid_to")
+        if effective_valid_to is not None and _instant(effective_valid_to) <= valid_from:
+            return ["conversation_effective_valid_time_invalid"]
         _instant(conversation["recorded_at"])
     except (TypeError, ValueError):
         return ["conversation_time_invalid"]
+    if _is_prompt_injection(atom.get("canonical_statement", "")):
+        return ["conversation_prompt_injection_denied"]
+    if atom.get("id") != conversation_atom_id(atom.get("canonical_statement", ""), conversation):
+        return ["conversation_identity_invalid"]
     return []
 
 
-def _conversation_atom_id(statement: str, conversation: dict[str, Any]) -> str:
-    """Canonical CLTM identity binds the episode (and therefore user/project)."""
+def conversation_atom_id(statement: str, conversation: dict[str, Any]) -> str:
+    """Immutable CLTM identity excludes derived correction closure state."""
     return "at-conversation-" + content_hash({
         "episode": conversation.get("episode_manifest_id"),
         "statement": normalize_text(statement),
         "role": conversation.get("claim_role"),
-        "valid_from": conversation.get("valid_from"),
-        "valid_to": conversation.get("valid_to"),
+        "valid_from": _canonical_instant(conversation.get("valid_from")),
+        "valid_to": (
+            _canonical_instant(conversation["valid_to"])
+            if conversation.get("valid_to") is not None else None
+        ),
     })[:20]
 
 
+def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> list[str]:
+    """Bind a conversation atom to the canonical packet provenance surface."""
+    conversation = atom.get("memory_metadata", {}).get("conversation")
+    if not conversation:
+        return []
+    if not isinstance(conversation, dict):
+        return ["conversation_packet_metadata_invalid"]
+    if _CONVERSATION_DERIVED_FIELDS.intersection(conversation):
+        return ["conversation_packet_derived_state_denied"]
+    episode_manifest_id = conversation.get("episode_manifest_id")
+    source_ref = "conversation://" + str(episode_manifest_id)
+    if episode_manifest_id not in packet.get("source_manifest_ids", []):
+        return ["conversation_packet_manifest_mismatch"]
+    if source_ref not in packet.get("evidence_refs", []):
+        return ["conversation_packet_evidence_mismatch"]
+    report = packet.get("validation_report")
+    if not isinstance(report, dict):
+        return ["conversation_packet_validation_missing"]
+    fields = ("user_scope", "project_scope", "privacy_class", "claim_role")
+    if any(report.get(field) != conversation.get(field) for field in fields):
+        return ["conversation_packet_validation_mismatch"]
+    try:
+        if _instant(report.get("valid_from")) != _instant(conversation.get("valid_from")):
+            return ["conversation_packet_validation_mismatch"]
+        if _instant(report.get("recorded_at")) != _instant(conversation.get("recorded_at")):
+            return ["conversation_packet_validation_mismatch"]
+        report_valid_to = report.get("valid_to")
+        atom_valid_to = conversation.get("valid_to")
+        if (report_valid_to is None) != (atom_valid_to is None):
+            return ["conversation_packet_validation_mismatch"]
+        if report_valid_to is not None and _instant(report_valid_to) != _instant(atom_valid_to):
+            return ["conversation_packet_validation_mismatch"]
+    except (TypeError, ValueError):
+        return ["conversation_packet_validation_mismatch"]
+    source_pointer_hash = report.get("source_pointer_hash")
+    if not isinstance(source_pointer_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", source_pointer_hash):
+        return ["conversation_packet_source_pointer_hash_required"]
+    return []
+
+
+def _normalized_conversation_metadata(conversation: dict[str, Any]) -> dict[str, Any]:
+    """Canonicalize accepted instants before packet identity and storage."""
+    normalized = dict(conversation)
+    for field in ("valid_from", "recorded_at"):
+        if isinstance(normalized.get(field), str):
+            normalized[field] = _canonical_instant(normalized[field])
+    if isinstance(normalized.get("valid_to"), str):
+        normalized["valid_to"] = _canonical_instant(normalized["valid_to"])
+    return normalized
+
+
+def _is_prompt_injection(value: Any) -> bool:
+    text = normalize_text(str(value)).casefold()
+    return any(marker in text for marker in _PROMPT_INJECTION_MARKERS)
+
+
 def _instant(value: str):
-    from datetime import datetime
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("timezone_required")
-    return parsed
+    return parsed.astimezone(timezone.utc)
+
+
+def _canonical_instant(value: str) -> str:
+    return _instant(value).isoformat().replace("+00:00", "Z")
