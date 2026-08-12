@@ -1,55 +1,76 @@
-schema_version: "80.0"
+schema_version: "81.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "PAUSED_PENDING_COMPLETENESS_AUDIT_ROUTE"
+status: "PENDING_E50_ISSUE_PUBLICATION"
 execution_allowed: false
 automatic_resume: false
 active_issue: 242
 active_pull_request: null
-task_id: "QCLAW-REAL-SOURCE-CANDIDATE-LEARNING-PILOT-0031-E49"
-route_epoch: 55
+task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50"
+route_epoch: 56
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E49真实资料Pilot暂停：先完成学习系统完整性审计与泛化硬化"
-completion_signal: null
+mode_label: "【QCLAW模式：项目计划模式】E50 学习系统生产前完整性审计 + 泛化硬化"
+completion_signal: "QCLAW_E50_LEARNING_SYSTEM_PREPRODUCTION_COMPLETENESS_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 
-correction:
-  previous_state: "READY_FOR_SOURCE"
-  corrected_state: "PAUSED_BEFORE_REAL_SOURCE"
-  reason: >-
-    E48 R4 proves the L0/L1 provenance-preserving semantic-reconstruction foundation and a narrow L2/L3 candidate path, but it does not by itself prove a complete production learning system. Real/private or high-value source learning must wait until broader taxonomy, cross-source conflict/versioning, retrieval/reuse, skill-promotion evidence, private-ingestion transport, formal-promotion integration and multi-domain adversarial generalization are audited as one end-to-end system.
-  user_safety_preference: "Do not rush real learning merely because the user asks when it can start."
+predecessor_correction:
+  e48_foundation: "ACCEPTED"
+  e49_real_source_pilot: "SUPERSEDED_BEFORE_EXECUTION"
+  reason: "Do not equate a passing narrow candidate pipeline with a complete learning system."
 
-accepted_foundation_only:
-  e48_head: "e018fc1a85fccb85eccb7274ba672bbb54dc66db"
-  gpt_review_id: 4915512021
-  proven:
-    - "Immutable L0 source identity and exact SOURCE_EXTRACT spans."
-    - "Auditable L1 normalization with ambiguity/UNKNOWN fail-closed."
-    - "Normalization operations separated from semantic atoms."
-    - "Limited candidate L2/L3 derivation and truthful conditional relation direction."
-    - "Synthetic/natural-Chinese regression and Python 3.11/3.13 CI."
-  not_proven_as_complete_system:
-    - "Broad atom-taxonomy recall/precision across heterogeneous real-world sources."
-    - "Cross-source master-record identity, deduplication, contradiction, temporal/version supersession end-to-end."
-    - "Verified user-origin cognition mapping end-to-end."
-    - "Evidence-receipt-bound skill promotion and rollback end-to-end."
-    - "External verification/research integration for source claims."
-    - "Candidate ingestion -> retrieval/reuse -> correction feedback loop across modules."
-    - "Private-source transport and candidate-ingestion bridge completion."
-    - "Candidate -> authoritative PROJECT/GLOBAL promotion integration."
-    - "Multi-domain adversarial/generalization corpus with omission/distortion metrics."
+required_completion_dimensions:
+  D1_source_ingestion_and_privacy: "multi-source adapters, immutable provenance, private/public boundary, source absence fail-closed"
+  D2_semantic_reconstruction: "ASR/OCR/chat/article natural Chinese, ambiguity/UNKNOWN, no semantic corruption"
+  D3_atom_taxonomy_coverage: "concept definition mechanism causal_chain condition counterexample indicator data_source scope failure_condition verification_method hypothesis executable_action plus claim/inference/value separation"
+  D4_cross_source_mastering: "stable semantic object identity, dedup, near-duplicate handling, contradiction classes, temporal/version supersession, no silent overwrite"
+  D5_evidence_and_verification: "source extract vs user/external claim vs inference/value judgment; external verification hooks and evidence-gap handling"
+  D6_user_cognition: "verified user-origin for known-and-stated; inferred cognition remains candidate/confidence/UNKNOWN"
+  D7_skill_learning: "candidate->experimental->formal transitions bound to actual test receipts, distinct cases, failure conditions, rollback; no caller-authored promotion"
+  D8_retrieval_reuse_feedback: "ingested candidates can be recalled through canonical W3 query/context path; corrections/staleness alter later recall"
+  D9_candidate_promotion_interface: "compatible with accepted Codex GitHub-only promotion controls; no formal write until separate authorization"
+  D10_generalization_adversarial: "heterogeneous public-safe corpus, omission/distortion/unsupported-claim/relation-direction/adversarial prompt injection/mutation checks"
+  D11_determinism_and_ci: "Python 3.11+3.13, deterministic digest/replay, exact tested head, provider evidence"
+  D12_resource_and_rollback: "bounded processes, zero orphan descendants, reversible failure/rollback"
+
+preproduction_test_policy:
+  real_private_or_high_value_user_source: "FORBIDDEN"
+  allowed_sources:
+    - "PUBLIC_SAFE synthetic fixtures"
+    - "publicly distributable non-sensitive real-world text fixtures"
+    - "sanitized/generated ASR/OCR/chat-style fixtures"
+  minimum_source_classes:
+    - "clean article/research prose"
+    - "noisy ASR/oral transcript"
+    - "chat/dialogue with speaker roles"
+    - "OCR/typo-heavy text"
+    - "two-source contradiction/version pair"
+    - "method/skill source with conditions and failure cases"
+  no_quota_rule: "Do not fabricate atoms/relations/contradictions to satisfy coverage. Coverage failures are valid findings."
+
+acceptance_semantics:
+  - "A green E48 canary is foundation credit only."
+  - "E50 must produce an explicit PASS/PARTIAL/FAIL matrix for D1-D12 with evidence."
+  - "Any P0 semantic corruption, false fact upgrade, provenance break, forged promotion, silent overwrite or private leak blocks real-source learning release."
+  - "Medium/low-confidence unresolved gaps affecting long-term knowledge remain blockers or explicitly scoped limitations; do not hide them behind polished output."
+  - "Real-source pilot is released only after GPT independently accepts the E50 preproduction gate."
 
 formal_persistence:
-  status: "BLOCKED"
-  candidate_real_source_learning: "PAUSED_PENDING_COMPLETENESS_GATE"
   authoritative_global_or_project_write_allowed: false
+  candidate_real_private_learning_allowed: false
   automatic_skill_promotion_allowed: false
-  automatic_trading_rule_promotion_allowed: false
+  trading_rule_promotion_allowed: false
 
-next_action: "GPT will publish a clean successor completeness-audit/hardening route before QCLAW resumes."
-next_command: "等待新完整性审计任务"
+resource_policy:
+  default_profile: "FOREGROUND_PRIORITY"
+  qclaw_task_python_cap: 2
+  combined_project_python_cap: 4
+  combined_cpu_bound_workers_cap: 1
+  nested_parallelism: "FORBIDDEN"
+  heavy_matrix_or_fanout: "REMOTE_CI"
+  required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+
+next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-12T18:39:00+08:00"
+updated_at: "2026-08-12T18:40:00+08:00"
