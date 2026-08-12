@@ -1,68 +1,98 @@
-schema_version: "82.0"
+schema_version: "83.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "READY"
+status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume: true
 active_issue: 243
-active_pull_request: null
-task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50"
-route_epoch: 57
+active_pull_request: 244
+task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50-R2"
+route_epoch: 58
 mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E50 学习系统生产前完整性审计 + 泛化硬化"
-route_contract: "coordination/ROUTES/QCLAW-E50-ACTIVE-ROUTE-CONTRACT.yaml"
-task_brief: "coordination/TASK-BRIEFS/QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50-AMED.yaml"
-forecast: "coordination/ENGINEERING-LEARNING/FORECASTS/QCLAW-E50-LEARNING-SYSTEM-COMPLETENESS-FORECAST.yaml"
-completion_signal: "QCLAW_E50_LEARNING_SYSTEM_PREPRODUCTION_COMPLETENESS_READY_FOR_GPT_REVIEW"
+mode_label: "【QCLAW模式：项目计划模式】E50 R2 canonical真实能力审计：禁止用自建替身给完整学习系统打PASS"
+planned_branch: "qclaw/learning-system-preproduction-completeness-audit-0032-e50"
+completion_signal: "QCLAW_E50_R2_CANONICAL_COMPLETENESS_AUDIT_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
 
-predecessor_correction:
-  e48_foundation: "ACCEPTED"
-  e49_real_source_pilot: "SUPERSEDED_BEFORE_EXECUTION"
-  superseded_issue: 242
-  reason: "Do not equate a passing narrow candidate pipeline with a complete learning system."
+review_return:
+  reviewed_head: "8c63754a07cd504c7d070eaca232ad9f14737445"
+  gpt_review_id: 4916002572
+  disposition: "E50_R1_NOT_ACCEPTED_REAL_SOURCE_LEARNING_REMAINS_BLOCKED"
+  positive_credit:
+    - "E48 remains foundation credit only; no private/high-value source was ingested."
+    - "Draft/open/additive branch boundaries were respected."
+    - "Public-safe heterogeneous fixture effort is useful directionally."
+    - "Exact-head Phase 3 workflow has useful Python 3.11/3.13 provider evidence, but it is not yet bound to the E50 matrix/recommendation contract."
 
-required_completion_dimensions:
-  D1_source_ingestion_and_privacy: "multi-source adapters, immutable provenance, private/public boundary, source absence fail-closed"
-  D2_semantic_reconstruction: "ASR/OCR/chat/article natural Chinese, ambiguity/UNKNOWN, no semantic corruption"
-  D3_atom_taxonomy_coverage: "concept definition mechanism causal_chain condition counterexample indicator data_source scope failure_condition verification_method hypothesis executable_action plus claim/inference/value separation"
-  D4_cross_source_mastering: "stable semantic object identity, dedup, near-duplicate handling, contradiction classes, temporal/version supersession, no silent overwrite"
-  D5_evidence_and_verification: "source extract vs user/external claim vs inference/value judgment; external verification hooks and evidence-gap handling"
-  D6_user_cognition: "verified user-origin for known-and-stated; inferred cognition remains candidate/confidence/UNKNOWN"
-  D7_skill_learning: "candidate->experimental->formal transitions bound to actual test receipts, distinct cases, failure conditions, rollback; no caller-authored promotion"
-  D8_retrieval_reuse_feedback: "ingested candidates can be recalled through canonical W3 query/context path; corrections/staleness alter later recall"
-  D9_candidate_promotion_interface: "compatible with accepted Codex GitHub-only promotion controls; no formal write until separate authorization"
-  D10_generalization_adversarial: "heterogeneous public-safe corpus, omission/distortion/unsupported-claim/relation-direction/adversarial prompt injection/mutation checks"
-  D11_determinism_and_ci: "Python 3.11+3.13, deterministic digest/replay, exact tested head, provider evidence"
-  D12_resource_and_rollback: "bounded processes, zero orphan descendants, reversible failure/rollback"
+critical_findings:
+  - id: "E50-R1-P0-001"
+    area: "AUDIT_AUTHORITY"
+    finding: "E50 authored local CrossSourceMaster/cognition/skill/retrieval/Codex-boundary implementations and then counted tests of those stand-ins as evidence that the canonical learning system passes D4/D6/D7/D8/D9. E50 is an audit, not a substitute learning runtime."
+  - id: "E50-R1-P0-002"
+    area: "MATRIX_REPORT_CONTRADICTION"
+    finding: "Committed matrix.json reports atom_types_seen=[] with all 13 required atom types missing and all 5 evidence kinds missing, while the handoff claims 4 atom types are emitted and only 9 are missing. Machine evidence governs until reconciled."
+  - id: "E50-R1-B03"
+    area: "CROSS_SOURCE_MASTERING"
+    finding: "canonical_id includes source_uri + byte span + exact content; it does not establish stable semantic identity across sources/rephrasings. Near-duplicate detection is not executed, and contradiction/supersession are manually injected rather than evaluator-derived."
+  - id: "E50-R1-B04"
+    area: "EVIDENCE_VERIFICATION"
+    finding: "D5 constructs synthetic SOURCE_EXTRACT slices independently and proves a helper invariant, not the actual L2 epistemic classification/provenance/verification-gap pipeline."
+  - id: "E50-R1-B05"
+    area: "USER_ORIGIN"
+    finding: "Caller-provided SourceClass.USER_DECLARED + claimed_verified_user=True can mint VERIFIED_USER in the E50-local cognition helper; this is not canonical verified user-message origin."
+  - id: "E50-R1-B06"
+    area: "SKILL_RECEIPT_AUTHORITY"
+    finding: "PromotionReceipt is caller-constructible with arbitrary digest/counts/cases/failure conditions and is not resolved against independently issued test evidence."
+  - id: "E50-R1-B07"
+    area: "CANONICAL_RETRIEVAL"
+    finding: "D8 uses an E50-local in-memory substring dictionary named CanonicalW3QueryPath rather than canonical MemoryStore -> QueryPlan -> ContextBundle."
+  - id: "E50-R1-B08"
+    area: "CODEX_PROMOTION_COMPATIBILITY"
+    finding: "D9 uses an E50-local CandidatePackageShape/CodexBoundaryGate and placeholder zero digests instead of the exact accepted Codex promotion contract."
+  - id: "E50-R1-B09"
+    area: "ADVERSARIAL_GENERALIZATION"
+    finding: "D10's injection proof is mainly absence of one literal payload phrase and does not exercise authority-forgery paths across source/user/evidence/relation/receipt/promotion/provenance."
+  - id: "E50-R1-B10"
+    area: "DETERMINISM_PROVIDER_BINDING"
+    finding: "run_d11 returns PASS from local reruns and does not bind exact provider head, Python matrix or cross-version matrix artifact equality."
+  - id: "E50-R1-B11"
+    area: "RESOURCE_EVIDENCE"
+    finding: "run_d12 initializes a zero-valued PostflightReceipt without measuring process ownership; this is not valid resource proof."
+  - id: "E50-R1-B12"
+    area: "READINESS_GOODHART"
+    finding: "Recommendation uses partial_count<=2 as a readiness rule. Critical PARTIALs cannot be averaged away; one authority/provenance/stale-recall/skill/privacy blocker keeps NOT_READY."
+  - id: "E50-R1-B13"
+    area: "COVERAGE_TRUTH"
+    finding: "Coverage claims missed=0/distorted=0/unsupported=0 while committed D3 matrix shows complete required taxonomy/evidence-kind absence."
 
-preproduction_test_policy:
-  real_private_or_high_value_user_source: "FORBIDDEN"
-  allowed_sources:
-    - "PUBLIC_SAFE synthetic fixtures"
-    - "publicly distributable non-sensitive real-world text fixtures"
-    - "sanitized/generated ASR/OCR/chat-style fixtures"
-  minimum_source_classes:
-    - "clean article/research prose"
-    - "noisy ASR/oral transcript"
-    - "chat/dialogue with speaker roles"
-    - "OCR/typo-heavy text"
-    - "two-source contradiction/version pair"
-    - "method/skill source with conditions and failure cases"
-  no_quota_rule: "Do not fabricate atoms/relations/contradictions to satisfy coverage. Coverage failures are valid findings."
+mandatory_r2:
+  - "Audit exact canonical implementations/contracts for every D1-D12. E50-local helper implementations may exist only as explicitly UNTRUSTED_TEST_DOUBLE and cannot earn canonical PASS credit."
+  - "Reconcile D3 using the actual accepted candidate atomization path. Machine evidence and human report must agree exactly. Missing required atom/evidence categories remain PARTIAL/FAIL."
+  - "D4: exercise canonical semantic-object identity, cross-source/near-duplicate handling, evidence-based contradiction classes and temporal/version supersession. No manual expected-edge injection as proof."
+  - "D5: inspect actual emitted SOURCE_EXTRACT/USER_CLAIM/EXTERNAL_CLAIM/INFERENCE/VALUE_JUDGMENT plus provenance, verification hooks and evidence-gap handling end-to-end."
+  - "D6: bind verified known-and-stated cognition to canonical verified user-message origin/ConversationEpisode provenance, not caller enums or booleans."
+  - "D7: consume independently issued/verifiable test receipts and prove caller-authored receipt fields cannot create experimental/formal skill authority."
+  - "D8: use canonical W3 MemoryStore -> QueryPlan -> ContextBundle and prove correction/supersession/staleness changes later recall while history remains available when explicitly requested."
+  - "D9: validate against the exact accepted Codex promotion contract/identity fields with real non-placeholder digests. If the dependency is not yet available on canonical main, mark PARTIAL/BLOCKED rather than inventing a local shape."
+  - "D10: adversarially attack source class, user origin, evidence kind, relation direction/type, contradiction/supersession, skill receipts, candidate authority, provenance and formal-write boundary."
+  - "D11: run/generate the actual E50 matrix and recommendation on exact head under Python 3.11 and 3.13, publish deterministic artifacts, and compare them byte-for-byte or with a documented canonical hash."
+  - "D12: instrument task-owned process lifecycle and publish measured descendant/orphan/termination evidence. Do not manufacture zero counts."
+  - "Recommendation must be risk-critical, not a count of PARTIAL dimensions. Any unresolved critical authority/provenance/privacy/stale-recall/skill-promotion gap => NOT_READY."
+  - "Coverage report must be derived from explicit fixture ground truth and count missed/distorted/unsupported items consistently with D1-D12."
+  - "Do not implement missing production features inside E50 just to make the audit pass. If canonical capability is absent, report it honestly; a separate later implementation task may close the gap."
 
-acceptance_semantics:
-  - "A green E48 canary is foundation credit only."
-  - "E50 must produce an explicit PASS/PARTIAL/FAIL matrix for D1-D12 with evidence."
-  - "Any P0 semantic corruption, false fact upgrade, provenance break, forged promotion, silent overwrite, stale recall or private leak blocks real-source learning release."
-  - "Medium/low-confidence unresolved gaps affecting long-term knowledge remain blockers or explicitly scoped limitations."
-  - "Real-source pilot is released only after GPT independently accepts E50."
+accepted_foundation:
+  e48_issue: 216
+  e48_pr: 221
+  accepted_head: "e018fc1a85fccb85eccb7274ba672bbb54dc66db"
+  rule: "E48 can be used as frozen audit fixture/foundation credit only; do not create a second active authority by vendoring/copying it into a production path."
 
 formal_persistence:
   authoritative_global_or_project_write_allowed: false
   candidate_real_private_learning_allowed: false
+  bounded_real_source_pilot_allowed: false
   automatic_skill_promotion_allowed: false
   trading_rule_promotion_allowed: false
 
@@ -73,8 +103,15 @@ resource_policy:
   combined_cpu_bound_workers_cap: 1
   nested_parallelism: "FORBIDDEN"
   heavy_matrix_or_fanout: "REMOTE_CI"
-  required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+  required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations"
+
+hard_boundaries:
+  - "No private/high-value user source pilot in E50 R2."
+  - "No authoritative PROJECT/GLOBAL write, formal skill promotion or trading-rule promotion."
+  - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
+  - "Do not touch Codex or E48 worktrees/branches."
+  - "No secrets/credentials/accounts/orders/funds/trading."
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-12T18:44:00+08:00"
+updated_at: "2026-08-12T19:31:00+08:00"
