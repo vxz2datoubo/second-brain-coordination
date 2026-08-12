@@ -1,76 +1,90 @@
-schema_version: "94.0"
+schema_version: "95.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
-active_pull_request: 241
-task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
+active_pull_request: null
+task_id: "CODEX-CLTM-0021-PRIVATE-SOURCE-BINDING-CANARY"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 82
-mode: "control_plane"
-mode_label: "【GPT控制面】CLTM-0021 epoch 81 accepted private-candidate bridge merge authorization"
-status: "GPT_MERGE_AUTHORIZED"
-execution_allowed: false
-automatic_resume_within_task: false
+route_epoch: 83
+mode: "bounded_execution"
+mode_label: "【Codex模式：有界执行】CLTM-0021 显式 private source binding + 单次 candidate canary"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
 second_user_start_command_required: false
-intermediate_gpt_review_required: false
-merge_authorized: true
+intermediate_gpt_review_required: true
+merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
+real_private_candidate_ingestion_allowed: true
 real_private_raw_body_publication_allowed: false
+private_source_discovery_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "c3809373e693601c48e895f296328aa8687829e0"
-route_contract: "coordination/ROUTES/CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION-R82.yaml"
+canonical_main_at_route_publish: "1963075c05a5d32c8b7df939e77f8cbd3282b4c0"
+route_contract: "coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
-  route_epoch: 81
-  issue: 231
-  pull_request: 241
+  task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
+  route_epoch: 82
+  implementation_pull_request: 241
   accepted_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
-  accepted_ci_run: 31593700079
-  disposition: "GPT_R6_IMPLEMENTATION_AND_CLOSEOUT_ACCEPTED"
-  completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
+  merge_commit: "1963075c05a5d32c8b7df939e77f8cbd3282b4c0"
+  post_merge_issue_comment: 5266896918
+  disposition: "POST_MERGE_VERIFIED"
   architectural_milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
 
-merge_gate:
-  pull_request: 241
-  expected_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
-  merge_method: "merge"
-  authorized_by: "GPT"
-  user_continuation_authorization: "2026-08-12T20:30:00+08:00"
-  require_exact_head_match: true
-  require_mergeable: true
-  require_preserved_locks: true
-  post_merge_verification_required: true
+root_goal: >-
+  Execute one privacy-preserving real/private Daily Memory Candidate v2 canary through the merged existing W3 candidate path
+  if and only if an explicit authorized private data-root and explicit Daily-v2 package path are already configured and readable.
+  Never scan or guess private source locations.
 
-post_merge_required:
-  - "Re-read canonical main and verify PR #241 merged exact accepted head without unexpected changed paths."
-  - "Verify the private candidate bridge remains candidate-only and no second W3 authority exists."
-  - "Do not run a real private canary until a later route explicitly binds an authorized accessible private data-root and transport."
-  - "Publish the next bounded private-source binding/canary route only after post-merge verification."
-  - "Keep formal PROJECT/GLOBAL authority promotion separately locked."
+binding_gate:
+  required_environment: ["CLTM_PRIVATE_DATA_ROOT", "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"]
+  no_binding_or_unreadable: "PRIVATE_SOURCE_BINDING_WAITING"
+  malformed_or_policy_invalid: "PRIVATE_SOURCE_BINDING_REJECTED"
+  configured_valid: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  filesystem_discovery: "FORBIDDEN"
+  public_path_echo: "FORBIDDEN"
+
+canary_gate:
+  configured_binding_required: true
+  eligible_user_memory_candidates_auto_ingest_max: 1
+  zero_eligible: "NO_ELIGIBLE_USER_MEMORY_CANDIDATES"
+  multiple_eligible: "PRIVATE_CANARY_SELECTION_WAITING"
+  exact_recall_proof_required: true
+  store_boundary: "fresh isolated existing-W3 MemoryStore SQLite under explicit private data-root; never inside public repo"
+  automatic_cleanup: false
+  formal_promotion: "FORBIDDEN"
+
+required_sequence:
+  - "Read latest main, router, this ACTIVE file, route 83, Issue #231, merged PR #241 evidence, and matching LOCAL-EXECUTION-ISSUE-PATTERNS."
+  - "Call existing private_source_binding_status only; no filesystem scan or source discovery."
+  - "WAITING/REJECTED => stop without ingestion and publish only redacted status plus LOCAL_EXECUTION_ISSUES."
+  - "CONFIGURED => load only the explicitly bound Daily-v2 file under the explicit private root."
+  - "Zero eligible => safe no-op; more than one => selection waiting; exactly one => isolated candidate import + exact CURRENT scoped recall."
+  - "Publish only aggregate/hash receipt fields; never source path or private semantic text."
+  - "Stop for GPT review."
 
 hard_boundaries:
-  - "No new Codex implementation work under route 82."
-  - "No real private source discovery/read or canary under route 82."
+  - "No filesystem/home/browser/profile scan for private sources."
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
-  - "No raw/private conversation body or private source path in public GitHub."
-  - "No credentials/secrets/private keys/tokens/cookies/session/MFA/recovery/payment/broker values in Git, logs, embeddings or ContextBundle."
-  - "No E48/live integration."
+  - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
+  - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
   - "No private repository creation or visibility/permission change."
-  - "No production MCP/Memory App/Gateway deployment."
+  - "No E48/live integration or production MCP/Memory App/Gateway deployment."
   - "No second canonical memory/query/bundle/vector/graph/temporal authority."
-  - "Do not touch QCLAW worktrees or trading/accounts."
+  - "No trading/accounts/funds actions."
 
-local_execution_issue_closeout:
-  pattern: "LEIP-UNICODE-001"
-  root_cause: "UNKNOWN"
-  r6_new_local_execution_issues: "NONE_OBSERVED"
-  evidence: "Issue #231 comment 5266618300"
+local_execution_issue_reporting:
+  registry: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+  mandatory_fields_per_observed_issue: ["问题特征", "发现途径与对照测试", "根因范围与限制", "可逆解决办法与撤销方式"]
+  none_case: "LOCAL_EXECUTION_ISSUES = NONE_OBSERVED"
 
-next_action: "GPT merges PR #241 at exact accepted head, performs post-merge verification, then publishes a separately gated private-source binding/canary route."
+completion_signal: "CODEX_CLTM_0021_PRIVATE_CANARY_READY_FOR_GPT_REVIEW"
+waiting_signal: "PRIVATE_SOURCE_BINDING_WAITING"
+selection_waiting_signal: "PRIVATE_CANARY_SELECTION_WAITING"
+next_command: "读取任务"
 updated_by: "GPT"
 updated_at: "2026-08-12T20:30:00+08:00"
