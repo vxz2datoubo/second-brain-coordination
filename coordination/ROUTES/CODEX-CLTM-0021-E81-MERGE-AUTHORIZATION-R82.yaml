@@ -1,0 +1,72 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: 241
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
+route_epoch: 82
+mode: "control_plane"
+status: "GPT_MERGE_AUTHORIZED"
+execution_allowed: false
+merge_authorized: true
+formal_knowledge_persistence_unlock_allowed: false
+real_private_raw_body_publication_allowed: false
+repository_visibility_change_authorized: false
+production_mcp_gateway_deployment_authorized: false
+private_repository_creation_authorized: false
+
+accepted_delivery:
+  predecessor_epoch: 81
+  pull_request: 241
+  exact_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  ci_run: 31593700079
+  python_3_11: "SUCCESS"
+  python_3_13: "SUCCESS"
+  phase_3: "209/209 PASS"
+  private_ingestion_adversarial: "14/14 PASS"
+  public_safety: "68 files / 0 issues PASS"
+  gpt_code_disposition: "ACCEPTED"
+  gpt_review_id: 4916222899
+  closeout_issue: 231
+  closeout_comment: 5266618300
+  completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
+  milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
+
+merge_contract:
+  actor: "GPT"
+  method: "merge"
+  expected_head_required: true
+  expected_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  codex_self_merge: "FORBIDDEN"
+  post_merge_verification: "REQUIRED"
+
+post_merge_required:
+  - "Re-read canonical main and verify PR #241 merged exact accepted head without unexpected changed paths."
+  - "Verify the private candidate bridge remains candidate-only and reuses the existing W3 ConversationEpisode -> LearningPacket -> MemoryStore -> QueryPlan -> ContextBundle path."
+  - "Keep PRIVATE_SOURCE_BINDING_WAITING explicit until a separately authorized and actually accessible local private data-root plus Daily-v2 transport binding exists."
+  - "Publish a later bounded private-canary/source-binding route only after post-merge verification."
+  - "Keep formal PROJECT/GLOBAL authority promotion separately locked."
+
+hard_boundaries:
+  - "No new Codex implementation work under route 82."
+  - "No real private source discovery/read or canary under route 82."
+  - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
+  - "No raw/private conversation body or private source path in public GitHub."
+  - "No credentials/secrets/private keys/tokens/cookies/session/MFA/recovery/payment/broker values in Git, logs, embeddings or ContextBundle."
+  - "No E48/live integration."
+  - "No private repository creation or visibility/permission change."
+  - "No production MCP/Memory App/Gateway deployment."
+  - "No second canonical memory/query/bundle/vector/graph/temporal authority."
+  - "Do not touch QCLAW worktrees or trading/accounts."
+
+local_execution_issue_closeout:
+  pattern: "LEIP-UNICODE-001"
+  root_cause: "UNKNOWN"
+  r6_new_local_execution_issues: "NONE_OBSERVED"
+  evidence: "Issue #231 comment 5266618300"
+
+rollback: "If PR #241 exact head, mergeability, accepted CI evidence, or preserved locks change, stop without merging and publish a later route epoch."
+updated_by: "GPT"
+updated_at: "2026-08-12T20:30:00+08:00"
