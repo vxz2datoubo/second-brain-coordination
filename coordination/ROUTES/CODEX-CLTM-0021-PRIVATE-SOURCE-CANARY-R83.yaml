@@ -1,0 +1,120 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-PRIVATE-SOURCE-BINDING-CANARY"
+route_epoch: 83
+mode: "bounded_execution"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: true
+real_private_raw_body_publication_allowed: false
+private_source_discovery_allowed: false
+repository_visibility_change_authorized: false
+production_mcp_gateway_deployment_authorized: false
+private_repository_creation_authorized: false
+
+predecessor:
+  route_epoch: 82
+  implementation_pull_request: 241
+  accepted_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  merge_commit: "1963075c05a5d32c8b7df939e77f8cbd3282b4c0"
+  post_merge_issue_comment: 5266896918
+  disposition: "POST_MERGE_VERIFIED"
+  milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
+
+root_goal: >-
+  Prove exactly one bounded real/private Daily Memory Candidate v2 canary through the merged canonical W3 candidate path,
+  but only when an explicit local private data-root and explicit Daily-v2 package binding are already configured and accessible.
+  Do not discover, scan, guess, crawl or enumerate private source locations.
+
+binding_contract:
+  required_environment:
+    - "CLTM_PRIVATE_DATA_ROOT"
+    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
+  source_status_function: "private_source_binding_status"
+  absent_missing_unreadable: "PRIVATE_SOURCE_BINDING_WAITING"
+  malformed_or_policy_invalid: "PRIVATE_SOURCE_BINDING_REJECTED"
+  configured_valid: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  public_path_echo: "FORBIDDEN"
+  directory_scan_or_source_discovery: "FORBIDDEN"
+
+canary_contract:
+  execute_only_if_binding_status: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  canary_store: "fresh isolated MemoryStore SQLite under the explicit private data-root; do not use the public repository/worktree"
+  canary_store_cleanup: "DO_NOT_DELETE_AUTOMATICALLY; cleanup requires later explicit owner approval"
+  eligible_user_memory_candidate_count:
+    zero: "Return NO_ELIGIBLE_USER_MEMORY_CANDIDATES; do not claim canary success."
+    one: "May ingest and recall exactly that one eligible user-memory candidate."
+    more_than_one: "Return PRIVATE_CANARY_SELECTION_WAITING; do not semantically choose among private candidates without owner review."
+  required_path: "DailyMemoryCandidate-v2 -> DailyMemoryCandidateTransport-v1 -> W3PrivateCandidateEnvelope-v1 -> ConversationEpisode -> LearningPacket -> MemoryStore -> QueryPlan -> ContextBundle"
+  exact_recall_proof_required: true
+  correction_semantics_if_candidate_is_correction: "canonical producer-id resolution and supersession only; no direct W3 atom id from producer"
+  candidate_authority_only: true
+  formal_promotion: "FORBIDDEN"
+
+public_receipt_contract:
+  allow_only:
+    - "status"
+    - "validation_status"
+    - "candidate_authority_only"
+    - "formal_project_global_write"
+    - "source_hash"
+    - "pointer_hash"
+    - "episode_id_hash"
+    - "atom_id_hash"
+    - "scope_hash"
+    - "candidate_count"
+    - "imported_count"
+    - "duplicate_count"
+    - "non_imported_count"
+    - "recall_count"
+    - "exact_imported_atom_recalled"
+    - "recorded_at_hash"
+    - "binding_status"
+    - "test_count"
+  forbid:
+    - "raw or verbatim private conversation text"
+    - "private semantic candidate value"
+    - "private file or directory path"
+    - "user/project literal identifiers when not already privacy-safe hashes"
+    - "credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values"
+
+required_sequence:
+  A: "Read latest canonical main, route 83, Issue #231, merged PR #241 evidence and relevant local issue patterns."
+  B: "Call the existing explicit binding-status path only. Never scan the filesystem for possible sources."
+  C: "If WAITING or REJECTED, stop without source ingestion and publish only redacted capability status plus LOCAL_EXECUTION_ISSUES."
+  D: "If CONFIGURED, load only the explicitly bound Daily-v2 file and validate it under the explicit private root."
+  E: "Count eligible user-memory envelopes locally. Zero => safe no-op; more than one => selection waiting; exactly one => run one isolated canary import + exact scoped recall."
+  F: "Publish only the redacted public receipt and local-execution issue report. Never publish the source path or private semantics."
+  G: "Stop for GPT review. Do not merge code or unlock formal authority."
+
+acceptance_gates:
+  - "No public repository code change is required for a successful configured canary."
+  - "No filesystem discovery or source guessing occurs."
+  - "The explicit private root/path policy remains fail-closed."
+  - "Exactly one eligible candidate is the maximum automatically ingested by this route."
+  - "Exact imported atom recall is proven in CURRENT scope/time semantics."
+  - "No formal PROJECT/GLOBAL promotion occurs."
+  - "No raw/private semantic value or private path appears in Git/Issue/PR/CI/public receipt."
+  - "LOCAL_EXECUTION_ISSUES is reported with the mandatory four fields, or NONE_OBSERVED."
+
+hard_boundaries:
+  - "No direct ChatGPT automation-to-local transport is assumed; it remains a SYSTEM_DEPENDENCY unless independently available."
+  - "No source directory scanning, home-directory scanning, browser/profile inspection or opportunistic private-file discovery."
+  - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
+  - "No raw/private body publication."
+  - "No private repository creation or visibility/permission changes."
+  - "No E48/live integration or production MCP/Memory App/Gateway deployment."
+  - "No second canonical memory store/query/bundle/vector/graph/temporal authority."
+  - "No trading/accounts/funds actions."
+
+completion_signal: "CODEX_CLTM_0021_PRIVATE_CANARY_READY_FOR_GPT_REVIEW"
+waiting_signal: "PRIVATE_SOURCE_BINDING_WAITING"
+selection_waiting_signal: "PRIVATE_CANARY_SELECTION_WAITING"
+updated_by: "GPT"
+updated_at: "2026-08-12T20:30:00+08:00"
