@@ -208,6 +208,80 @@ patterns:
     next_validation: ["继续记录跨任务发生率；若跨多个任务/时间段复现，再升级并调查网络/Git配置共因。"]
     owner: "GPT"
 
+  - pattern_id: "LEIP-GIT-PROXY-001"
+    title: "Windows 本地 VPN HTTP 代理未被 Git HTTPS 自动继承"
+    category: "git_transport_proxy_routing"
+    status: "ACTIVE"
+    maturity: "PARTIALLY_REPLICATED"
+    symptom: >-
+      Windows 系统代理已启用且浏览器/curl 经本地代理可访问 GitHub，但 Git fetch、ls-remote 或 push 仍对 github.com:443
+      超时或 connection reset；为 Git 显式指定同一代理后，远端读取和推送立即成功。
+    affected_context:
+      platforms: [WINDOWS]
+      agents: [CODEX, WORKBUDDY, FUTURE_AGENT]
+      surfaces: [GIT_HTTPS, GITHUB, WINDOWS_SYSTEM_PROXY, LOCAL_HTTP_PROXY, VPN]
+      matching_conditions:
+        - "Windows Internet Settings 的 ProxyEnable 为 1，且 ProxyServer 指向 loopback HTTP proxy。"
+        - "Git remote 使用 https://github.com/...，但 git config --get-urlmatch http.proxy 对该 URL 为空或与系统代理不同。"
+    root_cause_status: "CONFIRMED_FOR_OBSERVED_HOST_AND_VPN_PROFILE"
+    root_cause: >-
+      已证实的本机/青山 VPN 配置为本地 HTTP 代理模式：系统代理指向 127.0.0.1:9674，代理监听并可到达 GitHub；
+      Git 不会自动继承 Windows Internet Settings 代理，因而仍直接访问 github.com:443。直连路径失败，而显式 Git HTTPS
+      代理路径成功。该结论仅适用于本次 Windows 主机和该 VPN 配置，不能外推为所有 GitHub 网络故障的根因。
+    discovery:
+      problem_found: "eustia-ai-film PR #1 推送连续失败后，已验证本地 commit 无法通过 Git HTTPS 到达 GitHub。"
+      observed_features:
+        - "直接 git ls-remote / git push 出现 Recv failure: Connection was reset 或 github.com:443 connect timeout。"
+        - "系统代理开启，ProxyServer 为 127.0.0.1:9674，且该 loopback 端口处于 LISTEN。"
+        - "curl --proxy http://127.0.0.1:9674 https://github.com/ 返回 HTTP 200。"
+        - "git -c http.proxy=http://127.0.0.1:9674 ls-remote 成功。"
+      method: >-
+        读取 Windows 代理注册表、活动路由/网卡和 loopback listener；分别测试直连 GitHub、经本地代理 curl、
+        经本地代理 Git ls-remote；最后以同一 tested commit 的 push/fetch/SHA 对照确认。
+    prevention_checks:
+      - "Windows GitHub HTTPS 操作前，先执行 git ls-remote；失败时不得立刻无限重试。"
+      - "读取 Windows ProxyEnable/ProxyServer，并确认指定 loopback 端口正在监听；不输出或记录任何代理凭证。"
+      - "若系统代理可达 GitHub 而 Git 直连失败，先以 git -c http.proxy=http://HOST:PORT ls-remote 做只读验证。"
+      - "验证成功后仅为 https://github.com 设置 URL 专用 Git 代理，不设置影响所有站点的通配全局代理。"
+      - "VPN 重启、客户端设置变化或端口变化后，比较系统 ProxyServer 与 git config --get-urlmatch http.proxy https://github.com/ 并同步。"
+    permanent_fix_policy: >-
+      对采用稳定本地 HTTP 代理的 Windows 主机，GitHub URL 专用代理配置是可验证的持久配置；但本地端口可能随 VPN
+      重启或设置变化而改变。因此每次网络故障先做低成本 preflight，并在端口变化时更新 URL 专用配置，而不是假设一次设置
+      对所有 VPN、主机或网络永久有效。
+    workaround: >-
+      先用单次命令 git -c http.proxy=http://127.0.0.1:PORT ls-remote 验证；成功后执行
+      git config --global http.https://github.com.proxy http://127.0.0.1:PORT。撤销方式为
+      git config --global --unset http.https://github.com.proxy。
+    verification:
+      - "本地代理 listener 存在，且经代理 HTTPS HEAD 到 GitHub 成功。"
+      - "Git 经代理 ls-remote 成功。"
+      - "push 后 fetch/readback 的 remote SHA 等于 tested local SHA。"
+      - "VPN 重启后重新读取 ProxyServer、listener 和 GitHub remote；三者仍一致。"
+    evidence:
+      - "2026-08-12: direct Git HTTPS 多次失败（connection reset / 443 timeout）；系统代理 127.0.0.1:9674 已启用。"
+      - "2026-08-12: curl through local proxy returned HTTP 200; Git through the same proxy read remote ref 3d604d4 successfully."
+      - "2026-08-12: configured http.https://github.com.proxy; pushed eustia-ai-film tested commit 89ddca8bffa7a4f4beaa50e3637c925220ca7405 and read back the identical remote SHA."
+      - "2026-08-12: after VPN restart, ProxyServer remained 127.0.0.1:9674, listener remained present, and GitHub ls-remote succeeded."
+    detailed_logs_redacted:
+      - "direct_git: fatal: unable to access 'https://github.com/...': Recv failure: Connection was reset"
+      - "direct_git: fatal: unable to access 'https://github.com/...': Failed to connect to github.com port 443 after approximately 21 seconds"
+      - "proxy_probe: HTTP/1.1 200 Connection established; HTTP/1.1 200 OK"
+      - "proxy_git_read: refs/heads/codex/migration/final-canonical-cutover -> 3d604d48573f6d72bb046e56a346ebfca87cfbc0"
+      - "push_readback: local SHA equals remote SHA 89ddca8bffa7a4f4beaa50e3637c925220ca7405"
+    recommendations:
+      - "GPT 发布涉及 Windows GitHub HTTPS 的任务时，匹配本条模式并在验收中加入 GitHub URL-proxy preflight 和 tested-head readback。"
+      - "不要把 127.0.0.1:9674 固化进跨机器任务文本；应从当前 Windows ProxyServer 读取 host/port。"
+      - "禁止把代理令牌、环境变量完整值、账户信息或未脱敏 HTTP headers 写入公开仓库。"
+      - "若系统代理关闭或测试不通，移除/绕过该 Git URL 配置并按 LEIP-GIT-HTTPS-001 重新定位，避免错误归因。"
+    recurrence:
+      observed_count: 1
+      independent_replication_count: 2
+      replication_note: "同一根因经 read、push 与 VPN restart 后 readback 三种操作验证；尚未在第二台主机独立复现。"
+    next_validation:
+      - "在下一次 Windows + 本地 VPN GitHub HTTPS 任务中执行 preflight，记录系统代理与 Git URL-proxy 是否一致。"
+      - "若端口变化仍可按 ProxyServer 自动恢复，考虑新增不含凭证的本地 preflight helper；在跨主机复现前不升级为 STANDARD。"
+    owner: "GPT"
+
 migration_note:
   source: "eustia-ai-film PR #1 temporary local issue collection"
   decision: >-
