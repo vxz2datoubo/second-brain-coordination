@@ -602,3 +602,74 @@ class TestCanaryCorpus(unittest.TestCase):
 
     def test_natural_chinese_no_space_canary_failsafe(self):
         test_natural_chinese_no_space_canary_failsafe()
+
+# ----------------------------------------------------------------------------
+# R4 mandatory tests
+# ----------------------------------------------------------------------------
+
+def test_r4_relation_direction_is_mechanism_depends_on_condition() -> None:
+    """R4 mandatory 2: exact golden L2 relation test asserting
+    relation_type + direction + source/target atom IDs.
+
+    The committed canary has one CONDITION (A003) and one MECHANISM (A004).
+    The DEPENDS_ON relation must be A004 -> A003 (MECHANISM effect
+    DEPENDS_ON CONDITION premise), NOT the reverse.
+    """
+    l0 = CANARY_PATH.read_text(encoding="utf-8")
+    view = _canary_view()
+    pkg = derive_l2_package(l0, view)
+    rels = pkg["relations"]
+    assert len(rels) == 1, f"expected exactly 1 L2 relation, got {len(rels)}"
+    rel = rels[0]
+    assert rel["relation_type"] == "DEPENDS_ON", (
+        f"relation type must be DEPENDS_ON, got {rel['relation_type']!r}"
+    )
+    # Locate the CONDITION and MECHANISM atoms.
+    atoms_by_id = {a["atom_id"]: a for a in pkg["atoms"]}
+    cond_id = next(aid for aid, a in atoms_by_id.items()
+                   if a["atom_type"] == "CONDITION")
+    mech_id = next(aid for aid, a in atoms_by_id.items()
+                   if a["atom_type"] == "MECHANISM")
+    assert rel["source_atom_id"] == mech_id, (
+        f"source_atom_id must be MECHANISM ({mech_id}), "
+        f"got {rel['source_atom_id']!r}"
+    )
+    assert rel["target_atom_id"] == cond_id, (
+        f"target_atom_id must be CONDITION ({cond_id}), "
+        f"got {rel['target_atom_id']!r}"
+    )
+
+
+def test_r4_condition_span_excludes_clause_delimiter() -> None:
+    """R4 mandatory 3: CONDITION SOURCE_EXTRACT byte slice excludes
+    trailing clause delimiter (e.g. ， after 如果 X，那么).
+
+    Canary line 2 contains 如果成交量上升，那么价格就倾向于上升；但如果....
+    The CONDITION atom for the first if/then must contain 成交量上升
+    (without the trailing ，).
+    """
+    l0 = CANARY_PATH.read_text(encoding="utf-8")
+    view = _canary_view()
+    pkg = derive_l2_package(l0, view)
+    cond_atoms = [a for a in pkg["atoms"] if a["atom_type"] == "CONDITION"]
+    assert cond_atoms, "no CONDITION atom in committed canary"
+    for a in cond_atoms:
+        content = a["content"]
+        assert not content.endswith(("，", "。", "；", "！")), (
+            f"CONDITION atom content must not end with clause delimiter; "
+            f"got {content!r}"
+        )
+        # SOURCE_EXTRACT invariant: content == exact L0 byte slice.
+        span = a["source_spans"][0]
+        l0_slice = l0.encode("utf-8")[span["byte_start"]:span["byte_end"]].decode("utf-8")
+        assert content == l0_slice, (
+            f"SOURCE_EXTRACT invariant broken: {content!r} != {l0_slice!r}"
+        )
+
+
+class TestCanaryCorpusR4(unittest.TestCase):
+    def test_r4_relation_direction_is_mechanism_depends_on_condition(self):
+        test_r4_relation_direction_is_mechanism_depends_on_condition()
+
+    def test_r4_condition_span_excludes_clause_delimiter(self):
+        test_r4_condition_span_excludes_clause_delimiter()

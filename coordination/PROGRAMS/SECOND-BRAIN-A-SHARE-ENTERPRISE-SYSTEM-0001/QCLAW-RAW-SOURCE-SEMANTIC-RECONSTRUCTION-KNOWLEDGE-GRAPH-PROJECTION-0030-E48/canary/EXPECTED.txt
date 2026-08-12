@@ -77,5 +77,18 @@
 #   Live assertion in
 #   test_canary_corpus.test_source_extract_invariant_holds.
 
+# R4 — DEPENDS_ON direction + CONDITION boundary:
+#   1. The DEPENDS_ON relation source_atom_id MUST be the MECHANISM
+#      atom and the target_atom_id MUST be the CONDITION atom
+#      (semantically: mechanism/effect depends on condition premise).
+#      Canary expected: source=A004 (MECHANISM), target=A003 (CONDITION).
+#      live test: test_canary_corpus.test_r4_relation_direction_is_mechanism_depends_on_condition
+#   2. The CONDITION SOURCE_EXTRACT byte slice MUST exclude trailing
+#      clause-delimiter punctuation (，。；！). Canary line 2 is
+#      "如果成交量上升，那么价格就倾向于上升...". The CONDITION atom
+#      content is "成交量上升" (byte_start=73, byte_end=88), NOT
+#      "成交量上升，".
+#      live test: test_canary_corpus.test_r4_condition_span_excludes_clause_delimiter
+
 # DO NOT CHANGE the canary text without updating this EXPECTED.txt in
 # the same commit and re-running canary/build_canary_projection.py.

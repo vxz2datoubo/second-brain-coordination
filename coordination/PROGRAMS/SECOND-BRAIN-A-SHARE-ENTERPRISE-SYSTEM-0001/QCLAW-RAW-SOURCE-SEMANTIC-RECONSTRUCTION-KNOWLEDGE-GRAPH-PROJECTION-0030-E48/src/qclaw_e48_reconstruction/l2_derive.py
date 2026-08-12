@@ -10,11 +10,15 @@ knowledge atoms.
 Derivation rules (deterministic, auditable):
 
 1. CONDITION + MECHANISM SOURCE_EXTRACT atoms + DEPENDS_ON relation from
-   cross-sentence ``如果 X 那么 Y ...`` detection. Effect clause is
-   bounded by the next contrast/conditional marker (``但`` / ``如果`` /
-   ``，`` / ``。`` / ``；`` / EOF). The relation is ``DEPENDS_ON``
-   (target MECHANISM DEPENDS_ON CONDITION premise), which is in the
-   accepted E47 vocabulary. REFINES is not used in L2 derivation.
+   cross-sentence ``如果 X 那么 Y ...`` detection. CONDITION span is
+   trimmed to exclude trailing clause-delimiter punctuation (``,`` /
+   ``。`` / ``；``) so SOURCE_EXTRACT byte slice contains only semantic
+   content (R4 mandatory 3). Effect clause is bounded by the next
+   contrast/conditional marker (``但`` / ``如果`` / ``，`` / ``。`` /
+   ``；`` / EOF). The relation is ``DEPENDS_ON`` with MECHANISM/effect
+   as **source_atom_id** and CONDITION/premise as **target_atom_id**
+   (R4 mandatory 1): the mechanism/effect's truth depends on the
+   condition premise holding. REFINES is not used in L2 derivation.
 
 2. UNKNOWN_REFUSAL INFERENCE atoms from each ``UnknownMarker`` in
    ``view.unknowns``. The unknown is recorded in the L2 package's
@@ -72,6 +76,39 @@ _NORMALIZATION_ONLY = frozenset({
     EditType.ASR_HOMOPHONE_CORRECTION,
     EditType.PARAGRAPH_SPLIT,
 })
+
+
+# Trailing clause-delimiter punctuation that must be excluded from a
+# CONDITION SOURCE_EXTRACT span (R4 mandatory 3). We keep these as
+# Han codepoints, never as bytes, to avoid splitting multi-byte UTF-8.
+_CONDITION_TRAIL_DELIMS = ("，", "。", "；", "！")
+
+
+def _trim_condition_span(
+    l0_text: str, span: Tuple[int, int]
+) -> Tuple[int, int]:
+    """Trim trailing clause delimiter from a CONDITION span.
+
+    R4 mandatory 3: ``如果 X，那么`` must yield CONDITION atom whose
+    SOURCE_EXTRACT byte slice is ``X`` (the semantic content), not
+    ``X，``. Bounded so a span is never shrunk below 1 Han char and
+    is never moved past its own start.
+    """
+    byte_start, byte_end = span
+    if byte_end <= byte_start:
+        return span
+    # Operate on encoded bytes; delimiters are all 3-byte Han codepoints.
+    encoded = l0_text.encode("utf-8")
+    cur_end = byte_end
+    while cur_end - 3 >= byte_start:
+        tail = encoded[cur_end - 3:cur_end].decode("utf-8")
+        if tail in _CONDITION_TRAIL_DELIMS:
+            cur_end -= 3
+        else:
+            break
+    if cur_end > byte_start and cur_end != byte_end:
+        return (byte_start, cur_end)
+    return span
 
 
 def _confidence_label(confidence: float, edit_type: EditType) -> str:
@@ -262,6 +299,10 @@ def derive_l2_package(
             continue
         if cond_span == eff_span:
             continue
+        # R4 mandatory 3: trim trailing clause-delimiter punctuation
+        # from the CONDITION span so SOURCE_EXTRACT byte slice excludes
+        # the comma/period. ``如果 X，那么`` -> CONDITION span = ``X``.
+        cond_span = _trim_condition_span(l0_text, cond_span)
         counter += 1
         cond_atom_id = f"A{counter:03d}"
         cond_line_start = _line_index_for_byte(l0_text, cond_span[0])
@@ -284,10 +325,14 @@ def derive_l2_package(
             eff_line_start, eff_line_end,
             label="then-effect",
         ))
-        # R3 mandatory 6: DEPENDS_ON, not REFINES.
+        # R4 mandatory 1: DEPENDS_ON direction is MECHANISM effect DEPENDS_ON
+        # CONDITION premise (MECHANISM is source_atom_id, CONDITION is target).
+        # Semantically: the mechanism/effect's truth depends on the condition
+        # premise holding; flipping endpoints reads as "mechanism depends on
+        # its premise", which is the natural semantic reading.
         relations.append({
-            "source_atom_id": cond_atom_id,
-            "target_atom_id": eff_atom_id,
+            "source_atom_id": eff_atom_id,
+            "target_atom_id": cond_atom_id,
             "relation_type": "DEPENDS_ON",
             "span_index": -1,
             "rationale": "MECHANISM effect depends on CONDITION premise (if/then).",
