@@ -41,17 +41,23 @@ owner_authorization:
 
 allowed_action:
   exactly_one: "Call the existing private_source_binding_status function once and publish only its redacted status for GPT review."
+  function_required_read_only_access: >-
+    The existing function may read only the one file named by the explicit
+    CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH under the explicit private root,
+    solely to establish accessibility and validate the DailyMemoryCandidate-v2
+    format required for its CONFIGURED/REJECTED status.
+  read_only_scope: "one explicit bound Daily-v2 file; no other source, directory or profile access"
   allowed_output: ["binding_status", "redacted_reason", "LOCAL_EXECUTION_ISSUES", "lock_statement"]
-  stop_after: "Immediately stop after the one status result; no source read, store creation, ingestion or canary."
+  stop_after: "Immediately stop after the one status result; no store creation, ingestion or canary."
 
 forbidden_actions:
-  - "Do not read, load, normalize, validate or otherwise access any private source/package."
-  - "Do not scan, guess or enumerate private source locations."
+  - "Do not read, load, normalize or validate any source/package other than the one explicit bound Daily-v2 file through private_source_binding_status."
+  - "Do not scan, guess or enumerate private source locations, directories, homes, browsers or profiles."
   - "Do not create a private store or execute a canary."
   - "Do not echo a private path, raw body, private semantic value or credential."
 
 hard_boundaries:
-  - "No private source discovery, read, normalization, ingestion, store creation or canary in epoch 85."
+  - "No private source discovery or access beyond the function-required read-only validation of the one explicit bound Daily-v2 file in epoch 85."
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
   - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
   - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
