@@ -32,22 +32,32 @@
 6. 本地origin分叉本身不能把任务静默降级到旧Epoch。只有规范远端确认路由陈旧，或GPT发布桥接/替代路由，才可停止或切换。
 7. 不得输出带凭证的remote URL。报告只保留脱敏URL、仓库身份和SHA。
 
+## 本地问题预防门
+
+跨Agent本地执行问题登记表：
+
+`coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`
+
+Codex在执行涉及Windows、PowerShell、Python、YAML/JSON、中文/Unicode路径或字符、编码、Git传输等任务前，必须只读取与当前技术栈匹配的ACTIVE模式并执行其`prevention_checks`。若问题已重复出现，优先判断能否在授权范围内永久消除根因；能则修复并加回归，不能或根因未明则使用已验证containment并记录证据/后续Owner。禁止只写“下次注意”、无限重试，或把一次workaround直接升级为长期标准。
+
 ## 执行顺序
 
 1. 验证规范仓库身份和规范main，不把未经确认的本地remote-tracking ref当权威。
 2. 安全同步或远程读取最新规范`main`；本地有未提交内容时不得覆盖。
-3. 读取本协议、RTCE协议、任务租约与完成新鲜度协议、进行中可见性协议、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性宪法和本地凭据协议。
+3. 读取本协议、RTCE协议、任务租约与完成新鲜度协议、进行中可见性协议、AMED、PMA-BIG、WPDCR、PDER、双层主观能动性宪法、本地凭据协议和`LOCAL-EXECUTION-ISSUE-PATTERNS.yaml`。
 4. 读取规范main上的最新`coordination/ACTIVE-CODEX-TASK.yaml`，不得使用旧缓存、聊天记忆或其他Agent索引代替。
 5. 读取活动索引中的task_id、route_epoch、Issue、PR、branch、base、status、execution_allowed、completion_signal、依赖、模式、任务简报、影响预测、探索预算、权限和停止条件。
 6. 读取活动Issue正文、全部评论和相关PR证据。
-7. 提交精确任务租约声明，逐字回显仓库、规范远端main head、task_id、route_epoch、Issue、PR、branch、status、completion_signal和reviewed/base head。
-8. 只有字段完全一致、`READY`、`execution_allowed: true`且依赖满足时才可执行。
-9. 租约有效后立即执行第一个实质动作，不得在任务复述或计划阶段停止。
-10. 执行期间围绕根本目标自主选择更可靠、更简单、更完整的方法，主动检查相邻模块、测试、接口、复用能力和过时假设。
-11. 授权范围内的AMED A/B高价值改良应实施并测试；C只提案；D或用户门停止升级。
-12. 按PDER和WPDCR实时报告难度、方案转向、失败、新发现、扩展、未解问题、精确协同和系统反馈。
-13. 到检查点、阻塞、交接或完成时发布可验证证据。完成必须提交累计AMED/WPDCR/测试/UNKNOWN/AI_HANDOFF，不自行合并。
-14. 完成信号发布前重新读取规范远端最新main并核对全部租约字段；不一致时先执行远端身份核验，再决定提交`StaleRoutePacket`或`RemoteIdentityMismatchPacket`。
+7. 根据任务实际OS、shell、语言、parser/compiler、格式、编码、Unicode/path和网络传输面匹配本地问题模式；把适用预防项纳入本次执行和验收，并声明`PERMANENT_FIX`、`CONTAIN_AND_MEASURE`或`NOT_APPLICABLE_WITH_REASON`。
+8. 提交精确任务租约声明，逐字回显仓库、规范远端main head、task_id、route_epoch、Issue、PR、branch、status、completion_signal和reviewed/base head。
+9. 只有字段完全一致、`READY`、`execution_allowed: true`且依赖满足时才可执行。
+10. 租约有效后立即执行第一个实质动作，不得在任务复述或计划阶段停止。
+11. 执行期间围绕根本目标自主选择更可靠、更简单、更完整的方法，主动检查相邻模块、测试、接口、复用能力和过时假设。
+12. 授权范围内的AMED A/B高价值改良应实施并测试；C只提案；D或用户门停止升级。
+13. 已知问题模式再次发生时，必须记录精确症状、命令/工具上下文、根因状态、修复或回避、验证与是否复发；高频重复workaround必须升级永久修复评估。
+14. 按PDER和WPDCR实时报告难度、方案转向、失败、新发现、扩展、未解问题、精确协同和系统反馈。
+15. 到检查点、阻塞、交接或完成时发布可验证证据。完成必须提交累计AMED/WPDCR/测试/UNKNOWN/AI_HANDOFF，并把可复现本地问题证据反馈到工程学习闭环，不自行合并。
+16. 完成信号发布前重新读取规范远端最新main并核对全部租约字段；不一致时先执行远端身份核验，再决定提交`StaleRoutePacket`或`RemoteIdentityMismatchPacket`。
 
 ## 远端身份分叉处理
 
@@ -106,6 +116,7 @@ Codex不是被动工单读取器。每个非轻量任务必须同时完成：
 - 替代/拒绝方案；
 - 难解问题、UNKNOWN和弃权；
 - 失败与负面结果；
+- 本地问题模式命中、永久修复/containment决策及回归证据；
 - 精确协同请求；
 - 跨Agent影响；
 - 回滚；
