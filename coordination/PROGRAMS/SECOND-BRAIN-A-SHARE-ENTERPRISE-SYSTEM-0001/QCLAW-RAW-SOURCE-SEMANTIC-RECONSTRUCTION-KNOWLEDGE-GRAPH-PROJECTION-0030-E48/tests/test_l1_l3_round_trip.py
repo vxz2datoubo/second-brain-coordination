@@ -21,10 +21,15 @@ from qclaw_e48_reconstruction.l1_reconstruct import (  # noqa: E402
 
 
 CANARY_PATH = E48_ROOT / "canary" / "synthetic_canary_noisy_chinese.txt"
+NATURAL_PATH = E48_ROOT / "canary" / "synthetic_natural_chinese.txt"
 
 
 def _load_canary() -> str:
     return CANARY_PATH.read_text(encoding="utf-8")
+
+
+def _load_natural() -> str:
+    return NATURAL_PATH.read_text(encoding="utf-8")
 
 
 def test_l0_is_immutable() -> None:
@@ -46,31 +51,38 @@ def test_view_is_deterministic() -> None:
 
 
 def test_punctuation_filler_typo_asr_classes_present() -> None:
+    """R3: TYPO + ASR classes are exercised by the main canary (which has
+    well-formed punctuation so PUNCTUATION does not fire). PUNCTUATION +
+    FILLER_REMOVAL are exercised by the natural-Chinese no-space canary
+    (which lacks `。` terminators and has filler words at sentence
+    boundaries). The two corpora together cover all four classes.
+    """
     from qclaw_e48_reconstruction.l1_schema import TerminologyAlias
-    l0 = _load_canary()
-    view = reconstruct(
-        l0,
-        ruleset=ReconstructionRuleset(
-            rules=(
-                (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
-                 "mid-confidence alias: 成交量 → 交易量 (canary)"),
-                (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
-                 "ambiguous pronoun cannot be resolved (canary)"),
-            )
-        ),
-        aliases=(TerminologyAlias(
-            alias_id="alias-quantum-entanglement",
-            raw_form="术语别名",
-            canonical_form="量子纠缠",
-            scope="E48 canary",
-            confidence=1.0,
-        ),),
+    ruleset = ReconstructionRuleset(
+        rules=(
+            (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
+             "mid-confidence alias: 成交量 → 交易量 (canary)"),
+            (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
+             "ambiguous pronoun cannot be resolved (canary)"),
+        )
     )
-    edit_types = {e.edit_type for s in view.segments for e in s.edits}
-    assert EditType.PUNCTUATION in edit_types, "missing punctuation edits"
-    assert EditType.FILLER_REMOVAL in edit_types, "missing filler edits"
-    assert EditType.TYPO_CORRECTION in edit_types, "missing 部份 → 部分 typo edit"
-    assert EditType.ASR_HOMOPHONE_CORRECTION in edit_types, "missing 式式 → 试试 ASR edit"
+    aliases = (TerminologyAlias(
+        alias_id="alias-quantum-entanglement",
+        raw_form="量子隐传",
+        canonical_form="量子纠缠",
+        scope="E48 canary",
+        confidence=1.0,
+    ),)
+    # Main canary covers TYPO + ASR (well-formed punctuation left as-is).
+    main_view = reconstruct(_load_canary(), ruleset=ruleset, aliases=aliases)
+    main_types = {e.edit_type for s in main_view.segments for e in s.edits}
+    assert EditType.TYPO_CORRECTION in main_types, "missing 部份 → 部分 typo edit"
+    assert EditType.ASR_HOMOPHONE_CORRECTION in main_types, "missing 式式 → 试试 ASR edit"
+    # Natural canary covers PUNCTUATION + FILLER_REMOVAL.
+    nat_view = reconstruct(_load_natural(), ruleset=ruleset, aliases=aliases)
+    nat_types = {e.edit_type for s in nat_view.segments for e in s.edits}
+    assert EditType.PUNCTUATION in nat_types, "missing punctuation edits"
+    assert EditType.FILLER_REMOVAL in nat_types, "missing filler edits"
 
 
 def test_typo_edit_is_high_confidence() -> None:

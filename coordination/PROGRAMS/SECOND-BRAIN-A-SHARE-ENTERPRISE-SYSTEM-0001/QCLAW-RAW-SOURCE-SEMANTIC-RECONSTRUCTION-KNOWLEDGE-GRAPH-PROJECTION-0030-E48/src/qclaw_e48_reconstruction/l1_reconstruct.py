@@ -102,15 +102,18 @@ BUILTIN_RULESET = ReconstructionRuleset(
             "Insert sentence-final punctuation at unterminated Han-line break (R1 bounded)",
         ),
         # filler_removal: drop standalone filler words. Conservative.
-        # Bounded: filler is not preceded or followed by another Han character
-        # (so we never eat a normal word that merely contains the filler
-        # substring).
+        # Bounded: filler MUST be at the start of the input OR preceded
+        # by a non-Han boundary (punctuation / whitespace / newline) AND
+        # MUST be at the end of the input OR followed by a non-Han
+        # boundary. This protects against eating a word like "呃其实"
+        # while still firing on natural Chinese transcripts that lack
+        # inter-word spaces.
         (
-            r"(?<![一-鿿])(呃|那个|然后|就是说|基本上|其实)(?![一-鿿])",
+            r"(?:(?<![一-鿿])|^)(?:呃|然后|就是说|基本上|那个|其实)(?:(?![一-鿿])|$)",
             r"",
             0.92,
             EditType.FILLER_REMOVAL,
-            "Drop standalone Chinese filler particle (R1 bounded — Han-bounded)",
+            "Drop standalone Chinese filler particle (R3 bounded — non-Han left and right boundary)",
         ),
         # typo_correction: a small high-confidence typo list.
         (

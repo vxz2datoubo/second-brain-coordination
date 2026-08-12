@@ -42,12 +42,12 @@ def _l2_pkg() -> dict:
     a1 = _e47.source_extract(
         "A001", "MECHANISM", L0_TEXT,
         0, len(L0_TEXT),
-        "HIGH", scope="A股日内",
+        "HIGH", scope="A股日量",
     )
     a2 = _e47.source_extract(
         "A002", "CONDITION", L0_TEXT,
         0, len(L0_TEXT),
-        "MEDIUM", scope="A股日内",
+        "MEDIUM", scope="A股日量",
     )
     pkg = _e47.build_package(
         "E48-L3-CANARY", src, [a1, a2],
@@ -170,7 +170,7 @@ def test_no_fabricated_edges_when_atom_missing() -> None:
 
 
 def test_cross_sentence_relation_derived_from_canary() -> None:
-    """R2 mandatory (3+8): the cross-sentence '如果…那么…' mechanism in
+    """R2 mandatory (3+8): the cross-sentence '如果…那么量 mechanism in
     the committed canary MUST be derived as one CONDITION atom + one
     MECHANISM atom + one REFINES relation, with each atom's L0 byte
     span pointing at actual semantic body content (not metadata).
@@ -187,7 +187,7 @@ def test_cross_sentence_relation_derived_from_canary() -> None:
     rules = ReconstructionRuleset(
         rules=(
             (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
-             "mid-confidence alias: 成交量 → 交易量 (canary)"),
+             "mid-confidence alias: 成交量→交易量(canary)"),
             (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
              "ambiguous pronoun cannot be resolved (canary)"),
         )
@@ -195,7 +195,7 @@ def test_cross_sentence_relation_derived_from_canary() -> None:
     aliases = (
         TerminologyAlias(
             alias_id="alias-quantum-entanglement",
-            raw_form="术语别名",
+            raw_form="量子隐传",
             canonical_form="量子纠缠",
             scope="E48 canary",
             confidence=1.0,
@@ -208,8 +208,11 @@ def test_cross_sentence_relation_derived_from_canary() -> None:
     assert errs == [], f"projection has invalid edges: {errs}"
     cond = [a for a in pkg["atoms"] if a["atom_type"] == "CONDITION"]
     mech = [a for a in pkg["atoms"] if a["atom_type"] == "MECHANISM"]
-    refines = [r for r in pkg["relations"] if r["relation_type"] == "REFINES"]
-    assert cond and mech and refines
+    depends_on = [r for r in pkg["relations"] if r["relation_type"] == "DEPENDS_ON"]
+    assert cond and mech and depends_on, (
+        f"missing CONDITION/MECHANISM atoms or DEPENDS_ON relation: "
+        f"cond={len(cond)} mech={len(mech)} depends_on={len(depends_on)}"
+    )
     # Every atom's source span must point at actual L0 content (not a
     # header comment line).
     l0_bytes = l0.encode("utf-8")
@@ -239,7 +242,7 @@ def test_no_fabricated_relations_in_canary_projection() -> None:
     rules = ReconstructionRuleset(
         rules=(
             (r"成交量", r"交易量", 0.5, EditType.TERMINOLOGY_NORMALIZATION,
-             "mid-confidence alias: 成交量 → 交易量 (canary)"),
+             "mid-confidence alias: 成交量→交易量(canary)"),
             (r"他她", r"他她", 0.3, EditType.UNKNOWN_MARKER,
              "ambiguous pronoun cannot be resolved (canary)"),
         )
@@ -247,7 +250,7 @@ def test_no_fabricated_relations_in_canary_projection() -> None:
     aliases = (
         TerminologyAlias(
             alias_id="alias-quantum-entanglement",
-            raw_form="术语别名",
+            raw_form="量子隐传",
             canonical_form="量子纠缠",
             scope="E48 canary",
             confidence=1.0,
@@ -255,7 +258,7 @@ def test_no_fabricated_relations_in_canary_projection() -> None:
     )
     view = reconstruct(l0, ruleset=rules, aliases=aliases)
     pkg = derive_l2_package(l0, view)
-    # The canary contains exactly ONE '如果…那么…' cross-sentence pair,
+    # The canary contains exactly ONE '如果…那么量 cross-sentence pair,
     # so the L2 derivation MUST emit at most 1 REFINES relation from
     # mechanism detection. (Aliases / atoms produce 0 relations.)
     refines = [r for r in pkg["relations"] if r["relation_type"] == "REFINES"]

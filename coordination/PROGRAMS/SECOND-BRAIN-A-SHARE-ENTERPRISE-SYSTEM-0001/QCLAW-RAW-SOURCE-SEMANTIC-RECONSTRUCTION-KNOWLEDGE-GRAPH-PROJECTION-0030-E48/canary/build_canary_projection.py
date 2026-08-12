@@ -77,7 +77,7 @@ def _terminology_aliases() -> list:
     return [
         TerminologyAlias(
             alias_id="alias-quantum-entanglement",
-            raw_form="术语别名",
+            raw_form="量子隐传",
             canonical_form="量子纠缠",
             scope="E48 canary",
             confidence=1.0,
@@ -103,7 +103,7 @@ def main() -> int:
         source_meta={
             "source_id": "src-canary",
             "source_url": "workspace://canary/synthetic_canary_noisy_chinese.txt",
-            "source_title": "E48 PUBLIC_SAFE canary (R2)",
+            "source_title": "E48 PUBLIC_SAFE canary (R3)",
         },
     )
 

@@ -1,38 +1,44 @@
 """L2 derivation — deterministic L1 + L0 → L2 atoms + relations.
 
-This is the smallest deterministic derivation step that the E48 R2
-mandatory list calls for: take a ``NormalizedSemanticView`` + the raw
-L0 text and produce the E47-style L2 atom list + relation list + unknown
-list. No hand-quota-filling; no fabricated edges.
+R3 architectural fix (per Issue #216 review id 4904878067, mandatory_r3
+items 1-6): L1 normalization provenance is **separated** from L2 knowledge
+semantics. Filler removal, punctuation insertion, typo correction and ASR
+homophone correction operations remain in L1 ``view.segments[].edits``
+as audit/provenance records. They do **not** automatically become L2
+knowledge atoms.
 
 Derivation rules (deterministic, auditable):
 
-1. For each ``NormalizationEdit`` in ``view.segments`` with
-   ``applied=True`` and ``confidence`` >= the type-specific HIGH
-   threshold (E47 quality discipline), emit one SOURCE_EXTRACT atom
-   spanning the exact L0 byte range of the edit. The atom's
-   ``content`` is the edit's ``after`` text.
+1. CONDITION + MECHANISM SOURCE_EXTRACT atoms + DEPENDS_ON relation from
+   cross-sentence ``如果 X 那么 Y ...`` detection. Effect clause is
+   bounded by the next contrast/conditional marker (``但`` / ``如果`` /
+   ``，`` / ``。`` / ``；`` / EOF). The relation is ``DEPENDS_ON``
+   (target MECHANISM DEPENDS_ON CONDITION premise), which is in the
+   accepted E47 vocabulary. REFINES is not used in L2 derivation.
 
-2. For each ``UnknownMarker`` in ``view.unknowns``, emit one INFERENCE
-   atom tagged ``UNKNOWN_REFUSAL`` with a rationale pointing at the
-   reconstructor's reason. The unknown is recorded in the L2 package's
-   ``unknowns`` list with a RAISES_UNKNOWN-style relation.
+2. UNKNOWN_REFUSAL INFERENCE atoms from each ``UnknownMarker`` in
+   ``view.unknowns``. The unknown is recorded in the L2 package's
+   ``unknowns`` list. Atom ``content`` is the L0 byte slice at the
+   unknown's byte span (SOURCE_EXTRACT invariant enforced).
 
-3. Cross-sentence mechanism detection (R2 mandatory): the function
-   scans the joined normalized_text for ``如果 <X> 那么 <Y>`` patterns
-   and emits one CONDITION atom + one MECHANISM atom + one REFINES
-   relation when both halves can be located as a byte span in L0.
-   No hand-built relations: if a relation cannot be derived safely,
-   it is NOT emitted (we keep the UNKNOWN in the view rather than
-   fabricate a relation).
+3. Terminology-normalization applied edits (R3 mandatory 4):
+   - When the canonical form equals the L0 byte slice at the edit span
+     (verbatim), emit a CONCEPT atom with ``evidence_kind=SOURCE_EXTRACT``
+     and an ``l1_edit_provenance`` field carrying the canonical_form.
+   - When the canonical form differs from the L0 byte slice, emit a
+     DERIVED_CONCEPT atom with ``evidence_kind=INFERENCE``, content =
+     canonical form, and ``l1_edit_provenance`` carrying raw span +
+     canonical form + confidence.
 
-4. Empty contradiction / memory / skill lists are valid and are passed
-   through unchanged.
+4. SOURCE_EXTRACT invariant (R3 mandatory 3): for every atom with
+   ``evidence_kind=SOURCE_EXTRACT``, ``atom.content`` is exactly the
+   decoded L0 byte slice at the atom's cited source span. Never a
+   normalized/derived substitute. Derived atoms use ``INFERENCE``.
 
-This module is **stdlib-only** and produces deterministic bytes for
-the same input. The downstream ``l3_project`` consumes the L2 package
-dict (not the E47 dataclasses) so it can be tested without the E47
-worktree on ``sys.path``.
+5. Empty contradiction / memory / skill lists are valid and pass through.
+
+This module is **stdlib-only** and produces deterministic bytes for the
+same input.
 """
 from __future__ import annotations
 
@@ -48,16 +54,27 @@ from .l1_schema import (
 )
 
 
-# Cross-sentence pattern: 如果 <condition> 那么 <effect>. Both halves must
-# be 1-60 Han characters (no Chinese punctuation inside to keep the
-# pattern deterministic). The effect clause ends at whitespace / sentence
-# punctuation / EOF.
+# Cross-sentence pattern (R3 fix): effect clause is bounded by the
+# next contrast/conditional/sentence marker, NOT by the first whitespace
+# (which previously truncated the effect to ``价格``).
 _MECHANISM_PATTERN = re.compile(
-    r"如果(.{1,60}?)那么(.{1,60}?)(?:[\s。,;]|$)"
+    r"如果(.{1,80}?)那么(.{1,80}?)(?=但|如果|，|。|；|$)"
 )
 
 
-def _confidence_atom_label(confidence: float, edit_type: EditType) -> str:
+# Edit types that are *normalization operations only* and MUST NOT
+# become L2 knowledge atoms. They remain L1 audit/provenance only.
+_NORMALIZATION_ONLY = frozenset({
+    EditType.FILLER_REMOVAL,
+    EditType.PUNCTUATION,
+    EditType.SENTENCE_BREAK,
+    EditType.TYPO_CORRECTION,
+    EditType.ASR_HOMOPHONE_CORRECTION,
+    EditType.PARAGRAPH_SPLIT,
+})
+
+
+def _confidence_label(confidence: float, edit_type: EditType) -> str:
     if edit_type == EditType.ASR_HOMOPHONE_CORRECTION:
         if confidence >= ASR_HIGH_CONFIDENCE:
             return "HIGH"
@@ -71,23 +88,14 @@ def _confidence_atom_label(confidence: float, edit_type: EditType) -> str:
     return "LOW"
 
 
-def _char_to_byte(l0_bytes: bytes, char_index: int, l0_text: str) -> int:
-    """Convert a *char index in the decoded L0 string* to a UTF-8 byte offset
-    into ``l0_bytes``. Slicing by character index from the decoded text and
-    re-encoding to UTF-8 avoids cutting a multibyte sequence in the middle.
-    """
-    return len(l0_text[:char_index].encode("utf-8"))
+def _line_index_for_byte(l0_text: str, byte_offset: int) -> int:
+    """1-indexed line number that contains the given UTF-8 byte offset."""
+    return l0_text.encode("utf-8")[:byte_offset].decode("utf-8", errors="ignore").count("\n") + 1
 
 
-def _char_range_byte_range(
-    l0_text: str,
-    char_start: int,
-    char_end: int,
-) -> Tuple[int, int]:
-    return (
-        len(l0_text[:char_start].encode("utf-8")),
-        len(l0_text[:char_end].encode("utf-8")),
-    )
+def _l0_byte_slice(l0_text: str, byte_start: int, byte_end: int) -> str:
+    """SOURCE_EXTRACT invariant: content == exact L0 byte slice."""
+    return l0_text.encode("utf-8")[byte_start:byte_end].decode("utf-8")
 
 
 def _build_atom_dict(
@@ -101,8 +109,14 @@ def _build_atom_dict(
     line_start: int,
     line_end: int,
     label: str = "",
+    l1_edit_provenance: dict | None = None,
 ) -> dict:
-    """Construct an E47-style atom dict (matches the L2 package JSON shape)."""
+    """Construct an E47-style atom dict.
+
+    For SOURCE_EXTRACT atoms the caller MUST pass ``content`` as the
+    exact L0 byte slice at ``(byte_start, byte_end)``. For INFERENCE /
+    derived atoms ``content`` is the canonical / derived form.
+    """
     span: Dict[str, object] = {
         "byte_start": byte_start,
         "byte_end": byte_end,
@@ -111,7 +125,7 @@ def _build_atom_dict(
     }
     if label:
         span["span_label"] = label
-    return {
+    atom: Dict[str, object] = {
         "atom_id": atom_id,
         "atom_type": atom_type,
         "content": content,
@@ -121,11 +135,9 @@ def _build_atom_dict(
         "scope": "canary",
         "invalidation_conditions": "",
     }
-
-
-def _line_index_for_byte(l0_text: str, byte_offset: int) -> int:
-    """1-indexed line number that contains the given UTF-8 byte offset."""
-    return l0_text.encode("utf-8")[:byte_offset].decode("utf-8", errors="ignore").count("\n") + 1
+    if l1_edit_provenance is not None:
+        atom["l1_edit_provenance"] = l1_edit_provenance
+    return atom
 
 
 def derive_l2_package(
@@ -143,7 +155,7 @@ def derive_l2_package(
     source = {
         "source_id": source_meta.get("source_id", "src-canary"),
         "source_url": source_meta.get("source_url", "workspace://canary"),
-        "source_title": source_meta.get("source_title", "E48 PUBLIC_SAFE canary (R2)"),
+        "source_title": source_meta.get("source_title", "E48 PUBLIC_SAFE canary (R3)"),
         "source_hash": hashlib.sha256(l0_bytes).hexdigest(),
         "source_size_bytes": len(l0_bytes),
         "ingested_at": "1970-01-01T00:00:00Z",
@@ -152,35 +164,63 @@ def derive_l2_package(
     atoms: List[dict] = []
     relations: List[dict] = []
     unknowns: List[dict] = []
-
-    # 1. SOURCE_EXTRACT atoms from each applied, type-threshold-passing edit.
-    edit_atoms: Dict[str, str] = {}
     counter = 0
+
+    # R3 mandatory 1: no edit-as-atom promotion. Filler / punctuation /
+    # typo / ASR edits remain L1 audit records; they do NOT become
+    # knowledge atoms.
+
+    # R3 mandatory 4: terminology-normalization applied edits produce
+    # either CONCEPT (verbatim) or DERIVED_CONCEPT (derived) atoms.
     for seg in view.segments:
         for e in seg.edits:
             if not e.applied:
                 continue
-            if e.edit_type == EditType.UNKNOWN_MARKER:
+            if e.edit_type != EditType.TERMINOLOGY_NORMALIZATION:
                 continue
-            threshold = (ASR_HIGH_CONFIDENCE
-                         if e.edit_type == EditType.ASR_HOMOPHONE_CORRECTION
-                         else HIGH_CONFIDENCE_THRESHOLD)
-            if e.confidence < threshold:
+            if e.confidence < HIGH_CONFIDENCE_THRESHOLD:
                 continue
+            l0_slice = _l0_byte_slice(l0_text, e.byte_start, e.byte_end)
             counter += 1
             atom_id = f"A{counter:03d}"
-            edit_atoms[e.edit_id] = atom_id
             line_start = _line_index_for_byte(l0_text, e.byte_start)
             line_end = _line_index_for_byte(l0_text, e.byte_end)
-            atoms.append(_build_atom_dict(
-                atom_id, e.edit_type.value, "SOURCE_EXTRACT",
-                _confidence_atom_label(e.confidence, e.edit_type),
-                e.after, e.byte_start, e.byte_end,
-                line_start, line_end,
-                label=f"{e.edit_type.value}@{e.edit_id}",
-            ))
+            if l0_slice == e.after:
+                # Verbatim: the canonical form is unchanged from L0.
+                atoms.append(_build_atom_dict(
+                    atom_id, "CONCEPT", "SOURCE_EXTRACT", "HIGH",
+                    l0_slice, e.byte_start, e.byte_end,
+                    line_start, line_end,
+                    label=f"terminology:verbatim:{e.edit_id}",
+                    l1_edit_provenance={
+                        "edit_id": e.edit_id,
+                        "edit_type": e.edit_type.value,
+                        "raw_form": l0_slice,
+                        "canonical_form": e.after,
+                        "confidence": e.confidence,
+                        "evidence_refs": list(e.evidence_refs),
+                    },
+                ))
+            else:
+                # Derived: canonical differs from L0 surface form.
+                atoms.append(_build_atom_dict(
+                    atom_id, "DERIVED_CONCEPT", "INFERENCE",
+                    _confidence_label(e.confidence, e.edit_type),
+                    e.after, e.byte_start, e.byte_end,
+                    line_start, line_end,
+                    label=f"terminology:derived:{e.edit_id}",
+                    l1_edit_provenance={
+                        "edit_id": e.edit_id,
+                        "edit_type": e.edit_type.value,
+                        "raw_form": l0_slice,
+                        "canonical_form": e.after,
+                        "confidence": e.confidence,
+                        "evidence_refs": list(e.evidence_refs),
+                    },
+                ))
 
-    # 2. INFERENCE atoms for each UnknownMarker.
+    # R3 mandatory 1 + 2: UNKNOWN_REFUSAL atoms for each UnknownMarker.
+    # content = exact L0 byte slice at the unknown's byte span.
     unknown_atom_ids: List[str] = []
     for u in view.unknowns:
         counter += 1
@@ -190,9 +230,15 @@ def derive_l2_package(
         line_end = _line_index_for_byte(l0_text, u.byte_end)
         atoms.append(_build_atom_dict(
             atom_id, "UNKNOWN_REFUSAL", "INFERENCE", "MEDIUM",
-            u.raw_text, u.byte_start, u.byte_end,
+            _l0_byte_slice(l0_text, u.byte_start, u.byte_end),
+            u.byte_start, u.byte_end,
             line_start, line_end,
-            label=f"unknown_refusal@{u.unknown_id}",
+            label=f"unknown_refusal:{u.unknown_id}",
+            l1_edit_provenance={
+                "unknown_id": u.unknown_id,
+                "reason": u.reason,
+                "raw_text": u.raw_text,
+            },
         ))
         unknowns.append({
             "unknown_id": u.unknown_id,
@@ -200,7 +246,9 @@ def derive_l2_package(
             "related_atom_ids": [atom_id],
         })
 
-    # 3. Cross-sentence mechanism derivation.
+    # R3 mandatory 5 + 6: cross-sentence mechanism derivation with
+    # bounded effect + truthful DEPENDS_ON relation. The effect clause
+    # is bounded by the next contrast/conditional/sentence marker.
     if view.segments:
         normalized_text = view.segments[0].normalized_text
     else:
@@ -218,10 +266,10 @@ def derive_l2_package(
         cond_atom_id = f"A{counter:03d}"
         cond_line_start = _line_index_for_byte(l0_text, cond_span[0])
         cond_line_end = _line_index_for_byte(l0_text, cond_span[1])
+        cond_excerpt = _l0_byte_slice(l0_text, cond_span[0], cond_span[1])
         atoms.append(_build_atom_dict(
             cond_atom_id, "CONDITION", "SOURCE_EXTRACT", "HIGH",
-            l0_text.encode("utf-8")[cond_span[0]:cond_span[1]].decode("utf-8"),
-            cond_span[0], cond_span[1],
+            cond_excerpt, cond_span[0], cond_span[1],
             cond_line_start, cond_line_end,
             label="if-condition",
         ))
@@ -229,28 +277,29 @@ def derive_l2_package(
         eff_atom_id = f"A{counter:03d}"
         eff_line_start = _line_index_for_byte(l0_text, eff_span[0])
         eff_line_end = _line_index_for_byte(l0_text, eff_span[1])
+        eff_excerpt = _l0_byte_slice(l0_text, eff_span[0], eff_span[1])
         atoms.append(_build_atom_dict(
             eff_atom_id, "MECHANISM", "SOURCE_EXTRACT", "HIGH",
-            l0_text.encode("utf-8")[eff_span[0]:eff_span[1]].decode("utf-8"),
-            eff_span[0], eff_span[1],
+            eff_excerpt, eff_span[0], eff_span[1],
             eff_line_start, eff_line_end,
             label="then-effect",
         ))
+        # R3 mandatory 6: DEPENDS_ON, not REFINES.
         relations.append({
             "source_atom_id": cond_atom_id,
             "target_atom_id": eff_atom_id,
-            "relation_type": "REFINES",
+            "relation_type": "DEPENDS_ON",
             "span_index": -1,
+            "rationale": "MECHANISM effect depends on CONDITION premise (if/then).",
         })
 
-    # 4. Empty contradiction / memory / skill lists are valid.
     return {
         "schema": "QCLAW-CANDIDATE-KNOWLEDGE-PACKAGE-V1",
         "package_id": package_id,
         "package_version": 1,
         "content_hash": "0" * 16,
         "source": source,
-        "summary": "E48 R2 end-to-end derivation from L1 view + L0 raw text",
+        "summary": "E48 R3 end-to-end derivation: L1 provenance separated from L2 semantics.",
         "atoms": atoms,
         "relations": relations,
         "contradictions": [],
