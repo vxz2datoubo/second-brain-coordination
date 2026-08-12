@@ -1,18 +1,18 @@
-schema_version: "96.0"
+schema_version: "97.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-OWNER-BINDING-WAIT"
+task_id: "CODEX-CLTM-0021-PRIVATE-BINDING-VERIFICATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 84
-mode: "owner_dependency_wait"
-mode_label: "【GPT控制面】CLTM-0021 等待所有者显式 private binding"
-status: "WAITING_FOR_OWNER_BINDING"
-execution_allowed: false
+route_epoch: 85
+mode: "bounded_binding_verification"
+mode_label: "【Codex有界验证】CLTM-0021 显式 private binding status"
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: true
-intermediate_gpt_review_required: false
+second_user_start_command_required: false
+intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
 real_private_candidate_ingestion_allowed: false
@@ -22,42 +22,42 @@ repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "06474d7386db5a4e416e48d8c81cf0dd327328b3"
-route_contract: "coordination/ROUTES/CODEX-CLTM-0021-OWNER-BINDING-WAIT-R84.yaml"
+canonical_main_at_route_publish: "45543fcddbbe97cd7507c8e5147c9b74c97a2ff5"
+route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 85 is limited by this ACTIVE control plane"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-PRIVATE-SOURCE-BINDING-CANARY"
-  route_epoch: 83
-  disposition: "GPT_E83_BINDING_CHECKPOINT_ACCEPTED_WAITING"
-  first_wait_checkpoint_comment: 5267088114
-  gpt_wait_audit_comment: 5267249489
-  repeated_binding_result: "PRIVATE_SOURCE_BINDING_WAITING"
+  task_id: "CODEX-CLTM-0021-OWNER-BINDING-WAIT"
+  route_epoch: 84
+  disposition: "OWNER_PRIVATE_BINDING_CONFIGURED"
+  owner_confirmation_issue_comment: 5268701711
+  prior_wait_route: "CODEX-CLTM-0021-OWNER-BINDING-WAIT-R84"
   implementation_merge_commit: "1963075c05a5d32c8b7df939e77f8cbd3282b4c0"
   architectural_milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
 
-wait_reason: >-
-  The code path is ready, but the owner/system dependency is not. Both explicit local environment bindings and an actual owner-authorized,
-  readable, validating DailyMemoryCandidate-v2 package are required. Re-running the same gate before these dependencies exist is forbidden.
+owner_authorization:
+  signal: "OWNER_PRIVATE_BINDING_CONFIGURED"
+  issue_comment: 5268701711
+  scope: "One control-plane verification route only; it does not authorize source access."
 
-owner_resume_requirements:
-  required_environment: ["CLTM_PRIVATE_DATA_ROOT", "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"]
-  required_source_state:
-    - "Private data root exists outside the public repository."
-    - "Bound DailyMemoryCandidate-v2 file exists under that root, is readable, owner-authorized and validates under the merged transport contract."
-  owner_signal: "OWNER_PRIVATE_BINDING_CONFIGURED"
+allowed_action:
+  exactly_one: "Call the existing private_source_binding_status function once and publish only its redacted status for GPT review."
+  function_required_read_only_access: >-
+    The existing function may read only the one file named by the explicit
+    CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH under the explicit private root,
+    solely to establish accessibility and validate the DailyMemoryCandidate-v2
+    format required for its CONFIGURED/REJECTED status.
+  read_only_scope: "one explicit bound Daily-v2 file; no other source, directory or profile access"
+  allowed_output: ["binding_status", "redacted_reason", "LOCAL_EXECUTION_ISSUES", "lock_statement"]
+  stop_after: "Immediately stop after the one status result; no store creation, ingestion or canary."
 
-codex_behavior_while_waiting:
-  - "Do not call private_source_binding_status again merely because the task is read."
-  - "Do not scan, guess or enumerate private source locations."
+forbidden_actions:
+  - "Do not read, load, normalize or validate any source/package other than the one explicit bound Daily-v2 file through private_source_binding_status."
+  - "Do not scan, guess or enumerate private source locations, directories, homes, browsers or profiles."
   - "Do not create a private store or execute a canary."
-  - "Report WAITING_FOR_OWNER_BINDING and stop."
-
-resume_contract:
-  trigger: "Owner confirms the two explicit environment bindings and actual authorized readable Daily-v2 file are configured."
-  next_action: "GPT publishes a later bounded resume route before Codex may execute the binding gate/canary again."
+  - "Do not echo a private path, raw body, private semantic value or credential."
 
 hard_boundaries:
-  - "No private source discovery, read, normalization, ingestion, store creation or canary while waiting."
+  - "No private source discovery or access beyond the function-required read-only validation of the one explicit bound Daily-v2 file in epoch 85."
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
   - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
   - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
@@ -67,12 +67,14 @@ hard_boundaries:
   - "No second canonical memory/query/bundle/vector/graph/temporal authority."
   - "No trading/accounts/funds actions."
 
+completion_signal: "CODEX_CLTM_0021_PRIVATE_BINDING_VERIFICATION_READY_FOR_GPT_REVIEW"
+
 local_execution_learning:
   pythonpath_observation: "R83-LOCAL-PYTHONPATH-001"
   maturity: "OBSERVATION_ONLY"
   registry_status: "NOT_YET_CANONICALIZED"
   canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
 
-next_command: "WAIT_FOR_OWNER_PRIVATE_BINDING"
-updated_by: "GPT"
-updated_at: "2026-08-12T21:29:00+08:00"
+next_command: "GPT_REVIEW_EPOCH_85_BINDING_STATUS_ONLY"
+updated_by: "CODEX"
+updated_at: "2026-08-12T22:00:00+08:00"
