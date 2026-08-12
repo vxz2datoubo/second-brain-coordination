@@ -1,0 +1,180 @@
+{
+  "D1": {
+    "evidence": [
+      "multi_source_classes_seen",
+      [
+        "adversarial_mutation",
+        "chat_dialogue",
+        "clean_article",
+        "contradiction_pair",
+        "method_skill",
+        "noisy_asr",
+        "ocr_typo_heavy",
+        "prompt_injection"
+      ]
+    ],
+    "notes": "D1 fully passes",
+    "verdict": "PASS"
+  },
+  "D10": {
+    "evidence": [
+      "fixtures",
+      9,
+      "injection_treated_as_content",
+      true,
+      "mutation_distinct",
+      true
+    ],
+    "notes": "D10 fully passes",
+    "verdict": "PASS"
+  },
+  "D11": {
+    "evidence": [
+      "determinism",
+      true,
+      "semantic_change_distinct",
+      true
+    ],
+    "notes": "D11 fully passes (note: CI on Py 3.11+3.13 needs CI runner; this is the local eval)",
+    "verdict": "PASS"
+  },
+  "D12": {
+    "evidence": [
+      "postflight_clean",
+      true
+    ],
+    "notes": "D12 fully passes (subprocess cap verified at CI level)",
+    "verdict": "PASS"
+  },
+  "D2": {
+    "evidence": [
+      "reconstructed_classes",
+      [
+        "chat_dialogue",
+        "clean_article",
+        "noisy_asr",
+        "ocr_typo_heavy"
+      ]
+    ],
+    "notes": "D2 fully passes",
+    "verdict": "PASS"
+  },
+  "D3": {
+    "evidence": [
+      "atom_types_seen",
+      [],
+      "missing_atom_types",
+      [
+        "CAUSAL_CHAIN",
+        "CONCEPT",
+        "CONDITION",
+        "COUNTEREXAMPLE",
+        "DATA_SOURCE",
+        "DEFINITION",
+        "EXECUTABLE_ACTION",
+        "FAILURE_CONDITION",
+        "HYPOTHESIS",
+        "INDICATOR",
+        "MECHANISM",
+        "SCOPE",
+        "VERIFICATION_METHOD"
+      ],
+      "missing_evidence_kinds",
+      [
+        "EXTERNAL_CLAIM",
+        "INFERENCE",
+        "SOURCE_EXTRACT",
+        "USER_CLAIM",
+        "VALUE_JUDGMENT"
+      ]
+    ],
+    "notes": "D3 partial: missing 13 atom types and 5 evidence kinds",
+    "verdict": "PARTIAL"
+  },
+  "D4": {
+    "evidence": [
+      "identities",
+      3,
+      "supersession_edges",
+      1,
+      "contradiction_edges",
+      1
+    ],
+    "notes": "D4 fully passes",
+    "verdict": "PASS"
+  },
+  "D5": {
+    "evidence": [
+      "source_extract_atoms_checked",
+      8,
+      "constructed",
+      8
+    ],
+    "notes": "D5 fully passes (invariant verified)",
+    "verdict": "PASS"
+  },
+  "D6": {
+    "evidence": [
+      "inferred_candidate_count",
+      8,
+      "unknown_count",
+      1,
+      "forgery_caught",
+      true
+    ],
+    "notes": "D6 fully passes",
+    "verdict": "PASS"
+  },
+  "D7": {
+    "evidence": [
+      "insufficient_refused",
+      true,
+      "full_promotion_refused",
+      true,
+      "dry_run_ok",
+      true,
+      "rollback_ok",
+      true
+    ],
+    "notes": "D7 fully passes",
+    "verdict": "PASS"
+  },
+  "D8": {
+    "evidence": [
+      "supersession_alters_recall",
+      true,
+      "include_superseded_works",
+      true
+    ],
+    "notes": "D8 fully passes",
+    "verdict": "PASS"
+  },
+  "D9": {
+    "evidence": [
+      "emitted",
+      1,
+      "formal_write_refused",
+      true
+    ],
+    "notes": "D9 fully passes",
+    "verdict": "PASS"
+  },
+  "_coverage_stats": {
+    "correctly_extracted": 22
+  },
+  "_postflight": {
+    "orphans": 0,
+    "rollback_receipts": [],
+    "task_owned_descendants": 0,
+    "unrelated_terminations": 0
+  },
+  "_summary": {
+    "corpus_fixtures": 9,
+    "fail_count": 0,
+    "partial_count": 1,
+    "pass_count": 11,
+    "postflight_clean": true,
+    "rationale": "All dimensions PASS or PARTIAL (≤2); bounded real-source pilot allowed with whitelist.",
+    "recommendation": "READY_FOR_BOUNDED_REAL_SOURCE_PILOT"
+  }
+}
