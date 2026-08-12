@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 protocol_id: "GPT-TASK-REVIEW-AND-PUBLISH-COMMAND-SEMANTICS-0001"
 short_name: "GRPC-S"
 status: "ACTIVE_PERMANENT_PROJECT_RULE"
@@ -10,6 +10,7 @@ proactive_mission_authoring_protocol: "coordination/GOVERNANCE/PROACTIVE-MISSION
 work_process_reporting_protocol: "coordination/GOVERNANCE/AGENT-WORK-PROCESS-DIFFICULTY-DISCOVERY-AND-COORDINATION-REPORTING-PROTOCOL-v1.0.yaml"
 agent_read_execute_protocol: "coordination/GOVERNANCE/AGENT-READ-TASK-CLAIM-AND-EXECUTE-COMMAND-SEMANTICS-v1.0.yaml"
 in_progress_visibility_protocol: "coordination/GOVERNANCE/AGENT-IN-PROGRESS-REMOTE-VISIBILITY-AND-ROUTE-BRIDGE-PROTOCOL-v1.0.yaml"
+local_execution_issue_registry: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
 
 purpose: >-
   Give 审查任务 and 发布任务 durable meanings. A bare 审查任务 is the whole review-optimize-publish cycle for all materially
@@ -28,6 +29,7 @@ trigger_commands:
       - "Read latest remote main and all relevant active routes."
       - "Perform visibility preflight and fetch complete reports, PRs, commits, tests, CI and receipts."
       - "Review assignment quality, execution, process, difficulty, failures, discoveries, expansions, unresolved problems, coordination and system feedback."
+      - "Match observed local execution failures against LOCAL-EXECUTION-ISSUE-PATTERNS; update evidence and prefer durable root-cause remediation over repeated workaround when justified."
       - "Accept reusable value and preserve negative evidence."
       - "Directly repair GPT-owned task, route, protocol or coordination defects."
       - "Publish remediation/next mission, reaffirm valid route or publish precise blocked state."
@@ -64,6 +66,7 @@ review_task_protocol:
     - "Proactive discoveries, improvements, alternatives, rejected ideas and UNKNOWNs."
     - "Negative results, survivors, SKIP, stale assumptions and contradictions."
     - "Cross-agent interfaces, canonical ownership, runtimes, dependencies and pauses."
+    - "Applicable local execution issue patterns, their recurrence evidence, permanent-fix attempts and prevention regressions."
   visibility_preflight:
     mandatory: true
     inference_rules:
@@ -79,6 +82,8 @@ review_task_protocol:
       - "Did it grant bounded better-method/A-B initiative?"
       - "Did it require seven discovery questions, difficulty/UNKNOWN, exact coordination and system feedback?"
       - "Did it include RTCE: 读取任务 means claim and execute?"
+      - "Did task publication inspect matching local execution issue patterns and inject relevant prevention checks?"
+      - "For recurring failures, did it distinguish permanent root-cause remediation from temporary containment?"
       - "Could wording have caused passive, plan-only or evidence-theatre behavior?"
     repair_rule: "Repair authoring/command semantics as well as executor defects when task design contributed."
   execution_review_dimensions:
@@ -90,6 +95,7 @@ review_task_protocol:
     - "Expandable ideas with reuse, owner, cost, risk, trigger and gate."
     - "Unresolved problems, attempts, missing capability and abstention."
     - "Failures, negative results and regression protection."
+    - "Whether repeated local execution failures were prevented, permanently remediated, or explicitly contained with evidence."
     - "Exact coordination and unaffected work."
     - "Cross-agent handoff, authority and system impact."
     - "Reusable lessons and system feedback."
@@ -117,12 +123,22 @@ review_task_protocol:
 
 publish_task_protocol:
   prerequisite: "Use latest valid review and preserve/disposition local work before superseding."
+  local_issue_prevention_gate:
+    registry: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+    mandatory: true
+    procedure:
+      - "Identify task OS, shells, languages, parsers/compilers, file formats, encodings, Unicode/path exposure and network transports."
+      - "Load only matching ACTIVE patterns."
+      - "Inject low-cost high-value prevention checks into task acceptance criteria."
+      - "For recurring patterns, explicitly choose PERMANENT_FIX, CONTAIN_AND_MEASURE, or NOT_APPLICABLE_WITH_REASON."
+      - "Do not promote one successful workaround into a permanent standard without maturity evidence."
   defaults:
     - "Proactive mission around fundamental goal, not passive checklist."
     - "Preserve useful work and repair defective boundary."
     - "Grant better-method and A/B initiative."
     - "Require seven discovery questions, difficulty/UNKNOWN, exact coordination and system feedback."
     - "Define internal evidence gates and WPDCR."
+    - "Read matching local execution issue patterns and prevent known recurrence before release."
     - "State 读取任务 means read, claim and immediately execute."
   every_published_task_must_define:
     - "Mode and reason."
@@ -132,6 +148,7 @@ publish_task_protocol:
     - "Autonomy, better-method mandate and A/B/C/D."
     - "Seven discovery questions."
     - "Difficulty, UNKNOWN, blocker evidence and abstention."
+    - "Applicable local execution issue patterns, prevention checks, and permanent-fix versus containment decision."
     - "Coordination owners/requests/unaffected work/closure."
     - "System-feedback destinations and GPT gate."
     - "Paths, branch, PR/WIP and safety firewalls."
@@ -146,7 +163,7 @@ publish_task_protocol:
 
 command_relationships:
   REVIEW_TASK_includes_publish_follow_through: true
-  required_order: [REVIEW_AND_VISIBILITY_PREFLIGHT, FREEZE_DISPOSITION_AND_BOUNDARIES, OPTIMIZE_AND_PUBLISH_OR_REAFFIRM]
+  required_order: [REVIEW_AND_VISIBILITY_PREFLIGHT, FREEZE_DISPOSITION_AND_BOUNDARIES, LOCAL_ISSUE_PREVENTION_PREFLIGHT, OPTIMIZE_AND_PUBLISH_OR_REAFFIRM]
   forbidden_shortcut: "No publish-first retrofit."
 
 memory_and_persistence:
@@ -166,4 +183,4 @@ security_and_release_boundaries:
   real_data_replay_backtest_fitting_account_order_trade_implicit_release: false
 
 updated_by: "GPT"
-updated_at: "2026-07-31T05:42:00+08:00"
+updated_at: "2026-08-12T11:07:00+08:00"
