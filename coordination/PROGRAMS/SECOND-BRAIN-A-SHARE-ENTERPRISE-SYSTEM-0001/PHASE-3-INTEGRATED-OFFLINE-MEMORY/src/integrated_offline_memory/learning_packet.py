@@ -15,7 +15,11 @@ _SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[
 _CONVERSATION_ROLES = {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}
 _CONVERSATION_REQUIRED = {
     "episode_manifest_id", "user_scope", "project_scope", "privacy_class",
-    "claim_role", "valid_from", "recorded_at",
+    "coverage", "source_class", "claim_role", "valid_from", "recorded_at",
+}
+_CONVERSATION_SOURCE_CLASSIFICATIONS = {
+    ("PUBLIC_SAFE_SYNTHETIC", "synthetic"): "SYNTHETIC_PUBLIC_SAFE",
+    ("PRIVATE_LOCAL_CANDIDATE", "private_local"): "PRIVATE_LOCAL_AUTHORIZED",
 }
 _PROMPT_INJECTION_MARKERS = (
     "ignore previous instructions",
@@ -182,8 +186,18 @@ def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
         return ["conversation_metadata_required"]
     if any(not isinstance(conversation[key], str) or not conversation[key] for key in _CONVERSATION_REQUIRED):
         return ["conversation_metadata_invalid"]
-    if conversation["privacy_class"] != "PUBLIC_SAFE_SYNTHETIC":
+    expected_source_class = _CONVERSATION_SOURCE_CLASSIFICATIONS.get(
+        (conversation["privacy_class"], conversation["coverage"])
+    )
+    if expected_source_class is None or conversation["source_class"] != expected_source_class:
         return ["conversation_privacy_denied"]
+    expected_visibility = (
+        "LOCAL_PRIVATE_CANDIDATE_ONLY"
+        if conversation["privacy_class"] == "PRIVATE_LOCAL_CANDIDATE"
+        else "PUBLIC_SAFE_METADATA_ONLY"
+    )
+    if atom.get("transport_visibility") != expected_visibility:
+        return ["conversation_transport_visibility_denied"]
     if conversation["claim_role"] not in _CONVERSATION_ROLES:
         return ["conversation_claim_role_denied"]
     if atom.get("scope") != conversation["project_scope"]:
@@ -240,7 +254,7 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
     report = packet.get("validation_report")
     if not isinstance(report, dict):
         return ["conversation_packet_validation_missing"]
-    fields = ("user_scope", "project_scope", "privacy_class", "claim_role")
+    fields = ("user_scope", "project_scope", "privacy_class", "coverage", "source_class", "claim_role")
     if any(report.get(field) != conversation.get(field) for field in fields):
         return ["conversation_packet_validation_mismatch"]
     try:

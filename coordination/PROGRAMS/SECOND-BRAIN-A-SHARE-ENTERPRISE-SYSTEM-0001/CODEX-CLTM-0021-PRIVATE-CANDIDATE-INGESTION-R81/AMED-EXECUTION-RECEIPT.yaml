@@ -1,0 +1,77 @@
+﻿schema_version: "1.0"
+record_type: "AMEDAgentExecutionReceipt"
+task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+route_epoch: 81
+agent_id: "CODEX"
+actual_executor: "CODEX"
+mode: "project_plan"
+task_weight: "STRATEGIC"
+status: "SUCCESS_WITH_FINDINGS"
+local_execution_issues: "NONE_OBSERVED"
+mission_and_completion:
+  main_delivery_summary: "Implemented a bounded DailyMemoryCandidate-v2 local/private candidate bridge that uses only the existing W3 ConversationEpisode, LearningPacket, MemoryStore, QueryPlan and ContextBundle surfaces. No formal persistence path was added."
+  success_criteria:
+    - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
+      status: "MET"
+      evidence: "test_private_classification_uses_existing_packet_store_query_bundle"
+    - criterion: "One deterministic/idempotent local candidate interface feeds the canonical W3 path."
+      status: "MET"
+      evidence: "test_idempotency_and_rebuild_are_deterministic"
+    - criterion: "Secrets, injection, role, scope and time failures fail closed."
+      status: "MET"
+      evidence: "test_fail_closed_for_schema_secret_injection_role_scope_and_time"
+    - criterion: "Real authorized private canary is performed only when an explicit local binding exists."
+      status: "PARTIAL"
+      evidence: "No CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH binding was configured; status is PRIVATE_SOURCE_BINDING_WAITING."
+scope_accounting:
+  completed:
+    - "canonical private/local source classification"
+    - "DailyMemoryCandidate-v2 local adapter and redacted CLI receipt"
+    - "synthetic/public-safe regression and adversarial coverage"
+  not_completed:
+    - "real private source canary"
+  deliberately_rejected_or_removed:
+    - item: "formal PROJECT/GLOBAL promotion"
+      reason: "Route epoch 81 explicitly locks formal persistence."
+    - item: "private source discovery by filesystem scan"
+      reason: "A canary requires an explicit user-authorized local transport binding, not opportunistic collection."
+repository_and_environment:
+  repository: "vxz2datoubo/second-brain-coordination"
+  branch: "codex/cltm-0021-private-candidate-ingestion-r81"
+  base_sha: "fd9a3e12c36017de6f1db358e7fc8cc262fbb455"
+  changed_files:
+    - path: "PHASE-3.../conversation_memory.py"
+      reason: "classified synthetic/private-local episode boundary"
+    - path: "PHASE-3.../learning_packet.py"
+      reason: "canonical packet validation and private transport visibility"
+    - path: "PHASE-3.../retrieval.py"
+      reason: "reuse existing scope/time/provenance admission for private-local candidates"
+    - path: "PHASE-3.../private_candidate_ingestion.py"
+      reason: "bounded Candidate v2 local-only adapter and redacted public receipt"
+    - path: "PHASE-3.../cli.py"
+      reason: "local explicit input/store invocation with receipt-only stdout"
+    - path: "PHASE-3.../tests/test_private_candidate_ingestion.py"
+      reason: "synthetic classification, failure, idempotency/rebuild, receipt and waiting tests"
+commands_and_tests:
+  commands:
+    - command: "python -m unittest Phase3/test_conversation_memory.py Phase3/test_private_candidate_ingestion.py -v"
+      exit_code: 0
+      result: "16/16 focused PASS; full Phase 3 199/199 PASS; public safety 61 files/0 issues; git diff --check PASS; YAML parse PASS"
+  negative_results:
+    - "One initial synthetic test exposed missing schema_version preservation during a second validation pass; corrected before the green run."
+    - "No actual private source binding was present; no real canary, source read, or private candidate store write occurred."
+security_privacy_license_receipt:
+  secret_scan: "PASS; public_safety_scan.py scanned 61 files with 0 issues"
+  credential_values_accessed: false
+  real_private_raw_body_accessed: false
+  broker_or_account_accessed: false
+  real_trade_or_order_action: false
+  unauthorized_bypass_used: false
+unknowns:
+  material_unknowns:
+    - "PRIVATE_SOURCE_BINDING_WAITING: CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH local transport binding is unavailable."
+    - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
+ai_handoff:
+  path: "AI_HANDOFF.yaml"
+  next_action: "After push and CI evidence, GPT reviews the exact head; do not merge or unlock formal persistence."
+

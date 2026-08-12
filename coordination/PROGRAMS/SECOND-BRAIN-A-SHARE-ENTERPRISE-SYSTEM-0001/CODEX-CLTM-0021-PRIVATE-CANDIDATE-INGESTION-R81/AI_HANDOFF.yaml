@@ -1,0 +1,26 @@
+schema_version: "1.0"
+task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+route_epoch: 81
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+actual_executor: "CODEX"
+branch: "codex/cltm-0021-private-candidate-ingestion-r81"
+base_sha: "fd9a3e12c36017de6f1db358e7fc8cc262fbb455"
+status: "IMPLEMENTATION_READY_PRIVATE_SOURCE_BINDING_WAITING"
+review_scope:
+  - "private/local ConversationEpisode classification remains distinct from PUBLIC_SAFE_SYNTHETIC"
+  - "DailyMemoryCandidate-v2 local-only adapter reuses LearningPacket, MemoryStore, QueryPlan and ContextBundle"
+  - "public receipt is hash/count/status/timestamp-only"
+  - "candidate-only authority and existing scope/time/provenance admission"
+locks_preserved:
+  - "formal PROJECT/GLOBAL write"
+  - "real-private raw publication to GitHub/CI"
+  - "E48 live integration"
+  - "private repository creation or visibility change"
+  - "production MCP/Gateway"
+private_canary:
+  status: "PRIVATE_SOURCE_BINDING_WAITING"
+  missing_capability: "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH local transport binding"
+  evidence_boundary: "No raw body, private semantics, source path, or secret value is recorded in this handoff."
+next_action: "GPT reviews the pushed epoch-81 implementation; run exactly one local canary only after an explicit configured private Candidate v2 source binding exists."

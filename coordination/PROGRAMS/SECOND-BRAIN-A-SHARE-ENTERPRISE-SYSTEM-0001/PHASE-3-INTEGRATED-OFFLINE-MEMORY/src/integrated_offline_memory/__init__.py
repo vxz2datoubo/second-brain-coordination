@@ -19,6 +19,15 @@ from .integrated_flow import (
     replay_receipt_to_learning_packet,
     run_integrated_flow,
 )
+from .private_candidate_ingestion import (
+    DAILY_MEMORY_CANDIDATE_V2,
+    PRIVATE_SOURCE_BINDING_WAITING,
+    PrivateCandidateIngestionResult,
+    build_private_daily_memory_candidate,
+    ingest_configured_private_canary,
+    ingest_private_daily_memory_candidate,
+    private_source_binding_status,
+)
 
 __all__ = [
     "FieldSemanticDecision",
@@ -44,4 +53,11 @@ __all__ = [
     "build_learning_packet",
     "to_p2_bars",
     "verify_learning_packet",
+    "DAILY_MEMORY_CANDIDATE_V2",
+    "PRIVATE_SOURCE_BINDING_WAITING",
+    "PrivateCandidateIngestionResult",
+    "build_private_daily_memory_candidate",
+    "ingest_configured_private_canary",
+    "ingest_private_daily_memory_candidate",
+    "private_source_binding_status",
 ]

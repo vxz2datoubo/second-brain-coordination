@@ -1,0 +1,29 @@
+schema_version: "1.0"
+record_type: "AMEDResearchLedger"
+task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+route_epoch: 81
+agent_id: "CODEX"
+research_trigger_level: "L2"
+trigger_reason: "A private/local source class changes the candidate admission surface and must not create a second authority or a public disclosure path."
+research_questions:
+  - question_id: "RQ1"
+    question: "Can Candidate v2 reuse the merged W3 packet/store/query/bundle path while retaining local-only data?"
+    decision_or_implementation_affected: "private_candidate_ingestion.py and canonical conversation metadata validation"
+sources:
+  - source_id: "S1"
+    title: "Epoch 81 private candidate ingestion route contract"
+    source_type: "REPRODUCIBLE_PROJECT"
+    url_or_repository_path: "coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-R81.yaml"
+    primary_source: true
+    authority_level: "A1"
+research_findings:
+  - finding_id: "RF1"
+    finding: "Existing candidate surfaces already provide deterministic packet identity, store idempotency, scope/time admission and provenance; a narrow local adapter can reuse them without another W3 authority."
+    evidence_sources: ["S1"]
+    evidence_class: "VERIFIED_REPOSITORY"
+    confidence: "HIGH"
+    implementation_effect: "No new store, QueryPlan, ContextBundle, vector, graph or formal-persistence subsystem was added."
+quality_checks:
+  primary_sources_preferred: true
+  negative_or_null_results_preserved: true
+  private_source_enumeration_not_assumed: true

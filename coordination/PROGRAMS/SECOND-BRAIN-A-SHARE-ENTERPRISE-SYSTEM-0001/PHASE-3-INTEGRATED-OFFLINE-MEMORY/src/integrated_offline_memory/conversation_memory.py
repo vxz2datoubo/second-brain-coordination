@@ -1,8 +1,9 @@
-"""Synthetic candidate-mode ConversationEpisode adapter for the canonical W3 path.
+"""Candidate-mode ConversationEpisode adapter for the canonical W3 path.
 
-This module deliberately contains no ChatGPT account integration, persistence
-authority, or raw private conversation fixture.  It produces only the existing
-candidate-only LearningPacket shape for later import by ``MemoryStore``.
+This module deliberately contains no ChatGPT account integration or formal
+persistence authority. Public fixtures remain synthetic; an explicitly
+classified private/local episode is handled only by the local ingestion
+boundary and produces the existing candidate-only LearningPacket shape.
 """
 
 from __future__ import annotations
@@ -29,11 +30,19 @@ _PROMPT_INJECTION_MARKERS = (
     "system prompt",
     "developer message",
 )
+_SOURCE_CLASSIFICATIONS = {
+    ("PUBLIC_SAFE_SYNTHETIC", "synthetic"): "SYNTHETIC_PUBLIC_SAFE",
+    ("PRIVATE_LOCAL_CANDIDATE", "private_local"): "PRIVATE_LOCAL_AUTHORIZED",
+}
 
 
 @dataclass(frozen=True)
 class ConversationEpisode:
-    """A privacy-minimized pointer to a synthetic conversation episode."""
+    """A privacy-minimized pointer to a classified conversation episode.
+
+    ``source_pointer`` derives a manifest identity and pointer hash only; it is
+    not placed in packet metadata or a public receipt.
+    """
 
     episode_id: str
     user_scope: str
@@ -43,14 +52,16 @@ class ConversationEpisode:
     privacy_class: str
     recorded_at: str
     coverage: str = "synthetic"
+    source_class: str = "SYNTHETIC_PUBLIC_SAFE"
 
     def validate(self) -> None:
         if not all((self.episode_id, self.user_scope, self.project_scope, self.source_pointer, self.source_hash)):
             raise ValueError("conversation_episode_identity_required")
-        if self.privacy_class != "PUBLIC_SAFE_SYNTHETIC":
+        expected_class = _SOURCE_CLASSIFICATIONS.get((self.privacy_class, self.coverage))
+        if expected_class is None and self.privacy_class == "SECRET_CREDENTIAL":
             raise ValueError("conversation_episode_private_source_denied")
-        if self.coverage != "synthetic":
-            raise ValueError("conversation_episode_coverage_denied")
+        if expected_class is None or self.source_class != expected_class:
+            raise ValueError("conversation_episode_source_classification_denied")
         _normalized_instant(self.recorded_at)
 
     @property
@@ -92,6 +103,8 @@ def build_conversation_candidate(
         "valid_to": normalized_valid_to,
         "recorded_at": _normalized_instant(episode.recorded_at),
         "privacy_class": episode.privacy_class,
+        "coverage": episode.coverage,
+        "source_class": episode.source_class,
         "source_pointer_hash": content_hash(episode.source_pointer),
     }
     return build_learning_packet(
@@ -108,6 +121,11 @@ def build_conversation_candidate(
             "scope": episode.project_scope,
             "source_refs": [source_ref],
             "knowledge_status": "candidate",
+            "transport_visibility": (
+                "LOCAL_PRIVATE_CANDIDATE_ONLY"
+                if episode.privacy_class == "PRIVATE_LOCAL_CANDIDATE"
+                else "PUBLIC_SAFE_METADATA_ONLY"
+            ),
             "memory_metadata": {"conversation": _conversation_metadata(
                 episode, claim_role, normalized_valid_from, normalized_valid_to
             )},
@@ -161,6 +179,8 @@ def _conversation_metadata(
         "user_scope": episode.user_scope,
         "project_scope": episode.project_scope,
         "privacy_class": episode.privacy_class,
+        "coverage": episode.coverage,
+        "source_class": episode.source_class,
         "claim_role": claim_role,
         "valid_from": valid_from,
         "valid_to": valid_to,
