@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 registry_id: "SECOND-BRAIN-LOCAL-EXECUTION-ISSUE-PATTERNS-0001"
 registry_type: "LocalExecutionIssuePatternRegistry"
 owner: "GPT"
@@ -19,19 +19,7 @@ principles:
   - "Actual parser/compiler/runtime validation beats grep-only or visual inspection when the format has a real parser."
   - "Task-specific prevention only: do not inject every historical problem into every task; match by tool, format, platform and operation."
   - "Evidence survives failure: recurring failures, failed permanent fixes and negative results remain useful evidence."
-
-maturity_model:
-  authority: "coordination/ENGINEERING-LEARNING/ENGINEERING-LEARNING-REGISTRY.yaml"
-  levels:
-    - OBSERVATION_ONLY
-    - HYPOTHESIS
-    - PARTIALLY_REPLICATED
-    - REPLICATED
-    - STANDARD_CANDIDATE
-    - STANDARD
-    - DEPRECATED
-    - CONTRADICTED
-  rule: "Frequency informs maturity but never promotes a pattern by itself; mechanism evidence, independent replication and regression protection matter."
+  - "Issue collection is not an obligation to fix every issue immediately; high-frequency and high-impact recurring patterns receive permanent-remediation priority."
 
 task_release_gate:
   applies_to: [GPT, CODEX, QCLAW, WORKBUDDY, FUTURE_AGENT]
@@ -54,11 +42,59 @@ execution_gate:
 
 closeout_gate:
   required_actions:
+    - "Every checkpoint/closeout must contain LOCAL_EXECUTION_ISSUES. If no issue was observed, state LOCAL_EXECUTION_ISSUES = NONE_OBSERVED."
+    - "For each observed issue report at least: 问题特征; 发现途径与对照测试; 根因范围与限制; 可逆解决办法与撤销方式."
     - "Record new reproducible failure patterns or new evidence for existing patterns."
     - "Increment recurrence/replication evidence only when the occurrence is materially distinct and verifiable."
     - "Separate root cause from workaround; unknown root cause must stay unknown."
     - "For any claimed permanent fix, record regression test, affected scope, rollback and evidence that the failure no longer reproduces."
     - "Feed mature controls back into task templates, Agent routers, blueprints, tests or environment configuration as appropriate."
+
+reporting_contract:
+  section_name: "LOCAL_EXECUTION_ISSUES"
+  none_value: "NONE_OBSERVED"
+  mandatory_fields_per_issue:
+    - "问题特征"
+    - "发现途径与对照测试"
+    - "根因范围与限制"
+    - "可逆解决办法与撤销方式"
+  guidance:
+    - "Problem reporting does not imply mandatory immediate repair. UNRESOLVED, CONTAINED, FIX_CANDIDATE and FIXED_UNDER_OBSERVATION are valid outcomes."
+    - "Do not call a workaround a root-cause fix."
+    - "A solved issue remains in the registry so later regression can be detected."
+    - "If a prior fix fails again, record failure_of_previous_fix / REGRESSION rather than deleting the old evidence."
+
+frequency_review:
+  ranking_unit: "distinct_task_or_environment_occurrence"
+  anti_inflation_rule: "Repeated failures inside one retry loop are raw occurrences, not independent task occurrences."
+  tracked_metrics:
+    - "distinct_task_occurrences"
+    - "raw_occurrence_count_when_known"
+    - "independent_replication_count"
+    - "last_seen"
+    - "resolution_status"
+  review_target: "Periodically inspect the highest-frequency 3-4 patterns and decide whether a durable root-cause fix is justified."
+  promotion_rule: "Frequency raises review priority but cannot alone promote a pattern to STANDARD or justify a global environment change."
+  permanent_fix_pipeline:
+    - "cluster recurring evidence"
+    - "isolate stable root-cause candidate"
+    - "design reversible permanent-fix experiment"
+    - "add regression test or machine preflight"
+    - "validate across independent tasks/environments"
+    - "promote the stable control into CI/pre-commit/router/environment configuration only after evidence"
+
+maturity_model:
+  authority: "coordination/ENGINEERING-LEARNING/ENGINEERING-LEARNING-REGISTRY.yaml"
+  levels:
+    - OBSERVATION_ONLY
+    - HYPOTHESIS
+    - PARTIALLY_REPLICATED
+    - REPLICATED
+    - STANDARD_CANDIDATE
+    - STANDARD
+    - DEPRECATED
+    - CONTRADICTED
+  rule: "Frequency informs maturity but never promotes a pattern by itself; mechanism evidence, independent replication and regression protection matter."
 
 pattern_schema:
   required_fields:
@@ -85,6 +121,9 @@ pattern_schema:
     - last_seen
     - failure_of_previous_fix
     - deprecation_reason
+    - resolution_status
+    - distinct_task_occurrences
+    - raw_occurrence_count
 
 patterns:
   - pattern_id: "LEIP-UNICODE-001"
@@ -119,6 +158,7 @@ patterns:
     recurrence:
       reported_frequency: "RECURRING_BY_USER"
       independently_verified_count: 0
+    resolution_status: "OBSERVATION_FAMILY_NOT_YET_ROOT_CAUSE_UNIFIED"
     next_validation:
       - "后续每个可复现Unicode/编码事件按具体根因拆分子模式并累计证据。"
       - "当出现稳定共因后，设计仓库级UTF-8/Unicode preflight并跨Codex/QCLAW/WorkBuddy验证。"
@@ -148,6 +188,8 @@ patterns:
     recurrence:
       observed_count: 1
       independent_replication_count: 1
+    distinct_task_occurrences: 1
+    resolution_status: "FIXED_UNDER_OBSERVATION"
     next_validation: ["在后续至少两个独立YAML任务中验证parser gate是否防止同类返工。"]
     owner: "GPT"
 
@@ -176,6 +218,8 @@ patterns:
     recurrence:
       observed_count: 1
       independent_replication_count: 1
+    distinct_task_occurrences: 1
+    resolution_status: "CONTAINED_BY_SCRIPT_FILE_OR_EXPLICIT_QUOTING"
     next_validation: ["记录未来Windows跨shell任务是否再现，并比较脚本文件方案的返工率。"]
     owner: "GPT"
 
@@ -184,28 +228,37 @@ patterns:
     title: "Git HTTPS瞬时connection reset导致fetch/push失败"
     category: "git_transport"
     status: "ACTIVE"
-    maturity: "HYPOTHESIS"
-    symptom: "git fetch/push到github.com出现Recv failure: Connection was reset，而GitHub API或稍后重试可能成功。"
+    maturity: "PARTIALLY_REPLICATED"
+    symptom: "git fetch/push到github.com出现Recv failure: Connection was reset、443连接超时等瞬时失败，而GitHub API或稍后重试可能成功。"
     affected_context:
       platforms: [WINDOWS]
       agents: [CODEX, WORKBUDDY, FUTURE_AGENT]
       surfaces: [GIT_HTTPS, GITHUB]
     root_cause_status: "UNKNOWN"
-    root_cause: "尚未确认；目前只能判断为传输层瞬时失败候选，不能归因于鉴权、仓库配置或GitHub服务本身。"
+    root_cause: "尚未确认；目前只能判断为传输层瞬时失败候选，不能归因于鉴权、仓库配置、代理/VPN、防火墙或GitHub服务本身。"
     prevention_checks:
       - "保留工作树和本地提交，不因网络失败reset/rebase/clean。"
       - "用git ls-remote和GitHub API区分远端身份/权限与传输瞬断。"
       - "成功前不得声称远端已同步；成功后按远端SHA回读。"
+      - "重试必须有上限并保持append-only语义；HTTP/1.1可作为一次性兼容重试，但不能被宣称为永久修复。"
     permanent_fix_policy: >-
-      先累计失败时间、命令、网络环境和成功/失败对照；只有证据指向稳定根因后再修改Git/网络配置。不得把无限重试或改写历史称为永久修复。
-    workaround: "最小范围安全重试；必要时在明确授权且有expected-head/CAS保护时使用GitHub API原子写入，并回读验证。"
-    verification: ["remote_ref_or_API_SHA_matches_expected", "ahead_behind_verified", "no_history_rewrite"]
+      继续累计跨任务失败时间、命令、网络环境、HTTP版本和成功/失败对照；只有证据指向稳定根因后再修改Git或网络配置。不得把无限重试、HTTP/1.1临时兼容或改写历史称为永久修复。
+    workaround: "停止当前失败传输并保留exact local commit；重新核对remote/control plane后进行有限普通append-only重试。必要时只对单命令尝试HTTP/1.1；若仍失败则停止并报告，不改写本地历史。"
+    verification: ["remote_ref_or_API_SHA_matches_expected", "ahead_behind_verified", "no_history_rewrite", "post-recovery_CI_or_remote_readback_success"]
     evidence:
       - "eustia-ai-film PR #1 repair observed multiple Git HTTPS resets; GitHub API remained usable and final remote SHA was verified."
+      - "second-brain-coordination CLTM-0021 epoch 79 Issue #231 closeout comment 5263052271: fetch/push saw connection reset and port-443 timeout; exact commits were preserved, ordinary append-only push later succeeded, and remote SHA/CI were verified."
     recurrence:
-      observed_count: 2
-      independent_replication_count: 1
-    next_validation: ["继续记录跨任务发生率；若跨多个任务/时间段复现，再升级并调查网络/Git配置共因。"]
+      observed_count: 3
+      independent_replication_count: 2
+    distinct_task_occurrences: 2
+    raw_occurrence_count: "NOT_CANONICALLY_COUNTED_SEPARATELY_FROM_RETRY_LOOPS"
+    last_seen: "2026-08-12"
+    resolution_status: "CONTAINED_RECOVERED_NOT_FIXED"
+    next_validation:
+      - "继续记录后续独立任务/环境发生率，而不是把同一重试循环的每次失败当独立复现。"
+      - "若再跨独立任务复现，采集HTTP版本、网络环境、失败阶段与API/Git对照，评估是否进入Top 3-4永久修复候选。"
+      - "只有稳定共因出现后才设计Git/网络配置永久修复实验，并要求可回滚与跨任务回归。"
     owner: "GPT"
 
 migration_note:
