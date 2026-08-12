@@ -42,7 +42,10 @@ class QueryPlan:
             raise ValueError("query_plan_truth_state_denied_or_unknown")
         if self.intent not in {"CURRENT", "HISTORICAL"}:
             raise ValueError("query_plan_intent_invalid")
-        if self.intent == "CURRENT" and "superseded" in states:
+        # Legacy 1.0 payloads could explicitly include superseded.  Preserve
+        # their ability to load, but ContextAssembler still excludes that state
+        # for CURRENT admission below.
+        if self.intent == "CURRENT" and "superseded" in states and self.schema_version != "1.0.0":
             raise ValueError("query_plan_current_superseded_denied")
         if self.intent == "HISTORICAL" and not self.valid_at:
             raise ValueError("query_plan_historical_valid_time_required")
@@ -90,13 +93,14 @@ class ContextBundle:
     omitted_due_to_budget: tuple[str, ...]
     context_budget: int
     semantic_access_state: str
-    trust_gate: dict[str, Any]
+    trust_gate: dict[str, Any] = field(default_factory=dict)
+    provenance: tuple[dict[str, Any], ...] = ()
     authority_write: bool = False
     no_trade_gate: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
-        for field_name in ("atoms", "relations", "conflicts", "unknowns", "source_lineage", "omitted_due_to_budget"):
+        for field_name in ("atoms", "relations", "conflicts", "unknowns", "source_lineage", "omitted_due_to_budget", "provenance"):
             payload[field_name] = list(payload[field_name])
         return payload
 
@@ -138,6 +142,7 @@ class ContextAssembler:
         conflicts = tuple(self.store.conflicts_for(selected_set)) if plan.include_conflicts else ()
         unknowns = tuple(self.store.unknowns_for(selected_set, include_all_open=not bool(plan.query_text))) if plan.include_unknowns else ()
         source_lineage = tuple(sorted({source for atom in atoms if atom for source in atom.get("source_refs", [])}))
+        provenance = tuple(item for atom in atoms if atom for item in self.store.provenance_for_atom(atom["id"]))
         gate = self._trust_gate(plan, atoms)
         return ContextBundle(
             schema_version="1.0.0",
@@ -153,6 +158,7 @@ class ContextAssembler:
             context_budget=plan.budget,
             semantic_access_state="FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY",
             trust_gate=gate,
+            provenance=provenance,
         )
 
     @staticmethod
@@ -160,6 +166,10 @@ class ContextAssembler:
         if atom["knowledge_status"] not in set(plan.truth_states):
             return False
         if atom["knowledge_status"] in DENIED_TRUTH_STATES:
+            return False
+        if atom["knowledge_status"] in {"stale", "revoked"}:
+            return False
+        if plan.intent == "CURRENT" and atom["knowledge_status"] == "superseded":
             return False
         if atom["gpt_access"] != "FULL_SEMANTIC_ACCESS":
             return False
@@ -176,17 +186,26 @@ class ContextAssembler:
         if plan.time_end and atom["updated_at"] > plan.time_end:
             return False
         conversation = atom.get("memory_metadata", {}).get("conversation")
-        if plan.user_scope is not None:
-            if not conversation or conversation.get("user_scope") != plan.user_scope:
-                return False
         if conversation:
+            # CLTM data fails closed: caller must bind both scopes and a valid
+            # instant.  Non-conversation W3 atoms retain historic defaults.
+            if not plan.scopes or plan.user_scope is None or not plan.valid_at:
+                return False
+            if atom["scope"] not in set(plan.scopes) or conversation.get("project_scope") not in set(plan.scopes):
+                return False
+            if conversation.get("user_scope") != plan.user_scope:
+                return False
             if conversation.get("privacy_class") != "PUBLIC_SAFE_SYNTHETIC":
+                return False
+            if conversation.get("claim_role") not in {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}:
                 return False
             if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
                 return False
-            instant = _parse_instant(plan.valid_at) if plan.valid_at else datetime.now(timezone.utc)
+            instant = _parse_instant(plan.valid_at)
             if not _is_valid_at(conversation, instant):
                 return False
+        elif plan.user_scope is not None:
+            return False
         return True
 
     @staticmethod

@@ -3,7 +3,7 @@
   "$id": "urn:superbrain:p3:ContextBundle:1.0.0",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "query_id", "query_plan_hash", "knowledge_version", "atoms", "relations", "conflicts", "unknowns", "source_lineage", "omitted_due_to_budget", "context_budget", "semantic_access_state", "trust_gate", "authority_write", "no_trade_gate"],
+  "required": ["schema_version", "query_id", "query_plan_hash", "knowledge_version", "atoms", "relations", "conflicts", "unknowns", "source_lineage", "omitted_due_to_budget", "context_budget", "semantic_access_state", "authority_write", "no_trade_gate"],
   "properties": {
     "schema_version": {"type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$"},
     "query_id": {"type": "string", "minLength": 1},
@@ -18,6 +18,7 @@
     "context_budget": {"type": "integer", "minimum": 1},
     "semantic_access_state": {"const": "FULL_SEMANTIC_ACCESS_CANDIDATE_ONLY"},
     "trust_gate": {"type": "object"},
+    "provenance": {"type": "array"},
     "authority_write": {"const": false},
     "no_trade_gate": {"const": true}
   }

@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from .canonical import content_hash, normalize_text
-from .learning_packet import verify_learning_packet
+from .learning_packet import _conversation_contract_errors, verify_learning_packet
 
 
-ALLOWED_TRUTH_STATES = {"candidate", "approved", "conflict", "superseded", "unknown"}
+ALLOWED_TRUTH_STATES = {"candidate", "approved", "conflict", "superseded", "unknown", "stale", "revoked"}
 DENIED_TRUTH_STATES = {"rejected", "quarantined"}
 _SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
 _SECRET_VALUE_KEYS = {"credential_value", "secret_value", "token_value", "password_value", "api_key_value", "private_key_value"}
@@ -197,6 +197,37 @@ class MemoryStore:
 
     def all_atoms(self) -> list[dict[str, Any]]:
         return [_atom(row) for row in self.conn.execute("SELECT * FROM atoms ORDER BY id")]
+
+    def provenance_for_atom(self, atom_id: str) -> list[dict[str, Any]]:
+        """Resolve existing W3 packet lineage without exposing a raw pointer."""
+        rows = self.conn.execute(
+            """SELECT packets.id, packets.content_hash, packets.json_blob
+               FROM packet_atoms JOIN packets ON packets.id=packet_atoms.packet_id
+               WHERE packet_atoms.atom_id=? ORDER BY packets.id""",
+            (atom_id,),
+        ).fetchall()
+        result: list[dict[str, Any]] = []
+        for row in rows:
+            packet = json.loads(row["json_blob"])
+            validation = packet.get("validation_report", {})
+            result.append({
+                "atom_id": atom_id,
+                "packet_id": row["id"],
+                "packet_content_hash": row["content_hash"],
+                "source_manifest_ids": packet.get("source_manifest_ids", []),
+                "episode_manifest_id": next(
+                    (item for item in packet.get("source_manifest_ids", []) if item.startswith("conversation-episode-")), None
+                ),
+                "episode": {
+                    "episode_id": validation.get("episode_id"),
+                    "user_scope": validation.get("user_scope"),
+                    "project_scope": validation.get("project_scope"),
+                    "claim_role": validation.get("claim_role"),
+                    "recorded_at": validation.get("recorded_at"),
+                },
+                "source_pointer_hash": validation.get("source_pointer_hash"),
+            })
+        return result
 
     def indexed_terms(self, atom_id: str) -> list[str]:
         return [row["term"] for row in self.conn.execute("SELECT term FROM retrieval_terms WHERE atom_id=? ORDER BY term", (atom_id,))]
@@ -412,6 +443,9 @@ def _validate_atom(atom: dict[str, Any]) -> None:
         raise ValueError("atom_authority_promotion_denied")
     if not isinstance(atom.get("memory_metadata", {}), dict):
         raise ValueError("atom_memory_metadata_invalid")
+    conversation_errors = _conversation_contract_errors(atom)
+    if conversation_errors:
+        raise ValueError("invalid_conversation_atom:" + ",".join(conversation_errors))
     if _contains_secret_value(atom):
         raise ValueError("credential_value_denied")
 

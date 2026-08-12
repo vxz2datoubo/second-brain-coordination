@@ -1,0 +1,53 @@
+schema_version: "1.0"
+record_type: "AMEDAgentExecutionReceipt"
+task_id: "CODEX-CLTM-0021-SESSION-A-E-VERTICAL-SLICE"
+agent_id: "CODEX"
+mode: "project_plan"
+task_weight: "STRATEGIC"
+status: "SUCCESS_WITH_FINDINGS"
+base_sha: "f90d7f5e31e6d8c517ebc1ff5c331dfc21e5bcfa"
+predecessor_head: "897e840d4f1bb19c8d4866785be0d1d72877d107"
+mission_and_completion:
+  main_delivery_summary: "R3 hardening of the existing W3 candidate path only."
+  success_criteria:
+    - criterion: "Conversation admission fails closed for missing or mismatched user/project/time binding."
+      status: "MET"
+      evidence: "test_conversation_admission_requires_explicit_user_project_and_valid_time"
+    - criterion: "Generic LearningPacket cannot bypass conversation claim-role metadata validation."
+      status: "MET"
+      evidence: "test_generic_packet_cannot_bypass_conversation_metadata_or_claim_role"
+    - criterion: "Existing 1.0 serialized QueryPlan payload remains loadable."
+      status: "MET"
+      evidence: "test_pre_cltm_schema_payloads_remain_valid_and_stale_current_is_excluded"
+repository_and_environment:
+  repository: "vxz2datoubo/second-brain-coordination"
+  branch: "codex/cltm-0021-session-a-e-r79"
+  pull_request: 236
+  changed_files:
+    - "Phase 3 learning_packet.py, memory_store.py, retrieval.py"
+    - "Phase 3 QueryPlan/ContextBundle schemas"
+    - "Phase 3 conversation tests and this candidate-only evidence package"
+commands_and_tests:
+  commands:
+    - command: "python coordination/.../PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
+      exit_code: 0
+      result: "191/191 PASS"
+    - command: "python coordination/.../PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
+      exit_code: 0
+      result: "PASS; 59 Phase 3 package files scanned; 0 issues"
+    - command: "git diff --check"
+      exit_code: 0
+      result: "PASS"
+security_privacy_license_receipt:
+  secret_scan: "PASS; synthetic public-safe code and fixtures only"
+  credential_values_accessed: false
+  broker_or_account_accessed: false
+  real_trade_or_order_action: false
+  unauthorized_bypass_used: false
+unknowns:
+  registry_path: "UNKNOWN-REGISTRY.yaml"
+  material_unknowns:
+    - "No real/private conversation source is authorized or used."
+ai_handoff:
+  path: "AI_HANDOFF.yaml"
+  next_action: "GPT R3 code review of the exact pushed head; do not self-merge."

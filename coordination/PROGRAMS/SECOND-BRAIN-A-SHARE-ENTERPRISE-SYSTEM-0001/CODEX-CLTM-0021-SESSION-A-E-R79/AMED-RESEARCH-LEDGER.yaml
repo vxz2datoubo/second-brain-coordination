@@ -1,0 +1,35 @@
+schema_version: "1.0"
+record_type: "AMEDResearchLedger"
+task_id: "CODEX-CLTM-0021-SESSION-A-E-VERTICAL-SLICE"
+agent_id: "CODEX"
+research_trigger_level: "L2"
+trigger_reason: "R3 review found scope, metadata, compatibility and provenance correctness blockers."
+research_questions:
+  - question_id: "RQ1"
+    question: "Can conversation metadata be enforced without creating a second W3 authority?"
+    why_material: "Epoch 79 requires reuse of LearningPacket, MemoryStore, QueryPlan and ContextBundle."
+    decision_or_implementation_affected: "Canonical packet validation, existing store lineage query and existing retrieval admission."
+sources:
+  - source_id: "S1"
+    title: "Epoch 79 active route contract"
+    source_type: "REPRODUCIBLE_PROJECT"
+    url_or_repository_path: "coordination/ROUTES/CODEX-CLTM-0021-ACTIVE-ROUTE-CONTRACT.yaml"
+    primary_source: true
+    authority_level: "A1"
+    supports: ["candidate-only, scope, bitemporal and provenance requirements"]
+research_findings:
+  - finding_id: "RF1"
+    finding: "Fail-closed conversation admission can be additive while non-conversation W3 retrieval retains its legacy defaults."
+    evidence_sources: ["S1"]
+    evidence_class: "VERIFIED_REPOSITORY"
+    confidence: "HIGH"
+    implementation_effect: "Added conversation-only scope/time/role checks and provenance projection."
+quality_checks:
+  primary_sources_preferred: true
+  counterevidence_searched: true
+  source_dates_checked: true
+  versions_and_effective_dates_checked: true
+  a_share_adaptation_checked: true
+  negative_or_null_results_preserved: true
+  paper_title_count_not_used_as_validation: true
+  self_reflection_not_used_as_external_validation: true

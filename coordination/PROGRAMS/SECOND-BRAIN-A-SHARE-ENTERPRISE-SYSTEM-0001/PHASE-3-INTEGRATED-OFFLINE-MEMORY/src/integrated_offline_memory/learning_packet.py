@@ -11,6 +11,11 @@ from .canonical import atom_id, content_hash, normalize_text, packet_id, relatio
 SCHEMA_VERSION = "1.0.0"
 PROCESSOR_VERSION = "p3-integrated-offline-memory-1.0.0"
 _SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+_CONVERSATION_ROLES = {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}
+_CONVERSATION_REQUIRED = {
+    "episode_manifest_id", "user_scope", "project_scope", "privacy_class",
+    "claim_role", "valid_from", "recorded_at",
+}
 
 
 def build_learning_packet(
@@ -32,8 +37,14 @@ def build_learning_packet(
         statement = normalize_text(str(atom.get("statement", atom.get("canonical_statement", ""))))
         atom_type = normalize_text(str(atom.get("atom_type", "observation"))).lower()
         scope = normalize_text(str(atom.get("scope", "")))
+        conversation = atom.get("memory_metadata", {}).get("conversation")
+        canonical_id = (
+            _conversation_atom_id(statement, conversation)
+            if atom_type == "conversation_memory" and isinstance(conversation, dict)
+            else atom_id(statement, atom_type, scope)
+        )
         normalized_atoms.append({
-            "id": atom.get("id") or atom_id(statement, atom_type, scope),
+            "id": atom.get("id") or canonical_id,
             "atom_type": atom_type,
             "canonical_statement": statement,
             "scope": scope,
@@ -132,8 +143,61 @@ def verify_learning_packet(packet: dict[str, Any]) -> dict[str, Any]:
             errors.append("relation_endpoint_missing")
         elif relation.get("target_atom_id") not in atom_set and not relation.get("target_existing", False):
             errors.append("relation_endpoint_missing")
+    for atom in packet.get("atoms", []):
+        errors.extend(_conversation_contract_errors(atom))
     if packet.get("packet_id") and packet.get("packet_content_hash"):
         expected_key = packet["packet_id"] + "-" + packet["packet_content_hash"][:16]
         if packet.get("idempotency_key") != expected_key:
             errors.append("idempotency_key_mismatch")
     return {"valid": not errors, "errors": errors}
+
+
+def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
+    """Validate CLTM atoms even when callers bypass the episode adapter."""
+    conversation = atom.get("memory_metadata", {}).get("conversation")
+    if atom.get("atom_type") != "conversation_memory" and conversation is None:
+        return []
+    if atom.get("atom_type") != "conversation_memory" or not isinstance(conversation, dict):
+        return ["conversation_metadata_required"]
+    if _CONVERSATION_REQUIRED - set(conversation):
+        return ["conversation_metadata_required"]
+    if any(not isinstance(conversation[key], str) or not conversation[key] for key in _CONVERSATION_REQUIRED):
+        return ["conversation_metadata_invalid"]
+    if conversation["privacy_class"] != "PUBLIC_SAFE_SYNTHETIC":
+        return ["conversation_privacy_denied"]
+    if conversation["claim_role"] not in _CONVERSATION_ROLES:
+        return ["conversation_claim_role_denied"]
+    if atom.get("scope") != conversation["project_scope"]:
+        return ["conversation_project_scope_inconsistent"]
+    if atom.get("id") != _conversation_atom_id(atom.get("canonical_statement", ""), conversation):
+        return ["conversation_identity_invalid"]
+    if "conversation://" + conversation["episode_manifest_id"] not in atom.get("source_refs", []):
+        return ["conversation_provenance_missing"]
+    try:
+        valid_from = _instant(conversation["valid_from"])
+        valid_to = conversation.get("valid_to")
+        if valid_to is not None and _instant(valid_to) <= valid_from:
+            return ["conversation_valid_time_invalid"]
+        _instant(conversation["recorded_at"])
+    except (TypeError, ValueError):
+        return ["conversation_time_invalid"]
+    return []
+
+
+def _conversation_atom_id(statement: str, conversation: dict[str, Any]) -> str:
+    """Canonical CLTM identity binds the episode (and therefore user/project)."""
+    return "at-conversation-" + content_hash({
+        "episode": conversation.get("episode_manifest_id"),
+        "statement": normalize_text(statement),
+        "role": conversation.get("claim_role"),
+        "valid_from": conversation.get("valid_from"),
+        "valid_to": conversation.get("valid_to"),
+    })[:20]
+
+
+def _instant(value: str):
+    from datetime import datetime
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("timezone_required")
+    return parsed
