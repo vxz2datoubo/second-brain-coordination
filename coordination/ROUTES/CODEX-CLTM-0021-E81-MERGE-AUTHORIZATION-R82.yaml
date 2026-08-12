@@ -1,56 +1,52 @@
-schema_version: "94.0"
+schema_version: "1.0"
+route_status: "ACTIVE"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: 241
-task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
 route_epoch: 82
 mode: "control_plane"
-mode_label: "【GPT控制面】CLTM-0021 epoch 81 accepted private-candidate bridge merge authorization"
 status: "GPT_MERGE_AUTHORIZED"
 execution_allowed: false
-automatic_resume_within_task: false
-second_user_start_command_required: false
-intermediate_gpt_review_required: false
 merge_authorized: true
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "c3809373e693601c48e895f296328aa8687829e0"
-route_contract: "coordination/ROUTES/CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION-R82.yaml"
-
-predecessor:
-  task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
-  route_epoch: 81
-  issue: 231
+accepted_delivery:
+  predecessor_epoch: 81
   pull_request: 241
-  accepted_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
-  accepted_ci_run: 31593700079
-  disposition: "GPT_R6_IMPLEMENTATION_AND_CLOSEOUT_ACCEPTED"
+  exact_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  ci_run: 31593700079
+  python_3_11: "SUCCESS"
+  python_3_13: "SUCCESS"
+  phase_3: "209/209 PASS"
+  private_ingestion_adversarial: "14/14 PASS"
+  public_safety: "68 files / 0 issues PASS"
+  gpt_code_disposition: "ACCEPTED"
+  gpt_review_id: 4916222899
+  closeout_issue: 231
+  closeout_comment: 5266618300
   completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
-  architectural_milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
+  milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
 
-merge_gate:
-  pull_request: 241
+merge_contract:
+  actor: "GPT"
+  method: "merge"
+  expected_head_required: true
   expected_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
-  merge_method: "merge"
-  authorized_by: "GPT"
-  user_continuation_authorization: "2026-08-12T20:30:00+08:00"
-  require_exact_head_match: true
-  require_mergeable: true
-  require_preserved_locks: true
-  post_merge_verification_required: true
+  codex_self_merge: "FORBIDDEN"
+  post_merge_verification: "REQUIRED"
 
 post_merge_required:
   - "Re-read canonical main and verify PR #241 merged exact accepted head without unexpected changed paths."
-  - "Verify the private candidate bridge remains candidate-only and no second W3 authority exists."
-  - "Do not run a real private canary until a later route explicitly binds an authorized accessible private data-root and transport."
-  - "Publish the next bounded private-source binding/canary route only after post-merge verification."
+  - "Verify the private candidate bridge remains candidate-only and reuses the existing W3 ConversationEpisode -> LearningPacket -> MemoryStore -> QueryPlan -> ContextBundle path."
+  - "Keep PRIVATE_SOURCE_BINDING_WAITING explicit until a separately authorized and actually accessible local private data-root plus Daily-v2 transport binding exists."
+  - "Publish a later bounded private-canary/source-binding route only after post-merge verification."
   - "Keep formal PROJECT/GLOBAL authority promotion separately locked."
 
 hard_boundaries:
@@ -71,6 +67,6 @@ local_execution_issue_closeout:
   r6_new_local_execution_issues: "NONE_OBSERVED"
   evidence: "Issue #231 comment 5266618300"
 
-next_action: "GPT merges PR #241 at exact accepted head, performs post-merge verification, then publishes a separately gated private-source binding/canary route."
+rollback: "If PR #241 exact head, mergeability, accepted CI evidence, or preserved locks change, stop without merging and publish a later route epoch."
 updated_by: "GPT"
 updated_at: "2026-08-12T20:30:00+08:00"
