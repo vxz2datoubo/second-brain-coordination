@@ -7,9 +7,9 @@ actual_executor: "CODEX"
 mode: "project_plan"
 task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
-local_execution_issues: "LEIP-UNICODE-001 observed once during review-thread retrieval; resolved by UTF-8 process mode without repository mutation."
+local_execution_issues: "LEIP-UNICODE-001 independently verified once during review-thread retrieval; recorded in canonical registry as a contained decoding-boundary occurrence, not a permanent Unicode-family fix."
 mission_and_completion:
-  main_delivery_summary: "R3 adds an explicit DailyMemoryCandidateTransport-v1 serializer between the enabled DailyMemoryCandidate-v2 report and W3PrivateCandidateEnvelope-v1, preserves correction semantics, truthful aggregate receipts and full privacy-minimized multi-episode ContextBundle provenance. It uses only existing W3 candidate surfaces and adds no formal persistence path."
+  main_delivery_summary: "R4 makes DailyMemoryCandidateTransport-v1 the strict machine boundary behind a tolerant enabled-report normalizer; it persists only hashed external Daily candidate identity, resolves corrections locally before writes, and preserves candidate confidence plus episode valid-time/provenance quality through existing W3 ContextBundle evidence."
   success_criteria:
     - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
       status: "MET"
@@ -19,7 +19,13 @@ mission_and_completion:
       evidence: "test_enabled_daily_v2_contract_serializes_to_versioned_transport"
     - criterion: "USER_CORRECTION invokes canonical supersession with CURRENT/HISTORICAL behavior."
       status: "MET"
-      evidence: "test_user_correction_uses_canonical_supersession_current_historical"
+      evidence: "test_user_correction_uses_canonical_supersession_current_historical using replaces_candidate_id, not a producer-supplied W3 atom ID"
+    - criterion: "A malformed later correction cannot partially mutate a Daily package."
+      status: "MET"
+      evidence: "test_preflight_invalid_correction_leaves_no_partial_mutation"
+    - criterion: "Daily report variants preserve coverage state, actor/source alternatives, confidence, episode valid-time and provenance quality."
+      status: "MET"
+      evidence: "test_report_variants_confidence_and_episode_evidence_survive"
     - criterion: "Legitimate non-user and zero-eligible Daily reports are explicit no-op rather than source failure."
       status: "MET"
       evidence: "test_non_user_or_zero_eligible_report_is_safe_noop_not_invalid"
@@ -38,12 +44,13 @@ mission_and_completion:
 scope_accounting:
   completed:
     - "canonical private/local source classification"
-    - "enabled Daily-v2 report serializer, versioned transport contract and inner W3 envelope"
+    - "tolerant Daily-v2 report normalizer and strict versioned machine transport contract"
+    - "hash-persisted producer candidate identity; local correction resolution and package preflight"
     - "canonical correction/supersession; explicit non-import/no-op; truthful aggregate receipt"
-    - "exact imported-atom recall proof; data-root policy; source-binding state; multi-episode ContextBundle provenance"
+    - "exact imported-atom recall; data-root policy; source-binding state; confidence and multi-episode ContextBundle provenance"
     - "synthetic/public-safe regression and adversarial coverage"
   not_completed:
-    - "real private source canary (explicitly deferred until GPT R3 acceptance)"
+    - "real private source canary (explicitly deferred until GPT R4 acceptance)"
   deliberately_rejected_or_removed:
     - item: "formal PROJECT/GLOBAL promotion"
       reason: "Route epoch 81 explicitly locks formal persistence."
@@ -55,22 +62,24 @@ repository_and_environment:
   base_sha: "fd9a3e12c36017de6f1db358e7fc8cc262fbb455"
   changed_files:
     - path: "PHASE-3.../conversation_memory.py"
-      reason: "multi-episode privacy-minimized lineage and correction support"
+      reason: "privacy-minimized external Daily identity hash, confidence, episode valid-time/provenance quality and correction support"
     - path: "PHASE-3.../learning_packet.py"
       reason: "canonical packet validation and private transport visibility"
     - path: "PHASE-3.../private_candidate_ingestion.py"
-      reason: "enabled-report serializer, versioned transport, correction/no-op and truthful aggregate receipt"
+      reason: "tolerant enabled-report normalizer, strict transport, local correction resolution and preflight"
     - path: "PHASE-3.../cli.py"
       reason: "local explicit input/store invocation with receipt-only stdout"
     - path: "PHASE-3.../tests/test_private_candidate_ingestion.py"
-      reason: "compatibility, correction, no-op, duplicate-receipt and multi-episode provenance adversarial tests"
+      reason: "R4 producer variants, producer-known correction identity, preflight atomicity, confidence and temporal provenance tests"
+    - path: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+      reason: "independent LEIP-UNICODE-001 recurrence evidence under canonical recurrence rules"
     - path: "PHASE-3.../tests/fixtures/daily_memory_candidate_v2_enabled_contract.json"
       reason: "public-safe fixture derived from enabled Daily-v2 report fields"
 commands_and_tests:
   commands:
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "Phase 3 full regression PASS: 203/203 tests in 6.302s. R3 private-candidate compatibility/adversarial coverage PASS: 8/8."
+      result: "Phase 3 full regression PASS: 205/205 tests in 6.471s. R4 private-candidate compatibility/adversarial coverage PASS: 10/10."
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
       exit_code: 0
       result: "PASS: 68 files scanned; 0 issues."
@@ -78,8 +87,8 @@ commands_and_tests:
       exit_code: 0
       result: "PASS"
   negative_results:
-    - "One initial R3 provenance assertion matched the safe field name source_pointer_hash rather than a raw pointer key; the test was corrected before the green run."
-    - "No real private canary was run; R3 explicitly defers it until GPT acceptance."
+    - "The first R4 patch targeted a nonmatching local code context and was rejected before modification; it was reapplied using the actual function layout."
+    - "No real private canary was run; R4 explicitly defers it until GPT acceptance."
 security_privacy_license_receipt:
   secret_scan: "PASS; public_safety_scan.py scanned 68 files with 0 issues"
   credential_values_accessed: false
@@ -93,7 +102,7 @@ unknowns:
     - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "GPT R3 review of exact pushed head; do not run real canary, merge, or unlock any gate."
+  next_action: "GPT R4 review of exact pushed head; do not run real canary, merge, or unlock any gate."
 local_execution_issue_details:
   - id: "LEIP-UNICODE-001"
     问题特征: "The bundled review-thread reader used the Windows GBK default and could not decode UTF-8 GitHub review text."

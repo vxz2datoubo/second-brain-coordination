@@ -53,6 +53,8 @@ class ConversationEpisode:
     recorded_at: str
     coverage: str = "synthetic"
     source_class: str = "SYNTHETIC_PUBLIC_SAFE"
+    valid_time: str | None = None
+    provenance_quality: str = "UNKNOWN"
 
     def validate(self) -> None:
         if not all((self.episode_id, self.user_scope, self.project_scope, self.source_pointer, self.source_hash)):
@@ -63,6 +65,10 @@ class ConversationEpisode:
         if expected_class is None or self.source_class != expected_class:
             raise ValueError("conversation_episode_source_classification_denied")
         _normalized_instant(self.recorded_at)
+        if self.valid_time is not None:
+            _normalized_instant(self.valid_time)
+        if not isinstance(self.provenance_quality, str) or not normalize_text(self.provenance_quality):
+            raise ValueError("conversation_episode_provenance_quality_required")
 
     @property
     def manifest_id(self) -> str:
@@ -78,6 +84,8 @@ def build_conversation_candidate(
     valid_from: str,
     valid_to: str | None = None,
     additional_episodes: tuple[ConversationEpisode, ...] = (),
+    external_candidate_id: str | None = None,
+    candidate_confidence: float | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic candidate packet using the existing W3 contract."""
 
@@ -98,6 +106,13 @@ def build_conversation_candidate(
         raise ValueError("conversation_statement_required")
     if any(marker in normalize_text(statement).casefold() for marker in _PROMPT_INJECTION_MARKERS):
         raise ValueError("conversation_prompt_injection_denied")
+    if external_candidate_id is not None and (not isinstance(external_candidate_id, str) or not normalize_text(external_candidate_id)):
+        raise ValueError("conversation_external_candidate_identity_invalid")
+    if candidate_confidence is not None and (
+        not isinstance(candidate_confidence, (int, float)) or isinstance(candidate_confidence, bool)
+        or not 0.0 <= float(candidate_confidence) <= 1.0
+    ):
+        raise ValueError("conversation_candidate_confidence_invalid")
     normalized_valid_from = _normalized_instant(valid_from)
     normalized_valid_to = _normalized_instant(valid_to) if valid_to is not None else None
     if normalized_valid_to is not None and normalized_valid_to <= normalized_valid_from:
@@ -121,6 +136,8 @@ def build_conversation_candidate(
         "source_episode_manifest_ids": sorted(source_manifest_ids),
         "source_pointer_hashes": [content_hash(item.source_pointer) for item in all_episodes],
         "source_episodes": _source_episode_provenance(all_episodes),
+        "daily_candidate_id_hash": content_hash(external_candidate_id) if external_candidate_id else None,
+        "candidate_confidence": float(candidate_confidence) if candidate_confidence is not None else None,
     }
     return build_learning_packet(
         source_manifest_ids=source_manifest_ids,
@@ -131,11 +148,13 @@ def build_conversation_candidate(
             "id": conversation_atom_id(
                 statement, _conversation_metadata(
                     episode, claim_role, normalized_valid_from, normalized_valid_to, additional_episodes,
+                    external_candidate_id, candidate_confidence,
                 )
             ),
             "statement": statement,
             "atom_type": "conversation_memory",
             "scope": episode.project_scope,
+            "confidence": float(candidate_confidence) if candidate_confidence is not None else 0.5,
             "source_refs": evidence_refs,
             "knowledge_status": "candidate",
             "transport_visibility": (
@@ -145,6 +164,7 @@ def build_conversation_candidate(
             ),
             "memory_metadata": {"conversation": _conversation_metadata(
                 episode, claim_role, normalized_valid_from, normalized_valid_to, additional_episodes,
+                external_candidate_id, candidate_confidence,
             )},
         }],
     )
@@ -159,6 +179,8 @@ def build_conversation_correction(
     valid_to: str | None = None,
     additional_episodes: tuple[ConversationEpisode, ...] = (),
     correction_context: str = "append_preserving_user_correction",
+    external_candidate_id: str | None = None,
+    candidate_confidence: float | None = None,
 ) -> dict[str, Any]:
     """Append a USER_CORRECTION linked to a pre-existing candidate atom."""
     if not replaces_atom_id or len(replaces_atom_id) > 128:
@@ -170,6 +192,8 @@ def build_conversation_correction(
         valid_from=valid_from,
         valid_to=valid_to,
         additional_episodes=additional_episodes,
+        external_candidate_id=external_candidate_id,
+        candidate_confidence=candidate_confidence,
     )
     correction_id = candidate["atoms"][0]["id"]
     candidate["relations"] = [{
@@ -197,6 +221,8 @@ def _conversation_metadata(
     valid_from: str,
     valid_to: str | None,
     additional_episodes: tuple[ConversationEpisode, ...] = (),
+    external_candidate_id: str | None = None,
+    candidate_confidence: float | None = None,
 ) -> dict[str, Any]:
     return {
         "episode_manifest_id": episode.manifest_id,
@@ -213,6 +239,8 @@ def _conversation_metadata(
             item.manifest_id for item in (episode, *additional_episodes)
         ),
         "source_episodes": _source_episode_provenance((episode, *additional_episodes)),
+        "daily_candidate_id_hash": content_hash(external_candidate_id) if external_candidate_id else None,
+        "candidate_confidence": float(candidate_confidence) if candidate_confidence is not None else None,
     }
 
 
@@ -226,6 +254,8 @@ def _source_episode_provenance(
         "episode_id": item.episode_id,
         "source_pointer_hash": content_hash(item.source_pointer),
         "recorded_at": _normalized_instant(item.recorded_at),
+        "valid_time": _normalized_instant(item.valid_time or item.recorded_at),
+        "provenance_quality": item.provenance_quality,
     } for item in episodes), key=lambda item: item["episode_manifest_id"])
 
 

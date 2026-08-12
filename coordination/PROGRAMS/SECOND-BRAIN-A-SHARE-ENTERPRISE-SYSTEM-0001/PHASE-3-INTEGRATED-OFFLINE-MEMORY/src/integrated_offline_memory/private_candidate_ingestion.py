@@ -12,6 +12,7 @@ import json
 import os
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -60,6 +61,7 @@ _ENVELOPE_KEYS = {
     "claim_role", "valid_from", "recorded_at", "source_episodes",
     "upstream_validation_status", "sensitivity_class", "valid_to",
     "correction_target_atom_id", "correction_relation_provenance",
+    "correction_target_candidate_id", "external_candidate_id", "candidate_confidence",
 }
 
 
@@ -126,7 +128,7 @@ class PrivateCandidateIngestionResult:
         }
 
 
-def serialize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dict[str, Any]:
+def normalize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dict[str, Any]:
     """Serialize enabled Daily-v2 report fields into the versioned transport.
 
     This is the producer-side compatibility boundary.  It preserves coverage
@@ -135,79 +137,99 @@ def serialize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dic
     Extra report presentation fields are intentionally not a transport error.
     """
 
-    _require_fields(report, _DAILY_LAYERS, "daily_v2_report_layers_missing")
-    if report.get("schema_version") != DAILY_MEMORY_CANDIDATE_V2:
+    _require_fields(report, _DAILY_LAYERS - {"schema_version"}, "daily_v2_report_layers_missing")
+    if report.get("schema_version") not in {None, DAILY_MEMORY_CANDIDATE_V2}:
         raise ValueError("daily_v2_schema_version_denied")
     coverage = _mapping(report["COVERAGE"], "daily_v2_coverage_invalid")
-    _require_fields(
-        coverage,
-        {"target_local_date", "execution_time", "coverage", "included_sources", "excluded_or_unknown_sources"},
-        "daily_v2_coverage_invalid",
-    )
-    if coverage["coverage"] not in {"COMPLETE", "PARTIAL", "UNKNOWN"}:
+    coverage_state = str(coverage.get("coverage", "UNKNOWN")).upper()
+    if coverage_state not in {"COMPLETE", "PARTIAL", "UNKNOWN"}:
         raise ValueError("daily_v2_coverage_invalid")
-    if not isinstance(coverage["included_sources"], list) or not isinstance(coverage["excluded_or_unknown_sources"], list):
+    included_sources = coverage.get("included_sources", [])
+    excluded_sources = coverage.get("excluded_or_unknown_sources", [])
+    if not isinstance(included_sources, list) or not isinstance(excluded_sources, list):
         raise ValueError("daily_v2_coverage_invalid")
     episodes = _sequence_of_mappings(report["CONVERSATION_EPISODES"], "daily_v2_episodes_invalid")
     normalized_episodes: list[dict[str, Any]] = []
     for episode in episodes:
-        _require_fields(
-            episode,
-            {"episode_id", "observed_at", "valid_time", "speaker", "source_scope", "source_ref", "provenance", "provenance_quality", "summary"},
-            "daily_v2_episode_invalid",
-        )
+        _require_fields(episode, {"episode_id", "source_scope"}, "daily_v2_episode_invalid")
         source_scope = _mapping(episode["source_scope"], "daily_v2_episode_scope_invalid")
         _require_fields(source_scope, {"user_scope", "project_scope"}, "daily_v2_episode_scope_invalid")
-        for field in ("episode_id", "observed_at", "valid_time", "speaker", "source_ref", "provenance_quality", "summary"):
-            if not isinstance(episode[field], str) or not normalize_text(episode[field]):
+        actor = episode.get("speaker", episode.get("actor"))
+        source_ref = episode.get("source_ref")
+        provenance = episode.get("provenance")
+        if source_ref is None and provenance is None:
+            raise ValueError("daily_v2_episode_source_missing")
+        observed_at = episode.get("observed_at", episode.get("valid_time"))
+        valid_time = episode.get("valid_time", observed_at)
+        for field, value in (("episode_id", episode["episode_id"]), ("actor", actor), ("observed_at", observed_at), ("valid_time", valid_time)):
+            if not isinstance(value, str) or not normalize_text(value):
                 raise ValueError("daily_v2_episode_invalid")
-        if episode["speaker"] not in {"USER", "ASSISTANT", "SYSTEM", "PROJECT"}:
+        _canonical_instant(observed_at)
+        _canonical_instant(valid_time)
+        if actor not in {"USER", "ASSISTANT", "SYSTEM", "PROJECT"}:
             raise ValueError("daily_v2_episode_actor_invalid")
         if not all(isinstance(source_scope[field], str) and normalize_text(source_scope[field]) for field in source_scope):
             raise ValueError("daily_v2_episode_scope_invalid")
         normalized_episodes.append({
             "episode_id": episode["episode_id"],
-            "source_pointer": episode["source_ref"],
-            "source_hash": content_hash({"source_ref": episode["source_ref"], "provenance": episode["provenance"]}),
-            "actor_type": episode["speaker"],
-            "recorded_at": episode["observed_at"],
-            "valid_time": episode["valid_time"],
+            "source_pointer": source_ref or "provenance://" + content_hash(provenance),
+            "source_hash": content_hash({"source_ref": source_ref, "provenance": provenance}),
+            "actor_type": actor,
+            "recorded_at": _canonical_instant(observed_at),
+            "valid_time": _canonical_instant(valid_time),
             "user_scope": source_scope["user_scope"],
             "project_scope": source_scope["project_scope"],
-            "provenance_quality": episode["provenance_quality"],
+            "provenance_quality": str(episode.get("provenance_quality", "UNKNOWN")),
         })
-    candidates = _sequence_of_mappings(report["MEMORY_CANDIDATES"], "daily_v2_candidates_invalid")
+    candidates = [dict(item) for item in _sequence_of_mappings(report["MEMORY_CANDIDATES"], "daily_v2_candidates_invalid")]
     candidate_ids = {item.get("candidate_id") for item in candidates}
     if not candidate_ids or None in candidate_ids or len(candidate_ids) != len(candidates):
         raise ValueError("daily_v2_candidate_identity_invalid")
     projection = _mapping(report["DERIVED_DAILY_PROJECTION"], "daily_v2_projection_invalid")
-    _require_fields(projection, {"derivation", "supporting_episode_ids", "supporting_candidate_ids"}, "daily_v2_projection_invalid")
-    if projection["derivation"] != "ASSISTANT_SUMMARY" or set(projection["supporting_candidate_ids"]) != candidate_ids:
+    _require_fields(projection, {"derivation"}, "daily_v2_projection_invalid")
+    if projection["derivation"] != "ASSISTANT_SUMMARY":
         raise ValueError("daily_v2_projection_candidate_mismatch")
-    if not set(projection["supporting_episode_ids"]).issubset({item["episode_id"] for item in normalized_episodes}):
+    supporting_candidate_ids = projection.get("supporting_candidate_ids", projection.get("candidate_ids", []))
+    if not isinstance(supporting_candidate_ids, list) or not set(supporting_candidate_ids).issubset(candidate_ids):
+        raise ValueError("daily_v2_projection_candidate_mismatch")
+    supporting_episode_ids = projection.get("supporting_episode_ids", projection.get("episode_ids", []))
+    if not isinstance(supporting_episode_ids, list) or not set(supporting_episode_ids).issubset({item["episode_id"] for item in normalized_episodes}):
         raise ValueError("daily_v2_projection_episode_mismatch")
     validation = _mapping(report["VALIDATION"], "daily_v2_validation_invalid")
-    _require_fields(validation, {"status", "checklist", "candidate_dispositions", "sensitivity_by_candidate"}, "daily_v2_validation_invalid")
+    _require_fields(validation, {"status", "checklist"}, "daily_v2_validation_invalid")
     if validation["status"] != "VALIDATED" or not isinstance(validation["checklist"], list):
         raise ValueError("daily_v2_validation_required")
-    dispositions = _mapping(validation["candidate_dispositions"], "daily_v2_validation_invalid")
-    sensitivity = _mapping(validation["sensitivity_by_candidate"], "daily_v2_sensitivity_invalid")
-    if set(dispositions) != candidate_ids or set(sensitivity) != candidate_ids:
-        raise ValueError("daily_v2_validation_disposition_incomplete")
+    raw_dispositions = validation.get("candidate_dispositions", {})
+    dispositions = dict(raw_dispositions) if isinstance(raw_dispositions, Mapping) else {}
+    rejected = {
+        item.get("candidate_id") for item in validation.get("rejected_candidates", [])
+        if isinstance(item, Mapping)
+    }
+    accepted = set(validation.get("accepted_candidate_ids", []))
+    sensitivity = dict(validation.get("sensitivity_by_candidate", {})) if isinstance(validation.get("sensitivity_by_candidate", {}), Mapping) else {}
     for candidate in candidates:
-        _require_fields(
-            candidate,
-            {"candidate_id", "candidate_type", "statement", "supporting_episode_ids", "valid_from", "valid_to", "recorded_at", "sensitivity_class", "correction_target"},
-            "daily_v2_candidate_schema_invalid",
-        )
-        if dispositions[candidate["candidate_id"]] not in {"ACCEPTED", "REJECTED", "NON_DURABLE"}:
+        _require_fields(candidate, {"candidate_id", "candidate_type", "statement", "supporting_episode_ids"}, "daily_v2_candidate_schema_invalid")
+        candidate_id = candidate["candidate_id"]
+        disposition = dispositions.get(candidate_id)
+        if disposition is None:
+            disposition = "REJECTED" if candidate_id in rejected else "ACCEPTED" if candidate_id in accepted else "NON_DURABLE"
+        if disposition not in {"ACCEPTED", "REJECTED", "NON_DURABLE"}:
             raise ValueError("daily_v2_validation_invalid")
-        if candidate["sensitivity_class"] != sensitivity[candidate["candidate_id"]]:
+        dispositions[candidate_id] = disposition
+        candidate_sensitivity = candidate.get("sensitivity_class", sensitivity.get(candidate_id, "PRIVATE_OR_SENSITIVE"))
+        if candidate_id in sensitivity and candidate_sensitivity != sensitivity[candidate_id]:
             raise ValueError("daily_v2_sensitivity_mismatch")
+        sensitivity[candidate_id] = candidate_sensitivity
+        candidate["sensitivity_class"] = candidate_sensitivity
+        candidate["valid_from"] = candidate.get("valid_from", normalized_episodes[0]["valid_time"])
+        candidate["valid_to"] = candidate.get("valid_to")
+        candidate["recorded_at"] = candidate.get("recorded_at", normalized_episodes[0]["recorded_at"])
+        candidate["correction_target"] = candidate.get("correction_target")
+        candidate["confidence"] = _normalize_confidence(candidate.get("confidence", "MEDIUM"))
     return {
         "schema_version": DAILY_MEMORY_CANDIDATE_TRANSPORT_V1,
         "producer_schema_version": DAILY_MEMORY_CANDIDATE_V2,
-        "coverage": dict(coverage),
+        "coverage": {"target_local_date": coverage.get("target_local_date"), "execution_time": coverage.get("execution_time"), "coverage": coverage_state, "included_sources": list(included_sources), "excluded_or_unknown_sources": list(excluded_sources)},
         "episodes": normalized_episodes,
         "candidates": [dict(item) for item in candidates],
         "projection": dict(projection),
@@ -219,16 +241,18 @@ def serialize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dic
     }
 
 
+def serialize_daily_memory_candidate_v2_report(report: Mapping[str, Any]) -> dict[str, Any]:
+    """Backward-compatible name for the tolerant human-report normalizer."""
+
+    return normalize_daily_memory_candidate_v2_report(report)
+
+
 def daily_memory_candidate_transport_to_w3_private_envelopes(
     transport: Mapping[str, Any],
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     """Map a validated transport to W3 envelopes plus explicit no-op records."""
 
-    _require_exact_keys(
-        transport,
-        {"schema_version", "producer_schema_version", "coverage", "episodes", "candidates", "projection", "validation"},
-        "daily_transport_schema_invalid",
-    )
+    _require_exact_keys(transport, {"schema_version", "producer_schema_version", "coverage", "episodes", "candidates", "projection", "validation"}, "daily_transport_schema_invalid")
     if transport.get("schema_version") != DAILY_MEMORY_CANDIDATE_TRANSPORT_V1 or transport.get("producer_schema_version") != DAILY_MEMORY_CANDIDATE_V2:
         raise ValueError("daily_transport_schema_version_denied")
     episodes = _sequence_of_mappings(transport["episodes"], "daily_transport_episode_invalid")
@@ -266,11 +290,12 @@ def daily_memory_candidate_transport_to_w3_private_envelopes(
         if len(scopes) != 1 or any(not isinstance(value, str) or not value for pair in scopes for value in pair):
             raise ValueError("daily_v2_candidate_scope_invalid")
         correction_target = candidate.get("correction_target")
+        target_candidate_id: str | None = None
         if candidate_type == "USER_CORRECTION":
             target = _mapping(correction_target, "daily_v2_correction_target_required")
-            _require_exact_keys(target, {"replaces_atom_id", "relation_provenance"}, "daily_v2_correction_target_required")
-            target_atom_id = target.get("replaces_atom_id")
-            if not isinstance(target_atom_id, str) or not target_atom_id:
+            _require_exact_keys(target, {"replaces_candidate_id", "relation_provenance"}, "daily_v2_correction_target_required")
+            target_candidate_id = target.get("replaces_candidate_id")
+            if not isinstance(target_candidate_id, str) or not target_candidate_id:
                 raise ValueError("daily_v2_correction_target_required")
         elif correction_target is not None:
             raise ValueError("daily_v2_correction_target_unexpected")
@@ -288,8 +313,11 @@ def daily_memory_candidate_transport_to_w3_private_envelopes(
             "source_episodes": source_episodes,
             "upstream_validation_status": validation.get("status"),
             "sensitivity_class": candidate.get("sensitivity_class"),
-            "correction_target_atom_id": target_atom_id if candidate_type == "USER_CORRECTION" else None,
+            "correction_target_atom_id": None,
             "correction_relation_provenance": target["relation_provenance"] if candidate_type == "USER_CORRECTION" else None,
+            "correction_target_candidate_id": target_candidate_id,
+            "external_candidate_id": candidate_id,
+            "candidate_confidence": candidate.get("confidence"),
         }
         envelopes.append(_validate_w3_private_envelope(envelope))
     return envelopes, no_ops
@@ -313,6 +341,8 @@ def build_private_w3_candidate_envelope(envelope: Mapping[str, Any]) -> dict[str
         "episode": episodes[0], "additional_episodes": episodes[1:],
         "statement": normalized["statement"], "valid_from": normalized["valid_from"],
         "valid_to": normalized.get("valid_to"),
+        "external_candidate_id": normalized["external_candidate_id"],
+        "candidate_confidence": normalized["candidate_confidence"],
     }
     if normalized["claim_role"] == "USER_CORRECTION":
         return build_conversation_correction(
@@ -331,11 +361,15 @@ def ingest_daily_memory_candidate_v2(
     envelopes, no_ops = daily_memory_candidate_transport_to_w3_private_envelopes(
         serialize_daily_memory_candidate_v2_report(package)
     )
-    packets = tuple(build_private_w3_candidate_envelope(envelope) for envelope in envelopes)
+    resolved = tuple(_resolve_correction_target(envelope, store) for envelope in envelopes)
+    packets = tuple(build_private_w3_candidate_envelope(envelope) for envelope in resolved)
+    # All packet and correction-target checks above complete before the first
+    # import transaction. A malformed later correction cannot leave an earlier
+    # candidate from this Daily package silently committed.
     import_results = tuple(store.import_learning_packet(packet) for packet in packets)
     assembler = context_assembler or ContextAssembler(store)
     recalled: set[str] = set()
-    for envelope, packet in zip(envelopes, packets):
+    for envelope, packet in zip(resolved, packets):
         bundle = assembler.assemble(QueryPlan(
             query_text=envelope["statement"], scopes=(envelope["project_scope"],),
             user_scope=envelope["user_scope"], valid_at=envelope["valid_from"],
@@ -405,6 +439,7 @@ def _episode_model(episode: Mapping[str, Any], envelope: Mapping[str, Any]) -> C
         source_pointer=episode["source_pointer"], source_hash=episode["source_hash"],
         privacy_class=PRIVATE_LOCAL_CANDIDATE, recorded_at=episode["recorded_at"],
         coverage="private_local", source_class="PRIVATE_LOCAL_AUTHORIZED",
+        valid_time=episode["valid_time"], provenance_quality=episode["provenance_quality"],
     )
 
 
@@ -420,11 +455,11 @@ def _validate_w3_private_envelope(envelope: Mapping[str, Any]) -> dict[str, Any]
     if normalized["claim_role"] not in _USER_MEMORY_TYPES.values():
         raise ValueError("daily_v2_non_user_candidate_denied")
     if normalized["claim_role"] == "USER_CORRECTION":
-        if not isinstance(normalized.get("correction_target_atom_id"), str) or not normalized["correction_target_atom_id"]:
+        if not isinstance(normalized.get("correction_target_candidate_id"), str) or not normalized["correction_target_candidate_id"]:
             raise ValueError("daily_v2_correction_target_required")
         if not isinstance(normalized.get("correction_relation_provenance"), str) or not normalize_text(normalized["correction_relation_provenance"]):
             raise ValueError("daily_v2_correction_target_required")
-    elif normalized.get("correction_target_atom_id") is not None or normalized.get("correction_relation_provenance") is not None:
+    elif any(normalized.get(field) is not None for field in ("correction_target_atom_id", "correction_target_candidate_id", "correction_relation_provenance")):
         raise ValueError("daily_v2_correction_target_unexpected")
     source_episodes = _sequence_of_mappings(normalized.get("source_episodes"), "w3_private_envelope_provenance_invalid")
     if not source_episodes:
@@ -432,7 +467,7 @@ def _validate_w3_private_envelope(envelope: Mapping[str, Any]) -> dict[str, Any]
     seen: set[str] = set()
     normalized_episodes: list[dict[str, Any]] = []
     for episode in source_episodes:
-        _require_fields(episode, {"episode_id", "source_pointer", "source_hash", "actor_type", "recorded_at", "user_scope", "project_scope"}, "w3_private_envelope_episode_invalid")
+        _require_fields(episode, {"episode_id", "source_pointer", "source_hash", "actor_type", "recorded_at", "valid_time", "provenance_quality", "user_scope", "project_scope"}, "w3_private_envelope_episode_invalid")
         if episode.get("actor_type") != "USER" or episode.get("user_scope") != normalized["user_scope"] or episode.get("project_scope") != normalized["project_scope"]:
             raise ValueError("daily_v2_candidate_actor_denied")
         episode_id = episode.get("episode_id")
@@ -443,9 +478,54 @@ def _validate_w3_private_envelope(envelope: Mapping[str, Any]) -> dict[str, Any]
     normalized["source_episodes"] = normalized_episodes
     if normalized.get("valid_to") is not None and not isinstance(normalized["valid_to"], str):
         raise ValueError("w3_private_envelope_field_invalid")
+    if not isinstance(normalized.get("external_candidate_id"), str) or not normalize_text(normalized["external_candidate_id"]):
+        raise ValueError("w3_private_envelope_field_invalid")
+    if not isinstance(normalized.get("candidate_confidence"), (int, float)) or isinstance(normalized["candidate_confidence"], bool) or not 0.0 <= float(normalized["candidate_confidence"]) <= 1.0:
+        raise ValueError("w3_private_envelope_field_invalid")
     if any(_SECRET.search(value) for value in _iter_strings(normalized)):
         raise ValueError("credential_value_denied")
     return normalized
+
+
+def _resolve_correction_target(envelope: Mapping[str, Any], store: MemoryStore) -> dict[str, Any]:
+    """Resolve producer-known identity locally before any packet is imported."""
+
+    normalized = dict(envelope)
+    if normalized["claim_role"] != "USER_CORRECTION":
+        return normalized
+    wanted = content_hash(normalized["correction_target_candidate_id"])
+    matches = []
+    for atom in store.all_atoms():
+        conversation = atom.get("memory_metadata", {}).get("conversation", {})
+        if (
+            conversation.get("daily_candidate_id_hash") == wanted
+            and conversation.get("user_scope") == normalized["user_scope"]
+            and conversation.get("project_scope") == normalized["project_scope"]
+            and _canonical_instant(conversation.get("valid_from")) < _canonical_instant(normalized["valid_from"])
+        ):
+            matches.append(atom["id"])
+    if len(matches) != 1:
+        raise ValueError("daily_v2_correction_target_unresolved")
+    normalized["correction_target_atom_id"] = matches[0]
+    return _validate_w3_private_envelope(normalized)
+
+
+def _normalize_confidence(value: Any) -> float:
+    if isinstance(value, (int, float)) and not isinstance(value, bool) and 0.0 <= float(value) <= 1.0:
+        return float(value)
+    mapped = {"HIGH": 0.9, "MEDIUM": 0.6, "LOW": 0.3}.get(str(value).upper())
+    if mapped is None:
+        raise ValueError("daily_v2_candidate_confidence_invalid")
+    return mapped
+
+
+def _canonical_instant(value: Any) -> str:
+    if not isinstance(value, str):
+        raise ValueError("daily_v2_time_invalid")
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("daily_v2_time_invalid")
+    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _validate_sensitivity(value: Any) -> None:

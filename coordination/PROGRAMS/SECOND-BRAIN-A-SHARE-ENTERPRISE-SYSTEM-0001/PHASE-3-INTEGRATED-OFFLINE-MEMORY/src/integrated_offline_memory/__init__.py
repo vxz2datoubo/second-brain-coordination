@@ -34,6 +34,7 @@ from .private_candidate_ingestion import (
     ingest_daily_memory_candidate_v2,
     load_daily_memory_candidate_v2,
     private_source_binding_status,
+    normalize_daily_memory_candidate_v2_report,
     serialize_daily_memory_candidate_v2_report,
     validate_private_data_paths,
 )
@@ -76,6 +77,7 @@ __all__ = [
     "ingest_daily_memory_candidate_v2",
     "load_daily_memory_candidate_v2",
     "private_source_binding_status",
+    "normalize_daily_memory_candidate_v2_report",
     "serialize_daily_memory_candidate_v2_report",
     "validate_private_data_paths",
 ]

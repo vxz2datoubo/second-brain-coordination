@@ -28,7 +28,10 @@ _PROMPT_INJECTION_MARKERS = (
     "developer message",
 )
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
-_CONVERSATION_OPTIONAL = {"source_episode_manifest_ids", "source_episodes"}
+_CONVERSATION_OPTIONAL = {
+    "source_episode_manifest_ids", "source_episodes", "daily_candidate_id_hash",
+    "candidate_confidence",
+}
 
 
 def build_learning_packet(
@@ -281,13 +284,27 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
         for item in source_episodes:
             if (
                 not isinstance(item, dict)
-                or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at"}
+                or set(item) != {
+                    "episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at",
+                    "valid_time", "provenance_quality",
+                }
                 or not all(isinstance(item.get(field), str) and item[field] for field in item)
                 or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
             ):
                 return ["conversation_packet_related_provenance_invalid"]
         if report.get("source_episodes", source_episodes) != source_episodes:
             return ["conversation_packet_related_provenance_invalid"]
+    external_id_hash = conversation.get("daily_candidate_id_hash")
+    if external_id_hash is not None and (
+        not isinstance(external_id_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", external_id_hash)
+    ):
+        return ["conversation_external_candidate_identity_invalid"]
+    confidence = conversation.get("candidate_confidence")
+    if confidence is not None and (
+        not isinstance(confidence, (int, float)) or isinstance(confidence, bool)
+        or not 0.0 <= float(confidence) <= 1.0 or float(atom.get("confidence", -1)) != float(confidence)
+    ):
+        return ["conversation_candidate_confidence_invalid"]
     fields = ("user_scope", "project_scope", "privacy_class", "coverage", "source_class", "claim_role")
     if any(report.get(field) != conversation.get(field) for field in fields):
         return ["conversation_packet_validation_mismatch"]

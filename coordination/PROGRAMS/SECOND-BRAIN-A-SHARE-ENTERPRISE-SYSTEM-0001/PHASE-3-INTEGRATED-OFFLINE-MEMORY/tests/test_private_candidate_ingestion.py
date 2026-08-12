@@ -122,6 +122,8 @@ class PrivateCandidateIngestionTestCase(unittest.TestCase):
         store = MemoryStore().connect()
         try:
             original = ingest_daily_memory_candidate_v2(daily_v2_fixture(), store)
+            # Read only for the final historic assertion; the producer-side
+            # correction payload below uses its own known candidate identity.
             old_id = original.packets[0]["atoms"][0]["id"]
             correction = daily_v2_fixture()
             correction["CONVERSATION_EPISODES"].append({
@@ -138,7 +140,7 @@ class PrivateCandidateIngestionTestCase(unittest.TestCase):
                 "supporting_episode_ids": ["opaque-user-correction-004"],
                 "valid_from": "2026-08-12T02:00:00+08:00", "valid_to": None,
                 "recorded_at": "2026-08-12T02:00:00+08:00", "sensitivity_class": "PRIVATE_OR_SENSITIVE",
-                "correction_target": {"replaces_atom_id": old_id, "relation_provenance": "daily-v2-user-correction"}
+                "correction_target": {"replaces_candidate_id": "opaque-user-memory-001", "relation_provenance": "daily-v2-user-correction"}
             }]
             correction["DERIVED_DAILY_PROJECTION"]["supporting_episode_ids"] = ["opaque-user-correction-004"]
             correction["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"] = ["opaque-user-correction-001"]
@@ -157,6 +159,58 @@ class PrivateCandidateIngestionTestCase(unittest.TestCase):
                 valid_at="2026-08-12T01:00:00+08:00", truth_states=("candidate", "superseded"), intent="HISTORICAL",
             ))
             self.assertIn(old_id, {atom["id"] for atom in historical.atoms})
+        finally:
+            store.close()
+
+    def test_report_variants_confidence_and_episode_evidence_survive(self) -> None:
+        package = daily_v2_fixture()
+        package.pop("schema_version")
+        package["COVERAGE"]["coverage"] = "partial"
+        episode = package["CONVERSATION_EPISODES"][0]
+        episode["actor"] = episode.pop("speaker")
+        episode.pop("source_ref")
+        episode["provenance"] = {"opaque_ref": "provenance-only"}
+        package["MEMORY_CANDIDATES"][0]["confidence"] = "HIGH"
+        package["VALIDATION"].pop("candidate_dispositions")
+        package["VALIDATION"]["accepted_candidate_ids"] = ["opaque-user-memory-001", "opaque-project-state-002"]
+        package["VALIDATION"]["rejected_candidates"] = []
+        package["VALIDATION"].pop("sensitivity_by_candidate")
+        transport = serialize_daily_memory_candidate_v2_report(package)
+        self.assertEqual(transport["coverage"]["coverage"], "PARTIAL")
+        self.assertEqual(transport["candidates"][0]["confidence"], 0.9)
+        store = MemoryStore().connect()
+        try:
+            result = ingest_daily_memory_candidate_v2(package, store)
+            bundle = ContextAssembler(store).assemble(QueryPlan(
+                query_text="preference", scopes=("opaque-project-a",), user_scope="opaque-user-a",
+                valid_at="2026-08-12T01:00:00+08:00", truth_states=("candidate",),
+            ))
+            self.assertEqual(bundle.atoms[0]["confidence"], 0.9)
+            evidence = bundle.provenance[0]["source_episodes"]
+            self.assertTrue(all(item["valid_time"].endswith("Z") for item in evidence))
+            self.assertTrue(all(item["provenance_quality"] for item in evidence))
+            self.assertEqual(result.packets[0]["atoms"][0]["memory_metadata"]["conversation"]["candidate_confidence"], 0.9)
+        finally:
+            store.close()
+
+    def test_preflight_invalid_correction_leaves_no_partial_mutation(self) -> None:
+        package = daily_v2_fixture()
+        package["MEMORY_CANDIDATES"].append({
+            "candidate_id": "opaque-invalid-correction", "candidate_type": "USER_CORRECTION",
+            "statement": "synthetic invalid correction", "supporting_episode_ids": ["opaque-user-episode-002"],
+            "valid_from": "2026-08-12T02:00:00+08:00", "valid_to": None,
+            "recorded_at": "2026-08-12T02:00:00+08:00", "sensitivity_class": "PRIVATE_OR_SENSITIVE",
+            "correction_target": {"replaces_candidate_id": "missing-producer-id", "relation_provenance": "synthetic"},
+        })
+        package["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"].append("opaque-invalid-correction")
+        package["VALIDATION"]["candidate_dispositions"]["opaque-invalid-correction"] = "ACCEPTED"
+        package["VALIDATION"]["sensitivity_by_candidate"]["opaque-invalid-correction"] = "PRIVATE_OR_SENSITIVE"
+        store = MemoryStore().connect()
+        try:
+            with self.assertRaisesRegex(ValueError, "correction_target_unresolved"):
+                ingest_daily_memory_candidate_v2(package, store)
+            self.assertEqual(store.stats()["atoms"], 0)
+            self.assertEqual(store.stats()["packets"], 0)
         finally:
             store.close()
 
