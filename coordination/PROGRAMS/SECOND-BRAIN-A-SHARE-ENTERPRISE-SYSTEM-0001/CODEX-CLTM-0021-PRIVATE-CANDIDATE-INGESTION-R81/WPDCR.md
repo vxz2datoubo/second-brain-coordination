@@ -28,6 +28,14 @@ Missing `valid_from` or `recorded_at` is no longer inferred from package episode
 
 No real private canary was run. R5 is synthetic/public-safe adversarial hardening only; all formal/private/live gates remain locked pending GPT review.
 
+## R6 monotonic closed-state evidence
+
+The R5 audit identified one remaining state-regression route: an ordinary alias packet could share an existing canonical atom identity after that atom had been superseded. R6 chooses explicit deterministic rejection rather than metadata enrichment for a closed atom. Before the UPSERT, the existing W3 row is inspected; `knowledge_status=superseded`, `effective_valid_to`, or `superseded_by` causes `conversation_alias_enrichment_closed_atom_denied`.
+
+The R6 adversarial test performs `A -> USER_CORRECTION closes A -> alias B for the same canonical identity` twice. Both attempts fail with the same controlled result and leave the complete store statistics unchanged. It verifies the original atom remains `superseded`, its `effective_valid_to` and `superseded_by` remain byte-for-byte unchanged, CURRENT excludes it, and HISTORICAL retrieves it at a pre-closure instant. This protects all existing correction-derived state without creating a second store or a rollback path for normal open aliases.
+
+No real private canary was run. Formal PROJECT/GLOBAL persistence, raw-private publication, E48/live integration, private repository changes, production MCP/Gateway, trading, and merge remain locked pending GPT R6 review.
+
 ## R4 remediation evidence
 
 The R3 audit found five remaining structural blockers. R4 makes DailyMemoryCandidateTransport-v1 the explicit strict machine contract and treats DailyMemoryCandidate-v2 as a human-report input that needs tolerant normalization. The normalizer accepts current producer alternatives such as lower-case coverage, actor/speaker and source-ref/provenance variants, optional candidate timing/sensitivity fields and validation/rejection layouts while retaining partial/unknown coverage and included/excluded-source semantics.

@@ -9,7 +9,7 @@ task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
 local_execution_issues: "LEIP-UNICODE-001 independently verified once during review-thread retrieval; recorded in canonical registry as a contained decoding-boundary occurrence, not a permanent Unicode-family fix."
 mission_and_completion:
-  main_delivery_summary: "R5 adds true single-transaction Daily-package imports, candidate-owned fail-closed temporal derivation, and a sorted hashed external-identity alias mapping on the existing W3 atom; corrections resolve every retained alias locally without private identifiers entering public evidence."
+  main_delivery_summary: "R6 makes alias handling monotonic: a producer alias against a correction-closed canonical W3 atom is deterministically rejected before UPSERT, preserving superseded status and all store-derived historical closure state without exposing private identifiers."
   success_criteria:
     - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
       status: "MET"
@@ -29,6 +29,9 @@ mission_and_completion:
     - criterion: "Distinct producer identities sharing one canonical atom remain auditable and both resolve later corrections."
       status: "MET"
       evidence: "test_external_candidate_aliases_remain_auditable_and_resolve_corrections"
+    - criterion: "A later alias cannot reopen or alter a superseded canonical conversation atom."
+      status: "MET"
+      evidence: "test_closed_atom_rejects_alias_without_reopening_historical_state"
     - criterion: "Daily report variants preserve coverage state, actor/source alternatives, confidence, episode valid-time and provenance quality."
       status: "MET"
       evidence: "test_report_variants_confidence_and_episode_evidence_survive"
@@ -56,7 +59,7 @@ scope_accounting:
     - "exact imported-atom recall; data-root policy; source-binding state; confidence and multi-episode ContextBundle provenance"
     - "synthetic/public-safe regression and adversarial coverage"
   not_completed:
-    - "real private source canary (explicitly deferred until GPT R5 acceptance)"
+    - "real private source canary (explicitly deferred until GPT R6 acceptance)"
   deliberately_rejected_or_removed:
     - item: "formal PROJECT/GLOBAL promotion"
       reason: "Route epoch 81 explicitly locks formal persistence."
@@ -85,7 +88,7 @@ commands_and_tests:
   commands:
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "Phase 3 full regression PASS: 208/208 tests in 6.522s. R5 private-candidate compatibility/adversarial coverage PASS: 13/13."
+      result: "Phase 3 full regression PASS: 209/209 tests in 8.019s. R6 private-candidate focused/adversarial coverage PASS: 14/14."
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
       exit_code: 0
       result: "PASS: 68 files scanned; 0 issues."
@@ -108,7 +111,7 @@ unknowns:
     - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "GPT R5 review of exact pushed head; do not run real canary, merge, or unlock any gate."
+  next_action: "GPT R6 review of exact pushed head; do not run real canary, merge, or unlock any gate."
 local_execution_issue_details:
   - id: "LEIP-UNICODE-001"
     问题特征: "The bundled review-thread reader used the Windows GBK default and could not decode UTF-8 GitHub review text."

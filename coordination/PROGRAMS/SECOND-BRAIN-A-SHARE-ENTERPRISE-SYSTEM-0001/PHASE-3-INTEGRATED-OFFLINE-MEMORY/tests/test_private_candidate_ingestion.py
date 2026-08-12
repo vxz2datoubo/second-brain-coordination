@@ -343,6 +343,54 @@ class PrivateCandidateIngestionTestCase(unittest.TestCase):
         finally:
             store.close()
 
+    def test_closed_atom_rejects_alias_without_reopening_historical_state(self) -> None:
+        first_id, alias_id = "opaque-user-memory-001", "opaque-closed-memory-alias-002"
+        store = MemoryStore().connect()
+        try:
+            first = ingest_daily_memory_candidate_v2(daily_v2_fixture(), store)
+            atom_id = first.packets[0]["atoms"][0]["id"]
+            ingest_daily_memory_candidate_v2(correction_package(
+                candidate_id="opaque-close-for-alias", replaces_candidate_id=first_id,
+                episode_id="opaque-close-for-alias-episode",
+            ), store)
+            closed_before = store.get_atom(atom_id)
+            closure_before = {
+                key: closed_before["memory_metadata"]["conversation"][key]
+                for key in ("effective_valid_to", "superseded_by")
+            }
+            stats_before = store.stats()
+            alias = daily_v2_fixture()
+            alias["MEMORY_CANDIDATES"][0]["candidate_id"] = alias_id
+            alias["DERIVED_DAILY_PROJECTION"]["supporting_candidate_ids"][0] = alias_id
+            alias["VALIDATION"]["candidate_dispositions"] = {alias_id: "ACCEPTED", "opaque-project-state-002": "ACCEPTED"}
+            alias["VALIDATION"]["sensitivity_by_candidate"] = {alias_id: "PRIVATE_OR_SENSITIVE", "opaque-project-state-002": "PRIVATE_OR_SENSITIVE"}
+            for _ in range(2):
+                with self.assertRaisesRegex(ValueError, "alias_enrichment_closed_atom_denied"):
+                    ingest_daily_memory_candidate_v2(alias, store)
+                self.assertEqual(store.stats(), stats_before)
+            closed_after = store.get_atom(atom_id)
+            self.assertEqual(closed_after["knowledge_status"], "superseded")
+            self.assertEqual(
+                {key: closed_after["memory_metadata"]["conversation"][key] for key in closure_before},
+                closure_before,
+            )
+            self.assertEqual(
+                closed_after["memory_metadata"]["conversation"]["daily_candidate_id_hashes"],
+                [content_hash(first_id)],
+            )
+            current = ContextAssembler(store).assemble(QueryPlan(
+                query_text="preference", scopes=("opaque-project-a",), user_scope="opaque-user-a",
+                valid_at="2026-08-12T03:00:00+08:00", truth_states=("candidate",), intent="CURRENT",
+            ))
+            self.assertNotIn(atom_id, {atom["id"] for atom in current.atoms})
+            historical = ContextAssembler(store).assemble(QueryPlan(
+                query_text="preference", scopes=("opaque-project-a",), user_scope="opaque-user-a",
+                valid_at="2026-08-12T01:00:00+08:00", truth_states=("candidate", "superseded"), intent="HISTORICAL",
+            ))
+            self.assertIn(atom_id, {atom["id"] for atom in historical.atoms})
+        finally:
+            store.close()
+
     def test_multi_episode_provenance_is_visible_in_context_bundle(self) -> None:
         store = MemoryStore().connect()
         try:

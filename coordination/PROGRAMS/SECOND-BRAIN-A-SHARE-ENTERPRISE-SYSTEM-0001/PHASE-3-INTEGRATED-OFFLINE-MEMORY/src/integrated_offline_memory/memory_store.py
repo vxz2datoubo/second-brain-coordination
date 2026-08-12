@@ -420,7 +420,9 @@ class MemoryStore:
         incoming_hash = incoming.get("daily_candidate_id_hash")
         if incoming_hash is None:
             return atom
-        existing = connection.execute("SELECT memory_metadata FROM atoms WHERE id=?", (atom["id"],)).fetchone()
+        existing = connection.execute(
+            "SELECT knowledge_status, memory_metadata FROM atoms WHERE id=?", (atom["id"],)
+        ).fetchone()
         if existing is None:
             aliases = sorted(set(incoming.get("daily_candidate_id_hashes", []) + [incoming_hash]))
             result = dict(atom)
@@ -431,6 +433,15 @@ class MemoryStore:
             result["memory_metadata"] = metadata
             return result
         existing_conversation = json.loads(existing["memory_metadata"]).get("conversation", {})
+        # A packet-backed external identity can enrich an open atom, but never
+        # writes through a correction-derived closure.  Explicit rejection is
+        # safer than replaying an ordinary candidate over a historical state.
+        if (
+            existing["knowledge_status"] == "superseded"
+            or existing_conversation.get("effective_valid_to") is not None
+            or existing_conversation.get("superseded_by") is not None
+        ):
+            raise ValueError("conversation_alias_enrichment_closed_atom_denied")
         aliases = set(existing_conversation.get("daily_candidate_id_hashes", []))
         aliases.update(incoming.get("daily_candidate_id_hashes", []))
         aliases.update(filter(None, (existing_conversation.get("daily_candidate_id_hash"), incoming_hash)))
