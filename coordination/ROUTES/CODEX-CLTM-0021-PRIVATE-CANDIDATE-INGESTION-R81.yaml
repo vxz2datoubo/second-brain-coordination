@@ -1,0 +1,96 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: null
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+route_epoch: 81
+mode: "project_plan"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: true
+real_private_raw_body_publication_allowed: false
+repository_visibility_change_authorized: false
+production_mcp_gateway_deployment_authorized: false
+private_repository_creation_authorized: false
+
+canonical:
+  main_at_route_publish: "740e89549fbc90f97da3690a02de7c9bf157bbff"
+  activation_issue: 231
+  predecessor_merge_authorization_route: 80
+  accepted_vertical_slice_pr: 236
+  accepted_vertical_slice_head: "00295cf16d2b63a1fd8e1d5652eecabf376ae2a2"
+  vertical_slice_merge: "740e89549fbc90f97da3690a02de7c9bf157bbff"
+  active_contract: "coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-R81.yaml"
+
+root_goal: >-
+  Extend the merged W3 ConversationEpisode candidate path so one actually authorized private/local Conversation Source can be
+  ingested into the existing W3 candidate store and later recalled with provenance, scope and valid-time, while keeping raw private
+  bodies out of public GitHub and keeping formal PROJECT/GLOBAL promotion locked.
+
+source_and_privacy_invariants:
+  - "Private source access is local/private data-plane only; public repo contains implementation and synthetic fixtures only."
+  - "Real/private canary evidence may expose hashes/counts/status/timestamps, never raw text, private source path or private semantic values."
+  - "Secrets are never memory candidates and never enter embeddings/logs/tests/Git."
+  - "Missing source access is PRIVATE_SOURCE_BINDING_WAITING, never fabricated success or evidence that no conversation occurred."
+  - "Candidate authority is not formal memory authority."
+
+required_work:
+  - "Add/extend a canonical private/local ConversationEpisode source classification without weakening PUBLIC_SAFE_SYNTHETIC validation."
+  - "Add a bounded deterministic/idempotent local candidate-ingestion interface that feeds existing LearningPacket -> MemoryStore only."
+  - "Support structured Daily Memory Candidate v2 input at the interface boundary while keeping any ChatGPT-automation-to-local transport dependency explicit."
+  - "Preserve user/project/privacy/role/provenance/valid-time admission and current-vs-historical semantics from merged epoch 79."
+  - "Add public synthetic tests for private classification, provenance, secret/injection/role/scope/time failures, idempotency and rollback/rebuild."
+  - "If an authorized real private source is actually accessible, perform one minimal local-only canary ingest -> recall with public evidence limited to hashes/counts/status."
+  - "If no real source is accessible, complete the bridge/tests and stop with PRIVATE_SOURCE_BINDING_WAITING plus the exact missing capability."
+
+real_canary_contract:
+  authorization: "USER_CONTINUATION_2026-08-12T14:28+08:00"
+  maximum_scope: "one minimal bounded conversation episode or Daily Memory Candidate package sufficient to prove source -> candidate -> recall"
+  allowed_public_evidence: ["hashes", "counts", "opaque IDs/hashes", "timestamps", "exit codes", "validation status", "recall outcome count"]
+  forbidden_public_evidence: ["verbatim private conversation", "private semantic candidate content", "private local path", "secret values"]
+  formal_promotion: "FORBIDDEN"
+
+acceptance_gates:
+  - "Existing Phase 3 suite remains green plus new ingestion tests."
+  - "No second W3 store/query/context/vector/graph/temporal authority is created."
+  - "Private ingestion is fail-closed on missing provenance, user/project/time scope, role, privacy class, injection or secrets."
+  - "CURRENT continues excluding superseded/revoked/stale; HISTORICAL remains explicit and valid-time aware."
+  - "Candidate ingestion is deterministic/idempotent."
+  - "Real canary succeeds only if a real authorized source is actually accessible; otherwise explicit waiting state."
+  - "No private/raw values appear in Git/PR/Issue/CI/public fixtures."
+  - "Formal PROJECT/GLOBAL promotion remains locked."
+  - "LOCAL_EXECUTION_ISSUES is included in checkpoint/closeout using the mandatory four-field format or NONE_OBSERVED."
+
+system_dependencies:
+  chatgpt_account_all_conversation_enumeration: "NOT_ASSUMED"
+  chatgpt_automation_to_local_w3_direct_transport: "MAY_REMAIN_UNAVAILABLE"
+  private_repository: "NOT_REQUIRED_AND_NOT_AUTHORIZED"
+  live_e48: "NOT_REQUIRED_AND_LOCKED"
+
+local_issue_governance:
+  registry: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+  mandatory_issue_report_fields: ["问题特征", "发现途径与对照测试", "根因范围与限制", "可逆解决办法与撤销方式"]
+  frequency_metric: "distinct task/environment reproductions first; raw repeated errors separately"
+  review_policy: "periodically evaluate top 3-4 recurring patterns for permanent remediation; do not auto-fix every observation"
+
+hard_boundaries:
+  - "No formal PROJECT/GLOBAL promotion or persistence unlock."
+  - "No raw private conversation body or private semantic candidate in public coordination artifacts."
+  - "No secrets/credentials/tokens/cookies/sessions/MFA/recovery/payment/broker values in memory or public evidence."
+  - "No private repo creation/visibility/permission changes."
+  - "No production MCP/Memory App/Gateway."
+  - "No E48 live integration."
+  - "No second canonical W3 authority."
+  - "Do not touch QCLAW PR #221/worktree or trading/accounts."
+
+completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
+architectural_milestone_after_gpt_acceptance: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_READY"
+next_command: "读取任务"
+updated_by: "GPT"
+updated_at: "2026-08-12T14:28:00+08:00"
