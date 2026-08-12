@@ -1,0 +1,80 @@
+{
+  "schema_version": "DailyMemoryCandidate-v2",
+  "COVERAGE": {
+    "target_local_date": "2026-08-12",
+    "execution_time": "2026-08-12T00:05:00+08:00",
+    "coverage": "PARTIAL",
+    "included_sources": ["synthetic-local-conversation-export"],
+    "excluded_or_unknown_sources": [{"source": "other-authorized-source", "reason": "UNAVAILABLE"}]
+  },
+  "CONVERSATION_EPISODES": [
+    {
+      "episode_id": "opaque-user-episode-001",
+      "observed_at": "2026-08-12T00:01:00+08:00",
+      "valid_time": "2026-08-12T00:01:00+08:00",
+      "speaker": "USER",
+      "source_scope": {"user_scope": "opaque-user-a", "project_scope": "opaque-project-a"},
+      "source_ref": "local-private://opaque-fixture/user-001",
+      "provenance": {"kind": "private-local", "opaque_ref": "source-a"},
+      "provenance_quality": "DIRECT",
+      "summary": "synthetic user episode one"
+    },
+    {
+      "episode_id": "opaque-user-episode-002",
+      "observed_at": "2026-08-12T00:02:00+08:00",
+      "valid_time": "2026-08-12T00:02:00+08:00",
+      "speaker": "USER",
+      "source_scope": {"user_scope": "opaque-user-a", "project_scope": "opaque-project-a"},
+      "source_ref": "local-private://opaque-fixture/user-002",
+      "provenance": {"kind": "private-local", "opaque_ref": "source-b"},
+      "provenance_quality": "DIRECT",
+      "summary": "synthetic user episode two"
+    },
+    {
+      "episode_id": "opaque-project-episode-003",
+      "observed_at": "2026-08-12T00:03:00+08:00",
+      "valid_time": "2026-08-12T00:03:00+08:00",
+      "speaker": "PROJECT",
+      "source_scope": {"user_scope": "opaque-user-a", "project_scope": "opaque-project-a"},
+      "source_ref": "local-private://opaque-fixture/project-003",
+      "provenance": {"kind": "private-local", "opaque_ref": "source-c"},
+      "provenance_quality": "DERIVED",
+      "summary": "synthetic project state"
+    }
+  ],
+  "MEMORY_CANDIDATES": [
+    {
+      "candidate_id": "opaque-user-memory-001",
+      "candidate_type": "USER_PREFERENCE",
+      "statement": "synthetic local preference marker",
+      "supporting_episode_ids": ["opaque-user-episode-001", "opaque-user-episode-002"],
+      "valid_from": "2026-08-12T00:00:00+08:00",
+      "valid_to": null,
+      "recorded_at": "2026-08-12T00:03:00+08:00",
+      "sensitivity_class": "PRIVATE_OR_SENSITIVE",
+      "correction_target": null
+    },
+    {
+      "candidate_id": "opaque-project-state-002",
+      "candidate_type": "PROJECT_STATE",
+      "statement": "synthetic project state marker",
+      "supporting_episode_ids": ["opaque-project-episode-003"],
+      "valid_from": "2026-08-12T00:00:00+08:00",
+      "valid_to": null,
+      "recorded_at": "2026-08-12T00:03:00+08:00",
+      "sensitivity_class": "PRIVATE_OR_SENSITIVE",
+      "correction_target": null
+    }
+  ],
+  "DERIVED_DAILY_PROJECTION": {
+    "derivation": "ASSISTANT_SUMMARY",
+    "supporting_episode_ids": ["opaque-user-episode-001", "opaque-user-episode-002", "opaque-project-episode-003"],
+    "supporting_candidate_ids": ["opaque-user-memory-001", "opaque-project-state-002"]
+  },
+  "VALIDATION": {
+    "status": "VALIDATED",
+    "checklist": [{"check": "source-provenance", "outcome": "PASS"}],
+    "candidate_dispositions": {"opaque-user-memory-001": "ACCEPTED", "opaque-project-state-002": "ACCEPTED"},
+    "sensitivity_by_candidate": {"opaque-user-memory-001": "PRIVATE_OR_SENSITIVE", "opaque-project-state-002": "PRIVATE_OR_SENSITIVE"}
+  }
+}

@@ -194,7 +194,10 @@ class ContextAssembler:
                 return False
             if conversation.get("user_scope") != plan.user_scope:
                 return False
-            if conversation.get("privacy_class") != "PUBLIC_SAFE_SYNTHETIC":
+            if (conversation.get("privacy_class"), conversation.get("coverage"), conversation.get("source_class")) not in {
+                ("PUBLIC_SAFE_SYNTHETIC", "synthetic", "SYNTHETIC_PUBLIC_SAFE"),
+                ("PRIVATE_LOCAL_CANDIDATE", "private_local", "PRIVATE_LOCAL_AUTHORIZED"),
+            }:
                 return False
             if conversation.get("claim_role") not in {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}:
                 return False

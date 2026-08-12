@@ -15,7 +15,11 @@ _SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[
 _CONVERSATION_ROLES = {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}
 _CONVERSATION_REQUIRED = {
     "episode_manifest_id", "user_scope", "project_scope", "privacy_class",
-    "claim_role", "valid_from", "recorded_at",
+    "coverage", "source_class", "claim_role", "valid_from", "recorded_at",
+}
+_CONVERSATION_SOURCE_CLASSIFICATIONS = {
+    ("PUBLIC_SAFE_SYNTHETIC", "synthetic"): "SYNTHETIC_PUBLIC_SAFE",
+    ("PRIVATE_LOCAL_CANDIDATE", "private_local"): "PRIVATE_LOCAL_AUTHORIZED",
 }
 _PROMPT_INJECTION_MARKERS = (
     "ignore previous instructions",
@@ -24,6 +28,10 @@ _PROMPT_INJECTION_MARKERS = (
     "developer message",
 )
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
+_CONVERSATION_OPTIONAL = {
+    "source_episode_manifest_ids", "source_episodes", "daily_candidate_id_hash",
+    "daily_candidate_id_hashes", "candidate_confidence",
+}
 
 
 def build_learning_packet(
@@ -182,14 +190,33 @@ def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
         return ["conversation_metadata_required"]
     if any(not isinstance(conversation[key], str) or not conversation[key] for key in _CONVERSATION_REQUIRED):
         return ["conversation_metadata_invalid"]
-    if conversation["privacy_class"] != "PUBLIC_SAFE_SYNTHETIC":
+    expected_source_class = _CONVERSATION_SOURCE_CLASSIFICATIONS.get(
+        (conversation["privacy_class"], conversation["coverage"])
+    )
+    if expected_source_class is None or conversation["source_class"] != expected_source_class:
         return ["conversation_privacy_denied"]
+    expected_visibility = (
+        "LOCAL_PRIVATE_CANDIDATE_ONLY"
+        if conversation["privacy_class"] == "PRIVATE_LOCAL_CANDIDATE"
+        else "PUBLIC_SAFE_METADATA_ONLY"
+    )
+    if atom.get("transport_visibility") != expected_visibility:
+        return ["conversation_transport_visibility_denied"]
     if conversation["claim_role"] not in _CONVERSATION_ROLES:
         return ["conversation_claim_role_denied"]
     if atom.get("scope") != conversation["project_scope"]:
         return ["conversation_project_scope_inconsistent"]
     if "conversation://" + conversation["episode_manifest_id"] not in atom.get("source_refs", []):
         return ["conversation_provenance_missing"]
+    related_manifests = conversation.get("source_episode_manifest_ids")
+    if related_manifests is not None:
+        if (
+            not isinstance(related_manifests, list)
+            or not related_manifests
+            or any(not isinstance(item, str) or not item for item in related_manifests)
+            or conversation["episode_manifest_id"] not in related_manifests
+        ):
+            return ["conversation_related_provenance_invalid"]
     try:
         valid_from = _instant(conversation["valid_from"])
         valid_to = conversation.get("valid_to")
@@ -237,10 +264,56 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
         return ["conversation_packet_manifest_mismatch"]
     if source_ref not in packet.get("evidence_refs", []):
         return ["conversation_packet_evidence_mismatch"]
+    related_manifests = conversation.get("source_episode_manifest_ids", [episode_manifest_id])
+    if any(item not in packet.get("source_manifest_ids", []) for item in related_manifests):
+        return ["conversation_packet_related_manifest_mismatch"]
+    if any("conversation://" + item not in packet.get("evidence_refs", []) for item in related_manifests):
+        return ["conversation_packet_related_evidence_mismatch"]
     report = packet.get("validation_report")
     if not isinstance(report, dict):
         return ["conversation_packet_validation_missing"]
-    fields = ("user_scope", "project_scope", "privacy_class", "claim_role")
+    if report.get("source_episode_manifest_ids", related_manifests) != related_manifests:
+        return ["conversation_packet_related_manifest_mismatch"]
+    source_episodes = conversation.get("source_episodes")
+    if source_episodes is not None:
+        if not isinstance(source_episodes, list) or not source_episodes:
+            return ["conversation_packet_related_provenance_invalid"]
+        projected_manifests = [item.get("episode_manifest_id") for item in source_episodes if isinstance(item, dict)]
+        if sorted(projected_manifests) != sorted(related_manifests):
+            return ["conversation_packet_related_provenance_invalid"]
+        for item in source_episodes:
+            if (
+                not isinstance(item, dict)
+                or set(item) != {
+                    "episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at",
+                    "valid_time", "provenance_quality",
+                }
+                or not all(isinstance(item.get(field), str) and item[field] for field in item)
+                or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
+            ):
+                return ["conversation_packet_related_provenance_invalid"]
+        if report.get("source_episodes", source_episodes) != source_episodes:
+            return ["conversation_packet_related_provenance_invalid"]
+    external_id_hash = conversation.get("daily_candidate_id_hash")
+    if external_id_hash is not None and (
+        not isinstance(external_id_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", external_id_hash)
+    ):
+        return ["conversation_external_candidate_identity_invalid"]
+    external_id_hashes = conversation.get("daily_candidate_id_hashes", [])
+    if (
+        not isinstance(external_id_hashes, list)
+        or external_id_hashes != sorted(set(external_id_hashes))
+        or any(not isinstance(item, str) or not re.fullmatch(r"[0-9a-f]{64}", item) for item in external_id_hashes)
+        or (external_id_hash is not None and external_id_hash not in external_id_hashes)
+    ):
+        return ["conversation_external_candidate_identity_invalid"]
+    confidence = conversation.get("candidate_confidence")
+    if confidence is not None and (
+        not isinstance(confidence, (int, float)) or isinstance(confidence, bool)
+        or not 0.0 <= float(confidence) <= 1.0 or float(atom.get("confidence", -1)) != float(confidence)
+    ):
+        return ["conversation_candidate_confidence_invalid"]
+    fields = ("user_scope", "project_scope", "privacy_class", "coverage", "source_class", "claim_role")
     if any(report.get(field) != conversation.get(field) for field in fields):
         return ["conversation_packet_validation_mismatch"]
     try:

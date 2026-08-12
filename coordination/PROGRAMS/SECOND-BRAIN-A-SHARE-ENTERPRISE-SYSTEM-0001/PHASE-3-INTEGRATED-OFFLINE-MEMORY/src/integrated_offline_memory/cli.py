@@ -13,6 +13,11 @@ from local_adapter.contracts import deserialize_contract
 from .contracts import SourceActivationPolicy
 from .integrated_flow import run_integrated_flow
 from .memory_store import MemoryStore
+from .private_candidate_ingestion import (
+    ingest_daily_memory_candidate_v2,
+    load_daily_memory_candidate_v2,
+    validate_private_data_paths,
+)
 from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
 
@@ -49,11 +54,34 @@ def build_parser() -> argparse.ArgumentParser:
     integrated.add_argument("--as-of", required=True)
     integrated.add_argument("--symbol", required=True)
     integrated.add_argument("--exchange", choices=("SZ", "SH", "BJ"), required=True)
+    private_ingest = subparsers.add_parser(
+        "private-ingest",
+        help="Import one local/private Candidate v2 package and print a redacted receipt",
+    )
+    private_ingest.add_argument("--input", type=Path, required=True)
+    private_ingest.add_argument("--store", type=Path, required=True)
+    private_ingest.add_argument("--private-root", type=Path, required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "private-ingest":
+        try:
+            input_path, store_path, private_root = validate_private_data_paths(
+                args.input, args.store, args.private_root,
+            )
+            payload = load_daily_memory_candidate_v2(input_path, private_root)
+            store = MemoryStore(store_path).connect()
+            try:
+                result = ingest_daily_memory_candidate_v2(payload, store)
+            finally:
+                store.close()
+            print(json.dumps(result.public_receipt(), ensure_ascii=True, sort_keys=True))
+            return 0
+        except (ValueError, OSError) as error:
+            print(json.dumps({"status": "REJECTED", "reason": str(error)}, ensure_ascii=True, sort_keys=True))
+            return 1
     manifest = deserialize_contract("SourceManifest", _load_yaml(args.manifest))
     policy = SourceActivationPolicy(**_load_yaml(args.activation_policy))
     adapter = TdxDaySourceAdapter(args.artifact, policy)
