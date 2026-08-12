@@ -9,27 +9,34 @@ task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
 local_execution_issues: "NONE_OBSERVED"
 mission_and_completion:
-  main_delivery_summary: "Implemented a bounded DailyMemoryCandidate-v2 local/private candidate bridge that uses only the existing W3 ConversationEpisode, LearningPacket, MemoryStore, QueryPlan and ContextBundle surfaces. No formal persistence path was added."
+  main_delivery_summary: "R2 replaces the ambiguous flat v2 mapping with a layered DailyMemoryCandidate-v2 package and a distinct W3PrivateCandidateEnvelope-v1. It uses only existing W3 candidate surfaces and adds no formal persistence path."
   success_criteria:
     - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
       status: "MET"
       evidence: "test_private_classification_uses_existing_packet_store_query_bundle"
-    - criterion: "One deterministic/idempotent local candidate interface feeds the canonical W3 path."
+    - criterion: "A full layered Daily-v2 package preserves coverage, source episodes, candidate provenance, validation, rejected candidates and eligible user-memory typing."
       status: "MET"
-      evidence: "test_idempotency_and_rebuild_are_deterministic"
-    - criterion: "Secrets, injection, role, scope and time failures fail closed."
+      evidence: "test_daily_v2_layered_package_maps_only_validated_user_candidate; test_daily_v2_rejects_unvalidated_non_user_or_invalid_provenance"
+    - criterion: "Daily-v2 validation/sensitivity and structural secret checks fail closed before ingestion."
       status: "MET"
-      evidence: "test_fail_closed_for_schema_secret_injection_role_scope_and_time"
+      evidence: "test_sensitivity_and_validation_gate_reject_plain_credential_classes"
+    - criterion: "Canary recall proves exact imported atom identity rather than a nonzero count."
+      status: "MET"
+      evidence: "test_import_requires_exact_imported_atom_recall_even_with_decoy"
+    - criterion: "Private input and store paths are confined to an explicit private data root."
+      status: "MET"
+      evidence: "test_private_data_root_policy_and_cli_fail_closed_without_path_echo"
     - criterion: "Real authorized private canary is performed only when an explicit local binding exists."
       status: "PARTIAL"
-      evidence: "No CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH binding was configured; status is PRIVATE_SOURCE_BINDING_WAITING."
+      evidence: "R2 forbids canary execution until GPT accepts. Source binding state distinguishes absent/unreadable waiting from invalid rejected and valid configured."
 scope_accounting:
   completed:
     - "canonical private/local source classification"
-    - "DailyMemoryCandidate-v2 local adapter and redacted CLI receipt"
+    - "layered DailyMemoryCandidate-v2 package adapter and separate W3PrivateCandidateEnvelope-v1"
+    - "exact imported-atom recall proof; data-root policy; source-binding accessibility state machine"
     - "synthetic/public-safe regression and adversarial coverage"
   not_completed:
-    - "real private source canary"
+    - "real private source canary (explicitly deferred until GPT R2 acceptance)"
   deliberately_rejected_or_removed:
     - item: "formal PROJECT/GLOBAL promotion"
       reason: "Route epoch 81 explicitly locks formal persistence."
@@ -41,27 +48,31 @@ repository_and_environment:
   base_sha: "fd9a3e12c36017de6f1db358e7fc8cc262fbb455"
   changed_files:
     - path: "PHASE-3.../conversation_memory.py"
-      reason: "classified synthetic/private-local episode boundary"
+      reason: "multi-episode source-manifest and evidence-ref lineage for converted private-local candidates"
     - path: "PHASE-3.../learning_packet.py"
       reason: "canonical packet validation and private transport visibility"
-    - path: "PHASE-3.../retrieval.py"
-      reason: "reuse existing scope/time/provenance admission for private-local candidates"
     - path: "PHASE-3.../private_candidate_ingestion.py"
-      reason: "bounded Candidate v2 local-only adapter and redacted public receipt"
+      reason: "layered Daily-v2 conversion, validation/sensitivity gate, source state and root policy"
     - path: "PHASE-3.../cli.py"
       reason: "local explicit input/store invocation with receipt-only stdout"
     - path: "PHASE-3.../tests/test_private_candidate_ingestion.py"
-      reason: "synthetic classification, failure, idempotency/rebuild, receipt and waiting tests"
+      reason: "synthetic layered package, exact recall, path policy, source state and sensitivity tests"
 commands_and_tests:
   commands:
-    - command: "python -m unittest Phase3/test_conversation_memory.py Phase3/test_private_candidate_ingestion.py -v"
+    - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "16/16 focused PASS; full Phase 3 199/199 PASS; public safety 61 files/0 issues; git diff --check PASS; YAML parse PASS"
+      result: "Phase 3 full regression PASS: 201/201 tests in 7.219s. R2 focused conversation/private-candidate coverage PASS: 18/18."
+    - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
+      exit_code: 0
+      result: "PASS: 67 files scanned; 0 issues."
+    - command: "R81 task-owned YAML parse and git diff --check"
+      exit_code: 0
+      result: "PASS"
   negative_results:
     - "One initial synthetic test exposed missing schema_version preservation during a second validation pass; corrected before the green run."
-    - "No actual private source binding was present; no real canary, source read, or private candidate store write occurred."
+    - "No real private canary was run; R2 explicitly defers it until GPT acceptance."
 security_privacy_license_receipt:
-  secret_scan: "PASS; public_safety_scan.py scanned 61 files with 0 issues"
+  secret_scan: "PASS; public_safety_scan.py scanned 67 files with 0 issues"
   credential_values_accessed: false
   real_private_raw_body_accessed: false
   broker_or_account_accessed: false
@@ -69,8 +80,8 @@ security_privacy_license_receipt:
   unauthorized_bypass_used: false
 unknowns:
   material_unknowns:
-    - "PRIVATE_SOURCE_BINDING_WAITING: CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH local transport binding is unavailable."
+    - "PRIVATE_SOURCE_BINDING_WAITING: explicit private data-root plus Candidate v2 transport binding is absent or inaccessible."
     - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "After push and CI evidence, GPT reviews the exact head; do not merge or unlock formal persistence."
+  next_action: "GPT R2 review of exact pushed head; do not run real canary, merge, or unlock any gate."

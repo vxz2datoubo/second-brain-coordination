@@ -28,6 +28,7 @@ _PROMPT_INJECTION_MARKERS = (
     "developer message",
 )
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
+_CONVERSATION_OPTIONAL = {"source_episode_manifest_ids"}
 
 
 def build_learning_packet(
@@ -204,6 +205,15 @@ def _conversation_contract_errors(atom: dict[str, Any]) -> list[str]:
         return ["conversation_project_scope_inconsistent"]
     if "conversation://" + conversation["episode_manifest_id"] not in atom.get("source_refs", []):
         return ["conversation_provenance_missing"]
+    related_manifests = conversation.get("source_episode_manifest_ids")
+    if related_manifests is not None:
+        if (
+            not isinstance(related_manifests, list)
+            or not related_manifests
+            or any(not isinstance(item, str) or not item for item in related_manifests)
+            or conversation["episode_manifest_id"] not in related_manifests
+        ):
+            return ["conversation_related_provenance_invalid"]
     try:
         valid_from = _instant(conversation["valid_from"])
         valid_to = conversation.get("valid_to")
@@ -251,9 +261,16 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
         return ["conversation_packet_manifest_mismatch"]
     if source_ref not in packet.get("evidence_refs", []):
         return ["conversation_packet_evidence_mismatch"]
+    related_manifests = conversation.get("source_episode_manifest_ids", [episode_manifest_id])
+    if any(item not in packet.get("source_manifest_ids", []) for item in related_manifests):
+        return ["conversation_packet_related_manifest_mismatch"]
+    if any("conversation://" + item not in packet.get("evidence_refs", []) for item in related_manifests):
+        return ["conversation_packet_related_evidence_mismatch"]
     report = packet.get("validation_report")
     if not isinstance(report, dict):
         return ["conversation_packet_validation_missing"]
+    if report.get("source_episode_manifest_ids", related_manifests) != related_manifests:
+        return ["conversation_packet_related_manifest_mismatch"]
     fields = ("user_scope", "project_scope", "privacy_class", "coverage", "source_class", "claim_role")
     if any(report.get(field) != conversation.get(field) for field in fields):
         return ["conversation_packet_validation_mismatch"]

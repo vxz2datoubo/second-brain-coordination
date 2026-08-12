@@ -77,10 +77,19 @@ def build_conversation_candidate(
     claim_role: str,
     valid_from: str,
     valid_to: str | None = None,
+    additional_episodes: tuple[ConversationEpisode, ...] = (),
 ) -> dict[str, Any]:
     """Build a deterministic candidate packet using the existing W3 contract."""
 
     episode.validate()
+    for related_episode in additional_episodes:
+        related_episode.validate()
+        if (
+            related_episode.user_scope != episode.user_scope
+            or related_episode.project_scope != episode.project_scope
+            or related_episode.privacy_class != episode.privacy_class
+        ):
+            raise ValueError("conversation_related_episode_scope_or_privacy_denied")
     if claim_role not in _ALLOWED_CLAIM_ROLES:
         raise ValueError("conversation_claim_role_denied")
     if claim_role.startswith("ASSISTANT_"):
@@ -93,7 +102,10 @@ def build_conversation_candidate(
     normalized_valid_to = _normalized_instant(valid_to) if valid_to is not None else None
     if normalized_valid_to is not None and normalized_valid_to <= normalized_valid_from:
         raise ValueError("conversation_valid_time_invalid")
-    source_ref = "conversation://" + episode.manifest_id
+    all_episodes = (episode, *additional_episodes)
+    source_manifest_ids = sorted(item.manifest_id for item in all_episodes)
+    evidence_refs = ["conversation://" + manifest_id for manifest_id in source_manifest_ids]
+    source_ref = evidence_refs[0]
     validation = {
         "episode_id": episode.episode_id,
         "user_scope": episode.user_scope,
@@ -106,20 +118,24 @@ def build_conversation_candidate(
         "coverage": episode.coverage,
         "source_class": episode.source_class,
         "source_pointer_hash": content_hash(episode.source_pointer),
+        "source_episode_manifest_ids": sorted(source_manifest_ids),
+        "source_pointer_hashes": [content_hash(item.source_pointer) for item in all_episodes],
     }
     return build_learning_packet(
-        source_manifest_ids=[episode.manifest_id],
-        source_hash=episode.source_hash,
+        source_manifest_ids=source_manifest_ids,
+        source_hash=content_hash([item.source_hash for item in all_episodes]),
         validation_report=validation,
-        evidence_refs=[source_ref],
+        evidence_refs=evidence_refs,
         atoms=[{
             "id": conversation_atom_id(
-                statement, _conversation_metadata(episode, claim_role, normalized_valid_from, normalized_valid_to)
+                statement, _conversation_metadata(
+                    episode, claim_role, normalized_valid_from, normalized_valid_to, additional_episodes,
+                )
             ),
             "statement": statement,
             "atom_type": "conversation_memory",
             "scope": episode.project_scope,
-            "source_refs": [source_ref],
+            "source_refs": evidence_refs,
             "knowledge_status": "candidate",
             "transport_visibility": (
                 "LOCAL_PRIVATE_CANDIDATE_ONLY"
@@ -127,7 +143,7 @@ def build_conversation_candidate(
                 else "PUBLIC_SAFE_METADATA_ONLY"
             ),
             "memory_metadata": {"conversation": _conversation_metadata(
-                episode, claim_role, normalized_valid_from, normalized_valid_to
+                episode, claim_role, normalized_valid_from, normalized_valid_to, additional_episodes,
             )},
         }],
     )
@@ -172,7 +188,11 @@ def build_conversation_correction(
 
 
 def _conversation_metadata(
-    episode: ConversationEpisode, claim_role: str, valid_from: str, valid_to: str | None
+    episode: ConversationEpisode,
+    claim_role: str,
+    valid_from: str,
+    valid_to: str | None,
+    additional_episodes: tuple[ConversationEpisode, ...] = (),
 ) -> dict[str, str | None]:
     return {
         "episode_manifest_id": episode.manifest_id,
@@ -185,6 +205,9 @@ def _conversation_metadata(
         "valid_from": valid_from,
         "valid_to": valid_to,
         "recorded_at": _normalized_instant(episode.recorded_at),
+        "source_episode_manifest_ids": sorted(
+            item.manifest_id for item in (episode, *additional_episodes)
+        ),
     }
 
 

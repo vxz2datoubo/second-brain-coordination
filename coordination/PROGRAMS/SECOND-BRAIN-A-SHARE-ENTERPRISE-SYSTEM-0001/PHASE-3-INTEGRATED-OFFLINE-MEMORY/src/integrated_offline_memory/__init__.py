@@ -22,11 +22,16 @@ from .integrated_flow import (
 from .private_candidate_ingestion import (
     DAILY_MEMORY_CANDIDATE_V2,
     PRIVATE_SOURCE_BINDING_WAITING,
+    PRIVATE_SOURCE_BINDING_REJECTED,
+    PRIVATE_SOURCE_BINDING_CONFIGURED,
     PrivateCandidateIngestionResult,
-    build_private_daily_memory_candidate,
-    ingest_configured_private_canary,
-    ingest_private_daily_memory_candidate,
+    W3_PRIVATE_CANDIDATE_ENVELOPE_V1,
+    build_private_w3_candidate_envelope,
+    daily_v2_package_to_w3_private_envelopes,
+    ingest_daily_memory_candidate_v2,
+    load_daily_memory_candidate_v2,
     private_source_binding_status,
+    validate_private_data_paths,
 )
 
 __all__ = [
@@ -54,10 +59,15 @@ __all__ = [
     "to_p2_bars",
     "verify_learning_packet",
     "DAILY_MEMORY_CANDIDATE_V2",
+    "W3_PRIVATE_CANDIDATE_ENVELOPE_V1",
     "PRIVATE_SOURCE_BINDING_WAITING",
+    "PRIVATE_SOURCE_BINDING_REJECTED",
+    "PRIVATE_SOURCE_BINDING_CONFIGURED",
     "PrivateCandidateIngestionResult",
-    "build_private_daily_memory_candidate",
-    "ingest_configured_private_canary",
-    "ingest_private_daily_memory_candidate",
+    "build_private_w3_candidate_envelope",
+    "daily_v2_package_to_w3_private_envelopes",
+    "ingest_daily_memory_candidate_v2",
+    "load_daily_memory_candidate_v2",
     "private_source_binding_status",
+    "validate_private_data_paths",
 ]

@@ -14,8 +14,9 @@ from .contracts import SourceActivationPolicy
 from .integrated_flow import run_integrated_flow
 from .memory_store import MemoryStore
 from .private_candidate_ingestion import (
-    ingest_private_daily_memory_candidate,
-    load_private_daily_memory_candidate_v2,
+    ingest_daily_memory_candidate_v2,
+    load_daily_memory_candidate_v2,
+    validate_private_data_paths,
 )
 from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
@@ -59,7 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     private_ingest.add_argument("--input", type=Path, required=True)
     private_ingest.add_argument("--store", type=Path, required=True)
-    private_ingest.add_argument("--verify-scoped-recall", action="store_true")
+    private_ingest.add_argument("--private-root", type=Path, required=True)
     return parser
 
 
@@ -67,12 +68,13 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "private-ingest":
         try:
-            payload = load_private_daily_memory_candidate_v2(args.input)
-            store = MemoryStore(args.store).connect()
+            input_path, store_path, private_root = validate_private_data_paths(
+                args.input, args.store, args.private_root,
+            )
+            payload = load_daily_memory_candidate_v2(input_path, private_root)
+            store = MemoryStore(store_path).connect()
             try:
-                result = ingest_private_daily_memory_candidate(
-                    payload, store, verify_scoped_recall=args.verify_scoped_recall,
-                )
+                result = ingest_daily_memory_candidate_v2(payload, store)
             finally:
                 store.close()
             print(json.dumps(result.public_receipt(), ensure_ascii=True, sort_keys=True))

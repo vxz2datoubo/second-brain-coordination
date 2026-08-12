@@ -20,6 +20,12 @@ The hardest boundary is permitting a local candidate body in the existing candid
 
 An initial synthetic test exposed that a second validation pass had omitted the schema version. This was corrected before the passing focused and full regression runs. LOCAL_EXECUTION_ISSUES = NONE_OBSERVED; the failed assertion was a normal implementation defect, not an environment execution issue.
 
+## R2 remediation evidence
+
+The R1 audit found five structural blockers. R2 separates the layered DailyMemoryCandidate-v2 package from the inner W3PrivateCandidateEnvelope-v1; maps coverage, all source episodes, candidate provenance, derived projection and upstream validation; admits only validated user-memory candidates; proves the exact imported atom is recalled; and confines input/store placement to an explicit private data root.
+
+The sensitivity gate is now driven by Daily-v2 VALIDATION plus candidate sensitivity class, with structural token/PEM checks retained as defense in depth. Public synthetic tests reject password, API-key, token, cookie, session, MFA, recovery, payment, bank and broker credential classifications without storing representative secret values.
+
 ## Dependency and next gate
 
-The real canary is PRIVATE_SOURCE_BINDING_WAITING: no explicit CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH local binding is configured. The system does not scan user directories or claim ChatGPT transport access. GPT reviews the pushed exact head; only then may an explicitly bound, minimal local canary be considered. All formal/private/live gates remain locked.
+The real canary remains prohibited pending GPT R2 acceptance. When later authorized, the source state machine requires both CLTM_PRIVATE_DATA_ROOT and CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH, reports absent/unreadable as PRIVATE_SOURCE_BINDING_WAITING, reports malformed as REJECTED, and never emits a private path. All formal/private/live gates remain locked.
