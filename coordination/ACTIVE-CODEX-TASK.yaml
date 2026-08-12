@@ -1,13 +1,13 @@
-schema_version: "99.0"
+schema_version: "100.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-PRIVATE-BINDING-RETRY"
+task_id: "CODEX-CLTM-0021-PYTHONPATH-BOOTSTRAP-AND-BINDING-STATUS"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 87
-mode: "bounded_binding_retry"
-mode_label: "【Codex有界重试】CLTM-0021 显式 private binding status"
+route_epoch: 88
+mode: "bounded_local_import_bootstrap_then_binding_status"
+mode_label: "【Codex有界执行】CLTM-0021 公共源码路径引导后单次 private binding status"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -22,42 +22,64 @@ repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "8ac561c127aa8ec4eca3d5422773d1ccb4fc17cc"
-route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 87 is limited by this ACTIVE control plane"
+canonical_main_at_route_publish: "93f130e9c9624912951f63908a6668868091f950"
+route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 88 is limited by this ACTIVE control plane"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-PROCESS-ENV-HANDOFF-WAIT"
-  route_epoch: 86
-  disposition: "OWNER_CODEX_PROCESS_ENV_READY"
-  owner_ready_issue_comment: 5269458406
-  prior_epoch85_closeout_issue_comment: 5269142211
-  prior_epoch85_result: "PRIVATE_SOURCE_BINDING_WAITING"
+  task_id: "CODEX-CLTM-0021-PRIVATE-BINDING-RETRY"
+  route_epoch: 87
+  disposition: "LOCAL_IMPORT_FAILED_BEFORE_BINDING_FUNCTION_ENTRY"
+  gpt_execution_audit_issue_comment: 5269912866
   prior_attempt_consumed: true
+  binding_status_function_entered: false
+  private_binding_validation_result: "NOT_OBTAINED"
 
-owner_authorization:
-  signal: "OWNER_CODEX_PROCESS_ENV_READY"
-  issue_comment: 5269458406
-  scope: "One bounded binding-status retry only; no ingestion or canary authorization."
+known_local_execution_pattern:
+  alias: "R83-LOCAL-PYTHONPATH-001"
+  current_evidence: "Recurred in epoch 87 on the same CLTM local execution surface."
+  mechanism: >-
+    Integrated runtime imports require public source modules from sibling Phase-3 Local Adapter and
+    Phase-2 Offline Vertical Slice trees in addition to the Integrated Offline Memory source root.
+  canonical_test_evidence: >-
+    PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_integrated_flow.py prepends exactly the three public
+    source roots named below before importing the integrated runtime.
 
-allowed_action:
-  exactly_one: "Call the existing private_source_binding_status function once and publish only its redacted status for GPT review."
+allowed_public_bootstrap:
+  scope: "process-local Python module resolution only; no private source access"
+  source_roots_relative_to_repo:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
+  environment_rule: >-
+    Prepend only these exact repository-local public source roots to PYTHONPATH for the current Codex
+    process/child command. Do not persist PYTHONPATH to User, Machine, profile, registry or shell startup files.
+  import_smoke_test: >-
+    Import integrated_offline_memory.private_candidate_ingestion and resolve private_source_binding_status
+    without calling it. If import fails, report the redacted local execution issue and stop with no private access.
+
+allowed_private_action_after_smoke_pass:
+  exactly_one: >-
+    If and only if the import smoke test succeeds, call the existing private_source_binding_status function once
+    using the already inherited explicit private bindings, publish only its redacted status/reason, then stop.
   function_required_read_only_access: >-
-    The existing function may read only the one file named by the explicit private binding
-    under the explicit private root, solely to establish accessibility and validate the
-    DailyMemoryCandidate-v2 format required for its CONFIGURED/REJECTED status.
+    The existing function may read only the one file named by the explicit private binding under the explicit
+    private root, solely to establish accessibility and validate the DailyMemoryCandidate-v2 format required for
+    its CONFIGURED/REJECTED status.
   read_only_scope: "one explicit bound Daily-v2 file; no other source, directory, home, browser or profile access"
   allowed_output: ["binding_status", "redacted_reason", "LOCAL_EXECUTION_ISSUES", "lock_statement"]
-  stop_after: "Immediately stop after the one status result; no second retry, store creation, ingestion or canary."
+  stop_after: "Immediately stop after the single status result; no second call, store creation, ingestion or canary."
 
 forbidden_actions:
   - "Do not scan, guess or enumerate private source locations."
+  - "Do not read or validate any private source/package before the public import smoke test succeeds."
   - "Do not read, load, normalize or validate any source/package other than the one explicit bound Daily-v2 file through private_source_binding_status."
   - "Do not create a private store or execute ingestion/canary."
   - "Do not echo a private path, raw body, private semantic value or credential."
-  - "Do not retry private_source_binding_status a second time in epoch 87."
+  - "Do not persist or globally mutate PYTHONPATH."
+  - "Do not call private_source_binding_status more than once in epoch 88."
 
 hard_boundaries:
-  - "No private source discovery or access beyond the function-required read-only validation of the one explicit bound Daily-v2 file in epoch 87."
+  - "No private source discovery or access beyond the function-required read-only validation of the one explicit bound Daily-v2 file after smoke PASS."
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
   - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
   - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
@@ -67,14 +89,15 @@ hard_boundaries:
   - "No second canonical memory/query/bundle/vector/graph/temporal authority."
   - "No trading/accounts/funds actions."
 
-completion_signal: "CODEX_CLTM_0021_PRIVATE_BINDING_RETRY_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_PYTHONPATH_BOOTSTRAP_BINDING_STATUS_READY_FOR_GPT_REVIEW"
 
 local_execution_learning:
-  process_environment_observation: "R85-CODEX-ENV-INHERITANCE-001"
-  maturity: "OBSERVATION_ONLY"
-  registry_status: "NOT_YET_CANONICALIZED"
+  pattern_alias: "R83-LOCAL-PYTHONPATH-001"
+  recurrence_this_epoch: true
+  registry_status: "REVIEW_FOR_CANONICALIZATION"
   canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
+  note: "Same-task recurrence confirms mechanism but is not independent cross-task replication."
 
-next_command: "GPT_REVIEW_EPOCH_87_BINDING_STATUS_ONLY"
+next_command: "GPT_REVIEW_EPOCH_88_BOOTSTRAP_THEN_BINDING_STATUS"
 updated_by: "GPT"
-updated_at: "2026-08-13T00:18:00+08:00"
+updated_at: "2026-08-13T01:00:00+08:00"
