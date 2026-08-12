@@ -1,169 +1,72 @@
-schema_version: "91.0"
+schema_version: "92.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
-active_pull_request: null
-task_id: "CODEX-CLTM-0021-SESSION-A-E-VERTICAL-SLICE"
+active_pull_request: 236
+task_id: "CODEX-CLTM-0021-E79-MERGE-AUTHORIZATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 79
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】CLTM-0021 Session A-E candidate-mode 纵向闭环实现"
-status: "READY"
-execution_allowed: true
-automatic_resume_within_task: true
+route_epoch: 80
+mode: "control_plane"
+mode_label: "【GPT控制面】CLTM-0021 epoch 79 accepted implementation merge authorization"
+status: "GPT_MERGE_AUTHORIZED"
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: false
-intermediate_gpt_review_required: true
-merge_authorized: false
+intermediate_gpt_review_required: false
+merge_authorized: true
 formal_knowledge_persistence_unlock_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "f10904dc14c2db9d9d9da7592a96a11ce165a4b8"
-route_contract: "coordination/ROUTES/CODEX-CLTM-0021-ACTIVE-ROUTE-CONTRACT.yaml"
-activation_issue: 231
-blueprint_source_pull_request: 229
-activation_prep_pull_request: 234
-activation_prep_accepted_head: "44bec7498860a763bea30261516d8d91d9c89895"
-activation_prep_merge: "f10904dc14c2db9d9d9da7592a96a11ce165a4b8"
-implementation_branch_hint: "codex/cltm-0021-session-a-e-r79"
+canonical_main_at_route_publish: "f90d7f5e31e6d8c517ebc1ff5c331dfc21e5bcfa"
+route_contract: "coordination/ROUTES/CODEX-CLTM-0021-MERGE-AUTHORIZATION-R80.yaml"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-ACTIVATION-PREP"
-  route_epoch: 78
+  task_id: "CODEX-CLTM-0021-SESSION-A-E-VERTICAL-SLICE"
+  route_epoch: 79
   issue: 231
-  pull_request: 234
-  disposition: "GPT_ACCEPTED_R2"
+  pull_request: 236
+  accepted_head: "00295cf16d2b63a1fd8e1d5652eecabf376ae2a2"
+  accepted_ci_run: 31568545636
+  disposition: "GPT_R5_IMPLEMENTATION_AND_CLOSEOUT_ACCEPTED"
+  completion_signal: "CODEX_CLTM_0021_SESSION_A_E_READY_FOR_GPT_REVIEW"
+  architectural_milestone: "CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY"
 
-root_goal: "Implement the first real, auditable conversational long-term-memory loop by extending the existing W3 candidate runtime only: capture a synthetic conversation episode, recall it later, correct it without erasing history, return only corrected current state, and still answer explicit historical queries with provenance and valid-time."
+merge_gate:
+  pull_request: 236
+  expected_head: "00295cf16d2b63a1fd8e1d5652eecabf376ae2a2"
+  merge_method: "merge"
+  authorized_by: "GPT"
+  user_continuation_authorization: "2026-08-12T14:28:00+08:00"
+  require_exact_head_match: true
+  require_mergeable: true
+  require_preserved_locks: true
+  post_merge_verification_required: true
 
-implementation_stage:
-  name: "Session A-E conversational memory vertical slice"
-  implementation_allowed: true
-  candidate_mode_only: true
-  synthetic_public_safe_only: true
-  formal_write_allowed: false
-  required_sequence:
-    A: "Synthetic important user information -> ConversationEpisode/source pointer -> deterministic W3 candidate packet."
-    B: "Later scoped query -> existing W3 QueryPlan/ContextBundle path -> current candidate recalled with provenance."
-    C: "Synthetic USER_CORRECTION -> append-preserving correction/supersession linkage; prior episode remains historical evidence."
-    D: "Current-state query -> only corrected, valid, in-scope state passes Trust Gate."
-    E: "Explicit historical query -> prior superseded state may return only with valid-time and provenance."
-  mandatory_negative_and_integrity_cases:
-    - "duplicate ingestion / deterministic identity / idempotency"
-    - "conflict and UNKNOWN preservation"
-    - "abstention when evidence is insufficient"
-    - "project-scope bleed prevention"
-    - "user-scope leak prevention"
-    - "secret-value negative case"
-    - "prompt-injection-as-memory negative case"
-    - "stale and superseded current-query exclusion"
-    - "rollback/rebuild and deterministic replay"
-    - "assistant analysis must not become USER_ASSERTION by repetition"
-
-reuse_contract:
-  authority: "W3_SINGLE_LONG_TERM_MEMORY_AUTHORITY"
-  learning_packet: "EXTEND_EXISTING"
-  memory_store: "EXTEND_EXISTING"
-  query_plan: "EXTEND_EXISTING"
-  context_bundle: "EXTEND_EXISTING"
-  provenance_conflict_unknown: "EXTEND_EXISTING"
-  vector_graph: "NO_NEW_AUTHORITY; use only if already available and proven necessary"
-  module_0020_e48: "REFERENCE_ONLY until E48 R3 independently accepted"
-  pr_229: "DESIGN_SOURCE_NOT_CANONICAL"
-
-minimum_required_capabilities:
-  - "ConversationEpisode/source identity contract or equivalent additive adapter with no real/private raw conversation body in public GitHub."
-  - "Deterministic candidate identity and duplicate-safe ingestion."
-  - "User/project/privacy scope carried through capture, retrieval and admission."
-  - "Bitemporal semantics sufficient to distinguish valid-time from record-time for correction history."
-  - "Append-preserving correction/supersession; no silent historical overwrite."
-  - "Current vs historical query intent in the existing QueryPlan path."
-  - "Current-query defaults exclude superseded/revoked/stale memory."
-  - "Trust-Gate outcome on the existing ContextBundle path; no parallel CLTM ContextBundle authority."
-  - "Source/provenance lineage from recalled state to candidate packet and episode/source pointer."
-  - "Speaker/claim-role distinction so assistant analysis/hypothesis/error cannot silently become user fact."
-
-acceptance_gates:
-  - "All pre-existing Phase 3 regression tests pass plus new CLTM tests."
-  - "Sessions A-E pass end-to-end in synthetic candidate mode."
-  - "Current-state query returns corrected state and excludes prior superseded state."
-  - "Historical query can return the prior state only with historical intent, provenance and valid-time."
-  - "No project/user scope leakage in adversarial tests."
-  - "No secret value or prompt-injection instruction becomes trusted long-term memory."
-  - "Duplicate ingestion is deterministic/idempotent."
-  - "Rollback/rebuild/deterministic replay evidence is supplied."
-  - "No second memory store, QueryPlan, ContextBundle, vector, graph or temporal authority is created."
-  - "No real private conversation source is committed or required for acceptance."
-
-required_delivery_evidence:
-  - "implementation code and tests on a fresh branch from canonical main"
-  - "updated or new public-safe CLTM contracts/fixtures only as necessary"
-  - "full test command receipts and exact counts"
-  - "AMEDAgentExecutionReceipt"
-  - "AMEDResearchLedger"
-  - "UnplannedImprovementLedger"
-  - "SystemDiscoveryAndOpportunityReport"
-  - "WorkProcessAndCoordinationReport / WPDCR-PDER"
-  - "UNKNOWN-REGISTRY"
-  - "AI_HANDOFF"
-  - "Draft PR for GPT review; Codex must not self-merge"
-
-named_methodologies:
-  AMED: "REQUIRED"
-  PMA_BIG: "REQUIRED"
-  WPDCR: "REQUIRED"
-  PDER: "REQUIRED"
-  RTCE: "REQUIRED"
-
-impact_prediction:
-  expected_positive: "First executable proof that conversational memory can preserve continuity, correction history and scoped recall on the existing W3 runtime."
-  principal_risks: ["silent overwrite", "stale/superseded leakage", "cross-project bleed", "user-scope leakage", "assistant-to-user fact contamination", "privacy leakage", "duplicate memory authority", "migration regression"]
-  rollback: "Revert the implementation PR or publish a later route epoch; candidate-only synthetic data carries no formal PROJECT/GLOBAL authority."
-
-exploration_budget:
-  task_weight: "STRATEGIC"
-  difficulty_prediction: "D3"
-  research_trigger: true
-  level_A: "May implement bounded code/contracts/tests required for the A-E slice and directly related correctness fixes with evidence."
-  level_B: "May implement high-value bounded improvements inside the existing W3 runtime when necessary for correctness, separately evidenced and reversible."
-  level_C: "Proposal only: new storage/runtime, cloud/private repo, new permission model, production MCP/Gateway, live E48 integration, large vector/graph infrastructure."
-  level_D: "Stop and escalate for privacy/authority/production/destructive/cross-agent expansion."
-
-parallel_qclaw:
-  active_issue: 216
-  active_pull_request: 221
-  task_id: "QCLAW-RAW-SOURCE-SEMANTIC-RECONSTRUCTION-KNOWLEDGE-GRAPH-PROJECTION-0030-E48"
-  status: "E48_R3_INTERRUPTED_BY_CREDITS_USER_WILL_RESUME_LATER"
-  live_integration_gate: "BLOCKED_PENDING_E48_R3_ACCEPTANCE"
-  isolation_rule: "Codex must not enter, modify, recover, stash, reset, clean, copy or merge QCLAW PR #221/worktree."
+post_merge_required:
+  - "Re-read canonical main and verify PR #236 merged exact accepted head without unexpected changed paths."
+  - "Verify W3 Session A-E code remains candidate-only and synthetic/public-safe tests were the accepted evidence."
+  - "Publish the next CLTM route for real/private Conversation Source -> W3 candidate ingestion only after post-merge verification."
+  - "Keep formal PROJECT/GLOBAL authority promotion separately locked."
 
 hard_boundaries:
-  - "No direct-main implementation or self-merge by Codex."
-  - "No formal PROJECT/GLOBAL knowledge write, approval or unlock."
-  - "No real private conversation body/private user source in public second-brain-coordination."
-  - "No credential/token/secret/private-key/cookie/session/MFA/recovery/payment/broker secret in Git, fixtures, logs, embeddings or ContextBundle."
-  - "No live E48 integration before independent E48 R3 acceptance."
-  - "No private repository creation or repository visibility/permission change."
+  - "No new Codex implementation work under route 80."
+  - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
+  - "No real/private conversation body in public GitHub."
+  - "No credentials/secrets/private keys/cookies/session/MFA/recovery/payment/broker secrets in Git, logs, embeddings or ContextBundle."
+  - "No E48 live integration."
+  - "No private repository creation or visibility/permission change."
   - "No production MCP/Memory App/Gateway deployment."
-  - "No second canonical memory runtime, QueryPlan, ContextBundle, vector/graph/temporal authority."
-  - "Do not merge/rebase/cherry-pick PR #229 control-plane state."
-  - "Do not touch QCLAW PR #221/worktree."
-  - "Do not repair/mutate the previously damaged shared Git object store as part of CLTM."
-  - "No market data, accounts, orders, funds or trading."
+  - "No second canonical memory/query/bundle/vector/graph/temporal authority."
+  - "Do not touch QCLAW PR #221/worktree or trading/accounts."
 
-local_resource_safety:
-  default_profile: "FOREGROUND_PRIORITY"
-  codex_task_python_cap: 2
-  dual_agent_combined_task_python_cap: 4
-  combined_cpu_bound_workers_cap: 1
-  nested_parallelism: "FORBIDDEN"
-  heavy_matrix_or_fanout: "REMOTE_CI"
-  required_postflight: "zero task-owned descendants, zero orphans, zero unrelated terminations"
+local_execution_issue_closeout:
+  pattern: "LEIP-GIT-HTTPS-001"
+  root_cause: "UNKNOWN"
+  r5_new_local_execution_issues: "NONE_OBSERVED"
+  evidence: "Issue #231 comment 5263052271"
 
-read_task_semantics: "读取任务 = verify canonical remote main -> read CODEX-TASK-ROUTER + ACTIVE-CODEX-TASK + route contract + Issue #231 and all comments + canonical activation-prep artifacts -> claim exact epoch-79 lease -> create/fresh-sync the implementation branch -> immediately begin the first meaningful authorized A-E implementation action; do not stop after summarizing or planning."
-completion_signal: "CODEX_CLTM_0021_SESSION_A_E_READY_FOR_GPT_REVIEW"
-architectural_milestone_after_gpt_acceptance: "CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY"
-next_command: "读取任务"
+next_action: "GPT merges PR #236 at exact accepted head, performs post-merge verification, then publishes the next candidate-ingestion route."
 updated_by: "GPT"
-updated_at: "2026-08-11T23:48:00+08:00"
+updated_at: "2026-08-12T14:28:00+08:00"
