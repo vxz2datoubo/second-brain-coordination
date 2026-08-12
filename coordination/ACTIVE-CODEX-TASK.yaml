@@ -1,103 +1,147 @@
-schema_version: "100.0"
+schema_version: "101.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-PYTHONPATH-BOOTSTRAP-AND-BINDING-STATUS"
+task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 88
-mode: "bounded_local_import_bootstrap_then_binding_status"
-mode_label: "【Codex有界执行】CLTM-0021 公共源码路径引导后单次 private binding status"
+route_epoch: 89
+mode: "bounded_single_private_candidate_canary"
+mode_label: "【Codex有界执行】CLTM-0021 单条真实 private candidate canary"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: false
+second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
+real_private_candidate_ingestion_allowed: true
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "93f130e9c9624912951f63908a6668868091f950"
-route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 88 is limited by this ACTIVE control plane"
+canonical_main_at_route_publish: "9c3b5f66e31a843e984dc69ed7573c82dbd9d690"
+route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 89 is further limited by this ACTIVE control plane"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-PRIVATE-BINDING-RETRY"
-  route_epoch: 87
-  disposition: "LOCAL_IMPORT_FAILED_BEFORE_BINDING_FUNCTION_ENTRY"
-  gpt_execution_audit_issue_comment: 5269912866
-  prior_attempt_consumed: true
-  binding_status_function_entered: false
-  private_binding_validation_result: "NOT_OBTAINED"
+  task_id: "CODEX-CLTM-0021-PYTHONPATH-BOOTSTRAP-AND-BINDING-STATUS"
+  route_epoch: 88
+  disposition: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  gpt_execution_review_issue_comment: 5270082674
+  binding_status_function_entered: true
+  binding_status_call_count: 1
+  private_store_created: false
+  private_candidate_ingested: false
 
-known_local_execution_pattern:
-  alias: "R83-LOCAL-PYTHONPATH-001"
-  current_evidence: "Recurred in epoch 87 on the same CLTM local execution surface."
-  mechanism: >-
-    Integrated runtime imports require public source modules from sibling Phase-3 Local Adapter and
-    Phase-2 Offline Vertical Slice trees in addition to the Integrated Offline Memory source root.
-  canonical_test_evidence: >-
-    PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_integrated_flow.py prepends exactly the three public
-    source roots named below before importing the integrated runtime.
+owner_start_gate:
+  required_command: "Owner must explicitly tell Codex to read/execute the newly published canonical task after epoch 89 is merged."
+  no_automatic_resume: true
 
-allowed_public_bootstrap:
-  scope: "process-local Python module resolution only; no private source access"
+public_runtime_bootstrap:
+  scope: "process-local Python module resolution only"
   source_roots_relative_to_repo:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
   environment_rule: >-
-    Prepend only these exact repository-local public source roots to PYTHONPATH for the current Codex
-    process/child command. Do not persist PYTHONPATH to User, Machine, profile, registry or shell startup files.
-  import_smoke_test: >-
-    Import integrated_offline_memory.private_candidate_ingestion and resolve private_source_binding_status
-    without calling it. If import fails, report the redacted local execution issue and stop with no private access.
+    Prepend only these exact repository-local public source roots to PYTHONPATH for the current child process.
+    Do not persist PYTHONPATH to User, Machine, registry, profile or shell startup files.
+  preflight: >-
+    Import integrated_offline_memory.private_candidate_ingestion and resolve the required existing functions without
+    calling a private function. If import fails, report only a redacted local-execution issue and stop before private access.
 
-allowed_private_action_after_smoke_pass:
-  exactly_one: >-
-    If and only if the import smoke test succeeds, call the existing private_source_binding_status function once
-    using the already inherited explicit private bindings, publish only its redacted status/reason, then stop.
-  function_required_read_only_access: >-
-    The existing function may read only the one file named by the explicit private binding under the explicit
-    private root, solely to establish accessibility and validate the DailyMemoryCandidate-v2 format required for
-    its CONFIGURED/REJECTED status.
-  read_only_scope: "one explicit bound Daily-v2 file; no other source, directory, home, browser or profile access"
-  allowed_output: ["binding_status", "redacted_reason", "LOCAL_EXECUTION_ISSUES", "lock_statement"]
-  stop_after: "Immediately stop after the single status result; no second call, store creation, ingestion or canary."
+binding_recheck:
+  allowed: true
+  exactly_once: "Call private_source_binding_status once after public import preflight."
+  required_result: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  waiting_or_rejected: "Stop immediately; do not create a store or ingest anything."
+  public_output: "status and fixed redacted reason only; never path or private semantics"
+
+candidate_selection_gate:
+  load_scope: "Only the explicitly bound DailyMemoryCandidate-v2 file under the explicit private root."
+  allowed_existing_functions:
+    - "load_daily_memory_candidate_v2"
+    - "daily_v2_package_to_w3_private_envelopes"
+  count_only_before_store: true
+  zero: "Return NO_ELIGIBLE_USER_MEMORY_CANDIDATES and stop without store creation."
+  one: "Proceed with exactly that one eligible user-memory candidate."
+  more_than_one: "Return PRIVATE_CANARY_SELECTION_WAITING and stop without semantic selection or store creation."
+  forbidden_output: "Do not print candidate statement, episode text, source path, user/project literal scope or other private semantics."
+
+canary_store:
+  root: "explicit CLTM private data-root only; never public repository/worktree"
+  leaf_name: "cltm-private-canary-r89.sqlite3"
+  freshness_required: true
+  if_leaf_exists: "Return PRIVATE_CANARY_STORE_NOT_FRESH and stop; do not delete, overwrite or reuse it."
+  cleanup: "DO_NOT_DELETE_AUTOMATICALLY; cleanup requires later explicit owner approval."
+
+allowed_canary_action:
+  exactly_once: >-
+    After CONFIGURED binding, exactly-one eligible candidate, and fresh-store checks pass, open one fresh isolated MemoryStore
+    at the canary store and call existing ingest_daily_memory_candidate_v2(payload, store) once using the already loaded package.
+  required_path: "DailyMemoryCandidate-v2 -> DailyMemoryCandidateTransport-v1 -> W3PrivateCandidateEnvelope-v1 -> ConversationEpisode -> LearningPacket -> MemoryStore -> QueryPlan -> ContextBundle"
+  exact_recall_proof_required: true
+  candidate_authority_only: true
+  formal_promotion: "FORBIDDEN"
+  stop_after: "Close the store, emit only the redacted public receipt plus LOCAL_EXECUTION_ISSUES, then stop for GPT review."
+  failure_behavior: >-
+    If any exception occurs after the fresh store is created, do not retry and do not delete the store. Emit only a redacted failure class,
+    lock statement and LOCAL_EXECUTION_ISSUES; preserve the isolated store for later owner-approved review/cleanup.
+
+public_receipt_allow_only:
+  - "schema_version"
+  - "status"
+  - "validation_status"
+  - "candidate_authority_only"
+  - "formal_project_global_write"
+  - "source_hash"
+  - "pointer_hash"
+  - "episode_id_hash"
+  - "atom_id_hash"
+  - "scope_hash"
+  - "candidate_count"
+  - "imported_count"
+  - "duplicate_count"
+  - "non_imported_count"
+  - "recall_count"
+  - "exact_imported_atom_recalled"
+  - "recorded_at_hash"
+  - "binding_status"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "lock_statement"
 
 forbidden_actions:
-  - "Do not scan, guess or enumerate private source locations."
-  - "Do not read or validate any private source/package before the public import smoke test succeeds."
-  - "Do not read, load, normalize or validate any source/package other than the one explicit bound Daily-v2 file through private_source_binding_status."
-  - "Do not create a private store or execute ingestion/canary."
-  - "Do not echo a private path, raw body, private semantic value or credential."
+  - "Do not scan, guess, crawl or enumerate private source locations."
+  - "Do not access any private source other than the one explicit bound Daily-v2 file."
+  - "Do not ingest more than one eligible user-memory candidate."
+  - "Do not semantically choose among multiple eligible candidates."
+  - "Do not reuse, delete or overwrite a pre-existing canary store."
+  - "Do not echo private paths, raw/private bodies, candidate semantics or literal private scope identifiers."
+  - "Do not publish credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
   - "Do not persist or globally mutate PYTHONPATH."
-  - "Do not call private_source_binding_status more than once in epoch 88."
+  - "Do not perform a second canary attempt in epoch 89."
 
 hard_boundaries:
-  - "No private source discovery or access beyond the function-required read-only validation of the one explicit bound Daily-v2 file after smoke PASS."
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
-  - "No raw/private conversation body, path or semantic value in public GitHub/CI/logs/receipts."
-  - "No credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
   - "No E48/live integration."
   - "No private repository creation or visibility/permission change."
   - "No production MCP/Memory App/Gateway deployment."
   - "No second canonical memory/query/bundle/vector/graph/temporal authority."
   - "No trading/accounts/funds actions."
+  - "No Codex merge or public code change is authorized by the canary execution."
 
-completion_signal: "CODEX_CLTM_0021_PYTHONPATH_BOOTSTRAP_BINDING_STATUS_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_PRIVATE_CANARY_READY_FOR_GPT_REVIEW"
+waiting_signal: "PRIVATE_SOURCE_BINDING_WAITING"
+selection_waiting_signal: "PRIVATE_CANARY_SELECTION_WAITING"
 
 local_execution_learning:
-  pattern_alias: "R83-LOCAL-PYTHONPATH-001"
-  recurrence_this_epoch: true
-  registry_status: "REVIEW_FOR_CANONICALIZATION"
-  canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
-  note: "Same-task recurrence confirms mechanism but is not independent cross-task replication."
+  pythonpath_pattern_alias: "R83-LOCAL-PYTHONPATH-001"
+  current_control: "three exact public source roots, process-local only"
+  registry_status: "CANDIDATE_NOT_YET_PROMOTED"
+  note: "Same-task recurrence supports the mechanism but is not independent cross-task replication."
 
-next_command: "GPT_REVIEW_EPOCH_88_BOOTSTRAP_THEN_BINDING_STATUS"
+next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_89_PRIVATE_CANARY"
 updated_by: "GPT"
-updated_at: "2026-08-13T01:00:00+08:00"
+updated_at: "2026-08-13T01:16:00+08:00"
