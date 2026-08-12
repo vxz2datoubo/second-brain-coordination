@@ -1,123 +1,76 @@
-schema_version: "93.0"
+schema_version: "94.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
-active_pull_request: null
-task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+active_pull_request: 241
+task_id: "CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 81
-mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】CLTM-0021 真实/私人 Conversation Source → W3 candidate ingestion"
-status: "READY"
-execution_allowed: true
-automatic_resume_within_task: true
+route_epoch: 82
+mode: "control_plane"
+mode_label: "【GPT控制面】CLTM-0021 epoch 81 accepted private-candidate bridge merge authorization"
+status: "GPT_MERGE_AUTHORIZED"
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: false
-intermediate_gpt_review_required: true
-merge_authorized: false
+intermediate_gpt_review_required: false
+merge_authorized: true
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: true
+real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 
-canonical_main_at_route_publish: "740e89549fbc90f97da3690a02de7c9bf157bbff"
-route_contract: "coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-R81.yaml"
-activation_issue: 231
+canonical_main_at_route_publish: "c3809373e693601c48e895f296328aa8687829e0"
+route_contract: "coordination/ROUTES/CODEX-CLTM-0021-E81-MERGE-AUTHORIZATION-R82.yaml"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-E79-MERGE-AUTHORIZATION"
-  route_epoch: 80
-  accepted_implementation_pull_request: 236
-  accepted_implementation_head: "00295cf16d2b63a1fd8e1d5652eecabf376ae2a2"
-  merge_commit: "740e89549fbc90f97da3690a02de7c9bf157bbff"
-  disposition: "POST_MERGE_VERIFIED"
-  milestone: "CONVERSATIONAL_MEMORY_VERTICAL_SLICE_READY"
+  task_id: "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-BRIDGE"
+  route_epoch: 81
+  issue: 231
+  pull_request: 241
+  accepted_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  accepted_ci_run: 31593700079
+  disposition: "GPT_R6_IMPLEMENTATION_AND_CLOSEOUT_ACCEPTED"
+  completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
+  architectural_milestone: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_BRIDGE_READY"
 
-root_goal: >-
-  Connect an authorized real/private Conversation Source to the existing W3 candidate runtime without exposing raw private
-  conversation bodies in public GitHub and without promoting any candidate to formal PROJECT/GLOBAL authority. Prove one
-  privacy-preserving local/private canary from source -> ConversationEpisode/source identity -> LearningPacket -> MemoryStore
-  -> QueryPlan/ContextBundle recall, while preserving provenance, user/project scope, valid-time, correction semantics and fail-closed behavior.
+merge_gate:
+  pull_request: 241
+  expected_head: "5cfde21f709899c85de76c345845b1e11195d8bf"
+  merge_method: "merge"
+  authorized_by: "GPT"
+  user_continuation_authorization: "2026-08-12T20:30:00+08:00"
+  require_exact_head_match: true
+  require_mergeable: true
+  require_preserved_locks: true
+  post_merge_verification_required: true
 
-implementation_stage:
-  name: "Private candidate-ingestion bridge and canary"
-  candidate_authority_only: true
-  formal_write_allowed: false
-  public_repo_implementation_and_synthetic_tests_allowed: true
-  local_private_source_read_allowed: true
-  local_private_candidate_store_write_allowed: true
-  raw_private_body_in_git_pr_issue_ci_logs: false
-  real_private_canary_authorized: true
-  required_sequence:
-    A: "Extend the canonical ConversationEpisode/source adapter to support an authorized private/local source class without weakening synthetic/public-safe behavior."
-    B: "Provide one bounded local/private ingestion entry point (library/CLI) that accepts a trusted private source handle or structured Daily Memory Candidate package, validates scope/provenance/time/role/privacy, and emits only existing W3 LearningPacket candidates."
-    C: "Run synthetic/public-safe regression and adversarial tests in Git/CI; no private fixture content is committed."
-    D: "If an actually accessible authorized private conversation source exists in the Codex runtime, perform one minimal local-only canary ingestion and later scoped recall; public evidence contains only hashes/counts/status, never raw text or private semantic values."
-    E: "If the real source is unavailable, do not fabricate success: return PRIVATE_SOURCE_BINDING_WAITING with the exact missing source/transport capability while preserving the completed bridge implementation and tests."
-
-private_source_contract:
-  source_examples_allowed: ["local private export/file handle", "authorized local conversation capture", "structured Daily Memory Candidate v2 package"]
-  public_receipt_allowed_fields: ["source_hash", "pointer_hash", "episode_id_hash", "candidate_count", "atom_id_hash", "scope_hash", "timestamps", "validation_status", "recall_count", "test_count"]
-  public_receipt_forbidden_fields: ["raw conversation body", "verbatim private text", "private file path", "secret values", "credential/token/cookie/session identifiers", "full private semantic candidate value"]
-  source_absence_semantics: "PRIVATE_SOURCE_BINDING_WAITING, not success and not 'no conversation occurred'"
-
-candidate_ingestion_interface:
-  required: true
-  purpose: "Create a stable canonical local ingestion boundary usable by Daily Memory Candidate v2 or other authorized private Conversation Sources."
-  must_reuse: ["ConversationEpisode", "LearningPacket", "MemoryStore", "QueryPlan", "ContextBundle", "existing provenance/conflict/UNKNOWN"]
-  must_not_create: ["second memory store", "second QueryPlan", "second ContextBundle", "new vector/graph/temporal authority"]
-  daily_memory_candidate_v2_transport: "Interface/contract required; direct ChatGPT automation -> local W3 transport may remain SYSTEM_DEPENDENCY if unavailable."
-
-acceptance_gates:
-  - "All canonical main Phase 3 tests pass plus new private-ingestion bridge tests."
-  - "Synthetic/public-safe behavior remains backward compatible."
-  - "Private/local source classification is fail-closed and cannot be used to publish raw bodies in public receipts."
-  - "Direct/generic packet bypass, assistant-role contamination, prompt injection, secret values, missing provenance, missing user/project/time scope and stale/superseded current states fail closed."
-  - "The candidate-ingestion interface is deterministic/idempotent and uses only the existing W3 candidate authority."
-  - "A local/private canary is performed if and only if a real authorized source is actually accessible; otherwise PRIVATE_SOURCE_BINDING_WAITING is explicit."
-  - "No formal PROJECT/GLOBAL promotion occurs."
-  - "No private raw text appears in Git history, PR/Issue comments, CI logs, tests, fixtures, embeddings or public ContextBundle evidence."
-  - "Rollback/rebuild and deterministic replay remain valid."
-  - "LOCAL_EXECUTION_ISSUES is present in every checkpoint/closeout: NONE_OBSERVED or each issue reported with the mandatory four fields."
-
-local_execution_issue_reporting:
-  registry: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
-  mandatory_fields_per_observed_issue:
-    - "问题特征"
-    - "发现途径与对照测试"
-    - "根因范围与限制"
-    - "可逆解决办法与撤销方式"
-  none_case: "LOCAL_EXECUTION_ISSUES = NONE_OBSERVED"
-  recurrence_rule: "Count distinct task/environment reproductions separately from raw repeated errors; high-frequency top 3-4 patterns are candidates for permanent-fix evaluation, not automatic repair."
-
-known_local_issue_preflight:
-  - "LEIP-UNICODE-001: UTF-8/Unicode/path/parser/quoting preflight when applicable."
-  - "LEIP-YAML-001: real YAML parser validation for YAML changes."
-  - "LEIP-PSPY-001: avoid fragile PowerShell -> Python -c multilayer quoting; prefer script files."
-  - "LEIP-GIT-HTTPS-001: preserve exact local commits on transport failure; bounded retry and remote SHA verification; root cause remains UNKNOWN."
+post_merge_required:
+  - "Re-read canonical main and verify PR #241 merged exact accepted head without unexpected changed paths."
+  - "Verify the private candidate bridge remains candidate-only and no second W3 authority exists."
+  - "Do not run a real private canary until a later route explicitly binds an authorized accessible private data-root and transport."
+  - "Publish the next bounded private-source binding/canary route only after post-merge verification."
+  - "Keep formal PROJECT/GLOBAL authority promotion separately locked."
 
 hard_boundaries:
-  - "No formal PROJECT/GLOBAL knowledge approval, promotion or persistence unlock."
-  - "No raw/private conversation body, private source path or private semantic value in public second-brain-coordination."
-  - "No secrets, credentials, tokens, cookies, sessions, MFA/recovery, payment/broker values in long-term memory, embeddings, logs, tests or Git."
+  - "No new Codex implementation work under route 82."
+  - "No real private source discovery/read or canary under route 82."
+  - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
+  - "No raw/private conversation body or private source path in public GitHub."
+  - "No credentials/secrets/private keys/tokens/cookies/session/MFA/recovery/payment/broker values in Git, logs, embeddings or ContextBundle."
+  - "No E48/live integration."
   - "No private repository creation or visibility/permission change."
   - "No production MCP/Memory App/Gateway deployment."
-  - "No live E48 integration before independent E48 R3 acceptance."
-  - "No second canonical memory runtime/query/bundle/vector/graph/temporal authority."
-  - "Do not touch QCLAW PR #221/worktree."
-  - "No market data, accounts, orders, funds or trading."
+  - "No second canonical memory/query/bundle/vector/graph/temporal authority."
+  - "Do not touch QCLAW worktrees or trading/accounts."
 
-local_resource_safety:
-  default_profile: "FOREGROUND_PRIORITY"
-  codex_task_python_cap: 2
-  combined_cpu_bound_workers_cap: 1
-  nested_parallelism: "FORBIDDEN"
-  heavy_matrix_or_fanout: "REMOTE_CI"
+local_execution_issue_closeout:
+  pattern: "LEIP-UNICODE-001"
+  root_cause: "UNKNOWN"
+  r6_new_local_execution_issues: "NONE_OBSERVED"
+  evidence: "Issue #231 comment 5266618300"
 
-completion_signal: "CODEX_CLTM_0021_PRIVATE_CANDIDATE_INGESTION_READY_FOR_GPT_REVIEW"
-architectural_milestone_after_gpt_acceptance: "REAL_PRIVATE_CONVERSATION_CANDIDATE_INGESTION_READY"
-read_task_semantics: "读取任务 = verify canonical main -> read CODEX router + ACTIVE route + route contract + Issue #231 and all comments + merged #236 evidence + matching local-issue patterns -> claim epoch-81 lease -> immediately implement the smallest privacy-preserving canonical ingestion bridge action; do not stop after summarizing."
-next_command: "读取任务"
+next_action: "GPT merges PR #241 at exact accepted head, performs post-merge verification, then publishes a separately gated private-source binding/canary route."
 updated_by: "GPT"
-updated_at: "2026-08-12T14:28:00+08:00"
+updated_at: "2026-08-12T20:30:00+08:00"
