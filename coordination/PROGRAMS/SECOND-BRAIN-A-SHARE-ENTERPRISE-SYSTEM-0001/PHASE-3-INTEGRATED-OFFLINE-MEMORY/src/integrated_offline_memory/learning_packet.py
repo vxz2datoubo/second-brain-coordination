@@ -28,7 +28,7 @@ _PROMPT_INJECTION_MARKERS = (
     "developer message",
 )
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
-_CONVERSATION_OPTIONAL = {"source_episode_manifest_ids"}
+_CONVERSATION_OPTIONAL = {"source_episode_manifest_ids", "source_episodes"}
 
 
 def build_learning_packet(
@@ -271,6 +271,23 @@ def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) ->
         return ["conversation_packet_validation_missing"]
     if report.get("source_episode_manifest_ids", related_manifests) != related_manifests:
         return ["conversation_packet_related_manifest_mismatch"]
+    source_episodes = conversation.get("source_episodes")
+    if source_episodes is not None:
+        if not isinstance(source_episodes, list) or not source_episodes:
+            return ["conversation_packet_related_provenance_invalid"]
+        projected_manifests = [item.get("episode_manifest_id") for item in source_episodes if isinstance(item, dict)]
+        if sorted(projected_manifests) != sorted(related_manifests):
+            return ["conversation_packet_related_provenance_invalid"]
+        for item in source_episodes:
+            if (
+                not isinstance(item, dict)
+                or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at"}
+                or not all(isinstance(item.get(field), str) and item[field] for field in item)
+                or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
+            ):
+                return ["conversation_packet_related_provenance_invalid"]
+        if report.get("source_episodes", source_episodes) != source_episodes:
+            return ["conversation_packet_related_provenance_invalid"]
     fields = ("user_scope", "project_scope", "privacy_class", "coverage", "source_class", "claim_role")
     if any(report.get(field) != conversation.get(field) for field in fields):
         return ["conversation_packet_validation_mismatch"]

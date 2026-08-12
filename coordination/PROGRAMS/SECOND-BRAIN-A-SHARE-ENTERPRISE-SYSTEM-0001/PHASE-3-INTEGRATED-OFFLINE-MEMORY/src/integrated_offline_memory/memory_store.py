@@ -214,6 +214,11 @@ class MemoryStore:
         for row in rows:
             packet = json.loads(row["json_blob"])
             validation = packet.get("validation_report", {})
+            conversation = next((
+                atom.get("memory_metadata", {}).get("conversation", {})
+                for atom in packet.get("atoms", []) if atom.get("id") == atom_id
+            ), {})
+            source_episodes = conversation.get("source_episodes", [])
             result.append({
                 "atom_id": atom_id,
                 "packet_id": row["id"],
@@ -230,6 +235,9 @@ class MemoryStore:
                     "recorded_at": validation.get("recorded_at"),
                 },
                 "source_pointer_hash": validation.get("source_pointer_hash"),
+                # Every entry is privacy-minimized: source reference hashes and
+                # opaque episode identifiers only, never raw pointers/bodies.
+                "source_episodes": source_episodes,
             })
         return result
 

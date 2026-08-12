@@ -7,36 +7,43 @@ actual_executor: "CODEX"
 mode: "project_plan"
 task_weight: "STRATEGIC"
 status: "SUCCESS_WITH_FINDINGS"
-local_execution_issues: "NONE_OBSERVED"
+local_execution_issues: "LEIP-UNICODE-001 observed once during review-thread retrieval; resolved by UTF-8 process mode without repository mutation."
 mission_and_completion:
-  main_delivery_summary: "R2 replaces the ambiguous flat v2 mapping with a layered DailyMemoryCandidate-v2 package and a distinct W3PrivateCandidateEnvelope-v1. It uses only existing W3 candidate surfaces and adds no formal persistence path."
+  main_delivery_summary: "R3 adds an explicit DailyMemoryCandidateTransport-v1 serializer between the enabled DailyMemoryCandidate-v2 report and W3PrivateCandidateEnvelope-v1, preserves correction semantics, truthful aggregate receipts and full privacy-minimized multi-episode ContextBundle provenance. It uses only existing W3 candidate surfaces and adds no formal persistence path."
   success_criteria:
     - criterion: "Private/local source class is explicit and cannot weaken synthetic class validation."
       status: "MET"
       evidence: "test_private_classification_uses_existing_packet_store_query_bundle"
-    - criterion: "A full layered Daily-v2 package preserves coverage, source episodes, candidate provenance, validation, rejected candidates and eligible user-memory typing."
+    - criterion: "The enabled Daily-v2 report fields serialize through a versioned transport while preserving partial coverage and included/excluded-source semantics."
       status: "MET"
-      evidence: "test_daily_v2_layered_package_maps_only_validated_user_candidate; test_daily_v2_rejects_unvalidated_non_user_or_invalid_provenance"
+      evidence: "test_enabled_daily_v2_contract_serializes_to_versioned_transport"
+    - criterion: "USER_CORRECTION invokes canonical supersession with CURRENT/HISTORICAL behavior."
+      status: "MET"
+      evidence: "test_user_correction_uses_canonical_supersession_current_historical"
+    - criterion: "Legitimate non-user and zero-eligible Daily reports are explicit no-op rather than source failure."
+      status: "MET"
+      evidence: "test_non_user_or_zero_eligible_report_is_safe_noop_not_invalid"
     - criterion: "Daily-v2 validation/sensitivity and structural secret checks fail closed before ingestion."
       status: "MET"
       evidence: "test_sensitivity_and_validation_gate_reject_plain_credential_classes"
     - criterion: "Canary recall proves exact imported atom identity rather than a nonzero count."
       status: "MET"
-      evidence: "test_import_requires_exact_imported_atom_recall_even_with_decoy"
+      evidence: "test_exact_recall_and_aggregate_duplicate_receipt"
     - criterion: "Private input and store paths are confined to an explicit private data root."
       status: "MET"
       evidence: "test_private_data_root_policy_and_cli_fail_closed_without_path_echo"
     - criterion: "Real authorized private canary is performed only when an explicit local binding exists."
       status: "PARTIAL"
-      evidence: "R2 forbids canary execution until GPT accepts. Source binding state distinguishes absent/unreadable waiting from invalid rejected and valid configured."
+      evidence: "R3 forbids canary execution until GPT accepts. Source binding state distinguishes absent/unreadable waiting from invalid rejected and valid configured."
 scope_accounting:
   completed:
     - "canonical private/local source classification"
-    - "layered DailyMemoryCandidate-v2 package adapter and separate W3PrivateCandidateEnvelope-v1"
-    - "exact imported-atom recall proof; data-root policy; source-binding accessibility state machine"
+    - "enabled Daily-v2 report serializer, versioned transport contract and inner W3 envelope"
+    - "canonical correction/supersession; explicit non-import/no-op; truthful aggregate receipt"
+    - "exact imported-atom recall proof; data-root policy; source-binding state; multi-episode ContextBundle provenance"
     - "synthetic/public-safe regression and adversarial coverage"
   not_completed:
-    - "real private source canary (explicitly deferred until GPT R2 acceptance)"
+    - "real private source canary (explicitly deferred until GPT R3 acceptance)"
   deliberately_rejected_or_removed:
     - item: "formal PROJECT/GLOBAL promotion"
       reason: "Route epoch 81 explicitly locks formal persistence."
@@ -48,31 +55,33 @@ repository_and_environment:
   base_sha: "fd9a3e12c36017de6f1db358e7fc8cc262fbb455"
   changed_files:
     - path: "PHASE-3.../conversation_memory.py"
-      reason: "multi-episode source-manifest and evidence-ref lineage for converted private-local candidates"
+      reason: "multi-episode privacy-minimized lineage and correction support"
     - path: "PHASE-3.../learning_packet.py"
       reason: "canonical packet validation and private transport visibility"
     - path: "PHASE-3.../private_candidate_ingestion.py"
-      reason: "layered Daily-v2 conversion, validation/sensitivity gate, source state and root policy"
+      reason: "enabled-report serializer, versioned transport, correction/no-op and truthful aggregate receipt"
     - path: "PHASE-3.../cli.py"
       reason: "local explicit input/store invocation with receipt-only stdout"
     - path: "PHASE-3.../tests/test_private_candidate_ingestion.py"
-      reason: "synthetic layered package, exact recall, path policy, source state and sensitivity tests"
+      reason: "compatibility, correction, no-op, duplicate-receipt and multi-episode provenance adversarial tests"
+    - path: "PHASE-3.../tests/fixtures/daily_memory_candidate_v2_enabled_contract.json"
+      reason: "public-safe fixture derived from enabled Daily-v2 report fields"
 commands_and_tests:
   commands:
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/run_all_tests.py"
       exit_code: 0
-      result: "Phase 3 full regression PASS: 201/201 tests in 7.219s. R2 focused conversation/private-candidate coverage PASS: 18/18."
+      result: "Phase 3 full regression PASS: 203/203 tests in 6.302s. R3 private-candidate compatibility/adversarial coverage PASS: 8/8."
     - command: "python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/public_safety_scan.py"
       exit_code: 0
-      result: "PASS: 67 files scanned; 0 issues."
+      result: "PASS: 68 files scanned; 0 issues."
     - command: "R81 task-owned YAML parse and git diff --check"
       exit_code: 0
       result: "PASS"
   negative_results:
-    - "One initial synthetic test exposed missing schema_version preservation during a second validation pass; corrected before the green run."
-    - "No real private canary was run; R2 explicitly defers it until GPT acceptance."
+    - "One initial R3 provenance assertion matched the safe field name source_pointer_hash rather than a raw pointer key; the test was corrected before the green run."
+    - "No real private canary was run; R3 explicitly defers it until GPT acceptance."
 security_privacy_license_receipt:
-  secret_scan: "PASS; public_safety_scan.py scanned 67 files with 0 issues"
+  secret_scan: "PASS; public_safety_scan.py scanned 68 files with 0 issues"
   credential_values_accessed: false
   real_private_raw_body_accessed: false
   broker_or_account_accessed: false
@@ -84,4 +93,10 @@ unknowns:
     - "Direct ChatGPT automation-to-local transport remains a system dependency and is not assumed."
 ai_handoff:
   path: "AI_HANDOFF.yaml"
-  next_action: "GPT R2 review of exact pushed head; do not run real canary, merge, or unlock any gate."
+  next_action: "GPT R3 review of exact pushed head; do not run real canary, merge, or unlock any gate."
+local_execution_issue_details:
+  - id: "LEIP-UNICODE-001"
+    问题特征: "The bundled review-thread reader used the Windows GBK default and could not decode UTF-8 GitHub review text."
+    发现途径与对照测试: "Initial fetch_comments.py run failed; rerun with PYTHONUTF8=1 read the same PR successfully."
+    根因范围与限制: "Local subprocess decoding only; no repository, GitHub object, private source or CI behavior was changed."
+    可逆解决办法与撤销方式: "Use PYTHONUTF8=1 for the read-only command; unset it to restore the prior process environment."

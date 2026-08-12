@@ -21,6 +21,8 @@ from .integrated_flow import (
 )
 from .private_candidate_ingestion import (
     DAILY_MEMORY_CANDIDATE_V2,
+    DAILY_MEMORY_CANDIDATE_TRANSPORT_V1,
+    NO_ELIGIBLE_USER_MEMORY_CANDIDATES,
     PRIVATE_SOURCE_BINDING_WAITING,
     PRIVATE_SOURCE_BINDING_REJECTED,
     PRIVATE_SOURCE_BINDING_CONFIGURED,
@@ -28,9 +30,11 @@ from .private_candidate_ingestion import (
     W3_PRIVATE_CANDIDATE_ENVELOPE_V1,
     build_private_w3_candidate_envelope,
     daily_v2_package_to_w3_private_envelopes,
+    daily_memory_candidate_transport_to_w3_private_envelopes,
     ingest_daily_memory_candidate_v2,
     load_daily_memory_candidate_v2,
     private_source_binding_status,
+    serialize_daily_memory_candidate_v2_report,
     validate_private_data_paths,
 )
 
@@ -59,6 +63,8 @@ __all__ = [
     "to_p2_bars",
     "verify_learning_packet",
     "DAILY_MEMORY_CANDIDATE_V2",
+    "DAILY_MEMORY_CANDIDATE_TRANSPORT_V1",
+    "NO_ELIGIBLE_USER_MEMORY_CANDIDATES",
     "W3_PRIVATE_CANDIDATE_ENVELOPE_V1",
     "PRIVATE_SOURCE_BINDING_WAITING",
     "PRIVATE_SOURCE_BINDING_REJECTED",
@@ -66,8 +72,10 @@ __all__ = [
     "PrivateCandidateIngestionResult",
     "build_private_w3_candidate_envelope",
     "daily_v2_package_to_w3_private_envelopes",
+    "daily_memory_candidate_transport_to_w3_private_envelopes",
     "ingest_daily_memory_candidate_v2",
     "load_daily_memory_candidate_v2",
     "private_source_binding_status",
+    "serialize_daily_memory_candidate_v2_report",
     "validate_private_data_paths",
 ]

@@ -120,6 +120,7 @@ def build_conversation_candidate(
         "source_pointer_hash": content_hash(episode.source_pointer),
         "source_episode_manifest_ids": sorted(source_manifest_ids),
         "source_pointer_hashes": [content_hash(item.source_pointer) for item in all_episodes],
+        "source_episodes": _source_episode_provenance(all_episodes),
     }
     return build_learning_packet(
         source_manifest_ids=source_manifest_ids,
@@ -156,6 +157,8 @@ def build_conversation_correction(
     replaces_atom_id: str,
     valid_from: str,
     valid_to: str | None = None,
+    additional_episodes: tuple[ConversationEpisode, ...] = (),
+    correction_context: str = "append_preserving_user_correction",
 ) -> dict[str, Any]:
     """Append a USER_CORRECTION linked to a pre-existing candidate atom."""
     if not replaces_atom_id or len(replaces_atom_id) > 128:
@@ -166,13 +169,14 @@ def build_conversation_correction(
         claim_role="USER_CORRECTION",
         valid_from=valid_from,
         valid_to=valid_to,
+        additional_episodes=additional_episodes,
     )
     correction_id = candidate["atoms"][0]["id"]
     candidate["relations"] = [{
         "source_atom_id": correction_id,
         "target_atom_id": replaces_atom_id,
         "relation_type": "supersedes",
-        "context": "append_preserving_user_correction",
+        "context": correction_context,
         "target_existing": True,
     }]
     # Relations are part of the content-addressed packet; rebuild through the
@@ -193,7 +197,7 @@ def _conversation_metadata(
     valid_from: str,
     valid_to: str | None,
     additional_episodes: tuple[ConversationEpisode, ...] = (),
-) -> dict[str, str | None]:
+) -> dict[str, Any]:
     return {
         "episode_manifest_id": episode.manifest_id,
         "user_scope": episode.user_scope,
@@ -208,7 +212,21 @@ def _conversation_metadata(
         "source_episode_manifest_ids": sorted(
             item.manifest_id for item in (episode, *additional_episodes)
         ),
+        "source_episodes": _source_episode_provenance((episode, *additional_episodes)),
     }
+
+
+def _source_episode_provenance(
+    episodes: tuple[ConversationEpisode, ...],
+) -> list[dict[str, str]]:
+    """Return privacy-minimized per-episode lineage for packet/bundle audit."""
+
+    return sorted(({
+        "episode_manifest_id": item.manifest_id,
+        "episode_id": item.episode_id,
+        "source_pointer_hash": content_hash(item.source_pointer),
+        "recorded_at": _normalized_instant(item.recorded_at),
+    } for item in episodes), key=lambda item: item["episode_manifest_id"])
 
 
 def _normalized_instant(value: str) -> str:
