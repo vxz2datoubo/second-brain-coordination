@@ -1,13 +1,13 @@
-schema_version: "104.4"
+schema_version: "104.5"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-ROBUST-FILESYSTEM-TYPE-ATTESTATION"
+task_id: "CODEX-CLTM-0021-DIRECT-SID-MODIFY-GUARANTEE"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 96
-mode: "bounded_read_only_robust_filesystem_type_attestation"
-mode_label: "【Codex只读验收】CLTM-0021 private root 文件系统类型稳健复核"
+route_epoch: 97
+mode: "bounded_exact_root_direct_sid_modify_acl_guarantee"
+mode_label: "【Codex有界权限修复】CLTM-0021 exact private root 当前SID永久Modify保证"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -22,39 +22,55 @@ private_candidate_source_read_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
-permission_or_acl_change_authorized: false
+permission_or_acl_change_authorized: true
 
-canonical_main_at_route_publish: "e291d6a73c00dd1abe512145552dd750dd0ada5a"
+canonical_main_at_route_publish: "41562e56c024da10dbc7557d078b02f8c9c11505"
+
+owner_authorization:
+  issue_comment: 5276452109
+  permanent_private_root_access_authorized: true
+  authorized_principal: "current Windows user/SID running Codex only"
+  authorized_scope: "exact CLTM_PRIVATE_DATA_ROOT only"
+  authorized_right: "Modify with ContainerInherit,ObjectInherit"
+  full_control_authorized: false
+  ownership_takeover_authorized: false
+  broad_group_or_drive_grant_authorized: false
+  defender_or_security_policy_change_authorized: false
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-FILESYSTEM-SECURITY-MODEL-ATTESTATION"
-  route_epoch: 95
-  disposition: "FILESYSTEM_METADATA_READ_ERROR_REDACTED"
-  remote_main_sha_observed: "e291d6a73c00dd1abe512145552dd750dd0ada5a"
+  task_id: "CODEX-CLTM-0021-ROBUST-FILESYSTEM-TYPE-ATTESTATION"
+  route_epoch: 96
+  disposition: "NTFS_PERSISTENT_ACL_SUPPORTED_WITH_FUNCTIONAL_WRITEABILITY_PASS"
+  remote_main_sha_observed: "41562e56c024da10dbc7557d078b02f8c9c11505"
   root_binding_present: true
   root_shape_valid: true
-  filesystem_type: "UNKNOWN"
-  persistent_acl_support: "UNKNOWN"
-  root_reparse_point: "UNKNOWN"
+  root_volume_kind: "LOCAL_DRIVE"
+  filesystem_type: "NTFS"
+  persistent_acl_support: "SUPPORTED"
+  root_reparse_point: "NO"
+  metadata_method_success_count: 1
+  metadata_method_failure_count: 2
+  method_agreement: "AGREE"
   functional_writeability_from_epoch92: "PASS"
-  local_execution_issue: "FILESYSTEM_METADATA_READ_ERROR_REDACTED"
+  prior_acl_provenance_epoch94: "NO_APPLICABLE_DURABLE_ALLOW_ATTESTED"
 
 fundamental_goal: >-
-  Re-run only the filesystem-type classification using independent read-only metadata methods so one API failure cannot erase all evidence.
-  Preserve epoch-92 functional writeability PASS. Do not read private content, ACL bodies, Daily-v2, or run any write probe, ingestion, recall
-  or canary.
+  Guarantee, with one narrowly scoped ACL mutation at most, that the current Windows user/SID running Codex has a durable explicit Allow
+  FileSystemAccessRule granting Modify on the exact already-bound CLTM_PRIVATE_DATA_ROOT with ContainerInherit and ObjectInherit and
+  PropagationFlags.None. Preserve all unrelated ACL entries and inheritance. Do not broaden to FullControl, groups, parent paths, the drive,
+  ownership, Defender/CFA, registry or security policy. Do not read private content or execute ingestion/recall/canary in epoch 97.
 
 canonical_remote_read_policy:
   remote_head_gate: >-
     Run `git ls-remote https://github.com/vxz2datoubo/second-brain-coordination.git refs/heads/main` and parse exactly one 40-hex SHA for
-    refs/heads/main. Do not mutate the linked-worktree Git database.
+    refs/heads/main. Do not mutate linked-worktree Git metadata/object storage.
   disposable_temp_git_fallback: >-
     Use one task-owned bare Git repository under OS temp, fetch current remote main with depth 128, require fetched head to equal the
     immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml, evaluate runtime freshness, and delete only task-owned temp
     Git artifacts before CLTM_PRIVATE_DATA_ROOT access.
   canonical_read_mode_public_value: "TEMP_BARE_GIT_EXACT_HEAD"
   fail_closed: >-
-    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/temp-cleanup ambiguity stops before private-root metadata access.
+    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/temp-cleanup ambiguity stops before private-root ACL access.
 
 runtime_freshness_policy:
   audited_runtime_base: "c625eaf247298051e6e23d530f2203dc182e7177"
@@ -65,7 +81,7 @@ runtime_freshness_policy:
   pass_value: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
   rule: >-
     Compare changed paths from audited_runtime_base to exact current remote head. Control-plane-only changes do not invalidate freshness.
-    Any relevant runtime-path change or ambiguous comparison stops before private-root metadata access.
+    Any relevant runtime-path change or ambiguous comparison stops before private-root ACL access.
 
 private_root_boundary:
   required_env_name: "CLTM_PRIVATE_DATA_ROOT"
@@ -76,43 +92,47 @@ private_root_boundary:
     - "root exists"
     - "root is directory"
     - "root resolves outside public repository/worktree"
-  permitted_metadata_only:
-    - "derive root volume using System.IO.Path.GetPathRoot on the resolved exact root"
-    - "classify only LOCAL_DRIVE / UNC / OTHER without outputting the actual root"
-    - "read filesystem type through bounded read-only methods"
-    - "read exact-root attributes only for reparse-point yes/no"
+    - "exact root is local NTFS and not a reparse point, consistent with accepted epoch-96 receipt"
   forbidden_reads:
     - "Do not enumerate child files/directories."
-    - "Do not open/read DailyMemoryCandidate-v2 or any private file content."
-    - "Do not read or publish ACL entries in epoch 96."
+    - "Do not open/read DailyMemoryCandidate-v2 or any other private content."
 
-filesystem_type_attestation:
-  mutation_budget: 0
-  local_drive_methods:
-    - method: "DOTNET_DRIVEINFO"
-      rule: "Use System.IO.DriveInfo on the derived volume root and read DriveFormat only."
-    - method: "GET_VOLUME"
-      rule: >-
-        If Get-Volume is available, derive the drive-letter character locally from the volume root and read only FileSystemType. Do not print
-        the drive letter, volume object, label, unique id, path or serial. Method absence/failure is recorded only as a redacted method failure.
-    - method: "CIM_LOGICAL_DISK"
-      rule: >-
-        If Get-CimInstance is available, query only Win32_LogicalDisk for the exact derived local device id and read only FileSystem. Do not
-        print device id, caption, volume name, serial, path or any other property.
-  nonlocal_rule: >-
-    If root volume kind is UNC or OTHER, do not guess filesystem type and do not broaden discovery; return NONLOCAL_VOLUME_METHOD_NOT_AUTHORIZED
-    for GPT review.
-  normalization:
-    public_values: ["NTFS", "REFS", "EXFAT", "FAT32", "FAT", "OTHER", "UNKNOWN"]
-    rule: >-
-      Normalize successful method values case-insensitively. If at least one method succeeds and all successful methods agree, accept that
-      normalized filesystem type. If successful methods disagree, return UNKNOWN with FILESYSTEM_TYPE_METHOD_CONFLICT. If all fail, return
-      UNKNOWN with FILESYSTEM_TYPE_ALL_METHODS_FAILED. Do not expose raw errors.
-  persistent_acl_support_rule: >-
-    NTFS or REFS => SUPPORTED. EXFAT, FAT32 or FAT => UNSUPPORTED. OTHER or UNKNOWN => UNKNOWN.
-  reparse_check: >-
-    Independently read only exact-root FileAttributes and test ReparsePoint. Report YES/NO. A failure here must not erase an already-established
-    filesystem type; report UNKNOWN plus a separate redacted issue.
+acl_precheck:
+  principal: "current Windows process user SID"
+  read_scope: "ACL on exact bound root only"
+  blocking_deny_rule: >-
+    Resolve current user SID and current token-group SIDs locally without printing identities. If any applicable Deny ACE overlaps Modify,
+    Write, Delete or DeleteSubdirectoriesAndFiles, stop before mutation as BLOCKING_DENY_PRESENT for GPT review.
+  already_sufficient_rule: >-
+    If an explicit Allow ACE already exists for the exact current user SID with rights containing Modify and inheritance containing both
+    ContainerInherit and ObjectInherit, report NOT_REQUIRED and do not mutate. Existing FullControl for the exact SID may satisfy this
+    precheck, but epoch 97 must not create or broaden to FullControl.
+
+permission_repair:
+  mutation_budget: 1
+  persistence: "PERMANENT"
+  exact_scope: "CLTM_PRIVATE_DATA_ROOT only"
+  principal: "current Windows user SID only"
+  desired_right: "Modify"
+  inheritance: "ContainerInherit,ObjectInherit"
+  propagation: "None"
+  access_type: "Allow"
+  method: >-
+    Use Windows/.NET ACL APIs on the exact bound directory. Read the existing DirectorySecurity, construct a FileSystemAccessRule using the
+    current SecurityIdentifier, FileSystemRights.Modify, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+    PropagationFlags.None, AccessControlType.Allow, then AddAccessRule and persist the updated DirectorySecurity. Do not replace the ACL
+    wholesale, disable inheritance, remove entries, change owner, or alter any other path.
+  one_mutation_only: >-
+    If the ACL persist call fails or returns ambiguous state, do not retry, broaden, reset, take ownership or request elevation automatically.
+
+post_mutation_verify:
+  rule: >-
+    Re-read only the exact root ACL as SecurityIdentifier identities and require an explicit current-user-SID Allow ACE whose rights contain
+    Modify and whose inheritance contains both ContainerInherit and ObjectInherit. Report only coarse PASS/FAIL and whether the rule was
+    APPLIED or NOT_REQUIRED. Do not print SID, username, path or raw ACL text.
+  operational_context: >-
+    Preserve epoch-92 functional writeability PASS as prior evidence. Do not perform another plain-write or SQLite probe in epoch 97; the
+    purpose of this epoch is the durable direct-SID ACL guarantee only.
 
 public_receipt_allow_only:
   - "schema_version"
@@ -122,41 +142,40 @@ public_receipt_allow_only:
   - "runtime_freshness"
   - "root_binding_present"
   - "root_shape_valid"
-  - "root_volume_kind"
   - "filesystem_type"
-  - "persistent_acl_support"
-  - "root_reparse_point"
-  - "metadata_method_success_count"
-  - "metadata_method_failure_count"
-  - "method_agreement"
+  - "blocking_deny"
+  - "acl_precheck"
+  - "acl_change"
+  - "acl_verify"
   - "functional_writeability_from_epoch92"
   - "LOCAL_EXECUTION_ISSUES"
   - "lock_statement"
 
 status_contract:
-  acl_supported: "PRIVATE_ROOT_FILESYSTEM_PERSISTENT_ACL_SUPPORTED"
-  acl_unsupported: "PRIVATE_ROOT_FILESYSTEM_PERSISTENT_ACL_UNSUPPORTED"
-  unknown: "PRIVATE_ROOT_FILESYSTEM_TYPE_STILL_UNKNOWN"
-  nonlocal: "PRIVATE_ROOT_NONLOCAL_VOLUME_REQUIRES_GPT_REVIEW"
+  success: "PRIVATE_ROOT_DIRECT_SID_MODIFY_GUARANTEE_PASS"
   canonical_blocked: "CANONICAL_CONTROL_READ_ONLY_REFRESH_BLOCKED"
   runtime_blocked: "RELEVANT_RUNTIME_FRESHNESS_BLOCKED"
   root_invalid: "PRIVATE_ROOT_BINDING_OR_SHAPE_INVALID"
+  blocking_deny: "PRIVATE_ROOT_BLOCKING_DENY_REQUIRES_GPT_REVIEW"
+  acl_change_failed: "PRIVATE_ROOT_DIRECT_SID_MODIFY_CHANGE_FAILED"
+  acl_verify_failed: "PRIVATE_ROOT_DIRECT_SID_MODIFY_VERIFY_FAILED"
 
 forbidden_actions:
   - "Do not retry epoch 91 or epoch 92 write probes."
-  - "Do not create, modify, delete or rename anything under CLTM_PRIVATE_DATA_ROOT."
-  - "Do not call Set-Acl, icacls, chmod, chown or any ACL/ownership mutation."
-  - "Do not format, convert, repair or alter any filesystem or volume."
-  - "Do not request elevation or administrator relaunch."
-  - "Do not use fsutil, diskpart, format, convert, chkdsk or other mutation-capable disk tooling in epoch 96."
-  - "Do not disable or modify Defender/Controlled Folder Access, registry or security policy."
-  - "Do not read or validate DailyMemoryCandidate-v2."
+  - "Do not create, modify, delete or rename private content under CLTM_PRIVATE_DATA_ROOT except the exact directory ACL authorized here."
+  - "Do not read DailyMemoryCandidate-v2 or any private file body."
   - "Do not call private_source_binding_status."
   - "Do not count, normalize or ingest candidates."
   - "Do not run recall or canary execution."
-  - "Do not output private root, drive letter/device id, mount path, volume label/serial/unique id, username, SID or raw errors."
+  - "Do not grant FullControl."
+  - "Do not grant Everyone, Users, Administrators or any group."
+  - "Do not alter parent directories, drive ACLs, ownership or inheritance protection."
+  - "Do not disable or modify Defender/Controlled Folder Access, registry or security policy."
+  - "Do not request elevation or administrator relaunch automatically."
+  - "Do not output private root, drive letter/device id, username, SID, token-group identities or raw ACL text/errors."
   - "Do not mutate linked-worktree Git metadata/object store or credentials."
 
 lock_statement: >-
   Formal PROJECT/GLOBAL persistence remains LOCKED. Real private candidate ingestion/raw-private publication remain LOCKED. Live/production,
-  MCP/Gateway, repository visibility and trading/account actions remain LOCKED. Epoch 96 is read-only robust filesystem-type attestation only.
+  MCP/Gateway, repository visibility and trading/account actions remain LOCKED. Epoch 97 authorizes only the exact-root current-SID permanent
+  Modify ACL guarantee and its read-back verification.
