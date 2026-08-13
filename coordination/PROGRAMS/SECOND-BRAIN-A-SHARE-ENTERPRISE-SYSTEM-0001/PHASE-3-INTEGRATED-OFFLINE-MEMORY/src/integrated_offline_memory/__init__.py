@@ -45,6 +45,7 @@ from .recurring_candidate_soak import (
     run_from_environment,
     run_recurring_candidate_ingestion,
 )
+from .memory_palace import CaptureReceipt, capture_text, cognitive_coverage, normalize_temporal_expression, retrieve_memory_palace
 
 __all__ = [
     "FieldSemanticDecision",
@@ -92,4 +93,9 @@ __all__ = [
     "RecurringCandidateSoakError",
     "CommittedStateAuditFailure",
     "CommittedStateTeardownFailure",
+    "CaptureReceipt",
+    "capture_text",
+    "cognitive_coverage",
+    "normalize_temporal_expression",
+    "retrieve_memory_palace",
 ]

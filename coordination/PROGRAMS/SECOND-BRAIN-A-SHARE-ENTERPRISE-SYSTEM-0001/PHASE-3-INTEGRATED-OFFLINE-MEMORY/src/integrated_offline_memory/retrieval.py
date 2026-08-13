@@ -199,7 +199,11 @@ class ContextAssembler:
                 ("PRIVATE_LOCAL_CANDIDATE", "private_local", "PRIVATE_LOCAL_AUTHORIZED"),
             }:
                 return False
-            if conversation.get("claim_role") not in {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}:
+            if conversation.get("claim_role") not in {
+                "USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION",
+                "USER_PLAN", "USER_GOAL", "USER_COMMITMENT", "USER_EVENT_REPORT",
+                "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+            }:
                 return False
             if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
                 return False
@@ -207,6 +211,8 @@ class ContextAssembler:
                 return False
             instant = _parse_instant(plan.valid_at)
             if not _is_valid_at(conversation, instant):
+                return False
+            if plan.intent == "CURRENT" and _memory_palace_requires_revalidation(conversation, instant):
                 return False
         elif plan.user_scope is not None:
             return False
@@ -239,3 +245,19 @@ def _is_valid_at(conversation: dict[str, Any], instant: datetime) -> bool:
         if value is not None
     ]
     return instant >= valid_from and (not ends or instant < min(ends))
+
+
+def _memory_palace_requires_revalidation(conversation: dict[str, Any], instant: datetime) -> bool:
+    """Keep short-lived market clues historical until explicitly revalidated."""
+
+    palace = conversation.get("memory_palace")
+    if not isinstance(palace, dict) or not palace.get("revalidation_required"):
+        return False
+    if palace.get("freshness_profile") not in {"TRANSIENT", "SHORT_CYCLE"}:
+        return False
+    last_verified = palace.get("last_verified_at")
+    horizon_hours = palace.get("freshness_horizon_hours")
+    if not isinstance(last_verified, str) or not isinstance(horizon_hours, int) or horizon_hours < 1:
+        return True
+    from datetime import timedelta
+    return instant > _parse_instant(last_verified) + timedelta(hours=horizon_hours)
