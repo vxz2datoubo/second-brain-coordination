@@ -1,13 +1,13 @@
-schema_version: "102.2"
+schema_version: "103.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY"
+task_id: "CODEX-CLTM-0021-PRIVATE-STORE-WRITABILITY-DIAGNOSTIC"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 90
-mode: "bounded_temp_script_private_candidate_canary"
-mode_label: "【Codex有界执行】CLTM-0021 UTF-8临时脚本驱动单条private candidate canary"
+route_epoch: 91
+mode: "bounded_private_store_writeability_diagnostic"
+mode_label: "【Codex有界诊断】CLTM-0021 private root / SQLite 写能力诊断"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -15,67 +15,55 @@ second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: true
+real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
+private_candidate_source_read_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
+permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "1a902f45c5d4cbac714e22b55c5d3001243421ae"
-route_contract: "REFERENCE_ONLY: coordination/ROUTES/CODEX-CLTM-0021-PRIVATE-SOURCE-CANARY-R83.yaml; epoch 90 is further limited by this ACTIVE control plane"
+canonical_main_at_route_publish: "c625eaf247298051e6e23d530f2203dc182e7177"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
-  route_epoch: 89
-  disposition: "POWERSHELL_PYTHON_C_PARSE_FAILURE_BEFORE_PRIVATE_ACCESS"
-  gpt_execution_audit_issue_comment: 5270162090
-  supplemental_scope_audit_issue_comment: 5270194170
-  private_function_entered: false
-  private_source_read: false
-  candidate_count_performed: false
-  private_store_created: false
+  task_id: "CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY"
+  route_epoch: 90
+  disposition: "PRIVATE_CANARY_STORE_OPEN_FAILURE_NO_RETRY"
+  gpt_execution_audit_issue_comment: 5275194964
+  binding_status_observed: "PRIVATE_SOURCE_BINDING_CONFIGURED"
+  runner_compile_gate: "PASS"
+  candidate_gate_path: "EXACTLY_ONE_BRANCH_REACHED_STORE_OPEN"
   private_candidate_ingested: false
+  formal_project_global_write: "LOCKED"
+  epoch90_retry_allowed: false
 
-owner_start_gate:
-  required_command: "Owner must explicitly tell Codex to read/execute the newly published canonical task after epoch 90 is merged."
-  no_automatic_resume: true
+fundamental_goal: >-
+  Determine whether the explicit CLTM private data-root is writable by the current Codex/Python process and whether the existing
+  MemoryStore SQLite/WAL initialization can create a fresh database there, without reading any private candidate source and without
+  performing ingestion or canary execution.
 
 main_drift_policy:
-  rationale: "Repository main is shared by multiple agent routes; unrelated commits must not invalidate an unchanged Codex control plane."
-  accepted_epoch90_control_blob_before_this_hardening: "a0f7aca4adf3652a83e6be9bc445df4fae564e7d"
-  gpt_drift_audit_issue_comment: 5275064504
-  current_head_rule: >-
-    Do not require origin/main to equal canonical_main_at_route_publish or any human-pinned historical main SHA.
-    After fetch, read coordination/ACTIVE-CODEX-TASK.yaml directly from current origin/main and require it to remain
-    route_epoch 90, status READY, execution_allowed true, task_id CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY,
-    with all private/formal/live/production/trading locks and epoch-90 runner/canary boundaries intact.
-  unrelated_drift_rule: >-
-    If origin/main advanced only through unrelated paths and the current canonical ACTIVE-CODEX control still satisfies this
-    epoch-90 contract, proceed. Do not stop merely because the repository head SHA changed.
-  relevant_drift_stop: >-
-    If ACTIVE-CODEX changes materially, the route epoch/task/locks differ, or a relevant CLTM implementation/control change
-    creates ambiguity, stop before private access and return a redacted canonical-control-drift result for GPT review.
-  forbidden_shortcut: "Do not use a stale local ACTIVE-CODEX file as canonical."
+  rule: >-
+    After fetch, read this ACTIVE-CODEX task from current origin/main. Do not require origin/main to equal a historical pinned SHA.
+    Unrelated main drift is acceptable only if this route_epoch 91 task and all safety locks remain intact. Any relevant CLTM/control
+    ambiguity must stop before local diagnostic writes.
 
 pre_task_context_policy:
-  canonical_control_source: "Read the current task from origin/main directly; do not bootstrap from local agent memory."
   no_agent_memory_bootstrap: true
   forbidden_local_context_reads:
     - "Codex memory files or directories"
     - "user home/profile history or notes"
     - "browser/profile/history/session data"
-    - "other private local context not explicitly bound by this route"
-  allowed_before_private_binding:
-    - "origin/main canonical control plane"
-    - "public repository code required by this route"
+    - "other private local context not explicitly authorized by this route"
+  allowed_context:
+    - "current origin/main canonical control plane"
+    - "public repository code required for MemoryStore import"
+    - "CLTM_PRIVATE_DATA_ROOT environment variable value, process-local use only, never print it"
     - "OS temporary runner created by this task"
-  scope_breach_behavior: "If any forbidden local context read occurs, stop and report a redacted scope-hygiene violation before canary execution."
-
-known_engineering_pattern:
-  pattern_id: "LEIP-PSPY-001"
-  title: "PowerShell调用Python -c时多层引号转义失败"
-  control: "Do not use python -c for the canary workflow. Use a UTF-8 temporary Python script file and compile it before any private access."
+  forbidden_private_source_access: >-
+    Do not read, open, stat for contents, parse, validate or otherwise access the bound DailyMemoryCandidate-v2 source in epoch 91.
+    Do not call private_source_binding_status or load_daily_memory_candidate_v2.
 
 public_runtime_bootstrap:
   source_roots_relative_to_repo:
@@ -83,122 +71,103 @@ public_runtime_bootstrap:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
   environment_rule: >-
-    Prepend only these exact repository-local public source roots to PYTHONPATH for the canary child process.
+    Prepend only these exact public repository-local source roots to PYTHONPATH for the diagnostic child process.
     Do not persist PYTHONPATH to User, Machine, registry, profile or shell startup files.
 
 runner_boundary:
   python_c: "FORBIDDEN"
   shell_inline_python_source: "FORBIDDEN"
-  runner_location: "OS temporary directory only; never public repository/worktree and never the CLTM private data-root"
-  runner_leaf_name: "cltm-private-canary-r90.py"
+  runner_location: "OS temporary directory only; never public repository/worktree and never CLTM private root"
+  runner_leaf_name: "cltm-private-store-diagnostic-r91.py"
   runner_encoding: "UTF-8"
-  runner_content_rule: >-
-    The temporary runner may contain only fixed orchestration over existing repository functions, environment variable names,
-    fixed status strings and fixed canary leaf names. It must not embed private path values, raw/private bodies, candidate semantics,
-    literal user/project scopes, credentials or other private values.
-  allowed_existing_functions:
-    - "private_source_binding_status"
-    - "load_daily_memory_candidate_v2"
-    - "daily_v2_package_to_w3_private_envelopes"
-    - "ingest_daily_memory_candidate_v2"
-    - "MemoryStore"
   compile_gate: >-
-    Run Python syntax compilation of the temporary UTF-8 runner before calling any private function or reading any private source.
-    If compile fails, stop with no private access and no retry.
-  temp_runner_cleanup: >-
-    The task-created temporary runner may be deleted after execution because it must contain no private values.
-    Do not delete or clean up any private canary store automatically.
+    Compile the temporary runner before reading CLTM_PRIVATE_DATA_ROOT or performing any local diagnostic write. On compile failure,
+    stop with no private-root access and no retry.
+  runner_content_rule: >-
+    The runner may contain only fixed orchestration, environment variable names, fixed diagnostic leaf names, MemoryStore invocation,
+    fixed status strings and cleanup logic. It must not embed private paths, candidate semantics, user/project scope literals or secrets.
 
-binding_recheck:
-  exactly_once: "Call private_source_binding_status once after the runner compile gate passes."
-  required_result: "PRIVATE_SOURCE_BINDING_CONFIGURED"
-  waiting_or_rejected: "Stop immediately; do not count candidates, create a store or ingest anything."
-  public_output: "status and fixed redacted reason only; never path or private semantics"
+private_root_boundary:
+  required_env_name: "CLTM_PRIVATE_DATA_ROOT"
+  path_output: "FORBIDDEN"
+  discovery: "FORBIDDEN"
+  allowed_root_checks:
+    - "bound value present"
+    - "root exists"
+    - "root is directory"
+    - "root resolves outside current public repository/worktree"
+  if_invalid: "Stop with fixed redacted status; do not create any probe."
 
-candidate_selection_gate:
-  load_scope: "Only the explicitly bound DailyMemoryCandidate-v2 file under the explicit private root."
-  count_only_before_store: true
-  zero: "Return NO_ELIGIBLE_USER_MEMORY_CANDIDATES and stop without store creation."
-  one: "Proceed with exactly that one eligible user-memory candidate."
-  more_than_one: "Return PRIVATE_CANARY_SELECTION_WAITING and stop without semantic selection or store creation."
-  forbidden_output: "Do not print candidate statement, episode text, source path, user/project literal scope or other private semantics."
+r90_artifact_observation:
+  fixed_leaf_name: "cltm-private-canary-r90.sqlite3"
+  allowed_check: "Existence/type only for this exact leaf; never open, delete, overwrite, reuse or inspect contents."
+  allowed_public_values: ["NONE", "FILE", "DIRECTORY", "OTHER"]
 
-canary_store:
-  root: "explicit CLTM private data-root only; never public repository/worktree"
-  leaf_name: "cltm-private-canary-r90.sqlite3"
+plain_write_probe:
+  fixed_leaf_name: ".cltm-private-write-probe-r91.tmp"
   freshness_required: true
-  if_leaf_exists: "Return PRIVATE_CANARY_STORE_NOT_FRESH and stop; do not delete, overwrite or reuse it."
-  cleanup: "DO_NOT_DELETE_AUTOMATICALLY; cleanup requires later explicit owner approval."
+  if_preexisting: "Stop as DIAGNOSTIC_PROBE_NOT_FRESH; do not delete or overwrite unknown pre-existing content."
+  action: >-
+    Create this exact leaf with exclusive-create semantics, write only the fixed ASCII marker CLTM_R91_WRITE_PROBE, flush/close,
+    then delete only the file created by this task.
+  on_failure: "Stop; do not run SQLite probe. Report only fixed redacted failure class."
 
-allowed_canary_action:
-  exactly_once: >-
-    After runner compile PASS, CONFIGURED binding, exactly-one eligible candidate, and fresh-store checks pass,
-    open one fresh isolated MemoryStore and call existing ingest_daily_memory_candidate_v2(payload, store) once.
-  required_path: "DailyMemoryCandidate-v2 -> DailyMemoryCandidateTransport-v1 -> W3PrivateCandidateEnvelope-v1 -> ConversationEpisode -> LearningPacket -> MemoryStore -> QueryPlan -> ContextBundle"
-  exact_recall_proof_required: true
-  candidate_authority_only: true
-  formal_promotion: "FORBIDDEN"
-  stop_after: "Close the store, emit only the redacted public receipt plus LOCAL_EXECUTION_ISSUES and lock_statement, then stop for GPT review."
-  failure_behavior: >-
-    If any exception occurs after the fresh store is created, do not retry and do not delete the store. Emit only a fixed redacted failure status,
-    lock_statement and LOCAL_EXECUTION_ISSUES; preserve the isolated store for later owner-approved review/cleanup.
+sqlite_memorystore_probe:
+  run_only_after_plain_probe_pass: true
+  fixed_leaf_name: "cltm-private-memorystore-probe-r91.sqlite3"
+  freshness_required: true
+  if_preexisting: "Stop as DIAGNOSTIC_PROBE_NOT_FRESH; do not delete or overwrite unknown pre-existing content."
+  action: >-
+    Create/connect one fresh MemoryStore at this exact leaf using existing MemoryStore, verify connection/schema initialization succeeds,
+    close it, then delete only this task-created probe database and any same-leaf -wal/-shm sidecars if they exist.
+  contains_private_candidate: false
+  ingestion: "FORBIDDEN"
+  query_or_recall: "FORBIDDEN"
+  cleanup_failure: "Report fixed cleanup failure and stop; do not broaden deletion scope."
 
 public_receipt_allow_only:
   - "schema_version"
   - "status"
-  - "validation_status"
-  - "candidate_authority_only"
-  - "formal_project_global_write"
-  - "source_hash"
-  - "pointer_hash"
-  - "episode_id_hash"
-  - "atom_id_hash"
-  - "scope_hash"
-  - "candidate_count"
-  - "imported_count"
-  - "duplicate_count"
-  - "non_imported_count"
-  - "recall_count"
-  - "exact_imported_atom_recalled"
-  - "recorded_at_hash"
-  - "binding_status"
+  - "root_binding_present"
+  - "root_shape_valid"
+  - "r90_store_leaf_state"
+  - "plain_write_probe"
+  - "sqlite_memorystore_probe"
+  - "cleanup_status"
   - "LOCAL_EXECUTION_ISSUES"
   - "lock_statement"
 
+status_contract:
+  success: "PRIVATE_STORE_WRITEABILITY_DIAGNOSTIC_PASS"
+  root_missing_or_invalid: "PRIVATE_ROOT_BINDING_OR_SHAPE_INVALID"
+  preexisting_probe: "PRIVATE_STORE_DIAGNOSTIC_PROBE_NOT_FRESH"
+  plain_write_failed: "PRIVATE_ROOT_PLAIN_WRITE_PROBE_FAILED"
+  sqlite_probe_failed: "PRIVATE_ROOT_MEMORYSTORE_SQLITE_PROBE_FAILED"
+  cleanup_failed: "PRIVATE_STORE_DIAGNOSTIC_CLEANUP_FAILED"
+
 forbidden_actions:
-  - "Do not read Codex memory, user home/profile history, browser/profile data or other local private context before or during this task."
-  - "Do not use python -c or embed multiline Python source in a PowerShell command argument."
-  - "Do not scan, guess, crawl or enumerate private source locations."
-  - "Do not access any private source other than the one explicit bound Daily-v2 file."
-  - "Do not ingest more than one eligible user-memory candidate."
-  - "Do not semantically choose among multiple eligible candidates."
-  - "Do not reuse, delete or overwrite a pre-existing canary store."
-  - "Do not echo private paths, raw/private bodies, candidate semantics or literal private scope identifiers."
-  - "Do not publish credentials, passwords, tokens, cookies, sessions, MFA/recovery, payment/bank/broker values."
-  - "Do not persist or globally mutate PYTHONPATH."
-  - "Do not perform a second canary attempt in epoch 90."
+  - "Do not call private_source_binding_status in epoch 91."
+  - "Do not read or validate the DailyMemoryCandidate-v2 file."
+  - "Do not run candidate counting, ingestion, recall or canary execution."
+  - "Do not create or reuse cltm-private-canary-r90.sqlite3 or any new canary store."
+  - "Do not read Codex memory, home/profile, browser/history or other unrelated local context."
+  - "Do not use python -c or shell-inline multiline Python."
+  - "Do not scan, enumerate or guess private directories/files."
+  - "Do not print private root/path values."
+  - "Do not modify ACLs, ownership, Windows Defender/Controlled Folder Access, registry, filesystem policy or permissions."
+  - "Do not persist PYTHONPATH."
+  - "Do not perform a second diagnostic attempt in epoch 91."
 
 hard_boundaries:
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
   - "No E48/live integration."
-  - "No private repository creation or visibility/permission change."
   - "No production MCP/Memory App/Gateway deployment."
-  - "No second canonical memory/query/bundle/vector/graph/temporal authority."
+  - "No repository visibility or permission change."
+  - "No private repository creation."
   - "No trading/accounts/funds actions."
-  - "No Codex merge or public code change is authorized by the canary execution."
+  - "No Codex merge or public implementation change is authorized by this diagnostic."
 
-completion_signal: "CODEX_CLTM_0021_PRIVATE_CANARY_R90_READY_FOR_GPT_REVIEW"
-waiting_signal: "PRIVATE_SOURCE_BINDING_WAITING"
-selection_waiting_signal: "PRIVATE_CANARY_SELECTION_WAITING"
-
-local_execution_learning:
-  matched_pattern: "LEIP-PSPY-001"
-  current_event: "second distinct task occurrence observed on Windows Codex PowerShell/Python boundary"
-  registry_action: "PROMOTION_REVIEW_REQUIRED"
-  canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
-  scope_hygiene_observation: "R89-PRETASK-CODEX-MEMORY-READ-001"
-  main_drift_observation: "R90-UNRELATED-MAIN-DRIFT-FALSE-STOP-001"
-
-next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_90_PRIVATE_CANARY"
+completion_signal: "CODEX_CLTM_0021_PRIVATE_STORE_DIAGNOSTIC_R91_READY_FOR_GPT_REVIEW"
+next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_91_PRIVATE_STORE_DIAGNOSTIC"
 updated_by: "GPT"
-updated_at: "2026-08-13T10:03:00+08:00"
+updated_at: "2026-08-13T10:20:00+08:00"
