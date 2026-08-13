@@ -1,0 +1,143 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
+route_epoch: 104
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: true
+private_candidate_source_read_allowed: true
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+accepted_implementation_head: "061f0496a49ebcc043e19a72ef335bb821296b63"
+accepted_ci_run: 31693514582
+owner_option_a_authorization_issue_comment: 5277767515
+gpt_final_acceptance_issue_comment: 5279642815
+
+purpose: >-
+  Initialize the durable operational candidate-only private MemoryStore and soak ledger with exactly one real recurring ingestion execution
+  against the already-bound DailyMemoryCandidate-v2 source. Prove that the accepted recurring runtime works on the owner's real private bindings
+  before any unattended scheduler is created. Formal PROJECT/GLOBAL promotion remains locked.
+
+canonical_runtime_gate:
+  remote_head: >-
+    Resolve exact current remote main using git ls-remote. Use one task-owned disposable normal clone under OS temp and require checked-out HEAD
+    to equal the observed remote main SHA.
+  runtime_base: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+  relevant_runtime_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
+  freshness_rule: >-
+    Require no changed file under any relevant runtime path between runtime_base and exact current main. Control-plane-only route/main drift is
+    permitted. Any runtime drift stops before private access.
+  pythonpath: >-
+    Set PYTHONPATH process-locally to exactly the three relevant source roots from the disposable clone. Do not persist PYTHONPATH.
+  no_shadow_runtime: >-
+    Do not copy, vendor, rewrite or install an alternate W3 implementation. Execute the merged canonical recurring runtime directly from the
+    disposable exact-main clone.
+
+private_binding:
+  required_env_names:
+    - "CLTM_PRIVATE_DATA_ROOT"
+    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
+  source_discovery: "FORBIDDEN"
+  path_output: "FORBIDDEN"
+  required_shape:
+    - "private root binding present and resolves to an existing directory outside public repo/worktree"
+    - "Daily-v2 binding present and resolves to an existing file under the exact private root"
+  private_read_scope: "exact bound Daily-v2 only through canonical recurring runtime"
+
+operational_artifacts:
+  store_leaf: "cltm-private-candidate-runtime.sqlite3"
+  wal_leaf: "cltm-private-candidate-runtime.sqlite3-wal"
+  shm_leaf: "cltm-private-candidate-runtime.sqlite3-shm"
+  ledger_leaf: "cltm-private-candidate-runtime-soak-ledger.jsonl"
+  lock_leaf: ".cltm-private-candidate-runtime.lock"
+  frozen_canary_store_leaf: "cltm-private-canary-r98.sqlite3"
+  preflight_freshness: >-
+    Before invoking the recurring runtime, require operational store, WAL, SHM and ledger leaves all absent. Do not delete, rename, reuse or
+    overwrite them if any is already present. Lock-file existence alone is not a freshness failure because locking is process-owned.
+  frozen_r98: >-
+    Do not open, modify, move, delete, enumerate through or reuse the preserved r98 canary store. Its existence is not an operational-store
+    freshness failure.
+
+execution:
+  command_semantics: >-
+    Invoke exactly one canonical `recurring-private-ingest` CLI execution from the accepted merged runtime using the explicit environment
+    bindings. Capture only its public-safe JSON receipt and process exit code. Do not run ad-hoc private parsers or a second ingestion call.
+  attempt_consumption: >-
+    Once the recurring-private-ingest process starts, epoch 104 is consumed regardless of success or failure. Do not retry in this epoch.
+    Preserve any operational DB/WAL/SHM/ledger/lock artifacts created by the attempt for GPT review.
+  success_requirements:
+    - "CLI exit code = 0"
+    - "receipt status = IMPORTED"
+    - "validation_status = PASS"
+    - "candidate_authority_only = true"
+    - "formal_project_global_write = LOCKED"
+    - "imported_count >= 1"
+    - "duplicate_count >= 0"
+    - "non_imported_count = 0"
+    - "recall_count >= 1"
+    - "exact_imported_atom_recalled = true"
+    - "operational store exists after execution"
+    - "soak ledger exists after execution"
+  non_success_truthfulness: >-
+    Exit code 2 with COMMITTED_STATE_AUDIT_FAILED or COMMITTED_STATE_TEARDOWN_FAILED is an attempt-consumed committed-state failure and must stop
+    for GPT review. Exit code 1 / REJECTED is a non-success attempt and must also stop without retry. Do not infer rollback from the exit code.
+
+public_closeout_allow_only:
+  - "remote_main_sha_observed"
+  - "runtime_freshness"
+  - "root_binding_present"
+  - "source_binding_present"
+  - "root_shape_valid"
+  - "source_shape_valid"
+  - "operational_store_fresh_preflight"
+  - "cli_exit_code"
+  - "status"
+  - "validation_status"
+  - "candidate_authority_only"
+  - "formal_project_global_write"
+  - "candidate_count"
+  - "imported_count"
+  - "duplicate_count"
+  - "non_imported_count"
+  - "recall_count"
+  - "exact_imported_atom_recalled"
+  - "source_hash"
+  - "pointer_hash"
+  - "episode_id_hash"
+  - "atom_id_hash"
+  - "scope_hash"
+  - "recorded_at_hash"
+  - "operational_store_exists"
+  - "soak_ledger_exists"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_OPERATIONAL_INITIALIZATION_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+forbidden_actions:
+  - "Do not run a second epoch-104 ingestion attempt."
+  - "Do not read or print raw Daily-v2/private candidate text or private paths."
+  - "Do not inspect or reuse the r98 canary store."
+  - "Do not create a scheduler, service, startup task, registry autorun or other persistence mechanism."
+  - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
+  - "Do not create a second W3 authority or alternate ingestion implementation."
+  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
+
+completion_signal: "CODEX_CLTM_0021_OPERATIONAL_STORE_INITIALIZATION_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 104 authorizes exactly one real operational candidate-only recurring ingestion into a fresh durable private operational store. Unattended
+  scheduling and formal PROJECT/GLOBAL promotion remain LOCKED pending GPT review of this initialization receipt.
