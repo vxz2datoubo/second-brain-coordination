@@ -1,17 +1,17 @@
-schema_version: "105.1"
+schema_version: "106.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-POST-CANARY-OWNER-DECISION-GATE"
+task_id: "CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 99
-mode: "post_canary_acceptance_owner_decision_gate"
-mode_label: "【等待Owner决策】CLTM-0021 real/private canary 已通过，正式权限继续锁定"
-status: "WAITING_OWNER_DECISION"
-execution_allowed: false
-automatic_resume_within_task: false
-second_user_start_command_required: true
+route_epoch: 100
+mode: "implementation_review_before_unattended_activation"
+mode_label: "【Codex实现】CLTM-0021 持续private candidate ingestion soak"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
+second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
@@ -19,71 +19,102 @@ real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
 private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "3d7481ac6f1f2823fd3ba1f89c96cb0ac14c0b59"
+canonical_main_at_route_publish: "927e29ed2afe880d4c7b57f8039d6cf023df81fa"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R100-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION.yaml"
+owner_authorization_issue_comment: 5277767515
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
-  route_epoch: 98
-  disposition: "REAL_PRIVATE_CANDIDATE_CANARY_PASS"
-  remote_main_sha_observed: "3d7481ac6f1f2823fd3ba1f89c96cb0ac14c0b59"
-  canonical_read_mode: "TEMP_BARE_GIT_EXACT_HEAD"
-  runtime_freshness: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
-  root_binding_present: true
-  source_binding_present: true
-  root_shape_valid: true
-  source_shape_valid: true
-  candidate_count_preflight: 1
-  eligible_candidate_count: 1
-  store_fresh: true
-  ingestion_status: "IMPORTED"
-  validation_status: "PASS"
-  candidate_authority_only: true
+  task_id: "CODEX-CLTM-0021-POST-CANARY-OWNER-DECISION-GATE"
+  route_epoch: 99
+  disposition: "OWNER_SELECTED_OPTION_A"
+  accepted_real_canary: true
+  accepted_direct_sid_modify: true
   formal_project_global_write: "LOCKED"
-  imported_count: 1
-  duplicate_count: 0
-  non_imported_count: 0
-  recall_count: 1
-  exact_imported_atom_recalled: true
-  local_execution_issues: "NONE"
 
-accepted_milestone:
-  real_private_source_to_candidate_ingest_to_exact_recall: "ACCEPTED"
-  durable_private_root_direct_sid_modify: "ACCEPTED"
-  candidate_store_authority: "CANDIDATE_ONLY"
-  successful_r98_store_retention: "PRESERVE_LOCAL_PRIVATE_ARTIFACT"
-  raw_private_publication: "FORBIDDEN"
+root_goal: >-
+  Implement and test the durable recurring private candidate-only ingestion runtime selected by the owner. Reuse the accepted W3 MemoryStore and
+  private candidate ingestion path; prepare one durable operational candidate store and a one-shot scheduler-safe runner with idempotency,
+  correction, concurrency, source-stability, privacy-safe receipt and soak-audit behavior. Epoch 100 is implementation/review only: no real
+  private source read, no operational private store creation and no unattended scheduler activation.
 
-owner_decision_required_before_next_execution:
-  reason: >-
-    Epoch 98 proves the real/private candidate path through the existing W3 candidate runtime. It does not grant formal PROJECT/GLOBAL memory
-    authority. Any promotion or recurring automatic private ingestion changes authority and/or persistence behavior and requires a new explicit
-    owner decision plus a new GPT-published route.
-  no_default_promotion: true
-  candidate_only_state_may_remain: true
-  formal_project_promotion_requires_owner_approval: true
-  formal_global_promotion_requires_owner_approval: true
-  recurring_private_ingestion_requires_new_route: true
+operational_design:
+  future_store_leaf: "cltm-private-candidate-runtime.sqlite3"
+  frozen_r98_store_leaf: "cltm-private-canary-r98.sqlite3"
+  frozen_r98_rule: "DO_NOT_OPEN_REUSE_MUTATE_MIGRATE_OR_DELETE"
+  candidate_authority_only: true
+  formal_project_promotion: "LOCKED"
+  formal_global_promotion: "LOCKED"
+  future_source_binding: "EXACT_EXISTING_ENV_BINDING_ONLY"
+  future_source_discovery: "FORBIDDEN"
 
-codex_instruction: >-
-  STOP. Do not rerun epoch 98, do not read the private source, do not open/reuse/delete the r98 private canary store, do not ingest another
-  candidate, and do not perform PROJECT/GLOBAL promotion. Wait for a new GPT-published executable route after explicit owner decision.
+required_work_summary:
+  - "Create testable persistent one-shot recurring ingestion entry point using existing bridge/MemoryStore."
+  - "Allow validated zero/multiple eligible candidates; remove only the canary exact-one restriction, not admission rules."
+  - "Treat identical replay as idempotent successful no-change."
+  - "Preserve cross-run correction/supersession semantics and batch atomicity."
+  - "Add deterministic single-run concurrency guard; never solve contention with alternate stores."
+  - "Add source-stability/torn-read guard before import."
+  - "Add hash/count/status-only receipt and local private public-safe soak ledger/equivalent audit."
+  - "Expose scheduler-safe one-shot command without python -c or shell output-redirection dependence."
+  - "Add synthetic/adversarial tests for persistence, replay, incremental new candidates, correction, rollback, invalid/secret input, concurrency, source instability and privacy."
+  - "Keep r98 store untouched and formal PROJECT/GLOBAL promotion impossible."
+
+allowed_runtime_prefixes:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/"
+allowed_task_artifact_prefix:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-R100/"
+codex_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+
+acceptance_gates:
+  - "Focused new tests PASS."
+  - "Existing relevant Phase-3 suite PASS."
+  - "Synthetic first import -> exact recall PASS."
+  - "Identical replay -> no duplicate atom and explicit idempotent/no-change receipt."
+  - "Later package can add new candidates while retaining prior current memory."
+  - "Cross-run correction closes prior candidate and replay cannot reopen it."
+  - "Batch invariant failure rolls back all package writes."
+  - "Source instability produces no import."
+  - "Concurrent second run cannot concurrently mutate or create alternate store."
+  - "No private path/raw text/semantic value in receipts/logs/tests."
+  - "No second W3 authority."
+  - "Formal PROJECT/GLOBAL promotion remains locked."
+  - "No real private access or scheduler activation occurred in epoch 100."
+
+required_closeout:
+  - "commit/head SHA"
+  - "changed paths"
+  - "focused test counts"
+  - "full relevant Phase-3 test counts"
+  - "privacy/adversarial results"
+  - "worktree status"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "explicit statement: REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "explicit statement: UNATTENDED_SCHEDULER_NOT_ACTIVATED"
 
 forbidden_actions:
-  - "Do not rerun epoch 98 or create another r98 store."
-  - "Do not read DailyMemoryCandidate-v2 while this gate is active."
-  - "Do not open, modify, move, delete or reuse the successful r98 private canary store."
-  - "Do not promote the accepted candidate to formal PROJECT or GLOBAL memory."
-  - "Do not start recurring/automatic private ingestion."
+  - "Do not read CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH or any private body in epoch 100."
+  - "Do not create/open the future operational private store in epoch 100."
+  - "Do not open/reuse/delete/migrate the successful r98 store."
+  - "Do not create/modify Windows Task Scheduler tasks, services or startup persistence."
   - "Do not mutate ACLs, ownership, Defender/CFA, registry or security policy."
-  - "Do not publish raw private text/path/semantic values."
-  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
+  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not touch unrelated agents/programs, live/production MCP/Gateway, repository visibility or trading/accounts."
+  - "Do not merge, direct-write main, force-push or rewrite history."
 
+next_stage_after_gpt_acceptance: >-
+  GPT may publish epoch 101 for bounded initialization of the durable operational candidate store and unattended soak activation under the
+  already-recorded Option-A owner authorization. No additional owner decision is required unless activation materially broadens cadence,
+  privilege, filesystem/security scope or formal memory authority.
+
+completion_signal: "CODEX_CLTM_0021_RECURRING_CANDIDATE_SOAK_IMPLEMENTATION_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
 lock_statement: >-
-  Epoch 98 real/private candidate ingest->exact-recall is accepted at candidate authority only. Epoch 99 is a non-executable owner-decision
-  gate. Formal PROJECT/GLOBAL persistence/promotion, recurring private ingestion, raw-private publication, production/live integration,
-  repository/permission changes and trading/accounts remain LOCKED until a fresh explicit owner decision and GPT route publication.
+  Option A authorizes the recurring candidate-only direction. Epoch 100 authorizes implementation/testing only. Real private execution,
+  unattended scheduling and formal PROJECT/GLOBAL promotion remain LOCKED pending GPT acceptance and a fresh activation route.
