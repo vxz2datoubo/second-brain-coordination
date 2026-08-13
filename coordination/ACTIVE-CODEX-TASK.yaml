@@ -1,126 +1,126 @@
-schema_version: "106.3"
+schema_version: "107.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
-active_pull_request: 273
-task_id: "CODEX-CLTM-0021-POSTCOMMIT-TEARDOWN-TRUTHFULNESS"
+active_pull_request: null
+task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 103
-mode: "postcommit_teardown_truthfulness_before_unattended_activation"
-mode_label: "【Codex最终硬化】CLTM-0021 commit后 teardown 回执真实性"
+route_epoch: 104
+mode: "one_real_operational_candidate_store_initialization_before_scheduler"
+mode_label: "【Codex真实运行】CLTM-0021 operational candidate store 首次初始化"
 status: "READY"
 execution_allowed: true
-automatic_resume_within_task: true
-second_user_start_command_required: false
+automatic_resume_within_task: false
+second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
+real_private_candidate_ingestion_allowed: true
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
+private_candidate_source_read_allowed: true
 unattended_scheduler_activation_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "1159d4530bb92a05490acf9d8154d93376d46772"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R103-POSTCOMMIT-TEARDOWN-TRUTHFULNESS.yaml"
+canonical_main_at_route_publish: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R104-OPERATIONAL-STORE-INIT.yaml"
 owner_authorization_issue_comment: 5277767515
-implementation_pr: 273
-implementation_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
-reviewed_head: "11124ab62b8371219e7f6be6fbc97291429fdbad"
+gpt_final_implementation_acceptance_comment: 5279642815
+accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+accepted_implementation_head: "061f0496a49ebcc043e19a72ef335bb821296b63"
+accepted_ci_run: 31693514582
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-RECURRING-SOAK-HARDENING"
-  route_epoch: 102
-  disposition: "ORIGINAL_FOUR_BLOCKERS_ACCEPTED_ADJACENT_TEARDOWN_TRUTHFULNESS_GAP_FOUND"
-  branch_sha_verified: true
-  exact_four_paths_verified: true
-  focused_tests: "7/7 PASS"
-  full_phase3_tests: "216/216 PASS"
+  task_id: "CODEX-CLTM-0021-POSTCOMMIT-TEARDOWN-TRUTHFULNESS"
+  route_epoch: 103
+  disposition: "ACCEPTED_AND_IMPLEMENTATION_MERGED"
+  focused_tests: "10/10 PASS"
+  full_phase3_tests: "219/219 PASS"
   public_safety_scan: "PASS 70 files 0 issues"
-  github_actions_run: 31691775482
+  github_actions_run: 31693514582
   github_python_311: "SUCCESS"
   github_python_313: "SUCCESS"
-  interleaving_lock_before_snapshot: "PASS"
-  crash_safe_os_released_lock: "PASS"
-  postcommit_audit_failure_truthfulness: "PASS"
-  local_execution_issues: "NONE"
+  exact_four_paths_verified: true
+  recurring_runtime_implementation: "ACCEPTED"
   real_private_execution: "NOT_RUN"
   unattended_scheduler: "NOT_ACTIVATED"
   formal_project_global_promotion: "LOCKED"
 
-blocking_finding:
-  id: "R103-POSTCOMMIT-TEARDOWN-AMBIGUITY"
-  finding: >-
-    After W3 commit and successful ledger append, MemoryStore.close or OS-lock unlock/descriptor-close failure can still escape as generic
-    RecurringCandidateSoakError and be rendered by CLI as REJECTED, even though durable candidate state and audit evidence already exist.
-  required_fix: >-
-    Preserve a redacted explicit committed-state teardown-failure receipt. It must distinguish committed state from pre-commit rejection and
-    preserve audit success when ledger append already completed. No raw error/path/private semantics may be emitted.
+root_goal: >-
+  Execute exactly one real/private recurring candidate ingestion through the accepted merged runtime into the fresh durable operational private
+  candidate store and append its public-safe soak ledger. This is the final real initialization gate before any unattended scheduler is created.
 
-exact_allowed_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/recurring_candidate_soak.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/cli.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_recurring_candidate_soak.py"
+execution_contract:
+  route_file: "coordination/ROUTES/CODEX-CLTM-0021-R104-OPERATIONAL-STORE-INIT.yaml"
+  runtime_source: "exact current main disposable normal clone"
+  runtime_freshness_base: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+  command: "canonical recurring-private-ingest CLI only"
+  attempts_after_process_start: 1
+  operational_store_leaf: "cltm-private-candidate-runtime.sqlite3"
+  operational_ledger_leaf: "cltm-private-candidate-runtime-soak-ledger.jsonl"
+  preserved_canary_leaf: "cltm-private-canary-r98.sqlite3"
+  scheduler_activation: "FORBIDDEN_IN_E104"
 
-acceptance_gates:
-  - "MemoryStore.close failure after successful import + ledger append returns explicit COMMITTED teardown-failure receipt."
-  - "OS lock teardown failure after successful import + ledger append returns explicit COMMITTED teardown-failure receipt."
-  - "CLI uses distinct non-success exit code and never generic REJECTED for those post-commit cases."
-  - "Pre-commit failures remain non-committed and do not falsely claim durable mutation."
-  - "COMMITTED_STATE_AUDIT_FAILED behavior remains correct."
-  - "Focused tests PASS."
-  - "Full relevant Phase-3 suite PASS."
-  - "public_safety_scan.py PASS."
-  - "git diff --check PASS."
-  - "GitHub Actions Python 3.11 and 3.13 both PASS."
-  - "PR #273 remains exactly four authorized paths."
-  - "REAL_PRIVATE_EXECUTION_NOT_RUN."
-  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED."
-  - "FORMAL PROJECT/GLOBAL promotion remains LOCKED."
-
-branch_policy:
-  branch: "codex/cltm-0021-recurring-candidate-soak-r100"
-  base_reviewed_head: "11124ab62b8371219e7f6be6fbc97291429fdbad"
-  force_push: false
-  merge: false
-  rule: "Normal additive commits only on existing PR #273 branch."
+success_gate:
+  required_cli_exit_code: 0
+  required_status: "IMPORTED"
+  required_validation_status: "PASS"
+  candidate_authority_only: true
+  formal_project_global_write: "LOCKED"
+  imported_count_minimum: 1
+  non_imported_count: 0
+  recall_count_minimum: 1
+  exact_imported_atom_recalled: true
+  operational_store_exists: true
+  soak_ledger_exists: true
 
 forbidden_actions:
-  - "Do not read real private source/store/body or private environment values."
-  - "Do not create/open operational private store or preserved r98 store."
-  - "Do not activate Task Scheduler/service/startup persistence."
-  - "Do not modify or weaken public_safety_scan.py."
-  - "Do not modify files outside exact_allowed_paths."
+  - "Do not retry after the recurring-private-ingest process starts."
+  - "Do not print private paths or raw/private semantic values."
+  - "Do not open/reuse/delete/move the r98 canary store."
+  - "Do not create Task Scheduler/service/startup/autorun persistence."
   - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
-  - "Do not promote PROJECT/GLOBAL memory."
-  - "Do not merge PR #273, force-push or rewrite history."
+  - "Do not create an alternate W3 implementation or authority."
+  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
 
 required_closeout:
-  - "new_head_sha"
-  - "new commits since reviewed_head"
-  - "exact changed paths"
-  - "focused tests/count"
-  - "full relevant Phase-3 tests/count"
-  - "public safety scan result"
-  - "git diff --check result"
-  - "GitHub Actions run id + Python 3.11/3.13 conclusions"
-  - "MemoryStore.close postcommit truthfulness test"
-  - "OS lock teardown postcommit truthfulness test"
-  - "precommit rejection remains non-committed test"
-  - "audit-failure truthfulness regression test"
+  - "remote_main_sha_observed"
+  - "runtime_freshness"
+  - "root_binding_present"
+  - "source_binding_present"
+  - "root_shape_valid"
+  - "source_shape_valid"
+  - "operational_store_fresh_preflight"
+  - "cli_exit_code"
+  - "status"
+  - "validation_status"
+  - "candidate_authority_only"
+  - "formal_project_global_write"
+  - "candidate_count"
+  - "imported_count"
+  - "duplicate_count"
+  - "non_imported_count"
+  - "recall_count"
+  - "exact_imported_atom_recalled"
+  - "source_hash"
+  - "pointer_hash"
+  - "episode_id_hash"
+  - "atom_id_hash"
+  - "scope_hash"
+  - "recorded_at_hash"
+  - "operational_store_exists"
+  - "soak_ledger_exists"
   - "LOCAL_EXECUTION_ISSUES"
-  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "REAL_PRIVATE_OPERATIONAL_INITIALIZATION_RUN"
   - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
   - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_CLTM_0021_POSTCOMMIT_TEARDOWN_TRUTHFULNESS_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_OPERATIONAL_STORE_INITIALIZATION_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 103 authorizes only post-commit teardown truthfulness hardening on PR #273. Real private execution, operational-store activation,
-  unattended scheduling, formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/accounts remain
-  LOCKED pending GPT acceptance.
+  Epoch 104 authorizes exactly one real candidate-only operational initialization run. Unattended scheduling, formal PROJECT/GLOBAL promotion,
+  security/permission changes, production/live integration and trading/accounts remain LOCKED pending GPT review.
