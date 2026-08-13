@@ -1,14 +1,16 @@
 schema_version: "1.0"
-task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
+task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 107
+route_epoch: 108
 source_agent: "CODEX"
 target_agent: "GPT"
 reviewer: "GPT"
 actual_executor: "CODEX"
-status: "READY_FOR_GPT_REVIEW"
+status: "HARDENING_READY_FOR_GPT_REVIEW"
 branch: "codex/cltm-0021-memory-palace-r107"
 base_canonical_main: "c66f96c1a7de207c78167ff09640293e4d7a68b3"
+canonical_main_verified_after_route_publish: "d83ff7c1b6438f1201a1df1bbf92e16c3702ce10"
+reviewed_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
 delivery_scope:
   - "synthetic-only manual capture trigger"
   - "candidate-only W3 packet/store/query reuse"
@@ -17,9 +19,12 @@ delivery_scope:
   - "owner-stance and append-preserving correction"
   - "freshness-gated current versus historical retrieval"
   - "cognitive coverage contract and post-write exact recall"
+  - "bitemporal claim-validity versus event-interval separation"
+  - "confidence-gated temporal retrieval and deterministic long-message atomization"
+  - "structured owner-stance targets, typed conflict discipline and content-bound provenance"
 validation:
-  focused_memory_palace_tests: "13/13 PASS"
-  phase3_synthetic_regression: "232/232 PASS"
+  focused_memory_palace_tests: "24/24 PASS"
+  phase3_synthetic_regression: "243/243 PASS"
   public_safety_scan: "PASS; 72 files scanned; 0 issues"
   yaml_parse: "PASS; 3 control/handoff YAML files"
   git_diff_check: "PASS"
@@ -29,6 +34,15 @@ negative_results:
   - "unknown-time same-day plans remain potential, not hard, conflicts"
   - "stale short-cycle market clue excluded from CURRENT and retained for HISTORICAL"
   - "foreign user scope receives no recalled candidate"
+  - "untrusted/non-temporal query does not activate same-day temporal scan"
+  - "same-day preference/stance does not become a schedule conflict"
+  - "a transient invalid regex boundary was caught by UTF-8 focused tests and replaced with explicit marker matching"
+local_execution_issues:
+  - issue_id: "LEIP-UNICODE-001-R108-REGEX"
+    问题特征: "A Unicode-target helper used an invalid optional word-boundary regex and failed at runtime."
+    发现途径与对照测试: "Focused synthetic UTF-8 suite failed during structured stance-target tests; explicit marker implementation then passed 24/24."
+    根因范围与限制: "Localized regex construction defect; no claim is made about the wider Unicode issue family."
+    可逆解决办法与撤销方式: "Use explicit Chinese/English marker membership, covered by focused tests; revert this helper change to restore prior behavior if needed."
 locks:
   real_private_source_or_store_read: "NOT_RUN_AND_LOCKED"
   real_private_ingestion_or_canary: "NOT_RUN_AND_LOCKED"
@@ -40,4 +54,4 @@ locks:
 unknowns:
   - "Rich Chinese temporal expressions beyond today/tomorrow/day-after-tomorrow are an explicit later parser expansion."
   - "Optional semantic-provider interface has no network dependency and was not connected to an embedding service."
-completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_HARDENING_READY_FOR_GPT_REVIEW"

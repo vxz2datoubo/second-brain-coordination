@@ -29,3 +29,17 @@ The automated Phase 3 suite uses regenerated synthetic bytes only. Review regres
 - reference acceptance: Asia/Shanghai `2026-08-14T20:00:00+08:00` plus `明天` resolves to `2026-08-15`; a same-day unknown-time prior event is recalled and produces `SCHEDULE_POTENTIAL_CONFLICT`.
 - negative coverage: secret-shaped input and prompt injection reject before mutation; overlapping fixed intervals are hard conflicts; non-overlap is not; stale short-cycle market clues are CURRENT-blocked and HISTORICAL-visible.
 - real private source/store read, private ingestion/canary, scheduler activation, formal PROJECT/GLOBAL promotion, production MCP/Gateway and live/trading execution: not run and locked.
+
+## Epoch 108 Memory Palace v1 hardening execution receipt
+
+- agent_id: `CODEX`; actual reviewer: `GPT`; PR: `#280`; branch: `codex/cltm-0021-memory-palace-r107`.
+- reviewed head: `44500aac45bae397d4889f43bcf09d92fe6b5edb`; canonical main reverified through healthy isolated clone: `d83ff7c1b6438f1201a1df1bbf92e16c3702ce10`.
+- bitemporal contract: claim validity begins at recorded utterance time; a referenced event interval remains separate in Memory Palace metadata.
+- temporal channel: only HIGH-confidence explicit/relative temporal expressions activate temporal scan; non-temporal post-write recall relies on content/graph evidence.
+- atomization: deterministic offline multi-clause synthetic atomizer emits typed goal, commitment, preference, decision and event-report atoms with shared episode provenance.
+- owner stances: structured claim/source targets support authenticity, bias, credibility, good/bad, risk, usefulness and accuracy as non-objective owner stances; opposite stances preserve supersession lineage.
+- conflict discipline: scheduling is event-like only; hard/potential schedules remain conservative, and typed unknown-constraint, plan-supersession, stance and source-credibility conflicts are tested.
+- provenance/freshness: synthetic episode identity is content-hash-bound without raw receipt text; explicit freshness policy boundary classifies stock/trading clues even without the literal market word.
+- focused/adversarial tests: 24 passed; full Phase-3 synthetic regression: 243 passed.
+- LOCAL_EXECUTION_ISSUES: a Unicode-target regex helper had an invalid optional-boundary expression; UTF-8 focused tests reproduced it, explicit marker matching fixed it, and the broader Unicode root-cause family remains UNKNOWN.
+- real private source/store read, real ingestion/canary, scheduler activation, formal PROJECT/GLOBAL promotion, production MCP/Gateway and live/trading execution: not run and locked.

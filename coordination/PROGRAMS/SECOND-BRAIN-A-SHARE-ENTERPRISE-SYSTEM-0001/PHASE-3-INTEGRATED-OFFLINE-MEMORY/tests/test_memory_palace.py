@@ -207,6 +207,120 @@ class MemoryPalaceTestCase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "timezone_required"):
             normalize_temporal_expression("明天", "2026-08-14T20:00:00")
 
+    def test_r108_tomorrow_plan_is_current_now_with_separate_event_interval(self) -> None:
+        receipt = self.capture("明天我要去合成运动。采集记忆", "episode-r108-bitemporal")
+        atom = self.store.get_atom(receipt.atom_ids[0])
+        conversation = atom["memory_metadata"]["conversation"]
+        self.assertEqual(conversation["valid_from"], "2026-08-14T12:00:00Z")
+        self.assertEqual(
+            conversation["memory_palace"]["event_interval"]["resolved_start"],
+            "2026-08-15T00:00:00+08:00",
+        )
+        recalled = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="合成运动", anchor_time=NOW, valid_at=NOW,
+        )
+        self.assertEqual({item["atom"]["id"] for item in recalled}, set(receipt.atom_ids))
+
+    def test_r108_stance_is_not_historical_before_it_was_recorded(self) -> None:
+        receipt = self.capture("我觉得这个消息是假的。采集记忆", "episode-r108-stance")
+        before = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT, query_text="消息", anchor_time=NOW,
+            valid_at="2026-08-14T10:00:00+08:00", intent="HISTORICAL",
+        )
+        after = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT, query_text="消息", anchor_time=NOW,
+            valid_at="2026-08-14T21:00:00+08:00", intent="HISTORICAL",
+        )
+        self.assertEqual(before, ())
+        self.assertEqual({item["atom"]["id"] for item in after}, set(receipt.atom_ids))
+
+    def test_r108_non_temporal_queries_do_not_scan_anchor_date(self) -> None:
+        first = self.capture("今天合成苹果。采集记忆", "episode-r108-apple")
+        second = self.capture("今天合成香蕉。采集记忆", "episode-r108-banana")
+        recalled = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="苹果", anchor_time=NOW,
+        )
+        self.assertEqual({item["atom"]["id"] for item in recalled}, set(first.atom_ids))
+        self.assertNotIn(second.atom_ids[0], {item["atom"]["id"] for item in recalled})
+        self.assertNotIn("temporal", recalled[0]["explanation"]["channels"])
+
+    def test_r108_long_passage_emits_typed_atoms_with_one_episode_lineage(self) -> None:
+        receipt = self.capture(
+            "我的目标是完成合成项目；我承诺明天提交合成报告；我喜欢合成茶；我决定整理合成资料；2026-08-16 有合成会议。采集记忆",
+            "episode-r108-long",
+        )
+        atoms = [self.store.get_atom(atom_id) for atom_id in receipt.atom_ids]
+        self.assertEqual({atom["memory_metadata"]["conversation"]["claim_role"] for atom in atoms}, {
+            "USER_GOAL", "USER_COMMITMENT", "USER_PREFERENCE", "USER_DECISION", "USER_EVENT_REPORT",
+        })
+        self.assertEqual({atom["source_refs"][0] for atom in atoms}, {atoms[0]["source_refs"][0]})
+
+    def test_r108_structured_stance_targets_are_distinct_and_update(self) -> None:
+        first = self.capture("我觉得这个消息是假的；这个来源有偏见。采集记忆", "episode-r108-targets-1")
+        first_atoms = [self.store.get_atom(atom_id) for atom_id in first.atom_ids]
+        target_by_type = {
+            atom["memory_metadata"]["conversation"]["memory_palace"]["evaluation_type"]:
+            atom["memory_metadata"]["conversation"]["memory_palace"]["target_id"] for atom in first_atoms
+        }
+        self.assertNotEqual(target_by_type["AUTHENTICITY"], target_by_type["BIAS"])
+        second = self.capture("这个来源没有偏见。采集记忆", "episode-r108-targets-2", "2026-08-15T20:00:00+08:00")
+        self.assertEqual(self.store.get_atom(first.atom_ids[1])["knowledge_status"], "superseded")
+        self.assertEqual(self.store.get_atom(second.atom_ids[0])["memory_metadata"]["conversation"]["claim_role"], "USER_CORRECTION")
+
+    def test_r108_evaluations_are_stances_and_credibility_conflict_is_typed(self) -> None:
+        good = self.capture("我觉得合成工具很好。采集记忆", "episode-r108-good")
+        bad = self.capture("我觉得合成工具很差。采集记忆", "episode-r108-bad", "2026-08-15T20:00:00+08:00")
+        self.assertEqual(self.store.get_atom(good.atom_ids[0])["knowledge_status"], "superseded")
+        self.assertEqual(self.store.get_atom(bad.atom_ids[0])["memory_metadata"]["conversation"]["memory_palace"]["epistemic_status"], "OWNER_STANCE_NOT_OBJECTIVE_FACT")
+        trusted = self.capture("这个来源可信。采集记忆", "episode-r108-trust")
+        distrusted = self.capture("这个来源不可信。采集记忆", "episode-r108-distrust", "2026-08-16T20:00:00+08:00")
+        self.assertEqual(self.store.get_atom(trusted.atom_ids[0])["knowledge_status"], "superseded")
+        self.assertIn("SOURCE_CREDIBILITY_CONFLICT", distrusted.conflict_types)
+
+    def test_r108_risk_and_accuracy_are_owner_stances_not_objective_facts(self) -> None:
+        risk = self.capture("我觉得合成方案有风险。采集记忆", "episode-r108-risk")
+        accuracy = self.capture("我觉得合成预测不准确。采集记忆", "episode-r108-accuracy")
+        for receipt, expected_type in ((risk, "RISK"), (accuracy, "ACCURACY")):
+            palace = self.store.get_atom(receipt.atom_ids[0])["memory_metadata"]["conversation"]["memory_palace"]
+            self.assertEqual(palace["evaluation_type"], expected_type)
+            self.assertEqual(palace["epistemic_status"], "OWNER_STANCE_NOT_OBJECTIVE_FACT")
+
+    def test_r108_plan_supersession_and_unknown_constraint_are_typed(self) -> None:
+        self.capture("2026-08-15 我要合成运动。采集记忆", "episode-r108-plan-old")
+        replacement = self.capture("2026-08-15 我要合成运动。采集记忆", "episode-r108-plan-new", "2026-08-14T21:00:00+08:00")
+        self.assertIn("PLAN_SUPERSESSION_CANDIDATE", replacement.conflict_types)
+        self.assertIn("UNKNOWN_CONSTRAINT", replacement.conflict_types)
+
+    def test_r108_same_day_non_event_memories_have_no_schedule_conflict(self) -> None:
+        self.capture("今天我喜欢合成茶。采集记忆", "episode-r108-pref")
+        receipt = self.capture("今天我觉得合成消息是假的。采集记忆", "episode-r108-stance")
+        self.assertNotIn("SCHEDULE_POTENTIAL_CONFLICT", receipt.conflict_types)
+        self.assertNotIn("SCHEDULE_HARD_CONFLICT", receipt.conflict_types)
+
+    def test_r108_source_content_hash_changes_source_lineage(self) -> None:
+        first = self.capture("合成来源内容甲。采集记忆", "episode-r108-content")
+        second = self.capture("合成来源内容乙。采集记忆", "episode-r108-content")
+        self.assertNotEqual(first.atom_ids, second.atom_ids)
+        first_provenance = self.store.provenance_for_atom(first.atom_ids[0])[0]
+        second_provenance = self.store.provenance_for_atom(second.atom_ids[0])[0]
+        self.assertNotEqual(first_provenance["packet_content_hash"], second_provenance["packet_content_hash"])
+        self.assertNotEqual(first_provenance["episode_manifest_id"], second_provenance["episode_manifest_id"])
+
+    def test_r108_stock_clue_without_market_word_is_short_cycle_and_stale(self) -> None:
+        receipt = self.capture("合成股票涨停线索。采集记忆", "episode-r108-stock")
+        current = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT, query_text="股票", anchor_time=NOW,
+            valid_at="2026-08-16T21:00:00+08:00",
+        )
+        historical = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT, query_text="股票", anchor_time=NOW,
+            valid_at="2026-08-16T21:00:00+08:00", intent="HISTORICAL",
+        )
+        self.assertEqual(current, ())
+        self.assertEqual({item["atom"]["id"] for item in historical}, set(receipt.atom_ids))
+
 
 if __name__ == "__main__":
     unittest.main()
