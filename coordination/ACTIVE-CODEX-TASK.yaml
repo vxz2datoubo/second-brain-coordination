@@ -1,13 +1,13 @@
-schema_version: "107.0"
+schema_version: "107.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
+task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 104
-mode: "one_real_operational_candidate_store_initialization_before_scheduler"
-mode_label: "【Codex真实运行】CLTM-0021 operational candidate store 首次初始化"
+route_epoch: 105
+mode: "module_invocation_probe_then_one_new_operational_init_attempt"
+mode_label: "【Codex恢复运行】CLTM-0021 先证明 module CLI 再做一次新 operational init"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -25,46 +25,60 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R104-OPERATIONAL-STORE-INIT.yaml"
+canonical_main_at_route_publish: "139e74706ab006a9888842a987110f2e892d5471"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R105-OPERATIONAL-INIT-INVOCATION-RECOVERY.yaml"
 owner_authorization_issue_comment: 5277767515
-gpt_final_implementation_acceptance_comment: 5279642815
+e104_audit_issue_comment: 5279878261
 accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
 accepted_implementation_head: "061f0496a49ebcc043e19a72ef335bb821296b63"
 accepted_ci_run: 31693514582
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-POSTCOMMIT-TEARDOWN-TRUTHFULNESS"
-  route_epoch: 103
-  disposition: "ACCEPTED_AND_IMPLEMENTATION_MERGED"
-  focused_tests: "10/10 PASS"
-  full_phase3_tests: "219/219 PASS"
-  public_safety_scan: "PASS 70 files 0 issues"
-  github_actions_run: 31693514582
-  github_python_311: "SUCCESS"
-  github_python_313: "SUCCESS"
-  exact_four_paths_verified: true
-  recurring_runtime_implementation: "ACCEPTED"
-  real_private_execution: "NOT_RUN"
+  task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
+  route_epoch: 104
+  disposition: "ATTEMPT_CONSUMED_NON_SUCCESS"
+  remote_main_sha_observed: "139e74706ab006a9888842a987110f2e892d5471"
+  runtime_freshness: "PASS"
+  private_binding_shape: "PASS"
+  operational_store_fresh_preflight: "PASS"
+  cli_exit_code: 1
+  public_receipt: "UNPARSEABLE"
+  local_execution_issue: "CLI_RECEIPT_PARSE_FAILED"
+  operational_store_exists: false
+  soak_ledger_exists: false
+  real_private_operational_initialization_run: "EXECUTED_ONCE"
+  epoch104_retry: "FORBIDDEN"
   unattended_scheduler: "NOT_ACTIVATED"
   formal_project_global_promotion: "LOCKED"
 
+public_diagnosis:
+  confidence: "HIGH_PROBABILITY_NOT_PROVEN"
+  statement: >-
+    The epoch-104 transcript constructed a direct filesystem path to integrated_offline_memory/cli.py. Canonical cli.py uses package-relative
+    imports and exposes a __main__ entrypoint, so direct-file Python launch can fail before main() and before JSON output. Raw child stderr was
+    not preserved, so this remains a hypothesis until the no-private module-entrypoint probe passes.
+
 root_goal: >-
-  Execute exactly one real/private recurring candidate ingestion through the accepted merged runtime into the fresh durable operational private
-  candidate store and append its public-safe soak ledger. This is the final real initialization gate before any unattended scheduler is created.
+  Do not retry epoch 104. Prove the canonical module CLI invocation without private access, then if and only if that probe passes, use exact
+  current main and the existing explicit bindings to perform exactly one new epoch-105 real operational candidate-store initialization attempt.
+  No scheduler activation and no formal PROJECT/GLOBAL promotion are authorized.
 
 execution_contract:
-  route_file: "coordination/ROUTES/CODEX-CLTM-0021-R104-OPERATIONAL-STORE-INIT.yaml"
-  runtime_source: "exact current main disposable normal clone"
+  route_file: "coordination/ROUTES/CODEX-CLTM-0021-R105-OPERATIONAL-INIT-INVOCATION-RECOVERY.yaml"
   runtime_freshness_base: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
-  command: "canonical recurring-private-ingest CLI only"
-  attempts_after_process_start: 1
+  module_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
+  no_private_probe_first: true
+  probe_private_env_removed: true
+  probe_expected_exit_code: 1
+  probe_expected_status: "REJECTED"
+  real_attempts_after_probe: 1
   operational_store_leaf: "cltm-private-candidate-runtime.sqlite3"
   operational_ledger_leaf: "cltm-private-candidate-runtime-soak-ledger.jsonl"
   preserved_canary_leaf: "cltm-private-canary-r98.sqlite3"
-  scheduler_activation: "FORBIDDEN_IN_E104"
+  scheduler_activation: "FORBIDDEN_IN_E105"
 
 success_gate:
+  module_entrypoint_contract_probe: "PASS"
   required_cli_exit_code: 0
   required_status: "IMPORTED"
   required_validation_status: "PASS"
@@ -78,18 +92,23 @@ success_gate:
   soak_ledger_exists: true
 
 forbidden_actions:
-  - "Do not retry after the recurring-private-ingest process starts."
-  - "Do not print private paths or raw/private semantic values."
-  - "Do not open/reuse/delete/move the r98 canary store."
-  - "Do not create Task Scheduler/service/startup/autorun persistence."
+  - "Do not rerun epoch 104."
+  - "Do not run more than one real epoch-105 recurring-private-ingest child process."
+  - "Do not execute cli.py by filesystem path; use the canonical module command only."
+  - "Do not use python -c, shell-inline Python, alternate private parsers or alternate W3 implementations."
+  - "Do not print raw child stderr, private paths or private semantic values."
+  - "Do not access/reuse/delete/move the r98 canary store."
+  - "Do not activate Task Scheduler/service/startup persistence."
   - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
-  - "Do not create an alternate W3 implementation or authority."
-  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not promote PROJECT/GLOBAL memory."
   - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
 
 required_closeout:
   - "remote_main_sha_observed"
   - "runtime_freshness"
+  - "module_entrypoint_contract_probe"
+  - "module_entrypoint_probe_exit_code"
+  - "module_entrypoint_probe_status"
   - "root_binding_present"
   - "source_binding_present"
   - "root_shape_valid"
@@ -114,13 +133,14 @@ required_closeout:
   - "recorded_at_hash"
   - "operational_store_exists"
   - "soak_ledger_exists"
+  - "stderr_class"
   - "LOCAL_EXECUTION_ISSUES"
   - "REAL_PRIVATE_OPERATIONAL_INITIALIZATION_RUN"
   - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
   - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_CLTM_0021_OPERATIONAL_STORE_INITIALIZATION_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_OPERATIONAL_INIT_INVOCATION_RECOVERY_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 104 authorizes exactly one real candidate-only operational initialization run. Unattended scheduling, formal PROJECT/GLOBAL promotion,
-  security/permission changes, production/live integration and trading/accounts remain LOCKED pending GPT review.
+  Epoch 105 is a bounded invocation-recovery route after the consumed epoch-104 non-success. It permits a no-private module probe followed by at
+  most one new real candidate-only operational initialization attempt. Unattended scheduling and formal PROJECT/GLOBAL promotion remain LOCKED.
