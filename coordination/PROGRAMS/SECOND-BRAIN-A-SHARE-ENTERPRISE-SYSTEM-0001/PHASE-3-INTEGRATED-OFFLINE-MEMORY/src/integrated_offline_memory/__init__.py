@@ -38,6 +38,7 @@ from .private_candidate_ingestion import (
     serialize_daily_memory_candidate_v2_report,
     validate_private_data_paths,
 )
+from .recurring_candidate_soak import run_from_environment, run_recurring_candidate_ingestion
 
 __all__ = [
     "FieldSemanticDecision",
@@ -80,4 +81,6 @@ __all__ = [
     "normalize_daily_memory_candidate_v2_report",
     "serialize_daily_memory_candidate_v2_report",
     "validate_private_data_paths",
+    "run_from_environment",
+    "run_recurring_candidate_ingestion",
 ]
