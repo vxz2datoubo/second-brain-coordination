@@ -1,0 +1,139 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
+route_epoch: 107
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_before_publish: "663c777c356516150cd18b815a43192409bbdfc4"
+owner_new_requirement: >-
+  Manual conversational trigger `采集记忆` is the preferred near-term capture mechanism. The highest-priority capability is later retrieval plus
+  temporal/constraint reasoning, including resolving relative dates against utterance time and surfacing conflicts with prior memories. The
+  previous unattended-scheduler activation profile is superseded as the immediate next step and remains disabled.
+design_spec: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
+
+purpose: >-
+  Implement the synthetic-only foundation for a manual-capture Memory Palace. Extend the accepted W3 conversation memory path additively so a
+  captured owner utterance can be atomized, temporally normalized, persisted, retrieved by keyword/time/graph cues, and conservatively checked
+  against earlier memories for schedule/fact conflicts. Build the four-state cognitive coverage mapping contract. Do not touch real private data
+  or create any scheduler in epoch 107.
+
+existing_runtime_facts_to_preserve:
+  - "ConversationEpisode is historical evidence and remains append-preserving."
+  - "Conversation user memories remain candidate authority unless separately promoted."
+  - "Current QueryPlan scope/user_scope/valid_at privacy gates remain fail-closed."
+  - "CURRENT retrieval excludes superseded memories; HISTORICAL retrieval can use valid time."
+  - "LearningPacket import remains atomic/idempotent and credential-secret patterns fail closed."
+  - "Accepted recurring candidate runtime and operational private store must not be modified or opened by this task."
+
+implementation_scope:
+  primary_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
+  allowed_change_policy: >-
+    Changes may be made only inside the Phase-3 Integrated Offline Memory src/tests/fixtures area plus the canonical Memory Palace design/task
+    documentation needed for this epoch. Do not change scheduler routes, ACL/security config, trading code, production MCP/Gateway, or unrelated
+    program modules.
+  required_capabilities:
+    - "Manual capture contract/parser for `采集记忆` and alias `数据采集`, with deterministic trigger-in-message and trigger-only behavior."
+    - "Derived semantic memory types for plans/goals/commitments/event reports without rewriting raw ConversationEpisode evidence."
+    - "Timezone-aware temporal-expression normalization with deterministic relative-date handling for Chinese `今天/明天/后天` at minimum and an extensible parser boundary for richer expressions."
+    - "Store original time expression, anchor time, normalized interval/date, granularity, method and confidence separately from raw evidence."
+    - "Event/plan representation linked to candidate atoms and provenance."
+    - "Typed conservative conflict detection: DIRECT_FACT_CONTRADICTION, SCHEDULE_HARD_CONFLICT, SCHEDULE_POTENTIAL_CONFLICT, PREFERENCE_TENSION, PLAN_SUPERSESSION_CANDIDATE, UNKNOWN_CONSTRAINT."
+    - "Same calendar day without interval/exclusivity evidence must not be promoted to hard conflict."
+    - "Hybrid retrieval orchestrator using current lexical retrieval + temporal window retrieval + relation/graph expansion. Add retrieval explanations."
+    - "Provide an optional semantic-provider interface but do not require network/API keys or make semantic embeddings a correctness dependency in epoch 107."
+    - "Four-state cognitive coverage mapping contract: KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING."
+    - "Post-write exact scoped recall verifier for capture success receipts."
+    - "No private/public semantic leakage in receipts/tests."
+
+reference_acceptance_story:
+  timezone: "Asia/Shanghai"
+  utterance_recorded_at: "2026-08-14T20:00:00+08:00"
+  new_utterance: "明天我要去睡大觉。采集记忆"
+  expected_resolved_date: "2026-08-15"
+  prior_memory: "2026-08-15 有群运动"
+  expected_behavior: >-
+    Preserve the source utterance, derive a 2026-08-15 plan/event, retrieve the prior 2026-08-15 event through temporal expansion, and emit
+    SCHEDULE_POTENTIAL_CONFLICT if the two events have unknown times/flexibility. Do not silently overwrite either memory and do not claim a hard
+    contradiction without overlap/exclusivity evidence.
+
+required_tests:
+  - "trigger in substantive user message captures message excluding trigger token"
+  - "trigger-only message targets previous substantive owner message"
+  - "assistant text cannot become owner memory"
+  - "multi-atom extraction preserves shared episode lineage"
+  - "secret credential fail closed"
+  - "duplicate capture/replay idempotent"
+  - "Chinese keyword retrieval after durable capture"
+  - "2026-08-14 Asia/Shanghai + 明天 => 2026-08-15"
+  - "prior 2026-08-15 event is recalled from a query derived from 明天"
+  - "same-day unknown-time plans => SCHEDULE_POTENTIAL_CONFLICT"
+  - "overlapping fixed intervals => SCHEDULE_HARD_CONFLICT"
+  - "non-overlapping same-day intervals => no hard conflict"
+  - "explicit correction preserves history and supersedes current target"
+  - "CURRENT excludes superseded; HISTORICAL valid-time retrieval remains possible"
+  - "conflict links both source atoms and exposes missing resolution fields"
+  - "capture success requires post-write exact scoped recall PASS"
+  - "retrieval explanation identifies lexical/temporal/graph contribution"
+  - "four cognitive coverage states retain explicit-vs-inferred boundary"
+  - "process restart persistence test"
+  - "full relevant Phase-3 regression suite PASS"
+  - "public_safety_scan PASS"
+  - "git diff --check PASS"
+
+quality_gates:
+  - "No LLM-only date arithmetic in deterministic covered cases."
+  - "No hard conflict when evidence supports only potential conflict."
+  - "No inferred user knowledge promoted to explicit user assertion."
+  - "No semantic/vector dependency required for exact keyword/time tests."
+  - "No schema migration that destroys or rewrites existing atoms/episodes."
+  - "No change to accepted private operational store contents."
+
+forbidden_actions:
+  - "Do not read the real private Daily-v2 source or operational candidate store."
+  - "Do not run recurring-private-ingest against real bindings."
+  - "Do not create/register/modify/enable Windows Task Scheduler tasks."
+  - "Do not deploy or expose a production MCP/Gateway."
+  - "Do not create/publish raw private memory in the public repository."
+  - "Do not add API keys/tokens/credentials or network-dependent tests."
+  - "Do not modify ACLs, ownership, Defender/CFA, registry or security policy."
+  - "Do not unlock formal PROJECT/GLOBAL promotion."
+  - "Do not touch trading/accounts/live execution."
+  - "Do not merge your own implementation PR."
+
+required_closeout:
+  - "head_sha"
+  - "exact changed paths"
+  - "implementation summary"
+  - "focused test result/count"
+  - "full relevant Phase-3 test result/count"
+  - "public_safety_scan result"
+  - "git diff --check result"
+  - "reference acceptance story result"
+  - "keyword retrieval result"
+  - "temporal normalization result"
+  - "potential-vs-hard conflict tests"
+  - "correction/supersession regression result"
+  - "four-state cognitive coverage mapping result"
+  - "post-write exact recall result"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 107 is synthetic-only Memory Palace foundation work. Manual capture semantics, temporal reasoning and conflict-aware retrieval may be
+  implemented/tested, but real private capture integration, unattended scheduling, formal PROJECT/GLOBAL promotion, production MCP/Gateway,
+  security/permission changes and trading/accounts remain LOCKED pending GPT acceptance and a later owner-approved live bridge route.
