@@ -1,198 +1,89 @@
-schema_version: "105.0"
+schema_version: "105.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
+task_id: "CODEX-CLTM-0021-POST-CANARY-OWNER-DECISION-GATE"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 98
-mode: "bounded_real_private_candidate_ingest_recall_canary"
-mode_label: "【Codex真实私有Canary】CLTM-0021 单候选 ingest -> exact recall"
-status: "READY"
-execution_allowed: true
+route_epoch: 99
+mode: "post_canary_acceptance_owner_decision_gate"
+mode_label: "【等待Owner决策】CLTM-0021 real/private canary 已通过，正式权限继续锁定"
+status: "WAITING_OWNER_DECISION"
+execution_allowed: false
 automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: true
+real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
-private_candidate_source_read_allowed: true
+private_candidate_source_read_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "002e894555d6b1985ac582eb17bd4645c2108852"
+canonical_main_at_route_publish: "3d7481ac6f1f2823fd3ba1f89c96cb0ac14c0b59"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-DIRECT-SID-MODIFY-GUARANTEE"
-  route_epoch: 97
-  disposition: "PRIVATE_ROOT_DIRECT_SID_MODIFY_GUARANTEE_PASS"
-  remote_main_sha_observed: "002e894555d6b1985ac582eb17bd4645c2108852"
+  task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
+  route_epoch: 98
+  disposition: "REAL_PRIVATE_CANDIDATE_CANARY_PASS"
+  remote_main_sha_observed: "3d7481ac6f1f2823fd3ba1f89c96cb0ac14c0b59"
+  canonical_read_mode: "TEMP_BARE_GIT_EXACT_HEAD"
+  runtime_freshness: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
   root_binding_present: true
+  source_binding_present: true
   root_shape_valid: true
-  filesystem_type: "NTFS"
-  blocking_deny: "NONE"
-  acl_precheck: "DIRECT_SID_MODIFY_MISSING"
-  acl_change: "APPLIED"
-  acl_verify: "PASS"
-  functional_writeability_from_epoch92: "PASS"
-
-fundamental_goal: >-
-  Execute exactly one bounded real/private DailyMemoryCandidate-v2 canary through the already-accepted private candidate ingestion bridge into
-  a fresh isolated private MemoryStore, proving source -> candidate ingest -> exact scoped recall with aggregate/hash-only public evidence.
-  The canary is candidate authority only. Formal PROJECT/GLOBAL promotion remains locked.
-
-canonical_remote_read_policy:
-  remote_head_gate: >-
-    Run `git ls-remote https://github.com/vxz2datoubo/second-brain-coordination.git refs/heads/main` and parse exactly one 40-hex SHA for
-    refs/heads/main. Do not mutate linked-worktree Git metadata/object storage.
-  disposable_temp_git: >-
-    Use one task-owned bare Git repository under OS temp, fetch current remote main with depth 128, require fetched head to equal the
-    immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml, evaluate runtime freshness, and extract only the audited
-    epoch-98 runner through Git index plumbing. Delete only task-owned temp Git/index/export artifacts before any private-root/source access.
-  canonical_read_mode_public_value: "TEMP_BARE_GIT_EXACT_HEAD"
-  fail_closed: >-
-    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/runner-hash/compile/temp-cleanup ambiguity stops before private access.
-
-runtime_freshness_policy:
-  audited_runtime_base: "c625eaf247298051e6e23d530f2203dc182e7177"
-  relevant_runtime_path_prefixes:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
-  pass_value: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
-  rule: >-
-    Compare changed paths from audited_runtime_base to exact current remote head. Control-plane/route-only changes do not invalidate freshness.
-    Any relevant runtime-path change or ambiguous comparison stops before private source/root access.
-
-runner_contract:
-  public_template_path: "coordination/ROUTES/CODEX-CLTM-0021-R98-REAL-PRIVATE-CANARY-RUNNER.py"
-  expected_blob_sha: "a66548bfe053a67a3230f0988befb53a08e02ebb"
-  os_temp_leaf: "cltm-private-canary-r98.py"
-  materialization: >-
-    Use task-owned temporary GIT_INDEX_FILE plus `git read-tree <EXACT_REMOTE_HEAD>` and `git checkout-index` for only the template path into a
-    task-owned OS-temp export directory, then filesystem-copy/rename to the exact OS-temp runner leaf. Do not use PowerShell/cmd/stdout text
-    redirection, Set-Content, Out-File or shell-inline Python for runner bytes.
-  hash_gate: >-
-    `git hash-object --no-filters <runner>` must equal expected_blob_sha before execution. Mismatch stops before private access.
-  compile_gate: >-
-    Run `python -m py_compile <runner>` before any CLTM_PRIVATE_DATA_ROOT or CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH access. No `python -c`.
-  cleanup_before_private_access: >-
-    Delete only task-owned disposable bare Git repository, temporary index and export directory before private access. Keep only the compiled
-    OS-temp runner needed for the canary.
-
-python_runtime:
-  source_roots:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
-  rule: >-
-    Set PYTHONPATH process-locally to exactly the three established public source roots. Do not persist PYTHONPATH and do not read Codex memory,
-    home/profile/browser/history to discover paths.
-
-private_binding:
-  required_env_names:
-    - "CLTM_PRIVATE_DATA_ROOT"
-    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
-  path_output: "FORBIDDEN"
-  source_discovery: "FORBIDDEN"
-  source_read: "AUTHORIZED_EXACT_BOUND_DAILY_V2_ONLY"
-  required_shape:
-    - "private root exists and is a directory outside public repository/worktree"
-    - "bound Daily-v2 path is a readable file under the exact private root"
-    - "do not enumerate sibling/parent directories or infer alternate source locations"
-
-canary_scope:
-  authorization: "OWNER_CONTINUATION_AND_PRIOR_R81_REAL_CANARY_AUTHORIZATION"
-  maximum_raw_memory_candidates: 1
-  exact_eligible_user_candidates_required: 1
-  accepted_candidate_roles: ["USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"]
-  source_validation: "DailyMemoryCandidate-v2 must validate through existing bridge; no ad-hoc parser or weakened admission."
-  fresh_store_leaf: "cltm-private-canary-r98.sqlite3"
-  store_sidecars: ["cltm-private-canary-r98.sqlite3-wal", "cltm-private-canary-r98.sqlite3-shm"]
-  freshness_rule: >-
-    Before MemoryStore.connect, database and both sidecar leaves must all be absent. Any preexisting exact leaf stops with no delete, overwrite,
-    reuse or alternate store name.
-  execution_rule: >-
-    After exact-one source preflight and fresh-store verification, call MemoryStore.connect once and ingest_daily_memory_candidate_v2 once. The
-    existing bridge must prove exact candidate atom recall. No second ingestion/canary retry in epoch 98 after store creation begins.
-  success_store_retention: >-
-    Preserve the successful isolated r98 private canary store for GPT audit/future owner-approved promotion work. Do not auto-delete it.
-  failure_artifact_rule: >-
-    If store creation/ingestion begins and later fails, preserve any task-created r98 store artifacts for GPT review and do not retry or delete
-    them automatically.
-
-acceptance_contract:
-  required_success_status: "REAL_PRIVATE_CANDIDATE_CANARY_PASS"
-  ingestion_status: "IMPORTED"
-  validation_status: "PASS"
+  source_shape_valid: true
   candidate_count_preflight: 1
   eligible_candidate_count: 1
+  store_fresh: true
+  ingestion_status: "IMPORTED"
+  validation_status: "PASS"
+  candidate_authority_only: true
+  formal_project_global_write: "LOCKED"
   imported_count: 1
   duplicate_count: 0
   non_imported_count: 0
+  recall_count: 1
   exact_imported_atom_recalled: true
-  candidate_authority_only: true
-  formal_project_global_write: "LOCKED"
-  recall_count_minimum: 1
-  public_evidence_only: ["hashes", "counts", "booleans", "coarse status", "canonical SHA", "runtime freshness"]
-  forbidden_public_evidence: ["private path", "raw private text", "private semantic candidate value", "username/SID", "secret/credential"]
+  local_execution_issues: "NONE"
 
-public_receipt_allow_only:
-  - "schema_version"
-  - "status"
-  - "remote_main_sha_observed"
-  - "canonical_read_mode"
-  - "runtime_freshness"
-  - "root_binding_present"
-  - "source_binding_present"
-  - "root_shape_valid"
-  - "source_shape_valid"
-  - "candidate_count_preflight"
-  - "eligible_candidate_count"
-  - "store_fresh"
-  - "ingestion_status"
-  - "validation_status"
-  - "candidate_authority_only"
-  - "formal_project_global_write"
-  - "imported_count"
-  - "duplicate_count"
-  - "non_imported_count"
-  - "recall_count"
-  - "exact_imported_atom_recalled"
-  - "source_hash"
-  - "pointer_hash"
-  - "episode_id_hash"
-  - "atom_id_hash"
-  - "scope_hash"
-  - "recorded_at_hash"
-  - "LOCAL_EXECUTION_ISSUES"
-  - "lock_statement"
+accepted_milestone:
+  real_private_source_to_candidate_ingest_to_exact_recall: "ACCEPTED"
+  durable_private_root_direct_sid_modify: "ACCEPTED"
+  candidate_store_authority: "CANDIDATE_ONLY"
+  successful_r98_store_retention: "PRESERVE_LOCAL_PRIVATE_ARTIFACT"
+  raw_private_publication: "FORBIDDEN"
 
-consumption_semantics:
-  before_store_creation: >-
-    Canonical/runner/binding/source-validation/exact-one/fresh-store preflight failures do not count as a completed private canary, but must stop
-    for GPT review; do not automatically loop/retry in the same Codex response.
-  after_store_creation_begins: >-
-    The epoch-98 real canary attempt is consumed. No second r98 store creation or ingestion attempt is authorized, regardless of success/failure.
+owner_decision_required_before_next_execution:
+  reason: >-
+    Epoch 98 proves the real/private candidate path through the existing W3 candidate runtime. It does not grant formal PROJECT/GLOBAL memory
+    authority. Any promotion or recurring automatic private ingestion changes authority and/or persistence behavior and requires a new explicit
+    owner decision plus a new GPT-published route.
+  no_default_promotion: true
+  candidate_only_state_may_remain: true
+  formal_project_promotion_requires_owner_approval: true
+  formal_global_promotion_requires_owner_approval: true
+  recurring_private_ingestion_requires_new_route: true
+
+codex_instruction: >-
+  STOP. Do not rerun epoch 98, do not read the private source, do not open/reuse/delete the r98 private canary store, do not ingest another
+  candidate, and do not perform PROJECT/GLOBAL promotion. Wait for a new GPT-published executable route after explicit owner decision.
 
 forbidden_actions:
-  - "Do not retry epoch 90/91/92 canary/write probes."
-  - "Do not use the old r90 canary store or any prior diagnostic store."
+  - "Do not rerun epoch 98 or create another r98 store."
+  - "Do not read DailyMemoryCandidate-v2 while this gate is active."
+  - "Do not open, modify, move, delete or reuse the successful r98 private canary store."
+  - "Do not promote the accepted candidate to formal PROJECT or GLOBAL memory."
+  - "Do not start recurring/automatic private ingestion."
   - "Do not mutate ACLs, ownership, Defender/CFA, registry or security policy."
-  - "Do not enumerate private directories or discover alternate private sources."
-  - "Do not output private path or candidate/episode semantic text."
-  - "Do not admit secrets/credentials or bypass existing sensitivity/provenance/role/scope/time validation."
-  - "Do not promote candidate to formal PROJECT/GLOBAL memory."
-  - "Do not create a second W3 authority/store implementation beyond the isolated canary instance of existing MemoryStore."
-  - "Do not mutate linked-worktree Git metadata/object store or credentials."
-  - "Do not merge or push executor changes."
-  - "Do not touch live/production MCP/Gateway, repository visibility, E48, trading or accounts."
+  - "Do not publish raw private text/path/semantic values."
+  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
 
 lock_statement: >-
-  Epoch 98 authorizes exactly one real/private candidate-only ingest->exact-recall canary into a fresh isolated private r98 MemoryStore. Formal
-  PROJECT/GLOBAL persistence/promotion remains LOCKED. Raw private publication, production/live integration, repository/permission changes and
-  trading/accounts remain LOCKED.
+  Epoch 98 real/private candidate ingest->exact-recall is accepted at candidate authority only. Epoch 99 is a non-executable owner-decision
+  gate. Formal PROJECT/GLOBAL persistence/promotion, recurring private ingestion, raw-private publication, production/live integration,
+  repository/permission changes and trading/accounts remain LOCKED until a fresh explicit owner decision and GPT route publication.
