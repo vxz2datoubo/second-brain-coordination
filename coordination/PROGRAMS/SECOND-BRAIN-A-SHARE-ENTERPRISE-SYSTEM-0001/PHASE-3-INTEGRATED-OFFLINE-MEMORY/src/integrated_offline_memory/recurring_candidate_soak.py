@@ -58,6 +58,20 @@ class CommittedStateAuditFailure(RecurringCandidateSoakError):
         }
 
 
+class CommittedStateTeardownFailure(RecurringCandidateSoakError):
+    """The W3 transaction and ledger committed, but teardown did not finish."""
+
+    def __init__(self, receipt: Mapping[str, Any]) -> None:
+        super().__init__("COMMITTED_STATE_TEARDOWN_FAILED")
+        self.receipt = {
+            **_safe_receipt(receipt),
+            "status": "COMMITTED_STATE_TEARDOWN_FAILED",
+            "committed_state": "COMMITTED",
+            "audit_status": "PASS",
+            "teardown_status": "FAILED",
+        }
+
+
 @dataclass(frozen=True)
 class StableSourceSnapshot:
     package: dict[str, Any]
@@ -101,13 +115,7 @@ def _single_writer_lock(private_root: Path) -> Iterator[None]:
     lock = private_root / LOCK_LEAF
     try:
         descriptor = os.open(lock, os.O_CREAT | os.O_RDWR, 0o600)
-        if os.name == "nt":
-            os.lseek(descriptor, 0, os.SEEK_SET)
-            os.write(descriptor, b"\0")
-            os.lseek(descriptor, 0, os.SEEK_SET)
-            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
-        else:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        _acquire_process_lock(descriptor)
     except OSError as error:
         try:
             os.close(descriptor)
@@ -117,15 +125,35 @@ def _single_writer_lock(private_root: Path) -> Iterator[None]:
     try:
         yield
     finally:
+        teardown_error: OSError | None = None
         try:
-            if os.name == "nt":
-                os.lseek(descriptor, 0, os.SEEK_SET)
-                msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
-            else:
-                fcntl.flock(descriptor, fcntl.LOCK_UN)
+            _release_process_lock(descriptor)
+        except OSError as error:
+            teardown_error = error
+        try:
             os.close(descriptor)
         except OSError as error:
-            raise RecurringCandidateSoakError("CONCURRENCY_GUARD_CLEANUP_FAILED") from error
+            teardown_error = teardown_error or error
+        if teardown_error is not None:
+            raise RecurringCandidateSoakError("CONCURRENCY_GUARD_CLEANUP_FAILED") from teardown_error
+
+
+def _acquire_process_lock(descriptor: int) -> None:
+    if os.name == "nt":
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        os.write(descriptor, b"\0")
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+    else:
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def _release_process_lock(descriptor: int) -> None:
+    if os.name == "nt":
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
+    else:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
 
 
 def _safe_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
@@ -158,22 +186,51 @@ def run_recurring_candidate_ingestion(
         raise RecurringCandidateSoakError("FROZEN_CANARY_STORE_DENIED")
     if store.name != OPERATIONAL_STORE_LEAF:
         raise RecurringCandidateSoakError("OPERATIONAL_STORE_NAME_REQUIRED")
-    with _single_writer_lock(root):
-        snapshot = load_stable_daily_v2_snapshot(source, root)
-        memory = MemoryStore(store).connect()
-        try:
+    receipt: dict[str, Any] | None = None
+    ledger_appended = False
+    memory: MemoryStore | None = None
+    try:
+        with _single_writer_lock(root):
+            snapshot = load_stable_daily_v2_snapshot(source, root)
+            memory = MemoryStore(store).connect()
             try:
-                result = ingest_daily_memory_candidate_v2(snapshot.package, memory)
-            except ValueError as error:
-                raise RecurringCandidateSoakError("INGESTION_REJECTED") from error
-            receipt = _safe_receipt(result.public_receipt())
-            try:
-                _append_ledger(root, receipt)
-            except RecurringCandidateSoakError as error:
-                raise CommittedStateAuditFailure(receipt) from error
+                try:
+                    result = ingest_daily_memory_candidate_v2(snapshot.package, memory)
+                except ValueError as error:
+                    raise RecurringCandidateSoakError("INGESTION_REJECTED") from error
+                receipt = _safe_receipt(result.public_receipt())
+                try:
+                    _append_ledger(root, receipt)
+                except RecurringCandidateSoakError as error:
+                    raise CommittedStateAuditFailure(receipt) from error
+                ledger_appended = True
+            finally:
+                try:
+                    memory.close()
+                except Exception as error:
+                    try:
+                        memory.close()
+                    except Exception:
+                        pass
+                    if ledger_appended:
+                        raise CommittedStateTeardownFailure(receipt) from error
+                    if receipt is None:
+                        raise RecurringCandidateSoakError("PRECOMMIT_TEARDOWN_FAILED") from error
+                finally:
+                    memory = None
             return receipt
-        finally:
-            memory.close()
+    except (CommittedStateAuditFailure, CommittedStateTeardownFailure):
+        raise
+    except RecurringCandidateSoakError as error:
+        if receipt is not None:
+            raise CommittedStateTeardownFailure(receipt) from error
+        raise
+    finally:
+        if memory is not None:
+            try:
+                memory.close()
+            except Exception:
+                pass
 
 
 def run_from_environment(environment: Mapping[str, str] | None = None) -> dict[str, Any]:

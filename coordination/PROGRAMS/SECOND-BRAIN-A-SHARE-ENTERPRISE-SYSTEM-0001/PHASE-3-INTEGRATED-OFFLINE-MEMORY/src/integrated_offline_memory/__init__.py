@@ -40,6 +40,7 @@ from .private_candidate_ingestion import (
 )
 from .recurring_candidate_soak import (
     CommittedStateAuditFailure,
+    CommittedStateTeardownFailure,
     RecurringCandidateSoakError,
     run_from_environment,
     run_recurring_candidate_ingestion,
@@ -90,4 +91,5 @@ __all__ = [
     "run_recurring_candidate_ingestion",
     "RecurringCandidateSoakError",
     "CommittedStateAuditFailure",
+    "CommittedStateTeardownFailure",
 ]
