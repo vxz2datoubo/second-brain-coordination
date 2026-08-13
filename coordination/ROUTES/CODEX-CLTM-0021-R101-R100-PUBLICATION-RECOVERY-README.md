@@ -1,0 +1,1 @@
+This route is a publication-recovery shim, not an implementation acceptance. The linked worktree remains immutable; the disposable clone is the only writable Git workspace. After publication, GPT must independently inspect the pushed commit/diff/tests before any activation route is allowed.
