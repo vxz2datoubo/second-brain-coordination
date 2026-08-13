@@ -1,4 +1,4 @@
-schema_version: "103.1"
+schema_version: "103.2"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
@@ -24,7 +24,7 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "8ec1f8ddf3527396477d5ca3cbfcbfb1a5b231a6"
+canonical_main_at_route_publish: "f87de0645b3d76b274e78e8abb42437e412df775"
 
 predecessor:
   task_id: "CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY"
@@ -46,6 +46,23 @@ epoch91_preexecution_refresh_observation:
   local_origin_main_stale_after_failed_fetch: true
   local_git_repair_authorized: false
 
+epoch91_exact_sha_api_observation:
+  gpt_audit_issue_comment: 5275656885
+  diagnostic_attempt_consumed: false
+  git_ls_remote: "PASS"
+  remote_main_sha_observed: "f87de0645b3d76b274e78e8abb42437e412df775"
+  powershell_raw_https_read: "FAILED"
+  curl_schannel_read: "FAILED"
+  gh_auth_status: "INVALID"
+  gh_reauthentication_required_for_this_task: false
+  credentials_or_token_request_allowed: false
+  gpt_remote_runtime_delta_audit:
+    base: "c625eaf247298051e6e23d530f2203dc182e7177"
+    head: "f87de0645b3d76b274e78e8abb42437e412df775"
+    changed_paths:
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+    relevant_cltm_runtime_implementation_changed: false
+
 fundamental_goal: >-
   Determine whether the explicit CLTM private data-root is writable by the current Codex/Python process and whether the existing
   MemoryStore SQLite/WAL initialization can create a fresh database there, without reading any private candidate source and without
@@ -53,35 +70,55 @@ fundamental_goal: >-
 
 canonical_remote_read_policy:
   rationale: >-
-    The current linked worktree cannot reliably write FETCH_HEAD or fetched Git objects. Canonical task acquisition must therefore
-    have a read-only fallback that does not depend on mutating the local Git object database, refs or working tree.
-  preferred_when_local_git_writable: "Normal latest-remote fetch plus exact current ACTIVE-CODEX read is acceptable."
-  read_only_fallback_required_when_fetch_write_fails:
-    step_1_remote_head: >-
-      Run `git ls-remote https://github.com/vxz2datoubo/second-brain-coordination.git refs/heads/main` and parse the one exact
-      40-hex SHA for refs/heads/main. This command must not update local refs or write fetched objects.
-    step_2_exact_sha_control: >-
-      Retrieve only `coordination/ACTIVE-CODEX-TASK.yaml` over HTTPS from
-      `https://raw.githubusercontent.com/vxz2datoubo/second-brain-coordination/<REMOTE_MAIN_SHA>/coordination/ACTIVE-CODEX-TASK.yaml`,
-      where <REMOTE_MAIN_SHA> is exactly the SHA returned by step 1. Do not read the mutable `main` raw URL without pinning the SHA.
-    step_3_validation: >-
-      Require repository vxz2datoubo/second-brain-coordination, task_id CODEX-CLTM-0021-PRIVATE-STORE-WRITABILITY-DIAGNOSTIC,
-      route_epoch 91, status READY, execution_allowed true, and all epoch-91 private/formal/live/production/trading locks intact.
-    step_4_fail_closed: >-
-      If ls-remote fails, returns ambiguity, HTTPS exact-SHA retrieval fails, or the exact-SHA control differs materially, stop before
-      reading CLTM_PRIVATE_DATA_ROOT or performing any diagnostic write.
-  local_git_mutation_forbidden_in_fallback:
-    - "Do not git fetch after a local Git object-write failure in this task."
-    - "Do not update origin/main or any local ref."
-    - "Do not repair, chown, chmod, icacls, reset, prune, gc or otherwise modify .git/worktrees or object storage."
-    - "Do not merge, checkout, reset or modify the working tree."
-  canonical_authority: "Exact remote main SHA plus ACTIVE-CODEX content fetched at that exact SHA."
+    The current linked worktree cannot reliably write FETCH_HEAD or fetched Git objects, while git ls-remote succeeds. Canonical task
+    acquisition must therefore be independent of the broken linked-worktree Git database and of PowerShell/curl/gh authentication.
+  remote_head_gate: >-
+    Run `git ls-remote https://github.com/vxz2datoubo/second-brain-coordination.git refs/heads/main` and parse exactly one 40-hex SHA
+    for refs/heads/main. Do not update local refs or write objects in the linked worktree.
+  exact_sha_http_or_gh_optional:
+    rule: >-
+      Exact-SHA raw HTTPS or authenticated gh/API may be used only if already working. Do not re-authenticate gh and never request,
+      print or paste a token/credential for this task. If these methods fail, continue only to the disposable-temp-Git fallback below.
+  disposable_temp_git_fallback:
+    purpose: >-
+      Use Git's working remote transport while isolating all fetched public objects from the broken linked worktree.
+    location: "Unique task-owned directory under the OS temporary directory only; never repository/worktree and never CLTM private root."
+    repository_shape: "Initialize a bare disposable Git repository; no checkout or working tree."
+    allowed_sequence:
+      - "Create one unique empty OS-temp directory owned by this task."
+      - "Initialize it as a bare Git repository."
+      - >-
+        Fetch `refs/heads/main` from `https://github.com/vxz2datoubo/second-brain-coordination.git` into that disposable bare repository
+        with no tags and shallow history. This fetch may write only inside the disposable temp repository.
+      - "Resolve the fetched commit and require it to equal the SHA returned by the immediately preceding ls-remote gate."
+      - >-
+        Read only `coordination/ACTIVE-CODEX-TASK.yaml` from that fetched exact commit using Git object inspection; do not checkout files.
+      - "Validate the exact control contract, then delete only the task-owned disposable temp repository before any private-root access."
+    remote_drift_rule: >-
+      If the temp fetch resolves a different main SHA than the preceding ls-remote result, treat this as concurrent remote drift, clean
+      only the task-owned temp repository, and stop before private-root access. Do not loop or retry automatically.
+    auth_rule: >-
+      Do not invoke `gh auth login`, credential-manager mutation, token prompts or credential persistence. If Git fetch unexpectedly
+      requires interactive credentials, clean the task-owned temp repository and stop.
+    canonical_read_mode_public_value: "TEMP_BARE_GIT_EXACT_HEAD"
+  control_validation: >-
+    Require repository vxz2datoubo/second-brain-coordination, task_id CODEX-CLTM-0021-PRIVATE-STORE-WRITABILITY-DIAGNOSTIC,
+    route_epoch 91, status READY, execution_allowed true, and all epoch-91 private/formal/live/production/trading locks intact.
+  fail_closed: >-
+    If ls-remote, disposable temp Git fetch, exact-head equality, control object read, cleanup or validation fails, stop before reading
+    CLTM_PRIVATE_DATA_ROOT or performing any diagnostic write.
+  broken_linked_worktree_mutation_forbidden:
+    - "Do not git fetch in the linked worktree after its object-write failure."
+    - "Do not update origin/main or any local ref in the linked worktree."
+    - "Do not repair, chown, chmod, icacls, reset, prune, gc or otherwise modify its .git/worktrees or object storage."
+    - "Do not merge, checkout, reset or modify the linked working tree."
+  canonical_authority: "Exact remote main SHA plus ACTIVE-CODEX content read from the exact fetched commit in isolated temp Git storage."
 
 main_drift_policy:
   rule: >-
     Do not require remote main to equal a historical pinned SHA. The current exact remote main SHA may advance because multiple agent
-    routes share the repository. Proceed only when the exact-SHA ACTIVE-CODEX remains this route_epoch 91 task with all locks intact.
-    Any relevant CLTM/control ambiguity must stop before local diagnostic writes.
+    routes share the repository. Proceed only when the exact-head ACTIVE-CODEX remains this route_epoch 91 task with all locks intact.
+    If exact remote control or relevant CLTM runtime state is ambiguous, stop before local diagnostic writes.
 
 pre_task_context_policy:
   no_agent_memory_bootstrap: true
@@ -93,6 +130,7 @@ pre_task_context_policy:
   allowed_context:
     - "exact remote canonical control plane acquired under canonical_remote_read_policy"
     - "public repository code required for MemoryStore import"
+    - "task-owned OS-temp bare Git repository used only for canonical control acquisition"
     - "CLTM_PRIVATE_DATA_ROOT environment variable value, process-local use only, never print it"
     - "OS temporary runner created by this task"
   forbidden_private_source_access: >-
@@ -108,9 +146,10 @@ public_runtime_bootstrap:
     Prepend only these exact public repository-local source roots to PYTHONPATH for the diagnostic child process.
     Do not persist PYTHONPATH to User, Machine, registry, profile or shell startup files.
   current_local_runtime_basis: >-
-    The epoch-90 execution already verified the local public runtime matched the then-current remote runtime before private execution;
-    no public implementation change is authorized in epoch 91. If the exact remote main contains a relevant CLTM implementation change
-    after that verified basis, stop for GPT review instead of using stale local runtime code.
+    GPT independently audited `c625eaf247298051e6e23d530f2203dc182e7177..f87de0645b3d76b274e78e8abb42437e412df775`
+    and found only `coordination/ACTIVE-CODEX-TASK.yaml` changed; no CLTM runtime implementation file changed. If remote main advances after
+    this route publication and relevant CLTM implementation freshness cannot be established without mutating the linked worktree, stop
+    for GPT review rather than running stale local runtime code.
 
 runner_boundary:
   python_c: "FORBIDDEN"
@@ -197,8 +236,9 @@ forbidden_actions:
   - "Do not print private root/path values."
   - "Do not modify ACLs, ownership, Windows Defender/Controlled Folder Access, registry, filesystem policy or permissions."
   - "Do not repair or mutate the broken linked-worktree Git metadata/object store in epoch 91."
+  - "Do not re-authenticate gh, credential manager or Git for this diagnostic."
   - "Do not persist PYTHONPATH."
-  - "Do not perform a second diagnostic attempt in epoch 91 after any local probe has actually begun."
+  - "Do not perform a second diagnostic attempt in epoch 91 after any local private-root probe has actually begun."
 
 hard_boundaries:
   - "No formal PROJECT/GLOBAL knowledge write or authority promotion."
@@ -212,4 +252,4 @@ hard_boundaries:
 completion_signal: "CODEX_CLTM_0021_PRIVATE_STORE_DIAGNOSTIC_R91_READY_FOR_GPT_REVIEW"
 next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_91_PRIVATE_STORE_DIAGNOSTIC"
 updated_by: "GPT"
-updated_at: "2026-08-13T11:03:00+08:00"
+updated_at: "2026-08-13T11:36:00+08:00"
