@@ -1,0 +1,1 @@
+Control-plane checklist: epoch 98 accepted; epoch 99 execution disabled; formal PROJECT/GLOBAL promotion remains locked; recurring private ingestion remains locked; r98 store preserved and untouched; next executable route requires explicit owner decision and GPT publication.
