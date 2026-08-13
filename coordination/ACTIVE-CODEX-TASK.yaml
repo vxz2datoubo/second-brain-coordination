@@ -1,13 +1,13 @@
-schema_version: "108.0"
+schema_version: "108.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
-active_pull_request: null
-task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
+active_pull_request: 280
+task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 107
-mode: "synthetic_manual_capture_temporal_conflict_memory_palace_foundation"
-mode_label: "【Codex记忆宫殿】手动采集记忆 + 时间归一化 + 冲突检索 v1"
+route_epoch: 108
+mode: "synthetic_memory_palace_v1_review_hardening"
+mode_label: "【Codex记忆宫殿】PR #280 GPT审查问题修复"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -25,103 +25,82 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "663c777c356516150cd18b815a43192409bbdfc4"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R107-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE.yaml"
-design_spec: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
+canonical_main_at_route_publish: "c66f96c1a7de207c78167ff09640293e4d7a68b3"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R108-MEMORY-PALACE-V1-HARDENING.yaml"
+implementation_pr: 280
+reviewed_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
+pr_review_comment: 5282103515
+issue_review_comment: 5282111026
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-UNATTENDED-SOAK-OWNER-GATE"
-  route_epoch: 106
-  disposition: "SUPERSEDED_AS_IMMEDIATE_NEXT_STEP_BY_OWNER_MEMORY_PALACE_REQUIREMENT"
-  scheduler_created: false
-  execution_allowed_was: false
-  operational_candidate_store: "INITIALIZED_AND_ACCEPTED"
-  operational_soak_ledger: "INITIALIZED_AND_ACCEPTED"
-  formal_project_global_promotion: "LOCKED"
-
-owner_priority:
-  manual_capture_trigger: "采集记忆"
-  accepted_alias: "数据采集"
-  highest_value: >-
-    After capture, memory must be durably retrievable and usable in later reasoning. Relative dates must resolve against utterance time and retrieve
-    related memories on the resolved date. Potential/hard conflicts must be distinguished conservatively, preserving both historical sources.
-  cognitive_mapping_required:
-    - "KNOWN_SAID"
-    - "KNOWN_UNSAID_INFERRED"
-    - "UNKNOWN_BUT_ACCESSIBLE"
-    - "UNKNOWN_REQUIRES_SCAFFOLDING"
-
-reference_acceptance_story:
-  timezone: "Asia/Shanghai"
-  utterance_time: "2026-08-14T20:00:00+08:00"
-  utterance: "明天我要去睡大觉。采集记忆"
-  derived_date: "2026-08-15"
-  prior_memory: "2026-08-15 有群运动"
-  required_result: >-
-    Retrieve both. If times/flexibility are unknown, emit SCHEDULE_POTENTIAL_CONFLICT rather than hard contradiction; preserve provenance and
-    expose the missing scheduling detail needed to resolve the conflict.
+  task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
+  route_epoch: 107
+  implementation_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
+  disposition: "CHANGES_REQUIRED"
+  verified_ci_run: 31711639612
+  verified_phase3_tests: "232/232 PASS"
+  verified_public_safety: "72 files / 0 issues"
 
 root_goal: >-
-  Implement and test the synthetic-only Memory Palace foundation described in the canonical design spec: deterministic manual capture semantics,
-  append-preserving evidence, temporal normalization, event/plan representation, typed conservative conflict detection, hybrid lexical+temporal+
-  graph retrieval with explanations, four-state cognitive coverage mapping, and post-write exact scoped recall verification.
+  Continue PR #280 on the same Codex implementation branch and close all seven GPT semantic blockers before merge: separate claim validity from event
+  time; confidence-gate temporal retrieval; implement general multi-atom capture; stabilize owner-stance targets and evaluation coverage; prevent
+  false schedule conflicts and implement typed conflicts; bind provenance to source content; and implement domain-aware freshness policy.
+
+required_blockers:
+  - "R108-BITEMPORAL-EVENT-TIME-SEPARATION"
+  - "R108-TEMPORAL-CHANNEL-CONFIDENCE-GATE"
+  - "R108-GENERAL-MULTI-ATOM-CAPTURE"
+  - "R108-STRUCTURED-OWNER-STANCE-TARGETS"
+  - "R108-TYPED-CONFLICT-DISCIPLINE"
+  - "R108-CONTENT-BOUND-PROVENANCE"
+  - "R108-DOMAIN-AWARE-FRESHNESS-POLICY"
 
 execution_contract:
+  implementation_branch: "codex/cltm-0021-memory-palace-r107"
+  implementation_pr: 280
+  exact_reviewed_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
+  additive_commits_only: true
+  synthetic_only: true
   private_data: "FORBIDDEN"
-  real_capture: "NOT_IN_E107"
+  real_capture: "FORBIDDEN"
   scheduler: "FORBIDDEN"
   production_mcp_gateway: "FORBIDDEN"
-  implementation_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
-  semantic_embedding_provider: "OPTIONAL_INTERFACE_ONLY_NO_NETWORK_DEPENDENCY"
-  physical_store: "KEEP_ACCEPTED_SQLITE_W3_ADD_ONLY_MIGRATION"
+  formal_project_global_promotion: "LOCKED"
+  merge: "FORBIDDEN_TO_CODEX"
 
-acceptance_gates:
-  - "All tests in canonical route pass."
-  - "2026-08-14 Asia/Shanghai + 明天 resolves to 2026-08-15."
-  - "Prior 2026-08-15 memory is retrieved by derived temporal query."
-  - "Same-day unknown-time plans produce potential conflict, not hard conflict."
-  - "Known overlapping fixed intervals produce hard conflict."
-  - "Corrections remain append-preserving supersession."
-  - "Chinese keyword retrieval works after capture."
-  - "Capture success requires post-write exact scoped recall PASS."
-  - "Retrieval explanation identifies lexical/temporal/graph channels."
-  - "Four cognitive mapping states do not confuse inference with explicit user assertion."
-  - "Full relevant Phase-3 regression suite PASS."
-  - "public_safety_scan PASS."
-  - "git diff --check PASS."
-
-forbidden_actions:
-  - "Do not read/open the real private source or operational W3 store."
-  - "Do not run real recurring/private ingestion."
-  - "Do not create or modify Windows scheduled tasks."
-  - "Do not publish raw private memory to this repository."
-  - "Do not deploy production MCP/Gateway or add network/API-key dependencies."
-  - "Do not modify ACLs/security/credentials."
-  - "Do not promote formal PROJECT/GLOBAL memory."
-  - "Do not touch trading/accounts/live execution."
-  - "Do not merge your own PR."
+validation_required:
+  - "all adversarial tests listed in canonical epoch-108 route PASS"
+  - "expanded focused Memory Palace suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11/3.13 GitHub Actions SUCCESS"
+  - "public_safety_scan PASS"
+  - "YAML parse PASS"
+  - "git diff --check PASS"
 
 required_closeout:
-  - "head_sha"
+  - "new exact head_sha"
   - "exact changed paths"
-  - "focused tests/count"
-  - "full relevant Phase-3 tests/count"
-  - "public safety scan"
+  - "blocker-by-blocker implementation mapping"
+  - "focused/adversarial tests/count"
+  - "full Phase-3 tests/count"
+  - "public safety"
+  - "YAML parse"
   - "git diff --check"
-  - "reference acceptance story"
-  - "keyword retrieval"
-  - "temporal normalization"
-  - "potential/hard conflict distinction"
-  - "correction/supersession regression"
-  - "four-state cognitive coverage mapping"
-  - "post-write exact recall"
+  - "GitHub Actions run/jobs"
+  - "bitemporal/event-time separation"
+  - "temporal confidence gate"
+  - "general long-message atomization"
+  - "owner stance target lineage"
+  - "typed conflict discipline"
+  - "content-bound provenance"
+  - "domain-aware freshness policy"
   - "LOCAL_EXECUTION_ISSUES"
   - "REAL_PRIVATE_EXECUTION_NOT_RUN"
   - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
   - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_HARDENING_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 107 is synthetic-only Memory Palace foundation work. Real private capture integration, unattended scheduling, formal PROJECT/GLOBAL
-  promotion, production MCP/Gateway, security/permission changes and trading/accounts remain LOCKED pending GPT acceptance and a later live bridge.
+  Epoch 108 is synthetic-only hardening of PR #280. Real private capture, scheduler activation, formal PROJECT/GLOBAL promotion, production MCP/
+  Gateway, security changes, E48/live and trading/accounts remain locked. GPT retains merge authority.

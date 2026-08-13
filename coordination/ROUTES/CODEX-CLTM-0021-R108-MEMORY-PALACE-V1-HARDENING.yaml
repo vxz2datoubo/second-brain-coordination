@@ -1,0 +1,140 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: 280
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
+route_epoch: 108
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "c66f96c1a7de207c78167ff09640293e4d7a68b3"
+implementation_pr: 280
+reviewed_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
+pr_review_comment: 5282103515
+issue_review_comment: 5282111026
+
+predecessor:
+  task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
+  route_epoch: 107
+  implementation_head: "44500aac45bae397d4889f43bcf09d92fe6b5edb"
+  disposition: "CHANGES_REQUIRED"
+  verified_ci_run: 31711639612
+  verified_phase3_tests: "232/232 PASS"
+  verified_public_safety: "72 files / 0 issues"
+
+purpose: >-
+  Harden the existing epoch-107 Memory Palace v1 implementation on the same Codex branch/PR. Close the seven GPT review blockers that can cause
+  incorrect temporal validity, unrelated same-day recall, false post-write recall proof, inadequate long-message atomization, unstable owner-stance
+  lineage, false schedule conflicts, weak provenance identity, and brittle market freshness classification. Remain synthetic-only.
+
+required_blockers_to_close:
+  - id: "R108-BITEMPORAL-EVENT-TIME-SEPARATION"
+    requirement: >-
+      Separate claim/evidence validity from the referenced event interval. A plan recorded at 2026-08-14T20:00+08:00 for `明天` must be CURRENT-
+      recallable immediately after capture while its event interval remains 2026-08-15. A stance recorded at 20:00 must not appear in a 10:00
+      HISTORICAL reconstruction of the same day.
+  - id: "R108-TEMPORAL-CHANNEL-CONFIDENCE-GATE"
+    requirement: >-
+      Do not activate date expansion/temporal scanning when the query has no trusted temporal expression or explicit structured temporal filter.
+      Non-temporal queries must not retrieve unrelated same-day memories. Post-write exact recall must be supported by content/semantic/graph
+      evidence rather than an implicit anchor-date coincidence.
+  - id: "R108-GENERAL-MULTI-ATOM-CAPTURE"
+    requirement: >-
+      A long owner passage containing multiple durable claims/plans/preferences/decisions/goals/commitments/event reports must be decomposable into
+      separate retrievable atoms with one shared source episode lineage. Provide a deterministic offline/synthetic atomizer or injected atomizer
+      provider boundary; no network/LLM availability may be required for correctness.
+  - id: "R108-STRUCTURED-OWNER-STANCE-TARGETS"
+    requirement: >-
+      Implement stable target identity plus evaluation type so authenticity, source bias, credibility, good/bad, risk, usefulness, accuracy and
+      preference judgments remain owner stances, not objective facts. Opposite bias/credibility/evaluation statements must update the same target
+      lineage append-preservingly. A multi-stance source sentence must be able to attach claim-authenticity and source-bias to distinct targets.
+  - id: "R108-TYPED-CONFLICT-DISCIPLINE"
+    requirement: >-
+      Schedule conflicts apply only to schedulable event-like memories/constraints. Unrelated same-day assertions/preferences/stances must not
+      create schedule conflicts. Implement and test the route-declared conflict types that have actual v1 behavior; constants alone do not count.
+      At minimum cover stance/source-credibility conflict and plan supersession/unknown-constraint behavior where evidence supports them.
+  - id: "R108-CONTENT-BOUND-PROVENANCE"
+    requirement: >-
+      Bind ConversationEpisode/source provenance to normalized captured content or an explicit caller-supplied content hash. Reusing one source
+      identity with changed source text must be detected/revisioned or produce a distinct content-bound source identity. Raw private text remains
+      forbidden from public receipts.
+  - id: "R108-DOMAIN-AWARE-FRESHNESS-POLICY"
+    requirement: >-
+      Replace literal-word-only market freshness classification with an explicit metadata/policy boundary. Stock/trading clues that do not contain
+      the literal `市场` must still be classifiable as TRANSIENT/SHORT_CYCLE when appropriate. Structural preferences must remain durable; no one
+      universal decay rule.
+
+required_adversarial_tests:
+  - "tomorrow-plan is CURRENT-recallable immediately after capture but retains tomorrow event interval"
+  - "stance recorded at 20:00 is absent from HISTORICAL 10:00 and present after 20:00"
+  - "two unrelated non-temporal same-day memories do not cross-recall through temporal channel"
+  - "non-temporal post-write exact recall explanation excludes temporal coincidence"
+  - "long multi-clause owner passage yields multiple typed atoms with one episode lineage"
+  - "USER_GOAL / USER_COMMITMENT / USER_EVENT_REPORT can be emitted by the synthetic atomizer contract"
+  - "BIASED -> NOT_BIASED updates same target lineage"
+  - "TRUSTS_SOURCE -> DISTRUSTS_SOURCE updates same target lineage"
+  - "good/bad, risk and accuracy evaluations remain owner stance, not objective fact"
+  - "claim-authenticity target and source-bias target are distinct when source sentence contains both"
+  - "same-day preference + stance produces no schedule conflict"
+  - "same-day assertion + assertion produces no schedule conflict"
+  - "schedule potential/hard behavior remains correct for actual event-like plans"
+  - "stance/source credibility conflict behavior is typed and provenance-linked"
+  - "source content mutation under same source identity is detected/revisioned or content-hash-distinct"
+  - "stock/trading short-cycle clue without literal `市场` is freshness-gated for CURRENT when stale"
+  - "structural preference is not blindly decayed"
+
+validation_required:
+  - "expanded focused/adversarial Memory Palace suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11 and 3.13 GitHub Actions SUCCESS"
+  - "public_safety_scan PASS"
+  - "YAML parse PASS"
+  - "git diff --check PASS"
+  - "exact changed paths remain within authorized Phase-3 Integrated Offline Memory implementation/tests/handoff scope"
+
+forbidden_actions:
+  - "Do not read or open real private source/store."
+  - "Do not run real private ingestion/canary."
+  - "Do not create/modify/enable scheduler/service/startup persistence."
+  - "Do not deploy production MCP/Gateway."
+  - "Do not unlock formal PROJECT/GLOBAL promotion."
+  - "Do not modify ACL/security/credentials."
+  - "Do not touch E48/live, trading/accounts or repository visibility."
+  - "Do not merge PR #280."
+
+required_closeout:
+  - "new exact head_sha"
+  - "exact changed paths"
+  - "blocker-by-blocker implementation mapping"
+  - "focused/adversarial test count/result"
+  - "full Phase-3 test count/result"
+  - "public safety result"
+  - "YAML parse result"
+  - "git diff --check result"
+  - "GitHub Actions run and Python 3.11/3.13 result"
+  - "bitemporal/event-time separation result"
+  - "temporal confidence gate / unrelated same-day recall result"
+  - "general long-message atomization result"
+  - "owner stance target lineage result"
+  - "typed conflict discipline result"
+  - "content-bound provenance result"
+  - "domain-aware freshness policy result"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_HARDENING_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 108 is synthetic-only hardening of PR #280. It does not authorize real private capture, scheduler activation, formal PROJECT/GLOBAL
+  promotion, production MCP/Gateway, security changes, E48/live or trading/account actions. Merge remains GPT-controlled.
