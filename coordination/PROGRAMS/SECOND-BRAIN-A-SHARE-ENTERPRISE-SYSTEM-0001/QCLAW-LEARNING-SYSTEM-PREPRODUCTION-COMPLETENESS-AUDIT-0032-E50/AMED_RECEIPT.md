@@ -1,75 +1,88 @@
-# E50 AMED Receipt
+# E50 R2 AMED Receipt
 
 ## Mission Intent
 
-Independently audit whether the second-brain learning system is sufficiently complete to support real/private high-value source learning, before any real-source pilot is released.
+Independently audit whether the second-brain learning system is sufficiently
+complete to support real/private high-value source learning, before any
+real-source pilot is released. R2 corrects R1's core defect: R1 awarded PASS
+credit to E50-local stand-ins instead of auditing the canonical system.
 
 ## System Position
 
 workstream W3 (knowledge / evidence / conflict / long-term memory)
 upstream: USER_SELECTED / GPT_SELECTED raw sources
 reused_capability: E48 foundation (accepted by GPT, review_id 4915512021)
-downstream: candidate knowledge audit + E61-controlled formal persistence (still BLOCKED)
+downstream: candidate knowledge audit + E61-controlled formal persistence
+            (still BLOCKED)
 
-## Hard Boundaries
+## Hard Boundaries (all held)
 
 - No private/high-value user source ingestion (PUBLIC_SAFE_GENERALIZATION_ONLY)
 - No authoritative PROJECT/GLOBAL persistence
 - No automatic formal skill/trading-rule promotion
 - No fabricated coverage quotas or invented relations
-- No rebase/force/amend/history rewrite
+- No merge/rebase/force/amend/history rewrite (additive-only on E50 branch)
 - No secrets/credentials/accounts/trading
+- Did not touch Codex or E48 worktrees/branches
 
-## Active Discovery Duty
+## R1 → R2 correction
 
-Discovered and reported:
+R1 was REJECTED because D4/D5/D6/D7/D8/D9 "PASS" results came from E50-local
+stand-ins (CrossSourceMaster, cognition helper, SkillCandidate, local retrieval
+dict, local Codex boundary). R2:
 
-1. **D3 atom taxonomy gap (PARTIAL)**: E48 L2 only emits 4 atom types (DERIVED_CONCEPT, CONDITION, MECHANISM, UNKNOWN_REFUSAL) of the 13 required types. The other 9 (COUNTEREXAMPLE, INDICATOR, DATA_SOURCE, SCOPE, FAILURE_CONDITION, VERIFICATION_METHOD, HYPOTHESIS, EXECUTABLE_ACTION, DEFINITION) are NOT implemented. This is a real finding; coverage fabrication is forbidden.
+1. Vendored the canonical PHASE-3 `integrated_offline_memory` package
+   (MemoryStore / retrieval / conversation_memory / learning_packet /
+   contracts / schema_validation / canonical) + CODEX-E66 `e66_promotion` +
+   PHASE-2 `offline_research` as a read-only `canonical/` snapshot.
+2. Demoted all R1 stand-ins to `_untrusted_test_double/` (no canonical PASS credit).
+3. Rewrote every dimension (D1-D12) to call the canonical paths directly.
+4. Rebound the audit to the exact canonical head.
 
-2. **L2 evidence_kind gap**: E48 L2 emits only INFERENCE atoms; SOURCE_EXTRACT, USER_CLAIM, EXTERNAL_CLAIM, VALUE_JUDGMENT atoms are defined in the schema but never produced. D5 audit verified that when atoms labeled SOURCE_EXTRACT are constructed independently, the byte-identical invariant holds; the L2 derivation machinery just doesn't emit them by default.
+## Active Discovery Duty (honest findings)
 
-3. **CI runner dependency**: D11 deterministic checks are local; Python 3.11 + 3.13 matrix requires CI runner. E48 workflow (`.github/workflows/qclaw-e48-semantic-reconstruction.yml`) covers this.
-
-4. **Subprocess cap monitoring**: D12 zero-orphans check is local; subprocess cap (qclaw_task_python_cap=2) requires CI / runtime monitor.
+- **D3 (PARTIAL)**: canonical `MemoryStore._validate_atom` accepts free-form
+  `atom_type` — the 13-type taxonomy is NOT enforced on main; canonical fixtures
+  use only 5 types (rule/observation/strategy/contract/procedure).
+- **D5 (PARTIAL)**: canonical main uses `verification_status`/`evidence_quality`
+  (free-form) + `FieldSemanticDecision` (3-status enum); the E47/E48 5-way
+  `EvidenceKind` exists only on the E48 PR branch, not main.
+- **D10 (PARTIAL)**: canonical prompt-injection defense is a fixed 4-marker
+  list; paraphrased injection is NOT caught (bounded fail-safe gap).
 
 ## Improvement Authority
 
-- A (safe local autonomous): implemented multi-source adapter, cross-source master, cognition mapping, skill promotion, retrieval harness, codex boundary gate, audit runner, recommendation engine.
-- B (bounded implementation with evidence/tests/rollback): built E50 audit harness with full D1-D12 checks; rollback via DimensionVerdict FAIL path.
-- C (proposal only): NOT triggered. No new shared canonical schema introduced; no new runtime dependency added; no new skill proposed for formal promotion.
-- D (prohibited / user gate): NOT triggered. No formal persistence attempted; no merge/force/rebase; no credentials.
+- A (safe local autonomous): vendored canonical snapshot (read-only), wrote
+  D1-D12 audit modules, coverage report, risk-critical recommendation, unit tests.
+- B (bounded implementation with evidence/tests/rollback): audit harness with
+  deterministic evidence matrix; rollback via tempdir + no repo mutation.
+- C (proposal only): taxonomy/EvidenceKind/prompt-injection fixes listed as
+  FUTURE work in UNKNOWN-REGISTRY.md — NOT implemented in E50.
+- D (prohibited / user gate): NOT triggered (no formal write, no merge, no
+  credentials, no scope expansion).
 
 ## Exploration Budget
 
-- primary delivery (audit harness + D1-D12 verdicts): 75%
-- active discovery (D3/D5 gaps reported, forgery path tested, injection handling tested): 15%
-- system opportunity (CI harness extension proposal in UNKNOWN-REGISTRY.md): 10%
-
-### Budget compliance
-
-- max_new_architecture_proposals: 1 (in UNKNOWN-REGISTRY.md, future scope)
-- max_new_skill_candidates: 0 (none promoted; E50 audit only)
-- max_unplanned_files: well within 5 (audit modules grouped under `src/qclaw_e50_audit/`)
-
-## Research Quality
-
-- L0 research: E48 foundation is a vendored frozen snapshot, not re-derived
-- L1 review: each `run_dN` is a pure function on corpus + matrix; deterministic
-- L2 targeted: would be required if E50 needed new visualizations / new libraries (not the case)
+- primary delivery (canonical audit D1-D12 + evidence matrix): ~80%
+- active discovery (3 blocking gaps reported + DigestBundle placeholder
+  finding): ~15%
+- system opportunity (CI workflow qclaw-e50-preproduction-audit.yml): ~5%
 
 ## Engineering Correctness
 
-- All 25 unit tests pass on Python 3.13.3
-- Public-safe corpus fixtures: 9 base + 3 mutations = 12 total
-- Determinism verified locally (3 reruns → same view_sha256)
-- Mutation set produces 4 distinct view_sha256 (semantic change → digest change)
+- 6 unit tests pass on Python 3.13.3 (`tests/test_audit.py`)
+- Canonical head bound: `06474d7386db5a4e416e48d8c81cf0dd327328b3`
+- Determinism verified (content_hash sort_keys order-independent)
+- Resource postflight: no orphan children, no unrelated terminations
 
-## System Evolution
+## Recommendation (risk-critical)
 
-- Vendored E48 foundation makes audit reproducible; future tasks can re-vendor at new E48 head without coupling to E48's branch
-- `audit_runner.py` is reusable across future audits (just plug in different corpus)
-- `recommendation.py` decoupled from specific dimensions (any D1-D12-style audit harness can call `compute_recommendation`)
+`NOT_READY` — 3 critical gates are PARTIAL (D3 taxonomy, D5 evidence-kind,
+D10 prompt-injection generalization). Production candidate learning is never
+self-issued; `READY_FOR_BOUNDED_REAL_SOURCE_PILOT` requires GPT acceptance of
+E50 after all critical gates PASS.
 
 ## Next Action
 
-Publish Issue #243 handoff comment with evidence matrix + recommendation. Stop. Await GPT R1 review.
+Publish Issue #243 R2 handoff comment with the evidence matrix + recommendation.
+Stop. Await GPT R2 review.

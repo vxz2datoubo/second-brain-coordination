@@ -1,0 +1,32 @@
+name: QCLAW E50 learning-system preproduction audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qclaw-e50-preproduction-audit.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: E50 audit Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    defaults:
+      run:
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run E50 canonical-system audit unit tests
+        run: python -m unittest discover -s tests -t .
+      - name: Run full E50 audit and emit evidence matrix
+        run: python -c "import sys; sys.path.insert(0,'src'); from qclaw_e50_audit import runner; import json; r=runner.run_audit(); print(json.dumps(r, ensure_ascii=False, indent=2, default=str))"

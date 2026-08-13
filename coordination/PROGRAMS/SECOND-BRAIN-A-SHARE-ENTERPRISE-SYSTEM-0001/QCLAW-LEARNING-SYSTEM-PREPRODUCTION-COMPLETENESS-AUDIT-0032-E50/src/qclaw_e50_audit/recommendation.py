@@ -1,96 +1,57 @@
-"""recommendation — E50 explicit readiness recommendation.
+"""Risk-critical readiness recommendation.
 
-Recommendation must be exactly one of:
-  - NOT_READY
-  - READY_FOR_BOUNDED_REAL_SOURCE_PILOT
-  - READY_FOR_PRODUCTION_CANDIDATE_LEARNING
-
-Rules:
-  - NOT_READY: any D returns FAIL OR > 2 return PARTIAL OR D4/D8 returns PARTIAL OR D1/D6/D9/D10 returns FAIL
-  - READY_FOR_BOUNDED_REAL_SOURCE_PILOT: all D1–D12 PASS or PARTIAL, no FAIL; D4/D8 ≥ PARTIAL
-  - READY_FOR_PRODUCTION_CANDIDATE_LEARNING: all D1–D12 PASS; D4/D8 PASS
+R2 mandatory: recommendation must be risk-critical, not a naive count of
+PARTIAL dimensions. Any unresolved critical authority/provenance/privacy/
+stale-recall/skill-promotion gap => NOT_READY. Only when every critical
+gate is PASS may we consider READY_FOR_BOUNDED_REAL_SOURCE_PILOT (never
+READY_FOR_PRODUCTION_CANDIDATE_LEARNING without GPT acceptance).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
-
-from .audit_runner import EvidenceMatrix, Verdict
+from .evidence_matrix import DimensionVerdict, VERDICT_PASS
 
 
-class ReadinessRecommendation(str, Enum):
-    NOT_READY = "NOT_READY"
-    READY_FOR_BOUNDED_REAL_SOURCE_PILOT = "READY_FOR_BOUNDED_REAL_SOURCE_PILOT"
-    READY_FOR_PRODUCTION_CANDIDATE_LEARNING = "READY_FOR_PRODUCTION_CANDIDATE_LEARNING"
+NOT_READY = "NOT_READY"
+READY_FOR_BOUNDED_REAL_SOURCE_PILOT = "READY_FOR_BOUNDED_REAL_SOURCE_PILOT"
+READY_FOR_PRODUCTION_CANDIDATE_LEARNING = "READY_FOR_PRODUCTION_CANDIDATE_LEARNING"
 
 
-@dataclass(frozen=True)
-class ReadinessVerdict:
-    recommendation: ReadinessRecommendation
-    rationale: str
-    pass_count: int
-    partial_count: int
-    fail_count: int
+def recommend(dimensions: list[DimensionVerdict]) -> dict:
+    critical = [d for d in dimensions if d.critical]
+    non_pass_critical = [d for d in critical if d.verdict != VERDICT_PASS]
 
+    blockers: list[str] = []
+    for d in non_pass_critical:
+        blockers.append(f"{d.dimension}({d.verdict}): {d.rationale}")
 
-def compute_recommendation(matrix: EvidenceMatrix) -> ReadinessVerdict:
-    passes = matrix.passes()
-    partials = matrix.partials()
-    fails = matrix.fails()
-
-    n_pass = len(passes)
-    n_partial = len(partials)
-    n_fail = len(fails)
-
-    # NOT_READY conditions
-    if n_fail > 0:
-        return ReadinessVerdict(
-            recommendation=ReadinessRecommendation.NOT_READY,
-            rationale=f"{n_fail} dimension(s) FAILED; real-source learning not safe.",
-            pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
+    # A critical PARTIAL/FAIL/BLOCKED gate is a release blocker, full stop.
+    if non_pass_critical:
+        recommendation = NOT_READY
+        summary = (
+            f"{len(non_pass_critical)} critical gate(s) not PASS: "
+            + "; ".join(d.dimension for d in non_pass_critical)
         )
-    if n_partial > 2:
-        return ReadinessVerdict(
-            recommendation=ReadinessRecommendation.NOT_READY,
-            rationale=f">{2} dimensions PARTIAL; not safe for real-source learning.",
-            pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
+    else:
+        # All critical gates PASS. Bounded real-source pilot is the highest
+        # level QCLAW may recommend WITHOUT GPT acceptance of E50.
+        recommendation = READY_FOR_BOUNDED_REAL_SOURCE_PILOT
+        summary = (
+            "All critical authority/provenance/privacy/stale-recall/"
+            "skill-promotion gates PASS. Ready for a BOUNDED real-source "
+            "pilot ONLY after GPT independently accepts E50."
         )
 
-    # D4 / D8 are PARTIAL → NOT_READY
-    d4 = matrix.get("D4")
-    d8 = matrix.get("D8")
-    if d4 and d4.verdict == Verdict.PARTIAL:
-        return ReadinessVerdict(
-            recommendation=ReadinessRecommendation.NOT_READY,
-            rationale="D4 (cross-source mastering) PARTIAL; not safe for real-source learning.",
-            pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
-        )
-    if d8 and d8.verdict == Verdict.PARTIAL:
-        return ReadinessVerdict(
-            recommendation=ReadinessRecommendation.NOT_READY,
-            rationale="D8 (retrieval round-trip) PARTIAL; stale recall risk.",
-            pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
-        )
-
-    # READY_FOR_PRODUCTION_CANDIDATE_LEARNING: all PASS, D4/D8 PASS
-    if n_fail == 0 and n_partial == 0:
-        if d4 and d4.verdict == Verdict.PASS and d8 and d8.verdict == Verdict.PASS:
-            return ReadinessVerdict(
-                recommendation=ReadinessRecommendation.READY_FOR_PRODUCTION_CANDIDATE_LEARNING,
-                rationale="All D1-D12 PASS; D4+D8 PASS; ready for production candidate learning.",
-                pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
-            )
-
-    # READY_FOR_BOUNDED_REAL_SOURCE_PILOT
-    if n_fail == 0 and n_partial <= 2:
-        return ReadinessVerdict(
-            recommendation=ReadinessRecommendation.READY_FOR_BOUNDED_REAL_SOURCE_PILOT,
-            rationale=f"All dimensions PASS or PARTIAL (≤2); bounded real-source pilot allowed with whitelist.",
-            pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
-        )
-
-    return ReadinessVerdict(
-        recommendation=ReadinessRecommendation.NOT_READY,
-        rationale="Default NOT_READY",
-        pass_count=n_pass, partial_count=n_partial, fail_count=n_fail,
+    # Production candidate learning is never self-issued.
+    never_production = (
+        "READY_FOR_PRODUCTION_CANDIDATE_LEARNING requires GPT acceptance of E50 "
+        "and a separate production-authority gate; never self-issued by QCLAW."
     )
+
+    return {
+        "recommendation": recommendation,
+        "summary": summary,
+        "blockers": blockers,
+        "critical_pass_count": len(critical) - len(non_pass_critical),
+        "critical_total": len(critical),
+        "production_learning_note": never_production,
+    }

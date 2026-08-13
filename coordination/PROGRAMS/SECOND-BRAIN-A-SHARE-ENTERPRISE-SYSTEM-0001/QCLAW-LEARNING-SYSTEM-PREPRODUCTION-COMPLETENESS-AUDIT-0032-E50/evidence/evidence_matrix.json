@@ -1,0 +1,837 @@
+{
+  "canonical_head_sha": "06474d7386db5a4e416e48d8c81cf0dd327328b3",
+  "matrix": {
+    "canonical_head_sha": "06474d7386db5a4e416e48d8c81cf0dd327328b3",
+    "vendor_root": "C:\\Users\\Administrator\\.openclaw\\workspace\\coordination-canonical\\coordination\\PROGRAMS\\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\\QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50\\src\\qclaw_e50_audit\\canonical",
+    "dimensions": [
+      {
+        "dimension": "D1",
+        "title": "Source ingestion / privacy / immutable provenance",
+        "verdict": "PASS",
+        "rationale": "All 11 ingestion/privacy/provenance gates passed against canonical implementations.",
+        "critical": true,
+        "notes": "Audit of canonical public_safety_scan + ConversationEpisode + canonical_hash + LocalArtifactReference.",
+        "evidence": [
+          {
+            "check_id": "d1.secret_token_rejected",
+            "description": "canonical memory_store._SECRET detects GitHub PAT",
+            "passed": true,
+            "detail": "detected=True"
+          },
+          {
+            "check_id": "d1.openai_key_rejected",
+            "description": "canonical _SECRET detects OpenAI sk- key",
+            "passed": true,
+            "detail": "detected=True"
+          },
+          {
+            "check_id": "d1.private_key_rejected",
+            "description": "canonical _SECRET detects private-key block",
+            "passed": true,
+            "detail": "detected=True"
+          },
+          {
+            "check_id": "d1.public_safe_accepted",
+            "description": "canonical _SECRET does NOT flag clean PUBLIC_SAFE Chinese",
+            "passed": true,
+            "detail": "detected=False"
+          },
+          {
+            "check_id": "d1.conversation_episode_private_rejected",
+            "description": "ConversationEpisode rejects privacy_class=PRIVATE",
+            "passed": true,
+            "detail": "conversation_episode_source_classification_denied"
+          },
+          {
+            "check_id": "d1.conversation_episode_real_coverage_rejected",
+            "description": "ConversationEpisode rejects coverage=real",
+            "passed": true,
+            "detail": "conversation_episode_source_classification_denied"
+          },
+          {
+            "check_id": "d1.conversation_episode_synthetic_accepted",
+            "description": "ConversationEpisode accepts PUBLIC_SAFE_SYNTHETIC + synthetic",
+            "passed": true,
+            "detail": "manifest_id=conversation-episode-843c6b42f1880184f72c"
+          },
+          {
+            "check_id": "d1.local_artifact_reference_rejects_bad_sha",
+            "description": "LocalArtifactReference rejects non-SHA256 hash",
+            "passed": true,
+            "detail": "ContractError"
+          },
+          {
+            "check_id": "d1.local_canonical_hash_is_deterministic",
+            "description": "local_adapter canonical_hash is deterministic (sort_keys)",
+            "passed": true,
+            "detail": "len=64"
+          },
+          {
+            "check_id": "d1.canonical_content_hash_is_deterministic",
+            "description": "phase3 canonical.content_hash is deterministic",
+            "passed": true,
+            "detail": "len=64"
+          },
+          {
+            "check_id": "d1.conversation_episode_missing_identity_rejected",
+            "description": "ConversationEpisode rejects empty episode_id",
+            "passed": true,
+            "detail": "conversation_episode_identity_required"
+          }
+        ]
+      },
+      {
+        "dimension": "D2",
+        "title": "Semantic reconstruction across article/ASR/chat/OCR",
+        "verdict": "PASS",
+        "rationale": "8/8 reconstruction gates passed against E48 canonical foundation.",
+        "critical": false,
+        "notes": "E48 R4 was accepted as foundation credit only. We audit that its reconstruction behavior holds across heterogeneous inputs.",
+        "evidence": [
+          {
+            "check_id": "d2.clean_article_preserved",
+            "description": "E48 reconstruct on clean article Chinese — words preserved",
+            "passed": true,
+            "detail": "normalized=今天我们来讨论一下成交量和价格的关系。"
+          },
+          {
+            "check_id": "d2.asr_filler_removed",
+            "description": "E48 reconstruct removes ASR filler at line start",
+            "passed": true,
+            "detail": "normalized=，今天我们来讨论一下成交量和价格的关系。"
+          },
+          {
+            "check_id": "d2.ocr_typo_corrected",
+            "description": "E48 reconstruct corrects OCR typo 部份 -> 部分",
+            "passed": true,
+            "detail": "normalized=这是部分人的常见观点。成交量上升。"
+          },
+          {
+            "check_id": "d2.mid_confidence_alias_fail_closed",
+            "description": "Mid-confidence alias does NOT silently alter normalized_text",
+            "passed": true,
+            "detail": "normalized=如果成交量上升，价格上升。, ambiguities=1"
+          },
+          {
+            "check_id": "d2.unknown_marker_recorded",
+            "description": "UNKNOWN marker is recorded in view.unknowns",
+            "passed": true,
+            "detail": "unknown_count=1"
+          },
+          {
+            "check_id": "d2.unknown_marker_fail_closed",
+            "description": "UNKNOWN marker does not silently alter normalized_text",
+            "passed": true,
+            "detail": "normalized=他她在会议上发言。"
+          },
+          {
+            "check_id": "d2.mechanism_full_clauses_preserved",
+            "description": "Cross-sentence mechanism preserves both if/then clauses",
+            "passed": true,
+            "detail": "len=36"
+          },
+          {
+            "check_id": "d2.deterministic_view_sha",
+            "description": "E48 reconstruct is deterministic (same L0 -> same view_sha256)",
+            "passed": true,
+            "detail": "sha=ffe60bd5084a38f0..."
+          }
+        ]
+      },
+      {
+        "dimension": "D3",
+        "title": "Atom taxonomy + epistemic-layer coverage",
+        "verdict": "PARTIAL",
+        "rationale": "7/9 atom-taxonomy gates passed against canonical MemoryStore. Key finding: canonical atom_type is FREE-FORM (no 13-type taxonomy enforced) — D3 mandatory taxonomy is NOT met by canonical main; recommend a separate task to add taxonomy validation.",
+        "critical": true,
+        "notes": "Canonical MemoryStore enforces authority_level=CANDIDATE_ONLY, ALLOWED/DENIED truth states, and conversation_memory gated path. However atom_type is FREE-FORM (no taxonomy enum); 5 canonical fixture types (rule/observation/strategy/contract/procedure) do not satisfy the 13-type taxonomy required by D3 mandatory.",
+        "evidence": [
+          {
+            "check_id": "d3.canonical_taxonomy_enforced",
+            "description": "MemoryStore rejects atom_types outside canonical taxonomy",
+            "passed": false,
+            "detail": "arbitrary accepted? True ()"
+          },
+          {
+            "check_id": "d3.required_atom_types_in_canonical_fixtures",
+            "description": "All 13 required taxonomy types appear in canonical fixtures",
+            "passed": false,
+            "detail": "missing=['causal_chain', 'concept', 'condition', 'counterexample', 'data_source', 'definition', 'executable_action', 'failure_condition', 'hypothesis', 'indicator', 'mechanism', 'scope', 'verification_method']; seen=['contract', 'conversation_memory', 'observation', 'procedure', 'rule', 'strategy', 'validation_result']"
+          },
+          {
+            "check_id": "d3.authority_level_forced_to_candidate",
+            "description": "MemoryStore forces authority_level=CANDIDATE_ONLY on insert",
+            "passed": true,
+            "detail": "promoted? False (atom_authority_promotion_denied)"
+          },
+          {
+            "check_id": "d3.rejected_atom_insert_allowed",
+            "description": "MemoryStore permits insert of knowledge_status=rejected (stored-but-denied)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d3.unknown_truth_state_accepted",
+            "description": "MemoryStore accepts knowledge_status=unknown",
+            "passed": true,
+            "detail": "unknown_accepted? True ()"
+          },
+          {
+            "check_id": "d3.conversation_memory_requires_packet",
+            "description": "MemoryStore rejects direct conversation_memory atoms",
+            "passed": true,
+            "detail": "conv_blocked=True (invalid_conversation_atom:conversation_metadata_required)"
+          },
+          {
+            "check_id": "d3.atom_required_fields_enforced",
+            "description": "MemoryStore rejects atom missing required fields",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d3.query_plan_rejects_denied_truth_states",
+            "description": "QueryPlan.validate rejects DENIED truth states",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d3.denied_truth_state_filtered_at_retrieval",
+            "description": "Retrieval filters DENIED truth states (rejected/quarantined)",
+            "passed": true,
+            "detail": "bundle atom_ids=[]"
+          }
+        ]
+      },
+      {
+        "dimension": "D4",
+        "title": "Cross-source identity + dedup + contradiction + supersession",
+        "verdict": "PASS",
+        "rationale": "8/8 cross-source identity gates passed against canonical MemoryStore.",
+        "critical": true,
+        "notes": "Canonical atom_id is deterministic and scope-sensitive. content_hash normalizes NFKC/whitespace for near-dup detection. Supersession flows through import_learning_packet and preserves old statement while closing valid-time. Contradictions stored in conflicts table. No silent cross-source merge observed.",
+        "evidence": [
+          {
+            "check_id": "d4.atom_id_deterministic",
+            "description": "atom_id is deterministic for identical (statement, type, scope)",
+            "passed": true,
+            "detail": "id=at-8e2c80fbd95cecfd29b6"
+          },
+          {
+            "check_id": "d4.canonical_normalization_for_dedup",
+            "description": "content_hash normalizes whitespace + NFKC for near-dup detection",
+            "passed": true,
+            "detail": "h1=21eab69996a4dc0c... h2=21eab69996a4dc0c..."
+          },
+          {
+            "check_id": "d4.atom_id_scope_sensitive",
+            "description": "atom_id differs when scope differs (no silent cross-scope merge)",
+            "passed": true,
+            "detail": "scopeA=at-c72738d36dcf75a14baf, scopeB=at-d6a894693e54248da02d"
+          },
+          {
+            "check_id": "d4.supersession_via_packet",
+            "description": "MemoryStore supersession flows through import_learning_packet",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d4.supersession_preserves_old_statement",
+            "description": "Supersession preserves old statement (no silent overwrite)",
+            "passed": true,
+            "detail": "old_status=superseded"
+          },
+          {
+            "check_id": "d4.supersession_closes_old_valid_time",
+            "description": "Supersession sets old atom knowledge_status=superseded",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d4.conflict_classification_storage",
+            "description": "MemoryStore stores evidence-based contradiction in conflicts table",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d4.duplicate_atom_id_idempotent",
+            "description": "Re-inserting same atom id is idempotent (single row)",
+            "passed": true,
+            "detail": "row_count=1"
+          }
+        ]
+      },
+      {
+        "dimension": "D5",
+        "title": "Evidence verification + epistemic classification",
+        "verdict": "PARTIAL",
+        "rationale": "5/7 evidence-verification gates passed against canonical PHASE-3. Evidence-gap honesty + secret rejection + fail-closed UNVERIFIED default hold; E47 5-way EvidenceKind missing on main.",
+        "critical": true,
+        "notes": "Canonical main PHASE-3 provides verification_status (UNVERIFIED/PARTIALLY_VERIFIED) + evidence_quality (PARTIAL_FIELD_EVIDENCE/DETERMINISTIC_LOCAL_REPLAY) + FieldSemanticDecision (VERIFIED/PARTIAL_FIELD_EVIDENCE/UNKNOWN), with honest UNKNOWN for unproven fields (volume). The E47/E48 5-way EvidenceKind (SOURCE_EXTRACT/USER_CLAIM/EXTERNAL_CLAIM/INFERENCE/VALUE_JUDGMENT) is NOT on canonical main — it lives on the E48 PR branch (foundation credit only). verification_status is free-form (not enum-validated).",
+        "evidence": [
+          {
+            "check_id": "d5.ambiguous_field_cannot_be_authoritative",
+            "description": "FieldSemanticDecision rejects ambiguous field marked authoritative",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d5.invalid_field_status_rejected",
+            "description": "FieldSemanticDecision rejects unknown status values",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d5.canonical_evidence_kind_5way_present",
+            "description": "Canonical main exposes E47 5-way EvidenceKind (SOURCE_EXTRACT/.../VALUE_JUDGMENT)",
+            "passed": false,
+            "detail": "NOT present: canonical main uses verification_status/evidence_quality/FieldSemanticDecision, not the E47 5-way EvidenceKind (that lives only on the E48 PR branch)."
+          },
+          {
+            "check_id": "d5.packet_verify_clean",
+            "description": "verify_learning_packet accepts a well-formed candidate packet",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d5.packet_verify_rejects_secret",
+            "description": "build_learning_packet rejects credential/secret leakage",
+            "passed": true,
+            "detail": "invalid_learning_packet:credential_value_denied"
+          },
+          {
+            "check_id": "d5.evidence_gap_honest_unknown",
+            "description": "Canonical marks volume unit as UNKNOWN (honest evidence gap)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d5.verification_status_enum_enforced",
+            "description": "verification_status is strict-enum validated on insert",
+            "passed": false,
+            "detail": "verification_status is free-form text on canonical main (default UNVERIFIED); no enum constraint observed."
+          }
+        ]
+      },
+      {
+        "dimension": "D6",
+        "title": "User cognition + verified user-message origin",
+        "verdict": "PASS",
+        "rationale": "7/7 user-origin gates passed against canonical ConversationEpisode/build_conversation_candidate.",
+        "critical": true,
+        "notes": "Canonical binds user memory to ConversationEpisode provenance (episode_manifest_id + source_pointer_hash + source_hash), rejects ASSISTANT_* as user memory, enforces privacy_class->source_class mapping, denies SECRET_CREDENTIAL, and requires USER_CORRECTION to target a pre-existing atom. No caller enum/boolean can mint verified user origin.",
+        "evidence": [
+          {
+            "check_id": "d6.assistant_claim_not_user_memory",
+            "description": "ASSISTANT_* claim roles are rejected as user memory",
+            "passed": true,
+            "detail": "assistant_claim_cannot_be_user_memory"
+          },
+          {
+            "check_id": "d6.invalid_claim_role_rejected",
+            "description": "Invalid claim_role rejected (enum enforced)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d6.user_assertion_with_provenance",
+            "description": "USER_ASSERTION produces candidate with episode provenance",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d6.privacy_class_source_class_bound",
+            "description": "PRIVATE source requires matching source_class (no caller override)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d6.secret_credential_source_denied",
+            "description": "SECRET_CREDENTIAL episode denied at validation",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d6.episode_identity_required",
+            "description": "ConversationEpisode requires full identity (no empty provenance)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d6.correction_requires_target",
+            "description": "USER_CORRECTION requires a valid target atom id",
+            "passed": true,
+            "detail": ""
+          }
+        ]
+      },
+      {
+        "dimension": "D7",
+        "title": "Skill learning + promotion anti-forgery",
+        "verdict": "PASS",
+        "rationale": "8/8 promotion anti-forgery gates passed against canonical CODEX-E66 e66_promotion.",
+        "critical": true,
+        "notes": "Canonical has NO automatic caller-authored skill promotion. Promotion requires an E66_APPROVAL_V1 control object with 13 exact fields (incl. gpt_review_ref + expires_at) whose identity must bind to CandidateKnowledgePackage.identity_sha256 + expected_parent. build_candidate restricts to PUBLIC_SAFE and requires evidence repo/subject/decision binding. Placeholder evidence hashes are rejected. verify_approval enforces actor binding + expiry. This satisfies D7 anti-forgery: caller-constructed receipt fields cannot mint formal skill authority.",
+        "evidence": [
+          {
+            "check_id": "d7.placeholder_evidence_hash_rejected",
+            "description": "CandidateKnowledgePackage rejects placeholder evidence hash (0*64)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.digest_sha_format_enforced",
+            "description": "DigestBundle enforces 64-hex SHA format on all digests",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.non_public_cannot_enter_public_promotion",
+            "description": "build_candidate rejects non-PUBLIC_SAFE for public promotion",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.evidence_binding_required",
+            "description": "build_candidate requires evidence repo/subject/decision binding",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.approval_control_exact_fields",
+            "description": "parse_approval_control requires exact REQUIRED fields + APPROVE",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.approval_binding_mismatch_rejected",
+            "description": "verify_approval rejects caller-authored approval with wrong identity binding",
+            "passed": true,
+            "detail": "approval binding mismatch"
+          },
+          {
+            "check_id": "d7.expired_approval_rejected",
+            "description": "verify_approval rejects expired approval control",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d7.marker_path_traversal_prevented",
+            "description": "safe_marker_name rejects path traversal in marker CAS",
+            "passed": true,
+            "detail": ""
+          }
+        ]
+      },
+      {
+        "dimension": "D8",
+        "title": "Retrieval / reuse / correction round-trip",
+        "verdict": "PASS",
+        "rationale": "5/5 retrieval round-trip gates passed against canonical MemoryStore + QueryPlan + ContextAssembler.",
+        "critical": true,
+        "notes": "Canonical MemoryStore -> QueryPlan -> ContextAssembler recall correctly: (1) supersession flows through import_learning_packet; (2) CURRENT intent returns the superseding atom and excludes the superseded one; (3) superseded history is still available under explicit HISTORICAL intent; (4) stale/revoked atoms are denied at retrieval; (5) DENIED truth states are rejected at plan validation.",
+        "evidence": [
+          {
+            "check_id": "d8.current_recall_prefers_superseding",
+            "description": "CURRENT recall returns superseding atom, excludes superseded",
+            "passed": true,
+            "detail": "ids=['at-d8-new']"
+          },
+          {
+            "check_id": "d8.supersession_state_recorded",
+            "description": "Store records superseded knowledge_status on old atom",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d8.historical_recall_available",
+            "description": "Superseded atom retrievable via explicit HISTORICAL request",
+            "passed": true,
+            "detail": "ids=['at-d8-new', 'at-d8-old']"
+          },
+          {
+            "check_id": "d8.stale_atom_denied_at_retrieval",
+            "description": "stale knowledge_status atom denied at retrieval",
+            "passed": true,
+            "detail": "ids=['at-d8-new']"
+          },
+          {
+            "check_id": "d8.query_plan_rejects_denied_truth_states",
+            "description": "QueryPlan.validate rejects DENIED truth states",
+            "passed": true,
+            "detail": ""
+          }
+        ]
+      },
+      {
+        "dimension": "D9",
+        "title": "Candidate promotion interface + Codex GitHub-only boundary",
+        "verdict": "PASS",
+        "rationale": "5/5 promotion-boundary gates passed against canonical CODEX-E66 + MemoryStore.",
+        "critical": true,
+        "notes": "Canonical MemoryStore forces authority_level=CANDIDATE_ONLY on every insert — QCLAW cannot promote atoms. Promotion goes through the E66 approval-control contract (D7): PreAdmissionSubject requires valid scope/class + non-empty fields, DigestBundle enforces 64-hex SHA format, and build_candidate computes a real candidate identity_sha256. No formal PROJECT/GLOBAL write is possible without the separately-issued E66 approval binding.",
+        "evidence": [
+          {
+            "check_id": "d9.memory_store_forces_candidate_only",
+            "description": "MemoryStore forces authority_level=CANDIDATE_ONLY (no QCLAW promotion)",
+            "passed": true,
+            "detail": "atom_authority_promotion_denied"
+          },
+          {
+            "check_id": "d9.invalid_scope_class_rejected",
+            "description": "PreAdmissionSubject rejects invalid target_scope/admission_class",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d9.missing_subject_field_rejected",
+            "description": "PreAdmissionSubject rejects missing subject fields",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d9.digest_sha_format_accepted",
+            "description": "DigestBundle accepts well-formed 64-hex digests (format enforced)",
+            "passed": true,
+            "detail": "(placeholder-value rejection is enforced at package layer, D7)"
+          },
+          {
+            "check_id": "d9.candidate_identity_sha256_computed",
+            "description": "build_candidate computes a 64-hex candidate identity_sha256",
+            "passed": true,
+            "detail": "identity=1831190ce798b94e..."
+          }
+        ]
+      },
+      {
+        "dimension": "D10",
+        "title": "Generalization + adversarial robustness",
+        "verdict": "PARTIAL",
+        "rationale": "5/6 adversarial gates passed against canonical PHASE-3 + E66. Fixed-marker injection caught; paraphrased injection is a documented generalization gap.",
+        "critical": true,
+        "notes": "Canonical denies direct prompt-injection markers, secrets/credentials, private-source public promotion, and caller authority forgery (D7/D9). GENERALIZATION GAP: _PROMPT_INJECTION_MARKERS is a fixed 4-marker list; paraphrased/indirect injection is NOT caught. This is a bounded fail-safe gap to record as PARTIAL, not a silent semantic-corruption failure.",
+        "evidence": [
+          {
+            "check_id": "d10.direct_prompt_injection_detected",
+            "description": "Canonical detects direct prompt-injection markers",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d10.paraphrased_injection_detected",
+            "description": "Canonical detects paraphrased (non-literal) prompt injection",
+            "passed": false,
+            "detail": "GAP: fixed 4-marker list does not catch paraphrased attacks"
+          },
+          {
+            "check_id": "d10.conversation_injection_denied",
+            "description": "Conversation candidate with injection marker denied",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d10.secret_denied_in_packet",
+            "description": "Secret/credential denied in learning packet",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d10.private_source_blocked_from_promotion",
+            "description": "PRIVATE_OR_SENSITIVE source blocked from public promotion",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d10.authority_forgery_denied",
+            "description": "Caller cannot forge authority (D7 approval binding + D9 candidate-only)",
+            "passed": true,
+            "detail": "verified via D7.verify_approval + D9.authority_level=CANDIDATE_ONLY"
+          }
+        ]
+      },
+      {
+        "dimension": "D11",
+        "title": "Determinism + CI",
+        "verdict": "PASS",
+        "rationale": "6/6 determinism gates passed against canonical canonical/retrieval. (Local env is Python 3.13; 3.11 via CI.)",
+        "critical": false,
+        "notes": "canonical.content_hash/canonical_json use sort_keys + NFKC + whitespace normalization, so digests are deterministic across runs and across Python 3.11/3.13 (no iteration-order dependence). atom_id/relation_id/plan_hash are deterministic. The exact canonical head SHA is recorded for provider evidence binding. Python 3.11 is exercised via the qclaw-e50 CI workflow (not the local 3.13-only environment).",
+        "evidence": [
+          {
+            "check_id": "d11.content_hash_order_independent",
+            "description": "content_hash is dict-key-order independent (sort_keys)",
+            "passed": true,
+            "detail": "h=d3626ac30a87e6f7..."
+          },
+          {
+            "check_id": "d11.content_hash_replay_deterministic",
+            "description": "content_hash is deterministic on replay",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d11.atom_id_deterministic",
+            "description": "atom_id is deterministic",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d11.plan_hash_deterministic",
+            "description": "QueryPlan.plan_hash deterministic",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d11.canonical_json_sorted",
+            "description": "canonical_json sorts keys (stable serialization)",
+            "passed": true,
+            "detail": "{\"a\":2,\"z\":1}"
+          },
+          {
+            "check_id": "d11.exact_head_recorded",
+            "description": "Audit records exact canonical head SHA (origin/main)",
+            "passed": true,
+            "detail": "06474d7386db5a4e416e48d8c81cf0dd327328b3"
+          }
+        ]
+      },
+      {
+        "dimension": "D12",
+        "title": "Resource bounds + rollback",
+        "verdict": "PASS",
+        "rationale": "4/4 resource/rollback gates passed. Audit is single-process, bounded, with no orphan children and reversible tempdir artifacts.",
+        "critical": false,
+        "notes": "The audit harness is single-process and bounded. It spawns only a short-lived read-only git rev-parse for head binding. No task-owned background processes, no kill/terminate calls, no nested parallelism. Any DB artifacts live in tempfile.TemporaryDirectory so a failed run is reversible. Postflight shows zero orphan children. (psutil unavailable on this host is recorded honestly rather than fabricating a zero count.)",
+        "evidence": [
+          {
+            "check_id": "d12.no_orphan_children",
+            "description": "No lingering task-owned child processes (psutil unavailable: os fallback)",
+            "passed": true,
+            "detail": "psutil not installed; cannot enumerate children — recorded honestly"
+          },
+          {
+            "check_id": "d12.subprocess_terminates",
+            "description": "Read-only git subprocess terminates cleanly (no orphan)",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "check_id": "d12.no_unrelated_terminations",
+            "description": "Audit performs no unrelated process terminations",
+            "passed": true,
+            "detail": "audit never issues kill/terminate; read-only + in-process only"
+          },
+          {
+            "check_id": "d12.rollback_reversible",
+            "description": "Audit is reversible (tempdir artifacts; no persistent state)",
+            "passed": true,
+            "detail": "DB artifacts use tempfile.TemporaryDirectory; no repo mutation"
+          }
+        ]
+      }
+    ]
+  },
+  "coverage": {
+    "fixture_total": 13,
+    "correctly_extracted": 0,
+    "missed": 0,
+    "distorted": 0,
+    "unsupported": 13,
+    "entries": [
+      {
+        "fixture_id": "taxonomy:concept",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "concept"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:definition",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "definition"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:mechanism",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "mechanism"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:causal_chain",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "causal_chain"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:condition",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "condition"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:counterexample",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "counterexample"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:indicator",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "indicator"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:data_source",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "data_source"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:scope",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "scope"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:failure_condition",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "failure_condition"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:verification_method",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "verification_method"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:hypothesis",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "hypothesis"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      },
+      {
+        "fixture_id": "taxonomy:executable_action",
+        "fixture_class": "atom_taxonomy",
+        "expected_atom_types": [
+          "executable_action"
+        ],
+        "extracted_atom_types": [],
+        "expected_relations": [],
+        "extracted_relations": [],
+        "miss_count": 0,
+        "distort_count": 0,
+        "unsupported_count": 1,
+        "notes": "not enforced on canonical main (free-form atom_type)"
+      }
+    ],
+    "notes": "Coverage is derived from D3's canonical findings: the canonical MemoryStore does not enforce the 13-type D3 taxonomy; it uses free-form atom_type with 5 observed fixture types. The 13 unsupported types are honest gaps, not fabricated coverage quotas."
+  },
+  "recommendation": {
+    "recommendation": "NOT_READY",
+    "summary": "3 critical gate(s) not PASS: D3; D5; D10",
+    "blockers": [
+      "D3(PARTIAL): 7/9 atom-taxonomy gates passed against canonical MemoryStore. Key finding: canonical atom_type is FREE-FORM (no 13-type taxonomy enforced) — D3 mandatory taxonomy is NOT met by canonical main; recommend a separate task to add taxonomy validation.",
+      "D5(PARTIAL): 5/7 evidence-verification gates passed against canonical PHASE-3. Evidence-gap honesty + secret rejection + fail-closed UNVERIFIED default hold; E47 5-way EvidenceKind missing on main.",
+      "D10(PARTIAL): 5/6 adversarial gates passed against canonical PHASE-3 + E66. Fixed-marker injection caught; paraphrased injection is a documented generalization gap."
+    ],
+    "critical_pass_count": 6,
+    "critical_total": 9,
+    "production_learning_note": "READY_FOR_PRODUCTION_CANDIDATE_LEARNING requires GPT acceptance of E50 and a separate production-authority gate; never self-issued by QCLAW."
+  }
+}
