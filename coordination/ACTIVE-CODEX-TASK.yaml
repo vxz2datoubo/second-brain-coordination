@@ -1,15 +1,15 @@
-schema_version: "107.2"
+schema_version: "108.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-UNATTENDED-SOAK-OWNER-GATE"
+task_id: "CODEX-CLTM-0021-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE-V1"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 106
-mode: "non_executable_owner_gate_for_unattended_candidate_soak"
-mode_label: "【等待Owner授权】CLTM-0021 operational store 已通过，scheduler profile 待批准"
-status: "WAITING_OWNER_DECISION"
-execution_allowed: false
+route_epoch: 107
+mode: "synthetic_manual_capture_temporal_conflict_memory_palace_foundation"
+mode_label: "【Codex记忆宫殿】手动采集记忆 + 时间归一化 + 冲突检索 v1"
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
@@ -25,73 +25,103 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "06d315cb5bb2034e60ca19683aa6340a02c73d20"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R106-UNATTENDED-SOAK-OWNER-GATE.yaml"
-owner_option_a_authorization_issue_comment: 5277767515
-e105_acceptance_issue_comment: 5280060457
-accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+canonical_main_at_route_publish: "663c777c356516150cd18b815a43192409bbdfc4"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R107-MANUAL-CAPTURE-TEMPORAL-MEMORY-PALACE.yaml"
+design_spec: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
-  route_epoch: 105
-  disposition: "ACCEPTED"
-  runtime_freshness: "PASS"
-  module_entrypoint_contract_probe: "PASS"
-  cli_exit_code: 0
-  status: "IMPORTED"
-  validation_status: "PASS"
-  candidate_authority_only: true
-  formal_project_global_write: "LOCKED"
-  candidate_count: 1
-  imported_count: 1
-  duplicate_count: 0
-  non_imported_count: 0
-  recall_count: 1
-  exact_imported_atom_recalled: true
-  operational_store_exists: true
-  soak_ledger_exists: true
-  local_execution_issues: "NONE"
-  unattended_scheduler: "NOT_ACTIVATED"
+  task_id: "CODEX-CLTM-0021-UNATTENDED-SOAK-OWNER-GATE"
+  route_epoch: 106
+  disposition: "SUPERSEDED_AS_IMMEDIATE_NEXT_STEP_BY_OWNER_MEMORY_PALACE_REQUIREMENT"
+  scheduler_created: false
+  execution_allowed_was: false
+  operational_candidate_store: "INITIALIZED_AND_ACCEPTED"
+  operational_soak_ledger: "INITIALIZED_AND_ACCEPTED"
   formal_project_global_promotion: "LOCKED"
 
-accepted_milestone:
-  real_private_operational_candidate_store: "INITIALIZED_AND_ACCEPTED"
-  real_private_operational_soak_ledger: "INITIALIZED_AND_ACCEPTED"
-  operational_candidate_ingest_exact_recall: "PROVEN"
-  formal_project_global_authority: "LOCKED"
+owner_priority:
+  manual_capture_trigger: "采集记忆"
+  accepted_alias: "数据采集"
+  highest_value: >-
+    After capture, memory must be durably retrievable and usable in later reasoning. Relative dates must resolve against utterance time and retrieve
+    related memories on the resolved date. Potential/hard conflicts must be distinguished conservatively, preserving both historical sources.
+  cognitive_mapping_required:
+    - "KNOWN_SAID"
+    - "KNOWN_UNSAID_INFERRED"
+    - "UNKNOWN_BUT_ACCESSIBLE"
+    - "UNKNOWN_REQUIRES_SCAFFOLDING"
 
-owner_decision_required:
-  reason: >-
-    Persistent Windows Task Scheduler registration is an automatic-execution and persistence boundary distinct from candidate-ingestion direction.
-    No task may be created until the owner explicitly approves the concrete epoch-106 scheduler profile or requests changes.
-  recommended_profile_summary:
-    scheduler_type: "WINDOWS_TASK_SCHEDULER"
-    task_name: "SecondBrain-CLTM-CandidateSoak"
-    principal: "CURRENT_WINDOWS_USER_ONLY"
-    run_level: "LEAST_PRIVILEGE"
-    credential_storage: "NONE"
-    logged_on_only: true
-    cadence_minutes: 60
-    trigger: "AT_LOGON_PLUS_REPEAT"
-    catch_up_missed_runs: false
-    wake_computer: false
-    multiple_instances_policy: "IGNORE_NEW"
-    execution_time_limit_minutes: 10
-    runtime_auto_update: false
-    runtime_pin: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
-    module_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
-  activation_after_approval: >-
-    A fresh GPT route will materialize a dedicated pinned current-user runtime clone, verify integrity, register the exact task DISABLED, run one
-    registered-task canary, and only after canary PASS enable the 60-minute schedule.
-  owner_responses:
-    approve: "APPROVE_E106_PROFILE"
-    modify: "REQUEST_E106_CHANGES"
-    decline: "KEEP_MANUAL_ONLY"
+reference_acceptance_story:
+  timezone: "Asia/Shanghai"
+  utterance_time: "2026-08-14T20:00:00+08:00"
+  utterance: "明天我要去睡大觉。采集记忆"
+  derived_date: "2026-08-15"
+  prior_memory: "2026-08-15 有群运动"
+  required_result: >-
+    Retrieve both. If times/flexibility are unknown, emit SCHEDULE_POTENTIAL_CONFLICT rather than hard contradiction; preserve provenance and
+    expose the missing scheduling detail needed to resolve the conflict.
 
-codex_instruction: >-
-  STOP. Do not create/register/enable/modify/delete any scheduled task, do not read private source/store, and do not execute recurring ingestion
-  while epoch 106 is active. Wait for explicit owner decision and a new GPT executable route.
+root_goal: >-
+  Implement and test the synthetic-only Memory Palace foundation described in the canonical design spec: deterministic manual capture semantics,
+  append-preserving evidence, temporal normalization, event/plan representation, typed conservative conflict detection, hybrid lexical+temporal+
+  graph retrieval with explanations, four-state cognitive coverage mapping, and post-write exact scoped recall verification.
 
+execution_contract:
+  private_data: "FORBIDDEN"
+  real_capture: "NOT_IN_E107"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  implementation_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
+  semantic_embedding_provider: "OPTIONAL_INTERFACE_ONLY_NO_NETWORK_DEPENDENCY"
+  physical_store: "KEEP_ACCEPTED_SQLITE_W3_ADD_ONLY_MIGRATION"
+
+acceptance_gates:
+  - "All tests in canonical route pass."
+  - "2026-08-14 Asia/Shanghai + 明天 resolves to 2026-08-15."
+  - "Prior 2026-08-15 memory is retrieved by derived temporal query."
+  - "Same-day unknown-time plans produce potential conflict, not hard conflict."
+  - "Known overlapping fixed intervals produce hard conflict."
+  - "Corrections remain append-preserving supersession."
+  - "Chinese keyword retrieval works after capture."
+  - "Capture success requires post-write exact scoped recall PASS."
+  - "Retrieval explanation identifies lexical/temporal/graph channels."
+  - "Four cognitive mapping states do not confuse inference with explicit user assertion."
+  - "Full relevant Phase-3 regression suite PASS."
+  - "public_safety_scan PASS."
+  - "git diff --check PASS."
+
+forbidden_actions:
+  - "Do not read/open the real private source or operational W3 store."
+  - "Do not run real recurring/private ingestion."
+  - "Do not create or modify Windows scheduled tasks."
+  - "Do not publish raw private memory to this repository."
+  - "Do not deploy production MCP/Gateway or add network/API-key dependencies."
+  - "Do not modify ACLs/security/credentials."
+  - "Do not promote formal PROJECT/GLOBAL memory."
+  - "Do not touch trading/accounts/live execution."
+  - "Do not merge your own PR."
+
+required_closeout:
+  - "head_sha"
+  - "exact changed paths"
+  - "focused tests/count"
+  - "full relevant Phase-3 tests/count"
+  - "public safety scan"
+  - "git diff --check"
+  - "reference acceptance story"
+  - "keyword retrieval"
+  - "temporal normalization"
+  - "potential/hard conflict distinction"
+  - "correction/supersession regression"
+  - "four-state cognitive coverage mapping"
+  - "post-write exact recall"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
 lock_statement: >-
-  Epoch 106 is non-executable. Operational candidate storage and exact recall are accepted. Unattended scheduling, automatic recurring private
-  reads, formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/accounts remain LOCKED.
+  Epoch 107 is synthetic-only Memory Palace foundation work. Real private capture integration, unattended scheduling, formal PROJECT/GLOBAL
+  promotion, production MCP/Gateway, security/permission changes and trading/accounts remain LOCKED pending GPT acceptance and a later live bridge.
