@@ -1,0 +1,195 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
+route_epoch: 105
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: true
+private_candidate_source_read_allowed: true
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "139e74706ab006a9888842a987110f2e892d5471"
+accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+accepted_implementation_head: "061f0496a49ebcc043e19a72ef335bb821296b63"
+accepted_ci_run: 31693514582
+owner_option_a_authorization_issue_comment: 5277767515
+e104_audit_issue_comment: 5279878261
+
+predecessor:
+  task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
+  route_epoch: 104
+  disposition: "ATTEMPT_CONSUMED_NON_SUCCESS"
+  remote_main_sha_observed: "139e74706ab006a9888842a987110f2e892d5471"
+  runtime_freshness: "PASS"
+  root_binding_present: true
+  source_binding_present: true
+  root_shape_valid: true
+  source_shape_valid: true
+  operational_store_fresh_preflight: "PASS"
+  cli_exit_code: 1
+  public_receipt: "UNPARSEABLE"
+  local_execution_issue: "CLI_RECEIPT_PARSE_FAILED"
+  operational_store_exists: false
+  soak_ledger_exists: false
+  real_private_operational_initialization_run: "EXECUTED_ONCE"
+  unattended_scheduler: "NOT_ACTIVATED"
+  formal_project_global_promotion: "LOCKED"
+  retry_same_epoch: false
+
+public_diagnosis:
+  status: "HIGH_PROBABILITY_NOT_FORMALLY_PROVEN"
+  hypothesis: >-
+    The epoch-104 wrapper appears to have constructed a direct filesystem path to integrated_offline_memory/cli.py for the child process. The
+    canonical CLI uses package-relative imports and has a __main__ entrypoint, so direct-file Python execution can fail before main() and before
+    any JSON receipt is printed. Raw child stderr was not preserved in the public closeout, therefore this hypothesis must not be promoted to
+    proven root cause without a non-private invocation-contract probe.
+
+purpose: >-
+  Recover from the consumed epoch-104 invocation failure without replaying that epoch. First prove the canonical module-entrypoint contract in a
+  no-private-access probe. Only after that probe passes, re-check exact-current-main runtime freshness and operational-artifact freshness, then
+  authorize exactly one new real/private operational candidate initialization attempt using the proven module invocation form. Formal PROJECT/
+  GLOBAL promotion and unattended scheduling remain locked.
+
+canonical_runtime_gate:
+  remote_head: >-
+    Resolve exact current remote main with git ls-remote, use one task-owned disposable normal clone under OS temp, and require checked-out HEAD
+    to equal the observed remote main SHA. Use command-local safe.directory only if Git owner protection requires it; do not persist Git config.
+  runtime_base: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+  relevant_runtime_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
+  freshness_rule: >-
+    Require no changed file under any relevant runtime path between runtime_base and exact current main. Control-plane-only drift is permitted.
+    Any runtime-path change or ambiguous comparison stops before private access.
+  pythonpath: >-
+    Set PYTHONPATH process-locally to exactly the three source roots in the disposable exact-main clone. Do not persist PYTHONPATH.
+
+no_private_invocation_contract_probe:
+  private_access: "FORBIDDEN"
+  environment_rule: >-
+    In the child process environment for this probe, explicitly REMOVE CLTM_PRIVATE_DATA_ROOT and CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH,
+    regardless of their parent-process values. Do not read or print their values.
+  exact_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
+  required_exit_code: 1
+  required_stdout_json:
+    status: "REJECTED"
+  stderr_publication: "FORBIDDEN"
+  success_signal: "MODULE_ENTRYPOINT_CONTRACT_PASS"
+  fail_closed: >-
+    Any import/module error, non-JSON stdout, unexpected status/exit code, or ambiguous execution stops before private-root/source access. Do not
+    compensate with direct-file execution, python -c, alternate CLI, ad-hoc imports, or package copying.
+
+private_binding:
+  required_env_names:
+    - "CLTM_PRIVATE_DATA_ROOT"
+    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
+  source_discovery: "FORBIDDEN"
+  path_output: "FORBIDDEN"
+  required_shape:
+    - "private root binding present and resolves to an existing directory outside public repository/worktree"
+    - "Daily-v2 binding present and resolves to an existing file under the exact private root"
+  private_read_scope: "exact bound Daily-v2 only through canonical recurring runtime"
+
+operational_artifacts:
+  store_leaf: "cltm-private-candidate-runtime.sqlite3"
+  wal_leaf: "cltm-private-candidate-runtime.sqlite3-wal"
+  shm_leaf: "cltm-private-candidate-runtime.sqlite3-shm"
+  ledger_leaf: "cltm-private-candidate-runtime-soak-ledger.jsonl"
+  lock_leaf: ".cltm-private-candidate-runtime.lock"
+  frozen_canary_store_leaf: "cltm-private-canary-r98.sqlite3"
+  preflight_freshness: >-
+    Before the real epoch-105 child process starts, require store, WAL, SHM and ledger leaves all absent. Do not delete, rename, overwrite, reuse
+    or inspect their contents if any exists. Lock-file existence alone is not a freshness failure because lock ownership is process-scoped.
+  frozen_r98: >-
+    Do not open, modify, move, delete, enumerate through or reuse the preserved r98 canary store.
+
+real_execution:
+  exact_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
+  command_rule: >-
+    Execute the accepted merged runtime directly from the disposable exact-current-main clone with process-local PYTHONPATH and the already-bound
+    private environment variables. Capture stdout and process exit code. Parse stdout as exactly one JSON object. Never print private paths/raw
+    candidate text or raw stderr.
+  stderr_classifier: >-
+    If stdout is not parseable JSON, do not publish stderr text. Locally classify only to one coarse value: MODULE_IMPORT_ERROR,
+    PYTHON_LAUNCH_ERROR, OTHER_STDERR_PRESENT, NO_STDERR, or UNKNOWN.
+  attempt_consumption: >-
+    Once the real epoch-105 recurring-private-ingest child process starts, epoch 105 is consumed regardless of success or failure. No second real
+    child-process attempt is authorized in epoch 105. Preserve any operational artifacts created by the attempt for GPT review.
+  success_requirements:
+    - "CLI exit code = 0"
+    - "receipt status = IMPORTED"
+    - "validation_status = PASS"
+    - "candidate_authority_only = true"
+    - "formal_project_global_write = LOCKED"
+    - "imported_count >= 1"
+    - "non_imported_count = 0"
+    - "recall_count >= 1"
+    - "exact_imported_atom_recalled = true"
+    - "operational store exists after execution"
+    - "soak ledger exists after execution"
+  non_success_truthfulness: >-
+    Exit 2 with COMMITTED_STATE_AUDIT_FAILED or COMMITTED_STATE_TEARDOWN_FAILED is a committed-state failure and must stop for GPT review. Exit 1
+    with parseable REJECTED is non-success and must stop. Any unparseable stdout also stops. Never infer rollback solely from exit code.
+
+public_closeout_allow_only:
+  - "remote_main_sha_observed"
+  - "runtime_freshness"
+  - "module_entrypoint_contract_probe"
+  - "module_entrypoint_probe_exit_code"
+  - "module_entrypoint_probe_status"
+  - "root_binding_present"
+  - "source_binding_present"
+  - "root_shape_valid"
+  - "source_shape_valid"
+  - "operational_store_fresh_preflight"
+  - "cli_exit_code"
+  - "status"
+  - "validation_status"
+  - "candidate_authority_only"
+  - "formal_project_global_write"
+  - "candidate_count"
+  - "imported_count"
+  - "duplicate_count"
+  - "non_imported_count"
+  - "recall_count"
+  - "exact_imported_atom_recalled"
+  - "source_hash"
+  - "pointer_hash"
+  - "episode_id_hash"
+  - "atom_id_hash"
+  - "scope_hash"
+  - "recorded_at_hash"
+  - "operational_store_exists"
+  - "soak_ledger_exists"
+  - "stderr_class"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_OPERATIONAL_INITIALIZATION_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+forbidden_actions:
+  - "Do not rerun epoch 104."
+  - "Do not run more than one real epoch-105 recurring-private-ingest child process."
+  - "Do not use direct-file `python .../integrated_offline_memory/cli.py` execution."
+  - "Do not use python -c, shell-inline Python, alternate parsers or alternate W3 implementations."
+  - "Do not print or publish raw child stderr, private paths or private semantic values."
+  - "Do not inspect/reuse/delete/move the r98 canary store."
+  - "Do not create scheduler/service/startup/autorun persistence."
+  - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
+  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
+
+completion_signal: "CODEX_CLTM_0021_OPERATIONAL_INIT_INVOCATION_RECOVERY_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 105 is a bounded recovery after the consumed epoch-104 non-success. It first proves module invocation without private access and then
+  permits at most one new real candidate-only operational initialization attempt. Unattended scheduling and formal PROJECT/GLOBAL promotion
+  remain LOCKED pending GPT review.
