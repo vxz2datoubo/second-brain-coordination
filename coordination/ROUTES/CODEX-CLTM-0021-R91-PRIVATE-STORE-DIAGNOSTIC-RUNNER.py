@@ -173,10 +173,10 @@ def main() -> None:
         return
 
     reserve_fd: int | None = None
+    database_owned = False
     try:
         reserve_fd = os.open(database, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        os.close(reserve_fd)
-        reserve_fd = None
+        database_owned = True
     except FileExistsError:
         receipt["status"] = "PRIVATE_STORE_DIAGNOSTIC_PROBE_NOT_FRESH"
         receipt["sqlite_memorystore_probe"] = "NOT_FRESH"
@@ -184,15 +184,26 @@ def main() -> None:
         emit(receipt)
         return
     except OSError:
-        if reserve_fd is not None:
-            try:
-                os.close(reserve_fd)
-            except OSError:
-                pass
         receipt["status"] = "PRIVATE_ROOT_MEMORYSTORE_SQLITE_PROBE_FAILED"
         receipt["sqlite_memorystore_probe"] = "FAILED"
         receipt["cleanup_status"] = "NOT_REQUIRED"
         receipt["LOCAL_EXECUTION_ISSUES"] = ["SQLITE_RESERVATION_OSERROR_REDACTED"]
+        emit(receipt)
+        return
+
+    try:
+        os.close(reserve_fd)
+        reserve_fd = None
+    except OSError:
+        cleanup_ok = remove_owned_sqlite_artifacts(database) if database_owned else True
+        receipt["sqlite_memorystore_probe"] = "FAILED"
+        receipt["cleanup_status"] = "PASS" if cleanup_ok else "CLEANUP_FAILED"
+        receipt["status"] = (
+            "PRIVATE_ROOT_MEMORYSTORE_SQLITE_PROBE_FAILED"
+            if cleanup_ok
+            else "PRIVATE_STORE_DIAGNOSTIC_CLEANUP_FAILED"
+        )
+        receipt["LOCAL_EXECUTION_ISSUES"] = ["SQLITE_RESERVATION_CLOSE_FAILED"]
         emit(receipt)
         return
 
