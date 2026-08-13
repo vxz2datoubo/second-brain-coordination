@@ -1,146 +1,97 @@
-schema_version: "107.1"
+schema_version: "107.2"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
+task_id: "CODEX-CLTM-0021-UNATTENDED-SOAK-OWNER-GATE"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 105
-mode: "module_invocation_probe_then_one_new_operational_init_attempt"
-mode_label: "【Codex恢复运行】CLTM-0021 先证明 module CLI 再做一次新 operational init"
-status: "READY"
-execution_allowed: true
+route_epoch: 106
+mode: "non_executable_owner_gate_for_unattended_candidate_soak"
+mode_label: "【等待Owner授权】CLTM-0021 operational store 已通过，scheduler profile 待批准"
+status: "WAITING_OWNER_DECISION"
+execution_allowed: false
 automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: true
+real_private_candidate_ingestion_allowed: false
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
-private_candidate_source_read_allowed: true
+private_candidate_source_read_allowed: false
 unattended_scheduler_activation_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "139e74706ab006a9888842a987110f2e892d5471"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R105-OPERATIONAL-INIT-INVOCATION-RECOVERY.yaml"
-owner_authorization_issue_comment: 5277767515
-e104_audit_issue_comment: 5279878261
+canonical_main_at_route_publish: "06d315cb5bb2034e60ca19683aa6340a02c73d20"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R106-UNATTENDED-SOAK-OWNER-GATE.yaml"
+owner_option_a_authorization_issue_comment: 5277767515
+e105_acceptance_issue_comment: 5280060457
 accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
-accepted_implementation_head: "061f0496a49ebcc043e19a72ef335bb821296b63"
-accepted_ci_run: 31693514582
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-OPERATIONAL-CANDIDATE-STORE-INITIALIZATION"
-  route_epoch: 104
-  disposition: "ATTEMPT_CONSUMED_NON_SUCCESS"
-  remote_main_sha_observed: "139e74706ab006a9888842a987110f2e892d5471"
+  task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
+  route_epoch: 105
+  disposition: "ACCEPTED"
   runtime_freshness: "PASS"
-  private_binding_shape: "PASS"
-  operational_store_fresh_preflight: "PASS"
-  cli_exit_code: 1
-  public_receipt: "UNPARSEABLE"
-  local_execution_issue: "CLI_RECEIPT_PARSE_FAILED"
-  operational_store_exists: false
-  soak_ledger_exists: false
-  real_private_operational_initialization_run: "EXECUTED_ONCE"
-  epoch104_retry: "FORBIDDEN"
-  unattended_scheduler: "NOT_ACTIVATED"
-  formal_project_global_promotion: "LOCKED"
-
-public_diagnosis:
-  confidence: "HIGH_PROBABILITY_NOT_PROVEN"
-  statement: >-
-    The epoch-104 transcript constructed a direct filesystem path to integrated_offline_memory/cli.py. Canonical cli.py uses package-relative
-    imports and exposes a __main__ entrypoint, so direct-file Python launch can fail before main() and before JSON output. Raw child stderr was
-    not preserved, so this remains a hypothesis until the no-private module-entrypoint probe passes.
-
-root_goal: >-
-  Do not retry epoch 104. Prove the canonical module CLI invocation without private access, then if and only if that probe passes, use exact
-  current main and the existing explicit bindings to perform exactly one new epoch-105 real operational candidate-store initialization attempt.
-  No scheduler activation and no formal PROJECT/GLOBAL promotion are authorized.
-
-execution_contract:
-  route_file: "coordination/ROUTES/CODEX-CLTM-0021-R105-OPERATIONAL-INIT-INVOCATION-RECOVERY.yaml"
-  runtime_freshness_base: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
-  module_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
-  no_private_probe_first: true
-  probe_private_env_removed: true
-  probe_expected_exit_code: 1
-  probe_expected_status: "REJECTED"
-  real_attempts_after_probe: 1
-  operational_store_leaf: "cltm-private-candidate-runtime.sqlite3"
-  operational_ledger_leaf: "cltm-private-candidate-runtime-soak-ledger.jsonl"
-  preserved_canary_leaf: "cltm-private-canary-r98.sqlite3"
-  scheduler_activation: "FORBIDDEN_IN_E105"
-
-success_gate:
   module_entrypoint_contract_probe: "PASS"
-  required_cli_exit_code: 0
-  required_status: "IMPORTED"
-  required_validation_status: "PASS"
+  cli_exit_code: 0
+  status: "IMPORTED"
+  validation_status: "PASS"
   candidate_authority_only: true
   formal_project_global_write: "LOCKED"
-  imported_count_minimum: 1
+  candidate_count: 1
+  imported_count: 1
+  duplicate_count: 0
   non_imported_count: 0
-  recall_count_minimum: 1
+  recall_count: 1
   exact_imported_atom_recalled: true
   operational_store_exists: true
   soak_ledger_exists: true
+  local_execution_issues: "NONE"
+  unattended_scheduler: "NOT_ACTIVATED"
+  formal_project_global_promotion: "LOCKED"
 
-forbidden_actions:
-  - "Do not rerun epoch 104."
-  - "Do not run more than one real epoch-105 recurring-private-ingest child process."
-  - "Do not execute cli.py by filesystem path; use the canonical module command only."
-  - "Do not use python -c, shell-inline Python, alternate private parsers or alternate W3 implementations."
-  - "Do not print raw child stderr, private paths or private semantic values."
-  - "Do not access/reuse/delete/move the r98 canary store."
-  - "Do not activate Task Scheduler/service/startup persistence."
-  - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
-  - "Do not promote PROJECT/GLOBAL memory."
-  - "Do not touch production/live MCP/Gateway, repository visibility, E48, trading or accounts."
+accepted_milestone:
+  real_private_operational_candidate_store: "INITIALIZED_AND_ACCEPTED"
+  real_private_operational_soak_ledger: "INITIALIZED_AND_ACCEPTED"
+  operational_candidate_ingest_exact_recall: "PROVEN"
+  formal_project_global_authority: "LOCKED"
 
-required_closeout:
-  - "remote_main_sha_observed"
-  - "runtime_freshness"
-  - "module_entrypoint_contract_probe"
-  - "module_entrypoint_probe_exit_code"
-  - "module_entrypoint_probe_status"
-  - "root_binding_present"
-  - "source_binding_present"
-  - "root_shape_valid"
-  - "source_shape_valid"
-  - "operational_store_fresh_preflight"
-  - "cli_exit_code"
-  - "status"
-  - "validation_status"
-  - "candidate_authority_only"
-  - "formal_project_global_write"
-  - "candidate_count"
-  - "imported_count"
-  - "duplicate_count"
-  - "non_imported_count"
-  - "recall_count"
-  - "exact_imported_atom_recalled"
-  - "source_hash"
-  - "pointer_hash"
-  - "episode_id_hash"
-  - "atom_id_hash"
-  - "scope_hash"
-  - "recorded_at_hash"
-  - "operational_store_exists"
-  - "soak_ledger_exists"
-  - "stderr_class"
-  - "LOCAL_EXECUTION_ISSUES"
-  - "REAL_PRIVATE_OPERATIONAL_INITIALIZATION_RUN"
-  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
-  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+owner_decision_required:
+  reason: >-
+    Persistent Windows Task Scheduler registration is an automatic-execution and persistence boundary distinct from candidate-ingestion direction.
+    No task may be created until the owner explicitly approves the concrete epoch-106 scheduler profile or requests changes.
+  recommended_profile_summary:
+    scheduler_type: "WINDOWS_TASK_SCHEDULER"
+    task_name: "SecondBrain-CLTM-CandidateSoak"
+    principal: "CURRENT_WINDOWS_USER_ONLY"
+    run_level: "LEAST_PRIVILEGE"
+    credential_storage: "NONE"
+    logged_on_only: true
+    cadence_minutes: 60
+    trigger: "AT_LOGON_PLUS_REPEAT"
+    catch_up_missed_runs: false
+    wake_computer: false
+    multiple_instances_policy: "IGNORE_NEW"
+    execution_time_limit_minutes: 10
+    runtime_auto_update: false
+    runtime_pin: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+    module_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
+  activation_after_approval: >-
+    A fresh GPT route will materialize a dedicated pinned current-user runtime clone, verify integrity, register the exact task DISABLED, run one
+    registered-task canary, and only after canary PASS enable the 60-minute schedule.
+  owner_responses:
+    approve: "APPROVE_E106_PROFILE"
+    modify: "REQUEST_E106_CHANGES"
+    decline: "KEEP_MANUAL_ONLY"
 
-completion_signal: "CODEX_CLTM_0021_OPERATIONAL_INIT_INVOCATION_RECOVERY_READY_FOR_GPT_REVIEW"
-next_command: "读取任务"
+codex_instruction: >-
+  STOP. Do not create/register/enable/modify/delete any scheduled task, do not read private source/store, and do not execute recurring ingestion
+  while epoch 106 is active. Wait for explicit owner decision and a new GPT executable route.
+
 lock_statement: >-
-  Epoch 105 is a bounded invocation-recovery route after the consumed epoch-104 non-success. It permits a no-private module probe followed by at
-  most one new real candidate-only operational initialization attempt. Unattended scheduling and formal PROJECT/GLOBAL promotion remain LOCKED.
+  Epoch 106 is non-executable. Operational candidate storage and exact recall are accepted. Unattended scheduling, automatic recurring private
+  reads, formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/accounts remain LOCKED.
