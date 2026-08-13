@@ -1,0 +1,670 @@
+schema_version: "1.0"
+skill_id: "GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-0001"
+name: "GPT 第二大脑知识消化、关联、召回与学以致用"
+status: "CANDIDATE_SKILL_PROPOSED"
+maturity: "DESIGN_COMPLETE_IMPLEMENTATION_DEPENDENT_ON_MEMORY_PALACE_R108_AND_LIVE_BRIDGE"
+created_at: "2026-08-13"
+owner:
+  direction_and_approval: "USER"
+  architecture_reasoning_and_runtime_orchestration: "GPT"
+  engineering_implementation: "CODEX"
+  qclaw_role: "OPTIONAL_BATCH_BACKFILL_AND_INDEX_MAINTENANCE_NOT_RUNTIME_REQUIRED"
+
+root_goal: >-
+  Make GPT the owner's primary conversational knowledge-ingestion and associative-recall interface. The owner can send a passage, article,
+  research finding, case, rule, experience, conversation insight or correction; GPT must faithfully digest it into traceable atomic knowledge,
+  reconcile it with existing second-brain knowledge before writing, preserve conflicts and provenance, and later proactively retrieve and use the
+  resulting knowledge or memory when it materially improves work, research, decision support or ordinary conversation. QCLAW/QQ must not be a
+  required runtime dependency.
+
+truth_boundary:
+  - "This skill does not modify GPT model weights or fine-tune the foundation model."
+  - "Operational 'becomes part of GPT's brain' means durable external memory plus mandatory retrieval, context assembly, reasoning use and feedback loops."
+  - "No claim of durable write is allowed unless the canonical/private store write and post-write recall verification actually pass."
+  - "GitHub coordination files contain contracts, schemas, tests and aggregate receipts only; raw private semantic memory must remain in the authorized private store."
+  - "ChatGPT native saved memory and chat history are auxiliary context, not the canonical second-brain authority."
+
+canonical_dependencies:
+  second_brain_repository: "vxz2datoubo/second-brain-coordination"
+  canonical_memory_runtime: "PHASE-3-INTEGRATED-OFFLINE-MEMORY / W3 MemoryStore"
+  conversational_memory_program: "CLTM-0021"
+  current_memory_palace_dependency:
+    implementation_pr: 280
+    hardening_route_epoch: 108
+    required_before_live_reuse:
+      - "bitemporal claim-validity versus event-time separation"
+      - "temporal retrieval confidence gate"
+      - "general multi-atom capture"
+      - "structured owner-stance target identity"
+      - "typed conflict discipline"
+      - "content-bound provenance"
+      - "domain-aware freshness policy"
+  system_of_record_rule: >-
+    Reuse one canonical W3/CLTM memory and knowledge runtime. Search indexes, embeddings, graph projections, summaries and palace placements are
+    rebuildable projections and must not become competing canonical truth stores.
+
+non_goals:
+  - "Do not create a second QQ/QCLAW-compatible canonical knowledge database."
+  - "Do not treat vector chunks as canonical knowledge atoms."
+  - "Do not convert user opinion, author opinion or model inference into objective fact."
+  - "Do not silently overwrite contradictory or superseded history."
+  - "Do not treat semantic similarity as evidence of truth or present applicability."
+  - "Do not promote a knowledge atom into a validated skill solely because it sounds useful."
+  - "Do not query the entire knowledge base before every trivial chat turn."
+  - "Do not let unrelated project/private memories bleed across scope boundaries."
+  - "Do not persist passwords, API keys, tokens, cookies, private keys, MFA/recovery codes or other live credentials."
+  - "Do not generate trading orders or bypass existing A-share risk/validation gates."
+
+owner_cognitive_mapping:
+  states:
+    KNOWN_SAID:
+      definition: "Owner demonstrably knows and explicitly stated it."
+      evidence_requirement: "Direct owner source span or explicit confirmation."
+      use: "May be used as established owner knowledge within temporal/scope validity."
+    KNOWN_UNSAID_INFERRED:
+      definition: "High-probability owner knowledge, constraint or mental model inferred from behavior/context but not explicitly stated."
+      evidence_requirement: "Multiple convergent clues or strong contextual inference."
+      use: "Use as labeled inference only; never rewrite as owner assertion."
+    UNKNOWN_BUT_ACCESSIBLE:
+      definition: "Owner has not demonstrated the concept but can probably understand it with a short bridge from known concepts."
+      evidence_requirement: "Topic-specific gap plus known prerequisite bridge."
+      use: "Teach by connecting to KNOWN_SAID/KNOWN_UNSAID concepts."
+    UNKNOWN_REQUIRES_SCAFFOLDING:
+      definition: "Concept needs prerequisites, staged explanation, examples, analogy, formal model or tooling."
+      evidence_requirement: "Missing prerequisite chain or repeated comprehension failure."
+      use: "Store prerequisite graph and teaching route; never make a global intelligence judgment."
+  rules:
+    - "Cognitive state is topic-specific and time-versioned."
+    - "Low-confidence inferred states cannot overwrite explicit owner evidence."
+    - "New owner correction updates the current cognitive map append-preservingly."
+
+input_modes:
+  ANALYZE_ONLY:
+    trigger: "User asks to explain/analyze without durable capture intent."
+    persistence: "NONE unless another explicit durable-memory rule applies."
+  DIGEST_KNOWLEDGE:
+    trigger_examples: ["消化这个", "录入知识", "把这个学进去", "加入第二大脑", "这个知识记录一下"]
+    persistence: "KNOWLEDGE_CANDIDATE"
+  CAPTURE_MEMORY:
+    trigger_examples: ["采集记忆", "数据采集", "记住这件事"]
+    persistence: "MEMORY_CANDIDATE"
+  DIGEST_AND_MEMORY:
+    trigger: "One source contains both reusable domain knowledge and owner-specific durable memory."
+    persistence: "SEPARATE_LINKED_KNOWLEDGE_AND_MEMORY_OBJECTS"
+
+source_layer:
+  immutable_source_episode:
+    required_fields:
+      - source_episode_id
+      - source_type
+      - source_pointer
+      - source_content_hash
+      - source_span_or_locator
+      - captured_at
+      - published_at_if_known
+      - available_at_if_decision_relevant
+      - user_scope
+      - project_scope
+      - privacy_class
+      - license_or_publication_basis
+      - source_agent_or_author
+  provenance_principles:
+    - "Preserve source evidence separately from derived interpretation."
+    - "Every atom must resolve back to at least one source span or explicit evidence pointer."
+    - "Reusing a source identity with changed content must be revisioned or content-hash-distinct."
+    - "Use W3C PROV-inspired Entity/Activity/Agent semantics where useful without requiring RDF/OWL as physical storage."
+
+atomic_knowledge_ontology:
+  primary_types:
+    - CONCEPT
+    - DEFINITION
+    - FACT_CLAIM
+    - AUTHOR_CLAIM
+    - USER_ASSERTION
+    - USER_PREFERENCE
+    - USER_DECISION
+    - USER_CORRECTION
+    - USER_GOAL
+    - USER_PLAN
+    - USER_COMMITMENT
+    - USER_EVENT_REPORT
+    - OWNER_STANCE
+    - EVIDENCE
+    - MECHANISM
+    - CAUSAL_CHAIN
+    - CONDITION
+    - EXCEPTION
+    - NEGATION
+    - COUNTEREXAMPLE
+    - ALTERNATIVE_EXPLANATION
+    - INDICATOR
+    - METRIC
+    - DATA_SOURCE
+    - METHOD
+    - PROCEDURE
+    - DECISION_RULE
+    - FAILURE_MODE
+    - INVALIDATION_CONDITION
+    - CASE
+    - ANALOGY
+    - OPEN_QUESTION
+    - UNKNOWN
+    - SKILL_CANDIDATE
+  required_atom_fields:
+    - atom_id
+    - canonical_statement
+    - atom_type
+    - entities
+    - topic_tags
+    - epistemic_role
+    - source_refs
+    - evidence_quality
+    - confidence
+    - scope
+    - valid_from
+    - valid_to
+    - recorded_at
+    - freshness_class
+    - current_status
+    - assumptions
+    - conditions
+    - exceptions
+    - counterevidence
+    - invalidation_conditions
+    - validation_method
+    - cognitive_mapping_relevance
+
+semantic_separation:
+  epistemic_roles:
+    - SOURCE_FACT
+    - SOURCE_CLAIM
+    - SOURCE_INTERPRETATION
+    - SOURCE_VALUE_JUDGMENT
+    - USER_ASSERTION
+    - USER_PREFERENCE
+    - USER_DECISION
+    - USER_CORRECTION
+    - OWNER_STANCE
+    - ASSISTANT_ANALYSIS
+    - ASSISTANT_HYPOTHESIS
+    - MODEL_INFERENCE
+    - UNKNOWN
+  mandatory_rules:
+    - "Evidence is not the same thing as a claim."
+    - "Correlation is not causation."
+    - "Author confidence is not system confidence."
+    - "Owner belief is not objective truth."
+    - "Repeated assistant statements do not upgrade into owner facts."
+    - "External popularity does not upgrade evidence grade."
+
+write_pipeline:
+  - step: 1
+    id: SOURCE_CAPTURE
+    action: "Capture immutable source identity, content hash, provenance, time and scope before interpretation."
+  - step: 2
+    id: FAITHFUL_EXTRACTION
+    action: "Extract what the source actually says before adding outside knowledge. Preserve uncertainty, negation, conditions and exceptions."
+  - step: 3
+    id: MULTI_ATOM_DECOMPOSITION
+    action: "Split distinct durable claims, mechanisms, conditions, cases, stances, goals and rules while retaining shared episode lineage."
+  - step: 4
+    id: EPISTEMIC_CLASSIFICATION
+    action: "Separate fact/claim/evidence/inference/assumption/value judgment/user stance/assistant analysis."
+  - step: 5
+    id: ENTITY_AND_TERM_RESOLUTION
+    action: "Map aliases, synonyms, entities, concepts and versioned terminology to stable identities; preserve ambiguity when unresolved."
+  - step: 6
+    id: COGNITIVE_MAPPING
+    action: "Map relevant concepts into the owner's four cognitive states and build prerequisite/teaching edges where needed."
+  - step: 7
+    id: RETRIEVAL_BEFORE_WRITE
+    action: "Search existing W3 knowledge before deciding whether a candidate is new. Use bounded lexical, semantic, graph, temporal, provenance and structural-analogy channels."
+  - step: 8
+    id: RECONCILIATION
+    action: "Compare new atoms against current lineage heads and historical evidence; choose typed evolution actions rather than append blindly."
+  - step: 9
+    id: RELATION_EXTRACTION
+    action: "Create high-confidence graph edges and explicit UNKNOWN edges for unresolved relation hypotheses."
+  - step: 10
+    id: TEMPORAL_AND_FRESHNESS_BINDING
+    action: "Separate evidence time, proposition/event valid time and freshness/revalidation time; apply domain-aware freshness."
+  - step: 11
+    id: CANDIDATE_WRITE
+    action: "Write through the canonical W3 LearningPacket/candidate boundary atomically and idempotently."
+  - step: 12
+    id: POST_WRITE_VERIFICATION
+    action: "Require exact scoped recall plus paraphrase/graph recall tests appropriate to the atom before reporting success."
+  - step: 13
+    id: QUALITY_AND_PROMOTION
+    action: "Keep uncertain knowledge as candidate; promote only through evidence/validation gates."
+
+reconciliation_actions:
+  NEW: "No materially equivalent existing atom; create a new lineage."
+  DUPLICATE: "Same semantic claim and scope/source-equivalent; keep provenance but avoid duplicate voting."
+  MERGE: "Combine complementary representations without erasing source-specific distinctions."
+  REFINE: "New evidence narrows, conditions or improves an existing claim."
+  SUPPORT: "Adds independent support without changing the proposition."
+  WEAKEN: "Adds counterevidence that lowers confidence or narrows applicability."
+  CONTRADICT: "Materially incompatible claims coexist as an explicit conflict set."
+  SUPERSEDE: "Newer/current statement replaces the old one for CURRENT use while retaining history."
+  REVOKE: "Explicitly invalidated current use; historical evidence remains."
+  REVALIDATE: "Fresh evidence renews current applicability."
+  RESOLVE_UNKNOWN: "Evidence closes a previously tracked knowledge gap."
+  UNKNOWN: "Relation or status cannot yet be determined; do not force a merge."
+
+relation_vocabulary:
+  semantic:
+    - IS_A
+    - PART_OF
+    - INSTANCE_OF
+    - ALIAS_OF
+    - DEFINES
+    - EXPLAINS
+    - EXEMPLIFIES
+    - ANALOGOUS_TO
+  causal_and_mechanistic:
+    - CAUSES
+    - CONTRIBUTES_TO
+    - MEDIATES
+    - MODERATES
+    - ENABLES
+    - INHIBITS
+    - FEEDBACK_TO
+    - DEPENDS_ON
+  evidence_and_epistemic:
+    - SUPPORTS
+    - WEAKENS
+    - CONTRADICTS
+    - EVIDENCE_FOR
+    - COUNTEREVIDENCE_FOR
+    - ALTERNATIVE_TO
+    - ASSUMES
+    - INVALID_IF
+  temporal_and_evolution:
+    - BEFORE
+    - AFTER
+    - OVERLAPS
+    - SAME_PERIOD
+    - UPDATES
+    - REFINES
+    - SUPERSEDES
+    - REVOKES
+    - REVALIDATES
+  skill_and_action:
+    - APPLIES_TO
+    - REQUIRES
+    - FAILS_UNDER
+    - VALIDATED_BY
+    - PRODUCES
+    - TRIGGERS
+  personal_and_cognitive:
+    - USER_KNOWS
+    - USER_INFERRED_KNOWS
+    - REQUIRES_TEACHING_BRIDGE
+    - REQUIRES_SCAFFOLD
+    - USER_PREFERS
+    - USER_REJECTS
+    - OWNER_EVALUATES
+
+retrieval_architecture:
+  principle: "Retrieve evidence paths, not a bag of vaguely similar snippets."
+  channels:
+    lexical:
+      purpose: "Exact terms, names, identifiers, Chinese keyword/trigram/BM25-style recall."
+    semantic:
+      purpose: "Paraphrase and concept similarity; additive, never sole authority."
+    entity_graph:
+      purpose: "Known entities, relations, dependencies, multi-hop paths."
+    temporal:
+      purpose: "Current/historical state, event windows, supersession and freshness."
+    provenance:
+      purpose: "Return source/evidence neighborhood and reconstruct fragmented source context."
+    structural_analogy:
+      purpose: "Retrieve cases with similar mechanism/constraints even when surface vocabulary differs."
+    hierarchical_theme:
+      purpose: "Retrieve atom, case/episode and higher-level topic/community summaries at different abstraction levels."
+  bounded_query_plan_fields:
+    - user_intent
+    - entities
+    - topic_terms
+    - time_expression
+    - current_or_historical_intent
+    - user_scope
+    - project_scope
+    - relation_depth_budget
+    - candidate_count_budget
+    - evidence_grade_floor
+    - freshness_requirement
+    - counterevidence_requirement
+
+proactive_recall_router:
+  principle: >-
+    GPT should recall automatically when prior knowledge is likely to materially change understanding, explanation, risk, action or continuity;
+    otherwise skip retrieval to avoid latency and irrelevant memory injection.
+  positive_triggers:
+    - "Current message directly mentions a known entity/topic/case."
+    - "Current request contains '之前/以前/记得/我们说过/继续/上次' or equivalent continuity intent."
+    - "A current decision may conflict with a stored goal, constraint, plan, preference or correction."
+    - "New information may update, contradict, revalidate or supersede existing knowledge."
+    - "A stored case has strong mechanism-level or constraint-level similarity to the current problem."
+    - "The current task is complex research/design/market analysis where reusable prior methods or failure cases can materially improve quality."
+    - "The user's four-state cognitive map can improve explanation depth or prerequisite selection."
+  negative_gates:
+    - "Trivial small talk with no material continuity requirement."
+    - "Only low-confidence or unrelated semantic similarity exists."
+    - "All matched current-state-sensitive knowledge is stale and cannot be revalidated."
+    - "Retrieval would violate user/project/privacy scope."
+    - "The memory is superseded/revoked for CURRENT use and the task is not historical."
+  decision_support_anti_anchor_rule: >-
+    For consequential analysis, retrieve at least the strongest relevant supporting memory, strongest counterevidence/alternative memory, current
+    lineage head and stale/superseded predecessor only when it helps explain evolution. Similar past experience must not automatically dictate the
+    current answer.
+
+context_bundle_contract:
+  name: "GPTSecondBrainContextBundle"
+  required_sections:
+    - query_intent
+    - current_relevant_atoms
+    - historical_predecessors_if_needed
+    - cases_and_analogies
+    - owner_stances_and_preferences
+    - cognitive_coverage_and_teaching_bridges
+    - supporting_evidence
+    - counterevidence
+    - conflicts
+    - unknowns
+    - freshness_and_revalidation_status
+    - provenance
+    - retrieval_explanations
+    - abstention_reason_if_any
+  answer_use_rules:
+    - "Use the compact bundle as evidence/context, not as hidden truth."
+    - "Distinguish retrieved user memory from external facts and current web verification."
+    - "For unstable external facts, current authoritative sources override stale memory while preserving historical memory."
+    - "For user preferences/corrections, the latest valid explicit user statement outranks older inference."
+
+memory_vs_knowledge_vs_skill:
+  episodic_memory:
+    meaning: "What happened, what the owner said/did, experiences, plans, evaluations, conversations and outcomes."
+    canonical_form: "Append-preserving source episode plus derived candidate memory atoms."
+  semantic_knowledge:
+    meaning: "Reusable concepts, mechanisms, facts, methods, causal chains, cases and validated explanations."
+    canonical_form: "Source-grounded knowledge atoms plus relations/version/confidence."
+  skill:
+    meaning: "A reusable procedure or decision method with triggers, inputs, steps, outputs, failure modes and validation evidence."
+    promotion_rule: "Knowledge alone cannot become a formal skill without real use, tests/backtests or cross-case validation appropriate to its domain."
+
+skill_promotion_lifecycle:
+  - DISCOVERED_INSIGHT
+  - KNOWLEDGE_CANDIDATE
+  - METHOD_CANDIDATE
+  - SKILL_CANDIDATE
+  - SYNTHETIC_TESTED
+  - REAL_CASE_TESTED
+  - CROSS_CONTEXT_VALIDATED
+  - FORMAL_SKILL
+  - DEGRADED_OR_RETIRED
+
+freshness_and_cycle_model:
+  classes:
+    TRANSIENT: "Minutes to hours; e.g. intraday clues or live operational state."
+    SHORT_CYCLE: "Hours to days/weeks; e.g. news, current product/runtime state."
+    MEDIUM_CYCLE: "Weeks to quarters; e.g. operating data, project phase, regulation snapshots."
+    STRUCTURAL: "Durable mechanism, stable preference or historically established concept, unless corrected."
+    UNKNOWN: "Freshness cannot yet be classified."
+  rules:
+    - "No universal decay half-life."
+    - "Current validity, evidence quality, domain horizon and explicit supersession dominate naive recency."
+    - "Historical relevance and current decision relevance are separate scores."
+    - "Market-sensitive memories require point-in-time/current-data revalidation before affecting current trading conclusions."
+
+cost_and_latency_strategy:
+  online_fast_path:
+    - "Intent/scope router."
+    - "Bounded lexical/vector candidate recall."
+    - "Cheap metadata/time/status filtering."
+    - "Only then graph/structural expansion when utility justifies it."
+  slow_path_triggers:
+    - "New knowledge likely changes existing lineage."
+    - "Contradiction/correction/preference shift."
+    - "Complex multi-hop decision or global corpus question."
+    - "High-value knowledge ingestion requiring deep reconciliation."
+  offline_optional:
+    - "Graph/community summary rebuild."
+    - "Duplicate cluster consolidation."
+    - "Index rebuild and drift checks."
+    - "Historical backlog digestion."
+    - "QCLAW may perform these jobs, but GPT live ingestion/retrieval must not depend on QCLAW availability."
+
+research_design_basis:
+  - id: "RAG-2020"
+    contribution: "Separate parametric model knowledge from explicit non-parametric retrievable memory; preserve updatability and provenance."
+  - id: "GENERATIVE-AGENTS-2023"
+    contribution: "Experience record, reflection and dynamic retrieval jointly support behavior/planning."
+  - id: "RAPTOR-2024"
+    contribution: "Multi-level abstraction retrieval through hierarchical clustering and summaries."
+  - id: "GRAPHRAG-2024"
+    contribution: "Entity/relationship graph plus community summaries for global corpus sensemaking where naive top-k chunk RAG is weak."
+  - id: "LONGMEMEVAL-2024-2025"
+    contribution: "Evaluate extraction, multi-session reasoning, temporal reasoning, updates and abstention; use time-aware query expansion."
+  - id: "A-MEM-2025"
+    contribution: "Zettelkasten-inspired dynamic indexing/linking and memory evolution against historical memories."
+  - id: "HALUMEM-2025"
+    contribution: "Evaluate memory extraction, update and QA stages separately because upstream memory hallucinations propagate."
+  - id: "APEX-MEM-ACL-2026"
+    contribution: "Property graph, append-only temporal history and query-time conflict/evolution resolution."
+  - id: "LIGHTMEM-ACL-2026"
+    contribution: "Separate online bounded retrieval from offline consolidation to control latency."
+  - id: "EXPERIENCE-FOLLOWING-ACL-2026"
+    contribution: "High-similarity retrieved experiences can over-determine output; stored errors and misaligned replay can propagate."
+  - id: "WHAT-DESERVES-MEMORY-ACL-2026"
+    contribution: "Retention should reflect future utility rather than only fixed heuristic importance tags."
+  - id: "SEEM-ACL-2026"
+    contribution: "Structured episodic event frames with precise provenance and associative reconstruction from fragmented evidence."
+  - id: "TRUTH-MAINTENANCE-SYSTEMS"
+    contribution: "Track dependency and revise current beliefs without destructively deleting contradictory evidence."
+  - id: "W3C-PROV-O"
+    contribution: "Interoperable provenance concepts such as Entity, Activity and Agent."
+  - id: "W3C-OWL-TIME"
+    contribution: "Explicit temporal entities, instants, intervals and ordering relations."
+
+stage_specific_evaluation:
+  ingestion:
+    metrics_and_tests:
+      - source_span_fidelity
+      - atomic_completeness
+      - over_fragmentation_rate
+      - under_fragmentation_rate
+      - epistemic_role_accuracy
+      - condition_negation_exception_preservation
+      - provenance_binding
+      - secret_and_prompt_injection_fail_closed
+  reconciliation:
+    metrics_and_tests:
+      - duplicate_precision_recall
+      - entity_resolution_accuracy
+      - conflict_detection_precision_recall
+      - supersession_accuracy
+      - false_merge_rate
+      - false_overwrite_rate
+  retrieval:
+    metrics_and_tests:
+      - Hit_at_k
+      - MRR
+      - evidence_recall
+      - current_vs_historical_accuracy
+      - temporal_reasoning
+      - multi_hop_recall
+      - abstention_accuracy
+      - stale_memory_rejection
+      - scope_leakage_zero_tolerance
+  utilization:
+    metrics_and_tests:
+      - answer_faithfulness_to_retrieved_evidence
+      - counterevidence_usage
+      - experience_following_error_rate
+      - decision_quality_delta
+      - explanation_usefulness
+      - owner_feedback_useful_wrong_irrelevant
+  lifecycle:
+    metrics_and_tests:
+      - correction_replay
+      - idempotency
+      - restart_persistence
+      - index_rebuild_equivalence
+      - historical_state_reconstruction
+      - rollback_and_receipt_integrity
+
+benchmark_suite:
+  external_reference:
+    - LongMemEval
+    - LongMemEval_V2
+    - LoCoMo
+  local_required_suites:
+    - "Chinese paraphrase and ambiguous-term recall."
+    - "Cross-project bleed adversarial tests."
+    - "Owner correction versus old inference tests."
+    - "Knowledge-source claim versus owner stance separation tests."
+    - "Mechanism-level analogy with low lexical overlap."
+    - "Stale market clue cannot drive current market answer without revalidation."
+    - "Incorrect past case does not dominate via similarity."
+    - "New contradictory evidence preserves both sides and updates current lineage head."
+    - "Four cognitive states produce appropriate explanation depth."
+    - "No-memory/irrelevant-memory turn correctly skips retrieval or abstains."
+
+minimum_live_tool_contract:
+  purpose: "Allow GPT to operate the canonical private second brain directly without QQ."
+  preferred_tools:
+    memory_capture:
+      action: "Write source episode plus candidate atoms through W3."
+    knowledge_reconcile:
+      action: "Retrieve-before-write comparison and typed evolution proposal."
+    memory_search:
+      action: "Bounded hybrid search with scope/time/status filters."
+    memory_recall_context:
+      action: "Return compact GPTSecondBrainContextBundle."
+    memory_conflicts:
+      action: "Inspect conflict/unknown/supersession lineages."
+    memory_feedback:
+      action: "Record whether retrieved knowledge was useful, stale, misleading or wrong."
+  integration_priority:
+    - "Reuse an approved ChatGPT app/plugin or narrow production MCP bridge if supported."
+    - "Otherwise use the existing approved local/private companion bridge."
+    - "Do not expose raw private memory through the public coordination repository."
+
+openai_surface_integration:
+  native_chatgpt_memory: "Auxiliary personalization layer only."
+  project_memory: "Useful project-scoped hot context but not complete canonical authority."
+  github_connection: "Useful for live code/docs/contracts and public-safe canonical coordination retrieval."
+  app_or_plugin_sync: "Can supply connected knowledge context where available."
+  external_memory_bridge: >-
+    Required for reliable canonical private W3 capture/recall across ordinary conversations. Without a write/read tool exposed to the active ChatGPT
+    surface, the assistant cannot truthfully guarantee that every relevant turn queried or mutated the external second brain.
+
+implementation_phases:
+  PHASE_A_SPEC_AND_COMPATIBILITY:
+    status: "THIS_FILE"
+    goal: "Freeze skill contract and reuse boundaries without touching active R108 implementation."
+  PHASE_B_MEMORY_PALACE_DEPENDENCY_CLOSEOUT:
+    status: "BLOCKED_BY_PR_280_R108"
+    goal: "Accept corrected multi-atom, provenance, temporal, conflict and freshness behavior."
+  PHASE_C_KNOWLEDGE_OBJECT_AND_RECONCILIATION_LAYER:
+    status: "NOT_STARTED"
+    goal: "Add knowledge atom ontology, retrieval-before-write reconciliation and graph evolution atop W3."
+  PHASE_D_GPT_LIVE_BRIDGE:
+    status: "NOT_STARTED_REQUIRES_OWNER_APPROVED_ROUTE"
+    goal: "Expose narrow capture/search/context/conflict/feedback tools to GPT without QQ dependency."
+  PHASE_E_PROACTIVE_RECALL_ROUTER:
+    status: "NOT_STARTED"
+    goal: "Run bounded retrieval-before-answer only when expected utility is material."
+  PHASE_F_EVALUATION_AND_SHADOW_USE:
+    status: "NOT_STARTED"
+    goal: "Run LongMemEval-style/local adversarial suites plus real shadow conversations before formal promotion."
+  PHASE_G_FORMAL_SKILL_PROMOTION:
+    status: "LOCKED"
+    goal: "Promote only after evidence shows useful recall without unacceptable false recall, stale influence or scope leakage."
+
+acceptance_stories:
+  knowledge_ingestion_and_linking:
+    input: "Owner sends a paragraph containing multiple claims, mechanism, caveat and one author opinion and says '消化这个'."
+    required_result: >-
+      Preserve one immutable source episode; emit separate typed atoms; distinguish author opinion from fact; search old knowledge first; identify
+      duplicates/support/conflicts/refinements; create source-grounded graph edges; write candidate atoms atomically; prove recall; report what was
+      new versus linked versus unresolved.
+  correction:
+    input: "Owner says a previous understanding was wrong and provides the correction."
+    required_result: >-
+      Retrieve the old lineage, preserve history, create USER_CORRECTION/new evidence, supersede current use where justified, and verify CURRENT and
+      HISTORICAL recall separately.
+  daily_conversation_recall:
+    input: "Owner casually mentions a situation that is structurally linked to a prior case or stated preference without explicitly asking for recall."
+    required_result: >-
+      The router detects material utility, retrieves a small context bundle, uses it naturally if confidence/scope/freshness pass, and does not dump
+      irrelevant memory metadata into the conversation.
+  research_use:
+    input: "Owner asks a new research question whose mechanism overlaps previously digested knowledge."
+    required_result: >-
+      Retrieve both exact-topic and mechanism-analogy knowledge, distinguish historical memory from current web facts, bring counterevidence, and
+      make prior knowledge improve the new reasoning rather than merely quote it.
+  anti_anchor:
+    input: "A highly similar old case was later proven wrong or occurred under a different regime."
+    required_result: >-
+      Similarity alone cannot dominate; stale/revoked/conflicting status must be visible and the assistant must surface the mismatch or abstain.
+
+success_definition: >-
+  The system is successful when the owner can naturally provide knowledge to GPT, GPT can turn it into source-grounded atomic and linked candidate
+  knowledge without QQ, durable W3 write and post-write recall are provable, and later conversations demonstrably retrieve and use the right prior
+  knowledge/experience at the right abstraction level while preserving provenance, current-versus-historical truth, cognitive scope, uncertainty,
+  counterevidence and privacy. Storage alone, retrieval alone or a YAML schema alone do not count as success.
+
+current_reality:
+  skill_contract: "PROPOSED_AND_WRITTEN_TO_GITHUB"
+  W3_private_candidate_ingestion_canary: "PREVIOUSLY_PROVEN_FOR_DAILY_MEMORY_CANDIDATE_PATH"
+  memory_palace_v1_implementation: "PR_280_OPEN_DRAFT"
+  memory_palace_hardening_route: "EPOCH_108_ACTIVE"
+  general_knowledge_atomization_live_path: "NOT_IMPLEMENTED"
+  retrieval_before_write_knowledge_reconciliation: "NOT_IMPLEMENTED"
+  gpt_live_private_w3_bridge: "NOT_IMPLEMENTED"
+  proactive_cross_turn_second_brain_recall: "NOT_IMPLEMENTED_AS_RELIABLE_EXTERNAL_TOOL_CONTRACT"
+  formal_skill_promotion: "LOCKED"
+  qclaw_required_for_target_runtime: false
+
+risk_register:
+  - risk: "FALSE_LINKING"
+    consequence: "Unrelated knowledge becomes connected and contaminates future reasoning."
+    control: "Typed relation confidence, provenance, UNKNOWN option, adversarial precision tests."
+  - risk: "MEMORY_HALLUCINATION"
+    consequence: "Extraction/update error becomes durable and propagates into future answers."
+    control: "Stage-specific HaluMem-style evaluation and post-write evidence verification."
+  - risk: "EXPERIENCE_FOLLOWING_AND_CONFIRMATION_BIAS"
+    consequence: "A similar old case forces a similar answer even when current conditions differ."
+    control: "Anti-anchor retrieval, counterevidence requirement, regime/current-validity checks."
+  - risk: "STALE_KNOWLEDGE"
+    consequence: "Outdated market/product/regulatory information influences current decisions."
+    control: "Domain-aware freshness and mandatory current revalidation for unstable facts."
+  - risk: "SCOPE_BLEED"
+    consequence: "Private or unrelated project knowledge appears in the wrong context."
+    control: "Fail-closed user/project/privacy filters and zero-tolerance adversarial tests."
+  - risk: "GRAPH_BLOAT_AND_LATENCY"
+    consequence: "Every write scans the whole memory and retrieval becomes slow/costly."
+    control: "Fast/slow routing, bounded candidate recall, incremental graph links, optional offline consolidation."
+  - risk: "OVER_ATOMIZATION"
+    consequence: "Meaningful narrative/case context is destroyed into tiny fragments."
+    control: "Keep immutable source episode, case/event frames and hierarchical summaries alongside atoms."
+  - risk: "UNDER_ATOMIZATION"
+    consequence: "One large note contains incompatible claims and cannot be updated precisely."
+    control: "General multi-atom decomposition tests and one shared episode lineage."
+  - risk: "AUTHORITY_CONFUSION"
+    consequence: "Candidate/model inference is mistaken for formal truth."
+    control: "Explicit authority state, epistemic role and promotion gates."
+
+confidence_and_risk_status:
+  architecture_confidence: "HIGH"
+  rationale: >-
+    The architecture is strongly supported by the existing W3/CLTM design and multiple independent long-term-memory/retrieval research lines. The
+    exact implementation quality and ChatGPT live-bridge behavior remain unproven locally.
+  implementation_confidence: "LOW_TO_MEDIUM_UNTIL_R108_AND_LIVE_BRIDGE_TESTS"
+  worst_case_if_rushed: >-
+    A superficially impressive memory system that retrieves stale or wrongly linked knowledge and silently biases important decisions while claiming
+    durable learning it has not actually achieved.
+  conservative_rule: "Do not promote to FORMAL_SKILL until real end-to-end capture, restart, recall, correction, stale-rejection and scope-isolation tests pass."
