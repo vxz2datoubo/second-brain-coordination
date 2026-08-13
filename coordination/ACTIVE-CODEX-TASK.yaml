@@ -1,4 +1,4 @@
-schema_version: "102.1"
+schema_version: "102.2"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
@@ -40,6 +40,23 @@ predecessor:
 owner_start_gate:
   required_command: "Owner must explicitly tell Codex to read/execute the newly published canonical task after epoch 90 is merged."
   no_automatic_resume: true
+
+main_drift_policy:
+  rationale: "Repository main is shared by multiple agent routes; unrelated commits must not invalidate an unchanged Codex control plane."
+  accepted_epoch90_control_blob_before_this_hardening: "a0f7aca4adf3652a83e6be9bc445df4fae564e7d"
+  gpt_drift_audit_issue_comment: 5275064504
+  current_head_rule: >-
+    Do not require origin/main to equal canonical_main_at_route_publish or any human-pinned historical main SHA.
+    After fetch, read coordination/ACTIVE-CODEX-TASK.yaml directly from current origin/main and require it to remain
+    route_epoch 90, status READY, execution_allowed true, task_id CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY,
+    with all private/formal/live/production/trading locks and epoch-90 runner/canary boundaries intact.
+  unrelated_drift_rule: >-
+    If origin/main advanced only through unrelated paths and the current canonical ACTIVE-CODEX control still satisfies this
+    epoch-90 contract, proceed. Do not stop merely because the repository head SHA changed.
+  relevant_drift_stop: >-
+    If ACTIVE-CODEX changes materially, the route epoch/task/locks differ, or a relevant CLTM implementation/control change
+    creates ambiguity, stop before private access and return a redacted canonical-control-drift result for GPT review.
+  forbidden_shortcut: "Do not use a stale local ACTIVE-CODEX file as canonical."
 
 pre_task_context_policy:
   canonical_control_source: "Read the current task from origin/main directly; do not bootstrap from local agent memory."
@@ -180,7 +197,8 @@ local_execution_learning:
   registry_action: "PROMOTION_REVIEW_REQUIRED"
   canonical_target: "coordination/ENGINEERING-LEARNING/LOCAL-EXECUTION-ISSUE-PATTERNS.yaml"
   scope_hygiene_observation: "R89-PRETASK-CODEX-MEMORY-READ-001"
+  main_drift_observation: "R90-UNRELATED-MAIN-DRIFT-FALSE-STOP-001"
 
 next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_90_PRIVATE_CANARY"
 updated_by: "GPT"
-updated_at: "2026-08-13T01:34:00+08:00"
+updated_at: "2026-08-13T10:03:00+08:00"
