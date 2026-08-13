@@ -1,0 +1,128 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: 273
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-RECURRING-SOAK-HARDENING"
+route_epoch: 102
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "f01f6e859e5a43f79e1fe07a093f348bf61890ba"
+implementation_pr: 273
+implementation_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+reviewed_head: "83a3c88a2c4db6cfc6f0c06503f81b6412f0d596"
+owner_option_a_authorization_issue_comment: 5277767515
+gpt_review_comment: 5279107124
+ci_run_reviewed: 31690867840
+
+predecessor:
+  route_epoch: 101
+  disposition: "R100_IMPLEMENTATION_PUBLISHED_FOR_GPT_REVIEW"
+  published_commit_sha: "83a3c88a2c4db6cfc6f0c06503f81b6412f0d596"
+  parent_sha: "f01f6e859e5a43f79e1fe07a093f348bf61890ba"
+  changed_paths_exact: 4
+  local_focused_tests: "4/4 PASS"
+  local_full_phase3_tests: "213/213 PASS"
+  local_privacy_adversarial: "PASS"
+  github_ci_phase3_tests: "213/213 PASS on Python 3.11 and 3.13"
+  github_ci_public_safety: "FAIL secret_shaped_value in public test source"
+  implementation_acceptance: "CHANGES_REQUIRED"
+
+root_goal: >-
+  Harden the published recurring candidate-only soak implementation so it is truthful under post-commit audit failure, safe under concurrent
+  scheduler interleavings and process crashes, and fully public-safe under canonical CI. Do not redesign W3 authority or activate real/private
+  execution. Add only the minimum code/tests necessary to close the four GPT review findings on PR #273.
+
+exact_allowed_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/recurring_candidate_soak.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/cli.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_recurring_candidate_soak.py"
+
+required_fixes:
+  public_safety:
+    - "Remove any literal secret-shaped value from public source/tests; do not weaken public_safety_scan.py or its patterns."
+    - "The adversarial test may construct a secret-shaped synthetic value at runtime from scanner-safe fragments."
+    - "Require canonical public safety scan PASS on Python 3.11 and 3.13 CI."
+  lock_scope_and_ordering:
+    - "Acquire the single-writer/process lock before reading or validating the source snapshot and hold it through source stability checks, store mutation and audit receipt handling."
+    - "Add a deterministic adversarial interleaving test proving a second run cannot capture a pre-lock stale snapshot and later apply it after a newer run."
+  crash_safe_lock:
+    - "Replace permanent O_EXCL-sentinel semantics with an OS-released process lock or equally deterministic crash-stale-safe mechanism suitable for the Windows target runtime."
+    - "A previous process termination must not require manual deletion of a stale sentinel before future runs can proceed."
+    - "Add a test for lock release/recovery semantics without real private access."
+  truthful_post_commit_audit_failure:
+    - "Do not report generic REJECTED/no-write semantics if W3 import may already have committed before ledger/audit failure."
+    - "Provide a privacy-safe explicit outcome distinguishing committed candidate state with audit failure from pre-commit rejection/no state change."
+    - "CLI exit/status behavior must preserve that distinction without raw paths, semantic values or exception text."
+    - "Add a test that forces ledger write/fsync failure after a successful import and proves the public receipt accurately reports committed-state/audit-failure semantics."
+
+invariants:
+  - "Reuse the existing canonical MemoryStore and ingest_daily_memory_candidate_v2 path; no second W3/query/temporal authority."
+  - "Keep the frozen r98 canary store inaccessible."
+  - "Keep candidate authority only and formal PROJECT/GLOBAL write LOCKED."
+  - "No real CLTM_PRIVATE_DATA_ROOT or Daily-v2 access in epoch 102."
+  - "No operational private store creation."
+  - "No Windows Task Scheduler/service/startup activation."
+  - "No ACL/ownership/Defender/CFA/registry/credential changes."
+
+branch_policy:
+  rule: >-
+    Continue PR #273 on `codex/cltm-0021-recurring-candidate-soak-r100`. Add normal commits on top of reviewed head; no force-push, amend/rewrite,
+    alternate implementation branch or merge. Canonical main may advance only by this control-plane route; do not rebase merely for route-only drift.
+
+acceptance_gates:
+  - "PR #273 diff remains limited to the four exact allowed files."
+  - "Focused recurring soak tests PASS with new blocker-specific cases."
+  - "Full relevant Phase-3 suite PASS."
+  - "Canonical public_safety_scan PASS."
+  - "GitHub Actions Phase 3 workflow PASS on Python 3.11 and 3.13."
+  - "Concurrent interleaving cannot apply an older pre-lock snapshot after a newer run."
+  - "Crash/stale lock cannot permanently deadlock future runs."
+  - "Post-commit ledger failure is truthfully and privacy-safely represented."
+  - "No raw private text/path/semantic value or secret-shaped literal in public delivery surface."
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN."
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED."
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED."
+
+required_closeout:
+  - "new_head_sha"
+  - "new_commits_since 83a3c88a..."
+  - "exact changed paths"
+  - "focused tests/count"
+  - "full relevant Phase-3 tests/count"
+  - "public safety scan result"
+  - "GitHub Actions run id and Python 3.11/3.13 conclusions"
+  - "interleaving test result"
+  - "crash-safe lock recovery test result"
+  - "post-commit audit-failure truthfulness test result"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+forbidden_actions:
+  - "Do not weaken, skip or modify public safety scanning to make CI green."
+  - "Do not hide CI failure by excluding the new test file from scans."
+  - "Do not read real private source/store/body."
+  - "Do not create/open the operational private candidate store."
+  - "Do not touch the preserved r98 store."
+  - "Do not activate scheduler/service/startup persistence."
+  - "Do not promote PROJECT/GLOBAL memory."
+  - "Do not modify files outside the four exact allowed paths."
+  - "Do not merge PR #273, force-push or rewrite history."
+
+completion_signal: "CODEX_CLTM_0021_RECURRING_SOAK_HARDENING_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 102 is implementation hardening only. Real private execution, unattended scheduling, formal PROJECT/GLOBAL promotion, security/permission
+  changes, production/live integration and trading/accounts remain LOCKED pending GPT acceptance of PR #273.
