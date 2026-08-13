@@ -1,0 +1,1 @@
+Epoch 99 is intentionally non-executable. GPT accepted the epoch-98 real/private candidate canary at candidate authority only. No rerun, private-source read, r98 store access, recurring ingestion, or formal PROJECT/GLOBAL promotion is authorized until the owner makes a new explicit decision and GPT publishes a fresh route.
