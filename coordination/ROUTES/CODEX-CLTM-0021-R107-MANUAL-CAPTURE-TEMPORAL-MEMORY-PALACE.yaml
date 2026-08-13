@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_status: "ACTIVE"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -18,15 +18,17 @@ permission_or_acl_change_authorized: false
 canonical_main_before_publish: "663c777c356516150cd18b815a43192409bbdfc4"
 owner_new_requirement: >-
   Manual conversational trigger `采集记忆` is the preferred near-term capture mechanism. The highest-priority capability is later retrieval plus
-  temporal/constraint reasoning, including resolving relative dates against utterance time and surfacing conflicts with prior memories. The
-  previous unattended-scheduler activation profile is superseded as the immediate next step and remains disabled.
+  temporal/constraint reasoning, including resolving relative dates against utterance time and surfacing conflicts with prior memories. Every
+  atomic memory must also carry a temporal lifecycle so stale/superseded/revoked clues cannot silently influence current reasoning, especially in
+  market/trading contexts. Owner evaluations such as good/bad, true/false belief, credibility and bias judgments are first-class time-bound stances
+  linked to their targets and must never be collapsed into objective fact. The previous unattended-scheduler activation profile remains disabled.
 design_spec: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
 
 purpose: >-
   Implement the synthetic-only foundation for a manual-capture Memory Palace. Extend the accepted W3 conversation memory path additively so a
-  captured owner utterance can be atomized, temporally normalized, persisted, retrieved by keyword/time/graph cues, and conservatively checked
-  against earlier memories for schedule/fact conflicts. Build the four-state cognitive coverage mapping contract. Do not touch real private data
-  or create any scheduler in epoch 107.
+  captured owner utterance can be atomized, temporally normalized, persisted, retrieved by keyword/time/graph cues, conservatively checked against
+  earlier memories, aged/revalidated through an explicit lifecycle, and represented as owner stance when the content is an evaluation rather than
+  objective fact. Build the four-state cognitive coverage mapping contract. Do not touch real private data or create any scheduler in epoch 107.
 
 existing_runtime_facts_to_preserve:
   - "ConversationEpisode is historical evidence and remains append-preserving."
@@ -34,6 +36,7 @@ existing_runtime_facts_to_preserve:
   - "Current QueryPlan scope/user_scope/valid_at privacy gates remain fail-closed."
   - "CURRENT retrieval excludes superseded memories; HISTORICAL retrieval can use valid time."
   - "LearningPacket import remains atomic/idempotent and credential-secret patterns fail closed."
+  - "Existing stale/revoked/superseded truth states remain available and historical evidence is not deleted."
   - "Accepted recurring candidate runtime and operational private store must not be modified or opened by this task."
 
 implementation_scope:
@@ -44,13 +47,22 @@ implementation_scope:
     program modules.
   required_capabilities:
     - "Manual capture contract/parser for `采集记忆` and alias `数据采集`, with deterministic trigger-in-message and trigger-only behavior."
-    - "Derived semantic memory types for plans/goals/commitments/event reports without rewriting raw ConversationEpisode evidence."
+    - "Derived semantic memory types for plans/goals/commitments/event reports/evaluations without rewriting raw ConversationEpisode evidence."
     - "Timezone-aware temporal-expression normalization with deterministic relative-date handling for Chinese `今天/明天/后天` at minimum and an extensible parser boundary for richer expressions."
     - "Store original time expression, anchor time, normalized interval/date, granularity, method and confidence separately from raw evidence."
+    - "Temporal lifecycle metadata separating evidence time, validity time and freshness/revalidation time."
+    - "Domain-aware freshness profile contract: TRANSIENT, SHORT_CYCLE, MEDIUM_CYCLE, STRUCTURAL, UNKNOWN. No universal fixed half-life."
+    - "Historical evidence remains retrievable even when CURRENT admission is stale/superseded/revoked."
+    - "Market/trading retrieval distinguishes historical similarity, current validity, current relevance and revalidation status."
+    - "Superseded/revoked/stale market clues cannot regain CURRENT decision influence solely through semantic similarity."
     - "Event/plan representation linked to candidate atoms and provenance."
-    - "Typed conservative conflict detection: DIRECT_FACT_CONTRADICTION, SCHEDULE_HARD_CONFLICT, SCHEDULE_POTENTIAL_CONFLICT, PREFERENCE_TENSION, PLAN_SUPERSESSION_CANDIDATE, UNKNOWN_CONSTRAINT."
+    - "Owner stance/evaluation representation linked to a stable target, including good/bad, trust/credibility, authenticity, bias, risk, usefulness, accuracy and preference judgments."
+    - "Epistemic separation: `用户认为事件X是假的` is a user stance, not proof that event X is objectively false."
+    - "Later opposite evaluations create append-preserving update/supersession chains; prior stance remains HISTORICAL."
+    - "Typed conservative conflict detection: DIRECT_FACT_CONTRADICTION, SCHEDULE_HARD_CONFLICT, SCHEDULE_POTENTIAL_CONFLICT, PREFERENCE_TENSION, PLAN_SUPERSESSION_CANDIDATE, STANCE_CONFLICT, SOURCE_CREDIBILITY_CONFLICT, UNKNOWN_CONSTRAINT."
     - "Same calendar day without interval/exclusivity evidence must not be promoted to hard conflict."
     - "Hybrid retrieval orchestrator using current lexical retrieval + temporal window retrieval + relation/graph expansion. Add retrieval explanations."
+    - "Retrieval explanations expose freshness/current-validity and owner-stance reasons for admission/down-ranking/abstention."
     - "Provide an optional semantic-provider interface but do not require network/API keys or make semantic embeddings a correctness dependency in epoch 107."
     - "Four-state cognitive coverage mapping contract: KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING."
     - "Post-write exact scoped recall verifier for capture success receipts."
@@ -66,6 +78,20 @@ reference_acceptance_story:
     Preserve the source utterance, derive a 2026-08-15 plan/event, retrieve the prior 2026-08-15 event through temporal expansion, and emit
     SCHEDULE_POTENTIAL_CONFLICT if the two events have unknown times/flexibility. Do not silently overwrite either memory and do not claim a hard
     contradiction without overlap/exclusivity evidence.
+
+owner_stance_acceptance_story:
+  utterance: "我觉得这个消息是假的，而且这个来源有偏见。采集记忆"
+  expected_behavior: >-
+    Preserve one source episode and atomize at least two owner stance memories linked to the target claim/source: a BELIEVES_FALSE/DISBELIEVES
+    judgment about the message and a BIAS/CREDIBILITY judgment about the source. Neither stance may mark the target objectively false/biased
+    without independent evidence. A later opposite owner evaluation must create a new stance in an update/supersession lineage while preserving
+    the earlier stance for historical retrieval.
+
+market_freshness_acceptance_story:
+  expected_behavior: >-
+    A short-cycle bullish market clue recorded in the past remains historically searchable but is stale/down-ranked or fail-gated for current
+    trading reasoning when outside its validated freshness horizon and not revalidated. A durable structural preference/rule is not automatically
+    suppressed merely because it is older.
 
 required_tests:
   - "trigger in substantive user message captures message excluding trigger token"
@@ -87,6 +113,14 @@ required_tests:
   - "retrieval explanation identifies lexical/temporal/graph contribution"
   - "four cognitive coverage states retain explicit-vs-inferred boundary"
   - "process restart persistence test"
+  - "owner evaluation stored as stance linked to target, not objective fact"
+  - "false/bias judgment atomizes into separate claim/source stances"
+  - "later opposite evaluation creates append-preserving stance lineage"
+  - "CURRENT stance returns newest valid head; HISTORICAL can reconstruct prior stance"
+  - "stale market clue remains historical but is blocked/down-ranked for CURRENT until revalidation"
+  - "semantic similarity cannot resurrect superseded/revoked market clue into CURRENT"
+  - "structural durable memory is not blindly decayed by age"
+  - "retrieval explanation exposes freshness/current-validity gate"
   - "full relevant Phase-3 regression suite PASS"
   - "public_safety_scan PASS"
   - "git diff --check PASS"
@@ -95,6 +129,9 @@ quality_gates:
   - "No LLM-only date arithmetic in deterministic covered cases."
   - "No hard conflict when evidence supports only potential conflict."
   - "No inferred user knowledge promoted to explicit user assertion."
+  - "No owner evaluation promoted to objective fact without independent evidence."
+  - "No universal recency decay that destroys historical evidence or blindly suppresses structural memory."
+  - "No stale/superseded/revoked market memory admitted to CURRENT merely because of semantic similarity."
   - "No semantic/vector dependency required for exact keyword/time tests."
   - "No schema migration that destroys or rewrites existing atoms/episodes."
   - "No change to accepted private operational store contents."
@@ -120,10 +157,14 @@ required_closeout:
   - "public_safety_scan result"
   - "git diff --check result"
   - "reference acceptance story result"
+  - "owner stance acceptance story result"
+  - "market freshness acceptance story result"
   - "keyword retrieval result"
   - "temporal normalization result"
   - "potential-vs-hard conflict tests"
   - "correction/supersession regression result"
+  - "stance lineage regression result"
+  - "freshness/current-validity gating result"
   - "four-state cognitive coverage mapping result"
   - "post-write exact recall result"
   - "LOCAL_EXECUTION_ISSUES"
@@ -134,6 +175,7 @@ required_closeout:
 completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 107 is synthetic-only Memory Palace foundation work. Manual capture semantics, temporal reasoning and conflict-aware retrieval may be
-  implemented/tested, but real private capture integration, unattended scheduling, formal PROJECT/GLOBAL promotion, production MCP/Gateway,
-  security/permission changes and trading/accounts remain LOCKED pending GPT acceptance and a later owner-approved live bridge route.
+  Epoch 107 is synthetic-only Memory Palace foundation work. Manual capture semantics, temporal lifecycle/freshness, owner stance memory, temporal
+  reasoning and conflict-aware retrieval may be implemented/tested, but real private capture integration, unattended scheduling, formal PROJECT/
+  GLOBAL promotion, production MCP/Gateway, security/permission changes and trading/accounts remain LOCKED pending GPT acceptance and a later
+  owner-approved live bridge route.
