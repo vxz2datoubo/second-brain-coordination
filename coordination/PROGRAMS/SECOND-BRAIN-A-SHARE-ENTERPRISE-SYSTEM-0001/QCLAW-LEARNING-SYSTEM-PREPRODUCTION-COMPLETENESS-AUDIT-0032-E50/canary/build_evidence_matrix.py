@@ -1,4 +1,4 @@
-"""Generate persisted E50 R2 evidence matrix JSON into evidence/."""
+"""Generate persisted E50 R3 evidence matrix JSON into evidence/."""
 import json
 import os
 import sys
