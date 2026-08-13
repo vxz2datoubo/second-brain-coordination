@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import yaml
@@ -17,6 +18,12 @@ from .private_candidate_ingestion import (
     ingest_daily_memory_candidate_v2,
     load_daily_memory_candidate_v2,
     validate_private_data_paths,
+)
+from .recurring_candidate_soak import (
+    CommittedStateAuditFailure,
+    CommittedStateTeardownFailure,
+    RecurringCandidateSoakError,
+    run_from_environment,
 )
 from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
@@ -61,11 +68,22 @@ def build_parser() -> argparse.ArgumentParser:
     private_ingest.add_argument("--input", type=Path, required=True)
     private_ingest.add_argument("--store", type=Path, required=True)
     private_ingest.add_argument("--private-root", type=Path, required=True)
+    subparsers.add_parser("recurring-private-ingest", help="Run one scheduler-safe candidate-only ingestion from explicit environment bindings")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "recurring-private-ingest":
+        try:
+            print(json.dumps(run_from_environment(os.environ), ensure_ascii=True, sort_keys=True))
+            return 0
+        except (CommittedStateAuditFailure, CommittedStateTeardownFailure) as error:
+            print(json.dumps(error.receipt, ensure_ascii=True, sort_keys=True))
+            return 2
+        except (RecurringCandidateSoakError, ValueError, OSError):
+            print(json.dumps({"status": "REJECTED"}, ensure_ascii=True, sort_keys=True))
+            return 1
     if args.command == "private-ingest":
         try:
             input_path, store_path, private_root = validate_private_data_paths(
