@@ -49,7 +49,7 @@ class DimensionVerdict:
 @dataclass
 class EvidenceMatrix:
     canonical_head_sha: str
-    vendor_root: str
+    audited_tree_root: str
     dimensions: list[DimensionVerdict] = field(default_factory=list)
 
     def get(self, dimension: str) -> DimensionVerdict | None:
@@ -61,7 +61,7 @@ class EvidenceMatrix:
     def to_dict(self) -> dict[str, Any]:
         return {
             "canonical_head_sha": self.canonical_head_sha,
-            "vendor_root": self.vendor_root,
+            "audited_tree_root": self.audited_tree_root,
             "dimensions": [d.to_dict() for d in self.dimensions],
         }
 

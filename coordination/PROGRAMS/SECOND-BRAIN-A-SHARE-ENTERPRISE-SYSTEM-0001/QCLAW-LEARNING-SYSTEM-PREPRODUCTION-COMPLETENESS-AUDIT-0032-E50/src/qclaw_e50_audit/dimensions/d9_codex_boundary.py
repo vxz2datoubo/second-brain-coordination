@@ -20,7 +20,7 @@ from __future__ import annotations
 import os
 import tempfile
 
-from ..canonical import access
+from .. import authoritative as access
 from ..evidence_matrix import (
     DimensionVerdict, Evidence,
     VERDICT_PASS, VERDICT_PARTIAL, VERDICT_FAIL,
@@ -28,7 +28,7 @@ from ..evidence_matrix import (
 
 access.setup_import_path()
 
-from codex_e66 import e66_promotion as e66  # type: ignore  # noqa: E402
+import e66_promotion as e66  # type: ignore  # noqa: E402
 from integrated_offline_memory.memory_store import MemoryStore  # type: ignore  # noqa: E402
 
 

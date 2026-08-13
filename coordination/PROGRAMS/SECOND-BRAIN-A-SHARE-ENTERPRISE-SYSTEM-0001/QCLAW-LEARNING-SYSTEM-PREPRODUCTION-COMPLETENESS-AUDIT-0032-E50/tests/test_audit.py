@@ -1,9 +1,10 @@
-"""Unit tests for E50 R2 audit modules (canonical-system audit).
+"""Unit tests for E50 R3 audit modules (authoritative checked-out-tree audit).
 
-These tests verify the audit harness itself is wired correctly: each
-dimension module runs against the vendored canonical snapshot and returns
-a valid DimensionVerdict, and the runner produces a coherent matrix +
-risk-critical recommendation.
+These tests verify the audit harness is wired correctly: each dimension
+module runs directly against the authoritative checked-out repository tree
+(no vendored copies earn PASS credit), returns a valid DimensionVerdict, and
+the runner produces a coherent matrix + risk-critical recommendation bound to
+exact HEAD + per-file blob SHAs.
 """
 from __future__ import annotations
 
@@ -71,6 +72,27 @@ class TestDimensions(unittest.TestCase):
         from qclaw_e50_audit.dimensions import d1_ingestion
         modfile = d1_ingestion.__file__
         self.assertNotIn("_untrusted_test_double", modfile)
+
+    def test_authoritative_blob_sha_bindings_present(self):
+        result = runner.run_audit()
+        bindings = result["canonical_ref_bindings"]
+        self.assertIn("audited_head_sha", bindings)
+        self.assertIn("groups", bindings)
+        for group, meta in bindings["groups"].items():
+            self.assertIn("files", meta)
+            self.assertGreaterEqual(len(meta["files"]), 1)
+        phase3 = bindings["groups"]["phase3_integrated_offline_memory"]["files"]
+        memstore = [v for k, v in phase3.items() if k.endswith("memory_store.py")]
+        self.assertEqual(len(memstore), 1)
+        self.assertNotEqual(memstore[0], "MISSING")
+        self.assertEqual(len(memstore[0]), 40)
+
+    def test_matrix_uses_audited_tree_root_not_vendor(self):
+        result = runner.run_audit()
+        matrix = result["matrix"]
+        self.assertNotIn("vendor_root", matrix)
+        self.assertIn("audited_tree_root", matrix)
+        self.assertIn("canonical_head_sha", matrix)
 
 
 if __name__ == "__main__":

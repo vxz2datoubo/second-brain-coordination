@@ -1,238 +1,188 @@
-"""D7 audit: skill learning + promotion anti-forgery.
+"""D7 audit: skill learning + promotion anti-forgery (E50 R3).
 
-Canonical implementation audited:
-- CODEX-E66/src/e66_promotion.py (DigestBundle, PreAdmissionSubject,
-  AdmissionEvidence, CandidateKnowledgePackage, build_candidate,
-  parse_approval_control, verify_approval, safe_marker_name)
+R3 mandatory (GPT review 4922729153, finding E50-R2-B03):
+- E66 knowledge-promotion approval anti-forgery belongs under D9, NOT D7.
+- D7 must audit a REAL canonical skill-learning/promotion subsystem:
+  candidate -> experimental -> formal transitions bound to independent test
+  receipts + rollback. If absent, report PARTIAL/BLOCKED/NOT_IMPLEMENTED.
 
-D7 mandatory asks to prove that candidate -> experimental -> formal
-transition binds to real independently-issued test receipts, and that
-caller-authored receipt fields CANNOT mint skill authority.
+Truthful findings (authoritative tree):
+- coordination/SKILLS/*.yaml is a governance registry with an explicit
+  maturity_state_machine (DISCOVERED -> ... -> CANDIDATE_SKILL_REGISTERED ->
+  RESEARCH_VALIDATED -> CONTRACTED -> IMPLEMENTED -> A_SHARE_BACKTESTED ->
+  SHADOW_VALIDATED -> VALIDATED_RESEARCH_CAPABILITY) and per-skill
+  maturity/status labels. It declares lifecycle STAGES but is a DATA
+  registry, not an executable promotion runtime.
+- PHASE-1/tests/contract_validation.py is the only executable lifecycle
+  gate: it validates a shared envelope's `status` against
+  {candidate, approved, rejected, superseded, quarantined, experimental,
+  active} and enforces candidate-cannot-write-authority + human_approval_ref
+  for irreversible change. This is a promotion SAFETY GATE, not a full
+  candidate->experimental->formal transition engine with independent test
+  receipts.
 
-Truthful findings:
-- Canonical has NO automatic skill promotion path. Authority promotion goes
-  through the E66 approval-control flow: an E66_APPROVAL_V1 control object
-  (13 exact fields incl. gpt_review_ref + expires_at) whose identity must
-  bind to the CandidateKnowledgePackage.identity_sha256 + expected_parent.
-- build_candidate only allows PUBLIC_SAFE into public promotion and requires
-  evidence.repository_id / subject_sha256 / decision to exactly match.
-- CandidateKnowledgePackage rejects placeholder evidence hash ("0"*64).
-- verify_approval enforces expiry + actor binding.
+Conclusion: there is NO executable skill-learning/promotion runtime that
+binds candidate->experimental->formal transitions to independent test
+receipts + rollback. The subsystem is PARTIAL (registry + safety gate only).
 """
 from __future__ import annotations
 
-import datetime
-from ..canonical import access
+import re
+from .. import authoritative as access
 from ..evidence_matrix import (
     DimensionVerdict, Evidence,
     VERDICT_PASS, VERDICT_PARTIAL, VERDICT_FAIL,
+    VERDICT_NOT_AVAILABLE,
 )
 
 access.setup_import_path()
-
-from codex_e66 import e66_promotion as e66  # type: ignore  # noqa: E402
 
 
 def _check(name, desc, ok, detail=""):
     return Evidence(check_id=name, description=desc, passed=bool(ok), detail=detail)
 
 
-def _subject(admission_class="PUBLIC_SAFE"):
-    return e66.PreAdmissionSubject(
-        package_id="pkg-1",
-        repository_id="repo-1",
-        repository_slug="vxz2datoubo/second-brain-coordination",
-        task_id="task-E50",
-        route_epoch=58,
-        digests=e66.DigestBundle(
-            raw_artifact_sha256="a" * 64,
-            canonical_semantic_sha256="b" * 64,
-            l0_provenance_sha256="c" * 64,
-        ),
-        provenance_status="verified",
-        target_scope="PROJECT",
-        admission_class=admission_class,
-        expected_parent="d" * 40,
-    )
+def _load_phase1_contract_validation():
+    """Import the authoritative PHASE-1 contract_validation module by path.
+
+    It is a test-module (not a package), so import it by spec with a stable
+    module name to avoid polluting sys.modules."""
+    import importlib.util
+    path = access.REPO_ROOT / "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/tests/contract_validation.py"
+    spec = importlib.util.spec_from_file_location("_e50_p1_contract_validation", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # type: ignore
+    return mod
+
+
+def _read_skills_yaml():
+    skills_dir = access.REPO_ROOT / "coordination/SKILLS"
+    out = []
+    if not skills_dir.is_dir():
+        return out
+    for p in sorted(skills_dir.glob("*.yaml")):
+        try:
+            out.append(p.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            continue
+    return out
 
 
 def run() -> DimensionVerdict:
     evidence: list[Evidence] = []
 
-    # 1. CandidateKnowledgePackage rejects placeholder evidence hash
-    placeholder_rejected = False
-    try:
-        subj = _subject()
-        ev = e66.AdmissionEvidence(ref="r1", repository_id="repo-1",
-                                   subject_sha256=subj.sha256,
-                                   decision="PUBLIC_SAFE")
-        pkg = e66.CandidateKnowledgePackage(subj, ev.ref, "0" * 64)
-    except e66.Reject as e:
-        placeholder_rejected = "placeholder" in str(e)
+    # 1. Skill registry declares an explicit maturity state machine
+    yamls = _read_skills_yaml()
+    has_state_machine = any(
+        "maturity_state_machine" in y and "CANDIDATE_SKILL_REGISTERED" in y
+        for y in yamls
+    )
     evidence.append(_check(
-        "d7.placeholder_evidence_hash_rejected",
-        "CandidateKnowledgePackage rejects placeholder evidence hash (0*64)",
-        placeholder_rejected,
+        "d7.skill_registry_maturity_state_machine",
+        "Skill registry declares an explicit maturity/lifecycle state machine",
+        has_state_machine,
+        detail=f"skill yaml files read={len(yamls)}",
     ))
 
-    # 2. DigestBundle validates SHA format on all three fields
-    digest_format_enforced = False
+    # 2. Executable lifecycle gate enforces status whitelist
+    p1 = _load_phase1_contract_validation()
+    status_whitelist_enforced = False
+    status_whitelist_detail = ""
     try:
-        e66.DigestBundle(raw_artifact_sha256="not-a-sha",
-                         canonical_semantic_sha256="b" * 64,
-                         l0_provenance_sha256="c" * 64)
-    except e66.Reject as e:
-        digest_format_enforced = "sha256" in str(e)
+        p1.validate_shared({
+            "object_id": "obj.test.1", "schema_version": "1.0.0",
+            "producer": "audit", "run_id": "r", "trace_id": "t",
+            "status": "not-a-real-status", "created_at": "2026-01-01T00:00:00Z",
+            "lineage": [{"x": 1}],
+        })
+    except p1.ContractViolation as e:
+        status_whitelist_enforced = "lifecycle" in str(e)
+        status_whitelist_detail = str(e)
     evidence.append(_check(
-        "d7.digest_sha_format_enforced",
-        "DigestBundle enforces 64-hex SHA format on all digests",
-        digest_format_enforced,
+        "d7.lifecycle_status_whitelist_enforced",
+        "Executable lifecycle gate enforces a status whitelist",
+        status_whitelist_enforced,
+        detail=status_whitelist_detail,
     ))
 
-    # 3. build_candidate rejects non-PUBLIC_SAFE for public promotion
-    non_public_rejected = False
+    # 3. Candidate cannot write authority (promotion anti-forgery)
+    candidate_write_blocked = False
+    candidate_write_detail = ""
     try:
-        subj = _subject(admission_class="PRIVATE_OR_SENSITIVE")
-        ev = e66.AdmissionEvidence(ref="r1", repository_id="repo-1",
-                                   subject_sha256=subj.sha256,
-                                   decision="PRIVATE_OR_SENSITIVE")
-        e66.build_candidate(subj, ev)
-    except e66.Reject as e:
-        non_public_rejected = "non-public" in str(e)
+        p1.validate_approval({
+            "object_id": "obj.test.2", "schema_version": "1.0.0",
+            "producer": "audit", "run_id": "r", "trace_id": "t",
+            "status": "candidate", "created_at": "2026-01-01T00:00:00Z",
+            "lineage": [{"x": 1}],
+            "no_trade_gate": True, "rollback_pointer": "ptr",
+            "authority_write": True,
+        })
+    except p1.ContractViolation as e:
+        candidate_write_blocked = "candidate" in str(e)
+        candidate_write_detail = str(e)
     evidence.append(_check(
-        "d7.non_public_cannot_enter_public_promotion",
-        "build_candidate rejects non-PUBLIC_SAFE for public promotion",
-        non_public_rejected,
+        "d7.candidate_cannot_write_authority",
+        "Executable gate blocks candidate from writing authority",
+        candidate_write_blocked,
+        detail=candidate_write_detail,
     ))
 
-    # 4. build_candidate requires evidence binding (repo + subject + decision)
-    mismatch_rejected = False
+    # 4. Irreversible change requires human approval ref
+    irreversible_requires_approval = False
+    irreversible_detail = ""
     try:
-        subj = _subject()
-        ev = e66.AdmissionEvidence(ref="r1", repository_id="WRONG-REPO",
-                                   subject_sha256=subj.sha256,
-                                   decision="PUBLIC_SAFE")
-        e66.build_candidate(subj, ev)
-    except e66.Reject as e:
-        mismatch_rejected = "mismatch" in str(e)
+        p1.validate_approval({
+            "object_id": "obj.test.3", "schema_version": "1.0.0",
+            "producer": "audit", "run_id": "r", "trace_id": "t",
+            "status": "approved", "created_at": "2026-01-01T00:00:00Z",
+            "lineage": [{"x": 1}],
+            "no_trade_gate": True, "rollback_pointer": "ptr",
+            "change_class": "irreversible", "human_approval_ref": None,
+        })
+    except p1.ContractViolation as e:
+        irreversible_requires_approval = "human_approval_ref" in str(e)
+        irreversible_detail = str(e)
     evidence.append(_check(
-        "d7.evidence_binding_required",
-        "build_candidate requires evidence repo/subject/decision binding",
-        mismatch_rejected,
+        "d7.irreversible_change_requires_human_approval",
+        "Executable gate requires human_approval_ref for irreversible change",
+        irreversible_requires_approval,
+        detail=irreversible_detail,
     ))
 
-    # 5. parse_approval_control requires exact 13 fields + APPROVE decision
-    malformed_rejected = False
-    try:
-        e66.parse_approval_control("E66_APPROVAL_V1\n{\"object_type\":\"ISSUE_COMMENT\"}")
-    except e66.Reject as e:
-        malformed_rejected = "approval" in str(e) or "fields" in str(e)
+    # 5. Full candidate->experimental->formal transition engine with
+    #    independent test receipts + rollback EXISTS?
+    #    (Honest: it does not. Only registry + safety gate.)
     evidence.append(_check(
-        "d7.approval_control_exact_fields",
-        "parse_approval_control requires exact REQUIRED fields + APPROVE",
-        malformed_rejected,
-    ))
-
-    # 6. A caller-authored control object with wrong binding is rejected
-    binding_rejected = False
-    binding_detail = ""
-    try:
-        subj = _subject()
-        ev = e66.AdmissionEvidence(ref="r1", repository_id="repo-1",
-                                   subject_sha256=subj.sha256,
-                                   decision="PUBLIC_SAFE")
-        pkg = e66.build_candidate(subj, ev)
-        # forge approval with wrong candidate_identity_sha256
-        forged = {
-            "object_type": "ISSUE_COMMENT", "object_id": "1",
-            "repository_id": "repo-1",
-            "repository_slug": "vxz2datoubo/second-brain-coordination",
-            "actor_id": "attacker", "decision": "APPROVE",
-            "task_id": "task-E50", "route_epoch": "58",
-            "candidate_identity_sha256": "f" * 64,  # wrong identity
-            "expected_parent": "d" * 40,
-            "expires_at": "2027-01-01T00:00:00Z",
-            "gpt_review_ref": "rev-1",
-        }
-        e66.verify_approval(forged, pkg,
-                            datetime.datetime(2026, 8, 12, tzinfo=datetime.timezone.utc),
-                            "attacker")
-    except e66.Reject as e:
-        binding_rejected = "binding mismatch" in str(e)
-        binding_detail = str(e)
-    evidence.append(_check(
-        "d7.approval_binding_mismatch_rejected",
-        "verify_approval rejects caller-authored approval with wrong identity binding",
-        binding_rejected,
-        detail=binding_detail,
-    ))
-
-    # 7. expired approval rejected
-    expired_rejected = False
-    try:
-        subj = _subject()
-        ev = e66.AdmissionEvidence(ref="r1", repository_id="repo-1",
-                                   subject_sha256=subj.sha256,
-                                   decision="PUBLIC_SAFE")
-        pkg = e66.build_candidate(subj, ev)
-        valid = {
-            "object_type": "ISSUE_COMMENT", "object_id": "1",
-            "repository_id": "repo-1",
-            "repository_slug": "vxz2datoubo/second-brain-coordination",
-            "actor_id": "actor", "decision": "APPROVE",
-            "task_id": "task-E50", "route_epoch": "58",
-            "candidate_identity_sha256": pkg.identity_sha256,
-            "expected_parent": "d" * 40,
-            "expires_at": "2020-01-01T00:00:00Z",  # already expired
-            "gpt_review_ref": "rev-1",
-        }
-        e66.verify_approval(valid, pkg,
-                            datetime.datetime(2026, 8, 12, tzinfo=datetime.timezone.utc),
-                            "actor")
-    except e66.Reject as e:
-        expired_rejected = "expired" in str(e)
-    evidence.append(_check(
-        "d7.expired_approval_rejected",
-        "verify_approval rejects expired approval control",
-        expired_rejected,
-    ))
-
-    # 8. safe_marker_name prevents path traversal in promotion marker store
-    traversal_rejected = False
-    try:
-        e66.safe_marker_name("../evil")
-    except e66.Reject as e:
-        traversal_rejected = "unsafe" in str(e)
-    evidence.append(_check(
-        "d7.marker_path_traversal_prevented",
-        "safe_marker_name rejects path traversal in marker CAS",
-        traversal_rejected,
+        "d7.full_promotion_runtime_present",
+        "Executable candidate->experimental->formal runtime with independent "
+        "test receipts + rollback exists on canonical main",
+        False,
+        detail=("NOT_IMPLEMENTED: no executable promotion runtime found; only "
+                "coordination/SKILLS registry (maturity state machine as data) "
+                "and PHASE-1 contract_validation.py safety gate."),
     ))
 
     passed = sum(1 for e in evidence if e.passed)
     total = len(evidence)
-    if passed == total:
-        verdict = VERDICT_PASS
-    elif passed >= total - 2:
-        verdict = VERDICT_PARTIAL
-    else:
-        verdict = VERDICT_FAIL
+    verdict = VERDICT_PARTIAL if passed >= 4 else VERDICT_FAIL
 
     return DimensionVerdict(
         dimension="D7",
         title="Skill learning + promotion anti-forgery",
         verdict=verdict,
-        rationale=(f"{passed}/{total} promotion anti-forgery gates passed against "
-                   "canonical CODEX-E66 e66_promotion."),
+        rationale=(f"{passed}/{total} skill-promotion gates passed. The canonical "
+                   "subsystem is a registry + a lifecycle safety gate, but there is "
+                   "NO executable candidate->experimental->formal runtime binding "
+                   "transitions to independent test receipts + rollback."),
         evidence=evidence,
         critical=True,
-        notes=("Canonical has NO automatic caller-authored skill promotion. "
-               "Promotion requires an E66_APPROVAL_V1 control object with 13 exact "
-               "fields (incl. gpt_review_ref + expires_at) whose identity must bind "
-               "to CandidateKnowledgePackage.identity_sha256 + expected_parent. "
-               "build_candidate restricts to PUBLIC_SAFE and requires evidence "
-               "repo/subject/decision binding. Placeholder evidence hashes are "
-               "rejected. verify_approval enforces actor binding + expiry. "
-               "This satisfies D7 anti-forgery: caller-constructed receipt fields "
-               "cannot mint formal skill authority."),
+        notes=("R3 correction (B03): E66 evidence is moved to D9. D7 audits the "
+               "REAL skill subsystem: coordination/SKILLS/*.yaml declares a "
+               "maturity_state_machine (DISCOVERED->...->VALIDATED_RESEARCH_"
+               "CAPABILITY) as governance data; PHASE-1 contract_validation.py "
+               "is an executable lifecycle gate that (a) whitelists status, "
+               "(b) blocks candidate authority writes, (c) requires "
+               "human_approval_ref for irreversible change. However there is NO "
+               "runtime that binds candidate->experimental->formal transitions to "
+               "independent test receipts + rollback. Honest verdict: PARTIAL."),
     )

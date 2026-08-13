@@ -214,11 +214,19 @@ For each corpus input, classify every atom / relation into one of:
 - **distorted** — present in output but content / span / type differs from expected (with diff)
 - **unsupported** — present in output but no evidence in input (flag as candidate, do NOT auto-accept)
 
-## 9. Recommendation rule
+## 9. Recommendation rule (risk-critical, R2/R3 mandatory)
 
-- **NOT_READY**: any D returns FAIL OR > 2 return PARTIAL OR D4/D8 returns PARTIAL OR D1/D6/D9/D10 returns FAIL
-- **READY_FOR_BOUNDED_REAL_SOURCE_PILOT**: all D1–D12 PASS or PARTIAL, no FAIL; D4/D8 ≥ PARTIAL; recommendation includes bounded source whitelist (e.g., user-approved public-domain articles only)
-- **READY_FOR_PRODUCTION_CANDIDATE_LEARNING**: all D1–D12 PASS; D4/D8 PASS; D7 PASS with full receipts; recommendation includes promotion gate requirements
+Recommendation is **risk-critical**, NOT a naive count of PARTIAL dimensions.
+Any unresolved critical authority/provenance/privacy/stale-recall/skill-promotion
+gap keeps the system NOT_READY.
+
+- **NOT_READY**: any critical dimension returns non-PASS (PARTIAL/FAIL/BLOCKED).
+  Critical dimensions: D1, D3, D4, D5, D6, D7, D8, D9, D10.
+- **READY_FOR_BOUNDED_REAL_SOURCE_PILOT**: every critical gate PASS; the
+  highest level QCLAW may recommend WITHOUT GPT acceptance of E50 (still
+  requires GPT acceptance before any real-source pilot).
+- **READY_FOR_PRODUCTION_CANDIDATE_LEARNING**: never self-issued; requires GPT
+  acceptance of E50 plus a separate production-authority gate.
 
 ## 10. Schedule (additive commits on E50 branch)
 

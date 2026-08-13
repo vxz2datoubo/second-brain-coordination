@@ -10,15 +10,15 @@ ConversationEpisode provenance, NOT caller enums/booleans.
 Truthful findings:
 - Canonical rejects ASSISTANT_* claim roles as user memory (no caller can
   mint USER memory from an assistant claim).
-- ConversationEpisode enforces privacy_class/coverage -> source_class
-  mapping; PRIVATE_LOCAL_CANDIDATE is the only non-synthetic path and it is
-  gated by PRIVATE_LOCAL_AUTHORIZED source_class.
+- ConversationEpisode enforces privacy_class/coverage: only
+  PUBLIC_SAFE_SYNTHETIC + synthetic is admitted; any other privacy_class
+  (PRIVATE_LOCAL_CANDIDATE, SECRET_CREDENTIAL) is denied.
 - User memory requires episode identity (episode_id/user_scope/project_scope/
   source_pointer/source_hash) + provenance (source_pointer_hash).
 """
 from __future__ import annotations
 
-from ..canonical import access
+from .. import authoritative as access
 from ..evidence_matrix import (
     DimensionVerdict, Evidence,
     VERDICT_PASS, VERDICT_PARTIAL, VERDICT_FAIL,
@@ -36,8 +36,7 @@ def _check(name, desc, ok, detail=""):
     return Evidence(check_id=name, description=desc, passed=bool(ok), detail=detail)
 
 
-def _episode(privacy_class="PUBLIC_SAFE_SYNTHETIC", coverage="synthetic",
-             source_class="SYNTHETIC_PUBLIC_SAFE"):
+def _episode(privacy_class="PUBLIC_SAFE_SYNTHETIC", coverage="synthetic"):
     return ConversationEpisode(
         episode_id="ep-1",
         user_scope="userA",
@@ -47,7 +46,6 @@ def _episode(privacy_class="PUBLIC_SAFE_SYNTHETIC", coverage="synthetic",
         privacy_class=privacy_class,
         recorded_at="2026-08-12T10:00:00Z",
         coverage=coverage,
-        source_class=source_class,
     )
 
 
@@ -118,21 +116,21 @@ def run() -> DimensionVerdict:
         detail=user_detail,
     ))
 
-    # 4. PRIVATE_LOCAL_CANDIDATE requires source_class PRIVATE_LOCAL_AUTHORIZED
-    #    (privacy classification enforced, not caller boolean)
+    # 4. PRIVATE_LOCAL_CANDIDATE privacy_class rejected entirely
+    #    (checked-out canonical enforces only PUBLIC_SAFE_SYNTHETIC)
     privacy_mismatch_rejected = False
     try:
         ConversationEpisode(
             episode_id="ep-p", user_scope="userA", project_scope="projectX",
             source_pointer="file:///tmp/private.txt", source_hash="b" * 64,
             privacy_class="PRIVATE_LOCAL_CANDIDATE", recorded_at="2026-08-12T10:00:00Z",
-            coverage="private_local", source_class="SYNTHETIC_PUBLIC_SAFE",
+            coverage="synthetic",
         ).validate()
     except ValueError as e:
-        privacy_mismatch_rejected = "conversation_episode_source_classification_denied" in str(e)
+        privacy_mismatch_rejected = "conversation_episode_private_source_denied" in str(e)
     evidence.append(_check(
-        "d6.privacy_class_source_class_bound",
-        "PRIVATE source requires matching source_class (no caller override)",
+        "d6.privacy_class_private_denied",
+        "PRIVATE_LOCAL_CANDIDATE privacy_class denied (no caller override)",
         privacy_mismatch_rejected,
     ))
 
@@ -143,7 +141,7 @@ def run() -> DimensionVerdict:
             episode_id="ep-s", user_scope="userA", project_scope="projectX",
             source_pointer="file:///tmp/secret.txt", source_hash="c" * 64,
             privacy_class="SECRET_CREDENTIAL", recorded_at="2026-08-12T10:00:00Z",
-            coverage="synthetic", source_class="SYNTHETIC_PUBLIC_SAFE",
+            coverage="synthetic",
         ).validate()
     except ValueError as e:
         secret_denied = ("conversation_episode_private_source_denied" in str(e)
@@ -206,8 +204,8 @@ def run() -> DimensionVerdict:
         critical=True,
         notes=("Canonical binds user memory to ConversationEpisode provenance "
                "(episode_manifest_id + source_pointer_hash + source_hash), rejects "
-               "ASSISTANT_* as user memory, enforces privacy_class->source_class "
-               "mapping, denies SECRET_CREDENTIAL, and requires USER_CORRECTION to "
-               "target a pre-existing atom. No caller enum/boolean can mint "
-               "verified user origin."),
+               "ASSISTANT_* as user memory, denies any privacy_class other than "
+               "PUBLIC_SAFE_SYNTHETIC (PRIVATE_LOCAL_CANDIDATE and SECRET_CREDENTIAL "
+               "both rejected), and requires USER_CORRECTION to target a pre-existing "
+               "atom. No caller enum/boolean can mint verified user origin."),
     )

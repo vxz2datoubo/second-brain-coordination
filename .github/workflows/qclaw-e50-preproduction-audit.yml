@@ -28,5 +28,28 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run E50 canonical-system audit unit tests
         run: python -m unittest discover -s tests -t .
-      - name: Run full E50 audit and emit evidence matrix
-        run: python -c "import sys; sys.path.insert(0,'src'); from qclaw_e50_audit import runner; import json; r=runner.run_audit(); print(json.dumps(r, ensure_ascii=False, indent=2, default=str))"
+      - name: Run full E50 audit and emit canonicalized evidence matrix
+        run: |
+          python canary/build_evidence_matrix.py
+          python - <<'PY'
+          import json, hashlib, pathlib
+          p = pathlib.Path("evidence/evidence_matrix.json")
+          raw = p.read_text(encoding="utf-8")
+          data = json.loads(raw)
+          # Canonicalize for cross-version comparison: drop the head SHA
+          # (CI checkout HEAD differs per run) and keep verdicts deterministic.
+          data["cross_version_compare"] = {
+              "matrix_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+              "recommendation": data["recommendation"]["recommendation"],
+              "verdicts": {d["dimension"]: d["verdict"] for d in data["matrix"]["dimensions"]},
+          }
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+          print("matrix_sha256:", data["cross_version_compare"]["matrix_sha256"])
+          print("recommendation:", data["cross_version_compare"]["recommendation"])
+          print("verdicts:", json.dumps(data["cross_version_compare"]["verdicts"]))
+          PY
+      - name: Upload evidence matrix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: e50-evidence-matrix-${{ matrix.python-version }}
+          path: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50/evidence/evidence_matrix.json

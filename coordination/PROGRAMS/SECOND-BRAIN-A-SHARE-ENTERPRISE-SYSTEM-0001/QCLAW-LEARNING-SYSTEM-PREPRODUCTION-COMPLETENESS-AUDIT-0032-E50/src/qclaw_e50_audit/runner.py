@@ -15,7 +15,7 @@ import sys
 from . import coverage as coverage_mod
 from . import recommendation as recommendation_mod
 from .evidence_matrix import EvidenceMatrix
-from .canonical import access
+from . import authoritative as access
 from .dimensions import (
     d1_ingestion, d2_reconstruction, d3_atom_taxonomy, d4_cross_source,
     d5_evidence, d6_cognition, d7_skill_promotion, d8_retrieval,
@@ -41,12 +41,13 @@ DIMENSION_MODULES = [
 
 def run_audit() -> dict:
     access.setup_import_path()
-    head_sha = access.get_head_sha()
+    bindings = access.canonical_ref_bindings()
+    head_sha = bindings["audited_head_sha"]
 
     dimensions = [m.run() for m in DIMENSION_MODULES]
     matrix = EvidenceMatrix(
         canonical_head_sha=head_sha,
-        vendor_root=os.path.dirname(os.path.abspath(access.__file__)),
+        audited_tree_root=str(access.REPO_ROOT),
         dimensions=dimensions,
     )
     cov = coverage_mod.build_coverage_report()
@@ -54,6 +55,7 @@ def run_audit() -> dict:
 
     result = {
         "canonical_head_sha": head_sha,
+        "canonical_ref_bindings": bindings,
         "matrix": matrix.to_dict(),
         "coverage": cov.to_dict(),
         "recommendation": rec,

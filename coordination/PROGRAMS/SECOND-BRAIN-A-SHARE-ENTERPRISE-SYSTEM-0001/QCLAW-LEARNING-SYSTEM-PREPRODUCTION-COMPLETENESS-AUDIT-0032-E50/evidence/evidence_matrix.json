@@ -1,8 +1,40 @@
 {
-  "canonical_head_sha": "06474d7386db5a4e416e48d8c81cf0dd327328b3",
+  "canonical_head_sha": "eb9ce813c01169e7c925b9715354eec9ee96f716",
+  "canonical_ref_bindings": {
+    "audited_head_sha": "eb9ce813c01169e7c925b9715354eec9ee96f716",
+    "audited_head_source": "git rev-parse HEAD (checked-out repository tree)",
+    "groups": {
+      "codex_e66_promotion": {
+        "files": {
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E66/src/e66_promotion.py": "f0e3735b4ca77fbfea10c58fe6611c82899845e2"
+        }
+      },
+      "phase2_offline_research": {
+        "files": {
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py": "71caf7116f9027ad4d9c4773d17a04c4d2d89e24"
+        }
+      },
+      "phase3_integrated_offline_memory": {
+        "files": {
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/memory_store.py": "9fc82ccf9ba0034d4bb756edbfe3eb55c4aa5e72",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/retrieval.py": "b941aef89313ce2782d323a044c481c263f62cd1",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/learning_packet.py": "14cdb15485a18c95e8e7253825310c92d3954ad2",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/conversation_memory.py": "810f3b6b02ff804ba50acd5e8bf3bbd75a7b4105",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/canonical.py": "344b929c44c413bce55838ba1fcbae2b1e31beb5",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/contracts.py": "ed87420a850d3f82a4db4e0cf89b6b502d69342c",
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/private_candidate_ingestion.py": "MISSING"
+        }
+      },
+      "phase3_local_adapter": {
+        "files": {
+          "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/local_adapter/contracts.py": "826b4ee183a0ed2d68d29d12dcfb2106907798fe"
+        }
+      }
+    }
+  },
   "matrix": {
-    "canonical_head_sha": "06474d7386db5a4e416e48d8c81cf0dd327328b3",
-    "vendor_root": "C:\\Users\\Administrator\\.openclaw\\workspace\\coordination-canonical\\coordination\\PROGRAMS\\SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001\\QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50\\src\\qclaw_e50_audit\\canonical",
+    "canonical_head_sha": "eb9ce813c01169e7c925b9715354eec9ee96f716",
+    "audited_tree_root": "C:\\Users\\Administrator\\.openclaw\\workspace\\coordination-canonical",
     "dimensions": [
       {
         "dimension": "D1",
@@ -40,19 +72,19 @@
             "check_id": "d1.conversation_episode_private_rejected",
             "description": "ConversationEpisode rejects privacy_class=PRIVATE",
             "passed": true,
-            "detail": "conversation_episode_source_classification_denied"
+            "detail": "conversation_episode_private_source_denied"
           },
           {
             "check_id": "d1.conversation_episode_real_coverage_rejected",
             "description": "ConversationEpisode rejects coverage=real",
             "passed": true,
-            "detail": "conversation_episode_source_classification_denied"
+            "detail": "conversation_episode_coverage_denied"
           },
           {
             "check_id": "d1.conversation_episode_synthetic_accepted",
             "description": "ConversationEpisode accepts PUBLIC_SAFE_SYNTHETIC + synthetic",
             "passed": true,
-            "detail": "manifest_id=conversation-episode-843c6b42f1880184f72c"
+            "detail": "manifest_id=conversation-episode-34442258130afac91c3a"
           },
           {
             "check_id": "d1.local_artifact_reference_rejects_bad_sha",
@@ -318,7 +350,7 @@
         "verdict": "PASS",
         "rationale": "7/7 user-origin gates passed against canonical ConversationEpisode/build_conversation_candidate.",
         "critical": true,
-        "notes": "Canonical binds user memory to ConversationEpisode provenance (episode_manifest_id + source_pointer_hash + source_hash), rejects ASSISTANT_* as user memory, enforces privacy_class->source_class mapping, denies SECRET_CREDENTIAL, and requires USER_CORRECTION to target a pre-existing atom. No caller enum/boolean can mint verified user origin.",
+        "notes": "Canonical binds user memory to ConversationEpisode provenance (episode_manifest_id + source_pointer_hash + source_hash), rejects ASSISTANT_* as user memory, denies any privacy_class other than PUBLIC_SAFE_SYNTHETIC (PRIVATE_LOCAL_CANDIDATE and SECRET_CREDENTIAL both rejected), and requires USER_CORRECTION to target a pre-existing atom. No caller enum/boolean can mint verified user origin.",
         "evidence": [
           {
             "check_id": "d6.assistant_claim_not_user_memory",
@@ -339,8 +371,8 @@
             "detail": ""
           },
           {
-            "check_id": "d6.privacy_class_source_class_bound",
-            "description": "PRIVATE source requires matching source_class (no caller override)",
+            "check_id": "d6.privacy_class_private_denied",
+            "description": "PRIVATE_LOCAL_CANDIDATE privacy_class denied (no caller override)",
             "passed": true,
             "detail": ""
           },
@@ -367,58 +399,40 @@
       {
         "dimension": "D7",
         "title": "Skill learning + promotion anti-forgery",
-        "verdict": "PASS",
-        "rationale": "8/8 promotion anti-forgery gates passed against canonical CODEX-E66 e66_promotion.",
+        "verdict": "PARTIAL",
+        "rationale": "4/5 skill-promotion gates passed. The canonical subsystem is a registry + a lifecycle safety gate, but there is NO executable candidate->experimental->formal runtime binding transitions to independent test receipts + rollback.",
         "critical": true,
-        "notes": "Canonical has NO automatic caller-authored skill promotion. Promotion requires an E66_APPROVAL_V1 control object with 13 exact fields (incl. gpt_review_ref + expires_at) whose identity must bind to CandidateKnowledgePackage.identity_sha256 + expected_parent. build_candidate restricts to PUBLIC_SAFE and requires evidence repo/subject/decision binding. Placeholder evidence hashes are rejected. verify_approval enforces actor binding + expiry. This satisfies D7 anti-forgery: caller-constructed receipt fields cannot mint formal skill authority.",
+        "notes": "R3 correction (B03): E66 evidence is moved to D9. D7 audits the REAL skill subsystem: coordination/SKILLS/*.yaml declares a maturity_state_machine (DISCOVERED->...->VALIDATED_RESEARCH_CAPABILITY) as governance data; PHASE-1 contract_validation.py is an executable lifecycle gate that (a) whitelists status, (b) blocks candidate authority writes, (c) requires human_approval_ref for irreversible change. However there is NO runtime that binds candidate->experimental->formal transitions to independent test receipts + rollback. Honest verdict: PARTIAL.",
         "evidence": [
           {
-            "check_id": "d7.placeholder_evidence_hash_rejected",
-            "description": "CandidateKnowledgePackage rejects placeholder evidence hash (0*64)",
+            "check_id": "d7.skill_registry_maturity_state_machine",
+            "description": "Skill registry declares an explicit maturity/lifecycle state machine",
             "passed": true,
-            "detail": ""
+            "detail": "skill yaml files read=7"
           },
           {
-            "check_id": "d7.digest_sha_format_enforced",
-            "description": "DigestBundle enforces 64-hex SHA format on all digests",
+            "check_id": "d7.lifecycle_status_whitelist_enforced",
+            "description": "Executable lifecycle gate enforces a status whitelist",
             "passed": true,
-            "detail": ""
+            "detail": "unknown lifecycle status"
           },
           {
-            "check_id": "d7.non_public_cannot_enter_public_promotion",
-            "description": "build_candidate rejects non-PUBLIC_SAFE for public promotion",
+            "check_id": "d7.candidate_cannot_write_authority",
+            "description": "Executable gate blocks candidate from writing authority",
             "passed": true,
-            "detail": ""
+            "detail": "candidate cannot write authority"
           },
           {
-            "check_id": "d7.evidence_binding_required",
-            "description": "build_candidate requires evidence repo/subject/decision binding",
+            "check_id": "d7.irreversible_change_requires_human_approval",
+            "description": "Executable gate requires human_approval_ref for irreversible change",
             "passed": true,
-            "detail": ""
+            "detail": "irreversible change requires human_approval_ref"
           },
           {
-            "check_id": "d7.approval_control_exact_fields",
-            "description": "parse_approval_control requires exact REQUIRED fields + APPROVE",
-            "passed": true,
-            "detail": ""
-          },
-          {
-            "check_id": "d7.approval_binding_mismatch_rejected",
-            "description": "verify_approval rejects caller-authored approval with wrong identity binding",
-            "passed": true,
-            "detail": "approval binding mismatch"
-          },
-          {
-            "check_id": "d7.expired_approval_rejected",
-            "description": "verify_approval rejects expired approval control",
-            "passed": true,
-            "detail": ""
-          },
-          {
-            "check_id": "d7.marker_path_traversal_prevented",
-            "description": "safe_marker_name rejects path traversal in marker CAS",
-            "passed": true,
-            "detail": ""
+            "check_id": "d7.full_promotion_runtime_present",
+            "description": "Executable candidate->experimental->formal runtime with independent test receipts + rollback exists on canonical main",
+            "passed": false,
+            "detail": "NOT_IMPLEMENTED: no executable promotion runtime found; only coordination/SKILLS registry (maturity state machine as data) and PHASE-1 contract_validation.py safety gate."
           }
         ]
       },
@@ -550,11 +564,11 @@
       },
       {
         "dimension": "D11",
-        "title": "Determinism + CI",
+        "title": "Determinism + CI + exact canonical ref binding",
         "verdict": "PASS",
-        "rationale": "6/6 determinism gates passed against canonical canonical/retrieval. (Local env is Python 3.13; 3.11 via CI.)",
+        "rationale": "7/7 determinism/ref-binding gates passed. Bound to HEAD eb9ce813c01169e7c925b9715354eec9ee96f716 + 10 blob SHAs.",
         "critical": false,
-        "notes": "canonical.content_hash/canonical_json use sort_keys + NFKC + whitespace normalization, so digests are deterministic across runs and across Python 3.11/3.13 (no iteration-order dependence). atom_id/relation_id/plan_hash are deterministic. The exact canonical head SHA is recorded for provider evidence binding. Python 3.11 is exercised via the qclaw-e50 CI workflow (not the local 3.13-only environment).",
+        "notes": "canonical.content_hash/canonical_json use sort_keys + NFKC + whitespace normalization (deterministic across 3.11/3.13). Exact canonical ref binding uses the git hash-object algorithm (no git binary, no hard-coded path). Python 3.11 is exercised via CI; cross-version artifact hashes are compared there.",
         "evidence": [
           {
             "check_id": "d11.content_hash_order_independent",
@@ -587,44 +601,50 @@
             "detail": "{\"a\":2,\"z\":1}"
           },
           {
-            "check_id": "d11.exact_head_recorded",
-            "description": "Audit records exact canonical head SHA (origin/main)",
+            "check_id": "d11.exact_head_and_blob_bound",
+            "description": "Exact HEAD SHA + per-file blob SHAs bound for all canonical groups",
             "passed": true,
-            "detail": "06474d7386db5a4e416e48d8c81cf0dd327328b3"
+            "detail": "head=eb9ce813c01169e7c925b9715354eec9ee96f716; groups=['codex_e66_promotion', 'phase2_offline_research', 'phase3_integrated_offline_memory', 'phase3_local_adapter']; blobs=10"
+          },
+          {
+            "check_id": "d11.cross_version_ci_declared",
+            "description": "Cross-version (3.11/3.13) artifact comparison is declared for CI",
+            "passed": true,
+            "detail": "Deterministic canonical serialization + exact blob binding means the matrix hash is reproducible; the workflow runs the full E50 matrix on 3.11 and 3.13 and compares canonicalized artifacts."
           }
         ]
       },
       {
         "dimension": "D12",
-        "title": "Resource bounds + rollback",
-        "verdict": "PASS",
-        "rationale": "4/4 resource/rollback gates passed. Audit is single-process, bounded, with no orphan children and reversible tempdir artifacts.",
+        "title": "Resource bounds + rollback + process lifecycle",
+        "verdict": "PARTIAL",
+        "rationale": "resource/rollback gates: descendant/orphan lifecycle is UNKNOWN (psutil unavailable); rollback + no-unrelated-termination measured PASS. (psutil_available=False).",
         "critical": false,
-        "notes": "The audit harness is single-process and bounded. It spawns only a short-lived read-only git rev-parse for head binding. No task-owned background processes, no kill/terminate calls, no nested parallelism. Any DB artifacts live in tempfile.TemporaryDirectory so a failed run is reversible. Postflight shows zero orphan children. (psutil unavailable on this host is recorded honestly rather than fabricating a zero count.)",
+        "notes": "R3 correction: descendant/orphan count is MEASURED only when psutil is importable; otherwise it is honestly reported UNKNOWN (not synthesized PASS). The git head binding uses authoritative.get_head_sha() with no hard-coded local path. Rollback is verified against a tempdir artifact cycle.",
         "evidence": [
           {
-            "check_id": "d12.no_orphan_children",
-            "description": "No lingering task-owned child processes (psutil unavailable: os fallback)",
-            "passed": true,
-            "detail": "psutil not installed; cannot enumerate children — recorded honestly"
+            "check_id": "d12.psutil_available",
+            "description": "Process enumeration library (psutil) is available for measurement",
+            "passed": false,
+            "detail": "psutil NOT importable; descendant enumeration NOT possible"
           },
           {
-            "check_id": "d12.subprocess_terminates",
-            "description": "Read-only git subprocess terminates cleanly (no orphan)",
-            "passed": true,
-            "detail": ""
+            "check_id": "d12.no_orphan_children",
+            "description": "Measured zero task-owned descendant processes after audit",
+            "passed": false,
+            "detail": "UNKNOWN: cannot enumerate descendants (psutil unavailable). Not synthesized as PASS."
           },
           {
             "check_id": "d12.no_unrelated_terminations",
             "description": "Audit performs no unrelated process terminations",
             "passed": true,
-            "detail": "audit never issues kill/terminate; read-only + in-process only"
+            "detail": "audit never issues kill/terminate; in-process + read-only git only"
           },
           {
             "check_id": "d12.rollback_reversible",
-            "description": "Audit is reversible (tempdir artifacts; no persistent state)",
+            "description": "Audit writes are reversible (tempdir-only, auto-removed)",
             "passed": true,
-            "detail": "DB artifacts use tempfile.TemporaryDirectory; no repo mutation"
+            "detail": "tempdir removed after context exit"
           }
         ]
       }
@@ -824,13 +844,14 @@
   },
   "recommendation": {
     "recommendation": "NOT_READY",
-    "summary": "3 critical gate(s) not PASS: D3; D5; D10",
+    "summary": "4 critical gate(s) not PASS: D3; D5; D7; D10",
     "blockers": [
       "D3(PARTIAL): 7/9 atom-taxonomy gates passed against canonical MemoryStore. Key finding: canonical atom_type is FREE-FORM (no 13-type taxonomy enforced) — D3 mandatory taxonomy is NOT met by canonical main; recommend a separate task to add taxonomy validation.",
       "D5(PARTIAL): 5/7 evidence-verification gates passed against canonical PHASE-3. Evidence-gap honesty + secret rejection + fail-closed UNVERIFIED default hold; E47 5-way EvidenceKind missing on main.",
+      "D7(PARTIAL): 4/5 skill-promotion gates passed. The canonical subsystem is a registry + a lifecycle safety gate, but there is NO executable candidate->experimental->formal runtime binding transitions to independent test receipts + rollback.",
       "D10(PARTIAL): 5/6 adversarial gates passed against canonical PHASE-3 + E66. Fixed-marker injection caught; paraphrased injection is a documented generalization gap."
     ],
-    "critical_pass_count": 6,
+    "critical_pass_count": 5,
     "critical_total": 9,
     "production_learning_note": "READY_FOR_PRODUCTION_CANDIDATE_LEARNING requires GPT acceptance of E50 and a separate production-authority gate; never self-issued by QCLAW."
   }

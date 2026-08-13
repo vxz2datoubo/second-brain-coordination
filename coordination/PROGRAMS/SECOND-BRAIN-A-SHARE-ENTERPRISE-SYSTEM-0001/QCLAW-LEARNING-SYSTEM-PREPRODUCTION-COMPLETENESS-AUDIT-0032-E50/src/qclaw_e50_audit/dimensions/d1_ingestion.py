@@ -12,7 +12,7 @@ NOT audited (left to other dimensions):
 """
 from __future__ import annotations
 
-from ..canonical import access
+from .. import authoritative as access
 from ..evidence_matrix import DimensionVerdict, Evidence, VERDICT_PASS, VERDICT_PARTIAL, VERDICT_FAIL
 
 access.setup_import_path()

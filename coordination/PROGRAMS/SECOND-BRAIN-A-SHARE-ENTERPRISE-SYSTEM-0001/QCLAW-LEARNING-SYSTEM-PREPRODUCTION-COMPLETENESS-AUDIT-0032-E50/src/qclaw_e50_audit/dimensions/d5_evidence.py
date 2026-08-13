@@ -19,7 +19,7 @@ canonical main. This is a PARTIAL, not a PASS.
 """
 from __future__ import annotations
 
-from ..canonical import access
+from .. import authoritative as access
 from ..evidence_matrix import (
     DimensionVerdict, Evidence,
     VERDICT_PASS, VERDICT_PARTIAL, VERDICT_FAIL,
