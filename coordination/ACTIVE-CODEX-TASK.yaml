@@ -1,17 +1,17 @@
-schema_version: "106.0"
+schema_version: "106.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION"
+task_id: "CODEX-CLTM-0021-R100-PUBLICATION-RECOVERY"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 100
-mode: "implementation_review_before_unattended_activation"
-mode_label: "【Codex实现】CLTM-0021 持续private candidate ingestion soak"
+route_epoch: 101
+mode: "publication_recovery_without_linked_worktree_git_mutation"
+mode_label: "【Codex恢复发布】CLTM-0021 epoch100 本地实现安全物化到远端分支"
 status: "READY"
 execution_allowed: true
-automatic_resume_within_task: true
-second_user_start_command_required: false
+automatic_resume_within_task: false
+second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
@@ -25,96 +25,103 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "927e29ed2afe880d4c7b57f8039d6cf023df81fa"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R100-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION.yaml"
+canonical_main_at_route_publish: "efd9b0fe962607e8956d281fd4610b2d538efa30"
+canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R101-R100-PUBLICATION-RECOVERY.yaml"
 owner_authorization_issue_comment: 5277767515
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-POST-CANARY-OWNER-DECISION-GATE"
-  route_epoch: 99
-  disposition: "OWNER_SELECTED_OPTION_A"
-  accepted_real_canary: true
-  accepted_direct_sid_modify: true
-  formal_project_global_write: "LOCKED"
+  task_id: "CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION"
+  route_epoch: 100
+  disposition: "LOCAL_IMPLEMENTATION_TESTS_PASS_PUBLICATION_BLOCKED"
+  reported_local_head: "ed9684b13f45518d9dc664d3ae86da7307e676ee"
+  focused_tests: "4/4 PASS"
+  full_relevant_phase3_tests: "213/213 PASS"
+  privacy_adversarial: "PASS"
+  local_execution_issue: "LINKED_WORKTREE_INDEX_LOCK_WRITE_DENIED"
+  real_private_execution: "NOT_RUN"
+  unattended_scheduler: "NOT_ACTIVATED"
+  formal_project_global_promotion: "LOCKED"
+
+independent_gpt_audit:
+  current_remote_main_at_audit: "efd9b0fe962607e8956d281fd4610b2d538efa30"
+  reported_local_head_identity: "historical R85 commit, not current epoch100 main"
+  remote_codex_branch_present: false
+  implementation_remotely_reviewable: false
+  target_path_drift_from_reported_head_to_current_main: "NONE_OBSERVED_BY_GITHUB_COMPARE"
+  acceptance_status: "NOT_YET_ACCEPTED_UNTIL_REMOTE_COMMIT_REVIEW"
 
 root_goal: >-
-  Implement and test the durable recurring private candidate-only ingestion runtime selected by the owner. Reuse the accepted W3 MemoryStore and
-  private candidate ingestion path; prepare one durable operational candidate store and a one-shot scheduler-safe runner with idempotency,
-  correction, concurrency, source-stability, privacy-safe receipt and soak-audit behavior. Epoch 100 is implementation/review only: no real
-  private source read, no operational private store creation and no unattended scheduler activation.
+  Publish the already-completed epoch-100 four-file implementation for GPT review without touching the broken linked-worktree Git index/object
+  metadata. Use a disposable normal clone of exact current remote main, copy only the four authorized working-tree files byte-for-byte, re-run
+  synthetic/adversarial tests, commit and push the canonical Codex branch, then stop. Do not perform real private execution or activation.
 
-operational_design:
-  future_store_leaf: "cltm-private-candidate-runtime.sqlite3"
-  frozen_r98_store_leaf: "cltm-private-canary-r98.sqlite3"
-  frozen_r98_rule: "DO_NOT_OPEN_REUSE_MUTATE_MIGRATE_OR_DELETE"
-  candidate_authority_only: true
-  formal_project_promotion: "LOCKED"
-  formal_global_promotion: "LOCKED"
-  future_source_binding: "EXACT_EXISTING_ENV_BINDING_ONLY"
-  future_source_discovery: "FORBIDDEN"
+exact_allowed_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/recurring_candidate_soak.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/cli.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_recurring_candidate_soak.py"
 
-required_work_summary:
-  - "Create testable persistent one-shot recurring ingestion entry point using existing bridge/MemoryStore."
-  - "Allow validated zero/multiple eligible candidates; remove only the canary exact-one restriction, not admission rules."
-  - "Treat identical replay as idempotent successful no-change."
-  - "Preserve cross-run correction/supersession semantics and batch atomicity."
-  - "Add deterministic single-run concurrency guard; never solve contention with alternate stores."
-  - "Add source-stability/torn-read guard before import."
-  - "Add hash/count/status-only receipt and local private public-safe soak ledger/equivalent audit."
-  - "Expose scheduler-safe one-shot command without python -c or shell output-redirection dependence."
-  - "Add synthetic/adversarial tests for persistence, replay, incremental new candidates, correction, rollback, invalid/secret input, concurrency, source instability and privacy."
-  - "Keep r98 store untouched and formal PROJECT/GLOBAL promotion impossible."
-
-allowed_runtime_prefixes:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/"
-allowed_task_artifact_prefix:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-R100/"
-codex_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+publication_design:
+  remote_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+  source_worktree_expected_head: "ed9684b13f45518d9dc664d3ae86da7307e676ee"
+  source_worktree_mutation: "FORBIDDEN"
+  disposable_clone: "OS_TEMP_NORMAL_CLONE"
+  stale_base_safety: "REQUIRE_NO_TARGET_PATH_CHANGE_BETWEEN_REPORTED_HEAD_AND_EXACT_CURRENT_MAIN"
+  copy_scope: "EXACT_FOUR_FILES_ONLY"
+  source_destination_sha256_match: "REQUIRED"
+  retest_after_copy: "REQUIRED"
+  push: "FAST_FORWARD_ONLY"
+  force_push: false
+  merge: false
 
 acceptance_gates:
-  - "Focused new tests PASS."
-  - "Existing relevant Phase-3 suite PASS."
-  - "Synthetic first import -> exact recall PASS."
-  - "Identical replay -> no duplicate atom and explicit idempotent/no-change receipt."
-  - "Later package can add new candidates while retaining prior current memory."
-  - "Cross-run correction closes prior candidate and replay cannot reopen it."
-  - "Batch invariant failure rolls back all package writes."
-  - "Source instability produces no import."
-  - "Concurrent second run cannot concurrently mutate or create alternate store."
-  - "No private path/raw text/semantic value in receipts/logs/tests."
-  - "No second W3 authority."
-  - "Formal PROJECT/GLOBAL promotion remains locked."
-  - "No real private access or scheduler activation occurred in epoch 100."
-
-required_closeout:
-  - "commit/head SHA"
-  - "changed paths"
-  - "focused test counts"
-  - "full relevant Phase-3 test counts"
-  - "privacy/adversarial results"
-  - "worktree status"
-  - "LOCAL_EXECUTION_ISSUES"
-  - "explicit statement: REAL_PRIVATE_EXECUTION_NOT_RUN"
-  - "explicit statement: UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "Source linked worktree HEAD remains exactly ed9684b13f45518d9dc664d3ae86da7307e676ee."
+  - "Source linked worktree status contains changes only at the four allowed paths."
+  - "Exact current remote main is acquired independently."
+  - "No target path changed between source HEAD and exact current remote main."
+  - "Only four allowed files are copied into disposable clone and per-file SHA-256 source/destination matches."
+  - "Focused recurring-candidate-soak tests PASS."
+  - "Full relevant Phase-3 tests PASS."
+  - "Privacy/adversarial tests PASS."
+  - "git diff --check PASS."
+  - "Commit contains exactly four changed paths."
+  - "Remote branch SHA equals published commit SHA."
+  - "Original linked worktree and uncommitted files remain untouched as backup."
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN."
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED."
+  - "FORMAL PROJECT/GLOBAL promotion remains LOCKED."
 
 forbidden_actions:
-  - "Do not read CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH or any private body in epoch 100."
-  - "Do not create/open the future operational private store in epoch 100."
-  - "Do not open/reuse/delete/migrate the successful r98 store."
-  - "Do not create/modify Windows Task Scheduler tasks, services or startup persistence."
-  - "Do not mutate ACLs, ownership, Defender/CFA, registry or security policy."
-  - "Do not promote to formal PROJECT/GLOBAL memory."
-  - "Do not touch unrelated agents/programs, live/production MCP/Gateway, repository visibility or trading/accounts."
-  - "Do not merge, direct-write main, force-push or rewrite history."
+  - "Do not mutate or repair the linked worktree index/object store."
+  - "Do not stage/reset/clean/stash/checkout the original linked worktree."
+  - "Do not delete or rewrite the original four local working files."
+  - "Do not copy extra files or directories."
+  - "Do not read real private source/store/body or environment values."
+  - "Do not create/open the future operational private store."
+  - "Do not activate scheduler/service/startup persistence."
+  - "Do not change ACLs, ownership, credentials, Defender/CFA, registry or security policy."
+  - "Do not promote PROJECT/GLOBAL memory."
+  - "Do not merge executor changes, force-push or rewrite history."
 
-next_stage_after_gpt_acceptance: >-
-  GPT may publish epoch 101 for bounded initialization of the durable operational candidate store and unattended soak activation under the
-  already-recorded Option-A owner authorization. No additional owner decision is required unless activation materially broadens cadence,
-  privilege, filesystem/security scope or formal memory authority.
+required_closeout:
+  - "published_commit_sha"
+  - "remote_branch_sha"
+  - "base_remote_main_sha"
+  - "exact changed paths"
+  - "source_destination_hash_match"
+  - "focused tests"
+  - "full relevant Phase-3 tests"
+  - "privacy/adversarial"
+  - "git diff --check"
+  - "disposable clone cleanup"
+  - "original linked worktree preserved"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_CLTM_0021_RECURRING_CANDIDATE_SOAK_IMPLEMENTATION_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_CLTM_0021_R100_IMPLEMENTATION_PUBLISHED_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Option A authorizes the recurring candidate-only direction. Epoch 100 authorizes implementation/testing only. Real private execution,
-  unattended scheduling and formal PROJECT/GLOBAL promotion remain LOCKED pending GPT acceptance and a fresh activation route.
+  Epoch 101 is publication recovery only. Real private execution, unattended scheduling, formal PROJECT/GLOBAL promotion, security/permission
+  changes, production/live integration and trading/accounts remain LOCKED pending GPT acceptance of the published implementation.

@@ -1,0 +1,119 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-R100-PUBLICATION-RECOVERY"
+route_epoch: 101
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+predecessor_task: "CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION"
+predecessor_epoch: 100
+predecessor_closeout_disposition: "IMPLEMENTATION_TESTS_PASS_BUT_UNCOMMITTED_LOCAL_WORK"
+reported_local_head: "ed9684b13f45518d9dc664d3ae86da7307e676ee"
+reported_local_issue: "LINKED_WORKTREE_INDEX_LOCK_WRITE_DENIED"
+canonical_main_before_route_publish: "efd9b0fe962607e8956d281fd4610b2d538efa30"
+owner_option_a_authorization_issue_comment: 5277767515
+
+purpose: >-
+  Recover and publish the already-completed epoch-100 implementation without mutating the broken linked-worktree Git index/object metadata and
+  without repeating private execution. The four intended working-tree files may be copied byte-for-byte into a disposable normal clone based
+  on exact current remote main, retested there, committed, pushed to the canonical Codex branch, and then stopped for GPT review.
+
+source_worktree_gate:
+  expected_head: "ed9684b13f45518d9dc664d3ae86da7307e676ee"
+  exact_allowed_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/recurring_candidate_soak.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/cli.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_recurring_candidate_soak.py"
+  rule: >-
+    Before copying anything, require the current linked worktree HEAD to equal expected_head and `git status --short` to contain changes only at
+    the four exact allowed paths. Any additional modified/untracked/deleted path stops. Do not stage, reset, clean, checkout, stash, repair or
+    otherwise mutate the linked worktree Git metadata or its files.
+
+stale_base_safety_gate:
+  rule: >-
+    In the disposable clone after fetching exact current remote main, fetch/resolve reported_local_head and prove that none of the four target
+    paths changed between reported_local_head and exact current remote main before applying the local working copies. Any target-path upstream
+    change stops for GPT review rather than overwriting/rebasing by guess.
+
+canonical_remote_gate:
+  rule: >-
+    Resolve exact remote main with `git ls-remote` immediately before clone/fetch. Clone into one task-owned OS-temp directory and require local
+    `origin/main`/checked-out base to equal that exact SHA. Do not use or repair the linked-worktree Git database for publication.
+  control_plane_drift: >-
+    Route/control-plane-only remote drift is allowed only if the four target paths remain unchanged under stale_base_safety_gate. Runtime target
+    path drift is not allowed.
+
+materialization_and_tests:
+  copy_rule: >-
+    Copy only the four exact allowed working-tree files byte-for-byte from the current linked worktree into the disposable clone. Do not copy
+    directories, generated files, caches, private files or any other untracked content.
+  source_hash_rule: >-
+    Compute a SHA-256 for each of the four source working-tree files before copy and each destination file after copy; require exact per-file
+    equality. Public closeout may report only aggregate PASS and optional hashes, never local absolute paths.
+  tests:
+    - "Run focused recurring-candidate-soak tests and require all PASS."
+    - "Run the full relevant Phase-3 test suite and require all PASS."
+    - "Run privacy/adversarial tests covering replay/idempotency, incremental import, correction/rollback, secret rejection, source instability, concurrency rejection, frozen-r98 denial, receipt/ledger redaction."
+    - "Run git diff --check."
+  no_private_execution: >-
+    Tests must use synthetic/adversarial fixtures only. Do not read CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH, CLTM_PRIVATE_DATA_ROOT, r98
+    canary store or any real private body. Do not create/open the future operational private store.
+
+publication:
+  branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+  commit_rule: >-
+    Commit exactly the four allowed paths in the disposable clone on top of exact current remote main. No additional files. Commit message must
+    identify CLTM-0021 recurring candidate soak implementation and agent CODEX. Do not amend/rebase/force-push or rewrite history.
+  push_rule: >-
+    Push the new commit as a fast-forward to the pre-created remote branch. If authentication/push fails, stop without credential mutation,
+    alternate branch creation, force push or second implementation attempt.
+  remote_verify: >-
+    After push, `git ls-remote` must show the remote branch at the exact new commit SHA. Only after this equality may the disposable clone be
+    deleted. Preserve the original linked worktree and its four uncommitted files untouched until GPT accepts the remote PR/commit.
+
+acceptance_evidence_required:
+  - "published_commit_sha"
+  - "remote_branch_sha"
+  - "base_remote_main_sha"
+  - "exact four changed paths"
+  - "source_to_destination_hash_match = PASS"
+  - "focused test result/count"
+  - "full relevant Phase-3 test result/count"
+  - "privacy/adversarial result"
+  - "git diff --check = PASS"
+  - "disposable clone cleanup status"
+  - "original linked worktree preserved = true"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+forbidden_actions:
+  - "Do not accept epoch 100 as complete merely because local tests passed."
+  - "Do not stage/commit/reset/clean/stash/checkout or repair the linked worktree Git metadata."
+  - "Do not delete or modify the original four local working files during recovery."
+  - "Do not copy any file outside the four exact allowed paths."
+  - "Do not read any real private source/store/body."
+  - "Do not create/open the operational private candidate store."
+  - "Do not activate Task Scheduler/service/startup persistence."
+  - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
+  - "Do not promote to formal PROJECT/GLOBAL memory."
+  - "Do not merge the implementation PR."
+  - "Do not force-push or rewrite history."
+
+completion_signal: "CODEX_CLTM_0021_R100_IMPLEMENTATION_PUBLISHED_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 101 is publication recovery for the already-tested epoch-100 implementation only. Real private execution, unattended scheduling,
+  formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/accounts remain LOCKED.
