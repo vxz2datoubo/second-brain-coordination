@@ -1,0 +1,1 @@
+Control invariant: remote branch `codex/cltm-0021-recurring-candidate-soak-r100` is pre-created only as a publication target. It does not contain the epoch-100 implementation yet and must not be treated as evidence of completion until Codex pushes a new exact commit after the route's stale-base, four-file-copy, hash-match and retest gates.
