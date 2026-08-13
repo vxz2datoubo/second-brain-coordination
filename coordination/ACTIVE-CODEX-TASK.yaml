@@ -1,4 +1,4 @@
-schema_version: "103.2"
+schema_version: "103.3"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
@@ -24,7 +24,7 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "f87de0645b3d76b274e78e8abb42437e412df775"
+canonical_main_at_route_publish: "d3539a6997f97c37bd90dcaed8bc4ef5fa2143b2"
 
 predecessor:
   task_id: "CODEX-CLTM-0021-SCRIPT-RUNNER-PRIVATE-CANDIDATE-CANARY"
@@ -56,9 +56,17 @@ epoch91_exact_sha_api_observation:
   gh_auth_status: "INVALID"
   gh_reauthentication_required_for_this_task: false
   credentials_or_token_request_allowed: false
-  gpt_remote_runtime_delta_audit:
+
+epoch91_temp_bare_observation:
+  gpt_audit_issue_comment: 5275868008
+  diagnostic_attempt_consumed: false
+  remote_main_sha_observed: "d3539a6997f97c37bd90dcaed8bc4ef5fa2143b2"
+  canonical_read_mode: "TEMP_BARE_GIT_EXACT_HEAD"
+  canonical_read: "PASS"
+  stop_reason: "RUNTIME_FRESHNESS_RULE_TOO_CONSERVATIVE"
+  gpt_runtime_delta_audit:
     base: "c625eaf247298051e6e23d530f2203dc182e7177"
-    head: "f87de0645b3d76b274e78e8abb42437e412df775"
+    head: "d3539a6997f97c37bd90dcaed8bc4ef5fa2143b2"
     changed_paths:
       - "coordination/ACTIVE-CODEX-TASK.yaml"
     relevant_cltm_runtime_implementation_changed: false
@@ -89,10 +97,12 @@ canonical_remote_read_policy:
       - "Initialize it as a bare Git repository."
       - >-
         Fetch `refs/heads/main` from `https://github.com/vxz2datoubo/second-brain-coordination.git` into that disposable bare repository
-        with no tags and shallow history. This fetch may write only inside the disposable temp repository.
+        with no tags and depth sufficient to include runtime_freshness_policy.audited_runtime_base (use depth 128 for this route). This
+        fetch may write only inside the disposable temp repository.
       - "Resolve the fetched commit and require it to equal the SHA returned by the immediately preceding ls-remote gate."
       - >-
         Read only `coordination/ACTIVE-CODEX-TASK.yaml` from that fetched exact commit using Git object inspection; do not checkout files.
+      - "Evaluate runtime_freshness_policy inside the disposable repository before cleanup."
       - "Validate the exact control contract, then delete only the task-owned disposable temp repository before any private-root access."
     remote_drift_rule: >-
       If the temp fetch resolves a different main SHA than the preceding ls-remote result, treat this as concurrent remote drift, clean
@@ -105,8 +115,8 @@ canonical_remote_read_policy:
     Require repository vxz2datoubo/second-brain-coordination, task_id CODEX-CLTM-0021-PRIVATE-STORE-WRITABILITY-DIAGNOSTIC,
     route_epoch 91, status READY, execution_allowed true, and all epoch-91 private/formal/live/production/trading locks intact.
   fail_closed: >-
-    If ls-remote, disposable temp Git fetch, exact-head equality, control object read, cleanup or validation fails, stop before reading
-    CLTM_PRIVATE_DATA_ROOT or performing any diagnostic write.
+    If ls-remote, disposable temp Git fetch, exact-head equality, control object read, runtime freshness evaluation, cleanup or validation
+    fails, stop before reading CLTM_PRIVATE_DATA_ROOT or performing any diagnostic write.
   broken_linked_worktree_mutation_forbidden:
     - "Do not git fetch in the linked worktree after its object-write failure."
     - "Do not update origin/main or any local ref in the linked worktree."
@@ -114,11 +124,31 @@ canonical_remote_read_policy:
     - "Do not merge, checkout, reset or modify the linked working tree."
   canonical_authority: "Exact remote main SHA plus ACTIVE-CODEX content read from the exact fetched commit in isolated temp Git storage."
 
+runtime_freshness_policy:
+  audited_runtime_base: "c625eaf247298051e6e23d530f2203dc182e7177"
+  gpt_audited_through: "d3539a6997f97c37bd90dcaed8bc4ef5fa2143b2"
+  relevant_runtime_path_prefixes:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
+  evaluation: >-
+    In the disposable temp Git repository, compare changed path names from audited_runtime_base through the exact current remote head.
+    If no changed path begins with any relevant_runtime_path_prefix, runtime freshness is PASS even when main advanced because of control-
+    plane, QCLAW, WorkBuddy or other unrelated commits. If any relevant runtime prefix changed, stop for GPT review before private-root
+    access. If audited_runtime_base is unavailable in the fetched history or path evaluation is ambiguous, stop fail-closed.
+  self_publication_rule: >-
+    A merge that changes only coordination/ACTIVE-CODEX-TASK.yaml does not invalidate runtime freshness and must not by itself cause a
+    repeated stop. Whole-main SHA drift is not a runtime-freshness signal.
+  public_values:
+    pass: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
+    fail: "RELEVANT_RUNTIME_PATH_CHANGE_DETECTED"
+    unknown: "RELEVANT_RUNTIME_FRESHNESS_NOT_ESTABLISHED"
+
 main_drift_policy:
   rule: >-
     Do not require remote main to equal a historical pinned SHA. The current exact remote main SHA may advance because multiple agent
-    routes share the repository. Proceed only when the exact-head ACTIVE-CODEX remains this route_epoch 91 task with all locks intact.
-    If exact remote control or relevant CLTM runtime state is ambiguous, stop before local diagnostic writes.
+    routes share the repository. Proceed only when exact-head ACTIVE-CODEX remains this route_epoch 91 task with all locks intact and
+    runtime_freshness_policy evaluates PASS. Any relevant ambiguity stops before local diagnostic writes.
 
 pre_task_context_policy:
   no_agent_memory_bootstrap: true
@@ -130,7 +160,7 @@ pre_task_context_policy:
   allowed_context:
     - "exact remote canonical control plane acquired under canonical_remote_read_policy"
     - "public repository code required for MemoryStore import"
-    - "task-owned OS-temp bare Git repository used only for canonical control acquisition"
+    - "task-owned OS-temp bare Git repository used only for canonical control and runtime-freshness acquisition"
     - "CLTM_PRIVATE_DATA_ROOT environment variable value, process-local use only, never print it"
     - "OS temporary runner created by this task"
   forbidden_private_source_access: >-
@@ -146,10 +176,9 @@ public_runtime_bootstrap:
     Prepend only these exact public repository-local source roots to PYTHONPATH for the diagnostic child process.
     Do not persist PYTHONPATH to User, Machine, registry, profile or shell startup files.
   current_local_runtime_basis: >-
-    GPT independently audited `c625eaf247298051e6e23d530f2203dc182e7177..f87de0645b3d76b274e78e8abb42437e412df775`
-    and found only `coordination/ACTIVE-CODEX-TASK.yaml` changed; no CLTM runtime implementation file changed. If remote main advances after
-    this route publication and relevant CLTM implementation freshness cannot be established without mutating the linked worktree, stop
-    for GPT review rather than running stale local runtime code.
+    GPT independently audited c625eaf247298051e6e23d530f2203dc182e7177 through d3539a6997f97c37bd90dcaed8bc4ef5fa2143b2
+    and found only coordination/ACTIVE-CODEX-TASK.yaml changed. Future main drift is governed by runtime_freshness_policy rather than by
+    whole-main SHA equality.
 
 runner_boundary:
   python_c: "FORBIDDEN"
@@ -207,6 +236,7 @@ public_receipt_allow_only:
   - "status"
   - "remote_main_sha_observed"
   - "canonical_read_mode"
+  - "runtime_freshness"
   - "root_binding_present"
   - "root_shape_valid"
   - "r90_store_leaf_state"
@@ -219,6 +249,7 @@ public_receipt_allow_only:
 status_contract:
   success: "PRIVATE_STORE_WRITEABILITY_DIAGNOSTIC_PASS"
   canonical_refresh_blocked: "CANONICAL_CONTROL_READ_ONLY_REFRESH_BLOCKED"
+  runtime_freshness_blocked: "RELEVANT_RUNTIME_FRESHNESS_BLOCKED"
   root_missing_or_invalid: "PRIVATE_ROOT_BINDING_OR_SHAPE_INVALID"
   preexisting_probe: "PRIVATE_STORE_DIAGNOSTIC_PROBE_NOT_FRESH"
   plain_write_failed: "PRIVATE_ROOT_PLAIN_WRITE_PROBE_FAILED"
@@ -252,4 +283,4 @@ hard_boundaries:
 completion_signal: "CODEX_CLTM_0021_PRIVATE_STORE_DIAGNOSTIC_R91_READY_FOR_GPT_REVIEW"
 next_command: "OWNER_START_REQUIRED_THEN_GPT_REVIEW_EPOCH_91_PRIVATE_STORE_DIAGNOSTIC"
 updated_by: "GPT"
-updated_at: "2026-08-13T11:36:00+08:00"
+updated_at: "2026-08-13T12:18:00+08:00"
