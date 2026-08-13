@@ -1,13 +1,13 @@
-schema_version: "104.0"
+schema_version: "104.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-PRIVATE-ROOT-PERMISSION-REPAIR"
+task_id: "CODEX-CLTM-0021-PRIVATE-ROOT-ACL-ATTESTATION"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 92
-mode: "bounded_private_root_permission_repair_and_verify"
-mode_label: "【Codex有界权限修复】CLTM-0021 private root 永久 Modify 权限 + 写入验证"
+route_epoch: 93
+mode: "bounded_read_only_private_root_acl_attestation"
+mode_label: "【Codex只读验收】CLTM-0021 private root 永久 ACL 证据补验"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -22,41 +22,29 @@ private_candidate_source_read_allowed: false
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
-permission_or_acl_change_authorized: true
+permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "acd1f4cfa6ed069377215eeb1f5e82b838f4eeb1"
+canonical_main_at_route_publish: "c77328c27526b2a7415c7e1af8007f06e0ac3962"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-PRIVATE-STORE-WRITABILITY-DIAGNOSTIC"
-  route_epoch: 91
-  disposition: "PRIVATE_ROOT_PLAIN_WRITE_PROBE_FAILED"
-  gpt_audit_issue_comment: 5276428370
-  diagnostic_attempt_consumed: true
-  epoch91_retry_allowed: false
+  task_id: "CODEX-CLTM-0021-PRIVATE-ROOT-PERMISSION-REPAIR"
+  route_epoch: 92
+  disposition: "FUNCTIONAL_WRITEABILITY_VERIFIED_ACL_EVIDENCE_MISSING"
+  functional_receipt_status: "PRIVATE_ROOT_PERMISSION_AND_MEMORYSTORE_VERIFY_PASS"
+  remote_main_sha_observed: "c77328c27526b2a7415c7e1af8007f06e0ac3962"
   root_binding_present: true
   root_shape_valid: true
   r90_store_leaf_state: "NONE"
-  plain_write_probe: "FAILED"
-  sqlite_memorystore_probe: "NOT_RUN"
-  failure_class: "PLAIN_CREATE_OSERROR_REDACTED"
-
-owner_authorization:
-  issue_comment: 5276452109
-  permanent_private_root_access_authorized: true
-  authorized_principal: "current Windows user/SID running Codex only"
-  authorized_scope: "exact CLTM_PRIVATE_DATA_ROOT only"
-  authorized_right: "Modify with container/object inheritance"
-  full_control_authorized: false
-  ownership_takeover_authorized: false
-  everyone_or_users_group_grant_authorized: false
-  drive_wide_grant_authorized: false
-  defender_or_cfa_change_authorized: false
-  registry_or_security_policy_change_authorized: false
+  plain_write_probe: "PASS"
+  sqlite_memorystore_probe: "PASS"
+  cleanup_status: "PASS"
+  acl_evidence_followup: "ACL_EVIDENCE_NOT_AVAILABLE"
+  gpt_audit_issue_comment: 5276501687
 
 fundamental_goal: >-
-  Make the already-bound CLTM private root permanently writable by the current Windows user/SID running Codex using the minimum durable
-  filesystem permission needed for CLTM operation, then verify plain file creation and existing MemoryStore SQLite/WAL initialization.
-  Do not read the bound DailyMemoryCandidate-v2 package and do not perform ingestion, recall or canary execution in epoch 92.
+  Read only the ACL of the exact already-bound CLTM_PRIVATE_DATA_ROOT and attest whether the current Windows user/SID running Codex has a
+  durable inheritable filesystem grant sufficient for Modify, while checking for any applicable blocking DENY. Do not mutate ACLs, do not
+  write any probe file, do not read DailyMemoryCandidate-v2, and do not run ingestion, recall or canary execution.
 
 canonical_remote_read_policy:
   remote_head_gate: >-
@@ -64,11 +52,11 @@ canonical_remote_read_policy:
     refs/heads/main. Do not mutate the broken linked worktree Git database.
   disposable_temp_git_fallback: >-
     Use one task-owned bare Git repository under OS temp, fetch current remote main with depth 128, require fetched head to equal the
-    immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml and the epoch-92 runner template through Git object/index
-    plumbing, and delete only the task-owned temp Git/index/export artifacts before permission mutation or private-root write probes.
+    immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml, evaluate runtime freshness, and delete only the task-owned
+    temp Git artifacts before ACL attestation.
   canonical_read_mode_public_value: "TEMP_BARE_GIT_EXACT_HEAD"
   fail_closed: >-
-    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/runner-hash/compile/cleanup ambiguity stops before permission mutation.
+    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/cleanup ambiguity stops before CLTM_PRIVATE_DATA_ROOT access.
 
 runtime_freshness_policy:
   audited_runtime_base: "c625eaf247298051e6e23d530f2203dc182e7177"
@@ -78,76 +66,41 @@ runtime_freshness_policy:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
   pass_value: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
   rule: >-
-    Compare changed path names from audited_runtime_base to exact current remote head inside disposable temp Git. Control-plane/runner-template
-    changes outside the three runtime roots do not invalidate freshness. Any relevant runtime-path change or ambiguous comparison stops.
+    Compare changed path names from audited_runtime_base to exact current remote head inside disposable temp Git. Control-plane-only changes
+    do not invalidate freshness. Any relevant runtime-path change or ambiguous comparison stops before ACL attestation.
 
-runner_template:
-  path: "coordination/ROUTES/CODEX-CLTM-0021-R92-PRIVATE-STORE-VERIFY-RUNNER.py"
-  expected_blob_sha: "dc0909941e746dda07c6be6028f9bb5ab4342477"
-  materialization: >-
-    Use task-owned GIT_INDEX_FILE plus `git read-tree <EXACT_HEAD>` and `git checkout-index` to export only this file to OS temp without text
-    redirection. Copy/rename only within OS temp to fixed leaf `cltm-private-store-verify-r92.py`. Verify `git hash-object --no-filters`
-    equals expected_blob_sha and compile it before reading CLTM_PRIVATE_DATA_ROOT or changing ACL.
-  python_c: "FORBIDDEN"
-  shell_inline_python_source: "FORBIDDEN"
-
-private_root_precheck:
+private_root_boundary:
   required_env_name: "CLTM_PRIVATE_DATA_ROOT"
   path_output: "FORBIDDEN"
   discovery: "FORBIDDEN"
-  required_shape:
+  allowed_checks:
     - "binding present"
     - "root exists"
     - "root is directory"
     - "root resolves outside public repository/worktree"
-  current_principal: >-
-    Resolve the current Windows process identity and SID locally. Do not print username, SID or private path in the public receipt.
-  acl_inspection: >-
-    Read only the ACL on the exact bound root. Preserve all existing entries and inheritance. If a blocking explicit DENY applicable to the
-    current SID or broad principals would make an additive Allow unsafe/ineffective, stop before mutation as BLOCKING_DENY_REQUIRES_GPT_REVIEW.
+    - "read ACL for exact bound root only"
+  forbidden_reads:
+    - "Do not enumerate child files/directories."
+    - "Do not open/read DailyMemoryCandidate-v2 or any other private content."
 
-permission_repair:
-  mutation_budget: 1
-  persistence: "PERMANENT"
-  exact_scope: "CLTM_PRIVATE_DATA_ROOT only"
-  principal: "current Windows user/SID running Codex only"
-  desired_right: "Modify"
-  inheritance: "ContainerInherit,ObjectInherit"
-  propagation: "None"
-  access_type: "Allow"
-  preferred_method: >-
-    Use Windows ACL APIs / PowerShell Get-Acl + FileSystemAccessRule + Set-Acl to add an Allow rule for the current SID with Modify and
-    container/object inheritance while preserving all existing ACL entries. Do not replace the ACL wholesale and do not remove existing
-    entries. If an equivalent explicit/inherited effective Modify grant is already present, report NOT_REQUIRED and do not mutate.
-  forbidden_broadening:
-    - "No FullControl grant"
-    - "No ownership takeover"
-    - "No Everyone/Users/Administrators broad grant"
-    - "No parent/drive-wide ACL change"
-    - "No inheritance disable/ACL reset"
-    - "No Defender/Controlled Folder Access change"
-    - "No registry/local-security-policy change"
-  post_mutation_acl_verify: >-
-    Re-read the exact root ACL and require a current-SID Allow rule/effective grant sufficient for Modify with child inheritance. If ACL
-    mutation or verification fails, stop; do not retry or broaden permissions automatically.
-
-verification_runner:
-  fixed_os_temp_leaf: "cltm-private-store-verify-r92.py"
-  public_repo_root_env: "CLTM_PUBLIC_REPO_ROOT"
-  pythonpath_roots:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
-  environment_rule: "Set CLTM_PUBLIC_REPO_ROOT and prepend the three PYTHONPATH roots process-locally only; never persist them."
-  r90_leaf_observation: "Existence/type only for cltm-private-canary-r90.sqlite3; never open/delete/overwrite/reuse."
-  plain_probe_leaf: ".cltm-private-write-probe-r92.tmp"
-  sqlite_probe_leaf: "cltm-private-memorystore-probe-r92.sqlite3"
-  one_execution_only: true
-  on_plain_failure: >-
-    Stop after the one verification attempt. Keep the owner-authorized permanent Modify ACL grant; do not retry, broaden ACL, disable CFA,
-    or change security policy. Return fixed redacted failure for GPT review.
-  on_sqlite_failure: >-
-    Stop after the one verification attempt. Keep the permanent Modify ACL grant. Do not retry or change permissions/security policy.
+acl_attestation:
+  mutation_budget: 0
+  principal: "current Windows process user SID"
+  token_group_scope: >-
+    Resolve current process user SID and token group SIDs locally only so applicable DENY entries can be detected. Do not print identities.
+  read_method: >-
+    Use Windows ACL APIs / PowerShell `Get-Acl` only on the exact bound root. Request access rules as SecurityIdentifier identities. Preserve
+    raw ACL text locally; do not print or publish username, SID, private path or raw ACL entries.
+  sufficient_current_sid_allow: >-
+    PASS requires at least one Allow rule whose identity equals the current user SID, whose rights include Modify or FullControl, and whose
+    inheritance includes both ContainerInherit and ObjectInherit. The rule may be explicit or inherited; report only EXPLICIT or INHERITED.
+    Existing FullControl may satisfy attestation, but epoch 93 does not authorize creating or changing such a grant.
+  blocking_deny: >-
+    If any applicable Deny rule for the current user SID or a current token-group SID overlaps write/modify/delete rights needed by Modify,
+    report BLOCKING_DENY_PRESENT and stop with no mutation.
+  outcome_values:
+    acl_attestation: ["PASS", "DIRECT_SID_MODIFY_GRANT_NOT_ATTESTED", "BLOCKING_DENY_PRESENT", "UNKNOWN"]
+    grant_source: ["EXPLICIT", "INHERITED", "NONE", "UNKNOWN"]
 
 public_receipt_allow_only:
   - "schema_version"
@@ -157,44 +110,36 @@ public_receipt_allow_only:
   - "runtime_freshness"
   - "root_binding_present"
   - "root_shape_valid"
-  - "acl_precheck"
-  - "acl_change"
-  - "acl_verify"
-  - "r90_store_leaf_state"
-  - "plain_write_probe"
-  - "sqlite_memorystore_probe"
-  - "cleanup_status"
+  - "acl_attestation"
+  - "grant_source"
+  - "blocking_deny"
+  - "functional_writeability_from_epoch92"
   - "LOCAL_EXECUTION_ISSUES"
   - "lock_statement"
 
 status_contract:
-  success: "PRIVATE_ROOT_PERMISSION_AND_MEMORYSTORE_VERIFY_PASS"
+  success: "PRIVATE_ROOT_DURABLE_ACL_ATTESTATION_PASS"
   canonical_blocked: "CANONICAL_CONTROL_READ_ONLY_REFRESH_BLOCKED"
   runtime_blocked: "RELEVANT_RUNTIME_FRESHNESS_BLOCKED"
   root_invalid: "PRIVATE_ROOT_BINDING_OR_SHAPE_INVALID"
   blocking_deny: "PRIVATE_ROOT_BLOCKING_DENY_REQUIRES_GPT_REVIEW"
-  acl_change_failed: "PRIVATE_ROOT_ACL_CHANGE_FAILED"
-  acl_verify_failed: "PRIVATE_ROOT_ACL_VERIFY_FAILED"
-  probe_not_fresh: "PRIVATE_STORE_VERIFY_PROBE_NOT_FRESH"
-  plain_failed: "PRIVATE_ROOT_PLAIN_WRITE_VERIFY_FAILED"
-  sqlite_failed: "PRIVATE_ROOT_MEMORYSTORE_SQLITE_VERIFY_FAILED"
-  cleanup_failed: "PRIVATE_STORE_VERIFY_CLEANUP_FAILED"
+  direct_grant_not_attested: "PRIVATE_ROOT_DIRECT_SID_MODIFY_GRANT_NOT_ATTESTED"
+  acl_read_failed: "PRIVATE_ROOT_ACL_ATTESTATION_FAILED"
 
 forbidden_actions:
-  - "Do not retry epoch 91."
-  - "Do not read or validate DailyMemoryCandidate-v2 in epoch 92."
+  - "Do not retry epoch 91 or epoch 92 write probes."
+  - "Do not create, modify, delete or rename any file under CLTM_PRIVATE_DATA_ROOT."
+  - "Do not call Set-Acl, icacls, chmod, chown or any ACL/ownership mutation."
+  - "Do not disable or modify Defender/Controlled Folder Access, registry or security policy."
+  - "Do not read or validate DailyMemoryCandidate-v2."
   - "Do not call private_source_binding_status."
   - "Do not count, normalize or ingest candidates."
   - "Do not run recall or canary execution."
   - "Do not open or modify the epoch-90 canary store."
-  - "Do not output private root, username, SID, ACL raw text, secrets or candidate semantics."
+  - "Do not output private root, username, SID, token groups or raw ACL text."
   - "Do not mutate the broken linked-worktree Git metadata/object store."
   - "Do not re-authenticate gh or mutate credentials."
-  - "Do not grant FullControl or broaden ACL beyond current SID + exact private root."
-  - "Do not disable Defender/Controlled Folder Access or change registry/security policy."
-  - "Do not perform a second epoch-92 verification run after the private-root verification probe begins."
 
 lock_statement: >-
-  Formal PROJECT/GLOBAL persistence remains LOCKED. Real private candidate ingestion and raw-private publication remain LOCKED. Live/production,
-  MCP/Gateway, repository visibility, trading/account actions remain LOCKED. Epoch 92 authorizes only the exact-root current-SID permanent Modify
-  permission repair and one post-repair plain/MemoryStore verification.
+  Formal PROJECT/GLOBAL persistence remains LOCKED. Real private candidate ingestion/raw-private publication remain LOCKED. Live/production,
+  MCP/Gateway, repository visibility and trading/account actions remain LOCKED. Epoch 93 is read-only ACL attestation only.
