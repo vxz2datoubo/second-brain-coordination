@@ -1,0 +1,115 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: 273
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-POSTCOMMIT-TEARDOWN-TRUTHFULNESS"
+route_epoch: 103
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "1159d4530bb92a05490acf9d8154d93376d46772"
+implementation_pr: 273
+implementation_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+reviewed_head: "11124ab62b8371219e7f6be6fbc97291429fdbad"
+owner_option_a_authorization_issue_comment: 5277767515
+gpt_r102_review_comment: 5279107124
+ci_run_accepted_for_r102: 31691775482
+
+predecessor:
+  route_epoch: 102
+  disposition: "FOUR_ORIGINAL_BLOCKERS_CLOSED_ADJACENT_POSTCOMMIT_TEARDOWN_GAP_FOUND"
+  branch_sha_verified: true
+  exact_four_paths_verified: true
+  focused_tests: "7/7 PASS"
+  full_phase3_tests: "216/216 PASS"
+  public_safety_scan: "PASS 70 files 0 issues"
+  github_python_311: "SUCCESS"
+  github_python_313: "SUCCESS"
+  interleaving_lock_before_snapshot: "PASS"
+  crash_safe_os_released_lock: "PASS"
+  postcommit_audit_failure_truthfulness: "PASS"
+  real_private_execution: "NOT_RUN"
+  unattended_scheduler: "NOT_ACTIVATED"
+  formal_project_global_promotion: "LOCKED"
+
+root_goal: >-
+  Close the remaining post-commit truthfulness gap before unattended activation. If the W3 transaction and public-safe ledger append have already
+  succeeded but MemoryStore close or process-owned lock release/close fails during teardown, the CLI must not collapse that state into generic
+  REJECTED. It must emit a redacted committed-state teardown-failure outcome that truthfully preserves committed_state and audit_status while
+  reporting teardown failure. No new ingestion authority, scheduler activation or private execution is authorized.
+
+blocking_finding:
+  id: "R103-POSTCOMMIT-TEARDOWN-AMBIGUITY"
+  finding: >-
+    Current run_recurring_candidate_ingestion can commit W3 and append the ledger, then raise a generic RecurringCandidateSoakError if
+    MemoryStore.close or OS lock unlock/descriptor close fails during context teardown. The CLI generic handler would report REJECTED although
+    durable candidate state and audit evidence may already exist.
+  required_fix: >-
+    Distinguish post-commit teardown failure from all pre-commit rejection paths. Preserve only public-safe receipt fields and explicit coarse
+    state such as status=COMMITTED_STATE_TEARDOWN_FAILED, committed_state=COMMITTED, audit_status=PASS when ledger append completed, and
+    teardown_status=FAILED. Do not expose raw exception strings, private paths, candidate semantics, SID/usernames or private source values.
+
+exact_allowed_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/recurring_candidate_soak.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/cli.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_recurring_candidate_soak.py"
+
+required_tests:
+  - "Simulate MemoryStore.close failure after successful import and successful ledger append; require committed-state teardown receipt, not REJECTED."
+  - "Simulate OS lock release/descriptor-close failure after successful import and ledger append; require committed-state teardown receipt, not REJECTED."
+  - "CLI must preserve the explicit teardown-failure receipt with a distinct non-success exit code."
+  - "Existing pre-commit rejection paths must remain REJECTED and must not falsely claim COMMITTED."
+  - "Existing COMMITTED_STATE_AUDIT_FAILED behavior must remain unchanged."
+  - "Run focused recurring soak tests, full relevant Phase-3 suite, public_safety_scan.py and git diff --check."
+  - "GitHub Actions Phase 3 workflow must pass on Python 3.11 and 3.13."
+
+branch_policy:
+  branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+  rule: >-
+    Add one or more normal commits on top of reviewed_head in the existing PR #273 branch. No force-push, amend, rebase, alternate implementation
+    branch or merge. PR #273 must remain limited to the same four authorized paths.
+
+forbidden_actions:
+  - "Do not read real CLTM private source/store/body or private environment values."
+  - "Do not create/open the operational private store or preserved r98 store."
+  - "Do not activate Task Scheduler/service/startup persistence."
+  - "Do not modify public_safety_scan.py or weaken/exclude scanning."
+  - "Do not modify ACLs, ownership, credentials, Defender/CFA, registry or security policy."
+  - "Do not promote PROJECT/GLOBAL memory."
+  - "Do not modify files outside exact_allowed_paths."
+  - "Do not merge PR #273, force-push or rewrite history."
+
+required_closeout:
+  - "new_head_sha"
+  - "new commits since 11124ab62b8371219e7f6be6fbc97291429fdbad"
+  - "exact changed paths"
+  - "focused tests/count"
+  - "full relevant Phase-3 tests/count"
+  - "public safety scan result"
+  - "git diff --check result"
+  - "GitHub Actions run id + Python 3.11/3.13 conclusions"
+  - "MemoryStore.close postcommit truthfulness test"
+  - "OS lock teardown postcommit truthfulness test"
+  - "precommit rejection remains non-committed test"
+  - "existing audit-failure truthfulness regression test"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_CLTM_0021_POSTCOMMIT_TEARDOWN_TRUTHFULNESS_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 103 authorizes only post-commit teardown truthfulness hardening on PR #273. Real private execution, operational-store activation,
+  unattended scheduling, formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/accounts remain
+  LOCKED pending GPT acceptance.
