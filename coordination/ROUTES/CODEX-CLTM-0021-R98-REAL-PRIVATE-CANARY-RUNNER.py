@@ -76,11 +76,11 @@ def main() -> int:
     root = Path(root_raw)
     source = Path(source_raw)
     store_path = root / STORE_LEAF
-    wal_path = Path(str(store_path) + "-wal")
-    shm_path = Path(str(store_path) + "-shm")
 
     try:
         source_resolved, store_resolved, root_resolved = validate_private_data_paths(source, store_path, root)
+        wal_path = Path(str(store_resolved) + "-wal")
+        shm_path = Path(str(store_resolved) + "-shm")
         out["root_shape_valid"] = root_resolved.exists() and root_resolved.is_dir()
         out["source_shape_valid"] = source_resolved.is_file()
         if not out["root_shape_valid"] or not out["source_shape_valid"]:
@@ -106,15 +106,12 @@ def main() -> int:
         out["store_fresh"] = True
 
         store = MemoryStore(store_resolved)
-        connected = False
         try:
             store.connect()
-            connected = True
             result = ingest_daily_memory_candidate_v2(package, store)
             public = result.public_receipt()
         finally:
-            if connected:
-                store.close()
+            store.close()
 
         out["ingestion_status"] = public.get("status", "UNKNOWN")
         for key in (
