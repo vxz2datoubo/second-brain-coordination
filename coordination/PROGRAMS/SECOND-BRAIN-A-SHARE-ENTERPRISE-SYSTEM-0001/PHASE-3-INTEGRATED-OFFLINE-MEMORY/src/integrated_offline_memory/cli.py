@@ -19,7 +19,7 @@ from .private_candidate_ingestion import (
     load_daily_memory_candidate_v2,
     validate_private_data_paths,
 )
-from .recurring_candidate_soak import RecurringCandidateSoakError, run_from_environment
+from .recurring_candidate_soak import CommittedStateAuditFailure, RecurringCandidateSoakError, run_from_environment
 from .replay_bridge import run_p2_replay
 from .tdx_day import TdxDaySourceAdapter
 
@@ -73,6 +73,9 @@ def main(argv: list[str] | None = None) -> int:
         try:
             print(json.dumps(run_from_environment(os.environ), ensure_ascii=True, sort_keys=True))
             return 0
+        except CommittedStateAuditFailure as error:
+            print(json.dumps(error.receipt, ensure_ascii=True, sort_keys=True))
+            return 2
         except (RecurringCandidateSoakError, ValueError, OSError):
             print(json.dumps({"status": "REJECTED"}, ensure_ascii=True, sort_keys=True))
             return 1

@@ -15,6 +15,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Mapping
 
+try:  # Windows scheduler runtime.
+    import msvcrt
+except ImportError:  # Linux CI exercises the same process-owned lock semantics.
+    import fcntl
+
 from .memory_store import MemoryStore
 from .private_candidate_ingestion import (
     ingest_daily_memory_candidate_v2,
@@ -38,6 +43,19 @@ _RECEIPT_FIELDS = frozenset({
 
 class RecurringCandidateSoakError(ValueError):
     """A redacted, scheduler-safe operational failure."""
+
+
+class CommittedStateAuditFailure(RecurringCandidateSoakError):
+    """The W3 transaction committed, but its public-safe audit append failed."""
+
+    def __init__(self, receipt: Mapping[str, Any]) -> None:
+        super().__init__("COMMITTED_STATE_AUDIT_FAILED")
+        self.receipt = {
+            **_safe_receipt(receipt),
+            "status": "COMMITTED_STATE_AUDIT_FAILED",
+            "committed_state": "COMMITTED",
+            "audit_status": "FAILED",
+        }
 
 
 @dataclass(frozen=True)
@@ -78,19 +96,34 @@ def load_stable_daily_v2_snapshot(source: Path, private_root: Path) -> StableSou
 
 @contextmanager
 def _single_writer_lock(private_root: Path) -> Iterator[None]:
+    """Acquire an OS-released lock, safe to recover after process termination."""
+
     lock = private_root / LOCK_LEAF
     try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as error:
-        raise RecurringCandidateSoakError("CONCURRENT_RUN_REJECTED") from error
+        descriptor = os.open(lock, os.O_CREAT | os.O_RDWR, 0o600)
+        if os.name == "nt":
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            os.write(descriptor, b"\0")
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            msvcrt.locking(descriptor, msvcrt.LK_NBLCK, 1)
+        else:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError as error:
-        raise RecurringCandidateSoakError("CONCURRENCY_GUARD_FAILED") from error
+        try:
+            os.close(descriptor)
+        except (OSError, UnboundLocalError):
+            pass
+        raise RecurringCandidateSoakError("CONCURRENT_RUN_REJECTED") from error
     try:
-        os.close(descriptor)
         yield
     finally:
         try:
-            lock.unlink(missing_ok=True)
+            if os.name == "nt":
+                os.lseek(descriptor, 0, os.SEEK_SET)
+                msvcrt.locking(descriptor, msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(descriptor, fcntl.LOCK_UN)
+            os.close(descriptor)
         except OSError as error:
             raise RecurringCandidateSoakError("CONCURRENCY_GUARD_CLEANUP_FAILED") from error
 
@@ -125,8 +158,8 @@ def run_recurring_candidate_ingestion(
         raise RecurringCandidateSoakError("FROZEN_CANARY_STORE_DENIED")
     if store.name != OPERATIONAL_STORE_LEAF:
         raise RecurringCandidateSoakError("OPERATIONAL_STORE_NAME_REQUIRED")
-    snapshot = load_stable_daily_v2_snapshot(source, root)
     with _single_writer_lock(root):
+        snapshot = load_stable_daily_v2_snapshot(source, root)
         memory = MemoryStore(store).connect()
         try:
             try:
@@ -134,7 +167,10 @@ def run_recurring_candidate_ingestion(
             except ValueError as error:
                 raise RecurringCandidateSoakError("INGESTION_REJECTED") from error
             receipt = _safe_receipt(result.public_receipt())
-            _append_ledger(root, receipt)
+            try:
+                _append_ledger(root, receipt)
+            except RecurringCandidateSoakError as error:
+                raise CommittedStateAuditFailure(receipt) from error
             return receipt
         finally:
             memory.close()

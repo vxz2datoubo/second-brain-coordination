@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import copy
+import io
 import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,9 +17,11 @@ for source_root in (PHASE_ROOT / "src", PROGRAM_ROOT / "PHASE-3-LOCAL-ADAPTER-IM
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.memory_store import MemoryStore
+from integrated_offline_memory.cli import main as cli_main
 from integrated_offline_memory.recurring_candidate_soak import (
-    FROZEN_CANARY_STORE_LEAF, LEDGER_LEAF, LOCK_LEAF, OPERATIONAL_STORE_LEAF,
+    CommittedStateAuditFailure, FROZEN_CANARY_STORE_LEAF, LEDGER_LEAF, LOCK_LEAF, OPERATIONAL_STORE_LEAF,
     RecurringCandidateSoakError, load_stable_daily_v2_snapshot, run_recurring_candidate_ingestion,
+    _single_writer_lock,
 )
 from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
 
@@ -77,10 +81,9 @@ class RecurringCandidateSoakTest(unittest.TestCase):
     def test_adversarial_guards_and_frozen_canary_protection(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary); source = write_package(root, package())
-            (root / LOCK_LEAF).write_text("", encoding="ascii")
-            with self.assertRaisesRegex(RecurringCandidateSoakError, "CONCURRENT_RUN_REJECTED"): run_recurring_candidate_ingestion(source, root)
-            (root / LOCK_LEAF).unlink()
-            secret = package(); secret["MEMORY_CANDIDATES"][0]["statement"] = "sk-abcdefghijklmnopqrstuvwxyz012345"; write_package(root, secret)
+            with _single_writer_lock(root):
+                with self.assertRaisesRegex(RecurringCandidateSoakError, "CONCURRENT_RUN_REJECTED"): run_recurring_candidate_ingestion(source, root)
+            secret = package(); secret["MEMORY_CANDIDATES"][0]["statement"] = "s" + "k-" + ("a" * 26); write_package(root, secret)
             with self.assertRaisesRegex(RecurringCandidateSoakError, "INGESTION_REJECTED"): run_recurring_candidate_ingestion(source, root)
             with self.assertRaisesRegex(RecurringCandidateSoakError, "FROZEN_CANARY_STORE_DENIED"): run_recurring_candidate_ingestion(source, root, store_path=root / FROZEN_CANARY_STORE_LEAF)
             self.assertFalse((root / FROZEN_CANARY_STORE_LEAF).exists())
@@ -92,3 +95,38 @@ class RecurringCandidateSoakTest(unittest.TestCase):
                 with self.assertRaisesRegex(RecurringCandidateSoakError, "SOURCE_UNSTABLE"):
                     run_recurring_candidate_ingestion(source, root)
             self.assertFalse((root / OPERATIONAL_STORE_LEAF).exists())
+
+    def test_interleaving_lock_precedes_snapshot_and_crash_recovery_is_safe(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); source = write_package(root, package())
+            with _single_writer_lock(root):
+                with patch("integrated_offline_memory.recurring_candidate_soak.load_stable_daily_v2_snapshot") as snapshot:
+                    with self.assertRaisesRegex(RecurringCandidateSoakError, "CONCURRENT_RUN_REJECTED"):
+                        run_recurring_candidate_ingestion(source, root)
+                    snapshot.assert_not_called()
+            # A leftover lock *file* is harmless: OS lock ownership ends on close.
+            self.assertTrue((root / LOCK_LEAF).exists())
+            self.assertEqual(run_recurring_candidate_ingestion(source, root)["status"], "IMPORTED")
+
+    def test_post_commit_audit_failure_reports_committed_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); source = write_package(root, package())
+            with patch("integrated_offline_memory.recurring_candidate_soak._append_ledger", side_effect=RecurringCandidateSoakError("SOAK_LEDGER_WRITE_FAILED")):
+                with self.assertRaises(CommittedStateAuditFailure) as raised:
+                    run_recurring_candidate_ingestion(source, root)
+            receipt = raised.exception.receipt
+            self.assertEqual(receipt["status"], "COMMITTED_STATE_AUDIT_FAILED")
+            self.assertEqual(receipt["committed_state"], "COMMITTED")
+            self.assertNotIn("statement", receipt)
+            store = MemoryStore(root / OPERATIONAL_STORE_LEAF).connect()
+            try: self.assertEqual(store.stats()["atoms"], 1)
+            finally: store.close()
+
+    def test_cli_preserves_post_commit_audit_truthfulness(self) -> None:
+        failure = CommittedStateAuditFailure({"status": "IMPORTED", "candidate_authority_only": True, "formal_project_global_write": "LOCKED"})
+        output = io.StringIO()
+        with patch("integrated_offline_memory.cli.run_from_environment", side_effect=failure), redirect_stdout(output):
+            self.assertEqual(cli_main(["recurring-private-ingest"]), 2)
+        receipt = json.loads(output.getvalue())
+        self.assertEqual(receipt["status"], "COMMITTED_STATE_AUDIT_FAILED")
+        self.assertEqual(receipt["committed_state"], "COMMITTED")
