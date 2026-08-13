@@ -1,0 +1,135 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION"
+route_epoch: 100
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+
+canonical_main_at_route_publish: "927e29ed2afe880d4c7b57f8039d6cf023df81fa"
+owner_authorization_issue_comment: 5277767515
+predecessor_epoch: 99
+predecessor_state: "WAITING_OWNER_DECISION"
+accepted_milestones:
+  epoch_97_direct_sid_modify: "ACCEPTED"
+  epoch_98_real_private_candidate_canary: "ACCEPTED"
+  real_private_source_to_candidate_to_exact_recall: "PROVEN"
+
+root_goal: >-
+  Implement, test and prepare the durable candidate-only recurring private-ingestion path selected by the owner as Option A. The implementation
+  must repeatedly process only the explicitly bound DailyMemoryCandidate-v2 package into one durable operational W3 MemoryStore while preserving
+  provenance, role, scope, valid-time, correction, sensitivity, atomicity and idempotency semantics. Epoch 100 is implementation/review only:
+  it must not read the real private source, create the operational private store, or activate an unattended scheduler.
+
+architecture:
+  operational_store_leaf: "cltm-private-candidate-runtime.sqlite3"
+  operational_store_authority: "CANDIDATE_ONLY"
+  frozen_canary_store: "cltm-private-canary-r98.sqlite3"
+  frozen_canary_rule: "Never open, reuse, mutate, migrate from, delete or treat the r98 store as operational authority."
+  single_w3_rule: >-
+    Reuse the existing integrated_offline_memory MemoryStore, LearningPacket, private_candidate_ingestion and retrieval path. No second store
+    implementation, query authority, vector authority, graph authority or temporal authority may be created.
+  source_contract: >-
+    Read only the exact CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH under exact CLTM_PRIVATE_DATA_ROOT at future activation time. Never scan or
+    discover alternate files/directories.
+
+required_implementation:
+  - >-
+    Add a testable one-shot recurring-ingestion entry point that opens/reuses the durable operational candidate store, validates one exact bound
+    DailyMemoryCandidate-v2 package through the existing normalizer/admission path, imports atomically, performs scoped exact-recall verification
+    for newly imported candidates, and returns a public-safe receipt.
+  - >-
+    Treat a fully idempotent replay as a successful NO_CHANGE/IDEMPOTENT outcome, not an operational failure. Newly imported packets and
+    duplicate packets must remain distinguishable in aggregate counts.
+  - >-
+    Support validated packages containing zero or multiple eligible user candidates; do not retain the epoch-98 exact-one canary restriction in
+    the recurring runtime. Batch atomicity and correction lifecycle rules from the accepted bridge must remain intact.
+  - >-
+    Add a cross-run concurrency guard so overlapping executions cannot concurrently mutate the operational store. The implementation must have
+    deterministic acquisition failure behavior and must not solve contention by creating alternate store names.
+  - >-
+    Add a source-stability guard so a package being modified during read is not ingested as a torn snapshot. A detected unstable source must
+    fail closed before import and be safe to retry on a later scheduled run.
+  - >-
+    Produce only public-safe receipts containing coarse status, hashes, counts, booleans and timestamps. Raw private text, raw source pointer,
+    local path, username/SID and semantic candidate values must never be logged or printed.
+  - >-
+    Provide a local/private durable receipt ledger or equivalent audit mechanism for soak analysis. It may contain only the same public-safe
+    fields; it must live under the exact private root and must not become a second memory authority.
+  - >-
+    Expose a stable one-shot CLI/runner suitable for later Windows Task Scheduler activation without requiring shell-inline Python or output
+    redirection tricks. The command must derive its private bindings from the existing process/user environment at execution time.
+  - >-
+    Keep formal PROJECT/GLOBAL promotion impossible from this entry point. Candidate authority must be explicit in code and receipts.
+
+required_tests:
+  - "Existing Phase-3 memory/private-ingestion tests remain green."
+  - "New persistent-store first import -> exact scoped recall PASS."
+  - "Immediate replay of identical Daily-v2 -> idempotent/no-change PASS without duplicate atom creation."
+  - "Later package with additional candidate imports only the new material while retaining previous candidates."
+  - "Cross-run USER_CORRECTION resolves the prior candidate and cannot reopen a closed/superseded target."
+  - "Multi-candidate package is atomic: one invariant failure rolls back the whole package."
+  - "Zero eligible candidates is a valid no-op with explicit receipt."
+  - "Malformed/secret/role/scope/time/sensitivity-invalid package fails closed before import."
+  - "Source changes during snapshot/read are detected and no import occurs."
+  - "Concurrent second runner is rejected/serialized deterministically and cannot create an alternate store."
+  - "Receipt/ledger privacy tests prove no raw private body/path/semantic candidate value is emitted."
+  - "Operational runtime never opens or mutates the frozen r98 canary store."
+  - "Formal PROJECT/GLOBAL authority remains locked in all success/failure/idempotent paths."
+
+implementation_scope:
+  allowed_runtime_prefixes:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/"
+  allowed_control_files:
+    - "coordination/ACTIVE-CODEX-TASK.yaml"
+    - "coordination/ROUTES/CODEX-CLTM-0021-R100-RECURRING-CANDIDATE-SOAK-IMPLEMENTATION.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-CLTM-0021-RECURRING-CANDIDATE-SOAK-R100/**"
+  forbidden_scope:
+    - "Do not touch QCLAW, WorkBuddy or unrelated program paths."
+    - "Do not modify trading/account code or data."
+    - "Do not modify repository visibility, credentials or GitHub permissions."
+
+execution_and_review:
+  codex_branch: "codex/cltm-0021-recurring-candidate-soak-r100"
+  automatic_resume_within_task: true
+  second_user_start_command_required: false
+  intermediate_gpt_review_required: true
+  required_public_artifacts:
+    - "implementation diff/commit SHA"
+    - "changed-path list"
+    - "focused test receipt"
+    - "full relevant Phase-3 test receipt"
+    - "privacy/adversarial receipt"
+    - "LOCAL_EXECUTION_ISSUES"
+  real_private_execution: "FORBIDDEN_IN_EPOCH_100"
+  unattended_scheduler_activation: "FORBIDDEN_IN_EPOCH_100"
+  next_stage_after_gpt_acceptance: >-
+    GPT may publish epoch 101 for one bounded initialization of the durable candidate store and then unattended scheduler activation/soak under
+    the owner's already-recorded Option-A authorization. No additional owner decision is required unless the activation design materially
+    broadens cadence, privilege, filesystem/security scope or formal memory authority.
+
+hard_boundaries:
+  - "Formal PROJECT promotion remains LOCKED."
+  - "Formal GLOBAL promotion remains LOCKED."
+  - "No raw private publication."
+  - "No real private source read in epoch 100."
+  - "No operational private store creation in epoch 100."
+  - "No Task Scheduler/schtasks/daemon/service activation in epoch 100."
+  - "No ACL/ownership/Defender/CFA/registry/security-policy changes."
+  - "No r98 store access or migration."
+  - "No live/production MCP/Gateway or E48 integration."
+  - "No executor merge or direct-main write."
+
+completion_signal: "CODEX_CLTM_0021_RECURRING_CANDIDATE_SOAK_IMPLEMENTATION_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+updated_by: "GPT"
+updated_at: "2026-08-13T16:09:00+08:00"
