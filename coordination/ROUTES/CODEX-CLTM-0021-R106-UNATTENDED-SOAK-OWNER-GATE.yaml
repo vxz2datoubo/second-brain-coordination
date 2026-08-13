@@ -1,0 +1,129 @@
+schema_version: "1.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-UNATTENDED-SOAK-OWNER-GATE"
+route_epoch: 106
+status: "WAITING_OWNER_DECISION"
+execution_allowed: false
+merge_authorized: false
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+permission_or_acl_change_authorized: false
+
+canonical_main_at_route_publish: "06d315cb5bb2034e60ca19683aa6340a02c73d20"
+owner_option_a_authorization_issue_comment: 5277767515
+e105_acceptance_issue_comment: 5280060457
+accepted_runtime_merge: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+accepted_operational_init_main: "06d315cb5bb2034e60ca19683aa6340a02c73d20"
+
+predecessor:
+  task_id: "CODEX-CLTM-0021-OPERATIONAL-INIT-INVOCATION-RECOVERY"
+  route_epoch: 105
+  disposition: "ACCEPTED"
+  module_entrypoint_contract_probe: "PASS"
+  runtime_freshness: "PASS"
+  operational_store_fresh_preflight: "PASS"
+  cli_exit_code: 0
+  status: "IMPORTED"
+  validation_status: "PASS"
+  candidate_authority_only: true
+  formal_project_global_write: "LOCKED"
+  candidate_count: 1
+  imported_count: 1
+  duplicate_count: 0
+  non_imported_count: 0
+  recall_count: 1
+  exact_imported_atom_recalled: true
+  operational_store_exists: true
+  soak_ledger_exists: true
+  local_execution_issues: "NONE"
+  unattended_scheduler: "NOT_ACTIVATED"
+  formal_project_global_promotion: "LOCKED"
+
+purpose: >-
+  Freeze execution after successful real operational initialization and present one concrete unattended candidate-soak scheduler profile for
+  explicit owner approval. Option A authorizes the direction of continuous candidate-only ingestion, but persistent automatic execution is a
+  separate operational boundary and remains locked until the owner explicitly approves this exact profile or requests changes.
+
+recommended_scheduler_profile:
+  scheduler_type: "WINDOWS_TASK_SCHEDULER"
+  task_name: "SecondBrain-CLTM-CandidateSoak"
+  principal: "CURRENT_WINDOWS_USER_ONLY"
+  run_level: "LEAST_PRIVILEGE"
+  credential_storage: "NONE"
+  run_when_logged_off: false
+  run_when_logged_on: true
+  trigger: "AT_LOGON_PLUS_REPEAT_EVERY_60_MINUTES"
+  repeat_interval_minutes: 60
+  catch_up_missed_runs: false
+  wake_computer: false
+  multiple_instances_policy: "IGNORE_NEW"
+  execution_time_limit_minutes: 10
+  network_required_each_run: false
+  auto_update_runtime_from_remote: false
+  runtime_pin: "52cae1f3eb30f8bc9f200d465f8d239c031d72fd"
+  runtime_materialization: >-
+    One owner-approved activation route will materialize a dedicated normal Git runtime clone under the current user's local application-data
+    area, pinned exactly to the accepted runtime merge. It will not point the scheduled task at the damaged/stale linked worktree and will not
+    fetch/pull during recurring runs.
+  runtime_integrity_each_run: >-
+    Before private access, the launcher must verify the pinned runtime HEAD and require no tracked modifications under the three accepted runtime
+    source roots. Any mismatch fails closed before reading the private source.
+  environment_binding: >-
+    The launcher must obtain CLTM_PRIVATE_DATA_ROOT and CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH from the current user's persisted Windows
+    environment without printing their values, set them only in the child process, and execute the canonical module entrypoint.
+  exact_runtime_command: "python -m integrated_offline_memory.cli recurring-private-ingest"
+  expected_normal_outcomes:
+    - "IMPORTED / exit 0 when a new eligible candidate is present"
+    - "NO_CHANGE / exit 0 for idempotent replay"
+  committed_failure_outcomes:
+    - "COMMITTED_STATE_AUDIT_FAILED / exit 2"
+    - "COMMITTED_STATE_TEARDOWN_FAILED / exit 2"
+  generic_rejection: "exit 1 / REJECTED"
+  observability: >-
+    Rely on the existing private soak ledger for aggregate/hash-only ingestion history and Windows Task Scheduler LastTaskResult for process status.
+    Do not create an additional raw-private log file and do not redirect raw stderr into a public location.
+
+activation_route_after_owner_approval:
+  phase_1_materialize_runtime: >-
+    Create the dedicated pinned local runtime clone and verify exact accepted commit plus clean relevant runtime paths. No private access required.
+  phase_2_register_disabled_task: >-
+    Register the task DISABLED first with the exact profile above. Do not store a password, request elevation, or use SYSTEM/Administrator.
+  phase_3_registered_task_canary: >-
+    Trigger the registered task exactly once while still administratively bounded, wait for completion, require LastTaskResult success and verify
+    only aggregate operational evidence. Because the operational store is already initialized from epoch 105, an unchanged source should produce
+    NO_CHANGE; a genuinely newer candidate may produce IMPORTED. Both remain candidate-only.
+  phase_4_enable_periodic_trigger: >-
+    Only if the registered-task canary passes, enable the 60-minute schedule. Stop immediately after enabling and return a redacted activation
+    receipt for GPT review.
+
+owner_decision_options:
+  approve_recommended_profile: "APPROVE_E106_PROFILE"
+  request_changes: "REQUEST_E106_CHANGES"
+  keep_manual_only: "KEEP_MANUAL_ONLY"
+
+risk_boundaries:
+  - "No stored Windows password or credential mutation."
+  - "No run-as SYSTEM, Administrator, service account or broad group principal."
+  - "No highest-privileges setting and no UAC bypass."
+  - "No Task Scheduler run while user is logged off under the recommended profile."
+  - "No remote git fetch/pull or auto-update during scheduled ingestion runs."
+  - "No raw private stdout/stderr/path/semantic publication."
+  - "No access to preserved r98 canary store."
+  - "No ACL/ownership/Defender/CFA/registry/security-policy changes."
+  - "No formal PROJECT/GLOBAL promotion."
+  - "No production/live MCP/Gateway, repository visibility, E48, trading or account actions."
+
+codex_instruction: >-
+  STOP. Do not create, register, enable, modify or delete any Windows scheduled task while epoch 106 is active. Do not read the private source or
+  operational store. Wait for explicit owner approval and a new GPT-published executable activation route.
+
+lock_statement: >-
+  Epoch 106 is a non-executable owner-decision gate. The real operational candidate store is initialized and accepted, but unattended scheduling,
+  recurring automatic private reads, formal PROJECT/GLOBAL promotion, security/permission changes, production/live integration and trading/
+  accounts remain LOCKED until explicit owner approval of a concrete scheduler profile and a fresh GPT activation route.
