@@ -1,13 +1,13 @@
-schema_version: "104.5"
+schema_version: "105.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 231
 active_pull_request: null
-task_id: "CODEX-CLTM-0021-DIRECT-SID-MODIFY-GUARANTEE"
+task_id: "CODEX-CLTM-0021-REAL-PRIVATE-CANDIDATE-CANARY"
 module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 97
-mode: "bounded_exact_root_direct_sid_modify_acl_guarantee"
-mode_label: "【Codex有界权限修复】CLTM-0021 exact private root 当前SID永久Modify保证"
+route_epoch: 98
+mode: "bounded_real_private_candidate_ingest_recall_canary"
+mode_label: "【Codex真实私有Canary】CLTM-0021 单候选 ingest -> exact recall"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -15,62 +15,47 @@ second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
+real_private_candidate_ingestion_allowed: true
 real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
+private_candidate_source_read_allowed: true
 repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
-permission_or_acl_change_authorized: true
+permission_or_acl_change_authorized: false
 
-canonical_main_at_route_publish: "41562e56c024da10dbc7557d078b02f8c9c11505"
-
-owner_authorization:
-  issue_comment: 5276452109
-  permanent_private_root_access_authorized: true
-  authorized_principal: "current Windows user/SID running Codex only"
-  authorized_scope: "exact CLTM_PRIVATE_DATA_ROOT only"
-  authorized_right: "Modify with ContainerInherit,ObjectInherit"
-  full_control_authorized: false
-  ownership_takeover_authorized: false
-  broad_group_or_drive_grant_authorized: false
-  defender_or_security_policy_change_authorized: false
+canonical_main_at_route_publish: "002e894555d6b1985ac582eb17bd4645c2108852"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-ROBUST-FILESYSTEM-TYPE-ATTESTATION"
-  route_epoch: 96
-  disposition: "NTFS_PERSISTENT_ACL_SUPPORTED_WITH_FUNCTIONAL_WRITEABILITY_PASS"
-  remote_main_sha_observed: "41562e56c024da10dbc7557d078b02f8c9c11505"
+  task_id: "CODEX-CLTM-0021-DIRECT-SID-MODIFY-GUARANTEE"
+  route_epoch: 97
+  disposition: "PRIVATE_ROOT_DIRECT_SID_MODIFY_GUARANTEE_PASS"
+  remote_main_sha_observed: "002e894555d6b1985ac582eb17bd4645c2108852"
   root_binding_present: true
   root_shape_valid: true
-  root_volume_kind: "LOCAL_DRIVE"
   filesystem_type: "NTFS"
-  persistent_acl_support: "SUPPORTED"
-  root_reparse_point: "NO"
-  metadata_method_success_count: 1
-  metadata_method_failure_count: 2
-  method_agreement: "AGREE"
+  blocking_deny: "NONE"
+  acl_precheck: "DIRECT_SID_MODIFY_MISSING"
+  acl_change: "APPLIED"
+  acl_verify: "PASS"
   functional_writeability_from_epoch92: "PASS"
-  prior_acl_provenance_epoch94: "NO_APPLICABLE_DURABLE_ALLOW_ATTESTED"
 
 fundamental_goal: >-
-  Guarantee, with one narrowly scoped ACL mutation at most, that the current Windows user/SID running Codex has a durable explicit Allow
-  FileSystemAccessRule granting Modify on the exact already-bound CLTM_PRIVATE_DATA_ROOT with ContainerInherit and ObjectInherit and
-  PropagationFlags.None. Preserve all unrelated ACL entries and inheritance. Do not broaden to FullControl, groups, parent paths, the drive,
-  ownership, Defender/CFA, registry or security policy. Do not read private content or execute ingestion/recall/canary in epoch 97.
+  Execute exactly one bounded real/private DailyMemoryCandidate-v2 canary through the already-accepted private candidate ingestion bridge into
+  a fresh isolated private MemoryStore, proving source -> candidate ingest -> exact scoped recall with aggregate/hash-only public evidence.
+  The canary is candidate authority only. Formal PROJECT/GLOBAL promotion remains locked.
 
 canonical_remote_read_policy:
   remote_head_gate: >-
     Run `git ls-remote https://github.com/vxz2datoubo/second-brain-coordination.git refs/heads/main` and parse exactly one 40-hex SHA for
     refs/heads/main. Do not mutate linked-worktree Git metadata/object storage.
-  disposable_temp_git_fallback: >-
+  disposable_temp_git: >-
     Use one task-owned bare Git repository under OS temp, fetch current remote main with depth 128, require fetched head to equal the
-    immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml, evaluate runtime freshness, and delete only task-owned temp
-    Git artifacts before CLTM_PRIVATE_DATA_ROOT access.
+    immediately preceding ls-remote SHA, read exact-head ACTIVE-CODEX-TASK.yaml, evaluate runtime freshness, and extract only the audited
+    epoch-98 runner through Git index plumbing. Delete only task-owned temp Git/index/export artifacts before any private-root/source access.
   canonical_read_mode_public_value: "TEMP_BARE_GIT_EXACT_HEAD"
   fail_closed: >-
-    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/temp-cleanup ambiguity stops before private-root ACL access.
+    Any ls-remote/fetch/head-equality/control-read/runtime-freshness/runner-hash/compile/temp-cleanup ambiguity stops before private access.
 
 runtime_freshness_policy:
   audited_runtime_base: "c625eaf247298051e6e23d530f2203dc182e7177"
@@ -80,59 +65,81 @@ runtime_freshness_policy:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/"
   pass_value: "RELEVANT_RUNTIME_PATHS_UNCHANGED"
   rule: >-
-    Compare changed paths from audited_runtime_base to exact current remote head. Control-plane-only changes do not invalidate freshness.
-    Any relevant runtime-path change or ambiguous comparison stops before private-root ACL access.
+    Compare changed paths from audited_runtime_base to exact current remote head. Control-plane/route-only changes do not invalidate freshness.
+    Any relevant runtime-path change or ambiguous comparison stops before private source/root access.
 
-private_root_boundary:
-  required_env_name: "CLTM_PRIVATE_DATA_ROOT"
-  path_output: "FORBIDDEN"
-  discovery: "FORBIDDEN"
-  required_shape:
-    - "binding present"
-    - "root exists"
-    - "root is directory"
-    - "root resolves outside public repository/worktree"
-    - "exact root is local NTFS and not a reparse point, consistent with accepted epoch-96 receipt"
-  forbidden_reads:
-    - "Do not enumerate child files/directories."
-    - "Do not open/read DailyMemoryCandidate-v2 or any other private content."
+runner_contract:
+  public_template_path: "coordination/ROUTES/CODEX-CLTM-0021-R98-REAL-PRIVATE-CANARY-RUNNER.py"
+  expected_blob_sha: "9caa05e95f1afffba996853ef363ebfb22f8ab4b"
+  os_temp_leaf: "cltm-private-canary-r98.py"
+  materialization: >-
+    Use task-owned temporary GIT_INDEX_FILE plus `git read-tree <EXACT_REMOTE_HEAD>` and `git checkout-index` for only the template path into a
+    task-owned OS-temp export directory, then filesystem-copy/rename to the exact OS-temp runner leaf. Do not use PowerShell/cmd/stdout text
+    redirection, Set-Content, Out-File or shell-inline Python for runner bytes.
+  hash_gate: >-
+    `git hash-object --no-filters <runner>` must equal expected_blob_sha before execution. Mismatch stops before private access.
+  compile_gate: >-
+    Run `python -m py_compile <runner>` before any CLTM_PRIVATE_DATA_ROOT or CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH access. No `python -c`.
+  cleanup_before_private_access: >-
+    Delete only task-owned disposable bare Git repository, temporary index and export directory before private access. Keep only the compiled
+    OS-temp runner needed for the canary.
 
-acl_precheck:
-  principal: "current Windows process user SID"
-  read_scope: "ACL on exact bound root only"
-  blocking_deny_rule: >-
-    Resolve current user SID and current token-group SIDs locally without printing identities. If any applicable Deny ACE overlaps Modify,
-    Write, Delete or DeleteSubdirectoriesAndFiles, stop before mutation as BLOCKING_DENY_PRESENT for GPT review.
-  already_sufficient_rule: >-
-    If an explicit Allow ACE already exists for the exact current user SID with rights containing Modify and inheritance containing both
-    ContainerInherit and ObjectInherit, report NOT_REQUIRED and do not mutate. Existing FullControl for the exact SID may satisfy this
-    precheck, but epoch 97 must not create or broaden to FullControl.
-
-permission_repair:
-  mutation_budget: 1
-  persistence: "PERMANENT"
-  exact_scope: "CLTM_PRIVATE_DATA_ROOT only"
-  principal: "current Windows user SID only"
-  desired_right: "Modify"
-  inheritance: "ContainerInherit,ObjectInherit"
-  propagation: "None"
-  access_type: "Allow"
-  method: >-
-    Use Windows/.NET ACL APIs on the exact bound directory. Read the existing DirectorySecurity, construct a FileSystemAccessRule using the
-    current SecurityIdentifier, FileSystemRights.Modify, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-    PropagationFlags.None, AccessControlType.Allow, then AddAccessRule and persist the updated DirectorySecurity. Do not replace the ACL
-    wholesale, disable inheritance, remove entries, change owner, or alter any other path.
-  one_mutation_only: >-
-    If the ACL persist call fails or returns ambiguous state, do not retry, broaden, reset, take ownership or request elevation automatically.
-
-post_mutation_verify:
+python_runtime:
+  source_roots:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-LOCAL-ADAPTER-IMPLEMENTATION/src"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src"
   rule: >-
-    Re-read only the exact root ACL as SecurityIdentifier identities and require an explicit current-user-SID Allow ACE whose rights contain
-    Modify and whose inheritance contains both ContainerInherit and ObjectInherit. Report only coarse PASS/FAIL and whether the rule was
-    APPLIED or NOT_REQUIRED. Do not print SID, username, path or raw ACL text.
-  operational_context: >-
-    Preserve epoch-92 functional writeability PASS as prior evidence. Do not perform another plain-write or SQLite probe in epoch 97; the
-    purpose of this epoch is the durable direct-SID ACL guarantee only.
+    Set PYTHONPATH process-locally to exactly the three established public source roots. Do not persist PYTHONPATH and do not read Codex memory,
+    home/profile/browser/history to discover paths.
+
+private_binding:
+  required_env_names:
+    - "CLTM_PRIVATE_DATA_ROOT"
+    - "CLTM_PRIVATE_DAILY_MEMORY_CANDIDATE_V2_PATH"
+  path_output: "FORBIDDEN"
+  source_discovery: "FORBIDDEN"
+  source_read: "AUTHORIZED_EXACT_BOUND_DAILY_V2_ONLY"
+  required_shape:
+    - "private root exists and is a directory outside public repository/worktree"
+    - "bound Daily-v2 path is a readable file under the exact private root"
+    - "do not enumerate sibling/parent directories or infer alternate source locations"
+
+canary_scope:
+  authorization: "OWNER_CONTINUATION_AND_PRIOR_R81_REAL_CANARY_AUTHORIZATION"
+  maximum_raw_memory_candidates: 1
+  exact_eligible_user_candidates_required: 1
+  accepted_candidate_roles: ["USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"]
+  source_validation: "DailyMemoryCandidate-v2 must validate through existing bridge; no ad-hoc parser or weakened admission."
+  fresh_store_leaf: "cltm-private-canary-r98.sqlite3"
+  store_sidecars: ["cltm-private-canary-r98.sqlite3-wal", "cltm-private-canary-r98.sqlite3-shm"]
+  freshness_rule: >-
+    Before MemoryStore.connect, database and both sidecar leaves must all be absent. Any preexisting exact leaf stops with no delete, overwrite,
+    reuse or alternate store name.
+  execution_rule: >-
+    After exact-one source preflight and fresh-store verification, call MemoryStore.connect once and ingest_daily_memory_candidate_v2 once. The
+    existing bridge must prove exact candidate atom recall. No second ingestion/canary retry in epoch 98 after store creation begins.
+  success_store_retention: >-
+    Preserve the successful isolated r98 private canary store for GPT audit/future owner-approved promotion work. Do not auto-delete it.
+  failure_artifact_rule: >-
+    If store creation/ingestion begins and later fails, preserve any task-created r98 store artifacts for GPT review and do not retry or delete
+    them automatically.
+
+acceptance_contract:
+  required_success_status: "REAL_PRIVATE_CANDIDATE_CANARY_PASS"
+  ingestion_status: "IMPORTED"
+  validation_status: "PASS"
+  candidate_count_preflight: 1
+  eligible_candidate_count: 1
+  imported_count: 1
+  duplicate_count: 0
+  non_imported_count: 0
+  exact_imported_atom_recalled: true
+  candidate_authority_only: true
+  formal_project_global_write: "LOCKED"
+  recall_count_minimum: 1
+  public_evidence_only: ["hashes", "counts", "booleans", "coarse status", "canonical SHA", "runtime freshness"]
+  forbidden_public_evidence: ["private path", "raw private text", "private semantic candidate value", "username/SID", "secret/credential"]
 
 public_receipt_allow_only:
   - "schema_version"
@@ -141,41 +148,51 @@ public_receipt_allow_only:
   - "canonical_read_mode"
   - "runtime_freshness"
   - "root_binding_present"
+  - "source_binding_present"
   - "root_shape_valid"
-  - "filesystem_type"
-  - "blocking_deny"
-  - "acl_precheck"
-  - "acl_change"
-  - "acl_verify"
-  - "functional_writeability_from_epoch92"
+  - "source_shape_valid"
+  - "candidate_count_preflight"
+  - "eligible_candidate_count"
+  - "store_fresh"
+  - "ingestion_status"
+  - "validation_status"
+  - "candidate_authority_only"
+  - "formal_project_global_write"
+  - "imported_count"
+  - "duplicate_count"
+  - "non_imported_count"
+  - "recall_count"
+  - "exact_imported_atom_recalled"
+  - "source_hash"
+  - "pointer_hash"
+  - "episode_id_hash"
+  - "atom_id_hash"
+  - "scope_hash"
+  - "recorded_at_hash"
   - "LOCAL_EXECUTION_ISSUES"
   - "lock_statement"
 
-status_contract:
-  success: "PRIVATE_ROOT_DIRECT_SID_MODIFY_GUARANTEE_PASS"
-  canonical_blocked: "CANONICAL_CONTROL_READ_ONLY_REFRESH_BLOCKED"
-  runtime_blocked: "RELEVANT_RUNTIME_FRESHNESS_BLOCKED"
-  root_invalid: "PRIVATE_ROOT_BINDING_OR_SHAPE_INVALID"
-  blocking_deny: "PRIVATE_ROOT_BLOCKING_DENY_REQUIRES_GPT_REVIEW"
-  acl_change_failed: "PRIVATE_ROOT_DIRECT_SID_MODIFY_CHANGE_FAILED"
-  acl_verify_failed: "PRIVATE_ROOT_DIRECT_SID_MODIFY_VERIFY_FAILED"
+consumption_semantics:
+  before_store_creation: >-
+    Canonical/runner/binding/source-validation/exact-one/fresh-store preflight failures do not count as a completed private canary, but must stop
+    for GPT review; do not automatically loop/retry in the same Codex response.
+  after_store_creation_begins: >-
+    The epoch-98 real canary attempt is consumed. No second r98 store creation or ingestion attempt is authorized, regardless of success/failure.
 
 forbidden_actions:
-  - "Do not retry epoch 91 or epoch 92 write probes."
-  - "Do not create, modify, delete or rename private content under CLTM_PRIVATE_DATA_ROOT except the exact directory ACL authorized here."
-  - "Do not read DailyMemoryCandidate-v2 or any private file body."
-  - "Do not call private_source_binding_status."
-  - "Do not count, normalize or ingest candidates."
-  - "Do not run recall or canary execution."
-  - "Do not grant FullControl."
-  - "Do not grant Everyone, Users, Administrators or any group."
-  - "Do not alter parent directories, drive ACLs, ownership or inheritance protection."
-  - "Do not disable or modify Defender/Controlled Folder Access, registry or security policy."
-  - "Do not request elevation or administrator relaunch automatically."
-  - "Do not output private root, drive letter/device id, username, SID, token-group identities or raw ACL text/errors."
+  - "Do not retry epoch 90/91/92 canary/write probes."
+  - "Do not use the old r90 canary store or any prior diagnostic store."
+  - "Do not mutate ACLs, ownership, Defender/CFA, registry or security policy."
+  - "Do not enumerate private directories or discover alternate private sources."
+  - "Do not output private path or candidate/episode semantic text."
+  - "Do not admit secrets/credentials or bypass existing sensitivity/provenance/role/scope/time validation."
+  - "Do not promote candidate to formal PROJECT/GLOBAL memory."
+  - "Do not create a second W3 authority/store implementation beyond the isolated canary instance of existing MemoryStore."
   - "Do not mutate linked-worktree Git metadata/object store or credentials."
+  - "Do not merge or push executor changes."
+  - "Do not touch live/production MCP/Gateway, repository visibility, E48, trading or accounts."
 
 lock_statement: >-
-  Formal PROJECT/GLOBAL persistence remains LOCKED. Real private candidate ingestion/raw-private publication remain LOCKED. Live/production,
-  MCP/Gateway, repository visibility and trading/account actions remain LOCKED. Epoch 97 authorizes only the exact-root current-SID permanent
-  Modify ACL guarantee and its read-back verification.
+  Epoch 98 authorizes exactly one real/private candidate-only ingest->exact-recall canary into a fresh isolated private r98 MemoryStore. Formal
+  PROJECT/GLOBAL persistence/promotion remains LOCKED. Raw private publication, production/live integration, repository/permission changes and
+  trading/accounts remain LOCKED.
