@@ -70,12 +70,12 @@ def main() -> None:
     receipt = base_receipt()
     raw_root = os.environ.get("CLTM_PRIVATE_DATA_ROOT")
     raw_public_root = os.environ.get("CLTM_PUBLIC_REPO_ROOT")
+    receipt["root_binding_present"] = bool(raw_root)
     if not raw_root or not raw_public_root:
         receipt["LOCAL_EXECUTION_ISSUES"] = ["PRIVATE_OR_PUBLIC_ROOT_BINDING_MISSING"]
         emit(receipt)
         return
 
-    receipt["root_binding_present"] = True
     try:
         root = Path(raw_root).resolve(strict=True)
         public_root = Path(raw_public_root).resolve(strict=True)
@@ -100,23 +100,32 @@ def main() -> None:
         emit(receipt)
         return
 
-    plain_owned = False
     plain_fd: int | None = None
+    plain_owned = False
     try:
         plain_fd = os.open(plain, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         plain_owned = True
-        os.write(plain_fd, PLAIN_MARKER)
-        os.fsync(plain_fd)
-        os.close(plain_fd)
-        plain_fd = None
     except FileExistsError:
-        if plain_fd is not None:
-            os.close(plain_fd)
         receipt["status"] = "PRIVATE_STORE_DIAGNOSTIC_PROBE_NOT_FRESH"
         receipt["plain_write_probe"] = "NOT_FRESH"
         receipt["LOCAL_EXECUTION_ISSUES"] = ["PLAIN_PROBE_RACE_PREEXISTING"]
         emit(receipt)
         return
+    except OSError:
+        receipt["status"] = "PRIVATE_ROOT_PLAIN_WRITE_PROBE_FAILED"
+        receipt["plain_write_probe"] = "FAILED"
+        receipt["cleanup_status"] = "NOT_REQUIRED"
+        receipt["LOCAL_EXECUTION_ISSUES"] = ["PLAIN_CREATE_OSERROR_REDACTED"]
+        emit(receipt)
+        return
+
+    try:
+        written = os.write(plain_fd, PLAIN_MARKER)
+        if written != len(PLAIN_MARKER):
+            raise OSError("short_write")
+        os.fsync(plain_fd)
+        os.close(plain_fd)
+        plain_fd = None
     except OSError:
         if plain_fd is not None:
             try:
@@ -143,7 +152,6 @@ def main() -> None:
 
     try:
         plain.unlink()
-        plain_owned = False
     except OSError:
         receipt["plain_write_probe"] = "PASS"
         receipt["cleanup_status"] = "CLEANUP_FAILED"
@@ -164,40 +172,44 @@ def main() -> None:
         emit(receipt)
         return
 
-    database_owned = False
     reserve_fd: int | None = None
-    store = None
     try:
         reserve_fd = os.open(database, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        database_owned = True
         os.close(reserve_fd)
         reserve_fd = None
-
-        from integrated_offline_memory.memory_store import MemoryStore
-
-        store = MemoryStore(database).connect()
-        store.close()
-        store = None
     except FileExistsError:
-        if reserve_fd is not None:
-            os.close(reserve_fd)
         receipt["status"] = "PRIVATE_STORE_DIAGNOSTIC_PROBE_NOT_FRESH"
         receipt["sqlite_memorystore_probe"] = "NOT_FRESH"
         receipt["LOCAL_EXECUTION_ISSUES"] = ["SQLITE_PROBE_RACE_PREEXISTING"]
         emit(receipt)
         return
-    except Exception:
+    except OSError:
         if reserve_fd is not None:
             try:
                 os.close(reserve_fd)
             except OSError:
                 pass
+        receipt["status"] = "PRIVATE_ROOT_MEMORYSTORE_SQLITE_PROBE_FAILED"
+        receipt["sqlite_memorystore_probe"] = "FAILED"
+        receipt["cleanup_status"] = "NOT_REQUIRED"
+        receipt["LOCAL_EXECUTION_ISSUES"] = ["SQLITE_RESERVATION_OSERROR_REDACTED"]
+        emit(receipt)
+        return
+
+    store = None
+    try:
+        from integrated_offline_memory.memory_store import MemoryStore
+
+        store = MemoryStore(database).connect()
+        store.close()
+        store = None
+    except Exception:
         if store is not None:
             try:
                 store.close()
             except Exception:
                 pass
-        cleanup_ok = remove_owned_sqlite_artifacts(database) if database_owned else True
+        cleanup_ok = remove_owned_sqlite_artifacts(database)
         receipt["sqlite_memorystore_probe"] = "FAILED"
         receipt["cleanup_status"] = "PASS" if cleanup_ok else "CLEANUP_FAILED"
         receipt["status"] = (
@@ -209,7 +221,7 @@ def main() -> None:
         emit(receipt)
         return
 
-    cleanup_ok = remove_owned_sqlite_artifacts(database) if database_owned else True
+    cleanup_ok = remove_owned_sqlite_artifacts(database)
     receipt["sqlite_memorystore_probe"] = "PASS"
     receipt["cleanup_status"] = "PASS" if cleanup_ok else "CLEANUP_FAILED"
     receipt["status"] = (
