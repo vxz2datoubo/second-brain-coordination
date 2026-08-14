@@ -1,55 +1,66 @@
-schema_version: "85.0"
+schema_version: "86.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "READY"
-execution_allowed: true
-automatic_resume: true
+status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+execution_allowed: false
+automatic_resume: false
 active_issue: 296
-active_pull_request: null
+active_pull_request: 304
 task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
 route_epoch: 60
 mode: "goal"
 mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集"
 planned_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
 completion_signal: "QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
-second_user_start_command_required: false
+second_user_start_command_required: true
 merge_authorized: false
 canonical_route: "coordination/ROUTES/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60.yaml"
 
-superseded_active_task:
-  old_issue: 243
-  old_pull_request: 244
-  old_task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50-R3"
-  final_head: "b9902eeb50299e7a2fb597c244aa9464f9a51ad5"
-  disposition: "E50_R3_ACCEPTED_AS_AUDIT_EVIDENCE_NOT_RUNTIME_DO_NOT_MERGE"
-  state: "CLOSED_UNMERGED"
+review_return:
+  reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
+  gpt_review_id: 4936644607
+  disposition: "QCLAW_R60_CHANGES_REQUIRED_HARNESS_FALSE_GREEN"
+  positive_credit:
+    - "90-case PUBLIC_SAFE_SYNTHETIC corpus structure is useful candidate benchmark material."
+    - "11 required dimensions and P2.1-P2.4 slice mapping are directionally useful."
+    - "No Phase-3 runtime source, real private data, formal promotion, trading, permissions or self-merge was touched."
+    - "UNKNOWN registry correctly preserves several unfrozen P2.2-P2.4 contracts instead of inventing authority."
+  blocking_findings:
+    - id: "Q60-B01"
+      finding: "The REJECT grader checks forbidden IDs only in bundle.atoms and never inspects bundle.relations/conflicts/unknowns/provenance; r60-019 therefore false-greens the known hidden relation endpoint leak."
+    - id: "Q60-B02"
+      finding: "Conversation fixture builder mutates a copied atom for status/visibility/effective_valid_to/superseded_by/freshness but the harness imports the original unmodified candidate packet, so several target states are not actually persisted."
+    - id: "Q60-B03"
+      finding: "Forbidden-ID detection relies on optional id_hint; most generated conversation/knowledge atoms lack it, allowing wrongly admitted targets to leave forbidden empty and still PASS."
 
-supporting_codex_plan:
-  issue: 282
-  pull_request: 295
-  head: "bbe5be6e1d5ff64b2e1cec4b5247024e61a1e87d"
-  merge_commit: "3f125b8fd083984ec85bf9614136713f984d66d1"
-  disposition: "R116_PLAN_ACCEPTED_WITH_FINDINGS_P2_1_ONLY"
+accepted_status:
+  corpus: "RETAIN_AS_CANDIDATE_BENCHMARK"
+  machine_receipt_60_of_60: "REJECTED_INVALID_FALSE_GREEN"
+  discovery_ledger_d8: "REJECTED_CONTRADICTS_CANONICAL_RELATIONS_AROUND_BEHAVIOR"
+  pull_request_304: "KEEP_DRAFT_UNMERGED"
 
-root_goal: >-
-  Act as the independent P2 batch evaluation factory. Build a PUBLIC_SAFE_SYNTHETIC retrieval/admission adversarial benchmark for GPT review of Codex P2,
-  without modifying Codex runtime or defining new canonical semantics.
+future_remediation_candidate:
+  timing: "NOT_AUTHORIZED_TONIGHT"
+  requirements:
+    - "persist exact mutated fixture state through canonical packet/import/correction paths"
+    - "grade complete bundle surface including atoms/relations/conflicts/unknowns/provenance/admission telemetry/trust gate"
+    - "resolve canonical IDs from persisted store/receipts rather than optional id_hint"
+    - "rerun against the then-current merged Codex P2 runtime and publish actual PASS/FAIL/ERROR"
+    - "correct Discovery Ledger D8 and add R118/P2.2 endpoint-safe regressions"
 
-benchmark_policy:
-  baseline_target: "80-120 distinct high-value cases"
-  stretch_target: "up to 200 if quota remains healthy and coverage is genuinely additive"
-  priority: "risk coverage and contract traceability over raw case count"
-  ambiguous_contract: "MARK_UNKNOWN_AND_ESCALATE_TO_GPT"
-  authority: "CANDIDATE_ONLY"
+quota_hold:
+  owner_instruction_date: "2026-08-14"
+  remaining_compute_reported_by_owner: "approximately 50"
+  instruction: "No further QCLAW task or execution tonight; arrange the next QCLAW work tomorrow."
+  preserve_quota: true
 
 hard_boundaries:
-  - "Do not edit PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/** or Codex implementation branches."
-  - "No second memory/retrieval runtime or canonical truth."
-  - "No real private user knowledge/source/store read or upload."
-  - "No formal PROJECT/GLOBAL promotion or automatic skill/trading-rule promotion."
-  - "No scheduler, production MCP/Gateway or QCLAW runtime dependency."
-  - "No security/ACL/repository-visibility changes."
+  - "No QCLAW execution while status is GPT_REVIEW_CHANGES_REQUIRED_PAUSED."
+  - "No Phase-3 runtime edits or Codex branch touch."
+  - "No real private user source/store read or upload."
+  - "No formal PROJECT/GLOBAL or skill/trading-rule promotion."
+  - "No scheduler, production MCP/Gateway or runtime dependency."
   - "No accounts/orders/funds/trading."
   - "No self merge."
 
@@ -62,18 +73,6 @@ resource_policy:
   heavy_matrix_or_fanout: "REMOTE_CI_OR_BOUNDED_BATCH"
   required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations; UNKNOWN if not measurable"
 
-required_closeout:
-  - "exact head_sha, branch and Draft PR"
-  - "benchmark case count and coverage matrix"
-  - "canonical contract traceability"
-  - "negative/failed probes and discovered gaps"
-  - "UNKNOWN items"
-  - "resource/process lifecycle receipt"
-  - "proof no Codex runtime source changed"
-  - "PUBLIC_SAFE_ONLY"
-  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
-  - "FORMAL_PROMOTION_LOCKED"
-
-next_command: "读取任务"
+next_command: "等待GPT明日发布修复路由"
 updated_by: "GPT"
-updated_at: "2026-08-14T18:16:00+08:00"
+updated_at: "2026-08-14T19:13:00+08:00"
