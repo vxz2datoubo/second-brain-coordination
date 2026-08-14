@@ -200,17 +200,45 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
             ["SOURCE_INTERPRETATION"],
         )
 
-    def test_unbound_explicit_open_unknown_is_count_only_and_never_silent(self) -> None:
+    def test_same_scope_unbound_explicit_open_unknown_is_count_only_and_never_silent(self) -> None:
         self.store.import_learning_packet(packet(
             [atom("r120 explicit root")], relations=[], conflicts=[],
-            unknowns=[{"question": "r120 unbound explicit unknown", "scope": "", "related_atom_ids": []}],
+            unknowns=[{"question": "r121 scoped unbound explicit unknown", "scope": PROJECT, "related_atom_ids": []}],
         ))
 
-        projection = self.assembler.assemble_v1(QueryPlan(query_text=""))
+        projection = self.assembler.assemble_v1(QueryPlan(query_text="", scopes=(PROJECT,)))
 
         self.assertEqual(projection.evidence["unknowns"], ())
         self.assertEqual(projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 1})
-        self.assertNotIn("r120 unbound explicit unknown", repr(projection.to_dict()))
+        self.assertNotIn("r121 scoped unbound explicit unknown", repr(projection.to_dict()))
+
+    def test_foreign_scope_unbound_unknown_does_not_change_public_omission_count(self) -> None:
+        self.store.import_learning_packet(packet(
+            [atom("r121 root")], relations=[], conflicts=[],
+            unknowns=[{"question": "r121 foreign unbound unknown", "scope": "foreign-project", "related_atom_ids": []}],
+        ))
+
+        projection = self.assembler.assemble_v1(QueryPlan(query_text="", scopes=(PROJECT,)))
+
+        self.assertEqual(projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 0})
+        self.assertNotIn("foreign", repr(projection.to_dict()))
+
+    def test_user_or_privacy_bound_plan_cannot_count_unbound_unknown(self) -> None:
+        self.store.import_learning_packet(packet(
+            [atom("r121 private root")], relations=[], conflicts=[],
+            unknowns=[{"question": "r121 unbound private unknown", "scope": PROJECT, "related_atom_ids": []}],
+        ))
+
+        for plan in (
+            QueryPlan(query_text="", scopes=(PROJECT,), user_scope=USER),
+            QueryPlan(query_text="", scopes=(PROJECT,), privacy_domains=("synthetic-r121",)),
+        ):
+            with self.subTest(plan=plan):
+                projection = self.assembler.assemble_v1(plan)
+                self.assertEqual(
+                    projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 0},
+                )
+                self.assertNotIn("r121 unbound private unknown", repr(projection.to_dict()))
 
 
 if __name__ == "__main__":
