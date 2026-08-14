@@ -1,0 +1,124 @@
+schema_version: "1.0"
+claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
+issue: 310
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+semantics:
+  purpose: >-
+    Declare the actual current work surface for every Program Lane. A strategic lane may exist without an
+    implementation claim. Proposal-only work is allowed only inside its isolated proposal path. Any upgrade
+    to implementation must declare exact write paths, interfaces, authority claims, resource class and route binding.
+  no_claim_no_durable_runtime_write: true
+  proposal_only_does_not_authorize_runtime_change: true
+  route_binding_required_for_executable_implementation: true
+  latest_per_agent_active_route_is_execution_truth: true
+
+proposal_roots:
+  LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+  LANE-B-A-SHARE-REMEDIATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+
+claims:
+  - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "HEAVY_IMPLEMENTATION"
+    route_binding:
+      source: "coordination/ACTIVE-CODEX-TASK.yaml"
+      task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
+      route_epoch: 120
+      issue: 305
+      pr: 307
+      branch: "codex/gpt-second-brain-context-bundle-v1-r119-p2-2"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/__init__.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/retrieval.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_gpt_context_bundle_v1.py"
+    read_paths:
+      - "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R116-P2/P2-UNIFIED-RETRIEVAL-AND-CONTEXT-BUNDLE-IMPLEMENTATION-PLAN.md"
+    interfaces:
+      - name: "GPTSecondBrainContextBundle/v1"
+        mode: "write"
+        frozen: false
+    read_domains: [W3, W9, W10, W12]
+    write_domains: [W3_RETRIEVAL_RUNTIME]
+    authority_claims: [W3_RETRIEVAL_IMPLEMENTATION_UNDER_CURRENT_ROUTE]
+    stop_conditions:
+      - "route_epoch changes"
+      - "task_id/issue/pr/branch binding changes"
+      - "write surface expands beyond current route"
+
+  - lane_id: "LANE-A-HARNESS-INTEGRATION"
+    claim_state: "HELD_PROPOSAL_ONLY"
+    execution_agent: null
+    resource_class: "LIGHT_RESEARCH_DESIGN"
+    route_binding: null
+    safe_start_after_foundation:
+      mode: "PROPOSAL_ONLY"
+      allowed_write_paths:
+        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+      runtime_write_allowed: false
+      implementation_route_allowed: false
+    write_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+    read_paths:
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/GOVERNANCE"
+      - "coordination/BLUEPRINTS"
+      - "coordination/SKILLS"
+    interfaces: []
+    read_domains: [W1, W3, W7, W8, W9, W10, W12]
+    write_domains: []
+    authority_claims: []
+    implementation_upgrade_requires:
+      - "explicit route binding"
+      - "exact write paths"
+      - "exact interface read/write/frozen state"
+      - "authority claims"
+      - "resource class"
+      - "O0-O4 rescan against current claims"
+      - "commit-time route witness"
+
+  - lane_id: "LANE-B-A-SHARE-REMEDIATION"
+    claim_state: "HELD_PROPOSAL_ONLY"
+    execution_agent: null
+    resource_class: "LIGHT_RESEARCH_DESIGN"
+    route_binding: null
+    safe_start_after_foundation:
+      mode: "PROPOSAL_ONLY"
+      allowed_write_paths:
+        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+      runtime_write_allowed: false
+      implementation_route_allowed: false
+    write_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+    read_paths:
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001"
+      - "coordination/BLUEPRINTS"
+      - "coordination/SKILLS"
+    interfaces: []
+    read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
+    write_domains: []
+    authority_claims: []
+    implementation_upgrade_requires:
+      - "explicit route binding"
+      - "one bounded remediation write surface"
+      - "exact interface read/write/frozen state"
+      - "authority claims"
+      - "resource class"
+      - "O0-O4 rescan against current claims"
+      - "PIT/T+1/NO_TRADE and domain authority gates"
+      - "commit-time route witness"
+
+release_semantics:
+  foundation_can_release_windows_to_proposal_only: true
+  proposal_only_parallelism: >-
+    Lane A and Lane B may both perform bounded research/design and write only to their isolated proposal roots
+    after GPT records SAFE_TO_RELEASE_PROPOSAL_ONLY. This does not consume or override the Codex runtime lease.
+  implementation_release_is_separate: true
+  implementation_release_requires_fresh_claim_rescan: true
