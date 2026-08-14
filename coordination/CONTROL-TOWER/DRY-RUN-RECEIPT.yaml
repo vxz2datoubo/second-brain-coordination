@@ -1,0 +1,128 @@
+schema_version: "1.0"
+receipt_id: "PROGRAM-CONTROL-TOWER-THREE-LANE-DRY-RUN-0001"
+issue: 310
+pull_request: 311
+reviewer: "GPT"
+performed_at: "2026-08-14T21:00:00+08:00"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+evidence_snapshot:
+  remote_main_head: "86d472f9f95ef5fa634a0c99dccb1707474c5f4a"
+  tested_pr_head: "7d35507f29e50b2de927c11cd5792fd920635dc2"
+  github_actions_run: 31804678064
+  python_3_11: "PASS"
+  python_3_13: "PASS"
+  current_codex:
+    task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
+    route_epoch: 120
+    issue: 305
+    pr: 307
+    execution_allowed: true
+  current_qclaw:
+    task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    route_epoch: 60
+    issue: 296
+    pr: 304
+    execution_allowed: false
+  current_workbuddy:
+    task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
+    route_epoch: 15
+    issue: 89
+    pr: 97
+    execution_allowed: false
+
+current_lane_claims:
+  LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
+    state: "ACTIVE_IMPLEMENTATION"
+    agent: "CODEX"
+    resource: "HEAVY_IMPLEMENTATION"
+    route_epoch: 120
+    write_surface: "exact PR #307 P2.2 files"
+  LANE-A-HARNESS-INTEGRATION:
+    state: "HELD_PROPOSAL_ONLY"
+    agent: null
+    resource: "LIGHT_RESEARCH_DESIGN"
+    write_surface: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+  LANE-B-A-SHARE-REMEDIATION:
+    state: "HELD_PROPOSAL_ONLY"
+    agent: null
+    resource: "LIGHT_RESEARCH_DESIGN"
+    write_surface: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+
+pairwise_current_claim_scan:
+  A_vs_B:
+    level: "O1"
+    reason: "READ_READ"
+    disposition: "PROPOSAL_ONLY_PARALLEL_SAFE_WITH_FRESHNESS"
+  A_vs_C:
+    level: "O1"
+    reason: "READ_READ"
+    disposition: "PROPOSAL_ONLY_PARALLEL_SAFE_WITH_FRESHNESS"
+  B_vs_C:
+    level: "O1"
+    reason: "READ_READ"
+    disposition: "PROPOSAL_ONLY_PARALLEL_SAFE_WITH_FRESHNESS"
+
+scenarios:
+  - id: "CT-DR01-CURRENT-STATE"
+    action: "Keep C active; keep A/B held."
+    expected: "One heavy implementation only; no duplicate Agent route or runtime writer."
+    observed: "PASS"
+
+  - id: "CT-DR02-PROPOSAL-ONLY-PARALLEL"
+    action: >-
+      Hypothetically allow both A and B to start only under their current HELD_PROPOSAL_ONLY work envelopes,
+      with no executable Agent route and writes confined to isolated proposal roots.
+    expected: "No O3/O4, no same-Agent double booking, no additional heavy stage, no runtime write."
+    observed: "PASS"
+    verdict: "SAFE_TO_RELEASE_PROPOSAL_ONLY_AFTER_MERGE_AND_EXPLICIT_USER_START"
+
+  - id: "CT-DR03-HARNESS-IMPLEMENTATION-ESCALATION"
+    action: "Attempt to let Lane A edit shared runtime or bind directly to mutable ContextBundle without a new route/claim."
+    expected: "FAIL_CLOSED; proposal-only claim cannot authorize runtime implementation."
+    observed: "PASS_GUARD"
+    future_requirement: "New executable route + exact implementation Work Claim + interface freeze or adapter isolation + O0-O4 rescan."
+
+  - id: "CT-DR04-A-SHARE-IMPLEMENTATION-ESCALATION"
+    action: "Attempt to let Lane B modify W2-W13/runtime before a bounded remediation slice and new route/claim."
+    expected: "FAIL_CLOSED; preserve W2/W7/W12/NO_TRADE boundaries."
+    observed: "PASS_GUARD"
+    future_requirement: "One bounded remediation slice + executable route + exact implementation Work Claim + O0-O4/WIP validation."
+
+  - id: "CT-DR05-STALE-ROUTE"
+    action: "Change task identity/route_epoch after witness creation."
+    expected: "Old route/full authorization witness invalidates."
+    observed: "PASS_REGRESSION"
+
+  - id: "CT-DR06-PEER-CLAIM-DRIFT"
+    action: "Change another lane's Work Claim after current lane authorization witness is created."
+    expected: "Existing authorization invalidates even if current lane's own route did not change."
+    observed: "PASS_REGRESSION"
+
+  - id: "CT-DR07-HUMAN-PROJECTION-DRIFT"
+    action: "Human bulletin generated blocks disagree with canonical routes/claims."
+    expected: "CI fails projection check; bulletin cannot become a second truth."
+    observed: "PASS_CI_CHECK"
+
+  - id: "CT-DR08-NON-PREEMPTION"
+    action: "Audit PR #311 changed paths against Lane C PR #307 runtime write surface."
+    expected: "Control Tower foundation does not edit retrieval.py/__init__.py/P2.2 runtime tests in PR #307."
+    observed: "PASS"
+
+verdict:
+  foundation: "FOUNDATION_READY_FOR_MERGE_GATE"
+  proposal_only_release: "SAFE_TO_RELEASE_PROPOSAL_ONLY_AFTER_MERGE_AND_EXPLICIT_USER_START"
+  implementation_release: "NOT_AUTHORIZED"
+  lane_A: "KEEP_HELD_UNTIL_MERGE_AND_USER_START; THEN_PROPOSAL_ONLY"
+  lane_B: "KEEP_HELD_UNTIL_MERGE_AND_USER_START; THEN_PROPOSAL_ONLY"
+  lane_C: "CONTINUE_CURRENT_CODEX_ROUTE_UNCHANGED"
+
+remaining_nonblocking_future_work:
+  - "General dependency-DAG resolver beyond current explicit gates."
+  - "GitHub Project UI/synchronization when tooling/route is authorized."
+  - "Flow metric recorder for WIP age/blocked age/throughput/cycle time."
+  - "Later real three-lane cycle evidence before promotion from candidate governance to formal stable skill."
+
+merge_gate: >-
+  PR #311 is a high-impact governance change. Keep it Draft/unmerged until the user explicitly approves merge.
+  Passing this dry-run does not itself activate Lane A or Lane B.
