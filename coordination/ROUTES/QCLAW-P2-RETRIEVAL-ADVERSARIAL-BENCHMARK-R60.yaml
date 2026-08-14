@@ -1,0 +1,109 @@
+schema_version: "60.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "QCLAW"
+aliases: ["Q", "QQ"]
+active_issue: 296
+task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+route_epoch: 60
+mode: "goal"
+mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集"
+status: "READY"
+execution_allowed: true
+automatic_resume: true
+second_user_start_command_required: false
+merge_authorized: false
+planned_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
+
+predecessor_e50:
+  pull_request: 244
+  final_head: "b9902eeb50299e7a2fb597c244aa9464f9a51ad5"
+  state: "CLOSED_UNMERGED"
+  disposition: "E50_R3_ACCEPTED_AS_AUDIT_EVIDENCE_NOT_RUNTIME_DO_NOT_MERGE"
+  rule: "E50 is historical audit evidence only and is not an executable ACTIVE task."
+
+accepted_codex_plan:
+  pull_request: 295
+  head: "bbe5be6e1d5ff64b2e1cec4b5247024e61a1e87d"
+  merge_commit: "3f125b8fd083984ec85bf9614136713f984d66d1"
+  disposition: "R116_PLAN_ACCEPTED_WITH_FINDINGS_P2_1_ONLY"
+
+root_goal: >-
+  Build an independent PUBLIC_SAFE_SYNTHETIC adversarial retrieval benchmark for the GPT second-brain P2 program. QCLAW is a batch verifier and candidate
+  evidence producer, not the runtime authority and not the final semantic judge. The benchmark must help GPT test Codex P2.1/P2.2 without modifying Codex runtime.
+
+benchmark_scope:
+  baseline_target_cases: "80-120 high-value deduplicated cases"
+  stretch_target_cases: "up to 200 only if provider quota remains healthy and cases add distinct coverage"
+  required_dimensions:
+    - "user/project/privacy scope isolation and cross-domain denial"
+    - "CURRENT/HISTORICAL valid_at behavior"
+    - "stale/revoked/superseded no-resurrection"
+    - "lexical/relation/temporal/provenance channel admission parity"
+    - "hidden or disallowed relation/conflict endpoints"
+    - "synthetic aggregate no-double-vote"
+    - "support plus strongest counter/alternative coverage"
+    - "material UNKNOWN and no-evidence ABSTAIN"
+    - "provenance/redaction without raw pointer/body"
+    - "deterministic ordering, dedup and budget omission"
+    - "prompt-injection and secret-shaped fixture fail-closed"
+
+case_contract:
+  required_fields:
+    - "case_id"
+    - "canonical_contract_source"
+    - "setup"
+    - "query_and_intent"
+    - "expected_admission_or_abstention"
+    - "forbidden_outcome"
+    - "failure_significance"
+    - "applicable_slice"
+  epistemic_rule: >-
+    Expected outcomes must come from accepted canonical contracts. If the contract is ambiguous, QCLAW must mark UNKNOWN and escalate to GPT; it must not
+    invent a new rule and then grade Codex against its own invention.
+
+allowed_outputs:
+  - "task-owned benchmark YAML/JSON/markdown under a QCLAW R60 program directory"
+  - "coverage matrix, discovery ledger, UNKNOWN registry, WPDCR/AMED/AI_HANDOFF"
+  - "task-owned benchmark harness outside Codex runtime if needed"
+  - "read-only execution of existing public-safe Phase-3 tests and benchmark probes"
+
+forbidden:
+  - "editing PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/**"
+  - "editing Codex implementation branches"
+  - "creating a second memory/retrieval runtime or canonical truth"
+  - "real private user knowledge/source/store read or upload"
+  - "formal PROJECT/GLOBAL promotion"
+  - "scheduler, production MCP/Gateway or runtime dependency on QCLAW"
+  - "security/ACL/repository visibility changes"
+  - "trading/accounts/funds/orders"
+  - "self merge or authority upgrade"
+
+resource_policy:
+  default_profile: "FOREGROUND_PRIORITY"
+  qclaw_task_python_cap: 2
+  combined_project_python_cap: 4
+  combined_cpu_bound_workers_cap: 1
+  nested_parallelism: "FORBIDDEN"
+  heavy_matrix_or_fanout: "REMOTE_CI_OR_BOUNDED_BATCH"
+  quota_policy: >-
+    Prioritize distinct high-risk cases over raw count. Stop expansion before provider quota exhaustion; a strong 80-120 case benchmark is preferred to 200 repetitive cases.
+  required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations; UNKNOWN if not measurable"
+
+required_closeout:
+  - "exact head_sha, branch and Draft PR"
+  - "benchmark case count and dedup method"
+  - "coverage matrix by risk dimension and P2 slice"
+  - "canonical-contract traceability for every expected result"
+  - "negative/failed probes and discovered gaps"
+  - "UNKNOWN items where contracts are not frozen"
+  - "resource usage and process lifecycle receipt"
+  - "proof no Codex runtime source changed"
+  - "PUBLIC_SAFE_ONLY"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  R60 makes QCLAW the P2 batch evaluation factory only. GPT remains semantic/governance authority and Codex remains runtime implementer. QCLAW output is
+  CANDIDATE_ONLY and cannot become retrieval/runtime authority by itself.

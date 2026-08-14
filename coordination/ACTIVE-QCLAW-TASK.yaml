@@ -1,75 +1,57 @@
-schema_version: "84.0"
+schema_version: "85.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "READY_REMEDIATION"
+status: "READY"
 execution_allowed: true
 automatic_resume: true
-active_issue: 243
-active_pull_request: 244
-task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50-R3"
-route_epoch: 59
-mode: "project_plan"
-mode_label: "【QCLAW模式：项目计划模式】E50 R3 权威源直审 + Provider绑定 + 技能/资源维度纠偏"
-planned_branch: "qclaw/learning-system-preproduction-completeness-audit-0032-e50"
-completion_signal: "QCLAW_E50_R3_AUTHORITATIVE_PROVIDER_BOUND_COMPLETENESS_AUDIT_READY_FOR_GPT_REVIEW"
+active_issue: 296
+active_pull_request: null
+task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+route_epoch: 60
+mode: "goal"
+mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集"
+planned_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
+completion_signal: "QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
 second_user_start_command_required: false
 merge_authorized: false
+canonical_route: "coordination/ROUTES/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60.yaml"
 
-review_return:
-  reviewed_head: "eb9ce813c01169e7c925b9715354eec9ee96f716"
-  gpt_review_id: 4922729153
-  disposition: "E50_R2_NOT_ACCEPTED_PROVIDER_AND_AUTHORITY_BINDING_BLOCKED_PENDING_R3"
-  positive_credit:
-    - "R2 correctly changed the readiness recommendation to NOT_READY."
-    - "R1 stand-ins were demoted under _untrusted_test_double."
-    - "R2 located real Phase-3 W3 and E66 repository capabilities."
-    - "D3/D5/D10 expose real capability gaps instead of fabricating green coverage."
-    - "No private/high-value real-source learning or formal persistence occurred."
+superseded_active_task:
+  old_issue: 243
+  old_pull_request: 244
+  old_task_id: "QCLAW-LEARNING-SYSTEM-PREPRODUCTION-COMPLETENESS-AUDIT-0032-E50-R3"
+  final_head: "b9902eeb50299e7a2fb597c244aa9464f9a51ad5"
+  disposition: "E50_R3_ACCEPTED_AS_AUDIT_EVIDENCE_NOT_RUNTIME_DO_NOT_MERGE"
+  state: "CLOSED_UNMERGED"
 
-blocking_findings:
-  - id: "E50-R2-P0-001"
-    area: "PROVIDER_CI"
-    finding: "Dedicated E50 workflow run 31657807565 failed on both Python 3.11 and 3.13. Unit tests failed before matrix generation, so D11 PASS and provider-bound matrix claims are invalid."
-    root_cause: "canonical/access.py get_head_sha() and d12_resource.py shell out to a hard-coded Windows local clone path that does not exist on Linux CI."
-  - id: "E50-R2-P0-002"
-    area: "AUDIT_AUTHORITY"
-    finding: "R2 still imports/runs copied Phase-2/Phase-3/CODEX-E66 under src/qclaw_e50_audit/canonical and records vendor_root in the matrix. A copied snapshot cannot earn authoritative canonical PASS credit."
-  - id: "E50-R2-B03"
-    area: "SKILL_LEARNING"
-    finding: "D7 tests E66 knowledge-promotion approval anti-forgery and labels that Skill Learning PASS. E66 evidence belongs under D9; it does not prove candidate->experimental->formal skill-learning transitions, independent test receipts and rollback."
-  - id: "E50-R2-B04"
-    area: "RESOURCE_MEASUREMENT"
-    finding: "D12 records no_orphan_children PASS even when psutil is unavailable and children cannot be enumerated. UNKNOWN instrumentation cannot be converted to PASS."
-  - id: "E50-R2-B05"
-    area: "CANONICAL_REF_BINDING"
-    finding: "Persisted local matrix is bound to 06474d7386db5a4e416e48d8c81cf0dd327328b3 while canonical main has advanced. R3 must bind exact authoritative source-file/blob hashes and must not infer implementation identity from control-plane assumptions."
+supporting_codex_plan:
+  issue: 282
+  pull_request: 295
+  head: "bbe5be6e1d5ff64b2e1cec4b5247024e61a1e87d"
+  merge_commit: "3f125b8fd083984ec85bf9614136713f984d66d1"
+  disposition: "R116_PLAN_ACCEPTED_WITH_FINDINGS_P2_1_ONLY"
 
-mandatory_r3:
-  - "Keep PR #244 and the same branch; additive-only; no rebase/force/amend/merge."
-  - "Remove canonical PASS dependence on src/qclaw_e50_audit/canonical/**. Any copies may remain only as NON_AUTHORITY_FROZEN_FIXTURE and cannot earn D1-D12 PASS credit."
-  - "Audit authoritative repository modules/paths directly from the checked-out tree. Bind exact audited commit/ref plus exact source file/blob SHA for each canonical dependency group."
-  - "No hard-coded local Windows clone paths in E50 runtime, D11 or D12. CI must operate from checked-out repository state and provider metadata only."
-  - "D11 must execute the actual E50 matrix + recommendation under Python 3.11 and 3.13 on exact R3 head, emit canonicalized artifacts, compare cross-version hashes/content, and finish both jobs green."
-  - "D7 must audit a real canonical skill-learning/promotion subsystem. If absent, report PARTIAL/BLOCKED/NOT_IMPLEMENTED. E66 knowledge promotion cannot substitute for D7 and should remain D9 evidence."
-  - "D12 must measure task-owned process lifecycle. If the provider cannot enumerate descendants/orphans, the result is UNKNOWN/PARTIAL; never synthesize PASS."
-  - "Recalculate all D1-D12 verdicts after direct-path re-audit. Risk-critical recommendation remains NOT_READY while any critical authority/provenance/privacy/stale-recall/skill-promotion gap is unresolved."
-  - "Preserve valid D3/D5/D10 gap findings unless authoritative direct-path evidence changes them."
-  - "Coverage and human handoff must match machine evidence exactly."
-  - "No private/high-value real-source pilot, no authoritative PROJECT/GLOBAL persistence, no automatic skill/trading-rule promotion, no trading/accounts/funds actions."
+root_goal: >-
+  Act as the independent P2 batch evaluation factory. Build a PUBLIC_SAFE_SYNTHETIC retrieval/admission adversarial benchmark for GPT review of Codex P2,
+  without modifying Codex runtime or defining new canonical semantics.
 
-accepted_foundation:
-  e48_issue: 216
-  e48_pr: 221
-  accepted_head: "e018fc1a85fccb85eccb7274ba672bbb54dc66db"
-  rule: "E48 remains foundation credit only. Do not turn copied E48/Phase3/E66 source into a second authority."
+benchmark_policy:
+  baseline_target: "80-120 distinct high-value cases"
+  stretch_target: "up to 200 if quota remains healthy and coverage is genuinely additive"
+  priority: "risk coverage and contract traceability over raw case count"
+  ambiguous_contract: "MARK_UNKNOWN_AND_ESCALATE_TO_GPT"
+  authority: "CANDIDATE_ONLY"
 
-formal_persistence:
-  authoritative_global_or_project_write_allowed: false
-  candidate_real_private_learning_allowed: false
-  bounded_real_source_pilot_allowed: false
-  automatic_skill_promotion_allowed: false
-  trading_rule_promotion_allowed: false
+hard_boundaries:
+  - "Do not edit PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/** or Codex implementation branches."
+  - "No second memory/retrieval runtime or canonical truth."
+  - "No real private user knowledge/source/store read or upload."
+  - "No formal PROJECT/GLOBAL promotion or automatic skill/trading-rule promotion."
+  - "No scheduler, production MCP/Gateway or QCLAW runtime dependency."
+  - "No security/ACL/repository-visibility changes."
+  - "No accounts/orders/funds/trading."
+  - "No self merge."
 
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
@@ -77,16 +59,21 @@ resource_policy:
   combined_project_python_cap: 4
   combined_cpu_bound_workers_cap: 1
   nested_parallelism: "FORBIDDEN"
-  heavy_matrix_or_fanout: "REMOTE_CI"
+  heavy_matrix_or_fanout: "REMOTE_CI_OR_BOUNDED_BATCH"
   required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations; UNKNOWN if not measurable"
 
-hard_boundaries:
-  - "No private/high-value user source pilot in E50 R3."
-  - "No authoritative PROJECT/GLOBAL write, formal skill promotion or trading-rule promotion."
-  - "No merge/direct-main implementation/rebase/force/amend/history rewrite."
-  - "Do not touch Codex or E48 worktrees/branches."
-  - "No secrets/credentials/accounts/orders/funds/trading."
+required_closeout:
+  - "exact head_sha, branch and Draft PR"
+  - "benchmark case count and coverage matrix"
+  - "canonical contract traceability"
+  - "negative/failed probes and discovered gaps"
+  - "UNKNOWN items"
+  - "resource/process lifecycle receipt"
+  - "proof no Codex runtime source changed"
+  - "PUBLIC_SAFE_ONLY"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "FORMAL_PROMOTION_LOCKED"
 
 next_command: "读取任务"
 updated_by: "GPT"
-updated_at: "2026-08-13T09:50:00+08:00"
+updated_at: "2026-08-14T18:16:00+08:00"

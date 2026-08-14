@@ -1,0 +1,90 @@
+schema_version: "117.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 297
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-1-UNIFIED-CANDIDATE-ADMISSION"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 117
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.1统一候选准入边界"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+intermediate_gpt_review_required: true
+second_user_start_command_required: true
+
+accepted_r116_plan:
+  implementation_pr: 295
+  accepted_head: "bbe5be6e1d5ff64b2e1cec4b5247024e61a1e87d"
+  accepted_merge_commit: "3f125b8fd083984ec85bf9614136713f984d66d1"
+  gpt_review_id: 4936213902
+  disposition: "R116_PLAN_ACCEPTED_WITH_FINDINGS_P2_1_ONLY"
+  verified_ci_run: 31785226000
+  verified_phase3_tests: "263/263 PASS"
+  verified_public_safety: "75 files / 0 issues"
+
+root_goal: >-
+  Implement only P2.1 on the existing W3 retrieval authority: establish one internal candidate-set and shared pre-ranking admission/report boundary in
+  ContextAssembler while preserving existing ContextBundle behavior, ranking, budgets, lifecycle semantics and P1 identity/provenance/privacy contracts.
+
+required_runtime_changes:
+  - "Introduce one shared candidate admission decision path with stable public-safe reason codes; legacy _allowed may delegate but must not become a second policy implementation."
+  - "Lexical candidates and relation-expansion candidates must enter through the same admission decision path before ranking."
+  - "Expose an internal/public-safe admission report containing admitted count and rejected counts by reason only; rejected atom IDs, raw pointers, bodies and private provenance are forbidden."
+  - "Preserve deterministic ordering, existing score behavior, existing ContextBundle compatibility and trust-gate semantics in this slice."
+  - "Add adversarial tests for malformed/missing user-project-privacy-time bindings, stale/revoked/superseded CURRENT rejection, HISTORICAL valid_at behavior, hidden/disallowed relation endpoints, provenance requirements and synthetic aggregate no-double-vote."
+  - "Prove Memory Palace adapter behavior remains compatible; do not migrate its temporal/provenance channels in P2.1."
+
+runtime_scope:
+  allowed:
+    - "PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/retrieval.py"
+    - "focused Phase-3 tests required for P2.1"
+    - "R117 handoff/receipt/audit artifacts"
+  forbidden:
+    - "memory_store authority redesign or second store"
+    - "learning_packet / knowledge identity / provenance semantics changes unless GPT re-routes"
+    - "semantic provider transport or runtime"
+    - "structural analogy runtime"
+    - "new ranking weights, anti-anchor selection or full GPTSecondBrainContextBundle/v1 projection"
+    - "Memory Palace P2.3 migration"
+    - "real private source/store/ingestion/canary"
+    - "formal PROJECT/GLOBAL promotion"
+    - "scheduler or production MCP/Gateway"
+    - "QCLAW runtime dependency"
+    - "security/ACL/repository visibility changes"
+    - "trading/accounts/funds/orders"
+
+unknowns_retained:
+  - "semantic provider transport contract"
+  - "structural analogy concrete representation"
+
+validation_required:
+  - "focused P2.1 adversarial tests PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11/3.13 exact-final-head CI SUCCESS"
+  - "public safety PASS"
+  - "YAML/JSON/schema validation PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "no rejected IDs/raw source data in admission report"
+  - "no behavior drift in existing Memory Palace and P1 tests"
+
+required_closeout:
+  - "exact head_sha, branch and Draft PR"
+  - "exact changed paths"
+  - "admission decision/reason mapping"
+  - "lexical/relation parity proof"
+  - "admission-report redaction proof"
+  - "CURRENT/HISTORICAL and no-resurrection proof"
+  - "P1 privacy/provenance/no-double-vote regression proof"
+  - "focused/full test counts and exact-head CI jobs"
+  - "public safety/schema/diff/clean tree"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "P2_2_P2_3_P2_4_P3_P4_P5_NOT_PREEMPTED"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_1_R117_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 117 authorizes only P2.1 unified candidate admission/report runtime changes. Semantic provider, structural analogy, new ranking/anti-anchor, full
+  ContextBundle v1 projection, P2.3 migration, real-private execution, production bridge, scheduler, formal promotion, QCLAW runtime dependency and trading remain locked.
