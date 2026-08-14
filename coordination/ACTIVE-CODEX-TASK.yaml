@@ -1,13 +1,12 @@
-schema_version: "115.0"
+schema_version: "116.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 282
-active_pull_request: 290
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-SOURCE-PASSAGE-PROVENANCE-BINDING"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 115
-mode: "goal"
-mode_label: "【Codex模式：目标模式】P1来源正文与提取片段Provenance绑定收口"
+route_epoch: 116
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】P2统一召回与ContextBundle实施规划"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -25,62 +24,40 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 trading_or_account_action_allowed: false
-runtime_code_change_allowed: true
-runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
+runtime_code_change_allowed: false
+runtime_code_scope: "P2_PLAN_AND_PUBLIC_SAFE_AUDIT_ONLY"
 
-canonical_main_at_route_prepare: "2655312c88d53da4e0112175180119ab1764dcd7"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R115-P1-SOURCE-PASSAGE-PROVENANCE-BINDING.yaml"
-implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
-implementation_pr: 290
-reviewed_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
-gpt_review_id: 4934900276
-issue_review_comment: 5290655804
+canonical_main_at_route_prepare: "8ec21e26a7b0daa59539f87cb002acdd412f7fe0"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R116-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN.yaml"
+canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001-AMED.yaml"
+implementation_branch: "TO_BE_CREATED_BY_CODEX"
+implementation_pr: "TO_BE_CREATED_BY_CODEX"
 
-predecessor_checkpoint:
-  route_epoch: 114
-  exact_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
-  verified_exact_head_ci_run: 31772705543
-  verified_ci_jobs:
-    python_3_11: 94681723696
-    python_3_13: 94681723656
-  verified_focused_tests: "14/14 PASS"
-  verified_phase3_tests: "260/260 PASS"
+accepted_p1:
+  implementation_pr: 290
+  accepted_head: "382d3ea2534ac5093dfeab9d19ee7f7415a6528b"
+  accepted_merge_commit: "8ec21e26a7b0daa59539f87cb002acdd412f7fe0"
+  gpt_review_id: 4935399784
+  issue_checkpoint: 5291244641
+  disposition: "P1_ACCEPTED_R115_EXACT_HEAD"
+  verified_ci_run: 31780371407
+  verified_focused_tests: "17/17 PASS"
+  verified_phase3_tests: "263/263 PASS"
   verified_public_safety: "75 files / 0 issues"
-  closed_blockers:
-    - "P1-NEW-MUST-NOT-IGNORE-RETRIEVED-CANDIDATES"
-    - "P1-POSTWRITE-PROOF-MUST-BE-PER-ATOM-AND-TRUTHFULLY-NAMED"
-    - "P1-SOURCE-TRUST-MUST-BE-PROVENANCE-LEVEL"
-  disposition: "R114_THREE_BLOCKERS_CLOSED_CHANGES_REQUIRED_SOURCE_PASSAGE_PROVENANCE_BINDING"
 
 root_goal: >-
-  Continue Draft PR #290 in P1 only and close the remaining provenance-integrity gap: caller-supplied extraction text must be provably derived from the
-  KnowledgeEpisode source body before it may inherit that episode manifest/source hash/pointer lineage. Preserve a privacy-minimized extraction binding
-  that survives packet verification, duplicate provenance union, restart and index rebuild.
-
-required_blocker:
-  - "P1-PASSAGE-MUST-BE-CONTENT-BOUND-TO-SOURCE-EPISODE"
-
-required_acceptance_cases:
-  - "passage omitted => source body is used and extraction binding is valid"
-  - "normalized exact-body passage => accepted"
-  - "normalized contiguous subspan/subpassage => accepted with content-bound locator/hash"
-  - "unrelated/fabricated passage => rejected before packet/store/index mutation"
-  - "binding survives packet verification, duplicate union, restart and index rebuild"
-  - "binding metadata remains privacy-minimized and does not publish raw source body"
-  - "all R112-R114 adversarial regressions remain PASS"
+  Produce a repository-grounded P2 implementation plan for unified retrieval and GPTSecondBrainContextBundle across memory, knowledge, plan/event/constraint,
+  stance, conflict and unknown structures on the existing W3 authority. Freeze hybrid retrieval, structural analogy, anti-anchor, CURRENT/HISTORICAL,
+  ranking/budget/dedup, provenance/freshness explanation, abstention and adversarial-test contracts before any P2 runtime change.
 
 execution_contract:
-  same_draft_pr: 290
-  additive_commits_only: true
-  p1_runtime_changes: "ALLOWED_WITHIN_ROUTE"
-  source_binding_minimum: "normalized full-body equality or normalized contiguous-span derivation, or stricter equivalent"
-  p2_graph_unification: "FORBIDDEN"
-  p3_proactive_or_semantic_recall: "FORBIDDEN"
+  planning_docs_and_public_safe_audit_only: true
+  second_store: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  p3_proactive_or_production_semantic_recall: "FORBIDDEN"
   p4_feedback_skill_lifecycle: "FORBIDDEN"
   p5_production_bridge: "FORBIDDEN"
-  private_data: "FORBIDDEN"
-  real_private_store: "FORBIDDEN"
-  real_ingestion: "FORBIDDEN"
   scheduler: "FORBIDDEN"
   production_mcp_gateway: "FORBIDDEN"
   formal_project_global_promotion: "LOCKED"
@@ -89,33 +66,23 @@ execution_contract:
   trading_accounts: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
-validation_required:
-  - "new R115 extraction/provenance adversarial tests PASS"
-  - "all R112-R114 focused/adversarial regressions PASS"
-  - "full relevant Phase-3 regression PASS"
-  - "Python 3.11/3.13 exact-final-head CI SUCCESS"
-  - "public safety PASS"
-  - "YAML/JSON/schema validation PASS"
-  - "git diff --check PASS"
-  - "working tree clean"
-
 required_closeout:
-  - "new exact head"
-  - "exact changed paths"
-  - "source-body-to-passage derivation rule"
-  - "extraction binding schema/version and privacy surface"
-  - "unrelated-passage pre-write rejection proof"
-  - "exact-body and valid-subspan acceptance proof"
-  - "packet verification / duplicate union / restart / index rebuild preservation proof"
-  - "focused/full regression counts"
-  - "exact-head CI jobs"
-  - "public safety / schema / diff check / clean tree"
+  - "exact head_sha and Draft PR"
+  - "real current-state architecture map"
+  - "P2 gap analysis"
+  - "GPTSecondBrainContextBundle v1 proposed schema"
+  - "hybrid retrieval / admission / anti-anchor / analogy / ranking / budget contracts"
+  - "CURRENT/HISTORICAL/freshness/lifecycle matrix"
+  - "privacy/provenance/no-double-vote contract"
+  - "adversarial test matrix"
+  - "reviewable implementation slice sequence and rollback points"
+  - "RUNTIME_CODE_NOT_CHANGED"
   - "REAL_PRIVATE_EXECUTION_NOT_RUN"
-  - "P2_P3_P4_P5_NOT_PREEMPTED"
+  - "P3_P4_P5_NOT_PREEMPTED"
   - "FORMAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R115_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_R116_PLAN_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 115 is the final narrow P1 provenance closure. Real private ingestion, production bridge, scheduler, formal/global promotion, security/permission
-  changes, QCLAW runtime dependency, P2-P5 and trading/account actions remain locked. GPT retains review and merge authority.
+  Epoch 116 authorizes only repository-grounded P2 implementation planning. Runtime code changes require a later GPT-approved canonical epoch. Real private
+  ingestion, production bridge, scheduler, formal/global promotion, security/permission changes, QCLAW runtime dependency, P3-P5 and trading/account actions remain locked.
