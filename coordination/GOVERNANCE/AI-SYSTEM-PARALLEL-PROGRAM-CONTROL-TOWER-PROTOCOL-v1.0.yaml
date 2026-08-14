@@ -1,10 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 protocol_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-0001"
 control_tower_issue: 310
-status: "ACTIVE_CANDIDATE_GOVERNANCE"
+status: "ACTIVE_CANDIDATE_GOVERNANCE_WITH_EXECUTABLE_FOUNDATION_IN_REVIEW"
 owner: "USER"
 architecture_owner: "GPT"
 implementation_owner_candidate: "CODEX"
+foundation_implementation_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 purpose: >-
@@ -16,16 +17,21 @@ core_model:
   desired_state: "What program lanes, dependencies, ownership boundaries, concurrency budgets and gates should hold."
   observed_state: "What current remote-main active routes, issues, PRs, CI/evidence and canonical project indices actually show."
   reconciliation: "Compare desired with observed and emit drift/collision findings; do not silently rewrite high-impact authority."
+  work_claim: "Machine-readable declaration of a lane's current read/write/interface/authority/resource surface."
+  authorization_witness: "Fingerprint binding route + work claim + hold/WIP/overlap/release policy for commit-time freshness."
   projection: "GitHub Project/Markdown dashboard is a view over canonical state, never the canonical execution state itself."
 
 canonical_sources:
   program_lane_relationships: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  lane_work_claims: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  release_gate: "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
   codex_execution: "coordination/ACTIVE-CODEX-TASK.yaml"
   qclaw_execution: "coordination/ACTIVE-QCLAW-TASK.yaml"
   workbuddy_execution: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
   second_brain_program: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
   ai_film_project: "vxz2datoubo/eustia-ai-film/PROJECT_INDEX.yaml"
   task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  executable_foundation: "coordination/CONTROL-TOWER/"
   enterprise_execution: "AMED"
 
 anti_duplication:
@@ -34,6 +40,8 @@ anti_duplication:
   - "Do not treat board/project fields as canonical when their source route disagrees."
   - "Do not duplicate W2-W13 system-of-record objects."
   - "Do not copy project-specific canonical facts into the program registry when a reference is sufficient."
+  - "A Work Claim declares work surface; it is not a second execution route."
+  - "An authorization witness proves freshness; it does not create authority that the route/claim/policy did not already grant."
 
 program_lane_definition:
   required_fields:
@@ -92,7 +100,47 @@ source_freshness_rules:
   - "route_epoch, task_id, issue, PR, branch, execution_allowed and completion_signal are fencing evidence and must match the current route."
   - "An aggregate view that disagrees with a current per-agent route is STALE_VIEW, not a competing truth."
   - "A historical plan may remain useful evidence but must not be labeled current execution state."
-  - "For durable writes, re-check authority and relevant dependency state at commit time, not only at task start."
+  - "For durable writes, re-check route, Work Claim, relevant lane state, release/hold policy, WIP/resource policy and overlap policy at commit time."
+  - "A stale authorization witness fails closed even if the task was valid when it started."
+
+work_claim_contract:
+  no_claim_no_durable_runtime_write: true
+  states:
+    ACTIVE_IMPLEMENTATION:
+      requires:
+        - "current execution_agent"
+        - "exact per-agent route binding"
+        - "explicit write_paths"
+        - "interfaces with read/write/frozen state where applicable"
+        - "authority_claims"
+        - "resource_class"
+      durable_runtime_write: "ONLY_WITH_CURRENT_ROUTE_AND_FRESH_AUTHORIZATION_WITNESS"
+    HELD_PROPOSAL_ONLY:
+      requires:
+        - "no execution_agent reservation"
+        - "no route binding"
+        - "no domain write authority"
+        - "write_paths confined to isolated proposal root"
+        - "runtime_write_allowed=false"
+      durable_runtime_write: false
+      isolated_proposal_write: true
+  implementation_upgrade: >-
+    Moving from proposal-only to implementation is a new authorization event. Declare the bounded implementation
+    write surface and interfaces, acquire an executable Agent route, rescan O0-O4, then create a fresh authorization witness.
+
+release_levels:
+  NOT_READY:
+    meaning: "Foundation or current three-lane safety gates are incomplete; held lanes remain stopped."
+  SAFE_TO_RELEASE_PROPOSAL_ONLY:
+    meaning: >-
+      Held lanes may perform bounded research/design and persist only inside their isolated proposal roots.
+      No shared runtime, canonical domain object or implementation Agent route is authorized.
+  SAFE_TO_RELEASE_IMPLEMENTATION:
+    meaning: >-
+      One specifically routed lane may implement only its exact current Work Claim after O0-O4/WIP/dependency checks.
+      This is never implied by proposal-only release.
+  automatic_release: false
+  passing_ci_is_not_lane_release: true
 
 reconciliation_checks:
   - id: CT-R01-STALE-VIEW
@@ -123,8 +171,11 @@ reconciliation_checks:
     question: "Could a long-running task combine old saved state with changed prompt/model/index/policy/tool semantics without an explicit compatibility decision?"
     on_fail: "SEMANTIC_VERSION_SKEW"
   - id: CT-R10-COMMIT-AUTHORITY
-    question: "Is the authority witness still fresh and bound to the same durable effect immediately before commit?"
+    question: "Is the full authorization witness still fresh and bound to the same route, Work Claim and governance state immediately before commit?"
     on_fail: "COMMIT_AUTHORITY_STALE / FAIL_CLOSED"
+  - id: CT-R11-WORK-CLAIM
+    question: "Does every current Program Lane have exactly one valid work claim and is proposal-only writing confined to its isolated root?"
+    on_fail: "WORK_CLAIM_INVALID / FAIL_CLOSED"
 
 collision_levels:
   O0_NONE:
@@ -169,10 +220,12 @@ parallelism_policy:
     - "Nested parallelism that violates local resource governance."
     - "Multiple agents editing a shared canonical surface without an explicit owner/sequence."
     - "Starting a new business slice merely because a strategic lane exists."
+    - "Proposal-only work writing runtime code outside its isolated proposal root."
 
 program_vs_task_semantics:
   program_lane: "Long-lived strategic objective that can contain many tasks and pauses."
   task_route: "One bounded executable assignment owned by one Agent under current lease/route rules."
+  work_claim: "Current declared work surface; neither a strategic objective nor a substitute task route."
   amed_execution_chains: >-
     Main delivery, active discovery and system evolution are three internal chains inside each non-trivial task.
     They are not the same concept as the three parallel Program Lanes.
@@ -195,6 +248,9 @@ knowledge_mapping_contract:
 
 human_projection:
   immediate_markdown_view: "coordination/PROGRAM-CONTROL-TOWER.md"
+  generated_regions:
+    - "CONTROL_TOWER_AUTOGEN: routes, lane state, release hold"
+    - "CONTROL_TOWER_CLAIMS_AUTOGEN: work surfaces and pairwise collision scan"
   recommended_github_project_views:
     - "Executive Overview"
     - "Active Now"
@@ -225,19 +281,31 @@ human_projection:
   board_limit_rule: >-
     GitHub board column limits are visual warnings, not hard enforcement. Machine validation must enforce real WIP limits.
 
-future_automation_candidate:
+automation_implementation_status:
+  isolated_foundation:
+    branch: "gpt/program-control-tower-foundation-0001"
+    pull_request: 311
+    owner: "GPT"
+    status: "DRAFT_IN_REVIEW"
+    non_preemption: "Does not modify or replace current Codex Issue #305 / PR #307 execution route."
+    scope: "Governance-only scanner/reconciler, Work Claims, witnesses, projections, CI and regressions."
   components:
-    - "route-scanner"
-    - "program-lane-reconciler"
-    - "stale-view-detector"
-    - "authority-overlap-validator"
-    - "path-and-interface-collision-checker"
-    - "dependency-DAG-resolver"
-    - "resource/WIP-gate"
-    - "GitHub-Project-projection"
-    - "flow-metric-recorder"
-    - "control-tower-regression-suite"
-  implementation_policy: "Requires a future explicit Codex route; does not preempt current Issue #305 / PR #307."
+    route_scanner: "IMPLEMENTED_IN_PR_311"
+    program_lane_reconciler: "IMPLEMENTED_IN_PR_311"
+    stale_view_detector: "IMPLEMENTED_FOR_CURRENT_DECLARED_AGGREGATE_AND_ROUTE_PROJECTION_CASES"
+    authority_overlap_validator: "IMPLEMENTED_IN_O0_O4_CLASSIFIER_AND_WORK_CLAIMS"
+    path_and_interface_collision_checker: "IMPLEMENTED_IN_PR_311"
+    work_claim_validator: "IMPLEMENTED_IN_PR_311"
+    route_and_policy_authorization_witness: "IMPLEMENTED_IN_PR_311"
+    resource_WIP_gate: "IMPLEMENTED_FOR_DECLARED_PER_AGENT_HEAVY_AND_USER_HOLD_LIMITS"
+    markdown_projection_sync: "IMPLEMENTED_WITH_TWO_CI_CHECKED_GENERATED_BLOCKS"
+    dependency_DAG_resolver: "NOT_YET_GENERALIZED"
+    github_project_projection: "NOT_IMPLEMENTED"
+    flow_metric_recorder: "NOT_IMPLEMENTED"
+    regression_suite: "IMPLEMENTED_AND_EXPANDING_IN_PR_311"
+  future_codex_role: >-
+    Codex may later harden/generalize the foundation or implement GitHub Project sync, dependency DAG and flow metrics
+    only through a separate explicit route. The current Codex #305/#307 cognitive route remains untouched.
 
 harness_integration_boundary:
   allowed_future_role: >-
@@ -252,11 +320,13 @@ validation_and_regression_candidates:
   - "Same Agent cannot be assigned two executable routes."
   - "Two lanes writing the same canonical object produce O4 and fail closed."
   - "Read/read overlap produces O1 and does not block unnecessarily."
-  - "Unfrozen ContextBundle interface blocks direct Harness integration but permits isolated adapter PoC."
+  - "Unfrozen ContextBundle interface blocks direct Harness implementation but proposal-only research remains isolated."
   - "Three strategic lanes may coexist while only one heavy local stage executes."
   - "A trading lane cannot weaken NO_TRADE or W7 veto."
   - "A project dashboard cannot change task execution authority."
   - "A stale route epoch cannot authorize a durable commit."
+  - "A changed Work Claim/hold/WIP/overlap policy invalidates the old durable authorization witness."
+  - "Proposal-only writes outside their isolated root fail closed."
   - "Semantic environment changes during a durable workflow are surfaced rather than silently mixed."
 
 promotion_policy:
