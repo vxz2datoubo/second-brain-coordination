@@ -1,0 +1,111 @@
+schema_version: "109.0"
+route_status: "ACTIVE"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 231
+active_pull_request: 280
+module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
+task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-FINAL-CONFLICT-HARDENING"
+route_epoch: 109
+mode: "goal"
+mode_label: "【Codex模式：目标模式】R108最终日程冲突语义与exact-head回执收口"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+synthetic_only: true
+
+canonical_main_at_route_publish: "d83ff7c1b6438f1201a1df1bbf92e16c3702ce10"
+implementation_pr: 280
+implementation_branch: "codex/cltm-0021-memory-palace-r107"
+exact_reviewed_head: "2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb"
+gpt_review_id: 4933169931
+issue_review_comment: 5288569325
+predecessor:
+  route_epoch: 108
+  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
+  implementation_head: "2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb"
+  disposition: "CHANGES_REQUIRED"
+  verified_ci_run: 31726843796
+  verified_focused_tests: "24/24 PASS"
+  verified_phase3_tests: "243/243 PASS"
+
+root_goal: >-
+  Continue the same PR #280 and same implementation branch with additive commits only. Preserve the six already-accepted R108 semantic fixes and
+  close the remaining typed-schedule-conflict false-positive paths plus exact-head receipt binding. Do not broaden scope.
+
+required_fixes:
+  - id: "R109-SCHEDULE-CONFLICT-PAIRWISE-TYPING"
+    requirement: >-
+      Pair every new atom id with its own derived item. Only the specific new atom that is USER_PLAN, USER_COMMITMENT or USER_EVENT_REPORT may
+      participate in schedule-conflict detection. Preference, stance and assertion siblings from the same captured passage must never inherit a
+      schedule conflict merely because another sibling is schedulable.
+  - id: "R109-INDEPENDENT-EVENT-INTERVALS"
+    requirement: >-
+      Preserve and compare each schedulable atom's own event interval. Multiple new event-like atoms on one date must not be collapsed by a
+      date-to-single-item map.
+  - id: "R109-NONOVERLAP-NO-CONFLICT"
+    requirement: >-
+      If both sides have known fixed intervals and they do not overlap, emit no SCHEDULE_HARD_CONFLICT, no SCHEDULE_POTENTIAL_CONFLICT and no
+      UNKNOWN_CONSTRAINT. If fixed intervals overlap, emit SCHEDULE_HARD_CONFLICT. POTENTIAL plus UNKNOWN_CONSTRAINT is reserved for genuinely
+      under-specified same-day mutual-exclusion cases.
+  - id: "R109-EXACT-HEAD-CLOSEOUT"
+    requirement: >-
+      Final AI_HANDOFF.yaml, TEST-RUN-RECEIPT.md and PR description must bind the R109 completion to the final exact PR head SHA and final test counts.
+      The final Python 3.11 and 3.13 GitHub Actions run must execute on that same exact head.
+
+required_adversarial_tests:
+  - "known non-overlapping fixed intervals produce no HARD/POTENTIAL/UNKNOWN_CONSTRAINT"
+  - "existing event plus a new mixed passage containing event + preference + stance/assertion attaches schedule conflict only to the schedulable atom"
+  - "multiple new schedulable atoms on the same date retain distinct event intervals and are evaluated independently"
+  - "explicit same-day assertion plus assertion produces no schedule conflict"
+  - "existing R108 hard-overlap and under-specified potential-conflict behavior remains correct"
+
+preserve_verified_r108_behavior:
+  - "bitemporal claim-validity versus event-time separation"
+  - "temporal retrieval confidence gate"
+  - "general multi-atom capture"
+  - "structured owner-stance targets"
+  - "content-bound provenance"
+  - "domain-aware freshness"
+
+validation_required:
+  - "all R109 adversarial tests PASS"
+  - "expanded focused Memory Palace suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11 and 3.13 GitHub Actions SUCCESS on final exact head"
+  - "public_safety_scan PASS"
+  - "YAML parse PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+
+required_closeout:
+  - "final exact head_sha"
+  - "exact changed paths"
+  - "R109 fix-by-fix implementation mapping"
+  - "focused/adversarial count and result"
+  - "full Phase-3 count and result"
+  - "public safety result"
+  - "YAML parse result"
+  - "git diff --check result"
+  - "GitHub Actions run id and Python 3.11/3.13 jobs"
+  - "AI_HANDOFF/TEST-RUN-RECEIPT/PR description exact-head binding"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
+  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+
+forbidden_actions:
+  - "Do not read or open real private source/store."
+  - "Do not run real private ingestion/canary."
+  - "Do not create/modify/enable scheduler/service/startup persistence."
+  - "Do not deploy production MCP/Gateway."
+  - "Do not unlock formal PROJECT/GLOBAL promotion."
+  - "Do not modify ACL/security/credentials/repository visibility."
+  - "Do not touch E48/live or trading/accounts."
+  - "Do not merge PR #280."
+
+completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_R109_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 109 is a narrow synthetic-only corrective continuation of PR #280. All private/formal/scheduler/live/production/security/trading locks remain.
+  GPT retains merge authority.
