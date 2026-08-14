@@ -131,10 +131,23 @@ class _CandidateSet:
 
     scores: dict[str, float] = field(default_factory=dict)
     rejected_counts: dict[str, int] = field(default_factory=dict)
+    public_accounted_atom_ids: set[str] = field(default_factory=set)
 
-    def consider(self, atom: dict[str, Any], score: float, decision: CandidateAdmissionDecision) -> bool:
+    def consider(
+        self, atom: dict[str, Any], score: float, decision: CandidateAdmissionDecision, *, caller_observable: bool,
+    ) -> bool:
+        """Record only facts the caller is permitted to observe.
+
+        A non-observable candidate is deliberately identical to no candidate in
+        the public report.  Its decision still remains internal to the
+        assembler so candidate admission semantics are not weakened.
+        """
+
         if not decision.admitted:
-            self.rejected_counts[decision.reason] = self.rejected_counts.get(decision.reason, 0) + 1
+            atom_id = atom["id"]
+            if caller_observable and atom_id not in self.public_accounted_atom_ids:
+                self.rejected_counts[decision.reason] = self.rejected_counts.get(decision.reason, 0) + 1
+                self.public_accounted_atom_ids.add(atom_id)
             return False
         atom_id = atom["id"]
         self.scores[atom_id] = max(self.scores.get(atom_id, score), score)
@@ -229,7 +242,70 @@ class ContextAssembler:
     ) -> bool:
         """The only candidate-set entry point for lexical and relation paths."""
 
-        return candidate_set.consider(atom, score, self._admission_decision(atom, plan))
+        return candidate_set.consider(
+            atom,
+            score,
+            self._admission_decision(atom, plan),
+            caller_observable=self._caller_observable(atom, plan),
+        )
+
+    def _caller_observable(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
+        """Fail closed before an admission rejection can become public telemetry.
+
+        This intentionally has no public reason output.  It only decides
+        whether a caller can safely know that a candidate exists at all.
+        """
+
+        if atom.get("gpt_access") != "FULL_SEMANTIC_ACCESS":
+            return False
+        if atom.get("transport_visibility") == "RESTRICTED_NEVER_SYNC":
+            return False
+        if plan.scopes and atom.get("scope") not in set(plan.scopes):
+            return False
+        metadata = atom.get("memory_metadata", {})
+        if not isinstance(metadata, dict):
+            return False
+        conversation = metadata.get("conversation")
+        knowledge = metadata.get("knowledge")
+        if conversation:
+            if not isinstance(conversation, dict) or not plan.scopes or plan.user_scope is None or not plan.valid_at:
+                return False
+            if conversation.get("project_scope") not in set(plan.scopes):
+                return False
+            if conversation.get("user_scope") != plan.user_scope:
+                return False
+            if (conversation.get("privacy_class"), conversation.get("coverage"), conversation.get("source_class")) not in {
+                ("PUBLIC_SAFE_SYNTHETIC", "synthetic", "SYNTHETIC_PUBLIC_SAFE"),
+                ("PRIVATE_LOCAL_CANDIDATE", "private_local", "PRIVATE_LOCAL_AUTHORIZED"),
+            }:
+                return False
+            if conversation.get("claim_role") not in {
+                "USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION",
+                "USER_PLAN", "USER_GOAL", "USER_COMMITMENT", "USER_EVENT_REPORT",
+                "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+            }:
+                return False
+            return bool(atom.get("source_refs")) and bool(self.store.provenance_for_atom(atom.get("id", "")))
+        if knowledge:
+            if not isinstance(knowledge, dict) or not plan.scopes or plan.user_scope is None or not plan.privacy_domains or not plan.valid_at:
+                return False
+            if knowledge.get("project_scope") not in set(plan.scopes):
+                return False
+            if knowledge.get("user_scope") != plan.user_scope or knowledge.get("privacy_domain") not in set(plan.privacy_domains):
+                return False
+            if knowledge.get("safety_class") != "PUBLIC_SAFE_SYNTHETIC":
+                return False
+            if knowledge.get("privacy_domain") != "PUBLIC_SAFE_SYNTHETIC" and not str(knowledge.get("privacy_domain", "")).startswith("synthetic-"):
+                return False
+            if knowledge.get("epistemic_role") not in {
+                "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "MECHANISM", "CONDITION",
+                "COUNTEREXAMPLE", "METHOD", "OPEN_QUESTION", "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE",
+            }:
+                return False
+            if not knowledge.get("proposition_id") or not knowledge.get("identity_domain_hash"):
+                return False
+            return bool(atom.get("source_refs")) and bool(self.store.provenance_for_atom(atom.get("id", "")))
+        return plan.user_scope is None
 
     def _allowed(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
         """Compatibility facade; policy is implemented exactly once below."""

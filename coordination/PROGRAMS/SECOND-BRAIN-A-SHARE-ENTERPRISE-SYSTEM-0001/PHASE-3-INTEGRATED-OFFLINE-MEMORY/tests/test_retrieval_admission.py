@@ -16,6 +16,7 @@ for source_root in (
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.conversation_memory import ConversationEpisode, build_conversation_candidate
+from integrated_offline_memory.knowledge_reconciliation import KnowledgeEpisode, capture_knowledge
 from integrated_offline_memory.learning_packet import build_learning_packet
 from integrated_offline_memory.memory_store import MemoryStore
 from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
@@ -54,11 +55,13 @@ class RetrievalAdmissionTestCase(unittest.TestCase):
         self.addCleanup(self.store.close)
         self.assembler = ContextAssembler(self.store)
 
-    def _conversation_atom(self) -> dict[str, object]:
+    def _conversation_atom(
+        self, *, user_scope: str = USER, project_scope: str = PROJECT, statement: str = "bounded conversation memory",
+    ) -> dict[str, object]:
         episode = ConversationEpisode(
             episode_id="r117-episode",
-            user_scope=USER,
-            project_scope=PROJECT,
+            user_scope=user_scope,
+            project_scope=project_scope,
             source_pointer="synthetic://r117/opaque-source-pointer",
             source_hash="e" * 64,
             privacy_class="PUBLIC_SAFE_SYNTHETIC",
@@ -68,7 +71,7 @@ class RetrievalAdmissionTestCase(unittest.TestCase):
         )
         candidate = build_conversation_candidate(
             episode=episode,
-            statement="bounded conversation memory",
+            statement=statement,
             claim_role="USER_PREFERENCE",
             valid_from=NOW,
         )
@@ -104,12 +107,81 @@ class RetrievalAdmissionTestCase(unittest.TestCase):
         self.assertEqual([item["canonical_statement"] for item in bundle.atoms], ["root lexical"])
         self.assertEqual(report, {
             "admitted_count": 1,
-            "rejected_counts": {"transport_visibility_denied": 2},
+            "rejected_counts": {},
         })
         self.assertNotIn(provisional["atoms"][1]["id"], repr(report))
         self.assertNotIn("synthetic://", repr(report))
-        report["rejected_counts"]["transport_visibility_denied"] = 999
-        self.assertEqual(self.assembler.last_admission_report["rejected_counts"]["transport_visibility_denied"], 2)
+        report["rejected_counts"]["synthetic_mutation"] = 999
+        self.assertEqual(self.assembler.last_admission_report["rejected_counts"], {})
+
+    def test_foreign_and_restricted_rare_terms_are_publicly_indistinguishable_from_no_match(self) -> None:
+        def empty_report(plan: QueryPlan) -> dict[str, object]:
+            empty_store = MemoryStore().connect()
+            try:
+                empty_assembler = ContextAssembler(empty_store)
+                empty_assembler.assemble(plan)
+                return empty_assembler.last_admission_report
+            finally:
+                empty_store.close()
+
+        cases: list[tuple[str, QueryPlan]] = []
+        self._conversation_atom(user_scope="foreign-user", statement="rareforeignuser")
+        cases.append((
+            "foreign_user",
+            QueryPlan(query_text="rareforeignuser", scopes=(PROJECT,), user_scope=USER, valid_at=NOW),
+        ))
+        self._conversation_atom(project_scope="foreign-project", statement="rareforeignproject")
+        cases.append((
+            "foreign_project",
+            QueryPlan(query_text="rareforeignproject", scopes=(PROJECT,), user_scope=USER, valid_at=NOW),
+        ))
+        privacy_episode = KnowledgeEpisode(
+            episode_id="r118-privacy",
+            user_scope=USER,
+            project_scope=PROJECT,
+            privacy_domain="synthetic-foreign",
+            source_pointer="synthetic://r118/foreign-privacy",
+            source_text="Fact: rareforeignprivacy evidence",
+            recorded_at=NOW,
+            available_at=NOW,
+        )
+        capture_knowledge(store=self.store, episode=privacy_episode, semantic_query="evidence context")
+        cases.append((
+            "foreign_privacy",
+            QueryPlan(
+                query_text="rareforeignprivacy", scopes=(PROJECT,), user_scope=USER,
+                privacy_domains=("synthetic-visible",), valid_at=NOW, atom_types=("knowledge_atom",),
+            ),
+        ))
+        self.store.import_learning_packet(packet([atom("rarerestricted", transport_visibility="RESTRICTED_NEVER_SYNC")]))
+        cases.append(("restricted_transport", QueryPlan(query_text="rarerestricted")))
+
+        for name, plan in cases:
+            with self.subTest(name=name):
+                bundle = self.assembler.assemble(plan)
+                self.assertEqual(bundle.atoms, ())
+                self.assertEqual(self.assembler.last_admission_report, empty_report(plan))
+
+    def test_observable_rejection_is_counted_once_across_lexical_and_relation_channels(self) -> None:
+        root = atom("visible root")
+        low_confidence = atom("visible low confidence", confidence=0.1)
+        provisional = packet([root, low_confidence])
+        governed = packet([root, low_confidence], relations=[{
+            "source_atom_id": provisional["atoms"][0]["id"],
+            "target_atom_id": provisional["atoms"][1]["id"],
+            "relation_type": "supports",
+        }])
+        self.store.import_learning_packet(governed)
+
+        bundle = self.assembler.assemble(
+            QueryPlan(query_text="visible root confidence", relation_depth=1, min_confidence=0.8)
+        )
+
+        self.assertEqual([item["canonical_statement"] for item in bundle.atoms], ["visible root"])
+        self.assertEqual(self.assembler.last_admission_report, {
+            "admitted_count": 1,
+            "rejected_counts": {"confidence_below_minimum": 1},
+        })
 
     def test_malformed_conversation_scope_privacy_and_time_bindings_fail_closed_with_codes(self) -> None:
         stored = self._conversation_atom()
