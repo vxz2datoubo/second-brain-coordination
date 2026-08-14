@@ -1,13 +1,13 @@
-schema_version: "117.0"
+schema_version: "118.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 297
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-1-UNIFIED-CANDIDATE-ADMISSION"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-1-PUBLIC-REPORT-HARDENING"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 117
+route_epoch: 118
 mode: "goal"
-mode_label: "【Codex模式：目标模式】P2.1统一候选准入边界"
-status: "READY"
+mode_label: "【Codex模式：目标模式】P2.1准入报告侧信道修复"
+status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: false
 second_user_start_command_required: true
@@ -25,29 +25,48 @@ private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
-runtime_code_scope: "P2_1_RETRIEVAL_ADMISSION_ONLY"
+runtime_code_scope: "P2_1_PUBLIC_REPORT_HARDENING_ONLY"
 
-canonical_main_at_route_prepare: "3f125b8fd083984ec85bf9614136713f984d66d1"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R117-P2-1-UNIFIED-CANDIDATE-ADMISSION.yaml"
+canonical_main_at_route_prepare: "33b3e0fa310ccb72b32c99f125bdacc6cb894892"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R118-P2-1-PUBLIC-REPORT-HARDENING.yaml"
 canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
-accepted_r116_plan_pr: 295
-accepted_r116_plan_head: "bbe5be6e1d5ff64b2e1cec4b5247024e61a1e87d"
-accepted_r116_plan_merge: "3f125b8fd083984ec85bf9614136713f984d66d1"
-gpt_review_id: 4936213902
-implementation_branch: "TO_BE_CREATED_BY_CODEX"
-implementation_pr: "TO_BE_CREATED_BY_CODEX"
+implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r117-p2-1"
+implementation_pr: 302
+
+review_return:
+  reviewed_head: "ce44e444cfbb332a5db6c070106a55ad5b5b7189"
+  gpt_review_id: 4936405812
+  disposition: "R117_P2_1_EXACT_HEAD_CHANGES_REQUIRED_PUBLIC_REPORT_SIDE_CHANNEL"
+  verified_ci_run: 31792882867
+  verified_phase3_tests: "267/267 PASS"
+  verified_public_safety: "76 files / 0 issues"
 
 root_goal: >-
-  Implement only P2.1 unified candidate-set and shared pre-ranking admission/report boundary in the existing ContextAssembler, preserving current behavior
-  and all P1 scope/privacy/time/lifecycle/provenance/no-double-vote contracts.
+  Repair only the R117 public admission-report observability leak while preserving the accepted shared candidate/admission boundary,
+  existing ranking/budget/ContextBundle behavior, P1 contracts and Memory Palace compatibility.
+
+mandatory_repairs:
+  - "Non-observable foreign user/project/privacy and restricted visibility candidates must be indistinguishable from absence in public admission reports."
+  - "No suppressed rejection count or hidden reason class may be exposed."
+  - "Deduplicate public admission accounting by atom ID so multi-channel encounters do not multiply counts or reveal topology."
+  - "Add rare-term oracle-equivalence adversarial tests for foreign user/project/privacy and RESTRICTED_NEVER_SYNC."
+  - "Preserve P1 CURRENT/HISTORICAL/lifecycle/provenance/no-double-vote and current ranking/budget semantics."
+
+adjacent_p2_2_finding:
+  id: "R118-ADJ-P2-2-001"
+  status: "MANDATORY_NEXT_SLICE_NOT_R118"
+  finding: >-
+    Current bundle relation projection can expose a hidden endpoint ID because relations_around returns relations when either endpoint is selected.
+    P2.2 must independently admit all referenced relation/conflict/unknown endpoints/objects before projection.
 
 execution_contract:
-  retrieval_py_and_focused_tests_only: true
-  memory_palace_behavior_migration: "FORBIDDEN_IN_P2_1"
+  same_pr_branch_additive_only: true
+  relation_conflict_unknown_projection_fix: "DEFER_TO_P2_2"
+  memory_palace_migration: "FORBIDDEN"
   semantic_provider: "FORBIDDEN"
   structural_analogy: "FORBIDDEN"
-  ranking_weight_change: "FORBIDDEN"
-  full_context_bundle_v1_projection: "FORBIDDEN"
+  ranking_or_anti_anchor_change: "FORBIDDEN"
+  full_context_bundle_v1: "FORBIDDEN"
   real_private_data_or_store: "FORBIDDEN"
   scheduler: "FORBIDDEN"
   production_mcp_gateway: "FORBIDDEN"
@@ -58,17 +77,15 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 validation_required:
-  - "focused P2.1 adversarial tests PASS"
+  - "focused side-channel adversarial tests PASS"
   - "full Phase-3 regression PASS"
   - "Python 3.11/3.13 exact-final-head CI SUCCESS"
   - "public safety PASS"
-  - "schema/YAML/JSON PASS"
   - "git diff --check PASS"
   - "working tree clean"
   - "Memory Palace and P1 behavior parity"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_1_R117_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_1_R118_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 117 is a narrow P2.1 runtime slice only. Semantic provider, structural analogy, ranking/anti-anchor changes, full ContextBundle v1, P2.3 migration,
-  real private ingestion, production bridge, scheduler, formal promotion, QCLAW runtime dependency, security/permission changes and trading remain locked.
+  Epoch 118 is a narrow P2.1 public-report side-channel remediation. P2.2 relation/conflict/unknown projection hardening and all later capabilities remain locked.
