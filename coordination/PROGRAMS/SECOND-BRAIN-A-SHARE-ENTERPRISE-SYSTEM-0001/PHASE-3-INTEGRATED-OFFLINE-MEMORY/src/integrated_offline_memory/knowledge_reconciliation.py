@@ -1,0 +1,335 @@
+"""Synthetic-only P1 KnowledgeEpisode capture and governed reconciliation.
+
+This adapter is intentionally narrow: it creates candidate-only LearningPackets
+for public-safe synthetic passages and uses the existing W3 store/query boundary.
+It does not discover sources, open a private store, or promote knowledge.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+import re
+from typing import Any, Mapping
+
+from .canonical import content_hash, normalize_text
+from .learning_packet import build_learning_packet, knowledge_atom_id
+from .memory_store import MemoryStore
+from .retrieval import ContextAssembler, QueryPlan
+
+
+TAXONOMY_VERSION = "knowledge-taxonomy-v1"
+IDENTITY_VERSION = "knowledge-proposition-domain-v1"
+PUBLIC_SAFE_PRIVACY_DOMAIN = "PUBLIC_SAFE_SYNTHETIC"
+RECONCILIATION_ACTIONS = frozenset({
+    "NEW", "DUPLICATE", "MERGE", "REFINE", "SUPPORT", "WEAKEN", "CONTRADICT",
+    "SUPERSEDE", "REVOKE", "REVALIDATE", "RESOLVE_UNKNOWN", "UNKNOWN",
+})
+EPISTEMIC_ROLES = frozenset({
+    "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT",
+    "MECHANISM", "CONDITION", "COUNTEREXAMPLE", "METHOD", "OPEN_QUESTION",
+    "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE",
+})
+_SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
+_INERT_CONTROL_MARKERS = re.compile(
+    r"(?:ignore\s+(?:all\s+)?(?:previous|earlier)\s+instructions|disregard\s+(?:all\s+)?instructions|"
+    r"system\s+prompt|developer\s+message|jailbreak|<\s*system\s*>|忽略(?:之前|先前|所有)?指令|系统提示|开发者消息)",
+    re.IGNORECASE,
+)
+_ROLE_PREFIXES: tuple[tuple[str, str], ...] = (
+    ("fact:", "FACT_CLAIM"), ("事实:", "FACT_CLAIM"), ("事实：", "FACT_CLAIM"),
+    ("source:", "SOURCE_CLAIM"), ("来源:", "SOURCE_CLAIM"), ("来源：", "SOURCE_CLAIM"),
+    ("interpretation:", "SOURCE_INTERPRETATION"), ("author thinks:", "SOURCE_INTERPRETATION"), ("作者认为:", "SOURCE_INTERPRETATION"), ("作者认为：", "SOURCE_INTERPRETATION"),
+    ("value:", "VALUE_JUDGMENT"), ("评价:", "VALUE_JUDGMENT"), ("评价：", "VALUE_JUDGMENT"),
+    ("mechanism:", "MECHANISM"), ("机制:", "MECHANISM"), ("机制：", "MECHANISM"),
+    ("condition:", "CONDITION"), ("条件:", "CONDITION"), ("条件：", "CONDITION"),
+    ("counterexample:", "COUNTEREXAMPLE"), ("反例:", "COUNTEREXAMPLE"), ("反例：", "COUNTEREXAMPLE"),
+    ("method:", "METHOD"), ("方法:", "METHOD"), ("方法：", "METHOD"),
+    ("question:", "OPEN_QUESTION"), ("问题:", "OPEN_QUESTION"), ("问题：", "OPEN_QUESTION"),
+    ("user stance:", "USER_STANCE"), ("用户立场:", "USER_STANCE"), ("用户立场：", "USER_STANCE"),
+    ("assistant analysis:", "ASSISTANT_ANALYSIS"), ("助手分析:", "ASSISTANT_ANALYSIS"), ("助手分析：", "ASSISTANT_ANALYSIS"),
+    ("model inference:", "MODEL_INFERENCE"), ("模型推断:", "MODEL_INFERENCE"), ("模型推断：", "MODEL_INFERENCE"),
+)
+
+
+@dataclass(frozen=True)
+class KnowledgeEpisode:
+    episode_id: str
+    user_scope: str
+    project_scope: str
+    privacy_domain: str
+    source_pointer: str
+    source_text: str
+    recorded_at: str
+    available_at: str | None = None
+    source_span: str = "full"
+    provenance_quality: str = "DIRECT"
+
+    def __post_init__(self) -> None:
+        if not all(isinstance(value, str) and value for value in (
+            self.episode_id, self.user_scope, self.project_scope, self.source_pointer,
+            self.source_text, self.recorded_at, self.source_span, self.provenance_quality,
+        )):
+            raise ValueError("knowledge_episode_identity_required")
+        if self.privacy_domain != PUBLIC_SAFE_PRIVACY_DOMAIN:
+            raise ValueError("knowledge_episode_private_source_denied")
+        if not self.source_pointer.startswith("synthetic://"):
+            raise ValueError("knowledge_episode_source_pointer_denied")
+        _instant(self.recorded_at)
+        _instant(self.available_at or self.recorded_at)
+        if _SECRET.search(self.source_text):
+            raise ValueError("knowledge_episode_secret_denied")
+        if _INERT_CONTROL_MARKERS.search(self.source_text):
+            raise ValueError("knowledge_episode_untrusted_control_denied")
+
+    @property
+    def source_hash(self) -> str:
+        return content_hash({"normalized_source_text": normalize_text(self.source_text)})
+
+    @property
+    def manifest_id(self) -> str:
+        return "knowledge-episode-" + content_hash({
+            "episode_id": self.episode_id, "source_hash": self.source_hash,
+            "recorded_at": _canonical_instant(self.recorded_at),
+            "identity_domain_hash": identity_domain_hash(self.user_scope, self.project_scope, self.privacy_domain),
+        })[:20]
+
+
+@dataclass(frozen=True)
+class KnowledgeCandidate:
+    statement: str
+    epistemic_role: str
+    source_span: str
+
+
+@dataclass(frozen=True)
+class ReconciliationReceipt:
+    status: str
+    packet_ids: tuple[str, ...]
+    atom_ids: tuple[str, ...]
+    actions: tuple[tuple[str, str], ...]
+    exact_scoped_recall_passed: bool
+    semantic_recall_passed: bool
+    foreign_domain_zero_recall: bool
+    candidate_authority_only: bool = True
+    formal_project_global_write: str = "LOCKED"
+
+    def public_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "packet_ids": list(self.packet_ids),
+            "atom_ids": list(self.atom_ids),
+            "actions": [list(item) for item in self.actions],
+            "exact_scoped_recall_passed": self.exact_scoped_recall_passed,
+            "semantic_recall_passed": self.semantic_recall_passed,
+            "foreign_domain_zero_recall": self.foreign_domain_zero_recall,
+            "candidate_authority_only": self.candidate_authority_only,
+            "formal_project_global_write": self.formal_project_global_write,
+        }
+
+
+def identity_domain_hash(user_scope: str, project_scope: str, privacy_domain: str) -> str:
+    if not all(isinstance(value, str) and value for value in (user_scope, project_scope, privacy_domain)):
+        raise ValueError("knowledge_identity_domain_required")
+    return content_hash({"user_scope": user_scope, "project_scope": project_scope, "privacy_domain": privacy_domain})
+
+
+def proposition_id(statement: str, epistemic_role: str, *, user_scope: str, project_scope: str, privacy_domain: str) -> str:
+    if epistemic_role not in EPISTEMIC_ROLES:
+        raise ValueError("knowledge_epistemic_role_denied")
+    return "proposition-" + content_hash({
+        "identity_version": IDENTITY_VERSION,
+        "statement": normalize_text(statement),
+        "epistemic_role": epistemic_role,
+        "taxonomy_version": TAXONOMY_VERSION,
+        "identity_domain_hash": identity_domain_hash(user_scope, project_scope, privacy_domain),
+    })[:20]
+
+
+def decompose_knowledge_passage(passage: str) -> tuple[KnowledgeCandidate, ...]:
+    """Deterministic, faithful clause decomposition; it never upgrades a role."""
+    text = normalize_text(passage)
+    if not text:
+        raise ValueError("knowledge_passage_required")
+    if _SECRET.search(text):
+        raise ValueError("knowledge_secret_denied")
+    if _INERT_CONTROL_MARKERS.search(text):
+        raise ValueError("knowledge_untrusted_control_denied")
+    candidates: list[KnowledgeCandidate] = []
+    for index, raw in enumerate(re.split(r"[\n;；]+", text)):
+        clause = normalize_text(raw)
+        if not clause:
+            continue
+        role = "SOURCE_CLAIM"
+        statement = clause
+        lowered = clause.casefold()
+        for prefix, candidate_role in _ROLE_PREFIXES:
+            if lowered.startswith(prefix.casefold()):
+                role = candidate_role
+                statement = normalize_text(clause[len(prefix):])
+                break
+        if not statement:
+            raise ValueError("knowledge_clause_empty_after_role")
+        candidates.append(KnowledgeCandidate(statement=statement, epistemic_role=role, source_span=f"clause:{index}"))
+    if not candidates:
+        raise ValueError("knowledge_passage_no_candidates")
+    return tuple(candidates)
+
+
+def capture_knowledge(
+    *, store: MemoryStore, episode: KnowledgeEpisode, passage: str | None = None,
+    valid_from: str | None = None, valid_to: str | None = None,
+    freshness_profile: str = "STRUCTURAL", reconciliation_directives: Mapping[str, Mapping[str, str]] | None = None,
+    semantic_query: str | None = None,
+) -> ReconciliationReceipt:
+    """Preflight all candidates, atomically import them, then prove scoped recall."""
+    candidates = decompose_knowledge_passage(passage if passage is not None else episode.source_text)
+    valid_from = _canonical_instant(valid_from or episode.available_at or episode.recorded_at)
+    valid_to = _canonical_instant(valid_to) if valid_to is not None else None
+    if valid_to is not None and _instant(valid_to) <= _instant(valid_from):
+        raise ValueError("knowledge_valid_time_invalid")
+    directives = reconciliation_directives or {}
+    assembler = ContextAssembler(store)
+    packets: list[dict[str, Any]] = []
+    actions: list[tuple[str, str]] = []
+    planned: list[tuple[KnowledgeCandidate, str]] = []
+    # This loop is entirely pre-write.  Any invalid target/directive fails before
+    # the one existing MemoryStore transaction is opened.
+    for candidate in candidates:
+        metadata = _knowledge_metadata(episode, candidate, valid_from, valid_to, freshness_profile)
+        atom_id = knowledge_atom_id(candidate.statement, metadata)
+        preflight_plan = _plan_for(episode, candidate.statement, valid_from, intent="CURRENT")
+        assembler.assemble(preflight_plan)  # bounded governed retrieval-before-write evidence
+        action, target_atom_id = _reconciliation_action(store, atom_id, metadata, directives.get(candidate.statement))
+        actions.append((atom_id, action))
+        if action == "UNKNOWN":
+            continue
+        if target_atom_id:
+            _validate_target(store, target_atom_id, metadata)
+        metadata["reconciliation_action"] = action
+        relations: list[dict[str, Any]] = []
+        conflicts: list[dict[str, Any]] = []
+        if target_atom_id and action in {"SUPPORT", "WEAKEN", "CONTRADICT", "MERGE", "REFINE", "SUPERSEDE", "REVOKE", "REVALIDATE", "RESOLVE_UNKNOWN"}:
+            relations.append({
+                "source_atom_id": atom_id, "target_atom_id": target_atom_id,
+                # Do not use the conversation-only `supersedes` transition in P1.
+                "relation_type": "knowledge_" + action.casefold(), "target_existing": True,
+                "context": "evidence_bound_reconciliation",
+            })
+            if action == "CONTRADICT":
+                conflicts.append({"atom_id_a": atom_id, "atom_id_b": target_atom_id, "conflict_type": "DIRECT", "resolution_status": "UNRESOLVED"})
+        packets.append(_packet_for(episode, candidate, metadata, relations=relations, conflicts=conflicts))
+        planned.append((candidate, atom_id))
+    if not packets:
+        return ReconciliationReceipt("ABSTAIN_UNKNOWN", (), (), tuple(actions), False, False, True)
+    results = store.import_learning_packets_atomic(packets)
+    if any(result["status"] not in {"IMPORTED", "IDEMPOTENT_DUPLICATE"} for result in results):
+        raise ValueError("knowledge_import_result_invalid")
+    exact_ok = all(
+        atom_id in _recall_ids(assembler, _plan_for(episode, candidate.statement, valid_from, intent="CURRENT"))
+        for candidate, atom_id in planned
+    )
+    semantic_ok = bool(_recall_ids(assembler, _plan_for(episode, semantic_query or candidates[0].statement, valid_from, intent="CURRENT")))
+    foreign_plan = QueryPlan(
+        query_text=candidates[0].statement, scopes=(episode.project_scope,), user_scope=episode.user_scope + "-foreign",
+        privacy_domains=(episode.privacy_domain,), valid_at=valid_from, atom_types=("knowledge_atom",), truth_states=("candidate",),
+    )
+    foreign_zero = not assembler.assemble(foreign_plan).atoms
+    if not (exact_ok and semantic_ok and foreign_zero):
+        raise ValueError("knowledge_post_write_scoped_recall_failed")
+    return ReconciliationReceipt(
+        "CAPTURED_CANDIDATE_ONLY", tuple(packet["packet_id"] for packet in packets), tuple(atom_id for _, atom_id in planned), tuple(actions),
+        exact_ok, semantic_ok, foreign_zero,
+    )
+
+
+def _reconciliation_action(
+    store: MemoryStore, atom_id: str, metadata: dict[str, Any], directive: Mapping[str, str] | None,
+) -> tuple[str, str | None]:
+    if store.get_atom(atom_id) is not None:
+        return "DUPLICATE", None
+    if directive is None:
+        return "NEW", None
+    action = str(directive.get("action", "UNKNOWN")).upper()
+    target_atom_id = directive.get("target_atom_id")
+    if action not in RECONCILIATION_ACTIONS:
+        return "UNKNOWN", None
+    if action in {"NEW", "UNKNOWN"}:
+        return action, None
+    if action == "DUPLICATE":
+        return "UNKNOWN", None
+    if not isinstance(target_atom_id, str) or not target_atom_id:
+        return "UNKNOWN", None
+    return action, target_atom_id
+
+
+def _validate_target(store: MemoryStore, target_atom_id: str, metadata: dict[str, Any]) -> None:
+    target = store.get_atom(target_atom_id)
+    target_knowledge = (target or {}).get("memory_metadata", {}).get("knowledge")
+    if not isinstance(target_knowledge, dict):
+        raise ValueError("knowledge_reconciliation_target_missing")
+    for field in ("user_scope", "project_scope", "privacy_domain", "identity_domain_hash"):
+        if target_knowledge.get(field) != metadata.get(field):
+            raise ValueError("knowledge_reconciliation_target_scope_denied")
+    if not store.provenance_for_atom(target_atom_id):
+        raise ValueError("knowledge_reconciliation_target_provenance_missing")
+
+
+def _knowledge_metadata(
+    episode: KnowledgeEpisode, candidate: KnowledgeCandidate, valid_from: str, valid_to: str | None, freshness_profile: str,
+) -> dict[str, Any]:
+    domain_hash = identity_domain_hash(episode.user_scope, episode.project_scope, episode.privacy_domain)
+    manifest_id = episode.manifest_id
+    source_episode = {
+        "episode_manifest_id": manifest_id, "episode_id": episode.episode_id,
+        "source_pointer_hash": content_hash(episode.source_pointer), "recorded_at": _canonical_instant(episode.recorded_at),
+        "available_at": _canonical_instant(episode.available_at or episode.recorded_at), "source_span": candidate.source_span,
+        "provenance_quality": episode.provenance_quality,
+    }
+    return {
+        "schema_version": "knowledge-atom-v1", "episode_manifest_ids": [manifest_id], "source_episodes": [source_episode],
+        "user_scope": episode.user_scope, "project_scope": episode.project_scope, "privacy_domain": episode.privacy_domain,
+        "identity_domain_hash": domain_hash,
+        "proposition_id": proposition_id(candidate.statement, candidate.epistemic_role, user_scope=episode.user_scope, project_scope=episode.project_scope, privacy_domain=episode.privacy_domain),
+        "epistemic_role": candidate.epistemic_role, "taxonomy_version": TAXONOMY_VERSION,
+        "valid_from": valid_from, "valid_to": valid_to, "recorded_at": _canonical_instant(episode.recorded_at),
+        "provenance_quality": episode.provenance_quality, "freshness_profile": freshness_profile,
+    }
+
+
+def _packet_for(episode: KnowledgeEpisode, candidate: KnowledgeCandidate, metadata: dict[str, Any], *, relations: list[dict[str, Any]], conflicts: list[dict[str, Any]]) -> dict[str, Any]:
+    atom = {
+        "id": knowledge_atom_id(candidate.statement, metadata), "statement": candidate.statement, "atom_type": "knowledge_atom",
+        "scope": episode.project_scope, "confidence": 0.5, "source_refs": ["knowledge://" + episode.manifest_id],
+        "knowledge_status": "candidate", "transport_visibility": "PUBLIC_SAFE_METADATA_ONLY", "memory_metadata": {"knowledge": metadata},
+    }
+    validation = {key: value for key, value in metadata.items() if key != "reconciliation_action"}
+    validation["source_pointer_hash"] = content_hash(episode.source_pointer)
+    return build_learning_packet(
+        source_manifest_ids=metadata["episode_manifest_ids"], source_hash=episode.source_hash,
+        validation_report=validation, evidence_refs=atom["source_refs"], atoms=[atom], relations=relations, conflicts=conflicts,
+    )
+
+
+def _plan_for(episode: KnowledgeEpisode, query_text: str, valid_at: str, *, intent: str) -> QueryPlan:
+    return QueryPlan(
+        query_text=query_text, scopes=(episode.project_scope,), user_scope=episode.user_scope,
+        privacy_domains=(episode.privacy_domain,), valid_at=valid_at, atom_types=("knowledge_atom",),
+        truth_states=("candidate", "approved", "conflict", "unknown", "superseded") if intent == "HISTORICAL" else ("candidate", "approved", "conflict", "unknown"),
+        intent=intent,
+    )
+
+
+def _recall_ids(assembler: ContextAssembler, plan: QueryPlan) -> set[str]:
+    return {atom["id"] for atom in assembler.assemble(plan).atoms}
+
+
+def _instant(value: str) -> datetime:
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("knowledge_time_must_be_timezone_aware")
+    return parsed.astimezone(timezone.utc)
+
+
+def _canonical_instant(value: str) -> str:
+    return _instant(value).isoformat().replace("+00:00", "Z")

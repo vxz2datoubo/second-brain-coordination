@@ -25,6 +25,7 @@ class QueryPlan:
     budget: int = 50
     intent: str = "CURRENT"
     user_scope: str | None = None
+    privacy_domains: tuple[str, ...] = ()
     valid_at: str | None = None
     schema_version: str = "1.0.0"
 
@@ -53,11 +54,13 @@ class QueryPlan:
             _parse_instant(self.valid_at)
         if self.user_scope is not None and not self.user_scope:
             raise ValueError("query_plan_user_scope_invalid")
+        if any(not isinstance(item, str) or not item for item in self.privacy_domains):
+            raise ValueError("query_plan_privacy_domains_invalid")
 
     def to_dict(self) -> dict[str, Any]:
         self.validate()
         payload = asdict(self)
-        for field_name in ("scopes", "atom_types", "truth_states"):
+        for field_name in ("scopes", "atom_types", "truth_states", "privacy_domains"):
             payload[field_name] = list(payload[field_name])
         return payload
 
@@ -67,7 +70,7 @@ class QueryPlan:
         if unknown:
             raise ValueError("query_plan_unknown_field")
         data = dict(payload)
-        for field_name in ("scopes", "atom_types", "truth_states"):
+        for field_name in ("scopes", "atom_types", "truth_states", "privacy_domains"):
             if field_name in data:
                 data[field_name] = tuple(data[field_name])
         result = cls(**data)
@@ -185,6 +188,7 @@ class ContextAssembler:
         if plan.time_end and atom["updated_at"] > plan.time_end:
             return False
         conversation = atom.get("memory_metadata", {}).get("conversation")
+        knowledge = atom.get("memory_metadata", {}).get("knowledge")
         if conversation:
             # CLTM data fails closed: caller must bind both scopes and a valid
             # instant.  Non-conversation W3 atoms retain historic defaults.
@@ -213,6 +217,31 @@ class ContextAssembler:
             if not _is_valid_at(conversation, instant):
                 return False
             if plan.intent == "CURRENT" and _memory_palace_requires_revalidation(conversation, instant):
+                return False
+        elif knowledge:
+            if not plan.scopes or plan.user_scope is None or not plan.privacy_domains or not plan.valid_at:
+                return False
+            if atom["scope"] not in set(plan.scopes) or knowledge.get("project_scope") not in set(plan.scopes):
+                return False
+            if knowledge.get("user_scope") != plan.user_scope or knowledge.get("privacy_domain") not in set(plan.privacy_domains):
+                return False
+            if knowledge.get("privacy_domain") != "PUBLIC_SAFE_SYNTHETIC":
+                return False
+            if knowledge.get("epistemic_role") not in {
+                "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "MECHANISM", "CONDITION",
+                "COUNTEREXAMPLE", "METHOD", "OPEN_QUESTION", "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE",
+            }:
+                return False
+            if not knowledge.get("proposition_id") or not knowledge.get("identity_domain_hash"):
+                return False
+            if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
+                return False
+            if not self.store.provenance_for_atom(atom["id"]):
+                return False
+            instant = _parse_instant(plan.valid_at)
+            if not _is_valid_at(knowledge, instant):
+                return False
+            if plan.intent == "CURRENT" and _knowledge_requires_revalidation(knowledge, instant):
                 return False
         elif plan.user_scope is not None:
             return False
@@ -257,6 +286,19 @@ def _memory_palace_requires_revalidation(conversation: dict[str, Any], instant: 
         return False
     last_verified = palace.get("last_verified_at")
     horizon_hours = palace.get("freshness_horizon_hours")
+    if not isinstance(last_verified, str) or not isinstance(horizon_hours, int) or horizon_hours < 1:
+        return True
+    from datetime import timedelta
+    return instant > _parse_instant(last_verified) + timedelta(hours=horizon_hours)
+
+
+def _knowledge_requires_revalidation(knowledge: dict[str, Any], instant: datetime) -> bool:
+    if not knowledge.get("revalidation_required"):
+        return False
+    if knowledge.get("freshness_profile") not in {"TRANSIENT", "SHORT_CYCLE"}:
+        return False
+    last_verified = knowledge.get("last_verified_at")
+    horizon_hours = knowledge.get("freshness_horizon_hours")
     if not isinstance(last_verified, str) or not isinstance(horizon_hours, int) or horizon_hours < 1:
         return True
     from datetime import timedelta

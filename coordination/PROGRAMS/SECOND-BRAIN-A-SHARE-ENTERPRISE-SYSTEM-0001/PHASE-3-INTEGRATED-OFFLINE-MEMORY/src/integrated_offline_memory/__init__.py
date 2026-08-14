@@ -46,6 +46,10 @@ from .recurring_candidate_soak import (
     run_recurring_candidate_ingestion,
 )
 from .memory_palace import CaptureReceipt, capture_text, cognitive_coverage, normalize_temporal_expression, retrieve_memory_palace
+from .knowledge_reconciliation import (
+    KnowledgeEpisode, KnowledgeCandidate, ReconciliationReceipt, capture_knowledge,
+    decompose_knowledge_passage, identity_domain_hash, proposition_id,
+)
 
 __all__ = [
     "FieldSemanticDecision",
@@ -98,4 +102,11 @@ __all__ = [
     "cognitive_coverage",
     "normalize_temporal_expression",
     "retrieve_memory_palace",
+    "KnowledgeEpisode",
+    "KnowledgeCandidate",
+    "ReconciliationReceipt",
+    "capture_knowledge",
+    "decompose_knowledge_passage",
+    "identity_domain_hash",
+    "proposition_id",
 ]
