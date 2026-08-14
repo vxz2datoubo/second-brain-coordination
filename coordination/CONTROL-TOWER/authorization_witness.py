@@ -32,30 +32,39 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
     lane = _find_lane(list(registry.get("program_lanes", []) or []), lane_id)
     claim = _find_lane(list(claims_doc.get("claims", []) or []), lane_id)
     agent = claim.get("execution_agent")
-    route = None
-    if agent is not None:
-        if str(agent) not in AGENT_FILES:
-            raise ValueError(f"unknown execution agent {agent}")
-        route = route_witness(normalize_route(str(agent), load_yaml(root / AGENT_FILES[str(agent)])))
+
+    all_routes = {
+        name: route_witness(normalize_route(name, load_yaml(root / relpath)))
+        for name, relpath in AGENT_FILES.items()
+    }
+    route = all_routes.get(str(agent)) if agent is not None else None
+    if agent is not None and str(agent) not in all_routes:
+        raise ValueError(f"unknown execution agent {agent}")
 
     relevant_overlaps = [
         item
         for item in registry.get("cross_lane_overlap_matrix", []) or []
         if isinstance(item, dict) and lane_id in [str(value) for value in item.get("pair", []) or []]
     ]
+    all_claims = list(claims_doc.get("claims", []) or [])
+    all_lanes = list(registry.get("program_lanes", []) or [])
+    release_gate_material = {
+        "foundation_state": gate.get("foundation_state"),
+        "lane_release_state": gate.get("lane_release_state"),
+        "automatic_lane_release": gate.get("automatic_lane_release"),
+        "passing_ci_does_not_release_lanes": gate.get("passing_ci_does_not_release_lanes"),
+    }
     material = {
         "lane": lane,
         "claim": claim,
-        "route": route,
+        "all_claims": all_claims,
+        "all_lanes": all_lanes,
+        "all_routes": all_routes,
         "release_policy": registry.get("current_user_release_policy", {}),
         "capacity_policy": registry.get("portfolio_capacity_policy", {}),
         "relevant_overlaps": relevant_overlaps,
-        "release_gate": {
-            "foundation_state": gate.get("foundation_state"),
-            "lane_release_state": gate.get("lane_release_state"),
-            "automatic_lane_release": gate.get("automatic_lane_release"),
-            "passing_ci_does_not_release_lanes": gate.get("passing_ci_does_not_release_lanes"),
-        },
+        "all_overlaps": list(registry.get("cross_lane_overlap_matrix", []) or []),
+        "release_gate": release_gate_material,
     }
     claim_report = validate_claims(root)
     key_fields = {
@@ -70,15 +79,17 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         "lane_release_state": gate.get("lane_release_state"),
     }
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         **key_fields,
         "route_fingerprint": route.get("fingerprint") if route else None,
+        "all_routes_fingerprint": _hash(all_routes),
         "claim_fingerprint": _hash(claim),
+        "all_claims_fingerprint": _hash(all_claims),
         "policy_fingerprint": _hash(
             {
                 "release_policy": material["release_policy"],
                 "capacity_policy": material["capacity_policy"],
-                "relevant_overlaps": material["relevant_overlaps"],
+                "all_overlaps": material["all_overlaps"],
                 "release_gate": material["release_gate"],
             }
         ),
