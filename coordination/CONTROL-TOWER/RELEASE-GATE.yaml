@@ -1,53 +1,88 @@
-schema_version: "1.0"
+schema_version: "1.1"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
-foundation_state: "IMPLEMENTATION_IN_REVIEW"
+foundation_state: "SAFE_FOR_GPT_DRY_RUN"
 lane_release_state: "HOLD_BY_USER"
-
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
 
-foundation_ready_requires:
+build_validation:
+  validated_head_before_gate_transition: "e84eccd49d268da1db5dae87f54e605db25d646a"
+  github_actions_run: 31804591678
+  python_3_11: "PASS"
+  python_3_13: "PASS"
+  targeted_regressions: "PASS"
+  repository_reconciliation: "PASS"
+  lane_work_claim_validation: "PASS"
+  route_projection_check: "PASS"
+  work_claim_projection_check: "PASS"
+  durable_authorization_witness_round_trip: "PASS"
+  scope_audit: "NO_LANE_C_RUNTIME_FILES_MODIFIED_BY_PR_311"
+  note: "The gate transition itself creates a new head and must receive its own exact-head CI before final dry-run closure."
+
+foundation_build_requires:
   - id: CT-F01-RECONCILIATION
+    status: "PASS"
     requirement: "Current Program Lane observed state is reconciled against latest per-agent ACTIVE routes."
   - id: CT-F02-STALE-VIEW
+    status: "PASS_CURRENT_DECLARED_CASES"
     requirement: "Known stale aggregate views are detected and cannot override current per-agent routes."
   - id: CT-F03-COLLISION
+    status: "PASS"
     requirement: "O0-O4 authority/path/interface collision classification has targeted regression coverage."
   - id: CT-F04-WIP
+    status: "PASS"
     requirement: "Per-agent active-route, heavy-stage and held-lane limits are mechanically checked."
-  - id: CT-F05-COMMIT-FRESHNESS
-    requirement: "A route witness/fingerprint invalidates durable writes when task identity or route_epoch changes."
-  - id: CT-F06-PROJECTION
-    requirement: "The machine-generated block in PROGRAM-CONTROL-TOWER.md is deterministic and checked against canonical sources."
-  - id: CT-F07-CI
-    requirement: "Python 3.11 and 3.13 CI passes on the exact proposed head."
+  - id: CT-F05-WORK-CLAIM
+    status: "PASS"
+    requirement: "Every registered lane has one machine-readable current Work Claim; proposal-only writes are isolated."
+  - id: CT-F06-COMMIT-FRESHNESS
+    status: "PASS"
+    requirement: >-
+      Durable authorization fingerprints current route, all Agent routes, all Work Claims, Program Lane state,
+      hold/WIP/overlap policy and release gate; peer-claim or policy drift invalidates the old witness.
+  - id: CT-F07-PROJECTION-AND-CI
+    status: "PASS_AT_VALIDATED_HEAD"
+    requirement: "Both machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
   - id: CT-F08-DRY-RUN
-    requirement: "GPT performs a current three-lane dry-run after implementation and CI validation."
+    status: "PENDING"
+    requirement: "GPT performs a fresh three-lane dry-run after this gate transition and records the result."
 
-lane_release_requires:
-  - "foundation_state == SAFE_FOR_GPT_DRY_RUN or stronger"
-  - "current user hold is still interpreted from ACTIVE-PROGRAM-LANES.yaml"
-  - "current per-agent routes are fetched again"
-  - "Lane A vs Lane C mutable ContextBundle overlap is either frozen or adapter-isolated"
-  - "Lane B first remediation slice has an explicit bounded write surface"
-  - "no O4 authority collision"
-  - "no same-agent double booking"
-  - "no heavy-resource collision"
-  - "GPT explicitly records SAFE_TO_RELEASE"
+proposal_only_release_requires:
+  - "foundation_state is SAFE_FOR_GPT_DRY_RUN or FOUNDATION_READY"
+  - "current remote main and per-agent routes are fetched again"
+  - "current LANE-WORK-CLAIMS validates PASS"
+  - "Lane A and Lane B remain HELD_PROPOSAL_ONLY with no Agent route or domain write authority"
+  - "their write paths remain confined to isolated proposal roots"
+  - "pairwise current-claim scan contains no O3/O4 blocker"
+  - "no same-agent double booking or heavy-resource collision"
+  - "GPT dry-run records SAFE_TO_RELEASE_PROPOSAL_ONLY"
+  - "user hold is not silently removed"
+
+implementation_release_requires:
+  - "a separate executable per-agent ACTIVE route for the specific implementation lane"
+  - "a fresh ACTIVE_IMPLEMENTATION Work Claim with exact write paths/interfaces/authority/resource class"
+  - "current route binding matches task_id/epoch/issue/pr/branch"
+  - "fresh O0-O4 scan has no unresolved O3/O4 collision"
+  - "Lane A direct binding to a mutable ContextBundle requires interface freeze or adapter isolation"
+  - "Lane B requires one bounded remediation slice and preserved W2/W7/W12/NO_TRADE authority boundaries"
+  - "no same-agent double booking or heavy-resource collision"
+  - "fresh durable authorization witness immediately before commit"
+  - "explicit GPT implementation release"
 
 forbidden_effects:
   - "No automatic creation of a new executable Agent route."
   - "No automatic unpause of Lane A or Lane B."
-  - "No direct mutation of W2-W13 canonical domain objects."
+  - "Proposal-only release never grants runtime implementation permission."
+  - "No direct mutation of W2-W13 canonical domain objects by the Control Tower."
   - "No private-data ingestion or publication."
   - "No production scheduler/gateway deployment."
   - "No account/order/fund/trading action."
 
 current_disposition: >-
-  Build and validate the Control Tower foundation in an isolated branch/PR. Keep Lane A Harness and
-  Lane B A-share remediation paused. Keep the existing Lane C Codex route authoritative and untouched.
+  Foundation build checks are strong enough for a fresh GPT three-lane dry-run. Lane A Harness and Lane B A-share
+  remain held by the user's explicit decision. Lane C Codex #305/#307 remains the only active heavy implementation.
