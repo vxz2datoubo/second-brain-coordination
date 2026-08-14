@@ -10,6 +10,7 @@ on:
       - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
       - "coordination/PROGRAM-CONTROL-TOWER.md"
       - "coordination/CONTROL-TOWER/**"
+      - "coordination/PROPOSALS/PROGRAM-LANES/**"
       - "coordination/GOVERNANCE/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-PROTOCOL-v1.0.yaml"
       - "coordination/SKILLS/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-SKILL-v1.0.yaml"
   workflow_dispatch:
@@ -38,6 +39,9 @@ jobs:
       - name: Reconcile current canonical control-plane state
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py check --repo-root ../..
+      - name: Validate Program Lane work claims
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_lane_claims.py --repo-root ../..
       - name: Emit Codex route witness
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py witness --repo-root ../.. --agent CODEX
