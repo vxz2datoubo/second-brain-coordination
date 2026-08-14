@@ -1,0 +1,124 @@
+schema_version: "113.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 282
+active_pull_request: 290
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-RECONCILIATION-HARDENING"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 113
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P1写前对账、惰性不可信内容与隐私域补强"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+intermediate_gpt_review_required: true
+
+reviewed_checkpoint:
+  implementation_pr: 290
+  reviewed_head: "2e7c23f189a6df5f9982ed43846510c4e755197a"
+  tested_code_head: "70324e4a2f90916112638f5b8f6d9e67863bd4c8"
+  exact_head_ci_run: 31769476600
+  gpt_review_id: 4933968015
+  issue_comment: 5289457078
+  disposition: "R112_CHANGES_REQUIRED_RECONCILIATION_EVIDENCE_INERT_CONTENT_PRIVACY_DOMAIN_SEMANTIC_PROOF"
+  verified_no_runtime_drift_after_tested_head: true
+
+root_goal: >-
+  Continue the same Draft PR #290 with additive P1-only fixes. Make retrieval materially drive reconciliation, make every nontrivial action evidence-bound,
+  treat prompt-injection-like source text as inert data rather than executable control or blanket-rejected content, make privacy-domain isolation real in
+  public-safe synthetic fixtures, and make post-write semantic/paraphrase proof truthful. Do not enter P2-P5.
+
+required_blockers:
+  - "P1-RETRIEVAL-MUST-DRIVE-RECONCILIATION"
+  - "P1-ACTION-EVIDENCE-CONTRACT"
+  - "P1-UNTRUSTED-CONTENT-MUST-BE-INERT-NOT-BANNED"
+  - "P1-PRIVACY-DOMAIN-ISOLATION-NONDEGENERATE"
+  - "P1-POSTWRITE-SEMANTIC-PROOF-AND-ADVERSARIAL-COVERAGE"
+
+required_semantics:
+  retrieval_before_write:
+    - "bounded same-domain QueryPlan result must be inspected and recorded in reconciliation evidence"
+    - "action receipt binds candidate, compared lineage/atom IDs, evidence basis and action reason"
+    - "caller directive may constrain intent but naked action+target cannot by itself prove SUPPORT/REFINE/etc"
+    - "ambiguous or unsupported comparison => UNKNOWN/ABSTAIN with zero mutation"
+  action_evidence:
+    - "define minimum preconditions/evidence for MERGE, REFINE, SUPPORT, WEAKEN, CONTRADICT, SUPERSEDE, REVOKE, REVALIDATE, RESOLVE_UNKNOWN"
+    - "positive and negative tests for each nontrivial action"
+    - "if later lifecycle mutation belongs to P4, P1 may classify/record without performing that later transition, but must state that boundary explicitly"
+  inert_untrusted_content:
+    - "prompt-injection-like quoted/source text is stored only as source data with epistemic/provenance labeling"
+    - "it cannot alter route/task/system/authorization/authority fields"
+    - "actual secret/token/private-key shaped values remain hard-rejected before mutation/indexing"
+  privacy_domains:
+    - "separate public-safe execution class from privacy-domain namespace, or equivalent design"
+    - "allow at least two distinct PUBLIC-SAFE SYNTHETIC privacy domains for adversarial isolation tests while real/private classes stay forbidden"
+    - "same proposition across two synthetic privacy domains => distinct identities and zero implicit recall"
+    - "explicit synthetic aggregate query may admit both, but must not count them as two independent semantic votes without governed equivalence/aggregation"
+  post_write_proof:
+    - "semantic/paraphrase success must use materially different query text or relation-assisted path"
+    - "do not label exact lexical recall as semantic recall"
+    - "plain newline-separated mixed passages must actually decompose or the supported input contract must be changed and tested truthfully"
+
+required_adversarial_tests:
+  - "all canonical R112 required tests remain and pass"
+  - "retrieved comparison evidence actually changes or justifies reconciliation action"
+  - "naked action+target without required evidence => UNKNOWN/ABSTAIN"
+  - "positive and negative evidence gates for MERGE/REFINE/SUPPORT/WEAKEN/CONTRADICT/SUPERSEDE/REVOKE/REVALIDATE/RESOLVE_UNKNOWN"
+  - "prompt-injection-like source passage is retained as inert data and cannot mutate control/authorization"
+  - "secret-shaped source still fails before mutation/indexing"
+  - "two distinct public-safe synthetic privacy domains isolate proposition IDs and recall"
+  - "explicit aggregate view does not double-count isolated equivalent propositions"
+  - "true paraphrase or relation-assisted post-write recall proof"
+  - "restart/index rebuild preserves domain identity and all provenance"
+  - "newline-separated multi-atom passage behaves as documented"
+  - "accepted R109/R111 semantics remain green"
+
+execution_contract:
+  same_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
+  same_draft_pr: 290
+  additive_commits_only: true
+  runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
+  p2_graph_unification: "FORBIDDEN"
+  p3_proactive_associative_recall: "FORBIDDEN"
+  p4_feedback_skill_lifecycle: "FORBIDDEN"
+  p5_production_bridge: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  real_ingestion: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "expanded focused P1 adversarial suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11/3.13 exact-final-head CI SUCCESS"
+  - "public_safety_scan PASS"
+  - "YAML/JSON schema validation PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "deterministic/idempotent replay PASS"
+
+required_closeout:
+  - "new final exact head"
+  - "exact changed paths"
+  - "retrieval-to-action evidence mapping"
+  - "action-specific evidence/precondition matrix"
+  - "inert prompt-injection handling proof"
+  - "privacy-class/domain model and cross-domain aggregate proof"
+  - "true semantic/paraphrase post-write proof"
+  - "focused and full regression counts"
+  - "exact-head CI run/jobs"
+  - "public safety / YAML-JSON / diff-check / clean tree"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "P2_P3_P4_P5_NOT_PREEMPTED"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R113_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 113 is a narrow continuation of P1 on PR #290. Real private ingestion, production bridge, scheduler, formal/global promotion, security or permission
+  changes, QCLAW runtime dependency, P2-P5 and trading/account actions remain locked. GPT retains review and merge authority.
