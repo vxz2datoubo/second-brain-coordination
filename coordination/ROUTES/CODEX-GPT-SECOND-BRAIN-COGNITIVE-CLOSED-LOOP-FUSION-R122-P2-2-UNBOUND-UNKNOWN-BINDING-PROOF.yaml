@@ -13,22 +13,10 @@ automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
-formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
-real_private_raw_body_publication_allowed: false
-private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
-unattended_scheduler_activation_allowed: false
-repository_visibility_change_authorized: false
-production_mcp_gateway_deployment_authorized: false
-private_repository_creation_authorized: false
-permission_or_acl_change_authorized: false
-trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
 runtime_code_scope: "P2_2_UNBOUND_UNKNOWN_BINDING_PROOF_ONLY"
 
 canonical_main_at_route_prepare: "266b82b09a72e379311bfa9748b1167e67231af0"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R122-P2-2-UNBOUND-UNKNOWN-BINDING-PROOF.yaml"
 canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
 canonical_p2_plan: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R116-P2/P2-UNIFIED-RETRIEVAL-AND-CONTEXT-BUNDLE-IMPLEMENTATION-PLAN.md"
 implementation_branch: "codex/gpt-second-brain-context-bundle-v1-r119-p2-2"
@@ -39,7 +27,6 @@ review_return:
   gpt_review_id: 4939483803
   disposition: "R121_P2_2_EXACT_HEAD_CHANGES_REQUIRED_UNBOUND_UNKNOWN_BINDING_PROOF"
   verified_ci_run: 31821333043
-  verified_ci_head_sha: "9ee13b267042757358ffc1dad0a16dddc762eee3"
   verified_merge_ref: "deab9021867407b4f52f520158c38a2775f3e21c"
   verified_merge_ref_base: "266b82b09a72e379311bfa9748b1167e67231af0"
   verified_phase3_tests: "276/276 PASS"
@@ -49,33 +36,31 @@ accepted_r121_subsystems:
   foreign_scope_unbound_unknown_count_zero: true
   user_bound_unbound_unknown_count_zero: true
   privacy_bound_unbound_unknown_count_zero: true
-  r120_epistemic_role_projection: true
-  r120_owner_context_separation: true
-  r120_materiality_unknown_without_fabricated_abstain: true
+  r120_epistemic_and_materiality_fixes: true
   r119_endpoint_safe_projection: true
   r118_candidate_observability: true
   existing_ranking_and_budget_semantics: true
   p1_aggregate_equivalence_no_double_vote: true
 
 root_goal: >-
-  Finish P2.2 by eliminating the final data-dependent existence signal for endpoint-free explicit OPEN unknowns. The canonical unknown record currently has no
-  user_scope, privacy_domain, safety class, or public/synthetic provenance binding; therefore the absence of QueryPlan restrictions cannot prove that such an
-  unknown is caller-observable.
+  Finish P2.2 by removing the final data-dependent existence signal for endpoint-free OPEN unknowns. Because the canonical unknown record has no user_scope,
+  privacy_domain, safety class, or public/synthetic provenance binding, absence of QueryPlan restrictions is not proof that the unknown is caller-observable.
+  Until such binding is canonical, every endpoint-free unknown must be indistinguishable from nonexistence for all callers.
 
 mandatory_repairs:
+  - "Do not increment caller-visible unbound_explicit_unknown_omitted based on scope match, user_scope=None, or empty privacy_domains alone."
   - "Until canonical user/privacy/public binding exists on endpoint-free unknowns, zero-vs-one-vs-many endpoint-free unknowns must produce identical public data-dependent telemetry for every QueryPlan."
-  - "Do not increment unbound_explicit_unknown_omitted merely because scope matches or the caller omitted user_scope/privacy_domains."
-  - "A static non-data-dependent representation-gap/capability marker may be emitted, but it must not vary with the existence or count of endpoint-free unknown records."
-  - "Do not expose unknown ID/question/source_refs/raw source/pointer/private metadata and do not scan packet bodies to infer visibility."
-  - "Add zero/one/many same-scope oracle-equivalence tests and retain foreign/user/privacy fail-closed tests."
-  - "Preserve every accepted R121/R120/R119/R118 behavior plus existing ranking/budget/no-double-vote semantics."
+  - "A static non-data-dependent capability/representation-gap marker such as UNBOUND_UNKNOWN_BINDING_UNAVAILABLE may be exposed if useful, but it must be identical whether zero or many endpoint-free unknowns exist."
+  - "Do not expose unknown ID/question/source_refs/raw pointer/private metadata and do not scan packet bodies to infer visibility."
+  - "Add equivalence tests for zero, one, and many same-scope endpoint-free unknowns plus the already-covered foreign/user/privacy cases."
+  - "Preserve all accepted R120/R119/R118 behavior, ranking/budget semantics, and P1 aggregate-equivalence no-double-vote."
 
 architectural_note:
   id: "R122-UNKNOWN-BINDING-GAP"
   status: "KNOWN_REPRESENTATION_GAP"
   note: >-
-    Future safe projection of endpoint-free OPEN unknowns requires a separately designed canonical binding with user/project/privacy/safety/provenance identity.
-    R122 must not invent that schema; it only removes data-dependent telemetry until the binding is approved.
+    Future safe projection of endpoint-free explicit OPEN unknowns requires a canonical binding carrying sufficient user/project/privacy/safety/provenance identity.
+    This slice must not invent that schema. It only removes data-dependent telemetry until such binding is separately designed and approved.
 
 nonblocking_watchpoint:
   id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
@@ -101,7 +86,7 @@ execution_contract:
 
 validation_required:
   - "focused R122 zero/one/many unbound-unknown oracle-equivalence tests PASS"
-  - "R121 foreign/user/privacy tests remain PASS"
+  - "all R121 foreign/user/privacy observability tests PASS"
   - "full Phase-3 regression PASS"
   - "GitHub Actions exact final head_sha + Python 3.11/3.13 SUCCESS"
   - "public safety PASS"
