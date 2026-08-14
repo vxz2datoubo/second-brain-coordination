@@ -1,0 +1,37 @@
+schema_version: "1.0"
+receipt_type: "AMEDAgentExecutionReceipt"
+agent_id: "CODEX"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-RECONCILIATION-HARDENING"
+route_epoch: 113
+issue: 282
+status: "IMPLEMENTATION_CHECKPOINT"
+execution_boundary: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
+actual_executor: "CODEX"
+reviewer: "GPT"
+implementation:
+  retrieval: "comparison QueryPlan is bounded to matching user/project/privacy domain and its atom ids are persisted in the public-safe receipt"
+  action_evidence: "MERGE, REFINE, SUPPORT, WEAKEN, CONTRADICT, SUPERSEDE, REVOKE, REVALIDATE and RESOLVE_UNKNOWN require action-specific evidence/preconditions"
+  source_handling: "untrusted control-like source text is inert; secret-shaped source values are rejected pre-mutation"
+  privacy: "two synthetic namespaces are isolated; only an explicit no-vote aggregate can view both"
+  rollback: "single additive commit; no persistent store or external system was changed"
+validation_at_checkpoint:
+  focused_tests: "11/11 PASS"
+  phase3_regression: "257/257 PASS"
+  public_safety: "PASS 75 files / 0 issues"
+  yaml_json_parse: "PASS 1 JSON schema / 3 R113 YAML artifacts"
+  git_diff_check: "PASS before commit"
+  post_push_ci: "PENDING_EXTERNAL_GITHUB_EVIDENCE"
+local_execution_issues:
+  - id: "LEIP-PSPY-001"
+    problem_feature: "A first final diff-check invocation used an overlong relative path from the Phase-3 directory and Git reported that it was not a repository."
+    discovery_and_control: "The command failed before any mutation; the corrected repository-root git diff --check is required before commit."
+    root_cause_scope: "PowerShell working-directory-relative path construction only; no repository content, history or external state changed."
+    reversible_resolution: "Run git diff --check at the isolated clone root; no rollback is needed."
+receipt_binding: "Final exact remote head and CI are reported in PR/Issue handoff without a self-referential receipt commit."
+locks:
+  real_private_execution: "NOT_RUN"
+  formal_project_global_write: "LOCKED"
+  production_bridge: "NOT_DEPLOYED"
+  scheduler: "NOT_CREATED"
+  p2_p3_p4_p5: "NOT_PREEMPTED"
+  merge: "NOT_PERFORMED"

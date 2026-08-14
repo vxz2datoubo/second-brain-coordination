@@ -30,12 +30,31 @@ _PROMPT_INJECTION_MARKERS = (
     "ignore all instructions",
     "system prompt",
     "developer message",
+    "disregard instructions",
+    "jailbreak",
+    "<system>",
+    "忽略之前指令",
+    "忽略所有指令",
+    "系统提示",
+    "开发者消息",
 )
 _CONVERSATION_DERIVED_FIELDS = {"effective_valid_to", "superseded_by"}
 _CONVERSATION_OPTIONAL = {
     "source_episode_manifest_ids", "source_episodes", "daily_candidate_id_hash",
     "daily_candidate_id_hashes", "candidate_confidence",
 }
+_KNOWLEDGE_ROLES = {
+    "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT",
+    "MECHANISM", "CONDITION", "COUNTEREXAMPLE", "METHOD", "OPEN_QUESTION",
+    "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE",
+}
+_KNOWLEDGE_REQUIRED = {
+    "schema_version", "episode_manifest_ids", "source_episodes", "user_scope",
+    "project_scope", "privacy_domain", "identity_domain_hash", "proposition_id",
+    "epistemic_role", "taxonomy_version", "valid_from", "recorded_at",
+    "provenance_quality", "freshness_profile", "safety_class", "source_trust",
+}
+_PUBLIC_SAFE_SYNTHETIC_DOMAIN = re.compile(r"synthetic-[a-z0-9][a-z0-9-]{0,63}")
 
 
 def build_learning_packet(
@@ -59,18 +78,27 @@ def build_learning_packet(
         scope = normalize_text(str(atom.get("scope", "")))
         memory_metadata = atom.get("memory_metadata", {})
         conversation = memory_metadata.get("conversation") if isinstance(memory_metadata, dict) else None
+        knowledge = memory_metadata.get("knowledge") if isinstance(memory_metadata, dict) else None
         if atom_type == "conversation_memory" and isinstance(conversation, dict):
             memory_metadata = {
                 **memory_metadata,
                 "conversation": _normalized_conversation_metadata(conversation),
             }
             conversation = memory_metadata["conversation"]
+        if atom_type == "knowledge_atom" and isinstance(knowledge, dict):
+            memory_metadata = {**memory_metadata, "knowledge": _normalized_knowledge_metadata(knowledge)}
+            knowledge = memory_metadata["knowledge"]
         canonical_id = atom_id(statement, atom_type, scope)
         if atom_type == "conversation_memory" and isinstance(conversation, dict):
             # Keep malformed generic input on the verifier path so it receives
             # a deterministic contract error instead of an identity exception.
             try:
                 canonical_id = conversation_atom_id(statement, conversation)
+            except (AttributeError, TypeError, ValueError):
+                pass
+        if atom_type == "knowledge_atom" and isinstance(knowledge, dict):
+            try:
+                canonical_id = knowledge_atom_id(statement, knowledge)
             except (AttributeError, TypeError, ValueError):
                 pass
         normalized_atoms.append({
@@ -176,6 +204,8 @@ def verify_learning_packet(packet: dict[str, Any]) -> dict[str, Any]:
     for atom in packet.get("atoms", []):
         errors.extend(_conversation_contract_errors(atom))
         errors.extend(_conversation_packet_errors(packet, atom))
+        errors.extend(_knowledge_contract_errors(atom))
+        errors.extend(_knowledge_packet_errors(packet, atom))
     if packet.get("packet_id") and packet.get("packet_content_hash"):
         expected_key = packet["packet_id"] + "-" + packet["packet_content_hash"][:16]
         if packet.get("idempotency_key") != expected_key:
@@ -251,6 +281,174 @@ def conversation_atom_id(statement: str, conversation: dict[str, Any]) -> str:
             if conversation.get("valid_to") is not None else None
         ),
     })[:20]
+
+
+def knowledge_atom_id(statement: str, knowledge: dict[str, Any]) -> str:
+    """Versioned semantic identity; provenance remains explicitly outside it."""
+    return "at-knowledge-" + content_hash({
+        "identity_version": "knowledge-proposition-domain-v1",
+        "statement": normalize_text(statement),
+        "role": knowledge.get("epistemic_role"),
+        "taxonomy_version": knowledge.get("taxonomy_version"),
+        "identity_domain_hash": knowledge.get("identity_domain_hash"),
+    })[:20]
+
+
+def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
+    """Fail closed for governed P1 atoms, even for non-adapter callers."""
+    knowledge = atom.get("memory_metadata", {}).get("knowledge")
+    if atom.get("atom_type") != "knowledge_atom" and knowledge is None:
+        return []
+    if atom.get("atom_type") != "knowledge_atom" or not isinstance(knowledge, dict):
+        return ["knowledge_metadata_required"]
+    if _KNOWLEDGE_REQUIRED - set(knowledge):
+        return ["knowledge_metadata_required"]
+    string_fields = _KNOWLEDGE_REQUIRED - {"episode_manifest_ids", "source_episodes"}
+    if any(not isinstance(knowledge.get(key), str) or not knowledge[key] for key in string_fields):
+        return ["knowledge_metadata_invalid"]
+    if knowledge["schema_version"] != "knowledge-atom-v1":
+        return ["knowledge_schema_unsupported"]
+    if (
+        knowledge["safety_class"] != "PUBLIC_SAFE_SYNTHETIC"
+        or not (knowledge["privacy_domain"] == "PUBLIC_SAFE_SYNTHETIC" or _PUBLIC_SAFE_SYNTHETIC_DOMAIN.fullmatch(knowledge["privacy_domain"]))
+    ):
+        return ["knowledge_privacy_denied"]
+    if knowledge["source_trust"] not in {"SOURCE_DATA", "UNTRUSTED_INERT"}:
+        return ["knowledge_source_trust_invalid"]
+    if knowledge["epistemic_role"] not in _KNOWLEDGE_ROLES:
+        return ["knowledge_epistemic_role_denied"]
+    if knowledge["taxonomy_version"] != "knowledge-taxonomy-v1":
+        return ["knowledge_taxonomy_unsupported"]
+    expected_domain = content_hash({
+        "user_scope": knowledge["user_scope"], "project_scope": knowledge["project_scope"],
+        "privacy_domain": knowledge["privacy_domain"],
+    })
+    if knowledge["identity_domain_hash"] != expected_domain:
+        return ["knowledge_identity_domain_invalid"]
+    expected_proposition = "proposition-" + content_hash({
+        "identity_version": "knowledge-proposition-domain-v1",
+        "statement": normalize_text(atom.get("canonical_statement", "")),
+        "epistemic_role": knowledge["epistemic_role"], "taxonomy_version": knowledge["taxonomy_version"],
+        "identity_domain_hash": knowledge["identity_domain_hash"],
+    })[:20]
+    if knowledge["proposition_id"] != expected_proposition:
+        return ["knowledge_proposition_identity_invalid"]
+    if atom.get("scope") != knowledge["project_scope"]:
+        return ["knowledge_project_scope_inconsistent"]
+    if not isinstance(knowledge["episode_manifest_ids"], list) or not knowledge["episode_manifest_ids"]:
+        return ["knowledge_provenance_missing"]
+    if knowledge["episode_manifest_ids"] != sorted(set(knowledge["episode_manifest_ids"])):
+        return ["knowledge_provenance_invalid"]
+    if any("knowledge://" + item not in atom.get("source_refs", []) for item in knowledge["episode_manifest_ids"]):
+        return ["knowledge_provenance_missing"]
+    if not isinstance(knowledge["source_episodes"], list) or not knowledge["source_episodes"]:
+        return ["knowledge_provenance_invalid"]
+    episode_ids = []
+    for item in knowledge["source_episodes"]:
+        if (
+            not isinstance(item, dict)
+            or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust", "extraction_binding"}
+            or not all(
+                isinstance(item.get(key), str) and item[key]
+                for key in ("episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust")
+            )
+            or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
+            or item["source_trust"] not in {"SOURCE_DATA", "UNTRUSTED_INERT"}
+            or not _knowledge_extraction_binding_valid(item["extraction_binding"])
+        ):
+            return ["knowledge_provenance_invalid"]
+        try:
+            _instant(item["recorded_at"])
+            _instant(item["available_at"])
+        except (TypeError, ValueError):
+            return ["knowledge_provenance_invalid"]
+        episode_ids.append(item["episode_manifest_id"])
+    if sorted(episode_ids) != knowledge["episode_manifest_ids"]:
+        return ["knowledge_provenance_invalid"]
+    expected_source_trust = (
+        "UNTRUSTED_INERT"
+        if any(item["source_trust"] == "UNTRUSTED_INERT" for item in knowledge["source_episodes"])
+        else "SOURCE_DATA"
+    )
+    if knowledge["source_trust"] != expected_source_trust:
+        return ["knowledge_source_trust_aggregate_invalid"]
+    try:
+        valid_from = _instant(knowledge["valid_from"])
+        if knowledge.get("valid_to") is not None and _instant(knowledge["valid_to"]) <= valid_from:
+            return ["knowledge_valid_time_invalid"]
+        _instant(knowledge["recorded_at"])
+    except (TypeError, ValueError):
+        return ["knowledge_time_invalid"]
+    if atom.get("id") != knowledge_atom_id(atom.get("canonical_statement", ""), knowledge):
+        return ["knowledge_identity_invalid"]
+    return []
+
+
+def _knowledge_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> list[str]:
+    knowledge = atom.get("memory_metadata", {}).get("knowledge")
+    if not knowledge:
+        return []
+    if not isinstance(knowledge, dict):
+        return ["knowledge_packet_metadata_invalid"]
+    manifests = knowledge.get("episode_manifest_ids", [])
+    if any(item not in packet.get("source_manifest_ids", []) for item in manifests):
+        return ["knowledge_packet_manifest_mismatch"]
+    if any("knowledge://" + item not in packet.get("evidence_refs", []) for item in manifests):
+        return ["knowledge_packet_evidence_mismatch"]
+    report = packet.get("validation_report")
+    if not isinstance(report, dict):
+        return ["knowledge_packet_validation_missing"]
+    fields = (
+        "episode_manifest_ids", "source_episodes", "user_scope", "project_scope", "privacy_domain",
+        "identity_domain_hash", "proposition_id", "epistemic_role", "taxonomy_version", "provenance_quality",
+        "freshness_profile", "valid_to", "safety_class", "source_trust",
+    )
+    if any(report.get(field) != knowledge.get(field) for field in fields):
+        return ["knowledge_packet_validation_mismatch"]
+    if any(
+        item["extraction_binding"]["full_source_hash"] != packet.get("source_hash")
+        for item in knowledge["source_episodes"]
+    ):
+        return ["knowledge_packet_extraction_binding_mismatch"]
+    try:
+        if _instant(report.get("valid_from")) != _instant(knowledge.get("valid_from")):
+            return ["knowledge_packet_validation_mismatch"]
+        if _instant(report.get("recorded_at")) != _instant(knowledge.get("recorded_at")):
+            return ["knowledge_packet_validation_mismatch"]
+    except (TypeError, ValueError):
+        return ["knowledge_packet_validation_mismatch"]
+    source_pointer_hash = report.get("source_pointer_hash")
+    if not isinstance(source_pointer_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", source_pointer_hash):
+        return ["knowledge_packet_source_pointer_hash_required"]
+    return []
+
+
+def _normalized_knowledge_metadata(knowledge: dict[str, Any]) -> dict[str, Any]:
+    result = dict(knowledge)
+    for field in ("valid_from", "valid_to", "recorded_at"):
+        if result.get(field) is not None:
+            result[field] = _canonical_instant(result[field])
+    if isinstance(result.get("episode_manifest_ids"), list):
+        result["episode_manifest_ids"] = sorted(set(result["episode_manifest_ids"]))
+    if isinstance(result.get("source_episodes"), list):
+        result["source_episodes"] = sorted(result["source_episodes"], key=lambda item: item.get("episode_manifest_id", ""))
+    return result
+
+
+def _knowledge_extraction_binding_valid(binding: Any) -> bool:
+    if not isinstance(binding, dict) or set(binding) != {
+        "schema_version", "full_source_hash", "extracted_passage_hash", "normalized_start", "normalized_end",
+    }:
+        return False
+    if binding["schema_version"] != "knowledge-extraction-binding-v1":
+        return False
+    if not all(isinstance(binding[field], str) and re.fullmatch(r"[0-9a-f]{64}", binding[field]) for field in ("full_source_hash", "extracted_passage_hash")):
+        return False
+    return (
+        isinstance(binding["normalized_start"], int)
+        and isinstance(binding["normalized_end"], int)
+        and 0 <= binding["normalized_start"] < binding["normalized_end"]
+    )
 
 
 def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> list[str]:
@@ -352,7 +550,11 @@ def _normalized_conversation_metadata(conversation: dict[str, Any]) -> dict[str,
 
 def _is_prompt_injection(value: Any) -> bool:
     text = normalize_text(str(value)).casefold()
-    return any(marker in text for marker in _PROMPT_INJECTION_MARKERS)
+    return any(marker in text for marker in _PROMPT_INJECTION_MARKERS) or bool(re.search(
+        r"ignore\s+(?:all\s+)?(?:previous|earlier)\s+instructions|"
+        r"disregard\s+(?:all\s+)?instructions|忽略(?:之前|先前|所有)?指令",
+        text,
+    ))
 
 
 def _instant(value: str):

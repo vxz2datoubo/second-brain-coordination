@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Iterator, Sequence
 
 from .canonical import content_hash, normalize_text
-from .learning_packet import _conversation_contract_errors, verify_learning_packet
+from .learning_packet import _conversation_contract_errors, _knowledge_contract_errors, verify_learning_packet
 
 
 ALLOWED_TRUTH_STATES = {"candidate", "approved", "conflict", "superseded", "unknown", "stale", "revoked"}
@@ -175,6 +175,8 @@ class MemoryStore:
         _validate_atom(atom)
         if atom.get("atom_type") == "conversation_memory":
             raise ValueError("conversation_requires_learning_packet_import")
+        if atom.get("atom_type") == "knowledge_atom":
+            raise ValueError("knowledge_requires_learning_packet_import")
         with self.transaction() as connection:
             self._upsert_atom(connection, atom)
             self._index_atom(connection, atom)
@@ -187,6 +189,8 @@ class MemoryStore:
             return False
         if existing.get("atom_type") == "conversation_memory":
             raise ValueError("conversation_update_requires_learning_packet_import")
+        if existing.get("atom_type") == "knowledge_atom":
+            raise ValueError("knowledge_update_requires_learning_packet_import")
         merged = {**existing, **updates, "id": atom_id}
         _validate_atom(merged)
         with self.transaction() as connection:
@@ -204,7 +208,9 @@ class MemoryStore:
 
     def provenance_for_atom(self, atom_id: str) -> list[dict[str, Any]]:
         """Resolve existing W3 packet lineage without exposing a raw pointer."""
-        stored_conversation = (self.get_atom(atom_id) or {}).get("memory_metadata", {}).get("conversation", {})
+        stored_metadata = (self.get_atom(atom_id) or {}).get("memory_metadata", {})
+        stored_conversation = stored_metadata.get("conversation", {})
+        stored_knowledge = stored_metadata.get("knowledge", {})
         rows = self.conn.execute(
             """SELECT packets.id, packets.content_hash, packets.json_blob
                FROM packet_atoms JOIN packets ON packets.id=packet_atoms.packet_id
@@ -217,6 +223,10 @@ class MemoryStore:
             validation = packet.get("validation_report", {})
             conversation = next((
                 atom.get("memory_metadata", {}).get("conversation", {})
+                for atom in packet.get("atoms", []) if atom.get("id") == atom_id
+            ), {})
+            knowledge = next((
+                atom.get("memory_metadata", {}).get("knowledge", {})
                 for atom in packet.get("atoms", []) if atom.get("id") == atom_id
             ), {})
             source_episodes = conversation.get("source_episodes", [])
@@ -240,6 +250,18 @@ class MemoryStore:
                 # opaque episode identifiers only, never raw pointers/bodies.
                 "source_episodes": source_episodes,
                 "daily_candidate_id_hashes": stored_conversation.get("daily_candidate_id_hashes", []),
+                "knowledge": {
+                    "proposition_id": stored_knowledge.get("proposition_id"),
+                    "identity_domain_hash": stored_knowledge.get("identity_domain_hash"),
+                    "epistemic_role": stored_knowledge.get("epistemic_role"),
+                    "episode_manifest_ids": stored_knowledge.get("episode_manifest_ids", []),
+                    # Reconstructed provenance exposes the currently merged
+                    # immutable source set, not only the one packet being
+                    # enumerated.  Preserve the packet-local set separately
+                    # so audit consumers can distinguish origin from union.
+                    "source_episodes": stored_knowledge.get("source_episodes", []),
+                    "packet_source_episodes": knowledge.get("source_episodes", []),
+                } if knowledge else {},
             })
         return result
 
@@ -395,6 +417,7 @@ class MemoryStore:
 
     def _upsert_atom(self, connection: sqlite3.Connection, atom: dict[str, Any]) -> None:
         atom = self._with_merged_daily_candidate_aliases(connection, atom)
+        atom = self._with_merged_knowledge_provenance(connection, atom)
         now = _now()
         connection.execute(
             """INSERT INTO atoms(id, atom_type, canonical_statement, scope, confidence, verification_status, evidence_quality,
@@ -454,6 +477,43 @@ class MemoryStore:
         conversation["daily_candidate_id_hashes"] = sorted(aliases)
         metadata["conversation"] = conversation
         result["memory_metadata"] = metadata
+        return result
+
+    @staticmethod
+    def _with_merged_knowledge_provenance(
+        connection: sqlite3.Connection, atom: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Union independent source lineage without changing one proposition's vote."""
+        incoming = atom.get("memory_metadata", {}).get("knowledge")
+        if not isinstance(incoming, dict):
+            return atom
+        existing = connection.execute("SELECT memory_metadata, knowledge_status, source_refs FROM atoms WHERE id=?", (atom["id"],)).fetchone()
+        if existing is None:
+            return atom
+        existing_metadata = json.loads(existing["memory_metadata"])
+        prior = existing_metadata.get("knowledge")
+        if not isinstance(prior, dict):
+            raise ValueError("knowledge_existing_metadata_missing")
+        identity_fields = ("proposition_id", "identity_domain_hash", "epistemic_role", "taxonomy_version", "user_scope", "project_scope", "privacy_domain", "safety_class")
+        if any(prior.get(field) != incoming.get(field) for field in identity_fields):
+            raise ValueError("knowledge_identity_collision_denied")
+        merged_episodes = {item["episode_manifest_id"]: item for item in prior.get("source_episodes", [])}
+        merged_episodes.update({item["episode_manifest_id"]: item for item in incoming.get("source_episodes", [])})
+        merged = dict(prior)
+        merged["episode_manifest_ids"] = sorted(merged_episodes)
+        merged["source_episodes"] = [merged_episodes[key] for key in sorted(merged_episodes)]
+        merged["source_trust"] = (
+            "UNTRUSTED_INERT"
+            if any(item.get("source_trust") == "UNTRUSTED_INERT" for item in merged["source_episodes"])
+            else "SOURCE_DATA"
+        )
+        metadata = dict(atom.get("memory_metadata", {}))
+        metadata["knowledge"] = merged
+        result = dict(atom)
+        result["memory_metadata"] = metadata
+        result["source_refs"] = sorted(set(json.loads(existing["source_refs"]) + atom.get("source_refs", [])))
+        # A source-only duplicate must never revive a closed/revoked lineage.
+        result["knowledge_status"] = existing["knowledge_status"]
         return result
 
     @staticmethod
@@ -542,6 +602,9 @@ def _validate_atom(atom: dict[str, Any]) -> None:
     conversation_errors = _conversation_contract_errors(atom)
     if conversation_errors:
         raise ValueError("invalid_conversation_atom:" + ",".join(conversation_errors))
+    knowledge_errors = _knowledge_contract_errors(atom)
+    if knowledge_errors:
+        raise ValueError("invalid_knowledge_atom:" + ",".join(knowledge_errors))
     if _contains_secret_value(atom):
         raise ValueError("credential_value_denied")
 
