@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
 issue: 282
 agent: "CODEX"
@@ -6,13 +6,19 @@ reviewer: "GPT"
 owner: "USER"
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】"
-status: "WAITING_PREDECESSOR"
-execution_allowed: false
+status: "ACTIVE_POST_R109"
+execution_allowed: true
 predecessor:
-  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
-  route_epoch: 108
+  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-FINAL-CONFLICT-HARDENING"
+  route_epoch: 109
   implementation_pr: 280
-  required_disposition: "GPT_ACCEPTED_AND_MERGED_OR_EXPLICITLY_ACCEPTED_BASE"
+  accepted_head: "ad5f0e4c925b7750ad28d8b7e13e322dea46f325"
+  accepted_merge_commit: "07d847e870bc0f2d1770c3c5e7892168c0e28f94"
+  disposition: "R109_ACCEPTED_MEMORY_PALACE_V1_SYNTHETIC_FOUNDATION"
+  verified_ci_run: 31763417180
+  verified_focused_tests: "27/27 PASS"
+  verified_phase3_tests: "246/246 PASS"
+activation_base_main: "6ac983316a0d23354b7fad2eb1034b7efb6bc9db"
 no_preemption: true
 
 canonical_inputs:
@@ -23,10 +29,10 @@ canonical_inputs:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
 
 objective: >-
-  After GPT accepts the R108 Memory Palace hardening, integrate long-term conversational memory, reusable semantic knowledge, plans/events/constraints,
-  owner stances, temporal/conflict reasoning, retrieval-before-write reconciliation, retrieval-before-answer associative recall and feedback-driven
-  lifecycle updates into one W3-backed cognitive loop. GPT must become the primary conversational ingestion/recall orchestrator; QCLAW/QQ may remain
-  an optional batch/backfill worker but cannot be a runtime dependency.
+  Starting from the GPT-accepted and merged R109 Memory Palace foundation, integrate long-term conversational memory, reusable semantic knowledge,
+  plans/events/constraints, owner stances, temporal/conflict reasoning, retrieval-before-write reconciliation, retrieval-before-answer associative
+  recall and feedback-driven lifecycle updates into one W3-backed cognitive loop. GPT must become the primary conversational ingestion/recall
+  orchestrator; QCLAW/QQ may remain an optional batch/backfill worker but cannot be a runtime dependency.
 
 architecture_rules:
   - "Reuse one W3/Integrated Offline Memory canonical candidate runtime; no second memory/knowledge authority."
@@ -38,17 +44,22 @@ architecture_rules:
   - "User/project/privacy scope is fail-closed."
   - "No credentials in memory, embedding, log or fixtures."
   - "NO_TRADE and no irreversible autonomous action."
+  - "Reuse E50-proven foundations D1/D2/D4/D6/D8/D9/D11 as evidence only; do not import the QCLAW audit harness or create a QCLAW runtime dependency."
+  - "Treat E50 D3/D5/D7/D10/D12 as implementation requirements or explicit UNKNOWN/PARTIAL where still unresolved."
 
 phase_plan:
   - phase: "P0_COMPATIBILITY_AND_BASE_FREEZE"
     goal: >-
-      Read the exact accepted R108 merge/head and current main. Map W3, CLTM, Memory Palace, existing KnowledgeAtom/relations/LearningPacket/QueryPlan and
-      the new GPT cognitive-loop skill. Produce a compatibility matrix and explicit reuse/adapt/add decisions before implementation.
+      Read exact accepted R109 head `ad5f0e4c925b7750ad28d8b7e13e322dea46f325`, merge `07d847e870bc0f2d1770c3c5e7892168c0e28f94`,
+      and current main. Map W3, CLTM, Memory Palace, existing KnowledgeAtom/relations/LearningPacket/QueryPlan and the GPT cognitive-loop skill.
+      Produce a compatibility matrix and explicit reuse/adapt/add decisions before implementation. Also update any stale blueprint header that still
+      says the R108 predecessor is waiting; do not create a second active blueprint.
     outputs:
       - "compatibility matrix"
       - "object/ID lineage map"
       - "schema migration plan if additive changes are needed"
       - "test plan and rollback plan"
+      - "stale predecessor metadata reconciliation"
   - phase: "P1_KNOWLEDGE_EPISODE_ATOMIZATION_AND_RECONCILIATION"
     goal: >-
       Add or adapt KnowledgeEpisode/KnowledgeAtom ingestion atop the existing W3 packet boundary; support faithful extraction contract, typed atoms,
@@ -78,6 +89,7 @@ phase_plan:
     goal: >-
       Define and test feedback outcomes (useful, irrelevant, stale, wrong, incomplete conditions, cross-context success) and map them into evidence,
       confidence, scope, freshness, supersession, revocation and skill-candidate lifecycle updates.
+      Skill promotion runtime must require independent validation receipts, rollback and failure conditions; no one-case promotion.
   - phase: "P5_TOOL_CONTRACT_ONLY"
     goal: >-
       Define narrow GPT-facing contracts for memory.capture, knowledge.reconcile, memory.search, memory.recall_context, memory.conflicts and memory.feedback.
@@ -145,6 +157,7 @@ required_synthetic_adversarial_tests:
   - "index rebuild does not change canonical atom identity"
   - "feedback marks wrong/stale knowledge without deleting history"
   - "four cognitive states remain topic-specific and inferred does not become explicit"
+  - "paraphrased prompt injection is not silently treated as trusted memory content; unsupported generalization remains explicit UNKNOWN until covered"
 
 validation_required:
   - "focused synthetic/adversarial suite PASS"
@@ -157,8 +170,8 @@ validation_required:
   - "no raw private data read or publication"
 
 forbidden_actions:
-  - "Do not preempt or modify unfinished R108 before GPT accepts it."
-  - "Do not open or ingest the real private W3 source/store in this queued task."
+  - "Do not rewrite or weaken the GPT-accepted R109 Memory Palace semantics except through additive, compatibility-preserving changes with tests."
+  - "Do not open or ingest the real private W3 source/store in this task."
   - "Do not deploy production MCP/Gateway or expose ports/services."
   - "Do not create scheduler/startup persistence."
   - "Do not change ACL/security/credentials/repository visibility."
@@ -194,7 +207,10 @@ required_closeout:
   - formal_promotion_locked
 
 activation_contract:
-  current_state: "WAITING_R108_GPT_ACCEPTANCE"
-  when_ready: >-
-    GPT must publish a fresh ACTIVE-CODEX-TASK/route from then-current main with exact accepted predecessor SHA and create a dedicated Codex branch/PR.
-    Codex must not infer activation from this queued brief alone.
+  current_state: "ACTIVE_EPOCH_110"
+  active_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R110.yaml"
+  branch_hint: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
+  start_command: "读取任务"
+  rule: >-
+    Codex must read the fresh canonical ACTIVE-CODEX-TASK and epoch-110 route from current origin/main before beginning. Activation is explicit and
+    no longer inferred from the old queued state.
