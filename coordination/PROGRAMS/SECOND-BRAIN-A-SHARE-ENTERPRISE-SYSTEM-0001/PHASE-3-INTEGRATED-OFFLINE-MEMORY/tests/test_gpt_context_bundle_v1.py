@@ -119,6 +119,37 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
         self.assertEqual(projection.admission, {"admitted_count": 0, "rejected_counts": {}})
         self.assertNotIn("foreign", repr(projection.to_dict()))
 
+    def test_v1_context_budgets_emit_only_omission_counts(self) -> None:
+        root, first, second = atom("r119 budget root"), atom("r119 budget first"), atom("r119 budget second")
+        provisional = packet([root, first, second], relations=[], conflicts=[], unknowns=[])
+        atom_ids = {item["canonical_statement"]: item["id"] for item in provisional["atoms"]}
+        root_id = atom_ids["r119 budget root"]
+        first_id = atom_ids["r119 budget first"]
+        second_id = atom_ids["r119 budget second"]
+        self.store.import_learning_packet(packet(
+            [root, first, second],
+            relations=[
+                {"source_atom_id": root_id, "target_atom_id": first_id, "relation_type": "supports"},
+                {"source_atom_id": root_id, "target_atom_id": second_id, "relation_type": "supports"},
+            ],
+            conflicts=[],
+            unknowns=[],
+        ))
+        plan = QueryPlan(query_text="r119 budget root", budget=1)
+        legacy = self.assembler.assemble(plan)
+        projection = self.assembler.assemble_v1(plan)
+
+        self.assertEqual(len(legacy.relations), 2)
+        self.assertEqual(len(projection.context["relations"]), 1)
+        self.assertEqual(projection.context["omitted_due_to_budget"], {
+            "relations": 1, "conflicts": 0, "unknowns": 0,
+        })
+        omitted_relation_id = next(
+            relation["id"] for relation in legacy.relations
+            if relation["id"] != projection.context["relations"][0]["id"]
+        )
+        self.assertNotIn(omitted_relation_id, repr(projection.context["relations"]))
+
 
 if __name__ == "__main__":
     unittest.main()

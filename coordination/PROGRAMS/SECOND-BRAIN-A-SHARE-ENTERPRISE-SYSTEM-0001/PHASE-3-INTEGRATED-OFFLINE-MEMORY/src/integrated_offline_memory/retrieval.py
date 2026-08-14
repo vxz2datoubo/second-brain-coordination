@@ -126,7 +126,7 @@ class GPTSecondBrainContextBundle:
     request: dict[str, Any]
     admission: dict[str, Any]
     evidence: dict[str, tuple[dict[str, Any], ...]]
-    context: dict[str, tuple[dict[str, Any], ...]]
+    context: dict[str, Any]
     provenance: dict[str, tuple[dict[str, Any], ...]]
     ranking: dict[str, Any]
     trust_gate: dict[str, Any]
@@ -135,7 +135,10 @@ class GPTSecondBrainContextBundle:
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
         for section in ("evidence", "context", "provenance"):
-            payload[section] = {key: list(value) for key, value in payload[section].items()}
+            payload[section] = {
+                key: list(value) if isinstance(value, tuple) else value
+                for key, value in payload[section].items()
+            }
         return payload
 
 
@@ -292,9 +295,12 @@ class ContextAssembler:
 
         bundle = self.assemble(plan)
         atoms_by_id = {atom["id"]: atom for atom in bundle.atoms}
-        relation_items = tuple(self._redacted_relation(relation) for relation in bundle.relations)
-        conflict_items = tuple(self._redacted_conflict(conflict) for conflict in bundle.conflicts)
-        unknown_items = tuple(self._redacted_unknown(unknown) for unknown in bundle.unknowns)
+        all_relation_items = tuple(self._redacted_relation(relation) for relation in bundle.relations)
+        all_conflict_items = tuple(self._redacted_conflict(conflict) for conflict in bundle.conflicts)
+        all_unknown_items = tuple(self._redacted_unknown(unknown) for unknown in bundle.unknowns)
+        relation_items = all_relation_items[:plan.budget]
+        conflict_items = all_conflict_items[:plan.budget]
+        unknown_items = all_unknown_items[:plan.budget]
         support, counter = self._support_and_counter(bundle.relations, atoms_by_id)
         heads = tuple(
             self._evidence_item(atom, "current_lineage_head")
@@ -332,6 +338,11 @@ class ContextAssembler:
                 "temporal_context": (),
                 "stance_context": stances,
                 "analogies": (),
+                "omitted_due_to_budget": {
+                    "relations": len(all_relation_items) - len(relation_items),
+                    "conflicts": len(all_conflict_items) - len(conflict_items),
+                    "unknowns": len(all_unknown_items) - len(unknown_items),
+                },
             },
             provenance={"adjacency": self._redacted_provenance(bundle.atoms)},
             ranking={
