@@ -1,13 +1,12 @@
-schema_version: "111.0"
+schema_version: "112.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 282
-active_pull_request: 287
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P0-IDENTITY-SCOPE-HARDENING"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-KNOWLEDGE-ATOMIZATION-RECONCILIATION"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 111
+route_epoch: 112
 mode: "goal"
-mode_label: "【Codex模式：目标模式】P0知识身份域与Scope准入补强"
+mode_label: "【Codex模式：目标模式】P1知识原子化与写入前对账"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -25,52 +24,45 @@ production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 trading_or_account_action_allowed: false
-runtime_code_change_allowed: false
+runtime_code_change_allowed: true
+runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
 
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R111-P0-IDENTITY-SCOPE-HARDENING.yaml"
+canonical_main_at_route_prepare: "99e40305d617ebed4e31d504f97bb3dfe03d9882"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R112-P1-KNOWLEDGE-ATOMIZATION-RECONCILIATION.yaml"
 canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001-AMED.yaml"
 canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
-implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
-implementation_pr: 287
-reviewed_head: "5e3e7c48a917f3aee138e61a6c994c50a99ed917"
-gpt_review_id: 4933326576
-issue_review_comment: 5288799683
+canonical_p0_plan: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/GPT-SECOND-BRAIN-R110-P0-COMPATIBILITY-PLAN.yaml"
+implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
+implementation_pr: "TO_BE_CREATED_BY_CODEX"
 
-predecessor_checkpoint:
-  task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-  route_epoch: 110
+accepted_p0:
   implementation_pr: 287
-  implementation_head: "5e3e7c48a917f3aee138e61a6c994c50a99ed917"
-  disposition: "CHANGES_REQUIRED_BEFORE_P1"
-  verified_ci_run: 31764322564
+  accepted_head: "12246ea966bb6c76a4dffba637453ccea6cefb17"
+  accepted_merge_commit: "99e40305d617ebed4e31d504f97bb3dfe03d9882"
+  gpt_review_id: 4933461791
+  disposition: "P0_ACCEPTED_R111"
+  verified_ci_run: 31765103591
   verified_phase3_tests: "246/246 PASS"
   verified_public_safety: "73 files / 0 issues"
 
 root_goal: >-
-  Keep PR #287 in P0 only and close the two remaining architecture blockers before P1: freeze a semantic proposition identity domain that prevents
-  foreign-user/project/privacy collisions without turning every evidence source into a duplicate proposition, and freeze fail-closed KnowledgeAtom
-  user/project/privacy query admission compatible with the existing W3 QueryPlan/ContextAssembler boundary.
-
-required_blockers:
-  - "P0-KNOWLEDGE-IDENTITY-DOMAIN-ISOLATION"
-  - "P0-KNOWLEDGE-QUERY-SCOPE-ADMISSION"
-
-required_acceptance_cases:
-  - "same proposition / same project / different synthetic user scopes => no canonical collision and zero cross-user recall"
-  - "same proposition / same user-domain / two independent source episodes => one semantic proposition lineage or explicit equivalent, both provenances preserved, no duplicate vote"
-  - "same text / different project or privacy domain => isolated unless explicit future promotion/share is authorized"
-  - "user-bound QueryPlan admits authorized KnowledgeAtom and rejects foreign-user equivalent"
-  - "index rebuild and rollback preserve identity-domain and provenance semantics"
+  Implement only the P1 synthetic/private-safe knowledge-ingestion vertical slice on the existing W3 authority: KnowledgeEpisode, faithful multi-atom
+  epistemic decomposition, R111 domain-bound KnowledgeAtom identity, retrieval-before-write reconciliation, additive provenance without duplicate
+  semantic voting, atomic candidate write, governed KnowledgeAtom query admission and post-write scoped recall verification.
 
 execution_contract:
-  same_draft_pr: 287
-  additive_commits_only: true
-  p0_docs_and_plan_only: true
-  runtime_code: "FORBIDDEN_THIS_ROUTE"
-  p1_start: "FORBIDDEN_UNTIL_GPT_ACCEPTS_R111"
+  dedicated_branch_required: true
+  branch_hint: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
+  implementation_pr: "CREATE_AND_REPORT"
+  additive_changes_only: true
+  p1_runtime_changes: "ALLOWED_WITHIN_ROUTE"
+  p2_graph_unification: "FORBIDDEN"
+  p3_proactive_associative_recall: "FORBIDDEN"
+  p4_feedback_skill_lifecycle: "FORBIDDEN"
+  p5_production_bridge: "FORBIDDEN"
   private_data: "FORBIDDEN"
   real_private_store: "FORBIDDEN"
-  ingestion: "FORBIDDEN"
+  real_ingestion: "FORBIDDEN"
   scheduler: "FORBIDDEN"
   production_mcp_gateway: "FORBIDDEN"
   formal_project_global_promotion: "LOCKED"
@@ -79,35 +71,60 @@ execution_contract:
   trading_accounts: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
+required_capabilities:
+  - "KnowledgeEpisode immutable/content-bound source projection"
+  - "governed multi-atom semantic and epistemic typing"
+  - "knowledge-proposition-domain-v1 identity isolation"
+  - "same-domain multi-source provenance union without duplicate semantic vote"
+  - "retrieval-before-write typed reconciliation"
+  - "candidate-only atomic/idempotent W3 write"
+  - "fail-closed KnowledgeAtom user/project/privacy/time/freshness admission"
+  - "exact scoped post-write recall and foreign-domain zero recall"
+  - "untrusted source text remains inert data; secret-shaped values reject before mutation/indexing"
+
+mandatory_watchpoint: >-
+  Privacy-domain isolation is conservative by design. If a synthetic aggregate view separately authorizes equivalent proposition representations from
+  multiple privacy domains, do not count them as independent semantic evidence merely because both are admissible. Preserve privacy isolation and use
+  an explicit governed aggregation/equivalence rule rather than implicit cross-domain merging.
+
 validation_required:
-  - "P0 plan and blueprint consistency PASS"
-  - "full relevant Phase-3 baseline remains PASS without runtime code changes"
+  - "all R112 adversarial tests in canonical route PASS"
+  - "focused P1 synthetic/adversarial suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "accepted R109/R111 behavior remains PASS"
   - "Python 3.11/3.13 CI SUCCESS on final exact head"
   - "public_safety_scan PASS"
-  - "YAML parse PASS"
+  - "YAML/JSON schema validation PASS"
   - "git diff --check PASS"
   - "working tree clean"
+  - "deterministic/idempotent replay where applicable"
 
 required_closeout:
-  - "new exact head_sha"
+  - "final exact head_sha"
+  - "branch and pull request"
   - "exact changed paths"
-  - "semantic proposition identity-domain decision"
-  - "source/evidence provenance lineage decision"
-  - "knowledge user/project/privacy admission decision"
-  - "duplicate-voting prevention model"
-  - "five P0 acceptance-case mappings"
-  - "migration and rollback implications"
-  - "Phase-3 baseline result"
-  - "Python 3.11/3.13 CI result"
+  - "KnowledgeEpisode/KnowledgeAtom schema and identity mapping"
+  - "taxonomy/epistemic-role mapping"
+  - "reconciliation action mapping"
+  - "provenance-union and duplicate-voting result"
+  - "KnowledgeAtom query admission result"
+  - "post-write scoped recall result"
+  - "untrusted-content/secret-denial result"
+  - "focused/adversarial test count"
+  - "full Phase-3 test count"
+  - "exact-head CI run/jobs"
   - "public safety"
+  - "YAML/schema validation"
   - "git diff check"
-  - "RUNTIME_CODE_NOT_CHANGED"
-  - "P1_NOT_STARTED"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "unknowns/risks/rollback"
   - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "PRODUCTION_BRIDGE_NOT_DEPLOYED"
   - "FORMAL_PROMOTION_LOCKED"
+  - "P2_P3_P4_P5_NOT_PREEMPTED"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_P0_IDENTITY_SCOPE_R111_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R112_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 111 is a narrow P0 design repair only. No P1 runtime implementation, real private ingestion, production bridge, scheduler, formal/global
-  promotion, security/permission change, QCLAW runtime dependency or trading/account action is authorized. GPT retains review and merge authority.
+  Epoch 112 authorizes only P1 synthetic/private-safe runtime work. Real private ingestion, production bridge, scheduler, formal/global promotion,
+  security/permission changes, QCLAW runtime dependency and trading/account actions remain locked. GPT retains review and merge authority.
