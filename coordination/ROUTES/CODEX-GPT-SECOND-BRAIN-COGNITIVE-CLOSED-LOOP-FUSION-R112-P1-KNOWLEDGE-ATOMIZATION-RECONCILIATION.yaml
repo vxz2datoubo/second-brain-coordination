@@ -1,0 +1,177 @@
+schema_version: "112.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 282
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-KNOWLEDGE-ATOMIZATION-RECONCILIATION"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 112
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P1知识原子化与写入前对账"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+intermediate_gpt_review_required: true
+
+accepted_p0:
+  implementation_pr: 287
+  accepted_head: "12246ea966bb6c76a4dffba637453ccea6cefb17"
+  merge_commit: "99e40305d617ebed4e31d504f97bb3dfe03d9882"
+  gpt_review_id: 4933461791
+  disposition: "P0_ACCEPTED_R111"
+  verified_ci_run: 31765103591
+  verified_phase3_tests: "246/246 PASS"
+  verified_public_safety: "73 files / 0 issues"
+
+canonical_inputs:
+  - "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/GPT-SECOND-BRAIN-R110-P0-COMPATIBILITY-PLAN.yaml"
+  - "coordination/SKILLS/GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-v1.0.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
+
+root_goal: >-
+  Implement the first synthetic/private-safe runtime slice of the unified GPT second brain on the existing W3 authority: KnowledgeEpisode capture,
+  faithful multi-atom semantic decomposition, governed domain-bound KnowledgeAtom identity, retrieval-before-write reconciliation, additive provenance,
+  candidate-only atomic/idempotent write, and exact scoped post-write recall. Do not implement P2 graph unification, P3 proactive associative recall,
+  P4 feedback lifecycle, or P5 production-facing bridge beyond interfaces strictly required by this P1 slice.
+
+authority_and_scope_contract:
+  canonical_runtime: "W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+  second_store: "FORBIDDEN"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  knowledge_identity_version: "knowledge-proposition-domain-v1"
+  proposition_identity_must_bind:
+    - "normalized proposition"
+    - "epistemic role / governed taxonomy version"
+    - "identity_domain_hash(user_scope, project_scope, privacy_domain)"
+  proposition_identity_must_not_bind:
+    - "source episode ID"
+    - "source manifest ID"
+    - "source content hash"
+  evidence_identity: "Each source/episode/manifest remains immutable and separately content-bound."
+  query_admission: >-
+    Governed KnowledgeAtom candidates must fail closed on user_scope, authorized project_scope, privacy_domain, timezone-aware valid_at,
+    CURRENT/HISTORICAL lifecycle/freshness and evidence/provenance requirements before lexical/semantic/relation ranking. Generic legacy atoms retain
+    existing behavior; no permissive fallback is allowed for malformed or missing knowledge metadata.
+
+p1_required_capabilities:
+  - id: "P1-FAITHFUL-KNOWLEDGE-EPISODE"
+    requirement: >-
+      Add a synthetic/private-safe KnowledgeEpisode adapter over the existing W3 packet/provenance boundary. Preserve immutable source identity,
+      normalized content hash, recorded/available time where supplied, user/project/privacy domain and source span/locator metadata without exposing raw
+      private pointers in public receipts.
+  - id: "P1-GOVERNED-MULTI-ATOM"
+    requirement: >-
+      Decompose one input passage into multiple typed candidate atoms. At minimum support governed extensible roles for FACT_CLAIM, SOURCE_CLAIM,
+      SOURCE_INTERPRETATION, VALUE_JUDGMENT, MECHANISM, CONDITION, COUNTEREXAMPLE, METHOD and UNKNOWN/OPEN_QUESTION, while preserving epistemic
+      separation between source claims, user assertions/stances, assistant analysis and model inference. Do not collapse all knowledge into free-form labels.
+  - id: "P1-DOMAIN-BOUND-PROPOSITION-ID"
+    requirement: >-
+      Implement and verify the R111 proposition identity-domain contract. Same proposition in foreign user/project/privacy domains must not collide.
+      Same proposition from independent sources in one authorized domain must converge to one proposition lineage without duplicate semantic voting.
+  - id: "P1-RETRIEVAL-BEFORE-WRITE"
+    requirement: >-
+      Before mutation, retrieve bounded same-domain current lineage/evidence and classify each candidate with one explicit reconciliation action:
+      NEW, DUPLICATE, MERGE, REFINE, SUPPORT, WEAKEN, CONTRADICT, SUPERSEDE, REVOKE, REVALIDATE, RESOLVE_UNKNOWN or UNKNOWN. Unsupported/ambiguous
+      comparisons must return UNKNOWN/ABSTAIN rather than mutating optimistically.
+  - id: "P1-ADDITIVE-PROVENANCE-NO-DUPLICATE-VOTE"
+    requirement: >-
+      DUPLICATE adds provenance only. Independent SUPPORT/WEAKEN evidence must remain evidence/provenance lineage rather than an equivalent proposition
+      atom. A later upsert/import must not make earlier packet/source provenance inaccessible. Cross-privacy-domain equivalence must not be counted as
+      independent evidence merely because multiple isolated representations are admissible; do not weaken privacy isolation to solve this.
+  - id: "P1-ATOMIC-CANDIDATE-WRITE"
+    requirement: >-
+      Reuse LearningPacket/MemoryStore atomic and idempotent write boundaries. Reconciliation preflight must finish before mutation. No formal authority
+      write, no destructive overwrite of source history, and no migration that changes accepted R109 conversation-memory identities.
+  - id: "P1-KNOWLEDGE-QUERY-ADMISSION"
+    requirement: >-
+      Extend the governed metadata and QueryPlan/ContextAssembler admission path only as needed so authorized KnowledgeAtoms can be recalled by a
+      user-bound query while foreign user/project/privacy equivalents are rejected before ranking. CURRENT/HISTORICAL and freshness semantics remain explicit.
+  - id: "P1-POST-WRITE-VERIFICATION"
+    requirement: >-
+      A successful capture must prove exact scoped recall plus appropriate semantic/paraphrase or relation-assisted recall for the written candidate,
+      and prove foreign-domain zero recall. Failure means the capture receipt is not SUCCESS.
+  - id: "P1-UNTRUSTED-CONTENT-BOUNDARY"
+    requirement: >-
+      Source text is data, never executable control. Synthetic prompt-injection-like text must not change task/system/control fields or authorization.
+      Secret/token/private-key shaped values must fail before mutation/indexing. Do not implement a simplistic rule that turns source opinion or quoted
+      instruction text into objective truth.
+
+required_synthetic_adversarial_tests:
+  - "same proposition + same project + different user scopes => distinct proposition/atom identities and zero cross-user recall"
+  - "same proposition + same user/project/privacy domain + two independent source episodes => one proposition lineage, both provenances preserved, no duplicate vote"
+  - "same text + different project or privacy domain => isolated with zero implicit cross-domain retrieval"
+  - "cross-privacy isolated equivalents, if both are separately authorized in a synthetic aggregate view, are not counted as two independent semantic votes without explicit governed aggregation"
+  - "long mixed passage => multiple typed atoms sharing one KnowledgeEpisode provenance"
+  - "source interpretation/value judgment never becomes objective FACT_CLAIM"
+  - "user stance and model inference remain distinct from source fact/claim"
+  - "duplicate claim => DUPLICATE provenance enrichment with idempotent replay"
+  - "new source evidence => SUPPORT/WEAKEN without equivalent proposition duplication"
+  - "incompatible proposition => separate lineage plus CONTRADICT/conflict evidence, not silent overwrite"
+  - "REFINE/MERGE/SUPERSEDE/REVOKE/REVALIDATE/RESOLVE_UNKNOWN only occur when required evidence is present; otherwise UNKNOWN"
+  - "authorized user-bound QueryPlan retrieves KnowledgeAtom; foreign user/project/privacy candidate is rejected before ranking"
+  - "stale/revoked/superseded KnowledgeAtom cannot re-enter CURRENT via lexical/semantic/relation similarity"
+  - "HISTORICAL retrieval requires explicit valid_at and preserves prior lineage"
+  - "index rebuild/restart preserves proposition identity and all provenance"
+  - "prompt-injection-like source text remains inert data and cannot mutate control/authorization"
+  - "secret/token/private-key shaped input fails before write/index mutation"
+  - "existing R109 Memory Palace schedule semantics remain unchanged"
+
+implementation_boundaries:
+  allowed:
+    - "additive runtime/schema/test changes inside Phase-3 integrated offline memory needed for P1"
+    - "additive KnowledgeEpisode/KnowledgeAtom/ReconciliationReceipt contracts"
+    - "minimal QueryPlan/ContextAssembler changes required for governed KnowledgeAtom admission"
+    - "tests, public-safe fixtures, handoff/receipt and canonical blueprint status reconciliation"
+  forbidden:
+    - "real private source/store read or ingestion"
+    - "production MCP/Gateway/port deployment"
+    - "scheduler/startup persistence"
+    - "formal PROJECT/GLOBAL promotion"
+    - "ACL/security/credentials/repository-visibility changes"
+    - "QCLAW audit harness/runtime dependency"
+    - "P2 broad memory/knowledge/plan graph redesign beyond links strictly required by P1 reconciliation"
+    - "P3 embedding provider/proactive recall production path"
+    - "P4 formal skill lifecycle promotion"
+    - "broker/trading/account/fund/order actions"
+    - "Codex merging its own PR"
+
+validation_required:
+  - "focused P1 synthetic/adversarial suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "accepted R109/R111 regression cases remain PASS"
+  - "Python 3.11/3.13 GitHub Actions SUCCESS on final exact head"
+  - "public_safety_scan PASS"
+  - "YAML/JSON schema validation PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "deterministic/idempotent replay where applicable"
+
+required_closeout:
+  - "final exact head_sha"
+  - "branch and pull request"
+  - "exact changed paths"
+  - "KnowledgeEpisode and KnowledgeAtom schema/identity mapping"
+  - "governed taxonomy/epistemic-role mapping"
+  - "retrieval-before-write reconciliation action mapping"
+  - "provenance-union and duplicate-voting result"
+  - "KnowledgeAtom QueryPlan admission result"
+  - "post-write scoped recall result"
+  - "untrusted-content and secret rejection result"
+  - "focused/adversarial test count"
+  - "full Phase-3 regression count"
+  - "Python 3.11/3.13 exact-head CI run/jobs"
+  - "public safety"
+  - "YAML/schema validation"
+  - "git diff --check"
+  - "LOCAL_EXECUTION_ISSUES"
+  - "unknowns/risks/rollback"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "PRODUCTION_BRIDGE_NOT_DEPLOYED"
+  - "FORMAL_PROMOTION_LOCKED"
+  - "P2_P3_P4_P5_NOT_PREEMPTED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R112_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 112 authorizes only the P1 synthetic/private-safe runtime slice. Real private ingestion, production bridge, scheduler, formal/global promotion,
+  security/permission changes, QCLAW runtime dependency and trading/account actions remain locked. GPT retains review and merge authority.
