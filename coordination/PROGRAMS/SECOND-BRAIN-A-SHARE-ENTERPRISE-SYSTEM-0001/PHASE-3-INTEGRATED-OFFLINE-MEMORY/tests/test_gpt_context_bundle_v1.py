@@ -15,6 +15,8 @@ for source_root in (
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.learning_packet import build_learning_packet
+from integrated_offline_memory.conversation_memory import ConversationEpisode, build_conversation_candidate
+from integrated_offline_memory.knowledge_reconciliation import KnowledgeEpisode, capture_knowledge
 from integrated_offline_memory.memory_store import MemoryStore
 from integrated_offline_memory.retrieval import ContextAssembler, GPTSecondBrainContextBundle, QueryPlan
 
@@ -46,11 +48,26 @@ def packet(
     )
 
 
+NOW = "2026-08-15T12:00:00Z"
+USER = "synthetic-user"
+PROJECT = "synthetic-project"
+
+
 class GPTContextBundleV1TestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.store = MemoryStore().connect()
         self.addCleanup(self.store.close)
         self.assembler = ContextAssembler(self.store)
+
+    def _conversation(self, statement: str, claim_role: str) -> None:
+        episode = ConversationEpisode(
+            episode_id="r120-" + claim_role.lower(), user_scope=USER, project_scope=PROJECT,
+            source_pointer="synthetic://r120/owner-context", source_hash="a" * 64,
+            privacy_class="PUBLIC_SAFE_SYNTHETIC", recorded_at=NOW, valid_time=NOW, provenance_quality="DIRECT",
+        )
+        self.store.import_learning_packet(build_conversation_candidate(
+            episode=episode, statement=statement, claim_role=claim_role, valid_from=NOW,
+        ))
 
     def test_endpoint_safe_projection_keeps_evidence_roles_and_deterministic_scores(self) -> None:
         root = atom("r119 root evidence")
@@ -97,7 +114,8 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
         self.assertEqual([item["atom_id"] for item in projection.evidence["strongest_support"]], [support_id])
         self.assertEqual([item["atom_id"] for item in projection.evidence["strongest_counter_or_alternative"]], [counter_id])
         self.assertEqual([item["question"] for item in projection.evidence["unknowns"]], ["safe unresolved item"])
-        self.assertEqual(projection.trust_gate["reason"], "material_conflict_present")
+        self.assertEqual(projection.trust_gate["reason"], "scope_privacy_status_and_valid_time_passed")
+        self.assertEqual(projection.trust_gate["materiality"]["state"], "UNKNOWN")
         self.assertEqual(projection.ranking["omitted_due_to_budget"], 0)
         self.assertEqual(
             [item["atom_id"] for item in projection.ranking["score_components"]],
@@ -149,6 +167,50 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
             if relation["id"] != projection.context["relations"][0]["id"]
         )
         self.assertNotIn(omitted_relation_id, repr(projection.context["relations"]))
+
+    def test_owner_and_source_interpretation_roles_never_become_unlabeled_objective_evidence(self) -> None:
+        self._conversation("r120 preference", "USER_PREFERENCE")
+        self._conversation("r120 plan", "USER_PLAN")
+        owner_projection = self.assembler.assemble_v1(QueryPlan(
+            query_text="r120", scopes=(PROJECT,), user_scope=USER, valid_at=NOW,
+        ))
+
+        self.assertEqual(owner_projection.evidence["current_lineage_heads"], ())
+        self.assertEqual(owner_projection.evidence["strongest_support"], ())
+        self.assertEqual(
+            {item["claim_role"] for item in owner_projection.context["owner_context"]},
+            {"USER_PREFERENCE", "USER_PLAN"},
+        )
+
+        episode = KnowledgeEpisode(
+            episode_id="r120-interpretation", user_scope=USER, project_scope=PROJECT,
+            privacy_domain="synthetic-r120", source_pointer="synthetic://r120/interpretation",
+            source_text="Interpretation: r120 source interpretation", recorded_at=NOW, available_at=NOW,
+        )
+        capture_knowledge(store=self.store, episode=episode, semantic_query="source context")
+        interpretation_projection = self.assembler.assemble_v1(QueryPlan(
+            query_text="r120 source interpretation", scopes=(PROJECT,), user_scope=USER,
+            privacy_domains=("synthetic-r120",), valid_at=NOW,
+        ))
+
+        self.assertEqual(interpretation_projection.evidence["current_lineage_heads"], ())
+        self.assertEqual(interpretation_projection.evidence["strongest_support"], ())
+        self.assertEqual(
+            [item["epistemic_role"] for item in interpretation_projection.context["interpretation_context"]],
+            ["SOURCE_INTERPRETATION"],
+        )
+
+    def test_unbound_explicit_open_unknown_is_count_only_and_never_silent(self) -> None:
+        self.store.import_learning_packet(packet(
+            [atom("r120 explicit root")], relations=[], conflicts=[],
+            unknowns=[{"question": "r120 unbound explicit unknown", "scope": "", "related_atom_ids": []}],
+        ))
+
+        projection = self.assembler.assemble_v1(QueryPlan(query_text=""))
+
+        self.assertEqual(projection.evidence["unknowns"], ())
+        self.assertEqual(projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 1})
+        self.assertNotIn("r120 unbound explicit unknown", repr(projection.to_dict()))
 
 
 if __name__ == "__main__":

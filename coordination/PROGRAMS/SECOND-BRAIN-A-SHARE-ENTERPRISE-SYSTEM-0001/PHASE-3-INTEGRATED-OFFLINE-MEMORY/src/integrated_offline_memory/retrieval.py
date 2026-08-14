@@ -203,6 +203,7 @@ class ContextAssembler:
             "rejected_counts": {},
         }
         self._last_score_components: dict[str, dict[str, float]] = {}
+        self._last_unbound_explicit_unknown_omitted = 0
 
     @property
     def last_admission_report(self) -> dict[str, Any]:
@@ -256,6 +257,7 @@ class ContextAssembler:
         selected_set = set(selected_ids)
         relations = self._safe_relations(plan, selected_set)
         conflicts = self._safe_conflicts(plan, selected_set) if plan.include_conflicts else ()
+        self._last_unbound_explicit_unknown_omitted = 0
         unknowns = self._safe_unknowns(plan, selected_set, include_all_open=not bool(plan.query_text)) if plan.include_unknowns else ()
         source_lineage = tuple(sorted({source for atom in atoms if atom for source in atom.get("source_refs", [])}))
         provenance = tuple(item for atom in atoms if atom for item in self.store.provenance_for_atom(atom["id"]))
@@ -306,15 +308,22 @@ class ContextAssembler:
             self._evidence_item(atom, "current_lineage_head")
             for atom in bundle.atoms if self._objective_evidence(atom)
         )
-        stances = tuple(
-            self._evidence_item(atom, "stance")
-            for atom in bundle.atoms if not self._objective_evidence(atom)
+        owner_context = tuple(
+            self._evidence_item(atom, "owner_context")
+            for atom in bundle.atoms if self._owner_context(atom)
+        )
+        interpretation_context = tuple(
+            self._evidence_item(atom, "non_objective_interpretation")
+            for atom in bundle.atoms if self._interpretation_context(atom)
         )
         trust_gate = dict(bundle.trust_gate)
-        if trust_gate.get("outcome") != "ABSTAIN" and conflict_items:
-            trust_gate = {"outcome": "ABSTAIN", "reason": "material_conflict_present", "intent": plan.intent}
-        elif trust_gate.get("outcome") != "ABSTAIN" and unknown_items:
-            trust_gate = {"outcome": "ABSTAIN", "reason": "material_unknown_present", "intent": plan.intent}
+        if trust_gate.get("outcome") != "ABSTAIN" and (conflict_items or unknown_items):
+            trust_gate["materiality"] = {
+                "state": "UNKNOWN",
+                "reason": "canonical_blocking_predicate_not_available",
+                "conflict_count": len(conflict_items),
+                "unknown_count": len(unknown_items),
+            }
         return GPTSecondBrainContextBundle(
             schema_version="GPTSecondBrainContextBundle/v1",
             request={
@@ -336,12 +345,19 @@ class ContextAssembler:
             context={
                 "relations": relation_items,
                 "temporal_context": (),
-                "stance_context": stances,
+                "stance_context": tuple(item for item in owner_context if item.get("claim_role") in {
+                    "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+                }),
+                "owner_context": owner_context,
+                "interpretation_context": interpretation_context,
                 "analogies": (),
                 "omitted_due_to_budget": {
                     "relations": len(all_relation_items) - len(relation_items),
                     "conflicts": len(all_conflict_items) - len(conflict_items),
                     "unknowns": len(all_unknown_items) - len(unknown_items),
+                },
+                "unknown_omission_counts": {
+                    "unbound_explicit_unknown_omitted": self._last_unbound_explicit_unknown_omitted,
                 },
             },
             provenance={"adjacency": self._redacted_provenance(bundle.atoms)},
@@ -386,6 +402,7 @@ class ContextAssembler:
         for unknown in self.store.unknowns_for(selected_ids, include_all_open=include_all_open):
             related = unknown.get("related_atom_ids")
             if not isinstance(related, list) or not related:
+                self._last_unbound_explicit_unknown_omitted += 1
                 continue
             if plan.scopes and unknown.get("scope") not in set(plan.scopes):
                 continue
@@ -408,23 +425,42 @@ class ContextAssembler:
         return dict(sorted(components.items()))
 
     def _evidence_item(self, atom: dict[str, Any], role: str) -> dict[str, Any]:
-        return {
+        item = {
             "atom_id": atom["id"], "atom_type": atom.get("atom_type"), "role": role,
             "confidence": atom.get("confidence"), "score_components": self._score_components(atom["id"]),
             "lifecycle": atom.get("knowledge_status"),
         }
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        if isinstance(conversation, dict) and isinstance(conversation.get("claim_role"), str):
+            item["claim_role"] = conversation["claim_role"]
+        if isinstance(knowledge, dict) and isinstance(knowledge.get("epistemic_role"), str):
+            item["epistemic_role"] = knowledge["epistemic_role"]
+        return item
 
     @staticmethod
     def _objective_evidence(atom: dict[str, Any]) -> bool:
         metadata = atom.get("memory_metadata", {})
         conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
-        if isinstance(conversation, dict) and conversation.get("claim_role") in {
-            "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
-        }:
+        if isinstance(conversation, dict) and conversation:
             return False
         knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
         role = knowledge.get("epistemic_role") if isinstance(knowledge, dict) else None
-        return role not in {"USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE", "VALUE_JUDGMENT"}
+        return role not in {
+            "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE", "OPEN_QUESTION",
+        }
+
+    @staticmethod
+    def _owner_context(atom: dict[str, Any]) -> bool:
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        return isinstance(conversation, dict) and bool(conversation)
+
+    def _interpretation_context(self, atom: dict[str, Any]) -> bool:
+        metadata = atom.get("memory_metadata", {})
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        return isinstance(knowledge, dict) and bool(knowledge) and not self._objective_evidence(atom)
 
     def _support_and_counter(
         self, relations: tuple[dict[str, Any], ...], atoms_by_id: dict[str, dict[str, Any]],
