@@ -1,0 +1,200 @@
+schema_version: "1.0"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+issue: 282
+agent: "CODEX"
+reviewer: "GPT"
+owner: "USER"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】"
+status: "WAITING_PREDECESSOR"
+execution_allowed: false
+predecessor:
+  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
+  route_epoch: 108
+  implementation_pr: 280
+  required_disposition: "GPT_ACCEPTED_AND_MERGED_OR_EXPLICITLY_ACCEPTED_BASE"
+no_preemption: true
+
+canonical_inputs:
+  - "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+  - "coordination/SKILLS/GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-v1.0.yaml"
+  - "coordination/BLUEPRINTS/PERSONAL-EPISTEMIC-COGNITIVE-OPERATING-SYSTEM-BLUEPRINT-v1.0.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CLTM-0021/MEMORY-PALACE-MANUAL-CAPTURE-TEMPORAL-REASONING-V1.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/"
+
+objective: >-
+  After GPT accepts the R108 Memory Palace hardening, integrate long-term conversational memory, reusable semantic knowledge, plans/events/constraints,
+  owner stances, temporal/conflict reasoning, retrieval-before-write reconciliation, retrieval-before-answer associative recall and feedback-driven
+  lifecycle updates into one W3-backed cognitive loop. GPT must become the primary conversational ingestion/recall orchestrator; QCLAW/QQ may remain
+  an optional batch/backfill worker but cannot be a runtime dependency.
+
+architecture_rules:
+  - "Reuse one W3/Integrated Offline Memory canonical candidate runtime; no second memory/knowledge authority."
+  - "Raw source episodes are append-preserving; derived atoms/graphs/indexes are versioned projections."
+  - "Memory, knowledge, plan/event/constraint, stance, conflict and unknown objects must be interoperable through stable IDs and relations."
+  - "Embedding similarity is retrieval evidence only, never truth or current-validity authority."
+  - "User assertion, owner stance, source claim, assistant analysis and model inference remain separate epistemic roles."
+  - "CURRENT, HISTORICAL and freshness/revalidation semantics must remain explicit."
+  - "User/project/privacy scope is fail-closed."
+  - "No credentials in memory, embedding, log or fixtures."
+  - "NO_TRADE and no irreversible autonomous action."
+
+phase_plan:
+  - phase: "P0_COMPATIBILITY_AND_BASE_FREEZE"
+    goal: >-
+      Read the exact accepted R108 merge/head and current main. Map W3, CLTM, Memory Palace, existing KnowledgeAtom/relations/LearningPacket/QueryPlan and
+      the new GPT cognitive-loop skill. Produce a compatibility matrix and explicit reuse/adapt/add decisions before implementation.
+    outputs:
+      - "compatibility matrix"
+      - "object/ID lineage map"
+      - "schema migration plan if additive changes are needed"
+      - "test plan and rollback plan"
+  - phase: "P1_KNOWLEDGE_EPISODE_ATOMIZATION_AND_RECONCILIATION"
+    goal: >-
+      Add or adapt KnowledgeEpisode/KnowledgeAtom ingestion atop the existing W3 packet boundary; support faithful extraction contract, typed atoms,
+      retrieval-before-write comparison and graph evolution actions without touching real private sources.
+    required_actions:
+      - NEW
+      - DUPLICATE
+      - MERGE
+      - REFINE
+      - SUPPORT
+      - WEAKEN
+      - CONTRADICT
+      - SUPERSEDE
+      - REVOKE
+      - REVALIDATE
+      - RESOLVE_UNKNOWN
+      - UNKNOWN
+  - phase: "P2_UNIFIED_MEMORY_KNOWLEDGE_PLAN_GRAPH"
+    goal: >-
+      Make episodic memory, knowledge, events/plans/constraints, owner stance, conflicts and unknowns cross-retrievable through the same provenance,
+      temporal and relation model. Preserve one source episode lineage for multi-atom inputs.
+  - phase: "P3_ASSOCIATIVE_RECALL_AND_CONTEXT_BUNDLE"
+    goal: >-
+      Implement bounded lexical/semantic/temporal/provenance/entity-graph/structural-analogy retrieval and GPTSecondBrainContextBundle. Add anti-anchor
+      logic so strong similarity cannot resurrect stale, revoked or disproven experience into CURRENT reasoning.
+  - phase: "P4_FEEDBACK_AND_LIFECYCLE"
+    goal: >-
+      Define and test feedback outcomes (useful, irrelevant, stale, wrong, incomplete conditions, cross-context success) and map them into evidence,
+      confidence, scope, freshness, supersession, revocation and skill-candidate lifecycle updates.
+  - phase: "P5_TOOL_CONTRACT_ONLY"
+    goal: >-
+      Define narrow GPT-facing contracts for memory.capture, knowledge.reconcile, memory.search, memory.recall_context, memory.conflicts and memory.feedback.
+      In this task, implement only synthetic/private-safe adapters if feasible. Production MCP/Gateway deployment and real private-store access remain locked.
+
+reference_acceptance_story_schedule_conflict:
+  prior_memory:
+    recorded_before: "2026-08-15"
+    statement: "2026-08-16 要去旅游"
+  new_utterance:
+    recorded_at: "2026-08-15T20:00:00+08:00"
+    statement: "明天准备直接睡大觉睡一天"
+  required_behavior:
+    - "Resolve 明天 to 2026-08-16 without rewriting the source utterance."
+    - "Retrieve the prior travel plan via temporal/plan graph rather than accidental same-day lexical coincidence."
+    - "Represent both as event/plan/constraint objects with source provenance."
+    - "Emit SCHEDULE_POTENTIAL_CONFLICT when travel time/cancellation/flexibility is unknown."
+    - "Do not assert user contradiction as a fact."
+    - "If later evidence proves mutual exclusion, permit SCHEDULE_HARD_CONFLICT."
+    - "If user cancels travel, append correction/supersession/revocation while preserving HISTORICAL recall."
+    - "Context bundle must let GPT naturally remind the user of the possible conflict and missing information."
+
+reference_acceptance_story_knowledge_digest:
+  input: >-
+    One user-supplied passage contains multiple factual claims, one author interpretation, one mechanism, conditions, a counterexample and a reusable
+    method; user invokes `消化这个`.
+  required_behavior:
+    - "Preserve immutable source identity/content hash/span."
+    - "Emit multiple typed atoms with shared episode lineage."
+    - "Separate source fact/claim/interpretation/value judgment/model inference."
+    - "Retrieve relevant existing W3 atoms before writing."
+    - "Assign typed reconciliation action for each material candidate."
+    - "Create only evidence-supported relation edges; unresolved links remain UNKNOWN."
+    - "Write candidate packets atomically/idempotently."
+    - "Require exact scoped recall and appropriate paraphrase/graph recall before success receipt."
+
+reference_acceptance_story_proactive_recall:
+  required_behavior:
+    - "A current user turn can trigger retrieval even without explicit 'remember/search' wording when prior context materially changes the answer."
+    - "Bound retrieval by user/project/privacy/time/status/evidence and relation budget."
+    - "Retrieve relevant counterevidence or mismatch for consequential decisions."
+    - "Skip retrieval or ABSTAIN for irrelevant, stale-only or low-confidence matches."
+
+reference_acceptance_story_feedback:
+  required_behavior:
+    - "User/real outcome can mark a retrieved knowledge/case as useful, irrelevant, stale, wrong or condition-incomplete."
+    - "Feedback updates lifecycle append-preservingly and never rewrites original evidence."
+    - "One successful case cannot promote a method directly to formal skill."
+
+required_synthetic_adversarial_tests:
+  - "travel-on-2026-08-16 plus 2026-08-15 'tomorrow sleep all day' => potential conflict when constraints incomplete"
+  - "same story with explicit mutually exclusive fixed interval => hard conflict"
+  - "later cancellation => CURRENT excludes old plan; HISTORICAL reconstructs it"
+  - "long mixed knowledge passage => multi-atom typed extraction with one source episode"
+  - "author opinion never becomes objective fact"
+  - "owner stance never becomes objective fact"
+  - "duplicate semantic claim avoids duplicate voting while preserving provenance"
+  - "new evidence refines/supports/weakens/contradicts existing lineage correctly"
+  - "structural analogy retrieval works with low lexical overlap"
+  - "highly similar stale or revoked case cannot dominate CURRENT answer"
+  - "strong supporting memory plus counterevidence are both available for high-risk context bundle"
+  - "cross-project and foreign-user recall returns nothing"
+  - "secret/token/private-key patterns fail before mutation/indexing"
+  - "restart preserves candidate and exact scoped recall"
+  - "index rebuild does not change canonical atom identity"
+  - "feedback marks wrong/stale knowledge without deleting history"
+  - "four cognitive states remain topic-specific and inferred does not become explicit"
+
+validation_required:
+  - "focused synthetic/adversarial suite PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "public_safety_scan PASS"
+  - "YAML/JSON schema validation PASS"
+  - "git diff --check PASS"
+  - "Python 3.11/3.13 CI PASS where current project matrix applies"
+  - "deterministic/idempotent replay where required"
+  - "no raw private data read or publication"
+
+forbidden_actions:
+  - "Do not preempt or modify unfinished R108 before GPT accepts it."
+  - "Do not open or ingest the real private W3 source/store in this queued task."
+  - "Do not deploy production MCP/Gateway or expose ports/services."
+  - "Do not create scheduler/startup persistence."
+  - "Do not change ACL/security/credentials/repository visibility."
+  - "Do not perform formal PROJECT/GLOBAL promotion."
+  - "Do not touch broker accounts, orders, funds or live trading."
+  - "Do not merge your own PR."
+
+required_closeout:
+  - head_sha
+  - branch
+  - pull_request
+  - exact_changed_paths
+  - predecessor_base_proof
+  - compatibility_and_reuse_decisions
+  - object_and_schema_changes
+  - reconciliation_implementation_mapping
+  - graph_and_temporal_integration_result
+  - context_bundle_and_retrieval_result
+  - schedule_conflict_acceptance_story_result
+  - knowledge_digest_acceptance_story_result
+  - proactive_recall_acceptance_story_result
+  - feedback_lifecycle_result
+  - focused_test_count_result
+  - full_regression_count_result
+  - public_safety_result
+  - ci_result
+  - git_diff_check
+  - unknowns
+  - risks
+  - rollback
+  - real_private_execution_not_run
+  - production_bridge_not_deployed
+  - formal_promotion_locked
+
+activation_contract:
+  current_state: "WAITING_R108_GPT_ACCEPTANCE"
+  when_ready: >-
+    GPT must publish a fresh ACTIVE-CODEX-TASK/route from then-current main with exact accepted predecessor SHA and create a dedicated Codex branch/PR.
+    Codex must not infer activation from this queued brief alone.
