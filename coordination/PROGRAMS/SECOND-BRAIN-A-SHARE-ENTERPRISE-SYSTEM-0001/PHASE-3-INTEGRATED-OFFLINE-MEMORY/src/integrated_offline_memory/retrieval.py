@@ -113,35 +113,103 @@ class ContextBundle:
         return payload
 
 
+@dataclass(frozen=True)
+class CandidateAdmissionDecision:
+    """A stable, public-safe outcome for one pre-ranking candidate check.
+
+    Reason codes deliberately describe only a policy class.  They never carry
+    an atom identifier, source pointer, source body, or metadata value.
+    """
+
+    admitted: bool
+    reason: str
+
+
+@dataclass
+class _CandidateSet:
+    """Internal candidate collection shared by every P2.1 retrieval channel."""
+
+    scores: dict[str, float] = field(default_factory=dict)
+    rejected_counts: dict[str, int] = field(default_factory=dict)
+    public_accounted_atom_ids: set[str] = field(default_factory=set)
+
+    def consider(
+        self, atom: dict[str, Any], score: float, decision: CandidateAdmissionDecision, *, caller_observable: bool,
+    ) -> bool:
+        """Record only facts the caller is permitted to observe.
+
+        A non-observable candidate is deliberately identical to no candidate in
+        the public report.  Its decision still remains internal to the
+        assembler so candidate admission semantics are not weakened.
+        """
+
+        if not decision.admitted:
+            atom_id = atom["id"]
+            if caller_observable and atom_id not in self.public_accounted_atom_ids:
+                self.rejected_counts[decision.reason] = self.rejected_counts.get(decision.reason, 0) + 1
+                self.public_accounted_atom_ids.add(atom_id)
+            return False
+        atom_id = atom["id"]
+        self.scores[atom_id] = max(self.scores.get(atom_id, score), score)
+        return True
+
+    def public_report(self) -> dict[str, Any]:
+        """Return counts only, in deterministic order, for public-safe audit."""
+
+        return {
+            "admitted_count": len(self.scores),
+            "rejected_counts": dict(sorted(self.rejected_counts.items())),
+        }
+
+
 class ContextAssembler:
     def __init__(self, store: MemoryStore) -> None:
         self.store = store
+        self._last_admission_report: dict[str, Any] = {
+            "admitted_count": 0,
+            "rejected_counts": {},
+        }
+
+    @property
+    def last_admission_report(self) -> dict[str, Any]:
+        """Counts-only report for the most recent assembly.
+
+        This is intentionally outside ``ContextBundle`` in P2.1, preserving
+        the existing bundle schema and semantic hash while exposing the new
+        boundary for callers and tests.  The returned structure is copied so a
+        caller cannot mutate assembler state.
+        """
+
+        return {
+            "admitted_count": self._last_admission_report["admitted_count"],
+            "rejected_counts": dict(self._last_admission_report["rejected_counts"]),
+        }
 
     def assemble(self, plan: QueryPlan) -> ContextBundle:
         plan.validate()
         score_map = self.store.search_term_scores(plan.query_text)
-        candidates: dict[str, float] = {}
+        candidate_set = _CandidateSet()
         for atom_id, score in score_map.items():
             atom = self.store.get_atom(atom_id)
-            if atom is not None and self._allowed(atom, plan):
-                candidates[atom_id] = score
+            if atom is not None:
+                self._consider_candidate(candidate_set, atom, score, plan)
 
-        frontier = set(candidates)
+        frontier = set(candidate_set.scores)
         visited = set(frontier)
         for depth in range(plan.relation_depth):
             related = self.store.related_atom_ids(frontier) - visited
             next_frontier: set[str] = set()
             for atom_id in related:
                 atom = self.store.get_atom(atom_id)
-                if atom is not None and self._allowed(atom, plan):
-                    candidates[atom_id] = max(candidates.get(atom_id, 0.0), 0.5 / (depth + 1))
+                if atom is not None and self._consider_candidate(candidate_set, atom, 0.5 / (depth + 1), plan):
                     next_frontier.add(atom_id)
             visited.update(next_frontier)
             frontier = next_frontier
             if not frontier:
                 break
 
-        ranked_ids = sorted(candidates, key=lambda atom_id: (-candidates[atom_id], atom_id))
+        self._last_admission_report = candidate_set.public_report()
+        ranked_ids = sorted(candidate_set.scores, key=lambda atom_id: (-candidate_set.scores[atom_id], atom_id))
         selected_ids = ranked_ids[:plan.budget]
         omitted = ranked_ids[plan.budget:]
         atoms = tuple(self.store.get_atom(atom_id) for atom_id in selected_ids)
@@ -169,37 +237,40 @@ class ContextAssembler:
             provenance=provenance,
         )
 
-    def _allowed(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
-        if atom["knowledge_status"] not in set(plan.truth_states):
+    def _consider_candidate(
+        self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float, plan: QueryPlan,
+    ) -> bool:
+        """The only candidate-set entry point for lexical and relation paths."""
+
+        return candidate_set.consider(
+            atom,
+            score,
+            self._admission_decision(atom, plan),
+            caller_observable=self._caller_observable(atom, plan),
+        )
+
+    def _caller_observable(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
+        """Fail closed before an admission rejection can become public telemetry.
+
+        This intentionally has no public reason output.  It only decides
+        whether a caller can safely know that a candidate exists at all.
+        """
+
+        if atom.get("gpt_access") != "FULL_SEMANTIC_ACCESS":
             return False
-        if atom["knowledge_status"] in DENIED_TRUTH_STATES:
+        if atom.get("transport_visibility") == "RESTRICTED_NEVER_SYNC":
             return False
-        if atom["knowledge_status"] in {"stale", "revoked"}:
+        if plan.scopes and atom.get("scope") not in set(plan.scopes):
             return False
-        if plan.intent == "CURRENT" and atom["knowledge_status"] == "superseded":
+        metadata = atom.get("memory_metadata", {})
+        if not isinstance(metadata, dict):
             return False
-        if atom["gpt_access"] != "FULL_SEMANTIC_ACCESS":
-            return False
-        if atom["transport_visibility"] == "RESTRICTED_NEVER_SYNC":
-            return False
-        if float(atom["confidence"]) < plan.min_confidence:
-            return False
-        if plan.scopes and atom["scope"] not in set(plan.scopes):
-            return False
-        if plan.atom_types and atom["atom_type"] not in set(plan.atom_types):
-            return False
-        if plan.time_start and atom["updated_at"] < plan.time_start:
-            return False
-        if plan.time_end and atom["updated_at"] > plan.time_end:
-            return False
-        conversation = atom.get("memory_metadata", {}).get("conversation")
-        knowledge = atom.get("memory_metadata", {}).get("knowledge")
+        conversation = metadata.get("conversation")
+        knowledge = metadata.get("knowledge")
         if conversation:
-            # CLTM data fails closed: caller must bind both scopes and a valid
-            # instant.  Non-conversation W3 atoms retain historic defaults.
-            if not plan.scopes or plan.user_scope is None or not plan.valid_at:
+            if not isinstance(conversation, dict) or not plan.scopes or plan.user_scope is None or not plan.valid_at:
                 return False
-            if atom["scope"] not in set(plan.scopes) or conversation.get("project_scope") not in set(plan.scopes):
+            if conversation.get("project_scope") not in set(plan.scopes):
                 return False
             if conversation.get("user_scope") != plan.user_scope:
                 return False
@@ -214,19 +285,11 @@ class ContextAssembler:
                 "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
             }:
                 return False
-            if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
+            return bool(atom.get("source_refs")) and bool(self.store.provenance_for_atom(atom.get("id", "")))
+        if knowledge:
+            if not isinstance(knowledge, dict) or not plan.scopes or plan.user_scope is None or not plan.privacy_domains or not plan.valid_at:
                 return False
-            if not self.store.provenance_for_atom(atom["id"]):
-                return False
-            instant = _parse_instant(plan.valid_at)
-            if not _is_valid_at(conversation, instant):
-                return False
-            if plan.intent == "CURRENT" and _memory_palace_requires_revalidation(conversation, instant):
-                return False
-        elif knowledge:
-            if not plan.scopes or plan.user_scope is None or not plan.privacy_domains or not plan.valid_at:
-                return False
-            if atom["scope"] not in set(plan.scopes) or knowledge.get("project_scope") not in set(plan.scopes):
+            if knowledge.get("project_scope") not in set(plan.scopes):
                 return False
             if knowledge.get("user_scope") != plan.user_scope or knowledge.get("privacy_domain") not in set(plan.privacy_domains):
                 return False
@@ -241,18 +304,122 @@ class ContextAssembler:
                 return False
             if not knowledge.get("proposition_id") or not knowledge.get("identity_domain_hash"):
                 return False
+            return bool(atom.get("source_refs")) and bool(self.store.provenance_for_atom(atom.get("id", "")))
+        return plan.user_scope is None
+
+    def _allowed(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
+        """Compatibility facade; policy is implemented exactly once below."""
+
+        return self._admission_decision(atom, plan).admitted
+
+    def _admission_decision(self, atom: dict[str, Any], plan: QueryPlan) -> CandidateAdmissionDecision:
+        """Apply one fail-closed, pre-ranking policy with stable reason codes."""
+
+        status = atom.get("knowledge_status")
+        if status not in set(plan.truth_states):
+            return CandidateAdmissionDecision(False, "truth_state_not_requested")
+        if status in DENIED_TRUTH_STATES:
+            return CandidateAdmissionDecision(False, "truth_state_denied")
+        if status in {"stale", "revoked"}:
+            return CandidateAdmissionDecision(False, "lifecycle_not_current")
+        if plan.intent == "CURRENT" and status == "superseded":
+            return CandidateAdmissionDecision(False, "lifecycle_not_current")
+        if atom.get("gpt_access") != "FULL_SEMANTIC_ACCESS":
+            return CandidateAdmissionDecision(False, "semantic_access_denied")
+        if atom.get("transport_visibility") == "RESTRICTED_NEVER_SYNC":
+            return CandidateAdmissionDecision(False, "transport_visibility_denied")
+        try:
+            confidence = float(atom.get("confidence"))
+        except (TypeError, ValueError):
+            return CandidateAdmissionDecision(False, "confidence_invalid")
+        if confidence < plan.min_confidence:
+            return CandidateAdmissionDecision(False, "confidence_below_minimum")
+        if plan.scopes and atom.get("scope") not in set(plan.scopes):
+            return CandidateAdmissionDecision(False, "project_scope_mismatch")
+        if plan.atom_types and atom.get("atom_type") not in set(plan.atom_types):
+            return CandidateAdmissionDecision(False, "atom_type_not_requested")
+        updated_at = atom.get("updated_at")
+        if plan.time_start and (not isinstance(updated_at, str) or updated_at < plan.time_start):
+            return CandidateAdmissionDecision(False, "updated_before_time_window")
+        if plan.time_end and (not isinstance(updated_at, str) or updated_at > plan.time_end):
+            return CandidateAdmissionDecision(False, "updated_after_time_window")
+        conversation = atom.get("memory_metadata", {}).get("conversation")
+        knowledge = atom.get("memory_metadata", {}).get("knowledge")
+        if conversation:
+            # CLTM data fails closed: caller must bind both scopes and a valid
+            # instant.  Non-conversation W3 atoms retain historic defaults.
+            if not plan.scopes or plan.user_scope is None or not plan.valid_at:
+                return CandidateAdmissionDecision(False, "conversation_query_binding_missing")
+            if atom.get("scope") not in set(plan.scopes) or conversation.get("project_scope") not in set(plan.scopes):
+                return CandidateAdmissionDecision(False, "conversation_project_scope_mismatch")
+            if conversation.get("user_scope") != plan.user_scope:
+                return CandidateAdmissionDecision(False, "conversation_user_scope_mismatch")
+            if (conversation.get("privacy_class"), conversation.get("coverage"), conversation.get("source_class")) not in {
+                ("PUBLIC_SAFE_SYNTHETIC", "synthetic", "SYNTHETIC_PUBLIC_SAFE"),
+                ("PRIVATE_LOCAL_CANDIDATE", "private_local", "PRIVATE_LOCAL_AUTHORIZED"),
+            }:
+                return CandidateAdmissionDecision(False, "conversation_privacy_binding_invalid")
+            if conversation.get("claim_role") not in {
+                "USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION",
+                "USER_PLAN", "USER_GOAL", "USER_COMMITMENT", "USER_EVENT_REPORT",
+                "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+            }:
+                return CandidateAdmissionDecision(False, "conversation_claim_role_denied")
             if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
-                return False
-            if not self.store.provenance_for_atom(atom["id"]):
-                return False
-            instant = _parse_instant(plan.valid_at)
-            if not _is_valid_at(knowledge, instant):
-                return False
-            if plan.intent == "CURRENT" and _knowledge_requires_revalidation(knowledge, instant):
-                return False
+                return CandidateAdmissionDecision(False, "historical_provenance_missing")
+            if not self.store.provenance_for_atom(atom.get("id", "")):
+                return CandidateAdmissionDecision(False, "packet_provenance_missing")
+            try:
+                instant = _parse_instant(plan.valid_at)
+                valid_at = _is_valid_at(conversation, instant)
+            except (KeyError, TypeError, ValueError):
+                return CandidateAdmissionDecision(False, "conversation_valid_time_invalid")
+            if not valid_at:
+                return CandidateAdmissionDecision(False, "conversation_not_valid_at_query_time")
+            try:
+                requires_revalidation = _memory_palace_requires_revalidation(conversation, instant)
+            except (KeyError, TypeError, ValueError):
+                return CandidateAdmissionDecision(False, "conversation_revalidation_invalid")
+            if plan.intent == "CURRENT" and requires_revalidation:
+                return CandidateAdmissionDecision(False, "lifecycle_not_current")
+        elif knowledge:
+            if not plan.scopes or plan.user_scope is None or not plan.privacy_domains or not plan.valid_at:
+                return CandidateAdmissionDecision(False, "knowledge_query_binding_missing")
+            if atom.get("scope") not in set(plan.scopes) or knowledge.get("project_scope") not in set(plan.scopes):
+                return CandidateAdmissionDecision(False, "knowledge_project_scope_mismatch")
+            if knowledge.get("user_scope") != plan.user_scope or knowledge.get("privacy_domain") not in set(plan.privacy_domains):
+                return CandidateAdmissionDecision(False, "knowledge_scope_or_privacy_mismatch")
+            if knowledge.get("safety_class") != "PUBLIC_SAFE_SYNTHETIC":
+                return CandidateAdmissionDecision(False, "knowledge_safety_class_denied")
+            if knowledge.get("privacy_domain") != "PUBLIC_SAFE_SYNTHETIC" and not str(knowledge.get("privacy_domain", "")).startswith("synthetic-"):
+                return CandidateAdmissionDecision(False, "knowledge_privacy_domain_denied")
+            if knowledge.get("epistemic_role") not in {
+                "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "MECHANISM", "CONDITION",
+                "COUNTEREXAMPLE", "METHOD", "OPEN_QUESTION", "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE",
+            }:
+                return CandidateAdmissionDecision(False, "knowledge_epistemic_role_denied")
+            if not knowledge.get("proposition_id") or not knowledge.get("identity_domain_hash"):
+                return CandidateAdmissionDecision(False, "knowledge_identity_missing")
+            if plan.intent == "HISTORICAL" and not atom.get("source_refs"):
+                return CandidateAdmissionDecision(False, "historical_provenance_missing")
+            if not self.store.provenance_for_atom(atom.get("id", "")):
+                return CandidateAdmissionDecision(False, "packet_provenance_missing")
+            try:
+                instant = _parse_instant(plan.valid_at)
+                valid_at = _is_valid_at(knowledge, instant)
+            except (KeyError, TypeError, ValueError):
+                return CandidateAdmissionDecision(False, "knowledge_valid_time_invalid")
+            if not valid_at:
+                return CandidateAdmissionDecision(False, "knowledge_not_valid_at_query_time")
+            try:
+                requires_revalidation = _knowledge_requires_revalidation(knowledge, instant)
+            except (KeyError, TypeError, ValueError):
+                return CandidateAdmissionDecision(False, "knowledge_revalidation_invalid")
+            if plan.intent == "CURRENT" and requires_revalidation:
+                return CandidateAdmissionDecision(False, "lifecycle_not_current")
         elif plan.user_scope is not None:
-            return False
-        return True
+            return CandidateAdmissionDecision(False, "user_scope_requires_governed_metadata")
+        return CandidateAdmissionDecision(True, "admitted")
 
     @staticmethod
     def _trust_gate(plan: QueryPlan, atoms: tuple[dict[str, Any] | None, ...]) -> dict[str, Any]:

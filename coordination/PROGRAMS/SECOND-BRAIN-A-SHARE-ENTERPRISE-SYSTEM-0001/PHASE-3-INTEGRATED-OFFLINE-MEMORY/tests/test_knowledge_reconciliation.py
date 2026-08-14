@@ -153,6 +153,10 @@ class KnowledgeReconciliationTestCase(unittest.TestCase):
             bundle = assembler.assemble(aggregate)
             self.assertEqual(set(item["id"] for item in bundle.atoms), set(alpha.atom_ids + beta.atom_ids))
             self.assertEqual(bundle.trust_gate["semantic_vote_count"], 1)
+            self.assertEqual(assembler.last_admission_report, {
+                "admitted_count": 2,
+                "rejected_counts": {},
+            })
         finally:
             store.close()
 
