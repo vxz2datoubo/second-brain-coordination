@@ -1,13 +1,11 @@
-schema_version: "109.0"
+schema_version: "110.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 231
-active_pull_request: 280
-task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-FINAL-CONFLICT-HARDENING"
-module_id: "CONVERSATIONAL-LONG-TERM-MEMORY-0021"
-route_epoch: 109
-mode: "goal"
-mode_label: "【Codex模式：目标模式】R108最终日程冲突语义与exact-head回执收口"
+active_issue: 282
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 110
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】GPT第二大脑认知闭环融合"
 status: "READY"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -24,74 +22,94 @@ repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
 private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
+trading_or_account_action_allowed: false
 
-canonical_main_at_route_publish: "d83ff7c1b6438f1201a1df1bbf92e16c3702ce10"
-canonical_route: "coordination/ROUTES/CODEX-CLTM-0021-R109-MEMORY-PALACE-FINAL-CONFLICT-HARDENING.yaml"
-implementation_pr: 280
-reviewed_head: "2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb"
-pr_review_id: 4933169931
-issue_review_comment: 5288569325
+canonical_main_at_route_prepare: "6ac983316a0d23354b7fad2eb1034b7efb6bc9db"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R110.yaml"
+canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001-AMED.yaml"
+canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+branch_hint: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
+implementation_pr: "TO_BE_CREATED_BY_CODEX"
 
 predecessor:
-  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-HARDENING"
-  route_epoch: 108
-  implementation_head: "2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb"
-  disposition: "CHANGES_REQUIRED_TYPED_SCHEDULE_CONFLICT_AND_EXACT_HEAD_RECEIPT"
-  verified_ci_run: 31726843796
-  verified_focused_tests: "24/24 PASS"
-  verified_phase3_tests: "243/243 PASS"
+  task_id: "CODEX-CLTM-0021-MEMORY-PALACE-V1-FINAL-CONFLICT-HARDENING"
+  route_epoch: 109
+  implementation_pr: 280
+  accepted_head: "ad5f0e4c925b7750ad28d8b7e13e322dea46f325"
+  accepted_merge_commit: "07d847e870bc0f2d1770c3c5e7892168c0e28f94"
+  disposition: "R109_ACCEPTED_MEMORY_PALACE_V1_SYNTHETIC_FOUNDATION"
+  verified_ci_run: 31763417180
+  verified_focused_tests: "27/27 PASS"
+  verified_phase3_tests: "246/246 PASS"
 
 root_goal: >-
-  Continue the same PR #280 on the same implementation branch with additive commits only. Preserve already-verified R108 behavior and fix the two
-  remaining false-positive schedule-conflict paths, then bind final handoff/receipt/PR description and CI to the final exact head.
-
-required_fixes:
-  - "R109-SCHEDULE-CONFLICT-PAIRWISE-TYPING"
-  - "R109-INDEPENDENT-EVENT-INTERVALS"
-  - "R109-NONOVERLAP-NO-CONFLICT"
-  - "R109-EXACT-HEAD-CLOSEOUT"
+  Starting from the accepted W3/CLTM/Memory Palace foundation, build the unified GPT second-brain cognitive loop: faithful source capture and semantic
+  atomization, retrieval-before-write reconciliation, interoperable memory/knowledge/plan/stance/conflict graph, bounded associative recall and
+  GPTSecondBrainContextBundle, feedback lifecycle, and narrow GPT-facing contracts. GPT is the primary conversational orchestrator; QQ/QCLAW is
+  optional batch/backfill/audit only.
 
 execution_contract:
-  implementation_branch: "codex/cltm-0021-memory-palace-r107"
-  implementation_pr: 280
-  exact_reviewed_head: "2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb"
-  additive_commits_only: true
-  synthetic_only: true
+  first_stage: "P0_COMPATIBILITY_AND_BASE_FREEZE"
+  plan_before_broad_implementation: true
+  dedicated_branch_required: true
+  branch_hint: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
+  implementation_pr: "CREATE_AND_REPORT"
+  synthetic_private_safe_only: true
   private_data: "FORBIDDEN"
-  real_capture: "FORBIDDEN"
+  real_private_store: "FORBIDDEN"
   scheduler: "FORBIDDEN"
   production_mcp_gateway: "FORBIDDEN"
   formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
+first_checkpoint_required:
+  - "read current origin/main ACTIVE, R110 route, task brief and blueprint"
+  - "verify accepted R109 predecessor exact head/merge"
+  - "inspect real repository architecture without opening real private data"
+  - "produce compatibility matrix and reuse/adapt/add decisions"
+  - "map object/ID lineage and schema migration boundaries"
+  - "map E50 reusable evidence and unresolved D3/D5/D7/D10/D12 requirements without importing QCLAW audit harness"
+  - "produce P0-P5 staged plan, validation gates and rollback plan"
+  - "reconcile stale blueprint WAITING_R108 metadata in the implementation line"
+  - "create/report dedicated implementation branch and PR when appropriate"
+
 validation_required:
-  - "all adversarial tests listed in canonical epoch-109 route PASS"
-  - "expanded focused Memory Palace suite PASS"
+  - "focused synthetic/adversarial suite PASS for implemented stages"
   - "full relevant Phase-3 regression PASS"
-  - "Python 3.11/3.13 GitHub Actions SUCCESS on final exact head"
+  - "Python 3.11/3.13 CI PASS where applicable"
   - "public_safety_scan PASS"
-  - "YAML parse PASS"
+  - "YAML/JSON schema validation PASS"
   - "git diff --check PASS"
   - "working tree clean"
 
 required_closeout:
-  - "final exact head_sha"
-  - "exact changed paths"
-  - "R109 fix-by-fix implementation mapping"
-  - "focused/adversarial tests/count"
-  - "full Phase-3 tests/count"
-  - "public safety"
-  - "YAML parse"
-  - "git diff --check"
-  - "GitHub Actions run/jobs"
-  - "AI_HANDOFF/TEST-RUN-RECEIPT/PR description exact-head binding"
-  - "LOCAL_EXECUTION_ISSUES"
+  - "head_sha"
+  - "branch"
+  - "pull_request"
+  - "exact_changed_paths"
+  - "predecessor_base_proof"
+  - "compatibility_and_reuse_decisions"
+  - "object_and_schema_changes"
+  - "reconciliation_implementation_mapping"
+  - "graph_and_temporal_integration_result"
+  - "context_bundle_and_retrieval_result"
+  - "feedback_lifecycle_result"
+  - "focused_test_count_result"
+  - "full_regression_count_result"
+  - "public_safety_result"
+  - "ci_result"
+  - "git_diff_check"
+  - "unknowns"
+  - "risks"
+  - "rollback"
   - "REAL_PRIVATE_EXECUTION_NOT_RUN"
-  - "UNATTENDED_SCHEDULER_NOT_ACTIVATED"
-  - "FORMAL_PROJECT_GLOBAL_PROMOTION_LOCKED"
+  - "PRODUCTION_BRIDGE_NOT_DEPLOYED"
+  - "FORMAL_PROMOTION_LOCKED"
 
-completion_signal: "CODEX_CLTM_0021_MEMORY_PALACE_V1_R109_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_FUSION_R110_PLAN_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 109 is a narrow synthetic-only continuation of PR #280. Real private capture, scheduler activation, formal PROJECT/GLOBAL promotion,
-  production MCP/Gateway, security changes, E48/live and trading/accounts remain locked. GPT retains merge authority.
+  Epoch 110 activates project planning and staged synthetic/private-safe implementation only. Real private ingestion, scheduler, production bridge,
+  formal knowledge promotion, security/permission changes and trading/account actions remain locked. GPT retains review and merge authority.
