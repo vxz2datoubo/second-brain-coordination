@@ -12,7 +12,11 @@ from .canonical import atom_id, content_hash, normalize_text, packet_id, relatio
 SCHEMA_VERSION = "1.0.0"
 PROCESSOR_VERSION = "p3-integrated-offline-memory-1.0.0"
 _SECRET = re.compile(r"(?:ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)")
-_CONVERSATION_ROLES = {"USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION"}
+_CONVERSATION_ROLES = {
+    "USER_ASSERTION", "USER_PREFERENCE", "USER_DECISION", "USER_CORRECTION",
+    "USER_PLAN", "USER_GOAL", "USER_COMMITMENT", "USER_EVENT_REPORT",
+    "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+}
 _CONVERSATION_REQUIRED = {
     "episode_manifest_id", "user_scope", "project_scope", "privacy_class",
     "coverage", "source_class", "claim_role", "valid_from", "recorded_at",
