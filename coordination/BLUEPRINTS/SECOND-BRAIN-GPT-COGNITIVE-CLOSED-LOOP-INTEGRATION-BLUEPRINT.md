@@ -6,7 +6,8 @@
 - architecture_owner: `GPT`
 - implementation_owner: `CODEX`
 - mode: `【Codex模式：项目计划模式】`
-- status: `WAITING_PREDECESSOR_R108`
+- status: `ACTIVE_EPOCH_111_P0_IDENTITY_SCOPE_HARDENING`
+- accepted_predecessor: `PR #280 / R109 head ad5f0e4c925b7750ad28d8b7e13e322dea46f325 / merge 07d847e870bc0f2d1770c3c5e7892168c0e28f94`
 - canonical_runtime: `W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY`
 - memory_program: `CLTM-0021 / Memory Palace`
 - knowledge_skill: `GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-0001`
@@ -123,6 +124,14 @@
 - unknown
 
 用户认为某事为假，不等于该事实客观为假；作者观点不等于系统事实；模型推断不等于用户原话。
+
+### 3.5 P0 知识身份域与准入冻结
+
+- `proposition_id` 必须由标准化命题、epistemic role/taxonomy version 与 `identity_domain_hash` 确定；identity domain 至少包含 user、project 与 privacy domain。
+- SourceEpisode/source manifest/content hash 是不可变证据身份，**不得**进入 proposition identity；同一授权域的独立来源应汇聚到一个命题 lineage，并保留全部 provenance。
+- 不同 user、project 或 privacy domain 的相同文本必须具有不同 proposition/atom identity，除非未来经过显式分享或 formal promotion；本路线不授权该操作。
+- DUPLICATE 只增加同一命题的证据 provenance，不产生第二个语义投票；SUPPORT/WEAKEN 是带类型的证据关系，CONTRADICT 保留独立命题与冲突关系。
+- KnowledgeAtom 的 QueryPlan 准入必须同时验证 user_scope、project scope、privacy domain、timezone-aware valid time、CURRENT/HISTORICAL 与 freshness；缺少任一字段或不匹配即拒绝。相似度、图关系和 provenance 邻接只能在该 gate 之后排序，不能绕过它。
 
 ## 4. 时间、计划与矛盾理解
 
@@ -292,8 +301,8 @@ Reconciliation actions：
 
 ## 13. 分阶段实施
 
-### Gate 0：R108地基
-必须先验收PR #280的七个blocker：bitemporal、temporal confidence、multi-atom、stance targets、typed conflict、content provenance、domain freshness。
+### Gate 0：R109地基（已验收）
+PR #280 已在 R109 接受并合并：bitemporal、temporal confidence、multi-atom、stance targets、typed conflict、content provenance、domain freshness，以及最终 pairwise schedule-conflict/non-overlap hardening 均已有 exact-head CI 证据。当前进入 epoch 110 的 P0 compatibility/base-freeze；不得因此解锁 real-private、production bridge 或 formal promotion。
 
 ### Phase 1：统一对象与写入前对账
 KnowledgeEpisode/KnowledgeAtom兼容W3；reconciliation；graph evolution；synthetic tests。
