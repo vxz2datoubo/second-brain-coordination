@@ -43,3 +43,15 @@ The automated Phase 3 suite uses regenerated synthetic bytes only. Review regres
 - focused/adversarial tests: 24 passed; full Phase-3 synthetic regression: 243 passed.
 - LOCAL_EXECUTION_ISSUES: a Unicode-target regex helper had an invalid optional-boundary expression; UTF-8 focused tests reproduced it, explicit marker matching fixed it, and the broader Unicode root-cause family remains UNKNOWN.
 - real private source/store read, real ingestion/canary, scheduler activation, formal PROJECT/GLOBAL promotion, production MCP/Gateway and live/trading execution: not run and locked.
+
+## Epoch 109 Memory Palace v1 final conflict-hardening receipt
+
+- agent_id: `CODEX`; actual reviewer: `GPT`; Issue: `#231`; PR: `#280`; branch: `codex/cltm-0021-memory-palace-r107`.
+- reviewed predecessor: `2714e0417571aa1ccb10cc6bb9f4ae2a7049f3bb`; additive implementation checkpoint: `febb1663d2f0653a4cd0ffb2ef70aa75ffb95cb7`.
+- pairwise schedule typing: each derived atom stays paired with its own identity and event interval; non-schedulable preference, stance and assertion siblings cannot inherit a schedule conflict.
+- interval semantics: two known fixed overlapping intervals are `SCHEDULE_HARD_CONFLICT`; known fixed non-overlap produces no hard, potential or unknown-constraint schedule conflict; under-specified same-day event-like pairs remain potential plus `UNKNOWN_CONSTRAINT`.
+- independent intervals: multiple new same-date schedulable atoms are compared separately rather than collapsed through a date-keyed map.
+- focused/adversarial tests: 27 passed; full Phase-3 synthetic regression: 246 passed; public safety: 72 files scanned, 0 issues; local `git diff --check`: passed.
+- receipt state: local validation complete; final immutable remote branch head, PR description binding and Python 3.11/3.13 exact-head CI are pending post-push evidence. This receipt intentionally does not amend itself to name a future commit.
+- LOCAL_EXECUTION_ISSUES: a first YAML parser command used an incorrect Phase-3-relative path; a second confirmed that this deliberately non-rebased branch does not contain the epoch-109 route. Both failed without mutation. Local handoff plus canonical `origin/main` ACTIVE and R109 route subsequently parsed successfully.
+- real private source/store read, real ingestion/canary, scheduler activation, formal PROJECT/GLOBAL promotion, production MCP/Gateway and live/trading execution: not run and locked.
