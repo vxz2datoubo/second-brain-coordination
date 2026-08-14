@@ -1,0 +1,284 @@
+schema_version: "1.0"
+protocol_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-0001"
+control_tower_issue: 310
+status: "ACTIVE_CANDIDATE_GOVERNANCE"
+owner: "USER"
+architecture_owner: "GPT"
+implementation_owner_candidate: "CODEX"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+purpose: >-
+  Coordinate multiple long-lived AI-system program lanes without creating a second task authority,
+  detect stale aggregate views and cross-lane collisions before work starts, preserve single-writer
+  domain authorities, and provide a human-readable GitHub control tower plus machine-readable reconciliation contract.
+
+core_model:
+  desired_state: "What program lanes, dependencies, ownership boundaries, concurrency budgets and gates should hold."
+  observed_state: "What current remote-main active routes, issues, PRs, CI/evidence and canonical project indices actually show."
+  reconciliation: "Compare desired with observed and emit drift/collision findings; do not silently rewrite high-impact authority."
+  projection: "GitHub Project/Markdown dashboard is a view over canonical state, never the canonical execution state itself."
+
+canonical_sources:
+  program_lane_relationships: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  codex_execution: "coordination/ACTIVE-CODEX-TASK.yaml"
+  qclaw_execution: "coordination/ACTIVE-QCLAW-TASK.yaml"
+  workbuddy_execution: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  second_brain_program: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+  ai_film_project: "vxz2datoubo/eustia-ai-film/PROJECT_INDEX.yaml"
+  task_lease_protocol: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  enterprise_execution: "AMED"
+
+anti_duplication:
+  - "Do not create a second ACTIVE-CODEX/QCLAW/WORKBUDDY route."
+  - "Do not store market facts, knowledge atoms, probabilities, allocations or risk verdicts in the control tower."
+  - "Do not treat board/project fields as canonical when their source route disagrees."
+  - "Do not duplicate W2-W13 system-of-record objects."
+  - "Do not copy project-specific canonical facts into the program registry when a reference is sufficient."
+
+program_lane_definition:
+  required_fields:
+    - lane_id
+    - mission
+    - owner
+    - architecture_owner
+    - desired_state
+    - observed_state
+    - primary_system_positions
+    - current_phase
+    - active_execution_route
+    - dependencies
+    - shared_interfaces
+    - next_gate
+    - maturity
+  optional_fields:
+    - implementation_owner
+    - implementation_owner_candidate
+    - aliases
+    - target_date
+    - resource_class
+    - path_claims
+    - evidence_refs
+    - risk_flags
+    - stop_conditions
+
+state_machine:
+  PROPOSED:
+    executable: false
+    meaning: "Idea exists but mission/dependencies/authority not frozen."
+  READY:
+    executable: false
+    meaning: "Program lane is sufficiently designed to receive an explicit execution route when capacity/dependencies allow."
+  ACTIVE:
+    executable: "ONLY_THROUGH_PER_AGENT_ACTIVE_ROUTE"
+    meaning: "At least one authorized task is executing or ready for immediate execution."
+  REVIEW:
+    executable: false
+    meaning: "Delivery exists and waits for GPT/required independent review."
+  BLOCKED:
+    executable: false
+    meaning: "A concrete dependency, authority, capability or evidence gate prevents continuation."
+  PAUSED:
+    executable: false
+    meaning: "Intentionally stopped while preserving state and future reactivation conditions."
+  DONE:
+    executable: false
+    meaning: "Current lane objective and closure gates are satisfied."
+  CANCELLED:
+    executable: false
+    meaning: "Objective intentionally abandoned or superseded with preserved evidence."
+
+source_freshness_rules:
+  - "Always fetch remote-main per-agent ACTIVE route before publishing, claiming, accepting or closing cross-program work."
+  - "route_epoch, task_id, issue, PR, branch, execution_allowed and completion_signal are fencing evidence and must match the current route."
+  - "An aggregate view that disagrees with a current per-agent route is STALE_VIEW, not a competing truth."
+  - "A historical plan may remain useful evidence but must not be labeled current execution state."
+  - "For durable writes, re-check authority and relevant dependency state at commit time, not only at task start."
+
+reconciliation_checks:
+  - id: CT-R01-STALE-VIEW
+    question: "Does any aggregate dashboard/index claim a current task that differs from the latest per-agent route?"
+    on_fail: "STALE_VIEW"
+  - id: CT-R02-AUTHORITY
+    question: "Do two lanes or tasks claim write authority for the same canonical object/domain?"
+    on_fail: "AUTHORITY_CONFLICT / FAIL_CLOSED"
+  - id: CT-R03-PATH
+    question: "Do concurrently executable tasks write the same file/path or branch surface?"
+    on_fail: "PATH_OVERLAP / SEQUENCE_OR_ISOLATE"
+  - id: CT-R04-INTERFACE
+    question: "Is one lane implementing against an interface another lane is currently changing?"
+    on_fail: "INTERFACE_OVERLAP / FREEZE_OR_ADAPTER"
+  - id: CT-R05-DEPENDENCY
+    question: "Are all declared upstream gates satisfied by current evidence?"
+    on_fail: "DEPENDENCY_BLOCKED"
+  - id: CT-R06-WIP
+    question: "Will starting this work exceed per-agent, heavy-stage or business-slice WIP budgets?"
+    on_fail: "WIP_EXCEEDED"
+  - id: CT-R07-AGENT-LEASE
+    question: "Would the same execution Agent own more than its allowed active route count?"
+    on_fail: "SAME_AGENT_DOUBLE_BOOKED"
+  - id: CT-R08-RESOURCE
+    question: "Would local heavy compute collide with an existing heavy-stage lease or desktop responsiveness budget?"
+    on_fail: "HEAVY_RESOURCE_COLLISION"
+  - id: CT-R09-SEMANTIC-SNAPSHOT
+    question: "Could a long-running task combine old saved state with changed prompt/model/index/policy/tool semantics without an explicit compatibility decision?"
+    on_fail: "SEMANTIC_VERSION_SKEW"
+  - id: CT-R10-COMMIT-AUTHORITY
+    question: "Is the authority witness still fresh and bound to the same durable effect immediately before commit?"
+    on_fail: "COMMIT_AUTHORITY_STALE / FAIL_CLOSED"
+
+collision_levels:
+  O0_NONE:
+    action: "PARALLEL_OK"
+  O1_READ_READ:
+    action: "PARALLEL_OK_WITH_FRESHNESS_CHECK"
+  O2_SHARED_CONTRACT:
+    action: "PARALLEL_OK_ONLY_IF_INTERFACE_FROZEN_AND_SINGLE_WRITER_PRESERVED"
+  O3_MUTABLE_SURFACE:
+    action: "SEQUENCE_OR_ISOLATE_WITH_ADAPTER_LOCK_OR_SEPARATE_BRANCH"
+  O4_AUTHORITY_COLLISION:
+    action: "FAIL_CLOSED_AND_REQUIRE_GPT_OR_USER_ARCHITECTURE_DECISION"
+
+wip_and_flow_policy:
+  distinction:
+    program_lane_wip: "Number of open strategic initiatives."
+    execution_wip: "Number of actual active Agent tasks/heavy jobs."
+  rules:
+    program_lanes_may_coexist: 3
+    codex_active_route_max: 1
+    qclaw_active_route_max: 1
+    workbuddy_active_route_max: 1
+    local_heavy_stage_max: 1
+    a_share_business_vertical_slice_max: 1
+    same_canonical_writer_max: 1
+  required_metrics_after_automation:
+    WIP: "Started but unfinished items."
+    WorkItemAge: "Elapsed time since an unfinished item started."
+    BlockedAge: "Elapsed time since a blocking condition became effective."
+    Throughput: "Items completed per unit time, interpreted by work-item class."
+    CycleTime: "Elapsed time from start to finish."
+  optional_after_sufficient_history:
+    SLE: "Probabilistic completion expectation derived from historical cycle-time data, not a promise."
+
+parallelism_policy:
+  preferred_pattern: "ORTHOGONAL_PARALLELISM"
+  examples:
+    - "One heavy implementation + one bounded research/design + one audit/light lane."
+    - "Separate branches and no shared mutable file ownership."
+    - "Read-only evidence research may proceed while another lane holds a heavy execution lock."
+  prohibited:
+    - "Nested parallelism that violates local resource governance."
+    - "Multiple agents editing a shared canonical surface without an explicit owner/sequence."
+    - "Starting a new business slice merely because a strategic lane exists."
+
+program_vs_task_semantics:
+  program_lane: "Long-lived strategic objective that can contain many tasks and pauses."
+  task_route: "One bounded executable assignment owned by one Agent under current lease/route rules."
+  amed_execution_chains: >-
+    Main delivery, active discovery and system evolution are three internal chains inside each non-trivial task.
+    They are not the same concept as the three parallel Program Lanes.
+
+knowledge_mapping_contract:
+  states:
+    KNOWN_SAID:
+      evidence: "Explicit user statement or verified source."
+      treatment: "Use directly with provenance."
+    KNOWN_UNSAID_INFERRED:
+      evidence: "High-confidence inference from existing system structure or repeated behavior."
+      treatment: "Label inference; never overwrite explicit user state."
+    UNKNOWN_BUT_ACCESSIBLE:
+      evidence: "Not yet known by the user but explainable with current conceptual scaffolding."
+      treatment: "Teach with direct mapping to known system concepts."
+    UNKNOWN_REQUIRES_SCAFFOLDING:
+      evidence: "Requires prerequisite concepts or would otherwise become jargon without understanding."
+      treatment: "Introduce prerequisites, concrete analogies, then formal terms."
+  rule: "Mapping is topic-specific, time-versioned and evidence-backed; it is not a global personality judgment."
+
+human_projection:
+  immediate_markdown_view: "coordination/PROGRAM-CONTROL-TOWER.md"
+  recommended_github_project_views:
+    - "Executive Overview"
+    - "Active Now"
+    - "By Program Lane"
+    - "By Agent"
+    - "Dependencies & Blocked"
+    - "Risk & Gates"
+    - "Roadmap"
+    - "Recently Completed"
+    - "Learning / Candidate Queue"
+  recommended_fields:
+    - "Program Lane"
+    - "Status"
+    - "Owner"
+    - "Execution Agent"
+    - "Priority"
+    - "Current Phase"
+    - "Dependency"
+    - "Overlap Level"
+    - "Next Gate"
+    - "Start Date"
+    - "Target Date"
+    - "Work Item Age"
+    - "Blocked Since"
+    - "Maturity"
+    - "Evidence State"
+  source_rule: "Project fields should be derived or synchronized from Issues/routes where feasible; duplicate manual truth is prohibited."
+  board_limit_rule: >-
+    GitHub board column limits are visual warnings, not hard enforcement. Machine validation must enforce real WIP limits.
+
+future_automation_candidate:
+  components:
+    - "route-scanner"
+    - "program-lane-reconciler"
+    - "stale-view-detector"
+    - "authority-overlap-validator"
+    - "path-and-interface-collision-checker"
+    - "dependency-DAG-resolver"
+    - "resource/WIP-gate"
+    - "GitHub-Project-projection"
+    - "flow-metric-recorder"
+    - "control-tower-regression-suite"
+  implementation_policy: "Requires a future explicit Codex route; does not preempt current Issue #305 / PR #307."
+
+harness_integration_boundary:
+  allowed_future_role: >-
+    DeepSeek Harness may implement or host runtime execution, scoped skills/tools, subagents, session traces,
+    approval/guard hooks and workflow orchestration behind this governance contract.
+  forbidden_role: >-
+    Harness may not become a parallel system of record for market facts, W3 knowledge, probability,
+    capital allocation, risk veto, AI-film canonical facts or Agent task authority.
+
+validation_and_regression_candidates:
+  - "Current per-agent route beats stale aggregate view."
+  - "Same Agent cannot be assigned two executable routes."
+  - "Two lanes writing the same canonical object produce O4 and fail closed."
+  - "Read/read overlap produces O1 and does not block unnecessarily."
+  - "Unfrozen ContextBundle interface blocks direct Harness integration but permits isolated adapter PoC."
+  - "Three strategic lanes may coexist while only one heavy local stage executes."
+  - "A trading lane cannot weaken NO_TRADE or W7 veto."
+  - "A project dashboard cannot change task execution authority."
+  - "A stale route epoch cannot authorize a durable commit."
+  - "Semantic environment changes during a durable workflow are surfaced rather than silently mixed."
+
+promotion_policy:
+  current_maturity: "CANDIDATE_GOVERNANCE"
+  next_maturity: "SCENE_EQUIVALENT_PROGRAM_VERIFIED"
+  promotion_requires:
+    - "At least one real three-lane coordination cycle."
+    - "Observed stale/overlap findings compared with actual outcomes."
+    - "No regression to per-agent task leasing or domain single-writer authority."
+    - "Targeted regression suite passing."
+    - "GPT review of false-positive and false-negative collision findings."
+
+references_summary:
+  official_practice:
+    - "GitHub Projects: single source of truth, views, roadmap, automation, dependencies and insights."
+    - "Kubernetes controllers: desired-versus-current reconciliation."
+    - "Kubernetes Lease: lightweight coordination/leadership leases."
+    - "Airflow: DAG dependencies and concurrency pools."
+    - "Temporal: durable history/replay and deterministic orchestration boundary."
+  research:
+    - "Kanban flow metrics and WIP discipline."
+    - "ACL 2025 MultiAgentBench coordination topology evidence."
+    - "NAACL 2025 LLM-Coordination limitations in partner-belief reasoning."
+    - "NeurIPS 2025 MAST multi-agent failure taxonomy."
+    - "2026 Semantic Isolation and Commit-Time Authorization preprints as candidate, not established standards."
