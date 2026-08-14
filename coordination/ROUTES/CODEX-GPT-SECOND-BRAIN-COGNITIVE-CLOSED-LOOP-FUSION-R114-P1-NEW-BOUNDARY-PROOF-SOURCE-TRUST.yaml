@@ -10,40 +10,18 @@ mode: "goal"
 mode_label: "【Codex模式：目标模式】P1 NEW边界、逐原子召回证明与来源信任补强"
 status: "READY"
 execution_allowed: true
-automatic_resume_within_task: false
-second_user_start_command_required: true
-intermediate_gpt_review_required: true
 merge_authorized: false
-formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
-real_private_raw_body_publication_allowed: false
-private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
-unattended_scheduler_activation_allowed: false
-repository_visibility_change_authorized: false
-production_mcp_gateway_deployment_authorized: false
-private_repository_creation_authorized: false
-permission_or_acl_change_authorized: false
-trading_or_account_action_allowed: false
+intermediate_gpt_review_required: true
 runtime_code_change_allowed: true
 runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
 
-canonical_main_at_route_prepare: "2653a3ec1d3c2a506e7dd40286fb207d8865fe39"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R114-P1-NEW-BOUNDARY-PROOF-SOURCE-TRUST.yaml"
-implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
-implementation_pr: 290
 reviewed_head: "b518e59173bd64df6ec11c3f93f0f283ee47c532"
 gpt_review_id: 4934147576
 issue_review_comment: 5289696904
-
-predecessor_checkpoint:
-  route_epoch: 113
-  exact_head: "b518e59173bd64df6ec11c3f93f0f283ee47c532"
-  verified_exact_head_ci_run: 31770561088
-  verified_focused_tests: "11/11 PASS"
-  verified_phase3_tests: "257/257 PASS"
-  verified_public_safety: "75 files / 0 issues"
-  disposition: "R113_CHANGES_REQUIRED_NEW_BOUNDARY_PER_ATOM_PROOF_SOURCE_TRUST_PROVENANCE"
+verified_exact_head_ci_run: 31770561088
+verified_phase3: "257/257 PASS"
+verified_focused: "11/11 PASS"
+disposition: "R113_CHANGES_REQUIRED_NEW_BOUNDARY_PER_ATOM_PROOF_SOURCE_TRUST_PROVENANCE"
 
 root_goal: >-
   Continue Draft PR #290 in P1 only and close the last semantic-integrity blockers before P1 acceptance: retrieval must govern the NEW/UNKNOWN boundary;
@@ -55,6 +33,16 @@ required_blockers:
   - "P1-POSTWRITE-PROOF-MUST-BE-PER-ATOM-AND-TRUTHFULLY-NAMED"
   - "P1-SOURCE-TRUST-MUST-BE-PROVENANCE-LEVEL"
 
+required_acceptance_cases:
+  - "no directive + empty admitted comparison => NEW may be emitted with truthful empty-comparison evidence"
+  - "no directive + non-empty potentially related admitted comparison => UNKNOWN/ABSTAIN unless explicit governed non-equivalence proves NEW"
+  - "near-duplicate/paraphrase candidate must not silently create a second semantic proposition solely because exact atom ID differs"
+  - "multi-atom capture exposes per-atom post-write proof or requires every written atom to satisfy the claimed proof mode"
+  - "NONEXACT_LEXICAL and RELATION_ASSISTED are distinct from future SEMANTIC/PARAPHRASE; no overclaim"
+  - "SOURCE_DATA then UNTRUSTED_INERT duplicate preserves both per-source trust labels"
+  - "UNTRUSTED_INERT then SOURCE_DATA duplicate preserves both per-source trust labels"
+  - "restart/index rebuild preserves source-level trust and provenance union"
+
 execution_contract:
   same_draft_pr: 290
   additive_commits_only: true
@@ -63,7 +51,7 @@ execution_contract:
   p3_proactive_associative_recall: "FORBIDDEN"
   p4_feedback_skill_lifecycle: "FORBIDDEN"
   p5_production_bridge: "FORBIDDEN"
-  private_data: "FORBIDDEN"
+  real_private_data: "FORBIDDEN"
   real_private_store: "FORBIDDEN"
   real_ingestion: "FORBIDDEN"
   scheduler: "FORBIDDEN"
