@@ -6,7 +6,8 @@
 - architecture_owner: `GPT`
 - implementation_owner: `CODEX`
 - mode: `【Codex模式：项目计划模式】`
-- status: `WAITING_PREDECESSOR_R108`
+- status: `ACTIVE_EPOCH_110_P0_COMPATIBILITY_AND_BASE_FREEZE`
+- accepted_predecessor: `PR #280 / R109 head ad5f0e4c925b7750ad28d8b7e13e322dea46f325 / merge 07d847e870bc0f2d1770c3c5e7892168c0e28f94`
 - canonical_runtime: `W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY`
 - memory_program: `CLTM-0021 / Memory Palace`
 - knowledge_skill: `GPT-SECOND-BRAIN-KNOWLEDGE-DIGESTION-ASSOCIATIVE-RECALL-SKILL-0001`
@@ -292,8 +293,8 @@ Reconciliation actions：
 
 ## 13. 分阶段实施
 
-### Gate 0：R108地基
-必须先验收PR #280的七个blocker：bitemporal、temporal confidence、multi-atom、stance targets、typed conflict、content provenance、domain freshness。
+### Gate 0：R109地基（已验收）
+PR #280 已在 R109 接受并合并：bitemporal、temporal confidence、multi-atom、stance targets、typed conflict、content provenance、domain freshness，以及最终 pairwise schedule-conflict/non-overlap hardening 均已有 exact-head CI 证据。当前进入 epoch 110 的 P0 compatibility/base-freeze；不得因此解锁 real-private、production bridge 或 formal promotion。
 
 ### Phase 1：统一对象与写入前对账
 KnowledgeEpisode/KnowledgeAtom兼容W3；reconciliation；graph evolution；synthetic tests。

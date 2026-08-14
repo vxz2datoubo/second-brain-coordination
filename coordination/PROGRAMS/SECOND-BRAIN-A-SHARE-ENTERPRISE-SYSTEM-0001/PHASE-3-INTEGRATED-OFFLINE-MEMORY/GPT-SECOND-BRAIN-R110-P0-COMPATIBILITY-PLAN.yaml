@@ -1,0 +1,171 @@
+schema_version: "1.0"
+artifact_type: "GPTSecondBrainCognitiveLoopP0CompatibilityAndBaseFreeze"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 110
+issue: 282
+branch: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
+canonical_main: "1a4c68f1916c9ada68cd8354e1b135e08790b568"
+accepted_predecessor:
+  pull_request: 280
+  head: "ad5f0e4c925b7750ad28d8b7e13e322dea46f325"
+  merge: "07d847e870bc0f2d1770c3c5e7892168c0e28f94"
+  evidence:
+    focused: "27/27 PASS"
+    phase3: "246/246 PASS"
+    ci_run: 31763417180
+
+authority_freeze:
+  canonical_runtime: "W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+  rule: "Reuse one candidate-only W3 authority; indexes, graph projections and GPT bundles are rebuildable projections."
+  forbidden_parallel_authorities:
+    - "second memory or knowledge store"
+    - "QCLAW runtime dependency or imported audit harness"
+    - "production/private GPT bridge"
+  locks:
+    real_private_execution: "NOT_RUN_AND_LOCKED"
+    production_bridge: "NOT_DEPLOYED_AND_LOCKED"
+    formal_project_global_promotion: "LOCKED"
+    scheduler: "LOCKED"
+    security_acl_credentials: "LOCKED"
+    trading_accounts: "LOCKED"
+
+compatibility_matrix:
+  - capability: "Immutable source episode and privacy-minimized provenance"
+    existing: "ConversationEpisode, content-hashed manifest IDs, source episode lists"
+    decision: "REUSE"
+    P1_action: "Add KnowledgeEpisode adapter only as a typed projection over the same packet/provenance boundary."
+    boundary: "No raw source pointer/body in public receipt."
+  - capability: "Candidate-only atomic/idempotent write"
+    existing: "LearningPacket verification plus MemoryStore.import_learning_packets_atomic"
+    decision: "REUSE"
+    P1_action: "Keep all knowledge writes packet-backed; reconciliation preflight must complete before this write boundary."
+    boundary: "authority_write remains false; no formal promotion."
+  - capability: "Conversation and Memory Palace temporal lifecycle"
+    existing: "ConversationEpisode, correction/supersession, CURRENT/HISTORICAL, event interval and freshness metadata"
+    decision: "REUSE_AND_ADAPT"
+    P1_action: "Use explicit evidence, proposition/event-validity and freshness fields for semantic knowledge without changing conversation semantics."
+    boundary: "Stale, revoked and superseded objects cannot regain CURRENT admission through similarity."
+  - capability: "Atom storage, relation graph, conflicts and UNKNOWN"
+    existing: "atoms, relations, conflicts, unknowns, revisions and retrieval_terms in MemoryStore"
+    decision: "REUSE_AND_ADAPT"
+    P1_action: "Add governed knowledge metadata and reconciliation evidence; retain existing relation/conflict IDs and revision transaction."
+    boundary: "No date/map shortcut may collapse distinct source or event identity."
+  - capability: "Scoped bounded retrieval"
+    existing: "QueryPlan and ContextAssembler lexical/relation retrieval with conversation fail-closed user/project/time admission"
+    decision: "ADAPT"
+    P3_action: "Extend plan/bundle contract with typed intent, evidence floor, freshness and counterevidence budget; keep scope/privacy fail-closed for every knowledge atom."
+    boundary: "Semantic and structural-analogy signals are evidence, never truth/current-validity authority."
+  - capability: "Memory Palace capture and conflict reasoning"
+    existing: "Synthetic capture_text, typed schedule conflicts, post-write exact recall"
+    decision: "REUSE"
+    P2_action: "Link plans/events/stances to knowledge graph through stable relation endpoints; do not replace Memory Palace."
+    boundary: "Preserve accepted R109 pairwise schedule semantics."
+  - capability: "Knowledge atomization and reconciliation"
+    existing: "Skill/blueprint contract only; no canonical runtime implementation"
+    decision: "ADD"
+    P1_action: "Implement synthetic KnowledgeEpisode -> typed candidate atom packets with retrieval-before-write reconciliation."
+    boundary: "Unsupported link/action returns UNKNOWN without mutation."
+  - capability: "GPTSecondBrainContextBundle and proactive recall"
+    existing: "Generic ContextBundle with provenance, conflicts, unknowns and trust gate"
+    decision: "ADAPT"
+    P3_action: "Create a compact projection over ContextBundle; add bounded proactive router and anti-anchor selection."
+    boundary: "No live MCP/Gateway deployment or private-store access."
+  - capability: "Feedback and skill lifecycle"
+    existing: "Append-preserving correction/supersession only"
+    decision: "ADD"
+    P4_action: "Add feedback candidate events and lifecycle evidence links; formal skill remains locked."
+    boundary: "One case never promotes a skill."
+
+object_and_id_lineage:
+  source_episode:
+    canonical: "ConversationEpisode manifest ID / source hash / source episode provenance"
+    P1_extension: "KnowledgeEpisode is a typed source projection, not a new authority."
+  atoms:
+    canonical: "content-addressed atom ID plus packet ID and idempotency key"
+    P1_extension: "KnowledgeAtom uses atom_type knowledge_atom and governed semantic metadata; statement, scope and provenance remain canonical inputs."
+  graph:
+    canonical: "relation_id(source_atom_id, target_atom_id, relation_type)"
+    P2_extension: "Evidence, counterevidence, temporal, semantic and lifecycle edges use existing relation transaction."
+  conflicts_and_unknowns:
+    canonical: "content-addressed conflict/unknown packet entries"
+    P1_extension: "Reconciliation emits explicit typed action or UNKNOWN; it never silently overwrites a lineage."
+  retrieval:
+    canonical: "QueryPlan plan_hash -> ContextBundle query_id -> source lineage/provenance"
+    P3_extension: "GPTSecondBrainContextBundle is a deterministic, bounded projection, never a second store."
+
+schema_migration_boundaries:
+  status: "PLAN_ONLY_NO_RUNTIME_MIGRATION_IN_P0"
+  P1_candidate_changes:
+    - "Additive semantic/epistemic metadata persistence with explicit schema version and migration test."
+    - "KnowledgeEpisode and KnowledgeAtom packet contract; conversation contract remains strict and unchanged."
+    - "ReconciliationReceipt/action schema, including candidate IDs, compared lineage heads and abstention/UNKNOWN reason."
+  compatibility_rules:
+    - "Existing packet schema major remains compatible; unknown fields fail closed until explicitly versioned."
+    - "Existing atom IDs and source manifests are immutable; indexes may be rebuilt but must not change canonical atom identity."
+    - "Migrations are additive and transactional; rollback is code/schema-version rollback, never destructive history removal."
+
+e50_evidence_mapping:
+  reuse_as_evidence_only:
+    D1: "source ingestion/privacy/provenance boundary"
+    D2: "semantic reconstruction foundation"
+    D4: "canonical identity/dedup/supersession"
+    D6: "verified user-origin boundary"
+    D8: "CURRENT/HISTORICAL correction-recall round trip"
+    D9: "candidate/formal authority boundary"
+    D11: "deterministic exact-ref/provider-bound CI discipline"
+  requirements_or_unknowns:
+    D3: "governed extensible episodic-plus-semantic taxonomy; not free-form labels"
+    D5: "source fact/claim/interpretation/value judgment, user stance, assistant/model inference and UNKNOWN remain distinct"
+    D7: "evidence-bound method/skill lifecycle with validation, rollback and failure conditions"
+    D10: "untrusted-source/retrieved-content boundary plus paraphrased and indirect prompt-injection tests"
+    D12: "bounded process/resource observability and honest UNKNOWN; no second runtime"
+  prohibited: "Do not import the QCLAW E50 audit harness as a runtime dependency."
+
+staged_execution:
+  P0:
+    deliverable: "This compatibility/base-freeze artifact and stale R108 blueprint-header reconciliation."
+    gate: "GPT accepts plan/reuse boundaries before broad runtime implementation."
+  P1:
+    deliverable: "Synthetic KnowledgeEpisode/KnowledgeAtom atomization and retrieval-before-write ReconciliationReceipt."
+    acceptance: "Long mixed passage; typed epistemic roles; exact scoped recall; duplicate/refine/support/weaken/contradict/supersede/revoke/revalidate/unknown tests."
+  P2:
+    deliverable: "Unified memory/knowledge/plan/stance/conflict/unknown graph relations."
+    acceptance: "Travel-versus-sleep potential/hard/cancellation story with preserved historical lineage."
+  P3:
+    deliverable: "Bounded associative retrieval and GPTSecondBrainContextBundle projection."
+    acceptance: "Proactive material recall; stale/revoked anti-anchor; support plus counterevidence; zero foreign-scope recall."
+  P4:
+    deliverable: "Append-preserving feedback lifecycle candidates."
+    acceptance: "Useful/irrelevant/stale/wrong/incomplete feedback updates candidate lineage without deletion or one-case skill promotion."
+  P5:
+    deliverable: "Synthetic/private-safe GPT-facing contract adapters only."
+    acceptance: "Capture/reconcile/search/context/conflicts/feedback contract schemas and adversarial capability-denial tests; no deployment."
+
+validation_and_rollback:
+  required_each_implementation_stage:
+    - "Focused synthetic/adversarial tests"
+    - "Full relevant Phase-3 regression"
+    - "Public-safety scan"
+    - "YAML/JSON schema validation"
+    - "git diff --check and clean tree"
+    - "Python 3.11/3.13 CI on final exact head"
+  rollback: "Revert only the additive stage commit/contract. Preserve packets, provenance, accepted R109 behavior and all historical candidate evidence."
+
+work_process_and_coordination:
+  planned_difficulty: "D3: cross-contract compatibility and authority-boundary design"
+  observed_difficulty: "D2: existing W3 primitives cover provenance, atomicity, scope and temporal candidate admission; the missing work is explicit semantic/reconciliation contract design."
+  hardest_part: "Preventing a tempting parallel knowledge store while retaining enough typed metadata for epistemic roles and reconciliation."
+  negative_results: "No runtime/private-store probe was run; no QCLAW harness was imported."
+  discoveries: "The blueprint header and Gate 0 still described a waiting R108 predecessor although R109 was accepted and merged."
+  cross_agent_impact: "GPT retains plan acceptance, production bridge and merge authority; QCLAW remains optional evidence/audit only."
+
+unknowns_and_risks:
+  - "Exact semantic ontology/versioning shape requires P1 design and adversarial validation; P0 does not claim it implemented."
+  - "Structural-analogy retrieval quality requires a bounded deterministic synthetic baseline before any embedding provider is considered."
+  - "ChatGPT-to-local private bridge remains a later owner/GPT-gated dependency."
+  - "Paraphrased/indirect prompt injection needs a generalized untrusted-content contract beyond current literal marker coverage."
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_FUSION_R110_PLAN_READY_FOR_GPT_REVIEW"
