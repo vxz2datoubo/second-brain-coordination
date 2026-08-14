@@ -1,5 +1,32 @@
 # AI系统 Program Control Tower
 
+<!-- CONTROL_TOWER_AUTOGEN:START -->
+## 自动同步快照（机器生成区）
+
+- Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
+- as_of: `2026-08-14T20:49:00+08:00`
+- Foundation structural check: **PASS**
+- Lane release decision: **HOLD_BY_USER**
+- User-held lanes: `LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION`
+
+### Agent routes
+
+| Agent | task_id | epoch | status | execution_allowed | Issue / PR |
+|---|---|---:|---|---|---|
+| CODEX | `CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING` | 120 | `READY_REMEDIATION` | `true` | #305 / #307 |
+| QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
+| WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
+
+### Program lanes
+
+| Lane | desired | observed | heavy | next gate |
+|---|---|---|---|---|
+| `LANE-A-HARNESS-INTEGRATION` | `PAUSED` | `RESEARCHED_NOT_IMPLEMENTED` | `false` | CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE |
+| `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE |
+| `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `ACTIVE` | `ACTIVE` | `true` | Complete exact P2.2 remediation and GPT review before later P2.3/P2.4 or production bridge work. |
+
+<!-- CONTROL_TOWER_AUTOGEN:END -->
+
 > **用途**：给用户、GPT和各Agent看的跨线路公告板 / 总控台。
 >
 > **执行真源不是本页**。Codex/QCLAW/WorkBuddy当前能否执行、执行什么，以远端最新 `ACTIVE-*.yaml` 为准。
@@ -110,4 +137,5 @@ Lane C 认知闭环      🟢 ACTIVE│      │
 - `coordination/GOVERNANCE/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-PROTOCOL-v1.0.yaml`
 - `coordination/BLUEPRINTS/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-BLUEPRINT-v1.0.md`
 - `coordination/SKILLS/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-SKILL-v1.0.yaml`
+- `coordination/CONTROL-TOWER/`
 - Issue #310
