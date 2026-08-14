@@ -1,0 +1,105 @@
+schema_version: "111.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+issue: 282
+implementation_pr: 287
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P0-IDENTITY-SCOPE-HARDENING"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 111
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P0知识身份域与Scope准入补强"
+status: "READY"
+execution_allowed: true
+
+reviewed_checkpoint:
+  route_epoch: 110
+  pull_request: 287
+  exact_head: "5e3e7c48a917f3aee138e61a6c994c50a99ed917"
+  disposition: "CHANGES_REQUIRED_BEFORE_P1"
+  gpt_review_id: 4933326576
+  issue_comment_id: 5288799683
+  verified_ci_run: 31764322564
+  verified_phase3: "246/246 PASS"
+  verified_public_safety: "73 files / 0 issues"
+
+root_goal: >-
+  Continue the same Draft PR #287 with P0 documentation/architecture changes only. Freeze a correct knowledge semantic identity domain and fail-closed
+  user/project/privacy admission model before any P1 runtime implementation. Prevent both foreign-domain canonical collisions and same-domain
+  duplicate semantic voting while preserving independent source provenance.
+
+required_blockers:
+  - "P0-KNOWLEDGE-IDENTITY-DOMAIN-ISOLATION"
+  - "P0-KNOWLEDGE-QUERY-SCOPE-ADMISSION"
+
+required_design_outcomes:
+  identity_domain:
+    - "Define the semantic proposition identity domain that distinguishes foreign users/projects/privacy domains without using source episode ID as proposition identity."
+    - "Keep immutable source/evidence episode identity separate from semantic proposition identity."
+    - "Define same proposition + same authorized domain + multiple independent sources as one semantic proposition lineage or an explicitly equivalent non-duplicate-voting model with all provenances preserved."
+    - "Define same proposition + foreign user/project/privacy domain as isolated with no canonical collision."
+    - "Define later sharing/global promotion as an explicit governed operation; formal/global promotion remains locked in this route."
+  query_scope_admission:
+    - "Define governed KnowledgeAtom metadata carrying the identity/admission fields required for user/project/privacy fail-closed retrieval."
+    - "Define how QueryPlan/ContextAssembler will admit authorized knowledge while rejecting foreign-user, cross-project and privacy-incompatible knowledge."
+    - "CURRENT/HISTORICAL/freshness and stale/revoked/superseded anti-anchor rules remain explicit and cannot be bypassed by semantic similarity."
+  provenance_and_reconciliation:
+    - "Explain how multiple packet/source provenances attach to one proposition lineage without the latest upsert silently becoming the only effective evidence surface."
+    - "Reconciliation must distinguish DUPLICATE semantic proposition from independent SUPPORT/WEAKEN/CONTRADICT evidence."
+
+required_p0_acceptance_cases:
+  - "same proposition + same project + two different synthetic user scopes => no identity collision and zero cross-user recall"
+  - "same proposition + same user/domain + two independent source episodes => one proposition lineage or explicit equivalent, both provenances preserved, no duplicate vote"
+  - "same text in different projects/privacy domains => isolated unless explicit future promotion/share is authorized"
+  - "user-bound QueryPlan retrieves governed KnowledgeAtom but rejects foreign-user equivalent"
+  - "index rebuild and rollback preserve identity-domain and provenance semantics"
+
+execution_contract:
+  implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
+  implementation_pr: 287
+  exact_reviewed_head: "5e3e7c48a917f3aee138e61a6c994c50a99ed917"
+  additive_commits_only: true
+  p0_docs_and_plan_only: true
+  runtime_code_changes: "FORBIDDEN_THIS_ROUTE"
+  private_data: "FORBIDDEN"
+  real_private_store: "FORBIDDEN"
+  ingestion: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "P0 plan/blueprint YAML or Markdown consistency checks PASS"
+  - "full relevant Phase-3 baseline remains 246/246 PASS or higher without runtime changes"
+  - "Python 3.11/3.13 CI SUCCESS on final exact head"
+  - "public_safety_scan PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+
+required_closeout:
+  - "new exact head_sha"
+  - "exact changed paths"
+  - "blocker-by-blocker design mapping"
+  - "semantic proposition identity-domain decision"
+  - "source/provenance lineage decision"
+  - "knowledge user/project/privacy admission decision"
+  - "duplicate-voting prevention model"
+  - "required P0 acceptance-case matrix"
+  - "migration/rollback implications"
+  - "Phase-3 baseline result"
+  - "public safety result"
+  - "Python 3.11/3.13 CI result"
+  - "git diff check"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "RUNTIME_CODE_NOT_CHANGED"
+  - "P1_NOT_STARTED"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_P0_IDENTITY_SCOPE_R111_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 111 is a narrow P0 design repair only. P1 runtime implementation, real private ingestion, production bridge, scheduler, formal/global promotion,
+  security/permission changes, QCLAW runtime dependency and trading/account actions remain locked. GPT retains review and merge authority.
