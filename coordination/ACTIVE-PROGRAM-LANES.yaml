@@ -1,0 +1,220 @@
+schema_version: "1.0"
+registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
+control_tower_issue: 310
+owner: "USER"
+architecture_owner: "GPT"
+status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
+as_of: "2026-08-14T20:12:00+08:00"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+authority_role: >-
+  This registry is authoritative only for program-lane identity, mission, desired state,
+  cross-lane relationships, overlap declarations and portfolio-level gates. It is not
+  the execution authority for any Agent task and may not override a fresher per-agent route.
+
+source_precedence:
+  - "USER_CURRENT_EXPLICIT_DIRECTION"
+  - "LATEST_PER_AGENT_ACTIVE_ROUTE_ON_REMOTE_MAIN"
+  - "PROJECT_OR_PROGRAM_CANONICAL_AUTHORITY"
+  - "THIS_PROGRAM_LANE_REGISTRY_FOR_LANE_RELATIONSHIPS_ONLY"
+  - "DERIVED_HUMAN_FACING_VIEWS"
+  - "HISTORICAL_AGGREGATE_VIEWS"
+
+not_authoritative_for:
+  - "Agent task_id / route_epoch / execution_allowed / completion_signal"
+  - "W2 market facts or A-share rules"
+  - "W3 knowledge, evidence or long-term memory"
+  - "W4 strategy experiments"
+  - "W5 event evidence"
+  - "W7 validation or final risk veto"
+  - "W9 outcome calibration"
+  - "W10 DecisionEpisode"
+  - "W11 capital allocation"
+  - "W12 ProbabilityEstimate"
+  - "W13 participant-flow evidence"
+  - "AI-film plot, assets, maps, continuity or directing authority"
+
+lane_state_machine:
+  normal: [PROPOSED, READY, ACTIVE, REVIEW, BLOCKED, PAUSED, DONE]
+  terminal: [DONE, CANCELLED]
+  alert_flags:
+    - STALE_VIEW
+    - AUTHORITY_CONFLICT
+    - PATH_OVERLAP
+    - INTERFACE_OVERLAP
+    - DEPENDENCY_BLOCKED
+    - WIP_EXCEEDED
+    - SAME_AGENT_DOUBLE_BOOKED
+    - HEAVY_RESOURCE_COLLISION
+    - SEMANTIC_VERSION_SKEW
+    - COMMIT_AUTHORITY_STALE
+
+portfolio_capacity_policy:
+  program_lanes_may_coexist: 3
+  meaning: >-
+    Up to three major program lanes may be open concurrently as separate goals, but this
+    does not authorize three heavy implementations at once.
+  codex_active_execution_routes_max: 1
+  qclaw_active_execution_routes_max: 1
+  workbuddy_active_execution_routes_max: 1
+  local_heavy_stage_concurrency_max: 1
+  a_share_business_vertical_slices_max: 1
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+  additional_rule: >-
+    Prefer orthogonal parallelism: one heavy implementation lane, one bounded research/design
+    lane and one audit/light lane when dependencies and resource budgets permit.
+
+observed_agent_state:
+  CODEX:
+    source: "coordination/ACTIVE-CODEX-TASK.yaml"
+    observed_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
+    observed_route_epoch: 120
+    observed_issue: 305
+    observed_pr: 307
+    observed_status: "READY_REMEDIATION"
+    execution_allowed: true
+    observation_status: "VERIFIED_REPOSITORY"
+  QCLAW:
+    source: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    observed_route_epoch: 60
+    observed_issue: 296
+    observed_pr: 304
+    observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+    quota_hold: "NO_FURTHER_QCLAW_EXECUTION_ON_2026-08-14"
+    observation_status: "VERIFIED_REPOSITORY"
+  WORKBUDDY:
+    source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    observed_issue: 89
+    observed_pr: 97
+    observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+    observation_status: "VERIFIED_REPOSITORY"
+
+known_stale_aggregate_views:
+  - path: "coordination/ACTIVE-THREE-AGENT-COORDINATION.yaml"
+    observed_problem: "Contains Aug-07-era Codex/QCLAW routing that no longer matches current per-agent routes."
+    disposition: "STALE_VIEW / DO_NOT_USE_AS_ACTIVE_TASK_AUTHORITY"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+    observed_problem: "Still names Issue #72 blueprint convergence as current control baseline."
+    disposition: "HISTORICAL_PROGRAM_BASELINE_WITH_STALE_CURRENT_STATUS_FIELDS"
+  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/ACTIVE-EXECUTION-SEQUENCE-v1.0.yaml"
+    observed_problem: "as_of 2026-07-23 and no longer represents current execution lanes."
+    disposition: "HISTORICAL_EXECUTION_SEQUENCE / NOT_CURRENT_ROUTE_AUTHORITY"
+
+program_lanes:
+  - lane_id: "LANE-A-HARNESS-INTEGRATION"
+    user_aliases: ["DeepSeek Harness线", "智能体运行底盘线"]
+    mission: >-
+      Evaluate and, only after gated PoC evidence, integrate DeepSeek Harness concepts or runtime
+      capabilities as a shared execution layer without replacing GitHub/W3/domain authorities.
+    desired_state: "READY"
+    observed_state: "RESEARCHED_NOT_IMPLEMENTED"
+    owner: "USER"
+    architecture_owner: "GPT"
+    implementation_owner_candidate: "CODEX"
+    primary_system_positions: [W1, W8, W9]
+    support_positions: [W3, W7, W10, W12]
+    canonical_inputs:
+      - "DeepSeek official deepseek-ai/deepseek-harness repository"
+      - "Issue #310 control tower governance"
+    current_phase: "POST_RESEARCH_PRE_POC"
+    active_execution_route: null
+    heavy_execution_authorized: false
+    next_gate: "Define isolated Harness PoC and acceptance metrics without preempting current Codex route."
+    no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
+    maturity: "CANDIDATE_ARCHITECTURE"
+
+  - lane_id: "LANE-B-A-SHARE-REMEDIATION"
+    user_aliases: ["交易系统缺陷改进线", "A股系统改进线"]
+    mission: >-
+      Repair identified trading-research system deficiencies and improve evidence-driven analysis,
+      point-in-time data use, causal attribution, validation, risk and decision support while preserving NO_TRADE.
+    desired_state: "READY"
+    observed_state: "PREPARING_NOT_STARTED"
+    owner: "USER"
+    architecture_owner: "GPT"
+    implementation_owner_candidate: "CODEX"
+    primary_system_positions: [W2, W4, W5, W7, W9, W12, W13]
+    support_positions: [W3, W10, W11]
+    canonical_inputs:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+      - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
+    current_phase: "PRE_ROUTE_GAP_CONSOLIDATION"
+    active_execution_route: null
+    heavy_execution_authorized: false
+    business_vertical_slice_limit: 1
+    next_gate: "Consolidate current defect ledger, dependencies and first bounded remediation slice; publish a route only after current Codex dependency permits."
+    boundary: "RESEARCH_AND_DECISION_SUPPORT / NO_AUTONOMOUS_TRADE"
+    maturity: "READY_FOR_TASK_DESIGN"
+
+  - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
+    user_aliases: ["多端系统线", "第二大脑×GPT认知闭环融合线"]
+    mission: >-
+      Converge long-term memory, knowledge digestion, retrieval, ContextBundle, cognitive models,
+      feedback and GPT access into one traceable external cognitive loop without creating a parallel brain.
+    desired_state: "ACTIVE"
+    observed_state: "ACTIVE"
+    owner: "USER"
+    architecture_owner: "GPT"
+    implementation_owner: "CODEX"
+    canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+    canonical_runtime: "W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY"
+    primary_system_positions: [W3, W10]
+    support_positions: [W8, W9, W12]
+    current_phase: "P2_2_EPISTEMIC_MATERIALITY_HARDENING"
+    active_execution_route:
+      source: "coordination/ACTIVE-CODEX-TASK.yaml"
+      task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
+      route_epoch: 120
+      issue: 305
+      pr: 307
+      status: "READY_REMEDIATION"
+    companion_audit:
+      source: "coordination/ACTIVE-QCLAW-TASK.yaml"
+      status: "PAUSED"
+      next_action: "WAIT_FOR_FUTURE_GPT_REMEDIATION_ROUTE"
+    heavy_execution_authorized: true
+    next_gate: "Complete exact P2.2 remediation and GPT review before later P2.3/P2.4 or production bridge work."
+    maturity: "ACTIVE_IMPLEMENTATION_WITH_LOCKED_FUTURE_GATES"
+
+cross_lane_overlap_matrix:
+  - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
+    overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
+    shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
+    rule: "Harness PoC may wrap or observe trading research calls but may not become market/probability/risk authority."
+  - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
+    overlap_level: "O3_HIGH_INTERFACE_OVERLAP"
+    shared_domains: [W3, W8, W9, W10, skills, context, session, retrieval, agent_runtime]
+    rule: >-
+      Do not implement Harness integration against unstable P2.2/P2.3 ContextBundle interfaces.
+      First freeze the relevant interface or isolate the PoC behind an adapter.
+  - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
+    overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
+    shared_domains: [W3, W9, W10, W12, evidence_retrieval, decision_context]
+    rule: "Trading retrieval may consume W3/W10 context through frozen contracts; it may not write a second knowledge/probability authority."
+
+overlap_levels:
+  O0: "No material overlap. Parallel execution normally safe."
+  O1: "Read/read overlap only. Safe with freshness checks."
+  O2: "Shared interface or downstream consumption. Parallel work allowed if contracts are frozen and no shared write surface exists."
+  O3: "Shared mutable interface/path or unstable contract. Sequence, isolate, or acquire explicit lock before implementation."
+  O4: "Canonical authority collision or incompatible desired states. Fail closed and require GPT/user architecture decision."
+
+flow_metrics:
+  required_when_automation_exists:
+    - WIP
+    - WorkItemAge
+    - BlockedAge
+    - Throughput
+    - CycleTime
+  later_when_history_is_sufficient:
+    - ServiceLevelExpectation
+  note: "Metrics are observability signals, not automatic proof of value or completion."
+
+reconciliation_rule: >-
+  Before any cross-program task is published or accepted, fetch current per-agent routes and relevant canonical
+  project/program indices, derive observed state, compare to this registry's desired lane relationships, classify
+  drift/overlap, and fail closed on O4 authority conflict or stale commit authorization.
