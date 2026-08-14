@@ -1,0 +1,339 @@
+schema_version: "1.0"
+skill_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-SKILL-0001"
+module_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-0001"
+issue: 310
+workstream: "W1+W8+W9"
+name: "AI系统并行Program Control Tower映射与冲突治理"
+status: "CANDIDATE_SKILL_REGISTERED"
+maturity: "CANDIDATE_SKILL_REGISTERED"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+owner:
+  strategy: "USER"
+  architecture: "GPT"
+  implementation_candidate: ["CODEX"]
+  audit_candidate: ["QCLAW"]
+
+purpose: >-
+  Map any new or existing AI-system initiative into the current enterprise architecture before execution,
+  preserve task/source authorities, derive desired-versus-observed program state, detect overlap and stale views,
+  select safe parallelism or sequencing, and expose a human-readable control tower without creating a second task runtime.
+
+when_to_use:
+  mandatory:
+    - "Two or more major program lines may run in parallel."
+    - "A new architecture/framework such as DeepSeek Harness may touch shared runtime interfaces."
+    - "A task may overlap another Agent, branch, canonical path, schema or system-of-record authority."
+    - "A program/index/dashboard may be stale relative to current ACTIVE routes."
+    - "The user asks who is working on what, what is finished, what is blocked, or what can run simultaneously."
+    - "A long-running task resumes after model/prompt/tool/index/policy or route changes."
+  optional:
+    - "Single light task with no shared dependencies, to perform a compact reuse/WIP check."
+
+systems_of_record:
+  task_execution:
+    CODEX: "coordination/ACTIVE-CODEX-TASK.yaml"
+    QCLAW: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    WORKBUDDY: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  task_lease: "coordination/GOVERNANCE/AGENT-TASK-LEASE-AND-COMPLETION-FRESHNESS-PROTOCOL-v1.0.yaml"
+  second_brain_program: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+  ai_film_source_authority: "vxz2datoubo/eustia-ai-film/PROJECT_INDEX.yaml"
+  knowledge_memory: "W3"
+  market_rules_replay: "W2"
+  strategy_experiment: "W4"
+  validation_risk_veto: "W7"
+  outcome_learning: "W9"
+  decision_episode: "W10"
+  capital_allocation: "W11"
+  probability: "W12"
+
+knowledge_mapping_states:
+  KNOWN_SAID:
+    definition: "Explicitly stated by the user or directly verified in a source."
+    output_rule: "Treat as fact within its scope and cite provenance."
+  KNOWN_UNSAID_INFERRED:
+    definition: "Not explicitly stated, but strongly implied by architecture, history or constraints."
+    output_rule: "Mark as high-confidence inference and keep it overridable by explicit user correction."
+  UNKNOWN_BUT_ACCESSIBLE:
+    definition: "The user has not expressed the concept, but can understand it by mapping to concepts already mastered."
+    output_rule: "Teach through existing anchors before introducing the professional term."
+  UNKNOWN_REQUIRES_SCAFFOLDING:
+    definition: "The concept requires prerequisite models, distinctions or examples before it can be used correctly."
+    output_rule: "Build prerequisites, concrete failure case, formal term, then system mapping."
+
+professional_term_map:
+  program_control_tower: "Cross-initiative coordination and observability plane, not a task executor."
+  desired_observed_reconciliation: "Compare intended state with actual repository/runtime state and surface drift."
+  materialized_view: "Derived dashboard rebuilt from canonical facts; disposable and non-authoritative."
+  dependency_DAG: "Directed acyclic dependency graph for upstream/downstream gates."
+  WIP: "Work started but not finished; separate strategic lane WIP from execution WIP."
+  work_item_age: "Age of an unfinished item."
+  cycle_time: "Elapsed time from start to finish."
+  throughput: "Completed work items per unit time."
+  SLE: "Probabilistic service-level expectation derived from historical cycle-time data."
+  lease: "Time/identity bounded claim coordinating shared work."
+  fencing_token: "Monotonic token such as route_epoch used to reject stale actors/effects."
+  single_writer: "Only one authority may durably write a canonical object class."
+  semantic_isolation: "Compatibility discipline preventing one durable AI run from mixing incompatible semantic environments."
+  commit_time_authorization: "Revalidate durable-effect authority immediately before commit, not only at task start."
+  model_inventory: "Lifecycle inventory linking model/skill purpose, owner, version, validation, limits and monitoring."
+  effective_challenge: "Independent critical review proportionate to model/system materiality."
+
+input_contract:
+  required:
+    - user_current_goal
+    - latest_remote_main_per_agent_routes
+    - relevant_project_or_program_canonical_index
+    - current_program_lane_registry
+  conditional:
+    - issue_and_pr_state
+    - branch_and_changed_path_state
+    - CI_or_test_evidence
+    - dependency_graph
+    - resource_budget
+    - external_framework_official_docs
+    - current_model_or_tool_versions
+
+pipeline:
+  - step: 1
+    id: SOURCE_AUTHORITY_RESOLUTION
+    action: >-
+      Read the applicable project/program source-authority entry first. For Eustia tasks, PROJECT_INDEX.yaml is P0.
+      For Agent execution, latest per-agent ACTIVE route outranks aggregate status views.
+  - step: 2
+    id: CURRENT_PROGRAM_SNAPSHOT
+    action: "Fetch current lane registry, all relevant ACTIVE routes, issues/PRs and evidence needed to establish observed state."
+  - step: 3
+    id: FOUR_STATE_KNOWLEDGE_MAP
+    action: >-
+      Separate KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE and UNKNOWN_REQUIRES_SCAFFOLDING.
+      Never turn an inferred user state into an explicit fact.
+  - step: 4
+    id: INITIATIVE_DECOMPOSITION
+    action: "Define mission, success, stop conditions, phase, implementation surface and durable effects."
+  - step: 5
+    id: SYSTEM_POSITION_MAP
+    action: "Map the initiative to W1-W13, project-specific systems and external runtime layers."
+  - step: 6
+    id: AUTHORITY_AND_INTERFACE_MAP
+    action: "Identify systems of record, producer/consumer interfaces, single-writer constraints and forbidden parallel authorities."
+  - step: 7
+    id: DEPENDENCY_DAG
+    action: "Declare upstream gates, downstream consumers, blocked-by relations and cross-lane dependencies."
+  - step: 8
+    id: OWNERSHIP_AND_LEASE_MAP
+    action: "Resolve USER/GPT/Codex/QCLAW/WorkBuddy roles, current route epochs, branches, locks and approval owners."
+  - step: 9
+    id: OVERLAP_COLLISION_SCAN
+    action: "Classify each lane pair O0/O1/O2/O3/O4 and record affected interfaces/paths/authorities."
+  - step: 10
+    id: WIP_CAPACITY_SCAN
+    action: "Check per-Agent route limits, heavy local lock, business-slice limit and resource budget."
+  - step: 11
+    id: SEMANTIC_AND_COMMIT_FRESHNESS_SCAN
+    action: >-
+      For durable or resumed work, compare model/prompt/skill/index/policy/tool/route versions and revalidate authority at commit time.
+  - step: 12
+    id: EXTERNAL_EVIDENCE_RESEARCH
+    action: >-
+      When current/niche/high-impact, research official docs, standards, peer-reviewed papers and real engineering/finance governance.
+      Grade new preprints as candidate unless independently validated.
+  - step: 13
+    id: PARALLELISM_DECISION
+    action: "Choose PARALLEL / PARALLEL_WITH_LOCK / ADAPTER_ISOLATION / SEQUENCE / BLOCK / USER_GATE."
+  - step: 14
+    id: LANE_REGISTRATION_PROPOSAL
+    action: "Add or update ProgramLaneSpec without copying task execution truth into a second route."
+  - step: 15
+    id: HUMAN_PROJECTION
+    action: "Update the Markdown/GitHub Project projection from canonical sources; label stale/unknown states explicitly."
+  - step: 16
+    id: EVAL_AND_REGRESSION
+    action: "Run stale-view, collision, WIP, authority, route-epoch and semantic-version targeted cases."
+  - step: 17
+    id: LEARNING_CAPTURE
+    action: "Record false alarms, missed collisions, cycle/blocked time and accepted architecture improvements through W9/AMED."
+
+collision_classification:
+  O0_NONE:
+    criteria: "No material shared write, interface or scarce resource."
+    disposition: "PARALLEL_OK"
+  O1_READ_READ:
+    criteria: "Shared read sources only."
+    disposition: "PARALLEL_OK_WITH_FRESHNESS"
+  O2_SHARED_CONTRACT:
+    criteria: "Shared stable contract or producer/consumer relationship."
+    disposition: "PARALLEL_IF_CONTRACT_FROZEN_AND_SINGLE_WRITER"
+  O3_MUTABLE_SURFACE:
+    criteria: "Shared mutable schema/interface/path/branch/heavy resource."
+    disposition: "SEQUENCE_OR_ISOLATE_OR_LOCK"
+  O4_AUTHORITY_COLLISION:
+    criteria: "Duplicate canonical writer or incompatible desired state."
+    disposition: "FAIL_CLOSED / GPT_OR_USER_ARCHITECTURE_GATE"
+
+parallelism_decision_contract:
+  outputs:
+    - decision
+    - rationale
+    - allowed_concurrency
+    - held_locks
+    - blocked_by
+    - next_gate
+    - recheck_trigger
+  decisions:
+    - PARALLEL
+    - PARALLEL_WITH_FRESHNESS_CHECK
+    - PARALLEL_WITH_LOCK
+    - ADAPTER_ISOLATION
+    - SEQUENCE
+    - BLOCK
+    - USER_GATE
+
+required_output_contract:
+  - confirmed_facts
+  - high_confidence_inferences
+  - candidate_hypotheses
+  - unknowns
+  - four_state_user_knowledge_map
+  - program_lane_map
+  - system_position_map
+  - authority_matrix
+  - interface_map
+  - dependency_DAG
+  - overlap_matrix
+  - agent_and_owner_map
+  - desired_vs_observed_drift
+  - WIP_and_resource_status
+  - risk_and_gate_map
+  - external_evidence_ledger
+  - parallelism_decision
+  - next_route_recommendation
+  - dashboard_projection_update
+  - targeted_eval_plan
+  - learning_writeback_plan
+
+hard_gates:
+  - id: PER_AGENT_ROUTE_AUTHORITY
+    rule: "The latest per-agent ACTIVE route is the execution truth; dashboards cannot override it."
+  - id: SINGLE_WRITER
+    rule: "No Program Lane may create a second writer for an existing canonical object class."
+  - id: WIP
+    rule: "Three strategic lanes may coexist, but each execution Agent keeps its single-route cap and local heavy-stage concurrency remains bounded."
+  - id: CURRENT_CODEX_NON_PREEMPTION
+    rule: "Issue #310 does not preempt the current Codex cognitive-loop route unless GPT explicitly publishes a new route."
+  - id: PROJECT_UI_IS_PROJECTION
+    rule: "GitHub Project/board fields are human-facing projections, not program execution authority."
+  - id: COMMIT_FRESHNESS
+    rule: "Durable writes must revalidate current route/authority/dependencies immediately before commit."
+  - id: SEMANTIC_SKEW
+    rule: "Long-running work may not silently mix incompatible model/prompt/skill/index/policy/tool semantics."
+  - id: NO_TRADE
+    rule: "Control-tower or Harness integration cannot enable accounts, orders or autonomous trading."
+
+flow_metrics:
+  mandatory_after_scanner_automation: [WIP, WorkItemAge, BlockedAge, Throughput, CycleTime]
+  mature_optional: [ServiceLevelExpectation]
+  segmentation: [research, design, implementation, audit, remediation]
+  warning: "Do not average incompatible work classes into a misleading single velocity metric."
+
+trading_system_linkage:
+  control_tower_role:
+    - "Track which research/model/skill defects are being remediated and their validation state."
+    - "Expose dependency and aggregate model-risk surfaces across W2/W4/W5/W7/W9/W10/W11/W12/W13."
+    - "Track OOS/shadow/revalidation gates by reference, not duplicate the underlying results."
+  model_governance_fields_candidate:
+    - model_or_skill_id
+    - intended_use
+    - owner
+    - version
+    - maturity
+    - validation_state
+    - last_oos_or_shadow_check
+    - dependencies
+    - known_limitations
+    - degradation_or_revalidation_state
+  prohibitions:
+    - "No direct BUY/SELL or order authority."
+    - "No probability duplication outside W12."
+    - "No risk-veto duplication outside W7."
+
+harness_linkage:
+  future_candidates:
+    - program_lane_context_provider
+    - source_authority_router
+    - cross_lane_write_guard
+    - route_epoch_commit_guard
+    - program_event_observer
+  rule: "Harness is an execution/runtime candidate beneath governance, never a replacement for program/domain canonical sources."
+
+external_evidence_classes:
+  T1_OFFICIAL_STABLE:
+    examples:
+      - GitHub_Projects_docs
+      - Kubernetes_Controller_and_Lease_docs
+      - Apache_Airflow_docs
+      - Temporal_docs
+      - Federal_Reserve_Model_Risk_Guidance_2026
+  T2_PEER_REVIEWED:
+    examples:
+      - ACL_2025_MultiAgentBench
+      - NAACL_2025_LLM_Coordination
+      - NeurIPS_2025_MAST
+  T3_PROFESSIONAL:
+    examples:
+      - Kanban_Guide
+      - CFA_Investment_Model_Validation
+  T4_CANDIDATE_PREPRINT:
+    examples:
+      - arXiv_2608_05412_Semantic_Isolation
+      - arXiv_2607_10487_Commit_Time_Authorization
+    promotion_rule: "Requires project evidence/independent validation before enterprise-stable use."
+
+validation_cases:
+  - id: CT-E01
+    scenario: "Current Codex epoch 120 conflicts with old aggregate epoch 61."
+    expected: "Latest per-agent route wins; aggregate marked STALE_VIEW."
+  - id: CT-E02
+    scenario: "Three Program Lanes open while only Lane C owns one heavy Codex route."
+    expected: "Allowed; do not confuse strategic WIP with execution WIP."
+  - id: CT-E03
+    scenario: "Harness integration wants to bind directly to unstable ContextBundle interface."
+    expected: "O3; adapter-isolate or sequence after interface freeze."
+  - id: CT-E04
+    scenario: "Trading and cognitive lanes both read W3."
+    expected: "O1 or O2 depending contract mutation; do not block read/read unnecessarily."
+  - id: CT-E05
+    scenario: "A new trading component writes ProbabilityEstimate independently."
+    expected: "O4; reject because W12/DS-02 is single writer."
+  - id: CT-E06
+    scenario: "Board says ACTIVE but per-agent route says execution_allowed=false."
+    expected: "Board is stale projection; no execution."
+  - id: CT-E07
+    scenario: "route_epoch changes after work starts and before durable write."
+    expected: "Commit blocked until authority is revalidated/rebound."
+  - id: CT-E08
+    scenario: "Long-running workflow resumes with incompatible Skill/model/policy version."
+    expected: "Semantic skew surfaced; revalidate/replan instead of silent continuation."
+
+maturity_state_machine:
+  - DISCOVERED
+  - CANDIDATE_SKILL_REGISTERED
+  - CONTROL_VIEW_USED_ON_REAL_THREE_LANE_CYCLE
+  - TARGETED_REGRESSION_VALIDATED
+  - CROSS_PROGRAM_VALIDATED
+  - FORMAL_GOVERNANCE_SKILL
+  - DEGRADED_OR_REVALIDATION_REQUIRED
+
+current_reality:
+  issue: 310
+  lane_registry: "IMPLEMENTED_CANDIDATE"
+  governance_protocol: "IMPLEMENTED_CANDIDATE"
+  blueprint: "IMPLEMENTED_CANDIDATE"
+  skill_contract: "IMPLEMENTED_CANDIDATE"
+  markdown_control_tower: "PENDING_IN_THIS_CHANGESET"
+  automatic_scanner: "NOT_IMPLEMENTED"
+  github_project_ui: "NOT_CREATED_BY_CURRENT_TOOLING"
+  github_project_sync: "NOT_IMPLEMENTED"
+  harness_runtime_integration: "NOT_STARTED"
+  trading_remediation_route: "NOT_STARTED"
+  cognitive_closed_loop_route: "ACTIVE_SEPARATE_EXISTING_ROUTE"
