@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest
+import json
 from pathlib import Path
 
 
@@ -22,6 +23,7 @@ from integrated_offline_memory.knowledge_reconciliation import (
     proposition_id,
 )
 from integrated_offline_memory.memory_store import MemoryStore
+from integrated_offline_memory.learning_packet import verify_learning_packet
 from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
 
 
@@ -261,6 +263,78 @@ class KnowledgeReconciliationTestCase(unittest.TestCase):
                     self.assertEqual({item["source_trust"] for item in provenance[-1]["knowledge"]["source_episodes"]}, {"SOURCE_DATA", "UNTRUSTED_INERT"})
                 finally:
                     reopened.close()
+
+    def test_source_body_exact_and_contiguous_subspan_bindings_are_private_minimized(self) -> None:
+        source = "Fact: source extraction claim; Mechanism: bounded derivation proof; Condition: synthetic only"
+        store = MemoryStore().connect()
+        try:
+            exact_episode = episode("binding-exact", text=source)
+            exact = capture(store, exact_episode, passage="  " + source + "  ", semantic_query="source bounded synthetic")
+            exact_atom = store.get_atom(exact.atom_ids[0])
+            exact_binding = exact_atom["memory_metadata"]["knowledge"]["source_episodes"][0]["extraction_binding"]
+            self.assertEqual(exact_binding["schema_version"], "knowledge-extraction-binding-v1")
+            self.assertEqual(exact_binding["full_source_hash"], exact_episode.source_hash)
+            self.assertEqual(exact_binding["normalized_start"], 0)
+            self.assertNotIn(source, json.dumps(exact_binding, sort_keys=True))
+            packet = json.loads(store.conn.execute("SELECT json_blob FROM packets WHERE id=?", (exact.packet_ids[0],)).fetchone()[0])
+            self.assertTrue(verify_learning_packet(packet)["valid"])
+            packet["atoms"][0]["memory_metadata"]["knowledge"]["source_episodes"][0].pop("extraction_binding")
+            self.assertIn("knowledge_provenance_invalid", verify_learning_packet(packet)["errors"])
+        finally:
+            store.close()
+        subspan_store = MemoryStore().connect()
+        try:
+            subspan_episode = episode("binding-subspan", text=source)
+            receipt = capture(subspan_store, subspan_episode, passage="Mechanism: bounded derivation proof", semantic_query="bounded derivation")
+            binding = subspan_store.get_atom(receipt.atom_ids[0])["memory_metadata"]["knowledge"]["source_episodes"][0]["extraction_binding"]
+            self.assertGreater(binding["normalized_start"], 0)
+            self.assertGreater(binding["normalized_end"], binding["normalized_start"])
+        finally:
+            subspan_store.close()
+
+    def test_fabricated_passage_is_rejected_before_packet_store_or_index_mutation(self) -> None:
+        store = MemoryStore().connect()
+        try:
+            before = store.stats()
+            with self.assertRaisesRegex(ValueError, "passage_not_derived_from_source"):
+                capture(
+                    store, episode("fabricated", text="Fact: source-backed statement"),
+                    passage="Fact: fabricated unrelated statement", semantic_query="fabricated evidence",
+                )
+            self.assertEqual(store.stats(), before)
+        finally:
+            store.close()
+
+    def test_extraction_binding_survives_duplicate_union_restart_and_index_rebuild(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "binding.db"
+            first = episode("binding-union-a", text="Fact: shared bound proposition")
+            second = episode("binding-union-b", text="Preface: synthetic context; Fact: shared bound proposition; Suffix: retained")
+            store = MemoryStore(path).connect()
+            try:
+                initial = capture(store, first, semantic_query="shared bound")
+                duplicate = capture(store, second, passage="Fact: shared bound proposition", semantic_query="shared bound")
+                self.assertEqual(initial.atom_ids, duplicate.atom_ids)
+                atom_id = initial.atom_ids[0]
+                source_episodes = store.get_atom(atom_id)["memory_metadata"]["knowledge"]["source_episodes"]
+                self.assertEqual(len(source_episodes), 2)
+                self.assertEqual({item["extraction_binding"]["full_source_hash"] for item in source_episodes}, {first.source_hash, second.source_hash})
+                store.conn.execute("DELETE FROM retrieval_terms")
+                for stored in store.all_atoms():
+                    store._index_atom(store.conn, stored)
+                store.conn.commit()
+            finally:
+                store.close()
+            reopened = MemoryStore(path).connect()
+            try:
+                stored = reopened.get_atom(atom_id)
+                bindings = [item["extraction_binding"] for item in stored["memory_metadata"]["knowledge"]["source_episodes"]]
+                self.assertEqual(len(bindings), 2)
+                provenance = reopened.provenance_for_atom(atom_id)
+                self.assertEqual(len(provenance[-1]["knowledge"]["source_episodes"]), 2)
+                self.assertEqual([item["id"] for item in ContextAssembler(reopened).assemble(plan(query="shared bound")).atoms], [atom_id])
+            finally:
+                reopened.close()
 
     def test_invalid_semantic_echo_and_ambiguous_directive_leave_store_unchanged(self) -> None:
         store = MemoryStore().connect()

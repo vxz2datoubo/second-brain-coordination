@@ -20,6 +20,7 @@ from .retrieval import ContextAssembler, QueryPlan
 
 TAXONOMY_VERSION = "knowledge-taxonomy-v1"
 IDENTITY_VERSION = "knowledge-proposition-domain-v1"
+EXTRACTION_BINDING_VERSION = "knowledge-extraction-binding-v1"
 PUBLIC_SAFE_EXECUTION_CLASS = "PUBLIC_SAFE_SYNTHETIC"
 _LEGACY_PUBLIC_SAFE_DOMAIN = "PUBLIC_SAFE_SYNTHETIC"
 RECONCILIATION_ACTIONS = frozenset({
@@ -213,7 +214,9 @@ def capture_knowledge(
     semantic_query: str | None = None,
 ) -> ReconciliationReceipt:
     """Preflight all candidates, atomically import them, then prove scoped recall."""
-    candidates = decompose_knowledge_passage(passage if passage is not None else episode.source_text)
+    extracted_passage = passage if passage is not None else episode.source_text
+    extraction_binding = _bind_extracted_passage(episode, extracted_passage)
+    candidates = decompose_knowledge_passage(extracted_passage)
     valid_from = _canonical_instant(valid_from or episode.available_at or episode.recorded_at)
     valid_to = _canonical_instant(valid_to) if valid_to is not None else None
     if valid_to is not None and _instant(valid_to) <= _instant(valid_from):
@@ -234,7 +237,7 @@ def capture_knowledge(
     # This loop is entirely pre-write.  Any invalid target/directive fails before
     # the one existing MemoryStore transaction is opened.
     for candidate in candidates:
-        metadata = _knowledge_metadata(episode, candidate, valid_from, valid_to, freshness_profile)
+        metadata = _knowledge_metadata(episode, candidate, valid_from, valid_to, freshness_profile, extraction_binding)
         atom_id = knowledge_atom_id(candidate.statement, metadata)
         directive = directives.get(candidate.statement)
         comparison_query = _comparison_query(candidate.statement, directive)
@@ -379,6 +382,7 @@ def _validate_target(store: MemoryStore, target_atom_id: str, metadata: dict[str
 
 def _knowledge_metadata(
     episode: KnowledgeEpisode, candidate: KnowledgeCandidate, valid_from: str, valid_to: str | None, freshness_profile: str,
+    extraction_binding: dict[str, Any],
 ) -> dict[str, Any]:
     domain_hash = identity_domain_hash(episode.user_scope, episode.project_scope, episode.privacy_domain)
     manifest_id = episode.manifest_id
@@ -388,6 +392,7 @@ def _knowledge_metadata(
         "available_at": _canonical_instant(episode.available_at or episode.recorded_at), "source_span": candidate.source_span,
         "provenance_quality": episode.provenance_quality,
         "source_trust": _source_trust(episode.source_text),
+        "extraction_binding": extraction_binding,
     }
     return {
         "schema_version": "knowledge-atom-v1", "episode_manifest_ids": [manifest_id], "source_episodes": [source_episode],
@@ -455,6 +460,26 @@ def _evidence(basis: str, reason: str) -> dict[str, str]:
 
 def _source_trust(source_text: str) -> str:
     return "UNTRUSTED_INERT" if _INERT_CONTROL_MARKERS.search(source_text) else "SOURCE_DATA"
+
+
+def _bind_extracted_passage(episode: KnowledgeEpisode, passage: str) -> dict[str, Any]:
+    """Create a privacy-minimized proof that extraction is from this source."""
+    normalized_source = normalize_text(episode.source_text)
+    normalized_passage = normalize_text(passage)
+    if not normalized_passage:
+        raise ValueError("knowledge_passage_required")
+    start = normalized_source.find(normalized_passage)
+    if start < 0:
+        # This is deliberately before decomposition, packet construction and
+        # store import: arbitrary caller text cannot inherit episode lineage.
+        raise ValueError("knowledge_passage_not_derived_from_source")
+    return {
+        "schema_version": EXTRACTION_BINDING_VERSION,
+        "full_source_hash": episode.source_hash,
+        "extracted_passage_hash": content_hash({"normalized_extracted_passage": normalized_passage}),
+        "normalized_start": start,
+        "normalized_end": start + len(normalized_passage),
+    }
 
 
 def _public_safe_domain(value: str) -> bool:

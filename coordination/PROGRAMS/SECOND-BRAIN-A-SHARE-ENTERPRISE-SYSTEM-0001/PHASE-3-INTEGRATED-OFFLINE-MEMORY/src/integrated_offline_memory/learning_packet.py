@@ -347,10 +347,14 @@ def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
     for item in knowledge["source_episodes"]:
         if (
             not isinstance(item, dict)
-            or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust"}
-            or not all(isinstance(item.get(key), str) and item[key] for key in item)
+            or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust", "extraction_binding"}
+            or not all(
+                isinstance(item.get(key), str) and item[key]
+                for key in ("episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust")
+            )
             or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
             or item["source_trust"] not in {"SOURCE_DATA", "UNTRUSTED_INERT"}
+            or not _knowledge_extraction_binding_valid(item["extraction_binding"])
         ):
             return ["knowledge_provenance_invalid"]
         try:
@@ -401,6 +405,11 @@ def _knowledge_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> li
     )
     if any(report.get(field) != knowledge.get(field) for field in fields):
         return ["knowledge_packet_validation_mismatch"]
+    if any(
+        item["extraction_binding"]["full_source_hash"] != packet.get("source_hash")
+        for item in knowledge["source_episodes"]
+    ):
+        return ["knowledge_packet_extraction_binding_mismatch"]
     try:
         if _instant(report.get("valid_from")) != _instant(knowledge.get("valid_from")):
             return ["knowledge_packet_validation_mismatch"]
@@ -424,6 +433,22 @@ def _normalized_knowledge_metadata(knowledge: dict[str, Any]) -> dict[str, Any]:
     if isinstance(result.get("source_episodes"), list):
         result["source_episodes"] = sorted(result["source_episodes"], key=lambda item: item.get("episode_manifest_id", ""))
     return result
+
+
+def _knowledge_extraction_binding_valid(binding: Any) -> bool:
+    if not isinstance(binding, dict) or set(binding) != {
+        "schema_version", "full_source_hash", "extracted_passage_hash", "normalized_start", "normalized_end",
+    }:
+        return False
+    if binding["schema_version"] != "knowledge-extraction-binding-v1":
+        return False
+    if not all(isinstance(binding[field], str) and re.fullmatch(r"[0-9a-f]{64}", binding[field]) for field in ("full_source_hash", "extracted_passage_hash")):
+        return False
+    return (
+        isinstance(binding["normalized_start"], int)
+        and isinstance(binding["normalized_end"], int)
+        and 0 <= binding["normalized_start"] < binding["normalized_end"]
+    )
 
 
 def _conversation_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> list[str]:

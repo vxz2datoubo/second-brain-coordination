@@ -1,0 +1,36 @@
+schema_version: "1.0"
+handoff_type: "AI_HANDOFF"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-SOURCE-PASSAGE-PROVENANCE-BINDING"
+route_epoch: 115
+issue: 282
+pull_request: 290
+branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
+reviewed_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
+delivery_status: "PENDING_COMMIT_PUSH_AND_EXACT_HEAD_CI"
+scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
+runtime_summary:
+  derivation_rule: "caller passage must be normalized full-body equality or normalized contiguous source subspan before any decomposition or write"
+  binding: "knowledge-extraction-binding-v1 stores full source hash, extracted passage hash and normalized start/end only"
+  verifier: "every governed KnowledgeAtom source episode requires a well-formed binding whose full source hash matches packet source hash"
+  preservation: "binding is retained by duplicate union, provenance reconstruction, restart and index rebuild"
+validation:
+  focused_p1: "17/17 PASS"
+  phase3: "263/263 PASS"
+  public_safety: "PASS 75 files / 0 issues"
+  yaml_json_parse: "PASS 1 JSON schema / 3 R115 YAML artifacts"
+  git_diff_check: "PASS before commit"
+unknowns:
+  - "P1 supports only normalized full-body or contiguous-subspan derivation; generalized discontinuous extraction needs a separately governed contract."
+  - "Real private source/store execution is not run."
+locks:
+  real_private_execution: "NOT_RUN"
+  formal_project_global_write: "LOCKED"
+  production_bridge: "NOT_DEPLOYED"
+  scheduler: "NOT_CREATED"
+  qclaw_runtime_dependency: "NOT_CREATED"
+  p2_p3_p4_p5: "NOT_PREEMPTED"
+  merge: "NOT_PERFORMED"
+next_acceptance_gate: "Push exact additive head to PR 290, verify exact-head Python 3.11/3.13 CI, then GPT final P1 review."
