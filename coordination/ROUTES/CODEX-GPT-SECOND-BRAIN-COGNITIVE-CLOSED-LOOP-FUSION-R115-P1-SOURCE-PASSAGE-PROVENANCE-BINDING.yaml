@@ -1,0 +1,123 @@
+schema_version: "115.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 282
+active_pull_request: 290
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P1-SOURCE-PASSAGE-PROVENANCE-BINDING"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 115
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P1来源正文与提取片段Provenance绑定收口"
+status: "READY"
+execution_allowed: true
+merge_authorized: false
+intermediate_gpt_review_required: true
+runtime_code_change_allowed: true
+runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
+formal_knowledge_persistence_unlock_allowed: false
+real_private_candidate_ingestion_allowed: false
+private_source_discovery_allowed: false
+private_candidate_source_read_allowed: false
+unattended_scheduler_activation_allowed: false
+production_mcp_gateway_deployment_authorized: false
+permission_or_acl_change_authorized: false
+repository_visibility_change_authorized: false
+trading_or_account_action_allowed: false
+
+canonical_main_at_route_prepare: "2655312c88d53da4e0112175180119ab1764dcd7"
+implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
+implementation_pr: 290
+reviewed_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
+gpt_review_id: 4934900276
+issue_review_comment: 5290655804
+
+predecessor_checkpoint:
+  route_epoch: 114
+  exact_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
+  verified_exact_head_ci_run: 31772705543
+  verified_ci_jobs:
+    python_3_11: 94681723696
+    python_3_13: 94681723656
+  verified_focused_tests: "14/14 PASS"
+  verified_phase3_tests: "260/260 PASS"
+  verified_public_safety: "75 files / 0 issues"
+  closed_blockers:
+    - "P1-NEW-MUST-NOT-IGNORE-RETRIEVED-CANDIDATES"
+    - "P1-POSTWRITE-PROOF-MUST-BE-PER-ATOM-AND-TRUTHFULLY-NAMED"
+    - "P1-SOURCE-TRUST-MUST-BE-PROVENANCE-LEVEL"
+  disposition: "R114_THREE_BLOCKERS_CLOSED_CHANGES_REQUIRED_SOURCE_PASSAGE_PROVENANCE_BINDING"
+
+root_goal: >-
+  Close the final P1 provenance-integrity gap in Draft PR #290. A caller-supplied extraction passage must never inherit a KnowledgeEpisode manifest,
+  source hash or pointer lineage unless the passage is provably derived from that episode source body. Preserve a privacy-minimized, auditable extraction
+  binding so later packet/store/restart/index-rebuild inspection cannot confuse arbitrary caller text with source-backed evidence.
+
+required_blocker:
+  - "P1-PASSAGE-MUST-BE-CONTENT-BOUND-TO-SOURCE-EPISODE"
+
+required_acceptance_cases:
+  - "passage omitted => decomposition uses the episode source body and records a valid extraction binding"
+  - "normalized exact-body passage => accepted and bound to the episode source hash"
+  - "normalized contiguous subspan/subpassage => accepted with auditable content-bound locator/hash"
+  - "unrelated or fabricated passage => rejected before any packet/store/index mutation"
+  - "binding survives packet verification, duplicate provenance union, restart and index rebuild"
+  - "binding metadata exposes hashes/locators only and does not publish raw private/source body"
+  - "all R112-R114 adversarial behavior remains unchanged"
+
+implementation_contract:
+  same_draft_pr: 290
+  additive_commits_only: true
+  p1_runtime_changes: "ALLOWED_WITHIN_ROUTE"
+  source_binding_minimum: >-
+    For P1, normalized full-body equality or normalized contiguous-span derivation is sufficient. A more general explicit span-list contract is acceptable
+    only if every extracted segment is content-bound to the episode source and the public packet/receipt remains privacy-minimized.
+  extraction_receipt_minimum:
+    - "full source content hash"
+    - "extracted passage/content hash"
+    - "content-bound normalized offset/span locator or equivalent verifiable binding"
+    - "binding/policy schema version"
+  verifier_requirement: >-
+    Packet/store verification must preserve the extraction binding and reject malformed or missing binding metadata for governed KnowledgeAtoms. Raw
+    source bodies are not required to be published or stored in public receipts.
+  p2_graph_unification: "FORBIDDEN"
+  p3_proactive_or_semantic_recall: "FORBIDDEN"
+  p4_feedback_skill_lifecycle: "FORBIDDEN"
+  p5_production_bridge: "FORBIDDEN"
+  real_private_data: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "new R115 extraction/provenance adversarial tests PASS"
+  - "all R112-R114 focused/adversarial regressions PASS"
+  - "full relevant Phase-3 regression PASS"
+  - "Python 3.11/3.13 exact-final-head CI SUCCESS"
+  - "public safety PASS"
+  - "YAML/JSON/schema validation PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+
+required_closeout:
+  - "new exact head"
+  - "exact changed paths"
+  - "source-body-to-passage derivation rule"
+  - "extraction binding schema/version and privacy surface"
+  - "unrelated-passage pre-write rejection proof"
+  - "exact-body and valid-subspan acceptance proof"
+  - "packet verification / duplicate union / restart / index rebuild preservation proof"
+  - "focused/full regression counts"
+  - "exact-head CI jobs"
+  - "public safety / schema / diff check / clean tree"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "P2_P3_P4_P5_NOT_PREEMPTED"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R115_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 115 is the final narrow P1 provenance closure. It does not authorize P2-P5, real private ingestion, production bridge, scheduler, formal/global
+  promotion, security/permission changes, QCLAW runtime dependency or trading/account actions. GPT retains review and merge authority.
