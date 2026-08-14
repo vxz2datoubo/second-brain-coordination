@@ -118,12 +118,12 @@ class MemoryPalaceTestCase(unittest.TestCase):
         self.assertEqual({item["atom"]["id"] for item in recalled}, set(receipt.atom_ids))
         self.assertIn("lexical", recalled[0]["explanation"]["channels"])
 
-    def test_fixed_overlap_is_hard_and_nonoverlap_is_not_hard(self) -> None:
+    def test_fixed_overlap_is_hard_and_known_nonoverlap_has_no_schedule_conflict(self) -> None:
         self.capture("2026-08-15 09:00-10:00 合成晨会。采集记忆", "episode-0900")
         overlap = self.capture("2026-08-15 09:30-10:30 合成复盘。采集记忆", "episode-0930")
         self.assertIn("SCHEDULE_HARD_CONFLICT", overlap.conflict_types)
         nonoverlap = self.capture("2026-08-15 11:00-12:00 合成午会。采集记忆", "episode-1100")
-        self.assertNotIn("SCHEDULE_HARD_CONFLICT", nonoverlap.conflict_types)
+        self.assertFalse({"SCHEDULE_HARD_CONFLICT", "SCHEDULE_POTENTIAL_CONFLICT", "UNKNOWN_CONSTRAINT"}.intersection(nonoverlap.conflict_types))
 
     def test_stance_is_owner_attributed_and_correction_preserves_history(self) -> None:
         old = self.capture("我觉得合成消息是假的。采集记忆", "episode-stance-old")
@@ -320,6 +320,39 @@ class MemoryPalaceTestCase(unittest.TestCase):
         )
         self.assertEqual(current, ())
         self.assertEqual({item["atom"]["id"] for item in historical}, set(receipt.atom_ids))
+
+    def test_r109_mixed_capture_conflict_attaches_only_to_schedulable_atom(self) -> None:
+        existing = self.capture("2026-08-15 09:00-10:00 合成晨会。采集记忆", "episode-r109-existing")
+        incoming = self.capture(
+            "2026-08-15 09:30-10:30 合成复盘；我喜欢合成茶；我觉得合成工具很好。采集记忆",
+            "episode-r109-mixed",
+        )
+        schedule_conflicts = [
+            conflict for conflict in self.store.conflicts_for(set(incoming.atom_ids))
+            if conflict["conflict_type"].startswith("SCHEDULE_") or conflict["conflict_type"] == "UNKNOWN_CONSTRAINT"
+        ]
+        self.assertEqual({conflict["atom_id_a"] for conflict in schedule_conflicts}, set(existing.atom_ids))
+        self.assertEqual({conflict["atom_id_b"] for conflict in schedule_conflicts}, {incoming.atom_ids[0]})
+        self.assertEqual({conflict["conflict_type"] for conflict in schedule_conflicts}, {"SCHEDULE_HARD_CONFLICT"})
+
+    def test_r109_same_date_events_keep_independent_intervals(self) -> None:
+        existing = self.capture("2026-08-15 09:00-10:00 合成晨会。采集记忆", "episode-r109-interval-old")
+        incoming = self.capture(
+            "2026-08-15 09:30-10:30 合成复盘；2026-08-15 11:00-12:00 合成午会。采集记忆",
+            "episode-r109-interval-new",
+        )
+        schedule_conflicts = [
+            conflict for conflict in self.store.conflicts_for(set(incoming.atom_ids))
+            if conflict["conflict_type"].startswith("SCHEDULE_") or conflict["conflict_type"] == "UNKNOWN_CONSTRAINT"
+        ]
+        self.assertEqual({conflict["atom_id_a"] for conflict in schedule_conflicts}, set(existing.atom_ids))
+        self.assertEqual({conflict["atom_id_b"] for conflict in schedule_conflicts}, {incoming.atom_ids[0]})
+        self.assertEqual({conflict["conflict_type"] for conflict in schedule_conflicts}, {"SCHEDULE_HARD_CONFLICT"})
+
+    def test_r109_same_day_assertions_never_become_schedule_conflicts(self) -> None:
+        self.capture("2026-08-15 合成状态为稳定。采集记忆", "episode-r109-assertion-old")
+        incoming = self.capture("2026-08-15 合成状态为正常。采集记忆", "episode-r109-assertion-new")
+        self.assertFalse({"SCHEDULE_HARD_CONFLICT", "SCHEDULE_POTENTIAL_CONFLICT", "UNKNOWN_CONSTRAINT"}.intersection(incoming.conflict_types))
 
 
 if __name__ == "__main__":

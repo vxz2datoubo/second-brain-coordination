@@ -373,27 +373,32 @@ def _repack(packet: dict[str, Any], *, conflicts: list[dict[str, Any]]) -> dict[
 
 def _detect_conflicts(store: MemoryStore, new_ids: tuple[str, ...], derived: list[dict[str, Any]], user_scope: str, project_scope: str) -> list[dict[str, Any]]:
     conflicts: list[dict[str, Any]] = []
-    schedulable = {
-        item["temporal"]["resolved_start"][:10]: item
-        for item in derived if _is_schedulable(item)
-    }
+    # Keep the atom identity attached to its own derived event.  A date-keyed
+    # map would collapse multiple events on one day and would let a
+    # schedulable sibling leak a schedule conflict onto a preference/stance.
+    schedulable_pairs = tuple(
+        (new_id, item) for new_id, item in zip(new_ids, derived) if _is_schedulable(item)
+    )
     for old in store.all_atoms():
         if old["id"] in new_ids or old["knowledge_status"] != "candidate":
             continue
         conversation = old.get("memory_metadata", {}).get("conversation", {})
         palace = conversation.get("memory_palace", {})
-        old_date = palace.get("temporal", {}).get("resolved_start", "")[:10]
+        old_temporal = palace.get("event_interval", palace.get("temporal", {}))
+        old_date = old_temporal.get("resolved_start", "")[:10]
         if conversation.get("user_scope") != user_scope or conversation.get("project_scope") != project_scope:
             continue
-        if old_date in schedulable and _is_schedulable_atom(old):
-            for new_id in new_ids:
-                if old["id"] != new_id:
-                    new_temporal = schedulable[old_date]["temporal"]
-                    old_temporal = palace.get("temporal", {})
-                    conflict_type = "SCHEDULE_HARD_CONFLICT" if _overlaps(old_temporal, new_temporal) else "SCHEDULE_POTENTIAL_CONFLICT"
-                    conflicts.append({"atom_id_a": old["id"], "atom_id_b": new_id, "conflict_type": conflict_type, "resolution_note": "overlapping_fixed_intervals" if conflict_type == "SCHEDULE_HARD_CONFLICT" else "missing_time_or_flexibility"})
-                    if conflict_type == "SCHEDULE_POTENTIAL_CONFLICT":
-                        conflicts.append({"atom_id_a": old["id"], "atom_id_b": new_id, "conflict_type": "UNKNOWN_CONSTRAINT", "resolution_note": "time_or_flexibility_not_evidenced"})
+        if _is_schedulable_atom(old):
+            for new_id, item in schedulable_pairs:
+                new_temporal = item["temporal"]
+                if old["id"] == new_id or old_date != new_temporal.get("resolved_start", "")[:10]:
+                    continue
+                conflict_type = _schedule_conflict_type(old_temporal, new_temporal)
+                if conflict_type is None:
+                    continue
+                conflicts.append({"atom_id_a": old["id"], "atom_id_b": new_id, "conflict_type": conflict_type, "resolution_note": "overlapping_fixed_intervals" if conflict_type == "SCHEDULE_HARD_CONFLICT" else "missing_time_or_flexibility"})
+                if conflict_type == "SCHEDULE_POTENTIAL_CONFLICT":
+                    conflicts.append({"atom_id_a": old["id"], "atom_id_b": new_id, "conflict_type": "UNKNOWN_CONSTRAINT", "resolution_note": "time_or_flexibility_not_evidenced"})
         for new_id, item in zip(new_ids, derived):
             old_palace = palace
             if not item.get("stance") or not old_palace.get("stance"):
@@ -435,6 +440,16 @@ def _overlaps(left: dict[str, Any], right: dict[str, Any]) -> bool:
     if left.get("resolution_granularity") != "interval" or right.get("resolution_granularity") != "interval":
         return False
     return _aware(left["resolved_start"]) < _aware(right["resolved_end"]) and _aware(right["resolved_start"]) < _aware(left["resolved_end"])
+
+
+def _schedule_conflict_type(left: dict[str, Any], right: dict[str, Any]) -> str | None:
+    """Classify only genuine interval overlap or under-specified mutual exclusion."""
+
+    left_fixed = left.get("resolution_granularity") == "interval"
+    right_fixed = right.get("resolution_granularity") == "interval"
+    if left_fixed and right_fixed:
+        return "SCHEDULE_HARD_CONFLICT" if _overlaps(left, right) else None
+    return "SCHEDULE_POTENTIAL_CONFLICT"
 
 
 def _retrieval_instant(temporal: dict[str, str], fallback: str) -> str:
