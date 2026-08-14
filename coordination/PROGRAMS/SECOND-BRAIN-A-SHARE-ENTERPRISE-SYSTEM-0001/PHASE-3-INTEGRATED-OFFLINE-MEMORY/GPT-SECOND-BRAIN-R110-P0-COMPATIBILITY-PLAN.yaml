@@ -1,14 +1,19 @@
-schema_version: "1.0"
+schema_version: "1.1"
 artifact_type: "GPTSecondBrainCognitiveLoopP0CompatibilityAndBaseFreeze"
 agent_id: "CODEX"
 source_agent: "CODEX"
 target_agent: "GPT"
 reviewer: "GPT"
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 110
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P0-IDENTITY-SCOPE-HARDENING"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 111
 issue: 282
 branch: "codex/gpt-second-brain-cognitive-loop-fusion-r110"
-canonical_main: "1a4c68f1916c9ada68cd8354e1b135e08790b568"
+canonical_main: "ae0c279e1f43d076d3a028475e1f6cb05d66860b"
+reviewed_checkpoint:
+  head: "5e3e7c48a917f3aee138e61a6c994c50a99ed917"
+  review_id: 4933326576
+  disposition: "CHANGES_REQUIRED_BEFORE_P1"
 accepted_predecessor:
   pull_request: 280
   head: "ad5f0e4c925b7750ad28d8b7e13e322dea46f325"
@@ -67,8 +72,8 @@ compatibility_matrix:
   - capability: "Knowledge atomization and reconciliation"
     existing: "Skill/blueprint contract only; no canonical runtime implementation"
     decision: "ADD"
-    P1_action: "Implement synthetic KnowledgeEpisode -> typed candidate atom packets with retrieval-before-write reconciliation."
-    boundary: "Unsupported link/action returns UNKNOWN without mutation."
+    P1_action: "Implement synthetic KnowledgeEpisode -> domain-bound KnowledgeAtom packets with retrieval-before-write reconciliation."
+    boundary: "Unsupported link/action returns UNKNOWN without mutation; source episode ID never becomes proposition identity."
   - capability: "GPTSecondBrainContextBundle and proactive recall"
     existing: "Generic ContextBundle with provenance, conflicts, unknowns and trust gate"
     decision: "ADAPT"
@@ -86,7 +91,7 @@ object_and_id_lineage:
     P1_extension: "KnowledgeEpisode is a typed source projection, not a new authority."
   atoms:
     canonical: "content-addressed atom ID plus packet ID and idempotency key"
-    P1_extension: "KnowledgeAtom uses atom_type knowledge_atom and governed semantic metadata; statement, scope and provenance remain canonical inputs."
+    P1_extension: "KnowledgeAtom uses a verified domain-bound proposition ID and governed semantic metadata; source episode provenance remains separate."
   graph:
     canonical: "relation_id(source_atom_id, target_atom_id, relation_type)"
     P2_extension: "Evidence, counterevidence, temporal, semantic and lifecycle edges use existing relation transaction."
@@ -97,16 +102,80 @@ object_and_id_lineage:
     canonical: "QueryPlan plan_hash -> ContextBundle query_id -> source lineage/provenance"
     P3_extension: "GPTSecondBrainContextBundle is a deterministic, bounded projection, never a second store."
 
+knowledge_identity_and_provenance_freeze:
+  identity_version: "knowledge-proposition-domain-v1"
+  semantic_proposition_identity:
+    definition: >-
+      proposition_id is a deterministic hash of normalized proposition content, epistemic role/taxonomy version and identity_domain_hash.
+      identity_domain_hash is a deterministic hash of user_scope, project_scope and privacy_domain under this version. Source episode ID, source
+      manifest and source content hash are intentionally excluded from proposition_id.
+    collision_rule: "Same normalized proposition in a foreign user, project or privacy domain gets a different proposition_id and canonical atom ID."
+    same_domain_rule: "Same normalized proposition and epistemic role in one identity domain resolves to one proposition lineage, not one atom per source."
+    canonical_atom_rule: >-
+      P1 must use a verified KnowledgeAtom ID derived from proposition_id, rather than generic atom_id(statement, atom_type, scope), while preserving
+      the existing LearningPacket atomic/idempotent boundary. The displayed project scope is not permitted to substitute for identity_domain_hash.
+  source_evidence_identity:
+    definition: "Each immutable KnowledgeEpisode/source manifest keeps its own content hash, locator/span and evidence ID."
+    attachment_rule: >-
+      Multiple independent sources attach as packet/source provenance to one same-domain proposition lineage. Packet-to-atom links and an additive
+      evidence-manifest union must preserve every source; a later upsert must not make earlier evidence inaccessible.
+  duplicate_voting_prevention:
+    duplicate: "DUPLICATE adds provenance to the existing proposition lineage and produces no additional proposition vote."
+    support_weaken: "Independent SUPPORT/WEAKEN evidence is represented as evidence lineage/typed relation, not another equivalent proposition atom."
+    contradict: "Materially incompatible proposition remains a distinct domain-bound lineage with explicit CONTRADICT/conflict relation."
+  sharing_boundary: "Cross-domain sharing/global promotion requires a future explicit governed operation; this route creates none and formal promotion remains locked."
+
+knowledge_query_scope_admission_freeze:
+  governed_metadata_required:
+    - "identity_version"
+    - "identity_domain_hash"
+    - "user_scope"
+    - "project_scope"
+    - "privacy_domain"
+    - "proposition_id"
+    - "epistemic_role"
+    - "valid_from / valid_to / recorded_at"
+    - "freshness / revalidation state"
+    - "evidence_manifest_ids"
+  P1_query_binding: >-
+    KnowledgeAtom admission requires QueryPlan user_scope, exactly authorized project scope, allowed privacy domain and a timezone-aware valid_at.
+    Missing or malformed knowledge metadata, missing query fields or any mismatch rejects the atom. Generic atoms retain their existing behavior;
+    knowledge atoms receive no legacy permissive fallback.
+  admission_order:
+    - "identity domain and user/project/privacy exact match"
+    - "CURRENT/HISTORICAL valid-time, freshness, stale/revoked/superseded gate"
+    - "verification/evidence floor and relation budget"
+    - "lexical, semantic or structural candidate ranking only after admission"
+  anti_bypass: "Semantic/structural similarity, provenance adjacency and relation traversal cannot bypass the above admission order."
+
+r111_p0_acceptance_case_matrix:
+  - case: "same proposition / same project / two synthetic users"
+    expected: "Distinct identity_domain_hash, proposition_id and canonical atom ID; a user-bound query returns only its own atom."
+    test_gate: "Synthetic identity collision plus cross-user zero-recall test."
+  - case: "same proposition / same domain / two independent sources"
+    expected: "One proposition lineage with both source provenance records; DUPLICATE does not add a second proposition vote."
+    test_gate: "Packet replay/provenance-union/idempotency test."
+  - case: "same text / different project or privacy domain"
+    expected: "Distinct domain identities and zero retrieval across domains; no implicit sharing."
+    test_gate: "Cross-project/privacy fail-closed test."
+  - case: "user-bound QueryPlan knowledge admission"
+    expected: "Authorized governed KnowledgeAtom admits; foreign-user equivalent rejects before ranking."
+    test_gate: "ContextAssembler admission test with lexical and semantic candidate fixtures."
+  - case: "index rebuild and rollback"
+    expected: "Proposition/domain IDs and all evidence manifests remain stable; rollback removes only additive code/schema, never source history."
+    test_gate: "Deterministic rebuild and migration rollback fixture."
+
 schema_migration_boundaries:
   status: "PLAN_ONLY_NO_RUNTIME_MIGRATION_IN_P0"
   P1_candidate_changes:
-    - "Additive semantic/epistemic metadata persistence with explicit schema version and migration test."
+    - "Additive governed KnowledgeAtom metadata persistence with identity_domain_hash/proposition_id and explicit schema version/migration test."
     - "KnowledgeEpisode and KnowledgeAtom packet contract; conversation contract remains strict and unchanged."
     - "ReconciliationReceipt/action schema, including candidate IDs, compared lineage heads and abstention/UNKNOWN reason."
   compatibility_rules:
     - "Existing packet schema major remains compatible; unknown fields fail closed until explicitly versioned."
     - "Existing atom IDs and source manifests are immutable; indexes may be rebuilt but must not change canonical atom identity."
     - "Migrations are additive and transactional; rollback is code/schema-version rollback, never destructive history removal."
+    - "Existing generic atom identity is not reused as a KnowledgeAtom identity without the domain-bound verifier."
 
 e50_evidence_mapping:
   reuse_as_evidence_only:
@@ -127,8 +196,8 @@ e50_evidence_mapping:
 
 staged_execution:
   P0:
-    deliverable: "This compatibility/base-freeze artifact and stale R108 blueprint-header reconciliation."
-    gate: "GPT accepts plan/reuse boundaries before broad runtime implementation."
+    deliverable: "This compatibility/base-freeze artifact, stale R108 blueprint-header reconciliation, and R111 identity/admission freeze."
+    gate: "GPT accepts identity/provenance/admission boundaries before P1 runtime implementation."
   P1:
     deliverable: "Synthetic KnowledgeEpisode/KnowledgeAtom atomization and retrieval-before-write ReconciliationReceipt."
     acceptance: "Long mixed passage; typed epistemic roles; exact scoped recall; duplicate/refine/support/weaken/contradict/supersede/revoke/revalidate/unknown tests."
@@ -157,15 +226,15 @@ validation_and_rollback:
 
 work_process_and_coordination:
   planned_difficulty: "D3: cross-contract compatibility and authority-boundary design"
-  observed_difficulty: "D2: existing W3 primitives cover provenance, atomicity, scope and temporal candidate admission; the missing work is explicit semantic/reconciliation contract design."
-  hardest_part: "Preventing a tempting parallel knowledge store while retaining enough typed metadata for epistemic roles and reconciliation."
+  observed_difficulty: "D3: existing W3 primitives cover provenance and atomicity, but generic atom identity and user-bound generic-atom admission do not satisfy personal semantic knowledge isolation."
+  hardest_part: "Separating semantic proposition identity from immutable evidence identity so same-domain evidence converges without foreign-domain collision or duplicate voting."
   negative_results: "No runtime/private-store probe was run; no QCLAW harness was imported."
   discoveries: "The blueprint header and Gate 0 still described a waiting R108 predecessor although R109 was accepted and merged."
   cross_agent_impact: "GPT retains plan acceptance, production bridge and merge authority; QCLAW remains optional evidence/audit only."
 
 unknowns_and_risks:
-  - "Exact semantic ontology/versioning shape requires P1 design and adversarial validation; P0 does not claim it implemented."
+  - "Exact governed semantic taxonomy/versioning shape requires P1 design and adversarial validation; the identity/admission boundary is frozen here but not implemented."
   - "Structural-analogy retrieval quality requires a bounded deterministic synthetic baseline before any embedding provider is considered."
   - "ChatGPT-to-local private bridge remains a later owner/GPT-gated dependency."
   - "Paraphrased/indirect prompt injection needs a generalized untrusted-content contract beyond current literal marker coverage."
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_FUSION_R110_PLAN_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_P0_IDENTITY_SCOPE_R111_READY_FOR_GPT_REVIEW"
