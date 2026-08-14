@@ -1,7 +1,7 @@
 # Test Execution Receipt - R112 P1
 
-agent_id: CODEX  
-tested executable head: 70324e4a2f90916112638f5b8f6d9e67863bd4c8  
+agent_id: CODEX
+tested executable head: 70324e4a2f90916112638f5b8f6d9e67863bd4c8
 base: 56b72250eed460f32bd63f21046ae9b37b6f0aeb
 
 | Check | Result |

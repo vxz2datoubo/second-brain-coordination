@@ -16,6 +16,7 @@ The implementation reused memory_metadata rather than adding a database migratio
 ## Failures and negative results
 
 - First focused test exposed an incorrect test expectation: an authorized second user should retrieve that user's isolated atom, not zero results. The assertion was corrected to require exact per-user isolation and zero for an unrelated third user.
+- First handoff receipt formatting check reported two Markdown trailing-space warnings. A minimal additive documentation successor removes them; no executable code or test evidence changed.
 - No real private source, private store, production endpoint, scheduler or formal write was attempted.
 
 ## Discoveries / improvements
