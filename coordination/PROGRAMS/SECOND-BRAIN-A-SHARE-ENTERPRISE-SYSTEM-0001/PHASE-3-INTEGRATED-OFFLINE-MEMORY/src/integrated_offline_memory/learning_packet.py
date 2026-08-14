@@ -52,9 +52,9 @@ _KNOWLEDGE_REQUIRED = {
     "schema_version", "episode_manifest_ids", "source_episodes", "user_scope",
     "project_scope", "privacy_domain", "identity_domain_hash", "proposition_id",
     "epistemic_role", "taxonomy_version", "valid_from", "recorded_at",
-    "provenance_quality", "freshness_profile",
+    "provenance_quality", "freshness_profile", "safety_class", "source_trust",
 }
-_KNOWLEDGE_PRIVACY = {"PUBLIC_SAFE_SYNTHETIC"}
+_PUBLIC_SAFE_SYNTHETIC_DOMAIN = re.compile(r"synthetic-[a-z0-9][a-z0-9-]{0,63}")
 
 
 def build_learning_packet(
@@ -308,8 +308,13 @@ def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
         return ["knowledge_metadata_invalid"]
     if knowledge["schema_version"] != "knowledge-atom-v1":
         return ["knowledge_schema_unsupported"]
-    if knowledge["privacy_domain"] not in _KNOWLEDGE_PRIVACY:
+    if (
+        knowledge["safety_class"] != "PUBLIC_SAFE_SYNTHETIC"
+        or not (knowledge["privacy_domain"] == "PUBLIC_SAFE_SYNTHETIC" or _PUBLIC_SAFE_SYNTHETIC_DOMAIN.fullmatch(knowledge["privacy_domain"]))
+    ):
         return ["knowledge_privacy_denied"]
+    if knowledge["source_trust"] not in {"SOURCE_DATA", "UNTRUSTED_INERT"}:
+        return ["knowledge_source_trust_invalid"]
     if knowledge["epistemic_role"] not in _KNOWLEDGE_ROLES:
         return ["knowledge_epistemic_role_denied"]
     if knowledge["taxonomy_version"] != "knowledge-taxonomy-v1":
@@ -362,8 +367,6 @@ def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
         _instant(knowledge["recorded_at"])
     except (TypeError, ValueError):
         return ["knowledge_time_invalid"]
-    if _is_prompt_injection(atom.get("canonical_statement", "")):
-        return ["knowledge_prompt_injection_denied"]
     if atom.get("id") != knowledge_atom_id(atom.get("canonical_statement", ""), knowledge):
         return ["knowledge_identity_invalid"]
     return []
@@ -386,7 +389,7 @@ def _knowledge_packet_errors(packet: dict[str, Any], atom: dict[str, Any]) -> li
     fields = (
         "episode_manifest_ids", "source_episodes", "user_scope", "project_scope", "privacy_domain",
         "identity_domain_hash", "proposition_id", "epistemic_role", "taxonomy_version", "provenance_quality",
-        "freshness_profile", "valid_to",
+        "freshness_profile", "valid_to", "safety_class", "source_trust",
     )
     if any(report.get(field) != knowledge.get(field) for field in fields):
         return ["knowledge_packet_validation_mismatch"]

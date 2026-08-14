@@ -489,7 +489,7 @@ class MemoryStore:
         prior = existing_metadata.get("knowledge")
         if not isinstance(prior, dict):
             raise ValueError("knowledge_existing_metadata_missing")
-        identity_fields = ("proposition_id", "identity_domain_hash", "epistemic_role", "taxonomy_version", "user_scope", "project_scope", "privacy_domain")
+        identity_fields = ("proposition_id", "identity_domain_hash", "epistemic_role", "taxonomy_version", "user_scope", "project_scope", "privacy_domain", "safety_class")
         if any(prior.get(field) != incoming.get(field) for field in identity_fields):
             raise ValueError("knowledge_identity_collision_denied")
         merged_episodes = {item["episode_manifest_id"]: item for item in prior.get("source_episodes", [])}

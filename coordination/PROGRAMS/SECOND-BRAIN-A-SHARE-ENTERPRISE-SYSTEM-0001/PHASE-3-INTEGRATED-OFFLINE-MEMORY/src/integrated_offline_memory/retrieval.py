@@ -26,6 +26,7 @@ class QueryPlan:
     intent: str = "CURRENT"
     user_scope: str | None = None
     privacy_domains: tuple[str, ...] = ()
+    privacy_aggregate_mode: str = "ISOLATED"
     valid_at: str | None = None
     schema_version: str = "1.0.0"
 
@@ -56,6 +57,10 @@ class QueryPlan:
             raise ValueError("query_plan_user_scope_invalid")
         if any(not isinstance(item, str) or not item for item in self.privacy_domains):
             raise ValueError("query_plan_privacy_domains_invalid")
+        if self.privacy_aggregate_mode not in {"ISOLATED", "SYNTHETIC_AGGREGATE_NO_VOTE"}:
+            raise ValueError("query_plan_privacy_aggregate_mode_invalid")
+        if len(self.privacy_domains) > 1 and self.privacy_aggregate_mode != "SYNTHETIC_AGGREGATE_NO_VOTE":
+            raise ValueError("query_plan_multi_privacy_requires_explicit_aggregate")
 
     def to_dict(self) -> dict[str, Any]:
         self.validate()
@@ -225,7 +230,9 @@ class ContextAssembler:
                 return False
             if knowledge.get("user_scope") != plan.user_scope or knowledge.get("privacy_domain") not in set(plan.privacy_domains):
                 return False
-            if knowledge.get("privacy_domain") != "PUBLIC_SAFE_SYNTHETIC":
+            if knowledge.get("safety_class") != "PUBLIC_SAFE_SYNTHETIC":
+                return False
+            if knowledge.get("privacy_domain") != "PUBLIC_SAFE_SYNTHETIC" and not str(knowledge.get("privacy_domain", "")).startswith("synthetic-"):
                 return False
             if knowledge.get("epistemic_role") not in {
                 "FACT_CLAIM", "SOURCE_CLAIM", "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "MECHANISM", "CONDITION",
@@ -252,10 +259,16 @@ class ContextAssembler:
         admitted = [atom for atom in atoms if atom is not None]
         if not admitted:
             return {"outcome": "ABSTAIN", "reason": "no_in_scope_valid_candidate", "intent": plan.intent}
+        aggregate_keys = {
+            atom.get("memory_metadata", {}).get("knowledge", {}).get("aggregate_equivalence_key", atom["id"])
+            for atom in admitted if atom.get("memory_metadata", {}).get("knowledge")
+        }
         return {
             "outcome": "ADMIT_CANDIDATE_ONLY",
             "reason": "scope_privacy_status_and_valid_time_passed",
             "intent": plan.intent,
+            "privacy_aggregate_mode": plan.privacy_aggregate_mode,
+            "semantic_vote_count": len(aggregate_keys) if plan.privacy_aggregate_mode == "SYNTHETIC_AGGREGATE_NO_VOTE" else len(admitted),
         }
 
 

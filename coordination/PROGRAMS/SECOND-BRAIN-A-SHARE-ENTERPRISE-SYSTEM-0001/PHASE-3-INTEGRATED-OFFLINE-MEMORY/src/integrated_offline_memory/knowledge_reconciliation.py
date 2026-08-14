@@ -7,7 +7,7 @@ It does not discover sources, open a private store, or promote knowledge.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import re
 from typing import Any, Mapping
@@ -20,7 +20,8 @@ from .retrieval import ContextAssembler, QueryPlan
 
 TAXONOMY_VERSION = "knowledge-taxonomy-v1"
 IDENTITY_VERSION = "knowledge-proposition-domain-v1"
-PUBLIC_SAFE_PRIVACY_DOMAIN = "PUBLIC_SAFE_SYNTHETIC"
+PUBLIC_SAFE_EXECUTION_CLASS = "PUBLIC_SAFE_SYNTHETIC"
+_LEGACY_PUBLIC_SAFE_DOMAIN = "PUBLIC_SAFE_SYNTHETIC"
 RECONCILIATION_ACTIONS = frozenset({
     "NEW", "DUPLICATE", "MERGE", "REFINE", "SUPPORT", "WEAKEN", "CONTRADICT",
     "SUPERSEDE", "REVOKE", "REVALIDATE", "RESOLVE_UNKNOWN", "UNKNOWN",
@@ -50,6 +51,28 @@ _ROLE_PREFIXES: tuple[tuple[str, str], ...] = (
     ("assistant analysis:", "ASSISTANT_ANALYSIS"), ("助手分析:", "ASSISTANT_ANALYSIS"), ("助手分析：", "ASSISTANT_ANALYSIS"),
     ("model inference:", "MODEL_INFERENCE"), ("模型推断:", "MODEL_INFERENCE"), ("模型推断：", "MODEL_INFERENCE"),
 )
+_ACTION_EVIDENCE_BASIS = {
+    "MERGE": "EQUIVALENCE_PROOF",
+    "REFINE": "REFINEMENT_DELTA",
+    "SUPPORT": "INDEPENDENT_SUPPORT",
+    "WEAKEN": "WEAKENING_EVIDENCE",
+    "CONTRADICT": "CONTRADICTION_EVIDENCE",
+    "SUPERSEDE": "SUCCESSOR_BASIS",
+    "REVOKE": "REVOCATION_BASIS",
+    "REVALIDATE": "REVALIDATION_RECEIPT",
+    "RESOLVE_UNKNOWN": "RESOLUTION_BASIS",
+}
+_ACTION_EVIDENCE_FIELDS = {
+    "MERGE": "equivalence_key",
+    "REFINE": "refinement_delta",
+    "SUPPORT": "independent_source_id",
+    "WEAKEN": "weakening_dimension",
+    "CONTRADICT": "contradiction_axis",
+    "SUPERSEDE": "successor_basis",
+    "REVOKE": "revocation_basis",
+    "REVALIDATE": "revalidation_receipt",
+    "RESOLVE_UNKNOWN": "resolution_basis",
+}
 
 
 @dataclass(frozen=True)
@@ -61,6 +84,7 @@ class KnowledgeEpisode:
     source_pointer: str
     source_text: str
     recorded_at: str
+    safety_class: str = PUBLIC_SAFE_EXECUTION_CLASS
     available_at: str | None = None
     source_span: str = "full"
     provenance_quality: str = "DIRECT"
@@ -71,7 +95,7 @@ class KnowledgeEpisode:
             self.source_text, self.recorded_at, self.source_span, self.provenance_quality,
         )):
             raise ValueError("knowledge_episode_identity_required")
-        if self.privacy_domain != PUBLIC_SAFE_PRIVACY_DOMAIN:
+        if self.safety_class != PUBLIC_SAFE_EXECUTION_CLASS or not _public_safe_domain(self.privacy_domain):
             raise ValueError("knowledge_episode_private_source_denied")
         if not self.source_pointer.startswith("synthetic://"):
             raise ValueError("knowledge_episode_source_pointer_denied")
@@ -79,8 +103,6 @@ class KnowledgeEpisode:
         _instant(self.available_at or self.recorded_at)
         if _SECRET.search(self.source_text):
             raise ValueError("knowledge_episode_secret_denied")
-        if _INERT_CONTROL_MARKERS.search(self.source_text):
-            raise ValueError("knowledge_episode_untrusted_control_denied")
 
     @property
     def source_hash(self) -> str:
@@ -111,6 +133,8 @@ class ReconciliationReceipt:
     exact_scoped_recall_passed: bool
     semantic_recall_passed: bool
     foreign_domain_zero_recall: bool
+    reconciliation_evidence: tuple[dict[str, Any], ...] = ()
+    post_write_recall_mode: str = "PARAPHRASE_OR_RELATION_ASSISTED"
     candidate_authority_only: bool = True
     formal_project_global_write: str = "LOCKED"
 
@@ -123,6 +147,8 @@ class ReconciliationReceipt:
             "exact_scoped_recall_passed": self.exact_scoped_recall_passed,
             "semantic_recall_passed": self.semantic_recall_passed,
             "foreign_domain_zero_recall": self.foreign_domain_zero_recall,
+            "reconciliation_evidence": list(self.reconciliation_evidence),
+            "post_write_recall_mode": self.post_write_recall_mode,
             "candidate_authority_only": self.candidate_authority_only,
             "formal_project_global_write": self.formal_project_global_write,
         }
@@ -148,15 +174,14 @@ def proposition_id(statement: str, epistemic_role: str, *, user_scope: str, proj
 
 def decompose_knowledge_passage(passage: str) -> tuple[KnowledgeCandidate, ...]:
     """Deterministic, faithful clause decomposition; it never upgrades a role."""
-    text = normalize_text(passage)
-    if not text:
+    if not normalize_text(passage):
         raise ValueError("knowledge_passage_required")
-    if _SECRET.search(text):
+    if _SECRET.search(passage):
         raise ValueError("knowledge_secret_denied")
-    if _INERT_CONTROL_MARKERS.search(text):
-        raise ValueError("knowledge_untrusted_control_denied")
     candidates: list[KnowledgeCandidate] = []
-    for index, raw in enumerate(re.split(r"[\n;；]+", text)):
+    # Split before normalizing so ordinary newline-separated source passages
+    # retain their material claim boundaries.
+    for index, raw in enumerate(re.split(r"[\n;；]+", passage)):
         clause = normalize_text(raw)
         if not clause:
             continue
@@ -188,25 +213,39 @@ def capture_knowledge(
     valid_to = _canonical_instant(valid_to) if valid_to is not None else None
     if valid_to is not None and _instant(valid_to) <= _instant(valid_from):
         raise ValueError("knowledge_valid_time_invalid")
+    # This is a post-write proof contract, so reject an invalid proof query
+    # before planning/importing any candidate.  A source-statement echo cannot
+    # masquerade as semantic recall.
+    semantic_query = normalize_text(semantic_query or "")
+    candidate_statements = {normalize_text(item.statement) for item in candidates}
+    if not semantic_query or semantic_query in candidate_statements:
+        raise ValueError("knowledge_paraphrase_or_relation_query_required")
     directives = reconciliation_directives or {}
     assembler = ContextAssembler(store)
     packets: list[dict[str, Any]] = []
     actions: list[tuple[str, str]] = []
+    action_evidence: list[dict[str, Any]] = []
     planned: list[tuple[KnowledgeCandidate, str]] = []
     # This loop is entirely pre-write.  Any invalid target/directive fails before
     # the one existing MemoryStore transaction is opened.
     for candidate in candidates:
         metadata = _knowledge_metadata(episode, candidate, valid_from, valid_to, freshness_profile)
         atom_id = knowledge_atom_id(candidate.statement, metadata)
-        preflight_plan = _plan_for(episode, candidate.statement, valid_from, intent="CURRENT")
-        assembler.assemble(preflight_plan)  # bounded governed retrieval-before-write evidence
-        action, target_atom_id = _reconciliation_action(store, atom_id, metadata, directives.get(candidate.statement))
+        directive = directives.get(candidate.statement)
+        comparison_query = _comparison_query(candidate.statement, directive)
+        preflight_plan = _plan_for(episode, comparison_query, valid_from, intent="CURRENT")
+        comparison_bundle = assembler.assemble(preflight_plan)
+        action, target_atom_id, evidence = _reconciliation_action(
+            store, atom_id, metadata, comparison_bundle.atoms, directive,
+        )
         actions.append((atom_id, action))
+        action_evidence.append({**evidence, "candidate_atom_id": atom_id, "compared_atom_ids": [item["id"] for item in comparison_bundle.atoms]})
         if action == "UNKNOWN":
             continue
         if target_atom_id:
             _validate_target(store, target_atom_id, metadata)
         metadata["reconciliation_action"] = action
+        metadata["reconciliation_evidence_basis"] = evidence["evidence_basis"]
         relations: list[dict[str, Any]] = []
         conflicts: list[dict[str, Any]] = []
         if target_atom_id and action in {"SUPPORT", "WEAKEN", "CONTRADICT", "MERGE", "REFINE", "SUPERSEDE", "REVOKE", "REVALIDATE", "RESOLVE_UNKNOWN"}:
@@ -221,7 +260,7 @@ def capture_knowledge(
         packets.append(_packet_for(episode, candidate, metadata, relations=relations, conflicts=conflicts))
         planned.append((candidate, atom_id))
     if not packets:
-        return ReconciliationReceipt("ABSTAIN_UNKNOWN", (), (), tuple(actions), False, False, True)
+        return ReconciliationReceipt("ABSTAIN_UNKNOWN", (), (), tuple(actions), False, False, True, tuple(action_evidence))
     results = store.import_learning_packets_atomic(packets)
     if any(result["status"] not in {"IMPORTED", "IDEMPOTENT_DUPLICATE"} for result in results):
         raise ValueError("knowledge_import_result_invalid")
@@ -229,7 +268,16 @@ def capture_knowledge(
         atom_id in _recall_ids(assembler, _plan_for(episode, candidate.statement, valid_from, intent="CURRENT"))
         for candidate, atom_id in planned
     )
-    semantic_ok = bool(_recall_ids(assembler, _plan_for(episode, semantic_query or candidates[0].statement, valid_from, intent="CURRENT")))
+    semantic_bundle = assembler.assemble(_plan_for(episode, semantic_query, valid_from, intent="CURRENT", relation_depth=1))
+    semantic_ids = {atom["id"] for atom in semantic_bundle.atoms}
+    semantic_ok = bool(semantic_ids.intersection({atom_id for _, atom_id in planned}))
+    recall_mode = "PARAPHRASE" if semantic_ok else "RELATION_ASSISTED"
+    if not semantic_ok:
+        linked = {
+            endpoint for relation in semantic_bundle.relations
+            for endpoint in (relation["source_atom_id"], relation["target_atom_id"])
+        }
+        semantic_ok = bool(linked.intersection({atom_id for _, atom_id in planned}))
     foreign_plan = QueryPlan(
         query_text=candidates[0].statement, scopes=(episode.project_scope,), user_scope=episode.user_scope + "-foreign",
         privacy_domains=(episode.privacy_domain,), valid_at=valid_from, atom_types=("knowledge_atom",), truth_states=("candidate",),
@@ -239,28 +287,50 @@ def capture_knowledge(
         raise ValueError("knowledge_post_write_scoped_recall_failed")
     return ReconciliationReceipt(
         "CAPTURED_CANDIDATE_ONLY", tuple(packet["packet_id"] for packet in packets), tuple(atom_id for _, atom_id in planned), tuple(actions),
-        exact_ok, semantic_ok, foreign_zero,
+        exact_ok, semantic_ok, foreign_zero, tuple(action_evidence), recall_mode,
     )
 
 
 def _reconciliation_action(
-    store: MemoryStore, atom_id: str, metadata: dict[str, Any], directive: Mapping[str, str] | None,
-) -> tuple[str, str | None]:
+    store: MemoryStore, atom_id: str, metadata: dict[str, Any], compared_atoms: tuple[dict[str, Any], ...],
+    directive: Mapping[str, str] | None,
+) -> tuple[str, str | None, dict[str, str]]:
+    compared_ids = {item["id"] for item in compared_atoms}
     if store.get_atom(atom_id) is not None:
-        return "DUPLICATE", None
+        if atom_id not in compared_ids:
+            return "UNKNOWN", None, _evidence("retrieval_missed_existing_lineage", "exact lineage was not admitted by bounded query")
+        return "DUPLICATE", None, _evidence("exact_proposition_identity", "retrieval found the existing identical proposition")
     if directive is None:
-        return "NEW", None
+        return "NEW", None, _evidence("no_same_domain_match", "bounded same-domain retrieval returned no exact lineage")
     action = str(directive.get("action", "UNKNOWN")).upper()
     target_atom_id = directive.get("target_atom_id")
     if action not in RECONCILIATION_ACTIONS:
-        return "UNKNOWN", None
+        return "UNKNOWN", None, _evidence("invalid_action", "directive action is not governed")
     if action in {"NEW", "UNKNOWN"}:
-        return action, None
+        return action, None, _evidence("directive_abstain", "no evidence-bound nontrivial action requested")
     if action == "DUPLICATE":
-        return "UNKNOWN", None
-    if not isinstance(target_atom_id, str) or not target_atom_id:
-        return "UNKNOWN", None
-    return action, target_atom_id
+        return "UNKNOWN", None, _evidence("duplicate_without_existing_lineage", "duplicate requires retrieved exact existing identity")
+    if not isinstance(target_atom_id, str) or not target_atom_id or target_atom_id not in compared_ids:
+        return "UNKNOWN", None, _evidence("retrieved_target_required", "target must be returned by the bounded comparison query")
+    required_basis = _ACTION_EVIDENCE_BASIS[action]
+    if directive.get("evidence_basis") != required_basis:
+        return "UNKNOWN", None, _evidence("action_evidence_basis_missing", "action-specific evidence basis did not match")
+    required_field = _ACTION_EVIDENCE_FIELDS[action]
+    if not isinstance(directive.get(required_field), str) or not normalize_text(directive[required_field]):
+        return "UNKNOWN", None, _evidence(
+            "action_precondition_missing",
+            "action-specific precondition " + required_field + " is required",
+        )
+    if not isinstance(directive.get("comparison_query"), str) or not normalize_text(directive["comparison_query"]):
+        return "UNKNOWN", None, _evidence("comparison_query_required", "nontrivial action requires an evidence-bearing comparison query")
+    target = store.get_atom(target_atom_id)
+    if action == "RESOLVE_UNKNOWN" and (target or {}).get("knowledge_status") != "unknown":
+        return "UNKNOWN", None, _evidence("unknown_target_required", "RESOLVE_UNKNOWN requires an unknown target")
+    if action == "SUPERSEDE":
+        target_meta = (target or {}).get("memory_metadata", {}).get("knowledge", {})
+        if not isinstance(target_meta, dict) or _instant(metadata["valid_from"]) <= _instant(target_meta["valid_from"]):
+            return "UNKNOWN", None, _evidence("successor_time_required", "SUPERSEDE requires a later candidate instant")
+    return action, target_atom_id, _evidence(required_basis, "retrieved target and action-specific evidence preconditions passed")
 
 
 def _validate_target(store: MemoryStore, target_atom_id: str, metadata: dict[str, Any]) -> None:
@@ -289,11 +359,17 @@ def _knowledge_metadata(
     return {
         "schema_version": "knowledge-atom-v1", "episode_manifest_ids": [manifest_id], "source_episodes": [source_episode],
         "user_scope": episode.user_scope, "project_scope": episode.project_scope, "privacy_domain": episode.privacy_domain,
+        "safety_class": episode.safety_class,
         "identity_domain_hash": domain_hash,
+        "aggregate_equivalence_key": "aggregate-" + content_hash({
+            "statement": normalize_text(candidate.statement), "epistemic_role": candidate.epistemic_role,
+            "taxonomy_version": TAXONOMY_VERSION, "user_scope": episode.user_scope, "project_scope": episode.project_scope,
+        })[:20],
         "proposition_id": proposition_id(candidate.statement, candidate.epistemic_role, user_scope=episode.user_scope, project_scope=episode.project_scope, privacy_domain=episode.privacy_domain),
         "epistemic_role": candidate.epistemic_role, "taxonomy_version": TAXONOMY_VERSION,
         "valid_from": valid_from, "valid_to": valid_to, "recorded_at": _canonical_instant(episode.recorded_at),
         "provenance_quality": episode.provenance_quality, "freshness_profile": freshness_profile,
+        "source_trust": "UNTRUSTED_INERT" if _INERT_CONTROL_MARKERS.search(episode.source_text) else "SOURCE_DATA",
     }
 
 
@@ -311,12 +387,12 @@ def _packet_for(episode: KnowledgeEpisode, candidate: KnowledgeCandidate, metada
     )
 
 
-def _plan_for(episode: KnowledgeEpisode, query_text: str, valid_at: str, *, intent: str) -> QueryPlan:
+def _plan_for(episode: KnowledgeEpisode, query_text: str, valid_at: str, *, intent: str, relation_depth: int = 0) -> QueryPlan:
     return QueryPlan(
         query_text=query_text, scopes=(episode.project_scope,), user_scope=episode.user_scope,
         privacy_domains=(episode.privacy_domain,), valid_at=valid_at, atom_types=("knowledge_atom",),
         truth_states=("candidate", "approved", "conflict", "unknown", "superseded") if intent == "HISTORICAL" else ("candidate", "approved", "conflict", "unknown"),
-        intent=intent,
+        intent=intent, relation_depth=relation_depth,
     )
 
 
@@ -333,3 +409,16 @@ def _instant(value: str) -> datetime:
 
 def _canonical_instant(value: str) -> str:
     return _instant(value).isoformat().replace("+00:00", "Z")
+
+
+def _comparison_query(statement: str, directive: Mapping[str, str] | None) -> str:
+    extra = directive.get("comparison_query", "") if directive else ""
+    return normalize_text(statement + " " + str(extra))
+
+
+def _evidence(basis: str, reason: str) -> dict[str, str]:
+    return {"evidence_basis": basis, "action_reason": reason}
+
+
+def _public_safe_domain(value: str) -> bool:
+    return value == _LEGACY_PUBLIC_SAFE_DOMAIN or bool(re.fullmatch(r"synthetic-[a-z0-9][a-z0-9-]{0,63}", value))
