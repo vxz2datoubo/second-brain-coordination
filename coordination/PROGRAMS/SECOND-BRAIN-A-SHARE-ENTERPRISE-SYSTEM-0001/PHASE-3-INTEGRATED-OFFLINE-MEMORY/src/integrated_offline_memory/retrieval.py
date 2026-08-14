@@ -203,7 +203,6 @@ class ContextAssembler:
             "rejected_counts": {},
         }
         self._last_score_components: dict[str, dict[str, float]] = {}
-        self._last_unbound_explicit_unknown_omitted = 0
 
     @property
     def last_admission_report(self) -> dict[str, Any]:
@@ -257,7 +256,6 @@ class ContextAssembler:
         selected_set = set(selected_ids)
         relations = self._safe_relations(plan, selected_set)
         conflicts = self._safe_conflicts(plan, selected_set) if plan.include_conflicts else ()
-        self._last_unbound_explicit_unknown_omitted = 0
         unknowns = self._safe_unknowns(plan, selected_set, include_all_open=not bool(plan.query_text)) if plan.include_unknowns else ()
         source_lineage = tuple(sorted({source for atom in atoms if atom for source in atom.get("source_refs", [])}))
         provenance = tuple(item for atom in atoms if atom for item in self.store.provenance_for_atom(atom["id"]))
@@ -357,8 +355,9 @@ class ContextAssembler:
                     "unknowns": len(all_unknown_items) - len(unknown_items),
                 },
                 "unknown_omission_counts": {
-                    "unbound_explicit_unknown_omitted": self._last_unbound_explicit_unknown_omitted,
+                    "unbound_explicit_unknown_omitted": 0,
                 },
+                "unknown_omission_capability": "UNBOUND_UNKNOWN_BINDING_UNAVAILABLE",
             },
             provenance={"adjacency": self._redacted_provenance(bundle.atoms)},
             ranking={
@@ -402,35 +401,15 @@ class ContextAssembler:
         for unknown in self.store.unknowns_for(selected_ids, include_all_open=include_all_open):
             related = unknown.get("related_atom_ids")
             if not isinstance(related, list) or not related:
-                if self._unbound_unknown_omission_is_caller_observable(unknown, plan):
-                    self._last_unbound_explicit_unknown_omitted += 1
+                # Endpoint-free unknowns have no canonical user/privacy/public
+                # binding.  They must remain indistinguishable from absence
+                # until that schema is separately designed and approved.
                 continue
             if plan.scopes and unknown.get("scope") not in set(plan.scopes):
                 continue
             if self._endpoints_admitted(*related, plan=plan, selected_ids=selected_ids):
                 safe.append(unknown)
         return tuple(safe)
-
-    @staticmethod
-    def _unbound_unknown_omission_is_caller_observable(unknown: dict[str, Any], plan: QueryPlan) -> bool:
-        """Allow count-only telemetry only for an explicitly scoped public query.
-
-        An unbound unknown has no atom endpoint through which the existing
-        user/privacy admission predicate can be proven.  A user- or
-        privacy-bound caller must therefore observe it exactly as absence.
-        The remaining safe case is a scope-matched public/synthetic query;
-        even there the projection exposes only an aggregate count.
-        """
-
-        scope = unknown.get("scope")
-        return (
-            isinstance(scope, str)
-            and bool(scope)
-            and bool(plan.scopes)
-            and scope in set(plan.scopes)
-            and plan.user_scope is None
-            and not plan.privacy_domains
-        )
 
     def _endpoints_admitted(self, *atom_ids: Any, plan: QueryPlan, selected_ids: set[str]) -> bool:
         for atom_id in atom_ids:

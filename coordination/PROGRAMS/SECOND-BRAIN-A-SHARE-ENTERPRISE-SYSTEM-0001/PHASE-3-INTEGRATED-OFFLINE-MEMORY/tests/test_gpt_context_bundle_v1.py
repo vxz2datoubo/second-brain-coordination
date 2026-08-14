@@ -200,7 +200,7 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
             ["SOURCE_INTERPRETATION"],
         )
 
-    def test_same_scope_unbound_explicit_open_unknown_is_count_only_and_never_silent(self) -> None:
+    def test_same_scope_unbound_explicit_open_unknown_is_fail_closed_without_count(self) -> None:
         self.store.import_learning_packet(packet(
             [atom("r120 explicit root")], relations=[], conflicts=[],
             unknowns=[{"question": "r121 scoped unbound explicit unknown", "scope": PROJECT, "related_atom_ids": []}],
@@ -209,7 +209,8 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
         projection = self.assembler.assemble_v1(QueryPlan(query_text="", scopes=(PROJECT,)))
 
         self.assertEqual(projection.evidence["unknowns"], ())
-        self.assertEqual(projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 1})
+        self.assertEqual(projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 0})
+        self.assertEqual(projection.context["unknown_omission_capability"], "UNBOUND_UNKNOWN_BINDING_UNAVAILABLE")
         self.assertNotIn("r121 scoped unbound explicit unknown", repr(projection.to_dict()))
 
     def test_foreign_scope_unbound_unknown_does_not_change_public_omission_count(self) -> None:
@@ -239,6 +240,44 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
                     projection.context["unknown_omission_counts"], {"unbound_explicit_unknown_omitted": 0},
                 )
                 self.assertNotIn("r121 unbound private unknown", repr(projection.to_dict()))
+
+    def test_zero_one_many_unbound_unknowns_have_identical_public_context(self) -> None:
+        plans = (
+            QueryPlan(query_text=""),
+            QueryPlan(query_text="", scopes=(PROJECT,)),
+            QueryPlan(query_text="", scopes=(PROJECT,), user_scope=USER),
+            QueryPlan(query_text="", scopes=(PROJECT,), privacy_domains=("synthetic-r122",)),
+        )
+        baseline_contexts: list[dict[str, object]] | None = None
+
+        for count in (0, 1, 3):
+            store = MemoryStore().connect()
+            try:
+                store.import_learning_packet(packet(
+                    [atom("r122 stable root")], relations=[], conflicts=[],
+                    unknowns=[
+                        {
+                            "question": f"r122 endpoint-free unknown {index}",
+                            "scope": PROJECT,
+                            "related_atom_ids": [],
+                        }
+                        for index in range(count)
+                    ],
+                ))
+                projections = [ContextAssembler(store).assemble_v1(plan) for plan in plans]
+                contexts = [projection.context for projection in projections]
+                if baseline_contexts is None:
+                    baseline_contexts = contexts
+                else:
+                    self.assertEqual(contexts, baseline_contexts)
+                for projection in projections:
+                    self.assertEqual(projection.evidence["unknowns"], ())
+                    self.assertEqual(
+                        projection.context["unknown_omission_capability"], "UNBOUND_UNKNOWN_BINDING_UNAVAILABLE",
+                    )
+                    self.assertNotIn("r122 endpoint-free unknown", repr(projection.to_dict()))
+            finally:
+                store.close()
 
 
 if __name__ == "__main__":
