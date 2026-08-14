@@ -1,10 +1,10 @@
-schema_version: "1.0"
+schema_version: "1.1"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-14T20:12:00+08:00"
+as_of: "2026-08-14T20:49:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -62,8 +62,26 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    Prefer orthogonal parallelism: one heavy implementation lane, one bounded research/design
-    lane and one audit/light lane when dependencies and resource budgets permit.
+    Prefer orthogonal parallelism only after the control-tower release gate is satisfied.
+    Until then, user direction on 2026-08-14 explicitly holds Lane A and Lane B from execution.
+
+current_user_release_policy:
+  decision_at: "2026-08-14T20:49:00+08:00"
+  decision: "HOLD_LANE_A_AND_LANE_B_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
+  rationale: >-
+    User prefers finishing the coordination framework first because parallel dialogs may otherwise
+    modify overlapping areas before collision detection, source freshness and release semantics are reliable.
+  held_lanes: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
+  release_owner: "GPT_AFTER_CONTROL_TOWER_GATE_WITH_USER_DIRECTION_PRESERVED"
+  no_prompt_needed_yet: true
+  release_gate_requires:
+    - "Current Program Lane state and per-agent route reconciliation is mechanically defined and tested."
+    - "Stale-view detection is implemented or otherwise reliably enforced."
+    - "O0-O4 path/interface/authority collision checks have targeted regression coverage."
+    - "Per-agent WIP and heavy-resource limits have enforceable checks."
+    - "Commit-time route/authority freshness is checked for durable writes."
+    - "Human-facing Control Tower state is synchronized from canonical sources without becoming a second truth."
+    - "GPT performs a final three-lane dry-run and returns an explicit SAFE_TO_RELEASE or NOT_READY decision."
 
 observed_agent_state:
   CODEX:
@@ -74,7 +92,7 @@ observed_agent_state:
     observed_pr: 307
     observed_status: "READY_REMEDIATION"
     execution_allowed: true
-    observation_status: "VERIFIED_REPOSITORY"
+    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -84,14 +102,14 @@ observed_agent_state:
     observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
     execution_allowed: false
     quota_hold: "NO_FURTHER_QCLAW_EXECUTION_ON_2026-08-14"
-    observation_status: "VERIFIED_REPOSITORY"
+    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_issue: 89
     observed_pr: 97
     observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
-    observation_status: "VERIFIED_REPOSITORY"
+    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
 
 known_stale_aggregate_views:
   - path: "coordination/ACTIVE-THREE-AGENT-COORDINATION.yaml"
@@ -110,8 +128,9 @@ program_lanes:
     mission: >-
       Evaluate and, only after gated PoC evidence, integrate DeepSeek Harness concepts or runtime
       capabilities as a shared execution layer without replacing GitHub/W3/domain authorities.
-    desired_state: "READY"
+    desired_state: "PAUSED"
     observed_state: "RESEARCHED_NOT_IMPLEMENTED"
+    hold_reason: "USER_HOLD_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -120,10 +139,10 @@ program_lanes:
     canonical_inputs:
       - "DeepSeek official deepseek-ai/deepseek-harness repository"
       - "Issue #310 control tower governance"
-    current_phase: "POST_RESEARCH_PRE_POC"
+    current_phase: "POST_RESEARCH_PRE_POC_HELD"
     active_execution_route: null
     heavy_execution_authorized: false
-    next_gate: "Define isolated Harness PoC and acceptance metrics without preempting current Codex route."
+    next_gate: "CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
     maturity: "CANDIDATE_ARCHITECTURE"
 
@@ -132,8 +151,9 @@ program_lanes:
     mission: >-
       Repair identified trading-research system deficiencies and improve evidence-driven analysis,
       point-in-time data use, causal attribution, validation, risk and decision support while preserving NO_TRADE.
-    desired_state: "READY"
+    desired_state: "PAUSED"
     observed_state: "PREPARING_NOT_STARTED"
+    hold_reason: "USER_HOLD_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -142,13 +162,13 @@ program_lanes:
     canonical_inputs:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
       - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
-    current_phase: "PRE_ROUTE_GAP_CONSOLIDATION"
+    current_phase: "PRE_ROUTE_GAP_CONSOLIDATION_HELD"
     active_execution_route: null
     heavy_execution_authorized: false
     business_vertical_slice_limit: 1
-    next_gate: "Consolidate current defect ledger, dependencies and first bounded remediation slice; publish a route only after current Codex dependency permits."
+    next_gate: "CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE"
     boundary: "RESEARCH_AND_DECISION_SUPPORT / NO_AUTONOMOUS_TRADE"
-    maturity: "READY_FOR_TASK_DESIGN"
+    maturity: "READY_FOR_TASK_DESIGN_BUT_HELD"
 
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
     user_aliases: ["多端系统线", "第二大脑×GPT认知闭环融合线"]
@@ -184,17 +204,17 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
     shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
-    rule: "Harness PoC may wrap or observe trading research calls but may not become market/probability/risk authority."
+    rule: "Held until control-tower foundation release; after release, Harness may not become market/probability/risk authority."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O3_HIGH_INTERFACE_OVERLAP"
     shared_domains: [W3, W8, W9, W10, skills, context, session, retrieval, agent_runtime]
     rule: >-
-      Do not implement Harness integration against unstable P2.2/P2.3 ContextBundle interfaces.
-      First freeze the relevant interface or isolate the PoC behind an adapter.
+      Lane A remains held. Do not implement Harness integration against unstable P2.2/P2.3 ContextBundle interfaces.
+      After release, first freeze the relevant interface or isolate the PoC behind an adapter.
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     shared_domains: [W3, W9, W10, W12, evidence_retrieval, decision_context]
-    rule: "Trading retrieval may consume W3/W10 context through frozen contracts; it may not write a second knowledge/probability authority."
+    rule: "Lane B remains held until control-tower release; later it may consume frozen contracts without creating second authorities."
 
 overlap_levels:
   O0: "No material overlap. Parallel execution normally safe."
