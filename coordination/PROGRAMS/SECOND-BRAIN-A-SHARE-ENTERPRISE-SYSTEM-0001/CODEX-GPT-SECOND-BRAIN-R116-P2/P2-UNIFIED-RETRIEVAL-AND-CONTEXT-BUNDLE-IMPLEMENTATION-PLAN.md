@@ -1,8 +1,8 @@
 # P2 unified retrieval and ContextBundle v1 implementation plan
 
-agent_id: CODEX  
-route: `CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R116-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN`  
-mode: `project_plan`  
+agent_id: CODEX
+route: `CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R116-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN`
+mode: `project_plan`
 scope: `P2_PLAN_AND_PUBLIC_SAFE_AUDIT_ONLY`
 
 ## Decision

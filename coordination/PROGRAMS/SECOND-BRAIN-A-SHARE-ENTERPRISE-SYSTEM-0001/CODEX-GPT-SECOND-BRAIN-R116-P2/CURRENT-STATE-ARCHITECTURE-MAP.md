@@ -1,8 +1,8 @@
 # R116 P2 current-state architecture map
 
-agent_id: CODEX  
-task: CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN  
-epoch: 116  
+agent_id: CODEX
+task: CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-UNIFIED-RETRIEVAL-CONTEXT-PLAN
+epoch: 116
 base: f07e2181aa67c2b588dedfef33c8bc40ee59b468
 
 ## Authoritative reuse surface
