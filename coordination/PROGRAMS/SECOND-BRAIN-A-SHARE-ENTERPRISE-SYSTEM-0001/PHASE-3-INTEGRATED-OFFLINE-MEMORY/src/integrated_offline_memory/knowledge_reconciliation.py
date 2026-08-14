@@ -73,6 +73,7 @@ _ACTION_EVIDENCE_FIELDS = {
     "REVALIDATE": "revalidation_receipt",
     "RESOLVE_UNKNOWN": "resolution_basis",
 }
+_NON_EQUIVALENCE_BASIS = "NON_EQUIVALENCE_PROOF"
 
 
 @dataclass(frozen=True)
@@ -134,7 +135,9 @@ class ReconciliationReceipt:
     semantic_recall_passed: bool
     foreign_domain_zero_recall: bool
     reconciliation_evidence: tuple[dict[str, Any], ...] = ()
-    post_write_recall_mode: str = "PARAPHRASE_OR_RELATION_ASSISTED"
+    post_write_recall_mode: str = "PER_ATOM_NONEXACT_LEXICAL_OR_RELATION_ASSISTED"
+    post_write_proofs: tuple[dict[str, str], ...] = ()
+    nonexact_or_relation_recall_passed: bool = False
     candidate_authority_only: bool = True
     formal_project_global_write: str = "LOCKED"
 
@@ -149,6 +152,8 @@ class ReconciliationReceipt:
             "foreign_domain_zero_recall": self.foreign_domain_zero_recall,
             "reconciliation_evidence": list(self.reconciliation_evidence),
             "post_write_recall_mode": self.post_write_recall_mode,
+            "post_write_proofs": list(self.post_write_proofs),
+            "nonexact_or_relation_recall_passed": self.nonexact_or_relation_recall_passed,
             "candidate_authority_only": self.candidate_authority_only,
             "formal_project_global_write": self.formal_project_global_write,
         }
@@ -270,24 +275,33 @@ def capture_knowledge(
     )
     semantic_bundle = assembler.assemble(_plan_for(episode, semantic_query, valid_from, intent="CURRENT", relation_depth=1))
     semantic_ids = {atom["id"] for atom in semantic_bundle.atoms}
-    semantic_ok = bool(semantic_ids.intersection({atom_id for _, atom_id in planned}))
-    recall_mode = "PARAPHRASE" if semantic_ok else "RELATION_ASSISTED"
-    if not semantic_ok:
-        linked = {
-            endpoint for relation in semantic_bundle.relations
-            for endpoint in (relation["source_atom_id"], relation["target_atom_id"])
-        }
-        semantic_ok = bool(linked.intersection({atom_id for _, atom_id in planned}))
+    linked = {
+        endpoint for relation in semantic_bundle.relations
+        for endpoint in (relation["source_atom_id"], relation["target_atom_id"])
+    }
+    proof_query_hash = content_hash({"query": semantic_query})
+    post_write_proofs: list[dict[str, str]] = []
+    for _, atom_id in planned:
+        mode = (
+            "NONEXACT_LEXICAL" if atom_id in semantic_ids else
+            "RELATION_ASSISTED" if atom_id in linked else
+            "NOT_PROVEN"
+        )
+        post_write_proofs.append({"atom_id": atom_id, "mode": mode, "query_hash": proof_query_hash})
+    nonexact_or_relation_ok = all(item["mode"] != "NOT_PROVEN" for item in post_write_proofs)
     foreign_plan = QueryPlan(
         query_text=candidates[0].statement, scopes=(episode.project_scope,), user_scope=episode.user_scope + "-foreign",
         privacy_domains=(episode.privacy_domain,), valid_at=valid_from, atom_types=("knowledge_atom",), truth_states=("candidate",),
     )
     foreign_zero = not assembler.assemble(foreign_plan).atoms
-    if not (exact_ok and semantic_ok and foreign_zero):
+    if not (exact_ok and nonexact_or_relation_ok and foreign_zero):
         raise ValueError("knowledge_post_write_scoped_recall_failed")
     return ReconciliationReceipt(
         "CAPTURED_CANDIDATE_ONLY", tuple(packet["packet_id"] for packet in packets), tuple(atom_id for _, atom_id in planned), tuple(actions),
-        exact_ok, semantic_ok, foreign_zero, tuple(action_evidence), recall_mode,
+        # P1 has only deterministic lexical/graph lookup, not an embedding or
+        # semantic-paraphrase engine. Keep this false rather than overclaiming.
+        exact_ok, False, foreign_zero, tuple(action_evidence),
+        "PER_ATOM_NONEXACT_LEXICAL_OR_RELATION_ASSISTED", tuple(post_write_proofs), nonexact_or_relation_ok,
     )
 
 
@@ -301,13 +315,31 @@ def _reconciliation_action(
             return "UNKNOWN", None, _evidence("retrieval_missed_existing_lineage", "exact lineage was not admitted by bounded query")
         return "DUPLICATE", None, _evidence("exact_proposition_identity", "retrieval found the existing identical proposition")
     if directive is None:
-        return "NEW", None, _evidence("no_same_domain_match", "bounded same-domain retrieval returned no exact lineage")
+        if compared_ids:
+            return "UNKNOWN", None, _evidence(
+                "related_lineage_requires_governed_decision",
+                "bounded same-domain retrieval returned potentially related lineage without an evidence-bound classification",
+            )
+        return "NEW", None, _evidence("no_same_domain_match", "bounded same-domain retrieval returned no admitted lineage")
     action = str(directive.get("action", "UNKNOWN")).upper()
     target_atom_id = directive.get("target_atom_id")
     if action not in RECONCILIATION_ACTIONS:
         return "UNKNOWN", None, _evidence("invalid_action", "directive action is not governed")
-    if action in {"NEW", "UNKNOWN"}:
-        return action, None, _evidence("directive_abstain", "no evidence-bound nontrivial action requested")
+    if action == "UNKNOWN":
+        return "UNKNOWN", None, _evidence("directive_abstain", "no evidence-bound nontrivial action requested")
+    if action == "NEW":
+        if not compared_ids:
+            return "NEW", None, _evidence("no_same_domain_match", "bounded same-domain retrieval returned no admitted lineage")
+        if (
+            directive.get("evidence_basis") != _NON_EQUIVALENCE_BASIS
+            or not isinstance(directive.get("non_equivalence_reason"), str)
+            or not normalize_text(directive["non_equivalence_reason"])
+        ):
+            return "UNKNOWN", None, _evidence(
+                "non_equivalence_proof_required",
+                "NEW with retrieved lineage requires governed non-equivalence evidence",
+            )
+        return "NEW", None, _evidence(_NON_EQUIVALENCE_BASIS, "retrieved lineage was explicitly classified non-equivalent")
     if action == "DUPLICATE":
         return "UNKNOWN", None, _evidence("duplicate_without_existing_lineage", "duplicate requires retrieved exact existing identity")
     if not isinstance(target_atom_id, str) or not target_atom_id or target_atom_id not in compared_ids:
@@ -355,6 +387,7 @@ def _knowledge_metadata(
         "source_pointer_hash": content_hash(episode.source_pointer), "recorded_at": _canonical_instant(episode.recorded_at),
         "available_at": _canonical_instant(episode.available_at or episode.recorded_at), "source_span": candidate.source_span,
         "provenance_quality": episode.provenance_quality,
+        "source_trust": _source_trust(episode.source_text),
     }
     return {
         "schema_version": "knowledge-atom-v1", "episode_manifest_ids": [manifest_id], "source_episodes": [source_episode],
@@ -369,7 +402,7 @@ def _knowledge_metadata(
         "epistemic_role": candidate.epistemic_role, "taxonomy_version": TAXONOMY_VERSION,
         "valid_from": valid_from, "valid_to": valid_to, "recorded_at": _canonical_instant(episode.recorded_at),
         "provenance_quality": episode.provenance_quality, "freshness_profile": freshness_profile,
-        "source_trust": "UNTRUSTED_INERT" if _INERT_CONTROL_MARKERS.search(episode.source_text) else "SOURCE_DATA",
+        "source_trust": _source_trust(episode.source_text),
     }
 
 
@@ -418,6 +451,10 @@ def _comparison_query(statement: str, directive: Mapping[str, str] | None) -> st
 
 def _evidence(basis: str, reason: str) -> dict[str, str]:
     return {"evidence_basis": basis, "action_reason": reason}
+
+
+def _source_trust(source_text: str) -> str:
+    return "UNTRUSTED_INERT" if _INERT_CONTROL_MARKERS.search(source_text) else "SOURCE_DATA"
 
 
 def _public_safe_domain(value: str) -> bool:

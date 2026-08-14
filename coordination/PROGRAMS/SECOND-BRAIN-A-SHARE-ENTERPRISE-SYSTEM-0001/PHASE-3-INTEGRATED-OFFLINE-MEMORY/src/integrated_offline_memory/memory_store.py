@@ -255,7 +255,12 @@ class MemoryStore:
                     "identity_domain_hash": stored_knowledge.get("identity_domain_hash"),
                     "epistemic_role": stored_knowledge.get("epistemic_role"),
                     "episode_manifest_ids": stored_knowledge.get("episode_manifest_ids", []),
-                    "source_episodes": knowledge.get("source_episodes", []),
+                    # Reconstructed provenance exposes the currently merged
+                    # immutable source set, not only the one packet being
+                    # enumerated.  Preserve the packet-local set separately
+                    # so audit consumers can distinguish origin from union.
+                    "source_episodes": stored_knowledge.get("source_episodes", []),
+                    "packet_source_episodes": knowledge.get("source_episodes", []),
                 } if knowledge else {},
             })
         return result
@@ -497,6 +502,11 @@ class MemoryStore:
         merged = dict(prior)
         merged["episode_manifest_ids"] = sorted(merged_episodes)
         merged["source_episodes"] = [merged_episodes[key] for key in sorted(merged_episodes)]
+        merged["source_trust"] = (
+            "UNTRUSTED_INERT"
+            if any(item.get("source_trust") == "UNTRUSTED_INERT" for item in merged["source_episodes"])
+            else "SOURCE_DATA"
+        )
         metadata = dict(atom.get("memory_metadata", {}))
         metadata["knowledge"] = merged
         result = dict(atom)

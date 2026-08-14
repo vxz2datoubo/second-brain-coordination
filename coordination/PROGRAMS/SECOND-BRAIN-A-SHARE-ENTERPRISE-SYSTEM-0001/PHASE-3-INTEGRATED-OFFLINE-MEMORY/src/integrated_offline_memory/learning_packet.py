@@ -347,9 +347,10 @@ def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
     for item in knowledge["source_episodes"]:
         if (
             not isinstance(item, dict)
-            or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality"}
+            or set(item) != {"episode_manifest_id", "episode_id", "source_pointer_hash", "recorded_at", "available_at", "source_span", "provenance_quality", "source_trust"}
             or not all(isinstance(item.get(key), str) and item[key] for key in item)
             or not re.fullmatch(r"[0-9a-f]{64}", item["source_pointer_hash"])
+            or item["source_trust"] not in {"SOURCE_DATA", "UNTRUSTED_INERT"}
         ):
             return ["knowledge_provenance_invalid"]
         try:
@@ -360,6 +361,13 @@ def _knowledge_contract_errors(atom: dict[str, Any]) -> list[str]:
         episode_ids.append(item["episode_manifest_id"])
     if sorted(episode_ids) != knowledge["episode_manifest_ids"]:
         return ["knowledge_provenance_invalid"]
+    expected_source_trust = (
+        "UNTRUSTED_INERT"
+        if any(item["source_trust"] == "UNTRUSTED_INERT" for item in knowledge["source_episodes"])
+        else "SOURCE_DATA"
+    )
+    if knowledge["source_trust"] != expected_source_trust:
+        return ["knowledge_source_trust_aggregate_invalid"]
     try:
         valid_from = _instant(knowledge["valid_from"])
         if knowledge.get("valid_to") is not None and _instant(knowledge["valid_to"]) <= valid_from:
