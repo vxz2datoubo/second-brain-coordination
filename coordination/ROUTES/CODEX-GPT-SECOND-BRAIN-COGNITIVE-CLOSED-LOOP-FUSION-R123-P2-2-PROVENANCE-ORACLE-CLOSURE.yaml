@@ -1,0 +1,109 @@
+schema_version: "123.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 305
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-PROVENANCE-ORACLE-CLOSURE"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 123
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.2 provenance存在性旁路最终收口"
+status: "READY_REMEDIATION"
+execution_allowed: true
+automatic_resume_within_task: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
+merge_authorized: false
+runtime_code_change_allowed: true
+runtime_code_scope: "P2_2_PROVENANCE_ORACLE_CLOSURE_ONLY"
+
+canonical_main_at_route_prepare: "79cc310e4d86b9990c0445314eda73348b3d371b"
+canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
+canonical_p2_plan: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R116-P2/P2-UNIFIED-RETRIEVAL-AND-CONTEXT-BUNDLE-IMPLEMENTATION-PLAN.md"
+implementation_branch: "codex/gpt-second-brain-context-bundle-v1-r119-p2-2"
+implementation_pr: 307
+
+review_return:
+  reviewed_head: "d4c49ebd61dd86fbd07a2f48988d3cf25110ed73"
+  gpt_review_id: 4939615073
+  disposition: "R122_P2_2_EXACT_HEAD_CHANGES_REQUIRED_PROVENANCE_ORACLE_CLOSURE"
+  verified_ci_run: 31822423477
+  verified_ci_head_sha: "d4c49ebd61dd86fbd07a2f48988d3cf25110ed73"
+  verified_merge_ref: "40dd3f287cdb38e79e8478d1901c978ba2b6340e"
+  verified_merge_ref_base: "fc895dbec25b5f77706b59e69c73930584b74d01"
+  verified_phase3_tests: "277/277 PASS"
+  verified_public_safety: "77 files / 0 issues"
+
+accepted_r122_subsystems:
+  endpoint_free_unknown_public_count_constant_zero: true
+  endpoint_free_unknown_static_capability_marker: true
+  endpoint_free_unknown_direct_projection_fail_closed: true
+  r121_foreign_user_privacy_fail_closed: true
+  r120_epistemic_owner_context_materiality: true
+  r119_endpoint_safe_projection: true
+  r118_candidate_observability: true
+  existing_ranking_and_budget_semantics: true
+  p1_aggregate_equivalence_no_double_vote: true
+
+root_goal: >-
+  Finish P2.2 by closing the remaining full-bundle provenance oracle. Endpoint-free OPEN UNKNOWN objects are fail-closed, but canonical LearningPacket full
+  packet_content_hash commits to the unknown list and GPTSecondBrainContextBundle/v1 currently exposes that full hash through provenance.adjacency.
+  Zero/one/many fail-closed endpoint-free UNKNOWNs must therefore be indistinguishable across the complete public bundle, while internal W3 audit hashes remain unchanged.
+
+mandatory_repairs:
+  - "Zero/one/many endpoint-free UNKNOWN fixtures must produce identical complete public GPTSecondBrainContextBundle/v1 projections under the same QueryPlan; compare projection.to_dict(), not only context."
+  - "Do not expose packet_content_hash or any equivalent fingerprint that commits to hidden/fail-closed endpoint-free UNKNOWN records."
+  - "Preserve internal MemoryStore/LearningPacket packet_content_hash, idempotency and audit truth unchanged. This is a GPT public-projection fix only."
+  - "Retain safe auditable provenance using only already caller-observable stable lineage identity. Existing packet_id/manifest identity may be retained if proven oracle-stable for the frozen fixture; an optional public lineage hash may be derived only from already public fields and must add no hidden-data dependence."
+  - "Do not scan raw packet bodies, questions, source text, private metadata or hidden UNKNOWN objects to build the public lineage fingerprint."
+  - "Add an adversarial proof that internal packet_content_hash differs for zero/one/many fixtures while the complete public projection remains identical."
+  - "Preserve all accepted R122/R121/R120/R119/R118 behavior, existing ranking/budgets and P1 no-double-vote identity."
+
+known_reasoning_basis:
+  - "learning_packet.py includes unknowns in LearningPacket core before packet_content_hash = content_hash(core)."
+  - "retrieval.py _redacted_provenance currently exposes packet_content_hashes."
+  - "canonical packet_id is derived from source_hash + atom_ids + validation_hash rather than the unknown list, so it is a candidate stable lineage identity but must be verified by tests rather than assumed."
+
+architectural_watchpoints:
+  - id: "R122-UNKNOWN-BINDING-GAP"
+    status: "DEFER"
+    note: "Canonical user/project/privacy/safety/provenance binding for endpoint-free UNKNOWNs remains a separate future design."
+  - id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
+    status: "DEFER"
+    note: "Context-only admitted endpoint labeling remains deferred."
+
+execution_contract:
+  same_pr_branch_additive_only: true
+  rebase_force_amend: "FORBIDDEN"
+  p2_3_memory_palace_migration: "FORBIDDEN"
+  p2_4_semantic_provider: "FORBIDDEN"
+  p2_4_structural_analogy: "FORBIDDEN"
+  unknown_schema_redesign: "FORBIDDEN"
+  internal_packet_hash_or_store_semantics_change: "FORBIDDEN"
+  second_store: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  private_source_discovery_or_read: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "focused R123 full-bundle provenance-oracle equivalence tests PASS"
+  - "internal zero/one/many packet_content_hash divergence is explicitly proven without public projection divergence"
+  - "R122 zero-count/static-capability tests remain PASS"
+  - "R121 foreign/user/privacy tests remain PASS"
+  - "full Phase-3 regression PASS"
+  - "GitHub Actions exact final head_sha + Python 3.11/3.13 SUCCESS"
+  - "public safety PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "R118/R119/R120/R121/R122 compatibility parity"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_2_R123_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 123 is only the final P2.2 GPT-public provenance oracle closure. P2.3/P2.4, UNKNOWN schema design, real private execution, production bridge,
+  scheduler, formal promotion, QCLAW runtime dependency, permissions and trading remain locked.
