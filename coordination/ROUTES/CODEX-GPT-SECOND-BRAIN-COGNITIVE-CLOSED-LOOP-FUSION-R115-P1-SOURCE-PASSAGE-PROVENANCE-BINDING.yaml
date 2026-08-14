@@ -10,26 +10,21 @@ mode: "goal"
 mode_label: "【Codex模式：目标模式】P1来源正文与提取片段Provenance绑定收口"
 status: "READY"
 execution_allowed: true
-automatic_resume_within_task: false
-second_user_start_command_required: true
-intermediate_gpt_review_required: true
 merge_authorized: false
+intermediate_gpt_review_required: true
+runtime_code_change_allowed: true
+runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
 formal_knowledge_persistence_unlock_allowed: false
 real_private_candidate_ingestion_allowed: false
-real_private_raw_body_publication_allowed: false
 private_source_discovery_allowed: false
 private_candidate_source_read_allowed: false
 unattended_scheduler_activation_allowed: false
-repository_visibility_change_authorized: false
 production_mcp_gateway_deployment_authorized: false
-private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
+repository_visibility_change_authorized: false
 trading_or_account_action_allowed: false
-runtime_code_change_allowed: true
-runtime_code_scope: "P1_SYNTHETIC_PRIVATE_SAFE_ONLY"
 
 canonical_main_at_route_prepare: "2655312c88d53da4e0112175180119ab1764dcd7"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R115-P1-SOURCE-PASSAGE-PROVENANCE-BINDING.yaml"
 implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r112-p1"
 implementation_pr: 290
 reviewed_head: "a2a41a36e162628e279b7141d95a3be57ca6f74e"
@@ -53,36 +48,43 @@ predecessor_checkpoint:
   disposition: "R114_THREE_BLOCKERS_CLOSED_CHANGES_REQUIRED_SOURCE_PASSAGE_PROVENANCE_BINDING"
 
 root_goal: >-
-  Continue Draft PR #290 in P1 only and close the remaining provenance-integrity gap: caller-supplied extraction text must be provably derived from the
-  KnowledgeEpisode source body before it may inherit that episode manifest/source hash/pointer lineage. Preserve a privacy-minimized extraction binding
-  that survives packet verification, duplicate provenance union, restart and index rebuild.
+  Close the final P1 provenance-integrity gap in Draft PR #290. A caller-supplied extraction passage must never inherit a KnowledgeEpisode manifest,
+  source hash or pointer lineage unless the passage is provably derived from that episode source body. Preserve a privacy-minimized, auditable extraction
+  binding so later packet/store/restart/index-rebuild inspection cannot confuse arbitrary caller text with source-backed evidence.
 
 required_blocker:
   - "P1-PASSAGE-MUST-BE-CONTENT-BOUND-TO-SOURCE-EPISODE"
 
 required_acceptance_cases:
-  - "passage omitted => source body is used and extraction binding is valid"
-  - "normalized exact-body passage => accepted"
-  - "normalized contiguous subspan/subpassage => accepted with content-bound locator/hash"
-  - "unrelated/fabricated passage => rejected before packet/store/index mutation"
-  - "binding survives packet verification, duplicate union, restart and index rebuild"
-  - "binding metadata remains privacy-minimized and does not publish raw source body"
-  - "all R112-R114 adversarial regressions remain PASS"
+  - "passage omitted => decomposition uses the episode source body and records a valid extraction binding"
+  - "normalized exact-body passage => accepted and bound to the episode source hash"
+  - "normalized contiguous subspan/subpassage => accepted with auditable content-bound locator/hash"
+  - "unrelated or fabricated passage => rejected before any packet/store/index mutation"
+  - "binding survives packet verification, duplicate provenance union, restart and index rebuild"
+  - "binding metadata exposes hashes/locators only and does not publish raw private/source body"
+  - "all R112-R114 adversarial behavior remains unchanged"
 
-execution_contract:
+implementation_contract:
   same_draft_pr: 290
   additive_commits_only: true
   p1_runtime_changes: "ALLOWED_WITHIN_ROUTE"
-  source_binding_minimum: "normalized full-body equality or normalized contiguous-span derivation, or stricter equivalent"
+  source_binding_minimum: >-
+    For P1, normalized full-body equality or normalized contiguous-span derivation is sufficient. A more general explicit span-list contract is acceptable
+    only if every extracted segment is content-bound to the episode source and the public packet/receipt remains privacy-minimized.
+  extraction_receipt_minimum:
+    - "full source content hash"
+    - "extracted passage/content hash"
+    - "content-bound normalized offset/span locator or equivalent verifiable binding"
+    - "binding/policy schema version"
+  verifier_requirement: >-
+    Packet/store verification must preserve the extraction binding and reject malformed or missing binding metadata for governed KnowledgeAtoms. Raw
+    source bodies are not required to be published or stored in public receipts.
   p2_graph_unification: "FORBIDDEN"
   p3_proactive_or_semantic_recall: "FORBIDDEN"
   p4_feedback_skill_lifecycle: "FORBIDDEN"
   p5_production_bridge: "FORBIDDEN"
-  private_data: "FORBIDDEN"
-  real_private_store: "FORBIDDEN"
-  real_ingestion: "FORBIDDEN"
+  real_private_data: "FORBIDDEN"
   scheduler: "FORBIDDEN"
-  production_mcp_gateway: "FORBIDDEN"
   formal_project_global_promotion: "LOCKED"
   qclaw_runtime_dependency: "FORBIDDEN"
   security_acl_visibility_changes: "FORBIDDEN"
@@ -117,5 +119,5 @@ required_closeout:
 completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P1_R115_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 115 is the final narrow P1 provenance closure. Real private ingestion, production bridge, scheduler, formal/global promotion, security/permission
-  changes, QCLAW runtime dependency, P2-P5 and trading/account actions remain locked. GPT retains review and merge authority.
+  Epoch 115 is the final narrow P1 provenance closure. It does not authorize P2-P5, real private ingestion, production bridge, scheduler, formal/global
+  promotion, security/permission changes, QCLAW runtime dependency or trading/account actions. GPT retains review and merge authority.
