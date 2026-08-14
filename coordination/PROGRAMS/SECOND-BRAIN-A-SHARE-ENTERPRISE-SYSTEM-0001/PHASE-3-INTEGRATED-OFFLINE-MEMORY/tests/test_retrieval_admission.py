@@ -148,10 +148,17 @@ class RetrievalAdmissionTestCase(unittest.TestCase):
             stale,
             QueryPlan(query_text="bounded", truth_states=("stale",)),
         )
+        revoked = copy.deepcopy(stored)
+        revoked["knowledge_status"] = "revoked"
+        revoked_decision = self.assembler._admission_decision(
+            revoked,
+            QueryPlan(query_text="bounded", truth_states=("revoked",)),
+        )
 
         self.assertEqual((current.admitted, current.reason), (False, "lifecycle_not_current"))
         self.assertEqual((historical.admitted, historical.reason), (True, "admitted"))
         self.assertEqual((stale_decision.admitted, stale_decision.reason), (False, "lifecycle_not_current"))
+        self.assertEqual((revoked_decision.admitted, revoked_decision.reason), (False, "lifecycle_not_current"))
 
     def test_packet_provenance_is_required_and_reason_never_discloses_identity(self) -> None:
         stored = self._conversation_atom()
