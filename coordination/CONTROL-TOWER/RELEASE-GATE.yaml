@@ -1,0 +1,53 @@
+schema_version: "1.0"
+gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
+issue: 310
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+foundation_state: "IMPLEMENTATION_IN_REVIEW"
+lane_release_state: "HOLD_BY_USER"
+
+automatic_lane_release: false
+passing_ci_does_not_release_lanes: true
+
+foundation_ready_requires:
+  - id: CT-F01-RECONCILIATION
+    requirement: "Current Program Lane observed state is reconciled against latest per-agent ACTIVE routes."
+  - id: CT-F02-STALE-VIEW
+    requirement: "Known stale aggregate views are detected and cannot override current per-agent routes."
+  - id: CT-F03-COLLISION
+    requirement: "O0-O4 authority/path/interface collision classification has targeted regression coverage."
+  - id: CT-F04-WIP
+    requirement: "Per-agent active-route, heavy-stage and held-lane limits are mechanically checked."
+  - id: CT-F05-COMMIT-FRESHNESS
+    requirement: "A route witness/fingerprint invalidates durable writes when task identity or route_epoch changes."
+  - id: CT-F06-PROJECTION
+    requirement: "The machine-generated block in PROGRAM-CONTROL-TOWER.md is deterministic and checked against canonical sources."
+  - id: CT-F07-CI
+    requirement: "Python 3.11 and 3.13 CI passes on the exact proposed head."
+  - id: CT-F08-DRY-RUN
+    requirement: "GPT performs a current three-lane dry-run after implementation and CI validation."
+
+lane_release_requires:
+  - "foundation_state == SAFE_FOR_GPT_DRY_RUN or stronger"
+  - "current user hold is still interpreted from ACTIVE-PROGRAM-LANES.yaml"
+  - "current per-agent routes are fetched again"
+  - "Lane A vs Lane C mutable ContextBundle overlap is either frozen or adapter-isolated"
+  - "Lane B first remediation slice has an explicit bounded write surface"
+  - "no O4 authority collision"
+  - "no same-agent double booking"
+  - "no heavy-resource collision"
+  - "GPT explicitly records SAFE_TO_RELEASE"
+
+forbidden_effects:
+  - "No automatic creation of a new executable Agent route."
+  - "No automatic unpause of Lane A or Lane B."
+  - "No direct mutation of W2-W13 canonical domain objects."
+  - "No private-data ingestion or publication."
+  - "No production scheduler/gateway deployment."
+  - "No account/order/fund/trading action."
+
+current_disposition: >-
+  Build and validate the Control Tower foundation in an isolated branch/PR. Keep Lane A Harness and
+  Lane B A-share remediation paused. Keep the existing Lane C Codex route authoritative and untouched.
