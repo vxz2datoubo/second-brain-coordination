@@ -1,0 +1,125 @@
+schema_version: "0.1"
+claim_candidate_id: "HARNESS-COGNITIVE-OS-IMPLEMENTATION-CLAIM-CANDIDATE-0001"
+status: "CANDIDATE_ONLY / NOT_AUTHORIZED"
+owner: "USER"
+architecture_owner: "GPT"
+execution_agent: null
+route_binding: null
+resource_class: "HEAVY_IMPLEMENTATION_CANDIDATE"
+
+preconditions:
+  - "H0 architecture freeze accepted"
+  - "Harness source identity gate PASS"
+  - "second-brain adapter interfaces frozen enough for consumption"
+  - "fresh Control Tower reconciliation"
+  - "fresh O0-O4 scan"
+  - "no active same-agent implementation collision"
+  - "no heavy local stage collision"
+  - "explicit GPT implementation release"
+  - "user high-impact approval if permissions/private/production boundary changes"
+
+candidate_write_root:
+  preferred: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER"
+  state: "DO_NOT_CREATE_UNTIL_RELEASED"
+
+candidate_modules:
+  - name: contracts
+    purpose: "DecisionEpisode/MissionGraph/MethodExecutionPlan/FormalHandoff schemas"
+  - name: harness_adapter
+    purpose: "stable Harness service boundary adapter"
+  - name: signal_tower_adapter
+    purpose: "Mission -> authorized workflow request"
+  - name: second_brain_adapter
+    purpose: "W3 read/reconcile/feedback narrow client without W3 internal imports"
+  - name: control_tower_adapter
+    purpose: "authorization/witness validation"
+  - name: challenge_workflow
+    purpose: "independent primary/challenger/verifier/adjudicator orchestration"
+  - name: trace_bridge
+    purpose: "native trace -> DecisionEpisode/OpenTelemetry-style lineage"
+  - name: provider_adapters
+    purpose: "Codex/other external agent provider isolation"
+  - name: org_graph_validator
+    purpose: "department/relationship/authority/return-path validation"
+  - name: learning_bridge
+    purpose: "W9 outcome/reflection/method-credit -> candidate updates"
+  - name: resource_governor
+    purpose: "bounded workers/process ownership/heavy-stage caps"
+
+candidate_interfaces_read:
+  - "SecondBrainSearch/v1"
+  - "SecondBrainContext/v1"
+  - "KnowledgeCandidateReconcile/v1"
+  - "FeedbackLifecycle/v1 successor"
+  - "MethodExecutionPlan/v1"
+  - "MissionGraph/v1"
+  - "ExecutionAuthorization/v1"
+
+candidate_interfaces_write:
+  - "HarnessWorkflowRequest/v1"
+  - "HarnessWorkflowResult/v1"
+  - "FormalHandoff/v1"
+  - "OutcomeLearning/v1 candidate"
+
+frozen_authority_nonclaims:
+  - "DOES_NOT_OWN_W3"
+  - "DOES_NOT_OWN_FORMAL_SKILLS"
+  - "DOES_NOT_OWN_METHOD_SELECTION"
+  - "DOES_NOT_OWN_CONTROL_TOWER_AUTHORIZATION"
+  - "DOES_NOT_OWN_W7_VETO"
+  - "DOES_NOT_OWN_MARKET_DATA_OR_TRADING"
+  - "DOES_NOT_OWN_PRIVATE_OR_PRODUCTION_PERMISSION"
+
+initial_implementation_slice:
+  name: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
+  runtime_harness_call: false
+  private_data: false
+  production_gateway: false
+  trading: false
+  contents:
+    - schemas
+    - state machines
+    - department graph validator
+    - trace/handoff fixture validator
+    - reproducibility fingerprint builder
+    - synthetic fixtures
+    - deterministic tests
+  stop_after: "GPT_REVIEW"
+
+second_slice_candidate:
+  name: "H2_HARNESS_ADAPTER_POC"
+  runtime_harness_call: true
+  authorization: "SEPARATE_FUTURE_ROUTE_REQUIRED"
+  prerequisites:
+    - "initial slice accepted"
+    - "Harness source identity PASS"
+    - "fresh Work Claim"
+
+resource_policy:
+  local_heavy_stage_max: 1
+  same_agent_active_execution_max: 1
+  nested_process_pools: "FORBIDDEN"
+  task_owned_descendant_tracking: "REQUIRED"
+  global_kill_python: "FORBIDDEN"
+  large_matrix: "REMOTE_CI_PREFERRED"
+
+rollback:
+  type: "DELETE_OR_DISABLE_ADAPTER_SURFACE"
+  must_preserve:
+    - W3 canonical data/schema
+    - W2-W13 authority
+    - Control Tower state
+    - existing Agent routes
+    - user private data
+  no_residual_daemon: true
+
+prohibited_until_separate_approval:
+  - private W3 live access
+  - formal PROJECT/GLOBAL write
+  - production scheduler
+  - production MCP/Gateway
+  - credentials or secret persistence
+  - repository permission change
+  - trading account/order/fund action
+  - auto skill promotion
+  - automatic Harness version upgrade
