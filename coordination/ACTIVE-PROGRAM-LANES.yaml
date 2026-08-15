@@ -1,10 +1,10 @@
-schema_version: "1.6"
+schema_version: "1.7"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-15T22:36:00+08:00"
+as_of: "2026-08-15T22:43:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -66,28 +66,30 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
     Prefer orthogonal parallelism only after the relevant Control Tower release gate is satisfied.
-    Lane A S0C is a light/medium public-safe offline implementation and consumes the single Codex route.
-    H2, H7, S0D cross-repo shadow, private bridges and production remain separately unauthorized.
+    Lane A currently reserves the S0C Codex work surface but execution remains disabled until a post-merge
+    reconciliation receipt binds the new canonical main. H2/H7/S0D/private/production remain unauthorized.
 
 current_user_release_policy:
-  decision_at: "2026-08-15T22:36:00+08:00"
-  decision: "RELEASE_LANE_A_S0C_ENTERPRISE_SIGNAL_PLANE_KEEP_S0D_H2_H7_BLOCKED_KEEP_LANE_B_HELD"
+  decision_at: "2026-08-15T22:43:00+08:00"
+  decision: "PREPARE_LANE_A_S0C_RESERVATION_REQUIRE_POST_MERGE_ACTIVATION_KEEP_FUTURE_STAGES_BLOCKED"
   rationale: >-
-    The user explicitly said 开始落地达到企业级以上的 after PR #342 froze the Unified Signal Tower enterprise architecture.
-    A bootstrap GlobalReconciliationReceipt binds current canonical GitHub state. Lane A may therefore activate exactly
-    one S0C public-safe/offline synthetic implementation route. S0D cross-repo shadow, H2 Harness, H7 Mission runtime,
-    private/production bridges and trading remain separately blocked. Lane B remains held unless separately started.
-  released_implementation_lanes:
+    The user explicitly requested enterprise-grade Signal Tower implementation and PR #342 froze the architecture.
+    The bootstrap GlobalReconciliationReceipt binds the pre-release main, so the governance merge itself will invalidate
+    that receipt for execution freshness. Phase A therefore reserves the exact S0C Work Claim and route with
+    execution_allowed=false. Phase B must bind the post-merge main and re-run Control Tower before activation.
+  released_implementation_lanes: []
+  prepared_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION"
   released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "GPT_WITH_EXPLICIT_USER_S0C_START"
+  release_owner: "GPT_WITH_EXPLICIT_USER_S0C_DIRECTION_AND_TWO_PHASE_RELEASE"
   global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
   signal_tower_architecture_pr: 342
   signal_tower_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
   s0c_issue: 343
   s0c_route_epoch: 134
+  s0c_execution: "AWAITING_POST_MERGE_RECONCILIATION"
   s0d_release: "NOT_AUTHORIZED"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
@@ -97,7 +99,8 @@ current_user_release_policy:
     - "A fresh implementation Work Claim for the exact slice."
     - "Fresh O0-O4, same-agent and heavy-resource checks."
     - "Fresh durable Control Tower authorization witness."
-    - "Explicit GPT implementation release."
+    - "Post-merge compare-and-check before execution_allowed=true."
+    - "Explicit GPT implementation activation."
     - "High-impact user approval when private/production/permission/trading boundaries change."
 
 observed_agent_state:
@@ -107,9 +110,9 @@ observed_agent_state:
     observed_route_epoch: 134
     observed_issue: 343
     observed_pr: null
-    observed_status: "READY"
-    execution_allowed: true
-    observation_status: "ACTIVE_S0C_PUBLIC_SAFE_OFFLINE / SINGLE_CODEX_LEASE"
+    observed_status: "PREPARED_AWAITING_POST_MERGE_RECONCILIATION"
+    execution_allowed: false
+    observation_status: "RESERVED_S0C_SURFACE / NO_ACTIVE_EXECUTION_YET"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -144,11 +147,11 @@ program_lanes:
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线", "Unified Signal Tower线"]
     mission: >-
       Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
-      authorities. Current active slice is the pre-Mission Global Signal Plane S0C public-safe/offline synthetic skeleton;
-      Harness runtime remains a separate future H2 gate.
-    desired_state: "ACTIVE"
-    observed_state: "ACTIVE"
-    hold_reason: null
+      authorities. Current prepared slice is the pre-Mission Global Signal Plane S0C public-safe/offline synthetic skeleton;
+      execution remains disabled until Phase B post-merge reconciliation. Harness runtime remains a separate future H2 gate.
+    desired_state: "READY"
+    observed_state: "READY"
+    hold_reason: "POST_MERGE_RECONCILIATION_REQUIRED_BEFORE_EXECUTION"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -158,11 +161,10 @@ program_lanes:
       - "H0 Cognitive OS × Harness architecture merged in PR #336"
       - "H1 contract skeleton merged in PR #340"
       - "Unified Signal Tower enterprise architecture merged in PR #342"
-      - "Issue #343 S0C public-safe/offline synthetic implementation"
+      - "Issue #343 S0C public-safe/offline synthetic implementation candidate"
       - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
       - "Issue #310 Control Tower governance"
-      - "DeepSeek Harness remains H2-only future runtime input"
-    current_phase: "S0C_PUBLIC_SAFE_SYNTHETIC_SIGNAL_PLANE_IMPLEMENTATION"
+    current_phase: "S0C_RELEASE_PHASE_A_RESERVED_AWAITING_POST_MERGE_RECONCILIATION"
     active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
     heavy_execution_authorized: false
     dependencies:
@@ -170,7 +172,8 @@ program_lanes:
       - "H0 final ACCEPT_WITH_BOUNDED_DEBT merged in PR #336"
       - "H1 exact-head implementation accepted and merged in PR #340"
       - "Unified Signal Tower enterprise architecture accepted and merged in PR #342"
-      - "Fresh R134 GlobalReconciliationReceipt + Work Claim + Control Tower witness"
+      - "Phase A bootstrap receipt + exact S0C Work Claim"
+      - "Phase B fresh post-merge GlobalReconciliationReceipt + Control Tower witness before execution"
       - "S0C is pre-Mission/offline only; H2/H7/S0D/private/production remain separate gates"
     shared_interfaces:
       - "Global Signal Plane contracts"
@@ -183,10 +186,9 @@ program_lanes:
       - "W9 outcome learning candidate boundary"
       - "W10 DecisionEpisode/metacognition"
       - "AI Film future Domain Adapter boundary"
-      - "Future Harness Adapter stable service boundary (H2 only)"
-    next_gate: "S0C_EXACT_HEAD_GPT_REVIEW_NO_AUTO_S0D_H2_H7"
+    next_gate: "POST_MERGE_GLOBAL_RECONCILIATION_THEN_R134_EXECUTION_ACTIVATION"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "S0C_ACTIVE_IMPLEMENTATION / PUBLIC_SAFE_OFFLINE"
+    maturity: "S0C_PREPARED / EXECUTION_DISABLED"
     proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -268,7 +270,7 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
     shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
-    rule: "Lane A has one bounded S0C claim; Lane B remains held. Claim-level scan must stay below O3 before any new implementation."
+    rule: "Lane A has a reserved non-executable S0C claim; Lane B remains held. Claim-level scan must stay below O3 before activation."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10, skills, context, retrieval, agent_runtime]
@@ -299,7 +301,7 @@ flow_metrics:
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before any cross-program implementation task is published or accepted, fetch current per-agent routes, relevant
+  Before any cross-program implementation task is published or activated, fetch current per-agent routes, relevant
   canonical project/program indices and a fresh GlobalReconciliationReceipt, derive observed state, compare desired
   relationships, classify drift/overlap, and fail closed on O4 authority conflict, stale commit/review authorization,
   invalidated reconciliation receipt, SAME_AGENT_DOUBLE_BOOKED or CROSS_WINDOW_STATE_DRIFT.
