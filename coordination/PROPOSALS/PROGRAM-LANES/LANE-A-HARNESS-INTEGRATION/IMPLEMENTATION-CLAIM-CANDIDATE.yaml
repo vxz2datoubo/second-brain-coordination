@@ -1,65 +1,128 @@
-schema_version: "0.1"
-claim_candidate_id: "HARNESS-COGNITIVE-OS-IMPLEMENTATION-CLAIM-CANDIDATE-0001"
+schema_version: "0.2"
+claim_bundle_id: "HARNESS-COGNITIVE-OS-IMPLEMENTATION-CLAIM-CANDIDATES-0001"
 status: "CANDIDATE_ONLY / NOT_AUTHORIZED"
 owner: "USER"
 architecture_owner: "GPT"
-execution_agent: null
-route_binding: null
-resource_class: "HEAVY_IMPLEMENTATION_CANDIDATE"
 
-preconditions:
-  - "H0 architecture freeze accepted"
-  - "Harness source identity gate PASS"
-  - "second-brain adapter interfaces frozen enough for consumption"
+shared_preconditions:
+  - "H0 final compatibility verdict ACCEPT or ACCEPT_WITH_BOUNDED_DEBT"
+  - "second-brain foundation remains CLOSED_WITH_BOUNDED_GAPS"
   - "fresh Control Tower reconciliation"
   - "fresh O0-O4 scan"
   - "no active same-agent implementation collision"
   - "no heavy local stage collision"
-  - "explicit GPT implementation release"
-  - "user high-impact approval if permissions/private/production boundary changes"
+  - "explicit GPT implementation release for the exact slice"
+  - "user high-impact approval if permissions/private/production/trading boundary changes"
 
 candidate_write_root:
   preferred: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER"
-  state: "DO_NOT_CREATE_UNTIL_RELEASED"
+  state: "DO_NOT_CREATE_UNTIL_EXACT_SLICE_RELEASED"
 
-candidate_modules:
-  - name: contracts
-    purpose: "DecisionEpisode/MissionGraph/MethodExecutionPlan/FormalHandoff schemas"
-  - name: harness_adapter
-    purpose: "stable Harness service boundary adapter"
-  - name: signal_tower_adapter
-    purpose: "Mission -> authorized workflow request"
-  - name: second_brain_adapter
-    purpose: "W3 read/reconcile/feedback narrow client without W3 internal imports"
-  - name: control_tower_adapter
-    purpose: "authorization/witness validation"
-  - name: challenge_workflow
-    purpose: "independent primary/challenger/verifier/adjudicator orchestration"
-  - name: trace_bridge
-    purpose: "native trace -> DecisionEpisode/OpenTelemetry-style lineage"
-  - name: provider_adapters
-    purpose: "Codex/other external agent provider isolation"
-  - name: org_graph_validator
-    purpose: "department/relationship/authority/return-path validation"
-  - name: learning_bridge
-    purpose: "W9 outcome/reflection/method-credit -> candidate updates"
-  - name: resource_governor
-    purpose: "bounded workers/process ownership/heavy-stage caps"
+claims:
+  - claim_candidate_id: "HARNESS-COGNITIVE-OS-H1-CONTRACT-SKELETON-0001"
+    name: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
+    status: "CANDIDATE_ONLY / NOT_AUTHORIZED"
+    execution_agent: null
+    route_binding: null
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    runtime_harness_call: false
+    private_data: false
+    production_gateway: false
+    trading: false
+    depends_on:
+      - H0_FINAL_VERDICT
+      - FRESH_CONTROL_TOWER_H1_CLAIM_SCAN
+    candidate_modules:
+      - contracts
+      - state_machines
+      - semantic_invariant_validators
+      - organization_graph_validator
+      - trace_handoff_fixture_validator
+      - reproducibility_fingerprint_builder
+      - synthetic_fixtures
+    required_outputs:
+      - formal JSON Schema or equivalent structural validator artifacts compiled from COGNITIVE_CONTRACT_DSL/v0.2
+      - deterministic semantic invariant registry implementation
+      - DecisionEpisode state-machine tests
+      - MissionGraph DAG/rework tests
+      - authority/return-path/static graph tests
+      - trace/handoff/fingerprint fixtures
+      - exact-head CI receipt
+    read_interfaces:
+      - "H0 proposal contracts as design inputs"
+      - "frozen Second Brain conceptual consumption boundaries"
+    write_interfaces:
+      - "NONE_TO_W3_OR_DOMAIN_RUNTIME"
+    stop_after: "GPT_EXACT_HEAD_REVIEW"
+    forbidden:
+      - Harness package install/runtime binding as product code
+      - provider integration
+      - private W3 access
+      - production/live bridge
+      - Formal Skill promotion
+      - trading
 
-candidate_interfaces_read:
-  - "SecondBrainSearch/v1"
-  - "SecondBrainContext/v1"
-  - "KnowledgeCandidateReconcile/v1"
-  - "FeedbackLifecycle/v1 successor"
-  - "MethodExecutionPlan/v1"
-  - "MissionGraph/v1"
-  - "ExecutionAuthorization/v1"
-
-candidate_interfaces_write:
-  - "HarnessWorkflowRequest/v1"
-  - "HarnessWorkflowResult/v1"
-  - "FormalHandoff/v1"
-  - "OutcomeLearning/v1 candidate"
+  - claim_candidate_id: "HARNESS-COGNITIVE-OS-H2-ADAPTER-POC-0001"
+    name: "H2_HARNESS_ADAPTER_POC"
+    status: "BLOCKED_PENDING_H1_AND_RUNTIME_BINDING_GATE"
+    execution_agent: null
+    route_binding: null
+    resource_class: "HEAVY_IMPLEMENTATION"
+    runtime_harness_call: true
+    private_data: false
+    production_gateway: false
+    trading: false
+    exact_upstream_candidate:
+      repository: "deepseek-ai/deepseek-harness"
+      commit: "47f943859bef60e4160492346772ded9b24f765a"
+      package_family_version: "0.1.0-rc.5"
+    depends_on:
+      - H1_EXACT_HEAD_ACCEPTED
+      - H1_MERGE_OR_APPROVED_INTEGRATION_BASE
+      - HARNESS_RUNTIME_BINDING_GATE_PASS
+      - FRESH_CONTROL_TOWER_H2_CLAIM_SCAN
+    candidate_modules:
+      - harness_adapter
+      - signal_tower_adapter_fixture
+      - second_brain_adapter_fixture
+      - control_tower_authorization_adapter
+      - challenge_workflow
+      - trace_bridge
+      - provider_adapter_fixture
+      - resource_governor
+    candidate_interfaces_read:
+      - "SecondBrainSearch/v1 conceptual successor"
+      - "SecondBrainContext/v1 conceptual successor"
+      - "KnowledgeCandidateReconcile/v1 conceptual successor"
+      - "FeedbackLifecycle/v1 successor candidate"
+      - "MethodExecutionPlan/v1"
+      - "MissionGraph/v1"
+      - "ExecutionAuthorization/v1"
+    adapter_owned_outputs:
+      - "HarnessWorkflowRequest/v1"
+      - "HarnessWorkflowResult/v1"
+      - "FormalHandoff/v1"
+      - "TraceLedgerEvent/v1"
+    transported_but_not_owned:
+      - "OutcomeLearning/v1 owned by W9"
+      - "W3 lifecycle candidate updates owned by W3"
+      - "W7 gate result owned by W7"
+    required_runtime_gates:
+      - canonical Harness identity and exact pin provenance PASS
+      - reproducible clean install/pack smoke PASS
+      - exact consumed public service signatures frozen
+      - target environment compatibility PASS
+      - provider failure/cancel/retry tests PASS
+      - pinned-vs-latest compatibility radar works without auto-upgrade
+      - rollback/no-residual-process PASS
+    stop_after: "GPT_EXACT_HEAD_REVIEW"
+    forbidden:
+      - direct domain import of concrete Harness provider internals
+      - private W3 live access
+      - production scheduler/MCP/Gateway
+      - credentials persistence in repo
+      - formal PROJECT/GLOBAL promotion
+      - trading account/order/fund action
 
 frozen_authority_nonclaims:
   - "DOES_NOT_OWN_W3"
@@ -67,33 +130,9 @@ frozen_authority_nonclaims:
   - "DOES_NOT_OWN_METHOD_SELECTION"
   - "DOES_NOT_OWN_CONTROL_TOWER_AUTHORIZATION"
   - "DOES_NOT_OWN_W7_VETO"
+  - "DOES_NOT_OWN_W9_OUTCOME_LEARNING"
   - "DOES_NOT_OWN_MARKET_DATA_OR_TRADING"
   - "DOES_NOT_OWN_PRIVATE_OR_PRODUCTION_PERMISSION"
-
-initial_implementation_slice:
-  name: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
-  runtime_harness_call: false
-  private_data: false
-  production_gateway: false
-  trading: false
-  contents:
-    - schemas
-    - state machines
-    - department graph validator
-    - trace/handoff fixture validator
-    - reproducibility fingerprint builder
-    - synthetic fixtures
-    - deterministic tests
-  stop_after: "GPT_REVIEW"
-
-second_slice_candidate:
-  name: "H2_HARNESS_ADAPTER_POC"
-  runtime_harness_call: true
-  authorization: "SEPARATE_FUTURE_ROUTE_REQUIRED"
-  prerequisites:
-    - "initial slice accepted"
-    - "Harness source identity PASS"
-    - "fresh Work Claim"
 
 resource_policy:
   local_heavy_stage_max: 1
@@ -104,14 +143,22 @@ resource_policy:
   large_matrix: "REMOTE_CI_PREFERRED"
 
 rollback:
-  type: "DELETE_OR_DISABLE_ADAPTER_SURFACE"
-  must_preserve:
-    - W3 canonical data/schema
-    - W2-W13 authority
-    - Control Tower state
-    - existing Agent routes
-    - user private data
-  no_residual_daemon: true
+  H1:
+    type: "REMOVE_CONTRACT_SKELETON_RUNTIME_SURFACE"
+    must_preserve:
+      - W3 canonical data/schema
+      - W2-W13 authority
+      - Control Tower state
+      - existing Agent routes
+  H2:
+    type: "DELETE_OR_DISABLE_HARNESS_ADAPTER_POC_SURFACE"
+    must_preserve:
+      - W3 canonical data/schema
+      - W2-W13 authority
+      - Control Tower state
+      - existing Agent routes
+      - user private data
+    no_residual_daemon: true
 
 prohibited_until_separate_approval:
   - private W3 live access
