@@ -1,71 +1,86 @@
-schema_version: "133.1"
+schema_version: "134.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 338
-task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
-parent_task_id: "COGNITIVE-OS-HARNESS-INTEGRATION-0001"
-route_epoch: 133
+active_issue: 343
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 134
 mode: "goal"
-mode_label: "【Codex模式：目标模式】H1 Cognitive OS Contract-Only Synthetic Skeleton"
-status: "DONE"
-execution_allowed: false
+mode_label: "【Codex模式：目标模式】S0C Enterprise Global Signal Plane Public-Safe Synthetic Skeleton"
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: false
-intermediate_gpt_review_required: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
+runtime_code_change_allowed: true
+runtime_code_scope: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
 
-canonical_main_at_route_prepare: "eb622264929564d70aa11c646b93fe38c0c40a8d"
-canonical_main_at_close: "c17df847bee689f23363b0ddbba417c6c37c79ab"
-canonical_route: "coordination/ROUTES/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
-implementation_branch: "codex/cognitive-os-h1-contract-skeleton-r133"
-implementation_pr: 340
+canonical_main_at_route_prepare: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+canonical_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
+implementation_branch: "codex/global-signal-plane-s0c-enterprise-r134"
+implementation_pr: null
 
 predecessor_closure:
-  route_epoch: 132
-  issue: 332
-  merged_pr: 334
-  merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
-  foundation_closure_issue: 335
-  foundation_verdict: "CLOSED_WITH_BOUNDED_GAPS"
-
-h0_release:
-  architecture_pr: 336
-  architecture_merge_commit: "eb622264929564d70aa11c646b93fe38c0c40a8d"
-  verdict: "ACCEPT_WITH_BOUNDED_DEBT"
-  harness_runtime_authorized: false
-
-completion_receipt:
+  route_epoch: 133
+  task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+  issue: 338
+  merged_pr: 340
   reviewed_head: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
-  implementation_pr: 340
   merge_commit: "c17df847bee689f23363b0ddbba417c6c37c79ab"
-  route_disposition: "H1_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
+  route_disposition: "DONE / HISTORY_ONLY"
+
+architecture_release:
+  architecture_pr: 342
+  architecture_reviewed_head: "10f9b63abfa0871e8fad0a554a0f86f61721d742"
+  architecture_merge_commit: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+  architecture_review_id: 4944022335
+  signal_architecture_ci: 31890131412
+  control_tower_ci: 31890131413
+  verdict: "UNIFIED_SIGNAL_TOWER_ARCHITECTURE_ACCEPTED_FOR_S0_RELEASE_PREPARATION"
   h2_authorized: false
 
 frozen_invariants:
+  one_signal_tower_identity: true
+  pre_mission_vs_mission_plane_separation: true
+  global_reconciliation_receipt_required_for_formal_task_release: true
+  receipt_is_not_execution_authority: true
   w3_single_authority: true
-  harness_not_truth_authority: true
-  h1_h2_separation: true
-  no_one_shot_skill_promotion: true
+  trace_ledger_single_authority: true
+  control_tower_execution_authority: true
+  domain_truth_local: true
+  append_only_history: true
+  at_least_once_ingestion: true
+  idempotent_effective_processing: true
+  deterministic_replay: true
   no_private_live_production_trade: true
-  w7_final_veto_preserved: true
+  h2_h7_separation: true
 
 execution_contract:
+  allowed_write_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+    - ".github/workflows/global-signal-plane-s0.yml"
   harness_runtime_install_bind_activate: "FORBIDDEN"
   harness_workflow_subagent_jobs: "FORBIDDEN"
+  h2_route_creation_activation: "FORBIDDEN"
+  h7_runtime_claim: "FORBIDDEN"
   codex_app_server_provider_integration: "FORBIDDEN"
+  private_chat_cross_window_bridge: "FORBIDDEN"
+  webhook_listener_daemon_scheduler: "FORBIDDEN"
+  live_github_api_calls: "FORBIDDEN_IN_S0_IMPLEMENTATION_AND_TESTS"
   private_w3_read_write: "FORBIDDEN"
   w3_runtime_schema_change: "FORBIDDEN"
   issue_312_runtime_change: "FORBIDDEN"
   issue_308_a_share_runtime_live_data: "FORBIDDEN"
-  production_scheduler_mcp_gateway: "FORBIDDEN"
+  ai_film_or_a_share_canonical_write: "FORBIDDEN"
+  production_private_bridge: "FORBIDDEN"
   credentials_secrets: "FORBIDDEN"
   permission_visibility_changes: "FORBIDDEN"
   formal_skill_promotion: "FORBIDDEN"
   trading_accounts_orders_funds: "FORBIDDEN"
-  h2_route_creation_activation: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
@@ -73,13 +88,22 @@ resource_contract:
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
-  bounded_test_workers: "REQUIRED"
+  bounded_test_workers: "REQUIRED / SINGLE_WORKER_DEFAULT"
   task_owned_child_tracking_cleanup: "REQUIRED"
   global_kill_python: "FORBIDDEN"
   large_matrix: "REMOTE_CI_PREFERRED"
   daemon_server: "FORBIDDEN"
 
-completion_signal: "COGNITIVE_OS_H1_CONTRACT_SYNTHETIC_SKELETON_READY_FOR_GPT_REVIEW"
-next_command: "NO_ACTIVE_TASK"
+cross_project_start_guard:
+  ai_film_remote_main: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_open_prs_visible: 0
+  local_unpushed_execution_visibility: "UNKNOWN"
+  fail_closed_rule: >-
+    User/Codex must not start R134 while another AI Film Codex implementation is actively executing locally. Codex must
+    verify current repository identity and route before any write; mismatch/conflict -> WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT.
+
+completion_signal: "GLOBAL_SIGNAL_PLANE_S0C_ENTERPRISE_SYNTHETIC_READY_FOR_GPT_REVIEW"
+next_command: "USE_FULL_R134_LAUNCH_PROMPT_FROM_GPT"
 lock_statement: >-
-  Epoch 133 is completed historical evidence only. It must not be resumed or re-run. Any future Codex work requires a new route epoch, task_id, Work Claim and fresh Control Tower authorization witness; H2 remains unauthorized.
+  Epoch 134 is S0C only. It implements the public-safe/offline pre-Mission Signal Plane skeleton inside the exact Work Claim.
+  It cannot activate Harness/H2/H7, private cross-window ingestion, live connectors, domain writes, production or trading.
