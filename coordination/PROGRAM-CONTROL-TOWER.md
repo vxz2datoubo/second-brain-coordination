@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE_IMPLEMENTATION` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION` | 2 paths | epoch 134 · #343/#None |
+| `LANE-A-HARNESS-INTEGRATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 2 paths | epoch 134 · #343/#None |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -59,9 +59,9 @@
 ## 当前正式节奏
 
 - **Unified Signal Tower 企业级架构：已合并并 canonical**。PR #342，merge `e3c2465832006a1eb4d97c83bb8bfa8d25a749b1`。
-- **Lane A：R134 S0C 处于 Phase A“已准备/已预留、不可执行”**。Issue #343，Work Claim 已预留 exact S0C write surface，但 `execution_allowed=false`。
-- **原因**：bootstrap GlobalReconciliationReceipt 绑定 pre-release main；Phase A governance merge 会改变 main，因此必须 merge 后重新生成 postflight receipt，再由第二个 exact-head Control Tower PR 激活 R134。
-- **S0D / Harness Runtime / H2 / H7：均未授权**。Phase A/Phase B 都不能自动释放这些阶段。
+- **Lane A：R134 S0C 处于 Phase A“已准备/已预留、不可执行”**。Issue #343，Work Claim 状态 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE`，预留 exact S0C write surface，但 `execution_allowed=false`。
+- **两相发布语义**：reservation 会参与路径/interface collision，防止其他任务抢写；它不等于 Active execution。Phase B fresh receipt + Control Tower gate 后才可升级成 `ACTIVE_IMPLEMENTATION`。
+- **S0D / Harness Runtime / H2 / H7：均未授权**。
 - **Lane B：继续 user-held / NO_TRADE**。
 - **Lane C：Foundation DONE / CLOSED_WITH_BOUNDED_GAPS**。
 
@@ -75,7 +75,7 @@
 
 ## 资源边界
 
-- Work Claim reservation 已占用 R134 S0C surface，防止相邻任务抢写；
+- Reservation 已占用 R134 S0C work surface，防止相邻 implementation 冲突；
 - Codex executable route 当前为 0；
 - local heavy stage max = 1；
 - nested process pools 禁止；
@@ -87,7 +87,7 @@
 2. 合并 Phase A；
 3. 对新 canonical main + AI Film remote state 做 postflight Global Reconciliation；
 4. 生成新 Receipt；
-5. Phase B activation PR 将 R134 改成 `READY / execution_allowed=true`；
+5. Phase B activation PR 将 claim 升级 `ACTIVE_IMPLEMENTATION` 且 R134 改成 `READY / execution_allowed=true`；
 6. Phase B 再过 Python 3.11/3.13 Control Tower CI 后，用户才可发送完整 R134 启动提示词。
 
 在 Phase B 完成前：**不要启动 Codex。**
