@@ -1,26 +1,35 @@
-schema_version: "1.0"
+schema_version: "1.1"
 task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
 route_epoch: 134
 issue: 343
 mode: "goal"
 mode_label: "【Codex模式：目标模式】S0C Enterprise Global Signal Plane Public-Safe Synthetic Skeleton"
-status: "RELEASE_CANDIDATE"
+status: "RELEASED_AFTER_PHASE_B_CANONICAL_MERGE"
 owner: "USER"
 architecture_owner: "GPT"
 execution_agent: "CODEX"
 repository: "vxz2datoubo/second-brain-coordination"
-canonical_base: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+canonical_architecture_base: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+phase_a_canonical_base: "740b77ab20b24c76bd5621b08123dec657862d5a"
 implementation_branch: "codex/global-signal-plane-s0c-enterprise-r134"
 boundary: "PUBLIC_SAFE / OFFLINE / SYNTHETIC / APPEND_ONLY / IDEMPOTENT / REPLAYABLE / NO_HARNESS_RUNTIME / NO_PRIVATE / NO_PRODUCTION / NO_TRADE"
+
+release_evidence:
+  architecture_pr: 342
+  architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+  phase_a_pr: 344
+  phase_a_merge: "740b77ab20b24c76bd5621b08123dec657862d5a"
+  bootstrap_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+  activation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+  activation_requires_phase_b_merge: true
 
 objective: >-
   Implement the canonical pre-Mission Global Signal Plane contracts as a deterministic, durable-local, public-safe
   synthetic skeleton. S0C proves event ingestion, idempotency, append-only history, deterministic reduction/replay,
   reconciliation-receipt freshness and the 24 enterprise regression scenarios. It does not implement live cross-window
-  ingestion, Harness, H2/H7 runtime, W3/domain mutation, private bridges or production execution.
+  ingestion, Harness, H2/H7 runtime, S0D cross-repo shadow, W3/domain mutation, private bridges or production execution.
 
 success_signal: "GLOBAL_SIGNAL_PLANE_S0C_ENTERPRISE_SYNTHETIC_READY_FOR_GPT_REVIEW"
-global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
 
 canonical_inputs:
   - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml"
@@ -34,6 +43,10 @@ canonical_inputs:
   - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
   - "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml"
   - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+  - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
   - "https://github.com/vxz2datoubo/second-brain-coordination/issues/343"
 
 allowed_write_paths:
@@ -138,6 +151,7 @@ hard_forbidden:
   - "install/import/bind/activate DeepSeek Harness runtime"
   - "create/activate H2"
   - "claim H7 Mission runtime capability"
+  - "activate S0D cross-repo shadow"
   - "Harness workflow/subagent/jobs integration"
   - "Codex App Server provider integration"
   - "private ChatGPT cross-window bridge"
@@ -159,7 +173,8 @@ hard_forbidden:
 cross_project_startup_check:
   required:
     - "confirm current git repository identity is vxz2datoubo/second-brain-coordination"
-    - "confirm route epoch 134/task_id/current main are canonical"
+    - "confirm canonical ACTIVE-CODEX-TASK route_epoch=134, task_id matches and status=READY/execution_allowed=true"
+    - "confirm the current main contains the Phase B activation receipt"
     - "confirm user is not concurrently running an AI Film Codex implementation in another local workspace"
   fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
   rule: "do not switch projects or infer intent when identity/lease is ambiguous"
@@ -188,7 +203,7 @@ acceptance_evidence:
 stop_conditions:
   - "Any required work needs a write outside allowed_write_paths -> STOP / NEEDS_GPT"
   - "Any required work needs live/private cross-window integration -> STOP / defer to later gate"
-  - "Any implementation needs Harness/H2/H7 runtime -> STOP / separate future gate"
+  - "Any implementation needs Harness/H2/H7/S0D runtime -> STOP / separate future gate"
   - "Any private/live/production/trading permission is required -> STOP / NEEDS_GPT"
   - "Any authority topology must be redefined -> STOP / architecture conflict"
   - "Any same-agent/cross-project/resource collision appears -> STOP / Control Tower recheck"
