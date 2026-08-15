@@ -1,9 +1,18 @@
-schema_version: "0.1"
+schema_version: "0.2"
 contract_bundle_id: "COGNITIVE-OS-CORE-CONTRACTS-0001"
 status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
 owner: "USER"
 architecture_owner: "GPT"
 boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+contract_language:
+  name: "COGNITIVE_CONTRACT_DSL"
+  version: "0.2"
+  machine_validation_status: "DESIGN_DSL_REQUIRES_H1_COMPILATION_TO_FORMAL_JSON_SCHEMA_AND_SEMANTIC_VALIDATORS"
+  rule: >-
+    The structures below are machine-oriented architecture contracts, not a claim that this YAML is already
+    standards-compliant JSON Schema. H1 must compile structural constraints into formal JSON Schema and implement
+    named semantic invariants as deterministic validators. Free-form invariant prose must not be executable truth.
 
 common_semantics:
   ids_are_stable_opaque: true
@@ -13,6 +22,7 @@ common_semantics:
   unknown_and_abstain_are_first_class: true
   schema_break_requires_version_bump: true
   extra_authority_from_unknown_fields: false
+  semantic_invariants_are_named_and_tested: true
 
 DecisionEpisode_v1:
   type: object
@@ -86,21 +96,105 @@ DecisionEpisode_v1:
         - CLOSED
     state_history_refs: {type: array, items: {type: string}}
     outcome_ref: {type: [string, "null"]}
+    explicit_correction_event_ref: {type: [string, "null"]}
     learning_ref: {type: [string, "null"]}
     reproducibility_fingerprint: {type: string, minLength: 1}
     created_at: {type: string}
     closed_at: {type: [string, "null"]}
-  invariants:
-    - "w7_veto_status == VETO => decision_status != ACCEPTED"
-    - "decision_status == ABSTAINED => state in [ABSTAINED,CLOSED]"
-    - "state >= EXECUTING => control_tower_authorization_ref != null"
-    - "state >= PRIMARY_RESULT_READY => trace_root_id is resolvable"
-    - "learning_ref != null => outcome_ref != null OR explicit_correction_event exists"
-    - "DecisionEpisode never embeds raw private source bodies"
+  semantic_invariants:
+    - DE-W7-VETO-NO-ACCEPT
+    - DE-ABSTAIN-STATE-CONSISTENCY
+    - DE-EXECUTION-AUTH-REQUIRED
+    - DE-POST-PRIMARY-TRACE-RESOLVABLE
+    - DE-LEARNING-NEEDS-OUTCOME-OR-CORRECTION
+    - DE-NO-RAW-PRIVATE-BODY
+
+DecisionEpisodeStateMachine_v1:
+  initial_state: INTAKE
+  terminal_states: [RETIRED, ABSTAINED, CANCELLED, FAILED, CLOSED]
+  execution_authorization_required_states:
+    - EXECUTING
+    - PRIMARY_RESULT_READY
+    - CHALLENGE_PENDING_OR_SKIPPED
+    - VERIFIED
+    - ADJUDICATED
+    - DOMAIN_VALIDATED
+    - RISK_VETO_CHECKED
+    - OUTPUT_OR_ACTION_PROPOSED
+    - OUTCOME_OBSERVED
+    - ATTRIBUTED
+    - REFLECTED
+    - LEARNING_CANDIDATES_CREATED
+    - CROSS_CONTEXT_VALIDATED
+    - UPDATED
+    - DEGRADED
+    - RETIRED
+  trace_resolvable_required_states:
+    - PRIMARY_RESULT_READY
+    - CHALLENGE_PENDING_OR_SKIPPED
+    - VERIFIED
+    - ADJUDICATED
+    - DOMAIN_VALIDATED
+    - RISK_VETO_CHECKED
+    - OUTPUT_OR_ACTION_PROPOSED
+    - OUTCOME_OBSERVED
+    - ATTRIBUTED
+    - REFLECTED
+    - LEARNING_CANDIDATES_CREATED
+    - CROSS_CONTEXT_VALIDATED
+    - UPDATED
+    - DEGRADED
+    - RETIRED
+    - CLOSED
+  forward_transitions:
+    INTAKE: [PROBLEM_SIGNATURED, ABSTAINED, CANCELLED, FAILED]
+    PROBLEM_SIGNATURED: [CONTEXT_RETRIEVED, ABSTAINED, CANCELLED, FAILED]
+    CONTEXT_RETRIEVED: [CAPABILITY_GAP_MAPPED, METHODS_DISCOVERED, ABSTAINED, CANCELLED, FAILED]
+    CAPABILITY_GAP_MAPPED: [METHODS_DISCOVERED, ABSTAINED, CANCELLED, FAILED]
+    METHODS_DISCOVERED: [METHODS_SELECTED_OR_ABSTAINED, ABSTAINED, CANCELLED, FAILED]
+    METHODS_SELECTED_OR_ABSTAINED: [EVIDENCE_PLAN_READY, CONTROL_TOWER_AUTHORIZED, ABSTAINED, CANCELLED, FAILED]
+    EVIDENCE_PLAN_READY: [CONTROL_TOWER_AUTHORIZED, ABSTAINED, CANCELLED, FAILED]
+    CONTROL_TOWER_AUTHORIZED: [EXECUTING, CANCELLED, FAILED]
+    EXECUTING: [PRIMARY_RESULT_READY, CANCELLED, FAILED]
+    PRIMARY_RESULT_READY: [CHALLENGE_PENDING_OR_SKIPPED, VERIFIED, ADJUDICATED, CANCELLED, FAILED]
+    CHALLENGE_PENDING_OR_SKIPPED: [VERIFIED, ADJUDICATED, CANCELLED, FAILED]
+    VERIFIED: [ADJUDICATED, CANCELLED, FAILED]
+    ADJUDICATED: [DOMAIN_VALIDATED, RISK_VETO_CHECKED, ABSTAINED, CANCELLED, FAILED]
+    DOMAIN_VALIDATED: [RISK_VETO_CHECKED, ABSTAINED, CANCELLED, FAILED]
+    RISK_VETO_CHECKED: [OUTPUT_OR_ACTION_PROPOSED, ABSTAINED, CANCELLED, FAILED]
+    OUTPUT_OR_ACTION_PROPOSED: [OUTCOME_OBSERVED, CLOSED, CANCELLED, FAILED]
+    OUTCOME_OBSERVED: [ATTRIBUTED, CLOSED, FAILED]
+    ATTRIBUTED: [REFLECTED, CLOSED, FAILED]
+    REFLECTED: [LEARNING_CANDIDATES_CREATED, CLOSED, FAILED]
+    LEARNING_CANDIDATES_CREATED: [CROSS_CONTEXT_VALIDATED, CLOSED, FAILED]
+    CROSS_CONTEXT_VALIDATED: [UPDATED, DEGRADED, RETIRED, CLOSED, FAILED]
+    UPDATED: [CLOSED, DEGRADED, RETIRED]
+    DEGRADED: [CLOSED, RETIRED, CROSS_CONTEXT_VALIDATED]
+    RETIRED: [CLOSED]
+    ABSTAINED: [CLOSED]
+    CANCELLED: [CLOSED]
+    FAILED: [CLOSED]
+    CLOSED: []
+  rework_transitions:
+    description: "Allowed only through a bounded ReworkRequest carrying retry budget, reason, return target and new evidence/input fingerprint."
+    examples:
+      ADJUDICATED: [EVIDENCE_PLAN_READY, METHODS_DISCOVERED]
+      RISK_VETO_CHECKED: [EVIDENCE_PLAN_READY, METHODS_DISCOVERED, EXECUTING]
+      DEGRADED: [METHODS_DISCOVERED]
 
 ProblemSignature_v1:
   type: object
-  required: [schema_version, problem_signature_id, task_class, objective, materiality, reversibility, evidence_mode]
+  required:
+    - schema_version
+    - problem_signature_id
+    - task_class
+    - objective
+    - materiality
+    - reversibility
+    - causal_requirement
+    - evidence_mode
+    - point_in_time_required
+    - competing_hypotheses_required
   properties:
     schema_version: {const: "ProblemSignature/v1"}
     problem_signature_id: {type: string}
@@ -112,7 +206,10 @@ ProblemSignature_v1:
     reversibility: {enum: [REVERSIBLE, PARTIALLY_REVERSIBLE, IRREVERSIBLE, UNKNOWN]}
     causal_requirement: {enum: [DESCRIPTIVE, ASSOCIATIONAL, CAUSAL, DECISIONAL, UNKNOWN]}
     evidence_mode: {enum: [INTERNAL_ONLY, EXTERNAL_REQUIRED, FIRST_PARTY_REQUIRED, MIXED, UNKNOWN]}
+    evidence_waiver_ref: {type: [string, "null"]}
     point_in_time_required: {type: boolean}
+    pit_capability_ref: {type: [string, "null"]}
+    competing_hypotheses_required: {type: boolean}
     uncertainty_types: {type: array, items: {type: string}}
     adversarial_exposure: {enum: [LOW, MEDIUM, HIGH, UNKNOWN]}
     data_prerequisites: {type: array, items: {type: string}}
@@ -122,10 +219,10 @@ ProblemSignature_v1:
     privacy_scope_ref: {type: [string, "null"]}
     authority_requirements: {type: array, items: {type: string}}
     unknowns: {type: array, items: {type: string}}
-  invariants:
-    - "materiality in [HIGH,CRITICAL] => evidence_mode != INTERNAL_ONLY unless explicit waiver"
-    - "causal_requirement == CAUSAL => competing_hypotheses_required"
-    - "point_in_time_required == true => PIT-capable source/tool prerequisite must be declared"
+  semantic_invariants:
+    - PS-HIGH-MATERIALITY-EVIDENCE-OR-WAIVER
+    - PS-CAUSAL-REQUIRES-COMPETING-HYPOTHESES
+    - PS-PIT-REQUIRES-CAPABILITY
 
 Mission_v1:
   type: object
@@ -139,11 +236,13 @@ Mission_v1:
     problem_signature_ref: {type: [string, "null"]}
     decision_episode_ref: {type: [string, "null"]}
     status: {enum: [RECEIVED, PLANNING, WAITING_AUTHORIZATION, EXECUTING, BLOCKED, ABSTAINED, CANCELLED, COMPLETED, FAILED]}
+    final_result_ref: {type: [string, "null"]}
+    no_work_reason_ref: {type: [string, "null"]}
     created_at: {type: string}
     completed_at: {type: [string, "null"]}
-  invariants:
-    - "intake_source == USER does not imply execution authorization"
-    - "COMPLETED requires final result or explicit no-work/abstention result"
+  semantic_invariants:
+    - M-USER-INTAKE-NO-AUTH-GRANT
+    - M-COMPLETED-NEEDS-RESULT-OR-NO-WORK
 
 MissionGraph_v1:
   type: object
@@ -155,7 +254,8 @@ MissionGraph_v1:
     nodes:
       type: array
       items:
-        required: [work_item_id, work_type, owner_candidate, resource_class, status]
+        type: object
+        required: [work_item_id, work_type, owner_candidate, resource_class, status, retry_budget]
         properties:
           work_item_id: {type: string}
           work_type: {enum: [RETRIEVAL, RESEARCH, DATA_ACQUISITION, EVIDENCE_VERIFICATION, ANALYSIS, IMPLEMENTATION, TEST, CHALLENGE, REVIEW, ADJUDICATION, APPROVAL, WRITEBACK, OUTCOME_AUDIT]}
@@ -167,9 +267,11 @@ MissionGraph_v1:
           status: {enum: [PLANNED, AUTHORIZED, QUEUED, RUNNING, BLOCKED, RETURNED, COMPLETED, FAILED, CANCELLED, ABSTAINED]}
           retry_budget: {type: integer, minimum: 0}
           timeout_policy_ref: {type: [string, "null"]}
+          termination_condition_ref: {type: [string, "null"]}
     edges:
       type: array
       items:
+        type: object
         required: [from, to, type]
         properties:
           from: {type: string}
@@ -178,12 +280,12 @@ MissionGraph_v1:
           condition_ref: {type: [string, "null"]}
     parallel_groups: {type: array, items: {type: array, items: {type: string}}}
     generated_at: {type: string}
-  invariants:
-    - "graph must be acyclic for DEPENDS_ON/BLOCKS after excluding explicit bounded rework edges"
-    - "every RETURNS_TO cycle has termination condition and retry budget"
-    - "every executable node requires later Control Tower authorization"
-    - "same-agent parallel work is not inferred from CAN_PARALLEL_WITH"
-    - "HEAVY_LOCAL parallel group cardinality <= resource policy"
+  semantic_invariants:
+    - MG-DEPENDENCY-DAG-ACYCLIC
+    - MG-RETURN-CYCLE-BOUNDED
+    - MG-EXECUTABLE-NODE-NEEDS-CONTROL-TOWER
+    - MG-CAN-PARALLEL-NOT-AUTHORIZATION
+    - MG-HEAVY-LOCAL-RESOURCE-CAP
 
 Claim_v1:
   type: object
@@ -201,29 +303,31 @@ Claim_v1:
     assumption_refs: {type: array, items: {type: string}}
     falsifier_refs: {type: array, items: {type: string}}
     regime_applicability_ref: {type: [string, "null"]}
+    materiality: {enum: [LOW, MEDIUM, HIGH, CRITICAL]}
     confidence_class: {enum: [HIGH, MEDIUM, LOW, UNKNOWN]}
     status: {enum: [OPEN, SUPPORTED, WEAKENED, CONTRADICTED, UNRESOLVED, REJECTED, SUPERSEDED, REVOKED]}
-  invariants:
-    - "claim_type == UNKNOWN => confidence_class == UNKNOWN"
-    - "claim_type == CAUSAL_HYPOTHESIS => falsifier_refs non-empty for material claims"
-    - "MODEL_INFERENCE cannot be promoted to OBSERVED_FACT by prose-only handoff"
+  semantic_invariants:
+    - C-UNKNOWN-CONFIDENCE-UNKNOWN
+    - C-MATERIAL-CAUSAL-NEEDS-FALSIFIER
+    - C-PROSE-CANNOT-PROMOTE-INFERENCE-TO-FACT
 
 ChallengeCase_v1:
   type: object
-  required: [schema_version, challenge_id, target_claim_id, challenge_type, severity, status]
+  required: [schema_version, challenge_id, target_claim_id, challenge_type, challenge_level, severity, status]
   properties:
     schema_version: {const: "ChallengeCase/v1"}
     challenge_id: {type: string}
     target_claim_id: {type: string}
     challenge_type: {enum: [COUNTEREVIDENCE, ALTERNATIVE_EXPLANATION, ASSUMPTION_ATTACK, METHOD_MISMATCH, REGIME_MISMATCH, SOURCE_QUALITY, CAUSAL_OVERREACH, MISSING_DATA, RISK_GAP, OTHER]}
+    challenge_level: {enum: [C0, C1, C2, C3, C4]}
     severity: {enum: [LOW, MEDIUM, HIGH, BLOCKING]}
     independent_pass_ref: {type: [string, "null"]}
     counterevidence_refs: {type: array, items: {type: string}}
     alternative_hypothesis_refs: {type: array, items: {type: string}}
     falsifier_refs: {type: array, items: {type: string}}
     status: {enum: [OPEN, ANSWERED, VERIFIED, SUSTAINED, REJECTED, UNRESOLVED]}
-  invariants:
-    - "C2/C3/C4 challenge requires independent_pass_ref"
+  semantic_invariants:
+    - CH-C2-C4-INDEPENDENT-PASS-REQUIRED
 
 VerificationResult_v1:
   type: object
@@ -237,7 +341,7 @@ VerificationResult_v1:
     counterevidence_refs: {type: array, items: {type: string}}
     tool_refs: {type: array, items: {type: string}}
     source_policy_ref: {type: [string, "null"]}
-    trace_refs: {type: array, items: {type: string}}
+    trace_refs: {type: array, items: {type: string}, minItems: 1}
     observed_at: {type: [string, "null"]}
 
 Adjudication_v1:
@@ -252,9 +356,9 @@ Adjudication_v1:
     ordering_blind_ref: {type: [string, "null"]}
     unresolved_refs: {type: array, items: {type: string}}
     strongest_counterargument_ref: {type: [string, "null"]}
-  invariants:
-    - "adjudicator cannot override W7 veto"
-    - "UNRESOLVED/ABSTAIN are valid terminal dispositions"
+  semantic_invariants:
+    - A-NO-W7-OVERRIDE
+    - A-UNRESOLVED-ABSTAIN-VALID
 
 FormalHandoff_v1:
   type: object
@@ -305,18 +409,20 @@ FormalHandoff_v1:
       - change_claim_ids
       - invent_evidence_refs
       - grant_authority
-  invariants:
-    - "raw_trace_refs minItems >= 1 for material handoff"
-    - "human companion cannot alter machine fields"
+  semantic_invariants:
+    - FH-RAW-TRACE-REF-REQUIRED
+    - FH-HUMAN-COMPANION-NONAUTHORITATIVE
 
 OutcomeLearning_v1:
   type: object
-  required: [schema_version, learning_event_id, decision_episode_id, outcome_ref, created_at]
+  required: [schema_version, learning_event_id, decision_episode_id, created_at]
   properties:
     schema_version: {const: "OutcomeLearning/v1"}
     learning_event_id: {type: string}
     decision_episode_id: {type: string}
-    outcome_ref: {type: string}
+    outcome_ref: {type: [string, "null"]}
+    correction_event_ref: {type: [string, "null"]}
+    audit_finding_ref: {type: [string, "null"]}
     claim_outcomes: {type: array, items: {type: string}}
     failure_localization_refs: {type: array, items: {type: string}}
     method_credit_refs: {type: array, items: {type: string}}
@@ -328,10 +434,127 @@ OutcomeLearning_v1:
     skill_health_candidate_refs: {type: array, items: {type: string}}
     w3_candidate_update_refs: {type: array, items: {type: string}}
     created_at: {type: string}
-  invariants:
-    - "OutcomeLearning cannot directly create FORMAL_SKILL"
-    - "good outcome alone is insufficient evidence of good method"
-    - "bad outcome alone is insufficient evidence of bad method"
+  semantic_invariants:
+    - OL-NEEDS-OUTCOME-CORRECTION-OR-AUDIT
+    - OL-NO-DIRECT-FORMAL-SKILL
+    - OL-GOOD-OUTCOME-NOT-PROOF-OF-GOOD-METHOD
+    - OL-BAD-OUTCOME-NOT-PROOF-OF-BAD-METHOD
+
+ReworkRequest_v1:
+  type: object
+  required:
+    - schema_version
+    - rework_request_id
+    - decision_episode_id
+    - return_from_state
+    - return_to_state
+    - reason_code
+    - retry_budget_remaining
+    - input_fingerprint_before
+  properties:
+    schema_version: {const: "ReworkRequest/v1"}
+    rework_request_id: {type: string}
+    decision_episode_id: {type: string}
+    return_from_state: {type: string}
+    return_to_state: {type: string}
+    reason_code: {type: string}
+    required_new_evidence_refs: {type: array, items: {type: string}}
+    retry_budget_remaining: {type: integer, minimum: 0}
+    input_fingerprint_before: {type: string}
+    input_fingerprint_after: {type: [string, "null"]}
+    escalation_ref: {type: [string, "null"]}
+  semantic_invariants:
+    - RW-RETURN-TARGET-ALLOWED-BY-STATE-MACHINE
+    - RW-NO-RETRY-WHEN-BUDGET-ZERO
+    - RW-RETRY-REQUIRES-MATERIAL-CHANGE-OR-EXPLICIT-ESCALATION
+
+SemanticInvariantRegistry_v1:
+  DE-W7-VETO-NO-ACCEPT:
+    if: {w7_veto_status: VETO}
+    require: {decision_status_not: ACCEPTED}
+  DE-ABSTAIN-STATE-CONSISTENCY:
+    if: {decision_status: ABSTAINED}
+    require: {state_in: [ABSTAINED, CLOSED]}
+  DE-EXECUTION-AUTH-REQUIRED:
+    if: {state_in_ref: DecisionEpisodeStateMachine_v1.execution_authorization_required_states}
+    require: {control_tower_authorization_ref_non_null: true}
+  DE-POST-PRIMARY-TRACE-RESOLVABLE:
+    if: {state_in_ref: DecisionEpisodeStateMachine_v1.trace_resolvable_required_states}
+    require: {trace_root_id_resolvable: true}
+  DE-LEARNING-NEEDS-OUTCOME-OR-CORRECTION:
+    if: {learning_ref_non_null: true}
+    require_any:
+      - {outcome_ref_non_null: true}
+      - {explicit_correction_event_ref_non_null: true}
+  DE-NO-RAW-PRIVATE-BODY:
+    require: {raw_private_source_body_embedded: false}
+  PS-HIGH-MATERIALITY-EVIDENCE-OR-WAIVER:
+    if: {materiality_in: [HIGH, CRITICAL]}
+    require_any:
+      - {evidence_mode_not: INTERNAL_ONLY}
+      - {evidence_waiver_ref_non_null: true}
+  PS-CAUSAL-REQUIRES-COMPETING-HYPOTHESES:
+    if: {causal_requirement: CAUSAL}
+    require: {competing_hypotheses_required: true}
+  PS-PIT-REQUIRES-CAPABILITY:
+    if: {point_in_time_required: true}
+    require: {pit_capability_ref_non_null: true}
+  M-USER-INTAKE-NO-AUTH-GRANT:
+    rule: "Mission intake itself never satisfies Control Tower authorization."
+  M-COMPLETED-NEEDS-RESULT-OR-NO-WORK:
+    if: {status: COMPLETED}
+    require_any:
+      - {final_result_ref_non_null: true}
+      - {no_work_reason_ref_non_null: true}
+  MG-DEPENDENCY-DAG-ACYCLIC:
+    rule: "DEPENDS_ON and BLOCKS edges must form an acyclic graph after removing explicit ReworkRequest edges."
+  MG-RETURN-CYCLE-BOUNDED:
+    rule: "Every RETURNS_TO cycle maps to ReworkRequest/v1 and has retry budget, termination and escalation semantics."
+  MG-EXECUTABLE-NODE-NEEDS-CONTROL-TOWER:
+    rule: "A node may move to AUTHORIZED/RUNNING only with a valid current ExecutionAuthorization external to MissionGraph."
+  MG-CAN-PARALLEL-NOT-AUTHORIZATION:
+    rule: "CAN_PARALLEL_WITH expresses logical independence only; it never grants concurrency or execution permission."
+  MG-HEAVY-LOCAL-RESOURCE-CAP:
+    rule: "HEAVY_LOCAL concurrency must satisfy current Control Tower resource policy."
+  C-UNKNOWN-CONFIDENCE-UNKNOWN:
+    if: {claim_type: UNKNOWN}
+    require: {confidence_class: UNKNOWN}
+  C-MATERIAL-CAUSAL-NEEDS-FALSIFIER:
+    if_all:
+      - {claim_type: CAUSAL_HYPOTHESIS}
+      - {materiality_in: [HIGH, CRITICAL]}
+    require: {falsifier_refs_min_items: 1}
+  C-PROSE-CANNOT-PROMOTE-INFERENCE-TO-FACT:
+    rule: "No human companion text may mutate Claim.claim_type from MODEL_INFERENCE to OBSERVED_FACT."
+  CH-C2-C4-INDEPENDENT-PASS-REQUIRED:
+    if: {challenge_level_in: [C2, C3, C4]}
+    require: {independent_pass_ref_non_null: true}
+  A-NO-W7-OVERRIDE:
+    rule: "Adjudication never overrides W7 final veto authority."
+  A-UNRESOLVED-ABSTAIN-VALID:
+    rule: "UNRESOLVED and ABSTAIN are valid dispositions."
+  FH-RAW-TRACE-REF-REQUIRED:
+    require: {raw_trace_refs_min_items: 1}
+  FH-HUMAN-COMPANION-NONAUTHORITATIVE:
+    rule: "The .analysis.md companion cannot mutate machine fields or grant authority."
+  OL-NEEDS-OUTCOME-CORRECTION-OR-AUDIT:
+    require_any:
+      - {outcome_ref_non_null: true}
+      - {correction_event_ref_non_null: true}
+      - {audit_finding_ref_non_null: true}
+  OL-NO-DIRECT-FORMAL-SKILL:
+    rule: "OutcomeLearning may create candidates only; direct FORMAL_SKILL transition is forbidden."
+  OL-GOOD-OUTCOME-NOT-PROOF-OF-GOOD-METHOD:
+    rule: "Positive outcome alone cannot set method selection/execution quality to GOOD."
+  OL-BAD-OUTCOME-NOT-PROOF-OF-BAD-METHOD:
+    rule: "Negative outcome alone cannot set method selection/execution quality to BAD."
+  RW-RETURN-TARGET-ALLOWED-BY-STATE-MACHINE:
+    rule: "return_from_state -> return_to_state must be listed in rework_transitions or an explicitly versioned extension."
+  RW-NO-RETRY-WHEN-BUDGET-ZERO:
+    if: {retry_budget_remaining: 0}
+    require: {next_action_in: [ABSTAIN, ESCALATE, CANCEL, FAIL_CLOSED]}
+  RW-RETRY-REQUIRES-MATERIAL-CHANGE-OR-EXPLICIT-ESCALATION:
+    rule: "A repeated pass requires changed evidence/input fingerprint or explicit escalation; identical blind retry is not valid learning."
 
 ReproducibilityFingerprint_v1:
   required_components:
