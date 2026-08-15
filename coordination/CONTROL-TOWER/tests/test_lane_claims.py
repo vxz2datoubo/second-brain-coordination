@@ -61,6 +61,7 @@ class LaneClaimTests(unittest.TestCase):
                     "lane_id": "C",
                     "claim_state": "ACTIVE_IMPLEMENTATION",
                     "execution_agent": "CODEX",
+                    "resource_class": "LIGHT_TO_MEDIUM_IMPLEMENTATION",
                     "route_binding": {
                         "task_id": "C1",
                         "route_epoch": 4 if stale_epoch else 5,
@@ -106,10 +107,32 @@ class LaneClaimTests(unittest.TestCase):
         self._write_yaml(root, "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml", claims)
         return root
 
-    def _close_lane_c(self, root: Path, *, violation: str | None = None) -> None:
+    def _route_doc(self, root: Path) -> tuple[Path, dict]:
+        path = root / "coordination/ACTIVE-CODEX-TASK.yaml"
+        return path, yaml.safe_load(path.read_text(encoding="utf-8"))
+
+    def _claim_c(self, root: Path) -> tuple[Path, dict, dict]:
         path = root / "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         claim = next(item for item in data["claims"] if item["lane_id"] == "C")
+        return path, data, claim
+
+    def _reserve_lane_c(self, root: Path, *, executable_route: bool = False, receipt: bool = True) -> None:
+        route_path, route = self._route_doc(root)
+        route["status"] = "PREPARED_AWAITING_POST_MERGE_RECONCILIATION"
+        route["execution_allowed"] = executable_route
+        route_path.write_text(yaml.safe_dump(route, sort_keys=False), encoding="utf-8")
+
+        path, data, claim = self._claim_c(root)
+        claim["claim_state"] = "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+        claim["resource_class"] = "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+        claim["implementation_scope"] = {
+            "global_reconciliation_receipt": "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-RX.yaml"
+        } if receipt else {}
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    def _close_lane_c(self, root: Path, *, violation: str | None = None) -> None:
+        path, data, claim = self._claim_c(root)
         claim.update(
             {
                 "claim_state": "CLOSED_NO_ACTIVE_IMPLEMENTATION",
@@ -143,6 +166,34 @@ class LaneClaimTests(unittest.TestCase):
         report = validate_claims(self._repo())
         self.assertEqual(report["claim_structural_check"], "PASS")
         self.assertEqual(report["proposal_only_candidate"], "ELIGIBLE_FOR_GPT_RELEASE_DECISION")
+
+    def test_active_claim_bound_to_non_executable_route_fails(self) -> None:
+        root = self._repo()
+        route_path, route = self._route_doc(root)
+        route["execution_allowed"] = False
+        route_path.write_text(yaml.safe_dump(route, sort_keys=False), encoding="utf-8")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "ACTIVE_CLAIM_ROUTE_NOT_EXECUTABLE" for item in report["errors"]))
+
+    def test_reserved_non_executable_claim_passes_and_keeps_surface_reserved(self) -> None:
+        root = self._repo()
+        self._reserve_lane_c(root)
+        report = validate_claims(root)
+        self.assertEqual(report["claim_structural_check"], "PASS")
+        self.assertFalse(any(item["code"].startswith("RESERVED_CLAIM_") for item in report["errors"]))
+        self.assertTrue(any("C" in item["pair"] for item in report["pairwise"]))
+
+    def test_reserved_claim_must_not_bind_executable_route(self) -> None:
+        root = self._repo()
+        self._reserve_lane_c(root, executable_route=True)
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "RESERVED_CLAIM_ROUTE_EXECUTABLE" for item in report["errors"]))
+
+    def test_reserved_claim_requires_global_reconciliation_receipt(self) -> None:
+        root = self._repo()
+        self._reserve_lane_c(root, receipt=False)
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "RESERVED_CLAIM_RECONCILIATION_RECEIPT_MISSING" for item in report["errors"]))
 
     def test_stale_route_epoch_fails_closed(self) -> None:
         report = validate_claims(self._repo(stale_epoch=True))

@@ -4,16 +4,16 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-15T21:37:00+08:00`
+- as_of: `2026-08-15T22:43:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
-- User-held lanes: `LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION`
+- User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
 
 ### Agent routes
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON` | 133 | `DONE` | `false` | #338 / #340 |
+| CODEX | `CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC` | 134 | `PREPARED_AWAITING_POST_MERGE_RECONCILIATION` | `false` | #343 / #None |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `PAUSED` | `PAUSED` | `false` | EXPLICIT_USER_H2_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
+| `LANE-A-HARNESS-INTEGRATION` | `READY` | `READY` | `false` | POST_MERGE_GLOBAL_RECONCILIATION_THEN_R134_EXECUTION_ACTIVATION |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | CONSUME_FROZEN_BOUNDARIES; REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
+| `LANE-A-HARNESS-INTEGRATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 2 paths | epoch 134 · #343/#None |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -44,7 +44,7 @@
 
 | Pair | level | reason |
 |---|---|---|
-| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O0** | `NO_MATERIAL_OVERLAP` |
+| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O1** | `READ_READ` |
 | `LANE-A-HARNESS-INTEGRATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-B-A-SHARE-REMEDIATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 
@@ -58,35 +58,36 @@
 
 ## 当前正式节奏
 
-- **H0 Cognitive OS × Harness 架构：已合并并 canonical**，PR #336，merge `eb622264929564d70aa11c646b93fe38c0c40a8d`，verdict `ACCEPT_WITH_BOUNDED_DEBT`。
-- **Lane A：H1 已完成并关闭执行租约**。PR #340，reviewed head `0b90373d8920caacb7b8847fc0af23e666cdf8a0`，merge `c17df847bee689f23363b0ddbba417c6c37c79ab`；R133 仅作为历史证据保留。
-- **Harness Runtime / H2：未授权**。H1 的完成、CI、审核或 merge 都不能自动释放 H2。
+- **Unified Signal Tower 企业级架构：已合并并 canonical**。PR #342，merge `e3c2465832006a1eb4d97c83bb8bfa8d25a749b1`。
+- **Lane A：R134 S0C 处于 Phase A“已准备/已预留、不可执行”**。Issue #343，Work Claim 状态 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE`，预留 exact S0C write surface，但 `execution_allowed=false`。
+- **两相发布语义**：reservation 会参与路径/interface collision，防止其他任务抢写；它不等于 Active execution。Phase B fresh receipt + Control Tower gate 后才可升级成 `ACTIVE_IMPLEMENTATION`。
+- **S0D / Harness Runtime / H2 / H7：均未授权**。
 - **Lane B：继续 user-held / NO_TRADE**。
-- **Lane C：Foundation DONE / CLOSED_WITH_BOUNDED_GAPS**，无执行租约。
-- **跨窗口状态漂移：必须在新任务发布前重新核对**。发现 route / Work Claim / Program Lane / PR 状态不一致时，标记 `CROSS_WINDOW_STATE_DRIFT` 并先 reconciliation，再发新任务。
+- **Lane C：Foundation DONE / CLOSED_WITH_BOUNDED_GAPS**。
 
-## H1 关闭边界
+## Phase A 精确边界
 
-R133 已关闭，不再有当前写入面。未来任何 H2 或 Lane A 新实施都必须重新建立：
-
-- 新 route epoch / task_id；
-- 新 Work Claim；
-- fresh O0-O4 / WIP / resource scan；
-- fresh durable authorization witness；
-- GPT release；
-- 需要时的用户高风险审批。
-
-禁止从 H1 closure 推导：Harness runtime install/binding、真实 Agent runtime、private W3、W3/#312/#308 runtime mutation、生产 gateway/scheduler、权限/密钥、Formal Skill promotion、交易或 H2 授权。
+- 预留写入面：
+  - `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC`
+  - `.github/workflows/global-signal-plane-s0.yml`
+- 当前 Codex 写权限：**NONE / execution disabled**。
+- 禁止：Harness/H2/H7、S0D、private cross-window bridge、live connector/webhook/daemon、W3/#312/#308 runtime mutation、AI Film/A股 canonical write、生产/权限/密钥、Formal Skill promotion、交易、自行 merge。
 
 ## 资源边界
 
-- Codex active execution route max = 1；当前第二大脑侧 R133 已释放该租约；
+- Reservation 已占用 R134 S0C work surface，防止相邻 implementation 冲突；
+- Codex executable route 当前为 0；
 - local heavy stage max = 1；
 - nested process pools 禁止；
-- bounded workers + task-owned child cleanup；
-- 禁止全局 kill Python；
-- 大测试矩阵优先 remote CI。
+- 禁止全局 kill Python。
 
 ## 下一门
 
-当前先保持 Lane A/H2 与 Lane B implementation 均未授权。任何下一条跨项目 implementation 任务发布前，必须先读取最新 per-agent route、Work Claim、Program Lane、相关 PR/merge/closure状态，并处理 `CROSS_WINDOW_STATE_DRIFT`。
+1. Phase A governance PR exact-head Control Tower CI 必须全绿；
+2. 合并 Phase A；
+3. 对新 canonical main + AI Film remote state 做 postflight Global Reconciliation；
+4. 生成新 Receipt；
+5. Phase B activation PR 将 claim 升级 `ACTIVE_IMPLEMENTATION` 且 R134 改成 `READY / execution_allowed=true`；
+6. Phase B 再过 Python 3.11/3.13 Control Tower CI 后，用户才可发送完整 R134 启动提示词。
+
+在 Phase B 完成前：**不要启动 Codex。**

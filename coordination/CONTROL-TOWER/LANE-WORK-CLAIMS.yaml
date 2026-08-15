@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.5"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -15,7 +15,12 @@ semantics:
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
+  reserved_implementation_occupies_surface_without_execution: true
+  reserved_implementation_requires_non_executable_route: true
+  reserved_implementation_requires_global_reconciliation_receipt: true
   h1_authorization_does_not_authorize_h2: true
+  s0c_authorization_does_not_authorize_s0d_h2_h7: true
+  global_reconciliation_receipt_is_not_execution_authority: true
 
 proposal_roots:
   LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
@@ -47,37 +52,75 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
-    write_domains: []
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    execution_agent: "CODEX"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+      route_epoch: 134
+      issue: 343
+      pr: null
+      branch: "codex/global-signal-plane-s0c-enterprise-r134"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+      - ".github/workflows/global-signal-plane-s0.yml"
+    read_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/GOVERNANCE"
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/PROGRAM-CONTROL-TOWER.md"
+    interfaces:
+      - name: "Global-Signal-Plane-S0-Contracts"
+        mode: "read"
+        frozen: true
+      - name: "Global-Reconciliation-Receipt-Contract"
+        mode: "read"
+        frozen: true
+      - name: "Signal-Tower-Mission-Router-Contract"
+        mode: "read"
+        frozen: true
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read"
+        frozen: true
+      - name: "W3-Frozen-Consumption-Boundary"
+        mode: "read"
+        frozen: true
+      - name: "Trace-Ledger-Privacy-Boundary"
+        mode: "read"
+        frozen: true
+      - name: "AI-Film-Domain-Boundary"
+        mode: "read"
+        frozen: true
+    read_domains: [W1, W3, W7, W8, W9, W10, W12]
+    write_domains: [W8]
     authority_claims: []
-    closure_receipt:
-      completed_slice: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
-      issue: 338
-      completed_route_epoch: 133
-      reviewed_head: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
-      merged_pr: 340
-      merge_commit: "c17df847bee689f23363b0ddbba417c6c37c79ab"
-      route_close_commit: "3fd5f750878e5f134c7cdb25adf169fcf5a522d7"
-      implementation_verdict: "H1_ACCEPTED / COMPLETED_HISTORY_ONLY"
-      h2_authorized: false
-      harness_runtime_authorized: false
-      private_data_authorized: false
-      production_authorized: false
-      trading_authorized: false
-      reopen_rule: >-
-        Any H2 or later implementation requires a new route epoch, task_id, fresh Work Claim,
-        fresh O0-O4 overlap scan, fresh Control Tower authorization witness, and explicit GPT/user release.
+    implementation_scope:
+      slice: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
+      issue: 343
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+      reservation_phase: "A_PREPARE_AND_RESERVE"
+      execution_allowed: false
+      harness_runtime_allowed: false
+      h2_allowed: false
+      h7_allowed: false
+      s0d_cross_repo_shadow_allowed: false
+      private_cross_window_bridge_allowed: false
+      live_connector_allowed: false
+      domain_write_allowed: false
+      production_allowed: false
+      trading_allowed: false
     stop_conditions:
-      - "Do not resume or re-run R133."
-      - "Do not infer H2 authorization from H1 acceptance or merge."
-      - "Any new implementation requires a fresh per-agent ACTIVE route and Work Claim."
+      - "No writes are allowed while claim is RESERVED_IMPLEMENTATION_NON_EXECUTABLE."
+      - "Upgrade to ACTIVE_IMPLEMENTATION requires a fresh post-merge GlobalReconciliationReceipt."
+      - "Upgrade requires route execution_allowed=true on the exact current route."
+      - "Write outside exact paths -> STOP / NEEDS_GPT"
+      - "Harness/H2/H7 runtime required -> STOP / separate future gate"
+      - "Private/live cross-window integration required -> STOP / separate privacy/runtime gate"
+      - "Domain canonical write required -> STOP / domain-owner gate"
+      - "Peer claim or route drift -> STOP / fresh Global Reconciliation + Control Tower witness required"
+      - "Known concurrent AI Film Codex execution -> STOP / SAME_AGENT_DOUBLE_BOOKED"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -116,9 +159,11 @@ release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
     Lane B may continue bounded research/design only inside its isolated proposal root if separately released.
-    Lane A currently has no active implementation claim after H1 closure, so R133 no longer consumes a Codex execution lease.
-    This does not authorize H2 or any new implementation by itself.
+    Lane A Phase A reservation occupies the S0C write surface and Codex identity without granting execution.
+    S0C cannot authorize S0D, H2, H7, private bridge, domain write, production or trading.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
+  reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
   h1_h2_separation: "H1 exact-head acceptance and merge never imply H2 Harness runtime authorization."
+  s0c_future_stage_separation: "S0C exact-head acceptance never implies S0D/H2/H7/private/production authorization."
