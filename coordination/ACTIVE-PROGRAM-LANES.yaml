@@ -1,10 +1,10 @@
-schema_version: "1.1"
+schema_version: "1.2"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-14T20:49:00+08:00"
+as_of: "2026-08-15T17:29:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -62,37 +62,40 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    Prefer orthogonal parallelism only after the control-tower release gate is satisfied.
-    Until then, user direction on 2026-08-14 explicitly holds Lane A and Lane B from execution.
+    Prefer orthogonal parallelism only after the relevant Control Tower release gate is satisfied.
+    Proposal-only architecture/research does not consume the heavy implementation lease.
 
 current_user_release_policy:
-  decision_at: "2026-08-14T20:49:00+08:00"
-  decision: "HOLD_LANE_A_AND_LANE_B_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
+  decision_at: "2026-08-15T17:29:00+08:00"
+  decision: "RELEASE_LANE_A_TO_PROPOSAL_ONLY_KEEP_LANE_B_HELD"
   rationale: >-
-    User prefers finishing the coordination framework first because parallel dialogs may otherwise
-    modify overlapping areas before collision detection, source freshness and release semantics are reliable.
-  held_lanes: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-  release_owner: "GPT_AFTER_CONTROL_TOWER_GATE_WITH_USER_DIRECTION_PRESERVED"
-  no_prompt_needed_yet: true
-  release_gate_requires:
-    - "Current Program Lane state and per-agent route reconciliation is mechanically defined and tested."
-    - "Stale-view detection is implemented or otherwise reliably enforced."
-    - "O0-O4 path/interface/authority collision checks have targeted regression coverage."
-    - "Per-agent WIP and heavy-resource limits have enforceable checks."
-    - "Commit-time route/authority freshness is checked for durable writes."
-    - "Human-facing Control Tower state is synchronized from canonical sources without becoming a second truth."
-    - "GPT performs a final three-lane dry-run and returns an explicit SAFE_TO_RELEASE or NOT_READY decision."
+    Control Tower foundation is ready and merged. The user explicitly started Lane A Harness/Cognitive-OS architecture
+    design. Lane A may therefore perform isolated proposal-only architecture work, but no Harness/H1/H2 runtime route is
+    authorized. Lane B A-share remediation remains held unless separately started.
+  released_proposal_only_lanes:
+    - "LANE-A-HARNESS-INTEGRATION"
+  held_lanes:
+    - "LANE-B-A-SHARE-REMEDIATION"
+  release_owner: "GPT_WITH_USER_DIRECTION_PRESERVED"
+  no_prompt_needed_for_lane_a_proposal_design: true
+  implementation_release_requires:
+    - "H0 final compatibility verdict."
+    - "A fresh implementation Work Claim for the exact slice."
+    - "Fresh O0-O4, same-agent and heavy-resource checks."
+    - "Fresh durable authorization witness."
+    - "Explicit GPT implementation release."
+    - "High-impact user approval when private/production/permission/trading boundaries change."
 
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
-    observed_route_epoch: 120
-    observed_issue: 305
-    observed_pr: 307
-    observed_status: "READY_REMEDIATION"
-    execution_allowed: true
-    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
+    observed_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4B-STRUCTURAL-ANALOGY"
+    observed_route_epoch: 132
+    observed_issue: 332
+    observed_pr: 334
+    observed_status: "DONE"
+    execution_allowed: false
+    observation_status: "COMPLETED_ROUTE_TOMBSTONE / NO_ACTIVE_CODEX_LEASE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -116,7 +119,7 @@ known_stale_aggregate_views:
     observed_problem: "Contains Aug-07-era Codex/QCLAW routing that no longer matches current per-agent routes."
     disposition: "STALE_VIEW / DO_NOT_USE_AS_ACTIVE_TASK_AUTHORITY"
   - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-    observed_problem: "Still names Issue #72 blueprint convergence as current control baseline."
+    observed_problem: "Still contains historical/current-status fields that may lag the latest per-agent routes and Foundation closure."
     disposition: "HISTORICAL_PROGRAM_BASELINE_WITH_STALE_CURRENT_STATUS_FIELDS"
   - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/ACTIVE-EXECUTION-SEQUENCE-v1.0.yaml"
     observed_problem: "as_of 2026-07-23 and no longer represents current execution lanes."
@@ -128,9 +131,9 @@ program_lanes:
     mission: >-
       Evaluate and, only after gated PoC evidence, integrate DeepSeek Harness concepts or runtime
       capabilities as a shared execution layer without replacing GitHub/W3/domain authorities.
-    desired_state: "PAUSED"
-    observed_state: "RESEARCHED_NOT_IMPLEMENTED"
-    hold_reason: "USER_HOLD_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
+    desired_state: "ACTIVE"
+    observed_state: "ACTIVE"
+    hold_reason: null
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -139,12 +142,14 @@ program_lanes:
     canonical_inputs:
       - "DeepSeek official deepseek-ai/deepseek-harness repository"
       - "Issue #310 control tower governance"
-    current_phase: "POST_RESEARCH_PRE_POC_HELD"
+      - "Draft PR #336 H0 Cognitive OS × Harness architecture"
+    current_phase: "H0_ACTIVE_ARCHITECTURE_DESIGN_PROPOSAL_ONLY"
     active_execution_route: null
     heavy_execution_authorized: false
-    next_gate: "CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE"
+    next_gate: "H0_FINAL_COMPATIBILITY_VERDICT_BEFORE_H1"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
     maturity: "CANDIDATE_ARCHITECTURE"
+    proposal_only: true
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     user_aliases: ["交易系统缺陷改进线", "A股系统改进线"]
@@ -153,7 +158,7 @@ program_lanes:
       point-in-time data use, causal attribution, validation, risk and decision support while preserving NO_TRADE.
     desired_state: "PAUSED"
     observed_state: "PREPARING_NOT_STARTED"
-    hold_reason: "USER_HOLD_UNTIL_CONTROL_TOWER_FOUNDATION_READY"
+    hold_reason: "USER_HOLD_UNTIL_SEPARATELY_STARTED"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -166,7 +171,7 @@ program_lanes:
     active_execution_route: null
     heavy_execution_authorized: false
     business_vertical_slice_limit: 1
-    next_gate: "CONTROL_TOWER_FOUNDATION_SAFE_TO_RELEASE"
+    next_gate: "EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE"
     boundary: "RESEARCH_AND_DECISION_SUPPORT / NO_AUTONOMOUS_TRADE"
     maturity: "READY_FOR_TASK_DESIGN_BUT_HELD"
 
@@ -175,46 +180,45 @@ program_lanes:
     mission: >-
       Converge long-term memory, knowledge digestion, retrieval, ContextBundle, cognitive models,
       feedback and GPT access into one traceable external cognitive loop without creating a parallel brain.
-    desired_state: "ACTIVE"
-    observed_state: "ACTIVE"
+    desired_state: "DONE"
+    observed_state: "DONE"
     owner: "USER"
     architecture_owner: "GPT"
-    implementation_owner: "CODEX"
+    implementation_owner: null
+    historical_implementation_owner: "CODEX"
     canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
     canonical_runtime: "W3 / PHASE-3-INTEGRATED-OFFLINE-MEMORY"
     primary_system_positions: [W3, W10]
     support_positions: [W8, W9, W12]
-    current_phase: "P2_2_EPISTEMIC_MATERIALITY_HARDENING"
-    active_execution_route:
-      source: "coordination/ACTIVE-CODEX-TASK.yaml"
-      task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-2-EPISTEMIC-MATERIALITY-HARDENING"
-      route_epoch: 120
-      issue: 305
-      pr: 307
-      status: "READY_REMEDIATION"
-    companion_audit:
-      source: "coordination/ACTIVE-QCLAW-TASK.yaml"
-      status: "PAUSED"
-      next_action: "WAIT_FOR_FUTURE_GPT_REMEDIATION_ROUTE"
-    heavy_execution_authorized: true
-    next_gate: "Complete exact P2.2 remediation and GPT review before later P2.3/P2.4 or production bridge work."
-    maturity: "ACTIVE_IMPLEMENTATION_WITH_LOCKED_FUTURE_GATES"
+    current_phase: "FOUNDATION_CLOSED_WITH_BOUNDED_GAPS"
+    active_execution_route: null
+    heavy_execution_authorized: false
+    closure_receipt:
+      issue: 335
+      merged_pr: 334
+      merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+      completed_route_epoch: 132
+    bounded_gaps:
+      - "R120-W01-CONTEXT-ONLY-ENDPOINT"
+      - "R122-UNKNOWN-BINDING-GAP"
+    next_gate: "CONSUME_FROZEN_BOUNDARIES; REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION"
+    maturity: "FOUNDATION_FROZEN"
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
     shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
-    rule: "Held until control-tower foundation release; after release, Harness may not become market/probability/risk authority."
+    rule: "Lane A proposal design may proceed; Lane B remains held. Future implementations require fresh claim-level collision scans."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
-    overlap_level: "O3_HIGH_INTERFACE_OVERLAP"
+    overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10, skills, context, session, retrieval, agent_runtime]
     rule: >-
-      Lane A remains held. Do not implement Harness integration against unstable P2.2/P2.3 ContextBundle interfaces.
-      After release, first freeze the relevant interface or isolate the PoC behind an adapter.
+      Lane C Foundation is closed. Lane A may design against frozen conceptual consumption boundaries through adapters,
+      but any future executable interface binding requires H0 acceptance and a fresh Work Claim.
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     shared_domains: [W3, W9, W10, W12, evidence_retrieval, decision_context]
-    rule: "Lane B remains held until control-tower release; later it may consume frozen contracts without creating second authorities."
+    rule: "Lane B remains held; future work may consume frozen contracts without creating second authorities."
 
 overlap_levels:
   O0: "No material overlap. Parallel execution normally safe."
@@ -235,6 +239,6 @@ flow_metrics:
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before any cross-program task is published or accepted, fetch current per-agent routes and relevant canonical
-  project/program indices, derive observed state, compare to this registry's desired lane relationships, classify
-  drift/overlap, and fail closed on O4 authority conflict or stale commit authorization.
+  Before any cross-program implementation task is published or accepted, fetch current per-agent routes and relevant
+  canonical project/program indices, derive observed state, compare to this registry's desired lane relationships,
+  classify drift/overlap, and fail closed on O4 authority conflict or stale commit authorization.
