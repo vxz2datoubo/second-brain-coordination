@@ -12,6 +12,8 @@ from cognitive_os_h1.contracts import (  # noqa: E402
     SEMANTIC_INVARIANT_IDS, cognitive_fingerprint, explore_critical_states, validate_bundle, validate_mission_graph,
     validate_organization, validate_semantics, validate_trace_handoff, validate_transition,
 )
+from cognitive_os_h1.fixtures import canonical_organization  # noqa: E402
+from cognitive_os_h1.schema_authority import compiled_draft_2020_12, schema_validation_errors  # noqa: E402
 
 NOW = "2026-08-15T00:00:00Z"
 
@@ -28,11 +30,13 @@ def node(name, **extra):
 
 class H1ContractTest(unittest.TestCase):
     def test_formal_schema_bundle_and_structure_positive_negative(self):
-        schema = json.loads((ROOT / "schemas" / "contract-schemas.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(schema["definitions"]), 11)
+        schema = compiled_draft_2020_12()
+        self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
+        self.assertEqual(len(schema["$defs"]), 11)
+        self.assertEqual(schema_validation_errors(episode()), [])
         self.assertEqual(validate_bundle([episode()]), [])
         errors = validate_bundle([{"schema_version":"DecisionEpisode/v1"}])
-        self.assertTrue(any(e.code == "REQUIRED_FIELD_MISSING" for e in errors))
+        self.assertTrue(any(e.code == "JSON_SCHEMA_VALIDATION_FAILED" for e in errors))
 
     def test_semantic_invariants_positive_and_negative(self):
         self.assertEqual(validate_semantics(episode()), [])
@@ -62,28 +66,51 @@ class H1ContractTest(unittest.TestCase):
         self.assertTrue({"DEPENDENCY_CYCLE", "HEAVY_LOCAL_CAP_EXCEEDED", "AUTHORIZATION_MISSING"}.issubset(codes))
 
     def test_organization_alias_authority_and_h1_h2_boundary(self):
-        org = {"departments":[{"id":"USER","authority_domain":"USER_APPROVAL","node_kind":"DEPARTMENT"},{"id":"W3_SECOND_BRAIN","authority_domain":"KNOWLEDGE","node_kind":"DEPARTMENT"},{"id":"PRIMARY_PRODUCER","authority_domain":"NONE","node_kind":"ROLE_TEMPLATE"}],"edges":[{"from":"USER","to":"W3_SECOND_BRAIN"},{"from":"W3_SECOND_BRAIN","to":"PRIMARY_PRODUCER"},{"from":"PRIMARY_PRODUCER","to":"RESPONSIBLE_UPSTREAM"}]}
+        org = canonical_organization()
         self.assertEqual(validate_organization(org, alias_resolution={"RESPONSIBLE_UPSTREAM":["W3_SECOND_BRAIN"]}), [])
         bad = validate_organization(org, alias_resolution={"RESPONSIBLE_UPSTREAM":["USER", "W3_SECOND_BRAIN"]}, h2_authorized=True)
         self.assertTrue({"RETURN_ALIAS_NOT_UNIQUE", "H2_AUTHORIZATION_FORBIDDEN_IN_H1"}.issubset({e.code for e in bad}))
 
     def test_trace_handoff_and_fingerprint(self):
         handoff = {"schema_version":"FormalHandoff/v1","handoff_id":"h","decision_episode_id":"d","producer":"p","consumer":"c","stage":"TEST","epistemic_status":"SUPPORTED","input_fingerprint":"f","raw_trace_refs":["trace-1"],"created_at":NOW,"claim_ids":["claim"]}
-        self.assertEqual(validate_trace_handoff(handoff, trace_ids={"trace-1"}, trace_level="T2"), [])
+        t2 = {"decision_episode_id":"d","input_fingerprint":"f","output_ref":"o","work_item_events":["e"],"tool_refs":["t"],"formal_handoff":"h","claim_refs":["c"],"evidence_refs":["e"],"challenge_refs":["c"],"provider_native_trace_refs":["p"]}
+        self.assertEqual(validate_trace_handoff(handoff, trace_ids={"trace-1"}, trace_level="T2", trace_material=t2), [])
         self.assertIn("TRACE_INCOMPLETE", {e.code for e in validate_trace_handoff(handoff, trace_ids=set())})
         payload = {"SourceSnapshotHash":"a","ContextBundleHash":"b","UpstreamHandoffHashes":["c"],"PromptTemplateHash":"d","MethodSkillVersions":["e"],"ModelProvider":"synthetic","ModelID":"none","ToolSchemaHash":"f","CodeCommit":"g","DomainRuleSnapshot":"h","SchemaVersion":"v1","ui_color":"blue"}
         first = cognitive_fingerprint(payload); payload["ui_color"] = "red"; self.assertEqual(first, cognitive_fingerprint(payload))
         payload["CodeCommit"] = "changed"; self.assertNotEqual(first, cognitive_fingerprint(payload))
         payload["api_key"] = "forbidden"; self.assertRaises(ValueError, cognitive_fingerprint, payload)
 
+    def test_trace_resolution_context_and_t3_material_fail_closed(self):
+        post_primary = episode(state="PRIMARY_RESULT_READY", control_tower_authorization_ref="auth")
+        self.assertIn("TRACE_RESOLUTION_CONTEXT_REQUIRED", {error.code for error in validate_semantics(post_primary)})
+        self.assertEqual(validate_semantics(post_primary, trace_refs={"trace-1"}), [])
+        handoff = {"schema_version":"FormalHandoff/v1","handoff_id":"h","decision_episode_id":"d","producer":"p","consumer":"c","stage":"TEST","epistemic_status":"SUPPORTED","input_fingerprint":"f","raw_trace_refs":["trace-1"],"created_at":NOW,"claim_ids":["claim"]}
+        self.assertIn("TRACE_MATERIAL_CONTEXT_REQUIRED", {error.code for error in validate_trace_handoff(handoff, trace_ids={"trace-1"}, trace_level="T3", trace_material=None)})
+        t3 = {"decision_episode_id":"d","input_fingerprint":"f","output_ref":"o","work_item_events":["e"],"tool_refs":["t"],"formal_handoff":"h","claim_refs":["claim"],"evidence_refs":["e"],"challenge_refs":["c"],"provider_native_trace_refs":["p"],"independent_pass_refs":["i"],"verification_trace":"v","adjudication_trace":"a","W7_gate_ref":"w","authority_witness_ref":"auth"}
+        self.assertEqual(validate_trace_handoff(handoff, trace_ids={"trace-1"}, trace_level="T3", trace_material=t3), [])
+        self.assertIn("HUMAN_GATE_BLOCKS_ACCEPT", {error.code for error in validate_semantics(episode(w7_veto_status="HUMAN_GATE", decision_status="ACCEPTED"))})
+
+    def test_canonical_organization_manifest_is_required(self):
+        org = canonical_organization()
+        self.assertEqual(validate_organization(org, alias_resolution={"RESPONSIBLE_UPSTREAM":["W3_SECOND_BRAIN"]}), [])
+        missing = canonical_organization(); missing["departments"] = [item for item in missing["departments"] if item["id"] != "CONTROL_TOWER_310"]
+        self.assertIn("REQUIRED_CANONICAL_NODE_MISSING", {error.code for error in validate_organization(missing, alias_resolution={"RESPONSIBLE_UPSTREAM":["W3_SECOND_BRAIN"]})})
+        duplicate = canonical_organization(); duplicate["departments"].append({"id":"SECOND_W3","node_kind":"DEPARTMENT","authority_domain":"KNOWLEDGE_MEMORY_LIFECYCLE"})
+        self.assertIn("W3_AUTHORITY_NOT_EXACTLY_ONE", {error.code for error in validate_organization(duplicate, alias_resolution={"RESPONSIBLE_UPSTREAM":["W3_SECOND_BRAIN"]})})
+
     def test_synthetic_scenarios_and_bounded_model_exploration(self):
         scenarios = {"S1","S2","S3","S4","S5","S6","S7","S8","S9","S10"}
         fixture = json.loads((ROOT / "fixtures" / "scenarios.json").read_text(encoding="utf-8"))
         self.assertEqual({item["id"] for item in fixture["scenarios"]}, scenarios)
         report = explore_critical_states()
-        self.assertGreater(report.states_checked, 40)
+        self.assertGreater(report.states_checked, 70)
+        self.assertIn("bounded_liveness_no_deadlock", report.properties_checked)
+        self.assertIn("w7_gate", report.state_variables)
+        self.assertTrue(report.bounds)
         self.assertEqual(report.violations, ())
-        self.assertEqual(validate_organization({"departments":[],"edges":[]}, alias_resolution={}, h2_authorized=False), [])
+        empty = validate_organization({"departments":[],"edges":[]}, alias_resolution={}, h2_authorized=False)
+        self.assertIn("REQUIRED_CANONICAL_NODE_MISSING", {error.code for error in empty})
 
     def test_repeated_run_is_deterministic(self):
         payload = {"SourceSnapshotHash":"a","ContextBundleHash":"b","UpstreamHandoffHashes":["c"],"PromptTemplateHash":"d","MethodSkillVersions":["e"],"ModelProvider":"synthetic","ModelID":"none","ToolSchemaHash":"f","CodeCommit":"g","DomainRuleSnapshot":"h","SchemaVersion":"v1"}

@@ -7,6 +7,8 @@ from hashlib import sha256
 import json
 from typing import Any, Iterable, Mapping
 
+from .schema_authority import schema_validation_errors
+
 
 @dataclass(frozen=True)
 class ValidationError:
@@ -14,20 +16,6 @@ class ValidationError:
     code: str
     path: str
 
-
-REQUIRED: dict[str, tuple[str, ...]] = {
-    "DecisionEpisode/v1": ("schema_version", "decision_episode_id", "mission_id", "problem_signature_id", "task_class", "materiality", "risk_class", "state", "created_at", "authority_snapshot_ref", "trace_root_id", "reproducibility_fingerprint"),
-    "ProblemSignature/v1": ("schema_version", "problem_signature_id", "task_class", "objective", "materiality", "reversibility", "causal_requirement", "evidence_mode", "point_in_time_required", "competing_hypotheses_required"),
-    "Mission/v1": ("schema_version", "mission_id", "intake_source", "objective", "status", "created_at"),
-    "MissionGraph/v1": ("schema_version", "mission_graph_id", "mission_id", "nodes", "edges", "generated_at"),
-    "Claim/v1": ("schema_version", "claim_id", "claim_type", "statement_ref", "status"),
-    "ChallengeCase/v1": ("schema_version", "challenge_id", "target_claim_id", "challenge_type", "challenge_level", "severity", "status"),
-    "VerificationResult/v1": ("schema_version", "verification_id", "target_claim_id", "result", "trace_refs"),
-    "Adjudication/v1": ("schema_version", "adjudication_id", "claim_results", "disposition"),
-    "FormalHandoff/v1": ("schema_version", "handoff_id", "decision_episode_id", "producer", "consumer", "stage", "epistemic_status", "input_fingerprint", "raw_trace_refs", "created_at"),
-    "OutcomeLearning/v1": ("schema_version", "learning_event_id", "decision_episode_id", "created_at"),
-    "ReworkRequest/v1": ("schema_version", "rework_request_id", "decision_episode_id", "return_from_state", "return_to_state", "reason_code", "retry_budget_remaining", "input_fingerprint_before"),
-}
 
 STATES = ("INTAKE", "PROBLEM_SIGNATURED", "CONTEXT_RETRIEVED", "CAPABILITY_GAP_MAPPED", "METHODS_DISCOVERED", "METHODS_SELECTED_OR_ABSTAINED", "EVIDENCE_PLAN_READY", "CONTROL_TOWER_AUTHORIZED", "EXECUTING", "PRIMARY_RESULT_READY", "CHALLENGE_PENDING_OR_SKIPPED", "VERIFIED", "ADJUDICATED", "DOMAIN_VALIDATED", "RISK_VETO_CHECKED", "OUTPUT_OR_ACTION_PROPOSED", "OUTCOME_OBSERVED", "ATTRIBUTED", "REFLECTED", "LEARNING_CANDIDATES_CREATED", "CROSS_CONTEXT_VALIDATED", "UPDATED", "DEGRADED", "RETIRED", "ABSTAINED", "CANCELLED", "FAILED", "CLOSED")
 TERMINAL = {"RETIRED", "ABSTAINED", "CANCELLED", "FAILED", "CLOSED"}
@@ -60,6 +48,16 @@ FORWARD = {
     "RETIRED": {"CLOSED"}, "ABSTAINED": {"CLOSED"}, "CANCELLED": {"CLOSED"}, "FAILED": {"CLOSED"}, "CLOSED": set(),
 }
 REWORK = {"ADJUDICATED": {"EVIDENCE_PLAN_READY", "METHODS_DISCOVERED"}, "RISK_VETO_CHECKED": {"EVIDENCE_PLAN_READY", "METHODS_DISCOVERED", "EXECUTING"}, "DEGRADED": {"METHODS_DISCOVERED"}}
+
+REQUIRED_CANONICAL_NODES: dict[str, tuple[str, str]] = {
+    "SIGNAL_TOWER": ("DEPARTMENT", "MISSION_INTAKE_AND_RESULT_AGGREGATION"),
+    "CONTROL_TOWER_310": ("DEPARTMENT", "EXECUTION_AUTHORIZATION_AND_WIP"),
+    "HARNESS_RUNTIME": ("DEPARTMENT", "RUNTIME_ORCHESTRATION"),
+    "W3_SECOND_BRAIN": ("DEPARTMENT", "KNOWLEDGE_MEMORY_LIFECYCLE"),
+    "W7_VALIDATION_RISK": ("DEPARTMENT", "FINAL_RISK_VETO"),
+    "PRIMARY_PRODUCER": ("ROLE_TEMPLATE", "NONE"),
+    "CHALLENGER": ("ROLE_TEMPLATE", "NONE"),
+}
 
 ENUMS: dict[str, set[str]] = {
     "task_class": {"KNOWLEDGE", "RESEARCH", "SYSTEM_DESIGN", "ENGINEERING", "MARKET_INTELLIGENCE", "EQUITY_ANALYSIS", "BACKTEST", "REVIEW", "DECISION_SUPPORT", "OTHER"},
@@ -109,57 +107,21 @@ def _array_of_unique_strings(value: Any) -> bool:
 def validate_structure(record: dict[str, Any]) -> list[ValidationError]:
     if not isinstance(record, Mapping):
         return [_err("STRUCTURE", "OBJECT_REQUIRED", "/")]
-    version = record.get("schema_version")
-    if version not in REQUIRED:
-        return [_err("STRUCTURE", "SCHEMA_VERSION_UNSUPPORTED", "/schema_version")]
-    errors = [_err("STRUCTURE", "REQUIRED_FIELD_MISSING", "/" + name) for name in REQUIRED[version] if name not in record or record[name] in (None, "")]
-    for name in ("claim_ids", "handoff_refs", "unresolved_refs", "raw_trace_refs", "trace_refs", "source_refs", "support_refs", "counterevidence_refs", "falsifier_refs", "claim_results"):
-        if name in record and not _array_of_unique_strings(record[name]):
-            errors.append(_err("STRUCTURE", "ARRAY_UNIQUE_STRINGS_REQUIRED", "/" + name))
-    if "retry_budget_remaining" in record and (not isinstance(record["retry_budget_remaining"], int) or record["retry_budget_remaining"] < 0):
-        errors.append(_err("STRUCTURE", "NONNEGATIVE_INTEGER_REQUIRED", "/retry_budget_remaining"))
-    for field in ("created_at", "closed_at", "completed_at", "generated_at", "observed_at"):
-        if record.get(field) is not None and not _is_rfc3339_offset(record[field]):
-            errors.append(_err("STRUCTURE", "RFC3339_OFFSET_AWARE_REQUIRED", "/" + field))
-    enum_fields = {
-        "DecisionEpisode/v1": {"task_class": "task_class", "materiality": "materiality", "risk_class": "risk_class", "state": "state", "w7_veto_status": "w7_veto_status", "decision_status": "decision_status"},
-        "ProblemSignature/v1": {"materiality": "materiality", "reversibility": "reversibility", "causal_requirement": "causal_requirement", "evidence_mode": "evidence_mode"},
-        "Mission/v1": {"intake_source": "intake_source", "status": "mission_status"},
-        "Claim/v1": {"claim_type": "claim_type", "materiality": "materiality", "confidence_class": "confidence_class", "status": "claim_status"},
-        "ChallengeCase/v1": {"challenge_level": "challenge_level", "severity": "severity"},
-        "VerificationResult/v1": {"result": "verification_result"},
-        "Adjudication/v1": {"disposition": "disposition"},
-        "FormalHandoff/v1": {"epistemic_status": "epistemic_status"},
-    }.get(version, {})
-    for field, enum_name in enum_fields.items():
-        if field in record and record[field] not in (None, "") and record[field] not in (STATES if enum_name == "state" else ENUMS[enum_name]):
-            errors.append(_err("STRUCTURE", "ENUM_VALUE_INVALID", "/" + field))
-    if version == "MissionGraph/v1":
-        if not isinstance(record.get("nodes"), list) or not isinstance(record.get("edges"), list):
-            errors.append(_err("STRUCTURE", "MISSION_GRAPH_ARRAYS_REQUIRED", "/nodes"))
-        for index, node in enumerate(record.get("nodes", [])):
-            if not isinstance(node, Mapping) or any(not node.get(field) for field in ("work_item_id", "work_type", "owner_candidate", "resource_class", "status")):
-                errors.append(_err("STRUCTURE", "MISSION_NODE_INVALID", "/nodes/" + str(index)))
-            elif not isinstance(node.get("retry_budget"), int) or node["retry_budget"] < 0:
-                errors.append(_err("STRUCTURE", "NONNEGATIVE_INTEGER_REQUIRED", "/nodes/" + str(index) + "/retry_budget"))
-            elif node.get("work_type") not in {"RETRIEVAL", "RESEARCH", "DATA_ACQUISITION", "EVIDENCE_VERIFICATION", "ANALYSIS", "IMPLEMENTATION", "TEST", "CHALLENGE", "REVIEW", "ADJUDICATION", "APPROVAL", "WRITEBACK", "OUTCOME_AUDIT"} or node.get("resource_class") not in {"LIGHT", "MEDIUM", "HEAVY_LOCAL", "REMOTE_CI", "EXTERNAL_SERVICE"} or node.get("status") not in {"PLANNED", "AUTHORIZED", "QUEUED", "RUNNING", "BLOCKED", "RETURNED", "COMPLETED", "FAILED", "CANCELLED", "ABSTAINED"}:
-                errors.append(_err("STRUCTURE", "MISSION_NODE_ENUM_INVALID", "/nodes/" + str(index)))
-        for index, edge in enumerate(record.get("edges", [])):
-            if not isinstance(edge, Mapping) or any(not edge.get(field) for field in ("from", "to", "type")):
-                errors.append(_err("STRUCTURE", "MISSION_EDGE_INVALID", "/edges/" + str(index)))
-            elif edge.get("type") not in {"DEPENDS_ON", "CAN_PARALLEL_WITH", "BLOCKS", "REQUIRES_APPROVAL_FROM", "RETURNS_TO", "ESCALATES_TO", "FEEDBACK_TO"}:
-                errors.append(_err("STRUCTURE", "MISSION_EDGE_ENUM_INVALID", "/edges/" + str(index) + "/type"))
-    return errors
+    return [_err("STRUCTURE", "RFC3339_OFFSET_AWARE_REQUIRED" if "date-time" in message else "JSON_SCHEMA_VALIDATION_FAILED", path or "/") for path, message in schema_validation_errors(record)]
 
 
 def validate_semantics(record: dict[str, Any], *, trace_refs: set[str] | None = None) -> list[ValidationError]:
     errors: list[ValidationError] = []
     v = record.get("schema_version")
     if v == "DecisionEpisode/v1":
-        if record.get("w7_veto_status") == "VETO" and record.get("decision_status") == "ACCEPTED": errors.append(_err("DE-W7-VETO-NO-ACCEPT", "VETO_BLOCKS_ACCEPT", "/decision_status"))
+        if record.get("w7_veto_status") in {"VETO", "HUMAN_GATE"} and record.get("decision_status") == "ACCEPTED":
+            errors.append(_err("DE-W7-VETO-NO-ACCEPT", "VETO_BLOCKS_ACCEPT" if record.get("w7_veto_status") == "VETO" else "HUMAN_GATE_BLOCKS_ACCEPT", "/decision_status"))
         if record.get("decision_status") == "ABSTAINED" and record.get("state") not in {"ABSTAINED", "CLOSED"}: errors.append(_err("DE-ABSTAIN-STATE-CONSISTENCY", "ABSTAIN_STATE_INVALID", "/state"))
         if record.get("state") in EXECUTION_STATES and not record.get("control_tower_authorization_ref"): errors.append(_err("DE-EXECUTION-AUTH-REQUIRED", "EXECUTION_AUTH_MISSING", "/control_tower_authorization_ref"))
-        if record.get("state") in TRACE_STATES and (not record.get("trace_root_id") or (trace_refs is not None and record["trace_root_id"] not in trace_refs)): errors.append(_err("DE-POST-PRIMARY-TRACE-RESOLVABLE", "TRACE_UNRESOLVABLE", "/trace_root_id"))
+        if record.get("state") in TRACE_STATES and trace_refs is None:
+            errors.append(_err("DE-POST-PRIMARY-TRACE-RESOLVABLE", "TRACE_RESOLUTION_CONTEXT_REQUIRED", "/trace_root_id"))
+        elif record.get("state") in TRACE_STATES and (not record.get("trace_root_id") or record["trace_root_id"] not in trace_refs):
+            errors.append(_err("DE-POST-PRIMARY-TRACE-RESOLVABLE", "TRACE_UNRESOLVABLE", "/trace_root_id"))
         if record.get("learning_ref") and not (record.get("outcome_ref") or record.get("explicit_correction_event_ref")): errors.append(_err("DE-LEARNING-NEEDS-OUTCOME-OR-CORRECTION", "LEARNING_TRIGGER_MISSING", "/learning_ref"))
         if "raw_private_source_body" in record: errors.append(_err("DE-NO-RAW-PRIVATE-BODY", "RAW_PRIVATE_BODY_FORBIDDEN", "/raw_private_source_body"))
     elif v == "ProblemSignature/v1":
@@ -249,11 +211,19 @@ def validate_organization(graph: dict[str, Any], *, alias_resolution: dict[str, 
     errors: list[ValidationError] = []
     departments = {item.get("id"): item for item in graph.get("departments", []) if item.get("id")}
     declared = declared_aliases if declared_aliases is not None else set(graph.get("dynamic_return_aliases", alias_resolution))
+    for node_id, (expected_kind, expected_authority) in REQUIRED_CANONICAL_NODES.items():
+        item = departments.get(node_id)
+        if item is None:
+            errors.append(_err("OGV-CANONICAL-MANIFEST", "REQUIRED_CANONICAL_NODE_MISSING", "/departments/" + node_id))
+            continue
+        if item.get("node_kind") != expected_kind or item.get("authority_domain") != expected_authority:
+            errors.append(_err("OGV-CANONICAL-MANIFEST", "CANONICAL_NODE_BOUNDARY_VIOLATION", "/departments/" + node_id))
     owners: dict[str, list[str]] = {}
     for item in departments.values():
         domain = item.get("authority_domain")
         if domain and domain != "NONE": owners.setdefault(domain, []).append(item["id"])
-        if item.get("node_kind") == "ROLE_TEMPLATE" and domain not in (None, "NONE"): errors.append(_err("OGV-032-ROLE-TEMPLATE-NONAUTHORITY", "ROLE_AUTHORITY_FORBIDDEN", "/departments"))
+        if item.get("node_kind") == "ROLE_TEMPLATE" and (domain not in (None, "NONE") or item.get("may_veto") or item.get("canonical_truth_authority")):
+            errors.append(_err("OGV-032-ROLE-TEMPLATE-NONAUTHORITY", "ROLE_AUTHORITY_FORBIDDEN", "/departments"))
     if any(len(values) != 1 for values in owners.values()): errors.append(_err("OGV-001-UNIQUE-AUTHORITY", "AUTHORITY_NOT_UNIQUE", "/departments"))
     connected: dict[str, int] = {node_id: 0 for node_id in departments}
     outgoing: dict[str, int] = {node_id: 0 for node_id in departments}
@@ -279,10 +249,11 @@ def validate_organization(graph: dict[str, Any], *, alias_resolution: dict[str, 
             if target not in departments and target != "USER" and target not in declared:
                 errors.append(_err("OGV-005-RETURN-PATH", "RETURN_TARGET_UNDECLARED", "/departments/" + item["id"] + "/return_to"))
     if any(item.get("id") == "HARNESS_RUNTIME" and item.get("authority_domain") not in {"RUNTIME_ORCHESTRATION", "NONE"} for item in departments.values()): errors.append(_err("OGV-018-HARNESS-BOUNDARY", "HARNESS_TRUTH_AUTHORITY_FORBIDDEN", "/departments"))
-    if sum(item.get("authority_domain") == "KNOWLEDGE_MEMORY_LIFECYCLE" for item in departments.values()) > 1:
-        errors.append(_err("OGV-W3-SINGLE-AUTHORITY", "W3_AUTHORITY_NOT_UNIQUE", "/departments"))
-    if any(item.get("id") == "W7_VALIDATION_RISK" and "FINAL_OUTPUT_OR_ACTION" not in item.get("may_veto", []) for item in departments.values()):
-        errors.append(_err("OGV-007-VETO-INTEGRITY", "W7_FINAL_VETO_MISSING", "/departments"))
+    if sum(item.get("authority_domain") == "KNOWLEDGE_MEMORY_LIFECYCLE" for item in departments.values()) != 1:
+        errors.append(_err("OGV-W3-SINGLE-AUTHORITY", "W3_AUTHORITY_NOT_EXACTLY_ONE", "/departments"))
+    w7 = departments.get("W7_VALIDATION_RISK")
+    if w7 is None or "FINAL_OUTPUT_OR_ACTION" not in w7.get("may_veto", []):
+        errors.append(_err("OGV-007-VETO-INTEGRITY", "W7_FINAL_VETO_MISSING", "/departments/W7_VALIDATION_RISK"))
     if h2_authorized: errors.append(_err("OGV-031-H1-H2-SLICE-SEPARATION", "H2_AUTHORIZATION_FORBIDDEN_IN_H1", "/h2_authorized"))
     return errors
 
@@ -300,6 +271,8 @@ def validate_trace_handoff(handoff: dict[str, Any], *, trace_ids: set[str], trac
     }
     if trace_level not in required_by_level:
         errors.append(_err("TRACE-COMPLETENESS", "TRACE_LEVEL_UNSUPPORTED", "/trace_level"))
+    elif trace_level in {"T2", "T3"} and trace_material is None:
+        errors.append(_err("TRACE-COMPLETENESS", "TRACE_MATERIAL_CONTEXT_REQUIRED", "/trace_material"))
     elif trace_material is not None:
         for field in required_by_level[trace_level]:
             if not trace_material.get(field): errors.append(_err("TRACE-COMPLETENESS", "TRACE_LEVEL_FIELD_MISSING", "/trace_material/" + field))
@@ -321,6 +294,8 @@ def cognitive_fingerprint(payload: dict[str, Any]) -> str:
 class ModelCheckReport:
     states_checked: int
     properties_checked: tuple[str, ...]
+    state_variables: tuple[str, ...]
+    bounds: tuple[str, ...]
     violations: tuple[ValidationError, ...]
 
 
@@ -328,17 +303,22 @@ def explore_critical_states() -> ModelCheckReport:
     """Exhaustively explore the finite H1 abstractions without subprocesses or a runtime."""
     violations: list[ValidationError] = []
     states_checked = 0
-    properties = ("mission_lifecycle", "authorization", "challenge_rework_termination", "skill_no_one_shot_promotion", "w7_veto", "trace_completeness", "resource_max_one", "return_alias", "h1_h2_separation")
+    properties = ("mission_lifecycle", "invalid_transition_fail_closed", "authorization", "challenge_rework_termination", "skill_no_one_shot_promotion", "w7_veto_and_human_gate", "trace_completeness", "resource_max_one", "return_alias", "h1_h2_separation", "bounded_liveness_no_deadlock")
+    state_variables = ("decision_state", "w7_gate", "authorization", "trace_context", "retry_budget", "fingerprint_changed", "resource_slots", "return_alias_targets", "h2_authorized")
+    bounds = ("28 declared DecisionEpisode states", "retry_budget in {0,1}", "two-state W7/HumanGate acceptance space", "resource_slots in {1,2}", "alias cardinality in {1,2}")
     for current, targets in FORWARD.items():
         for target in targets:
             states_checked += 1
             if validate_transition(current, target): violations.append(_err("FM-01-MISSION-LIFECYCLE", "DECLARED_FORWARD_TRANSITION_REJECTED", "/state"))
-    for veto in ("PASS", "VETO"):
+    if not validate_transition("INTAKE", "EXECUTING"):
+        violations.append(_err("FM-01-MISSION-LIFECYCLE", "INVALID_TRANSITION_ALLOWED", "/state"))
+    states_checked += 1
+    for veto in ("PASS", "VETO", "HUMAN_GATE"):
         for disposition in ("ACCEPTED", "ABSTAINED"):
             states_checked += 1
             result = validate_semantics({"schema_version": "DecisionEpisode/v1", "decision_episode_id": "d", "mission_id": "m", "problem_signature_id": "p", "task_class": "OTHER", "materiality": "LOW", "risk_class": "R0", "state": "INTAKE", "created_at": "2026-01-01T00:00:00Z", "authority_snapshot_ref": "a", "trace_root_id": "t", "reproducibility_fingerprint": "f", "w7_veto_status": veto, "decision_status": disposition})
             blocked = any(error.validator_id == "DE-W7-VETO-NO-ACCEPT" for error in result)
-            if (veto == "VETO" and disposition == "ACCEPTED") != blocked: violations.append(_err("FM-05-W7-VETO", "VETO_SAFETY_BROKEN", "/decision_status"))
+            if (veto in {"VETO", "HUMAN_GATE"} and disposition == "ACCEPTED") != blocked: violations.append(_err("FM-05-W7-VETO", "GATE_SAFETY_BROKEN", "/decision_status"))
     for budget in (0, 1):
         for changed in (False, True):
             states_checked += 1
@@ -360,7 +340,14 @@ def explore_critical_states() -> ModelCheckReport:
     else: violations.append(_err("FM-04-SKILL-LIFECYCLE", "CORRECTION_LEARNING_REJECTED", "/correction_event_ref"))
     if not validate_semantics({"schema_version": "OutcomeLearning/v1", "learning_event_id": "l", "decision_episode_id": "d", "created_at": "2026-01-01T00:00:00Z", "correction_event_ref": "c", "requested_maturity": "FORMAL_SKILL"}): violations.append(_err("FM-04-SKILL-LIFECYCLE", "FORMAL_SKILL_NOT_BLOCKED", "/requested_maturity"))
     if not validate_organization({"departments": [], "edges": []}, alias_resolution={}, h2_authorized=True): violations.append(_err("FM-09-H1-H2", "H2_AUTHORIZATION_NOT_BLOCKED", "/h2_authorized"))
-    return ModelCheckReport(states_checked, properties, tuple(violations))
+    def reaches_closed(state: str, seen: set[str]) -> bool:
+        if state == "CLOSED": return True
+        if state in seen: return False
+        return any(reaches_closed(next_state, seen | {state}) for next_state in FORWARD[state])
+    for state in STATES:
+        states_checked += 1
+        if not reaches_closed(state, set()): violations.append(_err("FM-10-LIVENESS", "DECLARED_STATE_CANNOT_TERMINATE", "/state"))
+    return ModelCheckReport(states_checked, properties, state_variables, bounds, tuple(violations))
 
 
 def validate_bundle(records: Iterable[dict[str, Any]]) -> list[ValidationError]:
