@@ -1,0 +1,254 @@
+schema_version: "0.1"
+contract_id: "COGNITIVE-OS-TRACE-LEDGER-PRIVACY-CONTRACT-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_RAW_PRIVATE_TELEMETRY_BY_DEFAULT"
+
+principles:
+  raw_once_reference_everywhere: true
+  trace_is_not_truth_authority: true
+  session_log_is_not_w3_memory_truth: true
+  model_private_chain_of_thought_not_required: true
+  provider_native_events_preserved_when_available: true
+  secrets_forbidden_in_fingerprints_and_telemetry: true
+  user_project_privacy_scope_preserved: true
+  material_handoff_requires_resolvable_lineage: true
+
+layers:
+  NATIVE_RAW_TRACE:
+    purpose: "what runtime/provider/tool actually did"
+    examples:
+      - Harness SessionEvent
+      - Harness workflow/job/subagent lifecycle
+      - provider-native Thread/Turn/Item event
+      - tool invocation/result
+      - shell/file-edit artifact event
+      - approval/auth event
+    owner: RUNTIME_OR_PROVIDER_NATIVE
+    retention: POLICY_CONTROLLED
+    copied_into_handoff: false
+
+  CROSS_AGENT_TRACE_LEDGER:
+    purpose: "who handed what to whom and what happened to it"
+    owner: COGNITIVE_OS_TRACE_LAYER
+    stores_refs_not_raw_payloads: true
+    events:
+      - WORK_PROPOSED
+      - WORK_AUTHORIZED
+      - WORK_QUEUED
+      - WORK_STARTED
+      - HANDOFF_CREATED
+      - HANDOFF_ACCEPTED
+      - HANDOFF_REJECTED
+      - RETURN_FOR_REWORK
+      - RETRY_STARTED
+      - RETRY_EXHAUSTED
+      - ESCALATED
+      - CANCEL_REQUESTED
+      - CANCEL_CONFIRMED
+      - WORK_COMPLETED
+      - WORK_FAILED
+      - ABSTAINED
+      - W7_VETO
+      - HUMAN_GATE
+      - OUTCOME_LINKED
+      - LEARNING_CANDIDATE_CREATED
+
+  FORMAL_HANDOFF:
+    purpose: "machine-verifiable delivery plus human explanation"
+    machine: "*.handoff.json"
+    human: "*.analysis.md"
+    machine_contract: FormalHandoff/v1
+
+TraceContext_v1:
+  required:
+    - trace_id
+    - decision_episode_id
+    - mission_id
+    - privacy_scope_ref
+    - authority_snapshot_ref
+  fields:
+    trace_id: string
+    parent_trace_id: string_or_null
+    decision_episode_id: string
+    mission_id: string
+    work_item_id: string_or_null
+    span_id: string_or_null
+    parent_span_id: string_or_null
+    privacy_scope_ref: string
+    authority_snapshot_ref: string
+    provider_trace_ref: string_or_null
+    created_at: timestamp
+
+TraceLedgerEvent_v1:
+  required:
+    - event_id
+    - event_type
+    - trace_id
+    - decision_episode_id
+    - actor
+    - occurred_at
+  fields:
+    event_id: string
+    event_type: string
+    trace_id: string
+    decision_episode_id: string
+    work_item_id: string_or_null
+    actor: string
+    target_actor: string_or_null
+    artifact_refs: array
+    handoff_ref: string_or_null
+    claim_refs: array
+    upstream_event_refs: array
+    status_before: string_or_null
+    status_after: string_or_null
+    reason_code: string_or_null
+    occurred_at: timestamp
+    public_safe_metadata: object
+  forbidden_fields:
+    - raw_private_source_body
+    - credential_value
+    - access_token
+    - api_key
+    - private_key
+    - hidden_prompt
+    - private_chain_of_thought
+
+OpenTelemetry_alignment:
+  DecisionEpisode: TRACE
+  agent_method_tool_stage: SPAN
+  lifecycle_transition: SPAN_EVENT
+  cross_workflow_reference: SPAN_LINK
+  baggage_use: "only public-safe low-cardinality routing context; no secret/private raw content"
+  semantic_convention_policy: >-
+    Reuse stable trace/span/context concepts and selectively map GenAI attributes. Do not blindly emit model input/output
+    attributes because they may contain sensitive content. Domain epistemic/authority semantics remain our contracts.
+
+provider_native_trace:
+  Harness:
+    ingest:
+      - durable session events
+      - turn/step/tool lifecycle refs
+      - workflow/job/subagent refs
+    rule: "Harness model-visible context may be reconstructable from its session log, but this log remains runtime trace, not W3 truth."
+
+  Codex_App_Server_candidate:
+    ingest:
+      - thread_id
+      - turn_id
+      - item_ids
+      - agent_message_ref
+      - reasoning_summary_ref_if_public_safe
+      - command_execution_ref
+      - file_change_ref
+      - approval_ref
+      - auth_event_ref
+    rule: "preserve protocol-native progress without requiring private chain-of-thought"
+
+privacy_classes:
+  PUBLIC_SAFE:
+    raw_trace_export: ALLOWED_WITH_POLICY
+    ledger_metadata: ALLOWED
+  PROJECT_PRIVATE:
+    raw_trace_export: LOCAL_OR_APPROVED_STORE_ONLY
+    ledger_metadata: REDACTED_REFERENCES_ONLY
+  USER_PRIVATE:
+    raw_trace_export: STRICT_APPROVED_STORE_ONLY
+    ledger_metadata: OPAQUE_REFS_ONLY
+  SECRET_CREDENTIAL:
+    raw_trace_export: FORBIDDEN_AS_VALUE
+    ledger_metadata: "credential reference/operation outcome only"
+
+privacy_rules:
+  - "raw prompt/body/output storage is opt-in per policy, not default telemetry"
+  - "source pointer may be hashed/opaque when privacy requires"
+  - "trace export cannot widen W3 user/project/privacy admission"
+  - "cross-agent handoff receives only admitted context needed for role"
+  - "Challenger independence means no Primary conclusion before reveal, not unrestricted access to all private sources"
+  - "redaction must be deterministic enough for replay attribution where possible"
+
+reproducibility_fingerprint_binding:
+  includes:
+    - source_snapshot_hash
+    - context_bundle_hash
+    - upstream_handoff_hashes
+    - prompt_template_hash
+    - method_skill_versions
+    - model_provider
+    - model_id
+    - tool_schema_hash
+    - code_commit
+    - domain_rule_snapshot
+    - schema_version
+    - harness_runtime_version_if_used
+    - control_tower_authorization_fingerprint_if_executed
+  excludes:
+    - raw secrets
+    - raw credential values
+    - private chain-of-thought
+  purpose:
+    - distinguish data change
+    - distinguish context retrieval change
+    - distinguish method/skill change
+    - distinguish model/provider change
+    - distinguish tool/schema change
+    - distinguish code/rule change
+
+trace_completeness_levels:
+  T0:
+    name: MINIMAL
+    required_for: LOW_RISK_DETERMINISTIC
+    requires: [decision_episode_id, input_fingerprint, output_ref]
+  T1:
+    name: STANDARD
+    required_for: NORMAL_AGENT_WORK
+    requires: [T0, work_item_events, tool_refs, formal_handoff]
+  T2:
+    name: MATERIAL
+    required_for: HIGH_MATERIALITY
+    requires: [T1, claim_refs, evidence_refs, challenge_refs, provider_native_trace_refs]
+  T3:
+    name: HIGH_RISK
+    required_for: FINANCIAL_CAUSAL_IRREVERSIBLE
+    requires: [T2, independent_pass_refs, verification_trace, adjudication_trace, W7_gate_ref, authority_witness_ref]
+
+trace_failure_policy:
+  missing_material_lineage:
+    disposition: TRACE_INCOMPLETE
+    effects:
+      - cannot claim full reproducibility
+      - may cap confidence
+      - may block high-risk gate
+  trace_sink_failure:
+    rule: "runtime may continue only according to declared materiality policy; never invent missing trace"
+  conflicting_trace:
+    rule: "preserve both events, flag inconsistency, do not silently rewrite history"
+
+retention_and_compaction:
+  raw_trace:
+    policy: "retention class by privacy/materiality; large content may spill to content-addressed store"
+  ledger:
+    policy: "longer-lived compact metadata and references"
+  handoff:
+    policy: "durable with DecisionEpisode or project audit policy"
+  learning:
+    policy: "W3 stores distilled candidate knowledge/methods, not whole raw trace"
+
+anti_patterns:
+  - copy complete raw trace into every handoff
+  - export private prompts into generic telemetry
+  - treat trace presence as evidence correctness
+  - treat missing trace as successful hidden work
+  - preserve only final SUCCESS string
+  - use model reasoning text as mandatory audit truth
+  - let telemetry storage become a second knowledge database
+
+acceptance_tests:
+  - "one native event can be referenced by multiple handoffs without payload duplication"
+  - "material handoff with broken raw_trace_ref fails validation"
+  - "redacted private trace keeps stable lineage without raw content leakage"
+  - "provider final SUCCESS with missing artifact remains non-authoritative"
+  - "same task with changed model/tool/code/rule changes fingerprint"
+  - "same semantic inputs with only irrelevant UI metadata do not change cognitive fingerprint"
+  - "W7 high-risk gate rejects required T3 trace when incomplete"
