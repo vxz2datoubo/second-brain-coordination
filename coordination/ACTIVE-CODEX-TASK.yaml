@@ -1,13 +1,13 @@
-schema_version: "129.0"
+schema_version: "130.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 325
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4A-SEMANTIC-PROVIDER"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4A-PROVIDER-REQUEST-BOUNDARY"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 129
+route_epoch: 130
 mode: "goal"
-mode_label: "【Codex模式：目标模式】P2.4A Semantic Provider no-score discovery实现"
-status: "READY"
+mode_label: "【Codex模式：目标模式】P2.4A Provider Request信任边界修复"
+status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: false
 second_user_start_command_required: true
@@ -25,29 +25,56 @@ private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
-runtime_code_scope: "P2_4A_SEMANTIC_PROVIDER_NO_SCORE_ONLY"
+runtime_code_scope: "P2_4A_PROVIDER_REQUEST_TRUST_BOUNDARY_ONLY"
 
-canonical_main_at_route_prepare: "ec80e132bcc97151088fc389a8755dc3a3d06bd3"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R129-P2-4A-SEMANTIC-PROVIDER.yaml"
+canonical_main_at_route_prepare: "02ee9f2a5be7cece9c5011a23dadc7966ce492eb"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R130-P2-4A-PROVIDER-REQUEST-BOUNDARY.yaml"
 canonical_contract: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/P2-4-IMPLEMENTATION-CONTRACT.md"
-canonical_threat_matrix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/THREAT-MODEL-AND-ADVERSARIAL-MATRIX.md"
+canonical_issue: 325
 implementation_branch: "codex/gpt-second-brain-p2-4a-semantic-provider-r129"
-implementation_pr: null
+implementation_pr: 329
 
 review_return:
-  reviewed_head: "cdece1d950664ddd39b36644a1256b07a72f8916"
-  gpt_review_id: 4943087945
-  disposition: "R128_P2_4_CONTRACT_EXACT_HEAD_ACCEPTED_FINAL"
-  merged_pr: 323
-  merge_commit: "ec80e132bcc97151088fc389a8755dc3a3d06bd3"
+  reviewed_head: "6bcd0ed0aacfae416f2bea5a765869c6c0aaed14"
+  gpt_review_id: 4943134437
+  disposition: "R129_P2_4A_EXACT_HEAD_CHANGES_REQUIRED_PROVIDER_REQUEST_TRUST_BOUNDARY"
+  verified_ci_run: 31870048995
+  verified_python_311: "SUCCESS"
+  verified_python_313: "SUCCESS"
+  reported_focused_tests: "35/35 PASS"
+  reported_phase3_tests: "285/285 PASS"
+  reported_public_safety: "108 files / 0 issues"
+
+accepted_r129_subsystems:
+  semantic_terms_not_concatenated_into_lexical_query: true
+  semantic_only_score_none: true
+  lexical_relation_duplicate_score_unchanged: true
+  semantic_channel_attribution_only: true
+  legacy_iterable_response_inert: true
+  provider_result_secret_injection_fail_closed: true
+  structural_analogy_not_implemented: true
+
+blocking_findings:
+  - id: "R129-B01-PROVIDER-REQUEST-CONTRACT-INCOMPLETE"
+    status: "REQUIRES_REMEDIATION"
+  - id: "R129-B02-REQUEST-SECRET-INJECTION-EGRESS"
+    status: "REQUIRES_REMEDIATION"
 
 frozen_decisions:
   semantic_numeric_weight: "NO_NUMERIC_SCORE_V1"
-  semantic_only_candidate_score: null
-  semantic_channel: "semantic"
   provider_terms_may_modify_lexical_query: false
-  default_off_public_provider_field: false
+  unsafe_request_policy: "FAIL_CLOSED_NO_PROVIDER_CALL_V1"
+  request_response_correlation: "REQUEST_ID_REQUIRED"
+  scope_privacy_projection: "NON_REVERSIBLE_FINGERPRINT_ONLY"
   structural_analogy_runtime: "LOCKED_FOR_P2_4B"
+
+mandatory_repairs:
+  - "Implement frozen SemanticProviderRequest/Result v1 fields including request_id and scope/privacy-mode fingerprint."
+  - "Require result.request_id to match request.request_id before any semantic discovery."
+  - "Screen caller query with canonical Phase-3 credential/prompt-injection deny semantics before provider invocation; unsafe request means provider is not called."
+  - "Reuse/factor canonical deny semantics rather than creating a drifting narrower regex policy where feasible."
+  - "Add request-boundary tests for secrets, prompt injection, request_id mismatch, fingerprint determinism, and complete default-off ContextBundle parity."
+  - "Preserve all accepted no-score discovery, lifecycle, legacy, and capture behavior."
 
 watchpoints:
   - id: "R122-UNKNOWN-BINDING-GAP"
@@ -56,8 +83,10 @@ watchpoints:
     status: "DEFER"
 
 execution_contract:
+  same_pr_branch_additive_only: true
+  rebase_force_amend: "FORBIDDEN"
   structural_analogy_runtime: "FORBIDDEN"
-  real_external_semantic_service: "FORBIDDEN"
+  external_semantic_service: "FORBIDDEN"
   semantic_numeric_score_or_bonus: "FORBIDDEN"
   second_store_vector_db_resolver: "FORBIDDEN"
   unknown_schema_redesign: "FORBIDDEN"
@@ -70,7 +99,16 @@ execution_contract:
   trading_accounts: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_PROVIDER_READY_FOR_GPT_REVIEW"
+validation_required:
+  - "request contract/correlation tests PASS"
+  - "secret/injection request no-provider-call tests PASS"
+  - "default-off full ContextBundle parity PASS"
+  - "existing no-score/legacy/lifecycle/capture regressions PASS"
+  - "full Phase-3 regression PASS"
+  - "GitHub Actions exact final head + Python 3.11/3.13 SUCCESS against latest main"
+  - "public safety/schema/YAML/JSON/git diff --check/clean tree PASS"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_R130_PROVIDER_BOUNDARY_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 129 implements only the contract-frozen no-score Semantic Provider discovery path. Structural Analogy remains locked for P2.4B; all private/formal/live/production/permission/trading actions remain locked.
+  Epoch 130 is only the provider request trust-boundary remediation for P2.4A. Structural Analogy and all private/formal/live/production/permission/trading actions remain locked.
