@@ -8,6 +8,9 @@
   "implemented": ["immutable SignalEvent validation", "SQLite append-only admitted history", "effectively-once idempotent processing", "SignalLink provenance preservation", "derived checksum-bound projection", "synthetic reconciliation receipt compare-and-check", "GST-R001 through GST-R024 executable fixtures"],
   "not_implemented": ["Harness runtime", "Mission runtime", "W3 runtime", "Trace Ledger", "private bridge", "live connector", "domain writer", "production service", "trade"],
   "local_validation": {"unit_suite": "8 tests including table-driven 24/24 scenarios", "resource_warning_gate": "PASS", "public_safety": "PASS", "diff_check": "PASS"},
+  "implementation_exact_head": "4d52115f6b8263c8d64ae4c8027bc4811e5ffcd6",
+  "implementation_exact_head_ci": {"s0c_run": 31893360269, "phase_3_run": 31893360271, "python_311": "PASS", "python_313": "PASS"},
+  "receipt_only_commit_note": "Any successor that changes only handoff evidence is verified by its own PR checks; runtime implementation remains the tested head above.",
   "reliability_receipts": {"idempotency": "same semantic retry is existing receipt; different semantic content with same key is IDEMPOTENCY_KEY_COLLISION", "replay": "checksum identical after projection discard/rebuild", "crash": "durable append before projection rebuilds after SQLite reopen without duplicate effective application", "reconciliation": "PR head/state, main, route, claim, lane, domain and user cancel/revoke changes invalidate or block receipt"},
   "resource_audit": {"local_workers": 1, "child_processes_created": 0, "daemon_or_server_started": false},
   "rollback": "Close the Draft PR or revert the complete R134 commit set in reverse order; no external runtime state exists."
