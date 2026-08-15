@@ -10,6 +10,9 @@ ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[3]
 SCAN_ROOTS = (
     ROOT,
+    ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R126-P2-3",
+    ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R125-P2-3",
+    ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R124-P2-3",
     ROOT.parent / "CODEX-CLTM-0021-PRIVATE-CANDIDATE-INGESTION-R81",
     REPO_ROOT / "coordination" / "EVIDENCE" / "WORKBUDDY-LOCAL-MOTHER-SYSTEM-READONLY-PROBE-0001",
     REPO_ROOT / ".github" / "workflows" / "phase3-integrated-offline-memory.yml",

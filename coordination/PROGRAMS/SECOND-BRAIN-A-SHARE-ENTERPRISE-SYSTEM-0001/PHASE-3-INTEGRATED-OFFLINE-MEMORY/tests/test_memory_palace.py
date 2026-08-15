@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import sys
 import tempfile
 import unittest
@@ -16,12 +17,14 @@ for source_root in (
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.memory_palace import (
+    _prove_exact_recall,
     capture_text,
     cognitive_coverage,
     normalize_temporal_expression,
     retrieve_memory_palace,
 )
 from integrated_offline_memory.memory_store import MemoryStore
+from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
 
 
 USER = "synthetic-memory-palace-user"
@@ -245,6 +248,131 @@ class MemoryPalaceTestCase(unittest.TestCase):
         self.assertEqual({item["atom"]["id"] for item in recalled}, set(first.atom_ids))
         self.assertNotIn(second.atom_ids[0], {item["atom"]["id"] for item in recalled})
         self.assertNotIn("temporal", recalled[0]["explanation"]["channels"])
+
+    def test_r124_temporal_discovery_is_assembler_owned_and_scope_safe(self) -> None:
+        owner = self.capture("\u660e\u5929 temporal-r124-owner \u91c7\u96c6\u8bb0\u5fc6", "episode-r124-owner")
+        foreign = capture_text(
+            store=self.store, user_scope="synthetic-r124-foreign", project_scope=PROJECT,
+            message="\u660e\u5929 temporal-r124-foreign \u91c7\u96c6\u8bb0\u5fc6", recorded_at=NOW,
+            source_id="episode-r124-foreign",
+        )
+        plan = QueryPlan(
+            query_text="2026-08-15", scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1,
+        )
+        assembler = ContextAssembler(self.store)
+        bundle = assembler.assemble(plan)
+        self.assertEqual({atom["id"] for atom in bundle.atoms}, set(owner.atom_ids))
+        self.assertNotIn(foreign.atom_ids[0], {atom["id"] for atom in bundle.atoms})
+        self.assertIn("temporal", assembler.last_candidate_channels[owner.atom_ids[0]])
+        # The foreign candidate is not caller-observable, so its existence is
+        # indistinguishable from absence in the public admission report.
+        self.assertEqual(assembler.last_admission_report, {"admitted_count": 1, "rejected_counts": {}})
+        adapter_source = inspect.getsource(retrieve_memory_palace)
+        self.assertNotIn("store.all_atoms", adapter_source)
+        self.assertNotIn("store.related_atom_ids", adapter_source)
+        self.assertNotIn("store.relations_around", adapter_source)
+
+    def test_r124_multichannel_attribution_is_deduplicated_and_repeatable(self) -> None:
+        receipt = self.capture(
+            "\u6211\u89c9\u5f97\u5408\u6210\u6d88\u606f\u662f\u5047\u7684\uff0c\u800c\u4e14\u8fd9\u4e2a\u6765\u6e90\u6709\u504f\u89c1\u3002\u91c7\u96c6\u8bb0\u5fc6",
+            "episode-r124-multipath",
+        )
+        first = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="\u5408\u6210\u6d88\u606f", anchor_time=NOW,
+        )
+        second = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="\u5408\u6210\u6d88\u606f", anchor_time=NOW,
+        )
+        self.assertEqual(first, second)
+        self.assertEqual({item["atom"]["id"] for item in first}, set(receipt.atom_ids))
+        self.assertEqual(len(first), len({item["atom"]["id"] for item in first}))
+        self.assertTrue(all("graph" in item["explanation"]["channels"] for item in first))
+
+    def test_r125_capture_exact_recall_survives_same_episode_budget_saturation(self) -> None:
+        message = "\uff1b".join(f"r125-capture-atom-{index}" for index in range(51)) + "\u3002\u91c7\u96c6\u8bb0\u5fc6"
+        receipt = self.capture(message, "episode-r125-saturated")
+        self.assertGreaterEqual(len(receipt.atom_ids), 51)
+        self.assertTrue(receipt.exact_recall_passed)
+
+    def test_r125_budget_pressure_proof_keeps_ordinary_context_budget(self) -> None:
+        for index in range(55):
+            self.capture(f"r125-shared-noise-{index} \u91c7\u96c6\u8bb0\u5fc6", f"episode-r125-noise-{index}")
+        message = "\uff1b".join(f"r125-shared-capture-{index}" for index in range(51)) + "\u3002\u91c7\u96c6\u8bb0\u5fc6"
+        receipt = self.capture(message, "episode-r125-pressure")
+        self.assertTrue(receipt.exact_recall_passed)
+        plan = QueryPlan(
+            query_text=message, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=50,
+        )
+        first = ContextAssembler(self.store).assemble(plan)
+        second = ContextAssembler(self.store).assemble(plan)
+        self.assertLessEqual(len(first.atoms), 50)
+        self.assertGreater(len(first.omitted_due_to_budget), 0)
+        self.assertEqual(first.atoms, second.atoms)
+        self.assertEqual(first.omitted_due_to_budget, second.omitted_due_to_budget)
+
+    def test_r125_proof_path_makes_foreign_identity_equivalent_to_absence(self) -> None:
+        foreign = capture_text(
+            store=self.store, user_scope="synthetic-r125-foreign", project_scope=PROJECT,
+            message="r125-foreign-proof \u91c7\u96c6\u8bb0\u5fc6", recorded_at=NOW,
+            source_id="episode-r125-foreign-proof",
+        )
+        foreign_result = _prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids=set(foreign.atom_ids),
+        )
+        absent_result = _prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids={"missing-r125-proof-atom"},
+        )
+        self.assertFalse(foreign_result)
+        self.assertEqual(foreign_result, absent_result)
+
+    def test_r126_exact_proof_handles_budget_omitted_duplicate_statement_from_newer_episode(self) -> None:
+        """Exact capture proof must not depend on duplicate-statement ID ties."""
+
+        new_message = ";".join(f"r126-budget-item-{index:02d}" for index in range(51)) + ";采集记忆"
+        preview_store = MemoryStore().connect()
+        try:
+            preview = capture_text(
+                store=preview_store, user_scope=USER, project_scope=PROJECT,
+                message=new_message, recorded_at=NOW, source_id="episode-r126-new",
+            )
+            target_id = max(preview.atom_ids)
+            statement = preview_store.get_atom(target_id)["canonical_statement"]
+        finally:
+            preview_store.close()
+
+        old_id = ""
+        # Select a real earlier episode whose identical statement wins the
+        # legacy lexical/atom-ID tie.  The actual capture remains a separate,
+        # later episode with the previewed deterministic target identity.
+        for index in range(32):
+            old = self.capture(f"{statement};采集记忆", f"episode-r126-old-{index}")
+            old_id = old.atom_ids[0]
+            if old_id < target_id:
+                break
+        self.assertLess(old_id, target_id)
+
+        receipt = self.capture(new_message, "episode-r126-new")
+        self.assertIn(target_id, receipt.atom_ids)
+        ordinary = ContextAssembler(self.store).assemble(QueryPlan(
+            query_text=new_message, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=50,
+        ))
+        self.assertNotIn(target_id, {atom["id"] for atom in ordinary.atoms})
+        legacy_tie = ContextAssembler(self.store).assemble(QueryPlan(
+            query_text=statement, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=1,
+        ))
+        self.assertEqual(legacy_tie.atoms[0]["id"], old_id)
+        self.assertTrue(_prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids={target_id},
+        ))
 
     def test_r108_long_passage_emits_typed_atoms_with_one_episode_lineage(self) -> None:
         receipt = self.capture(
