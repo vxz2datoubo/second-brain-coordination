@@ -7,13 +7,16 @@
   "route_epoch": 134,
   "issue": 343,
   "branch": "codex/global-signal-plane-s0c-enterprise-r134",
-  "handoff_state": "IMPLEMENTATION_CI_PASS_AWAITING_GPT_REVIEW",
-  "implementation_head": "4d52115f6b8263c8d64ae4c8027bc4811e5ffcd6",
-  "implementation_ci": {"s0c_run": 31893360269, "phase_3_run": 31893360271, "python_311": "PASS", "python_313": "PASS"},
+  "handoff_state": "R134_BLOCKER_REMEDIATION_AWAITING_EXACT_HEAD_CI_AND_GPT_REVIEW",
+  "runtime_implementation_head": "a10bc9769d139b2ab35095018a3a3095c8c39173",
+  "reviewed_predecessor_head": "c150fbfbee2ab08c629b675a3fded396c9f65d5d",
+  "predecessor_ci": {"s0c_run": 31893620159, "phase_3_run": 31893620167, "python_311": "PASS", "python_313": "PASS", "scope": "PREDECESSOR_ONLY_NOT_R134_REMEDIATION_EVIDENCE"},
+  "post_remediation_ci": "PENDING_PUSH_OF_HANDOFF_SUCCESSOR_AND_EXACT_HEAD_GITHUB_ACTIONS",
   "scope": "PUBLIC_SAFE_OFFLINE_SYNTHETIC_ONLY",
   "review_requests": [
-    "Verify append-only SQLite history, idempotency collision rejection, and deterministic replay checksum.",
-    "Verify all GST-R001 through GST-R024 fixtures execute rather than merely enumerate identifiers.",
+    "Verify SQLite BEGIN IMMEDIATE projection CAS rejects exactly one stale independent writer and links advance durable input revision.",
+    "Verify unique durable idempotency keys, bounded backlog deferral, and material-priority admission are mechanism-derived.",
+    "Verify all GST-R001 through GST-R024 execute real guards, including local SHA-256 plus public-field R133 evidence binding.",
     "Verify Signal Plane never grants Control Tower, W3, Trace, domain, private, production, or trading authority."
   ],
   "locks_preserved": ["Harness", "S0D", "H2", "H7", "private bridge", "live connector", "W3/domain mutation", "production", "trading", "merge"]
