@@ -1,4 +1,4 @@
-schema_version: "0.1"
+schema_version: "0.2"
 contract_id: "SIGNAL-TOWER-MISSION-ROUTER-CONTRACT-0001"
 status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
 owner: "USER"
@@ -6,9 +6,27 @@ architecture_owner: "GPT"
 boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
 
 purpose: >-
-  Signal Tower is the user's single mission entry and system-facing coordination facade. It converts user intent into
-  a Mission + ProblemSignature request + MissionGraph proposal, asks Control Tower whether execution is allowed,
-  and aggregates results. It does not own knowledge truth, method truth, domain truth, or execution authorization.
+  Signal Tower is the user's single mission entry and system-facing coordination facade. Internally it is split into a
+  pre-Mission Global Signal Plane and this existing Mission Plane. The Signal Plane captures/reconciles ideas, status,
+  cross-window events and backlog references; this Mission Plane converts a valid SignalCluster/MissionCandidate or a
+  direct bounded user mission into Mission + ProblemSignature request + MissionGraph proposal, asks Control Tower
+  whether execution is allowed, and aggregates results. It does not own knowledge truth, method truth, domain truth,
+  trace truth, or execution authorization.
+
+plane_boundary:
+  unified_identity: "ONE_SIGNAL_TOWER"
+  pre_mission_contracts:
+    - "GLOBAL-SIGNAL-PLANE-CONTRACTS-0001"
+    - "GLOBAL-RECONCILIATION-RECEIPT-CONTRACT-0001"
+    - "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE-0001"
+    - "GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC-0001"
+  mission_plane: "THIS_CONTRACT"
+  normal_entry_precondition: "VALID_SIGNAL_CLUSTER_OR_MISSION_CANDIDATE + FRESH_GLOBAL_RECONCILIATION_RECEIPT"
+  direct_user_mission_exception: >-
+    A direct user request may enter the Mission Plane without waiting for backlog clustering only when the same turn
+    still performs the required global reconciliation before formal task release. Direct entry never bypasses Control Tower.
+  no_second_signal_tower: true
+  no_second_mission_router: true
 
 user_experience_contract:
   single_primary_entry: true
@@ -20,16 +38,32 @@ user_experience_contract:
   system_should_not_ask_user_to_repeat_known_context: true
   system_may_dispatch_zero_one_or_many_work_items: true
   system_must_explain_material_parallelism_or_blocking_when_relevant: true
+  capture_first_formalize_later: true
 
 intake_pipeline:
-  - id: ST-I0-CAPTURE
+  - id: ST-PRE-0-GLOBAL-SIGNAL-PLANE
+    owner_called: GLOBAL_SIGNAL_PLANE
     input: USER_MESSAGE_OR_SYSTEM_EVENT
+    outputs:
+      - SignalEvent/v1
+      - SignalCluster/v1_or_direct_MissionCandidate
+      - GlobalReconciliationReceipt/v1
+    hard_rules:
+      - "ideas may remain IDEA_ONLY/WATCH without becoming tasks"
+      - "cross-window state drift blocks formal task release"
+      - "Signal Plane cannot authorize execution"
+      - "no valid fresh reconciliation receipt means no new formal task release"
+
+  - id: ST-I0-CAPTURE-MISSION
+    input: VALID_SIGNAL_CLUSTER_OR_DIRECT_BOUNDED_USER_MISSION
     output: MissionDraft
     responsibilities:
       - preserve explicit user goal
       - preserve constraints and approvals
+      - preserve Signal/source refs and unresolved conflicts
       - classify immediate risk indicators
       - attach current conversation refs, not copied raw history
+      - bind the fresh GlobalReconciliationReceipt used for formal release planning
 
   - id: ST-I1-RETRIEVE-CONTINUITY
     input: MissionDraft
@@ -38,6 +72,7 @@ intake_pipeline:
       - current active routes
       - W3 context when material
       - current portfolio/domain state when relevant and available
+      - relevant failure/case/method refs when material
     output: ContinuityContextRef
     rule: "retrieve only relevant context, never mechanical full-load"
 
@@ -57,6 +92,7 @@ intake_pipeline:
       - "do not spawn Agent just to appear active"
       - "reuse current verified state where sufficient"
       - "material uncertainty may require evidence work"
+      - "new task release must re-check reconciliation receipt freshness immediately before publication"
 
   - id: ST-I4-MISSION-GRAPH
     input: [ProblemSignature, MethodExecutionPlan, evidence needs, resource hints]
@@ -77,22 +113,28 @@ intake_pipeline:
   - id: ST-I6-DISPATCH
     precondition: VALID_EXECUTION_AUTHORIZATION
     output: AuthorizedWorkflowRequest
-    runtime_target: HARNESS_ADAPTER
+    runtime_target: HARNESS_ADAPTER_FUTURE_OR_CURRENT_EXECUTOR_ROUTE
+    rule: >-
+      S0 pre-Mission synthetic implementation does not activate Harness. Until a future runtime route exists, external
+      executor dispatch remains governed by per-agent ACTIVE route + Control Tower witness.
 
   - id: ST-I7-MONITOR
     consumes:
-      - workflow status
+      - workflow_or_executor_status
       - native trace summaries
       - blocked/retry state
       - handoff readiness
+      - new Signal events touching the active Mission
     may_actions:
       - surface material blocker
       - request replanning
+      - request global reconciliation refresh
       - respect cancel
     may_not:
       - override retry budget
       - override W7
       - silently expand scope
+      - continue on stale route/claim/pr state
 
   - id: ST-I8-AGGREGATE
     consumes:
@@ -100,6 +142,7 @@ intake_pipeline:
       - Adjudication/v1
       - W7 gate result
       - unresolved refs
+      - latest relevant Signal/Outcome refs
     output: UserResult
     user_result_rules:
       - separate fact/inference/hypothesis/unknown
@@ -112,6 +155,7 @@ intake_pipeline:
       - outcome observation request where appropriate
       - W9 feedback link
       - unresolved watchpoint
+      - SignalEvent refs for material report/review/merge/close/outcome changes
     rule: "does not automatically schedule/monitor unless user or system policy authorizes"
 
 MissionRouterDecision_v1:
@@ -122,6 +166,7 @@ MissionRouterDecision_v1:
     - reasoning_class
     - proposed_work_items
     - control_tower_required
+    - reconciliation_receipt_ref
   fields:
     routing_decision_id: string
     mission_id: string
@@ -131,6 +176,7 @@ MissionRouterDecision_v1:
     dependency_ref: string_or_null
     resource_hint: [LIGHT, MEDIUM, HEAVY, MIXED]
     control_tower_required: boolean
+    reconciliation_receipt_ref: string
     user_approval_required: boolean
     approval_reason_ref: string_or_null
     abstention_reason_ref: string_or_null
@@ -161,6 +207,7 @@ routing_heuristics:
 parallelism_contract:
   MissionGraph_CAN_PARALLEL_WITH: "logical possibility only"
   actual_parallelism_requires:
+    - fresh GlobalReconciliationReceipt PASS
     - Control Tower PASS
     - distinct active-agent capacity or permitted runtime worker slots
     - no O3/O4 collision
@@ -174,6 +221,9 @@ cross_window_policy:
   chat_window_is_not_authority: true
   window_specific_history_should_be_durable_referenced: true
   Signal_Tower_may_ingest_requirements_from_multiple_windows: true
+  cross_window_reconciliation_required: true
+  stale_review_head_blocks_transition: true
+  route_workclaim_programlane_drift_blocks_new_release: true
   conflict_resolution:
     priority:
       - explicit_current_user_direction
@@ -184,6 +234,8 @@ cross_window_policy:
     rule: "semantic conflict cannot be silently overwritten; record decision/reason"
 
 return_rework_policy:
+  on_signal_state_drift:
+    return_to: GLOBAL_SIGNAL_PLANE_RECONCILIATION
   on_evidence_failure:
     return_to: EVIDENCE_VERIFIER_OR_SOURCE_OWNER
   on_method_failure:
@@ -206,13 +258,16 @@ anti_patterns:
   - "Signal Tower equates parallelizable with authorized parallel execution"
   - "Signal Tower silently turns user idea into production permission"
   - "Signal Tower hides material unresolved disagreement from user"
+  - "pre-Mission Signal Plane becomes a second Mission Router"
+  - "GlobalReconciliationReceipt is treated as execution authorization"
+  - "a stale receipt is reused after PR/route/main/claim material change"
 
 future_entry_surfaces:
   - ChatGPT conversation facade
   - desktop/mobile control UI
   - Maibot interface candidate
   - API/CLI candidate
-  rule: "all surfaces map into the same Mission contract and shared authority state"
+  rule: "all surfaces map into the same Signal Plane/Mission contracts and shared authority state"
 
 acceptance_tests:
   - "simple existing-state question produces ZERO_WORK"
@@ -221,6 +276,8 @@ acceptance_tests:
   - "stale Codex route is not dispatched"
   - "same canonical writer tasks serialize"
   - "W7 veto is surfaced and cannot be bypassed"
-  - "user cancel reaches Harness and owned descendants terminate"
+  - "user cancel reaches active executor/runtime and owned descendants terminate according to authority"
   - "cross-window conflicting requirements are surfaced as conflict, not silently merged"
   - "private/production/trading request hits explicit high-impact approval gate"
+  - "missing/stale GlobalReconciliationReceipt blocks new formal task publication"
+  - "CROSS_WINDOW_STATE_DRIFT R133 regression blocks release until reconciled"
