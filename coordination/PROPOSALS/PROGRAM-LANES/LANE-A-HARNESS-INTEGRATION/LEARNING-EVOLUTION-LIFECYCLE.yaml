@@ -1,0 +1,350 @@
+schema_version: "0.1"
+lifecycle_id: "COGNITIVE-OS-LEARNING-EVOLUTION-LIFECYCLE-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_AUTO_FORMAL_PROMOTION / NO_TRADE"
+
+first_principle: >-
+  Reflection is a hypothesis about why an episode succeeded or failed. Learning is an evidence-backed update to
+  knowledge/method/route/process candidates. Promotion is a separate governance event after cross-context validation.
+  These three must never collapse into one automatic step.
+
+learning_inputs:
+  - USER_CORRECTION
+  - VERIFIED_TOOL_RESULT
+  - INDEPENDENT_AUDIT_FINDING
+  - REAL_WORLD_OUTCOME
+  - FORECAST_VS_ACTUAL
+  - BACKTEST_OR_REPLAY_RESULT
+  - REGRESSION_FAILURE
+  - INCIDENT
+  - RESOURCE_FAILURE
+  - ROUTE_OR_AUTHORITY_FAILURE
+  - NEW_COUNTEREVIDENCE
+  - REGIME_SHIFT_SIGNAL
+
+stages:
+  L0_OBSERVE:
+    purpose: "capture outcome/correction without interpreting cause"
+    output: OutcomeObservation/v1
+    owner: W9_OUTCOME_LEARNING
+    required:
+      - decision_episode_id
+      - observed_at
+      - outcome_type
+      - outcome_ref
+      - source/provenance
+      - observation_confidence
+    forbidden:
+      - causal attribution
+      - skill promotion
+
+  L1_MATCH:
+    purpose: "bind the observation to the decision/claim/method/tool timeline"
+    output: OutcomeMatch/v1
+    owner: W9_OUTCOME_LEARNING
+    checks:
+      - episode identity
+      - valid time
+      - forecast horizon
+      - action/decision actually taken vs merely proposed
+      - confounders/unknowns
+    fail_closed: "unmatched outcome remains observation only"
+
+  L2_LOCALIZE:
+    purpose: "localize success/failure to the smallest defensible units"
+    output: FailureLocalization/v1
+    owner: W9_OUTCOME_LEARNING
+    candidate_targets:
+      - claim_id
+      - evidence_source
+      - retrieval_result
+      - method_id
+      - method_composition
+      - tool_call
+      - provider
+      - prompt_template
+      - challenge_policy
+      - adjudication
+      - route
+      - authority_contract
+      - resource_policy
+      - regime_assumption
+    rule: "do not attribute whole-episode outcome to last agent by default"
+
+  L3_REFLECT:
+    purpose: "generate competing explanations for why the outcome occurred"
+    output: ReflectionCandidate/v1
+    owner: W9_OUTCOME_LEARNING
+    required_fields:
+      - observed_facts
+      - candidate_explanations
+      - strongest_counterexplanation
+      - missing_evidence
+      - falsifiers
+      - confidence_class
+      - scope/applicability
+    hard_rule: "reflection is MODEL_INFERENCE/HYPOTHESIS, never OBSERVED_FACT"
+
+  L4_VERIFY_REFLECTION:
+    purpose: "test reflection against trace, artifacts, counterfactuals and independent evidence"
+    owners: [EVIDENCE_VERIFIER, W9_OUTCOME_LEARNING]
+    output: ReflectionVerification/v1
+    tests:
+      - trace alignment
+      - artifact existence
+      - alternative cause
+      - negative control
+      - counterfactual where possible
+      - luck/randomness
+      - regime/environment change
+      - delayed outcome ambiguity
+    dispositions:
+      - SUPPORTED_FOR_SCOPE
+      - PARTIAL
+      - REFUTED
+      - UNRESOLVED
+
+  L5_CREDIT:
+    purpose: "assign bounded credit/blame across components"
+    output: MethodCredit/v1
+    owner: W9_OUTCOME_LEARNING
+    dimensions:
+      selection_quality: "was method reasonable ex ante?"
+      execution_quality: "was method executed correctly?"
+      evidence_quality: "was evidence sufficient/current?"
+      outcome_quality: "what happened ex post?"
+      calibration_quality: "did confidence match evidence/outcome?"
+      transfer_quality: "did method generalize across contexts?"
+    rule: "outcome quality is not identical to decision/method quality"
+
+  L6_CREATE_CANDIDATE_UPDATES:
+    purpose: "produce targeted candidate updates, not direct truth mutation"
+    outputs:
+      - KnowledgeLifecycleCandidate/v1
+      - MethodHealthCandidate/v1
+      - RouterPolicyCandidate/v1
+      - ChallengePolicyCandidate/v1
+      - EngineeringLearningCandidate/v1
+      - RegressionCase/v1
+    owners:
+      knowledge: W3_SECOND_BRAIN
+      method_health: W9_OUTCOME_LEARNING
+      router_policy: METHOD_ROUTER_312
+      engineering: W9_OUTCOME_LEARNING
+    allowed_actions:
+      - SUPPORT
+      - WEAKEN
+      - REFINE
+      - REVALIDATE
+      - SUPERSEDE
+      - REVOKE
+      - RESOLVE_UNKNOWN
+      - ADD_FAILURE_CONDITION
+      - ADD_APPLICABILITY_CONDITION
+      - REQUIRE_REVALIDATION
+
+  L7_REGRESSION:
+    purpose: "turn useful episode into replayable positive/negative/adversarial cases"
+    output: RegressionCase/v1
+    owner: W9_OUTCOME_LEARNING
+    case_types:
+      - POSITIVE
+      - NEGATIVE
+      - ADVERSARIAL
+      - COUNTERFACTUAL
+      - REGIME_SHIFT
+      - PRIVACY_AUTHORITY
+      - RESOURCE_FAILURE
+      - FALSE_GREEN
+    requirements:
+      - immutable source refs
+      - expected invariant/outcome class
+      - no future-data leakage for PIT cases
+      - explicit failure condition
+
+  L8_REVALIDATE:
+    purpose: "test candidate learning beyond the source episode"
+    output: RevalidationReceipt/v1
+    required_tests:
+      - synthetic
+      - original-case replay
+      - holdout case where available
+      - cross-context
+      - negative control
+      - parameter/wording sensitivity when applicable
+      - regime difference
+      - rollback
+    valid_dispositions:
+      - FAIL
+      - PARTIAL
+      - PASS_FOR_NARROW_SCOPE
+      - PASS_CROSS_CONTEXT
+
+  L9_PROMOTE_OR_DEGRADE:
+    purpose: "govern maturity state"
+    authority: EXISTING_FORMAL_SKILL_GOVERNANCE
+    input: RevalidationReceipt/v1
+    outputs:
+      - maturity_transition
+      - scope_change
+      - health_change
+      - rollback_ref
+    user_gate_when:
+      - high-impact authority change
+      - private/production permission change
+      - financial execution effect
+      - irreversible architecture
+
+  L10_MONITOR:
+    purpose: "continue checking after promotion"
+    owner: W9_OUTCOME_LEARNING
+    signals:
+      - error rate
+      - false block rate
+      - negative transfer
+      - stale/regime mismatch
+      - calibration drift
+      - challenge health
+      - cost/latency blowup
+    outputs:
+      - HEALTHY
+      - WATCH
+      - REVALIDATION_REQUIRED
+      - WEAKENED
+      - DEGRADED
+      - RETIRE_CANDIDATE
+
+skill_maturity_states:
+  - DISCOVERED_INSIGHT
+  - KNOWLEDGE_CANDIDATE
+  - METHOD_CANDIDATE
+  - SKILL_CANDIDATE
+  - SYNTHETIC_TESTED
+  - REAL_CASE_TESTED
+  - CROSS_CONTEXT_VALIDATED
+  - FORMAL_SKILL
+  - REVALIDATION_REQUIRED
+  - DEGRADED
+  - RETIRED
+
+skill_transition_guards:
+  DISCOVERED_INSIGHT_to_KNOWLEDGE_CANDIDATE:
+    requires: [provenance, epistemic_type, scope]
+  KNOWLEDGE_CANDIDATE_to_METHOD_CANDIDATE:
+    requires: [mechanism, when_to_use, prerequisites, failure_conditions]
+  METHOD_CANDIDATE_to_SKILL_CANDIDATE:
+    requires: [repeatable_procedure, input_output_contract, termination, tests]
+  SKILL_CANDIDATE_to_SYNTHETIC_TESTED:
+    requires: [synthetic_suite_pass, negative_cases]
+  SYNTHETIC_TESTED_to_REAL_CASE_TESTED:
+    requires: [real_or_historical_case, evidence_receipt]
+  REAL_CASE_TESTED_to_CROSS_CONTEXT_VALIDATED:
+    requires: [multiple_contexts_or_regimes, holdout_or_counterfactual]
+  CROSS_CONTEXT_VALIDATED_to_FORMAL_SKILL:
+    requires: [formal_governance_gate, rollback, health_baseline]
+  FORMAL_SKILL_to_REVALIDATION_REQUIRED:
+    triggers: [regime_shift, new_counterevidence, drift, repeated_failure]
+  any_to_DEGRADED:
+    triggers: [false_block_rate, negative_transfer, evidence_decay, implementation_regression]
+  DEGRADED_to_RETIRED:
+    requires: [persistent_failure_or_replacement, migration_plan]
+
+anti_self_delusion_invariants:
+  - "model reflection cannot self-certify correctness"
+  - "same-agent agreement is not independent evidence"
+  - "majority vote is not truth"
+  - "good financial outcome may be luck"
+  - "bad financial outcome may occur despite sound decision"
+  - "correlation does not become causal learning without evidence"
+  - "missing outcome must not be silently treated as success"
+  - "user correction is authoritative for user-intent/preferences, not automatically objective external fact"
+  - "source popularity does not imply source independence"
+  - "a method cannot gain maturity from duplicated/syndicated evidence counted as multiple independent sources"
+
+MethodCredit_v1:
+  required:
+    - method_credit_id
+    - decision_episode_id
+    - method_ref
+    - ex_ante_selection_quality
+    - execution_quality
+    - outcome_quality
+    - attribution_confidence
+    - evidence_refs
+  fields:
+    method_credit_id: string
+    decision_episode_id: string
+    method_ref: string
+    scope_ref: string
+    regime_ref: string
+    ex_ante_selection_quality: [GOOD, MIXED, BAD, UNKNOWN]
+    execution_quality: [GOOD, MIXED, BAD, UNKNOWN]
+    evidence_quality: [HIGH, MEDIUM, LOW, UNKNOWN]
+    outcome_quality: [POSITIVE, NEUTRAL, NEGATIVE, NOT_OBSERVED, AMBIGUOUS]
+    calibration_quality: [GOOD, MIXED, BAD, UNKNOWN]
+    attribution_confidence: [HIGH, MEDIUM, LOW]
+    evidence_refs: array
+    counterevidence_refs: array
+    confounder_refs: array
+    proposed_health_effect: [SUPPORT, WEAKEN, REQUIRE_REVALIDATION, NONE]
+
+SkillHealth_v1:
+  required: [skill_ref, status, scope, evaluated_at]
+  fields:
+    skill_ref: string
+    status: [HEALTHY, WATCH, REVALIDATION_REQUIRED, WEAKENED, DEGRADED, RETIRE_CANDIDATE, RETIRED]
+    scope: string
+    regime_refs: array
+    success_case_refs: array
+    failure_case_refs: array
+    negative_transfer_refs: array
+    last_revalidation_ref: string_or_null
+    next_validation_condition: string_or_null
+    evaluated_at: timestamp
+
+router_learning:
+  inputs:
+    - method_credit
+    - missed_material_method
+    - false_positive_method_activation
+    - prerequisite_violation
+    - abstention_quality
+    - challenge_false_block
+    - token_latency_cost
+  output: RouterPolicyCandidate/v1
+  hard_rule: "router policy update must pass offline eval before activation"
+
+challenge_learning:
+  track:
+    - challenge_precision
+    - material_error_catch_rate
+    - false_block_rate
+    - agreement_collapse
+    - evidence_gain
+    - adjudicator_order_sensitivity
+  health_effects:
+    - "auditor repeatedly wrong => WEAKEN/DEGRADED candidate"
+    - "challenge catches high-impact failures => scoped support"
+    - "no universal escalation to more agents"
+
+architecture_learning:
+  if_failure_category_in:
+    - COORDINATION_ERROR
+    - AUTHORITY_ERROR
+    - TRACE_ERROR
+    - RESOURCE_ERROR
+    - PERMISSION_ERROR
+  then:
+    - create EngineeringLearningCandidate
+    - create RegressionCase
+    - propose DepartmentContract/ControlTower/Adapter policy change
+    - require validator + model-check + rollback before acceptance
+
+stop_conditions:
+  - "insufficient outcome identity => stop at L0/L1"
+  - "causal attribution unresolved => learning remains hypothesis/partial"
+  - "value of further validation < cost => preserve bounded uncertainty"
+  - "privacy/authority conflict => fail closed"
+  - "promotion evidence insufficient => retain current maturity"

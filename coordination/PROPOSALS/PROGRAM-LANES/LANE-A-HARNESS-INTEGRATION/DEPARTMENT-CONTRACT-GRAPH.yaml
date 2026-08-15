@@ -1,0 +1,405 @@
+schema_version: "0.2"
+graph_id: "COGNITIVE-OS-DEPARTMENT-CONTRACT-GRAPH-0001"
+status: "ARCHITECTURE_CANDIDATE_PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_TRADE / NO_RUNTIME_AUTHORIZATION"
+canonical_base: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+
+graph_semantics:
+  department_nodes_are_authority_or_service_components: true
+  role_template_nodes_are_ephemeral_execution_roles: true
+  root_entities: [USER]
+  dynamic_return_aliases_must_resolve_from_trace: true
+  unknown_edge_endpoint_is_validation_error: true
+  role_template_never_gains_authority_by_execution: true
+
+dynamic_return_aliases:
+  SOURCE_CALLER:
+    resolution: "resolve producer/caller from current FormalHandoff upstream lineage"
+    allowed_targets: "ANY_DECLARED_DEPARTMENT_OR_ROLE_TEMPLATE_WITH_MATCHING_HANDOFF"
+  DOMAIN_CALLER:
+    resolution: "resolve domain request origin from DecisionEpisode + TraceLedger"
+    allowed_targets: "ANY_DECLARED_DOMAIN_CONSUMER_WITH_MATCHING_REQUEST"
+  RESPONSIBLE_UPSTREAM:
+    resolution: "resolve the nearest upstream owner responsible for the failed gate condition"
+    allowed_targets: [PRIMARY_PRODUCER, METHOD_ROUTER_312, EVIDENCE_VERIFIER, W2_MARKET_DATA_RULES, W4_STRATEGY_EXPERIMENT, W5_EVENT_INTELLIGENCE, W6_PARTICIPANT_GAME, W10_COGNITIVE_OS, W11_CAPITAL_ALLOCATION, W12_DECISION_SCIENCE, W13_FLOW_EVIDENCE, SIGNAL_TOWER]
+  PRODUCER_OR_EVIDENCE_VERIFIER:
+    resolution: "claim/reason-code decides whether rework belongs to Primary Producer or Evidence Verifier"
+    allowed_targets: [PRIMARY_PRODUCER, EVIDENCE_VERIFIER]
+  PRODUCER_OR_SIGNAL_TOWER:
+    resolution: "reworkable analytical defect returns to Primary Producer; terminal/mission-level disposition returns to Signal Tower"
+    allowed_targets: [PRIMARY_PRODUCER, SIGNAL_TOWER]
+
+authority_domains:
+  USER_HIGH_IMPACT_APPROVAL: USER
+  MISSION_INTAKE_AND_RESULT_AGGREGATION: SIGNAL_TOWER
+  METHOD_SELECTION_POLICY: METHOD_ROUTER_312
+  EXECUTION_AUTHORIZATION_AND_WIP: CONTROL_TOWER_310
+  RUNTIME_ORCHESTRATION: HARNESS_RUNTIME
+  KNOWLEDGE_MEMORY_LIFECYCLE: W3_SECOND_BRAIN
+  A_SHARE_DATA_AND_RULES: W2_MARKET_DATA_RULES
+  STRATEGY_EXPERIMENT: W4_STRATEGY_EXPERIMENT
+  EVENT_EVIDENCE: W5_EVENT_INTELLIGENCE
+  PARTICIPANT_HYPOTHESIS: W6_PARTICIPANT_GAME
+  FINAL_RISK_VETO: W7_VALIDATION_RISK
+  OUTCOME_CALIBRATION_AND_LEARNING: W9_OUTCOME_LEARNING
+  DECISION_EPISODE_METACOGNITION: W10_COGNITIVE_OS
+  CAPITAL_ALLOCATION: W11_CAPITAL_ALLOCATION
+  DECISION_SCIENCE_AND_METHOD_GAPS: W12_DECISION_SCIENCE
+  PARTICIPANT_FLOW_EVIDENCE: W13_FLOW_EVIDENCE
+
+departments:
+  - id: SIGNAL_TOWER
+    node_kind: DEPARTMENT
+    class: MISSION_ROUTER
+    authority_domain: MISSION_INTAKE_AND_RESULT_AGGREGATION
+    consumes: [USER_REQUEST, CURRENT_SYSTEM_STATE, PROBLEM_SIGNATURE, CONTROL_TOWER_DECISION, FINAL_HANDOFF]
+    produces: [MISSION, MISSION_GRAPH, WORK_ITEM_PROPOSAL, USER_RESULT]
+    may_review: []
+    may_challenge: []
+    may_verify: []
+    may_veto: []
+    return_to: [USER]
+    escalation_target: USER
+    required_trace_level: FULL_MISSION_LINEAGE
+    retry_policy: BOUNDED_BY_CONTROL_TOWER
+
+  - id: METHOD_ROUTER_312
+    node_kind: DEPARTMENT
+    class: META_REASONING
+    authority_domain: METHOD_SELECTION_POLICY
+    consumes: [PROBLEM_SIGNATURE, W3_CONTEXT_BUNDLE, METHOD_MEMORY, SKILL_MANIFEST_PROJECTION, FAILURE_CASES, TOOL_CAPABILITIES, REGIME_CONTEXT]
+    produces: [METHOD_SELECTION_DECISION, METHOD_COMPOSITION_CANDIDATE, EVIDENCE_ACQUISITION_PLAN, CHALLENGE_POLICY_REQUEST, ABSTENTION]
+    may_review: [METHOD_COMPATIBILITY]
+    may_challenge: []
+    may_verify: []
+    may_veto: [METHOD_USE_WHEN_PREREQUISITES_MISSING]
+    return_to: [SIGNAL_TOWER]
+    escalation_target: USER
+    required_trace_level: METHOD_SELECTION_TRACE
+    retry_policy: VALUE_OF_INFORMATION_BOUNDED
+
+  - id: CONTROL_TOWER_310
+    node_kind: DEPARTMENT
+    class: GOVERNANCE
+    authority_domain: EXECUTION_AUTHORIZATION_AND_WIP
+    consumes: [MISSION_GRAPH, WORK_ITEM_PROPOSAL, ACTIVE_ROUTES, WORK_CLAIMS, RESOURCE_STATE, AUTHORITY_MAP]
+    produces: [AUTHORIZATION_DECISION, QUEUE_DECISION, COLLISION_REPORT, DURABLE_WITNESS]
+    may_review: [ROUTE_BINDING, WORK_CLAIM, O0_O4_OVERLAP]
+    may_challenge: []
+    may_verify: [COMMIT_TIME_FRESHNESS]
+    may_veto: [UNAUTHORIZED_EXECUTION, O3_O4_COLLISION, SAME_AGENT_DOUBLE_BOOK, HEAVY_RESOURCE_COLLISION]
+    return_to: [SIGNAL_TOWER]
+    escalation_target: USER
+    required_trace_level: GOVERNANCE_TRACE
+    retry_policy: RECONCILE_THEN_REEVALUATE
+
+  - id: HARNESS_RUNTIME
+    node_kind: DEPARTMENT
+    class: ORCHESTRATION_KERNEL
+    authority_domain: RUNTIME_ORCHESTRATION
+    consumes: [AUTHORIZED_WORKFLOW, ADAPTER_CONTRACT, TOOL_CAPABILITIES, PROVIDER_CONFIGURATION]
+    produces: [SESSION_EVENTS, WORKFLOW_EVENTS, TOOL_RESULTS, SUBAGENT_RESULTS, RUNTIME_STATUS]
+    may_review: []
+    may_challenge: []
+    may_verify: [RUNTIME_HEALTH]
+    may_veto: [RUNTIME_UNAVAILABLE, RESOURCE_LIMIT_EXCEEDED]
+    return_to: [SIGNAL_TOWER, CONTROL_TOWER_310]
+    escalation_target: CONTROL_TOWER_310
+    required_trace_level: NATIVE_RAW_TRACE
+    retry_policy: BOUNDED_WORKFLOW_POLICY
+
+  - id: W3_SECOND_BRAIN
+    node_kind: DEPARTMENT
+    class: KNOWLEDGE_MEMORY_AUTHORITY
+    authority_domain: KNOWLEDGE_MEMORY_LIFECYCLE
+    consumes: [SOURCE_EPISODE, KNOWLEDGE_CANDIDATE, MEMORY_CANDIDATE, FEEDBACK_EVENT, LIFECYCLE_UPDATE]
+    produces: [QUERY_PLAN_RESULT, CONTEXT_BUNDLE, CONFLICTS, UNKNOWNS, PROVENANCE, LIFECYCLE_STATE]
+    may_review: [RETRIEVAL_BEFORE_WRITE_RECONCILIATION]
+    may_challenge: []
+    may_verify: [SCOPE_PRIVACY_PROVENANCE_TIME]
+    may_veto: [CROSS_SCOPE_WRITE, UNSAFE_KNOWLEDGE_LIFECYCLE_TRANSITION]
+    return_to: [SOURCE_CALLER]
+    escalation_target: USER
+    required_trace_level: KNOWLEDGE_PROVENANCE_TRACE
+    retry_policy: FAIL_CLOSED_ON_AUTHORITY_OR_PRIVACY
+
+  - id: PRIMARY_PRODUCER
+    node_kind: ROLE_TEMPLATE
+    class: PRIMARY_ANALYSIS_OR_IMPLEMENTATION_ROLE
+    authority_domain: NONE
+    consumes: [AUTHORIZED_WORK_ITEM, PROBLEM_SIGNATURE, W3_CONTEXT_BUNDLE, METHOD_EXECUTION_PLAN, EVIDENCE_PLAN, DOMAIN_INPUTS]
+    produces: [PRIMARY_CLAIMS, PRIMARY_HANDOFF, EVIDENCE_REQUESTS, ARTIFACT_REFS]
+    may_review: []
+    may_challenge: []
+    may_verify: [SELF_CONSISTENCY_ONLY_NONAUTHORITATIVE]
+    may_veto: []
+    return_to: [SIGNAL_TOWER, METHOD_ROUTER_312]
+    escalation_target: SIGNAL_TOWER
+    required_trace_level: PRIMARY_EXECUTION_TRACE
+    retry_policy: REWORK_REQUEST_BOUNDED
+
+  - id: EFFECTIVE_CHALLENGE_MESH
+    node_kind: DEPARTMENT
+    class: CHALLENGE_POLICY_EXECUTION_COORDINATOR
+    authority_domain: NONE
+    consumes: [PRIMARY_CLAIMS, CANONICAL_EVIDENCE_REFS, CHALLENGE_LEVEL, MATERIALITY, RISK_CLASS]
+    produces: [CHALLENGE_ROLE_REQUEST, VERIFICATION_REQUESTS, CHALLENGE_CASE_SET]
+    may_review: [MATERIAL_CLAIMS]
+    may_challenge: [PRIMARY_REASONING, METHOD_CHOICE, CAUSAL_ATTRIBUTION]
+    may_verify: []
+    may_veto: []
+    return_to: [PRODUCER_OR_EVIDENCE_VERIFIER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: INDEPENDENT_PASS_AND_REVEAL_TRACE
+    retry_policy: VALUE_OF_INFORMATION_BOUNDED
+
+  - id: CHALLENGER
+    node_kind: ROLE_TEMPLATE
+    class: INDEPENDENT_CHALLENGE_ROLE
+    authority_domain: NONE
+    consumes: [CANONICAL_EVIDENCE_REFS, PROBLEM_SIGNATURE, METHOD_SELECTION_REF, CHALLENGE_LEVEL]
+    produces: [INDEPENDENT_CLAIM_SET, CHALLENGE_CASES, ALTERNATIVE_HYPOTHESES, VERIFICATION_REQUESTS]
+    may_review: [PRIMARY_CLAIMS_AFTER_REVEAL]
+    may_challenge: [PRIMARY_REASONING, METHOD_CHOICE, CAUSAL_ATTRIBUTION, MISSING_ASSUMPTIONS]
+    may_verify: []
+    may_veto: []
+    return_to: [EFFECTIVE_CHALLENGE_MESH]
+    escalation_target: EVIDENCE_VERIFIER
+    required_trace_level: INDEPENDENT_PASS_AND_REVEAL_TRACE
+    retry_policy: NO_IDENTICAL_BLIND_RETRY
+
+  - id: EVIDENCE_VERIFIER
+    node_kind: DEPARTMENT
+    class: TOOL_GROUNDED_VERIFICATION
+    authority_domain: NONE
+    consumes: [CLAIM, VERIFICATION_REQUEST, SOURCE_POLICY, TOOL_ACCESS]
+    produces: [VERIFICATION_RESULT, EVIDENCE_REFS, COUNTEREVIDENCE_REFS, UNKNOWN]
+    may_review: []
+    may_challenge: [SOURCE_QUALITY]
+    may_verify: [CLAIMS]
+    may_veto: []
+    return_to: [EFFECTIVE_CHALLENGE_MESH, ADJUDICATOR, PRIMARY_PRODUCER]
+    escalation_target: ADJUDICATOR
+    required_trace_level: TOOL_AND_SOURCE_TRACE
+    retry_policy: SOURCE_POLICY_AND_BUDGET_BOUNDED
+
+  - id: ADJUDICATOR
+    node_kind: DEPARTMENT
+    class: EVIDENCE_ADJUDICATION
+    authority_domain: NONE
+    consumes: [PRIMARY_CLAIMS, CHALLENGE_CASES, VERIFICATION_RESULTS, EVIDENCE_CONTRACT]
+    produces: [ADJUDICATION, UNRESOLVED_CLAIMS, REWORK_REQUEST, ABSTENTION]
+    may_review: [CLAIM_EVIDENCE_ALIGNMENT]
+    may_challenge: []
+    may_verify: []
+    may_veto: []
+    return_to: [PRODUCER_OR_SIGNAL_TOWER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: BLINDED_ORDER_AND_RUBRIC_TRACE
+    retry_policy: NO_INFINITE_DEBATE
+
+  - id: W2_MARKET_DATA_RULES
+    node_kind: DEPARTMENT
+    class: A_SHARE_DOMAIN
+    authority_domain: A_SHARE_DATA_AND_RULES
+    consumes: [MARKET_DATA, RULE_SNAPSHOT, REPLAY_REQUEST]
+    produces: [POINT_IN_TIME_DATA, RULE_VALIDATION, REPLAY_EVIDENCE]
+    may_verify: [MARKET_OBSERVATION]
+    may_veto: [INVALID_POINT_IN_TIME_DATA]
+    return_to: [DOMAIN_CALLER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: DATA_LINEAGE_TRACE
+    retry_policy: DATA_SOURCE_POLICY
+
+  - id: W4_STRATEGY_EXPERIMENT
+    node_kind: DEPARTMENT
+    class: A_SHARE_DOMAIN
+    authority_domain: STRATEGY_EXPERIMENT
+    consumes: [FEATURES, METHOD_CANDIDATE, REPLAY_DATA, COST_MODEL]
+    produces: [EXPERIMENT_RESULT, BACKTEST_RECEIPT, FAILURE_CONDITIONS]
+    may_verify: [STRATEGY_OR_FACTOR_CLAIM]
+    may_veto: []
+    return_to: [METHOD_ROUTER_312, W12_DECISION_SCIENCE]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: EXPERIMENT_REPRODUCIBILITY_TRACE
+    retry_policy: WALK_FORWARD_AND_SENSITIVITY_BOUNDED
+
+  - id: W5_EVENT_INTELLIGENCE
+    node_kind: DEPARTMENT
+    class: A_SHARE_DOMAIN
+    authority_domain: EVENT_EVIDENCE
+    consumes: [FIRST_PARTY_SOURCES, EVENT_SCAN_REQUEST, PIT_BACKFILL_REQUEST]
+    produces: [EVENT_COVERAGE_REPORT, EVENT_EVIDENCE_PACKET, MISSING_EVENT_GAPS]
+    may_verify: [EVENT_EXISTENCE, EVENT_TIMING]
+    may_veto: []
+    return_to: [EVIDENCE_VERIFIER, SIGNAL_TOWER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: SOURCE_AND_POINT_IN_TIME_TRACE
+    retry_policy: SOURCE_COVERAGE_BOUNDED
+
+  - id: W6_PARTICIPANT_GAME
+    node_kind: DEPARTMENT
+    class: A_SHARE_DOMAIN
+    authority_domain: PARTICIPANT_HYPOTHESIS
+    consumes: [MARKET_EVIDENCE, EVENT_EVIDENCE, FLOW_EVIDENCE, REGIME_CONTEXT]
+    produces: [COMPETING_PARTICIPANT_HYPOTHESES, OBSERVABLE_IMPLICATIONS, FALSIFIERS]
+    may_challenge: [SINGLE_ACTOR_STORY]
+    may_verify: []
+    may_veto: []
+    return_to: [ADJUDICATOR]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: HYPOTHESIS_TRACE
+    retry_policy: KEEP_MULTIPLE_HYPOTHESES_WHEN_UNRESOLVED
+
+  - id: W13_FLOW_EVIDENCE
+    node_kind: DEPARTMENT
+    class: A_SHARE_DOMAIN
+    authority_domain: PARTICIPANT_FLOW_EVIDENCE
+    consumes: [L2_OR_TICK_DATA, PRICE_VOLUME_DATA]
+    produces: [FLOW_EVIDENCE_PACKET, OBSERVABLE_FLOW_FEATURES, DATA_GRADE]
+    may_verify: [FLOW_OBSERVATION]
+    may_veto: [LOW_DATA_GRADE_FOR_FLOW_CLAIM]
+    return_to: [W6_PARTICIPANT_GAME, EVIDENCE_VERIFIER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: MARKET_DATA_LINEAGE_TRACE
+    retry_policy: DATA_GRADE_BOUNDED
+
+  - id: W12_DECISION_SCIENCE
+    node_kind: DEPARTMENT
+    class: DECISION_SCIENCE
+    authority_domain: DECISION_SCIENCE_AND_METHOD_GAPS
+    consumes: [ADJUDICATED_CLAIMS, UNCERTAINTY, REGIME_CONTEXT, COSTS, ALTERNATIVES]
+    produces: [DECISION_ANALYSIS, VALUE_OF_INFORMATION, STOP_RESEARCH_DECISION, METHOD_GAP]
+    may_review: [PROBABILITY_AND_DECISION_LOGIC]
+    may_challenge: [FALSE_PRECISION, OVERRESEARCH]
+    may_verify: []
+    may_veto: [RESEARCH_WHEN_VALUE_OF_INFORMATION_NEGATIVE]
+    return_to: [SIGNAL_TOWER, W10_COGNITIVE_OS]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: DECISION_LOGIC_TRACE
+    retry_policy: VALUE_OF_INFORMATION_STOPPING
+
+  - id: W10_COGNITIVE_OS
+    node_kind: DEPARTMENT
+    class: METACOGNITION
+    authority_domain: DECISION_EPISODE_METACOGNITION
+    consumes: [DECISION_EPISODE, DECISION_ANALYSIS, USER_COGNITIVE_MAP, TASK_CONTEXT]
+    produces: [METACOGNITIVE_AUDIT, DECISION_EPISODE_STATE]
+    may_review: [ASSUMPTIONS, COGNITIVE_GAPS, DECISION_PROCESS]
+    may_challenge: [OVERCONFIDENCE, MISSING_ASSUMPTION]
+    may_verify: []
+    may_veto: []
+    return_to: [SIGNAL_TOWER]
+    escalation_target: W7_VALIDATION_RISK
+    required_trace_level: DECISION_EPISODE_TRACE
+    retry_policy: BOUNDED_METACOGNITIVE_PASS
+
+  - id: W11_CAPITAL_ALLOCATION
+    node_kind: DEPARTMENT
+    class: CAPITAL_ALLOCATION
+    authority_domain: CAPITAL_ALLOCATION
+    consumes: [VALIDATED_PROBABILITIES, RISK_BUDGET, PORTFOLIO_STATE, COSTS]
+    produces: [ALLOCATION_RECOMMENDATION, EXPOSURE_CONSTRAINTS]
+    may_review: [PORTFOLIO_INTERACTION]
+    may_veto: []
+    return_to: [W7_VALIDATION_RISK]
+    escalation_target: USER
+    required_trace_level: ALLOCATION_TRACE
+    retry_policy: NONE_WITHOUT_NEW_INPUT
+
+  - id: W7_VALIDATION_RISK
+    node_kind: DEPARTMENT
+    class: FINAL_VALIDATION
+    authority_domain: FINAL_RISK_VETO
+    consumes: [ADJUDICATION, DOMAIN_RESULTS, DECISION_ANALYSIS, OPTIONAL_ALLOCATION_RECOMMENDATION, TRACE_COMPLETENESS]
+    produces: [PASS, VETO, RETURN_FOR_REWORK, ABSTAIN, HUMAN_GATE]
+    may_review: [ALL_MATERIAL_HIGH_RISK_OUTPUTS]
+    may_challenge: [MISSING_RISK_CONTROL]
+    may_verify: [FINAL_GATE_CONDITIONS]
+    may_veto: [FINAL_OUTPUT_OR_ACTION]
+    return_to: [RESPONSIBLE_UPSTREAM]
+    escalation_target: USER
+    required_trace_level: FINAL_GATE_TRACE
+    retry_policy: ONLY_AFTER_MATERIAL_CHANGE
+
+  - id: W9_OUTCOME_LEARNING
+    node_kind: DEPARTMENT
+    class: OUTCOME_AND_LEARNING
+    authority_domain: OUTCOME_CALIBRATION_AND_LEARNING
+    consumes: [DECISION_EPISODE, OUTCOME_OR_CORRECTION_OR_AUDIT, TRACE_ROOT, CLAIM_GRAPH, METHOD_SELECTION, TOOL_RESULTS]
+    produces: [OUTCOME_AUDIT, FAILURE_LOCALIZATION, METHOD_CREDIT, SKILL_HEALTH_UPDATE_CANDIDATE, REGRESSION_CASE, REFLECTION_CANDIDATE]
+    may_review: [FORECAST_VS_ACTUAL, PROCESS_FAILURE, USER_CORRECTION, AUDIT_FINDING]
+    may_challenge: [SUCCESS_STORY, FAILURE_STORY]
+    may_verify: [OUTCOME_MATCHING, CORRECTION_BINDING, AUDIT_BINDING]
+    may_veto: [UNSUPPORTED_SKILL_PROMOTION]
+    return_to: [W3_SECOND_BRAIN, METHOD_ROUTER_312]
+    escalation_target: USER
+    required_trace_level: OUTCOME_ATTRIBUTION_TRACE
+    retry_policy: REOPEN_ON_NEW_MATERIAL_EVIDENCE
+
+edges:
+  - {from: SIGNAL_TOWER, to: METHOD_ROUTER_312, type: REQUESTS_FROM, artifact: PROBLEM_SIGNATURE_AND_METHOD_PLAN}
+  - {from: METHOD_ROUTER_312, to: W3_SECOND_BRAIN, type: READS_FROM, artifact: CONTEXT_BUNDLE_AND_METHOD_MEMORY}
+  - {from: SIGNAL_TOWER, to: CONTROL_TOWER_310, type: REQUESTS_FROM, artifact: EXECUTION_AUTHORIZATION}
+  - {from: CONTROL_TOWER_310, to: HARNESS_RUNTIME, type: HANDOFF_TO, artifact: AUTHORIZED_WORKFLOW}
+  - {from: HARNESS_RUNTIME, to: PRIMARY_PRODUCER, type: HANDOFF_TO, artifact: AUTHORIZED_ROLE_CONTEXT}
+  - {from: PRIMARY_PRODUCER, to: SIGNAL_TOWER, type: HANDOFF_TO, artifact: PRIMARY_HANDOFF}
+  - {from: PRIMARY_PRODUCER, to: EFFECTIVE_CHALLENGE_MESH, type: HANDOFF_TO, artifact: PRIMARY_CLAIMS_FOR_CHALLENGE}
+  - {from: METHOD_ROUTER_312, to: EFFECTIVE_CHALLENGE_MESH, type: REQUESTS_FROM, artifact: CHALLENGE_POLICY}
+  - {from: EFFECTIVE_CHALLENGE_MESH, to: CHALLENGER, type: HANDOFF_TO, artifact: BLIND_CHALLENGE_CONTEXT}
+  - {from: CHALLENGER, to: EFFECTIVE_CHALLENGE_MESH, type: HANDOFF_TO, artifact: INDEPENDENT_CHALLENGE_RESULT}
+  - {from: EFFECTIVE_CHALLENGE_MESH, to: EVIDENCE_VERIFIER, type: REQUESTS_FROM, artifact: VERIFICATION_REQUESTS}
+  - {from: CHALLENGER, to: EVIDENCE_VERIFIER, type: REQUESTS_FROM, artifact: CHALLENGE_VERIFICATION_REQUESTS}
+  - {from: EVIDENCE_VERIFIER, to: ADJUDICATOR, type: HANDOFF_TO, artifact: VERIFICATION_RESULTS}
+  - {from: EFFECTIVE_CHALLENGE_MESH, to: ADJUDICATOR, type: HANDOFF_TO, artifact: CHALLENGE_CASES}
+  - {from: PRIMARY_PRODUCER, to: ADJUDICATOR, type: HANDOFF_TO, artifact: PRIMARY_CLAIMS}
+  - {from: ADJUDICATOR, to: W12_DECISION_SCIENCE, type: HANDOFF_TO, artifact: ADJUDICATED_CLAIMS}
+  - {from: W12_DECISION_SCIENCE, to: W10_COGNITIVE_OS, type: PRODUCES_FOR, artifact: DECISION_ANALYSIS}
+  - {from: W10_COGNITIVE_OS, to: W7_VALIDATION_RISK, type: HANDOFF_TO, artifact: METACOGNITIVE_AUDIT}
+  - {from: W11_CAPITAL_ALLOCATION, to: W7_VALIDATION_RISK, type: HANDOFF_TO, artifact: ALLOCATION_RECOMMENDATION}
+  - {from: W7_VALIDATION_RISK, to: SIGNAL_TOWER, type: HANDOFF_TO, artifact: FINAL_GATE_RESULT}
+  - {from: SIGNAL_TOWER, to: W9_OUTCOME_LEARNING, type: FEEDBACK_TO, artifact: OUTCOME_CORRECTION_OR_AUDIT_AND_DECISION_EPISODE}
+  - {from: W9_OUTCOME_LEARNING, to: W3_SECOND_BRAIN, type: FEEDBACK_TO, artifact: KNOWLEDGE_AND_LIFECYCLE_CANDIDATES}
+  - {from: W9_OUTCOME_LEARNING, to: METHOD_ROUTER_312, type: FEEDBACK_TO, artifact: METHOD_CREDIT_AND_SKILL_HEALTH}
+  - {from: W5_EVENT_INTELLIGENCE, to: EVIDENCE_VERIFIER, type: PRODUCES_FOR, artifact: EVENT_EVIDENCE_PACKET}
+  - {from: W2_MARKET_DATA_RULES, to: EVIDENCE_VERIFIER, type: PRODUCES_FOR, artifact: PIT_MARKET_EVIDENCE}
+  - {from: W13_FLOW_EVIDENCE, to: W6_PARTICIPANT_GAME, type: PRODUCES_FOR, artifact: FLOW_EVIDENCE_PACKET}
+  - {from: W6_PARTICIPANT_GAME, to: ADJUDICATOR, type: PRODUCES_FOR, artifact: COMPETING_HYPOTHESES}
+  - {from: W4_STRATEGY_EXPERIMENT, to: W12_DECISION_SCIENCE, type: PRODUCES_FOR, artifact: EXPERIMENT_RESULT}
+  - {from: W7_VALIDATION_RISK, to: W5_EVENT_INTELLIGENCE, type: RETURNS_TO, artifact: REWORK_EVENT_EVIDENCE}
+  - {from: W7_VALIDATION_RISK, to: W4_STRATEGY_EXPERIMENT, type: RETURNS_TO, artifact: REWORK_EXPERIMENT}
+  - {from: W7_VALIDATION_RISK, to: METHOD_ROUTER_312, type: RETURNS_TO, artifact: RESELECT_OR_ABSTAIN}
+  - {from: W7_VALIDATION_RISK, to: PRIMARY_PRODUCER, type: RETURNS_TO, artifact: REWORK_PRIMARY_RESULT}
+
+validator_invariants:
+  unique_authority_per_domain: true
+  all_edge_endpoints_declared_or_alias_resolvable: true
+  all_return_aliases_have_deterministic_resolution_rule: true
+  signal_tower_is_only_user_mission_entry: true
+  control_tower_is_not_task_router: true
+  harness_is_not_truth_authority: true
+  role_templates_have_no_canonical_truth_authority: true
+  w3_is_single_knowledge_memory_authority: true
+  w7_veto_cannot_be_overridden_by_adjudicator: true
+  no_material_path_without_return_or_abstain: true
+  no_one_shot_skill_promotion: true
+  no_unbounded_retry: true
+  no_unbounded_debate: true
+  no_cross_scope_knowledge_write_without_authority: true
+  no_live_trading_path: true
+  native_trace_must_link_to_decision_episode: true
+  all_formal_handoffs_require_machine_contract: true
+  all_material_claims_require_epistemic_type: true
+  all_market_causal_claims_require_competing_hypotheses_or_explicit_waiver: true
+  stale_routes_cannot_authorize_execution: true
+
+formal_model_candidates:
+  - MISSION_LIFECYCLE
+  - WORK_CLAIM_AUTHORIZATION
+  - CHALLENGE_REWORK_TERMINATION
+  - SKILL_PROMOTION_LIFECYCLE
+  - FINAL_VETO_AND_HUMAN_GATE
+  - TRACE_HANDOFF_COMPLETENESS
+  - DYNAMIC_RETURN_ALIAS_RESOLUTION

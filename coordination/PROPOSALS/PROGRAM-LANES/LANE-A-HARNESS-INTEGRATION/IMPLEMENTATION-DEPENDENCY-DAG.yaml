@@ -1,0 +1,270 @@
+schema_version: "0.1"
+dag_id: "COGNITIVE-OS-HARNESS-IMPLEMENTATION-DEPENDENCY-DAG-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+principles:
+  architecture_can_parallelize: true
+  heavy_runtime_implementation_serialized: true
+  same_agent_execution_max: 1
+  local_heavy_stage_max: 1
+  no_auto_release: true
+  each_runtime_stage_requires_fresh_control_tower_gate: true
+
+nodes:
+  H0A:
+    name: AUTHORITY_AND_DEPARTMENT_MAP
+    state: DELIVERED_CANDIDATE
+    artifact: DEPARTMENT-CONTRACT-GRAPH.yaml
+    runtime: false
+
+  H0B:
+    name: CORE_MACHINE_CONTRACTS
+    state: DELIVERED_CANDIDATE
+    artifact: COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
+    runtime: false
+
+  H0C:
+    name: HARNESS_ADAPTER_BOUNDARY
+    state: DELIVERED_CANDIDATE
+    artifact: ADAPTER-BOUNDARY.yaml
+    runtime: false
+
+  H0D:
+    name: ISSUE_312_COMPATIBILITY
+    state: DELIVERED_CANDIDATE
+    artifact: ISSUE-312-COMPATIBILITY-MATRIX.yaml
+    runtime: false
+
+  H0E:
+    name: ISSUE_308_CONSUMER_MAPPING
+    state: DELIVERED_CANDIDATE
+    artifact: ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml
+    runtime: false
+
+  H0F:
+    name: EVALUATION_AND_FALSIFICATION
+    state: DELIVERED_CANDIDATE
+    artifact: EVAL-PLAN.md
+    runtime: false
+
+  H0G:
+    name: ORGANIZATION_GRAPH_VALIDATOR_SPEC
+    state: DELIVERED_CANDIDATE
+    artifact: ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml
+    runtime: false
+
+  H0H:
+    name: HARNESS_UPSTREAM_IDENTITY
+    state: IDENTITY_AND_ARCHITECTURE_SURFACE_PASS_RUNTIME_SMOKE_PENDING
+    artifact: HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md
+    runtime: false
+
+  H0I:
+    name: CROSS_WINDOW_ARCHITECTURE_RECONCILIATION
+    state: REQUIRED
+    runtime: false
+    description: "review #312/#308 requirements and Harness topology for semantic loss/duplicate authority"
+
+  H0J:
+    name: CONTROL_TOWER_FRESH_ARCHITECTURE_SCAN
+    state: REQUIRED
+    runtime: false
+    description: "fresh O0-O4, WIP, stale route and proposal claim validation on final H0 head"
+
+  H0K:
+    name: GPT_H0_COMPATIBILITY_VERDICT
+    state: REQUIRED
+    runtime: false
+    valid_results: [ACCEPT, ACCEPT_WITH_BOUNDED_DEBT, RETURN_FOR_ARCHITECTURE_REWORK]
+
+  H1:
+    name: CONTRACT_ONLY_SYNTHETIC_SKELETON
+    state: BLOCKED_BY_H0
+    runtime: true
+    resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    expected_scope:
+      - schemas
+      - validators
+      - state machine logic
+      - fingerprint builder
+      - synthetic fixtures
+      - no Harness runtime call
+    requires: [H0K]
+
+  H2A:
+    name: HARNESS_PINNED_INSTALL_AND_SMOKE
+    state: BLOCKED_BY_H0
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    exact_upstream_candidate:
+      repository: deepseek-ai/deepseek-harness
+      commit: 47f943859bef60e4160492346772ded9b24f765a
+      package_family_version: 0.1.0-rc.5
+    requires: [H0K]
+
+  H2B:
+    name: HARNESS_ADAPTER_POC
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H1, H2A]
+    expected_capabilities:
+      - session
+      - workflow
+      - subagent
+      - tool
+      - jobs
+      - cancellation
+      - retry
+      - native trace
+      - provider isolation
+
+  H3A:
+    name: PROBLEM_SIGNATURE_AND_METHOD_DISCOVERY_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H1, H2B]
+
+  H3B:
+    name: EFFECTIVE_CHALLENGE_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H3A]
+
+  H3C:
+    name: OUTCOME_REFLECTION_LEARNING_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3B]
+
+  H4A:
+    name: EXTERNAL_AGENT_TRACE_ADAPTER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H2B]
+    candidate_provider: CODEX_APP_SERVER
+
+  H4B:
+    name: FORMAL_HANDOFF_AND_CROSS_AGENT_LEDGER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H4A, H3B]
+
+  H5A:
+    name: ISSUE_308_SYNTHETIC_CONSUMER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H4B]
+    no_trade: true
+
+  H5B:
+    name: ISSUE_308_HISTORICAL_PIT_REPLAY
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H5A]
+    no_trade: true
+
+  H6A:
+    name: METHOD_CREDIT_SKILL_HEALTH
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H5B]
+
+  H6B:
+    name: CROSS_CONTEXT_SKILL_PROMOTION_EVAL
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H6A]
+    formal_skill_write: "SEPARATE_GATE_ONLY"
+
+  H7A:
+    name: SIGNAL_TOWER_SYNTHETIC_ENTRY
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H4B]
+
+  H7B:
+    name: SIGNAL_TOWER_MULTI_WORKITEM_ROUTING
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H7A, H5A]
+
+  H8:
+    name: PRODUCTION_READINESS_GATE
+    state: BLOCKED
+    runtime: false
+    requires: [H5B, H6B, H7B]
+    checks:
+      - privacy
+      - permissions
+      - security
+      - recovery
+      - rollback
+      - observability
+      - resource ceilings
+      - compatibility radar
+      - TEVV
+      - human approval
+    private_live_production: "NOT_AUTO_AUTHORIZED"
+    trading: "SEPARATE_HIGH_RISK_PROGRAM_GATE"
+
+edges:
+  - [H0A, H0I]
+  - [H0B, H0I]
+  - [H0C, H0I]
+  - [H0D, H0I]
+  - [H0E, H0I]
+  - [H0F, H0I]
+  - [H0G, H0I]
+  - [H0H, H0I]
+  - [H0I, H0J]
+  - [H0J, H0K]
+  - [H0K, H1]
+  - [H0K, H2A]
+  - [H1, H2B]
+  - [H2A, H2B]
+  - [H2B, H3A]
+  - [H3A, H3B]
+  - [H3B, H3C]
+  - [H2B, H4A]
+  - [H4A, H4B]
+  - [H3B, H4B]
+  - [H3C, H5A]
+  - [H4B, H5A]
+  - [H5A, H5B]
+  - [H3C, H6A]
+  - [H5B, H6A]
+  - [H6A, H6B]
+  - [H3C, H7A]
+  - [H4B, H7A]
+  - [H7A, H7B]
+  - [H5A, H7B]
+  - [H5B, H8]
+  - [H6B, H8]
+  - [H7B, H8]
+
+parallelism_notes:
+  H0:
+    allowed: "architecture artifacts may be developed in parallel because no runtime/domain write authority is exercised"
+  H1_H7:
+    rule: >-
+      DAG expresses logical dependencies, not permission to execute all independent nodes concurrently. Every actual
+      implementation node requires a fresh per-agent route and Control Tower resource/collision decision.
+  remote_ci:
+    use_for: "large test matrices and compatibility sweeps"
+  local:
+    heavy_stage_max: 1

@@ -1,0 +1,193 @@
+schema_version: "0.1"
+remediation_id: "CONTROL-TOWER-STALE-STATE-REMEDIATION-CANDIDATE-0001"
+status: "CANDIDATE_ONLY / NOT_APPLIED"
+owner: "USER"
+architecture_owner: "GPT"
+source_audit: "H0-STATIC-CROSS-FILE-AUDIT.yaml"
+boundary: "GOVERNANCE_PROPOSAL_ONLY / NO_RUNTIME / NO_TRADE"
+
+why_needed: >-
+  Canonical Second Brain Foundation is closed with bounded gaps after merged R132/P2.4B, but multiple current control-plane
+  projections still describe older executable states. H0 final acceptance and any H1/H2 implementation release must fail
+  closed until those projections are reconciled.
+
+authoritative_evidence:
+  canonical_main: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+  p2_4b_pr:
+    number: 334
+    state: MERGED
+    merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+  foundation_closure:
+    issue: 335
+    state: CLOSED_COMPLETED
+    verdict: CLOSED_WITH_BOUNDED_GAPS
+  stale_active_route:
+    file: coordination/ACTIVE-CODEX-TASK.yaml
+    projected_route_epoch: 132
+    projected_status: READY
+    execution_allowed: true
+    next_command: "读取任务"
+  stale_lane_c_claim:
+    file: coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml
+    projected_route_epoch: 120
+    projected_issue: 305
+    projected_pr: 307
+  stale_program_lane_registry:
+    file: coordination/ACTIVE-PROGRAM-LANES.yaml
+    as_of: "2026-08-14T20:49:00+08:00"
+    observed_codex_route_epoch: 120
+    lane_a_desired_state: PAUSED
+    lane_c_phase: P2_2_EPISTEMIC_MATERIALITY_HARDENING
+
+required_semantic_outcome:
+  codex_execution_lease:
+    desired: "NO_ACTIVE_EXECUTABLE_ROUTE_AFTER_FOUNDATION_CLOSURE"
+    rules:
+      - "completed R132 history must remain auditable"
+      - "execution_allowed must not remain true for completed route"
+      - "next_command must not remain a runnable 读取任务 instruction"
+      - "future Codex route requires a new route_epoch/task_id/work claim"
+
+  lane_c_second_brain:
+    desired: "FOUNDATION_CLOSED_WITH_BOUNDED_GAPS / NO_ACTIVE_IMPLEMENTATION_LEASE"
+    preserve:
+      - W3 canonical runtime authority
+      - frozen consumption boundaries
+      - R120-W01 bounded successor concern
+      - R122 unknown-binding bounded successor concern
+    remove_from_current_claim_semantics:
+      - R120 active implementation binding
+      - mutable ContextBundle write claim as if still underway
+      - heavy implementation resource lease
+
+  lane_a_harness:
+    desired: "ACTIVE_ARCHITECTURE_DESIGN / PROPOSAL_ONLY"
+    execution_agent: null
+    runtime_write_allowed: false
+    allowed_write_root: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+    implementation_route_allowed: false
+    evidence: "user explicitly started architecture design; Draft PR #336"
+
+  lane_b_a_share_remediation:
+    desired: "PRESERVE_CURRENT_HOLD_UNLESS_SEPARATELY_STARTED"
+    runtime_write_allowed: false
+    no_trade: true
+
+candidate_file_changes:
+  - path: coordination/ACTIVE-CODEX-TASK.yaml
+    action_class: "NEUTRALIZE_COMPLETED_ROUTE_PROJECTION"
+    proposed_semantics:
+      retain_historical_task_identity: true
+      status: "CLOSED_COMPLETED_STALE_PROJECTION_NEUTRALIZED"
+      execution_allowed: false
+      second_user_start_command_required: false
+      runtime_code_change_allowed: false
+      merge_authorized: false
+      next_command: null
+      completion_reference:
+        pr: 334
+        merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+        closure_issue: 335
+      lock_statement: "No active Codex route. A future task requires a fresh route epoch and Work Claim."
+    note: >-
+      Exact field names must follow the existing ACTIVE route schema/validator. If null next_command is schema-invalid,
+      use the canonical neutral/tombstone representation rather than inventing a new schema ad hoc.
+
+  - path: coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml
+    action_class: "REFRESH_LANE_C_AND_LANE_A_CLAIMS"
+    proposed_semantics:
+      LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
+        claim_state: "CLOSED_FOUNDATION_NO_ACTIVE_IMPLEMENTATION"
+        execution_agent: null
+        resource_class: "NO_ACTIVE_HEAVY_LEASE"
+        route_binding: null
+        write_paths: []
+        interfaces:
+          - name: "GPTSecondBrainContextBundle/v1 conceptual frozen consumption boundary"
+            mode: read_consume
+            frozen: true
+        authority_claims:
+          - "W3_FOUNDATION_CANONICAL_AUTHORITY_PRESERVED"
+        bounded_gaps:
+          - R120-W01-CONTEXT-ONLY-ENDPOINT
+          - R122-UNKNOWN-BINDING-GAP
+      LANE-A-HARNESS-INTEGRATION:
+        claim_state: "ACTIVE_PROPOSAL_ONLY"
+        execution_agent: null
+        resource_class: "LIGHT_RESEARCH_DESIGN"
+        route_binding: null
+        runtime_write_allowed: false
+        implementation_route_allowed: false
+        write_paths:
+          - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+      LANE-B-A-SHARE-REMEDIATION:
+        disposition: "NO_CHANGE_EXCEPT_RECONCILE_TIMESTAMP_IF_NEEDED"
+
+  - path: coordination/ACTIVE-PROGRAM-LANES.yaml
+    action_class: "REFRESH_OBSERVED_AND_DESIRED_STATE"
+    proposed_semantics:
+      as_of: "SET_TO_ACTUAL_RECONCILIATION_TIME"
+      observed_agent_state_CODEX:
+        state: "NO_ACTIVE_EXECUTABLE_ROUTE_AFTER_R132_COMPLETION"
+      LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
+        desired_state: DONE
+        observed_state: DONE
+        current_phase: "FOUNDATION_CLOSED_WITH_BOUNDED_GAPS"
+        active_execution_route: null
+        heavy_execution_authorized: false
+        next_gate: "CONSUME_THROUGH_FROZEN_BOUNDARIES; REOPEN_ONLY_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION"
+      LANE-A-HARNESS-INTEGRATION:
+        desired_state: ACTIVE
+        observed_state: ACTIVE
+        current_phase: "H0_ACTIVE_ARCHITECTURE_DESIGN_PROPOSAL_ONLY"
+        active_execution_route: null
+        heavy_execution_authorized: false
+        next_gate: "H0_FINAL_COMPATIBILITY_VERDICT"
+      LANE-B-A-SHARE-REMEDIATION:
+        desired_state: PAUSED
+        observed_state: "PREPARING_NOT_STARTED_OR_CURRENT_TRUE_STATE"
+
+  - path: coordination/CONTROL-TOWER/RELEASE-GATE.yaml
+    action_class: "RECONCILE_PROPOSAL_RELEASE_STATE_IF_MODEL_SUPPORTS_PER_LANE_STATE"
+    proposed_semantics:
+      lane_a: "USER_STARTED_PROPOSAL_ONLY / ACTIVE_ARCHITECTURE_DESIGN"
+      lane_b: "PRESERVE_HOLD"
+      implementation_release_state: NOT_AUTHORIZED
+    rule: >-
+      Do not weaken the two-stage release model. Proposal-only release for Lane A must not imply H1/H2 implementation release.
+
+required_validation_before_apply:
+  - "fetch current remote main immediately before edit"
+  - "fetch all ACTIVE agent routes"
+  - "fetch current Work Claims and Release Gate"
+  - "confirm PR #334 remains merged and Issue #335 closure verdict remains current"
+  - "run existing Control Tower validators on candidate changes"
+  - "verify stale-route detector marks pre-change state stale"
+  - "verify post-change state has zero executable Codex lease"
+  - "verify Lane A still has proposal-only/no-runtime authority"
+  - "verify Lane B remains held/no-trade"
+  - "run O0-O4 pairwise scan"
+  - "run YAML/JSON/schema/diff checks"
+  - "record exact-head CI/validator receipt if canonical control files are changed"
+
+rollback:
+  preserve_prechange_snapshots: true
+  rollback_condition:
+    - validator regression
+    - route projection breaks downstream readers
+    - Work Claim schema rejects closed/no-active representation
+    - Release Gate semantics accidentally authorize implementation
+  rule: "rollback restores prior control-plane files only; never reactivates obsolete R132 execution as a side effect"
+
+not_authorized_here:
+  - editing canonical control-plane files from Lane A proposal branch
+  - creating a new executable Codex route
+  - starting H1 or H2
+  - merging PR #336
+  - changing repository permissions
+  - private/live/production/trading action
+
+completion_condition_for_this_candidate:
+  - "GPT or authorized governance implementation applies bounded cleanup in a separately authorized control-plane change"
+  - "fresh reconciliation and validators PASS"
+  - "H0 audit is rerun against cleaned current state"

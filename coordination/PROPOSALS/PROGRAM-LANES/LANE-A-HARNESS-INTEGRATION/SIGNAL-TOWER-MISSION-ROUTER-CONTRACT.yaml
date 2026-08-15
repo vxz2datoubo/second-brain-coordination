@@ -1,0 +1,226 @@
+schema_version: "0.1"
+contract_id: "SIGNAL-TOWER-MISSION-ROUTER-CONTRACT-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+purpose: >-
+  Signal Tower is the user's single mission entry and system-facing coordination facade. It converts user intent into
+  a Mission + ProblemSignature request + MissionGraph proposal, asks Control Tower whether execution is allowed,
+  and aggregates results. It does not own knowledge truth, method truth, domain truth, or execution authorization.
+
+user_experience_contract:
+  single_primary_entry: true
+  user_should_not_manually_route_between_windows: true
+  system_may_request_user_input_only_when:
+    - high_impact_approval_required
+    - genuinely_noninferable_required_field
+    - ambiguity_changes_irreversible_or_financially_material_action
+  system_should_not_ask_user_to_repeat_known_context: true
+  system_may_dispatch_zero_one_or_many_work_items: true
+  system_must_explain_material_parallelism_or_blocking_when_relevant: true
+
+intake_pipeline:
+  - id: ST-I0-CAPTURE
+    input: USER_MESSAGE_OR_SYSTEM_EVENT
+    output: MissionDraft
+    responsibilities:
+      - preserve explicit user goal
+      - preserve constraints and approvals
+      - classify immediate risk indicators
+      - attach current conversation refs, not copied raw history
+
+  - id: ST-I1-RETRIEVE-CONTINUITY
+    input: MissionDraft
+    requests:
+      - relevant project state
+      - current active routes
+      - W3 context when material
+      - current portfolio/domain state when relevant and available
+    output: ContinuityContextRef
+    rule: "retrieve only relevant context, never mechanical full-load"
+
+  - id: ST-I2-PROBLEM-SIGNATURE
+    input: [MissionDraft, ContinuityContextRef]
+    owner_called: METHOD_ROUTER_312
+    output: ProblemSignature/v1
+
+  - id: ST-I3-DECIDE-WORK-NEED
+    input: [MissionDraft, ProblemSignature, available_existing_answer]
+    outputs:
+      - NO_EXTERNAL_WORK
+      - ONE_WORK_ITEM
+      - MULTI_WORK_ITEM
+      - ABSTAIN_OR_USER_GATE
+    rules:
+      - "do not spawn Agent just to appear active"
+      - "reuse current verified state where sufficient"
+      - "material uncertainty may require evidence work"
+
+  - id: ST-I4-MISSION-GRAPH
+    input: [ProblemSignature, MethodExecutionPlan, evidence needs, resource hints]
+    output: MissionGraph/v1
+    rule: "logical parallelism only; actual concurrency decided after Control Tower"
+
+  - id: ST-I5-AUTHORIZATION
+    owner_called: CONTROL_TOWER_310
+    input: MissionGraph/v1
+    outputs:
+      - AUTHORIZED
+      - QUEUED
+      - BLOCKED
+      - NEEDS_REPLAN
+      - HUMAN_GATE
+    hard_rule: "Signal Tower cannot self-authorize execution"
+
+  - id: ST-I6-DISPATCH
+    precondition: VALID_EXECUTION_AUTHORIZATION
+    output: AuthorizedWorkflowRequest
+    runtime_target: HARNESS_ADAPTER
+
+  - id: ST-I7-MONITOR
+    consumes:
+      - workflow status
+      - native trace summaries
+      - blocked/retry state
+      - handoff readiness
+    may_actions:
+      - surface material blocker
+      - request replanning
+      - respect cancel
+    may_not:
+      - override retry budget
+      - override W7
+      - silently expand scope
+
+  - id: ST-I8-AGGREGATE
+    consumes:
+      - FormalHandoff/v1
+      - Adjudication/v1
+      - W7 gate result
+      - unresolved refs
+    output: UserResult
+    user_result_rules:
+      - separate fact/inference/hypothesis/unknown
+      - include material strongest counterargument
+      - include action needed from user only if genuinely needed
+      - do not expose internal bureaucracy unless it helps decision
+
+  - id: ST-I9-FOLLOWUP
+    creates:
+      - outcome observation request where appropriate
+      - W9 feedback link
+      - unresolved watchpoint
+    rule: "does not automatically schedule/monitor unless user or system policy authorizes"
+
+MissionRouterDecision_v1:
+  required:
+    - routing_decision_id
+    - mission_id
+    - work_mode
+    - reasoning_class
+    - proposed_work_items
+    - control_tower_required
+  fields:
+    routing_decision_id: string
+    mission_id: string
+    work_mode: [ZERO_WORK, SINGLE, PARALLEL_GROUPS, SERIAL_DAG, MIXED_DAG, ABSTAIN, HUMAN_GATE]
+    reasoning_class: [EXISTING_STATE_SUFFICIENT, RETRIEVAL_ONLY, RESEARCH_REQUIRED, ENGINEERING_REQUIRED, DOMAIN_ANALYSIS_REQUIRED, MULTI_DOMAIN_REQUIRED, HIGH_RISK_GATE]
+    proposed_work_items: array
+    dependency_ref: string_or_null
+    resource_hint: [LIGHT, MEDIUM, HEAVY, MIXED]
+    control_tower_required: boolean
+    user_approval_required: boolean
+    approval_reason_ref: string_or_null
+    abstention_reason_ref: string_or_null
+
+routing_heuristics:
+  zero_work_when:
+    - verified existing answer satisfies request
+    - current task is pure explanation over already available evidence
+    - spawning execution adds no material information/value
+  single_work_when:
+    - one specialized action dominates
+    - tasks share write surface/authority and must serialize
+    - one upstream result is prerequisite for everything else
+  multi_work_when:
+    - work items are evidence-independent enough
+    - different sources/domains can be researched without shared-write collision
+    - independent challenge is required
+  serial_when:
+    - downstream depends on exact upstream artifact
+    - authority gate must accept predecessor
+    - same agent/resource cannot parallelize
+  abstain_when:
+    - required evidence unavailable
+    - permissions prohibit needed action
+    - no suitable method and no bounded composition
+    - risk exceeds evidence/authority
+
+parallelism_contract:
+  MissionGraph_CAN_PARALLEL_WITH: "logical possibility only"
+  actual_parallelism_requires:
+    - Control Tower PASS
+    - distinct active-agent capacity or permitted runtime worker slots
+    - no O3/O4 collision
+    - no shared canonical writer conflict
+    - resource ceiling PASS
+  independent_challenge_exception: >-
+    Primary and Challenger may be logically parallel even when performed by the same model family, but they need
+    isolated contexts/sessions and cannot violate same-agent executable route governance for external executors.
+
+cross_window_policy:
+  chat_window_is_not_authority: true
+  window_specific_history_should_be_durable_referenced: true
+  Signal_Tower_may_ingest_requirements_from_multiple_windows: true
+  conflict_resolution:
+    priority:
+      - explicit_current_user_direction
+      - latest_canonical_contract
+      - latest_per_agent_active_route_for_execution
+      - formal_project_authority
+      - historical_window_notes
+    rule: "semantic conflict cannot be silently overwritten; record decision/reason"
+
+return_rework_policy:
+  on_evidence_failure:
+    return_to: EVIDENCE_VERIFIER_OR_SOURCE_OWNER
+  on_method_failure:
+    return_to: METHOD_ROUTER_312
+  on_implementation_failure:
+    return_to: RESPONSIBLE_EXECUTOR
+  on_authority_collision:
+    return_to: CONTROL_TOWER_310
+  on_risk_veto:
+    return_to: RESPONSIBLE_UPSTREAM_OR_USER
+  on_unresolved_after_budget:
+    disposition: ABSTAIN_OR_BOUNDED_UNKNOWN
+
+anti_patterns:
+  - "Signal Tower becomes a mega-agent that directly performs all work"
+  - "Signal Tower stores its own memory truth"
+  - "Signal Tower duplicates Method Router"
+  - "Signal Tower bypasses Control Tower because user asked directly"
+  - "Signal Tower creates three tasks by default"
+  - "Signal Tower equates parallelizable with authorized parallel execution"
+  - "Signal Tower silently turns user idea into production permission"
+  - "Signal Tower hides material unresolved disagreement from user"
+
+future_entry_surfaces:
+  - ChatGPT conversation facade
+  - desktop/mobile control UI
+  - Maibot interface candidate
+  - API/CLI candidate
+  rule: "all surfaces map into the same Mission contract and shared authority state"
+
+acceptance_tests:
+  - "simple existing-state question produces ZERO_WORK"
+  - "single repo audit produces SINGLE"
+  - "independent research + engineering audit can propose parallel work but waits Control Tower"
+  - "stale Codex route is not dispatched"
+  - "same canonical writer tasks serialize"
+  - "W7 veto is surfaced and cannot be bypassed"
+  - "user cancel reaches Harness and owned descendants terminate"
+  - "cross-window conflicting requirements are surfaced as conflict, not silently merged"
+  - "private/production/trading request hits explicit high-impact approval gate"

@@ -1,0 +1,68 @@
+schema_version: "0.1"
+finding_id: "CONTROL-TOWER-CLOSED-CLAIM-STATE-CONTRACT-DEFECT-0001"
+status: "VERIFIED_CONTRACT_DEFECT / BOUNDED_GOVERNANCE_FIX_REQUIRED"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "CONTROL_TOWER_GOVERNANCE / NO_DOMAIN_RUNTIME / NO_TRADE"
+
+evidence:
+  validator: "coordination/CONTROL-TOWER/lane_claims.py"
+  observed_supported_states:
+    - ACTIVE_IMPLEMENTATION
+    - HELD_PROPOSAL_ONLY
+  unknown_state_behavior: "UNKNOWN_CLAIM_STATE -> ERROR"
+  witness_supports_null_agent: true
+  completed_lane_fact:
+    lane: LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP
+    foundation_verdict: CLOSED_WITH_BOUNDED_GAPS
+    merged_pr: 334
+    merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+    closure_issue: 335
+
+problem: >-
+  Every registered Program Lane must have exactly one current Work Claim, but the claim state model cannot represent
+  a lane whose implementation is completed and has no current execution lease. Keeping ACTIVE_IMPLEMENTATION lies about
+  execution; HELD_PROPOSAL_ONLY lies about lifecycle and requires a proposal root. Therefore stale Lane C cannot be
+  reconciled truthfully without a bounded claim-state contract fix.
+
+classification:
+  type: CONTRACT_DEFECT
+  severity: P0_FOR_IMPLEMENTATION_RELEASE
+  w3_reopen_required: false
+  domain_runtime_change: false
+  control_tower_bounded_fix: true
+
+minimal_fix_candidate:
+  new_state: CLOSED_NO_ACTIVE_IMPLEMENTATION
+  validator_semantics:
+    execution_agent: MUST_BE_NULL
+    route_binding: MUST_BE_NULL_OR_EMPTY
+    write_paths: MUST_BE_EMPTY
+    write_domains: MUST_BE_EMPTY
+    authority_claims: MUST_BE_EMPTY
+    active_runtime_lease: FORBIDDEN
+    close_evidence: REQUIRED
+  collision_semantics: "closed claim contributes no mutable implementation surface"
+  witness_semantics: "authorization witness may hash closed claim/state but grants no route/execution lease"
+
+required_tests:
+  - "closed claim with null agent/binding and empty active write surface PASS"
+  - "closed claim with execution agent FAIL"
+  - "closed claim with route binding FAIL"
+  - "closed claim with write path/domain/authority claim FAIL"
+  - "closed claim does not create proposal-only collision blocker"
+  - "authorization witness round trip works with null execution agent"
+
+adjacent_reconciliation_requirement:
+  active_codex_route: "R132 must become non-executable DONE tombstone while preserving history"
+  program_registry: "observed Codex snapshot must exactly match tombstone"
+  lane_c: "DONE / Foundation CLOSED_WITH_BOUNDED_GAPS / no active route/heavy lease"
+  lane_a: "user hold removed only for proposal design; no runtime route/heavy lease"
+  lane_b: "user hold preserved"
+
+anti_shortcuts:
+  - "do not disguise completed Lane C as HELD_PROPOSAL_ONLY"
+  - "do not leave Lane C ACTIVE_IMPLEMENTATION with execution_allowed=false"
+  - "do not remove Lane C from registry merely to satisfy coverage"
+  - "do not weaken UNKNOWN_CLAIM_STATE validation"
+  - "do not make closed claim executable"
