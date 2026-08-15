@@ -1,4 +1,4 @@
-schema_version: "1.6"
+schema_version: "1.7"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -53,75 +53,43 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
-    route_binding:
-      task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
-      route_epoch: 134
-      issue: 343
-      pr: null
-      branch: "codex/global-signal-plane-s0c-enterprise-r134"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
-      - ".github/workflows/global-signal-plane-s0.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/GOVERNANCE"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/PROGRAM-CONTROL-TOWER.md"
-    interfaces:
-      - name: "Global-Signal-Plane-S0-Contracts"
-        mode: "read"
-        frozen: true
-      - name: "Global-Reconciliation-Receipt-Contract"
-        mode: "read"
-        frozen: true
-      - name: "Signal-Tower-Mission-Router-Contract"
-        mode: "read"
-        frozen: true
-      - name: "Control-Tower-Authorization-Boundary"
-        mode: "read"
-        frozen: true
-      - name: "W3-Frozen-Consumption-Boundary"
-        mode: "read"
-        frozen: true
-      - name: "Trace-Ledger-Privacy-Boundary"
-        mode: "read"
-        frozen: true
-      - name: "AI-Film-Domain-Boundary"
-        mode: "read"
-        frozen: true
-    read_domains: [W1, W3, W7, W8, W9, W10, W12]
-    write_domains: [W8]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
     authority_claims: []
-    implementation_scope:
-      slice: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
+    closure_receipt:
+      completed_slice: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
       issue: 343
-      bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
-      activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
-      activation_phase: "B_POST_MERGE_ACTIVATION"
-      phase_a_merge_commit: "740b77ab20b24c76bd5621b08123dec657862d5a"
-      execution_allowed: true
-      harness_runtime_allowed: false
-      h2_allowed: false
-      h7_allowed: false
-      s0d_cross_repo_shadow_allowed: false
-      private_cross_window_bridge_allowed: false
-      live_connector_allowed: false
-      domain_write_allowed: false
-      production_allowed: false
-      trading_allowed: false
+      completed_route_epoch: 134
+      accepted_runtime_head: "0eed25daa47b883fc17ba6ca36c49c23eb2fb444"
+      final_evidence_successor_head: "f5c22ea94a9dcd04ec5364893e9e417ebac25fd9"
+      final_review_id: 4944240707
+      merged_pr: 346
+      merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+      closure_reconciliation: "coordination/CONTROL-TOWER/R134-S0C-CLOSURE-RECONCILIATION.yaml"
+      implementation_verdict: "R134_S0C_EXACT_HEAD_ACCEPTED_FOR_MERGE / COMPLETED_HISTORY_ONLY"
+      s0d_authorized: false
+      h2_authorized: false
+      h7_authorized: false
+      harness_runtime_authorized: false
+      private_data_authorized: false
+      live_connector_authorized: false
+      domain_write_authorized: false
+      production_authorized: false
+      trading_authorized: false
+      reopen_rule: >-
+        Any S0D, H2, H7 or later implementation requires a new route epoch/task_id, fresh GlobalReconciliationReceipt,
+        fresh Work Claim, fresh O0-O4 scan, durable Control Tower witness and explicit release.
     stop_conditions:
-      - "Write outside exact paths -> STOP / NEEDS_GPT"
-      - "Harness/H2/H7 runtime required -> STOP / separate future gate"
-      - "S0D cross-repo shadow required -> STOP / separate future gate"
-      - "Private/live cross-window integration required -> STOP / separate privacy/runtime gate"
-      - "Domain canonical write required -> STOP / domain-owner gate"
-      - "Peer claim or route drift -> STOP / fresh Global Reconciliation + Control Tower witness required"
-      - "Known concurrent AI Film Codex execution -> STOP / SAME_AGENT_DOUBLE_BOOKED"
+      - "Do not resume or re-run R134."
+      - "Do not infer S0D/H2/H7/private/live/production authorization from S0C acceptance or merge."
+      - "Any new implementation requires a fresh per-agent ACTIVE route and Work Claim."
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -160,11 +128,11 @@ release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
     Lane B may continue bounded research/design only inside its isolated proposal root if separately released.
-    Lane A S0C is the only active Codex implementation and occupies the exact S0C write surface.
-    S0C cannot authorize S0D, H2, H7, private bridge, domain write, production or trading.
+    Lane A has no active implementation claim after S0C closure, so R134 no longer consumes a Codex execution lease.
+    This does not authorize S0D, H2, H7, private/live integration, domain writes, production or trading.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
   reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
   h1_h2_separation: "H1 exact-head acceptance and merge never imply H2 Harness runtime authorization."
-  s0c_future_stage_separation: "S0C exact-head acceptance never implies S0D/H2/H7/private/production authorization."
+  s0c_future_stage_separation: "S0C exact-head acceptance and merge never imply S0D/H2/H7/private/production authorization."
