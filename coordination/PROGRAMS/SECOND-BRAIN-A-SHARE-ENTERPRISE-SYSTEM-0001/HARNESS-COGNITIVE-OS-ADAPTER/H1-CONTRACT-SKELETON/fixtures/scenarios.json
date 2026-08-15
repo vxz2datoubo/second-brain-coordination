@@ -1,0 +1,17 @@
+{
+  "schema_version": "H1ExecutableSyntheticScenarios/v2",
+  "public_safe": true,
+  "synthetic_only": true,
+  "scenarios": [
+    {"id":"S1","title":"low-risk happy path","input_objects":["Mission","ProblemSignature","DecisionEpisode","FormalHandoff"],"expected_transitions":[["INTAKE","PROBLEM_SIGNATURED"],["PROBLEM_SIGNATURED","CONTEXT_RETRIEVED"],["CONTEXT_RETRIEVED","METHODS_DISCOVERED"],["METHODS_DISCOVERED","METHODS_SELECTED_OR_ABSTAINED"],["METHODS_SELECTED_OR_ABSTAINED","EVIDENCE_PLAN_READY"],["EVIDENCE_PLAN_READY","CONTROL_TOWER_AUTHORIZED"],["CONTROL_TOWER_AUTHORIZED","EXECUTING"],["EXECUTING","PRIMARY_RESULT_READY"],["PRIMARY_RESULT_READY","VERIFIED"],["VERIFIED","ADJUDICATED"]],"expected_errors":[],"final_disposition":"CLOSED"},
+    {"id":"S2","title":"high-risk causal C3 independent challenge","input_objects":["ProblemSignature","Claim","ChallengeCase","VerificationResult","Adjudication"],"expected_transitions":[["PRIMARY_RESULT_READY","CHALLENGE_PENDING_OR_SKIPPED"],["CHALLENGE_PENDING_OR_SKIPPED","VERIFIED"],["VERIFIED","ADJUDICATED"]],"expected_errors":[],"final_disposition":"ACCEPT_WITH_LIMITS"},
+    {"id":"S3","title":"evidence insufficient abstain","input_objects":["Mission","DecisionEpisode"],"expected_transitions":[["EVIDENCE_PLAN_READY","ABSTAINED"],["ABSTAINED","CLOSED"]],"expected_errors":[],"final_disposition":"ABSTAIN"},
+    {"id":"S4","title":"W7 veto blocks accept","input_objects":["DecisionEpisode","Adjudication"],"expected_transitions":[["ADJUDICATED","RISK_VETO_CHECKED"],["RISK_VETO_CHECKED","ABSTAINED"]],"expected_errors":["VETO_BLOCKS_ACCEPT"],"final_disposition":"VETO"},
+    {"id":"S5","title":"bounded materially changed rework","input_objects":["ReworkRequest"],"expected_transitions":[["ADJUDICATED","EVIDENCE_PLAN_READY"]],"expected_errors":[],"final_disposition":"REWORK_ALLOWED"},
+    {"id":"S6","title":"identical retry attack","input_objects":["ReworkRequest"],"expected_transitions":[["ADJUDICATED","EVIDENCE_PLAN_READY"]],"expected_errors":["IDENTICAL_RETRY_FORBIDDEN"],"final_disposition":"REJECT_OR_ESCALATE"},
+    {"id":"S7","title":"correction-only learning","input_objects":["OutcomeLearning"],"expected_transitions":[],"expected_errors":[],"final_disposition":"CANDIDATE_ONLY"},
+    {"id":"S8","title":"broken material trace","input_objects":["FormalHandoff","TraceContext"],"expected_transitions":[],"expected_errors":["TRACE_INCOMPLETE"],"final_disposition":"TRACE_INCOMPLETE"},
+    {"id":"S9","title":"dynamic return alias","input_objects":["OrganizationGraph","TraceLineage"],"expected_transitions":[],"expected_errors":["RETURN_ALIAS_NOT_UNIQUE"],"final_disposition":"FAIL_CLOSED_ON_AMBIGUITY"},
+    {"id":"S10","title":"H1 authorization cannot authorize H2","input_objects":["OrganizationGraph","H1Authorization"],"expected_transitions":[],"expected_errors":["H2_AUTHORIZATION_FORBIDDEN_IN_H1"],"final_disposition":"H2_NOT_AUTHORIZED"}
+  ]
+}
