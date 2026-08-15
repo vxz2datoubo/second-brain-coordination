@@ -9,6 +9,15 @@ from control_tower import AGENT_FILES, PROGRAM_REGISTRY, classify_collision, loa
 
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
 CLOSED_NO_ACTIVE_IMPLEMENTATION = "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+CLOSED_RESOURCE_CLASS = "NO_ACTIVE_IMPLEMENTATION"
+CLOSURE_EVIDENCE_KEYS = {
+    "merge_commit",
+    "closure_issue",
+    "issue",
+    "receipt_ref",
+    "tested_head",
+    "artifact_ref",
+}
 
 
 @dataclass(frozen=True)
@@ -79,6 +88,15 @@ def _validate_closed_claim(lane_id: str, claim: dict[str, Any]) -> list[ClaimFin
                 {"lane_id": lane_id, "execution_agent": claim.get("execution_agent")},
             )
         )
+    if claim.get("resource_class") != CLOSED_RESOURCE_CLASS:
+        findings.append(
+            ClaimFinding(
+                "ERROR",
+                "CLOSED_CLAIM_RESOURCE_CLASS_INVALID",
+                "A closed lane must explicitly release the active resource lease.",
+                {"lane_id": lane_id, "resource_class": claim.get("resource_class"), "required": CLOSED_RESOURCE_CLASS},
+            )
+        )
     if claim.get("route_binding") not in (None, {}, ""):
         findings.append(
             ClaimFinding(
@@ -114,6 +132,15 @@ def _validate_closed_claim(lane_id: str, claim: dict[str, Any]) -> list[ClaimFin
                 "CLOSED_CLAIM_RECEIPT_MISSING",
                 "A closed lane must retain a durable closure receipt instead of an active lease.",
                 {"lane_id": lane_id},
+            )
+        )
+    elif not (set(closure_receipt) & CLOSURE_EVIDENCE_KEYS):
+        findings.append(
+            ClaimFinding(
+                "ERROR",
+                "CLOSED_CLAIM_RECEIPT_EVIDENCE_MISSING",
+                "A closed lane closure receipt must contain at least one durable evidence reference.",
+                {"lane_id": lane_id, "accepted_evidence_keys": sorted(CLOSURE_EVIDENCE_KEYS)},
             )
         )
     return findings
@@ -241,7 +268,7 @@ def validate_claims(repo_root: Path) -> dict[str, Any]:
     errors = [asdict(item) for item in findings if item.severity == "ERROR"]
     warnings = [asdict(item) for item in findings if item.severity == "WARN"]
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "claims_id": claims_doc.get("claims_id"),
         "errors": errors,
         "warnings": warnings,
