@@ -106,6 +106,35 @@ class LaneClaimTests(unittest.TestCase):
         self._write_yaml(root, "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml", claims)
         return root
 
+    def _close_lane_c(self, root: Path, *, violation: str | None = None) -> None:
+        path = root / "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        claim = next(item for item in data["claims"] if item["lane_id"] == "C")
+        claim.update(
+            {
+                "claim_state": "CLOSED_NO_ACTIVE_IMPLEMENTATION",
+                "execution_agent": None,
+                "route_binding": None,
+                "resource_class": "NO_ACTIVE_IMPLEMENTATION",
+                "write_paths": [],
+                "read_paths": [],
+                "interfaces": [],
+                "read_domains": [],
+                "write_domains": [],
+                "authority_claims": [],
+                "closure_receipt": {"issue": 99, "merge_commit": "abc123"},
+            }
+        )
+        if violation == "agent":
+            claim["execution_agent"] = "CODEX"
+        elif violation == "route":
+            claim["route_binding"] = {"task_id": "C1", "route_epoch": 5}
+        elif violation == "surface":
+            claim["write_paths"] = ["runtime/context.py"]
+        elif violation == "receipt":
+            claim["closure_receipt"] = None
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
     def test_valid_active_route_and_isolated_proposals_are_release_candidate(self) -> None:
         report = validate_claims(self._repo())
         self.assertEqual(report["claim_structural_check"], "PASS")
@@ -126,6 +155,38 @@ class LaneClaimTests(unittest.TestCase):
         self.assertEqual(report["claim_structural_check"], "PASS")
         self.assertEqual(report["proposal_only_candidate"], "NOT_READY")
         self.assertTrue(any(item["level"] == "O3" for item in report["proposal_only_collision_blockers"]))
+
+    def test_closed_lane_releases_execution_lease_and_keeps_proposals_valid(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root)
+        report = validate_claims(root)
+        self.assertEqual(report["claim_structural_check"], "PASS")
+        self.assertEqual(report["proposal_only_candidate"], "ELIGIBLE_FOR_GPT_RELEASE_DECISION")
+        self.assertFalse(report["proposal_only_collision_blockers"])
+
+    def test_closed_lane_with_execution_agent_fails(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="agent")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_HAS_EXECUTION_AGENT" for item in report["errors"]))
+
+    def test_closed_lane_with_route_binding_fails(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="route")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_HAS_ROUTE_BINDING" for item in report["errors"]))
+
+    def test_closed_lane_with_active_surface_fails(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="surface")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_HAS_ACTIVE_SURFACE" for item in report["errors"]))
+
+    def test_closed_lane_requires_closure_receipt(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="receipt")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_RECEIPT_MISSING" for item in report["errors"]))
 
 
 if __name__ == "__main__":
