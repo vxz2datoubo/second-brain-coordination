@@ -17,6 +17,8 @@ jobs:
         python-version: ['3.11', '3.13']
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -31,4 +33,5 @@ jobs:
       - name: Validate fixtures and diff format
         run: |
           python -c "import json; json.load(open('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/fixtures/gst_scenarios.json', encoding='utf-8')); print('FIXTURE_JSON_PASS')"
-          git diff --check origin/${{ github.base_ref || 'main' }}...HEAD
+          BASE_SHA="${{ github.event.pull_request.base.sha || github.event.before }}"
+          git diff --check "$BASE_SHA...HEAD"
