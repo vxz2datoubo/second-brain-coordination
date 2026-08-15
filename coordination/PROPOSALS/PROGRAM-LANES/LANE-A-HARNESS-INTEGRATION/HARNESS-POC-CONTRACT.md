@@ -32,7 +32,7 @@ PoC 不是“把整套系统一次写完”。
 → `Evidence Verifier tool fixture`
 → `Adjudicator`
 → `FormalHandoff`
-→ `Synthetic Outcome`
+→ `Synthetic Outcome or Correction/Audit Event`
 → `W9 Reflection/MethodCredit candidate`
 → `W3 feedback candidate (not durable formal promotion)`。
 
@@ -115,21 +115,33 @@ PoC 必须能回答：
 
 ---
 
-## 5. Harness Source Identity Gate
+## 5. Harness Upstream & Runtime Binding Gate
 
-在任何 install/import/code binding 之前必须重新验证：
+H0 已独立验证 canonical upstream：
 
-1. canonical upstream repository；
-2. exact tested release/tag；
-3. exact commit SHA；
-4. license；
-5. stable/public service definitions；
-6. session/context/skill/subagent/workflow/jobs/guard/bundle/interaction capability inventory；
-7. provider adapter behavior；
-8. breaking changes from previously studied snapshot；
-9. reproducible smoke test。
+- repository: `deepseek-ai/deepseek-harness`
+- exact design snapshot: `47f943859bef60e4160492346772ded9b24f765a`
+- package family/root version: `0.1.0-rc.5`
+- license: MIT
+- maturity: developer preview / breaking changes expected
 
-如果无法可靠识别 canonical source，则 PoC `STOP / UNKNOWN_NEEDS_GPT`。
+因此 PoC 不再把“仓库身份未知”当作未决项。真正未通过的是 **runtime binding gate**。
+
+任何 install/import/runtime code binding 之前必须再次确认当前执行头没有悄然替换 pinned snapshot，并完成：
+
+1. exact pinned SHA/package provenance check；
+2. reproducible clean install/pack smoke；
+3. exact consumed package names and public Service Definition signatures；
+4. session/context/skill/subagent/workflow/jobs/guard/bundle/interaction capability smoke；
+5. provider adapter behavior；
+6. target Windows/local or isolated CI compatibility；
+7. breaking-change compatibility test against latest upstream radar；
+8. rollback + no-residual-process test；
+9. fresh Control Tower Work Claim / O0-O4 / WIP / authorization witness。
+
+任何一项关键证据缺失：
+
+`STOP / RUNTIME_BINDING_NOT_AUTHORIZED`。
 
 ---
 
@@ -145,11 +157,11 @@ Provider 不是 authority；native events 只进入 Raw Trace。
 
 | Gate | Requirement |
 |---|---|
-| POC-A1 | Harness source/version identity verified |
+| POC-A1 | canonical Harness identity + pinned SHA/version provenance PASS |
 | POC-A2 | Adapter-only integration; no domain direct internal imports |
 | POC-A3 | Primary/Challenger isolation provable |
 | POC-A4 | native trace → DecisionEpisode lineage complete |
-| POC-A5 | JSON Handoff schema validates |
+| POC-A5 | compiled JSON Handoff schema + semantic validators PASS |
 | POC-A6 | stale authorization fails closed |
 | POC-A7 | retry/cancel termination bounded |
 | POC-A8 | process/resource caps pass |
@@ -157,6 +169,8 @@ Provider 不是 authority；native events 只进入 Raw Trace。
 | POC-A10 | synthetic learning candidate produced without automatic skill promotion |
 | POC-A11 | fresh Control Tower Work Claim/witness exists before implementation commit |
 | POC-A12 | rollback removes PoC runtime surface without modifying W3/domain truth |
+| POC-A13 | clean install/pack/provider smoke on target or isolated CI PASS |
+| POC-A14 | pinned-vs-latest compatibility radar detects breaking drift without auto-upgrade |
 
 ---
 
