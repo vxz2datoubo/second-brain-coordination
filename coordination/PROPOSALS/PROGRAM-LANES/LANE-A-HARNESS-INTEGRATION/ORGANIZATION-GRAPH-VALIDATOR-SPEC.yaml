@@ -1,4 +1,4 @@
-schema_version: "0.1"
+schema_version: "0.2"
 validator_spec_id: "COGNITIVE-OS-ORGANIZATION-GRAPH-VALIDATOR-0001"
 status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
 owner: "USER"
@@ -9,6 +9,9 @@ inputs:
   - DEPARTMENT-CONTRACT-GRAPH.yaml
   - COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
   - ADAPTER-BOUNDARY.yaml
+  - METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml
+  - TRACE-LEDGER-PRIVACY-CONTRACT.yaml
+  - IMPLEMENTATION-CLAIM-CANDIDATE.yaml
   - CONTROL_TOWER_CURRENT_CLAIMS
   - ACTIVE_AGENT_ROUTES
   - DOMAIN_AUTHORITY_INDEX
@@ -20,8 +23,8 @@ outputs:
   - CompatibilityDebt/v1
 
 severity:
-  P0: "authority/security/privacy/trading or nontermination blocker"
-  P1: "material architecture correctness or traceability defect"
+  P0: "authority/security/privacy/trading/nontermination or stale-authorization blocker"
+  P1: "material architecture correctness, machine-validation, routing or traceability defect"
   P2: "bounded maintainability/operability defect"
   P3: "advisory improvement"
 
@@ -36,7 +39,7 @@ checks:
 
   - id: OGV-002-ORPHAN-DEPARTMENT
     severity: P1
-    rule: "every non-root department has at least one reachable producer/consumer relationship"
+    rule: "every non-root department/role template has at least one reachable producer/consumer relationship"
 
   - id: OGV-003-DEAD-END
     severity: P1
@@ -46,6 +49,7 @@ checks:
     severity: P0
     rule: "DEPENDS_ON/BLOCKS graph must be acyclic except explicit bounded rework loops"
     rework_loop_requirements:
+      - ReworkRequest/v1
       - retry_budget
       - termination_condition
       - escalation_target
@@ -53,7 +57,7 @@ checks:
 
   - id: OGV-005-RETURN-PATH
     severity: P1
-    rule: "review/challenge/veto failure must name exact return/rework/escalation target"
+    rule: "review/challenge/veto failure must name exact return/rework/escalation target or a declared resolvable alias"
 
   - id: OGV-006-REVIEW-COVERAGE
     severity: P1
@@ -86,7 +90,7 @@ checks:
 
   - id: OGV-012-FEEDBACK-CLOSURE
     severity: P1
-    rule: "executed material DecisionEpisode has outcome/feedback path or explicit outcome-not-yet-observable state"
+    rule: "executed material DecisionEpisode has outcome/correction/audit feedback path or explicit not-yet-observable state"
 
   - id: OGV-013-NO-ONE-SHOT-PROMOTION
     severity: P0
@@ -149,6 +153,44 @@ checks:
     severity: P1
     rule: "material execution binds source/context/method/model/tool/code/rule/schema versions"
 
+  - id: OGV-027-ROLE-AND-ALIAS-RESOLUTION
+    severity: P1
+    rule: "every edge/return target is a declared department, declared role template, root entity, or declared dynamic alias with deterministic resolution"
+    fail_if:
+      - undeclared PRIMARY/CHALLENGER-style actor
+      - free-text return target without alias contract
+      - alias resolves to empty/unauthorized target set
+
+  - id: OGV-028-CONTRACT-DSL-COMPILABILITY
+    severity: P1
+    rule: >-
+      COGNITIVE_CONTRACT_DSL/v0.2 structural constraints must compile into formal JSON Schema or equivalent;
+      named semantic invariants must each map to deterministic validator code + positive/negative tests.
+    fail_if:
+      - free-form invariant used as executable rule without named validator
+      - undefined field referenced by invariant
+      - state ordering inferred from enum text
+
+  - id: OGV-029-ROUTE-WORK-CLAIM-CONSISTENCY
+    severity: P0
+    rule: "latest ACTIVE agent route and current Work Claim binding must agree on task_id/epoch/issue/branch/write surface before execution"
+    fail_if:
+      - current route points to completed/merged predecessor
+      - Work Claim binds older route than active route
+      - route is null but implementation claim says executable
+
+  - id: OGV-030-LEARNING-TRIGGER-COVERAGE
+    severity: P1
+    rule: "OutcomeLearning accepts outcome, correction, or audit evidence and never requires a real-world outcome for verified correction-only learning"
+
+  - id: OGV-031-H1-H2-SLICE-SEPARATION
+    severity: P0
+    rule: "H1 contract skeleton and H2 Harness runtime PoC are separate Work Claims/routes; H1 acceptance never auto-authorizes H2"
+
+  - id: OGV-032-ROLE-TEMPLATE-NONAUTHORITY
+    severity: P0
+    rule: "PRIMARY_PRODUCER and CHALLENGER are execution roles only and cannot own canonical truth, risk veto, route authorization or durable skill promotion"
+
 architecture_finding_schema:
   required:
     - finding_id
@@ -178,11 +220,13 @@ formal_model_plan:
       safety:
         - "stale witness never authorizes execution"
         - "O3/O4 collision blocks execution"
+        - "route/work-claim binding mismatch blocks execution"
 
     - id: FM-03-CHALLENGE-REWORK
-      variables: [primary, challenge, verification, adjudication, retry_count]
+      variables: [primary, challenge, verification, adjudication, retry_count, fingerprint]
       safety:
         - "W7 veto remains terminal until material upstream change"
+        - "identical blind retry cannot loop forever"
       liveness:
         - "rework loop terminates by retry budget, resolution, abstain or escalation"
 
@@ -205,11 +249,22 @@ formal_model_plan:
       liveness:
         - "task termination eventually leaves zero owned descendants"
 
+    - id: FM-07-ALIAS-RETURN-RESOLUTION
+      variables: [return_alias, reason_code, upstream_lineage, resolved_target]
+      safety:
+        - "every runtime return alias resolves to exactly one authorized target or fails closed"
+
+    - id: FM-08-H1-H2-RELEASE-SEPARATION
+      variables: [h1_state, h2_state, h1_authorization, h2_authorization]
+      safety:
+        - "H1 authorization never implies H2 authorization"
+        - "H2 cannot execute before independent fresh Work Claim/witness"
+
 report_verdicts:
   - PASS
   - PASS_WITH_BOUNDED_DEBT
   - FAIL_ARCHITECTURE_BLOCKER
 
 H0_gate:
-  requirement: "no OPEN P0 and no unresolved authority/termination/privacy O3/O4 defect"
-  P1_policy: "may pass only with explicit bounded debt owner and downstream isolation"
+  requirement: "no OPEN P0 and no unresolved authority/termination/privacy/stale-authorization O3/O4 defect"
+  P1_policy: "may pass only with explicit bounded debt owner, implementation test and downstream isolation"
