@@ -1,105 +1,155 @@
-# H0 Validation Receipt — Control Tower Fail-Closed Evidence
+# H0 Validation Receipt — Post-Control-Tower Cleanup
 
-- status: `EXPECTED_FAIL_CLOSED / CONTROL_PLANE_RECONCILIATION_BLOCKER_CONFIRMED`
-- PR: `#336`
-- validated proposal head: `67fdbf8a3b3284ea73a0239eca01cc4684433691`
-- PR merge test ref: `b0c9c2f64eac6d169641ec5b492c552c4eb4ac3e`
-- canonical base/main: `823d5b22c7b449626bc03cdf1f574c592e50b9fc`
-- GitHub Actions run: `31877439648`
-- workflow: `Program Control Tower foundation`
-- Python: `3.11` and `3.13`
+- status: `PASS_WITH_BOUNDED_DEBT / H0_FINAL_GATE_CLOSED`
+- architecture PR: `#336`
+- canonical main rechecked: `62a171944840a2f064e0c9a4936f7e0b0d081e68`
+- Control Tower cleanup PR: `#337`
+- reviewed cleanup head: `ef564d91770e58c19e8ede7d80f1036464c7682f`
+- Control Tower workflow run: `31878478727` (#71)
 - boundary: `PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION / NO_TRADE`
 
-## Result
+## 1. Canonical state after merge
 
-Both Python 3.11 and Python 3.13 jobs failed at the same stage:
+GitHub main now points to `62a171944840a2f064e0c9a4936f7e0b0d081e68`.
 
-`Reconcile current canonical control-plane state`
+Current canonical files were refetched after merge.
 
-The preceding targeted regression suite passed:
+### R132 route tombstone
 
-- `20 tests`
-- `20 PASS`
-- collision O0-O4 tests PASS
-- route/witness freshness tests PASS
-- stale route epoch fail-closed test PASS
-- proposal-isolation tests PASS
+`coordination/ACTIVE-CODEX-TASK.yaml` now reports:
 
-Therefore the workflow failure is **not** evidence that the H0 proposal YAML/docs broke the Control Tower test suite.
+- `status: DONE`
+- `execution_allowed: false`
+- `runtime_code_change_allowed: false`
+- `next_command: NO_ACTIVE_TASK`
+- completion receipt points to PR #334 / Issue #335.
 
-## Exact Control Tower blocker
+Therefore the completed Foundation route is historical evidence only and cannot be resumed by a generic “读取任务”.
 
-Control Tower emitted:
+### Lane C Work Claim
 
-- check: `CT-R01-STALE-VIEW`
-- code: `PROGRAM_REGISTRY_ROUTE_DRIFT`
-- severity: `ERROR`
-- message: `Program registry observed state is stale relative to the per-agent ACTIVE route.`
+`coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml` now reports:
 
-Observed drift for CODEX:
+- `claim_state: CLOSED_NO_ACTIVE_IMPLEMENTATION`
+- `execution_agent: null`
+- `resource_class: NO_ACTIVE_IMPLEMENTATION`
+- `route_binding: null`
+- current read/write/interface/domain/authority surfaces are empty
+- closure receipt retains PR #334 / Issue #335 and bounded gaps.
 
-| Field | Current per-agent ACTIVE route | Program registry expected |
-|---|---:|---:|
-| issue | 332 | 305 |
-| pr | null | 307 |
-| route_epoch | 132 | 120 |
-| status | READY | READY_REMEDIATION |
-| task_id | `...P2-4B-STRUCTURAL-ANALOGY` | `...P2-2-EPISTEMIC-MATERIALITY-HARDENING` |
+### Program Lane registry
 
-The check exited with code `2`, so downstream steps were skipped:
+`coordination/ACTIVE-PROGRAM-LANES.yaml` now reports:
 
-- Validate Program Lane work claims
-- Verify work-claim bulletin projection
-- Verify durable authorization witness round trip
-- Emit Codex route witness
+- Lane A: `ACTIVE`, `proposal_only: true`, no active execution route, no heavy authorization;
+- Lane B: still held until separately started;
+- Lane C: `DONE`, `FOUNDATION_CLOSED_WITH_BOUNDED_GAPS`, no active execution route/heavy lease;
+- CODEX observed route: R132 `DONE / execution_allowed=false`.
 
-This is correct fail-closed behavior.
+## 2. Mechanical Control Tower validation
 
-## Additional stale-state evidence outside this CI comparison
+Exact reviewed cleanup head `ef564d917...` ran the existing `Program Control Tower foundation` workflow as PR #337 merge candidate.
 
-The CI reconciliation treats `ACTIVE-CODEX-TASK.yaml` as the current per-agent route and therefore only proves the Program registry is stale relative to R132.
+Run: `31878478727`
 
-A separate, stronger closure fact also exists:
+Both jobs passed:
 
-- PR #334 P2.4B is already merged to canonical main `823d5b22c...`;
-- Issue #335 Foundation Closure is completed with verdict `CLOSED_WITH_BOUNDED_GAPS`;
-- Issue #335 explicitly states `ACTIVE-CODEX-TASK.yaml` still projecting R132 as READY is itself a stale control-plane cleanup item and must not allow another `读取任务`.
+- Python 3.11: PASS
+- Python 3.13: PASS
 
-Therefore remediation must not merely update Program registry from R120 -> R132 READY. The correct semantic cleanup is:
+Targeted regressions:
 
-1. preserve R132 as completed history;
-2. neutralize the executable R132 projection;
-3. close Lane C heavy implementation lease;
-4. record Foundation as closed/frozen with bounded gaps;
-5. mark Lane A as active **proposal-only architecture design**;
-6. preserve Lane B hold unless separately started;
-7. then rerun reconciliation/claims/witness.
+- `32/32 PASS`
 
-## Safety interpretation
+Full downstream governance chain also passed:
 
-This failed workflow is a **positive safety signal**:
+- canonical reconciliation: PASS
+- Program Lane contract validation: PASS
+- dependencies/shared_interfaces fail-closed checks: PASS
+- Lane Work Claims: PASS
+- work-claim projection: PASS
+- durable authorization witness create/verify round trip: PASS
+- Codex route witness: PASS
 
-> The Control Tower detected stale control state and blocked later authorization/witness steps rather than pretending the proposal was ready to execute.
+The prior `CT-R01-STALE-VIEW / PROGRAM_REGISTRY_ROUTE_DRIFT` blocker is no longer an error on the cleaned merge candidate.
 
-It does **not** authorize changing canonical Control Tower files from Lane A.
+Historical aggregate stale-view warnings remain explicitly classified as non-authoritative history and are not execution blockers.
 
-## Required next validation after authorized cleanup
+## 3. O0-O4 / WIP / lease result
 
-After a separately authorized bounded control-plane remediation:
+The cleaned-state Work Claim run produced:
 
-1. fetch current main and all ACTIVE routes;
-2. run Control Tower targeted regressions on Python 3.11 and 3.13;
-3. run canonical reconciliation;
-4. validate Work Claims;
-5. verify bulletin projection;
-6. verify durable authorization witness round trip;
-7. run O0-O4 / WIP / heavy-resource checks;
-8. confirm no active Codex execution lease remains unless a new task was explicitly released;
-9. confirm Lane A remains proposal-only;
-10. rerun H0 static audit and final compatibility verdict.
+- Lane A ↔ Lane B: `O1 / READ_READ`
+- Lane A ↔ Lane C: `O0`
+- Lane B ↔ Lane C: `O0`
+- proposal-only collision blockers: `[]`
 
-Until then:
+Execution/resource interpretation:
 
-`H0_FINAL_ACCEPTANCE = NOT_READY`
+- no active Codex execution lease from R132;
+- Lane C has no active implementation resource class;
+- Lane A proposal-only architecture does not create a heavy runtime lease;
+- Lane B remains held;
+- H1/H2 remain unissued and therefore cannot be inferred from this witness.
 
-`H1/H2_IMPLEMENTATION_RELEASE = FAIL_CLOSED`
+## 4. Fresh witness result
+
+The cleaned Lane C witness round-trip reports:
+
+- `claim_state: CLOSED_NO_ACTIVE_IMPLEMENTATION`
+- `execution_agent: null`
+- `route_epoch: null`
+- `route_fingerprint: null`
+- `fresh: true`
+
+The Codex route witness reports:
+
+- `status: DONE`
+- `execution_allowed: false`
+
+This proves governance consistency only. It does **not** authorize H1, H2, private/live/production access or trading.
+
+## 5. Final H0 static rerun
+
+`H0-STATIC-CROSS-FILE-AUDIT.yaml` was rerun against the cleaned canonical state.
+
+Result:
+
+- OPEN H0 P0 findings: `0`
+- duplicate authority: none detected
+- semantic loss from Second Brain / #312 / #308: none detected
+- privacy/trading authority leak: none detected
+- H1/H2 separation: preserved
+- AI Film future cross-project integration: isolated as future Domain Adapter, not H1 runtime scope.
+
+Remaining debt is bounded and gate-owned:
+
+- H1: compile/implement formal schemas and deterministic semantic validators;
+- H1: execute critical model/state-machine checks;
+- H2: pinned Harness install/pack/provider/rollback smoke, a hard P0 before H2 runtime acceptance;
+- future narrow successor interfaces for R120-W01 / R122 / FeedbackLifecycle only when real consumers prove need;
+- future AI Film Domain Adapter after shared Cognitive OS contracts are stable.
+
+## 6. H0 final verdict
+
+`ACCEPT_WITH_BOUNDED_DEBT`
+
+Reason:
+
+All H0 architecture/control-plane P0 gates now pass. Remaining work is intentionally assigned to H1/H2 or bounded successor/domain-adapter gates and does not require reopening the frozen Second-Brain foundation.
+
+## 7. What this verdict does not authorize
+
+H0 acceptance does **not** authorize:
+
+- any new Codex/QCLAW/WorkBuddy executable route;
+- H1 implementation automatically;
+- Harness install/runtime binding;
+- H2;
+- private W3 access;
+- production scheduler/MCP/Gateway;
+- permission or repository-visibility changes;
+- account/order/fund/trading actions;
+- automatic Formal Skill promotion.
+
+The next executable action, if GPT separately releases it, is a **new H1 contract-only Work Claim/route**. H2 remains a separate future gate.
