@@ -1,12 +1,12 @@
-schema_version: "125.0"
+schema_version: "126.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 316
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-3-CAPTURE-EXACT-RECALL-BUDGET-PARITY"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-3-EXACT-TARGET-PROOF"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 125
+route_epoch: 126
 mode: "goal"
-mode_label: "【Codex模式：目标模式】P2.3 capture exact-recall预算兼容修复"
+mode_label: "【Codex模式：目标模式】P2.3 exact target admission proof修复"
 status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: false
@@ -25,52 +25,51 @@ private_repository_creation_authorized: false
 permission_or_acl_change_authorized: false
 trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
-runtime_code_scope: "P2_3_CAPTURE_EXACT_RECALL_BUDGET_PARITY_ONLY"
+runtime_code_scope: "P2_3_EXACT_TARGET_PROOF_ONLY"
 
-canonical_main_at_route_prepare: "d58bc5b517e75276999e158be4458aafba9a5cae"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R125-P2-3-CAPTURE-EXACT-RECALL-BUDGET-PARITY.yaml"
+canonical_main_at_route_prepare: "d969a53d2adfd1e5718185795f3873f85f5d8d04"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R126-P2-3-EXACT-TARGET-PROOF.yaml"
 canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
 canonical_p2_plan: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R116-P2/P2-UNIFIED-RETRIEVAL-AND-CONTEXT-BUNDLE-IMPLEMENTATION-PLAN.md"
 implementation_branch: "codex/gpt-second-brain-memory-palace-unified-retrieval-r124-p2-3"
 implementation_pr: 318
 
 review_return:
-  reviewed_head: "d7b76b97775dde69cf61bc473b2be16d626feea2"
-  gpt_review_id: 4942437318
-  disposition: "R124_P2_3_EXACT_HEAD_CHANGES_REQUIRED_CAPTURE_EXACT_RECALL_BUDGET_PARITY"
-  verified_ci_run: 31858287127
-  verified_merge_ref: "835af52b829f318f6db4d3210642c8b70b39d15e"
-  verified_merge_ref_base: "d58bc5b517e75276999e158be4458aafba9a5cae"
-  verified_phase3_tests: "279/279 PASS"
-  verified_public_safety: "84 files / 0 issues"
+  reviewed_head: "76c23276e6ac36e7d62c4e46f49950880e91a7b0"
+  gpt_review_id: 4942509388
+  disposition: "R125_P2_3_EXACT_HEAD_CHANGES_REQUIRED_DUPLICATE_STATEMENT_TARGET_PROOF"
+  verified_ci_run: 31859337058
+  verified_merge_ref: "d9cde2f1090ed1937ddabec7dc48cfa9accd3aff"
+  verified_merge_ref_base: "d969a53d2adfd1e5718185795f3873f85f5d8d04"
+  verified_phase3_tests: "282/282 PASS"
+  verified_public_safety: "91 files / 0 issues"
 
-accepted_r124_subsystems:
-  adapter_post_assembly_candidate_scan_removed: true
-  temporal_candidate_discovery_assembler_owned: true
-  relation_graph_admission_unified: true
-  provenance_graph_admission_unified: true
-  deterministic_channel_attribution: true
-  no_new_numeric_temporal_or_provenance_weight: true
-  r118_r123_security_parity: true
+accepted_r125_subsystems:
+  ordinary_budget_50_unchanged: true
+  omission_only_capture_proof: true
+  canonical_assembler_admission_reused: true
+  adapter_post_scan_not_restored: true
+  foreign_absent_fail_closed: true
+  r124_unified_temporal_relation_provenance_authority: true
 
 blocking_finding:
-  id: "R124-B01-CAPTURE-EXACT-RECALL-BUDGET"
+  id: "R125-B01-DUPLICATE-STATEMENT-TARGET-COLLISION"
   status: "REQUIRES_REMEDIATION"
   note: >-
-    QueryPlan default budget is 50. capture_text can emit more than 50 atoms and requires every newly written atom to be recalled. R124 correctly moved provenance/temporal discovery into ContextAssembler, but this means all same-episode siblings are now subject to the same normal context budget; a 51+ atom capture can be truncated and fail memory_palace_exact_recall_failed. Existing R124 tests do not cover this saturation case.
+    Conversation atom identity includes episode_manifest_id, so the same normalized statement in different episodes yields distinct atom IDs. R125 queries the statement with budget=1 and requires the exact target ID to win ranking. Equal lexical scores tie-break by atom ID, so a different admissible same-statement atom may win and falsely fail proof for the newly captured omitted target.
 
 root_goal: >-
-  Preserve the accepted P2.3 single-authority migration while restoring capture_text write-after-read exact-recall proof under budget saturation. Ordinary retrieval budget semantics remain authoritative.
+  Preserve the accepted P2.3 single-authority migration and R125 budget parity while making omitted-capture proof exact to the requested atom identity, independent of lexical ranking and duplicate-statement tie order.
 
 mandatory_repairs:
-  - "Do not restore Memory Palace post-assembler candidate scans or any second admission authority."
-  - "Make capture_text exact-recall proof complete for every just-written atom even when ordinary context budget is saturated."
-  - "Any proof path must reuse canonical ContextAssembler observability/admission and W3 data; direct existence checks alone are insufficient."
-  - "Do not globally inflate/bypass QueryPlan budget and do not invent ranking weights."
-  - "Add a >=51 atom same-episode exact-recall test and a budget-pressure test with unrelated admissible lexical noise."
-  - "Prove ordinary budget=50 still returns at most 50 atoms with deterministic omissions."
-  - "Preserve R124 temporal/relation/provenance unified discovery, channel attribution, CURRENT/HISTORICAL behavior and R118-R123 security guarantees."
-  - "If an additive proof contract cannot satisfy this without public semantic/schema expansion, report UNKNOWN_NEEDS_GPT instead of broadening scope."
+  - "Do not restore Memory Palace post-assembler scans or any second admission authority."
+  - "Move omitted-capture verification to an exact atom-ID proof owned by ContextAssembler or equivalent canonical internal authority."
+  - "Evaluate the target through the same caller-observability + admission policy; raw store existence alone is insufficient."
+  - "Do not solve by increasing proof budget and do not alter ordinary QueryPlan budget/ranking."
+  - "Foreign/revoked/inadmissible target IDs must remain caller-visible equivalent to absence."
+  - "Add a cross-episode identical-canonical-statement regression with the newer target omitted by ordinary budget; exact target proof must succeed independent of atom-ID ordering."
+  - "Retain R125 51+ atom, noise-pressure, budget determinism, foreign/absent tests and all R124/R118-R123 security behavior."
+  - "Keep proof API internal/candidate-only; no public schema or authority expansion."
 
 watchpoints:
   - id: "R122-UNKNOWN-BINDING-GAP"
@@ -86,7 +85,7 @@ execution_contract:
   unknown_schema_redesign: "FORBIDDEN"
   second_store_or_parallel_resolver: "FORBIDDEN"
   adapter_post_scan_restoration: "FORBIDDEN"
-  global_budget_inflation_as_fix: "FORBIDDEN"
+  global_or_proof_budget_inflation_as_fix: "FORBIDDEN"
   real_private_data_or_store: "FORBIDDEN"
   private_source_discovery_or_read: "FORBIDDEN"
   scheduler: "FORBIDDEN"
@@ -98,8 +97,10 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 validation_required:
-  - "focused R125 51+ atom exact-recall and budget-pressure tests PASS"
-  - "ordinary budget semantics regression PASS"
+  - "duplicate-statement cross-episode exact-target proof PASS"
+  - "R125 51+ atom and noise-pressure tests PASS"
+  - "ordinary budget=50 deterministic omission PASS"
+  - "foreign/revoked/absent exact-target indistinguishability PASS"
   - "existing Memory Palace tests PASS"
   - "full Phase-3 regression PASS"
   - "GitHub Actions exact final head_sha + Python 3.11/3.13 SUCCESS"
@@ -107,9 +108,9 @@ validation_required:
   - "schema/YAML/JSON PASS"
   - "git diff --check PASS"
   - "working tree clean"
-  - "R118-R124 compatibility parity"
+  - "R118-R125 compatibility parity"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_3_R125_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_3_R126_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 125 is only the P2.3 capture exact-recall budget parity remediation. P2.4, UNKNOWN binding design, real private execution, production bridge, scheduler, formal promotion, QCLAW runtime dependency, permissions and trading remain locked.
+  Epoch 126 is only the P2.3 exact-target proof remediation. P2.4, UNKNOWN binding design, real private execution, production bridge, scheduler, formal promotion, QCLAW runtime dependency, permissions and trading remain locked.
