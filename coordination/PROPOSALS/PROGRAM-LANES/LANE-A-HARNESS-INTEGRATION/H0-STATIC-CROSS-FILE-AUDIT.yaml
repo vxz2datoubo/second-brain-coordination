@@ -1,0 +1,222 @@
+schema_version: "0.1"
+audit_id: "COGNITIVE-OS-H0-STATIC-CROSS-FILE-AUDIT-0001"
+status: "COMPLETED_FOR_CURRENT_PROPOSAL_HEAD / CONTROL_PLANE_BLOCKERS_OPEN"
+owner: "USER"
+auditor: "GPT"
+boundary: "PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+scope:
+  proposal_branch: "gpt/harness-cognitive-os-architecture-v0-1"
+  canonical_main: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+  pr: 336
+  files_reviewed:
+    - COGNITIVE-OPERATING-SYSTEM-ARCHITECTURE-BLUEPRINT.md
+    - DEPARTMENT-CONTRACT-GRAPH.yaml
+    - COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
+    - SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml
+    - ADAPTER-BOUNDARY.yaml
+    - HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md
+    - HARNESS-POC-CONTRACT.md
+    - ISSUE-312-COMPATIBILITY-MATRIX.yaml
+    - ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml
+    - LEARNING-EVOLUTION-LIFECYCLE.yaml
+    - METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml
+    - TRACE-LEDGER-PRIVACY-CONTRACT.yaml
+    - ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml
+    - IMPLEMENTATION-DEPENDENCY-DAG.yaml
+    - IMPLEMENTATION-CLAIM-CANDIDATE.yaml
+    - EVAL-PLAN.md
+    - H0-ARCHITECTURE-COMPATIBILITY-REVIEW.md
+  external_state_checked:
+    - coordination/ACTIVE-CODEX-TASK.yaml
+    - coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml
+    - coordination/ACTIVE-PROGRAM-LANES.yaml
+    - Issue_335_Foundation_Closure
+    - PR_334_P2_4B_merge
+
+verdicts:
+  architecture_static_verdict: "PASS_WITH_BOUNDED_DEBT"
+  H0_final_acceptance: "NOT_READY"
+  implementation_release: "FAIL_CLOSED"
+  reason: >-
+    Internal architecture defects found in this audit were repaired on the proposal branch, but canonical Control Tower
+    projections are materially stale and violate route/work-claim consistency. H1/H2 must not be released until those
+    canonical control-plane states are reconciled and a fresh witness is created.
+
+findings:
+  - finding_id: H0-AUD-001
+    check_id: OGV-028-CONTRACT-DSL-COMPILABILITY
+    severity: P1
+    status: FIXED
+    affected: [COGNITIVE-OS-CONTRACT-SCHEMAS.yaml]
+    problem: "Contracts visually resembled JSON Schema but mixed structural DSL with free-form invariants, risking shadow validation."
+    repair: >-
+      Upgraded to COGNITIVE_CONTRACT_DSL/v0.2; explicitly states H1 compilation requirement; introduced named semantic
+      invariant registry and deterministic state-machine semantics instead of ordinal comparisons such as state>=EXECUTING.
+
+  - finding_id: H0-AUD-002
+    check_id: OGV-023-CAUSAL-COMPETING-HYPOTHESES
+    severity: P1
+    status: FIXED
+    affected: [ProblemSignature_v1]
+    problem: "Invariant referenced competing_hypotheses_required before the field existed."
+    repair: "Added competing_hypotheses_required plus explicit causal invariant and PIT capability reference."
+
+  - finding_id: H0-AUD-003
+    check_id: OGV-030-LEARNING-TRIGGER-COVERAGE
+    severity: P1
+    status: FIXED
+    affected: [OutcomeLearning_v1, DecisionEpisode_v1, DEPARTMENT-CONTRACT-GRAPH.yaml]
+    problem: "OutcomeLearning required real-world outcome_ref, excluding verified user correction or audit-only learning."
+    repair: >-
+      outcome_ref is now optional when correction_event_ref or audit_finding_ref exists; W9 consumes outcome/correction/audit
+      and all remain evidence-bound learning candidates rather than automatic truth.
+
+  - finding_id: H0-AUD-004
+    check_id: OGV-014-INDEPENDENT-CHALLENGE
+    severity: P1
+    status: FIXED
+    affected: [ChallengeCase_v1]
+    problem: "Contract required independent provenance for C2-C4 without storing challenge_level."
+    repair: "Added challenge_level to ChallengeCase/v1 and a named C2-C4 independent-pass invariant."
+
+  - finding_id: H0-AUD-005
+    check_id: OGV-027-ROLE-AND-ALIAS-RESOLUTION
+    severity: P1
+    status: FIXED
+    affected: [DEPARTMENT-CONTRACT-GRAPH.yaml]
+    problem: >-
+      Primary Producer was implicit while return paths used free-text aliases such as PRODUCER_OR_SIGNAL_TOWER and
+      RESPONSIBLE_UPSTREAM, creating apparently complete human diagrams with machine-unresolvable edges.
+    repair: >-
+      Added PRIMARY_PRODUCER and CHALLENGER role templates, dynamic return-alias registry with deterministic resolution,
+      explicit challenge/reveal edges, and validator invariants for endpoint/alias resolution.
+
+  - finding_id: H0-AUD-006
+    check_id: OGV-018-HARNESS-BOUNDARY
+    severity: P2
+    status: FIXED
+    affected: [ADAPTER-BOUNDARY.yaml, HARNESS-POC-CONTRACT.md]
+    problem: "Adapter still said upstream identity needed reverification after the canonical upstream had already been independently verified."
+    repair: >-
+      Split gate into IDENTITY_AND_ARCHITECTURE_SURFACE_PASS and a separate runtime_binding_gate requiring install/pack/service-signature/
+      target-environment/provider/rollback/compatibility smoke plus fresh Control Tower authorization.
+
+  - finding_id: H0-AUD-007
+    check_id: OGV-031-H1-H2-SLICE-SEPARATION
+    severity: P0
+    status: FIXED
+    affected: [IMPLEMENTATION-CLAIM-CANDIDATE.yaml]
+    problem: "H1 contract skeleton and H2 Harness runtime PoC were bundled under one HEAVY implementation candidate."
+    repair: >-
+      Split into independent future Work Claim candidates: H1 contract-only synthetic skeleton and H2 Harness Adapter PoC.
+      H1 cannot install/bind Harness as product runtime; H2 requires separate fresh route, Work Claim, O0-O4 scan and witness.
+
+  - finding_id: H0-AUD-008
+    check_id: OGV-009-STALE-ROUTE
+    severity: P0
+    status: OPEN
+    affected: [coordination/ACTIVE-CODEX-TASK.yaml]
+    evidence:
+      active_route_projection: "R132 / Issue 332 / status READY / execution_allowed true / next_command 读取任务"
+      actual_completion: "PR #334 merged to canonical main 823d5b22...; Issue #335 closure explicitly identifies R132 projection as stale"
+    risk: >-
+      A completed predecessor still presents an executable-looking next command. Any router that trusts the file without
+      reconciliation could re-run or mis-authorize obsolete work.
+    required_remediation: "neutralize/close stale R132 projection before any new executable route is issued"
+    owner: CONTROL_TOWER_310
+
+  - finding_id: H0-AUD-009
+    check_id: OGV-029-ROUTE-WORK-CLAIM-CONSISTENCY
+    severity: P0
+    status: OPEN
+    affected: [coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml]
+    evidence:
+      current_claim_projection: "Lane C still binds R120 / Issue 305 / PR 307"
+      latest_completed_foundation: "R132/P2.4B merged; #335 CLOSED_WITH_BOUNDED_GAPS"
+    risk: >-
+      Work Claim no longer describes the actual/current execution surface. Commit-time collision checks or future lease
+      calculations can be wrong if this stale claim is treated as current.
+    required_remediation: "refresh Lane C claim to closed/frozen foundation state and ensure no executable lease remains"
+    owner: CONTROL_TOWER_310
+
+  - finding_id: H0-AUD-010
+    check_id: OGV-029-ROUTE-WORK-CLAIM-CONSISTENCY
+    severity: P0
+    status: OPEN
+    affected: [coordination/ACTIVE-PROGRAM-LANES.yaml]
+    evidence:
+      as_of: "2026-08-14T20:49:00+08:00"
+      observed_codex: "R120 / Issue 305 / PR 307"
+      lane_a_state: "PAUSED / held until foundation ready"
+      actual_state: "Foundation closure completed; user explicitly started Lane A H0 proposal architecture; PR #336 exists"
+    risk: >-
+      Aggregate lane state is stale. Although the file declares it is not per-agent execution truth, stale desired/observed
+      lane relationships can still mislead human/automation release decisions.
+    required_remediation: >-
+      refresh aggregate observed states: Lane C foundation CLOSED_WITH_BOUNDED_GAPS/no active execution; Lane A ACTIVE_ARCHITECTURE_DESIGN
+      proposal-only; preserve Lane B held unless separately started.
+    owner: CONTROL_TOWER_310
+
+  - finding_id: H0-AUD-011
+    check_id: OGV-028-CONTRACT-DSL-COMPILABILITY
+    severity: P1
+    status: DEFERRED_BOUNDED
+    affected: [COGNITIVE-OS-CONTRACT-SCHEMAS.yaml, ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml]
+    problem: "Formal JSON Schema/equivalent compilation and deterministic validator code do not exist yet."
+    reason_not_H0_architecture_blocker: "H1 is intentionally the contract-only synthetic implementation slice."
+    gate: "Must PASS before H1 exact-head acceptance and before H2."
+
+  - finding_id: H0-AUD-012
+    check_id: OGV-004-DEPENDENCY-CYCLE
+    severity: P1
+    status: DEFERRED_BOUNDED
+    affected: [DecisionEpisodeStateMachine_v1, formal_model_plan]
+    problem: "TLA+/TLC or equivalent exhaustive model checks have not been executed."
+    reason_not_H0_architecture_blocker: "State variables/safety/liveness obligations are now specified; implementation belongs to H1 validation."
+    gate: "Critical Mission/WorkClaim/Rework/Skill/Veto/Trace/Resource/Alias/H1-H2 models must have receipts before later runtime maturity gates."
+
+  - finding_id: H0-AUD-013
+    check_id: OGV-018-HARNESS-BOUNDARY
+    severity: P0
+    status: DEFERRED_BOUNDED
+    affected: [HARNESS_RUNTIME_BINDING_GATE]
+    problem: "Pinned Harness target-environment runtime install/pack/provider smoke has not run."
+    reason_not_H0_architecture_blocker: "No runtime binding is being authorized in H0."
+    gate: "Mandatory before H2 and independently rechecked against pinned SHA/version provenance."
+
+  - finding_id: H0-AUD-014
+    check_id: OGV-001-UNIQUE-AUTHORITY
+    severity: P2
+    status: FIXED
+    affected: [IMPLEMENTATION-CLAIM-CANDIDATE.yaml]
+    problem: "OutcomeLearning appeared in adapter write outputs despite W9 being its owner."
+    repair: "H2 claim now marks OutcomeLearning as transported-but-not-owned; W9 retains ownership."
+
+open_blockers:
+  P0:
+    - H0-AUD-008
+    - H0-AUD-009
+    - H0-AUD-010
+  P1_bounded_future:
+    - H0-AUD-011
+    - H0-AUD-012
+  H2_only:
+    - H0-AUD-013
+
+required_next_sequence:
+  - "record exact stale-control-plane remediation candidate without modifying canonical control files from Lane A proposal"
+  - "notify/control-register findings in Issue #310"
+  - "after authorized control-plane cleanup, refetch main + ACTIVE routes + Work Claims + lane registry"
+  - "rerun O0-O4/WIP/route-work-claim consistency scan"
+  - "then issue final GPT H0 compatibility verdict"
+  - "only after H0 final acceptance may H1 receive a separate executable Work Claim/route"
+
+learning_scan:
+  candidate_system_learning:
+    - "Machine-looking architecture contracts must explicitly distinguish design DSL from executable schema."
+    - "Every dynamic return arrow needs machine-resolvable ownership, not a prose alias."
+    - "Learning must accept verified correction/audit events without requiring an external outcome."
+    - "Implementation stage boundaries must be separate Work Claims when later stages introduce a new runtime/dependency/authority risk."
+    - "Stale control-plane projections are first-class architecture blockers even when domain runtime is correct."
+  promotion_status: "ENGINEERING_LEARNING_CANDIDATE_ONLY / REQUIRES_H1_REGRESSION"
