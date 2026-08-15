@@ -1,0 +1,132 @@
+schema_version: "130.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 325
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4A-PROVIDER-REQUEST-BOUNDARY"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 130
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.4A Provider Request信任边界修复"
+status: "READY_REMEDIATION"
+execution_allowed: true
+automatic_resume_within_task: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
+merge_authorized: false
+runtime_code_change_allowed: true
+runtime_code_scope: "P2_4A_PROVIDER_REQUEST_TRUST_BOUNDARY_ONLY"
+
+canonical_main_at_route_prepare: "02ee9f2a5be7cece9c5011a23dadc7966ce492eb"
+canonical_contract: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/P2-4-IMPLEMENTATION-CONTRACT.md"
+canonical_issue: 325
+implementation_branch: "codex/gpt-second-brain-p2-4a-semantic-provider-r129"
+implementation_pr: 329
+
+review_return:
+  reviewed_head: "6bcd0ed0aacfae416f2bea5a765869c6c0aaed14"
+  gpt_review_id: 4943134437
+  disposition: "R129_P2_4A_EXACT_HEAD_CHANGES_REQUIRED_PROVIDER_REQUEST_TRUST_BOUNDARY"
+  verified_ci_run: 31870048995
+  verified_python_311: "SUCCESS"
+  verified_python_313: "SUCCESS"
+  reported_focused_tests: "35/35 PASS"
+  reported_phase3_tests: "285/285 PASS"
+  reported_public_safety: "108 files / 0 issues"
+
+accepted_r129_subsystems:
+  semantic_terms_not_concatenated_into_lexical_query: true
+  semantic_only_score_none: true
+  lexical_relation_duplicate_score_unchanged: true
+  semantic_channel_attribution_only: true
+  default_provider_none_path_intent: true
+  legacy_iterable_response_inert: true
+  provider_result_secret_injection_fail_closed: true
+  structural_analogy_not_implemented: true
+
+blocking_findings:
+  - id: "R129-B01-PROVIDER-REQUEST-CONTRACT-INCOMPLETE"
+    status: "REQUIRES_REMEDIATION"
+    detail: >-
+      SemanticProviderRequest lacks opaque request_id and non-reversible scope/privacy-mode fingerprint; SemanticProviderResult lacks request_id, so result/request correlation required by the canonical contract cannot be validated.
+  - id: "R129-B02-REQUEST-SECRET-INJECTION-EGRESS"
+    status: "REQUIRES_REMEDIATION"
+    detail: >-
+      Query terms are derived from plan.query_text and sent to provider before credential/prompt-injection screening. Current screening protects only provider output, so unsafe caller query material can cross the provider trust boundary.
+
+frozen_remediation_decisions:
+  request_id:
+    rule: "deterministic opaque ID derived from public-safe request components; never raw query/body/scope/private identity"
+  scope_privacy_fingerprint:
+    rule: "deterministic non-reversible content hash over normalized scope/privacy-mode contract fields; provider receives only fingerprint, never raw values"
+  result_correlation:
+    rule: "SemanticProviderResult/v1 must echo request_id; mismatch is INVALID_RESPONSE-equivalent fallback with no public reason"
+  query_language:
+    rule: "optional field only when already caller supplied; do not infer language as a new authority"
+  unsafe_request_policy:
+    rule: "FAIL_CLOSED_NO_PROVIDER_CALL_V1"
+    detail: >-
+      Screen the normalized caller query before provider invocation. If canonical credential or prompt-injection deny semantics match, do not call provider and fall back to P2.3. Do not expose which marker matched.
+  safety_guard_reuse:
+    rule: >-
+      Reuse or factor the existing Phase-3 credential and prompt-injection deny semantics from learning_packet.py. If a shared helper extraction is needed, it must preserve existing LearningPacket behavior exactly and remain a narrow internal refactor. Avoid a second drifting regex policy.
+
+mandatory_repairs:
+  - "Complete SemanticProviderRequest/v1 with schema_version, opaque request_id, normalized public-safe query_terms, optional caller-supplied query_language, bounded max_suggestions, and non-reversible scope/privacy-mode fingerprint."
+  - "Complete SemanticProviderResult/v1 with schema_version, echoed request_id, state, and bounded discovery_terms."
+  - "Validate result.request_id == request.request_id before any discovery; mismatch falls back without telemetry/reason leakage."
+  - "Apply canonical secret/prompt-injection screening BEFORE provider invocation; unsafe request means provider is not called."
+  - "Provider output screening remains fail-closed and must not be weakened."
+  - "Preserve NO_NUMERIC_SCORE_V1: provider terms never modify lexical query; discovered IDs use score=None; duplicates add semantic channel only."
+  - "Preserve NOT_CONFIGURED full bundle/Memory Palace parity and no default public provider field."
+  - "Preserve legacy iterable response inertness and R125/R126 capture exact-target proof."
+  - "Structural Analogy remains forbidden in R130."
+
+required_tests:
+  - "Request capture proves request_id/fingerprint present and raw scopes/privacy/user identifiers are absent from provider request."
+  - "Same safe plan => deterministic request_id/fingerprint; changed allowed scope/privacy mode => fingerprint changes without exposing raw values."
+  - "Mismatched result request_id => complete P2.3-equivalent fallback."
+  - "Secret-shaped caller query (GitHub/OpenAI/private-key representative synthetic shapes) => provider invocation count remains zero and retrieval falls back safely."
+  - "Prompt-injection caller query, including English and existing Chinese canonical markers => provider invocation count remains zero."
+  - "Unsafe request marker type/count is not publicly observable."
+  - "Provider result secret/injection/invalid state remains fail-closed."
+  - "Default provider=None ContextBundle.to_dict parity, including query_id/plan_hash/order/budget/omissions/provenance/trust gate."
+  - "Semantic-only score=None and lexical/relation duplicate score unchanged regressions remain PASS."
+  - "Legacy iterable response cannot alter recall."
+  - "CURRENT/HISTORICAL lifecycle, R118-R129 safety, Memory Palace and capture exact recall regressions PASS."
+
+allowed_runtime_scope:
+  - "retrieval.py"
+  - "memory_palace.py only if type wiring requires it"
+  - "learning_packet.py or a tiny shared internal safety helper only if factoring existing deny semantics with behavior-parity tests"
+  - "focused tests"
+  - "public_safety_scan.py and R130 receipt/audit artifacts"
+
+forbidden:
+  structural_analogy_runtime: true
+  external_semantic_service: true
+  new_semantic_numeric_weight: true
+  second_store_vector_db_resolver: true
+  unknown_schema_redesign: true
+  private_source_store_read_ingestion: true
+  formal_project_global_promotion: true
+  scheduler: true
+  production_mcp_gateway: true
+  qclaw_runtime_dependency: true
+  permission_acl_visibility_change: true
+  trading_account_action: true
+  rebase_force_amend_existing_pr: true
+  codex_merge: true
+
+validation_required:
+  - "focused P2.4A request-boundary/adversarial suite PASS"
+  - "existing Memory Palace/capture suite PASS"
+  - "full Phase-3 regression PASS"
+  - "exact-head GitHub Actions Python 3.11/3.13 SUCCESS against latest canonical main"
+  - "public safety PASS"
+  - "schema/YAML/JSON and git diff --check PASS"
+  - "working tree clean"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_R130_PROVIDER_BOUNDARY_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 130 is a narrow remediation of the P2.4A provider request trust boundary. The accepted no-score discovery design remains frozen. Structural Analogy, private/formal/live/production/permission/trading actions remain locked.
