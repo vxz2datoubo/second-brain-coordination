@@ -25,6 +25,8 @@ class QueryPlan:
     include_unknowns: bool = True
     relation_depth: int = 0
     budget: int = 50
+    include_structural_analogies: bool = False
+    analogy_budget: int = 8
     intent: str = "CURRENT"
     user_scope: str | None = None
     privacy_domains: tuple[str, ...] = ()
@@ -39,6 +41,10 @@ class QueryPlan:
             raise ValueError("query_plan_confidence_invalid")
         if not 1 <= self.budget <= 1000:
             raise ValueError("query_plan_budget_invalid")
+        if not isinstance(self.include_structural_analogies, bool):
+            raise ValueError("query_plan_structural_analogy_flag_invalid")
+        if not 1 <= self.analogy_budget <= 100:
+            raise ValueError("query_plan_structural_analogy_budget_invalid")
         if not 0 <= self.relation_depth <= 4:
             raise ValueError("query_plan_relation_depth_invalid")
         states = set(self.truth_states)
@@ -67,6 +73,11 @@ class QueryPlan:
     def to_dict(self) -> dict[str, Any]:
         self.validate()
         payload = asdict(self)
+        # Preserve frozen P2.4A plan-hash/query-id parity while the optional
+        # analogy lane is disabled.
+        if not self.include_structural_analogies:
+            payload.pop("include_structural_analogies")
+            payload.pop("analogy_budget")
         for field_name in ("scopes", "atom_types", "truth_states", "privacy_domains"):
             payload[field_name] = list(payload[field_name])
         return payload
@@ -108,6 +119,45 @@ class SemanticProviderResult:
     request_id: str
     state: str
     discovery_terms: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class StructuralFeature:
+    """Identity-free feature record for non-evidentiary structural context."""
+
+    schema_version: str
+    atom_type: str
+    role_class: str
+    lifecycle_bucket: str
+    relation_types: tuple[str, ...]
+    temporal_shape: str
+
+    @property
+    def digest(self) -> str:
+        return content_hash(asdict(self))
+
+    @property
+    def labels(self) -> tuple[str, ...]:
+        labels = (
+            "atom_type:" + self.atom_type,
+            "role:" + self.role_class,
+            "lifecycle:" + self.lifecycle_bucket,
+            "temporal:" + self.temporal_shape,
+        )
+        return labels + tuple("relation:" + item for item in self.relation_types)
+
+
+@dataclass(frozen=True)
+class AnalogyItem:
+    """Bundle-position-only reference; never evidence, rank, or authority."""
+
+    schema_version: str
+    feature_digest: str
+    source_evidence_position: int
+    target_evidence_position: int
+    feature_labels: tuple[str, ...]
+    non_evidentiary: bool
+    analogy_context_position: int
 
 
 @dataclass(frozen=True)
@@ -458,6 +508,7 @@ class ContextAssembler:
             self._evidence_item(atom, "non_objective_interpretation")
             for atom in bundle.atoms if self._interpretation_context(atom)
         )
+        analogies, omitted_analogies = self._structural_analogies(bundle, plan)
         trust_gate = dict(bundle.trust_gate)
         if trust_gate.get("outcome") != "ABSTAIN" and (conflict_items or unknown_items):
             trust_gate["materiality"] = {
@@ -466,6 +517,15 @@ class ContextAssembler:
                 "conflict_count": len(conflict_items),
                 "unknown_count": len(unknown_items),
             }
+        omitted_context = {
+            "relations": len(all_relation_items) - len(relation_items),
+            "conflicts": len(all_conflict_items) - len(conflict_items),
+            "unknowns": len(all_unknown_items) - len(unknown_items),
+        }
+        if plan.include_structural_analogies:
+            # This is a count of only already-admitted, feature-matching pairs.
+            # Hidden endpoints/adjacency never enter this lane or its telemetry.
+            omitted_context["analogies"] = omitted_analogies
         return GPTSecondBrainContextBundle(
             schema_version="GPTSecondBrainContextBundle/v1",
             request={
@@ -492,12 +552,8 @@ class ContextAssembler:
                 }),
                 "owner_context": owner_context,
                 "interpretation_context": interpretation_context,
-                "analogies": (),
-                "omitted_due_to_budget": {
-                    "relations": len(all_relation_items) - len(relation_items),
-                    "conflicts": len(all_conflict_items) - len(conflict_items),
-                    "unknowns": len(all_unknown_items) - len(unknown_items),
-                },
+                "analogies": analogies,
+                "omitted_due_to_budget": omitted_context,
                 "unknown_omission_counts": {
                     "unbound_explicit_unknown_omitted": 0,
                 },
@@ -521,6 +577,110 @@ class ContextAssembler:
         """Short compatibility alias for the versioned GPT projection."""
 
         return self.assemble_gpt_context_bundle_v1(plan)
+
+    @staticmethod
+    def _structural_role_class(atom: dict[str, Any]) -> str:
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        if isinstance(conversation, dict) and conversation:
+            role = conversation.get("claim_role")
+            return "OWNER_" + role if isinstance(role, str) else "OWNER_CONTEXT"
+        if isinstance(knowledge, dict) and knowledge:
+            role = knowledge.get("epistemic_role")
+            return "KNOWLEDGE_" + role if isinstance(role, str) else "KNOWLEDGE_CONTEXT"
+        return "GENERAL"
+
+    @staticmethod
+    def _structural_temporal_shape(atom: dict[str, Any]) -> str:
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        source = conversation if isinstance(conversation, dict) and conversation else knowledge
+        if not isinstance(source, dict) or not source:
+            return "ATEMPORAL"
+        if isinstance(source.get("valid_to"), str) or isinstance(source.get("effective_valid_to"), str):
+            return "CLOSED_INTERVAL"
+        if isinstance(source.get("valid_from"), str) or isinstance(source.get("recorded_at"), str):
+            return "OPEN_INTERVAL"
+        return "TEMPORAL_UNSPECIFIED"
+
+    @staticmethod
+    def _structural_lifecycle_bucket(atom: dict[str, Any]) -> str:
+        status = atom.get("knowledge_status")
+        if status == "superseded":
+            return "HISTORICAL_SUPERSEDED"
+        if status == "approved":
+            return "APPROVED"
+        if status == "candidate":
+            return "CANDIDATE"
+        return "OTHER_ADMITTED"
+
+    def _structural_feature(
+        self, atom: dict[str, Any], safe_relations: tuple[dict[str, Any], ...],
+    ) -> StructuralFeature:
+        # ``safe_relations`` has already enforced caller observability and
+        # admission for both endpoints.  Do not inspect raw graph adjacency.
+        atom_id = atom["id"]
+        relation_types = tuple(sorted(
+            relation["relation_type"] for relation in safe_relations
+            if atom_id in {relation.get("source_atom_id"), relation.get("target_atom_id")}
+            and isinstance(relation.get("relation_type"), str)
+        ))[:8]
+        return StructuralFeature(
+            schema_version="StructuralFeature/v1",
+            atom_type=str(atom.get("atom_type", "UNKNOWN")),
+            role_class=self._structural_role_class(atom),
+            lifecycle_bucket=self._structural_lifecycle_bucket(atom),
+            relation_types=relation_types,
+            temporal_shape=self._structural_temporal_shape(atom),
+        )
+
+    def _structural_analogies(
+        self, bundle: ContextBundle, plan: QueryPlan,
+    ) -> tuple[tuple[dict[str, Any], ...], int]:
+        """Project exact redacted structural matches after all evidence work.
+
+        This deliberately receives the completed bundle, so it cannot admit an
+        atom, influence ranking/budget/trust, or observe non-admitted graph
+        structure.  Positions are deterministic bundle-local references, not
+        atom, scope, user, provenance, or source identities.
+        """
+
+        if not plan.include_structural_analogies:
+            return (), 0
+        features = tuple(self._structural_feature(atom, bundle.relations) for atom in bundle.atoms)
+        candidates: list[AnalogyItem] = []
+        for source_position, source in enumerate(features):
+            for target_position in range(source_position + 1, len(features)):
+                target = features[target_position]
+                if source.digest != target.digest:
+                    continue
+                candidates.append(AnalogyItem(
+                    schema_version="AnalogyItem/v1",
+                    feature_digest=source.digest,
+                    source_evidence_position=source_position,
+                    target_evidence_position=target_position,
+                    feature_labels=source.labels,
+                    non_evidentiary=True,
+                    analogy_context_position=0,
+                ))
+        candidates.sort(key=lambda item: (
+            item.feature_digest, item.source_evidence_position, item.target_evidence_position,
+        ))
+        selected = tuple(
+            asdict(AnalogyItem(
+                schema_version=item.schema_version,
+                feature_digest=item.feature_digest,
+                source_evidence_position=item.source_evidence_position,
+                target_evidence_position=item.target_evidence_position,
+                feature_labels=item.feature_labels,
+                non_evidentiary=True,
+                analogy_context_position=position,
+            ))
+            for position, item in enumerate(candidates[:plan.analogy_budget])
+        )
+        return selected, max(0, len(candidates) - len(selected))
 
     def _safe_relations(self, plan: QueryPlan, selected_ids: set[str]) -> tuple[dict[str, Any], ...]:
         return tuple(

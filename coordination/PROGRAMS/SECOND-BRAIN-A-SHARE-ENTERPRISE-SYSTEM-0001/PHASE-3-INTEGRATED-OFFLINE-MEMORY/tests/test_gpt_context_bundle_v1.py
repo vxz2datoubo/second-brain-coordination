@@ -168,6 +168,153 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
         )
         self.assertNotIn(omitted_relation_id, repr(projection.context["relations"]))
 
+    def test_r132_structural_analogy_is_default_off_non_evidentiary_and_independently_budgeted(self) -> None:
+        atoms = [
+            atom("r132 analogue alpha"), atom("r132 analogue beta"), atom("r132 analogue gamma"),
+        ]
+        self.store.import_learning_packet(packet(atoms, relations=[], conflicts=[], unknowns=[]))
+        disabled = QueryPlan(query_text="r132 analogue", budget=3)
+        explicitly_disabled = QueryPlan(
+            query_text="r132 analogue", budget=3, include_structural_analogies=False, analogy_budget=1,
+        )
+        enabled = QueryPlan(
+            query_text="r132 analogue", budget=3, include_structural_analogies=True, analogy_budget=1,
+        )
+        self.assertEqual(disabled.plan_hash, explicitly_disabled.plan_hash)
+
+        default_projection = self.assembler.assemble_v1(disabled)
+        enabled_projection = self.assembler.assemble_v1(enabled)
+        repeated = self.assembler.assemble_v1(enabled)
+
+        self.assertEqual(default_projection.evidence, enabled_projection.evidence)
+        self.assertEqual(default_projection.ranking, enabled_projection.ranking)
+        self.assertEqual(default_projection.trust_gate, enabled_projection.trust_gate)
+        self.assertEqual(default_projection.admission, enabled_projection.admission)
+        self.assertEqual(enabled_projection.to_dict(), repeated.to_dict())
+        self.assertEqual(len(enabled_projection.context["analogies"]), 1)
+        self.assertEqual(enabled_projection.context["omitted_due_to_budget"]["analogies"], 2)
+        item = enabled_projection.context["analogies"][0]
+        self.assertEqual(item["schema_version"], "AnalogyItem/v1")
+        self.assertTrue(item["non_evidentiary"])
+        self.assertNotIn("atom_id", item)
+        self.assertNotIn("r132 analogue", repr(item))
+
+    def test_r132_hidden_relation_neighbors_are_oracle_equivalent_before_features(self) -> None:
+        def projection_with(hidden_count: int):
+            store = MemoryStore().connect()
+            self.addCleanup(store.close)
+            visible_source = atom("r132 visible source")
+            visible_target = atom("r132 visible target")
+            hidden = [
+                atom("opaque-neighbor-" + str(index), transport_visibility="RESTRICTED_NEVER_SYNC")
+                for index in range(hidden_count)
+            ]
+            all_atoms = [visible_source, visible_target, *hidden]
+            provisional = packet(all_atoms, relations=[], conflicts=[], unknowns=[])
+            ids = {item["canonical_statement"]: item["id"] for item in provisional["atoms"]}
+            relations = [
+                {
+                    "source_atom_id": ids["r132 visible source"],
+                    "target_atom_id": ids["opaque-neighbor-" + str(index)],
+                    "relation_type": "supports",
+                }
+                for index in range(hidden_count)
+            ]
+            store.import_learning_packet(packet(all_atoms, relations=relations, conflicts=[], unknowns=[]))
+            return ContextAssembler(store).assemble_v1(QueryPlan(
+                query_text="r132 visible", relation_depth=1, budget=4,
+                include_structural_analogies=True, analogy_budget=4,
+            ))
+
+        projections = [projection_with(count) for count in (0, 1, 3)]
+        first = projections[0]
+        for projection in projections[1:]:
+            self.assertEqual(projection.context["analogies"], first.context["analogies"])
+            self.assertEqual(projection.context["omitted_due_to_budget"], first.context["omitted_due_to_budget"])
+            self.assertEqual(projection.admission, first.admission)
+            self.assertEqual(projection.evidence, first.evidence)
+            self.assertEqual(projection.ranking, first.ranking)
+            self.assertEqual(projection.trust_gate, first.trust_gate)
+            self.assertNotIn("opaque-neighbor", repr(projection.to_dict()))
+
+    def test_r132_foreign_revoked_and_invalid_time_endpoints_are_suppressed(self) -> None:
+        for label, blocked_extra in (
+            ("foreign", {"scope": "foreign-project"}),
+            ("revoked", {"knowledge_status": "revoked"}),
+        ):
+            with self.subTest(label=label):
+                store = MemoryStore().connect()
+                self.addCleanup(store.close)
+                visible_a = atom("r132 endpoint visible alpha")
+                visible_b = atom("r132 endpoint visible beta")
+                blocked = atom("r132 endpoint blocked " + label, **blocked_extra)
+                store.import_learning_packet(packet([visible_a, visible_b, blocked], relations=[], conflicts=[], unknowns=[]))
+                projection = ContextAssembler(store).assemble_v1(QueryPlan(
+                    query_text="r132 endpoint", scopes=(PROJECT,), budget=3,
+                    include_structural_analogies=True, analogy_budget=4,
+                ))
+                self.assertEqual(len(projection.context["analogies"]), 1)
+                self.assertNotIn("blocked " + label, repr(projection.to_dict()))
+
+        visible_a = ConversationEpisode(
+            episode_id="r132-time-visible-a", user_scope=USER, project_scope=PROJECT,
+            source_pointer="synthetic://r132/time/a", source_hash="1" * 64,
+            privacy_class="PUBLIC_SAFE_SYNTHETIC", recorded_at=NOW, valid_time=NOW, provenance_quality="DIRECT",
+        )
+        visible_b = ConversationEpisode(
+            episode_id="r132-time-visible-b", user_scope=USER, project_scope=PROJECT,
+            source_pointer="synthetic://r132/time/b", source_hash="2" * 64,
+            privacy_class="PUBLIC_SAFE_SYNTHETIC", recorded_at=NOW, valid_time=NOW, provenance_quality="DIRECT",
+        )
+        expired = ConversationEpisode(
+            episode_id="r132-time-expired", user_scope=USER, project_scope=PROJECT,
+            source_pointer="synthetic://r132/time/expired", source_hash="3" * 64,
+            privacy_class="PUBLIC_SAFE_SYNTHETIC", recorded_at="2026-08-10T12:00:00Z",
+            valid_time="2026-08-10T12:00:00Z", provenance_quality="DIRECT",
+        )
+        packets = (
+            build_conversation_candidate(episode=visible_a, statement="r132 time visible alpha", claim_role="USER_ASSERTION", valid_from=NOW),
+            build_conversation_candidate(episode=visible_b, statement="r132 time visible beta", claim_role="USER_ASSERTION", valid_from=NOW),
+            build_conversation_candidate(
+                episode=expired, statement="r132 time expired", claim_role="USER_ASSERTION",
+                valid_from="2026-08-10T12:00:00Z", valid_to="2026-08-11T12:00:00Z",
+            ),
+        )
+        for item in packets:
+            self.store.import_learning_packet(item)
+        projection = self.assembler.assemble_v1(QueryPlan(
+            query_text="r132 time", scopes=(PROJECT,), user_scope=USER, valid_at=NOW,
+            include_structural_analogies=True, analogy_budget=4,
+        ))
+        self.assertEqual(len(projection.context["analogies"]), 1)
+        self.assertNotIn("r132 time expired", repr(projection.to_dict()))
+
+    def test_r132_lifecycle_and_fresh_store_construction_are_deterministic(self) -> None:
+        current_a = atom("r132 lifecycle current alpha")
+        current_b = atom("r132 lifecycle current beta")
+        superseded = atom("r132 lifecycle former", knowledge_status="superseded")
+        governed = packet([current_a, current_b, superseded], relations=[], conflicts=[], unknowns=[])
+        ids = {item["canonical_statement"]: item["id"] for item in governed["atoms"]}
+        current_plan = QueryPlan(
+            query_text="r132 lifecycle", budget=3, include_structural_analogies=True, analogy_budget=4,
+        )
+        historical_plan = QueryPlan(
+            query_text="r132 lifecycle", budget=3, intent="HISTORICAL", valid_at=NOW,
+            truth_states=("candidate", "superseded"), include_structural_analogies=True, analogy_budget=4,
+        )
+        self.store.import_learning_packet(governed)
+        current = self.assembler.assemble_v1(current_plan)
+        historical = self.assembler.assemble_v1(historical_plan)
+        self.assertNotIn(ids["r132 lifecycle former"], repr(current.to_dict()))
+        self.assertIn(ids["r132 lifecycle former"], repr(historical.to_dict()))
+
+        rebuilt = MemoryStore().connect()
+        self.addCleanup(rebuilt.close)
+        rebuilt.import_learning_packet(governed)
+        self.assertEqual(
+            current.to_dict(), ContextAssembler(rebuilt).assemble_v1(current_plan).to_dict(),
+        )
+
     def test_owner_and_source_interpretation_roles_never_become_unlabeled_objective_evidence(self) -> None:
         self._conversation("r120 preference", "USER_PREFERENCE")
         self._conversation("r120 plan", "USER_PLAN")
