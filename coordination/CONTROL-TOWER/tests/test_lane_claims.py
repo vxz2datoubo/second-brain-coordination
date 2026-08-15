@@ -127,12 +127,16 @@ class LaneClaimTests(unittest.TestCase):
         )
         if violation == "agent":
             claim["execution_agent"] = "CODEX"
+        elif violation == "resource":
+            claim["resource_class"] = "HEAVY_IMPLEMENTATION"
         elif violation == "route":
             claim["route_binding"] = {"task_id": "C1", "route_epoch": 5}
         elif violation == "surface":
             claim["write_paths"] = ["runtime/context.py"]
         elif violation == "receipt":
             claim["closure_receipt"] = None
+        elif violation == "receipt_evidence":
+            claim["closure_receipt"] = {"note": "closed because we say so"}
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
     def test_valid_active_route_and_isolated_proposals_are_release_candidate(self) -> None:
@@ -170,6 +174,12 @@ class LaneClaimTests(unittest.TestCase):
         report = validate_claims(root)
         self.assertTrue(any(item["code"] == "CLOSED_CLAIM_HAS_EXECUTION_AGENT" for item in report["errors"]))
 
+    def test_closed_lane_with_active_resource_class_fails(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="resource")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_RESOURCE_CLASS_INVALID" for item in report["errors"]))
+
     def test_closed_lane_with_route_binding_fails(self) -> None:
         root = self._repo()
         self._close_lane_c(root, violation="route")
@@ -187,6 +197,12 @@ class LaneClaimTests(unittest.TestCase):
         self._close_lane_c(root, violation="receipt")
         report = validate_claims(root)
         self.assertTrue(any(item["code"] == "CLOSED_CLAIM_RECEIPT_MISSING" for item in report["errors"]))
+
+    def test_closed_lane_receipt_requires_durable_evidence_reference(self) -> None:
+        root = self._repo()
+        self._close_lane_c(root, violation="receipt_evidence")
+        report = validate_claims(root)
+        self.assertTrue(any(item["code"] == "CLOSED_CLAIM_RECEIPT_EVIDENCE_MISSING" for item in report["errors"]))
 
 
 if __name__ == "__main__":
