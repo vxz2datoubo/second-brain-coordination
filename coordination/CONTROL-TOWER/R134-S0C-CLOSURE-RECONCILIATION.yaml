@@ -1,0 +1,87 @@
+schema_version: "1.0"
+reconciliation_id: "R134-S0C-CLOSURE-RECONCILIATION-0001"
+owner: "USER"
+architecture_owner: "GPT"
+observed_at: "2026-08-16T00:24:00+08:00"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+trigger:
+  type: "POST_MERGE_COMPLETION_RECONCILIATION"
+  description: >-
+    PR #346 merged the GPT-accepted R134 S0C public-safe/offline synthetic Global Signal Plane. The active route,
+    Work Claim and Program Lane must now release their execution lease before any successor task can be published.
+
+verified_facts:
+  task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+  route_epoch: 134
+  issue: 343
+  implementation_pr: 346
+  accepted_runtime_head: "0eed25daa47b883fc17ba6ca36c49c23eb2fb444"
+  final_evidence_successor_head: "f5c22ea94a9dcd04ec5364893e9e417ebac25fd9"
+  final_review_id: 4944240707
+  merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+  runtime_s0c_ci: 31894807990
+  runtime_phase3_ci: 31894808041
+  successor_s0c_ci: 31895347687
+  successor_phase3_ci: 31895347715
+  python_311: PASS
+  python_313: PASS
+  current_stage_scope: "PUBLIC_SAFE / OFFLINE / SYNTHETIC PRE-MISSION SIGNAL PLANE"
+
+accepted_capabilities:
+  - "SQLite append-only admitted event history"
+  - "at-least-once ingestion with durable idempotent/effectively-once processing"
+  - "durable idempotency-key collision fail-closed"
+  - "atomic SQLite projection CAS across independent connections"
+  - "monotonic durable input revision for events and SignalLinks"
+  - "deterministic projection rebuild/checksum replay"
+  - "crash-after-append recovery"
+  - "bounded synthetic backpressure with material-priority admission"
+  - "GlobalReconciliationReceipt freshness invalidation"
+  - "mechanism-derived GST-R001 through GST-R024"
+  - "R133 CROSS_WINDOW_STATE_DRIFT public evidence binding"
+
+bounded_debt:
+  - id: "S0C-DEBT-TRANSPORT-EXACTLY-ONCE"
+    statement: "End-to-end transport-level exactly-once is not proven and remains intentionally unclaimed."
+  - id: "S0C-DEBT-LIVE-ADAPTER"
+    statement: "No live/private/cross-repository ingestion adapter is implemented or authorized."
+  - id: "S0C-DEBT-PRODUCTION-SLO"
+    statement: "No production SLO/RPO/RTO or persistent service topology is frozen at S0C."
+
+closure_actions:
+  - "Set ACTIVE-CODEX-TASK epoch 134 to DONE/non-executable."
+  - "Close Lane A current Work Claim and release all R134 execution/write surfaces."
+  - "Set Lane A to S0C_COMPLETED_NEXT_STAGE_NOT_AUTHORIZED with no active execution route."
+  - "Refresh Program Control Tower projection to the closed state."
+  - "Preserve the R134 route/task brief as historical immutable execution evidence."
+
+future_stage_locks:
+  s0d_authorized: false
+  h2_authorized: false
+  h7_authorized: false
+  harness_runtime_authorized: false
+  private_bridge_authorized: false
+  live_connector_authorized: false
+  domain_write_authorized: false
+  production_authorized: false
+  permission_change_authorized: false
+  trading_authorized: false
+
+successor_release_requires:
+  - "fresh current-main and PR/route/claim/program-lane global scan"
+  - "fresh valid GlobalReconciliationReceipt"
+  - "new route epoch and task_id"
+  - "fresh exact Work Claim"
+  - "fresh O0-O4 / same-agent / resource collision scan"
+  - "fresh durable Control Tower authorization witness"
+  - "explicit GPT release"
+  - "explicit user approval for private/production/permission/trading boundaries"
+
+final_state:
+  r134: "COMPLETED_HISTORY_ONLY"
+  codex_execution_lease: "RELEASED"
+  next_stage: "NOT_AUTHORIZED"
+  note: >-
+    S0C completion establishes an enterprise-grade public-safe/offline synthetic foundation only. It does not imply
+    S0D shadow cross-repo ingestion, Harness H2/H7 runtime, private/live integration, production or trading authority.
