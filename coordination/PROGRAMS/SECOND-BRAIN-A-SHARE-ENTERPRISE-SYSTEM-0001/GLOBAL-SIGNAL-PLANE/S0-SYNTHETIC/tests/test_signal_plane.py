@@ -91,6 +91,8 @@ class SignalPlaneContractTest(unittest.TestCase):
         fixtures = json.loads((ROOT / "fixtures" / "gst_scenarios.json").read_text(encoding="utf-8"))
         self.assertTrue(fixtures["public_safe"])
         self.assertEqual(len(fixtures["scenarios"]), 24)
+        r133 = next(spec for spec in fixtures["scenarios"] if spec["id"] == "GST-R001-CROSS-WINDOW-STATE-DRIFT-R133")
+        self.assertEqual(r133["canonical_evidence_ref"], "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml")
         ids = set()
         for spec in fixtures["scenarios"]:
             self.assertTrue({"setup", "input_events", "expected_signal_state", "expected_projection", "expected_reconciliation_result", "expected_error_or_alert_codes", "authority_assertions", "replay_assertion"}.issubset(spec))
