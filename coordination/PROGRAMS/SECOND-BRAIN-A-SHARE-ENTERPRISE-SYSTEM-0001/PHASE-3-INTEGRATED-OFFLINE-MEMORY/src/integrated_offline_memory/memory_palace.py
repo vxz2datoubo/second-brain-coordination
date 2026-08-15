@@ -15,7 +15,7 @@ from .canonical import content_hash, normalize_text
 from .conversation_memory import ConversationEpisode, build_conversation_candidate, build_conversation_correction
 from .learning_packet import build_learning_packet
 from .memory_store import MemoryStore
-from .retrieval import ContextAssembler, QueryPlan
+from .retrieval import ContextAssembler, QueryPlan, SemanticProviderRequest, SemanticProviderResult
 
 
 TRIGGERS = ("采集记忆", "数据采集")
@@ -56,7 +56,7 @@ class CaptureReceipt:
 def capture_text(
     *, store: MemoryStore, user_scope: str, project_scope: str, message: str,
     recorded_at: str, source_id: str, previous_owner_message: str | None = None,
-    semantic_provider: Callable[[str], Iterable[str]] | None = None,
+    semantic_provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None = None,
     freshness_policy: Callable[[str, str], str] | None = None,
 ) -> CaptureReceipt:
     """Capture a public-safe synthetic owner message through W3 then prove recall."""
@@ -133,7 +133,7 @@ def _prove_exact_recall(
 
 def retrieve_memory_palace(
     *, store: MemoryStore, user_scope: str, project_scope: str, query_text: str,
-    anchor_time: str, valid_at: str | None = None, intent: str = "CURRENT", semantic_provider: Callable[[str], Iterable[str]] | None = None,
+    anchor_time: str, valid_at: str | None = None, intent: str = "CURRENT", semantic_provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None = None,
 ) -> tuple[dict[str, Any], ...]:
     """Hybrid lexical + deterministic temporal + graph retrieval explanations."""
 
@@ -142,8 +142,6 @@ def retrieve_memory_palace(
     expanded = query_text
     if temporal_active:
         expanded += " " + temporal["resolved_start"][:10]
-    if semantic_provider is not None:
-        expanded += " " + " ".join(str(item) for item in semantic_provider(query_text))
     plan = QueryPlan(
         query_text=expanded, scopes=(project_scope,), user_scope=user_scope,
         valid_at=valid_at or _retrieval_instant(temporal, anchor_time), intent=intent,
@@ -151,7 +149,7 @@ def retrieve_memory_palace(
         relation_depth=1, include_conflicts=True,
     )
     assembler = ContextAssembler(store)
-    bundle = assembler.assemble(plan)
+    bundle = assembler.assemble(plan, semantic_provider=semantic_provider)
     result: list[dict[str, Any]] = []
     channel_map = assembler.last_candidate_channels
     for atom in sorted(bundle.atoms, key=lambda item: item["id"]):
