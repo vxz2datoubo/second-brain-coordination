@@ -1,0 +1,238 @@
+schema_version: "0.1"
+matrix_id: "ISSUE-312-TO-COGNITIVE-OS-COMPATIBILITY-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+source_issue: 312
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+decision_vocabulary:
+  REUSE: "existing authority/capability is directly reused"
+  EXTEND: "existing authority stays owner; add compatible object/interface/policy"
+  WRAP: "place stable adapter/projection around existing implementation"
+  MOVE_BEHIND_INTERFACE: "semantics preserved but runtime coupling hidden behind contract"
+  SPLIT_RESPONSIBILITY: "requirement preserved but responsibilities assigned to multiple existing authorities"
+  DEFER_TO_RUNTIME_GATE: "architecture accepted; implementation waits for later route"
+  REJECT_WITH_REASON: "capability cannot be used as proposed; explicit alternative required"
+
+requirements:
+  - requirement: FOUR_COGNITIVE_STATES
+    source_semantics: [KNOWN_SAID, KNOWN_UNSAID_INFERRED, UNKNOWN_BUT_ACCESSIBLE, UNKNOWN_REQUIRES_SCAFFOLDING]
+    decision: REUSE
+    owner: W3_PERSONAL_COGNITIVE_MODEL
+    runtime_projection: CognitiveCapabilityMap.user_axis
+    notes: "Do not create a duplicate four-state skill; inferred state never becomes user assertion."
+
+  - requirement: ProblemSignature
+    decision: EXTEND
+    owner: METHOD_ROUTER_312
+    contract: ProblemSignature/v1
+    consumers: [SIGNAL_TOWER, METHOD_ROUTER_312, W12_DECISION_SCIENCE, EFFECTIVE_CHALLENGE_MESH]
+    harness_role: "transport/reference only"
+
+  - requirement: MethodMemory
+    decision: SPLIT_RESPONSIBILITY
+    owner: W3_SECOND_BRAIN
+    projection_owner: METHOD_ROUTER_312
+    storage_semantics: "W3 stores durable method knowledge/cases/failure conditions; router consumes bounded projection"
+    forbidden: "second method database inside Harness"
+
+  - requirement: SkillManifest_PROGRESSIVE_DISCLOSURE
+    decision: WRAP
+    authority_owner: EXISTING_FORMAL_SKILL_GOVERNANCE
+    runtime_projection: "SkillManifestProjection/v1 candidate"
+    consumers: [METHOD_ROUTER_312, HARNESS_RUNTIME]
+    rule: "Harness skill catalog/loader is projection only, not Formal Skill authority."
+
+  - requirement: MethodSelectionDecision
+    decision: EXTEND
+    owner: METHOD_ROUTER_312
+    contract: "MethodSelectionDecision/v1 candidate"
+    decision_episode_binding: REQUIRED
+    outputs_allow: [ZERO_METHODS, ONE_METHOD, MANY_METHODS, NO_METHOD, NO_SUITABLE_METHOD, ABSTAIN]
+
+  - requirement: META_REASONING_ROUTER_0_N
+    decision: EXTEND
+    owner: METHOD_ROUTER_312
+    execution: "policy/service outside Harness authority"
+    harness_role: "execute selected plan only"
+
+  - requirement: METHOD_DISCOVERY_BEYOND_TOPIC_SIMILARITY
+    decision: EXTEND
+    owner: METHOD_ROUTER_312
+    inputs:
+      - lexical/topic retrieval
+      - structural fit
+      - prerequisites
+      - evidence/data availability
+      - regime/freshness
+      - failures/cases
+      - permission/safety
+      - value/cost
+    p2_4_structural_analogy_role: "non-evidentiary candidate signal only"
+
+  - requirement: DynamicMethodComposition
+    decision: EXTEND
+    owner: METHOD_ROUTER_312
+    maturity: CANDIDATE_ONLY
+    constraints:
+      - bounded components
+      - declared preconditions
+      - declared I/O
+      - permission preserved
+      - termination condition
+      - additional validation
+      - no one-shot skill promotion
+    harness_role: "workflow execution of accepted composition candidate"
+
+  - requirement: ChallengePolicy
+    decision: SPLIT_RESPONSIBILITY
+    selection_owner: METHOD_ROUTER_312
+    execution_pattern_owner: EFFECTIVE_CHALLENGE_MESH
+    final_veto_owner: W7_VALIDATION_RISK
+    runtime_executor: HARNESS_RUNTIME
+    rule: "Challenge is Policy + Workflow + Role Templates + Evidence Tools + Evaluation, not one giant permanent agent."
+
+  - requirement: EFFECTIVE_CHALLENGE_NORMAL_CALLABLE
+    decision: REUSE
+    owner: METHOD_ROUTER_312
+    role: "selectable method when evidence/causal/materiality symptoms warrant"
+
+  - requirement: EFFECTIVE_CHALLENGE_HARD_TRIGGER
+    decision: EXTEND
+    owner: W7_VALIDATION_RISK
+    policy_inputs:
+      - high_risk_financial_decision_support
+      - strong_causal_attribution
+      - safety_permission_irreversible_architecture
+      - low_data_grade_high_confidence_intent_claim
+      - material_conclusion_evidence_mismatch
+    note: "Router can request challenge; W7/risk policy can force minimum level."
+
+  - requirement: INDEPENDENT_EVIDENCE_AUDIT
+    decision: EXTEND
+    owner: EVIDENCE_VERIFIER
+    execution: HARNESS_RUNTIME
+    trace_requirement: TOOL_AND_SOURCE_TRACE
+    independence: "separate from Producer/Challenger conclusion generation"
+
+  - requirement: ACTIVE_EVIDENCE_RETRIEVAL
+    decision: SPLIT_RESPONSIBILITY
+    plan_owner: METHOD_ROUTER_312
+    source_policy_owner: DOMAIN_OR_RESEARCH_AUTHORITY
+    execution: EVIDENCE_VERIFIER
+    stopping_owner: W12_DECISION_SCIENCE
+    abstention: REQUIRED
+
+  - requirement: ADJUDICATION
+    decision: EXTEND
+    owner: ADJUDICATOR
+    authority_class: "evidence adjudication, not truth authority"
+    final_veto_owner: W7_VALIDATION_RISK
+    bias_controls:
+      - blind order where practical
+      - randomized order evaluation
+      - rubric reference
+      - unresolved allowed
+
+  - requirement: MethodCredit
+    decision: EXTEND
+    owner: W9_OUTCOME_LEARNING
+    storage_backwrite: W3_SECOND_BRAIN
+    method_router_feedback: REQUIRED
+    note: "Separate method choice quality from final outcome luck/regime effects."
+
+  - requirement: SkillHealth
+    decision: EXTEND
+    owner: W9_OUTCOME_LEARNING
+    formal_skill_authority: EXISTING_FORMAL_SKILL_GOVERNANCE
+    states_candidate: [HEALTHY, REVALIDATION_REQUIRED, WEAKENED, DEGRADED, RETIRED]
+
+  - requirement: RegressionCase
+    decision: REUSE
+    owner: W9_OUTCOME_LEARNING
+    storage: W3_SECOND_BRAIN
+    consumers: [METHOD_ROUTER_312, EVAL_SYSTEM]
+
+  - requirement: REGIME_FRESHNESS
+    decision: REUSE
+    owner: W12_DECISION_SCIENCE
+    w3_role: "store applicability/freshness evidence"
+    rule: "old method cannot reactivate solely by similarity"
+
+  - requirement: TRACE_FEEDBACK_CREDIT_REGRESSION
+    decision: SPLIT_RESPONSIBILITY
+    raw_trace_owner: HARNESS_RUNTIME_OR_PROVIDER_NATIVE
+    cross_agent_ledger_owner: COGNITIVE_OS_TRACE_LAYER
+    outcome_owner: W9_OUTCOME_LEARNING
+    durable_learning_owner: W3_SECOND_BRAIN
+
+  - requirement: FIRST_A_SHARE_CONSUMER_308
+    decision: REUSE
+    owner: ISSUE_308_DOMAIN_CONSUMER
+    runtime: "after shared cognitive runtime accepted"
+    boundary: "NO_TRADE"
+
+  - requirement: CONTROL_TOWER_GOVERNANCE
+    decision: REUSE
+    owner: CONTROL_TOWER_310
+    rule: "#312 never self-authorizes Agent routes or implementation claims"
+
+  - requirement: RESOURCE_CAPS
+    decision: REUSE
+    owner: CONTROL_TOWER_310
+    runtime_enforcement: [HARNESS_RUNTIME, RESOURCE_GOVERNOR]
+    constraints:
+      local_heavy_stage_max: 1
+      same_agent_active_execution_max: 1
+      nested_process_pools: FORBIDDEN
+
+  - requirement: NO_DUPLICATE_W3
+    decision: REUSE
+    owner: W3_SECOND_BRAIN
+    invariant: true
+
+  - requirement: NO_DUPLICATE_SKILL_AUTHORITY
+    decision: REUSE
+    invariant: true
+
+  - requirement: NO_DUPLICATE_FEEDBACK_RUNTIME
+    decision: REUSE
+    invariant: true
+
+  - requirement: NO_DUPLICATE_EVIDENCE_TRUTH
+    decision: REUSE
+    invariant: true
+
+m0_m7_rewrite:
+  M0:
+    old: "repo reuse audit + schema/eval"
+    new: "H0-compatible repo reuse audit + ProblemSignature/MethodSelection/Challenge contracts + evaluation plan; consume frozen W3 through Adapter interfaces"
+    runtime_authorization: NONE
+  M1:
+    old: "MethodMemory + SkillManifest synthetic registry"
+    new: "W3-backed MethodMemory projection + Formal Skill Manifest projection fixtures; no second registry authority"
+  M2:
+    old: "multi-channel retrieval + progressive disclosure"
+    new: "Method Discovery service using W3 bounded retrieval, structural/non-topic signals and progressive manifest projection"
+  M3:
+    old: "bounded dynamic composition"
+    new: "composition candidate contract -> validation -> Harness workflow projection; no promotion"
+  M4:
+    old: "materiality router + Effective Challenge + evidence request"
+    new: "risk-adaptive C0-C4 ChallengePolicy + independent Primary/Challenger + Verifier + Adjudicator + W12 stopping"
+  M5:
+    old: "trace -> feedback -> method credit -> regression"
+    new: "DecisionEpisode/RawTrace/Ledger/Handoff -> W9 OutcomeLearning -> W3/MethodRouter candidates"
+  M6:
+    old: "#308 A-share shadow consumer"
+    new: "#308 as first domain consumer through shared interfaces; PIT/evidence/competing-hypotheses/NO_TRADE gates"
+  M7:
+    old: "cross-domain validation before Formal Skill"
+    new: "engineering/research/market cross-domain eval + regime/failure checks -> existing Formal Skill governance gate"
+
+compatibility_verdict: "COMPATIBLE_WITH_ARCHITECTURAL_REASSIGNMENT"
+reason: >-
+  Issue #312 capability requirements are preserved. The main change is ownership/topology: durable method knowledge stays in W3,
+  runtime execution stays in Harness, authorization stays in Control Tower, final risk veto stays in W7, and outcome credit stays in W9.
+  This avoids turning #312 into a second brain or a monolithic autonomous agent.
