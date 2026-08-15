@@ -29,7 +29,7 @@ jobs:
       - name: Validate H1 public artifact formats
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON
         run: >-
-          python -c "import json,pathlib,yaml,sys; sys.path.insert(0, 'src'); from cognitive_os_h1.schema_authority import compiled_draft_2020_12; json.loads(pathlib.Path('schemas/structural-authority.json').read_text()); json.loads(pathlib.Path('fixtures/scenarios.json').read_text()); [yaml.safe_load(p.read_text()) for p in pathlib.Path('.').glob('*.yaml')]; assert len(compiled_draft_2020_12()['$defs']) == 11; print('H1_FORMAT_VALIDATION_PASS')"
+          python -c "import json,pathlib,yaml,sys; sys.path.insert(0, 'src'); from cognitive_os_h1.schema_authority import compiled_draft_2020_12; json.loads(pathlib.Path('schemas/structural-authority.json').read_text()); json.loads(pathlib.Path('fixtures/scenarios.json').read_text()); [yaml.safe_load(p.read_text()) for p in pathlib.Path('.').glob('*.yaml')]; assert len(compiled_draft_2020_12()[chr(36)+'defs']) == 11; print('H1_FORMAT_VALIDATION_PASS')"
       - name: Run deterministic synthetic contract tests
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON
         run: python -m unittest discover -s tests -v
