@@ -4,7 +4,7 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-15T22:36:00+08:00`
+- as_of: `2026-08-15T22:43:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
 - User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
@@ -13,7 +13,7 @@
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC` | 134 | `READY` | `true` | #343 / #None |
+| CODEX | `CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC` | 134 | `PREPARED_AWAITING_POST_MERGE_RECONCILIATION` | `false` | #343 / #None |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `ACTIVE` | `false` | S0C_EXACT_HEAD_GPT_REVIEW_NO_AUTO_S0D_H2_H7 |
+| `LANE-A-HARNESS-INTEGRATION` | `READY` | `READY` | `false` | POST_MERGE_GLOBAL_RECONCILIATION_THEN_R134_EXECUTION_ACTIVATION |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | CONSUME_FROZEN_BOUNDARIES; REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -58,36 +58,36 @@
 
 ## 当前正式节奏
 
-- **Unified Signal Tower 企业级架构：已合并并 canonical**。PR #342，merge `e3c2465832006a1eb4d97c83bb8bfa8d25a749b1`；一个 Signal Tower 身份，内部为 pre-Mission Global Signal Plane + existing Mission Plane。
-- **Lane A：S0C public-safe/offline synthetic implementation release**。Issue #343，R134，Codex 单一执行租约；实现 append-only event ingest、idempotency、projection/replay、GlobalReconciliationReceipt 与 24 条企业级 regression。
-- **Global Reconciliation Receipt：已作为 R134 发布前硬门**。`coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml` 只证明规划/状态 freshness，不是执行授权。
-- **S0D / Harness Runtime / H2 / H7：均未授权**。S0C 完成、CI、review 或 merge 都不能自动释放下一阶段。
+- **Unified Signal Tower 企业级架构：已合并并 canonical**。PR #342，merge `e3c2465832006a1eb4d97c83bb8bfa8d25a749b1`。
+- **Lane A：R134 S0C 处于 Phase A“已准备/已预留、不可执行”**。Issue #343，Work Claim 已预留 exact S0C write surface，但 `execution_allowed=false`。
+- **原因**：bootstrap GlobalReconciliationReceipt 绑定 pre-release main；Phase A governance merge 会改变 main，因此必须 merge 后重新生成 postflight receipt，再由第二个 exact-head Control Tower PR 激活 R134。
+- **S0D / Harness Runtime / H2 / H7：均未授权**。Phase A/Phase B 都不能自动释放这些阶段。
 - **Lane B：继续 user-held / NO_TRADE**。
-- **Lane C：Foundation DONE / CLOSED_WITH_BOUNDED_GAPS**，无执行租约。
-- **跨窗口状态漂移：必须在正式任务发布/审核/merge/下一任务前重新核对**。发现 route / Work Claim / Program Lane / PR / receipt 状态不一致时先 fail-closed reconciliation。
+- **Lane C：Foundation DONE / CLOSED_WITH_BOUNDED_GAPS**。
 
-## S0C 精确边界
+## Phase A 精确边界
 
-允许写入：
-
-- `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC`
-- `.github/workflows/global-signal-plane-s0.yml`
-
-禁止：DeepSeek Harness runtime、H2/H7、S0D cross-repo shadow、private ChatGPT bridge、webhook/daemon/live connector、private W3、W3/#312/#308 runtime mutation、AI Film/A股 canonical write、生产权限/密钥、Formal Skill promotion、交易、自行 merge。
+- 预留写入面：
+  - `coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC`
+  - `.github/workflows/global-signal-plane-s0.yml`
+- 当前 Codex 写权限：**NONE / execution disabled**。
+- 禁止：Harness/H2/H7、S0D、private cross-window bridge、live connector/webhook/daemon、W3/#312/#308 runtime mutation、AI Film/A股 canonical write、生产/权限/密钥、Formal Skill promotion、交易、自行 merge。
 
 ## 资源边界
 
-- Codex active execution route max = 1；R134 当前占用该租约；
-- S0C 为 light/medium，默认 single worker；
+- Work Claim reservation 已占用 R134 S0C surface，防止相邻任务抢写；
+- Codex executable route 当前为 0；
 - local heavy stage max = 1；
 - nested process pools 禁止；
-- bounded workers + task-owned child cleanup；
-- 禁止全局 kill Python；
-- 大测试矩阵优先 remote CI；
-- 禁止 daemon/server。
+- 禁止全局 kill Python。
 
 ## 下一门
 
-R134 控制面发布必须通过 Python 3.11/3.13 exact-head Control Tower CI：reconciliation、Work Claim、projection、durable witness、Codex route witness 全部 PASS。通过并由 GPT exact-head 审核后，用户才可把完整 R134 启动提示词发送给 second-brain Codex。
+1. Phase A governance PR exact-head Control Tower CI 必须全绿；
+2. 合并 Phase A；
+3. 对新 canonical main + AI Film remote state 做 postflight Global Reconciliation；
+4. 生成新 Receipt；
+5. Phase B activation PR 将 R134 改成 `READY / execution_allowed=true`；
+6. Phase B 再过 Python 3.11/3.13 Control Tower CI 后，用户才可发送完整 R134 启动提示词。
 
-S0C 完成后只进入 GPT exact-head review；**不自动 merge、不自动 S0D、不自动 H2/H7**。
+在 Phase B 完成前：**不要启动 Codex。**
