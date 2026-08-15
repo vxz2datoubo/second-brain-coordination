@@ -241,19 +241,20 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
                 )
                 self.assertNotIn("r121 unbound private unknown", repr(projection.to_dict()))
 
-    def test_zero_one_many_unbound_unknowns_have_identical_public_context(self) -> None:
+    def test_zero_one_many_unbound_unknowns_have_identical_complete_public_bundle(self) -> None:
         plans = (
             QueryPlan(query_text=""),
             QueryPlan(query_text="", scopes=(PROJECT,)),
             QueryPlan(query_text="", scopes=(PROJECT,), user_scope=USER),
             QueryPlan(query_text="", scopes=(PROJECT,), privacy_domains=("synthetic-r122",)),
         )
-        baseline_contexts: list[dict[str, object]] | None = None
+        baseline_projections: list[dict[str, object]] | None = None
+        internal_packet_hashes: list[str] = []
 
         for count in (0, 1, 3):
             store = MemoryStore().connect()
             try:
-                store.import_learning_packet(packet(
+                value = packet(
                     [atom("r122 stable root")], relations=[], conflicts=[],
                     unknowns=[
                         {
@@ -263,21 +264,29 @@ class GPTContextBundleV1TestCase(unittest.TestCase):
                         }
                         for index in range(count)
                     ],
-                ))
+                )
+                store.import_learning_packet(value)
+                internal_packet_hashes.append(value["packet_content_hash"])
+                self.assertEqual(
+                    store.provenance_for_atom(value["atoms"][0]["id"])[0]["packet_content_hash"],
+                    value["packet_content_hash"],
+                )
                 projections = [ContextAssembler(store).assemble_v1(plan) for plan in plans]
-                contexts = [projection.context for projection in projections]
-                if baseline_contexts is None:
-                    baseline_contexts = contexts
+                public_projections = [projection.to_dict() for projection in projections]
+                if baseline_projections is None:
+                    baseline_projections = public_projections
                 else:
-                    self.assertEqual(contexts, baseline_contexts)
+                    self.assertEqual(public_projections, baseline_projections)
                 for projection in projections:
                     self.assertEqual(projection.evidence["unknowns"], ())
                     self.assertEqual(
                         projection.context["unknown_omission_capability"], "UNBOUND_UNKNOWN_BINDING_UNAVAILABLE",
                     )
+                    self.assertNotIn("packet_content_hashes", repr(projection.provenance))
                     self.assertNotIn("r122 endpoint-free unknown", repr(projection.to_dict()))
             finally:
                 store.close()
+        self.assertEqual(len(set(internal_packet_hashes)), 3)
 
 
 if __name__ == "__main__":

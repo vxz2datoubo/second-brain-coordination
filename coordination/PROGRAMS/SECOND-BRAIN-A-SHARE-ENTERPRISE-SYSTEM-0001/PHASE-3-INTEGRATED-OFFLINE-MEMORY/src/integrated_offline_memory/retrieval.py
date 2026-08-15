@@ -497,7 +497,6 @@ class ContextAssembler:
             adjacency.append({
                 "atom_id": atom["id"],
                 "packet_ids": tuple(record["packet_id"] for record in records),
-                "packet_content_hashes": tuple(record["packet_content_hash"] for record in records),
                 "manifest_ids": tuple(sorted({manifest for record in records for manifest in record["source_manifest_ids"]})),
             })
         return tuple(adjacency)
