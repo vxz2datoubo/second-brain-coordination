@@ -114,6 +114,35 @@ class ContextBundle:
 
 
 @dataclass(frozen=True)
+class GPTSecondBrainContextBundle:
+    """A compatible, public-safe projection for GPT consumers.
+
+    ``ContextBundle`` remains the stable W3 retrieval return value.  This
+    versioned view deliberately carries only already-admitted evidence and
+    redacted provenance, so it cannot become a side channel around admission.
+    """
+
+    schema_version: str
+    request: dict[str, Any]
+    admission: dict[str, Any]
+    evidence: dict[str, tuple[dict[str, Any], ...]]
+    context: dict[str, Any]
+    provenance: dict[str, tuple[dict[str, Any], ...]]
+    ranking: dict[str, Any]
+    trust_gate: dict[str, Any]
+    authority: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = asdict(self)
+        for section in ("evidence", "context", "provenance"):
+            payload[section] = {
+                key: list(value) if isinstance(value, tuple) else value
+                for key, value in payload[section].items()
+            }
+        return payload
+
+
+@dataclass(frozen=True)
 class CandidateAdmissionDecision:
     """A stable, public-safe outcome for one pre-ranking candidate check.
 
@@ -130,11 +159,13 @@ class _CandidateSet:
     """Internal candidate collection shared by every P2.1 retrieval channel."""
 
     scores: dict[str, float] = field(default_factory=dict)
+    score_components: dict[str, dict[str, float]] = field(default_factory=dict)
     rejected_counts: dict[str, int] = field(default_factory=dict)
     public_accounted_atom_ids: set[str] = field(default_factory=set)
 
     def consider(
         self, atom: dict[str, Any], score: float, decision: CandidateAdmissionDecision, *, caller_observable: bool,
+        channel: str,
     ) -> bool:
         """Record only facts the caller is permitted to observe.
 
@@ -151,6 +182,8 @@ class _CandidateSet:
             return False
         atom_id = atom["id"]
         self.scores[atom_id] = max(self.scores.get(atom_id, score), score)
+        components = self.score_components.setdefault(atom_id, {})
+        components[channel] = max(components.get(channel, score), score)
         return True
 
     def public_report(self) -> dict[str, Any]:
@@ -169,6 +202,7 @@ class ContextAssembler:
             "admitted_count": 0,
             "rejected_counts": {},
         }
+        self._last_score_components: dict[str, dict[str, float]] = {}
 
     @property
     def last_admission_report(self) -> dict[str, Any]:
@@ -192,7 +226,7 @@ class ContextAssembler:
         for atom_id, score in score_map.items():
             atom = self.store.get_atom(atom_id)
             if atom is not None:
-                self._consider_candidate(candidate_set, atom, score, plan)
+                self._consider_candidate(candidate_set, atom, score, plan, channel="lexical")
 
         frontier = set(candidate_set.scores)
         visited = set(frontier)
@@ -201,7 +235,9 @@ class ContextAssembler:
             next_frontier: set[str] = set()
             for atom_id in related:
                 atom = self.store.get_atom(atom_id)
-                if atom is not None and self._consider_candidate(candidate_set, atom, 0.5 / (depth + 1), plan):
+                if atom is not None and self._consider_candidate(
+                    candidate_set, atom, 0.5 / (depth + 1), plan, channel="relation",
+                ):
                     next_frontier.add(atom_id)
             visited.update(next_frontier)
             frontier = next_frontier
@@ -209,14 +245,18 @@ class ContextAssembler:
                 break
 
         self._last_admission_report = candidate_set.public_report()
+        self._last_score_components = {
+            atom_id: dict(sorted(components.items()))
+            for atom_id, components in candidate_set.score_components.items()
+        }
         ranked_ids = sorted(candidate_set.scores, key=lambda atom_id: (-candidate_set.scores[atom_id], atom_id))
         selected_ids = ranked_ids[:plan.budget]
         omitted = ranked_ids[plan.budget:]
         atoms = tuple(self.store.get_atom(atom_id) for atom_id in selected_ids)
         selected_set = set(selected_ids)
-        relations = tuple(self.store.relations_around(selected_set))
-        conflicts = tuple(self.store.conflicts_for(selected_set)) if plan.include_conflicts else ()
-        unknowns = tuple(self.store.unknowns_for(selected_set, include_all_open=not bool(plan.query_text))) if plan.include_unknowns else ()
+        relations = self._safe_relations(plan, selected_set)
+        conflicts = self._safe_conflicts(plan, selected_set) if plan.include_conflicts else ()
+        unknowns = self._safe_unknowns(plan, selected_set, include_all_open=not bool(plan.query_text)) if plan.include_unknowns else ()
         source_lineage = tuple(sorted({source for atom in atoms if atom for source in atom.get("source_refs", [])}))
         provenance = tuple(item for atom in atoms if atom for item in self.store.provenance_for_atom(atom["id"]))
         gate = self._trust_gate(plan, atoms)
@@ -238,7 +278,7 @@ class ContextAssembler:
         )
 
     def _consider_candidate(
-        self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float, plan: QueryPlan,
+        self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float, plan: QueryPlan, *, channel: str,
     ) -> bool:
         """The only candidate-set entry point for lexical and relation paths."""
 
@@ -247,7 +287,219 @@ class ContextAssembler:
             score,
             self._admission_decision(atom, plan),
             caller_observable=self._caller_observable(atom, plan),
+            channel=channel,
         )
+
+    def assemble_gpt_context_bundle_v1(self, plan: QueryPlan) -> GPTSecondBrainContextBundle:
+        """Assemble the existing bundle then project only its safe public view."""
+
+        bundle = self.assemble(plan)
+        atoms_by_id = {atom["id"]: atom for atom in bundle.atoms}
+        all_relation_items = tuple(self._redacted_relation(relation) for relation in bundle.relations)
+        all_conflict_items = tuple(self._redacted_conflict(conflict) for conflict in bundle.conflicts)
+        all_unknown_items = tuple(self._redacted_unknown(unknown) for unknown in bundle.unknowns)
+        relation_items = all_relation_items[:plan.budget]
+        conflict_items = all_conflict_items[:plan.budget]
+        unknown_items = all_unknown_items[:plan.budget]
+        support, counter = self._support_and_counter(bundle.relations, atoms_by_id)
+        heads = tuple(
+            self._evidence_item(atom, "current_lineage_head")
+            for atom in bundle.atoms if self._objective_evidence(atom)
+        )
+        owner_context = tuple(
+            self._evidence_item(atom, "owner_context")
+            for atom in bundle.atoms if self._owner_context(atom)
+        )
+        interpretation_context = tuple(
+            self._evidence_item(atom, "non_objective_interpretation")
+            for atom in bundle.atoms if self._interpretation_context(atom)
+        )
+        trust_gate = dict(bundle.trust_gate)
+        if trust_gate.get("outcome") != "ABSTAIN" and (conflict_items or unknown_items):
+            trust_gate["materiality"] = {
+                "state": "UNKNOWN",
+                "reason": "canonical_blocking_predicate_not_available",
+                "conflict_count": len(conflict_items),
+                "unknown_count": len(unknown_items),
+            }
+        return GPTSecondBrainContextBundle(
+            schema_version="GPTSecondBrainContextBundle/v1",
+            request={
+                "query_id": bundle.query_id,
+                "plan_hash": bundle.query_plan_hash,
+                "intent": plan.intent,
+                "valid_at": plan.valid_at,
+                "scope_fingerprint": content_hash({"scopes": sorted(plan.scopes), "user_scope": plan.user_scope}),
+                "privacy_mode": plan.privacy_aggregate_mode.lower(),
+            },
+            admission=self.last_admission_report,
+            evidence={
+                "current_lineage_heads": heads,
+                "strongest_support": support,
+                "strongest_counter_or_alternative": counter,
+                "conflicts": conflict_items,
+                "unknowns": unknown_items,
+            },
+            context={
+                "relations": relation_items,
+                "temporal_context": (),
+                "stance_context": tuple(item for item in owner_context if item.get("claim_role") in {
+                    "USER_EVALUATION", "USER_CREDIBILITY_JUDGMENT", "USER_BIAS_JUDGMENT",
+                }),
+                "owner_context": owner_context,
+                "interpretation_context": interpretation_context,
+                "analogies": (),
+                "omitted_due_to_budget": {
+                    "relations": len(all_relation_items) - len(relation_items),
+                    "conflicts": len(all_conflict_items) - len(conflict_items),
+                    "unknowns": len(all_unknown_items) - len(unknown_items),
+                },
+                "unknown_omission_counts": {
+                    "unbound_explicit_unknown_omitted": 0,
+                },
+                "unknown_omission_capability": "UNBOUND_UNKNOWN_BINDING_UNAVAILABLE",
+            },
+            provenance={"adjacency": self._redacted_provenance(bundle.atoms)},
+            ranking={
+                "policy_version": "existing-lexical-relation-v1",
+                "ordered_ids": tuple(atom["id"] for atom in bundle.atoms),
+                "score_components": tuple(
+                    {"atom_id": atom_id, "components": self._score_components(atom_id)}
+                    for atom_id in (atom["id"] for atom in bundle.atoms)
+                ),
+                "omitted_due_to_budget": len(bundle.omitted_due_to_budget),
+            },
+            trust_gate=trust_gate,
+            authority={"formal_project_global_write": "LOCKED", "no_trade": True, "authority_write": False},
+        )
+
+    def assemble_v1(self, plan: QueryPlan) -> GPTSecondBrainContextBundle:
+        """Short compatibility alias for the versioned GPT projection."""
+
+        return self.assemble_gpt_context_bundle_v1(plan)
+
+    def _safe_relations(self, plan: QueryPlan, selected_ids: set[str]) -> tuple[dict[str, Any], ...]:
+        return tuple(
+            relation for relation in self.store.relations_around(selected_ids)
+            if self._endpoints_admitted(
+                relation.get("source_atom_id"), relation.get("target_atom_id"), plan=plan, selected_ids=selected_ids,
+            )
+        )
+
+    def _safe_conflicts(self, plan: QueryPlan, selected_ids: set[str]) -> tuple[dict[str, Any], ...]:
+        return tuple(
+            conflict for conflict in self.store.conflicts_for(selected_ids)
+            if self._endpoints_admitted(
+                conflict.get("atom_id_a"), conflict.get("atom_id_b"), plan=plan, selected_ids=selected_ids,
+            )
+        )
+
+    def _safe_unknowns(
+        self, plan: QueryPlan, selected_ids: set[str], *, include_all_open: bool,
+    ) -> tuple[dict[str, Any], ...]:
+        safe: list[dict[str, Any]] = []
+        for unknown in self.store.unknowns_for(selected_ids, include_all_open=include_all_open):
+            related = unknown.get("related_atom_ids")
+            if not isinstance(related, list) or not related:
+                # Endpoint-free unknowns have no canonical user/privacy/public
+                # binding.  They must remain indistinguishable from absence
+                # until that schema is separately designed and approved.
+                continue
+            if plan.scopes and unknown.get("scope") not in set(plan.scopes):
+                continue
+            if self._endpoints_admitted(*related, plan=plan, selected_ids=selected_ids):
+                safe.append(unknown)
+        return tuple(safe)
+
+    def _endpoints_admitted(self, *atom_ids: Any, plan: QueryPlan, selected_ids: set[str]) -> bool:
+        for atom_id in atom_ids:
+            if not isinstance(atom_id, str):
+                return False
+            atom = self.store.get_atom(atom_id)
+            if atom is None or not self._caller_observable(atom, plan) or not self._admission_decision(atom, plan).admitted:
+                return False
+        return bool(atom_ids)
+
+    def _score_components(self, atom_id: str) -> dict[str, float]:
+        components = dict(self._last_score_components.get(atom_id, {}))
+        components["combined"] = max(components.values(), default=0.0)
+        return dict(sorted(components.items()))
+
+    def _evidence_item(self, atom: dict[str, Any], role: str) -> dict[str, Any]:
+        item = {
+            "atom_id": atom["id"], "atom_type": atom.get("atom_type"), "role": role,
+            "confidence": atom.get("confidence"), "score_components": self._score_components(atom["id"]),
+            "lifecycle": atom.get("knowledge_status"),
+        }
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        if isinstance(conversation, dict) and isinstance(conversation.get("claim_role"), str):
+            item["claim_role"] = conversation["claim_role"]
+        if isinstance(knowledge, dict) and isinstance(knowledge.get("epistemic_role"), str):
+            item["epistemic_role"] = knowledge["epistemic_role"]
+        return item
+
+    @staticmethod
+    def _objective_evidence(atom: dict[str, Any]) -> bool:
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        if isinstance(conversation, dict) and conversation:
+            return False
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        role = knowledge.get("epistemic_role") if isinstance(knowledge, dict) else None
+        return role not in {
+            "SOURCE_INTERPRETATION", "VALUE_JUDGMENT", "USER_STANCE", "ASSISTANT_ANALYSIS", "MODEL_INFERENCE", "OPEN_QUESTION",
+        }
+
+    @staticmethod
+    def _owner_context(atom: dict[str, Any]) -> bool:
+        metadata = atom.get("memory_metadata", {})
+        conversation = metadata.get("conversation", {}) if isinstance(metadata, dict) else {}
+        return isinstance(conversation, dict) and bool(conversation)
+
+    def _interpretation_context(self, atom: dict[str, Any]) -> bool:
+        metadata = atom.get("memory_metadata", {})
+        knowledge = metadata.get("knowledge", {}) if isinstance(metadata, dict) else {}
+        return isinstance(knowledge, dict) and bool(knowledge) and not self._objective_evidence(atom)
+
+    def _support_and_counter(
+        self, relations: tuple[dict[str, Any], ...], atoms_by_id: dict[str, dict[str, Any]],
+    ) -> tuple[tuple[dict[str, Any], ...], tuple[dict[str, Any], ...]]:
+        groups = (({"supports", "support", "strengthens"}, "support"), ({"contradicts", "conflicts", "weakens", "alternative"}, "counter_or_alternative"))
+        result: list[tuple[dict[str, Any], ...]] = []
+        for relation_types, role in groups:
+            candidates = [
+                atoms_by_id[relation["source_atom_id"]] for relation in relations
+                if relation.get("relation_type") in relation_types and relation.get("source_atom_id") in atoms_by_id
+                and self._objective_evidence(atoms_by_id[relation["source_atom_id"]])
+            ]
+            candidates.sort(key=lambda atom: (-self._score_components(atom["id"])["combined"], atom["id"]))
+            result.append(tuple(self._evidence_item(atom, role) for atom in candidates[:1]))
+        return result[0], result[1]
+
+    @staticmethod
+    def _redacted_relation(relation: dict[str, Any]) -> dict[str, Any]:
+        return {key: relation[key] for key in ("id", "relation_type", "source_atom_id", "target_atom_id", "confidence", "knowledge_status") if key in relation}
+
+    @staticmethod
+    def _redacted_conflict(conflict: dict[str, Any]) -> dict[str, Any]:
+        return {key: conflict[key] for key in ("id", "atom_id_a", "atom_id_b", "conflict_type", "resolution_status") if key in conflict}
+
+    @staticmethod
+    def _redacted_unknown(unknown: dict[str, Any]) -> dict[str, Any]:
+        return {key: unknown[key] for key in ("id", "question", "scope", "related_atom_ids", "status") if key in unknown}
+
+    def _redacted_provenance(self, atoms: tuple[dict[str, Any], ...]) -> tuple[dict[str, Any], ...]:
+        adjacency: list[dict[str, Any]] = []
+        for atom in atoms:
+            records = self.store.provenance_for_atom(atom["id"])
+            adjacency.append({
+                "atom_id": atom["id"],
+                "packet_ids": tuple(record["packet_id"] for record in records),
+                "manifest_ids": tuple(sorted({manifest for record in records for manifest in record["source_manifest_ids"]})),
+            })
+        return tuple(adjacency)
 
     def _caller_observable(self, atom: dict[str, Any], plan: QueryPlan) -> bool:
         """Fail closed before an admission rejection can become public telemetry.
