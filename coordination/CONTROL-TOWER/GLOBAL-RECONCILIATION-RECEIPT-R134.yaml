@@ -1,0 +1,159 @@
+schema_version: "1.0"
+receipt_id: "GLOBAL-RECONCILIATION-RECEIPT-R134-0001"
+status: "PASS_FOR_TASK_PUBLICATION_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+generated_at: "2026-08-15T22:36:00+08:00"
+generated_by: "GPT"
+reconciliation_reason: "BEFORE_NEW_FORMAL_TASK_PUBLICATION / S0C_ENTERPRISE_GLOBAL_SIGNAL_PLANE"
+result: "PASS"
+boundary: "PLANNING_FRESHNESS_EVIDENCE_ONLY / NOT_EXECUTION_AUTHORIZATION / NO_TRADE"
+
+user_direction_ref:
+  ref: "chat:2026-08-15T22:21+08:00:start-enterprise-signal-plane"
+  statement: "开始落地达到企业级以上的"
+  interpretation: >-
+    Explicit user direction to start implementing the enterprise-grade Unified Signal Tower foundation. This authorizes
+    GPT to prepare/release the bounded S0C task, but does not authorize H2, private/production bridges, domain writes or trading.
+
+signal_ledger_watermarks:
+  runtime_signal_ledger: "NOT_IMPLEMENTED_YET / BOOTSTRAP_RECEIPT"
+  bootstrap_sources:
+    - "UNIFIED_SIGNAL_TOWER_REQUIREMENTS_HANDOFF / current conversation"
+    - "PR #342 architecture reconciliation"
+    - "R133-CROSS-WINDOW-CLOSURE-RECONCILIATION-0001"
+  note: "S0C itself will implement the first executable Signal ledger/projection; this bootstrap receipt binds canonical GitHub state instead."
+
+signal_projection_ref: "BOOTSTRAP_NO_RUNTIME_PROJECTION / PR342_CANONICAL_ARCHITECTURE"
+
+canonical_repo_snapshots:
+  second_brain:
+    repository: "vxz2datoubo/second-brain-coordination"
+    main_sha: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+    architecture_pr: 342
+    architecture_reviewed_head: "10f9b63abfa0871e8fad0a554a0f86f61721d742"
+    architecture_merge_commit: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+    architecture_review_id: 4944022335
+    signal_architecture_ci: 31890131412
+    control_tower_ci: 31890131413
+  ai_film:
+    repository: "vxz2datoubo/eustia-ai-film"
+    main_sha: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+    open_pr_scan_result: "ZERO_OPEN_PRS_VISIBLE_VIA_GITHUB"
+    scan_at: "2026-08-15T22:34:00+08:00"
+    limitation: >-
+      GitHub cannot prove absence of an unpushed local Codex process. R134 launch instructions therefore require STOP
+      if the Codex workspace/repository identity or another active local AI Film execution conflicts.
+
+relevant_issue_refs:
+  - "https://github.com/vxz2datoubo/second-brain-coordination/issues/343"
+  - "https://github.com/vxz2datoubo/second-brain-coordination/issues/310"
+
+relevant_pr_snapshots:
+  - repo: "vxz2datoubo/second-brain-coordination"
+    pr_number: 342
+    state: MERGED
+    head_sha: "10f9b63abfa0871e8fad0a554a0f86f61721d742"
+    base_sha: "204a0a294e128beeb31a84f630df2d872cda7ae1"
+    merged: true
+    merge_commit_sha: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+    review_state_ref: "GPT review 4944022335 / ACCEPT"
+    observed_at: "2026-08-15T22:36:00+08:00"
+  - repo: "vxz2datoubo/second-brain-coordination"
+    pr_number: 340
+    state: MERGED_HISTORICAL
+    head_sha: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
+    merged: true
+    merge_commit_sha: "c17df847bee689f23363b0ddbba417c6c37c79ab"
+    review_state_ref: "H1 accepted / R133 closed"
+    observed_at: "2026-08-15T22:36:00+08:00"
+
+per_agent_route_fingerprints:
+  CODEX:
+    source_path: "coordination/ACTIVE-CODEX-TASK.yaml"
+    source_blob_sha: "88abd616bb0a06daaac6ffbfa619bfeeaa92545e"
+    route_epoch: 133
+    status: DONE
+    execution_allowed: false
+    next_command: "NO_ACTIVE_TASK"
+  QCLAW:
+    status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+  WORKBUDDY:
+    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+
+work_claim_fingerprint:
+  source_path: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  source_blob_sha: "341b98950783f24ab512a339a1960ae69225b956"
+  lane_a_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  lane_b_state: "HELD_PROPOSAL_ONLY"
+  lane_c_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+
+program_lane_fingerprint:
+  source_path: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  source_blob_sha: "0771dfca4fbedbc4f6e1f0bcaa5ba21d04c9f434"
+  lane_a_state: "PAUSED / H1_COMPLETED_H2_NOT_AUTHORIZED"
+  lane_a_active_execution_route: null
+  lane_b_state: "PAUSED / USER_HOLD"
+  lane_c_state: "DONE"
+
+control_tower_projection_fingerprint:
+  source_path: "coordination/PROGRAM-CONTROL-TOWER.md"
+  source_blob_sha: "de482454053f2bcca6e8f4ad44f6f642d082c9c1"
+  structural_check: PASS
+
+planned_release:
+  task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+  route_epoch: 134
+  issue: 343
+  implementation_branch: "codex/global-signal-plane-s0c-enterprise-r134"
+  allowed_write_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+    - ".github/workflows/global-signal-plane-s0.yml"
+  resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+
+pending_user_approval_refs: []
+
+unresolved_blockers: []
+unresolved_unknowns:
+  - id: "R134-LOCAL-CROSS-PROJECT-LEASE-VISIBILITY"
+    statement: >-
+      Remote GitHub shows no open AI Film PR and no active second-brain Codex route, but cannot prove an unpushed local
+      Codex execution does not exist. Launch prompt must fail closed on wrong repo/workspace or user-known concurrent execution.
+    risk: "same local Codex executor could be manually double-booked outside GitHub-visible governance"
+    conservative_measure: "identity preflight + user launches R134 only in second-brain repo and not while AI Film Codex is actively executing"
+
+invalidation_keys:
+  - "second-brain main SHA changes before R134 governance merge/release compare"
+  - "PR #342 state/head/merge evidence changes"
+  - "ACTIVE-CODEX-TASK blob or route state changes"
+  - "Lane A Work Claim changes"
+  - "Program Lane state changes"
+  - "AI Film main or open-PR state materially changes before cross-project launch check"
+  - "user CANCEL/REVOKE or changes S0C scope"
+
+receipt_fingerprint_material:
+  second_brain_main: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+  architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+  active_codex_blob: "88abd616bb0a06daaac6ffbfa619bfeeaa92545e"
+  work_claim_blob: "341b98950783f24ab512a339a1960ae69225b956"
+  program_lane_blob: "0771dfca4fbedbc4f6e1f0bcaa5ba21d04c9f434"
+  control_tower_projection_blob: "de482454053f2bcca6e8f4ad44f6f642d082c9c1"
+  ai_film_main: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  planned_route_epoch: 134
+  planned_issue: 343
+
+receipt_fingerprint: "BOOTSTRAP-R134-BINDING-V1:e3c24658:88abd616:341b9895:0771dfca:de482454:44c383af:134:343"
+
+release_semantics:
+  task_publication_candidate_may_proceed: true
+  execution_authorized_by_receipt: false
+  control_tower_release_still_required: true
+  route_and_work_claim_still_required: true
+  compare_and_check_before_final_release_required: true
+  h2_authorized: false
+  harness_runtime_authorized: false
+  private_bridge_authorized: false
+  domain_write_authorized: false
+  trading_authorized: false
