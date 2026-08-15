@@ -1,0 +1,61 @@
+name: Global Signal Plane architecture
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/global-signal-plane-architecture.yml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-*.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-RECONCILIATION-RECEIPT-CONTRACT.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/TRACE-LEDGER-PRIVACY-CONTRACT.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/validate_global_signal_plane_architecture.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  architecture:
+    name: Python ${{ matrix.python-version }} signal-plane-architecture
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pinned YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Parse all Signal Plane YAML artifacts
+        working-directory: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          names = [
+              "GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml",
+              "GLOBAL-RECONCILIATION-RECEIPT-CONTRACT.yaml",
+              "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml",
+              "GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml",
+              "UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml",
+              "SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml",
+              "IMPLEMENTATION-DEPENDENCY-DAG.yaml",
+              "TRACE-LEDGER-PRIVACY-CONTRACT.yaml",
+              "CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml",
+          ]
+          for name in names:
+              value = yaml.safe_load(Path(name).read_text(encoding="utf-8"))
+              assert isinstance(value, dict), name
+          print(f"YAML_PARSE_PASS:{len(names)}")
+          PY
+      - name: Run deterministic cross-file architecture validator
+        working-directory: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION
+        run: python validate_global_signal_plane_architecture.py
+      - name: Check whitespace
+        run: git diff --check origin/${{ github.base_ref }}...HEAD
