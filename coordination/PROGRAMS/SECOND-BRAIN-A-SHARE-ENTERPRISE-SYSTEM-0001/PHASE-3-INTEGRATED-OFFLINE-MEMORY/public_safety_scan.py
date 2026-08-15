@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[3]
 SCAN_ROOTS = (
     ROOT,
+    ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R128-P2-4",
     ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R127-P2-4",
     ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R126-P2-3",
     ROOT.parent / "CODEX-GPT-SECOND-BRAIN-R125-P2-3",
