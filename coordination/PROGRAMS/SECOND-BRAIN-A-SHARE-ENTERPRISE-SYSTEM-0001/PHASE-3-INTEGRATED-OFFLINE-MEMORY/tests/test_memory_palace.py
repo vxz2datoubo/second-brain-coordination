@@ -24,7 +24,7 @@ from integrated_offline_memory.memory_palace import (
     retrieve_memory_palace,
 )
 from integrated_offline_memory.memory_store import MemoryStore
-from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
+from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan, SemanticProviderResult
 
 
 USER = "synthetic-memory-palace-user"
@@ -116,10 +116,43 @@ class MemoryPalaceTestCase(unittest.TestCase):
         receipt = self.capture("我喜欢合成茶。采集记忆", "episode-keyword")
         recalled = retrieve_memory_palace(
             store=self.store, user_scope=USER, project_scope=PROJECT,
-            query_text="合成茶", anchor_time=NOW, semantic_provider=lambda _query: ("喜欢",),
+            query_text="合成茶", anchor_time=NOW,
+            semantic_provider=lambda _request: SemanticProviderResult(
+                "SemanticProviderResult/v1", "AVAILABLE", ("喜欢",),
+            ),
         )
         self.assertEqual({item["atom"]["id"] for item in recalled}, set(receipt.atom_ids))
         self.assertIn("lexical", recalled[0]["explanation"]["channels"])
+
+    def test_r129_semantic_provider_is_no_score_discovery_and_legacy_callable_is_inert(self) -> None:
+        receipt = self.capture("r129 semantic discovery marker。采集记忆", "episode-r129-provider")
+        plan = QueryPlan(query_text="unmatched-provider-query", scopes=(PROJECT,), user_scope=USER, valid_at=NOW)
+        default = ContextAssembler(self.store).assemble(plan)
+        legacy = ContextAssembler(self.store).assemble(plan, semantic_provider=lambda _request: ("r129",))
+        self.assertEqual(default.atoms, legacy.atoms)
+        provider = lambda _request: SemanticProviderResult("SemanticProviderResult/v1", "AVAILABLE", ("r129",))
+        assembler = ContextAssembler(self.store)
+        semantic = assembler.assemble(plan, semantic_provider=provider)
+        self.assertEqual({atom["id"] for atom in semantic.atoms}, set(receipt.atom_ids))
+        self.assertEqual(assembler._last_score_components, {})
+        self.assertIn("semantic", assembler.last_candidate_channels[receipt.atom_ids[0]])
+
+        lexical_plan = QueryPlan(query_text="r129", scopes=(PROJECT,), user_scope=USER, valid_at=NOW)
+        duplicate = ContextAssembler(self.store)
+        duplicate.assemble(lexical_plan, semantic_provider=provider)
+        self.assertEqual(duplicate._last_score_components[receipt.atom_ids[0]].keys(), {"lexical"})
+        self.assertTrue({"lexical", "semantic"}.issubset(duplicate.last_candidate_channels[receipt.atom_ids[0]]))
+
+    def test_r129_provider_invalid_secret_and_exception_fall_back_without_oracle(self) -> None:
+        self.capture("r129 fallback marker。采集记忆", "episode-r129-fallback")
+        plan = QueryPlan(query_text="unmatched-provider-query", scopes=(PROJECT,), user_scope=USER, valid_at=NOW)
+        default = ContextAssembler(self.store).assemble(plan)
+        invalid = ContextAssembler(self.store).assemble(
+            plan, semantic_provider=lambda _request: SemanticProviderResult("SemanticProviderResult/v1", "AVAILABLE", ("sk-not-allowed",)),
+        )
+        failed = ContextAssembler(self.store).assemble(plan, semantic_provider=lambda _request: (_ for _ in ()).throw(RuntimeError("synthetic")))
+        self.assertEqual(default.atoms, invalid.atoms)
+        self.assertEqual(default.atoms, failed.atoms)
 
     def test_fixed_overlap_is_hard_and_known_nonoverlap_has_no_schedule_conflict(self) -> None:
         self.capture("2026-08-15 09:00-10:00 合成晨会。采集记忆", "episode-0900")

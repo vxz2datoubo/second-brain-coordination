@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import re
-from typing import Any
+from typing import Any, Callable
 
 from .canonical import content_hash
 from .memory_store import ALLOWED_TRUTH_STATES, DENIED_TRUTH_STATES, MemoryStore
@@ -86,6 +86,24 @@ class QueryPlan:
     @property
     def plan_hash(self) -> str:
         return content_hash(self.to_dict())
+
+
+@dataclass(frozen=True)
+class SemanticProviderRequest:
+    """Public-safe, discovery-only request for an optional local provider."""
+
+    schema_version: str
+    query_terms: tuple[str, ...]
+    max_suggestions: int
+
+
+@dataclass(frozen=True)
+class SemanticProviderResult:
+    """Validated provider result; terms never carry atom IDs or scores."""
+
+    schema_version: str
+    state: str
+    discovery_terms: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -242,7 +260,10 @@ class ContextAssembler:
 
         return {atom_id: tuple(channels) for atom_id, channels in self._last_candidate_channels.items()}
 
-    def assemble(self, plan: QueryPlan) -> ContextBundle:
+    def assemble(
+        self, plan: QueryPlan,
+        semantic_provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None = None,
+    ) -> ContextBundle:
         plan.validate()
         score_map = self.store.search_term_scores(plan.query_text)
         candidate_set = _CandidateSet()
@@ -250,6 +271,15 @@ class ContextAssembler:
             atom = self.store.get_atom(atom_id)
             if atom is not None:
                 self._consider_candidate(candidate_set, atom, score, plan, channel="lexical")
+
+        # P2.4A: provider terms discover IDs only.  Their index scores are
+        # deliberately discarded so semantic discovery cannot modify the
+        # established lexical/relation numeric policy.
+        for term in self._semantic_discovery_terms(plan, semantic_provider):
+            for atom_id in sorted(self.store.search_term_scores(term)):
+                atom = self.store.get_atom(atom_id)
+                if atom is not None:
+                    self._consider_candidate(candidate_set, atom, None, plan, channel="semantic")
 
         temporal_dates = set(re.findall(r"\b20\d{2}-\d{2}-\d{2}\b", plan.query_text))
         if temporal_dates:
@@ -346,6 +376,35 @@ class ContextAssembler:
         return self._consider_candidate(
             candidate_set, atom, None, plan, channel="exact_proof",
         ) and atom_id in candidate_set.atom_ids
+
+    @staticmethod
+    def _semantic_discovery_terms(
+        plan: QueryPlan,
+        provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None,
+    ) -> tuple[str, ...]:
+        """Fail closed: no provider call/output can alter default-off recall."""
+
+        if provider is None:
+            return ()
+        query_terms = tuple(sorted(set(re.findall(r"[A-Za-z0-9_]{2,}|[\u4e00-\u9fff]{1,3}", plan.query_text))))[:16]
+        try:
+            result = provider(SemanticProviderRequest("SemanticProviderRequest/v1", query_terms, 8))
+        except Exception:
+            return ()
+        if not isinstance(result, SemanticProviderResult) or result.schema_version != "SemanticProviderResult/v1":
+            return ()
+        if result.state != "AVAILABLE" or len(result.discovery_terms) > 8:
+            return ()
+        terms: list[str] = []
+        for term in result.discovery_terms:
+            if not isinstance(term, str) or not 1 <= len(term) <= 64:
+                return ()
+            normalized = term.strip()
+            lowered = normalized.casefold()
+            if not normalized or re.search(r"(?:sk-|ghp_|github_pat_|ignore previous|system prompt|<script)", lowered):
+                return ()
+            terms.append(normalized)
+        return tuple(sorted(set(terms)))
 
     def _consider_candidate(
         self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float | None, plan: QueryPlan, *, channel: str,
