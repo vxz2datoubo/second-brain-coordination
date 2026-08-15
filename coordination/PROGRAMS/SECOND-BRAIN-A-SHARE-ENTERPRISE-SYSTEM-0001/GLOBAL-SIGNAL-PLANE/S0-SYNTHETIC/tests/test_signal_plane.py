@@ -79,6 +79,56 @@ class SignalPlaneContractTest(unittest.TestCase):
         ledger.ingest_raw(event("old", signal_id="s", source_sequence=1, occurred_at="2027-01-01T00:00:00+00:00", execution_state="EXECUTING"))
         self.assertEqual(ledger.rebuild_projection()["signals"][0]["execution_state"], "DONE")
 
+    def test_projection_cas_is_atomic_across_two_independent_connections(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "signals.sqlite"
+            writer_a, writer_b = DurableSignalLedger(db_path), DurableSignalLedger(db_path)
+            try:
+                writer_a.ingest_raw(event("seed"))
+                expected = writer_a.current_projection_version()
+                winner = writer_a.rebuild_projection(expected_version=expected)
+                with self.assertRaises(SignalPlaneError) as stale:
+                    writer_b.rebuild_projection(expected_version=expected)
+                self.assertEqual(stale.exception.code, "STALE_PROJECTION_VERSION")
+                self.assertEqual(writer_b.current_projection_version(), winner["projection_version"])
+            finally:
+                writer_a.close(); writer_b.close()
+
+    def test_link_revision_advances_and_pre_link_projection_writer_is_rejected(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        ledger.ingest_raw(event("a", signal_id="a")); ledger.ingest_raw(event("b", signal_id="b"))
+        pre_link_version, pre_link_revision = ledger.current_projection_version(), ledger.input_revision()
+        receipt = ledger.append_link(SignalLink.from_dict({"link_id": "revision-link", "from_signal_ref": "a", "to_signal_ref": "b", "relation_type": "DUPLICATE", "evidence_refs": ["opaque://a"], "created_at": "2026-08-15T00:00:00+00:00", "created_by": "synthetic"}))
+        self.assertGreater(receipt["input_revision"], pre_link_revision)
+        with self.assertRaises(SignalPlaneError) as stale:
+            ledger.rebuild_projection(expected_version=pre_link_version)
+        self.assertEqual(stale.exception.code, "STALE_PROJECTION_VERSION")
+
+    def test_durable_idempotency_key_is_unique_across_reopened_connections(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "signals.sqlite"
+            first, retry = DurableSignalLedger(db_path), DurableSignalLedger(db_path)
+            try:
+                self.assertEqual(first.ingest_raw(event("same-delivery"), update_projection=False)["status"], "ADMITTED")
+                self.assertEqual(retry.ingest_raw(event("same-delivery"), update_projection=False)["status"], "IDEMPOTENT_DUPLICATE")
+                self.assertEqual(len(retry.history()), 1)
+                with self.assertRaises(SignalPlaneError) as collision:
+                    retry.ingest_raw(event("other", idempotency_key="idem-same-delivery"), update_projection=False)
+                self.assertEqual(collision.exception.code, "IDEMPOTENCY_KEY_COLLISION")
+            finally:
+                first.close(); retry.close()
+
+    def test_bounded_backpressure_defers_low_materiality_and_preserves_priority(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        receipts = [ledger.ingest_raw(event(f"burst-{index}"), capacity_limit=2) for index in range(3)]
+        priority = ledger.ingest_raw(event("priority", signal_kind="RISK"), capacity_limit=2)
+        state = ledger.backpressure_state(2)
+        self.assertEqual([item["status"] for item in receipts], ["ADMITTED", "ADMITTED", "DEFERRED_BACKPRESSURE"])
+        self.assertEqual(priority["status"], "ADMITTED")
+        self.assertEqual(state, {"capacity_limit": 2, "admitted": 3, "deferred": 1, "pressure_active": True})
+
     def test_reconciliation_receipt_invalidates_material_change_and_never_authorizes(self) -> None:
         receipt = build_receipt(snapshot())
         self.assertFalse(receipt["execution_authorized"])
@@ -102,8 +152,16 @@ class SignalPlaneContractTest(unittest.TestCase):
             self.assertFalse(report["authority_assertions"]["execution_authorized"])
             self.assertFalse(report["authority_assertions"]["w3_mutated"])
             self.assertFalse(report["authority_assertions"]["domain_written"])
+            if spec["replay_assertion"]:
+                self.assertTrue(report["replay_observed"], report)
+            else:
+                self.assertIsNone(report["replay_observed"], report)
             for code in spec["expected_error_or_alert_codes"]:
                 self.assertIn(code, report["codes"], report)
+        self.assertEqual(r133["r133_public_binding"]["sha256"], "49A63DBB3598AC4E415380CB6A02F41A0501A49948744A0731B92EE81B93DF18")
+        r133_report = execute_scenario(r133)
+        self.assertEqual(r133_report["evidence_binding"]["sha256"], r133["r133_public_binding"]["sha256"])
+        self.assertEqual(r133_report["evidence_binding"]["required_fragment_count"], len(r133["r133_public_binding"]["required_utf8_fragments"]))
         self.assertEqual(len(ids), 24)
 
     def test_repeated_run_is_deterministic(self) -> None:
