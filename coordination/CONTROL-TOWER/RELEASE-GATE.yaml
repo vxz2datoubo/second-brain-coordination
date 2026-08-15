@@ -1,4 +1,4 @@
-schema_version: "1.3"
+schema_version: "1.4"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
@@ -6,21 +6,34 @@ architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 foundation_state: "FOUNDATION_READY"
-lane_release_state: "HOLD_BY_USER"
-proposal_only_dry_run_result: "LANE_A_RELEASED_PROPOSAL_ONLY / LANE_B_HELD"
-implementation_release_state: "NOT_AUTHORIZED"
+lane_release_state: "H1_CONTRACT_ONLY_RELEASED"
+proposal_only_dry_run_result: "H0_ACCEPTED / LANE_A_H1_RELEASE_CANDIDATE / LANE_B_HELD"
+implementation_release_state: "H1_CONTRACT_ONLY_AUTHORIZED"
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
 
 lane_specific_release_state:
   LANE-A-HARNESS-INTEGRATION:
-    state: "ACTIVE_PROPOSAL_ONLY"
+    state: "ACTIVE_IMPLEMENTATION_H1_CONTRACT_ONLY"
     basis:
       - "PR #311 Control Tower foundation merged"
-      - "user explicitly started Lane A H0 architecture design"
-      - "Draft PR #336 remains proposal-only"
-    runtime_write_allowed: false
-    implementation_route_allowed: false
+      - "PR #337 Control Tower current-state reconciliation merged"
+      - "PR #336 H0 Cognitive OS × Harness architecture merged"
+      - "H0 final verdict ACCEPT_WITH_BOUNDED_DEBT"
+      - "user explicitly said 开始 H1"
+      - "Issue #338 created for H1"
+      - "R133 exact Work Claim and route"
+    runtime_write_allowed: true
+    runtime_write_scope:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON"
+      - ".github/workflows/cognitive-os-h1-contracts.yml"
+    implementation_route_allowed: true
+    h1_only: true
+    harness_runtime_allowed: false
+    private_data_allowed: false
+    production_allowed: false
+    trading_allowed: false
+    h2_allowed: false
   LANE-B-A-SHARE-REMEDIATION:
     state: "HOLD_BY_USER"
     runtime_write_allowed: false
@@ -34,46 +47,45 @@ lane_specific_release_state:
 dry_run_receipt: "coordination/CONTROL-TOWER/DRY-RUN-RECEIPT.yaml"
 
 build_validation:
-  pre_dry_run_validated_head: "7d35507f29e50b2de927c11cd5792fd920635dc2"
-  github_actions_run: 31804678064
+  h0_architecture_merge: "eb622264929564d70aa11c646b93fe38c0c40a8d"
+  h0_control_tower_run: 31879370007
   python_3_11: "PASS"
   python_3_13: "PASS"
   targeted_regressions: "PASS"
-  repository_reconciliation: "PASS_AT_FOUNDATION_BUILD; MUST_RECONCILE_CURRENT_STATE_AFTER_LANE_C_CLOSURE"
-  lane_work_claim_validation: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_AFTER_CLOSED_CLAIM_CONTRACT_FIX"
-  route_projection_check: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
-  work_claim_projection_check: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
-  durable_authorization_witness_round_trip: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
-  scope_audit: "NO_LANE_C_RUNTIME_FILES_MODIFIED_BY_PR_311"
-  final_gate_close_head_ci: "REQUIRED_FOR_CURRENT_CONTROL_PLANE_RECONCILIATION_PR"
+  repository_reconciliation: "PASS_ON_H0_ACCEPTED_STATE"
+  lane_work_claim_validation: "PASS_ON_H0_ACCEPTED_STATE"
+  route_projection_check: "PASS_ON_H0_ACCEPTED_STATE"
+  work_claim_projection_check: "PASS_ON_H0_ACCEPTED_STATE"
+  durable_authorization_witness_round_trip: "PASS_ON_H0_ACCEPTED_STATE"
+  h1_release_exact_head_ci: "REQUIRED_BEFORE_MERGE_OF_THIS_CONTROL_PLANE_RELEASE"
 
 foundation_build_requires:
   - id: CT-F01-RECONCILIATION
-    status: "PASS_FOUNDATION / CURRENT_RECHECK_REQUIRED"
+    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
     requirement: "Current Program Lane observed state is reconciled against latest per-agent ACTIVE routes."
   - id: CT-F02-STALE-VIEW
-    status: "PASS_FOUNDATION / CURRENT_RECHECK_REQUIRED"
-    requirement: "Known stale aggregate views are detected and cannot override current per-agent routes."
+    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "Known stale aggregate views cannot override current per-agent routes."
   - id: CT-F03-COLLISION
-    status: "PASS"
-    requirement: "O0-O4 authority/path/interface collision classification has targeted regression coverage."
+    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "O0-O4 authority/path/interface collision classification has no H1 blocker."
   - id: CT-F04-WIP
-    status: "PASS"
-    requirement: "Per-agent active-route, heavy-stage and held-lane limits are mechanically checked."
+    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "Single Codex route, heavy-stage and held-lane limits remain satisfied."
   - id: CT-F05-WORK-CLAIM
-    status: "PASS_FOUNDATION / CLOSED_STATE_CONTRACT_RECHECK_REQUIRED"
-    requirement: "Every registered lane has one machine-readable current Work Claim; completed lanes release active work surfaces."
+    status: "H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "Lane A H1 ACTIVE_IMPLEMENTATION claim matches R133 exactly."
   - id: CT-F06-COMMIT-FRESHNESS
-    status: "PASS"
+    status: "H1_FRESH_WITNESS_REQUIRED"
     requirement: >-
-      Durable authorization fingerprints current route, all Agent routes, all Work Claims, Program Lane state,
-      hold/WIP/overlap policy and release gate; peer-claim or policy drift invalidates the old witness.
+      Durable authorization fingerprints current R133 route, all Agent routes, Work Claims, Program Lane state,
+      hold/WIP/overlap policy and release gate; any drift invalidates the witness.
   - id: CT-F07-PROJECTION-AND-CI
-    status: "CURRENT_RECHECK_REQUIRED"
-    requirement: "Both machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
+    status: "H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "Machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
   - id: CT-F08-DRY-RUN
-    status: "PASS_FOUNDATION / H0_FINAL_RESCAN_REQUIRED"
-    requirement: "GPT performs a fresh cross-lane dry-run before any H1 implementation release."
+    status: "H1_RELEASE_RECHECK_REQUIRED"
+    requirement: "Fresh cross-lane dry-run confirms Lane A H1 and Lane B hold."
 
 proposal_only_release_requires:
   - "foundation_state == FOUNDATION_READY"
@@ -91,24 +103,34 @@ implementation_release_requires:
   - "current route binding matches task_id/epoch/issue/pr/branch"
   - "fresh O0-O4 scan has no unresolved O3/O4 collision"
   - "Lane A direct binding to mutable Second Brain internals is forbidden; use frozen interface or adapter isolation"
-  - "Lane B requires one bounded remediation slice and preserved W2/W7/W12/NO_TRADE authority boundaries"
   - "no same-agent double booking or heavy-resource collision"
   - "fresh durable authorization witness immediately before commit"
   - "explicit GPT implementation release"
   - "H1 authorization never implies H2 Harness runtime authorization"
 
+h1_release_contract:
+  issue: 338
+  route_epoch: 133
+  task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+  route: "coordination/ROUTES/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
+  resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  harness_runtime: "FORBIDDEN"
+  h2: "NOT_AUTHORIZED"
+  merge: "FORBIDDEN_TO_CODEX"
+
 forbidden_effects:
-  - "No automatic creation of a new executable Agent route."
   - "No automatic release of Lane B."
-  - "Proposal-only release never grants runtime implementation permission."
-  - "Closed Lane C state never grants an execution lease."
+  - "No H2 Harness runtime release."
   - "No direct mutation of W2-W13 canonical domain objects by the Control Tower."
   - "No private-data ingestion or publication."
   - "No production scheduler/gateway deployment."
+  - "No permission/visibility changes."
   - "No account/order/fund/trading action."
+  - "No automatic Formal Skill promotion."
+  - "No Codex self-merge."
 
 current_disposition: >-
-  Control Tower foundation remains ready. Lane C Second Brain Foundation is completed with bounded gaps and must carry no
-  active implementation lease. Lane A has been explicitly started by the user for isolated H0 proposal architecture only;
-  H1/H2 implementation remains unauthorized. Lane B remains held. The current reconciliation PR must pass exact-head
-  route/claim/projection/witness checks before GPT can close H0 or release any H1 route.
+  H0 is canonical and accepted with bounded debt. The user explicitly started H1. Lane A is released only for the R133
+  contract-only synthetic skeleton after this control-plane release passes exact-head reconciliation, Work Claim, projection,
+  O0-O4/WIP and witness checks. Lane B remains held. H2 Harness runtime remains unauthorized and requires a separate future gate.
