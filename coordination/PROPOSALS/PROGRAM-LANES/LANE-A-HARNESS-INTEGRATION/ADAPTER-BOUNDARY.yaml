@@ -1,4 +1,4 @@
-schema_version: "0.1"
+schema_version: "0.2"
 adapter_id: "SECOND-BRAIN-HARNESS-ADAPTER-BOUNDARY-0001"
 status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
 owner: "USER"
@@ -13,24 +13,34 @@ principles:
   latest_upstream_is_radar_only: true
   breaking_change_never_auto_upgrades: true
   runtime_authority_stays_outside_harness: true
-  source_identity_reverification_required_before_implementation: true
+  source_identity_verified_for_h0: true
+  runtime_smoke_required_before_h2: true
 
 source_identity_gate:
-  status: "REVERIFY_BEFORE_IMPLEMENTATION"
-  reason: >-
-    Current architecture work may rely on previously studied Harness service concepts, but actual implementation
-    must independently re-identify the canonical upstream repository/release/commit and regenerate the compatibility
-    ledger before any runtime binding or package installation.
-  required_evidence:
-    - canonical_repository_identity
-    - release_or_tag
-    - exact_commit
-    - license
-    - public_service_definition_inventory
-    - workflow/session/subagent/job/tool/guard/bundle interfaces
-    - provider_adapter_surface
-    - migration_or_breaking_change_notes
-    - reproducible install_and_smoke_test
+  status: "IDENTITY_AND_ARCHITECTURE_SURFACE_PASS"
+  verified_snapshot:
+    repository: "deepseek-ai/deepseek-harness"
+    default_branch: "master"
+    exact_commit: "47f943859bef60e4160492346772ded9b24f765a"
+    package_family_version: "0.1.0-rc.5"
+    license: "MIT"
+    maturity: "DEVELOPER_PREVIEW_BREAKING_CHANGES_EXPECTED"
+  evidence_ref: "HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md"
+  note: >-
+    Canonical identity and public architecture/service surface are sufficient for H0 design. This does not authorize
+    installation or runtime binding. Target-environment install/pack/smoke and exact consumed package signatures remain H2 gates.
+
+runtime_binding_gate:
+  status: "BLOCKED_PENDING_SMOKE_AND_FRESH_CONTROL_TOWER_AUTHORIZATION"
+  pending_evidence:
+    - reproducible_clean_install_and_pack_smoke
+    - exact_consumed_package_names
+    - generated_public_service_type_signatures
+    - target_environment_windows_or_isolated_ci_compatibility
+    - provider_specific_smoke_tests
+    - pinned_vs_latest_compatibility_tests
+    - rollback_and_no_residual_process_test
+    - fresh_Control_Tower_Work_Claim_and_witness
 
 external_authorities:
   W3_SECOND_BRAIN:
@@ -134,7 +144,11 @@ stable_consumption_interfaces:
     owner: W3_SECOND_BRAIN
     direction: INTO_W3
     status: "SUCCESSOR_INTERFACE_CANDIDATE"
-    purpose: "outcome/correction feedback into knowledge lifecycle"
+    purpose: "outcome/correction/audit feedback into knowledge lifecycle"
+    input_sources:
+      - outcome_ref
+      - correction_event_ref
+      - audit_finding_ref
     required_semantics:
       - SUPPORT
       - WEAKEN
@@ -253,6 +267,8 @@ stable_consumption_interfaces:
     fields:
       - decision_episode_id
       - outcome_ref
+      - correction_event_ref
+      - audit_finding_ref
       - claim_outcomes
       - failure_localization
       - method_credit
@@ -321,8 +337,9 @@ versioning:
   auto_upgrade: false
 
 implementation_reopen_conditions:
-  - "source_identity_gate == PASS"
-  - "second_brain_foundation_interfaces_frozen_for_adapter_consumption"
+  - "source_identity_gate == IDENTITY_AND_ARCHITECTURE_SURFACE_PASS"
+  - "runtime_binding_gate pending evidence all PASS"
+  - "second_brain_foundation_interfaces frozen for adapter consumption"
   - "fresh Control Tower Work Claim"
   - "fresh O0-O4 scan"
   - "no same-agent or heavy-resource collision"
