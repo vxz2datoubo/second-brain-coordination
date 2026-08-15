@@ -1,0 +1,454 @@
+schema_version: "0.1"
+reconciliation_id: "UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION-0001"
+status: "ARCHITECTURE_RECONCILIATION / PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION"
+owner: "USER"
+architecture_owner: "GPT"
+source_main: "204a0a294e128beeb31a84f630df2d872cda7ae1"
+created_at: "2026-08-15T22:15:00+08:00"
+boundary: "NO_NEW_SIGNAL_TOWER_CANONICAL / NO_CODEX_ROUTE / NO_HARNESS_RUNTIME / NO_PRIVATE_PRODUCTION_TRADE"
+
+purpose: >-
+  Reconcile the AI Film window UNIFIED_SIGNAL_TOWER_REQUIREMENTS_HANDOFF with existing Cognitive OS, Signal Tower
+  Mission Router, Control Tower, W3, Trace Ledger, H1 contracts, cross-project domain boundaries and the real R133
+  CROSS_WINDOW_STATE_DRIFT incident. This artifact does not authorize implementation and does not create a second
+  Signal Tower authority.
+
+source_evidence:
+  user_handoff:
+    classification: "USER_EXPLICIT_REQUIREMENTS + CONFIRMED_DESIGN + DERIVED_REQUIREMENTS + NEW_SUGGESTIONS"
+    preservation_rule: "do not silently merge source labels; preserve which items were explicit, confirmed, derived or newly suggested"
+  existing_signal_tower_contract:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml"
+    disposition: ADOPT_AND_EXTEND
+  existing_trace_contract:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/TRACE-LEDGER-PRIVACY-CONTRACT.yaml"
+    disposition: ADOPT
+  existing_department_graph:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DEPARTMENT-CONTRACT-GRAPH.yaml"
+    disposition: ADOPT_WITH_SIGNAL_PLANE_PRE_MISSION_SEAM
+  existing_cross_project_boundary:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+    disposition: ADOPT
+  existing_implementation_dag:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
+    disposition: MODIFY_BEFORE_S0_RELEASE
+  r133_cross_window_regression:
+    path: "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml"
+    disposition: ADOPT_AS_FIRST_CLASS_REGRESSION_EVIDENCE
+
+architecture_verdict:
+  result: "ACCEPT_HANDOFF_WITH_ARCHITECTURAL_REASSIGNMENT"
+  explanation: >-
+    The handoff is compatible with the existing Cognitive OS if the new work is treated as a pre-Mission Global Signal
+    Plane feeding the already-defined Mission Router. Mission routing, execution authorization, long-term truth, runtime
+    trace and domain canonicals remain owned by their existing authorities. No duplicate Signal Tower, Control Tower,
+    W3, Trace Ledger or domain truth store is permitted.
+
+capability_disposition_matrix:
+  - capability: "single global Signal intake entry"
+    source_status: USER_EXPLICIT
+    disposition: MODIFY
+    existing_component: SIGNAL_TOWER_MISSION_ROUTER
+    decision: >-
+      Keep one user-facing Signal Tower identity, but split internal architecture into PRE_MISSION_SIGNAL_PLANE and
+      existing MISSION_PLANE. Do not create separate AI Film and Second Brain towers.
+
+  - capability: "SignalEvent intake for ideas/requirements/bugs/findings/risks/opportunities/dependencies/outcomes/corrections"
+    source_status: USER_EXPLICIT_AND_CONFIRMED_DESIGN
+    disposition: NEW_REQUIRED
+    existing_component: NONE
+    decision: "Add pre-Mission SignalEvent contract; capture-first/formalize-later."
+
+  - capability: "Signal relation graph: duplicate/conflict/supersede/dependency/synergy/shared-surface/authority-collision"
+    source_status: CONFIRMED_DESIGN
+    disposition: NEW_REQUIRED
+    existing_component: "partial overlap with Control Tower O0-O4 and cognitive fingerprints"
+    decision: >-
+      Signal relations describe planning/evidence relationships. Execution collision authority remains Control Tower.
+      Duplicate history is append-only; duplicate does not delete provenance.
+
+  - capability: "Mission / ProblemSignature / MissionGraph"
+    source_status: EXISTING_COGNITIVE_OS
+    disposition: ADOPT
+    existing_component: "SIGNAL_TOWER_MISSION_ROUTER + #312 + H1 contracts"
+    decision: "Do not duplicate inside Signal Plane. Signal Plane outputs MissionCandidate/refs into Mission Plane."
+
+  - capability: "Global reconciliation before formal task release"
+    source_status: USER_EXPLICIT
+    disposition: NEW_REQUIRED
+    existing_component: "Control Tower reconciliation is narrower and execution-oriented"
+    decision: >-
+      Add GlobalReconciliationReceipt covering Signal, Mission/Task, GitHub, routes, claims, program lanes, domain state,
+      pending approvals and material freshness. Receipt is planning freshness evidence, never execution authorization.
+
+  - capability: "NO VALID GLOBAL RECONCILIATION RECEIPT -> NO NEW FORMAL TASK RELEASE"
+    source_status: USER_EXPLICIT_CONFIRMED
+    disposition: ADOPT_AS_HARD_PRE_RELEASE_INVARIANT
+    decision: >-
+      Mission/task publication is blocked without a fresh valid receipt. Control Tower authorization remains a separate
+      later gate. Existing already-active emergency/user-approved work must not be silently cancelled by this invariant.
+
+  - capability: "cross-window / cross-project state reconciliation"
+    source_status: USER_EXPLICIT_AND_REAL_INCIDENT
+    disposition: NEW_REQUIRED
+    existing_component: "R133-CROSS-WINDOW-CLOSURE-RECONCILIATION-0001"
+    decision: "CROSS_WINDOW_STATE_DRIFT becomes a mandatory Signal Plane regression and pre/postflight check."
+
+  - capability: "exact-head / stale review / merge drift detection"
+    source_status: USER_EXPLICIT_AND_DERIVED
+    disposition: PORT_AND_EXTEND
+    existing_component: "Control Tower stale-route/commit freshness + GitHub exact-head review practice"
+    decision: >-
+      Signal Plane records/reconciles GitHub state and raises planning blockers. Control Tower remains the authority that
+      blocks unauthorized execution or conflicting leases.
+
+  - capability: "PlanningIntentFingerprint"
+    source_status: NOT_FROZEN
+    disposition: MODIFY_LATER
+    existing_component: "ReproducibilityFingerprint + source/context hashes + touch_set + authority_targets"
+    decision: >-
+      Do not create a third fingerprint truth. Future schema should be a planning projection that reuses stable hashes
+      and explicitly excludes runtime reproducibility claims.
+
+  - capability: "SemanticWorkKey"
+    source_status: NOT_FROZEN
+    disposition: MODIFY_LATER
+    existing_component: "task_id/route refs + relation graph + touch_set + objective/domain/authority semantics"
+    decision: >-
+      Candidate dedup key only; never sufficient by itself to merge two signals or authorize work. Final schema remains open.
+
+  - capability: "W3 continuity retrieval"
+    source_status: EXISTING_AND_USER_REQUIRED
+    disposition: ADOPT
+    existing_component: W3_SECOND_BRAIN
+    decision: "Signal Plane may request relevant W3 context by ref; it cannot become knowledge/memory truth authority."
+
+  - capability: "Control Tower authorization / Work Claim / WIP / leases / O0-O4"
+    source_status: EXISTING_FROZEN_BOUNDARY
+    disposition: ADOPT
+    existing_component: CONTROL_TOWER_310
+    decision: "No execution authority moves into Signal Tower."
+
+  - capability: "Operation Ledger / raw execution trace"
+    source_status: USER_EXPLICIT_AND_EXISTING_DESIGN
+    disposition: ADOPT
+    existing_component: TRACE_LEDGER_PRIVACY_CONTRACT
+    decision: >-
+      Signal lifecycle events may reference or extend the Cross-Agent Trace Ledger taxonomy, but no second raw trace or
+      telemetry truth store is created. Raw once, reference everywhere remains binding.
+
+  - capability: "Signal append-only history + current projection"
+    source_status: CONFIRMED_DESIGN
+    disposition: NEW_REQUIRED
+    decision: >-
+      Signal ledger history is immutable/append-oriented; effective state is derived through explicit supersede/revoke/
+      conflict-resolution events. Omission is not revocation.
+
+  - capability: "privacy-safe Content Plane vs Control Plane separation"
+    source_status: USER_GOAL_AND_CONFIRMED_DESIGN
+    disposition: ADOPT_AND_EXTEND
+    existing_component: TRACE_LEDGER_PRIVACY_CONTRACT
+    decision: >-
+      Signal control records keep refs/hashes/redacted summaries according to privacy scope. Public coordination state
+      must not contain raw private chat bodies, secrets or credentials.
+
+  - capability: "AI Film domain backlog bootstrap"
+    source_status: USER_EXPLICIT
+    disposition: NEW_REQUIRED_AS_DOMAIN_BOOTSTRAP
+    existing_component: CROSS_PROJECT_DOMAIN_CONSUMER_BOUNDARY
+    decision: >-
+      After Signal Plane foundation is frozen, AI Film becomes the first full cross-repo backlog bootstrap consumer.
+      Signal records refs/status/relations only; AI Film PROJECT_INDEX and domain canonicals remain authoritative.
+
+  - capability: "AI Film Runtime Invocation Receipt / Health Check / Behavioral Activation"
+    source_status: DOMAIN_BACKLOG_REQUIREMENTS_EVIDENCE
+    disposition: REFERENCE_ONLY_FOR_SIGNAL_BOOTSTRAP_AND_CROSS_DOMAIN_CANDIDACY
+    decision: >-
+      Preserve as AI Film domain backlog. Transferable mechanism may later become CROSS_PROJECT_CAPABILITY_CANDIDATE
+      only after cross-domain validation. Do not prematurely promote into shared runtime rules.
+
+  - capability: "AI Film H3 -> C-DANCE proxy evaluation, Reference Escalation, Selective Constraint/SOAC"
+    source_status: DOMAIN_BACKLOG_REQUIREMENTS_EVIDENCE
+    disposition: REFERENCE_ONLY_FOR_SIGNAL_BOOTSTRAP
+    decision: "Remain AI Film domain work until separately validated for shared cognition."
+
+  - capability: "second global W3 / second Control Tower / second Trace Ledger / mega-agent"
+    source_status: FORBIDDEN_ANTI_PATTERN
+    disposition: REJECT_WITH_REASON
+    reason: "duplicate authority, single-point-of-failure risk and semantic divergence"
+
+unified_architecture_candidate:
+  identity: "ONE_SIGNAL_TOWER / TWO_INTERNAL_PLANES"
+  planes:
+    PRE_MISSION_SIGNAL_PLANE:
+      responsibilities:
+        - capture
+        - classify
+        - preserve provenance
+        - relation graph
+        - dedup_without_deletion
+        - supersession_and_revocation
+        - global shallow scan
+        - delta scan
+        - targeted deep retrieval requests
+        - cross-window reconciliation
+        - priority vector
+        - backlog projection
+        - MissionCandidate proposal
+      may_not:
+        - own execution authorization
+        - write W3 truth directly
+        - replace Mission/ProblemSignature/MissionGraph
+        - replace domain canonical
+        - replace Trace Ledger
+    MISSION_PLANE:
+      existing_contract: SIGNAL_TOWER_MISSION_ROUTER_CONTRACT_0001
+      starts_after: VALID_SIGNAL_CLUSTER_OR_DIRECT_USER_MISSION
+      responsibilities:
+        - MissionDraft
+        - continuity retrieval request
+        - ProblemSignature request
+        - work-need decision
+        - MissionGraph proposal
+        - ask Control Tower
+        - aggregate final result
+  authorities:
+    knowledge_memory_lifecycle: W3_SECOND_BRAIN
+    method_selection: METHOD_ROUTER_312
+    execution_authorization: CONTROL_TOWER_310
+    runtime_orchestration: HARNESS_RUNTIME_FUTURE_ONLY
+    final_risk_veto: W7_VALIDATION_RISK
+    outcome_learning: W9_OUTCOME_LEARNING
+    domain_truth: DOMAIN_REPOSITORIES
+
+pre_mission_contract_candidates:
+  SignalEvent_v1:
+    maturity: SCHEMA_CANDIDATE_NOT_FROZEN
+    minimum_fields:
+      - signal_id
+      - source_ref
+      - source_type
+      - source_window_ref
+      - source_project
+      - source_actor
+      - created_at
+      - primary_domain
+      - related_domains
+      - signal_kind
+      - planning_state
+      - execution_state
+      - epistemic_state
+      - authority_targets
+      - touch_set
+      - privacy_scope_ref
+      - supersedes_refs
+      - revokes_refs
+      - related_signal_refs
+      - cross_domain_candidate
+      - summary_ref
+      - raw_content_ref
+
+  SignalLink_v1:
+    maturity: SCHEMA_CANDIDATE_NOT_FROZEN
+    relation_types:
+      - DUPLICATE
+      - EXTENDS
+      - REINFORCES
+      - CONTRADICTS
+      - SUPERSEDES
+      - DEPENDS_ON
+      - BLOCKS
+      - SHARED_SURFACE
+      - SHARED_EVIDENCE
+      - AUTHORITY_COLLISION
+      - CAN_MERGE
+      - CAN_PARALLEL
+      - MUST_SERIALIZE
+      - REVIEWER_CANDIDATE
+      - COUNTERFACTUAL_PAIR
+      - CROSS_DOMAIN_TRANSFER_CANDIDATE
+
+  SignalCluster_v1:
+    maturity: SCHEMA_CANDIDATE_NOT_FROZEN
+    rule: "cluster is a projection over immutable signal history, never destructive merge"
+
+  GlobalReconciliationReceipt_v1:
+    maturity: SCHEMA_CANDIDATE_NOT_FROZEN
+    required_freshness_bindings:
+      - signal_ledger_watermark
+      - canonical_main_refs
+      - relevant_pr_heads_and_merge_states
+      - per_agent_route_fingerprints
+      - work_claim_revision
+      - program_lane_revision
+      - domain_snapshot_refs
+      - pending_user_approval_refs
+      - generated_at
+    invalidation_rule: >-
+      Any material change to a bound route, Work Claim, relevant PR head/merge state, canonical main or required domain
+      snapshot invalidates the receipt for formal task release and requires reconciliation.
+    hard_rule: "receipt proves reconciliation freshness, not execution permission"
+
+  SignalProjection_v1:
+    maturity: SCHEMA_CANDIDATE_NOT_FROZEN
+    views:
+      - OPEN
+      - ACTIVE_CLUSTER
+      - BLOCKED
+      - DEFERRED
+      - SUPERSEDED
+      - CLOSED_NO_ACTION
+      - DOMAIN_BACKLOG
+      - NEEDS_REVALIDATION
+
+planning_axes:
+  planning_state:
+    candidates: [CAPTURED, TRIAGED, IDEA_ONLY, WATCH, CANDIDATE, ROUTE_TO_MISSION, MERGED_WITH_OTHER_SIGNAL, DEFERRED, CONFLICTED, SUPERSEDED, REJECTED, CLOSED_NO_ACTION]
+  execution_state:
+    candidates: [NOT_STARTED, AUTHORIZED, EXECUTING, REVIEW, DONE, BLOCKED, CANCELLED]
+  epistemic_state:
+    candidates: [USER_EXPLICIT, CONFIRMED_FACT, HIGH_CONFIDENCE_INFERENCE, CANDIDATE_HYPOTHESIS, UNKNOWN, NEEDS_REVALIDATION]
+  rule: "axes are independent; understanding a Signal never implies execution authorization"
+
+mandatory_global_scan_triggers:
+  source: USER_EXPLICIT
+  triggers:
+    - BEFORE_NEW_FORMAL_TASK_PUBLICATION
+    - BEFORE_TASK_APPROVAL
+    - AFTER_TASK_APPROVAL
+    - WHEN_AGENT_REPORT_ARRIVES
+    - BEFORE_FORMAL_GPT_REVIEW
+    - AFTER_FORMAL_GPT_REVIEW
+    - BEFORE_MERGE_OR_CLOSE
+    - AFTER_MERGE_OR_CLOSE
+    - BEFORE_SELECTING_NEXT_TASK
+    - WHEN_NEW_SIGNAL_TOUCHES_ACTIVE_MISSION
+    - ON_USER_CANCEL_OR_REVOKE
+    - ON_CROSS_WINDOW_STATE_CONFLICT
+  scan_strategy: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH"
+  minimum_scan_surfaces:
+    - signal_open_changed_conflicted_superseded_unknown
+    - missions_tasks_dependencies_blockers
+    - github_issue_pr_exact_head_review_merge_ci_current_main
+    - active_agent_routes
+    - work_claims
+    - program_lanes
+    - control_tower_authorization_and_wip
+    - agent_and_resource_leases
+    - domain_current_state_and_canonical_refs
+    - W3_material_context
+    - pending_user_approvals_and_revocations
+    - material_evidence_freshness
+
+first_class_regressions:
+  - id: "GST-R001-CROSS-WINDOW-STATE-DRIFT-R133"
+    evidence_ref: "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml"
+    scenario:
+      - "Window A reviews/merges PR #340"
+      - "R133 route becomes DONE/non-executable"
+      - "Window B still holds stale ACTIVE view"
+      - "Work Claim / Program Lane temporarily disagree with route"
+    expected:
+      - detect CROSS_WINDOW_STATE_DRIFT
+      - block new formal task release
+      - refresh GitHub exact state
+      - reconcile route/Work Claim/Program Lane projections
+      - emit fresh reconciliation receipt
+      - preserve H2 as unauthorized
+
+  - id: "GST-R002-STALE-REVIEW-HEAD"
+    maturity: NEW_REQUIRED
+    expected: "reviewed SHA != current PR head -> block merge/task transition until exact-head re-review"
+
+  - id: "GST-R003-SAME-AGENT-CROSS-PROJECT-DOUBLE-BOOK"
+    maturity: NEW_REQUIRED
+    expected: "Signal Plane surfaces conflict; Control Tower denies second active route"
+
+  - id: "GST-R004-DUPLICATE-SIGNAL-MULTI-INGEST"
+    maturity: NEW_REQUIRED
+    expected: "multiple source captures retain provenance but do not create duplicate formal work automatically"
+
+ai_film_domain_backlog_preservation:
+  status: "AI_FILM_DOMAIN_BACKLOG_BOOTSTRAP_REQUIRED"
+  repository: "vxz2datoubo/eustia-ai-film"
+  authority_ref: "PROJECT_INDEX.yaml"
+  current_cross_repo_runtime_binding: NONE
+  rules:
+    - "AI Film domain truth remains local to its repository canonicals."
+    - "Signal Plane stores refs/state/relations, not duplicated film truth."
+    - "Backlog bootstrap occurs only after Signal Plane foundation contracts are frozen."
+    - "No Second Brain write to AI Film canonical is authorized by this reconciliation."
+  minimum_preserved_workstreams:
+    - AI-FILM-RUNTIME-EVOLUTION-V1
+    - SELECTIVE_CONSTRAINT_AND_SOAC_AUTONOMY_ALLOCATION
+    - RUNTIME_INVOCATION_RECEIPT
+    - RUNTIME_HEALTH_CHECK_AND_BEHAVIORAL_ACTIVATION
+    - MODEL_REAL_GENERATION_FEEDBACK_REGISTRY
+    - H3_TO_C_DANCE_PROXY_EVAL_LADDER
+    - REFERENCE_ESCALATION
+    - HIGH_DYNAMIC_MOTION_GENERALIZATION_AND_REGRESSION
+    - GOLDEN_CASE_FIRST_REAL_E2E
+    - VIDEO_TO_EVIDENCE_TO_DIRECTOR_PULL_TO_RETRIEVAL_TO_LEARNING_TO_REGRESSION
+    - REAL_GENERATION_FINAL_DELTA_CONTINUAL_LEARNING
+
+implementation_sequence_candidate:
+  rule: "architecture only; not authorized to execute"
+  S0A:
+    name: PRE_MISSION_SIGNAL_CONTRACTS_AND_RELATION_GRAPH
+    runtime: false
+    resource_class: ARCHITECTURE_OR_CONTRACT_ONLY
+    includes: [SignalEvent_v1, SignalLink_v1, SignalCluster_v1, SignalProjection_v1]
+  S0B:
+    name: GLOBAL_RECONCILIATION_RECEIPT_AND_REGRESSIONS
+    runtime: false
+    resource_class: ARCHITECTURE_OR_CONTRACT_ONLY
+    requires: [S0A]
+    includes: [GlobalReconciliationReceipt_v1, GST_R001_R004]
+  S0C:
+    name: SYNTHETIC_PUBLIC_SAFE_SIGNAL_PLANE_SKELETON
+    runtime: true
+    resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    requires: [S0A, S0B, FRESH_CONTROL_TOWER_RELEASE]
+    forbidden: [HARNESS_RUNTIME, PRIVATE_CROSS_WINDOW_BRIDGE, DOMAIN_CANONICAL_WRITE, H2_AUTO_START]
+  H7_existing:
+    interpretation: >-
+      Existing H7 Signal Tower Synthetic Entry remains the Mission/Runtime-plane milestone. S0 pre-Mission Signal Plane
+      must not silently relabel or bypass H7 dependencies. The Implementation DAG must be reconciled before S0C release.
+
+open_decisions_not_frozen:
+  - PlanningIntentFingerprint_final_schema
+  - SemanticWorkKey_final_schema
+  - Signal_Ledger_physical_backend
+  - cross_chat_window_automatic_ingestion_mechanism
+  - GraphRAG_usage
+  - Temporal_usage
+  - exact_priority_formula
+  - retention_and_compaction_policy
+  - operation_log_UI
+  - ReversibleChangeSet_final_schema
+  - private_or_production_cross_window_bridge_permissions
+  - H2_Harness_activation_timing
+
+strongest_counterarguments:
+  - risk: "Signal Tower becomes a giant second brain/control plane"
+    answer: "separate pre-Mission planning from W3 truth and Control Tower execution authority; enforce authority graph tests"
+  - risk: "Global scan becomes too expensive and slow"
+    answer: "shallow global metadata scan + delta watermark + targeted deep reads; no mechanical full-load"
+  - risk: "receipt becomes stale milliseconds after creation"
+    answer: "bind receipt to watermarks/SHAs/revisions and invalidate on material changes"
+  - risk: "semantic dedup merges distinct intents"
+    answer: "fingerprints/keys are candidate evidence only; domain/objective/authority/constraints/touch-set review required"
+  - risk: "all ideas create unbounded signal flood"
+    answer: "clusters/projections/aging/compaction while preserving append-only provenance"
+  - risk: "cross-domain lessons contaminate domain truth"
+    answer: "use CROSS_PROJECT_CAPABILITY_CANDIDATE lifecycle and cross-domain validation before shared promotion"
+
+next_gate:
+  result: "READY_FOR_GPT_ARCHITECTURE_REVIEW / NOT_READY_FOR_CODEX"
+  required_before_any_S0_implementation:
+    - "exact-head review of this reconciliation"
+    - "decide whether existing SIGNAL-TOWER-MISSION-ROUTER-CONTRACT is extended in-place or wrapped by a sibling pre-Mission contract"
+    - "reconcile IMPLEMENTATION-DEPENDENCY-DAG so S0 does not bypass H7/Harness boundaries"
+    - "freeze S0A/S0B contract schemas and acceptance tests"
+    - "fresh Control Tower O0-O4 / Work Claim / agent-resource lease scan"
+    - "explicit GPT release and user start if implementation is desired"

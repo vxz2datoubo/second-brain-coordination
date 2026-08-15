@@ -1,4 +1,4 @@
-schema_version: "0.1"
+schema_version: "0.2"
 dag_id: "COGNITIVE-OS-HARNESS-IMPLEMENTATION-DEPENDENCY-DAG-0001"
 status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
 owner: "USER"
@@ -12,6 +12,8 @@ principles:
   local_heavy_stage_max: 1
   no_auto_release: true
   each_runtime_stage_requires_fresh_control_tower_gate: true
+  pre_mission_signal_plane_may_progress_without_harness_runtime: true
+  pre_mission_signal_plane_must_not_bypass_future_h7_mission_runtime_dependencies: true
 
 nodes:
   H0A:
@@ -64,27 +66,31 @@ nodes:
 
   H0I:
     name: CROSS_WINDOW_ARCHITECTURE_RECONCILIATION
-    state: REQUIRED
+    state: COMPLETED_IN_H0_AND_EXTENDED_BY_PR_341_342_CANDIDATE
     runtime: false
-    description: "review #312/#308 requirements and Harness topology for semantic loss/duplicate authority"
+    description: "cross-window semantic/authority reconciliation; R133 drift is now a first-class Signal Plane regression"
 
   H0J:
     name: CONTROL_TOWER_FRESH_ARCHITECTURE_SCAN
-    state: REQUIRED
+    state: COMPLETED_FOR_H0_H1 / REQUIRED_FRESH_FOR_EACH_NEW_IMPLEMENTATION
     runtime: false
-    description: "fresh O0-O4, WIP, stale route and proposal claim validation on final H0 head"
 
   H0K:
     name: GPT_H0_COMPATIBILITY_VERDICT
-    state: REQUIRED
+    state: ACCEPT_WITH_BOUNDED_DEBT
     runtime: false
     valid_results: [ACCEPT, ACCEPT_WITH_BOUNDED_DEBT, RETURN_FOR_ARCHITECTURE_REWORK]
 
   H1:
     name: CONTRACT_ONLY_SYNTHETIC_SKELETON
-    state: BLOCKED_BY_H0
+    state: COMPLETED
     runtime: true
     resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    evidence:
+      issue: 338
+      merged_pr: 340
+      reviewed_head: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
+      merge_commit: "c17df847bee689f23363b0ddbba417c6c37c79ab"
     expected_scope:
       - schemas
       - validators
@@ -92,18 +98,80 @@ nodes:
       - fingerprint builder
       - synthetic fixtures
       - no Harness runtime call
-    requires: [H0K]
+
+  S0A:
+    name: PRE_MISSION_SIGNAL_CONTRACTS_AND_RELATION_GRAPH
+    state: ARCHITECTURE_CANDIDATE_IN_PR_342
+    runtime: false
+    resource_class: ARCHITECTURE_ONLY
+    artifacts:
+      - GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml
+      - GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml
+      - SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml
+    requires: [H1]
+    purpose: "freeze SignalEvent/Link/Cluster/Projection and one-tower/two-plane boundary"
+
+  S0B:
+    name: GLOBAL_RECONCILIATION_RECEIPT_AND_ENTERPRISE_REGRESSIONS
+    state: ARCHITECTURE_CANDIDATE_IN_PR_342
+    runtime: false
+    resource_class: ARCHITECTURE_ONLY
+    artifacts:
+      - GLOBAL-RECONCILIATION-RECEIPT-CONTRACT.yaml
+      - GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml
+      - UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml
+    requires: [S0A]
+    purpose: "freeze freshness/invalidation/replay/idempotency/cross-window acceptance semantics"
+
+  S0C:
+    name: PUBLIC_SAFE_SYNTHETIC_GLOBAL_SIGNAL_PLANE_SKELETON
+    state: NOT_AUTHORIZED_YET
+    runtime: true
+    resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    requires: [S0A, S0B, FRESH_CONTROL_TOWER_S0_RELEASE]
+    expected_capabilities:
+      - immutable SignalEvent append API or equivalent local repository abstraction
+      - idempotent ingestion
+      - SignalLink relation store/projection
+      - deterministic SignalCluster/SignalProjection reducer
+      - GlobalReconciliationReceipt builder/verifier
+      - receipt invalidation compare-and-check
+      - public-safe synthetic fixtures
+      - R133 cross-window drift regression
+      - replay/rebuild checksum
+      - no long-lived daemon
+    forbidden:
+      - DeepSeek_Harness_runtime
+      - provider_subagent_jobs
+      - private_chat_cross_window_bridge
+      - webhooks_or_live_connectors_without_separate_gate
+      - W3_runtime_mutation
+      - domain_canonical_write
+      - H2_auto_start
+      - trading
+
+  S0D:
+    name: READ_ONLY_DOMAIN_BACKLOG_BOOTSTRAP_SHADOW
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [S0C, FRESH_CROSS_REPO_READ_ONLY_GATE]
+    first_consumer: AI_FILM_SYSTEM
+    boundary: "READ_ONLY_REFS_STATUS_RELATIONS / NO_DOMAIN_CANONICAL_WRITE"
+    purpose: >-
+      Read AI Film current canonical references and build a Signal backlog projection without copying domain truth.
+      This is separate from S0C and requires source repo commit binding and privacy/domain-adapter checks.
 
   H2A:
     name: HARNESS_PINNED_INSTALL_AND_SMOKE
-    state: BLOCKED_BY_H0
+    state: NOT_AUTHORIZED / USER_H2_START_REQUIRED
     runtime: true
     resource_class: MEDIUM_IMPLEMENTATION
     exact_upstream_candidate:
       repository: deepseek-ai/deepseek-harness
       commit: 47f943859bef60e4160492346772ded9b24f765a
       package_family_version: 0.1.0-rc.5
-    requires: [H0K]
+    requires: [H0K, EXPLICIT_USER_H2_START, FRESH_CONTROL_TOWER_H2_RELEASE]
 
   H2B:
     name: HARNESS_ADAPTER_POC
@@ -190,11 +258,14 @@ nodes:
     formal_skill_write: "SEPARATE_GATE_ONLY"
 
   H7A:
-    name: SIGNAL_TOWER_SYNTHETIC_ENTRY
+    name: SIGNAL_TOWER_MISSION_RUNTIME_SYNTHETIC_ENTRY
     state: BLOCKED
     runtime: true
     resource_class: MEDIUM_IMPLEMENTATION
-    requires: [H3C, H4B]
+    requires: [H3C, H4B, S0C]
+    note: >-
+      H7A is the Mission/runtime plane. S0C is only pre-Mission offline Signal Plane. S0C may be built earlier but may not
+      dispatch Harness workflows or claim H7 capability.
 
   H7B:
     name: SIGNAL_TOWER_MULTI_WORKITEM_ROUTING
@@ -219,6 +290,7 @@ nodes:
       - compatibility radar
       - TEVV
       - human approval
+      - Signal Plane replay/idempotency/backpressure/receipt-invalidation gates
     private_live_production: "NOT_AUTO_AUTHORIZED"
     trading: "SEPARATE_HIGH_RISK_PROGRAM_GATE"
 
@@ -234,6 +306,10 @@ edges:
   - [H0I, H0J]
   - [H0J, H0K]
   - [H0K, H1]
+  - [H1, S0A]
+  - [S0A, S0B]
+  - [S0B, S0C]
+  - [S0C, S0D]
   - [H0K, H2A]
   - [H1, H2B]
   - [H2A, H2B]
@@ -251,6 +327,7 @@ edges:
   - [H6A, H6B]
   - [H3C, H7A]
   - [H4B, H7A]
+  - [S0C, H7A]
   - [H7A, H7B]
   - [H5A, H7B]
   - [H5B, H8]
@@ -258,12 +335,16 @@ edges:
   - [H7B, H8]
 
 parallelism_notes:
-  H0:
-    allowed: "architecture artifacts may be developed in parallel because no runtime/domain write authority is exercised"
+  S0_vs_H2:
+    rule: >-
+      S0A/S0B architecture and S0C public-safe offline implementation do not require Harness and may precede H2.
+      They do not grant H2 or H7 runtime authority. If the same Codex executor is used, only one active Codex route is allowed.
   H1_H7:
     rule: >-
       DAG expresses logical dependencies, not permission to execute all independent nodes concurrently. Every actual
       implementation node requires a fresh per-agent route and Control Tower resource/collision decision.
+  cross_project:
+    rule: "AI Film S0D backlog bootstrap is a separate read-only gate and cannot overlap a conflicting active Codex lease."
   remote_ci:
     use_for: "large test matrices and compatibility sweeps"
   local:
