@@ -13,22 +13,10 @@ automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
-formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
-real_private_raw_body_publication_allowed: false
-private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
-unattended_scheduler_activation_allowed: false
-repository_visibility_change_authorized: false
-production_mcp_gateway_deployment_authorized: false
-private_repository_creation_authorized: false
-permission_or_acl_change_authorized: false
-trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
 runtime_code_scope: "P2_4A_SEMANTIC_PROVIDER_NO_SCORE_ONLY"
 
 canonical_main_at_route_prepare: "ec80e132bcc97151088fc389a8755dc3a3d06bd3"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R129-P2-4A-SEMANTIC-PROVIDER.yaml"
 canonical_contract: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/P2-4-IMPLEMENTATION-CONTRACT.md"
 canonical_threat_matrix: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/THREAT-MODEL-AND-ADVERSARIAL-MATRIX.md"
 implementation_branch: "codex/gpt-second-brain-p2-4a-semantic-provider-r129"
@@ -49,18 +37,37 @@ frozen_decisions:
   default_off_public_provider_field: false
   structural_analogy_runtime: "LOCKED_FOR_P2_4B"
 
-watchpoints:
-  - id: "R122-UNKNOWN-BINDING-GAP"
-    status: "DEFER"
-  - id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
-    status: "DEFER"
+mandatory_implementation:
+  - "Implement internal SemanticProviderRequest/Result v1 validation using only contract-authorized public-safe inputs."
+  - "Provider terms are discovery-only and never concatenate into caller lexical scoring query."
+  - "Discover IDs through existing index, discard numeric scores, stable-dedup IDs, then call _consider_candidate(score=None, channel=semantic)."
+  - "Semantic duplicate of lexical/relation hit adds channel attribution only; existing numeric score/order/budget/tie stay unchanged."
+  - "NOT_CONFIGURED preserves P2.3 byte/semantic parity and performs no provider call or public field addition."
+  - "UNAVAILABLE/DENIED/exception/timeout-equivalent/INVALID_RESPONSE fail closed to P2.3 without identity/count/reason oracle."
+  - "Secret-shaped, injection-shaped, malformed or over-budget terms are rejected before index search."
+  - "Remove the legacy Memory Palace free-form string-concatenation semantic path; old iterable-string response must no longer alter recall."
+  - "Preserve capture exact-target proof, CURRENT/HISTORICAL lifecycle, restart/index determinism and R118-R128 safety."
 
-execution_contract:
+validation_required:
+  - "provider default-off full parity PASS"
+  - "semantic-only supplemental placement PASS"
+  - "semantic+lexical duplicate numeric-score invariance PASS"
+  - "implicit-weight canary PASS"
+  - "foreign/revoked/restricted/stale/invalid-time/absent fail-closed PASS"
+  - "zero/one/many hidden-candidate oracle-equivalence PASS"
+  - "provider failure/invalid/secret/injection fallback PASS"
+  - "legacy callable second-authority removal PASS"
+  - "Memory Palace + capture exact recall PASS"
+  - "full Phase 3 regression PASS"
+  - "GitHub Actions exact final head Python 3.11/3.13 SUCCESS"
+  - "public safety/schema/YAML/JSON/diff-check/clean-tree PASS"
+
+locks:
   structural_analogy_runtime: "FORBIDDEN"
   real_external_semantic_service: "FORBIDDEN"
   semantic_numeric_score_or_bonus: "FORBIDDEN"
   second_store_vector_db_resolver: "FORBIDDEN"
-  unknown_schema_redesign: "FORBIDDEN"
+  r122_unknown_schema_redesign: "FORBIDDEN"
   private_source_store_read_ingestion: "FORBIDDEN"
   formal_project_global_promotion: "LOCKED"
   scheduler: "FORBIDDEN"
@@ -70,7 +77,11 @@ execution_contract:
   trading_accounts: "FORBIDDEN"
   merge: "FORBIDDEN_TO_CODEX"
 
+watchpoints:
+  - id: "R122-UNKNOWN-BINDING-GAP"
+    status: "DEFER"
+  - id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
+    status: "DEFER"
+
 completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_PROVIDER_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
-lock_statement: >-
-  Epoch 129 implements only the contract-frozen no-score Semantic Provider discovery path. Structural Analogy remains locked for P2.4B; all private/formal/live/production/permission/trading actions remain locked.
