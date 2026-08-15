@@ -1,10 +1,10 @@
-schema_version: "1.8"
+schema_version: "1.9"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-15T22:49:00+08:00"
+as_of: "2026-08-16T00:24:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -54,9 +54,6 @@ lane_state_machine:
 
 portfolio_capacity_policy:
   program_lanes_may_coexist: 3
-  meaning: >-
-    Up to three major program lanes may be open concurrently as separate goals, but this
-    does not authorize three heavy implementations at once.
   codex_active_execution_routes_max: 1
   qclaw_active_execution_routes_max: 1
   workbuddy_active_execution_routes_max: 1
@@ -65,45 +62,44 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    Prefer orthogonal parallelism only after the relevant Control Tower release gate is satisfied.
-    Lane A S0C is the single active Codex implementation after the two-phase release. H2/H7/S0D/private/production
-    remain separately unauthorized, and Lane B remains held.
+    Lane A has released the R134 Codex execution lease after S0C completion. No successor implementation is active.
+    S0D/H2/H7/private/live/production remain separately unauthorized and Lane B remains held.
 
 current_user_release_policy:
-  decision_at: "2026-08-15T22:49:00+08:00"
-  decision: "ACTIVATE_LANE_A_S0C_AFTER_POST_MERGE_RECONCILIATION_KEEP_FUTURE_STAGES_BLOCKED"
+  decision_at: "2026-08-16T00:24:00+08:00"
+  decision: "CLOSE_R134_S0C_RELEASE_CODEX_LEASE_KEEP_SUCCESSOR_STAGES_BLOCKED"
   rationale: >-
-    The user explicitly requested enterprise-grade Signal Tower implementation. PR #342 froze the architecture and
-    PR #344 canonicalized the non-executable reservation. A successor post-merge GlobalReconciliationReceipt now binds
-    main `740b77ab20b24c76bd5621b08123dec657862d5a`, confirms route/claim/lane consistency, and rechecks the AI Film remote
-    state. Lane A may therefore upgrade the exact R134 S0C reservation to one active public-safe/offline implementation.
-  released_implementation_lanes:
-    - "LANE-A-HARNESS-INTEGRATION"
+    The user requested enterprise-grade Signal Tower implementation. R134 S0C passed GPT exact-head adversarial review,
+    final evidence reconciliation and exact-head CI, and PR #346 merged at `336430024faf7ed8ba93b0a102e5e245d08df2f4`.
+    The implementation lease must now be released before any successor planning cycle.
+  released_implementation_lanes: []
   prepared_implementation_lanes: []
   released_proposal_only_lanes: []
   held_lanes:
+    - "LANE-A-HARNESS-INTEGRATION"
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "GPT_WITH_EXPLICIT_USER_S0C_DIRECTION_AND_TWO_PHASE_RELEASE"
-  bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
-  activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
-  phase_a_pr: 344
-  phase_a_merge_commit: "740b77ab20b24c76bd5621b08123dec657862d5a"
+  release_owner: "GPT_POST_MERGE_RECONCILIATION"
   signal_tower_architecture_pr: 342
   signal_tower_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
   s0c_issue: 343
   s0c_route_epoch: 134
-  s0c_execution: "ACTIVE_AFTER_PHASE_B_CANONICAL_MERGE_AND_USER_LAUNCH"
+  s0c_pr: 346
+  s0c_runtime_reviewed_head: "0eed25daa47b883fc17ba6ca36c49c23eb2fb444"
+  s0c_final_evidence_head: "f5c22ea94a9dcd04ec5364893e9e417ebac25fd9"
+  s0c_merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+  closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R134-S0C-CLOSURE-RECONCILIATION.yaml"
   s0d_release: "NOT_AUTHORIZED"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
-  implementation_release_requires:
-    - "A fresh valid GlobalReconciliationReceipt for formal task publication/activation."
-    - "A fresh implementation Work Claim for the exact slice."
-    - "Fresh O0-O4, same-agent and heavy-resource checks."
-    - "Fresh durable Control Tower authorization witness."
-    - "Exact-head Control Tower CI and GPT activation merge."
-    - "High-impact user approval when private/production/permission/trading boundaries change."
+  successor_implementation_release_requires:
+    - "fresh valid GlobalReconciliationReceipt"
+    - "new route epoch/task_id"
+    - "fresh exact Work Claim"
+    - "fresh O0-O4/same-agent/resource scan"
+    - "fresh durable Control Tower witness"
+    - "explicit GPT release"
+    - "high-impact user approval for private/production/permission/trading boundaries"
 
 observed_agent_state:
   CODEX:
@@ -111,10 +107,10 @@ observed_agent_state:
     observed_task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
     observed_route_epoch: 134
     observed_issue: 343
-    observed_pr: null
-    observed_status: "READY"
-    execution_allowed: true
-    observation_status: "ACTIVE_S0C_PUBLIC_SAFE_OFFLINE / SINGLE_CODEX_LEASE"
+    observed_pr: 346
+    observed_status: "DONE"
+    execution_allowed: false
+    observation_status: "COMPLETED_ROUTE_TOMBSTONE / NO_ACTIVE_CODEX_LEASE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -138,22 +134,18 @@ known_stale_aggregate_views:
     observed_problem: "Contains Aug-07-era Codex/QCLAW routing that no longer matches current per-agent routes."
     disposition: "STALE_VIEW / DO_NOT_USE_AS_ACTIVE_TASK_AUTHORITY"
   - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-    observed_problem: "Still contains historical/current-status fields that may lag the latest per-agent routes and Foundation closure."
+    observed_problem: "Contains historical/current-status fields that may lag latest per-agent routes."
     disposition: "HISTORICAL_PROGRAM_BASELINE_WITH_STALE_CURRENT_STATUS_FIELDS"
-  - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/ACTIVE-EXECUTION-SEQUENCE-v1.0.yaml"
-    observed_problem: "as_of 2026-07-23 and no longer represents current execution lanes."
-    disposition: "HISTORICAL_EXECUTION_SEQUENCE / NOT_CURRENT_ROUTE_AUTHORITY"
 
 program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线", "Unified Signal Tower线"]
     mission: >-
       Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
-      authorities. Current active slice is the pre-Mission Global Signal Plane S0C public-safe/offline synthetic skeleton.
-      Harness runtime remains a separate future H2 gate.
-    desired_state: "ACTIVE"
-    observed_state: "ACTIVE"
-    hold_reason: null
+      authorities. S0C public-safe/offline pre-Mission Signal Plane is now completed; successor runtime stages remain gated.
+    desired_state: "PAUSED"
+    observed_state: "PAUSED"
+    hold_reason: "S0C_COMPLETED / SUCCESSOR_STAGE_NOT_AUTHORIZED"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -163,22 +155,19 @@ program_lanes:
       - "H0 Cognitive OS × Harness architecture merged in PR #336"
       - "H1 contract skeleton merged in PR #340"
       - "Unified Signal Tower enterprise architecture merged in PR #342"
-      - "R134 Phase A reservation merged in PR #344"
-      - "Issue #343 S0C public-safe/offline synthetic implementation"
-      - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
-      - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+      - "R134 S0C implementation merged in PR #346"
+      - "coordination/CONTROL-TOWER/R134-S0C-CLOSURE-RECONCILIATION.yaml"
       - "Issue #310 Control Tower governance"
-    current_phase: "S0C_PUBLIC_SAFE_SYNTHETIC_SIGNAL_PLANE_IMPLEMENTATION"
-    active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
+    current_phase: "S0C_COMPLETED_NEXT_STAGE_NOT_AUTHORIZED"
+    active_execution_route: null
     heavy_execution_authorized: false
     dependencies:
       - "Lane C Second Brain Foundation CLOSED_WITH_BOUNDED_GAPS"
       - "H0 final ACCEPT_WITH_BOUNDED_DEBT merged in PR #336"
-      - "H1 exact-head implementation accepted and merged in PR #340"
+      - "H1 implementation accepted and merged in PR #340"
       - "Unified Signal Tower enterprise architecture accepted and merged in PR #342"
-      - "Phase A R134 reservation merged in PR #344"
-      - "Phase B post-merge GlobalReconciliationReceipt + fresh exact-head Control Tower activation gate"
-      - "S0C is pre-Mission/offline only; H2/H7/S0D/private/production remain separate gates"
+      - "S0C public-safe/offline synthetic implementation accepted and merged in PR #346"
+      - "Any S0D/H2/H7/private/live/production stage requires a fresh separate gate"
     shared_interfaces:
       - "Global Signal Plane contracts"
       - "Global Reconciliation Receipt contract"
@@ -190,9 +179,16 @@ program_lanes:
       - "W9 outcome learning candidate boundary"
       - "W10 DecisionEpisode/metacognition"
       - "AI Film future Domain Adapter boundary"
-    next_gate: "S0C_EXACT_HEAD_GPT_REVIEW_NO_AUTO_S0D_H2_H7"
+    closure_receipt:
+      completed_route_epoch: 134
+      issue: 343
+      accepted_runtime_head: "0eed25daa47b883fc17ba6ca36c49c23eb2fb444"
+      final_evidence_head: "f5c22ea94a9dcd04ec5364893e9e417ebac25fd9"
+      merged_pr: 346
+      merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+    next_gate: "EXPLICIT_SUCCESSOR_STAGE_SELECTION_THEN_FRESH_GLOBAL_RECONCILIATION_AND_CONTROL_TOWER_RELEASE"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "S0C_ACTIVE_IMPLEMENTATION / PUBLIC_SAFE_OFFLINE"
+    maturity: "S0C_COMPLETED / PUBLIC_SAFE_OFFLINE_ENTERPRISE_FOUNDATION"
     proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -272,15 +268,13 @@ program_lanes:
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-    overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
-    shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
-    rule: "Lane A has one bounded S0C active claim; Lane B remains held. Claim-level scan must stay below O3 before any new implementation."
+    overlap_level: "O0_NO_ACTIVE_LANE_A_IMPLEMENTATION"
+    shared_domains: [W7, W8, W9]
+    rule: "Lane A has no active Work Claim; Lane B remains held. Any successor implementation requires a fresh claim-level scan."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10, skills, context, retrieval, agent_runtime]
-    rule: >-
-      Lane C Foundation is closed. S0C may only consume frozen W3/Cognitive OS contract boundaries and synthetic refs;
-      it cannot bind or mutate private W3 runtime.
+    rule: "Lane C Foundation is closed; any future Lane A work may only consume frozen boundaries unless separately authorized."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     shared_domains: [W3, W9, W10, W12, evidence_retrieval, decision_context]
@@ -294,18 +288,12 @@ overlap_levels:
   O4: "Canonical authority collision or incompatible desired states. Fail closed and require GPT/user architecture decision."
 
 flow_metrics:
-  required_when_automation_exists:
-    - WIP
-    - WorkItemAge
-    - BlockedAge
-    - Throughput
-    - CycleTime
-  later_when_history_is_sufficient:
-    - ServiceLevelExpectation
+  required_when_automation_exists: [WIP, WorkItemAge, BlockedAge, Throughput, CycleTime]
+  later_when_history_is_sufficient: [ServiceLevelExpectation]
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before any cross-program implementation task is published or accepted, fetch current per-agent routes, relevant
+  Before any successor cross-program implementation task is published or accepted, fetch current per-agent routes,
   canonical project/program indices and a fresh GlobalReconciliationReceipt, derive observed state, compare desired
   relationships, classify drift/overlap, and fail closed on O4 authority conflict, stale commit/review authorization,
   invalidated reconciliation receipt, SAME_AGENT_DOUBLE_BOOKED or CROSS_WINDOW_STATE_DRIFT.
