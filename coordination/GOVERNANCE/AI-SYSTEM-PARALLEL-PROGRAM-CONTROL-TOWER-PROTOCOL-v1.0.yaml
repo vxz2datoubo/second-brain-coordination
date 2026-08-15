@@ -1,7 +1,7 @@
-schema_version: "1.1"
+schema_version: "1.3"
 protocol_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-0001"
 control_tower_issue: 310
-status: "ACTIVE_CANDIDATE_GOVERNANCE_WITH_EXECUTABLE_FOUNDATION_IN_REVIEW"
+status: "ACTIVE_GOVERNANCE_FOUNDATION_READY"
 owner: "USER"
 architecture_owner: "GPT"
 implementation_owner_candidate: "CODEX"
@@ -17,7 +17,7 @@ core_model:
   desired_state: "What program lanes, dependencies, ownership boundaries, concurrency budgets and gates should hold."
   observed_state: "What current remote-main active routes, issues, PRs, CI/evidence and canonical project indices actually show."
   reconciliation: "Compare desired with observed and emit drift/collision findings; do not silently rewrite high-impact authority."
-  work_claim: "Machine-readable declaration of a lane's current read/write/interface/authority/resource surface."
+  work_claim: "Machine-readable declaration of a lane's current read/write/interface/authority/resource surface or its explicit no-active-implementation closure state."
   authorization_witness: "Fingerprint binding route + work claim + hold/WIP/overlap/release policy for commit-time freshness."
   projection: "GitHub Project/Markdown dashboard is a view over canonical state, never the canonical execution state itself."
 
@@ -40,8 +40,10 @@ anti_duplication:
   - "Do not treat board/project fields as canonical when their source route disagrees."
   - "Do not duplicate W2-W13 system-of-record objects."
   - "Do not copy project-specific canonical facts into the program registry when a reference is sufficient."
-  - "A Work Claim declares work surface; it is not a second execution route."
+  - "A Work Claim declares current work surface or explicit closure; it is not a second execution route."
   - "An authorization witness proves freshness; it does not create authority that the route/claim/policy did not already grant."
+  - "A completed lane must not remain ACTIVE_IMPLEMENTATION merely to preserve history."
+  - "A completed lane must not be disguised as HELD_PROPOSAL_ONLY merely to satisfy validation."
 
 program_lane_definition:
   required_fields:
@@ -58,6 +60,10 @@ program_lane_definition:
     - shared_interfaces
     - next_gate
     - maturity
+  list_fields:
+    - primary_system_positions
+    - dependencies
+    - shared_interfaces
   optional_fields:
     - implementation_owner
     - implementation_owner_candidate
@@ -68,6 +74,12 @@ program_lane_definition:
     - evidence_refs
     - risk_flags
     - stop_conditions
+    - proposal_only
+    - closure_receipt
+    - bounded_gaps
+  rule: >-
+    Dependencies and shared interfaces are mandatory even when empty. They are machine-validated lists so future
+    Signal Tower/Harness orchestration cannot infer cross-lane prerequisites from prose or memory alone.
 
 state_machine:
   PROPOSED:
@@ -75,10 +87,12 @@ state_machine:
     meaning: "Idea exists but mission/dependencies/authority not frozen."
   READY:
     executable: false
-    meaning: "Program lane is sufficiently designed to receive an explicit execution route when capacity/dependencies allow."
+    meaning: "Program lane is sufficiently designed to receive an explicit task or proposal release when capacity/dependencies allow."
   ACTIVE:
     executable: "ONLY_THROUGH_PER_AGENT_ACTIVE_ROUTE"
-    meaning: "At least one authorized task is executing or ready for immediate execution."
+    meaning: >-
+      The strategic lane is actively advancing through authorized work, which may be proposal-only architecture/research
+      or an executable Agent task. ACTIVE at Program level never grants runtime execution by itself.
   REVIEW:
     executable: false
     meaning: "Delivery exists and waits for GPT/required independent review."
@@ -90,7 +104,7 @@ state_machine:
     meaning: "Intentionally stopped while preserving state and future reactivation conditions."
   DONE:
     executable: false
-    meaning: "Current lane objective and closure gates are satisfied."
+    meaning: "Current lane objective and closure gates are satisfied; any future implementation requires a new authorization event."
   CANCELLED:
     executable: false
     meaning: "Objective intentionally abandoned or superseded with preserved evidence."
@@ -102,9 +116,11 @@ source_freshness_rules:
   - "A historical plan may remain useful evidence but must not be labeled current execution state."
   - "For durable writes, re-check route, Work Claim, relevant lane state, release/hold policy, WIP/resource policy and overlap policy at commit time."
   - "A stale authorization witness fails closed even if the task was valid when it started."
+  - "A completed route may remain as a DONE tombstone for audit, but execution_allowed must be false and it must not expose a runnable next command."
 
 work_claim_contract:
   no_claim_no_durable_runtime_write: true
+  exactly_one_current_claim_per_registered_lane: true
   states:
     ACTIVE_IMPLEMENTATION:
       requires:
@@ -124,16 +140,33 @@ work_claim_contract:
         - "runtime_write_allowed=false"
       durable_runtime_write: false
       isolated_proposal_write: true
+    CLOSED_NO_ACTIVE_IMPLEMENTATION:
+      requires:
+        - "execution_agent=null"
+        - "resource_class=NO_ACTIVE_IMPLEMENTATION"
+        - "no route binding"
+        - "no current read/write/interface/domain/authority work surface"
+        - "durable closure_receipt"
+      durable_runtime_write: false
+      isolated_proposal_write: false
+      execution_lease: false
+      meaning: >-
+        The lane's current implementation stage is completed. Historical evidence is retained through closure_receipt,
+        while all current execution and mutable work surfaces are released.
   implementation_upgrade: >-
     Moving from proposal-only to implementation is a new authorization event. Declare the bounded implementation
     write surface and interfaces, acquire an executable Agent route, rescan O0-O4, then create a fresh authorization witness.
+  closed_lane_reopen: >-
+    Reopening CLOSED_NO_ACTIVE_IMPLEMENTATION is also a new authorization event. Create a new per-agent route, replace
+    the closed claim with a bounded ACTIVE_IMPLEMENTATION claim, rescan O0-O4/WIP/authority, then create a fresh witness.
+    Passing CI, another lane becoming ACTIVE, or historical route metadata never reopens a closed lane automatically.
 
 release_levels:
   NOT_READY:
-    meaning: "Foundation or current three-lane safety gates are incomplete; held lanes remain stopped."
+    meaning: "Foundation or current safety gates are incomplete; held implementation remains stopped."
   SAFE_TO_RELEASE_PROPOSAL_ONLY:
     meaning: >-
-      Held lanes may perform bounded research/design and persist only inside their isolated proposal roots.
+      An explicitly released lane may perform bounded research/design and persist only inside its isolated proposal root.
       No shared runtime, canonical domain object or implementation Agent route is authorized.
   SAFE_TO_RELEASE_IMPLEMENTATION:
     meaning: >-
@@ -141,6 +174,7 @@ release_levels:
       This is never implied by proposal-only release.
   automatic_release: false
   passing_ci_is_not_lane_release: true
+  closed_lane_is_not_released_implementation: true
 
 reconciliation_checks:
   - id: CT-R01-STALE-VIEW
@@ -174,8 +208,11 @@ reconciliation_checks:
     question: "Is the full authorization witness still fresh and bound to the same route, Work Claim and governance state immediately before commit?"
     on_fail: "COMMIT_AUTHORITY_STALE / FAIL_CLOSED"
   - id: CT-R11-WORK-CLAIM
-    question: "Does every current Program Lane have exactly one valid work claim and is proposal-only writing confined to its isolated root?"
+    question: "Does every current Program Lane have exactly one valid work claim, are proposal-only writes isolated, and do closed claims retain no active lease/surface?"
     on_fail: "WORK_CLAIM_INVALID / FAIL_CLOSED"
+  - id: CT-R12-LANE-CONTRACT
+    question: "Does every Program Lane explicitly declare the canonical dependency and shared-interface fields required for deterministic cross-lane reconciliation?"
+    on_fail: "LANE_CONTRACT_INVALID / FAIL_CLOSED"
 
 collision_levels:
   O0_NONE:
@@ -221,11 +258,12 @@ parallelism_policy:
     - "Multiple agents editing a shared canonical surface without an explicit owner/sequence."
     - "Starting a new business slice merely because a strategic lane exists."
     - "Proposal-only work writing runtime code outside its isolated proposal root."
+    - "Treating a Program Lane ACTIVE state as an executable Agent lease."
 
 program_vs_task_semantics:
-  program_lane: "Long-lived strategic objective that can contain many tasks and pauses."
+  program_lane: "Long-lived strategic objective that can contain proposal-only work, executable tasks, reviews, pauses and closure."
   task_route: "One bounded executable assignment owned by one Agent under current lease/route rules."
-  work_claim: "Current declared work surface; neither a strategic objective nor a substitute task route."
+  work_claim: "Current declared work surface or no-active-implementation closure; neither a strategic objective nor a substitute task route."
   amed_execution_chains: >-
     Main delivery, active discovery and system evolution are three internal chains inside each non-trivial task.
     They are not the same concept as the three parallel Program Lanes.
@@ -282,30 +320,33 @@ human_projection:
     GitHub board column limits are visual warnings, not hard enforcement. Machine validation must enforce real WIP limits.
 
 automation_implementation_status:
-  isolated_foundation:
+  foundation:
     branch: "gpt/program-control-tower-foundation-0001"
     pull_request: 311
     owner: "GPT"
-    status: "DRAFT_IN_REVIEW"
-    non_preemption: "Does not modify or replace current Codex Issue #305 / PR #307 execution route."
+    status: "MERGED_FOUNDATION_READY"
     scope: "Governance-only scanner/reconciler, Work Claims, witnesses, projections, CI and regressions."
+  current_bounded_reconciliation:
+    purpose: "Represent Second Brain Foundation closure truthfully and remove stale R132/R120 execution leases without starting any new implementation."
+    state: "IN_GPT_DRAFT_REVIEW"
   components:
-    route_scanner: "IMPLEMENTED_IN_PR_311"
-    program_lane_reconciler: "IMPLEMENTED_IN_PR_311"
-    stale_view_detector: "IMPLEMENTED_FOR_CURRENT_DECLARED_AGGREGATE_AND_ROUTE_PROJECTION_CASES"
+    route_scanner: "IMPLEMENTED"
+    program_lane_reconciler: "IMPLEMENTED"
+    program_lane_contract_validator: "IMPLEMENTED_WITH_REQUIRED_DEPENDENCIES_AND_SHARED_INTERFACES"
+    stale_view_detector: "IMPLEMENTED_FOR_DECLARED_AGGREGATE_AND_ROUTE_PROJECTION_CASES"
     authority_overlap_validator: "IMPLEMENTED_IN_O0_O4_CLASSIFIER_AND_WORK_CLAIMS"
-    path_and_interface_collision_checker: "IMPLEMENTED_IN_PR_311"
-    work_claim_validator: "IMPLEMENTED_IN_PR_311"
-    route_and_policy_authorization_witness: "IMPLEMENTED_IN_PR_311"
+    path_and_interface_collision_checker: "IMPLEMENTED"
+    work_claim_validator: "IMPLEMENTED_WITH_CLOSED_NO_ACTIVE_IMPLEMENTATION_STATE"
+    route_and_policy_authorization_witness: "IMPLEMENTED"
     resource_WIP_gate: "IMPLEMENTED_FOR_DECLARED_PER_AGENT_HEAVY_AND_USER_HOLD_LIMITS"
     markdown_projection_sync: "IMPLEMENTED_WITH_TWO_CI_CHECKED_GENERATED_BLOCKS"
     dependency_DAG_resolver: "NOT_YET_GENERALIZED"
     github_project_projection: "NOT_IMPLEMENTED"
     flow_metric_recorder: "NOT_IMPLEMENTED"
-    regression_suite: "IMPLEMENTED_AND_EXPANDING_IN_PR_311"
+    regression_suite: "IMPLEMENTED_AND_EXPANDING"
   future_codex_role: >-
     Codex may later harden/generalize the foundation or implement GitHub Project sync, dependency DAG and flow metrics
-    only through a separate explicit route. The current Codex #305/#307 cognitive route remains untouched.
+    only through a separate explicit route. A completed historical Codex route never reactivates automatically.
 
 harness_integration_boundary:
   allowed_future_role: >-
@@ -328,9 +369,15 @@ validation_and_regression_candidates:
   - "A changed Work Claim/hold/WIP/overlap policy invalidates the old durable authorization witness."
   - "Proposal-only writes outside their isolated root fail closed."
   - "Semantic environment changes during a durable workflow are surfaced rather than silently mixed."
+  - "A closed claim with execution_agent, route binding, non-NO_ACTIVE resource class or any active work surface fails closed."
+  - "A closed claim without closure_receipt fails closed."
+  - "A closed lane can be fingerprinted for freshness without receiving execution authority."
+  - "Program Lane ACTIVE proposal work does not imply an Agent execution lease."
+  - "Missing dependencies/shared_interfaces fails the Program Lane contract."
+  - "dependencies/shared_interfaces must be deterministic lists even when empty."
 
 promotion_policy:
-  current_maturity: "CANDIDATE_GOVERNANCE"
+  current_maturity: "CANDIDATE_GOVERNANCE_WITH_EXECUTABLE_FOUNDATION"
   next_maturity: "SCENE_EQUIVALENT_PROGRAM_VERIFIED"
   promotion_requires:
     - "At least one real three-lane coordination cycle."

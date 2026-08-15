@@ -18,6 +18,27 @@ PROJECTION = "coordination/PROGRAM-CONTROL-TOWER.md"
 PROJECTION_START = "<!-- CONTROL_TOWER_AUTOGEN:START -->"
 PROJECTION_END = "<!-- CONTROL_TOWER_AUTOGEN:END -->"
 
+PROGRAM_LANE_REQUIRED_FIELDS = (
+    "lane_id",
+    "mission",
+    "owner",
+    "architecture_owner",
+    "desired_state",
+    "observed_state",
+    "primary_system_positions",
+    "current_phase",
+    "active_execution_route",
+    "dependencies",
+    "shared_interfaces",
+    "next_gate",
+    "maturity",
+)
+PROGRAM_LANE_LIST_FIELDS = (
+    "primary_system_positions",
+    "dependencies",
+    "shared_interfaces",
+)
+
 NON_EXECUTABLE_STATUSES = {
     "PAUSED",
     "BLOCKED",
@@ -228,6 +249,47 @@ def _lane_by_id(registry: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return result
 
 
+def validate_program_lane_contract(registry: dict[str, Any]) -> list[Finding]:
+    findings: list[Finding] = []
+    raw_lanes = list(registry.get("program_lanes", []) or [])
+    for index, lane in enumerate(raw_lanes):
+        if not isinstance(lane, dict):
+            findings.append(
+                Finding(
+                    "CT-R12-LANE-CONTRACT",
+                    "ERROR",
+                    "PROGRAM_LANE_NOT_MAPPING",
+                    "A Program Lane entry must be a mapping.",
+                    {"index": index},
+                )
+            )
+            continue
+        lane_id = str(lane.get("lane_id") or f"INDEX_{index}")
+        missing = [field for field in PROGRAM_LANE_REQUIRED_FIELDS if field not in lane]
+        if missing:
+            findings.append(
+                Finding(
+                    "CT-R12-LANE-CONTRACT",
+                    "ERROR",
+                    "PROGRAM_LANE_REQUIRED_FIELDS_MISSING",
+                    "Program Lane is missing canonical contract fields.",
+                    {"lane_id": lane_id, "missing": missing},
+                )
+            )
+        for field in PROGRAM_LANE_LIST_FIELDS:
+            if field in lane and not isinstance(lane[field], list):
+                findings.append(
+                    Finding(
+                        "CT-R12-LANE-CONTRACT",
+                        "ERROR",
+                        "PROGRAM_LANE_LIST_FIELD_INVALID",
+                        "Program Lane dependency/interface fields must be lists for deterministic reconciliation.",
+                        {"lane_id": lane_id, "field": field, "type": type(lane[field]).__name__},
+                    )
+                )
+    return findings
+
+
 def _known_stale_view_findings(
     repo_root: Path, registry: dict[str, Any], routes: dict[str, RouteSnapshot]
 ) -> list[Finding]:
@@ -274,6 +336,8 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
     registry = load_yaml(repo_root / PROGRAM_REGISTRY)
     routes: dict[str, RouteSnapshot] = {}
     findings: list[Finding] = []
+
+    findings.extend(validate_program_lane_contract(registry))
 
     for agent, relpath in AGENT_FILES.items():
         route = normalize_route(agent, load_yaml(repo_root / relpath))
@@ -425,7 +489,7 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
     release_decision = "HOLD_BY_USER" if held_lanes else ("NOT_READY" if errors else "ELIGIBLE_FOR_GPT_DRY_RUN")
 
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "registry_id": registry.get("registry_id"),
         "registry_as_of": registry.get("as_of"),
         "routes": {agent: route_witness(route) for agent, route in routes.items()},
