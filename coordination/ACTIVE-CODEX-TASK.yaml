@@ -1,80 +1,61 @@
-schema_version: "130.0"
+schema_version: "131.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 325
-task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4A-PROVIDER-REQUEST-BOUNDARY"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4A-PROVIDER-RESULT-GUARD"
 parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
-route_epoch: 130
+route_epoch: 131
 mode: "goal"
-mode_label: "【Codex模式：目标模式】P2.4A Provider Request信任边界修复"
+mode_label: "【Codex模式：目标模式】P2.4A Provider Result统一安全门收口"
 status: "READY_REMEDIATION"
 execution_allowed: true
 automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
-formal_knowledge_persistence_unlock_allowed: false
-real_private_candidate_ingestion_allowed: false
-real_private_raw_body_publication_allowed: false
-private_source_discovery_allowed: false
-private_candidate_source_read_allowed: false
-unattended_scheduler_activation_allowed: false
-repository_visibility_change_authorized: false
-production_mcp_gateway_deployment_authorized: false
-private_repository_creation_authorized: false
-permission_or_acl_change_authorized: false
-trading_or_account_action_allowed: false
 runtime_code_change_allowed: true
-runtime_code_scope: "P2_4A_PROVIDER_REQUEST_TRUST_BOUNDARY_ONLY"
+runtime_code_scope: "P2_4A_PROVIDER_RESULT_CANONICAL_GUARD_ONLY"
 
-canonical_main_at_route_prepare: "02ee9f2a5be7cece9c5011a23dadc7966ce492eb"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R130-P2-4A-PROVIDER-REQUEST-BOUNDARY.yaml"
+canonical_main_at_route_prepare: "cc9537a1a5b5d610e74d3321fd2fdd14f5210edf"
+canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R131-P2-4A-PROVIDER-RESULT-GUARD.yaml"
 canonical_contract: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R127-P2-4/P2-4-IMPLEMENTATION-CONTRACT.md"
 canonical_issue: 325
 implementation_branch: "codex/gpt-second-brain-p2-4a-semantic-provider-r129"
 implementation_pr: 329
 
 review_return:
-  reviewed_head: "6bcd0ed0aacfae416f2bea5a765869c6c0aaed14"
-  gpt_review_id: 4943134437
-  disposition: "R129_P2_4A_EXACT_HEAD_CHANGES_REQUIRED_PROVIDER_REQUEST_TRUST_BOUNDARY"
-  verified_ci_run: 31870048995
+  reviewed_head: "246a6394495d0714aeef957e714dac7aedbb97b8"
+  gpt_review_id: 4943189129
+  disposition: "R130_P2_4A_EXACT_HEAD_CHANGES_REQUIRED_PROVIDER_RESULT_CANONICAL_GUARD"
+  verified_ci_run: 31870700515
   verified_python_311: "SUCCESS"
   verified_python_313: "SUCCESS"
-  reported_focused_tests: "35/35 PASS"
-  reported_phase3_tests: "285/285 PASS"
+  reported_focused_tests: "36/36 PASS"
+  reported_phase3_tests: "286/286 PASS"
   reported_public_safety: "108 files / 0 issues"
 
-accepted_r129_subsystems:
+accepted_r130_subsystems:
+  request_id_correlation: true
+  scope_privacy_fingerprint: true
+  canonical_request_secret_injection_guard: true
+  unsafe_request_no_provider_call: true
   semantic_terms_not_concatenated_into_lexical_query: true
   semantic_only_score_none: true
   lexical_relation_duplicate_score_unchanged: true
   semantic_channel_attribution_only: true
   legacy_iterable_response_inert: true
-  provider_result_secret_injection_fail_closed: true
   structural_analogy_not_implemented: true
 
 blocking_findings:
-  - id: "R129-B01-PROVIDER-REQUEST-CONTRACT-INCOMPLETE"
+  - id: "R130-B03-PROVIDER-RESULT-CANONICAL-GUARD-DRIFT"
     status: "REQUIRES_REMEDIATION"
-  - id: "R129-B02-REQUEST-SECRET-INJECTION-EGRESS"
-    status: "REQUIRES_REMEDIATION"
-
-frozen_decisions:
-  semantic_numeric_weight: "NO_NUMERIC_SCORE_V1"
-  provider_terms_may_modify_lexical_query: false
-  unsafe_request_policy: "FAIL_CLOSED_NO_PROVIDER_CALL_V1"
-  request_response_correlation: "REQUEST_ID_REQUIRED"
-  scope_privacy_projection: "NON_REVERSIBLE_FINGERPRINT_ONLY"
-  structural_analogy_runtime: "LOCKED_FOR_P2_4B"
 
 mandatory_repairs:
-  - "Implement frozen SemanticProviderRequest/Result v1 fields including request_id and scope/privacy-mode fingerprint."
-  - "Require result.request_id to match request.request_id before any semantic discovery."
-  - "Screen caller query with canonical Phase-3 credential/prompt-injection deny semantics before provider invocation; unsafe request means provider is not called."
-  - "Reuse/factor canonical deny semantics rather than creating a drifting narrower regex policy where feasible."
-  - "Add request-boundary tests for secrets, prompt injection, request_id mismatch, fingerprint determinism, and complete default-off ContextBundle parity."
-  - "Preserve all accepted no-score discovery, lifecycle, legacy, and capture behavior."
+  - "Use canonical Phase-3 credential and prompt-injection deny semantics for every normalized provider discovery term before local index search."
+  - "Remove/demote the narrower duplicate inline regex so request and result share one safety semantic."
+  - "Add result-side fail-closed tests for private-key marker, an English injection marker not covered by the old regex, and a Chinese injection marker."
+  - "Result-side rejection must be public-output equivalent to invalid/default fallback and must occur before candidate discovery."
+  - "Preserve R129/R130 request correlation, fingerprint, no-call, no-score ranking, lifecycle/capture, default-off parity, and all locks."
 
 watchpoints:
   - id: "R122-UNKNOWN-BINDING-GAP"
@@ -100,15 +81,13 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 validation_required:
-  - "request contract/correlation tests PASS"
-  - "secret/injection request no-provider-call tests PASS"
-  - "default-off full ContextBundle parity PASS"
-  - "existing no-score/legacy/lifecycle/capture regressions PASS"
+  - "provider result canonical guard tests PASS"
+  - "R129/R130 focused regressions PASS"
   - "full Phase-3 regression PASS"
   - "GitHub Actions exact final head + Python 3.11/3.13 SUCCESS against latest main"
   - "public safety/schema/YAML/JSON/git diff --check/clean tree PASS"
 
-completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_R130_PROVIDER_BOUNDARY_READY_FOR_GPT_REVIEW"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_R131_PROVIDER_RESULT_GUARD_READY_FOR_GPT_REVIEW"
 next_command: "读取任务"
 lock_statement: >-
-  Epoch 130 is only the provider request trust-boundary remediation for P2.4A. Structural Analogy and all private/formal/live/production/permission/trading actions remain locked.
+  Epoch 131 is only the provider-result canonical safety-guard closure for P2.4A. Structural Analogy and all private/formal/live/production/permission/trading actions remain locked.
