@@ -1,53 +1,80 @@
 # Lane A · Harness × Cognitive OS Integration · Proposal Workspace
 
-Status: `ACTIVE_ARCHITECTURE_DESIGN / PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION`
+Status: `H0_ARCHITECTURE_STATIC_PASS_WITH_CONTROL_PLANE_BLOCKERS / PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION`
 
 Owner: `USER`  
 Architecture owner: `GPT`
 
 This directory is the only durable write surface reserved for Lane A while it remains proposal-only. The user explicitly started H0 architecture design after the Control Tower foundation merged. This permits architecture/research artifacts only. It does **not** authorize W3/W2-W13 runtime changes, Agent routes, private/live/production access, permissions, Formal Skill promotion, or trading.
 
+## Current verdict
+
+- Architecture static review: `PASS_WITH_BOUNDED_DEBT`
+- H0 final acceptance: `NOT_READY`
+- H1/H2 implementation release: `FAIL_CLOSED`
+- Reason: current canonical Control Tower projections are stale even though the H0 internal architecture defects found so far have been repaired or bounded.
+
+Control Tower CI independently reproduced the blocker: 20 targeted regressions passed, then canonical reconciliation failed with `CT-R01-STALE-VIEW / PROGRAM_REGISTRY_ROUTE_DRIFT`. The failed gate is treated as positive fail-closed evidence, not as permission to weaken reconciliation.
+
 ## H0 package index
 
-### Master architecture
+### Master architecture / audit
 
 - `COGNITIVE-OPERATING-SYSTEM-ARCHITECTURE-BLUEPRINT.md`
-  - intelligent retrieval → problem framing → method discovery → evidence → independent challenge → adjudication → risk gate → outcome → reflection → verified second-order learning → skill evolution.
+  - intelligent retrieval → problem framing → method discovery → evidence → independent challenge → adjudication → risk gate → outcome/correction/audit → reflection verification → second-order learning → skill evolution.
 - `H0-ARCHITECTURE-COMPATIBILITY-REVIEW.md`
-  - first internal architecture audit, current bounded debts and implementation blockers.
+  - architecture compatibility and bounded successor concerns.
+- `H0-STATIC-CROSS-FILE-AUDIT.yaml`
+  - 14 architecture/control findings; repaired internal defects and open control-plane blockers.
+- `H0-VALIDATION-RECEIPT.md`
+  - records exact PR head/Actions run and the Control Tower expected fail-closed result.
 - `IMPLEMENTATION-DEPENDENCY-DAG.yaml`
   - H0-H8 ordering, dependencies and resource semantics.
 
 ### Authority / organization
 
 - `DEPARTMENT-CONTRACT-GRAPH.yaml`
-  - machine-readable authority, inputs/outputs, review/challenge/verify/veto/return/feedback relationships.
+  - explicit departments + `PRIMARY_PRODUCER` / `CHALLENGER` role templates; machine-resolvable return aliases; authority, inputs/outputs, review/challenge/verify/veto/return/feedback relationships.
 - `ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml`
-  - duplicate authority, orphan/dead-end, cycles, return paths, trace, privacy, resource, PIT, NO_TRADE checks plus formal-model candidates.
+  - OGV-001..032 covering authority, orphan/dead-end, cycles, return aliases, schema compilability, route/work-claim consistency, trace, privacy, resource, PIT, NO_TRADE, H1/H2 separation and formal-model candidates.
 - `SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml`
   - single user Mission entry, 0/1/N work planning, Control Tower authorization boundary.
 
 ### Core cognitive contracts
 
 - `COGNITIVE-OS-CONTRACT-SCHEMAS.yaml`
-  - DecisionEpisode, ProblemSignature, Mission, MissionGraph, Claim, ChallengeCase, VerificationResult, Adjudication, FormalHandoff, OutcomeLearning and reproducibility fingerprint.
-- `ISSUE-312-COMPATIBILITY-MATRIX.yaml`
-  - maps #312 capabilities into REUSE / EXTEND / WRAP / SPLIT responsibilities without creating parallel authorities.
-- `ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml`
-  - #308 as first A-share evidence-first consumer, `research_only / NO_TRADE`.
+  - `COGNITIVE_CONTRACT_DSL/v0.2` with DecisionEpisode state machine, ProblemSignature, Mission, MissionGraph, Claim, ChallengeCase, VerificationResult, Adjudication, FormalHandoff, OutcomeLearning, ReworkRequest, named semantic invariants and reproducibility fingerprint.
+  - H1 must compile structural rules to formal JSON Schema or equivalent and implement deterministic semantic validators.
+- `METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml`
+  - W3-owned MethodMemory + progressive SkillManifest projection; Level 0 catalog → Level 1 manifest → Level 2 selected method body → Level 3 cases/failures.
+- `TRACE-LEDGER-PRIVACY-CONTRACT.yaml`
+  - Native Raw Trace / Cross-Agent Ledger / Formal Handoff; raw once/reference everywhere; privacy classes and T0-T3 completeness.
 - `LEARNING-EVOLUTION-LIFECYCLE.yaml`
-  - observation → outcome match → localization → reflection candidate → reflection verification → credit → candidate updates → regression → cross-context revalidation → promotion/degradation/retirement.
+  - observation → match → localization → reflection candidate → reflection verification → credit → candidate updates → regression → cross-context revalidation → promotion/degradation/retirement.
+- `ISSUE-312-COMPATIBILITY-MATRIX.yaml`
+  - #312 mapped to existing authorities without parallel W3/skill/feedback runtimes.
+- `ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml`
+  - #308 fixed as first A-share evidence-first consumer, `research_only / NO_TRADE`.
 
 ### Harness integration
 
 - `ADAPTER-BOUNDARY.yaml`
-  - Adapter-first authority/interface boundary; domain code must not depend on concrete Harness providers.
+  - Adapter-first boundary; upstream identity/surface verified for H0, runtime binding still blocked pending smoke + fresh governance.
 - `HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md`
-  - canonical upstream independently reverified as `deepseek-ai/deepseek-harness`; design snapshot `47f943859bef60e4160492346772ded9b24f765a`, `0.1.0-rc.5`, MIT; runtime smoke still pending.
+  - canonical upstream `deepseek-ai/deepseek-harness`, design snapshot `47f943859bef60e4160492346772ded9b24f765a`, `0.1.0-rc.5`, MIT.
 - `HARNESS-POC-CONTRACT.md`
-  - future public-safe synthetic PoC: authority isolation, Primary/Challenger isolation, native trace, bounded retry/cancel/failure, resource closure.
+  - future H2 public-safe synthetic PoC with authority isolation, independent contexts, native trace, bounded failure/resource behavior.
 - `IMPLEMENTATION-CLAIM-CANDIDATE.yaml`
-  - future H1/H2 Work Claim candidate only; no execution route exists.
+  - two separate future claims:
+    - H1 contract-only synthetic skeleton, no Harness runtime binding;
+    - H2 Harness Adapter PoC, separate fresh Work Claim/route required.
+
+### Control-plane remediation
+
+- `CONTROL-TOWER-STALE-STATE-REMEDIATION-CANDIDATE.yaml`
+  - proposal only, not applied.
+  - specifies safe semantic cleanup for stale R132 ACTIVE projection, stale R120 Lane C Work Claim, stale Program Lane registry, Lane A proposal-only status and Lane B hold preservation.
+  - canonical Control Tower files must be changed only through separately authorized governance work.
 
 ### Evidence / evaluation
 
@@ -64,39 +91,19 @@ This directory is the only durable write surface reserved for Lane A while it re
 - `#310 Control Tower` = route / Work Claim / WIP / overlap / authorization governance; **not** task router.
 - `Harness` = runtime/orchestration/session/workflow/subagent/tool/job/trace capability; **not** a second brain or truth authority.
 - `W2-W13` = domain authorities; `W7` retains final risk veto.
-- `W9` = outcome calibration, failure localization, MethodCredit/SkillHealth candidates.
+- `W9` = outcome/correction/audit learning, failure localization, MethodCredit/SkillHealth candidates.
+- `PRIMARY_PRODUCER` / `CHALLENGER` = ephemeral execution roles, never canonical authorities.
 - `#308` = first A-share consumer; no second W3/Method Router/feedback/evidence truth; `NO_TRADE`.
 
-## Harness verification state
+## Current open blockers
 
-Identity and architecture surface: `PASS_FOR_H0_DESIGN`.
+Before H0 can receive final acceptance, canonical governance must reconcile:
 
-Verified snapshot:
-- repo `deepseek-ai/deepseek-harness`;
-- `master` SHA `47f943859bef60e4160492346772ded9b24f765a`;
-- package family/root `0.1.0-rc.5`;
-- MIT;
-- official Cordis / everything-is-plugin / Service Definition-Provider-Consumer architecture.
+1. `ACTIVE-CODEX-TASK.yaml` still exposes completed R132 as `READY / execution_allowed=true / next_command=读取任务` even though PR #334 merged and Foundation Closure is complete.
+2. `CONTROL-TOWER/LANE-WORK-CLAIMS.yaml` still binds Lane C to R120 / Issue #305 / PR #307 heavy implementation.
+3. `ACTIVE-PROGRAM-LANES.yaml` still reflects R120-era observed state and Lane A as PAUSED.
 
-Official project maturity remains developer preview with expected breaking changes, so exact pin + Adapter isolation + compatibility radar + no auto-upgrade remain mandatory.
-
-Runtime install/pack/smoke: `PENDING / REQUIRED_BEFORE_H2`.
-
-## Current H0 architecture audit
-
-Provisional verdict:
-
-`PROVISIONAL_PASS_FOR_CONTINUED_H0_DESIGN / IMPLEMENTATION_NOT_RELEASED`
-
-Known implementation-release blocker:
-- canonical Control Tower aggregate/work-claim/active-route projections still contain stale older Lane C/R132 state. Before H1/H2, refresh observed state, neutralize stale execution projection, run fresh O0-O4/WIP scan and create a fresh authorization witness.
-
-Bounded successor concerns that do **not** reopen P2.5:
-- R120-W01 context-only endpoint;
-- R122 unknown binding;
-- clean cross-component `FeedbackLifecycle/v1` API;
-- executable Formal Skill promotion governance;
-- Harness target-environment runtime smoke.
+No H1/H2 implementation route may be released while these remain unresolved.
 
 ## Proposal-only rules
 
@@ -105,7 +112,7 @@ Allowed:
 - authority and relationship maps;
 - evaluation/falsification;
 - research/evidence ledgers;
-- implementation claim candidates;
+- future implementation-task drafts and claim candidates;
 - migration/rollback design.
 
 Forbidden:
@@ -118,15 +125,17 @@ Forbidden:
 - permission/visibility changes;
 - account/order/fund/trading action;
 - automatic Formal Skill promotion;
-- automatic Harness upgrade.
+- automatic Harness upgrade;
+- weakening Control Tower checks merely to make PR CI green.
 
-## Remaining H0 gates
+## Next gate sequence
 
-1. machine/static validation of proposal schemas and graph references;
-2. minimal MethodMemory + SkillManifest projection contracts;
-3. Trace Ledger event/privacy contract;
-4. final Organization Graph findings pass;
-5. fresh Control Tower proposal/current-state O0-O4/WIP scan;
-6. final GPT H0 compatibility verdict.
+1. prepare H1 task/acceptance contract as **inactive draft only**;
+2. separately authorize and apply bounded Control Tower stale-state cleanup;
+3. rerun current Control Tower reconciliation / Work Claims / O0-O4 / WIP / witness checks;
+4. rerun H0 static audit against cleaned current state;
+5. issue final GPT H0 compatibility verdict;
+6. only then publish a separate H1 executable route;
+7. H1 acceptance still does not authorize H2.
 
-**H0 architecture may continue. No Harness runtime implementation route has been released.**
+**No Harness runtime implementation route has been released.**
