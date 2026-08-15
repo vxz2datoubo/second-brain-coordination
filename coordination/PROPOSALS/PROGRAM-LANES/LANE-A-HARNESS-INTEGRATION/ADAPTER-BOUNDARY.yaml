@@ -1,0 +1,330 @@
+schema_version: "0.1"
+adapter_id: "SECOND-BRAIN-HARNESS-ADAPTER-BOUNDARY-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+canonical_base: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+principles:
+  adapter_first: true
+  harness_internal_imports_forbidden_from_domain_code: true
+  pin_exact_tested_harness_runtime: true
+  latest_upstream_is_radar_only: true
+  breaking_change_never_auto_upgrades: true
+  runtime_authority_stays_outside_harness: true
+  source_identity_reverification_required_before_implementation: true
+
+source_identity_gate:
+  status: "REVERIFY_BEFORE_IMPLEMENTATION"
+  reason: >-
+    Current architecture work may rely on previously studied Harness service concepts, but actual implementation
+    must independently re-identify the canonical upstream repository/release/commit and regenerate the compatibility
+    ledger before any runtime binding or package installation.
+  required_evidence:
+    - canonical_repository_identity
+    - release_or_tag
+    - exact_commit
+    - license
+    - public_service_definition_inventory
+    - workflow/session/subagent/job/tool/guard/bundle interfaces
+    - provider_adapter_surface
+    - migration_or_breaking_change_notes
+    - reproducible install_and_smoke_test
+
+external_authorities:
+  W3_SECOND_BRAIN:
+    owns:
+      - knowledge_memory_truth
+      - lifecycle_truth
+      - conflict_unknown_truth
+      - provenance_truth
+      - retrieval_admission
+    harness_access: "READ/REQUEST_THROUGH_ADAPTER_ONLY"
+  METHOD_ROUTER_312:
+    owns:
+      - problem_signature
+      - method_selection
+      - challenge_policy_selection
+      - method_composition_candidate
+    harness_access: "CONSUME_EXECUTION_PLAN_ONLY"
+  CONTROL_TOWER_310:
+    owns:
+      - executable_route_authorization
+      - work_claim
+      - wip_collision
+      - commit_time_witness
+    harness_access: "EXECUTE_ONLY_AFTER_VALID_AUTHORIZATION"
+  W7_VALIDATION_RISK:
+    owns:
+      - final_veto
+      - high_risk_gate
+    harness_access: "CANNOT_OVERRIDE"
+  SIGNAL_TOWER:
+    owns:
+      - mission_intake
+      - mission_graph
+      - user_result_aggregation
+    harness_access: "MISSION_TO_WORKFLOW_ADAPTER"
+  DOMAIN_W2_W13:
+    owns:
+      - domain_truth_and_rules
+    harness_access: "CALL_AS_SERVICES/TOOLS_WITHOUT_OWNERSHIP_TRANSFER"
+
+stable_consumption_interfaces:
+  - name: "SecondBrainSearch/v1"
+    owner: W3_SECOND_BRAIN
+    direction: OUT_OF_W3
+    purpose: "bounded memory/knowledge search"
+    minimum_fields:
+      - query_plan_ref
+      - caller_scope
+      - privacy_domain
+      - valid_at
+      - intent
+      - result_refs
+      - admission_report_ref
+    mutable_internals_forbidden:
+      - sqlite_schema
+      - retrieval_term_table
+      - internal_ranker_objects
+      - raw_private_pointer
+
+  - name: "SecondBrainContext/v1"
+    owner: W3_SECOND_BRAIN
+    direction: OUT_OF_W3
+    purpose: "compact safe context projection"
+    minimum_fields:
+      - context_bundle_id
+      - current_atoms
+      - historical_refs
+      - support_refs
+      - counterevidence_refs
+      - conflicts
+      - unknowns
+      - provenance_summary
+      - freshness
+      - trust_gate
+      - optional_analogies
+    mutable_internals_forbidden:
+      - raw_store_objects
+      - direct_graph_adjacency
+      - private_source_body
+
+  - name: "KnowledgeCandidateReconcile/v1"
+    owner: W3_SECOND_BRAIN
+    direction: INTO_W3
+    purpose: "retrieval-before-write candidate reconciliation"
+    operations:
+      - NEW
+      - DUPLICATE
+      - MERGE
+      - REFINE
+      - SUPPORT
+      - WEAKEN
+      - CONTRADICT
+      - SUPERSEDE
+      - REVOKE
+      - REVALIDATE
+      - RESOLVE_UNKNOWN
+      - UNKNOWN
+    adapter_rule: "candidate_only_without_formal_promotion_authority"
+
+  - name: "FeedbackLifecycle/v1"
+    owner: W3_SECOND_BRAIN
+    direction: INTO_W3
+    status: "SUCCESSOR_INTERFACE_CANDIDATE"
+    purpose: "outcome/correction feedback into knowledge lifecycle"
+    required_semantics:
+      - SUPPORT
+      - WEAKEN
+      - REFINE
+      - SUPERSEDE
+      - REVOKE
+      - REVALIDATE
+      - RESOLVE_UNKNOWN
+    note: "R120-W01/R122 bounded gaps must not be solved by exposing W3 internals."
+
+  - name: "MethodExecutionPlan/v1"
+    owner: METHOD_ROUTER_312
+    direction: INTO_HARNESS_ADAPTER
+    fields:
+      - problem_signature_id
+      - selected_method_refs
+      - composition_candidate_ref
+      - evidence_plan_ref
+      - challenge_level
+      - required_roles
+      - tool_requirements
+      - budget
+      - abstention_allowed
+
+  - name: "MissionGraph/v1"
+    owner: SIGNAL_TOWER
+    direction: INTO_CONTROL_AND_HARNESS
+    fields:
+      - mission_id
+      - work_items
+      - dependency_edges
+      - parallel_groups
+      - approval_edges
+      - return_paths
+      - resource_classes
+
+  - name: "ExecutionAuthorization/v1"
+    owner: CONTROL_TOWER_310
+    direction: INTO_HARNESS_ADAPTER
+    fields:
+      - authorization_id
+      - route_binding
+      - work_claim_ref
+      - collision_scan_ref
+      - resource_class
+      - expiry
+      - fingerprint
+    fail_closed_if:
+      - expired
+      - route_changed
+      - claim_changed
+      - peer_claim_changed
+      - o3_o4_collision
+
+  - name: "HarnessWorkflowRequest/v1"
+    owner: OUR_HARNESS_ADAPTER
+    direction: INTO_HARNESS
+    fields:
+      - workflow_id
+      - mission_id
+      - decision_episode_id
+      - role_steps
+      - dependencies
+      - tool_capability_refs
+      - provider_profile_refs
+      - timeout_policy
+      - retry_policy
+      - cancellation_policy
+      - trace_context
+    forbidden_fields:
+      - raw_private_memory_body_without_explicit_admission
+      - trading_authorization
+      - formal_knowledge_authority
+
+  - name: "HarnessWorkflowResult/v1"
+    owner: OUR_HARNESS_ADAPTER
+    direction: OUT_OF_HARNESS
+    fields:
+      - workflow_id
+      - status
+      - step_results
+      - artifact_refs
+      - native_trace_refs
+      - failures
+      - resource_usage
+      - retry_history
+      - completion_class
+    rule: "SUCCESS_SELF_REPORT_IS_NON_AUTHORITATIVE"
+
+  - name: "FormalHandoff/v1"
+    owner: COGNITIVE_OS
+    direction: CROSS_COMPONENT
+    storage_form:
+      machine: "*.handoff.json"
+      human: "*.analysis.md"
+    required_machine_fields:
+      - handoff_id
+      - decision_episode_id
+      - producer
+      - consumer
+      - stage
+      - claim_ids
+      - evidence_refs
+      - counterevidence_refs
+      - unknown_refs
+      - epistemic_status
+      - input_fingerprint
+      - upstream_handoff_refs
+      - raw_trace_refs
+      - schema_version
+    rule: "human prose cannot silently promote machine epistemic status"
+
+  - name: "OutcomeLearning/v1"
+    owner: W9_OUTCOME_LEARNING
+    direction: INTO_W3_AND_METHOD_ROUTER
+    fields:
+      - decision_episode_id
+      - outcome_ref
+      - claim_outcomes
+      - failure_localization
+      - method_credit
+      - tool_credit
+      - source_credit
+      - challenge_credit
+      - regression_case_refs
+      - reflection_candidate_ref
+      - skill_health_candidate
+
+harness_capability_mapping:
+  session:
+    allowed_role: "execution context and event history"
+    forbidden_role: "long-term memory authority"
+  context:
+    allowed_role: "runtime prompt/context assembly carrier after W3 admission"
+    forbidden_role: "independent W3 replacement"
+  skill:
+    allowed_role: "runtime projection/loader of approved skill manifest"
+    forbidden_role: "formal skill authority"
+  subagent:
+    allowed_role: "role execution"
+    forbidden_role: "automatic decision authority"
+  workflow:
+    allowed_role: "authorized MissionGraph execution"
+    forbidden_role: "Mission authority or policy authority"
+  jobs:
+    allowed_role: "background/resumable execution"
+    forbidden_role: "unbounded autonomous program lane"
+  guard:
+    allowed_role: "runtime enforcement hook"
+    forbidden_role: "replacement for Control Tower/W7"
+  bundle:
+    allowed_role: "runtime packaging"
+    forbidden_role: "canonical knowledge bundle truth"
+  interaction:
+    allowed_role: "human/agent interaction mechanism"
+    forbidden_role: "permission escalation"
+
+provider_adapter_policy:
+  provider_native_trace_required: true
+  capability_negotiation_required: true
+  provider_specific_fields_isolated: true
+  provider_failure_must_not_mutate_domain_truth: true
+  model_identity_recorded_in_fingerprint: true
+  approval_and_permission_events_linked_to_trace: true
+
+codex_app_server_candidate:
+  status: "SUPPORTED_ARCHITECTURE_CANDIDATE"
+  public_protocol_basis:
+    - JSON_RPC_BIDIRECTIONAL
+    - THREAD_START_RESUME_FORK
+    - TURN_ITEM_EVENTS
+    - APPROVAL_EVENTS
+    - AUTH_ENDPOINTS
+  integration_rule: >-
+    Prefer a richer provider adapter that preserves native Thread/Turn/Item progress and artifact events instead
+    of reducing Codex to final text. Native trace is referenced by DecisionEpisode; it does not become W3 truth.
+
+versioning:
+  adapter_schema_semver: true
+  backwards_compatibility_tests_required: true
+  schema_break_requires_migration_plan: true
+  pinned_runtime_canary: true
+  latest_upstream_radar: true
+  auto_upgrade: false
+
+implementation_reopen_conditions:
+  - "source_identity_gate == PASS"
+  - "second_brain_foundation_interfaces_frozen_for_adapter_consumption"
+  - "fresh Control Tower Work Claim"
+  - "fresh O0-O4 scan"
+  - "no same-agent or heavy-resource collision"
+  - "explicit GPT implementation release"
+  - "rollback plan present"
