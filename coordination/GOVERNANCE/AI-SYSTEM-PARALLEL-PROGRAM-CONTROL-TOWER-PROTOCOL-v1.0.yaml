@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 protocol_id: "AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-0001"
 control_tower_issue: 310
 status: "ACTIVE_GOVERNANCE_FOUNDATION_READY"
@@ -56,8 +56,14 @@ program_lane_definition:
     - primary_system_positions
     - current_phase
     - active_execution_route
+    - dependencies
+    - shared_interfaces
     - next_gate
     - maturity
+  list_fields:
+    - primary_system_positions
+    - dependencies
+    - shared_interfaces
   optional_fields:
     - implementation_owner
     - implementation_owner_candidate
@@ -68,11 +74,12 @@ program_lane_definition:
     - evidence_refs
     - risk_flags
     - stop_conditions
-    - dependencies
-    - shared_interfaces
     - proposal_only
     - closure_receipt
     - bounded_gaps
+  rule: >-
+    Dependencies and shared interfaces are mandatory even when empty. They are machine-validated lists so future
+    Signal Tower/Harness orchestration cannot infer cross-lane prerequisites from prose or memory alone.
 
 state_machine:
   PROPOSED:
@@ -136,6 +143,7 @@ work_claim_contract:
     CLOSED_NO_ACTIVE_IMPLEMENTATION:
       requires:
         - "execution_agent=null"
+        - "resource_class=NO_ACTIVE_IMPLEMENTATION"
         - "no route binding"
         - "no current read/write/interface/domain/authority work surface"
         - "durable closure_receipt"
@@ -202,6 +210,9 @@ reconciliation_checks:
   - id: CT-R11-WORK-CLAIM
     question: "Does every current Program Lane have exactly one valid work claim, are proposal-only writes isolated, and do closed claims retain no active lease/surface?"
     on_fail: "WORK_CLAIM_INVALID / FAIL_CLOSED"
+  - id: CT-R12-LANE-CONTRACT
+    question: "Does every Program Lane explicitly declare the canonical dependency and shared-interface fields required for deterministic cross-lane reconciliation?"
+    on_fail: "LANE_CONTRACT_INVALID / FAIL_CLOSED"
 
 collision_levels:
   O0_NONE:
@@ -321,6 +332,7 @@ automation_implementation_status:
   components:
     route_scanner: "IMPLEMENTED"
     program_lane_reconciler: "IMPLEMENTED"
+    program_lane_contract_validator: "IMPLEMENTED_WITH_REQUIRED_DEPENDENCIES_AND_SHARED_INTERFACES"
     stale_view_detector: "IMPLEMENTED_FOR_DECLARED_AGGREGATE_AND_ROUTE_PROJECTION_CASES"
     authority_overlap_validator: "IMPLEMENTED_IN_O0_O4_CLASSIFIER_AND_WORK_CLAIMS"
     path_and_interface_collision_checker: "IMPLEMENTED"
@@ -357,10 +369,12 @@ validation_and_regression_candidates:
   - "A changed Work Claim/hold/WIP/overlap policy invalidates the old durable authorization witness."
   - "Proposal-only writes outside their isolated root fail closed."
   - "Semantic environment changes during a durable workflow are surfaced rather than silently mixed."
-  - "A closed claim with execution_agent, route binding or any active work surface fails closed."
+  - "A closed claim with execution_agent, route binding, non-NO_ACTIVE resource class or any active work surface fails closed."
   - "A closed claim without closure_receipt fails closed."
   - "A closed lane can be fingerprinted for freshness without receiving execution authority."
   - "Program Lane ACTIVE proposal work does not imply an Agent execution lease."
+  - "Missing dependencies/shared_interfaces fails the Program Lane contract."
+  - "dependencies/shared_interfaces must be deterministic lists even when empty."
 
 promotion_policy:
   current_maturity: "CANDIDATE_GOVERNANCE_WITH_EXECUTABLE_FOUNDATION"
