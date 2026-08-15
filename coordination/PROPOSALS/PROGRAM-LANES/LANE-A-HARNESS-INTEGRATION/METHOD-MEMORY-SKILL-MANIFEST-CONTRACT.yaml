@@ -1,0 +1,304 @@
+schema_version: "0.1"
+contract_id: "COGNITIVE-OS-METHOD-MEMORY-SKILL-MANIFEST-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_DUPLICATE_SKILL_AUTHORITY"
+
+first_principles:
+  method_memory_truth_owner: W3_SECOND_BRAIN
+  formal_skill_truth_owner: EXISTING_FORMAL_SKILL_GOVERNANCE
+  router_owns_selection_not_truth: true
+  harness_owns_execution_projection_not_truth: true
+  progressive_disclosure_required: true
+  full_skill_body_not_loaded_by_default: true
+  topic_similarity_alone_insufficient: true
+  negative_cases_and_failure_conditions_retrievable: true
+  stale_regime_method_requires_revalidation: true
+
+MethodMemory_v1:
+  purpose: "durable transferable method knowledge distilled from evidence-backed cases, not raw trace copy"
+  canonical_owner: W3_SECOND_BRAIN
+  required:
+    - schema_version
+    - method_id
+    - lineage_id
+    - name
+    - problem_structure
+    - mechanism
+    - when_to_use
+    - when_not_to_use
+    - prerequisites
+    - evidence_requirements
+    - termination
+    - failure_modes
+    - maturity
+    - health
+    - provenance_refs
+  fields:
+    schema_version: {const: "MethodMemory/v1"}
+    method_id: {type: string}
+    lineage_id: {type: string}
+    parent_method_refs: {type: array, items: {type: string}}
+    name: {type: string}
+    description_ref: {type: [string, "null"]}
+    problem_structure: {type: array, items: {type: string}}
+    mechanism: {type: string}
+    when_to_use: {type: array, items: {type: string}}
+    when_not_to_use: {type: array, items: {type: string}}
+    prerequisites: {type: array, items: {type: string}}
+    required_data: {type: array, items: {type: string}}
+    required_tools: {type: array, items: {type: string}}
+    evidence_requirements: {type: array, items: {type: string}}
+    termination: {type: array, items: {type: string}}
+    failure_modes: {type: array, items: {type: string}}
+    counterexample_refs: {type: array, items: {type: string}}
+    source_case_refs: {type: array, items: {type: string}}
+    negative_case_refs: {type: array, items: {type: string}}
+    regime_refs: {type: array, items: {type: string}}
+    freshness_policy_ref: {type: [string, "null"]}
+    maturity:
+      enum: [DISCOVERED_INSIGHT, KNOWLEDGE_CANDIDATE, METHOD_CANDIDATE, SKILL_CANDIDATE, SYNTHETIC_TESTED, REAL_CASE_TESTED, CROSS_CONTEXT_VALIDATED, FORMAL_SKILL, REVALIDATION_REQUIRED, DEGRADED, RETIRED]
+    health: {enum: [HEALTHY, WATCH, REVALIDATION_REQUIRED, WEAKENED, DEGRADED, RETIRED, UNKNOWN]}
+    cost_profile_ref: {type: [string, "null"]}
+    provenance_refs: {type: array, items: {type: string}, minItems: 1}
+    last_validated_at: {type: [string, "null"]}
+    updated_at: {type: string}
+  invariants:
+    - "FORMAL_SKILL maturity requires external formal governance receipt"
+    - "RETIRED cannot be selected except historical analysis"
+    - "REVALIDATION_REQUIRED cannot be selected for high-risk use without explicit revalidation gate"
+    - "failure_modes and when_not_to_use are first-class retrieval fields"
+
+SkillManifestProjection_v1:
+  purpose: "small runtime discovery projection of existing formal/candidate skill metadata"
+  projection_owner: METHOD_ROUTER_312
+  source_authority: EXISTING_FORMAL_SKILL_GOVERNANCE
+  required:
+    - schema_version
+    - skill_ref
+    - name
+    - description
+    - when_to_use
+    - when_not_to_use
+    - preconditions
+    - required_tools
+    - required_data
+    - termination
+    - evidence_requirements
+    - regime_scope
+    - failure_modes
+    - cost_latency_class
+    - maturity
+    - health
+    - body_loader_ref
+    - source_version
+  fields:
+    schema_version: {const: "SkillManifestProjection/v1"}
+    skill_ref: {type: string}
+    name: {type: string}
+    description: {type: string}
+    when_to_use: {type: array, items: {type: string}}
+    when_not_to_use: {type: array, items: {type: string}}
+    preconditions: {type: array, items: {type: string}}
+    required_tools: {type: array, items: {type: string}}
+    required_data: {type: array, items: {type: string}}
+    termination: {type: array, items: {type: string}}
+    evidence_requirements: {type: array, items: {type: string}}
+    regime_scope: {type: array, items: {type: string}}
+    failure_modes: {type: array, items: {type: string}}
+    cost_latency_class: {enum: [CHEAP, MODERATE, EXPENSIVE, VERY_EXPENSIVE, UNKNOWN]}
+    maturity: {type: string}
+    health: {type: string}
+    body_loader_ref: {type: string}
+    source_version: {type: string}
+    projection_hash: {type: string}
+  forbidden:
+    - raw private cases
+    - full skill body by default
+    - credentials
+    - authority mutation fields
+
+progressive_disclosure:
+  level_0_catalog:
+    content:
+      - skill_ref
+      - name
+      - one-line description
+      - key when_to_use
+      - maturity
+      - health
+      - cost_latency_class
+    use: "broad candidate discovery"
+
+  level_1_manifest:
+    content:
+      - full manifest fields
+      - prerequisites
+      - evidence requirements
+      - when_not_to_use
+      - failure modes
+      - regime scope
+    use: "candidate screening and selection"
+
+  level_2_method_body:
+    content:
+      - executable procedure or detailed method instructions
+      - examples necessary for execution
+      - tool contracts
+    load_only_if:
+      - selected_or_top_shortlist
+      - prerequisites plausibly satisfied
+      - within context/token budget
+
+  level_3_case_evidence:
+    content:
+      - source cases
+      - regression cases
+      - failures
+      - counterexamples
+    load_only_if:
+      - material validation needed
+      - challenge asks for history
+      - regime applicability uncertain
+
+MethodRetrievalQuery_v1:
+  required:
+    - problem_signature_id
+    - requested_channels
+    - budget
+  channels:
+    - STRUCTURAL_FIT
+    - LEXICAL_TOPIC
+    - FAILURE_MODE
+    - CASE_ANALOGY
+    - REGIME
+    - TOOL_DATA_COMPATIBILITY
+    - USER_COGNITIVE_BRIDGE
+  fields:
+    problem_signature_id: string
+    requested_channels: array
+    max_catalog_candidates: integer
+    max_manifest_expansions: integer
+    max_body_loads: integer
+    max_case_loads: integer
+    current_regime_ref: string_or_null
+    available_tool_refs: array
+    available_data_refs: array
+    privacy_scope_ref: string_or_null
+
+MethodCandidate_v1:
+  required:
+    - method_ref
+    - retrieval_channels
+    - structural_fit
+    - prerequisite_status
+    - regime_status
+    - rejection_reasons
+  fields:
+    method_ref: string
+    retrieval_channels: array
+    structural_fit: [HIGH, MEDIUM, LOW, UNKNOWN]
+    prerequisite_status: [PASS, PARTIAL, FAIL, UNKNOWN]
+    evidence_availability: [SUFFICIENT, PARTIAL, INSUFFICIENT, UNKNOWN]
+    regime_status: [MATCH, PARTIAL, MISMATCH, REVALIDATION_REQUIRED, UNKNOWN]
+    historical_health: [HEALTHY, MIXED, DEGRADED, UNKNOWN]
+    expected_information_value_class: [HIGH, MEDIUM, LOW, NEGATIVE, UNKNOWN]
+    cost_latency_class: [CHEAP, MODERATE, EXPENSIVE, VERY_EXPENSIVE, UNKNOWN]
+    safety_permission_status: [PASS, FAIL, HUMAN_GATE, UNKNOWN]
+    conflict_refs: array
+    rejection_reasons: array
+    manifest_ref: string_or_null
+
+MethodSelectionDecision_v1:
+  required:
+    - selection_id
+    - decision_episode_id
+    - problem_signature_id
+    - candidate_refs
+    - selected_refs
+    - disposition
+    - reasons
+  fields:
+    selection_id: string
+    decision_episode_id: string
+    problem_signature_id: string
+    candidate_refs: array
+    selected_refs: array
+    rejected_refs: array
+    disposition: [SELECTED, MULTI_METHOD, DYNAMIC_COMPOSITION, NO_METHOD, NO_SUITABLE_METHOD, ABSTAIN]
+    reasons: array
+    evidence_plan_ref: string_or_null
+    challenge_request_ref: string_or_null
+    expected_value_ref: string_or_null
+    cost_budget_ref: string_or_null
+    created_at: timestamp
+  invariants:
+    - "selected method prerequisite_status != FAIL"
+    - "selected high-risk method regime_status != MISMATCH"
+    - "selected high-risk REVALIDATION_REQUIRED method needs explicit revalidation"
+    - "NO_SUITABLE_METHOD and ABSTAIN are valid outcomes"
+
+DynamicMethodComposition_v1:
+  status: CANDIDATE_ONLY
+  required:
+    - composition_id
+    - problem_signature_id
+    - component_method_refs
+    - ordered_steps
+    - input_contract
+    - output_contract
+    - termination
+    - validation_plan_ref
+  constraints:
+    - component permissions cannot be widened
+    - component evidence requirements cannot be silently removed
+    - composition must declare failure/return path
+    - composition must pass extra validation
+    - one successful use cannot promote composition to Formal Skill
+    - execution projection is immutable for one DecisionEpisode
+
+retrieval_ranking_policy:
+  hard_filters_before_scoring:
+    - privacy_scope
+    - permission
+    - retired_status
+    - mandatory prerequisites
+    - incompatible tool/data requirement
+  soft_dimensions:
+    - structural_fit
+    - failure_case_match
+    - regime_fit
+    - historical_health
+    - evidence_availability
+    - expected_value
+    - cost_latency
+  forbidden:
+    - "topic/embedding similarity as sole selector"
+    - "historical win rate without scope/regime"
+    - "single success bonus causing promotion"
+    - "analogy output treated as evidence"
+
+anti_context_bloat:
+  catalog_first: true
+  manifest_budget_required: true
+  body_budget_required: true
+  case_budget_required: true
+  duplicate_manifest_dedup: true
+  selected_method_body_loaded_once_per_episode: true
+  raw_traces_referenced_not_copied: true
+
+learning_feedback:
+  source: OutcomeLearning/v1
+  updates_candidate_fields:
+    - source_case_refs
+    - negative_case_refs
+    - failure_modes
+    - when_not_to_use
+    - regime_refs
+    - health
+    - last_validated_at
+  cannot_directly_update:
+    - FORMAL_SKILL_authority
+    - production_permission
+    - financial_execution_permission
