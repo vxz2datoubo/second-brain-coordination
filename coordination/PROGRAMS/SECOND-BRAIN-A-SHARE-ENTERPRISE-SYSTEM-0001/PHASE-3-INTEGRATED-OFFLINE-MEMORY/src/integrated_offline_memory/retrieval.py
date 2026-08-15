@@ -8,6 +8,7 @@ import re
 from typing import Any, Callable
 
 from .canonical import content_hash
+from .learning_packet import _SECRET, _is_prompt_injection
 from .memory_store import ALLOWED_TRUTH_STATES, DENIED_TRUTH_STATES, MemoryStore
 
 
@@ -93,8 +94,10 @@ class SemanticProviderRequest:
     """Public-safe, discovery-only request for an optional local provider."""
 
     schema_version: str
+    request_id: str
     query_terms: tuple[str, ...]
     max_suggestions: int
+    scope_privacy_fingerprint: str
 
 
 @dataclass(frozen=True)
@@ -102,6 +105,7 @@ class SemanticProviderResult:
     """Validated provider result; terms never carry atom IDs or scores."""
 
     schema_version: str
+    request_id: str
     state: str
     discovery_terms: tuple[str, ...] = ()
 
@@ -386,12 +390,21 @@ class ContextAssembler:
 
         if provider is None:
             return ()
+        # The provider is an egress boundary: unsafe caller text must never be
+        # transformed into terms or sent to the provider.
+        if _SECRET.search(plan.query_text) or _is_prompt_injection(plan.query_text):
+            return ()
         query_terms = tuple(sorted(set(re.findall(r"[A-Za-z0-9_]{2,}|[\u4e00-\u9fff]{1,3}", plan.query_text))))[:16]
+        fingerprint = content_hash({
+            "scopes": tuple(sorted(plan.scopes)), "user_scope": plan.user_scope,
+            "privacy_domains": tuple(sorted(plan.privacy_domains)), "privacy_mode": plan.privacy_aggregate_mode,
+        })
+        request_id = "semantic-request-" + content_hash({"terms": query_terms, "fingerprint": fingerprint})[:20]
         try:
-            result = provider(SemanticProviderRequest("SemanticProviderRequest/v1", query_terms, 8))
+            result = provider(SemanticProviderRequest("SemanticProviderRequest/v1", request_id, query_terms, 8, fingerprint))
         except Exception:
             return ()
-        if not isinstance(result, SemanticProviderResult) or result.schema_version != "SemanticProviderResult/v1":
+        if not isinstance(result, SemanticProviderResult) or result.schema_version != "SemanticProviderResult/v1" or result.request_id != request_id:
             return ()
         if result.state != "AVAILABLE" or len(result.discovery_terms) > 8:
             return ()
