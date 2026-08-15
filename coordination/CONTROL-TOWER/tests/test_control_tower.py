@@ -11,6 +11,7 @@ from control_tower import (  # noqa: E402
     normalize_route,
     replace_projection_block,
     route_witness,
+    validate_program_lane_contract,
     verify_route_witness,
 )
 
@@ -45,6 +46,52 @@ class CollisionTests(unittest.TestCase):
         left = {"write_paths": ["coordination/shared"]}
         right = {"read_paths": ["coordination/shared/schema.yaml"]}
         self.assertEqual(classify_collision(left, right)["level"], "O3")
+
+
+class ProgramLaneContractTests(unittest.TestCase):
+    def _lane(self) -> dict:
+        return {
+            "lane_id": "LANE-X",
+            "mission": "Test mission",
+            "owner": "USER",
+            "architecture_owner": "GPT",
+            "desired_state": "ACTIVE",
+            "observed_state": "ACTIVE",
+            "primary_system_positions": ["W1"],
+            "current_phase": "TEST",
+            "active_execution_route": None,
+            "dependencies": [],
+            "shared_interfaces": ["W3"],
+            "next_gate": "TEST_GATE",
+            "maturity": "CANDIDATE",
+        }
+
+    def test_complete_lane_contract_passes(self) -> None:
+        self.assertFalse(validate_program_lane_contract({"program_lanes": [self._lane()]}))
+
+    def test_missing_dependencies_fails_closed(self) -> None:
+        lane = self._lane()
+        lane.pop("dependencies")
+        findings = validate_program_lane_contract({"program_lanes": [lane]})
+        self.assertTrue(any(item.code == "PROGRAM_LANE_REQUIRED_FIELDS_MISSING" for item in findings))
+
+    def test_missing_shared_interfaces_fails_closed(self) -> None:
+        lane = self._lane()
+        lane.pop("shared_interfaces")
+        findings = validate_program_lane_contract({"program_lanes": [lane]})
+        self.assertTrue(any(item.code == "PROGRAM_LANE_REQUIRED_FIELDS_MISSING" for item in findings))
+
+    def test_dependency_and_interface_fields_must_be_lists(self) -> None:
+        lane = self._lane()
+        lane["dependencies"] = "not-a-list"
+        lane["shared_interfaces"] = {"not": "a-list"}
+        findings = validate_program_lane_contract({"program_lanes": [lane]})
+        invalid = [item for item in findings if item.code == "PROGRAM_LANE_LIST_FIELD_INVALID"]
+        self.assertEqual(len(invalid), 2)
+
+    def test_non_mapping_lane_fails_closed(self) -> None:
+        findings = validate_program_lane_contract({"program_lanes": ["bad-lane"]})
+        self.assertTrue(any(item.code == "PROGRAM_LANE_NOT_MAPPING" for item in findings))
 
 
 class WitnessTests(unittest.TestCase):
