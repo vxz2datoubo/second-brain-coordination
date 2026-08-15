@@ -1,4 +1,4 @@
-schema_version: "1.2"
+schema_version: "1.3"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
@@ -7,10 +7,29 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 foundation_state: "FOUNDATION_READY"
 lane_release_state: "HOLD_BY_USER"
-proposal_only_dry_run_result: "SAFE_TO_RELEASE_PROPOSAL_ONLY_AFTER_MERGE_AND_EXPLICIT_USER_START"
+proposal_only_dry_run_result: "LANE_A_RELEASED_PROPOSAL_ONLY / LANE_B_HELD"
 implementation_release_state: "NOT_AUTHORIZED"
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
+
+lane_specific_release_state:
+  LANE-A-HARNESS-INTEGRATION:
+    state: "ACTIVE_PROPOSAL_ONLY"
+    basis:
+      - "PR #311 Control Tower foundation merged"
+      - "user explicitly started Lane A H0 architecture design"
+      - "Draft PR #336 remains proposal-only"
+    runtime_write_allowed: false
+    implementation_route_allowed: false
+  LANE-B-A-SHARE-REMEDIATION:
+    state: "HOLD_BY_USER"
+    runtime_write_allowed: false
+    implementation_route_allowed: false
+  LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
+    state: "CLOSED_WITH_BOUNDED_GAPS"
+    active_implementation_lease: false
+    closure_issue: 335
+    merged_pr: 334
 
 dry_run_receipt: "coordination/CONTROL-TOWER/DRY-RUN-RECEIPT.yaml"
 
@@ -20,20 +39,20 @@ build_validation:
   python_3_11: "PASS"
   python_3_13: "PASS"
   targeted_regressions: "PASS"
-  repository_reconciliation: "PASS"
-  lane_work_claim_validation: "PASS"
-  route_projection_check: "PASS"
-  work_claim_projection_check: "PASS"
-  durable_authorization_witness_round_trip: "PASS"
+  repository_reconciliation: "PASS_AT_FOUNDATION_BUILD; MUST_RECONCILE_CURRENT_STATE_AFTER_LANE_C_CLOSURE"
+  lane_work_claim_validation: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_AFTER_CLOSED_CLAIM_CONTRACT_FIX"
+  route_projection_check: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
+  work_claim_projection_check: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
+  durable_authorization_witness_round_trip: "PASS_AT_FOUNDATION_BUILD; MUST_RECHECK_CURRENT_STATE"
   scope_audit: "NO_LANE_C_RUNTIME_FILES_MODIFIED_BY_PR_311"
-  final_gate_close_head_ci: "REQUIRED_AFTER_THIS_COMMIT; RECORD_EXTERNALLY_IN_PR_OR_ISSUE_COMMENT_TO_AVOID_SELF_REFERENTIAL_HEAD_CHURN"
+  final_gate_close_head_ci: "REQUIRED_FOR_CURRENT_CONTROL_PLANE_RECONCILIATION_PR"
 
 foundation_build_requires:
   - id: CT-F01-RECONCILIATION
-    status: "PASS"
+    status: "PASS_FOUNDATION / CURRENT_RECHECK_REQUIRED"
     requirement: "Current Program Lane observed state is reconciled against latest per-agent ACTIVE routes."
   - id: CT-F02-STALE-VIEW
-    status: "PASS_CURRENT_DECLARED_CASES"
+    status: "PASS_FOUNDATION / CURRENT_RECHECK_REQUIRED"
     requirement: "Known stale aggregate views are detected and cannot override current per-agent routes."
   - id: CT-F03-COLLISION
     status: "PASS"
@@ -42,53 +61,54 @@ foundation_build_requires:
     status: "PASS"
     requirement: "Per-agent active-route, heavy-stage and held-lane limits are mechanically checked."
   - id: CT-F05-WORK-CLAIM
-    status: "PASS"
-    requirement: "Every registered lane has one machine-readable current Work Claim; proposal-only writes are isolated."
+    status: "PASS_FOUNDATION / CLOSED_STATE_CONTRACT_RECHECK_REQUIRED"
+    requirement: "Every registered lane has one machine-readable current Work Claim; completed lanes release active work surfaces."
   - id: CT-F06-COMMIT-FRESHNESS
     status: "PASS"
     requirement: >-
       Durable authorization fingerprints current route, all Agent routes, all Work Claims, Program Lane state,
       hold/WIP/overlap policy and release gate; peer-claim or policy drift invalidates the old witness.
   - id: CT-F07-PROJECTION-AND-CI
-    status: "PASS_PRE_DRY_RUN_AND_FINAL_HEAD_RECHECK_REQUIRED"
+    status: "CURRENT_RECHECK_REQUIRED"
     requirement: "Both machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
   - id: CT-F08-DRY-RUN
-    status: "PASS"
-    requirement: "GPT performs a fresh three-lane dry-run and records the result."
+    status: "PASS_FOUNDATION / H0_FINAL_RESCAN_REQUIRED"
+    requirement: "GPT performs a fresh cross-lane dry-run before any H1 implementation release."
 
 proposal_only_release_requires:
   - "foundation_state == FOUNDATION_READY"
-  - "PR #311 has final exact-head CI PASS"
-  - "PR #311 is merged after explicit user approval"
-  - "current remote main and per-agent routes are fetched again after merge"
+  - "current per-agent routes and Program Lane observations reconcile"
   - "current LANE-WORK-CLAIMS validates PASS"
-  - "Lane A and Lane B remain proposal-only with no Agent route or domain write authority"
-  - "their write paths remain confined to isolated proposal roots"
+  - "proposal-only lane has no Agent route or domain write authority"
+  - "proposal write path remains confined to isolated proposal root"
   - "pairwise current-claim scan contains no O3/O4 blocker"
   - "no same-agent double booking or heavy-resource collision"
-  - "user explicitly starts the other windows; no automatic activation"
+  - "user explicitly starts the lane; no automatic activation"
 
 implementation_release_requires:
   - "a separate executable per-agent ACTIVE route for the specific implementation lane"
   - "a fresh ACTIVE_IMPLEMENTATION Work Claim with exact write paths/interfaces/authority/resource class"
   - "current route binding matches task_id/epoch/issue/pr/branch"
   - "fresh O0-O4 scan has no unresolved O3/O4 collision"
-  - "Lane A direct binding to a mutable ContextBundle requires interface freeze or adapter isolation"
+  - "Lane A direct binding to mutable Second Brain internals is forbidden; use frozen interface or adapter isolation"
   - "Lane B requires one bounded remediation slice and preserved W2/W7/W12/NO_TRADE authority boundaries"
   - "no same-agent double booking or heavy-resource collision"
   - "fresh durable authorization witness immediately before commit"
   - "explicit GPT implementation release"
+  - "H1 authorization never implies H2 Harness runtime authorization"
 
 forbidden_effects:
   - "No automatic creation of a new executable Agent route."
-  - "No automatic unpause of Lane A or Lane B."
+  - "No automatic release of Lane B."
   - "Proposal-only release never grants runtime implementation permission."
+  - "Closed Lane C state never grants an execution lease."
   - "No direct mutation of W2-W13 canonical domain objects by the Control Tower."
   - "No private-data ingestion or publication."
   - "No production scheduler/gateway deployment."
   - "No account/order/fund/trading action."
 
 current_disposition: >-
-  The executable Control Tower foundation passed its build checks and three-lane dry-run. It is ready for the
-  high-impact merge gate, not for automatic activation. Lane A Harness and Lane B A-share remain held until the
-  user explicitly approves PR #311 merge and then explicitly starts them. Lane C Codex #305/#307 remains unchanged.
+  Control Tower foundation remains ready. Lane C Second Brain Foundation is completed with bounded gaps and must carry no
+  active implementation lease. Lane A has been explicitly started by the user for isolated H0 proposal architecture only;
+  H1/H2 implementation remains unauthorized. Lane B remains held. The current reconciliation PR must pass exact-head
+  route/claim/projection/witness checks before GPT can close H0 or release any H1 route.
