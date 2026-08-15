@@ -413,8 +413,10 @@ class ContextAssembler:
             if not isinstance(term, str) or not 1 <= len(term) <= 64:
                 return ()
             normalized = term.strip()
-            lowered = normalized.casefold()
-            if not normalized or re.search(r"(?:sk-|ghp_|github_pat_|ignore previous|system prompt|<script)", lowered):
+            # Provider output crosses the same trust boundary as caller-query
+            # egress.  Keep one canonical deny semantic rather than a local
+            # subset that can drift from Phase-3 credential/injection policy.
+            if not normalized or _SECRET.search(normalized) or _is_prompt_injection(normalized):
                 return ()
             terms.append(normalized)
         return tuple(sorted(set(terms)))
