@@ -1,0 +1,304 @@
+schema_version: "0.1"
+contract_id: "GLOBAL-SIGNAL-PLANE-CONTRACTS-0001"
+status: "ARCHITECTURE_CANDIDATE / PRE_MISSION / NO_RUNTIME_AUTHORIZATION"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "PUBLIC_SAFE_SYNTHETIC_FIRST / NO_PRIVATE_CROSS_WINDOW_BRIDGE / NO_TRADE"
+
+purpose: >-
+  Define the pre-Mission event, relation, cluster and projection contracts for one unified Signal Tower. The Signal Plane
+  captures ideas, requests, evidence, task/report/review/merge state and domain backlog references before Mission routing.
+  It does not own execution authorization, W3 truth, runtime trace truth, domain canonical truth or formal skill truth.
+
+standards_alignment:
+  CloudEvents:
+    role: "INTEROPERABILITY_INSPIRATION_NOT_RUNTIME_DEPENDENCY"
+    profile:
+      - "stable event envelope"
+      - "source + id uniqueness for distinct events"
+      - "typed events with schema/version metadata"
+      - "transport-neutral event representation"
+  OpenTelemetry:
+    role: "CAUSALITY_AND_TRACE_REFERENCE_ALIGNMENT"
+    profile:
+      - "correlation/trace refs instead of copying raw trace"
+      - "many-to-many causal relations may use span-link style references rather than false parent/child nesting"
+  Temporal:
+    role: "DURABILITY_PATTERN_INSPIRATION_NOT_RUNTIME_DEPENDENCY"
+    profile:
+      - "append-only history"
+      - "deterministic replay/rebuild"
+      - "retryable side effects require idempotency or explicit non-retryable semantics"
+
+reliability_model:
+  ingestion_delivery: "AT_LEAST_ONCE_ACCEPTED / DUPLICATES_EXPECTED"
+  effective_processing: "EFFECTIVELY_ONCE_VIA_IDEMPOTENCY_AND_APPEND_ONLY_REDUCER"
+  exactly_once_claim: "FORBIDDEN_WITHOUT_PROVEN_END_TO_END_TRANSPORT_AND_STORAGE_GUARANTEE"
+  event_history: "APPEND_ONLY"
+  projection: "DERIVED / REBUILDABLE"
+  ordering:
+    primary: "source_sequence_or_ledger_offset_when_available"
+    timestamp_only_ordering: "FORBIDDEN_FOR_CONFLICT_RESOLUTION"
+    out_of_order_events: "SUPPORTED / RECONCILE_BY_CAUSAL_AND_VERSION_METADATA"
+  crash_recovery: "REPLAY_FROM_DURABLE_EVENT_HISTORY_OR_LAST_VERIFIED_SNAPSHOT"
+
+SignalEvent_v1:
+  required:
+    - schema_version
+    - signal_id
+    - event_id
+    - event_source
+    - event_type
+    - occurred_at
+    - observed_at
+    - source_type
+    - source_ref
+    - source_project
+    - source_actor
+    - primary_domain
+    - related_domains
+    - signal_kind
+    - planning_state
+    - execution_state
+    - epistemic_state
+    - privacy_scope_ref
+    - authority_targets
+    - touch_set
+    - related_signal_refs
+    - supersedes_refs
+    - revokes_refs
+    - cross_domain_candidate
+    - summary_ref
+  fields:
+    schema_version: string
+    signal_id: string
+    event_id: string
+    event_source: string
+    event_type: string
+    event_subject: string_or_null
+    occurred_at: timestamp
+    observed_at: timestamp
+    source_sequence: integer_or_null
+    ledger_partition: string_or_null
+    ledger_offset: integer_or_null
+    idempotency_key: string
+    causation_event_refs: array
+    correlation_refs: array
+    trace_context_ref: string_or_null
+    source_type: string
+    source_ref: string
+    source_window_ref: string_or_null
+    source_project: string
+    source_actor: string
+    primary_domain: string
+    related_domains: array
+    signal_kind: string
+    planning_state: string
+    execution_state: string
+    epistemic_state: string
+    privacy_scope_ref: string
+    authority_targets: array
+    touch_set: array
+    related_signal_refs: array
+    supersedes_refs: array
+    revokes_refs: array
+    cross_domain_candidate: boolean
+    summary_ref: string
+    raw_content_ref: string_or_null
+    payload_schema_ref: string_or_null
+    content_hash: string_or_null
+    expected_projection_version: integer_or_null
+    public_safe_metadata: object
+  uniqueness:
+    distinct_event_key: [event_source, event_id]
+    signal_id_semantics: "stable logical signal identity; many immutable events may update one signal"
+  forbidden_fields:
+    - raw_secret
+    - credential_value
+    - access_token
+    - api_key
+    - private_key
+    - private_chain_of_thought
+  hard_rules:
+    - "accepted event records are immutable"
+    - "duplicate delivery with same event_source + event_id must be idempotent"
+    - "same idempotency_key with different semantic content must fail closed as IDEMPOTENCY_KEY_COLLISION"
+    - "raw private body may be referenced by opaque ref according to privacy policy, not copied into public coordination state"
+    - "omission is not revocation"
+
+signal_kind_taxonomy_candidate:
+  - IDEA
+  - REQUIREMENT
+  - CHANGE_REQUEST
+  - QUESTION
+  - OBSERVATION
+  - FEEDBACK
+  - EVIDENCE
+  - FINDING
+  - INCIDENT
+  - BUG
+  - BLOCKER
+  - RISK
+  - OPPORTUNITY
+  - DEPENDENCY
+  - DECISION
+  - STATUS_UPDATE
+  - TASK_REQUEST
+  - REVIEW_RESULT
+  - MERGE_EVENT
+  - CLOSE_EVENT
+  - OUTCOME
+  - CORRECTION
+  - CANCEL
+  - REVOKE
+  - LEARNING_CANDIDATE
+
+planning_state_candidate:
+  values:
+    - CAPTURED
+    - TRIAGED
+    - IDEA_ONLY
+    - WATCH
+    - CANDIDATE
+    - ROUTE_TO_MISSION
+    - MERGED_WITH_OTHER_SIGNAL
+    - DEFERRED
+    - CONFLICTED
+    - SUPERSEDED
+    - REJECTED
+    - CLOSED_NO_ACTION
+  rule: "planning state never grants execution permission"
+
+execution_state_candidate:
+  values: [NOT_STARTED, AUTHORIZED, EXECUTING, REVIEW, DONE, BLOCKED, CANCELLED]
+  rule: "Signal Plane may observe/reference execution state but Control Tower/per-agent route remains execution authority"
+
+epistemic_state_candidate:
+  values:
+    - USER_EXPLICIT
+    - CONFIRMED_FACT
+    - HIGH_CONFIDENCE_INFERENCE
+    - CANDIDATE_HYPOTHESIS
+    - UNKNOWN
+    - NEEDS_REVALIDATION
+  rule: "inference must never be silently upgraded to USER_EXPLICIT"
+
+SignalLink_v1:
+  required: [link_id, from_signal_ref, to_signal_ref, relation_type, evidence_refs, created_at, created_by]
+  relation_types:
+    - DUPLICATE
+    - EXTENDS
+    - REINFORCES
+    - CONTRADICTS
+    - SUPERSEDES
+    - DEPENDS_ON
+    - BLOCKS
+    - SHARED_SURFACE
+    - SHARED_EVIDENCE
+    - AUTHORITY_COLLISION
+    - CAN_MERGE
+    - CAN_PARALLEL
+    - MUST_SERIALIZE
+    - REVIEWER_CANDIDATE
+    - COUNTERFACTUAL_PAIR
+    - CROSS_DOMAIN_TRANSFER_CANDIDATE
+  hard_rules:
+    - "DUPLICATE preserves both source signal histories"
+    - "CAN_MERGE is advisory planning evidence; it does not mutate canonical work automatically"
+    - "AUTHORITY_COLLISION must be handed to Control Tower/GPT architecture, not resolved by Signal Plane"
+    - "cross-domain transfer relation cannot promote a shared capability by itself"
+
+SignalCluster_v1:
+  required:
+    - cluster_id
+    - member_signal_refs
+    - cluster_reason
+    - effective_intent_summary_ref
+    - unresolved_conflicts
+    - domain_refs
+    - authority_targets
+    - touch_set
+    - projection_version
+  semantics:
+    destructive_merge: false
+    derived_projection: true
+    rebuildable_from_signal_history: true
+    cluster_may_route_to_mission: true
+    cluster_may_authorize_execution: false
+
+SignalProjection_v1:
+  required:
+    - projection_id
+    - projection_version
+    - ledger_watermarks
+    - built_from_event_count
+    - reducer_version
+    - generated_at
+    - views
+    - checksum
+  views:
+    - OPEN
+    - ACTIVE_CLUSTER
+    - BLOCKED
+    - DEFERRED
+    - SUPERSEDED
+    - CLOSED_NO_ACTION
+    - DOMAIN_BACKLOG
+    - NEEDS_REVALIDATION
+  hard_rules:
+    - "projection must be deterministically rebuildable from admitted event history plus declared snapshot"
+    - "projection corruption or reducer-version mismatch blocks formal task release until rebuild/reconciliation"
+    - "projection version uses optimistic concurrency; stale expected_projection_version must not silently overwrite newer state"
+
+idempotency_contract:
+  producer_key: "event_source + event_id"
+  consumer_key: "idempotency_key + semantic_content_hash"
+  duplicate_same_content: "NO_OP_WITH_EXISTING_RECEIPT"
+  duplicate_different_content: "FAIL_CLOSED / IDEMPOTENCY_KEY_COLLISION"
+  retry_safe_handlers_required: true
+  external_side_effects: "FORBIDDEN_IN_S0_SYNTHETIC / FUTURE_HANDLER_MUST_DECLARE IDEMPOTENT_OR_NON_RETRYABLE"
+
+append_only_and_replay_contract:
+  immutable_events: true
+  mutable_rows_as_truth: false
+  current_state_is_projection: true
+  deterministic_reducer_required: true
+  reducer_inputs:
+    - ordered_or_causally_reconciled_events
+    - reducer_version
+    - schema_versions
+    - declared_snapshot_ref_if_used
+  replay_must_produce:
+    - same_effective_signal_states
+    - same_links_and_clusters_given_same_deterministic_rules
+    - same_projection_checksum
+  compaction_rule: >-
+    Compaction may replace old event ranges with a verifiable snapshot/reference bundle only when replay-equivalence is
+    proven and raw audit provenance remains resolvable under retention/privacy policy.
+
+privacy_and_scope:
+  control_plane_not_content_plane: true
+  public_repo_default: "refs/hashes/redacted summaries only"
+  private_raw_content: "opaque reference under source privacy authority"
+  secret_values: "never admitted"
+  cross_project_read: "through versioned refs/adapters only"
+  cross_project_write: "not authorized by this contract"
+
+non_authorities:
+  execution_authorization: CONTROL_TOWER_310
+  knowledge_memory_truth: W3_SECOND_BRAIN
+  method_selection: METHOD_ROUTER_312
+  runtime_trace_truth: COGNITIVE_OS_TRACE_LEDGER
+  final_risk_veto: W7_VALIDATION_RISK
+  domain_truth: DOMAIN_REPOSITORIES
+
+s0_synthetic_acceptance_intent:
+  - "duplicate event delivery is idempotent"
+  - "idempotency collision with different content fails closed"
+  - "out-of-order observation cannot silently regress effective state"
+  - "explicit revoke supersedes omission"
+  - "projection rebuild reproduces checksum"
+  - "stale optimistic-concurrency write is rejected"
+  - "private raw body is not copied into public-safe event metadata"
+  - "Signal link duplicate relation preserves both provenances"
+  - "Signal cluster cannot self-authorize execution"
