@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
+import re
 from typing import Any
 
 from .canonical import content_hash
@@ -160,11 +161,13 @@ class _CandidateSet:
 
     scores: dict[str, float] = field(default_factory=dict)
     score_components: dict[str, dict[str, float]] = field(default_factory=dict)
+    supplemental_ids: set[str] = field(default_factory=set)
+    channels: dict[str, set[str]] = field(default_factory=dict)
     rejected_counts: dict[str, int] = field(default_factory=dict)
     public_accounted_atom_ids: set[str] = field(default_factory=set)
 
     def consider(
-        self, atom: dict[str, Any], score: float, decision: CandidateAdmissionDecision, *, caller_observable: bool,
+        self, atom: dict[str, Any], score: float | None, decision: CandidateAdmissionDecision, *, caller_observable: bool,
         channel: str,
     ) -> bool:
         """Record only facts the caller is permitted to observe.
@@ -181,16 +184,29 @@ class _CandidateSet:
                 self.public_accounted_atom_ids.add(atom_id)
             return False
         atom_id = atom["id"]
+        self.channels.setdefault(atom_id, set()).add(channel)
+        if score is None:
+            # Temporal and provenance discovery are authority migrations, not a
+            # new business ranking policy.  Preserve their deterministic
+            # compatibility placement without minting an arbitrary score.
+            if atom_id not in self.scores:
+                self.supplemental_ids.add(atom_id)
+            return True
         self.scores[atom_id] = max(self.scores.get(atom_id, score), score)
+        self.supplemental_ids.discard(atom_id)
         components = self.score_components.setdefault(atom_id, {})
         components[channel] = max(components.get(channel, score), score)
         return True
+
+    @property
+    def atom_ids(self) -> set[str]:
+        return set(self.scores).union(self.supplemental_ids)
 
     def public_report(self) -> dict[str, Any]:
         """Return counts only, in deterministic order, for public-safe audit."""
 
         return {
-            "admitted_count": len(self.scores),
+            "admitted_count": len(self.atom_ids),
             "rejected_counts": dict(sorted(self.rejected_counts.items())),
         }
 
@@ -203,6 +219,7 @@ class ContextAssembler:
             "rejected_counts": {},
         }
         self._last_score_components: dict[str, dict[str, float]] = {}
+        self._last_candidate_channels: dict[str, tuple[str, ...]] = {}
 
     @property
     def last_admission_report(self) -> dict[str, Any]:
@@ -219,6 +236,12 @@ class ContextAssembler:
             "rejected_counts": dict(self._last_admission_report["rejected_counts"]),
         }
 
+    @property
+    def last_candidate_channels(self) -> dict[str, tuple[str, ...]]:
+        """Return deterministic assembler-side channel attribution only."""
+
+        return {atom_id: tuple(channels) for atom_id, channels in self._last_candidate_channels.items()}
+
     def assemble(self, plan: QueryPlan) -> ContextBundle:
         plan.validate()
         score_map = self.store.search_term_scores(plan.query_text)
@@ -228,7 +251,19 @@ class ContextAssembler:
             if atom is not None:
                 self._consider_candidate(candidate_set, atom, score, plan, channel="lexical")
 
-        frontier = set(candidate_set.scores)
+        temporal_dates = set(re.findall(r"\b20\d{2}-\d{2}-\d{2}\b", plan.query_text))
+        if temporal_dates:
+            # The lexical index intentionally omits metadata-only event dates.
+            # This exact date channel is active only when the caller supplied a
+            # normalized temporal date, and every match goes through the same
+            # observability and admission boundary before it can affect recall.
+            for atom in self.store.all_atoms():
+                palace = atom.get("memory_metadata", {}).get("conversation", {}).get("memory_palace", {})
+                resolved_start = palace.get("temporal", {}).get("resolved_start", "")
+                if isinstance(resolved_start, str) and resolved_start[:10] in temporal_dates:
+                    self._consider_candidate(candidate_set, atom, None, plan, channel="temporal")
+
+        frontier = candidate_set.atom_ids
         visited = set(frontier)
         for depth in range(plan.relation_depth):
             related = self.store.related_atom_ids(frontier) - visited
@@ -244,14 +279,31 @@ class ContextAssembler:
             if not frontier:
                 break
 
+        # A shared source manifest is an admissible provenance edge.  It is
+        # resolved only from already admitted candidate lineage and never adds
+        # source identities or rejected candidates to public output.
+        admitted_sources = {
+            source for atom_id in candidate_set.atom_ids
+            for atom in (self.store.get_atom(atom_id),) if atom
+            for source in atom.get("source_refs", [])
+        }
+        if admitted_sources:
+            for atom in self.store.all_atoms():
+                if admitted_sources.intersection(atom.get("source_refs", [])):
+                    self._consider_candidate(candidate_set, atom, None, plan, channel="provenance")
+
         self._last_admission_report = candidate_set.public_report()
         self._last_score_components = {
             atom_id: dict(sorted(components.items()))
             for atom_id, components in candidate_set.score_components.items()
         }
         ranked_ids = sorted(candidate_set.scores, key=lambda atom_id: (-candidate_set.scores[atom_id], atom_id))
+        ranked_ids.extend(sorted(candidate_set.supplemental_ids.difference(candidate_set.scores)))
         selected_ids = ranked_ids[:plan.budget]
         omitted = ranked_ids[plan.budget:]
+        self._last_candidate_channels = {
+            atom_id: tuple(sorted(channels)) for atom_id, channels in candidate_set.channels.items()
+        }
         atoms = tuple(self.store.get_atom(atom_id) for atom_id in selected_ids)
         selected_set = set(selected_ids)
         relations = self._safe_relations(plan, selected_set)
@@ -278,9 +330,9 @@ class ContextAssembler:
         )
 
     def _consider_candidate(
-        self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float, plan: QueryPlan, *, channel: str,
+        self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float | None, plan: QueryPlan, *, channel: str,
     ) -> bool:
-        """The only candidate-set entry point for lexical and relation paths."""
+        """The only candidate-set entry point for every retrieval channel."""
 
         return candidate_set.consider(
             atom,

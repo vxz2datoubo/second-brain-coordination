@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import sys
 import tempfile
 import unittest
@@ -22,6 +23,7 @@ from integrated_offline_memory.memory_palace import (
     retrieve_memory_palace,
 )
 from integrated_offline_memory.memory_store import MemoryStore
+from integrated_offline_memory.retrieval import ContextAssembler, QueryPlan
 
 
 USER = "synthetic-memory-palace-user"
@@ -245,6 +247,48 @@ class MemoryPalaceTestCase(unittest.TestCase):
         self.assertEqual({item["atom"]["id"] for item in recalled}, set(first.atom_ids))
         self.assertNotIn(second.atom_ids[0], {item["atom"]["id"] for item in recalled})
         self.assertNotIn("temporal", recalled[0]["explanation"]["channels"])
+
+    def test_r124_temporal_discovery_is_assembler_owned_and_scope_safe(self) -> None:
+        owner = self.capture("\u660e\u5929 temporal-r124-owner \u91c7\u96c6\u8bb0\u5fc6", "episode-r124-owner")
+        foreign = capture_text(
+            store=self.store, user_scope="synthetic-r124-foreign", project_scope=PROJECT,
+            message="\u660e\u5929 temporal-r124-foreign \u91c7\u96c6\u8bb0\u5fc6", recorded_at=NOW,
+            source_id="episode-r124-foreign",
+        )
+        plan = QueryPlan(
+            query_text="2026-08-15", scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1,
+        )
+        assembler = ContextAssembler(self.store)
+        bundle = assembler.assemble(plan)
+        self.assertEqual({atom["id"] for atom in bundle.atoms}, set(owner.atom_ids))
+        self.assertNotIn(foreign.atom_ids[0], {atom["id"] for atom in bundle.atoms})
+        self.assertIn("temporal", assembler.last_candidate_channels[owner.atom_ids[0]])
+        # The foreign candidate is not caller-observable, so its existence is
+        # indistinguishable from absence in the public admission report.
+        self.assertEqual(assembler.last_admission_report, {"admitted_count": 1, "rejected_counts": {}})
+        adapter_source = inspect.getsource(retrieve_memory_palace)
+        self.assertNotIn("store.all_atoms", adapter_source)
+        self.assertNotIn("store.related_atom_ids", adapter_source)
+        self.assertNotIn("store.relations_around", adapter_source)
+
+    def test_r124_multichannel_attribution_is_deduplicated_and_repeatable(self) -> None:
+        receipt = self.capture(
+            "\u6211\u89c9\u5f97\u5408\u6210\u6d88\u606f\u662f\u5047\u7684\uff0c\u800c\u4e14\u8fd9\u4e2a\u6765\u6e90\u6709\u504f\u89c1\u3002\u91c7\u96c6\u8bb0\u5fc6",
+            "episode-r124-multipath",
+        )
+        first = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="\u5408\u6210\u6d88\u606f", anchor_time=NOW,
+        )
+        second = retrieve_memory_palace(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            query_text="\u5408\u6210\u6d88\u606f", anchor_time=NOW,
+        )
+        self.assertEqual(first, second)
+        self.assertEqual({item["atom"]["id"] for item in first}, set(receipt.atom_ids))
+        self.assertEqual(len(first), len({item["atom"]["id"] for item in first}))
+        self.assertTrue(all("graph" in item["explanation"]["channels"] for item in first))
 
     def test_r108_long_passage_emits_typed_atoms_with_one_episode_lineage(self) -> None:
         receipt = self.capture(

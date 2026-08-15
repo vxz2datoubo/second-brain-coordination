@@ -123,41 +123,13 @@ def retrieve_memory_palace(
     )
     assembler = ContextAssembler(store)
     bundle = assembler.assemble(plan)
-    temporal_date = temporal["resolved_start"][:10]
-    # The existing lexical index intentionally does not index every metadata
-    # field.  Add an exact temporal-window channel while applying the same W3
-    # QueryPlan admission gate as the lexical channel.
-    admitted: dict[str, dict[str, Any]] = {atom["id"]: atom for atom in bundle.atoms}
-    for atom in store.all_atoms() if temporal_active else ():
-        palace = atom.get("memory_metadata", {}).get("conversation", {}).get("memory_palace", {})
-        if palace.get("temporal", {}).get("resolved_start", "")[:10] == temporal_date and assembler._allowed(atom, plan):
-            admitted[atom["id"]] = atom
-    graph_ids = store.related_atom_ids(set(admitted))
-    for atom_id in graph_ids:
-        atom = store.get_atom(atom_id)
-        if atom is not None and assembler._allowed(atom, plan):
-            admitted[atom_id] = atom
-    # A shared source-manifest is also a provenance graph edge.  It lets a
-    # multi-claim utterance remain in independent, claim-role-bound packets
-    # without weakening the existing one-claim packet validation contract.
-    provenance_graph_ids: set[str] = set()
-    admitted_sources = {source for atom in admitted.values() for source in atom.get("source_refs", [])}
-    for atom in store.all_atoms():
-        if admitted_sources.intersection(atom.get("source_refs", [])) and assembler._allowed(atom, plan):
-            admitted[atom["id"]] = atom
-            provenance_graph_ids.add(atom["id"])
     result: list[dict[str, Any]] = []
-    lexical_ids = {atom["id"] for atom in bundle.atoms}
-    relation_ids = {
-        endpoint for relation in store.relations_around(set(admitted))
-        for endpoint in (relation["source_atom_id"], relation["target_atom_id"])
-    }
-    for atom in sorted(admitted.values(), key=lambda item: item["id"]):
+    channel_map = assembler.last_candidate_channels
+    for atom in sorted(bundle.atoms, key=lambda item: item["id"]):
         palace = atom.get("memory_metadata", {}).get("conversation", {}).get("memory_palace", {})
-        channels = ["lexical"] if atom["id"] in lexical_ids else []
-        if temporal_active and palace.get("temporal", {}).get("resolved_start", "")[:10] == temporal_date:
-            channels.append("temporal")
-        if atom["id"] in relation_ids or atom["id"] in provenance_graph_ids:
+        raw_channels = set(channel_map.get(atom["id"], ()))
+        channels = [channel for channel in ("lexical", "temporal") if channel in raw_channels]
+        if raw_channels.intersection({"relation", "provenance"}):
             channels.append("graph")
         result.append({
             "atom": atom,
