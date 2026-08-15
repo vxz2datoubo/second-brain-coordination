@@ -90,7 +90,11 @@ def capture_text(
         semantic_provider=semantic_provider,
     )
     recalled_ids = {item["atom"]["id"] for item in explanations}
-    if not set(atom_ids).issubset(recalled_ids):
+    missing_ids = set(atom_ids).difference(recalled_ids)
+    if missing_ids and not _prove_exact_recall(
+        store=store, user_scope=user_scope, project_scope=project_scope,
+        valid_at=recorded_at, atom_ids=missing_ids,
+    ):
         raise ValueError("memory_palace_exact_recall_failed")
     if any(result["status"] not in {"IMPORTED", "IDEMPOTENT_DUPLICATE"} for result in results):
         raise ValueError("memory_palace_import_result_invalid")
@@ -100,6 +104,32 @@ def capture_text(
         conflict_types=tuple(sorted({item["conflict_type"] for item in conflicts})),
         exact_recall_passed=True,
     )
+
+
+def _prove_exact_recall(
+    *, store: MemoryStore, user_scope: str, project_scope: str, valid_at: str, atom_ids: set[str],
+) -> bool:
+    """Prove each budget-omitted capture atom through canonical retrieval.
+
+    This is deliberately not an existence check: each statement is submitted
+    to the normal ContextAssembler caller-observability and admission boundary
+    with a one-item proof budget.  Ordinary user retrieval keeps its configured
+    budget and ranking unchanged.
+    """
+
+    assembler = ContextAssembler(store)
+    for atom_id in sorted(atom_ids):
+        atom = store.get_atom(atom_id)
+        if atom is None:
+            return False
+        proof = assembler.assemble(QueryPlan(
+            query_text=atom["canonical_statement"], scopes=(project_scope,),
+            user_scope=user_scope, valid_at=valid_at, relation_depth=1,
+            include_conflicts=True, budget=1,
+        ))
+        if atom_id not in {item["id"] for item in proof.atoms}:
+            return False
+    return True
 
 
 def retrieve_memory_palace(

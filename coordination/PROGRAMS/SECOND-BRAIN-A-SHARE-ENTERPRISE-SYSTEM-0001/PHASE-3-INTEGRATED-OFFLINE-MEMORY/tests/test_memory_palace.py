@@ -17,6 +17,7 @@ for source_root in (
     sys.path.insert(0, str(source_root))
 
 from integrated_offline_memory.memory_palace import (
+    _prove_exact_recall,
     capture_text,
     cognitive_coverage,
     normalize_temporal_expression,
@@ -289,6 +290,46 @@ class MemoryPalaceTestCase(unittest.TestCase):
         self.assertEqual({item["atom"]["id"] for item in first}, set(receipt.atom_ids))
         self.assertEqual(len(first), len({item["atom"]["id"] for item in first}))
         self.assertTrue(all("graph" in item["explanation"]["channels"] for item in first))
+
+    def test_r125_capture_exact_recall_survives_same_episode_budget_saturation(self) -> None:
+        message = "\uff1b".join(f"r125-capture-atom-{index}" for index in range(51)) + "\u3002\u91c7\u96c6\u8bb0\u5fc6"
+        receipt = self.capture(message, "episode-r125-saturated")
+        self.assertGreaterEqual(len(receipt.atom_ids), 51)
+        self.assertTrue(receipt.exact_recall_passed)
+
+    def test_r125_budget_pressure_proof_keeps_ordinary_context_budget(self) -> None:
+        for index in range(55):
+            self.capture(f"r125-shared-noise-{index} \u91c7\u96c6\u8bb0\u5fc6", f"episode-r125-noise-{index}")
+        message = "\uff1b".join(f"r125-shared-capture-{index}" for index in range(51)) + "\u3002\u91c7\u96c6\u8bb0\u5fc6"
+        receipt = self.capture(message, "episode-r125-pressure")
+        self.assertTrue(receipt.exact_recall_passed)
+        plan = QueryPlan(
+            query_text=message, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=50,
+        )
+        first = ContextAssembler(self.store).assemble(plan)
+        second = ContextAssembler(self.store).assemble(plan)
+        self.assertLessEqual(len(first.atoms), 50)
+        self.assertGreater(len(first.omitted_due_to_budget), 0)
+        self.assertEqual(first.atoms, second.atoms)
+        self.assertEqual(first.omitted_due_to_budget, second.omitted_due_to_budget)
+
+    def test_r125_proof_path_makes_foreign_identity_equivalent_to_absence(self) -> None:
+        foreign = capture_text(
+            store=self.store, user_scope="synthetic-r125-foreign", project_scope=PROJECT,
+            message="r125-foreign-proof \u91c7\u96c6\u8bb0\u5fc6", recorded_at=NOW,
+            source_id="episode-r125-foreign-proof",
+        )
+        foreign_result = _prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids=set(foreign.atom_ids),
+        )
+        absent_result = _prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids={"missing-r125-proof-atom"},
+        )
+        self.assertFalse(foreign_result)
+        self.assertEqual(foreign_result, absent_result)
 
     def test_r108_long_passage_emits_typed_atoms_with_one_episode_lineage(self) -> None:
         receipt = self.capture(
