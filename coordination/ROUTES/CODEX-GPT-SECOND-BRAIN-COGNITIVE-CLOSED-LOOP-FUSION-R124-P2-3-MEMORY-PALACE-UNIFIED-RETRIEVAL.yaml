@@ -28,51 +28,57 @@ runtime_code_change_allowed: true
 runtime_code_scope: "P2_3_MEMORY_PALACE_UNIFIED_RETRIEVAL_ONLY"
 
 canonical_main_at_route_prepare: "e547a3b95dce3dbb929d5eed057fbecc1033e486"
-canonical_route: "coordination/ROUTES/CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R124-P2-3-MEMORY-PALACE-UNIFIED-RETRIEVAL.yaml"
 canonical_blueprint: "coordination/BLUEPRINTS/SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP-INTEGRATION-BLUEPRINT.md"
 canonical_p2_plan: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-GPT-SECOND-BRAIN-R116-P2/P2-UNIFIED-RETRIEVAL-AND-CONTEXT-BUNDLE-IMPLEMENTATION-PLAN.md"
 implementation_branch: "codex/gpt-second-brain-memory-palace-unified-retrieval-r124-p2-3"
 implementation_pr: null
 
-review_return:
-  reviewed_head: "13c16529c07fc268115b933e69b9a1032a7ef5b5"
+p2_2_acceptance:
+  merged_pr: 307
+  accepted_head: "13c16529c07fc268115b933e69b9a1032a7ef5b5"
   gpt_review_id: 4942350276
-  disposition: "R123_P2_2_EXACT_HEAD_ACCEPTED_FINAL_CLOSURE"
+  merge_commit: "e547a3b95dce3dbb929d5eed057fbecc1033e486"
   verified_ci_run: 31856818567
   verified_merge_ref: "5c36e060ecaef7b3cfadd686a7edf62ba92df4f1"
-  verified_merge_ref_base: "1c2b1c8e419b5f731335989fe099b54b89e08cb8"
   verified_phase3_tests: "277/277 PASS"
   verified_public_safety: "77 files / 0 issues"
-  merged_pr: 307
-  merge_commit: "e547a3b95dce3dbb929d5eed057fbecc1033e486"
 
 root_goal: >-
-  Move Memory Palace temporal, relation-graph and provenance-graph candidate augmentation behind the existing ContextAssembler authority. Every candidate must pass caller-observability and admission before dedup, budget, ranking or explanation. retrieve_memory_palace remains only as a compatibility consumer and must not keep a second candidate-assembly path.
+  Move Memory Palace temporal, relation-graph and provenance-graph candidate augmentation behind the existing ContextAssembler authority so every candidate is caller-observable and admitted before dedup, budget, ranking or explanation. Keep retrieve_memory_palace as a compatibility consumer only; it must not remain a second candidate assembly path.
+
+current_baseline:
+  - "retrieve_memory_palace first calls ContextAssembler.assemble(plan)."
+  - "It then manually scans store.all_atoms for temporal-date matches and calls assembler._allowed before appending."
+  - "It manually expands related_atom_ids from the post-assembly admitted set and appends after assembler._allowed."
+  - "It manually scans shared source_refs as a provenance graph and appends after assembler._allowed."
+  - "The adapter then derives lexical/temporal/graph explanation channels from this second-stage set."
 
 mandatory_repairs:
-  - "Move temporal, relation-graph and provenance-graph candidate discovery/augmentation into unified assembler-side admission flow."
-  - "Remove post-assembler candidate augmentation from retrieve_memory_palace; no store.all_atoms / related_atom_ids / source_refs-intersection append path may remain there."
-  - "Preserve deterministic temporal normalization, temporal-only recall, CURRENT/HISTORICAL valid_at and no-resurrection behavior."
-  - "Preserve endpoint-safe graph traversal and R118-R123 public observability/security guarantees."
-  - "Preserve admissible shared-lineage provenance sibling recall without raw source/pointer/private identity/full packet_content_hash exposure."
-  - "Canonical atom-ID dedup and deterministic channel attribution across lexical/temporal/graph/provenance."
-  - "Do not invent numeric temporal/provenance ranking weights. If unavoidable, report UNKNOWN_NEEDS_GPT and stop that subpart."
-  - "Preserve Memory Palace channels/current_validity/freshness/owner_stance explanation parity from unified output."
-  - "Preserve capture_text exact-recall proof."
+  - "Temporal, relation-graph and provenance-graph candidates must enter through one unified assembler-side caller-observability + admission boundary before they can affect candidate sets, dedup, budgets or explanations."
+  - "retrieve_memory_palace must stop augmenting candidates with store.all_atoms, related_atom_ids or source-ref intersection after assembler return. It may retain compatibility formatting only."
+  - "Preserve deterministic temporal normalization and temporal-only recall; non-temporal queries must not activate temporal scanning."
+  - "Preserve relation endpoint safety and CURRENT/HISTORICAL lifecycle behavior; hidden/revoked/foreign endpoints cannot re-enter through temporal or provenance seeds."
+  - "Preserve provenance-sibling recall for admissible shared-lineage claims without raw source, pointer, private rejected identity or full packet_content_hash exposure. R123 provenance-oracle closure is immutable."
+  - "Use canonical atom-ID dedup and deterministic channel attribution. The same atom reached through lexical/temporal/graph/provenance appears once with stable channel evidence."
+  - "Do not invent temporal/provenance business weights. If unified evidence ranking requires a new numeric policy that cannot preserve the frozen behavior, stop that subpart as UNKNOWN_NEEDS_GPT rather than choosing constants."
+  - "Preserve Memory Palace explanation semantics: channels, current_validity, freshness and owner_stance must be derivable from unified assembler output/metadata, not from a second hidden scan."
+  - "Preserve capture_text exact-recall proof after migration."
 
 adversarial_acceptance:
-  - "temporal-only admissible candidate remains recallable"
+  - "temporal-only admissible candidate remains recallable through unified assembler"
   - "foreign/restricted temporal candidate is public-equivalent to absence"
-  - "temporal-seeded relation expansion cannot expose hidden/revoked/cross-scope endpoints"
-  - "admissible provenance-only sibling recalls; hidden/foreign sibling remains indistinguishable"
-  - "CURRENT no resurrection through temporal/provenance; HISTORICAL valid_at parity"
-  - "multi-path candidate dedups once with stable channel attribution"
-  - "repeat/restart/index rebuild deterministic"
-  - "existing Memory Palace and capture exact-recall tests parity"
-  - "R118-R123 adversarial regressions PASS"
+  - "temporal seed relation expansion does not expose hidden/revoked/cross-scope endpoint"
+  - "admissible provenance-only sibling is recalled; hidden/foreign sibling is absent without telemetry leakage"
+  - "CURRENT cannot resurrect superseded/stale/revoked through temporal/provenance graph; HISTORICAL valid_at remains correct"
+  - "multi-path lexical+temporal+graph+provenance candidate dedups once with deterministic channel attribution"
+  - "repeat/restart/index-rebuild output remains deterministic"
+  - "existing Memory Palace tests and capture exact-recall remain parity-clean"
+  - "R118 through R123 adversarial regressions remain PASS"
 
 ranking_budget_freeze:
   policy: "NO_NEW_NUMERIC_CROSS_CHANNEL_WEIGHT_WITHOUT_GPT"
+  note: >-
+    P2.3 migrates authority; it does not authorize a new ranking theory. Preserve existing lexical/relation evidence ranking and current Memory Palace compatibility semantics. If a new temporal/provenance numeric weight is unavoidable, report UNKNOWN_NEEDS_GPT and stop before inventing it.
 
 watchpoints:
   - id: "R122-UNKNOWN-BINDING-GAP"
