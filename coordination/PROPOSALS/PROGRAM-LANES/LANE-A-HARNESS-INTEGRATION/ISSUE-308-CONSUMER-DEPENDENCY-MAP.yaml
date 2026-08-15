@@ -1,0 +1,282 @@
+schema_version: "0.1"
+map_id: "ISSUE-308-COGNITIVE-OS-CONSUMER-DEPENDENCY-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+source_issue: 308
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "RESEARCH_ONLY / NO_TRADE / NO_RUNTIME_AUTHORIZATION"
+
+consumer_principle: >-
+  Issue #308 is the first A-share consumer of shared Cognitive OS capabilities. It must not create a second
+  memory/knowledge system, Method Router, feedback runtime, evidence truth, Control Tower, or Harness runtime.
+
+shared_dependencies:
+  SECOND_BRAIN:
+    owner: W3_SECOND_BRAIN
+    consumes:
+      - historical event cases
+      - source provenance
+      - prior attribution failures
+      - user corrections
+      - method/failure candidates
+      - current/historical lifecycle
+    does_not_own:
+      - live market truth
+      - causal attribution truth
+
+  PROBLEM_SIGNATURE:
+    owner: METHOD_ROUTER_312
+    required_fields_for_308:
+      - task_class
+      - target_symbols
+      - query_or_anomaly_time
+      - point_in_time_required
+      - causal_requirement
+      - materiality
+      - data_grade
+      - event_coverage_requirement
+      - regime_context
+      - unknowns
+
+  METHOD_ROUTER:
+    owner: METHOD_ROUTER_312
+    expected_candidate_methods:
+      - EVENT_COVERAGE
+      - EVENT_BACKFILL
+      - TIMELINE_VERIFICATION
+      - SOURCE_INDEPENDENCE_CHECK
+      - DATA_GRADE_GATE
+      - COMPETING_HYPOTHESES
+      - NEGATIVE_CONTROL
+      - CROSS_SECTIONAL_COMPARISON
+      - CAUSAL_ATTRIBUTION
+      - EFFECTIVE_CHALLENGE
+      - VALUE_OF_INFORMATION_CHECK
+      - ABSTAIN
+
+  SIGNAL_TOWER:
+    owner: SIGNAL_TOWER
+    mission_examples:
+      - "今天为什么涨跌"
+      - "个股盘中异常解释"
+      - "事件是否已定价"
+      - "跨市场事件传导复盘"
+    rule: "Signal Tower may decompose tasks but cannot create causal market facts."
+
+  CONTROL_TOWER:
+    owner: CONTROL_TOWER_310
+    gates:
+      - route authorization
+      - Work Claim
+      - resource limits
+      - no duplicate runtime
+      - NO_TRADE
+
+  HARNESS:
+    owner: HARNESS_RUNTIME
+    future_role:
+      - execute event scan workflows
+      - execute parallel first-party / market-wire / cross-sectional research when authorized
+      - run independent challenge lane
+      - preserve trace/retry/cancel
+    forbidden:
+      - own event truth
+      - own market data truth
+      - authorize trading
+
+  OUTCOME_LEARNING:
+    owner: W9_OUTCOME_LEARNING
+    feedback_types:
+      - missed_event
+      - false_event_match
+      - unsupported_market_narrative
+      - correct_abstention
+      - attribution_confirmed_later
+      - attribution_rejected_later
+      - missing_data_caused_overreach
+      - source_added_improved_recall
+
+workflow:
+  - step: MARKET_OBSERVATION
+    owner: DOMAIN_CALLER
+    output: MarketObservation/v1
+    rules:
+      - observable price/volume facts only
+      - benchmark/horizon explicit
+
+  - step: PROBLEM_SIGNATURE
+    owner: METHOD_ROUTER_312
+    output: ProblemSignature/v1
+    hard_requirements:
+      point_in_time_required: true
+      causal_requirement: CAUSAL
+
+  - step: EVENT_COVERAGE
+    owner: W5_EVENT_INTELLIGENCE
+    output: EventCoverageReport/v1
+    minimum_windows:
+      - PREVIOUS_CLOSE_TO_OPEN
+      - OPEN_TO_ANOMALY_OR_QUERY
+      - OVERNIGHT_PROXY_IF_RELEVANT
+    if_incomplete:
+      disposition: EVENT_COVERAGE_INCOMPLETE
+      effect: "confidence cap + deterministic wording downgrade"
+
+  - step: PRICE_ANOMALY_BACKFILL
+    owner: W5_EVENT_INTELLIGENCE
+    trigger: "known factors insufficient for material residual/anomaly"
+    output: EventBackfillResult/v1
+    point_in_time_rule: "only events available before anomaly time"
+
+  - step: MARKET_DATA_EVIDENCE
+    owner: W2_MARKET_DATA_RULES
+    output: PITMarketEvidence/v1
+    includes:
+      - benchmark-relative movement
+      - volume/turnover when available
+      - VWAP/AVWAP only if valid data
+      - A-share market/rule snapshot
+
+  - step: FLOW_EVIDENCE
+    owner: W13_FLOW_EVIDENCE
+    output: FlowEvidencePacket/v1
+    conditional_on: "data grade supports requested inference"
+    if_data_grade_low:
+      forbidden_claims:
+        - CVD
+        - absorption
+        - true aggressive buy_sell
+        - orderbook_intent
+        - participant_identity
+
+  - step: COMPETING_HYPOTHESES
+    owner: W6_PARTICIPANT_GAME
+    output: CompetingHypothesisSet/v1
+    minimum:
+      H1: EVENT_DRIVEN
+      H2: MARKET_INDUSTRY_THEME_BETA
+      H3: TECHNICAL_POSITIONING_LIQUIDITY
+      H4: COMPANY_SPECIFIC_RESIDUAL
+      H5: UNKNOWN_OTHER_EVENT
+    rule: "multiple hypotheses may remain alive"
+
+  - step: CROSS_SECTIONAL_AND_NEGATIVE_CONTROL
+    owner: EVIDENCE_VERIFIER
+    outputs:
+      - CrossSectionalComparison/v1
+      - NegativeControlResult/v1
+    purpose: "test whether candidate mechanism maps beyond target price story"
+
+  - step: EFFECTIVE_CHALLENGE
+    owner: EFFECTIVE_CHALLENGE_MESH
+    minimum_level: C3
+    trigger: "material causal attribution in financial decision support"
+    outputs:
+      - ChallengeCase/v1
+      - VerificationResult/v1
+      - Adjudication/v1
+
+  - step: DECISION_SCIENCE
+    owner: W12_DECISION_SCIENCE
+    outputs:
+      - evidence sufficiency
+      - value of further research
+      - uncertainty/decision implications
+    rule: "no pseudo-precise probability without evidence basis"
+
+  - step: FINAL_RISK_GATE
+    owner: W7_VALIDATION_RISK
+    output: FinalGateResult/v1
+    valid_results:
+      - PASS_WITH_LIMITS
+      - RETURN_FOR_EVIDENCE
+      - VETO
+      - ABSTAIN
+
+  - step: USER_OUTPUT
+    owner: SIGNAL_TOWER
+    output_contract:
+      must_distinguish:
+        - OBSERVED_FACT
+        - SOURCE_CLAIM
+        - MODEL_INFERENCE
+        - CAUSAL_HYPOTHESIS
+        - UNKNOWN
+      must_include_for_material_attribution:
+        - strongest_support
+        - strongest_counterargument
+        - missing_data
+        - invalidation_signal
+        - pricing_already_discounted_consideration
+      valid_unresolved_outputs:
+        - UNRESOLVED_MIXED
+        - EVENT_CAUSE_UNKNOWN
+        - PRICE_ANOMALY_UNRESOLVED
+
+  - step: OUTCOME_AUDIT
+    owner: W9_OUTCOME_LEARNING
+    output: OutcomeLearning/v1
+    feeds:
+      - W3_SECOND_BRAIN
+      - METHOD_ROUTER_312
+    forbidden: "one episode directly promotes Formal Skill"
+
+language_contract:
+  observed_vs_inferred: REQUIRED
+  unsupported_personification_forbidden:
+    - 主力意图
+    - 洗盘
+    - 吸筹
+    - 出货
+    - 承接主体身份
+  relative_strength_requires_benchmark: true
+  event_positive_does_not_equal_price_up: true
+  event_trigger_and_pullback_mechanism_must_be_separated: true
+
+data_grade_policy:
+  A:
+    permits: [MICROSTRUCTURE_IF_VALIDATED, FLOW_METHODS_IF_CONTRACTED]
+  B:
+    permits: [MINUTE_PRICE_VOLUME, VP_IF_VALID, VWAP_CONDITIONAL]
+  C:
+    permits: [PRICE, VOLUME, RELATIVE_STRENGTH, PUBLIC_EVENTS, CONDITIONAL_EXPLANATION]
+    forbids: [CVD_CLAIM, ABSORPTION_CLAIM, TRUE_ORDER_INTENT, PARTICIPANT_IDENTITY]
+
+first_regression_case:
+  id: "BLUEFOCUS-2026-08-14-MISSED-EVENT-ATTRIBUTION"
+  confirmed_failure_class:
+    - EVENT_DISCOVERY_COVERAGE_FAILURE
+    - ATTRIBUTION_NARRATIVE_OVERREACH
+    - UNEXPLAINED_PRICE_ANOMALY_NO_BACKFILL
+  does_not_confirm:
+    - "DeepSeek Harness was the unique price cause"
+  required_replay_properties:
+    - blind to future information
+    - discover candidate event if available before anomaly
+    - preserve competing hypotheses
+    - distinguish initial impulse from later pullback
+    - allow unresolved causal result
+
+harness_integration_order:
+  - "shared Cognitive OS contracts accepted"
+  - "Harness Adapter PoC accepted"
+  - "#312 shared method runtime accepted"
+  - "#308 synthetic/historical consumer mapping tests"
+  - "#308 PIT shadow replay"
+  - "outcome learning calibration"
+  - "NO_TRADE remains until separate future high-risk approval"
+
+acceptance_invariants:
+  no_second_w3: true
+  no_second_method_router: true
+  no_second_feedback_runtime: true
+  no_second_evidence_truth: true
+  no_trade: true
+  point_in_time_before_attribution: true
+  event_coverage_before_material_causal_output: true
+  challenge_before_high_risk_causal_output: true
+  data_grade_caps_language_and_methods: true
+  unknown_is_valid: true
+  one_success_does_not_promote_skill: true
+
+compatibility_verdict: "COMPATIBLE_AS_FIRST_DOMAIN_CONSUMER"
