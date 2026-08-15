@@ -1,0 +1,303 @@
+schema_version: "0.1"
+spec_id: "GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC-0001"
+status: "ARCHITECTURE_CANDIDATE / SYNTHETIC_ACCEPTANCE / NO_RUNTIME_AUTHORIZATION"
+owner: "USER"
+architecture_owner: "GPT"
+
+purpose: >-
+  Define deterministic public-safe acceptance scenarios for the pre-Mission Global Signal Plane. These regressions
+  verify cross-window freshness, idempotency, replay, authority separation, privacy, projection integrity and domain
+  boundaries before any real private bridge or Harness runtime exists.
+
+fixture_policy:
+  public_safe_only: true
+  no_real_private_chat_body: true
+  no_secret: true
+  no_live_market_data: true
+  no_external_side_effect: true
+  deterministic: true
+  exact_expected_codes_required: true
+  every_scenario_requires:
+    - setup
+    - input_events
+    - expected_signal_state
+    - expected_projection_state
+    - expected_reconciliation_result
+    - expected_error_or_alert_codes
+    - authority_assertions
+    - replay_assertions
+
+scenarios:
+  - id: GST-R001-CROSS-WINDOW-STATE-DRIFT-R133
+    class: REAL_INCIDENT_REGRESSION
+    evidence_ref: "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml"
+    setup:
+      - "Window A reviewed/merged PR #340"
+      - "Codex epoch 133 route became DONE/non-executable"
+      - "Window B still held stale ACTIVE Program Lane/Work Claim view"
+    expected:
+      reconciliation_result: BLOCKED
+      alerts: [CROSS_WINDOW_STATE_DRIFT, ROUTE_WORKCLAIM_DRIFT, ROUTE_PROGRAM_LANE_DRIFT]
+      release_allowed: false
+      after_reconcile:
+        work_claim: CLOSED_NO_ACTIVE_IMPLEMENTATION
+        program_lane: H1_COMPLETED_H2_NOT_AUTHORIZED
+        h2_authorized: false
+        next_receipt_may_pass: true
+
+  - id: GST-R002-STALE-REVIEW-HEAD
+    class: EXACT_HEAD_FRESHNESS
+    setup:
+      - reviewed_head: SHA_A
+      - current_pr_head: SHA_B
+    expected:
+      reconciliation_result: BLOCKED
+      alerts: [STALE_REVIEW_HEAD]
+      merge_or_task_transition_allowed: false
+      recovery: "exact-head re-review of SHA_B"
+
+  - id: GST-R003-RECEIPT-INVALIDATED-BY-MERGE
+    class: RECEIPT_FRESHNESS
+    setup:
+      - "receipt PASS binds PR as OPEN at head SHA_A"
+      - "same PR subsequently MERGED"
+    expected:
+      old_receipt_state: INVALID
+      reconciliation_result: NEEDS_REFRESH
+      release_allowed: false
+
+  - id: GST-R004-SAME-AGENT-CROSS-PROJECT-DOUBLE-BOOK
+    class: CROSS_PROJECT_RESOURCE
+    setup:
+      - "Second Brain claims active Codex route"
+      - "AI Film proposes second Codex implementation route"
+    expected:
+      signal_plane_alert: SAME_AGENT_DOUBLE_BOOKED
+      reconciliation_result: BLOCKED
+      signal_plane_may_authorize: false
+      control_tower_decision_required: true
+
+  - id: GST-R005-DUPLICATE-DELIVERY-SAME-CONTENT
+    class: IDEMPOTENCY
+    input_events:
+      - "same event_source + event_id + idempotency_key + content hash delivered twice"
+    expected:
+      admitted_event_count_increment: 1
+      duplicate_receipt: true
+      effective_state_change_count: 1
+      error_codes: []
+
+  - id: GST-R006-IDEMPOTENCY-COLLISION-DIFFERENT-CONTENT
+    class: IDEMPOTENCY_SECURITY
+    input_events:
+      - "same idempotency key"
+      - "different semantic content hash"
+    expected:
+      reconciliation_result: BLOCKED
+      error_codes: [IDEMPOTENCY_KEY_COLLISION]
+      second_content_admitted_as_same_event: false
+
+  - id: GST-R007-OUT-OF-ORDER-STATUS-EVENT
+    class: ORDERING
+    setup:
+      - "DONE event has authoritative route fingerprint/version N"
+      - "later observed stale ACTIVE event references version N-1"
+    expected:
+      effective_state: DONE
+      alerts: [STALE_VIEW]
+      state_regression_allowed: false
+      timestamp_last_write_wins_used: false
+
+  - id: GST-R008-OMISSION-IS-NOT-REVOCATION
+    class: REQUIREMENT_EVOLUTION
+    setup:
+      - "requirement event exists"
+      - "next user message omits it"
+    expected:
+      effective_requirement_still_active: true
+      revoke_required_to_remove: true
+
+  - id: GST-R009-EXPLICIT-REVOKE
+    class: REQUIREMENT_EVOLUTION
+    input_events:
+      - REQUIREMENT
+      - REVOKE
+    expected:
+      effective_state: SUPERSEDED_OR_CLOSED
+      history_preserved: true
+      original_event_deleted: false
+
+  - id: GST-R010-DUPLICATE-SIGNALS-PRESERVE-PROVENANCE
+    class: RELATION_GRAPH
+    setup:
+      - "same underlying idea captured from two windows"
+    expected:
+      signal_count: 2
+      link_relation: DUPLICATE
+      provenance_count: 2
+      automatic_history_deletion: false
+      automatic_formal_task_count: 0
+
+  - id: GST-R011-SEMANTIC-FALSE-MERGE-BLOCK
+    class: DEDUP_SAFETY
+    setup:
+      - "two signals share keywords"
+      - "different domain/authority/touch_set/constraints"
+    expected:
+      CAN_MERGE: false
+      relation_may_be: RELATED_NOT_DUPLICATE
+      manual_or_cognitive_review_required: true
+
+  - id: GST-R012-SIGNAL-CANNOT-AUTHORIZE
+    class: AUTHORITY
+    setup:
+      - "SignalCluster planning_state=ROUTE_TO_MISSION"
+      - "no Control Tower authorization"
+    expected:
+      execution_allowed: false
+      error_codes: [MISSING_EXECUTION_AUTHORIZATION]
+
+  - id: GST-R013-W3-NOT-REPLACED
+    class: AUTHORITY
+    setup:
+      - "Signal event contains candidate knowledge"
+    expected:
+      signal_plane_may_store_as_w3_truth: false
+      output: KNOWLEDGE_CANDIDATE_REF_ONLY
+
+  - id: GST-R014-DOMAIN-CANONICAL-BOUNDARY
+    class: CROSS_PROJECT_AUTHORITY
+    setup:
+      - "AI Film backlog signal references screenplay/asset/continuity work"
+    expected:
+      second_brain_canonical_write: false
+      ai_film_domain_ref_preserved: true
+      domain_adapter_or_user_authorized_write_required: true
+
+  - id: GST-R015-PRIVATE-BODY-NOT-IN-PUBLIC-CONTROL-PLANE
+    class: PRIVACY
+    setup:
+      - privacy_scope: USER_PRIVATE
+      - raw_source_body: "synthetic-private-payload"
+    expected:
+      public_signal_record_contains_raw_body: false
+      opaque_ref_present: true
+      redacted_summary_allowed: policy_dependent
+
+  - id: GST-R016-PROJECTION-REPLAY-EQUIVALENCE
+    class: RECOVERY
+    setup:
+      - "append deterministic event sequence"
+      - "build projection"
+      - "discard projection"
+      - "replay from event history"
+    expected:
+      projection_checksum_equal: true
+      effective_signal_states_equal: true
+      cluster_relations_equal: true
+
+  - id: GST-R017-STALE-PROJECTION-OPTIMISTIC-CONCURRENCY
+    class: CONCURRENCY
+    setup:
+      - current_projection_version: 7
+      - writer_expected_version: 6
+    expected:
+      write_accepted: false
+      error_codes: [STALE_PROJECTION_VERSION]
+
+  - id: GST-R018-CRASH-AFTER-APPEND-BEFORE-PROJECTION
+    class: CRASH_RECOVERY
+    setup:
+      - "event durable append succeeds"
+      - "process crashes before projection update"
+    expected:
+      event_not_lost: true
+      restart_replay_applies_event: true
+      duplicate_retry_safe: true
+
+  - id: GST-R019-MALFORMED-MATERIAL-EVENT
+    class: DATA_QUALITY
+    setup:
+      - "event fails required schema"
+    expected:
+      silent_drop: false
+      quarantine_or_reject: true
+      relevant_release_blocked_when_material: true
+
+  - id: GST-R020-SOURCE-CLOCK-SKEW
+    class: ORDERING
+    setup:
+      - "two events carry conflicting wall-clock order"
+      - "authoritative sequence/version/causation establishes opposite order"
+    expected:
+      wall_clock_only_resolution: false
+      authoritative_causal_or_version_order_used: true
+
+  - id: GST-R021-USER-CANCEL-INVALIDATES-PASS
+    class: HUMAN_AUTHORITY
+    setup:
+      - "GlobalReconciliationReceipt PASS exists"
+      - "user CANCEL/REVOKE arrives before formal task publication"
+    expected:
+      prior_receipt_valid_for_release: false
+      release_allowed: false
+      new_reconciliation_required: true
+
+  - id: GST-R022-COMPACTION-REPLAY-EQUIVALENCE
+    class: RETENTION
+    setup:
+      - "compact eligible event range into verified snapshot bundle"
+    expected:
+      rebuilt_effective_state_equal: true
+      audit_provenance_resolvable: true
+      irreversible_raw_deletion_without_policy: false
+
+  - id: GST-R023-SIGNAL-FLOOD-BACKPRESSURE
+    class: CAPACITY
+    setup:
+      - "large burst of low-materiality signals"
+    expected:
+      silent_loss: false
+      backlog_visible: true
+      high_materiality_starvation_not_hidden: true
+      automatic_execution_due_to_age: false
+
+  - id: GST-R024-CROSS-DOMAIN-NEGATIVE-TRANSFER
+    class: LEARNING_BOUNDARY
+    setup:
+      - "AI Film method succeeds in one domain"
+      - "shared promotion attempted without cross-domain validation"
+    expected:
+      formal_shared_promotion: false
+      status: CROSS_DOMAIN_TEST_REQUIRED
+
+coverage_requirements:
+  required_categories:
+    - CROSS_WINDOW_FRESHNESS
+    - EXACT_HEAD
+    - RECEIPT_INVALIDATION
+    - RESOURCE_COLLISION
+    - IDEMPOTENCY
+    - ORDERING
+    - REQUIREMENT_EVOLUTION
+    - DEDUP
+    - AUTHORITY
+    - PRIVACY
+    - REPLAY
+    - CONCURRENCY
+    - CRASH_RECOVERY
+    - DATA_QUALITY
+    - HUMAN_GATE
+    - RETENTION
+    - CAPACITY
+    - CROSS_DOMAIN_TRANSFER
+  meta_test: "fail if any required category has zero executable fixture"
+
+s0_exit_gate:
+  minimum:
+    - all scenarios executable with deterministic expected result
+    - replay checksum deterministic
+    - no test relies on real private content
+    - no test grants execution without Control Tower
+    - R133 regression passes
+    - exact-head Python 3.11/3.13 CI if Python implementation is chosen
