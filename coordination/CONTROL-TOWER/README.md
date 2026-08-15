@@ -18,9 +18,9 @@ Source precedence remains:
 ## Core files
 
 - `LANE-WORK-CLAIMS.yaml`: the current machine-readable work surface for each Program Lane.
-- `RELEASE-GATE.yaml`: separates Foundation Ready from lane release.
+- `RELEASE-GATE.yaml`: separates Foundation Ready, proposal-only lane release and implementation release.
 - `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
-- `lane_claims.py`: exact route binding and proposal-only work-surface validation.
+- `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
 - `authorization_witness.py`: fingerprints route + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
 - `PROGRAM-CONTROL-TOWER.md`: human projection only; its two generated blocks are checked by CI.
 
@@ -46,10 +46,16 @@ A Program Lane cannot gain durable runtime-write permission merely because a cha
 
 - `ACTIVE_IMPLEMENTATION` requires an exact current Agent route binding and explicit write paths/interfaces/authority surface.
 - `HELD_PROPOSAL_ONLY` reserves no Agent route and may write only inside the lane's isolated proposal root.
+- `CLOSED_NO_ACTIVE_IMPLEMENTATION` represents a completed lane stage with **no current execution lease**. It requires:
+  - `execution_agent: null`;
+  - no route binding;
+  - no current read/write/interface/domain/authority work surface;
+  - a durable `closure_receipt` preserving the completed evidence.
 - Moving from proposal-only to implementation requires a new Work Claim and a fresh O0-O4 scan.
+- Reopening a closed lane is also a **new authorization event**: create a new per-agent route, replace the closed claim with a bounded `ACTIVE_IMPLEMENTATION` claim, rescan O0-O4/WIP and create a fresh witness.
 - No Work Claim means no durable runtime write.
 
-This is how Lane A Harness and Lane B A-share can later work in parallel without being allowed to modify Lane C's changing runtime by accident.
+`CLOSED_NO_ACTIVE_IMPLEMENTATION` exists so the Control Tower can represent normal completion truthfully. A completed implementation must not remain `ACTIVE_IMPLEMENTATION`, and a completed lane must not be disguised as `HELD_PROPOSAL_ONLY` merely to satisfy the validator.
 
 ## Durable authorization witness
 
@@ -63,15 +69,18 @@ A route check only protects task identity. The full authorization witness additi
 - relevant cross-lane overlap declarations;
 - current Release Gate state.
 
+For a closed claim, the witness may still fingerprint the lane/claim/governance state for freshness, but `execution_agent` and route fingerprint are null and the witness grants **no execution authority**.
+
 Create the witness after preflight. Verify it again immediately before a durable write/commit. Any material change invalidates the old witness and requires a fresh preflight.
 
-## Two separate release levels
+## Separate release levels
 
 - **Foundation Ready**: scanner/reconciler, O0-O4 classifier, Work Claims, WIP checks, authorization witness, deterministic projections and exact-head CI are validated.
-- **Proposal-only lane release**: GPT may allow Lane A/B to research/design and write only in their isolated proposal roots. No shared runtime implementation is authorized.
-- **Implementation lane release**: requires a separate executable Agent route plus a fresh implementation Work Claim and collision scan.
+- **Proposal-only lane release**: GPT may allow a lane to research/design and write only in its isolated proposal root. No shared runtime implementation is authorized.
+- **Implementation lane release**: requires a separate executable Agent route plus a fresh `ACTIVE_IMPLEMENTATION` Work Claim and collision scan.
+- **Closed lane**: carries no execution lease; reopening is never implied by passing CI or by another lane starting proposal work.
 
-Passing CI never auto-starts Lane A or Lane B and never auto-grants implementation permission.
+Passing CI never auto-starts a held lane and never auto-grants implementation permission.
 
 ## Projection rule
 
@@ -81,6 +90,21 @@ Passing CI never auto-starts Lane A or Lane B and never auto-grants implementati
 - `CONTROL_TOWER_CLAIMS_AUTOGEN`: current work surfaces and pairwise claim collisions.
 
 CI requires both regions to equal state derived from canonical sources. The remaining prose is explanatory only and cannot authorize work.
+
+## Current closure example
+
+After Second Brain P2.4B/Foundation Closure:
+
+- R132 is retained in `ACTIVE-CODEX-TASK.yaml` as a non-executable `DONE` tombstone;
+- Lane C uses `CLOSED_NO_ACTIVE_IMPLEMENTATION` and keeps a closure receipt;
+- Lane A may be active at the strategic/program level while its current Work Claim is still `HELD_PROPOSAL_ONLY`, meaning architecture proposal work is allowed but implementation remains held;
+- Lane B may remain user-held independently.
+
+This distinction prevents three common false states:
+
+1. completed work still looking executable;
+2. a completed lane pretending to be a proposal lane;
+3. proposal activity being mistaken for runtime implementation permission.
 
 ## Runtime dependency
 
