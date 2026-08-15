@@ -1,10 +1,10 @@
-schema_version: "1.3"
+schema_version: "1.4"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-15T17:29:00+08:00"
+as_of: "2026-08-15T18:39:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -64,23 +64,26 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
     Prefer orthogonal parallelism only after the relevant Control Tower release gate is satisfied.
-    Proposal-only architecture/research does not consume the heavy implementation lease.
+    H1 Lane A is light/medium and consumes the single Codex execution lease; it does not authorize a second Codex route or H2.
 
 current_user_release_policy:
-  decision_at: "2026-08-15T17:29:00+08:00"
-  decision: "RELEASE_LANE_A_TO_PROPOSAL_ONLY_KEEP_LANE_B_HELD"
+  decision_at: "2026-08-15T18:39:00+08:00"
+  decision: "RELEASE_LANE_A_H1_CONTRACT_IMPLEMENTATION_KEEP_LANE_B_HELD"
   rationale: >-
-    Control Tower foundation is ready and merged. The user explicitly started Lane A Harness/Cognitive-OS architecture
-    design. Lane A may therefore perform isolated proposal-only architecture work, but no Harness/H1/H2 runtime route is
-    authorized. Lane B A-share remediation remains held unless separately started.
-  released_proposal_only_lanes:
+    The user explicitly said 开始 H1 after H0 PR #336 merged with final ACCEPT_WITH_BOUNDED_DEBT. Lane A may therefore
+    activate exactly one H1 contract-only synthetic implementation route. H2 Harness runtime remains separately blocked.
+    Lane B A-share remediation remains held unless separately started.
+  released_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION"
+  released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "GPT_WITH_USER_DIRECTION_PRESERVED"
-  no_prompt_needed_for_lane_a_proposal_design: true
+  release_owner: "GPT_WITH_EXPLICIT_USER_H1_START"
+  h1_release_issue: 338
+  h1_route_epoch: 133
+  h2_release: "NOT_AUTHORIZED"
   implementation_release_requires:
-    - "H0 final compatibility verdict."
+    - "H0 final compatibility verdict PASS or PASS_WITH_BOUNDED_DEBT."
     - "A fresh implementation Work Claim for the exact slice."
     - "Fresh O0-O4, same-agent and heavy-resource checks."
     - "Fresh durable authorization witness."
@@ -90,13 +93,13 @@ current_user_release_policy:
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-4B-STRUCTURAL-ANALOGY"
-    observed_route_epoch: 132
-    observed_issue: 332
-    observed_pr: 334
-    observed_status: "DONE"
-    execution_allowed: false
-    observation_status: "COMPLETED_ROUTE_TOMBSTONE / NO_ACTIVE_CODEX_LEASE"
+    observed_task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+    observed_route_epoch: 133
+    observed_issue: 338
+    observed_pr: null
+    observed_status: "READY"
+    execution_allowed: true
+    observation_status: "ACTIVE_H1_CONTRACT_ONLY / SINGLE_CODEX_LEASE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -130,8 +133,8 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线"]
     mission: >-
-      Evaluate and, only after gated PoC evidence, integrate DeepSeek Harness concepts or runtime
-      capabilities as a shared execution layer without replacing GitHub/W3/domain authorities.
+      Evaluate and, only after gated evidence, integrate shared Cognitive OS and DeepSeek Harness capabilities as an
+      execution layer without replacing GitHub/W3/domain authorities.
     desired_state: "ACTIVE"
     observed_state: "ACTIVE"
     hold_reason: null
@@ -141,27 +144,31 @@ program_lanes:
     primary_system_positions: [W1, W8, W9]
     support_positions: [W3, W7, W10, W12]
     canonical_inputs:
-      - "DeepSeek official deepseek-ai/deepseek-harness repository"
-      - "Issue #310 control tower governance"
-      - "Draft PR #336 H0 Cognitive OS × Harness architecture"
-    current_phase: "H0_ACTIVE_ARCHITECTURE_DESIGN_PROPOSAL_ONLY"
-    active_execution_route: null
+      - "H0 Cognitive OS × Harness architecture merged in PR #336"
+      - "Issue #338 H1 contract-only implementation"
+      - "Issue #310 Control Tower governance"
+      - "DeepSeek official deepseek-ai/deepseek-harness repository as H2-only future runtime input"
+    current_phase: "H1_CONTRACT_ONLY_SYNTHETIC_IMPLEMENTATION"
+    active_execution_route: "coordination/ROUTES/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
     heavy_execution_authorized: false
     dependencies:
       - "Lane C Second Brain Foundation CLOSED_WITH_BOUNDED_GAPS"
-      - "H0 final compatibility verdict before any H1 implementation"
-      - "Fresh Control Tower Work Claim/O0-O4/WIP/witness before every implementation slice"
+      - "H0 final ACCEPT_WITH_BOUNDED_DEBT merged in PR #336"
+      - "Fresh H1 Work Claim / O0-O4 / WIP / witness"
+      - "H1 exact-head GPT review before merge"
+      - "H2 requires an entirely separate route/claim/runtime-binding gate"
     shared_interfaces:
-      - "W3 frozen Second Brain consumption boundary"
-      - "W7 final validation/risk veto"
+      - "CognitiveOS H0 frozen contract inputs"
+      - "W3 frozen Second Brain consumption boundary (read only in H1)"
+      - "W7 final validation/risk veto contract"
       - "W9 outcome learning candidate boundary"
       - "W10 DecisionEpisode/metacognition"
       - "W12 decision science/method-gap boundary"
-      - "Future Harness Adapter stable service boundary"
-    next_gate: "H0_FINAL_COMPATIBILITY_VERDICT_BEFORE_H1"
+      - "Future Harness Adapter stable service boundary (H2 only)"
+    next_gate: "H1_EXACT_HEAD_GPT_REVIEW_NO_AUTO_H2"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "CANDIDATE_ARCHITECTURE"
-    proposal_only: true
+    maturity: "H1_ACTIVE_IMPLEMENTATION"
+    proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     user_aliases: ["交易系统缺陷改进线", "A股系统改进线"]
@@ -242,13 +249,12 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O2_SHARED_RUNTIME_INTERFACES"
     shared_domains: [W7, W8, W9, tool_execution, guardrails, observability]
-    rule: "Lane A proposal design may proceed; Lane B remains held. Future implementations require fresh claim-level collision scans."
+    rule: "Lane A H1 has one bounded active claim; Lane B remains held. Current claim-level scan must remain below O3."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10, skills, context, session, retrieval, agent_runtime]
     rule: >-
-      Lane C Foundation is closed. Lane A may design against frozen conceptual consumption boundaries through adapters,
-      but any future executable interface binding requires H0 acceptance and a fresh Work Claim.
+      Lane C Foundation is closed. H1 may only consume frozen H0/W3 conceptual boundaries; direct mutable W3 binding is forbidden.
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     shared_domains: [W3, W9, W10, W12, evidence_retrieval, decision_context]
