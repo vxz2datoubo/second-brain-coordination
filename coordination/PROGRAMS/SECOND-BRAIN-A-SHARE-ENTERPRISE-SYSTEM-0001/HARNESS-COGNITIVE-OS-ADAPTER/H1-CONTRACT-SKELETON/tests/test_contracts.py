@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from cognitive_os_h1.contracts import (  # noqa: E402
-    cognitive_fingerprint, explore_critical_states, validate_bundle, validate_mission_graph,
+    SEMANTIC_INVARIANT_IDS, cognitive_fingerprint, explore_critical_states, validate_bundle, validate_mission_graph,
     validate_organization, validate_semantics, validate_trace_handoff, validate_transition,
 )
 
@@ -55,14 +55,14 @@ class H1ContractTest(unittest.TestCase):
         self.assertIn("IDENTICAL_RETRY_FORBIDDEN", {e.code for e in validate_transition("ADJUDICATED", "EVIDENCE_PLAN_READY", rework)})
 
     def test_mission_graph_dag_authorization_resource_and_cycle(self):
-        good = graph([node("a", status="AUTHORIZED", required_authority_refs=["auth"]), node("b")], [{"from":"a","to":"b","type":"DEPENDS_ON"}])
+        good = graph([node("a", status="AUTHORIZED", required_authority_refs=["auth"], termination_condition_ref="done"), node("b")], [{"from":"a","to":"b","type":"DEPENDS_ON"}])
         self.assertEqual(validate_mission_graph(good, authorization_refs={"auth"}), [])
         bad = graph([node("a", resource_class="HEAVY_LOCAL", status="RUNNING", required_authority_refs=[]), node("b", resource_class="HEAVY_LOCAL", status="RUNNING", required_authority_refs=[])], [{"from":"a","to":"b","type":"DEPENDS_ON"},{"from":"b","to":"a","type":"BLOCKS"}])
         codes = {e.code for e in validate_mission_graph(bad, authorization_refs=set())}
         self.assertTrue({"DEPENDENCY_CYCLE", "HEAVY_LOCAL_CAP_EXCEEDED", "AUTHORIZATION_MISSING"}.issubset(codes))
 
     def test_organization_alias_authority_and_h1_h2_boundary(self):
-        org = {"departments":[{"id":"USER","authority_domain":"USER_APPROVAL","node_kind":"DEPARTMENT"},{"id":"W3_SECOND_BRAIN","authority_domain":"KNOWLEDGE","node_kind":"DEPARTMENT"},{"id":"PRIMARY_PRODUCER","authority_domain":"NONE","node_kind":"ROLE_TEMPLATE"}],"edges":[{"from":"W3_SECOND_BRAIN","to":"RESPONSIBLE_UPSTREAM"}]}
+        org = {"departments":[{"id":"USER","authority_domain":"USER_APPROVAL","node_kind":"DEPARTMENT"},{"id":"W3_SECOND_BRAIN","authority_domain":"KNOWLEDGE","node_kind":"DEPARTMENT"},{"id":"PRIMARY_PRODUCER","authority_domain":"NONE","node_kind":"ROLE_TEMPLATE"}],"edges":[{"from":"USER","to":"W3_SECOND_BRAIN"},{"from":"W3_SECOND_BRAIN","to":"PRIMARY_PRODUCER"},{"from":"PRIMARY_PRODUCER","to":"RESPONSIBLE_UPSTREAM"}]}
         self.assertEqual(validate_organization(org, alias_resolution={"RESPONSIBLE_UPSTREAM":["W3_SECOND_BRAIN"]}), [])
         bad = validate_organization(org, alias_resolution={"RESPONSIBLE_UPSTREAM":["USER", "W3_SECOND_BRAIN"]}, h2_authorized=True)
         self.assertTrue({"RETURN_ALIAS_NOT_UNIQUE", "H2_AUTHORIZATION_FORBIDDEN_IN_H1"}.issubset({e.code for e in bad}))
@@ -80,8 +80,9 @@ class H1ContractTest(unittest.TestCase):
         scenarios = {"S1","S2","S3","S4","S5","S6","S7","S8","S9","S10"}
         fixture = json.loads((ROOT / "fixtures" / "scenarios.json").read_text(encoding="utf-8"))
         self.assertEqual({item["id"] for item in fixture["scenarios"]}, scenarios)
-        findings = explore_critical_states()
-        self.assertTrue(any(item.code == "VETO_BLOCKS_ACCEPT" for item in findings))
+        report = explore_critical_states()
+        self.assertGreater(report.states_checked, 40)
+        self.assertEqual(report.violations, ())
         self.assertEqual(validate_organization({"departments":[],"edges":[]}, alias_resolution={}, h2_authorized=False), [])
 
     def test_repeated_run_is_deterministic(self):
@@ -95,5 +96,43 @@ class H1ContractTest(unittest.TestCase):
         self.assertIn("NO_CHILD_PROCESS_CREATED", audit)
         self.assertNotIn("import deepseek", audit.casefold())
         self.assertNotIn("import subprocess", audit)
+
+    def test_h0_semantic_registry_and_parallel_authorization_attack(self):
+        self.assertEqual(len(SEMANTIC_INVARIANT_IDS), 31)
+        self.assertIn("A-UNRESOLVED-ABSTAIN-VALID", SEMANTIC_INVARIANT_IDS)
+        admissible = {"schema_version":"Adjudication/v1","adjudication_id":"a","claim_results":["c"],"disposition":"UNRESOLVED"}
+        self.assertEqual(validate_semantics(admissible), [])
+        parallel = graph([node("a", status="RUNNING", required_authority_refs=[], termination_condition_ref="done"), node("b")], [{"from":"a","to":"b","type":"CAN_PARALLEL_WITH"}])
+        ids = {error.validator_id for error in validate_mission_graph(parallel, authorization_refs=set())}
+        self.assertTrue({"MG-CAN-PARALLEL-NOT-AUTHORIZATION", "MG-EXECUTABLE-NODE-NEEDS-CONTROL-TOWER"}.issubset(ids))
+
+    def test_remaining_named_semantic_invariants_have_fail_closed_attacks(self):
+        cases = [
+            ({"schema_version":"Mission/v1","mission_id":"m","intake_source":"USER","objective":"x","status":"RECEIVED","created_at":NOW,"intake_authorizes_execution":True}, "M-USER-INTAKE-NO-AUTH-GRANT"),
+            ({"schema_version":"Claim/v1","claim_id":"c","claim_type":"MODEL_INFERENCE","statement_ref":"s","status":"OPEN","human_companion_claim_type":"OBSERVED_FACT"}, "C-PROSE-CANNOT-PROMOTE-INFERENCE-TO-FACT"),
+            ({"schema_version":"Adjudication/v1","adjudication_id":"a","claim_results":["c"],"disposition":"ACCEPT","w7_veto_status":"VETO"}, "A-NO-W7-OVERRIDE"),
+            ({"schema_version":"FormalHandoff/v1","handoff_id":"h","decision_episode_id":"d","producer":"p","consumer":"c","stage":"x","epistemic_status":"SUPPORTED","input_fingerprint":"f","raw_trace_refs":["t"],"created_at":NOW,"analysis_companion":{"epistemic_status":"OBSERVED"}}, "FH-HUMAN-COMPANION-NONAUTHORITATIVE"),
+            ({"schema_version":"OutcomeLearning/v1","learning_event_id":"l","decision_episode_id":"d","created_at":NOW,"outcome_ref":"o","outcome_polarity":"POSITIVE","method_quality_update":"GOOD"}, "OL-GOOD-OUTCOME-NOT-PROOF-OF-GOOD-METHOD"),
+            ({"schema_version":"OutcomeLearning/v1","learning_event_id":"l","decision_episode_id":"d","created_at":NOW,"outcome_ref":"o","outcome_polarity":"NEGATIVE","method_quality_update":"BAD"}, "OL-BAD-OUTCOME-NOT-PROOF-OF-BAD-METHOD"),
+        ]
+        for record, validator in cases:
+            with self.subTest(validator=validator): self.assertIn(validator, {error.validator_id for error in validate_semantics(record)})
+
+    def test_structural_timestamp_rework_graph_and_trace_attacks(self):
+        bad_time = episode(created_at="2026-08-15T00:00:00")
+        self.assertIn("RFC3339_OFFSET_AWARE_REQUIRED", {error.code for error in validate_bundle([bad_time])})
+        wrong_target = {"schema_version":"ReworkRequest/v1","rework_request_id":"rw","decision_episode_id":"de","return_from_state":"ADJUDICATED","return_to_state":"EXECUTING","reason_code":"x","retry_budget_remaining":1,"input_fingerprint_before":"a","input_fingerprint_after":"b"}
+        self.assertIn("REWORK_TARGET_FORBIDDEN", {error.code for error in validate_transition("ADJUDICATED", "EXECUTING", wrong_target)})
+        unbounded = graph([node("a"), node("b")], [{"from":"a","to":"b","type":"RETURNS_TO"}])
+        self.assertIn("REWORK_LOOP_UNBOUNDED", {error.code for error in validate_mission_graph(unbounded, authorization_refs=set())})
+        handoff = {"schema_version":"FormalHandoff/v1","handoff_id":"h","decision_episode_id":"d","producer":"p","consumer":"c","stage":"TEST","epistemic_status":"SUPPORTED","input_fingerprint":"f","raw_trace_refs":["trace-1"],"created_at":NOW,"claim_ids":["claim"]}
+        self.assertIn("TRACE_LEVEL_FIELD_MISSING", {error.code for error in validate_trace_handoff(handoff, trace_ids={"trace-1"}, trace_level="T3", trace_material={})})
+
+    def test_organization_orphan_dead_end_trading_w3_attacks(self):
+        org = {"departments":[{"id":"A","authority_domain":"KNOWLEDGE_MEMORY_LIFECYCLE","node_kind":"DEPARTMENT","produces":["x"]},{"id":"B","authority_domain":"KNOWLEDGE_MEMORY_LIFECYCLE","node_kind":"DEPARTMENT"}],"edges":[{"from":"A","to":"B","type":"LIVE_TRADE"}]}
+        ids = {error.validator_id for error in validate_organization(org, alias_resolution={})}
+        self.assertTrue({"OGV-W3-SINGLE-AUTHORITY", "OGV-022-A-SHARE-NO-TRADE"}.issubset(ids))
+        orphan = validate_organization({"departments":[{"id":"A","authority_domain":"NONE","node_kind":"DEPARTMENT","produces":["x"]}],"edges":[]}, alias_resolution={})
+        self.assertTrue({"OGV-002-ORPHAN-DEPARTMENT", "OGV-003-DEAD-END"}.issubset({error.validator_id for error in orphan}))
 
 if __name__ == "__main__": unittest.main()
