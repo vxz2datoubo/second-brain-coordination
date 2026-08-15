@@ -1,0 +1,94 @@
+schema_version: "125.0"
+route_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-R125-P2-3-CAPTURE-EXACT-RECALL-BUDGET-PARITY"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 316
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.3 capture exact-recall预算兼容修复"
+status: "READY_REMEDIATION"
+implementation_branch: "codex/gpt-second-brain-memory-palace-unified-retrieval-r124-p2-3"
+implementation_pr: 318
+reviewed_head: "d7b76b97775dde69cf61bc473b2be16d626feea2"
+gpt_review_id: 4942437318
+disposition: "R124_P2_3_EXACT_HEAD_CHANGES_REQUIRED_CAPTURE_EXACT_RECALL_BUDGET_PARITY"
+verified_ci_run: 31858287127
+verified_merge_ref: "835af52b829f318f6db4d3210642c8b70b39d15e"
+verified_merge_ref_base: "d58bc5b517e75276999e158be4458aafba9a5cae"
+verified_phase3_tests: "279/279 PASS"
+verified_public_safety: "84 files / 0 issues"
+
+accepted_r124_subsystems:
+  adapter_post_assembly_candidate_scan_removed: true
+  temporal_candidate_discovery_assembler_owned: true
+  relation_graph_admission_unified: true
+  provenance_graph_admission_unified: true
+  deterministic_channel_attribution: true
+  no_new_numeric_temporal_or_provenance_weight: true
+  r118_r123_security_parity: true
+
+blocking_finding:
+  id: "R124-B01-CAPTURE-EXACT-RECALL-BUDGET"
+  severity: "BLOCKER"
+  fact: >-
+    QueryPlan defaults to budget 50 while capture_text atomization has no matching 50-atom cap and requires all just-written atom_ids to be returned by a single retrieve_memory_palace call. Before R124, adapter-side provenance sibling augmentation occurred after the base bundle budget; after unification, all candidates are budgeted inside ContextAssembler and the compatibility adapter formats only bundle.atoms. Therefore a 51+ atom same-episode capture can lose at least one just-written atom and fail memory_palace_exact_recall_failed.
+
+root_goal: >-
+  Preserve the accepted P2.3 single-authority migration while restoring capture_text write-after-read exact-recall proof under budget saturation. Normal retrieval context budgets must remain authoritative and must not be globally inflated merely to make the proof green.
+
+mandatory_repairs:
+  - "Keep retrieve_memory_palace compatibility adapter free of post-assembly store scans and second admission paths."
+  - "Make capture_text exact-recall verification complete for all just-written atoms even when the normal retrieval context budget is saturated."
+  - "Any exact-recall proof path must reuse canonical ContextAssembler caller-observability/admission and W3 data; direct get_atom existence checks alone are insufficient as retrieval proof."
+  - "Do not globally raise or bypass QueryPlan budget for ordinary retrieval. Do not solve this by arbitrary ranking weights."
+  - "Preserve temporal/relation/provenance unified discovery, deterministic channel attribution, CURRENT/HISTORICAL lifecycle behavior and R118-R123 security guarantees."
+  - "If a new QueryPlan/proof contract is genuinely required and cannot be implemented additively without changing public semantics, stop and report UNKNOWN_NEEDS_GPT rather than inventing a broad schema change."
+
+adversarial_acceptance:
+  - "A synthetic single captured utterance producing at least 51 distinct same-episode atoms completes capture_text with exact_recall_passed=true."
+  - "A budget-pressure variant with unrelated admissible lexical noise still proves every just-written atom is retrievable without expanding ordinary context output beyond its configured budget."
+  - "Ordinary QueryPlan budget=50 still returns at most 50 atoms and reports omissions deterministically."
+  - "retrieve_memory_palace still contains no post-assembler all_atoms/related_atom_ids/relations_around/source_refs candidate append path."
+  - "foreign/restricted candidates remain public-equivalent to absence during any proof path."
+  - "R124 temporal-only, multichannel dedup, Memory Palace existing tests and R118-R123 adversarial regressions remain PASS."
+
+watchpoints:
+  - id: "R122-UNKNOWN-BINDING-GAP"
+    status: "DEFER"
+  - id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
+    status: "DEFER_UNLESS_REMEDIATION_CREATES_SAFETY_AMBIGUITY"
+
+execution_contract:
+  same_pr_branch_additive_only: true
+  rebase_force_amend: "FORBIDDEN"
+  p2_4_semantic_provider: "FORBIDDEN"
+  p2_4_structural_analogy: "FORBIDDEN"
+  unknown_schema_redesign: "FORBIDDEN"
+  second_store_or_parallel_resolver: "FORBIDDEN"
+  adapter_post_scan_restoration: "FORBIDDEN"
+  global_budget_inflation_as_fix: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  private_source_discovery_or_read: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "focused R125 51+ atom exact-recall and budget-pressure tests PASS"
+  - "ordinary budget-semantics regression PASS"
+  - "existing Memory Palace tests PASS"
+  - "full Phase-3 regression PASS"
+  - "GitHub Actions exact final head_sha + Python 3.11/3.13 SUCCESS"
+  - "public safety PASS"
+  - "schema/YAML/JSON PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "R118-R124 compatibility parity"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_3_R125_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 125 is only the P2.3 capture exact-recall budget parity remediation. P2.4, UNKNOWN binding design, real private execution, production bridge, scheduler, formal promotion, QCLAW runtime dependency, permissions and trading remain locked.
