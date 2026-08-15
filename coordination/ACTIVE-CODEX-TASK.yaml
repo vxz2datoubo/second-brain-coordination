@@ -1,4 +1,4 @@
-schema_version: "134.0"
+schema_version: "134.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 343
@@ -7,14 +7,14 @@ parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 134
 mode: "goal"
 mode_label: "【Codex模式：目标模式】S0C Enterprise Global Signal Plane Public-Safe Synthetic Skeleton"
-status: "READY"
-execution_allowed: true
+status: "PREPARED_AWAITING_POST_MERGE_RECONCILIATION"
+execution_allowed: false
 automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: true
-runtime_code_scope: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
+runtime_code_change_allowed: false
+runtime_code_scope: "RESERVED_S0C_SURFACE / NO_EXECUTION_UNTIL_POSTFLIGHT_RECEIPT"
 
 canonical_main_at_route_prepare: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
 canonical_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
@@ -43,6 +43,14 @@ architecture_release:
   verdict: "UNIFIED_SIGNAL_TOWER_ARCHITECTURE_ACCEPTED_FOR_S0_RELEASE_PREPARATION"
   h2_authorized: false
 
+release_phase:
+  phase: "A_PREPARE_AND_RESERVE"
+  bootstrap_receipt_status: "PASS_FOR_TASK_PUBLICATION_ONLY"
+  execution_activation: "BLOCKED_UNTIL_PHASE_B_POST_MERGE_RECEIPT"
+  reason: >-
+    Governance merge changes canonical main and invalidates the bootstrap receipt for execution freshness. Phase B must
+    bind the new main and revalidate route/workclaim/program-lane/AI-Film remote state before execution is enabled.
+
 frozen_invariants:
   one_signal_tower_identity: true
   pre_mission_vs_mission_plane_separation: true
@@ -63,6 +71,7 @@ execution_contract:
   allowed_write_paths:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
     - ".github/workflows/global-signal-plane-s0.yml"
+  current_write_permission: "RESERVED_NOT_EXECUTABLE"
   harness_runtime_install_bind_activate: "FORBIDDEN"
   harness_workflow_subagent_jobs: "FORBIDDEN"
   h2_route_creation_activation: "FORBIDDEN"
@@ -84,7 +93,7 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
-  class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
@@ -99,11 +108,11 @@ cross_project_start_guard:
   ai_film_open_prs_visible: 0
   local_unpushed_execution_visibility: "UNKNOWN"
   fail_closed_rule: >-
-    User/Codex must not start R134 while another AI Film Codex implementation is actively executing locally. Codex must
-    verify current repository identity and route before any write; mismatch/conflict -> WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT.
+    Phase A is non-executable. Phase B must re-scan remote state. After activation user/Codex must still fail closed on
+    wrong repository/workspace or a user-known concurrent AI Film Codex implementation.
 
 completion_signal: "GLOBAL_SIGNAL_PLANE_S0C_ENTERPRISE_SYNTHETIC_READY_FOR_GPT_REVIEW"
-next_command: "USE_FULL_R134_LAUNCH_PROMPT_FROM_GPT"
+next_command: "NO_ACTIVE_TASK_UNTIL_POST_MERGE_RECONCILIATION"
 lock_statement: >-
-  Epoch 134 is S0C only. It implements the public-safe/offline pre-Mission Signal Plane skeleton inside the exact Work Claim.
-  It cannot activate Harness/H2/H7, private cross-window ingestion, live connectors, domain writes, production or trading.
+  Epoch 134 is reserved but non-executable until Phase B post-merge reconciliation. It cannot activate Harness/H2/H7,
+  private cross-window ingestion, live connectors, domain writes, production or trading.
