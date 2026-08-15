@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.5"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -15,6 +15,9 @@ semantics:
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
+  reserved_implementation_occupies_surface_without_execution: true
+  reserved_implementation_requires_non_executable_route: true
+  reserved_implementation_requires_global_reconciliation_receipt: true
   h1_authorization_does_not_authorize_h2: true
   s0c_authorization_does_not_authorize_s0d_h2_h7: true
   global_reconciliation_receipt_is_not_execution_authority: true
@@ -49,9 +52,9 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
     execution_agent: "CODEX"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
       route_epoch: 134
@@ -97,6 +100,8 @@ claims:
       slice: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
       issue: 343
       global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+      reservation_phase: "A_PREPARE_AND_RESERVE"
+      execution_allowed: false
       harness_runtime_allowed: false
       h2_allowed: false
       h7_allowed: false
@@ -107,6 +112,9 @@ claims:
       production_allowed: false
       trading_allowed: false
     stop_conditions:
+      - "No writes are allowed while claim is RESERVED_IMPLEMENTATION_NON_EXECUTABLE."
+      - "Upgrade to ACTIVE_IMPLEMENTATION requires a fresh post-merge GlobalReconciliationReceipt."
+      - "Upgrade requires route execution_allowed=true on the exact current route."
       - "Write outside exact paths -> STOP / NEEDS_GPT"
       - "Harness/H2/H7 runtime required -> STOP / separate future gate"
       - "Private/live cross-window integration required -> STOP / separate privacy/runtime gate"
@@ -151,10 +159,11 @@ release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
     Lane B may continue bounded research/design only inside its isolated proposal root if separately released.
-    Lane A S0C consumes the single Codex active execution route but not the heavy-stage lease by default.
+    Lane A Phase A reservation occupies the S0C write surface and Codex identity without granting execution.
     S0C cannot authorize S0D, H2, H7, private bridge, domain write, production or trading.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
+  reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
   h1_h2_separation: "H1 exact-head acceptance and merge never imply H2 Harness runtime authorization."
   s0c_future_stage_separation: "S0C exact-head acceptance never implies S0D/H2/H7/private/production authorization."
