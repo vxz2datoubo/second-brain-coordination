@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -15,6 +15,7 @@ semantics:
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
+  h1_authorization_does_not_authorize_h2: true
 
 proposal_roots:
   LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
@@ -46,36 +47,50 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "HELD_PROPOSAL_ONLY"
-    execution_agent: null
-    resource_class: "LIGHT_RESEARCH_DESIGN"
-    route_binding: null
-    safe_start_after_foundation:
-      mode: "PROPOSAL_ONLY"
-      allowed_write_paths:
-        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
-      runtime_write_allowed: false
-      implementation_route_allowed: false
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+      route_epoch: 133
+      issue: 338
+      pr: null
+      branch: "codex/cognitive-os-h1-contract-skeleton-r133"
     write_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON"
+      - ".github/workflows/cognitive-os-h1-contracts.yml"
     read_paths:
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
       - "coordination/CONTROL-TOWER"
       - "coordination/GOVERNANCE"
-      - "coordination/BLUEPRINTS"
-      - "coordination/SKILLS"
-    interfaces: []
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+    interfaces:
+      - name: "CognitiveOS-H0-Contracts"
+        mode: "read"
+        frozen: true
+      - name: "W3-Frozen-Consumption-Boundary"
+        mode: "read"
+        frozen: true
+      - name: "W7-Final-Veto-Contract"
+        mode: "read"
+        frozen: true
     read_domains: [W1, W3, W7, W8, W9, W10, W12]
-    write_domains: []
+    write_domains: [W1, W8]
     authority_claims: []
-    implementation_upgrade_requires:
-      - "explicit route binding"
-      - "exact write paths"
-      - "exact interface read/write/frozen state"
-      - "authority claims"
-      - "resource class"
-      - "O0-O4 rescan against current claims"
-      - "commit-time route witness"
+    implementation_scope:
+      slice: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
+      issue: 338
+      task_brief: "coordination/TASK-BRIEFS/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
+      harness_runtime_allowed: false
+      private_data_allowed: false
+      production_allowed: false
+      trading_allowed: false
+      h2_allowed: false
+    stop_conditions:
+      - "Write outside exact paths -> STOP / NEEDS_GPT"
+      - "Harness runtime binding required -> STOP / defer to H2"
+      - "Authority topology change required -> STOP / architecture conflict"
+      - "Peer claim or route drift -> STOP / fresh Control Tower witness required"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -113,8 +128,9 @@ claims:
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    Lane A and Lane B may both perform bounded research/design and write only to their isolated proposal roots
-    after GPT records SAFE_TO_RELEASE_PROPOSAL_ONLY. This does not consume or override a runtime execution lease.
+    Lane B may continue bounded research/design only inside its isolated proposal root if separately released.
+    H1 Lane A is an active implementation and consumes the single Codex execution lease, but not the local heavy-stage lease by default.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
   closed_lane_has_no_execution_lease: true
+  h1_h2_separation: "H1 exact-head acceptance never implies H2 Harness runtime authorization."
