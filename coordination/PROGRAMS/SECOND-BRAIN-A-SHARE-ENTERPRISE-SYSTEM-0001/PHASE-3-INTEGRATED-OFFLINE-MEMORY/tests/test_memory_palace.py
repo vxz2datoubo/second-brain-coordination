@@ -331,6 +331,49 @@ class MemoryPalaceTestCase(unittest.TestCase):
         self.assertFalse(foreign_result)
         self.assertEqual(foreign_result, absent_result)
 
+    def test_r126_exact_proof_handles_budget_omitted_duplicate_statement_from_newer_episode(self) -> None:
+        """Exact capture proof must not depend on duplicate-statement ID ties."""
+
+        new_message = ";".join(f"r126-budget-item-{index:02d}" for index in range(51)) + ";采集记忆"
+        preview_store = MemoryStore().connect()
+        try:
+            preview = capture_text(
+                store=preview_store, user_scope=USER, project_scope=PROJECT,
+                message=new_message, recorded_at=NOW, source_id="episode-r126-new",
+            )
+            target_id = max(preview.atom_ids)
+            statement = preview_store.get_atom(target_id)["canonical_statement"]
+        finally:
+            preview_store.close()
+
+        old_id = ""
+        # Select a real earlier episode whose identical statement wins the
+        # legacy lexical/atom-ID tie.  The actual capture remains a separate,
+        # later episode with the previewed deterministic target identity.
+        for index in range(32):
+            old = self.capture(f"{statement};采集记忆", f"episode-r126-old-{index}")
+            old_id = old.atom_ids[0]
+            if old_id < target_id:
+                break
+        self.assertLess(old_id, target_id)
+
+        receipt = self.capture(new_message, "episode-r126-new")
+        self.assertIn(target_id, receipt.atom_ids)
+        ordinary = ContextAssembler(self.store).assemble(QueryPlan(
+            query_text=new_message, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=50,
+        ))
+        self.assertNotIn(target_id, {atom["id"] for atom in ordinary.atoms})
+        legacy_tie = ContextAssembler(self.store).assemble(QueryPlan(
+            query_text=statement, scopes=(PROJECT,), user_scope=USER,
+            valid_at=NOW, relation_depth=1, budget=1,
+        ))
+        self.assertEqual(legacy_tie.atoms[0]["id"], old_id)
+        self.assertTrue(_prove_exact_recall(
+            store=self.store, user_scope=USER, project_scope=PROJECT,
+            valid_at=NOW, atom_ids={target_id},
+        ))
+
     def test_r108_long_passage_emits_typed_atoms_with_one_episode_lineage(self) -> None:
         receipt = self.capture(
             "我的目标是完成合成项目；我承诺明天提交合成报告；我喜欢合成茶；我决定整理合成资料；2026-08-16 有合成会议。采集记忆",

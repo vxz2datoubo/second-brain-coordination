@@ -329,6 +329,24 @@ class ContextAssembler:
             provenance=provenance,
         )
 
+    def _exact_candidate_is_admitted(self, plan: QueryPlan, atom_id: str) -> bool:
+        """Return only whether one requested candidate crosses the normal gate.
+
+        This internal proof path deliberately bypasses discovery ranking and
+        budget selection, but not caller observability or admission.  It gives
+        capture verification an exact atom-identity answer without creating a
+        second retrieval authority or exposing rejected-identity reasons.
+        """
+
+        plan.validate()
+        atom = self.store.get_atom(atom_id)
+        if atom is None:
+            return False
+        candidate_set = _CandidateSet()
+        return self._consider_candidate(
+            candidate_set, atom, None, plan, channel="exact_proof",
+        ) and atom_id in candidate_set.atom_ids
+
     def _consider_candidate(
         self, candidate_set: _CandidateSet, atom: dict[str, Any], score: float | None, plan: QueryPlan, *, channel: str,
     ) -> bool:

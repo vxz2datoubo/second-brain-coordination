@@ -111,23 +111,22 @@ def _prove_exact_recall(
 ) -> bool:
     """Prove each budget-omitted capture atom through canonical retrieval.
 
-    This is deliberately not an existence check: each statement is submitted
-    to the normal ContextAssembler caller-observability and admission boundary
-    with a one-item proof budget.  Ordinary user retrieval keeps its configured
-    budget and ranking unchanged.
+    This is deliberately not an existence check: each requested atom identity
+    crosses the normal ContextAssembler caller-observability and admission
+    boundary.  The internal proof does not depend on lexical ranking or a
+    one-item budget, so same-statement atoms from different episodes cannot
+    displace one another.  Ordinary user retrieval keeps its configured budget
+    and ranking unchanged.
     """
 
     assembler = ContextAssembler(store)
     for atom_id in sorted(atom_ids):
-        atom = store.get_atom(atom_id)
-        if atom is None:
-            return False
-        proof = assembler.assemble(QueryPlan(
-            query_text=atom["canonical_statement"], scopes=(project_scope,),
+        proof_plan = QueryPlan(
+            query_text="", scopes=(project_scope,),
             user_scope=user_scope, valid_at=valid_at, relation_depth=1,
             include_conflicts=True, budget=1,
-        ))
-        if atom_id not in {item["id"] for item in proof.atoms}:
+        )
+        if not assembler._exact_candidate_is_admitted(proof_plan, atom_id):
             return False
     return True
 
