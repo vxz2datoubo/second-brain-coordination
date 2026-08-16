@@ -4,7 +4,7 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-16T21:20:00+08:00`
+- as_of: `2026-08-16T22:02:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
 - User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
@@ -13,7 +13,7 @@
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER` | 138 | `PREPARED_NON_EXECUTABLE` | `false` | #366 / #None |
+| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER` | 138 | `READY` | `true` | #366 / #None |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `READY` | `READY` | `false` | RESERVATION_MERGE_THEN_FRESH_POST_RESERVATION_OBSERVATION_AND_EXPLICIT_R138_ACTIVATION |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `ACTIVE` | `true` | CODEX_IMPLEMENTATION_COMPLETION_SIGNAL_THEN_INDEPENDENT_GPT_EXACT_HEAD_REVIEW_NO_MERGE |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | CONSUME_FROZEN_BOUNDARIES; REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 6 paths | epoch 138 · #366/#None |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE_IMPLEMENTATION` | `CODEX` | `MEDIUM_IMPLEMENTATION` | 6 paths | epoch 138 · #366/#None |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -60,35 +60,45 @@
 
 - **R136 已完成并关闭**。
 - **R137 已实现、验收、合并并 post-merge closed**。Accepted head `a7789864eac267c569503342a66a961985a27745`; implementation merge `54ba6c31240d4b262c65d142be446e6b5ea5d90b`; closure PR #365 merge `758064867bc51eb765f73b9b4941a575edbdfb1e`; final closure main `8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2`。
-- **R137 accepted provider 已真实跨任务运行**。R138 architecture PR #367 exact-head live observation run `31950461109` 在 Python 3.11/3.13 均成功，证明 accepted provider 能观察后继 current main，而非只通过自己的 R137 测试。
-- **R138 architecture 已接受并合并**。Issue #366；PR #367 exact head `233bd9fe817e45d1dbf837c116de498206db6f52`；merge `e76fe35d720f5f4739f80c62d3e6204f8fe52d9b`；Control Tower/S0E/Phase3/R137 live-observation 四组 workflow 全绿。
-- **R138 当前只进入 A1 非执行预留**。epoch 138 `PREPARED_NON_EXECUTABLE / execution_allowed=false / runtime_code_change_allowed=false`。Lane A 只占用未来写入表面，不允许实际写代码或运行 capability provider。
-- **R138 的核心边界**：只证明 exact governed capability 是否真实执行；不把执行成功等同于结论正确；不把 scan 名称、Agent 自报或 exact reads 冒充执行证据。
-- **V1 primary class**：`EXACT_REPOSITORY_EXECUTABLE`。Tool/connector class 只保留 contract；model-mediated cognitive scans 在没有 domain-owned executable contract 时必须保持 `UNKNOWN`。
-- **AI Film 继续是独立 domain authority**。Golden Case ingestor 只是候选真实 executable smoke；不能拿它证明 `narrative_multiplex` 等无映射认知扫描已经执行。
-- **fresh R137 provider evidence 仍是 reservation merge 硬门**。本 reservation PR 必须产生新的 mechanism-backed proof，观察 post-architecture main `e76fe35d...`，旧的 architecture-planning proof 不能冒充当前 freshness。
-- **正式执行硬门仍未打开**：reservation merge 后还要再次 fresh observation/reconciliation，然后等用户明确说 `启动 R138`，再走独立 activation PR/CI。
-- **Harness/H2/H7/private W3/domain write/generic shell/network/daemon-production/permissions-secrets/Formal Skill/trading 均未授权**。
+- **R138 architecture 已接受并合并**。Issue #366；PR #367 exact head `233bd9fe817e45d1dbf837c116de498206db6f52`；merge `e76fe35d720f5f4739f80c62d3e6204f8fe52d9b`。
+- **R138 非执行 reservation 已 canonical**。PR #368 merge `4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a`；post-reservation reconciliation PR #370 merge `98cb9265e526bc2f0707579dd7fe06b90dfdc44c`。
+- **用户已明确启动 R138**：`启动 R138`。该命令只授权 R138 activation，不授权实现结果 merge 或任何后继任务。
+- **fresh R137 provider activation observation 已真实完成**。Evidence-only PR #371 exact head `2942a2e3dd9e6cc1f4d96ec584275fbd43320aa4`，workflow `31951628708`；Python 3.11/3.13 均通过 R137 49/49 + R136 47/47，并分别产生新的 mechanism-backed proof；两者都观察到 canonical main `98cb9265e...`、R138 task、epoch 138。PR #371 已关闭且未 merge，临时 invoker 没进入 main。
+- **R138 activation reconciliation 已生成**：`coordination/CONTROL-TOWER/R138-ACTIVATION-RECONCILIATION.yaml`。同代理、资源、O0-O4、私有/密钥、域 authority 和 AI Film 只读边界扫描没有发现当前 blocker。
+- **R138 当前 activation 状态**：`READY / execution_allowed=true / runtime_code_change_allowed=true`，但只有本 activation PR exact-head CI 通过并由 GPT merge 后才成为 canonical execution authority。
+- **唯一实现写面仍是 6 个 exact paths**。不能借 activation 扩成 generic shell/network、private repo/token、AI Film/domain/W3 write、Harness/H2/H7、daemon/live/production、permission/secret、Formal Skill、trading 或 Codex merge。
+- **V1 primary class**：`EXACT_REPOSITORY_EXECUTABLE`。Tool/connector class 仍 contract-only；model-mediated cognitive scans 没有 domain-owned executable contract 时必须保持 `UNKNOWN`。
+- **执行成功 ≠ 结论正确**。CapabilityExecution evidence 只证明 exact governed capability 真的跑过；process compliance 与 outcome quality 永久分离。
+- **AI Film 继续独立 authority**，exact reference `44c383afd2207a97caf45b1b0da6ee1dece43a76`；Golden Case ingestor 只是候选 named executable smoke，不得证明无关认知扫描。
+- **persistent R137 workflow invoker hardcode gap 继续保留**：provider 本体已证明 successor-capable，但旧永久 wrapper 固定 R137/137。R138 activation 使用的临时 successor-capable invoker 已关闭未合并；未来 wrapper 泛化需单独治理，不能静默混入 R138 实现。
 - **Lane B 继续 user-held / NO_TRADE**；Lane C closed/frozen。
 
-## R138 reservation evidence
+## R138 activation evidence
 
 - Issue: `#366`
 - Task: `CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER`
 - Route epoch: `138`
 - Mode: `【Codex模式：项目计划模式】`
-- Architecture merge: `e76fe35d720f5f4739f80c62d3e6204f8fe52d9b`
-- Architecture: `coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-ARCHITECTURE-v1.0.md`
-- Threat model: `coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-THREAT-MODEL-v1.0.md`
-- Source selection: `coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-SOURCE-SELECTION.yaml`
-- Reservation reconciliation: `coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION.yaml`
+- Activation base main: `98cb9265e526bc2f0707579dd7fe06b90dfdc44c`
+- Activation reconciliation: `coordination/CONTROL-TOWER/R138-ACTIVATION-RECONCILIATION.yaml`
+- Fresh evidence PR: `#371` / **CLOSED_UNMERGED**
+- Fresh evidence head: `2942a2e3dd9e6cc1f4d96ec584275fbd43320aa4`
+- Fresh workflow: `31951628708`
+- Py3.11 job: `95175843553`
+- Py3.13 job: `95175843672`
+- Py3.11 proof: `provider://r137/evidence/r137:2ba08eeeb1846e5f075f6531#sha256=2e6204cbfaff2a4834a0b28955b4e436f855967fc17529f347d149584ce309e9`
+- Py3.13 proof: `provider://r137/evidence/r137:59cbd8250f1f232d2fb40c0a#sha256=d0cce4e61c1582ce1fb7361a70ae2ad3b96525a1bdc29a829bf3146801e10bd6`
 - Planned implementation branch: `codex/r138-domain-capability-execution-provider`
-- Current execution authority: **NONE**
+- Execution authority after activation canonical merge: **R138_BOUNDED_IMPLEMENTATION_ONLY**
+- Codex merge authority: **NONE**
 
-## 下一关
+## 下一关：完成 activation，再交给 Codex
 
-1. 本 reservation PR 触发真实 R137 live observation，观察当前 post-architecture main `e76fe35d...`；
-2. GPT 将 fresh provider evidence 绑定到 reservation reconciliation；
-3. final exact-head Control Tower/S0E/Phase3/R137 workflow 全绿后才允许 merge reservation；
-4. reservation merge 后再做一次 fresh observation/reconciliation；
-5. 在用户明确说 **`启动 R138`** 之前，Codex 不得开工。
+1. activation PR 必须 exact-head 通过 Program Control Tower Python 3.11 + 3.13；
+2. GPT 对 exact head 独立检查 diff、route/claim/lane/receipt 一致性与 main drift；
+3. GPT 以 expected head merge activation；
+4. merge 后重新确认 canonical `main` 与 `ACTIVE-CODEX-TASK` 已变为 R138 `READY`；
+5. GPT 给出完整 R138 Launch Envelope，Codex 在正确 Second Brain workspace 核对 repo/task/epoch/issue/branch/local process/lease 后开工；
+6. Codex 第一项 material work 前必须先创建 `R138/EXECUTION-PLAN.yaml`；
+7. Codex 只允许 6 个 exact write paths，单 local heavy stage、single-worker default、no nested pools、no global kill Python；
+8. 完成后只回传 `R138_DOMAIN_CAPABILITY_EXECUTION_PROVIDER_READY_FOR_GPT_REVIEW` 和证据，不得自行 merge。
