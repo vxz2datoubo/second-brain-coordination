@@ -1,0 +1,168 @@
+schema_version: "1.0"
+receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
+receipt_kind: "ROOT_PROVIDER_BOOTSTRAP"
+owner: "USER"
+architecture_owner: "GPT"
+issuer: "GPT_DIRECT_GITHUB_OBSERVATION"
+reviewer: "GPT"
+state: "PRESENT_UNCONSUMED_AWAITING_EXPLICIT_USER_LAUNCH"
+ordinary_live_observation_proof: false
+ordinary_global_reconciliation_receipt: false
+reusable_for_other_task: false
+
+issued_at: "2026-08-16T10:34:35Z"
+expires_at: "2026-08-17T10:34:35Z"
+nonce_sha256: "547deb3e8723500d032632a5f0d069f0018ad09c7ab23e2f5c3aa2e94a70e20e"
+consumed: false
+consumed_by: null
+revoked: false
+revocation_ref: null
+
+purpose: >-
+  Bootstrap exactly one bounded implementation of the first Authority-bound Live Observation Provider without circularly
+  using that provider to authorize its own creation. This receipt is based on GPT direct GitHub connector observations of
+  the canonical post-reservation state. It cannot satisfy ordinary AuthorityBoundLiveObservationProof validation and it
+  cannot authorize R138 or any other task.
+
+bound_task:
+  repository: "vxz2datoubo/second-brain-coordination"
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+  route_epoch: 137
+  issue: 360
+  parent_architecture_issue: 358
+  planned_branch: "codex/r137-authority-live-observation-provider"
+  mode: "project_plan"
+  expected_completion_signal: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_READY_FOR_GPT_REVIEW"
+
+canonical_observation:
+  main_sha: "7b0996a98fc908b2afad6be7775eafc74381e648"
+  main_tree_sha: "5147cabd24bd830ac60181713ce6d5a68c4c9cdf"
+  observed_at: "2026-08-16T10:34:35Z"
+  reservation_pr: 361
+  reservation_head: "1126e0b4f736932142b6c2512ef1e5b1713ed85d"
+  reservation_merge: "7b0996a98fc908b2afad6be7775eafc74381e648"
+  reservation_review_id: 4945973134
+  reservation_ci: 31941978570
+
+exact_pre_bootstrap_surfaces:
+  active_codex_task:
+    path: "coordination/ACTIVE-CODEX-TASK.yaml"
+    blob: "380be73db377e91840b23d8ebec63a9a2f71257c"
+    required_state: "PREPARED_NON_EXECUTABLE"
+    execution_allowed: false
+  route:
+    path: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
+    blob: "43e13f6d6ef9b92b42b06bbf05bcbee3f8352637"
+    route_epoch: 137
+    execution_allowed: false
+  task_brief:
+    path: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER.yaml"
+    blob: "0af2735339c086cc2c5c162c8349988716137278"
+  lane_work_claims:
+    path: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+    blob: "da481ce4090c93985b9d0ad37834262dab52da66"
+    lane_a_claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+  program_lanes:
+    path: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+    blob: "d6f52c8cb874562e23b7050b2dc1932a7631e0cc"
+    lane_a_phase: "R137_PHASE_A1_RESERVED_NON_EXECUTABLE"
+
+exact_architecture_surfaces:
+  architecture:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-ARCHITECTURE-v1.0.md"
+    blob: "3543cd3a14bc0f6c24d35a480569dce767637a4c"
+  threat_model:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-THREAT-MODEL-v1.0.md"
+    blob: "eea5b8c1ce529b1a9266528499de3a3c18225e9b"
+  source_selection:
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-SOURCE-SELECTION.yaml"
+    blob: "18e35b8007be32e422b73a08fe1d3977aabff060"
+  planning_reconciliation:
+    path: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
+    blob: "e604a8777ed9fc42afd2bd574e8c25cf8605365f"
+  reservation_reconciliation:
+    path: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-RESERVATION.yaml"
+    blob: "30c9a860895d82761a4c62440a3ba859f074cf59"
+
+other_agent_observations:
+  QCLAW:
+    source: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    blob: "042f9ae2b65c28b6fb25cc42982b6d59a37fa800"
+    task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    route_epoch: 60
+    status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+  WORKBUDDY:
+    source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    blob: "24e6041010c8ee92158f902389653697c36a4be3"
+    route_epoch: 15
+    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+
+external_domain_freshness:
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  observed_main_sha: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  drift_from_r137_planning: false
+  role: "READ_ONLY_FRESHNESS_REFERENCE_ONLY"
+  write_authorized: false
+
+implementation_allowlist:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/live_observation_provider.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r137_live_observation_provider.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R137"
+  - ".github/workflows/global-signal-plane-r137-live-observation.yml"
+
+collision_and_boundary_scan:
+  same_codex_active_execution_collision: false
+  qclaw_execution_collision: false
+  workbuddy_execution_collision: false
+  heavy_resource_collision: false
+  unresolved_O3_or_O4: false
+  private_repository_or_credential_required: false
+  permission_or_secret_change_required: false
+  generic_network_client_required: false
+  github_write_api_required: false
+  harness_h2_h7_required: false
+  private_w3_required: false
+  domain_write_required: false
+  production_required: false
+  trading_required: false
+
+trust_root_semantics:
+  provider_may_self_authorize: false
+  bootstrap_may_satisfy_ordinary_live_observation_proof: false
+  bootstrap_may_authorize_other_task_or_epoch: false
+  bootstrap_may_authorize_domain_capability_execution_provider: false
+  bootstrap_requires_exact_task_epoch_issue_branch: true
+  bootstrap_requires_exact_architecture_and_pre_bootstrap_state: true
+  bootstrap_requires_unexpired_unrevoked_unconsumed_state: true
+  bootstrap_requires_future_explicit_user_launch: true
+  bootstrap_requires_gpt_activation_witness: true
+  bootstrap_replay_after_consumption_or_retirement: "MUST_FAIL"
+
+launch_authorization:
+  sequence_direction_ref: "USER_EXPLICIT_DIRECTION_2026-08-16_按这个顺序继续"
+  sequence_direction_authorizes_implementation_start: false
+  explicit_r137_launch_ref: null
+  user_launch_received: false
+  gpt_activation_witness: null
+  execution_allowed: false
+
+consumption_rule: >-
+  This receipt may be consumed exactly once by the GPT activation transition for task epoch 137 after an explicit user
+  launch. The activation must re-observe current main and verify this receipt remains canonical, unexpired, unrevoked and
+  unconsumed; verify no route/claim/lane/agent/resource/private/secret drift; and bind the resulting executable control
+  plane. It is not itself executable authority.
+
+retirement_rule: >-
+  After R137 provider exact-head acceptance and merge, this bootstrap must be marked consumed/retired as historical root
+  evidence. Regression must prove it cannot be replayed for R137 again or reused for R138.
+
+final_decision:
+  bootstrap_evidence_present: true
+  bootstrap_currently_usable_for_activation: false
+  reason_not_usable_yet: "EXPLICIT_USER_R137_LAUNCH_NOT_RECEIVED"
+  codex_execution_allowed: false
+  next_gate: "MERGE_BOOTSTRAP_EVIDENCE_THEN_WAIT_FOR_EXPLICIT_USER_R137_LAUNCH"
