@@ -1,4 +1,4 @@
-schema_version: "138.1"
+schema_version: "138.2"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 366
@@ -7,25 +7,26 @@ parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 138
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】R138 Domain Capability Execution Provider"
-status: "PREPARED_NON_EXECUTABLE"
-execution_allowed: false
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: true
+second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "RESERVED / USER_START_AND_NEW_FRESH_ACTIVATION_OBSERVATION_PENDING"
+runtime_code_change_allowed: true
+runtime_code_scope: "R138_BOUNDED_DOMAIN_CAPABILITY_EXECUTION_PROVIDER_EXACT_ALLOWLIST_ONLY"
 
 canonical_predecessor_route_epoch: 137
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 canonical_predecessor_closure_main: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
 canonical_main_at_prepare: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
 canonical_reservation_merge_main: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+canonical_post_reservation_main: "98cb9265e526bc2f0707579dd7fe06b90dfdc44c"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER-R138.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER.yaml"
 reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION.yaml"
 post_reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/R138-POST-RESERVATION-RECONCILIATION.yaml"
-activation_reconciliation_receipt: "PENDING_EXPLICIT_USER_START_AND_NEW_FRESH_PROVIDER_OBSERVATION"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R138-ACTIVATION-RECONCILIATION.yaml"
 implementation_branch: "codex/r138-domain-capability-execution-provider"
 implementation_pr: null
 
@@ -66,15 +67,32 @@ post_reservation_observation:
   grants_execution: false
   persistent_r137_workflow_invoker_gap: "CONFIRMED_HARDCODED_R137_TASK_EPOCH / PROVIDER_ITSELF_SUCCESSOR_CAPABLE"
 
+activation:
+  user_command: "启动 R138"
+  user_command_received_at: "2026-08-16T22:02:00+08:00"
+  command_consumed: true
+  evidence_pr: 371
+  evidence_pr_head: "2942a2e3dd9e6cc1f4d96ec584275fbd43320aa4"
+  evidence_pr_disposition: "CLOSED_UNMERGED / EVIDENCE_ONLY"
+  acceptance_comment: 5307833602
+  workflow_run: 31951628708
+  python_311_job: 95175843553
+  python_313_job: 95175843672
+  observed_main: "98cb9265e526bc2f0707579dd7fe06b90dfdc44c"
+  proof_py311: "provider://r137/evidence/r137:2ba08eeeb1846e5f075f6531#sha256=2e6204cbfaff2a4834a0b28955b4e436f855967fc17529f347d149584ce309e9"
+  proof_py313: "provider://r137/evidence/r137:59cbd8250f1f232d2fb40c0a#sha256=d0cce4e61c1582ce1fb7361a70ae2ad3b96525a1bdc29a829bf3146801e10bd6"
+  r137_regressions: "49/49 PASS on both jobs"
+  r136_regressions: "47/47 PASS on both jobs"
+  reconciliation: "PASS_FOR_BOUNDED_R138_IMPLEMENTATION_ACTIVATION"
+  activation_pr_exact_head_ci_required: true
+
 release_phase:
-  phase: "A2_PREPARED_AWAITING_EXPLICIT_USER_ACTIVATION"
-  execution_state: "BLOCKED_PENDING_EXPLICIT_USER_START_AND_NEW_FRESH_PROVIDER_OBSERVATION"
+  phase: "B_ACTIVE_IMPLEMENTATION"
+  execution_state: "READY_AFTER_ACTIVATION_CANONICAL_MERGE"
   hard_rule: >-
-    R138 architecture and non-executable reservation are canonical, and accepted R137 provider evidence has verified the
-    reserved state. Codex still may not implement R138. When the user explicitly says `启动 R138`, GPT must first obtain a
-    NEW fresh accepted-provider observation of then-current main/control-plane through a governed successor-capable invoker,
-    bind a fresh Global Reconciliation, run same-agent/O0-O4/resource/authority checks, and merge a separate exact-head
-    activation before execution_allowed/runtime_code_change_allowed may become true.
+    R138 may execute only after the activation PR containing this exact route/task/claim/lane state passes exact-head
+    Control Tower CI and is merged by GPT. The explicit user start command has been consumed by this activation only.
+    Any material main, route, claim, source, authority or local-lease drift before Codex writes requires a fresh stop/recheck.
 
 objective: >-
   Implement a bounded provider-neutral execution-evidence boundary that proves an allowlisted domain capability actually
@@ -82,15 +100,14 @@ objective: >-
   upgrades RuntimeInvocationReceipt scan/capability evidence without becoming Control Tower, W3, domain truth, task-release,
   merge or outcome-truth authority.
 
-future_allowed_write_paths_after_activation:
+allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/capability_execution_provider.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r138_capability_execution_provider.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R138"
   - ".github/workflows/global-signal-plane-r138-capability-execution.yml"
-allowed_write_paths: []
-current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+current_write_permission: "AUTHORIZED_AFTER_ACTIVATION_MERGE / EXACT_ALLOWLIST_ONLY"
 
 provider_boundary:
   primary_v1_class: "EXACT_REPOSITORY_EXECUTABLE"
@@ -112,8 +129,8 @@ external_domain_boundary:
   unrelated_cognitive_scan_satisfaction: "FORBIDDEN"
 
 execution_contract:
-  r138_runtime_before_activation: "FORBIDDEN"
   arbitrary_command_or_shell: "FORBIDDEN"
+  private_repository_credentials: "FORBIDDEN"
   private_chat_w3: "FORBIDDEN"
   w3_runtime_schema_change: "FORBIDDEN"
   harness_runtime_install_bind_activate: "FORBIDDEN"
@@ -128,7 +145,7 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
-  class: "RESERVED_MEDIUM_IMPLEMENTATION / NOT_ACTIVE"
+  class: "MEDIUM_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   capability_execution_concurrency: 1
@@ -139,25 +156,25 @@ resource_contract:
   broad_matrix: "REMOTE_CI_PREFERRED"
   daemon_server: "FORBIDDEN"
 
-activation_guard:
+launch_guard:
   repository_must_equal: "vxz2datoubo/second-brain-coordination"
   task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
   route_epoch_must_equal: 138
   issue_must_equal: 366
   planned_branch_must_equal: "codex/r138-domain-capability-execution-provider"
-  new_fresh_r137_live_observation_required_after_user_start: true
-  fresh_global_reconciliation_required: true
-  reservation_must_be_canonical: true
-  explicit_user_command_required: "启动 R138"
-  exact_head_activation_ci_required: true
-  fail_if_same_codex_execution_active: true
+  canonical_status_must_equal: "READY"
+  execution_allowed_must_equal: true
+  activation_reconciliation_receipt_must_exist: true
+  local_same_codex_or_heavy_stage_collision_must_be_absent: true
+  ai_film_reference_commit_must_equal: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
   fail_if_private_secret_domain_write_or_authority_expansion_required: true
   fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_EVIDENCE_OR_LEASE_CONFLICT"
   auto_switch_or_guess_intent: "FORBIDDEN"
 
 completion_signal: "R138_DOMAIN_CAPABILITY_EXECUTION_PROVIDER_READY_FOR_GPT_REVIEW"
-next_command: "AWAIT_EXPLICIT_USER_COMMAND_START_R138"
+next_command: "USE_FULL_R138_LAUNCH_ENVELOPE_FROM_GPT"
 lock_statement: >-
-  Epoch 138 is fully prepared but non-executable. It grants no capability execution, arbitrary command, private/W3, domain
-  write, Harness/H2/H7, daemon/live/production, permission/secret, Formal Skill, trading or merge authority. Explicit user
-  start plus a new fresh provider observation/reconciliation and separate GPT activation remain mandatory.
+  Epoch 138 authorizes one bounded R138 implementation lease only after this activation is canonical. It grants no arbitrary
+  shell/network, private repository/credentials, domain/W3 write, Harness/H2/H7, daemon/live/production, permission/secret,
+  Formal Skill, trading, task-release, outcome-truth or Codex merge authority. Any implementation merge requires later
+  independent GPT acceptance and explicit user authorization.
