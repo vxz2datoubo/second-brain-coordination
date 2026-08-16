@@ -1,10 +1,10 @@
-schema_version: "2.0"
+schema_version: "2.1"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-16T08:40:00+08:00"
+as_of: "2026-08-16T08:50:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -55,23 +55,24 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    Lane A R135 S0D is only a non-executable reservation in Phase A. It occupies the declared future S0D surface but
-    consumes no active Codex execution lease. H2/H7/S0E/private/production remain separately unauthorized; Lane B remains held.
+    Lane A S0D is the single active Codex implementation after Phase B activation. It is medium implementation with
+    a read-only external AI Film source. H2/H7/S0E/private/production remain separately unauthorized; Lane B remains held.
 
 current_user_release_policy:
-  decision_at: "2026-08-16T08:40:00+08:00"
-  decision: "PREPARE_LANE_A_S0D_READ_ONLY_RESERVATION_PHASE_A_KEEP_EXECUTION_BLOCKED"
+  decision_at: "2026-08-16T08:50:00+08:00"
+  decision: "ACTIVATE_LANE_A_S0D_READ_ONLY_SHADOW_AFTER_FRESH_PHASE_B_RECONCILIATION"
   rationale: >-
-    The user explicitly chose the recommended S0D next step after R134 S0C closure. S0D is already the canonical next
-    DAG node and requires S0C plus a fresh cross-repo read-only gate. Phase A therefore reserves the exact implementation
-    surface while keeping execution blocked until a successor post-merge reconciliation verifies both repositories again.
-  released_implementation_lanes: []
-  prepared_implementation_lanes:
+    The user explicitly selected S0D after R134 closure. Phase A reservation PR #349 merged, then GPT re-fetched both
+    repositories and per-agent state. AI Film main/source authority remained unchanged, no remote open PR was observed,
+    QCLAW/WorkBuddy remained non-executable, and the reserved R135 identity stayed intact. The exact S0D claim may
+    therefore upgrade to one active Codex implementation after the Phase B activation PR passes Control Tower CI and merges.
+  released_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION"
+  prepared_implementation_lanes: []
   released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "GPT_WITH_EXPLICIT_USER_S0D_DIRECTION_TWO_PHASE_RELEASE"
+  release_owner: "GPT_WITH_EXPLICIT_USER_S0D_DIRECTION_AND_TWO_PHASE_RELEASE"
   signal_tower_architecture_pr: 342
   signal_tower_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
   s0c_pr: 346
@@ -79,24 +80,26 @@ current_user_release_policy:
   r134_closure_merge: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
   s0d_issue: 348
   s0d_route_epoch: 135
-  s0d_phase: "A_RESERVATION_NON_EXECUTABLE"
-  s0d_release: "PREPARED_NON_EXECUTABLE"
+  phase_a_pr: 349
+  phase_a_head: "25d6570e86233b30e9d3be59cc14dd1f3b0ebf69"
+  phase_a_control_tower_ci: 31918034024
+  phase_a_merge_commit: "0f70131362eb5be2f78b246531e3368e4a854595"
   bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135.yaml"
+  activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135-ACTIVATION.yaml"
   ai_film_repository: "vxz2datoubo/eustia-ai-film"
-  ai_film_main_at_prepare: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_main_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_source_authority_blob_sha: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
+  s0d_execution: "ACTIVE_AFTER_PHASE_B_CANONICAL_MERGE_AND_USER_LAUNCH"
+  s0e_release: "NOT_AUTHORIZED"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
-  s0e_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
-  phase_b_activation_requires:
-    - "Phase A canonical merge"
-    - "fresh Second Brain main snapshot"
-    - "fresh AI Film main/open-PR/source-authority snapshot"
-    - "fresh per-agent route and Work Claim scan"
-    - "successor GlobalReconciliationReceipt"
-    - "fresh O0-O4/same-agent/resource scan"
-    - "exact-head Control Tower witness"
-    - "GPT Phase B merge"
+  implementation_release_requires:
+    - "the Phase B activation PR itself must pass exact-head Control Tower CI"
+    - "expected-head GPT merge"
+    - "full R135 Launch Envelope from the user into the Second Brain Codex workspace"
+    - "launch-time source/route/repository identity check"
+    - "fail-closed if known local AI Film Codex execution is active or source commit drifts"
 
 observed_agent_state:
   CODEX:
@@ -105,9 +108,9 @@ observed_agent_state:
     observed_route_epoch: 135
     observed_issue: 348
     observed_pr: null
-    observed_status: "PREPARED_NON_EXECUTABLE"
-    execution_allowed: false
-    observation_status: "PHASE_A_RESERVED / NO_ACTIVE_CODEX_EXECUTION_LEASE"
+    observed_status: "READY"
+    execution_allowed: true
+    observation_status: "ACTIVE_S0D_READ_ONLY_CROSS_REPO / SINGLE_CODEX_LEASE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -117,14 +120,14 @@ observed_agent_state:
     observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
     execution_allowed: false
     quota_hold: "NO_FURTHER_QCLAW_EXECUTION_ON_2026-08-14"
-    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
+    observation_status: "VERIFIED_REPOSITORY_AT_PHASE_B_CHECK"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_issue: 89
     observed_pr: 97
     observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
-    observation_status: "VERIFIED_REPOSITORY_AT_PRIOR_CHECK"
+    observation_status: "VERIFIED_REPOSITORY_AT_PHASE_B_CHECK"
 
 known_stale_aggregate_views:
   - path: "coordination/ACTIVE-THREE-AGENT-COORDINATION.yaml"
@@ -139,10 +142,10 @@ program_lanes:
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线", "Unified Signal Tower线"]
     mission: >-
       Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
-      authorities. S0C is completed; current prepared successor is S0D read-only cross-repo shadow, still non-executable.
-    desired_state: "READY"
-    observed_state: "READY"
-    hold_reason: "PHASE_A_RESERVATION / EXECUTION_BLOCKED_PENDING_PHASE_B"
+      authorities. Current active slice is S0D: one-shot read-only cross-repo shadow ingestion from exact-commit domain refs.
+    desired_state: "ACTIVE"
+    observed_state: "ACTIVE"
+    hold_reason: null
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -154,18 +157,20 @@ program_lanes:
       - "Unified Signal Tower enterprise architecture merged in PR #342"
       - "R134 S0C implementation merged in PR #346"
       - "R134 closure merged in PR #347"
+      - "R135 Phase A reservation merged in PR #349"
       - "Issue #348 S0D read-only cross-repo shadow"
       - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135.yaml"
+      - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135-ACTIVATION.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
-    current_phase: "S0D_PHASE_A_RESERVED_NON_EXECUTABLE"
+    current_phase: "S0D_READ_ONLY_CROSS_REPO_SHADOW_ACTIVE"
     active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW-R135.yaml"
     heavy_execution_authorized: false
     dependencies:
       - "S0C completed and closed"
-      - "fresh cross-repo read-only Phase A receipt"
+      - "Phase A reservation merged"
+      - "fresh Phase B cross-repo reconciliation PASS"
       - "AI Film remains domain authority through PROJECT_INDEX.yaml"
-      - "Phase B successor reconciliation after Phase A merge"
+      - "AI Film external access remains exact-commit read-only"
       - "no known local AI Film Codex execution at actual launch"
     shared_interfaces:
       - "Global Signal Plane contracts"
@@ -174,9 +179,9 @@ program_lanes:
       - "AI Film Domain Adapter read-only boundary"
       - "W3 frozen consumption boundary"
       - "Trace/lineage boundary"
-    next_gate: "PHASE_A_MERGE_THEN_FRESH_CROSS_REPO_RECONCILIATION_FOR_PHASE_B_ACTIVATION"
+    next_gate: "S0D_EXACT_HEAD_GPT_REVIEW_NO_AUTO_S0E_H2_H7"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "S0D_PHASE_A_RESERVED / READ_ONLY_CROSS_REPO"
+    maturity: "S0D_ACTIVE_IMPLEMENTATION / READ_ONLY_CROSS_REPO"
     proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -258,7 +263,7 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_READ"
     shared_domains: [W3, W9, W10, W12]
-    rule: "Lane A is only reserved/non-executable; Lane B remains held. Fresh claim-level scan required at Phase B."
+    rule: "Lane A owns exact S0D surfaces; Lane B remains held. Claim-level collision remains read/read only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10]
@@ -281,6 +286,6 @@ flow_metrics:
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before Phase B activation or any later cross-program implementation, fetch current per-agent routes, relevant canonical
-  indices, both repository heads and a fresh GlobalReconciliationReceipt; classify drift/overlap and fail closed on O4,
-  stale receipt, same-agent double-booking, cross-window drift or unknown local AI Film Codex collision.
+  Before S0D acceptance or any successor implementation, fetch current per-agent routes, relevant canonical indices,
+  source repo head and a fresh GlobalReconciliationReceipt; fail closed on O4, stale receipt, same-agent double-booking,
+  cross-window drift, source commit drift or unknown local AI Film Codex collision at launch.
