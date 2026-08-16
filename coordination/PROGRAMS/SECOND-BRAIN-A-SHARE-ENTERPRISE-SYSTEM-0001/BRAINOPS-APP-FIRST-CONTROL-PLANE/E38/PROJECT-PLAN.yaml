@@ -1,0 +1,40 @@
+task_id: CODEX-BRAINOPS-TRUSTED-APPROVAL-TRANSPORT-GIT-TREE-AND-EXACT-HEAD-CI-CLOSURE-0033-E38
+agent_id: CODEX
+route_epoch: 39
+mode: target
+status: IN_PROGRESS
+remote_main_head_at_claim: edf9baee3ae5878d46691b9b5fa94b1c0ea8a672
+reviewed_base: a5164849defd4ebd0944552a83076f71c3490c15
+source:
+  pull_request: 115
+  tested_head: 0221d629a80afe1232ebe4b1e05a77af64940851
+  receipt_head: 665bed5411248f0b9926c4beac4529694387ff70
+branch: codex/brainops-trusted-authority-exact-ci-0033-e38
+completion_signal: CODEX_BRAINOPS_E38_TRUSTED_APPROVAL_GIT_TREE_EXACT_HEAD_CI_READY_FOR_GPT_REVIEW
+boundary:
+  - PRE_CANARY_TRUST_CLOSURE_ONLY
+  - PUBLIC_READ_ONLY
+  - NO_TRADE
+forbidden_actions:
+  - canary_execution
+  - automatic_dispatch
+  - app_automation
+  - codex_cli
+  - gpt_auto_review
+  - ui_or_private_ipc
+  - credential_or_session_access
+  - account_order_or_trade
+  - main_write_or_merge
+phases:
+  - name: frozen_source_import
+    acceptance: E37_source_is_preserved_with_its_nonacceptance_disposition_recorded
+  - name: trusted_authority_replacement
+    acceptance: only_internal_verifiers_can_make_verified_results_and_all_public_inputs_are_parsed_or_fetched
+  - name: exact_head_evidence
+    acceptance: workflow_asserts_explicit_PR_head_checkout_and_dual_runtime_evidence_binds_to_the_final_executable_commit
+  - name: receipt_and_handoff
+    acceptance: one_nonempty_evidence_only_receipt_follows_the_final_tested_head_then_work_stops_for_GPT_review
+recovery:
+  command: git status --short; git log --oneline -8
+  rollback: git revert <E38_substantive_commit_sha>
+  stop_after_completion: request_GPT_second_pass
