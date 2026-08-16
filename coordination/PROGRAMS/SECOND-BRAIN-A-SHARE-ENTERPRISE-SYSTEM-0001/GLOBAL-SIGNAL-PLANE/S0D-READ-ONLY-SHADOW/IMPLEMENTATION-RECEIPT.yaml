@@ -1,0 +1,37 @@
+schema_version: "1.1"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+route_epoch: 135
+scope: "READ_ONLY_EXACT_COMMIT_BOUND_METADATA_AND_OPAQUE_REFS_ONLY"
+reviewed_predecessor_head: "60e6dd078cebebf28c66e6e7c9602253c29f0137"
+runtime_remediation_commit: "66e7af0cf96766f303d6bf9ec83cc30aebac0e62"
+tested_runtime_head: "f3dcc50bb3ee49193e8e0e63d3e29f95d801cdff"
+source_receipt: "REAL-SOURCE-ONE-SHOT-SHADOW-RECEIPT.json"
+durable_replay_receipt: "DURABLE-S0C-REPLAY-RECEIPT.json"
+self_shadow_receipt: "SECOND-BRAIN-SELF-SHADOW-RECEIPT.json"
+implemented:
+  - "B01 Git-root, HEAD, tree/blob and worktree payload exact binding for every allowlisted source path"
+  - "B02 source observations admitted as S0C SignalEvent plus SignalLink through DurableSignalLedger SQLite"
+  - "B03 mechanism-derived R001-R020, including status transition, omission no-op, Git-bound self-shadow and fresh-ledger replay"
+  - "B04 conservative path/schema-aware item extraction; unsupported semantics remain UNKNOWN"
+  - "B05 ten-record public-safe manifest plus durable replay and self-shadow receipts"
+not_implemented: ["AI Film write", "domain body persistence", "W3 write", "live streaming", "production", "trading"]
+validation:
+  focused_s0d: "7/7 PASS; includes 20/20 mechanism matrix"
+  local_s0c_and_adapter: "12/12 + 25/25 + 61/61 PASS"
+  local_phase3: "291/291 PASS; public safety 108 files/0 issues"
+  tested_runtime_ci: "S0D 31922700529 Python 3.11/3.13 PASS; Phase 3 31922700558 Python 3.11/3.13 PASS"
+  artifact_parse: "JSON and YAML PASS"
+  diff_check: "PASS"
+ci_dependency_correction:
+  prior_exact_head: "66e7af0cf96766f303d6bf9ec83cc30aebac0e62"
+  observed_failure: "S0D CI lacked PyYAML for schema-aware parsing"
+  additive_fix_commit: "f3dcc50bb3ee49193e8e0e63d3e29f95d801cdff"
+  result: "exact-head CI PASS after workflow installs PyYAML==6.0.2"
+post_commit_evidence: >-
+  This documentation commit is deliberately downstream of the tested runtime head; its own exact-head CI and final
+  remote SHA are to be recorded in the GPT review-request comment, avoiding a self-referential receipt commit loop.
+rollback: "Revert the R135 remediation commits or close the Draft PR; no external state was mutated."
