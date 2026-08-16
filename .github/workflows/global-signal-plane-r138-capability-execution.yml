@@ -38,6 +38,10 @@ jobs:
     outputs:
       ai_film_commit: ${{ steps.identity.outputs.commit }}
       requirements_sha256: ${{ steps.identity.outputs.requirements_sha256 }}
+      artifact_id: ${{ steps.upload_provisioning.outputs.artifact-id }}
+      artifact_digest: ${{ steps.upload_provisioning.outputs.artifact-digest }}
+      artifact_url: ${{ steps.upload_provisioning.outputs.artifact-url }}
+      artifact_name: ${{ steps.identity.outputs.artifact_name }}
     steps:
       - name: Checkout exact public AI Film source
         run: |
@@ -53,6 +57,7 @@ jobs:
           cmp "$RUNNER_TEMP/requirements.txt" tools/golden_case_ingestor/requirements.txt
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "requirements_sha256=$(sha256sum "$RUNNER_TEMP/requirements.txt" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=r138-public-provisioning-${{ github.event.pull_request.head.sha || github.sha }}" >> "$GITHUB_OUTPUT"
       - name: Public dependency provisioning only (not execution evidence)
         env:
           R138_EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -69,21 +74,15 @@ jobs:
           EOF
           docker build --pull -t r138-ai-film-golden-case:provisioned -f "$RUNNER_TEMP/Dockerfile.r138" "$RUNNER_TEMP"
           docker save r138-ai-film-golden-case:provisioned -o "$RUNNER_TEMP/r138-ai-film-image.tar"
-          python - <<'PY'
-          import hashlib, json, os, subprocess
-          root=os.environ['RUNNER_TEMP']; image=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}','r138-ai-film-golden-case:provisioned'], text=True).strip()
-          wheels=hashlib.sha256(open(root+'/wheelhouse.sha256','rb').read()).hexdigest()
-          json.dump({'image':'r138-ai-film-golden-case:provisioned','image_id':image,'wheelhouse_sha256':wheels,'workflow':'Global Signal Plane R138 Capability Execution','head_sha':os.environ['R138_EXACT_HEAD'],'run_id':os.environ['GITHUB_RUN_ID'],'provisioning_artifact_id':'r138-public-provisioning-'+os.environ['R138_EXACT_HEAD'],'provisioning_artifact_digest':wheels},open(root+'/provisioning-attestation.json','w'),sort_keys=True)
-          PY
-      - uses: actions/upload-artifact@v4
+      - id: upload_provisioning
+        uses: actions/upload-artifact@v4
         with:
-          name: r138-public-provisioning-${{ github.sha }}
+          name: ${{ steps.identity.outputs.artifact_name }}
           path: |
             ${{ runner.temp }}/ai-film.bundle
             ${{ runner.temp }}/wheelhouse
             ${{ runner.temp }}/wheelhouse.sha256
             ${{ runner.temp }}/r138-ai-film-image.tar
-            ${{ runner.temp }}/provisioning-attestation.json
           retention-days: 3
 
   offline-bounded-ai-film-execution:
@@ -96,9 +95,14 @@ jobs:
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - uses: actions/download-artifact@v4
         with:
-          name: r138-public-provisioning-${{ github.sha }}
+          name: ${{ needs.public-dependency-provisioning.outputs.artifact_name }}
           path: ${{ runner.temp }}/provisioned
       - name: Verify provisioning identities and load pre-provisioned executor
+        env:
+          R138_EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+          R138_ARTIFACT_ID: ${{ needs.public-dependency-provisioning.outputs.artifact_id }}
+          R138_ARTIFACT_DIGEST: ${{ needs.public-dependency-provisioning.outputs.artifact_digest }}
+          R138_ARTIFACT_NAME: ${{ needs.public-dependency-provisioning.outputs.artifact_name }}
         run: |
           git clone "$RUNNER_TEMP/provisioned/ai-film.bundle" "$RUNNER_TEMP/provisioned/ai-film"
           git -C "$RUNNER_TEMP/provisioned/ai-film" checkout --detach "${{ needs.public-dependency-provisioning.outputs.ai_film_commit }}"
@@ -107,13 +111,19 @@ jobs:
           ACTUAL=$(sha256sum "$RUNNER_TEMP/provisioned/wheelhouse/requirements.txt" | cut -d' ' -f1)
           test "$ACTUAL" = "${{ needs.public-dependency-provisioning.outputs.requirements_sha256 }}"
           docker load -i "$RUNNER_TEMP/provisioned/r138-ai-film-image.tar"
+          python - <<'PY'
+          import hashlib, json, os, subprocess
+          root=os.environ['RUNNER_TEMP']+'/provisioned'; image=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}','r138-ai-film-golden-case:provisioned'], text=True).strip()
+          wheels=hashlib.sha256(open(root+'/wheelhouse.sha256','rb').read()).hexdigest()
+          json.dump({'image':'r138-ai-film-golden-case:provisioned','image_id':image,'wheelhouse_sha256':wheels,'workflow':'Global Signal Plane R138 Capability Execution','head_sha':os.environ['R138_EXACT_HEAD'],'run_id':os.environ['GITHUB_RUN_ID'],'provisioning_artifact_id':os.environ['R138_ARTIFACT_ID'],'provisioning_artifact_digest':os.environ['R138_ARTIFACT_DIGEST'],'provisioning_artifact_name':os.environ['R138_ARTIFACT_NAME']},open(root+'/governed-execution-attestation.json','w'),sort_keys=True)
+          PY
       - name: Offline bounded execution and public-safe evidence artifact
         env:
           PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src
           PYTHONDONTWRITEBYTECODE: "1"
           R138_SOURCE_ROOT: ${{ runner.temp }}/provisioned/ai-film
           R138_PROOF_PATH: ${{ runner.temp }}/r138-ai-film-capability-proof.json
-          R138_GOVERNED_PROVISIONING_ATTESTATION: ${{ runner.temp }}/provisioned/provisioning-attestation.json
+          R138_GOVERNED_PROVISIONING_ATTESTATION: ${{ runner.temp }}/provisioned/governed-execution-attestation.json
         run: |
           python - <<'PY'
           import json, os

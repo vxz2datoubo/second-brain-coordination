@@ -6,12 +6,14 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
+from unittest.mock import patch
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT.parent / "S0-SYNTHETIC" / "src")]
-from global_signal_gateway.capability_execution_provider import (CapabilityDescriptor, CapabilityExecutionRequest, CONTRACT_REVISION, ExactRepositoryCapabilityProvider, _tree_digest, verify_capability_execution_proof, verify_historical_capability_execution_proof)
+from global_signal_gateway.capability_execution_provider import (CapabilityDescriptor, CapabilityExecutionRequest, CONTRACT_REVISION, ExactRepositoryCapabilityProvider, _BUNDLES, _tree_digest, verify_capability_execution_proof, verify_historical_capability_execution_proof)
 from global_signal_gateway.gateway import GatewayError, RuntimeInvocationReceipt, digest
 
 
@@ -68,12 +70,25 @@ class R138AcceptanceMatrix(unittest.TestCase):
     def test_r008_executor_identity_drift_invalid(self): self.invalid("executor_digest", "0" * 64)
     def test_r009_input_identity_drift_invalid(self): self.invalid("input_set_digest", "0" * 64)
     def test_r010_result_substitution_invalid(self): self.invalid("result_digest", "f" * 64)
-    def test_r011_bundle_digest_mutation_invalid(self): self.invalid("evidence_digest", "0" * 64)
+    def test_r011_bundle_digest_mutation_invalid(self):
+        bundle, proof, _ = self.valid(); originals = _BUNDLES[proof.evidence_ref]
+        mutations = (replace(bundle, runtime_identity={"image_id":"substituted"}), replace(bundle, privacy_scope_ref="other"), replace(bundle, started_at="2026-01-01T00:00:00+00:00", duration_ms=99), replace(bundle, stdout_digest="0"*64, output_bytes=1), replace(bundle, source_clean_after=False), replace(bundle, cleanup_complete=False, descendant_ownership_verified=False))
+        try:
+            for changed in mutations:
+                _BUNDLES[proof.evidence_ref] = changed
+                self.assertFalse(verify_historical_capability_execution_proof(proof))
+                self.assertFalse(verify_capability_execution_proof(proof))
+        finally: _BUNDLES[proof.evidence_ref] = originals
     def test_r012_execution_identity_mismatch_invalid(self): self.invalid("execution_id")
     def test_r013_cross_domain_capability_mismatch_invalid(self): self.invalid("domain_id")
     # R014-R022: bounded process, environment, isolation and cleanup.
     def test_r014_timeout_blocks_proof(self):
         temp, p, r = self.fixture("import time; time.sleep(4)\n"); self.addCleanup(temp.cleanup); b, proof = p.execute(r); self.assertTrue(b.timed_out); self.assertIsNone(proof)
+        root=Path(temp.name)/"owned"; (root/"source").mkdir(parents=True); (root/"source-before").mkdir(); out=root/"output"; out.mkdir(); cid="a"*64; (out/"cid").write_text(cid); calls=[]
+        def fake(command, **kwargs):
+            calls.append(command); return type("R",(),{"returncode":0,"stdout":""})()
+        with patch("global_signal_gateway.capability_execution_provider.subprocess.run", fake): self.assertTrue(ExactRepositoryCapabilityProvider._post_boundary_clean(p,root,out,p.descriptor,str(out/"cid"))[1])
+        self.assertIn(("docker","rm","-f",cid), calls)
     def test_r015_nonzero_blocks_proof(self):
         temp, p, r = self.fixture("raise SystemExit(3)\n"); self.addCleanup(temp.cleanup); b, proof = p.execute(r); self.assertEqual(b.exit_code, 3); self.assertIsNone(proof)
     def test_r016_oversized_output_fails_closed(self):
@@ -89,6 +104,8 @@ class R138AcceptanceMatrix(unittest.TestCase):
         temp, p, r = self.fixture("open('runner.py','a').write('x')\n"); self.addCleanup(temp.cleanup); b, proof = p.execute(r); self.assertIn("WRITE_ISOLATION_UNVERIFIED", b.warnings); self.assertIsNone(proof)
     def test_r021_cleanup_observed_after_context(self):
         b, _, _ = self.valid(); self.assertTrue(b.cleanup_complete); self.assertTrue(b.descendant_ownership_verified)
+        temp,p,_=self.fixture(); self.addCleanup(temp.cleanup); root=Path(temp.name)/"missing"; (root/"source").mkdir(parents=True); (root/"source-before").mkdir(); out=root/"output"; out.mkdir()
+        with patch("global_signal_gateway.capability_execution_provider.subprocess.run") as run: self.assertFalse(ExactRepositoryCapabilityProvider._post_boundary_clean(p,root,out,p.descriptor,str(out/"missing"))[1]); run.assert_not_called()
     def test_r022_resource_boundary_is_bound(self):
         b, proof, _ = self.valid(); self.assertTrue(b.boundary_enforcement["resource_limits"]); self.assertTrue(verify_capability_execution_proof(proof))
     # R023-R035: unsupported semantics, receipt behavior, and authority.
@@ -116,7 +133,10 @@ class R138AcceptanceMatrix(unittest.TestCase):
     def test_r037_ignored_source_file_not_materialized(self):
         temp, p, r = self.fixture("from pathlib import Path\nassert not (Path('../ignored-runtime.txt')).exists()\n"); self.addCleanup(temp.cleanup); (Path(r.source_root) / "ignored-runtime.txt").write_text("untracked"); b, proof = p.execute(r); self.assertIsNotNone(proof); self.assertTrue(b.source_clean_before)
     def test_r038_single_worker_no_nested_pool(self):
-        b, _, _ = self.valid(); self.assertEqual(b.resource_policy_ref, "synthetic://resource/single")
+        b, _, r = self.valid(); self.assertEqual(b.resource_policy_ref, "synthetic://resource/single"); temp,p,_=self.fixture(); self.addCleanup(temp.cleanup); entered=threading.Event(); release=threading.Event(); p._execute_serial=lambda request: (entered.set(),release.wait(2), (b,None))[2]
+        worker=threading.Thread(target=lambda:p.execute(r)); worker.start(); self.assertTrue(entered.wait(1))
+        with self.assertRaisesRegex(GatewayError,"PROVIDER_EXECUTION_IN_FLIGHT"): p.execute(r)
+        release.set(); worker.join(2); self.assertFalse(worker.is_alive())
     def test_r039_task_owned_cleanup_has_no_leaked_workspace(self):
         b, _, _ = self.valid(); self.assertTrue(b.cleanup_complete)
     def test_r040_ci_matrix_is_declared_in_acceptance_plan(self): self.assertTrue((ROOT / "R138" / "EXECUTION-PLAN.yaml").exists())

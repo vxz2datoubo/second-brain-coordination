@@ -188,10 +188,10 @@ class ExactRepositoryCapabilityProvider:
         if result.returncode or not result.stdout.strip(): raise GatewayError("GOVERNED_RUNTIME_NOT_PROVISIONED")
         image_id = result.stdout.strip()
         wheels = declared.get("wheelhouse_sha256")
-        required = ("workflow", "head_sha", "run_id", "provisioning_artifact_id", "provisioning_artifact_digest")
+        required = ("workflow", "head_sha", "run_id", "provisioning_artifact_id", "provisioning_artifact_digest", "provisioning_artifact_name")
         if not isinstance(wheels, str) or not _safe_sha(wheels) or any(not declared.get(key) for key in required) or declared.get("image_id") != image_id or declared.get("image") != descriptor.runtime_image:
             raise GatewayError("GOVERNED_RUNTIME_ATTESTATION_MISMATCH")
-        return {"runtime": "docker", "image": descriptor.runtime_image, "image_id": image_id, "wheelhouse_sha256": wheels, "workflow": str(declared["workflow"]), "head_sha": str(declared["head_sha"]), "run_id": str(declared["run_id"]), "provisioning_artifact_id": str(declared["provisioning_artifact_id"]), "provisioning_artifact_digest": str(declared["provisioning_artifact_digest"]), "attestation_file_digest": _hash_file(Path(attestation)), "host_python": sys.version.split()[0], "os": os.name}
+        return {"runtime": "docker", "image": descriptor.runtime_image, "image_id": image_id, "wheelhouse_manifest_digest": wheels, "workflow": str(declared["workflow"]), "head_sha": str(declared["head_sha"]), "run_id": str(declared["run_id"]), "provisioning_artifact_id": str(declared["provisioning_artifact_id"]), "provisioning_artifact_digest": str(declared["provisioning_artifact_digest"]), "provisioning_artifact_name": str(declared["provisioning_artifact_name"]), "attestation_file_digest": _hash_file(Path(attestation)), "host_python": sys.version.split()[0], "os": os.name}
 
     def _execute_boundary(self, descriptor: CapabilityDescriptor, source: Path, output: Path, request: CapabilityExecutionRequest) -> tuple[int | None, bool, bytes, bytes, Mapping[str, bool], Mapping[str, str], str]:
         runtime = self._runtime_identity(descriptor)
