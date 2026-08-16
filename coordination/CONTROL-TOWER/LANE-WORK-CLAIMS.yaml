@@ -1,4 +1,4 @@
-schema_version: "2.6"
+schema_version: "2.7"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -19,12 +19,9 @@ semantics:
   reserved_implementation_requires_non_executable_route: true
   reserved_implementation_requires_global_reconciliation_receipt: true
   reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
-  h1_authorization_does_not_authorize_h2: true
-  s0c_authorization_does_not_authorize_s0d_h2_h7: true
-  s0d_authorization_does_not_authorize_s0e_h2_h7_domain_write: true
-  r136_completion_does_not_authorize_successor_providers_ai_film_write_private_bridge_harness_h2_h7_production_trading: true
-  r137_completion_does_not_authorize_r138_domain_write_private_bridge_harness_h2_h7_production_trading: true
-  r137_root_bootstrap_evidence_does_not_authorize_successor_execution: true
+  r136_completion_does_not_authorize_successor_execution: true
+  r137_completion_does_not_authorize_r138_execution: true
+  r138_reservation_does_not_authorize_capability_execution_domain_write_private_bridge_harness_h2_h7_production_trading: true
   global_reconciliation_receipt_is_not_execution_authority: true
 
 proposal_roots:
@@ -54,35 +51,86 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
-    write_domains: []
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    execution_agent: "CODEX"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+      route_epoch: 138
+      issue: 366
+      pr: null
+      branch: "codex/r138-domain-capability-execution-provider"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/capability_execution_provider.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r138_capability_execution_provider.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R138"
+      - ".github/workflows/global-signal-plane-r138-capability-execution.yml"
+    read_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/GOVERNANCE"
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/PROGRAM-CONTROL-TOWER.md"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/director_route_index.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:tools/golden_case_ingestor"
+    interfaces:
+      - name: "R136-RuntimeInvocationReceipt"
+        mode: "read/integrate-after-activation"
+        frozen: true
+      - name: "R137-AuthorityBoundLiveObservationProof"
+        mode: "read/activation-evidence"
+        frozen: true
+      - name: "R138-CapabilityExecutionEvidenceBundle"
+        mode: "implement-after-activation"
+        frozen_for_r138: true
+      - name: "R138-CapabilityExecutionProof"
+        mode: "implement-after-activation"
+        frozen_for_r138: true
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read/evidence-only"
+        frozen: true
+      - name: "W3-Domain-Authority-Boundary"
+        mode: "no-write"
+        frozen: true
+    read_domains: [W1, W3, W7, W8, W9, W10, W12]
+    write_domains: [W8]
     authority_claims: []
-    closure_receipt:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
-      closure_issue: 360
-      merged_pr: 364
-      accepted_head: "a7789864eac267c569503342a66a961985a27745"
-      merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
-      final_review_id: 4946250299
-      exact_head_r137_ci: 31948699592
-      exact_head_s0e_ci: 31948699596
-      exact_head_phase3_ci: 31948699598
-      completed_route_epoch: 137
-      acceptance: "ACCEPTED / R137_PROVIDER_V1_MECHANISM_CLOSED / GOVERNED_PROCESS_TRUST_BOUNDARY_ACKNOWLEDGED"
-      receipt_ref: "coordination/CONTROL-TOWER/R137-LIVE-OBSERVATION-CLOSURE-RECONCILIATION.yaml"
-      successor_dependencies:
-        DOMAIN_CAPABILITY_EXECUTION_PROVIDER: "NOT_ACTIVE / FUTURE_GOVERNED_R138"
+    implementation_scope:
+      slice: "R138_DOMAIN_CAPABILITY_EXECUTION_PROVIDER"
+      issue: 366
+      phase: "A1_RESERVATION_NON_EXECUTABLE"
+      target_resource_class: "MEDIUM_IMPLEMENTATION"
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION.yaml"
+      execution_allowed: false
+      runtime_code_change_allowed: false
+      primary_capability_class_after_activation: "EXACT_REPOSITORY_EXECUTABLE"
+      arbitrary_shell_allowed: false
+      generic_network_allowed: false
+      private_repository_allowed: false
+      credentials_allowed: false
+      caller_provider_registration_allowed: false
+      ai_film_write_allowed: false
+      private_chat_allowed: false
+      w3_write_allowed: false
+      harness_runtime_allowed: false
+      h2_allowed: false
+      h7_allowed: false
+      production_allowed: false
+      trading_allowed: false
     stop_conditions:
-      - "R137 may not be resumed as an active implementation route."
-      - "R138 requires a new route epoch, fresh Work Claim, fresh live observation and fresh Global Reconciliation."
-      - "Domain write, private/W3, Harness/H2/H7, production, permissions/secrets, Formal Skill and trading remain separately gated."
+      - "Reservation is non-executable."
+      - "Write before explicit R138 activation -> STOP / NEEDS_GPT"
+      - "Write outside exact future allowlist -> STOP / NEEDS_GPT"
+      - "Arbitrary shell/generic network/private/credential/domain-write requirement -> STOP / architecture conflict"
+      - "Model self-report or scan-name echo used as execution proof -> STOP / FALSE_GREEN"
+      - "Same Codex execution collision or O3/O4 collision -> STOP / fresh reconciliation"
+      - "Passing tests or CI never authorizes merge or task release"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -117,11 +165,12 @@ claims:
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    R137 is completed and no Codex implementation lease is active. Lane B remains held proposal-only and Lane C remains
-    closed. R138 is not authorized merely because Lane A released its surfaces.
+    Lane A reserves R138 future surfaces without execution. Lane B remains held proposal-only and Lane C remains closed.
+    No current R138 runtime write or heavy worker is authorized.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
+  reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
-  r137_future_stage_separation: >-
-    R137 acceptance/merge/closure never implies Domain Capability Execution Provider, AI Film/domain write, private/live
-    bridge, Harness/H2/H7, production, permission change, Formal Skill promotion or trading authorization.
+  r138_future_stage_separation: >-
+    R138 reservation does not imply capability execution, AI Film/domain write, private/live bridge, Harness/H2/H7,
+    production, permission change, Formal Skill promotion or trading authorization.

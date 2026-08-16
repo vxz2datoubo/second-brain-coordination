@@ -1,0 +1,60 @@
+schema_version: "1.1"
+reservation_intake_id: "R138-DOMAIN-CAPABILITY-PROVIDER-RESERVATION-INTAKE-0001"
+issue: 366
+owner: "USER"
+architecture_owner: "GPT"
+status: "NON_EXECUTABLE_RESERVATION / FRESH_R137_OBSERVATION_BOUND"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+route_epoch: 138
+reservation_base_main: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+initial_reservation_evidence_head: "665e4bb707313791ab6c05534cdd38bd4b5c7e7c"
+reservation_pr: 368
+
+purpose: >-
+  Trigger and bind the accepted R137 live-observation workflow on the R138 reservation PR so GPT has mechanism-backed
+  fresh evidence about the post-architecture canonical main. This file is not an execution request and grants no R138
+  runtime authority.
+
+fresh_provider_evidence:
+  provider_id: "r137-public-github-on-demand-v1"
+  workflow_run: 31950908465
+  python_311_job: 95174101429
+  python_313_job: 95174101354
+  exact_head_asserted: "665e4bb707313791ab6c05534cdd38bd4b5c7e7c"
+  observed_main: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+  proof_py311: "provider://r137/evidence/r137:ea1baad433f10c570303d60b#sha256=4d1accaa10009ff582de06f0fdffc91e5997319f299678a92f5da21d3f939826"
+  proof_py313: "provider://r137/evidence/r137:ff1dc3c7ca6e9a7685f33dd8#sha256=0b6fa1e1dac1b854f8ae84b0f30dda0b9ed7af9d95a19b7df6114a917fc418c8"
+  r137_tests: "49/49 PASS"
+  retained_r136_tests: "47/47 PASS"
+  authority: "OBSERVATION_EVIDENCE_ONLY"
+  grants_r138_execution: false
+
+reservation_target:
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  route_epoch: 138
+  status: "PREPARED_NON_EXECUTABLE"
+  execution_allowed: false
+  runtime_code_change_allowed: false
+  current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+
+final_exact_head_policy:
+  required: true
+  purpose: >-
+    Updating this intake/receipt with the already-observed provider evidence intentionally creates a new exact head. Final
+    Control Tower/S0E/Phase3/R137 workflow results belong in PR review/handoff metadata and are not recursively committed.
+  final_r137_proof_must_observe_same_base_main: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+
+locks:
+  r138_execution: "FORBIDDEN"
+  domain_write: "FORBIDDEN"
+  private_w3: "FORBIDDEN"
+  harness_h2_h7: "FORBIDDEN"
+  arbitrary_shell_or_network: "FORBIDDEN"
+  credentials_secrets: "FORBIDDEN"
+  production: "FORBIDDEN"
+  permissions: "FORBIDDEN"
+  formal_skill: "FORBIDDEN"
+  trading: "FORBIDDEN"
+  codex_merge: "FORBIDDEN"
+
+next_gate: "FINAL_EXACT_HEAD_CI_AND_R137_PROOF_THEN_EXPECTED_HEAD_RESERVATION_MERGE"
