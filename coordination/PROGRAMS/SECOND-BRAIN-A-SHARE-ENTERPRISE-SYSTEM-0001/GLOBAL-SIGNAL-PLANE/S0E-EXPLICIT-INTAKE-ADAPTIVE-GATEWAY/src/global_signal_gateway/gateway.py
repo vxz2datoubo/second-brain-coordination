@@ -351,7 +351,14 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
         "domain_freshness_ref": proof.domain_freshness_ref, "pending_approval_ref": proof.pending_approval_ref,
     }
     digest_ok = len(proof.evidence_digest) == 64 and all(character in "0123456789abcdef" for character in proof.evidence_digest)
-    verifier = _LIVE_OBSERVATION_VERIFIERS.get(proof.provider_id)
+    # R137 has one statically wired production verifier.  The legacy mapping is
+    # deliberately retained only for the existing R136 in-test synthetic seam;
+    # no caller-facing provider-registration API exists.
+    if proof.provider_id == "r137-public-github-on-demand-v1":
+        from .live_observation_provider import verify_r137_proof
+        verifier: Callable[[AuthorityBoundLiveObservationProof, datetime], bool] | None = verify_r137_proof
+    else:
+        verifier = _LIVE_OBSERVATION_VERIFIERS.get(proof.provider_id)
     return bool(
         proof.repository and proof.pr_number > 0 and proof.pr_state and proof.head_sha and proof.base_sha
         and proof.review_state_ref and proof.exact_refs and proof.provider_id and proof.provider_attribution_ref
