@@ -2,9 +2,9 @@
 
 Status: `GPT_ARCHITECTURE_CANDIDATE / PLANNING_ONLY / NOT_EXECUTABLE`
 
-Issue: #366  
-Owner: USER  
-Architecture owner: GPT  
+Issue: #366
+Owner: USER
+Architecture owner: GPT
 Predecessor canonical main at planning start: `8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2`
 
 ## 1. Purpose
