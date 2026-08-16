@@ -28,7 +28,7 @@ def main() -> None:
         receipt = ai_film_directing_read_only_smoke(
             source_root,
             awareness=awareness,
-            fixture={"symptoms": ["\u5de6\u53f3\u53cd\u4e86"]},
+            fixture={"symptoms": ["\u5de6\u53f3\u53cd\u4e86"], "spatial": True, "feedback": True, "formal_scene_pixels": True},
         )
     receipt["bounded_cleanup"] = "PASS"
     receipt["evidence_scope"] = "PUBLIC_SAFE_METADATA_ONLY"

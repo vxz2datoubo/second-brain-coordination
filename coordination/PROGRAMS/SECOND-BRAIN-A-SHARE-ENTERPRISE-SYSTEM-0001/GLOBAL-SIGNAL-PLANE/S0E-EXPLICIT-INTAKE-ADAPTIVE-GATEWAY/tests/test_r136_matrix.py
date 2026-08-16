@@ -14,7 +14,7 @@ sys.path[:0] = [str(ROOT / "src"), str(ROOT.parent / "S0-SYNTHETIC" / "src")]
 
 from global_signal_gateway.gateway import (  # noqa: E402
     AI_FILM_COMMIT, AI_FILM_REPOSITORY, GatewayError, RuntimeInvocationReceipt, SignalIntakeGateway,
-    SystemAwarenessProjection, ai_film_directing_read_only_smoke, classify, exact_git_read_proofs,
+    SystemAwarenessProjection, ai_film_directing_read_only_smoke, classify, exact_git_read_proofs, seal_global_reconciliation,
     semantic_capture, temporary_exact_clone, validate_envelope,
 )
 from global_signal_plane.ledger import DurableSignalLedger  # noqa: E402
@@ -52,9 +52,8 @@ class R136ScenarioMatrix(unittest.TestCase):
     def admitted(self) -> dict[str, object]:
         return self.gateway.intake(envelope(), request_text="把这个需求记到信号塔")
 
-    def receipt(self, awareness: SystemAwarenessProjection, repository_state: dict[str, object] | None = None) -> tuple[dict[str, object], dict[str, object]]:
-        state = repository_state or {"main": "main-1", "pr_heads": ["head-1"], "reviews": ["review-1"], "routes": ["route-136"], "claims": ["claim-1"], "lanes": ["lane-a"], "leases": ["lease-1"], "domain_freshness": ["film-commit"]}
-        return state, {"status": "VALID", "ledger_checksum": awareness.ledger_checksum, "snapshot_ref": awareness.snapshot_ref, "repository_state_digest": __import__("hashlib").sha256(__import__("json").dumps(state, sort_keys=True, separators=(",", ":")).encode()).hexdigest(), "receipt_ref": "reconciliation://synthetic"}
+    def receipt(self, awareness: SystemAwarenessProjection):
+        return seal_global_reconciliation(REPO, awareness)
 
     def _synthetic_proof(self) -> tuple[SystemAwarenessProjection, tuple[object, ...], dict[str, str]]:
         source = Path(self.temp.name) / "source"; source.mkdir(); subprocess.run(["git", "init", "-q", str(source)], check=True)
@@ -99,7 +98,7 @@ def _case(case_id: str):
         elif case_id == "R019": self.admitted(); self.assertTrue(self.ledger.observe_replay())
         elif case_id == "R020": self.assertEqual(set(self.gateway.__dict__), {"ledger"})
         elif case_id == "R021": awareness = self.awareness(canonical=True); self.assertEqual(awareness.source_mode, "CANONICAL_TARGETED_READ"); self.assertGreaterEqual(len(awareness.nodes), 8)
-        elif case_id == "R022": awareness = self.awareness(canonical=True); state, receipt = self.receipt(awareness); self.assertEqual(self.gateway.preflight(awareness=awareness, canonical_root=REPO, reconciliation_receipt=receipt, repository_state=state)["status"], "PASS"); self.assertFalse(self.gateway.preflight(awareness=awareness, canonical_root=Path(self.temp.name), reconciliation_receipt=receipt, repository_state=state)["can_release"])
+        elif case_id == "R022": awareness = self.awareness(canonical=True); proof = self.receipt(awareness); self.assertEqual(self.gateway.preflight(awareness=awareness, canonical_root=REPO, reconciliation_proof=proof)["status"], "PASS"); self.assertFalse(self.gateway.preflight(awareness=awareness, canonical_root=Path(self.temp.name), reconciliation_proof=proof)["can_release"])
         elif case_id == "R023": self.assertFalse(self.awareness(canonical=True).authority_granted)
         elif case_id == "R024": self.assertIn("UNKNOWN", [node["authority_owner"] for node in SystemAwarenessProjection.build({"x": {"revision": "1"}}, {"checksum": "x"}).nodes])
         elif case_id == "R025": self.assertEqual(classify(envelope(problem_to_solve="one off", public_safe_summary="ordinary"), "one off" )["execution_class"], "DIRECT")
@@ -108,16 +107,18 @@ def _case(case_id: str):
         elif case_id == "R028": self.assertEqual(self.gateway.intake(envelope(problem_to_solve="directing camera", public_safe_summary="AI Film directing"), request_text="AI Film directing", explicit_capture=True)["status"], "TRACE_ONLY")
         elif case_id in {"R029", "R030", "R031", "R032", "R033", "R034", "R035"}:
             left = self.admitted(); right = self.gateway.intake(envelope(envelope_id="synthetic-r136-002", source_ref="opaque://two", original_intent_ref="intent://synthetic/r136", proposed_primary_domain="W8"), request_text="录入信号塔")
-            awareness = self.awareness(); state, receipt = self.receipt(awareness); preflight = self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_receipt=receipt, repository_state=state)
+            awareness = self.awareness(); proof = self.receipt(awareness); preflight = self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_proof=proof)
             if case_id == "R029": self.assertIn("DUPLICATE", [item["relation"] for item in preflight["relations"]])
             elif case_id == "R030":
-                self.gateway.link_relation(left["signal_id"], right["signal_id"], "CONTRADICTS", evidence_refs=["evidence://contradiction"], at="2026-08-16T00:01:00+00:00"); state, receipt = self.receipt(self.awareness()); self.assertEqual(self.gateway.preflight(awareness=self.awareness(), canonical_root=None, reconciliation_receipt=receipt, repository_state=state)["code"], "MATERIAL_CONFLICT_UNRESOLVED")
+                self.gateway.link_relation(left["signal_id"], right["signal_id"], "CONTRADICTS", evidence_refs=["evidence://contradiction"], at="2026-08-16T00:01:00+00:00"); proof = self.receipt(self.awareness()); self.assertEqual(self.gateway.preflight(awareness=self.awareness(), canonical_root=None, reconciliation_proof=proof)["code"], "MATERIAL_CONFLICT_UNRESOLVED")
             elif case_id == "R031":
-                self.gateway.link_relation(left["signal_id"], right["signal_id"], "DEPENDS_ON", evidence_refs=["evidence://dependency"], at="2026-08-16T00:01:00+00:00"); state, receipt = self.receipt(self.awareness()); self.assertTrue(self.gateway.preflight(awareness=self.awareness(), canonical_root=None, reconciliation_receipt=receipt, repository_state=state)["decisions"]["must_serialize_refs"])
+                self.gateway.link_relation(left["signal_id"], right["signal_id"], "DEPENDS_ON", evidence_refs=["evidence://dependency"], at="2026-08-16T00:01:00+00:00"); proof = self.receipt(self.awareness()); self.assertTrue(self.gateway.preflight(awareness=self.awareness(), canonical_root=None, reconciliation_proof=proof)["decisions"]["must_serialize_refs"])
             elif case_id == "R032": self.assertIn("merge_keep_separate_rationale", preflight["decisions"])
             elif case_id == "R033": self.assertIn("REVIEWER_CANDIDATE", preflight["decisions"]["reviewer_or_challenger_requirements"])
             elif case_id == "R034": self.assertEqual(self.gateway.release(preflight=preflight, included_signal_refs=[left["signal_id"], right["signal_id"]], awareness=awareness)["desired_effects"], ["synthetic outcome", "synthetic outcome"])
-            else: self.assertEqual(self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_receipt=None, repository_state=state)["code"], "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT")
+            else:
+                fake = {"status": "VALID", "repository_state_digest": "matching-fabrication"}
+                self.assertEqual(self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_proof=fake)["code"], "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT")
         elif case_id == "R036":
             awareness, proofs, entry = self._synthetic_proof(); receipt = RuntimeInvocationReceipt.build(execution_id="exec-1", task_class="DOMAIN_WORKFLOW", domain_id="SYNTHETIC", source_repository="synthetic/repo", source_commit=proofs[0].commit, entry=entry, awareness=awareness, mandatory_reads=["PROJECT_INDEX.yaml"], actual_reads=proofs); self.assertEqual(receipt.data["process_compliance"], "PASS")
         elif case_id == "R037":
@@ -130,16 +131,20 @@ def _case(case_id: str):
             signal = self.admitted()["signal_id"]; result = self.gateway.assess_closure(signal_id=signal, state="SATISFIED", effect_evidence_refs=["evidence://effect"], task_done=True, at="2026-08-16T00:01:00+00:00"); self.assertFalse(result["active_projection_contains_signal"]); self.assertTrue(result["history_retained"])
         elif case_id == "R041":
             awareness = self.awareness(canonical=True); source = os.environ.get("R136_AI_FILM_SOURCE_ROOT")
-            if source: smoke = ai_film_directing_read_only_smoke(source, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True})
+            if source: smoke = ai_film_directing_read_only_smoke(source, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True, "formal_scene_pixels": True})
             else:
-                with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: smoke = ai_film_directing_read_only_smoke(root, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True})
-            self.assertEqual(smoke["receipt"]["process_compliance"], "PASS"); self.assertTrue(smoke["matched_routes"])
+                with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: smoke = ai_film_directing_read_only_smoke(root, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True, "formal_scene_pixels": True})
+            self.assertEqual(smoke["receipt"]["process_compliance"], "PASS"); self.assertTrue(smoke["matched_routes"]); self.assertTrue(smoke["receipt"]["actual_scans"])
+            if source: rejected = ai_film_directing_read_only_smoke(source, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True, "withhold_scans": ["map_authority"]})
+            else:
+                with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: rejected = ai_film_directing_read_only_smoke(root, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True, "withhold_scans": ["map_authority"]})
+            self.assertEqual(rejected["receipt"]["validation_result"], "UNVERIFIED")
         elif case_id == "R042":
             source = os.environ.get("R136_AI_FILM_SOURCE_ROOT")
             if source:
-                before = subprocess.check_output(["git", "-C", source, "status", "--porcelain"], text=True); smoke = ai_film_directing_read_only_smoke(source, awareness=self.awareness(canonical=True), fixture={"symptoms": ["左右反了"]}); self.assertEqual(subprocess.check_output(["git", "-C", source, "status", "--porcelain"], text=True), before)
+                before = subprocess.check_output(["git", "-C", source, "status", "--porcelain"], text=True); smoke = ai_film_directing_read_only_smoke(source, awareness=self.awareness(canonical=True), fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True}); self.assertEqual(subprocess.check_output(["git", "-C", source, "status", "--porcelain"], text=True), before)
             else:
-                with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: smoke = ai_film_directing_read_only_smoke(root, awareness=self.awareness(canonical=True), fixture={"symptoms": ["左右反了"]})
+                with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: smoke = ai_film_directing_read_only_smoke(root, awareness=self.awareness(canonical=True), fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True})
             self.assertEqual((smoke["source_status_before"], smoke["source_status_after"]), ("CLEAN", "CLEAN"))
         elif case_id == "R043":
             with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as clone: saved = clone; self.assertTrue(clone.exists())

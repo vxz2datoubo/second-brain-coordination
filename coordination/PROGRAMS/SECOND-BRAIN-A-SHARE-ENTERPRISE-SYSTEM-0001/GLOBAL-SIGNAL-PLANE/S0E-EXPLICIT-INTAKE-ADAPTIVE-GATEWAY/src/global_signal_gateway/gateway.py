@@ -193,6 +193,40 @@ class ExactReadProof:
 
 
 _PROOF_SEAL = object()
+_SCAN_SEAL = object()
+
+
+@dataclass(frozen=True)
+class ExactScanProof:
+    scan: str
+    input_paths: tuple[str, ...]
+    input_digest: str
+    execution_id: str
+    _seal: object = field(repr=False, compare=False)
+
+    def public_dict(self) -> dict[str, Any]:
+        return {"scan": self.scan, "input_paths": list(self.input_paths), "input_digest": self.input_digest, "execution_id": self.execution_id}
+
+
+def execute_route_scans(*, mandatory_scans: Sequence[str], proofs: Sequence[ExactReadProof], execution_id: str) -> tuple[ExactScanProof, ...]:
+    """Seal each route-required scan to the exact reads it consumed; no caller result is trusted."""
+    paths = {proof.path for proof in proofs}
+    scan_inputs = {
+        "map_authority": {"05_场景与空间/00_项目地图文件.md"}, "world_cardinal_frame": {"05_场景与空间/00_项目地图文件.md"},
+        "adjacency_and_height": {"05_场景与空间/00_项目地图文件.md"},
+        "camera_anchor_resolution": {"10_运行时/scene_asset_identity_schema.yaml"}, "camera_orientation": {"10_运行时/scene_asset_identity_schema.yaml"},
+        "view_resolution": {"10_运行时/scene_asset_identity_schema.yaml"}, "relation_resolution": {"10_运行时/scene_asset_identity_schema.yaml"},
+        "asset_direction_tags": {"10_运行时/scene_asset_identity_schema.yaml"}, "no_legacy_id_direction_inference": {"10_运行时/scene_asset_identity_schema.yaml"},
+        "current_media_version_resolution": {"10_运行时/scene_media_resolver_manifest.yaml"}, "pixel_verification_state": {"10_运行时/scene_media_resolver_manifest.yaml"},
+    }
+    sealed: list[ExactScanProof] = []
+    for scan in mandatory_scans:
+        required = scan_inputs.get(scan, set())
+        if not required or not required <= paths:
+            continue
+        consumed = tuple(sorted(required))
+        sealed.append(ExactScanProof(scan, consumed, digest([proof.public_dict() for proof in proofs if proof.path in required]), execution_id, _SCAN_SEAL))
+    return tuple(sealed)
 
 
 def exact_git_read_proofs(root: str | Path, *, repository: str, commit: str, paths: Sequence[str], execution_id: str) -> tuple[ExactReadProof, ...]:
@@ -297,21 +331,52 @@ def _node(ref: str, source: Mapping[str, Any], revision: str) -> dict[str, Any]:
 
 
 @dataclass(frozen=True)
+class GlobalReconciliationProof:
+    repository_state: Mapping[str, Any]
+    awareness_snapshot_ref: str
+    ledger_checksum: str
+    evidence_refs: tuple[str, ...]
+    receipt_ref: str
+    _seal: object = field(repr=False, compare=False)
+
+
+def seal_global_reconciliation(root: str | Path, awareness: SystemAwarenessProjection) -> GlobalReconciliationProof:
+    """Build the only accepted preflight witness from exact canonical Git objects."""
+    repo = Path(root).resolve(); commit = str(_git(repo, "rev-parse", "HEAD")); execution_id = f"r136-reconciliation:{commit[:16]}"
+    proofs = exact_git_read_proofs(repo, repository="canonical/second-brain", commit=commit, paths=CANONICAL_SURFACES, execution_id=execution_id)
+    by_path = {proof.path: proof for proof in proofs}
+    def bound(*paths: str) -> list[str]: return [f"git://{proof.repository}@{proof.commit}/{proof.path}#blob={proof.blob_sha}" for path in paths for proof in [by_path[path]]]
+    state = {
+        "main": commit,
+        "pr_heads": bound("coordination/ACTIVE-CODEX-TASK.yaml"),
+        "reviews": bound("coordination/CONTROL-TOWER/R134-S0C-CLOSURE-RECONCILIATION.yaml"),
+        "routes": bound("coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY-R136.yaml"),
+        "claims": bound("coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"),
+        "lanes": bound("coordination/ACTIVE-PROGRAM-LANES.yaml"),
+        "leases": bound("coordination/ACTIVE-CODEX-TASK.yaml"),
+        "domain_freshness": [awareness.snapshot_ref],
+    }
+    return GlobalReconciliationProof(state, awareness.snapshot_ref, awareness.ledger_checksum, tuple(proof.public_dict()["path"] + "#blob=" + proof.blob_sha for proof in proofs), f"reconciliation:git:{commit}:{digest(state)[:16]}", _PROOF_SEAL)
+
+
+@dataclass(frozen=True)
 class RuntimeInvocationReceipt:
     data: Mapping[str, Any]
 
     @classmethod
     def build(cls, *, execution_id: str, task_class: str, domain_id: str, source_repository: str, source_commit: str,
               entry: Mapping[str, str], awareness: SystemAwarenessProjection, mandatory_reads: Sequence[str], actual_reads: Sequence[Any],
-              started_at: str | None = None, completed_at: str | None = None, outcome_quality: str = "NOT_YET_OBSERVED", matched_route_refs: Sequence[str] = ()) -> "RuntimeInvocationReceipt":
+              started_at: str | None = None, completed_at: str | None = None, outcome_quality: str = "NOT_YET_OBSERVED", matched_route_refs: Sequence[str] = (), mandatory_scans: Sequence[str] = (), actual_scans: Sequence[Any] = ()) -> "RuntimeInvocationReceipt":
         started, completed = started_at or utc_now(), completed_at or utc_now(); instant(started, "/started_at"); instant(completed, "/completed_at")
         accepted: list[ExactReadProof] = [item for item in actual_reads if isinstance(item, ExactReadProof) and item._seal is _PROOF_SEAL and item.execution_id == execution_id and item.repository == source_repository and item.commit == source_commit]
         paths = {item.path for item in accepted}
-        compliance = "PASS" if set(mandatory_reads) <= paths else "UNVERIFIED"
-        warnings = [] if compliance == "PASS" else ["MANDATORY_READ_UNPROVEN"]
+        accepted_scans = [item for item in actual_scans if isinstance(item, ExactScanProof) and item._seal is _SCAN_SEAL and item.execution_id == execution_id]
+        scan_names = {item.scan for item in accepted_scans}
+        compliance = "PASS" if set(mandatory_reads) <= paths and set(mandatory_scans) <= scan_names else "UNVERIFIED"
+        warnings = [] if compliance == "PASS" else ["MANDATORY_READ_OR_SCAN_UNPROVEN"]
         data = {"receipt_id": f"receipt:{digest([execution_id, source_commit, sorted(paths)])[:24]}", "execution_id": execution_id, "trace_id": f"trace:{digest(execution_id)[:24]}", "task_class": task_class, "domain_id": domain_id,
                 "started_at": started, "completed_at": completed, "source_repository": source_repository, "source_commit": source_commit, "entry_contract_ref": entry["path"], "entry_contract_blob_or_content_digest": entry["blob_sha"], "system_awareness_snapshot_ref": awareness.snapshot_ref,
-                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": [], "actual_scans": [], "capability_invocations": [],
+                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": list(mandatory_scans), "actual_scans": [item.public_dict() for item in accepted_scans], "capability_invocations": [f"scan:{item.scan}" for item in accepted_scans],
                 "ruleset_digest": digest({"entry": entry, "snapshot": awareness.snapshot_ref, "routes": list(matched_route_refs)}), "warnings": warnings, "unknowns": [] if compliance == "PASS" else ["self-declared or fabricated read metadata is not proof"], "result_ref": f"opaque://execution/{execution_id}", "validation_result": "VERIFIED" if compliance == "PASS" else "UNVERIFIED", "writeback_decision": "TRACE_ONLY", "process_compliance": compliance, "outcome_quality": outcome_quality, "evidence_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted], "privacy_scope_ref": "PUBLIC_SAFE_METADATA_ONLY"}
         return cls(data)
 
@@ -353,19 +418,22 @@ class SignalIntakeGateway:
         payload.update({"event_id": event_id, "event_source": "R136_EXPLICIT_INTAKE", "event_type": "EXPLICIT_SIGNAL_REVOKE", "occurred_at": at, "observed_at": at, "signal_kind": "REVOCATION", "planning_state": "SUPERSEDED", "execution_state": "CANCELLED", "epistemic_state": "USER_EXPLICIT", "authority_targets": [], "touch_set": ["S0E_EXPLICIT_INTAKE"], "related_signal_refs": [signal_id], "supersedes_refs": [], "revokes_refs": [signal_id], "cross_domain_candidate": False, "summary_ref": prior["summary_ref"], "source_sequence": len(self.ledger.history()) + 1, "idempotency_key": event_id, "public_safe_metadata": {"closure_state": "REVOKED", "evidence_refs": list(evidence_refs)}})
         return {"event": self.ledger.ingest(SignalEvent.from_dict(payload)), "revoked_signal": signal_id, "history_preserved": True}
 
-    def preflight(self, *, awareness: SystemAwarenessProjection, canonical_root: str | Path | None, reconciliation_receipt: Mapping[str, Any] | None, repository_state: Mapping[str, Any]) -> dict[str, Any]:
+    def preflight(self, *, awareness: SystemAwarenessProjection, canonical_root: str | Path | None, reconciliation_proof: Any) -> dict[str, Any]:
         if canonical_root is not None and not awareness.is_current(canonical_root): return {"status": "BLOCKED", "code": "STALE_SYSTEM_AWARENESS", "can_release": False}
+        if not isinstance(reconciliation_proof, GlobalReconciliationProof) or reconciliation_proof._seal is not _PROOF_SEAL:
+            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False}
+        if reconciliation_proof.awareness_snapshot_ref != awareness.snapshot_ref or reconciliation_proof.ledger_checksum != awareness.ledger_checksum:
+            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False}
+        repository_state = reconciliation_proof.repository_state
         missing_state = sorted(REPOSITORY_STATE_FIELDS - set(repository_state))
         if missing_state:
             return {"status": "BLOCKED", "code": "REPOSITORY_STATE_SURFACE_MISSING", "path": f"/repository_state/{missing_state[0]}", "can_release": False}
         state_digest = digest(repository_state)
-        if not reconciliation_receipt or reconciliation_receipt.get("status") != "VALID" or reconciliation_receipt.get("ledger_checksum") != awareness.ledger_checksum or reconciliation_receipt.get("snapshot_ref") != awareness.snapshot_ref or reconciliation_receipt.get("repository_state_digest") != state_digest:
-            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False}
         events, links = self.ledger.history(), (self.ledger.current_projection() or {}).get("links", [])
         relations = _discover_relations(events, links)
         material = [item for item in relations if item["relation"] in {"CONTRADICTS", "BLOCKS", "AUTHORITY_COLLISION"}]
         decisions = _relation_decisions(relations)
-        return {"status": "BLOCKED" if material else "PASS", "code": "MATERIAL_CONFLICT_UNRESOLVED" if material else None, "can_release": not material, "scan_strategy": "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH", "global_shallow_surfaces": [ref for ref, _ in awareness.source_revisions], "delta": {"ledger_checksum": awareness.ledger_checksum, "repository_state": dict(repository_state)}, "targeted_deep_refs": sorted({ref for relation in relations for ref in relation["signals"]}), "conditional_research": ["UNKNOWN_CAPABILITY_REMAINS_UNKNOWN"], "relations": relations, "decisions": decisions, "reconciliation_receipt_ref": reconciliation_receipt.get("receipt_ref"), "repository_state_digest": state_digest, "authority_granted": False}
+        return {"status": "BLOCKED" if material else "PASS", "code": "MATERIAL_CONFLICT_UNRESOLVED" if material else None, "can_release": not material, "scan_strategy": "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH", "global_shallow_surfaces": [ref for ref, _ in awareness.source_revisions], "delta": {"ledger_checksum": awareness.ledger_checksum, "repository_state": dict(repository_state)}, "targeted_deep_refs": sorted({ref for relation in relations for ref in relation["signals"]}), "conditional_research": ["UNKNOWN_CAPABILITY_REMAINS_UNKNOWN"], "relations": relations, "decisions": decisions, "reconciliation_receipt_ref": reconciliation_proof.receipt_ref, "repository_state_digest": state_digest, "exact_repository_state_refs": list(reconciliation_proof.evidence_refs), "authority_granted": False}
 
     def release(self, *, preflight: Mapping[str, Any], included_signal_refs: Sequence[str], awareness: SystemAwarenessProjection) -> dict[str, Any]:
         if not preflight.get("can_release"): raise GatewayError("FORMAL_RELEASE_PRECHECK_FAILED")
@@ -426,14 +494,47 @@ def temporary_exact_clone(repository_url: str, commit: str) -> Iterator[Path]:
         raise GatewayError("BOUNDED_CLEANUP_FAILED")
 
 
+DIRECTING_SELECTOR_PATHS = {
+    "PROJECT_INDEX.yaml": "PROJECT_INDEX.yaml", "AI电影系统": "01_AI电影系统/AI电影系统.md", "当前改编剧本": "03_剧本与改编/当前改编剧本.md",
+    "连续性与当前生产状态": "07_连续性与生产状态/连续性与当前生产状态.md", "proactive_execution_opportunity_router": "10_运行时/proactive_execution_opportunity_router.yaml",
+    "角色与表演设定库": "04_角色与表演/角色与表演设定库.md", "场景与空间设定库": "05_场景与空间/场景与空间设定库.md",
+    "00_项目地图文件": "05_场景与空间/00_项目地图文件.md", "scene_asset_identity_schema": "10_运行时/scene_asset_identity_schema.yaml",
+    "scene_media_resolver_manifest": "10_运行时/scene_media_resolver_manifest.yaml", "反馈反推与系统反哺引擎": "08_系统学习/反馈反推与系统反哺引擎.md",
+    "C-DANCE2.5真实生成反馈库": "08_系统学习/C-DANCE2.5真实生成反馈库.md",
+}
+
+
+def _selector_path(selector: str) -> str:
+    key = selector.split("#", 1)[0]
+    if "/" in key and key.endswith((".yaml", ".md")):
+        return key
+    if key not in DIRECTING_SELECTOR_PATHS: raise GatewayError("DIRECTING_SELECTOR_PATH_UNRESOLVED")
+    return DIRECTING_SELECTOR_PATHS[key]
+
+
+def _directing_requirements(read_sets: Mapping[str, Any], matched: Sequence[Mapping[str, Any]], fixture: Mapping[str, Any]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    directing = read_sets.get("read_sets", {}).get("directing")
+    if not isinstance(directing, Mapping): raise GatewayError("DIRECTING_READ_SET_UNRESOLVED")
+    selectors = list(directing.get("always", [])); conditional = directing.get("conditional", {})
+    if not isinstance(conditional, Mapping): raise GatewayError("DIRECTING_READ_SET_UNRESOLVED")
+    for flag, selector in conditional.items():
+        if fixture.get(str(flag)) or (flag == "map" and fixture.get("spatial")) or (flag == "learning" and fixture.get("feedback")) or (flag == "model_real_generation_feedback" and fixture.get("feedback")):
+            selectors.append(str(selector))
+    scans: list[str] = []
+    for route in matched:
+        selectors.extend(map(str, route.get("mandatory_reads", [])))
+        scans.extend(map(str, route.get("mandatory_scans", [])))
+    return tuple(sorted({_selector_path(selector) for selector in selectors})), tuple(sorted(set(scans)))
+
+
 def ai_film_directing_read_only_smoke(root: str | Path, *, awareness: SystemAwarenessProjection, fixture: Mapping[str, Any]) -> dict[str, Any]:
     execution_id = f"r136-ai-film:{digest(fixture)[:24]}"
     source = Path(root).resolve(); before = str(_git(source, "status", "--porcelain"))
     if before:
         raise GatewayError("AI_FILM_SOURCE_NOT_CLEAN")
-    proofs = exact_git_read_proofs(root, repository=AI_FILM_REPOSITORY, commit=AI_FILM_COMMIT, paths=AI_FILM_DIRECTING_PATHS, execution_id=execution_id)
-    by_path = {proof.path: proof for proof in proofs}
-    if by_path["PROJECT_INDEX.yaml"].blob_sha != AI_FILM_AUTHORITY_BLOB: raise GatewayError("AI_FILM_AUTHORITY_BLOB_DRIFT")
+    seed_paths = ("PROJECT_INDEX.yaml", "10_运行时/read_sets.yaml", "10_运行时/director_route_index.yaml")
+    seed_proofs = exact_git_read_proofs(root, repository=AI_FILM_REPOSITORY, commit=AI_FILM_COMMIT, paths=seed_paths, execution_id=execution_id)
+    if {proof.path: proof for proof in seed_proofs}["PROJECT_INDEX.yaml"].blob_sha != AI_FILM_AUTHORITY_BLOB: raise GatewayError("AI_FILM_AUTHORITY_BLOB_DRIFT")
     read_sets_bytes = _git(source, "show", f"{AI_FILM_COMMIT}:10_\u8fd0\u884c\u65f6/read_sets.yaml", binary=True); routes_bytes = _git(source, "show", f"{AI_FILM_COMMIT}:10_\u8fd0\u884c\u65f6/director_route_index.yaml", binary=True)
     assert isinstance(read_sets_bytes, bytes) and isinstance(routes_bytes, bytes)
     read_sets, route_index = yaml.safe_load(read_sets_bytes.decode("utf-8")), yaml.safe_load(routes_bytes.decode("utf-8"))
@@ -443,7 +544,14 @@ def ai_film_directing_read_only_smoke(root: str | Path, *, awareness: SystemAwar
     matched = [item for item in route_index.get("routes", []) if isinstance(item, Mapping) and symptoms & set(map(str, item.get("symptoms", [])))] if isinstance(route_index, Mapping) else []
     if not matched: raise GatewayError("DIRECTOR_ROUTE_UNRESOLVED")
     route_refs = [f"director-route:{item.get('id')}" for item in matched]
-    receipt = RuntimeInvocationReceipt.build(execution_id=execution_id, task_class="DOMAIN_WORKFLOW", domain_id="EUSTIA_AI_FILM", source_repository=AI_FILM_REPOSITORY, source_commit=AI_FILM_COMMIT, entry={"path": "PROJECT_INDEX.yaml", "blob_sha": AI_FILM_AUTHORITY_BLOB}, awareness=awareness, mandatory_reads=AI_FILM_DIRECTING_PATHS, actual_reads=proofs, matched_route_refs=route_refs)
+    mandatory_reads, mandatory_scans = _directing_requirements(read_sets, matched, fixture)
+    withheld = set(map(str, fixture.get("withhold_derived_paths", [])))
+    derived_proofs = exact_git_read_proofs(root, repository=AI_FILM_REPOSITORY, commit=AI_FILM_COMMIT, paths=[path for path in mandatory_reads if path not in withheld and path not in seed_paths], execution_id=execution_id)
+    proofs = seed_proofs + derived_proofs
+    scans = execute_route_scans(mandatory_scans=mandatory_scans, proofs=proofs, execution_id=execution_id)
+    withheld_scans = set(map(str, fixture.get("withhold_scans", [])))
+    scans = tuple(scan for scan in scans if scan.scan not in withheld_scans)
+    receipt = RuntimeInvocationReceipt.build(execution_id=execution_id, task_class="DOMAIN_WORKFLOW", domain_id="EUSTIA_AI_FILM", source_repository=AI_FILM_REPOSITORY, source_commit=AI_FILM_COMMIT, entry={"path": "PROJECT_INDEX.yaml", "blob_sha": AI_FILM_AUTHORITY_BLOB}, awareness=awareness, mandatory_reads=mandatory_reads, actual_reads=proofs, matched_route_refs=route_refs, mandatory_scans=mandatory_scans, actual_scans=scans)
     after = str(_git(source, "status", "--porcelain"))
     if after != before: raise GatewayError("AI_FILM_ZERO_MUTATION_VIOLATION")
     return {"receipt": dict(receipt.data), "source_binding": {"repository": AI_FILM_REPOSITORY, "commit": AI_FILM_COMMIT, "authority_path": "PROJECT_INDEX.yaml", "authority_blob_sha": AI_FILM_AUTHORITY_BLOB}, "directing_read_set_resolved": True, "matched_routes": route_refs, "fixture_ref": f"opaque://ai-film-directing-fixture/{digest(fixture)}", "route": {"persistence_class": "TRACE_ONLY", "execution_class": "DOMAIN_WORKFLOW", "materiality_class": "LOW"}, "durable_signal_created": False, "domain_write_authorized": False, "raw_content_published": False, "source_status_before": "CLEAN", "source_status_after": "CLEAN"}

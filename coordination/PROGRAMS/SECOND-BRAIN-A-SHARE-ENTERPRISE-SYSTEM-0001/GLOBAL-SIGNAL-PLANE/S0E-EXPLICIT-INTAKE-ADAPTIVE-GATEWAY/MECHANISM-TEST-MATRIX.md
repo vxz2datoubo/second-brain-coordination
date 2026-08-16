@@ -48,9 +48,9 @@ AI Film receipt artifact from a fresh, detached, exact-commit clone.
 | R136-R038 | `test_r136_r038` | process compliance and outcome quality are distinct |
 | R136-R039 | `test_r136_r039` | task-done alone cannot satisfy a closure |
 | R136-R040 | `test_r136_r040` | satisfied state disappears from active view, stays in history |
-| R136-R041 | `test_r136_r041` | real exact AI Film source resolves a route via sealed reads |
+| R136-R041 | `test_r136_r041` | route-derived exact reads plus sealed mandatory scan proofs; omitted scan is unverified |
 | R136-R042 | `test_r136_r042` | AI Film smoke proves clean before/after and zero writes |
-| R136-R043 | `test_r136_r043` | temporary exact clone is removed after its context |
+| R136-R043 | `test_r136_r043` | temporary exact clone is removed after its context; task cleanup remains PARTIAL / USER_CLEANUP_REQUIRED |
 | R136-R044 | `test_r136_r044` | replay plus placeholder/TODO/shadow-artifact delivery audit |
 
 Expected local focused result: 44/44. The workflow executes the same 44 tests
