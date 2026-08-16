@@ -1,0 +1,144 @@
+schema_version: "1.0"
+selection_id: "R137-AUTHORITY-BOUND-LIVE-OBSERVATION-SOURCE-SELECTION-0001"
+issue: 358
+owner: "USER"
+architecture_owner: "GPT"
+state: "ARCHITECTURE_SOURCE_SELECTION_ONLY / NO_IMPORT_AUTHORITY"
+canonical_main_at_selection: "16f158e1123fa6b52c1a489ddd53093a91270624"
+
+rules:
+  whole_branch_merge: "FORBIDDEN"
+  whole_branch_cherry_pick: "FORBIDDEN"
+  frozen_pr_mutation: "FORBIDDEN"
+  selected_source_must_bind: [repository, source_pr, source_head, path, git_blob_sha]
+  before_code_reuse_requires:
+    - "recompute content_sha256 from exact selected source bytes"
+    - "record exact destination path"
+    - "adapt to current R136 interface rather than copy a second authority"
+    - "review all inherited findings"
+    - "rerun R137 adversarial tests on exact destination head"
+  unlisted_source: "REFERENCE_ONLY_UNTIL_GPT_ADDS_EXACT_SELECTION"
+
+sources:
+  - source_id: "R137-SRC-CURRENT-R136-LIVE-PROOF-INTERFACE"
+    repository: "vxz2datoubo/second-brain-coordination"
+    source_pr: 356
+    source_head: "3d2fe426b43de14edf7447fa26f55c4600f62169"
+    canonical_containing_main: "16f158e1123fa6b52c1a489ddd53093a91270624"
+    path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+    git_blob_sha: "0f318a848b5fad5ad7044546d0a3ec0fed9f063b"
+    disposition: "CURRENT_CANONICAL_INTERFACE / MUST_INTEGRATE_NOT_DUPLICATE"
+    reusable:
+      - "AuthorityBoundLiveObservationProof field contract"
+      - "current invalidation set"
+      - "fail-closed validation entrypoint"
+      - "TaskRelease integration boundary"
+    inherited_limitations:
+      - "production live provider intentionally absent"
+      - "module-private issuer seal is not cryptographic same-process isolation"
+      - "test verifier registry is not acceptable as caller-accessible production provider registration"
+    import_rule: "DO_NOT_COPY_WHOLE_FILE; implement successor provider against this canonical interface"
+
+  - source_id: "R137-SRC-E38-PUBLIC-GITHUB-TRANSPORT"
+    repository: "vxz2datoubo/second-brain-coordination"
+    source_pr: 117
+    source_head: "1d214ace0ad49091c58622150bd86fd1170a6335"
+    path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/github_transport.py"
+    git_blob_sha: "125b55a624705a0d1ea8bb1d2486e4f6fb01f02b"
+    disposition: "ADAPT_AND_RETEST"
+    independently_accepted_credit:
+      - "fixed public repository reader"
+      - "no credential read"
+      - "no generic URL"
+      - "redirect rejection"
+      - "bounded timeout and response size"
+      - "media type and strict JSON checks"
+      - "main ref to commit/tree/path/blob/content binding"
+      - "blob identity recomputation"
+      - "two-read main drift check"
+    must_change_for_r137:
+      - "replace old E38-specific canonical route paths with R137 canonical allowlist"
+      - "add PR state/head/base/merged/merge-commit observation"
+      - "add complete PR review pagination"
+      - "add Work Claim, Program Lane, lease, domain freshness and approval/revocation evidence"
+      - "add provider evidence bundle and freshness/invalidation contract"
+      - "use current versioned GitHub REST contract"
+    inherited_warning: "trusted-process API integrity only; not hostile same-process cryptographic isolation"
+
+  - source_id: "R137-SRC-E39-ROUTE-READINESS"
+    repository: "vxz2datoubo/second-brain-coordination"
+    source_pr: 121
+    source_head: "263f82a62ef2a216bb504f11cb7b5dce92e97ca7"
+    path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src/brainops_control_plane/route_readiness.py"
+    git_blob_sha: "a0e45c70324fa347cca054e17951a5558b922380"
+    disposition: "SELECTIVE_REFERENCE_ONLY"
+    reusable:
+      - "separate observation evidence from execution/canary authority"
+      - "explicit trusted-process limitation text"
+      - "fail-closed route-unverified direction"
+    forbidden_reuse:
+      - "approval_verification is not None => approval_supplied"
+      - "any nonempty/rejected/unknown approval object counting as accepted approval"
+    reason: "GPT retained this semantic finding in E39 review; R137 must observe raw review/approval state and let Control Tower decide policy"
+
+  - source_id: "R137-SRC-E50-RELEASE-VALIDATION-PATTERNS"
+    repository: "vxz2datoubo/second-brain-coordination"
+    source_pr: 161
+    source_head: "9e87bc2f6e705b65a35b92f09d7e7848abc5768a"
+    disposition: "PR_LEVEL_REFERENCE_ONLY_NO_CODE_IMPORT_YET"
+    reusable_review_credit:
+      - "correct git graph semantics"
+      - "canonical-main attestation direction"
+      - "strict receipt binding"
+      - "exact tested/receipt CI"
+      - "active mutation testing"
+    limitation: "not a live provider authority; exact code path selection requires a later GPT source-selection amendment before reuse"
+
+  - source_id: "R137-SRC-E51-PROVIDER-OBSERVABILITY-PATTERNS"
+    repository: "vxz2datoubo/second-brain-coordination"
+    source_pr: 163
+    source_head: "a05e42b8138f7f9215d20e5a72b90384b8e51d0b"
+    disposition: "PR_LEVEL_REFERENCE_ONLY_NO_CODE_IMPORT_YET"
+    reusable_review_credit:
+      - "clean-clone exact command execution"
+      - "raw stdout/stderr preservation"
+      - "provider attestation identity binding"
+      - "fresh negative-case reproduction"
+    known_nonblocking_gap:
+      - "workflow identity/run-id schema hardening remained future work"
+    limitation: "patterns only; no R137 live-observation code may be imported without exact path/blob amendment"
+
+rejected_patterns:
+  - pattern_id: "CALLER_AUTHORED_PROVIDER_DOCUMENT"
+    disposition: "DO_NOT_REUSE"
+    reason: "historical E49-family blocker: shaped JSON/provider_source labels are not independent provider evidence"
+  - pattern_id: "PYTHON_SEAL_AS_CRYPTOGRAPHIC_TRUST"
+    disposition: "DO_NOT_CLAIM"
+    reason: "module-private objects are trusted-process API controls only"
+  - pattern_id: "CALLER_MUTABLE_PRODUCTION_VERIFIER_REGISTRY"
+    disposition: "DO_NOT_REUSE"
+    reason: "would restore self-certification path"
+  - pattern_id: "NONEMPTY_REVIEW_OR_APPROVAL_MEANS_ACCEPTED"
+    disposition: "DO_NOT_REUSE"
+    reason: "observation and policy adjudication must remain separate"
+
+external_primary_references:
+  - name: "GitHub REST branches"
+    url: "https://docs.github.com/en/rest/branches/branches?apiVersion=2026-03-10"
+    role: "current branch/main observation contract"
+  - name: "GitHub REST pull requests"
+    url: "https://docs.github.com/en/rest/pulls/pulls?apiVersion=2026-03-10"
+    role: "PR state/head/base/merge observation contract"
+  - name: "GitHub REST pull request reviews"
+    url: "https://docs.github.com/en/rest/pulls/reviews?apiVersion=2026-03-10"
+    role: "review identity/state/commit/time and pagination contract"
+  - name: "GitHub REST repository contents"
+    url: "https://docs.github.com/en/rest/repos/contents?apiVersion=2026-03-10"
+    role: "exact path/ref/blob/content observation reference"
+  - name: "GitHub REST best practices"
+    url: "https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api"
+    role: "serial request/rate-limit/conditional-request design guidance"
+
+final_rule: >-
+  This ledger authorizes architecture reasoning only. It does not authorize Codex execution or code import. Any implementation
+  reuse must first be upgraded to an exact per-path source entry with verified current destination and content SHA-256.
