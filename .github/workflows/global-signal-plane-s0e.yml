@@ -1,0 +1,27 @@
+name: Global Signal Plane S0E
+on:
+  pull_request:
+    paths: ['coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**', '.github/workflows/global-signal-plane-s0e.yml']
+  push:
+    branches: ['codex/global-signal-intake-adaptive-gateway-r136']
+jobs:
+  s0e-contracts:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {python-version: ['3.11', '3.13']}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '${{ matrix.python-version }}'}
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Run R136 mechanism tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
+        env: {PYTHONPATH: 'src:../S0-SYNTHETIC/src', PYTHONDONTWRITEBYTECODE: '1'}
+        run: python -m unittest discover -s tests -v
+      - name: Run public safety scan and artifact validation
+        run: |
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/public_safety_scan.py
+          python -c "import json, yaml; json.load(open('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/AI-FILM-READ-ONLY-SMOKE-RECEIPT.json')); [yaml.safe_load(open(p)) for p in ['coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/EXECUTION-PLAN.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/AI_HANDOFF.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/IMPLEMENTATION-RECEIPT.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/UNKNOWN-REGISTRY.yaml']]; print('S0E_ARTIFACT_PARSE_PASS')"
+          BASE_SHA="${{ github.event.pull_request.base.sha || github.event.before }}"
+          git diff --check "$BASE_SHA...HEAD"
