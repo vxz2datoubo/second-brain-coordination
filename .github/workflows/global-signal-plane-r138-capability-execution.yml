@@ -18,16 +18,13 @@ jobs:
       matrix: {python-version: ["3.11", "3.13"]}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
       - name: Assert exact workflow head
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - uses: actions/setup-python@v5
-        with:
-          python-version: "${{ matrix.python-version }}"
+        with: {python-version: "${{ matrix.python-version }}"}
       - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - name: R138 and retained R136 R137 regressions
+      - name: R138 R001-R044 and retained R136/R137 regressions
         env:
           PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
           PYTHONDONTWRITEBYTECODE: "1"
@@ -35,3 +32,99 @@ jobs:
           python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r138_capability_execution_provider.py' -v
           python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r136_matrix.py' -v
           python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r137_live_observation_provider.py' -v
+
+  public-dependency-provisioning:
+    runs-on: ubuntu-latest
+    outputs:
+      ai_film_commit: ${{ steps.identity.outputs.commit }}
+      requirements_sha256: ${{ steps.identity.outputs.requirements_sha256 }}
+    steps:
+      - name: Checkout exact public AI Film source
+        run: |
+          git clone --no-checkout https://github.com/vxz2datoubo/eustia-ai-film.git "$RUNNER_TEMP/ai-film"
+          git -C "$RUNNER_TEMP/ai-film" checkout --detach 44c383afd2207a97caf45b1b0da6ee1dece43a76
+          test "$(git -C "$RUNNER_TEMP/ai-film" rev-parse HEAD)" = 44c383afd2207a97caf45b1b0da6ee1dece43a76
+          test -z "$(git -C "$RUNNER_TEMP/ai-film" status --porcelain)"
+      - id: identity
+        name: Bind public dependency contract
+        run: |
+          cd "$RUNNER_TEMP/ai-film"
+          git show 44c383afd2207a97caf45b1b0da6ee1dece43a76:tools/golden_case_ingestor/requirements.txt > "$RUNNER_TEMP/requirements.txt"
+          cmp "$RUNNER_TEMP/requirements.txt" tools/golden_case_ingestor/requirements.txt
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "requirements_sha256=$(sha256sum "$RUNNER_TEMP/requirements.txt" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Public dependency provisioning only (not execution evidence)
+        run: |
+          python -m pip download --disable-pip-version-check --only-binary=:all: -r "$RUNNER_TEMP/requirements.txt" -d "$RUNNER_TEMP/wheelhouse"
+          (cd "$RUNNER_TEMP/wheelhouse" && sha256sum * | sort) > "$RUNNER_TEMP/wheelhouse.sha256"
+          cp "$RUNNER_TEMP/requirements.txt" "$RUNNER_TEMP/wheelhouse/requirements.txt"
+          git -C "$RUNNER_TEMP/ai-film" bundle create "$RUNNER_TEMP/ai-film.bundle" 44c383afd2207a97caf45b1b0da6ee1dece43a76
+          cat > "$RUNNER_TEMP/Dockerfile.r138" <<'EOF'
+          FROM python:3.13-slim
+          COPY wheelhouse /wheelhouse
+          RUN python -m pip install --no-index --find-links=/wheelhouse -r /wheelhouse/requirements.txt
+          EOF
+          docker build --pull -t r138-ai-film-golden-case:provisioned -f "$RUNNER_TEMP/Dockerfile.r138" "$RUNNER_TEMP"
+          docker save r138-ai-film-golden-case:provisioned -o "$RUNNER_TEMP/r138-ai-film-image.tar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r138-public-provisioning-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/ai-film.bundle
+            ${{ runner.temp }}/wheelhouse
+            ${{ runner.temp }}/wheelhouse.sha256
+            ${{ runner.temp }}/r138-ai-film-image.tar
+          retention-days: 3
+
+  offline-bounded-ai-film-execution:
+    needs: [public-dependency-provisioning]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
+      - name: Assert exact R138 head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/download-artifact@v4
+        with:
+          name: r138-public-provisioning-${{ github.sha }}
+          path: ${{ runner.temp }}/provisioned
+      - name: Verify provisioning identities and load pre-provisioned executor
+        run: |
+          git clone "$RUNNER_TEMP/provisioned/ai-film.bundle" "$RUNNER_TEMP/provisioned/ai-film"
+          git -C "$RUNNER_TEMP/provisioned/ai-film" checkout --detach "${{ needs.public-dependency-provisioning.outputs.ai_film_commit }}"
+          test "$(git -C "$RUNNER_TEMP/provisioned/ai-film" rev-parse HEAD)" = "${{ needs.public-dependency-provisioning.outputs.ai_film_commit }}"
+          test -z "$(git -C "$RUNNER_TEMP/provisioned/ai-film" status --porcelain)"
+          ACTUAL=$(sha256sum "$RUNNER_TEMP/provisioned/wheelhouse/requirements.txt" | cut -d' ' -f1)
+          test "$ACTUAL" = "${{ needs.public-dependency-provisioning.outputs.requirements_sha256 }}"
+          docker load -i "$RUNNER_TEMP/provisioned/r138-ai-film-image.tar"
+      - name: Offline bounded execution and public-safe evidence artifact
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src
+          PYTHONDONTWRITEBYTECODE: "1"
+          R138_SOURCE_ROOT: ${{ runner.temp }}/provisioned/ai-film
+          R138_PROOF_PATH: ${{ runner.temp }}/r138-ai-film-capability-proof.json
+        run: |
+          python - <<'PY'
+          import json, os
+          from global_signal_gateway.capability_execution_provider import CapabilityExecutionRequest, CONTRACT_REVISION, AI_FILM_REPOSITORY, AI_FILM_COMMIT, ExactRepositoryCapabilityProvider, verify_capability_execution_proof
+          request = CapabilityExecutionRequest(
+              "r138-public-ai-film-provisioned", "r138-ai-film-golden-case-execution", "trace:r138-ai-film-golden-case",
+              "EUSTIA_AI_FILM", "AI_FILM_GOLDEN_CASE_INGESTOR_TEST_V1", "EXACT_REPOSITORY_EXECUTABLE", CONTRACT_REVISION,
+              AI_FILM_REPOSITORY, AI_FILM_COMMIT,
+              "github://vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76/tools/golden_case_ingestor/README.md",
+              "tools/golden_case_ingestor", ("tools/golden_case_ingestor/requirements.txt",), "golden_case_ingestor:test-report/v1",
+              "r138://resource/single-worker-v1", "r138://network/docker-none-v1", "r138://write/readonly-source-task-output-v1",
+              "PUBLIC_SAFE_EXECUTION_METADATA_ONLY", os.environ["R138_SOURCE_ROOT"], "2026-08-16T00:00:00+00:00")
+          bundle, proof = ExactRepositoryCapabilityProvider().execute(request)
+          if proof is None or not verify_capability_execution_proof(proof): raise SystemExit("R138_REAL_SMOKE_PROOF_NOT_VALID")
+          assert proof.capability_id == "AI_FILM_GOLDEN_CASE_INGESTOR_TEST_V1"
+          artifact = {"proof": proof.public_dict(), "evidence_ref": bundle.identity_ref(), "bundle_digest": bundle.bundle_digest,
+                      "runtime_identity": dict(bundle.runtime_identity), "dependency_lock_digest": bundle.dependency_lock_digest,
+                      "boundary_enforcement": dict(bundle.boundary_enforcement), "unrelated_cognitive_scans": "UNKNOWN_NOT_SATISFIED"}
+          with open(os.environ["R138_PROOF_PATH"], "w", encoding="utf-8") as handle: json.dump(artifact, handle, sort_keys=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r138-ai-film-capability-proof-${{ github.sha }}
+          path: ${{ runner.temp }}/r138-ai-film-capability-proof.json
+          retention-days: 14

@@ -36,7 +36,7 @@ trust_and_process_boundary:
   no_domain_w3_or_control_tower_write: true
   process_execution_not_outcome_truth: true
 evidence_bundle_and_proof_schema:
-  binds: [provider_code, provider_contract, execution_trace, domain_capability, source_commit, executor_identity, input_set, invocation_digest, exit_status, bounded_output, result_identity, cleanup, invalidation]
+  binds: [provider_code, provider_contract, execution_trace, domain_capability, exact_git_archive, source_commit, capability_contract, executor_identity, working_directory_identity, input_set, dependency_lock, runtime_identity, environment_allowlist, resource_network_write_privacy_policy, boundary_enforcement, exit_status, duration, bounded_output, result_identity, child_ownership, cleanup, invalidation]
   public_safe_only: true
   caller_self_report_mints_proof: false
 RuntimeInvocationReceipt_integration:
@@ -46,8 +46,8 @@ RuntimeInvocationReceipt_integration:
   process_and_outcome_independent: true
 synthetic_and_real_smoke_plan:
   synthetic: "dynamic disposable exact-repository fixture with a real bounded child process"
-  real_ai_film: "MUST_ATTEMPT; only exact golden_case_ingestor test/validator at pinned commit"
-  real_smoke_fail_closed: "missing exact source, dependency, isolation or zero-write proof yields PARTIAL / NEEDS_GPT"
+  real_ai_film: "PUBLIC_DEPENDENCY_PROVISIONING followed by OFFLINE_BOUNDED_EXECUTION; only exact golden_case_ingestor test/validator at pinned commit"
+  real_smoke_fail_closed: "missing exact source, dependency, Docker network=none, read-only source, zero-write or cleanup proof yields PARTIAL / NEEDS_GPT"
 adversarial_test_matrix:
   minimum_scenarios: 44
   groups: [forgery, registration, manifest, path_symlink, source_executor_input_result_drift, timeout_exit_output, environment_network_write, cleanup_resources, replay_freshness, scan_false_green, receipt_integration, authority_privacy, real_smoke_scope]
