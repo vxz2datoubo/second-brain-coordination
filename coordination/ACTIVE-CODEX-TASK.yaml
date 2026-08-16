@@ -1,4 +1,4 @@
-schema_version: "137.3"
+schema_version: "137.4"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 360
@@ -23,7 +23,8 @@ canonical_main_at_prepare: "a065cc8eb4d978bef78543f2536d12d659067829"
 canonical_reservation_main: "7b0996a98fc908b2afad6be7775eafc74381e648"
 canonical_bootstrap_main: "af786f5851d459c8a580cc6e3de2e2ebed69f5b0"
 canonical_activation_main: "526cc4b969d229488986f026604c11b7d905c698"
-canonical_main_at_close: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+canonical_implementation_merge_main: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+canonical_main_at_close: "758064867bc51eb765f73b9b4941a575edbdfb1e"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER.yaml"
 planning_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
@@ -37,6 +38,7 @@ explicit_user_launch_received: true
 explicit_user_launch_text: "启动 R137"
 implementation_branch: "codex/r137-authority-live-observation-provider"
 implementation_pr: 364
+closure_pr: 365
 
 architecture:
   issue: 358
@@ -48,9 +50,10 @@ architecture:
   architecture_path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-ARCHITECTURE-v1.0.md"
 
 release_phase:
-  phase: "C_POST_MERGE_CLOSURE"
-  execution_state: "DONE_AFTER_GPT_ACCEPTANCE_AND_EXPECTED_HEAD_MERGE"
+  phase: "D_CLOSED"
+  execution_state: "DONE_AFTER_GPT_ACCEPTANCE_EXPECTED_HEAD_MERGE_AND_POST_MERGE_CLOSURE"
   activation_receipt_status: "HISTORICAL_PASS_FOR_R137_PHASE_B_ACTIVATION"
+  closure_merge_commit: "758064867bc51eb765f73b9b4941a575edbdfb1e"
   hard_rule: >-
     R137 is completed historical evidence only. Its activation/bootstrap/route do not authorize R138 or any other
     successor. Any future domain capability provider, Harness/H2/H7/private/live/production or trading work requires a
@@ -59,11 +62,14 @@ release_phase:
 completion_receipt:
   accepted_runtime_head: "a7789864eac267c569503342a66a961985a27745"
   implementation_pr: 364
-  merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+  implementation_merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+  closure_pr: 365
+  closure_merge_commit: "758064867bc51eb765f73b9b4941a575edbdfb1e"
   final_review_id: 4946250299
   exact_head_r137_ci: 31948699592
   exact_head_s0e_ci: 31948699596
   exact_head_phase3_ci: 31948699598
+  closure_control_tower_ci: 31949801511
   python_311: PASS
   python_313: PASS
   r137_tests: "49/49 PASS"
