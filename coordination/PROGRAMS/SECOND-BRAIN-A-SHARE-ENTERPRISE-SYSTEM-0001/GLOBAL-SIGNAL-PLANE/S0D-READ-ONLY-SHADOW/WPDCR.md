@@ -2,7 +2,7 @@
 
 agent_id: CODEX
 
-The planned difficulty was medium. Actual D3 difficulty came from binding a local source root to a Git commit/tree/blob rather than trusting a caller label, and from adapting S0D to the accepted SQLite-backed S0C ledger without creating a second truth store. Observable evidence is the focused `7/7` suite, including the 20 mechanism-driven acceptance cases, and the fresh-connection durable replay receipt.
+The planned difficulty was medium. Actual D3 difficulty came from binding a local source root to a Git revision/tree/blob rather than trusting a caller label, and from adapting S0D to the accepted SQLite-backed S0C ledger without creating a second truth store. Observable evidence is the focused `7/7` suite, including the 20 mechanism-driven acceptance cases, and the fresh-connection durable replay receipt.
 
 The hardest part was preserving a strict read-only source boundary while proving ten individual Git object bindings. The implementation now verifies repository root, exact `HEAD`, per-path tree blob, Git object bytes and checked-out payload bytes before any observation is admitted. Schema extraction is intentionally conservative: the pending-writes and unknown registries expose stable item refs; registry-level status cannot override an item; unsupported surfaces stay `UNKNOWN`.
 
