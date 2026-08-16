@@ -1,0 +1,125 @@
+schema_version: "1.0"
+receipt_id: "GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION-0001"
+issue: 366
+owner: "USER"
+architecture_owner: "GPT"
+reviewer: "GPT"
+state: "AWAITING_FRESH_R137_PROVIDER_EVIDENCE / NON_EXECUTABLE_RESERVATION_ONLY"
+created_at: "2026-08-16T21:20:00+08:00"
+
+purpose: >-
+  Bind the R138 non-executable reservation against the canonical post-architecture state. This receipt can permit only a
+  bounded reservation after fresh accepted R137 provider evidence is attached. It cannot authorize Codex execution,
+  capability execution, domain write, ordinary formal task release or merge authority.
+
+canonical_base:
+  repository: "vxz2datoubo/second-brain-coordination"
+  main_sha: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+  r138_architecture_issue: 366
+  r138_architecture_pr: 367
+  r138_architecture_head: "233bd9fe817e45d1dbf837c116de498206db6f52"
+  r138_architecture_merge: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+  architecture_acceptance_comment: 5307721751
+  control_tower_ci: 31950461113
+  s0e_ci: 31950461111
+  phase3_ci: 31950461124
+
+reservation_identity:
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  route_epoch: 138
+  issue: 366
+  mode: "project_plan"
+  planned_branch: "codex/r138-domain-capability-execution-provider"
+  execution_allowed: false
+  runtime_code_change_allowed: false
+  current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+
+fresh_r137_observation:
+  required: true
+  status: "PENDING_THIS_RESERVATION_PR_RUNTIME_PROOF"
+  provider_id: "r137-public-github-on-demand-v1"
+  must_observe_main: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+  prior_architecture_planning_proof_py311: "provider://r137/evidence/r137:4c438c6bd43fabad80d692c9#sha256=35f759bd45f4fb38c5bd04c52ebea88484b506820ad28f25226b53334b4cc1ee"
+  prior_architecture_planning_proof_py313: "provider://r137/evidence/r137:945227dc190313be649b12ba#sha256=d9126b885d742ccb3911fc5654dbcd4991332d38924ac4454776cb139ca1eb2c"
+  prior_proofs_observed_main: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
+  prior_proofs_satisfy_current_reservation_freshness: false
+  rule: "Only a new mechanism-backed provider proof observing the post-architecture main may upgrade this receipt."
+
+architecture_contract:
+  architecture: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-ARCHITECTURE-v1.0.md"
+  threat_model: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-THREAT-MODEL-v1.0.md"
+  source_selection: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-SOURCE-SELECTION.yaml"
+  planning_intake: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R138/PLANNING-INTAKE.yaml"
+
+future_write_reservation:
+  state: "RESERVED_NOT_WRITABLE"
+  paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/capability_execution_provider.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r138_capability_execution_provider.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R138"
+    - ".github/workflows/global-signal-plane-r138-capability-execution.yml"
+  rule: "Reservation occupancy is not runtime write permission."
+
+fresh_state_scan:
+  prior_codex_route:
+    task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+    route_epoch: 137
+    status: "DONE"
+    execution_allowed: false
+    lease: "RELEASED_BEFORE_RESERVATION"
+  qclaw:
+    route_epoch: 60
+    status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+  workbuddy:
+    route_epoch: 15
+    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+  ai_film:
+    repository: "vxz2datoubo/eustia-ai-film"
+    reference_main_sha: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+    role: "READ_ONLY_DOMAIN_EXECUTABLE_SMOKE_CANDIDATE"
+    write_allowed: false
+
+collision_scan:
+  same_codex_active_execution: false
+  qclaw_execution_collision: false
+  workbuddy_execution_collision: false
+  heavy_resource_collision: false
+  lane_a_vs_lane_b: "O1_READ_READ_ONLY_WHILE_R138_NON_EXECUTABLE"
+  lane_a_vs_lane_c: "O2_FROZEN_INTERFACE_CONSUMPTION_ONLY"
+  unresolved_O3_or_O4: false
+
+truthfulness_guards:
+  capability_label_equals_execution: false
+  mandatory_read_equals_scan_proof: false
+  model_self_report_is_execution_evidence: false
+  provider_can_adjudicate_na: false
+  provider_can_adjudicate_outcome_truth: false
+  provider_can_authorize_release_or_merge: false
+  unsupported_cognitive_scan: "UNKNOWN"
+
+hard_locks:
+  codex_execution: false
+  capability_execution: false
+  arbitrary_shell: false
+  private_repo_credentials: false
+  generic_network_client: false
+  domain_write: false
+  ai_film_write: false
+  private_w3: false
+  harness_h2_h7: false
+  daemon_webhook_polling_scheduler: false
+  production: false
+  permission_or_secret_change: false
+  formal_skill_promotion: false
+  trading_account_order_fund: false
+  codex_merge: false
+
+final_decision:
+  reservation_can_be_reviewed_for_merge: false
+  task_release_allowed: false
+  execution_allowed: false
+  next_gate: "RUN_REAL_R137_PROVIDER_ON_THIS_PR_THEN_BIND_FRESH_EVIDENCE"
