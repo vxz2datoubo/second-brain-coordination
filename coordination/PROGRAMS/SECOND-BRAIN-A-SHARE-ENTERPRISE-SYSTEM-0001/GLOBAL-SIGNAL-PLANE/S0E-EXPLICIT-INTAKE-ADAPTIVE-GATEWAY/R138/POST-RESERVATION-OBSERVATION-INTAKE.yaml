@@ -1,0 +1,47 @@
+schema_version: "1.0"
+observation_intake_id: "R138-POST-RESERVATION-CANONICAL-OBSERVATION-0001"
+issue: 366
+owner: "USER"
+architecture_owner: "GPT"
+status: "EVIDENCE_ONLY / DO_NOT_MERGE"
+
+purpose: >-
+  Trigger a one-off, non-merge evidence PR that invokes the already-accepted R137 public live-observation provider against
+  canonical main after the R138 non-executable reservation has merged. This intake grants no R138 execution, runtime write,
+  domain write, release or merge authority.
+
+expected_canonical_state:
+  main_before_evidence_pr: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  route_epoch: 138
+  status: "PREPARED_NON_EXECUTABLE"
+  execution_allowed: false
+  runtime_code_change_allowed: false
+  current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+
+provider:
+  implementation: "accepted R137 r137-public-github-on-demand-v1"
+  invocation_scope: "R138 post-reservation evidence only"
+  expected_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  expected_route_epoch: 138
+  target_branch: "main"
+  proof_authority: "OBSERVATION_EVIDENCE_ONLY"
+
+hard_locks:
+  r138_execution: false
+  capability_execution: false
+  domain_write: false
+  private_w3: false
+  harness_h2_h7: false
+  generic_shell_or_network: false
+  credentials_secrets: false
+  production: false
+  permissions: false
+  formal_skill: false
+  trading: false
+  merge_this_evidence_pr: false
+
+closure_rule: >-
+  After the proof is collected and independently checked, close this evidence PR without merge. Use the proof only to bind
+  R138 post-reservation reconciliation. R138 remains blocked until the user explicitly says `启动 R138` and a separate
+  activation is merged.
