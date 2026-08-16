@@ -1,0 +1,60 @@
+name: BrainOps E50 trusted-provider release validation gate
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/**"
+      - ".github/workflows/brainops-e50.yml"
+  push:
+    branches:
+      - "codex/brainops-trusted-provider-release-validation-0046-e50"
+
+jobs:
+  e50:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Assert exact checkout
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.ci_identity "$EXPECTED_HEAD"
+      - name: Prepare external evidence directory
+        run: |
+          echo "E50_EVIDENCE_DIR=$RUNNER_TEMP/e50-${{ github.run_id }}-${{ matrix.python-version }}" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/e50-${{ github.run_id }}-${{ matrix.python-version }}"
+      - name: Run full synthetic regression
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -p "test_*.py" -q 2>&1 | tee "$E50_EVIDENCE_DIR/full-regression.txt"
+      - name: Validate E50 workflow policy
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.e50_workflow_policy --workflow .github/workflows/brainops-e50.yml
+      - name: Run focused E50 verification tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE
+        run: |
+          set -o pipefail
+          python -m unittest tests.test_e50_release_closure tests.test_e50_clean_clone_reproduction tests.test_e50_workflow_policy -q 2>&1 | tee "$E50_EVIDENCE_DIR/e50-focused-tests.txt"
+      - name: Run active E50 mutation harness
+        run: |
+          PYTHONPATH=coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE/src \
+            python -m brainops_control_plane.e50_mutation_harness \
+              --program-root coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/BRAINOPS-APP-FIRST-CONTROL-PLANE \
+              --output "$E50_EVIDENCE_DIR/e50-mutation-evidence.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e50-release-evidence-${{ matrix.python-version }}
+          path: ${{ runner.temp }}/e50-${{ github.run_id }}-${{ matrix.python-version }}
