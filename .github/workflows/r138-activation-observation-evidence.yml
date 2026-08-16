@@ -1,0 +1,75 @@
+name: R138 Activation Fresh Observation Evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/r138-activation-observation-evidence.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    name: Fresh R138 activation observation (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Assert exact evidence head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install public parser dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Retain R137 and R136 mechanism regressions
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r137_live_observation_provider.py' -v
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r136_matrix.py' -v
+      - name: Execute accepted R137 provider against current canonical R138 state
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+          EVIDENCE_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+          from global_signal_gateway.gateway import validate_live_observation_proof
+          from global_signal_gateway.live_observation_provider import (
+              CONTROL_PATHS, CONTRACT_REVISION, DOMAIN_REPOSITORY,
+              DomainFreshnessTarget, LiveObservationProvider, LiveObservationRequest,
+          )
+          request = LiveObservationRequest(
+              request_id="r138-explicit-user-activation-fresh-observation",
+              provider_contract_revision=CONTRACT_REVISION,
+              target_repository="vxz2datoubo/second-brain-coordination",
+              target_branch="main",
+              pull_request_number=int(os.environ["EVIDENCE_PR_NUMBER"]),
+              expected_task_id="CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER",
+              expected_route_epoch=138,
+              required_control_plane_paths=CONTROL_PATHS,
+              required_domain_freshness_targets=(DomainFreshnessTarget(DOMAIN_REPOSITORY),),
+              required_review_scope="ALL_RAW_REVIEWS",
+              requested_max_age_seconds=300,
+              requested_at=datetime.now(timezone.utc).isoformat(),
+          )
+          bundle, proof = LiveObservationProvider().observe(request)
+          assert validate_live_observation_proof(proof)
+          print({
+              "evidence_ref": bundle.identity_ref(),
+              "evidence_digest": bundle.bundle_digest,
+              "main": bundle.initial_main_sha,
+              "task": request.expected_task_id,
+              "epoch": request.expected_route_epoch,
+          })
+          PY
