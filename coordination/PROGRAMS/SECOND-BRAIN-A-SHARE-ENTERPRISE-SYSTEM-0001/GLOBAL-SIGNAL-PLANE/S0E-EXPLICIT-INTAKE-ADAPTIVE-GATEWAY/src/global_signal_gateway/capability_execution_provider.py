@@ -6,13 +6,14 @@ its fixed descriptor and its own ``docker --network none`` invocation.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import inspect
 import os
 from pathlib import Path, PurePosixPath
 import shutil
+import secrets
 import subprocess
 import sys
 import tarfile
@@ -64,6 +65,11 @@ def _tree_digest(root: Path) -> str:
         if item.is_symlink(): raise GatewayError("SYMLINK_ESCAPE_FORBIDDEN")
         if item.is_file(): entries.append((item.relative_to(root).as_posix(), _hash_file(item)))
     return digest(entries)
+
+
+def _bundle_digest(bundle: "CapabilityExecutionEvidenceBundle") -> str:
+    """Canonical digest over every trusted bundle field except itself."""
+    return digest({name: value for name, value in bundle.__dict__.items() if name != "bundle_digest"})
 
 
 @dataclass(frozen=True)
@@ -182,27 +188,32 @@ class ExactRepositoryCapabilityProvider:
         if result.returncode or not result.stdout.strip(): raise GatewayError("GOVERNED_RUNTIME_NOT_PROVISIONED")
         image_id = result.stdout.strip()
         wheels = declared.get("wheelhouse_sha256")
-        if not isinstance(wheels, str) or not _safe_sha(wheels) or declared.get("image_id") != image_id or declared.get("image") != descriptor.runtime_image:
+        required = ("workflow", "head_sha", "run_id", "provisioning_artifact_id", "provisioning_artifact_digest")
+        if not isinstance(wheels, str) or not _safe_sha(wheels) or any(not declared.get(key) for key in required) or declared.get("image_id") != image_id or declared.get("image") != descriptor.runtime_image:
             raise GatewayError("GOVERNED_RUNTIME_ATTESTATION_MISMATCH")
-        return {"runtime": "docker", "image": descriptor.runtime_image, "image_id": image_id, "wheelhouse_sha256": wheels, "host_python": sys.version.split()[0], "os": os.name}
+        return {"runtime": "docker", "image": descriptor.runtime_image, "image_id": image_id, "wheelhouse_sha256": wheels, "workflow": str(declared["workflow"]), "head_sha": str(declared["head_sha"]), "run_id": str(declared["run_id"]), "provisioning_artifact_id": str(declared["provisioning_artifact_id"]), "provisioning_artifact_digest": str(declared["provisioning_artifact_digest"]), "attestation_file_digest": _hash_file(Path(attestation)), "host_python": sys.version.split()[0], "os": os.name}
 
     def _execute_boundary(self, descriptor: CapabilityDescriptor, source: Path, output: Path, request: CapabilityExecutionRequest) -> tuple[int | None, bool, bytes, bytes, Mapping[str, bool], Mapping[str, str], str]:
         runtime = self._runtime_identity(descriptor)
-        container = f"r138-{digest(request.execution_id)[:24]}"; cidfile = output / "r138.cid"
+        container = f"r138-{secrets.token_hex(16)}"; cidfile = output / "r138.cid"
         command = ("docker", "run", "--rm", "--name", container, "--cidfile", str(cidfile), "--network", "none", "--read-only", "--pids-limit", "64", "--memory", "768m", "--cpus", "1.0", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--mount", f"type=bind,src={source},dst=/work,readonly", "--mount", f"type=bind,src={output},dst=/output", "--workdir", f"/work/{descriptor.working_directory}", "--env", "PYTHONNOUSERSITE=1", "--env", "PYTHONDONTWRITEBYTECODE=1", descriptor.runtime_image, *descriptor.argv)
         try:
             result = subprocess.run(command, shell=False, capture_output=True, timeout=request.timeout_seconds, env={"PATH": os.environ.get("PATH", "")}, check=False)
-            return result.returncode, False, result.stdout, result.stderr, {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, runtime, container
+            return result.returncode, False, result.stdout, result.stderr, {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, runtime, str(cidfile)
         except subprocess.TimeoutExpired as error:
             # docker --rm owns the bounded container; absence after the command is checked by caller.
-            return None, True, error.stdout or b"", error.stderr or b"", {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, runtime, container
+            return None, True, error.stdout or b"", error.stderr or b"", {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, runtime, str(cidfile)
 
-    def _post_boundary_clean(self, workspace: Path, output: Path, descriptor: CapabilityDescriptor, container: str) -> tuple[bool, bool]:
+    def _post_boundary_clean(self, workspace: Path, output: Path, descriptor: CapabilityDescriptor, cidfile: str) -> tuple[bool, bool]:
         # source is immutable to the container; all task-owned writes may only be in output.
         source_unchanged = _tree_digest(workspace / "source") == _tree_digest(workspace / "source-before")
-        subprocess.run(("docker", "rm", "-f", container), shell=False, capture_output=True, text=True, timeout=15, check=False)
-        containers = subprocess.run(("docker", "inspect", container), shell=False, capture_output=True, text=True, timeout=15, check=False)
-        descendants_clean = containers.returncode != 0
+        cid_path = Path(cidfile); cid = cid_path.read_text(encoding="utf-8").strip() if cid_path.is_file() else ""
+        if cid and _safe_sha(cid):
+            removal = subprocess.run(("docker", "rm", "-f", cid), shell=False, capture_output=True, text=True, timeout=15, check=False)
+            query = subprocess.run(("docker", "ps", "-a", "--filter", f"id={cid}", "--format", "{{.ID}}"), shell=False, capture_output=True, text=True, timeout=15, check=False)
+            descendants_clean = removal.returncode == 0 and query.returncode == 0 and not query.stdout.strip()
+        else:
+            descendants_clean = False
         allowed_output = _inside(workspace, output) and not any(item.is_symlink() for item in output.rglob("*"))
         return source_unchanged and allowed_output, descendants_clean
 
@@ -238,8 +249,8 @@ class ExactRepositoryCapabilityProvider:
         invocation = digest({"argv": descriptor.argv, "cwd": descriptor.working_directory, "env": ["PYTHONNOUSERSITE", "PYTHONDONTWRITEBYTECODE"], "archive": archive_digest})
         warnings = tuple(code for code, failed in (("NETWORK_ISOLATION_UNENFORCED", not boundaries.get("network")), ("WRITE_ISOLATION_UNVERIFIED", not write_isolated), ("DESCENDANT_OWNERSHIP_UNVERIFIED", not descendants), ("CLEANUP_INCOMPLETE", not cleanup), ("SOURCE_MUTATION_DETECTED", not (source_before and source_after)), ("EXECUTION_TIMEOUT", timed_out), ("EXECUTION_NONZERO", exit_code not in {0, None})) if failed)
         invalidators = {"provider_code": _provider_code_digest(), "contract": descriptor.capability_contract_ref, "source_commit": request.source_commit, "executor": executor_digest, "working_directory": cwd_digest, "inputs": digest(inputs), "dependency_lock": inputs[descriptor.dependency_lock_path], "runtime": digest(runtime), "boundary": digest(boundaries), "resource_policy": descriptor.resource_policy_ref, "network_policy": descriptor.network_policy_ref, "write_policy": descriptor.write_policy_ref}
-        material = {"provider": PROVIDER_ID, "request": request.request_id, "execution": request.execution_id, "trace": request.trace_id, "invalidators": invalidators, "result": result_digest, "exit": exit_code, "warnings": warnings}
-        bundle = CapabilityExecutionEvidenceBundle(PROVIDER_ID, CONTRACT_REVISION, _provider_code_digest(), request.request_id, request.execution_id, request.trace_id, request.domain_id, request.capability_id, request.capability_class, request.source_repository, request.source_commit, descriptor.capability_contract_ref, descriptor.executor_path, executor_digest, descriptor.working_directory, cwd_digest, inputs, descriptor.dependency_lock_path, inputs[descriptor.dependency_lock_path], runtime, invocation, digest(["PYTHONNOUSERSITE", "PYTHONDONTWRITEBYTECODE"]), descriptor.resource_policy_ref, descriptor.network_policy_ref, descriptor.write_policy_ref, descriptor.privacy_scope_ref, boundaries, _iso(started), _iso(completed), duration, "SUCCEEDED" if exit_code == 0 and not timed_out else "FAILED", exit_code, timed_out, len(output), _hash_bytes(stdout), _hash_bytes(stderr), result_digest, source_before, source_after, write_isolated, descendants, cleanup, warnings, invalidators, digest(material))
+        bundle = CapabilityExecutionEvidenceBundle(PROVIDER_ID, CONTRACT_REVISION, _provider_code_digest(), request.request_id, request.execution_id, request.trace_id, request.domain_id, request.capability_id, request.capability_class, request.source_repository, request.source_commit, descriptor.capability_contract_ref, descriptor.executor_path, executor_digest, descriptor.working_directory, cwd_digest, inputs, descriptor.dependency_lock_path, inputs[descriptor.dependency_lock_path], runtime, invocation, digest(["PYTHONNOUSERSITE", "PYTHONDONTWRITEBYTECODE"]), descriptor.resource_policy_ref, descriptor.network_policy_ref, descriptor.write_policy_ref, descriptor.privacy_scope_ref, boundaries, _iso(started), _iso(completed), duration, "SUCCEEDED" if exit_code == 0 and not timed_out else "FAILED", exit_code, timed_out, len(output), _hash_bytes(stdout), _hash_bytes(stderr), result_digest, source_before, source_after, write_isolated, descendants, cleanup, warnings, invalidators, "")
+        bundle = replace(bundle, bundle_digest=_bundle_digest(bundle))
         _BUNDLES[bundle.identity_ref()] = bundle
         if warnings: return bundle, None
         proof = CapabilityExecutionProof(PROVIDER_ID, CONTRACT_REVISION, bundle.identity_ref(), bundle.bundle_digest, request.execution_id, request.trace_id, request.domain_id, request.capability_id, request.source_repository, request.source_commit, descriptor.capability_contract_ref, executor_digest, digest(inputs), inputs[descriptor.dependency_lock_path], digest(runtime), result_digest, bundle.execution_status, digest(boundaries), bundle.completed_at, _iso(completed + timedelta(minutes=5)), invalidators, _SEAL)
@@ -253,12 +264,14 @@ def verify_historical_capability_execution_proof(proof: object, *, at: str | Non
     try: checked, completed, fresh = instant(at or _iso(_now()), "/checked_at"), instant(bundle.completed_at, "/completed_at"), instant(proof.fresh_until, "/fresh_until")
     except GatewayError: return False
     required = all(bundle.boundary_enforcement.get(key) for key in ("network", "read_only_source", "write_surface", "resource_limits", "no_shell"))
-    return bool(checked >= completed and bundle.bundle_digest == proof.evidence_digest and bundle.provider_code_digest == _provider_code_digest() and bundle.execution_status == "SUCCEEDED" and bundle.exit_code == 0 and not bundle.timed_out and bundle.source_clean_before and bundle.source_clean_after and bundle.temp_write_isolated and bundle.descendant_ownership_verified and bundle.cleanup_complete and not bundle.warnings and required and proof.execution_id == bundle.execution_id and proof.trace_id == bundle.trace_id and proof.domain_id == bundle.domain_id and proof.capability_id == bundle.capability_id and proof.source_repository == bundle.source_repository and proof.source_commit == bundle.source_commit and proof.capability_contract_ref == bundle.capability_contract_ref and proof.executor_digest == bundle.executor_digest and proof.input_set_digest == digest(bundle.input_digests) and proof.dependency_lock_digest == bundle.dependency_lock_digest and proof.runtime_digest == digest(bundle.runtime_identity) and proof.result_digest == bundle.result_digest and proof.execution_status == bundle.execution_status and proof.boundary_enforcement_digest == digest(bundle.boundary_enforcement) and proof.invalidation_fingerprints == bundle.invalidation_fingerprints)
+    return bool(checked >= completed and bundle.bundle_digest == _bundle_digest(bundle) and bundle.bundle_digest == proof.evidence_digest and bundle.execution_status == "SUCCEEDED" and bundle.exit_code == 0 and not bundle.timed_out and bundle.source_clean_before and bundle.source_clean_after and bundle.temp_write_isolated and bundle.descendant_ownership_verified and bundle.cleanup_complete and not bundle.warnings and required and proof.execution_id == bundle.execution_id and proof.trace_id == bundle.trace_id and proof.domain_id == bundle.domain_id and proof.capability_id == bundle.capability_id and proof.source_repository == bundle.source_repository and proof.source_commit == bundle.source_commit and proof.capability_contract_ref == bundle.capability_contract_ref and proof.executor_digest == bundle.executor_digest and proof.input_set_digest == digest(bundle.input_digests) and proof.dependency_lock_digest == bundle.dependency_lock_digest and proof.runtime_digest == digest(bundle.runtime_identity) and proof.result_digest == bundle.result_digest and proof.execution_status == bundle.execution_status and proof.boundary_enforcement_digest == digest(bundle.boundary_enforcement) and proof.invalidation_fingerprints == bundle.invalidation_fingerprints)
 
 
 def verify_capability_execution_proof(proof: object, *, at: str | None = None) -> bool:
     """Current-compliance validation: historical validity plus bounded freshness."""
     if not verify_historical_capability_execution_proof(proof, at=at): return False
     assert isinstance(proof, CapabilityExecutionProof)
-    try: return instant(at or _iso(_now()), "/checked_at") <= instant(proof.fresh_until, "/fresh_until")
+    try:
+        bundle = _BUNDLES[proof.evidence_ref]
+        return instant(at or _iso(_now()), "/checked_at") <= instant(proof.fresh_until, "/fresh_until") and bundle.provider_code_digest == _provider_code_digest()
     except GatewayError: return False
