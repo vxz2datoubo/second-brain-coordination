@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN-R139"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -6,22 +6,27 @@ task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
 route_epoch: 139
 issue: 375
 mode: "project_plan"
-status: "RESERVED_NON_EXECUTABLE"
-execution_allowed: false
-runtime_code_change_allowed: false
+status: "READY"
+execution_allowed: true
+runtime_code_change_allowed: true
 merge_authorized: false
 planned_branch: "codex/r139-domain-learning-handoff-dry-run"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN.yaml"
 architecture_ref: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-ARCHITECTURE-v1.0.md"
+reservation_reconciliation: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R139-RESERVATION.yaml"
+activation_reconciliation: "coordination/CONTROL-TOWER/R139-ACTIVATION-RECONCILIATION.yaml"
 completion_signal: "R139_DOMAIN_LEARNING_HANDOFF_DRY_RUN_READY_FOR_GPT_REVIEW"
 
-reservation_semantics:
-  occupies_lane_a_surface: true
-  grants_execution: false
-  activation_requires_fresh_post_reservation_reconciliation: true
-  codex_heartbeat_must_not_claim_until_ready: true
+activation_semantics:
+  canonical_activation_required: true
+  codex_heartbeat_may_claim_after_activation_merge: true
+  one_active_codex_route_max: 1
+  local_atomic_claim_required: true
+  github_claim_receipt_required: true
+  duplicate_dispatch_must_be_suppressed: true
+  stale_epoch_must_be_rejected: true
 
-write_surface_after_future_activation:
+allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_handoff.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
@@ -34,12 +39,33 @@ read_domains:
   - "Control Tower/route/claim/Signal authority"
   - "AI Film public exact-commit canonical learning files for read-only smoke"
 
+external_domain_boundary:
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  exact_reference_commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  role: "READ_ONLY_DOMAIN_AUTHORITY_AND_SMOKE_TARGET"
+  domain_write: false
+
+implementation_requirements:
+  - "create R139/EXECUTION-PLAN.yaml before material runtime edits"
+  - "implement canonical DomainLearningHandoffPacket and DomainLearningReceipt verifier"
+  - "routine feedback defaults TRACE_ONLY/DOMAIN_WORKFLOW"
+  - "material system-learning effect may map to DURABLE_SIGNAL without granting task execution"
+  - "preserve source/model/version/work-item/revision/provenance/privacy/idempotency"
+  - "exact duplicate suppressed; correction append-only"
+  - "AI Film classification/maturity/write routes remain domain-owned"
+  - "Stage A dry-run cannot claim writeback"
+  - "excellent fashion case real read-only smoke"
+  - "CD25-KAIM-WINDOW-AB-20260815 real read-only smoke preserving confounded/inconclusive"
+  - "zero AI Film mutation"
+  - "R001-R030 semantic acceptance matrix"
+
 hard_locks:
   ai_film_write: false
   generic_cross_repo_writer: false
   private_credentials: false
   raw_private_public_write: false
   formal_skill_promotion: false
+  domain_maturity_authority: false
   production: false
   harness_h2_h7: false
   permission_secret_change: false
@@ -48,11 +74,27 @@ hard_locks:
   codex_merge: false
 
 resource_policy:
+  class: "MEDIUM_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_parallelism: false
   single_worker_default: true
+  broad_matrix: "REMOTE_CI_PREFERRED"
   task_owned_cleanup_only: true
   global_kill_forbidden: true
+  daemon_server: false
 
-next_gate: "MERGE_NON_EXECUTABLE_RESERVATION_THEN_FRESH_RECONCILIATION_AND_SEPARATE_ACTIVATION"
+launch_guard:
+  repository_must_equal: "vxz2datoubo/second-brain-coordination"
+  task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
+  route_epoch_must_equal: 139
+  issue_must_equal: 375
+  branch_must_equal: "codex/r139-domain-learning-handoff-dry-run"
+  status_must_equal: "READY"
+  execution_allowed_must_equal: true
+  activation_receipt_must_exist: true
+  same_codex_or_local_heavy_collision_must_be_absent: true
+  ai_film_reference_must_equal: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  fail_code: "WRONG_ROUTE_OR_STALE_DISPATCH_OR_LEASE_COLLISION_OR_AUTHORITY_EXPANSION"
+
+next_gate: "CODEX_IMPLEMENTATION_COMPLETION_SIGNAL_THEN_INDEPENDENT_GPT_EXACT_HEAD_REVIEW"
