@@ -1,4 +1,4 @@
-schema_version: "1.8"
+schema_version: "1.9"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -54,9 +54,9 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    claim_state: "ACTIVE_IMPLEMENTATION"
     execution_agent: "CODEX"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    resource_class: "MEDIUM_IMPLEMENTATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
       route_epoch: 135
@@ -73,8 +73,8 @@ claims:
       - "coordination/ACTIVE-CODEX-TASK.yaml"
       - "coordination/ACTIVE-PROGRAM-LANES.yaml"
       - "coordination/PROGRAM-CONTROL-TOWER.md"
-      - "repo:vxz2datoubo/eustia-ai-film@exact-commit:PROJECT_INDEX.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@exact-commit:approved-status-reference-surfaces"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:approved-status-reference-surfaces"
     interfaces:
       - name: "Global-Signal-Plane-S0-Contracts"
         mode: "read"
@@ -97,11 +97,12 @@ claims:
     implementation_scope:
       slice: "S0D_READ_ONLY_CROSS_REPO_SHADOW_SIGNAL_PLANE"
       issue: 348
-      phase: "A_RESERVATION_NON_EXECUTABLE"
-      target_resource_class: "MEDIUM_IMPLEMENTATION"
-      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135.yaml"
-      execution_allowed: false
+      phase: "B_POST_MERGE_ACTIVATION"
+      activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135-ACTIVATION.yaml"
+      phase_a_merge_commit: "0f70131362eb5be2f78b246531e3368e4a854595"
+      execution_allowed: true
       ai_film_repository: "vxz2datoubo/eustia-ai-film"
+      ai_film_source_commit_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
       ai_film_write_allowed: false
       full_domain_body_copy_allowed: false
       private_chat_allowed: false
@@ -113,12 +114,12 @@ claims:
       production_allowed: false
       trading_allowed: false
     stop_conditions:
-      - "Phase A reservation is non-executable."
       - "Write outside exact S0D paths -> STOP / NEEDS_GPT"
       - "Any mutation to AI Film -> STOP / NEEDS_GPT"
-      - "AI Film/Second Brain source drift -> STOP / fresh reconciliation"
+      - "AI Film source commit/authority drift before start -> STOP / fresh reconciliation"
       - "Known local AI Film Codex execution -> STOP / WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
       - "Private chat/W3/Harness/H2/H7/S0E/production/trading required -> STOP / separate gate"
+      - "Passing tests or CI does not authorize merge or successor stage"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -156,9 +157,8 @@ claims:
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    Lane B remains bounded proposal-only. Lane A S0D currently reserves only its exact future write surface and is
-    non-executable. This reservation does not authorize cross-repo mutation, S0E, H2, H7, private/live integration,
-    domain writes, production or trading.
+    Lane A S0D is the only active Codex implementation and owns only its exact two Second Brain write surfaces. Lane B
+    remains held proposal-only. AI Film is an external read-only source and has zero shared write authority.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
   reservation_upgrade_requires_fresh_post_merge_reconciliation: true
