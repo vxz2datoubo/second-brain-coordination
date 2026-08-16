@@ -1,4 +1,4 @@
-schema_version: "3.1"
+schema_version: "3.2"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -20,7 +20,7 @@ semantics:
   reserved_implementation_requires_global_reconciliation_receipt: true
   reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
   r138_completion_does_not_authorize_successor_execution: true
-  r139_activation_authorizes_only_exact_bounded_second_brain_surface: true
+  r139_completion_does_not_authorize_successor_execution: true
   global_reconciliation_receipt_is_not_execution_authority: true
   implementation_release_requires_fresh_claim_rescan: true
 
@@ -51,79 +51,29 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "MEDIUM_IMPLEMENTATION"
-    route_binding:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
-      route_epoch: 139
-      issue: 375
-      pr: null
-      branch: "codex/r139-domain-learning-handoff-dry-run"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_handoff.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r139_domain_learning_handoff.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R139"
-      - ".github/workflows/global-signal-plane-r139-domain-learning-handoff.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-ARCHITECTURE-v1.0.md"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-CONTRACT.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-THREAT-MODEL-v1.0.md"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-QCLAW-TASK.yaml"
-      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:08_系统学习/反馈反推与系统反哺引擎.md"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:08_系统学习/C-DANCE2.5真实生成反馈库.md"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/director_route_index.yaml"
-    interfaces:
-      - name: "R136-RuntimeInvocationReceipt"
-        mode: "read/integrate"
-        frozen: true
-      - name: "R137-AuthorityBoundLiveObservationProof"
-        mode: "read/evidence"
-        frozen: true
-      - name: "R138-CapabilityExecutionProof"
-        mode: "read/evidence-only"
-        frozen: true
-      - name: "DomainLearningHandoff-V1"
-        mode: "implement Second Brain side only"
-        frozen_for_r139: true
-      - name: "AI-Film-Domain-Authority"
-        mode: "read-only / no-write"
-        frozen: true
-      - name: "Control-Tower-Authorization-Boundary"
-        mode: "read/evidence-only"
-        frozen: true
-    read_domains: [W1, W3, W8, W9, W10]
-    write_domains: [W8]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
     authority_claims: []
-    implementation_scope:
-      slice: "R139_DOMAIN_LEARNING_HANDOFF_DRY_RUN"
-      issue: 375
-      phase: "B_ACTIVE_IMPLEMENTATION"
-      resource_class: "MEDIUM_IMPLEMENTATION"
-      global_reconciliation_receipt: "coordination/CONTROL-TOWER/R139-ACTIVATION-RECONCILIATION.yaml"
-      execution_allowed: true
-      runtime_code_change_allowed: true
-      ai_film_write_allowed: false
-      domain_maturity_authority: false
-      generic_cross_repo_writer_allowed: false
-      production_allowed: false
-      trading_allowed: false
-      codex_merge_allowed: false
+    closure_receipt:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
+      completed_route_epoch: 139
+      closure_issue: 375
+      merged_pr: 379
+      accepted_exact_head: "e27e592075294eb3ec172ff054e3aaafcf7b6e74"
+      merge_commit: "2d715f8966bc443f2d75ae8defe82d548e8a444e"
+      gpt_review: 4947497284
+      disposition: "ACCEPTED_WITH_NARROW_CI_COMPATIBILITY_REPAIR / R139_STAGE_A_CLOSED"
+      stage_b_domain_writer: "NOT_AUTHORIZED"
     stop_conditions:
-      - "Write outside exact six-surface allowlist -> STOP"
-      - "AI Film/domain write requirement -> STOP / separate domain-owned gate"
-      - "Private/raw conversation/media or secret requirement -> STOP"
-      - "Same Codex/local-heavy collision or stale atomic dispatch claim -> STOP / reconcile"
-      - "Stage A dry-run claimed as writeback -> STOP / FALSE_GREEN"
-      - "Passing tests or CI never authorizes Codex merge"
+      - "Any successor implementation requires a new task_id/route_epoch, fresh Work Claim and fresh reconciliation."
+      - "AI Film/domain canonical write requires a separate domain-owned gate."
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -157,8 +107,8 @@ claims:
 
 release_semantics:
   proposal_only_parallelism: >-
-    R139 owns the one bounded active Lane A Codex implementation surface. Lane B remains isolated proposal-only and Lane C
-    remains closed. No current mutable collision is authorized.
+    R139 is closed and Lane A owns no active implementation surface. Lane B remains isolated proposal-only and Lane C
+    remains closed. No current mutable implementation collision is authorized.
   implementation_release_is_separate: true
-  active_route_requires_atomic_claim_at_executor: true
-  r139_ai_film_boundary: "READ_ONLY / NO_DOMAIN_CANONICAL_WRITE"
+  successor_route_requires_fresh_reconciliation: true
+  r139_ai_film_boundary: "READ_ONLY_STAGE_A_COMPLETE / NO_DOMAIN_CANONICAL_WRITE"
