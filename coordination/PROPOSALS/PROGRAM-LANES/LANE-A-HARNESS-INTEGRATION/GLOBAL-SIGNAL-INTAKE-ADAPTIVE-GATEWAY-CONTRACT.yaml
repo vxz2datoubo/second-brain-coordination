@@ -1,0 +1,326 @@
+schema_version: "1.0"
+contract_id: "GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT-0001"
+status: "ARCHITECTURE_CONTRACT / PHASE_A_RESERVED_NON_EXECUTABLE"
+owner: "USER"
+architecture_owner: "GPT"
+parent_system: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 136
+issue: 353
+boundary: "PUBLIC_SAFE_GITHUB_STAGE / NO_PRIVATE_BRIDGE / NO_HARNESS / NO_DOMAIN_WRITE / NO_PRODUCTION / NO_TRADE"
+
+purpose: >-
+  Define one universal system-facing intake for relevant user/system requests while preventing two opposite failures:
+  turning every routine interaction into durable backlog bureaucracy, and allowing material system changes to bypass
+  global Signal reconciliation. All relevant requests may pass through the intake decision, but only durable planning
+  intent enters the long-lived Signal backlog.
+
+authority_invariants:
+  signal_tower_identity: "ONE_SIGNAL_TOWER"
+  signal_truth: "S0C DurableSignalLedger + append-only admitted history"
+  no_second_signal_truth: true
+  knowledge_memory_truth: "W3_SECOND_BRAIN"
+  execution_authority: "CONTROL_TOWER_310"
+  method_selection_authority: "METHOD_ROUTER_312"
+  domain_truth: "DOMAIN_REPOSITORIES"
+  runtime_orchestration: "HARNESS_RUNTIME_FUTURE_ONLY"
+  final_risk_veto: "W7_VALIDATION_RISK"
+  outcome_learning: "W9_OUTCOME_LEARNING"
+  receipt_is_not_execution_authority: true
+  system_awareness_projection_is_not_authority: true
+
+universal_intake:
+  applies_to: "SYSTEM_RELEVANT_USER_OR_SYSTEM_REQUESTS"
+  capture_first_formalize_later: true
+  trigger_semantics:
+    durable_capture_examples:
+      - "录入信号塔"
+      - "登入信号塔"
+      - "记到信号塔"
+      - "放进信号塔"
+      - "把这个想法录入信号塔"
+      - "把这个需求记到信号塔"
+    rule: >-
+      Triggering is semantic, not literal-string-only. Equivalent explicit user intent may activate durable capture.
+      A model guess without sufficient evidence may propose capture but may not silently claim durable admission.
+    negative_overrides:
+      - "不录入信号塔"
+      - "先别录"
+      - "只是讨论"
+      - "暂时不要落盘"
+    negative_override_precedence: "USER_EXPLICIT_NEGATION_WINS"
+  routine_requests:
+    rule: >-
+      A routine request may be classified EPHEMERAL or TRACE_ONLY without creating a durable Signal. The intake decision
+      still resolves the relevant domain/system route when a domain workflow is required.
+
+classification_axes:
+  persistence:
+    values: [EPHEMERAL, TRACE_ONLY, DURABLE_SIGNAL]
+    semantics:
+      EPHEMERAL: "one-turn or local result; no durable Signal and no execution receipt unless another rule requires it"
+      TRACE_ONLY: "not long-lived backlog; execution/provenance receipt required because a formal domain workflow is claimed"
+      DURABLE_SIGNAL: "long-lived planning intent admitted to the shared Signal Plane"
+  execution:
+    values: [DIRECT, DOMAIN_WORKFLOW, GOVERNED_MISSION]
+    semantics:
+      DIRECT: "answer or transform with no formal domain runtime claim"
+      DOMAIN_WORKFLOW: "invoke a bounded domain system/route/read-set with verifiable runtime provenance"
+      GOVERNED_MISSION: "material work candidate requiring Signal preflight, reconciliation, task release packet, and Control Tower"
+  materiality:
+    values: [LOW, MATERIAL, HIGH_RISK]
+    semantics:
+      LOW: "bounded and reversible; no material authority/system effect"
+      MATERIAL: "changes durable system/domain behavior, architecture, skills, blueprints, modules, or formal work"
+      HIGH_RISK: "financial, permission, privacy, production, irreversible, or similarly high-impact effect"
+  no_magic_score: true
+  monotonic_safety_rule: "materiality/risk may upgrade gates but never silently downgrade required governance"
+
+routing_defaults:
+  routine_explanation:
+    persistence: EPHEMERAL
+    execution: DIRECT
+  routine_ai_film_directing:
+    persistence: TRACE_ONLY
+    execution: DOMAIN_WORKFLOW
+    materiality: LOW
+    note: "May upgrade to MATERIAL if it changes canonical film system/state rather than merely produces a directing result."
+  system_blueprint_module_skill_rule_change:
+    persistence: DURABLE_SIGNAL
+    execution: GOVERNED_MISSION
+    materiality: MATERIAL
+  formal_codex_or_agent_task_publication:
+    persistence: DURABLE_SIGNAL
+    execution: GOVERNED_MISSION
+    materiality: MATERIAL
+  trading_permission_private_production_irreversible:
+    persistence: DURABLE_SIGNAL
+    execution: GOVERNED_MISSION
+    materiality: HIGH_RISK
+
+SignalIntakeEnvelope_v1:
+  required_fields:
+    - envelope_id
+    - source_ref
+    - source_type
+    - source_project
+    - source_actor
+    - source_window_ref
+    - captured_at
+    - original_intent_ref
+    - public_safe_summary
+    - desired_effect
+    - problem_to_solve
+    - success_condition
+    - expected_problems
+    - risks
+    - assumptions
+    - unknowns
+    - dependencies
+    - evidence_refs
+    - counterevidence_refs
+    - privacy_scope_ref
+    - proposed_primary_domain
+    - proposed_related_domains
+    - persistence_class
+    - execution_class
+    - materiality_class
+    - epistemic_state
+  semantic_rules:
+    desired_effect: "required for DURABLE_SIGNAL; preserve user outcome rather than implementation guess"
+    success_condition: "required for DURABLE_SIGNAL; may be qualitative but must be falsifiable enough for closure assessment"
+    expected_problems: "UNKNOWN allowed; fabrication forbidden"
+    risks: "UNKNOWN allowed; material risk omission must not be hidden"
+    assumptions: "explicitly separate user-stated assumptions from model inference"
+    unknowns: "preserve UNKNOWN; do not fill gaps for completeness"
+    source_provenance: "bind explicit user direction separately from derived interpretation"
+    private_raw_body: "FORBIDDEN_IN_PUBLIC_CONTROL_PLANE"
+  durable_admission:
+    maps_to: "SignalEvent/v1 + optional SignalLink/v1"
+    ledger: "S0C DurableSignalLedger"
+    no_direct_execution_authorization: true
+
+SystemAwarenessProjection_v1:
+  role: "DERIVED_REBUILDABLE_SYSTEM_MODEL"
+  purpose: >-
+    Give Signal Tower enough global system awareness to know which capabilities, authorities, routes and canonicals exist
+    without injecting entire repositories or inventing a new source of truth.
+  sources:
+    - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DEPARTMENT-CONTRACT-GRAPH.yaml"
+    - "coordination/ACTIVE-CODEX-TASK.yaml"
+    - "coordination/ACTIVE-QCLAW-TASK.yaml"
+    - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+    - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+    - "relevant domain PROJECT_INDEX/authority entries by exact ref"
+    - "Global Signal Plane current projection"
+  minimum_node_fields:
+    - component_id
+    - component_kind
+    - source_authority_ref
+    - source_revision_or_commit
+    - capability_refs
+    - authority_owner
+    - canonical_entrypoints
+    - read_set_refs
+    - route_set_refs
+    - dependency_refs
+    - interface_refs
+    - maturity
+    - current_phase
+    - current_route_or_claim_ref
+    - read_boundary_refs
+    - write_boundary_refs
+    - regression_refs
+    - unknown_refs
+    - relevant_open_signal_refs
+  invariants:
+    derived_only: true
+    rebuildable: true
+    no_full_repository_injection: true
+    targeted_retrieval_default: true
+    stale_source_requires_rebuild_or_invalidation: true
+    unknown_capability_must_remain_unknown: true
+    no_authority_gain_by_projection: true
+
+AdaptiveRouteDecision_v1:
+  required_fields:
+    - decision_id
+    - intake_envelope_ref
+    - persistence_class
+    - execution_class
+    - materiality_class
+    - domain_route_ref
+    - system_awareness_snapshot_ref
+    - reasons
+    - required_receipts
+    - upgrade_conditions
+    - blocking_unknowns
+  rules:
+    routine_domain_workflow_does_not_require_global_reconciliation_by_default: true
+    durable_governed_mission_requires_global_preflight: true
+    high_risk_requires_explicit_high_impact_gate: true
+    missing_domain_runtime_proof_for_claimed_domain_workflow: "UNVERIFIED"
+
+GlobalSignalPreflight_v1:
+  required_for:
+    - FORMAL_CODEX_OR_AGENT_TASK_PUBLICATION
+    - SYSTEM_BLUEPRINT_OR_ARCHITECTURE_CHANGE
+    - MODULE_ADD_REMOVE_OR_MATERIAL_REFACTOR
+    - FORMAL_SKILL_OR_RULE_CHANGE
+    - MATERIAL_CROSS_PROJECT_CHANGE
+  scan_strategy: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH"
+  required_surfaces:
+    - signal_open_changed_conflicted_superseded_unknown
+    - duplicate_extend_reinforce_contradict_dependency_blocker_relations
+    - shared_surface_and_authority_collision
+    - can_merge_can_parallel_must_serialize
+    - reviewer_candidate_counterfactual_and_challenge_policy
+    - current_missions_tasks_pr_exact_heads_reviews_merge_ci
+    - per_agent_routes
+    - work_claims
+    - program_lanes
+    - resource_leases
+    - domain_canonical_freshness
+    - relevant_w3_context_refs
+    - pending_user_approvals_revocations
+  hard_rule: "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT -> NO_NEW_FORMAL_TASK_RELEASE"
+  global_coverage_not_full_body_rule: >-
+    Global coverage means every material candidate surface is shallow/delta scanned; only relevant clusters or ambiguous
+    collisions are deeply loaded. Full-history body injection is not required and is normally forbidden.
+
+TaskReleasePacket_v1:
+  required_fields:
+    - packet_id
+    - mission_candidate_ref
+    - included_signal_refs
+    - cluster_refs
+    - desired_effects
+    - success_conditions
+    - merge_keep_separate_rationale
+    - resolved_conflicts
+    - unresolved_conflicts
+    - dependencies
+    - can_parallel_refs
+    - must_serialize_refs
+    - reviewer_or_challenger_requirements
+    - counterfactual_requirements
+    - expected_problems
+    - risks
+    - unknowns
+    - required_capability_refs
+    - required_read_set_refs
+    - authority_refs
+    - exact_system_snapshot_ref
+    - exact_repository_state_refs
+    - route_claim_lane_refs
+    - reconciliation_receipt_ref
+    - control_tower_required
+  hard_rules:
+    reconciliation_receipt_is_planning_freshness_not_execution_permission: true
+    control_tower_remains_separate: true
+    unresolved_material_conflict_must_be_visible: true
+
+SignalClosureAssessment_v1:
+  states: [PARTIALLY_SATISFIED, SATISFIED, BLOCKED, NEEDS_REVALIDATION, REVOKED, SUPERSEDED]
+  inputs:
+    - original_signal_intent_ref
+    - desired_effect
+    - success_condition
+    - task_and_pr_receipts
+    - review_evidence
+    - real_outcome_evidence_if_available
+    - unresolved_unknowns
+  rules:
+    task_done_does_not_imply_signal_satisfied: true
+    satisfied_requires_effect_evidence: true
+    active_projection_removal_on_satisfied: true
+    append_only_history_retained: true
+    failure_or_new_learning_may_create_new_signal_candidate: true
+    no_automatic_formal_skill_promotion: true
+  implementation_note: >-
+    R136 may encode satisfaction as extension events/metadata/projection without silently changing frozen S0C base enums.
+    Any breaking SignalEvent schema/state migration requires an explicit major-schema/migration gate.
+
+public_safe_ingress:
+  stage: "GITHUB_STAGE_EXPLICIT_ONE_SHOT"
+  private_cross_window_bridge: "NOT_AUTHORIZED"
+  daemon_webhook_listener_scheduler_polling: "FORBIDDEN"
+  accepted_transport_requirement: >-
+    Any Git-backed journal/transport must be append-oriented, public-safe, deterministic to replay into the existing S0C
+    ledger, and must not become an independent truth store. Accepted events/links cannot be edited into a different fact.
+  correction_semantics: "append new event + supersede/revoke/link; never silent overwrite"
+  omission_is_not_revocation: true
+
+cross_window_user_experience:
+  target_behavior: >-
+    Relevant windows may use natural language to capture a Signal or request a formal task. A window must not invent a
+    local private task backlog as an alternative authority. Formal release first consumes current global Signal state.
+  current_stage_limit: >-
+    R136 proves a shared GitHub-stage protocol and replay path. It does not claim product-level automatic observation of
+    all ChatGPT windows. Real cross-window user tests are mandatory before declaring the Signal Tower generally open.
+
+failure_semantics:
+  ambiguous_private_content: "FAIL_CLOSED / PRIVATE_CONTENT_PLANE_REQUIRED"
+  stale_system_awareness: "INVALIDATE_PRETASK_RELEASE"
+  no_runtime_evidence: "UNVERIFIED"
+  unresolved_authority_collision: "BLOCK_FORMAL_RELEASE"
+  idempotency_collision: "FAIL_CLOSED"
+  unsupported_schema: "UNKNOWN_OR_REJECT / NEVER_GUESS"
+
+acceptance_expectations:
+  mechanism_derived_only: true
+  no_literal_success_flags: true
+  minimum_scenarios: 44
+  real_cross_window_test_after_r136_merge: true
+  first_domain_runtime_proof_consumer: "AI_FILM_READ_ONLY"
+
+locks:
+  - "No Harness/H2/H7 activation"
+  - "No private ChatGPT bridge or private W3 mutation"
+  - "No AI Film or A-share canonical write"
+  - "No daemon/server/webhook/scheduler/polling"
+  - "No production/private service"
+  - "No repository permission or secret change"
+  - "No trading/account/order/fund action"
+  - "No execution authorization inside Signal Tower"
