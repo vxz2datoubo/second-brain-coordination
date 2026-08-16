@@ -1,0 +1,114 @@
+schema_version: "1.0"
+reconciliation_id: "R136-S0E0-CLOSURE-RECONCILIATION-0001"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+trigger:
+  type: "POST_MERGE_COMPLETION_RECONCILIATION"
+  description: >-
+    GPT accepted the R136 S0E0 exact head and merged PR #356. The pre-merge READY route, Lane A Work Claim and Program
+    Lane projection must release their execution lease before any successor provider is considered.
+
+verified_facts:
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
+  route_epoch: 136
+  issue: 353
+  accepted_runtime_head: "3d2fe426b43de14edf7447fa26f55c4600f62169"
+  implementation_pr: 356
+  merge_commit: "54c99780ad6d1a1cc8a035a18130f26b2f91eb62"
+  final_review_id: 4945892342
+  exact_head_s0e_ci: 31939512514
+  exact_head_phase3_ci: 31939512549
+  python_311: PASS
+  python_313: PASS
+  acceptance: "ACCEPTED_WITH_FAIL_CLOSED_PROVIDER_BOUNDARY"
+  cleanup_disposition: "B11_WAIVED_NON_DELIVERY_RESIDUAL"
+  source_ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  source_ai_film_commit_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_mutations_accepted: false
+  formal_release_activated: false
+  harness_h2_h7_activated: false
+  private_w3_activated: false
+  live_production_activated: false
+  trading_activated: false
+
+closure_actions:
+  - "Set ACTIVE-CODEX-TASK epoch 136 to DONE and non-executable."
+  - "Set runtime_code_change_allowed to false and next_command to NO_ACTIVE_TASK."
+  - "Close Lane A Work Claim and release all current R136 read/write/interface/domain/authority surfaces."
+  - "Set Lane A to R136_COMPLETED_NEXT_STAGE_NOT_AUTHORIZED with no active execution route."
+  - "Refresh Program Control Tower machine/human projections from the closed canonical state."
+  - "Close Issue #353 as completed after this closure state is merged."
+  - "Preserve both successor provider dependencies as NOT_AVAILABLE / FUTURE_GOVERNED_PROVIDER."
+
+lease_release:
+  codex_execution_lease: "RELEASED"
+  work_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  program_lane_active_execution_route: null
+  current_read_write_interface_authority_surfaces: "RELEASED"
+  route_disposition: "R136_S0E0_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
+
+provider_boundary:
+  DOMAIN_CAPABILITY_EXECUTION_PROVIDER: "NOT_AVAILABLE / FUTURE_GOVERNED_PROVIDER"
+  AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER: "NOT_AVAILABLE / FUTURE_GOVERNED_PROVIDER"
+  note: >-
+    R136 intentionally fails closed without these governed providers. Acceptance and merge do not turn the future
+    contracts into live execution authority.
+
+cleanup_waiver:
+  status: "WAIVED_NON_DELIVERY_RESIDUAL"
+  applies_only_to: "reported untracked/unstaged task-owned .pyc cache in the old local worktree"
+  not_pass: true
+  conditions:
+    - "not committed or delivered"
+    - "non-authoritative"
+    - "passive/non-running"
+    - "no secrets"
+    - "clean exact-head CI safety scan passed"
+  non_transferable_to_successors: true
+
+future_stage_locks:
+  authority_bound_live_observation_provider_authorized: false
+  domain_capability_execution_provider_authorized: false
+  ai_film_domain_write_authorized: false
+  h2_authorized: false
+  h7_authorized: false
+  harness_runtime_authorized: false
+  private_w3_authorized: false
+  live_connector_authorized: false
+  production_authorized: false
+  permission_change_authorized: false
+  formal_skill_promotion_authorized: false
+  trading_authorized: false
+  merge_authorized_for_codex: false
+
+successor_release_requires:
+  - "new task_id and route epoch"
+  - "fresh current-main control-plane scan after R136 closure merge"
+  - "fresh exact Work Claim with bounded surfaces"
+  - "fresh GlobalReconciliationReceipt"
+  - "fresh O0-O4, same-agent and resource collision scan"
+  - "fresh provider threat-model and provenance review"
+  - "fresh durable Control Tower authorization witness"
+  - "explicit GPT and user release"
+
+preferred_successor_order:
+  first: "AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER"
+  second: "DOMAIN_CAPABILITY_EXECUTION_PROVIDER"
+  rationale: >-
+    Formal task release is currently hard-blocked without trustworthy live repository/control-plane observation. Domain
+    capability execution should follow after that evidence boundary is operational, so runtime proof does not outrun
+    task-release provenance.
+
+final_state:
+  r136: "COMPLETED_HISTORY_ONLY"
+  lane_a: "PAUSED / NEXT_STAGE_NOT_AUTHORIZED"
+  next_stage: "NOT_AUTHORIZED"
+  note: >-
+    R136 establishes the public-safe Global Signal intake/adaptive gateway and fail-closed provider boundaries. It does
+    not authorize either future provider, AI Film writes, Harness/H2/H7, private/live integration, production or trading.
