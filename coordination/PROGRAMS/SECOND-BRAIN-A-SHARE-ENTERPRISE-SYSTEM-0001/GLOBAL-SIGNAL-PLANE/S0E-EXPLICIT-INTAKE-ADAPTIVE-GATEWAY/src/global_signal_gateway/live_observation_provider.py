@@ -41,9 +41,9 @@ MAX_PAGES = 20
 MAX_AGE_SECONDS = 300
 REQUEST_TIMEOUT_SECONDS = 10
 
+ACTIVE_TASK_PATH = "coordination/ACTIVE-CODEX-TASK.yaml"
 CONTROL_PATHS = (
-    "coordination/ACTIVE-CODEX-TASK.yaml",
-    "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml",
+    ACTIVE_TASK_PATH,
     "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml",
     "coordination/ACTIVE-PROGRAM-LANES.yaml",
     "coordination/PROGRAM-CONTROL-TOWER.md",
@@ -92,6 +92,27 @@ def _mapping(value: Any, code: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise GatewayError(code)
     return value
+
+
+def _canonical_route_path(active: Mapping[str, Any], tree: Mapping[str, str]) -> str:
+    """Resolve only the active task's exact-main route pointer, fail-closed."""
+    path = active.get("canonical_route")
+    if not isinstance(path, str) or not path:
+        raise GatewayError("CANONICAL_ROUTE_POINTER_INVALID")
+    pure_path = PurePosixPath(path)
+    if (
+        "\\" in path
+        or "//" in path
+        or not path.startswith("coordination/ROUTES/")
+        or not path.endswith(".yaml")
+        or pure_path.is_absolute()
+        or any(part in {"", ".", ".."} for part in pure_path.parts)
+        or not _SAFE_PATH.fullmatch(path)
+    ):
+        raise GatewayError("CANONICAL_ROUTE_POINTER_INVALID")
+    if path not in tree:
+        raise GatewayError("CANONICAL_ROUTE_POINTER_MISSING")
+    return path
 
 
 @dataclass(frozen=True)
@@ -252,7 +273,7 @@ class LiveObservationProvider:
     def _tree(self, repository: str, tree_sha: str) -> tuple[Mapping[str, str], Mapping[str, Any]]:
         _, value, metadata = self._get_json(f"/repos/{repository}/git/trees/{tree_sha}?recursive=1")
         tree_response = _mapping(value, "GITHUB_TREE_RESPONSE_INVALID")
-        if "truncated" in tree_response and tree_response["truncated"] is not False:
+        if tree_response.get("truncated") is not False:
             raise GatewayError("GITHUB_TREE_TRUNCATED_OR_INVALID")
         entries = tree_response.get("tree")
         if not isinstance(entries, list):
@@ -316,7 +337,9 @@ class LiveObservationProvider:
         if not isinstance(state, str) or not isinstance(pr.get("merged"), bool):
             raise GatewayError("GITHUB_PR_RESPONSE_INVALID")
         merge_sha = pr.get("merge_commit_sha")
-        if merge_sha is not None and not isinstance(merge_sha, str):
+        if merge_sha is not None and not _SAFE_SHA.fullmatch(merge_sha):
+            raise GatewayError("GITHUB_PR_RESPONSE_INVALID")
+        if pr["merged"] and merge_sha is None:
             raise GatewayError("GITHUB_PR_RESPONSE_INVALID")
         return {"number": number, "state": state, "head_sha": head, "base_sha": base, "merged": pr["merged"], "merge_commit_sha": merge_sha}, metadata
 
@@ -340,11 +363,26 @@ class LiveObservationProvider:
                     parsed[path] = yaml.safe_load(payload.decode("utf-8"))
                 except (UnicodeDecodeError, yaml.YAMLError) as exc:
                     raise GatewayError("CONTROL_PLANE_YAML_INVALID") from exc
-        active = _mapping(parsed[CONTROL_PATHS[0]], "ACTIVE_TASK_INVALID")
-        route = _mapping(parsed[CONTROL_PATHS[1]], "ACTIVE_ROUTE_INVALID")
+        active = _mapping(parsed[ACTIVE_TASK_PATH], "ACTIVE_TASK_INVALID")
         if active.get("task_id") != request.expected_task_id or active.get("route_epoch") != request.expected_route_epoch:
             raise GatewayError("ACTIVE_TASK_BINDING_MISMATCH")
-        if route.get("task_id") != request.expected_task_id or route.get("route_epoch") != request.expected_route_epoch:
+        route_path = _canonical_route_path(active, tree)
+        route_blob_sha = _require_sha(tree[route_path], "GITHUB_TREE_RESPONSE_INVALID")
+        route_payload, item = self._blob(request.target_repository, route_blob_sha); metadata.append(item)
+        records.append(ExactObjectRecord(
+            request.target_repository, initial_main, main_tree, route_path, route_blob_sha,
+            hashlib.sha256(route_payload).hexdigest(),
+        ))
+        try:
+            route = _mapping(yaml.safe_load(route_payload.decode("utf-8")), "ACTIVE_ROUTE_INVALID")
+        except (UnicodeDecodeError, yaml.YAMLError) as exc:
+            raise GatewayError("CONTROL_PLANE_YAML_INVALID") from exc
+        if (
+            route.get("task_id") != active.get("task_id")
+            or route.get("route_epoch") != active.get("route_epoch")
+            or route.get("task_id") != request.expected_task_id
+            or route.get("route_epoch") != request.expected_route_epoch
+        ):
             raise GatewayError("ACTIVE_ROUTE_BINDING_MISMATCH")
         pr_first, item = self._pr(request.target_repository, request.pull_request_number); metadata.append(item)
         reviews, review_metadata = self._reviews(request.target_repository, request.pull_request_number); metadata.extend(review_metadata)
@@ -357,8 +395,8 @@ class LiveObservationProvider:
         if final_main != initial_main or pr_final != pr_first:
             raise GatewayError("GITHUB_OBSERVATION_DRIFT_DETECTED")
         completed = _utc_now(); fresh_until = completed + timedelta(seconds=request.requested_max_age_seconds)
-        route_fp, claim_fp, lane_fp = digest(route), digest(parsed[CONTROL_PATHS[2]]), digest(parsed[CONTROL_PATHS[3]])
-        lease_fp = digest({"active": active, "control_tower": next(record.content_sha256 for record in records if record.path == CONTROL_PATHS[4])})
+        route_fp, claim_fp, lane_fp = digest(route), digest(parsed[CONTROL_PATHS[1]]), digest(parsed[CONTROL_PATHS[2]])
+        lease_fp = digest({"active": active, "control_tower": next(record.content_sha256 for record in records if record.path == CONTROL_PATHS[3])})
         pending = digest({"active": active.get("pending_approvals", []), "route": route.get("pending_approvals", [])})
         invalidators = {"pr_number": pr_first["number"], "pr_state": pr_first["state"], "head_sha": pr_first["head_sha"], "base_sha": pr_first["base_sha"], "current_main_sha": initial_main,
                         "review_state_ref": digest([record.__dict__ for record in reviews]), "merged": pr_first["merged"], "merge_commit_sha": pr_first["merge_commit_sha"],

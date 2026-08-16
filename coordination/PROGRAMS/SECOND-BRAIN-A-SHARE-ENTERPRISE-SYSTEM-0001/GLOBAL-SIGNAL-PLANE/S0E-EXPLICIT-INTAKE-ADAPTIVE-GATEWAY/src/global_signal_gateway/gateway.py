@@ -335,6 +335,10 @@ _LIVE_OBSERVATION_INVALIDATORS = frozenset({
 _LEGACY_TEST_INVALIDATORS = _LIVE_OBSERVATION_INVALIDATORS - {"pr_number", "pr_state"}
 
 
+def _valid_git_sha(value: object) -> bool:
+    return isinstance(value, str) and len(value) in (40, 64) and all(character in "0123456789abcdef" for character in value)
+
+
 def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> bool:
     """Accept only a fresh, issuer-bound observation, never caller metadata."""
     if not isinstance(proof, AuthorityBoundLiveObservationProof): return False
@@ -367,7 +371,9 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
         and proof.provider_attribution_ref.startswith("provider://") and digest_ok and observed <= fresh_until
         and observed <= checked_at <= fresh_until and set(proof.invalidation_fingerprints) == required_invalidators
         and all(proof.invalidation_fingerprints[key] == expected[key] for key in required_invalidators)
-        and isinstance(proof.merged, bool) and ((proof.merged and bool(proof.merge_commit_sha)) or (not proof.merged and proof.merge_commit_sha is None))
+        and isinstance(proof.merged, bool)
+        and ((proof.merged and _valid_git_sha(proof.merge_commit_sha))
+             or (not proof.merged and (proof.merge_commit_sha is None or _valid_git_sha(proof.merge_commit_sha))))
         and verifier is not None and verifier(proof, checked_at)
     )
 

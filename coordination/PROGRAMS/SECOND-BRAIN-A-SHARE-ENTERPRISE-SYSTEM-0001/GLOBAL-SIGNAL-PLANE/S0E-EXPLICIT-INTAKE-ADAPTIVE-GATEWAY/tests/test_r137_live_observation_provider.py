@@ -47,13 +47,25 @@ class SyntheticPublicGitHub(LiveObservationProvider):
 
     def __init__(self, fault: str | None = None) -> None:
         self.fault, self.calls, self.main_reads, self.pr_reads = fault, [], 0, 0
+        task, epoch = TASK, 137
+        route_path = "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
+        if fault == "successor-route":
+            task, epoch = "CODEX-NEXT-TASK", 138
+            route_path = "coordination/ROUTES/CODEX-NEXT-TASK-R138.yaml"
+        pointer = route_path
+        if fault == "route-malformed": pointer = "coordination/ROUTES/not-yaml.txt"
+        if fault == "route-traversal": pointer = "coordination/ROUTES/../escape.yaml"
+        if fault == "route-missing": pointer = "coordination/ROUTES/missing.yaml"
+        if fault == "route-wrong-prefix": pointer = "coordination/NOT-ROUTES/route.yaml"
         controls = {
-            CONTROL_PATHS[0]: f"task_id: {TASK}\nroute_epoch: 137\nstatus: READY\n",
-            CONTROL_PATHS[1]: f"task_id: {TASK}\nroute_epoch: 137\nexecution_allowed: true\n",
-            CONTROL_PATHS[2]: "claims:\n  - claim_id: R137\n",
-            CONTROL_PATHS[3]: "lanes:\n  - lane_id: A\n",
-            CONTROL_PATHS[4]: "# public control tower\n",
+            CONTROL_PATHS[0]: f"task_id: {task}\nroute_epoch: {epoch}\ncanonical_route: {pointer}\nstatus: READY\n",
+            CONTROL_PATHS[1]: "claims:\n  - claim_id: R137\n",
+            CONTROL_PATHS[2]: "lanes:\n  - lane_id: A\n",
+            CONTROL_PATHS[3]: "# public control tower\n",
         }
+        if fault != "route-missing":
+            route_task = "CODEX-WRONG-TASK" if fault == "route-wrong-task" else task
+            controls[route_path] = f"task_id: {route_task}\nroute_epoch: {epoch}\nexecution_allowed: true\n"
         self.blobs = { _git_blob_sha(text.encode()): text.encode() for text in controls.values() }
         self.paths = {path: _git_blob_sha(text.encode()) for path, text in controls.items()}
         self.main, self.tree, self.domain = "a" * 40, "b" * 40, "d" * 40
@@ -73,9 +85,10 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             entries = [{"path": item, "type": "blob", "sha": sha} for item, sha in self.paths.items()]
             if self.fault == "missing-path": entries.pop()
             if self.fault == "tree-mismatch": entries[0]["sha"] = "f" * 40
-            tree_response = {"tree": entries}
+            tree_response = {"tree": entries, "truncated": False}
             if self.fault == "tree-truncated": tree_response["truncated"] = True
             if self.fault == "tree-truncated-malformed": tree_response["truncated"] = "false"
+            if self.fault == "tree-truncated-missing": tree_response.pop("truncated")
             return {}, tree_response, metadata
         prefix = f"/repos/{TARGET_REPOSITORY}/git/blobs/"
         if path.startswith(prefix):
@@ -91,8 +104,10 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             if self.fault == "pr-base-drift" and self.pr_reads > 1: base = "8" * 40
             else: base = "b" * 40
             state, merged, merge = "open", False, None
+            if self.fault in {"open-merge-sha", "merge-sha-drift"}: merge = "6" * 40
             if self.fault == "pr-state-drift" and self.pr_reads > 1: state = "closed"
             if self.fault == "merge-drift" and self.pr_reads > 1: state, merged, merge = "closed", True, "7" * 40
+            if self.fault == "merge-sha-drift" and self.pr_reads > 1: merge = "7" * 40
             return {}, {"state": state, "head": {"sha": head}, "base": {"sha": base}, "merged": merged, "merge_commit_sha": merge}, metadata
         review_prefix = f"/repos/{TARGET_REPOSITORY}/pulls/360/reviews?per_page=100&page="
         if path.startswith(review_prefix):
@@ -118,8 +133,8 @@ def request(**changes: object) -> LiveObservationRequest:
 
 
 class R137LiveObservationTests(unittest.TestCase):
-    def observe(self, fault: str | None = None):
-        return SyntheticPublicGitHub(fault).observe(request())
+    def observe(self, fault: str | None = None, **request_changes: object):
+        return SyntheticPublicGitHub(fault).observe(request(**request_changes))
 
     def assert_rejected(self, fault: str) -> None:
         with self.assertRaises(GatewayError):
@@ -181,6 +196,7 @@ class R137LiveObservationTests(unittest.TestCase):
     def test_r137_r008b_truncated_or_malformed_tree_fails(self) -> None:
         self.assert_rejected("tree-truncated")
         self.assert_rejected("tree-truncated-malformed")
+        self.assert_rejected("tree-truncated-missing")
     def test_r137_r009_main_drift_fails(self) -> None: self.assert_rejected("main-drift")
     def test_r137_r010_pr_head_drift_fails(self) -> None: self.assert_rejected("pr-drift")
     def test_r137_r011_pr_base_drift_fails(self) -> None: self.assert_rejected("pr-base-drift")
@@ -222,6 +238,22 @@ class R137LiveObservationTests(unittest.TestCase):
         _, proof = self.observe()
         self.assertFalse(validate_live_observation_proof(replace(proof, pr_state="closed")))
         self.assertFalse(validate_live_observation_proof(replace(proof, pr_number=proof.pr_number + 1)))
+
+    def test_b05_successor_route_is_read_from_active_exact_main(self) -> None:
+        next_task, next_epoch = "CODEX-NEXT-TASK", 138
+        bundle, proof = self.observe("successor-route", expected_task_id=next_task, expected_route_epoch=next_epoch)
+        self.assertTrue(validate_live_observation_proof(proof))
+        self.assertIn("coordination/ROUTES/CODEX-NEXT-TASK-R138.yaml", [record.path for record in bundle.exact_objects])
+        for fault in ("route-malformed", "route-traversal", "route-missing", "route-wrong-prefix", "route-wrong-task"):
+            with self.subTest(fault=fault): self.assert_rejected(fault)
+
+    def test_b06_open_pr_non_null_merge_sha_is_bound_and_rechecked(self) -> None:
+        _, proof = self.observe("open-merge-sha")
+        self.assertFalse(proof.merged)
+        self.assertEqual(proof.merge_commit_sha, "6" * 40)
+        self.assertTrue(validate_live_observation_proof(proof))
+        self.assertFalse(validate_live_observation_proof(replace(proof, merge_commit_sha="7" * 40)))
+        self.assert_rejected("merge-sha-drift")
 
     def test_r137_r021_request_contract_revision_is_fixed(self) -> None:
         with self.assertRaises(GatewayError): SyntheticPublicGitHub().observe(request(provider_contract_revision="v2"))
@@ -300,7 +332,7 @@ class R137LiveObservationTests(unittest.TestCase):
 
     def test_r137_r037_bundle_has_initial_final_and_exact_object_binding(self) -> None:
         bundle, _ = self.observe()
-        self.assertEqual(len(bundle.exact_objects), len(CONTROL_PATHS))
+        self.assertEqual(len(bundle.exact_objects), len(CONTROL_PATHS) + 1)
         self.assertTrue(all(record.commit_sha == bundle.initial_main_sha for record in bundle.exact_objects))
 
     def test_r137_r038_bundle_invalidation_is_complete(self) -> None:
