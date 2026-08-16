@@ -55,10 +55,11 @@ jobs:
           echo "requirements_sha256=$(sha256sum "$RUNNER_TEMP/requirements.txt" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Public dependency provisioning only (not execution evidence)
         run: |
-          python -m pip download --disable-pip-version-check --only-binary=:all: -r "$RUNNER_TEMP/requirements.txt" -d "$RUNNER_TEMP/wheelhouse"
+          mkdir "$RUNNER_TEMP/wheelhouse"
+          docker run --rm --mount "type=bind,src=$RUNNER_TEMP,dst=/provision" python:3.13-slim python -m pip download --disable-pip-version-check --only-binary=:all: -r /provision/requirements.txt -d /provision/wheelhouse
           (cd "$RUNNER_TEMP/wheelhouse" && sha256sum * | sort) > "$RUNNER_TEMP/wheelhouse.sha256"
           cp "$RUNNER_TEMP/requirements.txt" "$RUNNER_TEMP/wheelhouse/requirements.txt"
-          git -C "$RUNNER_TEMP/ai-film" bundle create "$RUNNER_TEMP/ai-film.bundle" 44c383afd2207a97caf45b1b0da6ee1dece43a76
+          git -C "$RUNNER_TEMP/ai-film" bundle create "$RUNNER_TEMP/ai-film.bundle" --all
           cat > "$RUNNER_TEMP/Dockerfile.r138" <<'EOF'
           FROM python:3.13-slim
           COPY wheelhouse /wheelhouse
