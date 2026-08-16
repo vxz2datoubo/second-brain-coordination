@@ -54,72 +54,42 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "MEDIUM_IMPLEMENTATION"
-    route_binding:
-      task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
-      route_epoch: 135
-      issue: 348
-      pr: null
-      branch: "codex/global-signal-plane-s0d-read-only-shadow-r135"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW"
-      - ".github/workflows/global-signal-plane-s0d.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/GOVERNANCE"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/PROGRAM-CONTROL-TOWER.md"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:approved-status-reference-surfaces"
-    interfaces:
-      - name: "Global-Signal-Plane-S0-Contracts"
-        mode: "read"
-        frozen: true
-      - name: "Global-Reconciliation-Receipt-Contract"
-        mode: "read"
-        frozen: true
-      - name: "Control-Tower-Authorization-Boundary"
-        mode: "read"
-        frozen: true
-      - name: "AI-Film-Domain-Adapter-Read-Only-Boundary"
-        mode: "read"
-        frozen: true
-      - name: "W3-Frozen-Consumption-Boundary"
-        mode: "read"
-        frozen: true
-    read_domains: [W1, W3, W8, W9, W10, W12]
-    write_domains: [W8]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
     authority_claims: []
-    implementation_scope:
-      slice: "S0D_READ_ONLY_CROSS_REPO_SHADOW_SIGNAL_PLANE"
+    closure_receipt:
+      completed_slice: "S0D_READ_ONLY_CROSS_REPO_SHADOW_SIGNAL_PLANE"
       issue: 348
-      phase: "B_POST_MERGE_ACTIVATION"
-      activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135-ACTIVATION.yaml"
-      phase_a_merge_commit: "0f70131362eb5be2f78b246531e3368e4a854595"
-      execution_allowed: true
-      ai_film_repository: "vxz2datoubo/eustia-ai-film"
-      ai_film_source_commit_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
-      ai_film_write_allowed: false
-      full_domain_body_copy_allowed: false
-      private_chat_allowed: false
-      w3_write_allowed: false
-      harness_runtime_allowed: false
-      h2_allowed: false
-      h7_allowed: false
-      s0e_allowed: false
-      production_allowed: false
-      trading_allowed: false
+      completed_route_epoch: 135
+      accepted_runtime_head: "d0249d8b16217f723d6130adbe952d3860fa08ff"
+      merged_pr: 351
+      merge_commit: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
+      final_review_id: 4945283639
+      closure_reconciliation: "coordination/CONTROL-TOWER/R135-S0D-CLOSURE-RECONCILIATION.yaml"
+      implementation_verdict: "R135_S0D_EXACT_HEAD_ACCEPTED_AND_MERGED / COMPLETED_HISTORY_ONLY"
+      s0e_authorized: false
+      h2_authorized: false
+      h7_authorized: false
+      harness_runtime_authorized: false
+      private_data_authorized: false
+      live_connector_authorized: false
+      domain_write_authorized: false
+      production_authorized: false
+      trading_authorized: false
+      reopen_rule: >-
+        Any successor requires a new route epoch/task_id, fresh Work Claim, fresh GlobalReconciliationReceipt,
+        fresh O0-O4 scan, durable Control Tower witness and explicit GPT/user release.
     stop_conditions:
-      - "Write outside exact S0D paths -> STOP / NEEDS_GPT"
-      - "Any mutation to AI Film -> STOP / NEEDS_GPT"
-      - "AI Film source commit/authority drift before start -> STOP / fresh reconciliation"
-      - "Known local AI Film Codex execution -> STOP / WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
-      - "Private chat/W3/Harness/H2/H7/S0E/production/trading required -> STOP / separate gate"
-      - "Passing tests or CI does not authorize merge or successor stage"
+      - "Do not resume or re-run R135."
+      - "No S0E/H2/H7/Harness/private/live/domain-write/production/trading successor is authorized."
+      - "Any new implementation requires a fresh per-agent ACTIVE route and Work Claim."
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
