@@ -1,0 +1,117 @@
+schema_version: "1.0"
+reconciliation_id: "R138-POST-RESERVATION-RECONCILIATION-0001"
+issue: 366
+owner: "USER"
+architecture_owner: "GPT"
+reviewer: "GPT"
+state: "PASS_FOR_PREPARED_NON_EXECUTABLE / ACTIVATION_REQUIRES_NEW_FRESH_OBSERVATION_AND_EXPLICIT_USER_COMMAND"
+
+purpose: >-
+  Canonicalize the post-reservation state after R138 architecture and non-executable reservation were merged. This receipt
+  proves only that the accepted R137 provider successfully observed the canonical reserved R138 state. It does not activate
+  Codex, capability execution, runtime writes, domain writes, task release, merge authority or any production capability.
+
+canonical_reservation:
+  repository: "vxz2datoubo/second-brain-coordination"
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  route_epoch: 138
+  issue: 366
+  architecture_pr: 367
+  architecture_merge: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+  reservation_pr: 368
+  reservation_exact_head: "b8d35ee2148d0fbaca897a7e1e3f88959cf6694d"
+  reservation_merge: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  status: "PREPARED_NON_EXECUTABLE"
+  execution_allowed: false
+  runtime_code_change_allowed: false
+  current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+  lane_a_claim: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+  active_codex_execution_lease: false
+
+post_reservation_live_observation:
+  provider_id: "r137-public-github-on-demand-v1"
+  evidence_pr: 369
+  evidence_pr_head: "3b8470ac772cc956723f44c15558542472ce2ea0"
+  evidence_pr_state: "CLOSED_UNMERGED"
+  workflow_run: 31951206560
+  python_311_job: 95174822270
+  python_313_job: 95174822349
+  exact_head_assertion: "PASS on Python 3.11 and 3.13"
+  r137_regressions: "49/49 PASS on both jobs"
+  retained_r136_regressions: "47/47 PASS on both jobs"
+  observed_main: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
+  observed_route_epoch: 138
+  proof_py311: "provider://r137/evidence/r137:9171f8c757bed611a27d1738#sha256=a204a3b7d628c441a4c21e8a487e543b6d10406afd713885138a1abfd28c1aa4"
+  proof_py313: "provider://r137/evidence/r137:6a5767ef1afc6e1815332cc2#sha256=078ac597e56e29f8c198cb26cbac8571152d8d0036a223b9ed4e0477eb3e83b7"
+  authority: "OBSERVATION_EVIDENCE_ONLY"
+  grants_execution: false
+  grants_release: false
+  grants_merge: false
+
+independent_control_plane_check:
+  main_sha: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  active_task_status: "PREPARED_NON_EXECUTABLE"
+  active_task_execution_allowed: false
+  active_task_runtime_code_change_allowed: false
+  lane_a_claim: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+  reserved_future_write_paths: 6
+  current_runtime_write_permission: false
+
+invoker_wrapper_finding:
+  id: "R138-PREP-INVOCATION-WRAPPER-001"
+  status: "CONFIRMED_BOUNDED_GAP / DOES_NOT_INVALIDATE_R137_PROVIDER"
+  persistent_r137_workflow_run: 31951206578
+  persistent_r137_workflow_conclusion: "FAILURE_EXPECTED_AFTER_EPOCH_SWITCH"
+  cause: >-
+    `.github/workflows/global-signal-plane-r137-live-observation.yml` hardcodes expected task/epoch R137/137. The accepted
+    provider implementation itself is successor-capable, but that persistent CI invocation wrapper is not generic across
+    route epochs.
+  evidence: >-
+    The same accepted R137 provider was invoked on exact head 3b8470ac with expected R138/138 by evidence-only workflow
+    run 31951206560 and produced valid proofs on Python 3.11 and 3.13 observing canonical main 4dba0bda.
+  disposition: >-
+    Do not merge the temporary evidence workflow. Before any R138 activation, GPT must obtain a NEW fresh observation of
+    then-current main through a governed successor-capable invoker or separately harden the persistent invocation layer.
+    Ordinary GitHub reads or Agent self-report cannot substitute for provider evidence.
+
+truthfulness_and_authority_guards:
+  capability_label_equals_execution: false
+  mandatory_read_equals_scan_proof: false
+  model_self_report_is_execution_evidence: false
+  provider_can_adjudicate_na: false
+  provider_can_adjudicate_outcome_truth: false
+  provider_can_authorize_release_or_merge: false
+  unsupported_model_mediated_scan: "UNKNOWN"
+
+hard_locks:
+  r138_codex_execution: false
+  r138_capability_execution: false
+  arbitrary_shell_or_generic_network: false
+  private_repo_or_credentials: false
+  domain_write: false
+  ai_film_write: false
+  private_w3: false
+  harness_h2_h7: false
+  daemon_webhook_polling_scheduler: false
+  production: false
+  permission_or_secret_change: false
+  formal_skill_promotion: false
+  trading_account_order_fund: false
+  codex_merge: false
+
+activation_requires:
+  - "explicit user command `启动 R138`"
+  - "fresh observation of then-current main/control plane using accepted provider through a governed successor-capable invoker"
+  - "fresh Global Reconciliation bound to that new provider evidence"
+  - "same-agent/O0-O4/resource/private-secret/domain-authority rescan"
+  - "separate R138 activation receipt/PR"
+  - "exact-head Control Tower validation"
+  - "execution_allowed and runtime_code_change_allowed may become true only in that separately reviewed activation"
+
+final_state:
+  r138: "PREPARED_NON_EXECUTABLE"
+  reservation: "CANONICAL"
+  provider_observation: "PASS_WITH_MECHANISM_EVIDENCE"
+  codex_execution: "BLOCKED"
+  next_gate: "EXPLICIT_USER_START_THEN_NEW_FRESH_OBSERVATION_RECONCILIATION_AND_ACTIVATION"
