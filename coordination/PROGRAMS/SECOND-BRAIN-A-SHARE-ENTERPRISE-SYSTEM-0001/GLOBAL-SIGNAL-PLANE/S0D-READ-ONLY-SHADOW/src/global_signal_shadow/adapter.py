@@ -78,6 +78,9 @@ class ReadOnlyExactCommitAdapter:
     def write(self, *_: Any, **__: Any) -> None:
         raise ShadowError("CROSS_REPO_WRITE_FORBIDDEN", "R135 adapter exposes no cross-repository write capability")
 
+    def authorize_domain_write_or_successor(self) -> None:
+        raise ShadowError("SIGNAL_NOT_DOMAIN_OR_SUCCESSOR_AUTHORITY", "shadow observation cannot authorize a domain write or successor")
+
 
 class ShadowLedger:
     """Append-only metadata history; projections never retain source bodies."""
