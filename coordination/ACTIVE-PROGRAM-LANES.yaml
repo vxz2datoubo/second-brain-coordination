@@ -4,8 +4,13 @@ control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-17T00:55:00+08:00"
+as_of: "2026-08-17T01:15:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+authority_role: >-
+  This registry is authoritative only for Program Lane identity, mission, desired state, cross-lane relationships,
+  overlap declarations and portfolio-level gates. It is not the execution authority for an Agent task and may not
+  override a fresher per-agent ACTIVE route.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
@@ -13,6 +18,7 @@ source_precedence:
   - "PROJECT_OR_PROGRAM_CANONICAL_AUTHORITY"
   - "THIS_PROGRAM_LANE_REGISTRY_FOR_LANE_RELATIONSHIPS_ONLY"
   - "DERIVED_HUMAN_FACING_VIEWS"
+  - "HISTORICAL_AGGREGATE_VIEWS"
 
 portfolio_capacity_policy:
   program_lanes_may_coexist: 3
@@ -23,9 +29,14 @@ portfolio_capacity_policy:
   a_share_business_vertical_slices_max: 1
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
+  additional_rule: >-
+    R138 is completed and owns no Codex execution lease. Lane B remains held proposal-only, Lane C remains closed, and
+    Harness/H2/H7/private/production/domain writes remain unauthorized absent a fresh successor route and reconciliation.
 
 current_user_release_policy:
+  decision_at: "2026-08-17T01:15:00+08:00"
   decision: "R138_IMPLEMENTATION_COMPLETED_AND_LEASE_RELEASED"
+  release_owner: "USER_AUTO_ENGINEERING_ADVANCE_AUTHORIZATION + GPT_INDEPENDENT_ACCEPTANCE_AND_CLOSURE"
   r138_issue: 366
   r138_route_epoch: 138
   r138_implementation_pr: 373
@@ -36,12 +47,16 @@ current_user_release_policy:
   r138_closure_receipt: "coordination/CONTROL-TOWER/R138-DOMAIN-CAPABILITY-EXECUTION-CLOSURE-RECONCILIATION.yaml"
   released_implementation_lanes: []
   prepared_implementation_lanes: []
+  released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
   retained_findings:
     - "R138-F01 remains required before any production promotion"
     - "R138 passive pycache waiver remains historical narrow non-delivery waiver"
   successor_release: "NOT_YET_AUTHORIZED / REQUIRES_FRESH_ROADMAP_AND_RECONCILIATION"
+  h2_release: "NOT_AUTHORIZED"
+  h7_release: "NOT_AUTHORIZED"
+  private_production_release: "NOT_AUTHORIZED"
 
 observed_agent_state:
   CODEX:
@@ -74,7 +89,9 @@ observed_agent_state:
 
 program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    mission: "Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain authorities."
+    mission: >-
+      Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
+      authorities. R136/R137/R138 are accepted; no successor implementation is currently released.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "PAUSED"
@@ -82,13 +99,27 @@ program_lanes:
     primary_system_positions: [W1, W8, W9]
     current_phase: "R138_COMPLETED_NEXT_STAGE_NOT_AUTHORIZED"
     active_execution_route: null
+    dependencies:
+      - "R136 RuntimeInvocationReceipt accepted and frozen"
+      - "R137 Authority-bound Live Observation Provider accepted and frozen"
+      - "R138 Domain Capability Execution Provider accepted and frozen"
+      - "R138 Work Claim and exact six-path implementation lease released"
+      - "Any successor requires fresh current-main observation and Global Reconciliation"
+    shared_interfaces:
+      - "R136 RuntimeInvocationReceipt"
+      - "R137 AuthorityBoundLiveObservationProof"
+      - "R138 CapabilityExecutionEvidenceBundle"
+      - "R138 CapabilityExecutionProof"
+      - "Control Tower authorization boundary"
+      - "W3/domain authority boundaries"
     next_gate: "FRESH_ROADMAP_RECONCILIATION_THEN_NEW_TASK_RESERVATION_IF_NEEDED"
     maturity: "R136_R137_R138_ACCEPTED / NO_ACTIVE_IMPLEMENTATION"
     heavy_execution_authorized: false
     implementation_owner_candidate: "CODEX"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
-    mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
+    mission: >-
+      Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "PAUSED"
@@ -96,13 +127,23 @@ program_lanes:
     primary_system_positions: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
     current_phase: "PRE_ROUTE_GAP_CONSOLIDATION_HELD"
     active_execution_route: null
+    dependencies:
+      - "Explicit user start for Lane B or a later broad engineering mandate that explicitly includes it"
+      - "Fresh Control Tower release"
+      - "PIT/T+1/W7/NO_TRADE gates preserved"
+    shared_interfaces:
+      - "W2 A-share data/rules"
+      - "W3 knowledge/context"
+      - "W7 validation/risk"
+      - "W10 DecisionEpisode"
     next_gate: "EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE"
     maturity: "READY_FOR_TASK_DESIGN_BUT_HELD"
     heavy_execution_authorized: false
     implementation_owner_candidate: "CODEX"
 
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
-    mission: "Preserve the completed Second Brain × GPT cognitive closed-loop foundation as a frozen reusable authority boundary."
+    mission: >-
+      Preserve the completed Second Brain × GPT cognitive closed-loop foundation as a frozen reusable authority boundary.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "DONE"
@@ -110,6 +151,11 @@ program_lanes:
     primary_system_positions: [W3, W10]
     current_phase: "FOUNDATION_CLOSED_WITH_BOUNDED_GAPS"
     active_execution_route: null
+    dependencies:
+      - "Reopen only for bug/security/contract defect/proven regression"
+    shared_interfaces:
+      - "W3 frozen consumption boundary"
+      - "DecisionEpisode"
     next_gate: "REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION"
     maturity: "DONE / CLOSED_WITH_BOUNDED_GAPS"
     heavy_execution_authorized: false
@@ -117,10 +163,13 @@ program_lanes:
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O0_NO_ACTIVE_IMPLEMENTATION_COLLISION"
+    rule: "Lane A has no active implementation claim; Lane B remains proposal-only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
+    rule: "Lane C remains frozen; any future Lane A work may consume only frozen interfaces unless separately authorized."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
+    rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
   No new implementation may start merely because R138 finished. A successor requires a fresh current-main observation,
