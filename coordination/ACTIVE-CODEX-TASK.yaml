@@ -1,4 +1,4 @@
-schema_version: "138.0"
+schema_version: "138.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 366
@@ -14,16 +14,18 @@ second_user_start_command_required: true
 intermediate_gpt_review_required: true
 merge_authorized: false
 runtime_code_change_allowed: false
-runtime_code_scope: "RESERVED / FRESH_R137_OBSERVATION_AND_ACTIVATION_PENDING"
+runtime_code_scope: "RESERVED / USER_START_AND_NEW_FRESH_ACTIVATION_OBSERVATION_PENDING"
 
 canonical_predecessor_route_epoch: 137
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 canonical_predecessor_closure_main: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
 canonical_main_at_prepare: "e76fe35d720f5f4739f80c62d3e6204f8fe52d9b"
+canonical_reservation_merge_main: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER-R138.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER.yaml"
 reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION.yaml"
-activation_reconciliation_receipt: "PENDING_EXPLICIT_USER_START"
+post_reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/R138-POST-RESERVATION-RECONCILIATION.yaml"
+activation_reconciliation_receipt: "PENDING_EXPLICIT_USER_START_AND_NEW_FRESH_PROVIDER_OBSERVATION"
 implementation_branch: "codex/r138-domain-capability-execution-provider"
 implementation_pr: null
 
@@ -42,14 +44,37 @@ architecture:
   threat_model_path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-THREAT-MODEL-v1.0.md"
   source_selection_path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-CAPABILITY-EXECUTION-PROVIDER-SOURCE-SELECTION.yaml"
 
+reservation:
+  pr: 368
+  exact_head: "b8d35ee2148d0fbaca897a7e1e3f88959cf6694d"
+  merge_commit: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  acceptance_comment: 5307780226
+  state: "CANONICAL_NON_EXECUTABLE"
+
+post_reservation_observation:
+  evidence_pr: 369
+  evidence_pr_head: "3b8470ac772cc956723f44c15558542472ce2ea0"
+  evidence_pr_disposition: "CLOSED_UNMERGED / EVIDENCE_ONLY"
+  acceptance_comment: 5307795541
+  workflow_run: 31951206560
+  python_311_job: 95174822270
+  python_313_job: 95174822349
+  observed_main: "4dba0bdafec22a878c2de4cb25bc5d0b47c0fe8a"
+  proof_py311: "provider://r137/evidence/r137:9171f8c757bed611a27d1738#sha256=a204a3b7d628c441a4c21e8a487e543b6d10406afd713885138a1abfd28c1aa4"
+  proof_py313: "provider://r137/evidence/r137:6a5767ef1afc6e1815332cc2#sha256=078ac597e56e29f8c198cb26cbac8571152d8d0036a223b9ed4e0477eb3e83b7"
+  provider_result: "PASS_WITH_MECHANISM_EVIDENCE"
+  grants_execution: false
+  persistent_r137_workflow_invoker_gap: "CONFIRMED_HARDCODED_R137_TASK_EPOCH / PROVIDER_ITSELF_SUCCESSOR_CAPABLE"
+
 release_phase:
-  phase: "A1_RESERVATION_NON_EXECUTABLE"
-  execution_state: "BLOCKED_PENDING_FRESH_R137_PROVIDER_EVIDENCE_AND_EXPLICIT_USER_ACTIVATION"
+  phase: "A2_PREPARED_AWAITING_EXPLICIT_USER_ACTIVATION"
+  execution_state: "BLOCKED_PENDING_EXPLICIT_USER_START_AND_NEW_FRESH_PROVIDER_OBSERVATION"
   hard_rule: >-
-    This reservation binds R138 identity and future surfaces only. Codex may not implement R138. GPT must first obtain a
-    fresh accepted R137 live observation of the post-architecture current main/control plane, bind it into the reservation
-    reconciliation, merge this reservation, re-observe the canonical reserved state, and wait for the explicit user command
-    `启动 R138` before a separate activation may make execution_allowed/runtime_code_change_allowed true.
+    R138 architecture and non-executable reservation are canonical, and accepted R137 provider evidence has verified the
+    reserved state. Codex still may not implement R138. When the user explicitly says `启动 R138`, GPT must first obtain a
+    NEW fresh accepted-provider observation of then-current main/control-plane through a governed successor-capable invoker,
+    bind a fresh Global Reconciliation, run same-agent/O0-O4/resource/authority checks, and merge a separate exact-head
+    activation before execution_allowed/runtime_code_change_allowed may become true.
 
 objective: >-
   Implement a bounded provider-neutral execution-evidence boundary that proves an allowlisted domain capability actually
@@ -120,7 +145,7 @@ activation_guard:
   route_epoch_must_equal: 138
   issue_must_equal: 366
   planned_branch_must_equal: "codex/r138-domain-capability-execution-provider"
-  fresh_r137_live_observation_required: true
+  new_fresh_r137_live_observation_required_after_user_start: true
   fresh_global_reconciliation_required: true
   reservation_must_be_canonical: true
   explicit_user_command_required: "启动 R138"
@@ -131,8 +156,8 @@ activation_guard:
   auto_switch_or_guess_intent: "FORBIDDEN"
 
 completion_signal: "R138_DOMAIN_CAPABILITY_EXECUTION_PROVIDER_READY_FOR_GPT_REVIEW"
-next_command: "NO_EXECUTION_RESERVATION_ONLY"
+next_command: "AWAIT_EXPLICIT_USER_COMMAND_START_R138"
 lock_statement: >-
-  Epoch 138 is reserved but non-executable. It grants no capability execution, arbitrary command, private/W3, domain write,
-  Harness/H2/H7, daemon/live/production, permission/secret, Formal Skill, trading or merge authority. Explicit user/GPT
-  activation after fresh R137 observation and reconciliation is mandatory.
+  Epoch 138 is fully prepared but non-executable. It grants no capability execution, arbitrary command, private/W3, domain
+  write, Harness/H2/H7, daemon/live/production, permission/secret, Formal Skill, trading or merge authority. Explicit user
+  start plus a new fresh provider observation/reconciliation and separate GPT activation remain mandatory.
