@@ -1,0 +1,38 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+route_epoch: 137
+issue: 360
+status: "AWAITING_R3_EXACT_HEAD_CI"
+reviewed_implementation_head: "56c44bc041b7770d8cc2bef5c8b61dd5e23a85e5"
+post_commit_evidence:
+  r3_local_r137: "49/49 PASS before push"
+  r3_exact_head_ci: "PENDING; this receipt does not claim post-push CI before it exists"
+scope:
+  provider: "PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1"
+  mutations: "NONE; provider makes public GitHub GET observations only"
+  authority: "EVIDENCE_ONLY; no release, merge, Control Tower, execution or domain-write authority"
+mechanisms:
+  transport: "fixed api.github.com, GET-only, no credentials, serial, bounded, redirect/media/JSON/size fail-closed"
+  binding: "main -> commit/tree -> active canonical_route pointer -> exact route blob/content digest; initial/final main and initial/final PR comparison"
+  proof: "internally sealed R137 bundle reference/digest and static verifier; PR number/state/head/base/merged/merge-commit bind directly to the evidence bundle; unknown/caller proof fails closed"
+  tree_completeness: "recursive Git tree response is accepted only when truncated is explicitly boolean false; true, malformed or missing fails closed"
+  successor_route: "The route is derived only from ACTIVE-CODEX-TASK.yaml in the same exact main tree, validated under coordination/ROUTES/, and bound as an exact object."
+  merge_semantics: "merged is independent of merge_commit_sha; an open PR may carry a valid observed merge SHA and any final recheck drift blocks observation."
+  reviews: "complete raw pages, id/state/commit/time/actor reference only; no approval policy"
+  invalidation: "main, PR, review, route, claim, lane, lease, domain freshness, pending approval/revocation, code digest and expiry"
+bootstrap:
+  receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
+  status: "HISTORICAL_ACTIVATION_ONLY_NOT_ACCEPTED_BY_ORDINARY_PROOF_VALIDATION"
+locks_retained:
+  - "no private repository, credential or generic URL support"
+  - "no GitHub write API, merge, formal release, Control Tower or task execution authority"
+  - "no Harness/H2/H7, W3/private chat, AI Film/domain write, daemon, polling or scheduler"
+  - "no production service, permissions/secrets, Formal Skill or trading authority"
+completion_evidence: false
+unknowns:
+  - "Same-process Python private-name/seal isolation is not cryptographic protection against malicious code in the same process."
+  - "GPT independent review remains required. CI evidence does not grant acceptance, merge, formal release or execution authority."

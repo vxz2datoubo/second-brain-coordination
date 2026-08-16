@@ -328,10 +328,15 @@ class AuthorityBoundLiveObservationProof:
 _LIVE_OBSERVATION_ISSUER_SEAL = object()
 _LIVE_OBSERVATION_VERIFIERS: dict[str, Callable[[AuthorityBoundLiveObservationProof, datetime], bool]] = {}
 _LIVE_OBSERVATION_INVALIDATORS = frozenset({
-    "head_sha", "base_sha", "current_main_sha", "review_state_ref", "merged", "merge_commit_sha", "route_fingerprint",
+    "pr_number", "pr_state", "head_sha", "base_sha", "current_main_sha", "review_state_ref", "merged", "merge_commit_sha", "route_fingerprint",
     "claim_fingerprint", "lane_fingerprint", "lease_fingerprint",
     "domain_freshness_ref", "pending_approval_ref",
 })
+_LEGACY_TEST_INVALIDATORS = _LIVE_OBSERVATION_INVALIDATORS - {"pr_number", "pr_state"}
+
+
+def _valid_git_sha(value: object) -> bool:
+    return isinstance(value, str) and len(value) in (40, 64) and all(character in "0123456789abcdef" for character in value)
 
 
 def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> bool:
@@ -344,21 +349,31 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
     except GatewayError:
         return False
     expected = {
-        "head_sha": proof.head_sha, "base_sha": proof.base_sha, "current_main_sha": proof.current_main_sha, "review_state_ref": proof.review_state_ref,
+        "pr_number": proof.pr_number, "pr_state": proof.pr_state, "head_sha": proof.head_sha, "base_sha": proof.base_sha, "current_main_sha": proof.current_main_sha, "review_state_ref": proof.review_state_ref,
         "merged": proof.merged, "merge_commit_sha": proof.merge_commit_sha,
         "route_fingerprint": proof.route_fingerprint, "claim_fingerprint": proof.claim_fingerprint,
         "lane_fingerprint": proof.lane_fingerprint, "lease_fingerprint": proof.lease_fingerprint,
         "domain_freshness_ref": proof.domain_freshness_ref, "pending_approval_ref": proof.pending_approval_ref,
     }
     digest_ok = len(proof.evidence_digest) == 64 and all(character in "0123456789abcdef" for character in proof.evidence_digest)
-    verifier = _LIVE_OBSERVATION_VERIFIERS.get(proof.provider_id)
+    # R137 has one statically wired production verifier.  The legacy mapping is
+    # deliberately retained only for the existing R136 in-test synthetic seam;
+    # no caller-facing provider-registration API exists.
+    if proof.provider_id == "r137-public-github-on-demand-v1":
+        from .live_observation_provider import verify_r137_proof
+        verifier: Callable[[AuthorityBoundLiveObservationProof, datetime], bool] | None = verify_r137_proof
+    else:
+        verifier = _LIVE_OBSERVATION_VERIFIERS.get(proof.provider_id)
+    required_invalidators = _LIVE_OBSERVATION_INVALIDATORS if proof.provider_id == "r137-public-github-on-demand-v1" else _LEGACY_TEST_INVALIDATORS
     return bool(
         proof.repository and proof.pr_number > 0 and proof.pr_state and proof.head_sha and proof.base_sha
         and proof.review_state_ref and proof.exact_refs and proof.provider_id and proof.provider_attribution_ref
         and proof.provider_attribution_ref.startswith("provider://") and digest_ok and observed <= fresh_until
-        and observed <= checked_at <= fresh_until and set(proof.invalidation_fingerprints) == _LIVE_OBSERVATION_INVALIDATORS
-        and all(proof.invalidation_fingerprints[key] == value for key, value in expected.items())
-        and isinstance(proof.merged, bool) and ((proof.merged and bool(proof.merge_commit_sha)) or (not proof.merged and proof.merge_commit_sha is None))
+        and observed <= checked_at <= fresh_until and set(proof.invalidation_fingerprints) == required_invalidators
+        and all(proof.invalidation_fingerprints[key] == expected[key] for key in required_invalidators)
+        and isinstance(proof.merged, bool)
+        and ((proof.merged and _valid_git_sha(proof.merge_commit_sha))
+             or (not proof.merged and (proof.merge_commit_sha is None or _valid_git_sha(proof.merge_commit_sha))))
         and verifier is not None and verifier(proof, checked_at)
     )
 
