@@ -41,17 +41,19 @@ AI Film receipt artifact from a fresh, detached, exact-commit clone.
 | R136-R031 | `test_r136_r031` | dependency/blocker relation serializes work |
 | R136-R032 | `test_r136_r032` | relation decisions expose merge/parallel/serialize |
 | R136-R033 | `test_r136_r033` | serialized work requires a reviewer/challenger |
-| R136-R034 | `test_r136_r034` | release packet is bound to durable intent plus preflight |
+| R136-R034 | `test_r136_r034` | absent authority-bound live observation blocks formal release |
 | R136-R035 | `test_r136_r035` | no fresh receipt means release rejection |
 | R136-R036 | `test_r136_r036` | sealed Git-object reads validate a runtime receipt |
 | R136-R037 | `test_r136_r037` | a fabricated read dictionary is unverified |
 | R136-R038 | `test_r136_r038` | process compliance and outcome quality are distinct |
 | R136-R039 | `test_r136_r039` | task-done alone cannot satisfy a closure |
 | R136-R040 | `test_r136_r040` | satisfied state disappears from active view, stays in history |
-| R136-R041 | `test_r136_r041` | route-derived exact reads plus sealed mandatory scan proofs; omitted scan is unverified |
+| R136-R041 | `test_r136_r041` | route-derived exact reads bind inputs; absent provider leaves every mandatory scan UNKNOWN and runtime UNVERIFIED |
 | R136-R042 | `test_r136_r042` | AI Film smoke proves clean before/after and zero writes |
 | R136-R043 | `test_r136_r043` | temporary exact clone is removed after its context; task cleanup remains PARTIAL / USER_CLEANUP_REQUIRED |
 | R136-R044 | `test_r136_r044` | replay plus placeholder/TODO/shadow-artifact delivery audit |
 
-Expected local focused result: 44/44. The workflow executes the same 44 tests
-on Python 3.11 and 3.13, then uploads `r136-ai-film-exact-read-py*` artifacts.
+Local F01-F04 validation result: 47/47 PASS on Python 3.13: 44 expected-mechanism
+scenarios plus 3 additive adversarial regressions. A test PASS means the required mechanism
+produced its expected result; it is not an AI Film runtime PASS or a formal
+release PASS. The workflow executes the matrix on Python 3.11 and 3.13.

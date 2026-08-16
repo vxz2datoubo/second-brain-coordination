@@ -13,9 +13,9 @@ REPO = ROOT.parents[4]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT.parent / "S0-SYNTHETIC" / "src")]
 
 from global_signal_gateway.gateway import (  # noqa: E402
-    AI_FILM_COMMIT, AI_FILM_REPOSITORY, GatewayError, RuntimeInvocationReceipt, SignalIntakeGateway,
+    AI_FILM_COMMIT, AI_FILM_REPOSITORY, AuthorityBoundLiveObservationProof, GatewayError, RuntimeInvocationReceipt, SignalIntakeGateway,
     SystemAwarenessProjection, ai_film_directing_read_only_smoke, classify, exact_git_read_proofs, seal_global_reconciliation,
-    semantic_capture, temporary_exact_clone, validate_envelope,
+    semantic_capture, temporary_exact_clone, validate_envelope, validate_live_observation_proof,
 )
 from global_signal_plane.ledger import DurableSignalLedger  # noqa: E402
 from global_signal_plane.models import SignalPlaneError  # noqa: E402
@@ -134,7 +134,7 @@ def _case(case_id: str):
             if source: smoke = ai_film_directing_read_only_smoke(source, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True, "formal_scene_pixels": True})
             else:
                 with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: smoke = ai_film_directing_read_only_smoke(root, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "feedback": True, "formal_scene_pixels": True})
-            self.assertEqual(smoke["receipt"]["process_compliance"], "UNVERIFIED"); self.assertTrue(smoke["matched_routes"]); self.assertFalse(smoke["receipt"]["actual_scans"])
+            self.assertEqual(smoke["receipt"]["process_compliance"], "UNVERIFIED"); self.assertTrue(smoke["matched_routes"]); self.assertFalse(smoke["receipt"]["actual_scans"]); self.assertFalse(smoke["receipt"]["capability_invocations"]); self.assertTrue(all(item["status"] == "UNKNOWN" for item in smoke["receipt"]["scan_obligations"]))
             if source: rejected = ai_film_directing_read_only_smoke(source, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True, "withhold_scans": ["map_authority"]})
             else:
                 with temporary_exact_clone("https://github.com/vxz2datoubo/eustia-ai-film.git", AI_FILM_COMMIT) as root: rejected = ai_film_directing_read_only_smoke(root, awareness=awareness, fixture={"symptoms": ["左右反了"], "spatial": True, "formal_scene_pixels": True, "withhold_scans": ["map_authority"]})
@@ -158,3 +158,36 @@ def _case(case_id: str):
 
 for _number in range(1, 45):
     _id = f"R{_number:03d}"; setattr(R136ScenarioMatrix, f"test_r136_{_id.lower()}", _case(_id))
+
+
+class F01F04AdversarialRegressions(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.ledger = DurableSignalLedger(Path(self.temp.name) / "ledger.sqlite")
+        self.gateway = SignalIntakeGateway(self.ledger)
+        self.awareness = SystemAwarenessProjection.build(source_map(), self.ledger.rebuild_projection(expected_version=self.ledger.current_projection_version()))
+
+    def tearDown(self) -> None:
+        self.ledger.close(); self.temp.cleanup()
+
+    @staticmethod
+    def caller_fabricated_proof(*, fresh_until: str = "2099-01-01T00:01:00+00:00") -> AuthorityBoundLiveObservationProof:
+        invalidators = {"head_sha": "head", "base_sha": "base", "review_state_ref": "review", "route_fingerprint": "route", "claim_fingerprint": "claim", "lane_fingerprint": "lane", "lease_fingerprint": "lease", "domain_freshness_ref": "fresh", "pending_approval_ref": "approval"}
+        return AuthorityBoundLiveObservationProof("synthetic/repo", 1, "OPEN", "head", "base", False, None, "review", "2099-01-01T00:00:00+00:00", "route", "claim", "lane", "lease", "fresh", "approval", ("provider://evidence/one",), "caller", "provider://caller/self-assertion", "a" * 64, fresh_until, invalidators, object())
+
+    def test_f02_caller_supplied_complete_fields_are_not_provider_evidence(self) -> None:
+        proof = self.caller_fabricated_proof()
+        self.assertFalse(validate_live_observation_proof(proof))
+        preflight = self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=proof)
+        self.assertEqual((preflight["status"], preflight["code"], preflight["exact_repository_state_refs"]), ("BLOCKED", "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", []))
+
+    def test_f02_expired_or_unattributed_proof_is_blocked(self) -> None:
+        proof = self.caller_fabricated_proof(fresh_until="2020-01-01T00:01:00+00:00")
+        self.assertFalse(validate_live_observation_proof(proof))
+        self.assertFalse(self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=proof)["can_release"])
+
+    def test_f03_blocked_preflight_cannot_release_a_packet(self) -> None:
+        blocked = self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=self.caller_fabricated_proof())
+        with self.assertRaises(GatewayError) as got:
+            self.gateway.release(preflight=blocked, included_signal_refs=[], awareness=self.awareness)
+        self.assertEqual(got.exception.code, "FORMAL_RELEASE_PRECHECK_FAILED")

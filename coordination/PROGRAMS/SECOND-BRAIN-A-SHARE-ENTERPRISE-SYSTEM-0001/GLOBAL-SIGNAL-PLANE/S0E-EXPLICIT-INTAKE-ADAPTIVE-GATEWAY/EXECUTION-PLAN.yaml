@@ -35,8 +35,8 @@ architecture_mapping:
   ingress: "R136 envelope validates public-safe intent and maps accepted durable inputs to S0C admission."
   awareness: "Derived, rebuildable projection from exact authoritative snapshots; never grants authority."
   gateway: "Independent persistence, execution and materiality axes determine DIRECT, DOMAIN_WORKFLOW or GOVERNED_MISSION."
-  preflight: "Consumes S0C history plus current control-plane snapshots to create a non-authorizing TaskReleasePacket."
-  runtime_proof: "Receipt requires independently recorded exact read evidence; self-declaration remains UNVERIFIED."
+  preflight: "Consumes S0C history plus an authority-bound live observation from a future governed provider to create a non-authorizing TaskReleasePacket; without that provider it is BLOCKED."
+  runtime_proof: "Receipt requires independently recorded exact read evidence to bind inputs; scan execution requires a separate governed domain provider, otherwise runtime is UNVERIFIED."
   closure: "Signal closure is append-only assessment, separate from task completion."
 
 implementation_phases:
@@ -53,8 +53,8 @@ implementation_phases:
     state: "COMPLETE"
     deliverable: "RuntimeInvocationReceipt, exact AI Film read-only proof, and SignalClosureAssessment."
   - id: "P4"
-    state: "COMPLETE_PENDING_EXACT_HEAD_CI"
-    deliverable: "B01-B08 remediation: one-to-one R136-R001..R044 mechanism tests, real CI artifact proof, regressions, safety audits, CI and GPT handoff."
+    state: "F01_F04_LOCAL_VALIDATION_COMPLETE_PENDING_SINGLE_PUSH_AND_EXACT_HEAD_CI"
+    deliverable: "R136-R001..R044 mechanism tests, F01-F04 fail-closed substrate, regressions, safety audits, CI and GPT handoff."
 
 schema_compatibility_plan:
   strategy: "ADDITIVE_R136_ADAPTER_OVER_FROZEN_S0C_S0D"
@@ -93,7 +93,7 @@ unresolved_questions:
     statement: "A synthetic public-safe symptom is matched against the exact route index; the CI artifact retains only identities, digests and route reference."
   - id: "R136-U02-FORMAL_RELEASE"
     status: "LOCKED_BY_DESIGN"
-    statement: "TaskReleasePacket and receipts cannot authorize a future formal task without fresh reconciliation and Control Tower."
+    statement: "TaskReleasePacket cannot be created by the release path without a fresh AuthorityBoundLiveObservationProof and Control Tower; the provider is not available in R136."
   - id: "R136-U03-PRIVATE_LIVE"
     status: "OUT_OF_SCOPE"
     statement: "Private chat/W3 ingestion and live bridge remain forbidden."

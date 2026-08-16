@@ -15,7 +15,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from typing import Any, Iterator, Mapping, Sequence
+from typing import Any, Callable, Iterator, Mapping, Sequence
 
 import yaml
 
@@ -193,40 +193,6 @@ class ExactReadProof:
 
 
 _PROOF_SEAL = object()
-_SCAN_SEAL = object()
-
-
-@dataclass(frozen=True)
-class ExactScanProof:
-    scan: str
-    input_paths: tuple[str, ...]
-    input_digest: str
-    execution_id: str
-    _seal: object = field(repr=False, compare=False)
-
-    def public_dict(self) -> dict[str, Any]:
-        return {"scan": self.scan, "input_paths": list(self.input_paths), "input_digest": self.input_digest, "execution_id": self.execution_id}
-
-
-def execute_route_scans(*, mandatory_scans: Sequence[str], proofs: Sequence[ExactReadProof], execution_id: str) -> tuple[ExactScanProof, ...]:
-    """Seal each route-required scan to the exact reads it consumed; no caller result is trusted."""
-    paths = {proof.path for proof in proofs}
-    scan_inputs = {
-        "map_authority": {"05_场景与空间/00_项目地图文件.md"}, "world_cardinal_frame": {"05_场景与空间/00_项目地图文件.md"},
-        "adjacency_and_height": {"05_场景与空间/00_项目地图文件.md"},
-        "camera_anchor_resolution": {"10_运行时/scene_asset_identity_schema.yaml"}, "camera_orientation": {"10_运行时/scene_asset_identity_schema.yaml"},
-        "view_resolution": {"10_运行时/scene_asset_identity_schema.yaml"}, "relation_resolution": {"10_运行时/scene_asset_identity_schema.yaml"},
-        "asset_direction_tags": {"10_运行时/scene_asset_identity_schema.yaml"}, "no_legacy_id_direction_inference": {"10_运行时/scene_asset_identity_schema.yaml"},
-        "current_media_version_resolution": {"10_运行时/scene_media_resolver_manifest.yaml"}, "pixel_verification_state": {"10_运行时/scene_media_resolver_manifest.yaml"},
-    }
-    sealed: list[ExactScanProof] = []
-    for scan in mandatory_scans:
-        required = scan_inputs.get(scan, set())
-        if not required or not required <= paths:
-            continue
-        consumed = tuple(sorted(required))
-        sealed.append(ExactScanProof(scan, consumed, digest([proof.public_dict() for proof in proofs if proof.path in required]), execution_id, _SCAN_SEAL))
-    return tuple(sealed)
 
 
 def exact_git_read_proofs(root: str | Path, *, repository: str, commit: str, paths: Sequence[str], execution_id: str) -> tuple[ExactReadProof, ...]:
@@ -340,8 +306,63 @@ class GlobalReconciliationProof:
     _seal: object = field(repr=False, compare=False)
 
 
+@dataclass(frozen=True)
+class AuthorityBoundLiveObservationProof:
+    """Provider-neutral future live-observation contract.
+
+    R136 deliberately has neither an issuer nor a provider implementation for
+    this proof.  A caller-filled dataclass is consequently not evidence: a
+    governed successor must obtain both a private issuer seal and a registered
+    verifier result from its authorized observation provider after that provider
+    has read the relevant control-plane state.
+    """
+    repository: str; pr_number: int; pr_state: str; head_sha: str; base_sha: str
+    merged: bool; merge_commit_sha: str | None; review_state_ref: str; observed_at: str
+    route_fingerprint: str; claim_fingerprint: str; lane_fingerprint: str; lease_fingerprint: str
+    domain_freshness_ref: str; pending_approval_ref: str; exact_refs: tuple[str, ...]
+    provider_id: str; provider_attribution_ref: str; evidence_digest: str
+    fresh_until: str; invalidation_fingerprints: Mapping[str, str]
+    _issuer_seal: object = field(repr=False, compare=False)
+
+
+_LIVE_OBSERVATION_ISSUER_SEAL = object()
+_LIVE_OBSERVATION_VERIFIERS: dict[str, Callable[[AuthorityBoundLiveObservationProof, datetime], bool]] = {}
+_LIVE_OBSERVATION_INVALIDATORS = frozenset({
+    "head_sha", "base_sha", "review_state_ref", "route_fingerprint",
+    "claim_fingerprint", "lane_fingerprint", "lease_fingerprint",
+    "domain_freshness_ref", "pending_approval_ref",
+})
+
+
+def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> bool:
+    """Accept only a fresh, issuer-bound observation, never caller metadata."""
+    if not isinstance(proof, AuthorityBoundLiveObservationProof): return False
+    if proof._issuer_seal is not _LIVE_OBSERVATION_ISSUER_SEAL: return False
+    try:
+        observed, fresh_until = instant(proof.observed_at, "/observed_at"), instant(proof.fresh_until, "/fresh_until")
+        checked_at = instant(at or utc_now(), "/checked_at")
+    except GatewayError:
+        return False
+    expected = {
+        "head_sha": proof.head_sha, "base_sha": proof.base_sha, "review_state_ref": proof.review_state_ref,
+        "route_fingerprint": proof.route_fingerprint, "claim_fingerprint": proof.claim_fingerprint,
+        "lane_fingerprint": proof.lane_fingerprint, "lease_fingerprint": proof.lease_fingerprint,
+        "domain_freshness_ref": proof.domain_freshness_ref, "pending_approval_ref": proof.pending_approval_ref,
+    }
+    digest_ok = len(proof.evidence_digest) == 64 and all(character in "0123456789abcdef" for character in proof.evidence_digest)
+    verifier = _LIVE_OBSERVATION_VERIFIERS.get(proof.provider_id)
+    return bool(
+        proof.repository and proof.pr_number > 0 and proof.pr_state and proof.head_sha and proof.base_sha
+        and proof.review_state_ref and proof.exact_refs and proof.provider_id and proof.provider_attribution_ref
+        and proof.provider_attribution_ref.startswith("provider://") and digest_ok and observed <= fresh_until
+        and checked_at <= fresh_until and set(proof.invalidation_fingerprints) == _LIVE_OBSERVATION_INVALIDATORS
+        and all(proof.invalidation_fingerprints[key] == value for key, value in expected.items())
+        and verifier is not None and verifier(proof, checked_at)
+    )
+
+
 def seal_global_reconciliation(root: str | Path, awareness: SystemAwarenessProjection) -> GlobalReconciliationProof:
-    """Build the only accepted preflight witness from exact canonical Git objects."""
+    """Bind local canonical Git context; it is never a live-release witness."""
     repo = Path(root).resolve(); commit = str(_git(repo, "rev-parse", "HEAD")); execution_id = f"r136-reconciliation:{commit[:16]}"
     proofs = exact_git_read_proofs(repo, repository="canonical/second-brain", commit=commit, paths=CANONICAL_SURFACES, execution_id=execution_id)
     by_path = {proof.path: proof for proof in proofs}
@@ -370,14 +391,16 @@ class RuntimeInvocationReceipt:
         started, completed = started_at or utc_now(), completed_at or utc_now(); instant(started, "/started_at"); instant(completed, "/completed_at")
         accepted: list[ExactReadProof] = [item for item in actual_reads if isinstance(item, ExactReadProof) and item._seal is _PROOF_SEAL and item.execution_id == execution_id and item.repository == source_repository and item.commit == source_commit]
         paths = {item.path for item in accepted}
-        accepted_scans = [item for item in actual_scans if isinstance(item, ExactScanProof) and item._seal is _SCAN_SEAL and item.execution_id == execution_id]
-        scan_names = {item.scan for item in accepted_scans}
-        compliance = "PASS" if set(mandatory_reads) <= paths and set(mandatory_scans) <= scan_names else "UNVERIFIED"
+        # Exact reads bind inputs only.  R136 has no domain/Harness execution
+        # provider, so they must never become scan-execution evidence.
+        scan_obligations = [{"scan": scan, "status": "UNKNOWN", "reason": "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE", "input_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted]} for scan in mandatory_scans]
+        scans_complete = not mandatory_scans
+        compliance = "PASS" if set(mandatory_reads) <= paths and scans_complete else "UNVERIFIED"
         warnings = [] if compliance == "PASS" else ["MANDATORY_READ_OR_SCAN_UNPROVEN"]
         data = {"receipt_id": f"receipt:{digest([execution_id, source_commit, sorted(paths)])[:24]}", "execution_id": execution_id, "trace_id": f"trace:{digest(execution_id)[:24]}", "task_class": task_class, "domain_id": domain_id,
                 "started_at": started, "completed_at": completed, "source_repository": source_repository, "source_commit": source_commit, "entry_contract_ref": entry["path"], "entry_contract_blob_or_content_digest": entry["blob_sha"], "system_awareness_snapshot_ref": awareness.snapshot_ref,
-                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": list(mandatory_scans), "actual_scans": [item.public_dict() for item in accepted_scans], "capability_invocations": [f"scan:{item.scan}" for item in accepted_scans],
-                "ruleset_digest": digest({"entry": entry, "snapshot": awareness.snapshot_ref, "routes": list(matched_route_refs)}), "warnings": warnings, "unknowns": [] if compliance == "PASS" else ["self-declared or fabricated read metadata is not proof"], "result_ref": f"opaque://execution/{execution_id}", "validation_result": "VERIFIED" if compliance == "PASS" else "UNVERIFIED", "writeback_decision": "TRACE_ONLY", "process_compliance": compliance, "outcome_quality": outcome_quality, "evidence_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted], "privacy_scope_ref": "PUBLIC_SAFE_METADATA_ONLY"}
+                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": list(mandatory_scans), "scan_obligations": scan_obligations, "actual_scans": [], "capability_invocations": [],
+                "ruleset_digest": digest({"entry": entry, "snapshot": awareness.snapshot_ref, "routes": list(matched_route_refs)}), "warnings": warnings, "unknowns": [] if compliance == "PASS" else ["exact read/input digest is not scan execution evidence", "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE"], "result_ref": f"opaque://execution/{execution_id}", "validation_result": "VERIFIED" if compliance == "PASS" else "UNVERIFIED", "writeback_decision": "TRACE_ONLY", "process_compliance": compliance, "outcome_quality": outcome_quality, "evidence_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted], "privacy_scope_ref": "PUBLIC_SAFE_METADATA_ONLY"}
         return cls(data)
 
 
@@ -420,32 +443,25 @@ class SignalIntakeGateway:
 
     def preflight(self, *, awareness: SystemAwarenessProjection, canonical_root: str | Path | None, reconciliation_proof: Any) -> dict[str, Any]:
         if canonical_root is not None and not awareness.is_current(canonical_root): return {"status": "BLOCKED", "code": "STALE_SYSTEM_AWARENESS", "can_release": False}
-        if not isinstance(reconciliation_proof, GlobalReconciliationProof) or reconciliation_proof._seal is not _PROOF_SEAL:
-            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False}
         relations = _discover_relations(self.ledger.history(), (self.ledger.current_projection() or {}).get("links", []))
-        return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False, "provider_dependency": "LIVE_GITHUB_CONTROL_PLANE_OBSERVATION_PROVIDER_REQUIRED", "canonical_input_refs": list(reconciliation_proof.evidence_refs), "relations": relations, "decisions": _relation_decisions(relations), "exact_repository_state_refs": list(reconciliation_proof.evidence_refs)}
-        if reconciliation_proof.awareness_snapshot_ref != awareness.snapshot_ref or reconciliation_proof.ledger_checksum != awareness.ledger_checksum:
-            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False}
-        repository_state = reconciliation_proof.repository_state
-        missing_state = sorted(REPOSITORY_STATE_FIELDS - set(repository_state))
-        if missing_state:
-            return {"status": "BLOCKED", "code": "REPOSITORY_STATE_SURFACE_MISSING", "path": f"/repository_state/{missing_state[0]}", "can_release": False}
-        state_digest = digest(repository_state)
-        events, links = self.ledger.history(), (self.ledger.current_projection() or {}).get("links", [])
-        relations = _discover_relations(events, links)
-        material = [item for item in relations if item["relation"] in {"CONTRADICTS", "BLOCKS", "AUTHORITY_COLLISION"}]
         decisions = _relation_decisions(relations)
-        return {"status": "BLOCKED" if material else "PASS", "code": "MATERIAL_CONFLICT_UNRESOLVED" if material else None, "can_release": not material, "scan_strategy": "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH", "global_shallow_surfaces": [ref for ref, _ in awareness.source_revisions], "delta": {"ledger_checksum": awareness.ledger_checksum, "repository_state": dict(repository_state)}, "targeted_deep_refs": sorted({ref for relation in relations for ref in relation["signals"]}), "conditional_research": ["UNKNOWN_CAPABILITY_REMAINS_UNKNOWN"], "relations": relations, "decisions": decisions, "reconciliation_receipt_ref": reconciliation_proof.receipt_ref, "repository_state_digest": state_digest, "exact_repository_state_refs": list(reconciliation_proof.evidence_refs), "authority_granted": False}
+        local_context_refs = list(reconciliation_proof.evidence_refs) if isinstance(reconciliation_proof, GlobalReconciliationProof) and reconciliation_proof._seal is _PROOF_SEAL else []
+        if not validate_live_observation_proof(reconciliation_proof):
+            return {"status": "BLOCKED", "code": "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", "can_release": False, "provider_dependency": "AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_REQUIRED", "local_context_refs": local_context_refs, "relations": relations, "decisions": decisions, "exact_repository_state_refs": []}
+        material = [item for item in relations if item["relation"] in {"CONTRADICTS", "BLOCKS", "AUTHORITY_COLLISION"}]
+        return {"status": "BLOCKED" if material else "PASS", "code": "MATERIAL_CONFLICT_UNRESOLVED" if material else None, "can_release": not material, "provider_dependency": None, "scan_strategy": "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH", "global_shallow_surfaces": [ref for ref, _ in awareness.source_revisions], "relations": relations, "decisions": decisions, "reconciliation_receipt_ref": reconciliation_proof.provider_attribution_ref, "repository_state_digest": reconciliation_proof.evidence_digest, "exact_repository_state_refs": list(reconciliation_proof.exact_refs), "route_claim_lane_refs": [reconciliation_proof.route_fingerprint, reconciliation_proof.claim_fingerprint, reconciliation_proof.lane_fingerprint], "authority_granted": False, "live_observation_proof": reconciliation_proof}
 
     def release(self, *, preflight: Mapping[str, Any], included_signal_refs: Sequence[str], awareness: SystemAwarenessProjection) -> dict[str, Any]:
-        if not preflight.get("can_release"): raise GatewayError("FORMAL_RELEASE_PRECHECK_FAILED")
+        if preflight.get("status") != "PASS" or not preflight.get("can_release") or not validate_live_observation_proof(preflight.get("live_observation_proof")):
+            raise GatewayError("FORMAL_RELEASE_PRECHECK_FAILED")
         latest: dict[str, Mapping[str, Any]] = {}
         for event in self.ledger.history(): latest[event["signal_id"]] = event
         selected = [latest[ref] for ref in included_signal_refs if ref in latest]
         if len(selected) != len(included_signal_refs): raise GatewayError("RELEASE_SIGNAL_REF_UNKNOWN")
         intent = [item.get("public_safe_metadata", {}).get("intent_envelope", {}) for item in selected]
         decisions = preflight.get("decisions", {})
-        return {"packet_id": f"release:{digest([list(included_signal_refs), awareness.snapshot_ref, preflight['reconciliation_receipt_ref']])[:24]}", "mission_candidate_ref": f"mission-candidate:{digest(included_signal_refs)[:24]}", "exact_repository_state_refs": list(preflight.get("exact_repository_state_refs", [])), "control_tower_required": True, "execution_authorized": False}
+        all_values = lambda name: [value for item in intent for value in item.get(name, [])]
+        return {"packet_id": f"release:{digest([list(included_signal_refs), awareness.snapshot_ref, preflight['reconciliation_receipt_ref']])[:24]}", "mission_candidate_ref": f"mission-candidate:{digest(included_signal_refs)[:24]}", "included_signal_refs": list(included_signal_refs), "cluster_refs": sorted({str(item.get("primary_domain")) for item in selected}), "desired_effects": [item.get("desired_effect") for item in intent], "success_conditions": [item.get("success_condition") for item in intent], "merge_keep_separate_rationale": decisions.get("merge_keep_separate_rationale"), "resolved_conflicts": [], "unresolved_conflicts": all_values("counterevidence_refs"), "dependencies": all_values("dependencies"), "can_parallel_refs": decisions.get("can_parallel_refs", []), "must_serialize_refs": decisions.get("must_serialize_refs", []), "reviewer_or_challenger_requirements": decisions.get("reviewer_or_challenger_requirements", []), "counterfactual_requirements": decisions.get("counterfactual_requirements", []), "expected_problems": all_values("expected_problems"), "risks": all_values("risks"), "unknowns": all_values("unknowns") + ["CONTROL_TOWER_APPROVAL_REQUIRED"], "required_capability_refs": sorted({ref for node in awareness.nodes for ref in node.get("capability_refs", [])}), "required_read_set_refs": sorted({ref for node in awareness.nodes for ref in node.get("read_set_refs", [])}), "authority_refs": sorted({node["source_authority_ref"] for node in awareness.nodes}), "exact_system_snapshot_ref": awareness.snapshot_ref, "exact_repository_state_refs": list(preflight["exact_repository_state_refs"]), "route_claim_lane_refs": list(preflight["route_claim_lane_refs"]), "reconciliation_receipt_ref": preflight["reconciliation_receipt_ref"], "control_tower_required": True, "execution_authorized": False}
 
     def assess_closure(self, *, signal_id: str, state: str, effect_evidence_refs: Sequence[str], task_done: bool, at: str) -> dict[str, Any]:
         if state not in CLOSURES: raise GatewayError("INVALID_CLOSURE_STATE", "/state")
