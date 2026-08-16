@@ -1,10 +1,10 @@
-schema_version: "2.2"
+schema_version: "2.3"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-16T12:25:00+08:00"
+as_of: "2026-08-16T12:47:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -55,20 +55,20 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R136 Phase A reserves the exact S0E0 future write surface but is non-executable and consumes no active Codex
-    execution lease. H2/H7/Harness/private/production remain separately unauthorized; Lane B remains held.
+    R136 Phase B activates exactly one bounded Codex implementation claim for S0E0. It owns only the two declared
+    Second Brain write surfaces. H2/H7/Harness/private/production remain separately unauthorized; Lane B remains held.
 
 current_user_release_policy:
-  decision_at: "2026-08-16T12:25:00+08:00"
-  decision: "PREPARE_R136_SIGNAL_INTAKE_ADAPTIVE_GATEWAY_PHASE_A_KEEP_EXECUTION_BLOCKED"
+  decision_at: "2026-08-16T12:47:00+08:00"
+  decision: "ACTIVATE_R136_SIGNAL_INTAKE_ADAPTIVE_GATEWAY_PHASE_B_WAIT_FOR_USER_LAUNCH"
   rationale: >-
-    The user explicitly prioritized finishing the Global Signal Tower before Harness or other major lines. R135 S0D is
-    completed/closed and Lane A has no active execution lease. R136 therefore reserves a new bounded S0E0 surface for
-    explicit Signal intake, derived system awareness, adaptive routing, task preflight/release packets, runtime invocation
-    proof and Signal satisfaction closure while keeping Codex execution blocked pending a fresh post-merge Phase B gate.
-  released_implementation_lanes: []
-  prepared_implementation_lanes:
+    The user explicitly prioritized finishing the Global Signal Tower before Harness or other major lines. Phase A was
+    exact-head reviewed and merged. Fresh post-merge reconciliation found no source, route, Work Claim, Program Lane or
+    same-agent drift, so the exact R136 S0E0 implementation surface may become READY while still requiring a full user
+    Launch Envelope before Codex writes.
+  released_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION"
+  prepared_implementation_lanes: []
   released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
@@ -83,26 +83,28 @@ current_user_release_policy:
   r135_closure_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
   r136_issue: 353
   r136_route_epoch: 136
-  r136_phase: "A_RESERVATION_NON_EXECUTABLE"
-  r136_release: "PREPARED_NON_EXECUTABLE"
+  r136_phase_a_pr: 354
+  r136_phase_a_head: "facb1e02469218cbac3c8ecab35a48ee623bae00"
+  r136_phase_a_review_id: 4945417110
+  r136_phase_a_merge: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
+  r136_phase: "B_POST_MERGE_ACTIVATION"
+  r136_release: "READY_WAITING_USER_LAUNCH"
   bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+  activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
   ai_film_repository: "vxz2datoubo/eustia-ai-film"
-  ai_film_main_at_prepare: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_main_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
   ai_film_source_authority_blob_sha: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
   ai_film_role: "READ_ONLY_FIRST_RUNTIME_PROOF_CONSUMER"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
-  phase_b_activation_requires:
-    - "Phase A canonical merge"
-    - "fresh Second Brain main snapshot"
-    - "fresh AI Film main/open-PR/source-authority snapshot"
-    - "fresh per-agent route and Work Claim scan"
-    - "successor GlobalReconciliationReceipt"
-    - "fresh O0-O4/same-agent/resource scan"
-    - "exact-head Control Tower witness"
-    - "GPT Phase B merge"
+  launch_requires:
+    - "Phase B activation PR exact-head Control Tower CI PASS"
+    - "Phase B activation PR exact-head Signal Plane architecture CI PASS when triggered"
+    - "GPT expected-head merge"
     - "full R136 Launch Envelope from the user into the Second Brain Codex workspace"
+    - "Codex exact repository/task/epoch/issue/source identity preflight"
+    - "no known conflicting local AI Film Codex execution"
 
 observed_agent_state:
   CODEX:
@@ -111,9 +113,9 @@ observed_agent_state:
     observed_route_epoch: 136
     observed_issue: 353
     observed_pr: null
-    observed_status: "PREPARED_NON_EXECUTABLE"
-    execution_allowed: false
-    observation_status: "PHASE_A_RESERVED / NO_ACTIVE_CODEX_EXECUTION_LEASE"
+    observed_status: "READY"
+    execution_allowed: true
+    observation_status: "PHASE_B_READY / USER_LAUNCH_STILL_REQUIRED"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -123,14 +125,14 @@ observed_agent_state:
     observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
     execution_allowed: false
     quota_hold: "NO_FURTHER_QCLAW_EXECUTION_ON_2026-08-14"
-    observation_status: "VERIFIED_REPOSITORY_AT_R136_PHASE_A_CHECK"
+    observation_status: "VERIFIED_REPOSITORY_AT_R136_PHASE_B_CHECK"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_issue: 89
     observed_pr: 97
     observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
-    observation_status: "VERIFIED_REPOSITORY_AT_R136_PHASE_A_CHECK"
+    observation_status: "VERIFIED_REPOSITORY_AT_R136_PHASE_B_CHECK"
 
 known_stale_aggregate_views:
   - path: "coordination/ACTIVE-THREE-AGENT-COORDINATION.yaml"
@@ -145,11 +147,11 @@ program_lanes:
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线", "Unified Signal Tower线"]
     mission: >-
       Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
-      authorities. S0C and S0D are completed. Current prepared successor is R136 S0E0 explicit Global Signal intake and
-      adaptive execution gateway, still non-executable in Phase A.
-    desired_state: "READY"
-    observed_state: "READY"
-    hold_reason: "R136_PHASE_A_RESERVATION / EXECUTION_BLOCKED_PENDING_PHASE_B"
+      authorities. S0C and S0D are completed. Current active bounded successor is R136 S0E0 explicit Global Signal intake
+      and adaptive execution gateway, awaiting the user's full Launch Envelope before implementation begins.
+    desired_state: "ACTIVE"
+    observed_state: "ACTIVE"
+    hold_reason: "R136_PHASE_B_READY / USER_LAUNCH_REQUIRED"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -161,22 +163,24 @@ program_lanes:
       - "Unified Signal Tower enterprise architecture merged in PR #342"
       - "R134 S0C implementation merged in PR #346 and closed in PR #347"
       - "R135 S0D implementation accepted and merged in PR #351; governance closed in PR #352"
+      - "R136 Phase A reservation merged in PR #354"
       - "Issue #353 R136 Global Signal Intake + Adaptive Execution Gateway"
       - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+      - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/RUNTIME-INVOCATION-RECEIPT-CONTRACT.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
-    current_phase: "R136_S0E0_PHASE_A_RESERVED_NON_EXECUTABLE"
+    current_phase: "R136_S0E0_PHASE_B_ACTIVE_IMPLEMENTATION"
     active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY-R136.yaml"
     heavy_execution_authorized: false
     dependencies:
       - "S0C durable Signal Plane completed and closed"
       - "S0D exact-commit read-only Domain Adapter completed and closed"
-      - "fresh R136 Phase A GlobalReconciliationReceipt"
+      - "R136 Phase A architecture/reservation exact-head accepted and merged"
+      - "fresh R136 Phase B GlobalReconciliationReceipt"
       - "AI Film remains read-only source authority through PROJECT_INDEX.yaml"
-      - "Phase B successor reconciliation after Phase A merge"
-      - "no active Codex execution lease before activation"
+      - "full R136 user Launch Envelope before any Codex write"
     shared_interfaces:
       - "Global Signal Plane S0C durable contracts"
       - "Global Reconciliation Receipt contract"
@@ -187,9 +191,9 @@ program_lanes:
       - "AI Film Domain Adapter read-only boundary"
       - "W3 frozen consumption boundary"
       - "Trace/lineage boundary"
-    next_gate: "PHASE_A_MERGE_THEN_FRESH_R136_PHASE_B_RECONCILIATION_FOR_ACTIVATION"
+    next_gate: "USER_R136_LAUNCH_THEN_IMPLEMENTATION_EXACT_HEAD_GPT_REVIEW"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "R136_PHASE_A_RESERVED / PUBLIC_SAFE_EXPLICIT_INTAKE_AND_RUNTIME_PROOF"
+    maturity: "R136_PHASE_B_ACTIVE / PUBLIC_SAFE_EXPLICIT_INTAKE_AND_RUNTIME_PROOF"
     proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -271,7 +275,7 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_READ"
     shared_domains: [W3, W9, W10, W12]
-    rule: "Lane A is only R136 reserved/non-executable; Lane B remains held. No active mutable overlap exists."
+    rule: "R136 owns only its exact S0E0 write surface; Lane B remains held. Their current overlap is read/read only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10]
@@ -294,6 +298,6 @@ flow_metrics:
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before R136 Phase B activation or any later implementation, fetch current per-agent routes, relevant canonical indices,
-  source repo head and a fresh GlobalReconciliationReceipt; fail closed on O4, stale receipt, same-agent double-booking,
-  cross-window drift, source commit drift or unknown local cross-project Codex collision at launch.
+  Before R136 user launch or any later implementation transition, fetch current per-agent routes, relevant canonical
+  indices, source repo head and the activation GlobalReconciliationReceipt; fail closed on O4, stale receipt, same-agent
+  double-booking, cross-window drift, source commit drift or unknown local cross-project Codex collision at launch.
