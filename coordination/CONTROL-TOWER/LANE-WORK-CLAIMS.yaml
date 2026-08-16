@@ -1,4 +1,4 @@
-schema_version: "2.5"
+schema_version: "2.6"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -23,9 +23,8 @@ semantics:
   s0c_authorization_does_not_authorize_s0d_h2_h7: true
   s0d_authorization_does_not_authorize_s0e_h2_h7_domain_write: true
   r136_completion_does_not_authorize_successor_providers_ai_film_write_private_bridge_harness_h2_h7_production_trading: true
-  r137_reservation_does_not_authorize_provider_execution_or_domain_capability_provider: true
-  r137_root_bootstrap_evidence_does_not_authorize_execution_without_explicit_user_gpt_activation: true
-  r137_active_implementation_does_not_authorize_r138_or_merge: true
+  r137_completion_does_not_authorize_r138_domain_write_private_bridge_harness_h2_h7_production_trading: true
+  r137_root_bootstrap_evidence_does_not_authorize_successor_execution: true
   global_reconciliation_receipt_is_not_execution_authority: true
 
 proposal_roots:
@@ -50,106 +49,40 @@ claims:
       merged_pr: 334
       merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
       completed_route_epoch: 132
-      bounded_gaps:
-        - "R120-W01-CONTEXT-ONLY-ENDPOINT"
-        - "R122-UNKNOWN-BINDING-GAP"
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
     stop_conditions:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "MEDIUM_IMPLEMENTATION"
-    route_binding:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
-      route_epoch: 137
-      issue: 360
-      pr: null
-      branch: "codex/r137-authority-live-observation-provider"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/live_observation_provider.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r137_live_observation_provider.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R137"
-      - ".github/workflows/global-signal-plane-r137-live-observation.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/GOVERNANCE"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-QCLAW-TASK.yaml"
-      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/PROGRAM-CONTROL-TOWER.md"
-      - "repo:vxz2datoubo/second-brain-coordination@1d214ace0ad49091c58622150bd86fd1170a6335:E38-selected-github_transport.py"
-      - "repo:vxz2datoubo/second-brain-coordination@263f82a62ef2a216bb504f11cb7b5dce92e97ca7:E39-selected-route_readiness.py"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
-    interfaces:
-      - name: "R136-AuthorityBoundLiveObservationProof"
-        mode: "read/integrate"
-        frozen: true
-      - name: "R136-TaskRelease-Preflight-Boundary"
-        mode: "read/integrate"
-        frozen: true
-      - name: "R137-LiveObservationEvidenceBundle"
-        mode: "implement"
-        frozen_for_r137: true
-      - name: "Global-Reconciliation-Receipt-Contract"
-        mode: "read"
-        frozen: true
-      - name: "Control-Tower-Authorization-Boundary"
-        mode: "read/evidence-only"
-        frozen: true
-      - name: "GitHub-Public-REST-Read-Only-Boundary"
-        mode: "read"
-        frozen_for_r137: true
-      - name: "W3-Frozen-Consumption-Boundary"
-        mode: "no-access-in-r137-v1"
-        frozen: true
-    read_domains: [W1, W3, W7, W8, W9, W10, W12]
-    write_domains: [W8]
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
     authority_claims: []
-    implementation_scope:
-      slice: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER"
-      issue: 360
-      parent_architecture_issue: 358
-      phase: "B_ACTIVE_IMPLEMENTATION"
-      target_resource_class: "MEDIUM_IMPLEMENTATION"
-      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-RESERVATION.yaml"
-      planning_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
-      activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
-      root_provider_bootstrap_receipt: "coordination/CONTROL-TOWER/ROOT-PROVIDER-BOOTSTRAP-R137.yaml"
-      root_provider_bootstrap_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-      root_provider_bootstrap_consumed: true
-      execution_allowed: true
-      runtime_code_change_allowed: true
-      explicit_user_launch_received: true
-      public_github_read_only: true
-      private_repository_allowed: false
-      credentials_allowed: false
-      generic_url_allowed: false
-      github_write_allowed: false
-      caller_provider_registration_allowed: false
-      ai_film_write_allowed: false
-      private_chat_allowed: false
-      w3_write_allowed: false
-      harness_runtime_allowed: false
-      h2_allowed: false
-      h7_allowed: false
-      production_allowed: false
-      trading_allowed: false
+    closure_receipt:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+      closure_issue: 360
+      merged_pr: 364
+      accepted_head: "a7789864eac267c569503342a66a961985a27745"
+      merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+      final_review_id: 4946250299
+      exact_head_r137_ci: 31948699592
+      exact_head_s0e_ci: 31948699596
+      exact_head_phase3_ci: 31948699598
+      completed_route_epoch: 137
+      acceptance: "ACCEPTED / R137_PROVIDER_V1_MECHANISM_CLOSED / GOVERNED_PROCESS_TRUST_BOUNDARY_ACKNOWLEDGED"
+      receipt_ref: "coordination/CONTROL-TOWER/R137-LIVE-OBSERVATION-CLOSURE-RECONCILIATION.yaml"
+      successor_dependencies:
+        DOMAIN_CAPABILITY_EXECUTION_PROVIDER: "NOT_ACTIVE / FUTURE_GOVERNED_R138"
     stop_conditions:
-      - "Write outside exact R137 allowlist -> STOP / NEEDS_GPT"
-      - "Repository/task/epoch/issue/branch/activation mismatch -> STOP / WRONG_REPOSITORY_OR_ROUTE_OR_ACTIVATION_OR_LEASE_CONFLICT"
-      - "Private repository/credential/permission/secret required -> STOP / separate user gate"
-      - "Generic URL or GitHub write API required -> STOP / architecture conflict"
-      - "Caller-verifier registration or provider policy adjudication required -> STOP / architecture conflict"
-      - "W3/domain write/Harness/H2/H7/daemon/production/trading required -> STOP / separate gate"
-      - "Same Codex execution collision or mutable O3/O4 collision -> STOP / fresh GPT reconciliation"
-      - "Passing tests or CI never authorizes merge or R138"
+      - "R137 may not be resumed as an active implementation route."
+      - "R138 requires a new route epoch, fresh Work Claim, fresh live observation and fresh Global Reconciliation."
+      - "Domain write, private/W3, Harness/H2/H7, production, permissions/secrets, Formal Skill and trading remain separately gated."
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -177,22 +110,18 @@ claims:
     implementation_upgrade_requires:
       - "explicit route binding"
       - "one bounded remediation write surface"
-      - "exact interface read/write/frozen state"
-      - "authority claims"
-      - "resource class"
-      - "O0-O4 rescan against current claims"
+      - "fresh O0-O4 rescan"
       - "PIT/T+1/NO_TRADE and domain authority gates"
       - "commit-time route witness"
 
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    Lane A now has one bounded active R137 implementation claim. Lane B remains held proposal-only and Lane C remains
-    closed. No second Codex active route, R138, private/live bridge, Harness/H2/H7 or domain write is authorized.
+    R137 is completed and no Codex implementation lease is active. Lane B remains held proposal-only and Lane C remains
+    closed. R138 is not authorized merely because Lane A released its surfaces.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
-  reservation_upgrade_completed_by: "R137-ACTIVATION-RECONCILIATION-0001"
   closed_lane_has_no_execution_lease: true
-  r137_stage_separation: >-
-    Active R137 implementation does not imply Domain Capability Execution Provider, AI Film/domain write, private/live
-    bridge, Harness/H2/H7, production, permission change, Formal Skill promotion, trading authorization or merge authority.
+  r137_future_stage_separation: >-
+    R137 acceptance/merge/closure never implies Domain Capability Execution Provider, AI Film/domain write, private/live
+    bridge, Harness/H2/H7, production, permission change, Formal Skill promotion or trading authorization.

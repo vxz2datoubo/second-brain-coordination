@@ -4,16 +4,16 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-16T18:57:00+08:00`
+- as_of: `2026-08-16T21:20:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
-- User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
+- User-held lanes: `LANE-A-HARNESS-INTEGRATION, LANE-B-A-SHARE-REMEDIATION`
 
 ### Agent routes
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER` | 137 | `READY` | `true` | #360 / #None |
+| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER` | 137 | `DONE` | `false` | #360 / #364 |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `ACTIVE` | `true` | CODEX_IMPLEMENTATION_COMPLETION_SIGNAL_THEN_GPT_EXACT_HEAD_REVIEW_NO_MERGE |
+| `LANE-A-HARNESS-INTEGRATION` | `PAUSED` | `PAUSED` | `false` | R137_CLOSURE_MERGE_THEN_R138_FRESH_OBSERVATION_RECONCILIATION_AND_ARCHITECTURE |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | CONSUME_FROZEN_BOUNDARIES; REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE_IMPLEMENTATION` | `CODEX` | `MEDIUM_IMPLEMENTATION` | 6 paths | epoch 137 · #360/#None |
+| `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -44,7 +44,7 @@
 
 | Pair | level | reason |
 |---|---|---|
-| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O1** | `READ_READ` |
+| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-A-HARNESS-INTEGRATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-B-A-SHARE-REMEDIATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 
@@ -59,43 +59,44 @@
 ## 当前正式节奏
 
 - **R136 已完整完成并关闭**。Implementation PR #356 merge `54c99780ad6d1a1cc8a035a18130f26b2f91eb62`；post-merge closure PR #357 merge `16f158e1123fa6b52c1a489ddd53093a91270624`。
-- **R137 Phase A 架构已完成**。Issue #358；PR #359 merge `a065cc8eb4d978bef78543f2536d12d659067829`。
-- **R137 A1 非执行预留已完成**。PR #361 merge `7b0996a98fc908b2afad6be7775eafc74381e648`。
-- **R137 A2 Root Provider Bootstrap 已完成**。PR #362 merge `af786f5851d459c8a580cc6e3de2e2ebed69f5b0`；bootstrap `ROOT-PROVIDER-BOOTSTRAP-R137-0001` 已在本次 activation 中一次性消费，不可重放、不可用于 R138。
-- **用户已明确启动 R137**：`启动 R137`。GPT 已 fresh re-observe current main、bootstrap、route/task/claim/lane、其他 Agent、资源与跨项目状态，并生成 `R137-ACTIVATION-RECONCILIATION-0001`。
-- **R137 当前状态**：`READY / execution_allowed=true / runtime_code_change_allowed=true`，但只允许 exact R137 allowlist。Codex 仍无 merge 权限。
-- **V1 trust class**：`PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1`。固定 `api.github.com`、public read-only、on-demand、serial；不支持 private repo/token、generic URL、write API、daemon/webhook/polling/scheduler。
-- **R137 第一动作必须是项目计划**：在 `R137/EXECUTION-PLAN.yaml` 写明 repository facts、source import map、trust boundary、provider components、observation sequence、evidence bundle、gateway integration、bootstrap consumption、adversarial matrix、resource/rollback/unresolved questions，再开始 material runtime edits。
-- **E38/E39 历史能力只做 exact source reuse**：E38 transport = ADAPT_AND_RETEST；E39 selective reference only，旧 non-None approval 语义禁止；whole-branch merge/cherry-pick 禁止。
-- **AI Film 继续独立 authority**，activation fresh check main 仍为 `44c383afd2207a97caf45b1b0da6ee1dece43a76`，open PR = 0，只读 freshness reference，不写域仓库。
-- **Domain Capability Execution Provider 继续 NOT_AUTHORIZED**，必须等 R137 独立验收/merge/closure 后单独开门。
+- **R137 架构、预留、bootstrap、activation、implementation 均已完成**。Architecture PR #359；reservation PR #361；bootstrap PR #362；activation PR #363；implementation PR #364。
+- **R137 final acceptance**：exact head `a7789864eac267c569503342a66a961985a27745`，GPT final review `4946250299`，merge commit `54ba6c31240d4b262c65d142be446e6b5ea5d90b`。
+- **R137 exact-head validation**：R137 run `31948699592`、S0E run `31948699596`、Phase 3 run `31948699598`，Python 3.11/3.13 全绿；R137 49/49、retained R136 47/47、Phase 3 291/291。
+- **真实 public observation proof 已形成**：Py3.11 `provider://r137/evidence/r137:9d71a18d1e1032d2be3436f0#sha256=fd923c5a73b0f584154e117e5e18a6e3027b82d1a62329fc79dcd2597c98963e`；Py3.13 `provider://r137/evidence/r137:d1f459b3c34fc528ad2c55d0#sha256=ff7a8e6089d49bbe4beeac5e243c75616fbdf354683934c5ef86ab35b37fecbe`。
+- **R137 Provider 已成为 accepted evidence-only capability**：固定 `api.github.com`、public、GET-only、on-demand、serial、exact object/blob/content binding、动态 active route、PR/review/main/claim/lane/lease/freshness/invalidation 绑定。
+- **R137 不拥有执行/发布/merge/domain authority**。module-private seal + in-process evidence registry 仍是 governed-process trust boundary，不是同进程恶意代码的密码学隔离。
+- **R137 当前正式状态**：epoch 137 `DONE / execution_allowed=false`；Lane A Work Claim 已释放；route 仅保留历史证据，不得恢复执行。
+- **下一候选是 R138 Domain Capability Execution Provider，但仅进入 planning**。它必须证明某个 domain capability 真正执行过、读过什么、产生了什么机制证据，而不是接受 Agent 自报 `EXECUTED`。
+- **正式任务发布硬门继续有效**：没有 fresh accepted live observation + Global Reconciliation + bounded Work Claim + route/lease，就不能发布新 formal implementation task。
+- **AI Film 继续是独立 domain authority**；R138 不能借 capability execution 名义取得 AI Film 写权限。
 - **Harness/H2/H7/private W3/domain write/daemon-webhook-polling/production/permissions-secrets/Formal Skill/trading 均未授权**。
 - **Lane B 继续 user-held / NO_TRADE**；Lane C closed/frozen。
 
-## R137 activation evidence
+## R137 closure evidence
 
 - Task: `CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER`
 - Issue: `#360`
 - Route epoch: `137`
-- Mode: `【Codex模式：项目计划模式】`
-- Activation base main: `af786f5851d459c8a580cc6e3de2e2ebed69f5b0`
-- Activation receipt: `coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml`
-- Activation receipt ID: `R137-ACTIVATION-RECONCILIATION-0001`
-- Bootstrap ID: `ROOT-PROVIDER-BOOTSTRAP-R137-0001`
-- Bootstrap consumed: **true**
-- User launch received: **true**
-- Execution authority: **R137_BOUNDED_IMPLEMENTATION_ONLY**
-- Implementation branch: `codex/r137-authority-live-observation-provider`
-- Merge authority: **NONE_TO_CODEX**
+- Accepted exact head: `a7789864eac267c569503342a66a961985a27745`
+- Implementation PR: `#364`
+- Merge commit: `54ba6c31240d4b262c65d142be446e6b5ea5d90b`
+- GPT final review: `4946250299`
+- R137 CI: `31948699592`
+- S0E CI: `31948699596`
+- Phase 3 CI: `31948699598`
+- Closure reconciliation: `coordination/CONTROL-TOWER/R137-LIVE-OBSERVATION-CLOSURE-RECONCILIATION.yaml`
+- Codex execution lease: **RELEASED**
+- Lane A Work Claim: **CLOSED_NO_ACTIVE_IMPLEMENTATION**
+- R138 execution authority: **NOT_GRANTED**
 
-## 下一关：Codex 实现 R137
+## 下一关：R138 先做 fresh observation + reconciliation + architecture
 
-Codex 必须：
-1. 核对 repo/task/epoch/issue/branch/activation receipt；不匹配立即 STOP；
-2. 先创建/更新 `R137/EXECUTION-PLAN.yaml`，再做 material runtime edits；
-3. 只写 6 个已授权 surface；
-4. 实现 public GitHub on-demand read-only provider、LiveObservationEvidenceBundle 与 R136 proof integration；
-5. 完整覆盖 caller forgery、host/redirect/media/size/json、pagination、main/PR/review/route/claim/lane/lease/domain/approval drift、expiry/replay/provider-code drift 等对抗测试；
-6. 保持 network concurrency=1、single local heavy stage、no nested pools、no global kill Python；
-7. exact-head Python 3.11/3.13 CI 后回传，不得 merge；
-8. GPT 对 exact head 独立复审后才决定是否进入 merge gate。
+在 R138 成为任何可执行 Codex route 前必须：
+1. 本 R137 closure PR exact-head Control Tower validation 通过并 merge；
+2. 重新读取 closure 后 `main`，确认 R137 tombstone 为 DONE/non-executable、Lane A claim 已释放；
+3. 使用 accepted R137 Provider 对 closure 后 current main/control-plane 做 fresh observation；
+4. 将该 provider evidence 绑定到新的 Global Reconciliation；
+5. 定义 R138 Domain Capability Execution Provider 的 provider-neutral contract、trust boundary、execution evidence schema、failure/UNKNOWN semantics；
+6. 明确 capability provider 不能成为 Control Tower、W3、domain truth、task release 或 merge authority；
+7. 重新跑 O0-O4、same-agent、resource、permission/secret、private/live boundary scan；
+8. 只创建 non-executable reservation；未得到用户明确 `启动 R138` 前，Codex 不得实施。

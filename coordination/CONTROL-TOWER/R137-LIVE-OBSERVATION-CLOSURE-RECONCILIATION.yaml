@@ -1,0 +1,117 @@
+schema_version: "1.0"
+reconciliation_id: "R137-LIVE-OBSERVATION-CLOSURE-RECONCILIATION-0001"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+trigger:
+  type: "POST_MERGE_COMPLETION_RECONCILIATION"
+  description: >-
+    GPT accepted the R137 exact head and merged PR #364. The pre-merge READY route, Lane A Work Claim and Program Lane
+    projection must release their execution lease before any R138 planning/reservation is considered.
+
+verified_facts:
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+  route_epoch: 137
+  issue: 360
+  architecture_issue: 358
+  accepted_runtime_head: "a7789864eac267c569503342a66a961985a27745"
+  implementation_pr: 364
+  merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+  final_review_id: 4946250299
+  exact_head_r137_ci: 31948699592
+  exact_head_s0e_ci: 31948699596
+  exact_head_phase3_ci: 31948699598
+  python_311: PASS
+  python_313: PASS
+  r137_tests: "49/49 PASS"
+  retained_r136_tests: "47/47 PASS"
+  phase3_tests: "291/291 PASS"
+  public_proof_py311: "provider://r137/evidence/r137:9d71a18d1e1032d2be3436f0#sha256=fd923c5a73b0f584154e117e5e18a6e3027b82d1a62329fc79dcd2597c98963e"
+  public_proof_py313: "provider://r137/evidence/r137:d1f459b3c34fc528ad2c55d0#sha256=ff7a8e6089d49bbe4beeac5e243c75616fbdf354683934c5ef86ab35b37fecbe"
+  observed_pre_merge_main: "526cc4b969d229488986f026604c11b7d905c698"
+  post_merge_main: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+  acceptance: "ACCEPTED / R137_PROVIDER_V1_MECHANISM_CLOSED / GOVERNED_PROCESS_TRUST_BOUNDARY_ACKNOWLEDGED"
+  provider_authority: "EVIDENCE_ONLY"
+  formal_release_activated: false
+  domain_write_activated: false
+  harness_h2_h7_activated: false
+  private_w3_activated: false
+  live_production_activated: false
+  trading_activated: false
+
+closure_actions:
+  - "Set ACTIVE-CODEX-TASK epoch 137 to DONE and non-executable."
+  - "Set runtime_code_change_allowed to false and next_command to NO_ACTIVE_TASK."
+  - "Close Lane A Work Claim and release all current R137 read/write/interface/domain/authority surfaces."
+  - "Set Lane A to PAUSED with no active execution route."
+  - "Refresh Program Control Tower machine/human projections from the closed canonical state."
+  - "Close Issue #360 as completed after this closure state is merged."
+  - "Preserve R138 as planning-only candidate until a fresh live observation, reconciliation, route and Work Claim exist."
+
+lease_release:
+  codex_execution_lease: "RELEASED"
+  work_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  program_lane_active_execution_route: null
+  current_read_write_interface_authority_surfaces: "RELEASED"
+  route_disposition: "R137_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
+
+accepted_provider:
+  provider_id: "r137-public-github-on-demand-v1"
+  trust_class: "PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1"
+  status: "ACCEPTED_EVIDENCE_ONLY"
+  available_for_successor_fresh_observation: true
+  fixed_host: "api.github.com"
+  public_only: true
+  credentials: false
+  github_write_api: false
+  generic_url: false
+  policy_adjudication: false
+  execution_release_authority: false
+  merge_authority: false
+  residual_limitation: >-
+    Module-private seals and the in-process evidence registry are a governed-process trust boundary, not cryptographic
+    protection against malicious code already executing in the same Python process.
+
+future_stage_locks:
+  domain_capability_execution_provider_authorized: false
+  ai_film_domain_write_authorized: false
+  h2_authorized: false
+  h7_authorized: false
+  harness_runtime_authorized: false
+  private_w3_authorized: false
+  live_connector_authorized: false
+  production_authorized: false
+  permission_change_authorized: false
+  formal_skill_promotion_authorized: false
+  trading_authorized: false
+  merge_authorized_for_codex: false
+
+r138_release_requires:
+  - "R137 closure PR merged and canonical state re-fetched"
+  - "fresh R137 provider observation against post-closure current main/control-plane"
+  - "new R138 task_id and route epoch"
+  - "fresh Global Reconciliation bound to accepted provider evidence"
+  - "fresh bounded Work Claim and Program Lane reservation"
+  - "fresh O0-O4, same-agent and resource collision scan"
+  - "R138 architecture/threat-model/source-reuse review"
+  - "explicit GPT and user release before Codex implementation"
+
+preferred_successor:
+  task_family: "DOMAIN_CAPABILITY_EXECUTION_PROVIDER"
+  provisional_route_epoch: 138
+  phase: "PLANNING_ONLY / NOT_AUTHORIZED"
+  rationale: >-
+    R137 closes the trustworthy live repository/control-plane observation gap. The remaining Global Signal Tower execution
+    gap is mechanism-backed proof that a declared domain capability actually executed with attributable reads/results,
+    without allowing the capability provider to become Control Tower, W3, domain truth, release or merge authority.
+
+final_state:
+  r137: "COMPLETED_HISTORY_ONLY"
+  lane_a: "PAUSED / NO_ACTIVE_EXECUTION_LEASE"
+  provider: "ACCEPTED_EVIDENCE_ONLY"
+  next_stage: "R138_PLANNING_NOT_AUTHORIZED"
