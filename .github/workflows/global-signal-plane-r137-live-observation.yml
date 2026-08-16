@@ -37,8 +37,27 @@ jobs:
         run: |
           python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r137_live_observation_provider.py' -v
           python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r136_matrix.py' -v
-      - name: Public GitHub on-demand runtime proof
+      - name: Detect whether canonical ACTIVE route is R137
+        id: active_r137
         if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import yaml
+
+          active = yaml.safe_load(Path('coordination/ACTIVE-CODEX-TASK.yaml').read_text(encoding='utf-8'))
+          is_r137 = (
+              active.get('task_id') == 'CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER'
+              and int(active.get('route_epoch', -1)) == 137
+          )
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+              fh.write(f"enabled={'true' if is_r137 else 'false'}\n")
+          print({'r137_live_proof_enabled': is_r137, 'observed_task_id': active.get('task_id'), 'observed_route_epoch': active.get('route_epoch')})
+          PY
+      - name: Public GitHub on-demand runtime proof
+        if: github.event_name == 'pull_request' && steps.active_r137.outputs.enabled == 'true'
         env:
           PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
           PYTHONDONTWRITEBYTECODE: "1"
