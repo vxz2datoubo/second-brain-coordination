@@ -1,4 +1,4 @@
-schema_version: "139.0"
+schema_version: "139.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 375
@@ -7,70 +7,107 @@ parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 139
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】R139 Domain Learning Handoff Dry-Run"
-status: "RESERVED_NON_EXECUTABLE"
-execution_allowed: false
-automatic_resume_within_task: false
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
 second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "RESERVATION_ONLY / NO_RUNTIME_WRITE"
+runtime_code_change_allowed: true
+runtime_code_scope: "R139_EXACT_SIX_SURFACES_ONLY"
 
 canonical_predecessor_route_epoch: 138
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
 canonical_predecessor_closure_main: "76c12d65d390858658b3447567ca25e6d71566b0"
 canonical_architecture_main: "f63582091b3bcc0ba74018e196342255957e3a51"
+canonical_reservation_main: "54546699c5684a559137c8efe911629ea47dea0a"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN-R139.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN.yaml"
 reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R139-RESERVATION.yaml"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R139-ACTIVATION-RECONCILIATION.yaml"
 implementation_branch: "codex/r139-domain-learning-handoff-dry-run"
 implementation_pr: null
 
 release_phase:
-  phase: "A_NON_EXECUTABLE_RESERVATION"
-  execution_state: "RESERVED_ONLY"
+  phase: "B_ACTIVE_IMPLEMENTATION"
+  execution_state: "READY_AFTER_ACTIVATION_CANONICAL_MERGE"
   hard_rule: >-
-    R139 is not executable in this state. The Codex heartbeat must not claim or implement it until a separate activation
-    becomes canonical and changes this route to READY/execution_allowed=true after fresh post-reservation reconciliation.
+    Codex may implement only after this exact activation state is canonical. Before material work it must refresh main,
+    verify task/epoch/issue/branch/allowlist, atomically claim the dispatch in the local dedupe ledger, write a GitHub
+    claim receipt, and stop on stale dispatch, duplicate claim, local-heavy collision or any authority expansion.
 
 objective: >-
-  Implement the Second Brain side of Domain Learning Handoff V1, preserving feedback provenance/materiality/idempotency and
-  exact AI Film read-only authority snapshots, with real non-destructive excellent-case and C-DANCE feedback dry-run tests.
-  Domain classification/maturity/writeback remains domain-owned and is not implemented as a Second Brain authority.
+  Implement the Second Brain side of Domain Learning Handoff V1: canonical handoff packets, receipt verification,
+  routine-vs-durable learning materiality, privacy/provenance/idempotency/correction semantics, exact target-domain authority
+  snapshots, and two real non-destructive AI Film read-only smokes. Do not implement AI Film maturity or writeback authority.
 
-reserved_future_write_paths:
+allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_handoff.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r139_domain_learning_handoff.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R139"
   - ".github/workflows/global-signal-plane-r139-domain-learning-handoff.yml"
-allowed_write_paths: []
-current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+current_write_permission: "AUTHORIZED_AFTER_ACTIVATION_MERGE / EXACT_ALLOWLIST_ONLY"
 
 external_domain_boundary:
   ai_film_repository: "vxz2datoubo/eustia-ai-film"
-  exact_reference_at_reservation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  exact_reference_commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
   role: "READ_ONLY_DOMAIN_AUTHORITY_AND_SMOKE_TARGET"
   domain_write: "FORBIDDEN"
+  excellent_case_smoke: "AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY"
+  real_feedback_smoke: "CD25-KAIM-WINDOW-AB-20260815"
+
+execution_contract:
+  signal_tower_domain_semantics_authority: false
+  second_brain_ai_film_lesson_truth_authority: false
+  stage_a_dry_run_may_claim_writeback: false
+  r138_provider_as_domain_writer: false
+  unsupported_domain_processor: "UNKNOWN"
+  one_success_auto_promotion: false
+  private_raw_body_public_write: false
+  generic_cross_repo_writer: false
+  ai_film_domain_write: false
+  formal_skill_promotion: false
+  production_service: false
+  permission_secret_change: false
+  trading_accounts_orders_funds: false
+  codex_merge: false
 
 resource_contract:
-  class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+  class: "MEDIUM_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
   bounded_test_workers: "SINGLE_WORKER_DEFAULT"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_process_temp_cache_cleanup: "REQUIRED"
   global_kill_python_or_docker: "FORBIDDEN"
   daemon_server: "FORBIDDEN"
 
-hard_locks:
-  - "No material implementation in reservation state."
-  - "No AI Film/domain canonical write."
-  - "No generic cross-repo writer."
-  - "No private repository/credentials/raw private body in public GitHub."
-  - "No Formal Skill promotion or domain maturity authority."
-  - "No Harness/H2/H7, production, permission/secret changes or trading."
-  - "No Codex merge."
+launch_guard:
+  repository_must_equal: "vxz2datoubo/second-brain-coordination"
+  task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
+  route_epoch_must_equal: 139
+  issue_must_equal: 375
+  planned_branch_must_equal: "codex/r139-domain-learning-handoff-dry-run"
+  canonical_status_must_equal: "READY"
+  execution_allowed_must_equal: true
+  activation_reconciliation_receipt_must_exist: true
+  local_atomic_claim_must_be_new: true
+  local_same_codex_or_heavy_stage_collision_must_be_absent: true
+  ai_film_reference_commit_must_equal: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  fail_if_domain_write_private_secret_production_permission_trading_or_history_rewrite_required: true
+  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_STALE_DISPATCH_OR_LEASE_CONFLICT_OR_AUTHORITY_EXPANSION"
+  auto_switch_or_guess_intent: "FORBIDDEN"
+
+retained_findings:
+  R138-F01: "RETAINED / required before any future production promotion"
+  stage_b_domain_writer: "NOT_AUTHORIZED / future separate AI Film domain-owned gate"
 
 completion_signal: "R139_DOMAIN_LEARNING_HANDOFF_DRY_RUN_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_CANONICAL_R139_ACTIVATION"
+next_command: "CLAIM_LATEST_VALID_GPT_DISPATCH_AFTER_ACTIVATION_CANONICAL"
+lock_statement: >-
+  Epoch 139 authorizes one bounded Second Brain R139 implementation lease only. It grants no AI Film/domain canonical write,
+  no domain maturity authority, no generic cross-repo writer, no private/secret/permission/production/Harness/H2/H7,
+  no destructive history operation, no trading/funds action and no Codex merge authority.
