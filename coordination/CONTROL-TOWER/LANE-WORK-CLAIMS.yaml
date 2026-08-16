@@ -1,4 +1,4 @@
-schema_version: "3.0"
+schema_version: "3.1"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -20,7 +20,7 @@ semantics:
   reserved_implementation_requires_global_reconciliation_receipt: true
   reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
   r138_completion_does_not_authorize_successor_execution: true
-  r139_reservation_does_not_grant_execution: true
+  r139_activation_authorizes_only_exact_bounded_second_brain_surface: true
   global_reconciliation_receipt_is_not_execution_authority: true
   implementation_release_requires_fresh_claim_rescan: true
 
@@ -51,9 +51,9 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    claim_state: "ACTIVE_IMPLEMENTATION"
     execution_agent: "CODEX"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    resource_class: "MEDIUM_IMPLEMENTATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
       route_epoch: 139
@@ -106,23 +106,24 @@ claims:
     implementation_scope:
       slice: "R139_DOMAIN_LEARNING_HANDOFF_DRY_RUN"
       issue: 375
-      phase: "A_NON_EXECUTABLE_RESERVATION"
-      resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
-      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R139-RESERVATION.yaml"
-      execution_allowed: false
-      runtime_code_change_allowed: false
+      phase: "B_ACTIVE_IMPLEMENTATION"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/R139-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      runtime_code_change_allowed: true
       ai_film_write_allowed: false
       domain_maturity_authority: false
+      generic_cross_repo_writer_allowed: false
       production_allowed: false
       trading_allowed: false
       codex_merge_allowed: false
     stop_conditions:
-      - "Material implementation before separate activation -> STOP"
-      - "Write outside exact six-surface reservation -> STOP"
+      - "Write outside exact six-surface allowlist -> STOP"
       - "AI Film/domain write requirement -> STOP / separate domain-owned gate"
       - "Private/raw conversation/media or secret requirement -> STOP"
-      - "Same Codex or local-heavy collision -> STOP / reconcile"
-      - "Passing CI does not by itself activate execution"
+      - "Same Codex/local-heavy collision or stale atomic dispatch claim -> STOP / reconcile"
+      - "Stage A dry-run claimed as writeback -> STOP / FALSE_GREEN"
+      - "Passing tests or CI never authorizes Codex merge"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -156,8 +157,8 @@ claims:
 
 release_semantics:
   proposal_only_parallelism: >-
-    R139 reserves only Lane A's exact future implementation surface without execution. Lane B remains isolated proposal-only
-    and Lane C closed. Reservation consumes no execution authority and cannot be claimed by Codex heartbeat.
-  reservation_upgrade_requires_fresh_post_merge_reconciliation: true
+    R139 owns the one bounded active Lane A Codex implementation surface. Lane B remains isolated proposal-only and Lane C
+    remains closed. No current mutable collision is authorized.
   implementation_release_is_separate: true
+  active_route_requires_atomic_claim_at_executor: true
   r139_ai_film_boundary: "READ_ONLY / NO_DOMAIN_CANONICAL_WRITE"
