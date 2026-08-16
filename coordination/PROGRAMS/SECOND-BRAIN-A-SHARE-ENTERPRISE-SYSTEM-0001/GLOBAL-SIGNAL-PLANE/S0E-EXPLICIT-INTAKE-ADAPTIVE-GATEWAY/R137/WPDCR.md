@@ -39,6 +39,15 @@ PR facts into invalidation and verifier comparisons, assert the checkout head,
 and reject truncated or malformed trees. Their evidence remains pending the new
 exact-head CI; no policy or authority boundary changed.
 
+R3 remediation discovery: the fixed R137 route would become stale at a successor
+epoch, GitHub may expose a non-null merge commit SHA while an open PR remains
+unmerged, and recursive tree completeness cannot be inferred when the API omits
+its marker. The implementation now derives and validates the route exclusively
+from the exact-main active-task pointer, treats the merge SHA as an independent
+observed field, and accepts recursive trees only with explicit `truncated: false`.
+All outcomes remain evidence-only and awaiting exact-head CI; no authority or
+network surface expanded.
+
 Postflight evidence is now available for reviewed implementation head
 `f3b10eea8559dd4445d598ea7efa9b21a0700ac1`: R137 `31947566607`, S0E
 `31947566608`, and Phase 3 `31947566619` each passed Python 3.11/3.13. R137
