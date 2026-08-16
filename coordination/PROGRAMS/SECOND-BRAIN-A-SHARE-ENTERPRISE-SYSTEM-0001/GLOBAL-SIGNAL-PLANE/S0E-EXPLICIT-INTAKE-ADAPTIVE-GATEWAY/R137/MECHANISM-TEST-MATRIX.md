@@ -1,7 +1,7 @@
 # R137 mechanism test matrix
 
-agent_id: `CODEX`  
-source_agent: `CODEX`  
+agent_id: `CODEX`
+source_agent: `CODEX`
 reviewer: `GPT`
 
 The 44 named tests in `tests/test_r137_live_observation_provider.py` are

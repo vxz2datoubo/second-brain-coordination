@@ -1,6 +1,6 @@
 # R137 Work Process and Coordination Report
 
-agent_id: `CODEX`  
+agent_id: `CODEX`
 source_agent: `CODEX` · reviewer: `GPT` · task: `CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER` · epoch: `137`
 
 Planned difficulty was D3; current observed difficulty is D3. The hardest
