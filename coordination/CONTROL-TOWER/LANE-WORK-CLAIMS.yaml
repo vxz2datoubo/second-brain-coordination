@@ -1,4 +1,4 @@
-schema_version: "2.7"
+schema_version: "2.8"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -21,7 +21,7 @@ semantics:
   reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
   r136_completion_does_not_authorize_successor_execution: true
   r137_completion_does_not_authorize_r138_execution: true
-  r138_reservation_does_not_authorize_capability_execution_domain_write_private_bridge_harness_h2_h7_production_trading: true
+  r138_activation_authorizes_only_exact_bounded_implementation_surface: true
   global_reconciliation_receipt_is_not_execution_authority: true
 
 proposal_roots:
@@ -51,9 +51,9 @@ claims:
       - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    claim_state: "ACTIVE_IMPLEMENTATION"
     execution_agent: "CODEX"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    resource_class: "MEDIUM_IMPLEMENTATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER"
       route_epoch: 138
@@ -81,16 +81,16 @@ claims:
       - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:tools/golden_case_ingestor"
     interfaces:
       - name: "R136-RuntimeInvocationReceipt"
-        mode: "read/integrate-after-activation"
+        mode: "read/integrate"
         frozen: true
       - name: "R137-AuthorityBoundLiveObservationProof"
-        mode: "read/activation-evidence"
+        mode: "read/activation-and-freshness-evidence"
         frozen: true
       - name: "R138-CapabilityExecutionEvidenceBundle"
-        mode: "implement-after-activation"
+        mode: "implement"
         frozen_for_r138: true
       - name: "R138-CapabilityExecutionProof"
-        mode: "implement-after-activation"
+        mode: "implement"
         frozen_for_r138: true
       - name: "Control-Tower-Authorization-Boundary"
         mode: "read/evidence-only"
@@ -104,12 +104,12 @@ claims:
     implementation_scope:
       slice: "R138_DOMAIN_CAPABILITY_EXECUTION_PROVIDER"
       issue: 366
-      phase: "A1_RESERVATION_NON_EXECUTABLE"
-      target_resource_class: "MEDIUM_IMPLEMENTATION"
-      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R138-RESERVATION.yaml"
-      execution_allowed: false
-      runtime_code_change_allowed: false
-      primary_capability_class_after_activation: "EXACT_REPOSITORY_EXECUTABLE"
+      phase: "B_ACTIVE_IMPLEMENTATION"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/R138-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      runtime_code_change_allowed: true
+      primary_capability_class: "EXACT_REPOSITORY_EXECUTABLE"
       arbitrary_shell_allowed: false
       generic_network_allowed: false
       private_repository_allowed: false
@@ -123,13 +123,14 @@ claims:
       h7_allowed: false
       production_allowed: false
       trading_allowed: false
+      codex_merge_allowed: false
     stop_conditions:
-      - "Reservation is non-executable."
-      - "Write before explicit R138 activation -> STOP / NEEDS_GPT"
-      - "Write outside exact future allowlist -> STOP / NEEDS_GPT"
+      - "Material write before activation PR canonical merge -> STOP / NEEDS_GPT"
+      - "Write outside exact allowlist -> STOP / NEEDS_GPT"
       - "Arbitrary shell/generic network/private/credential/domain-write requirement -> STOP / architecture conflict"
       - "Model self-report or scan-name echo used as execution proof -> STOP / FALSE_GREEN"
       - "Same Codex execution collision or O3/O4 collision -> STOP / fresh reconciliation"
+      - "Local heavy-stage collision -> STOP / serialize"
       - "Passing tests or CI never authorizes merge or task release"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -165,12 +166,13 @@ claims:
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    Lane A reserves R138 future surfaces without execution. Lane B remains held proposal-only and Lane C remains closed.
-    No current R138 runtime write or heavy worker is authorized.
+    Lane A has one bounded active R138 implementation claim. Lane B remains held proposal-only and Lane C remains closed.
+    Lane B has no implementation/runtime write authority and therefore creates no current write/write collision with R138.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
   reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
-  r138_future_stage_separation: >-
-    R138 reservation does not imply capability execution, AI Film/domain write, private/live bridge, Harness/H2/H7,
-    production, permission change, Formal Skill promotion or trading authorization.
+  r138_activation_scope: >-
+    R138 activation authorizes only the six exact implementation surfaces and does not imply AI Film/domain write,
+    private/live bridge, Harness/H2/H7, production, permission change, Formal Skill promotion, task-release authority,
+    outcome-truth authority, trading or Codex merge authorization.
