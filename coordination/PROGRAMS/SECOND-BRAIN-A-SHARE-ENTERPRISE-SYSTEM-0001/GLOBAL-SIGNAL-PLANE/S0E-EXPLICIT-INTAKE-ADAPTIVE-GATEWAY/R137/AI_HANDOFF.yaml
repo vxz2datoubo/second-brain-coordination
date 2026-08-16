@@ -5,16 +5,17 @@ target_agent: "GPT"
 reviewer: "GPT"
 task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 route_epoch: 137
-handoff_status: "IN_PROGRESS_LOCAL_IMPLEMENTATION"
+handoff_status: "R2_REMEDIATION_PENDING_EXACT_HEAD_CI"
 review_boundary:
-  expected_mechanism_tests: "Pending final local and exact-head remote runs"
-  runtime_public_observation: "CI-only public unauthenticated proof pending implementation PR"
+  expected_mechanism_tests: "47 local Python 3.13 tests pass: original R001-R044 plus B01/B03 adversarial regressions; exact-head remote runs pending"
+  runtime_public_observation: "New CI-only public unauthenticated proof pending R2 implementation head"
   formal_release: "NOT_GRANTED; provider is evidence only"
   merge: "FORBIDDEN_TO_CODEX"
 required_gpt_checks:
   - "inspect exact source/bundle/proof bindings and static verifier route"
   - "verify no caller provider registration or generic network/write path"
   - "review exact-head Python 3.11/3.13 and public observation job"
+  - "verify B01 PR number/state and B03 tree-truncation fail-closed regressions"
   - "confirm bootstrap remains historical and cannot replay"
 locks_retained:
   formal_release: "LOCKED"

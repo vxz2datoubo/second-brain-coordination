@@ -6,7 +6,7 @@ reviewer: "GPT"
 task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 route_epoch: 137
 issue: 360
-status: "IMPLEMENTED_PENDING_VALIDATION_AND_GPT_REVIEW"
+status: "R2_REMEDIATION_PENDING_EXACT_HEAD_CI_AND_GPT_REVIEW"
 scope:
   provider: "PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1"
   mutations: "NONE; provider makes public GitHub GET observations only"
@@ -14,7 +14,8 @@ scope:
 mechanisms:
   transport: "fixed api.github.com, GET-only, no credentials, serial, bounded, redirect/media/JSON/size fail-closed"
   binding: "main -> commit/tree -> path/blob/content digest; initial/final main and initial/final PR comparison"
-  proof: "internally sealed R137 bundle reference/digest and static verifier; unknown/caller proof fails closed"
+  proof: "internally sealed R137 bundle reference/digest and static verifier; PR number/state/head/base/merged/merge-commit bind directly to the evidence bundle; unknown/caller proof fails closed"
+  tree_completeness: "recursive Git tree response rejects truncated true and malformed truncated values"
   reviews: "complete raw pages, id/state/commit/time/actor reference only; no approval policy"
   invalidation: "main, PR, review, route, claim, lane, lease, domain freshness, pending approval/revocation, code digest and expiry"
 bootstrap:
@@ -28,4 +29,4 @@ locks_retained:
 completion_evidence: false
 unknowns:
   - "Same-process Python private-name/seal isolation is not cryptographic protection against malicious code in the same process."
-  - "Exact-head remote CI and GPT review remain required before readiness."
+  - "R2 exact-head remote CI, real public observation evidence and GPT review remain required before readiness."

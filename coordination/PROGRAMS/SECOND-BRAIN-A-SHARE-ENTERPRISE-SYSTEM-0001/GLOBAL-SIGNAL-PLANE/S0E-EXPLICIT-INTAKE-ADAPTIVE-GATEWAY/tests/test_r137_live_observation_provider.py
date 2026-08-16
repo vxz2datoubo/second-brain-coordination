@@ -73,7 +73,10 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             entries = [{"path": item, "type": "blob", "sha": sha} for item, sha in self.paths.items()]
             if self.fault == "missing-path": entries.pop()
             if self.fault == "tree-mismatch": entries[0]["sha"] = "f" * 40
-            return {}, {"tree": entries}, metadata
+            tree_response = {"tree": entries}
+            if self.fault == "tree-truncated": tree_response["truncated"] = True
+            if self.fault == "tree-truncated-malformed": tree_response["truncated"] = "false"
+            return {}, tree_response, metadata
         prefix = f"/repos/{TARGET_REPOSITORY}/git/blobs/"
         if path.startswith(prefix):
             sha = path[len(prefix):]
@@ -88,6 +91,7 @@ class SyntheticPublicGitHub(LiveObservationProvider):
             if self.fault == "pr-base-drift" and self.pr_reads > 1: base = "8" * 40
             else: base = "b" * 40
             state, merged, merge = "open", False, None
+            if self.fault == "pr-state-drift" and self.pr_reads > 1: state = "closed"
             if self.fault == "merge-drift" and self.pr_reads > 1: state, merged, merge = "closed", True, "7" * 40
             return {}, {"state": state, "head": {"sha": head}, "base": {"sha": base}, "merged": merged, "merge_commit_sha": merge}, metadata
         review_prefix = f"/repos/{TARGET_REPOSITORY}/pulls/360/reviews?per_page=100&page="
@@ -174,10 +178,14 @@ class R137LiveObservationTests(unittest.TestCase):
     def test_r137_r006_missing_required_path_fails(self) -> None: self.assert_rejected("missing-path")
     def test_r137_r007_tree_blob_substitution_fails(self) -> None: self.assert_rejected("tree-mismatch")
     def test_r137_r008_blob_payload_identity_mismatch_fails(self) -> None: self.assert_rejected("blob-mismatch")
+    def test_r137_r008b_truncated_or_malformed_tree_fails(self) -> None:
+        self.assert_rejected("tree-truncated")
+        self.assert_rejected("tree-truncated-malformed")
     def test_r137_r009_main_drift_fails(self) -> None: self.assert_rejected("main-drift")
     def test_r137_r010_pr_head_drift_fails(self) -> None: self.assert_rejected("pr-drift")
     def test_r137_r011_pr_base_drift_fails(self) -> None: self.assert_rejected("pr-base-drift")
     def test_r137_r012_merge_state_drift_fails(self) -> None: self.assert_rejected("merge-drift")
+    def test_r137_r012b_pr_state_only_drift_fails(self) -> None: self.assert_rejected("pr-state-drift")
     def test_r137_r013_malformed_review_fails(self) -> None: self.assert_rejected("review-invalid")
     def test_r137_r014_incomplete_pagination_fails(self) -> None: self.assert_rejected("pagination")
 
@@ -209,6 +217,11 @@ class R137LiveObservationTests(unittest.TestCase):
         _, proof = self.observe()
         for changes in ({"merged": True, "merge_commit_sha": "1" * 40}, {"domain_freshness_ref": "drift"}, {"pending_approval_ref": "drift"}):
             with self.subTest(changes=changes): self.assertFalse(validate_live_observation_proof(replace(proof, **changes)))
+
+    def test_b01_genuine_proof_pr_identity_and_state_mutations_fail(self) -> None:
+        _, proof = self.observe()
+        self.assertFalse(validate_live_observation_proof(replace(proof, pr_state="closed")))
+        self.assertFalse(validate_live_observation_proof(replace(proof, pr_number=proof.pr_number + 1)))
 
     def test_r137_r021_request_contract_revision_is_fixed(self) -> None:
         with self.assertRaises(GatewayError): SyntheticPublicGitHub().observe(request(provider_contract_revision="v2"))
@@ -292,7 +305,7 @@ class R137LiveObservationTests(unittest.TestCase):
 
     def test_r137_r038_bundle_invalidation_is_complete(self) -> None:
         bundle, _ = self.observe()
-        self.assertEqual(set(bundle.invalidation_fingerprints), {"head_sha", "base_sha", "current_main_sha", "review_state_ref", "merged", "merge_commit_sha", "route_fingerprint", "claim_fingerprint", "lane_fingerprint", "lease_fingerprint", "domain_freshness_ref", "pending_approval_ref"})
+        self.assertEqual(set(bundle.invalidation_fingerprints), {"pr_number", "pr_state", "head_sha", "base_sha", "current_main_sha", "review_state_ref", "merged", "merge_commit_sha", "route_fingerprint", "claim_fingerprint", "lane_fingerprint", "lease_fingerprint", "domain_freshness_ref", "pending_approval_ref"})
 
     def test_r137_r039_no_private_or_credential_request_surface(self) -> None:
         fields = set(LiveObservationRequest.__dataclass_fields__)

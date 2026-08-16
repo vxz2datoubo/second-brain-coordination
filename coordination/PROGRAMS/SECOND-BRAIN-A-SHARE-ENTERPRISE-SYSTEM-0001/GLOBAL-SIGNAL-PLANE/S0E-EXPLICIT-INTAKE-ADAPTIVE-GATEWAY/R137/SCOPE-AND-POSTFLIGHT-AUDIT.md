@@ -17,3 +17,9 @@ closed: Python 3.11/3.13 compile and tests, Phase-3 adapter/integrated
 regression, YAML parsing, public-safety/privacy, placeholder/TODO/shadow/scope
 audit, `git diff --check`, exact-head CI and an implementation PR. A PASS for a
 mechanism test is not a policy PASS or a formal release.
+
+R2 remains inside the same allowlist: proof binding, tree response validation,
+test fixture/regressions, dedicated workflow checkout and R137 task evidence.
+It does not add a provider, credential, host, endpoint, write method or new
+authority. The next postflight replaces these pending statements only after the
+R2 commit has remote exact-head evidence.

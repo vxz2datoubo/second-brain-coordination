@@ -251,7 +251,10 @@ class LiveObservationProvider:
 
     def _tree(self, repository: str, tree_sha: str) -> tuple[Mapping[str, str], Mapping[str, Any]]:
         _, value, metadata = self._get_json(f"/repos/{repository}/git/trees/{tree_sha}?recursive=1")
-        entries = _mapping(value, "GITHUB_TREE_RESPONSE_INVALID").get("tree")
+        tree_response = _mapping(value, "GITHUB_TREE_RESPONSE_INVALID")
+        if "truncated" in tree_response and tree_response["truncated"] is not False:
+            raise GatewayError("GITHUB_TREE_TRUNCATED_OR_INVALID")
+        entries = tree_response.get("tree")
         if not isinstance(entries, list):
             raise GatewayError("GITHUB_TREE_RESPONSE_INVALID")
         result: dict[str, str] = {}
@@ -357,7 +360,7 @@ class LiveObservationProvider:
         route_fp, claim_fp, lane_fp = digest(route), digest(parsed[CONTROL_PATHS[2]]), digest(parsed[CONTROL_PATHS[3]])
         lease_fp = digest({"active": active, "control_tower": next(record.content_sha256 for record in records if record.path == CONTROL_PATHS[4])})
         pending = digest({"active": active.get("pending_approvals", []), "route": route.get("pending_approvals", [])})
-        invalidators = {"head_sha": pr_first["head_sha"], "base_sha": pr_first["base_sha"], "current_main_sha": initial_main,
+        invalidators = {"pr_number": pr_first["number"], "pr_state": pr_first["state"], "head_sha": pr_first["head_sha"], "base_sha": pr_first["base_sha"], "current_main_sha": initial_main,
                         "review_state_ref": digest([record.__dict__ for record in reviews]), "merged": pr_first["merged"], "merge_commit_sha": pr_first["merge_commit_sha"],
                         "route_fingerprint": route_fp, "claim_fingerprint": claim_fp, "lane_fingerprint": lane_fp, "lease_fingerprint": lease_fp,
                         "domain_freshness_ref": digest(domain_refs), "pending_approval_ref": pending}
@@ -396,6 +399,9 @@ def verify_r137_proof(proof: AuthorityBoundLiveObservationProof, checked_at: dat
         and bundle.pagination_complete and not bundle.warnings
         and tuple(proof.exact_refs) == bundle.exact_refs() and proof.invalidation_fingerprints == bundle.invalidation_fingerprints
         and proof.repository == bundle.target_repository and proof.current_main_sha == bundle.initial_main_sha
+        and proof.pr_number == bundle.pr["number"] and proof.pr_state == bundle.pr["state"]
+        and proof.head_sha == bundle.pr["head_sha"] and proof.base_sha == bundle.pr["base_sha"]
+        and proof.merged == bundle.pr["merged"] and proof.merge_commit_sha == bundle.pr["merge_commit_sha"]
         and proof.review_state_ref == bundle.invalidation_fingerprints["review_state_ref"]
         and proof.route_fingerprint == bundle.route_fingerprint and proof.claim_fingerprint == bundle.claim_fingerprint
         and proof.lane_fingerprint == bundle.lane_fingerprint and proof.lease_fingerprint == bundle.lease_fingerprint

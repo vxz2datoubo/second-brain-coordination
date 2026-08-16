@@ -30,3 +30,11 @@ Postflight still required: full local Phase-3/safety/scope validation, ordinary
 commit/push, implementation PR, and exact-head Python 3.11/3.13 including the
 public GitHub runtime proof. The next acceptance gate is GPT inspection of the
 exact remote head. No formal release, merge or expansion is implied.
+
+R2 remediation discovery: GPT exact-head review identified that proof fields
+for PR number/state had not been tied back to bundle data, that the dedicated
+workflow used GitHub's merge ref rather than explicit head checkout, and that a
+recursive tree's truncation marker was not examined. The R2 changes bind those
+PR facts into invalidation and verifier comparisons, assert the checkout head,
+and reject truncated or malformed trees. Their evidence remains pending the new
+exact-head CI; no policy or authority boundary changed.

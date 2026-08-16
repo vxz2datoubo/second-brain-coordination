@@ -6,7 +6,7 @@ reviewer: "GPT"
 task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 route_epoch: 137
 issue: 360
-status: "IMPLEMENTATION_COMPLETE_PENDING_FULL_VALIDATION"
+status: "R2_SECURITY_REMEDIATION_PENDING_EXACT_HEAD_CI"
 completion_evidence: false
 
 current_repository_facts:
@@ -40,7 +40,7 @@ provider_components:
   request: "strict LiveObservationRequest allowlisting repository, main branch, required PR, exact canonical paths, domain targets and bounded age"
   transport: "bounded HTTP client with media, UTF-8 JSON, size, schema, pagination and concurrency-one enforcement"
   evidence_bundle: "public-safe immutable LiveObservationEvidenceBundle with request/response metadata, exact objects, completeness, freshness, invalidation and provider-code identity"
-  proof_adapter: "derive compact R136-compatible proof only from validated bundle; unknown/fabricated provider evidence is unverified"
+  proof_adapter: "derive compact R136-compatible proof only from validated bundle; PR number/state and head/base/merge fields bind directly to the bundle and invalidation map"
   test_seam: "test-only subclassed scripted transport; production constructor has no injectable transport or provider-registration API"
 
 observation_sequence:
@@ -48,7 +48,7 @@ observation_sequence:
   - "resolve each required canonical path at exact M0; recompute Git blob identity and content digest from observed bytes"
   - "when PR is requested, observe PR state/head/base/merged/merge commit and fully paginate raw reviews"
   - "observe domain freshness and canonical route/claim/lane/lease/approval-revocation surfaces"
-  - "re-read main M1 and, when applicable, PR state; any material drift returns UNVERIFIED/BLOCKED"
+  - "re-read main M1 and the full PR identity/state/head/base/merge tuple; any material drift returns UNVERIFIED/BLOCKED"
   - "validate completeness, freshness and provider-code binding; emit bundle then compact proof"
 
 evidence_bundle_schema:
@@ -69,7 +69,7 @@ bootstrap_consumption_plan:
 
 adversarial_test_matrix:
   minimum_scenarios: 44
-  groups: [valid_public_observation, caller_forgery_and_registration, host_redirect_media_size_json, path_tree_blob_content, pagination_and_reviews, main_pr_review_drift, route_claim_lane_lease_domain_approval_drift, expiry_replay_provider_code, public_private_and_no_write, r136_integration, bootstrap_retirement, scope_safety_placeholder_shadow_diff_cleanup]
+  groups: [valid_public_observation, caller_forgery_and_registration, host_redirect_media_size_json, path_tree_blob_content_and_truncation, pagination_and_reviews, main_pr_identity_state_review_drift, route_claim_lane_lease_domain_approval_drift, expiry_replay_provider_code, public_private_and_no_write, r136_integration, bootstrap_retirement, scope_safety_placeholder_shadow_diff_cleanup]
   ci: "exact-head Python 3.11 and 3.13; serial network tests and deterministic scripted transport fixtures"
 
 resource_plan:
@@ -87,8 +87,8 @@ rollback_plan:
 
 unresolved_questions:
   - id: "R137-U01"
-    state: "PENDING_EXACT_HEAD_CI"
-    statement: "Scripted schema/pagination tests pass locally; a real unauthenticated public GitHub observation remains required on the implementation PR exact head."
+    state: "PENDING_R2_EXACT_HEAD_CI"
+    statement: "R2 adds PR identity/state proof binding, exact-head workflow checkout and recursive-tree truncation rejection; a new real unauthenticated public GitHub observation is required on the remediated head."
   - id: "R137-U02"
     state: "FUTURE_GOVERNED_PROVIDER"
     statement: "Domain Capability Execution Provider remains separate and unavailable."
