@@ -316,19 +316,19 @@ class AuthorityBoundLiveObservationProof:
     verifier result from its authorized observation provider after that provider
     has read the relevant control-plane state.
     """
-    repository: str; pr_number: int; pr_state: str; head_sha: str; base_sha: str
+    repository: str; pr_number: int; pr_state: str; head_sha: str; base_sha: str; current_main_sha: str
     merged: bool; merge_commit_sha: str | None; review_state_ref: str; observed_at: str
     route_fingerprint: str; claim_fingerprint: str; lane_fingerprint: str; lease_fingerprint: str
     domain_freshness_ref: str; pending_approval_ref: str; exact_refs: tuple[str, ...]
     provider_id: str; provider_attribution_ref: str; evidence_digest: str
-    fresh_until: str; invalidation_fingerprints: Mapping[str, str]
+    fresh_until: str; invalidation_fingerprints: Mapping[str, Any]
     _issuer_seal: object = field(repr=False, compare=False)
 
 
 _LIVE_OBSERVATION_ISSUER_SEAL = object()
 _LIVE_OBSERVATION_VERIFIERS: dict[str, Callable[[AuthorityBoundLiveObservationProof, datetime], bool]] = {}
 _LIVE_OBSERVATION_INVALIDATORS = frozenset({
-    "head_sha", "base_sha", "review_state_ref", "route_fingerprint",
+    "head_sha", "base_sha", "current_main_sha", "review_state_ref", "merged", "merge_commit_sha", "route_fingerprint",
     "claim_fingerprint", "lane_fingerprint", "lease_fingerprint",
     "domain_freshness_ref", "pending_approval_ref",
 })
@@ -344,7 +344,8 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
     except GatewayError:
         return False
     expected = {
-        "head_sha": proof.head_sha, "base_sha": proof.base_sha, "review_state_ref": proof.review_state_ref,
+        "head_sha": proof.head_sha, "base_sha": proof.base_sha, "current_main_sha": proof.current_main_sha, "review_state_ref": proof.review_state_ref,
+        "merged": proof.merged, "merge_commit_sha": proof.merge_commit_sha,
         "route_fingerprint": proof.route_fingerprint, "claim_fingerprint": proof.claim_fingerprint,
         "lane_fingerprint": proof.lane_fingerprint, "lease_fingerprint": proof.lease_fingerprint,
         "domain_freshness_ref": proof.domain_freshness_ref, "pending_approval_ref": proof.pending_approval_ref,
@@ -355,8 +356,9 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
         proof.repository and proof.pr_number > 0 and proof.pr_state and proof.head_sha and proof.base_sha
         and proof.review_state_ref and proof.exact_refs and proof.provider_id and proof.provider_attribution_ref
         and proof.provider_attribution_ref.startswith("provider://") and digest_ok and observed <= fresh_until
-        and checked_at <= fresh_until and set(proof.invalidation_fingerprints) == _LIVE_OBSERVATION_INVALIDATORS
+        and observed <= checked_at <= fresh_until and set(proof.invalidation_fingerprints) == _LIVE_OBSERVATION_INVALIDATORS
         and all(proof.invalidation_fingerprints[key] == value for key, value in expected.items())
+        and isinstance(proof.merged, bool) and ((proof.merged and bool(proof.merge_commit_sha)) or (not proof.merged and proof.merge_commit_sha is None))
         and verifier is not None and verifier(proof, checked_at)
     )
 

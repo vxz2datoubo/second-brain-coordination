@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import os
+from contextlib import contextmanager
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import subprocess
 import sys
@@ -17,6 +20,7 @@ from global_signal_gateway.gateway import (  # noqa: E402
     SystemAwarenessProjection, ai_film_directing_read_only_smoke, classify, exact_git_read_proofs, seal_global_reconciliation,
     semantic_capture, temporary_exact_clone, validate_envelope, validate_live_observation_proof,
 )
+import global_signal_gateway.gateway as gateway_module  # noqa: E402
 from global_signal_plane.ledger import DurableSignalLedger  # noqa: E402
 from global_signal_plane.models import SignalPlaneError  # noqa: E402
 
@@ -35,7 +39,33 @@ def envelope(**overrides: object) -> dict[str, object]:
 
 
 def source_map(revision: str = "main-1") -> dict[str, dict[str, object]]:
-    return {"coordination/ACTIVE-CODEX-TASK.yaml": {"revision": revision, "component_id": "control-plane", "component_kind": "CONTROL", "authority_owner": "GPT", "canonical_entrypoints": ["ACTIVE-CODEX-TASK"], "capability_refs": ["route"], "read_boundary_refs": ["public"], "write_boundary_refs": ["locked"]}}
+    return {"coordination/ACTIVE-CODEX-TASK.yaml": {"revision": revision, "component_id": "control-plane", "component_kind": "CONTROL", "authority_owner": "GPT", "canonical_entrypoints": ["ACTIVE-CODEX-TASK"], "capability_refs": ["route"], "read_set_refs": ["read://synthetic/control-plane"], "read_boundary_refs": ["public"], "write_boundary_refs": ["locked"]}}
+
+
+@contextmanager
+def synthetic_governed_provider():
+    """Test-only seam: an in-memory verifier, never a production provider."""
+    provider_id = "test-only-governed-observation-provider"
+    now = datetime.now(timezone.utc)
+    bindings = {"head_sha": "head-a", "base_sha": "base-a", "current_main_sha": "main-a", "review_state_ref": "review-a", "merged": False, "merge_commit_sha": None, "route_fingerprint": "route-a", "claim_fingerprint": "claim-a", "lane_fingerprint": "lane-a", "lease_fingerprint": "lease-a", "domain_freshness_ref": "fresh-a", "pending_approval_ref": "approval-a"}
+    exact_refs = ("provider://synthetic/evidence/pr", "provider://synthetic/evidence/control-plane")
+    observed_at, fresh_until = (now - timedelta(minutes=1)).isoformat(), (now + timedelta(minutes=5)).isoformat()
+    evidence_digest = gateway_module.digest({"provider": provider_id, "bindings": bindings, "exact_refs": exact_refs, "observed_at": observed_at, "fresh_until": fresh_until})
+    def verifier(proof, checked_at):
+        return proof.evidence_digest == evidence_digest and proof.exact_refs == exact_refs and proof.observed_at == observed_at and proof.fresh_until == fresh_until and all(getattr(proof, field) == value for field, value in bindings.items())
+    prior = gateway_module._LIVE_OBSERVATION_VERIFIERS.get(provider_id)
+    gateway_module._LIVE_OBSERVATION_VERIFIERS[provider_id] = verifier
+    try:
+        yield AuthorityBoundLiveObservationProof("synthetic/repo", 42, "OPEN", bindings["head_sha"], bindings["base_sha"], bindings["current_main_sha"], bindings["merged"], bindings["merge_commit_sha"], bindings["review_state_ref"], observed_at, bindings["route_fingerprint"], bindings["claim_fingerprint"], bindings["lane_fingerprint"], bindings["lease_fingerprint"], bindings["domain_freshness_ref"], bindings["pending_approval_ref"], exact_refs, provider_id, "provider://synthetic/attestation", evidence_digest, fresh_until, dict(bindings), gateway_module._LIVE_OBSERVATION_ISSUER_SEAL)
+    finally:
+        if prior is None: gateway_module._LIVE_OBSERVATION_VERIFIERS.pop(provider_id, None)
+        else: gateway_module._LIVE_OBSERVATION_VERIFIERS[provider_id] = prior
+
+
+def drift_observation(proof: AuthorityBoundLiveObservationProof, **changes: object) -> AuthorityBoundLiveObservationProof:
+    invalidators = dict(proof.invalidation_fingerprints)
+    invalidators.update(changes)
+    return replace(proof, invalidation_fingerprints=invalidators, **changes)
 
 
 class R136ScenarioMatrix(unittest.TestCase):
@@ -115,7 +145,15 @@ def _case(case_id: str):
                 self.gateway.link_relation(left["signal_id"], right["signal_id"], "DEPENDS_ON", evidence_refs=["evidence://dependency"], at="2026-08-16T00:01:00+00:00"); proof = self.receipt(self.awareness()); self.assertTrue(self.gateway.preflight(awareness=self.awareness(), canonical_root=None, reconciliation_proof=proof)["decisions"]["must_serialize_refs"])
             elif case_id == "R032": self.assertIn("merge_keep_separate_rationale", preflight["decisions"])
             elif case_id == "R033": self.assertIn("REVIEWER_CANDIDATE", preflight["decisions"]["reviewer_or_challenger_requirements"])
-            elif case_id == "R034": self.assertFalse(preflight["can_release"])
+            elif case_id == "R034":
+                self.gateway.link_relation(left["signal_id"], right["signal_id"], "DEPENDS_ON", evidence_refs=["evidence://dependency"], at="2026-08-16T00:01:00+00:00")
+                awareness = self.awareness()
+                with synthetic_governed_provider() as provider_proof:
+                    validated = self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_proof=provider_proof)
+                    self.assertEqual((validated["status"], validated["can_release"]), ("PASS", True))
+                    packet = self.gateway.release(preflight=validated, included_signal_refs=[left["signal_id"], right["signal_id"]], awareness=awareness)
+                expected = {"included_signal_refs", "cluster_refs", "desired_effects", "success_conditions", "merge_keep_separate_rationale", "resolved_conflicts", "unresolved_conflicts", "dependencies", "can_parallel_refs", "must_serialize_refs", "reviewer_or_challenger_requirements", "counterfactual_requirements", "expected_problems", "risks", "unknowns", "required_capability_refs", "required_read_set_refs", "authority_refs", "exact_system_snapshot_ref", "exact_repository_state_refs", "route_claim_lane_refs", "reconciliation_receipt_ref", "control_tower_required", "execution_authorized"}
+                self.assertTrue(expected <= set(packet)); self.assertEqual(set(packet["included_signal_refs"]), {left["signal_id"], right["signal_id"]}); self.assertTrue(packet["desired_effects"]); self.assertTrue(packet["success_conditions"]); self.assertTrue(packet["unresolved_conflicts"]); self.assertTrue(packet["dependencies"]); self.assertTrue(packet["must_serialize_refs"]); self.assertTrue(packet["reviewer_or_challenger_requirements"]); self.assertTrue(packet["counterfactual_requirements"]); self.assertTrue(packet["expected_problems"]); self.assertTrue(packet["risks"]); self.assertTrue(packet["unknowns"]); self.assertTrue(packet["required_capability_refs"]); self.assertTrue(packet["required_read_set_refs"]); self.assertTrue(packet["authority_refs"]); self.assertEqual(packet["exact_repository_state_refs"], list(provider_proof.exact_refs)); self.assertEqual(packet["route_claim_lane_refs"], [provider_proof.route_fingerprint, provider_proof.claim_fingerprint, provider_proof.lane_fingerprint]); self.assertEqual(packet["reconciliation_receipt_ref"], provider_proof.provider_attribution_ref); self.assertTrue(packet["control_tower_required"]); self.assertFalse(packet["execution_authorized"])
             else:
                 fake = {"status": "VALID", "repository_state_digest": "matching-fabrication"}
                 self.assertEqual(self.gateway.preflight(awareness=awareness, canonical_root=None, reconciliation_proof=fake)["code"], "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT")
@@ -172,8 +210,8 @@ class F01F04AdversarialRegressions(unittest.TestCase):
 
     @staticmethod
     def caller_fabricated_proof(*, fresh_until: str = "2099-01-01T00:01:00+00:00") -> AuthorityBoundLiveObservationProof:
-        invalidators = {"head_sha": "head", "base_sha": "base", "review_state_ref": "review", "route_fingerprint": "route", "claim_fingerprint": "claim", "lane_fingerprint": "lane", "lease_fingerprint": "lease", "domain_freshness_ref": "fresh", "pending_approval_ref": "approval"}
-        return AuthorityBoundLiveObservationProof("synthetic/repo", 1, "OPEN", "head", "base", False, None, "review", "2099-01-01T00:00:00+00:00", "route", "claim", "lane", "lease", "fresh", "approval", ("provider://evidence/one",), "caller", "provider://caller/self-assertion", "a" * 64, fresh_until, invalidators, object())
+        invalidators = {"head_sha": "head", "base_sha": "base", "current_main_sha": "main", "review_state_ref": "review", "merged": False, "merge_commit_sha": None, "route_fingerprint": "route", "claim_fingerprint": "claim", "lane_fingerprint": "lane", "lease_fingerprint": "lease", "domain_freshness_ref": "fresh", "pending_approval_ref": "approval"}
+        return AuthorityBoundLiveObservationProof("synthetic/repo", 1, "OPEN", "head", "base", "main", False, None, "review", "2099-01-01T00:00:00+00:00", "route", "claim", "lane", "lease", "fresh", "approval", ("provider://evidence/one",), "caller", "provider://caller/self-assertion", "a" * 64, fresh_until, invalidators, object())
 
     def test_f02_caller_supplied_complete_fields_are_not_provider_evidence(self) -> None:
         proof = self.caller_fabricated_proof()
@@ -181,10 +219,17 @@ class F01F04AdversarialRegressions(unittest.TestCase):
         preflight = self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=proof)
         self.assertEqual((preflight["status"], preflight["code"], preflight["exact_repository_state_refs"]), ("BLOCKED", "NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT", []))
 
-    def test_f02_expired_or_unattributed_proof_is_blocked(self) -> None:
-        proof = self.caller_fabricated_proof(fresh_until="2020-01-01T00:01:00+00:00")
-        self.assertFalse(validate_live_observation_proof(proof))
-        self.assertFalse(self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=proof)["can_release"])
+    def test_f02_synthetic_governed_provider_is_valid_only_without_drift(self) -> None:
+        with synthetic_governed_provider() as proof:
+            self.assertTrue(validate_live_observation_proof(proof))
+            for name, changed in (("head", {"head_sha": "head-b"}), ("review", {"review_state_ref": "review-b"}), ("current-main", {"current_main_sha": "main-b"}), ("route", {"route_fingerprint": "route-b"}), ("claim", {"claim_fingerprint": "claim-b"}), ("lane", {"lane_fingerprint": "lane-b"}), ("merge-state", {"merged": True, "merge_commit_sha": "merge-b"})):
+                with self.subTest(name=name):
+                    drifted = drift_observation(proof, **changed)
+                    self.assertFalse(validate_live_observation_proof(drifted))
+                    self.assertFalse(self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=drifted)["can_release"])
+            expired = replace(proof, fresh_until=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat())
+            self.assertFalse(validate_live_observation_proof(expired))
+            self.assertFalse(self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=expired)["can_release"])
 
     def test_f03_blocked_preflight_cannot_release_a_packet(self) -> None:
         blocked = self.gateway.preflight(awareness=self.awareness, canonical_root=None, reconciliation_proof=self.caller_fabricated_proof())

@@ -41,7 +41,7 @@ AI Film receipt artifact from a fresh, detached, exact-commit clone.
 | R136-R031 | `test_r136_r031` | dependency/blocker relation serializes work |
 | R136-R032 | `test_r136_r032` | relation decisions expose merge/parallel/serialize |
 | R136-R033 | `test_r136_r033` | serialized work requires a reviewer/challenger |
-| R136-R034 | `test_r136_r034` | absent authority-bound live observation blocks formal release |
+| R136-R034 | `test_r136_r034` | a test-only governed-provider witness binds included signals and a validated preflight into the complete non-authorizing TaskReleasePacket |
 | R136-R035 | `test_r136_r035` | no fresh receipt means release rejection |
 | R136-R036 | `test_r136_r036` | sealed Git-object reads validate a runtime receipt |
 | R136-R037 | `test_r136_r037` | a fabricated read dictionary is unverified |
