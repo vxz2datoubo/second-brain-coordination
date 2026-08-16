@@ -1,0 +1,125 @@
+schema_version: "1.0"
+selection_id: "R138-DOMAIN-CAPABILITY-EXECUTION-PROVIDER-SOURCE-SELECTION-0001"
+status: "GPT_PLANNING / NOT_EXECUTABLE"
+issue: 366
+owner: "USER"
+architecture_owner: "GPT"
+planning_main: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
+
+selection_principle: >-
+  Reuse accepted mechanism/evidence contracts and domain-owned executable surfaces; do not import stale authority,
+  self-certification patterns or duplicate domain semantics into Second Brain.
+
+sources:
+  - id: R136_RUNTIME_INVOCATION_RECEIPT_CONTRACT
+    repository: "vxz2datoubo/second-brain-coordination"
+    commit: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/RUNTIME-INVOCATION-RECEIPT-CONTRACT.yaml"
+    blob_sha: "91a1b5017b70a325d2822d94584cbaedacd969d5"
+    disposition: "NORMATIVE_REUSE"
+    reuse:
+      - "process_compliance vs outcome_quality separation"
+      - "actual read/tool evidence semantics"
+      - "mandatory scan canonical statuses"
+      - "no self-certification / no second raw trace store"
+    do_not_reuse:
+      - "R136 assumption that no capability provider exists"
+
+  - id: R136_GATEWAY_RUNTIME_RECEIPT_IMPLEMENTATION
+    repository: "vxz2datoubo/second-brain-coordination"
+    commit: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
+    path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+    blob_sha: "4fc0cdf400f0c2b07f07317cbdfcaee99b2b985c"
+    disposition: "INTEGRATION_SEAM_REUSE"
+    reuse:
+      - "RuntimeInvocationReceipt build seam"
+      - "ExactReadProof execution binding"
+      - "current mandatory scans remain UNKNOWN without execution evidence"
+      - "AI Film read-only smoke source binding"
+    do_not_reuse:
+      - "exact-read evidence as scan evidence"
+      - "synthetic-only success as real domain execution"
+
+  - id: R137_LIVE_OBSERVATION_PROVIDER_ARCHITECTURE
+    repository: "vxz2datoubo/second-brain-coordination"
+    commit: "8d69e3b7c27ac8f4fb42a15b8065be8738a9afa2"
+    path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-ARCHITECTURE-v1.0.md"
+    blob_sha: "3543cd3a14bc0f6c24d35a480569dce767637a4c"
+    disposition: "TRUST_PATTERN_REUSE"
+    reuse:
+      - "caller request vs provider-derived evidence separation"
+      - "bundle + compact proof pattern"
+      - "provider code identity binding"
+      - "bounded freshness/invalidation and fail-closed semantics"
+      - "no caller-facing production provider registration"
+    do_not_reuse:
+      - "R137 network authority as R138 execution authority"
+      - "GitHub observation proof as capability execution proof"
+
+  - id: AI_FILM_DIRECTOR_ROUTE_INDEX
+    repository: "vxz2datoubo/eustia-ai-film"
+    commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+    path: "10_运行时/director_route_index.yaml"
+    blob_sha: "af06aed1751bd516f9d968e8c7decc8c5259a148"
+    disposition: "READ_ONLY_DOMAIN_OBLIGATION_SOURCE"
+    reuse:
+      - "mandatory scan identifiers and route ownership only"
+    do_not_reuse:
+      - "treat scan name as executable implementation"
+      - "copy AI Film domain semantics into Second Brain"
+    finding: >-
+      Current route index contains many cognitive/directorial mandatory scans. Their names are obligations, not mechanism
+      evidence and not executable contracts by themselves.
+
+  - id: AI_FILM_GOLDEN_CASE_INGESTOR_WORKFLOW
+    repository: "vxz2datoubo/eustia-ai-film"
+    commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+    path: ".github/workflows/golden-case-ingestor.yml"
+    blob_sha: "f7c845b340ccfd8f79dcdc2f1e30603a11524882"
+    disposition: "REAL_EXECUTABLE_CAPABILITY_EVIDENCE_CANDIDATE"
+    finding: >-
+      The domain already executes a deterministic Python tool/test surface on Linux and Windows. This is evidence that a
+      real domain-owned executable surface exists, but the workflow itself is not a generic capability manifest and R138
+      may not dispatch it or inherit GitHub write authority.
+
+  - id: AI_FILM_GOLDEN_CASE_INGESTOR_README
+    repository: "vxz2datoubo/eustia-ai-film"
+    commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+    path: "tools/golden_case_ingestor/README.md"
+    blob_sha: "6be96c71f2ea7645708eb954acbdc93b4db57c11"
+    disposition: "BOUNDED_EXTERNAL_DOMAIN_SMOKE_CANDIDATE"
+    finding: >-
+      The tool explicitly describes itself as a deterministic evidence layer and separates mechanical media evidence from
+      GPT/editorial interpretation. This authority split is compatible with R138, but ingest can write derived bundles and
+      has ffmpeg/dependency prerequisites, so implementation must use a disposable workspace and a narrowly read-only or
+      fixture/test operation. If isolation/prerequisites are not provable, the real smoke remains UNKNOWN/PARTIAL.
+
+rejected_patterns:
+  - pattern: "CAPABILITY_LABEL_EQUALS_EXECUTION"
+    reason: "self-certification / false-green"
+  - pattern: "MANDATORY_READ_EQUALS_SCAN_PROOF"
+    reason: "R136 explicitly proved exact reads are inputs only"
+  - pattern: "SECOND_BRAIN_REIMPLEMENTS_AI_FILM_SCAN_SEMANTICS"
+    reason: "violates domain authority"
+  - pattern: "GENERIC_SHELL_COMMAND_PROVIDER"
+    reason: "unbounded code-execution authority"
+  - pattern: "MODEL_SELF_REPORT_AS_SCAN_EVIDENCE"
+    reason: "not mechanism-backed and risks chain-of-thought confusion"
+  - pattern: "PROVIDER_CAN_MARK_NA_WITHOUT_DOMAIN_ROUTE_REASON"
+    reason: "execution provider cannot adjudicate applicability"
+
+implementation_recommendation:
+  provider_core: "BOUNDED_EXACT_REPOSITORY_PROCESS_EVIDENCE_PROVIDER_V1"
+  first_test_tier: "SYNTHETIC_MECHANISM_FIXTURE"
+  real_domain_tier: "AI_FILM_DOMAIN_OWNED_EXECUTABLE_SMOKE_IF_PRECONDITIONS_PROVEN"
+  model_mediated_scans: "UNSUPPORTED_V1 / UNKNOWN"
+  connector_tool_class: "CONTRACT_ONLY_UNTIL_SEPARATELY_GOVERNED_PROVIDER_EXISTS"
+
+confidence:
+  normative_consumer_contract: HIGH
+  r137_trust_pattern_reuse: HIGH
+  ai_film_route_scan_names_are_not_execution_evidence: HIGH
+  ai_film_golden_ingestor_is_viable_real_smoke: MEDIUM
+  reason_for_medium: >-
+    Domain-owned executable tooling is confirmed, but exact dependency/network/process-isolation preconditions for R138
+    have not yet been implemented or proven.
