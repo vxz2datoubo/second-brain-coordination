@@ -43,4 +43,3 @@ class ShadowTest(unittest.TestCase):
     def test_public_projection_has_no_raw_body_or_private_marker(self) -> None:
         ledger = ShadowLedger(); ledger.append(self.observation()); encoded = json.dumps(ledger.projection())
         self.assertNotIn("screenplay", encoded.casefold()); self.assertNotIn("private", encoded.casefold())
-
