@@ -6,13 +6,28 @@ architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 semantics:
-  purpose: "Declare current work surfaces and exact execution leases for Program Lanes."
+  purpose: >-
+    Declare the actual current work surface for every Program Lane. A strategic lane may exist without an implementation
+    claim. Any implementation reservation/execution must declare exact write paths, interfaces, authority claims,
+    resource class and route binding.
   no_claim_no_durable_runtime_write: true
   proposal_only_does_not_authorize_runtime_change: true
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
+  reserved_implementation_occupies_surface_without_execution: true
+  reserved_implementation_requires_non_executable_route: true
+  reserved_implementation_requires_global_reconciliation_receipt: true
+  reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
+  r136_completion_does_not_authorize_successor_execution: true
+  r137_completion_does_not_authorize_r138_execution: true
+  r138_completion_does_not_authorize_successor_execution: true
+  global_reconciliation_receipt_is_not_execution_authority: true
   implementation_release_requires_fresh_claim_rescan: true
+
+proposal_roots:
+  LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+  LANE-B-A-SHARE-REMEDIATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
 
 claims:
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
@@ -33,6 +48,8 @@ claims:
       merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
       completed_route_epoch: 132
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
+    stop_conditions:
+      - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -41,15 +58,7 @@ claims:
     route_binding: null
     write_paths: []
     read_paths: []
-    interfaces:
-      - name: "R136-RuntimeInvocationReceipt"
-        mode: "frozen accepted interface"
-      - name: "R137-AuthorityBoundLiveObservationProof"
-        mode: "frozen accepted interface"
-      - name: "R138-CapabilityExecutionEvidenceBundle"
-        mode: "frozen accepted interface"
-      - name: "R138-CapabilityExecutionProof"
-        mode: "frozen accepted interface"
+    interfaces: []
     read_domains: []
     write_domains: []
     authority_claims: []
@@ -66,6 +75,18 @@ claims:
       retained_findings:
         - "R138-F01"
         - "R138_LOCAL_PASSIVE_PYCACHE_NON_DELIVERY_RESIDUAL_WAIVER"
+      historical_interfaces:
+        - "R136-RuntimeInvocationReceipt"
+        - "R137-AuthorityBoundLiveObservationProof"
+        - "R138-CapabilityExecutionEvidenceBundle"
+        - "R138-CapabilityExecutionProof"
+      historical_write_surface:
+        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/capability_execution_provider.py"
+        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r138_capability_execution_provider.py"
+        - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R138"
+        - ".github/workflows/global-signal-plane-r138-capability-execution.yml"
     stop_conditions:
       - "Epoch 138 may not resume."
       - "Any successor requires a new exact route/claim/epoch and fresh reconciliation."
@@ -97,14 +118,17 @@ claims:
       - "explicit route binding"
       - "one bounded remediation write surface"
       - "fresh O0-O4 rescan"
-      - "PIT/T+1/NO_TRADE and domain authority gates"
+      - "PIT/T+1/W7/NO_TRADE and domain authority gates"
       - "commit-time route witness"
 
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
-  proposal_only_parallelism: "Lane A has no active implementation. Lane B remains held proposal-only; Lane C remains closed."
+  proposal_only_parallelism: >-
+    Lane A has no active implementation claim. Lane B remains held proposal-only and Lane C remains closed. Lane B has no
+    implementation/runtime write authority and therefore creates no current write/write collision with Lane A.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
+  reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
   r138_closure_scope: >-
     R138 implementation and its exact six-path write lease are fully released. Accepted R138 artifacts remain historical
