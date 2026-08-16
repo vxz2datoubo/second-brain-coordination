@@ -38,3 +38,10 @@ recursive tree's truncation marker was not examined. The R2 changes bind those
 PR facts into invalidation and verifier comparisons, assert the checkout head,
 and reject truncated or malformed trees. Their evidence remains pending the new
 exact-head CI; no policy or authority boundary changed.
+
+Postflight evidence is now available for reviewed implementation head
+`f3b10eea8559dd4445d598ea7efa9b21a0700ac1`: R137 `31947566607`, S0E
+`31947566608`, and Phase 3 `31947566619` each passed Python 3.11/3.13. R137
+asserted that checkout HEAD exactly equalled the implementation head before its
+two public runtime observations. This closes the process evidence only; GPT
+review, no merge and all locks remain.

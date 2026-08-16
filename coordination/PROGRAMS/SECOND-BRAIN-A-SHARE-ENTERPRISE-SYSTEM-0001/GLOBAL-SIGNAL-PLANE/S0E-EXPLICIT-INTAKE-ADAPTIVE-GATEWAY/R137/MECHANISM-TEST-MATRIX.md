@@ -22,3 +22,5 @@ head SHA before it runs R137 and retained R136 fail-closed tests on Python 3.11
 and 3.13. On pull requests it then performs a real public, unauthenticated
 GitHub observation and prints only an evidence identity/digest and observed
 main SHA.
+
+R2 reviewed implementation evidence: head `f3b10eea8559dd4445d598ea7efa9b21a0700ac1`; R137 run `31947566607`, S0E run `31947566608` and Phase 3 run `31947566619` all passed on Python 3.11/3.13. The R137 exact-head assertion passed before both live proof jobs. This records expected-mechanism evidence only; it is not GPT acceptance, a merge, formal release or execution authorization.

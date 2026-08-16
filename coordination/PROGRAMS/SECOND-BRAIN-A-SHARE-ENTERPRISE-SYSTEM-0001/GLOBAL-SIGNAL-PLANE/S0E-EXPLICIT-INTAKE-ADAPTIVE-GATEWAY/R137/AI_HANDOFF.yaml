@@ -5,10 +5,18 @@ target_agent: "GPT"
 reviewer: "GPT"
 task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
 route_epoch: 137
-handoff_status: "R2_REMEDIATION_PENDING_EXACT_HEAD_CI"
+handoff_status: "READY_FOR_GPT_REVIEW"
+reviewed_implementation_head: "f3b10eea8559dd4445d598ea7efa9b21a0700ac1"
+evidence:
+  r137_ci_run: 31947566607
+  s0e_ci_run: 31947566608
+  phase3_ci_run: 31947566619
+  exact_head_assertion: "PASS for f3b10eea8559dd4445d598ea7efa9b21a0700ac1 on Python 3.11 and 3.13"
+  public_runtime_proof_py311: "provider://r137/evidence/r137:57af64047b9b35b8b66bf100#sha256=0029a3291ab9184a6473ad31e313b0102efe8eba463bd07152e69330a48a2a01"
+  public_runtime_proof_py313: "provider://r137/evidence/r137:86492e45ea885bb721cec04b#sha256=59d5d78879b85a89e67c007e3788978bd543014ae185e90e3e25645d8c65350e"
 review_boundary:
-  expected_mechanism_tests: "47 local Python 3.13 tests pass: original R001-R044 plus B01/B03 adversarial regressions; exact-head remote runs pending"
-  runtime_public_observation: "New CI-only public unauthenticated proof pending R2 implementation head"
+  expected_mechanism_tests: "47 local R137 tests PASS: original R001-R044 plus B01/B03 adversarial regressions; exact-head remote R137/S0E/Phase 3 Python 3.11/3.13 all PASS"
+  runtime_public_observation: "CI-only unauthenticated public proof PASS on the reviewed implementation head; it is evidence-only"
   formal_release: "NOT_GRANTED; provider is evidence only"
   merge: "FORBIDDEN_TO_CODEX"
 required_gpt_checks:

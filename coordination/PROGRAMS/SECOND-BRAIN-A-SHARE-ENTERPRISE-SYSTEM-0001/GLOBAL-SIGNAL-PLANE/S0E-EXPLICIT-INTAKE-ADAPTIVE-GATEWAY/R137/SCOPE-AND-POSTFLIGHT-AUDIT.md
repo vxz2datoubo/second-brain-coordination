@@ -23,3 +23,10 @@ test fixture/regressions, dedicated workflow checkout and R137 task evidence.
 It does not add a provider, credential, host, endpoint, write method or new
 authority. The next postflight replaces these pending statements only after the
 R2 commit has remote exact-head evidence.
+
+R2 postflight is complete for reviewed implementation head
+`f3b10eea8559dd4445d598ea7efa9b21a0700ac1`: YAML, scope, public safety,
+placeholder/TODO/shadow and diff checks passed locally; R137 `31947566607`, S0E
+`31947566608` and Phase 3 `31947566619` passed on Python 3.11/3.13. The
+workspace has no tracked or untracked delivery residue. This is
+`READY_FOR_GPT_REVIEW`, not GPT acceptance or merge completion.
