@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT.parent / "S0-SYNTHETIC" / "src")]
-from global_signal_gateway.capability_execution_provider import (CapabilityDescriptor, CapabilityExecutionRequest, CONTRACT_REVISION, ExactRepositoryCapabilityProvider, _tree_digest, verify_capability_execution_proof)
+from global_signal_gateway.capability_execution_provider import (CapabilityDescriptor, CapabilityExecutionRequest, CONTRACT_REVISION, ExactRepositoryCapabilityProvider, _tree_digest, verify_capability_execution_proof, verify_historical_capability_execution_proof)
 from global_signal_gateway.gateway import GatewayError, RuntimeInvocationReceipt, digest
 
 
@@ -28,10 +28,10 @@ class TestOnlyBoundedProvider(ExactRepositoryCapabilityProvider):
     def _execute_boundary(self, descriptor, source, output, request):
         try:
             result = subprocess.run((sys.executable, "-I", *descriptor.argv), cwd=source / descriptor.working_directory, shell=False, capture_output=True, timeout=request.timeout_seconds, env={"PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1"}, check=False)
-            return result.returncode, False, result.stdout, result.stderr, {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, self._runtime_identity(descriptor)
+            return result.returncode, False, result.stdout, result.stderr, {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, self._runtime_identity(descriptor), "test-r138"
         except subprocess.TimeoutExpired as error:
-            return None, True, error.stdout or b"", error.stderr or b"", {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, self._runtime_identity(descriptor)
-    def _post_boundary_clean(self, workspace, output, descriptor):
+            return None, True, error.stdout or b"", error.stderr or b"", {"network": True, "read_only_source": True, "write_surface": True, "resource_limits": True, "no_shell": True}, self._runtime_identity(descriptor), "test-r138"
+    def _post_boundary_clean(self, workspace, output, descriptor, container):
         return _tree_digest(workspace / "source") == _tree_digest(workspace / "source-before") and not any(item.is_symlink() for item in output.rglob("*")), True
 
 
@@ -81,7 +81,7 @@ class R138AcceptanceMatrix(unittest.TestCase):
         with self.assertRaises(GatewayError): p.execute(r)
     def test_r017_no_caller_environment_or_credential_fields(self): self.assertFalse({"env", "token", "credential"} & CapabilityExecutionRequest.__dataclass_fields__.keys())
     def test_r018_required_network_boundary_absent_blocks_proof(self):
-        temp, p, r = self.fixture(); self.addCleanup(temp.cleanup); p._execute_boundary = lambda *args: (0, False, b"", b"", {"network": False}, p._runtime_identity(p.descriptor)); b, proof = p.execute(r); self.assertIn("NETWORK_ISOLATION_UNENFORCED", b.warnings); self.assertIsNone(proof)
+        temp, p, r = self.fixture(); self.addCleanup(temp.cleanup); p._execute_boundary = lambda *args: (0, False, b"", b"", {"network": False}, p._runtime_identity(p.descriptor), "test-r138"); b, proof = p.execute(r); self.assertIn("NETWORK_ISOLATION_UNENFORCED", b.warnings); self.assertIsNone(proof)
     def test_r019_canonical_source_mutation_blocks_proof(self):
         temp, p, r = self.fixture(); self.addCleanup(temp.cleanup); (Path(r.source_root) / "late.txt").write_text("mutation")
         with self.assertRaises(GatewayError): p.execute(r)
@@ -97,7 +97,7 @@ class R138AcceptanceMatrix(unittest.TestCase):
     def test_r025_scan_name_echo_is_unknown(self): self._unknown_receipt("scan-label", actual_scans=("scan-label",))
     def test_r026_provider_cannot_adjudicate_not_applicable(self): self._unknown_receipt("n/a")
     def test_r027_freshness_replay_expiry_invalid(self):
-        _, proof, _ = self.valid(); self.assertFalse(verify_capability_execution_proof(replace(proof, fresh_until="2026-01-01T00:00:00+00:00"), at="2026-08-16T00:00:00+00:00"))
+        _, proof, _ = self.valid(); expired = replace(proof, fresh_until="2026-01-01T00:00:00+00:00"); self.assertFalse(verify_capability_execution_proof(expired, at="2099-01-01T00:00:00+00:00")); self.assertTrue(verify_historical_capability_execution_proof(expired, at="2099-01-01T00:00:00+00:00"))
     def test_r028_same_historical_proof_is_verifiable(self):
         b, proof, _ = self.valid(); self.assertTrue(verify_capability_execution_proof(proof, at=b.completed_at))
     def test_r029_exact_reads_alone_remain_unknown(self): self._unknown_receipt("exact-read")

@@ -19,6 +19,7 @@ from .capability_execution_provider import (
     CapabilityExecutionProof,
     ExactRepositoryCapabilityProvider,
     verify_capability_execution_proof,
+    verify_historical_capability_execution_proof,
 )
 
-__all__ = ["GatewayError", "SignalIntakeGateway", "SystemAwarenessProjection", "RuntimeInvocationReceipt", "exact_git_read_records", "ai_film_directing_read_only_smoke", "DomainFreshnessTarget", "LiveObservationProvider", "LiveObservationRequest", "CapabilityExecutionRequest", "CapabilityExecutionEvidenceBundle", "CapabilityExecutionProof", "ExactRepositoryCapabilityProvider", "verify_capability_execution_proof"]
+__all__ = ["GatewayError", "SignalIntakeGateway", "SystemAwarenessProjection", "RuntimeInvocationReceipt", "exact_git_read_records", "ai_film_directing_read_only_smoke", "DomainFreshnessTarget", "LiveObservationProvider", "LiveObservationRequest", "CapabilityExecutionRequest", "CapabilityExecutionEvidenceBundle", "CapabilityExecutionProof", "ExactRepositoryCapabilityProvider", "verify_capability_execution_proof", "verify_historical_capability_execution_proof"]
