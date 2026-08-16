@@ -1,4 +1,4 @@
-schema_version: "2.3"
+schema_version: "2.4"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -24,6 +24,7 @@ semantics:
   s0d_authorization_does_not_authorize_s0e_h2_h7_domain_write: true
   r136_completion_does_not_authorize_successor_providers_ai_film_write_private_bridge_harness_h2_h7_production_trading: true
   r137_reservation_does_not_authorize_provider_execution_or_domain_capability_provider: true
+  r137_root_bootstrap_evidence_does_not_authorize_execution_without_explicit_user_gpt_activation: true
   global_reconciliation_receipt_is_not_execution_authority: true
 
 proposal_roots:
@@ -114,13 +115,17 @@ claims:
       slice: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER"
       issue: 360
       parent_architecture_issue: 358
-      phase: "A1_RESERVATION_NON_EXECUTABLE"
+      phase: "A2_ROOT_PROVIDER_BOOTSTRAP_PRESENT"
       target_resource_class: "MEDIUM_IMPLEMENTATION"
       global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-RESERVATION.yaml"
       planning_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
-      root_provider_bootstrap_receipt: "PENDING_POST_RESERVATION_MERGE"
+      root_provider_bootstrap_receipt: "coordination/CONTROL-TOWER/ROOT-PROVIDER-BOOTSTRAP-R137.yaml"
+      root_provider_bootstrap_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
+      root_provider_bootstrap_expires_at: "2026-08-17T10:34:35Z"
+      root_provider_bootstrap_consumed: false
       execution_allowed: false
       runtime_code_change_allowed: false
+      explicit_user_launch_received: false
       public_github_read_only_after_activation: true
       private_repository_allowed: false
       credentials_allowed: false
@@ -136,14 +141,14 @@ claims:
       production_allowed: false
       trading_allowed: false
     stop_conditions:
-      - "Reservation is non-executable."
-      - "Write before root-provider bootstrap activation -> STOP / NEEDS_GPT"
+      - "Reservation remains non-executable until explicit user launch plus fresh GPT activation."
+      - "Write before activation -> STOP / NEEDS_GPT"
       - "Write outside exact future allowlist -> STOP / NEEDS_GPT"
       - "Private repository/credential/permission/secret required -> STOP / separate user gate"
       - "Generic URL or GitHub write API required -> STOP / architecture conflict"
       - "Caller-verifier registration or provider policy adjudication required -> STOP / architecture conflict"
       - "W3/domain write/Harness/H2/H7/daemon/production/trading required -> STOP / separate gate"
-      - "Bootstrap missing/expired/consumed/mismatched -> STOP / ROOT_PROVIDER_BOOTSTRAP_INVALID"
+      - "Bootstrap missing/expired/consumed/revoked/mismatched -> STOP / ROOT_PROVIDER_BOOTSTRAP_INVALID"
       - "Passing tests or CI never authorizes merge or R138"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -182,12 +187,12 @@ claims:
 release_semantics:
   foundation_can_release_windows_to_proposal_only: true
   proposal_only_parallelism: >-
-    Lane A reserves R137 surfaces without execution. Lane B remains held proposal-only and Lane C remains closed. No
-    current R137 runtime write or heavy worker is authorized.
+    Lane A reserves R137 surfaces with canonical root bootstrap evidence but no execution. Lane B remains held
+    proposal-only and Lane C remains closed. No current R137 runtime write or heavy worker is authorized.
   implementation_release_is_separate: true
   implementation_release_requires_fresh_claim_rescan: true
   reservation_upgrade_requires_fresh_post_merge_reconciliation: true
   closed_lane_has_no_execution_lease: true
   r137_future_stage_separation: >-
-    R137 reservation does not imply provider execution, Domain Capability Execution Provider, AI Film/domain write,
-    private/live bridge, Harness/H2/H7, production, permission change, Formal Skill promotion or trading authorization.
+    R137 bootstrap evidence does not imply provider execution, Domain Capability Execution Provider, AI Film/domain
+    write, private/live bridge, Harness/H2/H7, production, permission change, Formal Skill promotion or trading authority.
