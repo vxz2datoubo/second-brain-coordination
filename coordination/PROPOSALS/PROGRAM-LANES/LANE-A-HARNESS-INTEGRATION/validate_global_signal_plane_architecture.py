@@ -158,7 +158,12 @@ def main() -> int:
         require(node in nodes, "DAG_NODE_MISSING", node)
     require(str(nodes["S0C"].get("state", "")).startswith("COMPLETED_CLOSED_R134"), "S0C_PROGRESS_NOT_RECONCILED")
     require(str(nodes["S0D"].get("state", "")).startswith("COMPLETED_CLOSED_R135"), "S0D_PROGRESS_NOT_RECONCILED")
-    require(nodes["S0E0"].get("state") == "PHASE_A_RESERVED_NON_EXECUTABLE", "R136_DAG_PHASE_INVALID")
+    r136_lifecycle_states = {
+        "PHASE_A_RESERVED_NON_EXECUTABLE",
+        "PHASE_B_ACTIVE_IMPLEMENTATION",
+        "COMPLETED_CLOSED_R136",
+    }
+    require(nodes["S0E0"].get("state") in r136_lifecycle_states, "R136_DAG_PHASE_INVALID")
     require("S0D" in set((nodes["S0E0"].get("requires") or [])), "R136_S0D_DEPENDENCY_MISSING")
     h7_requires = set((nodes["H7A"].get("requires") or []))
     require({"S0C", "S0E0", "H3C", "H4B"} <= h7_requires, "H7_DEPENDENCY_LOST")
@@ -196,7 +201,7 @@ def main() -> int:
         "scenario_count": len(scenarios),
         "dag_signal_nodes": ["S0A", "S0B", "S0C", "S0D", "S0E0", "H7A"],
         "one_signal_tower": True,
-        "r136_phase": "PHASE_A_RESERVED_NON_EXECUTABLE",
+        "r136_phase": nodes["S0E0"].get("state"),
         "runtime_self_certification_allowed": False,
         "harness_runtime_authorized": False,
     }, ensure_ascii=False, sort_keys=True, indent=2))

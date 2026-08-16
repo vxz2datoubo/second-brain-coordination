@@ -1,10 +1,10 @@
-schema_version: "1.0"
+schema_version: "1.1"
 task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
 route_epoch: 136
 issue: 353
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】R136 Global Signal Intake + Adaptive Execution Gateway"
-status: "PREPARED_FOR_PHASE_A_RESERVATION"
+status: "RELEASED_AFTER_PHASE_B_CANONICAL_MERGE"
 owner: "USER"
 architecture_owner: "GPT"
 execution_agent: "CODEX"
@@ -30,20 +30,31 @@ predecessor_evidence:
   r135_closure_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
   r135_closure_receipt: "coordination/CONTROL-TOWER/R135-S0D-CLOSURE-RECONCILIATION.yaml"
 
-phase_a_snapshot:
-  second_brain_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
-  codex_prior_route_epoch: 135
-  codex_prior_status: "DONE"
-  codex_prior_execution_allowed: false
-  lane_a_before_reservation: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+phase_a_evidence:
+  second_brain_prepare_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
+  phase_a_pr: 354
+  phase_a_head: "facb1e02469218cbac3c8ecab35a48ee623bae00"
+  phase_a_review_id: 4945417110
+  phase_a_control_tower_ci: 31927346440
+  phase_a_signal_architecture_ci: 31927346447
+  phase_a_merge_commit: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
+  bootstrap_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+
+phase_b_activation:
+  activation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
+  second_brain_main_rechecked: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  ai_film_main_rechecked: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_open_prs_rechecked: 0
+  ai_film_source_authority: "PROJECT_INDEX.yaml"
+  ai_film_source_authority_blob_sha: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
   qclaw_execution_allowed: false
   workbuddy_execution_allowed: false
-  ai_film_repository: "vxz2datoubo/eustia-ai-film"
-  ai_film_main: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
-  ai_film_open_prs_observed: 0
-  ai_film_authority: "PROJECT_INDEX.yaml"
-  ai_film_authority_blob: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
-  bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+  route_target_status: "READY"
+  execution_allowed_after_phase_b_merge: true
+  runtime_code_change_allowed_after_phase_b_merge: true
+  user_launch_required: true
+  local_unpushed_ai_film_codex_visibility: "UNKNOWN / FAIL_CLOSED_AT_LAUNCH"
 
 objective: >-
   Turn the existing durable/offline Global Signal Plane into a real public-safe explicit intake and adaptive execution
@@ -67,12 +78,13 @@ canonical_inputs:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW"
   - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+  - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
   - "coordination/ACTIVE-CODEX-TASK.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
   - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
   - "https://github.com/vxz2datoubo/second-brain-coordination/issues/353"
 
-allowed_write_paths_after_phase_b:
+allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
   - ".github/workflows/global-signal-plane-s0e.yml"
 
@@ -253,9 +265,10 @@ hard_forbidden:
   - "A-share live data/trading/account/order/fund action"
   - "Codex merge"
 
-phase_a_rule: >-
-  This Task Brief is only a reservation/architecture contract until a successor R136 activation receipt is merged and
-  ACTIVE-CODEX-TASK says READY/execution_allowed=true. Phase A alone grants no Codex runtime write permission.
+phase_release_rule: >-
+  Phase A is historical reservation evidence only. Phase B makes the bounded route/claim READY only after its activation
+  PR passes exact-head CI and is merged by GPT. The user must then send the full R136 Launch Envelope. No autonomous
+  execution is permitted merely because this Task Brief says RELEASED.
 
 merge_policy:
   codex_merge_authorized: false

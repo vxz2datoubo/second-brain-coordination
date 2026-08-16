@@ -1,4 +1,4 @@
-schema_version: "0.3"
+schema_version: "0.4"
 dag_id: "COGNITIVE-OS-HARNESS-IMPLEMENTATION-DEPENDENCY-DAG-0001"
 status: "ARCHITECTURE_CANDIDATE / CURRENT_PROGRESS_RECONCILED / PROPOSAL_ONLY"
 owner: "USER"
@@ -182,15 +182,17 @@ nodes:
 
   S0E0:
     name: EXPLICIT_GLOBAL_SIGNAL_INTAKE_AND_ADAPTIVE_EXECUTION_GATEWAY
-    state: PHASE_A_RESERVED_NON_EXECUTABLE
+    state: PHASE_B_ACTIVE_IMPLEMENTATION
     runtime: true
     resource_class: MEDIUM_IMPLEMENTATION
     issue: 353
     route_epoch: 136
     requires: [S0D, FRESH_CONTROL_TOWER_R136_RELEASE]
-    artifacts:
-      - GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml
-      - RUNTIME-INVOCATION-RECEIPT-CONTRACT.yaml
+    phase_a_evidence:
+      pr: 354
+      accepted_head: "facb1e02469218cbac3c8ecab35a48ee623bae00"
+      merge_commit: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
+    activation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
     purpose: >-
       Add public-safe explicit multi-window Signal intake, derived system awareness, adaptive direct/domain/mission routing,
       mandatory pre-task global Signal preflight, TaskReleasePacket, verifiable RuntimeInvocationReceipt and post-task
@@ -205,6 +207,10 @@ nodes:
       - RuntimeInvocationReceipt
       - SignalClosureAssessment
       - read_only_AI_Film_directing_runtime_proof
+    exact_write_surface:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - ".github/workflows/global-signal-plane-s0e.yml"
+    user_launch_required: true
     forbidden:
       - private_chat_cross_window_bridge
       - daemon_webhook_listener_scheduler_polling
@@ -411,6 +417,6 @@ parallelism_notes:
 current_focus:
   node: S0E0
   route_epoch: 136
-  phase: "A_RESERVATION_NON_EXECUTABLE"
+  phase: "B_POST_MERGE_ACTIVATION / READY_WAITING_USER_LAUNCH"
   issue: 353
   explicit_user_priority: "FINISH_SIGNAL_TOWER_BEFORE_HARNESS_OR_OTHER_MAJOR_LINES"
