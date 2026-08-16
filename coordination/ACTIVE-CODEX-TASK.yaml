@@ -1,4 +1,4 @@
-schema_version: "137.2"
+schema_version: "137.3"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 360
@@ -7,14 +7,14 @@ parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 137
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】R137 Authority-bound Live Observation Provider"
-status: "READY"
-execution_allowed: true
+status: "DONE"
+execution_allowed: false
 automatic_resume_within_task: false
 second_user_start_command_required: false
-intermediate_gpt_review_required: true
+intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: true
-runtime_code_scope: "EXACT_R137_ALLOWLIST_ONLY / PUBLIC_GITHUB_READ_ONLY_PROVIDER"
+runtime_code_change_allowed: false
+runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
 
 canonical_predecessor_route_epoch: 136
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
@@ -22,19 +22,21 @@ canonical_predecessor_closure_main: "16f158e1123fa6b52c1a489ddd53093a91270624"
 canonical_main_at_prepare: "a065cc8eb4d978bef78543f2536d12d659067829"
 canonical_reservation_main: "7b0996a98fc908b2afad6be7775eafc74381e648"
 canonical_bootstrap_main: "af786f5851d459c8a580cc6e3de2e2ebed69f5b0"
+canonical_activation_main: "526cc4b969d229488986f026604c11b7d905c698"
+canonical_main_at_close: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER.yaml"
 planning_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
 reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-RESERVATION.yaml"
 root_provider_bootstrap_receipt: "coordination/CONTROL-TOWER/ROOT-PROVIDER-BOOTSTRAP-R137.yaml"
 activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
+closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R137-LIVE-OBSERVATION-CLOSURE-RECONCILIATION.yaml"
 root_provider_bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-root_provider_bootstrap_nonce_sha256: "547deb3e8723500d032632a5f0d069f0018ad09c7ab23e2f5c3aa2e94a70e20e"
 root_provider_bootstrap_consumed_by_activation: true
 explicit_user_launch_received: true
 explicit_user_launch_text: "启动 R137"
 implementation_branch: "codex/r137-authority-live-observation-provider"
-implementation_pr: null
+implementation_pr: 364
 
 architecture:
   issue: 358
@@ -44,56 +46,62 @@ architecture:
   exact_head_ci: 31941554619
   trust_class: "PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1"
   architecture_path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-ARCHITECTURE-v1.0.md"
-  architecture_blob: "3543cd3a14bc0f6c24d35a480569dce767637a4c"
-  threat_model_blob: "eea5b8c1ce529b1a9266528499de3a3c18225e9b"
-  source_selection_blob: "18e35b8007be32e422b73a08fe1d3977aabff060"
 
 release_phase:
-  phase: "B_ACTIVE_IMPLEMENTATION"
-  execution_state: "READY_FOR_CODEX_IMPLEMENTATION"
-  activation_receipt_id: "R137-ACTIVATION-RECONCILIATION-0001"
-  bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-  bootstrap_consumed: true
+  phase: "C_POST_MERGE_CLOSURE"
+  execution_state: "DONE_AFTER_GPT_ACCEPTANCE_AND_EXPECTED_HEAD_MERGE"
+  activation_receipt_status: "HISTORICAL_PASS_FOR_R137_PHASE_B_ACTIVATION"
   hard_rule: >-
-    Codex may now implement R137 only inside the exact allowlist and public GitHub read-only boundary. The activation does
-    not grant merge authority, R138, private repository/token access, generic networking, W3/domain writes, Harness/H2/H7,
-    daemon/live/production services, permission/secret changes, Formal Skill promotion or trading authority.
+    R137 is completed historical evidence only. Its activation/bootstrap/route do not authorize R138 or any other
+    successor. Any future domain capability provider, Harness/H2/H7/private/live/production or trading work requires a
+    new task_id, route epoch, fresh Work Claim, fresh reconciliation and explicit GPT/user release.
+
+completion_receipt:
+  accepted_runtime_head: "a7789864eac267c569503342a66a961985a27745"
+  implementation_pr: 364
+  merge_commit: "54ba6c31240d4b262c65d142be446e6b5ea5d90b"
+  final_review_id: 4946250299
+  exact_head_r137_ci: 31948699592
+  exact_head_s0e_ci: 31948699596
+  exact_head_phase3_ci: 31948699598
+  python_311: PASS
+  python_313: PASS
+  r137_tests: "49/49 PASS"
+  retained_r136_tests: "47/47 PASS"
+  phase3_tests: "291/291 PASS"
+  public_proof_py311: "provider://r137/evidence/r137:9d71a18d1e1032d2be3436f0#sha256=fd923c5a73b0f584154e117e5e18a6e3027b82d1a62329fc79dcd2597c98963e"
+  public_proof_py313: "provider://r137/evidence/r137:d1f459b3c34fc528ad2c55d0#sha256=ff7a8e6089d49bbe4beeac5e243c75616fbdf354683934c5ef86ab35b37fecbe"
+  acceptance: "ACCEPTED / R137_PROVIDER_V1_MECHANISM_CLOSED / GOVERNED_PROCESS_TRUST_BOUNDARY_ACKNOWLEDGED"
+  residual_limitation: >-
+    Module-private seals and the in-process evidence registry are a governed-process trust boundary, not cryptographic
+    protection from malicious code already executing in the same Python process.
+  route_disposition: "R137_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
+  successor_stage_authorized: false
+  successor_dependencies:
+    DOMAIN_CAPABILITY_EXECUTION_PROVIDER: "NOT_ACTIVE / FUTURE_GOVERNED_R138"
 
 objective: >-
-  Implement a public GitHub on-demand read-only provider that independently observes current repository/control-plane
-  state, emits a mechanism-backed LiveObservationEvidenceBundle and derives the existing R136
-  AuthorityBoundLiveObservationProof without caller self-certification or execution authority.
+  Historical completed objective: implement the bounded public GitHub on-demand read-only Authority-bound Live Observation
+  Provider that emits mechanism-backed evidence and integrates with the R136 fail-closed preflight boundary.
 
-allowed_write_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/live_observation_provider.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r137_live_observation_provider.py"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R137"
-  - ".github/workflows/global-signal-plane-r137-live-observation.yml"
-current_write_permission: "ALLOWED_EXACT_R137_PATHS_ONLY"
+allowed_write_paths: []
+current_write_permission: "RELEASED / NO_ACTIVE_WRITE_PERMISSION"
 
 external_observation_boundary:
   github_host: "api.github.com"
-  mode: "PUBLIC_READ_ONLY_ON_DEMAND"
+  mode: "HISTORICAL_ACCEPTED_PUBLIC_READ_ONLY_ON_DEMAND_PROVIDER"
   credentials: "FORBIDDEN"
   private_repository: "FORBIDDEN"
   generic_url: "FORBIDDEN"
   write_methods: "FORBIDDEN"
-  request_concurrency: 1
-  daemon_webhook_polling_scheduler: "FORBIDDEN"
   policy_adjudication: "FORBIDDEN"
 
 execution_contract:
-  provider_implementation: "AUTHORIZED_EXACT_SCOPE_ONLY"
-  implementation_plan_before_material_runtime_edits: "REQUIRED"
-  caller_authored_authority_facts: "FORBIDDEN"
-  caller_provider_verifier_registration: "FORBIDDEN"
+  provider_implementation: "COMPLETED_HISTORY_ONLY"
   control_tower_or_merge_authority: "FORBIDDEN"
   private_chat_w3: "FORBIDDEN"
   w3_runtime_schema_change: "FORBIDDEN"
   harness_runtime_install_bind_activate: "FORBIDDEN"
-  harness_workflow_subagent_jobs: "FORBIDDEN"
   h2_route_creation_activation: "FORBIDDEN"
   h7_runtime_claim: "FORBIDDEN"
   ai_film_or_domain_write: "FORBIDDEN"
@@ -105,36 +113,16 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
-  class: "MEDIUM_IMPLEMENTATION"
+  class: "NO_ACTIVE_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
-  network_request_concurrency: 1
-  bounded_test_workers: "REQUIRED / SINGLE_WORKER_DEFAULT"
-  task_owned_temp_process_cache_cleanup: "REQUIRED"
   global_kill_python: "FORBIDDEN"
-  broad_matrix: "REMOTE_CI_PREFERRED"
   daemon_server: "FORBIDDEN"
 
-launch_guard:
-  repository_must_equal: "vxz2datoubo/second-brain-coordination"
-  task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
-  route_epoch_must_equal: 137
-  issue_must_equal: 360
-  planned_branch_must_equal: "codex/r137-authority-live-observation-provider"
-  activation_receipt_must_equal: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
-  accepted_bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-  bootstrap_consumed_by_this_activation: true
-  fail_if_workspace_not_second_brain: true
-  fail_if_same_codex_execution_active_elsewhere: true
-  fail_if_write_outside_allowlist: true
-  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_ACTIVATION_OR_LEASE_CONFLICT"
-  auto_switch_or_guess_intent: "FORBIDDEN"
-
 completion_signal: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_READY_FOR_GPT_REVIEW"
-next_command: "BEGIN_R137_PROJECT_PLAN_THEN_IMPLEMENT"
+next_command: "NO_ACTIVE_TASK"
 lock_statement: >-
-  Epoch 137 is active only for the bounded Authority-bound Live Observation Provider implementation. It cannot access
-  private repositories/credentials, register caller verifiers, use GitHub write APIs or generic URLs, mutate W3/domains,
-  activate Harness/H2/H7, run daemon/live/production services, change permissions/secrets, promote Formal Skills, start
-  R138, trade, or merge.
+  Epoch 137 is completed historical evidence only and may not be resumed. The accepted provider remains evidence-only and
+  does not grant R138, domain write, private/W3, Harness/H2/H7, production, permission/secret, Formal Skill or trading
+  authority.
