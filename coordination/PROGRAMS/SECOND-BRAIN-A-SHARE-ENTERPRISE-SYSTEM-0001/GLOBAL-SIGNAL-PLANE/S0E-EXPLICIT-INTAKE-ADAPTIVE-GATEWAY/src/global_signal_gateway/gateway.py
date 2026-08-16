@@ -404,20 +404,24 @@ class RuntimeInvocationReceipt:
     @classmethod
     def build(cls, *, execution_id: str, task_class: str, domain_id: str, source_repository: str, source_commit: str,
               entry: Mapping[str, str], awareness: SystemAwarenessProjection, mandatory_reads: Sequence[str], actual_reads: Sequence[Any],
-              started_at: str | None = None, completed_at: str | None = None, outcome_quality: str = "NOT_YET_OBSERVED", matched_route_refs: Sequence[str] = (), mandatory_scans: Sequence[str] = (), actual_scans: Sequence[Any] = ()) -> "RuntimeInvocationReceipt":
+              started_at: str | None = None, completed_at: str | None = None, outcome_quality: str = "NOT_YET_OBSERVED", matched_route_refs: Sequence[str] = (), mandatory_scans: Sequence[str] = (), actual_scans: Sequence[Any] = (), capability_proofs: Sequence[Any] = ()) -> "RuntimeInvocationReceipt":
         started, completed = started_at or utc_now(), completed_at or utc_now(); instant(started, "/started_at"); instant(completed, "/completed_at")
         accepted: list[ExactReadProof] = [item for item in actual_reads if isinstance(item, ExactReadProof) and item._seal is _PROOF_SEAL and item.execution_id == execution_id and item.repository == source_repository and item.commit == source_commit]
         paths = {item.path for item in accepted}
-        # Exact reads bind inputs only.  R136 has no domain/Harness execution
-        # provider, so they must never become scan-execution evidence.
-        scan_obligations = [{"scan": scan, "status": "UNKNOWN", "reason": "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE", "input_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted]} for scan in mandatory_scans]
-        scans_complete = not mandatory_scans
+        # Exact reads bind inputs only.  Only R138's sealed provider proof can
+        # turn the exact named capability into scan-execution evidence.
+        from .capability_execution_provider import CapabilityExecutionProof, verify_capability_execution_proof
+        valid_proofs = [item for item in capability_proofs if isinstance(item, CapabilityExecutionProof) and verify_capability_execution_proof(item) and item.execution_id == execution_id and item.trace_id == f"trace:{digest(execution_id)[:24]}" and item.domain_id == domain_id and item.source_repository == source_repository and item.source_commit == source_commit]
+        by_capability = {item.capability_id: item for item in valid_proofs}
+        input_refs = [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted]
+        scan_obligations = [{"scan": scan, "status": "EXECUTED_WITH_EVIDENCE", "reason": "VALID_CAPABILITY_EXECUTION_PROOF", "evidence_ref": by_capability[scan].evidence_ref, "input_refs": input_refs} if scan in by_capability else {"scan": scan, "status": "UNKNOWN", "reason": "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE", "input_refs": input_refs} for scan in mandatory_scans]
+        scans_complete = all(item["status"] == "EXECUTED_WITH_EVIDENCE" for item in scan_obligations)
         compliance = "PASS" if set(mandatory_reads) <= paths and scans_complete else "UNVERIFIED"
         warnings = [] if compliance == "PASS" else ["MANDATORY_READ_OR_SCAN_UNPROVEN"]
         data = {"receipt_id": f"receipt:{digest([execution_id, source_commit, sorted(paths)])[:24]}", "execution_id": execution_id, "trace_id": f"trace:{digest(execution_id)[:24]}", "task_class": task_class, "domain_id": domain_id,
                 "started_at": started, "completed_at": completed, "source_repository": source_repository, "source_commit": source_commit, "entry_contract_ref": entry["path"], "entry_contract_blob_or_content_digest": entry["blob_sha"], "system_awareness_snapshot_ref": awareness.snapshot_ref,
-                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": list(mandatory_scans), "scan_obligations": scan_obligations, "actual_scans": [], "capability_invocations": [],
-                "ruleset_digest": digest({"entry": entry, "snapshot": awareness.snapshot_ref, "routes": list(matched_route_refs)}), "warnings": warnings, "unknowns": [] if compliance == "PASS" else ["exact read/input digest is not scan execution evidence", "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE"], "result_ref": f"opaque://execution/{execution_id}", "validation_result": "VERIFIED" if compliance == "PASS" else "UNVERIFIED", "writeback_decision": "TRACE_ONLY", "process_compliance": compliance, "outcome_quality": outcome_quality, "evidence_refs": [f"git://{item.repository}@{item.commit}/{item.path}#blob={item.blob_sha}" for item in accepted], "privacy_scope_ref": "PUBLIC_SAFE_METADATA_ONLY"}
+                "matched_route_refs": list(matched_route_refs), "mandatory_reads_resolved": list(mandatory_reads), "actual_reads": [item.public_dict() for item in accepted], "mandatory_scans": list(mandatory_scans), "scan_obligations": scan_obligations, "actual_scans": [item.public_dict() for item in valid_proofs], "capability_invocations": [item.public_dict() for item in valid_proofs],
+                "ruleset_digest": digest({"entry": entry, "snapshot": awareness.snapshot_ref, "routes": list(matched_route_refs)}), "warnings": warnings, "unknowns": [] if compliance == "PASS" else ["exact read/input digest is not scan execution evidence", "DOMAIN_CAPABILITY_EXECUTION_PROVIDER_NOT_AVAILABLE"], "result_ref": f"opaque://execution/{execution_id}", "validation_result": "VERIFIED" if compliance == "PASS" else "UNVERIFIED", "writeback_decision": "TRACE_ONLY", "process_compliance": compliance, "outcome_quality": outcome_quality, "evidence_refs": input_refs + [item.evidence_ref for item in valid_proofs], "privacy_scope_ref": "PUBLIC_SAFE_METADATA_ONLY"}
         return cls(data)
 
 
