@@ -1,10 +1,10 @@
-schema_version: "2.4"
+schema_version: "2.5"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-16T18:08:00+08:00"
+as_of: "2026-08-16T18:26:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -55,24 +55,25 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R136 S0E0 is completed and has released its Codex implementation lease. No Lane A implementation route is active.
-    Both successor providers, H2/H7/Harness/private/production and Lane B implementation remain separately unauthorized.
+    R137 reserves a narrow live-observation-provider future write surface but is non-executable and consumes no active
+    Codex execution lease. Domain Capability Execution Provider, H2/H7/Harness/private/production and Lane B
+    implementation remain separately unauthorized.
 
 current_user_release_policy:
-  decision_at: "2026-08-16T18:08:00+08:00"
-  decision: "R136_COMPLETED_SELECT_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_FOR_NEXT_PLANNING_ONLY"
+  decision_at: "2026-08-16T18:26:00+08:00"
+  decision: "PREPARE_R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_RESERVATION_KEEP_EXECUTION_BLOCKED"
   rationale: >-
-    GPT independently accepted exact R136 head 3d2fe426b43de14edf7447fa26f55c4600f62169 and merged PR #356 as
-    54c99780ad6d1a1cc8a035a18130f26b2f91eb62. The user then explicitly approved the sequence: first complete formal
-    R136 post-merge closure, then plan the Authority-bound Live Observation Provider before the Domain Capability
-    Execution Provider. Selection of the next planning target is not execution authorization.
+    The user explicitly approved the successor order after R136: first Authority-bound Live Observation Provider, then
+    Domain Capability Execution Provider. R136 is fully closed, R137 Phase A architecture PR #359 is merged, and no
+    Codex execution lease exists. R137 may therefore reserve a bounded implementation surface while execution remains
+    blocked pending a fresh post-reservation ROOT_PROVIDER_BOOTSTRAP receipt and explicit user/GPT launch.
   released_implementation_lanes: []
-  prepared_implementation_lanes: []
+  prepared_implementation_lanes:
+    - "LANE-A-HARNESS-INTEGRATION"
   released_proposal_only_lanes: []
   held_lanes:
-    - "LANE-A-HARNESS-INTEGRATION"
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "GPT_POST_MERGE_CLOSURE_WITH_EXPLICIT_USER_SUCCESSOR_ORDER_DIRECTION"
+  release_owner: "GPT_WITH_EXPLICIT_USER_SUCCESSOR_ORDER_AND_TWO_STAGE_BOOTSTRAP_GATE"
   signal_tower_architecture_pr: 342
   signal_tower_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
   s0c_pr: 346
@@ -82,48 +83,49 @@ current_user_release_policy:
   s0d_merge_commit: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
   r135_closure_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
   r136_issue: 353
-  r136_route_epoch: 136
-  r136_phase_a_pr: 354
-  r136_phase_a_head: "facb1e02469218cbac3c8ecab35a48ee623bae00"
-  r136_phase_a_review_id: 4945417110
-  r136_phase_a_merge: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
-  r136_implementation_pr: 356
-  r136_accepted_head: "3d2fe426b43de14edf7447fa26f55c4600f62169"
-  r136_final_review_id: 4945892342
-  r136_merge_commit: "54c99780ad6d1a1cc8a035a18130f26b2f91eb62"
-  r136_phase: "C_POST_MERGE_CLOSURE"
-  r136_release: "COMPLETED_MERGED_NO_ACTIVE_EXECUTION_LEASE"
-  r136_closure_reconciliation: "coordination/CONTROL-TOWER/R136-S0E0-CLOSURE-RECONCILIATION.yaml"
-  bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
-  activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
+  r136_implementation_merge: "54c99780ad6d1a1cc8a035a18130f26b2f91eb62"
+  r136_closure_merge: "16f158e1123fa6b52c1a489ddd53093a91270624"
+  r137_architecture_issue: 358
+  r137_architecture_pr: 359
+  r137_architecture_head: "93b5170989da4c101e5dc54ed07333bc2f4b184d"
+  r137_architecture_review_id: 4945958232
+  r137_architecture_ci: 31941554619
+  r137_architecture_merge: "a065cc8eb4d978bef78543f2536d12d659067829"
+  r137_issue: 360
+  r137_route_epoch: 137
+  r137_phase: "A1_RESERVATION_NON_EXECUTABLE"
+  r137_release: "PREPARED_NON_EXECUTABLE"
+  r137_planning_reconciliation: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
+  r137_root_provider_bootstrap_receipt: "PENDING_POST_RESERVATION_MERGE"
   ai_film_repository: "vxz2datoubo/eustia-ai-film"
-  ai_film_main_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
-  ai_film_source_authority_blob_sha: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
-  ai_film_role: "HISTORICAL_READ_ONLY_FIRST_RUNTIME_PROOF_CONSUMER"
-  authority_bound_live_observation_provider: "SELECTED_FOR_NEXT_PLANNING / NOT_AUTHORIZED"
-  domain_capability_execution_provider: "FUTURE_AFTER_AUTHORITY_PROVIDER / NOT_AUTHORIZED"
+  ai_film_main_at_reservation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_role: "READ_ONLY_DOMAIN_FRESHNESS_REFERENCE_ONLY"
+  authority_bound_live_observation_provider: "RESERVED_NON_EXECUTABLE"
+  domain_capability_execution_provider: "FUTURE_AFTER_R137_ACCEPTANCE / NOT_AUTHORIZED"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
-  successor_release_requires:
-    - "R136 closure PR merged and canonical state re-fetched"
-    - "new task_id and route epoch"
-    - "fresh current-main Global Reconciliation"
-    - "fresh bounded Work Claim and Program Lane reservation"
-    - "fresh O0-O4, same-agent and resource collision scan"
-    - "provider provenance/threat-model acceptance"
-    - "explicit GPT and user release before Codex execution"
+  r137_activation_requires:
+    - "reservation PR canonical merge"
+    - "fresh Second Brain main snapshot after reservation merge"
+    - "exact R137 route/task/claim/lane/architecture blob snapshot"
+    - "fresh per-agent route and same-agent/resource scan"
+    - "one-time ROOT_PROVIDER_BOOTSTRAP receipt"
+    - "bootstrap expiry/nonce/one-time-consumption binding"
+    - "exact-head Control Tower witness"
+    - "explicit GPT activation merge"
+    - "explicit full R137 Launch Envelope from the user into the Second Brain Codex workspace"
 
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
-    observed_route_epoch: 136
-    observed_issue: 353
-    observed_pr: 356
-    observed_status: "DONE"
+    observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+    observed_route_epoch: 137
+    observed_issue: 360
+    observed_pr: null
+    observed_status: "PREPARED_NON_EXECUTABLE"
     execution_allowed: false
-    observation_status: "R136_COMPLETED_HISTORY_ONLY / NO_ACTIVE_CODEX_LEASE"
+    observation_status: "R137_RESERVED / NO_ACTIVE_CODEX_EXECUTION_LEASE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -133,14 +135,14 @@ observed_agent_state:
     observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
     execution_allowed: false
     quota_hold: "NO_FURTHER_QCLAW_EXECUTION_ON_2026-08-14"
-    observation_status: "VERIFIED_REPOSITORY_AT_R136_CLOSURE_PREP"
+    observation_status: "VERIFIED_REPOSITORY_AT_R137_RESERVATION_PREP"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_issue: 89
     observed_pr: 97
     observed_status: "PAUSED_COMPUTE_UNAVAILABLE"
     execution_allowed: false
-    observation_status: "VERIFIED_REPOSITORY_AT_R136_CLOSURE_PREP"
+    observation_status: "VERIFIED_REPOSITORY_AT_R137_RESERVATION_PREP"
 
 known_stale_aggregate_views:
   - path: "coordination/ACTIVE-THREE-AGENT-COORDINATION.yaml"
@@ -155,11 +157,11 @@ program_lanes:
     user_aliases: ["DeepSeek Harness线", "智能体运行底盘线", "Unified Signal Tower线"]
     mission: >-
       Build the shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain
-      authorities. S0C, S0D and R136 S0E0 are completed. The next preferred planning target is the Authority-bound Live
-      Observation Provider, but no successor execution route is currently authorized.
-    desired_state: "PAUSED"
-    observed_state: "PAUSED"
-    hold_reason: "R136_COMPLETED / AUTHORITY_PROVIDER_SELECTED_FOR_PLANNING_NOT_RELEASED"
+      authorities. R136 S0E0 is completed. Current prepared successor is R137 Authority-bound Live Observation Provider,
+      still non-executable in reservation phase.
+    desired_state: "READY"
+    observed_state: "READY"
+    hold_reason: "R137_RESERVATION / EXECUTION_BLOCKED_PENDING_ROOT_PROVIDER_BOOTSTRAP"
     owner: "USER"
     architecture_owner: "GPT"
     implementation_owner_candidate: "CODEX"
@@ -170,37 +172,36 @@ program_lanes:
       - "H1 contract skeleton merged in PR #340"
       - "Unified Signal Tower enterprise architecture merged in PR #342"
       - "R134 S0C implementation merged in PR #346 and closed in PR #347"
-      - "R135 S0D implementation accepted and merged in PR #351; governance closed in PR #352"
-      - "R136 Phase A reservation merged in PR #354"
-      - "R136 S0E0 implementation accepted at exact head 3d2fe426b43de14edf7447fa26f55c4600f62169"
-      - "R136 implementation PR #356 merged as 54c99780ad6d1a1cc8a035a18130f26b2f91eb62"
-      - "coordination/CONTROL-TOWER/R136-S0E0-CLOSURE-RECONCILIATION.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/RUNTIME-INVOCATION-RECEIPT-CONTRACT.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
-    current_phase: "R136_COMPLETED_SUCCESSOR_PROVIDER_PLANNING"
-    active_execution_route: null
+      - "R135 S0D implementation accepted and closed"
+      - "R136 S0E0 implementation accepted/merged and post-merge closed"
+      - "R137 architecture Issue #358 and PR #359 merge a065cc8eb4d978bef78543f2536d12d659067829"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-ARCHITECTURE-v1.0.md"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-THREAT-MODEL-v1.0.md"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-SOURCE-SELECTION.yaml"
+      - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
+      - "Issue #360 R137 provider reservation"
+    current_phase: "R137_PHASE_A1_RESERVED_NON_EXECUTABLE"
+    active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
     heavy_execution_authorized: false
     dependencies:
-      - "R136 closure state must be canonical before successor reservation"
-      - "Authority-bound Live Observation Provider requires a fresh provider-specific contract and threat model"
-      - "Any successor requires fresh reconciliation, Work Claim, route and explicit release"
-      - "Domain Capability Execution Provider remains sequenced after the Authority provider"
+      - "R136 completed and closed"
+      - "R137 Phase A architecture merged"
+      - "R137 non-executable Work Claim reservation"
+      - "fresh post-reservation ROOT_PROVIDER_BOOTSTRAP receipt"
+      - "explicit user/GPT release after bootstrap"
+      - "no active Codex execution lease before activation"
     shared_interfaces:
-      - "Global Signal Plane S0C durable contracts"
+      - "R136 AuthorityBoundLiveObservationProof contract"
+      - "R136 TaskRelease/preflight fail-closed boundary"
+      - "R137 LiveObservationEvidenceBundle contract"
       - "Global Reconciliation Receipt contract"
-      - "Signal Tower Mission Router contract"
-      - "Global Signal Intake Adaptive Gateway contract"
-      - "Runtime Invocation Receipt contract"
-      - "AuthorityBoundLiveObservationProof contract"
       - "Control Tower authorization boundary"
-      - "AI Film Domain Adapter read-only boundary"
-      - "W3 frozen consumption boundary"
+      - "GitHub public REST read-only boundary"
+      - "W3 no-access/private boundary"
       - "Trace/lineage boundary"
-    next_gate: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_ARCHITECTURE_THEN_FRESH_RECONCILIATION"
+    next_gate: "RESERVATION_MERGE_THEN_FRESH_ROOT_PROVIDER_BOOTSTRAP_AND_EXPLICIT_R137_ACTIVATION"
     no_replace_authorities: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    maturity: "R136_S0E0_COMPLETED / SUCCESSOR_NOT_AUTHORIZED"
+    maturity: "R137_RESERVED / PUBLIC_GITHUB_ON_DEMAND_TRUSTED_PROCESS_V1 / NOT_EXECUTABLE"
     proposal_only: false
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -282,11 +283,11 @@ cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_READ"
     shared_domains: [W3, W9, W10, W12]
-    rule: "Lane A has no active implementation after R136 closure; Lane B remains held. Current overlap is read/read only."
+    rule: "R137 is non-executable and Lane B is held; overlap is read/read only until a later activation gate."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     shared_domains: [W3, W8, W9, W10]
-    rule: "Lane C is closed; any future Lane A provider may consume frozen boundaries only after a fresh route is released."
+    rule: "Lane C is closed; R137 may consume frozen R136/W3 boundaries only after activation and cannot write W3."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     shared_domains: [W3, W9, W10, W12]
@@ -305,6 +306,7 @@ flow_metrics:
   note: "Metrics are observability signals, not automatic proof of value or completion."
 
 reconciliation_rule: >-
-  Before R137 or any later implementation transition, fetch current per-agent routes, relevant canonical indices, current
-  main, current PR/review state, Work Claims, Program Lanes and provider-specific evidence dependencies; fail closed on O4,
-  stale receipt, same-agent double-booking, cross-window drift, authority drift or unresolved user approval.
+  Before R137 activation, fetch current per-agent routes, current main, reservation PR/merge, exact task/route/claim/lane and
+  architecture blobs, resource leases, source candidates and pending approvals; create a one-time ROOT_PROVIDER_BOOTSTRAP
+  receipt and fail closed on O4, stale state, same-agent double-booking, cross-window drift, authority drift, private/secret
+  requirements or unresolved user approval.
