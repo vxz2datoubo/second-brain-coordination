@@ -1,0 +1,84 @@
+schema_version: "1.0"
+receipt_id: "GLOBAL-RECONCILIATION-RECEIPT-R135-PHASE-A"
+status: "PASS_FOR_RESERVATION_ONLY / NOT_EXECUTION_AUTHORITY"
+owner: "USER"
+architecture_owner: "GPT"
+route_epoch: 135
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+issue: 348
+created_at: "2026-08-16T08:40:00+08:00"
+boundary: "CROSS_REPO_READ_ONLY_PREP / NO_EXECUTION / NO_DOMAIN_WRITE / NO_PRIVATE / NO_PRODUCTION / NO_TRADE"
+
+second_brain_snapshot:
+  repository: "vxz2datoubo/second-brain-coordination"
+  main_sha: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
+  active_codex_before_reservation:
+    route_epoch: 134
+    task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+    status: "DONE"
+    execution_allowed: false
+    implementation_pr: 346
+  lane_a_before_reservation: "PAUSED / S0C_COMPLETED_NEXT_STAGE_NOT_AUTHORIZED"
+  lane_a_claim_before_reservation: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  lane_b: "HELD_PROPOSAL_ONLY"
+  qclaw_execution_allowed: false
+  workbuddy_execution_allowed: false
+
+ai_film_snapshot:
+  repository: "vxz2datoubo/eustia-ai-film"
+  main_sha: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  open_pr_count_observed: 0
+  source_authority_path: "PROJECT_INDEX.yaml"
+  source_authority_project_id: "EUSTIA_AI_FILM"
+  source_authority_status: "full_github_cutover_verified"
+  current_cross_repo_runtime_binding: "NONE"
+  read_boundary: "APPROVED_STATUS_AND_REFERENCE_SURFACES_ONLY"
+  write_boundary: "ZERO_MUTATION"
+
+predecessor_evidence:
+  s0c_runtime_reviewed_head: "0eed25daa47b883fc17ba6ca36c49c23eb2fb444"
+  s0c_final_evidence_head: "f5c22ea94a9dcd04ec5364893e9e417ebac25fd9"
+  s0c_pr: 346
+  s0c_merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+  r134_closure_pr: 347
+  r134_closure_merge: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
+
+fresh_gate_checks:
+  s0c_completed: PASS
+  r134_codex_lease_released: PASS
+  lane_a_current_mutable_surface_free_before_reservation: PASS
+  ai_film_remote_open_pr_collision: PASS_NONE_OBSERVED
+  cross_repo_authority_separation: PASS
+  source_repo_commit_binding_available: PASS
+  ai_film_project_index_source_authority: PASS
+  no_cross_repo_write_authority_requested: PASS
+  no_private_chat_or_w3_write_requested: PASS
+  no_harness_h2_h7_requested: PASS
+  no_production_or_trading_requested: PASS
+  local_unpushed_ai_film_codex_visibility: UNKNOWN_FAIL_CLOSED_AT_LAUNCH
+
+phase_a_decision:
+  result: "RESERVATION_ELIGIBLE_NON_EXECUTABLE"
+  execution_allowed: false
+  runtime_code_change_allowed: false
+  reserved_write_surfaces:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW"
+    - ".github/workflows/global-signal-plane-s0d.yml"
+  external_source_write_surfaces: []
+  external_source_read_scope: "AI Film approved allowlist bound by exact source commit"
+  next_gate: "PHASE_A_CANONICAL_MERGE_THEN_FRESH_PHASE_B_RECONCILIATION"
+
+invalidation_conditions:
+  - "Second Brain main changes before Phase A merge without compare-and-check"
+  - "AI Film main changes before Phase B activation without successor receipt"
+  - "AI Film source authority or approved read paths change materially"
+  - "AI Film remote/open PR or known local Codex state creates same-agent/cross-project conflict"
+  - "R135 route/task/issue/branch identity changes"
+  - "Work Claim or Program Lane binding changes"
+  - "user revokes or changes S0D direction"
+  - "any domain-write/private/Harness/H2/H7/production/trading requirement appears"
+
+hard_statement: >-
+  This receipt is freshness evidence for an S0D Phase A reservation only. It is not execution authority. No Codex write,
+  AI Film mutation, private chat ingestion, W3 mutation, Harness/H2/H7 activation, production or trading is authorized.
+  Phase B requires a successor receipt after Phase A merge and a fresh exact-head Control Tower witness.

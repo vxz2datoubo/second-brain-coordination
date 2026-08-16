@@ -1,0 +1,99 @@
+schema_version: "135.1"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 348
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 135
+mode: "goal"
+mode_label: "【Codex模式：目标模式】S0D Read-Only Cross-Repo Shadow Signal Plane"
+status: "PREPARED_NON_EXECUTABLE"
+execution_allowed: false
+automatic_resume_within_task: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
+merge_authorized: false
+runtime_code_change_allowed: false
+runtime_code_scope: "RESERVED / NO_EXECUTION_UNTIL_PHASE_B"
+canonical_main_at_route_prepare: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
+canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW-R135.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW-R135.yaml"
+bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135.yaml"
+implementation_branch: "codex/global-signal-plane-s0d-read-only-shadow-r135"
+implementation_pr: null
+
+phase:
+  id: "A_RESERVATION_NON_EXECUTABLE"
+  execution_state: "BLOCKED_PENDING_PHASE_A_MERGE_AND_PHASE_B_RECONCILIATION"
+  activation_rule: >-
+    Phase A merge alone does not authorize execution. GPT must re-read current Second Brain and AI Film state after
+    Phase A merge, issue a successor receipt, update this exact route to READY/execution_allowed=true, and merge the
+    Phase B activation under exact-head Control Tower CI.
+
+source_contract:
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  ai_film_main_observed_at_prepare: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  ai_film_source_authority: "PROJECT_INDEX.yaml"
+  mode: "READ_ONLY_EXACT_COMMIT_BOUND"
+  allowed_read_paths:
+    - "PROJECT_INDEX.yaml"
+    - "07_连续性与生产状态/连续性与当前生产状态.md"
+    - "10_运行时/pending_canonical_writes.yaml"
+    - "10_运行时/director_route_index.yaml"
+    - "10_运行时/maturity_model.yaml"
+    - "11_验收/director_regression_cases.yaml"
+    - "11_验收/golden_prompt_regression_cases.yaml"
+    - "11_验收/golden_case_director_pull_regression_cases.yaml"
+    - "12_未知项/UNKNOWN_REGISTRY.yaml"
+    - "12_未知项/SOUND_UNKNOWN_REGISTRY.yaml"
+  write_allowed: false
+  persist_full_domain_body: false
+  persisted_projection: "METADATA_AND_OPAQUE_REFS_ONLY"
+
+execution_contract:
+  allowed_write_paths_after_phase_b:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW"
+    - ".github/workflows/global-signal-plane-s0d.yml"
+  current_write_permission: "FORBIDDEN"
+  ai_film_write_or_mutation: "FORBIDDEN"
+  private_chat_ingestion: "FORBIDDEN"
+  w3_mutation: "FORBIDDEN"
+  harness_runtime: "FORBIDDEN"
+  h2_h7: "FORBIDDEN"
+  s0e_live_streaming: "FORBIDDEN"
+  daemon_webhook_scheduler_polling: "FORBIDDEN"
+  credentials_secrets_persistence_logging: "FORBIDDEN"
+  permission_visibility_changes: "FORBIDDEN"
+  production: "FORBIDDEN"
+  trading_accounts_orders_funds: "FORBIDDEN"
+  codex_merge: "FORBIDDEN"
+
+resource_contract:
+  target_class_after_activation: "MEDIUM_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "REQUIRED / SINGLE_WORKER_DEFAULT"
+  task_owned_temp_clone_cache_cleanup: "REQUIRED"
+  task_owned_child_tracking_cleanup: "REQUIRED"
+  global_kill_python: "FORBIDDEN"
+  large_matrix: "REMOTE_CI_PREFERRED"
+  daemon_server: "FORBIDDEN"
+
+cross_project_launch_guard:
+  repository_identity: "vxz2datoubo/second-brain-coordination"
+  route_epoch: 135
+  task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+  issue: 348
+  planned_branch: "codex/global-signal-plane-s0d-read-only-shadow-r135"
+  ai_film_is_read_only_source: true
+  fail_if_workspace_is_ai_film: true
+  fail_if_known_ai_film_codex_local_execution_active: true
+  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
+  auto_switch_or_guess_intent: "FORBIDDEN"
+
+completion_signal: "GLOBAL_SIGNAL_PLANE_S0D_READ_ONLY_SHADOW_READY_FOR_GPT_REVIEW"
+next_command: "NO_EXECUTION_PHASE_A"
+lock_statement: >-
+  R135 Phase A is a non-executable reservation. No implementation or external read is authorized until Phase B canonical
+  activation, and no phase of R135 authorizes AI Film writes, private chat/W3 ingestion, Harness/H2/H7, S0E, production or trading.
