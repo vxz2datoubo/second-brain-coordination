@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 agent_id: "CODEX"
 source_agent: "CODEX"
 target_agent: "GPT"
@@ -7,11 +7,32 @@ task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
 route_epoch: 135
 issue: 348
 branch: "codex/global-signal-plane-s0d-read-only-shadow-r135"
+draft_pr: 351
 base_main: "c95958cd60cf21a4d6cdbf18a3f761a6bfeb8e2d"
+reviewed_predecessor_head: "60e6dd078cebebf28c66e6e7c9602253c29f0137"
+runtime_remediation_commit: "66e7af0cf96766f303d6bf9ec83cc30aebac0e62"
+tested_runtime_head: "f3dcc50bb3ee49193e8e0e63d3e29f95d801cdff"
+runtime_ci:
+  s0d_run: 31922700529
+  s0d_python_311_job: 95105064109
+  s0d_python_313_job: 95105064068
+  phase3_run: 31922700558
+  phase3_python_311_job: 95105064266
+  phase3_python_313_job: 95105064201
+  result: "PASS_ON_TESTED_RUNTIME_HEAD"
 source_binding:
   repository: "vxz2datoubo/eustia-ai-film"
   commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
   authority_path: "PROJECT_INDEX.yaml"
   authority_blob: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
-handoff_state: "IMPLEMENTATION_AWAITING_EXACT_HEAD_CI_AND_GPT_REVIEW"
+evidence:
+  source_manifest: "REAL-SOURCE-ONE-SHOT-SHADOW-RECEIPT.json"
+  durable_replay: "DURABLE-S0C-REPLAY-RECEIPT.json"
+  self_shadow: "SECOND-BRAIN-SELF-SHADOW-RECEIPT.json"
+  mechanism_matrix: "20/20 local PASS; S0D CI 3.11/3.13 PASS"
+  phase3: "291/291 local PASS; Phase 3 CI 3.11/3.13 PASS"
+handoff_state: "R135_RUNTIME_TESTED_AWAITING_DOCUMENTATION_HEAD_CI_AND_GPT_REVIEW"
+documentation_lineage: >-
+  This handoff update follows the exact tested runtime head. Its own post-commit CI is intentionally reported in
+  the PR handoff rather than producing an unbounded receipt-commit loop.
 locks_preserved: ["AI Film write", "W3", "private chat", "Harness", "H2", "H7", "S0E", "production", "trading", "merge"]
