@@ -1,4 +1,4 @@
-schema_version: "137.1"
+schema_version: "137.2"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 360
@@ -7,26 +7,32 @@ parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 137
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】R137 Authority-bound Live Observation Provider"
-status: "PREPARED_NON_EXECUTABLE"
-execution_allowed: false
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: true
+second_user_start_command_required: false
 intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "RESERVED / ROOT_PROVIDER_BOOTSTRAP_PRESENT / USER_LAUNCH_PENDING"
+runtime_code_change_allowed: true
+runtime_code_scope: "EXACT_R137_ALLOWLIST_ONLY / PUBLIC_GITHUB_READ_ONLY_PROVIDER"
 
 canonical_predecessor_route_epoch: 136
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
 canonical_predecessor_closure_main: "16f158e1123fa6b52c1a489ddd53093a91270624"
 canonical_main_at_prepare: "a065cc8eb4d978bef78543f2536d12d659067829"
 canonical_reservation_main: "7b0996a98fc908b2afad6be7775eafc74381e648"
+canonical_bootstrap_main: "af786f5851d459c8a580cc6e3de2e2ebed69f5b0"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER-R137.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER.yaml"
 planning_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-PLANNING.yaml"
 reservation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R137-RESERVATION.yaml"
 root_provider_bootstrap_receipt: "coordination/CONTROL-TOWER/ROOT-PROVIDER-BOOTSTRAP-R137.yaml"
-root_provider_bootstrap_blob_at_prepare: "75a664e3c5a420c9a72274fa247a5103b54fcf09"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
+root_provider_bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
+root_provider_bootstrap_nonce_sha256: "547deb3e8723500d032632a5f0d069f0018ad09c7ab23e2f5c3aa2e94a70e20e"
+root_provider_bootstrap_consumed_by_activation: true
+explicit_user_launch_received: true
+explicit_user_launch_text: "启动 R137"
 implementation_branch: "codex/r137-authority-live-observation-provider"
 implementation_pr: null
 
@@ -43,34 +49,33 @@ architecture:
   source_selection_blob: "18e35b8007be32e422b73a08fe1d3977aabff060"
 
 release_phase:
-  phase: "A2_ROOT_PROVIDER_BOOTSTRAP_PRESENT"
-  execution_state: "BLOCKED_AWAITING_EXPLICIT_USER_R137_LAUNCH"
+  phase: "B_ACTIVE_IMPLEMENTATION"
+  execution_state: "READY_FOR_CODEX_IMPLEMENTATION"
+  activation_receipt_id: "R137-ACTIVATION-RECONCILIATION-0001"
   bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-  bootstrap_expires_at: "2026-08-17T10:34:35Z"
-  bootstrap_consumed: false
+  bootstrap_consumed: true
   hard_rule: >-
-    The root-provider bootstrap is now prepared as canonical governance evidence, but it is not itself execution authority.
-    The route stays non-executable until the user explicitly launches R137 and GPT performs a fresh activation transition
-    that revalidates main/route/task/claim/lane/resource state and the bootstrap's unexpired/unrevoked/unconsumed status.
+    Codex may now implement R137 only inside the exact allowlist and public GitHub read-only boundary. The activation does
+    not grant merge authority, R138, private repository/token access, generic networking, W3/domain writes, Harness/H2/H7,
+    daemon/live/production services, permission/secret changes, Formal Skill promotion or trading authority.
 
 objective: >-
   Implement a public GitHub on-demand read-only provider that independently observes current repository/control-plane
   state, emits a mechanism-backed LiveObservationEvidenceBundle and derives the existing R136
   AuthorityBoundLiveObservationProof without caller self-certification or execution authority.
 
-future_allowed_write_paths_after_activation:
+allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/live_observation_provider.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r137_live_observation_provider.py"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R137"
   - ".github/workflows/global-signal-plane-r137-live-observation.yml"
-allowed_write_paths: []
-current_write_permission: "FORBIDDEN / BOOTSTRAP_PRESENT_AWAITING_USER_LAUNCH"
+current_write_permission: "ALLOWED_EXACT_R137_PATHS_ONLY"
 
 external_observation_boundary:
   github_host: "api.github.com"
-  mode_after_activation: "PUBLIC_READ_ONLY_ON_DEMAND"
+  mode: "PUBLIC_READ_ONLY_ON_DEMAND"
   credentials: "FORBIDDEN"
   private_repository: "FORBIDDEN"
   generic_url: "FORBIDDEN"
@@ -80,7 +85,8 @@ external_observation_boundary:
   policy_adjudication: "FORBIDDEN"
 
 execution_contract:
-  provider_implementation_before_user_launch_and_activation: "FORBIDDEN"
+  provider_implementation: "AUTHORIZED_EXACT_SCOPE_ONLY"
+  implementation_plan_before_material_runtime_edits: "REQUIRED"
   caller_authored_authority_facts: "FORBIDDEN"
   caller_provider_verifier_registration: "FORBIDDEN"
   control_tower_or_merge_authority: "FORBIDDEN"
@@ -99,7 +105,7 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
-  class: "RESERVED_MEDIUM_IMPLEMENTATION / NOT_ACTIVE"
+  class: "MEDIUM_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
@@ -110,23 +116,25 @@ resource_contract:
   broad_matrix: "REMOTE_CI_PREFERRED"
   daemon_server: "FORBIDDEN"
 
-bootstrap_launch_guard:
+launch_guard:
   repository_must_equal: "vxz2datoubo/second-brain-coordination"
   task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
   route_epoch_must_equal: 137
   issue_must_equal: 360
   planned_branch_must_equal: "codex/r137-authority-live-observation-provider"
-  receipt_id_must_equal: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
-  receipt_nonce_sha256_must_equal: "547deb3e8723500d032632a5f0d069f0018ad09c7ab23e2f5c3aa2e94a70e20e"
-  bootstrap_must_be_unexpired_unrevoked_unconsumed_exact_scope: true
-  explicit_user_and_gpt_release_required: true
-  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_BOOTSTRAP_OR_LEASE_CONFLICT"
-  do_not_guess_or_auto_switch_repository: true
+  activation_receipt_must_equal: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
+  accepted_bootstrap_receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
+  bootstrap_consumed_by_this_activation: true
+  fail_if_workspace_not_second_brain: true
+  fail_if_same_codex_execution_active_elsewhere: true
+  fail_if_write_outside_allowlist: true
+  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_ACTIVATION_OR_LEASE_CONFLICT"
+  auto_switch_or_guess_intent: "FORBIDDEN"
 
 completion_signal: "R137_AUTHORITY_BOUND_LIVE_OBSERVATION_PROVIDER_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_EXPLICIT_USER_R137_LAUNCH"
+next_command: "BEGIN_R137_PROJECT_PLAN_THEN_IMPLEMENT"
 lock_statement: >-
-  Epoch 137 is reserved with root bootstrap evidence present but remains non-executable. It cannot implement or invoke the
-  provider, access private repositories/credentials, register caller verifiers, use write APIs, mutate W3/domains,
-  activate Harness/H2/H7, run daemon/live/production services, change permissions/secrets, promote Formal Skills, trade,
-  or merge until a fresh GPT activation follows an explicit user R137 launch.
+  Epoch 137 is active only for the bounded Authority-bound Live Observation Provider implementation. It cannot access
+  private repositories/credentials, register caller verifiers, use GitHub write APIs or generic URLs, mutate W3/domains,
+  activate Harness/H2/H7, run daemon/live/production services, change permissions/secrets, promote Formal Skills, start
+  R138, trade, or merge.

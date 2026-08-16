@@ -1,11 +1,11 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "ROOT-PROVIDER-BOOTSTRAP-R137-0001"
 receipt_kind: "ROOT_PROVIDER_BOOTSTRAP"
 owner: "USER"
 architecture_owner: "GPT"
 issuer: "GPT_DIRECT_GITHUB_OBSERVATION"
 reviewer: "GPT"
-state: "PRESENT_UNCONSUMED_AWAITING_EXPLICIT_USER_LAUNCH"
+state: "CONSUMED_BY_R137_ACTIVATION"
 ordinary_live_observation_proof: false
 ordinary_global_reconciliation_receipt: false
 reusable_for_other_task: false
@@ -13,8 +13,9 @@ reusable_for_other_task: false
 issued_at: "2026-08-16T10:34:35Z"
 expires_at: "2026-08-17T10:34:35Z"
 nonce_sha256: "547deb3e8723500d032632a5f0d069f0018ad09c7ab23e2f5c3aa2e94a70e20e"
-consumed: false
-consumed_by: null
+consumed: true
+consumed_by: "R137-ACTIVATION-RECONCILIATION-0001"
+consumed_at: "2026-08-16T18:57:00+08:00"
 revoked: false
 revocation_ref: null
 
@@ -137,32 +138,33 @@ trust_root_semantics:
   bootstrap_may_authorize_domain_capability_execution_provider: false
   bootstrap_requires_exact_task_epoch_issue_branch: true
   bootstrap_requires_exact_architecture_and_pre_bootstrap_state: true
-  bootstrap_requires_unexpired_unrevoked_unconsumed_state: true
-  bootstrap_requires_future_explicit_user_launch: true
+  bootstrap_requires_unexpired_unrevoked_unconsumed_state_before_consumption: true
+  bootstrap_requires_explicit_user_launch: true
   bootstrap_requires_gpt_activation_witness: true
   bootstrap_replay_after_consumption_or_retirement: "MUST_FAIL"
 
 launch_authorization:
   sequence_direction_ref: "USER_EXPLICIT_DIRECTION_2026-08-16_按这个顺序继续"
   sequence_direction_authorizes_implementation_start: false
-  explicit_r137_launch_ref: null
-  user_launch_received: false
-  gpt_activation_witness: null
-  execution_allowed: false
+  explicit_r137_launch_ref: "USER_EXPLICIT_2026-08-16T18:57:00+08:00_启动_R137"
+  user_launch_received: true
+  gpt_activation_witness: "coordination/CONTROL-TOWER/R137-ACTIVATION-RECONCILIATION.yaml"
+  execution_allowed_by_activation: true
 
-consumption_rule: >-
-  This receipt may be consumed exactly once by the GPT activation transition for task epoch 137 after an explicit user
-  launch. The activation must re-observe current main and verify this receipt remains canonical, unexpired, unrevoked and
-  unconsumed; verify no route/claim/lane/agent/resource/private/secret drift; and bind the resulting executable control
-  plane. It is not itself executable authority.
+consumption_record:
+  consumed_once: true
+  activation_receipt_id: "R137-ACTIVATION-RECONCILIATION-0001"
+  activation_base_main: "af786f5851d459c8a580cc6e3de2e2ebed69f5b0"
+  replay_for_r137_again: "FORBIDDEN"
+  reuse_for_r138: "FORBIDDEN"
 
 retirement_rule: >-
-  After R137 provider exact-head acceptance and merge, this bootstrap must be marked consumed/retired as historical root
-  evidence. Regression must prove it cannot be replayed for R137 again or reused for R138.
+  After R137 provider exact-head acceptance and merge, retain this consumed bootstrap as historical root evidence. Regression
+  must prove it cannot be replayed for R137 again or reused for R138.
 
 final_decision:
   bootstrap_evidence_present: true
   bootstrap_currently_usable_for_activation: false
-  reason_not_usable_yet: "EXPLICIT_USER_R137_LAUNCH_NOT_RECEIVED"
-  codex_execution_allowed: false
-  next_gate: "MERGE_BOOTSTRAP_EVIDENCE_THEN_WAIT_FOR_EXPLICIT_USER_R137_LAUNCH"
+  reason_not_usable_again: "ALREADY_CONSUMED_BY_R137_ACTIVATION"
+  codex_execution_allowed_via_separate_activation_receipt: true
+  next_gate: "R137_IMPLEMENTATION_THEN_GPT_EXACT_HEAD_REVIEW"
