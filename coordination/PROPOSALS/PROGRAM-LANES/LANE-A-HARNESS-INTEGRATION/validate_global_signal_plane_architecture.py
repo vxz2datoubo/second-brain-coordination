@@ -15,6 +15,8 @@ FILES = {
     "enterprise": "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml",
     "regression": "GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml",
     "mission": "SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml",
+    "intake": "GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT.yaml",
+    "runtime_receipt": "RUNTIME-INVOCATION-RECEIPT-CONTRACT.yaml",
     "dag": "IMPLEMENTATION-DEPENDENCY-DAG.yaml",
     "trace": "TRACE-LEDGER-PRIVACY-CONTRACT.yaml",
     "domain": "CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml",
@@ -27,6 +29,8 @@ EXPECTED_IDS = {
     "enterprise": ("contract_id", "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE-0001"),
     "regression": ("spec_id", "GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC-0001"),
     "mission": ("contract_id", "SIGNAL-TOWER-MISSION-ROUTER-CONTRACT-0001"),
+    "intake": ("contract_id", "GLOBAL-SIGNAL-INTAKE-ADAPTIVE-GATEWAY-CONTRACT-0001"),
+    "runtime_receipt": ("contract_id", "RUNTIME-INVOCATION-RECEIPT-CONTRACT-0001"),
     "dag": ("dag_id", "COGNITIVE-OS-HARNESS-IMPLEMENTATION-DEPENDENCY-DAG-0001"),
     "trace": ("contract_id", "COGNITIVE-OS-TRACE-LEDGER-PRIVACY-CONTRACT-0001"),
     "domain": ("contract_id", "COGNITIVE-OS-CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY-0001"),
@@ -108,16 +112,67 @@ def main() -> int:
     }
     require(required_regressions <= ids, "ENTERPRISE_REGRESSION_SET_INCOMPLETE", sorted(required_regressions - ids))
 
+    intake = docs["intake"]
+    authority = intake.get("authority_invariants") or {}
+    require(authority.get("signal_tower_identity") == "ONE_SIGNAL_TOWER", "R136_ONE_TOWER_IDENTITY_MISSING")
+    require(authority.get("no_second_signal_truth") is True, "R136_SECOND_SIGNAL_TRUTH_NOT_FORBIDDEN")
+    require(authority.get("execution_authority") == "CONTROL_TOWER_310", "R136_EXECUTION_AUTHORITY_LEAK")
+    require(authority.get("system_awareness_projection_is_not_authority") is True,
+            "R136_SYSTEM_AWARENESS_AUTHORITY_LEAK")
+    axes = intake.get("classification_axes") or {}
+    require(set((axes.get("persistence") or {}).get("values") or []) == {"EPHEMERAL", "TRACE_ONLY", "DURABLE_SIGNAL"},
+            "R136_PERSISTENCE_AXIS_INVALID")
+    require(set((axes.get("execution") or {}).get("values") or []) == {"DIRECT", "DOMAIN_WORKFLOW", "GOVERNED_MISSION"},
+            "R136_EXECUTION_AXIS_INVALID")
+    require(set((axes.get("materiality") or {}).get("values") or []) == {"LOW", "MATERIAL", "HIGH_RISK"},
+            "R136_MATERIALITY_AXIS_INVALID")
+    require(axes.get("no_magic_score") is True, "R136_MAGIC_SCORE_FORBIDDEN")
+    preflight = intake.get("GlobalSignalPreflight_v1") or {}
+    require("NO_FRESH_VALID_GLOBAL_RECONCILIATION_RECEIPT" in str(preflight.get("hard_rule", "")),
+            "R136_PRETASK_RECONCILIATION_GATE_MISSING")
+    closure = intake.get("SignalClosureAssessment_v1") or {}
+    closure_rules = closure.get("rules") or {}
+    require(closure_rules.get("task_done_does_not_imply_signal_satisfied") is True,
+            "R136_TASK_DONE_SIGNAL_SATISFACTION_CONFLATED")
+    require(closure_rules.get("append_only_history_retained") is True,
+            "R136_SIGNAL_CLOSURE_HISTORY_LOSS")
+
+    runtime_receipt = docs["runtime_receipt"]
+    rp = runtime_receipt.get("principles") or {}
+    require(rp.get("self_declared_read_is_non_evidence") is True, "R136_SELF_CERTIFICATION_NOT_FORBIDDEN")
+    require(rp.get("process_compliance_is_independent_from_outcome_quality") is True,
+            "R136_PROCESS_OUTCOME_CONFLATED")
+    require(rp.get("no_second_raw_trace_store") is True, "R136_SECOND_RAW_TRACE_STORE_NOT_FORBIDDEN")
+    actual = runtime_receipt.get("actual_read_evidence") or {}
+    require(actual.get("missing_evidence_disposition") == "UNVERIFIED", "R136_MISSING_EVIDENCE_MUST_BE_UNVERIFIED")
+    film_profile = runtime_receipt.get("AI_FILM_DIRECTING_PROFILE_v1") or {}
+    require(film_profile.get("canonical_entry") == "PROJECT_INDEX.yaml", "R136_AI_FILM_ENTRYPOINT_MISSING")
+    require((film_profile.get("smoke_boundary") or {}).get("domain_mutation") == "FORBIDDEN_IN_R136",
+            "R136_AI_FILM_WRITE_BOUNDARY_MISSING")
+    require((film_profile.get("smoke_boundary") or {}).get("durable_signal_creation_for_routine_directing") is False,
+            "R136_ROUTINE_DIRECTING_BACKLOG_POLLUTION")
+
     dag = docs["dag"]
     nodes = dag.get("nodes") or {}
-    for node in ("S0A", "S0B", "S0C", "S0D", "H7A"):
+    for node in ("S0A", "S0B", "S0C", "S0D", "S0E0", "H7A"):
         require(node in nodes, "DAG_NODE_MISSING", node)
-    require("S0C" in set((nodes["H7A"].get("requires") or [])), "H7_MUST_DEPEND_ON_S0C")
-    require("H3C" in set((nodes["H7A"].get("requires") or [])), "H7_H3_DEPENDENCY_LOST")
-    require("H4B" in set((nodes["H7A"].get("requires") or [])), "H7_H4_DEPENDENCY_LOST")
-    forbidden = set(nodes["S0C"].get("forbidden") or [])
-    require("DeepSeek_Harness_runtime" in forbidden, "S0C_HARNESS_BOUNDARY_MISSING")
-    require("H2_auto_start" in forbidden, "S0C_H2_BOUNDARY_MISSING")
+    require(str(nodes["S0C"].get("state", "")).startswith("COMPLETED_CLOSED_R134"), "S0C_PROGRESS_NOT_RECONCILED")
+    require(str(nodes["S0D"].get("state", "")).startswith("COMPLETED_CLOSED_R135"), "S0D_PROGRESS_NOT_RECONCILED")
+    require(nodes["S0E0"].get("state") == "PHASE_A_RESERVED_NON_EXECUTABLE", "R136_DAG_PHASE_INVALID")
+    require("S0D" in set((nodes["S0E0"].get("requires") or [])), "R136_S0D_DEPENDENCY_MISSING")
+    h7_requires = set((nodes["H7A"].get("requires") or []))
+    require({"S0C", "S0E0", "H3C", "H4B"} <= h7_requires, "H7_DEPENDENCY_LOST")
+    require((dag.get("principles") or {}).get("completed_node_does_not_authorize_successor") is True,
+            "COMPLETED_NODE_AUTO_AUTHORIZATION_NOT_FORBIDDEN")
+    s0c_locks = set(nodes["S0C"].get("locks") or [])
+    require("no_Harness_runtime" in s0c_locks, "S0C_HARNESS_BOUNDARY_MISSING")
+    require("no_private_chat_bridge" in s0c_locks, "S0C_PRIVATE_BOUNDARY_MISSING")
+    require("NOT_AUTHORIZED" in str(nodes["H2A"].get("state", "")), "S0C_H2_BOUNDARY_MISSING")
+    s0e_forbidden = set(nodes["S0E0"].get("forbidden") or [])
+    require("DeepSeek_Harness_runtime" in s0e_forbidden, "R136_HARNESS_BOUNDARY_MISSING")
+    require("private_chat_cross_window_bridge" in s0e_forbidden, "R136_PRIVATE_BRIDGE_BOUNDARY_MISSING")
+    require("W3_runtime_mutation" in s0e_forbidden, "R136_W3_BOUNDARY_MISSING")
+    require("AI_Film_or_domain_canonical_write" in s0e_forbidden, "R136_DOMAIN_WRITE_BOUNDARY_MISSING")
 
     reconciliation = docs["reconciliation"]
     require((reconciliation.get("architecture_verdict") or {}).get("result") ==
@@ -139,8 +194,10 @@ def main() -> int:
         "result": "PASS",
         "validated_files": sorted(FILES.values()),
         "scenario_count": len(scenarios),
-        "dag_signal_nodes": ["S0A", "S0B", "S0C", "S0D", "H7A"],
+        "dag_signal_nodes": ["S0A", "S0B", "S0C", "S0D", "S0E0", "H7A"],
         "one_signal_tower": True,
+        "r136_phase": "PHASE_A_RESERVED_NON_EXECUTABLE",
+        "runtime_self_certification_allowed": False,
         "harness_runtime_authorized": False,
     }, ensure_ascii=False, sort_keys=True, indent=2))
     return 0

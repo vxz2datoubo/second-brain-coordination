@@ -1,95 +1,69 @@
-schema_version: "135.3"
+schema_version: "136.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 348
-task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+active_issue: 353
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
 parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
-route_epoch: 135
-mode: "goal"
-mode_label: "【Codex模式：目标模式】S0D Read-Only Cross-Repo Shadow Signal Plane"
-status: "DONE"
+route_epoch: 136
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】R136 Global Signal Intake + Adaptive Execution Gateway"
+status: "PREPARED_NON_EXECUTABLE"
 execution_allowed: false
 automatic_resume_within_task: false
-second_user_start_command_required: false
-intermediate_gpt_review_required: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
 merge_authorized: false
 runtime_code_change_allowed: false
-runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
+runtime_code_scope: "RESERVED / NO_EXECUTION_UNTIL_PHASE_B"
 
-canonical_main_at_prepare: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
-canonical_main_after_phase_a: "0f70131362eb5be2f78b246531e3368e4a854595"
-canonical_predecessor_route_epoch: 134
-canonical_predecessor_merge: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
-canonical_predecessor_closure_merge: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
-canonical_main_at_close: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
+canonical_main_at_prepare: "d83d5a3f8de82b991c1120ea46c818538e893265"
+canonical_predecessor_route_epoch: 135
+canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW"
+canonical_predecessor_merge: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
+canonical_predecessor_closure_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
+canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY-R136.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY.yaml"
+bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136.yaml"
+implementation_branch: "codex/global-signal-intake-adaptive-gateway-r136"
+implementation_pr: null
+
 source_ai_film_repository: "vxz2datoubo/eustia-ai-film"
-source_ai_film_main_at_activation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
-source_ai_film_open_prs_at_activation: 0
+source_ai_film_main_at_prepare: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+source_ai_film_open_prs_at_prepare: 0
 source_ai_film_authority_entry: "PROJECT_INDEX.yaml"
 source_ai_film_authority_blob_sha: "a9d6fd69b861c50aeef7d4f72c89fc7988e6ae19"
-bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135.yaml"
-activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R135-ACTIVATION.yaml"
-canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW-R135.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-PLANE-S0D-READ-ONLY-CROSS-REPO-SHADOW-R135.yaml"
-implementation_branch: "codex/global-signal-plane-s0d-read-only-shadow-r135"
-implementation_pr: 351
-closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R135-S0D-CLOSURE-RECONCILIATION.yaml"
 
 release_phase:
-  phase: "C_POST_MERGE_CLOSURE"
-  phase_a_pr: 349
-  phase_a_head: "25d6570e86233b30e9d3be59cc14dd1f3b0ebf69"
-  phase_a_control_tower_ci: 31918034024
-  phase_a_merge_commit: "0f70131362eb5be2f78b246531e3368e4a854595"
-  activation_receipt_status: "HISTORICAL_PASS_FOR_R135_PHASE_B_ACTIVATION"
-  execution_state: "DONE_AFTER_GPT_ACCEPTANCE_AND_EXPECTED_HEAD_MERGE"
+  phase: "A_RESERVATION_NON_EXECUTABLE"
+  reservation_status: "PREPARED_FOR_GPT_PHASE_A_REVIEW"
+  execution_state: "BLOCKED_PENDING_PHASE_A_MERGE_AND_PHASE_B_RECONCILIATION"
   hard_rule: >-
-    R135 is completed historical evidence only. Its prior activation receipt and launch envelope are not successor
-    authority. Any future stage requires a new task_id, route epoch, Work Claim, reconciliation, durable witness,
-    and explicit GPT/user release.
-
-completion_receipt:
-  accepted_runtime_head: "d0249d8b16217f723d6130adbe952d3860fa08ff"
-  implementation_pr: 351
-  merge_commit: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
-  final_review_id: 4945283639
-  exact_head_s0d_ci: 31922842881
-  exact_head_phase3_ci: 31922842885
-  python_311: PASS
-  python_313: PASS
-  route_disposition: "S0D_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
-  successor_stage_authorized: false
+    This route is non-executable in Phase A. After Phase A canonical merge, GPT must re-fetch current Second Brain main,
+    AI Film source state, all per-agent routes, Work Claims and Program Lanes, emit a successor R136 activation receipt,
+    and pass exact-head Control Tower CI before upgrading this route to READY/execution_allowed=true.
 
 objective: >-
-  Implement a bounded one-shot read-only cross-repo shadow adapter. It reads exact-commit status/reference surfaces
-  from AI Film plus Second Brain control-plane refs, emits source-grounded metadata/opaque-reference Signal backlog
-  projections inside the S0D write surface, detects source drift, preserves provenance/history, and never becomes
-  domain write authority.
+  Build the public-safe explicit Global Signal intake and adaptive execution gateway: durable Signal capture for material
+  intent, derived global system awareness, adaptive direct/domain/mission routing, mandatory pre-task global Signal
+  preflight, TaskReleasePacket, mechanism-backed RuntimeInvocationReceipt, and post-task Signal satisfaction closure.
+  Ordinary AI Film directing is the first read-only runtime-proof consumer and must not mutate AI Film.
 
-allowed_write_paths: []
-current_write_permission: "RELEASED / NO_ACTIVE_WRITE_PERMISSION"
+allowed_write_paths_after_phase_b:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+  - ".github/workflows/global-signal-plane-s0e.yml"
+current_write_permission: "FORBIDDEN_UNTIL_PHASE_B_CANONICAL_MERGE_AND_USER_LAUNCH"
 
 external_read_boundary:
   repository: "vxz2datoubo/eustia-ai-film"
   mode: "READ_ONLY_EXACT_COMMIT_BOUND"
   source_authority: "PROJECT_INDEX.yaml"
-  activation_source_commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
-  allowed_paths:
-    - "PROJECT_INDEX.yaml"
-    - "07_连续性与生产状态/连续性与当前生产状态.md"
-    - "10_运行时/pending_canonical_writes.yaml"
-    - "10_运行时/director_route_index.yaml"
-    - "10_运行时/maturity_model.yaml"
-    - "11_验收/director_regression_cases.yaml"
-    - "11_验收/golden_prompt_regression_cases.yaml"
-    - "11_验收/golden_case_director_pull_regression_cases.yaml"
-    - "12_未知项/UNKNOWN_REGISTRY.yaml"
-    - "12_未知项/SOUND_UNKNOWN_REGISTRY.yaml"
-  persisted_shared_output: "METADATA_AND_OPAQUE_REFS_ONLY"
+  source_commit_at_prepare: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  persisted_shared_output: "DIGESTS / OPAQUE_REFS / PUBLIC_SAFE_METADATA_ONLY"
   full_domain_body_copy: "FORBIDDEN"
   cross_repo_write: "FORBIDDEN"
 
 execution_contract:
+  s0c_s0d_accepted_runtime_mutation: "FORBIDDEN_UNLESS_GPT_SEPARATELY_EXPANDS_SCOPE"
   ai_film_git_mutation: "FORBIDDEN"
   full_domain_body_copy: "FORBIDDEN"
   private_chat_cross_window_bridge: "FORBIDDEN"
@@ -99,7 +73,6 @@ execution_contract:
   harness_workflow_subagent_jobs: "FORBIDDEN"
   h2_route_creation_activation: "FORBIDDEN"
   h7_runtime_claim: "FORBIDDEN"
-  s0e_live_event_streaming: "FORBIDDEN"
   webhook_listener_daemon_scheduler_polling: "FORBIDDEN"
   credentials_secrets_persistence_or_logging: "FORBIDDEN"
   permission_visibility_changes: "FORBIDDEN"
@@ -109,7 +82,7 @@ execution_contract:
   merge: "FORBIDDEN_TO_CODEX"
 
 resource_contract:
-  class: "NO_ACTIVE_IMPLEMENTATION"
+  target_class_after_activation: "MEDIUM_IMPLEMENTATION"
   same_codex_active_route_max: 1
   local_heavy_stage_max: 1
   nested_process_pools: "FORBIDDEN"
@@ -117,12 +90,25 @@ resource_contract:
   task_owned_temp_clone_cache_cleanup: "REQUIRED"
   task_owned_child_tracking_cleanup: "REQUIRED"
   global_kill_python: "FORBIDDEN"
-  large_matrix: "REMOTE_CI_PREFERRED"
+  broad_matrix: "REMOTE_CI_PREFERRED"
   daemon_server: "FORBIDDEN"
 
-completion_signal: "GLOBAL_SIGNAL_PLANE_S0D_READ_ONLY_SHADOW_READY_FOR_GPT_REVIEW"
-next_command: "NO_ACTIVE_TASK"
+launch_envelope:
+  repository_must_equal: "vxz2datoubo/second-brain-coordination"
+  task_id_must_equal: "CODEX-GLOBAL-SIGNAL-TOWER-R136-ADAPTIVE-INTAKE-EXECUTION-GATEWAY"
+  route_epoch_must_equal: 136
+  issue_must_equal: 353
+  planned_branch_must_equal: "codex/global-signal-intake-adaptive-gateway-r136"
+  phase_b_required_before_write: true
+  ai_film_repository_is_source_only: true
+  source_drift_requires_stop_and_fresh_reconciliation: true
+  local_ai_film_codex_collision_must_be_absent: true
+  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
+  do_not_guess_or_auto_switch_repository: true
+
+completion_signal: "R136_GLOBAL_SIGNAL_INTAKE_ADAPTIVE_GATEWAY_READY_FOR_GPT_REVIEW"
+next_command: "NO_EXECUTION_PHASE_A"
 lock_statement: >-
-  Epoch 135 is completed historical evidence only and may not be resumed. It cannot mutate AI Film, copy domain
-  canonical bodies into shared truth, ingest private chat/W3 data, activate S0E/H2/H7/Harness, run production services,
-  change permissions or trade. Any successor requires a new route and explicit release.
+  Epoch 136 Phase A reserves only the future S0E public-safe implementation surface. It grants no Codex execution, no
+  AI Film write, no private chat/W3 ingestion, no Harness/H2/H7, no daemon/live production service, no permission change
+  and no trading. A separate Phase B activation and user launch envelope are mandatory.
