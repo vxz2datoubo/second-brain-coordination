@@ -20,9 +20,19 @@ jobs:
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
         env: {PYTHONPATH: 'src:../S0-SYNTHETIC/src', PYTHONDONTWRITEBYTECODE: '1'}
         run: python -m unittest discover -s tests -v
+      - name: Generate real AI Film exact-read proof
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
+        env: {PYTHONPATH: 'src:../S0-SYNTHETIC/src', PYTHONDONTWRITEBYTECODE: '1'}
+        run: python run_ai_film_smoke.py --output "$RUNNER_TEMP/r136-ai-film-exact-read.json"
+      - name: Upload real AI Film exact-read proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: r136-ai-film-exact-read-py${{ matrix.python-version }}
+          path: ${{ runner.temp }}/r136-ai-film-exact-read.json
+          if-no-files-found: error
       - name: Run public safety scan and artifact validation
         run: |
           python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/public_safety_scan.py
-          python -c "import json, yaml; json.load(open('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/AI-FILM-READ-ONLY-SMOKE-RECEIPT.json')); [yaml.safe_load(open(p)) for p in ['coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/EXECUTION-PLAN.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/AI_HANDOFF.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/IMPLEMENTATION-RECEIPT.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/UNKNOWN-REGISTRY.yaml']]; print('S0E_ARTIFACT_PARSE_PASS')"
+          python -c "import yaml; [yaml.safe_load(open(p)) for p in ['coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/EXECUTION-PLAN.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/AI_HANDOFF.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/IMPLEMENTATION-RECEIPT.yaml','coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/UNKNOWN-REGISTRY.yaml']]; print('S0E_ARTIFACT_PARSE_PASS')"
           BASE_SHA="${{ github.event.pull_request.base.sha || github.event.before }}"
           git diff --check "$BASE_SHA...HEAD"
