@@ -1,45 +1,108 @@
 from __future__ import annotations
+
 import json
 from pathlib import Path
 import tempfile
 import unittest
-from global_signal_shadow.adapter import ALLOWED_PATHS, AI_FILM_COMMIT, AI_FILM_REPOSITORY, PROJECT_INDEX_BLOB, ReadOnlyExactCommitAdapter, ShadowError, ShadowLedger, SourceObservation, self_shadow
 
-ROOT = Path(__file__).resolve().parents[1]
-def write_source(root: Path, paths: tuple[str, ...] = ALLOWED_PATHS) -> None:
-    for path in paths:
-        target = root / path; target.parent.mkdir(parents=True, exist_ok=True)
-        text = "schema_version: v1\nstatus: active\n"
-        if path == "PROJECT_INDEX.yaml": text += "project_id: EUSTIA_AI_FILM\nsource_authority: this_file\n"
-        target.write_text(text, encoding="utf-8")
-    index = root / "PROJECT_INDEX.yaml"
-    # Fixture adapter uses the known object id only after overriding its expected payload in individual tests.
+from global_signal_shadow.adapter import (
+    DurableShadowAdmission,
+    ReadOnlyExactCommitAdapter,
+    ShadowError,
+    build_second_brain_snapshot,
+    one_shot_receipt,
+    self_shadow,
+)
+from global_signal_shadow.fixtures import commit_control_task, commit_source_status, make_control_fixture, make_source_fixture
 
-class ShadowTest(unittest.TestCase):
-    def source(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
-        directory = tempfile.TemporaryDirectory(); root = Path(directory.name); write_source(root); return directory, root
-    def observation(self, path: str = "10_运行时/pending_canonical_writes.yaml", state: str = "PENDING") -> SourceObservation:
-        return SourceObservation(AI_FILM_REPOSITORY, AI_FILM_COMMIT, path, "a" * 40, "b" * 64, "PROJECT_INDEX.yaml", {"schema_version":"v1"}, (state,))
-    def test_allowlist_write_rejection_and_drift_fail_closed(self) -> None:
-        directory, root = self.source(); self.addCleanup(directory.cleanup)
-        adapter = ReadOnlyExactCommitAdapter(root)
-        with self.assertRaises(ShadowError) as forbidden: adapter.read("03_剧本.md")
-        self.assertEqual(forbidden.exception.code, "FORBIDDEN_SOURCE_PATH")
-        with self.assertRaises(ShadowError) as write: adapter.write("x", "y")
-        self.assertEqual(write.exception.code, "CROSS_REPO_WRITE_FORBIDDEN")
-        with self.assertRaises(ShadowError) as drift: ReadOnlyExactCommitAdapter(root, commit="0" * 40)
-        self.assertEqual(drift.exception.code, "SOURCE_COMMIT_DRIFT")
-    def test_history_idempotency_omission_unknown_and_bootstrap_are_mechanism_derived(self) -> None:
-        ledger = ShadowLedger(); first = self.observation(state="UNKNOWN")
-        self.assertEqual(ledger.append(first)["status"], "ADMITTED"); self.assertEqual(ledger.append(first)["status"], "IDEMPOTENT_DUPLICATE")
-        projection = ledger.projection(); self.assertEqual(projection["backlog_state"], "AI_FILM_DOMAIN_BACKLOG_BOOTSTRAP_REQUIRED")
-        self.assertIn(first.path, projection["unresolved_paths"]); self.assertEqual(len(ledger.history()), 1)
-    def test_status_history_replay_and_self_drift_are_observed(self) -> None:
-        ledger = ShadowLedger(); ledger.append(self.observation(state="PENDING")); before = ledger.projection(); after = ledger.projection()
-        self.assertEqual(before["checksum"], after["checksum"]); self.assertIn("PENDING", before["observed_states"])
-        stale = {"repository":"vxz2datoubo/second-brain-coordination","main":"old","task_id":"t","route":"r","work_claim":"c","program_lane":"p"}
-        current = dict(stale, main="new")
-        self.assertEqual(self_shadow(stale, current)["codes"], ["CROSS_WINDOW_STATE_DRIFT"])
-    def test_public_projection_has_no_raw_body_or_private_marker(self) -> None:
-        ledger = ShadowLedger(); ledger.append(self.observation()); encoded = json.dumps(ledger.projection())
-        self.assertNotIn("screenplay", encoded.casefold()); self.assertNotIn("private", encoded.casefold())
+
+class ExactBindingAndDurabilityTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        self.source = self.root / "source"
+        self.commit, self.binding = make_source_fixture(self.source)
+
+    def tearDown(self) -> None:
+        self.temporary.cleanup()
+
+    def test_b01_root_head_tree_blob_and_worktree_payload_are_all_required(self) -> None:
+        adapter = ReadOnlyExactCommitAdapter(self.source, binding=self.binding)
+        observation = adapter.read("pending_canonical_writes.yaml")
+        self.assertEqual(observation.commit, self.commit)
+        self.assertEqual(observation.blob_sha, self.binding.blob_for(observation.path))
+        path = self.source / observation.path
+        path.write_text(path.read_text(encoding="utf-8") + "# changed after exact commit\n", encoding="utf-8")
+        with self.assertRaises(ShadowError) as mismatch:
+            adapter.read(observation.path)
+        self.assertEqual(mismatch.exception.code, "SOURCE_WORKTREE_PAYLOAD_MISMATCH")
+
+    def test_b02_uses_s0c_sqlite_idempotency_transition_and_fresh_replay(self) -> None:
+        first = ReadOnlyExactCommitAdapter(self.source, binding=self.binding).read("pending_canonical_writes.yaml")
+        db_path = self.root / "ledger.sqlite"
+        admission = DurableShadowAdmission(db_path)
+        try:
+            initial = admission.admit(first, source_sequence=1)
+            self.assertEqual(initial["event"]["status"], "ADMITTED")
+            self.assertEqual(admission.admit(first, source_sequence=1)["event"]["status"], "IDEMPOTENT_DUPLICATE")
+            _, second_binding = commit_source_status(self.source, "completed")
+            second = ReadOnlyExactCommitAdapter(self.source, binding=second_binding).read("pending_canonical_writes.yaml")
+            transitioned = admission.admit(second, source_sequence=2)
+            projection = admission.ledger.current_projection()
+            self.assertIsNotNone(projection)
+            self.assertEqual(initial["signal_id"], transitioned["signal_id"])
+            self.assertEqual(projection["signals"][0]["execution_state"], "DONE")
+            self.assertEqual(len(projection["signals"][0]["provenance_event_refs"]), 2)
+            replay = admission.durable_replay_receipt()
+            self.assertTrue(replay["match"])
+            self.assertEqual(replay["history_count"], 2)
+        finally:
+            admission.close()
+
+    def test_b03_omission_is_a_noop_not_an_implicit_revoke(self) -> None:
+        observation = ReadOnlyExactCommitAdapter(self.source, binding=self.binding).read("pending_canonical_writes.yaml")
+        admission = DurableShadowAdmission(self.root / "omission.sqlite")
+        try:
+            admission.admit_snapshot([observation])
+            before = admission.ledger.history()
+            self.assertEqual(admission.admit_snapshot([]), [])
+            after = admission.ledger.history()
+            self.assertEqual(before, after)
+            self.assertTrue(all(not event["revokes_refs"] for event in after))
+        finally:
+            admission.close()
+
+    def test_b04_registry_state_does_not_override_nested_item_state(self) -> None:
+        target = self.source / "pending_canonical_writes.yaml"
+        target.write_text(
+            "registry_id: fixture-pending\nstatus: active\nitems:\n  - id: ITEM-001\n    status: completed\n",
+            encoding="utf-8",
+        )
+        _, binding = commit_source_status(self.source, "completed")
+        observation = ReadOnlyExactCommitAdapter(self.source, binding=binding).read("pending_canonical_writes.yaml")
+        self.assertEqual(observation.derived_state, "COMPLETED")
+        self.assertEqual(observation.derived_items[0].stable_ref, "pending_canonical_writes.yaml#items/ITEM-001")
+        self.assertEqual(observation.derived_items[0].state, "COMPLETED")
+        self.assertNotEqual(observation.derived_state, "ACTIVE")
+
+    def test_b05_receipt_is_public_safe_and_contains_per_observation_binding(self) -> None:
+        adapter = ReadOnlyExactCommitAdapter(self.source, binding=self.binding)
+        control = self.root / "control"
+        control_commit = make_control_fixture(control)
+        receipt = one_shot_receipt(adapter, db_path=self.root / "receipt.sqlite", second_brain_root=control, second_brain_commit=control_commit)
+        self.assertEqual(len(receipt["observations"]), len(self.binding.allowed_paths))
+        for observation in receipt["observations"]:
+            self.assertEqual(set(("repository", "commit", "path", "blob_sha", "content_sha256", "schema_ref", "derived_state", "opaque_ref")) - set(observation), set())
+        encoded = json.dumps(receipt, sort_keys=True)
+        self.assertNotIn("synthetic fixture domain body", encoded)
+        self.assertTrue(receipt["durable_s0c_admission"]["replay"]["match"])
+        self.assertTrue(receipt["second_brain_self_shadow"]["drift_result"]["valid"])
+
+    def test_b03_self_shadow_is_built_from_git_bound_control_snapshots(self) -> None:
+        control = self.root / "control-drift"
+        first = make_control_fixture(control, task_id="TASK-A")
+        snapshot = build_second_brain_snapshot(control, commit=first)
+        second = commit_control_task(control, "TASK-B")
+        drift = self_shadow(snapshot, build_second_brain_snapshot(control, commit=second))
+        self.assertFalse(drift["valid"])
+        self.assertEqual(drift["codes"], ["CROSS_WINDOW_STATE_DRIFT"])
