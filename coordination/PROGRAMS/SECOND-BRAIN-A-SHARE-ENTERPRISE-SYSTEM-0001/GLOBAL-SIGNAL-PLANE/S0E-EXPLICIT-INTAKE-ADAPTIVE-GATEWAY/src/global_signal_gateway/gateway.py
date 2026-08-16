@@ -594,3 +594,11 @@ def ai_film_directing_read_only_smoke(root: str | Path, *, awareness: SystemAwar
     after = str(_git(source, "status", "--porcelain"))
     if after != before: raise GatewayError("AI_FILM_ZERO_MUTATION_VIOLATION")
     return {"receipt": dict(receipt.data), "source_binding": {"repository": AI_FILM_REPOSITORY, "commit": AI_FILM_COMMIT, "authority_path": "PROJECT_INDEX.yaml", "authority_blob_sha": AI_FILM_AUTHORITY_BLOB}, "directing_read_set_resolved": True, "matched_routes": route_refs, "fixture_ref": f"opaque://ai-film-directing-fixture/{digest(fixture)}", "route": {"persistence_class": "TRACE_ONLY", "execution_class": "DOMAIN_WORKFLOW", "materiality_class": "LOW"}, "durable_signal_created": False, "domain_write_authorized": False, "raw_content_published": False, "source_status_before": "CLEAN", "source_status_after": "CLEAN"}
+
+
+def route_domain_learning_handoff(packet: Any) -> dict[str, Any]:
+    """R139 Stage-A bridge: route a verified packet without domain mutation."""
+    from .domain_learning_handoff import DomainLearningHandoffPacket, route_packet
+    if not isinstance(packet, DomainLearningHandoffPacket):
+        raise GatewayError("DOMAIN_HANDOFF_PACKET_REQUIRED")
+    return route_packet(packet)
