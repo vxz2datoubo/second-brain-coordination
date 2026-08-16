@@ -54,6 +54,8 @@ jobs:
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "requirements_sha256=$(sha256sum "$RUNNER_TEMP/requirements.txt" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Public dependency provisioning only (not execution evidence)
+        env:
+          R138_EXACT_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           mkdir "$RUNNER_TEMP/wheelhouse"
           docker run --rm --mount "type=bind,src=$RUNNER_TEMP,dst=/provision" python:3.13-slim python -m pip download --disable-pip-version-check --only-binary=:all: -r /provision/requirements.txt -d /provision/wheelhouse
@@ -71,7 +73,7 @@ jobs:
           import hashlib, json, os, subprocess
           root=os.environ['RUNNER_TEMP']; image=subprocess.check_output(['docker','image','inspect','--format','{{.Id}}','r138-ai-film-golden-case:provisioned'], text=True).strip()
           wheels=hashlib.sha256(open(root+'/wheelhouse.sha256','rb').read()).hexdigest()
-          json.dump({'image':'r138-ai-film-golden-case:provisioned','image_id':image,'wheelhouse_sha256':wheels,'workflow':'Global Signal Plane R138 Capability Execution','head_sha':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],'provisioning_artifact_id':'r138-public-provisioning-'+os.environ['GITHUB_SHA'],'provisioning_artifact_digest':wheels},open(root+'/provisioning-attestation.json','w'),sort_keys=True)
+          json.dump({'image':'r138-ai-film-golden-case:provisioned','image_id':image,'wheelhouse_sha256':wheels,'workflow':'Global Signal Plane R138 Capability Execution','head_sha':os.environ['R138_EXACT_HEAD'],'run_id':os.environ['GITHUB_RUN_ID'],'provisioning_artifact_id':'r138-public-provisioning-'+os.environ['R138_EXACT_HEAD'],'provisioning_artifact_digest':wheels},open(root+'/provisioning-attestation.json','w'),sort_keys=True)
           PY
       - uses: actions/upload-artifact@v4
         with:
