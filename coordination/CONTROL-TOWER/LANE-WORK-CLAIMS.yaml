@@ -1,4 +1,4 @@
-schema_version: "3.2"
+schema_version: "3.3"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -7,21 +7,15 @@ boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 semantics:
   purpose: >-
-    Declare the actual current work surface for every Program Lane. A strategic lane may exist without an implementation
-    claim. Any implementation reservation/execution must declare exact write paths, interfaces, authority claims,
-    resource class and route binding.
+    Declare the actual current work surface for every Program Lane. Any implementation reservation/execution must declare
+    exact write paths, interfaces, authority claims, resource class and route binding.
   no_claim_no_durable_runtime_write: true
   proposal_only_does_not_authorize_runtime_change: true
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
-  reserved_implementation_occupies_surface_without_execution: true
-  reserved_implementation_requires_non_executable_route: true
-  reserved_implementation_requires_global_reconciliation_receipt: true
-  reservation_to_active_requires_successor_receipt_and_fresh_control_tower: true
-  r138_completion_does_not_authorize_successor_execution: true
   r139_completion_does_not_authorize_successor_execution: true
-  global_reconciliation_receipt_is_not_execution_authority: true
+  r140_activation_authorizes_only_exact_bounded_second_brain_surface: true
   implementation_release_requires_fresh_claim_rescan: true
 
 proposal_roots:
@@ -47,33 +41,75 @@ claims:
       merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
       completed_route_epoch: 132
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
-    stop_conditions:
-      - "A future implementation requires a new per-agent ACTIVE route and fresh Work Claim."
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
-    write_domains: []
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "MEDIUM_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
+      route_epoch: 140
+      issue: 382
+      pr: null
+      branch: "codex/r140-domain-learning-recall-loop"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_recall.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r140_domain_learning_recall.py"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R140"
+      - ".github/workflows/global-signal-plane-r140-domain-learning-recall.yml"
+    read_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-ARCHITECTURE-v1.0.md"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-CONTRACT.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-THREAT-MODEL-v1.0.md"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/read_sets.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/maturity_model.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:11_验收/golden_prompt_cases.yaml"
+      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:08_系统学习/C-DANCE2.5真实生成反馈库.md"
+    interfaces:
+      - name: "DomainLearningHandoff-V1"
+        mode: "read/frozen"
+        frozen: true
+      - name: "DomainLearningRecall-V1"
+        mode: "implement Second Brain side only"
+        frozen_for_r140: true
+      - name: "AI-Film-Domain-Authority"
+        mode: "read-only / no-write"
+        frozen: true
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read/evidence-only"
+        frozen: true
+    read_domains: [W1, W3, W8, W9, W10]
+    write_domains: [W8]
     authority_claims: []
-    closure_receipt:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
-      completed_route_epoch: 139
-      closure_issue: 375
-      merged_pr: 379
-      accepted_exact_head: "e27e592075294eb3ec172ff054e3aaafcf7b6e74"
-      merge_commit: "2d715f8966bc443f2d75ae8defe82d548e8a444e"
-      gpt_review: 4947497284
-      disposition: "ACCEPTED_WITH_NARROW_CI_COMPATIBILITY_REPAIR / R139_STAGE_A_CLOSED"
-      stage_b_domain_writer: "NOT_AUTHORIZED"
+    implementation_scope:
+      slice: "R140_DOMAIN_LEARNING_RECALL_LOOP"
+      issue: 382
+      phase: "B_ACTIVE_IMPLEMENTATION"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      activation_reconciliation: "coordination/CONTROL-TOWER/R140-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      runtime_code_change_allowed: true
+      ai_film_write_allowed: false
+      domain_maturity_authority: false
+      production_allowed: false
+      trading_allowed: false
+      codex_merge_allowed: false
     stop_conditions:
-      - "Any successor implementation requires a new task_id/route_epoch, fresh Work Claim and fresh reconciliation."
-      - "AI Film/domain canonical write requires a separate domain-owned gate."
+      - "Write outside exact six-surface allowlist -> STOP"
+      - "AI Film/domain write requirement -> STOP / separate domain-owned gate"
+      - "Private/raw conversation/media or secret requirement -> STOP"
+      - "Same Codex/local-heavy collision or stale atomic dispatch claim -> STOP / reconcile"
+      - "Semantic similarity used as sole applicability proof -> STOP / FALSE_GREEN"
+      - "Passing tests or CI never authorizes Codex merge"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -98,17 +134,10 @@ claims:
     read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
     write_domains: []
     authority_claims: []
-    implementation_upgrade_requires:
-      - "explicit route binding"
-      - "one bounded remediation write surface"
-      - "fresh O0-O4 rescan"
-      - "PIT/T+1/W7/NO_TRADE and domain authority gates"
-      - "commit-time route witness"
 
 release_semantics:
   proposal_only_parallelism: >-
-    R139 is closed and Lane A owns no active implementation surface. Lane B remains isolated proposal-only and Lane C
-    remains closed. No current mutable implementation collision is authorized.
+    R140 owns the one bounded active Lane A Codex implementation surface. Lane B remains isolated proposal-only and Lane C closed.
   implementation_release_is_separate: true
-  successor_route_requires_fresh_reconciliation: true
-  r139_ai_film_boundary: "READ_ONLY_STAGE_A_COMPLETE / NO_DOMAIN_CANONICAL_WRITE"
+  active_route_requires_atomic_claim_at_executor: true
+  r140_ai_film_boundary: "READ_ONLY / NO_DOMAIN_CANONICAL_WRITE"

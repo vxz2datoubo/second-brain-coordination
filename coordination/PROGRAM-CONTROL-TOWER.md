@@ -4,7 +4,7 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-17T06:58:00+08:00`
+- as_of: `2026-08-17T07:02:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
 - User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
@@ -13,7 +13,7 @@
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN` | 139 | `DONE` | `false` | #375 / #379 |
+| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP` | 140 | `READY` | `true` | #382 / #None |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `GPT_REVIEW_CHANGES_REQUIRED_PAUSED` | `false` | #296 / #304 |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `PAUSED` | `PAUSED` | `false` | FRESH_ROADMAP_AND_GLOBAL_RECONCILIATION_THEN_NEW_MISSION_RESERVATION_IF_NEEDED |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `ACTIVE` | `true` | CODEX_MISSION_COMPLETION_THEN_INDEPENDENT_GPT_EXACT_HEAD_REVIEW_NO_CODEX_MERGE |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE_IMPLEMENTATION` | `CODEX` | `MEDIUM_IMPLEMENTATION` | 6 paths | epoch 140 · #382/#None |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -44,7 +44,7 @@
 
 | Pair | level | reason |
 |---|---|---|
-| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O0** | `NO_MATERIAL_OVERLAP` |
+| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O1** | `READ_READ` |
 | `LANE-A-HARNESS-INTEGRATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-B-A-SHARE-REMEDIATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 
@@ -58,31 +58,29 @@
 
 ## 当前正式节奏
 
-- **R136 / R137 / R138 / R139 Stage-A 均已完成并关闭**。
-- **R139 Domain Learning Handoff Stage-A 已独立验收并合并**：PR #379，accepted exact head `e27e592075294eb3ec172ff054e3aaafcf7b6e74`，GPT review `4947497284`，merge `2d715f8966bc443f2d75ae8defe82d548e8a444e`。
-- **所有最终 exact-head 相关 CI 均通过**：R139 `31977565451`、retained R137 `31977565506`、R138 `31977565475`、S0E `31977565660`、Phase 3 `31977565492`。
-- **R137 历史 workflow 的 successor compatibility 缺陷已单独修复**：PR #380，merge `39e9050c99327785c56a72621e718fcadd33cb36`。修复没有放宽 R137 provider 的 fail-closed 语义，只阻止已过期的 R137-specific live proof 在 successor ACTIVE route 下误报红灯。
-- **R139 Stage-A 实际证明的范围**：Second Brain 可生成/校验 DomainLearningHandoffPacket 与 receipt candidate、做 materiality/routing、去重与 append-only correction，并对两个真实 AI Film 对象进行 exact-commit read-only smoke；AI Film source 保持 clean，`writeback_status=NONE`。
-- **AI Film 仍是唯一 domain learning authority**。Stage-A 不决定 maturity、不复制最终 lesson truth、不写 AI Film canonical；Stage-B attributable processor/writer 仍为未来独立 domain-owned gate。
-- **Lane A lease 已释放**；epoch 139 不得再次领取。当前无 Codex implementation lease。
-- **R138-F01 继续保留**，任何 future production promotion 前必须补 dedicated Docker query-returncode-failure regression。
-- **Lane B 继续 user-held / NO_TRADE**；QCLAW 与 WorkBuddy 均不可执行。
+- **R139 Stage-A 已完成、closure 已 canonical**：closure main `018943c0a3d76676e93847279660915b8e8e5988`，Lane A lease 已释放。
+- **R140 Domain Learning Recall architecture 已 canonical**：Issue #382，PR #383，merge `a411f40ba2d865dae40160e6b9129169f9450d26`。
+- **R140 是 Mission-sized 单任务**：一次完成 M0 preflight → M1 schemas → M2 structural retrieval/applicability gate → M3 adversarial regressions → M4 三条 read-only replay → M5 exact-head CI → M6 evidence/cleanup/rollback，不为普通 blocker 拆微任务。
+- **核心不是“相似文本搜索”**。必须同时考虑 symptom/problem、scene/work item、model/tool/version、constraints、maturity、applicability/non-applicability、failure conditions/counterexamples、needs_revalidation/conflict/deprecation 和 provenance。
+- **AI Film current main 仍为 `44c383afd2207a97caf45b1b0da6ee1dece43a76`**，与 architecture reference 一致；R140 只读，不写 domain canonical、不决定 maturity、不做 Formal Skill promotion。
+- **真实 replay**：fashion excellent case 必须 bounded recall；`CD25-KAIM-WINDOW-AB-20260815` 必须保留 candidate/confounded_inconclusive；不兼容 model/version 或 failure-condition 命中必须 abstain/needs_revalidation。
+- **资源**：一个 Codex route、一个 local heavy stage、single-worker default、remote CI preferred；no nested pools/global kill/daemon leak。
+- **R138-F01 与 R139 Stage-B gate 继续保留**；Lane B held/NO_TRADE，QCLAW/WorkBuddy 不可执行。
 
-## R139 closure evidence
+## R140 activation evidence
 
-- Issue: `#375`
-- Task: `CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN`
-- Route epoch: `139`
-- Implementation PR: `#379`
-- Accepted exact head: `e27e592075294eb3ec172ff054e3aaafcf7b6e74`
-- GPT final review: `4947497284`
-- Implementation merge: `2d715f8966bc443f2d75ae8defe82d548e8a444e`
-- CI compatibility repair: PR `#380` / merge `39e9050c99327785c56a72621e718fcadd33cb36`
-- Closure receipt: `coordination/CONTROL-TOWER/R139-DOMAIN-LEARNING-HANDOFF-CLOSURE-RECONCILIATION.yaml`
+- Issue: `#382`
+- Task: `CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP`
+- Route epoch: `140`
+- Architecture PR: `#383`
+- Architecture merge: `a411f40ba2d865dae40160e6b9129169f9450d26`
+- Activation reconciliation: `coordination/CONTROL-TOWER/R140-ACTIVATION-RECONCILIATION.yaml`
+- AI Film exact read-only ref: `44c383afd2207a97caf45b1b0da6ee1dece43a76`
+- Implementation branch: `codex/r140-domain-learning-recall-loop`
+- Write allowlist: six exact Second Brain surfaces
+- AI Film write authority: **NONE**
 - Codex merge authority: **NONE**
 
 ## 下一关
 
-先做 fresh roadmap/global reconciliation，再选择下一个 **Mission-sized** 纵向能力。优先候选应继续保持只读/可验证边界，例如“已验证 domain learning object → 导演运行时结构化召回 → applicability/failure-condition/revalidation 约束 → recall receipt → 两条真实回放”的完整 retrieval/recall 闭环。
-
-Stage-B AI Film writer、domain truth 写入、Formal Skill promotion、production/private/secret/permission、真实交易/资金均不因 R139 完成而自动获得授权。
+Activation PR exact-head Control Tower CI → GPT review/merge → one structured GitHub dispatch → Codex atomic claim and one continuous M0-M6 implementation mission. Ordinary implementation blockers remain in the same Task/PR/branch.
