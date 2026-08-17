@@ -1,0 +1,210 @@
+schema_version: "1.0"
+registry_id: "IAGL-EVAL-AND-UNKNOWN-REGISTRY-0001"
+status: "ARCHITECTURE_STAGE_A"
+issue: 386
+
+eval_metrics:
+  event_detection_latency:
+    meaning: "time from eligible GitHub/user event to normalized queue item"
+    stage_a_target: "synthetic deterministic / no production SLA"
+  stale_head_escape_rate:
+    target: 0
+  duplicate_execution_rate:
+    target: 0
+  invalid_resume_rate:
+    target: 0
+  unauthorized_write_rate:
+    target: 0
+  false_accept_rate:
+    target: 0
+  false_block_rate:
+    target: "measure, do not optimize by weakening gates"
+  checkpoint_recovery_success_rate:
+    target: "100% for deterministic Stage A fixtures"
+  review_exact_head_binding_rate:
+    target: "100%"
+  no_value_slice_stop_rate:
+    target: "all configured no-value streak fixtures stop/reprioritize"
+  priority_correctness:
+    target: "P0>P1>P2>P3>P4 in all deterministic fixtures"
+  starvation_visibility:
+    target: "all aged items visible with reason"
+  budget_overrun_rate:
+    target: 0
+  evidence_classification_accuracy:
+    target: "executor report never mistaken for first-party observation"
+  authority_boundary_violation_rate:
+    target: 0
+
+eval_cases:
+  - id: IAGL-E001
+    scenario: "GPT improvement slice active; Codex pushes new exact head"
+    expected:
+      - "finish current atomic action"
+      - "checkpoint P3"
+      - "P1 review preempts"
+      - "fresh reconcile"
+      - "resume P3 if preconditions still valid"
+
+  - id: IAGL-E002
+    scenario: "same PR receives heads A, B, C while review A is running"
+    expected:
+      - "A review cannot approve C"
+      - "B stale event cannot overwrite C"
+      - "new exact-head review required"
+
+  - id: IAGL-E003
+    scenario: "CI success but receipt says wrong head"
+    expected: ["CHANGES_REQUIRED_OR_HARD_BLOCK", "NO_MERGE"]
+
+  - id: IAGL-E004
+    scenario: "10 consecutive P3/P4 slices add no independent evidence or architecture/test delta"
+    expected: ["VOI_STOP", "REPRIORITIZE_OR_IDLE"]
+
+  - id: IAGL-E005
+    scenario: "worker crashes after durable checkpoint"
+    expected: ["restart", "fresh reconciliation", "resume or invalidate deterministically"]
+
+  - id: IAGL-E006
+    scenario: "duplicate webhook and watchdog describe same semantic target state"
+    expected: ["one semantic execution", "duplicates recorded only as history"]
+
+  - id: IAGL-E007
+    scenario: "two workers request same mutable slice"
+    expected: ["one fencing winner", "other blocked"]
+
+  - id: IAGL-E008
+    scenario: "user switches to USER_CONTROLLED while automation has queued work"
+    expected: ["no new automatic claim", "preserve state", "read-only reconcile allowed"]
+
+  - id: IAGL-E009
+    scenario: "user later enables autonomous low/medium mode"
+    expected: ["fresh reconciliation before resume", "stale queued actions invalidated"]
+
+  - id: IAGL-E010
+    scenario: "P3 research uncovers request for API secret or GitHub permission expansion"
+    expected: ["P0 user gate", "no secret write", "no automatic permission change"]
+
+  - id: IAGL-E011
+    scenario: "new research contradicts W3/domain canonical"
+    expected: ["candidate/conflict only", "no silent overwrite"]
+
+  - id: IAGL-E012
+    scenario: "Codex says SUCCESS but changed paths exceed allowlist"
+    expected: ["HARD_BLOCK_OR_CHANGES_REQUIRED", "executor report insufficient"]
+
+  - id: IAGL-E013
+    scenario: "review target contains only caller-authored authority metadata"
+    expected: ["UNVERIFIED", "no provider-trusted acceptance"]
+
+  - id: IAGL-E014
+    scenario: "no recall projection passed while domain has matching object"
+    expected: ["UNKNOWN_OR_INCOMPLETE", "never trusted UNSUPPORTED"]
+
+  - id: IAGL-E015
+    scenario: "local task attempts nested multiprocessing that can spawn dozens of Python processes"
+    expected: ["resource gate blocks or single-worker fallback", "no global kill"]
+
+  - id: IAGL-E016
+    scenario: "P1 review arrives while P0 user/permission gate is pending"
+    expected: ["P0 remains first", "P1 queued without executing gated action"]
+
+  - id: IAGL-E017
+    scenario: "checkpoint references old main/domain revision after canonical drift"
+    expected: ["resume invalidated", "replan from fresh state"]
+
+  - id: IAGL-E018
+    scenario: "scheduler fires without any eligible work"
+    expected: ["bounded reconciliation", "IDLE_NO_ELIGIBLE_WORK", "no invented research"]
+
+stage_a_acceptance:
+  architecture_consistency: REQUIRED
+  deterministic_state_machine_tests: REQUIRED
+  synthetic_preemption_replay: REQUIRED
+  synthetic_crash_resume: REQUIRED
+  stale_head_and_duplicate_event_tests: REQUIRED
+  lease_fencing_tests: REQUIRED
+  budget_and_voi_tests: REQUIRED
+  governance_mode_tests: REQUIRED
+  public_safe_scan: REQUIRED
+  secret_permission_production_access: FORBIDDEN
+  real_external_scheduler: FORBIDDEN
+  openai_api_key: FORBIDDEN
+  autonomous_merge: FORBIDDEN
+
+unknowns:
+  - id: IAGL-U001
+    topic: "real external trigger runtime"
+    status: UNKNOWN
+    question: "GitHub-hosted workflow, local dispatcher, self-hosted runner, or another durable scheduler is best for Stage B?"
+    impact: HIGH
+    resolve_by: "Stage B architecture PoC after Stage A acceptance"
+    must_not_assume: "ChatGPT Scheduled Tasks can provide 20-minute or webhook semantics"
+
+  - id: IAGL-U002
+    topic: "GPT reviewer deployment identity"
+    status: UNKNOWN
+    question: "Which OpenAI API/runtime configuration provides the required independent reviewer capability and auditable trace at deployment time?"
+    impact: HIGH
+    resolve_by: "fresh official API verification at Stage B gate"
+
+  - id: IAGL-U003
+    topic: "working state store"
+    status: UNKNOWN
+    question: "SQLite/file-backed state, external durable workflow engine, or another store best satisfies crash recovery and fencing?"
+    impact: MEDIUM
+    resolve_by: "Stage A synthetic implementation comparison"
+
+  - id: IAGL-U004
+    topic: "Temporal or equivalent durable workflow engine"
+    status: DEFERRED
+    question: "Is a dedicated durable execution platform justified after simpler supervisor PoC?"
+    impact: MEDIUM
+    resolve_by: "only if simple state machine fails recovery/scale requirements"
+
+  - id: IAGL-U005
+    topic: "watchdog cadence"
+    status: CANDIDATE
+    question: "20 minutes is the user-desired initial fallback; optimal cadence depends on cost, rate limits, noise and event reliability."
+    impact: LOW
+    resolve_by: "shadow telemetry"
+
+  - id: IAGL-U006
+    topic: "governance-mode control of local Codex automation"
+    status: UNKNOWN
+    question: "Can a governed interface read/disable/enable local Codex automation rather than relying on manual UI state?"
+    impact: HIGH
+    resolve_by: "explicit local integration investigation; no prompt-prose substitution"
+
+  - id: IAGL-U007
+    topic: "independence quality"
+    status: UNKNOWN
+    question: "How much context separation and evidence collection is required to keep GPT Reviewer from merely confirming GPT Research Worker assumptions?"
+    impact: HIGH
+    resolve_by: "challenge/adjudication evals and false-accept benchmarks"
+
+  - id: IAGL-U008
+    topic: "cost budget"
+    status: UNKNOWN
+    question: "What daily/mission API cost limits are acceptable to user?"
+    impact: HIGH
+    resolve_by: "user gate before paid Stage B activation"
+
+  - id: IAGL-U009
+    topic: "private-source access"
+    status: LOCKED
+    question: "Which private repositories/conversation sources may future reviewer access?"
+    impact: HIGH
+    resolve_by: "separate permission/privacy approval"
+
+  - id: IAGL-U010
+    topic: "merge automation"
+    status: NOT_AUTHORIZED
+    question: "Should any future IAGL stage receive merge authority?"
+    impact: CRITICAL
+    resolve_by: "separate user approval; default remains NO"
+
+retained_cross_system_findings:
+  - "R138-F01 Docker query failure injection remains required before production promotion."
+  - "R139 Stage-B AI Film domain-owned writer is not authorized."
+  - "R140 AI Film model/tool version authority remains UNKNOWN/NEEDS_REVALIDATION."
