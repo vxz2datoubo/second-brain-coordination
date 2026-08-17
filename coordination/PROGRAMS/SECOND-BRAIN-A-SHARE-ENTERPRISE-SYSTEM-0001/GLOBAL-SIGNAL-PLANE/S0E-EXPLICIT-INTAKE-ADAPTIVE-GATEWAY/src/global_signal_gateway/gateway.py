@@ -602,3 +602,11 @@ def route_domain_learning_handoff(packet: Any) -> dict[str, Any]:
     if not isinstance(packet, DomainLearningHandoffPacket):
         raise GatewayError("DOMAIN_HANDOFF_PACKET_REQUIRED")
     return route_packet(packet)
+
+
+def route_domain_learning_recall(request: Any) -> dict[str, Any]:
+    """R140 bridge: accept only a verified recall request and grant no domain write."""
+    from .domain_learning_recall import DomainLearningRecallRequest, route_recall
+    if not isinstance(request, DomainLearningRecallRequest):
+        raise GatewayError("DOMAIN_RECALL_REQUEST_REQUIRED")
+    return route_recall(request)
