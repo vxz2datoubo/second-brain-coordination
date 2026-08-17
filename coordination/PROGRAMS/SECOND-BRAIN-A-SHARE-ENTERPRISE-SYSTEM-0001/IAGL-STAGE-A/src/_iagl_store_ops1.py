@@ -152,4 +152,3 @@ def store__materialize_authoritative_p2(self, snapshot: ReconciliationSnapshot) 
             "INSERT INTO events(semantic_key,event_json,priority,adjudication_generation,state) VALUES (?,?,?,?, 'PENDING')",
             (key, _event_to_json(event), int(Priority.P2_BLOCKER_OR_DRIFT), 0),
         )
-

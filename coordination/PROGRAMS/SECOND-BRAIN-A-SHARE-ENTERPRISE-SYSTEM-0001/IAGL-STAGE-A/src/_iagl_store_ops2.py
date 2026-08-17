@@ -154,4 +154,3 @@ def store_event_state(self, semantic_key: str) -> str | None:
 def store_event_priority(self, semantic_key: str) -> Priority | None:
     row = self.connection.execute("SELECT priority FROM events WHERE semantic_key=?", (semantic_key,)).fetchone()
     return Priority(row[0]) if row else None
-

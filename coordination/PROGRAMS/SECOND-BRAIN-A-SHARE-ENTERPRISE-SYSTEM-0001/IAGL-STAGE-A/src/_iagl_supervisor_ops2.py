@@ -120,4 +120,3 @@ def supervisor_resume_or_replan(self, checkpoint_id: str, fresh: ReconciliationG
     self.transition(SupervisorState.RESUME)
     self.transition(SupervisorState.WORK_SLICE)
     return SupervisorReceipt(Decision.EXECUTED, self.state, "FRESH_RECONCILE_RESUME_OR_REPLAN", checkpoint_id)
-

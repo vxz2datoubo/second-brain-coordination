@@ -115,4 +115,3 @@ def store_authorize_execution(self, plan: ExecutionPlan, lease: LeaseGrant, budg
 def store_value(self, key: str) -> int:
     row = self.connection.execute("SELECT value FROM accounting WHERE key=?", (key,)).fetchone()
     return int(row[0]) if row else 0
-

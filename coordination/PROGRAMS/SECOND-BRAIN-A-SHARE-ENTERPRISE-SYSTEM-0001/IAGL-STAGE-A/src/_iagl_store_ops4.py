@@ -91,4 +91,3 @@ def store_record_starvation_selection(self, candidates: Sequence[ImprovementSlic
             (item.slice_id, new_counter, generation, reason),
         )
     self.connection.commit()
-

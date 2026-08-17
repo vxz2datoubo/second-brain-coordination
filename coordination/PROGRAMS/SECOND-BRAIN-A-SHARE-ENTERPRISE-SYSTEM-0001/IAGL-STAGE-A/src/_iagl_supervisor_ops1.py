@@ -100,4 +100,3 @@ def supervisor_resolve_recall(self, grant: ReconciliationGrant, request_digest: 
     if not self.store.consume_retrieval_proof(proof, current[1], grant, request_digest):
         return SupervisorReceipt(Decision.UNKNOWN, self.state, "RETRIEVAL_COMPLETENESS_UNTRUSTED", process_compliance="UNTRUSTED")
     return SupervisorReceipt(Decision.IDLE, SupervisorState.IDLE_NO_ELIGIBLE_WORK, "TRUSTED_COMPLETE_EMPTY_RETRIEVAL", process_compliance="PASS")
-
