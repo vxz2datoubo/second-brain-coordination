@@ -1,4 +1,4 @@
-schema_version: "142.0"
+schema_version: "142.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 393
@@ -19,11 +19,26 @@ runtime_code_scope: "BOUNDED_S0E_RETROSPECTIVE_INGRESS_ONLY"
 canonical_predecessor_route_epoch: 141
 canonical_predecessor_task: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
 canonical_predecessor_closure_main: "408e283697290c03d9b4121543934337d938c99a"
+canonical_predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
 activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
 implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
 implementation_pr: null
+
+predecessor_completion:
+  task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+  route_epoch: 141
+  issue: 389
+  implementation_pr: 391
+  accepted_runtime_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
+  merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
+  gpt_final_review: 4952430756
+  issue_acceptance_checkpoint: 5317236132
+  direct_r141_ci: 32040029045
+  retained_phase3_ci: 32040029044
+  acceptance: "ACCEPTED_STAGE_A_ONLY / EXACT_HEAD_ACCEPTED"
+  route_disposition: "R141_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
 
 release_phase:
   phase: "R142_ACTIVATION_READY_AFTER_MERGE"
@@ -47,6 +62,14 @@ signal_tower_operating_mode:
   status: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_is_not_task: true
   daemon_required_for_normal_use: false
+  formal_task_release_requires_fresh_preflight: true
+
+retained_findings:
+  R138-F01: "RETAINED / required before any future production promotion"
+  R139-STAGE-B: "NOT_AUTHORIZED / separate AI Film domain-owned processor+writer gate"
+  R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+  IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
+  IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
 
 hard_locks:
   - "No private/raw conversation body in the public repository."
