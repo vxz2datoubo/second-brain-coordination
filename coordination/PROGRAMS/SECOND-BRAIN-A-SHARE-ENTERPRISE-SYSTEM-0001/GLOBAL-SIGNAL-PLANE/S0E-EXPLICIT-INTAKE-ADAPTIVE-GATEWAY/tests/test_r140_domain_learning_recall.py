@@ -233,9 +233,17 @@ class R140Matrix(unittest.TestCase):
     def test_r022_no_generic_cross_repo_writer(self):
         self.assertFalse(route_domain_learning_recall(self.request)["generic_cross_repo_writer_authorized"])
 
-    def test_r023_no_object_yields_unsupported(self):
-        bundle, receipt = DomainLearningRecallProvider().recall(self.request, authority_projections=(), exact_read_proofs=self._proofs(), execution_id="r140-test")
-        self.assertEqual((bundle.data["applicability_state"], receipt.data["decision"]), ("UNSUPPORTED", "UNSUPPORTED"))
+    def test_r023_empty_projection_is_not_authority_resolution_evidence(self):
+        # This fixture contains a matching golden object and genuine exact
+        # proofs.  Empty caller input must not turn that absence into a trusted
+        # UNSUPPORTED/PASS receipt.
+        request = self._fashion_request()
+        proofs = exact_git_read_proofs(self.root, repository="vxz2datoubo/eustia-ai-film", commit=self.sha,
+                                       paths=("PROJECT_INDEX.yaml", "11_验收/golden_prompt_cases.yaml"),
+                                       execution_id="r140-empty-projection")
+        with self.assertRaisesRegex(GatewayError, "AUTHORITY_RESOLUTION_INCOMPLETE"):
+            DomainLearningRecallProvider().recall(request, authority_projections=(), exact_read_proofs=proofs,
+                                                   execution_id="r140-empty-projection")
 
     def test_r024_cd25_confounded_case_is_not_superiority(self):
         request = DomainLearningRecallRequest.build(request_payload(domain_source_revision=self.sha, request_id="cd25", problem_signatures=["KAIM-HIGH-SEARCH-30S / 7s window micro-sequence"], scene_or_work_item="KAIM-HIGH-SEARCH-30S / 7s window micro-sequence", model_or_tool="UNKNOWN", model_version="UNKNOWN", constraints=[]))

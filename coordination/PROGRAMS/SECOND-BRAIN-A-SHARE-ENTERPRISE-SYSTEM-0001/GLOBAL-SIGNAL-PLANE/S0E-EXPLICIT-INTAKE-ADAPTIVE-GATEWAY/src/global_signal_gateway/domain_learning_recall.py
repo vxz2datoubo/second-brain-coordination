@@ -457,6 +457,11 @@ class DomainLearningRecallProvider:
         proofs = _proof_records(exact_read_proofs, repository=str(request.data["domain_repository"]),
                                 revision=str(request.data["domain_source_revision"]), execution_id=execution_id)
         projection_list = tuple(authority_projections)
+        # Empty caller input is not evidence that authority resolution searched
+        # the declared domain scope and found no object.  A future no-eligible
+        # proof must bind that search scope, request, revision and execution.
+        if not projection_list:
+            raise GatewayError("DOMAIN_AUTHORITY_RESOLUTION_INCOMPLETE")
         if not all(verify_authority_projection(item, request, execution_id=execution_id) for item in projection_list):
             raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_REQUIRED")
         projected_records = {tuple(sorted(record.items())) for projection in projection_list for record in projection.data["exact_read_proofs"]}
