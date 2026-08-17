@@ -6,6 +6,7 @@ Helper modules are contracts or unbound operation functions and cannot replace e
 from __future__ import annotations
 
 from _iagl_contracts import *
+from _iagl_migrations import audit_legacy_reconciliation_snapshot
 from _iagl_store_ops1 import (
     store__occurrence_key,
     store__remember_occurrence,
@@ -108,6 +109,7 @@ class WorkingStateStore:
         """)
         self._backfill_event_occurrences()
         self._backfill_p0_gates()
+        audit_legacy_reconciliation_snapshot(self)
         self.connection.commit()
 
     _occurrence_key = staticmethod(store__occurrence_key)
