@@ -1,7 +1,8 @@
-"""Frozen canonical IAGL-E001..E018 Stage-A mechanism regressions."""
+"""Frozen canonical IAGL-E001..E018 plus R141 B09-B12 regressions."""
 from __future__ import annotations
 
 import ast
+import json
 import sys
 import tempfile
 import unittest
@@ -19,6 +20,7 @@ from iagl_synthetic_supervisor import (  # noqa: E402
 
 REPO = "vxz2datoubo/second-brain-coordination"
 PATHS = ("synthetic/allowed.py",)
+RESUME_PRECONDITIONS = ("FRESH_RECONCILIATION", "AUTONOMOUS", "NO_PENDING_P0", "MATCHING_SLICE", "NEW_FENCE")
 
 
 class CanonicalStageAEvaluations(unittest.TestCase):
@@ -50,17 +52,20 @@ class CanonicalStageAEvaluations(unittest.TestCase):
             "risk_class": "P3_SYNTHETIC", "time_budget_minutes": 1, "compute_budget": 1,
             "expected_artifact": "synthetic-receipt", "falsifier": "falsifier:synthetic",
             "stop_conditions": ("bounded-stop",), "writeback_plan": "NO_CANONICAL_WRITE",
-            "owner": "CODEX", "estimated_cost": 1, "evidence_value": 1,
+            "owner": "GPT_ENGINEERING_WORKER", "estimated_cost": 1, "evidence_value": 1,
         }
         data.update(overrides)
         return ImprovementSlice(**data)
 
-    def event(self, head: str, priority: Priority, source: str = "webhook", key: str = "key") -> dict[str, object]:
+    def event(
+        self, head: str, priority: Priority, source: str = "webhook", key: str = "key",
+        event_class: str = "PR_HEAD_CHANGED", payload: object | None = None,
+    ) -> dict[str, object]:
         return {
-            "event_id": f"{source}-{head}-{key}", "event_class": "PR_HEAD_CHANGED", "source": source,
+            "event_id": f"{source}-{head}-{key}", "event_class": event_class, "source": source,
             "repository": REPO, "observed_at": 1, "target_ref": "refs/heads/main",
-            "target_identity": head, "payload": {"head": head}, "idempotency_key": key,
-            "priority_hint": int(priority),
+            "target_identity": head, "payload": {"head": head} if payload is None else payload,
+            "idempotency_key": key, "priority_hint": int(priority),
         }
 
     def start_p3(self, head: str = "A"):
@@ -133,12 +138,14 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW)); checkpoint = self.sup.safepoint(plan, lease)
         self.store.close(); self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite")
         self.sup = SyntheticSupervisor(REPO, self.store)
-        fresh = self.sup.reconcile(self.snap("B", observed_at=2)); lease_new = self.store.acquire_lease("p3", "worker-a")
+        review_grant = self.sup.reconcile(self.snap("B", observed_at=2)); work = self.sup.choose(review_grant, [])
+        self.assertEqual(Decision.EXECUTED, self.sup.review(work, self.review_evidence(work)).decision)
+        fresh = self.sup.reconcile(self.snap("B", observed_at=3)); lease_new = self.store.acquire_lease("p3", "worker-a")
         self.assertEqual(Decision.EXECUTED, self.sup.resume_or_replan(checkpoint.checkpoint_id or "", fresh, lease_new).decision)
 
     def test_iagl_e006_webhook_watchdog_same_target_deduplicated(self) -> None:
         _, first = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "webhook", "one"))
-        _, duplicate = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "watchdog", "two"))
+        _, duplicate = self.sup.ingest(self.event("A", Priority.P4_RESEARCH, "watchdog", "two"))
         self.assertTrue(first); self.assertFalse(duplicate)
 
     def test_iagl_e007_execution_safepoint_resume_reject_cross_slice_genuine_lease(self) -> None:
@@ -168,8 +175,8 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.assertEqual(Decision.BLOCKED, self.sup.execute(stale_plan, self.store.acquire_lease("p3", "worker-a")).decision)
 
     def test_iagl_e010_secret_permission_request_is_p0_user_gate(self) -> None:
+        self.sup.ingest(self.event("A", Priority.P4_RESEARCH, event_class="SECRET_PERMISSION", payload={"kind": "permission"}))
         grant = self.sup.reconcile(self.snap())
-        self.sup.ingest(self.event("secret-request", Priority.P0_USER_OR_HIGH_RISK))
         self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
 
     def test_iagl_e011_contradiction_is_candidate_only(self) -> None:
@@ -201,8 +208,9 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.assertFalse({"subprocess", "multiprocessing", "threading", "socket", "requests"} & imports)
 
     def test_iagl_e016_p0_remains_before_p1(self) -> None:
+        self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, key="review"))
+        self.sup.ingest(self.event("A", Priority.P4_RESEARCH, key="permission", event_class="SECRET_PERMISSION", payload={"kind": "permission"}))
         grant = self.sup.reconcile(self.snap())
-        self.sup.ingest(self.event("review", Priority.P1_EXACT_HEAD_REVIEW)); self.sup.ingest(self.event("permission", Priority.P0_USER_OR_HIGH_RISK))
         self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
 
     def test_iagl_e017_old_domain_checkpoint_is_invalidated(self) -> None:
@@ -217,6 +225,132 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.assertEqual("TRUSTED_COMPLETE_EMPTY_WORK_QUEUE", result.reason)
 
 
+class R141B09ToB12Regressions(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory(); self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite")
+        self.sup = SyntheticSupervisor(REPO, self.store, budget_limit=10)
+
+    def tearDown(self) -> None:
+        self.store.close(); self.temp.cleanup()
+
+    def snapshot(self, **overrides: object) -> ReconciliationSnapshot:
+        data: dict[str, object] = {
+            "repository": REPO, "exact_head": "A", "route_id": "R141",
+            "governance_mode": GovernanceMode.AUTONOMOUS, "allowed_write_paths": PATHS,
+            "observed_at": 1, "domain_revision": "domain-1",
+        }
+        data.update(overrides); return ReconciliationSnapshot(**data)
+
+    def slice(self, ident: str = "p3", **overrides: object) -> ImprovementSlice:
+        data: dict[str, object] = {
+            "slice_id": ident, "priority": Priority.P3_BOUNDED_IMPROVEMENT, "changed_paths": PATHS,
+            "source_signal_refs": ("signal",), "problem_signature": "signature", "goal": "bounded goal",
+            "materiality": "MATERIAL", "evidence_target": "evidence", "allowed_tools": ("stdlib-only",),
+            "allowed_data_classes": ("PUBLIC_SAFE_SYNTHETIC",), "risk_class": "P3_SYNTHETIC",
+            "time_budget_minutes": 1, "compute_budget": 1, "expected_artifact": "artifact", "falsifier": "falsifier",
+            "stop_conditions": ("stop",), "writeback_plan": "NO_CANONICAL_WRITE", "owner": "GPT_ENGINEERING_WORKER",
+        }
+        data.update(overrides); return ImprovementSlice(**data)
+
+    def event(self, event_class: str, hint: Priority, key: str, target: str = "A") -> dict[str, object]:
+        return {
+            "event_id": key, "event_class": event_class, "source": "synthetic", "repository": REPO,
+            "observed_at": 1, "target_ref": "refs/heads/main", "target_identity": target,
+            "payload": {"kind": event_class, "target": target}, "idempotency_key": key, "priority_hint": int(hint),
+        }
+
+    def start_and_checkpoint_same_head(self):
+        grant = self.sup.reconcile(self.snapshot())
+        plan = self.sup.choose(grant, [self.slice()]); lease = self.store.acquire_lease("p3", "worker")
+        self.assertEqual(Decision.EXECUTED, self.sup.execute(plan, lease).decision)
+        self.sup.ingest(self.event("WORKFLOW_COMPLETED", Priority.P4_RESEARCH, "same-head-p1"))
+        cp = self.sup.safepoint(plan, lease)
+        self.assertEqual(Decision.PREEMPTED, cp.decision)
+        review_grant = self.sup.reconcile(self.snapshot(observed_at=2))
+        work = self.sup.choose(review_grant, [])
+        evidence = ReviewEvidence("A", "A", "A", "synthetic-reviewer", work)
+        self.assertEqual(Decision.EXECUTED, self.sup.review(work, evidence).decision)
+        return cp
+
+    def test_b09_caller_p4_hint_cannot_downgrade_secret_permission_p0(self) -> None:
+        event, _ = self.sup.ingest(self.event("SECRET_PERMISSION", Priority.P4_RESEARCH, "secret"))
+        self.assertEqual(Priority.P4_RESEARCH, event.priority_hint)
+        self.assertEqual(Priority.P0_USER_OR_HIGH_RISK, event.trusted_priority)
+        grant = self.sup.reconcile(self.snapshot())
+        self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
+
+    def test_b09_pending_p2_preempts_p3_even_when_hint_is_p4(self) -> None:
+        event, _ = self.sup.ingest(self.event("ROUTE_DRIFT", Priority.P4_RESEARCH, "drift"))
+        self.assertEqual(Priority.P2_BLOCKER_OR_DRIFT, event.trusted_priority)
+        grant = self.sup.reconcile(self.snapshot())
+        result = self.sup.choose(grant, [self.slice()])
+        self.assertEqual(Decision.BLOCKED, result.decision)
+        self.assertEqual("P2_RECONCILIATION_OR_SECURITY_BLOCKER", result.reason)
+
+    def test_b10_same_semantic_snapshot_newer_generation_can_resume(self) -> None:
+        cp = self.start_and_checkpoint_same_head()
+        fresh = self.sup.reconcile(self.snapshot(observed_at=3))
+        self.assertEqual(cp.checkpoint_id is not None, True)
+        loaded = self.store.load_checkpoint(cp.checkpoint_id or "")
+        self.assertEqual(loaded.snapshot_identity, fresh.identity)
+        self.assertGreater(fresh.generation, loaded.reconciliation_generation)
+        lease = self.store.acquire_lease("p3", "worker")
+        self.assertEqual(Decision.EXECUTED, self.sup.resume_or_replan(cp.checkpoint_id or "", fresh, lease).decision)
+
+    def test_b10_narrowed_write_allowlist_invalidates_checkpointed_slice(self) -> None:
+        cp = self.start_and_checkpoint_same_head()
+        fresh = self.sup.reconcile(self.snapshot(observed_at=3, allowed_write_paths=("synthetic/other.py",)))
+        lease = self.store.acquire_lease("p3", "worker")
+        result = self.sup.resume_or_replan(cp.checkpoint_id or "", fresh, lease)
+        self.assertEqual(Decision.BLOCKED, result.decision)
+        self.assertEqual("CHECKPOINTED_SLICE_POLICY_DRIFT", result.reason)
+
+    def test_b10_risk_policy_drift_invalidates_checkpointed_slice(self) -> None:
+        cp = self.start_and_checkpoint_same_head()
+        fresh = self.sup.reconcile(self.snapshot(observed_at=3, allowed_risk_classes=("P4_SYNTHETIC",)))
+        lease = self.store.acquire_lease("p3", "worker")
+        result = self.sup.resume_or_replan(cp.checkpoint_id or "", fresh, lease)
+        self.assertEqual(Decision.BLOCKED, result.decision)
+        self.assertEqual("CHECKPOINTED_SLICE_POLICY_DRIFT", result.reason)
+
+    def test_b11_invalid_goals_fail_closed(self) -> None:
+        grant = self.sup.reconcile(self.snapshot())
+        for goal in ("improve system generally", "research indefinitely", "browse until something interesting appears"):
+            with self.assertRaisesRegex(SupervisorError, "SLICE_INVALID_GOAL"):
+                self.sup.choose(grant, [self.slice(goal=goal)])
+
+    def test_b11_forbidden_nonempty_tool_data_risk_and_writeback_fail_closed(self) -> None:
+        grant = self.sup.reconcile(self.snapshot())
+        cases = (
+            (self.slice(allowed_tools=("shell",)), "FORBIDDEN_TOOL"),
+            (self.slice(allowed_data_classes=("PRIVATE_CONVERSATION",)), "FORBIDDEN_DATA"),
+            (self.slice(risk_class="PRODUCTION_HIGH_RISK"), "FORBIDDEN_RISK"),
+            (self.slice(writeback_plan="W3_CANONICAL_WRITE"), "WRITEBACK_POLICY"),
+        )
+        for invalid, marker in cases:
+            with self.assertRaisesRegex(SupervisorError, marker):
+                self.sup.choose(grant, [invalid])
+
+    def test_b11_non_public_checkpoint_privacy_fails_closed(self) -> None:
+        checkpoint = Checkpoint(
+            "cp", "mission", "slice", "SAFEPOINT_CHECKPOINT", 1, "snapshot", ("source",), ("digest",),
+            ("step",), ("unknown",), "resume", "used:1", "lease", "fence", "P1",
+            RESUME_PRECONDITIONS, "PRIVATE", "snapshot", 1, 1, "A", "R141", "domain-1",
+        )
+        with self.assertRaisesRegex(SupervisorError, "PRIVACY_NOT_PUBLIC_SAFE"):
+            self.store.save_checkpoint(checkpoint)
+
+    def test_b12_forged_field_perfect_caller_proof_is_untrusted(self) -> None:
+        grant = self.sup.reconcile(self.snapshot())
+        genuine = self.sup.issue_retrieval_complete_empty_proof(grant, "request", "scope", "evidence")
+        forged = replace(genuine, issuance_ref="stage-a:forged-caller")
+        result = self.sup.resolve_recall(grant, "request", forged)
+        self.assertEqual(Decision.UNKNOWN, result.decision)
+        self.assertEqual("UNTRUSTED", result.process_compliance)
+        self.assertEqual("RETRIEVAL_COMPLETENESS_UNTRUSTED", result.reason)
+        self.assertEqual(Decision.IDLE, self.sup.resolve_recall(grant, "request", genuine).decision)
+
+
 class SupportingContracts(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory(); self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite")
@@ -229,7 +363,7 @@ class SupportingContracts(unittest.TestCase):
         return ReconciliationSnapshot(REPO, "A", "R141", GovernanceMode.AUTONOMOUS, PATHS, 1)
 
     def complete_slice(self, ident: str = "x") -> ImprovementSlice:
-        return ImprovementSlice(ident, Priority.P3_BOUNDED_IMPROVEMENT, PATHS, ("signal:synthetic",), "signature", "goal", "MATERIAL", "evidence", ("stdlib-only",), ("PUBLIC_SAFE_SYNTHETIC",), "P3_SYNTHETIC", 1, 1, "artifact", "falsifier", ("stop",), "NO_CANONICAL_WRITE", "CODEX")
+        return ImprovementSlice(ident, Priority.P3_BOUNDED_IMPROVEMENT, PATHS, ("signal:synthetic",), "signature", "goal", "MATERIAL", "evidence", ("stdlib-only",), ("PUBLIC_SAFE_SYNTHETIC",), "P3_SYNTHETIC", 1, 1, "artifact", "falsifier", ("stop",), "NO_CANONICAL_WRITE", "GPT_ENGINEERING_WORKER")
 
     def test_exact_frozen_transition_table(self) -> None:
         self.assertEqual({SupervisorState.GLOBAL_RECONCILIATION, SupervisorState.EMERGENCY_STOP}, _ALLOWED[SupervisorState.BOOT])
@@ -248,11 +382,11 @@ class SupportingContracts(unittest.TestCase):
         evidence = ReviewEvidence("A", "A", "A", "synthetic", forged)
         self.assertEqual(Decision.BLOCKED, self.sup.review(forged, evidence).decision)
 
-    def test_retrieval_complete_empty_must_bind_reconciliation(self) -> None:
+    def test_retrieval_complete_empty_must_bind_reconciliation_and_issuance(self) -> None:
         grant = self.sup.reconcile(self.snapshot())
-        proof = RetrievalCompletenessProof(REPO, "A", "request", "scope", "evidence", grant.identity, grant.generation, True)
-        self.assertEqual(Decision.IDLE, self.sup.resolve_recall(grant, "request", proof).decision)
+        proof = self.sup.issue_retrieval_complete_empty_proof(grant, "request", "scope", "evidence")
         self.assertEqual(Decision.UNKNOWN, self.sup.resolve_recall(grant, "other", proof).decision)
+        self.assertEqual(Decision.IDLE, self.sup.resolve_recall(grant, "request", proof).decision)
 
     def test_slice_contract_rejects_missing_risk_stop_or_writeback(self) -> None:
         grant = self.sup.reconcile(self.snapshot())
@@ -261,21 +395,20 @@ class SupportingContracts(unittest.TestCase):
                 self.sup.choose(grant, [invalid])
 
     def test_checkpoint_contract_rejects_missing_resume_precondition_or_privacy(self) -> None:
-        checkpoint = Checkpoint("cp", "mission", "slice", "SAFEPOINT_CHECKPOINT", 1, "snapshot", ("source",), ("digest",), ("step",), ("unknown",), "resume", "used:1", "lease", "fence", "P1", ("fresh",), "PUBLIC_SAFE_SYNTHETIC", "snapshot", 1, 1, "A", "R141", "domain")
+        checkpoint = Checkpoint("cp", "mission", "slice", "SAFEPOINT_CHECKPOINT", 1, "snapshot", ("source",), ("digest",), ("step",), ("unknown",), "resume", "used:1", "lease", "fence", "P1", RESUME_PRECONDITIONS, "PUBLIC_SAFE_SYNTHETIC", "snapshot", 1, 1, "A", "R141", "domain")
         self.store.save_checkpoint(checkpoint)
-        for invalid in (replace(checkpoint, resume_preconditions=()), replace(checkpoint, privacy_class="")):
-            with self.assertRaisesRegex(SupervisorError, "FROZEN_CONTRACT"):
-                self.store.save_checkpoint(invalid)
+        invalid_resume = replace(checkpoint, resume_preconditions=RESUME_PRECONDITIONS[:-1])
+        with self.assertRaisesRegex(SupervisorError, "RESUME_PRECONDITIONS"):
+            self.store.save_checkpoint(invalid_resume)
+        with self.assertRaisesRegex(SupervisorError, "FROZEN_CONTRACT"):
+            self.store.save_checkpoint(replace(checkpoint, privacy_class=""))
 
     def test_stale_resume_preconditions_fail_closed(self) -> None:
         grant = self.sup.reconcile(self.snapshot()); plan = self.sup.choose(grant, [self.complete_slice("slice-x")]); lease = self.store.acquire_lease("slice-x", "owner")
         self.sup.execute(plan, lease)
         self.sup.ingest({"event_id": "p1", "event_class": "PR_HEAD_CHANGED", "source": "synthetic", "repository": REPO, "observed_at": 1, "target_ref": "refs/heads/main", "target_identity": "B", "payload": {"head": "B"}, "idempotency_key": "p1", "priority_hint": 1})
         cp = self.sup.safepoint(plan, lease); loaded = self.store.load_checkpoint(cp.checkpoint_id or "")
-        # Simulate a stale/corrupted durable checkpoint: the load validator must
-        # prevent the resume boundary from treating it as executable state.
         record = self.store.connection.execute("SELECT record FROM checkpoints WHERE checkpoint_id=?", (loaded.checkpoint_id,)).fetchone()[0]
-        import json
         forged = json.loads(record); forged["resume_preconditions"] = []
         self.store.connection.execute("UPDATE checkpoints SET record=? WHERE checkpoint_id=?", (json.dumps(forged), loaded.checkpoint_id)); self.store.connection.commit()
         fresh = self.sup.reconcile(ReconciliationSnapshot(REPO, "B", "R141", GovernanceMode.AUTONOMOUS, PATHS, 2))
