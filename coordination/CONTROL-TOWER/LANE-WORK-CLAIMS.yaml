@@ -1,4 +1,4 @@
-schema_version: "3.5"
+schema_version: "3.6"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -16,6 +16,7 @@ semantics:
   closed_lane_releases_all_current_work_surfaces: true
   implementation_release_requires_fresh_claim_rescan: true
   stage_a_synthetic_success_does_not_authorize_stage_b: true
+  signal_tower_normal_use_does_not_require_active_implementation_claim: true
 
 proposal_roots:
   LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
@@ -42,70 +43,37 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
-    route_binding:
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
+    authority_claims: []
+    closure_receipt:
       task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
       route_epoch: 141
       issue: 389
-      pr: null
-      branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
-      - ".github/workflows/iagl-r141-stage-a.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-QCLAW-TASK.yaml"
-      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/ENGINEERING-LEARNING"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE"
-    interfaces:
-      - name: "IAGL-Stage-A-Architecture"
-        mode: "read/frozen"
-        frozen: true
-      - name: "Control-Tower-Authorization-Boundary"
-        mode: "read/evidence-only"
-        frozen: true
-      - name: "W3-Domain-Authority"
-        mode: "boundary simulation / no-write"
-        frozen: true
-      - name: "Signal-Tower"
-        mode: "read/reference only; no execution authority"
-        frozen: true
-    read_domains: [W1, W3, W8, W9, W10]
-    write_domains: [W8]
-    authority_claims: []
-    implementation_scope:
-      slice: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR"
-      issue: 389
-      phase: "B_ACTIVE_SYNTHETIC_IMPLEMENTATION"
-      resource_class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
-      activation_reconciliation: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
-      execution_allowed: true
-      runtime_code_change_allowed: true
-      real_scheduler_allowed: false
-      openai_api_key_allowed: false
-      secret_permission_expansion_allowed: false
-      domain_write_allowed: false
-      W3_authority_write_allowed: false
-      production_allowed: false
-      trading_allowed: false
-      codex_merge_allowed: false
+      merged_pr: 391
+      accepted_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
+      merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
+      gpt_final_review: 4952430756
+      issue_acceptance_checkpoint: 5317236132
+      receipt_ref: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+      verdict: "R141_ACCEPTED_STAGE_A_AND_CLOSED"
+    operating_state:
+      signal_tower_normal_mode: "ON_DEMAND_PREFLIGHT_AVAILABLE"
+      active_implementation_required_for_normal_use: false
+      daemon_required_for_normal_use: false
+      formal_task_release_requires_fresh_signal_tower_preflight: true
     stop_conditions:
-      - "Write outside exact four-surface allowlist -> STOP"
-      - "Secret/API billing/GitHub permission/real scheduler/production requirement -> STOP / separate user gate"
-      - "Domain/W3 authority write requirement -> STOP"
-      - "Private/raw data requirement -> STOP"
-      - "Same Codex/local-heavy collision or stale route -> STOP / reconcile"
-      - "Synthetic success presented as Stage-B production readiness -> STOP / FALSE_GREEN"
-      - "Nested pool/process storm -> STOP or single-worker fallback"
-      - "Passing tests/CI never grants Codex merge"
+      - "No R141 implementation resume after closure"
+      - "Any successor runtime write requires a new task/epoch/claim/allowlist"
+      - "Stage B secrets/API/permissions/external scheduler/production remain a separate user gate"
+      - "W3/domain/private/trading/destructive-history authority remains separately gated"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -133,8 +101,10 @@ claims:
 
 release_semantics:
   proposal_only_parallelism: >-
-    R141 owns the one active Codex Lane-A synthetic implementation surface. Lane B remains isolated proposal-only and Lane C closed.
+    No active Lane-A implementation claim exists after R141 closure. Signal Tower may be used on demand for capture and
+    pre-release reconciliation. Lane B remains isolated proposal-only and Lane C closed.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
-  iagl_stage_a_boundary: "SYNTHETIC_ONLY / NO_SECRET / NO_PRODUCTION / NO_DOMAIN_WRITE / NO_TRADE"
+  signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
+  iagl_stage_a_boundary: "ACCEPTED_SYNTHETIC_ONLY / NO_ACTIVE_IMPLEMENTATION"
   iagl_stage_b: "NOT_AUTHORIZED"

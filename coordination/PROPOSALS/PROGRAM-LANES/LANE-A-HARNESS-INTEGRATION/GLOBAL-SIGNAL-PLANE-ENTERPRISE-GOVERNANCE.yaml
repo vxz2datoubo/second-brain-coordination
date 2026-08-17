@@ -1,6 +1,6 @@
-schema_version: "0.1"
+schema_version: "0.2"
 contract_id: "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE-0001"
-status: "ARCHITECTURE_CANDIDATE / ENTERPRISE_GOVERNANCE / NO_RUNTIME_AUTHORIZATION"
+status: "ARCHITECTURE_CANDIDATE / ENTERPRISE_GOVERNANCE / ON_DEMAND_OPERATING_POLICY_ACCEPTED / NO_PRODUCTION_RUNTIME_AUTHORIZATION"
 owner: "USER"
 architecture_owner: "GPT"
 boundary: "NO_HARNESS_RUNTIME / NO_PRIVATE_PRODUCTION_BRIDGE / NO_TRADE"
@@ -9,6 +9,26 @@ purpose: >-
   Define reliability, security, recovery, compatibility, observability and change-governance requirements for the
   Unified Signal Plane before any production/private runtime is considered. Enterprise-grade means failures are
   detectable, bounded, replayable, auditable and reversible where reality permits; not merely that happy-path tests pass.
+
+operational_mode_after_r141:
+  authority: "USER_EXPLICIT_DIRECTION / GPT_POST_MERGE_RECONCILIATION"
+  normal_mode: "ON_DEMAND / SIGNAL_CAPTURE_AND_TASK_RELEASE_DRIVEN"
+  daemon_required_for_normal_use: false
+  signal_is_not_task: true
+  full_body_scan_every_release: false
+  formal_task_release_sequence:
+    - "GLOBAL_SHALLOW: scan open Signal Tower metadata plus current tasks, lanes, claims, PRs and authority state"
+    - "DELTA: inspect material changes since the last valid reconciliation or watermark"
+    - "TARGETED_DEEP: load only signals, dependencies, conflicts and evidence materially relevant to the proposed task"
+    - "CONDITIONAL_RESEARCH: use fresh external/current research only when the task requires it"
+    - "RELEASE_DECISION: merge, parallelize, serialize, defer, block or release with an explicit rationale"
+  hard_rule: >-
+    No formal task may be released from Signal Tower context without a fresh preflight. A signal may remain an idea,
+    question, evidence item, risk, dependency or deferred need and must not be treated as automatic execution authority.
+  background_runtime: >-
+    Long-lived scheduler/watchdog/event automation is an optional future enhancement for time-, condition- or external-event
+    driven continuation. It is not a prerequisite for ordinary Signal Tower capture, reconciliation or task-release use.
+  stage_b_boundary: "UNCHANGED / NOT_AUTHORIZED"
 
 enterprise_principles:
   - "fail closed on authority/freshness/privacy ambiguity"
