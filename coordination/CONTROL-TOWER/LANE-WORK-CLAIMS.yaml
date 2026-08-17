@@ -1,4 +1,4 @@
-schema_version: "3.3"
+schema_version: "3.4"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -14,8 +14,7 @@ semantics:
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
-  r139_completion_does_not_authorize_successor_execution: true
-  r140_activation_authorizes_only_exact_bounded_second_brain_surface: true
+  r140_completion_does_not_authorize_successor_execution: true
   implementation_release_requires_fresh_claim_rescan: true
 
 proposal_roots:
@@ -43,73 +42,43 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
-    resource_class: "MEDIUM_IMPLEMENTATION"
-    route_binding:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
-      route_epoch: 140
-      issue: 382
-      pr: null
-      branch: "codex/r140-domain-learning-recall-loop"
-    write_paths:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_recall.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r140_domain_learning_recall.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R140"
-      - ".github/workflows/global-signal-plane-r140-domain-learning-recall.yml"
-    read_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-ARCHITECTURE-v1.0.md"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-CONTRACT.yaml"
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-RECALL-THREAT-MODEL-v1.0.md"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/ACTIVE-CODEX-TASK.yaml"
-      - "coordination/ACTIVE-QCLAW-TASK.yaml"
-      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:PROJECT_INDEX.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/read_sets.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:10_运行时/maturity_model.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:11_验收/golden_prompt_cases.yaml"
-      - "repo:vxz2datoubo/eustia-ai-film@44c383afd2207a97caf45b1b0da6ee1dece43a76:08_系统学习/C-DANCE2.5真实生成反馈库.md"
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
     interfaces:
       - name: "DomainLearningHandoff-V1"
         mode: "read/frozen"
         frozen: true
       - name: "DomainLearningRecall-V1"
-        mode: "implement Second Brain side only"
-        frozen_for_r140: true
+        mode: "read/frozen after R140 closure"
+        frozen: true
       - name: "AI-Film-Domain-Authority"
         mode: "read-only / no-write"
         frozen: true
       - name: "Control-Tower-Authorization-Boundary"
         mode: "read/evidence-only"
         frozen: true
-    read_domains: [W1, W3, W8, W9, W10]
-    write_domains: [W8]
+    read_domains: []
+    write_domains: []
     authority_claims: []
-    implementation_scope:
-      slice: "R140_DOMAIN_LEARNING_RECALL_LOOP"
+    closure_receipt:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
+      route_epoch: 140
       issue: 382
-      phase: "B_ACTIVE_IMPLEMENTATION"
-      resource_class: "MEDIUM_IMPLEMENTATION"
-      activation_reconciliation: "coordination/CONTROL-TOWER/R140-ACTIVATION-RECONCILIATION.yaml"
-      execution_allowed: true
-      runtime_code_change_allowed: true
-      ai_film_write_allowed: false
-      domain_maturity_authority: false
-      production_allowed: false
-      trading_allowed: false
-      codex_merge_allowed: false
+      merged_pr: 385
+      accepted_head: "b5fb56d1b74334917966ce2bcb39ec7aa96738a6"
+      merge_commit: "4eed1ce132d98d0e6f8b990d8fb8166e0da72a2b"
+      gpt_final_review: 4948187691
+      receipt: "coordination/CONTROL-TOWER/R140-DOMAIN-LEARNING-RECALL-CLOSURE-RECONCILIATION.yaml"
+      verdict: "R140_ACCEPTED_AND_CLOSED"
     stop_conditions:
-      - "Write outside exact six-surface allowlist -> STOP"
-      - "AI Film/domain write requirement -> STOP / separate domain-owned gate"
-      - "Private/raw conversation/media or secret requirement -> STOP"
-      - "Same Codex/local-heavy collision or stale atomic dispatch claim -> STOP / reconcile"
-      - "Semantic similarity used as sole applicability proof -> STOP / FALSE_GREEN"
-      - "Passing tests or CI never authorizes Codex merge"
+      - "No R140 resume after closure"
+      - "Any successor runtime write requires a new task/epoch/claim/allowlist"
+      - "AI Film/domain write remains a separate authority gate"
+      - "Secrets/private/production/trading/destructive history remain gated"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -137,7 +106,9 @@ claims:
 
 release_semantics:
   proposal_only_parallelism: >-
-    R140 owns the one bounded active Lane A Codex implementation surface. Lane B remains isolated proposal-only and Lane C closed.
+    No active Codex implementation lease exists after R140 closure. Lane B remains isolated proposal-only and Lane C closed.
+    Issue #386 IAGL is architecture planning only and has no route binding or runtime write authority.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   r140_ai_film_boundary: "READ_ONLY / NO_DOMAIN_CANONICAL_WRITE"
+  iagl_issue_386_state: "PLANNING_ONLY / NO_CODEX_ROUTE"
