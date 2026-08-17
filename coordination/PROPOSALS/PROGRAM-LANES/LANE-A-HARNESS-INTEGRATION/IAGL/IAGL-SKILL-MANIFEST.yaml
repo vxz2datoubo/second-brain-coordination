@@ -1,0 +1,209 @@
+schema_version: "1.0"
+skill_id: "INTERRUPTIBLE-AUTONOMOUS-GOVERNANCE-SKILL-0001"
+name: "Interruptible Autonomous Governance Loop"
+status: "CANDIDATE_ARCHITECTURE / NOT_FORMAL_SKILL"
+issue: 386
+owner: "USER"
+architecture_owner: "GPT"
+
+purpose: >-
+  Run a bounded governance loop that prioritizes exact-head independent review, safely checkpoints lower-priority work,
+  resumes after fresh reconciliation, and uses otherwise idle time for evidence-bounded system improvement rather than passive waiting.
+
+when_to_use:
+  - "There is an ongoing engineering/research program with asynchronous agent deliveries."
+  - "High-priority review or user gates may arrive while lower-priority research is active."
+  - "System improvement backlog contains bounded evidence/test/architecture gaps."
+  - "Crash/restart or scheduling gaps require durable checkpoint/resume semantics."
+
+when_not_to_use:
+  - "Simple one-shot question with no future event/dependency."
+  - "Task requires unapproved secret/permission/production/domain-write/trading authority."
+  - "No trustworthy current-state reconciliation is available."
+  - "The proposed work cannot be bounded into atomic slices with stop conditions."
+
+preconditions:
+  - "Control Tower and Signal Tower boundaries are known."
+  - "W3/domain authority remains external to IAGL."
+  - "Current governance mode is observable, not inferred from prompt prose."
+  - "Task/route/claim/lease state can be reconciled before material actions."
+
+inputs:
+  - current_control_plane
+  - normalized_event_queue
+  - signal_tower_gaps
+  - improvement_backlog
+  - current_checkpoint
+  - user_governance_mode
+  - resource_and_cost_budget
+  - relevant_domain_and_W3_refs
+
+outputs:
+  - review_receipt
+  - improvement_checkpoint
+  - architecture_delta
+  - evidence_gap
+  - regression_case
+  - mission_candidate
+  - method_credit_candidate
+  - unknown_registry_delta
+  - verified_no_change
+  - abstention
+
+cognitive_map:
+  KNOWN_SAID:
+    - "User explicitly wants GPT not to idle while waiting for Codex."
+    - "User wants new Codex/GitHub delivery to preempt background system improvement."
+    - "User wants the interrupted work resumed after review."
+    - "User wants a roughly 20-minute fallback check concept, with high cognitive autonomy."
+  KNOWN_UNSAID_INFERRED:
+    - "The desired mechanism is a priority scheduler with cooperative preemption and durable checkpoints."
+    - "Event-driven review should be primary; periodic polling is better as a watchdog."
+    - "Prompt text is not sufficient to switch real local automation state."
+  UNKNOWN_BUT_ACCESSIBLE:
+    - "Best Stage B scheduler topology."
+    - "Best durable working-state store after synthetic PoC."
+    - "Exact current OpenAI API/runtime deployment capability at Stage B time."
+    - "Whether local Codex automation exposes a governed programmatic pause/resume interface."
+  UNKNOWN_REQUIRES_SCAFFOLDING:
+    - "How to calibrate reviewer independence/false-accept risk across long-running autonomous work."
+    - "How to tune optimal watchdog cadence and cost budget under real event rates."
+    - "When a simple supervisor ceases to be sufficient and a durable workflow engine becomes justified."
+
+problem_signature_features:
+  - task_class
+  - current_goal
+  - active_mission
+  - priority_class
+  - materiality
+  - failure_cost
+  - evidence_completeness
+  - current_head_and_revision
+  - control_plane_freshness
+  - permission_boundary
+  - reversibility
+  - interruption_eligibility
+  - checkpoint_availability
+  - budget_remaining
+  - unknown_type
+
+method_dependencies:
+  reuse:
+    - "Global Reconciliation"
+    - "Evidence Audit"
+    - "Effective Challenge"
+    - "Problem Decomposition"
+    - "Timeline / exact-head verification"
+    - "Competing Hypotheses"
+    - "Unknown Preservation"
+    - "Freshness Check"
+    - "Value-of-Information Check"
+    - "Failure Mode Search"
+    - "ABSTAIN"
+  no_new_method_registry: true
+
+core_algorithm:
+  - RECONCILE
+  - NORMALIZE_EVENTS
+  - PRIORITIZE
+  - SELECT_ELIGIBLE_WORK
+  - EXECUTE_ATOMIC_SLICE
+  - SAFEPOINT_CHECKPOINT
+  - CHECK_INTERRUPT
+  - PREEMPT_IF_REQUIRED
+  - REVIEW_OR_GATE
+  - EVALUATE
+  - LEARN_CANDIDATE
+  - FRESH_RECONCILE
+  - RESUME_OR_REPLAN
+
+termination:
+  hard:
+    - USER_EMERGENCY_STOP
+    - PERMISSION_OR_SECRET_GATE
+    - PRODUCTION_OR_TRADING_GATE
+    - UNTRUSTED_CONTROL_PLANE
+    - BUDGET_EXHAUSTED
+    - LEASE_COLLISION
+    - IRREVERSIBLE_ACTION_REQUIRED
+  normal:
+    - NO_ELIGIBLE_WORK
+    - IMPROVEMENT_SLICE_COMPLETED
+    - VOI_BELOW_THRESHOLD
+    - REVIEW_COMPLETE_AND_NO_RESUMABLE_WORK
+
+evidence_requirements:
+  review:
+    - exact_head
+    - changed_file_scope
+    - diff
+    - required_ci
+    - authority_state
+    - route_claim_lane_lease
+    - unresolved_unknowns
+  improvement:
+    - source_signal_refs
+    - evidence_target
+    - independent_sources_when_material
+    - falsifier
+    - stop_condition
+
+failure_modes:
+  - duplicate_event_execution
+  - stale_head_review
+  - ci_green_false_accept
+  - caller_authored_authority
+  - incomplete_retrieval_false_negative
+  - infinite_research
+  - priority_starvation
+  - unsafe_preemption
+  - invalid_resume_after_drift
+  - second_knowledge_authority
+  - secret_leakage
+  - permission_creep
+  - arbitrary_command_injection
+  - partial_provider_observation
+  - governance_mode_fiction
+  - duplicate_worker_collision
+  - cost_runaway
+  - model_self_confirmation
+  - domain_authority_laundering
+  - destructive_recovery
+  - local_resource_storm
+
+maturity:
+  current: "CANDIDATE_ARCHITECTURE"
+  next: "SYNTHETIC_STAGE_A_IMPLEMENTED"
+  promotion_requirements:
+    - "deterministic state-machine tests"
+    - "preemption/resume replay"
+    - "stale-head/dedupe/fencing tests"
+    - "budget/VOI tests"
+    - "governance-mode tests"
+    - "independent GPT acceptance"
+  formal_skill_promotion: "NOT_AUTHORIZED"
+
+integrations:
+  Signal_Tower: "consume signals only"
+  Control_Tower: "consume authorization/claim/lease state; never override"
+  Harness: "future orchestration implementation seam"
+  W3: "consume bounded context; knowledge write only through existing governed lifecycle"
+  Codex: "future bounded executor under separate route"
+  Agent_Feedback_Issue_4: "reuse telemetry/lessons"
+  Method_Discovery_Issue_312: "reuse methods/challenge/VOI"
+  Cognitive_Loop_Issue_282: "reuse recall/learning lifecycle"
+
+stage_a_permissions:
+  public_web_research: true
+  github_read: true
+  proposal_branch_write: true
+  synthetic_tests: true
+  secret_access: false
+  permission_expansion: false
+  production_scheduler: false
+  autonomous_merge: false
+  domain_write: false
+  W3_authority_write_expansion: false
+  trading: false
+
+stage_b_gate: "IAGL-EXISTING-SYSTEM-REUSE-AND-STAGE-B-GATE.md"
