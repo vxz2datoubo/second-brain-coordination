@@ -1,0 +1,218 @@
+schema_version: "1.0"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+route_epoch: 142
+issue: 393
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+reviewer: "GPT"
+owner: "USER"
+mode: "project_plan"
+status: "READY_AFTER_CANONICAL_ACTIVATION"
+
+mission: >-
+  Close the last-mile gap between historical ChatGPT-window mining and the accepted S0C durable Signal truth. Build one bounded,
+  public-safe, on-demand retrospective import path: old-window candidate package -> fresh current-canonical reconciliation ->
+  disposition/dedup/supersession -> existing R136 SignalIntakeGateway/S0C admission semantics -> durable receipt and replay/read-back.
+  The old window is a miner, never current authority. Signal remains distinct from Task.
+
+canonical_inputs:
+  activation_base_main: "408e283697290c03d9b4121543934337d938c99a"
+  implementation_issue: 393
+  predecessor_signal_tower_chain: "R134-R141 accepted on main"
+  s0c_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+  s0e_root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+  enterprise_governance: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml"
+  control_tower_claims: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  active_program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  activation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+
+implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
+
+allowed_write_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+  - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+
+forbidden_write_paths:
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/CONTROL-TOWER"
+  - "coordination/ROUTES"
+  - "coordination/TASK-BRIEFS"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src"
+  - "any AI Film/domain repository"
+  - "any W3 canonical truth surface"
+
+scope_expansion: >-
+  If exact implementation evidence shows S0C source changes are required, STOP and request GPT scope expansion. Do not solve this
+  by creating another store, reducer, ledger, backlog or authority.
+
+required_contracts:
+  import_package:
+    schema: "SignalImportPackage/v1"
+    requirements:
+      - "machine-checkable batch plus per-candidate identity"
+      - "source_window/message/project/time provenance where available"
+      - "public-safe summary/original intent reference, never raw private body in public repo"
+      - "signal kind, epistemic state, desired effect, problem, success condition, risks, assumptions, unknowns, dependencies"
+      - "candidate relations and model/tool/version/work-item refs when relevant"
+      - "UNKNOWN rather than fabrication"
+  reconciliation:
+    dispositions:
+      - NEW_DURABLE_SIGNAL
+      - ALREADY_CANONICAL
+      - ALREADY_SATISFIED
+      - DUPLICATE
+      - EXTENDS
+      - REINFORCES
+      - CONTRADICTS
+      - SUPERSEDED
+      - DOMAIN_CANONICAL_ONLY
+      - NEEDS_REVALIDATION
+      - REJECT_PRIVATE_OR_UNSAFE
+      - INSUFFICIENT_PROVENANCE
+    hard_rules:
+      - "old-window NEW is only a candidate; current canonical decides current status"
+      - "no newest-wins, no text-similarity-only admission, no closed-task resurrection"
+      - "preserve contradictions/supersession evidence"
+      - "Signal != Task"
+  durable_bridge:
+    requirements:
+      - "ordinary GPT-window reachable through an approved GitHub-stage on-demand path"
+      - "no daemon/private service/secret expansion"
+      - "reuse existing R136 gateway and S0C admission/projection semantics"
+      - "Git-backed transport, if used, is append-only transport/replay source only, never second effective truth"
+      - "deterministic replay/read-back"
+  receipt:
+    required_fields:
+      - import_batch_id
+      - candidate_id
+      - normalized_event_or_link_ids
+      - disposition
+      - canonical_snapshot_or_main
+      - package_digest
+      - durable_ledger_identity_or_receipt
+      - replay_checksum
+      - current_projection_result
+      - duplicate_or_superseded_refs
+      - public_safety_result
+      - process_compliance
+      - write_status
+
+milestones:
+  M0:
+    goal: "fresh reconcile + project plan"
+    required:
+      - "verify main/task/epoch/issue/branch/route/claim/lane/open PR state"
+      - "inventory exact reusable R134-R141 code; do not copy a second implementation"
+      - "inspect S0C physical persistence and S0E entrypoint semantics"
+      - "select minimal last-mile transport architecture and record tradeoffs"
+      - "plan commit before implementation"
+  M1:
+    goal: "package schema + validation"
+    required:
+      - "SignalImportPackage/v1 parser/validator"
+      - "canonical digest and deterministic serialization"
+      - "batch/per-candidate idempotency"
+      - "privacy/provenance/UNKNOWN guards"
+  M2:
+    goal: "current-state reconciler"
+    required:
+      - "compare candidates with current Signal/Task/Mission/control-plane/domain canonical state"
+      - "derive disposition without trusting old-window self-label"
+      - "preserve relation evidence and current-canonical exact refs"
+  M3:
+    goal: "one-shot durable bridge"
+    required:
+      - "GPT-window reachable GitHub-stage path"
+      - "S0E -> existing S0C semantics, no second truth"
+      - "durable receipt"
+      - "deterministic replay/read-back"
+  M4:
+    goal: "real retrospective E2E + adversarial suite"
+    required:
+      - "use the user-provided approximately-45-candidate old-window package as the first real case"
+      - "prove already satisfied/canonical items are not reactivated"
+      - "prove true NEW/NEEDS_REVALIDATION can be admitted"
+      - "cover duplicate collision, contradiction, supersession, private rejection, stale snapshot, Signal!=Task, replay stability"
+  M5:
+    goal: "exact-head CI/resource/safety"
+    required:
+      - "Python 3.11 and 3.13 exact-head CI"
+      - "public-safe scan"
+      - "changed-path allowlist"
+      - "no placeholder/TODO/shadow implementation"
+      - "git diff --check"
+      - "single-worker default / no nested pools / no daemon"
+      - "task-owned cleanup only; no global process kill"
+  M6:
+    goal: "evidence + GPT handoff"
+    required:
+      - "exact tested head and CI run/job IDs"
+      - "real import/reconciliation/durable receipt/read-back evidence"
+      - "changed-path inventory, rollback, UNKNOWN/finding delta"
+      - "completion signal then STOP for GPT review"
+
+minimum_adversarial_cases:
+  - "old self-declared NEW but current ALREADY_SATISFIED"
+  - "true NEW_DURABLE_SIGNAL"
+  - "duplicate retry idempotent"
+  - "same id different body collision fail closed"
+  - "SUPERSEDED historical requirement"
+  - "CONTRADICTS with both evidence sides retained"
+  - "DOMAIN_CANONICAL_ONLY not global backlog"
+  - "private/raw body rejected"
+  - "INSUFFICIENT_PROVENANCE"
+  - "omission != revocation"
+  - "Signal != Task"
+  - "stale canonical snapshot invalidates admission"
+  - "closed Task but desired effect still unmet"
+  - "current dependency linkage"
+  - "stable replay checksum"
+  - "transport cannot directly mutate effective truth"
+  - "old-window NEW label overridden by current reconcile"
+  - "no durable receipt means NOT_PERSISTED"
+  - "cross-window same candidate dedup"
+  - "real approximately-45-candidate package"
+
+resource_contract:
+  resource_class: "MEDIUM_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  worker_default: 1
+  nested_process_pools: "FORBIDDEN"
+  daemon_server_scheduler_polling: "FORBIDDEN"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_cleanup_only: true
+  global_kill_python_or_docker: false
+  untrusted_workspace_recovery: "FRESH_ISOLATED_WORKTREE / NO_RESET_CLEAN_FORCE_PUSH_REBASE"
+
+hard_locks:
+  - "NO_PRIVATE_RAW_CONVERSATION_BODY_IN_PUBLIC_REPO"
+  - "NO_PRIVATE_CROSS_WINDOW_SERVICE"
+  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING"
+  - "NO_SECRET_PERMISSION_API_BILLING_EXPANSION"
+  - "NO_W3_OR_DOMAIN_CANONICAL_WRITE"
+  - "NO_FORMAL_SKILL_PROMOTION"
+  - "NO_AUTOMATIC_AGENT_TASK_CREATION"
+  - "NO_SECOND_SIGNAL_TRUTH"
+  - "NO_PRODUCTION_DEPLOYMENT"
+  - "NO_AUTONOMOUS_MERGE"
+  - "NO_TRADING_ACCOUNTS_ORDERS_FUNDS"
+  - "NO_DESTRUCTIVE_HISTORY_REWRITE"
+
+false_green_guards:
+  - "Package prepared is not Signal persisted."
+  - "Old-window NEW classification is not current authority."
+  - "Git transport presence is not S0C admission."
+  - "A replayable transport must not become a second effective ledger."
+  - "Task DONE is not necessarily Signal SATISFIED."
+  - "CI green is not GPT acceptance."
+  - "Executor SUCCESS is not independent evidence."
+
+completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
+stop_after_completion: true
+codex_merge_authorized: false

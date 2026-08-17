@@ -1,4 +1,4 @@
-schema_version: "3.6"
+schema_version: "3.7"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,37 +43,36 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
+    claim_state: "ACTIVE_IMPLEMENTATION_AFTER_ACTIVATION_MERGE"
+    execution_agent: "CODEX"
+    resource_class: "MEDIUM_IMPLEMENTATION"
+    route_binding: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+      - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+    read_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    interfaces:
+      - "S0C DurableSignalLedger"
+      - "R136 SignalIntakeGateway"
+      - "Signal Tower on-demand preflight"
+    read_domains: [W1, W3]
     write_domains: []
-    authority_claims: []
-    closure_receipt:
-      task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
-      route_epoch: 141
-      issue: 389
-      merged_pr: 391
-      accepted_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
-      merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
-      gpt_final_review: 4952430756
-      issue_acceptance_checkpoint: 5317236132
-      receipt_ref: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
-      verdict: "R141_ACCEPTED_STAGE_A_AND_CLOSED"
-    operating_state:
-      signal_tower_normal_mode: "ON_DEMAND_PREFLIGHT_AVAILABLE"
-      active_implementation_required_for_normal_use: false
-      daemon_required_for_normal_use: false
-      formal_task_release_requires_fresh_signal_tower_preflight: true
+    authority_claims:
+      - "S0E_RETROSPECTIVE_IMPORT_EXTENSION_ONLY"
+    activation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
     stop_conditions:
-      - "No R141 implementation resume after closure"
-      - "Any successor runtime write requires a new task/epoch/claim/allowlist"
-      - "Stage B secrets/API/permissions/external scheduler/production remain a separate user gate"
-      - "W3/domain/private/trading/destructive-history authority remains separately gated"
+      - "Activation files are not canonical on main"
+      - "Second Codex route or local heavy collision appears"
+      - "S0C source mutation is required without scope expansion"
+      - "Private/raw bridge, second Signal truth, W3/domain write, production, secret/permission or trading requirement appears"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -100,11 +99,11 @@ claims:
     authority_claims: []
 
 release_semantics:
-  proposal_only_parallelism: >-
-    No active Lane-A implementation claim exists after R141 closure. Signal Tower may be used on demand for capture and
-    pre-release reconciliation. Lane B remains isolated proposal-only and Lane C closed.
+  lane_a_activation: >-
+    R142 becomes the sole Codex Lane-A implementation only after its activation PR is merged to canonical main and the user
+    sends the direct R142 start instruction. Until then the branch state is non-authorizing.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
-  iagl_stage_a_boundary: "ACCEPTED_SYNTHETIC_ONLY / NO_ACTIVE_IMPLEMENTATION"
+  signal_tower_normal_operation_outside_r142: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
   iagl_stage_b: "NOT_AUTHORIZED"
