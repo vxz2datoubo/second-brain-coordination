@@ -1,31 +1,38 @@
-schema_version: "R141-MATRIX-2.0"
+schema_version: "R141-MATRIX-3.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 agent_id: CODEX
 canonical_registry: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL/IAGL-EVAL-AND-UNKNOWN-REGISTRY.yaml
 required_evaluation_count: 18
-support_contract_test_count: 2
+support_contract_test_count: 8
 evaluation_mapping:
   IAGL-E001: P3 active -> P1 exact-head event -> safepoint checkpoint -> review -> fresh reconcile -> resume/replan
-  IAGL-E002: review A cannot approve C; stale A/B cannot replace current C review
+  IAGL-E002: A/B stale P1 events become trace-only; only current C event creates then consumes C-bound review work
   IAGL-E003: green CI with receipt head mismatch is blocked/no merge
   IAGL-E004: ten P3/P4 no-value slices trigger VOI stop
   IAGL-E005: crash/restart loads checkpoint only after fresh reconciliation
   IAGL-E006: webhook and watchdog same semantic target state create one executable event
-  IAGL-E007: one mutable-slice fence winner; stale worker token cannot execute or resume
+  IAGL-E007: same-slice fence winner and genuine cross-slice token rejection at execute, safepoint, and resume
   IAGL-E008: USER_CONTROLLED prevents queued automatic execution
   IAGL-E009: autonomous re-enable requires fresh reconciliation and invalidates stale plan
   IAGL-E010: secret/permission request is P0 user gate with no automatic action
   IAGL-E011: contradiction remains candidate/conflict; snapshot authority unchanged
   IAGL-E012: executor success with changed path outside allowlist is blocked
   IAGL-E013: caller-authored authority metadata is unverified
-  IAGL-E014: absent recall projection is not trusted UNSUPPORTED
+  IAGL-E014: absent reconciliation-bound retrieval completeness is UNKNOWN/INCOMPLETE, never trusted unsupported or idle
   IAGL-E015: no nested pool/daemon/subprocess capability or global kill path
   IAGL-E016: P0 remains ahead of queued P1 review
   IAGL-E017: old domain checkpoint drift invalidates resume/requires fresh replan
-  IAGL-E018: tick without eligible work performs bounded reconciliation then idle
+  IAGL-E018: only reconciliation-bound complete-empty work queue permits bounded idle
 supporting_regressions:
   - exact frozen state transition table
   - pre-execution budget reservation rejects used_plus_cost_over_limit
+  - no current event can create or consume provider-issued review work
+  - complete-empty retrieval proof binds repository, revision, request, scope, evidence, and reconciliation generation
+  - missing ImprovementSlice risk, stop condition, or writeback fails validation
+  - missing Checkpoint resume precondition or privacy classification fails persistence validation
+  - stale durable resume preconditions fail closed at resume boundary
+  - stale P1 arriving after reconciliation is classified trace-only before current review work is created
 truthfulness:
   - expected-mechanism PASS is not production execution, external scheduler proof, or GPT acceptance
   - SQLite is non-authoritative local working state
+  - trusted complete-empty is a synthetic reconciliation fixture only; caller empty lists cannot establish completeness

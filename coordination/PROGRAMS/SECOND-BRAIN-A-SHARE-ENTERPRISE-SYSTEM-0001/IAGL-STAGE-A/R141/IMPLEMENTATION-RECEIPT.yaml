@@ -2,7 +2,7 @@ schema_version: "R141-IMPLEMENTATION-RECEIPT-1.0"
 agent_id: CODEX
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
-status: B01_B05_REMEDIATION_IMPLEMENTED_FINAL_HEAD_EVIDENCE_BOUND_EXTERNALLY_ON_PR
+status: R3_IMPLEMENTATION_COMPLETE_FINAL_HEAD_EVIDENCE_BOUND_EXTERNALLY_ON_PR
 implementation:
   runtime: iagl_synthetic_supervisor.py
   persistence: Python sqlite3 task-local working state
@@ -10,9 +10,18 @@ implementation:
   process_model: synchronous single worker; no subprocess, pool, daemon, or network
 mechanism_results:
   required_evaluations: IAGL-E001..IAGL-E018
-  local_result: CANONICAL_E001_E018_PLUS_2_SUPPORTING_TESTS_PASS_ON_PYTHON_3_13
+  local_result: CANONICAL_E001_E018_PLUS_8_SUPPORTING_TESTS_PASS_ON_PYTHON_3_13
   local_python_3_11: NOT_INSTALLED_LOCALLY__EXACT_HEAD_CI_REQUIRED
+  retained_phase_3:
+    local_adapter: PASS_98_TESTS_ON_PYTHON_3_13
+    integrated_offline_memory: PASS_291_TESTS_ON_PYTHON_3_13
+    public_safety: PASS_108_FILES_0_ISSUES
   authority_boundary: synthetic ReconciliationSnapshot only; never canonical authority
+  r3_boundaries:
+    review_work: normalized-current-event plus exact-head plus reconciliation-generation only
+    retrieval_completeness: incomplete unless a reconciliation-bound complete-empty proof validates
+    cross_slice_fencing: plan/checkpoint/resume require one identical slice identity
+    frozen_contracts: Checkpoint and ImprovementSlice validate public-safe required fields before durable use
 cleanup:
   task_owned_processes: 0
   task_owned_ephemeral_resources: test temporary directories only

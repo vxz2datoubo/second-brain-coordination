@@ -6,7 +6,7 @@ issue: 389
 canonical_main: dfd8c675583b7c1d017fa3bdd6bff651b53bac23
 implementation_branch: codex/r141-iagl-stage-a-synthetic-supervisor
 mode: project_plan
-status: B01_B05_REMEDIATION_IMPLEMENTED_AWAITING_FINAL_REMOTE_CI
+status: R3_B01R_B03R_B04R_B08_IMPLEMENTATION_COMPLETE_AWAITING_FINAL_REMOTE_CI
 scope:
   write_surfaces:
     - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src
@@ -27,9 +27,11 @@ implementation:
   M2_durable_supervision:
     - durable SQLite state with idempotency, fencing, checkpoint, restart, budget, and VOI stop
   M3_preemption:
-    - cooperative safe-point checkpoint and P3-to-P1 preemption/resume validation
+    - cooperative safe-point checkpoint and P3-to-P1 preemption/resume validation with same-slice fence identity
   M4_evaluations:
     - implement IAGL-E001 through IAGL-E018 as mechanism-driven regressions
+    - bind current-head review work to normalized event and reconciliation generation
+    - distinguish incomplete retrieval from reconciliation-bound complete-empty work
   M5_validation:
     - Python 3.11 and 3.13 workflow, public-safety, YAML, scope, and diff checks
   M6_handoff:
