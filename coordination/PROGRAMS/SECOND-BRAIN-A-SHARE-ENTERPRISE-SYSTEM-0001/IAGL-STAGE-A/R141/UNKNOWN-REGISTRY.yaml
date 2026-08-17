@@ -1,0 +1,68 @@
+schema_version: "R141-UNKNOWN-REGISTRY-6.0"
+task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
+issue: 389
+current_executor:
+  executor_role: GPT_ENGINEERING_WORKER
+  model_id: "GPT-5.6 Sol"
+remediation_delta:
+  B22: >-
+    Stage A mechanically distinguishes retry/redelivery from a new synthetic
+    occurrence using semantic target identity plus supplied idempotency key.
+  B23: >-
+    P0 dispositions are additionally bound to the current synthetic occurrence
+    key and a monotonic per-semantic approval epoch. A new genuine occurrence,
+    including one arriving while the prior P0 gate is still pending, advances
+    the current coalesced gate epoch and makes prior-occurrence approvals stale.
+    This is a deterministic Stage-A approval-freshness mechanism only.
+  B24: >-
+    Evidence job IDs are corrected and the narrow pre-B22 durable-row backfill
+    claim has an executable upgrade/restart regression.
+  B25: >-
+    Persisted pre-B23 reconciliation snapshots containing the old unbound
+    P0Disposition schema are now read fail-closed: recognized legacy unbound
+    approvals are omitted from runtime approval semantics, audited before the
+    legacy reconciliation row can be overwritten, and never receive synthesized
+    occurrence or approval-epoch bindings. This is compatibility hardening only.
+entries:
+  - id: IAGL-R141-UNKNOWN-001
+    subject: external scheduler and webhook delivery
+    status: OUT_OF_SCOPE_FUTURE_GOVERNED_DEPENDENCY
+    rationale: "Stage A remains synchronous and has no daemon/network scheduler capability."
+  - id: IAGL-R141-UNKNOWN-002
+    subject: live control-plane reconciliation provider
+    status: NOT_IMPLEMENTED
+    rationale: "ReconciliationSnapshot is a synthetic trusted fixture contract, not a live authority provider."
+  - id: IAGL-R141-UNKNOWN-003
+    subject: domain or W3 persistence
+    status: LOCKED
+    rationale: "SQLite remains non-authoritative and cannot write canonical domain truth."
+  - id: IAGL-R141-UNKNOWN-004
+    subject: production outcome quality
+    status: UNKNOWN
+    rationale: "Deterministic synthetic tests do not establish real-world outcome quality."
+  - id: IAGL-R141-UNKNOWN-005
+    subject: complete authority and retrieval discovery
+    status: FUTURE_GOVERNED_PROVIDER_REQUIRED
+    rationale: "Caller input cannot prove authority completeness; only bounded synthetic provider observations are modeled."
+  - id: IAGL-R141-UNKNOWN-006
+    subject: production starvation threshold and materiality calibration
+    status: UNKNOWN
+    rationale: "Stage-A threshold remains a deterministic fixture, not a production-calibrated rule."
+  - id: IAGL-R141-UNKNOWN-007
+    subject: live recurrence identity and occurrence attestation source
+    status: FUTURE_GOVERNED_PROVIDER_REQUIRED
+    rationale: >-
+      B22/B23 use supplied idempotency plus a task-local approval epoch to
+      distinguish deterministic synthetic occurrences and bind dispositions.
+      B25 only makes persisted legacy snapshots safely readable and auditable.
+      None of these mechanisms attests whether a real production observation is
+      genuinely new; a live occurrence-attestation provider remains unimplemented.
+unknown_preservation_rule: "No UNKNOWN, LOCKED, or future dependency is closed solely because the Stage-A suite passes."
+locks:
+  secret_or_credential_access: false
+  permission_expansion: false
+  external_scheduler_runtime: false
+  production_access: false
+  domain_or_w3_write: false
+  trading_or_funds: false
+  merge_authority: false

@@ -1,0 +1,65 @@
+schema_version: "R141-IMPLEMENTATION-RECEIPT-6.0"
+task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
+issue: 389
+mode: project_plan
+status: B25_REMEDIATION_LOCAL_STATIC_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
+provenance:
+  historical_initial_executor: CODEX
+  current_remediation_executor:
+    executor_role: GPT_ENGINEERING_WORKER
+    model_id: "GPT-5.6 Sol"
+    harness: "ChatGPT engineering-worker window"
+    repository_io: "OpenAI GitHub connector / GitHub App chatgpt-codex-connector"
+    local_validation_harness: "isolated container Python 3.13.5 static compile/schema checks; exact behavior authority is GitHub exact-head CI"
+  independent_reviewer: "separate GPT reviewer window; this executor does not self-review"
+implementation:
+  canonical_runtime: "src/iagl_synthetic_supervisor.py"
+  runtime_structure: "single instantiable Supervisor/Store entrypoint plus contract and unbound-operation helper modules"
+  shadow_runtime: ABSENT
+  persistence: "Python sqlite3 task-local non-authoritative working state"
+  process_model: "synchronous single worker; no subprocess, pool, daemon, scheduler, or network"
+mechanism_results:
+  expected_exact_head_test_count: 60
+  expected_partition:
+    prior_suite: 43
+    b16_b17_suite: 7
+    b19_b21_suite: 4
+    b22_b24_suite: 5
+    b25_suite: 1
+  retained:
+    B19: "one current instantiable Supervisor/Store; no old core bypass; incompatible store injection fails closed"
+    B20: "authoritative active P2 blocks even with zero prior transport event"
+    B21: "genuine renewed high-risk occurrence re-enters P0"
+    B22: "same semantic target plus same idempotency is duplicate/redelivery and does not re-gate; new idempotency is a genuine Stage-A synthetic occurrence"
+    B23: "P0 disposition must bind current occurrence_key plus approval_epoch; stale prior approvals fail closed"
+    B24: "historical CI job IDs corrected; narrow pre-B22 event-row backfill regression retained"
+  B25:
+    compatibility: "pre-B23 persisted reconciliation snapshots with legacy unbound P0Disposition objects deserialize without crashing"
+    fail_closed_rule: "legacy items that exactly match the old unbound schema are removed from runtime p0_dispositions; occurrence_key/approval_epoch are never guessed or synthesized"
+    malformed_current_rule: "partially bound or otherwise non-legacy malformed disposition serialization remains an explicit deserialization error"
+    audit: "startup records each dropped legacy unbound disposition in append-only reconciliation_migration_audit before fresh reconciliation can overwrite the legacy snapshot row"
+    reachable_regression: "fixture includes reconciliation.snapshot old p0_dispositions plus disposed P0 event, event trace, occurrence row, and disposition history; current_snapshot/fresh reconcile recover, a new occurrence remains USER_GATE, and only a current occurrence+epoch-bound disposition resolves"
+    history: "legacy event/occurrence/disposition history is preserved"
+  B24_precision_retained:
+    prior_direct_run_32031788981_actual_jobs:
+      python_3_11: 95393222924
+      python_3_13: 95393222926
+    prior_phase3_run_32031788861_actual_jobs:
+      python_3_11: 95393222638
+      python_3_13: 95393222476
+local_validation:
+  source_static_compile: PASS
+  yaml_parse: PASS
+  public_safety_static_scan_on_changed_source: PASS
+  exact_behavior_suite: "EXTERNAL_POST_COMMIT_CI_REQUIRED"
+authority_boundary:
+  secret_permission_scheduler_production_domain_w3_trading_expansion: false
+  autonomous_merge: false
+unknown_preservation:
+  rule: "synthetic PASS does not close live provider, scheduler, privacy, production, authority, calibration, occurrence-attestation, or merge UNKNOWNs"
+  unknown_007: "OPEN; legacy snapshot compatibility and task-local approval_epoch do not provide production occurrence attestation"
+remote_evidence_binding:
+  exact_head: EXTERNAL_POST_COMMIT_BINDING_REQUIRED
+  direct_python_3_11_3_13_ci: EXTERNAL_POST_COMMIT_BINDING_REQUIRED
+  retained_phase_3_ci: EXTERNAL_POST_COMMIT_BINDING_REQUIRED
+completion_signal: R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW
