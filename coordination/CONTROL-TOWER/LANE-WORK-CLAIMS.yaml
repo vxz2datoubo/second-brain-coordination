@@ -1,4 +1,4 @@
-schema_version: "3.4"
+schema_version: "3.5"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -14,8 +14,8 @@ semantics:
   route_binding_required_for_executable_implementation: true
   latest_per_agent_active_route_is_execution_truth: true
   closed_lane_releases_all_current_work_surfaces: true
-  r140_completion_does_not_authorize_successor_execution: true
   implementation_release_requires_fresh_claim_rescan: true
+  stage_a_synthetic_success_does_not_authorize_stage_b: true
 
 proposal_roots:
   LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
@@ -42,43 +42,70 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+      route_epoch: 141
+      issue: 389
+      pr: null
+      branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
+      - ".github/workflows/iagl-r141-stage-a.yml"
+    read_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/ENGINEERING-LEARNING"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE"
     interfaces:
-      - name: "DomainLearningHandoff-V1"
+      - name: "IAGL-Stage-A-Architecture"
         mode: "read/frozen"
-        frozen: true
-      - name: "DomainLearningRecall-V1"
-        mode: "read/frozen after R140 closure"
-        frozen: true
-      - name: "AI-Film-Domain-Authority"
-        mode: "read-only / no-write"
         frozen: true
       - name: "Control-Tower-Authorization-Boundary"
         mode: "read/evidence-only"
         frozen: true
-    read_domains: []
-    write_domains: []
+      - name: "W3-Domain-Authority"
+        mode: "boundary simulation / no-write"
+        frozen: true
+      - name: "Signal-Tower"
+        mode: "read/reference only; no execution authority"
+        frozen: true
+    read_domains: [W1, W3, W8, W9, W10]
+    write_domains: [W8]
     authority_claims: []
-    closure_receipt:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
-      route_epoch: 140
-      issue: 382
-      merged_pr: 385
-      accepted_head: "b5fb56d1b74334917966ce2bcb39ec7aa96738a6"
-      merge_commit: "4eed1ce132d98d0e6f8b990d8fb8166e0da72a2b"
-      gpt_final_review: 4948187691
-      receipt: "coordination/CONTROL-TOWER/R140-DOMAIN-LEARNING-RECALL-CLOSURE-RECONCILIATION.yaml"
-      verdict: "R140_ACCEPTED_AND_CLOSED"
+    implementation_scope:
+      slice: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR"
+      issue: 389
+      phase: "B_ACTIVE_SYNTHETIC_IMPLEMENTATION"
+      resource_class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
+      activation_reconciliation: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      runtime_code_change_allowed: true
+      real_scheduler_allowed: false
+      openai_api_key_allowed: false
+      secret_permission_expansion_allowed: false
+      domain_write_allowed: false
+      W3_authority_write_allowed: false
+      production_allowed: false
+      trading_allowed: false
+      codex_merge_allowed: false
     stop_conditions:
-      - "No R140 resume after closure"
-      - "Any successor runtime write requires a new task/epoch/claim/allowlist"
-      - "AI Film/domain write remains a separate authority gate"
-      - "Secrets/private/production/trading/destructive history remain gated"
+      - "Write outside exact four-surface allowlist -> STOP"
+      - "Secret/API billing/GitHub permission/real scheduler/production requirement -> STOP / separate user gate"
+      - "Domain/W3 authority write requirement -> STOP"
+      - "Private/raw data requirement -> STOP"
+      - "Same Codex/local-heavy collision or stale route -> STOP / reconcile"
+      - "Synthetic success presented as Stage-B production readiness -> STOP / FALSE_GREEN"
+      - "Nested pool/process storm -> STOP or single-worker fallback"
+      - "Passing tests/CI never grants Codex merge"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -106,9 +133,8 @@ claims:
 
 release_semantics:
   proposal_only_parallelism: >-
-    No active Codex implementation lease exists after R140 closure. Lane B remains isolated proposal-only and Lane C closed.
-    Issue #386 IAGL is architecture planning only and has no route binding or runtime write authority.
+    R141 owns the one active Codex Lane-A synthetic implementation surface. Lane B remains isolated proposal-only and Lane C closed.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
-  r140_ai_film_boundary: "READ_ONLY / NO_DOMAIN_CANONICAL_WRITE"
-  iagl_issue_386_state: "PLANNING_ONLY / NO_CODEX_ROUTE"
+  iagl_stage_a_boundary: "SYNTHETIC_ONLY / NO_SECRET / NO_PRODUCTION / NO_DOMAIN_WRITE / NO_TRADE"
+  iagl_stage_b: "NOT_AUTHORIZED"

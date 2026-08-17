@@ -1,0 +1,102 @@
+schema_version: "1.0"
+receipt_id: "R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+route_epoch: 141
+issue: 389
+parent_issue: 386
+reconciled_base_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+activation_semantics: >-
+  This receipt authorizes R141 only after the control-plane PR containing this receipt, the R141 route/task brief,
+  ACTIVE-CODEX-TASK, ACTIVE-PROGRAM-LANES and LANE-WORK-CLAIMS is merged to canonical main. The eventual merge SHA is
+  externally observable and need not be self-referentially embedded in this commit.
+
+observations:
+  r140:
+    status: "DONE"
+    issue: 382
+    implementation_pr: 385
+    closure_main: "bd7e49f5d596b63efa158b622b6116229df644b7"
+    active_lease: "RELEASED"
+  iagl_architecture:
+    issue: 386
+    architecture_pr: 388
+    architecture_merge: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+    status: "CANONICAL / STAGE_A_ARCHITECTURE_ACCEPTED"
+  codex:
+    prior_task: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
+    prior_epoch: 140
+    prior_status: "DONE"
+    prior_execution_allowed: false
+    active_implementation_collision: false
+  qclaw:
+    task: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+    mutable_overlap_with_r141: false
+  workbuddy:
+    task: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
+    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+    mutable_overlap_with_r141: false
+  lane_a:
+    prior_claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    new_surface: "IAGL-STAGE-A synthetic runtime only"
+  lane_b:
+    state: "HELD_PROPOSAL_ONLY"
+    mutable_overlap_with_r141: false
+  lane_c:
+    state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    mutable_overlap_with_r141: false
+  user_governance:
+    current_mode: "USER_CONTROLLED"
+    codex_local_auto_claim: "USER_CONFIRMED_MANUALLY_PAUSED / NOT_REMOTE_MACHINE-VERIFIED"
+    delegation: "GPT may make ordinary checked low/medium-risk engineering governance decisions"
+
+risk_assessment:
+  class: "LOW_TO_MEDIUM / SYNTHETIC_ENGINEERING"
+  secret_required: false
+  permission_expansion_required: false
+  production_required: false
+  private_data_required: false
+  domain_write_required: false
+  W3_authority_expansion_required: false
+  trading_or_funds_required: false
+  destructive_history_required: false
+  merge_authority_for_codex: false
+
+write_surface:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
+  - ".github/workflows/iagl-r141-stage-a.yml"
+
+resource_controls:
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  worker_default: 1
+  daemon: "FORBIDDEN"
+  network_dependency_in_stage_a_tests: "FORBIDDEN"
+  global_process_kill: "FORBIDDEN"
+
+reconciliation_result:
+  architecture_dependency: "PASS"
+  predecessor_closure: "PASS"
+  codex_route_collision: "PASS / NONE"
+  cross_agent_mutable_overlap: "PASS / NONE"
+  write_surface_isolation: "PASS"
+  authority_boundary: "PASS"
+  user_gate_required_for_stage_a: false
+  stage_b_or_secret_authority_granted: false
+  decision: "RELEASE_R141_STAGE_A_AFTER_THIS_CONTROL_PLANE_BECOMES_CANONICAL"
+
+stop_conditions:
+  - "control-plane PR not canonical"
+  - "wrong task/epoch/issue/branch"
+  - "new Codex route or local-heavy collision"
+  - "write outside exact allowlist"
+  - "secret/permission/production/private/domain/W3-authority/trading/history expansion"
+  - "untrusted workspace requiring destructive recovery"
+
+completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"

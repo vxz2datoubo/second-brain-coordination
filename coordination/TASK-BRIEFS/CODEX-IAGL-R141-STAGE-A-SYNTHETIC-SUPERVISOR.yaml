@@ -1,0 +1,175 @@
+schema_version: "1.0"
+task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+route_epoch: 141
+issue: 389
+parent_issue: 386
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+reviewer: "GPT"
+owner: "USER"
+mode: "project_plan"
+status: "READY_AFTER_CANONICAL_ACTIVATION"
+
+mission: >-
+  Implement the Stage-A offline/synthetic IAGL Supervisor as one Mission-sized vertical slice: deterministic event normalization,
+  P0-P4 scheduling, state transitions, durable checkpoint/resume, idempotency/fencing, budget/VOI stopping, cooperative
+  preemption, governance-mode semantics, crash recovery, adversarial replay and exact-head CI. No real external scheduler,
+  OpenAI API key, GitHub secret, production service, domain write, merge or trading authority exists in this task.
+
+canonical_inputs:
+  activation_base_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+  iagl_architecture_dir: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
+  architecture_issue: 386
+  implementation_issue: 389
+  predecessor_closure: "coordination/CONTROL-TOWER/R140-DOMAIN-LEARNING-RECALL-CLOSURE-RECONCILIATION.yaml"
+  control_tower_claims: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  active_program_lanes: "coordination/ACTIVE-PROGRAM-LANES.yaml"
+
+implementation_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
+
+allowed_write_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
+  - ".github/workflows/iagl-r141-stage-a.yml"
+
+forbidden_write_paths:
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/CONTROL-TOWER"
+  - "coordination/ROUTES"
+  - "coordination/TASK-BRIEFS"
+  - "any AI Film/domain repository"
+  - "any W3 canonical truth surface"
+
+milestones:
+  M0:
+    goal: "fresh preflight + concrete implementation plan"
+    required:
+      - "verify exact task/epoch/issue/branch/main/allowlist"
+      - "read all six canonical IAGL architecture artifacts"
+      - "select minimal working-state persistence using Python stdlib where practical"
+      - "record design tradeoffs in R141 evidence surface"
+  M1:
+    goal: "core deterministic supervisor"
+    required:
+      - "NormalizedEvent"
+      - "Priority P0-P4"
+      - "SupervisorState"
+      - "GovernanceMode"
+      - "ImprovementSlice"
+      - "Checkpoint"
+      - "ReconciliationSnapshot"
+      - "explicit transition validation"
+  M2:
+    goal: "durable working state and controls"
+    required:
+      - "idempotency/dedupe"
+      - "lease/fencing"
+      - "checkpoint persistence/restart restore"
+      - "budget accounting"
+      - "VOI/no-value stopping"
+      - "working state explicitly non-authoritative vs W3/domain"
+  M3:
+    goal: "cooperative preemption and resume"
+    required:
+      - "P3 work slice interrupted by P1 review at safepoint"
+      - "checkpoint before preemption"
+      - "fresh reconcile before resume"
+      - "head/route/governance drift invalidates stale resume"
+  M4:
+    goal: "adversarial and recovery suite"
+    required:
+      - "cover IAGL-E001 through IAGL-E018 or provide exact mapping with no omitted semantics"
+      - "rapid A/B/C head drift"
+      - "duplicate event"
+      - "crash/restart"
+      - "duplicate lease"
+      - "USER_CONTROLLED prevents auto-execution semantics"
+      - "secret/permission request yields gate only"
+      - "resource storm guard"
+      - "no eligible work yields bounded IDLE"
+  M5:
+    goal: "exact-head CI and safety"
+    required:
+      - "Python 3.11 and 3.13"
+      - "deterministic repeated-run evidence"
+      - "public-safe scan"
+      - "no network dependency"
+      - "changed-path allowlist"
+      - "git diff --check"
+      - "placeholder/TODO/shadow-implementation scan"
+      - "single-worker default / no nested pools / no daemon"
+  M6:
+    goal: "evidence and handoff"
+    required:
+      - "exact tested head"
+      - "CI run/job IDs and conclusions"
+      - "test/eval matrix"
+      - "resource/process evidence"
+      - "rollback"
+      - "UNKNOWN delta"
+      - "completion signal"
+
+required_eval_ids:
+  - IAGL-E001
+  - IAGL-E002
+  - IAGL-E003
+  - IAGL-E004
+  - IAGL-E005
+  - IAGL-E006
+  - IAGL-E007
+  - IAGL-E008
+  - IAGL-E009
+  - IAGL-E010
+  - IAGL-E011
+  - IAGL-E012
+  - IAGL-E013
+  - IAGL-E014
+  - IAGL-E015
+  - IAGL-E016
+  - IAGL-E017
+  - IAGL-E018
+
+resource_contract:
+  resource_class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  worker_default: 1
+  nested_process_pools: "FORBIDDEN"
+  daemon_or_server: "FORBIDDEN"
+  network_dependency: "FORBIDDEN_IN_STAGE_A_RUNTIME_TESTS"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_cleanup_only: true
+  global_kill_python_or_docker: false
+  untrusted_workspace_recovery: "FRESH_ISOLATED_WORKTREE / NO_RESET_CLEAN_FORCE_PUSH_REBASE"
+
+hard_locks:
+  - "NO_OPENAI_API_KEY_OR_BILLING_ACTIVATION"
+  - "NO_GITHUB_SECRET_OR_PERMISSION_EXPANSION"
+  - "NO_REAL_WEBHOOK_SELF_HOSTED_RUNNER_OR_PRODUCTION_SCHEDULER"
+  - "NO_LOCAL_CODEX_AUTOMATION_CONTROL"
+  - "NO_ARBITRARY_SHELL_FROM_GITHUB_PROSE"
+  - "NO_AI_FILM_OR_DOMAIN_CANONICAL_WRITE"
+  - "NO_W3_AUTHORITY_WRITE_EXPANSION"
+  - "NO_PRIVATE_RAW_CONVERSATION_OR_MEDIA"
+  - "NO_PRODUCTION_DEPLOYMENT"
+  - "NO_AUTONOMOUS_MERGE"
+  - "NO_TRADING_ACCOUNTS_ORDERS_FUNDS"
+  - "NO_DESTRUCTIVE_HISTORY_REWRITE"
+
+false_green_guards:
+  - "Prompt text is not observed governance-mode state."
+  - "Event payload is a hint; reconciliation snapshot supplies trusted current facts."
+  - "CI success is not GPT acceptance."
+  - "Empty candidate input is not search completeness evidence."
+  - "Executor SUCCESS is not independent evidence."
+  - "Checkpoint is not canonical knowledge."
+  - "Synthetic Stage-A success is not Stage-B production readiness."
+
+completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"
+stop_after_completion: true
+codex_merge_authorized: false

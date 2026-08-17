@@ -1,75 +1,98 @@
-schema_version: "140.1"
+schema_version: "141.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 382
-task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
-parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
-route_epoch: 140
+active_issue: 389
+task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+parent_task_id: "IAGL-INTERRUPTIBLE-AUTONOMOUS-GOVERNANCE-0001"
+route_epoch: 141
 mode: "project_plan"
-mode_label: "【Codex模式：已完成】R140 Domain Learning Recall Loop"
-status: "DONE"
-execution_allowed: false
-automatic_resume_within_task: false
+mode_label: "【Codex模式：项目计划模式】R141 IAGL Stage-A Synthetic Supervisor"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: true
 second_user_start_command_required: false
-intermediate_gpt_review_required: false
+intermediate_gpt_review_required: true
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
+runtime_code_change_allowed: true
+runtime_code_scope: "R141_EXACT_FOUR_SURFACES_ONLY"
 
-canonical_predecessor_route_epoch: 139
-canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
-canonical_predecessor_closure_main: "018943c0a3d76676e93847279660915b8e8e5988"
-canonical_architecture_main: "a411f40ba2d865dae40160e6b9129169f9450d26"
-canonical_activation_main: "273d8c9b952d02ccf28688d4cc40759e52b0b93e"
-canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP-R140.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP.yaml"
-closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R140-DOMAIN-LEARNING-RECALL-CLOSURE-RECONCILIATION.yaml"
-implementation_branch: "codex/r140-domain-learning-recall-loop"
-implementation_pr: 385
-
-completion_receipt:
-  accepted_runtime_head: "b5fb56d1b74334917966ce2bcb39ec7aa96738a6"
-  implementation_pr: 385
-  pre_merge_main: "273d8c9b952d02ccf28688d4cc40759e52b0b93e"
-  merge_commit: "4eed1ce132d98d0e6f8b990d8fb8166e0da72a2b"
-  gpt_final_review: 4948187691
-  r140_ci: 31989745470
-  s0e_ci: 31989745471
-  phase3_ci: 31989745466
-  retained_r137_ci: 31989745489
-  retained_r138_ci: 31989745437
-  retained_r139_ci: 31989745431
-  acceptance: "R140_ACCEPTED_AT_EXACT_HEAD / B01_B02_B03_B04_CLOSED"
-  ai_film_write: "NONE"
-  domain_maturity_authority: "NONE"
-  formal_skill_promotion_authority: "NONE"
-  route_disposition: "R140_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
-
-retained_findings:
-  R138-F01: "RETAINED / dedicated Docker query returncode failure injection required before any future production promotion"
-  R139-STAGE-B: "NOT_AUTHORIZED / AI Film domain-owned processor+writer remains a separate future gate"
-  R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / AI Film canonical does not yet publish sufficient model/tool version authority; affected recall remains NEEDS_REVALIDATION"
-  R140-LOCAL-PYCACHE: "NON_DELIVERED_LOCAL_ONLY / narrow waiver retained; no cleanup authority expansion"
+canonical_predecessor_route_epoch: 140
+canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
+canonical_predecessor_closure_main: "bd7e49f5d596b63efa158b622b6116229df644b7"
+canonical_iagl_architecture_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+canonical_route: "coordination/ROUTES/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR-R141.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR.yaml"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
+implementation_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
+implementation_pr: null
 
 release_phase:
-  phase: "C_POST_MERGE_CLOSURE"
-  execution_state: "DONE_AFTER_GPT_EXACT_HEAD_ACCEPTANCE_AND_USER_AUTHORIZED_MERGE"
-  active_codex_lease: "RELEASED"
+  phase: "B_ACTIVE_SYNTHETIC_IMPLEMENTATION"
+  execution_state: "READY_AFTER_ACTIVATION_CONTROL_PLANE_IS_CANONICAL"
   hard_rule: >-
-    Epoch 140 is completed historical evidence only and must not resume. Any successor Codex implementation requires a new
-    task_id/epoch, fresh Work Claim, fresh reconciliation and a canonical READY route.
+    Codex may implement only this Stage-A synthetic runtime after the activation state becomes canonical. Ordinary blockers
+    remain in the same Task/PR/branch. Stop on stale route, duplicate claim, resource collision, write-surface expansion,
+    secret/permission/production/domain/W3-authority/trading/history expansion, or evidence invalidation.
 
-allowed_write_paths: []
-current_write_permission: "RELEASED / NO_ACTIVE_WRITE_PERMISSION"
+objective: >-
+  Implement a deterministic offline IAGL Supervisor proving event normalization/dedupe, P0-P4 scheduling, checkpoint/resume,
+  idempotency/fencing, budget/VOI stopping, cooperative preemption, governance modes, crash/restart recovery and IAGL-E001..E018
+  adversarial replay. This task must not deploy a real external scheduler or connect an OpenAI API key.
+
+milestones:
+  - "M0 fresh identity/dependency/architecture preflight + concrete storage/runtime plan"
+  - "M1 core contracts + deterministic state machine/supervisor"
+  - "M2 durable working state + idempotency/fencing/budget/VOI"
+  - "M3 cooperative preemption + fresh-reconcile resume/replan"
+  - "M4 IAGL-E001..E018 adversarial/recovery suite"
+  - "M5 exact-head Python 3.11/3.13 CI + deterministic/public-safe/resource gates"
+  - "M6 evidence/rollback/UNKNOWN/handoff"
+
+allowed_write_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
+  - ".github/workflows/iagl-r141-stage-a.yml"
+current_write_permission: "AUTHORIZED_AFTER_ACTIVATION_MERGE / EXACT_ALLOWLIST_ONLY"
+
+resource_contract:
+  class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  daemon_server: "FORBIDDEN"
+  network_dependency_in_stage_a_tests: "FORBIDDEN"
+  task_owned_process_temp_cache_cleanup: "REQUIRED_WHERE_SAFE"
+  global_kill_python_or_docker: "FORBIDDEN"
+
+local_dispatch_state:
+  user_confirmed_codex_auto_claim: "PAUSED"
+  machine_verified_by_repository: false
+  semantic_rule: >-
+    Repository activation does not imply the user's local Codex automation is enabled. The task may be started by the user's
+    direct instruction now, or by a later separately governed automation state change. Prompt prose is not automation state.
 
 hard_locks:
+  - "No OpenAI API key or paid API activation."
+  - "No GitHub secret or permission expansion."
+  - "No real webhook, self-hosted runner, production scheduler, daemon or service."
+  - "No local Codex automation control."
+  - "No arbitrary shell execution from GitHub prose."
   - "No AI Film/domain canonical write."
-  - "No domain maturity or Formal Skill promotion authority."
-  - "No generic cross-repo writer."
-  - "No private/secret/permission/production/Harness/H2/H7 expansion."
+  - "No W3 authority write expansion."
+  - "No private/raw conversation/media."
+  - "No production deployment."
+  - "No autonomous merge."
   - "No destructive history rewrite."
   - "No trading/accounts/orders/funds."
-  - "No Codex merge authority."
 
-completion_signal: "R140_DOMAIN_LEARNING_RECALL_LOOP_READY_FOR_GPT_REVIEW"
-next_command: "NO_ACTIVE_TASK"
+retained_findings:
+  R138-F01: "RETAINED / required before any future production promotion"
+  R139-STAGE-B: "NOT_AUTHORIZED / separate AI Film domain-owned processor+writer gate"
+  R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+  IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
+
+completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"
+next_command: "START_R141_FROM_CANONICAL_ACTIVATION_STATE"

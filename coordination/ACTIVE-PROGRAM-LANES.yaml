@@ -1,10 +1,10 @@
-schema_version: "3.6"
+schema_version: "3.7"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-17T11:25:00+08:00"
+as_of: "2026-08-17T11:39:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -29,33 +29,32 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R140 is completed and owns no execution lease. Issue #386 IAGL is architecture-planning only until a separately released route exists.
+    R141 may own exactly one bounded Codex Lane-A synthetic implementation lease after canonical activation. It cannot deploy
+    the real IAGL scheduler/API worker and cannot mutate W3/domain authority.
 
 current_user_release_policy:
-  decision_at: "2026-08-17T11:25:00+08:00"
-  decision: "R140_IMPLEMENTATION_COMPLETED_AND_LEASE_RELEASED / IAGL_ARCHITECTURE_PLANNING_REGISTERED"
+  decision_at: "2026-08-17T11:39:00+08:00"
+  decision: "ACTIVATE_R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR"
   rationale: >-
-    User authorized merge after GPT exact-head acceptance and delegated ordinary post-acceptance governance decisions to GPT.
-    R140 is merged and closed; the next work is Issue #386 architecture/threat/permission/eval freezing only, with no Codex route yet.
-  released_implementation_lanes: []
+    R140 is closed, IAGL Stage-A architecture is canonical, no competing Codex/QCLAW/WorkBuddy mutable route overlaps the
+    dedicated Stage-A surface, and the user delegated ordinary checked low/medium-risk engineering decisions to GPT.
+  released_implementation_lanes:
+    - "LANE-A-HARNESS-INTEGRATION"
   prepared_implementation_lanes: []
   released_proposal_only_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_EXPLICIT_MERGE_AUTHORIZATION + GPT_POST_MERGE_RECONCILIATION"
-  r140_issue: 382
-  r140_route_epoch: 140
-  r140_implementation_pr: 385
-  r140_accepted_head: "b5fb56d1b74334917966ce2bcb39ec7aa96738a6"
-  r140_merge_commit: "4eed1ce132d98d0e6f8b990d8fb8166e0da72a2b"
-  r140_final_review: 4948187691
-  r140_status: "DONE / B01_B02_B03_B04_CLOSED"
-  r140_closure_receipt: "coordination/CONTROL-TOWER/R140-DOMAIN-LEARNING-RECALL-CLOSURE-RECONCILIATION.yaml"
+  release_owner: "USER_DELEGATED_LOW_MEDIUM_ENGINEERING_GOVERNANCE + GPT_FRESH_RECONCILIATION"
+  r141_issue: 389
+  r141_parent_issue: 386
+  r141_route_epoch: 141
+  r141_architecture_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+  r141_activation_reconciliation: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
+  r141_phase: "B_ACTIVE_SYNTHETIC_IMPLEMENTATION"
+  r141_release: "ACTIVE_BOUNDED_SYNTHETIC_IMPLEMENTATION_AFTER_ACTIVATION_MERGE"
+  iagl_stage_b: "NOT_AUTHORIZED / SECRETS_API_PERMISSIONS_EXTERNAL_SCHEDULER_PRODUCTION"
   r138_f01: "RETAINED_BEFORE_ANY_PRODUCTION_PROMOTION"
   r139_stage_b: "NOT_AUTHORIZED / SEPARATE_AI_FILM_DOMAIN_OWNED_GATE"
-  iagl_issue: 386
-  iagl_state: "PLANNING_ONLY / REGISTERED / NOT_EXECUTABLE"
-  iagl_codex_route: "NONE"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
@@ -63,13 +62,13 @@ current_user_release_policy:
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
-    observed_route_epoch: 140
-    observed_issue: 382
-    observed_pr: 385
-    observed_status: "DONE"
-    execution_allowed: false
-    observation_status: "R140_COMPLETED / NO_ACTIVE_CODEX_ROUTE"
+    observed_task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+    observed_route_epoch: 141
+    observed_issue: 389
+    observed_pr: null
+    observed_status: "READY"
+    execution_allowed: true
+    observation_status: "R141_ACTIVE_AFTER_CANONICAL_ACTIVATION / USER_LOCAL_AUTO_CLAIM_CONFIRMED_PAUSED"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -93,29 +92,30 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: >-
       Build shared Cognitive OS coordination/runtime substrate in gated slices without replacing GitHub/W3/domain authorities.
-      R140 Domain Learning Recall is completed; Issue #386 IAGL is the next architecture candidate, not an executable route.
+      Current slice is R141 IAGL Stage-A deterministic synthetic Supervisor only.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "NO_ACTIVE_IMPLEMENTATION"
+    observed_state: "ACTIVE_AFTER_ACTIVATION"
     primary_system_positions: [W1, W8, W9]
-    current_phase: "R140_CLOSED / IAGL_ARCHITECTURE_PLANNING_ONLY"
-    active_execution_route: null
+    current_phase: "R141_STAGE_A_SYNTHETIC_IMPLEMENTATION"
+    active_execution_route: "coordination/ROUTES/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR-R141.yaml"
     dependencies:
-      - "R140 accepted and closure canonical"
-      - "IAGL architecture/threat/permission/eval freeze"
-      - "fresh Global Reconciliation before any new route"
-      - "separate user approval for secrets/permission/production automation"
+      - "R140 accepted and closed"
+      - "IAGL Stage-A architecture merged at d8487449aa3ca9aca850592a578a803d566fc1f1"
+      - "R141 activation reconciliation canonical"
+      - "executor exact route/claim before material work"
     shared_interfaces:
-      - "Global Signal Tower R136-R140"
+      - "IAGL architecture contracts"
       - "Control Tower authorization boundary"
-      - "Harness orchestration boundary"
-      - "W3 knowledge/memory authority"
-      - "Issue #7 Codex dispatch lessons"
-    next_gate: "IAGL_ARCHITECTURE_FREEZE_THEN_FRESH_RECONCILIATION / NO_CODEX_EXECUTION_YET"
-    maturity: "R140_DONE / IAGL_STAGE_A_ARCHITECTURE_REGISTERED"
-    heavy_execution_authorized: false
-    implementation_owner_candidate: "TBD"
+      - "Global Reconciliation semantics"
+      - "W3/domain authority boundary"
+      - "Issue #4 telemetry"
+      - "Issue #312 Method Discovery / VOI"
+    next_gate: "CODEX_STAGE_A_DELIVERY_THEN_GPT_EXACT_HEAD_REVIEW"
+    maturity: "IAGL_STAGE_A_ARCHITECTURE_ACCEPTED / SYNTHETIC_RUNTIME_IN_PROGRESS"
+    heavy_execution_authorized: true
+    implementation_owner_candidate: "CODEX"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
@@ -151,14 +151,15 @@ program_lanes:
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_READ"
-    rule: "No active Lane A implementation; Lane B remains held proposal-only."
+    rule: "R141 writes only dedicated IAGL-STAGE-A synthetic surfaces; Lane B remains held proposal-only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
-    rule: "Lane C remains frozen; IAGL architecture may reference but not mutate W3 authority."
+    rule: "R141 may model W3/domain authority boundaries but cannot mutate Lane C/W3 canonical truth."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  After R140 closure, no successor implementation may start from planning text alone. Require fresh route/claim/lane reconciliation,
-  exact write allowlist, risk/permission gates, and separate approval for secrets/production/domain-write/trading or destructive history operations.
+  During R141 fail closed on stale task/epoch/issue/branch, duplicate claim, local-heavy collision, O3/O4 overlap, write outside
+  the four allowed surfaces, secret/permission/production/private/domain/W3-authority/trading/history expansion, or any attempt
+  to treat Stage-A synthetic success as Stage-B production authorization.

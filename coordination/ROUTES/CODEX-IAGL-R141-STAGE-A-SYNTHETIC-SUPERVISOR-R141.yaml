@@ -1,0 +1,81 @@
+schema_version: "1.0"
+route_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR-R141"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+route_epoch: 141
+issue: 389
+parent_issue: 386
+mode: "project_plan"
+status: "READY_AFTER_ACTIVATION_MERGE"
+execution_allowed: true
+implementation_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
+canonical_activation_base: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR.yaml"
+canonical_architecture_root: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
+
+write_allowlist:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
+  - ".github/workflows/iagl-r141-stage-a.yml"
+
+read_scope:
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL"
+  - "coordination/CONTROL-TOWER"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/ENGINEERING-LEARNING"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE"
+
+claim_protocol:
+  local_atomic_claim_required: true
+  claim_identity_fields: [task_id, route_epoch, issue, implementation_branch, activation_main]
+  duplicate_claim: "STOP"
+  stale_route_or_main: "STOP"
+  same_codex_route_collision: "STOP"
+  local_heavy_collision: "STOP"
+  user_confirmed_local_auto_claim_state: "PAUSED_OUTSIDE_GITHUB / NOT_MACHINE_VERIFIED_BY_ROUTE"
+  note: >-
+    This route does not assume or control the user's local Codex automation. The user currently confirmed it is manually paused.
+    Execution begins only when the user sends the direct task instruction or later re-enables a governed auto-claim mechanism.
+
+resource_contract:
+  class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
+  daemon_server: "FORBIDDEN"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_process_temp_cache_cleanup: "REQUIRED_WHERE_SAFE"
+  global_kill_python_or_docker: "FORBIDDEN"
+
+execution_guards:
+  must_equal_repository: "vxz2datoubo/second-brain-coordination"
+  must_equal_task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+  must_equal_epoch: 141
+  must_equal_issue: 389
+  must_equal_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
+  activation_must_be_canonical: true
+  no_guess_or_auto_switch: true
+  fail_on_authority_expansion: true
+  fail_on_write_outside_allowlist: true
+  fail_on_secret_permission_production_domain_trading_history_requirement: true
+
+hard_locks:
+  - "NO_OPENAI_API_KEY_OR_BILLING_ACTIVATION"
+  - "NO_GITHUB_SECRET_OR_PERMISSION_EXPANSION"
+  - "NO_REAL_EVENT_DAEMON_WEBHOOK_SELF_HOSTED_RUNNER_OR_PRODUCTION_SCHEDULER"
+  - "NO_LOCAL_CODEX_AUTOMATION_CONTROL"
+  - "NO_DOMAIN_OR_W3_AUTHORITY_WRITE_EXPANSION"
+  - "NO_PRIVATE_RAW_DATA"
+  - "NO_PRODUCTION"
+  - "NO_AUTONOMOUS_MERGE"
+  - "NO_TRADING_FUNDS_ACCOUNTS_ORDERS"
+  - "NO_DESTRUCTIVE_HISTORY_REWRITE"
+
+completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"
