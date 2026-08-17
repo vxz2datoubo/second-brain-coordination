@@ -24,3 +24,11 @@ unmerged branch unmerged; no shared history or workspace needs rewriting.
 Passing expected-mechanism tests does not establish external scheduler
 operation, production readiness, domain authority, outcome quality, or GPT
 acceptance. Those remain locked or unknown as listed in `UNKNOWN-REGISTRY.yaml`.
+
+## B01-B05 remediation truth
+
+The test matrix now preserves the frozen IAGL-E001 through IAGL-E018 meanings.
+The synthetic mechanism enforces canonical transitions, current reconciliation
+identity, governance/P0 checks, active lease/fencing, event-derived preemption,
+and pre-execution budget reservation. These remain synthetic mechanism proofs,
+not an authorization for an external scheduler or any production capability.

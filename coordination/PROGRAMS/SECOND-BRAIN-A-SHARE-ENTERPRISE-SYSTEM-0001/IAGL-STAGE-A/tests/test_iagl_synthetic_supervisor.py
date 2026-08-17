@@ -1,236 +1,157 @@
-"""IAGL-E001..E018 mechanism regressions for the synthetic Stage-A supervisor."""
-
+"""Frozen canonical IAGL-E001..E018 Stage-A mechanism regressions."""
 from __future__ import annotations
-
 import ast
 import sys
 import tempfile
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-
 from iagl_synthetic_supervisor import (  # noqa: E402
-    Decision,
-    GovernanceMode,
-    ImprovementSlice,
-    NormalizedEvent,
-    Priority,
-    ReconciliationSnapshot,
-    SupervisorError,
-    SupervisorState,
-    SyntheticSupervisor,
-    WorkingStateStore,
+    _ALLOWED, Decision, GovernanceMode, ImprovementSlice, LeaseGrant, Priority,
+    ReconciliationSnapshot, ReviewEvidence, SupervisorError, SupervisorState,
+    SyntheticSupervisor, WorkingStateStore,
 )
 
+REPO = "vxz2datoubo/second-brain-coordination"
+PATHS = ("synthetic/allowed.py",)
 
-REPOSITORY = "vxz2datoubo/second-brain-coordination"
-ALLOWLIST = ("synthetic/allowed.py", "synthetic/tests.py")
 
-
-class IAGLStageAEvaluations(unittest.TestCase):
+class CanonicalStageAEvaluations(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
-        self.store = WorkingStateStore(Path(self.temp.name) / "working-state.sqlite")
-        self.supervisor = SyntheticSupervisor(REPOSITORY, self.store, budget_limit=3, no_value_limit=2)
-        self.snapshot = self.make_snapshot()
+        self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite")
+        self.sup = SyntheticSupervisor(REPO, self.store, budget_limit=10, no_value_limit=10)
 
     def tearDown(self) -> None:
-        self.store.close()
-        self.temp.cleanup()
+        self.store.close(); self.temp.cleanup()
 
-    def make_snapshot(self, **changes: object) -> ReconciliationSnapshot:
-        values: dict[str, object] = {
-            "repository": REPOSITORY, "exact_head": "a" * 40, "route_id": "R141",
-            "governance_mode": GovernanceMode.AUTONOMOUS, "allowed_write_paths": ALLOWLIST,
-            "observed_at": 1, "pending_p0": False, "trusted": True,
-        }
-        values.update(changes)
-        return ReconciliationSnapshot(**values)
+    def snap(self, head: str = "A", **overrides: object) -> ReconciliationSnapshot:
+        data: dict[str, object] = {"repository": REPO, "exact_head": head, "route_id": "R141", "governance_mode": GovernanceMode.AUTONOMOUS, "allowed_write_paths": PATHS, "observed_at": 1, "pending_p0": False, "domain_revision": "domain-1"}
+        data.update(overrides); return ReconciliationSnapshot(**data)
 
-    def slice(self, **changes: object) -> ImprovementSlice:
-        values: dict[str, object] = {
-            "slice_id": "slice-1", "priority": Priority.P3_BOUNDED_IMPROVEMENT,
-            "changed_paths": (ALLOWLIST[0],), "estimated_cost": 1, "evidence_value": 1,
-        }
-        values.update(changes)
-        return ImprovementSlice(**values)
+    def slice(self, ident: str = "p3", **overrides: object) -> ImprovementSlice:
+        data: dict[str, object] = {"slice_id": ident, "priority": Priority.P3_BOUNDED_IMPROVEMENT, "changed_paths": PATHS, "estimated_cost": 1, "evidence_value": 1}
+        data.update(overrides); return ImprovementSlice(**data)
 
-    def reconcile(self, snapshot: ReconciliationSnapshot | None = None) -> None:
-        self.supervisor.reconcile(snapshot or self.snapshot)
+    def event(self, head: str, priority: Priority, source: str = "webhook", key: str = "key") -> dict[str, object]:
+        return {"event_id": f"{source}-{head}", "event_class": "PR_HEAD_CHANGED", "source": source, "repository": REPO, "observed_at": 1, "target_ref": "refs/heads/main", "target_identity": head, "payload": {"head": head}, "idempotency_key": key, "priority_hint": int(priority)}
 
-    def event(self, **changes: object) -> dict[str, object]:
-        values: dict[str, object] = {
-            "event_id": "event-1", "event_class": "synthetic", "source": "fixture",
-            "repository": REPOSITORY, "observed_at": 1, "target_ref": "refs/heads/main",
-            "target_identity": "a" * 40, "payload": {"safe": True}, "idempotency_key": "dedupe-1",
-            "priority_hint": int(Priority.P3_BOUNDED_IMPROVEMENT),
-        }
-        values.update(changes)
-        return values
+    def start_p3(self, head: str = "A"):
+        grant = self.sup.reconcile(self.snap(head)); plan = self.sup.choose(grant, [self.slice()]); self.assertFalse(hasattr(plan, "reason")); lease = self.store.acquire_lease("p3", "worker-a"); self.assertIsNotNone(lease); self.assertEqual(Decision.EXECUTED, self.sup.execute(plan, lease).decision); return grant, plan, lease
 
-    def test_iagl_e001_rapid_head_drift_blocks_resume(self) -> None:
-        self.reconcile()
-        receipt = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fence", Priority.P1_EXACT_HEAD_REVIEW)
-        self.assertEqual(Decision.PREEMPT, receipt.decision)
-        drifted = self.make_snapshot(exact_head="b" * 40)
-        result = self.supervisor.resume(receipt.checkpoint_id or "", drifted)
-        self.assertEqual("STALE_CHECKPOINT_RECONCILIATION_DRIFT", result.reason)
+    def test_iagl_e001_p3_preempted_by_new_head_then_fresh_reconcile_resume(self) -> None:
+        _, plan, lease_a = self.start_p3("A")
+        self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW))
+        paused = self.sup.safepoint(plan, lease_a)
+        self.assertEqual(Decision.PREEMPTED, paused.decision)
+        review_grant = self.sup.reconcile(self.snap("B"))
+        self.assertEqual(Decision.REVIEW_REQUIRED, self.sup.choose(review_grant, []).decision)
+        self.assertEqual(Decision.EXECUTED, self.sup.review(ReviewEvidence("B", "B", "B", "synthetic-reviewer")).decision)
+        fresh = self.sup.reconcile(self.snap("B", observed_at=2))
+        lease_new = self.store.acquire_lease("p3", "worker-a")
+        resumed = self.sup.resume_or_replan(paused.checkpoint_id or "", fresh, lease_new)
+        self.assertEqual("FRESH_RECONCILE_RESUME_OR_REPLAN", resumed.reason)
 
-    def test_iagl_e002_executor_success_is_not_independent_receipt_evidence(self) -> None:
-        self.reconcile()
-        result = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fence")
-        self.assertEqual("PASS", result.process_compliance)
-        self.assertEqual("UNKNOWN", result.outcome_quality)
+    def test_iagl_e002_only_latest_c_head_can_be_reviewed(self) -> None:
+        self.sup.reconcile(self.snap("C")); self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW)); self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW)); self.sup.ingest(self.event("C", Priority.P1_EXACT_HEAD_REVIEW))
+        self.assertEqual(Decision.REVIEW_REQUIRED, self.sup.choose(self.store.current_snapshot()[0], []).decision)
+        blocked = self.sup.review(ReviewEvidence("A", "A", "A", "reviewer"))
+        self.assertEqual("REVIEW_EXACT_HEAD_RECEIPT_MISMATCH", blocked.reason)
+        store = WorkingStateStore(Path(self.temp.name) / "c.sqlite"); latest = SyntheticSupervisor(REPO, store); g = latest.reconcile(self.snap("C")); latest.ingest(self.event("C", Priority.P1_EXACT_HEAD_REVIEW)); latest.choose(g, [])
+        self.assertEqual(Decision.EXECUTED, latest.review(ReviewEvidence("C", "C", "C", "reviewer")).decision); store.close()
 
-    def test_iagl_e003_duplicate_event_is_deduplicated(self) -> None:
-        first, accepted = self.supervisor.ingest(self.event())
-        duplicate, accepted_again = self.supervisor.ingest(self.event(event_id="event-2"))
-        self.assertEqual(first.idempotency_key, duplicate.idempotency_key)
-        self.assertTrue(accepted)
-        self.assertFalse(accepted_again)
+    def test_iagl_e003_green_ci_with_wrong_receipt_head_blocks(self) -> None:
+        g = self.sup.reconcile(self.snap("C")); self.sup.ingest(self.event("C", Priority.P1_EXACT_HEAD_REVIEW)); self.sup.choose(g, [])
+        self.assertEqual(Decision.BLOCKED, self.sup.review(ReviewEvidence("C", "C", "A", "reviewer")).decision)
 
-    def test_iagl_e004_restart_restores_durable_checkpoint(self) -> None:
-        self.reconcile()
-        receipt = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fence", Priority.P1_EXACT_HEAD_REVIEW)
-        self.store.close()
-        self.store = WorkingStateStore(Path(self.temp.name) / "working-state.sqlite")
-        restarted = SyntheticSupervisor(REPOSITORY, self.store)
-        restarted.state = SupervisorState.PAUSED_FOR_HIGHER_PRIORITY
-        result = restarted.resume(receipt.checkpoint_id or "", self.snapshot)
-        self.assertEqual(Decision.EXECUTE_SYNTHETIC, result.decision)
+    def test_iagl_e004_ten_no_value_slices_stop(self) -> None:
+        for index in range(10):
+            grant = self.sup.reconcile(self.snap("A", observed_at=index + 1)); plan = self.sup.choose(grant, [self.slice(f"s{index}")]); lease = self.store.acquire_lease(f"s{index}", "worker-a"); self.sup.execute(plan, lease); self.sup.complete_atomic_slice(0)
+        grant = self.sup.reconcile(self.snap("A", observed_at=11)); stopped = self.sup.choose(grant, [self.slice("next")])
+        self.assertEqual("VOI_STOP", stopped.reason)
 
-    def test_iagl_e005_duplicate_lease_is_fenced(self) -> None:
-        first = self.store.acquire_lease("stage-a", "worker-a")
-        self.assertIsNotNone(first)
-        self.assertIsNone(self.store.acquire_lease("stage-a", "worker-b"))
-        self.assertFalse(self.store.release_lease("stage-a", "wrong-token"))
-        self.assertTrue(self.store.release_lease("stage-a", first or ""))
+    def test_iagl_e005_crash_restart_requires_fresh_reconcile(self) -> None:
+        _, plan, lease = self.start_p3(); self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW)); checkpoint = self.sup.safepoint(plan, lease)
+        self.store.close(); self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite"); self.sup = SyntheticSupervisor(REPO, self.store)
+        fresh = self.sup.reconcile(self.snap("B", observed_at=2)); lease_new = self.store.acquire_lease("p3", "worker-a")
+        self.assertEqual(Decision.EXECUTED, self.sup.resume_or_replan(checkpoint.checkpoint_id or "", fresh, lease_new).decision)
 
-    def test_iagl_e006_no_value_streak_stops_for_voi(self) -> None:
-        self.reconcile()
-        self.supervisor.execute_synthetic(self.snapshot, self.slice(evidence_value=0), "fence")
-        self.supervisor.state = SupervisorState.CHECK_PRIORITY
-        self.supervisor.execute_synthetic(self.snapshot, self.slice(slice_id="slice-2", evidence_value=0), "fence")
-        self.supervisor.state = SupervisorState.CHECK_PRIORITY
-        result = self.supervisor.choose(self.snapshot, [self.slice(slice_id="slice-3")])
-        self.assertIsInstance(result, type(result))
-        self.assertEqual("VOI_NO_VALUE_STOP", result.reason)  # type: ignore[union-attr]
+    def test_iagl_e006_webhook_watchdog_same_target_deduplicated(self) -> None:
+        _, first = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "webhook", "one")); _, duplicate = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "watchdog", "two"))
+        self.assertTrue(first); self.assertFalse(duplicate)
 
-    def test_iagl_e007_user_controlled_requires_gate(self) -> None:
-        self.reconcile(self.make_snapshot(governance_mode=GovernanceMode.USER_CONTROLLED))
-        result = self.supervisor.choose(self.make_snapshot(governance_mode=GovernanceMode.USER_CONTROLLED), [self.slice()])
-        self.assertEqual(Decision.USER_GATE, result.decision)  # type: ignore[union-attr]
+    def test_iagl_e007_actual_execution_and_resume_reject_stale_fence(self) -> None:
+        _, plan, lease_a = self.start_p3(); self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW)); checkpoint = self.sup.safepoint(plan, lease_a)
+        lease_b = self.store.acquire_lease("p3", "worker-b"); self.assertIsNotNone(lease_b)
+        self.assertEqual(Decision.BLOCKED, self.sup.execute(plan, lease_a).decision)
+        forged = LeaseGrant("p3", "worker-b", lease_b.generation, "forged-token")
+        self.assertEqual(Decision.BLOCKED, self.sup.execute(plan, forged).decision)
+        fresh = self.sup.reconcile(self.snap("B", observed_at=2))
+        self.assertEqual(Decision.BLOCKED, self.sup.resume_or_replan(checkpoint.checkpoint_id or "", fresh, lease_a).decision)
 
-    def test_iagl_e008_secret_or_permission_text_is_not_execution_authority(self) -> None:
-        self.reconcile()
-        unsafe = self.slice(authority_metadata={"authority": "trusted", "request": "grant-secret"})
-        with self.assertRaisesRegex(SupervisorError, "CALLER_AUTHORITY_UNTRUSTED"):
-            self.supervisor.choose(self.snapshot, [unsafe])
+    def test_iagl_e008_user_controlled_queued_work_cannot_execute(self) -> None:
+        grant, plan, lease = self.start_p3(); self.assertTrue(self.store.release_lease(lease))
+        user_sup = SyntheticSupervisor(REPO, self.store); user_grant = user_sup.reconcile(self.snap("A", governance_mode=GovernanceMode.USER_CONTROLLED, observed_at=2))
+        self.assertEqual(Decision.USER_GATE, user_sup.choose(user_grant, [self.slice()]).decision)
+        self.assertEqual(Decision.BLOCKED, self.sup.execute(plan, self.store.acquire_lease("p3", "worker-a")).decision)
 
-    def test_iagl_e009_arbitrary_executor_or_path_is_blocked(self) -> None:
-        self.reconcile()
-        with self.assertRaisesRegex(SupervisorError, "ARBITRARY_EXECUTOR_BLOCKED"):
-            self.supervisor.choose(self.snapshot, [self.slice(action_kind="shell")])
-        self.supervisor.state = SupervisorState.CHECK_PRIORITY
+    def test_iagl_e009_autonomous_reenable_invalidates_stale_queued_plan(self) -> None:
+        grant = self.sup.reconcile(self.snap("A")); plan = self.sup.choose(grant, [self.slice()]); self.sup.ingest(self.event("gate", Priority.P0_USER_OR_HIGH_RISK)); self.sup.choose(grant, [self.slice()])
+        fresh = self.sup.reconcile(self.snap("A", observed_at=2)); lease = self.store.acquire_lease("p3", "worker-a")
+        self.assertNotEqual(grant, fresh); self.assertEqual(Decision.BLOCKED, self.sup.execute(plan, lease).decision)
+
+    def test_iagl_e010_secret_permission_request_is_p0_user_gate(self) -> None:
+        grant = self.sup.reconcile(self.snap()); self.sup.ingest(self.event("secret-request", Priority.P0_USER_OR_HIGH_RISK))
+        self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
+
+    def test_iagl_e011_contradiction_is_candidate_only(self) -> None:
+        grant = self.sup.reconcile(self.snap()); candidate = self.slice(authority_metadata={"contradiction": "candidate"})
+        self.assertEqual(candidate, self.sup.choose(grant, [candidate]).slice)
+        self.assertEqual("domain-1", self.store.current_snapshot()[1].domain_revision)
+
+    def test_iagl_e012_success_report_with_outside_path_hard_blocks(self) -> None:
+        grant = self.sup.reconcile(self.snap())
         with self.assertRaisesRegex(SupervisorError, "OUTSIDE_ALLOWLIST"):
-            self.supervisor.choose(self.snapshot, [self.slice(changed_paths=("outside.py",))])
+            self.sup.choose(grant, [self.slice(changed_paths=("outside.py",))])
 
-    def test_iagl_e010_p3_is_preempted_by_p1_at_safepoint(self) -> None:
-        self.reconcile()
-        result = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fence", Priority.P1_EXACT_HEAD_REVIEW)
-        self.assertEqual(Decision.PREEMPT, result.decision)
-        self.assertEqual(SupervisorState.PAUSED_FOR_HIGHER_PRIORITY, self.supervisor.state)
-        self.assertIsNotNone(self.store.load_checkpoint(result.checkpoint_id or ""))
-
-    def test_iagl_e011_contradiction_candidate_never_overwrites_authority(self) -> None:
-        self.reconcile()
-        candidate = self.slice(authority_metadata={"contradiction": "candidate-only"})
-        selected = self.supervisor.choose(self.snapshot, [candidate])
-        self.assertEqual("synthetic-authority-v1", self.snapshot.authority_revision)
-        self.assertEqual(candidate, selected)
-
-    def test_iagl_e012_changed_path_exceeding_allowlist_is_blocked(self) -> None:
-        self.reconcile()
-        with self.assertRaisesRegex(SupervisorError, "OUTSIDE_ALLOWLIST"):
-            self.supervisor.choose(self.snapshot, [self.slice(changed_paths=(ALLOWLIST[0], "forbidden.py"))])
-
-    def test_iagl_e013_caller_supplied_authority_is_untrusted(self) -> None:
-        self.reconcile()
+    def test_iagl_e013_caller_authored_authority_unverified(self) -> None:
+        grant = self.sup.reconcile(self.snap())
         with self.assertRaisesRegex(SupervisorError, "CALLER_AUTHORITY_UNTRUSTED"):
-            self.supervisor.choose(self.snapshot, [self.slice(authority_metadata={"authority": "provider-issued"})])
+            self.sup.choose(grant, [self.slice(authority_metadata={"authority": "trusted"})])
 
-    def test_iagl_e014_empty_candidates_are_not_search_completeness(self) -> None:
-        self.reconcile()
-        result = self.supervisor.choose(self.snapshot, [])
-        self.assertEqual(Decision.IDLE, result.decision)  # type: ignore[union-attr]
-        self.assertEqual("NO_ELIGIBLE_WORK", result.reason)  # type: ignore[union-attr]
+    def test_iagl_e014_empty_recall_projection_is_unknown_not_unsupported(self) -> None:
+        grant = self.sup.reconcile(self.snap()); result = self.sup.choose(grant, [])
+        self.assertEqual(Decision.IDLE, result.decision); self.assertNotEqual("UNSUPPORTED", result.reason)
 
-    def test_iagl_e015_no_nested_pool_or_daemon_capability_exists(self) -> None:
-        source = (ROOT / "src" / "iagl_synthetic_supervisor.py").read_text(encoding="utf-8")
-        tree = ast.parse(source)
-        imported_modules = {
-            alias.name.split(".")[0]
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Import)
-            for alias in node.names
-        }
-        imported_modules.update(
-            node.module.split(".")[0]
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom) and node.module
-        )
-        called_names = {
-            node.func.id
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
-        }
-        self.assertNotIn("subprocess", imported_modules)
-        self.assertFalse({"ThreadPoolExecutor", "ProcessPoolExecutor", "serve_forever"} & called_names)
+    def test_iagl_e015_resource_guard_has_no_pool_daemon_or_subprocess(self) -> None:
+        tree = ast.parse((ROOT / "src" / "iagl_synthetic_supervisor.py").read_text(encoding="utf-8")); imports = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+        self.assertFalse({"subprocess", "multiprocessing", "threading", "socket", "requests"} & imports)
 
-    def test_iagl_e016_pending_p0_dominates_p1(self) -> None:
-        snapshot = self.make_snapshot(pending_p0=True)
-        self.reconcile(snapshot)
-        result = self.supervisor.choose(snapshot, [self.slice(priority=Priority.P1_EXACT_HEAD_REVIEW)])
-        self.assertEqual(Decision.USER_GATE, result.decision)  # type: ignore[union-attr]
-        self.assertEqual("P0_PENDING", result.reason)  # type: ignore[union-attr]
+    def test_iagl_e016_p0_remains_before_p1(self) -> None:
+        grant = self.sup.reconcile(self.snap()); self.sup.ingest(self.event("review", Priority.P1_EXACT_HEAD_REVIEW)); self.sup.ingest(self.event("permission", Priority.P0_USER_OR_HIGH_RISK))
+        self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
 
-    def test_iagl_e017_route_and_governance_drift_invalidate_resume(self) -> None:
-        self.reconcile()
-        result = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fence", Priority.P1_EXACT_HEAD_REVIEW)
-        changed_route = self.make_snapshot(route_id="R141-next")
-        blocked = self.supervisor.resume(result.checkpoint_id or "", changed_route)
-        self.assertEqual(Decision.BLOCKED, blocked.decision)
+    def test_iagl_e017_old_domain_checkpoint_is_invalidated(self) -> None:
+        _, plan, lease = self.start_p3(); self.sup.ingest(self.event("B", Priority.P1_EXACT_HEAD_REVIEW)); checkpoint = self.sup.safepoint(plan, lease)
+        fresh = self.sup.reconcile(self.snap("B", domain_revision="domain-2", observed_at=2)); replacement = self.store.acquire_lease("p3", "worker-a")
+        self.assertEqual(Decision.BLOCKED, self.sup.resume_or_replan(checkpoint.checkpoint_id or "", fresh, replacement).decision)
 
-    def test_iagl_e018_no_eligible_work_is_bounded_idle(self) -> None:
-        self.reconcile()
-        result = self.supervisor.choose(self.snapshot, [])
-        self.assertEqual(SupervisorState.IDLE_NO_ELIGIBLE_WORK, result.state)  # type: ignore[union-attr]
-        self.assertEqual("NO_ELIGIBLE_WORK", result.reason)  # type: ignore[union-attr]
-
-    def test_checkpoint_identity_is_deterministic_for_same_synthetic_inputs(self) -> None:
-        self.reconcile()
-        first = self.supervisor.execute_synthetic(self.snapshot, self.slice(), "fixed-fence", Priority.P1_EXACT_HEAD_REVIEW)
-        self.assertIsNotNone(first.checkpoint_id)
-        second_store = WorkingStateStore(Path(self.temp.name) / "second.sqlite")
-        second = SyntheticSupervisor(REPOSITORY, second_store)
-        second.reconcile(self.snapshot)
-        repeated = second.execute_synthetic(self.snapshot, self.slice(), "fixed-fence", Priority.P1_EXACT_HEAD_REVIEW)
-        self.assertEqual(first.checkpoint_id, repeated.checkpoint_id)
-        second_store.close()
+    def test_iagl_e018_tick_with_no_work_is_bounded_idle(self) -> None:
+        grant = self.sup.reconcile(self.snap()); result = self.sup.choose(grant, [])
+        self.assertEqual(SupervisorState.IDLE_NO_ELIGIBLE_WORK, result.state)
 
 
-class ContractValidation(unittest.TestCase):
-    def test_event_payload_digest_is_computed_not_caller_supplied(self) -> None:
-        event = NormalizedEvent.from_mapping({
-            "event_id": "one", "event_class": "fixture", "source": "test", "repository": REPOSITORY,
-            "observed_at": 1, "target_ref": "main", "target_identity": "head", "payload": {"x": 1},
-            "idempotency_key": "one", "payload_digest": "forged", "priority_hint": 3,
-        })
-        self.assertNotEqual("forged", event.payload_digest)
+class SupportingContracts(unittest.TestCase):
+    def test_exact_frozen_transition_table(self) -> None:
+        self.assertEqual({SupervisorState.GLOBAL_RECONCILIATION, SupervisorState.EMERGENCY_STOP}, _ALLOWED[SupervisorState.BOOT])
+        self.assertEqual({SupervisorState.REVIEW, SupervisorState.USER_GATE, SupervisorState.GLOBAL_RECONCILIATION}, _ALLOWED[SupervisorState.PAUSED_FOR_HIGHER_PRIORITY])
+        self.assertEqual({SupervisorState.GLOBAL_RECONCILIATION, SupervisorState.EMERGENCY_STOP}, _ALLOWED[SupervisorState.FAILED_CLOSED])
+
+    def test_budget_boundary_never_reserves_past_limit(self) -> None:
+        temp = tempfile.TemporaryDirectory(); store = WorkingStateStore(Path(temp.name) / "b.sqlite"); sup = SyntheticSupervisor(REPO, store, budget_limit=3); grant = sup.reconcile(ReconciliationSnapshot(REPO, "A", "R141", GovernanceMode.AUTONOMOUS, PATHS, 1)); plan = sup.choose(grant, [ImprovementSlice("over", Priority.P3_BOUNDED_IMPROVEMENT, PATHS, estimated_cost=4)])
+        self.assertEqual("BUDGET_EXHAUSTED_PRE_EXECUTION", plan.reason); self.assertEqual(0, store.value("budget_used")); store.close(); temp.cleanup()
 
 
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
+if __name__ == "__main__": unittest.main(verbosity=2)

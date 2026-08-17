@@ -6,7 +6,7 @@ issue: 389
 canonical_main: dfd8c675583b7c1d017fa3bdd6bff651b53bac23
 implementation_branch: codex/r141-iagl-stage-a-synthetic-supervisor
 mode: project_plan
-status: IMPLEMENTED_AWAITING_FINAL_REMOTE_CI
+status: B01_B05_REMEDIATION_IMPLEMENTED_AWAITING_FINAL_REMOTE_CI
 scope:
   write_surfaces:
     - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src
@@ -65,6 +65,7 @@ design_tradeoffs:
   - Snapshot facts are explicit synthetic test inputs; the store cannot become canonical governance or domain truth.
   - Deterministic checkpoint identity derives from snapshot, slice, fence, sequence, and status; only lease fencing tokens are fresh local state.
   - CI-only YAML parsing uses an explicitly named public dependency setup step; the Stage-A runtime itself performs no network operation.
+  - Material execution is deliberately restricted to a current reconciliation grant, durable plan, active lease/fence, and pre-execution budget reservation.
 unknowns:
   - external scheduler, webhook, and live control-plane providers remain out of scope
   - real reviewer identity and production execution evidence remain future governed dependencies

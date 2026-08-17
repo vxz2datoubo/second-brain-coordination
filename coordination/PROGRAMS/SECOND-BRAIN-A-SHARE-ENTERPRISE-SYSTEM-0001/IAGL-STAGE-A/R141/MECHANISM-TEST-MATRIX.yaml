@@ -1,30 +1,31 @@
-schema_version: "R141-MATRIX-1.0"
+schema_version: "R141-MATRIX-2.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 agent_id: CODEX
+canonical_registry: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL/IAGL-EVAL-AND-UNKNOWN-REGISTRY.yaml
 required_evaluation_count: 18
 support_contract_test_count: 2
-local_test_count: 20
 evaluation_mapping:
-  IAGL-E001: rapid A/B/C exact-head drift invalidates resume
-  IAGL-E002: process completion remains separate from outcome quality
-  IAGL-E003: duplicate idempotency key is deduplicated
-  IAGL-E004: checkpoint survives local restart
-  IAGL-E005: duplicate lease and wrong fence token are rejected
-  IAGL-E006: no-value streak produces bounded VOI stop
-  IAGL-E007: USER_CONTROLLED mode produces a user gate
-  IAGL-E008: secret or permission request cannot establish authority
-  IAGL-E009: arbitrary executor and out-of-allowlist path are blocked
-  IAGL-E010: P3 is preempted by P1 only at a safe point with a checkpoint
-  IAGL-E011: contradiction candidate cannot overwrite snapshot authority
-  IAGL-E012: changed path outside snapshot allowlist is blocked
-  IAGL-E013: caller-supplied trusted authority is rejected
-  IAGL-E014: empty candidates mean bounded no-eligible-work, not completeness
-  IAGL-E015: runtime imports/calls show no pool, daemon, or subprocess mechanism
-  IAGL-E016: pending P0 dominates P1 selection
-  IAGL-E017: route or governance drift invalidates checkpoint resume
-  IAGL-E018: no eligible work reaches bounded idle
-false_green_boundary:
-  - a synthetic PASS is expected-mechanism evidence only
-  - local SQLite is non-authoritative working state
-  - process compliance is not outcome truth
-  - no external scheduler, domain execution, or production readiness is asserted
+  IAGL-E001: P3 active -> P1 exact-head event -> safepoint checkpoint -> review -> fresh reconcile -> resume/replan
+  IAGL-E002: review A cannot approve C; stale A/B cannot replace current C review
+  IAGL-E003: green CI with receipt head mismatch is blocked/no merge
+  IAGL-E004: ten P3/P4 no-value slices trigger VOI stop
+  IAGL-E005: crash/restart loads checkpoint only after fresh reconciliation
+  IAGL-E006: webhook and watchdog same semantic target state create one executable event
+  IAGL-E007: one mutable-slice fence winner; stale worker token cannot execute or resume
+  IAGL-E008: USER_CONTROLLED prevents queued automatic execution
+  IAGL-E009: autonomous re-enable requires fresh reconciliation and invalidates stale plan
+  IAGL-E010: secret/permission request is P0 user gate with no automatic action
+  IAGL-E011: contradiction remains candidate/conflict; snapshot authority unchanged
+  IAGL-E012: executor success with changed path outside allowlist is blocked
+  IAGL-E013: caller-authored authority metadata is unverified
+  IAGL-E014: absent recall projection is not trusted UNSUPPORTED
+  IAGL-E015: no nested pool/daemon/subprocess capability or global kill path
+  IAGL-E016: P0 remains ahead of queued P1 review
+  IAGL-E017: old domain checkpoint drift invalidates resume/requires fresh replan
+  IAGL-E018: tick without eligible work performs bounded reconciliation then idle
+supporting_regressions:
+  - exact frozen state transition table
+  - pre-execution budget reservation rejects used_plus_cost_over_limit
+truthfulness:
+  - expected-mechanism PASS is not production execution, external scheduler proof, or GPT acceptance
+  - SQLite is non-authoritative local working state
