@@ -7,6 +7,7 @@ from pathlib import Path
 from global_signal_gateway import (
     DomainLearningRecallBundle,
     DomainLearningRecallReceipt,
+    DomainAuthorityProjection,
     DomainLearningRecallProvider,
     DomainLearningRecallRequest,
     GatewayError,
@@ -14,6 +15,8 @@ from global_signal_gateway import (
     route_domain_learning_recall,
     verify_recall_bundle,
     verify_recall_receipt,
+    verify_recall_authority_projection,
+    validate_recall_authority_projection_structure,
     verify_recall_request,
     validate_recall_bundle_structure,
     validate_recall_receipt_structure,
@@ -93,8 +96,18 @@ class R140Matrix(unittest.TestCase):
                                      paths=("PROJECT_INDEX.yaml", "11_\u9a8c\u6536/golden_prompt_cases.yaml"), execution_id=execution_id)
 
     def _recall(self, *, item=None, request=None, execution_id="r140-test"):
-        return DomainLearningRecallProvider().recall(request or self.request,
+        return DomainLearningRecallProvider().recall_structural(request or self.request,
             authority_metadata=(item or authority(self.sha),), exact_read_proofs=self._proofs(execution_id), execution_id=execution_id)
+
+    def _trusted_recall(self, *, request=None, execution_id="r140-trusted"):
+        trusted_request = request or self._fashion_request()
+        provider = DomainLearningRecallProvider()
+        projection = provider.project_ai_film_authority(self.root, trusted_request,
+                                                        object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY",
+                                                        execution_id=execution_id)
+        self.assertTrue(verify_recall_authority_projection(projection, trusted_request, execution_id=execution_id))
+        return provider.recall(trusted_request, authority_projections=(projection,), exact_read_proofs=projection._proofs,
+                               execution_id=execution_id), trusted_request
 
     def _fashion_request(self, **changes):
         value = request_payload(domain_source_revision=self.sha, request_id="fashion", problem_signatures=["high_end_fashion_commercial_kinetic_typography"], scene_or_work_item="runway_style_ad", model_or_tool="UNKNOWN", model_version="UNKNOWN", constraints=["runway_style_ad"])
@@ -119,11 +132,11 @@ class R140Matrix(unittest.TestCase):
 
     def test_r005_exact_read_proof_is_required(self):
         with self.assertRaisesRegex(GatewayError, "EXACT_PROOF_REQUIRED"):
-            DomainLearningRecallProvider().recall(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=(), execution_id="r140-test")
+            DomainLearningRecallProvider().recall_structural(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=(), execution_id="r140-test")
 
     def test_r006_plain_dictionary_is_not_an_exact_proof(self):
         with self.assertRaisesRegex(GatewayError, "EXACT_PROOF_REQUIRED"):
-            DomainLearningRecallProvider().recall(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=[self._proofs()[0].public_dict()], execution_id="r140-test")
+            DomainLearningRecallProvider().recall_structural(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=[self._proofs()[0].public_dict()], execution_id="r140-test")
 
     def test_r007_stale_domain_revision_fails_closed(self):
         with self.assertRaisesRegex(GatewayError, "STALE_DOMAIN_REVISION"):
@@ -131,11 +144,29 @@ class R140Matrix(unittest.TestCase):
 
     def test_r008_proof_binding_mismatch_fails_closed(self):
         with self.assertRaisesRegex(GatewayError, "EXACT_PROOF_BINDING_MISMATCH"):
-            DomainLearningRecallProvider().recall(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=self._proofs("other"), execution_id="r140-test")
+            DomainLearningRecallProvider().recall_structural(self.request, authority_metadata=(authority(self.sha),), exact_read_proofs=self._proofs("other"), execution_id="r140-test")
 
     def test_r009_structural_multiaxis_positive_recall(self):
+        # A genuine exact proof plus caller-authored favorable metadata is a
+        # structural preview only; it must never acquire trusted issuance.
         bundle, receipt = self._recall()
         self.assertEqual((bundle.data["applicability_state"], receipt.data["decision"]), ("RECALLED", "RECALLED"))
+        self.assertFalse(verify_recall_bundle(bundle, self.request))
+        self.assertFalse(verify_recall_receipt(receipt, self.request, bundle))
+        with self.assertRaises(TypeError):
+            DomainLearningRecallProvider().recall(self.request, authority_metadata=(authority(self.sha),),
+                                                   exact_read_proofs=self._proofs(), execution_id="r140-test")
+        trusted_request = self._fashion_request()
+        provider = DomainLearningRecallProvider()
+        projection = provider.project_ai_film_authority(self.root, trusted_request,
+                                                        object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY",
+                                                        execution_id="r140-projection")
+        caller_projection = DomainAuthorityProjection.build(projection.public_dict())
+        self.assertTrue(validate_recall_authority_projection_structure(caller_projection))
+        self.assertFalse(verify_recall_authority_projection(caller_projection, trusted_request, execution_id="r140-projection"))
+        with self.assertRaisesRegex(GatewayError, "PROJECTION_REQUIRED"):
+            provider.recall(trusted_request, authority_projections=(caller_projection,), exact_read_proofs=projection._proofs,
+                            execution_id="r140-projection")
 
     def test_r010_text_like_but_scene_mismatch_abstains(self):
         bundle, receipt = self._recall(item=authority(self.sha, scene_classes=["other-scene"]))
@@ -174,23 +205,23 @@ class R140Matrix(unittest.TestCase):
             self._recall(item=authority(self.sha, lesson_body="copy forbidden"))
 
     def test_r018_bundle_digest_and_request_binding(self):
-        bundle, _receipt = self._recall()
-        self.assertTrue(verify_recall_bundle(bundle, self.request))
-        self.assertFalse(verify_recall_bundle(replace(bundle, bundle_digest="0" * 64), self.request))
+        (bundle, _receipt), trusted_request = self._trusted_recall()
+        self.assertTrue(verify_recall_bundle(bundle, trusted_request))
+        self.assertFalse(verify_recall_bundle(replace(bundle, bundle_digest="0" * 64), trusted_request))
         caller_bundle = DomainLearningRecallBundle.build(bundle.public_dict())
-        self.assertTrue(validate_recall_bundle_structure(caller_bundle, self.request))
-        self.assertFalse(verify_recall_bundle(caller_bundle, self.request))
+        self.assertTrue(validate_recall_bundle_structure(caller_bundle, trusted_request))
+        self.assertFalse(verify_recall_bundle(caller_bundle, trusted_request))
 
     def test_r019_receipt_digest_and_bundle_binding(self):
-        bundle, receipt = self._recall()
-        self.assertTrue(verify_recall_receipt(receipt, self.request, bundle))
-        self.assertFalse(verify_recall_receipt(replace(receipt, receipt_digest="0" * 64), self.request, bundle))
+        (bundle, receipt), trusted_request = self._trusted_recall()
+        self.assertTrue(verify_recall_receipt(receipt, trusted_request, bundle))
+        self.assertFalse(verify_recall_receipt(replace(receipt, receipt_digest="0" * 64), trusted_request, bundle))
         caller_receipt = DomainLearningRecallReceipt.build(receipt.public_dict())
-        self.assertTrue(validate_recall_receipt_structure(caller_receipt, self.request, bundle))
-        self.assertFalse(verify_recall_receipt(caller_receipt, self.request, bundle))
+        self.assertTrue(validate_recall_receipt_structure(caller_receipt, trusted_request, bundle))
+        self.assertFalse(verify_recall_receipt(caller_receipt, trusted_request, bundle))
 
     def test_r020_process_is_not_creative_outcome(self):
-        _bundle, receipt = self._recall()
+        (_bundle, receipt), _trusted_request = self._trusted_recall()
         self.assertEqual(receipt.data["process_compliance"], "PASS")
         self.assertIn("RECALL_IS_NOT_CREATIVE_OUTCOME_PROOF", receipt.data["limitations"])
 
@@ -203,7 +234,7 @@ class R140Matrix(unittest.TestCase):
         self.assertFalse(route_domain_learning_recall(self.request)["generic_cross_repo_writer_authorized"])
 
     def test_r023_no_object_yields_unsupported(self):
-        bundle, receipt = DomainLearningRecallProvider().recall(self.request, authority_metadata=(), exact_read_proofs=self._proofs(), execution_id="r140-test")
+        bundle, receipt = DomainLearningRecallProvider().recall(self.request, authority_projections=(), exact_read_proofs=self._proofs(), execution_id="r140-test")
         self.assertEqual((bundle.data["applicability_state"], receipt.data["decision"]), ("UNSUPPORTED", "UNSUPPORTED"))
 
     def test_r024_cd25_confounded_case_is_not_superiority(self):

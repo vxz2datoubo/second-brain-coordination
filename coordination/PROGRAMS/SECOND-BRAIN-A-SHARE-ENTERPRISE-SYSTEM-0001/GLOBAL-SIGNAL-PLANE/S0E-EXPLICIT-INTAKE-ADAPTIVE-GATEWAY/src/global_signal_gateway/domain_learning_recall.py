@@ -28,6 +28,11 @@ BUNDLE_REQUIRED = frozenset({
     "matched_object_refs", "match_dimensions", "applicability_state", "failure_condition_hits",
     "counterexample_hits", "maturity_observations", "revalidation_state", "exact_read_proofs",
     "abstentions", "unknowns",
+    "authority_projections",
+})
+PROJECTION_REQUIRED = frozenset({
+    "schema_version", "projection_id", "domain_repository", "domain_source_revision", "object_id",
+    "source_ref", "source_path", "execution_id", "authority_metadata", "exact_read_proofs",
 })
 RECEIPT_REQUIRED = frozenset({
     "schema_version", "receipt_id", "request_digest", "bundle_digest", "provider_code_identity",
@@ -232,6 +237,89 @@ def verify_receipt(receipt: Any, request: DomainLearningRecallRequest | None = N
             and validate_receipt_structure(receipt, request, bundle))
 
 
+@dataclass(frozen=True)
+class DomainAuthorityProjection:
+    """A sealed, exact-read projection of one domain-owned authority object.
+
+    ``build`` is intentionally structural only.  Trusted recall requires an
+    internally issued projection retaining the sealed ExactReadProof objects
+    created by the exact-read mechanism.  This is a process-bound boundary,
+    not a cryptographic claim about hostile code already inside this process.
+    """
+
+    data: Mapping[str, Any]
+    projection_digest: str
+    _proofs: tuple[ExactReadProof, ...] = field(default=(), repr=False, compare=False)
+    _issuance: object | None = field(default=None, repr=False, compare=False)
+
+    @classmethod
+    def build(cls, payload: Mapping[str, Any]) -> "DomainAuthorityProjection":
+        value = _checked(payload, PROJECTION_REQUIRED, "projection_digest", "/authority-projection")
+        for name in ("projection_id", "domain_repository", "domain_source_revision", "object_id", "source_ref", "source_path", "execution_id"):
+            _nonempty(value[name], f"/authority-projection/{name}")
+        _object_metadata(value["authority_metadata"], revision=str(value["domain_source_revision"]))
+        _array(value["exact_read_proofs"], "/authority-projection/exact_read_proofs")
+        if not value["exact_read_proofs"]:
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_EXACT_PROOF_REQUIRED")
+        return cls(_freeze(value), digest(value))
+
+    @classmethod
+    def _issue(cls, *, repository: str, revision: str, object_id: str, source_path: str,
+               execution_id: str, metadata: Mapping[str, Any], proofs: Sequence[Any]) -> "DomainAuthorityProjection":
+        records = _proof_records(proofs, repository=repository, revision=revision, execution_id=execution_id)
+        if source_path not in {record["path"] for record in records}:
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_SOURCE_PROOF_MISSING")
+        normalized = _object_metadata(metadata, revision=revision)
+        if normalized["object_id"] != object_id:
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_OBJECT_BINDING_MISMATCH")
+        identity_digest = digest({"repository": repository, "revision": revision, "source_path": source_path,
+                                  "execution_id": execution_id})
+        payload = {
+            "schema_version": "DomainAuthorityProjection/v1",
+            "projection_id": f"authority:{object_id}:{identity_digest[:24]}",
+            "domain_repository": repository,
+            "domain_source_revision": revision,
+            "object_id": object_id,
+            "source_ref": normalized["source_ref"],
+            "source_path": source_path,
+            "execution_id": execution_id,
+            "authority_metadata": _thaw(normalized),
+            "exact_read_proofs": list(records),
+        }
+        structural = cls.build(payload)
+        sealed = tuple(proof for proof in proofs if isinstance(proof, ExactReadProof) and proof._seal is _PROOF_SEAL)
+        return cls(structural.data, structural.projection_digest, sealed, _RECALL_ISSUANCE_SEAL)
+
+    def public_dict(self) -> dict[str, Any]:
+        return {**_thaw(self.data), "projection_digest": self.projection_digest}
+
+
+def validate_authority_projection_structure(projection: Any) -> bool:
+    if not isinstance(projection, DomainAuthorityProjection):
+        return False
+    try:
+        rebuilt = DomainAuthorityProjection.build(projection.public_dict())
+        return rebuilt.projection_digest == projection.projection_digest
+    except (GatewayError, TypeError, ValueError, KeyError):
+        return False
+
+
+def verify_authority_projection(projection: Any, request: DomainLearningRecallRequest, *, execution_id: str) -> bool:
+    if not isinstance(projection, DomainAuthorityProjection) or projection._issuance is not _RECALL_ISSUANCE_SEAL:
+        return False
+    try:
+        data = projection.data
+        if (data["domain_repository"] != request.data["domain_repository"]
+                or data["domain_source_revision"] != request.data["domain_source_revision"]
+                or data["execution_id"] != execution_id):
+            return False
+        records = _proof_records(projection._proofs, repository=str(request.data["domain_repository"]),
+                                 revision=str(request.data["domain_source_revision"]), execution_id=execution_id)
+        return validate_authority_projection_structure(projection) and tuple(data["exact_read_proofs"]) == records
+    except (GatewayError, TypeError, ValueError, KeyError):
+        return False
+
+
 def _strings(value: Any, path: str) -> frozenset[str]:
     if not isinstance(value, (list, tuple)) or any(not isinstance(item, str) or not item.strip() for item in value):
         raise GatewayError("DOMAIN_AUTHORITY_METADATA_ARRAY_REQUIRED", path)
@@ -319,17 +407,13 @@ def _evaluate(request: DomainLearningRecallRequest, item: Mapping[str, Any]) -> 
 
 
 class DomainLearningRecallProvider:
-    """Pure orchestration over validated structured authority metadata; no domain writer exists."""
+    """Pure orchestration over exact-read authority projections; no domain writer exists."""
 
     provider_code_identity = "R140_DOMAIN_LEARNING_RECALL_PROVIDER_V1"
 
-    def recall(self, request: DomainLearningRecallRequest, *, authority_metadata: Sequence[Mapping[str, Any]],
-               exact_read_proofs: Sequence[Any], execution_id: str) -> tuple[DomainLearningRecallBundle, DomainLearningRecallReceipt]:
-        if not verify_request(request):
-            raise GatewayError("DOMAIN_RECALL_REQUEST_INVALID")
-        proofs = _proof_records(exact_read_proofs, repository=str(request.data["domain_repository"]),
-                                revision=str(request.data["domain_source_revision"]), execution_id=execution_id)
-        objects = [_object_metadata(item, revision=str(request.data["domain_source_revision"])) for item in authority_metadata]
+    def _assemble(self, request: DomainLearningRecallRequest, *, objects: Sequence[Mapping[str, Any]],
+                  proofs: tuple[dict[str, str], ...], projections: Sequence[Mapping[str, Any]], trusted: bool) -> tuple[DomainLearningRecallBundle, DomainLearningRecallReceipt]:
+        """Build a receipt while keeping structural previews visibly untrusted."""
         evaluated = [_evaluate(request, item) for item in objects]
         ranked = sorted(zip(objects, evaluated), key=lambda pair: (pair[1][1] == "RECALLED", pair[1][1] == "NEEDS_REVALIDATION", bool(pair[1][0]["problem_or_symptom_signature"]["matched"])), reverse=True)
         selected = ranked[:1]
@@ -344,7 +428,7 @@ class DomainLearningRecallProvider:
         abstentions = sorted({reason for _, result in selected for reason in result[4]})
         maturity = [{"object_ref": ref, "observed": item["maturity"]} for ref, (item, _) in zip(refs, selected)]
         revalidation = "CURRENT" if decision == "RECALLED" else decision
-        bundle = DomainLearningRecallBundle._issue({
+        bundle_payload = {
             "schema_version": "DomainLearningRecallBundle/v1", "bundle_id": f"recall:{request.request_digest[:24]}",
             "request_id": request.data["request_id"], "request_digest": request.request_digest,
             "domain_source_revision": request.data["domain_source_revision"], "matched_object_refs": refs,
@@ -352,15 +436,59 @@ class DomainLearningRecallProvider:
             "counterexample_hits": counters, "maturity_observations": maturity, "revalidation_state": revalidation,
             "exact_read_proofs": list(proofs), "abstentions": abstentions,
             "unknowns": sorted({unknown for item, _ in selected for unknown in item["authority_unknowns"]}) if selected else ["NO_DOMAIN_OBJECT_AVAILABLE"],
-        })
-        receipt = DomainLearningRecallReceipt._issue({
+            "authority_projections": list(projections),
+        }
+        bundle = DomainLearningRecallBundle._issue(bundle_payload) if trusted else DomainLearningRecallBundle.build(bundle_payload)
+        receipt_payload = {
             "schema_version": "DomainLearningRecallReceipt/v1", "receipt_id": f"recall-receipt:{bundle.bundle_digest[:24]}",
             "request_digest": request.request_digest, "bundle_digest": bundle.bundle_digest,
             "provider_code_identity": self.provider_code_identity, "exact_domain_revision": request.data["domain_source_revision"],
-            "decision": decision, "process_compliance": "PASS" if verify_bundle(bundle, request) else "UNVERIFIED",
-            "limitations": ["RECALL_IS_NOT_CREATIVE_OUTCOME_PROOF", "DOMAIN_WRITE_NOT_AUTHORIZED"],
-        })
+            "decision": decision, "process_compliance": "PASS" if trusted and verify_bundle(bundle, request) else "UNVERIFIED",
+            "limitations": ["RECALL_IS_NOT_CREATIVE_OUTCOME_PROOF", "DOMAIN_WRITE_NOT_AUTHORIZED"] + ([] if trusted else ["UNTRUSTED_CALLER_AUTHORITY_METADATA"]),
+        }
+        receipt = DomainLearningRecallReceipt._issue(receipt_payload) if trusted else DomainLearningRecallReceipt.build(receipt_payload)
         return bundle, receipt
+
+    def recall(self, request: DomainLearningRecallRequest, *, authority_projections: Sequence[Any],
+               exact_read_proofs: Sequence[Any], execution_id: str) -> tuple[DomainLearningRecallBundle, DomainLearningRecallReceipt]:
+        """Issue trusted evidence only from mechanism-bound authority projections."""
+        if not verify_request(request):
+            raise GatewayError("DOMAIN_RECALL_REQUEST_INVALID")
+        proofs = _proof_records(exact_read_proofs, repository=str(request.data["domain_repository"]),
+                                revision=str(request.data["domain_source_revision"]), execution_id=execution_id)
+        projection_list = tuple(authority_projections)
+        if not all(verify_authority_projection(item, request, execution_id=execution_id) for item in projection_list):
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_REQUIRED")
+        projected_records = {tuple(sorted(record.items())) for projection in projection_list for record in projection.data["exact_read_proofs"]}
+        if not projected_records.issubset({tuple(sorted(record.items())) for record in proofs}):
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_PROOF_BINDING_MISMATCH")
+        objects = [_object_metadata(item.data["authority_metadata"], revision=str(request.data["domain_source_revision"])) for item in projection_list]
+        return self._assemble(request, objects=objects, proofs=proofs,
+                              projections=[item.public_dict() for item in projection_list], trusted=True)
+
+    def recall_structural(self, request: DomainLearningRecallRequest, *, authority_metadata: Sequence[Mapping[str, Any]],
+                          exact_read_proofs: Sequence[Any], execution_id: str) -> tuple[DomainLearningRecallBundle, DomainLearningRecallReceipt]:
+        """Return a digest-valid preview for caller mappings, never trusted evidence."""
+        if not verify_request(request):
+            raise GatewayError("DOMAIN_RECALL_REQUEST_INVALID")
+        proofs = _proof_records(exact_read_proofs, repository=str(request.data["domain_repository"]),
+                                revision=str(request.data["domain_source_revision"]), execution_id=execution_id)
+        objects = [_object_metadata(item, revision=str(request.data["domain_source_revision"])) for item in authority_metadata]
+        return self._assemble(request, objects=objects, proofs=proofs, projections=[], trusted=False)
+
+    def project_ai_film_authority(self, root: str | Path, request: DomainLearningRecallRequest, *, object_id: str,
+                                  execution_id: str) -> DomainAuthorityProjection:
+        """Mechanically project one exact-revision AI Film authority object."""
+        if not verify_request(request):
+            raise GatewayError("DOMAIN_RECALL_REQUEST_INVALID")
+        source = Path(root).resolve()
+        revision = str(request.data["domain_source_revision"])
+        metadata, source_path = _ai_film_authority_projection(source, revision, object_id)
+        proofs = exact_git_read_proofs(source, repository=str(request.data["domain_repository"]), commit=revision,
+                                       paths=("PROJECT_INDEX.yaml", source_path), execution_id=execution_id)
+        return DomainAuthorityProjection._issue(repository=str(request.data["domain_repository"]), revision=revision,
+                                                object_id=object_id, source_path=source_path, execution_id=execution_id,
+                                                metadata=metadata, proofs=proofs)
 
 
 def _git_show_text(source: Path, revision: str, path: str) -> str:
@@ -433,18 +561,16 @@ def ai_film_domain_learning_recall_read_only_smoke(root: str | Path, request: Do
     before = subprocess.check_output(["git", "-C", str(source), "status", "--porcelain"], text=True, encoding="utf-8")
     if before:
         raise GatewayError("AI_FILM_SOURCE_NOT_CLEAN")
-    revision = str(request.data["domain_source_revision"])
     execution_id = f"r140-recall:{request.request_digest[:24]}"
-    metadata, source_path = _ai_film_authority_projection(source, revision, object_id)
-    proofs = exact_git_read_proofs(source, repository=str(request.data["domain_repository"]), commit=revision,
-                                   paths=("PROJECT_INDEX.yaml", source_path), execution_id=execution_id)
-    bundle, receipt = DomainLearningRecallProvider().recall(request, authority_metadata=(metadata,), exact_read_proofs=proofs,
-                                                              execution_id=execution_id)
+    provider = DomainLearningRecallProvider()
+    projection = provider.project_ai_film_authority(source, request, object_id=object_id, execution_id=execution_id)
+    bundle, receipt = provider.recall(request, authority_projections=(projection,), exact_read_proofs=projection._proofs,
+                                      execution_id=execution_id)
     after = subprocess.check_output(["git", "-C", str(source), "status", "--porcelain"], text=True, encoding="utf-8")
     if after != before:
         raise GatewayError("AI_FILM_ZERO_MUTATION_VIOLATION")
-    return {"bundle": bundle.public_dict(), "receipt": receipt.public_dict(), "read_proofs": [proof.public_dict() for proof in proofs],
-            "authority_projection": "DOMAIN_OWNED_EXACT_STRUCTURED_PROJECTION", "authority_projection_ref": metadata["source_ref"],
+    return {"bundle": bundle.public_dict(), "receipt": receipt.public_dict(), "read_proofs": [proof.public_dict() for proof in projection._proofs],
+            "authority_projection": "DOMAIN_OWNED_EXACT_STRUCTURED_PROJECTION", "authority_projection_ref": projection.data["source_ref"],
             "source_status_before": "CLEAN", "source_status_after": "CLEAN", "domain_write_authorized": False,
             "formal_skill_promotion_authorized": False, "raw_domain_body_returned": False}
 
