@@ -1,4 +1,4 @@
-schema_version: "R141-MATRIX-4.0"
+schema_version: "R141-MATRIX-5.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 mode: project_plan
@@ -7,83 +7,38 @@ current_executor:
   model_id: "GPT-5.6 Sol"
 historical_executor:
   executor_role: CODEX
-  scope: "initial R141 R3 implementation; provenance preserved"
-canonical_registry: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IAGL/IAGL-EVAL-AND-UNKNOWN-REGISTRY.yaml
-test_counts:
-  total_deterministic_tests: 50
-  canonical_evaluation_count: 18
-  additional_stale_event_guard_count: 1
-  remediation_regression_count: 23
-  supporting_contract_test_count: 8
-evaluation_mapping:
-  IAGL-E001: "P3 active -> head change -> safepoint checkpoint -> P1 exact-head review -> fresh reconcile -> resume/replan"
-  IAGL-E002: "stale A/B head events are trace-only; current C alone produces consumable review"
-  IAGL-E003: "green CI with receipt head mismatch blocks"
-  IAGL-E004: "ten no-value P3/P4 slices trigger VOI stop"
-  IAGL-E005: "crash/restart requires durable checkpoint plus fresh reconciliation"
-  IAGL-E006: "real PR_HEAD_CHANGED and real WATCHDOG_TICK for one reconciled target dedupe semantically while preserving both traces"
-  IAGL-E007: "cross-slice fencing rejected at execute/safepoint/resume"
-  IAGL-E008: "USER_CONTROLLED prevents automatic execution"
-  IAGL-E009: "autonomous re-enable requires fresh reconciliation and stale plan invalidation"
-  IAGL-E010: "secret/permission materiality forces P0 user gate"
-  IAGL-E011: "contradiction remains candidate/conflict without canonical overwrite"
-  IAGL-E012: "outside-allowlist executor success is blocked"
-  IAGL-E013: "caller-authored authority metadata remains untrusted"
-  IAGL-E014: "incomplete retrieval remains UNKNOWN/INCOMPLETE"
-  IAGL-E015: "no nested process pool/daemon/subprocess capability"
-  IAGL-E016: "P0 remains ahead of P1"
-  IAGL-E017: "old-domain checkpoint cannot resume after canonical drift"
-  IAGL-E018: "only trusted complete-empty work queue reaches bounded idle"
+  scope: "initial R141 implementation; provenance retained"
+expected_exact_head_tests:
+  total: 54
+  prior_suite: 43
+  b16_b17_suite: 7
+  b19_b21_suite: 4
+retained_mechanisms:
+  - "canonical IAGL-E001..E018"
+  - "B09R2-B15 authority/checkpoint/retrieval/reconciliation hardening"
+  - "B16 resolved P2 recurrence"
+  - "B17 starvation visibility and bounded P4-to-P3 fairness"
 remediation_regressions:
-  B09R2:
-    - "low transport priority plus structured high-risk materiality forces P0"
-    - "P2 requires authoritative explicit resolution before lower work"
-    - "unresolved P2 remains blocking across generations"
-  B10R2:
-    - "checkpoint binds exact plan identity even for same slice_id"
-    - "checkpoint slice digest detects stored payload tamper"
-  B11R2:
-    - "snapshot cannot widen immutable Stage-A tool/data/risk/writeback ceilings"
-    - "slice hard-deny aliases remain non-widenable"
-  B12R2:
-    - "arbitrary complete-empty request without pre-existing provider observation remains UNKNOWN"
-    - "forged retrieval proof envelope remains UNTRUSTED"
-  B13:
-    - "webhook/watchdog cross-class semantic dedupe preserves transport traces and one review"
-    - "missed webhook plus real watchdog plus fresh head drift derives P1"
-    - "active P3 is conservatively preempted until watchdog-triggered fresh reconciliation resolves priority"
-  B14:
-    - "fresh user disposition clears only the gate; sensitive action remains unauthorized while unrelated safe work may resume"
-  B15:
-    - "partial-empty P2 observation stays blocked"
-    - "authoritative-complete without explicit resolution stays blocked"
-    - "authoritative-complete plus explicit exact resolution unblocks"
-  B16:
-    - "ACTIVE -> RESOLVED -> ACTIVE_AGAIN reopens the same semantic P2 blocker and preserves previous resolution/lifecycle history"
-  B17:
-    - "aged items are visible with deterministic counter and reason"
-    - "aged MATERIAL P4 is boundedly promoted only to P3"
-    - "promotion requires both materiality and a newer reconciliation generation"
-    - "aging never overrides P0"
-    - "aging never overrides P1"
-    - "aging never weakens P2 blocker safety"
-supporting_contracts:
-  - "exact frozen state transition table"
-  - "pre-execution budget reservation rejects used_plus_cost_over_limit"
-  - "no current event can create/consume trusted review work"
-  - "retrieval complete-empty requires pre-existing provider observation"
-  - "missing slice risk/stop/writeback fails validation"
-  - "missing checkpoint plan binding/privacy fails validation"
-  - "same-governance fresh reconcile uses legal state-machine bridge"
-  - "stale durable resume preconditions fail closed"
-fairness_contract:
-  starvation_counter_required: true
-  aging_threshold_stage_a_fixture: 2
-  visibility: "all candidates with counter > 0 are inspectable with reason"
-  promotion_requires: [AGING, MATERIALITY, FRESH_RECONCILIATION]
-  p4_promotion_ceiling: P3
-  p3_behavior: "within-class aging only; never P2"
-  cannot_override: [P0, P1, P2]
+  B19:
+    - "only one AST SyntheticSupervisor and one WorkingStateStore exist across Stage-A src"
+    - "iagl_synthetic_supervisor_core.py is absent and import discovery returns no module"
+    - "canonical Supervisor rejects an incompatible WorkingStateStore subclass"
+  B20:
+    - "database starts with zero P2 event rows"
+    - "fresh authoritative active ROUTE_DRIFT creates reconciliation-derived P2 state"
+    - "P3/P4 stays blocked"
+    - "AUTHORITATIVE_COMPLETE plus exact P2Resolution moves the derived blocker to RESOLVED_TRACE and safe lower work resumes"
+  B21:
+    - "first high-risk request reaches P0 USER_GATE"
+    - "fresh user disposition allows unrelated safe lower work"
+    - "identical semantic high-risk recurrence returns event to unadjudicated P0"
+    - "reusing the old disposition reference does not clear the renewed request"
+    - "new current disposition clears the renewed occurrence while preserving both historical decisions"
+shadow_guard:
+  canonical_runtime: iagl_synthetic_supervisor.py
+  alternate_instantiable_runtime_allowed: false
+  workflow_static_guard_required: true
+  incompatible_store_injection_allowed: false
 truthfulness:
-  - "50-test synthetic PASS is not production readiness, external scheduler proof, authority expansion, or GPT acceptance"
-  - "final exact head and CI are bound externally after the self-referential evidence commit"
+  - "expected count is reconciled from the committed test layout; final PASS/count is bound only by exact-head CI"
+  - "synthetic PASS is not production readiness, authority expansion, or independent GPT acceptance"

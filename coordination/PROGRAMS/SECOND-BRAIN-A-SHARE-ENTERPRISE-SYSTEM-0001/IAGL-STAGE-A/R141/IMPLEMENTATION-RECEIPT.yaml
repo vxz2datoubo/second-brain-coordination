@@ -1,14 +1,12 @@
-schema_version: "R141-IMPLEMENTATION-RECEIPT-2.0"
+schema_version: "R141-IMPLEMENTATION-RECEIPT-3.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 mode: project_plan
-status: B16_B18_REMEDIATION_LOCAL_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
+status: B19_B21_REMEDIATION_LOCAL_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
 provenance:
   historical_initial_executor:
     executor_role: CODEX
-    scope: "initial R141 R3 implementation lineage"
-    historical_head: "5f466446bd80fb2b878f1048e0ee06e1a5eb4e9c"
-    preservation_rule: "historical CODEX provenance is retained and is not attributed to the current executor"
+    scope: "initial R141 implementation lineage; historical provenance retained"
   current_remediation_executor:
     executor_role: GPT_ENGINEERING_WORKER
     model_id: "GPT-5.6 Sol"
@@ -17,44 +15,31 @@ provenance:
     local_validation_harness: "isolated container Python 3.13.5"
   independent_reviewer: "separate GPT reviewer window; this executor does not self-review"
 implementation:
-  runtime: iagl_synthetic_supervisor.py
-  internal_core: "iagl_synthetic_supervisor_core.py = byte-preserved prior B13-B15 runtime blob; not a second public entrypoint"
+  canonical_runtime: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src/iagl_synthetic_supervisor.py"
+  shadow_runtime: "ABSENT"
+  canonical_store_requirement: "SyntheticSupervisor requires the exact canonical WorkingStateStore type"
   persistence: "Python sqlite3 task-local non-authoritative working state"
-  external_effects: none
   process_model: "synchronous single worker; no subprocess, pool, daemon, scheduler, or network"
 mechanism_results:
   canonical_evaluations: "IAGL-E001..IAGL-E018 retained"
-  deterministic_test_count: 50
-  test_partition:
-    canonical_evaluations: 18
-    additional_stale_event_guard: 1
-    remediation_regressions: 23
-    supporting_contracts: 8
-  local_result: "50/50 PASS twice on Python 3.13.5"
-  static_validation:
-    py_compile: PASS
-    forbidden_import_scan: PASS
-    reserved_marker_scan: PASS
+  expected_exact_head_test_count: 54
+  expected_partition:
+    prior_exact_head_suite: 43
+    b16_b17_suite: 7
+    b19_b21_suite: 4
   remediation:
-    B13: "reconciliation-derived exact-head P1 and webhook/watchdog semantic dedupe retained"
-    B14: "reconciliation-bound P0 disposition lifecycle retained without sensitive-action authorization"
-    B15: "P2 omission/partial observation cannot resolve without authoritative completeness plus explicit resolution"
-    B16: "resolved P2 can reactivate on later positive fresh reconciliation while prior resolution/lifecycle history remains"
-    B17: "bounded starvation counters and visibility implemented; promotion requires AGING + MATERIALITY + FRESH_RECONCILIATION; P4 ceiling is P3 and P0/P1/P2 safety is unchanged"
-    B18: "R141 evidence package reconciled to current GPT remediation provenance and 50-test mechanism state"
+    B19: "single canonical instantiable Supervisor/Store; old core module removed; incompatible store injection fails closed; static/import no-shadow guards added"
+    B20: "fresh authoritative active P2 is reconciliation-materialized even with zero prior event row and blocks lower work until explicit authoritative resolution"
+    B21: "identical high-risk recurrence reopens P0 after historical disposition; old decision reference cannot clear the new occurrence; disposition history is append-only"
+  local_targeted_validation: "B19-B21 adversarial smoke PASS; final authoritative count/status comes from exact-head CI"
 authority_boundary:
-  canonical_truth: "not supplied by SQLite or synthetic fixtures"
-  secret_permission_production_domain_w3_trading_expansion: false
+  secret_permission_scheduler_production_domain_w3_trading_expansion: false
   autonomous_merge: false
 unknown_preservation:
-  rule: "synthetic PASS does not close Stage-B, provider, scheduler, authority, privacy, production, or merge UNKNOWNs"
+  rule: "synthetic PASS does not close live provider, scheduler, privacy, production, authority, calibration, or merge UNKNOWNs"
 remote_evidence_binding:
   exact_head: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
   direct_python_3_11_3_13_ci: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
   retained_phase_3_ci: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
-  rationale: "an in-branch file cannot truthfully contain the SHA or CI run created by the commit that contains itself"
-cleanup:
-  task_owned_processes: 0
-  task_owned_ephemeral_resources: "temporary local test directories / pycache only"
-  rollback: "leave Draft PR unmerged; no history rewrite"
+  rationale: "final commit SHA and its CI do not exist until after this in-branch evidence is committed"
 completion_signal: R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW

@@ -31,14 +31,16 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install public YAML parser for CI-only artifact validation
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - name: Run IAGL E001-E018 plus B09R2-B17 mechanism suite
+      - name: Run IAGL E001-E018 plus B09R2-B21 mechanism suite
         run: |
           python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_synthetic_supervisor.py
           python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_b16_b17.py
-      - name: Validate YAML and public-safety boundary
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_b19_b21.py
+      - name: Validate YAML public-safety and no-shadow boundary
         run: |
           python -c "import pathlib; import yaml; [yaml.safe_load(p.read_text(encoding='utf-8')) for p in pathlib.Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141').glob('*.yaml')]; print('YAML_PASS')"
-          python -c "import ast,pathlib; root=pathlib.Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src'); trees=[ast.parse(p.read_text(encoding='utf-8')) for p in root.glob('*.py')]; imports={a.name.split('.')[0] for t in trees for n in ast.walk(t) if isinstance(n,ast.Import) for a in n.names}|{n.module.split('.')[0] for t in trees for n in ast.walk(t) if isinstance(n,ast.ImportFrom) and n.module}; forbidden={'subprocess','requests','socket','http','urllib'}; assert not imports & forbidden, imports & forbidden; print('PUBLIC_SAFETY_PASS')"
+          python -c "import ast,pathlib; root=pathlib.Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src'); files=list(root.glob('*.py')); trees=[ast.parse(p.read_text(encoding='utf-8')) for p in files]; imports={a.name.split('.')[0] for t in trees for n in ast.walk(t) if isinstance(n,ast.Import) for a in n.names}|{n.module.split('.')[0] for t in trees for n in ast.walk(t) if isinstance(n,ast.ImportFrom) and n.module}; forbidden={'subprocess','requests','socket','http','urllib'}; assert not imports & forbidden, imports & forbidden; print('PUBLIC_SAFETY_PASS')"
+          python -c "import ast,pathlib; root=pathlib.Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src'); assert not (root/'iagl_synthetic_supervisor_core.py').exists(); trees=[ast.parse(p.read_text(encoding='utf-8')) for p in root.glob('*.py')]; names=[n.name for t in trees for n in ast.walk(t) if isinstance(n,ast.ClassDef)]; assert names.count('SyntheticSupervisor')==1, names.count('SyntheticSupervisor'); assert names.count('WorkingStateStore')==1, names.count('WorkingStateStore'); text='\n'.join(p.read_text(encoding='utf-8') for p in root.glob('*.py')); assert 'iagl_synthetic_supervisor_core' not in text; print('NO_SHADOW_IMPLEMENTATION_PASS')"
       - name: Diff integrity
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then

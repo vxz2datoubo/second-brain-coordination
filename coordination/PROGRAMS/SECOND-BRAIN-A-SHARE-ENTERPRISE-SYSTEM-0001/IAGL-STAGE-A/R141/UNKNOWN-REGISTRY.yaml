@@ -1,4 +1,4 @@
-schema_version: "R141-UNKNOWN-REGISTRY-2.0"
+schema_version: "R141-UNKNOWN-REGISTRY-3.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 current_executor:
@@ -6,46 +6,48 @@ current_executor:
   model_id: "GPT-5.6 Sol"
 historical_provenance:
   initial_executor: CODEX
-  note: "historical R3 provenance is preserved; current remediation does not rewrite it"
+  note: "historical implementation provenance is preserved"
 remediation_delta:
-  B13_B18: >-
-    B13-B17 close deterministic Stage-A mechanism gaps for reconciled head
-    recovery, P0 disposition, P2 completeness/resolution/recurrence, and bounded
-    starvation visibility/fairness. B18 reconciles the evidence package.
-    None of these synthetic results establish a live scheduler, live authority
-    provider, private-source permission, production outcome, domain/W3 write,
-    trading authority, or merge authority.
+  B19_B21: >-
+    B19 removes the importable shadow Supervisor/Store path, B20 makes fresh
+    authoritative active-P2 facts effective even without transport history, and
+    B21 makes high-risk recurrence re-enter P0 after a prior disposition.
+    These close Stage-A mechanism bypasses only.
 entries:
   - id: IAGL-R141-UNKNOWN-001
     subject: external scheduler and webhook delivery
     status: OUT_OF_SCOPE_FUTURE_GOVERNED_DEPENDENCY
-    rationale: "Stage A remains synchronous/synthetic and has no daemon or network capability."
+    rationale: "Stage A remains synchronous and has no daemon/network scheduler capability."
   - id: IAGL-R141-UNKNOWN-002
     subject: live control-plane reconciliation provider
     status: NOT_IMPLEMENTED
-    rationale: "ReconciliationSnapshot remains an explicit synthetic fixture contract, not a live authority claim."
+    rationale: "ReconciliationSnapshot is still a synthetic trusted fixture contract, not a live authority provider."
   - id: IAGL-R141-UNKNOWN-003
     subject: domain or W3 persistence
     status: LOCKED
-    rationale: "SQLite working state remains non-authoritative and cannot write canonical domain truth."
+    rationale: "SQLite remains non-authoritative and cannot write canonical domain truth."
   - id: IAGL-R141-UNKNOWN-004
     subject: production outcome quality
     status: UNKNOWN
-    rationale: "Synthetic fixed-action completion and deterministic tests do not establish real-world outcome quality."
+    rationale: "Deterministic synthetic tests do not establish real-world outcome quality."
   - id: IAGL-R141-UNKNOWN-005
-    subject: complete authority/retrieval discovery
+    subject: complete authority and retrieval discovery
     status: FUTURE_GOVERNED_PROVIDER_REQUIRED
-    rationale: "Only a pre-existing bound synthetic provider observation is modeled; caller empty input cannot prove authority completeness."
+    rationale: "Caller input cannot prove authority completeness; only bounded synthetic provider observations are modeled."
   - id: IAGL-R141-UNKNOWN-006
     subject: production starvation threshold and materiality calibration
     status: UNKNOWN
-    rationale: "Stage-A threshold=2 is a deterministic fixture policy proving the frozen mechanism, not a production-calibrated fairness parameter."
-    resolve_by: "Stage-B shadow telemetry and explicit governed policy decision"
+    rationale: "Stage-A threshold=2 remains a deterministic fixture, not a production-calibrated rule."
+  - id: IAGL-R141-UNKNOWN-007
+    subject: live recurrence identity and occurrence attestation source
+    status: FUTURE_GOVERNED_PROVIDER_REQUIRED
+    rationale: "Stage A proves recurrence semantics with synthetic event/reconciliation observations; a live occurrence attestation provider is not implemented."
+unknown_preservation_rule: "No UNKNOWN, LOCKED, or future dependency is closed solely because the Stage-A suite passes."
 locks:
   secret_or_credential_access: false
   permission_expansion: false
+  external_scheduler_runtime: false
   production_access: false
   domain_or_w3_write: false
   trading_or_funds: false
   merge_authority: false
-unknown_preservation_rule: "No UNKNOWN/LOCKED/FUTURE dependency is closed solely because the synthetic suite passes."
