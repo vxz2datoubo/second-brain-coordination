@@ -85,13 +85,13 @@ recovery_model:
   required_capabilities_before_runtime_promotion:
     - durable_append_or_equivalent_event_persistence
     - deterministic_projection_rebuild
-    - verified_snapshot_restore_if_snapshots_are_introduced
-    - partial_write_detection
-    - crash_during_ingest_recovery
-    - crash_during_reconciliation_recovery
-    - replay_after_reducer_upgrade
-    - migration_rollback_plan
-    - quarantine_path_for_corrupt_unparseable_events
+    - verified snapshot restore if snapshots are introduced
+    - partial-write detection
+    - crash-during-ingest recovery
+    - crash-during-reconciliation recovery
+    - replay after reducer upgrade
+    - migration rollback plan
+    - quarantine path for corrupt/unparseable events
   recovery_semantics:
     replay_source: "append-only admitted history + verified snapshots"
     duplicate_replay: "idempotent"
@@ -146,19 +146,15 @@ change_governance:
     - schema_drift_scan
     - regression_update
   runtime_change_requires:
-    - fresh_Work_Claim
-    - fresh_Control_Tower_authorization
+    - fresh Work Claim
+    - fresh Control Tower authorization
     - rollback_or_compensation_plan
-    - exact_head_CI
-    - resource_process_audit
+    - exact-head CI
+    - resource/process audit
   formal_task_release_requires:
-    - fresh_Global_Shallow_scan
-    - delta_scan_since_last_valid_reconciliation
-    - targeted_deep_retrieval_for_materially_related_signals
-    - conditional_current_research_when_required
-    - fresh_GlobalReconciliationReceipt_PASS
-    - no_material_receipt_invalidation
-    - explicit_route_task_contract
+    - fresh GlobalReconciliationReceipt PASS
+    - no material receipt invalidation
+    - explicit route/task contract
   H2_separation: "Signal Plane S0 cannot imply Harness H2 authorization"
 
 observability:
@@ -169,13 +165,13 @@ observability:
     rule: "multiple causal parents should use link semantics rather than inventing one false parent"
   required_audit_questions:
     - who_or_what_created_signal
-    - which_source_canonical_snapshot_was_observed
-    - which_links_cluster_decisions_were_created
-    - why_signal_routed_deferred_rejected
-    - which_reconciliation_receipt_permitted_task_publication
-    - which_Control_Tower_witness_authorized_execution
-    - which_exact_head_was_reviewed
-    - how_state_can_be_rebuilt_or_compensated
+    - which source/canonical snapshot was observed
+    - which links/cluster decisions were created
+    - why signal routed/deferred/rejected
+    - which reconciliation receipt permitted task publication
+    - which Control Tower witness authorized execution
+    - which exact head was reviewed
+    - how state can be rebuilt or compensated
 
 capacity_and_flood_control:
   drop_old_signals_silently: false
@@ -185,11 +181,11 @@ capacity_and_flood_control:
   starvation_visibility: true
   compaction_must_preserve_replay_equivalence: true
   large_backlog_strategy:
-    - shallow_metadata_index
-    - delta_watermarks
-    - cluster_projections
-    - targeted_deep_retrieval
-    - archival_refs
+    - shallow metadata index
+    - delta watermarks
+    - cluster projections
+    - targeted deep retrieval
+    - archival refs
 
 priority_vector_candidate:
   no_single_magic_score: true
@@ -243,9 +239,9 @@ promotion_ladder:
   rule: "passing an earlier stage never auto-promotes the next"
 
 enterprise_non_goals_now:
-  - choose_Kafka_Temporal_Postgres_Redis_GraphRAG_as_physical_backend
-  - activate_webhooks_or_private_ChatGPT_cross_window_bridge
-  - run_long_lived_daemon
-  - install_or_bind_DeepSeek_Harness
-  - write_AI_Film_or_A_share_domain_canonicals
-  - authorize_autonomous_trading
+  - choose Kafka/Temporal/Postgres/Redis/GraphRAG as physical backend
+  - activate webhooks or private ChatGPT cross-window bridge
+  - run long-lived daemon
+  - install or bind DeepSeek Harness
+  - write AI Film or A-share domain canonicals
+  - authorize autonomous trading
