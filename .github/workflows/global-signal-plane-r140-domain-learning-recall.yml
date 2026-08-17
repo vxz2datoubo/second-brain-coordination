@@ -1,0 +1,83 @@
+name: Global Signal Plane R140 Domain Learning Recall
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+      - ".github/workflows/global-signal-plane-r140-domain-learning-recall.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r140-mechanisms:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {python-version: ["3.11", "3.13"]}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
+      - name: Assert exact workflow head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python-version }}"}
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: R140 R001-R030 plus retained R136-R139 mechanisms
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          for test in test_r140_domain_learning_recall.py test_r136_matrix.py test_r137_live_observation_provider.py test_r138_capability_execution_provider.py test_r139_domain_learning_handoff.py; do
+            python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p "$test" -v
+          done
+      - name: Delivery-tree public safety and R140 YAML
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/public_safety_scan.py
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          root = Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R140')
+          for path in root.glob('*.yaml'):
+              assert isinstance(yaml.safe_load(path.read_text(encoding='utf-8')), dict), path
+          PY
+          git diff --check HEAD^ HEAD
+
+  public-ai-film-read-only-replays:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
+      - name: Assert exact workflow head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Three exact public AI Film read-only recall replays
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python - <<'PY'
+          from global_signal_gateway import DomainLearningRecallRequest, ai_film_domain_learning_recall_read_only_smoke
+          from global_signal_gateway.gateway import AI_FILM_COMMIT, AI_FILM_REPOSITORY, temporary_exact_clone
+          def request(name, signatures, scene, tool, version, constraints):
+              return DomainLearningRecallRequest.build({'schema_version':'DomainLearningRecallRequest/v1','request_id':name,'source_trace_ref':'opaque://r140/ci/'+name,'domain_id':'AI_FILM','domain_repository':AI_FILM_REPOSITORY,'domain_source_revision':AI_FILM_COMMIT,'problem_signatures':signatures,'scene_or_work_item':scene,'model_or_tool':tool,'model_version':version,'constraints':constraints,'requested_evidence_classes':['public-canonical-metadata'],'privacy_class':'PUBLIC_SAFE','observed_at':'2026-08-17T00:00:00+00:00'})
+          def metadata(object_id, signatures, scene, tool, version, constraints, maturity, state, ref):
+              return {'object_id':object_id,'source_ref':'opaque://ai-film/'+object_id,'domain_source_revision':AI_FILM_COMMIT,'problem_signatures':signatures,'scene_classes':[scene],'model_or_tool':tool,'model_versions':[version],'constraints':constraints,'maturity':maturity,'applicability':constraints,'non_applicability':[],'failure_conditions':[],'counterexamples':[],'revalidation_state':state,'evidence_refs':[ref]}
+          with temporary_exact_clone('https://github.com/vxz2datoubo/eustia-ai-film.git', AI_FILM_COMMIT) as source:
+              fashion = ai_film_domain_learning_recall_read_only_smoke(source, request('fashion',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY', source_object_marker='GPC-20260813-001', required_evidence_markers=('golden_user_approved','prompt_only'), source_path='11_\u9a8c\u6536/golden_prompt_cases.yaml', metadata=metadata('AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void'],'golden_user_approved_prompt_only','CURRENT','opaque://ai-film/GPC-20260813-001'))
+              cd25 = ai_film_domain_learning_recall_read_only_smoke(source, request('cd25',['cd25','kaim-window'],'kaim-window','C-DANCE','2.5',[]), object_id='CD25-KAIM-WINDOW-AB-20260815', source_object_marker='CD25-KAIM-WINDOW-AB-20260815', required_evidence_markers=('candidate','confounded_inconclusive'), source_path='08_\u7cfb\u7edf\u5b66\u4e60/C-DANCE2.5\u771f\u5b9e\u751f\u6210\u53cd\u9988\u5e93.md', metadata=metadata('CD25-KAIM-WINDOW-AB-20260815',['cd25','kaim-window'],'kaim-window','C-DANCE','2.5',[],'candidate','NEEDS_REVALIDATION','opaque://ai-film/CD25-KAIM-WINDOW-AB-20260815'))
+              negative = ai_film_domain_learning_recall_read_only_smoke(source, request('negative',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','incompatible',['black-void']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY', source_object_marker='GPC-20260813-001', required_evidence_markers=('golden_user_approved','prompt_only'), source_path='11_\u9a8c\u6536/golden_prompt_cases.yaml', metadata=metadata('AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void'],'golden_user_approved_prompt_only','CURRENT','opaque://ai-film/GPC-20260813-001'))
+          assert fashion['receipt']['decision'] == 'RECALLED'
+          assert cd25['receipt']['decision'] == 'NEEDS_REVALIDATION'
+          assert negative['receipt']['decision'] == 'NEEDS_REVALIDATION'
+          for result in (fashion, cd25, negative):
+              assert result['source_status_before'] == result['source_status_after'] == 'CLEAN'
+              assert result['domain_write_authorized'] is False
+              assert result['formal_skill_promotion_authorized'] is False
+              assert result['raw_domain_body_returned'] is False
+          PY
