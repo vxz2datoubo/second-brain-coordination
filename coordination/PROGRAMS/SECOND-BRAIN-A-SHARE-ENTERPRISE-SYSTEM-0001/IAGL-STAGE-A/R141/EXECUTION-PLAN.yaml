@@ -1,0 +1,78 @@
+schema_version: "R141-EXECUTION-PLAN-1.0"
+agent_id: CODEX
+task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
+route_epoch: 141
+issue: 389
+canonical_main: dfd8c675583b7c1d017fa3bdd6bff651b53bac23
+implementation_branch: codex/r141-iagl-stage-a-synthetic-supervisor
+mode: project_plan
+status: IMPLEMENTED_AWAITING_FINAL_REMOTE_CI
+scope:
+  write_surfaces:
+    - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src
+    - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests
+    - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141
+    - .github/workflows/iagl-r141-stage-a.yml
+  excluded:
+    - canonical control-plane and route files
+    - private/raw sources, credentials, permissions, and production systems
+    - W3 or domain-truth writes, external schedulers, webhooks, and merge
+implementation:
+  M0_plan_and_preflight:
+    - use only synthetic event fixtures and standard-library local state
+    - verify lease, base, clean worktree, and no active heavy-stage collision
+  M1_contracts:
+    - deterministic state machine with explicit legal transitions
+    - typed synthetic event, task, governance, priority, and receipt contracts
+  M2_durable_supervision:
+    - durable SQLite state with idempotency, fencing, checkpoint, restart, budget, and VOI stop
+  M3_preemption:
+    - cooperative safe-point checkpoint and P3-to-P1 preemption/resume validation
+  M4_evaluations:
+    - implement IAGL-E001 through IAGL-E018 as mechanism-driven regressions
+  M5_validation:
+    - Python 3.11 and 3.13 workflow, public-safety, YAML, scope, and diff checks
+  M6_handoff:
+    - write public-safe receipt, handoff, UNKNOWN registry, test matrix, and postflight evidence
+acceptance_matrix:
+  required_evaluations:
+    - IAGL-E001
+    - IAGL-E002
+    - IAGL-E003
+    - IAGL-E004
+    - IAGL-E005
+    - IAGL-E006
+    - IAGL-E007
+    - IAGL-E008
+    - IAGL-E009
+    - IAGL-E010
+    - IAGL-E011
+    - IAGL-E012
+    - IAGL-E013
+    - IAGL-E014
+    - IAGL-E015
+    - IAGL-E016
+    - IAGL-E017
+    - IAGL-E018
+resource_contract:
+  execution: single-process synchronous synthetic supervisor
+  subprocesses: forbidden
+  network: forbidden
+  cleanup: task-owned SQLite files and temporary directories only
+  rollback: do not merge; retain auditable branch and remove only task-owned ephemeral resources
+design_tradeoffs:
+  - SQLite gives crash/restart and fencing semantics using only the Python standard library.
+  - Snapshot facts are explicit synthetic test inputs; the store cannot become canonical governance or domain truth.
+  - Deterministic checkpoint identity derives from snapshot, slice, fence, sequence, and status; only lease fencing tokens are fresh local state.
+  - CI-only YAML parsing uses an explicitly named public dependency setup step; the Stage-A runtime itself performs no network operation.
+unknowns:
+  - external scheduler, webhook, and live control-plane providers remain out of scope
+  - real reviewer identity and production execution evidence remain future governed dependencies
+locks:
+  merge_authorized: false
+  private_source_access: false
+  production_access: false
+  formal_skill_promotion: false
+  domain_truth_write: false
+  trading_or_funds: false
+completion_signal: R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW

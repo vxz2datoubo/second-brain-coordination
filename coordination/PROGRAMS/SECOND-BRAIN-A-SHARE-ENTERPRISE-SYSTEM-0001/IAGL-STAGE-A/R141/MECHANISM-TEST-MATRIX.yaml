@@ -1,0 +1,30 @@
+schema_version: "R141-MATRIX-1.0"
+task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
+agent_id: CODEX
+required_evaluation_count: 18
+support_contract_test_count: 2
+local_test_count: 20
+evaluation_mapping:
+  IAGL-E001: rapid A/B/C exact-head drift invalidates resume
+  IAGL-E002: process completion remains separate from outcome quality
+  IAGL-E003: duplicate idempotency key is deduplicated
+  IAGL-E004: checkpoint survives local restart
+  IAGL-E005: duplicate lease and wrong fence token are rejected
+  IAGL-E006: no-value streak produces bounded VOI stop
+  IAGL-E007: USER_CONTROLLED mode produces a user gate
+  IAGL-E008: secret or permission request cannot establish authority
+  IAGL-E009: arbitrary executor and out-of-allowlist path are blocked
+  IAGL-E010: P3 is preempted by P1 only at a safe point with a checkpoint
+  IAGL-E011: contradiction candidate cannot overwrite snapshot authority
+  IAGL-E012: changed path outside snapshot allowlist is blocked
+  IAGL-E013: caller-supplied trusted authority is rejected
+  IAGL-E014: empty candidates mean bounded no-eligible-work, not completeness
+  IAGL-E015: runtime imports/calls show no pool, daemon, or subprocess mechanism
+  IAGL-E016: pending P0 dominates P1 selection
+  IAGL-E017: route or governance drift invalidates checkpoint resume
+  IAGL-E018: no eligible work reaches bounded idle
+false_green_boundary:
+  - a synthetic PASS is expected-mechanism evidence only
+  - local SQLite is non-authoritative working state
+  - process compliance is not outcome truth
+  - no external scheduler, domain execution, or production readiness is asserted
