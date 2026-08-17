@@ -1,4 +1,4 @@
-schema_version: "3.8"
+schema_version: "3.9"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,10 +43,15 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "RESERVED_IMPLEMENTATION_AFTER_ACTIVATION_MERGE_USER_START_REQUIRED"
+    claim_state: "ACTIVE_IMPLEMENTATION"
     execution_agent: "CODEX"
     resource_class: "MEDIUM_IMPLEMENTATION"
-    route_binding: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+      route_epoch: 142
+      issue: 393
+      pr: null
+      branch: "codex/r142-retrospective-signal-intake-bridge"
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
@@ -60,14 +65,39 @@ claims:
       - "coordination/ACTIVE-QCLAW-TASK.yaml"
       - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     interfaces:
-      - "S0C DurableSignalLedger"
-      - "R136 SignalIntakeGateway"
-      - "Signal Tower on-demand preflight"
+      - name: "S0C-DurableSignalLedger"
+        mode: "read/reuse"
+        frozen: true
+      - name: "R136-SignalIntakeGateway"
+        mode: "extend"
+        frozen: false
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read/evidence-only"
+        frozen: true
+      - name: "W3-Domain-Authority"
+        mode: "read/reference-only"
+        frozen: true
     read_domains: [W1, W3]
     write_domains: []
     authority_claims:
       - "S0E_RETROSPECTIVE_IMPORT_EXTENSION_ONLY"
-    activation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+    implementation_scope:
+      slice: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE"
+      issue: 393
+      phase: "ACTIVATED_AFTER_CANONICAL_MERGE / DIRECT_USER_START_REQUIRED"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      activation_reconciliation: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      second_user_start_command_required: true
+      s0c_source_write_allowed: false
+      private_raw_data_allowed: false
+      daemon_service_allowed: false
+      domain_write_allowed: false
+      W3_authority_write_allowed: false
+      automatic_task_creation_allowed: false
+      production_allowed: false
+      trading_allowed: false
+      codex_merge_allowed: false
     predecessor_closure_receipt:
       task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
       route_epoch: 141
@@ -117,8 +147,8 @@ claims:
 
 release_semantics:
   lane_a_activation: >-
-    R142 reserves the sole Codex Lane-A implementation surface only after its activation PR is merged to canonical main. Actual
-    execution still requires the direct R142 user start instruction plus the executor's fresh atomic route/claim/main reconciliation.
+    R142 becomes the sole canonical Codex Lane-A implementation claim only after this activation PR is merged. Actual executor
+    work still requires the route's direct-user-start gate and a fresh atomic route/claim/main reconciliation at launch.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
