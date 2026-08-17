@@ -1,10 +1,10 @@
-schema_version: "3.10"
+schema_version: "3.11"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-18T00:49:00+08:00"
+as_of: "2026-08-18T01:25:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -29,25 +29,32 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R142 may become the sole Lane-A Codex implementation only after its activation PR is canonical and the user sends a direct
-    start instruction. Signal Tower ordinary use remains on-demand and Signal remains distinct from Task.
+    R142 remains the sole Lane-A Codex implementation claim but has not received its direct user start. QCLAW R60 remediation may
+    resume on its own existing benchmark branch because it does not write R142/S0E surfaces; if a real local heavy-stage collision
+    appears, execution must fail closed or fall back to bounded single-worker/lightweight work.
 
 current_user_release_policy:
-  decision_at: "2026-08-18T00:49:00+08:00"
-  decision: "USER_AUTHORIZED_R142_PREPARATION / ACTIVATION_MERGE_AND_DIRECT_START_REQUIRED"
+  decision_at: "2026-08-18T01:25:00+08:00"
+  decision: "USER_AUTHORIZED_QCLAW_R60_REMEDIATION_RESUME / R142_CODEX_DIRECT_START_STILL_NOT_GIVEN"
   rationale: >-
-    The user explicitly asked to start closing the demonstrated historical-chat-to-S0C durable-ingress gap. Fresh preflight found
-    no active Codex write lease and no equivalent R142 task. This release is bounded to S0E retrospective ingress/reconciliation;
-    no Stage-B, private bridge, W3/domain write, production or trading capability is granted.
+    The user explicitly confirmed QCLAW compute is now sufficient and instructed QCLAW to finish its existing R60 remediation.
+    This does not transfer R142 to QCLAW and does not authorize any new QCLAW task. R60 remains the same Issue #296, Draft PR #304,
+    route epoch 60 and branch, limited to resolving the three GPT-confirmed false-green blockers and required regressions.
   released_implementation_lanes: []
   prepared_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION / R142_READY_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_EXPLICIT_START + GPT_FRESH_SIGNAL_TOWER_PREFLIGHT"
+  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_FRESH_RECONCILIATION"
+  qclaw_r60_issue: 296
+  qclaw_r60_pr: 304
+  qclaw_r60_route_epoch: 60
+  qclaw_r60_status: "REMEDIATION_ACTIVE"
+  qclaw_r60_scope: "SAME_TASK_SAME_PR_SAME_BRANCH_B01_B03_ONLY"
   r142_issue: 393
   r142_route_epoch: 142
   r142_status: "READY_AFTER_ACTIVATION_MERGE"
+  r142_direct_user_start: "NOT_GIVEN"
   predecessor_r141_closure: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
   signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_tower_daemon_required: false
@@ -77,9 +84,9 @@ observed_agent_state:
     observed_route_epoch: 60
     observed_issue: 296
     observed_pr: 304
-    observed_status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
-    execution_allowed: false
-    observation_status: "NON_EXECUTABLE"
+    observed_status: "REMEDIATION_ACTIVE"
+    execution_allowed: true
+    observation_status: "R60_B01_B03_REMEDIATION_ACTIVE / SAME_TASK_PR_BRANCH"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -129,7 +136,7 @@ program_lanes:
       - "R136 SignalIntakeGateway"
       - "Control Tower authorization boundary"
       - "W3/domain authority boundary"
-    next_gate: "MERGE_ACTIVATION_PR -> USER_DIRECT_START -> CODEX_PROJECT_PLAN_M0"
+    next_gate: "USER_DIRECT_START -> CODEX_PROJECT_PLAN_M0"
     maturity: "R142_ACTIVATION_READY / NOT_YET_IMPLEMENTED"
     heavy_execution_authorized: true
     heavy_execution_start_gate: "DIRECT_USER_START_REQUIRED"
@@ -185,6 +192,7 @@ cross_lane_overlap_matrix:
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  R142 may execute only after activation is canonical on main and the user sends a direct start command. Codex must fresh-reconcile
-  main/route/claim/lane at launch. Fail closed on stale evidence, a second Codex claim, private/raw content, a second Signal truth,
-  out-of-allowlist write, W3/domain/permission/production/trading expansion, or any attempt to treat a Signal as task authority.
+  R142 may execute only after its separate direct user start command; that command has not been given. QCLAW R60 remediation is
+  independently authorized on its existing Issue #296 / PR #304 / branch and must fresh-reconcile current main and current merged
+  P2 runtime before edits. Fail closed on stale assumptions, write-surface collision, private data, runtime-authority expansion,
+  formal promotion, production/permissions/trading changes, or any self-merge attempt.
