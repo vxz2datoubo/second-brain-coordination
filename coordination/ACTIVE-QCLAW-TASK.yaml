@@ -1,21 +1,22 @@
-schema_version: "86.0"
+schema_version: "87.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
-execution_allowed: false
-automatic_resume: false
+status: "REMEDIATION_ACTIVE"
+execution_allowed: true
+automatic_resume: true
 active_issue: 296
 active_pull_request: 304
 task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
 route_epoch: 60
 mode: "goal"
-mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集"
+mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集 / B01-B03修复闭环"
 planned_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
 completion_signal: "QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
-second_user_start_command_required: true
+second_user_start_command_required: false
 merge_authorized: false
 canonical_route: "coordination/ROUTES/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60.yaml"
+canonical_resume_main: "cb3dbd30892adbb59683fc91252a38b0868149a9"
 
 review_return:
   reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
@@ -38,31 +39,41 @@ accepted_status:
   corpus: "RETAIN_AS_CANDIDATE_BENCHMARK"
   machine_receipt_60_of_60: "REJECTED_INVALID_FALSE_GREEN"
   discovery_ledger_d8: "REJECTED_CONTRADICTS_CANONICAL_RELATIONS_AROUND_BEHAVIOR"
-  pull_request_304: "KEEP_DRAFT_UNMERGED"
+  pull_request_304: "KEEP_DRAFT_UNMERGED_UNTIL_FRESH_GPT_ACCEPTANCE"
 
-future_remediation_candidate:
-  timing: "NOT_AUTHORIZED_TONIGHT"
+remediation_release:
+  authorized_by: "USER_CURRENT_EXPLICIT_DIRECTION"
+  authorized_at: "2026-08-18T01:25:00+08:00"
+  scope: "SAME_R60_SAME_PR_304_SAME_BRANCH_B01_B03_REMEDIATION_ONLY"
+  fresh_main_required: true
+  fresh_main_expected_at_release: "cb3dbd30892adbb59683fc91252a38b0868149a9"
   requirements:
+    - "fresh reconcile current main, PR #304, route, branch and then-current merged P2 runtime before edits"
     - "persist exact mutated fixture state through canonical packet/import/correction paths"
     - "grade complete bundle surface including atoms/relations/conflicts/unknowns/provenance/admission telemetry/trust gate"
     - "resolve canonical IDs from persisted store/receipts rather than optional id_hint"
-    - "rerun against the then-current merged Codex P2 runtime and publish actual PASS/FAIL/ERROR"
-    - "correct Discovery Ledger D8 and add R118/P2.2 endpoint-safe regressions"
+    - "rerun all runnable cases against the then-current merged Codex P2 runtime and publish actual PASS/FAIL/ERROR"
+    - "correct Discovery Ledger D8 to actual endpoint-leak result"
+    - "add explicit R118 public-report oracle equivalence regression and P2.2 endpoint-safe regression only where current canonical contracts support them"
+    - "keep PR #304 Draft and unmerged until independent GPT exact-head acceptance"
 
-quota_hold:
-  owner_instruction_date: "2026-08-14"
-  remaining_compute_reported_by_owner: "approximately 50"
-  instruction: "No further QCLAW task or execution tonight; arrange the next QCLAW work tomorrow."
-  preserve_quota: true
+superseded_quota_hold:
+  historical_owner_instruction_date: "2026-08-14"
+  historical_remaining_compute_reported_by_owner: "approximately 50"
+  historical_instruction: "No further QCLAW task or execution tonight; arrange the next QCLAW work tomorrow."
+  superseded_by_owner_instruction_at: "2026-08-18T01:25:00+08:00"
+  current_owner_statement: "QCLAW compute is now sufficient; resume and finish R60."
+  current_exact_quota: "UNKNOWN_NOT_REQUIRED_FOR_RELEASE"
 
 hard_boundaries:
-  - "No QCLAW execution while status is GPT_REVIEW_CHANGES_REQUIRED_PAUSED."
-  - "No Phase-3 runtime edits or Codex branch touch."
+  - "No Phase-3 runtime edits or Codex/R142 branch touch."
   - "No real private user source/store read or upload."
   - "No formal PROJECT/GLOBAL or skill/trading-rule promotion."
   - "No scheduler, production MCP/Gateway or runtime dependency."
   - "No accounts/orders/funds/trading."
   - "No self merge."
+  - "No reset/rebase/force-push/destructive history rewrite."
+  - "If current canonical contracts differ materially from the old benchmark assumptions, mark UNKNOWN/NEEDS_REVALIDATION instead of inventing expected outcomes."
 
 resource_policy:
   default_profile: "FOREGROUND_PRIORITY"
@@ -71,8 +82,10 @@ resource_policy:
   combined_cpu_bound_workers_cap: 1
   nested_parallelism: "FORBIDDEN"
   heavy_matrix_or_fanout: "REMOTE_CI_OR_BOUNDED_BATCH"
+  codex_r142_direct_start_received: false
+  collision_rule: "If another local heavy stage becomes active, fail closed or fall back to bounded single-worker/lightweight work."
   required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations; UNKNOWN if not measurable"
 
-next_command: "等待GPT明日发布修复路由"
+next_command: "USER_DIRECT_START_RECEIVED / FRESH_RECONCILE_THEN_REMEDIATE_Q60_B01_B03"
 updated_by: "GPT"
-updated_at: "2026-08-14T19:13:00+08:00"
+updated_at: "2026-08-18T01:25:00+08:00"
