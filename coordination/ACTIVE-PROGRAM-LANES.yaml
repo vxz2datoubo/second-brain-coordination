@@ -1,4 +1,4 @@
-schema_version: "3.9"
+schema_version: "3.10"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
@@ -34,24 +34,29 @@ portfolio_capacity_policy:
 
 current_user_release_policy:
   decision_at: "2026-08-18T00:49:00+08:00"
-  decision: "USER_AUTHORIZED_R142_START / ACTIVATION_PR_REQUIRED_BEFORE_CODEX_EXECUTION"
+  decision: "USER_AUTHORIZED_R142_PREPARATION / ACTIVATION_MERGE_AND_DIRECT_START_REQUIRED"
   rationale: >-
     The user explicitly asked to start closing the demonstrated historical-chat-to-S0C durable-ingress gap. Fresh preflight found
     no active Codex write lease and no equivalent R142 task. This release is bounded to S0E retrospective ingress/reconciliation;
     no Stage-B, private bridge, W3/domain write, production or trading capability is granted.
-  released_implementation_lanes:
-    - "LANE-A-HARNESS-INTEGRATION / R142_AFTER_ACTIVATION_MERGE_AND_DIRECT_USER_START"
-  prepared_implementation_lanes: []
+  released_implementation_lanes: []
+  prepared_implementation_lanes:
+    - "LANE-A-HARNESS-INTEGRATION / R142_READY_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
   release_owner: "USER_EXPLICIT_START + GPT_FRESH_SIGNAL_TOWER_PREFLIGHT"
   r142_issue: 393
   r142_route_epoch: 142
   r142_status: "READY_AFTER_ACTIVATION_MERGE"
+  predecessor_r141_closure: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
   signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_tower_daemon_required: false
-  iagl_stage_b: "NOT_AUTHORIZED"
+  background_runtime_role: "OPTIONAL_FUTURE_ENHANCEMENT_FOR_TIME_CONDITION_EVENT_DRIVEN_AUTOMATION_ONLY"
+  r138_f01: "RETAINED_BEFORE_ANY_PRODUCTION_PROMOTION"
   r139_stage_b: "NOT_AUTHORIZED / SEPARATE_AI_FILM_DOMAIN_OWNED_GATE"
+  r140_model_version_authority: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+  iagl_r141_unknown_007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
+  iagl_stage_b: "NOT_AUTHORIZED / SECRETS_API_PERMISSIONS_EXTERNAL_SCHEDULER_PRODUCTION"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
@@ -98,6 +103,7 @@ signal_tower_operating_contract:
     - "RELEASE_DECISION"
   full_body_scan_every_time: false
   daemon_or_scheduler_required_for_normal_mode: false
+  background_runtime_role: "OPTIONAL_FUTURE_ENHANCEMENT_FOR_TIME_CONDITION_EVENT_DRIVEN_AUTOMATION_ONLY"
   no_signal_equals_task_rule: true
   task_release_without_fresh_preflight: "FORBIDDEN"
 
@@ -109,7 +115,7 @@ program_lanes:
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "R142_READY_AFTER_ACTIVATION_MERGE"
+    observed_state: "R142_RESERVED_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
     primary_system_positions: [W1, W8, W9]
     current_phase: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_ACTIVATION"
     active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
@@ -126,7 +132,15 @@ program_lanes:
     next_gate: "MERGE_ACTIVATION_PR -> USER_DIRECT_START -> CODEX_PROJECT_PLAN_M0"
     maturity: "R142_ACTIVATION_READY / NOT_YET_IMPLEMENTED"
     heavy_execution_authorized: true
+    heavy_execution_start_gate: "DIRECT_USER_START_REQUIRED"
     implementation_owner_candidate: "CODEX"
+    predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+    retained_findings:
+      - "R138-F01"
+      - "R139-STAGE-B"
+      - "R140-MODEL-VERSION-AUTHORITY"
+      - "IAGL-R141-UNKNOWN-007"
+      - "IAGL-STAGE-B"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
