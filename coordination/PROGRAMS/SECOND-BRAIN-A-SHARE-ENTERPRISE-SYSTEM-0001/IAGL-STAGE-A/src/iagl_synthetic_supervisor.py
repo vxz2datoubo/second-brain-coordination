@@ -69,7 +69,7 @@ _P0_EVENT_CLASSES = {
 }
 _P1_EVENT_CLASSES = {
     "PR_HEAD_CHANGED", "WORKFLOW_COMPLETED", "REVIEW_REQUESTED", "REVIEW_SUBMITTED",
-    "CODEX_PR_READY", "REMEDIATION_READY", "CI_COMPLETED_FOR_REVIEW_HEAD",
+    "CODEX_PR_READY", "REMEDIATION_READY", "CI_COMPLETED_FOR_REVIEW_HEAD", "RECONCILIATION_HEAD_DELTA",
 }
 _P2_EVENT_CLASSES = {
     "TASK_ROUTE_CHANGED", "CLAIM_OR_LEASE_CHANGED", "ROUTE_DRIFT", "CLAIM_COLLISION",
@@ -77,6 +77,7 @@ _P2_EVENT_CLASSES = {
 }
 _P3_EVENT_CLASSES = {"SIGNAL_MATERIALITY_CHANGED"}
 _P4_EVENT_CLASSES = {"WATCHDOG_TICK"}
+_HEAD_OBSERVATION_CLASSES = {"PR_HEAD_CHANGED", "WATCHDOG_TICK", "RECONCILIATION_HEAD_DELTA"}
 _HIGH_RISK_PAYLOAD_TOKENS = {
     "secret", "credential", "api_key", "apikey", "permission", "github_permission",
     "production", "deploy", "deployment", "trading", "trade", "order", "fund", "funds",
@@ -94,8 +95,9 @@ _STAGE_A_WRITEBACK_CEILING = frozenset({"NO_CANONICAL_WRITE"})
 _FORBIDDEN_TOOL_TOKENS = ("network", "shell", "bash", "powershell", "cmd", "subprocess", "daemon", "socket", "requests", "curl", "wget", "webhook", "scheduler", "exec")
 _FORBIDDEN_DATA_TOKENS = ("private", "raw", "conversation", "credential", "secret", "cookie", "token", "key", "media")
 _FORBIDDEN_RISK_TOKENS = ("production", "trading", "fund", "destructive", "secret", "permission", "high_risk", "c3", "c4")
-_FORBIDDEN_WRITEBACK_TOKENS = ("w3", "domain", "canonical", "production", "trade", "trading")
 _REQUIRED_RESUME_PRECONDITIONS = {"FRESH_RECONCILIATION", "AUTONOMOUS", "NO_PENDING_P0", "MATCHING_SLICE", "NEW_FENCE"}
+_P0_DISPOSITIONS = {"DENIED", "RESOLVED_NO_ACTION", "APPROVED_SEPARATE_GATED_ACTION"}
+_P2_OBSERVATION_STATES = {"PARTIAL_OBSERVATION", "UNKNOWN", "AUTHORITATIVE_COMPLETE"}
 
 
 def digest(value: Any) -> str:
@@ -114,8 +116,7 @@ def _flatten_payload_tokens(value: Any) -> set[str]:
     tokens: set[str] = set()
     if isinstance(value, Mapping):
         for key, item in value.items():
-            tokens.update(_flatten_payload_tokens(str(key)))
-            tokens.update(_flatten_payload_tokens(item))
+            tokens.update(_flatten_payload_tokens(str(key))); tokens.update(_flatten_payload_tokens(item))
     elif isinstance(value, (list, tuple, set)):
         for item in value:
             tokens.update(_flatten_payload_tokens(item))
@@ -130,8 +131,7 @@ def _flatten_payload_tokens(value: Any) -> set[str]:
 
 def _risk_markers(payload: Any) -> tuple[str, ...]:
     tokens = _flatten_payload_tokens(payload)
-    markers = sorted(token for token in _HIGH_RISK_PAYLOAD_TOKENS if token in tokens)
-    return tuple(markers)
+    return tuple(sorted(token for token in _HIGH_RISK_PAYLOAD_TOKENS if token in tokens))
 
 
 def _class_priority_hint(event_class: str) -> Priority:
@@ -153,11 +153,15 @@ def _slice_digest(slice_: "ImprovementSlice") -> str:
     return digest(_slice_to_json(slice_))
 
 
+def _head_semantic_key(repository: str, target_ref: str, target_identity: str) -> str:
+    return digest({"repository": repository, "semantic_kind": "HEAD_OBSERVATION", "target_ref": target_ref, "target_identity": target_identity})
+
+
 @dataclass(frozen=True)
 class NormalizedEvent:
     event_id: str; event_class: str; source: str; repository: str; observed_at: int
     target_ref: str; target_identity: str; payload_digest: str; supplied_idempotency_key: str
-    semantic_key: str; priority_hint: Priority; class_priority_hint: Priority; risk_markers: tuple[str, ...]
+    semantic_kind: str; semantic_key: str; priority_hint: Priority; class_priority_hint: Priority; risk_markers: tuple[str, ...]
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "NormalizedEvent":
@@ -171,18 +175,45 @@ class NormalizedEvent:
             priority_hint = Priority(int(raw.get("priority_hint", Priority.P4_RESEARCH)))
         except (TypeError, ValueError) as exc:
             raise SupervisorError("EVENT_INVALID_PRIORITY") from exc
-        payload_digest = digest(raw["payload"])
-        event_class = str(raw["event_class"])
-        semantic_key = digest({
-            "repository": raw["repository"], "event_class": event_class.upper(),
-            "target_ref": raw["target_ref"], "target_identity": raw["target_identity"],
-            "payload": payload_digest,
-        })
+        event_class = str(raw["event_class"]); normalized_class = event_class.upper()
+        payload_digest = digest(raw["payload"]); risk_markers = _risk_markers(raw["payload"])
+        if normalized_class in _HEAD_OBSERVATION_CLASSES:
+            semantic_kind = "HEAD_OBSERVATION"
+            semantic_key = _head_semantic_key(str(raw["repository"]), str(raw["target_ref"]), str(raw["target_identity"]))
+        else:
+            semantic_kind = normalized_class
+            semantic_key = digest({
+                "repository": raw["repository"], "semantic_kind": semantic_kind,
+                "target_ref": raw["target_ref"], "target_identity": raw["target_identity"],
+                "payload": payload_digest,
+            })
         return cls(
-            raw["event_id"], event_class, raw["source"], raw["repository"], raw["observed_at"],
-            raw["target_ref"], raw["target_identity"], payload_digest, raw["idempotency_key"],
-            semantic_key, priority_hint, _class_priority_hint(event_class), _risk_markers(raw["payload"]),
+            str(raw["event_id"]), event_class, str(raw["source"]), str(raw["repository"]), int(raw["observed_at"]),
+            str(raw["target_ref"]), str(raw["target_identity"]), payload_digest, str(raw["idempotency_key"]),
+            semantic_kind, semantic_key, priority_hint, _class_priority_hint(event_class), risk_markers,
         )
+
+
+@dataclass(frozen=True)
+class P0Disposition:
+    event_key: str; decision: str; decision_ref: str; authority_source: str = "USER_DECISION"
+
+    def validate(self) -> None:
+        if not _nonempty((self.event_key, self.decision, self.decision_ref, self.authority_source)):
+            raise SupervisorError("P0_DISPOSITION_INCOMPLETE")
+        if self.decision not in _P0_DISPOSITIONS or self.authority_source != "USER_DECISION":
+            raise SupervisorError("P0_DISPOSITION_UNTRUSTED_OR_INVALID")
+
+
+@dataclass(frozen=True)
+class P2Resolution:
+    event_key: str; resolution_ref: str; authority_source: str = "AUTHORITATIVE_RECONCILIATION"
+
+    def validate(self) -> None:
+        if not _nonempty((self.event_key, self.resolution_ref, self.authority_source)):
+            raise SupervisorError("P2_RESOLUTION_INCOMPLETE")
+        if self.authority_source != "AUTHORITATIVE_RECONCILIATION":
+            raise SupervisorError("P2_RESOLUTION_UNTRUSTED")
 
 
 @dataclass(frozen=True)
@@ -197,6 +228,10 @@ class ReconciliationSnapshot:
     allowed_writeback_plans: tuple[str, ...] = ("NO_CANONICAL_WRITE",)
     active_p2_event_keys: tuple[str, ...] = ()
     active_p2_classes: tuple[str, ...] = ()
+    p0_dispositions: tuple[P0Disposition, ...] = ()
+    p2_observation_status: str = "PARTIAL_OBSERVATION"
+    p2_observation_ref: str = ""
+    p2_resolutions: tuple[P2Resolution, ...] = ()
 
     def validate(self, expected_repository: str) -> None:
         if not self.trusted or self.repository != expected_repository or not _nonempty((self.exact_head, self.route_id, self.domain_revision)):
@@ -215,6 +250,18 @@ class ReconciliationSnapshot:
             raise SupervisorError("RECONCILIATION_STAGE_A_WRITEBACK_CEILING")
         if any(not isinstance(item, str) or not item for item in self.active_p2_event_keys + self.active_p2_classes):
             raise SupervisorError("RECONCILIATION_P2_OBSERVATION_INVALID")
+        for disposition in self.p0_dispositions:
+            disposition.validate()
+        if self.p2_observation_status not in _P2_OBSERVATION_STATES:
+            raise SupervisorError("RECONCILIATION_P2_OBSERVATION_STATUS_INVALID")
+        if self.p2_observation_status == "AUTHORITATIVE_COMPLETE" and not self.p2_observation_ref:
+            raise SupervisorError("RECONCILIATION_P2_COMPLETE_REF_REQUIRED")
+        for resolution in self.p2_resolutions:
+            resolution.validate()
+        active = set(self.active_p2_event_keys)
+        resolved = {item.event_key for item in self.p2_resolutions}
+        if active & resolved:
+            raise SupervisorError("RECONCILIATION_P2_ACTIVE_RESOLVED_CONFLICT")
 
     def identity(self) -> str:
         return digest({
@@ -223,10 +270,11 @@ class ReconciliationSnapshot:
             "p0": self.pending_p0, "domain": self.domain_revision,
             "queue_complete": self.eligible_work_queue_complete,
             "allowed_tools": self.allowed_tools, "allowed_data_classes": self.allowed_data_classes,
-            "allowed_risk_classes": self.allowed_risk_classes,
-            "allowed_writeback_plans": self.allowed_writeback_plans,
-            "active_p2_event_keys": self.active_p2_event_keys,
-            "active_p2_classes": self.active_p2_classes,
+            "allowed_risk_classes": self.allowed_risk_classes, "allowed_writeback_plans": self.allowed_writeback_plans,
+            "active_p2_event_keys": self.active_p2_event_keys, "active_p2_classes": self.active_p2_classes,
+            "p0_dispositions": tuple(asdict(item) for item in self.p0_dispositions),
+            "p2_observation_status": self.p2_observation_status, "p2_observation_ref": self.p2_observation_ref,
+            "p2_resolutions": tuple(asdict(item) for item in self.p2_resolutions),
         })
 
 
@@ -277,10 +325,8 @@ class RetrievalCompletenessProof:
         return bool(
             self.complete_empty
             and _nonempty((self.repository, self.exact_revision, self.request_digest, self.authority_scope_ref, self.evidence_ref, self.provider_observation_ref, self.provider_observation_digest, self.reconciliation_identity, self.issuance_ref))
-            and self.repository == snapshot.repository
-            and self.exact_revision == snapshot.exact_head
-            and self.request_digest == request_digest
-            and self.reconciliation_identity == grant.identity
+            and self.repository == snapshot.repository and self.exact_revision == snapshot.exact_head
+            and self.request_digest == request_digest and self.reconciliation_identity == grant.identity
             and self.reconciliation_generation == grant.generation
         )
 
@@ -403,6 +449,24 @@ def _event_from_json(raw: str) -> NormalizedEvent:
     return NormalizedEvent(**data)
 
 
+def _snapshot_to_json(snapshot: ReconciliationSnapshot) -> str:
+    value = asdict(snapshot); value["governance_mode"] = snapshot.governance_mode.value
+    for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans", "active_p2_event_keys", "active_p2_classes"):
+        value[name] = list(value[name])
+    value["p0_dispositions"] = [asdict(item) for item in snapshot.p0_dispositions]
+    value["p2_resolutions"] = [asdict(item) for item in snapshot.p2_resolutions]
+    return json.dumps(value, sort_keys=True)
+
+
+def _snapshot_from_json(raw: str) -> ReconciliationSnapshot:
+    data = json.loads(raw); data["governance_mode"] = GovernanceMode(data["governance_mode"])
+    for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans", "active_p2_event_keys", "active_p2_classes"):
+        data[name] = tuple(data[name])
+    data["p0_dispositions"] = tuple(P0Disposition(**item) for item in data.get("p0_dispositions", ()))
+    data["p2_resolutions"] = tuple(P2Resolution(**item) for item in data.get("p2_resolutions", ()))
+    return ReconciliationSnapshot(**data)
+
+
 class WorkingStateStore:
     """Durable, bounded, non-authoritative Stage-A working state."""
     def __init__(self, path: Path):
@@ -410,7 +474,11 @@ class WorkingStateStore:
         self.connection.executescript("""
         CREATE TABLE IF NOT EXISTS reconciliation (slot INTEGER PRIMARY KEY CHECK(slot=1), identity TEXT NOT NULL, generation INTEGER NOT NULL, snapshot TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS events (semantic_key TEXT PRIMARY KEY, event_json TEXT NOT NULL, priority INTEGER NOT NULL, adjudication_generation INTEGER NOT NULL DEFAULT 0, state TEXT NOT NULL DEFAULT 'PENDING');
+        CREATE TABLE IF NOT EXISTS event_traces (trace_id TEXT PRIMARY KEY, semantic_key TEXT NOT NULL, source TEXT NOT NULL, event_class TEXT NOT NULL, target_identity TEXT NOT NULL, payload_digest TEXT NOT NULL, observed_at INTEGER NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS review_work (work_key TEXT PRIMARY KEY, semantic_key TEXT NOT NULL UNIQUE, target_head TEXT NOT NULL, identity TEXT NOT NULL, generation INTEGER NOT NULL, state TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS reviewed_heads (target_head TEXT PRIMARY KEY, work_key TEXT NOT NULL, reviewed_generation INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS p0_disposition_history (event_key TEXT PRIMARY KEY, decision TEXT NOT NULL, decision_ref TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS p2_resolution_history (event_key TEXT PRIMARY KEY, resolution_ref TEXT NOT NULL, observation_ref TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS leases (slice_id TEXT PRIMARY KEY, owner TEXT NOT NULL, generation INTEGER NOT NULL, token TEXT NOT NULL, active INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS plans (plan_id TEXT PRIMARY KEY, identity TEXT NOT NULL, generation INTEGER NOT NULL, slice_json TEXT NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS checkpoints (checkpoint_id TEXT PRIMARY KEY, record TEXT NOT NULL);
@@ -421,56 +489,29 @@ class WorkingStateStore:
     def close(self) -> None:
         self.connection.close()
 
-    def record_reconciliation(self, snapshot: ReconciliationSnapshot) -> ReconciliationGrant:
-        row = self.connection.execute("SELECT generation FROM reconciliation WHERE slot=1").fetchone()
-        generation = (row[0] if row else 0) + 1; identity = snapshot.identity()
-        stored = asdict(snapshot) | {"governance_mode": snapshot.governance_mode.value}
-        for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans", "active_p2_event_keys", "active_p2_classes"):
-            stored[name] = list(stored[name])
-        self.connection.execute(
-            "INSERT INTO reconciliation VALUES (1,?,?,?) ON CONFLICT(slot) DO UPDATE SET identity=excluded.identity,generation=excluded.generation,snapshot=excluded.snapshot",
-            (identity, generation, json.dumps(stored, sort_keys=True)),
-        )
-        grant = ReconciliationGrant(identity, generation)
-        self._adjudicate_pending_events(snapshot, grant)
-        self.connection.commit(); return grant
-
-    def _adjudicate_pending_events(self, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant) -> None:
-        active_keys = set(snapshot.active_p2_event_keys)
-        active_classes = {item.upper() for item in snapshot.active_p2_classes}
-        rows = self.connection.execute("SELECT semantic_key,event_json,state FROM events WHERE state='PENDING'").fetchall()
-        for semantic_key, raw, _state in rows:
-            event = _event_from_json(raw); event_class = event.event_class.upper()
-            if event.risk_markers or event_class in _P0_EVENT_CLASSES:
-                priority, state = Priority.P0_USER_OR_HIGH_RISK, "PENDING"
-            elif event_class in _P1_EVENT_CLASSES:
-                if event.target_identity == snapshot.exact_head:
-                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "PENDING"
-                else:
-                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "TRACE_ONLY"
-            elif event_class in _P2_EVENT_CLASSES or event.class_priority_hint == Priority.P2_BLOCKER_OR_DRIFT:
-                if semantic_key in active_keys or event_class in active_classes:
-                    priority, state = Priority.P2_BLOCKER_OR_DRIFT, "PENDING"
-                else:
-                    priority, state = Priority.P2_BLOCKER_OR_DRIFT, "RESOLVED_TRACE"
-            elif event_class in _P3_EVENT_CLASSES:
-                priority, state = Priority.P3_BOUNDED_IMPROVEMENT, "PENDING"
-            elif event_class in _P4_EVENT_CLASSES:
-                priority, state = Priority.P4_RESEARCH, "PENDING"
-            else:
-                priority, state = Priority.P2_BLOCKER_OR_DRIFT, "RESOLVED_TRACE"
-            self.connection.execute("UPDATE events SET priority=?, adjudication_generation=?, state=? WHERE semantic_key=?", (int(priority), grant.generation, state, semantic_key))
-
     def current_snapshot(self) -> tuple[ReconciliationGrant, ReconciliationSnapshot] | None:
         row = self.connection.execute("SELECT identity,generation,snapshot FROM reconciliation WHERE slot=1").fetchone()
         if not row:
             return None
-        data = json.loads(row[2]); data["governance_mode"] = GovernanceMode(data["governance_mode"])
-        for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans", "active_p2_event_keys", "active_p2_classes"):
-            data[name] = tuple(data[name])
-        return ReconciliationGrant(row[0], row[1]), ReconciliationSnapshot(**data)
+        return ReconciliationGrant(row[0], row[1]), _snapshot_from_json(row[2])
+
+    def _trace(self, event: NormalizedEvent, state: str = "OBSERVED") -> None:
+        trace_id = digest({"event_id": event.event_id, "source": event.source, "class": event.event_class, "observed_at": event.observed_at, "idempotency": event.supplied_idempotency_key})
+        self.connection.execute(
+            "INSERT OR IGNORE INTO event_traces VALUES (?,?,?,?,?,?,?,?)",
+            (trace_id, event.semantic_key, event.source, event.event_class, event.target_identity, event.payload_digest, event.observed_at, state),
+        )
+
+    def trace_sources(self, semantic_key: str) -> tuple[str, ...]:
+        rows = self.connection.execute("SELECT source FROM event_traces WHERE semantic_key=? ORDER BY source", (semantic_key,)).fetchall()
+        return tuple(row[0] for row in rows)
+
+    def trace_classes(self, semantic_key: str) -> tuple[str, ...]:
+        rows = self.connection.execute("SELECT event_class FROM event_traces WHERE semantic_key=? ORDER BY event_class", (semantic_key,)).fetchall()
+        return tuple(row[0] for row in rows)
 
     def enqueue(self, event: NormalizedEvent) -> bool:
+        self._trace(event)
         provisional = Priority.P0_USER_OR_HIGH_RISK if event.risk_markers else Priority.P2_BLOCKER_OR_DRIFT
         try:
             self.connection.execute(
@@ -479,7 +520,103 @@ class WorkingStateStore:
             )
             self.connection.commit(); return True
         except sqlite3.IntegrityError:
-            return False
+            self.connection.commit(); return False
+
+    def _ensure_head_delta_event(self, snapshot: ReconciliationSnapshot, prior_snapshot: ReconciliationSnapshot | None) -> None:
+        if prior_snapshot is None or prior_snapshot.exact_head == snapshot.exact_head or self.head_is_reviewed(snapshot.exact_head):
+            return
+        event = NormalizedEvent.from_mapping({
+            "event_id": f"reconcile-head:{snapshot.exact_head}:{snapshot.observed_at}",
+            "event_class": "RECONCILIATION_HEAD_DELTA", "source": "reconciliation",
+            "repository": snapshot.repository, "observed_at": snapshot.observed_at,
+            "target_ref": "refs/pull/current/head", "target_identity": snapshot.exact_head,
+            "payload": {"trusted_exact_head": snapshot.exact_head, "prior_exact_head": prior_snapshot.exact_head},
+            "idempotency_key": f"reconcile-head:{snapshot.exact_head}", "priority_hint": int(Priority.P1_EXACT_HEAD_REVIEW),
+        })
+        # Canonical head identity ignores transport class/source. Reuse any existing webhook/watchdog event.
+        canonical_key = _head_semantic_key(snapshot.repository, "refs/heads/main", snapshot.exact_head)
+        if event.semantic_key != canonical_key:
+            event = NormalizedEvent(
+                event.event_id, event.event_class, event.source, event.repository, event.observed_at,
+                "refs/heads/main", event.target_identity, event.payload_digest, event.supplied_idempotency_key,
+                event.semantic_kind, canonical_key, event.priority_hint, event.class_priority_hint, event.risk_markers,
+            )
+        self._trace(event, "RECONCILIATION_DERIVED")
+        row = self.connection.execute("SELECT 1 FROM events WHERE semantic_key=?", (event.semantic_key,)).fetchone()
+        if not row:
+            self.connection.execute(
+                "INSERT INTO events(semantic_key,event_json,priority,adjudication_generation,state) VALUES (?,?,?,?, 'PENDING')",
+                (event.semantic_key, _event_to_json(event), int(Priority.P1_EXACT_HEAD_REVIEW), 0),
+            )
+
+    def record_reconciliation(self, snapshot: ReconciliationSnapshot) -> ReconciliationGrant:
+        prior = self.current_snapshot(); prior_snapshot = prior[1] if prior else None
+        row = self.connection.execute("SELECT generation FROM reconciliation WHERE slot=1").fetchone()
+        generation = (row[0] if row else 0) + 1; identity = snapshot.identity()
+        self.connection.execute(
+            "INSERT INTO reconciliation VALUES (1,?,?,?) ON CONFLICT(slot) DO UPDATE SET identity=excluded.identity,generation=excluded.generation,snapshot=excluded.snapshot",
+            (identity, generation, _snapshot_to_json(snapshot)),
+        )
+        grant = ReconciliationGrant(identity, generation)
+        self._ensure_head_delta_event(snapshot, prior_snapshot)
+        self._adjudicate_pending_events(snapshot, grant, prior_snapshot)
+        self.connection.commit(); return grant
+
+    def _adjudicate_pending_events(self, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant, prior_snapshot: ReconciliationSnapshot | None) -> None:
+        active_keys = set(snapshot.active_p2_event_keys); active_classes = {item.upper() for item in snapshot.active_p2_classes}
+        dispositions = {item.event_key: item for item in snapshot.p0_dispositions}
+        resolutions = {item.event_key: item for item in snapshot.p2_resolutions}
+        rows = self.connection.execute("SELECT semantic_key,event_json,state FROM events WHERE state='PENDING'").fetchall()
+        for semantic_key, raw, _state in rows:
+            event = _event_from_json(raw); event_class = event.event_class.upper()
+            if event.risk_markers or event_class in _P0_EVENT_CLASSES:
+                disposition = dispositions.get(semantic_key)
+                if disposition is not None:
+                    priority, state = Priority.P0_USER_OR_HIGH_RISK, "P0_DISPOSITION_TRACE"
+                    self.connection.execute(
+                        "INSERT OR REPLACE INTO p0_disposition_history VALUES (?,?,?,?,?)",
+                        (semantic_key, disposition.decision, disposition.decision_ref, grant.identity, grant.generation),
+                    )
+                else:
+                    priority, state = Priority.P0_USER_OR_HIGH_RISK, "PENDING"
+            elif event.semantic_kind == "HEAD_OBSERVATION":
+                if event.target_identity != snapshot.exact_head:
+                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "TRACE_ONLY"
+                elif self.head_is_reviewed(snapshot.exact_head):
+                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "TRACE_ONLY"
+                else:
+                    trace_classes = set(self.trace_classes(semantic_key))
+                    head_delta = bool(prior_snapshot and prior_snapshot.exact_head != snapshot.exact_head)
+                    explicit_head_event = "PR_HEAD_CHANGED" in trace_classes or "RECONCILIATION_HEAD_DELTA" in trace_classes
+                    if head_delta or explicit_head_event:
+                        priority, state = Priority.P1_EXACT_HEAD_REVIEW, "PENDING"
+                    else:
+                        priority, state = Priority.P4_RESEARCH, "PENDING"
+            elif event_class in _P1_EVENT_CLASSES:
+                if event.target_identity == snapshot.exact_head:
+                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "PENDING"
+                else:
+                    priority, state = Priority.P1_EXACT_HEAD_REVIEW, "TRACE_ONLY"
+            elif event_class in _P2_EVENT_CLASSES or event.class_priority_hint == Priority.P2_BLOCKER_OR_DRIFT:
+                if semantic_key in active_keys or event_class in active_classes:
+                    priority, state = Priority.P2_BLOCKER_OR_DRIFT, "PENDING"
+                elif snapshot.p2_observation_status == "AUTHORITATIVE_COMPLETE" and semantic_key in resolutions:
+                    resolution = resolutions[semantic_key]
+                    priority, state = Priority.P2_BLOCKER_OR_DRIFT, "RESOLVED_TRACE"
+                    self.connection.execute(
+                        "INSERT OR REPLACE INTO p2_resolution_history VALUES (?,?,?,?,?)",
+                        (semantic_key, resolution.resolution_ref, snapshot.p2_observation_ref, grant.identity, grant.generation),
+                    )
+                else:
+                    # Absence is not authority. PARTIAL/UNKNOWN and complete-without-explicit-resolution stay blocking.
+                    priority, state = Priority.P2_BLOCKER_OR_DRIFT, "PENDING"
+            elif event_class in _P3_EVENT_CLASSES:
+                priority, state = Priority.P3_BOUNDED_IMPROVEMENT, "PENDING"
+            elif event_class in _P4_EVENT_CLASSES:
+                priority, state = Priority.P4_RESEARCH, "PENDING"
+            else:
+                priority, state = Priority.P2_BLOCKER_OR_DRIFT, "PENDING"
+            self.connection.execute("UPDATE events SET priority=?, adjudication_generation=?, state=? WHERE semantic_key=?", (int(priority), grant.generation, state, semantic_key))
 
     def has_unadjudicated_events(self, generation: int) -> bool:
         row = self.connection.execute("SELECT 1 FROM events WHERE state='PENDING' AND adjudication_generation<>? LIMIT 1", (generation,)).fetchone()
@@ -506,11 +643,12 @@ class WorkingStateStore:
         return event, effective
 
     def current_p1_event(self, exact_head: str, generation: int) -> NormalizedEvent | None:
-        row = self.connection.execute("SELECT event_json FROM events WHERE priority=1 AND adjudication_generation=? AND state='PENDING' ORDER BY semantic_key LIMIT 1", (generation,)).fetchone()
-        if not row:
-            return None
-        event = _event_from_json(row[0])
-        return event if event.target_identity == exact_head else None
+        rows = self.connection.execute("SELECT event_json FROM events WHERE priority=1 AND adjudication_generation=? AND state='PENDING' ORDER BY semantic_key", (generation,)).fetchall()
+        for row in rows:
+            event = _event_from_json(row[0])
+            if event.target_identity == exact_head:
+                return event
+        return None
 
     def event_state(self, semantic_key: str) -> str | None:
         row = self.connection.execute("SELECT state FROM events WHERE semantic_key=?", (semantic_key,)).fetchone(); return row[0] if row else None
@@ -522,6 +660,9 @@ class WorkingStateStore:
         work = ReviewWorkIdentity(event.semantic_key, event.target_identity, grant.identity, grant.generation)
         self.connection.execute("INSERT OR IGNORE INTO review_work VALUES (?,?,?,?,?,'READY')", (work.key(), work.semantic_event_key, work.target_head, work.reconciliation_identity, work.reconciliation_generation)); self.connection.commit(); return work
 
+    def head_is_reviewed(self, target_head: str) -> bool:
+        return bool(self.connection.execute("SELECT 1 FROM reviewed_heads WHERE target_head=?", (target_head,)).fetchone())
+
     def consume_review_work(self, work: ReviewWorkIdentity, grant: ReconciliationGrant) -> bool:
         cur = self.connection.execute(
             "UPDATE review_work SET state='CONSUMED' WHERE work_key=? AND semantic_key=? AND target_head=? AND identity=? AND generation=? AND state='READY'",
@@ -529,7 +670,9 @@ class WorkingStateStore:
         )
         if cur.rowcount != 1:
             self.connection.rollback(); return False
-        self.connection.execute("UPDATE events SET state='CONSUMED' WHERE semantic_key=? AND state='PENDING'", (work.semantic_event_key,)); self.connection.commit(); return True
+        self.connection.execute("UPDATE events SET state='CONSUMED' WHERE semantic_key=? AND state='PENDING'", (work.semantic_event_key,))
+        self.connection.execute("INSERT OR REPLACE INTO reviewed_heads VALUES (?,?,?)", (work.target_head, work.key(), grant.generation))
+        self.connection.commit(); return True
 
     def acquire_lease(self, slice_id: str, owner: str) -> LeaseGrant | None:
         self.connection.execute("BEGIN IMMEDIATE")
@@ -682,7 +825,7 @@ class SyntheticSupervisor:
         pending = self.store.highest_event(grant.generation)
         if pending and self.store.event_priority(pending.semantic_key) == Priority.P2_BLOCKER_OR_DRIFT:
             self.transition(SupervisorState.IDLE_NO_ELIGIBLE_WORK)
-            return SupervisorReceipt(Decision.BLOCKED, self.state, "P2_ACTIVE_AWAITING_FRESH_RECONCILIATION")
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "P2_PARTIAL_OR_UNRESOLVED_AWAITING_AUTHORITY")
         if not candidates:
             if snapshot.eligible_work_queue_complete:
                 self.transition(SupervisorState.IDLE_NO_ELIGIBLE_WORK); return SupervisorReceipt(Decision.IDLE, self.state, "TRUSTED_COMPLETE_EMPTY_WORK_QUEUE")
@@ -795,11 +938,8 @@ class SyntheticSupervisor:
         if self.store.has_unadjudicated_events(fresh.generation):
             return SupervisorReceipt(Decision.BLOCKED, self.state, "FRESH_RECONCILIATION_REQUIRED_FOR_PENDING_EVENT")
         if (
-            checkpoint.slice_id != lease.slice_id
-            or snapshot.governance_mode != GovernanceMode.AUTONOMOUS
-            or snapshot.pending_p0
-            or checkpoint.route_id != snapshot.route_id
-            or checkpoint.domain_revision != snapshot.domain_revision
+            checkpoint.slice_id != lease.slice_id or snapshot.governance_mode != GovernanceMode.AUTONOMOUS or snapshot.pending_p0
+            or checkpoint.route_id != snapshot.route_id or checkpoint.domain_revision != snapshot.domain_revision
             or not _REQUIRED_RESUME_PRECONDITIONS.issubset(set(checkpoint.resume_preconditions))
         ):
             return SupervisorReceipt(Decision.BLOCKED, self.state, "CHECKPOINT_DRIFT_OR_GOVERNANCE_OR_SLICE_GATE")

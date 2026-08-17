@@ -1,4 +1,4 @@
-"""Frozen canonical IAGL-E001..E018 plus R141 B09R2-B12R2 regressions."""
+"""Frozen canonical IAGL-E001..E018 plus R141 B09R2-B15 regressions."""
 from __future__ import annotations
 
 import ast
@@ -12,10 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from iagl_synthetic_supervisor import (  # noqa: E402
-    _ALLOWED, Checkpoint, Decision, GovernanceMode, ImprovementSlice, Priority,
-    ReconciliationSnapshot, RetrievalProviderObservation, ReviewEvidence,
-    ReviewWorkIdentity, SupervisorError, SupervisorState, SyntheticRetrievalProvider,
-    SyntheticSupervisor, WorkingStateStore,
+    _ALLOWED, Checkpoint, Decision, GovernanceMode, ImprovementSlice, P0Disposition,
+    P2Resolution, Priority, ReconciliationSnapshot, RetrievalProviderObservation,
+    ReviewEvidence, ReviewWorkIdentity, SupervisorError, SupervisorState,
+    SyntheticRetrievalProvider, SyntheticSupervisor, WorkingStateStore,
 )
 
 REPO = "vxz2datoubo/second-brain-coordination"
@@ -116,8 +116,10 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.assertEqual(Decision.EXECUTED, self.sup.resume_or_replan(checkpoint.checkpoint_id or "", fresh, lease_new).decision)
 
     def test_iagl_e006_webhook_watchdog_same_semantic_target_deduplicated(self) -> None:
-        _, first = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "webhook", "one")); _, duplicate = self.sup.ingest(self.event("A", Priority.P4_RESEARCH, "watchdog", "two"))
-        self.assertTrue(first); self.assertFalse(duplicate)
+        webhook, first = self.sup.ingest(self.event("A", Priority.P1_EXACT_HEAD_REVIEW, "webhook", "one", event_class="PR_HEAD_CHANGED"))
+        watchdog, duplicate = self.sup.ingest(self.event("A", Priority.P4_RESEARCH, "watchdog", "two", event_class="WATCHDOG_TICK"))
+        self.assertEqual(webhook.semantic_key, watchdog.semantic_key); self.assertTrue(first); self.assertFalse(duplicate)
+        self.assertEqual(("watchdog", "webhook"), self.store.trace_sources(webhook.semantic_key))
 
     def test_iagl_e007_execution_safepoint_resume_reject_cross_slice_genuine_lease(self) -> None:
         grant = self.sup.reconcile(self.snap("A")); plan = self.sup.choose(grant, [self.slice("slice-x")]); lease_y = self.store.acquire_lease("slice-y", "worker-b")
@@ -176,7 +178,7 @@ class CanonicalStageAEvaluations(unittest.TestCase):
         self.assertEqual(SupervisorState.IDLE_NO_ELIGIBLE_WORK, result.state); self.assertEqual("TRUSTED_COMPLETE_EMPTY_WORK_QUEUE", result.reason)
 
 
-class R141R2Regressions(unittest.TestCase):
+class R141R2AndB13B15Regressions(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory(); self.store = WorkingStateStore(Path(self.temp.name) / "state.sqlite"); self.sup = SyntheticSupervisor(REPO, self.store, budget_limit=10)
 
@@ -191,8 +193,8 @@ class R141R2Regressions(unittest.TestCase):
         data: dict[str, object] = {"slice_id": ident, "priority": Priority.P3_BOUNDED_IMPROVEMENT, "changed_paths": PATHS, "source_signal_refs": ("signal",), "problem_signature": "signature", "goal": "bounded goal", "materiality": "MATERIAL", "evidence_target": "evidence", "allowed_tools": ("stdlib-only",), "allowed_data_classes": ("PUBLIC_SAFE_SYNTHETIC",), "risk_class": "P3_SYNTHETIC", "time_budget_minutes": 1, "compute_budget": 1, "expected_artifact": "artifact", "falsifier": "falsifier", "stop_conditions": ("stop",), "writeback_plan": "NO_CANONICAL_WRITE", "owner": "GPT_ENGINEERING_WORKER"}
         data.update(overrides); return ImprovementSlice(**data)
 
-    def raw_event(self, event_class: str, payload: object, key: str = "event", priority: Priority = Priority.P4_RESEARCH) -> dict[str, object]:
-        return {"event_id": key, "event_class": event_class, "source": "synthetic", "repository": REPO, "observed_at": 1, "target_ref": "refs/heads/main", "target_identity": "A", "payload": payload, "idempotency_key": key, "priority_hint": int(priority)}
+    def raw_event(self, event_class: str, payload: object, key: str = "event", priority: Priority = Priority.P4_RESEARCH, target: str = "A", source: str = "synthetic") -> dict[str, object]:
+        return {"event_id": key, "event_class": event_class, "source": source, "repository": REPO, "observed_at": 1, "target_ref": "refs/heads/main", "target_identity": target, "payload": payload, "idempotency_key": key, "priority_hint": int(priority)}
 
     def test_b09r2_low_transport_class_high_risk_structured_materiality_forces_p0(self) -> None:
         event, _ = self.sup.ingest(self.raw_event("SIGNAL_MATERIALITY_CHANGED", {"category": "research", "result": {"requires": "github_permission", "secret": "requested"}}))
@@ -200,11 +202,14 @@ class R141R2Regressions(unittest.TestCase):
         grant = self.sup.reconcile(self.snapshot()); self.assertEqual(Priority.P0_USER_OR_HIGH_RISK, self.store.event_priority(event.semantic_key))
         self.assertEqual(Decision.USER_GATE, self.sup.choose(grant, [self.slice()]).decision)
 
-    def test_b09r2_transient_p2_active_then_fresh_reconcile_resolves_and_lower_work_can_plan(self) -> None:
+    def test_b09r2_transient_p2_requires_complete_explicit_resolution_before_lower_work(self) -> None:
         event, _ = self.sup.ingest(self.raw_event("ROUTE_DRIFT", {"observed": "drift"}, key="drift", priority=Priority.P4_RESEARCH))
         active = self.sup.reconcile(self.snapshot(active_p2_event_keys=(event.semantic_key,)))
-        blocked = self.sup.choose(active, [self.slice()]); self.assertEqual("P2_ACTIVE_AWAITING_FRESH_RECONCILIATION", blocked.reason)
-        fresh = self.sup.reconcile(self.snapshot(observed_at=2, active_p2_event_keys=()))
+        self.assertEqual(Decision.BLOCKED, self.sup.choose(active, [self.slice()]).decision)
+        fresh = self.sup.reconcile(self.snapshot(
+            observed_at=2, p2_observation_status="AUTHORITATIVE_COMPLETE", p2_observation_ref="provider:route:complete",
+            p2_resolutions=(P2Resolution(event.semantic_key, "resolution:route-fixed"),),
+        ))
         self.assertEqual("RESOLVED_TRACE", self.store.event_state(event.semantic_key)); plan = self.sup.choose(fresh, [self.slice()]); self.assertEqual("same", plan.slice.slice_id)
 
     def test_b09r2_unresolved_p2_remains_blocking_after_new_generation(self) -> None:
@@ -243,8 +248,7 @@ class R141R2Regressions(unittest.TestCase):
             (self.snapshot(allowed_writeback_plans=("W3_CANONICAL_WRITE",)), "WRITEBACK_CEILING"),
         )
         for snapshot, marker in unsafe:
-            with self.assertRaisesRegex(SupervisorError, marker):
-                snapshot.validate(REPO)
+            with self.assertRaisesRegex(SupervisorError, marker): snapshot.validate(REPO)
 
     def test_b11r2_alias_hard_denies_are_not_snapshot_widenable(self) -> None:
         safe = self.snapshot(); safe.validate(REPO)
@@ -254,8 +258,7 @@ class R141R2Regressions(unittest.TestCase):
             (self.slice(risk_class="C4_TRADING"), "FORBIDDEN_RISK"),
             (self.slice(writeback_plan="DOMAIN_CANONICAL_WRITE"), "FORBIDDEN_WRITEBACK"),
         ):
-            with self.assertRaisesRegex(SupervisorError, marker):
-                invalid.validate(safe)
+            with self.assertRaisesRegex(SupervisorError, marker): invalid.validate(safe)
 
     def test_b12r2_arbitrary_complete_empty_request_without_provider_observation_is_unknown(self) -> None:
         grant = self.sup.reconcile(self.snapshot()); proof = self.sup.issue_retrieval_complete_empty_proof(grant, "caller-arbitrary-request", "caller-arbitrary-scope")
@@ -269,6 +272,72 @@ class R141R2Regressions(unittest.TestCase):
         forged = replace(proof, issuance_ref="stage-a:forged")
         self.assertEqual("UNTRUSTED", self.sup.resolve_recall(grant, "request", forged).process_compliance)
         self.assertEqual(Decision.IDLE, self.sup.resolve_recall(grant, "request", proof).decision)
+
+    def test_b13_real_webhook_watchdog_cross_class_dedupe_preserves_both_traces_and_one_review(self) -> None:
+        self.sup.reconcile(self.snapshot(exact_head="A"))
+        webhook, first = self.sup.ingest(self.raw_event("PR_HEAD_CHANGED", {"head": "B"}, key="webhook-b", priority=Priority.P1_EXACT_HEAD_REVIEW, target="B", source="webhook"))
+        watchdog, second = self.sup.ingest(self.raw_event("WATCHDOG_TICK", {"poll": "B"}, key="watchdog-b", priority=Priority.P4_RESEARCH, target="B", source="watchdog"))
+        self.assertEqual(webhook.semantic_key, watchdog.semantic_key); self.assertTrue(first); self.assertFalse(second)
+        grant = self.sup.reconcile(self.snapshot(exact_head="B", observed_at=2)); work = self.sup.choose(grant, [])
+        self.assertIsInstance(work, ReviewWorkIdentity); self.assertEqual("B", work.target_head)
+        self.assertEqual(("reconciliation", "watchdog", "webhook"), self.store.trace_sources(webhook.semantic_key))
+        self.assertEqual(1, self.store.connection.execute("SELECT COUNT(*) FROM review_work WHERE semantic_key=?", (webhook.semantic_key,)).fetchone()[0])
+
+    def test_b13_missed_webhook_real_watchdog_fresh_reconciliation_new_head_forces_p1(self) -> None:
+        self.sup.reconcile(self.snapshot(exact_head="A"))
+        tick, inserted = self.sup.ingest(self.raw_event("WATCHDOG_TICK", {"poll": "tick-only-no-head-authority"}, key="watchdog-only", target="A", source="watchdog"))
+        self.assertTrue(inserted); self.assertEqual(Priority.P4_RESEARCH, tick.class_priority_hint)
+        fresh = self.sup.reconcile(self.snapshot(exact_head="B", observed_at=2)); work = self.sup.choose(fresh, [self.slice("safe")])
+        self.assertIsInstance(work, ReviewWorkIdentity); self.assertEqual("B", work.target_head)
+        self.assertNotEqual(tick.semantic_key, work.semantic_event_key)
+        self.assertIn("reconciliation", self.store.trace_sources(work.semantic_event_key))
+
+    def test_b13_missed_webhook_watchdog_preempts_active_p3_then_reconciled_new_head_routes_p1(self) -> None:
+        grant = self.sup.reconcile(self.snapshot(exact_head="A")); plan = self.sup.choose(grant, [self.slice("running")]); lease = self.store.acquire_lease("running", "worker")
+        self.assertEqual(Decision.EXECUTED, self.sup.execute(plan, lease).decision)
+        tick, _ = self.sup.ingest(self.raw_event("WATCHDOG_TICK", {"watchdog": "poll"}, key="watchdog-active", target="A", source="watchdog"))
+        self.assertEqual(Priority.P4_RESEARCH, tick.class_priority_hint)
+        paused = self.sup.safepoint(plan, lease); self.assertEqual(Decision.PREEMPTED, paused.decision)
+        fresh = self.sup.reconcile(self.snapshot(exact_head="B", observed_at=2)); work = self.sup.choose(fresh, [])
+        self.assertIsInstance(work, ReviewWorkIdentity); self.assertEqual("B", work.target_head); self.assertEqual(Priority.P1_EXACT_HEAD_REVIEW, self.store.event_priority(work.semantic_event_key))
+
+    def test_b14_p0_user_disposition_requires_fresh_reconcile_preserves_trace_and_safe_work_recovers(self) -> None:
+        self.sup.reconcile(self.snapshot())
+        event, _ = self.sup.ingest(self.raw_event("SIGNAL_MATERIALITY_CHANGED", {"research": "needs secret", "permission": "github_permission"}, key="risk"))
+        gated_grant = self.sup.reconcile(self.snapshot(observed_at=2)); self.assertEqual(Decision.USER_GATE, self.sup.choose(gated_grant, [self.slice("safe")]).decision)
+        disposition = P0Disposition(event.semantic_key, "APPROVED_SEPARATE_GATED_ACTION", "user-decision:approve-separate-gate-1")
+        fresh = self.sup.reconcile(self.snapshot(observed_at=3, p0_dispositions=(disposition,)))
+        self.assertEqual("P0_DISPOSITION_TRACE", self.store.event_state(event.semantic_key))
+        plan = self.sup.choose(fresh, [self.slice("safe")]); self.assertEqual("safe", plan.slice.slice_id)
+        with self.assertRaisesRegex(SupervisorError, "FORBIDDEN_RISK"):
+            self.slice("unsafe", risk_class="C4_TRADING").validate(self.store.current_snapshot()[1])
+        history = self.store.connection.execute("SELECT decision,decision_ref FROM p0_disposition_history WHERE event_key=?", (event.semantic_key,)).fetchone()
+        self.assertEqual(("APPROVED_SEPARATE_GATED_ACTION", "user-decision:approve-separate-gate-1"), history)
+
+    def test_b15_partial_empty_does_not_resolve_p2(self) -> None:
+        event, _ = self.sup.ingest(self.raw_event("ROUTE_DRIFT", {"drift": "route"}, key="p2-partial"))
+        active = self.sup.reconcile(self.snapshot(active_p2_event_keys=(event.semantic_key,)))
+        self.assertEqual(Decision.BLOCKED, self.sup.choose(active, [self.slice()]).decision)
+        partial = self.sup.reconcile(self.snapshot(observed_at=2, active_p2_event_keys=(), p2_observation_status="PARTIAL_OBSERVATION"))
+        result = self.sup.choose(partial, [self.slice()]); self.assertEqual(Decision.BLOCKED, result.decision)
+        self.assertEqual("PENDING", self.store.event_state(event.semantic_key))
+
+    def test_b15_authoritative_complete_without_explicit_resolution_still_blocks(self) -> None:
+        event, _ = self.sup.ingest(self.raw_event("FALSE_GREEN", {"false_green": "active"}, key="p2-complete-no-resolution"))
+        self.sup.reconcile(self.snapshot(active_p2_event_keys=(event.semantic_key,)))
+        complete = self.sup.reconcile(self.snapshot(observed_at=2, p2_observation_status="AUTHORITATIVE_COMPLETE", p2_observation_ref="provider:complete"))
+        self.assertEqual(Decision.BLOCKED, self.sup.choose(complete, [self.slice()]).decision); self.assertEqual("PENDING", self.store.event_state(event.semantic_key))
+
+    def test_b15_authoritative_complete_plus_explicit_resolution_unblocks(self) -> None:
+        event, _ = self.sup.ingest(self.raw_event("ACTIVE_BLOCKER", {"blocker": "x"}, key="p2-resolve"))
+        self.sup.reconcile(self.snapshot(active_p2_event_keys=(event.semantic_key,)))
+        fresh = self.sup.reconcile(self.snapshot(
+            observed_at=2, p2_observation_status="AUTHORITATIVE_COMPLETE", p2_observation_ref="provider:complete:2",
+            p2_resolutions=(P2Resolution(event.semantic_key, "resolution:blocker-closed"),),
+        ))
+        self.assertEqual("RESOLVED_TRACE", self.store.event_state(event.semantic_key)); self.assertEqual("same", self.sup.choose(fresh, [self.slice()]).slice.slice_id)
+        history = self.store.connection.execute("SELECT resolution_ref,observation_ref FROM p2_resolution_history WHERE event_key=?", (event.semantic_key,)).fetchone()
+        self.assertEqual(("resolution:blocker-closed", "provider:complete:2"), history)
 
 
 class SupportingContracts(unittest.TestCase):
@@ -309,15 +378,13 @@ class SupportingContracts(unittest.TestCase):
     def test_slice_contract_rejects_missing_risk_stop_or_writeback(self) -> None:
         grant = self.sup.reconcile(self.snapshot())
         for invalid in (replace(self.complete_slice(), risk_class=""), replace(self.complete_slice(), stop_conditions=()), replace(self.complete_slice(), writeback_plan="")):
-            with self.assertRaisesRegex(SupervisorError, "FROZEN_CONTRACT"):
-                self.sup.choose(grant, [invalid])
+            with self.assertRaisesRegex(SupervisorError, "FROZEN_CONTRACT"): self.sup.choose(grant, [invalid])
 
     def test_checkpoint_contract_rejects_missing_exact_plan_binding_or_privacy(self) -> None:
         checkpoint = Checkpoint("cp", "mission", "slice", "plan", "slice-digest", "SAFEPOINT_CHECKPOINT", 1, "snapshot", ("source",), ("digest",), ("step",), ("unknown",), "resume", "used:1", "lease", "fence", "P1", RESUME_PRECONDITIONS, "PUBLIC_SAFE_SYNTHETIC", "snapshot", 1, 1, "A", "R141", "domain")
         self.store.save_checkpoint(checkpoint)
         for invalid in (replace(checkpoint, plan_id=""), replace(checkpoint, slice_digest=""), replace(checkpoint, privacy_class="")):
-            with self.assertRaises(SupervisorError):
-                self.store.save_checkpoint(invalid)
+            with self.assertRaises(SupervisorError): self.store.save_checkpoint(invalid)
 
     def test_stale_resume_preconditions_fail_closed(self) -> None:
         grant = self.sup.reconcile(self.snapshot()); plan = self.sup.choose(grant, [self.complete_slice("slice-x")]); lease = self.store.acquire_lease("slice-x", "owner"); self.sup.execute(plan, lease)
