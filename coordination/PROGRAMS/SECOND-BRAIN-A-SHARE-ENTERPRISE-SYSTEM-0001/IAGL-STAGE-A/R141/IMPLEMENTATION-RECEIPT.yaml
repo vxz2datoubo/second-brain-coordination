@@ -1,29 +1,60 @@
-schema_version: "R141-IMPLEMENTATION-RECEIPT-1.0"
-agent_id: CODEX
+schema_version: "R141-IMPLEMENTATION-RECEIPT-2.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
-status: R3_IMPLEMENTATION_COMPLETE_FINAL_HEAD_EVIDENCE_BOUND_EXTERNALLY_ON_PR
+mode: project_plan
+status: B16_B18_REMEDIATION_LOCAL_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
+provenance:
+  historical_initial_executor:
+    executor_role: CODEX
+    scope: "initial R141 R3 implementation lineage"
+    historical_head: "5f466446bd80fb2b878f1048e0ee06e1a5eb4e9c"
+    preservation_rule: "historical CODEX provenance is retained and is not attributed to the current executor"
+  current_remediation_executor:
+    executor_role: GPT_ENGINEERING_WORKER
+    model_id: "GPT-5.6 Sol"
+    harness: "ChatGPT engineering-worker window"
+    repository_io: "OpenAI GitHub connector / GitHub App chatgpt-codex-connector"
+    local_validation_harness: "isolated container Python 3.13.5"
+  independent_reviewer: "separate GPT reviewer window; this executor does not self-review"
 implementation:
   runtime: iagl_synthetic_supervisor.py
-  persistence: Python sqlite3 task-local working state
+  internal_core: "iagl_synthetic_supervisor_core.py = byte-preserved prior B13-B15 runtime blob; not a second public entrypoint"
+  persistence: "Python sqlite3 task-local non-authoritative working state"
   external_effects: none
-  process_model: synchronous single worker; no subprocess, pool, daemon, or network
+  process_model: "synchronous single worker; no subprocess, pool, daemon, scheduler, or network"
 mechanism_results:
-  required_evaluations: IAGL-E001..IAGL-E018
-  local_result: CANONICAL_E001_E018_PLUS_8_SUPPORTING_TESTS_PASS_ON_PYTHON_3_13
-  local_python_3_11: NOT_INSTALLED_LOCALLY__EXACT_HEAD_CI_REQUIRED
-  retained_phase_3:
-    local_adapter: PASS_98_TESTS_ON_PYTHON_3_13
-    integrated_offline_memory: PASS_291_TESTS_ON_PYTHON_3_13
-    public_safety: PASS_108_FILES_0_ISSUES
-  authority_boundary: synthetic ReconciliationSnapshot only; never canonical authority
-  r3_boundaries:
-    review_work: normalized-current-event plus exact-head plus reconciliation-generation only
-    retrieval_completeness: incomplete unless a reconciliation-bound complete-empty proof validates
-    cross_slice_fencing: plan/checkpoint/resume require one identical slice identity
-    frozen_contracts: Checkpoint and ImprovementSlice validate public-safe required fields before durable use
+  canonical_evaluations: "IAGL-E001..IAGL-E018 retained"
+  deterministic_test_count: 50
+  test_partition:
+    canonical_evaluations: 18
+    additional_stale_event_guard: 1
+    remediation_regressions: 23
+    supporting_contracts: 8
+  local_result: "50/50 PASS twice on Python 3.13.5"
+  static_validation:
+    py_compile: PASS
+    forbidden_import_scan: PASS
+    reserved_marker_scan: PASS
+  remediation:
+    B13: "reconciliation-derived exact-head P1 and webhook/watchdog semantic dedupe retained"
+    B14: "reconciliation-bound P0 disposition lifecycle retained without sensitive-action authorization"
+    B15: "P2 omission/partial observation cannot resolve without authoritative completeness plus explicit resolution"
+    B16: "resolved P2 can reactivate on later positive fresh reconciliation while prior resolution/lifecycle history remains"
+    B17: "bounded starvation counters and visibility implemented; promotion requires AGING + MATERIALITY + FRESH_RECONCILIATION; P4 ceiling is P3 and P0/P1/P2 safety is unchanged"
+    B18: "R141 evidence package reconciled to current GPT remediation provenance and 50-test mechanism state"
+authority_boundary:
+  canonical_truth: "not supplied by SQLite or synthetic fixtures"
+  secret_permission_production_domain_w3_trading_expansion: false
+  autonomous_merge: false
+unknown_preservation:
+  rule: "synthetic PASS does not close Stage-B, provider, scheduler, authority, privacy, production, or merge UNKNOWNs"
+remote_evidence_binding:
+  exact_head: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
+  direct_python_3_11_3_13_ci: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
+  retained_phase_3_ci: "EXTERNAL_POST_COMMIT_BINDING_REQUIRED"
+  rationale: "an in-branch file cannot truthfully contain the SHA or CI run created by the commit that contains itself"
 cleanup:
   task_owned_processes: 0
-  task_owned_ephemeral_resources: test temporary directories only
-  rollback: do not merge; retain branch for GPT review
+  task_owned_ephemeral_resources: "temporary local test directories / pycache only"
+  rollback: "leave Draft PR unmerged; no history rewrite"
 completion_signal: R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW

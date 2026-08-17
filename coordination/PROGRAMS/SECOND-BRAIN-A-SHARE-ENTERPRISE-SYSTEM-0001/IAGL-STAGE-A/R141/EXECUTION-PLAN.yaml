@@ -1,12 +1,15 @@
-schema_version: "R141-EXECUTION-PLAN-1.0"
-agent_id: CODEX
+schema_version: "R141-EXECUTION-PLAN-2.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 route_epoch: 141
 issue: 389
-canonical_main: dfd8c675583b7c1d017fa3bdd6bff651b53bac23
-implementation_branch: codex/r141-iagl-stage-a-synthetic-supervisor
 mode: project_plan
-status: R3_B01R_B03R_B04R_B08_IMPLEMENTATION_COMPLETE_AWAITING_FINAL_REMOTE_CI
+canonical_main_at_remediation_start: dfd8c675583b7c1d017fa3bdd6bff651b53bac23
+implementation_branch: codex/r141-iagl-stage-a-synthetic-supervisor
+provenance:
+  historical_plan_origin: CODEX
+  current_executor_role: GPT_ENGINEERING_WORKER
+  current_model_id: "GPT-5.6 Sol"
+status: B16_B18_LOCAL_VERIFIED__AWAITING_FINAL_EXACT_HEAD_REMOTE_CI
 scope:
   write_surfaces:
     - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src
@@ -14,68 +17,39 @@ scope:
     - coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141
     - .github/workflows/iagl-r141-stage-a.yml
   excluded:
-    - canonical control-plane and route files
-    - private/raw sources, credentials, permissions, and production systems
-    - W3 or domain-truth writes, external schedulers, webhooks, and merge
-implementation:
-  M0_plan_and_preflight:
-    - use only synthetic event fixtures and standard-library local state
-    - verify lease, base, clean worktree, and no active heavy-stage collision
-  M1_contracts:
-    - deterministic state machine with explicit legal transitions
-    - typed synthetic event, task, governance, priority, and receipt contracts
-  M2_durable_supervision:
-    - durable SQLite state with idempotency, fencing, checkpoint, restart, budget, and VOI stop
-  M3_preemption:
-    - cooperative safe-point checkpoint and P3-to-P1 preemption/resume validation with same-slice fence identity
-  M4_evaluations:
-    - implement IAGL-E001 through IAGL-E018 as mechanism-driven regressions
-    - bind current-head review work to normalized event and reconciliation generation
-    - distinguish incomplete retrieval from reconciliation-bound complete-empty work
-  M5_validation:
-    - Python 3.11 and 3.13 workflow, public-safety, YAML, scope, and diff checks
-  M6_handoff:
-    - write public-safe receipt, handoff, UNKNOWN registry, test matrix, and postflight evidence
-acceptance_matrix:
-  required_evaluations:
-    - IAGL-E001
-    - IAGL-E002
-    - IAGL-E003
-    - IAGL-E004
-    - IAGL-E005
-    - IAGL-E006
-    - IAGL-E007
-    - IAGL-E008
-    - IAGL-E009
-    - IAGL-E010
-    - IAGL-E011
-    - IAGL-E012
-    - IAGL-E013
-    - IAGL-E014
-    - IAGL-E015
-    - IAGL-E016
-    - IAGL-E017
-    - IAGL-E018
-resource_contract:
-  execution: single-process synchronous synthetic supervisor
-  subprocesses: forbidden
-  network: forbidden
-  cleanup: task-owned SQLite files and temporary directories only
-  rollback: do not merge; retain auditable branch and remove only task-owned ephemeral resources
-design_tradeoffs:
-  - SQLite gives crash/restart and fencing semantics using only the Python standard library.
-  - Snapshot facts are explicit synthetic test inputs; the store cannot become canonical governance or domain truth.
-  - Deterministic checkpoint identity derives from snapshot, slice, fence, sequence, and status; only lease fencing tokens are fresh local state.
-  - CI-only YAML parsing uses an explicitly named public dependency setup step; the Stage-A runtime itself performs no network operation.
-  - Material execution is deliberately restricted to a current reconciliation grant, durable plan, active lease/fence, and pre-execution budget reservation.
-unknowns:
-  - external scheduler, webhook, and live control-plane providers remain out of scope
-  - real reviewer identity and production execution evidence remain future governed dependencies
+    - "canonical control-plane and route files"
+    - "private/raw sources, credentials, secrets, or permission changes"
+    - "production, W3/domain truth writes, trading/funds, external schedulers/webhooks, and merge"
+remediation_plan:
+  B16:
+    - "reconsider resolved semantic P2 rows during fresh reconciliation"
+    - "reopen on positive active observation and preserve historical resolution/lifecycle trace"
+  B17:
+    - "persist per-slice starvation counter in bounded SQLite working state"
+    - "make aged work visible with deterministic reason"
+    - "permit only bounded fairness when AGING + MATERIALITY + FRESH_RECONCILIATION all hold"
+    - "cap P4 at P3 and never cross P2/P1/P0"
+  B18:
+    - "reconcile receipt/test matrix/UNKNOWN/handoff/postflight evidence"
+    - "preserve historical CODEX provenance and record current GPT executor/model"
+    - "bind future final SHA and CI externally after commit"
+validation:
+  local:
+    deterministic_suite: "50/50 PASS twice on Python 3.13.5"
+    py_compile: PASS
+    public_safety_import_scan: PASS
+    reserved_marker_scan: PASS
+    resource_process_check: "no task-owned long-running process observed"
+  remote_required:
+    - "R141 direct exact-head Python 3.11"
+    - "R141 direct exact-head Python 3.13"
+    - "retained Phase 3 PR integration Python 3.11/3.13"
+    - "public safety, scope, diff integrity"
 locks:
   merge_authorized: false
   private_source_access: false
+  secret_or_permission_expansion: false
   production_access: false
-  formal_skill_promotion: false
   domain_truth_write: false
   trading_or_funds: false
 completion_signal: R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW

@@ -1,62 +1,80 @@
 # R141 Scope and Postflight Audit
 
-- agent_id: `CODEX`
 - task: `CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR`
 - issue: `#389`
 - branch: `codex/r141-iagl-stage-a-synthetic-supervisor`
+- mode: `project_plan`
+- historical initial executor: `CODEX`
+- current remediation executor: `GPT_ENGINEERING_WORKER`
+- current model: `GPT-5.6 Sol`
+- final acceptance owner: independent GPT Reviewer, not this executor
 
-## Scope result
+## Scope
 
-Only the four route-authorized surfaces are changed: the Stage-A source,
-tests, R141 evidence directory, and the exact-head workflow. The supervisor
-uses only Python standard library facilities and synthetic fixtures. It opens
-no network connection, starts no subprocess/server/pool, and has no domain or
-W3 write mechanism.
+Authorized surfaces remain limited to the Stage-A source, tests, R141 evidence
+directory, and the existing R141 workflow. B16-B18 do not add any network,
+subprocess, daemon, scheduler, secret, permission, production, W3/domain,
+trading/funds, or merge capability.
 
-## Residuals and rollback
+B16 adds only local lifecycle bookkeeping around an already-governed P2 semantic
+blocker. B17 adds only deterministic SQLite starvation counters/visibility and a
+bounded ranking rule. The P4 promotion ceiling is P3; P3 never becomes P2, and
+fairness is evaluated only after P0/P1/P2 gates.
 
-The test suite creates and removes task-owned temporary SQLite resources.
-There are no task-owned long-running processes. Rollback is to leave this
-unmerged branch unmerged; no shared history or workspace needs rewriting.
+The public import/runtime entry remains `iagl_synthetic_supervisor.py`. The
+previously reviewed B13-B15 runtime blob is retained byte-for-byte as the
+internal `iagl_synthetic_supervisor_core.py`; the public entrypoint extends it
+with B16/B17 only. This is an internal extraction for auditability, not a second
+active supervisor entrypoint.
 
-## R3 local postflight
+## Current local validation
 
-- Canonical E001--E018 plus eight supporting/adversarial regressions: PASS
-  (26 tests, Python 3.13).
-- Retained Phase-3 local-adapter regressions: PASS (98 tests, Python 3.13).
-- Retained Phase-3 integrated offline-memory regressions: PASS (291 tests,
-  Python 3.13); its public safety scan passed 108 files with zero issues.
-- R141 YAML, R141 public-safety import boundary, allowlist scope audit,
-  reserved-marker scan, and `git diff --check`: PASS.
-- Python 3.11 is not installed locally; the exact-head R141 workflow is the
-  required dual-version final evidence after normal push.
-- Existing untracked `src/__pycache__/` and `tests/__pycache__/` are a narrow
-  passive residual under the recorded waiver. They are not staged, committed,
-  or delivered and were not broadly cleaned.
+- Canonical `IAGL-E001..E018`: retained.
+- Additional stale-event guard: retained.
+- Remediation regressions through B17: 23.
+- Supporting contracts: 8.
+- Total deterministic suite: **50 tests**, **50/50 PASS twice** on Python 3.13.5.
+- `py_compile`: PASS.
+- forbidden-import/public-safety AST scan: PASS.
+- reserved-marker scan: PASS.
+- no R141/test-owned long-running process observed.
 
-## Truthfulness boundary
+The exact final commit SHA and its CI run IDs are intentionally not embedded in
+this in-branch file. They are self-referential facts that only exist after this
+evidence package is committed. They must be bound externally to the resulting
+exact head on PR #391 / Issue #389.
 
-Passing expected-mechanism tests does not establish external scheduler
-operation, production readiness, domain authority, outcome quality, or GPT
-acceptance. Those remain locked or unknown as listed in `UNKNOWN-REGISTRY.yaml`.
+## B16 lifecycle truth
 
-## R3 B01R/B03R/B04R/B08 remediation truth
+A P2 event can now move from `PENDING` to `RESOLVED_TRACE`, then return to
+`PENDING/P2` when a later fresh reconciliation positively reports the same
+semantic blocker active again. The prior resolution record is not deleted and
+the lifecycle history records both `RESOLVED` and `REACTIVATED`.
 
-The test matrix now preserves the frozen IAGL-E001 through IAGL-E018 meanings.
-The synthetic mechanism enforces canonical transitions, current reconciliation
-identity, governance/P0 checks, active lease/fencing, event-derived preemption,
-and pre-execution budget reservation. These remain synthetic mechanism proofs,
-not an authorization for an external scheduler or any production capability.
+## B17 fairness truth
 
-R3 adds an event-derived `ReviewWorkIdentity`, bound to the current exact head
-and reconciliation generation. Stale P1 event heads become trace-only, so they
-cannot re-open a review. It also enforces that a real fence for slice X cannot
-authorize plan, safepoint, checkpoint, or resume of slice Y. An empty caller
-candidate/retrieval input remains `UNKNOWN/INCOMPLETE`; only an explicit,
-reconciliation-bound synthetic complete-empty observation reaches bounded idle.
+The Stage-A fairness mechanism persists a bounded starvation counter per
+`slice_id`. Aged items are inspectable with a deterministic reason. Any priority
+effect requires all three frozen conditions: `AGING`, `MATERIALITY`, and
+`FRESH_RECONCILIATION`.
 
-`ImprovementSlice` and `Checkpoint` now validate the frozen Stage-A fields in
-public-safe forms before use or persistence: source/evidence references,
-material goal, risk, stop/falsifier, writeback, budget/lease/fence, privacy,
-and resume preconditions. This is still no live authority provider or canonical
-write capability.
+- P4 may be promoted only to an effective P3.
+- P3 aging affects only P3 within-class ordering.
+- P0 and P1 are processed before fairness.
+- P2 blocker safety is processed before fairness and is never weakened.
+
+The Stage-A threshold is a deterministic fixture policy, not a production
+calibration. Production fairness calibration remains UNKNOWN.
+
+## B18 provenance / UNKNOWN truth
+
+Historical CODEX R3 provenance remains historical. The current B16-B18
+remediation is attributed to `GPT_ENGINEERING_WORKER / GPT-5.6 Sol`. Synthetic
+PASS does not close live scheduler, live reconciliation provider, privacy,
+authority, production outcome, domain/W3, trading, or merge UNKNOWNs.
+
+## Rollback and residuals
+
+Rollback remains: do not merge this Draft PR. No shared history rewrite is
+needed. Only task-owned temporary test resources / pycache are eligible for
+cleanup; no global Python/Docker kill is used.

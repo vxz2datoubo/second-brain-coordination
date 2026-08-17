@@ -31,8 +31,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install public YAML parser for CI-only artifact validation
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - name: Run IAGL E001-E018 mechanism suite
-        run: python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_synthetic_supervisor.py
+      - name: Run IAGL E001-E018 plus B09R2-B17 mechanism suite
+        run: |
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_synthetic_supervisor.py
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests/test_iagl_b16_b17.py
       - name: Validate YAML and public-safety boundary
         run: |
           python -c "import pathlib; import yaml; [yaml.safe_load(p.read_text(encoding='utf-8')) for p in pathlib.Path('coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141').glob('*.yaml')]; print('YAML_PASS')"
