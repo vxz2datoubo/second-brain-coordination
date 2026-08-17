@@ -1,79 +1,68 @@
-schema_version: "141.1"
+schema_version: "142.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 389
-task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
-parent_task_id: "IAGL-INTERRUPTIBLE-AUTONOMOUS-GOVERNANCE-0001"
-route_epoch: 141
+active_issue: 393
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 142
 mode: "project_plan"
-mode_label: "【Codex模式：已完成】R141 IAGL Stage-A Synthetic Supervisor"
-status: "DONE"
-execution_allowed: false
-automatic_resume_within_task: false
-second_user_start_command_required: false
+mode_label: "【Codex模式：项目计划模式】R142 Retrospective Signal Intake Bridge"
+status: "READY_AFTER_ACTIVATION_MERGE"
+execution_allowed: true
+automatic_resume_within_task: true
+second_user_start_command_required: true
 intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
+runtime_code_change_allowed: true
+runtime_code_scope: "BOUNDED_S0E_RETROSPECTIVE_INGRESS_ONLY"
 
-canonical_predecessor_route_epoch: 140
-canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
-canonical_predecessor_closure_main: "bd7e49f5d596b63efa158b622b6116229df644b7"
-canonical_iagl_architecture_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
-canonical_activation_main: "dfd8c675583b7c1d017fa3bdd6bff651b53bac23"
-canonical_route: "coordination/ROUTES/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR-R141.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR.yaml"
-closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
-implementation_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
-implementation_pr: 391
+canonical_predecessor_route_epoch: 141
+canonical_predecessor_task: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+canonical_predecessor_closure_main: "408e283697290c03d9b4121543934337d938c99a"
+canonical_predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
+implementation_pr: null
 
-completion_receipt:
-  accepted_runtime_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
+predecessor_completion:
+  task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+  route_epoch: 141
+  issue: 389
   implementation_pr: 391
-  pre_merge_main: "dfd8c675583b7c1d017fa3bdd6bff651b53bac23"
+  accepted_runtime_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
   merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
   gpt_final_review: 4952430756
   issue_acceptance_checkpoint: 5317236132
   direct_r141_ci: 32040029045
   retained_phase3_ci: 32040029044
   acceptance: "ACCEPTED_STAGE_A_ONLY / EXACT_HEAD_ACCEPTED"
-  stage_b_authority: "NONE"
   route_disposition: "R141_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
 
 release_phase:
-  phase: "C_POST_MERGE_CLOSURE"
-  execution_state: "DONE_AFTER_GPT_EXACT_HEAD_ACCEPTANCE_AND_USER_AUTHORIZED_MERGE"
-  active_codex_lease: "RELEASED"
+  phase: "R142_ACTIVATION_READY_AFTER_MERGE"
+  execution_state: "WAITING_FOR_ACTIVATION_PR_TO_BECOME_CANONICAL_AND_USER_START_COMMAND"
+  active_codex_lease: "RESERVED_AFTER_CANONICAL_MERGE"
   hard_rule: >-
-    Epoch 141 is completed historical evidence only and must not resume. Any successor implementation requires a new
-    task_id/epoch, fresh Work Claim, fresh reconciliation and a canonical READY route. R141 Stage-A success does not
-    authorize Stage-B scheduler, API, secret, permission, production, domain/W3 write or trading capability.
+    Do not execute from an unmerged activation branch. After this activation state is canonical on main, the user must send a
+    direct R142 start instruction. Codex must fresh-reconcile main/route/claim/branch before creating implementation work.
 
-allowed_write_paths: []
-current_write_permission: "RELEASED / NO_ACTIVE_WRITE_PERMISSION"
+allowed_write_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+  - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+
+scope_expansion_gate: >-
+  S0C runtime source is read-only in the initial R142 allowlist. If S0C changes are required, STOP and request GPT scope expansion;
+  no shadow ledger/store/reducer is permitted.
 
 signal_tower_operating_mode:
   status: "ON_DEMAND_PREFLIGHT_AVAILABLE"
+  signal_is_not_task: true
   daemon_required_for_normal_use: false
-  rule: >-
-    Signal Tower normal operation is request/task-release driven. A GPT preparing a formal task must first perform a
-    fresh global shallow Signal Tower/control-plane scan, then delta and targeted deep reads for relevant signals,
-    dependencies, conflicts, claims, tasks, PRs and authority state before releasing a task. A long-lived daemon or
-    scheduler is an optional future enhancement, not a prerequisite for ordinary Signal Tower use.
-
-hard_locks:
-  - "No OpenAI API key or paid API activation."
-  - "No GitHub secret or permission expansion."
-  - "No real webhook, self-hosted runner, production scheduler, daemon or service."
-  - "No local Codex automation control."
-  - "No arbitrary shell execution from GitHub prose."
-  - "No AI Film/domain canonical write."
-  - "No W3 authority write expansion."
-  - "No private/raw conversation/media."
-  - "No production deployment."
-  - "No autonomous merge."
-  - "No destructive history rewrite."
-  - "No trading/accounts/orders/funds."
+  formal_task_release_requires_fresh_preflight: true
 
 retained_findings:
   R138-F01: "RETAINED / required before any future production promotion"
@@ -82,5 +71,19 @@ retained_findings:
   IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
   IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
 
-completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"
-next_command: "NO_ACTIVE_TASK / SIGNAL_TOWER_ON_DEMAND_PREFLIGHT_AVAILABLE"
+hard_locks:
+  - "No private/raw conversation body in the public repository."
+  - "No private ChatGPT cross-window service/bridge."
+  - "No daemon/webhook/server/scheduler/polling."
+  - "No API key/billing/secret/permission expansion."
+  - "No W3 or domain canonical write."
+  - "No Formal Skill promotion."
+  - "No automatic Task/Work Claim creation from Signal admission."
+  - "No second Signal truth."
+  - "No production deployment."
+  - "No autonomous merge."
+  - "No destructive history rewrite."
+  - "No trading/accounts/orders/funds."
+
+completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
+next_command: "AFTER_ACTIVATION_MERGE_USER_SEND_DIRECT_R142_START_COMMAND"

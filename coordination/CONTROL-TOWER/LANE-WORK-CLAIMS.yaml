@@ -1,4 +1,4 @@
-schema_version: "3.6"
+schema_version: "3.9"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,17 +43,62 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "MEDIUM_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+      route_epoch: 142
+      issue: 393
+      pr: null
+      branch: "codex/r142-retrospective-signal-intake-bridge"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+      - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+    read_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    interfaces:
+      - name: "S0C-DurableSignalLedger"
+        mode: "read/reuse"
+        frozen: true
+      - name: "R136-SignalIntakeGateway"
+        mode: "extend"
+        frozen: false
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read/evidence-only"
+        frozen: true
+      - name: "W3-Domain-Authority"
+        mode: "read/reference-only"
+        frozen: true
+    read_domains: [W1, W3]
     write_domains: []
-    authority_claims: []
-    closure_receipt:
+    authority_claims:
+      - "S0E_RETROSPECTIVE_IMPORT_EXTENSION_ONLY"
+    implementation_scope:
+      slice: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE"
+      issue: 393
+      phase: "ACTIVATED_AFTER_CANONICAL_MERGE / DIRECT_USER_START_REQUIRED"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      activation_reconciliation: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      second_user_start_command_required: true
+      s0c_source_write_allowed: false
+      private_raw_data_allowed: false
+      daemon_service_allowed: false
+      domain_write_allowed: false
+      W3_authority_write_allowed: false
+      automatic_task_creation_allowed: false
+      production_allowed: false
+      trading_allowed: false
+      codex_merge_allowed: false
+    predecessor_closure_receipt:
       task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
       route_epoch: 141
       issue: 389
@@ -61,19 +106,20 @@ claims:
       accepted_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
       merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
       gpt_final_review: 4952430756
-      issue_acceptance_checkpoint: 5317236132
       receipt_ref: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
       verdict: "R141_ACCEPTED_STAGE_A_AND_CLOSED"
-    operating_state:
-      signal_tower_normal_mode: "ON_DEMAND_PREFLIGHT_AVAILABLE"
-      active_implementation_required_for_normal_use: false
-      daemon_required_for_normal_use: false
-      formal_task_release_requires_fresh_signal_tower_preflight: true
+    retained_findings:
+      R138-F01: "RETAINED_BEFORE_ANY_PRODUCTION_PROMOTION"
+      R139-STAGE-B: "NOT_AUTHORIZED / SEPARATE_AI_FILM_DOMAIN_OWNED_GATE"
+      R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+      IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED"
+      IAGL-STAGE-B: "NOT_AUTHORIZED"
     stop_conditions:
-      - "No R141 implementation resume after closure"
-      - "Any successor runtime write requires a new task/epoch/claim/allowlist"
-      - "Stage B secrets/API/permissions/external scheduler/production remain a separate user gate"
-      - "W3/domain/private/trading/destructive-history authority remains separately gated"
+      - "Activation files are not canonical on main"
+      - "Direct user R142 start instruction has not been received"
+      - "Second Codex route or local heavy collision appears"
+      - "S0C source mutation is required without scope expansion"
+      - "Private/raw bridge, second Signal truth, W3/domain write, production, secret/permission or trading requirement appears"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -100,11 +146,11 @@ claims:
     authority_claims: []
 
 release_semantics:
-  proposal_only_parallelism: >-
-    No active Lane-A implementation claim exists after R141 closure. Signal Tower may be used on demand for capture and
-    pre-release reconciliation. Lane B remains isolated proposal-only and Lane C closed.
+  lane_a_activation: >-
+    R142 becomes the sole canonical Codex Lane-A implementation claim only after this activation PR is merged. Actual executor
+    work still requires the route's direct-user-start gate and a fresh atomic route/claim/main reconciliation at launch.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
-  iagl_stage_a_boundary: "ACCEPTED_SYNTHETIC_ONLY / NO_ACTIVE_IMPLEMENTATION"
+  signal_tower_normal_operation_outside_r142: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
   iagl_stage_b: "NOT_AUTHORIZED"

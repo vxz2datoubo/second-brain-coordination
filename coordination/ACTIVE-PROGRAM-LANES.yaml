@@ -1,10 +1,10 @@
-schema_version: "3.8"
+schema_version: "3.10"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-17T23:07:00+08:00"
+as_of: "2026-08-18T00:49:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -29,35 +29,34 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R141 is completed and owns no execution lease. Signal Tower ordinary use is on-demand and does not require a daemon.
-    Any new implementation still requires a fresh route/claim and may not bypass Stage-B, W3/domain, private, production or trading gates.
+    R142 may become the sole Lane-A Codex implementation only after its activation PR is canonical and the user sends a direct
+    start instruction. Signal Tower ordinary use remains on-demand and Signal remains distinct from Task.
 
 current_user_release_policy:
-  decision_at: "2026-08-17T23:07:00+08:00"
-  decision: "R141_ACCEPTED_MERGED_AND_RELEASED / SIGNAL_TOWER_ON_DEMAND_OPERATIONAL_MODE"
+  decision_at: "2026-08-18T00:49:00+08:00"
+  decision: "USER_AUTHORIZED_R142_PREPARATION / ACTIVATION_MERGE_AND_DIRECT_START_REQUIRED"
   rationale: >-
-    The user explicitly authorized the accepted R141 exact head to merge and directed Signal Tower to operate by durable capture
-    plus mandatory task-release preflight rather than requiring an always-on background daemon. R136-R140 capabilities and R141
-    Stage-A supervisor are canonical; no active implementation lease is needed for ordinary read/reconcile/release use.
+    The user explicitly asked to start closing the demonstrated historical-chat-to-S0C durable-ingress gap. Fresh preflight found
+    no active Codex write lease and no equivalent R142 task. This release is bounded to S0E retrospective ingress/reconciliation;
+    no Stage-B, private bridge, W3/domain write, production or trading capability is granted.
   released_implementation_lanes: []
-  prepared_implementation_lanes: []
-  released_proposal_only_lanes: []
+  prepared_implementation_lanes:
+    - "LANE-A-HARNESS-INTEGRATION / R142_READY_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_EXPLICIT_MERGE_AND_OPERATING_MODE_AUTHORIZATION + GPT_POST_MERGE_RECONCILIATION"
-  r141_issue: 389
-  r141_parent_issue: 386
-  r141_route_epoch: 141
-  r141_accepted_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
-  r141_merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
-  r141_final_review: 4952430756
-  r141_status: "DONE / ACCEPTED_STAGE_A_ONLY"
-  r141_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+  release_owner: "USER_EXPLICIT_START + GPT_FRESH_SIGNAL_TOWER_PREFLIGHT"
+  r142_issue: 393
+  r142_route_epoch: 142
+  r142_status: "READY_AFTER_ACTIVATION_MERGE"
+  predecessor_r141_closure: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
   signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_tower_daemon_required: false
-  iagl_stage_b: "NOT_AUTHORIZED / SECRETS_API_PERMISSIONS_EXTERNAL_SCHEDULER_PRODUCTION"
+  background_runtime_role: "OPTIONAL_FUTURE_ENHANCEMENT_FOR_TIME_CONDITION_EVENT_DRIVEN_AUTOMATION_ONLY"
   r138_f01: "RETAINED_BEFORE_ANY_PRODUCTION_PROMOTION"
   r139_stage_b: "NOT_AUTHORIZED / SEPARATE_AI_FILM_DOMAIN_OWNED_GATE"
+  r140_model_version_authority: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+  iagl_r141_unknown_007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
+  iagl_stage_b: "NOT_AUTHORIZED / SECRETS_API_PERMISSIONS_EXTERNAL_SCHEDULER_PRODUCTION"
   h2_release: "NOT_AUTHORIZED"
   h7_release: "NOT_AUTHORIZED"
   private_production_release: "NOT_AUTHORIZED"
@@ -65,13 +64,13 @@ current_user_release_policy:
 observed_agent_state:
   CODEX:
     source: "coordination/ACTIVE-CODEX-TASK.yaml"
-    observed_task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
-    observed_route_epoch: 141
-    observed_issue: 389
-    observed_pr: 391
-    observed_status: "DONE"
-    execution_allowed: false
-    observation_status: "R141_COMPLETED / NO_ACTIVE_CODEX_ROUTE"
+    observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+    observed_route_epoch: 142
+    observed_issue: 393
+    observed_pr: null
+    observed_status: "READY_AFTER_ACTIVATION_MERGE"
+    execution_allowed: true
+    observation_status: "R142_ROUTE_RESERVED / EXECUTE_ONLY_AFTER_CANONICAL_ACTIVATION_AND_USER_START"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -94,13 +93,14 @@ observed_agent_state:
 signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
   capture: >-
-    Explicit durable signals are admitted to the existing Signal Tower ledger/projection path. Signal is not automatically a task.
+    Explicit durable signals use the existing Signal Tower admission/projection path. R142 is specifically repairing retrospective
+    ChatGPT-window last-mile ingestion. Signal is not automatically a task.
   mandatory_before_formal_task_release:
-    - "GLOBAL_SHALLOW: scan current Signal Tower/open-signal metadata plus active tasks, lanes, claims, PRs and authority state"
-    - "DELTA: identify material changes since the last valid reconciliation/watermark"
-    - "TARGETED_DEEP: deeply read only signals/dependencies/conflicts/evidence materially relevant to the proposed task"
-    - "CONDITIONAL_RESEARCH: perform external/current research only when the task requires it"
-    - "RELEASE_DECISION: merge, parallelize, serialize, defer, block or release the task with explicit rationale"
+    - "GLOBAL_SHALLOW"
+    - "DELTA"
+    - "TARGETED_DEEP"
+    - "CONDITIONAL_RESEARCH when required"
+    - "RELEASE_DECISION"
   full_body_scan_every_time: false
   daemon_or_scheduler_required_for_normal_mode: false
   background_runtime_role: "OPTIONAL_FUTURE_ENHANCEMENT_FOR_TIME_CONDITION_EVENT_DRIVEN_AUTOMATION_ONLY"
@@ -111,29 +111,36 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: >-
       Maintain the shared Cognitive OS coordination/runtime substrate and accepted Global Signal Tower capabilities without
-      replacing GitHub/W3/domain authorities. R141 Stage-A is closed; ordinary Signal Tower use is now on-demand.
+      replacing GitHub/W3/domain authorities. R142 closes the retrospective chat-window durable-ingress gap.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "NO_ACTIVE_IMPLEMENTATION / OPERATIONAL_ON_DEMAND"
+    observed_state: "R142_RESERVED_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
     primary_system_positions: [W1, W8, W9]
-    current_phase: "R141_CLOSED / SIGNAL_TOWER_ON_DEMAND_OPERATIONAL"
-    active_execution_route: null
+    current_phase: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_ACTIVATION"
+    active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
     dependencies:
-      - "R136-R140 accepted Signal Tower capability chain"
-      - "R141 accepted Stage-A synthetic supervisor"
-      - "fresh Signal Tower/Control Tower preflight before every formal task release"
-      - "separate user approval for Stage-B secrets/permissions/production automation"
+      - "R134-R141 accepted Signal Tower capability chain"
+      - "canonical activation merge"
+      - "direct user start instruction"
+      - "fresh launch-time route/claim/main reconcile"
     shared_interfaces:
-      - "Global Signal Tower R136-R140"
-      - "IAGL Stage-A supervisor boundary"
+      - "S0C DurableSignalLedger"
+      - "R136 SignalIntakeGateway"
       - "Control Tower authorization boundary"
-      - "Global Reconciliation semantics"
       - "W3/domain authority boundary"
-    next_gate: "NORMAL_USE_NOW / NEW_IMPLEMENTATION_ONLY_VIA_FRESH_ROUTE / STAGE_B_SEPARATE_USER_GATE"
-    maturity: "R136_R141_ACCEPTED / ON_DEMAND_OPERATIONAL"
-    heavy_execution_authorized: false
-    implementation_owner_candidate: "TBD"
+    next_gate: "MERGE_ACTIVATION_PR -> USER_DIRECT_START -> CODEX_PROJECT_PLAN_M0"
+    maturity: "R142_ACTIVATION_READY / NOT_YET_IMPLEMENTED"
+    heavy_execution_authorized: true
+    heavy_execution_start_gate: "DIRECT_USER_START_REQUIRED"
+    implementation_owner_candidate: "CODEX"
+    predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+    retained_findings:
+      - "R138-F01"
+      - "R139-STAGE-B"
+      - "R140-MODEL-VERSION-AUTHORITY"
+      - "IAGL-R141-UNKNOWN-007"
+      - "IAGL-STAGE-B"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
@@ -169,16 +176,15 @@ program_lanes:
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O1_READ_READ"
-    rule: "No active Lane-A implementation; Lane B remains held until fresh Signal Tower + Control Tower release."
+    rule: "R142 writes only bounded S0E Signal Tower surfaces; Lane B remains held proposal-only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
-    rule: "Signal Tower may read/reference W3/domain authority but cannot mutate Lane C/W3 canonical truth without a new gate."
+    rule: "R142 may read/reference W3/domain authority for reconciliation but cannot mutate W3/domain canonical truth."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  Before any formal task release, perform Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP and conditional research when
-  required, then reconcile Control Tower route/claims/authority. Fail closed on stale evidence, unresolved authority collision,
-  duplicate mutable claim, private/secret/permission/production/domain/W3/trading expansion, or an attempt to treat Signal Tower
-  signal presence as automatic task/execution authority. Normal Signal Tower use does not require a background daemon.
+  R142 may execute only after activation is canonical on main and the user sends a direct start command. Codex must fresh-reconcile
+  main/route/claim/lane at launch. Fail closed on stale evidence, a second Codex claim, private/raw content, a second Signal truth,
+  out-of-allowlist write, W3/domain/permission/production/trading expansion, or any attempt to treat a Signal as task authority.
