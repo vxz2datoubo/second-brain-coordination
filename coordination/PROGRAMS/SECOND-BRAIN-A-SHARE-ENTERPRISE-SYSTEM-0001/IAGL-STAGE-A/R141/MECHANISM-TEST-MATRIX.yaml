@@ -1,44 +1,38 @@
-schema_version: "R141-MATRIX-5.0"
+schema_version: "R141-MATRIX-6.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 mode: project_plan
 current_executor:
   executor_role: GPT_ENGINEERING_WORKER
   model_id: "GPT-5.6 Sol"
-historical_executor:
-  executor_role: CODEX
-  scope: "initial R141 implementation; provenance retained"
 expected_exact_head_tests:
-  total: 54
+  total: 56
   prior_suite: 43
   b16_b17_suite: 7
   b19_b21_suite: 4
+  b22_suite: 2
 retained_mechanisms:
-  - "canonical IAGL-E001..E018"
-  - "B09R2-B15 authority/checkpoint/retrieval/reconciliation hardening"
-  - "B16 resolved P2 recurrence"
-  - "B17 starvation visibility and bounded P4-to-P3 fairness"
-remediation_regressions:
-  B19:
-    - "only one AST SyntheticSupervisor and one WorkingStateStore exist across Stage-A src"
-    - "iagl_synthetic_supervisor_core.py is absent and import discovery returns no module"
-    - "canonical Supervisor rejects an incompatible WorkingStateStore subclass"
-  B20:
-    - "database starts with zero P2 event rows"
-    - "fresh authoritative active ROUTE_DRIFT creates reconciliation-derived P2 state"
-    - "P3/P4 stays blocked"
-    - "AUTHORITATIVE_COMPLETE plus exact P2Resolution moves the derived blocker to RESOLVED_TRACE and safe lower work resumes"
-  B21:
-    - "first high-risk request reaches P0 USER_GATE"
-    - "fresh user disposition allows unrelated safe lower work"
-    - "identical semantic high-risk recurrence returns event to unadjudicated P0"
-    - "reusing the old disposition reference does not clear the renewed request"
-    - "new current disposition clears the renewed occurrence while preserving both historical decisions"
+  - "canonical IAGL-E001..E018 and B09R2-B15 hardening"
+  - "B16 resolved-P2 recurrence"
+  - "B17 bounded starvation/fairness below P0/P1/P2"
+  - "B19 single current instantiable Supervisor/Store with no shadow core"
+  - "B20 reconciliation-derived authoritative active-P2 gate"
+  - "B21 genuine renewed P0 recurrence"
+B22_regressions:
+  - "P0 -> disposition -> exact duplicate with same event/idempotency -> NO REGATE"
+  - "same semantic target plus same idempotency with changed retry envelope -> NO REGATE and DUPLICATE_REDELIVERY trace"
+  - "same semantic risky request plus new idempotency -> USER_GATE AGAIN"
+  - "old disposition reference cannot clear the new occurrence"
+  - "new current reconciliation-bound disposition is required"
+  - "event occurrence records and disposition history remain append-only"
+  - "pre-B22 durable event row backfill prevents restart retry from becoming a false new occurrence"
+  - "live production occurrence attestation remains UNKNOWN-007"
 shadow_guard:
-  canonical_runtime: iagl_synthetic_supervisor.py
+  only_instantiable_supervisor_module: iagl_synthetic_supervisor.py
   alternate_instantiable_runtime_allowed: false
+  helper_modules: "contracts/dataclasses/constants or unbound operation functions only"
   workflow_static_guard_required: true
-  incompatible_store_injection_allowed: false
 truthfulness:
-  - "expected count is reconciled from the committed test layout; final PASS/count is bound only by exact-head CI"
+  - "Stage-A occurrence identity is deterministic synthetic semantics, not production attestation"
+  - "final PASS/count is bound only by exact-head CI"
   - "synthetic PASS is not production readiness, authority expansion, or independent GPT acceptance"
