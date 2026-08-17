@@ -103,7 +103,7 @@ class WorkingStateStore:
         self._backfill_event_occurrences()
         self.connection.commit()
 
-    _occurrence_key = store__occurrence_key
+    _occurrence_key = staticmethod(store__occurrence_key)
     _remember_occurrence = store__remember_occurrence
     _backfill_event_occurrences = store__backfill_event_occurrences
     occurrence_idempotencies = store_occurrence_idempotencies
