@@ -53,14 +53,24 @@ class NormalizedEvent:
 
 
 @dataclass(frozen=True)
+class P0ApprovalBinding:
+    event_key: str
+    occurrence_key: str
+    approval_epoch: int
+    coalesced_occurrences: int
+
+
+@dataclass(frozen=True)
 class P0Disposition:
     event_key: str
     decision: str
     decision_ref: str
+    occurrence_key: str
+    approval_epoch: int
     authority_source: str = "USER_DECISION"
 
     def validate(self) -> None:
-        if not _nonempty((self.event_key, self.decision, self.decision_ref, self.authority_source)):
+        if not _nonempty((self.event_key, self.decision, self.decision_ref, self.occurrence_key, self.authority_source)) or self.approval_epoch <= 0:
             raise SupervisorError("P0_DISPOSITION_INCOMPLETE")
         if self.decision not in _P0_DISPOSITIONS or self.authority_source != "USER_DECISION":
             raise SupervisorError("P0_DISPOSITION_UNTRUSTED_OR_INVALID")
@@ -119,8 +129,12 @@ class ReconciliationSnapshot:
             raise SupervisorError("RECONCILIATION_STAGE_A_WRITEBACK_CEILING")
         if any(not isinstance(item, str) or not item for item in self.active_p2_event_keys + self.active_p2_classes):
             raise SupervisorError("RECONCILIATION_P2_OBSERVATION_INVALID")
+        seen_p0: set[str] = set()
         for disposition in self.p0_dispositions:
             disposition.validate()
+            if disposition.event_key in seen_p0:
+                raise SupervisorError("RECONCILIATION_DUPLICATE_P0_DISPOSITION")
+            seen_p0.add(disposition.event_key)
         if self.p2_observation_status not in _P2_OBSERVATION_STATES:
             raise SupervisorError("RECONCILIATION_P2_OBSERVATION_STATUS_INVALID")
         if self.p2_observation_status == "AUTHORITATIVE_COMPLETE" and not self.p2_observation_ref:

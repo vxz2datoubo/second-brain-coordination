@@ -1,8 +1,8 @@
-schema_version: "R141-IMPLEMENTATION-RECEIPT-4.0"
+schema_version: "R141-IMPLEMENTATION-RECEIPT-5.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 mode: project_plan
-status: B22_REMEDIATION_LOCAL_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
+status: B23_B24_REMEDIATION_LOCAL_VERIFIED__FINAL_EXACT_HEAD_AND_CI_BOUND_EXTERNALLY
 provenance:
   historical_initial_executor: CODEX
   current_remediation_executor:
@@ -14,39 +14,50 @@ provenance:
   independent_reviewer: "separate GPT reviewer window; this executor does not self-review"
 implementation:
   canonical_runtime: "src/iagl_synthetic_supervisor.py"
-  runtime_structure: "single instantiable Supervisor/Store entrypoint plus pure-contract and unbound-operation helper modules"
+  runtime_structure: "single instantiable Supervisor/Store entrypoint plus contract and unbound-operation helper modules"
   shadow_runtime: ABSENT
   persistence: "Python sqlite3 task-local non-authoritative working state"
   process_model: "synchronous single worker; no subprocess, pool, daemon, scheduler, or network"
 mechanism_results:
-  expected_exact_head_test_count: 56
+  expected_exact_head_test_count: 59
   expected_partition:
     prior_suite: 43
     b16_b17_suite: 7
     b19_b21_suite: 4
-    b22_suite: 2
+    b22_b24_suite: 5
   retained:
     B19: "one current instantiable Supervisor/Store; no old core bypass; incompatible store injection fails closed"
     B20: "authoritative active P2 blocks even with zero prior transport event"
-    B21: "genuine renewed high-risk occurrence re-enters P0 and requires a new disposition"
-  B22:
-    occurrence_identity: "synthetic semantic_key + supplied idempotency_key"
-    exact_duplicate: "same semantic target plus same idempotency is duplicate/redelivery; it preserves trace/history and does not reopen P0"
-    genuine_new_occurrence: "same semantic risky request plus new idempotency is a new Stage-A synthetic occurrence; it reopens P0 and requires fresh reconciliation plus a new disposition"
-    durability: "event_occurrences is durable task-local state; pre-B22 event rows are backfilled as already-seen occurrences"
-    history: "event traces and user disposition history remain append-only"
-    live_attestation: "not claimed; UNKNOWN-007 remains open"
+    B21: "genuine renewed high-risk occurrence re-enters P0"
+    B22: "same semantic target plus same idempotency is duplicate/redelivery and does not re-gate; new idempotency is a genuine Stage-A synthetic occurrence"
+  B23:
+    disposition_binding: "P0Disposition must carry current occurrence_key plus approval_epoch; decision_ref uniqueness alone is insufficient"
+    stale_approval: "prior-occurrence delayed or unused disposition is recorded as STALE_APPROVAL and leaves P0 pending/USER_GATE"
+    current_disposition: "only a disposition bound to the current pending occurrence and current approval_epoch can move P0 to disposition trace"
+    coalescing_rule: "multiple genuine same-semantic occurrences while one P0 is pending coalesce into one current gate; every new occurrence advances approval_epoch and invalidates all earlier approvals"
+    same_idempotency_retry: "retry/redelivery does not advance approval_epoch"
+    history: "accepted p0_disposition_history remains append-only; all disposition attempts have append-only binding/outcome history"
+  B24:
+    prior_direct_run_32031788981_actual_jobs:
+      python_3_11: 95393222924
+      python_3_13: 95393222926
+    prior_phase3_run_32031788861_actual_jobs:
+      python_3_11: 95393222638
+      python_3_13: 95393222476
+    pre_b22_upgrade_claim: "now backed by a real regression that builds a pre-B22 events-only SQLite DB, upgrades/restarts WorkingStateStore, and proves same-idempotency old retry does not re-gate"
 local_validation:
-  b22_paired_adversarial: "2/2 PASS"
+  prior_suite: "43/43 PASS"
   b16_b17: "7/7 PASS"
   b19_b21: "4/4 PASS"
-  retained_combined_mechanisms: "50/50 PASS on cached local regression copy; final authority is exact-head GitHub CI"
+  b22_b24: "5/5 PASS"
+  total: "59/59 PASS"
   py_compile: PASS
 authority_boundary:
   secret_permission_scheduler_production_domain_w3_trading_expansion: false
   autonomous_merge: false
 unknown_preservation:
   rule: "synthetic PASS does not close live provider, scheduler, privacy, production, authority, calibration, occurrence-attestation, or merge UNKNOWNs"
+  unknown_007: "OPEN; approval_epoch and idempotency are Stage-A synthetic identities, not production occurrence attestation"
 remote_evidence_binding:
   exact_head: EXTERNAL_POST_COMMIT_BINDING_REQUIRED
   direct_python_3_11_3_13_ci: EXTERNAL_POST_COMMIT_BINDING_REQUIRED

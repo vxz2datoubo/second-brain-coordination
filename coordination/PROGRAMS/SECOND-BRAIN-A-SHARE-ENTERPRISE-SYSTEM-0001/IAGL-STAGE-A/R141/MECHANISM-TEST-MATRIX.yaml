@@ -1,4 +1,4 @@
-schema_version: "R141-MATRIX-6.0"
+schema_version: "R141-MATRIX-7.0"
 task_id: CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR
 issue: 389
 mode: project_plan
@@ -6,11 +6,11 @@ current_executor:
   executor_role: GPT_ENGINEERING_WORKER
   model_id: "GPT-5.6 Sol"
 expected_exact_head_tests:
-  total: 56
+  total: 59
   prior_suite: 43
   b16_b17_suite: 7
   b19_b21_suite: 4
-  b22_suite: 2
+  b22_b24_suite: 5
 retained_mechanisms:
   - "canonical IAGL-E001..E018 and B09R2-B15 hardening"
   - "B16 resolved-P2 recurrence"
@@ -18,21 +18,32 @@ retained_mechanisms:
   - "B19 single current instantiable Supervisor/Store with no shadow core"
   - "B20 reconciliation-derived authoritative active-P2 gate"
   - "B21 genuine renewed P0 recurrence"
-B22_regressions:
+B22_B24_regressions:
   - "P0 -> disposition -> exact duplicate with same event/idempotency -> NO REGATE"
-  - "same semantic target plus same idempotency with changed retry envelope -> NO REGATE and DUPLICATE_REDELIVERY trace"
-  - "same semantic risky request plus new idempotency -> USER_GATE AGAIN"
-  - "old disposition reference cannot clear the new occurrence"
-  - "new current reconciliation-bound disposition is required"
-  - "event occurrence records and disposition history remain append-only"
-  - "pre-B22 durable event row backfill prevents restart retry from becoming a false new occurrence"
-  - "live production occurrence attestation remains UNKNOWN-007"
+  - "same semantic risky request plus new idempotency -> USER_GATE AGAIN and occurrence-bound disposition required"
+  - "B23: occurrence-1 old-unused A -> resolve occurrence-1 with B -> occurrence-2 -> stale A -> STALE_APPROVAL/USER_GATE -> occurrence-2-bound C -> resolves"
+  - "B23 coalescing: two genuine same-semantic occurrences while P0 pending remain one gate; later occurrence advances approval_epoch/coalesced count, invalidates first approval, same-idempotency retry does not advance gate"
+  - "B24 migration: create pre-B22 events-only SQLite DB -> upgrade/restart -> event_occurrences backfill -> old same-idempotency retry remains P0_DISPOSITION_TRACE and records duplicate redelivery"
+B23_contract:
+  disposition_identity: "event_key + current occurrence_key + current approval_epoch + unique decision_ref"
+  stale_behavior: "binding mismatch is STALE_APPROVAL and fail-closed"
+  coalescing_semantics: "one current gate per semantic P0; every genuine new occurrence while pending advances epoch and replaces the approval binding"
+  history: "accepted disposition history and attempt/outcome history are append-only"
+B24_evidence_precision:
+  direct_run_32031788981:
+    python_3_11: 95393222924
+    python_3_13: 95393222926
+  phase3_run_32031788861:
+    python_3_11: 95393222638
+    python_3_13: 95393222476
 shadow_guard:
   only_instantiable_supervisor_module: iagl_synthetic_supervisor.py
   alternate_instantiable_runtime_allowed: false
   helper_modules: "contracts/dataclasses/constants or unbound operation functions only"
   workflow_static_guard_required: true
 truthfulness:
-  - "Stage-A occurrence identity is deterministic synthetic semantics, not production attestation"
+  - "Stage-A occurrence identity and approval_epoch are deterministic synthetic mechanisms, not production attestation"
+  - "UNKNOWN-007 remains open"
+  - "pre-B22 durable-row backfill is now a tested migration regression rather than an inspected-only claim"
   - "final PASS/count is bound only by exact-head CI"
   - "synthetic PASS is not production readiness, authority expansion, or independent GPT acceptance"

@@ -55,20 +55,41 @@ def store__adjudicate_pending_events(self, snapshot: ReconciliationSnapshot, gra
         event_class = event.event_class.upper()
         if event.risk_markers or event_class in _P0_EVENT_CLASSES:
             disposition = dispositions.get(semantic_key)
-            disposition_is_fresh = bool(
-                disposition is not None
-                and not self.connection.execute(
+            binding = self.current_p0_approval(semantic_key)
+            if disposition is not None:
+                used_ref = bool(self.connection.execute(
                     "SELECT 1 FROM p0_disposition_history WHERE event_key=? AND decision_ref=? LIMIT 1",
                     (semantic_key, disposition.decision_ref),
-                ).fetchone()
-            )
-            if disposition_is_fresh:
-                priority, state = Priority.P0_USER_OR_HIGH_RISK, "P0_DISPOSITION_TRACE"
-                history_id = digest({"event_key": semantic_key, "decision_ref": disposition.decision_ref, "identity": grant.identity, "generation": grant.generation})
-                self.connection.execute(
-                    "INSERT OR IGNORE INTO p0_disposition_history VALUES (?,?,?,?,?,?)",
-                    (history_id, semantic_key, disposition.decision, disposition.decision_ref, grant.identity, grant.generation),
+                ).fetchone())
+                binding_matches = bool(
+                    binding is not None
+                    and disposition.occurrence_key == binding.occurrence_key
+                    and disposition.approval_epoch == binding.approval_epoch
                 )
+                outcome = "ACCEPTED" if binding_matches and not used_ref else ("REPLAYED_DECISION_REF" if binding_matches else "STALE_APPROVAL")
+                current_occurrence = binding.occurrence_key if binding else "MISSING"
+                current_epoch = binding.approval_epoch if binding else 0
+                attempt_id = digest({
+                    "event_key": semantic_key, "decision_ref": disposition.decision_ref,
+                    "supplied_occurrence": disposition.occurrence_key, "supplied_epoch": disposition.approval_epoch,
+                    "current_occurrence": current_occurrence, "current_epoch": current_epoch,
+                    "outcome": outcome, "identity": grant.identity, "generation": grant.generation,
+                })
+                self.connection.execute(
+                    "INSERT OR IGNORE INTO p0_disposition_attempt_history VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                    (attempt_id, semantic_key, disposition.decision, disposition.decision_ref, disposition.occurrence_key,
+                     disposition.approval_epoch, current_occurrence, current_epoch, outcome, grant.identity, grant.generation),
+                )
+                if outcome == "ACCEPTED":
+                    priority, state = Priority.P0_USER_OR_HIGH_RISK, "P0_DISPOSITION_TRACE"
+                    history_id = digest({"event_key": semantic_key, "decision_ref": disposition.decision_ref, "identity": grant.identity, "generation": grant.generation})
+                    self.connection.execute(
+                        "INSERT OR IGNORE INTO p0_disposition_history VALUES (?,?,?,?,?,?)",
+                        (history_id, semantic_key, disposition.decision, disposition.decision_ref, grant.identity, grant.generation),
+                    )
+                    self.connection.execute("UPDATE p0_gates SET state='DISPOSED' WHERE event_key=?", (semantic_key,))
+                else:
+                    priority, state = Priority.P0_USER_OR_HIGH_RISK, "PENDING"
             else:
                 priority, state = Priority.P0_USER_OR_HIGH_RISK, "PENDING"
         elif event.semantic_kind == "HEAD_OBSERVATION":
@@ -118,6 +139,15 @@ def store_p0_disposition_history(self, semantic_key: str) -> tuple[tuple[str, st
         (semantic_key,),
     ).fetchall()
     return tuple((row[0], row[1]) for row in rows)
+
+
+def store_p0_disposition_attempt_history(self, semantic_key: str) -> tuple[tuple[str, str, str, int, str, int], ...]:
+    rows = self.connection.execute(
+        "SELECT decision_ref,outcome,supplied_occurrence_key,supplied_approval_epoch,current_occurrence_key,current_approval_epoch "
+        "FROM p0_disposition_attempt_history WHERE event_key=? ORDER BY reconciliation_generation,attempt_id",
+        (semantic_key,),
+    ).fetchall()
+    return tuple((row[0], row[1], row[2], int(row[3]), row[4], int(row[5])) for row in rows)
 
 def store_has_unadjudicated_events(self, generation: int) -> bool:
     return bool(self.connection.execute("SELECT 1 FROM events WHERE state='PENDING' AND adjudication_generation<>? LIMIT 1", (generation,)).fetchone())

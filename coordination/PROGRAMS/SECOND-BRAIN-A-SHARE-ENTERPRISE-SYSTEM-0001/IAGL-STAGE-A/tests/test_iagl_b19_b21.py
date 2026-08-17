@@ -134,9 +134,11 @@ class B19B21Regressions(unittest.TestCase):
         first = self.sup.reconcile(self.snapshot())
         self.assertEqual(Decision.USER_GATE, self.sup.choose(first, [self.slice()]).decision)
 
+        binding1 = self.store.current_p0_approval(event.semantic_key)
+        self.assertIsNotNone(binding1)
         disposed = self.sup.reconcile(self.snapshot(
             observed_at=2,
-            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:1"),),
+            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:1", binding1.occurrence_key, binding1.approval_epoch),),
         ))
         self.assertEqual("P0_DISPOSITION_TRACE", self.store.event_state(event.semantic_key))
         self.assertEqual("safe", self.sup.choose(disposed, [self.slice()]).slice.slice_id)
@@ -146,17 +148,19 @@ class B19B21Regressions(unittest.TestCase):
         self.assertFalse(inserted)
         self.assertEqual(event.semantic_key, recurrent.semantic_key)
         self.assertEqual("PENDING", self.store.event_state(event.semantic_key))
+        binding2 = self.store.current_p0_approval(event.semantic_key)
+        self.assertIsNotNone(binding2)
 
         reused_old_decision = self.sup.reconcile(self.snapshot(
             observed_at=3,
-            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:1"),),
+            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:1", binding1.occurrence_key, binding1.approval_epoch),),
         ))
         self.assertEqual(Decision.USER_GATE, self.sup.choose(reused_old_decision, [self.slice()]).decision)
         self.assertEqual((("DENIED", "user:decision:1"),), self.store.p0_disposition_history(event.semantic_key))
 
         newly_disposed = self.sup.reconcile(self.snapshot(
             observed_at=4,
-            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:2"),),
+            p0_dispositions=(P0Disposition(event.semantic_key, "DENIED", "user:decision:2", binding2.occurrence_key, binding2.approval_epoch),),
         ))
         self.assertEqual("P0_DISPOSITION_TRACE", self.store.event_state(event.semantic_key))
         self.assertEqual(

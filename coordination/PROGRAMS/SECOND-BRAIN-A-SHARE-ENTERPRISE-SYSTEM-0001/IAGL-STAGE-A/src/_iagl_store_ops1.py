@@ -8,13 +8,13 @@ def store__occurrence_key(event: NormalizedEvent) -> str:
     # live occurrence-attestation provider remains UNKNOWN-007.
     return digest({"semantic_key": event.semantic_key, "idempotency_key": event.supplied_idempotency_key})
 
-def store__remember_occurrence(self, event: NormalizedEvent) -> bool:
+def store__remember_occurrence(self, event: NormalizedEvent) -> tuple[bool, str]:
     occurrence_key = self._occurrence_key(event)
     cur = self.connection.execute(
         "INSERT OR IGNORE INTO event_occurrences VALUES (?,?,?,?,?,?)",
         (occurrence_key, event.semantic_key, event.supplied_idempotency_key, event.event_id, event.source, event.observed_at),
     )
-    return cur.rowcount == 1
+    return cur.rowcount == 1, occurrence_key
 
 def store__backfill_event_occurrences(self) -> None:
     # Upgrade safety: existing durable event rows predate B22. Preserve the
@@ -23,6 +23,45 @@ def store__backfill_event_occurrences(self) -> None:
     rows = self.connection.execute("SELECT event_json FROM events").fetchall()
     for (raw,) in rows:
         self._remember_occurrence(_event_from_json(raw))
+
+def store__backfill_p0_gates(self) -> None:
+    rows = self.connection.execute("SELECT semantic_key,event_json,state FROM events").fetchall()
+    for semantic_key, raw, event_state in rows:
+        event = _event_from_json(raw)
+        if not (event.risk_markers or event.event_class.upper() in _P0_EVENT_CLASSES):
+            continue
+        occurrence_key = self._occurrence_key(event)
+        gate_state = "PENDING" if event_state == "PENDING" else "DISPOSED"
+        self.connection.execute(
+            "INSERT OR IGNORE INTO p0_gates VALUES (?,?,?,?,?)",
+            (semantic_key, occurrence_key, 1, 1, gate_state),
+        )
+
+def store__advance_p0_gate(self, event: NormalizedEvent, occurrence_key: str) -> P0ApprovalBinding:
+    row = self.connection.execute(
+        "SELECT approval_epoch,coalesced_occurrences,state FROM p0_gates WHERE event_key=?",
+        (event.semantic_key,),
+    ).fetchone()
+    if row is None:
+        approval_epoch, coalesced = 1, 1
+    else:
+        approval_epoch = int(row[0]) + 1
+        coalesced = int(row[1]) + 1 if row[2] == "PENDING" else 1
+    self.connection.execute(
+        "INSERT INTO p0_gates VALUES (?,?,?,?, 'PENDING') "
+        "ON CONFLICT(event_key) DO UPDATE SET current_occurrence_key=excluded.current_occurrence_key,approval_epoch=excluded.approval_epoch,coalesced_occurrences=excluded.coalesced_occurrences,state='PENDING'",
+        (event.semantic_key, occurrence_key, approval_epoch, coalesced),
+    )
+    return P0ApprovalBinding(event.semantic_key, occurrence_key, approval_epoch, coalesced)
+
+def store_current_p0_approval(self, event_key: str) -> P0ApprovalBinding | None:
+    row = self.connection.execute(
+        "SELECT current_occurrence_key,approval_epoch,coalesced_occurrences FROM p0_gates WHERE event_key=? AND state='PENDING'",
+        (event_key,),
+    ).fetchone()
+    if not row:
+        return None
+    return P0ApprovalBinding(event_key, row[0], int(row[1]), int(row[2]))
 
 def store_occurrence_idempotencies(self, semantic_key: str) -> tuple[str, ...]:
     rows = self.connection.execute(
@@ -56,27 +95,29 @@ def store_trace_classes(self, semantic_key: str) -> tuple[str, ...]:
     return tuple(row[0] for row in rows)
 
 def store_enqueue(self, event: NormalizedEvent) -> bool:
-    # Idempotency is evaluated before any P0 recurrence reactivation. The
-    # same idempotency key for the same semantic target state is a transport
-    # duplicate/redelivery even if the retry envelope has a new event_id or
-    # observed_at. Only a new occurrence identity may reopen disposed P0.
-    new_occurrence = self._remember_occurrence(event)
+    # B22/B23: idempotency is evaluated before P0 gate mutation. Same semantic
+    # target + same idempotency is redelivery and cannot advance approval_epoch.
+    # Each genuine new P0 occurrence advances one coalesced current gate epoch;
+    # approvals bound to any earlier occurrence/epoch thereby become stale.
+    new_occurrence, occurrence_key = self._remember_occurrence(event)
     self._trace(event, "OBSERVED" if new_occurrence else "DUPLICATE_REDELIVERY")
     row = self.connection.execute("SELECT state FROM events WHERE semantic_key=?", (event.semantic_key,)).fetchone()
+    is_p0 = bool(event.risk_markers or event.event_class.upper() in _P0_EVENT_CLASSES)
     if row is not None:
         if not new_occurrence:
             self.connection.commit()
             return False
-        if row[0] == "P0_DISPOSITION_TRACE" and (event.risk_markers or event.event_class.upper() in _P0_EVENT_CLASSES):
+        if is_p0:
+            self._advance_p0_gate(event, occurrence_key)
             self.connection.execute(
                 "UPDATE events SET event_json=?,priority=?,adjudication_generation=0,state='PENDING' WHERE semantic_key=?",
                 (_event_to_json(event), int(Priority.P0_USER_OR_HIGH_RISK), event.semantic_key),
             )
-            self.connection.commit()
-        else:
-            self.connection.commit()
+        self.connection.commit()
         return False
     provisional = Priority.P0_USER_OR_HIGH_RISK if event.risk_markers else Priority.P2_BLOCKER_OR_DRIFT
+    if is_p0:
+        self._advance_p0_gate(event, occurrence_key)
     self.connection.execute(
         "INSERT INTO events(semantic_key,event_json,priority,adjudication_generation,state) VALUES (?,?,?,?, 'PENDING')",
         (event.semantic_key, _event_to_json(event), int(provisional), 0),

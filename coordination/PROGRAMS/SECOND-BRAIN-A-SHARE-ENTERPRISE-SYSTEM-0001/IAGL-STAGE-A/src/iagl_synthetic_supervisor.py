@@ -10,6 +10,9 @@ from _iagl_store_ops1 import (
     store__occurrence_key,
     store__remember_occurrence,
     store__backfill_event_occurrences,
+    store__backfill_p0_gates,
+    store__advance_p0_gate,
+    store_current_p0_approval,
     store_occurrence_idempotencies,
     store_close,
     store_current_snapshot,
@@ -27,6 +30,7 @@ from _iagl_store_ops2 import (
     store__adjudicate_pending_events,
     store_p2_lifecycle,
     store_p0_disposition_history,
+    store_p0_disposition_attempt_history,
     store_has_unadjudicated_events,
     store_highest_event,
     store_highest_preemption_event,
@@ -90,7 +94,9 @@ class WorkingStateStore:
         CREATE TABLE IF NOT EXISTS event_occurrences (occurrence_key TEXT PRIMARY KEY, semantic_key TEXT NOT NULL, idempotency_key TEXT NOT NULL, event_id TEXT NOT NULL, source TEXT NOT NULL, first_observed_at INTEGER NOT NULL, UNIQUE(semantic_key,idempotency_key));
         CREATE TABLE IF NOT EXISTS review_work (work_key TEXT PRIMARY KEY, semantic_key TEXT NOT NULL UNIQUE, target_head TEXT NOT NULL, identity TEXT NOT NULL, generation INTEGER NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS reviewed_heads (target_head TEXT PRIMARY KEY, work_key TEXT NOT NULL, reviewed_generation INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS p0_gates (event_key TEXT PRIMARY KEY, current_occurrence_key TEXT NOT NULL, approval_epoch INTEGER NOT NULL, coalesced_occurrences INTEGER NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS p0_disposition_history (history_id TEXT PRIMARY KEY, event_key TEXT NOT NULL, decision TEXT NOT NULL, decision_ref TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
+        CREATE TABLE IF NOT EXISTS p0_disposition_attempt_history (attempt_id TEXT PRIMARY KEY, event_key TEXT NOT NULL, decision TEXT NOT NULL, decision_ref TEXT NOT NULL, supplied_occurrence_key TEXT NOT NULL, supplied_approval_epoch INTEGER NOT NULL, current_occurrence_key TEXT NOT NULL, current_approval_epoch INTEGER NOT NULL, outcome TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS p2_resolution_history (event_key TEXT PRIMARY KEY, resolution_ref TEXT NOT NULL, observation_ref TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS p2_lifecycle_history (history_id TEXT PRIMARY KEY, event_key TEXT NOT NULL, transition TEXT NOT NULL, evidence_ref TEXT NOT NULL, reconciliation_identity TEXT NOT NULL, reconciliation_generation INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS starvation (slice_id TEXT PRIMARY KEY, counter INTEGER NOT NULL, last_seen_generation INTEGER NOT NULL, last_reason TEXT NOT NULL);
@@ -101,11 +107,15 @@ class WorkingStateStore:
         CREATE TABLE IF NOT EXISTS accounting (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
         """)
         self._backfill_event_occurrences()
+        self._backfill_p0_gates()
         self.connection.commit()
 
     _occurrence_key = staticmethod(store__occurrence_key)
     _remember_occurrence = store__remember_occurrence
     _backfill_event_occurrences = store__backfill_event_occurrences
+    _backfill_p0_gates = store__backfill_p0_gates
+    _advance_p0_gate = store__advance_p0_gate
+    current_p0_approval = store_current_p0_approval
     occurrence_idempotencies = store_occurrence_idempotencies
     close = store_close
     current_snapshot = store_current_snapshot
@@ -121,6 +131,7 @@ class WorkingStateStore:
     _adjudicate_pending_events = store__adjudicate_pending_events
     p2_lifecycle = store_p2_lifecycle
     p0_disposition_history = store_p0_disposition_history
+    p0_disposition_attempt_history = store_p0_disposition_attempt_history
     has_unadjudicated_events = store_has_unadjudicated_events
     highest_event = store_highest_event
     highest_preemption_event = store_highest_preemption_event
