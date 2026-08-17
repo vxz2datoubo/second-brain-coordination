@@ -7,12 +7,13 @@ creative-outcome claim.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping, Sequence
 
 import subprocess
+import yaml
 
 from .gateway import ExactReadProof, GatewayError, _PROOF_SEAL, digest, exact_git_read_proofs, instant, public_safe
 
@@ -38,6 +39,9 @@ FORBIDDEN_KEYS = frozenset({
     "body", "lesson_body", "raw_source_body", "raw_private_body", "raw_media", "private_key", "token",
     "password", "api_key", "cookie", "session_credential", "raw_chain_of_thought",
 })
+_RECALL_ISSUANCE_SEAL = object()
+AI_FILM_GOLDEN_CASES_PATH = "11_\u9a8c\u6536/golden_prompt_cases.yaml"
+AI_FILM_REGRESSION_CASES_PATH = "11_\u9a8c\u6536/director_regression_cases.yaml"
 
 
 def _freeze(value: Any) -> Any:
@@ -134,6 +138,7 @@ def verify_request(request: Any) -> bool:
 class DomainLearningRecallBundle:
     data: Mapping[str, Any]
     bundle_digest: str
+    _issuance: object | None = field(default=None, repr=False, compare=False)
 
     @classmethod
     def build(cls, payload: Mapping[str, Any]) -> "DomainLearningRecallBundle":
@@ -148,11 +153,16 @@ class DomainLearningRecallBundle:
                 raise GatewayError("DOMAIN_RECALL_OBJECT_REF_INVALID")
         return cls(_freeze(value), digest(value))
 
+    @classmethod
+    def _issue(cls, payload: Mapping[str, Any]) -> "DomainLearningRecallBundle":
+        structural = cls.build(payload)
+        return cls(structural.data, structural.bundle_digest, _RECALL_ISSUANCE_SEAL)
+
     def public_dict(self) -> dict[str, Any]:
         return {**_thaw(self.data), "bundle_digest": self.bundle_digest}
 
 
-def verify_bundle(bundle: Any, request: DomainLearningRecallRequest | None = None) -> bool:
+def validate_bundle_structure(bundle: Any, request: DomainLearningRecallRequest | None = None) -> bool:
     if not isinstance(bundle, DomainLearningRecallBundle):
         return False
     try:
@@ -165,10 +175,21 @@ def verify_bundle(bundle: Any, request: DomainLearningRecallRequest | None = Non
         return False
 
 
+def verify_bundle(bundle: Any, request: DomainLearningRecallRequest | None = None) -> bool:
+    """Verify provider issuance as well as structural/digest validity.
+
+    This is intentionally distinct from ``validate_bundle_structure``: ordinary
+    public dictionaries can be structurally valid but cannot recreate a provider
+    issuance token.
+    """
+    return isinstance(bundle, DomainLearningRecallBundle) and bundle._issuance is _RECALL_ISSUANCE_SEAL and validate_bundle_structure(bundle, request)
+
+
 @dataclass(frozen=True)
 class DomainLearningRecallReceipt:
     data: Mapping[str, Any]
     receipt_digest: str
+    _issuance: object | None = field(default=None, repr=False, compare=False)
 
     @classmethod
     def build(cls, payload: Mapping[str, Any]) -> "DomainLearningRecallReceipt":
@@ -180,22 +201,35 @@ class DomainLearningRecallReceipt:
         _array(value["limitations"], "/receipt/limitations")
         return cls(_freeze(value), digest(value))
 
+    @classmethod
+    def _issue(cls, payload: Mapping[str, Any]) -> "DomainLearningRecallReceipt":
+        structural = cls.build(payload)
+        return cls(structural.data, structural.receipt_digest, _RECALL_ISSUANCE_SEAL)
+
     def public_dict(self) -> dict[str, Any]:
         return {**_thaw(self.data), "receipt_digest": self.receipt_digest}
 
 
-def verify_receipt(receipt: Any, request: DomainLearningRecallRequest | None = None,
-                   bundle: DomainLearningRecallBundle | None = None) -> bool:
+def validate_receipt_structure(receipt: Any, request: DomainLearningRecallRequest | None = None,
+                               bundle: DomainLearningRecallBundle | None = None) -> bool:
     if not isinstance(receipt, DomainLearningRecallReceipt):
         return False
     try:
         rebuilt = DomainLearningRecallReceipt.build(receipt.public_dict())
         request_ok = request is None or (verify_request(request) and receipt.data["request_digest"] == request.request_digest
                                          and receipt.data["exact_domain_revision"] == request.data["domain_source_revision"])
-        bundle_ok = bundle is None or (verify_bundle(bundle, request) and receipt.data["bundle_digest"] == bundle.bundle_digest)
+        bundle_ok = bundle is None or (validate_bundle_structure(bundle, request) and receipt.data["bundle_digest"] == bundle.bundle_digest)
         return rebuilt.receipt_digest == receipt.receipt_digest and request_ok and bundle_ok
     except (GatewayError, TypeError, ValueError, KeyError):
         return False
+
+
+def verify_receipt(receipt: Any, request: DomainLearningRecallRequest | None = None,
+                   bundle: DomainLearningRecallBundle | None = None) -> bool:
+    """Verify a provider-issued receipt, never merely a self-signed digest."""
+    return (isinstance(receipt, DomainLearningRecallReceipt) and receipt._issuance is _RECALL_ISSUANCE_SEAL
+            and (bundle is None or verify_bundle(bundle, request))
+            and validate_receipt_structure(receipt, request, bundle))
 
 
 def _strings(value: Any, path: str) -> frozenset[str]:
@@ -214,7 +248,7 @@ def _object_metadata(value: Mapping[str, Any], *, revision: str) -> Mapping[str,
         raise GatewayError("DOMAIN_LESSON_BODY_OR_SECRET_FORBIDDEN")
     required = {"object_id", "source_ref", "domain_source_revision", "problem_signatures", "scene_classes",
                 "model_or_tool", "model_versions", "constraints", "maturity", "applicability", "non_applicability",
-                "failure_conditions", "counterexamples", "revalidation_state", "evidence_refs"}
+                "failure_conditions", "counterexamples", "revalidation_state", "evidence_refs", "authority_unknowns"}
     missing = sorted(required - set(value))
     if missing:
         raise GatewayError("DOMAIN_AUTHORITY_METADATA_MISSING", f"/authority-object/{missing[0]}")
@@ -226,6 +260,7 @@ def _object_metadata(value: Mapping[str, Any], *, revision: str) -> Mapping[str,
     for name in ("problem_signatures", "scene_classes", "model_versions", "constraints", "applicability",
                  "non_applicability", "failure_conditions", "counterexamples", "evidence_refs"):
         normalized[name] = sorted(_strings(value[name], f"/authority-object/{name}"))
+    normalized["authority_unknowns"] = sorted(_strings(value["authority_unknowns"], "/authority-object/authority_unknowns"))
     return MappingProxyType(normalized)
 
 
@@ -238,6 +273,7 @@ def _evaluate(request: DomainLearningRecallRequest, item: Mapping[str, Any]) -> 
     scene_match = request.data["scene_or_work_item"] in item["scene_classes"]
     tool_match = request.data["model_or_tool"] == item["model_or_tool"]
     version_match = request.data["model_version"] in item["model_versions"] or "*" in item["model_versions"]
+    compatibility_unknown = item["model_or_tool"] == "UNKNOWN" or "UNKNOWN" in item["model_versions"]
     requested_constraints = set(map(str, request.data["constraints"]))
     allowed_constraints = set(item["constraints"])
     constraint_misses = sorted(requested_constraints - allowed_constraints)
@@ -247,7 +283,7 @@ def _evaluate(request: DomainLearningRecallRequest, item: Mapping[str, Any]) -> 
     dimensions = {
         "problem_or_symptom_signature": {"matched": signatures, "status": "MATCH" if signatures else "NO_MATCH"},
         "scene_or_work_item_class": {"matched": scene_match, "status": "MATCH" if scene_match else "NO_MATCH"},
-        "model_tool_version_compatibility": {"tool": tool_match, "version": version_match, "status": "MATCH" if tool_match and version_match else "MISMATCH"},
+        "model_tool_version_compatibility": {"tool": tool_match, "version": version_match, "status": "UNKNOWN" if compatibility_unknown else ("MATCH" if tool_match and version_match else "MISMATCH")},
         "explicit_constraints": {"misses": constraint_misses, "status": "MATCH" if not constraint_misses else "MISMATCH"},
         "domain_maturity_state": {"observed": item["maturity"]},
         "applicability_and_non_applicability": {"declared": sorted(applicability), "blocked": blocked_context},
@@ -269,9 +305,11 @@ def _evaluate(request: DomainLearningRecallRequest, item: Mapping[str, Any]) -> 
         reasons.append(f"DOMAIN_STATE_{item['revalidation_state']}")
     if not item["evidence_refs"]:
         reasons.append("DOMAIN_EVIDENCE_UNAVAILABLE")
+    if item["authority_unknowns"]:
+        reasons.extend(f"DOMAIN_AUTHORITY_UNKNOWN:{item}" for item in item["authority_unknowns"])
     if failures or counterexamples or item["revalidation_state"] in {"CONFLICTED", "DEPRECATED"}:
         decision = "CONFLICTED"
-    elif not tool_match or not version_match or item["revalidation_state"] == "NEEDS_REVALIDATION":
+    elif not tool_match or not version_match or compatibility_unknown or item["authority_unknowns"] or item["revalidation_state"] == "NEEDS_REVALIDATION":
         decision = "NEEDS_REVALIDATION"
     elif reasons:
         decision = "ABSTAINED"
@@ -306,16 +344,16 @@ class DomainLearningRecallProvider:
         abstentions = sorted({reason for _, result in selected for reason in result[4]})
         maturity = [{"object_ref": ref, "observed": item["maturity"]} for ref, (item, _) in zip(refs, selected)]
         revalidation = "CURRENT" if decision == "RECALLED" else decision
-        bundle = DomainLearningRecallBundle.build({
+        bundle = DomainLearningRecallBundle._issue({
             "schema_version": "DomainLearningRecallBundle/v1", "bundle_id": f"recall:{request.request_digest[:24]}",
             "request_id": request.data["request_id"], "request_digest": request.request_digest,
             "domain_source_revision": request.data["domain_source_revision"], "matched_object_refs": refs,
             "match_dimensions": dimensions, "applicability_state": decision, "failure_condition_hits": failures,
             "counterexample_hits": counters, "maturity_observations": maturity, "revalidation_state": revalidation,
             "exact_read_proofs": list(proofs), "abstentions": abstentions,
-            "unknowns": [] if selected else ["NO_DOMAIN_OBJECT_AVAILABLE"],
+            "unknowns": sorted({unknown for item, _ in selected for unknown in item["authority_unknowns"]}) if selected else ["NO_DOMAIN_OBJECT_AVAILABLE"],
         })
-        receipt = DomainLearningRecallReceipt.build({
+        receipt = DomainLearningRecallReceipt._issue({
             "schema_version": "DomainLearningRecallReceipt/v1", "receipt_id": f"recall-receipt:{bundle.bundle_digest[:24]}",
             "request_digest": request.request_digest, "bundle_digest": bundle.bundle_digest,
             "provider_code_identity": self.provider_code_identity, "exact_domain_revision": request.data["domain_source_revision"],
@@ -332,15 +370,62 @@ def _git_show_text(source: Path, revision: str, path: str) -> str:
     return result.stdout.decode("utf-8", errors="strict")
 
 
-def ai_film_domain_learning_recall_read_only_smoke(root: str | Path, request: DomainLearningRecallRequest, *,
-                                                   object_id: str, metadata: Mapping[str, Any], source_path: str,
-                                                   source_object_marker: str | None = None,
-                                                   required_evidence_markers: Sequence[str] = ()) -> dict[str, Any]:
+def _list(value: Any, path: str) -> list[str]:
+    if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
+        raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_INVALID", path)
+    return list(value)
+
+
+def _ai_film_authority_projection(source: Path, revision: str, object_id: str) -> tuple[dict[str, Any], str]:
+    """Derive replay decision metadata only from exact AI Film structured bytes."""
+    if object_id == "AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY":
+        path, pointer = AI_FILM_GOLDEN_CASES_PATH, "GPC-20260813-001"
+        document = yaml.safe_load(_git_show_text(source, revision, path))
+        cases = document.get("cases") if isinstance(document, Mapping) else None
+        case = next((item for item in cases or [] if isinstance(item, Mapping) and item.get("case_id") == pointer), None)
+        if not isinstance(case, Mapping):
+            raise GatewayError("DOMAIN_OBJECT_UNRESOLVED")
+        task_class = _nonempty(case.get("task_class"), "/ai-film/golden/task_class")
+        applicable = _list(case.get("applicable_context"), "/ai-film/golden/applicable_context")
+        non_applicable = _list(case.get("non_applicable_context"), "/ai-film/golden/non_applicable_context")
+        failures = _list(case.get("failure_boundaries"), "/ai-film/golden/failure_boundaries")
+        triggers = _list(case.get("revalidation_triggers"), "/ai-film/golden/revalidation_triggers")
+        maturity = ":".join((_nonempty(case.get("case_status"), "/ai-film/golden/case_status"),
+                              _nonempty(case.get("verdict_scope"), "/ai-film/golden/verdict_scope"),
+                              _nonempty(case.get("verdict_basis"), "/ai-film/golden/verdict_basis")))
+        dependency = case.get("model_or_tool_dependency")
+        if not isinstance(dependency, Mapping) or dependency.get("status") != "unknown":
+            raise GatewayError("DOMAIN_AUTHORITY_PROJECTION_INVALID", "/ai-film/golden/model_or_tool_dependency")
+        return ({"object_id": object_id, "source_ref": f"domain-object:{path}#case_id={pointer}", "domain_source_revision": revision,
+                 "problem_signatures": [task_class], "scene_classes": applicable, "model_or_tool": "UNKNOWN", "model_versions": ["UNKNOWN"],
+                 "constraints": applicable, "maturity": maturity, "applicability": applicable, "non_applicability": non_applicable,
+                 "failure_conditions": failures, "counterexamples": [], "revalidation_state": "NEEDS_REVALIDATION" if triggers else "CURRENT",
+                 "evidence_refs": [f"domain-object:{path}#case_id={pointer}"], "authority_unknowns": ["MODEL_OR_TOOL_VERSION_COMPATIBILITY_UNKNOWN"]}, path)
+    if object_id == "CD25-KAIM-WINDOW-AB-20260815":
+        path, pointer = AI_FILM_REGRESSION_CASES_PATH, "REG-CDANCE25-TEMPORAL-EXCLUSIVITY-001"
+        document = yaml.safe_load(_git_show_text(source, revision, path))
+        cases = document.get("cases") if isinstance(document, Mapping) else None
+        case = next((item for item in cases or [] if isinstance(item, Mapping) and item.get("id") == pointer), None)
+        evidence = case.get("scene_evidence") if isinstance(case, Mapping) else None
+        if not isinstance(evidence, Mapping) or evidence.get("experiment_id") != object_id:
+            raise GatewayError("DOMAIN_OBJECT_UNRESOLVED")
+        work_item = _nonempty(evidence.get("work_item"), "/ai-film/cd25/work_item")
+        maturity = _nonempty(case.get("maturity"), "/ai-film/cd25/maturity")
+        status = _nonempty(evidence.get("evidence_status"), "/ai-film/cd25/evidence_status")
+        return ({"object_id": object_id, "source_ref": f"domain-object:{path}#id={pointer}", "domain_source_revision": revision,
+                 "problem_signatures": [work_item], "scene_classes": [work_item], "model_or_tool": "UNKNOWN", "model_versions": ["UNKNOWN"],
+                 "constraints": [], "maturity": maturity, "applicability": [], "non_applicability": [], "failure_conditions": [],
+                 "counterexamples": [], "revalidation_state": "NEEDS_REVALIDATION", "evidence_refs": [f"domain-object:{path}#id={pointer}"],
+                 "authority_unknowns": ["MODEL_OR_TOOL_VERSION_COMPATIBILITY_UNKNOWN", f"EVIDENCE_STATUS:{status}"]}, path)
+    raise GatewayError("DOMAIN_OBJECT_UNRESOLVED")
+
+
+def ai_film_domain_learning_recall_read_only_smoke(root: str | Path, request: DomainLearningRecallRequest, *, object_id: str) -> dict[str, Any]:
     """Bounded public AI Film replay with exact reads and zero mutation verification.
 
-    ``metadata`` is public structured authority metadata supplied by the replay
-    fixture.  The canonical file is read only to prove the exact object marker;
-    its content is never returned or copied into the bundle.
+    The function owns the projection: caller-supplied metadata is deliberately
+    not accepted. Missing canonical fields remain explicit UNKNOWN/revalidation
+    rather than being inferred by the caller.
     """
     if not verify_request(request):
         raise GatewayError("DOMAIN_RECALL_REQUEST_INVALID")
@@ -350,21 +435,16 @@ def ai_film_domain_learning_recall_read_only_smoke(root: str | Path, request: Do
         raise GatewayError("AI_FILM_SOURCE_NOT_CLEAN")
     revision = str(request.data["domain_source_revision"])
     execution_id = f"r140-recall:{request.request_digest[:24]}"
+    metadata, source_path = _ai_film_authority_projection(source, revision, object_id)
     proofs = exact_git_read_proofs(source, repository=str(request.data["domain_repository"]), commit=revision,
                                    paths=("PROJECT_INDEX.yaml", source_path), execution_id=execution_id)
-    source_text = _git_show_text(source, revision, source_path)
-    marker = source_object_marker or object_id
-    if not isinstance(marker, str) or not marker or marker not in source_text:
-        raise GatewayError("DOMAIN_OBJECT_UNRESOLVED")
-    if any(not isinstance(item, str) or not item or item not in source_text for item in required_evidence_markers):
-        raise GatewayError("DOMAIN_EVIDENCE_CONSTRAINT_UNRESOLVED")
     bundle, receipt = DomainLearningRecallProvider().recall(request, authority_metadata=(metadata,), exact_read_proofs=proofs,
                                                               execution_id=execution_id)
     after = subprocess.check_output(["git", "-C", str(source), "status", "--porcelain"], text=True, encoding="utf-8")
     if after != before:
         raise GatewayError("AI_FILM_ZERO_MUTATION_VIOLATION")
     return {"bundle": bundle.public_dict(), "receipt": receipt.public_dict(), "read_proofs": [proof.public_dict() for proof in proofs],
-            "source_object_marker_digest": digest(marker), "required_evidence_marker_digests": [digest(item) for item in required_evidence_markers],
+            "authority_projection": "DOMAIN_OWNED_EXACT_STRUCTURED_PROJECTION", "authority_projection_ref": metadata["source_ref"],
             "source_status_before": "CLEAN", "source_status_after": "CLEAN", "domain_write_authorized": False,
             "formal_skill_promotion_authorized": False, "raw_domain_body_returned": False}
 

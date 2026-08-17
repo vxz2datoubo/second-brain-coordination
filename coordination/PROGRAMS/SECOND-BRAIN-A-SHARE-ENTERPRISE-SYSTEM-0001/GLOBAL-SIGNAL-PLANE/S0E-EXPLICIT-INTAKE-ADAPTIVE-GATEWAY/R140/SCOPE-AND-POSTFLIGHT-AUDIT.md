@@ -14,7 +14,13 @@ Formal Skill route, private-source reader, or generic cross-repository writer.
 
 ## Current non-delivery evidence
 
-R001-R030 (`30/30`), retained R136/R137/R138/R139 (`47/47`, `49/49`,
+The initial exact head was `86715eba431e207537579f1e26306a0e2a1d1ad8` on
+Draft PR `#385`. Its CI passed, but GPT correctly found two evidence binding
+defects. R2 now separates structural validation from Provider-issued evidence
+verification and replaces caller-provided replay metadata with an exact
+structured AI Film authority projection. Corrected-head CI remains required.
+
+The retained baseline evidence is R001-R030 (`30/30`), R136/R137/R138/R139 (`47/47`, `49/49`,
 `44/44`, `30/30`), and Phase 3 integrated (`291/291`) passed locally. Phase
 3 public safety passed (`108` files, `0` issues). The three public,
 exact-revision AI Film replays return bounded decisions only and verify the

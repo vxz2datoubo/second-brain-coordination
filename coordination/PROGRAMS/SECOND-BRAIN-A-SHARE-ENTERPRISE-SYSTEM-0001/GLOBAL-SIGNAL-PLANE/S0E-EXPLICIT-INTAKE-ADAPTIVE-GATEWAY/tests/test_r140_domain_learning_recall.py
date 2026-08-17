@@ -5,6 +5,8 @@ from dataclasses import replace
 from pathlib import Path
 
 from global_signal_gateway import (
+    DomainLearningRecallBundle,
+    DomainLearningRecallReceipt,
     DomainLearningRecallProvider,
     DomainLearningRecallRequest,
     GatewayError,
@@ -13,6 +15,8 @@ from global_signal_gateway import (
     verify_recall_bundle,
     verify_recall_receipt,
     verify_recall_request,
+    validate_recall_bundle_structure,
+    validate_recall_receipt_structure,
 )
 from global_signal_gateway.gateway import exact_git_read_proofs
 
@@ -39,6 +43,7 @@ def authority(revision, **changes):
         "constraints": ["black-void"], "maturity": "golden_user_approved_prompt_only",
         "applicability": ["black-void"], "non_applicability": [], "failure_conditions": [], "counterexamples": [],
         "revalidation_state": "CURRENT", "evidence_refs": ["opaque://ai-film/evidence/1"],
+        "authority_unknowns": [],
     }
     value.update(changes)
     return value
@@ -49,7 +54,29 @@ class R140Matrix(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(prefix="r140-recall-")
         self.root = Path(self.temp.name)
         (self.root / "PROJECT_INDEX.yaml").write_text("project: public-fixture\n", encoding="utf-8")
-        (self.root / "objects.txt").write_text("AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY golden_user_approved prompt_only\nCD25-KAIM-WINDOW-AB-20260815 candidate confounded_inconclusive\n", encoding="utf-8")
+        golden = self.root / "11_\u9a8c\u6536" / "golden_prompt_cases.yaml"
+        golden.parent.mkdir(parents=True, exist_ok=True)
+        golden.write_text("""cases:
+  - case_id: GPC-20260813-001
+    task_class: high_end_fashion_commercial_kinetic_typography
+    model_or_tool_dependency: {status: unknown}
+    applicable_context: [runway_style_ad]
+    non_applicable_context: [dialogue_driven_scene]
+    failure_boundaries: [topology_heavy_story_scene]
+    revalidation_triggers: [model_or_version_change]
+    case_status: golden_user_approved
+    verdict_scope: prompt_approved
+    verdict_basis: prompt_only
+""", encoding="utf-8")
+        regression = self.root / "11_\u9a8c\u6536" / "director_regression_cases.yaml"
+        regression.write_text("""cases:
+  - id: REG-CDANCE25-TEMPORAL-EXCLUSIVITY-001
+    maturity: candidate
+    scene_evidence:
+      experiment_id: CD25-KAIM-WINDOW-AB-20260815
+      work_item: KAIM-HIGH-SEARCH-30S / 7s window micro-sequence
+      evidence_status: scene_verified_observation_reusable_strategy_unvalidated
+""", encoding="utf-8")
         subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
         subprocess.run(["git", "config", "user.email", "r140@example.invalid"], cwd=self.root, check=True)
         subprocess.run(["git", "config", "user.name", "R140 Test"], cwd=self.root, check=True)
@@ -63,11 +90,16 @@ class R140Matrix(unittest.TestCase):
 
     def _proofs(self, execution_id="r140-test"):
         return exact_git_read_proofs(self.root, repository="vxz2datoubo/eustia-ai-film", commit=self.sha,
-                                     paths=("PROJECT_INDEX.yaml", "objects.txt"), execution_id=execution_id)
+                                     paths=("PROJECT_INDEX.yaml", "11_\u9a8c\u6536/golden_prompt_cases.yaml"), execution_id=execution_id)
 
     def _recall(self, *, item=None, request=None, execution_id="r140-test"):
         return DomainLearningRecallProvider().recall(request or self.request,
             authority_metadata=(item or authority(self.sha),), exact_read_proofs=self._proofs(execution_id), execution_id=execution_id)
+
+    def _fashion_request(self, **changes):
+        value = request_payload(domain_source_revision=self.sha, request_id="fashion", problem_signatures=["high_end_fashion_commercial_kinetic_typography"], scene_or_work_item="runway_style_ad", model_or_tool="UNKNOWN", model_version="UNKNOWN", constraints=["runway_style_ad"])
+        value.update(changes)
+        return DomainLearningRecallRequest.build(value)
 
     def test_r001_request_schema_and_digest(self):
         self.assertTrue(verify_recall_request(self.request))
@@ -145,11 +177,17 @@ class R140Matrix(unittest.TestCase):
         bundle, _receipt = self._recall()
         self.assertTrue(verify_recall_bundle(bundle, self.request))
         self.assertFalse(verify_recall_bundle(replace(bundle, bundle_digest="0" * 64), self.request))
+        caller_bundle = DomainLearningRecallBundle.build(bundle.public_dict())
+        self.assertTrue(validate_recall_bundle_structure(caller_bundle, self.request))
+        self.assertFalse(verify_recall_bundle(caller_bundle, self.request))
 
     def test_r019_receipt_digest_and_bundle_binding(self):
         bundle, receipt = self._recall()
         self.assertTrue(verify_recall_receipt(receipt, self.request, bundle))
         self.assertFalse(verify_recall_receipt(replace(receipt, receipt_digest="0" * 64), self.request, bundle))
+        caller_receipt = DomainLearningRecallReceipt.build(receipt.public_dict())
+        self.assertTrue(validate_recall_receipt_structure(caller_receipt, self.request, bundle))
+        self.assertFalse(verify_recall_receipt(caller_receipt, self.request, bundle))
 
     def test_r020_process_is_not_creative_outcome(self):
         _bundle, receipt = self._recall()
@@ -169,25 +207,28 @@ class R140Matrix(unittest.TestCase):
         self.assertEqual((bundle.data["applicability_state"], receipt.data["decision"]), ("UNSUPPORTED", "UNSUPPORTED"))
 
     def test_r024_cd25_confounded_case_is_not_superiority(self):
-        item = authority(self.sha, object_id="CD25-KAIM-WINDOW-AB-20260815", problem_signatures=["cd25"],
-                         scene_classes=["cd25-window"], maturity="candidate", revalidation_state="NEEDS_REVALIDATION")
-        request = DomainLearningRecallRequest.build(request_payload(domain_source_revision=self.sha, request_id="cd25", problem_signatures=["cd25"], scene_or_work_item="cd25-window"))
-        bundle, receipt = self._recall(item=item, request=request)
-        self.assertEqual(receipt.data["decision"], "NEEDS_REVALIDATION")
-        self.assertEqual(bundle.data["maturity_observations"][0]["observed"], "candidate")
+        request = DomainLearningRecallRequest.build(request_payload(domain_source_revision=self.sha, request_id="cd25", problem_signatures=["KAIM-HIGH-SEARCH-30S / 7s window micro-sequence"], scene_or_work_item="KAIM-HIGH-SEARCH-30S / 7s window micro-sequence", model_or_tool="UNKNOWN", model_version="UNKNOWN", constraints=[]))
+        result = ai_film_domain_learning_recall_read_only_smoke(self.root, request, object_id="CD25-KAIM-WINDOW-AB-20260815")
+        bundle, receipt = result["bundle"], result["receipt"]
+        self.assertEqual(receipt["decision"], "NEEDS_REVALIDATION")
+        self.assertEqual(bundle["maturity_observations"][0]["observed"], "candidate")
 
     def test_r025_exact_read_only_smoke_positive(self):
-        result = ai_film_domain_learning_recall_read_only_smoke(self.root, self.request, object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY", metadata=authority(self.sha), source_path="objects.txt", required_evidence_markers=("golden_user_approved", "prompt_only"))
-        self.assertEqual(result["receipt"]["decision"], "RECALLED")
+        request = self._fashion_request()
+        result = ai_film_domain_learning_recall_read_only_smoke(self.root, request, object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY")
+        self.assertEqual(result["receipt"]["decision"], "NEEDS_REVALIDATION")
+        self.assertEqual(result["authority_projection"], "DOMAIN_OWNED_EXACT_STRUCTURED_PROJECTION")
+        with self.assertRaises(TypeError):
+            ai_film_domain_learning_recall_read_only_smoke(self.root, request, object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY", metadata=authority(self.sha))
 
     def test_r026_exact_read_only_smoke_zero_mutation(self):
         before = subprocess.check_output(["git", "status", "--porcelain"], cwd=self.root, text=True)
-        ai_film_domain_learning_recall_read_only_smoke(self.root, self.request, object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY", metadata=authority(self.sha), source_path="objects.txt")
+        ai_film_domain_learning_recall_read_only_smoke(self.root, self._fashion_request(), object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY")
         self.assertEqual(subprocess.check_output(["git", "status", "--porcelain"], cwd=self.root, text=True), before)
 
     def test_r027_missing_object_marker_fails_closed(self):
         with self.assertRaisesRegex(GatewayError, "DOMAIN_OBJECT_UNRESOLVED"):
-            ai_film_domain_learning_recall_read_only_smoke(self.root, self.request, object_id="not-present", metadata=authority(self.sha), source_path="objects.txt")
+            ai_film_domain_learning_recall_read_only_smoke(self.root, self.request, object_id="not-present")
 
     def test_r028_incompatible_negative_replay(self):
         request = DomainLearningRecallRequest.build(request_payload(domain_source_revision=self.sha, model_version="9.9"))
@@ -202,7 +243,7 @@ class R140Matrix(unittest.TestCase):
     def test_r030_source_clean_required(self):
         (self.root / "untracked.txt").write_text("dirty", encoding="utf-8")
         with self.assertRaisesRegex(GatewayError, "AI_FILM_SOURCE_NOT_CLEAN"):
-            ai_film_domain_learning_recall_read_only_smoke(self.root, self.request, object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY", metadata=authority(self.sha), source_path="objects.txt")
+            ai_film_domain_learning_recall_read_only_smoke(self.root, self._fashion_request(), object_id="AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY")
 
 
 if __name__ == "__main__":

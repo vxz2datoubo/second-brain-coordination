@@ -66,13 +66,11 @@ jobs:
           from global_signal_gateway.gateway import AI_FILM_COMMIT, AI_FILM_REPOSITORY, temporary_exact_clone
           def request(name, signatures, scene, tool, version, constraints):
               return DomainLearningRecallRequest.build({'schema_version':'DomainLearningRecallRequest/v1','request_id':name,'source_trace_ref':'opaque://r140/ci/'+name,'domain_id':'AI_FILM','domain_repository':AI_FILM_REPOSITORY,'domain_source_revision':AI_FILM_COMMIT,'problem_signatures':signatures,'scene_or_work_item':scene,'model_or_tool':tool,'model_version':version,'constraints':constraints,'requested_evidence_classes':['public-canonical-metadata'],'privacy_class':'PUBLIC_SAFE','observed_at':'2026-08-17T00:00:00+00:00'})
-          def metadata(object_id, signatures, scene, tool, version, constraints, maturity, state, ref):
-              return {'object_id':object_id,'source_ref':'opaque://ai-film/'+object_id,'domain_source_revision':AI_FILM_COMMIT,'problem_signatures':signatures,'scene_classes':[scene],'model_or_tool':tool,'model_versions':[version],'constraints':constraints,'maturity':maturity,'applicability':constraints,'non_applicability':[],'failure_conditions':[],'counterexamples':[],'revalidation_state':state,'evidence_refs':[ref]}
           with temporary_exact_clone('https://github.com/vxz2datoubo/eustia-ai-film.git', AI_FILM_COMMIT) as source:
-              fashion = ai_film_domain_learning_recall_read_only_smoke(source, request('fashion',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY', source_object_marker='GPC-20260813-001', required_evidence_markers=('golden_user_approved','prompt_only'), source_path='11_\u9a8c\u6536/golden_prompt_cases.yaml', metadata=metadata('AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void'],'golden_user_approved_prompt_only','CURRENT','opaque://ai-film/GPC-20260813-001'))
-              cd25 = ai_film_domain_learning_recall_read_only_smoke(source, request('cd25',['cd25','kaim-window'],'kaim-window','C-DANCE','2.5',[]), object_id='CD25-KAIM-WINDOW-AB-20260815', source_object_marker='CD25-KAIM-WINDOW-AB-20260815', required_evidence_markers=('candidate','confounded_inconclusive'), source_path='08_\u7cfb\u7edf\u5b66\u4e60/C-DANCE2.5\u771f\u5b9e\u751f\u6210\u53cd\u9988\u5e93.md', metadata=metadata('CD25-KAIM-WINDOW-AB-20260815',['cd25','kaim-window'],'kaim-window','C-DANCE','2.5',[],'candidate','NEEDS_REVALIDATION','opaque://ai-film/CD25-KAIM-WINDOW-AB-20260815'))
-              negative = ai_film_domain_learning_recall_read_only_smoke(source, request('negative',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','incompatible',['black-void']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY', source_object_marker='GPC-20260813-001', required_evidence_markers=('golden_user_approved','prompt_only'), source_path='11_\u9a8c\u6536/golden_prompt_cases.yaml', metadata=metadata('AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY',['fashion','runway','hard-dual-light'],'fashion-runway','AI_FILM','reference',['black-void'],'golden_user_approved_prompt_only','CURRENT','opaque://ai-film/GPC-20260813-001'))
-          assert fashion['receipt']['decision'] == 'RECALLED'
+              fashion = ai_film_domain_learning_recall_read_only_smoke(source, request('fashion',['high_end_fashion_commercial_kinetic_typography'],'runway_style_ad','UNKNOWN','UNKNOWN',['runway_style_ad']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY')
+              cd25 = ai_film_domain_learning_recall_read_only_smoke(source, request('cd25',['KAIM-HIGH-SEARCH-30S / 7s window micro-sequence'],'KAIM-HIGH-SEARCH-30S / 7s window micro-sequence','UNKNOWN','UNKNOWN',[]), object_id='CD25-KAIM-WINDOW-AB-20260815')
+              negative = ai_film_domain_learning_recall_read_only_smoke(source, request('negative',['high_end_fashion_commercial_kinetic_typography'],'runway_style_ad','C-DANCE','2.5',['runway_style_ad']), object_id='AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY')
+          assert fashion['receipt']['decision'] == 'NEEDS_REVALIDATION'
           assert cd25['receipt']['decision'] == 'NEEDS_REVALIDATION'
           assert negative['receipt']['decision'] == 'NEEDS_REVALIDATION'
           for result in (fashion, cd25, negative):
@@ -80,4 +78,5 @@ jobs:
               assert result['domain_write_authorized'] is False
               assert result['formal_skill_promotion_authorized'] is False
               assert result['raw_domain_body_returned'] is False
+              assert result['authority_projection'] == 'DOMAIN_OWNED_EXACT_STRUCTURED_PROJECTION'
           PY
