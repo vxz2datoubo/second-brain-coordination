@@ -1,4 +1,4 @@
-schema_version: "141.0"
+schema_version: "141.1"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 389
@@ -6,73 +6,60 @@ task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
 parent_task_id: "IAGL-INTERRUPTIBLE-AUTONOMOUS-GOVERNANCE-0001"
 route_epoch: 141
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】R141 IAGL Stage-A Synthetic Supervisor"
-status: "READY"
-execution_allowed: true
-automatic_resume_within_task: true
+mode_label: "【Codex模式：已完成】R141 IAGL Stage-A Synthetic Supervisor"
+status: "DONE"
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: false
-intermediate_gpt_review_required: true
+intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: true
-runtime_code_scope: "R141_EXACT_FOUR_SURFACES_ONLY"
+runtime_code_change_allowed: false
+runtime_code_scope: "CLOSED / NO_ACTIVE_RUNTIME_SCOPE"
 
 canonical_predecessor_route_epoch: 140
 canonical_predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R140-DOMAIN-LEARNING-RECALL-LOOP"
 canonical_predecessor_closure_main: "bd7e49f5d596b63efa158b622b6116229df644b7"
 canonical_iagl_architecture_main: "d8487449aa3ca9aca850592a578a803d566fc1f1"
+canonical_activation_main: "dfd8c675583b7c1d017fa3bdd6bff651b53bac23"
 canonical_route: "coordination/ROUTES/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR-R141.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR.yaml"
-activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-ACTIVATION-RECONCILIATION.yaml"
+closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
 implementation_branch: "codex/r141-iagl-stage-a-synthetic-supervisor"
-implementation_pr: null
+implementation_pr: 391
+
+completion_receipt:
+  accepted_runtime_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
+  implementation_pr: 391
+  pre_merge_main: "dfd8c675583b7c1d017fa3bdd6bff651b53bac23"
+  merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
+  gpt_final_review: 4952430756
+  issue_acceptance_checkpoint: 5317236132
+  direct_r141_ci: 32040029045
+  retained_phase3_ci: 32040029044
+  acceptance: "ACCEPTED_STAGE_A_ONLY / EXACT_HEAD_ACCEPTED"
+  stage_b_authority: "NONE"
+  route_disposition: "R141_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
 
 release_phase:
-  phase: "B_ACTIVE_SYNTHETIC_IMPLEMENTATION"
-  execution_state: "READY_AFTER_ACTIVATION_CONTROL_PLANE_IS_CANONICAL"
+  phase: "C_POST_MERGE_CLOSURE"
+  execution_state: "DONE_AFTER_GPT_EXACT_HEAD_ACCEPTANCE_AND_USER_AUTHORIZED_MERGE"
+  active_codex_lease: "RELEASED"
   hard_rule: >-
-    Codex may implement only this Stage-A synthetic runtime after the activation state becomes canonical. Ordinary blockers
-    remain in the same Task/PR/branch. Stop on stale route, duplicate claim, resource collision, write-surface expansion,
-    secret/permission/production/domain/W3-authority/trading/history expansion, or evidence invalidation.
+    Epoch 141 is completed historical evidence only and must not resume. Any successor implementation requires a new
+    task_id/epoch, fresh Work Claim, fresh reconciliation and a canonical READY route. R141 Stage-A success does not
+    authorize Stage-B scheduler, API, secret, permission, production, domain/W3 write or trading capability.
 
-objective: >-
-  Implement a deterministic offline IAGL Supervisor proving event normalization/dedupe, P0-P4 scheduling, checkpoint/resume,
-  idempotency/fencing, budget/VOI stopping, cooperative preemption, governance modes, crash/restart recovery and IAGL-E001..E018
-  adversarial replay. This task must not deploy a real external scheduler or connect an OpenAI API key.
+allowed_write_paths: []
+current_write_permission: "RELEASED / NO_ACTIVE_WRITE_PERMISSION"
 
-milestones:
-  - "M0 fresh identity/dependency/architecture preflight + concrete storage/runtime plan"
-  - "M1 core contracts + deterministic state machine/supervisor"
-  - "M2 durable working state + idempotency/fencing/budget/VOI"
-  - "M3 cooperative preemption + fresh-reconcile resume/replan"
-  - "M4 IAGL-E001..E018 adversarial/recovery suite"
-  - "M5 exact-head Python 3.11/3.13 CI + deterministic/public-safe/resource gates"
-  - "M6 evidence/rollback/UNKNOWN/handoff"
-
-allowed_write_paths:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/src"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/tests"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/IAGL-STAGE-A/R141"
-  - ".github/workflows/iagl-r141-stage-a.yml"
-current_write_permission: "AUTHORIZED_AFTER_ACTIVATION_MERGE / EXACT_ALLOWLIST_ONLY"
-
-resource_contract:
-  class: "MEDIUM_SYNTHETIC_IMPLEMENTATION"
-  same_codex_active_route_max: 1
-  local_heavy_stage_max: 1
-  nested_process_pools: "FORBIDDEN"
-  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
-  broad_matrix: "REMOTE_CI_PREFERRED"
-  daemon_server: "FORBIDDEN"
-  network_dependency_in_stage_a_tests: "FORBIDDEN"
-  task_owned_process_temp_cache_cleanup: "REQUIRED_WHERE_SAFE"
-  global_kill_python_or_docker: "FORBIDDEN"
-
-local_dispatch_state:
-  user_confirmed_codex_auto_claim: "PAUSED"
-  machine_verified_by_repository: false
-  semantic_rule: >-
-    Repository activation does not imply the user's local Codex automation is enabled. The task may be started by the user's
-    direct instruction now, or by a later separately governed automation state change. Prompt prose is not automation state.
+signal_tower_operating_mode:
+  status: "ON_DEMAND_PREFLIGHT_AVAILABLE"
+  daemon_required_for_normal_use: false
+  rule: >-
+    Signal Tower normal operation is request/task-release driven. A GPT preparing a formal task must first perform a
+    fresh global shallow Signal Tower/control-plane scan, then delta and targeted deep reads for relevant signals,
+    dependencies, conflicts, claims, tasks, PRs and authority state before releasing a task. A long-lived daemon or
+    scheduler is an optional future enhancement, not a prerequisite for ordinary Signal Tower use.
 
 hard_locks:
   - "No OpenAI API key or paid API activation."
@@ -92,7 +79,8 @@ retained_findings:
   R138-F01: "RETAINED / required before any future production promotion"
   R139-STAGE-B: "NOT_AUTHORIZED / separate AI Film domain-owned processor+writer gate"
   R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+  IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
   IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
 
 completion_signal: "R141_IAGL_STAGE_A_SYNTHETIC_SUPERVISOR_READY_FOR_GPT_REVIEW"
-next_command: "START_R141_FROM_CANONICAL_ACTIVATION_STATE"
+next_command: "NO_ACTIVE_TASK / SIGNAL_TOWER_ON_DEMAND_PREFLIGHT_AVAILABLE"
