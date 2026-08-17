@@ -1,6 +1,6 @@
-schema_version: "0.1"
+schema_version: "0.2"
 contract_id: "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE-0001"
-status: "ARCHITECTURE_CANDIDATE / ENTERPRISE_GOVERNANCE / NO_RUNTIME_AUTHORIZATION"
+status: "ARCHITECTURE_CANDIDATE / ENTERPRISE_GOVERNANCE / ON_DEMAND_OPERATING_POLICY_ACCEPTED / NO_PRODUCTION_RUNTIME_AUTHORIZATION"
 owner: "USER"
 architecture_owner: "GPT"
 boundary: "NO_HARNESS_RUNTIME / NO_PRIVATE_PRODUCTION_BRIDGE / NO_TRADE"
@@ -9,6 +9,26 @@ purpose: >-
   Define reliability, security, recovery, compatibility, observability and change-governance requirements for the
   Unified Signal Plane before any production/private runtime is considered. Enterprise-grade means failures are
   detectable, bounded, replayable, auditable and reversible where reality permits; not merely that happy-path tests pass.
+
+operational_mode_after_r141:
+  authority: "USER_EXPLICIT_DIRECTION / GPT_POST_MERGE_RECONCILIATION"
+  normal_mode: "ON_DEMAND / SIGNAL_CAPTURE_AND_TASK_RELEASE_DRIVEN"
+  daemon_required_for_normal_use: false
+  signal_is_not_task: true
+  full_body_scan_every_release: false
+  formal_task_release_sequence:
+    - "GLOBAL_SHALLOW: scan open Signal Tower metadata plus current tasks, lanes, claims, PRs and authority state"
+    - "DELTA: inspect material changes since the last valid reconciliation or watermark"
+    - "TARGETED_DEEP: load only signals, dependencies, conflicts and evidence materially relevant to the proposed task"
+    - "CONDITIONAL_RESEARCH: use fresh external/current research only when the task requires it"
+    - "RELEASE_DECISION: merge, parallelize, serialize, defer, block or release with an explicit rationale"
+  hard_rule: >-
+    No formal task may be released from Signal Tower context without a fresh preflight. A signal may remain an idea,
+    question, evidence item, risk, dependency or deferred need and must not be treated as automatic execution authority.
+  background_runtime: >-
+    Long-lived scheduler/watchdog/event automation is an optional future enhancement for time-, condition- or external-event
+    driven continuation. It is not a prerequisite for ordinary Signal Tower capture, reconciliation or task-release use.
+  stage_b_boundary: "UNCHANGED / NOT_AUTHORIZED"
 
 enterprise_principles:
   - "fail closed on authority/freshness/privacy ambiguity"
@@ -65,13 +85,13 @@ recovery_model:
   required_capabilities_before_runtime_promotion:
     - durable_append_or_equivalent_event_persistence
     - deterministic_projection_rebuild
-    - verified snapshot restore if snapshots are introduced
-    - partial-write detection
-    - crash-during-ingest recovery
-    - crash-during-reconciliation recovery
-    - replay after reducer upgrade
-    - migration rollback plan
-    - quarantine path for corrupt/unparseable events
+    - verified_snapshot_restore_if_snapshots_are_introduced
+    - partial_write_detection
+    - crash_during_ingest_recovery
+    - crash_during_reconciliation_recovery
+    - replay_after_reducer_upgrade
+    - migration_rollback_plan
+    - quarantine_path_for_corrupt_unparseable_events
   recovery_semantics:
     replay_source: "append-only admitted history + verified snapshots"
     duplicate_replay: "idempotent"
@@ -126,15 +146,19 @@ change_governance:
     - schema_drift_scan
     - regression_update
   runtime_change_requires:
-    - fresh Work Claim
-    - fresh Control Tower authorization
+    - fresh_Work_Claim
+    - fresh_Control_Tower_authorization
     - rollback_or_compensation_plan
-    - exact-head CI
-    - resource/process audit
+    - exact_head_CI
+    - resource_process_audit
   formal_task_release_requires:
-    - fresh GlobalReconciliationReceipt PASS
-    - no material receipt invalidation
-    - explicit route/task contract
+    - fresh_Global_Shallow_scan
+    - delta_scan_since_last_valid_reconciliation
+    - targeted_deep_retrieval_for_materially_related_signals
+    - conditional_current_research_when_required
+    - fresh_GlobalReconciliationReceipt_PASS
+    - no_material_receipt_invalidation
+    - explicit_route_task_contract
   H2_separation: "Signal Plane S0 cannot imply Harness H2 authorization"
 
 observability:
@@ -145,13 +169,13 @@ observability:
     rule: "multiple causal parents should use link semantics rather than inventing one false parent"
   required_audit_questions:
     - who_or_what_created_signal
-    - which source/canonical snapshot was observed
-    - which links/cluster decisions were created
-    - why signal routed/deferred/rejected
-    - which reconciliation receipt permitted task publication
-    - which Control Tower witness authorized execution
-    - which exact head was reviewed
-    - how state can be rebuilt or compensated
+    - which_source_canonical_snapshot_was_observed
+    - which_links_cluster_decisions_were_created
+    - why_signal_routed_deferred_rejected
+    - which_reconciliation_receipt_permitted_task_publication
+    - which_Control_Tower_witness_authorized_execution
+    - which_exact_head_was_reviewed
+    - how_state_can_be_rebuilt_or_compensated
 
 capacity_and_flood_control:
   drop_old_signals_silently: false
@@ -161,11 +185,11 @@ capacity_and_flood_control:
   starvation_visibility: true
   compaction_must_preserve_replay_equivalence: true
   large_backlog_strategy:
-    - shallow metadata index
-    - delta watermarks
-    - cluster projections
-    - targeted deep retrieval
-    - archival refs
+    - shallow_metadata_index
+    - delta_watermarks
+    - cluster_projections
+    - targeted_deep_retrieval
+    - archival_refs
 
 priority_vector_candidate:
   no_single_magic_score: true
@@ -219,9 +243,9 @@ promotion_ladder:
   rule: "passing an earlier stage never auto-promotes the next"
 
 enterprise_non_goals_now:
-  - choose Kafka/Temporal/Postgres/Redis/GraphRAG as physical backend
-  - activate webhooks or private ChatGPT cross-window bridge
-  - run long-lived daemon
-  - install or bind DeepSeek Harness
-  - write AI Film or A-share domain canonicals
-  - authorize autonomous trading
+  - choose_Kafka_Temporal_Postgres_Redis_GraphRAG_as_physical_backend
+  - activate_webhooks_or_private_ChatGPT_cross_window_bridge
+  - run_long_lived_daemon
+  - install_or_bind_DeepSeek_Harness
+  - write_AI_Film_or_A_share_domain_canonicals
+  - authorize_autonomous_trading
