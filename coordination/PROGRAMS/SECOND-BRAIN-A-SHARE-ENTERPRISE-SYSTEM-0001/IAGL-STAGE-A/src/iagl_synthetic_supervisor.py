@@ -1,6 +1,6 @@
 """Offline, deterministic, synthetic-only IAGL Stage-A supervisor.
 
-SQLite is only bounded task-local working state.  It never supplies canonical
+SQLite is only bounded task-local working state. It never supplies canonical
 governance, domain truth, credentials, network access, or an external executor.
 """
 from __future__ import annotations
@@ -44,7 +44,6 @@ class Decision(str, Enum):
     USER_GATE = "USER_GATE"; IDLE = "IDLE"; UNKNOWN = "UNKNOWN"
 
 
-# Exact frozen IAGL-RUNTIME-CONTRACTS.yaml transition table.
 _ALLOWED: dict[SupervisorState, set[SupervisorState]] = {
     SupervisorState.BOOT: {SupervisorState.GLOBAL_RECONCILIATION, SupervisorState.EMERGENCY_STOP},
     SupervisorState.GLOBAL_RECONCILIATION: {SupervisorState.CHECK_PRIORITY, SupervisorState.FAILED_CLOSED, SupervisorState.EMERGENCY_STOP},
@@ -64,6 +63,33 @@ _ALLOWED: dict[SupervisorState, set[SupervisorState]] = {
 }
 
 
+_P0_EVENT_CLASSES = {
+    "USER_COMMAND", "SECRET_PERMISSION", "SECRET_REQUEST", "PERMISSION_REQUEST",
+    "PRODUCTION", "PRODUCTION_REQUEST", "TRADING_FUNDS", "TRADING_REQUEST",
+    "DESTRUCTIVE_HISTORY", "DESTRUCTIVE_REQUEST", "USER_GOVERNANCE_CHANGED",
+}
+_P1_EVENT_CLASSES = {
+    "PR_HEAD_CHANGED", "WORKFLOW_COMPLETED", "REVIEW_REQUESTED", "REVIEW_SUBMITTED",
+    "CODEX_PR_READY", "REMEDIATION_READY", "CI_COMPLETED_FOR_REVIEW_HEAD",
+}
+_P2_EVENT_CLASSES = {
+    "TASK_ROUTE_CHANGED", "CLAIM_OR_LEASE_CHANGED", "ROUTE_DRIFT", "CLAIM_COLLISION",
+    "SECURITY_REGRESSION", "FALSE_GREEN", "ACTIVE_BLOCKER",
+}
+_P3_EVENT_CLASSES = {"SIGNAL_MATERIALITY_CHANGED"}
+_P4_EVENT_CLASSES = {"WATCHDOG_TICK"}
+
+_INVALID_GOALS = {
+    "improve system generally",
+    "research indefinitely",
+    "browse until something interesting appears",
+}
+_FORBIDDEN_TOOL_TOKENS = ("network", "shell", "subprocess", "daemon", "socket", "requests", "curl", "wget", "webhook", "scheduler")
+_FORBIDDEN_DATA_TOKENS = ("private", "credential", "secret", "cookie", "token", "private_key")
+_FORBIDDEN_RISK_TOKENS = ("production", "trading", "fund", "destructive", "secret", "permission", "high_risk", "c3", "c4")
+_REQUIRED_RESUME_PRECONDITIONS = {"FRESH_RECONCILIATION", "AUTONOMOUS", "NO_PENDING_P0", "MATCHING_SLICE", "NEW_FENCE"}
+
+
 def digest(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
 
@@ -72,11 +98,31 @@ def _nonempty(values: Sequence[object]) -> bool:
     return all(isinstance(value, str) and bool(value) for value in values)
 
 
+def _normalized(value: str) -> str:
+    return value.strip().lower()
+
+
+def _trusted_priority_for_class(event_class: str) -> Priority:
+    normalized = event_class.strip().upper()
+    if normalized in _P0_EVENT_CLASSES:
+        return Priority.P0_USER_OR_HIGH_RISK
+    if normalized in _P1_EVENT_CLASSES:
+        return Priority.P1_EXACT_HEAD_REVIEW
+    if normalized in _P2_EVENT_CLASSES:
+        return Priority.P2_BLOCKER_OR_DRIFT
+    if normalized in _P3_EVENT_CLASSES:
+        return Priority.P3_BOUNDED_IMPROVEMENT
+    if normalized in _P4_EVENT_CLASSES:
+        return Priority.P4_RESEARCH
+    # Unknown classes cannot inherit a low caller hint. Conservatively block lower work.
+    return Priority.P2_BLOCKER_OR_DRIFT
+
+
 @dataclass(frozen=True)
 class NormalizedEvent:
     event_id: str; event_class: str; source: str; repository: str; observed_at: int
     target_ref: str; target_identity: str; payload_digest: str; supplied_idempotency_key: str
-    semantic_key: str; priority_hint: Priority
+    semantic_key: str; priority_hint: Priority; trusted_priority: Priority
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "NormalizedEvent":
@@ -86,11 +132,22 @@ class NormalizedEvent:
             raise SupervisorError("EVENT_INVALID:" + ",".join(missing))
         if not isinstance(raw["observed_at"], int) or raw["observed_at"] < 0:
             raise SupervisorError("EVENT_INVALID_OBSERVED_AT")
-        try: priority = Priority(int(raw.get("priority_hint", Priority.P4_RESEARCH)))
-        except (TypeError, ValueError) as exc: raise SupervisorError("EVENT_INVALID_PRIORITY") from exc
+        try:
+            priority_hint = Priority(int(raw.get("priority_hint", Priority.P4_RESEARCH)))
+        except (TypeError, ValueError) as exc:
+            raise SupervisorError("EVENT_INVALID_PRIORITY") from exc
         payload_digest = digest(raw["payload"])
-        semantic_key = digest({"repository": raw["repository"], "target_ref": raw["target_ref"], "target_identity": raw["target_identity"], "payload": payload_digest})
-        return cls(raw["event_id"], raw["event_class"], raw["source"], raw["repository"], raw["observed_at"], raw["target_ref"], raw["target_identity"], payload_digest, raw["idempotency_key"], semantic_key, priority)
+        trusted_priority = _trusted_priority_for_class(str(raw["event_class"]))
+        semantic_key = digest({
+            "repository": raw["repository"], "event_class": str(raw["event_class"]).upper(),
+            "target_ref": raw["target_ref"], "target_identity": raw["target_identity"],
+            "payload": payload_digest,
+        })
+        return cls(
+            raw["event_id"], raw["event_class"], raw["source"], raw["repository"], raw["observed_at"],
+            raw["target_ref"], raw["target_identity"], payload_digest, raw["idempotency_key"],
+            semantic_key, priority_hint, trusted_priority,
+        )
 
 
 @dataclass(frozen=True)
@@ -99,15 +156,29 @@ class ReconciliationSnapshot:
     allowed_write_paths: tuple[str, ...]; observed_at: int; pending_p0: bool = False
     domain_revision: str = "synthetic-domain-v1"; trusted: bool = True
     eligible_work_queue_complete: bool = False
+    allowed_tools: tuple[str, ...] = ("stdlib-only",)
+    allowed_data_classes: tuple[str, ...] = ("PUBLIC_SAFE_SYNTHETIC",)
+    allowed_risk_classes: tuple[str, ...] = ("P3_SYNTHETIC", "P4_SYNTHETIC")
+    allowed_writeback_plans: tuple[str, ...] = ("NO_CANONICAL_WRITE",)
 
     def validate(self, expected_repository: str) -> None:
         if not self.trusted or self.repository != expected_repository or not _nonempty((self.exact_head, self.route_id, self.domain_revision)):
             raise SupervisorError("RECONCILIATION_INCOMPLETE_OR_UNTRUSTED")
         if not self.allowed_write_paths or any(not item or item.startswith("/") or ".." in item.replace("\\", "/").split("/") for item in self.allowed_write_paths):
             raise SupervisorError("RECONCILIATION_INVALID_ALLOWLIST")
+        if not all((self.allowed_tools, self.allowed_data_classes, self.allowed_risk_classes, self.allowed_writeback_plans)):
+            raise SupervisorError("RECONCILIATION_POLICY_INCOMPLETE")
 
     def identity(self) -> str:
-        return digest({"repository": self.repository, "head": self.exact_head, "route": self.route_id, "governance": self.governance_mode.value, "allowed": self.allowed_write_paths, "p0": self.pending_p0, "domain": self.domain_revision, "queue_complete": self.eligible_work_queue_complete})
+        return digest({
+            "repository": self.repository, "head": self.exact_head, "route": self.route_id,
+            "governance": self.governance_mode.value, "allowed": self.allowed_write_paths,
+            "p0": self.pending_p0, "domain": self.domain_revision,
+            "queue_complete": self.eligible_work_queue_complete,
+            "allowed_tools": self.allowed_tools, "allowed_data_classes": self.allowed_data_classes,
+            "allowed_risk_classes": self.allowed_risk_classes,
+            "allowed_writeback_plans": self.allowed_writeback_plans,
+        })
 
 
 @dataclass(frozen=True)
@@ -117,12 +188,24 @@ class ReconciliationGrant:
 
 @dataclass(frozen=True)
 class RetrievalCompletenessProof:
-    """Synthetic, reconciliation-bound proof.  Callers cannot infer completeness."""
+    """Structural proof envelope. Trusted semantics require store-bound issuance."""
     repository: str; exact_revision: str; request_digest: str; authority_scope_ref: str
     evidence_ref: str; reconciliation_identity: str; reconciliation_generation: int; complete_empty: bool
+    issuance_ref: str = ""
 
-    def validates(self, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant, request_digest: str) -> bool:
-        return bool(self.complete_empty and _nonempty((self.repository, self.exact_revision, self.request_digest, self.authority_scope_ref, self.evidence_ref, self.reconciliation_identity)) and self.repository == snapshot.repository and self.exact_revision == snapshot.exact_head and self.request_digest == request_digest and self.reconciliation_identity == grant.identity and self.reconciliation_generation == grant.generation)
+    def structurally_matches(self, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant, request_digest: str) -> bool:
+        return bool(
+            self.complete_empty
+            and _nonempty((self.repository, self.exact_revision, self.request_digest, self.authority_scope_ref, self.evidence_ref, self.reconciliation_identity, self.issuance_ref))
+            and self.repository == snapshot.repository
+            and self.exact_revision == snapshot.exact_head
+            and self.request_digest == request_digest
+            and self.reconciliation_identity == grant.identity
+            and self.reconciliation_generation == grant.generation
+        )
+
+    def proof_digest(self) -> str:
+        return digest(asdict(self))
 
 
 @dataclass(frozen=True)
@@ -140,8 +223,26 @@ class ImprovementSlice:
         strings = (self.slice_id, self.problem_signature, self.goal, self.materiality, self.evidence_target, self.risk_class, self.expected_artifact, self.falsifier, self.writeback_plan, self.owner)
         if not _nonempty(strings) or not self.source_signal_refs or not self.allowed_tools or not self.allowed_data_classes or not self.stop_conditions or self.time_budget_minutes <= 0 or self.compute_budget <= 0 or self.estimated_cost < 0 or self.evidence_value < 0 or self.action_kind != "SYNTHETIC_FIXED_ACTION":
             raise SupervisorError("SLICE_FROZEN_CONTRACT_INCOMPLETE")
+        if self.priority not in {Priority.P3_BOUNDED_IMPROVEMENT, Priority.P4_RESEARCH}:
+            raise SupervisorError("SLICE_PRIORITY_NOT_IMPROVEMENT_CLASS")
         if not self.changed_paths or not set(self.changed_paths).issubset(snapshot.allowed_write_paths):
             raise SupervisorError("SLICE_CHANGED_PATH_OUTSIDE_ALLOWLIST")
+        if _normalized(self.goal) in _INVALID_GOALS:
+            raise SupervisorError("SLICE_INVALID_GOAL")
+        if any(any(token in _normalized(tool) for token in _FORBIDDEN_TOOL_TOKENS) for tool in self.allowed_tools):
+            raise SupervisorError("SLICE_FORBIDDEN_TOOL")
+        if not set(self.allowed_tools).issubset(set(snapshot.allowed_tools)):
+            raise SupervisorError("SLICE_TOOL_POLICY_DRIFT")
+        if any(any(token in _normalized(data_class) for token in _FORBIDDEN_DATA_TOKENS) for data_class in self.allowed_data_classes):
+            raise SupervisorError("SLICE_FORBIDDEN_DATA_CLASS")
+        if not set(self.allowed_data_classes).issubset(set(snapshot.allowed_data_classes)):
+            raise SupervisorError("SLICE_DATA_POLICY_DRIFT")
+        if any(token in _normalized(self.risk_class) for token in _FORBIDDEN_RISK_TOKENS):
+            raise SupervisorError("SLICE_FORBIDDEN_RISK_CLASS")
+        if self.risk_class not in snapshot.allowed_risk_classes:
+            raise SupervisorError("SLICE_RISK_POLICY_DRIFT")
+        if self.writeback_plan not in snapshot.allowed_writeback_plans:
+            raise SupervisorError("SLICE_WRITEBACK_POLICY_DRIFT")
         if (self.authority_metadata or {}).get("authority") in {"trusted", "provider-issued"}:
             raise SupervisorError("CALLER_AUTHORITY_UNTRUSTED")
 
@@ -170,6 +271,10 @@ class Checkpoint:
         strings = (self.checkpoint_id, self.mission_id, self.slice_id, self.state, self.control_plane_snapshot_ref, self.next_atomic_action, self.budget_state, self.lease_state, self.fencing_token_ref, self.interruption_reason, self.privacy_class, self.snapshot_identity, self.exact_head, self.route_id, self.domain_revision)
         if not _nonempty(strings) or not self.source_refs or not self.evidence_digests or not self.completed_atomic_steps or not self.open_unknowns or not self.resume_preconditions or self.reconciliation_generation <= 0 or self.prior_lease_generation <= 0:
             raise SupervisorError("CHECKPOINT_FROZEN_CONTRACT_INCOMPLETE")
+        if self.privacy_class != "PUBLIC_SAFE_SYNTHETIC":
+            raise SupervisorError("CHECKPOINT_PRIVACY_NOT_PUBLIC_SAFE")
+        if not _REQUIRED_RESUME_PRECONDITIONS.issubset(set(self.resume_preconditions)):
+            raise SupervisorError("CHECKPOINT_RESUME_PRECONDITIONS_INCOMPLETE")
 
 
 @dataclass(frozen=True)
@@ -192,14 +297,24 @@ class SupervisorReceipt:
 
 
 def _slice_to_json(slice_: ImprovementSlice) -> str:
-    value = asdict(slice_); value["priority"] = int(slice_.priority); value["changed_paths"] = list(slice_.changed_paths)
+    value = asdict(slice_); value["priority"] = int(slice_.priority)
+    for name in ("changed_paths", "source_signal_refs", "allowed_tools", "allowed_data_classes", "stop_conditions"):
+        value[name] = list(value[name])
     return json.dumps(value, sort_keys=True)
 
 
 def _slice_from_json(raw: str) -> ImprovementSlice:
     value = json.loads(raw); value["priority"] = Priority(value["priority"])
-    for name in ("changed_paths", "source_signal_refs", "allowed_tools", "allowed_data_classes", "stop_conditions"): value[name] = tuple(value[name])
+    for name in ("changed_paths", "source_signal_refs", "allowed_tools", "allowed_data_classes", "stop_conditions"):
+        value[name] = tuple(value[name])
     return ImprovementSlice(**value)
+
+
+def _event_from_json(raw: str) -> NormalizedEvent:
+    data = json.loads(raw)
+    data["priority_hint"] = Priority(data["priority_hint"])
+    data["trusted_priority"] = Priority(data["trusted_priority"])
+    return NormalizedEvent(**data)
 
 
 class WorkingStateStore:
@@ -213,44 +328,57 @@ class WorkingStateStore:
         CREATE TABLE IF NOT EXISTS leases (slice_id TEXT PRIMARY KEY, owner TEXT NOT NULL, generation INTEGER NOT NULL, token TEXT NOT NULL, active INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS plans (plan_id TEXT PRIMARY KEY, identity TEXT NOT NULL, generation INTEGER NOT NULL, slice_json TEXT NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS checkpoints (checkpoint_id TEXT PRIMARY KEY, record TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS retrieval_proofs (issuance_ref TEXT PRIMARY KEY, proof_digest TEXT NOT NULL, state TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS accounting (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
         """); self.connection.commit()
 
-    def close(self) -> None: self.connection.close()
+    def close(self) -> None:
+        self.connection.close()
 
     def record_reconciliation(self, snapshot: ReconciliationSnapshot) -> ReconciliationGrant:
-        row = self.connection.execute("SELECT generation FROM reconciliation WHERE slot=1").fetchone(); generation = (row[0] if row else 0) + 1; identity = snapshot.identity()
-        stored = asdict(snapshot) | {"governance_mode": snapshot.governance_mode.value, "allowed_write_paths": list(snapshot.allowed_write_paths)}
-        self.connection.execute("INSERT INTO reconciliation VALUES (1,?,?,?) ON CONFLICT(slot) DO UPDATE SET identity=excluded.identity,generation=excluded.generation,snapshot=excluded.snapshot", (identity, generation, json.dumps(stored, sort_keys=True)))
-        # P1 facts not matching the exact newly-observed head are history only.
+        row = self.connection.execute("SELECT generation FROM reconciliation WHERE slot=1").fetchone()
+        generation = (row[0] if row else 0) + 1; identity = snapshot.identity()
+        stored = asdict(snapshot) | {"governance_mode": snapshot.governance_mode.value}
+        for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans"):
+            stored[name] = list(stored[name])
+        self.connection.execute(
+            "INSERT INTO reconciliation VALUES (1,?,?,?) ON CONFLICT(slot) DO UPDATE SET identity=excluded.identity,generation=excluded.generation,snapshot=excluded.snapshot",
+            (identity, generation, json.dumps(stored, sort_keys=True)),
+        )
         for semantic_key, raw in self.connection.execute("SELECT semantic_key,event_json FROM events WHERE priority=1 AND state='PENDING'").fetchall():
-            if json.loads(raw)["target_identity"] != snapshot.exact_head:
+            if _event_from_json(raw).target_identity != snapshot.exact_head:
                 self.connection.execute("UPDATE events SET state='TRACE_ONLY' WHERE semantic_key=?", (semantic_key,))
         self.connection.commit(); return ReconciliationGrant(identity, generation)
 
     def current_snapshot(self) -> tuple[ReconciliationGrant, ReconciliationSnapshot] | None:
         row = self.connection.execute("SELECT identity,generation,snapshot FROM reconciliation WHERE slot=1").fetchone()
-        if not row: return None
-        data = json.loads(row[2]); data["governance_mode"] = GovernanceMode(data["governance_mode"]); data["allowed_write_paths"] = tuple(data["allowed_write_paths"])
+        if not row:
+            return None
+        data = json.loads(row[2]); data["governance_mode"] = GovernanceMode(data["governance_mode"])
+        for name in ("allowed_write_paths", "allowed_tools", "allowed_data_classes", "allowed_risk_classes", "allowed_writeback_plans"):
+            data[name] = tuple(data[name])
         return ReconciliationGrant(row[0], row[1]), ReconciliationSnapshot(**data)
 
     def enqueue(self, event: NormalizedEvent) -> bool:
         try:
-            data = asdict(event) | {"priority_hint": int(event.priority_hint)}
-            self.connection.execute("INSERT INTO events(semantic_key,event_json,priority,state) VALUES (?,?,?,'PENDING')", (event.semantic_key, json.dumps(data, sort_keys=True), int(event.priority_hint)))
+            data = asdict(event) | {"priority_hint": int(event.priority_hint), "trusted_priority": int(event.trusted_priority)}
+            self.connection.execute(
+                "INSERT INTO events(semantic_key,event_json,priority,state) VALUES (?,?,?,'PENDING')",
+                (event.semantic_key, json.dumps(data, sort_keys=True), int(event.trusted_priority)),
+            )
             self.connection.commit(); return True
-        except sqlite3.IntegrityError: return False
+        except sqlite3.IntegrityError:
+            return False
 
     def highest_event(self) -> NormalizedEvent | None:
         row = self.connection.execute("SELECT event_json FROM events WHERE state='PENDING' ORDER BY priority,semantic_key LIMIT 1").fetchone()
-        if not row: return None
-        data = json.loads(row[0]); data["priority_hint"] = Priority(data["priority_hint"]); return NormalizedEvent(**data)
+        return _event_from_json(row[0]) if row else None
 
     def current_p1_event(self, exact_head: str) -> NormalizedEvent | None:
         rows = self.connection.execute("SELECT semantic_key,event_json FROM events WHERE priority=1 AND state='PENDING' ORDER BY semantic_key").fetchall()
         current: NormalizedEvent | None = None
         for semantic_key, raw in rows:
-            data = json.loads(raw); data["priority_hint"] = Priority(data["priority_hint"]); event = NormalizedEvent(**data)
+            event = _event_from_json(raw)
             if event.target_identity == exact_head and current is None:
                 current = event
             elif event.target_identity != exact_head:
@@ -262,8 +390,12 @@ class WorkingStateStore:
         self.connection.execute("INSERT OR IGNORE INTO review_work VALUES (?,?,?,?,?,'READY')", (work.key(), work.semantic_event_key, work.target_head, work.reconciliation_identity, work.reconciliation_generation)); self.connection.commit(); return work
 
     def consume_review_work(self, work: ReviewWorkIdentity, grant: ReconciliationGrant) -> bool:
-        cur = self.connection.execute("UPDATE review_work SET state='CONSUMED' WHERE work_key=? AND semantic_key=? AND target_head=? AND identity=? AND generation=? AND state='READY'", (work.key(), work.semantic_event_key, work.target_head, grant.identity, grant.generation))
-        if cur.rowcount != 1: self.connection.rollback(); return False
+        cur = self.connection.execute(
+            "UPDATE review_work SET state='CONSUMED' WHERE work_key=? AND semantic_key=? AND target_head=? AND identity=? AND generation=? AND state='READY'",
+            (work.key(), work.semantic_event_key, work.target_head, grant.identity, grant.generation),
+        )
+        if cur.rowcount != 1:
+            self.connection.rollback(); return False
         self.connection.execute("UPDATE events SET state='CONSUMED' WHERE semantic_key=? AND state='PENDING'", (work.semantic_event_key,)); self.connection.commit(); return True
 
     def event_state(self, semantic_key: str) -> str | None:
@@ -273,10 +405,16 @@ class WorkingStateStore:
         self.connection.execute("BEGIN IMMEDIATE")
         try:
             row = self.connection.execute("SELECT generation,active FROM leases WHERE slice_id=?", (slice_id,)).fetchone()
-            if row and row[1]: self.connection.execute("ROLLBACK"); return None
+            if row and row[1]:
+                self.connection.execute("ROLLBACK"); return None
             generation = (row[0] if row else 0) + 1; token = str(uuid.uuid4())
-            self.connection.execute("INSERT INTO leases VALUES (?,?,?,?,1) ON CONFLICT(slice_id) DO UPDATE SET owner=excluded.owner,generation=excluded.generation,token=excluded.token,active=1", (slice_id, owner, generation, token)); self.connection.execute("COMMIT"); return LeaseGrant(slice_id, owner, generation, token)
-        except Exception: self.connection.execute("ROLLBACK"); raise
+            self.connection.execute(
+                "INSERT INTO leases VALUES (?,?,?,?,1) ON CONFLICT(slice_id) DO UPDATE SET owner=excluded.owner,generation=excluded.generation,token=excluded.token,active=1",
+                (slice_id, owner, generation, token),
+            )
+            self.connection.execute("COMMIT"); return LeaseGrant(slice_id, owner, generation, token)
+        except Exception:
+            self.connection.execute("ROLLBACK"); raise
 
     def _lease_matches(self, lease: LeaseGrant) -> bool:
         row = self.connection.execute("SELECT owner,generation,token,active FROM leases WHERE slice_id=?", (lease.slice_id,)).fetchone()
@@ -293,16 +431,38 @@ class WorkingStateStore:
         plan_id = digest({"snapshot": grant.identity, "generation": grant.generation, "slice": _slice_to_json(slice_)})
         self.connection.execute("INSERT OR REPLACE INTO plans VALUES (?,?,?,?,?)", (plan_id, grant.identity, grant.generation, _slice_to_json(slice_), "READY")); self.connection.commit(); return ExecutionPlan(plan_id, grant, slice_)
 
+    def checkpointed_slice(self, checkpoint: Checkpoint) -> ImprovementSlice | None:
+        rows = self.connection.execute("SELECT slice_json FROM plans WHERE identity=? AND generation=?", (checkpoint.snapshot_identity, checkpoint.reconciliation_generation)).fetchall()
+        for (raw,) in rows:
+            slice_ = _slice_from_json(raw)
+            if slice_.slice_id == checkpoint.slice_id:
+                return slice_
+        return None
+
     def authorize_execution(self, plan: ExecutionPlan, lease: LeaseGrant, budget_limit: int) -> tuple[ImprovementSlice, ReconciliationSnapshot] | None:
         self.connection.execute("BEGIN IMMEDIATE")
         try:
             current = self.current_snapshot(); plan_row = self.connection.execute("SELECT identity,generation,slice_json,state FROM plans WHERE plan_id=?", (plan.plan_id,)).fetchone(); lease_row = self.connection.execute("SELECT owner,generation,token,active FROM leases WHERE slice_id=?", (lease.slice_id,)).fetchone()
-            if not current or not plan_row or plan_row[3] != "READY" or not lease_row: self.connection.execute("ROLLBACK"); return None
+            if not current or not plan_row or plan_row[3] != "READY" or not lease_row:
+                self.connection.execute("ROLLBACK"); return None
             current_grant, snapshot = current; slice_ = _slice_from_json(plan_row[2]); used = self.value("budget_used")
-            valid = (plan.slice.slice_id == lease.slice_id and slice_.slice_id == lease.slice_id and plan_row[0] == current_grant.identity == plan.snapshot.identity and plan_row[1] == current_grant.generation == plan.snapshot.generation and lease_row == (lease.owner, lease.generation, lease.fencing_token, 1) and snapshot.governance_mode == GovernanceMode.AUTONOMOUS and not snapshot.pending_p0 and used + slice_.estimated_cost <= budget_limit)
-            if not valid: self.connection.execute("ROLLBACK"); return None
+            try:
+                slice_.validate(snapshot)
+            except SupervisorError:
+                self.connection.execute("ROLLBACK"); return None
+            valid = (
+                plan.slice.slice_id == lease.slice_id and slice_.slice_id == lease.slice_id
+                and plan_row[0] == current_grant.identity == plan.snapshot.identity
+                and plan_row[1] == current_grant.generation == plan.snapshot.generation
+                and lease_row == (lease.owner, lease.generation, lease.fencing_token, 1)
+                and snapshot.governance_mode == GovernanceMode.AUTONOMOUS and not snapshot.pending_p0
+                and used + slice_.estimated_cost <= budget_limit
+            )
+            if not valid:
+                self.connection.execute("ROLLBACK"); return None
             self.connection.execute("UPDATE plans SET state='EXECUTING' WHERE plan_id=?", (plan.plan_id,)); self.connection.execute("INSERT INTO accounting VALUES ('budget_used',?) ON CONFLICT(key) DO UPDATE SET value=value+excluded.value", (slice_.estimated_cost,)); self.connection.execute("COMMIT"); return slice_, snapshot
-        except Exception: self.connection.execute("ROLLBACK"); raise
+        except Exception:
+            self.connection.execute("ROLLBACK"); raise
 
     def value(self, key: str) -> int:
         row = self.connection.execute("SELECT value FROM accounting WHERE key=?", (key,)).fetchone(); return int(row[0]) if row else 0
@@ -311,13 +471,35 @@ class WorkingStateStore:
         self.connection.execute("INSERT INTO accounting VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value)); self.connection.commit()
 
     def save_checkpoint(self, checkpoint: Checkpoint) -> None:
-        checkpoint.validate(); value = asdict(checkpoint); self.connection.execute("INSERT OR REPLACE INTO checkpoints VALUES (?,?)", (checkpoint.checkpoint_id, json.dumps(value, sort_keys=True))); self.connection.commit()
+        checkpoint.validate(); self.connection.execute("INSERT OR REPLACE INTO checkpoints VALUES (?,?)", (checkpoint.checkpoint_id, json.dumps(asdict(checkpoint), sort_keys=True))); self.connection.commit()
 
     def load_checkpoint(self, checkpoint_id: str) -> Checkpoint | None:
         row = self.connection.execute("SELECT record FROM checkpoints WHERE checkpoint_id=?", (checkpoint_id,)).fetchone()
-        if not row: return None
-        value = json.loads(row[0]); value["source_refs"] = tuple(value["source_refs"]); value["evidence_digests"] = tuple(value["evidence_digests"]); value["completed_atomic_steps"] = tuple(value["completed_atomic_steps"]); value["open_unknowns"] = tuple(value["open_unknowns"]); value["resume_preconditions"] = tuple(value["resume_preconditions"])
+        if not row:
+            return None
+        value = json.loads(row[0])
+        for name in ("source_refs", "evidence_digests", "completed_atomic_steps", "open_unknowns", "resume_preconditions"):
+            value[name] = tuple(value[name])
         checkpoint = Checkpoint(**value); checkpoint.validate(); return checkpoint
+
+    def issue_retrieval_complete_empty(self, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant, request_digest: str, authority_scope_ref: str, evidence_ref: str) -> RetrievalCompletenessProof:
+        current = self.current_snapshot()
+        if not current or current[0] != grant or current[1] != snapshot or not _nonempty((request_digest, authority_scope_ref, evidence_ref)):
+            raise SupervisorError("RETRIEVAL_PROOF_ISSUANCE_REQUIRES_CURRENT_RECONCILIATION")
+        proof = RetrievalCompletenessProof(
+            snapshot.repository, snapshot.exact_head, request_digest, authority_scope_ref, evidence_ref,
+            grant.identity, grant.generation, True, f"stage-a:{uuid.uuid4()}",
+        )
+        self.connection.execute("INSERT INTO retrieval_proofs VALUES (?,?,'ISSUED')", (proof.issuance_ref, proof.proof_digest())); self.connection.commit(); return proof
+
+    def consume_retrieval_proof(self, proof: RetrievalCompletenessProof, snapshot: ReconciliationSnapshot, grant: ReconciliationGrant, request_digest: str) -> bool:
+        if not proof.structurally_matches(snapshot, grant, request_digest):
+            return False
+        cur = self.connection.execute(
+            "UPDATE retrieval_proofs SET state='CONSUMED' WHERE issuance_ref=? AND proof_digest=? AND state='ISSUED'",
+            (proof.issuance_ref, proof.proof_digest()),
+        )
+        self.connection.commit(); return cur.rowcount == 1
 
 
 class SyntheticSupervisor:
@@ -325,7 +507,8 @@ class SyntheticSupervisor:
         self.repository, self.store, self.budget_limit, self.no_value_limit = repository, store, budget_limit, no_value_limit; self.state = SupervisorState.BOOT
 
     def transition(self, target: SupervisorState) -> None:
-        if target not in _ALLOWED[self.state]: raise SupervisorError(f"ILLEGAL_TRANSITION:{self.state.value}->{target.value}")
+        if target not in _ALLOWED[self.state]:
+            raise SupervisorError(f"ILLEGAL_TRANSITION:{self.state.value}->{target.value}")
         self.state = target
 
     def reconcile(self, snapshot: ReconciliationSnapshot) -> ReconciliationGrant:
@@ -339,18 +522,23 @@ class SyntheticSupervisor:
 
     def ingest(self, raw: Mapping[str, Any]) -> tuple[NormalizedEvent, bool]:
         event = NormalizedEvent.from_mapping(raw)
-        if event.repository != self.repository: raise SupervisorError("EVENT_REPOSITORY_MISMATCH")
+        if event.repository != self.repository:
+            raise SupervisorError("EVENT_REPOSITORY_MISMATCH")
         return event, self.store.enqueue(event)
 
     def choose(self, grant: ReconciliationGrant, candidates: Sequence[ImprovementSlice]) -> ExecutionPlan | ReviewWorkIdentity | SupervisorReceipt:
         current = self.store.current_snapshot()
-        if not current or current[0] != grant: raise SupervisorError("STALE_RECONCILIATION_GRANT")
+        if not current or current[0] != grant:
+            raise SupervisorError("STALE_RECONCILIATION_GRANT")
         _, snapshot = current; pending = self.store.highest_event()
-        if snapshot.governance_mode != GovernanceMode.AUTONOMOUS or snapshot.pending_p0 or (pending and pending.priority_hint == Priority.P0_USER_OR_HIGH_RISK):
+        if snapshot.governance_mode != GovernanceMode.AUTONOMOUS or snapshot.pending_p0 or (pending and pending.trusted_priority == Priority.P0_USER_OR_HIGH_RISK):
             self.transition(SupervisorState.USER_GATE); return SupervisorReceipt(Decision.USER_GATE, self.state, "GOVERNANCE_OR_P0_GATE")
         event = self.store.current_p1_event(snapshot.exact_head)
         if event:
             self.transition(SupervisorState.REVIEW); return self.store.create_review_work(event, grant)
+        pending = self.store.highest_event()
+        if pending and pending.trusted_priority == Priority.P2_BLOCKER_OR_DRIFT:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "P2_RECONCILIATION_OR_SECURITY_BLOCKER")
         if not candidates:
             if snapshot.eligible_work_queue_complete:
                 self.transition(SupervisorState.IDLE_NO_ELIGIBLE_WORK); return SupervisorReceipt(Decision.IDLE, self.state, "TRUSTED_COMPLETE_EMPTY_WORK_QUEUE")
@@ -362,40 +550,81 @@ class SyntheticSupervisor:
             self.transition(SupervisorState.IDLE_NO_ELIGIBLE_WORK); return SupervisorReceipt(Decision.IDLE, self.state, "BUDGET_EXHAUSTED_PRE_EXECUTION")
         return self.store.create_plan(grant, selected)
 
+    def issue_retrieval_complete_empty_proof(self, grant: ReconciliationGrant, request_digest: str, authority_scope_ref: str, evidence_ref: str) -> RetrievalCompletenessProof:
+        current = self.store.current_snapshot()
+        if not current or current[0] != grant:
+            raise SupervisorError("RETRIEVAL_PROOF_ISSUANCE_REQUIRES_CURRENT_RECONCILIATION")
+        return self.store.issue_retrieval_complete_empty(current[1], grant, request_digest, authority_scope_ref, evidence_ref)
+
     def resolve_recall(self, grant: ReconciliationGrant, request_digest: str, proof: RetrievalCompletenessProof | None) -> SupervisorReceipt:
         current = self.store.current_snapshot()
-        if not current or current[0] != grant or proof is None or not proof.validates(current[1], grant, request_digest):
+        if not current or current[0] != grant or proof is None:
             return SupervisorReceipt(Decision.UNKNOWN, self.state, "RETRIEVAL_COMPLETENESS_UNPROVEN", process_compliance="INCOMPLETE")
+        if not proof.structurally_matches(current[1], grant, request_digest):
+            return SupervisorReceipt(Decision.UNKNOWN, self.state, "RETRIEVAL_COMPLETENESS_UNPROVEN", process_compliance="INCOMPLETE")
+        if not self.store.consume_retrieval_proof(proof, current[1], grant, request_digest):
+            return SupervisorReceipt(Decision.UNKNOWN, self.state, "RETRIEVAL_COMPLETENESS_UNTRUSTED", process_compliance="UNTRUSTED")
         return SupervisorReceipt(Decision.IDLE, SupervisorState.IDLE_NO_ELIGIBLE_WORK, "TRUSTED_COMPLETE_EMPTY_RETRIEVAL", process_compliance="PASS")
 
     def execute(self, plan: ExecutionPlan, lease: LeaseGrant) -> SupervisorReceipt:
-        if self.state != SupervisorState.CHECK_PRIORITY: return SupervisorReceipt(Decision.BLOCKED, self.state, "EXECUTION_NOT_AT_RECONCILED_PRIORITY_BOUNDARY")
+        if self.state != SupervisorState.CHECK_PRIORITY:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "EXECUTION_NOT_AT_RECONCILED_PRIORITY_BOUNDARY")
+        pending = self.store.highest_event()
+        if pending and pending.trusted_priority < plan.slice.priority:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "HIGHER_PRIORITY_PENDING_AT_EXECUTION")
         authorized = self.store.authorize_execution(plan, lease, self.budget_limit)
-        if not authorized: return SupervisorReceipt(Decision.BLOCKED, self.state, "EXECUTION_BOUNDARY_REJECTED")
+        if not authorized:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "EXECUTION_BOUNDARY_REJECTED")
         self.transition(SupervisorState.WORK_SLICE); return SupervisorReceipt(Decision.EXECUTED, self.state, "SYNTHETIC_ATOMIC_ACTION", process_compliance="PASS", outcome_quality="UNKNOWN")
 
     def complete_atomic_slice(self, evidence_value: int) -> SupervisorReceipt:
-        if self.state != SupervisorState.WORK_SLICE: return SupervisorReceipt(Decision.BLOCKED, self.state, "NOT_IN_WORK_SLICE")
+        if self.state != SupervisorState.WORK_SLICE:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "NOT_IN_WORK_SLICE")
         self.transition(SupervisorState.EVALUATE); self.store.set_value("no_value_streak", 0 if evidence_value else self.store.value("no_value_streak") + 1)
         return SupervisorReceipt(Decision.EXECUTED, self.state, "EVALUATED", outcome_quality="UNKNOWN")
 
-    def safepoint(self, plan: ExecutionPlan, lease: LeaseGrant) -> SupervisorReceipt: return self.checkpoint_for_preemption(plan, lease)
+    def safepoint(self, plan: ExecutionPlan, lease: LeaseGrant) -> SupervisorReceipt:
+        return self.checkpoint_for_preemption(plan, lease)
 
     def checkpoint_for_preemption(self, plan: ExecutionPlan, lease: LeaseGrant) -> SupervisorReceipt:
-        if self.state != SupervisorState.WORK_SLICE: return SupervisorReceipt(Decision.BLOCKED, self.state, "SAFEPOINT_NOT_IN_WORK_SLICE")
+        if self.state != SupervisorState.WORK_SLICE:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "SAFEPOINT_NOT_IN_WORK_SLICE")
         event = self.store.highest_event(); current = self.store.current_snapshot()
-        if not event or not current or event.priority_hint >= plan.slice.priority: return SupervisorReceipt(Decision.UNKNOWN, self.state, "NO_PREEMPTION")
-        if plan.slice.slice_id != lease.slice_id or not self.store.execution_is_active(plan, lease): return SupervisorReceipt(Decision.BLOCKED, self.state, "STALE_OR_CROSS_SLICE_FENCE")
+        if not event or not current or event.trusted_priority >= plan.slice.priority:
+            return SupervisorReceipt(Decision.UNKNOWN, self.state, "NO_PREEMPTION")
+        if plan.slice.slice_id != lease.slice_id or not self.store.execution_is_active(plan, lease):
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "STALE_OR_CROSS_SLICE_FENCE")
         grant, snapshot = current; self.transition(SupervisorState.SAFEPOINT_CHECKPOINT)
-        checkpoint = Checkpoint(checkpoint_id=digest({"plan": plan.plan_id, "event": event.semantic_key, "fence": lease.fencing_token}), mission_id="CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR", slice_id=plan.slice.slice_id, state=SupervisorState.SAFEPOINT_CHECKPOINT.value, created_at=snapshot.observed_at, control_plane_snapshot_ref=grant.identity, source_refs=(event.semantic_key,), evidence_digests=(event.payload_digest,), completed_atomic_steps=("SYNTHETIC_ATOMIC_ACTION",), open_unknowns=("OUTCOME_QUALITY_UNKNOWN",), next_atomic_action="FRESH_RECONCILE_AND_RESUME_OR_REPLAN", budget_state=f"used:{self.store.value('budget_used')}", lease_state=f"owner:{lease.owner};generation:{lease.generation}", fencing_token_ref=digest(lease.fencing_token), interruption_reason=f"priority:{int(event.priority_hint)}", resume_preconditions=("FRESH_RECONCILIATION", "AUTONOMOUS", "NO_PENDING_P0", "MATCHING_SLICE", "NEW_FENCE"), privacy_class="PUBLIC_SAFE_SYNTHETIC", snapshot_identity=grant.identity, reconciliation_generation=grant.generation, prior_lease_generation=lease.generation, exact_head=snapshot.exact_head, route_id=snapshot.route_id, domain_revision=snapshot.domain_revision)
+        checkpoint = Checkpoint(
+            checkpoint_id=digest({"plan": plan.plan_id, "event": event.semantic_key, "fence": lease.fencing_token}),
+            mission_id="CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR", slice_id=plan.slice.slice_id,
+            state=SupervisorState.SAFEPOINT_CHECKPOINT.value, created_at=snapshot.observed_at,
+            control_plane_snapshot_ref=grant.identity, source_refs=(event.semantic_key,), evidence_digests=(event.payload_digest,),
+            completed_atomic_steps=("SYNTHETIC_ATOMIC_ACTION",), open_unknowns=("OUTCOME_QUALITY_UNKNOWN",),
+            next_atomic_action="FRESH_RECONCILE_AND_RESUME_OR_REPLAN", budget_state=f"used:{self.store.value('budget_used')}",
+            lease_state=f"owner:{lease.owner};generation:{lease.generation}", fencing_token_ref=digest(lease.fencing_token),
+            interruption_reason=f"priority:{int(event.trusted_priority)}",
+            resume_preconditions=("FRESH_RECONCILIATION", "AUTONOMOUS", "NO_PENDING_P0", "MATCHING_SLICE", "NEW_FENCE"),
+            privacy_class="PUBLIC_SAFE_SYNTHETIC", snapshot_identity=grant.identity,
+            reconciliation_generation=grant.generation, prior_lease_generation=lease.generation,
+            exact_head=snapshot.exact_head, route_id=snapshot.route_id, domain_revision=snapshot.domain_revision,
+        )
         self.store.save_checkpoint(checkpoint); self.store.release_lease(lease); self.transition(SupervisorState.PAUSED_FOR_HIGHER_PRIORITY)
-        return SupervisorReceipt(Decision.PREEMPTED, self.state, "P1_PREEMPTION_AT_SAFEPOINT", checkpoint.checkpoint_id)
+        return SupervisorReceipt(Decision.PREEMPTED, self.state, "HIGHER_PRIORITY_PREEMPTION_AT_SAFEPOINT", checkpoint.checkpoint_id)
 
     def review(self, work: ReviewWorkIdentity, evidence: ReviewEvidence) -> SupervisorReceipt:
-        if self.state == SupervisorState.PAUSED_FOR_HIGHER_PRIORITY: self.transition(SupervisorState.REVIEW)
-        if self.state != SupervisorState.REVIEW: return SupervisorReceipt(Decision.BLOCKED, self.state, "REVIEW_NOT_READY")
+        if self.state == SupervisorState.PAUSED_FOR_HIGHER_PRIORITY:
+            self.transition(SupervisorState.REVIEW)
+        if self.state != SupervisorState.REVIEW:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "REVIEW_NOT_READY")
         current = self.store.current_snapshot()
-        valid = bool(current and work == evidence.work and _nonempty((evidence.target_head, evidence.ci_head, evidence.receipt_head, evidence.reviewer_source)) and work.target_head == evidence.target_head == evidence.ci_head == evidence.receipt_head == current[1].exact_head and work.reconciliation_identity == current[0].identity and work.reconciliation_generation == current[0].generation and self.store.consume_review_work(work, current[0]))
+        valid = bool(
+            current and work == evidence.work
+            and _nonempty((evidence.target_head, evidence.ci_head, evidence.receipt_head, evidence.reviewer_source))
+            and work.target_head == evidence.target_head == evidence.ci_head == evidence.receipt_head == current[1].exact_head
+            and work.reconciliation_identity == current[0].identity and work.reconciliation_generation == current[0].generation
+            and self.store.consume_review_work(work, current[0])
+        )
         if not valid:
             self.transition(SupervisorState.FAILED_CLOSED); return SupervisorReceipt(Decision.BLOCKED, self.state, "REVIEW_WORK_IDENTITY_OR_RECEIPT_MISMATCH")
         self.transition(SupervisorState.EVALUATE); return SupervisorReceipt(Decision.EXECUTED, self.state, "P1_REVIEW_EXACT_HEAD_VALID")
@@ -406,13 +635,34 @@ class SyntheticSupervisor:
         except SupervisorError:
             return SupervisorReceipt(Decision.BLOCKED, self.state, "CHECKPOINT_RESUME_PRECONDITIONS_INVALID")
         current = self.store.current_snapshot()
-        if not checkpoint or not current or current[0] != fresh: return SupervisorReceipt(Decision.BLOCKED, self.state, "FRESH_RECONCILIATION_REQUIRED")
+        if not checkpoint or not current or current[0] != fresh or fresh.generation <= checkpoint.reconciliation_generation:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "FRESH_RECONCILIATION_REQUIRED")
         _, snapshot = current
-        if checkpoint.slice_id != lease.slice_id or snapshot.governance_mode != GovernanceMode.AUTONOMOUS or snapshot.pending_p0 or checkpoint.route_id != snapshot.route_id or checkpoint.domain_revision != snapshot.domain_revision or checkpoint.snapshot_identity == fresh.identity or not checkpoint.resume_preconditions:
+        if (
+            checkpoint.slice_id != lease.slice_id
+            or snapshot.governance_mode != GovernanceMode.AUTONOMOUS
+            or snapshot.pending_p0
+            or checkpoint.route_id != snapshot.route_id
+            or checkpoint.domain_revision != snapshot.domain_revision
+            or not _REQUIRED_RESUME_PRECONDITIONS.issubset(set(checkpoint.resume_preconditions))
+        ):
             return SupervisorReceipt(Decision.BLOCKED, self.state, "CHECKPOINT_DRIFT_OR_GOVERNANCE_OR_SLICE_GATE")
-        if self.state == SupervisorState.CHECK_PRIORITY: self.transition(SupervisorState.REVIEW); self.transition(SupervisorState.EVALUATE)
-        if self.state == SupervisorState.EVALUATE: self.transition(SupervisorState.LEARN)
-        if self.state != SupervisorState.LEARN: return SupervisorReceipt(Decision.BLOCKED, self.state, "RESUME_STATE_INVALID")
+        slice_ = self.store.checkpointed_slice(checkpoint)
+        if slice_ is None:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "CHECKPOINTED_SLICE_NOT_FOUND")
+        try:
+            slice_.validate(snapshot)
+        except SupervisorError:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "CHECKPOINTED_SLICE_POLICY_DRIFT")
+        pending = self.store.highest_event()
+        if pending and pending.trusted_priority < slice_.priority:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "HIGHER_PRIORITY_PENDING_AT_RESUME")
+        if self.state == SupervisorState.CHECK_PRIORITY:
+            self.transition(SupervisorState.REVIEW); self.transition(SupervisorState.EVALUATE)
+        if self.state == SupervisorState.EVALUATE:
+            self.transition(SupervisorState.LEARN)
+        if self.state != SupervisorState.LEARN:
+            return SupervisorReceipt(Decision.BLOCKED, self.state, "RESUME_STATE_INVALID")
         self.transition(SupervisorState.RESUME_VALIDATION)
         if not self.store._lease_matches(lease) or lease.generation <= checkpoint.prior_lease_generation:
             self.transition(SupervisorState.FAILED_CLOSED); return SupervisorReceipt(Decision.BLOCKED, self.state, "STALE_OR_FORGED_OR_CROSS_SLICE_FENCE")
