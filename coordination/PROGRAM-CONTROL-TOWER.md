@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE_IMPLEMENTATION` | `GPT_ENGINEERING_WORKER` | `MEDIUM_IMPLEMENTATION` | 4 paths | epoch 142 · #393/#None |
+| `LANE-A-HARNESS-INTEGRATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 4 paths | epoch 142 · #393/#None |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -52,20 +52,21 @@
 
 > **用途**：给用户、GPT和各 Agent 看的跨线路公告板 / 总控台。
 >
-> **执行真源不是本页**。Codex/QCLAW/WorkBuddy 当前能否执行，以最新 `ACTIVE-*.yaml` 为准；GPT Engineering Worker executor substitution 以 canonical handoff route + Lane Work Claim + Issue/PR handoff 为准。
+> **执行真源不是本页**。Codex/QCLAW/WorkBuddy 当前能否执行，以最新 `ACTIVE-*.yaml` 为准；GPT Engineering Worker executor substitution 以 canonical handoff route + Lane Work Claim reservation + Issue/PR handoff 为准。
 >
 > `control_tower_issue: #310` · `boundary: NO_TRADE`
 
 ## 当前正式节奏
 
 - **R142 保留同一 Mission/Issue/epoch，但执行器已从 Codex 切为 GPT Engineering Worker**：Codex 未曾实际启动 R142，现为 `PAUSED_EXECUTOR_SUBSTITUTED / execution_allowed=false`；replacement 使用 `GPT-5.6 Sol`，仍为【项目计划模式】，先 M0 fresh reconcile + plan commit。
-- **R142 用户启动门已满足**：用户明确批准并行工程并新开 GPT 项目窗口。新窗口仍必须 fresh reconcile current main / Issue #393 / original route+task brief / Lane-A claim / substitution route，不能仅凭聊天提示词开工。
+- **Lane A 使用非执行 reservation 保留写入领空**：现有 Control Tower 的 agent enum 只识别 Codex/QCLAW/WorkBuddy，因此 Lane Work Claim 不伪造一个新的 GPT agent。它以 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE / CODEX` 锁住 R142 四个写面，而真正执行授权由 canonical GPT executor-substitution route + 用户显式启动共同提供。
+- **R142 用户启动门已满足**：用户明确批准并行工程并新开 GPT 项目窗口。新窗口仍必须 fresh reconcile current main / Issue #393 / original route+task brief / Lane-A reservation / substitution route，不能仅凭聊天提示词开工。
 - **R60 与 R142 允许并行**：R60 只写 R60 root + `.github/workflows/r60-retrieval-adversarial-benchmark.yml`；R142 只写 S0E bounded paths + `.github/workflows/global-signal-plane-r142-retrospective-intake.yml`。同一 canonical object writer 仍最多 1；local-heavy stage 最多 1；nested parallelism 禁止。
 - **QQ 继续保留态**：`ACTIVE-QCLAW-TASK.yaml` 为 `PAUSED / execution_allowed=false`。QQ 算力是可长期保留资源，GPT 能可靠完成的默认优先 GPT。
 - **所有 GPT Worker 必须真实记录身份**：`executor_role=GPT_ENGINEERING_WORKER`、`model_id=GPT-5.6 Sol` 与实际 harness/tool provenance；不得冒充历史 Codex/QCLAW executor。
 - **R142 目标不变**：历史聊天只形成候选包，不拥有今天的最终 `NEW` 判定权；必须 fresh reconcile 当前 canonical，只有真正仍有效的 durable Signals 才可经现有 R136 Gateway → S0C ledger 正式 admission，并拿到 durable receipt/read-back。`Signal != Task`，`prepared package != persisted signal`。
 - **R142 硬锁不变**：S0C source read-only；无 private/raw public write；无 private cross-window bridge；无 daemon/webhook/server/scheduler；无 W3/domain write；无 Formal Skill promotion；无 auto Task；无 production/permission/trading；无 self-merge。
-- **R60 当前仍等待独立 Reviewer 对 exact head 的最终验收**；其状态不授予 R142 任何额外权限。
+- **R60 当前仍等待独立 Reviewer 对新的 Q60-B06 修复**；其状态不授予 R142 任何额外权限。
 - **保留 finding/gate**：`R138-F01`、`R139-STAGE-B`、`R140-MODEL-VERSION-AUTHORITY`、`IAGL-R141-UNKNOWN-007`、`IAGL-STAGE-B` 继续有效。
 
 ## R60 executor-substitution evidence
@@ -81,6 +82,7 @@
 - Canonical handoff route: `coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml`
 - QCLAW current execution authority: **NONE**
 - Worker merge authority: **NONE**
+- Latest independent review: **Q60-B06 OPEN / KEEP DRAFT**
 
 ## R142 status
 
@@ -88,6 +90,8 @@
 - Task: `CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE`
 - Route epoch: `142`
 - Historical executor: `CODEX / ACTIVATED_BUT_NOT_STARTED`
+- Historical per-agent route: `PAUSED_EXECUTOR_SUBSTITUTED / execution_allowed=false`
+- Lane-A reservation: `RESERVED_IMPLEMENTATION_NON_EXECUTABLE / CODEX`
 - Replacement executor: `GPT_ENGINEERING_WORKER`
 - Required model: `GPT-5.6 Sol`
 - Substitution route: `coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml`
