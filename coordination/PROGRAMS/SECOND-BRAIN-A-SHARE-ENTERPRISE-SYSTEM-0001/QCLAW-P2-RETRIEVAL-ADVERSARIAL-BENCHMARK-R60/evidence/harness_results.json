@@ -8,8 +8,8 @@
   "regression_summary": {
     "errored": 0,
     "failed": 0,
-    "passed": 6,
-    "total": 6
+    "passed": 7,
+    "total": 7
   },
   "regressions": [
     {
@@ -33,6 +33,12 @@
     {
       "case_id": "reg-b06-missing-provenance-empty-oracle",
       "note": "missing_source_refs_error=invalid_learning_packet:conversation_provenance_missing; empty_oracle=INVALID_FIXTURE_OR_ORACLE/ERROR",
+      "observed": "FAIL_CLOSED",
+      "verdict": "PASS"
+    },
+    {
+      "case_id": "reg-b07-wrong-rejection-reason",
+      "note": "inner=UNEXPECTED_REJECTION_REASON/FAIL; rejection_code=invalid_learning_packet:conversation_provenance_missing; note=canonical build/import rejected: rejection_code=invalid_learning_packet:conversation_provenance_missing; allowed=['invalid_learning_packet:conversation_transport_visibility_denied']",
       "observed": "FAIL_CLOSED",
       "verdict": "PASS"
     },
@@ -92,14 +98,22 @@
     },
     {
       "case_id": "r60-005",
-      "note": "query_plan_multi_privacy_requires_explicit_aggregate",
+      "expected_rejection_codes": [
+        "query_plan_multi_privacy_requires_explicit_aggregate"
+      ],
+      "note": "plan validation rejected: rejection_code=query_plan_multi_privacy_requires_explicit_aggregate",
       "observed": "REJECT",
+      "rejection_code": "query_plan_multi_privacy_requires_explicit_aggregate",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-006",
-      "note": "plan rejected: query_plan_historical_valid_time_required",
+      "expected_rejection_codes": [
+        "query_plan_historical_valid_time_required"
+      ],
+      "note": "query plan rejected: rejection_code=query_plan_historical_valid_time_required",
       "observed": "REJECT",
+      "rejection_code": "query_plan_historical_valid_time_required",
       "verdict": "PASS"
     },
     {
@@ -166,8 +180,12 @@
     },
     {
       "case_id": "r60-014",
-      "note": "query_plan_truth_state_denied_or_unknown",
+      "expected_rejection_codes": [
+        "query_plan_truth_state_denied_or_unknown"
+      ],
+      "note": "plan validation rejected: rejection_code=query_plan_truth_state_denied_or_unknown",
       "observed": "REJECT",
+      "rejection_code": "query_plan_truth_state_denied_or_unknown",
       "verdict": "PASS"
     },
     {
@@ -250,14 +268,22 @@
     },
     {
       "case_id": "r60-033",
-      "note": "conversation_prompt_injection_denied",
+      "expected_rejection_codes": [
+        "conversation_prompt_injection_denied"
+      ],
+      "note": "conversation candidate build rejected: rejection_code=conversation_prompt_injection_denied",
       "observed": "REJECT",
+      "rejection_code": "conversation_prompt_injection_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-034",
-      "note": "credential_value_denied",
+      "expected_rejection_codes": [
+        "credential_value_denied"
+      ],
+      "note": "secret-shaped atom rejected: rejection_code=credential_value_denied",
       "observed": "REJECT",
+      "rejection_code": "credential_value_denied",
       "verdict": "PASS"
     },
     {
@@ -282,32 +308,52 @@
     },
     {
       "case_id": "r60-038",
-      "note": "canonical build/import fail-closed: invalid_learning_packet:conversation_transport_visibility_denied",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:conversation_transport_visibility_denied"
+      ],
+      "note": "canonical build/import rejected: rejection_code=invalid_learning_packet:conversation_transport_visibility_denied",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:conversation_transport_visibility_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-039",
-      "note": "canonical build/import fail-closed: invalid_learning_packet:knowledge_privacy_denied",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:knowledge_privacy_denied"
+      ],
+      "note": "canonical build/import rejected: rejection_code=invalid_learning_packet:knowledge_privacy_denied",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:knowledge_privacy_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-040",
-      "note": "canonical build/import fail-closed: invalid_learning_packet:knowledge_metadata_required",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:knowledge_metadata_required"
+      ],
+      "note": "canonical build/import rejected: rejection_code=invalid_learning_packet:knowledge_metadata_required",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:knowledge_metadata_required",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-041",
-      "note": "query_plan_user_scope_invalid",
+      "expected_rejection_codes": [
+        "query_plan_user_scope_invalid"
+      ],
+      "note": "plan validation rejected: rejection_code=query_plan_user_scope_invalid",
       "observed": "REJECT",
+      "rejection_code": "query_plan_user_scope_invalid",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-042",
-      "note": "query_plan_privacy_domains_invalid",
+      "expected_rejection_codes": [
+        "query_plan_privacy_domains_invalid"
+      ],
+      "note": "plan validation rejected: rejection_code=query_plan_privacy_domains_invalid",
       "observed": "REJECT",
+      "rejection_code": "query_plan_privacy_domains_invalid",
       "verdict": "PASS"
     },
     {
@@ -322,8 +368,12 @@
     },
     {
       "case_id": "r60-044",
-      "note": "plan rejected: query_plan_or_memory_time_must_be_timezone_aware",
+      "expected_rejection_codes": [
+        "query_plan_or_memory_time_must_be_timezone_aware"
+      ],
+      "note": "query plan rejected: rejection_code=query_plan_or_memory_time_must_be_timezone_aware",
       "observed": "REJECT",
+      "rejection_code": "query_plan_or_memory_time_must_be_timezone_aware",
       "verdict": "PASS"
     },
     {
@@ -364,14 +414,22 @@
     },
     {
       "case_id": "r60-049",
-      "note": "canonical build/import fail-closed: invalid_learning_packet:conversation_provenance_missing",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:conversation_provenance_missing"
+      ],
+      "note": "canonical build/import rejected: rejection_code=invalid_learning_packet:conversation_provenance_missing",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:conversation_provenance_missing",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-050",
-      "note": "plan rejected: Invalid isoformat string: 'not-a-timestamp'",
+      "expected_rejection_codes": [
+        "invalid_isoformat_string"
+      ],
+      "note": "query plan rejected: rejection_code=invalid_isoformat_string",
       "observed": "REJECT",
+      "rejection_code": "invalid_isoformat_string",
       "verdict": "PASS"
     },
     {
@@ -386,8 +444,12 @@
     },
     {
       "case_id": "r60-052",
-      "note": "conversation_alias_enrichment_closed_atom_denied",
+      "expected_rejection_codes": [
+        "conversation_alias_enrichment_closed_atom_denied"
+      ],
+      "note": "closed-atom alias enrichment rejected: rejection_code=conversation_alias_enrichment_closed_atom_denied",
       "observed": "REJECT",
+      "rejection_code": "conversation_alias_enrichment_closed_atom_denied",
       "verdict": "PASS"
     },
     {
@@ -402,8 +464,12 @@
     },
     {
       "case_id": "r60-056",
-      "note": "conversation_supersession_valid_time_invalid",
+      "expected_rejection_codes": [
+        "conversation_supersession_valid_time_invalid"
+      ],
+      "note": "supersession rejected: rejection_code=conversation_supersession_valid_time_invalid",
       "observed": "REJECT",
+      "rejection_code": "conversation_supersession_valid_time_invalid",
       "verdict": "PASS"
     },
     {
@@ -418,8 +484,12 @@
     },
     {
       "case_id": "r60-063",
-      "note": "orphan relation fail-closed: IntegrityError",
+      "expected_rejection_codes": [
+        "sqlite_foreign_key_constraint_failed"
+      ],
+      "note": "orphan relation rejected: rejection_code=sqlite_foreign_key_constraint_failed",
       "observed": "REJECT",
+      "rejection_code": "sqlite_foreign_key_constraint_failed",
       "verdict": "PASS"
     },
     {
@@ -436,8 +506,12 @@
     },
     {
       "case_id": "r60-072",
-      "note": "canonical build/import fail-closed: invalid_learning_packet:conversation_metadata_required,conversation_packet_manifest_mismatch",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:conversation_metadata_required,conversation_packet_manifest_mismatch"
+      ],
+      "note": "canonical build/import rejected: rejection_code=invalid_learning_packet:conversation_metadata_required,conversation_packet_manifest_mismatch",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:conversation_metadata_required,conversation_packet_manifest_mismatch",
       "verdict": "PASS"
     },
     {
@@ -460,26 +534,42 @@
     },
     {
       "case_id": "r60-080",
-      "note": "invalid_learning_packet:conversation_prompt_injection_denied",
+      "expected_rejection_codes": [
+        "invalid_learning_packet:conversation_prompt_injection_denied"
+      ],
+      "note": "conversation candidate build rejected: rejection_code=invalid_learning_packet:conversation_prompt_injection_denied",
       "observed": "REJECT",
+      "rejection_code": "invalid_learning_packet:conversation_prompt_injection_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-081",
-      "note": "credential_value_denied",
+      "expected_rejection_codes": [
+        "credential_value_denied"
+      ],
+      "note": "secret metadata rejected: rejection_code=credential_value_denied",
       "observed": "REJECT",
+      "rejection_code": "credential_value_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-082",
-      "note": "credential_value_denied",
+      "expected_rejection_codes": [
+        "credential_value_denied"
+      ],
+      "note": "secret-shaped atom rejected: rejection_code=credential_value_denied",
       "observed": "REJECT",
+      "rejection_code": "credential_value_denied",
       "verdict": "PASS"
     },
     {
       "case_id": "r60-083",
-      "note": "credential_value_denied",
+      "expected_rejection_codes": [
+        "credential_value_denied"
+      ],
+      "note": "secret-shaped atom rejected: rejection_code=credential_value_denied",
       "observed": "REJECT",
+      "rejection_code": "credential_value_denied",
       "verdict": "PASS"
     },
     {
