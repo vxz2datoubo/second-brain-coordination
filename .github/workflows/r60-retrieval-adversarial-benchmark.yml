@@ -154,6 +154,9 @@ jobs:
           import json
           import sys
 
+          sys.path.insert(0, "benchmark/harness")
+          from harness_rejection_contracts import EXPECTED_REJECTION_ERROR_CODES
+
           path = sys.argv[1]
           with open(path, "r", encoding="utf-8") as handle:
               data = json.load(handle)
@@ -192,6 +195,12 @@ jobs:
               f"{regressions['reg-b06-missing-provenance-empty-oracle']['verdict']}/"
               f"{regressions['reg-b06-missing-provenance-empty-oracle']['observed']}"
           )
+          print(
+              "R60_REGRESSION_B07="
+              f"{regressions['reg-b07-wrong-rejection-reason']['verdict']}/"
+              f"{regressions['reg-b07-wrong-rejection-reason']['observed']}"
+          )
+          print(f"R60_REJECTION_REASON_BINDINGS={len(EXPECTED_REJECTION_ERROR_CODES)}")
           print(f"R60_SPEC_PENDING_COUNT={len(data['spec_pending_ids'])}")
 
           if (data["runnable_cases"], data["passed"], data["failed"], data["errored"]) != (
@@ -202,24 +211,46 @@ jobs:
           ):
               raise SystemExit("unexpected runnable benchmark counts")
           if data["regression_summary"] != {
-              "total": 6,
-              "passed": 6,
+              "total": 7,
+              "passed": 7,
               "failed": 0,
               "errored": 0,
           }:
-              raise SystemExit("B01/B02/B03/B06/R118/R119 regression drift")
+              raise SystemExit("B01/B02/B03/B06/B07/R118/R119 regression drift")
           if results["r60-019"]["verdict"] != "PASS":
               raise SystemExit("r60-019 must remain a real PASS")
           r49 = results["r60-049"]
           if not (
               r49["verdict"] == "PASS"
               and r49["observed"] == "REJECT"
-              and "conversation_provenance_missing" in r49.get("note", "")
+              and r49.get("rejection_code") == "invalid_learning_packet:conversation_provenance_missing"
           ):
               raise SystemExit("r60-049 must honestly fail closed on missing provenance")
           b06 = regressions["reg-b06-missing-provenance-empty-oracle"]
           if not (b06["verdict"] == "PASS" and b06["observed"] == "FAIL_CLOSED"):
               raise SystemExit("Q60-B06 regression must prove both fail-closed paths")
+          b07 = regressions["reg-b07-wrong-rejection-reason"]
+          if not (b07["verdict"] == "PASS" and b07["observed"] == "FAIL_CLOSED"):
+              raise SystemExit("Q60-B07 regression must prove wrong rejection reason cannot PASS")
+
+          for case_id, allowed in EXPECTED_REJECTION_ERROR_CODES.items():
+              item = results.get(case_id)
+              if item is None:
+                  raise SystemExit(f"missing rejection-bound runnable case: {case_id}")
+              if not (
+                  item.get("verdict") == "PASS"
+                  and item.get("observed") == "REJECT"
+                  and item.get("rejection_code") in allowed
+                  and tuple(item.get("expected_rejection_codes", ())) == tuple(allowed)
+              ):
+                  raise SystemExit(
+                      "rejection-reason binding mismatch: "
+                      f"{case_id} observed={item.get('observed')} "
+                      f"verdict={item.get('verdict')} "
+                      f"code={item.get('rejection_code')} allowed={allowed}"
+                  )
+          print("R60_ALL_EXCEPTION_REJECTION_BINDINGS=PASS")
+
           if results["r60-013"]["verdict"] != "FAIL":
               raise SystemExit("r60-013 must remain unresolved FAIL without contract evidence")
           if results["r60-025"]["verdict"] != "FAIL":
