@@ -1,4 +1,4 @@
-schema_version: "142.1"
+schema_version: "143.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
 active_issue: 393
@@ -6,15 +6,15 @@ task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
 parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 route_epoch: 142
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】R142 Retrospective Signal Intake Bridge"
-status: "READY_AFTER_ACTIVATION_MERGE"
-execution_allowed: true
-automatic_resume_within_task: true
+mode_label: "【Codex模式：项目计划模式】R142 Retrospective Signal Intake Bridge / executor substituted"
+status: "PAUSED_EXECUTOR_SUBSTITUTED"
+execution_allowed: false
+automatic_resume_within_task: false
 second_user_start_command_required: true
 intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: true
-runtime_code_scope: "BOUNDED_S0E_RETROSPECTIVE_INGRESS_ONLY"
+runtime_code_change_allowed: false
+runtime_code_scope: "CODEX_EXECUTOR_PAUSED / GPT_SUBSTITUTION_ROUTE_OWNS_CONTINUATION"
 
 canonical_predecessor_route_epoch: 141
 canonical_predecessor_task: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
@@ -22,6 +22,7 @@ canonical_predecessor_closure_main: "408e283697290c03d9b4121543934337d938c99a"
 canonical_predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
 canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
 canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
+executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
 activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
 implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
 implementation_pr: null
@@ -40,13 +41,30 @@ predecessor_completion:
   acceptance: "ACCEPTED_STAGE_A_ONLY / EXACT_HEAD_ACCEPTED"
   route_disposition: "R141_COMPLETED_HISTORY_ONLY / NON_EXECUTABLE"
 
+executor_substitution:
+  status: "AUTHORIZED / CODEX_PAUSED / GPT_ENGINEERING_WORKER_CONTINUATION"
+  task_identity_retained: true
+  historical_executor: "CODEX"
+  historical_executor_started_r142: false
+  replacement_executor_role: "GPT_ENGINEERING_WORKER"
+  required_model_id: "GPT-5.6 Sol"
+  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+  same_issue: 393
+  same_branch: "codex/r142-retrospective-signal-intake-bridge"
+  same_route_epoch: 142
+  user_authorized_parallel_start_at: "2026-08-18T12:29:00+08:00"
+  replacement_start_gate_satisfied: true
+  provenance_rule: >-
+    Historical Codex activation provenance remains historical Codex provenance. New implementation commits, receipts and handoff
+    evidence must record executor_role=GPT_ENGINEERING_WORKER, model_id=GPT-5.6 Sol and actual harness/tool provenance; no Codex impersonation.
+
 release_phase:
-  phase: "R142_ACTIVATION_READY_AFTER_MERGE"
-  execution_state: "WAITING_FOR_ACTIVATION_PR_TO_BECOME_CANONICAL_AND_USER_START_COMMAND"
-  active_codex_lease: "RESERVED_AFTER_CANONICAL_MERGE"
+  phase: "R142_GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED"
+  execution_state: "CODEX_PAUSED / GPT_ENGINEERING_WORKER_MAY_START_AFTER_FRESH_CANONICAL_RECONCILE"
+  active_codex_lease: "RELEASED_TO_EXECUTOR_SUBSTITUTION"
   hard_rule: >-
-    Do not execute from an unmerged activation branch. After this activation state is canonical on main, the user must send a
-    direct R142 start instruction. Codex must fresh-reconcile main/route/claim/branch before creating implementation work.
+    Codex must not execute R142 while substitution is active. The replacement GPT Engineering Worker must fresh-reconcile current
+    main, Issue #393, original route/task brief, Lane-A claim and the canonical substitution route before creating implementation work.
 
 allowed_write_paths:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
@@ -64,6 +82,14 @@ signal_tower_operating_mode:
   daemon_required_for_normal_use: false
   formal_task_release_requires_fresh_preflight: true
 
+parallel_execution:
+  r60_parallel_execution_allowed: true
+  r60_write_overlap: "NONE_EXPECTED"
+  local_heavy_stage_concurrency_max: 1
+  same_canonical_object_writers_max: 1
+  nested_parallelism: "FORBIDDEN"
+  collision_rule: "Fail closed or downgrade to bounded lightweight work if a real local-heavy or same-object collision appears."
+
 retained_findings:
   R138-F01: "RETAINED / required before any future production promotion"
   R139-STAGE-B: "NOT_AUTHORIZED / separate AI Film domain-owned processor+writer gate"
@@ -72,6 +98,7 @@ retained_findings:
   IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
 
 hard_locks:
+  - "No Codex execution while executor substitution is active."
   - "No private/raw conversation body in the public repository."
   - "No private ChatGPT cross-window service/bridge."
   - "No daemon/webhook/server/scheduler/polling."
@@ -86,4 +113,6 @@ hard_locks:
   - "No trading/accounts/orders/funds."
 
 completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
-next_command: "AFTER_ACTIVATION_MERGE_USER_SEND_DIRECT_R142_START_COMMAND"
+next_command: "USER_SEND_R142_GPT_ENGINEERING_WORKER_HANDOFF / FRESH_RECONCILE_THEN_M0_PLAN"
+updated_by: "GPT"
+updated_at: "2026-08-18T12:29:00+08:00"
