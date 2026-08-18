@@ -83,13 +83,32 @@ jobs:
           set -euo pipefail
           CANONICAL_WORKTREE="$RUNNER_TEMP/r142-canonical-main-${{ matrix.python-version }}"
           M4_OUTPUT="$RUNNER_TEMP/r142-real-m4-py${{ matrix.python-version }}.json"
+          M4_LOG="$RUNNER_TEMP/r142-real-m4-py${{ matrix.python-version }}.log"
+          echo "R142_M4_OUTPUT=$M4_OUTPUT" >> "$GITHUB_ENV"
+          echo "R142_M4_LOG=$M4_LOG" >> "$GITHUB_ENV"
           trap 'git worktree remove --force "$CANONICAL_WORKTREE" >/dev/null 2>&1 || true' EXIT
           git worktree add --detach "$CANONICAL_WORKTREE" "$R142_BASE_SHA"
           export R142_CANONICAL_WORKTREE="$CANONICAL_WORKTREE"
           export R142_M4_OUTPUT="$M4_OUTPUT"
-          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142/run_real_m4.py
+          set +e
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142/run_real_m4.py >"$M4_LOG" 2>&1
+          RC=$?
+          set -e
+          cat "$M4_LOG"
+          if [ "$RC" -ne 0 ]; then
+            exit "$RC"
+          fi
           test -s "$M4_OUTPUT"
-          echo "R142_M4_OUTPUT=$M4_OUTPUT" >> "$GITHUB_ENV"
+
+      - name: Upload M4 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r142-m4-diagnostics-py${{ matrix.python-version }}
+          path: |
+            ${{ env.R142_M4_LOG }}
+            ${{ env.R142_M4_OUTPUT }}
+          if-no-files-found: error
 
       - name: Allowlist public safety and diff proof
         shell: bash
