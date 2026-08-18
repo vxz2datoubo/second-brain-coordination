@@ -173,12 +173,21 @@ jobs:
               f"{results['r60-019']['verdict']}/{results['r60-019']['observed']}"
           )
           print(
+              "R60_CASE_r60-049="
+              f"{results['r60-049']['verdict']}/{results['r60-049']['observed']}"
+          )
+          print(
               "R60_CASE_r60-013="
               f"{results['r60-013']['verdict']}/{results['r60-013']['observed']}"
           )
           print(
               "R60_CASE_r60-025="
               f"{results['r60-025']['verdict']}/{results['r60-025']['observed']}"
+          )
+          print(
+              "R60_REGRESSION_B06="
+              f"{regressions['reg-b06-missing-provenance-empty-oracle']['verdict']}/"
+              f"{regressions['reg-b06-missing-provenance-empty-oracle']['observed']}"
           )
           print(f"R60_SPEC_PENDING_COUNT={len(data['spec_pending_ids'])}")
 
@@ -190,14 +199,24 @@ jobs:
           ):
               raise SystemExit("unexpected runnable benchmark counts")
           if data["regression_summary"] != {
-              "total": 5,
-              "passed": 5,
+              "total": 6,
+              "passed": 6,
               "failed": 0,
               "errored": 0,
           }:
-              raise SystemExit("B01/B02/B03/R118/R119 regression drift")
+              raise SystemExit("B01/B02/B03/B06/R118/R119 regression drift")
           if results["r60-019"]["verdict"] != "PASS":
               raise SystemExit("r60-019 must remain a real PASS")
+          r49 = results["r60-049"]
+          if not (
+              r49["verdict"] == "PASS"
+              and r49["observed"] == "REJECT"
+              and "conversation_provenance_missing" in r49.get("note", "")
+          ):
+              raise SystemExit("r60-049 must honestly fail closed on missing provenance")
+          b06 = regressions["reg-b06-missing-provenance-empty-oracle"]
+          if not (b06["verdict"] == "PASS" and b06["observed"] == "FAIL_CLOSED"):
+              raise SystemExit("Q60-B06 regression must prove both fail-closed paths")
           if results["r60-013"]["verdict"] != "FAIL":
               raise SystemExit("r60-013 must remain unresolved FAIL without contract evidence")
           if results["r60-025"]["verdict"] != "FAIL":
