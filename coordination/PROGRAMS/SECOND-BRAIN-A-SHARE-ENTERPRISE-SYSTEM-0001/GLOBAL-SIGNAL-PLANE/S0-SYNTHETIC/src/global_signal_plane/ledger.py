@@ -11,6 +11,11 @@ from typing import Any, Mapping
 from .models import SignalEvent, SignalLink, SignalPlaneError
 
 
+REDUCER_VERSION = "S0C-3"
+_OPERATIONAL_SIGNAL_KINDS = frozenset({"STATUS", "REVOCATION"})
+_LIFECYCLE_EVENT_TYPES = frozenset({"SIGNAL_CLOSURE_ASSESSMENT", "EXPLICIT_SIGNAL_REVOKE"})
+
+
 def _canonical(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -170,7 +175,6 @@ class DurableSignalLedger:
             raise
         except sqlite3.IntegrityError as exc:
             self._rollback()
-            # A legacy or externally-written store must still fail closed rather than admit a second delivery.
             raise SignalPlaneError("DURABLE_IDEMPOTENCY_CONSTRAINT", "/idempotency_key", "durable uniqueness constraint rejected append") from exc
         if update_projection:
             self._rebuild_after_input()
@@ -197,7 +201,6 @@ class DurableSignalLedger:
         return {"status": "ADMITTED", "input_revision": revision, "effective_state_changed": True}
 
     def _rebuild_after_input(self) -> dict[str, Any]:
-        # Input is already durable; retry only a bounded CAS race, never rewrite history.
         for _ in range(3):
             try:
                 return self.rebuild_projection(expected_version=self.current_projection_version())
@@ -222,8 +225,13 @@ class DurableSignalLedger:
         return int(row["projection_version"]) if row else 0
 
     def current_projection(self) -> dict[str, Any] | None:
-        row = self.connection.execute("SELECT projection_json FROM projection_meta WHERE singleton = 1").fetchone()
-        return json.loads(row["projection_json"]) if row else None
+        row = self.connection.execute("SELECT projection_version, projection_json FROM projection_meta WHERE singleton = 1").fetchone()
+        if row is None:
+            return None
+        projection = json.loads(row["projection_json"])
+        if projection.get("reducer_version") != REDUCER_VERSION:
+            return self.rebuild_projection(expected_version=int(row["projection_version"]))
+        return projection
 
     def attempt_merge(self, left: SignalEvent, right: SignalEvent) -> dict[str, Any]:
         """No automatic cluster merge: incompatible domain/authority/touch needs review."""
@@ -257,10 +265,27 @@ class DurableSignalLedger:
     def authority_observation(self) -> dict[str, Any]:
         return self.boundary.snapshot()
 
+    @staticmethod
+    def _is_semantic_origin(event: Mapping[str, Any]) -> bool:
+        return event.get("event_type") not in _LIFECYCLE_EVENT_TYPES and event.get("signal_kind") not in _OPERATIONAL_SIGNAL_KINDS
+
     def _reduce(self) -> dict[str, Any]:
+        history = self.history()
+        semantic_origin: dict[str, str] = {}
+        semantic_conflicts: set[str] = set()
+        for event in history:
+            if not self._is_semantic_origin(event):
+                continue
+            key, kind = event["signal_id"], str(event["signal_kind"])
+            prior = semantic_origin.get(key)
+            if prior is None:
+                semantic_origin[key] = kind
+            elif prior != kind:
+                semantic_conflicts.add(key)
+
         signals: dict[str, dict[str, Any]] = {}
         ranks = {"NOT_STARTED": 0, "AUTHORIZED": 1, "EXECUTING": 2, "REVIEW": 3, "DONE": 4, "BLOCKED": 4, "CANCELLED": 5}
-        for event in self.history():
+        for event in history:
             key = event["signal_id"]
             order = event.get("source_sequence") if event.get("source_sequence") is not None else event["ledger_offset"]
             current = signals.get(key)
@@ -269,23 +294,50 @@ class DurableSignalLedger:
                 continue
             if current and ranks[event["execution_state"]] < ranks[current["execution_state"]] and event["execution_state"] not in {"CANCELLED", "BLOCKED"}:
                 continue
-            signals[key] = {"signal_id": key, "planning_state": event["planning_state"], "execution_state": event["execution_state"], "epistemic_state": event["epistemic_state"], "source_order": order, "provenance_event_refs": sorted(set((current or {}).get("provenance_event_refs", []) + [event["event_id"]]))}
+            signals[key] = {
+                "signal_id": key,
+                "signal_kind": semantic_origin.get(key, str(event["signal_kind"])),
+                "planning_state": event["planning_state"],
+                "execution_state": event["execution_state"],
+                "epistemic_state": event["epistemic_state"],
+                "source_order": order,
+                "provenance_event_refs": sorted(set((current or {}).get("provenance_event_refs", []) + [event["event_id"]])),
+            }
             for target in event["revokes_refs"]:
                 if target in signals:
                     signals[target]["planning_state"] = "SUPERSEDED"
                     signals[target]["execution_state"] = "CANCELLED"
+
+        for key in semantic_conflicts:
+            if key in signals:
+                signals[key]["planning_state"] = "CONFLICTED"
+                signals[key]["epistemic_state"] = "NEEDS_REVALIDATION"
+
         links = [json.loads(row["record_json"]) for row in self.connection.execute("SELECT record_json FROM signal_links ORDER BY link_id")]
-        return {"reducer_version": "S0C-2", "ledger_watermark": len(self.history()), "input_revision": self.input_revision(), "signals": [signals[key] for key in sorted(signals)], "links": links, "clusters": [], "views": self._views(signals)}
+        return {
+            "reducer_version": REDUCER_VERSION,
+            "ledger_watermark": len(history),
+            "input_revision": self.input_revision(),
+            "signals": [signals[key] for key in sorted(signals)],
+            "links": links,
+            "clusters": [],
+            "views": self._views(signals),
+        }
 
     @staticmethod
     def _views(signals: Mapping[str, Mapping[str, Any]]) -> dict[str, list[str]]:
         result = {name: [] for name in ("OPEN", "BLOCKED", "SUPERSEDED", "CLOSED_NO_ACTION", "NEEDS_REVALIDATION")}
         for signal_id, state in signals.items():
-            if state["planning_state"] == "SUPERSEDED": result["SUPERSEDED"].append(signal_id)
-            elif state["execution_state"] == "BLOCKED": result["BLOCKED"].append(signal_id)
-            elif state["planning_state"] == "CLOSED_NO_ACTION": result["CLOSED_NO_ACTION"].append(signal_id)
-            elif state["epistemic_state"] == "NEEDS_REVALIDATION": result["NEEDS_REVALIDATION"].append(signal_id)
-            else: result["OPEN"].append(signal_id)
+            if state["planning_state"] == "SUPERSEDED":
+                result["SUPERSEDED"].append(signal_id)
+            elif state["execution_state"] == "BLOCKED":
+                result["BLOCKED"].append(signal_id)
+            elif state["planning_state"] == "CLOSED_NO_ACTION":
+                result["CLOSED_NO_ACTION"].append(signal_id)
+            elif state["epistemic_state"] == "NEEDS_REVALIDATION":
+                result["NEEDS_REVALIDATION"].append(signal_id)
+            else:
+                result["OPEN"].append(signal_id)
         return result
 
     def rebuild_projection(self, *, expected_version: int | None = None) -> dict[str, Any]:

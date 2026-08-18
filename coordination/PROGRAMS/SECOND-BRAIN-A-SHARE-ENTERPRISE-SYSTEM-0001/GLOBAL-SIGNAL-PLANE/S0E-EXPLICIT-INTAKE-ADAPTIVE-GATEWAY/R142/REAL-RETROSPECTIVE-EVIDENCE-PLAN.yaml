@@ -1,0 +1,138 @@
+schema_version: R142RealRetrospectiveEvidencePlan/v2
+task_id: CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE
+canonical_main: '8780d457997914632507eed03e54a1c685444aba'
+evidence_derivation_policy:
+  direction: "SOURCE_AND_CURRENT_CANONICAL_EVIDENCE -> VERIFIED_FACTS -> DISPOSITION"
+  expected_oracle_authoritative: false
+  expected_oracle_used_for_fact_selection: false
+  expected_oracle_used_for_evidence_slot_selection: false
+  oracle_mismatch_is_failure: false
+  unverified_fact_behavior: "NO_POSITIVE_EVIDENCE / NEEDS_REVALIDATION"
+  domain_only_rule: "requires DOMAIN_CURRENT_ONLY fact from domain-current evidence; shared architecture alone is insufficient"
+  satisfied_rule: "requires CURRENT_CAPABILITY_SATISFIED fact backed by machine-checkable implementation/current capability predicates"
+  canonical_rule: "requires CURRENT_CANONICAL_MATCH fact backed by exact current-main content predicates"
+  new_rule: "requires CURRENT_UNMET fact plus sealed R137/exact-main/S0C binding"
+paths:
+  ARCH: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml
+  CONTRACTS: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml
+  GOVERNANCE: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml
+  ROUTER: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml
+  TRACE: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/TRACE-LEDGER-PRIVACY-CONTRACT.yaml
+  CROSS_PROJECT: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml
+  RECON_RECEIPT: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/reconciliation.py
+  REGRESSION: coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml
+  R133: coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml
+  S0C_MODELS: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/models.py
+  S0C_LEDGER: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py
+  S0D_ADAPTER: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/src/global_signal_shadow/adapter.py
+  GATEWAY: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py
+  LIVE_PROVIDER: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/live_observation_provider.py
+  CONTROL_TOWER: coordination/PROGRAM-CONTROL-TOWER.md
+  ACTIVE_TASK: coordination/ACTIVE-CODEX-TASK.yaml
+  ACTIVE_LANES: coordination/ACTIVE-PROGRAM-LANES.yaml
+  CLAIMS: coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml
+fact_catalog:
+  F-UNIFIED-ENTRY: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["single global Signal intake entry","ONE_SIGNAL_TOWER / TWO_INTERNAL_PLANES"]}]}
+  F-CAPTURE-FIRST: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["capture-first/formalize-later","SignalEvent intake for ideas/requirements/bugs/findings/risks/opportunities/dependencies/outcomes/corrections"]}]}
+  F-GLOBAL-RECONCILIATION: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["Global reconciliation before formal task release","NO VALID GLOBAL RECONCILIATION RECEIPT"]}]}
+  F-CROSS-DOMAIN-SYNERGY: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["CROSS_PROJECT_CAPABILITY_CANDIDATE","cross-domain"]}]}
+  F-MULTI-SOURCE-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"CONTRACTS","contains_all":["captures ideas, requests, evidence, task/report/review/merge state","source_type"]}]}
+  F-SIGNAL-EVENT-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"CONTRACTS","contains_all":["SignalEvent_v1:","signal_kind"]},{"alias":"S0C_MODELS","contains_all":["class SignalEvent","REQUIRED_EVENT_FIELDS"]}]}
+  F-PUBLIC-SAFE-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"CONTRACTS","contains_all":["public_repo_default","private_raw_content"]},{"alias":"S0C_MODELS","contains_all":["FORBIDDEN_FIELD_NAMES","PRIVATE_OR_SECRET_FIELD_FORBIDDEN"]},{"alias":"GATEWAY","contains_all":["public_safe","PRIVATE_OR_SECRET_FIELD_FORBIDDEN"]}]}
+  F-BROAD-TAXONOMY: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"CONTRACTS","contains_all":["signal_kind_taxonomy_candidate","LEARNING_CANDIDATE","OPPORTUNITY","CORRECTION"]}]}
+  F-RELATION-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"CONTRACTS","contains_all":["SignalLink_v1:","DUPLICATE","CROSS_DOMAIN_TRANSFER_CANDIDATE"]},{"alias":"S0C_MODELS","contains_all":["class SignalLink","RELATION_TYPES"]},{"alias":"S0C_LEDGER","contains_all":["def append_link","signal_links"]}]}
+  F-IDEMPOTENCY-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"CONTRACTS","contains_all":["idempotency_contract:","IDEMPOTENCY_KEY_COLLISION"]},{"alias":"S0C_LEDGER","contains_all":["UNIQUE(idempotency_key)","IDEMPOTENCY_KEY_COLLISION","IDEMPOTENT_DUPLICATE"]}]}
+  F-OMISSION-REVOCATION-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"CONTRACTS","contains_all":["omission is not revocation","revokes_refs"]},{"alias":"GATEWAY","contains_all":["def omission","OMISSION_NOOP","def close_signal"]},{"alias":"S0C_LEDGER","contains_all":["for target in event[\"revokes_refs\"]","SUPERSEDED"]}]}
+  F-FINGERPRINT-UNRESOLVED: {"fact_class":"UNRESOLVED_CURRENT_STATE","checks":[{"alias":"ARCH","contains_all":["PlanningIntentFingerprint","NOT_FROZEN","MODIFY_LATER"]}]}
+  F-PLANNING-AXIS-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_MODELS","contains_all":["PLANNING_STATES","CAPTURED","CLOSED_NO_ACTION"]},{"alias":"S0C_LEDGER","contains_all":["planning_state","def _views"]}]}
+  F-EXECUTION-AXIS-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_MODELS","contains_all":["EXECUTION_STATES","AUTHORIZED","CANCELLED"]},{"alias":"S0C_LEDGER","contains_all":["execution_state","MISSING_EXECUTION_AUTHORIZATION"]}]}
+  F-EPISTEMIC-AXIS-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_MODELS","contains_all":["EPISTEMIC_STATES","NEEDS_REVALIDATION"]},{"alias":"S0C_LEDGER","contains_all":["epistemic_state","NEEDS_REVALIDATION"]}]}
+  F-SIGNAL-NOT-TASK-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"GOVERNANCE","contains_all":["signal_is_not_task: true","No formal task may be released"]},{"alias":"S0C_LEDGER","contains_all":["def attempt_execution_authorization","MISSING_EXECUTION_AUTHORIZATION"]}]}
+  F-TRIGGER-MATRIX-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["mandatory_global_scan_triggers:","BEFORE_NEW_FORMAL_TASK_PUBLICATION","AFTER_MERGE_OR_CLOSE"]}]}
+  F-SCAN-SURFACES-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["minimum_scan_surfaces:","github_issue_pr_exact_head_review_merge_ci_current_main","pending_user_approvals_and_revocations"]}]}
+  F-SCAN-STRATEGY-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH"]},{"alias":"GOVERNANCE","contains_all":["GLOBAL_SHALLOW","TARGETED_DEEP","CONDITIONAL_RESEARCH"]}]}
+  F-R133-DRIFT-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"R133","contains_all":["CROSS_WINDOW_STATE_DRIFT","route_status: \"DONE\""]},{"alias":"RECON_RECEIPT","contains_all":["CROSS_WINDOW_STATE_DRIFT","ROUTE_PROGRAM_LANE_DRIFT"]}]}
+  F-STALE-HEAD-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"RECON_RECEIPT","contains_all":["STALE_REVIEW_HEAD","pr_head"]},{"alias":"LIVE_PROVIDER","contains_all":["head_sha","pull_request_number"]}]}
+  F-ROUTE-DRIFT-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"RECON_RECEIPT","contains_all":["ROUTE_WORKCLAIM_DRIFT","ROUTE_PROGRAM_LANE_DRIFT"]}]}
+  F-MERGE-STATE-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"RECON_RECEIPT","contains_all":["STALE_PR_STATE","pr_state"]},{"alias":"LIVE_PROVIDER","contains_all":["merged","pr_state"]}]}
+  F-AGENT-DOUBLE-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"RECON_RECEIPT","contains_all":["same_agent_double_booked","SAME_AGENT_DOUBLE_BOOKED"]}]}
+  F-SHARED-COLLISION-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"CONTRACTS","contains_all":["SHARED_SURFACE","AUTHORITY_COLLISION","MUST_SERIALIZE"]}]}
+  F-CONTROL-AUTH-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_MODELS","contains_all":["CONTROL_TOWER_310","MISSING_EXECUTION_AUTHORIZATION"]},{"alias":"S0C_LEDGER","contains_all":["def attempt_execution_authorization","MISSING_EXECUTION_AUTHORIZATION"]}]}
+  F-W3-TRUTH-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["knowledge_memory_lifecycle: W3_SECOND_BRAIN","W3 continuity retrieval"]}]}
+  F-SIGNAL-POINTER-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["knowledge_memory_lifecycle: W3_SECOND_BRAIN","domain_truth: DOMAIN_REPOSITORIES","PRE_MISSION_SIGNAL_PLANE"]}]}
+  F-W3-RETRIEVAL-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["W3 continuity retrieval","Signal Plane may request relevant W3 context by ref"]}]}
+  F-DOMAIN-TRUTH-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"CONTRACTS","contains_all":["domain_truth: DOMAIN_REPOSITORIES","cross_project_write: \"not authorized by this contract\""]}]}
+  F-CROSS-PROJECT-ADAPTER-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0D_ADAPTER","contains_all":["class ReadOnlyExactCommitAdapter","SOURCE_COMMIT_DRIFT","CROSS_REPO_WRITE_FORBIDDEN","PROJECT_INDEX.yaml"]}]}
+  F-RECEIPT-STALE-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"RECON_RECEIPT","contains_all":["receipt_fingerprint","STALE_MAIN_SNAPSHOT","STALE_LEDGER_WATERMARK","DOMAIN_SNAPSHOT_STALE"]},{"alias":"GOVERNANCE","contains_all":["stale_receipt_used_after_merge","no material receipt invalidation"]}]}
+  F-FALSE-MERGE-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_LEDGER","contains_all":["def attempt_merge","SEMANTIC_FALSE_MERGE_BLOCKED","MERGE_REVIEW_REQUIRED"]}]}
+  F-FLOOD-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_LEDGER","contains_all":["capacity_limit","BACKPRESSURE_DEFERRED","deferred_events"]},{"alias":"GOVERNANCE","contains_all":["capacity_and_flood_control","backpressure: REQUIRED_BEFORE_RUNTIME"]}]}
+  F-AGING-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"GOVERNANCE","contains_all":["aging_does_not_equal_authorization","starvation_visibility"]}]}
+  F-PRIORITY-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"GOVERNANCE","contains_all":["priority_vector_candidate","no_single_magic_score","age_or_starvation"]}]}
+  F-MEGA-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["second global W3 / second Control Tower / second Trace Ledger / mega-agent","REJECT_WITH_REASON"]}]}
+  F-NEGATIVE-TRANSFER-IMPL: {"fact_class":"CURRENT_CAPABILITY_SATISFIED","checks":[{"alias":"S0C_LEDGER","contains_all":["def attempt_cross_domain_promotion","CROSS_DOMAIN_TEST_REQUIRED"]},{"alias":"CROSS_PROJECT","contains_all":["domain success is not sufficient for shared promotion","negative-control domain"]}]}
+  F-REVERSIBILITY-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"GOVERNANCE","contains_all":["FULLY_REVERSIBLE","PARTIALLY_REVERSIBLE","COMPENSATABLE","IRREVERSIBLE"]}]}
+  F-TRACE-REUSE-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"GOVERNANCE","contains_all":["reuse_trace_ledger: true","no_second_raw_trace_store: true"]}]}
+  F-PREPOST-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"R133","contains_all":["before task publication","after task approval","before selecting the next task"]},{"alias":"ARCH","contains_all":["BEFORE_MERGE_OR_CLOSE","AFTER_MERGE_OR_CLOSE"]}]}
+  F-CRASH-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"GOVERNANCE","contains_all":["crash-during-ingest recovery","crash-during-reconciliation recovery","replay after reducer upgrade"]},{"alias":"CONTRACTS","contains_all":["crash_recovery","REPLAY_FROM_DURABLE_EVENT_HISTORY_OR_LAST_VERIFIED_SNAPSHOT"]}]}
+  F-AI-FILM-DOMAIN-UNRESOLVED: {"fact_class":"UNRESOLVED_CURRENT_STATE","checks":[{"alias":"CROSS_PROJECT","contains_all":["current_cross_repo_runtime_binding: NONE","FUTURE_DOMAIN_CONSUMER / CONTINUE_INDEPENDENT_DEVELOPMENT","no_cross_repo_runtime_binding_yet: true"]}]}
+  F-REVERSIBLE-BINDING-CANONICAL: {"fact_class":"CURRENT_CANONICAL_MATCH","checks":[{"alias":"ARCH","contains_all":["ReversibleChangeSet","pre-Mission SignalEvent layer"]}]}
+candidate_fact_bindings:
+  ST-A1-UNIFIED-GLOBAL-INTAKE: {fact_ids: [F-UNIFIED-ENTRY]}
+  ST-A2-CAPTURE-FIRST-FORMALIZE-LATER: {fact_ids: [F-CAPTURE-FIRST]}
+  ST-A3-FRESH-GLOBAL-RECONCILE-BEFORE-WORK: {fact_ids: [F-GLOBAL-RECONCILIATION]}
+  ST-A4-CROSS-DOMAIN-SYNERGY-DISCOVERY: {fact_ids: [F-CROSS-DOMAIN-SYNERGY]}
+  ST-B1-MULTI-WINDOW-AGENT-SOURCE-COVERAGE: {fact_ids: [F-MULTI-SOURCE-CANONICAL]}
+  ST-B2-RICH-SIGNAL-EVENT-CONTRACT: {fact_ids: [F-SIGNAL-EVENT-IMPL]}
+  ST-B3-PUBLIC-SAFE-CONTENT-CONTROL-SEPARATION: {fact_ids: [F-PUBLIC-SAFE-IMPL]}
+  ST-B4-BROAD-SIGNAL-KIND-TAXONOMY: {fact_ids: [F-BROAD-TAXONOMY]}
+  ST-C1-SIGNAL-RELATION-GRAPH: {fact_ids: [F-RELATION-IMPL]}
+  ST-C2-DUPLICATE-PRESERVES-PROVENANCE: {fact_ids: [F-IDEMPOTENCY-IMPL]}
+  ST-C3-OMISSION-IS-NOT-REVOCATION: {fact_ids: [F-OMISSION-REVOCATION-IMPL]}
+  ST-C4-SEMANTIC-WORK-FINGERPRINT-CANDIDATE: {fact_ids: [F-FINGERPRINT-UNRESOLVED]}
+  ST-D1-PLANNING-LIFECYCLE-AXIS: {fact_ids: [F-PLANNING-AXIS-IMPL]}
+  ST-D2-EXECUTION-LIFECYCLE-SEPARATE: {fact_ids: [F-EXECUTION-AXIS-IMPL]}
+  ST-D3-EPISTEMIC-LIFECYCLE-SEPARATE: {fact_ids: [F-EPISTEMIC-AXIS-IMPL]}
+  ST-D4-SIGNAL-BEFORE-MISSION-NOT-TASK: {fact_ids: [F-SIGNAL-NOT-TASK-IMPL]}
+  ST-E1-RECONCILIATION-TRIGGER-MATRIX: {fact_ids: [F-TRIGGER-MATRIX-CANONICAL]}
+  ST-E2-GLOBAL-SCAN-SURFACE-COVERAGE: {fact_ids: [F-SCAN-SURFACES-CANONICAL]}
+  ST-E3-SHALLOW-DELTA-TARGETED-RESEARCH: {fact_ids: [F-SCAN-STRATEGY-CANONICAL]}
+  ST-F1-CROSS-WINDOW-STATE-DRIFT: {fact_ids: [F-R133-DRIFT-IMPL]}
+  ST-F2-EXACT-HEAD-STALE-REVIEW-DETECTION: {fact_ids: [F-STALE-HEAD-IMPL]}
+  ST-F3-ROUTE-CLAIM-LANE-DRIFT: {fact_ids: [F-ROUTE-DRIFT-IMPL]}
+  ST-F4-PR-MERGE-STATE-DRIFT: {fact_ids: [F-MERGE-STATE-IMPL]}
+  ST-F5-SAME-AGENT-DOUBLE-BOOK-DETECTION: {fact_ids: [F-AGENT-DOUBLE-IMPL]}
+  ST-F6-CROSS-PROJECT-SHARED-SURFACE-COLLISION: {fact_ids: [F-SHARED-COLLISION-CANONICAL]}
+  ST-G1-CONTROL-TOWER-SOLE-EXECUTION-AUTHORITY: {fact_ids: [F-CONTROL-AUTH-IMPL]}
+  ST-H1-W3-SOLE-LONG-TERM-KNOWLEDGE-TRUTH: {fact_ids: [F-W3-TRUTH-CANONICAL]}
+  ST-H2-SIGNAL-PLANE-POINTER-STATE-ONLY: {fact_ids: [F-SIGNAL-POINTER-CANONICAL]}
+  ST-H2-W3-CONTINUITY-RETRIEVAL-BY-REF: {fact_ids: [F-W3-RETRIEVAL-CANONICAL]}
+  ST-I1-DOMAIN-REPOSITORIES-REMAIN-TRUTH: {fact_ids: [F-DOMAIN-TRUTH-CANONICAL]}
+  ST-I2-CROSS-PROJECT-REF-ADAPTER-INTEGRATION: {fact_ids: [F-CROSS-PROJECT-ADAPTER-IMPL]}
+  ST-K1-RECONCILIATION-RECEIPT-FRESHNESS-INVALIDATION: {fact_ids: [F-RECEIPT-STALE-IMPL]}
+  ST-K2-IDEMPOTENT-INGESTION-COLLISION-FAIL-CLOSED: {fact_ids: [F-IDEMPOTENCY-IMPL]}
+  ST-K3-SEMANTIC-FALSE-MERGE-PROTECTION: {fact_ids: [F-FALSE-MERGE-IMPL]}
+  ST-K4-FLOOD-BACKPRESSURE-COMPACTION: {fact_ids: [F-FLOOD-IMPL]}
+  ST-K5-AGING-STARVATION-VISIBILITY: {fact_ids: [F-AGING-CANONICAL]}
+  ST-K6-EXPLAINABLE-PRIORITY-VECTOR: {fact_ids: [F-PRIORITY-CANONICAL]}
+  ST-K7-NO-MEGA-AGENT-AUTHORITY-COLLAPSE: {fact_ids: [F-MEGA-CANONICAL]}
+  ST-K8-NEGATIVE-CROSS-DOMAIN-TRANSFER-VALIDATION: {fact_ids: [F-NEGATIVE-TRANSFER-IMPL]}
+  ST-K9-REVERSIBILITY-COMPENSATION-SEMANTICS: {fact_ids: [F-REVERSIBILITY-CANONICAL]}
+  ST-K10-REUSE-TRACE-AUDIT-TRUTH: {fact_ids: [F-TRACE-REUSE-CANONICAL]}
+  ST-K11-PRE-POST-WORK-RECONCILIATION: {fact_ids: [F-PREPOST-CANONICAL]}
+  ST-K12-CRASH-RECOVERY-REDUCER-REPLAY: {fact_ids: [F-CRASH-CANONICAL]}
+  ST-L1-AI-FILM-RUNTIME-INVOCATION-RECEIPT: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-L2-AI-FILM-RUNTIME-HEALTH-CHECK: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-L3-AI-FILM-BEHAVIORAL-EVALUATION-LADDER: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-L4-AI-FILM-SELECTIVE-CONSTRAINTS-SOAC: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-L5-AI-FILM-REVISION-SERIES-FINAL-DELTA: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-L6-AI-FILM-REAL-OUTPUT-LEARNING: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-FINAL1-AI-FILM-DOMAIN-BACKLOG-BOOTSTRAP: {fact_ids: [F-AI-FILM-DOMAIN-UNRESOLVED]}
+  ST-FINAL2-REVERSIBLE-CHANGESET-BINDING: {fact_ids: [F-REVERSIBLE-BINDING-CANONICAL]}
+post_hoc_oracle:
+  authoritative: false
+  label: "LEGACY_PRE_F03_EXPECTATION_ONLY"
+  legacy_candidate_count: "48"
+  legacy_disposition_counts: {"ALREADY_CANONICAL":20,"ALREADY_SATISFIED":21,"DOMAIN_CANONICAL_ONLY":4,"NEEDS_REVALIDATION":3,"NEW_DURABLE_SIGNAL":0}
+  note: "This oracle is deliberately not updated to the F04 re-extracted count and must not affect facts, evidence fields, disposition, admission, or CI pass/fail."
+executor_role: GPT_ENGINEERING_WORKER
+model_id: GPT-5.6 Sol

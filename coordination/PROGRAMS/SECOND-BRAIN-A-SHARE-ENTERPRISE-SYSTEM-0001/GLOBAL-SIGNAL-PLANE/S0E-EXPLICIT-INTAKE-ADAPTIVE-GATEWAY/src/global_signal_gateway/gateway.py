@@ -36,6 +36,12 @@ PERSISTENCE = ("EPHEMERAL", "TRACE_ONLY", "DURABLE_SIGNAL")
 EXECUTION = ("DIRECT", "DOMAIN_WORKFLOW", "GOVERNED_MISSION")
 MATERIALITY = ("LOW", "MATERIAL", "HIGH_RISK")
 CLOSURES = ("PARTIALLY_SATISFIED", "SATISFIED", "BLOCKED", "NEEDS_REVALIDATION", "REVOKED", "SUPERSEDED")
+SIGNAL_KINDS = frozenset({
+    "IDEA", "REQUIREMENT", "CHANGE_REQUEST", "QUESTION", "OBSERVATION", "FEEDBACK", "EVIDENCE",
+    "FINDING", "INCIDENT", "BUG", "BLOCKER", "RISK", "OPPORTUNITY", "DEPENDENCY", "DECISION",
+    "STATUS_UPDATE", "TASK_REQUEST", "REVIEW_RESULT", "MERGE_EVENT", "CLOSE_EVENT", "OUTCOME",
+    "CORRECTION", "CANCEL", "REVOKE", "LEARNING_CANDIDATE",
+})
 REPOSITORY_STATE_FIELDS = frozenset({"main", "pr_heads", "reviews", "routes", "claims", "lanes", "leases", "domain_freshness"})
 REQUIRED_ENVELOPE = frozenset({
     "envelope_id", "source_ref", "source_type", "source_project", "source_actor", "source_window_ref",
@@ -134,7 +140,6 @@ def classify(envelope: Mapping[str, Any], request_text: str) -> dict[str, str]:
         choices = {"persistence_class": PERSISTENCE, "execution_class": EXECUTION, "materiality_class": MATERIALITY}[axis]
         if value is not None and value not in choices:
             raise GatewayError("INVALID_CLASSIFICATION_AXIS", f"/{axis}")
-    # A user/system declaration may demand stricter handling, never downgrade the derived risk route.
     order = {"persistence_class": PERSISTENCE, "execution_class": EXECUTION, "materiality_class": MATERIALITY}
     result = dict(inferred)
     for axis, values in order.items():
@@ -218,6 +223,20 @@ def exact_git_read_proofs(root: str | Path, *, repository: str, commit: str, pat
     return tuple(proofs)
 
 
+def validate_exact_read_proof(proof: Any, *, repository: str | None = None, commit: str | None = None, execution_id: str | None = None) -> bool:
+    """Verify R136-minted exact-read identity; plain caller dictionaries are never proof."""
+    return bool(
+        isinstance(proof, ExactReadProof)
+        and proof._seal is _PROOF_SEAL
+        and (repository is None or proof.repository == repository)
+        and (commit is None or proof.commit == commit)
+        and (execution_id is None or proof.execution_id == execution_id)
+        and _valid_git_sha(proof.blob_sha)
+        and _valid_git_sha(proof.content_sha256)
+        and bool(proof.path)
+    )
+
+
 def exact_git_read_records(root: str | Path, **kwargs: Any) -> list[dict[str, str]]:
     """Compatibility projection; receipts refuse these plain dictionaries as proof."""
     return [proof.public_dict() for proof in exact_git_read_proofs(root, **kwargs)]
@@ -269,7 +288,7 @@ class SystemAwarenessProjection:
                 raise GatewayError("DOMAIN_OBSERVATION_INCOMPLETE")
             ref = f"git://{observation['repository']}@{observation['commit']}/{observation['path']}"
             revisions.append((ref, observation["blob_sha_or_equivalent_content_identity"]))
-            nodes.append({"component_id": observation["path"], "component_kind": "DOMAIN_READ_ONLY_SURFACE", "source_authority_ref": ref, "source_revision_or_commit": observation["commit"], "capability_refs": [], "authority_owner": "DOMAIN_OWNER", "canonical_entrypoints": [observation["path"]], "read_set_refs": [observation["path"]] if observation["path"].endswith("read_sets.yaml") else [], "route_set_refs": [observation["path"]] if observation["path"].endswith("route_index.yaml") else [], "dependency_refs": [], "interface_refs": [], "maturity": "EXACT_READ_ONLY", "current_phase": "OBSERVED", "current_route_or_claim_ref": "READ_ONLY", "read_boundary_refs": [ref], "write_boundary_refs": ["FORBIDDEN"], "regression_refs": [], "unknown_refs": [], "relevant_open_signal_refs": []})
+            nodes.append({"component_id": observation["path"], "component_kind": "DOMAIN_READ_ONLY_SURFACE", "source_authority_ref": ref, "source_revision_or_commit": observation["commit"], "capability_refs": [], "authority_owner": "DOMAIN_OWNER", "canonical_entrypoints": [observation["path"],], "read_set_refs": [observation["path"]] if observation["path"].endswith("read_sets.yaml") else [], "route_set_refs": [observation["path"]] if observation["path"].endswith("route_index.yaml") else [], "dependency_refs": [], "interface_refs": [], "maturity": "EXACT_READ_ONLY", "current_phase": "OBSERVED", "current_route_or_claim_ref": "READ_ONLY", "read_boundary_refs": [ref], "write_boundary_refs": ["FORBIDDEN"], "regression_refs": [], "unknown_refs": [], "relevant_open_signal_refs": []})
         return cls._finish(nodes, revisions, ledger_projection, "CANONICAL_TARGETED_READ")
 
     @classmethod
@@ -356,9 +375,6 @@ def validate_live_observation_proof(proof: Any, *, at: str | None = None) -> boo
         "domain_freshness_ref": proof.domain_freshness_ref, "pending_approval_ref": proof.pending_approval_ref,
     }
     digest_ok = len(proof.evidence_digest) == 64 and all(character in "0123456789abcdef" for character in proof.evidence_digest)
-    # R137 has one statically wired production verifier.  The legacy mapping is
-    # deliberately retained only for the existing R136 in-test synthetic seam;
-    # no caller-facing provider-registration API exists.
     if proof.provider_id == "r137-public-github-on-demand-v1":
         from .live_observation_provider import verify_r137_proof
         verifier: Callable[[AuthorityBoundLiveObservationProof, datetime], bool] | None = verify_r137_proof
@@ -408,8 +424,6 @@ class RuntimeInvocationReceipt:
         started, completed = started_at or utc_now(), completed_at or utc_now(); instant(started, "/started_at"); instant(completed, "/completed_at")
         accepted: list[ExactReadProof] = [item for item in actual_reads if isinstance(item, ExactReadProof) and item._seal is _PROOF_SEAL and item.execution_id == execution_id and item.repository == source_repository and item.commit == source_commit]
         paths = {item.path for item in accepted}
-        # Exact reads bind inputs only.  Only R138's sealed provider proof can
-        # turn the exact named capability into scan-execution evidence.
         from .capability_execution_provider import CapabilityExecutionProof, verify_capability_execution_proof
         valid_proofs = [item for item in capability_proofs if isinstance(item, CapabilityExecutionProof) and verify_capability_execution_proof(item) and item.execution_id == execution_id and item.trace_id == f"trace:{digest(execution_id)[:24]}" and item.domain_id == domain_id and item.source_repository == source_repository and item.source_commit == source_commit]
         by_capability = {item.capability_id: item for item in valid_proofs}
@@ -429,7 +443,7 @@ class SignalIntakeGateway:
     def __init__(self, ledger: Any) -> None:
         self.ledger = ledger
 
-    def intake(self, envelope: Mapping[str, Any], *, request_text: str, explicit_capture: bool | None = None) -> dict[str, Any]:
+    def intake(self, envelope: Mapping[str, Any], *, request_text: str, explicit_capture: bool | None = None, signal_kind: str | None = None) -> dict[str, Any]:
         checked = validate_envelope(envelope, request_text)
         negative = _has_any(request_text, NO_CAPTURE_ALIASES)
         capture = False if negative else (semantic_capture(request_text) if explicit_capture is None else bool(explicit_capture))
@@ -438,11 +452,14 @@ class SignalIntakeGateway:
         route = classify(checked, request_text)
         if route["persistence_class"] != "DURABLE_SIGNAL":
             return {"status": route["persistence_class"], "route": route, "effective_state_changed": False}
+        semantic_kind = "REQUIREMENT" if signal_kind is None else str(signal_kind)
+        if semantic_kind not in SIGNAL_KINDS:
+            raise GatewayError("INVALID_SIGNAL_KIND", "/signal_kind")
         event_id, signal_id = f"r136:{checked['envelope_id']}", f"signal:{checked['envelope_id']}"
         intent = {name: checked[name] for name in ("original_intent_ref", "public_safe_summary", "desired_effect", "problem_to_solve", "success_condition", "expected_problems", "risks", "assumptions", "unknowns", "dependencies", "evidence_refs", "counterevidence_refs", "source_window_ref", "source_project", "source_actor", "privacy_scope_ref")}
-        event = SignalEvent.from_dict({"schema_version": "SignalEvent/v1", "signal_id": signal_id, "event_id": event_id, "event_source": "R136_EXPLICIT_INTAKE", "event_type": "EXPLICIT_SIGNAL_CAPTURE", "occurred_at": checked["captured_at"], "observed_at": checked["captured_at"], "source_type": checked["source_type"], "source_ref": checked["source_ref"], "source_project": checked["source_project"], "source_actor": checked["source_actor"], "primary_domain": checked["proposed_primary_domain"], "related_domains": checked["proposed_related_domains"], "signal_kind": "REQUIREMENT", "planning_state": "CAPTURED", "execution_state": "NOT_STARTED", "epistemic_state": checked["epistemic_state"], "privacy_scope_ref": checked["privacy_scope_ref"], "authority_targets": [], "touch_set": ["S0E_EXPLICIT_INTAKE"], "related_signal_refs": [], "supersedes_refs": [], "revokes_refs": [], "cross_domain_candidate": False, "summary_ref": checked["original_intent_ref"], "idempotency_key": f"r136-envelope:{checked['envelope_id']}", "payload_schema_ref": "SignalIntakeEnvelope/v1", "public_safe_metadata": {"intent_envelope": intent, "route": route}})
+        event = SignalEvent.from_dict({"schema_version": "SignalEvent/v1", "signal_id": signal_id, "event_id": event_id, "event_source": "R136_EXPLICIT_INTAKE", "event_type": "EXPLICIT_SIGNAL_CAPTURE", "occurred_at": checked["captured_at"], "observed_at": checked["captured_at"], "source_type": checked["source_type"], "source_ref": checked["source_ref"], "source_project": checked["source_project"], "source_actor": checked["source_actor"], "primary_domain": checked["proposed_primary_domain"], "related_domains": checked["proposed_related_domains"], "signal_kind": semantic_kind, "planning_state": "CAPTURED", "execution_state": "NOT_STARTED", "epistemic_state": checked["epistemic_state"], "privacy_scope_ref": checked["privacy_scope_ref"], "authority_targets": [], "touch_set": ["S0E_EXPLICIT_INTAKE"], "related_signal_refs": [], "supersedes_refs": [], "revokes_refs": [], "cross_domain_candidate": False, "summary_ref": checked["original_intent_ref"], "idempotency_key": f"r136-envelope:{checked['envelope_id']}", "payload_schema_ref": "SignalIntakeEnvelope/v1", "public_safe_metadata": {"intent_envelope": intent, "route": route}})
         receipt = self.ledger.ingest(event)
-        return {"status": receipt["status"], "route": route, "event_id": event_id, "signal_id": signal_id, "ledger_receipt": receipt}
+        return {"status": receipt["status"], "route": route, "event_id": event_id, "signal_id": signal_id, "signal_kind": semantic_kind, "ledger_receipt": receipt}
 
     def omission(self, signal_id: str) -> dict[str, Any]:
         return {"status": "OMISSION_NOOP", "signal_id": signal_id, "effective_state_changed": False, "revoked": False}
@@ -587,7 +604,7 @@ def ai_film_directing_read_only_smoke(root: str | Path, *, awareness: SystemAwar
     withheld = set(map(str, fixture.get("withhold_derived_paths", [])))
     derived_proofs = exact_git_read_proofs(root, repository=AI_FILM_REPOSITORY, commit=AI_FILM_COMMIT, paths=[path for path in mandatory_reads if path not in withheld and path not in seed_paths], execution_id=execution_id)
     proofs = seed_proofs + derived_proofs
-    scans = ()  # R136 has no authorized AI Film/Harness scan execution provider.
+    scans = ()
     withheld_scans = set(map(str, fixture.get("withhold_scans", [])))
     scans = tuple(scan for scan in scans if scan.scan not in withheld_scans)
     receipt = RuntimeInvocationReceipt.build(execution_id=execution_id, task_class="DOMAIN_WORKFLOW", domain_id="EUSTIA_AI_FILM", source_repository=AI_FILM_REPOSITORY, source_commit=AI_FILM_COMMIT, entry={"path": "PROJECT_INDEX.yaml", "blob_sha": AI_FILM_AUTHORITY_BLOB}, awareness=awareness, mandatory_reads=mandatory_reads, actual_reads=proofs, matched_route_refs=route_refs, mandatory_scans=mandatory_scans, actual_scans=scans)
