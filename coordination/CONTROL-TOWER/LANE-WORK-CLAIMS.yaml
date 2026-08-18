@@ -1,4 +1,4 @@
-schema_version: "3.9"
+schema_version: "3.10"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -44,7 +44,7 @@ claims:
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "CODEX"
+    execution_agent: "GPT_ENGINEERING_WORKER"
     resource_class: "MEDIUM_IMPLEMENTATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
@@ -52,6 +52,7 @@ claims:
       issue: 393
       pr: null
       branch: "codex/r142-retrospective-signal-intake-bridge"
+      executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
@@ -84,11 +85,13 @@ claims:
     implementation_scope:
       slice: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE"
       issue: 393
-      phase: "ACTIVATED_AFTER_CANONICAL_MERGE / DIRECT_USER_START_REQUIRED"
+      phase: "GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED / USER_START_RECEIVED"
       resource_class: "MEDIUM_IMPLEMENTATION"
       activation_reconciliation: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
       execution_allowed: true
-      second_user_start_command_required: true
+      second_user_start_command_required: false
+      executor_role: "GPT_ENGINEERING_WORKER"
+      model_id: "GPT-5.6 Sol"
       s0c_source_write_allowed: false
       private_raw_data_allowed: false
       daemon_service_allowed: false
@@ -97,7 +100,13 @@ claims:
       automatic_task_creation_allowed: false
       production_allowed: false
       trading_allowed: false
-      codex_merge_allowed: false
+      executor_merge_allowed: false
+    parallel_execution:
+      r60_parallel_allowed: true
+      r60_write_overlap: "NONE_EXPECTED"
+      local_heavy_stage_concurrency_max: 1
+      same_canonical_object_writers_max: 1
+      nested_parallelism: "FORBIDDEN"
     predecessor_closure_receipt:
       task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
       route_epoch: 141
@@ -115,9 +124,9 @@ claims:
       IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED"
       IAGL-STAGE-B: "NOT_AUTHORIZED"
     stop_conditions:
-      - "Activation files are not canonical on main"
-      - "Direct user R142 start instruction has not been received"
-      - "Second Codex route or local heavy collision appears"
+      - "Executor-substitution route or this claim is not canonical on main"
+      - "A conflicting writer owns the same S0E write surface"
+      - "A real local-heavy collision cannot be reduced to bounded lightweight/single-worker execution"
       - "S0C source mutation is required without scope expansion"
       - "Private/raw bridge, second Signal truth, W3/domain write, production, secret/permission or trading requirement appears"
 
@@ -147,8 +156,9 @@ claims:
 
 release_semantics:
   lane_a_activation: >-
-    R142 becomes the sole canonical Codex Lane-A implementation claim only after this activation PR is merged. Actual executor
-    work still requires the route's direct-user-start gate and a fresh atomic route/claim/main reconciliation at launch.
+    R142 keeps the same canonical Mission/Issue/route epoch/write surface while executor ownership is substituted from Codex to
+    GPT_ENGINEERING_WORKER. The user start gate is satisfied for the replacement executor, which still must fresh-reconcile the
+    canonical route/claim/main before implementation and commit M0 plan first.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
