@@ -27,6 +27,12 @@ def _persist_conversation(store: Any, spec: dict[str, Any], index: int) -> Persi
         atom["knowledge_status"] = status
     if spec.get("visibility") is not None:
         atom["transport_visibility"] = spec["visibility"]
+    # Q60-B06: materialize the corpus' missing-provenance fixture on the exact
+    # atom sent through the canonical packet builder. The canonical validator
+    # must then fail closed with conversation_provenance_missing; this condition
+    # may not silently disappear behind builder-generated source_refs.
+    if spec.get("no_source_refs"):
+        atom["source_refs"] = []
     meta = copy.deepcopy(atom.get("memory_metadata", {}))
     conv = copy.deepcopy(meta.get("conversation", {}))
     if spec.get("palace") is not None:
