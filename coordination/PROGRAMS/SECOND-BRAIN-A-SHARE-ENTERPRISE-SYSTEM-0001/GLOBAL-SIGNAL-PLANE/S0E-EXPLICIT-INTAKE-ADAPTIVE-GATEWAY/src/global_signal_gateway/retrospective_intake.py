@@ -23,6 +23,20 @@ from global_signal_plane.models import SignalPlaneError
 
 
 CANONICAL_REPOSITORY = "vxz2datoubo/second-brain-coordination"
+S0E_GATEWAY_PATH = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+REQUIRED_NEW_EXACT_PATHS = (
+    "coordination/ACTIVE-CODEX-TASK.yaml",
+    "coordination/ACTIVE-PROGRAM-LANES.yaml",
+    "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml",
+    "coordination/PROGRAM-CONTROL-TOWER.md",
+    S0E_GATEWAY_PATH,
+)
+SURFACE_EXACT_PATHS = {
+    "current_tasks": ("coordination/ACTIVE-CODEX-TASK.yaml",),
+    "current_missions": ("coordination/ACTIVE-PROGRAM-LANES.yaml", "coordination/PROGRAM-CONTROL-TOWER.md"),
+    "r136_r141_capabilities": (S0E_GATEWAY_PATH, "coordination/PROGRAM-CONTROL-TOWER.md"),
+    "dependencies_conflicts_supersession": ("coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml", "coordination/ACTIVE-PROGRAM-LANES.yaml"),
+}
 
 
 class RetrospectiveIntakeError(ValueError):
@@ -311,21 +325,23 @@ def governed_snapshot_refs(*, expected_canonical_main: str, live_observation_pro
     accepted = [proof for proof in exact_read_proofs if validate_exact_read_proof(
         proof, repository=CANONICAL_REPOSITORY, commit=expected_canonical_main
     )]
-    if not accepted:
+    by_path = {proof.path: proof for proof in accepted}
+    if not set(REQUIRED_NEW_EXACT_PATHS) <= set(by_path):
         return {"valid": False, "reason": "EXACT_CANONICAL_READ_PROOF_REQUIRED", "refs": []}
     s0c = _s0c_projection_observation(ledger)
     if s0c is None:
         return {"valid": False, "reason": "S0C_CURRENT_PROJECTION_PROOF_REQUIRED", "refs": []}
     s0c_ref, projection = s0c
-    exact_refs = {_exact_ref(proof) for proof in accepted}
+    exact_refs_by_path = {path: _exact_ref(proof) for path, proof in by_path.items()}
     provider_refs = {live_observation_proof.provider_attribution_ref, *live_observation_proof.exact_refs}
     return {
         "valid": True,
         "reason": "AUTHORITY_BOUND_CURRENT_OBSERVATION_VERIFIED",
         "provider_refs": sorted(provider_refs),
-        "exact_read_refs": sorted(exact_refs),
+        "exact_read_refs": sorted(exact_refs_by_path.values()),
+        "exact_refs_by_path": exact_refs_by_path,
         "s0c_projection_ref": s0c_ref,
-        "refs": sorted(provider_refs | exact_refs | {s0c_ref}),
+        "refs": sorted(provider_refs | set(exact_refs_by_path.values()) | {s0c_ref}),
         "s0c_projection": projection,
     }
 
@@ -343,6 +359,7 @@ def _new_admission_binding(snapshot: Mapping[str, Any], *, expected_canonical_ma
     provenance = set(map(str, snapshot.get("source_provenance_refs", [])))
     provider_refs = set(binding["provider_refs"])
     exact_refs = set(binding["exact_read_refs"])
+    exact_by_path = binding["exact_refs_by_path"]
     s0c_ref = str(binding["s0c_projection_ref"])
     if live_observation_proof.provider_attribution_ref not in provenance or s0c_ref not in provenance or not provenance.intersection(exact_refs):
         return {"valid": False, "reason": "SNAPSHOT_NOT_BOUND_TO_GOVERNED_OBSERVATION", "refs": binding["refs"]}
@@ -352,11 +369,14 @@ def _new_admission_binding(snapshot: Mapping[str, Any], *, expected_canonical_ma
         if surface in {"current_signals", "historical_signals"}:
             if s0c_ref not in refs:
                 return {"valid": False, "reason": "S0C_SCAN_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
-        elif surface == "issues_pr_reviews":
+        elif surface in {"issues_pr_reviews", "domain_canonical"}:
             if not refs.intersection(provider_refs):
-                return {"valid": False, "reason": "LIVE_REVIEW_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
-        elif not refs.intersection(provider_refs | exact_refs):
-            return {"valid": False, "reason": "CANONICAL_SCAN_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
+                return {"valid": False, "reason": "LIVE_PROVIDER_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
+        else:
+            required_paths = SURFACE_EXACT_PATHS.get(surface, ())
+            required_refs = {exact_by_path[path] for path in required_paths}
+            if not required_refs or not refs.intersection(required_refs):
+                return {"valid": False, "reason": "CANONICAL_SCAN_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
     return binding
 
 
