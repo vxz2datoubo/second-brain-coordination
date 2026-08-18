@@ -1,4 +1,4 @@
-schema_version: "3.10"
+schema_version: "3.11"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,9 +43,9 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "ACTIVE_IMPLEMENTATION"
-    execution_agent: "GPT_ENGINEERING_WORKER"
-    resource_class: "MEDIUM_IMPLEMENTATION"
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    execution_agent: "CODEX"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
     route_binding:
       task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
       route_epoch: 142
@@ -85,13 +85,15 @@ claims:
     implementation_scope:
       slice: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE"
       issue: 393
-      phase: "GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED / USER_START_RECEIVED"
-      resource_class: "MEDIUM_IMPLEMENTATION"
+      phase: "GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED / CODEX_ROUTE_NON_EXECUTABLE_RESERVATION"
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
       activation_reconciliation: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
-      execution_allowed: true
+      codex_execution_allowed: false
+      substitution_execution_allowed: true
       second_user_start_command_required: false
       executor_role: "GPT_ENGINEERING_WORKER"
       model_id: "GPT-5.6 Sol"
+      executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
       s0c_source_write_allowed: false
       private_raw_data_allowed: false
       daemon_service_allowed: false
@@ -124,7 +126,7 @@ claims:
       IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED"
       IAGL-STAGE-B: "NOT_AUTHORIZED"
     stop_conditions:
-      - "Executor-substitution route or this claim is not canonical on main"
+      - "Executor-substitution route or this reservation is not canonical on main"
       - "A conflicting writer owns the same S0E write surface"
       - "A real local-heavy collision cannot be reduced to bounded lightweight/single-worker execution"
       - "S0C source mutation is required without scope expansion"
@@ -156,9 +158,9 @@ claims:
 
 release_semantics:
   lane_a_activation: >-
-    R142 keeps the same canonical Mission/Issue/route epoch/write surface while executor ownership is substituted from Codex to
-    GPT_ENGINEERING_WORKER. The user start gate is satisfied for the replacement executor, which still must fresh-reconcile the
-    canonical route/claim/main before implementation and commit M0 plan first.
+    R142 keeps the same canonical Mission/Issue/route epoch/write surface. The historical Codex route is deliberately non-executable
+    and reserves the Lane-A write surface using the validator's existing reservation state. Actual continuation authority comes from
+    the canonical GPT_ENGINEERING_WORKER executor-substitution route plus the user's explicit start; no Codex impersonation occurs.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
