@@ -13,7 +13,8 @@
 - f05_current_main_rebind: `8780d457997914632507eed03e54a1c685444aba`
 - f05_independent_review: `4962938733`
 - f05_issue_checkpoint: `5330537475`
-- f05_status: `IN_PROGRESS_PENDING_FRESH_M4_AND_EXACT_HEAD_CI`
+- f05_status: `REBOUND_TO_CURRENT_MAIN / INDEPENDENT_REVIEW_REQUIRED`
+- f05_result_source_run: `32157453778`
 
 > The original `fresh_canonical_main` above is preserved as the truthful M0 plan-time fact. F05 does not rewrite that history; the current acceptance binding is tracked separately by `f05_current_main_rebind` and the current R142 package/evidence/status artifacts.
 
@@ -32,6 +33,10 @@ Execution may proceed because the current canonical control plane is internally 
 - Same-canonical-object writer max remains 1, local-heavy stage max remains 1, and nested parallelism remains forbidden.
 
 If canonical main later advances, execution must re-read main and continue only when the new head is a non-conflicting descendant. Conflicting control-plane or write-surface drift is a stop condition.
+
+### F05 current-main rebind note
+
+The later R60 control-plane closeout advanced canonical `main` to `8780d457997914632507eed03e54a1c685444aba`. Independent Review `4962938733` / Issue checkpoint `5330537475` therefore required a bounded R142 current-main rebind without redesigning substantively closed F03/F04. The package and evidence plan now bind the fresh main, the CI treats the pull-request event base SHA as diagnostic-only, and authoritative acceptance uses live `origin/main` plus GitHub's merge-ref parent relationship. Governed M4 was freshly recomputed in run `32157453778`; its result is materialized in `REAL-RETROSPECTIVE-STATUS.yaml` and remains subject to independent exact-head review.
 
 ## 2. Existing authorities to reuse, not duplicate
 
