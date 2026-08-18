@@ -1,0 +1,235 @@
+name: R60 retrieval adversarial benchmark
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+      - ".github/workflows/r60-retrieval-adversarial-benchmark.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60/**"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-merge-checkout:
+    name: R60 exact merge checkout / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
+    env:
+      R60_DIR: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60
+      RECEIPT_REL: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60/evidence/harness_results.json
+
+    steps:
+      - name: Checkout exact PR merge ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Bind checkout to PR #304 head and base
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_MERGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_EVENT_NAME}" = "pull_request"
+          test "${PR_NUMBER}" = "304"
+          test "${HEAD_REF}" = "qclaw/p2-retrieval-adversarial-benchmark-r60"
+          test "${BASE_REF}" = "main"
+
+          expected_ref="refs/pull/${PR_NUMBER}/merge"
+          actual_ref="${GITHUB_REF}"
+          actual_sha="$(git rev-parse HEAD)"
+          parent_base="$(git rev-parse HEAD^1)"
+          parent_head="$(git rev-parse HEAD^2)"
+
+          echo "R60_ATTEST_GITHUB_REF=${actual_ref}"
+          echo "R60_ATTEST_EXPECTED_REF=${expected_ref}"
+          echo "R60_ATTEST_GITHUB_SHA=${EXPECTED_MERGE_SHA}"
+          echo "R60_ATTEST_GIT_HEAD=${actual_sha}"
+          echo "R60_ATTEST_PR_HEAD_SHA=${EXPECTED_HEAD_SHA}"
+          echo "R60_ATTEST_PR_BASE_SHA=${EXPECTED_BASE_SHA}"
+          echo "R60_ATTEST_PARENT_BASE=${parent_base}"
+          echo "R60_ATTEST_PARENT_HEAD=${parent_head}"
+
+          test "${actual_ref}" = "${expected_ref}"
+          test "${actual_sha}" = "${EXPECTED_MERGE_SHA}"
+          test "${parent_base}" = "${EXPECTED_BASE_SHA}"
+          test "${parent_head}" = "${EXPECTED_HEAD_SHA}"
+
+      - name: Enforce bounded changed-path scope
+        shell: bash
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          git diff --check "${EXPECTED_BASE_SHA}...${EXPECTED_HEAD_SHA}"
+          unexpected=0
+          while IFS= read -r path; do
+            case "${path}" in
+              "${R60_DIR}"/*|".github/workflows/r60-retrieval-adversarial-benchmark.yml")
+                ;;
+              *)
+                echo "::error title=R60 scope violation::unauthorized changed path: ${path}"
+                unexpected=1
+                ;;
+            esac
+          done < <(git diff --name-only "${EXPECTED_BASE_SHA}...${EXPECTED_HEAD_SHA}")
+          test "${unexpected}" -eq 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Attest Python version
+        shell: bash
+        env:
+          EXPECTED_PYTHON: ${{ matrix.python-version }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import platform
+          import sys
+
+          expected = os.environ["EXPECTED_PYTHON"]
+          actual_minor = f"{sys.version_info.major}.{sys.version_info.minor}"
+          print(f"R60_ATTEST_PYTHON_VERSION={platform.python_version()}")
+          print(f"R60_ATTEST_PYTHON_IMPLEMENTATION={platform.python_implementation()}")
+          if actual_minor != expected:
+              raise SystemExit(
+                  f"python version mismatch: expected {expected}, got {actual_minor}"
+              )
+          PY
+
+      - name: Run R60 harness twice and prove deterministic raw receipt
+        shell: bash
+        env:
+          EXPECTED_PYTHON: ${{ matrix.python-version }}
+        run: |
+          set -euo pipefail
+
+          committed="${GITHUB_WORKSPACE}/${RECEIPT_REL}"
+          cp "${committed}" "${RUNNER_TEMP}/r60-committed-receipt.json"
+
+          if [[ "${EXPECTED_PYTHON}" == "3.11" ]]; then
+            output="${committed}"
+            unset R60_RECEIPT_PATH || true
+          else
+            output="${RUNNER_TEMP}/r60-harness-results-${EXPECTED_PYTHON}.json"
+            export R60_RECEIPT_PATH="${output}"
+          fi
+
+          cd "${GITHUB_WORKSPACE}/${R60_DIR}"
+
+          echo "R60_HARNESS_COMMAND=python benchmark/harness/run_benchmark.py"
+          echo "R60_HARNESS_STDOUT_RUN1_BEGIN"
+          python benchmark/harness/run_benchmark.py | tee "${RUNNER_TEMP}/r60-run1.stdout"
+          echo "R60_HARNESS_STDOUT_RUN1_END"
+          cp "${output}" "${RUNNER_TEMP}/r60-run1.json"
+
+          echo "R60_HARNESS_STDOUT_RUN2_BEGIN"
+          python benchmark/harness/run_benchmark.py | tee "${RUNNER_TEMP}/r60-run2.stdout"
+          echo "R60_HARNESS_STDOUT_RUN2_END"
+
+          cmp -s "${RUNNER_TEMP}/r60-run1.json" "${output}"
+          echo "R60_TWO_RUN_BYTE_REPRODUCIBILITY=PASS"
+
+          python - "${output}" <<'PY'
+          import json
+          import sys
+
+          path = sys.argv[1]
+          with open(path, "r", encoding="utf-8") as handle:
+              data = json.load(handle)
+
+          results = {item["case_id"]: item for item in data["results"]}
+          regressions = {item["case_id"]: item for item in data["regressions"]}
+
+          print(
+              "R60_RESULT_COUNTS="
+              f"pass={data['passed']} fail={data['failed']} error={data['errored']}"
+          )
+          print(
+              "R60_REGRESSION_COUNTS="
+              f"pass={data['regression_summary']['passed']} "
+              f"fail={data['regression_summary']['failed']} "
+              f"error={data['regression_summary']['errored']}"
+          )
+          print(
+              "R60_CASE_r60-019="
+              f"{results['r60-019']['verdict']}/{results['r60-019']['observed']}"
+          )
+          print(
+              "R60_CASE_r60-013="
+              f"{results['r60-013']['verdict']}/{results['r60-013']['observed']}"
+          )
+          print(
+              "R60_CASE_r60-025="
+              f"{results['r60-025']['verdict']}/{results['r60-025']['observed']}"
+          )
+          print(f"R60_SPEC_PENDING_COUNT={len(data['spec_pending_ids'])}")
+
+          if (data["runnable_cases"], data["passed"], data["failed"], data["errored"]) != (
+              60,
+              58,
+              2,
+              0,
+          ):
+              raise SystemExit("unexpected runnable benchmark counts")
+          if data["regression_summary"] != {
+              "total": 5,
+              "passed": 5,
+              "failed": 0,
+              "errored": 0,
+          }:
+              raise SystemExit("B01/B02/B03/R118/R119 regression drift")
+          if results["r60-019"]["verdict"] != "PASS":
+              raise SystemExit("r60-019 must remain a real PASS")
+          if results["r60-013"]["verdict"] != "FAIL":
+              raise SystemExit("r60-013 must remain unresolved FAIL without contract evidence")
+          if results["r60-025"]["verdict"] != "FAIL":
+              raise SystemExit("r60-025 must remain unresolved FAIL without contract evidence")
+          if len(data["spec_pending_ids"]) != 30:
+              raise SystemExit("spec-pending corpus disposition drift")
+          if any(item["verdict"] != "PASS" for item in regressions.values()):
+              raise SystemExit("targeted regression failure")
+          PY
+
+          echo "R60_RAW_RECEIPT_SHA256=$(sha256sum "${output}" | awk '{print $1}')"
+          echo "R60_RAW_RECEIPT_BASE64_BEGIN"
+          base64 -w0 "${output}"
+          echo
+          echo "R60_RAW_RECEIPT_BASE64_END"
+
+          cmp -s "${RUNNER_TEMP}/r60-committed-receipt.json" "${output}"
+          echo "R60_COMMITTED_RECEIPT_BYTE_EQUALITY=PASS"
+
+          cd "${GITHUB_WORKSPACE}"
+          git diff --exit-code -- "${RECEIPT_REL}"
+          echo "R60_COMMITTED_RECEIPT_GIT_DIFF=PASS"
+
+      - name: Postflight workspace and process check
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "R60_POSTFLIGHT_GIT_STATUS_BEGIN"
+          git status --short
+          echo "R60_POSTFLIGHT_GIT_STATUS_END"
+          echo "R60_POSTFLIGHT_TASK_PROCESSES_BEGIN"
+          ps -eo pid,ppid,comm,args | grep -E '[r]60|[r]un_benchmark|[p]ytest' || true
+          echo "R60_POSTFLIGHT_TASK_PROCESSES_END"
