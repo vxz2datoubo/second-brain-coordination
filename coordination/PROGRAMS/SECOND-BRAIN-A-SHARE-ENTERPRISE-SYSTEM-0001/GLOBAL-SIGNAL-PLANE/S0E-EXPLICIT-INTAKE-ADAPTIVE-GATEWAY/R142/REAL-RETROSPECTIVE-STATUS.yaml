@@ -2,6 +2,7 @@ schema_version: R142RealRetrospectiveStatus/v1
 task_id: CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE
 route_epoch: 142
 status: REAL_RETROSPECTIVE_RECONSTRUCTION_AND_RECONCILIATION_COMPLETE
+canonical_main: 870df76ada3d437bbd2a29a0a3e199f4f66f3ab6
 historical_handoff:
   available: true
   source_class: HISTORICAL_HANDOFF_SOURCE
@@ -9,7 +10,7 @@ historical_handoff:
   source_title: UNIFIED_SIGNAL_TOWER_REQUIREMENTS_HANDOFF
   source_ref: "file-library://file_00000000d81881fb9108c634c60942bc"
   source_window_ref: "chatgpt-project://AI_FILM_PROJECT_GPT_WINDOW"
-  content_policy: PUBLIC_SAFE_SEMANTIC_SUMMARY_PLUS_OPAQUE_REFS_ONLY
+  content_policy: PUBLIC_SAFE_SEMANTIC_SUMMARY_PLUS_SOURCE_BOUND_REFS_ONLY
   raw_private_body_committed: false
 pre_enumerated_candidate_package:
   available: false
@@ -20,15 +21,18 @@ reconstruction:
   authorized_same_r142: true
   package_ref: REAL-RETROSPECTIVE-PACKAGE.yaml
   evidence_plan_ref: REAL-RETROSPECTIVE-EVIDENCE-PLAN.yaml
-  actual_candidate_count: 48
+  source_fragment_provenance_reextracted: true
+  actual_candidate_count: 51
   forced_historical_count: false
+  forced_zero_new: false
   provenance_per_candidate: true
   public_safe_only: true
+  k_section_mapping_corrected: true
   current_disposition_counts:
     ALREADY_CANONICAL: 20
-    ALREADY_SATISFIED: 21
-    DOMAIN_CANONICAL_ONLY: 4
-    NEEDS_REVALIDATION: 3
+    ALREADY_SATISFIED: 20
+    DOMAIN_CANONICAL_ONLY: 0
+    NEEDS_REVALIDATION: 11
     NEW_DURABLE_SIGNAL: 0
     DUPLICATE: 0
     EXTENDS: 0
@@ -39,11 +43,28 @@ reconstruction:
     INSUFFICIENT_PROVENANCE: 0
   current_new_durable_signal_ids: []
   needs_revalidation_ids:
+    - ST-C3-OMISSION-IS-NOT-REVOCATION
     - ST-C4-SEMANTIC-WORK-FINGERPRINT-CANDIDATE
     - ST-FINAL1-AI-FILM-DOMAIN-BACKLOG-BOOTSTRAP
     - ST-FINAL2-REVERSIBLE-CHANGESET-BINDING
+    - ST-K11-PRE-POST-WORK-RECONCILIATION
+    - ST-L1-AI-FILM-RUNTIME-INVOCATION-RECEIPT
+    - ST-L2-AI-FILM-RUNTIME-HEALTH-CHECK
+    - ST-L3-AI-FILM-BEHAVIORAL-EVALUATION-LADDER
+    - ST-L4-AI-FILM-SELECTIVE-CONSTRAINTS-SOAC
+    - ST-L5-AI-FILM-REVISION-SERIES-FINAL-DELTA
+    - ST-L6-AI-FILM-REAL-OUTPUT-LEARNING
+  legacy_post_hoc_oracle:
+    authoritative: false
+    legacy_candidate_count: 48
+    legacy_counts: {ALREADY_CANONICAL: 20, ALREADY_SATISFIED: 21, DOMAIN_CANONICAL_ONLY: 4, NEEDS_REVALIDATION: 3, NEW_DURABLE_SIGNAL: 0}
+    candidate_count_matches_actual: false
+    disposition_counts_match_actual: false
+    mismatch_is_failure: false
 real_m4:
   executed: true
+  evidence_direction: SOURCE_AND_CURRENT_CANONICAL_EVIDENCE_TO_VERIFIED_FACTS_TO_DISPOSITION
+  expected_disposition_participates_in_evidence_construction: false
   governed_observation: R137_AUTHORITY_BOUND_PUBLIC_GITHUB_LIVE_OBSERVATION
   exact_current_main_reads: true
   s0c_current_projection_watermark_bound: true
@@ -51,34 +72,40 @@ real_m4:
   durable_admission: NOT_APPLICABLE_NO_CURRENT_NEW
   durable_receipt_count: 0
   durable_history_readback_count: 0
-  reason_no_durable_receipt: NO_CURRENT_NEW_DURABLE_SIGNAL_AFTER_FRESH_RECONCILIATION
+  reason_no_durable_receipt: NO_CURRENT_NEW_DURABLE_SIGNAL_AFTER_EVIDENCE_FIRST_RECONCILIATION
   needs_revalidation_persisted: false
   temporary_s0c_history_event_count: 0
   s0c_replay_ok: true
   s0c_reducer_version: S0C-3
   s0c_projection_checksum: 37d5d5fe3877cb290807a9b9ca5fec073a9718f3069727a3b735df76dc1e37f0
-  last_governed_mechanism_validation_run: "32137431342"
-  last_governed_mechanism_validation_head: d004881a3f6d539104c0db7f6845ae00c78e7bda
-  final_exact_head_ci_authority: GITHUB_ACTIONS_ARTIFACT_FOR_CURRENT_PR_HEAD
-blockers:
+  mechanism_validation_run: "32144440012"
+  mechanism_validation_head: 1dc93405ddf9abddc26a38bb5af88cb723549aaf
+findings:
   R142-F01_SIGNAL_KIND_SEMANTIC_FLATTENING:
-    status: CLOSED_PENDING_INDEPENDENT_REVIEW
-    evidence:
-      - R136 optional semantic signal_kind with legacy REQUIREMENT default
-      - R142 passes candidate.signal_kind through existing R136
-      - S0C-3 projects logical semantic signal_kind
-      - lifecycle STATUS/REVOCATION cannot overwrite logical kind
-      - conflicting semantic origins fail closed to NEEDS_REVALIDATION
-      - RISK/FINDING/OPPORTUNITY/CORRECTION survive actual temporary S0C history/projection/replay adversarial tests
+    status: ACCEPTED_CLOSED_BY_INDEPENDENT_REVIEW / REGRESSION_ONLY
   R142-F02_CALLER_ASSERTED_SNAPSHOT_NOT_PROVIDER_EVIDENCE:
+    status: ACCEPTED_CLOSED_BY_INDEPENDENT_REVIEW / REGRESSION_ONLY
+  R142-F03_REAL_M4_DISPOSITION_SELF_FULFILLING_EVIDENCE:
     status: CLOSED_PENDING_INDEPENDENT_REVIEW
     evidence:
-      - caller-only structurally complete snapshot cannot authorize NEW_DURABLE_SIGNAL
-      - NEW requires sealed live observation proof
-      - NEW requires sealed exact-current-main read proofs
-      - NEW requires actual S0C projection watermark/checksum/input_revision binding
-      - scan surfaces require their matching authority evidence instead of reusable caller strings
-      - real M4 used the R137 public GitHub provider
+      - candidate fact bindings contain fact_ids only and no expected disposition
+      - expected/legacy counts exist only as non-authoritative post-hoc oracle
+      - fact verification reads exact-current-main content before evidence slots are built
+      - evidence helper API has no expected or oracle parameter
+      - intentionally wrong oracle adversarial cannot change evidence slot or actual disposition
+      - unverified current facts fail closed to NEEDS_REVALIDATION
+      - legacy 48 and 20/21/4/3/0 oracle disagrees with actual 51 and 20/20/0/11/0 without failing or changing actual result
+  R142-F04_RECONSTRUCTED_SOURCE_FRAGMENT_PROVENANCE_MISMATCH:
+    status: CLOSED_PENDING_INDEPENDENT_REVIEW
+    evidence:
+      - source package re-extracted against file_00000000d81881fb9108c634c60942bc
+      - actual source-derived candidate count is 51 and was not forced to 48/45/24/0
+      - K1-K15 source-native section mapping is preserved
+      - Flood candidate binds K6 while genuine K4 remains Idempotency
+      - Crash Recovery candidate binds K15 while genuine K12 remains Undo/Reversibility
+      - F3-derived drift candidates use truthful shared F3 source instead of invented F4/F5/F6 message ids
+      - merged/dedup provenance keeps all actual source fragments and explicit relations
+      - ReversibleChangeSet recommendation without stable section id uses artifact-level provenance
 safety:
   signal_is_not_task: true
   automatic_task_created: false
