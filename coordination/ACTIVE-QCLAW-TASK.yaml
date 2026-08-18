@@ -1,22 +1,23 @@
-schema_version: "87.0"
+schema_version: "88.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "QCLAW"
 aliases: ["Q", "QQ"]
-status: "REMEDIATION_ACTIVE"
-execution_allowed: true
-automatic_resume: true
+status: "PAUSED"
+execution_allowed: false
+automatic_resume: false
 active_issue: 296
 active_pull_request: 304
 task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
 route_epoch: 60
 mode: "goal"
-mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集 / B01-B03修复闭环"
+mode_label: "【QCLAW模式：目标模式】P2检索压力测试与对抗评测集 / executor substituted"
 planned_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
 completion_signal: "QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
-second_user_start_command_required: false
+second_user_start_command_required: true
 merge_authorized: false
 canonical_route: "coordination/ROUTES/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60.yaml"
-canonical_resume_main: "cb3dbd30892adbb59683fc91252a38b0868149a9"
+executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
+canonical_substitution_main_expected: "f1d7e3f351a9f7bdb0f0a44057c918e973dd7ffb"
 
 review_return:
   reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
@@ -41,31 +42,47 @@ accepted_status:
   discovery_ledger_d8: "REJECTED_CONTRADICTS_CANONICAL_RELATIONS_AROUND_BEHAVIOR"
   pull_request_304: "KEEP_DRAFT_UNMERGED_UNTIL_FRESH_GPT_ACCEPTANCE"
 
-remediation_release:
-  authorized_by: "USER_CURRENT_EXPLICIT_DIRECTION"
+superseded_qclaw_remediation_release:
   authorized_at: "2026-08-18T01:25:00+08:00"
-  scope: "SAME_R60_SAME_PR_304_SAME_BRANCH_B01_B03_REMEDIATION_ONLY"
-  fresh_main_required: true
-  fresh_main_expected_at_release: "cb3dbd30892adbb59683fc91252a38b0868149a9"
-  requirements:
-    - "fresh reconcile current main, PR #304, route, branch and then-current merged P2 runtime before edits"
-    - "persist exact mutated fixture state through canonical packet/import/correction paths"
-    - "grade complete bundle surface including atoms/relations/conflicts/unknowns/provenance/admission telemetry/trust gate"
-    - "resolve canonical IDs from persisted store/receipts rather than optional id_hint"
-    - "rerun all runnable cases against the then-current merged Codex P2 runtime and publish actual PASS/FAIL/ERROR"
-    - "correct Discovery Ledger D8 to actual endpoint-leak result"
-    - "add explicit R118 public-report oracle equivalence regression and P2.2 endpoint-safe regression only where current canonical contracts support them"
+  old_scope: "SAME_R60_SAME_PR_304_SAME_BRANCH_B01_B03_REMEDIATION_ONLY"
+  superseded_by_owner_instruction_at: "2026-08-18T08:57:00+08:00"
+  reason: >-
+    The user clarified that QCLAW compute is retained rather than expiring daily and should not be consumed merely because it is available.
+    Work that a GPT Engineering Worker can reliably complete should default to GPT first. R60 is therefore reassigned without changing
+    task identity, Issue, Draft PR or implementation branch.
+
+executor_substitution:
+  status: "AUTHORIZED / USER_DISPATCH_TO_GPT_ENGINEERING_WORKER_REQUIRED"
+  task_identity_retained: true
+  previous_executor: "QCLAW"
+  previous_executor_execution_allowed: false
+  replacement_executor_role: "GPT_ENGINEERING_WORKER"
+  required_model_id: "GPT-5.6 Sol"
+  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+  same_issue: 296
+  same_draft_pr: 304
+  same_branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
+  same_route_epoch: 60
+  current_reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
+  provenance_rule: >-
+    Historical QCLAW provenance remains attached to historical commits/evidence. New commits, receipts and handoff evidence must truthfully
+    record executor_role=GPT_ENGINEERING_WORKER, model_id=GPT-5.6 Sol, and actual harness/tool provenance. The worker must not impersonate QCLAW.
+  scope:
+    - "fresh reconcile current canonical main, Issue #296, Draft PR #304, branch and then-current merged P2 runtime before edits"
+    - "close Q60-B01, Q60-B02 and Q60-B03 only, plus directly required regressions/evidence updates"
+    - "preserve 90-case corpus where contract tracing remains valid"
+    - "rerun runnable benchmark against current merged P2 runtime and publish actual PASS/FAIL/ERROR"
     - "keep PR #304 Draft and unmerged until independent GPT exact-head acceptance"
 
-superseded_quota_hold:
-  historical_owner_instruction_date: "2026-08-14"
-  historical_remaining_compute_reported_by_owner: "approximately 50"
-  historical_instruction: "No further QCLAW task or execution tonight; arrange the next QCLAW work tomorrow."
-  superseded_by_owner_instruction_at: "2026-08-18T01:25:00+08:00"
-  current_owner_statement: "QCLAW compute is now sufficient; resume and finish R60."
-  current_exact_quota: "UNKNOWN_NOT_REQUIRED_FOR_RELEASE"
+resource_routing_policy:
+  owner_instruction_at: "2026-08-18T08:57:00+08:00"
+  qclaw_compute_character: "RETAINED / NOT_DAILY_USE_IT_OR_LOSE_IT"
+  default_executor_preference: "GPT_ENGINEERING_WORKER_FIRST_WHEN_CAPABLE"
+  use_qclaw_when: "QCLAW_HAS_CLEAR_CAPABILITY_OR_PARALLELISM_ADVANTAGE / GPT_UNAVAILABLE_OR_MATERIALLY_LESS_SUITABLE"
+  exact_current_qclaw_quota: "UNKNOWN / NOT_REQUIRED_FOR_THIS_SUBSTITUTION"
 
 hard_boundaries:
+  - "No QCLAW execution while executor substitution is active."
   - "No Phase-3 runtime edits or Codex/R142 branch touch."
   - "No real private user source/store read or upload."
   - "No formal PROJECT/GLOBAL or skill/trading-rule promotion."
@@ -86,6 +103,6 @@ resource_policy:
   collision_rule: "If another local heavy stage becomes active, fail closed or fall back to bounded single-worker/lightweight work."
   required_postflight: "measured zero task-owned descendants, zero orphans, zero unrelated terminations; UNKNOWN if not measurable"
 
-next_command: "USER_DIRECT_START_RECEIVED / FRESH_RECONCILE_THEN_REMEDIATE_Q60_B01_B03"
+next_command: "USER_SEND_R60_GPT_ENGINEERING_WORKER_HANDOFF"
 updated_by: "GPT"
-updated_at: "2026-08-18T01:25:00+08:00"
+updated_at: "2026-08-18T08:57:00+08:00"
