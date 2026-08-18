@@ -1,8 +1,9 @@
 """R142 public-safe retrospective Signal import, reconciliation, and durable bridge.
 
 This is a thin last-mile layer. It never owns effective Signal truth. Only a
-candidate reconciled as NEW_DURABLE_SIGNAL may cross the existing R136
-SignalIntakeGateway into the caller-supplied existing S0C DurableSignalLedger.
+candidate reconciled as NEW_DURABLE_SIGNAL against authority-bound current
+observation may cross the existing R136 SignalIntakeGateway into the
+caller-supplied existing S0C DurableSignalLedger.
 """
 from __future__ import annotations
 
@@ -11,8 +12,17 @@ import hashlib
 import json
 from typing import Any, Mapping, Sequence
 
-from .gateway import GatewayError, SignalIntakeGateway
+from .gateway import (
+    GatewayError,
+    SIGNAL_KINDS,
+    SignalIntakeGateway,
+    validate_exact_read_proof,
+    validate_live_observation_proof,
+)
 from global_signal_plane.models import SignalPlaneError
+
+
+CANONICAL_REPOSITORY = "vxz2datoubo/second-brain-coordination"
 
 
 class RetrospectiveIntakeError(ValueError):
@@ -141,6 +151,8 @@ def validate_candidate(candidate: Mapping[str, Any], *, index: int = 0) -> dict[
     for field in ARRAY_FIELDS:
         if not isinstance(out[field], list):
             raise RetrospectiveIntakeError("INVALID_ARRAY", f"{path}{field}")
+    if out["signal_kind"] not in SIGNAL_KINDS:
+        raise RetrospectiveIntakeError("INVALID_SIGNAL_KIND", f"{path}signal_kind")
     if out["epistemic_state"] not in ALLOWED_EPISTEMIC_STATES:
         raise RetrospectiveIntakeError("INVALID_EPISTEMIC_STATE", f"{path}epistemic_state")
     if out["source_time_range"] != "UNKNOWN":
@@ -267,7 +279,89 @@ def _minimum_provenance(candidate: Mapping[str, Any]) -> bool:
     return any(isinstance(ref, str) and ref not in ("", "UNKNOWN") for ref in candidate["evidence_refs"])
 
 
-def _decision(candidate: Mapping[str, Any], disposition: str, reason: str, evidence: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def _exact_ref(proof: Any) -> str:
+    return f"git://{proof.repository}@{proof.commit}/{proof.path}#blob={proof.blob_sha};sha256={proof.content_sha256}"
+
+
+def _s0c_projection_observation(ledger: Any) -> tuple[str, Mapping[str, Any]] | None:
+    if ledger is None or not all(hasattr(ledger, name) for name in ("history", "current_projection", "rebuild_projection", "current_projection_version", "input_revision")):
+        return None
+    projection = ledger.current_projection()
+    if projection is None:
+        projection = ledger.rebuild_projection(expected_version=ledger.current_projection_version())
+    if not isinstance(projection, Mapping) or not projection.get("checksum") or not projection.get("reducer_version"):
+        return None
+    history = ledger.history()
+    if projection.get("ledger_watermark") != len(history) or projection.get("input_revision") != ledger.input_revision():
+        return None
+    ref = (
+        f"s0c://projection/{projection['reducer_version']}/{projection['ledger_watermark']}"
+        f"#sha256={projection['checksum']};input_revision={projection['input_revision']}"
+    )
+    return ref, projection
+
+
+def governed_snapshot_refs(*, expected_canonical_main: str, live_observation_proof: Any,
+                             exact_read_proofs: Sequence[Any], ledger: Any) -> dict[str, Any]:
+    """Derive usable evidence refs only from existing sealed providers and the real S0C projection."""
+    if not validate_live_observation_proof(live_observation_proof):
+        return {"valid": False, "reason": "AUTHORITY_BOUND_LIVE_OBSERVATION_REQUIRED", "refs": []}
+    if live_observation_proof.repository != CANONICAL_REPOSITORY or live_observation_proof.current_main_sha != expected_canonical_main:
+        return {"valid": False, "reason": "LIVE_OBSERVATION_CANONICAL_BINDING_MISMATCH", "refs": []}
+    accepted = [proof for proof in exact_read_proofs if validate_exact_read_proof(
+        proof, repository=CANONICAL_REPOSITORY, commit=expected_canonical_main
+    )]
+    if not accepted:
+        return {"valid": False, "reason": "EXACT_CANONICAL_READ_PROOF_REQUIRED", "refs": []}
+    s0c = _s0c_projection_observation(ledger)
+    if s0c is None:
+        return {"valid": False, "reason": "S0C_CURRENT_PROJECTION_PROOF_REQUIRED", "refs": []}
+    s0c_ref, projection = s0c
+    exact_refs = {_exact_ref(proof) for proof in accepted}
+    provider_refs = {live_observation_proof.provider_attribution_ref, *live_observation_proof.exact_refs}
+    return {
+        "valid": True,
+        "reason": "AUTHORITY_BOUND_CURRENT_OBSERVATION_VERIFIED",
+        "provider_refs": sorted(provider_refs),
+        "exact_read_refs": sorted(exact_refs),
+        "s0c_projection_ref": s0c_ref,
+        "refs": sorted(provider_refs | exact_refs | {s0c_ref}),
+        "s0c_projection": projection,
+    }
+
+
+def _new_admission_binding(snapshot: Mapping[str, Any], *, expected_canonical_main: str,
+                           live_observation_proof: Any, exact_read_proofs: Sequence[Any], ledger: Any) -> dict[str, Any]:
+    binding = governed_snapshot_refs(
+        expected_canonical_main=expected_canonical_main,
+        live_observation_proof=live_observation_proof,
+        exact_read_proofs=exact_read_proofs,
+        ledger=ledger,
+    )
+    if not binding["valid"]:
+        return binding
+    provenance = set(map(str, snapshot.get("source_provenance_refs", [])))
+    provider_refs = set(binding["provider_refs"])
+    exact_refs = set(binding["exact_read_refs"])
+    s0c_ref = str(binding["s0c_projection_ref"])
+    if live_observation_proof.provider_attribution_ref not in provenance or s0c_ref not in provenance or not provenance.intersection(exact_refs):
+        return {"valid": False, "reason": "SNAPSHOT_NOT_BOUND_TO_GOVERNED_OBSERVATION", "refs": binding["refs"]}
+    coverage = snapshot["scan_coverage"]
+    for surface in REQUIRED_SCAN_SURFACES:
+        refs = set(map(str, coverage[surface]["evidence_refs"]))
+        if surface in {"current_signals", "historical_signals"}:
+            if s0c_ref not in refs:
+                return {"valid": False, "reason": "S0C_SCAN_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
+        elif surface == "issues_pr_reviews":
+            if not refs.intersection(provider_refs):
+                return {"valid": False, "reason": "LIVE_REVIEW_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
+        elif not refs.intersection(provider_refs | exact_refs):
+            return {"valid": False, "reason": "CANONICAL_SCAN_EVIDENCE_NOT_BOUND", "refs": binding["refs"]}
+    return binding
+
+
+def _decision(candidate: Mapping[str, Any], disposition: str, reason: str,
+              evidence: Mapping[str, Any] | None = None, authority_refs: Sequence[str] = ()) -> dict[str, Any]:
     if disposition not in DISPOSITIONS:
         raise RetrospectiveIntakeError("INVALID_DISPOSITION")
     evidence = evidence or {}
@@ -278,13 +372,15 @@ def _decision(candidate: Mapping[str, Any], disposition: str, reason: str, evide
         "disposition": disposition,
         "reason": reason,
         "evidence_refs": refs,
+        "authority_evidence_refs": sorted(set(map(str, authority_refs))),
         "dependency_refs": list(evidence.get("active_dependency_refs", [])),
         "closed_task_refs": list(evidence.get("closed_task_refs", [])),
         "historical_status": candidate["historical_status"],
     }
 
 
-def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str) -> dict[str, Any]:
+def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str,
+                        live_observation_proof: Any = None, exact_read_proofs: Sequence[Any] = (), ledger: Any = None) -> dict[str, Any]:
     if snapshot["canonical_main"] != expected_canonical_main:
         return _decision(candidate, "NEEDS_REVALIDATION", "STALE_CANONICAL_SNAPSHOT")
     try:
@@ -307,12 +403,22 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
     for field, disposition, reason in precedence:
         if ev[field]:
             return _decision(candidate, disposition, reason, ev)
-    if ev["desired_effect_unmet"]:
-        return _decision(candidate, "NEW_DURABLE_SIGNAL", "GLOBAL_SCAN_PROVES_STILL_UNMET", ev)
-    return _decision(candidate, "NEEDS_REVALIDATION", "NO_EVIDENCE_FOR_SAFE_ADMISSION", ev)
+    if not ev["desired_effect_unmet"]:
+        return _decision(candidate, "NEEDS_REVALIDATION", "NO_EVIDENCE_FOR_SAFE_ADMISSION", ev)
+    binding = _new_admission_binding(
+        snapshot,
+        expected_canonical_main=expected_canonical_main,
+        live_observation_proof=live_observation_proof,
+        exact_read_proofs=exact_read_proofs,
+        ledger=ledger,
+    )
+    if not binding["valid"]:
+        return _decision(candidate, "NEEDS_REVALIDATION", str(binding["reason"]), ev, binding.get("refs", []))
+    return _decision(candidate, "NEW_DURABLE_SIGNAL", "GOVERNED_CURRENT_OBSERVATION_PROVES_STILL_UNMET", ev, binding["refs"])
 
 
-def reconcile_package(package: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str) -> dict[str, Any]:
+def reconcile_package(package: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str,
+                      live_observation_proof: Any = None, exact_read_proofs: Sequence[Any] = (), ledger: Any = None) -> dict[str, Any]:
     parsed = validate_import_package(package)
     current = validate_snapshot(snapshot)
     results: list[dict[str, Any]] = []
@@ -320,11 +426,14 @@ def reconcile_package(package: Mapping[str, Any], snapshot: Mapping[str, Any], *
         disposition = "REJECT_PRIVATE_OR_UNSAFE" if error["code"] == "PRIVATE_OR_UNSAFE" else "INSUFFICIENT_PROVENANCE"
         results.append({
             "candidate_id": error["candidate_id"], "candidate_digest": "UNKNOWN",
-            "disposition": disposition, "reason": error["code"], "evidence_refs": [],
+            "disposition": disposition, "reason": error["code"], "evidence_refs": [], "authority_evidence_refs": [],
             "dependency_refs": [], "closed_task_refs": [], "historical_status": "UNKNOWN",
         })
     for candidate in parsed["candidates"]:
-        results.append(reconcile_candidate(candidate, current, expected_canonical_main=expected_canonical_main))
+        results.append(reconcile_candidate(
+            candidate, current, expected_canonical_main=expected_canonical_main,
+            live_observation_proof=live_observation_proof, exact_read_proofs=exact_read_proofs, ledger=ledger,
+        ))
     return {
         "import_batch_id": parsed["import_batch_id"], "package_digest": parsed["package_digest"],
         "canonical_snapshot_or_main": current["canonical_main"], "snapshot_digest": current["snapshot_digest"],
@@ -372,15 +481,23 @@ def _history_identity(history: Sequence[Mapping[str, Any]]) -> str:
 
 
 class RetrospectiveSignalIntakeBridge:
-    """One-shot R142 bridge. The caller supplies the existing S0C ledger."""
+    """One-shot R142 bridge. The caller supplies the existing S0C ledger and sealed observation proofs."""
 
-    def __init__(self, ledger: Any, *, gateway: SignalIntakeGateway | None = None) -> None:
+    def __init__(self, ledger: Any, *, gateway: SignalIntakeGateway | None = None,
+                 live_observation_proof: Any = None, exact_read_proofs: Sequence[Any] = ()) -> None:
         self.ledger = ledger
         self.gateway = gateway or SignalIntakeGateway(ledger)
+        self.live_observation_proof = live_observation_proof
+        self.exact_read_proofs = tuple(exact_read_proofs)
 
     def process(self, package: Mapping[str, Any], snapshot: Mapping[str, Any], *, expected_canonical_main: str) -> dict[str, Any]:
         parsed = validate_import_package(package)
-        reconciliation = reconcile_package(package, snapshot, expected_canonical_main=expected_canonical_main)
+        reconciliation = reconcile_package(
+            package, snapshot, expected_canonical_main=expected_canonical_main,
+            live_observation_proof=self.live_observation_proof,
+            exact_read_proofs=self.exact_read_proofs,
+            ledger=self.ledger,
+        )
         candidates = {item["candidate_id"]: item for item in parsed["candidates"]}
         receipts: list[dict[str, Any]] = []
         for decision in reconciliation["results"]:
@@ -391,6 +508,8 @@ class RetrospectiveSignalIntakeBridge:
                 "normalized_event_or_link_ids": [],
                 "source_signal_kind": candidate["signal_kind"] if candidate else "UNKNOWN",
                 "s0c_gateway_signal_kind": "NONE", "disposition": decision["disposition"],
+                "disposition_reason": decision["reason"],
+                "authority_evidence_refs": list(decision.get("authority_evidence_refs", [])),
                 "canonical_snapshot_or_main": reconciliation["canonical_snapshot_or_main"],
                 "package_digest": parsed["package_digest"], "durable_ledger_identity_or_receipt": "NONE",
                 "replay_checksum": "NONE", "replay_identity": "NONE", "read_back_evidence": "NONE",
@@ -405,8 +524,9 @@ class RetrospectiveSignalIntakeBridge:
             try:
                 gateway_receipt = self.gateway.intake(
                     _r136_envelope(candidate),
-                    request_text=f"governed system requirement {candidate['problem_to_solve']}",
+                    request_text=f"governed system signal {candidate['problem_to_solve']}",
                     explicit_capture=True,
+                    signal_kind=candidate["signal_kind"],
                 )
             except (GatewayError, SignalPlaneError, RetrospectiveIntakeError) as exc:
                 base["durable_ledger_identity_or_receipt"] = {"error_code": getattr(exc, "code", type(exc).__name__)}
@@ -428,6 +548,10 @@ class RetrospectiveSignalIntakeBridge:
                 receipts.append(base)
                 continue
             base["s0c_gateway_signal_kind"] = str(read_back.get("signal_kind", "UNKNOWN"))
+            if read_back.get("signal_kind") != candidate["signal_kind"]:
+                base["durable_ledger_identity_or_receipt"] = {"gateway_receipt": ledger_receipt, "error_code": "DURABLE_SIGNAL_KIND_HISTORY_MISMATCH"}
+                receipts.append(base)
+                continue
             projection = self.ledger.current_projection()
             if projection is None:
                 projection = self.ledger.rebuild_projection(expected_version=self.ledger.current_projection_version())
@@ -437,9 +561,13 @@ class RetrospectiveSignalIntakeBridge:
                 base["durable_ledger_identity_or_receipt"] = {"gateway_receipt": ledger_receipt, "error_code": "DURABLE_REPLAY_UNPROVEN"}
                 receipts.append(base)
                 continue
-            signal_present = any(item.get("signal_id") == gateway_receipt.get("signal_id") for item in projection.get("signals", []))
-            if not signal_present:
+            projected_signal = next((item for item in projection.get("signals", []) if item.get("signal_id") == gateway_receipt.get("signal_id")), None)
+            if projected_signal is None:
                 base["durable_ledger_identity_or_receipt"] = {"gateway_receipt": ledger_receipt, "error_code": "DURABLE_PROJECTION_READBACK_MISSING"}
+                receipts.append(base)
+                continue
+            if projected_signal.get("signal_kind") != candidate["signal_kind"]:
+                base["durable_ledger_identity_or_receipt"] = {"gateway_receipt": ledger_receipt, "error_code": "DURABLE_SIGNAL_KIND_PROJECTION_MISMATCH"}
                 receipts.append(base)
                 continue
             base.update({
@@ -447,7 +575,9 @@ class RetrospectiveSignalIntakeBridge:
                 "read_back_evidence": f"sha256:{digest(read_back)}",
                 "current_projection_result": {
                     "projection_version": projection.get("projection_version"), "input_revision": projection.get("input_revision"),
+                    "ledger_watermark": projection.get("ledger_watermark"), "reducer_version": projection.get("reducer_version"),
                     "checksum": projection.get("checksum"), "signal_present": True,
+                    "signal_kind": projected_signal.get("signal_kind"),
                 },
                 "write_status": "PERSISTED",
             })
