@@ -266,29 +266,21 @@ class DurableSignalLedger:
         return self.boundary.snapshot()
 
     @staticmethod
-    def _logical_order(event: Mapping[str, Any]) -> tuple[int, int]:
-        sequence = event.get("source_sequence")
-        return (int(sequence) if sequence is not None else int(event["ledger_offset"]), int(event["ledger_offset"]))
-
-    @staticmethod
     def _is_semantic_origin(event: Mapping[str, Any]) -> bool:
         return event.get("event_type") not in _LIFECYCLE_EVENT_TYPES and event.get("signal_kind") not in _OPERATIONAL_SIGNAL_KINDS
 
     def _reduce(self) -> dict[str, Any]:
         history = self.history()
-        semantic_origin: dict[str, tuple[tuple[int, int], str]] = {}
+        semantic_origin: dict[str, str] = {}
         semantic_conflicts: set[str] = set()
         for event in history:
             if not self._is_semantic_origin(event):
                 continue
-            key = event["signal_id"]
-            order, kind = self._logical_order(event), str(event["signal_kind"])
+            key, kind = event["signal_id"], str(event["signal_kind"])
             prior = semantic_origin.get(key)
-            if prior is None or order < prior[0]:
-                if prior is not None and prior[1] != kind:
-                    semantic_conflicts.add(key)
-                semantic_origin[key] = (order, kind)
-            elif prior[1] != kind:
+            if prior is None:
+                semantic_origin[key] = kind
+            elif prior != kind:
                 semantic_conflicts.add(key)
 
         signals: dict[str, dict[str, Any]] = {}
@@ -302,10 +294,9 @@ class DurableSignalLedger:
                 continue
             if current and ranks[event["execution_state"]] < ranks[current["execution_state"]] and event["execution_state"] not in {"CANCELLED", "BLOCKED"}:
                 continue
-            logical_kind = semantic_origin.get(key, ((int(order), int(event["ledger_offset"])), str(event["signal_kind"])))[1]
             signals[key] = {
                 "signal_id": key,
-                "signal_kind": logical_kind,
+                "signal_kind": semantic_origin.get(key, str(event["signal_kind"])),
                 "planning_state": event["planning_state"],
                 "execution_state": event["execution_state"],
                 "epistemic_state": event["epistemic_state"],
