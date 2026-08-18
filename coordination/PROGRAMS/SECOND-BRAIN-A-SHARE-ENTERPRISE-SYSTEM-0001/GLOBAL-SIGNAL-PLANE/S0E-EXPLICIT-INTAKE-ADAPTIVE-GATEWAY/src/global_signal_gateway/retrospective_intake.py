@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 import hashlib
 import json
+import re
 from typing import Any, Mapping, Sequence
 
 from .gateway import (
@@ -80,7 +81,8 @@ PRIVATE_FIELD_NAMES = frozenset({
     "raw_source_body", "private_chain_of_thought", "token", "password", "private_key",
     "secret", "api_key", "access_token",
 })
-SECRET_MARKERS = ("ghp_", "sk-", "password=", "-----begin private key", "api_key=")
+SECRET_MARKERS = ("ghp_", "password=", "-----begin private key", "api_key=")
+SK_SECRET_PATTERN = re.compile(r"(?<![a-z0-9])sk-[a-z0-9_-]+", re.IGNORECASE)
 REQUIRED_SCAN_SURFACES = frozenset({
     "current_signals", "historical_signals", "current_tasks", "current_missions",
     "issues_pr_reviews", "r136_r141_capabilities", "domain_canonical",
@@ -124,7 +126,7 @@ def _safe(value: Any, path: str = "/") -> None:
             _safe(child, f"{path}{index}/")
     elif isinstance(value, str):
         folded = value.casefold()
-        if any(marker in folded for marker in SECRET_MARKERS):
+        if any(marker in folded for marker in SECRET_MARKERS) or SK_SECRET_PATTERN.search(value):
             raise RetrospectiveIntakeError("PRIVATE_OR_UNSAFE", path)
 
 
