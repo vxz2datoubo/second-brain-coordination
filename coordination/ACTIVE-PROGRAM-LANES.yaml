@@ -1,10 +1,10 @@
-schema_version: "3.13"
+schema_version: "3.14"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-18T12:29:00+08:00"
+as_of: "2026-08-18T21:05:59+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -30,16 +30,15 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R60 and R142 may run in separate GPT Engineering Worker windows because their authorized write surfaces do not overlap. R60 owns
-    only its R60 root plus its exact workflow; R142 owns only bounded S0E/R142 paths plus its exact workflow. A real local-heavy or
-    same-object collision must fail closed or downgrade to bounded lightweight work.
+    R60 implementation is merged and its executor reservation is closed. R142 remains the only currently released Lane-A
+    GPT Engineering Worker implementation surface. Same-object single-writer and one-local-heavy-stage rules remain in force.
 
 current_user_release_policy:
   decision_at: "2026-08-18T12:29:00+08:00"
   decision: "USER_AUTHORIZED_PARALLEL_GPT_ENGINEERING / R142_EXECUTOR_SUBSTITUTION / QCLAW_COMPUTE_PRESERVED"
   rationale: >-
-    The user explicitly approved parallel engineering to reduce project time and opened a new GPT project window for R142. Work that
-    GPT Engineering Worker can reliably complete should default to GPT; QCLAW retained compute remains reserve capacity.
+    The user explicitly approved parallel engineering to reduce project time and opened a GPT project window for R142.
+    R60 has since completed implementation and merged under separate exact-bound authorization; QCLAW retained compute remains reserve capacity.
   released_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION / R142_GPT_ENGINEERING_WORKER"
   prepared_implementation_lanes: []
@@ -49,9 +48,11 @@ current_user_release_policy:
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
-  qclaw_r60_status: "QCLAW_PAUSED / GPT_ENGINEERING_WORKER_ACTIVE_ON_SAME_R60"
-  qclaw_r60_executor_role: "GPT_ENGINEERING_WORKER"
-  qclaw_r60_model_id: "GPT-5.6 Sol"
+  qclaw_r60_status: "IMPLEMENTATION_MERGED / CONTROL_PLANE_CLOSEOUT_UNDER_REVIEW / NO_ACTIVE_EXECUTOR"
+  qclaw_r60_accepted_head: "8e5b9f3b8e9d9180937a1e7a41e720383fa146b0"
+  qclaw_r60_merge_commit: "870df76ada3d437bbd2a29a0a3e199f4f66f3ab6"
+  qclaw_r60_historical_executor_role: "GPT_ENGINEERING_WORKER"
+  qclaw_r60_historical_model_id: "GPT-5.6 Sol"
   qclaw_r60_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
   qclaw_compute_policy: "PRESERVE_BY_DEFAULT / GPT_ENGINEERING_WORKER_FIRST_WHEN_CAPABLE"
   r142_issue: 393
@@ -91,10 +92,10 @@ observed_agent_state:
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
     observed_route_epoch: 60
     observed_issue: 296
-    observed_pr: 304
-    observed_status: "PAUSED"
+    observed_pr: null
+    observed_status: "DONE_HISTORICAL"
     execution_allowed: false
-    observation_status: "QCLAW_COMPUTE_RESERVED / R60_EXECUTOR_SUBSTITUTED_TO_GPT_ENGINEERING_WORKER"
+    observation_status: "R60_IMPLEMENTATION_MERGED / NO_ACTIVE_QCLAW_OR_GPT_R60_EXECUTOR"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -200,7 +201,7 @@ cross_lane_overlap_matrix:
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  R142 may execute only through its canonical GPT_ENGINEERING_WORKER substitution after fresh main/route/claim reconciliation. Codex
-  and QCLAW are non-executable reserve/historical executors. R60 and R142 GPT workers may proceed in parallel only on disjoint write
-  surfaces and under one-local-heavy-stage/same-object-single-writer constraints. Fail closed on stale assumptions, write collision,
-  private data, S0C/runtime-authority expansion, formal promotion, production/permissions/trading changes, or self-merge.
+  R142 may execute only through its canonical GPT_ENGINEERING_WORKER substitution after fresh main/route/claim reconciliation.
+  Codex, QCLAW and completed R60 routes are non-executable historical/reserve states. R60 has no active Work Claim or executor reservation.
+  Fail closed on stale assumptions, write collision, private data, S0C/runtime-authority expansion, formal promotion,
+  production/permissions/trading changes, or self-merge.
