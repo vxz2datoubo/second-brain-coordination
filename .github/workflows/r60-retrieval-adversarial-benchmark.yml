@@ -32,14 +32,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Bind checkout to PR #304 head and base
+      - name: Bind checkout to PR #304 head and effective base
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           EXPECTED_MERGE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -53,28 +53,31 @@ jobs:
           actual_sha="$(git rev-parse HEAD)"
           parent_base="$(git rev-parse HEAD^1)"
           parent_head="$(git rev-parse HEAD^2)"
+          fetched_base="$(git rev-parse "origin/${BASE_REF}")"
 
           echo "R60_ATTEST_GITHUB_REF=${actual_ref}"
           echo "R60_ATTEST_EXPECTED_REF=${expected_ref}"
           echo "R60_ATTEST_GITHUB_SHA=${EXPECTED_MERGE_SHA}"
           echo "R60_ATTEST_GIT_HEAD=${actual_sha}"
           echo "R60_ATTEST_PR_HEAD_SHA=${EXPECTED_HEAD_SHA}"
-          echo "R60_ATTEST_PR_BASE_SHA=${EXPECTED_BASE_SHA}"
-          echo "R60_ATTEST_PARENT_BASE=${parent_base}"
+          echo "R60_ATTEST_PR_EVENT_BASE_SHA=${EVENT_BASE_SHA}"
+          echo "R60_ATTEST_EFFECTIVE_BASE_SHA=${parent_base}"
+          echo "R60_ATTEST_FETCHED_ORIGIN_BASE_SHA=${fetched_base}"
           echo "R60_ATTEST_PARENT_HEAD=${parent_head}"
 
           test "${actual_ref}" = "${expected_ref}"
           test "${actual_sha}" = "${EXPECTED_MERGE_SHA}"
-          test "${parent_base}" = "${EXPECTED_BASE_SHA}"
           test "${parent_head}" = "${EXPECTED_HEAD_SHA}"
+          test "${parent_base}" = "${fetched_base}"
+          git merge-base --is-ancestor "${EVENT_BASE_SHA}" "${parent_base}"
+          echo "R60_EVENT_BASE_ANCESTOR_OF_EFFECTIVE_BASE=PASS"
 
       - name: Enforce bounded changed-path scope
         shell: bash
-        env:
-          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
+          effective_base="$(git rev-parse HEAD^1)"
+          test "${effective_base}" = "$(git rev-parse origin/main)"
           unexpected=0
           while IFS= read -r path; do
             case "${path}" in
@@ -85,7 +88,7 @@ jobs:
                 unexpected=1
                 ;;
             esac
-          done < <(git diff --name-only "${EXPECTED_BASE_SHA}...${EXPECTED_HEAD_SHA}")
+          done < <(git diff --name-only "${effective_base}" HEAD)
           test "${unexpected}" -eq 0
 
       - name: Set up Python
