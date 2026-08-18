@@ -1,10 +1,10 @@
-schema_version: "3.11"
+schema_version: "3.12"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-18T01:25:00+08:00"
+as_of: "2026-08-18T08:57:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -29,17 +29,17 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R142 remains the sole Lane-A Codex implementation claim but has not received its direct user start. QCLAW R60 remediation may
-    resume on its own existing benchmark branch because it does not write R142/S0E surfaces; if a real local heavy-stage collision
-    appears, execution must fail closed or fall back to bounded single-worker/lightweight work.
+    R142 remains the sole Lane-A Codex implementation claim but has not received its direct user start. R60 is no longer assigned to
+    QCLAW execution: QCLAW is paused to preserve retained compute, while the same R60 / Issue #296 / Draft PR #304 / branch may be
+    continued by a GPT_ENGINEERING_WORKER under the canonical executor-substitution handoff. Any real local-heavy collision must fail closed.
 
 current_user_release_policy:
-  decision_at: "2026-08-18T01:25:00+08:00"
-  decision: "USER_AUTHORIZED_QCLAW_R60_REMEDIATION_RESUME / R142_CODEX_DIRECT_START_STILL_NOT_GIVEN"
+  decision_at: "2026-08-18T08:57:00+08:00"
+  decision: "USER_AUTHORIZED_R60_GPT_ENGINEERING_WORKER_SUBSTITUTION / QCLAW_COMPUTE_PRESERVED / R142_CODEX_DIRECT_START_STILL_NOT_GIVEN"
   rationale: >-
-    The user explicitly confirmed QCLAW compute is now sufficient and instructed QCLAW to finish its existing R60 remediation.
-    This does not transfer R142 to QCLAW and does not authorize any new QCLAW task. R60 remains the same Issue #296, Draft PR #304,
-    route epoch 60 and branch, limited to resolving the three GPT-confirmed false-green blockers and required regressions.
+    The user clarified that QCLAW compute is retained rather than expiring daily and should not be consumed merely because it is available.
+    Work that a GPT Engineering Worker can reliably complete should default to GPT first. R60 remains the same Mission/Issue/PR/branch;
+    only executor ownership changes. QCLAW is returned to non-executable reserve status.
   released_implementation_lanes: []
   prepared_implementation_lanes:
     - "LANE-A-HARNESS-INTEGRATION / R142_READY_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
@@ -49,8 +49,12 @@ current_user_release_policy:
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
-  qclaw_r60_status: "REMEDIATION_ACTIVE"
-  qclaw_r60_scope: "SAME_TASK_SAME_PR_SAME_BRANCH_B01_B03_ONLY"
+  qclaw_r60_status: "QCLAW_PAUSED / GPT_ENGINEERING_WORKER_HANDOFF_READY"
+  qclaw_r60_scope: "SAME_TASK_SAME_PR_SAME_BRANCH_B01_B03_REMEDIATION_ONLY"
+  qclaw_r60_executor_role: "GPT_ENGINEERING_WORKER"
+  qclaw_r60_model_id: "GPT-5.6 Sol"
+  qclaw_r60_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
+  qclaw_compute_policy: "PRESERVE_BY_DEFAULT / GPT_ENGINEERING_WORKER_FIRST_WHEN_CAPABLE"
   r142_issue: 393
   r142_route_epoch: 142
   r142_status: "READY_AFTER_ACTIVATION_MERGE"
@@ -84,9 +88,9 @@ observed_agent_state:
     observed_route_epoch: 60
     observed_issue: 296
     observed_pr: 304
-    observed_status: "REMEDIATION_ACTIVE"
-    execution_allowed: true
-    observation_status: "R60_B01_B03_REMEDIATION_ACTIVE / SAME_TASK_PR_BRANCH"
+    observed_status: "PAUSED"
+    execution_allowed: false
+    observation_status: "QCLAW_COMPUTE_RESERVED / R60_EXECUTOR_SUBSTITUTED_TO_GPT_ENGINEERING_WORKER"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -192,7 +196,8 @@ cross_lane_overlap_matrix:
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  R142 may execute only after its separate direct user start command; that command has not been given. QCLAW R60 remediation is
-  independently authorized on its existing Issue #296 / PR #304 / branch and must fresh-reconcile current main and current merged
-  P2 runtime before edits. Fail closed on stale assumptions, write-surface collision, private data, runtime-authority expansion,
-  formal promotion, production/permissions/trading changes, or any self-merge attempt.
+  R142 may execute only after its separate direct user start command; that command has not been given. QCLAW is non-executable and
+  retained as reserve compute. R60 may continue only through the GPT_ENGINEERING_WORKER executor-substitution handoff on the same
+  Issue #296 / Draft PR #304 / branch after fresh reconcile of current main and current merged P2 runtime. Fail closed on stale
+  assumptions, write-surface collision, private data, runtime-authority expansion, formal promotion, production/permissions/trading
+  changes, or any self-merge attempt.
