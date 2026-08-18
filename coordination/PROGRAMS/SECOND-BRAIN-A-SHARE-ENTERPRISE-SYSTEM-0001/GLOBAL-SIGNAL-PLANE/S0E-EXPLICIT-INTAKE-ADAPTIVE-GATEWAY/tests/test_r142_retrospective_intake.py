@@ -398,6 +398,7 @@ class PackageContractCase(unittest.TestCase):
         self.assertIn(payload["status"], {
             "REAL_RETROSPECTIVE_SOURCE_UNAVAILABLE",
             "HISTORICAL_HANDOFF_SOURCE_AVAILABLE / PRE_ENUMERATED_PACKAGE_NOT_RECOVERED",
+            "REAL_RETROSPECTIVE_RECONSTRUCTION_AND_RECONCILIATION_COMPLETE",
         })
         self.assertTrue(payload["historical_handoff"]["available"])
 
