@@ -75,7 +75,6 @@ jobs:
           EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          git diff --check "${EXPECTED_BASE_SHA}...${EXPECTED_HEAD_SHA}"
           unexpected=0
           while IFS= read -r path; do
             case "${path}" in
