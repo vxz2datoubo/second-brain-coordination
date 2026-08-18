@@ -6,6 +6,8 @@ on:
       - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/**'
       - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/**'
       - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142/**'
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py'
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/tests/test_signal_plane.py'
       - '.github/workflows/global-signal-plane-r142-retrospective-intake.yml'
 
 permissions:
@@ -65,7 +67,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: python -m unittest discover -s tests -p 'test_r136_matrix.py' -v
 
-      - name: Read-only S0C regression
+      - name: S0C regression
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE
         env:
           PYTHONPATH: 'S0-SYNTHETIC/src'
@@ -86,8 +88,12 @@ jobs:
             'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/',
             'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142/',
           )
+          exact_s0c = {
+            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py',
+            'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/tests/test_signal_plane.py',
+          }
           workflow = '.github/workflows/global-signal-plane-r142-retrospective-intake.yml'
-          outside = [p for p in changed if p != workflow and not any(p.startswith(prefix) for prefix in prefixes)]
+          outside = [p for p in changed if p != workflow and p not in exact_s0c and not any(p.startswith(prefix) for prefix in prefixes)]
           if outside:
               raise SystemExit(f'R142_ALLOWLIST_FAIL:{outside}')
           patterns = (
@@ -102,12 +108,14 @@ jobs:
                       raise SystemExit(f'R142_PUBLIC_SAFETY_FAIL:{name}')
           print('R142_ALLOWLIST_PASS')
           print('R142_PUBLIC_SAFETY_PASS')
-          print('S0C_SOURCE_MUTATION=NONE')
+          print('S0C_SOURCE_MUTATION=BOUNDED_AUTHORIZED_R142_F01')
           PY
           git diff --check "$R142_BASE_SHA...HEAD"
           if grep -InE '\b(TODO|FIXME)\b|NotImplementedError' \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142_retrospective_intake.py; then
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142_retrospective_intake.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/tests/test_signal_plane.py; then
             exit 1
           fi
           echo R142_PLACEHOLDER_PASS
@@ -138,8 +146,9 @@ jobs:
             'merge_ref_sha': os.environ['R142_MERGE_SHA'],
             'python_version': os.environ['R142_PYTHON_VERSION'],
             'github_run_id': os.environ['R142_RUN_ID'],
-            'tests': ['R142 adversarial', 'R136 bounded regression', 'S0C read-only regression'],
+            'tests': ['R142 adversarial', 'R136 bounded regression', 'S0C regression'],
             'public_safety': 'PASS', 'changed_path_allowlist': 'PASS', 'resource_cleanup': 'PASS',
+            's0c_scope': 'BOUNDED_AUTHORIZED_R142_F01',
             'executor_role': 'GPT_ENGINEERING_WORKER', 'model_id': 'GPT-5.6 Sol',
           }
           target = Path(os.environ['RUNNER_TEMP']) / 'r142-exact-head-ci.json'
