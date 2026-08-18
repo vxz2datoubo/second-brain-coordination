@@ -133,6 +133,19 @@ def _grade_admission(case: dict[str, Any]) -> dict[str, Any]:
         except ValueError as exc: return _result(case["case_id"],"REJECT","PASS" if expected=="REJECT" else "FAIL","plan rejected: "+str(exc))
         assembler=ContextAssembler(store); bundle=assembler.assemble(plan); forbidden=_forbidden_ids(records,case["query_and_intent"],case["setup"],aliases); leaks=_leak_paths(bundle,assembler,forbidden); admitted_ids=[atom["id"] for atom in bundle.atoms]
         if expected=="REJECT":
+            # Q60-B06: once a negative fixture has successfully persisted and the
+            # query plan is valid, an empty forbidden oracle is not evidence of
+            # safety. It means the harness failed to construct the negative
+            # identity set and must fail closed rather than `not leaks => PASS`.
+            if records and not forbidden:
+                return _result(
+                    case["case_id"],
+                    "INVALID_FIXTURE_OR_ORACLE",
+                    "ERROR",
+                    f"negative fixture persisted but forbidden oracle is empty; admitted={admitted_ids}",
+                    leak_paths=leaks,
+                    forbidden_ids=[],
+                )
             passed=not leaks
             return _result(case["case_id"],"REJECT" if passed else "LEAK","PASS" if passed else "FAIL",f"forbidden={sorted(forbidden)}; admitted={admitted_ids}; leak_surfaces={sorted(leaks)}",leak_paths=leaks,forbidden_ids=sorted(forbidden))
         cid=case["case_id"]
