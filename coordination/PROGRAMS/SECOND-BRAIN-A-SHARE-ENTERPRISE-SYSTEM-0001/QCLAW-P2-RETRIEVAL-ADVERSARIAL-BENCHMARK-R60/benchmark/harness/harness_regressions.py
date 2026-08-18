@@ -31,6 +31,64 @@ def _regression_b03_real_identity() -> dict[str, Any]:
         return _result("reg-b03-persisted-identity-oracle","RESOLVED" if ok else "EMPTY","PASS" if ok else "FAIL",f"actual_id={actual}; forbidden={sorted(forbidden)}")
     finally: store.close()
 
+def _regression_b06_missing_provenance_empty_oracle() -> dict[str, Any]:
+    from integrated_offline_memory.memory_store import MemoryStore
+
+    store=MemoryStore(db_path=":memory:"); store.connect()
+    missing_error=""
+    try:
+        try:
+            _persist_conversation(
+                store,
+                {
+                    "kind":"conversation",
+                    "user":"alice",
+                    "project":"p1",
+                    "stmt":"R60 B06 missing provenance probe",
+                    "valid_from":"2026-08-14T08:00:00Z",
+                    "no_source_refs":True,
+                },
+                9200,
+            )
+        except ValueError as exc:
+            missing_error=str(exc)
+    finally:
+        store.close()
+    missing_failed_closed="conversation_provenance_missing" in missing_error
+
+    empty_case={
+        "case_id":"reg-b06-empty-forbidden-oracle",
+        "expected_admission_or_abstention":{"verdict":"REJECT"},
+        "query_and_intent":{
+            "query_text":"R60 B06 empty oracle probe",
+            "intent":"CURRENT",
+            "scopes":["p1"],
+            "user_scope":"alice",
+            "valid_at":"2026-08-14T10:00:00Z",
+        },
+        "setup":{
+            "atoms":[{
+                "kind":"conversation",
+                "user":"alice",
+                "project":"p1",
+                "stmt":"R60 B06 empty oracle probe",
+                "valid_from":"2026-08-14T08:00:00Z",
+            }]
+        },
+    }
+    empty_result=_grade_admission(empty_case)
+    empty_failed_closed=(
+        empty_result.get("verdict")=="ERROR"
+        and empty_result.get("observed")=="INVALID_FIXTURE_OR_ORACLE"
+    )
+    ok=missing_failed_closed and empty_failed_closed
+    return _result(
+        "reg-b06-missing-provenance-empty-oracle",
+        "FAIL_CLOSED" if ok else "MISMATCH",
+        "PASS" if ok else "FAIL",
+        f"missing_source_refs_error={missing_error}; empty_oracle={empty_result.get('observed')}/{empty_result.get('verdict')}",
+    )
+
 def _regression_r118_public_report_equivalence() -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore
     from integrated_offline_memory.retrieval import ContextAssembler,QueryPlan
@@ -56,7 +114,7 @@ def _regression_r119_endpoint_safe_projection() -> dict[str, Any]:
     finally: store.close()
 
 def run_regressions() -> list[dict[str, Any]]:
-    probes=(_regression_b01_surface_oracle,_regression_b02_persisted_state,_regression_b03_real_identity,_regression_r118_public_report_equivalence,_regression_r119_endpoint_safe_projection); results=[]
+    probes=(_regression_b01_surface_oracle,_regression_b02_persisted_state,_regression_b03_real_identity,_regression_b06_missing_provenance_empty_oracle,_regression_r118_public_report_equivalence,_regression_r119_endpoint_safe_projection); results=[]
     for probe in probes:
         try: results.append(probe())
         except Exception as exc: results.append(_result(probe.__name__,"ERROR","ERROR",f"{type(exc).__name__}: {exc}"))
