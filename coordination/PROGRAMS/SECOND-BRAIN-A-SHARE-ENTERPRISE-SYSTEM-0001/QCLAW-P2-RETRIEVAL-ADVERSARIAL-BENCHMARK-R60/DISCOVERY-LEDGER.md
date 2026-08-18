@@ -1,74 +1,34 @@
-# R60 Discovery Ledger
+# R60 Discovery Ledger — remediation state
 
-Negative / failed probes and discovered gaps discovered while building the
-benchmark. This is the honest record of what the audit revealed, not a success
-narrative.
+Historical false-green evidence is preserved as a defect record, not rewritten into success.
 
-## D1 — Prompt-injection markers are split across two files with different sets
+## D1 — public report observability
+R118 froze caller observability before public rejection accounting. Targeted regression shows a hidden foreign candidate and an absent candidate have the same public admission report. Status: `CURRENT CONTRACT REGRESSION PASS`.
 
-- `conversation_memory.py` uses a **4-marker** list (`_PROMPT_INJECTION_MARKERS`).
-- `learning_packet.py` uses a **larger** marker set (11 entries incl. Chinese +
-  `<system>`) PLUS a regex fallback (`ignore|disregard` variants + 中文"忽略…指令").
-- **Gap:** a caller going through the conversation path (not the learning-packet
-  verify path) is protected by only the 4-marker list. Paraphrased injection
-  ("please act as if the earlier rules do not apply") is caught by neither.
-  This is a **generalization gap**, not a P0 — the fail-closed *principle* holds
-  for the enumerated markers.
+## D2 — fixture mutation truthfulness
+Historical R60 mutated a copied atom while importing the unmodified packet. Remediation imports/re-reads the actual mutation, or uses canonical correction for derived closure. Status: `B02 CLOSED`.
 
-## D2 — `_trust_gate` outcome is `ADMIT_CANDIDATE_ONLY`, not a bare `ADMIT`
+## D3 — optional id_hint oracle
+Historical forbidden sets could remain empty when `id_hint` was absent. Remediation derives forbidden IDs from persisted canonical identity. Status: `B03 CLOSED`.
 
-- The canonical trust gate never emits a plain "ADMIT"; it emits
-  `ADMIT_CANDIDATE_ONLY` with reason `scope_privacy_status_and_valid_time_passed`.
-  The benchmark's `ADMIT` verdict maps to this outcome. Recorded to avoid the
-  earlier harness bug where it compared against the wrong string.
+## D4 — later-slice corpus
+Canonical P2 has evolved beyond the original R116/R117-era snapshot. Thirty `runnable=false` cases remain useful candidate material but require case-by-case remapping before promotion. Status: `NEEDS_REVALIDATION`.
 
-## D3 — Knowledge atoms require the `capture_knowledge` path, not direct insert
+## D5 — honest current mismatches
+`r60-013` and `r60-025` fail after fixing the harness. Expected outcomes were not changed. Status: `2 CURRENT FAIL / NEEDS_REVALIDATION`.
 
-- `MemoryStore.insert_atom` on a `knowledge_atom` raises
-  `knowledge_requires_learning_packet_import`. The harness must use
-  `capture_knowledge()` (which also enforces `knowledge_passage_not_derived_from_source`
-  extraction binding and post-write scoped recall). This is a **strength** of the
-  canonical design (no arbitrary caller text can inherit episode lineage), but it
-  means the adversarial harness must go through the full reconciliation path.
+## D8 — hidden relation endpoint leak, corrected
+**Historical defect:** pre-P2.2 `relations_around(selected_set)` can return a relation when either endpoint is selected. An admitted root could therefore expose a non-admitted/revoked/cross-scope endpoint ID through `bundle.relations`. The old R60 REJECT grader inspected only `bundle.atoms`, so `r60-019` could be PASS while the endpoint leaked. That historical PASS is invalid.
 
-## D4 — `capture_knowledge` post-write scoped recall is a hard gate
+**Canonical evolution:** R118 explicitly recorded this defect as `R118-ADJ-P2-2-001`. R119/P2.2 then required independent admission of every relation/conflict/unknown endpoint before projection; current `ContextAssembler` implements endpoint-safe projection.
 
-- `capture_knowledge` refuses a `semantic_query` that equals a candidate statement
-  (`knowledge_paraphrase_or_relation_query_required`) and fails if post-write
-  scoped recall cannot find the atom (`knowledge_post_write_scoped_recall_failed`).
-  This is a real anti-Goodhart check: a source echo cannot masquerade as semantic
-  recall. Two aggregate cases (r60-020, r60-065) hit this because P1 does not emit
-  `aggregate_equivalence_key` → correctly downgraded to spec-pending.
+**Remediated proof:** the new full-surface oracle detects a simulated relation-target-only hidden ID at `$.relations[0].target_atom_id`. Against current runtime, `r60-019` persists a revoked endpoint with canonical ID `at-915e364b8719ad76582f`; the visible source can be admitted, but the forbidden endpoint occurs in no observable bundle/telemetry surface. Current result: `PASS`, while the historical pre-P2.2 leak remains recorded as a real defect.
 
-## D5 — Orphan relation is fail-closed via SQLite FK, not via integrity_check
+## D9 — endpoint-free unknown behavior
+Current P2.2 suppresses endpoint-free unknowns. Original `r60-025` expected one to surface. Status: `CURRENT FAIL / NEEDS_REVALIDATION`.
 
-- With `PRAGMA foreign_keys=ON`, `insert_relation` on missing endpoints raises
-  `IntegrityError: FOREIGN KEY constraint failed`. The invariant holds at the
-  storage layer (stronger than a post-hoc integrity scan). The harness grades this
-  as REJECT/PASS on the IntegrityError.
+## D10 — superseded historical recall expectation
+After real persistence, `r60-013` is genuinely superseded. Its HISTORICAL query does not explicitly include `superseded`, and current default truth states exclude it. Status: `CURRENT FAIL / NEEDS_REVALIDATION`.
 
-## D6 — Supersession valid-time ordering is enforced at correction build
-
-- `build_conversation_correction` + `import_learning_packet` raises
-  `conversation_supersession_valid_time_invalid` when the correction's
-  `valid_from` is not later than the target's `valid_from`. Verified pass.
-
-## D7 — Determinism / dedup / budget
-
-- `canonical_json` (sort_keys) and `content_hash` are key-order independent;
-  `plan_hash` is a property (not a callable) — recorded to avoid the recurring
-  `TypeError: 'str' object is not callable` footgun.
-
-## D8 — No hidden/disallowed relation endpoint leak
-
-- `relations_around(selected_set)` only surfaces relations whose endpoints are in
-  the admitted set; a relation to a forbidden atom is not traversed into the
-  bundle (relation_depth=0 default confirms neighbor exclusion). Verified.
-
-## Discovered gaps (carried to UNKNOWN-REGISTRY)
-
-- `aggregate_equivalence_key` not emitted by P1 knowledge path → P2.2 (UNKNOWN-001).
-- semantic provider transport contract unfrozen → P2.4 (UNKNOWN-002).
-- structural analogy representation undefined → P2.4 (UNKNOWN-003).
-- Memory Palace migration route unfrozen → P2.3 (UNKNOWN-004).
-- cross-source semantic near-dup identity hash not in P1 → P2.x (UNKNOWN-005).
+## Evidence boundary
+Local behavior run used isolated Python 3.13.5. Four load-bearing runtime modules were byte-verified; retrieval was a logic-preserving projection cross-checked against canonical GitHub source. Exact merged-runtime regression/public-safety evidence is GitHub Phase-3 CI.

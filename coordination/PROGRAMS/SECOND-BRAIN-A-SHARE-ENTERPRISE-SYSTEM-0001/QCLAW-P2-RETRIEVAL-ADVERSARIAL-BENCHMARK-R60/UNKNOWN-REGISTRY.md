@@ -1,76 +1,49 @@
-# R60 UNKNOWN Registry
+# R60 UNKNOWN / NEEDS_REVALIDATION Registry
 
-Items where the governing contract is **not frozen** or **ambiguous**. Per the
-R60 `case_contract.epistemic_rule`, QCLAW must mark UNKNOWN and escalate to GPT —
-it must NOT invent a rule and then grade Codex against its own invention.
+Canonical main has advanced through R118/R119 and later P2 work. Original plan-era pending material is retained, but no expected outcome is silently rewritten.
 
-## UNKNOWN-001 — `aggregate_equivalence_key` is a P2.2 concept not emitted by the P1 knowledge path
+## CURRENT-001 — r60-013
+- status: `NEEDS_REVALIDATION`
+- expected ADMIT; observed ABSTAIN
+- genuine persisted superseded state is excluded by current default QueryPlan truth states.
 
-- **What:** The accepted R116 P2 plan requires synthetic aggregate to count
-  `aggregate_equivalence_key` (not raw atom count) for the no-double-vote rule.
-  The current Phase-3 `retrieval.py` `_trust_gate()` already *reads*
-  `aggregate_equivalence_key` from `memory_metadata.knowledge`, but the P1
-  `capture_knowledge` path does not **emit** it. So the P2.1 runtime cannot
-  exercise P2.2 aggregate semantics today.
-- **Cases affected:** r60-020, r60-065 (both set `runnable=false`, traced to
-  `r116_plan`).
-- **Escalation:** Codex P2.2 must define where `aggregate_equivalence_key` is
-  assigned; until then the no-double-vote dimension is SPEC-PENDING.
+## CURRENT-002 — r60-025
+- status: `NEEDS_REVALIDATION`
+- expected ADMIT; observed no unknown
+- current R119/P2.2 endpoint-safe logic suppresses endpoint-free unknowns.
 
-## UNKNOWN-002 — semantic provider transport contract (P2.4)
+## CURRENT-003 — 30 original spec-pending cases
+- status: `NEEDS_REVALIDATION_AGAINST_CURRENT_FROZEN_SLICE_CONTRACTS`
+- authored against R116/R117-era assumptions; later P2.2/P2.3/P2.4 contracts evolved.
+- retain material, do not bulk-promote to runnable in this B01-B03 remediation.
 
-- **What:** R116 plan makes the semantic provider **optional** and **disabled by
-  default** (P2.4). The exact transport contract (request/response shape, error
-  semantics, fallback-to-lexical path) is not frozen in canonical main.
-- **Cases affected:** P2.4 slice (3 cases, `runnable=false`).
-- **Escalation:** GPT must freeze the semantic provider contract before any P2.4
-  adversarial case can be graded.
+## CURRENT-004 — local execution evidence boundary
+- status: `EVIDENCE_BOUNDARY`
+- local host had no repository checkout/network
+- byte-verified modules: canonical, learning_packet, conversation_memory, memory_store
+- retrieval: logic-preserving local projection cross-checked against current canonical source
+- exact merged-runtime regression/public-safety authority: GitHub Phase-3 CI
 
-## UNKNOWN-003 — structural analogy representation (P2.4)
+## Historical UNKNOWN-001 — aggregate equivalence assignment
+Status: `NEEDS_REVALIDATION`. Current runtime contains later aggregate mechanics, but original corpus assumptions are not silently rewritten.
 
-- **What:** R116 plan says `AnalogyItem` is explicitly `non_evidentiary: true`
-  and cannot contribute a support vote. But the concrete representation of a
-  "structural analogy" (how it is computed / stored / keyed) is not defined.
-- **Cases affected:** P2.4 slice (analogy-related cases, `runnable=false`).
-- **Escalation:** GPT must define the structural analogy representation before
-  grading analogy channel admission parity.
+## Historical UNKNOWN-002 — semantic provider transport
+Status: `NEEDS_REVALIDATION`. A concrete provider request/result contract now exists; the old “not frozen” statement is stale, but original pending cases still require remapping.
 
-## UNKNOWN-004 — Memory Palace migration (P2.3)
+## Historical UNKNOWN-003 — structural analogy representation
+Status: `NEEDS_REVALIDATION`. Current retrieval code now has structural/analogy mechanics; old pending cases require remapping.
 
-- **What:** P2.3 (Memory Palace migration) has no runtime in canonical main; the
-  `memory_palace.py` module exists but the "migration" slice contract is not
-  frozen as a route. Expected outcomes are spec-traced only.
-- **Cases affected:** P2.3 slice (5 cases, `runnable=false`).
-- **Escalation:** GPT must freeze the P2.3 route before grading.
+## Historical UNKNOWN-004 — Memory Palace migration
+Status: `NEEDS_REVALIDATION`. Wider P2 evolved; this remediation does not expand into P2.3 re-authoring.
 
-## UNKNOWN-005 — cross-source near-duplicate / structural analogy semantic hash
+## Historical UNKNOWN-005 — cross-source semantic near-duplicate identity
+Status: `OPEN / NEEDS_REVALIDATION`. No new equivalence rule is invented here.
 
-- **What:** The benchmark probes "cross-domain denial" and "support + strongest
-  counter/alternative coverage" but the canonical identity for cross-source
-  near-duplicate detection (the semantic identity hash that says two differently
-  phrased statements are the same proposition) is a P2.x concern, not frozen in
-  the P1 runtime. The P1 runtime keys on `canonical_statement` normalization
-  (NFKC), which is lexical, not semantic.
-- **Escalation:** GPT should confirm whether P2.1 admission is expected to do
-  semantic (not just lexical) near-dup collapse; if yes, that's a P2.2+ contract.
+## Historical UNKNOWN-006 — resource/process measurability
+Status for this execution: `MEASURED_POSTFLIGHT_AVAILABLE`. Harness spawns no subprocess/pool/daemon; executor performs a final process-table check. No production resource-governance claim follows.
 
-## UNKNOWN-006 — resource/process lifecycle measurability on the grading host
+## Historical UNKNOWN-007 — later-slice grading authority
+Status: `NEEDS_REVALIDATION`, narrowed by current canonical contracts. R118/R119 are frozen enough for the two new targeted regressions, but remaining plan-era pending corpus is not bulk-promoted.
 
-- **What:** `required_postflight` demands "measured zero task-owned descendants,
-  zero orphans, zero unrelated terminations; UNKNOWN if not measurable". On this
-  host the benchmark is a single synchronous Python process with no spawned
-  children (stdlib only, no multiprocessing/subprocess workers). "Zero" is
-  trivially true but not *instrumented*; `psutil` is intentionally NOT a
-  dependency (matches E48/E50 zero-third-party constraint).
-- **Escalation:** GPT should confirm that "single synchronous process, no child
-  spawn, stdlib-only" satisfies the postflight requirement, or require a
-  psutil-instrumented CI variant.
-
-## UNKNOWN-007 — P2.2/P2.3/P2.4 grading authority
-
-- **What:** 30 spec-pending cases carry an expected outcome traced to the R116
-  plan / R117 route text, but the plan text is prose, not executable. The exact
-  PASS/FAIL threshold for each spec-pending case cannot be machine-verified until
-  Codex lands the slice and GPT freezes the executable contract.
-- **Escalation:** GPT is the authority that turns plan prose into a gradable
-  contract; QCLAW will not grade Codex against un-frozen prose.
+## Locks
+No UNKNOWN resolution grants Phase-3 runtime write, private data, formal promotion, production, scheduler/MCP, secret/permission, W3/domain, trading/funds, R142 start, self-review, or merge authority.

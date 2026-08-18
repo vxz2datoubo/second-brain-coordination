@@ -1,53 +1,38 @@
-# R60 AMED Agent Execution Receipt
+# R60 AMED Execution Receipt — executor substitution remediation
 
-## Mission intent
-Build an independent PUBLIC_SAFE_SYNTHETIC adversarial retrieval benchmark for
-the GPT second-brain P2 program. QCLAW = batch verifier + candidate evidence
-producer, NOT runtime authority, NOT final semantic judge.
+## Provenance
+Historical benchmark author/executor: QCLAW, preserved in Git history. Current remediation executor: `GPT_ENGINEERING_WORKER`; model `GPT-5.6 Sol`; repository I/O via OpenAI GitHub connector / GitHub App; bounded local behavior execution via isolated Python 3.13.5. Final reviewer is a separate GPT window.
 
-## System position
-Workstream: P2 evaluation factory (QCLAW side of the GPT↔Codex P2 acceptance loop).
+## Reconciliation
+- canonical main: `d7591b123c72f012f20149337a3ae914db56d29d`
+- reviewed head: `ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b`
+- non-destructive current-main merge: `ad80d5432585335ff38c24ee87f2415d8a656f70`
+- no reset/rebase/force/history rewrite; post-merge PR remained Draft/open/unmerged and R60-only in substantive diff.
 
-## Hard boundaries (all held)
-- No PHASE-3 src/** edit (read-only) ✅
-- No Codex/E48/E50 branch touch ✅
-- No second memory/retrieval runtime ✅
-- PUBLIC_SAFE_SYNTHETIC only ✅
-- No real private execution / upload ✅
-- No formal PROJECT/GLOBAL promotion (authority stays CANDIDATE_ONLY) ✅
-- No scheduler / MCP / Gateway / QCLAW runtime dep ✅
-- No security/ACL/repo-visibility change ✅
-- No trading/accounts/funds/orders ✅
-- No self-merge / authority upgrade ✅
+## Blockers
+**B01:** complete observable-surface REJECT oracle, including relations/conflicts/unknowns/provenance/trust/telemetry, with a relation-target-only leak regression.
 
-## Active discovery duty (performed)
-- Read canonical contracts + froze blob SHAs.
-- Surfaced generalization gap: prompt-injection marker list is short & split
-  across two modules (conversation_memory 4 vs learning_packet 11+regex).
-- Surfaced aggregate no-double-vote gap (aggregate_equivalence_key not emitted by
-  P1 knowledge path).
-- Surfaced unfrozen contracts: semantic provider transport, structural analogy,
-  Memory Palace migration, cross-source semantic near-dup identity.
+**B02:** mutated lifecycle/freshness objects are actually imported and re-read; derived supersession uses canonical correction/import; invalid visibility mutation reaches verification and fails closed.
 
-## Improvement authority exercised
-- A (safe local) — authored benchmark files + read-only harness, no runtime change.
-- C (proposal-only) — UNKNOWN registry escalates P2.2/2.3/2.4 contract gaps to GPT.
-- No B/D actions.
+**B03:** forbidden identities derive from real persisted canonical IDs and current query policy; optional `id_hint` is not an oracle.
 
-## Exploration budget
-- Primary (benchmark corpus + harness): ~100% of effort.
-- No new architecture proposals, no new skill candidates, no unplanned files
-  beyond the task-owned benchmark directory.
+## Current behavior evidence
+Canonical 90-case corpus blob retained: `5b84ec894f7f94d6a408dfd0d0744fbfaeca01ba`.
 
-## Evidence receipts
-- `evidence/harness_results.json` — 60 runnable PASS / 0 FAIL / 0 ERROR.
-- `evidence/coverage_matrix.json` — dimension × slice coverage.
-- Canonical contract blob SHAs verified against tree (see README).
+- runnable: 60
+- PASS: 58
+- FAIL: 2 (`r60-013`, `r60-025`)
+- ERROR: 0
+- targeted regressions: 5 PASS / 0 FAIL / 0 ERROR
+- spec-pending retained: 30
+- historical 60/60: **REJECTED_INVALID_FALSE_GREEN**
 
-## Required outputs
-- coverage matrix ✅  discovery ledger ✅  UNKNOWN registry ✅  WPDCR ✅  AMED ✅  AI_HANDOFF ✅
+`r60-019`: PASS with actual forbidden endpoint `at-915e364b8719ad76582f` and empty complete-surface leak set.
 
-## Final recommendation
-READY_FOR_GPT_REVIEW — benchmark is CANDIDATE_ONLY evidence; 30 spec-pending
-cases await Codex P2.2+ runtime + GPT contract freeze. No runtime authority
-claimed, no merge requested.
+`r60-013` and `r60-025` are preserved as `NEEDS_REVALIDATION`; expected outcomes were not changed to manufacture green evidence.
+
+## Validation boundary
+Local run was one synchronous Python 3.13.5 process, no pool/daemon/subprocess/network/private data. Four load-bearing runtime modules were blob-byte verified; retrieval behavior was locally projected and cross-checked against canonical source. GitHub Phase-3 CI is the exact merged-runtime/full-regression authority. Final exact head and CI IDs are externally bound in PR/Issue evidence.
+
+## Locks / rollback
+All remediation writes remain inside the R60 program root. No Phase-3 source, Control Tower, Codex/R142, secrets/permissions, scheduler, production, W3/domain authority, trading/funds, or merge authority. Rollback is a normal revert on the same branch; no destructive history operation is required.
