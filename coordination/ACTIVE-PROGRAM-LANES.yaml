@@ -1,19 +1,19 @@
-schema_version: "3.12"
+schema_version: "3.13"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-18T08:57:00+08:00"
+as_of: "2026-08-18T12:29:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
   This registry is authoritative only for Program Lane identity, mission, desired state, cross-lane relationships,
-  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes remain execution truth.
+  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes and canonical executor-substitution routes remain execution truth.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
-  - "LATEST_PER_AGENT_ACTIVE_ROUTE_ON_REMOTE_MAIN"
+  - "LATEST_PER_AGENT_ACTIVE_ROUTE_OR_CANONICAL_EXECUTOR_SUBSTITUTION_ON_REMOTE_MAIN"
   - "PROJECT_OR_PROGRAM_CANONICAL_AUTHORITY"
   - "THIS_PROGRAM_LANE_REGISTRY_FOR_LANE_RELATIONSHIPS_ONLY"
   - "DERIVED_HUMAN_FACING_VIEWS"
@@ -24,41 +24,45 @@ portfolio_capacity_policy:
   codex_active_execution_routes_max: 1
   qclaw_active_execution_routes_max: 1
   workbuddy_active_execution_routes_max: 1
+  gpt_engineering_worker_parallel_routes_allowed: true
   local_heavy_stage_concurrency_max: 1
   a_share_business_vertical_slices_max: 1
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R142 remains the sole Lane-A Codex implementation claim but has not received its direct user start. R60 is no longer assigned to
-    QCLAW execution: QCLAW is paused to preserve retained compute, while the same R60 / Issue #296 / Draft PR #304 / branch may be
-    continued by a GPT_ENGINEERING_WORKER under the canonical executor-substitution handoff. Any real local-heavy collision must fail closed.
+    R60 and R142 may run in separate GPT Engineering Worker windows because their authorized write surfaces do not overlap. R60 owns
+    only its R60 root plus its exact workflow; R142 owns only bounded S0E/R142 paths plus its exact workflow. A real local-heavy or
+    same-object collision must fail closed or downgrade to bounded lightweight work.
 
 current_user_release_policy:
-  decision_at: "2026-08-18T08:57:00+08:00"
-  decision: "USER_AUTHORIZED_R60_GPT_ENGINEERING_WORKER_SUBSTITUTION / QCLAW_COMPUTE_PRESERVED / R142_CODEX_DIRECT_START_STILL_NOT_GIVEN"
+  decision_at: "2026-08-18T12:29:00+08:00"
+  decision: "USER_AUTHORIZED_PARALLEL_GPT_ENGINEERING / R142_EXECUTOR_SUBSTITUTION / QCLAW_COMPUTE_PRESERVED"
   rationale: >-
-    The user clarified that QCLAW compute is retained rather than expiring daily and should not be consumed merely because it is available.
-    Work that a GPT Engineering Worker can reliably complete should default to GPT first. R60 remains the same Mission/Issue/PR/branch;
-    only executor ownership changes. QCLAW is returned to non-executable reserve status.
-  released_implementation_lanes: []
-  prepared_implementation_lanes:
-    - "LANE-A-HARNESS-INTEGRATION / R142_READY_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
+    The user explicitly approved parallel engineering to reduce project time and opened a new GPT project window for R142. Work that
+    GPT Engineering Worker can reliably complete should default to GPT; QCLAW retained compute remains reserve capacity.
+  released_implementation_lanes:
+    - "LANE-A-HARNESS-INTEGRATION / R142_GPT_ENGINEERING_WORKER"
+  prepared_implementation_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
   release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_FRESH_RECONCILIATION"
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
-  qclaw_r60_status: "QCLAW_PAUSED / GPT_ENGINEERING_WORKER_HANDOFF_READY"
-  qclaw_r60_scope: "SAME_TASK_SAME_PR_SAME_BRANCH_B01_B03_REMEDIATION_ONLY"
+  qclaw_r60_status: "QCLAW_PAUSED / GPT_ENGINEERING_WORKER_ACTIVE_ON_SAME_R60"
   qclaw_r60_executor_role: "GPT_ENGINEERING_WORKER"
   qclaw_r60_model_id: "GPT-5.6 Sol"
   qclaw_r60_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
   qclaw_compute_policy: "PRESERVE_BY_DEFAULT / GPT_ENGINEERING_WORKER_FIRST_WHEN_CAPABLE"
   r142_issue: 393
   r142_route_epoch: 142
-  r142_status: "READY_AFTER_ACTIVATION_MERGE"
-  r142_direct_user_start: "NOT_GIVEN"
+  r142_status: "GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED"
+  r142_original_executor: "CODEX"
+  r142_original_executor_status: "PAUSED_EXECUTOR_SUBSTITUTED"
+  r142_executor_role: "GPT_ENGINEERING_WORKER"
+  r142_model_id: "GPT-5.6 Sol"
+  r142_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
+  r142_direct_user_start: "RECEIVED_FOR_REPLACEMENT_EXECUTOR"
   predecessor_r141_closure: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
   signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_tower_daemon_required: false
@@ -79,9 +83,9 @@ observed_agent_state:
     observed_route_epoch: 142
     observed_issue: 393
     observed_pr: null
-    observed_status: "READY_AFTER_ACTIVATION_MERGE"
-    execution_allowed: true
-    observation_status: "R142_ROUTE_RESERVED / EXECUTE_ONLY_AFTER_CANONICAL_ACTIVATION_AND_USER_START"
+    observed_status: "PAUSED_EXECUTOR_SUBSTITUTED"
+    execution_allowed: false
+    observation_status: "R142_CODEX_EXECUTOR_PAUSED / GPT_ENGINEERING_WORKER_SUBSTITUTION"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -104,7 +108,7 @@ observed_agent_state:
 signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
   capture: >-
-    Explicit durable signals use the existing Signal Tower admission/projection path. R142 is specifically repairing retrospective
+    Explicit durable signals use the existing Signal Tower admission/projection path. R142 specifically closes retrospective
     ChatGPT-window last-mile ingestion. Signal is not automatically a task.
   mandatory_before_formal_task_release:
     - "GLOBAL_SHALLOW"
@@ -126,25 +130,25 @@ program_lanes:
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "R142_RESERVED_AFTER_ACTIVATION_MERGE / DIRECT_USER_START_REQUIRED"
+    observed_state: "R142_GPT_ENGINEERING_WORKER_RELEASED / FRESH_RECONCILE_REQUIRED"
     primary_system_positions: [W1, W8, W9]
-    current_phase: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_ACTIVATION"
-    active_execution_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
+    current_phase: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_IMPLEMENTATION"
+    active_execution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
     dependencies:
       - "R134-R141 accepted Signal Tower capability chain"
-      - "canonical activation merge"
-      - "direct user start instruction"
+      - "canonical R142 activation"
+      - "canonical GPT executor substitution"
       - "fresh launch-time route/claim/main reconcile"
     shared_interfaces:
       - "S0C DurableSignalLedger"
       - "R136 SignalIntakeGateway"
       - "Control Tower authorization boundary"
       - "W3/domain authority boundary"
-    next_gate: "USER_DIRECT_START -> CODEX_PROJECT_PLAN_M0"
-    maturity: "R142_ACTIVATION_READY / NOT_YET_IMPLEMENTED"
+    next_gate: "GPT_ENGINEERING_WORKER_FRESH_RECONCILE -> PROJECT_PLAN_M0"
+    maturity: "R142_RELEASED_TO_GPT_ENGINEERING_WORKER / NOT_YET_IMPLEMENTED"
     heavy_execution_authorized: true
-    heavy_execution_start_gate: "DIRECT_USER_START_REQUIRED"
-    implementation_owner_candidate: "CODEX"
+    heavy_execution_start_gate: "USER_START_RECEIVED / FRESH_RECONCILE_REQUIRED"
+    implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
     predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
     retained_findings:
       - "R138-F01"
@@ -196,8 +200,7 @@ cross_lane_overlap_matrix:
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  R142 may execute only after its separate direct user start command; that command has not been given. QCLAW is non-executable and
-  retained as reserve compute. R60 may continue only through the GPT_ENGINEERING_WORKER executor-substitution handoff on the same
-  Issue #296 / Draft PR #304 / branch after fresh reconcile of current main and current merged P2 runtime. Fail closed on stale
-  assumptions, write-surface collision, private data, runtime-authority expansion, formal promotion, production/permissions/trading
-  changes, or any self-merge attempt.
+  R142 may execute only through its canonical GPT_ENGINEERING_WORKER substitution after fresh main/route/claim reconciliation. Codex
+  and QCLAW are non-executable reserve/historical executors. R60 and R142 GPT workers may proceed in parallel only on disjoint write
+  surfaces and under one-local-heavy-stage/same-object-single-writer constraints. Fail closed on stale assumptions, write collision,
+  private data, S0C/runtime-authority expansion, formal promotion, production/permissions/trading changes, or self-merge.
