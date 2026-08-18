@@ -409,6 +409,12 @@ def reconcile_candidate(candidate: Mapping[str, Any], snapshot: Mapping[str, Any
         return _decision(candidate, "INSUFFICIENT_PROVENANCE", exc.code)
     if not ev["provenance_complete"] or not _minimum_provenance(candidate):
         return _decision(candidate, "INSUFFICIENT_PROVENANCE", "PROVENANCE_INCOMPLETE", ev)
+    s0c = _s0c_projection_observation(ledger)
+    if s0c is not None:
+        s0c_ref, projection = s0c
+        expected_signal_id = f"signal:r142-{candidate['candidate_id']}"
+        if any(item.get("signal_id") == expected_signal_id for item in projection.get("signals", [])):
+            return _decision(candidate, "ALREADY_CANONICAL", "S0C_CURRENT_PROJECTION_ALREADY_CONTAINS_CANDIDATE", ev, [s0c_ref])
     precedence: Sequence[tuple[str, str, str]] = (
         ("superseded_refs", "SUPERSEDED", "CURRENT_CANONICAL_SUPERSESSION"),
         ("contradicts_refs", "CONTRADICTS", "CURRENT_CONTRADICTION_REQUIRES_REVIEW"),
