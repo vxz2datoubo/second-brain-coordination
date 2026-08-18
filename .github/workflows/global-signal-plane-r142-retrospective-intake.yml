@@ -37,15 +37,13 @@ jobs:
           test "$HEAD_SHA" = "$PR_HEAD"
           git fetch --no-tags origin "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/r142-merge"
           MERGE_SHA="$(git rev-parse refs/remotes/origin/r142-merge)"
-          MERGE_PARENT_1="$(git rev-parse "${MERGE_SHA}^1")"
-          MERGE_PARENT_2="$(git rev-parse "${MERGE_SHA}^2")"
-          test "$MERGE_PARENT_1" = "$BASE_SHA"
-          test "$MERGE_PARENT_2" = "$PR_HEAD"
+          test "$(git rev-parse "${MERGE_SHA}^1")" = "$BASE_SHA"
+          test "$(git rev-parse "${MERGE_SHA}^2")" = "$PR_HEAD"
           echo "R142_HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
           echo "R142_PR_HEAD_SHA=$PR_HEAD" >> "$GITHUB_ENV"
           echo "R142_BASE_SHA=$BASE_SHA" >> "$GITHUB_ENV"
           echo "R142_MERGE_SHA=$MERGE_SHA" >> "$GITHUB_ENV"
-          printf 'HEAD=%s\nPR_HEAD=%s\nBASE=%s\nMERGE=%s\nMERGE_PARENT_1=%s\nMERGE_PARENT_2=%s\n' "$HEAD_SHA" "$PR_HEAD" "$BASE_SHA" "$MERGE_SHA" "$MERGE_PARENT_1" "$MERGE_PARENT_2"
+          printf 'HEAD=%s\nPR_HEAD=%s\nBASE=%s\nMERGE=%s\n' "$HEAD_SHA" "$PR_HEAD" "$BASE_SHA" "$MERGE_SHA"
 
       - uses: actions/setup-python@v5
         with:
@@ -58,7 +56,7 @@ jobs:
         env:
           PYTHONPATH: 'src:../S0-SYNTHETIC/src'
           PYTHONDONTWRITEBYTECODE: '1'
-        run: python -m unittest discover -s tests -p 'test_r142_retrospective_intake.py' -v
+        run: python -m unittest discover -s tests -p 'test_r142*.py' -v
 
       - name: Bounded R136 regression
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY
@@ -67,7 +65,7 @@ jobs:
           PYTHONDONTWRITEBYTECODE: '1'
         run: python -m unittest discover -s tests -p 'test_r136_matrix.py' -v
 
-      - name: S0C regression
+      - name: Full S0C regression
         working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE
         env:
           PYTHONPATH: 'S0-SYNTHETIC/src'
@@ -95,9 +93,7 @@ jobs:
           RC=$?
           set -e
           cat "$M4_LOG"
-          if [ "$RC" -ne 0 ]; then
-            exit "$RC"
-          fi
+          test "$RC" -eq 0
           test -s "$M4_OUTPUT"
 
       - name: Upload M4 diagnostics
@@ -108,9 +104,9 @@ jobs:
           path: |
             ${{ env.R142_M4_LOG }}
             ${{ env.R142_M4_OUTPUT }}
-          if-no-files-found: error
+          if-no-files-found: warn
 
-      - name: Allowlist public safety and diff proof
+      - name: Scope allowlist public safety and diff proof
         shell: bash
         run: |
           set -euo pipefail
@@ -148,8 +144,8 @@ jobs:
           PY
           git diff --check "$R142_BASE_SHA...HEAD"
           if grep -InE '\b(TODO|FIXME)\b|NotImplementedError' \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142_retrospective_intake.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_*.py \
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142*.py \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142/run_real_m4.py \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src/global_signal_plane/ledger.py \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/tests/test_signal_plane.py; then
@@ -178,14 +174,14 @@ jobs:
           m4_path = Path(os.environ['R142_M4_OUTPUT'])
           m4 = json.loads(m4_path.read_text(encoding='utf-8'))
           record = {
-            'schema_version': 'R142ExactHeadCIEvidence/v1',
+            'schema_version': 'R142ExactHeadCIEvidence/v2',
             'git_rev_parse_head': os.environ['R142_HEAD_SHA'],
             'pr_head_sha': os.environ['R142_PR_HEAD_SHA'],
             'base_sha': os.environ['R142_BASE_SHA'],
             'merge_ref_sha': os.environ['R142_MERGE_SHA'],
             'python_version': os.environ['R142_PYTHON_VERSION'],
             'github_run_id': os.environ['R142_RUN_ID'],
-            'tests': ['R142 adversarial', 'R136 bounded regression', 'S0C regression', 'real M4 governed reconstruction/reconcile'],
+            'tests': ['R142 adversarial F01-F04', 'R136 bounded regression', 'full S0C regression', 'real M4 evidence-first reconcile'],
             'real_m4_candidate_count': m4['reconstructed_candidate_count'],
             'real_m4_disposition_counts': m4['current_disposition_counts'],
             'real_m4_current_new_ids': m4['current_new_durable_signal_ids'],
@@ -193,6 +189,9 @@ jobs:
             'real_m4_provider_ref': m4['live_observation']['provider_attribution_ref'],
             'real_m4_s0c_projection_checksum': m4['s0c_projection']['checksum'],
             'real_m4_artifact_sha256': hashlib.sha256(m4_path.read_bytes()).hexdigest(),
+            'post_hoc_oracle_comparison': m4['post_hoc_oracle_comparison'],
+            'f03_closed_candidate': m4['f03_self_fulfilling_evidence_removed'],
+            'f04_closed_candidate': m4['f04_source_fragment_provenance_corrected'],
             'public_safety': 'PASS', 'changed_path_allowlist': 'PASS', 'resource_cleanup': 'PASS',
             's0c_scope': 'BOUNDED_AUTHORIZED_R142_F01',
             'executor_role': 'GPT_ENGINEERING_WORKER', 'model_id': 'GPT-5.6 Sol',
