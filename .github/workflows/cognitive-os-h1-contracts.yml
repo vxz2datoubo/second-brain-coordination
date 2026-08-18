@@ -1,0 +1,40 @@
+name: Cognitive OS H1 Contracts
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON/**"
+      - ".github/workflows/cognitive-os-h1-contracts.yml"
+  push:
+    branches:
+      - "codex/cognitive-os-h1-contract-skeleton-r133"
+
+jobs:
+  contract-tests:
+    name: H1 contracts (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only schema validators
+        run: python -m pip install pyyaml jsonschema
+      - name: Validate H1 public artifact formats
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON
+        run: >-
+          python -c "import json,pathlib,yaml,sys; sys.path.insert(0, 'src'); from cognitive_os_h1.schema_authority import compiled_draft_2020_12; json.loads(pathlib.Path('schemas/structural-authority.json').read_text()); json.loads(pathlib.Path('fixtures/scenarios.json').read_text()); [yaml.safe_load(p.read_text()) for p in pathlib.Path('.').glob('*.yaml')]; assert len(compiled_draft_2020_12()[chr(36)+'defs']) == 11; print('H1_FORMAT_VALIDATION_PASS')"
+      - name: Run deterministic synthetic contract tests
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON
+        run: python -m unittest discover -s tests -v
+      - name: Verify public-safe static boundary
+        working-directory: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON
+        run: python public_safety_scan.py
+      - name: Verify diff whitespace
+        run: git diff --check HEAD^ HEAD

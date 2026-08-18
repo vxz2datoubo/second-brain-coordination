@@ -1,0 +1,172 @@
+schema_version: "0.2"
+claim_bundle_id: "HARNESS-COGNITIVE-OS-IMPLEMENTATION-CLAIM-CANDIDATES-0001"
+status: "CANDIDATE_ONLY / NOT_AUTHORIZED"
+owner: "USER"
+architecture_owner: "GPT"
+
+shared_preconditions:
+  - "H0 final compatibility verdict ACCEPT or ACCEPT_WITH_BOUNDED_DEBT"
+  - "second-brain foundation remains CLOSED_WITH_BOUNDED_GAPS"
+  - "fresh Control Tower reconciliation"
+  - "fresh O0-O4 scan"
+  - "no active same-agent implementation collision"
+  - "no heavy local stage collision"
+  - "explicit GPT implementation release for the exact slice"
+  - "user high-impact approval if permissions/private/production/trading boundary changes"
+
+candidate_write_root:
+  preferred: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER"
+  state: "DO_NOT_CREATE_UNTIL_EXACT_SLICE_RELEASED"
+
+claims:
+  - claim_candidate_id: "HARNESS-COGNITIVE-OS-H1-CONTRACT-SKELETON-0001"
+    name: "H1_CONTRACT_ONLY_SYNTHETIC_SKELETON"
+    status: "CANDIDATE_ONLY / NOT_AUTHORIZED"
+    execution_agent: null
+    route_binding: null
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    runtime_harness_call: false
+    private_data: false
+    production_gateway: false
+    trading: false
+    depends_on:
+      - H0_FINAL_VERDICT
+      - FRESH_CONTROL_TOWER_H1_CLAIM_SCAN
+    candidate_modules:
+      - contracts
+      - state_machines
+      - semantic_invariant_validators
+      - organization_graph_validator
+      - trace_handoff_fixture_validator
+      - reproducibility_fingerprint_builder
+      - synthetic_fixtures
+    required_outputs:
+      - formal JSON Schema or equivalent structural validator artifacts compiled from COGNITIVE_CONTRACT_DSL/v0.2
+      - deterministic semantic invariant registry implementation
+      - DecisionEpisode state-machine tests
+      - MissionGraph DAG/rework tests
+      - authority/return-path/static graph tests
+      - trace/handoff/fingerprint fixtures
+      - exact-head CI receipt
+    read_interfaces:
+      - "H0 proposal contracts as design inputs"
+      - "frozen Second Brain conceptual consumption boundaries"
+    write_interfaces:
+      - "NONE_TO_W3_OR_DOMAIN_RUNTIME"
+    stop_after: "GPT_EXACT_HEAD_REVIEW"
+    forbidden:
+      - Harness package install/runtime binding as product code
+      - provider integration
+      - private W3 access
+      - production/live bridge
+      - Formal Skill promotion
+      - trading
+
+  - claim_candidate_id: "HARNESS-COGNITIVE-OS-H2-ADAPTER-POC-0001"
+    name: "H2_HARNESS_ADAPTER_POC"
+    status: "BLOCKED_PENDING_H1_AND_RUNTIME_BINDING_GATE"
+    execution_agent: null
+    route_binding: null
+    resource_class: "HEAVY_IMPLEMENTATION"
+    runtime_harness_call: true
+    private_data: false
+    production_gateway: false
+    trading: false
+    exact_upstream_candidate:
+      repository: "deepseek-ai/deepseek-harness"
+      commit: "47f943859bef60e4160492346772ded9b24f765a"
+      package_family_version: "0.1.0-rc.5"
+    depends_on:
+      - H1_EXACT_HEAD_ACCEPTED
+      - H1_MERGE_OR_APPROVED_INTEGRATION_BASE
+      - HARNESS_RUNTIME_BINDING_GATE_PASS
+      - FRESH_CONTROL_TOWER_H2_CLAIM_SCAN
+    candidate_modules:
+      - harness_adapter
+      - signal_tower_adapter_fixture
+      - second_brain_adapter_fixture
+      - control_tower_authorization_adapter
+      - challenge_workflow
+      - trace_bridge
+      - provider_adapter_fixture
+      - resource_governor
+    candidate_interfaces_read:
+      - "SecondBrainSearch/v1 conceptual successor"
+      - "SecondBrainContext/v1 conceptual successor"
+      - "KnowledgeCandidateReconcile/v1 conceptual successor"
+      - "FeedbackLifecycle/v1 successor candidate"
+      - "MethodExecutionPlan/v1"
+      - "MissionGraph/v1"
+      - "ExecutionAuthorization/v1"
+    adapter_owned_outputs:
+      - "HarnessWorkflowRequest/v1"
+      - "HarnessWorkflowResult/v1"
+      - "FormalHandoff/v1"
+      - "TraceLedgerEvent/v1"
+    transported_but_not_owned:
+      - "OutcomeLearning/v1 owned by W9"
+      - "W3 lifecycle candidate updates owned by W3"
+      - "W7 gate result owned by W7"
+    required_runtime_gates:
+      - canonical Harness identity and exact pin provenance PASS
+      - reproducible clean install/pack smoke PASS
+      - exact consumed public service signatures frozen
+      - target environment compatibility PASS
+      - provider failure/cancel/retry tests PASS
+      - pinned-vs-latest compatibility radar works without auto-upgrade
+      - rollback/no-residual-process PASS
+    stop_after: "GPT_EXACT_HEAD_REVIEW"
+    forbidden:
+      - direct domain import of concrete Harness provider internals
+      - private W3 live access
+      - production scheduler/MCP/Gateway
+      - credentials persistence in repo
+      - formal PROJECT/GLOBAL promotion
+      - trading account/order/fund action
+
+frozen_authority_nonclaims:
+  - "DOES_NOT_OWN_W3"
+  - "DOES_NOT_OWN_FORMAL_SKILLS"
+  - "DOES_NOT_OWN_METHOD_SELECTION"
+  - "DOES_NOT_OWN_CONTROL_TOWER_AUTHORIZATION"
+  - "DOES_NOT_OWN_W7_VETO"
+  - "DOES_NOT_OWN_W9_OUTCOME_LEARNING"
+  - "DOES_NOT_OWN_MARKET_DATA_OR_TRADING"
+  - "DOES_NOT_OWN_PRIVATE_OR_PRODUCTION_PERMISSION"
+
+resource_policy:
+  local_heavy_stage_max: 1
+  same_agent_active_execution_max: 1
+  nested_process_pools: "FORBIDDEN"
+  task_owned_descendant_tracking: "REQUIRED"
+  global_kill_python: "FORBIDDEN"
+  large_matrix: "REMOTE_CI_PREFERRED"
+
+rollback:
+  H1:
+    type: "REMOVE_CONTRACT_SKELETON_RUNTIME_SURFACE"
+    must_preserve:
+      - W3 canonical data/schema
+      - W2-W13 authority
+      - Control Tower state
+      - existing Agent routes
+  H2:
+    type: "DELETE_OR_DISABLE_HARNESS_ADAPTER_POC_SURFACE"
+    must_preserve:
+      - W3 canonical data/schema
+      - W2-W13 authority
+      - Control Tower state
+      - existing Agent routes
+      - user private data
+    no_residual_daemon: true
+
+prohibited_until_separate_approval:
+  - private W3 live access
+  - formal PROJECT/GLOBAL write
+  - production scheduler
+  - production MCP/Gateway
+  - credentials or secret persistence
+  - repository permission change
+  - trading account/order/fund action
+  - auto skill promotion
+  - automatic Harness version upgrade

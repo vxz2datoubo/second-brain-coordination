@@ -15,7 +15,7 @@ from .canonical import content_hash, normalize_text
 from .conversation_memory import ConversationEpisode, build_conversation_candidate, build_conversation_correction
 from .learning_packet import build_learning_packet
 from .memory_store import MemoryStore
-from .retrieval import ContextAssembler, QueryPlan
+from .retrieval import ContextAssembler, QueryPlan, SemanticProviderRequest, SemanticProviderResult
 
 
 TRIGGERS = ("采集记忆", "数据采集")
@@ -56,7 +56,7 @@ class CaptureReceipt:
 def capture_text(
     *, store: MemoryStore, user_scope: str, project_scope: str, message: str,
     recorded_at: str, source_id: str, previous_owner_message: str | None = None,
-    semantic_provider: Callable[[str], Iterable[str]] | None = None,
+    semantic_provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None = None,
     freshness_policy: Callable[[str, str], str] | None = None,
 ) -> CaptureReceipt:
     """Capture a public-safe synthetic owner message through W3 then prove recall."""
@@ -90,7 +90,11 @@ def capture_text(
         semantic_provider=semantic_provider,
     )
     recalled_ids = {item["atom"]["id"] for item in explanations}
-    if not set(atom_ids).issubset(recalled_ids):
+    missing_ids = set(atom_ids).difference(recalled_ids)
+    if missing_ids and not _prove_exact_recall(
+        store=store, user_scope=user_scope, project_scope=project_scope,
+        valid_at=recorded_at, atom_ids=missing_ids,
+    ):
         raise ValueError("memory_palace_exact_recall_failed")
     if any(result["status"] not in {"IMPORTED", "IDEMPOTENT_DUPLICATE"} for result in results):
         raise ValueError("memory_palace_import_result_invalid")
@@ -102,9 +106,34 @@ def capture_text(
     )
 
 
+def _prove_exact_recall(
+    *, store: MemoryStore, user_scope: str, project_scope: str, valid_at: str, atom_ids: set[str],
+) -> bool:
+    """Prove each budget-omitted capture atom through canonical retrieval.
+
+    This is deliberately not an existence check: each requested atom identity
+    crosses the normal ContextAssembler caller-observability and admission
+    boundary.  The internal proof does not depend on lexical ranking or a
+    one-item budget, so same-statement atoms from different episodes cannot
+    displace one another.  Ordinary user retrieval keeps its configured budget
+    and ranking unchanged.
+    """
+
+    assembler = ContextAssembler(store)
+    for atom_id in sorted(atom_ids):
+        proof_plan = QueryPlan(
+            query_text="", scopes=(project_scope,),
+            user_scope=user_scope, valid_at=valid_at, relation_depth=1,
+            include_conflicts=True, budget=1,
+        )
+        if not assembler._exact_candidate_is_admitted(proof_plan, atom_id):
+            return False
+    return True
+
+
 def retrieve_memory_palace(
     *, store: MemoryStore, user_scope: str, project_scope: str, query_text: str,
-    anchor_time: str, valid_at: str | None = None, intent: str = "CURRENT", semantic_provider: Callable[[str], Iterable[str]] | None = None,
+    anchor_time: str, valid_at: str | None = None, intent: str = "CURRENT", semantic_provider: Callable[[SemanticProviderRequest], SemanticProviderResult] | None = None,
 ) -> tuple[dict[str, Any], ...]:
     """Hybrid lexical + deterministic temporal + graph retrieval explanations."""
 
@@ -113,8 +142,6 @@ def retrieve_memory_palace(
     expanded = query_text
     if temporal_active:
         expanded += " " + temporal["resolved_start"][:10]
-    if semantic_provider is not None:
-        expanded += " " + " ".join(str(item) for item in semantic_provider(query_text))
     plan = QueryPlan(
         query_text=expanded, scopes=(project_scope,), user_scope=user_scope,
         valid_at=valid_at or _retrieval_instant(temporal, anchor_time), intent=intent,
@@ -122,42 +149,14 @@ def retrieve_memory_palace(
         relation_depth=1, include_conflicts=True,
     )
     assembler = ContextAssembler(store)
-    bundle = assembler.assemble(plan)
-    temporal_date = temporal["resolved_start"][:10]
-    # The existing lexical index intentionally does not index every metadata
-    # field.  Add an exact temporal-window channel while applying the same W3
-    # QueryPlan admission gate as the lexical channel.
-    admitted: dict[str, dict[str, Any]] = {atom["id"]: atom for atom in bundle.atoms}
-    for atom in store.all_atoms() if temporal_active else ():
-        palace = atom.get("memory_metadata", {}).get("conversation", {}).get("memory_palace", {})
-        if palace.get("temporal", {}).get("resolved_start", "")[:10] == temporal_date and assembler._allowed(atom, plan):
-            admitted[atom["id"]] = atom
-    graph_ids = store.related_atom_ids(set(admitted))
-    for atom_id in graph_ids:
-        atom = store.get_atom(atom_id)
-        if atom is not None and assembler._allowed(atom, plan):
-            admitted[atom_id] = atom
-    # A shared source-manifest is also a provenance graph edge.  It lets a
-    # multi-claim utterance remain in independent, claim-role-bound packets
-    # without weakening the existing one-claim packet validation contract.
-    provenance_graph_ids: set[str] = set()
-    admitted_sources = {source for atom in admitted.values() for source in atom.get("source_refs", [])}
-    for atom in store.all_atoms():
-        if admitted_sources.intersection(atom.get("source_refs", [])) and assembler._allowed(atom, plan):
-            admitted[atom["id"]] = atom
-            provenance_graph_ids.add(atom["id"])
+    bundle = assembler.assemble(plan, semantic_provider=semantic_provider)
     result: list[dict[str, Any]] = []
-    lexical_ids = {atom["id"] for atom in bundle.atoms}
-    relation_ids = {
-        endpoint for relation in store.relations_around(set(admitted))
-        for endpoint in (relation["source_atom_id"], relation["target_atom_id"])
-    }
-    for atom in sorted(admitted.values(), key=lambda item: item["id"]):
+    channel_map = assembler.last_candidate_channels
+    for atom in sorted(bundle.atoms, key=lambda item: item["id"]):
         palace = atom.get("memory_metadata", {}).get("conversation", {}).get("memory_palace", {})
-        channels = ["lexical"] if atom["id"] in lexical_ids else []
-        if temporal_active and palace.get("temporal", {}).get("resolved_start", "")[:10] == temporal_date:
-            channels.append("temporal")
-        if atom["id"] in relation_ids or atom["id"] in provenance_graph_ids:
+        raw_channels = set(channel_map.get(atom["id"], ()))
+        channels = [channel for channel in ("lexical", "temporal") if channel in raw_channels]
+        if raw_channels.intersection({"relation", "provenance"}):
             channels.append("graph")
         result.append({
             "atom": atom,

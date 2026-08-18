@@ -1,0 +1,42 @@
+schema_version: "1.0"
+reconciliation_id: "R133-CROSS-WINDOW-CLOSURE-RECONCILIATION-0001"
+owner: "USER"
+architecture_owner: "GPT"
+observed_at: "2026-08-15T21:37:00+08:00"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+trigger:
+  type: "CROSS_WINDOW_STATE_DRIFT"
+  description: >-
+    PR #340 was merged and ACTIVE-CODEX-TASK epoch 133 was closed by another active GPT/AI-film window
+    while this window still observed stale Lane A ACTIVE_IMPLEMENTATION state in Work Claims and Program Lanes.
+
+verified_facts:
+  implementation_pr: 340
+  reviewed_head: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
+  merge_commit: "c17df847bee689f23363b0ddbba417c6c37c79ab"
+  route_close_commit: "3fd5f750878e5f134c7cdb25adf169fcf5a522d7"
+  route_epoch: 133
+  route_status: "DONE"
+  execution_allowed: false
+  h2_authorized: false
+  harness_runtime_authorized: false
+
+reconciliation_actions:
+  - "Close Lane A current Work Claim and release all R133 write/read/interface/authority surfaces."
+  - "Set Lane A program phase to H1_COMPLETED_H2_NOT_AUTHORIZED and remove active execution route."
+  - "Preserve H2 as separately gated and unauthorized."
+  - "Add CROSS_WINDOW_STATE_DRIFT as a Control Tower alert condition for future reconciliation."
+
+non_actions:
+  - "No H1 implementation code changes."
+  - "No Harness runtime changes."
+  - "No W3/#312/#308/domain/private/production/trading changes."
+  - "No H2 route creation or authorization."
+
+future_signal_tower_requirement_candidate:
+  status: "CANDIDATE_PENDING_UNIFIED_REQUIREMENTS_HANDOFF"
+  statement: >-
+    The future unified Signal Tower should reconcile cross-window mission/task/review/merge/closure events before
+    task publication, after task approval, after report review, and before selecting the next task. It must surface
+    CROSS_WINDOW_STATE_DRIFT but must not become execution authority, Control Tower authority, or a second knowledge truth source.

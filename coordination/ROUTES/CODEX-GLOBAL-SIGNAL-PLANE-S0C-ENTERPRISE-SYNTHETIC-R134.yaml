@@ -1,0 +1,103 @@
+schema_version: "134.2"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 343
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 134
+mode: "goal"
+mode_label: "【Codex模式：目标模式】S0C Enterprise Global Signal Plane Public-Safe Synthetic Skeleton"
+status: "READY"
+execution_allowed: true
+automatic_resume_within_task: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
+merge_authorized: false
+runtime_code_change_allowed: true
+runtime_code_scope: "S0C_PUBLIC_SAFE_OFFLINE_SYNTHETIC_SIGNAL_PLANE"
+canonical_main_at_activation_prepare: "740b77ab20b24c76bd5621b08123dec657862d5a"
+canonical_architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+bootstrap_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC-R134.yaml"
+implementation_branch: "codex/global-signal-plane-s0c-enterprise-r134"
+implementation_pr: null
+
+release_phase:
+  phase: "B_POST_MERGE_ACTIVATION"
+  phase_a_merge_commit: "740b77ab20b24c76bd5621b08123dec657862d5a"
+  activation_receipt_status: "PASS_FOR_R134_EXECUTION_ACTIVATION"
+  execution_state: "READY_AFTER_ACTIVATION_PR_MERGE"
+  hard_rule: >-
+    This route becomes executable only after the Phase B activation PR containing this exact state passes Control Tower
+    exact-head CI and is merged by GPT. The receipt itself is not execution authority.
+
+frozen_invariants:
+  one_signal_tower_identity: true
+  pre_mission_vs_mission_plane_separation: true
+  global_reconciliation_receipt_required_for_formal_task_release: true
+  receipt_is_not_execution_authority: true
+  control_tower_execution_authority_preserved: true
+  w3_single_authority: true
+  trace_ledger_single_authority: true
+  domain_truth_local: true
+  append_only_history: true
+  at_least_once_ingestion: true
+  idempotent_effective_processing: true
+  deterministic_replay: true
+  h2_h7_not_authorized: true
+  no_private_live_production_trade: true
+
+execution_contract:
+  allowed_write_paths:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+    - ".github/workflows/global-signal-plane-s0.yml"
+  current_write_permission: "ALLOWED_ONLY_AFTER_PHASE_B_CANONICAL_MERGE_AND_USER_LAUNCH"
+  harness_runtime_install_bind_activate: "FORBIDDEN"
+  harness_workflow_subagent_jobs: "FORBIDDEN"
+  h2_route_creation_activation: "FORBIDDEN"
+  h7_runtime_claim: "FORBIDDEN"
+  s0d_cross_repo_shadow: "FORBIDDEN"
+  codex_app_server_provider_integration: "FORBIDDEN"
+  private_chat_cross_window_bridge: "FORBIDDEN"
+  webhook_listener_daemon_scheduler: "FORBIDDEN"
+  live_github_api_calls_from_s0_runtime_or_tests: "FORBIDDEN"
+  private_w3_read_write: "FORBIDDEN"
+  w3_runtime_schema_change: "FORBIDDEN"
+  issue_312_runtime_change: "FORBIDDEN"
+  issue_308_a_share_runtime_live_data: "FORBIDDEN"
+  ai_film_or_a_share_canonical_write: "FORBIDDEN"
+  credentials_secrets: "FORBIDDEN"
+  permission_visibility_changes: "FORBIDDEN"
+  formal_skill_promotion: "FORBIDDEN"
+  production_private_bridge: "FORBIDDEN"
+  trading_accounts_orders_funds: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+resource_contract:
+  class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "REQUIRED / SINGLE_WORKER_DEFAULT"
+  task_owned_child_tracking_cleanup: "REQUIRED"
+  global_kill_python: "FORBIDDEN"
+  large_matrix: "REMOTE_CI_PREFERRED"
+  daemon_server: "FORBIDDEN"
+
+cross_project_launch_guard:
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  last_remote_main_observed: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  last_remote_open_pr_scan: "ZERO_OPEN_PRS_VISIBLE_VIA_GITHUB"
+  unresolved_local_visibility: true
+  start_rule: >-
+    Before any write, Codex must confirm repository identity is vxz2datoubo/second-brain-coordination and the route is
+    epoch 134 READY. If the user knows another AI Film Codex implementation is actively running locally, or the workspace
+    is the AI Film repo, STOP with WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT.
+
+completion_signal: "GLOBAL_SIGNAL_PLANE_S0C_ENTERPRISE_SYNTHETIC_READY_FOR_GPT_REVIEW"
+next_command: "USE_FULL_R134_LAUNCH_PROMPT_FROM_GPT"
+lock_statement: >-
+  Epoch 134 is S0C only. It implements the public-safe/offline pre-Mission Signal Plane inside exact Work Claim surfaces.
+  It cannot activate Harness/H2/H7/S0D, private cross-window ingestion, live connectors, domain writes, production or trading.

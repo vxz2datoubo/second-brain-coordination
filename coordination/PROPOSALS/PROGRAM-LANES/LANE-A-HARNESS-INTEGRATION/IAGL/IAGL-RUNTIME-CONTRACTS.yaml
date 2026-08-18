@@ -1,0 +1,265 @@
+schema_version: "1.0"
+contract_id: "IAGL-RUNTIME-CONTRACTS-0001"
+status: "ARCHITECTURE_STAGE_A / NOT_EXECUTABLE"
+issue: 386
+owner: "USER"
+architecture_owner: "GPT"
+
+state_machine:
+  states:
+    - BOOT
+    - GLOBAL_RECONCILIATION
+    - CHECK_PRIORITY
+    - WORK_SLICE
+    - SAFEPOINT_CHECKPOINT
+    - PAUSED_FOR_HIGHER_PRIORITY
+    - REVIEW
+    - USER_GATE
+    - EVALUATE
+    - LEARN
+    - RESUME_VALIDATION
+    - RESUME
+    - IDLE_NO_ELIGIBLE_WORK
+    - FAILED_CLOSED
+    - EMERGENCY_STOP
+  allowed_transitions:
+    BOOT: [GLOBAL_RECONCILIATION, EMERGENCY_STOP]
+    GLOBAL_RECONCILIATION: [CHECK_PRIORITY, FAILED_CLOSED, EMERGENCY_STOP]
+    CHECK_PRIORITY: [USER_GATE, REVIEW, WORK_SLICE, IDLE_NO_ELIGIBLE_WORK, EMERGENCY_STOP]
+    WORK_SLICE: [SAFEPOINT_CHECKPOINT, EVALUATE, FAILED_CLOSED, EMERGENCY_STOP]
+    SAFEPOINT_CHECKPOINT: [PAUSED_FOR_HIGHER_PRIORITY, WORK_SLICE, EVALUATE, FAILED_CLOSED]
+    PAUSED_FOR_HIGHER_PRIORITY: [REVIEW, USER_GATE, GLOBAL_RECONCILIATION]
+    REVIEW: [EVALUATE, USER_GATE, FAILED_CLOSED]
+    USER_GATE: [GLOBAL_RECONCILIATION, EMERGENCY_STOP]
+    EVALUATE: [LEARN, GLOBAL_RECONCILIATION, FAILED_CLOSED]
+    LEARN: [RESUME_VALIDATION, CHECK_PRIORITY, FAILED_CLOSED]
+    RESUME_VALIDATION: [RESUME, CHECK_PRIORITY, FAILED_CLOSED]
+    RESUME: [WORK_SLICE, CHECK_PRIORITY, FAILED_CLOSED]
+    IDLE_NO_ELIGIBLE_WORK: [GLOBAL_RECONCILIATION, EMERGENCY_STOP]
+    FAILED_CLOSED: [GLOBAL_RECONCILIATION, EMERGENCY_STOP]
+    EMERGENCY_STOP: []
+  invariants:
+    - "No material action before fresh GLOBAL_RECONCILIATION."
+    - "No lower-priority work may cross a safepoint after a higher-priority event is observed."
+    - "No resume from checkpoint without fresh resume validation."
+    - "No state transition grants domain/permission/merge/trading authority."
+
+priority_policy:
+  classes:
+    P0:
+      meaning: "USER_OR_HIGH_RISK_GATE"
+      examples: [USER_COMMAND, SECRET_PERMISSION, PRODUCTION, TRADING_FUNDS, DESTRUCTIVE_HISTORY]
+      preempts: [P1, P2, P3, P4]
+    P1:
+      meaning: "EXACT_HEAD_INDEPENDENT_REVIEW"
+      examples: [CODEX_PR_READY, REMEDIATION_READY, CI_COMPLETED_FOR_REVIEW_HEAD]
+      preempts: [P2, P3, P4]
+    P2:
+      meaning: "ACTIVE_BLOCKER_SECURITY_RECONCILIATION"
+      examples: [ROUTE_DRIFT, CLAIM_COLLISION, SECURITY_REGRESSION, FALSE_GREEN]
+      preempts: [P3, P4]
+    P3:
+      meaning: "BOUNDED_IMPROVEMENT_MISSION"
+      preempts: [P4]
+    P4:
+      meaning: "OPEN_RESEARCH_CANDIDATE"
+      preempts: []
+  fairness:
+    starvation_counter_required: true
+    cannot_override_P0_P1: true
+    promotion_requires: [AGING, MATERIALITY, FRESH_RECONCILIATION]
+
+trigger_contract:
+  event_classes:
+    - PR_HEAD_CHANGED
+    - WORKFLOW_COMPLETED
+    - REVIEW_REQUESTED
+    - REVIEW_SUBMITTED
+    - TASK_ROUTE_CHANGED
+    - CLAIM_OR_LEASE_CHANGED
+    - USER_GOVERNANCE_CHANGED
+    - SIGNAL_MATERIALITY_CHANGED
+    - WATCHDOG_TICK
+  normalized_event_required_fields:
+    - event_id
+    - event_class
+    - source
+    - repository_or_system
+    - observed_at
+    - target_ref
+    - target_identity
+    - payload_digest
+    - idempotency_key
+    - priority_hint
+  trust_rule: "Event payload is a hint. Trusted facts are re-observed during reconciliation."
+  duplicate_rule: "Same idempotency_key is processed at most once per semantic target state."
+  stale_rule: "Stale head/ref events may update trace history but cannot authorize current-state action."
+
+watchdog_contract:
+  initial_target_cadence_minutes: 20
+  semantic_guarantee: false
+  purpose: "fallback reconciliation / missed-event recovery"
+  must_not:
+    - "authorize action from previous-tick state"
+    - "run unbounded research because no review exists"
+    - "spawn duplicate workers"
+
+reconciliation_contract:
+  required_before:
+    - REVIEW
+    - RESUME
+    - TASK_RELEASE
+    - MATERIAL_WRITE
+    - MERGE_DECISION
+  minimum_observations:
+    - canonical_main
+    - target_pr_head_base_state
+    - exact_head_ci
+    - active_routes
+    - lane_work_claims
+    - lease_fencing_state
+    - user_governance_mode
+    - pending_approval_revocation
+    - relevant_domain_authority_revision
+  fail_closed_on:
+    - PARTIAL_OBSERVATION
+    - PAGINATION_INCOMPLETE
+    - HEAD_DRIFT
+    - ROUTE_DRIFT
+    - LEASE_COLLISION
+    - PERMISSION_UNKNOWN
+    - AUTHORITY_SOURCE_UNKNOWN
+    - STALE_APPROVAL
+
+checkpoint_contract:
+  schema: "IAGL-Checkpoint/v1"
+  required_fields:
+    - checkpoint_id
+    - mission_id
+    - slice_id
+    - state
+    - created_at
+    - control_plane_snapshot_ref
+    - source_refs
+    - evidence_digests
+    - completed_atomic_steps
+    - open_unknowns
+    - next_atomic_action
+    - budget_state
+    - lease_state
+    - fencing_token_ref
+    - interruption_reason
+    - resume_preconditions
+    - privacy_class
+  public_repo_forbidden_fields:
+    - raw_private_conversation
+    - raw_private_media
+    - secret
+    - credential
+    - cookie
+    - token
+    - private_key
+  semantics:
+    - "Checkpoint is working state, never canonical knowledge truth."
+    - "Checkpoint can be invalidated by fresh reconciliation."
+    - "Checkpoint does not preserve authority across changed revisions."
+
+improvement_slice_contract:
+  schema: "IAGL-ImprovementSlice/v1"
+  required_fields:
+    - slice_id
+    - source_signal_refs
+    - problem_signature
+    - goal
+    - materiality
+    - evidence_target
+    - allowed_tools
+    - allowed_data_classes
+    - risk_class
+    - time_budget_minutes
+    - compute_budget
+    - expected_artifact
+    - falsifier
+    - stop_conditions
+    - writeback_plan
+    - owner
+  invalid_goals:
+    - "improve system generally"
+    - "research indefinitely"
+    - "browse until something interesting appears"
+  completion_classes:
+    - ARCHITECTURE_DELTA
+    - EVIDENCE_GAP
+    - THREAT_MODEL_DELTA
+    - EVAL_OR_REGRESSION_CASE
+    - MISSION_CANDIDATE
+    - VERIFIED_NO_CHANGE
+    - ABSTAIN_INSUFFICIENT_EVIDENCE
+
+preemption_contract:
+  mode: "COOPERATIVE"
+  required_sequence:
+    - FINISH_CURRENT_ATOMIC_OPERATION
+    - CHECKPOINT
+    - MARK_PAUSED
+    - LEASE_ACTION
+    - HIGHER_PRIORITY_WORK
+    - FRESH_RECONCILIATION
+    - RESUME_VALIDATION
+    - RESUME_OR_REPLAN
+  forbidden:
+    - GLOBAL_KILL_PYTHON
+    - GLOBAL_KILL_DOCKER
+    - RESET_CLEAN_FORCE_PUSH_REBASE_AS_RECOVERY
+    - SILENT_PARTIAL_WRITE
+
+budget_contract:
+  dimensions: [WALL_CLOCK, MODEL_COST, TOOL_CALLS, NETWORK_CALLS, LOCAL_HEAVY_STAGES]
+  hard_stop_on_exhaustion: true
+  continuation_requires: "new bounded budget or explicit higher-priority necessity"
+  voi_gate:
+    stop_if_all_true:
+      - "no_new_independent_evidence"
+      - "no_new_architecture_or_test_delta"
+      - "conclusion_stable"
+      - "marginal_value_below_cost"
+
+review_contract:
+  exact_head_required: true
+  minimum_checks:
+    - EXACT_HEAD
+    - CHANGED_FILE_SCOPE
+    - SUBSTANTIVE_DIFF
+    - REQUIRED_CI
+    - RECEIPT_CONTROL_PLANE_CONSISTENCY
+    - AUTHORITY_BOUNDARIES
+    - ADVERSARIAL_REGRESSIONS
+    - UNKNOWN_PRESERVATION
+    - FALSE_GREEN_PATHS
+  dispositions:
+    - ACCEPTED_EXACT_HEAD
+    - CHANGES_REQUIRED_SAME_TASK
+    - HARD_BLOCK
+    - UNKNOWN
+    - ABSTAIN
+  ci_success_is_acceptance: false
+
+governance_modes:
+  USER_CONTROLLED:
+    automatic_claiming: false
+    automatic_execution: false
+    read_only_reconciliation: true
+    checkpoint_retained: true
+  AUTONOMOUS_LOW_MEDIUM:
+    automatic_claiming: "bounded by Control Tower route"
+    automatic_execution: "low/medium risk only"
+    high_risk_user_gate: true
+  PAUSED:
+    automatic_claiming: false
+    automatic_execution: false
+    read_only_reconciliation: true
+  EMERGENCY_STOP:
+    automatic_claiming: false
+    automatic_execution: false
+    future_dispatch_cancel: true
+    destructive_cleanup: false

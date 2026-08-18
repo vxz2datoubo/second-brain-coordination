@@ -1,0 +1,98 @@
+schema_version: "1.1"
+route_id: "GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION"
+repository: "vxz2datoubo/second-brain-coordination"
+handoff_kind: "EXECUTOR_SUBSTITUTION"
+status: "AUTHORIZED / USER_DISPATCH_REQUIRED"
+
+binding:
+  task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+  route_epoch: 60
+  issue: 296
+  draft_pr: 304
+  branch: "qclaw/p2-retrieval-adversarial-benchmark-r60"
+  current_reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
+  canonical_handoff_base_main: "f1d7e3f351a9f7bdb0f0a44057c918e973dd7ffb"
+  canonical_handoff_merge_main: "816ef741f72c3b919868ed7c4d6502eeeb82465f"
+  mode: "goal"
+  task_identity_retained: true
+
+executor_identity:
+  historical_executor: "QCLAW"
+  historical_executor_scope: "initial R60 benchmark implementation and rejected false-green evidence"
+  replacement_executor_role: "GPT_ENGINEERING_WORKER"
+  required_model_id: "GPT-5.6 Sol"
+  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+  impersonation_forbidden: true
+  provenance_requirement: >-
+    New commits, receipts and final handoff evidence must record executor_role=GPT_ENGINEERING_WORKER, model_id=GPT-5.6 Sol,
+    and the actual available harness/tool provenance. Historical QCLAW provenance must remain unchanged.
+
+objective:
+  disposition: "CHANGES_REQUIRED / SAME_R60 / SAME_PR_304 / SAME_BRANCH / NO_MERGE"
+  blockers:
+    - id: "Q60-B01"
+      required_fix: "Grade forbidden identities across the complete returned bundle surface, not only bundle.atoms."
+    - id: "Q60-B02"
+      required_fix: "Persist the exact mutated fixture state through the canonical packet/import/correction path actually being graded."
+    - id: "Q60-B03"
+      required_fix: "Resolve forbidden/canonical identities from persisted store/receipts rather than optional id_hint."
+  required_regressions:
+    - "r60-019 hidden relation endpoint leak must no longer false-green"
+    - "RESTRICTED_NEVER_SYNC / effective closure / freshness-revalidation / superseded fixtures must execute their claimed state"
+    - "R118 public-report oracle equivalence where current canonical contracts support it"
+    - "P2.2 endpoint-safe projection only where current canonical contracts support it"
+  truthfulness_rule: >-
+    The historical 60/60 PASS is rejected evidence and must not be revived. Fresh runs must publish actual PASS/FAIL/ERROR.
+    If a contract is not frozen or has changed, mark UNKNOWN/NEEDS_REVALIDATION rather than inventing an expected result.
+
+write_scope:
+  root: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+  current_pr_changed_files_are_allowed: true
+  phase3_runtime_source_write_allowed: false
+  codex_or_r142_write_allowed: false
+  control_plane_write_allowed_from_worker: false
+
+required_preflight:
+  - "fresh fetch/reconcile canonical main"
+  - "read coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "read original QCLAW route epoch 60"
+  - "read Issue #296"
+  - "read Draft PR #304 and GPT review 4936644607"
+  - "read latest executor-substitution handoff comment on Issue #296 and PR #304"
+  - "inspect current merged P2 runtime/contracts before grading expectations"
+  - "preserve foreign/dirty workspace evidence; use isolated worktree if needed"
+
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_workers_max: 1
+  python_process_cap_for_task: 2
+  nested_process_pools: "FORBIDDEN"
+  broad_matrix: "REMOTE_CI_OR_BOUNDED_BATCH"
+  global_kill_python_or_docker: "FORBIDDEN"
+  cleanup: "TASK_OWNED_ONLY"
+
+hard_locks:
+  - "NO_QCLAW_IMPERSONATION"
+  - "NO_PRIVATE_REAL_USER_DATA"
+  - "NO_PHASE3_RUNTIME_EDIT"
+  - "NO_CODEX_OR_R142_BRANCH_EDIT"
+  - "NO_FORMAL_PROMOTION"
+  - "NO_PRODUCTION_OR_PERMISSION_EXPANSION"
+  - "NO_TRADING_ACCOUNTS_ORDERS_FUNDS"
+  - "NO_RESET_REBASE_FORCE_PUSH_HISTORY_REWRITE"
+  - "NO_AUTONOMOUS_MERGE"
+
+completion_requirements:
+  - "exact tested head and branch"
+  - "changed-file inventory"
+  - "B01/B02/B03 evidence"
+  - "fresh runnable benchmark PASS/FAIL/ERROR counts"
+  - "key failed probes and corrected Discovery Ledger D8"
+  - "UNKNOWN/NEEDS_REVALIDATION registry delta"
+  - "test commands and Python versions"
+  - "exact-head CI run/job IDs if available"
+  - "resource/process cleanup evidence"
+  - "rollback"
+  - "working tree status"
+  - "completion signal QCLAW_P2_RETRIEVAL_ADVERSARIAL_BENCHMARK_R60_READY_FOR_GPT_REVIEW"
+  - "STOP for independent GPT review; no merge"

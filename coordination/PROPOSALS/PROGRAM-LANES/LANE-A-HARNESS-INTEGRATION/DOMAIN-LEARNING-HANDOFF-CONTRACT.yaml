@@ -1,0 +1,268 @@
+schema_version: "1.0"
+contract_id: "DOMAIN-LEARNING-HANDOFF-V1"
+status: "PROPOSED_NON_EXECUTABLE"
+parent_issue: 375
+architecture_ref: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-ARCHITECTURE-v1.0.md"
+
+mission: >-
+  Transfer user feedback and learning-relevant evidence from the Global Signal Tower to the owning domain without
+  transferring domain authority, duplicating domain truth, or equating processing evidence with learning correctness.
+
+authority:
+  signal_tower:
+    owns: [intake, source_provenance, global_persistence_axis, materiality, routing, trace_linkage]
+    must_not_own: [domain_semantics, domain_maturity, domain_canonical_write, formal_skill_promotion, outcome_truth]
+  domain:
+    owns: [classification, candidate_object, maturity, applicable_scope, failure_conditions, evals, regressions, write_routes]
+  control_tower:
+    owns: [formal_task_release, work_claim, lease, overlap, execution_authorization]
+
+feedback_kind:
+  - EXPLICIT_EXCELLENT_CASE
+  - POSITIVE_USER_VERDICT
+  - NEGATIVE_USER_VERDICT
+  - REVISION_DELTA
+  - REAL_GENERATION_EVIDENCE
+  - USER_CORRECTION
+  - STABLE_PREFERENCE_CANDIDATE
+  - SYSTEM_DEFECT_CANDIDATE
+  - CONFLICT_OR_COUNTEREXAMPLE
+  - UNKNOWN_LEARNING_RELEVANCE
+
+persistence_policy:
+  routine_domain_feedback:
+    default: "TRACE_ONLY / DOMAIN_WORKFLOW"
+    durable_signal_required: false
+    formal_task_required: false
+  durable_system_effect:
+    default: "DURABLE_SIGNAL"
+    examples:
+      - "cross-window automatic excellent-case learning"
+      - "repeated failure revealing learning-system defect"
+      - "material unresolved conflict requiring infrastructure or policy change"
+  formal_task:
+    requires:
+      - "Global Preflight"
+      - "valid GlobalReconciliationReceipt"
+      - "Control Tower release"
+
+DomainLearningHandoffPacket:
+  immutable: true
+  required_fields:
+    - schema_version
+    - handoff_id
+    - idempotency_key
+    - source_trace_ref
+    - source_scope
+    - source_ref
+    - observed_at
+    - domain_id
+    - domain_repository
+    - domain_source_revision
+    - feedback_kind
+    - user_intent
+    - user_verdict
+    - work_item_id
+    - model_or_tool
+    - model_version
+    - prompt_or_input_evidence_refs
+    - result_evidence_refs
+    - asset_refs
+    - observed_effects
+    - candidate_goal
+    - privacy_class
+    - public_safe_summary
+    - confidence_of_source_interpretation
+    - requested_domain_action
+    - materiality
+    - risk_flags
+    - unknowns
+    - packet_digest
+  optional_fields:
+    - source_signal_refs
+    - revision_series_id
+    - parent_revision
+    - generation_mode
+    - explicit_user_reason
+  requested_domain_action_enum:
+    - CLASSIFY_ONLY
+    - LEARNING_CANDIDATE
+    - TARGETED_EVAL
+    - REGRESSION_CANDIDATE
+    - CORRECTION_RECONCILIATION
+  packet_digest_rule: "canonical SHA-256 over all trusted packet fields except packet_digest"
+  forbidden_payload:
+    - raw_chain_of_thought
+    - password
+    - api_key
+    - token
+    - cookie
+    - session_credential
+    - private_key
+    - mfa_or_recovery_code
+    - raw_private_chat_body_in_public_github
+    - raw_private_media_in_public_github
+
+DomainLearningReceipt:
+  immutable_evidence: true
+  required_fields:
+    - schema_version
+    - receipt_id
+    - handoff_id
+    - handoff_digest
+    - domain_id
+    - domain_source_revision
+    - processor_capability_id
+    - processor_code_identity
+    - decision
+    - domain_classification
+    - affected_object_refs
+    - maturity_before
+    - maturity_after
+    - writeback_status
+    - eval_refs
+    - regression_refs
+    - counterexample_refs
+    - unknowns
+    - limitations
+    - needs_revalidation
+    - process_compliance
+    - outcome_quality
+    - receipt_digest
+  decision_enum:
+    - ACCEPTED
+    - REJECTED
+    - DUPLICATE
+    - NEEDS_MORE_EVIDENCE
+    - CONFLICT
+    - NEEDS_HIGHER_GATE
+  writeback_status_enum:
+    - NONE
+    - CANDIDATE_RECORDED
+    - DOMAIN_PR_OPENED
+    - DOMAIN_COMMIT_VERIFIED
+    - WAITING_GATE
+  receipt_digest_rule: "canonical SHA-256 over all trusted receipt fields except receipt_digest"
+  writeback_evidence_when_non_none:
+    required_any:
+      - "repo + exact commit + path + blob/content digest"
+      - "governed domain PR identity + expected head + verification state"
+
+idempotency:
+  minimum_key_material:
+    - domain_id
+    - source_evidence_identity
+    - work_item_id
+    - revision_identity
+    - feedback_semantics
+  exact_replay: DUPLICATE
+  corrected_verdict: "append correction/refinement link; do not mutate historical evidence"
+  stale_domain_revision: "FAIL_CLOSED_OR_RERESOLVE"
+  omission_is_revocation: false
+
+initial_domain:
+  domain_id: AI_FILM
+  repository: "vxz2datoubo/eustia-ai-film"
+  authority: "DOMAIN_OWNED"
+  current_reference_at_architecture_time: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  authoritative_read_candidates:
+    - PROJECT_INDEX.yaml
+    - "08_系统学习/反馈反推与系统反哺引擎.md"
+    - "08_系统学习/C-DANCE2.5真实生成反馈库.md"
+    - "10_运行时/director_route_index.yaml"
+    - "10_运行时/read_sets.yaml"
+    - "10_运行时/maturity_model.yaml"
+  domain_maturity_examples:
+    - candidate
+    - scene_verified
+    - project_verified
+    - general_stable
+    - conflicted
+    - needs_revalidation
+    - deprecated
+  second_brain_direct_write: FORBIDDEN
+
+writer_model:
+  stage_a:
+    name: "GOVERNED_INTERPRETATION_DRY_RUN"
+    domain_mutation: false
+    may_emit: [proposed_learning_delta, receipt_candidate, eval_candidate, regression_candidate]
+  stage_b:
+    name: "DOMAIN_OWNED_WRITER"
+    status: "FUTURE_SEPARATE_GATE"
+    domain_mutation: "ONLY_UNDER_DOMAIN_AUTHORITY"
+    requirements:
+      - exact_expected_domain_head
+      - explicit_domain_write_routes
+      - fetch_edit_commit_or_pr_fetch_verify
+      - no_high_impact_auto_promotion
+      - exact_post_write_receipt
+
+retrieval_contract:
+  structural_keys:
+    - symptom_or_route_id
+    - task_class
+    - scene_function
+    - shot_scope
+    - action_contact_chain
+    - spatial_continuity
+    - model_tool_version
+    - generation_mode
+    - applicable_context
+    - non_applicable_context
+    - maturity
+    - health
+    - failure_conditions
+    - counterexamples
+    - revalidation_state
+  rules:
+    - "structural/prerequisite match outranks raw text similarity"
+    - "candidate may be suggested only as experiment"
+    - "scene_verified remains bounded"
+    - "needs_revalidation/conflicted/deprecated must be downweighted or blocked"
+    - "retrieval must expose match rationale and failure boundaries"
+
+smoke_cases:
+  excellent_case:
+    id: "AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY"
+    expected_feedback_kind: EXPLICIT_EXCELLENT_CASE
+    destructive_write: false
+    expected: "resolve existing domain learning target, no second global truth, future retrieval metadata produced"
+  real_generation_feedback:
+    id: "CD25-KAIM-WINDOW-AB-20260815"
+    expected_feedback_kind: REAL_GENERATION_EVIDENCE
+    destructive_write: false
+    expected: "preserve confounding, user verdict and failure dimensions; produce targeted eval/regression candidates without false promotion"
+
+hard_locks:
+  no_trade: true
+  production: false
+  private_data_expansion: false
+  secret_or_permission_change: false
+  history_rewrite: false
+  second_brain_direct_ai_film_canonical_write: false
+  automatic_formal_skill_promotion: false
+  harness_h2_h7_auto_activation: false
+  r138_provider_as_domain_writer: false
+
+future_implementation_acceptance_minimum:
+  - explicit_excellent_case_routes_correctly
+  - positive_negative_verdict_distinct
+  - real_generation_version_and_result_provenance_preserved
+  - routine_feedback_not_durable_by_default
+  - durable_learning_system_effect_can_be_durable_signal
+  - duplicate_suppression
+  - append_only_user_correction
+  - stale_domain_head_fail_closed
+  - unsupported_capability_unknown
+  - dry_run_cannot_claim_writeback
+  - no_second_ai_film_truth
+  - maturity_domain_owned
+  - one_success_no_auto_promotion
+  - confounded_ab_inconclusive
+  - receipt_exact_processor_and_revision_binding
+  - private_body_public_rejection
+  - retrieval_scope_and_failure_conditions
+  - model_version_revalidation_weight_guard
+  - unrelated_scan_not_satisfied
+  - stage_b_writer_separately_authorized

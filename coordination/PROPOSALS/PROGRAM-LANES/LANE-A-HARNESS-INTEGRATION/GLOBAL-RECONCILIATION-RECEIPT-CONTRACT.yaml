@@ -1,0 +1,194 @@
+schema_version: "0.1"
+contract_id: "GLOBAL-RECONCILIATION-RECEIPT-CONTRACT-0001"
+status: "ARCHITECTURE_CANDIDATE / PRE_MISSION / NO_EXECUTION_AUTHORITY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "PLANNING_FRESHNESS_EVIDENCE_ONLY / NO_TRADE"
+
+purpose: >-
+  Prove that the system performed a current global scan and reconciliation before publishing a new formal task or
+  transitioning a material task/review/merge state. This receipt is a freshness and consistency witness. It is never
+  an execution authorization and cannot replace Control Tower durable authorization.
+
+hard_invariant:
+  rule: "NO_VALID_GLOBAL_RECONCILIATION_RECEIPT -> NO_NEW_FORMAL_TASK_RELEASE"
+  exceptions:
+    - "existing already-authorized work may continue according to its current route unless separately invalidated"
+    - "emergency human-directed stop/cancel may occur without generating a new work authorization"
+  not_equivalent_to:
+    - WorkClaim
+    - ExecutionAuthorization
+    - merge_authorization
+    - W7_PASS
+
+GlobalReconciliationReceipt_v1:
+  required:
+    - schema_version
+    - receipt_id
+    - generated_at
+    - generated_by
+    - reconciliation_reason
+    - result
+    - signal_ledger_watermarks
+    - signal_projection_ref
+    - canonical_repo_snapshots
+    - relevant_pr_snapshots
+    - per_agent_route_fingerprints
+    - work_claim_fingerprint
+    - program_lane_fingerprint
+    - control_tower_projection_fingerprint
+    - domain_snapshot_refs
+    - pending_user_approval_refs
+    - unresolved_blockers
+    - invalidation_keys
+    - receipt_fingerprint
+  fields:
+    schema_version: string
+    receipt_id: string
+    generated_at: timestamp
+    generated_by: string
+    reconciliation_reason: string
+    result: [PASS, BLOCKED, NEEDS_REFRESH, HUMAN_GATE]
+    signal_ledger_watermarks: object
+    signal_projection_ref: string
+    changed_signal_refs: array
+    canonical_repo_snapshots: object
+    relevant_issue_refs: array
+    relevant_pr_snapshots: array
+    per_agent_route_fingerprints: object
+    work_claim_fingerprint: string
+    program_lane_fingerprint: string
+    control_tower_projection_fingerprint: string
+    domain_snapshot_refs: array
+    w3_context_refs: array
+    pending_user_approval_refs: array
+    user_priority_ref: string_or_null
+    evidence_freshness_refs: array
+    unresolved_blockers: array
+    unresolved_unknowns: array
+    invalidation_keys: array
+    receipt_fingerprint: string
+    parent_receipt_ref: string_or_null
+    trace_context_ref: string_or_null
+
+relevant_pr_snapshot_v1:
+  required: [repo, pr_number, state, head_sha, base_sha, merged, merge_commit_sha, review_state_ref, observed_at]
+  hard_rules:
+    - "reviewed head mismatch with current head invalidates review-dependent release"
+    - "open/merged/closed state changes invalidate any receipt that depends on prior state"
+
+freshness_binding:
+  material_change_invalidates_receipt:
+    - SIGNAL_LEDGER_WATERMARK_ADVANCES_IN_RELEVANT_SCOPE
+    - SIGNAL_PROJECTION_VERSION_CHANGES_IN_RELEVANT_SCOPE
+    - RELEVANT_PR_HEAD_CHANGES
+    - RELEVANT_PR_MERGE_OR_CLOSE_STATE_CHANGES
+    - CANONICAL_MAIN_SHA_CHANGES_IN_BOUND_REPOSITORY
+    - ACTIVE_ROUTE_FINGERPRINT_CHANGES
+    - WORK_CLAIM_FINGERPRINT_CHANGES
+    - PROGRAM_LANE_FINGERPRINT_CHANGES
+    - CONTROL_TOWER_PROJECTION_FINGERPRINT_CHANGES
+    - BOUND_DOMAIN_SNAPSHOT_CHANGES
+    - PENDING_USER_APPROVAL_STATE_CHANGES
+    - USER_CANCEL_OR_REVOKE
+  time_ttl_alone_is_sufficient: false
+  compare_and_check_required_at_release: true
+  release_compare_fields:
+    - receipt_fingerprint
+    - relevant_pr_heads
+    - current_main_shas
+    - per_agent_route_fingerprints
+    - work_claim_fingerprint
+    - program_lane_fingerprint
+    - signal_ledger_watermarks
+
+mandatory_reconciliation_triggers:
+  - BEFORE_NEW_FORMAL_TASK_PUBLICATION
+  - BEFORE_TASK_APPROVAL
+  - AFTER_TASK_APPROVAL
+  - WHEN_AGENT_REPORT_ARRIVES
+  - BEFORE_FORMAL_GPT_REVIEW
+  - AFTER_FORMAL_GPT_REVIEW
+  - BEFORE_MERGE_OR_CLOSE
+  - AFTER_MERGE_OR_CLOSE
+  - BEFORE_SELECTING_NEXT_TASK
+  - WHEN_NEW_SIGNAL_TOUCHES_ACTIVE_MISSION
+  - ON_USER_CANCEL_OR_REVOKE
+  - ON_CROSS_WINDOW_STATE_CONFLICT
+  - ON_STALE_REVIEW_HEAD_DETECTED
+  - ON_ROUTE_WORKCLAIM_PROGRAMLANE_DRIFT
+
+scan_strategy:
+  stage_1_global_shallow:
+    scans:
+      - signal ids/states/domains/watermarks
+      - missions/tasks/dependencies/blockers
+      - issues/prs/heads/merge states/ci summaries
+      - active agent routes
+      - work claims
+      - program lanes
+      - resource/agent leases
+      - domain current refs
+      - pending approvals/revocations
+  stage_2_delta:
+    rule: "compare against prior receipt/watermark and focus on changed surfaces"
+  stage_3_targeted_deep:
+    rule: "read source bodies, W3 context, domain canonicals and evidence only for materially relevant clusters"
+  stage_4_conditional_research:
+    rule: "use current external/official research when the decision materially depends on unstable outside facts"
+
+cross_window_drift_codes:
+  - CROSS_WINDOW_STATE_DRIFT
+  - STALE_REVIEW_HEAD
+  - STALE_PR_STATE
+  - ROUTE_WORKCLAIM_DRIFT
+  - ROUTE_PROGRAM_LANE_DRIFT
+  - WORKCLAIM_PROGRAM_LANE_DRIFT
+  - SAME_AGENT_DOUBLE_BOOKED
+  - SHARED_CANONICAL_WRITER_COLLISION
+  - STALE_MERGE_AUTHORIZATION_PROVENANCE
+  - DOMAIN_SNAPSHOT_STALE
+
+release_decision_rules:
+  PASS:
+    conditions:
+      - no unresolved O4 authority conflict
+      - no stale exact-head dependency
+      - no unresolved route/claim/lane drift
+      - no user revoke/cancel conflict
+      - relevant canonical snapshots current
+    effect: "planning may proceed to Mission/Control Tower; execution still not authorized"
+  BLOCKED:
+    examples:
+      - CROSS_WINDOW_STATE_DRIFT unresolved
+      - SAME_AGENT_DOUBLE_BOOKED unresolved
+      - required user approval missing
+      - relevant PR review head stale
+      - authority collision
+  NEEDS_REFRESH:
+    rule: "receipt dependencies changed after scan; rerun reconciliation"
+  HUMAN_GATE:
+    rule: "material ambiguity or high-impact approval cannot be inferred"
+
+receipt_integrity:
+  fingerprint_inputs:
+    - normalized_bound_snapshots
+    - ledger_watermarks
+    - projection_version
+    - route/workclaim/program fingerprints
+    - unresolved blockers
+    - reducer/schema versions
+  excludes:
+    - raw secrets
+    - raw private bodies
+    - private chain_of_thought
+  tamper_rule: "receipt fingerprint mismatch -> INVALID_RECEIPT"
+
+enterprise_acceptance_intent:
+  - "receipt created before merge becomes invalid after relevant PR head changes"
+  - "receipt created before merge becomes invalid after PR merged state changes"
+  - "route DONE while Work Claim ACTIVE produces BLOCKED until reconciled"
+  - "two active Codex claims across projects produce BLOCKED/SAME_AGENT_DOUBLE_BOOKED"
+  - "irrelevant unrelated repository change does not invalidate receipt unless bound scope says it is relevant"
+  - "user revoke after PASS invalidates release immediately"
+  - "receipt PASS never allows execution without Control Tower authorization"

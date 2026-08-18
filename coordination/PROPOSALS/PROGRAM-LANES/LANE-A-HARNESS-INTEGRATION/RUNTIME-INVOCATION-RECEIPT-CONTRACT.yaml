@@ -1,0 +1,207 @@
+schema_version: "1.0"
+contract_id: "RUNTIME-INVOCATION-RECEIPT-CONTRACT-0001"
+status: "ARCHITECTURE_CONTRACT / PHASE_A_RESERVED_NON_EXECUTABLE"
+owner: "USER"
+architecture_owner: "GPT"
+parent_system: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+route_epoch: 136
+issue: 353
+boundary: "PROVENANCE_AND_PROCESS_COMPLIANCE / NO_SELF_CERTIFICATION / NO_PRIVATE_BODY / NO_DOMAIN_WRITE"
+
+purpose: >-
+  Provide machine-verifiable evidence that a claimed domain workflow actually resolved and consumed the required
+  system entrypoints, read sets, routes, scans and capabilities. A model statement such as 'I read the rules' is not
+  execution evidence. Missing mechanism evidence produces UNVERIFIED, not fabricated compliance.
+
+principles:
+  existing_rule_is_not_activation_proof: true
+  activation_claim_requires_mechanism_evidence: true
+  process_compliance_is_independent_from_outcome_quality: true
+  exact_source_revision_binding_required: true
+  trace_or_tool_evidence_required_for_actual_reads: true
+  self_declared_read_is_non_evidence: true
+  raw_private_content_in_public_receipt: "FORBIDDEN"
+  receipt_is_not_domain_truth: true
+  receipt_is_not_execution_authority: true
+  no_second_raw_trace_store: true
+  reuse_trace_ledger_refs_when_available: true
+
+RuntimeInvocationReceipt_v1:
+  required_fields:
+    - receipt_id
+    - execution_id
+    - trace_id
+    - task_class
+    - domain_id
+    - started_at
+    - completed_at
+    - source_repository
+    - source_commit
+    - entry_contract_ref
+    - entry_contract_blob_or_content_digest
+    - system_awareness_snapshot_ref
+    - matched_route_refs
+    - mandatory_reads_resolved
+    - actual_reads
+    - mandatory_scans
+    - actual_scans
+    - capability_invocations
+    - ruleset_digest
+    - warnings
+    - unknowns
+    - result_ref
+    - validation_result
+    - writeback_decision
+    - process_compliance
+    - outcome_quality
+    - evidence_refs
+    - privacy_scope_ref
+  status_values: [VERIFIED, UNVERIFIED, REJECTED]
+  process_compliance_values: [PASS, PARTIAL, FAIL, UNVERIFIED]
+  outcome_quality_values: [PASS, PARTIAL, FAIL, UNKNOWN, NOT_YET_OBSERVED]
+
+actual_read_evidence:
+  allowed_evidence_shapes:
+    exact_repository_object:
+      required:
+        - repository
+        - commit
+        - path
+        - blob_sha_or_equivalent_content_identity
+        - content_sha256_or_equivalent_digest
+      optional:
+        - selected_section_ref
+        - bytes_or_lines_scope
+        - authority_role
+    connector_or_tool_trace:
+      required:
+        - provider_or_tool
+        - operation_ref
+        - immutable_or_replayable_result_ref
+        - source_identity
+      rule: "The trace must make the read attributable to this execution_id/trace_id."
+  forbidden_as_proof:
+    - "model statement that it read a file"
+    - "presence of file in repository without execution linkage"
+    - "mandatory_reads list copied into actual_reads without tool/source evidence"
+    - "a passing output judged only by content similarity"
+  missing_evidence_disposition: "UNVERIFIED"
+
+route_and_scan_evidence:
+  matched_routes:
+    rule: >-
+      Route matches must identify the source route contract revision and the condition/symptom that caused the match.
+      A route may be NOT_APPLICABLE, but applicable mandatory routes cannot be silently skipped.
+  mandatory_scans:
+    rule: "Each mandatory scan resolves to EXECUTED_WITH_EVIDENCE, NOT_APPLICABLE_WITH_REASON, UNKNOWN, or FAIL."
+  capability_invocations:
+    rule: >-
+      Capability invocation records capability ID, source contract revision, input/result refs and evidence linkage.
+      A capability label alone is not proof it ran.
+
+ruleset_binding:
+  required_inputs:
+    - entry_contract_revision
+    - read_set_revision
+    - route_index_revision
+    - relevant_domain_system_revision
+  ruleset_digest_semantics: >-
+    Deterministic digest over the exact revision identities that governed this execution. It is provenance, not a
+    guarantee the output is correct.
+  stale_ruleset_action: "MARK_NEEDS_REVALIDATION_OR_FAIL_ACCORDING_TO_DOMAIN_POLICY"
+
+validation:
+  process_compliance:
+    PASS: "all applicable mandatory entry/read/route/scan obligations have mechanism-backed evidence"
+    PARTIAL: "some non-critical obligation unresolved but disclosed; cannot be presented as full system execution"
+    FAIL: "required obligation was violated or source identity drifted"
+    UNVERIFIED: "execution may have occurred, but evidence cannot mechanically prove it"
+  outcome_quality:
+    rule: >-
+      Judge the delivered domain outcome separately using user verdict, generated-media evidence, regression/eval, or
+      other domain-appropriate evidence. Good output does not retroactively prove process compliance.
+  combined_claim_rule: >-
+    The phrase 'full system was actually run' is permitted only when process_compliance=PASS. Outcome quality may still
+    be UNKNOWN or FAIL.
+
+writeback_policy:
+  values: [NONE, TRACE_ONLY, FEEDBACK_CANDIDATE, DURABLE_SIGNAL_CANDIDATE, DOMAIN_WRITE_REQUIRES_SEPARATE_GATE]
+  routine_success_default: TRACE_ONLY
+  real_failure_or_material_user_feedback: "may propose FEEDBACK_CANDIDATE or DURABLE_SIGNAL_CANDIDATE"
+  automatic_formal_skill_promotion: false
+
+trace_interop:
+  model: "TRACE_ID + OPTIONAL_SPAN/LINK REFS"
+  requirements:
+    - "actual read/invocation evidence must correlate to execution_id or trace_id"
+    - "multiple causal parents may use link semantics rather than one false parent"
+    - "raw execution trace remains in the existing Trace Ledger/runtime provider when available"
+    - "RuntimeInvocationReceipt stores compact evidence refs/digests, not a duplicate raw trace"
+
+AI_FILM_DIRECTING_PROFILE_v1:
+  domain_id: "EUSTIA_AI_FILM"
+  source_repository: "vxz2datoubo/eustia-ai-film"
+  canonical_entry: "PROJECT_INDEX.yaml"
+  canonical_entry_rule: "PROJECT_INDEX must be resolved first"
+  required_control_files:
+    - "10_运行时/read_sets.yaml"
+    - "10_运行时/director_route_index.yaml"
+    - "10_运行时/maturity_model.yaml"
+  directing_read_set: "read_sets.directing"
+  route_resolution: "match relevant director_route_index routes by current task symptoms/needs"
+  expected_conditional_sources:
+    - "03_剧本与改编/当前改编剧本.md#hit_range"
+    - "07_连续性与生产状态/连续性与当前生产状态.md#relevant_work_item"
+    - "04_角色与表演/角色与表演设定库.md#named_characters"
+    - "05_场景与空间/场景与空间设定库.md#named_scene"
+    - "05_场景与空间/00_项目地图文件.md#when_spatially_relevant"
+    - "08_系统学习/反馈反推与系统反哺引擎.md#relevant_lessons"
+    - "08_系统学习/C-DANCE2.5真实生成反馈库.md#when_model_behavior_relevant"
+  smoke_boundary:
+    repository_access: "READ_ONLY_EXACT_COMMIT"
+    domain_mutation: "FORBIDDEN_IN_R136"
+    durable_signal_creation_for_routine_directing: false
+    expected_route_classification: "TRACE_ONLY + DOMAIN_WORKFLOW"
+  proof_requirements:
+    - "PROJECT_INDEX exact commit/blob binding"
+    - "read_sets exact commit/blob binding"
+    - "director_route_index exact commit/blob binding"
+    - "mechanism-backed actual read refs for applicable directing sources"
+    - "applicable route/scan resolution"
+    - "receipt outcome cannot be VERIFIED if mandatory evidence is self-declared only"
+
+security_privacy:
+  public_safe_default: true
+  private_source_body: "opaque_ref_only or separate future private plane"
+  credentials_secrets: "NEVER_LOG"
+  chain_of_thought: "NEVER_STORE"
+  cross_project_write: "DENY_BY_DEFAULT"
+
+failure_codes:
+  - RUNTIME_EVIDENCE_MISSING
+  - SELF_CERTIFICATION_NOT_EVIDENCE
+  - SOURCE_REVISION_DRIFT
+  - ENTRY_CONTRACT_NOT_RESOLVED
+  - MANDATORY_READ_UNPROVEN
+  - MANDATORY_SCAN_UNPROVEN
+  - ROUTE_REVISION_UNBOUND
+  - RULESET_DIGEST_MISMATCH
+  - PRIVATE_EVIDENCE_PUBLICATION_BLOCKED
+  - DOMAIN_WRITE_NOT_AUTHORIZED
+
+acceptance_tests:
+  - "self-declared mandatory read cannot produce VERIFIED"
+  - "exact repo/commit/path/blob/content-bound read can produce evidence"
+  - "missing applicable mandatory read -> PARTIAL/FAIL/UNVERIFIED, never PASS"
+  - "good output with missing trace remains process UNVERIFIED"
+  - "bad output with complete process evidence may be process PASS + outcome FAIL"
+  - "source commit change invalidates prior current-execution claim"
+  - "AI Film routine directing smoke proves read-only route and does not create durable Signal"
+
+locks:
+  - "No AI Film canonical modification in R136"
+  - "No Harness runtime activation"
+  - "No private cross-window bridge"
+  - "No production telemetry service"
+  - "No W3 mutation"
+  - "No trading"

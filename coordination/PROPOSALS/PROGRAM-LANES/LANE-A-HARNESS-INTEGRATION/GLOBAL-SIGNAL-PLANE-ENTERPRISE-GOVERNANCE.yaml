@@ -1,0 +1,247 @@
+schema_version: "0.2"
+contract_id: "GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE-0001"
+status: "ARCHITECTURE_CANDIDATE / ENTERPRISE_GOVERNANCE / ON_DEMAND_OPERATING_POLICY_ACCEPTED / NO_PRODUCTION_RUNTIME_AUTHORIZATION"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_HARNESS_RUNTIME / NO_PRIVATE_PRODUCTION_BRIDGE / NO_TRADE"
+
+purpose: >-
+  Define reliability, security, recovery, compatibility, observability and change-governance requirements for the
+  Unified Signal Plane before any production/private runtime is considered. Enterprise-grade means failures are
+  detectable, bounded, replayable, auditable and reversible where reality permits; not merely that happy-path tests pass.
+
+operational_mode_after_r141:
+  authority: "USER_EXPLICIT_DIRECTION / GPT_POST_MERGE_RECONCILIATION"
+  normal_mode: "ON_DEMAND / SIGNAL_CAPTURE_AND_TASK_RELEASE_DRIVEN"
+  daemon_required_for_normal_use: false
+  signal_is_not_task: true
+  full_body_scan_every_release: false
+  formal_task_release_sequence:
+    - "GLOBAL_SHALLOW: scan open Signal Tower metadata plus current tasks, lanes, claims, PRs and authority state"
+    - "DELTA: inspect material changes since the last valid reconciliation or watermark"
+    - "TARGETED_DEEP: load only signals, dependencies, conflicts and evidence materially relevant to the proposed task"
+    - "CONDITIONAL_RESEARCH: use fresh external/current research only when the task requires it"
+    - "RELEASE_DECISION: merge, parallelize, serialize, defer, block or release with an explicit rationale"
+  hard_rule: >-
+    No formal task may be released from Signal Tower context without a fresh preflight. A signal may remain an idea,
+    question, evidence item, risk, dependency or deferred need and must not be treated as automatic execution authority.
+  background_runtime: >-
+    Long-lived scheduler/watchdog/event automation is an optional future enhancement for time-, condition- or external-event
+    driven continuation. It is not a prerequisite for ordinary Signal Tower capture, reconciliation or task-release use.
+  stage_b_boundary: "UNCHANGED / NOT_AUTHORIZED"
+
+enterprise_principles:
+  - "fail closed on authority/freshness/privacy ambiguity"
+  - "append history; derive projections"
+  - "at-least-once delivery with idempotent/effectively-once processing"
+  - "no exactly-once marketing claim without end-to-end proof"
+  - "deterministic replay before production"
+  - "no hidden cross-window memory as authority"
+  - "no single SUCCESS string as completion evidence"
+  - "schema/version drift must be explicit"
+  - "raw once, reference everywhere"
+  - "domain truth remains local"
+  - "human approvals are first-class events, not chat assumptions"
+
+availability_and_durability_objectives:
+  s0_contract_stage:
+    mode: "SYNTHETIC / PUBLIC_SAFE / OFFLINE"
+    hard_guarantees:
+      - accepted fixture event is never silently dropped
+      - duplicate event is safe
+      - projection is rebuildable
+      - invalid state is surfaced deterministically
+  future_runtime_slo_policy:
+    status: NOT_FROZEN
+    rule: >-
+      Do not invent uptime/RPO/RTO percentages before a real runtime/storage backend exists. Production SLOs must be
+      derived from measured workload, storage semantics, recovery tests and user materiality.
+    minimum_future_metrics:
+      - ingest_accept_rate
+      - ingest_duplicate_rate
+      - ingest_reject_rate_by_reason
+      - projection_lag
+      - reconciliation_latency
+      - stale_receipt_invalidation_count
+      - cross_window_drift_count
+      - replay_duration
+      - replay_checksum_mismatch_count
+      - dead_letter_or_quarantine_count
+      - backlog_age_distribution
+      - blocked_age_distribution
+      - signal_to_mission_cycle_time
+
+consistency_and_concurrency:
+  model: "APPEND_ONLY_EVENTS + OPTIMISTIC_PROJECTION_CONCURRENCY"
+  stale_projection_write: "REJECT"
+  concurrent_signal_updates:
+    rule: "preserve both events; reducer resolves or marks conflict according to explicit semantics"
+  timestamp_last_write_wins: "FORBIDDEN_AS_GENERAL_RULE"
+  same_canonical_writer: "CONTROL_TOWER_GATED"
+  cross_repo_transaction_assumption: "FORBIDDEN"
+  compensation_over_fake_rollback: true
+
+recovery_model:
+  required_capabilities_before_runtime_promotion:
+    - durable_append_or_equivalent_event_persistence
+    - deterministic_projection_rebuild
+    - verified snapshot restore if snapshots are introduced
+    - partial-write detection
+    - crash-during-ingest recovery
+    - crash-during-reconciliation recovery
+    - replay after reducer upgrade
+    - migration rollback plan
+    - quarantine path for corrupt/unparseable events
+  recovery_semantics:
+    replay_source: "append-only admitted history + verified snapshots"
+    duplicate_replay: "idempotent"
+    corrupt_event: "quarantine + BLOCK relevant projection; never silently skip material event"
+    missing_dependency: "UNKNOWN/BLOCKED; never fabricate state"
+
+schema_and_compatibility:
+  schema_registry_required_before_multi_producer_runtime: true
+  versioning:
+    backward_compatible_reader_window: REQUIRED
+    unknown_new_field: "preserve/ignore according to schema policy, never reinterpret silently"
+    breaking_change: "new major schema + migration/replay test"
+  reducer_version_binding_required: true
+  projection_checksum_binding_required: true
+  domain_adapter_version_binding_required: true
+  source_repo_commit_binding_required_for_domain_bootstrap: true
+  compatibility_radar_future:
+    - signal_event_schema
+    - reconciliation_receipt_schema
+    - mission_router_contract
+    - control_tower_contract
+    - W3_context_contract
+    - trace_ledger_contract
+    - domain_adapter_contracts
+
+security_and_privacy:
+  least_privilege: true
+  public_safe_default: true
+  secret_values_never_logged: true
+  private_content_default: "opaque_ref_only"
+  authorization_context_ref_required_for_material_cross_scope_read: true
+  cross_project_write_default: "DENY"
+  user_private_to_public_repo_copy: "FORBIDDEN"
+  hidden_prompt_or_private_chain_of_thought_storage: "FORBIDDEN"
+  redaction:
+    deterministic_when_possible: true
+    provenance_preserving: true
+  future_threat_model_required:
+    - malicious_or_forged_signal
+    - replay_attack
+    - idempotency_key_collision_attack
+    - stale_authorization_replay
+    - poisoned_cross_domain_backlog
+    - prompt_or_metadata_injection
+    - privacy_scope_confusion
+    - forged_merge_or_review_state
+
+change_governance:
+  architecture_change_requires:
+    - exact_head_review
+    - authority_collision_scan
+    - schema_drift_scan
+    - regression_update
+  runtime_change_requires:
+    - fresh Work Claim
+    - fresh Control Tower authorization
+    - rollback_or_compensation_plan
+    - exact-head CI
+    - resource/process audit
+  formal_task_release_requires:
+    - fresh GlobalReconciliationReceipt PASS
+    - no material receipt invalidation
+    - explicit route/task contract
+  H2_separation: "Signal Plane S0 cannot imply Harness H2 authorization"
+
+observability:
+  reuse_trace_ledger: true
+  no_second_raw_trace_store: true
+  event_to_trace_link:
+    fields: [trace_context_ref, causation_event_refs, correlation_refs]
+    rule: "multiple causal parents should use link semantics rather than inventing one false parent"
+  required_audit_questions:
+    - who_or_what_created_signal
+    - which source/canonical snapshot was observed
+    - which links/cluster decisions were created
+    - why signal routed/deferred/rejected
+    - which reconciliation receipt permitted task publication
+    - which Control Tower witness authorized execution
+    - which exact head was reviewed
+    - how state can be rebuilt or compensated
+
+capacity_and_flood_control:
+  drop_old_signals_silently: false
+  backpressure: REQUIRED_BEFORE_RUNTIME
+  prioritization_does_not_delete: true
+  aging_does_not_equal_authorization: true
+  starvation_visibility: true
+  compaction_must_preserve_replay_equivalence: true
+  large_backlog_strategy:
+    - shallow metadata index
+    - delta watermarks
+    - cluster projections
+    - targeted deep retrieval
+    - archival refs
+
+priority_vector_candidate:
+  no_single_magic_score: true
+  dimensions:
+    - explicit_user_priority
+    - urgency
+    - unblock_value
+    - dependency_centrality
+    - risk_reduction
+    - evidence_readiness
+    - cross_project_synergy
+    - learning_value
+    - cost
+    - collision_risk
+    - reversibility
+    - age_or_starvation
+  rule: "priority is explainable planning evidence, not execution permission"
+
+reversibility_and_compensation:
+  classes:
+    - FULLY_REVERSIBLE
+    - PARTIALLY_REVERSIBLE
+    - COMPENSATABLE
+    - IRREVERSIBLE
+  signal_plane_state: "normally rebuildable/reversible through new events and projections"
+  external_side_effects: "future executors must declare compensation semantics; Signal Plane cannot pretend reality can be Ctrl+Z"
+
+chaos_and_adversarial_gate_before_enterprise_runtime:
+  required_scenarios:
+    - duplicate_delivery_storm
+    - out_of_order_events
+    - crash_after_accept_before_projection
+    - crash_during_projection_rebuild
+    - stale_receipt_used_after_merge
+    - concurrent_conflicting_updates
+    - malformed_event
+    - privacy_scope_mismatch
+    - source_clock_skew
+    - replay_with_new_reducer_version
+    - signal_flood_and_backpressure
+    - cross_repo_domain_snapshot_changes_mid_scan
+  pass_rule: "no silent data loss, no unauthorized execution, no privacy widening, deterministic/declared recovery"
+
+promotion_ladder:
+  S0_CONTRACTS: "architecture + schemas + synthetic regressions"
+  S0_SYNTHETIC_IMPLEMENTATION: "public-safe offline append/reduce/reconcile skeleton"
+  S0_SHADOW_CROSS_REPO: "read-only refs against selected repositories; separate gate"
+  PRIVATE_BRIDGE: "separate privacy/security approval"
+  PRODUCTION: "separate SLO/security/recovery gate"
+  H7_RUNTIME_MISSION_ROUTING: "preserve existing Cognitive OS dependency DAG"
+  rule: "passing an earlier stage never auto-promotes the next"
+
+enterprise_non_goals_now:
+  - choose Kafka/Temporal/Postgres/Redis/GraphRAG as physical backend
+  - activate webhooks or private ChatGPT cross-window bridge
+  - run long-lived daemon
+  - install or bind DeepSeek Harness
+  - write AI Film or A-share domain canonicals
+  - authorize autonomous trading

@@ -1,0 +1,422 @@
+schema_version: "0.4"
+dag_id: "COGNITIVE-OS-HARNESS-IMPLEMENTATION-DEPENDENCY-DAG-0001"
+status: "ARCHITECTURE_CANDIDATE / CURRENT_PROGRESS_RECONCILED / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+principles:
+  architecture_can_parallelize: true
+  heavy_runtime_implementation_serialized: true
+  same_agent_execution_max: 1
+  local_heavy_stage_max: 1
+  no_auto_release: true
+  each_runtime_stage_requires_fresh_control_tower_gate: true
+  pre_mission_signal_plane_may_progress_without_harness_runtime: true
+  pre_mission_signal_plane_must_not_bypass_future_h7_mission_runtime_dependencies: true
+  completed_node_does_not_authorize_successor: true
+
+nodes:
+  H0A:
+    name: AUTHORITY_AND_DEPARTMENT_MAP
+    state: DELIVERED_CANDIDATE
+    artifact: DEPARTMENT-CONTRACT-GRAPH.yaml
+    runtime: false
+
+  H0B:
+    name: CORE_MACHINE_CONTRACTS
+    state: DELIVERED_CANDIDATE
+    artifact: COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
+    runtime: false
+
+  H0C:
+    name: HARNESS_ADAPTER_BOUNDARY
+    state: DELIVERED_CANDIDATE
+    artifact: ADAPTER-BOUNDARY.yaml
+    runtime: false
+
+  H0D:
+    name: ISSUE_312_COMPATIBILITY
+    state: DELIVERED_CANDIDATE
+    artifact: ISSUE-312-COMPATIBILITY-MATRIX.yaml
+    runtime: false
+
+  H0E:
+    name: ISSUE_308_CONSUMER_MAPPING
+    state: DELIVERED_CANDIDATE
+    artifact: ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml
+    runtime: false
+
+  H0F:
+    name: EVALUATION_AND_FALSIFICATION
+    state: DELIVERED_CANDIDATE
+    artifact: EVAL-PLAN.md
+    runtime: false
+
+  H0G:
+    name: ORGANIZATION_GRAPH_VALIDATOR_SPEC
+    state: DELIVERED_CANDIDATE
+    artifact: ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml
+    runtime: false
+
+  H0H:
+    name: HARNESS_UPSTREAM_IDENTITY
+    state: "IDENTITY_AND_ARCHITECTURE_SURFACE_PASS / RUNTIME_SMOKE_NOT_AUTHORIZED"
+    artifact: HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md
+    runtime: false
+
+  H0I:
+    name: CROSS_WINDOW_ARCHITECTURE_RECONCILIATION
+    state: COMPLETED_AND_EXTENDED_BY_SIGNAL_PLANE_ARCHITECTURE
+    runtime: false
+    description: "cross-window semantic/authority reconciliation; R133 drift is a first-class Signal Plane regression"
+
+  H0J:
+    name: CONTROL_TOWER_FRESH_ARCHITECTURE_SCAN
+    state: "COMPLETED_FOR_H0_H1 / REQUIRED_FRESH_FOR_EACH_NEW_IMPLEMENTATION"
+    runtime: false
+
+  H0K:
+    name: GPT_H0_COMPATIBILITY_VERDICT
+    state: ACCEPT_WITH_BOUNDED_DEBT
+    runtime: false
+    valid_results: [ACCEPT, ACCEPT_WITH_BOUNDED_DEBT, RETURN_FOR_ARCHITECTURE_REWORK]
+
+  H1:
+    name: CONTRACT_ONLY_SYNTHETIC_SKELETON
+    state: COMPLETED
+    runtime: true
+    resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    evidence:
+      issue: 338
+      merged_pr: 340
+      reviewed_head: "0b90373d8920caacb7b8847fc0af23e666cdf8a0"
+      merge_commit: "c17df847bee689f23363b0ddbba417c6c37c79ab"
+    expected_scope:
+      - schemas
+      - validators
+      - state_machine_logic
+      - fingerprint_builder
+      - synthetic_fixtures
+      - no_Harness_runtime_call
+
+  S0A:
+    name: PRE_MISSION_SIGNAL_CONTRACTS_AND_RELATION_GRAPH
+    state: COMPLETED_ARCHITECTURE_MERGED
+    runtime: false
+    resource_class: ARCHITECTURE_ONLY
+    evidence:
+      merged_pr: 342
+      merge_commit: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+    artifacts:
+      - GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml
+      - GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml
+      - SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml
+    requires: [H1]
+    purpose: "freeze SignalEvent/Link/Cluster/Projection and one-tower/two-plane boundary"
+
+  S0B:
+    name: GLOBAL_RECONCILIATION_RECEIPT_AND_ENTERPRISE_REGRESSIONS
+    state: COMPLETED_ARCHITECTURE_MERGED
+    runtime: false
+    resource_class: ARCHITECTURE_ONLY
+    evidence:
+      merged_pr: 342
+      merge_commit: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+    artifacts:
+      - GLOBAL-RECONCILIATION-RECEIPT-CONTRACT.yaml
+      - GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml
+      - UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml
+    requires: [S0A]
+    purpose: "freeze freshness/invalidation/replay/idempotency/cross-window acceptance semantics"
+
+  S0C:
+    name: PUBLIC_SAFE_SYNTHETIC_GLOBAL_SIGNAL_PLANE_SKELETON
+    state: COMPLETED_CLOSED_R134
+    runtime: true
+    resource_class: LIGHT_TO_MEDIUM_IMPLEMENTATION
+    requires: [S0A, S0B]
+    evidence:
+      issue: 343
+      merged_pr: 346
+      merge_commit: "336430024faf7ed8ba93b0a102e5e245d08df2f4"
+      closure_merge: "4aaff242f3fcd67fe68c9c711bcaec5de4947630"
+    delivered_capabilities:
+      - immutable_SignalEvent_append
+      - durable_SQLite_SignalLedger
+      - idempotent_ingestion
+      - SignalLink_store_and_projection
+      - deterministic_projection_and_replay
+      - GlobalReconciliationReceipt_compare_and_invalidation
+      - projection_CAS
+      - backpressure_and_quarantine
+      - R133_cross_window_drift_regression
+    locks:
+      - no_Harness_runtime
+      - no_private_chat_bridge
+      - no_domain_canonical_write
+      - no_W3_mutation
+      - no_trading
+
+  S0D:
+    name: READ_ONLY_DOMAIN_BACKLOG_BOOTSTRAP_SHADOW
+    state: COMPLETED_CLOSED_R135
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [S0C]
+    first_consumer: AI_FILM_SYSTEM
+    boundary: "READ_ONLY_REFS_STATUS_RELATIONS / NO_DOMAIN_CANONICAL_WRITE"
+    evidence:
+      issue: 348
+      merged_pr: 351
+      accepted_head: "d0249d8b16217f723d6130adbe952d3860fa08ff"
+      merge_commit: "918c0bb958626c00b65ed6340b90cd69f7f9f7f7"
+      closure_main: "d83d5a3f8de82b991c1120ea46c818538e893265"
+    delivered_capabilities:
+      - exact_commit_bound_read_only_domain_adapter
+      - per_source_manifest_and_opaque_refs
+      - durable_S0C_replay_integration
+      - source_drift_invalidation
+      - Second_Brain_self_shadow_drift_witness
+      - AI_Film_zero_mutation_boundary
+
+  S0E0:
+    name: EXPLICIT_GLOBAL_SIGNAL_INTAKE_AND_ADAPTIVE_EXECUTION_GATEWAY
+    state: PHASE_B_ACTIVE_IMPLEMENTATION
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    issue: 353
+    route_epoch: 136
+    requires: [S0D, FRESH_CONTROL_TOWER_R136_RELEASE]
+    phase_a_evidence:
+      pr: 354
+      accepted_head: "facb1e02469218cbac3c8ecab35a48ee623bae00"
+      merge_commit: "5f14455babdb46dbb5ffabd644a006c24554c5f2"
+    activation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R136-ACTIVATION.yaml"
+    purpose: >-
+      Add public-safe explicit multi-window Signal intake, derived system awareness, adaptive direct/domain/mission routing,
+      mandatory pre-task global Signal preflight, TaskReleasePacket, verifiable RuntimeInvocationReceipt and post-task
+      Signal satisfaction closure without activating private/live or Harness runtime.
+    expected_capabilities:
+      - semantic_explicit_signal_capture
+      - public_safe_append_replay_ingress
+      - SystemAwarenessProjection
+      - persistence_execution_materiality_router
+      - GlobalSignalPreflight
+      - TaskReleasePacket
+      - RuntimeInvocationReceipt
+      - SignalClosureAssessment
+      - read_only_AI_Film_directing_runtime_proof
+    exact_write_surface:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - ".github/workflows/global-signal-plane-s0e.yml"
+    user_launch_required: true
+    forbidden:
+      - private_chat_cross_window_bridge
+      - daemon_webhook_listener_scheduler_polling
+      - DeepSeek_Harness_runtime
+      - provider_subagent_jobs
+      - W3_runtime_mutation
+      - AI_Film_or_domain_canonical_write
+      - H2_or_H7_auto_start
+      - production
+      - trading
+
+  H2A:
+    name: HARNESS_PINNED_INSTALL_AND_SMOKE
+    state: "NOT_AUTHORIZED / USER_H2_START_REQUIRED"
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    exact_upstream_candidate:
+      repository: deepseek-ai/deepseek-harness
+      commit: "47f943859bef60e4160492346772ded9b24f765a"
+      package_family_version: "0.1.0-rc.5"
+    requires: [H0K, EXPLICIT_USER_H2_START, FRESH_CONTROL_TOWER_H2_RELEASE]
+
+  H2B:
+    name: HARNESS_ADAPTER_POC
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H1, H2A]
+    expected_capabilities:
+      - session
+      - workflow
+      - subagent
+      - tool
+      - jobs
+      - cancellation
+      - retry
+      - native_trace
+      - provider_isolation
+
+  H3A:
+    name: PROBLEM_SIGNATURE_AND_METHOD_DISCOVERY_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H1, H2B]
+
+  H3B:
+    name: EFFECTIVE_CHALLENGE_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H3A]
+
+  H3C:
+    name: OUTCOME_REFLECTION_LEARNING_SYNTHETIC
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3B]
+
+  H4A:
+    name: EXTERNAL_AGENT_TRACE_ADAPTER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H2B]
+    candidate_provider: CODEX_APP_SERVER
+
+  H4B:
+    name: FORMAL_HANDOFF_AND_CROSS_AGENT_LEDGER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H4A, H3B]
+
+  H5A:
+    name: ISSUE_308_SYNTHETIC_CONSUMER
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H4B]
+    no_trade: true
+
+  H5B:
+    name: ISSUE_308_HISTORICAL_PIT_REPLAY
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H5A]
+    no_trade: true
+
+  H6A:
+    name: METHOD_CREDIT_SKILL_HEALTH
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H5B]
+
+  H6B:
+    name: CROSS_CONTEXT_SKILL_PROMOTION_EVAL
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H6A]
+    formal_skill_write: "SEPARATE_GATE_ONLY"
+
+  H7A:
+    name: SIGNAL_TOWER_MISSION_RUNTIME_SYNTHETIC_ENTRY
+    state: BLOCKED
+    runtime: true
+    resource_class: MEDIUM_IMPLEMENTATION
+    requires: [H3C, H4B, S0C, S0E0]
+    note: >-
+      H7A is the future Mission/runtime plane. S0E0 provides the explicit intake/preflight seam but does not dispatch
+      Harness workflows or claim H7 capability. H7 remains separately blocked until all dependencies and a fresh gate pass.
+
+  H7B:
+    name: SIGNAL_TOWER_MULTI_WORKITEM_ROUTING
+    state: BLOCKED
+    runtime: true
+    resource_class: HEAVY_IMPLEMENTATION
+    requires: [H7A, H5A]
+
+  H8:
+    name: PRODUCTION_READINESS_GATE
+    state: BLOCKED
+    runtime: false
+    requires: [H5B, H6B, H7B]
+    checks:
+      - privacy
+      - permissions
+      - security
+      - recovery
+      - rollback
+      - observability
+      - resource_ceilings
+      - compatibility_radar
+      - TEVV
+      - human_approval
+      - Signal_Plane_replay_idempotency_backpressure_receipt_invalidation
+    private_live_production: "NOT_AUTO_AUTHORIZED"
+    trading: "SEPARATE_HIGH_RISK_PROGRAM_GATE"
+
+edges:
+  - [H0A, H0I]
+  - [H0B, H0I]
+  - [H0C, H0I]
+  - [H0D, H0I]
+  - [H0E, H0I]
+  - [H0F, H0I]
+  - [H0G, H0I]
+  - [H0H, H0I]
+  - [H0I, H0J]
+  - [H0J, H0K]
+  - [H0K, H1]
+  - [H1, S0A]
+  - [S0A, S0B]
+  - [S0B, S0C]
+  - [S0C, S0D]
+  - [S0D, S0E0]
+  - [H0K, H2A]
+  - [H1, H2B]
+  - [H2A, H2B]
+  - [H2B, H3A]
+  - [H3A, H3B]
+  - [H3B, H3C]
+  - [H2B, H4A]
+  - [H4A, H4B]
+  - [H3B, H4B]
+  - [H3C, H5A]
+  - [H4B, H5A]
+  - [H5A, H5B]
+  - [H3C, H6A]
+  - [H5B, H6A]
+  - [H6A, H6B]
+  - [H3C, H7A]
+  - [H4B, H7A]
+  - [S0C, H7A]
+  - [S0E0, H7A]
+  - [H7A, H7B]
+  - [H5A, H7B]
+  - [H5B, H8]
+  - [H6B, H8]
+  - [H7B, H8]
+
+parallelism_notes:
+  S0_vs_H2:
+    rule: >-
+      S0A-S0E0 pre-Mission work does not require Harness and may precede H2. Completion never grants H2/H7 runtime
+      authority. If the same Codex executor is used, only one active Codex execution route is allowed.
+  H1_H7:
+    rule: >-
+      DAG edges express logical dependencies, not permission to execute independent nodes concurrently. Every actual
+      implementation node requires a fresh per-agent route and Control Tower resource/collision decision.
+  cross_project:
+    rule: >-
+      R136 AI Film use is read-only runtime-proof evidence only. Any AI Film canonical modification that installs a
+      mandatory receipt emitter is a separate successor domain-write gate after R136 acceptance.
+  remote_ci:
+    use_for: "large test matrices and compatibility sweeps"
+  local:
+    heavy_stage_max: 1
+
+current_focus:
+  node: S0E0
+  route_epoch: 136
+  phase: "B_POST_MERGE_ACTIVATION / READY_WAITING_USER_LAUNCH"
+  issue: 353
+  explicit_user_priority: "FINISH_SIGNAL_TOWER_BEFORE_HARNESS_OR_OTHER_MAJOR_LINES"

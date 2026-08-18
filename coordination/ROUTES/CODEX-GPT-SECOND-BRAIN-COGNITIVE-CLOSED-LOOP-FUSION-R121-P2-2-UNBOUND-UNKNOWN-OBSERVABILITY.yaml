@@ -1,0 +1,96 @@
+schema_version: "121.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 305
+implementation_pr: 307
+route_epoch: 121
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.2 未绑定UNKNOWN可观察性修复"
+status: "READY_REMEDIATION"
+execution_allowed: true
+merge_authorized: false
+runtime_code_change_allowed: true
+runtime_code_scope: "P2_2_UNBOUND_UNKNOWN_OBSERVABILITY_ONLY"
+canonical_main_at_route_prepare: "54471b7ef853331776396b5be6e33250f92bf8b0"
+implementation_branch: "codex/gpt-second-brain-context-bundle-v1-r119-p2-2"
+
+review_return:
+  reviewed_head: "e6fc8939134402700b9b007d96fe847be1b196d9"
+  gpt_review_id: 4939366280
+  disposition: "R120_P2_2_EXACT_HEAD_CHANGES_REQUIRED_UNBOUND_UNKNOWN_OBSERVABILITY"
+  verified_ci_run: 31820250996
+  verified_ci_head_sha: "e6fc8939134402700b9b007d96fe847be1b196d9"
+  verified_merge_ref: "6b7b5d5cfdc8691b06bad202756a6f1a9792acc4"
+  verified_merge_ref_base: "54471b7ef853331776396b5be6e33250f92bf8b0"
+  verified_phase3_tests: "274/274 PASS"
+  verified_public_safety: "77 files / 0 issues"
+
+accepted_r120_subsystems:
+  epistemic_role_projection: true
+  owner_context_separation: true
+  source_interpretation_nonobjective: true
+  materiality_unknown_without_fabricated_abstain: true
+  r119_endpoint_safe_projection: true
+  r118_candidate_observability: true
+  existing_ranking_and_budget_semantics: true
+  p1_aggregate_equivalence_no_double_vote: true
+
+blocking_finding:
+  id: "R120-B01"
+  title: "UNBOUND_UNKNOWN_OMISSION_COUNT_OBSERVABILITY"
+  finding: >-
+    `_safe_unknowns()` increments caller-visible `unbound_explicit_unknown_omitted` before checking the unknown's scope or proving any caller/user/privacy observability.
+    With an empty query, `include_all_open=True` enumerates all OPEN unknowns, so a plan scoped to one project can have its count influenced by an unbound unknown from another project.
+    Unbound unknowns also lack endpoints from which user/privacy admission can be proven, recreating the R118 existence/count side-channel class.
+
+root_goal: >-
+  Repair only caller observability of count-only telemetry for unbound explicit OPEN unknowns while preserving every accepted R120/R119/R118 semantic and safety behavior.
+
+mandatory_repairs:
+  - "An unbound OPEN unknown must be indistinguishable from nonexistence unless the omission itself is caller-observable under the current QueryPlan."
+  - "Apply project/scope eligibility before incrementing any public omission count."
+  - "When user/privacy observability cannot be proven from an unbound unknown, fail closed and do not increment caller-visible telemetry."
+  - "For safely observable synthetic unbound unknowns, keep count-only telemetry; never expose ID, question, raw source, pointer or private metadata."
+  - "Add adversarial tests: same-scope safely observable synthetic unbound unknown may count; foreign-scope does not change the report; user/privacy-bound plan cannot infer an unbound unknown whose visibility cannot be proven."
+  - "Preserve R120 epistemic/owner-context separation and non-fabricated materiality semantics."
+  - "Preserve R119 endpoint-safe relation/conflict/unknown projection and R118 rare-term/caller observability equivalence."
+
+nonblocking_watchpoint:
+  id: "R120-W01-CONTEXT-ONLY-ENDPOINT"
+  status: "DEFER"
+  note: "Do not address in R121. Context-only admitted endpoint labeling remains deferred."
+
+execution_contract:
+  same_pr_branch_additive_only: true
+  rebase_force_amend: "FORBIDDEN"
+  endpoint_safe_projection_regression: "MUST_PRESERVE"
+  r118_observability_boundary: "MUST_PRESERVE"
+  existing_ranking_weights: "MUST_PRESERVE"
+  p2_3_memory_palace_migration: "FORBIDDEN"
+  p2_4_semantic_provider: "FORBIDDEN"
+  p2_4_structural_analogy: "FORBIDDEN"
+  second_store: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  private_source_discovery_or_read: "FORBIDDEN"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "focused R121 scope/user/privacy omission-telemetry adversarial tests PASS"
+  - "full Phase-3 regression PASS"
+  - "GitHub Actions run reports exact final head_sha and Python 3.11/3.13 SUCCESS"
+  - "public safety PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "R118/R119/R120 compatibility parity"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_2_R121_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  Epoch 121 is only the unbound-UNKNOWN omission-telemetry observability repair. P2.3/P2.4, real private execution, production bridge, scheduler,
+  formal promotion, QCLAW runtime dependency, permissions and trading remain locked.

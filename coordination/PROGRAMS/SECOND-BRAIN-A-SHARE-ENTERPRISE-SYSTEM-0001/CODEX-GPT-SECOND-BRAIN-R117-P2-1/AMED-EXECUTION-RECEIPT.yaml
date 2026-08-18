@@ -1,0 +1,38 @@
+schema_version: "1.0"
+receipt_type: "AMEDAgentExecutionReceipt"
+agent_id: "CODEX"
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-1-UNIFIED-CANDIDATE-ADMISSION"
+route_epoch: 117
+issue: 297
+actual_executor: "CODEX"
+reviewer: "GPT"
+status: "IMPLEMENTATION_CHECKPOINT"
+execution_boundary: "P2_1_RETRIEVAL_ADMISSION_ONLY"
+implemented:
+  - "Introduced one internal CandidateSet and stable CandidateAdmissionDecision reason path."
+  - "Routed lexical and relation expansion through the one pre-ranking decision path."
+  - "Exposed copied, count-only last_admission_report without rejected identities or source material."
+  - "Kept legacy _allowed as a delegating compatibility facade."
+not_performed:
+  - "No ranking, semantic provider, structural analogy, full ContextBundle v1 or Memory Palace migration."
+  - "No real private source/store/ingestion/canary, formal promotion, scheduler, production MCP/Gateway, QCLAW runtime dependency, permission change, trade or merge."
+validation:
+  focused_p2_1: "PASS 5/5"
+  phase3_regression: "PASS 267/267"
+  public_safety: "PASS 76 files / 0 issues; changed-path secret-shape scan PASS from clone root"
+  yaml_json_parse: "PASS 4 R117 YAML artifacts; semantic assertions PASS; retrieval.py compiled"
+  git_diff_check: "PASS after clone-root changed-path scan"
+  post_push_ci: "PENDING_EXTERNAL_GITHUB_EVIDENCE"
+local_execution_issues:
+  - id: "R117_NEW_LOCAL_EXECUTION_ISSUES"
+    status: "OBSERVED_AND_RESOLVED_BY_RERUN"
+    问题特征: "从 Phase-3 子目录执行 changed-path rg 时，git diff 输出的仓库根相对路径无法被该子目录解析。"
+    发现途径与对照测试: "rg 返回路径不存在；YAML、语义、编译、public-safety 与 diff 检查已在该失败前通过。随后从 isolated clone root 重跑同一扫描。"
+    根因范围与限制: "PowerShell 工作目录与 Git 路径相对基准不一致；未影响源码、测试数据、凭证或权限。"
+    可逆解决办法与撤销方式: "所有 Git changed-path 扫描在 clone root 执行；无需回滚代码。"
+  - id: "LEIP-PSPY-001"
+    status: "RECURRENCE_RESOLVED_BY_CLONE_ROOT_RERUN"
+    问题特征: "PowerShell 子目录中的相对路径组合导致原生 rg 文件解析失败。"
+    发现途径与对照测试: "失败命令基于 git diff 的 root-relative paths；clone-root rerun 是直接对照。"
+    根因范围与限制: "命令编排路径基准，非 Python 或 W3 运行时语义。"
+    可逆解决办法与撤销方式: "显式在 clone root 运行 changed-path 命令；不作环境级永久修复声明。"

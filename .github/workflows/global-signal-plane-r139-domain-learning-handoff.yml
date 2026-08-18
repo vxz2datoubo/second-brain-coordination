@@ -1,0 +1,74 @@
+name: Global Signal Plane R139 Domain Learning Handoff
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+      - ".github/workflows/global-signal-plane-r139-domain-learning-handoff.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r139-mechanisms:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: {python-version: ["3.11", "3.13"]}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
+      - name: Assert exact workflow head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-python@v5
+        with: {python-version: "${{ matrix.python-version }}"}
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: R139 R001-R030 and retained R136-R138 regressions
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r139_domain_learning_handoff.py' -v
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r136_matrix.py' -v
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r137_live_observation_provider.py' -v
+          python -m unittest discover -s coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests -p 'test_r138_capability_execution_provider.py' -v
+
+  public-ai-film-read-only-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, ref: "${{ github.event.pull_request.head.sha || github.sha }}"}
+      - name: Assert exact workflow head
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Exact public AI Film read-only Stage-A smokes
+        env:
+          PYTHONPATH: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src:coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC/src
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python - <<'PY'
+          from global_signal_gateway import DomainLearningHandoffPacket, ai_film_domain_learning_read_only_smoke
+          from global_signal_gateway.gateway import AI_FILM_COMMIT, temporary_exact_clone
+          def packet(handoff_id, key, item, kind):
+              return DomainLearningHandoffPacket.build({
+                  'schema_version':'DomainLearningHandoffPacket/v1','handoff_id':handoff_id,'idempotency_key':key,
+                  'source_trace_ref':'trace:r139-ci','source_scope':'PUBLIC_SAFE','source_ref':'opaque://r139/ci',
+                  'observed_at':'2026-08-16T00:00:00+00:00','domain_id':'AI_FILM',
+                  'domain_repository':'vxz2datoubo/eustia-ai-film','domain_source_revision':AI_FILM_COMMIT,
+                  'feedback_kind':kind,'user_intent':'read-only dry run','user_verdict':'POSITIVE','work_item_id':item,
+                  'model_or_tool':'AI_FILM','model_version':'reference','prompt_or_input_evidence_refs':['opaque://input'],
+                  'result_evidence_refs':['opaque://result'],'asset_refs':[],'observed_effects':['evidence reference'],
+                  'candidate_goal':'classify only','privacy_class':'PUBLIC_SAFE','public_safe_summary':'R139 public read-only smoke',
+                  'confidence_of_source_interpretation':'HIGH','requested_domain_action':'CLASSIFY_ONLY','materiality':'TRACE_ONLY',
+                  'risk_flags':[],'unknowns':[]})
+          with temporary_exact_clone('https://github.com/vxz2datoubo/eustia-ai-film.git', AI_FILM_COMMIT) as source:
+              fashion=ai_film_domain_learning_read_only_smoke(source, packet('r139-ci-fashion','r139-ci-fashion','AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY','EXPLICIT_EXCELLENT_CASE'), read_set='golden_prompt_ingestion', exact_object='GPC-20260813-001')
+              cd25=ai_film_domain_learning_read_only_smoke(source, packet('r139-ci-cd25','r139-ci-cd25','CD25-KAIM-WINDOW-AB-20260815','REAL_GENERATION_EVIDENCE'), read_set='system_research', exact_object='CD25-KAIM-WINDOW-AB-20260815', conditional_flags={'model_real_generation_feedback':True})
+          for result in (fashion, cd25):
+              assert result['writeback_status']=='NONE' and result['domain_write_authorized'] is False
+              assert result['director_route_requirement']=='NOT_REQUIRED_FOR_THIS_READ_SET_SMOKE'
+              assert result['source_status_before']==result['source_status_after']=='CLEAN'
+          PY

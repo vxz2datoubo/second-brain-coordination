@@ -1,0 +1,42 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+route_epoch: 133
+issue: 338
+canonical_main_verified: "e0ec6fa2759685b29c09d90ec2b761ea36da99b6"
+implementation_branch: "codex/cognitive-os-h1-contract-skeleton-r133"
+scope: "CONTRACT_ONLY / SYNTHETIC / PUBLIC_SAFE"
+implemented:
+  - "deterministic structural and semantic validators"
+  - "DecisionEpisode transitions and bounded rework validation"
+  - "MissionGraph and organization graph validation"
+  - "trace/handoff validation and cognitive reproducibility fingerprint"
+  - "S1-S10 synthetic scenarios and bounded in-process exploration"
+  - "canonical DSL to in-memory Draft 2020-12 structural authority with actual jsonschema validation"
+  - "31/31 machine-readable invariant coverage cases with positive and negative evidence"
+  - "Python 3.11/3.13 remote CI workflow"
+not_implemented:
+  - "Harness install, binding, activation, jobs, or subagents"
+  - "W3/private/domain/live/production access or mutation"
+  - "H2 activation, formal skill promotion, scheduler, MCP, Gateway, trade, or merge"
+verification_at_commit_time:
+  contract_tests: "17 passed before the R133 hardening delivery commit"
+  public_safety_scan: "PASS; NO_CHILD_PROCESS_CREATED"
+  implementation_head: "e85dc3df1c01b40476120161507c849c212a7114"
+  h1_ci: "run 31886518835: SUCCESS; Python 3.11 PASS; Python 3.13 PASS"
+  phase_3_ci: "run 31886518939: SUCCESS; Python 3.11 PASS; Python 3.13 PASS"
+  reconciliation_note: "This receipt reconciliation changes documentation only. The PR check runs on the eventual receipt-only head remain the immutable final-head evidence source."
+resource_audit:
+  local_test_workers: 1
+  child_processes_created_by_implementation: 0
+  daemon_or_server_started: false
+  task_owned_child_cleanup: "NOT_APPLICABLE_NO_CHILDREN_CREATED"
+bounded_model_exploration:
+  classification: "EXPLICIT_FINITE_STATE_EXPLORATION_NOT_UNBOUNDED_FORMAL_PROOF"
+  state_variables: [decision_state, w7_gate, authorization, trace_context, retry_budget, fingerprint_changed, resource_slots, return_alias_targets, h2_authorized]
+  bounds: ["28 declared states", "retry budget 0 or 1", "W7 PASS/VETO/HUMAN_GATE", "resource slots 1 or 2", "alias cardinality 1 or 2"]
+  checks: [mission_lifecycle, invalid_transition_fail_closed, authorization, rework_termination, no_one_shot_promotion, w7_and_human_gate, trace_completeness, resource_max_one, dynamic_alias, h1_h2_separation, bounded_liveness_no_deadlock]
+placeholder_shadow_audit: "PASS: canonical DSL compiles in-memory to Draft 2020-12 and is actually validated by jsonschema; Python validates semantic invariants only. No external Harness/W3/provider client or runtime adapter is present."
+unknowns:
+  - "H1 validators prove contract enforceability only; H2 runtime integration remains intentionally unimplemented."
+rollback: "Close the draft PR or revert the complete R133 PR commit set in reverse order; no external state, child process, private source, or runtime state exists to clean up."

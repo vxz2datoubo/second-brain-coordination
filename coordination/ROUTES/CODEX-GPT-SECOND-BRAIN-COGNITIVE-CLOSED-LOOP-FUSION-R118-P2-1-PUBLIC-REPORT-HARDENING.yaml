@@ -1,0 +1,93 @@
+schema_version: "118.0"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+active_issue: 297
+task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-P2-1-PUBLIC-REPORT-HARDENING"
+parent_task_id: "CODEX-GPT-SECOND-BRAIN-COGNITIVE-CLOSED-LOOP-FUSION-0001"
+route_epoch: 118
+mode: "goal"
+mode_label: "【Codex模式：目标模式】P2.1准入报告侧信道修复"
+status: "READY_REMEDIATION"
+execution_allowed: true
+merge_authorized: false
+second_user_start_command_required: true
+intermediate_gpt_review_required: true
+
+review_return:
+  pull_request: 302
+  reviewed_head: "ce44e444cfbb332a5db6c070106a55ad5b5b7189"
+  gpt_review_id: 4936405812
+  disposition: "R117_P2_1_EXACT_HEAD_CHANGES_REQUIRED_PUBLIC_REPORT_SIDE_CHANNEL"
+  positive_credit:
+    - "CandidateSet/shared admission direction is accepted in principle."
+    - "Exact-head CI 31792882867 is green on Python 3.11/3.13."
+    - "Phase-3 267/267 and public safety 76/0 verified."
+
+root_goal: >-
+  Repair only the R117 public admission-report observability leak while preserving the accepted P2.1 candidate-set/admission boundary,
+  existing ranking/budget/ContextBundle behavior, P1 contracts and Memory Palace compatibility.
+
+mandatory_repairs:
+  - "Add a fail-closed caller-observability boundary before any PUBLIC rejection accounting. Foreign user/project/privacy, restricted transport/GPT visibility, and otherwise non-observable candidates must be indistinguishable from absence in the public report."
+  - "Do not expose suppressed rejection counts, IDs, raw provenance, source pointers, source bodies, metadata values or reason classes that reveal a hidden record exists."
+  - "Deduplicate public admission accounting by canonical atom ID so multiple retrieval channels cannot multiply rejection counts or reveal graph/path topology."
+  - "Preserve max-score behavior and lexical/relation candidate semantics after deduplication."
+  - "Add rare-term adversarial tests for foreign user, foreign project, foreign privacy domain and RESTRICTED_NEVER_SYNC showing the same public report as a no-match store."
+  - "Preserve CURRENT/HISTORICAL, stale/revoked/superseded, provenance and synthetic aggregate no-double-vote behavior."
+
+adjacent_p2_2_mandatory_finding:
+  id: "R118-ADJ-P2-2-001"
+  finding: >-
+    Current ContextAssembler serializes MemoryStore.relations_around(selected_set), while relations_around returns a relation when either endpoint is selected.
+    Thus an admitted root may expose a hidden endpoint ID through bundle.relations. R118 must NOT expand into P2.2; record this for the next slice.
+  next_slice_requirement: >-
+    P2.2 must independently admit every referenced relation/conflict/unknown endpoint/object before projection, otherwise suppress or redact fail-closed.
+
+execution_contract:
+  same_pr_and_branch_additive_only: true
+  implementation_pr: 302
+  implementation_branch: "codex/gpt-second-brain-cognitive-loop-fusion-r117-p2-1"
+  allowed_runtime_files:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/src/integrated_offline_memory/retrieval.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_retrieval_admission.py"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-3-INTEGRATED-OFFLINE-MEMORY/tests/test_knowledge_reconciliation.py"
+  memory_palace_migration: "FORBIDDEN"
+  relation_conflict_unknown_projection_fix: "DEFER_TO_P2_2"
+  semantic_provider: "FORBIDDEN"
+  structural_analogy: "FORBIDDEN"
+  ranking_or_anti_anchor_change: "FORBIDDEN"
+  full_context_bundle_v1: "FORBIDDEN"
+  real_private_data_or_store: "FORBIDDEN"
+  formal_project_global_promotion: "LOCKED"
+  scheduler: "FORBIDDEN"
+  production_mcp_gateway: "FORBIDDEN"
+  qclaw_runtime_dependency: "FORBIDDEN"
+  security_acl_visibility_changes: "FORBIDDEN"
+  trading_accounts: "FORBIDDEN"
+  rebase_force_amend: "FORBIDDEN"
+  merge: "FORBIDDEN_TO_CODEX"
+
+validation_required:
+  - "focused P2.1 side-channel adversarial tests PASS"
+  - "full Phase-3 regression PASS"
+  - "Python 3.11/3.13 exact-final-head CI SUCCESS"
+  - "public safety PASS"
+  - "git diff --check PASS"
+  - "working tree clean"
+  - "no hidden-existence/path-topology signal in public admission report"
+
+required_closeout:
+  - "exact final head_sha"
+  - "PR #302 same branch additive-only proof"
+  - "public observability model and suppressed/public reason policy"
+  - "rare-term oracle-equivalence test evidence"
+  - "deduplicated multi-channel accounting evidence"
+  - "P1/Memory Palace parity evidence"
+  - "R118-ADJ-P2-2-001 preserved for next slice"
+  - "REAL_PRIVATE_EXECUTION_NOT_RUN"
+  - "FORMAL_PROMOTION_LOCKED"
+
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_1_R118_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"
+lock_statement: >-
+  R118 is a narrow remediation of the R117 public admission-report side channel only. Do not broaden into P2.2 or later phases.

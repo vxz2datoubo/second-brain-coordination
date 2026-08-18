@@ -1,0 +1,149 @@
+schema_version: "0.2"
+gate_id: "COGNITIVE-OS-HARNESS-H0-FINAL-GATE-0001"
+status: "CLOSED / ACCEPT_WITH_BOUNDED_DEBT"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "ARCHITECTURE_ACCEPTANCE_ONLY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+canonical_main_rechecked: "62a171944840a2f064e0c9a4936f7e0b0d081e68"
+control_tower_remediation_pr: 337
+control_tower_reviewed_head: "ef564d91770e58c19e8ede7d80f1036464c7682f"
+control_tower_ci_run: 31878478727
+
+allowed_final_verdicts:
+  - ACCEPT
+  - ACCEPT_WITH_BOUNDED_DEBT
+  - RETURN_FOR_ARCHITECTURE_REWORK
+
+final_state:
+  architecture_static: PASS_WITH_BOUNDED_DEBT
+  control_plane: PASS
+  h0_final: ACCEPT_WITH_BOUNDED_DEBT
+  h1_release: "NOT_AUTHORIZED_YET / ELIGIBLE_FOR_SEPARATE_RELEASE_DECISION"
+  h2_release: BLOCKED
+
+rules:
+  all_H0_P0_must_pass: true
+  no_green_by_waiving_failed_control_tower: true
+  H0_acceptance_does_not_authorize_H1: true
+  H1_acceptance_does_not_authorize_H2: true
+  no_private_live_production_trading_authority_created: true
+
+gates:
+  - {id: H0-G01-SECOND-BRAIN-FROZEN, class: P0, current: PASS, evidence: [Issue_335, "main@62a17194"]}
+  - {id: H0-G02-UNIQUE-AUTHORITY, class: P0, current: PASS, evidence: [DEPARTMENT-CONTRACT-GRAPH.yaml, H0-STATIC-CROSS-FILE-AUDIT.yaml]}
+  - {id: H0-G03-ROLE-NONAUTHORITY, class: P0, current: PASS, evidence: [DEPARTMENT-CONTRACT-GRAPH.yaml, ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml]}
+  - {id: H0-G04-CONTRACT-SEMANTICS-COMPLETE, class: P1, current: PASS_WITH_H1_IMPLEMENTATION_DEBT, evidence: [COGNITIVE-OS-CONTRACT-SCHEMAS.yaml]}
+  - {id: H0-G05-RETURN-AND-REWORK-CLOSURE, class: P0, current: PASS, evidence: [DEPARTMENT-CONTRACT-GRAPH.yaml, COGNITIVE-OS-CONTRACT-SCHEMAS.yaml]}
+  - {id: H0-G06-LEARNING-SEPARATION, class: P0, current: PASS, evidence: [LEARNING-EVOLUTION-LIFECYCLE.yaml]}
+  - {id: H0-G07-METHOD-PROGRESSIVE-DISCLOSURE, class: P1, current: PASS, evidence: [METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml]}
+  - {id: H0-G08-TRACE-PRIVACY, class: P0, current: PASS, evidence: [TRACE-LEDGER-PRIVACY-CONTRACT.yaml]}
+  - {id: H0-G09-HARNESS-IDENTITY-BOUNDARY, class: P0, current: PASS, evidence: [HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md, ADAPTER-BOUNDARY.yaml]}
+  - {id: H0-G10-ISSUE312-SEMANTIC-PRESERVATION, class: P0, current: PASS, evidence: [ISSUE-312-COMPATIBILITY-MATRIX.yaml]}
+  - {id: H0-G11-ISSUE308-SEMANTIC-PRESERVATION, class: P0, current: PASS, evidence: [ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml]}
+  - {id: H0-G12-H1-H2-SEPARATION, class: P0, current: PASS, evidence: [IMPLEMENTATION-CLAIM-CANDIDATE.yaml, H1-CODEX-TASK-DRAFT.md]}
+  - {id: H0-G13-RESOURCE-GOVERNANCE, class: P0, current: PASS_DESIGN_ONLY, evidence: [ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml, H1-CODEX-TASK-DRAFT.md]}
+  - id: H0-G14-CODEX-STALE-ROUTE-CLEAN
+    class: P0
+    current: PASS
+    evidence:
+      - "main coordination/ACTIVE-CODEX-TASK.yaml: status=DONE"
+      - "execution_allowed=false"
+      - "runtime_code_change_allowed=false"
+      - "next_command=NO_ACTIVE_TASK"
+  - id: H0-G15-LANE-C-WORK-CLAIM-CURRENT
+    class: P0
+    current: PASS
+    evidence:
+      - "main Lane C claim_state=CLOSED_NO_ACTIVE_IMPLEMENTATION"
+      - "execution_agent=null"
+      - "resource_class=NO_ACTIVE_IMPLEMENTATION"
+      - "route_binding=null"
+      - "all current read/write/interface/domain/authority surfaces empty"
+  - id: H0-G16-PROGRAM-LANE-REGISTRY-CURRENT
+    class: P0
+    current: PASS
+    evidence:
+      - "Lane A ACTIVE + proposal_only=true + no execution route/heavy lease"
+      - "Lane B held until separately started"
+      - "Lane C DONE / FOUNDATION_CLOSED_WITH_BOUNDED_GAPS"
+  - id: H0-G17-CONTROL-TOWER-RECONCILIATION
+    class: P0
+    current: PASS
+    evidence:
+      - "PR #337 exact head ef564d917..."
+      - "Program Control Tower foundation run 31878478727"
+      - "Python 3.11 + 3.13 reconciliation PASS"
+  - id: H0-G18-WORK-CLAIM-VALIDATION
+    class: P0
+    current: PASS
+    evidence:
+      - "32/32 targeted regressions PASS"
+      - "Program Lane Work Claims PASS"
+      - "claim structural check PASS"
+  - id: H0-G19-O0-O4-WIP-RESCAN
+    class: P0
+    current: PASS
+    evidence:
+      - "A↔B O1 READ_READ"
+      - "A↔C O0"
+      - "B↔C O0"
+      - "proposal-only collision blockers=[]"
+      - "no active Codex execution lease"
+      - "local heavy implementation not authorized"
+  - id: H0-G20-FRESH-WITNESS
+    class: P0
+    current: PASS
+    evidence:
+      - "durable authorization witness round trip PASS"
+      - "Lane C witness fresh=true, execution_agent=null, route_epoch=null, route_fingerprint=null"
+      - "R132 route witness status=DONE / execution_allowed=false"
+    note: "Witness proves cleaned governance state; it does not authorize H1/H2."
+  - id: H0-G21-FINAL-STATIC-RERUN
+    class: P0
+    current: PASS_WITH_BOUNDED_DEBT
+    evidence:
+      - H0-STATIC-CROSS-FILE-AUDIT.yaml
+      - "zero OPEN H0 P0 findings after PR #337 merge"
+      - "no semantic loss from #312/#308/Foundation"
+  - id: H0-G22-GPT-FINAL-VERDICT
+    class: P0
+    current: PASS
+    verdict: ACCEPT_WITH_BOUNDED_DEBT
+
+bounded_debts_after_H0:
+  - id: H1-DEBT-FORMAL-SCHEMA-VALIDATORS
+    owner: H1
+    gate: "H1 exact-head acceptance"
+    isolation: "No Harness runtime binding"
+  - id: H1-DEBT-FORMAL-MODEL-EXECUTION
+    owner: H1
+    gate: "H1/H3 maturity validation"
+    isolation: "Safety/liveness obligations already frozen in architecture"
+  - id: H2-DEBT-HARNESS-RUNTIME-SMOKE
+    owner: H2
+    gate: "P0 before any H2 runtime acceptance"
+    isolation: "H0/H1 create no Harness runtime authority"
+  - id: SUCCESSOR-R120-W01
+    owner: FUTURE_BOUNDED_INTERFACE
+    gate: "Only if a real consumer proves the frozen boundary insufficient"
+  - id: SUCCESSOR-R122-UNKNOWN-BINDING
+    owner: FUTURE_BOUNDED_INTERFACE
+    gate: "Only if a real consumer proves need"
+  - id: SUCCESSOR-FEEDBACK-LIFECYCLE-API
+    owner: FUTURE_BOUNDED_INTERFACE
+    gate: "Narrow versioned adapter, no broad W3 reopen"
+  - id: CROSS_PROJECT-AI-FILM-ADAPTER
+    owner: FUTURE_DOMAIN_ADAPTER
+    gate: "After shared Cognitive OS contracts are implemented and stable"
+    isolation: "AI-film retains domain authority; shared layer owns only cross-domain cognitive services"
+
+final_verdict: "ACCEPT_WITH_BOUNDED_DEBT"
+final_verdict_reason: >-
+  All H0 architecture/control-plane P0 gates are satisfied after PR #337 merged and canonical main was rechecked.
+  Remaining debt is deliberately assigned to H1/H2 or bounded successor interfaces, with no unresolved duplicate authority,
+  privacy/trading leak, unbounded loop, or semantic loss from the frozen Second Brain, #312, or #308.
+
+post_H0_rule: >-
+  H0 acceptance closes architecture design for implementation planning. It does not itself create an executable Agent route,
+  Work Claim, private/live/production permission, Harness runtime binding, or trading authority. H1 requires a separate fresh
+  Control Tower release. H2 remains independently blocked until H1 acceptance plus pinned Harness runtime smoke gates.

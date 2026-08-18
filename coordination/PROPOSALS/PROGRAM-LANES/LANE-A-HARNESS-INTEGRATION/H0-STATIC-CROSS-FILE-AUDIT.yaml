@@ -1,0 +1,206 @@
+schema_version: "0.2"
+audit_id: "COGNITIVE-OS-H0-STATIC-CROSS-FILE-AUDIT-0001"
+status: "COMPLETED / ZERO_OPEN_H0_P0 / PASS_WITH_BOUNDED_DEBT"
+owner: "USER"
+auditor: "GPT"
+boundary: "PROPOSAL_ONLY / NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+scope:
+  proposal_branch: "gpt/harness-cognitive-os-architecture-v0-1"
+  canonical_main_rechecked: "62a171944840a2f064e0c9a4936f7e0b0d081e68"
+  pr: 336
+  control_tower_cleanup_pr: 337
+  control_tower_reviewed_head: "ef564d91770e58c19e8ede7d80f1036464c7682f"
+  control_tower_ci_run: 31878478727
+  files_reviewed:
+    - COGNITIVE-OPERATING-SYSTEM-ARCHITECTURE-BLUEPRINT.md
+    - DEPARTMENT-CONTRACT-GRAPH.yaml
+    - COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
+    - SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml
+    - ADAPTER-BOUNDARY.yaml
+    - HARNESS-UPSTREAM-IDENTITY-VERIFICATION.md
+    - HARNESS-POC-CONTRACT.md
+    - ISSUE-312-COMPATIBILITY-MATRIX.yaml
+    - ISSUE-308-CONSUMER-DEPENDENCY-MAP.yaml
+    - CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml
+    - LEARNING-EVOLUTION-LIFECYCLE.yaml
+    - METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml
+    - TRACE-LEDGER-PRIVACY-CONTRACT.yaml
+    - ORGANIZATION-GRAPH-VALIDATOR-SPEC.yaml
+    - IMPLEMENTATION-DEPENDENCY-DAG.yaml
+    - IMPLEMENTATION-CLAIM-CANDIDATE.yaml
+    - EVAL-PLAN.md
+    - H0-FINAL-GATE.yaml
+  external_state_checked:
+    - coordination/ACTIVE-CODEX-TASK.yaml
+    - coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml
+    - coordination/ACTIVE-PROGRAM-LANES.yaml
+    - coordination/GOVERNANCE/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-PROTOCOL-v1.0.yaml
+    - Issue_335_Foundation_Closure
+    - PR_334_P2_4B_merge
+    - PR_337_Control_Tower_cleanup
+
+verdicts:
+  architecture_static_verdict: "PASS_WITH_BOUNDED_DEBT"
+  H0_final_acceptance: "ACCEPT_WITH_BOUNDED_DEBT"
+  implementation_release: "NOT_AUTOMATICALLY_AUTHORIZED"
+  open_H0_P0_count: 0
+  semantic_loss_detected: false
+  duplicate_authority_detected: false
+  privacy_or_trading_leak_detected: false
+
+findings:
+  - id: H0-AUD-001
+    severity: P1
+    status: FIXED
+    area: CONTRACT_DSL
+    summary: "Machine-looking DSL ambiguity repaired; H1 compilation/validator obligation explicit."
+  - id: H0-AUD-002
+    severity: P1
+    status: FIXED
+    area: CAUSAL_CONTRACT
+    summary: "Competing-hypotheses/PIT fields and invariants made explicit."
+  - id: H0-AUD-003
+    severity: P1
+    status: FIXED
+    area: LEARNING_TRIGGER
+    summary: "Verified correction/audit can trigger learning without requiring real-world outcome_ref."
+  - id: H0-AUD-004
+    severity: P1
+    status: FIXED
+    area: INDEPENDENT_CHALLENGE
+    summary: "Challenge level + independent-pass provenance made machine-visible."
+  - id: H0-AUD-005
+    severity: P1
+    status: FIXED
+    area: ROLE_ALIAS_RESOLUTION
+    summary: "Primary/Challenger explicit; dynamic return aliases made deterministically resolvable."
+  - id: H0-AUD-006
+    severity: P2
+    status: FIXED
+    area: HARNESS_IDENTITY_GATE
+    summary: "Upstream identity PASS separated from later runtime smoke gate."
+  - id: H0-AUD-007
+    severity: P0
+    status: FIXED
+    area: H1_H2_SEPARATION
+    summary: "Contract skeleton and Harness runtime PoC split into independent future claims/routes."
+  - id: H0-AUD-008
+    severity: P0
+    status: FIXED_BY_PR_337
+    area: STALE_CODEX_ROUTE
+    evidence:
+      - "ACTIVE-CODEX-TASK status=DONE"
+      - "execution_allowed=false"
+      - "runtime_code_change_allowed=false"
+      - "next_command=NO_ACTIVE_TASK"
+  - id: H0-AUD-009
+    severity: P0
+    status: FIXED_BY_PR_337
+    area: LANE_C_WORK_CLAIM
+    evidence:
+      - "claim_state=CLOSED_NO_ACTIVE_IMPLEMENTATION"
+      - "execution_agent=null"
+      - "resource_class=NO_ACTIVE_IMPLEMENTATION"
+      - "route_binding=null"
+      - "all current work surfaces empty"
+  - id: H0-AUD-010
+    severity: P0
+    status: FIXED_BY_PR_337
+    area: PROGRAM_LANE_REGISTRY
+    evidence:
+      - "Lane A ACTIVE proposal-only/no heavy lease"
+      - "Lane B user-held"
+      - "Lane C DONE/Foundation frozen"
+  - id: H0-AUD-011
+    severity: P1
+    status: DEFERRED_BOUNDED
+    owner: H1
+    area: FORMAL_SCHEMA_VALIDATORS
+    gate: "Must PASS at H1 exact-head acceptance before H2."
+  - id: H0-AUD-012
+    severity: P1
+    status: DEFERRED_BOUNDED
+    owner: H1
+    area: FORMAL_MODEL_EXECUTION
+    gate: "Critical state-machine model checks required before later runtime maturity gates."
+  - id: H0-AUD-013
+    severity: P1
+    future_gate_severity: "P0_BEFORE_H2_RUNTIME_ACCEPTANCE"
+    status: DEFERRED_BOUNDED
+    owner: H2
+    area: HARNESS_RUNTIME_SMOKE
+    problem: "Pinned target-environment install/pack/provider/rollback smoke has not run."
+    reason_not_H0_blocker: "H0 authorizes no Harness runtime binding."
+    gate: "Mandatory hard gate before H2 runtime acceptance."
+  - id: H0-AUD-014
+    severity: P2
+    status: FIXED
+    area: W9_OUTCOMELEARNING_AUTHORITY
+    summary: "Adapter transports OutcomeLearning but W9 remains owner."
+  - id: H0-AUD-015
+    severity: P1
+    status: DEFERRED_BOUNDED
+    owner: FUTURE_DOMAIN_ADAPTER
+    area: CROSS_PROJECT_AI_FILM
+    summary: >-
+      AI Film is explicitly modeled as a future domain consumer of shared cognitive services. Domain knowledge/continuity/
+      directing authority stays in the AI-film repository; only cross-domain cognitive services may later be shared through adapters.
+    gate: "Do not implement cross-repo runtime coupling before shared Cognitive OS contracts are stable."
+
+control_plane_rerun:
+  canonical_main: "62a171944840a2f064e0c9a4936f7e0b0d081e68"
+  exact_reviewed_cleanup_head: "ef564d91770e58c19e8ede7d80f1036464c7682f"
+  workflow_run: 31878478727
+  python_3_11: PASS
+  python_3_13: PASS
+  targeted_regressions: "32/32 PASS"
+  reconciliation: PASS
+  lane_contracts: PASS
+  work_claims: PASS
+  projection: PASS
+  durable_witness_round_trip: PASS
+  codex_route_witness: "PASS / DONE / execution_allowed=false"
+  pairwise:
+    Lane_A_vs_B: "O1 READ_READ"
+    Lane_A_vs_C: O0
+    Lane_B_vs_C: O0
+  proposal_only_collision_blockers: []
+
+open_blockers:
+  H0_P0: []
+  H1_bounded:
+    - H0-AUD-011
+    - H0-AUD-012
+  H2_hard_before_runtime:
+    - H0-AUD-013
+  future_domain_adapter:
+    - H0-AUD-015
+
+semantic_preservation:
+  second_brain_foundation: PASS
+  issue_312: PASS
+  issue_308: PASS
+  w7_final_veto: PASS
+  w9_learning_authority: PASS
+  no_second_w3: PASS
+  no_second_method_router: PASS
+  no_second_control_tower: PASS
+  no_second_evidence_truth: PASS
+  no_trade: PASS
+
+final_disposition: "H0_ACCEPT_WITH_BOUNDED_DEBT"
+next_sequence:
+  - "No additional H0 feature expansion."
+  - "Prepare a fresh H1 contract-only Work Claim/route only after explicit GPT release."
+  - "H1 implements formal schemas/semantic validators/state/graph/trace fixtures only."
+  - "H2 remains separately blocked and requires pinned Harness runtime smoke + new route/claim/witness."
+  - "Cross-project AI Film adapter remains future interface work, not H1 scope."
+
+learning_scan:
+  candidate_system_learning:
+    - "A completed lane needs a first-class non-executable closed claim state, not a fake held proposal state."
+    - "Program Lane dependencies/shared_interfaces must be machine-declared and fail-closed when missing."
+    - "Architecture severity is gate-relative: a runtime smoke can be bounded at H0 but a hard P0 at H2."
+    - "Cross-project domain consumers should share cognitive services through adapters while preserving domain authority."
+  promotion_status: "ENGINEERING_LEARNING_CANDIDATE / H1_REGRESSION_REQUIRED"

@@ -1,0 +1,270 @@
+schema_version: "0.2"
+validator_spec_id: "COGNITIVE-OS-ORGANIZATION-GRAPH-VALIDATOR-0001"
+status: "ARCHITECTURE_CANDIDATE / PROPOSAL_ONLY"
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "NO_RUNTIME_AUTHORIZATION / NO_TRADE"
+
+inputs:
+  - DEPARTMENT-CONTRACT-GRAPH.yaml
+  - COGNITIVE-OS-CONTRACT-SCHEMAS.yaml
+  - ADAPTER-BOUNDARY.yaml
+  - METHOD-MEMORY-SKILL-MANIFEST-CONTRACT.yaml
+  - TRACE-LEDGER-PRIVACY-CONTRACT.yaml
+  - IMPLEMENTATION-CLAIM-CANDIDATE.yaml
+  - CONTROL_TOWER_CURRENT_CLAIMS
+  - ACTIVE_AGENT_ROUTES
+  - DOMAIN_AUTHORITY_INDEX
+
+outputs:
+  - OrganizationValidationReport/v1
+  - ArchitectureFinding/v1
+  - ModelCheckCase/v1
+  - CompatibilityDebt/v1
+
+severity:
+  P0: "authority/security/privacy/trading/nontermination or stale-authorization blocker"
+  P1: "material architecture correctness, machine-validation, routing or traceability defect"
+  P2: "bounded maintainability/operability defect"
+  P3: "advisory improvement"
+
+checks:
+  - id: OGV-001-UNIQUE-AUTHORITY
+    severity: P0
+    rule: "each authority_domain has exactly one canonical owner"
+    fail_if:
+      - duplicate canonical writer
+      - Harness claims W3/Method/W7/Control authority
+      - consumer silently upgrades projection into truth
+
+  - id: OGV-002-ORPHAN-DEPARTMENT
+    severity: P1
+    rule: "every non-root department/role template has at least one reachable producer/consumer relationship"
+
+  - id: OGV-003-DEAD-END
+    severity: P1
+    rule: "every material output has a declared consumer or archival/terminal disposition"
+
+  - id: OGV-004-DEPENDENCY-CYCLE
+    severity: P0
+    rule: "DEPENDS_ON/BLOCKS graph must be acyclic except explicit bounded rework loops"
+    rework_loop_requirements:
+      - ReworkRequest/v1
+      - retry_budget
+      - termination_condition
+      - escalation_target
+      - ABSTAIN_or_FAIL_CLOSED path
+
+  - id: OGV-005-RETURN-PATH
+    severity: P1
+    rule: "review/challenge/veto failure must name exact return/rework/escalation target or a declared resolvable alias"
+
+  - id: OGV-006-REVIEW-COVERAGE
+    severity: P1
+    rule: "material/high-risk path has challenge/review/final gate appropriate to risk"
+
+  - id: OGV-007-VETO-INTEGRITY
+    severity: P0
+    rule: "W7 veto cannot be overridden by Adjudicator, Signal Tower, Harness, Agent majority or prose"
+
+  - id: OGV-008-CONTROL-TOWER-INTEGRITY
+    severity: P0
+    rule: "no executable work can start from MissionGraph without valid current ExecutionAuthorization"
+
+  - id: OGV-009-STALE-ROUTE
+    severity: P0
+    rule: "closed/merged predecessor route cannot authorize new execution"
+
+  - id: OGV-010-SCHEMA-COMPATIBILITY
+    severity: P1
+    rule: "producer output contract version is accepted by consumer input contract"
+    require:
+      - declared schema version
+      - migration/adapter when breaking
+      - no implicit natural-language schema widening
+
+  - id: OGV-011-TRACE-COMPLETENESS
+    severity: P1
+    rule: "material DecisionEpisode has trace root and material Handoffs have raw trace refs"
+    fail_label: TRACE_INCOMPLETE
+
+  - id: OGV-012-FEEDBACK-CLOSURE
+    severity: P1
+    rule: "executed material DecisionEpisode has outcome/correction/audit feedback path or explicit not-yet-observable state"
+
+  - id: OGV-013-NO-ONE-SHOT-PROMOTION
+    severity: P0
+    rule: "OutcomeLearning/Reflection cannot directly create FORMAL_SKILL"
+
+  - id: OGV-014-INDEPENDENT-CHALLENGE
+    severity: P1
+    rule: "C2-C4 requires independent-pass provenance before reveal"
+
+  - id: OGV-015-JUDGE-NONAUTHORITY
+    severity: P0
+    rule: "Adjudicator/Judge output cannot mutate evidence truth or W7 veto"
+
+  - id: OGV-016-RESOURCE-CEILING
+    severity: P0
+    rule: "local heavy stage max=1 and same-agent active executable route max=1"
+    fail_if:
+      - nested process pool
+      - unowned background descendants
+      - global kill process cleanup
+
+  - id: OGV-017-PRIVACY-SCOPE
+    severity: P0
+    rule: "cross-user/project/privacy read/write requires explicit authority and admitted interface"
+
+  - id: OGV-018-HARNESS-BOUNDARY
+    severity: P0
+    rule: "domain code talks to our Adapter or Service Definition, never concrete Harness provider implementation"
+
+  - id: OGV-019-RAW-ONCE
+    severity: P2
+    rule: "large/native raw trace is stored once and subsequent layers reference it"
+
+  - id: OGV-020-ABSTAIN-PATH
+    severity: P1
+    rule: "every evidence/method/causal pipeline has legal ABSTAIN/UNKNOWN/fail-closed exit"
+
+  - id: OGV-021-A-SHARE-PIT
+    severity: P0
+    applies_to: ISSUE_308_AND_MARKET_DECISIONS
+    rule: "event/data evidence used for attribution must have been available by decision/anomaly time"
+
+  - id: OGV-022-A-SHARE-NO-TRADE
+    severity: P0
+    rule: "current architecture contains no live order/account/fund execution edge"
+
+  - id: OGV-023-CAUSAL-COMPETING-HYPOTHESES
+    severity: P1
+    rule: "material causal attribution keeps alternatives or explicit evidence-backed waiver"
+
+  - id: OGV-024-METHOD-PREREQUISITE
+    severity: P1
+    rule: "MethodSelection cannot authorize method with failed mandatory prerequisite"
+
+  - id: OGV-025-REGIME-STALE-SKILL
+    severity: P1
+    rule: "historical method success cannot bypass regime/freshness revalidation"
+
+  - id: OGV-026-REPRODUCIBILITY-FINGERPRINT
+    severity: P1
+    rule: "material execution binds source/context/method/model/tool/code/rule/schema versions"
+
+  - id: OGV-027-ROLE-AND-ALIAS-RESOLUTION
+    severity: P1
+    rule: "every edge/return target is a declared department, declared role template, root entity, or declared dynamic alias with deterministic resolution"
+    fail_if:
+      - undeclared PRIMARY/CHALLENGER-style actor
+      - free-text return target without alias contract
+      - alias resolves to empty/unauthorized target set
+
+  - id: OGV-028-CONTRACT-DSL-COMPILABILITY
+    severity: P1
+    rule: >-
+      COGNITIVE_CONTRACT_DSL/v0.2 structural constraints must compile into formal JSON Schema or equivalent;
+      named semantic invariants must each map to deterministic validator code + positive/negative tests.
+    fail_if:
+      - free-form invariant used as executable rule without named validator
+      - undefined field referenced by invariant
+      - state ordering inferred from enum text
+
+  - id: OGV-029-ROUTE-WORK-CLAIM-CONSISTENCY
+    severity: P0
+    rule: "latest ACTIVE agent route and current Work Claim binding must agree on task_id/epoch/issue/branch/write surface before execution"
+    fail_if:
+      - current route points to completed/merged predecessor
+      - Work Claim binds older route than active route
+      - route is null but implementation claim says executable
+
+  - id: OGV-030-LEARNING-TRIGGER-COVERAGE
+    severity: P1
+    rule: "OutcomeLearning accepts outcome, correction, or audit evidence and never requires a real-world outcome for verified correction-only learning"
+
+  - id: OGV-031-H1-H2-SLICE-SEPARATION
+    severity: P0
+    rule: "H1 contract skeleton and H2 Harness runtime PoC are separate Work Claims/routes; H1 acceptance never auto-authorizes H2"
+
+  - id: OGV-032-ROLE-TEMPLATE-NONAUTHORITY
+    severity: P0
+    rule: "PRIMARY_PRODUCER and CHALLENGER are execution roles only and cannot own canonical truth, risk veto, route authorization or durable skill promotion"
+
+architecture_finding_schema:
+  required:
+    - finding_id
+    - check_id
+    - severity
+    - status
+    - affected_nodes
+    - evidence_refs
+    - remediation_class
+  statuses: [OPEN, ACCEPTED_RISK, FIXED, DEFERRED_BOUNDED, REJECTED_FALSE_POSITIVE]
+  remediation_classes: [CONTRACT_FIX, AUTHORITY_FIX, ROUTING_FIX, ADAPTER_FIX, TEST_FIX, DOCUMENTATION_FIX, RUNTIME_GATE, HUMAN_DECISION]
+
+formal_model_plan:
+  engine_candidate: "TLA+/TLC OR equivalent exhaustive model-based state exploration"
+  reason: "unit tests sample paths; critical governance/rework lifecycles need state-space safety/liveness checks"
+  models:
+    - id: FM-01-MISSION-LIFECYCLE
+      variables: [mission_state, work_items, authorization, result_state]
+      safety:
+        - "no EXECUTING without current authorization"
+        - "cancelled mission cannot emit accepted execution result"
+      liveness:
+        - "authorized bounded mission eventually completes/fails/abstains/cancels"
+
+    - id: FM-02-WORK-CLAIM-AUTHORIZATION
+      variables: [route_epoch, work_claim, peer_claims, witness, execution]
+      safety:
+        - "stale witness never authorizes execution"
+        - "O3/O4 collision blocks execution"
+        - "route/work-claim binding mismatch blocks execution"
+
+    - id: FM-03-CHALLENGE-REWORK
+      variables: [primary, challenge, verification, adjudication, retry_count, fingerprint]
+      safety:
+        - "W7 veto remains terminal until material upstream change"
+        - "identical blind retry cannot loop forever"
+      liveness:
+        - "rework loop terminates by retry budget, resolution, abstain or escalation"
+
+    - id: FM-04-SKILL-LIFECYCLE
+      variables: [maturity, evidence_count, cross_context, failure_state]
+      safety:
+        - "single success never reaches FORMAL_SKILL"
+        - "DEGRADED/RETIRED cannot reactivate without revalidation"
+
+    - id: FM-05-TRACE-HANDOFF
+      variables: [trace_created, handoff_created, accepted, upstream_ref]
+      safety:
+        - "material handoff acceptance requires resolvable trace lineage"
+
+    - id: FM-06-RESOURCE-GOVERNANCE
+      variables: [active_agents, heavy_local_count, descendants]
+      safety:
+        - "heavy_local_count <= 1"
+        - "same agent executable count <= 1"
+      liveness:
+        - "task termination eventually leaves zero owned descendants"
+
+    - id: FM-07-ALIAS-RETURN-RESOLUTION
+      variables: [return_alias, reason_code, upstream_lineage, resolved_target]
+      safety:
+        - "every runtime return alias resolves to exactly one authorized target or fails closed"
+
+    - id: FM-08-H1-H2-RELEASE-SEPARATION
+      variables: [h1_state, h2_state, h1_authorization, h2_authorization]
+      safety:
+        - "H1 authorization never implies H2 authorization"
+        - "H2 cannot execute before independent fresh Work Claim/witness"
+
+report_verdicts:
+  - PASS
+  - PASS_WITH_BOUNDED_DEBT
+  - FAIL_ARCHITECTURE_BLOCKER
+
+H0_gate:
+  requirement: "no OPEN P0 and no unresolved authority/termination/privacy/stale-authorization O3/O4 defect"
+  P1_policy: "may pass only with explicit bounded debt owner, implementation test and downstream isolation"

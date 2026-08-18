@@ -1,0 +1,217 @@
+schema_version: "1.1"
+task_id: "CODEX-GLOBAL-SIGNAL-PLANE-S0C-ENTERPRISE-SYNTHETIC"
+route_epoch: 134
+issue: 343
+mode: "goal"
+mode_label: "【Codex模式：目标模式】S0C Enterprise Global Signal Plane Public-Safe Synthetic Skeleton"
+status: "RELEASED_AFTER_PHASE_B_CANONICAL_MERGE"
+owner: "USER"
+architecture_owner: "GPT"
+execution_agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+canonical_architecture_base: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+phase_a_canonical_base: "740b77ab20b24c76bd5621b08123dec657862d5a"
+implementation_branch: "codex/global-signal-plane-s0c-enterprise-r134"
+boundary: "PUBLIC_SAFE / OFFLINE / SYNTHETIC / APPEND_ONLY / IDEMPOTENT / REPLAYABLE / NO_HARNESS_RUNTIME / NO_PRIVATE / NO_PRODUCTION / NO_TRADE"
+
+release_evidence:
+  architecture_pr: 342
+  architecture_merge: "e3c2465832006a1eb4d97c83bb8bfa8d25a749b1"
+  phase_a_pr: 344
+  phase_a_merge: "740b77ab20b24c76bd5621b08123dec657862d5a"
+  bootstrap_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+  activation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+  activation_requires_phase_b_merge: true
+
+objective: >-
+  Implement the canonical pre-Mission Global Signal Plane contracts as a deterministic, durable-local, public-safe
+  synthetic skeleton. S0C proves event ingestion, idempotency, append-only history, deterministic reduction/replay,
+  reconciliation-receipt freshness and the 24 enterprise regression scenarios. It does not implement live cross-window
+  ingestion, Harness, H2/H7 runtime, S0D cross-repo shadow, W3/domain mutation, private bridges or production execution.
+
+success_signal: "GLOBAL_SIGNAL_PLANE_S0C_ENTERPRISE_SYNTHETIC_READY_FOR_GPT_REVIEW"
+
+canonical_inputs:
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-CONTRACTS.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-RECONCILIATION-RECEIPT-CONTRACT.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-REGRESSION-SPEC.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/UNIFIED-SIGNAL-TOWER-ARCHITECTURE-RECONCILIATION.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/SIGNAL-TOWER-MISSION-ROUTER-CONTRACT.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/IMPLEMENTATION-DEPENDENCY-DAG.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/TRACE-LEDGER-PRIVACY-CONTRACT.yaml"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+  - "coordination/CONTROL-TOWER/R133-CLOSURE-RECONCILIATION.yaml"
+  - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134.yaml"
+  - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R134-ACTIVATION.yaml"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "https://github.com/vxz2datoubo/second-brain-coordination/issues/343"
+
+allowed_write_paths:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+  - ".github/workflows/global-signal-plane-s0.yml"
+
+implementation_requirements:
+  package:
+    - "deterministic Python package or justified equivalent under the authorized S0 root"
+    - "no external daemon/database/service dependency"
+    - "standard-library durable local store preferred; SQLite is acceptable"
+  signal_event:
+    - "immutable admitted event model"
+    - "structural + semantic validation with stable error codes"
+    - "event_source + event_id distinct-event uniqueness"
+    - "idempotency_key + semantic content hash collision detection"
+    - "private/secret fields rejected or represented by opaque public-safe refs according to contract"
+  ledger:
+    - "append-only admitted event history"
+    - "at-least-once ingest API; duplicate delivery is expected"
+    - "effectively-once state processing via idempotency"
+    - "no fake exactly-once claim"
+    - "durable local persistence with transaction/crash semantics demonstrated synthetically"
+  relation_and_projection:
+    - "SignalLink relations with provenance preservation"
+    - "deterministic SignalCluster/SignalProjection reducer"
+    - "optimistic projection concurrency/version checks"
+    - "no timestamp-only last-write-wins"
+    - "out-of-order/causation/version handling"
+    - "projection checksum"
+  replay_and_recovery:
+    - "deterministic replay/rebuild produces same effective state/checksum"
+    - "crash after append before projection recovers without event loss or double application"
+    - "malformed material events reject/quarantine deterministically"
+    - "snapshot/compaction replay-equivalence fixture if implemented; no irreversible raw deletion"
+  reconciliation_receipt:
+    - "builder/verifier for synthetic GlobalReconciliationReceipt snapshots"
+    - "bind PR head/state/main/route/workclaim/programlane/domain/approval snapshots"
+    - "material-change invalidation"
+    - "release compare-and-check"
+    - "receipt PASS never grants execution without Control Tower"
+  fixtures:
+    - "synthetic GitHub/route/domain snapshots only; no live GitHub calls"
+    - "R133 real incident metadata may be represented as public-safe fixture refs/SHAs from canonical evidence"
+    - "all GST-R001 through GST-R024 are executable/table-driven"
+
+required_enterprise_regressions:
+  - GST-R001-CROSS-WINDOW-STATE-DRIFT-R133
+  - GST-R002-STALE-REVIEW-HEAD
+  - GST-R003-RECEIPT-INVALIDATED-BY-MERGE
+  - GST-R004-SAME-AGENT-CROSS-PROJECT-DOUBLE-BOOK
+  - GST-R005-DUPLICATE-DELIVERY-SAME-CONTENT
+  - GST-R006-IDEMPOTENCY-COLLISION-DIFFERENT-CONTENT
+  - GST-R007-OUT-OF-ORDER-STATUS-EVENT
+  - GST-R008-OMISSION-IS-NOT-REVOCATION
+  - GST-R009-EXPLICIT-REVOKE
+  - GST-R010-DUPLICATE-SIGNALS-PRESERVE-PROVENANCE
+  - GST-R011-SEMANTIC-FALSE-MERGE-BLOCK
+  - GST-R012-SIGNAL-CANNOT-AUTHORIZE
+  - GST-R013-W3-NOT-REPLACED
+  - GST-R014-DOMAIN-CANONICAL-BOUNDARY
+  - GST-R015-PRIVATE-BODY-NOT-IN-PUBLIC-CONTROL-PLANE
+  - GST-R016-PROJECTION-REPLAY-EQUIVALENCE
+  - GST-R017-STALE-PROJECTION-OPTIMISTIC-CONCURRENCY
+  - GST-R018-CRASH-AFTER-APPEND-BEFORE-PROJECTION
+  - GST-R019-MALFORMED-MATERIAL-EVENT
+  - GST-R020-SOURCE-CLOCK-SKEW
+  - GST-R021-USER-CANCEL-INVALIDATES-PASS
+  - GST-R022-COMPACTION-REPLAY-EQUIVALENCE
+  - GST-R023-SIGNAL-FLOOD-BACKPRESSURE
+  - GST-R024-CROSS-DOMAIN-NEGATIVE-TRANSFER
+
+required_tests:
+  - "positive/negative structural validation for all public S0 contract objects"
+  - "stable error-code assertions"
+  - "idempotent repeated ingest and conflicting-idempotency-key tests"
+  - "append/replay/rebuild equivalence"
+  - "out-of-order and source clock-skew tests"
+  - "optimistic concurrency stale-write tests"
+  - "receipt invalidation on PR head/merge/main/route/claim/lane/user revoke changes"
+  - "authority boundary tests: Signal != Control Tower/W3/Trace/domain authority"
+  - "privacy/public-safety tests"
+  - "bounded duplicate storm/signal flood tests without unbounded local processes"
+  - "deterministic repeated-run proof"
+  - "YAML/JSON/SQLite/schema validation as applicable"
+  - "git diff --check"
+  - "Python 3.11 + 3.13 exact-head CI if Python is used"
+
+resource_policy:
+  resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  local_heavy_stage_max: 1
+  same_agent_active_execution_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "REQUIRED / SINGLE_WORKER_DEFAULT"
+  task_owned_child_tracking: "REQUIRED"
+  task_owned_child_cleanup: "REQUIRED"
+  global_kill_python: "FORBIDDEN"
+  large_matrix: "REMOTE_CI_PREFERRED"
+  daemon_or_server: "FORBIDDEN"
+
+hard_forbidden:
+  - "install/import/bind/activate DeepSeek Harness runtime"
+  - "create/activate H2"
+  - "claim H7 Mission runtime capability"
+  - "activate S0D cross-repo shadow"
+  - "Harness workflow/subagent/jobs integration"
+  - "Codex App Server provider integration"
+  - "private ChatGPT cross-window bridge"
+  - "webhook/listener/daemon/server/scheduler"
+  - "live GitHub API/connector calls from S0 implementation/tests"
+  - "real/private W3 read or write"
+  - "W3 runtime/schema mutation"
+  - "#312 Method Router runtime mutation"
+  - "#308/A-share runtime or live market data"
+  - "AI Film or A-share canonical writes"
+  - "production/private bridge"
+  - "credentials/secrets persistence"
+  - "permission/repository visibility change"
+  - "Formal PROJECT/GLOBAL Skill promotion"
+  - "trading/account/order/fund action"
+  - "self-merge or merge without GPT/user gate"
+  - "write outside allowed_write_paths"
+
+cross_project_startup_check:
+  required:
+    - "confirm current git repository identity is vxz2datoubo/second-brain-coordination"
+    - "confirm canonical ACTIVE-CODEX-TASK route_epoch=134, task_id matches and status=READY/execution_allowed=true"
+    - "confirm the current main contains the Phase B activation receipt"
+    - "confirm user is not concurrently running an AI Film Codex implementation in another local workspace"
+  fail_code: "WRONG_REPOSITORY_OR_ROUTE_OR_LEASE_CONFLICT"
+  rule: "do not switch projects or infer intent when identity/lease is ambiguous"
+
+acceptance_evidence:
+  - "exact base/main SHA"
+  - "implementation branch and Draft PR"
+  - "tested exact remote head SHA"
+  - "changed-file and authority/path scope audit"
+  - "commands and per-suite test counts"
+  - "24/24 enterprise scenario execution receipt"
+  - "replay checksum receipt"
+  - "idempotency/collision receipt"
+  - "crash-recovery receipt"
+  - "receipt invalidation receipt"
+  - "CI run ids and exact-head status"
+  - "workspace clean status"
+  - "placeholder/shadow implementation audit"
+  - "resource/process audit"
+  - "decisions and alternatives considered"
+  - "unresolved findings"
+  - "rollback procedure"
+  - "explicit: Harness runtime was NOT installed/bound/activated"
+  - "explicit: No W3/domain/private/production/trading authority changed"
+
+stop_conditions:
+  - "Any required work needs a write outside allowed_write_paths -> STOP / NEEDS_GPT"
+  - "Any required work needs live/private cross-window integration -> STOP / defer to later gate"
+  - "Any implementation needs Harness/H2/H7/S0D runtime -> STOP / separate future gate"
+  - "Any private/live/production/trading permission is required -> STOP / NEEDS_GPT"
+  - "Any authority topology must be redefined -> STOP / architecture conflict"
+  - "Any same-agent/cross-project/resource collision appears -> STOP / Control Tower recheck"
+
+merge_policy:
+  codex_merge_authorized: false
+  passing_ci_authorizes_merge: false
+  passing_s0c_authorizes_s0d: false
+  passing_s0c_authorizes_h2: false
+  passing_s0c_authorizes_h7: false
+  final_merge_requires: "GPT exact-head audit plus explicit release gate"

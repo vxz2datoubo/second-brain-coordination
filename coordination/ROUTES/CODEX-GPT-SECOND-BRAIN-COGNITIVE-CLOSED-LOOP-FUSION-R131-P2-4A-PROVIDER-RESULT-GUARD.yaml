@@ -1,0 +1,52 @@
+schema_version: "131.0"
+route_epoch: 131
+target_agent: CODEX
+mode: goal
+mode_label: "【Codex模式：目标模式】P2.4A Provider Result统一安全门收口"
+active_issue: 325
+implementation_branch: "codex/gpt-second-brain-p2-4a-semantic-provider-r129"
+implementation_pr: 329
+canonical_main_at_prepare: "cc9537a1a5b5d610e74d3321fd2fdd14f5210edf"
+reviewed_head: "246a6394495d0714aeef957e714dac7aedbb97b8"
+gpt_review_id: 4943189129
+status: READY_REMEDIATION
+execution_allowed: true
+second_user_start_command_required: true
+merge_authorized: false
+runtime_code_scope: "P2_4A_PROVIDER_RESULT_CANONICAL_GUARD_ONLY"
+accepted:
+  - "R130 request_id correlation and mismatch fail-closed"
+  - "R130 deterministic scope/privacy fingerprint"
+  - "R130 canonical pre-provider request secret/injection no-call guard"
+  - "R129 no-score semantic discovery and channel-only duplicate attribution"
+blocking_finding:
+  id: "R130-B03-PROVIDER-RESULT-CANONICAL-GUARD-DRIFT"
+  requirement: "Provider discovery terms must use the same canonical Phase-3 credential and prompt-injection deny semantics as request egress."
+mandatory_repairs:
+  - "Replace/demote the narrow provider-result regex with canonical _SECRET and _is_prompt_injection semantics or one factored shared helper."
+  - "Reject result terms matching private-key credential patterns, English injection markers outside old regex, and Chinese injection markers before search/candidate discovery."
+  - "Add symmetric result-side fail-closed parity tests for those classes."
+  - "Preserve request correlation/fingerprint/no-call, default-off parity, no-score ranking, lifecycle/capture, and legacy iterable behavior."
+locks:
+  structural_analogy_runtime: FORBIDDEN
+  external_semantic_service: FORBIDDEN
+  semantic_numeric_score_or_bonus: FORBIDDEN
+  second_store_vector_db_resolver: FORBIDDEN
+  private_source_store_read_ingestion: FORBIDDEN
+  formal_project_global_promotion: LOCKED
+  scheduler: FORBIDDEN
+  production_mcp_gateway: FORBIDDEN
+  permission_acl_visibility_changes: FORBIDDEN
+  trading_accounts: FORBIDDEN
+  merge: FORBIDDEN_TO_CODEX
+watchpoints:
+  R122_UNKNOWN_BINDING_GAP: DEFER
+  R120_W01_CONTEXT_ONLY_ENDPOINT: DEFER
+validation_required:
+  - "provider result canonical guard tests PASS"
+  - "R129/R130 focused regressions PASS"
+  - "full Phase-3 regression PASS"
+  - "exact-head Python 3.11/3.13 CI SUCCESS against latest main"
+  - "public safety/YAML/JSON/git diff --check/clean tree PASS"
+completion_signal: "CODEX_GPT_SECOND_BRAIN_COGNITIVE_LOOP_P2_4A_R131_PROVIDER_RESULT_GUARD_READY_FOR_GPT_REVIEW"
+next_command: "读取任务"

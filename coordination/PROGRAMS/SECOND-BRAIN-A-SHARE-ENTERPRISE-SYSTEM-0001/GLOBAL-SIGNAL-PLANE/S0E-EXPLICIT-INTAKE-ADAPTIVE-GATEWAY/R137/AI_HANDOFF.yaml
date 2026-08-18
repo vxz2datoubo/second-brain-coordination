@@ -1,0 +1,30 @@
+schema_version: "1.0"
+agent_id: "CODEX"
+source_agent: "CODEX"
+target_agent: "GPT"
+reviewer: "GPT"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R137-AUTHORITY-BOUND-LIVE-OBSERVATION-PROVIDER"
+route_epoch: 137
+handoff_status: "AWAITING_R3_EXACT_HEAD_CI"
+reviewed_implementation_head: "56c44bc041b7770d8cc2bef5c8b61dd5e23a85e5"
+evidence:
+  r3_local_r137: "49/49 PASS; R001-R044 plus retained R2 and B05/B06/B07 regressions"
+  r3_exact_head_ci: "PENDING after ordinary push; no CI result is claimed in this commit"
+review_boundary:
+  expected_mechanism_tests: "R3 local mechanism evidence is 49/49 PASS; exact-head remote R137/S0E/Phase 3 results remain pending"
+  runtime_public_observation: "A fresh public observation must be produced only by the post-push exact-head R137 CI; it remains evidence-only"
+  formal_release: "NOT_GRANTED; provider is evidence only"
+  merge: "FORBIDDEN_TO_CODEX"
+required_gpt_checks:
+  - "inspect exact source/bundle/proof bindings and static verifier route"
+  - "verify no caller provider registration or generic network/write path"
+  - "review exact-head Python 3.11/3.13 and public observation job"
+  - "verify B05 dynamic exact-main route binding, B06 open-PR merge SHA semantics and B07 explicit tree completeness"
+  - "confirm bootstrap remains historical and cannot replay"
+locks_retained:
+  formal_release: "LOCKED"
+  private_and_credentials: "LOCKED"
+  domain_write: "LOCKED"
+  harness_h2_h7: "LOCKED"
+  live_production: "LOCKED"
+  permissions_secrets_trading: "LOCKED"

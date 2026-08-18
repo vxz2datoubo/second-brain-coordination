@@ -1,0 +1,85 @@
+schema_version: "1.0"
+receipt_id: "R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION"
+repository: "vxz2datoubo/second-brain-coordination"
+owner: "USER"
+architecture_owner: "GPT"
+observed_main: "408e283697290c03d9b4121543934337d938c99a"
+observed_at: "2026-08-18T00:49:00+08:00"
+issue: 393
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+route_epoch: 142
+mode: "project_plan"
+
+preflight:
+  strategy:
+    - GLOBAL_SHALLOW
+    - DELTA
+    - TARGETED_DEEP
+    - RELEASE_DECISION
+  current_codex:
+    source: "coordination/ACTIVE-CODEX-TASK.yaml"
+    observed_task: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+    observed_epoch: 141
+    status: "DONE"
+    execution_allowed: false
+    active_write_permission: false
+  current_qclaw:
+    source: "coordination/ACTIVE-QCLAW-TASK.yaml"
+    observed_task: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
+    observed_epoch: 60
+    status: "GPT_REVIEW_CHANGES_REQUIRED_PAUSED"
+    execution_allowed: false
+    reviewed_head: "ec5b7dc1fcdfdd5f379ae3c2f2f0410e5ec7013b"
+    pr: 304
+  current_workbuddy:
+    source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    observed_epoch: 15
+    status: "PAUSED_COMPUTE_UNAVAILABLE"
+    execution_allowed: false
+  lane_a:
+    current_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    active_execution_route: null
+    current_mode: "SIGNAL_TOWER_ON_DEMAND_OPERATIONAL"
+  lane_b:
+    state: "HELD_PROPOSAL_ONLY"
+  lane_c:
+    state: "DONE / CLOSED_WITH_BOUNDED_GAPS"
+  open_pr_scan:
+    material_collision_found: false
+    note: >-
+      Existing old Draft/FROZEN PRs and QCLAW PR #304 do not grant an active Codex Lane-A lease. Current execution truth is the
+      per-agent ACTIVE route plus Lane Work Claim; neither shows a conflicting Codex implementation.
+  duplicate_task_scan:
+    queries:
+      - "retrospective chat signal intake durable ingress history import"
+      - "CHAT_WINDOW_RETROSPECTIVE_TO_S0C_DURABLE_INGRESS_GAP"
+      - "R142 retrospective signal intake bridge"
+    existing_equivalent_task_found: false
+
+reused_authorities:
+  - "R134 S0C DurableSignalLedger / SignalEvent / SignalLink"
+  - "R136 SignalIntakeGateway and explicit intake semantics"
+  - "R137 authority-bound live observation boundary"
+  - "R138 capability evidence boundary"
+  - "R139 domain-learning handoff boundary"
+  - "R140 domain-learning recall boundary"
+  - "R141 on-demand Signal Tower operating policy"
+
+release_decision:
+  decision: "CAN_RELEASE_R142_AFTER_THIS_ACTIVATION_PR_IS_MERGED"
+  rationale: >-
+    The user explicitly authorized starting this work. The task closes a demonstrated last-mile gap rather than duplicating an
+    active mission. No current Codex claim or mutable Lane-A writer conflicts. The implementation is bounded to extending S0E and
+    its tests/evidence; S0C source remains read-only unless a later explicit scope-expansion gate is approved.
+  user_start_required_after_merge: true
+  codex_merge_authority: false
+
+activation_guards:
+  - "This receipt on a non-main branch does not authorize execution."
+  - "Canonical main must contain this receipt, route, task brief, ACTIVE-CODEX state and Lane-A claim before Codex starts."
+  - "Codex must fresh-reconcile main at launch and STOP on drift/collision."
+  - "No private/raw conversation body may enter the public repository."
+  - "Signal admission must not create a Task/Work Claim automatically."
+  - "No second Signal truth, daemon, service, W3/domain write, secret/permission expansion, production or trading authority."
+
+result: "R142_ACTIVATION_PREPARED / WAITING_FOR_GPT_PR_MERGE_AUTHORIZATION"

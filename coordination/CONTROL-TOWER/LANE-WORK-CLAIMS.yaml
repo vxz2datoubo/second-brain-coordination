@@ -1,0 +1,156 @@
+schema_version: "3.9"
+claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
+issue: 310
+owner: "USER"
+architecture_owner: "GPT"
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+semantics:
+  purpose: >-
+    Declare the actual current work surface for every Program Lane. Any implementation reservation/execution must declare
+    exact write paths, interfaces, authority claims, resource class and route binding.
+  no_claim_no_durable_runtime_write: true
+  proposal_only_does_not_authorize_runtime_change: true
+  route_binding_required_for_executable_implementation: true
+  latest_per_agent_active_route_is_execution_truth: true
+  closed_lane_releases_all_current_work_surfaces: true
+  implementation_release_requires_fresh_claim_rescan: true
+  stage_a_synthetic_success_does_not_authorize_stage_b: true
+  signal_tower_normal_use_does_not_require_active_implementation_claim: true
+
+proposal_roots:
+  LANE-A-HARNESS-INTEGRATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION"
+  LANE-B-A-SHARE-REMEDIATION: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+
+claims:
+  - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
+    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+    execution_agent: null
+    resource_class: "NO_ACTIVE_IMPLEMENTATION"
+    route_binding: null
+    write_paths: []
+    read_paths: []
+    interfaces: []
+    read_domains: []
+    write_domains: []
+    authority_claims: []
+    closure_receipt:
+      foundation_verdict: "CLOSED_WITH_BOUNDED_GAPS"
+      closure_issue: 335
+      merged_pr: 334
+      merge_commit: "823d5b22c7b449626bc03cdf1f574c592e50b9fc"
+      completed_route_epoch: 132
+      reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
+
+  - lane_id: "LANE-A-HARNESS-INTEGRATION"
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "MEDIUM_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+      route_epoch: 142
+      issue: 393
+      pr: null
+      branch: "codex/r142-retrospective-signal-intake-bridge"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+      - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+    read_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+    interfaces:
+      - name: "S0C-DurableSignalLedger"
+        mode: "read/reuse"
+        frozen: true
+      - name: "R136-SignalIntakeGateway"
+        mode: "extend"
+        frozen: false
+      - name: "Control-Tower-Authorization-Boundary"
+        mode: "read/evidence-only"
+        frozen: true
+      - name: "W3-Domain-Authority"
+        mode: "read/reference-only"
+        frozen: true
+    read_domains: [W1, W3]
+    write_domains: []
+    authority_claims:
+      - "S0E_RETROSPECTIVE_IMPORT_EXTENSION_ONLY"
+    implementation_scope:
+      slice: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE"
+      issue: 393
+      phase: "ACTIVATED_AFTER_CANONICAL_MERGE / DIRECT_USER_START_REQUIRED"
+      resource_class: "MEDIUM_IMPLEMENTATION"
+      activation_reconciliation: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+      execution_allowed: true
+      second_user_start_command_required: true
+      s0c_source_write_allowed: false
+      private_raw_data_allowed: false
+      daemon_service_allowed: false
+      domain_write_allowed: false
+      W3_authority_write_allowed: false
+      automatic_task_creation_allowed: false
+      production_allowed: false
+      trading_allowed: false
+      codex_merge_allowed: false
+    predecessor_closure_receipt:
+      task_id: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
+      route_epoch: 141
+      issue: 389
+      merged_pr: 391
+      accepted_head: "3919090d2c1086e6aefda0e7d9b8a23ccd351ae7"
+      merge_commit: "7b5eea23ca3b574eb45fb59dcf9959151e156581"
+      gpt_final_review: 4952430756
+      receipt_ref: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+      verdict: "R141_ACCEPTED_STAGE_A_AND_CLOSED"
+    retained_findings:
+      R138-F01: "RETAINED_BEFORE_ANY_PRODUCTION_PROMOTION"
+      R139-STAGE-B: "NOT_AUTHORIZED / SEPARATE_AI_FILM_DOMAIN_OWNED_GATE"
+      R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
+      IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED"
+      IAGL-STAGE-B: "NOT_AUTHORIZED"
+    stop_conditions:
+      - "Activation files are not canonical on main"
+      - "Direct user R142 start instruction has not been received"
+      - "Second Codex route or local heavy collision appears"
+      - "S0C source mutation is required without scope expansion"
+      - "Private/raw bridge, second Signal truth, W3/domain write, production, secret/permission or trading requirement appears"
+
+  - lane_id: "LANE-B-A-SHARE-REMEDIATION"
+    claim_state: "HELD_PROPOSAL_ONLY"
+    execution_agent: null
+    resource_class: "LIGHT_RESEARCH_DESIGN"
+    route_binding: null
+    safe_start_after_foundation:
+      mode: "PROPOSAL_ONLY"
+      allowed_write_paths:
+        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+      runtime_write_allowed: false
+      implementation_route_allowed: false
+    write_paths:
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+    read_paths:
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
+      - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
+      - "coordination/SKILLS"
+    interfaces: []
+    read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
+    write_domains: []
+    authority_claims: []
+
+release_semantics:
+  lane_a_activation: >-
+    R142 becomes the sole canonical Codex Lane-A implementation claim only after this activation PR is merged. Actual executor
+    work still requires the route's direct-user-start gate and a fresh atomic route/claim/main reconciliation at launch.
+  implementation_release_is_separate: true
+  active_route_requires_atomic_claim_at_executor: true
+  signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
+  signal_tower_normal_operation_outside_r142: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  iagl_stage_b: "NOT_AUTHORIZED"

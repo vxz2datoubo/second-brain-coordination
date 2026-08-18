@@ -1,0 +1,55 @@
+name: Program Control Tower foundation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/program-control-tower.yml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/ACTIVE-CODEX-TASK.yaml"
+      - "coordination/ACTIVE-QCLAW-TASK.yaml"
+      - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+      - "coordination/PROGRAM-CONTROL-TOWER.md"
+      - "coordination/CONTROL-TOWER/**"
+      - "coordination/PROPOSALS/PROGRAM-LANES/**"
+      - "coordination/GOVERNANCE/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-PROTOCOL-v1.0.yaml"
+      - "coordination/SKILLS/AI-SYSTEM-PARALLEL-PROGRAM-CONTROL-TOWER-SKILL-v1.0.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  control-tower:
+    name: Python ${{ matrix.python-version }} control-tower
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Run targeted regressions
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_all_tests.py
+      - name: Reconcile current canonical control-plane state
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_control_tower.py check --repo-root ../..
+      - name: Validate Program Lane work claims
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_lane_claims.py --repo-root ../..
+      - name: Verify work-claim bulletin projection
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_claim_projection.py check --repo-root ../..
+      - name: Verify durable authorization witness round trip
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP > /tmp/control-tower-witness.json
+          python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file /tmp/control-tower-witness.json
+      - name: Emit Codex route witness
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_control_tower.py witness --repo-root ../.. --agent CODEX

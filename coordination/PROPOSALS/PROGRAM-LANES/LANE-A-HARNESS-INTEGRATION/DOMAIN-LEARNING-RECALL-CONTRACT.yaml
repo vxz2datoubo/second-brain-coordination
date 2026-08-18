@@ -1,0 +1,105 @@
+schema_version: "1.0"
+contract_id: "DOMAIN-LEARNING-RECALL-V1"
+mission: "verified domain learning objects -> structured directing recall -> applicability/revalidation gate -> evidence-bound receipt"
+authority:
+  second_brain_owns: [request_provenance, retrieval_orchestration, ranking_mechanics, exact_read_evidence, abstention, receipt_identity]
+  domain_owns: [canonical_object_body, maturity, applicability, failure_conditions, counterexamples, conflict_deprecation, model_version_compatibility, write_routes]
+  control_tower_owns: [task_release, work_claim, lease, execution_authorization, merge]
+
+request_required:
+  - schema_version
+  - request_id
+  - source_trace_ref
+  - domain_id
+  - domain_repository
+  - domain_source_revision
+  - problem_signatures
+  - scene_or_work_item
+  - model_or_tool
+  - model_version
+  - constraints
+  - requested_evidence_classes
+  - privacy_class
+  - observed_at
+
+bundle_required:
+  - schema_version
+  - bundle_id
+  - request_id
+  - request_digest
+  - domain_source_revision
+  - matched_object_refs
+  - match_dimensions
+  - applicability_state
+  - failure_condition_hits
+  - counterexample_hits
+  - maturity_observations
+  - revalidation_state
+  - exact_read_proofs
+  - abstentions
+  - unknowns
+  - bundle_digest
+
+receipt_required:
+  - schema_version
+  - receipt_id
+  - request_digest
+  - bundle_digest
+  - provider_code_identity
+  - exact_domain_revision
+  - decision
+  - process_compliance
+  - limitations
+
+allowed_decisions: [RECALLED, ABSTAINED, NEEDS_REVALIDATION, CONFLICTED, UNSUPPORTED]
+ranking_axes:
+  - problem_or_symptom_signature
+  - scene_or_work_item_class
+  - model_tool_version_compatibility
+  - explicit_constraints
+  - domain_maturity_state
+  - applicability_and_non_applicability
+  - failure_conditions_and_counterexamples
+  - revalidation_conflict_deprecation_state
+  - provenance_and_evidence_availability
+
+false_green_guards:
+  - "semantic similarity alone cannot establish applicability"
+  - "missing domain authority metadata remains UNKNOWN, not inferred truth"
+  - "conflicted/deprecated or failure-condition hit cannot receive normal positive recall"
+  - "model/version mismatch must downgrade, abstain, or require revalidation"
+  - "one successful case cannot become universal or Formal Skill"
+  - "Second Brain may store refs/digests/public-safe summaries but not duplicate final domain lesson truth"
+  - "process compliance is not outcome quality"
+
+real_replays:
+  fashion:
+    object: "AI_FILM_EXCELLENT_CASE_FASHION_RUNWAY"
+    expected: "bounded positive recall; no universal promotion"
+  cd25:
+    object: "CD25-KAIM-WINDOW-AB-20260815"
+    expected: "candidate + confounded_inconclusive preserved; no SOAC superiority claim"
+  negative:
+    expected: "incompatible model/version or failure condition -> ABSTAINED or NEEDS_REVALIDATION"
+
+external_domain:
+  repository: "vxz2datoubo/eustia-ai-film"
+  architecture_reference_commit: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  mode: "READ_ONLY"
+  write_authorized: false
+
+hard_locks:
+  ai_film_domain_write: false
+  domain_maturity_authority: false
+  formal_skill_promotion: false
+  duplicate_domain_lesson_truth: false
+  generic_cross_repo_writer: false
+  private_raw_or_secret: false
+  production: false
+  permission_change: false
+  harness_h2_h7: false
+  destructive_history_rewrite: false
+  trading_accounts_orders_funds: false
+  codex_merge: false
+
+completion_signal: "R140_DOMAIN_LEARNING_RECALL_LOOP_READY_FOR_GPT_REVIEW"

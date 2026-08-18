@@ -1,0 +1,91 @@
+schema_version: "1.0"
+route_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142"
+repository: "vxz2datoubo/second-brain-coordination"
+target_agent: "CODEX"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+route_epoch: 142
+issue: 393
+parent_system: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+mode: "project_plan"
+status: "READY_AFTER_ACTIVATION_MERGE"
+execution_allowed: true
+implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
+canonical_activation_base: "408e283697290c03d9b4121543934337d938c99a"
+canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
+activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+
+write_allowlist:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+  - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+
+scope_expansion_rule: >-
+  Existing S0C ledger/model source is read-only by default. If implementation proves that an S0C source mutation is genuinely
+  required rather than an S0E extension, STOP and request a GPT scope-expansion reconciliation before editing S0C. Do not create
+  a shadow ledger or parallel authority to avoid this gate.
+
+read_scope:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml"
+  - "coordination/CONTROL-TOWER"
+  - "coordination/ACTIVE-CODEX-TASK.yaml"
+  - "coordination/ACTIVE-QCLAW-TASK.yaml"
+  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/TASK-BRIEFS"
+  - "coordination/ROUTES"
+  - "GitHub issue/PR metadata needed for current-state reconciliation"
+
+claim_protocol:
+  local_atomic_claim_required: true
+  claim_identity_fields: [task_id, route_epoch, issue, implementation_branch, activation_main]
+  duplicate_claim: "STOP"
+  stale_route_or_main: "STOP"
+  same_codex_route_collision: "STOP"
+  local_heavy_collision: "STOP"
+  activation_must_be_on_canonical_main: true
+  second_user_start_command_required: true
+
+resource_contract:
+  class: "MEDIUM_IMPLEMENTATION"
+  same_codex_active_route_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
+  daemon_server_scheduler_polling: "FORBIDDEN"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_process_temp_cache_cleanup: "REQUIRED_WHERE_SAFE"
+  global_kill_python_or_docker: "FORBIDDEN"
+
+execution_guards:
+  must_equal_repository: "vxz2datoubo/second-brain-coordination"
+  must_equal_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+  must_equal_epoch: 142
+  must_equal_issue: 393
+  must_equal_branch: "codex/r142-retrospective-signal-intake-bridge"
+  activation_must_be_canonical: true
+  fresh_main_reconcile_required_at_launch: true
+  no_guess_or_auto_switch: true
+  fail_on_write_outside_allowlist: true
+  fail_on_private_raw_data: true
+  fail_on_second_signal_truth: true
+  fail_on_automatic_task_creation: true
+  fail_on_secret_permission_production_domain_w3_trading_history_requirement: true
+
+hard_locks:
+  - "NO_PRIVATE_RAW_CONVERSATION_BODY_IN_PUBLIC_REPO"
+  - "NO_CHATGPT_PRIVATE_CROSS_WINDOW_BRIDGE"
+  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING"
+  - "NO_API_KEY_BILLING_SECRET_PERMISSION_EXPANSION"
+  - "NO_W3_OR_DOMAIN_CANONICAL_WRITE"
+  - "NO_FORMAL_SKILL_PROMOTION"
+  - "NO_AUTOMATIC_CODEX_QCLAW_WORKBUDDY_TASK_CREATION"
+  - "NO_SECOND_SIGNAL_TRUTH"
+  - "NO_PRODUCTION"
+  - "NO_AUTONOMOUS_MERGE"
+  - "NO_TRADING_FUNDS_ACCOUNTS_ORDERS"
+  - "NO_DESTRUCTIVE_HISTORY_REWRITE"
+
+completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"

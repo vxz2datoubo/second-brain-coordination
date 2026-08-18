@@ -1,0 +1,160 @@
+schema_version: "1.0"
+task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R139-DOMAIN-LEARNING-HANDOFF-DRY-RUN"
+route_epoch: 139
+issue: 375
+parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】R139 Domain Learning Handoff Dry-Run"
+status: "PREPARED_FOR_NON_EXECUTABLE_RESERVATION"
+owner: "USER"
+architecture_owner: "GPT"
+execution_agent: "CODEX"
+repository: "vxz2datoubo/second-brain-coordination"
+implementation_branch: "codex/r139-domain-learning-handoff-dry-run"
+boundary: "GLOBAL_SIGNAL_TO_DOMAIN_LEARNING_HANDOFF / READ_ONLY_AI_FILM_SMOKE / NO_DOMAIN_WRITE / NO_PRODUCTION / NO_TRADE"
+
+why_project_plan_mode: >-
+  The objective is fixed but implementation spans new packet/receipt contracts, gateway integration, idempotency/correction,
+  persistence/materiality routing, read-only exact-domain smoke, adversarial tests and evidence receipts. Sequencing must stay
+  updateable against current R136-R138 interfaces and exact AI Film source state.
+
+predecessor:
+  r138_closure_main: "76c12d65d390858658b3447567ca25e6d71566b0"
+  r138_issue: 366
+  r138_implementation_pr: 373
+  r138_closure_pr: 374
+  r138_retained_finding: "R138-F01"
+
+architecture:
+  issue: 375
+  architecture_pr: 376
+  architecture_merge: "f63582091b3bcc0ba74018e196342255957e3a51"
+  architecture_ref: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-ARCHITECTURE-v1.0.md"
+  contract_ref: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-CONTRACT.yaml"
+  threat_model_ref: "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/DOMAIN-LEARNING-HANDOFF-THREAT-MODEL-v1.0.md"
+
+objective: >-
+  Implement the Second Brain side of Domain Learning Handoff V1: construct canonical DomainLearningHandoffPacket objects,
+  classify routine-vs-durable learning materiality without deciding domain maturity, preserve provenance/privacy/idempotency,
+  bind exact target-domain authority snapshots, and demonstrate non-destructive AI Film handoff dry-runs for an excellent
+  case and a real C-DANCE 2.5 feedback case. Define/verify DomainLearningReceipt schema but do not mint a false domain
+  receipt or write AI Film canonical state.
+
+future_allowed_write_paths_after_activation:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/domain_learning_handoff.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/gateway.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/__init__.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r139_domain_learning_handoff.py"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R139"
+  - ".github/workflows/global-signal-plane-r139-domain-learning-handoff.yml"
+current_write_permission: "FORBIDDEN / RESERVATION_ONLY"
+
+implementation_plan_contract:
+  required_artifact: "S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R139/EXECUTION-PLAN.yaml"
+  must_be_created_before_material_runtime_edits: true
+  minimum_sections:
+    - current_repository_facts
+    - frozen_architecture_mapping
+    - packet_and_receipt_schema_plan
+    - persistence_materiality_plan
+    - idempotency_correction_plan
+    - privacy_provenance_plan
+    - exact_ai_film_read_only_smoke_plan
+    - adversarial_test_matrix
+    - resource_cleanup_plan
+    - rollback_plan
+    - unresolved_questions
+
+implementation_requirements:
+  packet:
+    - "canonical SHA-256 over all trusted fields except self digest"
+    - "feedback kind describes source evidence, never domain maturity"
+    - "private raw body/media/secret values rejected from public-safe payload"
+    - "exact source refs/model/version/work item/revision/evidence refs preserved"
+  routing:
+    - "routine learning defaults TRACE_ONLY/DOMAIN_WORKFLOW"
+    - "durable system-learning effect may become DURABLE_SIGNAL"
+    - "formal task still requires reconciliation + Control Tower"
+  domain_authority:
+    - "AI Film classification/maturity/write routes remain domain-owned"
+    - "Second Brain must not duplicate final AI Film lesson text"
+    - "R138 provider cannot be repurposed as domain writer"
+    - "Stage A dry-run cannot claim writeback"
+  receipt:
+    - "DomainLearningReceipt schema verifier may be implemented"
+    - "a real receipt is valid only when attributable domain processor evidence exists"
+    - "process_compliance remains separate from outcome_quality"
+  idempotency:
+    - "exact replay suppressed"
+    - "correction/refine/supersede/revoke/contradict links append-only"
+    - "stale domain revision reroutes/fails closed"
+  smoke:
+    - "AI Film repository exact public read-only checkout"
+    - "PROJECT_INDEX first and targeted authority reads only"
+    - "excellent fashion runway case handoff"
+    - "CD25-KAIM-WINDOW-AB-20260815 handoff preserving confounded/inconclusive status"
+    - "zero AI Film mutation"
+
+required_acceptance_scenarios:
+  - R139-R001-EXCELLENT-CASE-PACKET
+  - R139-R002-POSITIVE-NEGATIVE-VERDICT-DISTINCT
+  - R139-R003-REAL-GENERATION-VERSION-PROVENANCE
+  - R139-R004-ROUTINE-FEEDBACK-TRACE-ONLY
+  - R139-R005-MATERIAL-LEARNING-EFFECT-DURABLE
+  - R139-R006-EXACT-DUPLICATE-SUPPRESSED
+  - R139-R007-CORRECTION-APPEND-ONLY
+  - R139-R008-STALE-DOMAIN-HEAD-FAIL-CLOSED
+  - R139-R009-UNSUPPORTED-DOMAIN-PROCESSOR-UNKNOWN
+  - R139-R010-DRY-RUN-NOT-WRITEBACK
+  - R139-R011-NO-SECOND-AI-FILM-TRUTH
+  - R139-R012-MATURITY-DOMAIN-OWNED
+  - R139-R013-ONE-SUCCESS-NO-PROMOTION
+  - R139-R014-CONFOUNDED-AB-INCONCLUSIVE
+  - R139-R015-PACKET-FULL-CANONICAL-DIGEST
+  - R139-R016-RECEIPT-FULL-CANONICAL-DIGEST
+  - R139-R017-PRIVATE-BODY-PUBLIC-REJECT
+  - R139-R018-SECRET-REJECT
+  - R139-R019-EXACT-DOMAIN-REVISION-BINDING
+  - R139-R020-PROCESS-VS-OUTCOME-SEPARATE
+  - R139-R021-UNRELATED-SCAN-NOT-SATISFIED
+  - R139-R022-R138-NOT-DOMAIN-WRITER
+  - R139-R023-IDEMPOTENCY-COLLISION-FAIL-CLOSED
+  - R139-R024-OMISSION-NOT-REVOCATION
+  - R139-R025-RETRIEVAL-METADATA-INCLUDES-SCOPE-FAILURE
+  - R139-R026-MODEL-VERSION-REVALIDATION-GUARD
+  - R139-R027-AI-FILM-EXCELLENT-CASE-REAL-SMOKE
+  - R139-R028-AI-FILM-CD25-REAL-FEEDBACK-SMOKE
+  - R139-R029-ZERO-AI-FILM-MUTATION
+  - R139-R030-RESOURCE-BOUNDED-CLEAN
+
+external_domain_boundary:
+  ai_film_repository: "vxz2datoubo/eustia-ai-film"
+  exact_reference_at_reservation: "44c383afd2207a97caf45b1b0da6ee1dece43a76"
+  role: "READ_ONLY_DOMAIN_AUTHORITY_AND_SMOKE_TARGET"
+  write: "FORBIDDEN"
+
+resource_policy:
+  target_class_after_activation: "MEDIUM_IMPLEMENTATION"
+  same_agent_active_execution_max: 1
+  local_heavy_stage_max: 1
+  nested_process_pools: "FORBIDDEN"
+  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
+  broad_matrix: "REMOTE_CI_PREFERRED"
+  task_owned_process_temp_cache_cleanup: "REQUIRED"
+  global_kill_python_or_docker: "FORBIDDEN"
+  daemon_server: "FORBIDDEN"
+
+hard_forbidden:
+  - "AI Film/domain canonical write"
+  - "generic cross-repo writer"
+  - "private repository or credentials"
+  - "raw private chat/media in public GitHub"
+  - "domain maturity or Formal Skill promotion authority"
+  - "Harness/H2/H7 activation"
+  - "production service"
+  - "permission/secret changes"
+  - "force push/rebase/reset/history rewrite"
+  - "trading/accounts/orders/funds"
+  - "Codex merge"
+
+completion_signal: "R139_DOMAIN_LEARNING_HANDOFF_DRY_RUN_READY_FOR_GPT_REVIEW"
