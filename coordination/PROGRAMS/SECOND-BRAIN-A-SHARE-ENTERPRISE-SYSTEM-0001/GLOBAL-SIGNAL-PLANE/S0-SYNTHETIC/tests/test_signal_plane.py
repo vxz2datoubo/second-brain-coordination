@@ -129,6 +129,77 @@ class SignalPlaneContractTest(unittest.TestCase):
         self.assertEqual(priority["status"], "ADMITTED")
         self.assertEqual(state, {"capacity_limit": 2, "admitted": 3, "deferred": 1, "pressure_active": True})
 
+    def test_semantic_signal_kind_is_projected_for_non_requirement_origins(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        for index, kind in enumerate(("RISK", "FINDING", "OPPORTUNITY", "CORRECTION"), start=1):
+            ledger.ingest_raw(event(f"kind-{index}", signal_id=f"semantic-{index}", source_sequence=1, signal_kind=kind))
+        projection = ledger.current_projection()
+        self.assertIsNotNone(projection)
+        self.assertEqual(projection["reducer_version"], "S0C-3")
+        actual = {item["signal_id"]: item["signal_kind"] for item in projection["signals"]}
+        self.assertEqual(actual, {"semantic-1": "RISK", "semantic-2": "FINDING", "semantic-3": "OPPORTUNITY", "semantic-4": "CORRECTION"})
+
+    def test_lifecycle_status_and_revocation_do_not_overwrite_logical_kind(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        ledger.ingest_raw(event("risk-origin", signal_id="risk", source_sequence=1, signal_kind="RISK"))
+        ledger.ingest_raw(event("risk-status", signal_id="risk", source_sequence=2, signal_kind="STATUS", event_type="SIGNAL_CLOSURE_ASSESSMENT", planning_state="CLOSED_NO_ACTION", execution_state="DONE"))
+        closed = next(item for item in ledger.current_projection()["signals"] if item["signal_id"] == "risk")
+        self.assertEqual((closed["signal_kind"], closed["planning_state"], closed["execution_state"]), ("RISK", "CLOSED_NO_ACTION", "DONE"))
+        ledger.ingest_raw(event("risk-revoke", signal_id="risk", source_sequence=3, signal_kind="REVOCATION", event_type="EXPLICIT_SIGNAL_REVOKE", planning_state="SUPERSEDED", execution_state="CANCELLED", revokes_refs=["risk"]))
+        revoked = next(item for item in ledger.current_projection()["signals"] if item["signal_id"] == "risk")
+        self.assertEqual((revoked["signal_kind"], revoked["planning_state"], revoked["execution_state"]), ("RISK", "SUPERSEDED", "CANCELLED"))
+
+    def test_out_of_order_lifecycle_event_cannot_replace_semantic_kind(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        ledger.ingest_raw(event("risk-origin-late-sequence", signal_id="risk-ooo", source_sequence=2, signal_kind="RISK"))
+        ledger.ingest_raw(event("old-status-arrives-late", signal_id="risk-ooo", source_sequence=1, signal_kind="STATUS", event_type="SIGNAL_CLOSURE_ASSESSMENT", planning_state="CLOSED_NO_ACTION", execution_state="DONE"))
+        projected = next(item for item in ledger.current_projection()["signals"] if item["signal_id"] == "risk-ooo")
+        self.assertEqual(projected["signal_kind"], "RISK")
+
+    def test_conflicting_semantic_origins_fail_closed_to_revalidation(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        ledger.ingest_raw(event("risk-origin-conflict", signal_id="semantic-conflict", source_sequence=1, signal_kind="RISK"))
+        ledger.ingest_raw(event("finding-origin-conflict", signal_id="semantic-conflict", source_sequence=2, signal_kind="FINDING"))
+        projected = next(item for item in ledger.current_projection()["signals"] if item["signal_id"] == "semantic-conflict")
+        self.assertEqual(projected["signal_kind"], "RISK")
+        self.assertEqual(projected["planning_state"], "CONFLICTED")
+        self.assertEqual(projected["epistemic_state"], "NEEDS_REVALIDATION")
+        self.assertIn("semantic-conflict", ledger.current_projection()["views"]["NEEDS_REVALIDATION"])
+
+    def test_semantic_kind_restart_replay_and_checksum_are_deterministic(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            db_path = Path(directory) / "semantic.sqlite"
+            first = DurableSignalLedger(db_path)
+            first.ingest_raw(event("risk-replay", signal_id="risk-replay", source_sequence=1, signal_kind="RISK"))
+            before = first.current_projection()
+            first.close()
+            recovered = DurableSignalLedger(db_path)
+            after = recovered.current_projection()
+            self.assertEqual(before["reducer_version"], "S0C-3")
+            self.assertEqual(after["reducer_version"], "S0C-3")
+            self.assertEqual(before["checksum"], after["checksum"])
+            self.assertEqual(after["signals"][0]["signal_kind"], "RISK")
+            self.assertTrue(recovered.observe_replay())
+            self.assertEqual(recovered.current_projection()["signals"][0]["signal_kind"], "RISK")
+            recovered.close()
+
+    def test_legacy_reducer_projection_is_rebuilt_into_new_checksum_domain(self) -> None:
+        ledger = DurableSignalLedger()
+        self.addCleanup(ledger.close)
+        ledger.ingest_raw(event("legacy-risk", signal_id="legacy-risk", signal_kind="RISK"), update_projection=False)
+        legacy = {"reducer_version": "S0C-2", "ledger_watermark": 1, "input_revision": ledger.input_revision(), "signals": [{"signal_id": "legacy-risk", "planning_state": "CAPTURED", "execution_state": "NOT_STARTED", "epistemic_state": "CONFIRMED_FACT", "source_order": 1, "provenance_event_refs": ["legacy-risk"]}], "links": [], "clusters": [], "views": {"OPEN": ["legacy-risk"], "BLOCKED": [], "SUPERSEDED": [], "CLOSED_NO_ACTION": [], "NEEDS_REVALIDATION": []}, "projection_version": 9, "generated_at": "legacy", "checksum": "legacy-checksum"}
+        with ledger.connection:
+            ledger.connection.execute("INSERT INTO projection_meta(singleton,projection_version,input_revision,checksum,projection_json) VALUES(1,?,?,?,?,?)".replace("?,?,?,?,?", "?,?,?,?"), (9, ledger.input_revision(), "legacy-checksum", json.dumps(legacy, sort_keys=True)))
+        rebuilt = ledger.current_projection()
+        self.assertEqual(rebuilt["reducer_version"], "S0C-3")
+        self.assertEqual(rebuilt["signals"][0]["signal_kind"], "RISK")
+        self.assertNotEqual(rebuilt["checksum"], "legacy-checksum")
+        self.assertEqual(rebuilt["projection_version"], 10)
+
     def test_reconciliation_receipt_invalidates_material_change_and_never_authorizes(self) -> None:
         receipt = build_receipt(snapshot())
         self.assertFalse(receipt["execution_authorized"])
