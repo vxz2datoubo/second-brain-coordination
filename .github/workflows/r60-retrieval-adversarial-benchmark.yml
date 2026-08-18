@@ -213,6 +213,7 @@ jobs:
           base64 -w0 "${output}"
           echo
           echo "R60_RAW_RECEIPT_BASE64_END"
+          cp "${output}" "${RUNNER_TEMP}/r60-machine-receipt.json"
 
           cmp -s "${RUNNER_TEMP}/r60-committed-receipt.json" "${output}"
           echo "R60_COMMITTED_RECEIPT_BYTE_EQUALITY=PASS"
@@ -220,6 +221,15 @@ jobs:
           cd "${GITHUB_WORKSPACE}"
           git diff --exit-code -- "${RECEIPT_REL}"
           echo "R60_COMMITTED_RECEIPT_GIT_DIFF=PASS"
+
+      - name: Upload raw machine receipt artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r60-machine-receipt-py${{ matrix.python-version }}
+          path: ${{ runner.temp }}/r60-machine-receipt.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Postflight workspace and process check
         if: always()
