@@ -10,6 +10,12 @@
 - plan_status: `M0_COMMITTED_BEFORE_IMPLEMENTATION`
 - fresh_canonical_main: `81566f47721f07519f2617ab8901147adf437789`
 - fresh_reconcile_basis: `2026-08-18 canonical GitHub connector reads`
+- f05_current_main_rebind: `8780d457997914632507eed03e54a1c685444aba`
+- f05_independent_review: `4962938733`
+- f05_issue_checkpoint: `5330537475`
+- f05_status: `IN_PROGRESS_PENDING_FRESH_M4_AND_EXACT_HEAD_CI`
+
+> The original `fresh_canonical_main` above is preserved as the truthful M0 plan-time fact. F05 does not rewrite that history; the current acceptance binding is tracked separately by `f05_current_main_rebind` and the current R142 package/evidence/status artifacts.
 
 ## 1. M0 fresh reconciliation result
 
