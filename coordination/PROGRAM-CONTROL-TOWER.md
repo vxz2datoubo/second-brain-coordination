@@ -6,7 +6,7 @@
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
 - as_of: `2026-08-18T12:29:00+08:00`
 - Foundation structural check: **PASS**
-- Lane release decision: **R142_GPT_ENGINEERING_WORKER_RELEASED**
+- Lane release decision: **HOLD_BY_USER**
 - User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
 
 ### Agent routes
