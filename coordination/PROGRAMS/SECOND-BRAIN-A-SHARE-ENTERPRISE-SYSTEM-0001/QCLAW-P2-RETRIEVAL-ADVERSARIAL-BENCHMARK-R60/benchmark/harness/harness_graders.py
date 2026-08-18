@@ -1,6 +1,52 @@
 from __future__ import annotations
 from harness_common import *
 from harness_persist import *
+from harness_rejection_contracts import *
+
+
+def _exception_rejection_result(
+    case: dict[str, Any], exc: BaseException, context: str
+) -> dict[str, Any]:
+    """Grade an exception-driven rejection against its explicit case contract."""
+    expected = case["expected_admission_or_abstention"]["verdict"]
+    rejection_code = rejection_error_code(exc)
+    allowed = expected_rejection_error_codes(case)
+    extra = {
+        "rejection_code": rejection_code,
+        "expected_rejection_codes": list(allowed),
+    }
+    if expected != "REJECT":
+        return _result(
+            case["case_id"],
+            "ERROR",
+            "ERROR",
+            f"{context}: rejection_code={rejection_code}; expected_verdict={expected}",
+            **extra,
+        )
+    if not allowed:
+        return _result(
+            case["case_id"],
+            "MISSING_REJECTION_REASON_CONTRACT",
+            "ERROR",
+            f"{context}: rejection_code={rejection_code}; allowed=[]",
+            **extra,
+        )
+    if rejection_code not in allowed:
+        return _result(
+            case["case_id"],
+            "UNEXPECTED_REJECTION_REASON",
+            "FAIL",
+            f"{context}: rejection_code={rejection_code}; allowed={list(allowed)}",
+            **extra,
+        )
+    return _result(
+        case["case_id"],
+        "REJECT",
+        "PASS",
+        f"{context}: rejection_code={rejection_code}",
+        **extra,
+    )
+
 
 def _probe_kind(setup: dict[str, Any]) -> str:
     if "atoms" in setup and isinstance(setup["atoms"], list): return "admission"
@@ -14,33 +60,37 @@ def _probe_kind(setup: dict[str, Any]) -> str:
     if setup.get("query_text", "").startswith("search sk-"): return "secret_query"
     return "plan_validation"
 
+
 def _grade_plan_validation(case: dict[str, Any]) -> dict[str, Any]:
     expected=case["expected_admission_or_abstention"]["verdict"]
     try: _plan(case).validate()
-    except ValueError as exc: return _result(case["case_id"],"REJECT","PASS" if expected=="REJECT" else "FAIL",str(exc))
+    except ValueError as exc: return _exception_rejection_result(case,exc,"plan validation rejected")
     return _result(case["case_id"],"ADMIT","PASS" if expected=="ADMIT" else "FAIL","plan accepted")
+
 
 def _grade_conversation_build(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.conversation_memory import build_conversation_candidate
     expected=case["expected_admission_or_abstention"]["verdict"]
     try: build_conversation_candidate(episode=_episode("alice","p1","build-probe"),statement=case["setup"]["conversation_statement"],claim_role="USER_ASSERTION",valid_from="2026-08-14T00:00:00Z")
-    except ValueError as exc: return _result(case["case_id"],"REJECT","PASS" if expected=="REJECT" else "FAIL",str(exc))
+    except ValueError as exc: return _exception_rejection_result(case,exc,"conversation candidate build rejected")
     return _result(case["case_id"],"ADMIT","PASS" if expected=="ADMIT" else "FAIL","candidate accepted")
+
 
 def _grade_secret_reject(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore,_validate_atom
-    setup=case["setup"]; expected=case["expected_admission_or_abstention"]["verdict"]
+    setup=case["setup"]
     if "atom_statement" in setup:
         store=MemoryStore(db_path=":memory:"); store.connect()
         try:
             try: store.insert_atom(_plain_atom(setup["atom_statement"],"p1","candidate"))
-            except ValueError as exc: return _result(case["case_id"],"REJECT","PASS" if expected=="REJECT" else "FAIL",str(exc))
+            except ValueError as exc: return _exception_rejection_result(case,exc,"secret-shaped atom rejected")
             return _result(case["case_id"],"ADMIT","FAIL","secret-shaped text accepted")
         finally: store.close()
     atom=_plain_atom("R60 metadata secret probe","p1","candidate"); atom["memory_metadata"]={"credential_value":"sk-123456789012345678901234"}
     try: _validate_atom(atom)
-    except ValueError as exc: return _result(case["case_id"],"REJECT","PASS",str(exc))
+    except ValueError as exc: return _exception_rejection_result(case,exc,"secret metadata rejected")
     return _result(case["case_id"],"ADMIT","FAIL","secret in memory_metadata accepted")
+
 
 def _grade_store_invariant(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore
@@ -49,29 +99,31 @@ def _grade_store_invariant(case: dict[str, Any]) -> dict[str, Any]:
     try:
         if "orphan_relation" in setup:
             try: store.insert_relation({"id":"rel-orphan-r60","relation_type":"supports","source_atom_id":"at-does-not-exist","target_atom_id":"at-also-missing","confidence":0.5})
-            except Exception as exc: return _result(case["case_id"],"REJECT","PASS","orphan relation fail-closed: "+type(exc).__name__)
+            except Exception as exc: return _exception_rejection_result(case,exc,"orphan relation rejected")
             report=store.integrity_check(); detected=any(item.startswith("orphan_relation:") for item in report["issues"])
             return _result(case["case_id"],"REJECT" if detected else "ADMIT","PASS" if detected else "FAIL","orphan integrity check")
         episode=_episode("alice","p1","store-invariant")
         base=build_conversation_candidate(episode=episode,statement="R60 original fact",claim_role="USER_ASSERTION",valid_from="2026-08-14T10:00:00Z"); store.import_learning_packet(base); target_id=base["atoms"][0]["id"]
         if "supersession_valid_time_not_later" in setup:
             try: store.import_learning_packet(build_conversation_correction(episode=episode,statement="R60 invalid correction",replaces_atom_id=target_id,valid_from="2026-08-14T09:00:00Z"))
-            except ValueError as exc: return _result(case["case_id"],"REJECT","PASS",str(exc))
+            except ValueError as exc: return _exception_rejection_result(case,exc,"supersession rejected")
             return _result(case["case_id"],"ADMIT","FAIL","non-later supersession accepted")
         if "alias_enrich_on_closed" in setup:
             store.import_learning_packet(build_conversation_correction(episode=episode,statement="R60 valid correction",replaces_atom_id=target_id,valid_from="2026-08-14T11:00:00Z"))
             enriched=build_conversation_candidate(episode=episode,statement="R60 original fact",claim_role="USER_ASSERTION",valid_from="2026-08-14T10:00:00Z",external_candidate_id="r60-alias-on-closed")
             try: store.import_learning_packet(enriched)
-            except ValueError as exc: return _result(case["case_id"],"REJECT","PASS",str(exc))
+            except ValueError as exc: return _exception_rejection_result(case,exc,"closed-atom alias enrichment rejected")
             return _result(case["case_id"],"ADMIT","FAIL","alias enrichment on closed atom allowed")
         return _result(case["case_id"],"ERROR","ERROR","unhandled store invariant")
     finally: store.close()
+
 
 def _grade_canonical_determinism(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.canonical import canonical_json,content_hash
     setup=case["setup"]
     ok=canonical_json({"a":2,"z":1})==canonical_json({"z":1,"a":2}) if "canonical_json_order" in setup else content_hash({"a":1,"b":2})==content_hash({"b":2,"a":1})
     return _result(case["case_id"],"ADMIT","PASS" if ok else "FAIL",f"deterministic={ok}")
+
 
 def _grade_idempotency(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore
@@ -82,6 +134,7 @@ def _grade_idempotency(case: dict[str, Any]) -> dict[str, Any]:
         first=store.import_learning_packet(packet); second=store.import_learning_packet(packet); ok=first["status"]=="IMPORTED" and second["status"]=="IDEMPOTENT_DUPLICATE"
         return _result(case["case_id"],"ADMIT","PASS" if ok else "FAIL",f"second={second['status']}")
     finally: store.close()
+
 
 def _grade_provenance_redaction(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.conversation_memory import ConversationEpisode,build_conversation_candidate
@@ -97,6 +150,7 @@ def _grade_provenance_redaction(case: dict[str, Any]) -> dict[str, Any]:
         return _result(case["case_id"],"ADMIT" if ok else "LEAK","PASS" if ok else "FAIL","raw pointer absent from provenance" if ok else "raw pointer leaked")
     finally: store.close()
 
+
 def _grade_secret_query(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore
     from integrated_offline_memory.retrieval import ContextAssembler,QueryPlan
@@ -106,6 +160,7 @@ def _grade_secret_query(case: dict[str, Any]) -> dict[str, Any]:
         ok=secret_probe not in serialized and "sk-123456789012345678901234" not in serialized
         return _result(case["case_id"],"ADMIT" if ok else "LEAK","PASS" if ok else "FAIL",f"gate={bundle.trust_gate.get('outcome')}; query_echo={not ok}")
     finally: store.close()
+
 
 def _grade_public_safety(case: dict[str, Any]) -> dict[str, Any]:
     violations=[]
@@ -118,6 +173,7 @@ def _grade_public_safety(case: dict[str, Any]) -> dict[str, Any]:
             if atom.get("kind")=="conversation" and atom.get("visibility")=="PRIVATE_LOCAL_CANDIDATE_ONLY": violations.append(f"{candidate['case_id']}:private_visibility")
     return _result(case["case_id"],"ADMIT","PASS" if not violations else "FAIL","public-safe corpus" if not violations else str(violations[:5]))
 
+
 def _grade_admission(case: dict[str, Any]) -> dict[str, Any]:
     from integrated_offline_memory.memory_store import MemoryStore
     from integrated_offline_memory.retrieval import ContextAssembler
@@ -126,11 +182,10 @@ def _grade_admission(case: dict[str, Any]) -> dict[str, Any]:
         try:
             records,aliases=_persist_fixtures(store,case["setup"]); _persist_relations(store,case["setup"],aliases); _persist_unknowns(store,case["setup"],records,aliases)
         except ValueError as exc:
-            if expected=="REJECT": return _result(case["case_id"],"REJECT","PASS","canonical build/import fail-closed: "+str(exc))
-            return _result(case["case_id"],"ERROR","ERROR","unexpected fixture persistence failure: "+str(exc))
+            return _exception_rejection_result(case,exc,"canonical build/import rejected")
         plan=_plan(case)
         try: plan.validate()
-        except ValueError as exc: return _result(case["case_id"],"REJECT","PASS" if expected=="REJECT" else "FAIL","plan rejected: "+str(exc))
+        except ValueError as exc: return _exception_rejection_result(case,exc,"query plan rejected")
         assembler=ContextAssembler(store); bundle=assembler.assemble(plan); forbidden=_forbidden_ids(records,case["query_and_intent"],case["setup"],aliases); leaks=_leak_paths(bundle,assembler,forbidden); admitted_ids=[atom["id"] for atom in bundle.atoms]
         if expected=="REJECT":
             # Q60-B06: once a negative fixture has successfully persisted and the
@@ -168,6 +223,7 @@ def _grade_admission(case: dict[str, Any]) -> dict[str, Any]:
         return _result(case["case_id"],observed,"PASS" if observed==expected else "FAIL",f"gate={outcome}; admitted_count={len(admitted_ids)}")
     finally: store.close()
 
+
 def run_case(case: dict[str, Any]) -> dict[str, Any]:
     probe=_probe_kind(case["setup"])
     if probe=="admission": return _grade_admission(case)
@@ -181,5 +237,6 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
     if probe=="provenance_redaction": return _grade_provenance_redaction(case)
     if probe=="secret_query": return _grade_secret_query(case)
     return _result(case["case_id"],"ERROR","ERROR",f"unknown_probe={probe}")
+
 
 __all__=[name for name in globals() if not name.startswith("__")]
