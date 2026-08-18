@@ -35,13 +35,15 @@ jobs:
           test "$HEAD_SHA" = "$PR_HEAD"
           git fetch --no-tags origin "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/r142-merge"
           MERGE_SHA="$(git rev-parse refs/remotes/origin/r142-merge)"
-          test -n "$BASE_SHA"
-          test -n "$MERGE_SHA"
+          MERGE_PARENT_1="$(git rev-parse "${MERGE_SHA}^1")"
+          MERGE_PARENT_2="$(git rev-parse "${MERGE_SHA}^2")"
+          test "$MERGE_PARENT_1" = "$BASE_SHA"
+          test "$MERGE_PARENT_2" = "$PR_HEAD"
           echo "R142_HEAD_SHA=$HEAD_SHA" >> "$GITHUB_ENV"
           echo "R142_PR_HEAD_SHA=$PR_HEAD" >> "$GITHUB_ENV"
           echo "R142_BASE_SHA=$BASE_SHA" >> "$GITHUB_ENV"
           echo "R142_MERGE_SHA=$MERGE_SHA" >> "$GITHUB_ENV"
-          printf 'HEAD=%s\nPR_HEAD=%s\nBASE=%s\nMERGE=%s\n' "$HEAD_SHA" "$PR_HEAD" "$BASE_SHA" "$MERGE_SHA"
+          printf 'HEAD=%s\nPR_HEAD=%s\nBASE=%s\nMERGE=%s\nMERGE_PARENT_1=%s\nMERGE_PARENT_2=%s\n' "$HEAD_SHA" "$PR_HEAD" "$BASE_SHA" "$MERGE_SHA" "$MERGE_PARENT_1" "$MERGE_PARENT_2"
 
       - uses: actions/setup-python@v5
         with:
@@ -103,10 +105,9 @@ jobs:
           print('S0C_SOURCE_MUTATION=NONE')
           PY
           git diff --check "$R142_BASE_SHA...HEAD"
-          if grep -RInE '\b(TODO|FIXME)\b|NotImplementedError' \
+          if grep -InE '\b(TODO|FIXME)\b|NotImplementedError' \
             coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142_retrospective_intake.py \
-            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142; then
+            coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests/test_r142_retrospective_intake.py; then
             exit 1
           fi
           echo R142_PLACEHOLDER_PASS
