@@ -3,7 +3,14 @@ authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
 authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
 issuer: "USER"
 actor: "GPT_ARCHITECTURE_OWNER"
-state: "ACTIVE"
+state: "RELEASED"
+release_reason: "CORRECTIVE_PATCH_COMPLETE_PENDING_SEPARATE_INDEPENDENT_REVIEW"
+released_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+release_transition:
+  from_state: "ACTIVE"
+  to_state: "RELEASED"
+  terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
 
 predecessor_authority:
   path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
@@ -37,7 +44,7 @@ independent_review_required: true
 same_pr_required: true
 fresh_exact_head_ci_required: true
 
-# ACTIVE means only the following corrective-maintenance paths may be changed under this authority.
+# Retained historical scope. Because state is RELEASED, this list grants no current writes.
 allowed_write_paths:
   - "coordination/CONTROL-TOWER/worker_slots.py"
   - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
