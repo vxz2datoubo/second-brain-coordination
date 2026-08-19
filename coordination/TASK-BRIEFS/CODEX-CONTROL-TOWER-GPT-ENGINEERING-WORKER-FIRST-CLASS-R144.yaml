@@ -1,0 +1,122 @@
+schema_version: "1.0"
+task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+route_epoch: 144
+issue: 406
+lane_id: "LANE-A-HARNESS-INTEGRATION"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】"
+executor: "CODEX"
+reviewer: "GPT_INDEPENDENT_REVIEWER"
+status: "READY_PENDING_ACTIVATION"
+boundary: "CONTROL_TOWER_GOVERNANCE_ONLY / NO_TRADE / NO_W2_RUNTIME / NO_PRIVATE_DATA / NO_PRODUCTION"
+
+user_authorization:
+  text: "同意方案B，把 GPT Engineering Worker 正式纳入 Control Tower。"
+  date: "2026-08-19"
+
+source_blocker:
+  lane_b_issue: 404
+  lane_b_activation_pr: 405
+  review: 4970596508
+  checkpoint: 5340173080
+  disposition: "R143_FROZEN_BY_EXECUTOR_IDENTITY_GATE"
+
+architecture_decision:
+  issue_comment: 5340334185
+  canonical_agent_type: "GPT_ENGINEERING_WORKER"
+  parallel_routes_required: true
+  singleton_overwrite_model_forbidden: true
+  pseudo_agent_types_for_windows_forbidden: true
+  required_slot_or_lease_identity: true
+  invariant: >-
+    编程1/编程2 are worker-slot/provenance labels under one GPT_ENGINEERING_WORKER agent ontology.
+    Active authorization must bind agent type + exact slot/lease + route identity + Work Claim + fresh witness.
+
+current_defect:
+  - "Control Tower AGENT_FILES recognizes only CODEX/QCLAW/WORKBUDDY."
+  - "lane_claims therefore cannot validate GPT_ENGINEERING_WORKER as an active execution agent."
+  - "Existing portfolio policy already allows parallel GPT Engineering Worker routes, so a singleton active-task file would be inconsistent and overwrite-prone."
+
+required_outcomes:
+  - "Introduce a canonical GPT_ENGINEERING_WORKER active route registry supporting multiple bounded slots/leases."
+  - "Normalize each worker slot into the same route identity fields used by Control Tower."
+  - "Bind Work Claims to execution_agent + exact worker slot/lease identity + task_id/epoch/issue/pr/branch."
+  - "Preserve fail-closed stale-route and non-executable-route checks."
+  - "Extend authorization witness freshness/invalidation to worker slot identity."
+  - "Extend deterministic program and claim projections."
+  - "Enforce configured GPT worker WIP/resource limits and same-object/authority collisions."
+  - "Preserve CODEX/QCLAW/WORKBUDDY backward compatibility."
+  - "Preserve reviewer/executor separation metadata; CI does not confer acceptance authority."
+  - "Provide closed/released worker-slot historical semantics with no active lease."
+
+mandatory_adversarial_tests:
+  - "valid GPT worker slot + exact active Work Claim => PASS"
+  - "active claim bound to execution_allowed=false worker slot => FAIL"
+  - "stale worker slot/task/epoch/issue/pr/branch => FAIL"
+  - "GPT worker impersonating CODEX => FAIL or mechanically distinct provenance"
+  - "two GPT worker slots writing same canonical object/authority => FAIL"
+  - "two GPT worker slots on non-overlapping surfaces => only PASS within WIP/resource limits"
+  - "one slot silently replacing another active slot => FAIL"
+  - "stale authorization witness after slot route change => FAIL"
+  - "stale witness after peer claim or release-policy change => FAIL"
+  - "closed/released slot retains no execution lease"
+  - "existing CODEX/QCLAW/WORKBUDDY regression suite remains green"
+  - "projection generation remains deterministic/idempotent"
+
+anti_self_authorization:
+  required_chain:
+    - "USER/GPT_RELEASE"
+    - "CANONICAL_AGENT_ROUTE_OR_SLOT"
+    - "CANONICAL_WORK_CLAIM"
+    - "COLLISION_AND_WIP_CHECK"
+    - "FRESH_AUTHORIZATION_WITNESS"
+  route_file_alone_authorizes_execution: false
+  ci_alone_authorizes_execution: false
+
+write_allowlist:
+  - "coordination/CONTROL-TOWER/**"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/PROGRAM-CONTROL-TOWER.md"
+  - ".github/workflows/program-control-tower-foundation.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/**"
+
+read_only_boundaries:
+  - "Lane-B W2 runtime/source/tests/fixtures"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  - "W3/domain canonical stores"
+  - "Signal Tower runtime"
+  - "broker/account/order/fund/production/private-data paths"
+
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  global_python_or_docker_kill: "FORBIDDEN"
+  cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
+
+required_process:
+  G0: "fresh reconcile current main, Issue #406, #405 freeze, Control Tower source and tests"
+  G1: "write R144 PROJECT-PLAN before substantive implementation"
+  G2: "implement minimal multi-slot first-class GPT worker identity model"
+  G3: "update claims/witness/projections/WIP/backward compatibility"
+  G4: "run full Control Tower suite plus new adversarial tests"
+  G5: "exact-head Python 3.11/3.13 CI, merge-ref binding, scope and cleanup evidence"
+
+hard_locks:
+  - "NO_TRADE"
+  - "NO_W2_RUNTIME"
+  - "NO_W3_WRITE"
+  - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
+  - "NO_PRODUCTION_OR_PRIVATE_DATA"
+  - "NO_SECRET_OR_PERMISSION_EXPANSION"
+  - "NO_FAIL_CLOSED_WEAKENING_FOR_R143"
+  - "NO_GPT_WORKER_CODEX_IMPERSONATION"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
+
+planned_branch: "codex/r144-control-tower-gpt-worker-first-class"
+completion_signal: "R144_CONTROL_TOWER_GPT_ENGINEERING_WORKER_FIRST_CLASS_READY_FOR_GPT_REVIEW"
+next_gate: "CANONICAL_CODEX_ACTIVATION"
