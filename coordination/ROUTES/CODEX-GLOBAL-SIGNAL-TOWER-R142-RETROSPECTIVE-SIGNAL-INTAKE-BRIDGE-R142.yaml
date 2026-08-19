@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "2.0"
 route_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
@@ -7,77 +7,54 @@ route_epoch: 142
 issue: 393
 parent_system: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
 mode: "project_plan"
-status: "READY_AFTER_ACTIVATION_MERGE"
-execution_allowed: true
+status: "CLOSED_HISTORY_ONLY"
+execution_allowed: false
+automatic_resume: false
+merge_authorized: false
+runtime_code_change_allowed: false
 implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
-canonical_activation_base: "408e283697290c03d9b4121543934337d938c99a"
+implementation_pr: 400
 canonical_task_brief: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
 activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
+closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
 
-write_allowlist:
+closure:
+  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
+  accepted_exact_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
+  implementation_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  independent_final_review: 4963324873
+  issue_post_merge_freeze_checkpoint: 5331110683
+  exact_head_ci: 32157970026
+  findings_closed: ["R142-F01", "R142-F02", "R142-F03", "R142-F04", "R142-F05"]
+  route_disposition: "NON_EXECUTABLE_HISTORICAL"
+  active_executor_reservation: "NONE"
+  active_write_paths: []
+  successor_implementation_authorized: false
+  issue_close_after_closeout_merge: true
+
+historical_write_scope:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
   - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+write_allowlist: []
 
-scope_expansion_rule: >-
-  Existing S0C ledger/model source is read-only by default. If implementation proves that an S0C source mutation is genuinely
-  required rather than an S0E extension, STOP and request a GPT scope-expansion reconciliation before editing S0C. Do not create
-  a shadow ledger or parallel authority to avoid this gate.
+signal_tower_operating_contract:
+  normal_mode: "ON_DEMAND_PREFLIGHT_AVAILABLE"
+  signal_is_not_task: true
+  daemon_required_for_normal_use: false
+  formal_task_release_requires_fresh_preflight: true
 
-read_scope:
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0-SYNTHETIC"
-  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY"
-  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/GLOBAL-SIGNAL-PLANE-ENTERPRISE-GOVERNANCE.yaml"
-  - "coordination/CONTROL-TOWER"
-  - "coordination/ACTIVE-CODEX-TASK.yaml"
-  - "coordination/ACTIVE-QCLAW-TASK.yaml"
-  - "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
-  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-  - "coordination/TASK-BRIEFS"
-  - "coordination/ROUTES"
-  - "GitHub issue/PR metadata needed for current-state reconciliation"
-
-claim_protocol:
-  local_atomic_claim_required: true
-  claim_identity_fields: [task_id, route_epoch, issue, implementation_branch, activation_main]
-  duplicate_claim: "STOP"
-  stale_route_or_main: "STOP"
-  same_codex_route_collision: "STOP"
-  local_heavy_collision: "STOP"
-  activation_must_be_on_canonical_main: true
-  second_user_start_command_required: true
-
-resource_contract:
-  class: "MEDIUM_IMPLEMENTATION"
-  same_codex_active_route_max: 1
-  local_heavy_stage_max: 1
-  nested_process_pools: "FORBIDDEN"
-  bounded_test_workers: "SINGLE_WORKER_DEFAULT"
-  daemon_server_scheduler_polling: "FORBIDDEN"
-  broad_matrix: "REMOTE_CI_PREFERRED"
-  task_owned_process_temp_cache_cleanup: "REQUIRED_WHERE_SAFE"
-  global_kill_python_or_docker: "FORBIDDEN"
-
-execution_guards:
-  must_equal_repository: "vxz2datoubo/second-brain-coordination"
-  must_equal_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
-  must_equal_epoch: 142
-  must_equal_issue: 393
-  must_equal_branch: "codex/r142-retrospective-signal-intake-bridge"
-  activation_must_be_canonical: true
-  fresh_main_reconcile_required_at_launch: true
-  no_guess_or_auto_switch: true
-  fail_on_write_outside_allowlist: true
-  fail_on_private_raw_data: true
-  fail_on_second_signal_truth: true
-  fail_on_automatic_task_creation: true
-  fail_on_secret_permission_production_domain_w3_trading_history_requirement: true
+retained_real_m4_truth:
+  candidate_count: 51
+  disposition: "20 ALREADY_CANONICAL / 20 ALREADY_SATISFIED / 0 DOMAIN_CANONICAL_ONLY / 11 NEEDS_REVALIDATION / 0 NEW_DURABLE_SIGNAL"
+  durable_receipts: 0
+  rule: "Eleven NEEDS_REVALIDATION remain unresolved; no closeout promotion to PASS or durable admission is authorized."
 
 hard_locks:
   - "NO_PRIVATE_RAW_CONVERSATION_BODY_IN_PUBLIC_REPO"
   - "NO_CHATGPT_PRIVATE_CROSS_WINDOW_BRIDGE"
-  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING"
+  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING_REQUIRED_FOR_NORMAL_OPERATION"
   - "NO_API_KEY_BILLING_SECRET_PERMISSION_EXPANSION"
   - "NO_W3_OR_DOMAIN_CANONICAL_WRITE"
   - "NO_FORMAL_SKILL_PROMOTION"
@@ -89,3 +66,4 @@ hard_locks:
   - "NO_DESTRUCTIVE_HISTORY_REWRITE"
 
 completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
+next_command: "NONE / HISTORICAL_ROUTE / FRESH_GOVERNED_DECISION_REQUIRED_FOR_ANY_SUCCESSOR"
