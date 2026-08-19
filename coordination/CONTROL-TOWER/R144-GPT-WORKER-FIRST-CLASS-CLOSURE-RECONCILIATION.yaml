@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION-0001"
 repository: "vxz2datoubo/second-brain-coordination"
 owner: "USER"
@@ -110,7 +110,29 @@ changed_path_allowlist:
   - "coordination/PROGRAM-CONTROL-TOWER.md"
 
 validation:
-  exact_head_ci: "PENDING_AFTER_DERIVED_PROJECTION_REGENERATION"
+  receipt_binding_rule: >-
+    The final receipt-binding commit is intentionally non-self-referential. This receipt binds the complete pre-final candidate head
+    and its CI evidence; the resulting final head must then receive a fresh exact-head CI and separate independent review. The final CI
+    run ID is recorded in the PR review/handoff rather than by another receipt edit, preventing an infinite self-reference chain.
+  receipt_binding_parent_head: "28cd2771fcbe8f7364189ce91d07cecf43bd13fd"
+  pre_binding_program_control_tower_run: 32288740435
+  pre_binding_merge_ref: "d9f4856cdd81539a25dad1ce4a786ff9809b6cf7"
+  pre_binding_merge_parent_1: "d9734f2db3f039167f0e3e32933392ae5571de13"
+  pre_binding_merge_parent_2: "28cd2771fcbe8f7364189ce91d07cecf43bd13fd"
+  pre_binding_python_3_11_job: 96184381306
+  pre_binding_python_3_13_job: 96184381026
+  pre_binding_result: SUCCESS
+  pre_binding_tests: "94/94 PASS on Python 3.11 and 3.13"
+  pre_binding_control_tower_errors: []
+  pre_binding_foundation_structural_check: PASS
+  pre_binding_worker_slot_structural_check: PASS
+  pre_binding_worker_slots: []
+  pre_binding_projection: MATCH
+  pre_binding_claim_structural_check: PASS
+  pre_binding_pairwise_collisions: "ALL O0 / NO_MATERIAL_OVERLAP"
+  pre_binding_claim_projection: MATCH
+  pre_binding_authorization_witness: "fresh=true / MATCH"
+  final_exact_head_ci: "REQUIRED_AFTER_THIS_RECEIPT_BINDING_COMMIT"
   required_python: ["3.11", "3.13"]
   required_gates:
     - "foundation_structural_check=PASS"
@@ -138,4 +160,4 @@ locks_retained:
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
 
-next_state: "REGENERATE_DERIVED_PROJECTIONS / RUN_FRESH_EXACT_HEAD_CI / INDEPENDENT_GPT_CLOSEOUT_REVIEW"
+next_state: "RUN_FRESH_FINAL_EXACT_HEAD_CI / INDEPENDENT_GPT_CLOSEOUT_REVIEW"
