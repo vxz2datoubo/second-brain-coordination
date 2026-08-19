@@ -21,7 +21,7 @@
 
 | slot | task_id | epoch | status | execution_allowed | model_id | Issue / PR |
 |---|---|---:|---|---|---|---|
-| _NONE_ | _no active GPT Engineering Worker slot_ | | | | | |
+| `GPT-WORKER-R143-PROGRAMMING-1` | `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143` | 143 | `RESERVED_NON_EXECUTABLE` | `false` | `GPT-5.6 Sol` | #404 / #410 |
 
 ### Program lanes
 
@@ -43,7 +43,7 @@
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
 | `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
-| `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
+| `LANE-B-A-SHARE-REMEDIATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `GPT_ENGINEERING_WORKER` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 5 paths | epoch 143 · #404/#410 · slot `GPT-WORKER-R143-PROGRAMMING-1` |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
 ### Pairwise current-claim collision scan
@@ -58,32 +58,34 @@
 
 > **用途**：给用户、GPT和各 Agent 看的跨线路公告板 / 总控台。
 >
-> **执行真源不是本页**。Agent 当前能否执行，以 canonical `ACTIVE-*` route、GPT worker slot、Work Claim 和 fresh authorization witness 为准。
+> **执行真源不是本页**。Agent 当前能否执行，以 canonical `ACTIVE-*` route、GPT worker slot、Work Claim、Release Gate 和 fresh authorization witness 为准。
 >
 > `control_tower_issue: #310` · `boundary: NO_TRADE`
 
 ## 当前正式节奏
 
-- **R144 implementation 已 ACCEPTED + MERGED**：PR #408 合并 exact head `217a38e341b0c66864b67b549cdccf0be7757206`，merge commit `d9734f2db3f039167f0e3e32933392ae5571de13`。
-- **本 closeout 候选只释放旧控制面租约**：R144 Codex route / Lane-A Work Claim 转为历史非执行态，不修改 R144 runtime 实现，不创建 successor execution authority。
-- **GPT Engineering Worker first-class registry 已 canonical**：`coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml` 保留，当前 `worker_slots=[]`，没有任何 GPT worker 获得执行权。
-- **Lane-B R143 用户授权意图保留但 runtime 继续 HOLD**：旧 PR #405 是 pre-R144 candidate，不能原样 merge；必须在 R144 closeout 后重新做 Signal Tower + Control Tower preflight，再建立 fresh slot/claim/witness。
-- **Signal Tower 正常 on-demand 能力继续可用**：Signal != Task，normal mode 不要求 daemon/scheduler；正式 Task release 仍需 fresh preflight。
-- **R142/R60 保持历史完成态**：不恢复旧 executor lease，不重开历史实现。
-- **NO_TRADE / NO_W2_RUNTIME / NO_W3_WRITE / NO_PRODUCTION / NO_PRIVATE_DATA** 在 closeout 期间继续锁定。
+- **R144 已完整收口**：implementation PR #408 与 post-merge closeout PR #409 均已独立审核并合并；R144 Codex lease 为历史非执行态。
+- **Signal Tower 已完成 fresh post-R144 preflight**：`GLOBAL_SHALLOW → DELTA → TARGETED_DEEP → CONDITIONAL_RESEARCH(not required for activation) → RELEASE_DECISION`，结果仅允许创建 R143 非执行 reservation candidate。
+- **PR #410 只做 reservation，不是 runtime activation**：`GPT-WORKER-R143-PROGRAMMING-1` 当前 `activation_state=RESERVED`、`execution_allowed=false`，Lane-B Work Claim 为 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE`。
+- **编程1现在仍不能写 W2 runtime**：PR #410 即使 CI 绿，也必须先独立审核并由用户决定是否 merge。merge 后还要从 then-current main 创建真实 runtime Draft PR，再通过单独的 final ACTIVE gate 把 slot/claim exact-bind 到那个 runtime PR。
+- **旧 PR #405 永久不能作为当前激活入口原样继续**：它是 pre-R144 stale candidate，当前 activation 必须基于 post-R144 canonical main。
+- **GPT Engineering Worker first-class registry 保持 canonical**：编程1/编程2只是 slot/provenance，编程2不得与编程1共享 mutable W2 writer surface。
+- **Signal Tower 正常 on-demand 能力继续可用**：Signal != Task，normal mode 不要求 daemon/scheduler。
+- **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_W3_WRITE / NO_SIGNAL_TOWER_RUNTIME_WRITE / NO_SECOND_A_SHARE_RULE_AUTHORITY** 继续锁定。
 
-## R144 closure binding
+## R143 reservation binding
 
-- Issue: `#406`
-- Task: `CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144`
-- Route epoch: `144`
-- Implementation PR: `#408`
-- Accepted exact head: `217a38e341b0c66864b67b549cdccf0be7757206`
-- Independent final Review: `4975349444`
-- Merge commit: `d9734f2db3f039167f0e3e32933392ae5571de13`
-- Closeout branch: `gpt/r144-control-plane-closeout`
-- Closure receipt: `coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml`
+- Issue: `#404`
+- Task: `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143`
+- Route epoch: `143`
+- Intended executor: `GPT_ENGINEERING_WORKER` / 编程1
+- Worker slot: `GPT-WORKER-R143-PROGRAMMING-1`
+- Reservation PR: `#410`
+- Reservation branch: `gpt/r143-post-r144-fresh-activation`
+- Base main: `12aab49dbffcd06214d6c5dae5917dff9b548595`
+- Preflight receipt: `coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml`
+- Old PR #405: `STALE_PRE_R144 / DO_NOT_MERGE_AS_IS`
 
-## R143 下一关
+## 下一关
 
-R144 closeout 必须先通过 fresh exact-head Program Control Tower 3.11/3.13、Work Claim、worker registry、projection 与 authorization-witness 验证，再由独立 GPT 审核。closeout 未 merged 前不得启动 R143 runtime。closeout merged 后重新执行 `GLOBAL_SHALLOW → DELTA → TARGETED_DEEP → CONDITIONAL_RESEARCH(如需要) → RELEASE_DECISION`，随后才允许创建 fresh GPT worker slot、exact `ACTIVE_IMPLEMENTATION` Work Claim 和 authorization witness。旧 PR #405 不得未经重绑定直接 merge。
+先让 PR #410 在 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Work Claim、projection 与 authorization-witness 验证，再交给独立 GPT exact-head Review。若且仅若用户随后授权并合并 reservation，才创建真实 runtime Draft PR。最终 runtime 执行权必须由另一个基于 then-current main 的 ACTIVE gate 将同一 worker slot、Work Claim、Issue/task/epoch、runtime PR/branch 和 fresh authorization witness 原子绑定；在那之前编程1不得修改 W2 runtime。

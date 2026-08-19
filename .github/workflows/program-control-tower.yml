@@ -46,11 +46,13 @@ jobs:
       - name: Verify work-claim bulletin projection
         working-directory: coordination/CONTROL-TOWER
         run: python run_claim_projection.py check --repo-root ../..
-      - name: Verify durable authorization witness round trip
+      - name: Verify durable authorization witness round trips
         working-directory: coordination/CONTROL-TOWER
         run: |
-          python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP > /tmp/control-tower-witness.json
-          python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file /tmp/control-tower-witness.json
+          python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP > /tmp/control-tower-lane-c-witness.json
+          python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file /tmp/control-tower-lane-c-witness.json
+          python run_authorization_witness.py create --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION > /tmp/control-tower-lane-b-witness.json
+          python run_authorization_witness.py verify --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION --witness-file /tmp/control-tower-lane-b-witness.json
       - name: Emit Codex route witness
         working-directory: coordination/CONTROL-TOWER
         run: python run_control_tower.py witness --repo-root ../.. --agent CODEX

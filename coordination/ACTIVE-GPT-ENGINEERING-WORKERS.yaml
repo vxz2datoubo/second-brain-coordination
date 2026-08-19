@@ -18,4 +18,49 @@ semantics:
   impersonation_forbidden: true
   historical_executor_provenance_preserved: true
 
-worker_slots: []
+worker_slots:
+  - worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+    agent_type: "GPT_ENGINEERING_WORKER"
+    executor_role: "GPT_ENGINEERING_WORKER"
+    model_id: "GPT-5.6 Sol"
+    task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    route_epoch: 143
+    issue: 404
+    pr: 410
+    branch: "gpt/r143-post-r144-fresh-activation"
+    status: "RESERVED_NON_EXECUTABLE"
+    execution_allowed: false
+    completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
+      - ".github/workflows/lane-b-w2-s1-r143.yml"
+    read_paths:
+      - "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+      - "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
+      - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+    interfaces:
+      - name: "C2_A_SHARE_RULE_SNAPSHOT"
+        mode: "write"
+        frozen: false
+    read_domains: [W2, W7]
+    write_domains: [W2]
+    authority_claims:
+      - "C2_A_SHARE_RULE_SNAPSHOT_SINGLE_WRITER"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    provenance:
+      source: "GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION"
+      receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
+      canonical_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
+      user_release: "2026-08-19 explicit: 开始编程1 W2 第一切片。"
+      intended_window: "编程1"
+      reservation_pr: 410
+      reservation_only: true
+    reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+    reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
+    activation_state: "RESERVED"
+    closure_state: null
