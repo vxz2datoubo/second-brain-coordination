@@ -1,10 +1,10 @@
-schema_version: "3.15"
+schema_version: "3.16"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-19T14:02:00+08:00"
+as_of: "2026-08-19T17:11:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -31,19 +31,34 @@ portfolio_capacity_policy:
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
     R60 and R142 implementations are merged and have no active executor reservation. Lane A remains operational for accepted
-    Signal Tower on-demand use, but has no active implementation route or write surface. Same-object and local-heavy limits remain in force.
+    Signal Tower on-demand use with no active implementation write surface. Lane B may run exactly one bounded W2 vertical slice
+    under the R143 claim; no parallel A-share business slice or second W2/C2 writer is allowed.
 
 current_user_release_policy:
-  decision_at: "2026-08-19T14:02:00+08:00"
-  decision: "R142_IMPLEMENTATION_ACCEPTED_MERGED / POST_MERGE_CONTROL_PLANE_CLOSEOUT / NO_SUCCESSOR_RELEASE"
+  decision_at: "2026-08-19T17:11:00+08:00"
+  decision: "LANE_B_W2_S1_USER_RELEASED / R143_ACTIVE_BOUNDED_IMPLEMENTATION"
   rationale: >-
-    PR #400 merged the independently accepted R142 exact head. Post-merge closeout releases the stale Codex/GPT executor routes,
-    Lane-A R142 reservation and Work Claim while preserving normal on-demand Signal Tower operation and all safety boundaries.
-  released_implementation_lanes: []
-  prepared_implementation_lanes: []
-  held_lanes:
+    The Lane-B Master Audit is accepted and merged. User explicitly authorized starting 编程1 W2 first slice. Fresh Signal Tower
+    and Control Tower preflight found no active implementation collision and selected the bounded W2 PIT/rule/inventory replay gate.
+    Canonical activation authorizes only the declared W2 research runtime surface and does not expand to W5/W7/W13, production,
+    private data, secrets, account/order/fund actions or trading.
+  released_implementation_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_POST_MERGE_RECONCILIATION"
+  prepared_implementation_lanes: []
+  held_lanes: []
+  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_SIGNAL_TOWER_CONTROL_TOWER_PREFLIGHT"
+  lane_b_release_issue: 404
+  lane_b_route_epoch: 143
+  lane_b_task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+  lane_b_slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
+  lane_b_executor_role: "GPT_ENGINEERING_WORKER"
+  lane_b_model_id: "GPT-5.6 Sol"
+  lane_b_route: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+  lane_b_task_brief: "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+  lane_b_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  lane_b_master_audit_pr: 402
+  lane_b_master_audit_status: "ACCEPTED_MERGED"
+  lane_b_successor_slices: "NOT_AUTHORIZED"
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
@@ -94,7 +109,16 @@ observed_agent_state:
     observed_pr: 400
     observed_status: "DONE_HISTORICAL"
     execution_allowed: false
-    observation_status: "R142_IMPLEMENTATION_MERGED / NO_ACTIVE_CODEX_OR_GPT_R142_EXECUTOR"
+    observation_status: "R142_IMPLEMENTATION_MERGED / NO_ACTIVE_CODEX_R142_EXECUTOR"
+  GPT_ENGINEERING_WORKER:
+    source: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+    observed_task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    observed_route_epoch: 143
+    observed_issue: 404
+    observed_pr: null
+    observed_status: "READY_AFTER_ACTIVATION_MERGE"
+    execution_allowed: true
+    observation_status: "ACTIVE_BOUNDED_IMPLEMENTATION / W2_ONLY / NO_TRADE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -135,7 +159,7 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: >-
       Maintain the shared Cognitive OS coordination/runtime substrate and accepted Global Signal Tower capabilities without
-      replacing GitHub/W3/domain authorities. R142 retrospective durable ingress is now accepted and merged.
+      replacing GitHub/W3/domain authorities. R142 retrospective durable ingress is accepted and merged.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
@@ -171,17 +195,27 @@ program_lanes:
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
     owner: "USER"
     architecture_owner: "GPT"
-    desired_state: "PAUSED"
-    observed_state: "PREPARING_NOT_STARTED"
+    desired_state: "ACTIVE"
+    observed_state: "W2_S1_R143_ACTIVE_BOUNDED_IMPLEMENTATION"
     primary_system_positions: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    current_phase: "PRE_ROUTE_GAP_CONSOLIDATION_HELD"
-    active_execution_route: null
-    dependencies: ["Explicit user start or later broad release", "Fresh Signal Tower + Control Tower release preflight", "PIT/T+1/W7/NO_TRADE gates"]
-    shared_interfaces: ["W2 A-share data/rules", "W3 knowledge/context", "W7 validation/risk", "W10 DecisionEpisode"]
-    next_gate: "EXPLICIT_USER_START_THEN_SIGNAL_TOWER_PREFLIGHT_AND_FRESH_CONTROL_TOWER_RELEASE"
-    maturity: "READY_FOR_TASK_DESIGN_BUT_HELD"
+    current_phase: "W2_S1_G0_AUTHORITY_INVENTORY"
+    active_execution_route: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+    active_issue: 404
+    active_task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    active_slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
+    dependencies:
+      - "Merged Lane-B Master Audit PR #402"
+      - "Fresh Signal Tower + Control Tower preflight completed"
+      - "Canonical R143 Work Claim + executable route"
+      - "PIT/T+1/session/reference-price/fillability gates"
+    shared_interfaces: ["W2 A-share data/rules", "C1 Market Time and Availability", "C2 AShareRuleSnapshot", "W7 read-only validation context"]
+    next_gate: "G0_CONCRETE_W2_C2_AUTHORITY_INVENTORY / SCHEMA_MATERIALIZATION_GATE_IF_REQUIRED"
+    maturity: "FIRST_BOUNDED_IMPLEMENTATION_SLICE_ACTIVE"
     heavy_execution_authorized: false
-    implementation_owner_candidate: "CODEX"
+    heavy_execution_start_gate: "BOUNDED_LIGHTWEIGHT_G0_G4_ONLY / LOCAL_HEAVY_MAX_1_IF_LATER_REQUIRED"
+    implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
+    write_authority_domain: "W2_ONLY"
+    successor_slice_authorized: false
 
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
     mission: "Preserve the completed Second Brain × GPT cognitive closed-loop foundation as a frozen reusable authority boundary."
@@ -200,16 +234,16 @@ program_lanes:
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-    overlap_level: "O0_NO_ACTIVE_R142_IMPLEMENTATION"
-    rule: "Lane A has no active implementation work surface; Lane B remains held proposal-only."
+    overlap_level: "O0_NO_ACTIVE_RUNTIME_COLLISION"
+    rule: "Lane A has no active implementation write surface; Lane B R143 is the only active A-share implementation slice."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     rule: "Accepted Signal Tower operation may consume frozen W3/domain interfaces but cannot mutate W3/domain canonical truth."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
-    overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
-    rule: "No current implementation collision; Lane B remains held."
+    overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT_READ_ONLY"
+    rule: "Lane B R143 writes W2 only; W3/W10 remain frozen/read-only for this slice."
 
 reconciliation_rule: >-
-  R142 is accepted, merged and historical/non-executable as an implementation route. Lane A has no active R142 Work Claim or
-  executor reservation. Ordinary Signal Tower operation remains ON_DEMAND_PREFLIGHT_AVAILABLE. Any successor implementation,
-  production/private/W3/domain/trading expansion requires a new governed decision, fresh preflight and a new Work Claim.
+  R142 remains accepted, merged and historical/non-executable. Lane A has no implementation Work Claim. Lane-B W2 S1 R143 is
+  the only active A-share implementation slice and owns only the declared W2 surfaces through the canonical Work Claim and route.
+  No successor slice, production/private/W3/domain/trading expansion is implied.

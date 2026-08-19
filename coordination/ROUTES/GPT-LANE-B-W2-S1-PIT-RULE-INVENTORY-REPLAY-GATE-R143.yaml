@@ -1,9 +1,9 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "READY_PENDING_ATOMIC_WORK_CLAIM"
-execution_allowed: false
-runtime_code_change_allowed: false
+status: "READY_AFTER_ACTIVATION_MERGE"
+execution_allowed: true
+runtime_code_change_allowed: true
 automatic_resume: false
 merge_authorized: false
 self_review_forbidden: true
@@ -15,9 +15,13 @@ binding:
   lane_id: "LANE-B-A-SHARE-REMEDIATION"
   slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
   task_brief: "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+  work_claim: "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
   source_master_audit: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
   implementation_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
-  base_at_registration: "f87beaa1f87494254d7b8e360859681dfb19d244"
+  registration_base: "6192d9c89c2e0c6cb9586233db83a5a0f2608ff4"
+  activation_semantics: >-
+    This route becomes executable only when the activation candidate containing this exact route and the matching Lane-B Work Claim
+    is merged to canonical main. Presence on an unmerged activation branch is not execution authority.
 
 executor:
   role: "GPT_ENGINEERING_WORKER"
@@ -43,7 +47,7 @@ authority_contract:
   schema_materialization_gate: "STOP_FOR_GPT_IF_NEW_CANONICAL_SCHEMA_IDENTITY_REQUIRED"
 
 write_scope:
-  runtime_allowed_after_claim_activation:
+  runtime_allowed:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
@@ -73,12 +77,11 @@ resource_contract:
   cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
 
 activation_requirements:
-  - "fresh current main"
-  - "Lane-B Work Claim binds this exact route"
+  - "route and Lane-B Work Claim are both canonical on main"
+  - "Issue #404 remains OPEN"
   - "no concurrent A-share vertical slice"
   - "no second W2/C2 writer"
-  - "Issue #404 remains OPEN"
-  - "user release remains valid"
+  - "fresh main before branch creation"
 
 hard_locks:
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
@@ -94,4 +97,4 @@ hard_locks:
   - "NO_SELF_REVIEW_OR_SELF_MERGE"
 
 completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_ATOMIC_WORK_CLAIM_ACTIVATION"
+next_command: "READ_TASK_CLAIM_VALID_ROUTE_AND_EXECUTE_G0"

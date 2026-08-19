@@ -1,4 +1,4 @@
-schema_version: "3.12"
+schema_version: "3.13"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -68,34 +68,50 @@ claims:
       reopen_rule: "FRESH_GOVERNED_DECISION_AND_NEW_WORK_CLAIM_REQUIRED"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
-    claim_state: "HELD_PROPOSAL_ONLY"
-    execution_agent: null
-    resource_class: "LIGHT_RESEARCH_DESIGN"
-    route_binding: null
-    safe_start_after_foundation:
-      mode: "PROPOSAL_ONLY"
-      allowed_write_paths:
-        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
-      runtime_write_allowed: false
-      implementation_route_allowed: false
+    claim_state: "ACTIVE_BOUNDED_IMPLEMENTATION"
+    execution_agent: "GPT_ENGINEERING_WORKER"
+    resource_class: "BOUNDED_W2_RESEARCH_RUNTIME"
+    route_binding: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+    issue: 404
+    task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    route_epoch: 143
+    implementation_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
     write_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
+      - ".github/workflows/lane-b-w2-s1-r143.yml"
     read_paths:
       - "coordination/ACTIVE-PROGRAM-LANES.yaml"
       - "coordination/CONTROL-TOWER"
+      - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-      - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
-      - "coordination/SKILLS"
-    interfaces: []
-    read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    write_domains: []
-    authority_claims: []
+    interfaces: ["C1_MARKET_TIME_AND_AVAILABILITY", "C2_A_SHARE_RULE_SNAPSHOT"]
+    read_domains: [W2, W7]
+    write_domains: [W2]
+    authority_claims:
+      - "W2_ONLY"
+      - "C2_A_SHARE_RULE_SNAPSHOT_SINGLE_WRITER"
+      - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+    runtime_write_allowed: true
+    implementation_route_allowed: true
+    schema_materialization_gate: "STOP_FOR_GPT_IF_NEW_CANONICAL_SCHEMA_IDENTITY_REQUIRED"
+    no_trade: true
+    no_live_broker_or_market_data: true
+    no_w3_or_signal_tower_write: true
+    no_parallel_a_share_vertical_slice: true
 
 release_semantics:
   lane_a_closeout: >-
-    R142 implementation PR #400 is accepted and merged. The R142 Codex route and GPT Engineering Worker substitution route are
-    historical/non-executable, the Lane-A R142 implementation reservation is released, and all current R142 work surfaces are empty.
-    Ordinary Signal Tower use remains available on demand without an active implementation claim.
+    R142 implementation is accepted/merged/closed. Lane-A has no active implementation work surface. Ordinary Signal Tower use
+    remains available on demand without an active implementation claim.
+  lane_b_release: >-
+    User explicitly authorized Lane-B W2 first slice on 2026-08-19. Fresh Signal Tower + Control Tower preflight found no active
+    implementation collision. Exactly one bounded W2 vertical slice is released under Issue #404 / route epoch 143. Runtime writes
+    are limited to the declared Phase-2 offline-research surfaces and remain research-only / NO_TRADE.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
