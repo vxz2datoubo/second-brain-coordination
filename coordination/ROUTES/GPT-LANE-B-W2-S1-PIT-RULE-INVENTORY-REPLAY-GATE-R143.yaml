@@ -1,0 +1,97 @@
+schema_version: "1.0"
+route_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+repository: "vxz2datoubo/second-brain-coordination"
+status: "READY_PENDING_ATOMIC_WORK_CLAIM"
+execution_allowed: false
+runtime_code_change_allowed: false
+automatic_resume: false
+merge_authorized: false
+self_review_forbidden: true
+
+binding:
+  task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+  route_epoch: 143
+  issue: 404
+  lane_id: "LANE-B-A-SHARE-REMEDIATION"
+  slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
+  task_brief: "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+  source_master_audit: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  implementation_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  base_at_registration: "f87beaa1f87494254d7b8e360859681dfb19d244"
+
+executor:
+  role: "GPT_ENGINEERING_WORKER"
+  model_id: "GPT-5.6 Sol"
+  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+  impersonation_forbidden: true
+
+mode:
+  value: "project_plan"
+  label: "【Codex模式：项目计划模式】"
+  reason: >-
+    The defect family is known, but concrete W2/C2 authority inventory, PIT rule materialization, adversarial replay tests and
+    exact-head evidence are required before implementation can be accepted.
+
+boundary: "RESEARCH_ONLY / NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION"
+
+authority_contract:
+  owner: "W2"
+  object: "AShareRuleSnapshot"
+  shared_contract: "C2_A_SHARE_RULE_SNAPSHOT"
+  write_policy: "SINGLE_WRITER_READ_ONLY_CONSUMERS"
+  no_second_authority: true
+  schema_materialization_gate: "STOP_FOR_GPT_IF_NEW_CANONICAL_SCHEMA_IDENTITY_REQUIRED"
+
+write_scope:
+  runtime_allowed_after_claim_activation:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+  task_evidence_allowed:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
+    - ".github/workflows/lane-b-w2-s1-r143.yml"
+  read_only_without_separate_gate:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
+    - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
+    - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  forbidden:
+    - "broker/account/order/fund adapters"
+    - "production market data"
+    - "W3 canonical write"
+    - "Signal Tower runtime write"
+    - "W5/W7/W13 implementation"
+    - "new factor/signal implementation"
+    - "L2/tick/order/queue ingestion"
+    - "secret/API/permission expansion"
+
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  global_python_or_docker_kill: "FORBIDDEN"
+  cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
+
+activation_requirements:
+  - "fresh current main"
+  - "Lane-B Work Claim binds this exact route"
+  - "no concurrent A-share vertical slice"
+  - "no second W2/C2 writer"
+  - "Issue #404 remains OPEN"
+  - "user release remains valid"
+
+hard_locks:
+  - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+  - "PRICE_VALIDITY_NE_ORDER_FILLABILITY"
+  - "UNSUPPORTED_MARKET_OR_SESSION_FAILS_CLOSED"
+  - "BSE_NOT_DEFAULTED_TO_SSE_SZSE"
+  - "NO_TRADE"
+  - "NO_ACCOUNT_ORDER_FUND_ACCESS"
+  - "NO_PRODUCTION_OR_PRIVATE_DATA"
+  - "NO_W3_OR_SIGNAL_TOWER_WRITE"
+  - "NO_L2_TICK_ORDER_QUEUE_INGESTION"
+  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
+  - "NO_SELF_REVIEW_OR_SELF_MERGE"
+
+completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
+next_command: "WAIT_FOR_ATOMIC_WORK_CLAIM_ACTIVATION"
