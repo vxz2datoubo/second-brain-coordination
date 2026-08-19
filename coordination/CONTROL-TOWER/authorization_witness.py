@@ -7,7 +7,12 @@ from typing import Any
 
 from control_tower import AGENT_FILES, PROGRAM_REGISTRY, load_yaml, normalize_route, route_witness
 from lane_claims import CLAIMS_FILE, validate_claims
-from worker_slots import AGENT_TYPE as GPT_WORKER_AGENT_TYPE, load_worker_slots, worker_slot_route_witness
+from worker_slots import (
+    AGENT_TYPE as GPT_WORKER_AGENT_TYPE,
+    load_worker_slots,
+    worker_registry_witness,
+    worker_slot_route_witness,
+)
 
 RELEASE_GATE = "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
 
@@ -41,6 +46,7 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
     worker_slots = load_worker_slots(root)
     worker_slots_by_id = {slot.worker_slot_id: slot for slot in worker_slots if slot.worker_slot_id}
     worker_slots_witness = [worker_slot_route_witness(slot) for slot in worker_slots]
+    worker_registry = worker_registry_witness(root)
 
     route = None
     if agent == GPT_WORKER_AGENT_TYPE:
@@ -74,6 +80,7 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         "all_claims": all_claims,
         "all_lanes": all_lanes,
         "all_routes": all_routes,
+        "worker_registry": worker_registry,
         "worker_slots": worker_slots_witness,
         "release_policy": registry.get("current_user_release_policy", {}),
         "capacity_policy": registry.get("portfolio_capacity_policy", {}),
@@ -94,15 +101,17 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         "lane_release_state": gate.get("lane_release_state"),
     }
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         **key_fields,
         "route_fingerprint": route.get("fingerprint") if route else None,
         "all_routes_fingerprint": _hash(all_routes),
+        "worker_registry_fingerprint": _hash(worker_registry),
         "worker_slots_fingerprint": _hash(worker_slots_witness),
         "claim_fingerprint": _hash(claim),
         "all_claims_fingerprint": _hash(all_claims),
         "policy_fingerprint": _hash(
             {
+                "worker_registry": material["worker_registry"],
                 "release_policy": material["release_policy"],
                 "capacity_policy": material["capacity_policy"],
                 "all_overlaps": material["all_overlaps"],
