@@ -1,7 +1,7 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "READY_PENDING_ACTIVATION"
+status: "CLOSED_HISTORY_ONLY"
 execution_allowed: false
 runtime_code_change_allowed: false
 automatic_resume: false
@@ -28,10 +28,10 @@ mode:
   value: "project_plan"
   label: "【Codex模式：项目计划模式】"
   reason: >-
-    Control Tower agent ontology, multi-slot route identity, Work Claim binding, authorization witness,
-    projection and backward compatibility must change coherently and be adversarially tested.
+    Historical record of the Control Tower agent-ontology extension. The implementation is merged and this route carries no
+    current execution lease or write authority.
 
-boundary: "CONTROL_TOWER_GOVERNANCE_ONLY / NO_TRADE / NO_W2_RUNTIME / NO_PRIVATE_DATA / NO_PRODUCTION"
+boundary: "CLOSED_HISTORY_ONLY / NO_TRADE / NO_W2_RUNTIME / NO_PRIVATE_DATA / NO_PRODUCTION"
 
 architecture_contract:
   canonical_target_agent_type: "GPT_ENGINEERING_WORKER"
@@ -41,13 +41,23 @@ architecture_contract:
   existing_parallel_policy_must_be_honored: true
   route_alone_never_authorizes_execution: true
 
-write_scope_after_activation:
+historical_write_scope:
   - "coordination/CONTROL-TOWER/**"
   - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
   - "coordination/PROGRAM-CONTROL-TOWER.md"
   - ".github/workflows/program-control-tower-foundation.yml"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/**"
+current_write_scope: []
+
+closure:
+  implementation_pr: 408
+  accepted_exact_head: "217a38e341b0c66864b67b549cdccf0be7757206"
+  independent_final_review: 4975349444
+  merge_commit: "d9734f2db3f039167f0e3e32933392ae5571de13"
+  execution_lease: "RELEASED"
+  closeout_receipt: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
+  successor_requires_new_authority: true
 
 read_only_boundaries:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/**"
@@ -64,16 +74,6 @@ resource_contract:
   global_python_or_docker_kill: "FORBIDDEN"
   cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
 
-activation_requirements:
-  - "fresh current main"
-  - "Issue #406 OPEN"
-  - "CODEX predecessor lease released"
-  - "Lane-A new ACTIVE_IMPLEMENTATION Work Claim bound exactly to R144 CODEX route"
-  - "Lane-B R143 remains runtime-frozen"
-  - "no Control Tower same-object writer collision"
-  - "Program Control Tower projection deterministic"
-  - "fresh authorization witness"
-
 hard_locks:
   - "NO_TRADE"
   - "NO_W2_RUNTIME"
@@ -88,4 +88,4 @@ hard_locks:
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
 
 completion_signal: "R144_CONTROL_TOWER_GPT_ENGINEERING_WORKER_FIRST_CLASS_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_CANONICAL_CODEX_ACTIVATION"
+next_command: "NO_EXECUTION_CLOSED_HISTORY"
