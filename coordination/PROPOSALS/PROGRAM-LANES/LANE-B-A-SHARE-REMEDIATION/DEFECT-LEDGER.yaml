@@ -1,4 +1,4 @@
-schema_version: "1.1"
+schema_version: "1.2"
 audit_id: "A_SHARE_LANE_B_MASTER_REMEDIATION_AUDIT"
 repository: "vxz2datoubo/second-brain-coordination"
 lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -6,15 +6,24 @@ executor_role: "GPT_ENGINEERING_WORKER"
 model_id: "GPT-5.6 Sol"
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】Lane-B A股系统总缺陷审计与首切片设计"
-status: "PROPOSAL_AUDIT_R2_READY_FOR_INDEPENDENT_REVIEW"
+status: "PROPOSAL_AUDIT_R3_READY_FOR_INDEPENDENT_REVIEW"
 boundary: "PROPOSAL_AUDIT_IMPLEMENTATION_READY_DESIGN / RESEARCH_ONLY / NO_TRADE"
 durable_role: "CURRENT_FORMAL_MASTER_DEFECT_LEDGER"
 created_from_canonical_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
-review_normalization:
-  independent_review_id: 4964079607
-  reviewed_exact_head: "490676b32a8d17ad9988dc36002861005a3020e7"
-  disposition: "CHANGES_REQUIRED_AUDIT_NORMALIZATION_ONLY / KEEP_DRAFT / NO_IMPLEMENTATION / NO_MERGE"
-  r2_scope: "DEFECT-LEDGER.yaml ONLY"
+
+review_history:
+  r2_normalization:
+    independent_review_id: 4964079607
+    reviewed_exact_head: "490676b32a8d17ad9988dc36002861005a3020e7"
+    disposition: "CHANGES_REQUIRED_AUDIT_NORMALIZATION_ONLY / KEEP_DRAFT / NO_IMPLEMENTATION / NO_MERGE"
+    scope: "DEFECT-LEDGER.yaml ONLY"
+    substantive_result: "ACCEPTED_BY_R3_REVIEW"
+  r3_information_preservation:
+    independent_review_id: 4968932092
+    reviewed_exact_head: "e80441cf9a95ebbb302a6872d8d6a02517a97c84"
+    disposition: "CHANGES_REQUIRED_R3_AUDIT_INFORMATION_PRESERVATION_ONLY / KEEP_DRAFT / NO_IMPLEMENTATION / NO_MERGE"
+    scope: "DEFECT-LEDGER.yaml ONLY"
+    remediation_rule: "MERGE_FORWARD_STILL_VALID_R1_MASTER_CONTENT_WITHOUT_REVIVING_SUPERSEDED_R1_ERRORS"
 
 hard_locks:
   - "NO_REAL_TRADING_RUNTIME_WRITE"
@@ -26,18 +35,62 @@ hard_locks:
   - "NO_R142_OR_R60_WRITE"
   - "NO_AI_FILM_REPOSITORY_WRITE"
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+  - "NO_TASK_CREATION"
+  - "NO_ISSUE_CREATION"
+  - "NO_WORK_CLAIM_CREATION"
+  - "NO_IMPLEMENTATION_ROUTE_CREATION"
+  - "NO_W5_W7_W13_IMPLEMENTATION_START"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
   - "NO_RESET_REBASE_FORCE_PUSH_HISTORY_REWRITE"
 
 canonical_reconciliation:
-  final_canonical_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  current_canonical_main_at_r3_prewrite: "341fefa057d891103ef9de91af719e1050e4a0ab"
   lane_b_authority: "HELD_PROPOSAL_ONLY"
   lane_b_runtime_write_allowed: false
   lane_b_implementation_route_allowed: false
   lane_b_proposal_write_root: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
-  same_path_writer_conflict: "NONE_FOUND_AT_R1_RECONCILE"
   local_heavy_stage_state: "UNKNOWN_EXTERNAL_MACHINE_STATE / NO_LOCAL_HEAVY_STAGE_STARTED_BY_THIS_AUDIT"
+
+historical_audit_reconciliation:
+  classification: "HISTORICAL_AUDIT_FACT"
+  prior_observed_main: "8780d457997914632507eed03e54a1c685444aba"
+  reconciled_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  cause: "R142 PR #400 merged during the R1 audit window"
+  r142_accepted_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
+  r142_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  r1_disposition: "FRESH_RECONCILED_BEFORE_R1_DURABLE_WRITE"
+  historical_preflight_observation:
+    - "Canonical main advanced from 8780d457... to 341fefa057... during R1 because R142 merged."
+    - "R1 observed then-stale control-plane projections relative to the merged R142 implementation and treated them as an external governance finding, not as Lane-B write authority."
+  current_execution_authority: false
+  stale_r142_projection_reasserted_as_current_fact: false
+  interpretation: >-
+    This section preserves why the master audit changed base during R1. It is reconciliation history only.
+    Current execution authority must always come from a fresh control-plane/main read; this historical observation must not be used as a present-tense route, claim or implementation authorization.
+
+r2_concurrent_write_provenance:
+  classification: "AUDIT_INTEGRITY_PROVENANCE"
+  concurrency_observed: true
+  same_branch: true
+  branch: "gpt/lane-b-a-share-master-remediation-audit"
+  writer_identity: "UNKNOWN"
+  attribution_reason: "The shared GitHub account/tool evidence does not mechanically distinguish which window or tool performed the concurrent same-branch write."
+  force_overwrite: false
+  reset: false
+  rebase: false
+  force_push: false
+  final_head_fresh_read: true
+  ancestry_mechanically_confirmed:
+    base_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
+    r1_head: "490676b32a8d17ad9988dc36002861005a3020e7"
+    r2_head: "e80441cf9a95ebbb302a6872d8d6a02517a97c84"
+    base_to_r1: "ahead_by=1 / behind_by=0"
+    r1_to_r2: "ahead_by=1 / behind_by=0"
+    linear_chain: "341fefa057d891103ef9de91af719e1050e4a0ab -> 490676b32a8d17ad9988dc36002861005a3020e7 -> e80441cf9a95ebbb302a6872d8d6a02517a97c84"
+  final_changed_path_count_at_r2: 1
+  final_changed_path_at_r2: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  integrity_interpretation: "Concurrent write was reconciled by fresh read; no hidden fork or destructive history operation was used."
 
 signal_tower_preflight:
   sequence:
@@ -67,6 +120,7 @@ w2_authority_guard:
 
 current_system_maturity:
   overall: "CONTRACT_RICH / BLUEPRINT_RICH / RUNTIME_SPARSE / VALIDATION_PARTIAL / NO_TRADE"
+  governance_and_authority_design: "MEDIUM_HIGH"
   w2_market_data_and_replay: "PARTIAL_FOUNDATION_EXISTS / MATERIAL_EXECUTION_SEMANTIC_GAPS"
   w4_factors_and_strategies: "PARTIAL_FOUNDATION / MANY_CANDIDATES"
   w5_event_intelligence: "CONTRACTED_NOT_IMPLEMENTED"
@@ -78,6 +132,212 @@ current_system_maturity:
   w12_probability: "PARTIAL / BOUNDED_CAPABILITY_REFERENCED"
   w13_participant_flow: "CONTRACTED_NOT_IMPLEMENTED / VALIDATION_PROTOCOL_NOT_RUN"
   live_trading: "FORBIDDEN_NOT_A_MATURITY_TARGET"
+  key_interpretation: >-
+    The dominant risk is not lack of sophisticated ideas. It is confusing mature blueprints/contracts with implemented, point-in-time,
+    rule-current, execution-evidenced, out-of-sample validated capability.
+
+user_cognition_mapping:
+  known_and_explicitly_expressed:
+    - "A-share T+1, auction, price-limit, suspension and liquidity constraints must be modeled."
+    - "L2/tick/order-flow evidence must not be faked from lower-grade aggregates."
+    - "Volume Profile, Delta, CVD, Absorption, Footprint, Imbalance, VWAP and CMF are useful only with matching data capability."
+    - "Single-factor results are insufficient; multi-factor interactions and different regimes require validation."
+    - "Causation and correlation must be separated."
+    - "Kunlun/BlueFocus need forward exposure, price-implied expectations, earnings surprise and market-pricing analysis."
+    - "Cross-market event transmission should be backtested rather than assumed."
+    - "Institution/quant/active-capital/retail simulations require explicit strengths, weaknesses and game interaction."
+    - "Sentiment can be manipulated and should not receive naive high weight."
+    - "Real trade feedback should feed back into factors, failure conditions and risk."
+  probably_known_but_not_fully_structured:
+    - "T+1 must be settlement-aware at lot or equivalent sellable/locked inventory level: same-day buys cannot erase saleability of older settled inventory, and eligibility advances on the next TRADING DAY rather than a calendar-day shortcut."
+    - "Market rules must be effective-date, board, security-type and rule-version keyed rather than a single global percentage."
+    - "PRICE_VALIDITY and ORDER_FILLABILITY are different questions: a bar at the limit price cannot by itself prove that an order could not fill."
+    - "Price-limit calculations need an authoritative limit_reference_price with provenance; the previous processed bar.close is not a universal substitute, especially for intraday bars, ex-right/ex-dividend sessions and no-limit/special regimes."
+    - "A green synthetic test can be false-green if the fixture era never crosses a rule-regime boundary or omits adversarial fillability/reference-price cases."
+    - "Data-source priority is not the same thing as proven runtime entitlement/capability; GitHub non-proof is a P0_GATING_UNKNOWN, not proof of absence."
+  unknown_but_easy_to_explain:
+    - "fillability evidence tiers: bar-level price state versus queue/order-book/contra-liquidity evidence"
+    - "authoritative limit_reference_price and ex-right/ex-dividend reference-price semantics"
+    - "purged walk-forward, embargo and lockbox as anti-leakage validation gates"
+    - "PBO / Deflated Sharpe / White Reality Check / SPA as defenses against selection and multiple-testing bias"
+    - "effective independent trials versus raw trade count"
+    - "point-in-time corporate-action and vendor-revision snapshots"
+  unknown_and_requires_layered_explanation:
+    - "causal event identification under overlapping policy/news shocks"
+    - "multiple-testing correction across adaptive factor/strategy search"
+    - "capacity/adverse-selection modeling under endogenous market impact"
+    - "hidden participant type inference without converting probabilistic behavior evidence into identity claims"
+    - "order-fill probability calibration under partial observation of queue priority, hidden liquidity and changing market phase"
+
+coverage_by_requested_dimension:
+  A_DATA:
+    implementation_maturity: "PARTIAL_FOUNDATION"
+    validation_maturity: "PARTIAL / MULTIPLE CAPABILITIES UNPROVEN"
+    covered:
+      - "PIT clocks and lineage contracts"
+      - "historical bars"
+      - "suspension/ST/adjustment markers"
+      - "data quality concepts"
+      - "source grading concepts"
+    unresolved:
+      - "authoritative limit_reference_price integration with provenance/effective-rule binding"
+      - "multi-source revision arbitration"
+      - "corporate-action PIT semantics"
+      - "financial/announcement PIT adapter implementation"
+    unknown:
+      - "current TQ-Python connectivity and exact entitlements"
+      - "current TDX MCP/TdxQuant capability"
+      - "current WeStock capability"
+      - "current vipdoc coverage/semantics"
+      - "current raw L2/tick/order/queue availability"
+  B_MARKET_MICROSTRUCTURE:
+    implementation_maturity: "DESIGN_RICH / RUNTIME_PARTIAL"
+    validation_maturity: "MATERIAL_EXECUTION_SEMANTIC_GAPS"
+    covered:
+      - "basic T+1 same-day lock"
+      - "basic price-limit gate"
+      - "fixed slippage and transaction-cost fields"
+      - "VWAP/Volume Profile/order-flow concepts in blueprints"
+      - "ABSTAIN/UNKNOWN design semantics"
+    unresolved:
+      - "effective board/status/rule-regime price limits"
+      - "PRICE_VALIDITY versus ORDER_FILLABILITY separation"
+      - "authoritative limit_reference_price"
+      - "settlement-aware lot/sellable inventory"
+      - "market session/auction/after-hours replay"
+      - "trading-calendar gate"
+      - "partial fill and queue modeling"
+      - "liquidity/capacity impact calibration"
+    unknown:
+      - "reproducibly proven queue/order-book/raw-event capability"
+      - "true Delta/CVD/Footprint capability from current local providers"
+  C_SIGNAL_FACTOR:
+    implementation_maturity: "PARTIAL_CANDIDATES"
+    validation_maturity: "NOT_SYSTEMATICALLY_EXECUTED"
+    covered:
+      - "factor attribution design"
+      - "regime conditioning"
+      - "placebo/negative controls"
+      - "parameter stability requirements"
+    unresolved:
+      - "broad executed OOS evidence"
+      - "multiple-testing family control"
+      - "factor redundancy registry"
+      - "survivorship/label-leakage proof across all strategies"
+    unknown:
+      - "which candidate families would retain net edge after full shared validation"
+  D_EVENT_INTELLIGENCE:
+    implementation_maturity: "CONTRACTED_NOT_IMPLEMENTED"
+    validation_maturity: "DESIGNED / NOT_EXECUTED_AS_SHARED_RUNTIME"
+    covered:
+      - "source grading"
+      - "event clocks"
+      - "expectation/surprise design"
+      - "cross-market transmission design"
+      - "first-public/available-at requirements"
+    unresolved:
+      - "continuous official ingestion"
+      - "runtime rumor/media/official grading"
+      - "deduplicated propagation graph"
+      - "cross-market backtest execution"
+      - "market-already-priced estimator"
+    unknown:
+      - "incremental predictive value after PIT and W2 execution corrections"
+  E_PARTICIPANT_GAME:
+    implementation_maturity: "BLUEPRINT_RICH / NOT_CALIBRATED_RUNTIME"
+    validation_maturity: "W13 NOT_RUN / GAME CALIBRATION NOT_ESTABLISHED"
+    covered:
+      - "quant/active-capital/large-capital/retail archetypes"
+      - "hidden type"
+      - "Level-k"
+      - "counterfactual design"
+      - "identity-versus-behavior boundary"
+    unresolved:
+      - "participant-flow implementation"
+      - "W13 economic backtest"
+      - "real calibration"
+      - "order-book identifiability"
+      - "incremental economic value"
+    unknown:
+      - "current identifiability of participant type from available local data"
+  F_BACKTEST_VALIDATION:
+    implementation_maturity: "PROTOCOL_HIGH / EXECUTION_LOW_TO_PARTIAL"
+    validation_maturity: "MATERIAL_FALSE_GREEN_RISK"
+    covered:
+      - "sample in/out"
+      - "walk-forward"
+      - "regime split"
+      - "cost/slippage"
+      - "T+1"
+      - "price limits"
+      - "halt/liquidity/capacity"
+      - "sensitivity/ablation/counterfactual/placebo/bootstrap"
+      - "multiple-testing and reproducibility requirements"
+      - "failure-condition design"
+    unresolved:
+      - "pre/post-2026-07-06 rule boundary execution"
+      - "STAR/ChiNext 20% regime validation"
+      - "no-limit-period validation"
+      - "authoritative ex-right/ex-dividend reference-price validation"
+      - "bar-at-limit fillability UNKNOWN adversarial validation"
+      - "settled-old + same-day-new partial/multiple-lot settlement validation"
+      - "stale-rule mutation must fail CI"
+      - "system-wide executed multiple-testing/lockbox evidence"
+    unknown:
+      - "which current candidate skills truly pass OOS/economic validation after W2 corrections"
+  G_DECISION:
+    implementation_maturity: "BLUEPRINT_RICH / RUNTIME_PARTIAL"
+    validation_maturity: "PARTIAL / THRESHOLDS_NOT_FULLY_CALIBRATED"
+    covered:
+      - "base/optimistic/pessimistic scenarios"
+      - "confidence"
+      - "strongest counterargument"
+      - "invalidation"
+      - "priced-in framing"
+      - "EIVR/button-system design"
+    unresolved:
+      - "authoritative W10 DecisionEpisode implementation"
+      - "real feedback writeback"
+      - "calibrated button thresholds"
+      - "automatic end-to-end provenance chain"
+    unknown:
+      - "decision-layer incremental value after fully corrected W2/W5/W7 inputs"
+  H_RISK:
+    implementation_maturity: "PARTIAL_FOUNDATION / ADVANCED_CONTROLS_NOT_IMPLEMENTED"
+    validation_maturity: "PARTIAL"
+    covered:
+      - "NO_TRADE boundary"
+      - "risk-veto design"
+      - "position/sector/theme/capacity/ruin concepts"
+      - "data outage/UNKNOWN/abstention concepts"
+    unresolved:
+      - "integrated exposure runtime"
+      - "overnight/gap stress calibration"
+      - "model-disagreement gate"
+      - "data-outage failover proof"
+      - "house-edge survival module backtest"
+    unknown:
+      - "realized robustness of advanced risk gates across regimes"
+  I_SYSTEM_ENGINEERING:
+    implementation_maturity: "GOVERNANCE_STRONG / BUSINESS_RUNTIME_SPARSE"
+    validation_maturity: "EXACT_HEAD_GOVERNANCE_STRONG / BUSINESS_VALIDATION_PARTIAL"
+    covered:
+      - "authority hierarchy"
+      - "claims/routes"
+      - "false-green discipline"
+      - "receipts"
+      - "CI/exact-head patterns"
+      - "resource caps"
+      - "rollback"
+      - "same-branch concurrent-write event preserved with no destructive overwrite"
+    unresolved:
+      - "fresh-state drift remains a recurring governance risk requiring reconcile-before-action"
+      - "future W2 concrete rule-snapshot materialization must bind the existing C2 authority without parallel truth"
+      - "some blueprint/current-task references can become historical/stale and must not outrank fresh canonical state"
+    unknown:
+      - "current external local-process state"
+      - "current local provider capability/entitlement state"
+      - "concurrent-writer window/tool identity for the R2 event"
 
 resolution_inventory:
   RESOLVED_OR_STRONGLY_GUARDED:
@@ -86,6 +346,8 @@ resolution_inventory:
     - "candidate-only and ABSTAIN semantics for unknown market fields"
     - "participant behavior evidence is not participant identity"
     - "blueprint/protocol presence is not implementation evidence"
+    - "W2/C2 AShareRuleSnapshot single-authority guard"
+    - "R2 technical normalization accepted substantively by Independent Review 4968932092"
   PARTIALLY_RESOLVED:
     - "W2 deterministic offline replay"
     - "basic T+1 same-day lock"
@@ -103,6 +365,7 @@ resolution_inventory:
     - "W13 participant-flow implementation and economic backtest"
     - "W10 DecisionEpisode real-feedback loop"
     - "W6 calibrated multi-agent runtime"
+    - "House-edge survival/capacity implementation and backtest"
     - "system-wide executed multiple-testing / lockbox evidence"
   UNKNOWN:
     - "current local TQ-Python connectivity and exact entitlements"
@@ -111,6 +374,59 @@ resolution_inventory:
     - "current vipdoc replay coverage and semantics"
     - "current raw tick/order/queue capability"
     - "current external local-heavy/process state"
+    - "R2 concurrent writer window/tool identity"
+
+official_primary_research_provenance:
+  provenance_policy: "OFFICIAL_PRIMARY / DATE_BOUND / FINDING_LINKED"
+  sources:
+    - source_id: "SSE_TRADING_RULES_2026"
+      source_identity: "Shanghai Stock Exchange Trading Rules (2026 revision), 上证发〔2026〕41号"
+      publisher: "Shanghai Stock Exchange"
+      publication_date: "2026-04-24"
+      effective_date: "2026-07-06"
+      supported_finding_ids:
+        - "LB-P0-001"
+        - "LB-P0-004"
+        - "LB-P0-F02-PRICE-LIMIT-REFERENCE-PRICE-IS-NOT-AUTHORITATIVE"
+        - "LB-P1-006"
+      durable_support_summary:
+        - "2023 trading rules superseded from 2026-07-06"
+        - "general price-limit/no-limit/session rule semantics"
+        - "current rule contains ex-right/ex-dividend reference-price treatment, supporting the need for authoritative limit-reference semantics"
+    - source_id: "SZSE_TRADING_RULES_2026"
+      source_identity: "Shenzhen Stock Exchange Trading Rules (2026 revision), 深证上〔2026〕551号"
+      publisher: "Shenzhen Stock Exchange"
+      publication_date: "2026-04-24"
+      effective_date: "2026-07-06"
+      supported_finding_ids:
+        - "LB-P0-001"
+        - "LB-P0-004"
+        - "LB-P1-006"
+      durable_support_summary:
+        - "2023 trading rules superseded from 2026-07-06"
+        - "effective-date rule binding is required rather than static global replay assumptions"
+    - source_id: "SZSE_RISK_WARNING_GUIDE_2026"
+      source_identity: "Shenzhen Stock Exchange Securities Trading Business Guide No.2 — Risk Warning Board Trading Matters (2026 revision), 深证会〔2026〕261号"
+      publisher: "Shenzhen Stock Exchange"
+      publication_date: "2026-06-30"
+      effective_date: "2026-07-06"
+      supported_finding_ids:
+        - "LB-P0-001"
+        - "LB-P0-004"
+      durable_support_summary:
+        - "main-board risk-warning price-limit regime change is an explicit dated rule transition"
+    - source_id: "MOF_STA_STAMP_TAX_2023_39"
+      source_identity: "Ministry of Finance / State Taxation Administration Announcement 2023 No.39 on halving securities transaction stamp tax"
+      publisher: "Ministry of Finance / State Taxation Administration"
+      publication_date: "2023-08-27"
+      effective_date: "2023-08-28"
+      supported_finding_ids: []
+      supported_audit_items:
+        - "retained transaction-cost/stamp-tax historical provenance"
+        - "validation_plan_for_first_slice.retained_economic_regressions"
+      durable_support_summary:
+        - "securities transaction stamp tax halved from 2023-08-28"
+  anti_overclaim_rule: "Source identity/date proves only the rule/tax facts linked above; it does not prove runtime implementation, fillability, provider capability, or economic edge."
 
 findings:
   - finding_id: "LB-P0-001"
@@ -668,11 +984,11 @@ validation_plan_for_first_slice:
     - "resource/process cleanup receipt"
 
 rollback_plan:
-  current_audit: "Ordinary revert of the ledger-only R2 commit if rejected; no runtime or main mutation by this worker."
+  current_audit: "Ordinary revert of the ledger-only R3 commit if rejected; no runtime or main mutation by this worker."
   future_slice: "Ordinary git revert of bounded implementation commits; no reset/rebase/force/history rewrite."
 
 resource_budget:
-  this_r2:
+  this_r3:
     local_heavy_stage_started: 0
     cpu_bound_workers_started: 0
     task_owned_python_processes_started: 0
@@ -693,6 +1009,8 @@ new_task_issue_pr_decision:
     new_issue: false
     same_draft_pr: 402
     implementation_started: false
+    new_work_claim: false
+    new_implementation_route: false
   future_implementation:
     new_formal_task_or_issue: "ONLY_AFTER_INDEPENDENT_GPT_ACCEPTANCE_AND_USER_RELEASE"
     new_work_claim: "REQUIRED_BEFORE_RUNTIME_WRITE"
@@ -711,7 +1029,7 @@ unresolved_blockers:
   - "Multiple business modules remain NOT_IMPLEMENTED/NOT_RUN/NOT_BACKTESTED."
 
 next_recommendation:
-  immediate: "INDEPENDENT_GPT_REVIEW_OF_R2_AUDIT_ONLY"
+  immediate: "INDEPENDENT_GPT_REVIEW_OF_R3_AUDIT_ONLY"
   after_acceptance: >-
     Fresh Signal Tower/Control Tower preflight, then separately decide whether to create one exact Lane-B implementation Work Claim/route
     for LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE. Do not enter implementation from this audit PR.
@@ -719,9 +1037,11 @@ next_recommendation:
 provenance:
   executor_role: "GPT_ENGINEERING_WORKER"
   model_id: "GPT-5.6 Sol"
-  independent_review_id: 4964079607
-  prior_exact_head: "490676b32a8d17ad9988dc36002861005a3020e7"
-  github_evidence: "GitHub connector fresh reads of PR #402, review, main and prior ledger"
+  r3_independent_review_id: 4968932092
+  r3_reviewed_exact_head: "e80441cf9a95ebbb302a6872d8d6a02517a97c84"
+  r1_parent_head: "490676b32a8d17ad9988dc36002861005a3020e7"
+  github_evidence: "GitHub connector fresh reads of PR #402, Independent Reviews, current main, R1/R2 ledgers and ancestry compares"
+  official_research_evidence: "SSE/SZSE/MOF/STA official primary sources with publication/effective dates retained above"
   local_runtime_access: "NOT_USED"
   private_user_data: "NOT_READ_OR_WRITTEN"
   trading_execution: "NONE"
