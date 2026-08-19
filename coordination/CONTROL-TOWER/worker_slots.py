@@ -19,19 +19,36 @@ from control_tower import (
 GPT_WORKERS_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
 R3_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
-MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
+R4_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
+MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R5.yaml"
+MAINTENANCE_TOMBSTONES_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
 R144_TASK_BRIEF_FILE = "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
 AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 CHECK_ID = "CT-WS"
 EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_REGISTRY_ID = "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 EXPECTED_MAINTENANCE_AUTHORITY_TYPE = "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
-EXPECTED_MAINTENANCE_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
-EXPECTED_PREDECESSOR_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
+EXPECTED_MAINTENANCE_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+EXPECTED_PREDECESSOR_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
 EXPECTED_MAINTENANCE_PR = 408
-EXPECTED_MAINTENANCE_TRIGGER_REVIEW = 4974621759
-EXPECTED_MAINTENANCE_INPUT_HEAD = "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+EXPECTED_MAINTENANCE_TRIGGER_REVIEW = 4974860616
+EXPECTED_MAINTENANCE_INPUT_HEAD = "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
 EXPECTED_RELEASED_SCOPE_STATUS = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+EXPECTED_TOMBSTONE_REGISTRY_ID = "R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES-0001"
+EXPECTED_TOMBSTONE_SEMANTICS = "MONOTONIC_TERMINAL_AUTHORITY_IDS / DELETE_OR_REWRITE_FAILS_CLOSED"
+R4_TERMINAL_RECORD = {
+    "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
+    "authority_file": R4_MAINTENANCE_ADOPTION_FILE,
+    "terminal_state": "RELEASED",
+    "release_commit": "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1",
+    "released_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
+    "reactivation_allowed": False,
+    "terminality_source_review": 4974860616,
+}
+# R5 is added atomically to this map in the final release commit. Until then the live R5 authority is ACTIVE.
+EXPECTED_TERMINAL_RECORDS: dict[str, dict[str, Any]] = {
+    EXPECTED_PREDECESSOR_AUTHORITY_ID: R4_TERMINAL_RECORD,
+}
 
 ACTIVATION_ACTIVE = "ACTIVE"
 ACTIVATION_RESERVED = "RESERVED"
@@ -234,7 +251,11 @@ def _load_maintenance_adoption_doc(repo_root: Path) -> tuple[dict[str, Any] | No
 
 
 def _load_predecessor_maintenance_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
-    return _load_yaml_mapping(repo_root, R3_MAINTENANCE_ADOPTION_FILE, "MAINTENANCE_PREDECESSOR_NOT_MAPPING")
+    return _load_yaml_mapping(repo_root, R4_MAINTENANCE_ADOPTION_FILE, "MAINTENANCE_PREDECESSOR_NOT_MAPPING")
+
+
+def _load_terminal_tombstones_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    return _load_yaml_mapping(repo_root, MAINTENANCE_TOMBSTONES_FILE, "MAINTENANCE_TOMBSTONES_NOT_MAPPING")
 
 
 def _load_r144_task_brief(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
@@ -243,18 +264,40 @@ def _load_r144_task_brief(repo_root: Path) -> tuple[dict[str, Any] | None, str |
 
 def _maintenance_required(repo_root: Path) -> bool:
     root = repo_root.resolve()
-    return (root / R3_MAINTENANCE_ADOPTION_FILE).exists() or (root / MAINTENANCE_ADOPTION_FILE).exists()
+    return any(
+        (root / path).exists()
+        for path in (
+            R3_MAINTENANCE_ADOPTION_FILE,
+            R4_MAINTENANCE_ADOPTION_FILE,
+            MAINTENANCE_ADOPTION_FILE,
+            MAINTENANCE_TOMBSTONES_FILE,
+        )
+    )
+
+
+def terminal_tombstones_witness(repo_root: Path) -> dict[str, Any]:
+    doc, error = _load_terminal_tombstones_doc(repo_root)
+    if error:
+        return {"present": True, "load_error": error, "raw": None}
+    if doc is None:
+        return {
+            "present": False,
+            "load_error": "MAINTENANCE_TOMBSTONES_MISSING" if _maintenance_required(repo_root) else None,
+        }
+    return {"present": True, "raw": doc}
 
 
 def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
     predecessor, predecessor_error = _load_predecessor_maintenance_doc(repo_root)
+    tombstones = terminal_tombstones_witness(repo_root)
     if error:
         return {
             "present": True,
             "load_error": error,
             "raw": None,
             "predecessor": {"present": predecessor is not None, "load_error": predecessor_error, "raw": predecessor},
+            "terminal_tombstones": tombstones,
         }
     result: dict[str, Any] = {
         "present": doc is not None,
@@ -264,6 +307,7 @@ def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
             "load_error": predecessor_error,
             "raw": predecessor,
         },
+        "terminal_tombstones": tombstones,
     }
     if doc is None and _maintenance_required(repo_root):
         result["load_error"] = "MAINTENANCE_ADOPTION_MISSING"
@@ -477,6 +521,200 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
     return findings
 
 
+def _terminal_tombstone_findings(repo_root: Path) -> list[Finding]:
+    doc, error = _load_terminal_tombstones_doc(repo_root)
+    if error:
+        return [
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                error,
+                "Terminal maintenance-authority tombstones must be a machine-readable canonical mapping.",
+                {"path": MAINTENANCE_TOMBSTONES_FILE},
+            )
+        ]
+    if doc is None:
+        return [
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_TOMBSTONES_MISSING",
+                "R144 R5 requires the monotonic terminal-authority tombstone registry; deleting it fails closed.",
+                {"path": MAINTENANCE_TOMBSTONES_FILE},
+            )
+        ]
+
+    findings: list[Finding] = []
+    expected_identity = {
+        "schema_version": "1.0",
+        "registry_id": EXPECTED_TOMBSTONE_REGISTRY_ID,
+        "semantics": EXPECTED_TOMBSTONE_SEMANTICS,
+    }
+    for field, expected in expected_identity.items():
+        if doc.get(field) != expected:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_REGISTRY_IDENTITY_INVALID",
+                    "Terminal-authority tombstone registry identity/semantics drifted from the R144 R5 contract.",
+                    {"field": field, "actual": doc.get(field), "required": expected},
+                )
+            )
+
+    raw_records = doc.get("terminal_authorities")
+    if not isinstance(raw_records, list):
+        return findings + [
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_TOMBSTONE_RECORDS_NOT_LIST",
+                "terminal_authorities must be a list of exact monotonic tombstone records.",
+                {"actual_type": type(raw_records).__name__},
+            )
+        ]
+
+    records: dict[str, dict[str, Any]] = {}
+    for index, raw in enumerate(raw_records):
+        if not isinstance(raw, dict):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_RECORD_NOT_MAPPING",
+                    "Every terminal-authority tombstone must be a mapping.",
+                    {"index": index, "actual_type": type(raw).__name__},
+                )
+            )
+            continue
+        authority_id = raw.get("authority_id")
+        if not isinstance(authority_id, str) or not authority_id:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_AUTHORITY_ID_INVALID",
+                    "Every tombstone requires a non-empty authority_id.",
+                    {"index": index, "actual": authority_id},
+                )
+            )
+            continue
+        if authority_id in records:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_DUPLICATE_AUTHORITY_ID",
+                    "A terminal authority ID may appear only once in the monotonic tombstone registry.",
+                    {"authority_id": authority_id},
+                )
+            )
+            continue
+        records[authority_id] = raw
+
+    missing_expected = sorted(set(EXPECTED_TERMINAL_RECORDS) - set(records))
+    if missing_expected:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_TOMBSTONE_EXPECTED_ID_MISSING",
+                "A previously terminal authority ID cannot be erased from the canonical tombstone registry.",
+                {"missing_authority_ids": missing_expected},
+            )
+        )
+
+    for authority_id, expected_record in EXPECTED_TERMINAL_RECORDS.items():
+        actual = records.get(authority_id)
+        if actual is None:
+            continue
+        for field, expected in expected_record.items():
+            if actual.get(field) != expected:
+                findings.append(
+                    Finding(
+                        CHECK_ID,
+                        "ERROR",
+                        "MAINTENANCE_TOMBSTONE_BINDING_MISMATCH",
+                        "Terminal authority tombstone fields are exact authority material and may not drift.",
+                        {"authority_id": authority_id, "field": field, "actual": actual.get(field), "required": expected},
+                    )
+                )
+
+    for authority_id, record in records.items():
+        authority_file = record.get("authority_file")
+        terminal_state = record.get("terminal_state")
+        if not isinstance(authority_file, str) or not authority_file:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_AUTHORITY_FILE_INVALID",
+                    "Tombstones must bind an exact authority artifact path.",
+                    {"authority_id": authority_id, "actual": authority_file},
+                )
+            )
+            continue
+        if terminal_state != "RELEASED" or record.get("reactivation_allowed") is not False:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONE_TERMINAL_SEMANTICS_INVALID",
+                    "Tombstones must encode RELEASED and reactivation_allowed=false.",
+                    {"authority_id": authority_id, "terminal_state": terminal_state, "reactivation_allowed": record.get("reactivation_allowed")},
+                )
+            )
+            continue
+        authority_doc, authority_error = _load_yaml_mapping(
+            repo_root,
+            authority_file,
+            "MAINTENANCE_TOMBSTONED_AUTHORITY_NOT_MAPPING",
+        )
+        if authority_error or authority_doc is None:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    authority_error or "MAINTENANCE_TOMBSTONED_AUTHORITY_MISSING",
+                    "A terminal tombstone must remain bound to its durable authority artifact.",
+                    {"authority_id": authority_id, "path": authority_file},
+                )
+            )
+            continue
+        if authority_doc.get("authority_id") != authority_id:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONED_AUTHORITY_ID_MISMATCH",
+                    "Tombstone and authority artifact must carry the same exact authority ID.",
+                    {"authority_id": authority_id, "actual": authority_doc.get("authority_id")},
+                )
+            )
+            continue
+        if authority_doc.get("state") == "ACTIVE":
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TERMINAL_AUTHORITY_REACTIVATION",
+                    "A tombstoned authority ID is monotonically terminal and may never become ACTIVE again, even if every release receipt field is deleted.",
+                    {"authority_id": authority_id, "path": authority_file},
+                )
+            )
+        elif authority_doc.get("state") != terminal_state:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONED_AUTHORITY_STATE_MISMATCH",
+                    "A tombstoned authority artifact must remain in its terminal RELEASED state.",
+                    {"authority_id": authority_id, "actual": authority_doc.get("state"), "required": terminal_state},
+                )
+            )
+    return findings
+
+
 def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
     required = _maintenance_required(repo_root)
@@ -497,7 +735,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "MAINTENANCE_ADOPTION_MISSING",
-                    "R144 R4 requires its fresh maintenance/adoption authority artifact; deleting it cannot silently remove governance.",
+                    "R144 R5 requires its fresh maintenance/adoption authority artifact; deleting it cannot silently remove governance.",
                     {"path": MAINTENANCE_ADOPTION_FILE},
                 )
             ]
@@ -518,7 +756,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "MAINTENANCE_ADOPTION_IDENTITY_INVALID",
-                    "Corrective maintenance/adoption authority identity does not match the exact R144 R4 contract.",
+                    "Corrective maintenance/adoption authority identity does not match the exact R144 R5 contract.",
                     {"field": field, "actual": doc.get(field), "required": expected},
                 )
             )
@@ -553,7 +791,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "MAINTENANCE_ADOPTION_BINDING_MISMATCH",
-                    "Maintenance/adoption authority must mechanically match the exact R144 task/epoch/Issue/PR/branch/review/adopted-head binding.",
+                    "Maintenance/adoption authority must mechanically match the exact R144 R5 task/epoch/Issue/PR/branch/review/adopted-head binding.",
                     {"field": field, "actual": doc.get(field), "required": expected},
                 )
             )
@@ -573,9 +811,10 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
 
     predecessor_ref = doc.get("predecessor_authority")
     expected_predecessor_ref = {
-        "path": R3_MAINTENANCE_ADOPTION_FILE,
+        "path": R4_MAINTENANCE_ADOPTION_FILE,
         "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
         "required_state": "RELEASED",
+        "required_terminal_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
     }
     if predecessor_ref != expected_predecessor_ref:
         findings.append(
@@ -583,7 +822,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                 CHECK_ID,
                 "ERROR",
                 "MAINTENANCE_ADOPTION_PREDECESSOR_BINDING_INVALID",
-                "R4 must be a new authority identity chained to the released R3 authority; the old authority may not be reactivated in place.",
+                "R5 must be a new authority identity chained to the released/tombstoned R4 authority; R4 may not be reactivated in place.",
                 {"actual": predecessor_ref, "required": expected_predecessor_ref},
             )
         )
@@ -595,8 +834,8 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                 CHECK_ID,
                 "ERROR",
                 predecessor_error or "MAINTENANCE_PREDECESSOR_MISSING",
-                "R4 requires the retained R3 maintenance authority as a released predecessor record.",
-                {"path": R3_MAINTENANCE_ADOPTION_FILE},
+                "R5 requires the retained R4 maintenance authority as a released predecessor record.",
+                {"path": R4_MAINTENANCE_ADOPTION_FILE},
             )
         )
     else:
@@ -616,7 +855,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "MAINTENANCE_ADOPTION_PREDECESSOR_NOT_RELEASED",
-                    "The R3 authority must remain a released historical predecessor before a new R4 authority can exist.",
+                    "The R4 authority must remain a released predecessor before the new R5 authority can operate.",
                     {"actual": predecessor_actual, "required": predecessor_expected},
                 )
             )
@@ -639,6 +878,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
         "released_scope_status_required": EXPECTED_RELEASED_SCOPE_STATUS,
         "released_is_terminal_for_authority_id": True,
         "next_activation_requires_new_user_issued_authority_id": True,
+        "terminality_must_not_depend_on_mutable_release_receipt_presence": True,
     }
     if state_machine != expected_state_machine:
         findings.append(
@@ -646,7 +886,7 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                 CHECK_ID,
                 "ERROR",
                 "MAINTENANCE_ADOPTION_STATE_MACHINE_INVALID",
-                "R4 maintenance authority must declare the exact ACTIVE→RELEASED terminal-state contract.",
+                "R5 maintenance authority must declare the exact monotonic ACTIVE→RELEASED terminal-state contract.",
                 {"actual": state_machine, "required": expected_state_machine},
             )
         )
@@ -1089,6 +1329,7 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
     root = repo_root.resolve()
     findings: list[Finding] = []
     findings.extend(_registry_findings(root))
+    findings.extend(_terminal_tombstone_findings(root))
     findings.extend(_maintenance_adoption_findings(root))
     slots = load_worker_slots(root)
 
@@ -1255,6 +1496,7 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
     warnings = [asdict(item) for item in findings if item.severity == "WARN"]
     registry_witness = worker_registry_witness(repo_root)
     maintenance_witness = maintenance_adoption_witness(repo_root)
+    tombstone_witness = terminal_tombstones_witness(repo_root)
     maintenance_errors = [
         item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_")
     ]
@@ -1262,11 +1504,12 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
     maintenance_state = maintenance_raw.get("state") if isinstance(maintenance_raw, dict) else None
     maintenance_write_allowed = maintenance_state == "ACTIVE" and not maintenance_errors
     return {
-        "schema_version": "1.3",
+        "schema_version": "1.4",
         "agent_type": AGENT_TYPE,
         "worker_registry": registry_witness,
         "worker_registry_fingerprint": hashlib.sha256(_canonical(registry_witness).encode("utf-8")).hexdigest(),
         "maintenance_adoption": maintenance_witness,
+        "maintenance_terminal_tombstones": tombstone_witness,
         "maintenance_authority_id": maintenance_raw.get("authority_id") if isinstance(maintenance_raw, dict) else None,
         "maintenance_authority_state": maintenance_state,
         "maintenance_write_allowed": maintenance_write_allowed,
