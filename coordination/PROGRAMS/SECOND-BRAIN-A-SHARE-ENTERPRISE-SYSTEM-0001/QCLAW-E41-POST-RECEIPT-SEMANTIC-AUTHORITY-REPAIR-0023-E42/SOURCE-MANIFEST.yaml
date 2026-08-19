@@ -1,0 +1,55 @@
+# SOURCE-MANIFEST.yaml — E42
+schema_version: "56.0"
+task_id: "QCLAW-E41-POST-RECEIPT-SEMANTIC-AUTHORITY-TRACEABILITY-MASTER-RECORD-SKILL-EVIDENCE-CORPUS-EVALUATOR-AND-PROVIDER-CLOSURE-0023-E42"
+branch: "qclaw/e41-post-receipt-semantic-authority-repair-0023-e42"
+epoch: 42
+status: "IMPLEMENTED"
+files:
+  - path: "PROJECT-PLAN.md"
+    description: "E42 plan document"
+  - path: "E41-SOURCE-SELECTION.yaml"
+    description: "E41 code import decisions (adopt/rewrite/reject)"
+  - path: "src/qclaw_e42/__init__.py"
+    description: "Package init"
+  - path: "src/qclaw_e42/authority.py"
+    description: "Q1 Deep-immutable authority: AtomFactory, EvidenceBundle, derived confidence"
+    covers_e41_blockers: [E41-BLOCKER-001, E41-BLOCKER-002]
+  - path: "src/qclaw_e42/source_trace.py"
+    description: "Q2 SourceDocument, SourceSpan, paragraph extraction with exact offsets, LinkRegistry"
+    covers_e41_blockers: [E41-BLOCKER-003, E41-BLOCKER-004]
+  - path: "src/qclaw_e42/master_record.py"
+    description: "Q3 Master record with semantic object identity, version events, conflict governance"
+    covers_e41_blockers: [E41-BLOCKER-005, E41-BLOCKER-006, E41-BLOCKER-007]
+  - path: "src/qclaw_e42/cognition.py"
+    description: "Q4 Evidence-derived cognition and memory routing"
+    covers_e41_blockers: [E41-BLOCKER-008]
+  - path: "src/qclaw_e42/skill_lifecycle.py"
+    description: "Q5 Evidence-bound skill lifecycle with promotion gates"
+    covers_e41_blockers: [E41-BLOCKER-009]
+  - path: "src/qclaw_e42/corpus.py"
+    description: "Q6 Synthetic corpus (13 cases, 5 types) with ground truth expectations"
+    covers_e41_blockers: [E41-BLOCKER-010]
+  - path: "src/qclaw_e42/mutations.py"
+    description: "Q7 Real copied-production mutation harness (15 mutations)"
+    covers_e41_blockers: [E41-BLOCKER-011]
+  - path: "tests/test_q1.py"
+    description: "Authority tests (23)"
+  - path: "tests/test_q2.py"
+    description: "Source traceability tests (30)"
+  - path: "tests/test_q3q5.py"
+    description: "Master record, cognition, skill tests (33)"
+  - path: "tests/test_q6.py"
+    description: "Corpus tests (12)"
+  - path: "tests/test_q7.py"
+    description: "Mutation + module tests (14)"
+  - path: ".github/workflows/qclaw-e42-semantic-authority.yml"
+    description: "CI workflow (3.11+3.13, seeds 0/1/777, 6 artifacts, independent byte compare)"
+    covers_e41_blockers: [E41-BLOCKER-013]
+test_summary:
+  total_tests: 112
+  python_3_11: 112
+  python_3_13: 112
+  all_pass: true
+source_ledger:
+  e41_code: "UNTESTED_UNTIL_E42_REPAIRED_AND_RECERTIFIED"
+  e42_status: "BUILT_FROM_E41_SOURCE_SELECTION_NO_WHOLE_FILE_COPY"

@@ -1,0 +1,34 @@
+# D05-COMMAND-EVIDENCE.yaml — E42
+schema_version: "56.0"
+epoch: 42
+tested_head: "3c5a451ee28e1e13fca4e0a58e2046d70b0f7e5c"
+
+commands:
+  - id: "D05-1"
+    name: "Python 3.13 full test suite"
+    command: "python -m unittest discover -s tests -p 'test_q*.py'"
+    exit_code: 0
+    tests: 112
+    result: "112 OK, 0 FAIL, 0 ERROR"
+  - id: "D05-2"
+    name: "Python 3.11 full test suite"
+    command: "python -m unittest discover -s tests -p 'test_q*.py'"
+    exit_code: 0
+    tests: 112
+    result: "112 OK, 0 FAIL, 0 ERROR"
+  - id: "D05-3"
+    name: "Combined artifact hash"
+    command: "sha256sum (17 source files, sorted, with metadata)"
+    output: "3f36c6c64d1a2780eebaa79aa86350fb228cccd0f171e7e5972515a4261d3f66"
+
+environment:
+  repo: "vxz2datoubo/second-brain-coordination"
+  workspace: "C:\\Users\\Administrator\\.openclaw\\workspace\\second-brain-coordination"
+  python_3_11: "F:\\Program Files (x86)\\QClaw\\v0.2.35.624\\resources\\python\\python.exe"
+  python_3_13: "C:\\Program Files\\Python313\\python.exe"
+  os: "Windows 10.0.22631"
+  PYTHONIOENCODING: "utf-8"
+
+ci_workflow: ".github/workflows/qclaw-e42-semantic-authority.yml"
+ci_matrix: "3.11 + 3.13 × seeds 0/1/777 = 6 jobs"
+ci_compare: "Independent byte-compare job for all 6 artifacts"

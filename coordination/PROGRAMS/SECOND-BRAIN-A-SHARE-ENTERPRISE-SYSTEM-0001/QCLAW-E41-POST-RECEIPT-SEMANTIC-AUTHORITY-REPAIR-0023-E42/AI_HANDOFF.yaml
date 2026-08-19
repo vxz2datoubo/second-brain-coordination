@@ -1,0 +1,45 @@
+# AI_HANDOFF.yaml — E42
+schema_version: "56.0"
+epoch: 42
+branch: "qclaw/e41-post-receipt-semantic-authority-repair-0023-e42"
+pr: 178
+status: "READY_FOR_GPT_INDEPENDENT_REVIEW"
+
+tested:
+  commit: "3c5a451ee28e1e13fca4e0a58e2046d70b0f7e5c"
+  tree: "4c31db6ad18c08bbaacd2aa20be21d92230c9343"
+  tests_total: 112
+  tests_pass: 112
+  python_3_11: "PASS"
+  python_3_13: "PASS"
+  combined_artifact_hash: "3f36c6c64d1a2780eebaa79aa86350fb228cccd0f171e7e5972515a4261d3f66"
+
+e41_blocker_remediation:
+  - blocker: "E41-BLOCKER-001 (forgeable atom_id)"
+    status: "FIXED — AtomFactory.build() only path; direct Atom rejected"
+  - blocker: "E41-BLOCKER-005 (content-hash object_id)"
+    status: "FIXED — Semantic object_id via compute_object_id(semantic_key)"
+  - blocker: "E41-BLOCKER-007 (silent overwrite)"
+    status: "FIXED — Every transition requires VersionEvent"
+  - blocker: "E41-BLOCKER-008 (forgeable CognitionEntry)"
+    status: "FIXED — CognitionEngine.create() derives quality/zone from evidence"
+  - blocker: "E41-BLOCKER-009 (caller-forgeable skills)"
+    status: "FIXED — SkillBuilder enforces lifecycle; single_sample_not_formal()"
+  - blocker: "E41-BLOCKER-010 (corpus non-enum types)"
+    status: "FIXED — All expected_atom_types use ExpectedAtomType enum; 13 cases"
+  - blocker: "E41-BLOCKER-011 (fake mutations)"
+    status: "FIXED — 15 real copied-production mutations; line-number anchored"
+  - blocker: "E41-BLOCKER-013 (no Provider)"
+    status: "FIXED — CI workflow with 6 artifacts, byte-compare, 3.11+3.13"
+
+production_modules:
+  - authority.py: "Q1 Deep-immutable semantic authority"
+  - source_trace.py: "Q2 SourceDocument/SourceSpan/LinkRegistry"
+  - master_record.py: "Q3 Master record + contradiction governance"
+  - cognition.py: "Q4 Evidence-derived cognition"
+  - skill_lifecycle.py: "Q5 Evidence-bound skill lifecycle"
+  - corpus.py: "Q6 Synthetic corpus (13 cases)"
+  - mutations.py: "Q7 Mutation harness (15 muts)"
+
+after_completion: "STOP_AND_REQUEST_GPT_INDEPENDENT_REVIEW"
+merge_authorized: false
