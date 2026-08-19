@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION-0001"
 repository: "vxz2datoubo/second-brain-coordination"
 owner: "USER"
@@ -86,13 +86,48 @@ signal_tower_operating_decision:
 
 control_plane_closeout:
   branch: "gpt/r142-control-plane-closeout"
-  closeout_pr: null
+  closeout_pr: 403
   base_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
-  current_status: "IMPLEMENTATION_MERGED / CONTROL_PLANE_CLOSEOUT_IN_PROGRESS"
+  current_status: "IMPLEMENTATION_MERGED / CONTROL_PLANE_CLOSEOUT_DRAFT_READY_FOR_INDEPENDENT_REVIEW"
   authorized_change_class: "BOUNDED_CONTROL_PLANE_METADATA_AND_CLOSURE_RECEIPT_ONLY"
   runtime_implementation_changes_allowed: false
   implementation_branch_reuse_allowed: false
   implementation_pr_reopen_allowed: false
+  receipt_binding_parent_head: "7169c0dae2c9a13e59f6252909685b681c2f9abd"
+  final_head_binding:
+    method: "PR_HEAD_RELATION / NON_SELF_REFERENTIAL"
+    rule: >-
+      The independently reviewed final PR #403 head must be the direct child of receipt_binding_parent_head. The parent-to-head
+      delta must modify only this canonical closure receipt. GitHub PR metadata supplies the exact final head; the receipt does not
+      attempt the impossible act of embedding its own commit SHA.
+    required_final_delta:
+      - "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
+    reviewer_must_record_exact_final_head: true
+
+validation_history:
+  initial_run: 32222445018
+  initial_result: "FAIL / DERIVED_PROGRAM_CONTROL_TOWER_PROJECTION_MISMATCH_ONLY"
+  initial_python_3_11_job: 95975376035
+  initial_python_3_13_job: 95975375862
+  initial_targeted_regressions: "36/36 PASS"
+  initial_foundation_structural_check: PASS
+  initial_errors: []
+  initial_warnings: []
+  remediation: >-
+    Regenerated only the derived PROGRAM-CONTROL-TOWER.md Control Tower and Work Claim projection blocks from the already
+    reconciled canonical YAML state; no authoritative runtime or control-plane semantic widening was introduced.
+  governed_pre_binding_run: 32222589708
+  governed_pre_binding_result: PASS
+  python_3_11_job: 95975803885
+  python_3_13_job: 95975803660
+  gates:
+    targeted_regressions: PASS
+    canonical_control_plane_reconcile: PASS
+    lane_work_claim_validation: PASS
+    work_claim_bulletin_projection: PASS
+    durable_authorization_witness_round_trip: PASS
+    codex_route_witness: PASS
+  final_exact_head_run: "EXTERNAL_GITHUB_ACTIONS_EVIDENCE_REQUIRED_AFTER_RECEIPT_BINDING_COMMIT"
 
 closeout_decision_after_closeout_merge:
   task_status: "DONE_HISTORICAL"
@@ -108,12 +143,22 @@ closeout_decision_after_closeout_merge:
   successor_implementation_authorized: false
   issue_close_after_closeout_merge: true
 
-current_state_files_to_reconcile:
+current_state_projection:
+  active_codex: "DONE_HISTORICAL / execution_allowed=false / active_executor=NONE"
+  lane_a: "SIGNAL_TOWER_ON_DEMAND_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION"
+  lane_a_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION / NO_ACTIVE_WORK_SURFACE"
+  original_codex_route: "CLOSED_HISTORY_ONLY / execution_allowed=false"
+  gpt_executor_substitution_route: "CLOSED_HISTORY_ONLY / NON_EXECUTABLE / execution_allowed=false"
+  active_r142_write_paths: []
+  successor_implementation: "NOT_AUTHORIZED"
+
+changed_path_allowlist:
   - "coordination/ACTIVE-CODEX-TASK.yaml"
   - "coordination/ACTIVE-PROGRAM-LANES.yaml"
   - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
   - "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
   - "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
+  - "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
   - "coordination/PROGRAM-CONTROL-TOWER.md"
 
 remaining_unknowns:
@@ -143,4 +188,4 @@ rollback:
   closeout: "Ordinary git revert of a future closeout merge commit only if separately authorized."
   destructive_history_operations: FORBIDDEN
 
-next_state: "BUILD_BOUNDED_CLOSEOUT_PROJECTIONS / VALIDATE / DRAFT_PR / AWAIT_INDEPENDENT_GPT_REVIEW"
+next_state: "AWAIT_FINAL_EXACT_HEAD_VALIDATION / THEN_INDEPENDENT_GPT_CLOSEOUT_REVIEW"
