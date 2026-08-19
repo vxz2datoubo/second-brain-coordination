@@ -1,0 +1,70 @@
+name: codex-e55-authority-closure
+
+on:
+  pull_request:
+    paths:
+      - 'coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E54-POST-RECEIPT-AUTHORITY-CLOSURE-0051-E55/**'
+      - '.github/workflows/codex-e55-authority-closure.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  authority:
+    name: authority / py${{ matrix.python }} / seed=${{ matrix.seed }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.13']
+        seed: ['0', '1', '777']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run ordinary authority suite and emit evidence
+        env:
+          PYTHONHASHSEED: ${{ matrix.seed }}
+        run: >-
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E54-POST-RECEIPT-AUTHORITY-CLOSURE-0051-E55/tools/provider_runner.py
+          --output provider-evidence
+          --branch '${{ github.head_ref || github.ref_name }}'
+          --workflow .github/workflows/codex-e55-authority-closure.yml
+          --seed '${{ matrix.seed }}'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canonical-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: provider-evidence/canonical.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: environment-py${{ matrix.python }}-seed${{ matrix.seed }}
+          path: |
+            provider-evidence/environment.json
+            provider-evidence/mutation-results.json
+          if-no-files-found: error
+  compare:
+    name: provider-compare
+    needs: authority
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: provider-artifacts
+      - name: Bind downloaded provider evidence bytes
+        run: >-
+          python coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CODEX-E54-POST-RECEIPT-AUTHORITY-CLOSURE-0051-E55/tools/compare_provider_artifacts.py
+          --root provider-artifacts
+          --output provider-compare.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: provider-compare
+          path: provider-compare.json
+          if-no-files-found: error
