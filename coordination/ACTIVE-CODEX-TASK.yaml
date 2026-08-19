@@ -1,109 +1,93 @@
-schema_version: "144.0"
+schema_version: "145.0"
 repository: "vxz2datoubo/second-brain-coordination"
 target_agent: "CODEX"
-active_issue: 393
-task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
-parent_task_id: "UNIFIED-SIGNAL-TOWER-ENTERPRISE-0001"
-route_epoch: 142
+active_issue: 406
+task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+parent_task_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
+route_epoch: 144
 mode: "project_plan"
-mode_label: "【Codex模式：项目计划模式】R142 Retrospective Signal Intake Bridge / CLOSED_HISTORY_ONLY"
-status: "DONE_HISTORICAL"
-execution_allowed: false
+mode_label: "【Codex模式：项目计划模式】R144 Control Tower GPT Engineering Worker First-Class Agent"
+status: "READY"
+execution_allowed: true
 automatic_resume_within_task: false
-second_user_start_command_required: true
+second_user_start_command_required: false
 intermediate_gpt_review_required: false
 merge_authorized: false
-runtime_code_change_allowed: false
-runtime_code_scope: "CLOSED_HISTORY_ONLY / NO_ACTIVE_RUNTIME_WRITE_AUTHORITY"
-active_executor: null
+runtime_code_change_allowed: true
+runtime_code_scope: "CONTROL_TOWER_GOVERNANCE_ONLY / NO_W2_RUNTIME / NO_TRADE"
+active_executor: "CODEX"
 
-canonical_predecessor_route_epoch: 141
-canonical_predecessor_task: "CODEX-IAGL-R141-STAGE-A-SYNTHETIC-SUPERVISOR"
-canonical_predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
-canonical_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
-canonical_contract: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
-executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
-activation_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-ACTIVATION-RECONCILIATION.yaml"
-closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
-implementation_branch: "codex/r142-retrospective-signal-intake-bridge"
-implementation_pr: 400
+canonical_route: "coordination/ROUTES/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+canonical_contract: "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+implementation_branch: "codex/r144-control-tower-gpt-worker-first-class"
+implementation_pr: null
 
-final_completion:
-  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
+activation:
+  user_authorization: "同意方案B，把 GPT Engineering Worker 正式纳入 Control Tower。"
+  issue: 406
+  source_blocker_pr: 405
+  source_blocker_review: 4970596508
+  architecture_decision_comment: 5340334185
+  release_decision: "PROCEED_R144_FIRST_CLASS_AGENT_EXTENSION / FREEZE_R143_RUNTIME"
+  canonicalization_rule: >-
+    This route becomes current execution truth only when the matching Lane-A ACTIVE_IMPLEMENTATION Work Claim and Program Lane
+    projection are canonical on main. CI passing alone does not grant merge or successor authority.
+
+predecessor_history:
+  task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+  route_epoch: 142
+  status: "DONE_HISTORICAL"
+  issue: 393
   implementation_pr: 400
-  accepted_exact_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
   implementation_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
-  independent_final_review: 4963324873
-  issue_post_merge_freeze_checkpoint: 5331110683
-  exact_head_ci: 32157970026
-  findings_closed: ["R142-F01", "R142-F02", "R142-F03", "R142-F04", "R142-F05"]
-  execution_authority: "NONE"
-  active_write_paths: []
-  successor_implementation_authorized: false
+  closure_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
+  execution_lease: "RELEASED"
 
-historical_executor_substitution:
-  status: "CLOSED_HISTORICAL / NON_EXECUTABLE"
-  task_identity_retained: true
-  historical_executor: "CODEX"
-  historical_executor_started_r142: false
-  replacement_executor_role: "GPT_ENGINEERING_WORKER"
-  replacement_model_id: "GPT-5.6 Sol"
-  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
-  historical_branch: "codex/r142-retrospective-signal-intake-bridge"
-  provenance_rule: >-
-    Historical Codex activation and GPT Engineering Worker substitution provenance remain historical facts. No executor retains
-    current R142 execution authority after the accepted implementation merge and post-merge closeout projection.
+mission:
+  goal: >-
+    Extend Control Tower so GPT_ENGINEERING_WORKER is a first-class, fail-closed execution identity with multi-slot/lease route
+    provenance, exact Work Claim binding, authorization witness invalidation, deterministic projection, WIP/resource control and
+    backward compatibility, without weakening any existing validator to make R143 pass.
+  target_agent_type: "GPT_ENGINEERING_WORKER"
+  target_parallel_model: "ONE_AGENT_TYPE / MULTI_SLOT_OR_LEASE_REGISTRY"
 
-release_phase:
-  phase: "R142_IMPLEMENTATION_MERGED / CONTROL_PLANE_CLOSEOUT"
-  execution_state: "NO_ACTIVE_R142_EXECUTOR"
-  active_codex_lease: "RELEASED"
-  gpt_executor_substitution_lease: "RELEASED"
-  lane_a_r142_reservation: "RELEASED"
-  work_claim: "CLOSED / RELEASED"
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/PROGRAM-CONTROL-TOWER.md"
+  - ".github/workflows/program-control-tower-foundation.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144"
 
-allowed_write_paths: []
+read_only_boundaries:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  - "W3/domain canonical stores"
+  - "Signal Tower runtime"
+  - "broker/account/order/fund/production/private-data paths"
 
-signal_tower_operating_mode:
-  status: "ON_DEMAND_PREFLIGHT_AVAILABLE"
-  signal_is_not_task: true
-  daemon_required_for_normal_use: false
-  formal_task_release_requires_fresh_preflight: true
-
-retained_real_m4_truth:
-  candidate_count: 51
-  already_canonical: 20
-  already_satisfied: 20
-  domain_canonical_only: 0
-  needs_revalidation: 11
-  new_durable_signal: 0
-  durable_receipts: 0
-  rule: "NEEDS_REVALIDATION remains unresolved; closeout must not manufacture PASS or new admission."
-
-retained_findings:
-  R138-F01: "RETAINED / required before any future production promotion"
-  R139-STAGE-B: "NOT_AUTHORIZED / separate AI Film domain-owned processor+writer gate"
-  R140-MODEL-VERSION-AUTHORITY: "UNKNOWN / affected domain recall remains NEEDS_REVALIDATION"
-  IAGL-R141-UNKNOWN-007: "FUTURE_GOVERNED_PROVIDER_REQUIRED / live recurrence identity and occurrence attestation remain unimplemented"
-  IAGL-STAGE-B: "NOT_AUTHORIZED / secret/API/permission/external scheduler requires separate user gate"
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  global_python_or_docker_kill: "FORBIDDEN"
+  cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
 
 hard_locks:
-  - "R142 is historical/non-executable; no automatic resume."
-  - "No Codex or GPT Engineering Worker execution from the closed R142 route."
-  - "No private/raw conversation body in the public repository."
-  - "No private ChatGPT cross-window service/bridge."
-  - "No daemon/webhook/server/scheduler/polling required for normal Signal Tower use."
-  - "No API key/billing/secret/permission expansion."
-  - "No W3 or domain canonical write."
-  - "No Formal Skill promotion."
-  - "No automatic Task/Work Claim creation from Signal admission."
-  - "No second Signal truth."
-  - "No production deployment."
-  - "No autonomous merge."
-  - "No destructive history rewrite."
-  - "No trading/accounts/orders/funds."
+  - "NO_TRADE"
+  - "NO_W2_RUNTIME"
+  - "NO_W3_WRITE"
+  - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
+  - "NO_PRODUCTION_OR_PRIVATE_DATA"
+  - "NO_SECRET_OR_PERMISSION_EXPANSION"
+  - "NO_FAIL_CLOSED_WEAKENING_FOR_R143"
+  - "NO_GPT_WORKER_CODEX_IMPERSONATION"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
 
-completion_signal: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
-next_command: "NONE_R142_CLOSED_HISTORY_ONLY / REOPEN_REQUIRES_NEW_GOVERNED_DECISION"
-updated_by: "GPT_ENGINEERING_WORKER"
-updated_at: "2026-08-19T14:02:00+08:00"
+completion_signal: "R144_CONTROL_TOWER_GPT_ENGINEERING_WORKER_FIRST_CLASS_READY_FOR_GPT_REVIEW"
+next_command: "READ_LATEST_ROUTE_CLAIM_VALID_LEASE_AND_EXECUTE"
+updated_by: "GPT_ARCHITECTURE_OWNER"
+updated_at: "2026-08-19T17:48:00+08:00"
