@@ -15,12 +15,21 @@ from control_tower import render_projection_block  # noqa: E402
 from lane_claims import validate_claims  # noqa: E402
 from worker_slots import (  # noqa: E402
     MAINTENANCE_ADOPTION_FILE,
+    R3_MAINTENANCE_ADOPTION_FILE,
+    R144_TASK_BRIEF_FILE,
     load_worker_slots,
     validate_worker_slots,
 )
 
 GPT = "GPT_ENGINEERING_WORKER"
 REVIEWER = "GPT_INDEPENDENT_REVIEWER"
+R4_TASK_ID = "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+R4_BRANCH = "codex/r144-control-tower-gpt-worker-first-class"
+R4_HEAD = "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+R4_REVIEW = 4974621759
+R4_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
+R3_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
+RELEASED_SCOPE = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 
 
 def _slot(
@@ -183,21 +192,40 @@ def _closed_claim(lane_id: str) -> dict:
     }
 
 
+def _r3_released_authority() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0",
+        "authority_id": R3_AUTHORITY_ID,
+        "authority_type": "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION",
+        "issuer": "USER",
+        "actor": "GPT_ARCHITECTURE_OWNER",
+        "state": "RELEASED",
+        "release_reason": "R3_COMPLETE",
+        "released_scope_status": RELEASED_SCOPE,
+    }
+
+
 def _maintenance_authority(**overrides: Any) -> dict:
     doc: dict[str, Any] = {
         "schema_version": "1.0",
-        "authority_id": "TEST-MAINTENANCE-ADOPTION",
+        "authority_id": R4_AUTHORITY_ID,
         "authority_type": "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION",
         "issuer": "USER",
         "actor": "GPT_ARCHITECTURE_OWNER",
         "state": "ACTIVE",
-        "task_id": "GPT-T1",
+        "predecessor_authority": {
+            "path": R3_MAINTENANCE_ADOPTION_FILE,
+            "authority_id": R3_AUTHORITY_ID,
+            "required_state": "RELEASED",
+        },
+        "task_id": R4_TASK_ID,
         "route_epoch": 144,
         "issue": 406,
         "pr": 408,
-        "branch": "gpt/slot-a",
-        "adopted_candidate_input_head": "a" * 40,
-        "trigger_review": 4973934171,
+        "branch": R4_BRANCH,
+        "trigger_review": R4_REVIEW,
+        "adopted_candidate_input_head": R4_HEAD,
+        "activation_parent_head": R4_HEAD,
         "execution_allowed": False,
         "runtime_write_allowed": False,
         "trade_allowed": False,
@@ -208,9 +236,31 @@ def _maintenance_authority(**overrides: Any) -> dict:
         "independent_review_required": True,
         "same_pr_required": True,
         "fresh_exact_head_ci_required": True,
-        "allowed_write_paths": ["coordination/CONTROL-TOWER"],
+        "allowed_write_paths": ["coordination/CONTROL-TOWER/worker_slots.py"],
+        "state_machine": {
+            "active_scope_status": "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN",
+            "released_scope_status_required": RELEASED_SCOPE,
+            "released_is_terminal_for_authority_id": True,
+            "next_activation_requires_new_user_issued_authority_id": True,
+        },
         "provenance": {"source": "USER_DIRECT_CHAT_INSTRUCTION"},
     }
+    doc.update(overrides)
+    return doc
+
+
+def _released_maintenance_authority(**overrides: Any) -> dict:
+    doc = _maintenance_authority(
+        state="RELEASED",
+        release_reason="CORRECTIVE_PATCH_COMPLETE_PENDING_SEPARATE_INDEPENDENT_REVIEW",
+        released_scope_status=RELEASED_SCOPE,
+        release_transition={
+            "from_state": "ACTIVE",
+            "to_state": "RELEASED",
+            "terminal_for_authority_id": True,
+            "next_activation_requires_new_user_issued_authority_id": True,
+        },
+    )
     doc.update(overrides)
     return doc
 
@@ -276,6 +326,17 @@ class WorkerRepo:
             },
         )
         if maintenance is not None:
+            self._write(
+                R144_TASK_BRIEF_FILE,
+                {
+                    "schema_version": "1.0",
+                    "task_id": R4_TASK_ID,
+                    "route_epoch": 144,
+                    "issue": 406,
+                    "planned_branch": R4_BRANCH,
+                },
+            )
+            self._write(R3_MAINTENANCE_ADOPTION_FILE, _r3_released_authority())
             self._write(MAINTENANCE_ADOPTION_FILE, maintenance)
         claims = [
             claim_a if claim_a is not None else _active_claim(),
@@ -513,18 +574,103 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         self.assertEqual(report["worker_slot_structural_check"], "PASS")
         self.assertEqual(report["active_executable_slots"], [])
 
-    def test_r3_bounded_maintenance_adoption_passes(self) -> None:
+    def test_r4_active_maintenance_exact_binding_passes(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot()], maintenance=_maintenance_authority())
         report = validate_worker_slots(root)
         self.assertEqual(report["maintenance_adoption_structural_check"], "PASS")
-        self.assertEqual(report["worker_slot_structural_check"], "PASS")
+        self.assertTrue(report["maintenance_write_allowed"])
+        self.assertEqual(report["maintenance_authority_state"], "ACTIVE")
 
-    def test_r3_maintenance_adoption_cannot_gain_merge_authority(self) -> None:
+    def test_r4_wrong_exact_bindings_fail_closed(self) -> None:
+        mutations = {
+            "task_id": "WRONG-TASK",
+            "route_epoch": 999,
+            "issue": 999,
+            "pr": 123,
+            "branch": "wrong/branch",
+            "trigger_review": 1,
+            "adopted_candidate_input_head": "b" * 40,
+            "activation_parent_head": "c" * 40,
+        }
+        for field, value in mutations.items():
+            with self.subTest(field=field):
+                repo = WorkerRepo()
+                root = repo.build([_slot()], maintenance=_maintenance_authority(**{field: value}))
+                report = validate_worker_slots(root)
+                self.assertTrue(
+                    any(item["code"] == "MAINTENANCE_ADOPTION_BINDING_MISMATCH" for item in report["errors"])
+                )
+                self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_wrong_authority_identity_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], maintenance=_maintenance_authority(authority_id="WRONG-AUTHORITY"))
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "MAINTENANCE_ADOPTION_IDENTITY_INVALID" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_predecessor_must_remain_released(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], maintenance=_maintenance_authority())
+        path = root / R3_MAINTENANCE_ADOPTION_FILE
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["state"] = "ACTIVE"
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "MAINTENANCE_ADOPTION_PREDECESSOR_NOT_RELEASED" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_missing_current_authority_fails_when_predecessor_exists(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], maintenance=_maintenance_authority())
+        (root / MAINTENANCE_ADOPTION_FILE).unlink()
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "MAINTENANCE_ADOPTION_MISSING" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_released_is_terminal_and_has_no_write_authority(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], maintenance=_released_maintenance_authority())
+        report = validate_worker_slots(root)
+        self.assertEqual(report["maintenance_adoption_structural_check"], "PASS")
+        self.assertEqual(report["maintenance_authority_state"], "RELEASED")
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_released_requires_release_receipt_fields(self) -> None:
+        cases = (
+            ("release_reason", None, "MAINTENANCE_ADOPTION_RELEASE_RECEIPT_MISSING"),
+            ("released_scope_status", "WRONG", "MAINTENANCE_ADOPTION_RELEASE_SCOPE_INVALID"),
+            ("release_transition", None, "MAINTENANCE_ADOPTION_RELEASE_TRANSITION_INVALID"),
+        )
+        for field, value, code in cases:
+            with self.subTest(field=field):
+                repo = WorkerRepo()
+                doc = _released_maintenance_authority()
+                if value is None:
+                    doc.pop(field, None)
+                else:
+                    doc[field] = value
+                root = repo.build([_slot()], maintenance=doc)
+                report = validate_worker_slots(root)
+                self.assertTrue(any(item["code"] == code for item in report["errors"]))
+                self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_released_authority_cannot_be_reactivated_in_place(self) -> None:
+        repo = WorkerRepo()
+        doc = _released_maintenance_authority()
+        doc["state"] = "ACTIVE"
+        root = repo.build([_slot()], maintenance=doc)
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "MAINTENANCE_ADOPTION_REACTIVATION_FORBIDDEN" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r4_maintenance_cannot_gain_merge_authority(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot()], maintenance=_maintenance_authority(merge_authority=True))
         report = validate_worker_slots(root)
         self.assertTrue(any(item["code"] == "MAINTENANCE_ADOPTION_UNSAFE_AUTHORITY" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
 
 
 class WorkerClaimTests(unittest.TestCase):
@@ -702,7 +848,7 @@ class WorkerWitnessTests(unittest.TestCase):
         self.assertFalse(result["fresh"])
         self.assertEqual(result["reason"], "AUTHORIZATION_MATERIAL_INVALID")
 
-    def test_r3_maintenance_authority_change_invalidates_witness(self) -> None:
+    def test_r4_maintenance_authority_change_invalidates_witness(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot()], include_gate=True, maintenance=_maintenance_authority())
         witness = authorization_witness(root, "A")
@@ -710,6 +856,15 @@ class WorkerWitnessTests(unittest.TestCase):
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         data["allowed_write_paths"].append("coordination/CONTROL-TOWER/tests")
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        result = verify_authorization_witness(root, witness)
+        self.assertFalse(result["fresh"])
+        self.assertEqual(result["reason"], "AUTHORIZATION_MATERIAL_CHANGED")
+
+    def test_r4_release_transition_invalidates_active_witness(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], include_gate=True, maintenance=_maintenance_authority())
+        witness = authorization_witness(root, "A")
+        repo._write(MAINTENANCE_ADOPTION_FILE, _released_maintenance_authority())
         result = verify_authorization_witness(root, witness)
         self.assertFalse(result["fresh"])
         self.assertEqual(result["reason"], "AUTHORIZATION_MATERIAL_CHANGED")
