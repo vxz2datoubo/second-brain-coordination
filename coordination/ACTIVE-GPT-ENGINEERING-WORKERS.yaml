@@ -1,0 +1,21 @@
+schema_version: "1.0"
+registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
+agent_type: "GPT_ENGINEERING_WORKER"
+parallel_routes_allowed: true
+boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
+
+semantics:
+  purpose: >-
+    Canonical active route registry for the GPT_ENGINEERING_WORKER agent type. This is the only execution-identity source for
+    GPT Engineering Worker. It supports multiple bounded worker slots/leases under one agent ontology, so a second window
+    (编程2) never silently overwrites a first window (编程1): each active slot is a distinct lease with exact route + work claim
+    binding. It does not create GPT_WORKER_1 / GPT_WORKER_2 pseudo-agent species.
+  agent_type: "GPT_ENGINEERING_WORKER"
+  slot_is_provenance_not_species: true
+  singleton_overwrite_model_forbidden: true
+  parallel_routes_allowed: true
+  no_slot_no_execution: true
+  impersonation_forbidden: true
+  historical_executor_provenance_preserved: true
+
+worker_slots: []

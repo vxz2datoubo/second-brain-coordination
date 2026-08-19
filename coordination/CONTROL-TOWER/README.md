@@ -20,9 +20,18 @@ Source precedence remains:
 - `LANE-WORK-CLAIMS.yaml`: the current machine-readable work surface for each Program Lane.
 - `RELEASE-GATE.yaml`: separates Foundation Ready, proposal-only lane release and implementation release.
 - `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
+- `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation (see below).
 - `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `authorization_witness.py`: fingerprints route + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
-- `PROGRAM-CONTROL-TOWER.md`: human projection only; its two generated blocks are checked by CI.
+- `authorization_witness.py`: fingerprints route + worker slots + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
+- `PROGRAM-CONTROL-TOWER.md`: human projection only; its generated blocks are checked by CI.
+
+## GPT Engineering Worker slots
+
+`GPT_ENGINEERING_WORKER` is a first-class execution identity backed by `coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml`, which holds a `worker_slots` list. There is exactly one agent ontology (`GPT_ENGINEERING_WORKER`); 编程1/编程2 are `worker_slot_id` provenance labels, not separate agent species.
+
+Each active slot must bind: `worker_slot_id`, `executor_role`, `model_id`, `task_id`, `route_epoch`, `issue`, `pr`, `branch`, `status`, `execution_allowed`, write/read paths, interfaces, domains, authority claims, resource class, provenance, reviewer role/separation, activation and closure state.
+
+Fail-closed rules: duplicate slot id (silent overwrite / double booking) fails; a released/closed slot with an execution lease fails; two active slots colliding on the same mutable surface or authority (O3/O4) fail; active executable slots beyond `gpt_engineering_worker_active_slots_max` fail; a slot declaring a non-GPT agent identity (CODEX impersonation) fails; `reviewer_role == executor_role` (self-review) fails. A Work Claim bound to `GPT_ENGINEERING_WORKER` must also bind the exact `worker_slot_id`.
 
 ## Commands
 
