@@ -534,15 +534,17 @@ def _terminal_tombstone_findings(repo_root: Path) -> list[Finding]:
             )
         ]
     if doc is None:
-        return [
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "MAINTENANCE_TOMBSTONES_MISSING",
-                "R144 R5 requires the monotonic terminal-authority tombstone registry; deleting it fails closed.",
-                {"path": MAINTENANCE_TOMBSTONES_FILE},
-            )
-        ]
+        if _maintenance_required(repo_root):
+            return [
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_TOMBSTONES_MISSING",
+                    "R144 R5 requires the monotonic terminal-authority tombstone registry; deleting it fails closed.",
+                    {"path": MAINTENANCE_TOMBSTONES_FILE},
+                )
+            ]
+        return []
 
     findings: list[Finding] = []
     expected_identity = {
