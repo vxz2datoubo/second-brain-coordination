@@ -1,4 +1,4 @@
-schema_version: "3.15"
+schema_version: "3.16"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -66,22 +66,27 @@ claims:
       reopen_rule: "NEW_GOVERNED_TASK + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
-    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    claim_state: "ACTIVE_IMPLEMENTATION"
     execution_agent: "GPT_ENGINEERING_WORKER"
     worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
     route_binding:
       worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
       task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
       route_epoch: 143
       issue: 404
-      pr: 410
-      branch: "gpt/r143-post-r144-fresh-activation"
+      pr: 411
+      branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
     implementation_scope:
       global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
-      phase: "POST_R144_RESERVATION_ONLY"
-      runtime_write_allowed: false
-      final_activation_requires_runtime_pr: true
+      final_active_gate_receipt: "coordination/CONTROL-TOWER/R143-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+      phase: "R143_W2_S1_ACTIVE_IMPLEMENTATION"
+      runtime_write_allowed: true
+      authority_effective_only_after_final_gate_merge: true
+      runtime_pr: 411
+      runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+      final_active_gate_pr: 412
+      final_active_gate_branch: "gpt/r143-final-active-gate"
       intended_executor_window: "编程1"
       stale_activation_pr_405_reuse_allowed: false
     write_paths:
@@ -110,16 +115,17 @@ release_semantics:
     R144 implementation and post-merge closeout are independently accepted and merged. Lane-A carries no current implementation
     lease; Signal Tower remains available on demand.
   lane_b_r143: >-
-    The user's R143 release intent is represented here only as an exact non-executable reservation bound to 编程1 and PR #410.
-    RESERVED_IMPLEMENTATION_NON_EXECUTABLE does not authorize W2 runtime writes. After this reservation is independently accepted
-    and merged, a real runtime Draft PR must be created from then-current main and a separate final activation gate must rebind the
-    worker slot and Work Claim to that exact runtime PR before execution_allowed may become true.
+    Reservation PR #410 is accepted and merged. Real runtime Draft PR #411 exists from post-reservation main. This final ACTIVE gate
+    exact-binds 编程1, the GPT worker slot and Lane-B ACTIVE_IMPLEMENTATION Work Claim to runtime PR #411. The ACTIVE authority in
+    this candidate becomes durable only when final gate PR #412 is independently accepted and merged to canonical main.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
   signal_tower_normal_operation_outside_r143: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
   r143_reservation_pr: 410
+  r143_runtime_pr: 411
+  r143_final_active_gate_pr: 412
   r143_worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
-  r143_w2_runtime_authorized_now: false
+  r143_w2_runtime_authorized_when_this_gate_is_canonical: true
   old_pr_405_reuse_allowed: false
   iagl_stage_b: "NOT_AUTHORIZED"
