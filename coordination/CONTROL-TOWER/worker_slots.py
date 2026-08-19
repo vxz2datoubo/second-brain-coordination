@@ -18,12 +18,20 @@ from control_tower import (
 
 GPT_WORKERS_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
-MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
+R3_MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
+MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
+R144_TASK_BRIEF_FILE = "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
 AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 CHECK_ID = "CT-WS"
 EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_REGISTRY_ID = "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 EXPECTED_MAINTENANCE_AUTHORITY_TYPE = "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+EXPECTED_MAINTENANCE_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
+EXPECTED_PREDECESSOR_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
+EXPECTED_MAINTENANCE_PR = 408
+EXPECTED_MAINTENANCE_TRIGGER_REVIEW = 4974621759
+EXPECTED_MAINTENANCE_INPUT_HEAD = "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+EXPECTED_RELEASED_SCOPE_STATUS = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 
 ACTIVATION_ACTIVE = "ACTIVE"
 ACTIVATION_RESERVED = "RESERVED"
@@ -122,7 +130,6 @@ def _slot_normalized(raw: dict[str, Any]) -> dict[str, Any]:
     raw_execution_allowed = raw.get("execution_allowed")
     return {
         "worker_slot_id": _first(raw, "worker_slot_id", "lease_id", "slot_id"),
-        # R3: authority identity is never defaulted. Missing identity stays missing and fails closed.
         "agent_type": _first(raw, "agent_type", "canonical_agent_type"),
         "executor_role": _first(raw, "executor_role", "role"),
         "model_id": _first(raw, "model_id"),
@@ -132,7 +139,6 @@ def _slot_normalized(raw: dict[str, Any]) -> dict[str, Any]:
         "pr": _first(raw, "pr", "implementation_pr", "active_pull_request", "pull_request"),
         "branch": _first(raw, "branch", "implementation_branch", "planned_branch"),
         "status": _first(raw, "status"),
-        # R3: never bool(...) coerce authority-bearing YAML. Invalid values normalize to non-executable.
         "execution_allowed": raw_execution_allowed if isinstance(raw_execution_allowed, bool) else False,
         "completion_signal": _first(raw, "completion_signal"),
         "write_paths": _safe_string_list(raw, "write_paths"),
@@ -213,24 +219,55 @@ def _load_registry_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | No
         return None, "WORKER_REGISTRY_NOT_MAPPING"
 
 
-def _load_maintenance_adoption_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
-    root = repo_root.resolve()
-    path = root / MAINTENANCE_ADOPTION_FILE
+def _load_yaml_mapping(repo_root: Path, relpath: str, error_code: str) -> tuple[dict[str, Any] | None, str | None]:
+    path = repo_root.resolve() / relpath
     if not path.exists():
         return None, None
     try:
         return load_yaml(path), None
     except (OSError, ValueError, TypeError):
-        return None, "MAINTENANCE_ADOPTION_NOT_MAPPING"
+        return None, error_code
+
+
+def _load_maintenance_adoption_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    return _load_yaml_mapping(repo_root, MAINTENANCE_ADOPTION_FILE, "MAINTENANCE_ADOPTION_NOT_MAPPING")
+
+
+def _load_predecessor_maintenance_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    return _load_yaml_mapping(repo_root, R3_MAINTENANCE_ADOPTION_FILE, "MAINTENANCE_PREDECESSOR_NOT_MAPPING")
+
+
+def _load_r144_task_brief(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    return _load_yaml_mapping(repo_root, R144_TASK_BRIEF_FILE, "MAINTENANCE_TASK_BRIEF_NOT_MAPPING")
+
+
+def _maintenance_required(repo_root: Path) -> bool:
+    root = repo_root.resolve()
+    return (root / R3_MAINTENANCE_ADOPTION_FILE).exists() or (root / MAINTENANCE_ADOPTION_FILE).exists()
 
 
 def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
+    predecessor, predecessor_error = _load_predecessor_maintenance_doc(repo_root)
     if error:
-        return {"present": True, "load_error": error, "raw": None}
-    if doc is None:
-        return {"present": False}
-    return {"present": True, "raw": doc}
+        return {
+            "present": True,
+            "load_error": error,
+            "raw": None,
+            "predecessor": {"present": predecessor is not None, "load_error": predecessor_error, "raw": predecessor},
+        }
+    result: dict[str, Any] = {
+        "present": doc is not None,
+        "raw": doc,
+        "predecessor": {
+            "present": predecessor is not None,
+            "load_error": predecessor_error,
+            "raw": predecessor,
+        },
+    }
+    if doc is None and _maintenance_required(repo_root):
+        result["load_error"] = "MAINTENANCE_ADOPTION_MISSING"
+    return result
 
 
 def worker_registry_witness(repo_root: Path) -> dict[str, Any]:
@@ -252,7 +289,6 @@ def worker_registry_witness(repo_root: Path) -> dict[str, Any]:
             "load_error": "WORKER_REGISTRY_MISSING" if required else None,
             "maintenance_adoption": maintenance,
         }
-    # R3: hash the strict raw canonical registry, including raw worker_slots. Invalid mutations can no longer disappear.
     return {
         "present": True,
         "required": required,
@@ -268,7 +304,6 @@ def load_worker_slots(repo_root: Path) -> list[WorkerSlot]:
     raw_slots = doc.get("worker_slots")
     if not isinstance(raw_slots, list):
         return []
-    # Non-mappings are omitted from normalized runtime material only after the raw schema records an ERROR.
     return [normalize_worker_slot(raw) for raw in raw_slots if isinstance(raw, dict)]
 
 
@@ -444,6 +479,7 @@ def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
 
 def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
     doc, error = _load_maintenance_adoption_doc(repo_root)
+    required = _maintenance_required(repo_root)
     if error:
         return [
             Finding(
@@ -455,11 +491,22 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
             )
         ]
     if doc is None:
+        if required:
+            return [
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_MISSING",
+                    "R144 R4 requires its fresh maintenance/adoption authority artifact; deleting it cannot silently remove governance.",
+                    {"path": MAINTENANCE_ADOPTION_FILE},
+                )
+            ]
         return []
 
     findings: list[Finding] = []
     required_scalars = {
         "schema_version": "1.0",
+        "authority_id": EXPECTED_MAINTENANCE_AUTHORITY_ID,
         "authority_type": EXPECTED_MAINTENANCE_AUTHORITY_TYPE,
         "issuer": "USER",
         "actor": "GPT_ARCHITECTURE_OWNER",
@@ -471,34 +518,108 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "MAINTENANCE_ADOPTION_IDENTITY_INVALID",
-                    "Corrective maintenance/adoption authority identity does not match the bounded canonical contract.",
+                    "Corrective maintenance/adoption authority identity does not match the exact R144 R4 contract.",
                     {"field": field, "actual": doc.get(field), "required": expected},
                 )
             )
 
-    for field in ("authority_id", "task_id", "route_epoch", "issue", "pr", "branch", "trigger_review"):
-        if _is_missing(doc.get(field)):
-            findings.append(
-                Finding(
-                    CHECK_ID,
-                    "ERROR",
-                    "MAINTENANCE_ADOPTION_BINDING_INCOMPLETE",
-                    "Maintenance/adoption authority must be bound to exact task/Issue/PR/branch/review identity.",
-                    {"missing_field": field},
-                )
-            )
-
-    adopted_head = doc.get("adopted_candidate_input_head")
-    if not isinstance(adopted_head, str) or not _HEX40.fullmatch(adopted_head):
+    task_brief, task_brief_error = _load_r144_task_brief(repo_root)
+    if task_brief_error or task_brief is None:
         findings.append(
             Finding(
                 CHECK_ID,
                 "ERROR",
-                "MAINTENANCE_ADOPTION_INPUT_HEAD_INVALID",
-                "Maintenance/adoption authority must bind the exact 40-hex candidate input head being adopted for repair.",
-                {"actual": adopted_head},
+                task_brief_error or "MAINTENANCE_TASK_BRIEF_MISSING",
+                "R144 maintenance exact binding requires the stable canonical R144 task brief.",
+                {"path": R144_TASK_BRIEF_FILE},
             )
         )
+        task_brief = {}
+
+    expected_binding = {
+        "task_id": task_brief.get("task_id"),
+        "route_epoch": task_brief.get("route_epoch"),
+        "issue": task_brief.get("issue"),
+        "pr": EXPECTED_MAINTENANCE_PR,
+        "branch": task_brief.get("planned_branch"),
+        "trigger_review": EXPECTED_MAINTENANCE_TRIGGER_REVIEW,
+        "adopted_candidate_input_head": EXPECTED_MAINTENANCE_INPUT_HEAD,
+        "activation_parent_head": EXPECTED_MAINTENANCE_INPUT_HEAD,
+    }
+    for field, expected in expected_binding.items():
+        if _is_missing(expected) or doc.get(field) != expected:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_BINDING_MISMATCH",
+                    "Maintenance/adoption authority must mechanically match the exact R144 task/epoch/Issue/PR/branch/review/adopted-head binding.",
+                    {"field": field, "actual": doc.get(field), "required": expected},
+                )
+            )
+
+    for field in ("adopted_candidate_input_head", "activation_parent_head"):
+        value = doc.get(field)
+        if not isinstance(value, str) or not _HEX40.fullmatch(value):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_INPUT_HEAD_INVALID",
+                    "Maintenance/adoption head bindings must be exact 40-hex commit identities.",
+                    {"field": field, "actual": value},
+                )
+            )
+
+    predecessor_ref = doc.get("predecessor_authority")
+    expected_predecessor_ref = {
+        "path": R3_MAINTENANCE_ADOPTION_FILE,
+        "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
+        "required_state": "RELEASED",
+    }
+    if predecessor_ref != expected_predecessor_ref:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_PREDECESSOR_BINDING_INVALID",
+                "R4 must be a new authority identity chained to the released R3 authority; the old authority may not be reactivated in place.",
+                {"actual": predecessor_ref, "required": expected_predecessor_ref},
+            )
+        )
+
+    predecessor_doc, predecessor_error = _load_predecessor_maintenance_doc(repo_root)
+    if predecessor_error or predecessor_doc is None:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                predecessor_error or "MAINTENANCE_PREDECESSOR_MISSING",
+                "R4 requires the retained R3 maintenance authority as a released predecessor record.",
+                {"path": R3_MAINTENANCE_ADOPTION_FILE},
+            )
+        )
+    else:
+        predecessor_actual = {
+            "authority_id": predecessor_doc.get("authority_id"),
+            "state": predecessor_doc.get("state"),
+            "released_scope_status": predecessor_doc.get("released_scope_status"),
+        }
+        predecessor_expected = {
+            "authority_id": EXPECTED_PREDECESSOR_AUTHORITY_ID,
+            "state": "RELEASED",
+            "released_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
+        }
+        if predecessor_actual != predecessor_expected:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_PREDECESSOR_NOT_RELEASED",
+                    "The R3 authority must remain a released historical predecessor before a new R4 authority can exist.",
+                    {"actual": predecessor_actual, "required": predecessor_expected},
+                )
+            )
 
     state = doc.get("state")
     if state not in {"ACTIVE", "RELEASED"}:
@@ -511,6 +632,75 @@ def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
                 {"actual": state},
             )
         )
+
+    state_machine = doc.get("state_machine")
+    expected_state_machine = {
+        "active_scope_status": "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN",
+        "released_scope_status_required": EXPECTED_RELEASED_SCOPE_STATUS,
+        "released_is_terminal_for_authority_id": True,
+        "next_activation_requires_new_user_issued_authority_id": True,
+    }
+    if state_machine != expected_state_machine:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_STATE_MACHINE_INVALID",
+                "R4 maintenance authority must declare the exact ACTIVE→RELEASED terminal-state contract.",
+                {"actual": state_machine, "required": expected_state_machine},
+            )
+        )
+
+    release_fields = ("release_reason", "released_scope_status", "release_transition")
+    if state == "ACTIVE":
+        present_release_fields = [field for field in release_fields if field in doc]
+        if present_release_fields:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_REACTIVATION_FORBIDDEN",
+                    "An authority identity carrying release markers cannot be switched back to ACTIVE; a new user-issued authority_id is required.",
+                    {"release_fields_present": present_release_fields},
+                )
+            )
+    elif state == "RELEASED":
+        if _is_missing(doc.get("release_reason")):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_RELEASE_RECEIPT_MISSING",
+                    "RELEASED maintenance authority requires a non-empty release_reason.",
+                    {},
+                )
+            )
+        if doc.get("released_scope_status") != EXPECTED_RELEASED_SCOPE_STATUS:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_RELEASE_SCOPE_INVALID",
+                    "RELEASED must mechanically mean this authority grants no further modifier writes.",
+                    {"actual": doc.get("released_scope_status"), "required": EXPECTED_RELEASED_SCOPE_STATUS},
+                )
+            )
+        expected_transition = {
+            "from_state": "ACTIVE",
+            "to_state": "RELEASED",
+            "terminal_for_authority_id": True,
+            "next_activation_requires_new_user_issued_authority_id": True,
+        }
+        if doc.get("release_transition") != expected_transition:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_RELEASE_TRANSITION_INVALID",
+                    "RELEASED requires an explicit terminal ACTIVE→RELEASED transition; reactivation must use a new authority identity.",
+                    {"actual": doc.get("release_transition"), "required": expected_transition},
+                )
+            )
 
     must_be_false = (
         "execution_allowed",
@@ -1066,14 +1256,20 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
     registry_witness = worker_registry_witness(repo_root)
     maintenance_witness = maintenance_adoption_witness(repo_root)
     maintenance_errors = [
-        item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_ADOPTION_")
+        item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_")
     ]
+    maintenance_raw = maintenance_witness.get("raw") if isinstance(maintenance_witness, dict) else None
+    maintenance_state = maintenance_raw.get("state") if isinstance(maintenance_raw, dict) else None
+    maintenance_write_allowed = maintenance_state == "ACTIVE" and not maintenance_errors
     return {
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "agent_type": AGENT_TYPE,
         "worker_registry": registry_witness,
         "worker_registry_fingerprint": hashlib.sha256(_canonical(registry_witness).encode("utf-8")).hexdigest(),
         "maintenance_adoption": maintenance_witness,
+        "maintenance_authority_id": maintenance_raw.get("authority_id") if isinstance(maintenance_raw, dict) else None,
+        "maintenance_authority_state": maintenance_state,
+        "maintenance_write_allowed": maintenance_write_allowed,
         "maintenance_adoption_structural_check": "PASS" if not maintenance_errors else "FAIL",
         "worker_slots": [worker_slot_route_witness(slot) for slot in slots],
         "active_executable_slots": [slot.worker_slot_id for slot in slots if worker_slot_is_executable(slot)],
