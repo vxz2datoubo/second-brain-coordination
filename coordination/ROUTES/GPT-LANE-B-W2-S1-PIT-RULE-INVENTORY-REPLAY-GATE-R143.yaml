@@ -1,7 +1,7 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "READY_PENDING_ATOMIC_WORK_CLAIM"
+status: "RESERVED_NON_EXECUTABLE_PENDING_RUNTIME_PR"
 execution_allowed: false
 runtime_code_change_allowed: false
 automatic_resume: false
@@ -14,6 +14,11 @@ binding:
   issue: 404
   lane_id: "LANE-B-A-SHARE-REMEDIATION"
   slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
+  worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+  reservation_pr: 410
+  reservation_branch: "gpt/r143-post-r144-fresh-activation"
+  reservation_base_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
+  preflight_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
   task_brief: "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
   source_master_audit: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
   implementation_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
@@ -22,6 +27,7 @@ binding:
 executor:
   role: "GPT_ENGINEERING_WORKER"
   model_id: "GPT-5.6 Sol"
+  intended_window: "编程1"
   reviewer_role: "GPT_INDEPENDENT_REVIEWER"
   impersonation_forbidden: true
 
@@ -43,11 +49,11 @@ authority_contract:
   schema_materialization_gate: "STOP_FOR_GPT_IF_NEW_CANONICAL_SCHEMA_IDENTITY_REQUIRED"
 
 write_scope:
-  runtime_allowed_after_claim_activation:
+  runtime_allowed_only_after_final_active_gate:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
-  task_evidence_allowed:
+  task_evidence_allowed_only_after_final_active_gate:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
     - ".github/workflows/lane-b-w2-s1-r143.yml"
   read_only_without_separate_gate:
@@ -64,6 +70,21 @@ write_scope:
     - "L2/tick/order/queue ingestion"
     - "secret/API/permission expansion"
 
+reservation_contract:
+  activation_state: "RESERVED"
+  reservation_pr: 410
+  reservation_branch: "gpt/r143-post-r144-fresh-activation"
+  reservation_is_execution_authority: false
+  reservation_runtime_write_allowed: false
+  old_pr_405_reuse_allowed: false
+  after_reservation_merge:
+    - "create a real runtime Draft PR from then-current main"
+    - "bind the exact runtime PR and branch into the same worker slot and ACTIVE_IMPLEMENTATION Work Claim"
+    - "set activation_state=ACTIVE and execution_allowed=true only in a separate final activation gate"
+    - "run fresh Control Tower CI and Lane-B authorization witness"
+    - "obtain independent GPT review and explicit user merge authorization"
+    - "only after final activation merge may 编程1 start W2 runtime edits"
+
 resource_contract:
   local_heavy_stage_max: 1
   cpu_bound_worker_max: 1
@@ -73,12 +94,16 @@ resource_contract:
   cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
 
 activation_requirements:
-  - "fresh current main"
-  - "Lane-B Work Claim binds this exact route"
+  - "R144 closeout merged as 12aab49dbffcd06214d6c5dae5917dff9b548595"
+  - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP completed"
+  - "reservation PR #410 independently accepted and merged"
+  - "real runtime Draft PR created from then-current main"
+  - "Lane-B ACTIVE_IMPLEMENTATION Work Claim binds exact worker slot/runtime PR/branch"
   - "no concurrent A-share vertical slice"
   - "no second W2/C2 writer"
   - "Issue #404 remains OPEN"
   - "user release remains valid"
+  - "fresh authorization witness verifies immediately before durable runtime writes"
 
 hard_locks:
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
@@ -90,8 +115,9 @@ hard_locks:
   - "NO_PRODUCTION_OR_PRIVATE_DATA"
   - "NO_W3_OR_SIGNAL_TOWER_WRITE"
   - "NO_L2_TICK_ORDER_QUEUE_INGESTION"
+  - "NO_RUNTIME_WRITE_FROM_RESERVATION_PR_410"
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
   - "NO_SELF_REVIEW_OR_SELF_MERGE"
 
 completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_ATOMIC_WORK_CLAIM_ACTIVATION"
+next_command: "WAIT_FOR_RESERVATION_MERGE_THEN_CREATE_RUNTIME_PR_AND_FINAL_ACTIVE_GATE"
