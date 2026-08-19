@@ -1,4 +1,4 @@
-schema_version: "1.4"
+schema_version: "1.5"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
@@ -6,38 +6,46 @@ architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 foundation_state: "FOUNDATION_READY"
-lane_release_state: "H1_CONTRACT_ONLY_RELEASED"
-proposal_only_dry_run_result: "H0_ACCEPTED / LANE_A_H1_RELEASE_CANDIDATE / LANE_B_HELD"
-implementation_release_state: "H1_CONTRACT_ONLY_AUTHORIZED"
+lane_release_state: "R143_RESERVATION_NON_EXECUTABLE"
+proposal_only_dry_run_result: "POST_R144_PREFLIGHT_PASS / R143_RESERVATION_ELIGIBLE"
+implementation_release_state: "R143_RESERVATION_ONLY / FINAL_ACTIVE_GATE_PENDING_RUNTIME_PR"
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
 
 lane_specific_release_state:
   LANE-A-HARNESS-INTEGRATION:
-    state: "ACTIVE_IMPLEMENTATION_H1_CONTRACT_ONLY"
+    state: "SIGNAL_TOWER_ON_DEMAND / NO_ACTIVE_IMPLEMENTATION"
     basis:
-      - "PR #311 Control Tower foundation merged"
-      - "PR #337 Control Tower current-state reconciliation merged"
-      - "PR #336 H0 Cognitive OS × Harness architecture merged"
-      - "H0 final verdict ACCEPT_WITH_BOUNDED_DEBT"
-      - "user explicitly said 开始 H1"
-      - "Issue #338 created for H1"
-      - "R133 exact Work Claim and route"
-    runtime_write_allowed: true
-    runtime_write_scope:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/HARNESS-COGNITIVE-OS-ADAPTER/H1-CONTRACT-SKELETON"
-      - ".github/workflows/cognitive-os-h1-contracts.yml"
-    implementation_route_allowed: true
-    h1_only: true
-    harness_runtime_allowed: false
+      - "R144 implementation accepted and merged in PR #408"
+      - "R144 post-merge control-plane closeout independently accepted and merged in PR #409"
+      - "R144 closeout merge commit 12aab49dbffcd06214d6c5dae5917dff9b548595"
+    runtime_write_allowed: false
+    runtime_write_scope: []
+    implementation_route_allowed: false
+    signal_tower_on_demand_allowed: true
+    signal_is_not_task: true
     private_data_allowed: false
     production_allowed: false
     trading_allowed: false
-    h2_allowed: false
   LANE-B-A-SHARE-REMEDIATION:
-    state: "HOLD_BY_USER"
+    state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    basis:
+      - "User release intent retained: 开始编程1 W2 第一切片。"
+      - "Fresh post-R144 Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
+      - "Fresh Control Tower O0-O4/WIP/resource/single-writer scan found no blocker"
+      - "Reservation PR #410 exact-binds 编程1 without granting runtime execution"
+    worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+    reservation_pr: 410
+    reservation_branch: "gpt/r143-post-r144-fresh-activation"
     runtime_write_allowed: false
     implementation_route_allowed: false
+    reservation_allowed: true
+    final_activation_required: true
+    final_activation_requires_runtime_pr: true
+    old_pr_405_reuse_allowed: false
+    trading_allowed: false
+    production_allowed: false
+    private_data_allowed: false
   LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
     state: "CLOSED_WITH_BOUNDED_GAPS"
     active_implementation_lease: false
@@ -45,47 +53,50 @@ lane_specific_release_state:
     merged_pr: 334
 
 dry_run_receipt: "coordination/CONTROL-TOWER/DRY-RUN-RECEIPT.yaml"
+r143_post_r144_preflight_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
 
 build_validation:
-  h0_architecture_merge: "eb622264929564d70aa11c646b93fe38c0c40a8d"
-  h0_control_tower_run: 31879370007
-  python_3_11: "PASS"
-  python_3_13: "PASS"
-  targeted_regressions: "PASS"
-  repository_reconciliation: "PASS_ON_H0_ACCEPTED_STATE"
-  lane_work_claim_validation: "PASS_ON_H0_ACCEPTED_STATE"
-  route_projection_check: "PASS_ON_H0_ACCEPTED_STATE"
-  work_claim_projection_check: "PASS_ON_H0_ACCEPTED_STATE"
-  durable_authorization_witness_round_trip: "PASS_ON_H0_ACCEPTED_STATE"
-  h1_release_exact_head_ci: "REQUIRED_BEFORE_MERGE_OF_THIS_CONTROL_PLANE_RELEASE"
+  r144_implementation_merge: "d9734f2db3f039167f0e3e32933392ae5571de13"
+  r144_closeout_merge: "12aab49dbffcd06214d6c5dae5917dff9b548595"
+  r143_preflight: "PASS_FOR_NON_EXECUTABLE_RESERVATION"
+  reservation_exact_head_ci: "REQUIRED_BEFORE_PR410_MERGE"
+  python_3_11: "REQUIRED"
+  python_3_13: "REQUIRED"
+  targeted_regressions: "REQUIRED"
+  repository_reconciliation: "REQUIRED_ON_EXACT_PR410_HEAD"
+  lane_work_claim_validation: "REQUIRED_ON_EXACT_PR410_HEAD"
+  worker_slot_validation: "REQUIRED_ON_EXACT_PR410_HEAD"
+  route_projection_check: "REQUIRED_ON_EXACT_PR410_HEAD"
+  work_claim_projection_check: "REQUIRED_ON_EXACT_PR410_HEAD"
+  durable_authorization_witness_round_trip: "REQUIRED_ON_EXACT_PR410_HEAD"
 
 foundation_build_requires:
   - id: CT-F01-RECONCILIATION
-    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "Current Program Lane observed state is reconciled against latest per-agent ACTIVE routes."
+    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
+    requirement: "Current Program Lane observed state reconciles against latest agent routes and GPT worker registry."
   - id: CT-F02-STALE-VIEW
-    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "Known stale aggregate views cannot override current per-agent routes."
+    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
+    requirement: "Stale PR #405 and historical aggregate views cannot override current post-R144 main."
   - id: CT-F03-COLLISION
-    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "O0-O4 authority/path/interface collision classification has no H1 blocker."
+    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
+    requirement: "O0-O4 authority/path/interface classification has no reservation blocker."
   - id: CT-F04-WIP
-    status: "PASS_H0 / H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "Single Codex route, heavy-stage and held-lane limits remain satisfied."
+    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
+    requirement: "One A-share vertical slice maximum, one W2/C2 writer maximum and heavy-stage limits remain satisfied."
   - id: CT-F05-WORK-CLAIM
-    status: "H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "Lane A H1 ACTIVE_IMPLEMENTATION claim matches R133 exactly."
+    status: "RESERVATION_EXACT_BINDING_REQUIRED"
+    requirement: "Lane-B RESERVED_IMPLEMENTATION_NON_EXECUTABLE claim exactly matches GPT-WORKER-R143-PROGRAMMING-1."
   - id: CT-F06-COMMIT-FRESHNESS
-    status: "H1_FRESH_WITNESS_REQUIRED"
+    status: "FRESH_WITNESS_REQUIRED"
     requirement: >-
-      Durable authorization fingerprints current R133 route, all Agent routes, Work Claims, Program Lane state,
-      hold/WIP/overlap policy and release gate; any drift invalidates the witness.
+      Authorization material fingerprints routes, strict worker authority, Work Claims, Program Lane state, release policy,
+      WIP/overlap policy and this Release Gate. Any material drift invalidates the witness.
   - id: CT-F07-PROJECTION-AND-CI
-    status: "H1_RELEASE_RECHECK_REQUIRED"
+    status: "EXACT_HEAD_RECHECK_REQUIRED"
     requirement: "Machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
-  - id: CT-F08-DRY-RUN
-    status: "H1_RELEASE_RECHECK_REQUIRED"
-    requirement: "Fresh cross-lane dry-run confirms Lane A H1 and Lane B hold."
+  - id: CT-F08-RUNTIME-AUTHORITY
+    status: "NOT_GRANTED_BY_PR410"
+    requirement: "Reservation merge never implies runtime write authority; a separate runtime PR and final ACTIVE gate are required."
 
 proposal_only_release_requires:
   - "foundation_state == FOUNDATION_READY"
@@ -97,40 +108,57 @@ proposal_only_release_requires:
   - "no same-agent double booking or heavy-resource collision"
   - "user explicitly starts the lane; no automatic activation"
 
-implementation_release_requires:
-  - "a separate executable per-agent ACTIVE route for the specific implementation lane"
-  - "a fresh ACTIVE_IMPLEMENTATION Work Claim with exact write paths/interfaces/authority/resource class"
-  - "current route binding matches task_id/epoch/issue/pr/branch"
-  - "fresh O0-O4 scan has no unresolved O3/O4 collision"
-  - "Lane A direct binding to mutable Second Brain internals is forbidden; use frozen interface or adapter isolation"
-  - "no same-agent double booking or heavy-resource collision"
-  - "fresh durable authorization witness immediately before commit"
-  - "explicit GPT implementation release"
-  - "H1 authorization never implies H2 Harness runtime authorization"
+reservation_release_requires:
+  - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
+  - "fresh Control Tower O0-O4/WIP/resource/same-writer scan"
+  - "one RESERVED GPT_ENGINEERING_WORKER slot with execution_allowed=false"
+  - "one exact RESERVED_IMPLEMENTATION_NON_EXECUTABLE Work Claim with identical slot surface"
+  - "exact Issue/PR/branch/task/epoch binding"
+  - "fresh authorization witness"
+  - "independent GPT exact-head review"
+  - "explicit user merge authorization"
 
-h1_release_contract:
-  issue: 338
-  route_epoch: 133
-  task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
-  route: "coordination/ROUTES/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
-  task_brief: "coordination/TASK-BRIEFS/CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON-R133.yaml"
-  resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
-  harness_runtime: "FORBIDDEN"
-  h2: "NOT_AUTHORIZED"
-  merge: "FORBIDDEN_TO_CODEX"
+implementation_release_requires:
+  - "reservation PR #410 accepted and merged"
+  - "real runtime Draft PR created from then-current main"
+  - "worker slot changed from RESERVED to ACTIVE and rebound to exact runtime PR/branch"
+  - "execution_allowed=true only together with a matching ACTIVE_IMPLEMENTATION Work Claim"
+  - "current route binding matches exact worker slot/task/epoch/issue/runtime PR/branch"
+  - "fresh O0-O4 scan has no unresolved O3/O4 collision"
+  - "no second W2/C2 authority or same-object writer"
+  - "no same-agent double booking or heavy-resource collision"
+  - "fresh durable authorization witness immediately before durable runtime write"
+  - "independent GPT review and explicit user merge authorization of the final active gate"
+
+historical_release_contracts:
+  r133_h1:
+    status: "DONE_HISTORICAL / NO_ACTIVE_LEASE"
+    issue: 338
+    route_epoch: 133
+    task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
+    note: "Retained as history only; it does not authorize current Lane-A execution."
+  r144_gpt_worker_foundation:
+    status: "ACCEPTED_MERGED_CLOSED"
+    issue: 406
+    route_epoch: 144
+    implementation_pr: 408
+    closeout_pr: 409
 
 forbidden_effects:
-  - "No automatic release of Lane B."
+  - "No automatic R143 runtime start."
+  - "No runtime write from reservation PR #410."
+  - "No reuse or merge of stale PR #405 as current activation."
   - "No H2 Harness runtime release."
-  - "No direct mutation of W2-W13 canonical domain objects by the Control Tower."
+  - "No second AShareRuleSnapshot authority."
+  - "No W3 or Signal Tower runtime mutation."
   - "No private-data ingestion or publication."
   - "No production scheduler/gateway deployment."
   - "No permission/visibility changes."
   - "No account/order/fund/trading action."
   - "No automatic Formal Skill promotion."
-  - "No Codex self-merge."
+  - "No executor self-review or self-merge."
 
 current_disposition: >-
-  H0 is canonical and accepted with bounded debt. The user explicitly started H1. Lane A is released only for the R133
-  contract-only synthetic skeleton after this control-plane release passes exact-head reconciliation, Work Claim, projection,
-  O0-O4/WIP and witness checks. Lane B remains held. H2 Harness runtime remains unauthorized and requires a separate future gate.
+  R144 implementation and closeout are canonical. Fresh post-R144 preflight found R143 eligible only for a non-executable reservation.
+  PR #410 reserves the single bounded W2/C2 work surface for 编程1 but grants no runtime write authority. After reservation merge, a
+  real runtime Draft PR and a separate exact final ACTIVE gate are required before 编程1 may modify W2 runtime.
