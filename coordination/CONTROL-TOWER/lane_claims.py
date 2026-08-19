@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from control_tower import AGENT_FILES, PROGRAM_REGISTRY, classify_collision, load_yaml, normalize_route
+from worker_slots import AGENT_TYPE as GPT_WORKER_AGENT_TYPE, load_worker_slots
 
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
 ACTIVE_IMPLEMENTATION = "ACTIVE_IMPLEMENTATION"
@@ -156,13 +157,61 @@ def _validate_bound_implementation_claim(
     routes: dict[str, Any],
     *,
     reserved: bool,
+    worker_slots_by_id: dict[str, Any] | None = None,
 ) -> list[ClaimFinding]:
     findings: list[ClaimFinding] = []
     prefix = "RESERVED_CLAIM" if reserved else "ACTIVE_CLAIM"
     label = "Reserved implementation" if reserved else "Active implementation"
 
     agent = claim.get("execution_agent")
-    if agent not in routes:
+    worker_slots_by_id = worker_slots_by_id or {}
+
+    binding = claim.get("route_binding")
+    route: Any = None
+    worker_slot_id: str | None = None
+
+    if agent == GPT_WORKER_AGENT_TYPE:
+        worker_slot_id = claim.get("worker_slot_id") or (
+            binding.get("worker_slot_id") if isinstance(binding, dict) else None
+        )
+        if not worker_slot_id:
+            findings.append(
+                ClaimFinding(
+                    "ERROR",
+                    f"{prefix}_WORKER_SLOT_MISSING",
+                    f"{label} bound to GPT_ENGINEERING_WORKER must bind an exact worker slot/lease identity.",
+                    {"lane_id": lane_id},
+                )
+            )
+            return findings
+        slot = worker_slots_by_id.get(str(worker_slot_id))
+        if slot is None:
+            findings.append(
+                ClaimFinding(
+                    "ERROR",
+                    f"{prefix}_WORKER_SLOT_UNKNOWN",
+                    "Work claim references a GPT worker slot/lease that is not present in the canonical registry.",
+                    {"lane_id": lane_id, "worker_slot_id": worker_slot_id},
+                )
+            )
+            return findings
+        route = slot
+        if isinstance(binding, dict) and binding.get("worker_slot_id") not in (None, worker_slot_id):
+            findings.append(
+                ClaimFinding(
+                    "ERROR",
+                    f"{prefix}_WORKER_SLOT_BINDING_MISMATCH",
+                    "Work claim route_binding worker_slot_id disagrees with the claimed worker slot identity.",
+                    {
+                        "lane_id": lane_id,
+                        "claimed": worker_slot_id,
+                        "binding": binding.get("worker_slot_id"),
+                    },
+                )
+            )
+    elif agent in routes:
+        route = routes[str(agent)]
+    else:
         findings.append(
             ClaimFinding(
                 "ERROR",
@@ -173,7 +222,6 @@ def _validate_bound_implementation_claim(
         )
         return findings
 
-    binding = claim.get("route_binding")
     if not isinstance(binding, dict):
         findings.append(
             ClaimFinding(
@@ -185,7 +233,6 @@ def _validate_bound_implementation_claim(
         )
         return findings
 
-    route = routes[str(agent)]
     drift = _binding_drift(binding, route)
     if drift:
         findings.append(
@@ -282,14 +329,24 @@ def validate_claims(repo_root: Path) -> dict[str, Any]:
         agent: normalize_route(agent, load_yaml(repo_root / relpath))
         for agent, relpath in AGENT_FILES.items()
     }
+    worker_slots = load_worker_slots(repo_root)
+    worker_slots_by_id = {slot.worker_slot_id: slot for slot in worker_slots if slot.worker_slot_id}
     proposal_roots = claims_doc.get("proposal_roots", {}) or {}
 
     for lane_id, claim in claims.items():
         state = str(claim.get("claim_state", ""))
         if state == ACTIVE_IMPLEMENTATION:
-            findings.extend(_validate_bound_implementation_claim(lane_id, claim, routes, reserved=False))
+            findings.extend(
+                _validate_bound_implementation_claim(
+                    lane_id, claim, routes, reserved=False, worker_slots_by_id=worker_slots_by_id
+                )
+            )
         elif state == RESERVED_IMPLEMENTATION_NON_EXECUTABLE:
-            findings.extend(_validate_bound_implementation_claim(lane_id, claim, routes, reserved=True))
+            findings.extend(
+                _validate_bound_implementation_claim(
+                    lane_id, claim, routes, reserved=True, worker_slots_by_id=worker_slots_by_id
+                )
+            )
         elif state == HELD_PROPOSAL_ONLY:
             if claim.get("execution_agent") is not None or claim.get("route_binding") not in (None, {}, ""):
                 findings.append(

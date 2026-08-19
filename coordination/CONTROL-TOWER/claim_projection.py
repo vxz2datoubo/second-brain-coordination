@@ -48,6 +48,9 @@ def render_claim_projection_block(repo_root: Path) -> str:
         binding_text = "NONE"
         if binding:
             binding_text = f"epoch {binding.get('route_epoch')} · #{binding.get('issue')}/#{binding.get('pr')}"
+            slot_id = claim.get("worker_slot_id") or binding.get("worker_slot_id")
+            if slot_id:
+                binding_text += f" · slot `{slot_id}`"
         lines.append(
             f"| `{lane_id}` | `{claim.get('claim_state')}` | `{claim.get('execution_agent') or 'NONE'}` | "
             f"`{claim.get('resource_class')}` | {_surface(list(claim.get('write_paths', []) or []))} | {binding_text} |"

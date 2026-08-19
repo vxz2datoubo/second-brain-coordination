@@ -7,6 +7,7 @@ from typing import Any
 
 from control_tower import AGENT_FILES, PROGRAM_REGISTRY, load_yaml, normalize_route, route_witness
 from lane_claims import CLAIMS_FILE, validate_claims
+from worker_slots import AGENT_TYPE as GPT_WORKER_AGENT_TYPE, load_worker_slots, worker_slot_route_witness
 
 RELEASE_GATE = "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
 
@@ -37,9 +38,22 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         name: route_witness(normalize_route(name, load_yaml(root / relpath)))
         for name, relpath in AGENT_FILES.items()
     }
-    route = all_routes.get(str(agent)) if agent is not None else None
-    if agent is not None and str(agent) not in all_routes:
-        raise ValueError(f"unknown execution agent {agent}")
+    worker_slots = load_worker_slots(root)
+    worker_slots_by_id = {slot.worker_slot_id: slot for slot in worker_slots if slot.worker_slot_id}
+    worker_slots_witness = [worker_slot_route_witness(slot) for slot in worker_slots]
+
+    route = None
+    if agent == GPT_WORKER_AGENT_TYPE:
+        worker_slot_id = claim.get("worker_slot_id") or (
+            claim.get("route_binding") or {}
+        ).get("worker_slot_id")
+        slot = worker_slots_by_id.get(str(worker_slot_id)) if worker_slot_id else None
+        if slot is not None:
+            route = worker_slot_route_witness(slot)
+    else:
+        route = all_routes.get(str(agent)) if agent is not None else None
+        if agent is not None and str(agent) not in all_routes:
+            raise ValueError(f"unknown execution agent {agent}")
 
     relevant_overlaps = [
         item
@@ -60,6 +74,7 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         "all_claims": all_claims,
         "all_lanes": all_lanes,
         "all_routes": all_routes,
+        "worker_slots": worker_slots_witness,
         "release_policy": registry.get("current_user_release_policy", {}),
         "capacity_policy": registry.get("portfolio_capacity_policy", {}),
         "relevant_overlaps": relevant_overlaps,
@@ -83,6 +98,7 @@ def authorization_witness(repo_root: Path, lane_id: str) -> dict[str, Any]:
         **key_fields,
         "route_fingerprint": route.get("fingerprint") if route else None,
         "all_routes_fingerprint": _hash(all_routes),
+        "worker_slots_fingerprint": _hash(worker_slots_witness),
         "claim_fingerprint": _hash(claim),
         "all_claims_fingerprint": _hash(all_claims),
         "policy_fingerprint": _hash(
