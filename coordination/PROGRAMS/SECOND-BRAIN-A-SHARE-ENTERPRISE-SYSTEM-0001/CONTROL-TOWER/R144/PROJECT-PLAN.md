@@ -1,13 +1,21 @@
 # R144 PROJECT-PLAN — Control Tower GPT Engineering Worker First-Class Extension
 
-- task_id: `CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144`
+## R2 provenance correction — authoritative
+
+- canonical task_id: `CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144`
 - route_epoch: `144`
 - issue: `406`
-- executor: `CODEX`（R144 真实执行器为 Codex）
-- reviewer: `GPT_INDEPENDENT_REVIEWER`
+- canonical activation executor recorded on main: `CODEX`
+- **R1 actual implementation executor: `WORKBUDDY`**
+- R1 WorkBuddy authority state: `NOT_CANONICALLY_RELEASED_FOR_R144 / CANDIDATE_IMPLEMENTATION_ONLY`
+- **R2 corrective maintainer: `GPT_ARCHITECTURE_OWNER` under the user's explicit instruction to repair PR #408 directly**
+- R2 authority semantics: `DRAFT_BRANCH_CORRECTIVE_MAINTENANCE / NOT_RETROACTIVE_WORKBUDDY_AUTHORIZATION / NOT_FIRST_CLASS_GPT_WORKER_LEASE / NOT_ACCEPTANCE_AUTHORITY`
+- independent reviewer after R2: `SEPARATE_GPT_INDEPENDENT_REVIEWER`
 - mode: `project_plan`
-- canonical main at preflight: `97a067037c9812deabc4da8e2e0450a7ffbf8300`
+- canonical main at R1 preflight: `97a067037c9812deabc4da8e2e0450a7ffbf8300`
 - implementation branch: `codex/r144-control-tower-gpt-worker-first-class`
+
+> **Correction to the R1 plan:** the earlier statement `executor: CODEX（R144 真实执行器为 Codex）` was factually wrong. The user later confirmed that WorkBuddy actually produced the R1 implementation. Canonical Control Tower state had authorized CODEX while WorkBuddy remained paused/non-executable, so R2 preserves R1 code only as candidate implementation and does not fabricate retroactive WorkBuddy authority. Git commit author/committer identity is repository provenance, not automatic execution authority.
 
 > 本计划基于真实仓库 inventory，不按 Issue 文本猜测架构。所有路径/字段名以当前 canonical main 为准。
 
@@ -89,16 +97,16 @@ nested_parallelism: "FORBIDDEN"
 - `coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml`
 - `coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml`
 
-均为 `CLOSED_HISTORY_ONLY / NON_EXECUTABLE` tombstone，记录历史 `GPT_ENGINEERING_WORKER` + `GPT-5.6 Sol` 替代 provenance。**R144 不得改写这些历史为"当时就是 first-class worker"**。
+均为 `CLOSED_HISTORY_ONLY / NON_EXECUTABLE` tombstone，记录历史 `GPT_ENGINEERING_WORKER` + `GPT-5.6 Sol` 替代 provenance。**R144 不得改写这些历史为“当时就是 first-class worker”**。
 
 ### 9. CODEX/QCLAW/WORKBUDDY backward compatibility
 
-- 现有 36 个测试全绿；`control_tower check` / `lane_claims` / `claim_projection` / `authorization_witness` 全 PASS。
+- 原有 36 个测试全绿；`control_tower check` / `lane_claims` / `claim_projection` / `authorization_witness` 全 PASS。
 - 约束：对三个单例 Agent 的 `AGENT_FILES`、`normalize_route`、`RouteSnapshot`、fingerprint、claim 绑定逻辑不得改变语义。
 
 ### 10. current gpt_engineering_worker_parallel_routes_allowed policy
 
-已确认 `true`。因此 canonical 设计**不得**是 `ACTIVE-GPT-ENGINEERING-WORKER-TASK.yaml` 这种会被后一个窗口覆盖的单例文件。Issue 文本的"canonical identity recommendation"已被架构决策 comment `5340334185` 显式否决单例、强制 multi-slot registry。
+已确认 `true`。因此 canonical 设计**不得**是 `ACTIVE-GPT-ENGINEERING-WORKER-TASK.yaml` 这种会被后一个窗口覆盖的单例文件。Issue 文本的“canonical identity recommendation”已被架构决策 comment `5340334185` 显式否决单例、强制 multi-slot registry。
 
 ---
 
@@ -125,7 +133,7 @@ parallel_routes_allowed: true
 worker_slots: []   # 每个元素为一个 worker slot / lease
 ```
 
-当前 `worker_slots: []`（R144 由 Codex 执行，无真实活跃 GPT worker；**不得制造无法取得的 provenance**）。
+当前 `worker_slots: []`（R144 自身不创建一个虚假的 GPT worker slot；**不得制造无法取得的 provenance**）。
 
 ### 3.2 worker slot 字段绑定（每个 active slot 至少机械绑定）
 
@@ -142,7 +150,7 @@ worker_slots: []   # 每个元素为一个 worker slot / lease
 - `activation_state`（`ACTIVE`/`RESERVED`/`RELEASED`）
 - `closure_state`（null 或 `RELEASED`）
 
-禁止仅用"编程1/编程2"聊天窗口昵称作 authority identity。
+禁止仅用“编程1/编程2”聊天窗口昵称作 authority identity。
 
 ### 3.3 Work Claim 扩展
 
@@ -162,6 +170,8 @@ route_binding:
 
 witness material 增加 `worker_slots`（全部 slot 归一化结果 + 各自 fingerprint），任何 slot/task/epoch/issue/pr/branch/execution_allowed/claim/peer-claim/policy/release 变化都会使 `authorization_fingerprint` 失效。
 
+R2 进一步要求 registry 顶层 authority/policy material 也进入 witness，并暴露 `worker_registry_fingerprint`，避免 `worker_slots` 不变时顶层 policy 漂移仍被视为 fresh。
+
 ---
 
 ## 四、并发治理（fail-closed 规则）
@@ -176,6 +186,10 @@ witness material 增加 `worker_slots`（全部 slot 归一化结果 + 各自 fi
 | 6 | 超过 GPT worker configured capacity | FAIL CLOSED |
 | 7 | local heavy stage | 仍 max 1 |
 | 8 | nested parallelism | 仍 FORBIDDEN |
+| 9 | ACTIVE/RESERVED slot 无 exact Work Claim | FAIL CLOSED（R2） |
+| 10 | slot 与 claim 的 surface/resource 漂移 | FAIL CLOSED（R2） |
+| 11 | RESERVED + execution_allowed=true | FAIL CLOSED（R2） |
+| 12 | malformed registry/slot 被静默过滤 | FAIL CLOSED（R2） |
 
 容量键：在 `portfolio_capacity_policy` 新增 `gpt_engineering_worker_active_slots_max`（默认有界值，与 `parallel_routes_allowed: true` 一致）。
 
@@ -183,20 +197,20 @@ witness material 增加 `worker_slots`（全部 slot 归一化结果 + 各自 fi
 
 ## 五、实现步骤（G2/G3）
 
-1. 新增 `coordination/CONTROL-TOWER/worker_slots.py`：`WorkerSlot` dataclass、`normalize_worker_slot`、`load_worker_slots`（文件缺失→空列表，保证 backward compat）、`validate_worker_slots`（重复 id / closed-has-lease / 容量 / slot 间 O3-O4 碰撞）。
-2. `control_tower.py`：`scan_repository` 纳入 worker slot 校验；`render_projection_block` 增加 "GPT Engineering Worker slots" 区；`AGENT_FILES` 不变。
-3. `lane_claims.py`：`_validate_bound_implementation_claim` 支持 `GPT_ENGINEERING_WORKER` + `worker_slot_id` 精确绑定；绑定漂移比较加入 `worker_slot_id`。
-4. `authorization_witness.py`：material 纳入 worker slots fingerprint。
+1. 新增 `coordination/CONTROL-TOWER/worker_slots.py`：`WorkerSlot` dataclass、`normalize_worker_slot`、`load_worker_slots`、严格 registry validation、slot/claim 双向绑定与 fail-closed checks。
+2. `control_tower.py`：`scan_repository` 纳入 worker slot 校验；`render_projection_block` 增加 “GPT Engineering Worker slots” 区；`AGENT_FILES` 不变。
+3. `lane_claims.py`：`_validate_bound_implementation_claim` 支持 `GPT_ENGINEERING_WORKER` + `worker_slot_id` 精确绑定；绑定漂移比较加入 slot semantics。
+4. `authorization_witness.py`：material 纳入 worker slots + worker registry fingerprint。
 5. `claim_projection.py`：投影 worker slot 绑定。
-6. `coordination/ACTIVE-PROGRAM-LANES.yaml`：新增 `gpt_engineering_worker_active_slots_max`（仅新 ontology 所需）。
+6. `coordination/ACTIVE-PROGRAM-LANES.yaml`：新增 `gpt_engineering_worker_active_slots_max`（仅新 ontology）。
 7. `coordination/PROGRAM-CONTROL-TOWER.md`：由 deterministic generator 重生成。
 8. `.github/workflows/program-control-tower.yml`：trigger paths 增加新 registry（**命名核对：brief 写 `program-control-tower-foundation.yml`，真实仓库文件为 `program-control-tower.yml`（`name: Program Control Tower foundation`），以真实仓库为准，本计划如实记录此差异**）。
 9. `coordination/CONTROL-TOWER/README.md`：补充 worker slot 模型说明。
-10. `coordination/CONTROL-TOWER/tests/test_worker_slots.py`：A–W 全套对抗测试。
+10. `coordination/CONTROL-TOWER/tests/test_worker_slots.py`：A–W + R2 fail-closed 对抗测试。
 
 ---
 
-## 六、adversarial test 映射（G4，A–W）
+## 六、adversarial test 映射（G4，A–W + R2）
 
 | 用例 | 断言 |
 |---|---|
@@ -215,6 +229,16 @@ witness material 增加 `worker_slots`（全部 slot 归一化结果 + 各自 fi
 | S | closed slot 正确 tombstone → PASS |
 | T/U/V | 既有 CODEX/QCLAW/WORKBUDDY route → 保留 PASS |
 | W | projection generator 确定性/幂等 → PASS |
+| R2-1 | `worker_slots` 非 list → FAIL CLOSED |
+| R2-2 | slot 非 mapping → FAIL CLOSED |
+| R2-3 | registry identity/schema 缺失 → FAIL CLOSED |
+| R2-4 | registry/program parallel policy 漂移 → FAIL CLOSED |
+| R2-5 | ACTIVE slot 无 Work Claim → FAIL CLOSED |
+| R2-6 | slot/claim surface 漂移 → FAIL CLOSED |
+| R2-7 | ACTIVE slot 缺 PR → FAIL CLOSED |
+| R2-8 | RESERVED slot executable → FAIL CLOSED |
+| R2-9 | 同 task 多 active slots 且 nested_parallelism forbidden → FAIL CLOSED |
+| R2-10 | worker registry top-level policy change invalidates witness → FAIL |
 
 ---
 
@@ -233,6 +257,22 @@ witness material 增加 `worker_slots`（全部 slot 归一化结果 + 各自 fi
 
 ## 八、hard locks（不变）
 
-NO_TRADE · NO_W2_RUNTIME · NO_W3_WRITE · NO_SIGNAL_TOWER_RUNTIME_WRITE · NO_PRODUCTION_OR_PRIVATE_DATA · NO_SECRET_OR_PERMISSION_EXPANSION · NO_FAIL_CLOSED_WEAKENING_FOR_R143 · NO_GPT_WORKER_CODEX_IMPERSONATION · NO_SELF_REVIEW · NO_SELF_MERGE · NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE。
+NO_TRADE · NO_W2_RUNTIME · NO_W3_WRITE · NO_SIGNAL_TOWER_RUNTIME_WRITE · NO_PRODUCTION_OR_PRIVATE_DATA · NO_SECRET_OR_PERMISSION_EXPANSION · NO_FAIL_CLOSED_WEAKENING_FOR_R143 · NO_EXECUTOR_IMPERSONATION · NO_SELF_REVIEW · NO_SELF_MERGE · NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE。
 
-R143/#405 保持冻结，R144 完成后不得自动恢复；须 R144 accepted+merged 后 fresh preflight。
+R143/#405 保持冻结，R144 完成后不得自动恢复；须 R144 independently accepted+merged 后 fresh preflight。
+
+---
+
+## 九、R2 completion gate
+
+R2 的完成条件不是“当前 GPT 窗口觉得修好了”。必须同时满足：
+
+1. exact Draft PR head + fresh merge-ref parent1=current canonical main / parent2=exact head；
+2. Python 3.11 + 3.13 Control Tower CI 双绿；
+3. 全套旧测试 + R2 新 adversarial tests 全绿；
+4. `errors=[]`、projection MATCH、claim projection MATCH、authorization witness fresh；
+5. PR/Issue/plan provenance 明确区分：canonical CODEX activation、R1 actual WorkBuddy implementation、R2 GPT corrective maintenance；
+6. current GPT modifier **不得 self-review / APPROVE / merge**；
+7. 由另一独立 GPT reviewer 对 exact R2 head 做 acceptance decision。
+
+R2 completion signal：`R144_R2_GPT_CORRECTIVE_PATCH_READY_FOR_INDEPENDENT_REVIEW`。
