@@ -1,4 +1,4 @@
-schema_version: "3.12"
+schema_version: "3.13"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,29 +43,45 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
-    write_domains: []
-    authority_claims: []
-    closure_receipt:
-      task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
-      route_epoch: 142
-      issue: 393
-      implementation_pr: 400
-      tested_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
-      merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
-      independent_review: 4963324873
-      issue_post_merge_freeze_checkpoint: 5331110683
-      receipt_ref: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
-      verdict: "R142_IMPLEMENTATION_ACCEPTED_MERGED / LANE_A_R142_RESERVATION_RELEASED"
-      successor_implementation_authorized: false
-      reopen_rule: "FRESH_GOVERNED_DECISION_AND_NEW_WORK_CLAIM_REQUIRED"
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "CODEX"
+    resource_class: "LIGHT_TO_MEDIUM_CONTROL_TOWER_IMPLEMENTATION"
+    route_binding:
+      task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+      route_epoch: 144
+      issue: 406
+      pr: null
+      branch: "codex/r144-control-tower-gpt-worker-first-class"
+    implementation_scope:
+      task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+      purpose: "FIRST_CLASS_GPT_ENGINEERING_WORKER_AGENT_IDENTITY"
+      user_authorized: true
+      lane_b_r143_runtime_frozen: true
+      no_trade: true
+    write_paths:
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/PROGRAM-CONTROL-TOWER.md"
+      - ".github/workflows/program-control-tower-foundation.yml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144"
+    read_paths:
+      - "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+      - "coordination/ROUTES/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+      - "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
+      - "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
+      - "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+    interfaces:
+      - name: "CONTROL_TOWER_EXECUTION_IDENTITY"
+        mode: "write"
+        frozen: false
+      - name: "CONTROL_TOWER_AUTHORIZATION_WITNESS"
+        mode: "write"
+        frozen: false
+    read_domains: [W1, W8, W9]
+    write_domains: [W1]
+    authority_claims:
+      - "CONTROL_TOWER_AGENT_IDENTITY_AUTHORITY"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "HELD_PROPOSAL_ONLY"
@@ -78,27 +94,36 @@ claims:
         - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
       runtime_write_allowed: false
       implementation_route_allowed: false
+    temporary_r144_freeze:
+      reason: "R144 writes shared Control Tower surfaces; Lane-B R143 remains blocked by executor identity gate."
+      removed_shared_control_plane_reads:
+        - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+        - "coordination/CONTROL-TOWER"
+      restore_only_after: "R144_ACCEPTED_MERGED + FRESH_R143_PREFLIGHT"
     write_paths:
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
     read_paths:
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/CONTROL-TOWER"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
       - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
       - "coordination/SKILLS"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
     interfaces: []
     read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
     write_domains: []
     authority_claims: []
 
 release_semantics:
-  lane_a_closeout: >-
-    R142 implementation PR #400 is accepted and merged. The R142 Codex route and GPT Engineering Worker substitution route are
-    historical/non-executable, the Lane-A R142 implementation reservation is released, and all current R142 work surfaces are empty.
-    Ordinary Signal Tower use remains available on demand without an active implementation claim.
+  lane_a_r144: >-
+    User authorized the first-class GPT Engineering Worker Control Tower extension. R144 temporarily occupies Lane-A with CODEX as
+    the already-recognized executor so the validator cannot be modified by an unrecognized agent seeking its own authority.
+  lane_b_r143: >-
+    R143 user authorization remains valid but runtime activation is frozen until R144 is independently accepted and merged, followed
+    by a fresh Signal Tower/Control Tower preflight. Lane-B shared control-plane read surfaces are temporarily removed to avoid an O3
+    proposal-reader versus R144 writer collision during the governance extension.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
-  signal_tower_normal_operation_outside_r142: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
-  successor_implementation_authorized: false
+  signal_tower_normal_operation_outside_r144: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  r144_successor_authorized: false
+  r143_w2_runtime_authorized_now: false
   iagl_stage_b: "NOT_AUTHORIZED"
