@@ -1,28 +1,170 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R143-FINAL-ACTIVE-GATE-0001"
 repository: "vxz2datoubo/second-brain-coordination"
+owner: "USER"
+architecture_owner: "GPT"
 issue: 404
 task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
 route_epoch: 143
 lane_id: "LANE-B-A-SHARE-REMEDIATION"
+slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
 worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+executor_role: "GPT_ENGINEERING_WORKER"
+model_id: "GPT-5.6 Sol"
+reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+
 base_main: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
-runtime_pr: 411
-runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
-runtime_bootstrap_head: "1145566dc6f8a2f2bd052093557799c483e96053"
-state: "FINAL_ACTIVE_GATE_CANDIDATE_BOOTSTRAP"
-execution_authority_effective_only_after_gate_merge_to_main: true
-current_canonical_runtime_write_allowed: false
-fresh_reconciliation_required: true
-independent_review_required: true
+reservation:
+  pr: 410
+  accepted_review: 4976357301
+  reviewed_head: "5057002e5c12867333f07e8d7d80454bbf73878a"
+  merge_commit: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+  state: "ACCEPTED_MERGED_NON_EXECUTABLE"
+
+runtime_pr:
+  pr: 411
+  branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  base_main: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+  bootstrap_head: "1145566dc6f8a2f2bd052093557799c483e96053"
+  current_change: "coordination/CONTROL-TOWER/R143-RUNTIME-PR-BOOTSTRAP.yaml only"
+  w2_runtime_implementation_present_before_gate: false
+  execution_allowed_before_gate: false
+
+final_active_gate:
+  pr: 412
+  branch: "gpt/r143-final-active-gate"
+  state: "ACTIVE_IMPLEMENTATION_CANDIDATE"
+  execution_authority_effective_only_after_gate_merge_to_main: true
+  exact_head_is_external_review_and_ci_binding: true
+  self_review_forbidden: true
+  self_merge_forbidden: true
+
+fresh_signal_tower_reconciliation:
+  sequence:
+    - "GLOBAL_SHALLOW"
+    - "DELTA"
+    - "TARGETED_DEEP"
+    - "CONDITIONAL_RESEARCH"
+    - "RELEASE_DECISION"
+  global_shallow:
+    result: "PASS_NO_COMPETING_ACTIVE_IMPLEMENTATION"
+    facts:
+      - "Lane-A has no active implementation lease; Signal Tower remains ON_DEMAND."
+      - "Lane-C is closed/no active implementation."
+      - "R143 reservation is canonical and occupies the single future W2/C2 surface."
+      - "No active Codex/QCLAW/WorkBuddy route conflicts with R143."
+  delta:
+    baseline_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
+    current_main: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+    result: "R143_RESERVATION_MERGED_PLUS_RUNTIME_PR_IDENTITY_BOOTSTRAP_ONLY"
+    new_w2_runtime_implementation: false
+    new_w3_write: false
+    new_signal_tower_runtime_write: false
+    new_trading_or_permission_change: false
+  targeted_deep:
+    result: "PASS_R143_CONTRACT_COHERENT"
+    issue_404_open: true
+    runtime_pr_411_created: true
+    stale_pr_405_reusable: false
+    authority_owner: "W2"
+    authority_object: "AShareRuleSnapshot"
+    shared_contract: "C2_A_SHARE_RULE_SNAPSHOT"
+    single_writer_required: true
+  conditional_research:
+    result: "NOT_REQUIRED_FOR_EXECUTION_IDENTITY_GATE"
+    reason: >-
+      Final ACTIVE gate validates execution identity and bounded authority only. Official market-rule research remains mandatory inside
+      R143 G0/G1 and this gate does not certify market-rule correctness.
+  release_decision: "ELIGIBLE_FOR_FINAL_ACTIVE_GATE_CANDIDATE"
+
+fresh_control_tower_reconciliation:
+  lane_a_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  lane_b_candidate_claim: "ACTIVE_IMPLEMENTATION"
+  lane_c_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  candidate_worker_slot_state: "ACTIVE"
+  candidate_execution_allowed: true
+  candidate_runtime_pr: 411
+  candidate_runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  candidate_resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  a_share_business_vertical_slices_max: 1
+  candidate_a_share_vertical_slices_active: 1
+  same_canonical_object_writers_max: 1
+  candidate_w2_c2_writers_active: 1
+  local_heavy_stage_concurrency_max: 1
+  heavy_stage_requested: false
+  nested_parallelism: "FORBIDDEN"
+  fresh_authorization_witness_required: true
+  exact_head_python_3_11_3_13_required: true
+
+atomic_binding_required:
+  worker_slot:
+    worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+    task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    route_epoch: 143
+    issue: 404
+    pr: 411
+    branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+    activation_state: "ACTIVE"
+    execution_allowed: true
+  work_claim:
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+    task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+    route_epoch: 143
+    issue: 404
+    pr: 411
+    branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  route:
+    status: "ACTIVE_IMPLEMENTATION"
+    execution_allowed: true
+    runtime_code_change_allowed: true
+    runtime_pr: 411
+    runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+  release_gate:
+    lane_release_state: "R143_ACTIVE_IMPLEMENTATION"
+    authority_effective_only_after_final_gate_is_canonical: true
+
+standing_user_engineering_authorization:
+  granted: true
+  granted_at: "2026-08-20T04:24:00+08:00"
+  user_statement: "以后不需要我授权，你直接操作即可"
+  interpreted_scope: "ROUTINE_PROJECT_ENGINEERING_AND_CONTROL_PLANE_MERGES_AFTER_INDEPENDENT_EXACT_HEAD_ACCEPT"
+  still_requires:
+    - "independent exact-head ACCEPT"
+    - "required CI/validator/Control Tower gates PASS"
+    - "no unresolved blocker"
+    - "expected_head_sha equals independently reviewed head at merge"
+  excluded_high_risk_actions:
+    - "trading/account/order/fund"
+    - "secrets/credentials"
+    - "permission/visibility expansion"
+    - "destructive deletion"
+    - "major architecture outside approved task scope"
+
 hard_locks:
   - "NO_RUNTIME_WRITE_BEFORE_FINAL_ACTIVE_GATE_CANONICAL"
+  - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+  - "PRICE_VALIDITY_NE_ORDER_FILLABILITY"
+  - "UNSUPPORTED_MARKET_OR_SESSION_FAILS_CLOSED"
+  - "BSE_NOT_DEFAULTED_TO_SSE_SZSE"
   - "NO_TRADE"
   - "NO_ACCOUNT_ORDER_FUND"
   - "NO_PRODUCTION_PRIVATE"
   - "NO_W3_WRITE"
   - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
-  - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+  - "NO_L2_TICK_ORDER_QUEUE_INGESTION"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
-next_gate: "EXACT_BIND_ACTIVE_SLOT_CLAIM_ROUTE_RELEASE_GATE_TO_RUNTIME_PR_411"
+
+current_canonical_state_before_gate_merge:
+  runtime_write_allowed: false
+  runtime_pr_411_may_accept_w2_runtime_commits: false
+
+state_after_final_gate_becomes_canonical:
+  runtime_write_allowed: true
+  executor_must_fresh_read_canonical_before_first_runtime_commit: true
+  first_phase: "G0_FRESH_RECONCILE_AND_CONCRETE_AUTHORITY_INVENTORY"
+  schema_materialization_gate_remains: true
+  no_successor_slice_authority: true
+
+next_gate: "FINAL_EXACT_HEAD_CI_AND_INDEPENDENT_GPT_REVIEW"
