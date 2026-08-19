@@ -1,9 +1,13 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "GLOBAL-RECONCILIATION-R143-POST-R144-ACTIVATION-0001"
 repository: "vxz2datoubo/second-brain-coordination"
 owner: "USER"
 architecture_owner: "GPT"
-mode: "READ_ONLY_PREFLIGHT / NO_RUNTIME_WRITE"
+mode: "READ_ONLY_PREFLIGHT / NON_EXECUTABLE_RESERVATION_ONLY / NO_RUNTIME_WRITE"
+semantic_stage: "POST_R144_NON_EXECUTABLE_RESERVATION"
+legacy_identifier_note: >-
+  The file path and receipt_id retain the original ACTIVATION label only for stable provenance references. This receipt no longer
+  authorizes, describes or implies a one-phase executable activation. Its current semantics are reservation-only and fail closed.
 as_of_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
 issue: 404
 task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
@@ -38,10 +42,10 @@ signal_tower:
     facts:
       - "Lane-A has no active implementation route or Work Claim; Signal Tower remains ON_DEMAND operational."
       - "Lane-C is CLOSED_NO_ACTIVE_IMPLEMENTATION."
-      - "Lane-B is HELD_PROPOSAL_ONLY before this fresh activation candidate."
-      - "Canonical GPT worker registry exists and worker_slots=[] before activation."
+      - "Lane-B was HELD_PROPOSAL_ONLY before this fresh reservation candidate."
+      - "Canonical GPT worker registry existed with worker_slots=[] before reservation."
       - "No active Codex/QCLAW/WorkBuddy execution lease conflicts with R143."
-      - "Open PR #405 is stale pre-R144 activation state and is not reusable as canonical activation."
+      - "Open PR #405 is stale pre-R144 activation state and is not reusable as canonical authority."
   delta:
     baseline: "d9734f2db3f039167f0e3e32933392ae5571de13"
     current_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
@@ -52,7 +56,7 @@ signal_tower:
     new_signal_tower_runtime_changes: false
     new_trading_or_permission_changes: false
   targeted_deep:
-    result: "R143_CONTRACT_STILL_COHERENT"
+    result: "R143_CONTRACT_STILL_COHERENT_FOR_RESERVATION"
     issue_open: true
     task_brief_matches_issue: true
     route_matches_task: true
@@ -74,25 +78,25 @@ signal_tower:
       - "NO_W3_OR_SIGNAL_TOWER_RUNTIME_WRITE"
       - "NO_L2_TICK_ORDER_QUEUE_INGESTION"
   conditional_research:
-    result: "NOT_REQUIRED_FOR_ACTIVATION_GATE"
+    result: "NOT_REQUIRED_FOR_RESERVATION_GATE"
     reason: >-
-      No new external-rule uncertainty arose during this control-plane preflight. Issue #404 still requires the executor to build and
-      verify the official-source/effective-date manifest during G0/G1 before implementation acceptance; activation does not certify
-      economic or market-rule correctness.
-  release_decision: "ELIGIBLE_FOR_FRESH_R143_ACTIVATION_CANDIDATE"
+      No new external-rule uncertainty arose during this control-plane preflight. Issue #404 still requires the future runtime executor
+      to build and verify the official-source/effective-date manifest during G0/G1 before implementation acceptance. Reservation does
+      not certify economic or market-rule correctness and does not authorize runtime implementation.
+  release_decision: "ELIGIBLE_FOR_FRESH_R143_NON_EXECUTABLE_RESERVATION_CANDIDATE"
 
 control_tower:
-  current_lane_a_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-  current_lane_b_claim: "HELD_PROPOSAL_ONLY"
-  current_lane_c_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-  current_worker_slots: []
-  o3_o4_active_implementation_collision: false
+  pre_candidate_lane_a_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  pre_candidate_lane_b_claim: "HELD_PROPOSAL_ONLY"
+  pre_candidate_lane_c_claim: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  pre_candidate_worker_slots: []
+  o3_o4_active_or_reserved_implementation_collision: false
   a_share_business_vertical_slices_max: 1
-  current_a_share_vertical_slices_active: 0
+  pre_candidate_a_share_vertical_slices_occupied: 0
   same_canonical_object_writers_max: 1
-  current_w2_c2_writers_active: 0
+  pre_candidate_w2_c2_writer_or_reservation_occupancy: 0
   local_heavy_stage_concurrency_max: 1
-  new_slot_resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+  reservation_slot_resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
   heavy_stage_requested: false
   nested_parallelism: "FORBIDDEN"
   release_gate_rebind_required: true
@@ -105,22 +109,36 @@ stale_candidate:
   disposition: "STALE_PRE_R144 / DO_NOT_MERGE_AS_IS"
   reuse_allowed: false
 
-activation_candidate_requirements:
-  - "Create fresh Draft activation PR from exact current main 12aab49dbffcd06214d6c5dae5917dff9b548595."
-  - "Bind one GPT_ENGINEERING_WORKER slot for 编程1 with exact PR/branch/task/epoch/issue identity."
-  - "Bind Lane-B ACTIVE_IMPLEMENTATION Work Claim to the exact worker_slot_id and identical surface."
-  - "Rebind RELEASE-GATE Lane-A historical/no-active state and Lane-B bounded R143 implementation release."
-  - "Set R143 route executable only inside the activation candidate; it becomes authority only after canonical merge."
+reservation_candidate_requirements:
+  - "Create fresh Draft reservation PR #410 from exact current main 12aab49dbffcd06214d6c5dae5917dff9b548595."
+  - "Bind one GPT_ENGINEERING_WORKER slot for 编程1 with exact reservation PR/branch/task/epoch/issue identity."
+  - "The slot must remain activation_state=RESERVED, status=RESERVED_NON_EXECUTABLE and execution_allowed=false."
+  - "Bind Lane-B RESERVED_IMPLEMENTATION_NON_EXECUTABLE Work Claim to the exact worker_slot_id and identical reserved surface."
+  - "R143 route must remain RESERVED_NON_EXECUTABLE_PENDING_RUNTIME_PR with execution_allowed=false and runtime_code_change_allowed=false."
+  - "RELEASE-GATE must state that passing CI or merging PR #410 grants no W2 runtime write authority."
   - "Regenerate Program Control Tower projections deterministically."
   - "Run fresh Python 3.11/3.13 exact-head Control Tower CI."
   - "Mint/verify fresh Lane-B authorization witness and require independent GPT review."
-  - "No W2 runtime implementation begins before activation PR merge and fresh executor read."
+  - "No W2 runtime implementation may begin because of PR #410, before PR #410, or after PR #410 merge."
+
+post_reservation_merge_required_sequence:
+  - "After independent exact-head acceptance and explicit user merge authorization, merge reservation PR #410 only."
+  - "Even after PR #410 merge, keep NO_W2_RUNTIME and execution_allowed=false."
+  - "From then-current canonical main, create the real R143 runtime Draft PR on the governed runtime branch."
+  - "Create a separate final ACTIVE gate that exact-binds GPT-WORKER-R143-PROGRAMMING-1 and Lane-B ACTIVE_IMPLEMENTATION to that real runtime PR/branch."
+  - "Only the separate final ACTIVE gate may set activation_state=ACTIVE and execution_allowed=true, atomically with the exact ACTIVE_IMPLEMENTATION Work Claim."
+  - "Before that final ACTIVE gate can become canonical, run fresh GLOBAL_SHALLOW/DELTA/TARGETED_DEEP as needed, O0-O4/WIP/resource checks, Lane-B authorization witness and exact-head Python 3.11/3.13 CI."
+  - "Require separate independent GPT exact-head review of the final ACTIVE gate."
+  - "Require explicit user merge authorization for the final ACTIVE gate."
+  - "Only after the final ACTIVE gate is canonical may 编程1 modify the bounded W2 runtime surface."
 
 locks:
   - "SIGNAL_IS_NOT_TASK"
   - "NO_AUTOMATIC_R143_RUNTIME_START"
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
-  - "NO_W2_RUNTIME_WRITE_BEFORE_ACTIVATION_MERGE"
+  - "PR410_IS_RESERVATION_ONLY"
+  - "PR410_MERGE_DOES_NOT_RELEASE_W2_RUNTIME"
+  - "NO_W2_RUNTIME_WRITE_UNTIL_SEPARATE_FINAL_ACTIVE_GATE_IS_CANONICAL"
   - "NO_W3_WRITE"
   - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
   - "NO_PRODUCTION_PRIVATE_SECRET_PERMISSION_EXPANSION"
@@ -129,5 +147,5 @@ locks:
   - "NO_SELF_MERGE"
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
 
-current_authority: "PREFLIGHT_ONLY / NO_EXECUTION_LEASE_YET"
-next_gate: "CREATE_FRESH_DRAFT_ACTIVATION_PR_THEN_BIND_EXACT_PR_ID"
+current_authority: "PREFLIGHT_EVIDENCE_FOR_NON_EXECUTABLE_RESERVATION_ONLY / NO_EXECUTION_LEASE / NO_RUNTIME_WRITE"
+next_gate: "INDEPENDENT_REVIEW_OF_PR410_RESERVATION_THEN_USER_MERGE_DECISION; IF_MERGED_CREATE_REAL_RUNTIME_DRAFT_PR; THEN_SEPARATE_FINAL_ACTIVE_GATE"
