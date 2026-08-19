@@ -1,15 +1,15 @@
-schema_version: "3.16"
+schema_version: "3.17"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-19T17:52:00+08:00"
+as_of: "2026-08-20T02:32:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
   This registry is authoritative only for Program Lane identity, mission, desired state, cross-lane relationships,
-  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes and canonical historical tombstones remain execution truth.
+  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes, GPT worker slots and canonical historical tombstones remain execution truth.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
@@ -31,37 +31,44 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R144 temporarily occupies Lane-A with the single allowed Codex route to extend Control Tower agent identity safely.
-    Lane-B R143 remains user-authorized but runtime-frozen until R144 is accepted/merged and a fresh preflight rebinds it.
-    Signal Tower normal on-demand operation remains available; no second Control Tower writer or A-share runtime slice is active.
+    R144 implementation is independently accepted and merged and its Codex implementation lease is released by this closeout candidate.
+    Lane-B R143 retains the user's prior release intent but remains runtime-held until a fresh post-R144 Signal Tower + Control Tower
+    preflight creates a new exact Work Claim, GPT worker slot and authorization witness. Signal Tower normal on-demand operation remains available.
 
 current_user_release_policy:
-  decision_at: "2026-08-19T17:52:00+08:00"
-  decision: "R144_GPT_ENGINEERING_WORKER_FIRST_CLASS_EXTENSION_RELEASED / R143_RUNTIME_FROZEN"
+  decision_at: "2026-08-20T02:32:00+08:00"
+  decision: "R144_ACCEPTED_MERGED / POST_MERGE_CONTROL_PLANE_CLOSEOUT / R143_AWAIT_FRESH_REBIND"
   rationale: >-
-    User approved making GPT Engineering Worker a first-class Control Tower agent. Existing validators do not recognize it as an
-    active execution identity, so R144 uses the already-recognized Codex agent to implement the ontology/slot/claim/witness extension
-    without self-authorizing the target agent. R143 remains frozen until this foundation change is independently accepted and merged.
-  released_implementation_lanes:
-    - "LANE-A-HARNESS-INTEGRATION"
+    Independent Review 4975349444 accepted exact R144 head 217a38e341b0c66864b67b549cdccf0be7757206 and the user explicitly
+    authorized merge. PR #408 merged as d9734f2db3f039167f0e3e32933392ae5571de13. The stale R144 Codex implementation lease must
+    now be released before any R143 GPT Engineering Worker activation. R143 is not auto-resumed by the R144 merge.
+  released_implementation_lanes: []
   prepared_implementation_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_SIGNAL_TOWER_CONTROL_TOWER_PREFLIGHT"
+  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_POST_MERGE_RECONCILIATION"
   r144_issue: 406
   r144_route_epoch: 144
   r144_task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
   r144_executor: "CODEX"
   r144_branch: "codex/r144-control-tower-gpt-worker-first-class"
+  r144_implementation_pr: 408
+  r144_accepted_head: "217a38e341b0c66864b67b549cdccf0be7757206"
+  r144_final_review: 4975349444
+  r144_merge_commit: "d9734f2db3f039167f0e3e32933392ae5571de13"
+  r144_status: "IMPLEMENTATION_ACCEPTED_MERGED / CLOSEOUT_PENDING_INDEPENDENT_REVIEW / NO_ACTIVE_EXECUTOR_AFTER_CLOSEOUT"
   r144_route: "coordination/ROUTES/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
   r144_task_brief: "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
   r144_target_agent_type: "GPT_ENGINEERING_WORKER"
   r144_target_parallel_model: "ONE_AGENT_TYPE / MULTI_SLOT_OR_LEASE_REGISTRY"
   r144_architecture_decision_comment: 5340334185
+  r144_closeout_receipt: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
   r143_issue: 404
-  r143_activation_pr: 405
+  r143_previous_activation_pr: 405
   r143_blocker_review: 4970596508
-  r143_runtime_status: "USER_AUTHORIZATION_RETAINED / BLOCKED_BY_EXECUTOR_IDENTITY_GATE"
+  r143_user_release: "RETAINED"
+  r143_runtime_status: "HELD_PENDING_FRESH_POST_R144_SIGNAL_TOWER_CONTROL_TOWER_PREFLIGHT"
+  r143_previous_activation_pr_status: "STALE_PRE_R144_CANDIDATE / DO_NOT_MERGE_AS_IS"
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
@@ -109,10 +116,15 @@ observed_agent_state:
     observed_task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
     observed_route_epoch: 144
     observed_issue: 406
-    observed_pr: null
-    observed_status: "READY"
-    execution_allowed: true
-    observation_status: "R144_ACTIVE_BOUNDED_CONTROL_TOWER_IMPLEMENTATION"
+    observed_pr: 408
+    observed_status: "DONE_HISTORICAL"
+    execution_allowed: false
+    observation_status: "R144_IMPLEMENTATION_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED"
+  GPT_ENGINEERING_WORKER:
+    source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+    observed_status: "NO_ACTIVE_SLOT"
+    execution_allowed: false
+    observation_status: "FIRST_CLASS_REGISTRY_CANONICAL / worker_slots=[] / FRESH_SLOT_REQUIRED_FOR_R143"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -135,8 +147,8 @@ observed_agent_state:
 signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
   capture: >-
-    Explicit durable signals use the accepted Signal Tower admission/projection path, including the merged R142 retrospective
-    intake capability. Signal is not automatically a task. R144 Control Tower implementation does not disable normal on-demand use.
+    Explicit durable signals use the accepted Signal Tower admission/projection path, including the merged R142 retrospective intake
+    capability. Signal is not automatically a task. R144 closeout does not disable normal on-demand Signal Tower use.
   mandatory_before_formal_task_release:
     - "GLOBAL_SHALLOW"
     - "DELTA"
@@ -152,52 +164,54 @@ signal_tower_operating_contract:
 program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: >-
-      Maintain the shared Cognitive OS coordination/runtime substrate and accepted Global Signal Tower capabilities without
-      replacing GitHub/W3/domain authorities. R144 extends Control Tower execution identity for GPT Engineering Worker.
+      Maintain the shared Cognitive OS coordination/runtime substrate and accepted Global Signal Tower capabilities without replacing
+      GitHub/W3/domain authorities. R144 first-class GPT Engineering Worker support is accepted and merged as foundation capability.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "R144_GPT_ENGINEERING_WORKER_FIRST_CLASS_IMPLEMENTATION_ACTIVE"
+    observed_state: "SIGNAL_TOWER_ON_DEMAND_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION"
     primary_system_positions: [W1, W8, W9]
-    current_phase: "R144_CONTROL_TOWER_AGENT_IDENTITY_EXTENSION"
-    active_execution_route: "coordination/ROUTES/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+    current_phase: "R144_DONE_HISTORICAL / SIGNAL_TOWER_ON_DEMAND"
+    active_execution_route: null
     dependencies:
-      - "User authorization for GPT Engineering Worker first-class agent"
-      - "Issue #406"
-      - "R143/#405 remains runtime-frozen"
-      - "fresh exact-head Control Tower CI and independent GPT review"
+      - "R144 accepted exact head 217a38e341b0c66864b67b549cdccf0be7757206"
+      - "R144 merged as d9734f2db3f039167f0e3e32933392ae5571de13"
+      - "Control-plane closeout independently reviewed before merge"
     shared_interfaces:
       - "Control Tower execution identity"
       - "Lane Work Claims"
       - "Authorization witness"
       - "Program Control Tower projection"
-      - "Signal Tower on-demand operation (read/operational coexistence only)"
-    next_gate: "R144_IMPLEMENTATION_READY_FOR_INDEPENDENT_GPT_REVIEW"
-    maturity: "BOUNDED_IMPLEMENTATION_ACTIVE"
+      - "Signal Tower on-demand operation"
+    next_gate: "ON_DEMAND_SIGNAL_TOWER_OR_NEW_GOVERNED_TASK_RELEASE"
+    maturity: "FOUNDATION_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION"
     heavy_execution_authorized: false
-    heavy_execution_start_gate: "NOT_REQUIRED / LIGHT_TO_MEDIUM_CONTROL_TOWER_IMPLEMENTATION"
-    implementation_owner: "CODEX"
-    implementation_owner_candidate: "CODEX"
+    heavy_execution_start_gate: "NEW_GOVERNED_TASK_REQUIRED"
+    implementation_owner: null
+    implementation_owner_candidate: null
     successor_slice_authorized: false
     retained_r142_closure_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
+    r144_closeout_receipt: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "PAUSED"
-    observed_state: "W2_S1_R143_USER_RELEASED_BUT_EXECUTOR_IDENTITY_BLOCKED"
+    observed_state: "W2_S1_R143_USER_RELEASE_RETAINED / AWAIT_FRESH_POST_R144_PREFLIGHT"
     primary_system_positions: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    current_phase: "R143_RUNTIME_FROZEN_DURING_R144"
+    current_phase: "R143_POST_R144_PREFLIGHT_PENDING"
     active_execution_route: null
     dependencies:
-      - "R144 GPT Engineering Worker first-class agent accepted and merged"
-      - "Fresh Signal Tower + Control Tower preflight after R144"
-      - "Fresh R143 Work Claim/route activation"
+      - "R144 first-class GPT Engineering Worker support accepted and merged"
+      - "R144 post-merge control-plane closeout merged"
+      - "Fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP"
+      - "Fresh Control Tower O0-O4/WIP/resource scan"
+      - "Fresh R143 GPT worker slot + exact ACTIVE_IMPLEMENTATION Work Claim + authorization witness"
       - "PIT/T+1/W7/NO_TRADE gates"
     shared_interfaces: ["W2 A-share data/rules", "W3 knowledge/context", "W7 validation/risk", "W10 DecisionEpisode"]
-    next_gate: "WAIT_R144_ACCEPTED_MERGED_THEN_FRESH_R143_ACTIVATION"
-    maturity: "MASTER_AUDIT_ACCEPTED_MERGED / FIRST_SLICE_USER_AUTHORIZED / RUNTIME_BLOCKED"
+    next_gate: "FRESH_SIGNAL_TOWER_CONTROL_TOWER_PREFLIGHT_THEN_NEW_R143_ACTIVATION"
+    maturity: "MASTER_AUDIT_ACCEPTED_MERGED / FIRST_SLICE_USER_AUTHORIZED / RUNTIME_HELD"
     heavy_execution_authorized: false
     implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
 
@@ -218,18 +232,18 @@ program_lanes:
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-    overlap_level: "O1_READ_READ_AFTER_TEMPORARY_CONTROL_PLANE_READ_FREEZE"
+    overlap_level: "O1_READ_READ_NO_ACTIVE_IMPLEMENTATION_COLLISION"
     rule: >-
-      R144 owns shared Control Tower writes. Lane-B remains held proposal-only and temporarily drops shared Control Tower/Program Lane
-      reads; retained cross-domain overlap is read-only and does not authorize R143 runtime.
+      R144 implementation lease is released and Lane-B remains held. Signal Tower/Control Tower may perform read-only preflight;
+      no R143 runtime or shared mutable writer is active.
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
-    rule: "R144 cannot mutate frozen W3/domain canonical truth."
+    rule: "Accepted Signal Tower operation may consume frozen W3/domain interfaces but cannot mutate W3/domain canonical truth."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
-    rule: "Lane-B remains held; no implementation collision."
+    rule: "Lane-B remains held; no implementation collision and no W3/W10 write authority."
 
 reconciliation_rule: >-
-  R144 is the only active implementation route and is limited to Control Tower governance. Lane-B R143 remains user-authorized but
-  runtime-frozen. Signal Tower normal on-demand operation remains available. R144 success does not automatically activate R143;
-  R143 requires fresh post-R144 preflight, Work Claim and authorization witness.
+  R144 is accepted and merged and is historical/non-executable after closeout. Lane-A retains normal on-demand Signal Tower operation
+  with no active implementation route. Lane-B R143 user release intent remains valid but runtime stays held until a fresh post-R144
+  Signal Tower + Control Tower preflight establishes an exact GPT worker slot, Work Claim, collision/WIP clearance and fresh witness.
