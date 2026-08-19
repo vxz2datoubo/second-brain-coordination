@@ -4,7 +4,7 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-18T21:05:59+08:00`
+- as_of: `2026-08-19T14:02:00+08:00`
 - Foundation structural check: **PASS**
 - Lane release decision: **HOLD_BY_USER**
 - User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
@@ -13,7 +13,7 @@
 
 | Agent | task_id | epoch | status | execution_allowed | Issue / PR |
 |---|---|---:|---|---|---|
-| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE` | 142 | `PAUSED_EXECUTOR_SUBSTITUTED` | `false` | #393 / #None |
+| CODEX | `CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE` | 142 | `DONE_HISTORICAL` | `false` | #393 / #400 |
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `DONE_HISTORICAL` | `false` | #296 / #None |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
@@ -21,7 +21,7 @@
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `R142_GPT_ENGINEERING_WORKER_RELEASED / FRESH_RECONCILE_REQUIRED` | `true` | GPT_ENGINEERING_WORKER_FRESH_RECONCILE -> PROJECT_PLAN_M0 |
+| `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `SIGNAL_TOWER_ON_DEMAND_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION` | `false` | ON_DEMAND_SIGNAL_TOWER_OPERATION / FUTURE_IMPLEMENTATION_REQUIRES_NEW_GOVERNED_DECISION |
 | `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `PREPARING_NOT_STARTED` | `false` | EXPLICIT_USER_START_THEN_SIGNAL_TOWER_PREFLIGHT_AND_FRESH_CONTROL_TOWER_RELEASE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
@@ -36,7 +36,7 @@
 
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
-| `LANE-A-HARNESS-INTEGRATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `CODEX` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 4 paths | epoch 142 · #393/#None |
+| `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 | `LANE-B-A-SHARE-REMEDIATION` | `HELD_PROPOSAL_ONLY` | `NONE` | `LIGHT_RESEARCH_DESIGN` | `coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION` | NONE |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
@@ -44,7 +44,7 @@
 
 | Pair | level | reason |
 |---|---|---|
-| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O1** | `READ_READ` |
+| `LANE-A-HARNESS-INTEGRATION ↔ LANE-B-A-SHARE-REMEDIATION` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-A-HARNESS-INTEGRATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 | `LANE-B-A-SHARE-REMEDIATION ↔ LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | **O0** | `NO_MATERIAL_OVERLAP` |
 
@@ -58,47 +58,32 @@
 
 ## 当前正式节奏
 
-- **R60 implementation 已按独立授权合并**：PR #304 accepted source head `8e5b9f3b8e9d9180937a1e7a41e720383fa146b0` 合并为 `870df76ada3d437bbd2a29a0a3e199f4f66f3ab6`。当前状态为 `MERGED_PENDING_CONTROL_PLANE_CLOSEOUT_REVIEW`，不是未经 Reviewer 的 fully DONE 宣告。
-- **R60 execution authority 已在本 closeout Draft PR 中收口**：original QCLAW route、GPT Engineering Worker substitution route、ACTIVE-QCLAW 均投影为 historical/non-executable；main 上的最终生效仍取决于本 closeout PR 独立验收与后续授权合并。
-- **R60 没有 active Work Claim**：`LANE-WORK-CLAIMS.yaml` 只读核验未发现 R60 claim，因此没有伪造 release mutation。
-- **R142 Lane-A 不变**：仍由 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE / CODEX` 记录写面 reservation，实际 continuation 依赖 R142 canonical GPT executor-substitution route。R60 closeout 不修改该 claim。
-- **ACTIVE-CODEX / ACTIVE-WORKBUDDY 不变**：本 closeout 只读验证，不修改它们的执行语义。
-- **QQ 算力仍是保留资源**：R60 完成不自动释放任何新 QCLAW 任务；新任务需要 fresh governed decision。
-- **所有 GPT Worker 必须真实记录身份**：`executor_role=GPT_ENGINEERING_WORKER`、`model_id=GPT-5.6 Sol` 与实际 harness/tool provenance，不得冒充历史 QCLAW/Codex。
-- **R142 硬锁继续有效**：无 private/raw public write、无 daemon/webhook/server/scheduler、无 W3/domain write、无 production/permission/trading、自主 merge。
+- **R60 已是历史完成态**：implementation 与 control-plane closeout 均已 merge；没有 active R60 executor 或 Work Claim，不自动恢复 QCLAW。
+- **R142 implementation 已独立验收并合并**：PR #400 accepted head `7e76de7fd4dd9d97ce8c74aa698031d0c124a524`，implementation merge `341fefa057d891103ef9de91af719e1050e4a0ab`，Independent final Review `4963324873`，F01-F05 CLOSED。
+- **R142 post-merge closeout 在 Draft PR #403**：本 PR 只收口 control-plane，不修改已合并 runtime implementation，不拥有 self-review 或 merge authority。
+- **R142 当前执行权已释放在 closeout projection 中**：ACTIVE-CODEX 为 `DONE_HISTORICAL`；原 Codex route 与 GPT substitution route 均为 historical/non-executable；active executor 为 NONE。
+- **Lane-A R142 Work Claim 已释放**：`CLOSED_NO_ACTIVE_IMPLEMENTATION`，execution agent、route binding、R142 write/read/interface/authority surfaces 全空；保留 canonical closure receipt 作为 durable history。
+- **Signal Tower 正常能力不因释放 implementation claim 而关闭**：普通运行保持 `ON_DEMAND_PREFLIGHT_AVAILABLE`，Signal != Task，normal operation 不要求 daemon。
+- **没有 successor 自动激活**：任何未来 implementation、always-on scheduler/private bridge、W3/domain write、production/trading authority 都需要新的 governed decision、fresh preflight 和新 Work Claim。
+- **Issue #393 当前仍保持 OPEN**：只有本 closeout 经独立审查并另行授权 merge 后，才进入 `close_after_closeout_merge`，Executor 不自行关闭。
 
-## R60 closure evidence
-
-- Issue: `#296`
-- implementation PR: merged `#304`
-- Task: `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60`
-- Route epoch: `60`
-- accepted exact head: `8e5b9f3b8e9d9180937a1e7a41e720383fa146b0`
-- implementation merge: `870df76ada3d437bbd2a29a0a3e199f4f66f3ab6`
-- independent acceptance Review: `4957638772`
-- acceptance checkpoint: `5324165106`
-- separate merge authorization: Issue comment `5328480240` + PR comment `5328482527`
-- dedicated exact-merge R60 CI: `32103599224`
-- benchmark truth: **58 PASS / 2 truthful FAIL / 0 ERROR**
-- pending: **30**
-- `r60-013`, `r60-025`: **NEEDS_REVALIDATION**
-- historical `60/60 PASS`: **REJECTED_INVALID_FALSE_GREEN**
-- active R60 Work Claim: **NONE**
-- closeout state: **DRAFT PR / INDEPENDENT GPT REVIEW REQUIRED / NO SELF-MERGE**
-
-## R142 status
+## R142 retained implementation truth
 
 - Issue: `#393`
+- implementation PR: merged `#400`
 - Task: `CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE`
 - Route epoch: `142`
-- Historical executor: `CODEX / ACTIVATED_BUT_NOT_STARTED`
-- Historical per-agent route: `PAUSED_EXECUTOR_SUBSTITUTED / execution_allowed=false`
-- Lane-A reservation: `RESERVED_IMPLEMENTATION_NON_EXECUTABLE / CODEX`
-- Replacement executor: `GPT_ENGINEERING_WORKER`
-- Required model: `GPT-5.6 Sol`
-- Substitution route: `coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml`
-- S0C source / W3-domain / private bridge / daemon / production / trading authority: **NONE beyond current authorized R142 scope**
+- accepted exact head: `7e76de7fd4dd9d97ce8c74aa698031d0c124a524`
+- implementation merge: `341fefa057d891103ef9de91af719e1050e4a0ab`
+- independent final Review: `4963324873`
+- post-merge freeze checkpoint: `5331110683`
+- accepted exact-head CI: `32157970026`
+- real M4 candidates: **51**
+- dispositions: **20 ALREADY_CANONICAL / 20 ALREADY_SATISFIED / 0 DOMAIN_CANONICAL_ONLY / 11 NEEDS_REVALIDATION / 0 NEW_DURABLE_SIGNAL**
+- real-M4 S0C writes / durable receipts / history events: **0 / 0 / 0**
+- the 11 `NEEDS_REVALIDATION` remain unresolved and are not promoted to PASS by closeout
+- canonical closeout receipt: `coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml`
 
 ## 下一关
 
-独立 GPT Reviewer fresh-read R60 closeout Draft PR，核验 implementation merge、route tombstone、ACTIVE-QCLAW、Program Lane projection、Work Claim absence、58/2/0 + 30 pending retained truth，以及 R142 no-collision。Executor 不得 self-review 或 merge closeout PR。
+独立 GPT Reviewer fresh-read Draft PR #403，核验 exact base/head、R142 implementation merge evidence、route tombstones、ACTIVE-CODEX historical state、Lane-A Work Claim release、Signal Tower on-demand preservation、51-candidate retained truth、11 NEEDS_REVALIDATION、scope/validator/resource evidence。Executor 不得 self-review、merge PR #403 或关闭 Issue #393。

@@ -1,21 +1,27 @@
-schema_version: "1.1"
+schema_version: "2.0"
 route_id: "GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION"
 repository: "vxz2datoubo/second-brain-coordination"
 handoff_kind: "EXECUTOR_SUBSTITUTION"
-status: "CANONICAL / USER_START_RECEIVED / GPT_ENGINEERING_WORKER_MAY_FRESH_RECONCILE_AND_START"
+status: "CLOSED_HISTORY_ONLY / NON_EXECUTABLE"
+execution_allowed: false
+automatic_resume: false
+merge_authorized: false
+runtime_code_change_allowed: false
 
 binding:
   task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
   route_epoch: 142
   issue: 393
-  implementation_pr: null
+  implementation_pr: 400
   branch: "codex/r142-retrospective-signal-intake-bridge"
+  accepted_exact_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
+  implementation_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  independent_final_review: 4963324873
+  issue_post_merge_freeze_checkpoint: 5331110683
+  exact_head_ci: 32157970026
   original_route: "coordination/ROUTES/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE-R142.yaml"
   task_brief: "coordination/TASK-BRIEFS/CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE.yaml"
-  canonical_handoff_base_main: "d7591b123c72f012f20149337a3ae914db56d29d"
-  canonical_control_plane_merge_main: "008fe06c31fd7b0cb3cf6b002ca14652aeda9209"
-  control_plane_pr: 398
-  control_plane_ci_run: 32100016188
+  closure_reconciliation_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
   mode: "project_plan"
   task_identity_retained: true
 
@@ -23,62 +29,66 @@ executor_identity:
   historical_executor: "CODEX"
   historical_executor_status: "ACTIVATED_BUT_NOT_STARTED / PAUSED_EXECUTOR_SUBSTITUTED"
   replacement_executor_role: "GPT_ENGINEERING_WORKER"
-  required_model_id: "GPT-5.6 Sol"
+  replacement_model_id: "GPT-5.6 Sol"
   reviewer_role: "GPT_INDEPENDENT_REVIEWER"
   impersonation_forbidden: true
+  replacement_execution_status: "COMPLETED / IMPLEMENTATION_ACCEPTED_AND_MERGED"
+  active_executor: null
   provenance_requirement: >-
-    New commits, receipts and final handoff evidence must truthfully record executor_role=GPT_ENGINEERING_WORKER,
-    model_id=GPT-5.6 Sol, and actual harness/tool provenance. Historical Codex activation provenance remains unchanged.
+    Historical Codex and GPT Engineering Worker provenance remains immutable. This tombstone records completion and removes
+    current execution authority; it does not rewrite which executor performed the accepted R142 implementation.
 
-user_release:
-  authorized_at: "2026-08-18T12:29:00+08:00"
-  direct_r142_start_received: true
-  rationale: >-
-    The user explicitly approved parallel engineering and opened a separate GPT project window for R142. GPT-capable work should
-    default to GPT Engineering Worker while retained QCLAW compute is preserved. This is executor substitution, not a new Mission.
+closure:
+  route_disposition: "CLOSED_HISTORICAL / NON_EXECUTABLE"
+  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
+  active_executor_reservation: "NONE"
+  active_write_paths: []
+  lane_a_r142_reservation: "RELEASED"
+  r142_work_claim: "CLOSED / RELEASED"
+  successor_implementation_authorized: false
+  control_plane_closeout_status: "UNDER_INDEPENDENT_REVIEW_AFTER_DRAFT_PR"
+  reopen_rule: "FRESH_GOVERNED_DECISION_REQUIRED / NEVER_AUTO_RESUME"
 
-objective:
-  preserve_issue_393_contract: true
-  required_flow: "historical chat -> SignalImportPackage/v1 -> fresh canonical reconcile -> governed one-shot admission -> existing R136 gateway/S0C -> durable receipt/readback"
-  first_real_case: "public-safe retrospective package derived from the previously identified approximately-45 candidate historical window"
-  historical_fact_not_current_need: true
-  signal_is_not_task: true
-  prepared_package_is_not_persisted_signal: true
-
+historical_write_scope:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
+  - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
 write_scope:
-  allowed:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/tests"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/R142"
-    - ".github/workflows/global-signal-plane-r142-retrospective-intake.yml"
+  allowed: []
   s0c_source_write_allowed: false
   control_plane_write_allowed_from_worker: false
   w3_or_domain_write_allowed: false
+  production_write_allowed: false
+  trading_write_allowed: false
 
-required_preflight:
-  - "fresh reconcile canonical main, Issue #393, original R142 route/task brief, Lane-A reservation, substitution route and current open PRs"
-  - "verify canonical main contains control-plane merge 008fe06c31fd7b0cb3cf6b002ca14652aeda9209 or a later non-conflicting descendant"
-  - "verify no conflicting active writer owns the same S0E paths"
-  - "verify R60 parallel worker writes only its R60 root plus .github/workflows/r60-retrieval-adversarial-benchmark.yml"
-  - "M0 plan commit first; no implementation before the project plan is committed"
-  - "preserve foreign/dirty workspace evidence and use isolated worktree/branch state if available"
+signal_tower_operating_contract:
+  normal_mode: "ON_DEMAND_PREFLIGHT_AVAILABLE"
+  signal_is_not_task: true
+  daemon_required_for_normal_use: false
+  formal_task_release_requires_fresh_preflight: true
 
-parallel_execution_contract:
-  r60_parallel_allowed: true
-  r60_write_overlap: "NONE_EXPECTED"
-  shared_directory_only: ".github/workflows with distinct exact filenames"
-  same_canonical_object_writers_max: 1
-  local_heavy_stage_concurrency_max: 1
+retained_real_m4_truth:
+  candidate_count: 51
+  already_canonical: 20
+  already_satisfied: 20
+  domain_canonical_only: 0
+  needs_revalidation: 11
+  new_durable_signal: 0
+  durable_receipts: 0
+  no_new_admission_manufactured: true
+
+resource_contract:
+  task_owned_background_processes: "NONE"
   nested_parallelism: "FORBIDDEN"
-  collision_rule: "If a real local-heavy or same-object collision appears, fail closed or downgrade to bounded lightweight work."
+  global_kill_python_or_docker: "FORBIDDEN"
 
 hard_locks:
   - "NO_CODEX_IMPERSONATION"
   - "NO_PRIVATE_RAW_CONVERSATION_BODY_IN_PUBLIC_REPO"
   - "NO_PRIVATE_CHATGPT_CROSS_WINDOW_SERVICE_OR_BRIDGE"
-  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING"
+  - "NO_DAEMON_WEBHOOK_SERVER_SCHEDULER_POLLING_REQUIRED_FOR_NORMAL_OPERATION"
   - "NO_API_KEY_BILLING_SECRET_PERMISSION_EXPANSION"
-  - "NO_S0C_SOURCE_MUTATION_WITHOUT_GPT_SCOPE_EXPANSION"
   - "NO_SECOND_SIGNAL_TRUTH_LEDGER_STORE_BACKLOG"
   - "NO_W3_OR_DOMAIN_CANONICAL_WRITE"
   - "NO_FORMAL_SKILL_PROMOTION"
@@ -86,19 +96,6 @@ hard_locks:
   - "NO_PRODUCTION_DEPLOYMENT"
   - "NO_TRADING_ACCOUNTS_ORDERS_FUNDS"
   - "NO_RESET_REBASE_FORCE_PUSH_HISTORY_REWRITE"
-  - "NO_AUTONOMOUS_MERGE"
+  - "NO_SELF_REVIEW_OR_AUTONOMOUS_CLOSEOUT_MERGE"
 
-completion_requirements:
-  - "M0-M6 evidence required by Issue #393"
-  - "exact tested head and implementation PR"
-  - "changed-file inventory and allowlist proof"
-  - "SignalImportPackage/v1 schema/parser/validator evidence"
-  - "fresh-current-state reconciliation disposition evidence"
-  - "one-shot durable bridge using existing R136 gateway/S0C semantics"
-  - "first real public-safe retrospective E2E package, durable receipt, replay/read-back evidence"
-  - "adversarial corpus including duplicate/superseded/private/provenance/stale-snapshot/Signal-not-Task cases"
-  - "Python 3.11 + 3.13 exact-head CI and public-safety evidence"
-  - "resource/process cleanup evidence, rollback and workspace state"
-  - "UNKNOWN/NEEDS_REVALIDATION registry"
-  - "completion signal R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_READY_FOR_GPT_REVIEW"
-  - "STOP for independent GPT review; no merge"
+next_command: "NONE / R142_EXECUTOR_SUBSTITUTION_CLOSED_HISTORY_ONLY"
