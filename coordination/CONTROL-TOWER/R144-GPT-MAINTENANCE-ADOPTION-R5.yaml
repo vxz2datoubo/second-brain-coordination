@@ -1,0 +1,82 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "RELEASED"
+release_reason: "CORRECTIVE_PATCH_COMPLETE_PENDING_SEPARATE_INDEPENDENT_REVIEW"
+released_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+release_transition:
+  from_state: "ACTIVE"
+  to_state: "RELEASED"
+  terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
+  required_state: "RELEASED"
+  required_terminal_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+
+# Exact R144 R5 binding. R5 adopts the independently reviewed R4 tree without rewriting history.
+task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+route_epoch: 144
+issue: 406
+pr: 408
+branch: "codex/r144-control-tower-gpt-worker-first-class"
+trigger_review: 4974860616
+adopted_candidate_input_head: "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
+activation_parent_head: "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
+
+purpose: >-
+  Fresh bounded R5 authority for the sole remaining blocker in Independent Review 4974860616:
+  make maintenance-authority terminality monotonic so an already RELEASED authority ID cannot be reactivated
+  by changing state to ACTIVE while deleting release receipt fields. Preserve every already-closed R4/B02/B03/B04 result.
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+# Retained historical repair scope. Because this authority is RELEASED, this list grants no current writes.
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R5.yaml"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-TERMINAL-TOMBSTONES.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/R5-REPAIR-RECEIPT.md"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+  terminality_must_not_depend_on_mutable_release_receipt_presence: true
+
+provenance:
+  source: "USER_RELAYED_INDEPENDENT_REVIEW_AND_BOUNDED_CONTINUATION"
+  triggering_independent_review: 4974860616
+  reviewed_exact_head: "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
+  review_disposition: "CHANGES_REQUIRED_R5_TERMINAL_MAINTENANCE_AUTHORITY_REACTIVATION_GAP"
+  truth_rule: "R5_NEW_AUTHORITY_ID != R4_REACTIVATION"
+  r4_closed_checks_retained:
+    - "AUTHORITY_FIRST_CHRONOLOGY"
+    - "EXACT_BINDING"
+    - "R3_PREDECESSOR_RELEASED"
+    - "BOUNDED_FOUR_FILE_DELTA"
+    - "B02_REGISTRY_MISSING_FAIL_CLOSED"
+    - "B03_STRICT_BOOLEAN_IDENTITY_SCHEMA"
+    - "B04_MALFORMED_REGISTRY_WITNESS_INVALIDATION"
+  r5_modifier: "GPT_ARCHITECTURE_OWNER"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_user_decision: true
+  r143_remains_frozen: true

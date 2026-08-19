@@ -20,9 +20,26 @@ Source precedence remains:
 - `LANE-WORK-CLAIMS.yaml`: the current machine-readable work surface for each Program Lane.
 - `RELEASE-GATE.yaml`: separates Foundation Ready, proposal-only lane release and implementation release.
 - `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
+- `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation (see below).
 - `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `authorization_witness.py`: fingerprints route + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
-- `PROGRAM-CONTROL-TOWER.md`: human projection only; its two generated blocks are checked by CI.
+- `authorization_witness.py`: fingerprints route + strict worker authority material + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
+- `PROGRAM-CONTROL-TOWER.md`: human projection only; its generated blocks are checked by CI.
+
+## GPT Engineering Worker slots
+
+`GPT_ENGINEERING_WORKER` is a first-class execution identity backed by `coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml`, which holds a `worker_slots` list. There is exactly one agent ontology (`GPT_ENGINEERING_WORKER`); 编程1/编程2 are `worker_slot_id` provenance labels, not separate agent species.
+
+Each active slot must bind: `worker_slot_id`, `agent_type`, `executor_role`, `model_id`, `task_id`, `route_epoch`, `issue`, `pr`, `branch`, `status`, `execution_allowed`, write/read paths, interfaces, domains, authority claims, resource class, provenance, reviewer role/separation, activation and closure state.
+
+Fail-closed rules: duplicate slot id (silent overwrite / double booking) fails; a released/closed slot with an execution lease fails; two active slots colliding on the same mutable surface or authority (O3/O4) fail; active executable slots beyond `gpt_engineering_worker_active_slots_max` fail; a slot declaring a non-GPT agent identity (CODEX impersonation) fails; `reviewer_role == executor_role` (self-review) fails. A Work Claim bound to `GPT_ENGINEERING_WORKER` must also bind the exact `worker_slot_id`, and every ACTIVE/RESERVED slot must be owned by exactly one matching Work Claim.
+
+R144 R3 makes the execution-identity schema type-strict. Once the Program capacity policy enables GPT worker slots, removing the canonical registry is an ERROR and means no GPT worker execution. `execution_allowed` must be an actual YAML boolean: values such as `"false"`, `"0"`, numbers, containers or omitted authority material never become an executable lease by coercion. `agent_type` and `executor_role` are explicit authority fields and are not inferred/defaulted for a malformed slot. Raw `worker_slots` material, including invalid entries, participates in authorization freshness. If canonical worker authority is structurally invalid, `authorization_witness.py` refuses to mint or refresh a green witness instead of filtering the defect away.
+
+## Corrective maintenance/adoption authority
+
+R144 uses `R144-GPT-MAINTENANCE-ADOPTION.yaml` only for the exceptional bounded repair of the existing Draft PR after independent review. This artifact is **not** a `GPT_ENGINEERING_WORKER` runtime slot and is **not** a replacement for an executable Agent route or Work Claim. It records the user's explicit branch-maintenance instruction, the exact candidate input head/review that triggered repair, truthful executor provenance, and an allow-list of governance files that may be corrected.
+
+The maintenance/adoption contract is mechanically fail-closed: `execution_allowed`, runtime write, trade, merge, acceptance, self-review and retroactive WorkBuddy authorization must all remain false; same-PR continuity, fresh exact-head CI and a separate independent review must remain true. Any mutation of this authority participates in the worker-registry authorization witness and therefore invalidates previously minted authorization material. It gives GPT architecture-owner corrective-maintenance provenance without pretending that WorkBuddy was authorized at R1 or that GPT acquired CODEX/runtime execution identity.
 
 ## Commands
 
@@ -38,7 +55,7 @@ python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECON
 python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file witness.json
 ```
 
-`check` fails closed when canonical route projection, user hold, WIP/resource boundaries, or registry structure is inconsistent. A user hold is not an implementation failure: it returns `HOLD_BY_USER` while the structural foundation can still be `PASS`.
+`check` fails closed when canonical route projection, user hold, WIP/resource boundaries, worker authority/registry structure, or maintenance/adoption guard is inconsistent. A user hold is not an implementation failure: it returns `HOLD_BY_USER` while the structural foundation can still be `PASS`.
 
 ## Work Claim rule
 
@@ -62,6 +79,8 @@ A Program Lane cannot gain durable runtime-write permission merely because a cha
 A route check only protects task identity. The full authorization witness additionally binds:
 
 - current route fingerprint;
+- strict raw GPT worker registry/slot authority material and structural state;
+- bounded corrective maintenance/adoption authority when present;
 - current Work Claim;
 - current Program Lane state;
 - user release/hold policy;
@@ -71,7 +90,7 @@ A route check only protects task identity. The full authorization witness additi
 
 For a closed claim, the witness may still fingerprint the lane/claim/governance state for freshness, but `execution_agent` and route fingerprint are null and the witness grants **no execution authority**.
 
-Create the witness after preflight. Verify it again immediately before a durable write/commit. Any material change invalidates the old witness and requires a fresh preflight.
+Create the witness after preflight. Verify it again immediately before a durable write/commit. Any material change invalidates the old witness and requires a fresh preflight. If the GPT worker authority source itself is missing or structurally invalid after R144 enablement, witness creation/verification fails closed rather than returning a false-green `fresh=True`.
 
 ## Separate release levels
 

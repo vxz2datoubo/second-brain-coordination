@@ -17,6 +17,12 @@
 | QCLAW | `QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60` | 60 | `DONE_HISTORICAL` | `false` | #296 / #None |
 | WORKBUDDY | `WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28` | 15 | `PAUSED_COMPUTE_UNAVAILABLE` | `false` | #89 / #97 |
 
+### GPT Engineering Worker slots
+
+| slot | task_id | epoch | status | execution_allowed | model_id | Issue / PR |
+|---|---|---:|---|---|---|---|
+| _NONE_ | _no active GPT Engineering Worker slot_ | | | | | |
+
 ### Program lanes
 
 | Lane | desired | observed | heavy | next gate |

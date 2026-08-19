@@ -484,6 +484,17 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
                 )
             )
 
+    from worker_slots import (
+        load_worker_slots,
+        validate_worker_slots,
+        worker_slot_findings,
+        worker_slot_route_witness,
+    )
+
+    findings.extend(worker_slot_findings(repo_root))
+    worker_slots = load_worker_slots(repo_root)
+    worker_report = validate_worker_slots(repo_root)
+
     errors = [asdict(item) for item in findings if item.severity == "ERROR"]
     warnings = [asdict(item) for item in findings if item.severity == "WARN"]
     release_decision = "HOLD_BY_USER" if held_lanes else ("NOT_READY" if errors else "ELIGIBLE_FOR_GPT_DRY_RUN")
@@ -493,6 +504,8 @@ def scan_repository(repo_root: Path) -> dict[str, Any]:
         "registry_id": registry.get("registry_id"),
         "registry_as_of": registry.get("as_of"),
         "routes": {agent: route_witness(route) for agent, route in routes.items()},
+        "worker_slots": [worker_slot_route_witness(slot) for slot in worker_slots],
+        "worker_slot_structural_check": worker_report["worker_slot_structural_check"],
         "errors": errors,
         "warnings": warnings,
         "release_decision": release_decision,
@@ -526,6 +539,25 @@ def render_projection_block(repo_root: Path) -> str:
             f"| {agent} | `{route.get('task_id')}` | {route.get('route_epoch')} | `{route.get('status')}` | "
             f"`{str(route.get('execution_allowed')).lower()}` | #{route.get('issue')} / #{route.get('pr')} |"
         )
+    lines.extend(
+        [
+            "",
+            "### GPT Engineering Worker slots",
+            "",
+            "| slot | task_id | epoch | status | execution_allowed | model_id | Issue / PR |",
+            "|---|---|---:|---|---|---|---|",
+        ]
+    )
+    worker_slots = scan.get("worker_slots") or []
+    if worker_slots:
+        for slot in worker_slots:
+            lines.append(
+                f"| `{slot.get('worker_slot_id')}` | `{slot.get('task_id')}` | {slot.get('route_epoch')} | "
+                f"`{slot.get('status')}` | `{str(bool(slot.get('execution_allowed'))).lower()}` | "
+                f"`{slot.get('model_id') or 'UNKNOWN'}` | #{slot.get('issue')} / #{slot.get('pr')} |"
+            )
+    else:
+        lines.append("| _NONE_ | _no active GPT Engineering Worker slot_ | | | | | |")
     lines.extend(
         [
             "",
