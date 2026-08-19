@@ -1,15 +1,15 @@
-schema_version: "3.14"
+schema_version: "3.15"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-18T21:05:59+08:00"
+as_of: "2026-08-19T14:02:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
   This registry is authoritative only for Program Lane identity, mission, desired state, cross-lane relationships,
-  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes and canonical executor-substitution routes remain execution truth.
+  overlap declarations and portfolio-level gates. Per-agent ACTIVE routes and canonical historical tombstones remain execution truth.
 
 source_precedence:
   - "USER_CURRENT_EXPLICIT_DIRECTION"
@@ -30,40 +30,48 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R60 implementation is merged and its executor reservation is closed. R142 remains the only currently released Lane-A
-    GPT Engineering Worker implementation surface. Same-object single-writer and one-local-heavy-stage rules remain in force.
+    R60 and R142 implementations are merged and have no active executor reservation. Lane A remains operational for accepted
+    Signal Tower on-demand use, but has no active implementation route or write surface. Same-object and local-heavy limits remain in force.
 
 current_user_release_policy:
-  decision_at: "2026-08-18T12:29:00+08:00"
-  decision: "USER_AUTHORIZED_PARALLEL_GPT_ENGINEERING / R142_EXECUTOR_SUBSTITUTION / QCLAW_COMPUTE_PRESERVED"
+  decision_at: "2026-08-19T14:02:00+08:00"
+  decision: "R142_IMPLEMENTATION_ACCEPTED_MERGED / POST_MERGE_CONTROL_PLANE_CLOSEOUT / NO_SUCCESSOR_RELEASE"
   rationale: >-
-    The user explicitly approved parallel engineering to reduce project time and opened a GPT project window for R142.
-    R60 has since completed implementation and merged under separate exact-bound authorization; QCLAW retained compute remains reserve capacity.
-  released_implementation_lanes:
-    - "LANE-A-HARNESS-INTEGRATION / R142_GPT_ENGINEERING_WORKER"
+    PR #400 merged the independently accepted R142 exact head. Post-merge closeout releases the stale Codex/GPT executor routes,
+    Lane-A R142 reservation and Work Claim while preserving normal on-demand Signal Tower operation and all safety boundaries.
+  released_implementation_lanes: []
   prepared_implementation_lanes: []
   held_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
-  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_FRESH_RECONCILIATION"
+  release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_POST_MERGE_RECONCILIATION"
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
-  qclaw_r60_status: "IMPLEMENTATION_MERGED / CONTROL_PLANE_CLOSEOUT_UNDER_REVIEW / NO_ACTIVE_EXECUTOR"
+  qclaw_r60_status: "DONE_HISTORICAL / CONTROL_PLANE_CLOSEOUT_MERGED / NO_ACTIVE_EXECUTOR"
   qclaw_r60_accepted_head: "8e5b9f3b8e9d9180937a1e7a41e720383fa146b0"
   qclaw_r60_merge_commit: "870df76ada3d437bbd2a29a0a3e199f4f66f3ab6"
   qclaw_r60_historical_executor_role: "GPT_ENGINEERING_WORKER"
   qclaw_r60_historical_model_id: "GPT-5.6 Sol"
-  qclaw_r60_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R60-EXECUTOR-SUBSTITUTION.yaml"
   qclaw_compute_policy: "PRESERVE_BY_DEFAULT / GPT_ENGINEERING_WORKER_FIRST_WHEN_CAPABLE"
   r142_issue: 393
   r142_route_epoch: 142
-  r142_status: "GPT_EXECUTOR_SUBSTITUTION_AUTHORIZED"
+  r142_status: "IMPLEMENTATION_ACCEPTED_MERGED / CONTROL_PLANE_CLOSEOUT / NO_ACTIVE_EXECUTOR"
+  r142_implementation_pr: 400
+  r142_accepted_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
+  r142_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
+  r142_final_review: 4963324873
+  r142_post_merge_freeze_checkpoint: 5331110683
   r142_original_executor: "CODEX"
-  r142_original_executor_status: "PAUSED_EXECUTOR_SUBSTITUTED"
-  r142_executor_role: "GPT_ENGINEERING_WORKER"
-  r142_model_id: "GPT-5.6 Sol"
-  r142_executor_substitution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
-  r142_direct_user_start: "RECEIVED_FOR_REPLACEMENT_EXECUTOR"
+  r142_original_executor_status: "CLOSED_HISTORY_ONLY / NON_EXECUTABLE"
+  r142_historical_executor_role: "GPT_ENGINEERING_WORKER"
+  r142_historical_model_id: "GPT-5.6 Sol"
+  r142_executor_substitution_status: "CLOSED_HISTORY_ONLY / NON_EXECUTABLE"
+  r142_active_executor: null
+  r142_active_write_paths: []
+  r142_lane_a_reservation: "RELEASED"
+  r142_work_claim: "CLOSED / RELEASED"
+  r142_successor_implementation: "NOT_AUTHORIZED"
+  r142_closure_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
   predecessor_r141_closure: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
   signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
   signal_tower_daemon_required: false
@@ -83,10 +91,10 @@ observed_agent_state:
     observed_task_id: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
     observed_route_epoch: 142
     observed_issue: 393
-    observed_pr: null
-    observed_status: "PAUSED_EXECUTOR_SUBSTITUTED"
+    observed_pr: 400
+    observed_status: "DONE_HISTORICAL"
     execution_allowed: false
-    observation_status: "R142_CODEX_EXECUTOR_PAUSED / GPT_ENGINEERING_WORKER_SUBSTITUTION"
+    observation_status: "R142_IMPLEMENTATION_MERGED / NO_ACTIVE_CODEX_OR_GPT_R142_EXECUTOR"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -95,7 +103,7 @@ observed_agent_state:
     observed_pr: null
     observed_status: "DONE_HISTORICAL"
     execution_allowed: false
-    observation_status: "R60_IMPLEMENTATION_MERGED / NO_ACTIVE_QCLAW_OR_GPT_R60_EXECUTOR"
+    observation_status: "R60_DONE_HISTORICAL / NO_ACTIVE_QCLAW_OR_GPT_R60_EXECUTOR"
   WORKBUDDY:
     source: "coordination/ACTIVE-WORKBUDDY-TASK.yaml"
     observed_task_id: "WORKBUDDY-PAUSED-COMPUTE-UNAVAILABLE-UNTIL-AFTER-2026-07-28"
@@ -109,8 +117,8 @@ observed_agent_state:
 signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
   capture: >-
-    Explicit durable signals use the existing Signal Tower admission/projection path. R142 specifically closes retrospective
-    ChatGPT-window last-mile ingestion. Signal is not automatically a task.
+    Explicit durable signals use the accepted Signal Tower admission/projection path, including the merged R142 retrospective
+    intake capability. Signal is not automatically a task, and no active R142 implementation Work Claim is required for normal use.
   mandatory_before_formal_task_release:
     - "GLOBAL_SHALLOW"
     - "DELTA"
@@ -127,36 +135,37 @@ program_lanes:
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
     mission: >-
       Maintain the shared Cognitive OS coordination/runtime substrate and accepted Global Signal Tower capabilities without
-      replacing GitHub/W3/domain authorities. R142 closes the retrospective chat-window durable-ingress gap.
+      replacing GitHub/W3/domain authorities. R142 retrospective durable ingress is now accepted and merged.
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "R142_GPT_ENGINEERING_WORKER_RELEASED / FRESH_RECONCILE_REQUIRED"
+    observed_state: "SIGNAL_TOWER_ON_DEMAND_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION"
     primary_system_positions: [W1, W8, W9]
-    current_phase: "R142_RETROSPECTIVE_SIGNAL_INTAKE_BRIDGE_IMPLEMENTATION"
-    active_execution_route: "coordination/ROUTES/GPT-ENGINEERING-WORKER-R142-EXECUTOR-SUBSTITUTION.yaml"
+    current_phase: "POST_R142_OPERATIONAL / CONTROL_PLANE_CLOSEOUT"
+    active_execution_route: null
     dependencies:
-      - "R134-R141 accepted Signal Tower capability chain"
-      - "canonical R142 activation"
-      - "canonical GPT executor substitution"
-      - "fresh launch-time route/claim/main reconcile"
+      - "R134-R142 accepted Signal Tower capability chain"
+      - "fresh Signal Tower preflight before any future formal task release"
+      - "new governed decision and new Work Claim before any successor implementation"
     shared_interfaces:
       - "S0C DurableSignalLedger"
       - "R136 SignalIntakeGateway"
+      - "R142 retrospective intake bridge"
       - "Control Tower authorization boundary"
       - "W3/domain authority boundary"
-    next_gate: "GPT_ENGINEERING_WORKER_FRESH_RECONCILE -> PROJECT_PLAN_M0"
-    maturity: "R142_RELEASED_TO_GPT_ENGINEERING_WORKER / NOT_YET_IMPLEMENTED"
-    heavy_execution_authorized: true
-    heavy_execution_start_gate: "USER_START_RECEIVED / FRESH_RECONCILE_REQUIRED"
-    implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
-    predecessor_closure_receipt: "coordination/CONTROL-TOWER/R141-IAGL-STAGE-A-CLOSURE-RECONCILIATION.yaml"
+    next_gate: "ON_DEMAND_SIGNAL_TOWER_OPERATION / FUTURE_IMPLEMENTATION_REQUIRES_NEW_GOVERNED_DECISION"
+    maturity: "R142_IMPLEMENTATION_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
+    heavy_execution_authorized: false
+    heavy_execution_start_gate: "NOT_AUTHORIZED"
+    implementation_owner_candidate: null
+    closure_receipt: "coordination/CONTROL-TOWER/R142-RETROSPECTIVE-SIGNAL-INTAKE-CLOSURE-RECONCILIATION.yaml"
     retained_findings:
       - "R138-F01"
       - "R139-STAGE-B"
       - "R140-MODEL-VERSION-AUTHORITY"
       - "IAGL-R141-UNKNOWN-007"
       - "IAGL-STAGE-B"
+      - "R142_REAL_M4_NEEDS_REVALIDATION_11"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     mission: "Repair trading-research system deficiencies while preserving evidence, PIT/T+1, validation/risk and NO_TRADE."
@@ -191,17 +200,16 @@ program_lanes:
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-    overlap_level: "O1_READ_READ"
-    rule: "R142 writes only bounded S0E Signal Tower surfaces; Lane B remains held proposal-only."
+    overlap_level: "O0_NO_ACTIVE_R142_IMPLEMENTATION"
+    rule: "Lane A has no active implementation work surface; Lane B remains held proposal-only."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
-    rule: "R142 may read/reference W3/domain authority for reconciliation but cannot mutate W3/domain canonical truth."
+    rule: "Accepted Signal Tower operation may consume frozen W3/domain interfaces but cannot mutate W3/domain canonical truth."
   - pair: ["LANE-B-A-SHARE-REMEDIATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_SHARED_KNOWLEDGE_DECISION_CONTEXT"
     rule: "No current implementation collision; Lane B remains held."
 
 reconciliation_rule: >-
-  R142 may execute only through its canonical GPT_ENGINEERING_WORKER substitution after fresh main/route/claim reconciliation.
-  Codex, QCLAW and completed R60 routes are non-executable historical/reserve states. R60 has no active Work Claim or executor reservation.
-  Fail closed on stale assumptions, write collision, private data, S0C/runtime-authority expansion, formal promotion,
-  production/permissions/trading changes, or self-merge.
+  R142 is accepted, merged and historical/non-executable as an implementation route. Lane A has no active R142 Work Claim or
+  executor reservation. Ordinary Signal Tower operation remains ON_DEMAND_PREFLIGHT_AVAILABLE. Any successor implementation,
+  production/private/W3/domain/trading expansion requires a new governed decision, fresh preflight and a new Work Claim.
