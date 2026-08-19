@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 audit_id: "A_SHARE_LANE_B_MASTER_REMEDIATION_AUDIT"
 repository: "vxz2datoubo/second-brain-coordination"
 lane_id: "LANE-B-A-SHARE-REMEDIATION"
@@ -6,11 +6,15 @@ executor_role: "GPT_ENGINEERING_WORKER"
 model_id: "GPT-5.6 Sol"
 mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】Lane-B A股系统总缺陷审计与首切片设计"
-status: "PROPOSAL_AUDIT_READY_FOR_INDEPENDENT_REVIEW"
+status: "PROPOSAL_AUDIT_R2_READY_FOR_INDEPENDENT_REVIEW"
 boundary: "PROPOSAL_AUDIT_IMPLEMENTATION_READY_DESIGN / RESEARCH_ONLY / NO_TRADE"
 durable_role: "CURRENT_FORMAL_MASTER_DEFECT_LEDGER"
-supersedes: []
 created_from_canonical_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
+review_normalization:
+  independent_review_id: 4964079607
+  reviewed_exact_head: "490676b32a8d17ad9988dc36002861005a3020e7"
+  disposition: "CHANGES_REQUIRED_AUDIT_NORMALIZATION_ONLY / KEEP_DRAFT / NO_IMPLEMENTATION / NO_MERGE"
+  r2_scope: "DEFECT-LEDGER.yaml ONLY"
 
 hard_locks:
   - "NO_REAL_TRADING_RUNTIME_WRITE"
@@ -21,118 +25,49 @@ hard_locks:
   - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
   - "NO_R142_OR_R60_WRITE"
   - "NO_AI_FILM_REPOSITORY_WRITE"
+  - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
   - "NO_RESET_REBASE_FORCE_PUSH_HISTORY_REWRITE"
 
 canonical_reconciliation:
   final_canonical_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
-  main_delta_during_audit:
-    prior_observed_main: "8780d457997914632507eed03e54a1c685444aba"
-    new_main: "341fefa057d891103ef9de91af719e1050e4a0ab"
-    cause: "PR #400 R142 merged during this audit"
-    r142_accepted_head: "7e76de7fd4dd9d97ce8c74aa698031d0c124a524"
-    r142_merge_commit: "341fefa057d891103ef9de91af719e1050e4a0ab"
-    disposition: "FRESH_RECONCILED_BEFORE_DURABLE_WRITE"
-  active_program_lanes:
-    lane_b_desired_state: "PAUSED"
-    lane_b_observed_state: "PREPARING_NOT_STARTED"
-    lane_b_current_phase: "PRE_ROUTE_GAP_CONSOLIDATION_HELD"
-    lane_b_active_execution_route: null
-    lane_b_maturity: "READY_FOR_TASK_DESIGN_BUT_HELD"
-  lane_work_claim:
-    state: "HELD_PROPOSAL_ONLY"
-    execution_agent: null
-    resource_class: "LIGHT_RESEARCH_DESIGN"
-    route_binding: null
-    allowed_write_root: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
-    runtime_write_allowed: false
-    implementation_route_allowed: false
-  active_agent_state:
-    qclaw: "DONE_HISTORICAL / execution_allowed=false"
-    workbuddy: "PAUSED_COMPUTE_UNAVAILABLE / execution_allowed=false"
-    codex: "PAUSED_EXECUTOR_SUBSTITUTED / execution_allowed=false / STALE_AFTER_R142_IMPLEMENTATION_MERGE"
-  r142_post_merge_control_plane_state:
-    implementation_merge: "CONFIRMED"
-    lane_a_claim_release: "NOT_YET_REFLECTED_ON_MAIN"
-    active_codex_closeout: "NOT_YET_REFLECTED_ON_MAIN"
-    program_lane_projection: "STALE_RELATIVE_TO_MERGED_R142_IMPLEMENTATION"
-    implication_for_lane_b: "NO_PATH_COLLISION; KEEP_PROPOSAL_ONLY; DO_NOT_CLAIM_LANE_A_FULLY_RELEASED"
-  same_path_writer_scan:
-    lane_b_proposal_root_writer_conflict: "NONE_FOUND"
-    r142_runtime_overlap: "NONE"
-    r60_overlap: "NONE"
-    ai_film_overlap: "OUT_OF_REPOSITORY_SCOPE / NONE"
-  same_canonical_object_writer_scan: "PASS_FOR_THIS_SINGLE_DEFECT_LEDGER_WRITE"
-  local_heavy_stage_state: "UNKNOWN_EXTERNAL_MACHINE_STATE; THIS AUDIT STARTED NO LOCAL_HEAVY_STAGE"
+  lane_b_authority: "HELD_PROPOSAL_ONLY"
+  lane_b_runtime_write_allowed: false
+  lane_b_implementation_route_allowed: false
+  lane_b_proposal_write_root: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+  same_path_writer_conflict: "NONE_FOUND_AT_R1_RECONCILE"
+  local_heavy_stage_state: "UNKNOWN_EXTERNAL_MACHINE_STATE / NO_LOCAL_HEAVY_STAGE_STARTED_BY_THIS_AUDIT"
 
 signal_tower_preflight:
-  GLOBAL_SHALLOW:
-    result: "PASS"
-    observations:
-      - "Lane-B is held proposal-only and has no implementation route or runtime claim."
-      - "R60 is historical/closed."
-      - "R142 implementation merged during the audit; its control-plane closeout projection is stale."
-      - "No writer was found on the Lane-B proposal root."
-  DELTA:
-    result: "MATERIAL_DELTA_RECONCILED"
-    observations:
-      - "Canonical main advanced from 8780d457... to 341fefa057... because R142 merged."
-      - "R142 merged code state is newer than ACTIVE-CODEX / ACTIVE-PROGRAM-LANES / Lane-A claim narrative."
-      - "A-share market rules changed materially on 2026-07-06, invalidating static pre-change assumptions."
-  TARGETED_DEEP:
-    result: "PASS_WITH_FINDINGS"
-    surfaces_read:
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-0/ENTERPRISE-CURRENT-STATE-AUDIT.md"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-0/ENTERPRISE-CAPABILITY-MAP.yaml"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_offline_research.py"
-      - "A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
-      - "A-SHARE-FORWARD-EXPOSURE-MATRIX-AND-THEME-BETA-BLUEPRINT-v1.0.md"
-      - "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      - "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      - "A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
-      - "A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md"
-      - "A-SHARE-LIQUIDITY-SWEEP-RECLAIM-VALIDATION-BLUEPRINT-v1.0.md"
-      - "A-SHARE-HOUSE-EDGE-SURVIVAL-AND-OPERATING-CONTROL-BLUEPRINT-v1.0.md"
-      - "PROJECT-BLUEPRINT-INTEGRATION-INDEX-v1.4.md"
-      - "ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
-      - "coordination/SKILLS"
-  CONDITIONAL_RESEARCH:
-    result: "EXECUTED_OFFICIAL_PRIMARY_ONLY"
-    reason: "A-share exchange rules are temporally unstable and current rule correctness is P0-relevant."
-    official_sources:
-      - source: "Shanghai Stock Exchange Trading Rules (2026 revision)"
-        published_at: "2026-04-24"
-        effective_at: "2026-07-06"
-        confirmed_changes:
-          - "after-hours fixed-price trading expanded to all SSE A-shares and ETFs"
-          - "main-board risk-warning stock price-limit changed from 5% to 10%"
-          - "2023 SSE Trading Rules superseded"
-      - source: "Shenzhen Stock Exchange Trading Rules (2026 revision)"
-        published_at: "2026-04-24"
-        effective_at: "2026-07-06"
-        confirmed_change: "2023 SZSE Trading Rules superseded"
-      - source: "SZSE risk-warning trading guide (2026 revision)"
-        effective_at: "2026-07-06"
-        confirmed_change: "main-board risk-warning stock price-limit regime changed"
-      - source: "Ministry of Finance / State Taxation Administration Announcement 2023 No.39"
-        effective_at: "2023-08-28"
-        confirmed_change: "securities transaction stamp tax halved"
-  RELEASE_DECISION:
-    decision: "RELEASE_PROPOSAL_AUDIT_ONLY"
-    implementation: "HOLD"
-    new_task_auto_creation: false
-    reason: >-
-      High-confidence P0 defects exist and can be designed/tested with public-safe synthetic fixtures, but Lane-B has no implementation
-      claim or route. A separate independent review and explicit implementation release are required before runtime or shared-contract writes.
+  sequence:
+    - "GLOBAL_SHALLOW"
+    - "DELTA"
+    - "TARGETED_DEEP"
+    - "CONDITIONAL_RESEARCH"
+    - "RELEASE_DECISION"
+  release_decision: "RELEASE_PROPOSAL_AUDIT_ONLY"
+  implementation: "HOLD"
+  signal_is_not_task: true
+  new_task_auto_creation: false
+  interpretation: >-
+    The audit found high-value W2 defects and gating unknowns, but no implementation Work Claim or route exists.
+    This ledger may describe an implementation-ready slice only; it does not release runtime modification.
+
+w2_authority_guard:
+  owner: "W2"
+  canonical_contract: "C2_A_SHARE_RULE_SNAPSHOT"
+  write_policy: "SINGLE_WRITER_READ_ONLY_CONSUMERS"
+  invariant: >-
+    A future schema or materialized object may only implement the already-assigned W2/C2 AShareRuleSnapshot authority.
+    It must not establish a parallel rule store, parallel rule resolver, second rule truth, or caller-selected rule authority.
+  pre_implementation_requirement: >-
+    Inventory existing concrete W2 rule-snapshot representations, select one canonical object/schema identity through independent review,
+    and bind all consumers read-only to that authority before implementation is released.
 
 current_system_maturity:
   overall: "CONTRACT_RICH / BLUEPRINT_RICH / RUNTIME_SPARSE / VALIDATION_PARTIAL / NO_TRADE"
-  governance_and_authority_design: "MEDIUM_HIGH"
-  w2_market_data_and_replay: "PARTIAL_FOUNDATION_EXISTS"
+  w2_market_data_and_replay: "PARTIAL_FOUNDATION_EXISTS / MATERIAL_EXECUTION_SEMANTIC_GAPS"
   w4_factors_and_strategies: "PARTIAL_FOUNDATION / MANY_CANDIDATES"
   w5_event_intelligence: "CONTRACTED_NOT_IMPLEMENTED"
   w6_multi_agent_game: "BLUEPRINT_ONLY_OR_QUEUED"
@@ -140,493 +75,454 @@ current_system_maturity:
   w9_outcome_learning: "PARTIAL_POLICY_RUNTIME"
   w10_decision_episode: "CONTRACTED_NOT_IMPLEMENTED"
   w11_capital_allocation: "CONTRACTED_NOT_IMPLEMENTED"
-  w12_probability: "PARTIAL / ACCEPTED_BOUNDED_CAPABILITY_REFERENCED"
+  w12_probability: "PARTIAL / BOUNDED_CAPABILITY_REFERENCED"
   w13_participant_flow: "CONTRACTED_NOT_IMPLEMENTED / VALIDATION_PROTOCOL_NOT_RUN"
   live_trading: "FORBIDDEN_NOT_A_MATURITY_TARGET"
-  key_interpretation: >-
-    The dominant risk is not lack of sophisticated ideas. It is confusing mature blueprints/contracts with implemented, point-in-time,
-    rule-current, out-of-sample validated capability.
-
-user_cognition_mapping:
-  known_and_explicitly_expressed:
-    - "A-share T+1, auction, price-limit, suspension and liquidity constraints must be modeled."
-    - "L2/tick/order-flow evidence must not be faked from lower-grade aggregates."
-    - "Volume Profile, Delta, CVD, Absorption, Footprint, Imbalance, VWAP and CMF are useful only with matching data capability."
-    - "Single-factor results are insufficient; multi-factor interactions and different regimes require validation."
-    - "Causation and correlation must be separated."
-    - "Kunlun/BlueFocus need forward exposure, price-implied expectations, earnings surprise and market-pricing analysis."
-    - "Cross-market event transmission should be backtested rather than assumed."
-    - "Institution/quant/active-capital/retail simulations require explicit strengths, weaknesses and game interaction."
-    - "Sentiment can be manipulated and should not receive naive high weight."
-    - "Real trade feedback should feed back into factors, failure conditions and risk."
-  probably_known_but_not_fully_structured:
-    - "T+1 must be lot/inventory aware: same-day buys cannot erase saleability of older inventory."
-    - "Market rules must be effective-date, board, security-type and rule-version keyed rather than a single global percentage."
-    - "A green synthetic test can be false-green if the fixture era never crosses a rule-regime boundary."
-    - "Data-source priority is not the same thing as proven runtime entitlement/capability."
-  unknown_but_easy_to_explain:
-    - "purged walk-forward, embargo and lockbox as anti-leakage validation gates"
-    - "PBO / Deflated Sharpe / White Reality Check / SPA as defenses against selection and multiple-testing bias"
-    - "effective independent trials versus raw trade count"
-    - "point-in-time corporate-action and vendor-revision snapshots"
-  unknown_and_requires_layered_explanation:
-    - "causal event identification under overlapping policy/news shocks"
-    - "multiple-testing correction across adaptive factor/strategy search"
-    - "capacity/adverse-selection modeling under endogenous market impact"
-    - "hidden participant type inference without converting probabilistic behavior evidence into identity claims"
-
-coverage_by_requested_dimension:
-  A_DATA:
-    status: "PARTIAL_FOUNDATION_WITH_MATERIAL_UNKNOWNS"
-    covered: ["PIT clocks", "lineage", "historical bars", "suspension", "ST marker", "adjustment marker", "data quality concepts"]
-    unresolved_or_unknown: ["current TQ/TDX/WeStock/vipdoc runtime status", "raw L2/tick/order capability", "multi-source revision arbitration", "current rule snapshots", "financial/announcement PIT adapter proof", "corporate-action PIT semantics"]
-  B_MARKET_MICROSTRUCTURE:
-    status: "DESIGN_RICH_IMPLEMENTATION_PARTIAL"
-    covered: ["basic T+1 gate", "simple limit gate", "fixed slippage", "transaction-cost fields", "VWAP/Volume Profile/order-flow concepts in blueprints"]
-    unresolved_or_unknown: ["lot-level T+1", "board/rule-regime limits", "after-hours sessions", "auction replay", "queue/partial fill", "impact calibration", "raw cancel/order events", "true Delta/CVD/Footprint capability"]
-  C_SIGNAL_FACTOR:
-    status: "PARTIAL_CANDIDATES / VALIDATION_NOT_SYSTEMATICALLY_EXECUTED"
-    covered: ["factor attribution", "regime conditioning", "placebo/negative control designs", "parameter stability requirements"]
-    unresolved_or_unknown: ["actual broad OOS execution", "multiple-testing family control", "factor redundancy registry", "survivorship/label-leakage proof across all strategies"]
-  D_EVENT_INTELLIGENCE:
-    status: "CONTRACTED_NOT_IMPLEMENTED"
-    covered: ["source grading", "event clocks", "expectation/surprise design", "cross-market transmission design", "first-public/available-at requirements"]
-    unresolved_or_unknown: ["continuous official ingestion", "rumor/media/official runtime grading", "deduplicated propagation graph", "cross-market backtest execution", "market already-priced estimator"]
-  E_PARTICIPANT_GAME:
-    status: "BLUEPRINT_RICH / NOT_CALIBRATED_AS_RUNTIME_CAPABILITY"
-    covered: ["quant/active-capital/large-capital/retail families", "hidden type", "Level-k", "counterfactual", "identity-vs-behavior boundary"]
-    unresolved_or_unknown: ["real calibration", "participant flow implementation", "W13 backtest", "order-book identifiability", "economic incremental value"]
-  F_BACKTEST_VALIDATION:
-    status: "PROTOCOL_HIGH / EXECUTION_LOW_TO_PARTIAL"
-    covered: ["sample in/out", "walk-forward", "regime split", "cost/slippage", "T+1", "limits", "halt", "liquidity", "capacity", "sensitivity", "ablation", "counterfactual", "placebo", "bootstrap", "multiple-testing", "reproducibility", "failure conditions"]
-    key_gap: "Many protocols explicitly remain NOT_RUN; presence of protocol text is not evidence that candidate skills passed them."
-  G_DECISION:
-    status: "BLUEPRINT_RICH / RUNTIME_PARTIAL"
-    covered: ["base/optimistic/pessimistic scenarios", "confidence", "strongest counter", "invalidation", "priced-in", "EIVR", "button system"]
-    unresolved_or_unknown: ["authoritative W10 DecisionEpisode implementation", "real feedback writeback", "calibrated button thresholds", "automatic provenance chain"]
-  H_RISK:
-    status: "PARTIAL_FOUNDATION / ADVANCED_CONTROLS_NOT_IMPLEMENTED"
-    covered: ["NO_TRADE", "risk veto design", "position/sector/theme/capacity/ruin concepts", "data outage/UNKNOWN/abstention concepts"]
-    unresolved_or_unknown: ["integrated exposure runtime", "overnight/gap stress calibration", "model-disagreement gate", "data-outage failover proof", "house-edge survival module backtest"]
-  I_SYSTEM_ENGINEERING:
-    status: "GOVERNANCE_STRONG_BUT_FRESHNESS_DRIFT_PRESENT"
-    covered: ["authority hierarchy", "claims/routes", "false-green discipline", "receipts", "CI/exact-head patterns", "resource caps", "rollback"]
-    unresolved_or_unknown: ["stale post-R142 control-plane projection", "stale historical next-task references in blueprint registry", "current external local-process state", "some actual local data-adapter capabilities"]
 
 resolution_inventory:
   RESOLVED_OR_STRONGLY_GUARDED:
     - "NO_TRADE boundary and no autonomous order path in the audited public research slice"
     - "basic available_at anti-future guard in Phase-2 replay"
     - "candidate-only and ABSTAIN semantics for unknown market fields"
-    - "explicit rule that participant behavior evidence is not participant identity"
-    - "explicit design requirement that blueprint presence is not implementation"
+    - "participant behavior evidence is not participant identity"
+    - "blueprint/protocol presence is not implementation evidence"
   PARTIALLY_RESOLVED:
     - "W2 deterministic offline replay"
-    - "T+1 basic same-day lock"
+    - "basic T+1 same-day lock"
     - "transaction-cost/slippage representation"
     - "W7 validation/risk contracts"
     - "factor/strategy and forward-exposure blueprints"
     - "source grading and event temporal ontology"
   UNRESOLVED:
-    - "current effective-date A-share rule replay"
-    - "lot-level T+1 inventory"
+    - "effective-date/board/status A-share rule replay"
+    - "authoritative price-limit reference-price binding"
+    - "price-validity versus fillability separation"
+    - "settlement-aware lot/sellable inventory"
+    - "market session and trading-calendar gate"
     - "W5 event intelligence implementation"
     - "W13 participant-flow implementation and economic backtest"
     - "W10 DecisionEpisode real-feedback loop"
     - "W6 calibrated multi-agent runtime"
-    - "House-edge survival/capacity implementation and backtest"
     - "system-wide executed multiple-testing / lockbox evidence"
   UNKNOWN:
     - "current local TQ-Python connectivity and exact entitlements"
     - "current TDX MCP / TdxQuant runtime capability"
     - "current WeStock runtime capability"
     - "current vipdoc replay coverage and semantics"
-    - "current raw tick/order/queue data availability"
-    - "full current local process/heavy-stage state outside GitHub"
+    - "current raw tick/order/queue capability"
+    - "current external local-heavy/process state"
 
 findings:
   - finding_id: "LB-P0-001"
+    finding_class: "CONFIRMED_DEFECT"
     subsystem: "A_DATA+B_MARKET_MICROSTRUCTURE+F_BACKTEST"
-    current_truth: "Phase-2 replay hardcodes price limits as ST=5%, non-ST=10%; rule selection is not board/security/effective-date aware."
-    evidence:
-      - "PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py::_limit_pct"
-      - "Phase-2 Bar.limit_rule_version defaults to ashare-v1 without effective-date resolution"
-      - "SSE/SZSE 2026 Trading Rules effective 2026-07-06 changed relevant regimes"
+    current_truth: "Phase-2 replay uses global ST=5% / non-ST=10% price-limit logic and is not effective-date/board/security/status aware."
+    evidence: ["canonical Phase-2 engine _limit_pct", "official 2026 SSE/SZSE rule-regime change evidence"]
     evidence_grade: "HIGH / CANONICAL_CODE + OFFICIAL_PRIMARY_RULES"
     severity: "P0"
-    probability_of_real_failure: "HIGH when replay crosses different board/rule regimes or post-2026-07-06 risk-warning rules"
-    user_impact: "Can label executable/non-executable trades incorrectly and contaminate T-button or strategy conclusions."
-    trading_impact: "False fills, false missed fills, wrong stop/entry feasibility, invalid backtest PnL."
+    probability_of_real_failure: "HIGH"
+    user_impact: "Can misstate tradability in T-day, event and strategy analysis."
+    trading_impact: "Wrong price-validity decisions contaminate simulated execution and PnL."
     false_positive_risk: "LOW"
-    dependency: "W2 rule authority + temporal semantics"
-    existing_partial_solution: "Blueprints already require AShareRuleSnapshot/rule_snapshot_id and versioned A-share constraints."
-    recommended_action: "Replace global percentage logic with effective-date/venue/board/security/status AShareRuleSnapshot consumption."
+    dependency: "W2/C2 rule authority + temporal semantics"
+    existing_partial_solution: "AShareRuleSnapshot/rule_snapshot_id already exists at design authority level."
+    recommended_action: "Consume the effective W2/C2 rule snapshot keyed by event time, venue, board, security/status and rule version."
     implementation_cost: "MEDIUM"
-    validation_method: "Boundary fixtures before/after rule changes + board/risk-warning/no-limit cases + exact rule_snapshot_id assertions."
-    failure_condition: "Any replay decision uses a rule not effective at event_time or cannot resolve rule context without abstaining."
+    validation_method: "Effective-date, board, risk-warning and no-limit boundary fixtures."
+    failure_condition: "Replay silently falls back to a global percent or uses a rule outside its effective interval."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P0-002"
+    finding_class: "CONFIRMED_DEFECT"
     subsystem: "B_MARKET_MICROSTRUCTURE+G_DECISION"
-    current_truth: "Phase-2 T+1 state tracks one acquired_day per symbol; a same-day buy resets acquired_day for the whole position."
-    evidence:
-      - "simulate_portfolio positions[symbol] stores aggregate quantity + acquired_day"
-      - "SELL_CANDIDATE rejects whole position when acquired_day equals current trading day"
-      - "existing test only checks newly bought inventory cannot be sold same day"
+    current_truth: "Phase-2 T+1 tracks one acquired_day per symbol; same-day buy can reset sellability state for pre-existing settled inventory."
+    evidence: ["canonical simulate_portfolio aggregate position state", "existing test covers only newly bought same-day inventory"]
     evidence_grade: "HIGH / CANONICAL_CODE_AND_TEST"
     severity: "P0"
-    probability_of_real_failure: "HIGH for core-position plus intraday T workflows"
-    user_impact: "Directly mis-models the user's long-held CORE_BOOK + small T_BOOK behavior."
-    trading_impact: "Can incorrectly lock old sellable inventory or misstate counterfactual T execution."
+    probability_of_real_failure: "HIGH for CORE_BOOK + T_BOOK workflows"
+    user_impact: "Mis-models long-held core inventory plus small intraday T inventory."
+    trading_impact: "Can falsely lock old inventory or misstate feasible partial sells."
     false_positive_risk: "LOW"
-    dependency: "W2 inventory/settlement semantics"
-    existing_partial_solution: "Basic same-day T+1 lock exists; multiple blueprints explicitly require lot-level inventory."
-    recommended_action: "Use lot-level or sellable/new inventory buckets with acquisition day and settlement eligibility."
+    dependency: "W2 settlement/sellability semantics"
+    existing_partial_solution: "Basic same-day lock exists; blueprints already call for lot/sellable inventory."
+    recommended_action: "Use settlement-aware acquisition lots or equivalent sellable/locked buckets."
     implementation_cost: "LOW_MEDIUM"
-    validation_method: "Old 1000-share sellable lot + same-day 500-share buy; allow sale of old lot only; cover partial sell and next-day unlock."
-    failure_condition: "Same-day purchase changes saleability of pre-existing settled inventory."
+    validation_method: "Old settled inventory + same-day buy + partial sell + multiple lots + next trading-day eligibility."
+    failure_condition: "A same-day purchase changes saleability of pre-existing settled inventory."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P0-003"
+    finding_class: "P0_GATING_UNKNOWN"
     subsystem: "A_DATA+B_MARKET_MICROSTRUCTURE"
-    current_truth: "Blueprint priority TQ > TDX MCP > WeStock > vipdoc exists, but current GitHub canonical evidence does not prove live adapter capability/entitlement for each source."
-    evidence:
-      - "Core-T blueprint defines source priority and per-field provenance requirements"
-      - "Phase-0 audit says real-time capability not fully verified and raw tick/order/queue must not be claimed without evidence"
-      - "Phase-2 public fixture runtime permits HISTORICAL_BAR only for fixtures and rejects RAW_TRADE_TICK"
-    evidence_grade: "MEDIUM_HIGH / CANONICAL_DOCS; LIVE_LOCAL_STATE_UNAVAILABLE"
-    severity: "P0"
-    probability_of_real_failure: "MEDIUM"
-    user_impact: "Order-flow features may be over-trusted if a data-source name is mistaken for a proven capability."
-    trading_impact: "False Delta/CVD/Absorption/Footprint/queue conclusions if lower-grade aggregates are promoted."
-    false_positive_risk: "MEDIUM because local adapters may exist outside current GitHub evidence"
-    dependency: "W2 capability/entitlement registry"
-    existing_partial_solution: "DataGrade A/B/C and explicit no-fake-orderflow rules already exist."
-    recommended_action: "Create a read-only capability matrix backed by reproducible adapter probes before any order-flow feature is enabled."
-    implementation_cost: "MEDIUM; may later require local provider access"
-    validation_method: "Field-level provenance/capability probe, timestamp semantics, entitlement status, cross-source conflict fixtures."
-    failure_condition: "A feature requiring RAW_TRADE_TICK/ORDER_EVENT is computed from snapshot/aggregate/vendor-labeled flow."
+    current_truth: >-
+      Blueprint priority TQ > TDX MCP > WeStock > vipdoc exists, but this GitHub audit cannot prove the current local
+      capability, entitlement, field coverage or timestamp semantics of those sources. Absence of GitHub proof is not proof of absence.
+    evidence: ["Core-T source-priority blueprint", "Phase-0 capability uncertainty", "public Phase-2 fixture boundary"]
+    evidence_grade: "MEDIUM / CANONICAL_DOCS + LIVE_LOCAL_STATE_UNAVAILABLE"
+    severity: "P0_GATING_UNKNOWN"
+    probability_of_real_failure: "UNKNOWN"
+    user_impact: "Advanced order-flow features must not be presented as available merely because a provider name exists in design."
+    trading_impact: "RAW_TRADE_TICK / ORDER_EVENT / queue-dependent inference could be fabricated from lower-grade aggregates if gate is bypassed."
+    false_positive_risk: "HIGH if interpreted as a proven missing capability"
+    dependency: "W2 capability/entitlement evidence"
+    existing_partial_solution: "DataGrade A/B/C and no-fake-orderflow contracts already fail closed conceptually."
+    recommended_action: >-
+      Keep RAW_TRADE_TICK, ORDER_EVENT and queue-dependent features disabled/ABSTAIN until a reproducible field-level capability probe proves them.
+      Do not infer local capability absence from repository silence.
+    implementation_cost: "UNKNOWN / depends on later authorized local provider access"
+    validation_method: "Reproducible field-level capability, provenance, entitlement, clock and cross-source conflict probe."
+    failure_condition: "A raw-orderflow/queue feature activates without reproducibly proven matching capability."
     whether_runtime_change_required: false
 
   - finding_id: "LB-P0-004"
+    finding_class: "CONFIRMED_FALSE_GREEN_RISK"
     subsystem: "F_BACKTEST+I_SYSTEM_ENGINEERING"
-    current_truth: "Existing Phase-2 tests can be green while validating a stale rule regime; test AS_OF is 2026-01-31 and does not cross the 2026-07-06 rule boundary."
-    evidence:
-      - "PHASE-2 tests/test_offline_research.py AS_OF=2026-01-31"
-      - "test_t_plus_one_suspension_and_limits_reject validates only the old simplified limit contract"
-      - "Program rules explicitly say formula correctness/blueprint presence are not A-share validation"
+    current_truth: "Existing Phase-2 tests can be green while validating a stale or incomplete rule regime."
+    evidence: ["tests use AS_OF=2026-01-31", "existing limit test validates simplified global rule", "2026-07-06 rule boundary is uncovered"]
     evidence_grade: "HIGH / CANONICAL_TEST + OFFICIAL_RULE_CHANGE"
     severity: "P0"
     probability_of_real_failure: "HIGH if green CI is treated as current-rule proof"
-    user_impact: "Creates false confidence in backtest correctness."
-    trading_impact: "Invalid strategy promotion and incorrect execution feasibility."
+    user_impact: "Creates false confidence in execution/backtest correctness."
+    trading_impact: "Can permit invalid strategy conclusions."
     false_positive_risk: "LOW"
-    dependency: "LB-P0-001"
-    existing_partial_solution: "Strong exact-head/false-green governance exists elsewhere in the repo."
-    recommended_action: "Add temporal rule-boundary regression suites and make current-rule coverage an explicit gate."
+    dependency: "LB-P0-001 + W2 rule authority"
+    existing_partial_solution: "Repository already has strong exact-head/false-green governance patterns."
+    recommended_action: "Require rule-regime boundary coverage and stale-rule mutation failure."
     implementation_cost: "LOW"
-    validation_method: "Pre/post effective-date fixtures; mutation tests that old rule on new date and new rule on old date fail closed."
-    failure_condition: "CI passes when rule/effective-date mismatch is injected."
+    validation_method: "Pre/post effective-date fixtures and mutation tests."
+    failure_condition: "CI stays green after a stale rule or wrong board regime is injected."
+    whether_runtime_change_required: true
+
+  - finding_id: "LB-P0-F01-LIMIT-PRICE-IS-NOT-NO-FILL"
+    finding_class: "CONFIRMED_DEFECT"
+    subsystem: "B_MARKET_MICROSTRUCTURE+F_BACKTEST+G_DECISION"
+    current_truth: >-
+      Current Phase-2 simulation can convert a bar reaching the price limit directly into LIMIT_UP_BUY_RESTRICTED or
+      LIMIT_DOWN_SELL_RESTRICTED. Exchange price validity does not prove whether a particular order could fill.
+    evidence:
+      - "canonical simulate_portfolio limit-price rejection behavior"
+      - "public slice is bar-based and does not establish queue/order-book/contra-liquidity state"
+    evidence_grade: "HIGH / CANONICAL_CODE + MARKET_MECHANISM"
+    severity: "P0"
+    probability_of_real_failure: "HIGH for locked-limit execution claims"
+    user_impact: "Can turn a bar-level observation into false certainty about executable liquidity."
+    trading_impact: "False no-fill/fill assumptions distort event studies, T feasibility and simulated PnL."
+    false_positive_risk: "LOW"
+    dependency: "W2 rule snapshot + liquidity/fillability evidence contract"
+    existing_partial_solution: "ABSTAIN/UNKNOWN semantics and data-grade restrictions already exist elsewhere in design."
+    recommended_action: >-
+      Encode PRICE_VALIDITY and ORDER_FILLABILITY as separate states. A bar at limit may establish a valid/limit price state,
+      but fillability must be UNKNOWN/ABSTAIN without sufficient queue/order-book/liquidity evidence, or explicitly labeled as a conservative scenario assumption.
+    implementation_cost: "LOW_MEDIUM"
+    validation_method: "Adversarial bar-at-limit fixtures with no queue evidence, explicit fillability evidence, and conservative-scenario labeling."
+    failure_condition: "Bar close/high/low at a limit is reported as observed no-fill truth without fillability evidence."
+    whether_runtime_change_required: true
+
+  - finding_id: "LB-P0-F02-PRICE-LIMIT-REFERENCE-PRICE-IS-NOT-AUTHORITATIVE"
+    finding_class: "CONFIRMED_DEFECT"
+    subsystem: "A_DATA+B_MARKET_MICROSTRUCTURE+F_BACKTEST"
+    current_truth: >-
+      Current change calculation can use the previous processed bar.close as prior_close. That is not a universally valid A-share
+      price-limit reference contract, especially for intraday bars, ex-right/ex-dividend days, no-limit periods and special regimes.
+    evidence: ["canonical Phase-2 prior_close update path", "reviewed A-share rule/reference-price semantics"]
+    evidence_grade: "HIGH / CANONICAL_CODE + RULE_SEMANTICS"
+    severity: "P0"
+    probability_of_real_failure: "HIGH around intraday, corporate-action and special-rule cases"
+    user_impact: "Can compute a wrong limit boundary even when the percentage rule itself is correct."
+    trading_impact: "Wrong valid-price band and wrong simulated execution feasibility."
+    false_positive_risk: "LOW"
+    dependency: "W2/C2 effective rule snapshot + authoritative market input"
+    existing_partial_solution: "PIT/lineage and rule_snapshot_id concepts already exist."
+    recommended_action: >-
+      W2 must carry or resolve limit_reference_price with provenance and effective-rule binding. Coverage must include official previous close,
+      applicable ex-right/ex-dividend reference price, no-limit periods, and special status/rule regimes.
+    implementation_cost: "MEDIUM"
+    validation_method: "Official previous-close, ex-right/ex-dividend, no-limit and special-regime reference-price fixtures."
+    failure_condition: "Reference price is inferred from the immediately preceding processed event when authoritative reference semantics differ."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-005"
+    finding_class: "PARTIAL_DEFECT"
     subsystem: "A_DATA+C_SIGNAL_FACTOR"
-    current_truth: "Corporate-action/adjustment fields are shallow in the public offline Bar contract (boolean adjusted, method, note) and do not demonstrate PIT revision history."
-    evidence:
-      - "Phase-2 Bar fields"
-      - "Core-T/Forward-Exposure blueprints require available_at/source_version and no later revision backfill"
+    current_truth: "Public offline Bar adjustment fields are shallow and do not prove PIT corporate-action/revision history."
+    evidence: ["Phase-2 Bar fields", "Core-T/Forward-Exposure PIT requirements"]
     evidence_grade: "MEDIUM_HIGH"
     severity: "P1"
     probability_of_real_failure: "MEDIUM"
-    user_impact: "Can distort historical features and returns around splits/dividends/revisions."
-    trading_impact: "Look-ahead or inconsistent price/return series."
-    false_positive_risk: "MEDIUM; richer local data governance may exist outside this public slice"
+    user_impact: "Historical features can shift around splits/dividends/revisions."
+    trading_impact: "Look-ahead or inconsistent return series."
+    false_positive_risk: "MEDIUM"
     dependency: "W2 PIT/revision authority"
     existing_partial_solution: "Temporal and lineage contracts exist."
     recommended_action: "Require effective-dated corporate-action and adjustment provenance in replay inputs."
     implementation_cost: "MEDIUM"
-    validation_method: "As-of replay before/after corporate-action publication/revision with invariant raw-vs-adjusted series."
-    failure_condition: "Historical replay changes when later revisions are loaded without a changed as_of."
+    validation_method: "As-of replay before/after publication/revision."
+    failure_condition: "Same as_of replay changes because later revisions were silently loaded."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-006"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "B_MARKET_MICROSTRUCTURE"
-    current_truth: "Current public offline simulation is bar-event based and does not model auction or the 2026 expanded after-hours fixed-price session."
-    evidence:
-      - "Phase-2 engine lacks market_phase/session-rule resolver"
-      - "SSE 2026 rule expands after-hours fixed-price trading to all A-shares"
-      - "Core-T blueprint requires auction/market-phase semantics"
+    current_truth: "Public offline simulation is bar-event based and lacks a complete auction/session/trading-calendar resolver."
+    evidence: ["Phase-2 engine lacks complete market_phase/session resolver", "Core-T requires market-phase semantics"]
     evidence_grade: "HIGH"
     severity: "P1"
     probability_of_real_failure: "MEDIUM_HIGH for intraday/execution studies"
-    user_impact: "T-day and buy/sell maps can miss real tradability windows or mix sessions."
-    trading_impact: "Wrong fill timing and volume attribution."
+    user_impact: "Can mix sessions or simulate outside a valid market phase."
+    trading_impact: "Wrong timing, volume attribution and settlement-day transitions."
     false_positive_risk: "LOW_MEDIUM"
-    dependency: "LB-P0-001"
-    existing_partial_solution: "Blueprint-level MarketTimeAndAvailabilityEnvelope exists."
-    recommended_action: "Add market_phase and effective session schedule to rule snapshot; abstain when unsupported."
+    dependency: "W2/C2 rule snapshot + trading calendar"
+    existing_partial_solution: "MarketTimeAndAvailabilityEnvelope exists at blueprint level."
+    recommended_action: "Bind market session and trading calendar to the effective W2 rule snapshot; abstain when unknown."
     implementation_cost: "MEDIUM"
-    validation_method: "Session boundary fixtures and post-close availability tests."
-    failure_condition: "A trade is simulated outside the rule-effective session or session is unknown but simulation proceeds."
+    validation_method: "Auction/continuous/after-hours boundaries and holiday/non-trading-day cases."
+    failure_condition: "Simulation proceeds with unknown/invalid market phase or calendar state."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-007"
+    finding_class: "GATING_UNKNOWN"
     subsystem: "B_MARKET_MICROSTRUCTURE+E_PARTICIPANT_GAME"
-    current_truth: "Advanced order-flow concepts are designed but actual raw capability is not proven in current canonical GitHub state."
-    evidence:
-      - "Liquidity-sweep blueprint explicitly forbids deriving true order flow from BAR/L1/L2 aggregate proxies"
-      - "Multi-agent blueprint requires confidence/provenance and does not allow identity claims"
+    current_truth: "Advanced order-flow concepts are designed, but matching raw capability is not proven in this GitHub audit."
+    evidence: ["Liquidity-sweep no-proxy rule", "participant-game provenance requirements"]
     evidence_grade: "HIGH_DESIGN / UNKNOWN_LIVE_DATA"
     severity: "P1"
-    probability_of_real_failure: "MEDIUM"
-    user_impact: "Prevents over-reading ‘main force’ from aggregate fields."
-    trading_impact: "False participant and absorption signals."
+    probability_of_real_failure: "UNKNOWN_TO_MEDIUM"
+    user_impact: "Prevents over-reading aggregate fields as main-force/participant truth."
+    trading_impact: "False Delta/CVD/Absorption/Footprint or queue claims if gate is bypassed."
     false_positive_risk: "MEDIUM"
     dependency: "LB-P0-003"
     existing_partial_solution: "Strong no-fake-orderflow contracts."
-    recommended_action: "Keep these features disabled/ABSTAIN until capability probe passes."
-    implementation_cost: "LOW now; higher if real L2 ingestion is later approved"
-    validation_method: "Capability-gated tests and proxy-confusion adversarial fixtures."
-    failure_condition: "Order-flow label appears without matching capability evidence."
+    recommended_action: "Keep advanced order-flow features disabled/ABSTAIN until reproducible capability proof exists."
+    implementation_cost: "LOW now; higher if ingestion later authorized"
+    validation_method: "Capability-gated and proxy-confusion adversarial tests."
+    failure_condition: "Order-flow label appears without matching raw evidence capability."
     whether_runtime_change_required: false
 
   - finding_id: "LB-P1-008"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "C_SIGNAL_FACTOR+F_BACKTEST"
-    current_truth: "Validation requirements are sophisticated, but several module protocols are REGISTERED/NOT_RUN or NOT_BACKTESTED."
-    evidence:
-      - "W13 validation protocol status REGISTERED / NOT_RUN"
-      - "Liquidity-sweep status NOT_IMPLEMENTED / NOT_BACKTESTED"
-      - "House-edge status NOT_IMPLEMENTED / NOT_BACKTESTED"
-      - "PROGRAM-INDEX marks many modules CONTRACTED_NOT_IMPLEMENTED"
+    current_truth: "Many sophisticated validation protocols exist but multiple module protocols remain NOT_RUN/NOT_BACKTESTED."
+    evidence: ["W13 protocol NOT_RUN", "Liquidity-sweep NOT_BACKTESTED", "House-edge NOT_BACKTESTED", "PROGRAM-INDEX maturity"]
     evidence_grade: "HIGH / CANONICAL_STATUS"
     severity: "P1"
     probability_of_real_failure: "HIGH if design maturity is mistaken for empirical maturity"
-    user_impact: "Can overstate reliability of factors/skills."
-    trading_impact: "Data snooping, regime overfit or negative net edge can survive narrative review."
+    user_impact: "Can overstate reliability of factors and skills."
+    trading_impact: "Overfit or negative net edge can survive narrative review."
     false_positive_risk: "LOW"
     dependency: "W7 shared validation harness"
-    existing_partial_solution: "Protocols already specify walk-forward, purging, costs, placebo, PBO/DSR/White/SPA and lockbox."
-    recommended_action: "Do not promote candidate skills until a shared executed validation receipt exists."
+    existing_partial_solution: "Walk-forward, purging, costs, placebo, multiple-testing and lockbox protocols are designed."
+    recommended_action: "No candidate promotion without executed machine-readable validation receipts."
     implementation_cost: "MEDIUM_HIGH per strategy family"
-    validation_method: "Executable shared W7 gate with machine-readable receipts and null/negative outcome preservation."
-    failure_condition: "Candidate is labeled validated without actual OOS/cost/multiple-testing evidence."
+    validation_method: "Executable W7 OOS/cost/multiple-testing gate preserving null/negative results."
+    failure_condition: "A candidate is called validated without actual OOS and economic-cost evidence."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-009"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "C_SIGNAL_FACTOR+G_DECISION"
-    current_truth: "Kunlun/BlueFocus forward exposure matrix is REGISTERED_CANDIDATE / IMPLEMENTATION_ISSUES_OPEN; initial FFW/MTW weights are priors, not validated statistical truth."
-    evidence:
-      - "A-SHARE-FORWARD-EXPOSURE-MATRIX-AND-THEME-BETA-BLUEPRINT-v1.0.md"
+    current_truth: "Kunlun/BlueFocus forward-exposure weights are priors/candidate design, not calibrated statistical truth."
+    evidence: ["A-SHARE-FORWARD-EXPOSURE-MATRIX-AND-THEME-BETA-BLUEPRINT-v1.0.md"]
     evidence_grade: "HIGH"
     severity: "P1"
-    probability_of_real_failure: "MEDIUM_HIGH if priors are used as calibrated weights"
-    user_impact: "Could make a polished exposure chart look more precise than evidence warrants."
-    trading_impact: "Misattribute theme beta/company alpha and overreact to proxy events."
+    probability_of_real_failure: "MEDIUM_HIGH if priors are presented as measured weights"
+    user_impact: "Polished exposure charts can look more precise than evidence supports."
+    trading_impact: "Misattribute theme beta/company alpha and proxy events."
     false_positive_risk: "LOW"
     dependency: "W2 PIT + W5 events + W7 validation"
-    existing_partial_solution: "Blueprint separates FFW/tech option/MTW and requires OOS/placebo/multiple-testing."
-    recommended_action: "Keep priors explicitly prior-only; implement only after W2 rule/PIT gate, then validate dynamic updates."
+    existing_partial_solution: "Blueprint separates FFW/technology-option/MTW and requires OOS controls."
+    recommended_action: "Keep prior-only labels; calibrate only after W2/W5 foundations and OOS validation."
     implementation_cost: "HIGH"
-    validation_method: "PIT proxy baskets, orthogonal beta, event-study OOS, negative controls, confidence intervals."
-    failure_condition: "Initial prior is reported as observed exposure or predictive probability."
+    validation_method: "PIT proxy baskets, orthogonal beta, event OOS, negative controls and uncertainty intervals."
+    failure_condition: "A prior is reported as observed exposure or probability."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-010"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "D_EVENT_INTELLIGENCE"
-    current_truth: "Policy/macro/news/cross-asset module is REGISTERED_CANDIDATE / NOT_IMPLEMENTED."
-    evidence:
-      - "A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"
+    current_truth: "Policy/macro/news/cross-asset module remains registered candidate / not implemented."
+    evidence: ["A-SHARE-POLICY-MACRO-NEWS-CROSS-ASSET-INTELLIGENCE-BLUEPRINT-v1.0.md"]
     evidence_grade: "HIGH"
     severity: "P1"
-    probability_of_real_failure: "MEDIUM_HIGH for event-driven conclusions"
+    probability_of_real_failure: "MEDIUM_HIGH"
     user_impact: "Manual event analysis remains dependent on per-session research quality."
-    trading_impact: "First-public timing, duplicate news, rumor grading and priced-in state may be inconsistent."
+    trading_impact: "First-public time, duplicate news, rumor grading and priced-in state can be inconsistent."
     false_positive_risk: "LOW"
-    dependency: "W2 PIT + official-source ingestion + W7 event validation"
-    existing_partial_solution: "Detailed source grading, expectation/surprise and event-clock ontology already designed."
-    recommended_action: "Second or later slice after W2: implement event clock/source-grade spine before predictive transmission models."
+    dependency: "W2 PIT + official-source ingestion + W7"
+    existing_partial_solution: "Detailed source grading and event-clock ontology exists."
+    recommended_action: "Implement later, beginning with event clock/source-grade spine rather than predictive transmission."
     implementation_cost: "MEDIUM_HIGH"
-    validation_method: "Official timestamp fixtures, duplicate propagation, rumor-confirm/deny, pre/post pricing studies."
-    failure_condition: "Later confirmation is backfilled as if known earlier or duplicate reports count as independent events."
+    validation_method: "Official timestamp, duplicate propagation and rumor-confirm/deny fixtures."
+    failure_condition: "Later confirmation is backfilled as earlier knowledge."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-011"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "E_PARTICIPANT_GAME"
-    current_truth: "W13 participant-flow module is NOT_IMPLEMENTED and its validation protocol is NOT_RUN."
-    evidence:
-      - "A-SHARE-DAILY-PARTICIPANT-CAPITAL-FLOW-INTELLIGENCE-BLUEPRINT-v1.0.md"
-      - "A-SHARE-DAILY-PARTICIPANT-FLOW-VALIDATION-BACKTEST-PROTOCOL-v1.0.md"
+    current_truth: "W13 participant-flow module is not implemented and its validation protocol is not run."
+    evidence: ["W13 blueprint", "W13 validation/backtest protocol"]
     evidence_grade: "HIGH"
     severity: "P1"
-    probability_of_real_failure: "HIGH if participant labels are treated as current validated signals"
-    user_impact: "‘机构/游资/主力/散户’ conclusions remain hypotheses, not measured identity truth."
-    trading_impact: "Systematic participant misclassification and narrative overfitting."
+    probability_of_real_failure: "HIGH if labels are treated as validated signals"
+    user_impact: "Institution/active-capital/main-force/retail outputs remain hypotheses."
+    trading_impact: "Participant misclassification and narrative overfit."
     false_positive_risk: "LOW"
     dependency: "W2/W5 data + W7 validation"
-    existing_partial_solution: "Evidence grades and separate identity/direction/amount confidence are designed."
-    recommended_action: "Keep participant output hypothesis-only until B3+W13 incremental value is demonstrated OOS."
+    existing_partial_solution: "Identity/direction/amount evidence grades are designed."
+    recommended_action: "Keep hypothesis-only until incremental OOS value is demonstrated."
     implementation_cost: "HIGH"
-    validation_method: "Identity/direction labels where observable + incremental economic OOS against B3 baseline."
-    failure_condition: "Participant hypothesis is promoted without identifiable evidence or incremental validation."
+    validation_method: "Observable labels where available + incremental economic OOS against baseline."
+    failure_condition: "Participant identity is promoted without identifiable evidence."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-012"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "E_PARTICIPANT_GAME"
-    current_truth: "Multi-agent strategic game is a research blueprint; calibrated policy populations and validated market simulator are not established as current capability."
-    evidence:
-      - "A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md"
-      - "PROGRAM-INDEX W6 maturity"
+    current_truth: "Multi-agent strategic game is blueprint/research capability, not a calibrated market simulator."
+    evidence: ["A-SHARE-MULTI-AGENT-STRATEGIC-GAME-ENGINE-BLUEPRINT-v1.0.md", "PROGRAM-INDEX W6 maturity"]
     evidence_grade: "HIGH"
     severity: "P1"
     probability_of_real_failure: "MEDIUM_HIGH if simulation narrative is mistaken for inference"
-    user_impact: "Agent scenarios can sound persuasive without calibrated likelihood."
-    trading_impact: "False certainty about opponent intent/strategy."
+    user_impact: "Agent scenarios can sound certain without calibrated likelihood."
+    trading_impact: "False certainty about opponent strategy."
     false_positive_risk: "LOW"
-    dependency: "W2 microstructure + W13 participant evidence + W7 calibration"
-    existing_partial_solution: "Blueprint explicitly uses hidden types, alternative hypotheses and evidence against."
-    recommended_action: "Do not prioritize before W2/W13; start with rule-based synthetic archetypes and calibration receipts later."
+    dependency: "W2 microstructure + W13 evidence + W7 calibration"
+    existing_partial_solution: "Hidden types, alternative hypotheses and counterevidence are designed."
+    recommended_action: "Do not prioritize before W2/W13; later begin with synthetic archetypes and calibration receipts."
     implementation_cost: "HIGH"
-    validation_method: "Trajectory likelihood, holdout periods, counterfactual distinguishability, calibration and abstention."
-    failure_condition: "LLM-generated objective/policy is treated as observed participant truth."
+    validation_method: "Holdout trajectory likelihood, counterfactual distinguishability and calibration/abstention."
+    failure_condition: "LLM-generated policy is treated as observed participant truth."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-013"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "G_DECISION+I_SYSTEM_ENGINEERING"
-    current_truth: "W10 DecisionEpisode is listed as CONTRACTED_NOT_IMPLEMENTED, so real trade/postmortem feedback has no proven canonical decision-episode runtime in this public program state."
-    evidence:
-      - "PROGRAM-INDEX.yaml"
-      - "Project Integration Index v1.4 decision chain"
+    current_truth: "W10 DecisionEpisode is contracted but not proven implemented as the canonical public decision-feedback runtime."
+    evidence: ["PROGRAM-INDEX W10 maturity", "Project Integration Index decision chain"]
     evidence_grade: "HIGH"
     severity: "P1"
     probability_of_real_failure: "MEDIUM"
-    user_impact: "Learning from real decisions can remain manual or fragmented."
-    trading_impact: "Factors/failure conditions may not update from realized outcomes in a reproducible way."
-    false_positive_risk: "LOW_MEDIUM because W3/W9 adjacent capabilities exist"
+    user_impact: "Real decision/postmortem learning can remain manual or fragmented."
+    trading_impact: "Factors and failure conditions may not update reproducibly from outcomes."
+    false_positive_risk: "LOW_MEDIUM"
     dependency: "W9 outcome calibration + W10 authority"
-    existing_partial_solution: "DecisionEpisode authority is already assigned; W9 has partial outcome-learning foundations."
-    recommended_action: "After foundational data/validation fixes, implement a research-only DecisionEpisode outcome receipt, not an execution path."
+    existing_partial_solution: "DecisionEpisode authority is assigned; W9 has partial outcome-learning foundation."
+    recommended_action: "Later implement research-only DecisionEpisode outcome receipts, not execution authority."
     implementation_cost: "MEDIUM"
-    validation_method: "Replay decision→forecast→evidence→actual outcome→calibration delta with immutable provenance."
-    failure_condition: "Feedback changes model/skill without traceable decision/outcome evidence."
+    validation_method: "Decision→forecast→evidence→outcome→calibration replay with immutable provenance."
+    failure_condition: "Feedback mutates model/skill without traceable decision/outcome evidence."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-014"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "H_RISK"
-    current_truth: "W7 is PARTIAL_FOUNDATION; advanced exposure, ruin/capacity, outage and model-disagreement controls are designed but not proven as integrated runtime gates."
-    evidence:
-      - "PROGRAM-INDEX W7 maturity"
-      - "House-edge module status NOT_IMPLEMENTED / NOT_BACKTESTED"
-      - "Core-T risk-button blueprint"
+    current_truth: "Advanced concentration/capacity/outage/model-disagreement controls are designed but not proven as integrated gates."
+    evidence: ["PROGRAM-INDEX W7 maturity", "House-edge module NOT_IMPLEMENTED/NOT_BACKTESTED", "Core-T risk design"]
     evidence_grade: "HIGH"
     severity: "P1"
     probability_of_real_failure: "MEDIUM"
-    user_impact: "Risk views may be available conceptually but not enforced consistently in research decisions."
-    trading_impact: "Underestimated concentration, liquidity, gap/overnight and correlated theme risk."
+    user_impact: "Risk outputs may be conceptually available but inconsistently enforced."
+    trading_impact: "Underestimated concentration, liquidity, gap/overnight or correlated-theme risk."
     false_positive_risk: "LOW_MEDIUM"
-    dependency: "W2 current rules/data + W7 + W11"
-    existing_partial_solution: "Final W7 veto authority is already architecturally assigned."
-    recommended_action: "Keep risk outputs advisory/ABSTAIN where inputs are unknown; later implement shared risk receipt before capital allocation."
+    dependency: "W2 current data/rules + W7 + W11"
+    existing_partial_solution: "W7 final veto authority is already assigned."
+    recommended_action: "ABSTAIN on missing critical inputs; later require shared risk receipt before capital allocation."
     implementation_cost: "MEDIUM_HIGH"
-    validation_method: "Historical stress, block bootstrap, limit/halt/gap scenarios, data-outage and model-disagreement adversarial cases."
-    failure_condition: "Risk gate produces positive clearance with missing critical inputs."
+    validation_method: "Historical stress, block bootstrap, limit/halt/gap, outage and disagreement cases."
+    failure_condition: "Positive risk clearance occurs with missing critical inputs."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-015"
+    finding_class: "CONFIRMED_DEFECT_OR_CALIBRATION_GAP"
     subsystem: "B_MARKET_MICROSTRUCTURE+F_BACKTEST+H_RISK"
-    current_truth: "Phase-2 simulation uses fixed slippage plus configurable volume impact defaulting to zero; no evidence this is calibrated by liquidity/capacity/regime."
-    evidence:
-      - "SimulationConfig fixed_slippage_bps=5.0, volume_impact_bps=0.0"
-      - "House-edge blueprint requires capacity/impact/adverse-selection reserves"
+    current_truth: "Phase-2 uses fixed slippage and configurable volume impact defaulting to zero; no calibrated liquidity/capacity/regime model is proven."
+    evidence: ["SimulationConfig fixed_slippage_bps=5.0", "volume_impact_bps=0.0", "House-edge impact/capacity design"]
     evidence_grade: "HIGH_CODE / HIGH_DESIGN"
     severity: "P1"
-    probability_of_real_failure: "HIGH for high-turnover or illiquid studies"
+    probability_of_real_failure: "HIGH for high-turnover/illiquid studies"
     user_impact: "Gross edge may survive unrealistic execution assumptions."
-    trading_impact: "Overstated net returns and T-edge."
+    trading_impact: "Overstated net returns and T edge."
     false_positive_risk: "LOW"
-    dependency: "W2 liquidity metrics + W7 validation"
-    existing_partial_solution: "Costs are at least explicit/configurable and House-edge net-edge contract is designed."
-    recommended_action: "Treat zero impact as explicit stress baseline only; require liquidity-conditioned impact intervals for economic validation."
+    dependency: "W2 liquidity metrics + W7"
+    existing_partial_solution: "Costs are explicit/configurable; net-edge contract is designed."
+    recommended_action: "Treat zero impact as explicit baseline only; require liquidity-conditioned stress intervals for economic validation."
     implementation_cost: "MEDIUM"
-    validation_method: "Sensitivity grid, turnover/capacity buckets, pessimistic impact stress, implementation-shortfall comparison."
+    validation_method: "Sensitivity, capacity buckets, pessimistic impact and implementation-shortfall comparisons."
     failure_condition: "Economic validation passes only under zero-impact or one fixed-slippage assumption."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P1-016"
+    finding_class: "EVIDENCE_GAP"
     subsystem: "A_DATA+D_EVENT_INTELLIGENCE"
-    current_truth: "Financial/announcement/source revision PIT ingestion is specified but actual current adapter execution is not evidenced in this GitHub audit."
-    evidence:
-      - "Core-T and W5 blueprints require first_public_at/available_at/source_version"
-      - "W5 is NOT_IMPLEMENTED"
+    current_truth: "Financial/announcement/source-revision PIT ingestion is specified but current adapter execution is not evidenced by this audit."
+    evidence: ["Core-T/W5 temporal requirements", "W5 NOT_IMPLEMENTED"]
     evidence_grade: "MEDIUM"
     severity: "P1"
     probability_of_real_failure: "MEDIUM"
-    user_impact: "Earnings surprise and announcement event studies can silently use later-known information if manual data is not frozen."
+    user_impact: "Earnings/event studies can use later-known revisions unless inputs are frozen."
     trading_impact: "Look-ahead in EIVR/event alpha."
     false_positive_risk: "MEDIUM"
     dependency: "W2/W5 PIT ingestion"
     existing_partial_solution: "Strong temporal ontology exists."
-    recommended_action: "Require immutable as-of source snapshots for any earnings/event backtest."
+    recommended_action: "Require immutable as-of source snapshots for earnings/event backtests."
     implementation_cost: "MEDIUM_HIGH"
     validation_method: "Revision replay and publication-time boundary tests."
-    failure_condition: "Backtest input differs when rerun later with same knowledge_cutoff."
+    failure_condition: "Same knowledge_cutoff rerun changes because later-known source revision leaked in."
     whether_runtime_change_required: true
 
   - finding_id: "LB-P2-017"
+    finding_class: "CONFIRMED_GAP"
     subsystem: "D_EVENT_INTELLIGENCE+G_DECISION"
-    current_truth: "Sentiment/attention is recognized as manipulable and source-dependent; no current validated weighting engine is established."
-    evidence:
-      - "W5 event/source grading design"
-      - "Core-T evidence hierarchy"
+    current_truth: "Sentiment/attention is manipulable and no validated weighting engine is established."
+    evidence: ["W5 source grading", "Core-T evidence hierarchy"]
     evidence_grade: "MEDIUM_HIGH"
     severity: "P2"
     probability_of_real_failure: "MEDIUM if social consensus is overweighted"
     user_impact: "Manual sentiment interpretation remains necessary."
-    trading_impact: "Crowd/manipulated narrative may be mistaken for fundamental evidence."
+    trading_impact: "Manipulated narrative can be mistaken for fundamental evidence."
     false_positive_risk: "MEDIUM"
-    dependency: "W5 source graph + W7 incremental validation"
-    existing_partial_solution: "Official/primary evidence is already ranked above social/rumor sources."
-    recommended_action: "Keep sentiment as low-authority feature until incremental OOS value and manipulation robustness are shown."
+    dependency: "W5 source graph + W7"
+    existing_partial_solution: "Primary/official evidence is already ranked above rumor/social sources."
+    recommended_action: "Keep sentiment low-authority until incremental OOS robustness is shown."
     implementation_cost: "MEDIUM"
-    validation_method: "Source-stratified ablation, adversarial manipulation cases, regime OOS."
-    failure_condition: "Social sentiment alone upgrades a trade thesis or confidence tier."
+    validation_method: "Source-stratified ablation, manipulation cases and regime OOS."
+    failure_condition: "Social sentiment alone upgrades thesis/confidence."
     whether_runtime_change_required: false
 
   - finding_id: "LB-P2-018"
+    finding_class: "STALE_PROJECTION_RISK"
     subsystem: "I_SYSTEM_ENGINEERING"
-    current_truth: "Several governance/blueprint projections are stale relative to actual merges/current lane state."
-    evidence:
-      - "R142 PR #400 is merged into main 341fefa057..., while ACTIVE-CODEX and Lane-A claim still describe pre-merge execution reservation"
-      - "Project Integration Index/Authority Registry retain historical next-task references"
-    evidence_grade: "HIGH"
+    current_truth: "Historical governance/blueprint projections can lag actual merge state."
+    evidence: ["fresh-reconcile requirement", "historical R142 post-merge projection lag observed during R1 audit"]
+    evidence_grade: "HIGH_FOR_HISTORICAL_OBSERVATION"
     severity: "P2"
-    probability_of_real_failure: "MEDIUM for routing/planning; LOW for direct trading because claim/route gates fail closed"
-    user_impact: "Agents can waste time or misread current engineering phase."
-    trading_impact: "Indirect: stale ownership can delay or duplicate remediation."
+    probability_of_real_failure: "MEDIUM for routing/planning"
+    user_impact: "Agents can waste time or misread engineering phase."
+    trading_impact: "Indirect only."
     false_positive_risk: "LOW"
-    dependency: "Control-plane closeout governance outside Lane-B write authority"
-    existing_partial_solution: "Source precedence and fresh reconcile rules exist."
-    recommended_action: "Independent control-plane owner should close R142 routing/claim state; Lane-B must not modify it."
+    dependency: "Control-plane owner outside Lane-B write authority"
+    existing_partial_solution: "Source precedence and fresh reconcile rules."
+    recommended_action: "Always fresh-read canonical route/claim/PR state; Lane-B must not fix foreign control-plane state."
     implementation_cost: "LOW outside this scope"
-    validation_method: "Control-tower reconciliation + exact PR/merge/claim comparison."
-    failure_condition: "Planner follows stale derived/current-task text over fresh canonical PR/route evidence."
+    validation_method: "Control-tower reconciliation and exact PR/merge/claim comparison."
+    failure_condition: "Planner follows stale projection over fresh canonical execution truth."
     whether_runtime_change_required: false
 
   - finding_id: "LB-P2-019"
+    finding_class: "EXTERNAL_STATE_UNKNOWN"
     subsystem: "I_SYSTEM_ENGINEERING"
-    current_truth: "External local-heavy/process state cannot be measured through the GitHub-only audit."
-    evidence:
-      - "No local execution or process introspection was performed in this window"
+    current_truth: "GitHub-only audit cannot observe the user's current local-heavy/process state."
+    evidence: ["no local process introspection performed"]
     evidence_grade: "LOW / UNKNOWN_EXTERNAL_STATE"
     severity: "P2"
     probability_of_real_failure: "UNKNOWN"
-    user_impact: "Historical Python-process pileup risk remains relevant."
-    trading_impact: "Indirect availability/latency risk only; no trading runtime used here."
+    user_impact: "Historical Python process pile-up remains a resource-safety concern."
+    trading_impact: "Indirect availability/latency risk only."
     false_positive_risk: "HIGH"
     dependency: "future local executor session"
-    existing_partial_solution: "Project-wide caps: local-heavy=1, CPU worker=1, task Python<=2, no nested pools/global kill."
-    recommended_action: "Future implementation must emit task-owned process pre/postflight; this audit starts no Python process."
+    existing_partial_solution: "local-heavy=1, CPU worker=1, task Python<=2, no nested pools/global kill."
+    recommended_action: "Future implementation emits task-owned process pre/postflight and cleans only owned children."
     implementation_cost: "LOW"
-    validation_method: "PID/PPID ownership receipt and zero task-owned descendants postflight."
+    validation_method: "PID/PPID ownership receipt and zero task descendants after work."
     failure_condition: "Orphan task processes remain or unrelated Python/Docker processes are killed."
     whether_runtime_change_required: false
 
@@ -634,51 +530,61 @@ false_green_scan:
   overall: "MATERIAL_FALSE_GREEN_RISK_FOUND"
   cases:
     - id: "FG-01"
-      mechanism: "Synthetic test era does not cross rule-regime change"
-      evidence: "AS_OF 2026-01-31 versus rules effective 2026-07-06"
-      impact: "Current-rule correctness can be falsely inferred from green tests."
+      mechanism: "Synthetic test era does not cross rule-regime changes."
+      impact: "Green CI can falsely imply current-rule correctness."
     - id: "FG-02"
-      mechanism: "Simplified T+1 test checks only new-lot lock, not old-lot saleability after same-day buy"
-      impact: "Core+T inventory bug remains invisible."
+      mechanism: "T+1 test covers only new-lot lock, not settled old-lot saleability after same-day buy."
+      impact: "CORE+T inventory defect remains invisible."
     - id: "FG-03"
-      mechanism: "Blueprint/protocol existence can be mistaken for implementation/backtest maturity"
-      evidence: "Multiple modules explicitly NOT_IMPLEMENTED / NOT_RUN / NOT_BACKTESTED"
+      mechanism: "Bar at limit is treated as universal observed no-fill truth."
+      impact: "PRICE_VALIDITY is conflated with ORDER_FILLABILITY."
     - id: "FG-04"
-      mechanism: "Named data source can be mistaken for proven field capability"
-      impact: "Fake raw order-flow inference from aggregate/snapshot data."
+      mechanism: "Previous processed bar.close is treated as authoritative price-limit reference price."
+      impact: "Intraday/corporate-action/special-regime limit boundaries can be wrong."
     - id: "FG-05"
-      mechanism: "Stale control-plane/blueprint current-task text can be mistaken for live execution truth"
-      impact: "Duplicate or misrouted engineering work."
+      mechanism: "Blueprint/protocol presence is mistaken for implementation/backtest maturity."
+      impact: "Unvalidated capabilities appear production-like."
+    - id: "FG-06"
+      mechanism: "Named data source is mistaken for proven field capability."
+      impact: "Raw order-flow inference can be fabricated from lower-grade data."
 
 strongest_counterargument:
   argument: >-
-    The system already contains extensive W2 temporal/lineage contracts, a deterministic offline replay, explicit T+1/limit/cost gates,
-    sophisticated W7 validation protocols, and strong no-fake-orderflow rules. Therefore the highest-value next work could be a business-facing
-    W5 event/forward-exposure slice that immediately improves Kunlun/BlueFocus analysis rather than spending another cycle on infrastructure.
+    The system already has extensive W2 contracts and a deterministic replay, so a user-visible W5 event/forward-exposure slice could
+    produce faster practical value for Kunlun/BlueFocus than another infrastructure cycle.
   response: >-
-    That objection is valid on short-term visible usefulness, but the current replay contains two concrete P0 mechanism errors and its green tests
-    do not cover current rule regimes. W5, forward exposure, participant flow, T-buttons and validation all consume W2 tradability/time truth.
-    Fixing this foundation has higher dependency centrality, can be independently validated with free synthetic fixtures, has no external-data
-    dependency, and prevents downstream event/factor systems from producing precise but non-executable results.
+    The W2 replay now has four high-confidence P0 execution-semantic defects: rule-regime selection, settlement-aware inventory,
+    price-validity/fillability conflation, and non-authoritative limit reference price. W5/T-buttons/W7 consume these semantics.
+    Fixing W2 first has higher dependency centrality and can be independently validated with synthetic/public official-rule fixtures.
 
 first_implementation_slice_recommendation:
   slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
-  name: "W2点时交易规则 + lot-level T+1 + 可交易性回放门"
+  name: "W2 effective rule + authoritative reference price + fillability separation + settlement/calendar replay gate"
   recommendation: "FIRST"
-  selection_score:
-    impact: 5
-    confidence: 5
-    dependency_centrality: 5
-    complexity: 2
-    collision_risk: 1
-    relative_score: 62.5
-    formula: "Impact*Confidence*DependencyCentrality/(Complexity*CollisionRisk)"
+  ranking_method: "HEURISTIC_NON_CALIBRATED / RANKING_AID_ONLY"
+  factor_judgment:
+    impact: "VERY_HIGH"
+    confidence: "HIGH"
+    dependency_centrality: "VERY_HIGH"
+    complexity: "MEDIUM"
+    collision_risk: "LOW_AFTER_SEPARATE_CLAIM"
+  calibrated_decision_evidence: false
   goals:
-    - "Make every simulated tradability decision bind an effective AShareRuleSnapshot/rule_snapshot_id."
-    - "Resolve price limits by event_time + exchange + board + security type + risk-warning/status + rule version."
-    - "Represent T+1 with lot/sellable inventory so old inventory remains sellable after same-day buys."
-    - "Represent session/market_phase sufficiently to fail closed on unsupported auction/after-hours contexts."
-    - "Preserve PIT/lineage and candidate-only/NO_TRADE behavior."
+    - "Consume the existing W2/C2 AShareRuleSnapshot authority; do not create a second rule truth."
+    - "Bind each decision to an effective AShareRuleSnapshot/rule_snapshot_id."
+    - "Resolve limit_reference_price from authoritative market/rule input with provenance and effective-rule binding."
+    - "Separate PRICE_VALIDITY from ORDER_FILLABILITY."
+    - "When queue/order-book/liquidity evidence is insufficient, fillability is UNKNOWN/ABSTAIN or an explicitly labeled conservative scenario assumption."
+    - "Represent settlement-aware acquisition lots or equivalent sellable/locked buckets so old inventory remains sellable after same-day buys."
+    - "Bind market session and trading calendar; next-day eligibility means next TRADING DAY, not calendar-day shortcut."
+    - "Preserve PIT/lineage and research-only/NO_TRADE behavior."
+  scope_elements:
+    - "effective AShareRuleSnapshot"
+    - "authoritative limit reference price"
+    - "price-validity / fillability separation"
+    - "settlement-aware lot/sellable inventory"
+    - "market session"
+    - "trading calendar gate"
   non_goals:
     - "No live broker/order path"
     - "No real account/position access"
@@ -686,35 +592,35 @@ first_implementation_slice_recommendation:
     - "No new factor or signal"
     - "No L2/tick ingestion"
     - "No W3/Signal Tower write"
-  why_now:
-    - "Closes two code-level P0 defects."
-    - "Shared dependency for T-buttons, event studies, forward exposure, W13 and W7 validation."
-    - "Can be tested entirely with synthetic/public official-rule fixtures."
-    - "No collision with merged R142 runtime surfaces once a separate Lane-B implementation claim is granted."
 
 alternative_slices:
   - slice_id: "LB-ALT-01-W5-EVENT-TIME-SOURCE-SPINE"
     name: "W5 official-event timestamp/source-grade spine"
-    relative_score: 21.3
-    strengths: ["Directly improves daily news/policy/earnings analysis", "enables first-public/priced-in studies", "high user-visible value"]
-    why_not_first: "Consumes W2 time/tradability truth and would inherit current replay rule errors; implementation cost and ingestion surface are larger."
+    ranking_method: "HEURISTIC_NON_CALIBRATED / RANKING_AID_ONLY"
+    ordinal_priority: "SECOND"
+    strengths: ["direct daily research value", "first-public/priced-in studies", "high user visibility"]
+    why_not_first: "Consumes W2 temporal/tradability truth and would inherit unresolved execution semantics."
   - slice_id: "LB-ALT-02-W7-EXECUTED-VALIDATION-GATE"
     name: "W7 shared executable OOS/multiple-testing/cost validation receipt"
-    relative_score: 16.7
-    strengths: ["Attacks design-vs-validation false green", "benefits many candidate skills", "can preserve negative/null results"]
-    why_not_first: "Its execution-feasibility and cost simulations depend on correct W2 rules/T+1/session semantics; fixing W2 first reduces validation contamination."
+    ranking_method: "HEURISTIC_NON_CALIBRATED / RANKING_AID_ONLY"
+    ordinal_priority: "THIRD"
+    strengths: ["attacks design-vs-validation false green", "benefits many candidate skills", "preserves negative/null results"]
+    why_not_first: "Execution-feasibility and cost validation depends on correct W2 rule/T+1/session/reference-price semantics."
 
 future_exact_write_surface_proposal:
   status: "CANDIDATE_ONLY / NOT_AUTHORIZED_BY_THIS_AUDIT"
   requires_new_claim_and_route: true
+  authority_owner: "W2"
+  authority_contract: "C2_A_SHARE_RULE_SNAPSHOT"
+  authority_write_policy: "SINGLE_WRITER_READ_ONLY_CONSUMERS"
   preferred_existing_surfaces:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json [READ/REUSE; mutate only if independent review proves contract gap]"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json [READ/REUSE; mutate only if separately authorized and gap proven]"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/engine.py"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/test_offline_research.py"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/** [synthetic rule-regime/inventory fixtures only]"
-  possible_contract_addition_if_required:
-    path_candidate: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/A-SHARE-RULE-SNAPSHOT.schema.json"
-    authority_rule: "Only if bound to existing W2 AShareRuleSnapshot authority; must not create a second rule truth."
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/** [synthetic only]"
+  schema_materialization_rule: >-
+    If no concrete W2/C2 schema exists, a future schema may materialize the existing authority only after inventory and independent review.
+    It must not create a parallel AShareRuleSnapshot authority or alternate rule resolver truth.
   forbidden_future_surface_without_separate_expansion:
     - "real trading runtime"
     - "broker/account/order/fund adapters"
@@ -723,44 +629,50 @@ future_exact_write_surface_proposal:
     - "production secrets/permissions"
 
 validation_plan_for_first_slice:
-  deterministic_unit_cases:
-    - "SSE/SZSE main-board ordinary stock rule regimes by effective date"
-    - "risk-warning stock boundary before/after 2026-07-06"
-    - "ChiNext/STAR and other board-specific limit behavior from current official rules"
-    - "no-price-limit statuses where applicable"
-    - "suspension/unknown-rule => ABSTAIN"
-    - "after-hours/session boundary after 2026-07-06 where supported"
+  rule_and_reference_price_cases:
+    - "main-board risk-warning rule immediately before and on/after 2026-07-06"
+    - "STAR 20% regime"
+    - "ChiNext 20% regime"
+    - "no-price-limit periods"
+    - "official previous-close limit reference price"
+    - "ex-right/ex-dividend reference-price cases"
+    - "special status/rule regimes"
+  price_validity_vs_fillability_cases:
+    - "bar at limit price with no queue/order-book/liquidity evidence => ORDER_FILLABILITY UNKNOWN/ABSTAIN"
+    - "conservative no-fill scenario, when used, must be labeled assumption rather than observed truth"
+    - "evidence-backed fillability fixture must remain distinct from bar-only fixture"
   lot_level_t1_cases:
-    - "1000 old sellable + buy 500 today => old 1000 sellable, new 500 locked"
-    - "partial sale of old lots does not unlock new lots"
-    - "next trading day unlocks eligible lots"
-    - "multiple acquisitions on different days preserve per-lot state"
-  temporal_negative_cases:
-    - "new rule applied before effective_at => FAIL_CLOSED"
-    - "old rule applied after superseded_at => FAIL_CLOSED"
-    - "missing rule snapshot => ABSTAIN/ERROR, never implicit fallback"
-    - "same knowledge_cutoff replay must be deterministic"
-  economic_regressions:
-    - "existing commission/stamp/slippage tests remain green"
-    - "zero-impact is labeled a baseline, not economic validation"
-  false_green_tests:
-    - "mutate risk-warning limit to stale 5% post-2026-07-06 and require failure"
-    - "mutate board to 20%-regime while retaining 10% global rule and require failure"
-    - "same-day buy must not lock pre-existing settled inventory"
-  required_evidence:
+    - "old settled inventory + same-day buy"
+    - "partial sell of old inventory"
+    - "multiple acquisition lots"
+    - "same-day buy remains locked while old settled lot remains sellable"
+    - "next TRADING DAY settlement eligibility"
+    - "weekend/holiday must not be treated as settlement trading day"
+  temporal_and_session_negative_cases:
+    - "missing rule snapshot => FAIL_CLOSED/ABSTAIN"
+    - "stale rule mutation must make CI fail"
+    - "new rule before effective_at => FAIL_CLOSED"
+    - "superseded rule after effective interval => FAIL_CLOSED"
+    - "unknown/unsupported session => ABSTAIN"
+    - "same knowledge_cutoff replay remains deterministic"
+  retained_economic_regressions:
+    - "commission/stamp/slippage tests remain green"
+    - "zero impact remains explicitly labeled baseline, not economic validation"
+  required_future_evidence:
     - "exact-head test output"
     - "changed-path allowlist"
     - "official-rule source/effective-date manifest"
+    - "rule_snapshot_id + limit_reference_price provenance assertions"
     - "deterministic receipt"
     - "public-safety scan"
     - "resource/process cleanup receipt"
 
 rollback_plan:
-  current_audit: "Delete/revert only this proposal ledger commit/branch if rejected; main is untouched."
-  future_slice: "Ordinary git revert of bounded implementation commits; no data migration and no destructive history rewrite."
+  current_audit: "Ordinary revert of the ledger-only R2 commit if rejected; no runtime or main mutation by this worker."
+  future_slice: "Ordinary git revert of bounded implementation commits; no reset/rebase/force/history rewrite."
 
 resource_budget:
-  this_audit:
+  this_r2:
     local_heavy_stage_started: 0
     cpu_bound_workers_started: 0
     task_owned_python_processes_started: 0
@@ -768,51 +680,48 @@ resource_budget:
     global_python_kill: false
     global_docker_kill: false
     local_cleanup_required: false
-    external_machine_process_state: "UNKNOWN / NOT_MEASURED"
   future_slice_budget:
     local_heavy_stage_max: 1
     cpu_bound_worker_max: 1
     task_owned_python_process_cap: 2
     nested_parallelism: "FORBIDDEN"
-    preferred_execution: "GitHub Actions + lightweight local/synthetic unit tests"
+    preferred_execution: "GitHub Actions + bounded lightweight synthetic tests"
 
 new_task_issue_pr_decision:
   current_audit:
     new_task: false
     new_issue: false
-    draft_pr: true
-    reason: "Durable proposal review benefits from an isolated Draft PR but Signal != Task; no implementation authority is created."
+    same_draft_pr: 402
+    implementation_started: false
   future_implementation:
-    new_formal_task_or_issue: "YES_AFTER_INDEPENDENT_GPT_ACCEPTANCE_AND_USER_RELEASE"
-    new_work_claim: "REQUIRED"
-    exact_route: "REQUIRED"
-    implementation_draft_pr: "REQUIRED"
+    new_formal_task_or_issue: "ONLY_AFTER_INDEPENDENT_GPT_ACCEPTANCE_AND_USER_RELEASE"
+    new_work_claim: "REQUIRED_BEFORE_RUNTIME_WRITE"
+    exact_route: "REQUIRED_BEFORE_RUNTIME_WRITE"
     created_now: false
 
 permission_expansion:
   current_audit: "NONE"
   future_implementation: >-
-    Requires scope expansion from proposal-only to the exact offline W2/Phase-1/Phase-2 files approved by independent GPT review.
-    Does not require trading, account, order, fund, production, secret or W3/Signal-Tower permissions.
+    Any runtime scope expansion requires a separate governed release. No trading/account/order/fund/production/secret/W3/Signal-Tower authority is implied.
 
 unresolved_blockers:
-  - "R142 implementation is merged, but Lane-A control-plane reservation/ACTIVE-CODEX projection remains stale and needs separate owner closeout."
-  - "Current local TQ/TDX/WeStock/vipdoc capability/entitlement is UNKNOWN from GitHub-only evidence."
-  - "Raw tick/order/queue capability is UNKNOWN and must not be assumed."
-  - "W2 current rule snapshot executable authority is not yet demonstrated as a shared runtime object."
+  - "W2/C2 rule authority is designed but the exact concrete runtime representation for the future slice must be inventoried before implementation."
+  - "Current local TQ/TDX/WeStock/vipdoc capability/entitlement remains P0_GATING_UNKNOWN."
+  - "Raw tick/order/queue capability remains UNKNOWN and must fail closed."
   - "Multiple business modules remain NOT_IMPLEMENTED/NOT_RUN/NOT_BACKTESTED."
 
 next_recommendation:
-  immediate: "INDEPENDENT_GPT_REVIEW_OF_THIS_AUDIT_ONLY"
+  immediate: "INDEPENDENT_GPT_REVIEW_OF_R2_AUDIT_ONLY"
   after_acceptance: >-
-    Re-run Signal Tower preflight after R142 control-plane closeout, create one exact Lane-B implementation claim/route for
-    LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE, and implement only that bounded offline research slice. Do not start W5/W7/W13 in parallel.
+    Fresh Signal Tower/Control Tower preflight, then separately decide whether to create one exact Lane-B implementation Work Claim/route
+    for LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE. Do not enter implementation from this audit PR.
 
 provenance:
   executor_role: "GPT_ENGINEERING_WORKER"
   model_id: "GPT-5.6 Sol"
-  github_evidence: "GitHub connector fresh reads of canonical main/control-plane/blueprints/code/tests/PR state"
-  external_research: "official SSE/SZSE/MOF/STA primary sources only for current rule changes"
+  independent_review_id: 4964079607
+  prior_exact_head: "490676b32a8d17ad9988dc36002861005a3020e7"
+  github_evidence: "GitHub connector fresh reads of PR #402, review, main and prior ledger"
   local_runtime_access: "NOT_USED"
   private_user_data: "NOT_READ_OR_WRITTEN"
   trading_execution: "NONE"
