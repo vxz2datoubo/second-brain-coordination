@@ -1,4 +1,4 @@
-schema_version: "3.14"
+schema_version: "3.15"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -66,54 +66,60 @@ claims:
       reopen_rule: "NEW_GOVERNED_TASK + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
-    claim_state: "HELD_PROPOSAL_ONLY"
-    execution_agent: null
-    resource_class: "LIGHT_RESEARCH_DESIGN"
-    route_binding: null
-    safe_start_after_foundation:
-      mode: "PROPOSAL_ONLY"
-      allowed_write_paths:
-        - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+    claim_state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    execution_agent: "GPT_ENGINEERING_WORKER"
+    worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    route_binding:
+      worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+      task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+      route_epoch: 143
+      issue: 404
+      pr: 410
+      branch: "gpt/r143-post-r144-fresh-activation"
+    implementation_scope:
+      global_reconciliation_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
+      phase: "POST_R144_RESERVATION_ONLY"
       runtime_write_allowed: false
-      implementation_route_allowed: false
-    post_r144_reactivation_gate:
-      user_release_intent: "RETAINED"
-      previous_activation_pr: 405
-      previous_blocker_review: 4970596508
-      previous_candidate_status: "STALE_PRE_R144 / DO_NOT_MERGE_AS_IS"
-      required_sequence:
-        - "R144_CLOSEOUT_MERGED"
-        - "FRESH_SIGNAL_TOWER_GLOBAL_SHALLOW_DELTA_TARGETED_DEEP"
-        - "FRESH_CONTROL_TOWER_O0_O4_WIP_RESOURCE_SCAN"
-        - "FRESH_GPT_WORKER_SLOT"
-        - "EXACT_ACTIVE_IMPLEMENTATION_WORK_CLAIM"
-        - "FRESH_AUTHORIZATION_WITNESS"
-      runtime_write_allowed_before_gate: false
+      final_activation_requires_runtime_pr: true
+      intended_executor_window: "编程1"
+      stale_activation_pr_405_reuse_allowed: false
     write_paths:
-      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
+      - ".github/workflows/lane-b-w2-s1-r143.yml"
     read_paths:
-      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
-      - "coordination/CONTROL-TOWER"
-      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PROGRAM-INDEX.yaml"
-      - "coordination/BLUEPRINTS/A-SHARE-CORE-T-PROFESSIONAL-QUERY-DECISION-SYSTEM-BLUEPRINT-v1.0.md"
-      - "coordination/SKILLS"
+      - "coordination/TASK-BRIEFS/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+      - "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
+      - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
       - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
-    interfaces: []
-    read_domains: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    write_domains: []
-    authority_claims: []
+    interfaces:
+      - name: "C2_A_SHARE_RULE_SNAPSHOT"
+        mode: "write"
+        frozen: false
+    read_domains: [W2, W7]
+    write_domains: [W2]
+    authority_claims:
+      - "C2_A_SHARE_RULE_SNAPSHOT_SINGLE_WRITER"
 
 release_semantics:
   lane_a_r144: >-
-    R144 implementation is independently accepted and merged. The R144 Codex route and Lane-A implementation Work Claim are
-    released into historical/non-executable state by this bounded closeout candidate. Signal Tower remains available on demand.
+    R144 implementation and post-merge closeout are independently accepted and merged. Lane-A carries no current implementation
+    lease; Signal Tower remains available on demand.
   lane_b_r143: >-
-    R143 user authorization remains valid as intent, but runtime is not activated by R144 merge or closeout. A fresh post-R144
-    Signal Tower + Control Tower preflight must mint the exact GPT worker slot, ACTIVE_IMPLEMENTATION Work Claim and witness.
+    The user's R143 release intent is represented here only as an exact non-executable reservation bound to 编程1 and PR #410.
+    RESERVED_IMPLEMENTATION_NON_EXECUTABLE does not authorize W2 runtime writes. After this reservation is independently accepted
+    and merged, a real runtime Draft PR must be created from then-current main and a separate final activation gate must rebind the
+    worker slot and Work Claim to that exact runtime PR before execution_allowed may become true.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
-  signal_tower_normal_operation_outside_r144: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
-  r144_successor_authorized: false
+  signal_tower_normal_operation_outside_r143: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  r143_reservation_pr: 410
+  r143_worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
   r143_w2_runtime_authorized_now: false
+  old_pr_405_reuse_allowed: false
   iagl_stage_b: "NOT_AUTHORIZED"
