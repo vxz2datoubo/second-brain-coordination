@@ -1,0 +1,134 @@
+schema_version: "1.0"
+task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+route_epoch: 143
+repository: "vxz2datoubo/second-brain-coordination"
+issue: 404
+lane_id: "LANE-B-A-SHARE-REMEDIATION"
+slice_id: "LB-S1-W2-PIT-RULE-INVENTORY-REPLAY-GATE"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】Lane-B W2 S1"
+executor_role: "GPT_ENGINEERING_WORKER"
+model_id_required: "GPT-5.6 Sol"
+reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+boundary: "RESEARCH_ONLY / NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION"
+user_release: "2026-08-19 explicit: 开始编程1 W2 第一切片。"
+source_master_audit:
+  merged_pr: 402
+  canonical_path: "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  merged_main_at_audit: "c8b944267dedd1e017986eafcdde866abd1e0a96"
+preflight:
+  signal_tower_sequence: [GLOBAL_SHALLOW, DELTA, TARGETED_DEEP, CONDITIONAL_RESEARCH, RELEASE_DECISION]
+  decision: "PROCEED_WITH_BOUNDED_W2_S1"
+  a_share_business_vertical_slices_max: 1
+  same_canonical_object_writers_max: 1
+  collision_result: "NO_ACTIVE_IMPLEMENTATION_COLLISION"
+authority:
+  owner: "W2"
+  object: "AShareRuleSnapshot"
+  contract: "C2_A_SHARE_RULE_SNAPSHOT"
+  write_policy: "SINGLE_WRITER_READ_ONLY_CONSUMERS"
+  hard_invariant: "NO_SECOND_A_SHARE_RULE_AUTHORITY"
+  schema_materialization_gate: >-
+    Inventory all existing concrete W2/C2 rule-snapshot representations before implementation. If no reusable concrete
+    representation exists and a new canonical schema/object identity would be required, STOP and request independent GPT review.
+    The executor must not create a parallel rule registry, resolver or second truth.
+mission: >-
+  Repair the first bounded W2 replay slice: effective point-in-time A-share rule semantics, authoritative limit reference-price
+  provenance, PRICE_VALIDITY versus ORDER_FILLABILITY separation, settlement-aware T+1 acquisition lots/buckets, and governed
+  market-session/trading-calendar eligibility while preserving deterministic research-only replay and NO_TRADE.
+confirmed_p0_family:
+  - "STATIC_ST_NON_ST_PRICE_LIMIT_LOGIC_NOT_PIT"
+  - "AGGREGATE_ACQUIRED_DAY_LOCKS_SETTLED_OLD_INVENTORY_AFTER_TOPUP"
+  - "LIMIT_PRICE_IS_NOT_NO_FILL"
+  - "PRICE_LIMIT_REFERENCE_PRICE_IS_NOT_AUTHORITATIVE"
+  - "FALSE_GREEN_RULE_REGIME_AND_T1_TEST_COVERAGE"
+  - "RAW_TICK_ORDER_QUEUE_PROVIDER_CAPABILITY_P0_GATING_UNKNOWN"
+phases:
+  G0: "Fresh reconcile and concrete W2/C2 authority inventory; stop at SCHEMA_MATERIALIZATION_GATE if needed."
+  G1: "Effective rule snapshot and authoritative limit-reference-price semantics."
+  G2: "Separate PRICE_VALIDITY from ORDER_FILLABILITY; insufficient evidence => UNKNOWN/ABSTAIN or explicitly labeled scenario assumption."
+  G3: "Settlement-aware acquisition lots/sellable buckets; old settled inventory remains sellable after same-day buy."
+  G4: "Session/calendar replay gate; missing/stale/superseded/unsupported state fails closed."
+  G5: "Adversarial validation, stale-rule mutation proof, exact-head CI/evidence and independent review handoff."
+preferred_runtime_write_surface:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+read_only_unless_separately_gated:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
+forbidden_surfaces:
+  - "broker/account/order/fund adapters"
+  - "production market data"
+  - "W3 canonical write"
+  - "Signal Tower runtime write"
+  - "W5/W7/W13 implementation"
+  - "new factor or signal"
+  - "L2/tick/order/queue ingestion"
+  - "secret/API/permission expansion"
+mandatory_validation:
+  rule_reference_price:
+    - "main-board risk-warning immediately before and on/after 2026-07-06"
+    - "STAR 20%"
+    - "ChiNext 20%"
+    - "no-price-limit periods"
+    - "official previous-close reference-price case"
+    - "ex-right/ex-dividend reference-price case"
+    - "special rule/status case"
+    - "unsupported board/market must not fall through to universal 10%"
+  fillability:
+    - "bar at limit without queue/order-book/liquidity evidence => ORDER_FILLABILITY_UNKNOWN/ABSTAIN"
+    - "conservative no-fill scenario must be labeled assumption"
+    - "evidence-backed fillability fixture distinct from bar-only fixture"
+  t1_inventory:
+    - "old settled inventory + same-day buy"
+    - "partial sale of old inventory"
+    - "multiple acquisition lots"
+    - "same-day lot locked while old settled lot sellable"
+    - "next TRADING DAY eligibility"
+    - "weekend/holiday does not advance settlement"
+  temporal_session_negative:
+    - "missing rule snapshot => fail closed/ABSTAIN"
+    - "stale rule mutation makes CI fail"
+    - "new rule before effective_at => fail closed"
+    - "superseded rule after interval => fail closed"
+    - "unsupported/unknown session => ABSTAIN"
+    - "same knowledge cutoff replay deterministic"
+  retained_regressions:
+    - "commission/stamp/slippage remain green"
+    - "zero impact stays explicit baseline assumption, not economic validation"
+official_rule_scope:
+  sse_szse_2026_effective_date: "2026-07-06"
+  main_board_risk_warning_change: "5% -> 10% effective 2026-07-06"
+  star_chinext: "20% regimes must be explicit in effective snapshot semantics"
+  no_limit_periods: "must be explicit"
+  bse: "materially different regime; if not fully implemented/tested in this slice, UNSUPPORTED/ABSTAIN, never default to SSE/SZSE"
+required_review_evidence:
+  - "exact current main and exact PR head"
+  - "merge-ref parents = current main + exact head"
+  - "changed-path allowlist"
+  - "official-rule source/effective-date manifest"
+  - "rule_snapshot_id and limit_reference_price provenance assertions"
+  - "deterministic replay receipt/hash"
+  - "Python 3.11 and 3.13 applicable matrix"
+  - "stale-rule mutation/failure evidence"
+  - "public-safety scan"
+  - "resource/process cleanup receipt"
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  global_python_or_docker_kill: "FORBIDDEN"
+  preferred_execution: "GitHub Actions + bounded synthetic tests"
+implementation_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+draft_pr_required: true
+merge_authorized: false
+self_review_forbidden: true
+completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
+stop_conditions:
+  - "current route/claim no longer matches R143 or Issue #404"
+  - "new canonical AShareRuleSnapshot identity would be required"
+  - "authorized write surface is insufficient"
+  - "current main drifts and safe merge-ref/current-base cannot be re-established"
+  - "resource cap exceeded or owned descendants cannot be cleaned"
+  - "task would require production/private/trading/secret/permission expansion"
