@@ -36,11 +36,12 @@ portfolio_capacity_policy:
 
 current_user_release_policy:
   decision_at: "2026-08-19T17:11:00+08:00"
-  decision: "LANE_B_W2_S1_USER_RELEASED / R143_CONTROL_PLANE_ACTIVATION_CANDIDATE"
+  decision: "LANE_B_W2_S1_USER_RELEASED / R143_ACTIVE_BOUNDED_IMPLEMENTATION"
   rationale: >-
     The Lane-B Master Audit is accepted and merged. User explicitly authorized starting 编程1 W2 first slice. Fresh Signal Tower
     and Control Tower preflight found no active implementation collision and selected the bounded W2 PIT/rule/inventory replay gate.
-    The activation candidate does not expand to W5/W7/W13, production, private data or trading.
+    Canonical activation authorizes only the declared W2 research runtime surface and does not expand to W5/W7/W13, production,
+    private data, secrets, account/order/fund actions or trading.
   released_implementation_lanes:
     - "LANE-B-A-SHARE-REMEDIATION"
   prepared_implementation_lanes: []
@@ -115,9 +116,9 @@ observed_agent_state:
     observed_route_epoch: 143
     observed_issue: 404
     observed_pr: null
-    observed_status: "READY_PENDING_ATOMIC_WORK_CLAIM"
-    execution_allowed: false
-    observation_status: "ACTIVATION_CANDIDATE / CLAIM_PROJECTION_PREPARED / RUNTIME_NOT_YET_RELEASED_ON_MAIN"
+    observed_status: "READY_AFTER_ACTIVATION_MERGE"
+    execution_allowed: true
+    observation_status: "ACTIVE_BOUNDED_IMPLEMENTATION / W2_ONLY / NO_TRADE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -195,9 +196,9 @@ program_lanes:
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "W2_S1_R143_ACTIVATION_CANDIDATE / RUNTIME_NOT_YET_RELEASED_ON_MAIN"
+    observed_state: "W2_S1_R143_ACTIVE_BOUNDED_IMPLEMENTATION"
     primary_system_positions: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    current_phase: "W2_S1_CONTROL_PLANE_ACTIVATION"
+    current_phase: "W2_S1_G0_AUTHORITY_INVENTORY"
     active_execution_route: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
     active_issue: 404
     active_task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
@@ -205,13 +206,13 @@ program_lanes:
     dependencies:
       - "Merged Lane-B Master Audit PR #402"
       - "Fresh Signal Tower + Control Tower preflight completed"
-      - "Atomic Work Claim + executable route must be canonical before runtime writes"
+      - "Canonical R143 Work Claim + executable route"
       - "PIT/T+1/session/reference-price/fillability gates"
     shared_interfaces: ["W2 A-share data/rules", "C1 Market Time and Availability", "C2 AShareRuleSnapshot", "W7 read-only validation context"]
-    next_gate: "ACTIVATION_CANDIDATE_ACCEPT_AND_CANONICALIZE / THEN_G0_AUTHORITY_INVENTORY"
-    maturity: "FIRST_BOUNDED_IMPLEMENTATION_SLICE_RELEASED_BY_USER / CONTROL_PLANE_ACTIVATION_PENDING"
+    next_gate: "G0_CONCRETE_W2_C2_AUTHORITY_INVENTORY / SCHEMA_MATERIALIZATION_GATE_IF_REQUIRED"
+    maturity: "FIRST_BOUNDED_IMPLEMENTATION_SLICE_ACTIVE"
     heavy_execution_authorized: false
-    heavy_execution_start_gate: "ONLY_AFTER_CANONICAL_CLAIM_AND_EXECUTABLE_ROUTE"
+    heavy_execution_start_gate: "BOUNDED_LIGHTWEIGHT_G0_G4_ONLY / LOCAL_HEAVY_MAX_1_IF_LATER_REQUIRED"
     implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
     write_authority_domain: "W2_ONLY"
     successor_slice_authorized: false
@@ -234,7 +235,7 @@ program_lanes:
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
     overlap_level: "O0_NO_ACTIVE_RUNTIME_COLLISION"
-    rule: "Lane A has no active implementation write surface; Lane B R143 is the only candidate A-share implementation slice."
+    rule: "Lane A has no active implementation write surface; Lane B R143 is the only active A-share implementation slice."
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     rule: "Accepted Signal Tower operation may consume frozen W3/domain interfaces but cannot mutate W3/domain canonical truth."
@@ -244,5 +245,5 @@ cross_lane_overlap_matrix:
 
 reconciliation_rule: >-
   R142 remains accepted, merged and historical/non-executable. Lane A has no implementation Work Claim. Lane-B W2 S1 R143 is
-  explicitly user-released but must not perform runtime writes until the Work Claim and executable route are canonical on main.
+  the only active A-share implementation slice and owns only the declared W2 surfaces through the canonical Work Claim and route.
   No successor slice, production/private/W3/domain/trading expansion is implied.
