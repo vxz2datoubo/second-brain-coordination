@@ -1,0 +1,68 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+predecessor_authority:
+  path: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
+  authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
+  required_state: "RELEASED"
+
+# Exact R144 R4 binding. These are not descriptive labels; R4 validator must compare them mechanically.
+task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+route_epoch: 144
+issue: 406
+pr: 408
+branch: "codex/r144-control-tower-gpt-worker-first-class"
+trigger_review: 4974621759
+adopted_candidate_input_head: "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+activation_parent_head: "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+
+purpose: >-
+  Fresh governed adoption/revalidation authority for exact R144 R3 candidate head af6be5ab72d5da2e7202cb8e587d53526c1ccc74,
+  created after Independent Review 4974621759. This new authority identity exists before any R4 substantive repair commit and
+  closes the historical ordering gap without rewriting R3 history or pretending the prior WorkBuddy execution was authorized.
+
+# This is bounded branch-maintenance authority only. It is never a runtime execution lease or acceptance/merge authority.
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+# ACTIVE means only the following corrective-maintenance paths may be changed under this authority.
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R4.yaml"
+  - "coordination/CONTROL-TOWER/README.md"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/R4-REPAIR-RECEIPT.md"
+
+state_machine:
+  active_scope_status: "BOUNDED_CORRECTIVE_MAINTENANCE_OPEN"
+  released_scope_status_required: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+  released_is_terminal_for_authority_id: true
+  next_activation_requires_new_user_issued_authority_id: true
+
+provenance:
+  source: "USER_DIRECT_CHAT_INSTRUCTION"
+  user_instruction: "继续沿现有 PR #408 / Issue #406 做 bounded corrective maintenance，目标是完成 R4 修复并准备下一轮独立审查；不得新开 PR，不得 self-merge / self-review，不得解除 R143 冻结。"
+  triggering_independent_review: 4974621759
+  reviewed_exact_head: "af6be5ab72d5da2e7202cb8e587d53526c1ccc74"
+  truth_rule: "FRESH_R4_AUTHORITY != RETROACTIVE_R3_AUTHORIZATION"
+  r1_actual_executor: "WORKBUDDY"
+  r1_workbuddy_authority_at_execution: "NOT_CANONICALLY_RELEASED / CANDIDATE_IMPLEMENTATION_ONLY"
+  r4_modifier: "GPT_ARCHITECTURE_OWNER"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_user_decision: true
+  r143_remains_frozen: true
