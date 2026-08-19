@@ -1,0 +1,91 @@
+schema_version: "1.0"
+route_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+repository: "vxz2datoubo/second-brain-coordination"
+status: "READY_PENDING_ACTIVATION"
+execution_allowed: false
+runtime_code_change_allowed: false
+automatic_resume: false
+merge_authorized: false
+self_review_forbidden: true
+
+binding:
+  task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+  route_epoch: 144
+  issue: 406
+  lane_id: "LANE-A-HARNESS-INTEGRATION"
+  task_brief: "coordination/TASK-BRIEFS/CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144.yaml"
+  planned_branch: "codex/r144-control-tower-gpt-worker-first-class"
+  predecessor_task: "CODEX-GLOBAL-SIGNAL-TOWER-R142-RETROSPECTIVE-SIGNAL-INTAKE-BRIDGE"
+  predecessor_epoch: 142
+  predecessor_status: "DONE_HISTORICAL"
+
+executor:
+  agent: "CODEX"
+  reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+  gpt_worker_target_identity: "GPT_ENGINEERING_WORKER"
+
+mode:
+  value: "project_plan"
+  label: "【Codex模式：项目计划模式】"
+  reason: >-
+    Control Tower agent ontology, multi-slot route identity, Work Claim binding, authorization witness,
+    projection and backward compatibility must change coherently and be adversarially tested.
+
+boundary: "CONTROL_TOWER_GOVERNANCE_ONLY / NO_TRADE / NO_W2_RUNTIME / NO_PRIVATE_DATA / NO_PRODUCTION"
+
+architecture_contract:
+  canonical_target_agent_type: "GPT_ENGINEERING_WORKER"
+  slot_or_lease_registry_required: true
+  singleton_overwrite_model_forbidden: true
+  per_window_pseudo_agent_types_forbidden: true
+  existing_parallel_policy_must_be_honored: true
+  route_alone_never_authorizes_execution: true
+
+write_scope_after_activation:
+  - "coordination/CONTROL-TOWER/**"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+  - "coordination/PROGRAM-CONTROL-TOWER.md"
+  - ".github/workflows/program-control-tower-foundation.yml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144/**"
+
+read_only_boundaries:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/**"
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-B-A-SHARE-REMEDIATION/DEFECT-LEDGER.yaml"
+  - "W3/domain canonical stores"
+  - "Signal Tower runtime"
+  - "broker/account/order/fund/production/private-data paths"
+
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  global_python_or_docker_kill: "FORBIDDEN"
+  cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
+
+activation_requirements:
+  - "fresh current main"
+  - "Issue #406 OPEN"
+  - "CODEX predecessor lease released"
+  - "Lane-A new ACTIVE_IMPLEMENTATION Work Claim bound exactly to R144 CODEX route"
+  - "Lane-B R143 remains runtime-frozen"
+  - "no Control Tower same-object writer collision"
+  - "Program Control Tower projection deterministic"
+  - "fresh authorization witness"
+
+hard_locks:
+  - "NO_TRADE"
+  - "NO_W2_RUNTIME"
+  - "NO_W3_WRITE"
+  - "NO_SIGNAL_TOWER_RUNTIME_WRITE"
+  - "NO_PRODUCTION_OR_PRIVATE_DATA"
+  - "NO_SECRET_OR_PERMISSION_EXPANSION"
+  - "NO_FAIL_CLOSED_WEAKENING_FOR_R143"
+  - "NO_GPT_WORKER_CODEX_IMPERSONATION"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
+
+completion_signal: "R144_CONTROL_TOWER_GPT_ENGINEERING_WORKER_FIRST_CLASS_READY_FOR_GPT_REVIEW"
+next_command: "WAIT_FOR_CANONICAL_CODEX_ACTIVATION"
