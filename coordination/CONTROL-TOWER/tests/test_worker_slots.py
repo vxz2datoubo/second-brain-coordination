@@ -34,6 +34,7 @@ R4_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R4-0001"
 R3_AUTHORITY_ID = "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
 RELEASED_SCOPE = "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
 R4_RELEASE_COMMIT = "8a2eb5c41f9b67328211569ac7c8d4c71d0cf6d1"
+R5_RELEASE_PARENT_HEAD = "bf212c4413cef72506a841c177c972b52af60acc"
 
 
 def _slot(
@@ -308,7 +309,7 @@ def _terminal_tombstones(*, include_r5: bool = False) -> dict[str, Any]:
                 "authority_id": R5_AUTHORITY_ID,
                 "authority_file": MAINTENANCE_ADOPTION_FILE,
                 "terminal_state": "RELEASED",
-                "release_parent_head": "d" * 40,
+                "release_parent_head": R5_RELEASE_PARENT_HEAD,
                 "released_scope_status": RELEASED_SCOPE,
                 "reactivation_allowed": False,
                 "terminality_source_review": R5_REVIEW,
@@ -636,13 +637,13 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         self.assertEqual(report["worker_slot_structural_check"], "PASS")
         self.assertEqual(report["active_executable_slots"], [])
 
-    def test_r5_active_maintenance_exact_binding_and_r4_tombstone_pass(self) -> None:
+    def test_r5_active_authority_id_is_terminal_after_final_release(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot()], maintenance=_maintenance_authority())
+        repo._write(MAINTENANCE_TOMBSTONES_FILE, _terminal_tombstones(include_r5=True))
         report = validate_worker_slots(root)
-        self.assertEqual(report["maintenance_adoption_structural_check"], "PASS")
-        self.assertTrue(report["maintenance_write_allowed"])
-        self.assertEqual(report["maintenance_authority_state"], "ACTIVE")
+        self.assertTrue(any(item["code"] == "MAINTENANCE_TERMINAL_AUTHORITY_REACTIVATION" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
 
     def test_r5_wrong_exact_bindings_fail_closed(self) -> None:
         mutations = {
@@ -687,6 +688,19 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         repo = WorkerRepo()
         root = repo.build([_slot()], maintenance=_maintenance_authority())
         path = root / R4_MAINTENANCE_ADOPTION_FILE
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["state"] = "ACTIVE"
+        for field in ("release_reason", "released_scope_status", "release_transition"):
+            data.pop(field, None)
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "MAINTENANCE_TERMINAL_AUTHORITY_REACTIVATION" for item in report["errors"]))
+        self.assertFalse(report["maintenance_write_allowed"])
+
+    def test_r5_self_bypass_released_to_active_and_delete_all_receipts_fails(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], maintenance=_released_maintenance_authority())
+        path = root / MAINTENANCE_ADOPTION_FILE
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         data["state"] = "ACTIVE"
         for field in ("release_reason", "released_scope_status", "release_transition"):
@@ -947,7 +961,7 @@ class WorkerWitnessTests(unittest.TestCase):
 
     def test_r5_maintenance_authority_change_invalidates_witness(self) -> None:
         repo = WorkerRepo()
-        root = repo.build([_slot()], include_gate=True, maintenance=_maintenance_authority())
+        root = repo.build([_slot()], include_gate=True, maintenance=_released_maintenance_authority())
         witness = authorization_witness(root, "A")
         path = root / MAINTENANCE_ADOPTION_FILE
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -959,7 +973,7 @@ class WorkerWitnessTests(unittest.TestCase):
 
     def test_r5_tombstone_change_invalidates_or_refuses_witness(self) -> None:
         repo = WorkerRepo()
-        root = repo.build([_slot()], include_gate=True, maintenance=_maintenance_authority())
+        root = repo.build([_slot()], include_gate=True, maintenance=_released_maintenance_authority())
         witness = authorization_witness(root, "A")
         path = root / MAINTENANCE_TOMBSTONES_FILE
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -969,12 +983,14 @@ class WorkerWitnessTests(unittest.TestCase):
         self.assertFalse(result["fresh"])
         self.assertEqual(result["reason"], "AUTHORIZATION_MATERIAL_INVALID")
 
-    def test_r5_release_transition_invalidates_active_witness(self) -> None:
+    def test_r5_release_receipt_change_invalidates_witness(self) -> None:
         repo = WorkerRepo()
-        root = repo.build([_slot()], include_gate=True, maintenance=_maintenance_authority())
+        root = repo.build([_slot()], include_gate=True, maintenance=_released_maintenance_authority())
         witness = authorization_witness(root, "A")
-        repo._write(MAINTENANCE_ADOPTION_FILE, _released_maintenance_authority())
-        repo._write(MAINTENANCE_TOMBSTONES_FILE, _terminal_tombstones(include_r5=True))
+        path = root / MAINTENANCE_ADOPTION_FILE
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["release_reason"] = "CHANGED_AFTER_WITNESS"
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
         result = verify_authorization_witness(root, witness)
         self.assertFalse(result["fresh"])
         self.assertEqual(result["reason"], "AUTHORIZATION_MATERIAL_CHANGED")

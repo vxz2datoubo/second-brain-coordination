@@ -45,9 +45,18 @@ R4_TERMINAL_RECORD = {
     "reactivation_allowed": False,
     "terminality_source_review": 4974860616,
 }
-# R5 is added atomically to this map in the final release commit. Until then the live R5 authority is ACTIVE.
+R5_TERMINAL_RECORD = {
+    "authority_id": EXPECTED_MAINTENANCE_AUTHORITY_ID,
+    "authority_file": MAINTENANCE_ADOPTION_FILE,
+    "terminal_state": "RELEASED",
+    "release_parent_head": "bf212c4413cef72506a841c177c972b52af60acc",
+    "released_scope_status": EXPECTED_RELEASED_SCOPE_STATUS,
+    "reactivation_allowed": False,
+    "terminality_source_review": 4974860616,
+}
 EXPECTED_TERMINAL_RECORDS: dict[str, dict[str, Any]] = {
     EXPECTED_PREDECESSOR_AUTHORITY_ID: R4_TERMINAL_RECORD,
+    EXPECTED_MAINTENANCE_AUTHORITY_ID: R5_TERMINAL_RECORD,
 }
 
 ACTIVATION_ACTIVE = "ACTIVE"

@@ -14,3 +14,15 @@ terminal_authorities:
       This tombstone is independent of mutable release receipt fields in the authority artifact.
       If the same authority ID is changed to ACTIVE, even after deleting release_reason,
       released_scope_status and release_transition, validation must fail closed.
+
+  - authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-R5-0001"
+    authority_file: "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION-R5.yaml"
+    terminal_state: "RELEASED"
+    release_parent_head: "bf212c4413cef72506a841c177c972b52af60acc"
+    released_scope_status: "NO_FURTHER_MODIFIER_WRITES_AUTHORIZED_BY_THIS_ARTIFACT"
+    reactivation_allowed: false
+    terminality_source_review: 4974860616
+    note: >-
+      R5 is terminalized atomically with this tombstone and the validator's expected-terminal set.
+      release_parent_head binds the exact pre-release parent because the final release commit cannot self-reference its own SHA.
+      The same R5 authority ID may never become ACTIVE again, even if every mutable release receipt field is removed.
