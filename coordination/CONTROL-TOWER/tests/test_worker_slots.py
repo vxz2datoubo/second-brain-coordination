@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -24,7 +25,7 @@ def _slot(
     task_id: str = "GPT-T1",
     route_epoch: int = 144,
     issue: int = 406,
-    pr: int | None = None,
+    pr: int | None = 408,
     branch: str = "gpt/slot-a",
     execution_allowed: bool = True,
     status: str = "READY",
@@ -35,6 +36,7 @@ def _slot(
     reviewer_role: str = REVIEWER,
     activation_state: str = "ACTIVE",
     closure_state: str | None = None,
+    resource_class: str = "LIGHT_TO_MEDIUM_IMPLEMENTATION",
 ) -> dict:
     return {
         "worker_slot_id": slot_id,
@@ -54,8 +56,8 @@ def _slot(
         "read_domains": [],
         "write_domains": ["W2_RUNTIME"],
         "authority_claims": authority_claims if authority_claims is not None else ["W2_RUNTIME_IMPL"],
-        "resource_class": "LIGHT_TO_MEDIUM_IMPLEMENTATION",
-        "provenance": {"historical_executor": "CODEX", "historical_model_id": "GPT-5.6 Sol"},
+        "resource_class": resource_class,
+        "provenance": {"source": "TEST", "executor_role": GPT, "model_id": model_id},
         "reviewer_role": reviewer_role,
         "reviewer_separation": "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY",
         "activation_state": activation_state,
@@ -65,15 +67,17 @@ def _slot(
 
 def _active_claim(
     *,
+    lane_id: str = "A",
     slot_id: str = "SLOT-A",
     task_id: str = "GPT-T1",
     route_epoch: int = 144,
     issue: int = 406,
-    pr: int | None = None,
+    pr: int | None = 408,
     branch: str = "gpt/slot-a",
     write_paths: list[str] | None = None,
     authority_claims: list[str] | None = None,
     omit_slot_id: bool = False,
+    resource_class: str = "LIGHT_TO_MEDIUM_IMPLEMENTATION",
 ) -> dict:
     binding: dict = {
         "task_id": task_id,
@@ -85,10 +89,10 @@ def _active_claim(
     if not omit_slot_id:
         binding["worker_slot_id"] = slot_id
     claim = {
-        "lane_id": "A",
+        "lane_id": lane_id,
         "claim_state": "ACTIVE_IMPLEMENTATION",
         "execution_agent": GPT,
-        "resource_class": "LIGHT_TO_MEDIUM_IMPLEMENTATION",
+        "resource_class": resource_class,
         "route_binding": binding,
         "write_paths": write_paths if write_paths is not None else ["runtime/a.py"],
         "read_paths": [],
@@ -100,6 +104,40 @@ def _active_claim(
     if not omit_slot_id:
         claim["worker_slot_id"] = slot_id
     return claim
+
+
+def _reserved_claim(
+    *,
+    lane_id: str = "A",
+    slot_id: str = "SLOT-A",
+    task_id: str = "GPT-T1",
+    route_epoch: int = 144,
+    issue: int = 406,
+    pr: int | None = 408,
+    branch: str = "gpt/slot-a",
+) -> dict:
+    return {
+        "lane_id": lane_id,
+        "claim_state": "RESERVED_IMPLEMENTATION_NON_EXECUTABLE",
+        "execution_agent": GPT,
+        "worker_slot_id": slot_id,
+        "resource_class": "LIGHT_TO_MEDIUM_IMPLEMENTATION",
+        "route_binding": {
+            "worker_slot_id": slot_id,
+            "task_id": task_id,
+            "route_epoch": route_epoch,
+            "issue": issue,
+            "pr": pr,
+            "branch": branch,
+        },
+        "implementation_scope": {"global_reconciliation_receipt": "TEST"},
+        "write_paths": ["runtime/a.py"],
+        "read_paths": [],
+        "interfaces": [],
+        "read_domains": [],
+        "write_domains": ["W2_RUNTIME"],
+        "authority_claims": ["W2_RUNTIME_IMPL"],
+    }
 
 
 def _held_claim(lane_id: str, write_root: str, read_path: str = "docs/x.md") -> dict:
@@ -140,18 +178,21 @@ class WorkerRepo:
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
 
-    def _write(self, relpath: str, payload: dict) -> None:
+    def _write(self, relpath: str, payload: Any) -> None:
         path = self.root / relpath
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
 
     def build(
         self,
-        slots: list[dict],
+        slots: list[Any],
         claim_a: dict | None = None,
+        claim_b: dict | None = None,
         *,
         capacity: int = 2,
         include_gate: bool = False,
+        registry_parallel: bool = True,
+        nested_parallelism: str = "FORBIDDEN",
     ) -> Path:
         registry = {
             "program_lanes": [{"lane_id": "A"}, {"lane_id": "B"}, {"lane_id": "C"}],
@@ -159,7 +200,10 @@ class WorkerRepo:
                 "codex_active_execution_routes_max": 1,
                 "qclaw_active_execution_routes_max": 1,
                 "workbuddy_active_execution_routes_max": 1,
+                "gpt_engineering_worker_parallel_routes_allowed": registry_parallel,
                 "gpt_engineering_worker_active_slots_max": capacity,
+                "local_heavy_stage_concurrency_max": 1,
+                "nested_parallelism": nested_parallelism,
             },
             "current_user_release_policy": {"held_lanes": []},
             "cross_lane_overlap_matrix": [],
@@ -179,11 +223,18 @@ class WorkerRepo:
         )
         self._write(
             "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml",
-            {"agent_type": GPT, "worker_slots": slots},
+            {
+                "schema_version": "1.0",
+                "registry_id": "ACTIVE-GPT-ENGINEERING-WORKERS-0001",
+                "agent_type": GPT,
+                "parallel_routes_allowed": registry_parallel,
+                "boundary": "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE",
+                "worker_slots": slots,
+            },
         )
         claims = [
             claim_a if claim_a is not None else _active_claim(),
-            _held_claim("B", "proposal/B"),
+            claim_b if claim_b is not None else _held_claim("B", "proposal/B"),
             _closed_claim("C"),
         ]
         self._write(
@@ -211,6 +262,89 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         self.assertEqual(report["worker_slot_structural_check"], "PASS")
         self.assertEqual(len(load_worker_slots(root)), 1)
 
+    def test_r2_non_list_worker_slots_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()])
+        path = root / "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["worker_slots"] = {"SLOT-A": _slot()}
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_REGISTRY_SLOTS_NOT_LIST" for item in report["errors"]))
+
+    def test_r2_non_mapping_slot_entry_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot(), "corrupt-slot"])
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_REGISTRY_SLOT_NOT_MAPPING" for item in report["errors"]))
+
+    def test_r2_registry_identity_missing_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()])
+        path = root / "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data.pop("schema_version")
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_REGISTRY_IDENTITY_INVALID" for item in report["errors"]))
+
+    def test_r2_parallel_policy_drift_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()])
+        path = root / "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["parallel_routes_allowed"] = False
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_REGISTRY_PARALLEL_POLICY_DRIFT" for item in report["errors"]))
+
+    def test_r2_active_slot_without_work_claim_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], claim_a=_held_claim("A", "proposal/A"))
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_SLOT_EXACT_CLAIM_CARDINALITY" for item in report["errors"]))
+
+    def test_r2_claim_surface_drift_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], claim_a=_active_claim(write_paths=["runtime/other.py"]))
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_SLOT_CLAIM_SURFACE_DRIFT" for item in report["errors"]))
+
+    def test_r2_active_slot_missing_pr_fails_closed(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot(pr=None)], claim_a=_active_claim(pr=None))
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_SLOT_LIVE_BINDING_INCOMPLETE" for item in report["errors"]))
+
+    def test_r2_reserved_slot_cannot_be_executable(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build(
+            [_slot(activation_state="RESERVED", execution_allowed=True)],
+            claim_a=_reserved_claim(),
+        )
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_SLOT_RESERVED_EXECUTABLE" for item in report["errors"]))
+        self.assertEqual(report["active_executable_slots"], [])
+
+    def test_r2_nested_parallel_same_task_fails(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build(
+            [
+                _slot("SLOT-A", task_id="GPT-T1", write_paths=["runtime/a.py"], authority_claims=["A_IMPL"]),
+                _slot("SLOT-B", task_id="GPT-T1", branch="gpt/slot-b", write_paths=["runtime/b.py"], authority_claims=["B_IMPL"]),
+            ],
+            claim_b=_active_claim(
+                lane_id="B",
+                slot_id="SLOT-B",
+                task_id="GPT-T1",
+                branch="gpt/slot-b",
+                write_paths=["runtime/b.py"],
+                authority_claims=["B_IMPL"],
+            ),
+        )
+        report = validate_worker_slots(root)
+        self.assertTrue(any(item["code"] == "WORKER_SLOT_NESTED_PARALLELISM_FORBIDDEN" for item in report["errors"]))
+
     def test_i_gpt_worker_impersonating_codex_fails(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot(executor_role="CODEX")])
@@ -227,7 +361,10 @@ class WorkerSlotRegistryTests(unittest.TestCase):
     def test_j_two_slots_same_write_surface_fail(self) -> None:
         repo = WorkerRepo()
         root = repo.build(
-            [_slot("SLOT-A", write_paths=["runtime/shared.py"]), _slot("SLOT-B", write_paths=["runtime/shared.py"], branch="gpt/slot-b")]
+            [
+                _slot("SLOT-A", task_id="GPT-T1", write_paths=["runtime/shared.py"]),
+                _slot("SLOT-B", task_id="GPT-T2", write_paths=["runtime/shared.py"], branch="gpt/slot-b"),
+            ]
         )
         report = validate_worker_slots(root)
         self.assertTrue(any(item["code"] == "WORKER_SLOT_COLLISION" for item in report["errors"]))
@@ -236,8 +373,8 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         repo = WorkerRepo()
         root = repo.build(
             [
-                _slot("SLOT-A", authority_claims=["W3_CANONICAL"]),
-                _slot("SLOT-B", authority_claims=["W3_CANONICAL"], branch="gpt/slot-b"),
+                _slot("SLOT-A", task_id="GPT-T1", authority_claims=["W3_CANONICAL"]),
+                _slot("SLOT-B", task_id="GPT-T2", authority_claims=["W3_CANONICAL"], branch="gpt/slot-b"),
             ]
         )
         report = validate_worker_slots(root)
@@ -247,9 +384,18 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         repo = WorkerRepo()
         root = repo.build(
             [
-                _slot("SLOT-A", write_paths=["runtime/a.py"], authority_claims=["W2_IMPL"]),
-                _slot("SLOT-B", write_paths=["runtime/b.py"], authority_claims=["W8_IMPL"], branch="gpt/slot-b"),
-            ]
+                _slot("SLOT-A", task_id="GPT-T1", write_paths=["runtime/a.py"], authority_claims=["W2_IMPL"]),
+                _slot("SLOT-B", task_id="GPT-T2", write_paths=["runtime/b.py"], authority_claims=["W8_IMPL"], branch="gpt/slot-b"),
+            ],
+            claim_a=_active_claim(task_id="GPT-T1", write_paths=["runtime/a.py"], authority_claims=["W2_IMPL"]),
+            claim_b=_active_claim(
+                lane_id="B",
+                slot_id="SLOT-B",
+                task_id="GPT-T2",
+                branch="gpt/slot-b",
+                write_paths=["runtime/b.py"],
+                authority_claims=["W8_IMPL"],
+            ),
         )
         report = validate_worker_slots(root)
         self.assertEqual(report["worker_slot_structural_check"], "PASS")
@@ -257,18 +403,13 @@ class WorkerSlotRegistryTests(unittest.TestCase):
 
     def test_m_same_slot_double_booked_fails(self) -> None:
         repo = WorkerRepo()
-        root = repo.build(
-            [_slot("SLOT-A", task_id="GPT-T1"), _slot("SLOT-A", task_id="GPT-T2")]
-        )
+        root = repo.build([_slot("SLOT-A", task_id="GPT-T1"), _slot("SLOT-A", task_id="GPT-T2")])
         report = validate_worker_slots(root)
         self.assertTrue(any(item["code"] == "WORKER_SLOT_DUPLICATE_ID" for item in report["errors"]))
 
     def test_n_silent_slot_overwrite_fails(self) -> None:
-        # Same slot_id reappearing with a different task is a silent overwrite and must fail closed.
         repo = WorkerRepo()
-        root = repo.build(
-            [_slot("SLOT-A", task_id="GPT-T1"), _slot("SLOT-A", task_id="GPT-T1", route_epoch=145)]
-        )
+        root = repo.build([_slot("SLOT-A", task_id="GPT-T1"), _slot("SLOT-A", task_id="GPT-T1", route_epoch=145)])
         report = validate_worker_slots(root)
         self.assertTrue(any(item["code"] == "WORKER_SLOT_DUPLICATE_ID" for item in report["errors"]))
 
@@ -276,9 +417,9 @@ class WorkerSlotRegistryTests(unittest.TestCase):
         repo = WorkerRepo()
         root = repo.build(
             [
-                _slot("SLOT-A", write_paths=["runtime/a.py"], authority_claims=["A_IMPL"]),
-                _slot("SLOT-B", write_paths=["runtime/b.py"], authority_claims=["B_IMPL"], branch="gpt/slot-b"),
-                _slot("SLOT-C", write_paths=["runtime/c.py"], authority_claims=["C_IMPL"], branch="gpt/slot-c"),
+                _slot("SLOT-A", task_id="GPT-T1", write_paths=["runtime/a.py"], authority_claims=["A_IMPL"]),
+                _slot("SLOT-B", task_id="GPT-T2", write_paths=["runtime/b.py"], authority_claims=["B_IMPL"], branch="gpt/slot-b"),
+                _slot("SLOT-C", task_id="GPT-T3", write_paths=["runtime/c.py"], authority_claims=["C_IMPL"], branch="gpt/slot-c"),
             ],
             capacity=2,
         )
@@ -293,9 +434,7 @@ class WorkerSlotRegistryTests(unittest.TestCase):
 
     def test_s_closed_slot_tombstone_passes(self) -> None:
         repo = WorkerRepo()
-        root = repo.build(
-            [_slot("SLOT-A", activation_state="RELEASED", execution_allowed=False, status="DONE_HISTORICAL")]
-        )
+        root = repo.build([_slot("SLOT-A", activation_state="RELEASED", execution_allowed=False, status="DONE_HISTORICAL")])
         report = validate_worker_slots(root)
         self.assertEqual(report["worker_slot_structural_check"], "PASS")
         self.assertEqual(report["active_executable_slots"], [])
@@ -352,7 +491,6 @@ class WorkerClaimTests(unittest.TestCase):
         self.assertTrue(any(item["code"] == "ACTIVE_CLAIM_WORKER_SLOT_MISSING" for item in report["errors"]))
 
     def test_t_existing_codex_claim_still_passes(self) -> None:
-        # A CODEX active claim must remain valid alongside the GPT worker registry.
         repo = WorkerRepo()
         codex_claim = {
             "lane_id": "A",
@@ -373,7 +511,6 @@ class WorkerClaimTests(unittest.TestCase):
             "write_domains": ["W3_RUNTIME"],
             "authority_claims": ["W3_RUNTIME_IMPL"],
         }
-        # CODEX route must be executable for the active claim to pass.
         repo.build([_slot()], claim_a=codex_claim)
         self._rewrite_codex_executable(repo.root)
         report = validate_claims(repo.root)
@@ -410,22 +547,20 @@ class WorkerWitnessTests(unittest.TestCase):
         repo = WorkerRepo()
         root = repo.build([_slot()], include_gate=True)
         witness = authorization_witness(root, "A")
-        repo.build([_slot(task_id="GPT-T2")], include_gate=True)
+        repo.build([_slot(task_id="GPT-T2")], claim_a=_active_claim(task_id="GPT-T2"), include_gate=True)
         self.assertFalse(verify_authorization_witness(root, witness)["fresh"])
 
     def test_slot_change_invalidates_witness(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot("SLOT-A")], include_gate=True)
         witness = authorization_witness(root, "A")
-        repo.build([_slot("SLOT-A", branch="gpt/changed")], include_gate=True)
+        repo.build([_slot("SLOT-A", branch="gpt/changed")], claim_a=_active_claim(branch="gpt/changed"), include_gate=True)
         self.assertFalse(verify_authorization_witness(root, witness)["fresh"])
 
     def test_p_peer_claim_change_invalidates_witness(self) -> None:
         repo = WorkerRepo()
         root = repo.build([_slot()], include_gate=True)
         witness = authorization_witness(root, "A")
-        # Change the peer (lane B) read surface to collide with runtime.
-        repo.build([_slot()], include_gate=True)
         path = root / "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
         for claim in data["claims"]:
@@ -443,6 +578,18 @@ class WorkerWitnessTests(unittest.TestCase):
         data["current_user_release_policy"] = {"held_lanes": ["B"], "decision": "CHANGED"}
         path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
         self.assertFalse(verify_authorization_witness(root, witness)["fresh"])
+
+    def test_r2_worker_registry_policy_change_invalidates_witness(self) -> None:
+        repo = WorkerRepo()
+        root = repo.build([_slot()], include_gate=True)
+        witness = authorization_witness(root, "A")
+        path = root / "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data["semantics"] = {"policy_revision": "R2_CHANGED"}
+        path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+        result = verify_authorization_witness(root, witness)
+        self.assertFalse(result["fresh"])
+        self.assertNotEqual(witness["worker_registry_fingerprint"], result["current"]["worker_registry_fingerprint"])
 
 
 class ProjectionDeterminismTests(unittest.TestCase):
