@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import asdict, dataclass
 from itertools import combinations
 from pathlib import Path
@@ -17,10 +18,12 @@ from control_tower import (
 
 GPT_WORKERS_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+MAINTENANCE_ADOPTION_FILE = "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
 AGENT_TYPE = "GPT_ENGINEERING_WORKER"
 CHECK_ID = "CT-WS"
 EXPECTED_SCHEMA_VERSION = "1.0"
 EXPECTED_REGISTRY_ID = "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
+EXPECTED_MAINTENANCE_AUTHORITY_TYPE = "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
 
 ACTIVATION_ACTIVE = "ACTIVE"
 ACTIVATION_RESERVED = "RESERVED"
@@ -31,12 +34,37 @@ RESERVED_CLAIM_STATE = "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
 ALLOWED_ACTIVATION_STATES = frozenset({ACTIVATION_ACTIVE, ACTIVATION_RESERVED, ACTIVATION_RELEASED})
 ALLOWED_CLOSURE_STATES = frozenset({CLOSURE_RELEASED})
 
+_STRING_SEQUENCE_FIELDS = (
+    "write_paths",
+    "read_paths",
+    "read_domains",
+    "write_domains",
+    "authority_claims",
+)
+_LIST_FIELDS = (*_STRING_SEQUENCE_FIELDS, "interfaces")
+_LIVE_REQUIRED_FIELDS = (
+    "worker_slot_id",
+    "agent_type",
+    "executor_role",
+    "model_id",
+    "task_id",
+    "route_epoch",
+    "issue",
+    "pr",
+    "branch",
+    "status",
+    "resource_class",
+    "reviewer_role",
+    "reviewer_separation",
+)
+_HEX40 = re.compile(r"^[0-9a-f]{40}$")
+
 
 @dataclass(frozen=True)
 class WorkerSlot:
-    worker_slot_id: str
-    agent_type: str
-    executor_role: str
+    worker_slot_id: str | None
+    agent_type: str | None
+    executor_role: str | None
     model_id: str | None
     task_id: str | None
     route_epoch: int | str | None
@@ -69,14 +97,34 @@ def _first(mapping: dict[str, Any], *keys: str) -> Any:
 
 
 def _canonical(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+
+
+def _safe_string_list(raw: dict[str, Any], key: str) -> list[str]:
+    value = raw.get(key)
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
+def _safe_interfaces(raw: dict[str, Any]) -> list[Any]:
+    value = raw.get("interfaces")
+    return list(value) if isinstance(value, list) else []
 
 
 def _slot_normalized(raw: dict[str, Any]) -> dict[str, Any]:
+    raw_execution_allowed = raw.get("execution_allowed")
     return {
         "worker_slot_id": _first(raw, "worker_slot_id", "lease_id", "slot_id"),
-        "agent_type": _first(raw, "agent_type", "canonical_agent_type") or AGENT_TYPE,
-        "executor_role": _first(raw, "executor_role", "role") or AGENT_TYPE,
+        # R3: authority identity is never defaulted. Missing identity stays missing and fails closed.
+        "agent_type": _first(raw, "agent_type", "canonical_agent_type"),
+        "executor_role": _first(raw, "executor_role", "role"),
         "model_id": _first(raw, "model_id"),
         "task_id": _first(raw, "task_id", "active_task_id"),
         "route_epoch": _first(raw, "route_epoch", "epoch"),
@@ -84,14 +132,15 @@ def _slot_normalized(raw: dict[str, Any]) -> dict[str, Any]:
         "pr": _first(raw, "pr", "implementation_pr", "active_pull_request", "pull_request"),
         "branch": _first(raw, "branch", "implementation_branch", "planned_branch"),
         "status": _first(raw, "status"),
-        "execution_allowed": bool(raw.get("execution_allowed", False)),
+        # R3: never bool(...) coerce authority-bearing YAML. Invalid values normalize to non-executable.
+        "execution_allowed": raw_execution_allowed if isinstance(raw_execution_allowed, bool) else False,
         "completion_signal": _first(raw, "completion_signal"),
-        "write_paths": [str(item) for item in (raw.get("write_paths") or [])],
-        "read_paths": [str(item) for item in (raw.get("read_paths") or [])],
-        "interfaces": list(raw.get("interfaces") or []),
-        "read_domains": [str(item) for item in (raw.get("read_domains") or [])],
-        "write_domains": [str(item) for item in (raw.get("write_domains") or [])],
-        "authority_claims": [str(item) for item in (raw.get("authority_claims") or [])],
+        "write_paths": _safe_string_list(raw, "write_paths"),
+        "read_paths": _safe_string_list(raw, "read_paths"),
+        "interfaces": _safe_interfaces(raw),
+        "read_domains": _safe_string_list(raw, "read_domains"),
+        "write_domains": _safe_string_list(raw, "write_domains"),
+        "authority_claims": _safe_string_list(raw, "authority_claims"),
         "resource_class": _first(raw, "resource_class"),
         "provenance": raw.get("provenance") if isinstance(raw.get("provenance"), dict) else None,
         "reviewer_role": _first(raw, "reviewer_role"),
@@ -133,6 +182,26 @@ def normalize_worker_slot(raw: dict[str, Any]) -> WorkerSlot:
     )
 
 
+def _program_capacity_policy(repo_root: Path) -> dict[str, Any]:
+    try:
+        program = load_yaml(repo_root.resolve() / PROGRAM_REGISTRY)
+    except (OSError, ValueError, TypeError):
+        return {}
+    capacity = program.get("portfolio_capacity_policy", {}) if isinstance(program, dict) else {}
+    return capacity if isinstance(capacity, dict) else {}
+
+
+def _registry_required(repo_root: Path) -> bool:
+    capacity = _program_capacity_policy(repo_root)
+    return any(
+        key in capacity
+        for key in (
+            "gpt_engineering_worker_parallel_routes_allowed",
+            "gpt_engineering_worker_active_slots_max",
+        )
+    )
+
+
 def _load_registry_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
     root = repo_root.resolve()
     path = root / GPT_WORKERS_REGISTRY
@@ -144,19 +213,51 @@ def _load_registry_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | No
         return None, "WORKER_REGISTRY_NOT_MAPPING"
 
 
-def worker_registry_witness(repo_root: Path) -> dict[str, Any]:
-    doc, error = _load_registry_doc(repo_root)
+def _load_maintenance_adoption_doc(repo_root: Path) -> tuple[dict[str, Any] | None, str | None]:
+    root = repo_root.resolve()
+    path = root / MAINTENANCE_ADOPTION_FILE
+    if not path.exists():
+        return None, None
+    try:
+        return load_yaml(path), None
+    except (OSError, ValueError, TypeError):
+        return None, "MAINTENANCE_ADOPTION_NOT_MAPPING"
+
+
+def maintenance_adoption_witness(repo_root: Path) -> dict[str, Any]:
+    doc, error = _load_maintenance_adoption_doc(repo_root)
     if error:
-        return {"present": True, "load_error": error}
+        return {"present": True, "load_error": error, "raw": None}
     if doc is None:
         return {"present": False}
+    return {"present": True, "raw": doc}
+
+
+def worker_registry_witness(repo_root: Path) -> dict[str, Any]:
+    doc, error = _load_registry_doc(repo_root)
+    required = _registry_required(repo_root)
+    maintenance = maintenance_adoption_witness(repo_root)
+    if error:
+        return {
+            "present": True,
+            "required": required,
+            "load_error": error,
+            "raw_registry": None,
+            "maintenance_adoption": maintenance,
+        }
+    if doc is None:
+        return {
+            "present": False,
+            "required": required,
+            "load_error": "WORKER_REGISTRY_MISSING" if required else None,
+            "maintenance_adoption": maintenance,
+        }
+    # R3: hash the strict raw canonical registry, including raw worker_slots. Invalid mutations can no longer disappear.
     return {
         "present": True,
-        "top_level": {
-            key: value
-            for key, value in doc.items()
-            if key != "worker_slots"
-        },
+        "required": required,
+        "raw_registry": doc,
+        "maintenance_adoption": maintenance,
     }
 
 
@@ -167,6 +268,7 @@ def load_worker_slots(repo_root: Path) -> list[WorkerSlot]:
     raw_slots = doc.get("worker_slots")
     if not isinstance(raw_slots, list):
         return []
+    # Non-mappings are omitted from normalized runtime material only after the raw schema records an ERROR.
     return [normalize_worker_slot(raw) for raw in raw_slots if isinstance(raw, dict)]
 
 
@@ -200,14 +302,37 @@ def worker_slot_route_witness(slot: WorkerSlot) -> dict[str, Any]:
     }
 
 
+def _is_missing(value: Any) -> bool:
+    return value is None or (isinstance(value, str) and not value.strip())
+
+
 def worker_slot_is_executable(slot: WorkerSlot) -> bool:
     if slot.activation_state != ACTIVATION_ACTIVE:
         return False
-    if not slot.execution_allowed:
+    if slot.agent_type != AGENT_TYPE or slot.executor_role != AGENT_TYPE:
+        return False
+    if slot.execution_allowed is not True:
         return False
     if slot.closure_state == CLOSURE_RELEASED:
         return False
-    if slot.status is None:
+    required = (
+        slot.worker_slot_id,
+        slot.model_id,
+        slot.task_id,
+        slot.route_epoch,
+        slot.issue,
+        slot.pr,
+        slot.branch,
+        slot.status,
+        slot.resource_class,
+        slot.reviewer_role,
+        slot.reviewer_separation,
+    )
+    if any(_is_missing(value) for value in required):
+        return False
+    if not slot.write_paths or not isinstance(slot.provenance, dict) or not slot.provenance:
+        return False
+    if slot.reviewer_role == slot.executor_role:
         return False
     return str(slot.status).upper() not in NON_EXECUTABLE_STATUSES
 
@@ -237,10 +362,222 @@ def _claim_slot_id(claim: dict[str, Any]) -> str | None:
     return str(chosen) if chosen is not None else None
 
 
+def _raw_slot_schema_findings(raw: dict[str, Any], index: int) -> list[Finding]:
+    findings: list[Finding] = []
+    raw_execution_allowed = raw.get("execution_allowed")
+    if not isinstance(raw_execution_allowed, bool):
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "WORKER_SLOT_EXECUTION_ALLOWED_TYPE_INVALID",
+                "execution_allowed is authority-bearing and must be a real YAML boolean; strings/numbers are never coerced.",
+                {"index": index, "actual": raw_execution_allowed, "actual_type": type(raw_execution_allowed).__name__},
+            )
+        )
+
+    identity_fields = {
+        "agent_type": _first(raw, "agent_type", "canonical_agent_type"),
+        "executor_role": _first(raw, "executor_role", "role"),
+    }
+    for field, value in identity_fields.items():
+        if not isinstance(value, str) or not value.strip():
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_IDENTITY_FIELD_MISSING",
+                    "Live execution identity fields must be explicit; the validator never invents GPT identity defaults.",
+                    {"index": index, "field": field, "actual": value},
+                )
+            )
+
+    for key in _LIST_FIELDS:
+        value = raw.get(key, [])
+        if not isinstance(value, list):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_LIST_FIELD_TYPE_INVALID",
+                    "Worker slot surface fields must preserve their declared list shape.",
+                    {"index": index, "field": key, "actual_type": type(value).__name__},
+                )
+            )
+        elif key in _STRING_SEQUENCE_FIELDS and any(not isinstance(item, str) for item in value):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_STRING_LIST_ITEM_INVALID",
+                    "Worker slot path/domain/authority list entries must be strings.",
+                    {"index": index, "field": key},
+                )
+            )
+
+    provenance = raw.get("provenance")
+    if provenance is not None and not isinstance(provenance, dict):
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "WORKER_SLOT_PROVENANCE_TYPE_INVALID",
+                "Worker slot provenance must be an explicit mapping.",
+                {"index": index, "actual_type": type(provenance).__name__},
+            )
+        )
+
+    for key in ("route_epoch", "issue", "pr"):
+        value = _first(raw, key, {"route_epoch": "epoch", "issue": "active_issue", "pr": "implementation_pr"}[key])
+        if value is not None and (isinstance(value, bool) or not isinstance(value, (int, str))):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_ROUTE_SCALAR_TYPE_INVALID",
+                    "Route epoch/Issue/PR identity fields must be integer or explicit string identifiers, never booleans/containers.",
+                    {"index": index, "field": key, "actual_type": type(value).__name__},
+                )
+            )
+    return findings
+
+
+def _maintenance_adoption_findings(repo_root: Path) -> list[Finding]:
+    doc, error = _load_maintenance_adoption_doc(repo_root)
+    if error:
+        return [
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                error,
+                "GPT corrective maintenance/adoption authority must be a machine-readable mapping.",
+                {"path": MAINTENANCE_ADOPTION_FILE},
+            )
+        ]
+    if doc is None:
+        return []
+
+    findings: list[Finding] = []
+    required_scalars = {
+        "schema_version": "1.0",
+        "authority_type": EXPECTED_MAINTENANCE_AUTHORITY_TYPE,
+        "issuer": "USER",
+        "actor": "GPT_ARCHITECTURE_OWNER",
+    }
+    for field, expected in required_scalars.items():
+        if doc.get(field) != expected:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_IDENTITY_INVALID",
+                    "Corrective maintenance/adoption authority identity does not match the bounded canonical contract.",
+                    {"field": field, "actual": doc.get(field), "required": expected},
+                )
+            )
+
+    for field in ("authority_id", "task_id", "route_epoch", "issue", "pr", "branch", "trigger_review"):
+        if _is_missing(doc.get(field)):
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_BINDING_INCOMPLETE",
+                    "Maintenance/adoption authority must be bound to exact task/Issue/PR/branch/review identity.",
+                    {"missing_field": field},
+                )
+            )
+
+    adopted_head = doc.get("adopted_candidate_input_head")
+    if not isinstance(adopted_head, str) or not _HEX40.fullmatch(adopted_head):
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_INPUT_HEAD_INVALID",
+                "Maintenance/adoption authority must bind the exact 40-hex candidate input head being adopted for repair.",
+                {"actual": adopted_head},
+            )
+        )
+
+    state = doc.get("state")
+    if state not in {"ACTIVE", "RELEASED"}:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_STATE_INVALID",
+                "Maintenance/adoption authority state must be ACTIVE or RELEASED.",
+                {"actual": state},
+            )
+        )
+
+    must_be_false = (
+        "execution_allowed",
+        "runtime_write_allowed",
+        "trade_allowed",
+        "merge_authority",
+        "acceptance_authority",
+        "self_review_allowed",
+        "retroactive_workbuddy_authorization",
+    )
+    for field in must_be_false:
+        value = doc.get(field)
+        if not isinstance(value, bool) or value is not False:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_UNSAFE_AUTHORITY",
+                    "Corrective maintenance/adoption may never grant runtime execution, trading, merge, acceptance, self-review or retroactive authority.",
+                    {"field": field, "actual": value},
+                )
+            )
+
+    for field in ("independent_review_required", "same_pr_required", "fresh_exact_head_ci_required"):
+        value = doc.get(field)
+        if not isinstance(value, bool) or value is not True:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "MAINTENANCE_ADOPTION_GUARD_MISSING",
+                    "Bounded maintenance/adoption requires same-PR continuity, fresh exact-head CI and separate independent review.",
+                    {"field": field, "actual": value},
+                )
+            )
+
+    allowed = doc.get("allowed_write_paths")
+    if not isinstance(allowed, list) or not allowed or any(not isinstance(item, str) or not item for item in allowed):
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_WRITE_SCOPE_INVALID",
+                "Maintenance/adoption authority must declare a non-empty bounded list of write paths.",
+                {"actual": allowed},
+            )
+        )
+
+    provenance = doc.get("provenance")
+    if not isinstance(provenance, dict) or not provenance:
+        findings.append(
+            Finding(
+                CHECK_ID,
+                "ERROR",
+                "MAINTENANCE_ADOPTION_PROVENANCE_MISSING",
+                "Maintenance/adoption authority requires explicit truthful provenance and may not manufacture retroactive executor identity.",
+                {},
+            )
+        )
+    return findings
+
+
 def _registry_findings(repo_root: Path) -> list[Finding]:
     root = repo_root.resolve()
     doc, error = _load_registry_doc(root)
     findings: list[Finding] = []
+    required = _registry_required(root)
     if error:
         return [
             Finding(
@@ -252,6 +589,16 @@ def _registry_findings(repo_root: Path) -> list[Finding]:
             )
         ]
     if doc is None:
+        if required:
+            return [
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_REGISTRY_MISSING",
+                    "R144-enabled Control Tower requires the canonical GPT Engineering Worker registry; missing authority source means NO EXECUTION.",
+                    {"path": GPT_WORKERS_REGISTRY},
+                )
+            ]
         return findings
 
     expected = {
@@ -259,15 +606,15 @@ def _registry_findings(repo_root: Path) -> list[Finding]:
         "registry_id": EXPECTED_REGISTRY_ID,
         "agent_type": AGENT_TYPE,
     }
-    for field, required in expected.items():
-        if doc.get(field) != required:
+    for field, required_value in expected.items():
+        if doc.get(field) != required_value:
             findings.append(
                 Finding(
                     CHECK_ID,
                     "ERROR",
                     "WORKER_REGISTRY_IDENTITY_INVALID",
                     "GPT Engineering Worker registry identity/schema does not match the canonical contract.",
-                    {"field": field, "actual": doc.get(field), "required": required},
+                    {"field": field, "actual": doc.get(field), "required": required_value},
                 )
             )
 
@@ -305,14 +652,10 @@ def _registry_findings(repo_root: Path) -> list[Finding]:
                         {"index": index, "actual_type": type(raw).__name__},
                     )
                 )
+                continue
+            findings.extend(_raw_slot_schema_findings(raw, index))
 
-    try:
-        program = load_yaml(root / PROGRAM_REGISTRY)
-    except (OSError, ValueError, TypeError):
-        program = {}
-    capacity_policy = program.get("portfolio_capacity_policy", {}) if isinstance(program, dict) else {}
-    if not isinstance(capacity_policy, dict):
-        capacity_policy = {}
+    capacity_policy = _program_capacity_policy(root)
     canonical_parallel = capacity_policy.get("gpt_engineering_worker_parallel_routes_allowed")
     if not isinstance(canonical_parallel, bool):
         findings.append(
@@ -373,8 +716,10 @@ def _slot_required_field_findings(slot: WorkerSlot) -> list[Finding]:
         )
 
     if slot.activation_state in {ACTIVATION_ACTIVE, ACTIVATION_RESERVED}:
-        required_values = {
+        values = {
             "worker_slot_id": slot.worker_slot_id,
+            "agent_type": slot.agent_type,
+            "executor_role": slot.executor_role,
             "model_id": slot.model_id,
             "task_id": slot.task_id,
             "route_epoch": slot.route_epoch,
@@ -386,17 +731,27 @@ def _slot_required_field_findings(slot: WorkerSlot) -> list[Finding]:
             "reviewer_role": slot.reviewer_role,
             "reviewer_separation": slot.reviewer_separation,
         }
-        for field, value in required_values.items():
-            if value is None or (isinstance(value, str) and not value.strip()):
+        for field in _LIVE_REQUIRED_FIELDS:
+            if _is_missing(values[field]):
                 findings.append(
                     Finding(
                         CHECK_ID,
                         "ERROR",
                         "WORKER_SLOT_LIVE_BINDING_INCOMPLETE",
-                        "ACTIVE/RESERVED worker slots must carry complete route, provenance and reviewer-separation binding.",
+                        "ACTIVE/RESERVED worker slots must carry complete explicit route, identity, provenance and reviewer-separation binding.",
                         {"worker_slot_id": slot.worker_slot_id, "missing_field": field},
                     )
                 )
+        if not slot.write_paths:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_WRITE_SURFACE_MISSING",
+                    "ACTIVE/RESERVED worker slots must declare a bounded write surface.",
+                    {"worker_slot_id": slot.worker_slot_id},
+                )
+            )
         if not isinstance(slot.provenance, dict) or not slot.provenance:
             findings.append(
                 Finding(
@@ -544,6 +899,7 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
     root = repo_root.resolve()
     findings: list[Finding] = []
     findings.extend(_registry_findings(root))
+    findings.extend(_maintenance_adoption_findings(root))
     slots = load_worker_slots(root)
 
     for slot in slots:
@@ -564,7 +920,7 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "WORKER_SLOT_IMPERSONATION",
-                    "GPT Engineering Worker slot declares a non-GPT agent identity; GPT worker must not impersonate CODEX/QCLAW/WORKBUDDY.",
+                    "GPT Engineering Worker slot declares a missing/non-GPT agent identity; GPT worker must not impersonate CODEX/QCLAW/WORKBUDDY and identity is never defaulted.",
                     {
                         "worker_slot_id": slot.worker_slot_id,
                         "agent_type": slot.agent_type,
@@ -628,7 +984,7 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
                     CHECK_ID,
                     "ERROR",
                     "WORKER_SLOT_ACTIVE_NOT_EXECUTABLE",
-                    "A GPT worker slot marked ACTIVE must carry a currently executable route; ACTIVE is not a reservation state.",
+                    "A GPT worker slot marked ACTIVE must satisfy every strict executable prerequisite; malformed authority never normalizes into a lease.",
                     {
                         "worker_slot_id": slot.worker_slot_id,
                         "status": slot.status,
@@ -638,52 +994,47 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
             )
 
     active_executable = [slot for slot in slots if worker_slot_is_executable(slot)]
-    try:
-        registry = load_yaml(root / PROGRAM_REGISTRY)
-    except (OSError, ValueError, TypeError):
-        registry = {}
-    capacity_policy = registry.get("portfolio_capacity_policy", {}) if isinstance(registry, dict) else {}
-    if not isinstance(capacity_policy, dict):
-        capacity_policy = {}
-    capacity = capacity_policy.get("gpt_engineering_worker_active_slots_max")
-    if not isinstance(capacity, int) or capacity < 1:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_SLOT_CAPACITY_POLICY_INVALID",
-                "Program capacity policy must provide a positive bounded gpt_engineering_worker_active_slots_max value.",
-                {"actual": capacity},
-            )
-        )
-        capacity = 0
-    if len(active_executable) > capacity:
-        findings.append(
-            Finding(
-                CHECK_ID,
-                "ERROR",
-                "WORKER_SLOT_CAPACITY_EXCEEDED",
-                "More GPT Engineering Worker slots are executable than configured capacity allows.",
-                {"active_slots": [slot.worker_slot_id for slot in active_executable], "limit": capacity},
-            )
-        )
-
-    if capacity_policy.get("nested_parallelism") == "FORBIDDEN":
-        task_slots: dict[str, list[str]] = {}
-        for slot in active_executable:
-            if slot.task_id:
-                task_slots.setdefault(str(slot.task_id), []).append(slot.worker_slot_id)
-        for task_id, slot_ids in task_slots.items():
-            if len(slot_ids) > 1:
-                findings.append(
-                    Finding(
-                        CHECK_ID,
-                        "ERROR",
-                        "WORKER_SLOT_NESTED_PARALLELISM_FORBIDDEN",
-                        "One task may not hold multiple active GPT worker slots while nested_parallelism is FORBIDDEN.",
-                        {"task_id": task_id, "worker_slots": slot_ids},
-                    )
+    capacity_policy = _program_capacity_policy(root)
+    if _registry_required(root) or (root / GPT_WORKERS_REGISTRY).exists():
+        capacity = capacity_policy.get("gpt_engineering_worker_active_slots_max")
+        if isinstance(capacity, bool) or not isinstance(capacity, int) or capacity < 1:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_CAPACITY_POLICY_INVALID",
+                    "Program capacity policy must provide a positive bounded gpt_engineering_worker_active_slots_max value.",
+                    {"actual": capacity},
                 )
+            )
+            capacity = 0
+        if len(active_executable) > capacity:
+            findings.append(
+                Finding(
+                    CHECK_ID,
+                    "ERROR",
+                    "WORKER_SLOT_CAPACITY_EXCEEDED",
+                    "More GPT Engineering Worker slots are executable than configured capacity allows.",
+                    {"active_slots": [slot.worker_slot_id for slot in active_executable], "limit": capacity},
+                )
+            )
+
+        if capacity_policy.get("nested_parallelism") == "FORBIDDEN":
+            task_slots: dict[str, list[str | None]] = {}
+            for slot in active_executable:
+                if slot.task_id:
+                    task_slots.setdefault(str(slot.task_id), []).append(slot.worker_slot_id)
+            for task_id, slot_ids in task_slots.items():
+                if len(slot_ids) > 1:
+                    findings.append(
+                        Finding(
+                            CHECK_ID,
+                            "ERROR",
+                            "WORKER_SLOT_NESTED_PARALLELISM_FORBIDDEN",
+                            "One task may not hold multiple active GPT worker slots while nested_parallelism is FORBIDDEN.",
+                            {"task_id": task_id, "worker_slots": slot_ids},
+                        )
+                    )
 
     for left, right in combinations(active_executable, 2):
         collision = classify_collision(_slot_claim_surface(left), _slot_claim_surface(right))
@@ -698,6 +1049,10 @@ def worker_slot_findings(repo_root: Path) -> list[Finding]:
                 )
             )
 
+    try:
+        registry = load_yaml(root / PROGRAM_REGISTRY)
+    except (OSError, ValueError, TypeError):
+        registry = {}
     if isinstance(registry, dict):
         findings.extend(_slot_claim_findings(root, slots, registry))
     return findings
@@ -709,11 +1064,17 @@ def validate_worker_slots(repo_root: Path) -> dict[str, Any]:
     errors = [asdict(item) for item in findings if item.severity == "ERROR"]
     warnings = [asdict(item) for item in findings if item.severity == "WARN"]
     registry_witness = worker_registry_witness(repo_root)
+    maintenance_witness = maintenance_adoption_witness(repo_root)
+    maintenance_errors = [
+        item for item in errors if str(item.get("code", "")).startswith("MAINTENANCE_ADOPTION_")
+    ]
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "agent_type": AGENT_TYPE,
         "worker_registry": registry_witness,
         "worker_registry_fingerprint": hashlib.sha256(_canonical(registry_witness).encode("utf-8")).hexdigest(),
+        "maintenance_adoption": maintenance_witness,
+        "maintenance_adoption_structural_check": "PASS" if not maintenance_errors else "FAIL",
         "worker_slots": [worker_slot_route_witness(slot) for slot in slots],
         "active_executable_slots": [slot.worker_slot_id for slot in slots if worker_slot_is_executable(slot)],
         "errors": errors,
