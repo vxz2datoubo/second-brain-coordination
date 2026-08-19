@@ -1,0 +1,54 @@
+schema_version: "1.0"
+authority_id: "R144-GPT-ARCHITECTURE-OWNER-MAINTENANCE-ADOPTION-0001"
+authority_type: "GPT_ARCHITECTURE_OWNER_CORRECTIVE_MAINTENANCE_ADOPTION"
+issuer: "USER"
+actor: "GPT_ARCHITECTURE_OWNER"
+state: "ACTIVE"
+
+task_id: "CODEX-CONTROL-TOWER-GPT-ENGINEERING-WORKER-FIRST-CLASS-R144"
+route_epoch: 144
+issue: 406
+pr: 408
+branch: "codex/r144-control-tower-gpt-worker-first-class"
+adopted_candidate_input_head: "4446dfcba09d8983aa8a17f855a4f2a813fd0615"
+trigger_review: 4973934171
+
+purpose: >-
+  Adopt the existing R144 candidate tree for bounded corrective maintenance after independent review found authority/schema/witness
+  blockers. This is a branch-maintenance/adoption authority only. It is not a GPT Engineering Worker runtime lease and does not
+  retroactively authorize the WorkBuddy R1 implementation or impersonate the CODEX route.
+
+execution_allowed: false
+runtime_write_allowed: false
+trade_allowed: false
+merge_authority: false
+acceptance_authority: false
+self_review_allowed: false
+retroactive_workbuddy_authorization: false
+independent_review_required: true
+same_pr_required: true
+fresh_exact_head_ci_required: true
+
+allowed_write_paths:
+  - "coordination/CONTROL-TOWER/worker_slots.py"
+  - "coordination/CONTROL-TOWER/authorization_witness.py"
+  - "coordination/CONTROL-TOWER/tests/test_worker_slots.py"
+  - "coordination/CONTROL-TOWER/R144-GPT-MAINTENANCE-ADOPTION.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/CONTROL-TOWER/R144"
+  - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+  - "coordination/CONTROL-TOWER/README.md"
+
+provenance:
+  source: "USER_DIRECT_CHAT_INSTRUCTION"
+  user_instruction: "不重做，不合并，原 PR #408 原地 R2 修，你直接在gpt修改"
+  r2_independent_review: 4973934171
+  truth_rule: "USER_DIRECT_MAINTENANCE_AUTHORITY != RUNTIME_EXECUTION_AUTHORITY"
+  r1_actual_executor: "WORKBUDDY"
+  r1_workbuddy_authority_at_execution: "NOT_CANONICALLY_RELEASED / CANDIDATE_IMPLEMENTATION_ONLY"
+  r2_r3_modifier: "GPT_ARCHITECTURE_OWNER"
+
+completion_gate:
+  required_disposition: "SEPARATE_GPT_INDEPENDENT_REVIEW"
+  keep_draft_until_review: true
+  no_merge_before_user_decision: true
+  r143_remains_frozen: true
