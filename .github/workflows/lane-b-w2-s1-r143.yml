@@ -87,7 +87,10 @@ jobs:
           python - <<'PY'
           from dataclasses import replace
           from offline_research.r143_rules import DEFAULT_RULE_RESOLVER, RuleGateError
-          snap=DEFAULT_RULE_RESOLVER.resolve("SSE","MAIN","RISK_WARNING","2026-07-06")
+          snap=DEFAULT_RULE_RESOLVER.resolve(
+              "SSE","MAIN","RISK_WARNING","2026-07-06",
+              knowledge_cutoff="2026-07-07T00:00:00+08:00",
+          )
           try:
               replace(snap, price_limit_pct=.99).verify_integrity()
           except RuleGateError as exc:

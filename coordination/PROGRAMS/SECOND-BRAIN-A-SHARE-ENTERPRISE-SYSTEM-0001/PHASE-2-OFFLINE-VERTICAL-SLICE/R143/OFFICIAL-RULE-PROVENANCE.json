@@ -8,111 +8,181 @@
     "write_policy": "SINGLE_WRITER_READ_ONLY_CONSUMERS"
   },
   "retrieved_at": "2026-08-20",
-  "schema_version": "1.0",
+  "schema_version": "1.1",
+  "source_availability_policy": {
+    "consumer_cutoff": "OfflineResearchRunner.requested_as_of",
+    "admission_rule": "source publication/availability must be knowable at requested_as_of",
+    "date_only_publication_semantics": "same-publication-date intraday cutoff is UNKNOWN and fails closed; no 00:00 fabrication"
+  },
   "sources": [
     {
-      "document_identity": "上海证券交易所交易规则（2026年修订）",
-      "document_number": "上证发〔2026〕41号",
-      "effective_at": "2026-07-06",
-      "exchange": "SSE",
-      "notice_effective_date": "2026-07-06",
-      "publication_date": "2026-04-24",
-      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules2025/stocks/exchange/c/c_20260424_10816482.shtml",
-      "rule_snapshot_ids": [
-        "SSE_MAIN_NORMAL_POST_20260706",
-        "SSE_MAIN_RISK_POST_20260706",
-        "SSE_MAIN_IPO_NO_LIMIT",
-        "SSE_STAR_20",
-        "SSE_STAR_IPO_NO_LIMIT"
-      ],
-      "semantics_used": [
-        "main-board ordinary shares price limit 10%",
-        "main-board risk-warning shares price limit 10% on/after 2026-07-06",
-        "STAR price limit 20%",
-        "IPO first five trading days can be no-price-limit",
-        "ex-right/ex-dividend reference price is the price-change calculation base"
-      ],
-      "source_ref": "SSE_TRADING_RULES_2026",
-      "superseded_rule_version": "上证发〔2023〕32号"
-    },
-    {
-      "document_identity": "上海证券交易所交易规则（2023年修订）",
-      "document_number": "上证发〔2023〕32号",
-      "effective_at": "2023-04-10",
-      "effective_condition": "first main-board stock issued under registration-based IPO rules lists",
-      "exchange": "SSE",
-      "publication_date": "2023-02-17",
-      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20250612_10824490.shtml",
-      "rule_snapshot_ids": [
-        "SSE_MAIN_NORMAL_PRE_20260706"
-      ],
-      "runtime_effective_date_evidence": "2023-04-10 first batch of registration-based main-board listings",
-      "semantics_used": [
-        "pre-2026-07-06 main-board ordinary-share trading-rule regime"
-      ],
-      "source_ref": "SSE_TRADING_RULES_2023",
-      "superseded_rule_version": "上证发〔2026〕41号"
-    },
-    {
+      "source_ref": "SSE_RISK_WARNING_BOARD_PRE_20260706",
       "document_identity": "上海证券交易所风险警示板股票交易暂行办法",
       "document_number": "上证公字〔2012〕72号",
-      "effective_at": "2013-01-01",
       "exchange": "SSE",
       "publication_date": "2012-12-14",
-      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules/repeal/rules/c/c_20230421_5720459.shtml",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2013-01-01",
+      "effective_condition": "risk-warning board interim measures effective date",
+      "superseded_rule_version": "relevant 5% ratio superseded by 上证发〔2026〕41号 from 2026-07-06",
+      "superseded_relation": "RISK_WARNING_RATIO_SUPERSEDED_2026-07-06",
       "rule_snapshot_ids": [
         "SSE_MAIN_RISK_PRE_20260706"
       ],
       "semantics_used": [
         "pre-2026-07-06 main-board risk-warning price limit 5%"
       ],
-      "source_ref": "SSE_RISK_WARNING_BOARD_PRE_20260706",
-      "superseded_rule_version": "relevant 5% ratio superseded by 上证发〔2026〕41号 from 2026-07-06"
+      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules/repeal/rules/c/c_20230421_5720459.shtml"
     },
     {
+      "source_ref": "SSE_STAR_SPECIAL_2019",
+      "document_identity": "上海证券交易所科创板股票交易特别规定",
+      "document_number": "上证发〔2019〕23号",
+      "exchange": "SSE",
+      "publication_date": "2019-03-01",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2019-03-01",
+      "effective_condition": "special trading provisions published and effective; runtime STAR trading snapshots begin on first STAR listing date 2019-07-22",
+      "runtime_effective_date": "2019-07-22",
+      "superseded_rule_version": "post-2026-07-06 runtime snapshot rebinding uses 上证发〔2026〕41号",
+      "superseded_relation": "HISTORICAL_PIT_SOURCE_THROUGH_2026-07-05",
+      "rule_snapshot_ids": [
+        "SSE_STAR_20_PRE_20260706",
+        "SSE_STAR_IPO_NO_LIMIT_PRE_20260706"
+      ],
+      "semantics_used": [
+        "STAR price limit 20% after first five listing trading days",
+        "STAR IPO first five trading days no price limit"
+      ],
+      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20190301_10785118.shtml"
+    },
+    {
+      "source_ref": "SZSE_CHINEXT_SPECIAL_2020",
+      "document_identity": "深圳证券交易所创业板交易特别规定",
+      "document_number": "深证上〔2020〕515号",
+      "exchange": "SZSE",
+      "publication_date": "2020-06-12",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2020-08-24",
+      "effective_condition": "first stock issued under ChiNext registration-based IPO rules lists; materialized by first batch listing on 2020-08-24",
+      "runtime_effective_date": "2020-08-24",
+      "superseded_rule_version": "post-2026-07-06 runtime snapshot rebinding uses 深证上〔2026〕551号",
+      "superseded_relation": "HISTORICAL_PIT_SOURCE_THROUGH_2026-07-05",
+      "rule_snapshot_ids": [
+        "SZSE_CHINEXT_20_PRE_20260706",
+        "SZSE_CHINEXT_RISK_20_PRE_20260706",
+        "SZSE_CHINEXT_IPO_NO_LIMIT_PRE_20260706"
+      ],
+      "semantics_used": [
+        "ChiNext price limit 20% after first five listing trading days",
+        "ChiNext risk-warning price limit 20%",
+        "ChiNext IPO first five trading days no price limit"
+      ],
+      "retrieval_ref": "https://www.szse.cn/disclosure/notice/general/t20200612_578381.html"
+    },
+    {
+      "source_ref": "SSE_TRADING_RULES_2023",
+      "document_identity": "上海证券交易所交易规则（2023年修订）",
+      "document_number": "上证发〔2023〕32号",
+      "exchange": "SSE",
+      "publication_date": "2023-02-17",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2023-04-10",
+      "effective_condition": "first main-board stock issued under registration-based IPO rules lists",
+      "runtime_effective_date_evidence": "2023-04-10 first batch of registration-based main-board listings",
+      "superseded_rule_version": "上证发〔2026〕41号",
+      "superseded_relation": "SUPERSEDED_FROM_2026-07-06",
+      "rule_snapshot_ids": [
+        "SSE_MAIN_NORMAL_PRE_20260706",
+        "SSE_MAIN_IPO_NO_LIMIT_PRE_20260706"
+      ],
+      "semantics_used": [
+        "pre-2026-07-06 main-board ordinary-share price limit 10%",
+        "registration-based main-board IPO first five trading days no price limit from 2023-04-10"
+      ],
+      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules2025/repeal/rules/c/c_20250612_10824490.shtml"
+    },
+    {
+      "source_ref": "SZSE_TRADING_RULES_2023",
+      "document_identity": "深圳证券交易所交易规则（2023年修订）",
+      "document_number": "深证上〔2023〕98号",
+      "exchange": "SZSE",
+      "publication_date": "2023-02-17",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2023-04-10",
+      "effective_condition": "first main-board stock issued under registration-based IPO rules lists",
+      "runtime_effective_date_evidence": "2023-04-10 first batch of registration-based main-board listings",
+      "superseded_rule_version": "深证上〔2026〕551号",
+      "superseded_relation": "SUPERSEDED_FROM_2026-07-06",
+      "rule_snapshot_ids": [
+        "SZSE_MAIN_NORMAL_PRE_20260706",
+        "SZSE_MAIN_RISK_PRE_20260706",
+        "SZSE_MAIN_IPO_NO_LIMIT_PRE_20260706"
+      ],
+      "semantics_used": [
+        "pre-2026-07-06 main-board price limit 10%",
+        "pre-2026-07-06 main-board risk-warning price limit 5%",
+        "registration-based main-board IPO first five trading days no price limit from 2023-04-10"
+      ],
+      "retrieval_ref": "https://investor.szse.cn/lawrules/index/rule/t20230217_598773.html"
+    },
+    {
+      "source_ref": "SSE_TRADING_RULES_2026",
+      "document_identity": "上海证券交易所交易规则（2026年修订）",
+      "document_number": "上证发〔2026〕41号",
+      "exchange": "SSE",
+      "publication_date": "2026-04-24",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2026-07-06",
+      "effective_condition": "notice states fixed effective date 2026-07-06",
+      "superseded_rule_version": "上证发〔2023〕32号",
+      "superseded_relation": "POST_20260706_CURRENT_SOURCE",
+      "rule_snapshot_ids": [
+        "SSE_MAIN_NORMAL_POST_20260706",
+        "SSE_MAIN_RISK_POST_20260706",
+        "SSE_MAIN_IPO_NO_LIMIT_POST_20260706",
+        "SSE_STAR_20_POST_20260706",
+        "SSE_STAR_IPO_NO_LIMIT_POST_20260706"
+      ],
+      "semantics_used": [
+        "post-2026-07-06 main-board ordinary-share price limit 10%",
+        "post-2026-07-06 main-board risk-warning price limit 10%",
+        "post-2026-07-06 STAR 20% / IPO no-limit semantics"
+      ],
+      "retrieval_ref": "https://www.sse.com.cn/lawandrules/sselawsrules2025/stocks/exchange/c/c_20260424_10816482.shtml"
+    },
+    {
+      "source_ref": "SZSE_TRADING_RULES_2026",
       "document_identity": "深圳证券交易所交易规则（2026年修订）",
       "document_number": "深证上〔2026〕551号",
-      "effective_at": "2026-07-06",
       "exchange": "SZSE",
-      "notice_effective_date": "2026-07-06",
       "publication_date": "2026-04-24",
-      "retrieval_ref": "https://investor.szse.cn/lawrules/rule/trade/t20260424_620190.html",
+      "availability_precision": "DATE_ONLY",
+      "source_availability_semantics": "publication date known; exact publication timestamp unavailable; same-date intraday cutoff fails closed",
+      "effective_at": "2026-07-06",
+      "effective_condition": "notice states fixed effective date 2026-07-06",
+      "superseded_rule_version": "深证上〔2023〕98号",
+      "superseded_relation": "POST_20260706_CURRENT_SOURCE",
       "rule_snapshot_ids": [
         "SZSE_MAIN_NORMAL_POST_20260706",
         "SZSE_MAIN_RISK_POST_20260706",
-        "SZSE_MAIN_IPO_NO_LIMIT",
-        "SZSE_CHINEXT_20",
-        "SZSE_CHINEXT_RISK_20",
-        "SZSE_CHINEXT_IPO_NO_LIMIT"
+        "SZSE_MAIN_IPO_NO_LIMIT_POST_20260706",
+        "SZSE_CHINEXT_20_POST_20260706",
+        "SZSE_CHINEXT_RISK_20_POST_20260706",
+        "SZSE_CHINEXT_IPO_NO_LIMIT_POST_20260706"
       ],
       "semantics_used": [
-        "main-board price limit 10%",
-        "main-board risk-warning price limit 10% on/after 2026-07-06",
-        "ChiNext price limit 20%",
-        "IPO first five trading days can be no-price-limit"
+        "post-2026-07-06 main-board price limit 10%",
+        "post-2026-07-06 main-board risk-warning price limit 10%",
+        "post-2026-07-06 ChiNext 20% / IPO no-limit semantics"
       ],
-      "source_ref": "SZSE_TRADING_RULES_2026",
-      "superseded_rule_version": "深证上〔2023〕98号"
-    },
-    {
-      "document_identity": "深圳证券交易所交易规则（2023年修订）",
-      "document_number": "深证上〔2023〕98号",
-      "effective_at": "2023-04-10",
-      "effective_condition": "first main-board stock issued under registration-based IPO rules lists",
-      "exchange": "SZSE",
-      "publication_date": "2023-02-17",
-      "retrieval_ref": "https://investor.szse.cn/lawrules/index/rule/t20230217_598773.html",
-      "rule_snapshot_ids": [
-        "SZSE_MAIN_NORMAL_PRE_20260706",
-        "SZSE_MAIN_RISK_PRE_20260706"
-      ],
-      "runtime_effective_date_evidence": "2023-04-10 first batch of registration-based main-board listings",
-      "semantics_used": [
-        "pre-2026-07-06 main-board price limit 10%",
-        "pre-2026-07-06 main-board risk-warning price limit 5%"
-      ],
-      "source_ref": "SZSE_TRADING_RULES_2023",
-      "superseded_rule_version": "深证上〔2026〕551号"
+      "retrieval_ref": "https://investor.szse.cn/lawrules/rule/trade/t20260424_620190.html"
     }
   ],
   "task_id": "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143",

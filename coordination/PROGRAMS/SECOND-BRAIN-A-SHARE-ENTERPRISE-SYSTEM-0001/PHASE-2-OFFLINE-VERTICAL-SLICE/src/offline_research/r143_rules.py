@@ -45,6 +45,16 @@ def _parse_day(value: str | date) -> date:
     return date.fromisoformat(value[:10])
 
 
+def _parse_cutoff_day(value: str | datetime | date | None) -> date:
+    if value is None:
+        raise RuleGateError("MISSING_RULE_KNOWLEDGE_CUTOFF")
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value)[:10])
+
+
 def _round_price(value: float) -> float:
     return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
@@ -67,6 +77,7 @@ class AShareRuleSnapshot:
     supersedes: str | None
     semantics: tuple[str, ...]
     market_supported: bool = True
+    availability_precision: str = "DATE_ONLY"
     expected_semantic_hash: str | None = None
 
     def semantic_payload(self) -> dict[str, Any]:
@@ -81,12 +92,24 @@ class AShareRuleSnapshot:
     def verify_integrity(self) -> None:
         if self.expected_semantic_hash and self.semantic_hash != self.expected_semantic_hash:
             raise RuleGateError("STALE_RULE_MUTATION")
+        if self.availability_precision != "DATE_ONLY":
+            raise RuleGateError("UNSUPPORTED_SOURCE_AVAILABILITY_PRECISION")
 
     def active_on(self, trading_day: str | date) -> bool:
         day = _parse_day(trading_day)
         if day < _parse_day(self.effective_from):
             return False
         return self.effective_to is None or day <= _parse_day(self.effective_to)
+
+    def verify_source_available_at(self, knowledge_cutoff: str | datetime | date | None) -> None:
+        cutoff_day = _parse_cutoff_day(knowledge_cutoff)
+        publication_day = _parse_day(self.publication_date)
+        if cutoff_day < publication_day:
+            raise RuleGateError("RULE_SOURCE_NOT_AVAILABLE_AT_CUTOFF")
+        # Publication evidence is date-only. On that same calendar date, no
+        # authoritative publication timestamp exists, so intraday admission is UNKNOWN.
+        if cutoff_day == publication_day and self.availability_precision == "DATE_ONLY":
+            raise RuleGateError("RULE_SOURCE_AVAILABILITY_TIME_UNKNOWN_AT_CUTOFF")
 
 
 @dataclass(frozen=True)
@@ -122,7 +145,9 @@ class FillabilityEvidence:
             raise RuleGateError("INCOMPLETE_FILLABILITY_EVIDENCE")
         if self.evidence_kind not in {"QUEUE_ORDER_BOOK", "CONTRA_LIQUIDITY", "OBSERVED_EXECUTION"}:
             raise RuleGateError("UNSUPPORTED_FILLABILITY_EVIDENCE")
-        if self.evidence_kind == "CONTRA_LIQUIDITY" and (self.contra_liquidity_quantity is None or self.contra_liquidity_quantity < 0):
+        if self.evidence_kind == "CONTRA_LIQUIDITY" and (
+            self.contra_liquidity_quantity is None or self.contra_liquidity_quantity < 0
+        ):
             raise RuleGateError("INVALID_CONTRA_LIQUIDITY_EVIDENCE")
 
 
@@ -154,7 +179,15 @@ class AShareRuleResolver:
     def __init__(self, snapshots: Iterable[AShareRuleSnapshot]):
         self.snapshots = tuple(snapshots)
 
-    def resolve(self, exchange: str, board: str, security_status: str, trading_day: str | date, listing_trading_day_number: int | None = None) -> AShareRuleSnapshot:
+    def resolve(
+        self,
+        exchange: str,
+        board: str,
+        security_status: str,
+        trading_day: str | date,
+        listing_trading_day_number: int | None = None,
+        knowledge_cutoff: str | datetime | date | None = None,
+    ) -> AShareRuleSnapshot:
         exchange = exchange.upper()
         board = board.upper()
         status = security_status.upper()
@@ -164,18 +197,37 @@ class AShareRuleResolver:
             raise RuleGateError("UNSUPPORTED_MARKET")
         if board not in {"MAIN", "STAR", "CHINEXT"}:
             raise RuleGateError("UNSUPPORTED_BOARD")
-        if (exchange, board) not in {("SSE", "MAIN"), ("SSE", "STAR"), ("SZSE", "MAIN"), ("SZSE", "CHINEXT")}:
+        if (exchange, board) not in {
+            ("SSE", "MAIN"),
+            ("SSE", "STAR"),
+            ("SZSE", "MAIN"),
+            ("SZSE", "CHINEXT"),
+        }:
             raise RuleGateError("BOARD_EXCHANGE_MISMATCH")
         if status not in {"NORMAL", "RISK_WARNING", "IPO_INITIAL_NO_LIMIT"}:
             raise RuleGateError("UNSUPPORTED_SECURITY_STATUS")
-        effective_status = "IPO_INITIAL_NO_LIMIT" if listing_trading_day_number is not None and 1 <= listing_trading_day_number <= 5 else status
-        matches = [s for s in self.snapshots if s.exchange == exchange and s.board == board and s.security_status == effective_status and s.active_on(trading_day)]
+        # Cutoff is mandatory so no direct caller can silently bypass PIT admission.
+        _parse_cutoff_day(knowledge_cutoff)
+        effective_status = (
+            "IPO_INITIAL_NO_LIMIT"
+            if listing_trading_day_number is not None and 1 <= listing_trading_day_number <= 5
+            else status
+        )
+        matches = [
+            snap
+            for snap in self.snapshots
+            if snap.exchange == exchange
+            and snap.board == board
+            and snap.security_status == effective_status
+            and snap.active_on(trading_day)
+        ]
         if len(matches) != 1:
             raise RuleGateError("MISSING_OR_AMBIGUOUS_RULE_SNAPSHOT")
         snap = matches[0]
         if not snap.market_supported:
             raise RuleGateError("UNSUPPORTED_MARKET")
         snap.verify_integrity()
+        snap.verify_source_available_at(knowledge_cutoff)
         return snap
 
 
@@ -185,6 +237,14 @@ class TradingCalendar:
     exchange: str
     trading_days: tuple[str, ...]
     source_ref: str
+    authority_kind: str = "GOVERNED"
+    provenance: str = "EXPLICIT_CALLER_INPUT"
+
+    def __post_init__(self) -> None:
+        if not self.calendar_id or not self.source_ref:
+            raise RuleGateError("INVALID_TRADING_CALENDAR_PROVENANCE")
+        if self.authority_kind not in {"GOVERNED", "SYNTHETIC_SCENARIO"}:
+            raise RuleGateError("UNSUPPORTED_TRADING_CALENDAR_AUTHORITY_KIND")
 
     def is_trading_day(self, day: str | date) -> bool:
         return _parse_day(day).isoformat() in self.trading_days
@@ -206,34 +266,58 @@ def validate_session(session: str | None) -> str:
     return session
 
 
-def evaluate_price_validity(price: float, snapshot: AShareRuleSnapshot, reference: LimitReferencePrice | None, trading_day: str | date) -> PriceValidityAssessment:
+def evaluate_price_validity(
+    price: float,
+    snapshot: AShareRuleSnapshot,
+    reference: LimitReferencePrice | None,
+    trading_day: str | date,
+) -> PriceValidityAssessment:
     snapshot.verify_integrity()
     if not snapshot.active_on(trading_day):
         raise RuleGateError("RULE_SNAPSHOT_OUTSIDE_EFFECTIVE_INTERVAL")
     if snapshot.no_price_limit:
-        return PriceValidityAssessment(PriceValidityState.PRICE_VALID_NO_LIMIT, True, None, None, False, False, snapshot.rule_snapshot_id, None)
+        return PriceValidityAssessment(
+            PriceValidityState.PRICE_VALID_NO_LIMIT,
+            True,
+            None,
+            None,
+            False,
+            False,
+            snapshot.rule_snapshot_id,
+            None,
+        )
     if snapshot.price_limit_pct is None or reference is None:
         raise RuleGateError("MISSING_RULE_OR_REFERENCE_PRICE")
     reference.validate(snapshot, trading_day)
     upper = _round_price(reference.value * (1 + snapshot.price_limit_pct))
     lower = _round_price(reference.value * (1 - snapshot.price_limit_pct))
-    price = _round_price(price)
-    valid = lower <= price <= upper
+    rounded = _round_price(price)
+    valid = lower <= rounded <= upper
     return PriceValidityAssessment(
         PriceValidityState.PRICE_VALID if valid else PriceValidityState.PRICE_INVALID,
         valid,
         upper,
         lower,
-        price == upper,
-        price == lower,
+        rounded == upper,
+        rounded == lower,
         snapshot.rule_snapshot_id,
         reference.kind,
     )
 
 
-def evaluate_order_fillability(price_validity: PriceValidityAssessment, evidence: FillabilityEvidence | None = None, conservative_no_fill_scenario: bool = False) -> FillabilityAssessment:
+def evaluate_order_fillability(
+    price_validity: PriceValidityAssessment,
+    evidence: FillabilityEvidence | None = None,
+    conservative_no_fill_scenario: bool = False,
+) -> FillabilityAssessment:
     if not price_validity.valid:
-        return FillabilityAssessment(FillabilityState.ORDER_FILLABILITY_UNKNOWN, None, False, True, "PRICE_INVALID_NOT_A_FILLABILITY_OBSERVATION")
+        return FillabilityAssessment(
+            FillabilityState.ORDER_FILLABILITY_UNKNOWN,
+            None,
+            False,
+            True,
+            "PRICE_INVALID_NOT_A_FILLABILITY_OBSERVATION",
+        )
     at_limit = price_validity.at_upper_limit or price_validity.at_lower_limit
     if evidence is not None:
         evidence.validate()
@@ -246,10 +330,28 @@ def evaluate_order_fillability(price_validity: PriceValidityAssessment, evidence
             evidence.evidence_id,
         )
     if at_limit and conservative_no_fill_scenario:
-        return FillabilityAssessment(FillabilityState.SCENARIO_ASSUMPTION_NO_FILL, False, False, False, "EXPLICIT_CONSERVATIVE_SCENARIO_ASSUMPTION")
+        return FillabilityAssessment(
+            FillabilityState.SCENARIO_ASSUMPTION_NO_FILL,
+            False,
+            False,
+            False,
+            "EXPLICIT_CONSERVATIVE_SCENARIO_ASSUMPTION",
+        )
     if at_limit:
-        return FillabilityAssessment(FillabilityState.ORDER_FILLABILITY_UNKNOWN, None, False, True, "BAR_ONLY_INSUFFICIENT_LIQUIDITY_EVIDENCE")
-    return FillabilityAssessment(FillabilityState.ORDER_FILLABILITY_UNKNOWN, None, False, True, "NO_ORDER_FILLABILITY_EVIDENCE")
+        return FillabilityAssessment(
+            FillabilityState.ORDER_FILLABILITY_UNKNOWN,
+            None,
+            False,
+            True,
+            "BAR_ONLY_INSUFFICIENT_LIQUIDITY_EVIDENCE",
+        )
+    return FillabilityAssessment(
+        FillabilityState.ORDER_FILLABILITY_UNKNOWN,
+        None,
+        False,
+        True,
+        "NO_ORDER_FILLABILITY_EVIDENCE",
+    )
 
 
 @dataclass
@@ -275,7 +377,9 @@ class SettlementAwareInventory:
     def acquire(self, symbol: str, quantity: int, trading_day: str | date, lot_id: str) -> None:
         if quantity <= 0:
             raise RuleGateError("NON_POSITIVE_ACQUISITION")
-        self.lots.setdefault(symbol, []).append(AcquisitionLot(lot_id, _parse_day(trading_day).isoformat(), quantity))
+        self.lots.setdefault(symbol, []).append(
+            AcquisitionLot(lot_id, _parse_day(trading_day).isoformat(), quantity)
+        )
 
     def sellable_quantity(self, symbol: str, trading_day: str | date, calendar: TradingCalendar) -> int:
         current = _parse_day(trading_day)
@@ -326,12 +430,30 @@ class ReplayGateDecision:
     reason: str | None
 
 
-def replay_gate(*, resolver: AShareRuleResolver, exchange: str, board: str, security_status: str, trading_day: str, calendar: TradingCalendar | None, session: str | None, listing_trading_day_number: int | None = None) -> ReplayGateDecision:
+def replay_gate(
+    *,
+    resolver: AShareRuleResolver,
+    exchange: str,
+    board: str,
+    security_status: str,
+    trading_day: str,
+    calendar: TradingCalendar | None,
+    session: str | None,
+    listing_trading_day_number: int | None = None,
+    knowledge_cutoff: str | datetime | date | None = None,
+) -> ReplayGateDecision:
     try:
         if calendar is None or not calendar.is_trading_day(trading_day):
             raise RuleGateError("UNKNOWN_OR_NON_TRADING_CALENDAR_DAY")
         validate_session(session)
-        snapshot = resolver.resolve(exchange, board, security_status, trading_day, listing_trading_day_number)
+        snapshot = resolver.resolve(
+            exchange,
+            board,
+            security_status,
+            trading_day,
+            listing_trading_day_number,
+            knowledge_cutoff,
+        )
         snapshot.verify_integrity()
         return ReplayGateDecision(True, "ALLOW", snapshot.rule_snapshot_id, None)
     except RuleGateError as exc:
@@ -347,27 +469,67 @@ def with_integrity(snapshot: AShareRuleSnapshot) -> AShareRuleSnapshot:
     return replace(snapshot, expected_semantic_hash=snapshot.semantic_hash)
 
 
-# Exact official-source semantics used by this bounded slice. These materialize the
-# existing W2/C2 authority. They are not a second authority and are tested against
-# R143/official-rule-provenance.json.
+def _snap(
+    rule_snapshot_id: str,
+    exchange: str,
+    board: str,
+    security_status: str,
+    effective_from: str,
+    effective_to: str | None,
+    price_limit_pct: float | None,
+    no_price_limit: bool,
+    source_ref: str,
+    rule_identity: str,
+    document_number: str,
+    publication_date: str,
+    supersedes: str | None,
+    semantics: tuple[str, ...],
+) -> AShareRuleSnapshot:
+    return AShareRuleSnapshot(
+        rule_snapshot_id=rule_snapshot_id,
+        exchange=exchange,
+        board=board,
+        security_status=security_status,
+        effective_from=effective_from,
+        effective_to=effective_to,
+        price_limit_pct=price_limit_pct,
+        no_price_limit=no_price_limit,
+        source_ref=source_ref,
+        rule_identity=rule_identity,
+        document_number=document_number,
+        publication_date=publication_date,
+        supersedes=supersedes,
+        semantics=semantics,
+        availability_precision="DATE_ONLY",
+    )
+
+
+# Historical intervals bind contemporaneous first-party evidence. 2026 documents
+# bind only post-2026-07-06 snapshots, preventing future-source leakage.
 _DEFAULT_RAW = [
-    # SSE main normal, same 10% limit across the 2026 rule boundary.
-    AShareRuleSnapshot("SSE_MAIN_NORMAL_PRE_20260706", "SSE", "MAIN", "NORMAL", "2023-04-10", "2026-07-05", 0.10, False, "SSE_TRADING_RULES_2023", "Shanghai Stock Exchange Trading Rules (2023 Revision)", "上证发〔2023〕32号", "2023-02-17", None, ("main_board_price_limit_10pct",)),
-    AShareRuleSnapshot("SSE_MAIN_NORMAL_POST_20260706", "SSE", "MAIN", "NORMAL", "2026-07-06", None, 0.10, False, "SSE_TRADING_RULES_2026", "Shanghai Stock Exchange Trading Rules (2026 Revision)", "上证发〔2026〕41号", "2026-04-24", "上证发〔2023〕32号", ("main_board_price_limit_10pct", "effective_2026-07-06")),
-    AShareRuleSnapshot("SSE_MAIN_RISK_PRE_20260706", "SSE", "MAIN", "RISK_WARNING", "2013-01-01", "2026-07-05", 0.05, False, "SSE_RISK_WARNING_BOARD_PRE_20260706", "SSE Risk Warning Board Stock Trading Interim Measures", "上证公字〔2012〕72号", "2012-12-14", None, ("main_board_risk_warning_5pct",)),
-    AShareRuleSnapshot("SSE_MAIN_RISK_POST_20260706", "SSE", "MAIN", "RISK_WARNING", "2026-07-06", None, 0.10, False, "SSE_TRADING_RULES_2026", "Shanghai Stock Exchange Trading Rules (2026 Revision)", "上证发〔2026〕41号", "2026-04-24", "SSE_MAIN_RISK_PRE_20260706", ("main_board_risk_warning_10pct", "effective_2026-07-06")),
-    AShareRuleSnapshot("SSE_MAIN_IPO_NO_LIMIT", "SSE", "MAIN", "IPO_INITIAL_NO_LIMIT", "2023-02-17", None, None, True, "SSE_TRADING_RULES_2026", "Shanghai Stock Exchange Trading Rules (2026 Revision)", "上证发〔2026〕41号", "2026-04-24", "上证发〔2023〕32号", ("ipo_first_5_trading_days_no_price_limit",)),
-    AShareRuleSnapshot("SSE_STAR_20", "SSE", "STAR", "NORMAL", "2019-07-22", None, 0.20, False, "SSE_TRADING_RULES_2026", "Shanghai Stock Exchange Trading Rules (2026 Revision)", "上证发〔2026〕41号", "2026-04-24", None, ("star_price_limit_20pct",)),
-    AShareRuleSnapshot("SSE_STAR_IPO_NO_LIMIT", "SSE", "STAR", "IPO_INITIAL_NO_LIMIT", "2019-07-22", None, None, True, "SSE_TRADING_RULES_2026", "Shanghai Stock Exchange Trading Rules (2026 Revision)", "上证发〔2026〕41号", "2026-04-24", None, ("star_ipo_first_5_trading_days_no_price_limit",)),
-    # SZSE.
-    AShareRuleSnapshot("SZSE_MAIN_NORMAL_PRE_20260706", "SZSE", "MAIN", "NORMAL", "2023-04-10", "2026-07-05", 0.10, False, "SZSE_TRADING_RULES_2023", "Shenzhen Stock Exchange Trading Rules (2023 Revision)", "深证上〔2023〕98号", "2023-02-17", None, ("main_board_price_limit_10pct",)),
-    AShareRuleSnapshot("SZSE_MAIN_NORMAL_POST_20260706", "SZSE", "MAIN", "NORMAL", "2026-07-06", None, 0.10, False, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("main_board_price_limit_10pct", "effective_2026-07-06")),
-    AShareRuleSnapshot("SZSE_MAIN_RISK_PRE_20260706", "SZSE", "MAIN", "RISK_WARNING", "2023-04-10", "2026-07-05", 0.05, False, "SZSE_TRADING_RULES_2023", "Shenzhen Stock Exchange Trading Rules (2023 Revision)", "深证上〔2023〕98号", "2023-02-17", None, ("main_board_risk_warning_5pct",)),
-    AShareRuleSnapshot("SZSE_MAIN_RISK_POST_20260706", "SZSE", "MAIN", "RISK_WARNING", "2026-07-06", None, 0.10, False, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("main_board_risk_warning_10pct", "effective_2026-07-06")),
-    AShareRuleSnapshot("SZSE_MAIN_IPO_NO_LIMIT", "SZSE", "MAIN", "IPO_INITIAL_NO_LIMIT", "2023-02-17", None, None, True, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("ipo_first_5_trading_days_no_price_limit",)),
-    AShareRuleSnapshot("SZSE_CHINEXT_20", "SZSE", "CHINEXT", "NORMAL", "2020-08-24", None, 0.20, False, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("chinext_price_limit_20pct",)),
-    AShareRuleSnapshot("SZSE_CHINEXT_RISK_20", "SZSE", "CHINEXT", "RISK_WARNING", "2020-08-24", None, 0.20, False, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("chinext_risk_warning_price_limit_20pct",)),
-    AShareRuleSnapshot("SZSE_CHINEXT_IPO_NO_LIMIT", "SZSE", "CHINEXT", "IPO_INITIAL_NO_LIMIT", "2020-08-24", None, None, True, "SZSE_TRADING_RULES_2026", "Shenzhen Stock Exchange Trading Rules (2026 Revision)", "深证上〔2026〕551号", "2026-04-24", "深证上〔2023〕98号", ("chinext_ipo_first_5_trading_days_no_price_limit",)),
+    _snap("SSE_MAIN_NORMAL_PRE_20260706","SSE","MAIN","NORMAL","2023-04-10","2026-07-05",0.10,False,"SSE_TRADING_RULES_2023","Shanghai Stock Exchange Trading Rules (2023 Revision)","上证发〔2023〕32号","2023-02-17",None,("main_board_price_limit_10pct",)),
+    _snap("SSE_MAIN_NORMAL_POST_20260706","SSE","MAIN","NORMAL","2026-07-06",None,0.10,False,"SSE_TRADING_RULES_2026","Shanghai Stock Exchange Trading Rules (2026 Revision)","上证发〔2026〕41号","2026-04-24","上证发〔2023〕32号",("main_board_price_limit_10pct","effective_2026-07-06")),
+    _snap("SSE_MAIN_RISK_PRE_20260706","SSE","MAIN","RISK_WARNING","2013-01-01","2026-07-05",0.05,False,"SSE_RISK_WARNING_BOARD_PRE_20260706","SSE Risk Warning Board Stock Trading Interim Measures","上证公字〔2012〕72号","2012-12-14",None,("main_board_risk_warning_5pct",)),
+    _snap("SSE_MAIN_RISK_POST_20260706","SSE","MAIN","RISK_WARNING","2026-07-06",None,0.10,False,"SSE_TRADING_RULES_2026","Shanghai Stock Exchange Trading Rules (2026 Revision)","上证发〔2026〕41号","2026-04-24","SSE_MAIN_RISK_PRE_20260706",("main_board_risk_warning_10pct","effective_2026-07-06")),
+    _snap("SSE_MAIN_IPO_NO_LIMIT_PRE_20260706","SSE","MAIN","IPO_INITIAL_NO_LIMIT","2023-04-10","2026-07-05",None,True,"SSE_TRADING_RULES_2023","Shanghai Stock Exchange Trading Rules (2023 Revision)","上证发〔2023〕32号","2023-02-17",None,("ipo_first_5_trading_days_no_price_limit","regime_start_2023-04-10")),
+    _snap("SSE_MAIN_IPO_NO_LIMIT_POST_20260706","SSE","MAIN","IPO_INITIAL_NO_LIMIT","2026-07-06",None,None,True,"SSE_TRADING_RULES_2026","Shanghai Stock Exchange Trading Rules (2026 Revision)","上证发〔2026〕41号","2026-04-24","SSE_MAIN_IPO_NO_LIMIT_PRE_20260706",("ipo_first_5_trading_days_no_price_limit","effective_2026-07-06")),
+    _snap("SSE_STAR_20_PRE_20260706","SSE","STAR","NORMAL","2019-07-22","2026-07-05",0.20,False,"SSE_STAR_SPECIAL_2019","SSE STAR Market Special Trading Provisions","上证发〔2019〕23号","2019-03-01",None,("star_price_limit_20pct",)),
+    _snap("SSE_STAR_20_POST_20260706","SSE","STAR","NORMAL","2026-07-06",None,0.20,False,"SSE_TRADING_RULES_2026","Shanghai Stock Exchange Trading Rules (2026 Revision)","上证发〔2026〕41号","2026-04-24","SSE_STAR_20_PRE_20260706",("star_price_limit_20pct","effective_2026-07-06")),
+    _snap("SSE_STAR_IPO_NO_LIMIT_PRE_20260706","SSE","STAR","IPO_INITIAL_NO_LIMIT","2019-07-22","2026-07-05",None,True,"SSE_STAR_SPECIAL_2019","SSE STAR Market Special Trading Provisions","上证发〔2019〕23号","2019-03-01",None,("star_ipo_first_5_trading_days_no_price_limit",)),
+    _snap("SSE_STAR_IPO_NO_LIMIT_POST_20260706","SSE","STAR","IPO_INITIAL_NO_LIMIT","2026-07-06",None,None,True,"SSE_TRADING_RULES_2026","Shanghai Stock Exchange Trading Rules (2026 Revision)","上证发〔2026〕41号","2026-04-24","SSE_STAR_IPO_NO_LIMIT_PRE_20260706",("star_ipo_first_5_trading_days_no_price_limit","effective_2026-07-06")),
+    _snap("SZSE_MAIN_NORMAL_PRE_20260706","SZSE","MAIN","NORMAL","2023-04-10","2026-07-05",0.10,False,"SZSE_TRADING_RULES_2023","Shenzhen Stock Exchange Trading Rules (2023 Revision)","深证上〔2023〕98号","2023-02-17",None,("main_board_price_limit_10pct",)),
+    _snap("SZSE_MAIN_NORMAL_POST_20260706","SZSE","MAIN","NORMAL","2026-07-06",None,0.10,False,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","深证上〔2023〕98号",("main_board_price_limit_10pct","effective_2026-07-06")),
+    _snap("SZSE_MAIN_RISK_PRE_20260706","SZSE","MAIN","RISK_WARNING","2023-04-10","2026-07-05",0.05,False,"SZSE_TRADING_RULES_2023","Shenzhen Stock Exchange Trading Rules (2023 Revision)","深证上〔2023〕98号","2023-02-17",None,("main_board_risk_warning_5pct",)),
+    _snap("SZSE_MAIN_RISK_POST_20260706","SZSE","MAIN","RISK_WARNING","2026-07-06",None,0.10,False,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","深证上〔2023〕98号",("main_board_risk_warning_10pct","effective_2026-07-06")),
+    _snap("SZSE_MAIN_IPO_NO_LIMIT_PRE_20260706","SZSE","MAIN","IPO_INITIAL_NO_LIMIT","2023-04-10","2026-07-05",None,True,"SZSE_TRADING_RULES_2023","Shenzhen Stock Exchange Trading Rules (2023 Revision)","深证上〔2023〕98号","2023-02-17",None,("ipo_first_5_trading_days_no_price_limit","regime_start_2023-04-10")),
+    _snap("SZSE_MAIN_IPO_NO_LIMIT_POST_20260706","SZSE","MAIN","IPO_INITIAL_NO_LIMIT","2026-07-06",None,None,True,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","SZSE_MAIN_IPO_NO_LIMIT_PRE_20260706",("ipo_first_5_trading_days_no_price_limit","effective_2026-07-06")),
+    _snap("SZSE_CHINEXT_20_PRE_20260706","SZSE","CHINEXT","NORMAL","2020-08-24","2026-07-05",0.20,False,"SZSE_CHINEXT_SPECIAL_2020","SZSE ChiNext Special Trading Provisions","深证上〔2020〕515号","2020-06-12",None,("chinext_price_limit_20pct","regime_start_2020-08-24")),
+    _snap("SZSE_CHINEXT_20_POST_20260706","SZSE","CHINEXT","NORMAL","2026-07-06",None,0.20,False,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","SZSE_CHINEXT_20_PRE_20260706",("chinext_price_limit_20pct","effective_2026-07-06")),
+    _snap("SZSE_CHINEXT_RISK_20_PRE_20260706","SZSE","CHINEXT","RISK_WARNING","2020-08-24","2026-07-05",0.20,False,"SZSE_CHINEXT_SPECIAL_2020","SZSE ChiNext Special Trading Provisions","深证上〔2020〕515号","2020-06-12",None,("chinext_risk_warning_price_limit_20pct","regime_start_2020-08-24")),
+    _snap("SZSE_CHINEXT_RISK_20_POST_20260706","SZSE","CHINEXT","RISK_WARNING","2026-07-06",None,0.20,False,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","SZSE_CHINEXT_RISK_20_PRE_20260706",("chinext_risk_warning_price_limit_20pct","effective_2026-07-06")),
+    _snap("SZSE_CHINEXT_IPO_NO_LIMIT_PRE_20260706","SZSE","CHINEXT","IPO_INITIAL_NO_LIMIT","2020-08-24","2026-07-05",None,True,"SZSE_CHINEXT_SPECIAL_2020","SZSE ChiNext Special Trading Provisions","深证上〔2020〕515号","2020-06-12",None,("chinext_ipo_first_5_trading_days_no_price_limit","regime_start_2020-08-24")),
+    _snap("SZSE_CHINEXT_IPO_NO_LIMIT_POST_20260706","SZSE","CHINEXT","IPO_INITIAL_NO_LIMIT","2026-07-06",None,None,True,"SZSE_TRADING_RULES_2026","Shenzhen Stock Exchange Trading Rules (2026 Revision)","深证上〔2026〕551号","2026-04-24","SZSE_CHINEXT_IPO_NO_LIMIT_PRE_20260706",("chinext_ipo_first_5_trading_days_no_price_limit","effective_2026-07-06")),
 ]
+
 DEFAULT_RULE_SNAPSHOTS = tuple(with_integrity(item) for item in _DEFAULT_RAW)
 DEFAULT_RULE_RESOLVER = AShareRuleResolver(DEFAULT_RULE_SNAPSHOTS)
