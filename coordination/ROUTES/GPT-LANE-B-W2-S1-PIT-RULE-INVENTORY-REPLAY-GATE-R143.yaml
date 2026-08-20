@@ -1,14 +1,14 @@
-schema_version: "1.2"
+schema_version: "1.3"
 route_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "ACTIVE_IMPLEMENTATION"
-execution_allowed: true
-runtime_code_change_allowed: true
+status: "CLOSED_HISTORY_ONLY"
+execution_allowed: false
+runtime_code_change_allowed: false
 automatic_resume: false
 merge_authorized: false
 self_review_forbidden: true
 
-authority_effective_only_when_final_active_gate_is_canonical_main: true
+authority_effective_only_when_final_active_gate_is_canonical_main: false
 final_active_gate_pr: 412
 final_active_gate_branch: "gpt/r143-final-active-gate"
 
@@ -41,8 +41,8 @@ mode:
   value: "project_plan"
   label: "【Codex模式：项目计划模式】"
   reason: >-
-    The defect family is known, but concrete W2/C2 authority inventory, PIT rule materialization, adversarial replay tests and
-    exact-head evidence are required before implementation can be accepted.
+    Historical R143 implementation route. The W2/C2 PIT-rule slice was independently accepted and merged; this route no longer
+    grants execution or write authority. Any successor requires a fresh Signal Tower + Control Tower governed release.
 
 boundary: "RESEARCH_ONLY / NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION"
 
@@ -55,13 +55,8 @@ authority_contract:
   schema_materialization_gate: "STOP_FOR_GPT_IF_NEW_CANONICAL_SCHEMA_IDENTITY_REQUIRED"
 
 write_scope:
-  runtime:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
-  task_evidence:
-    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
-    - ".github/workflows/lane-b-w2-s1-r143.yml"
+  runtime: []
+  task_evidence: []
   read_only_without_separate_gate:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-1/TEMPORAL-SEMANTICS-CONTRACT.schema.json"
     - "coordination/GOVERNANCE/ENTERPRISE-BLUEPRINT-AUTHORITY-AND-INTERFACE-REGISTRY-v1.0.yaml"
@@ -77,15 +72,27 @@ write_scope:
     - "secret/API/permission expansion"
 
 activation_contract:
-  activation_state: "ACTIVE"
+  activation_state: "CLOSED"
   worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
   runtime_pr: 411
   runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
-  matching_work_claim_required: "ACTIVE_IMPLEMENTATION"
-  execution_allowed: true
-  authority_effective_only_after_final_gate_merge: true
+  matching_work_claim_required: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
+  execution_allowed: false
+  authority_effective_only_after_final_gate_merge: false
   final_active_gate_pr: 412
   old_pr_405_reuse_allowed: false
+
+completion:
+  implementation_status: "ACCEPTED / MERGED / DONE_HISTORICAL"
+  accepted_exact_head: "9626e4473744247b1e209299c8896d07457f359b"
+  independent_final_review: 4984787833
+  implementation_merge_commit: "4423349b6154986b74b6f172d7e01643f8bd46f9"
+  merge_parent_1: "528adc35e015fc66fac000a6728af29bad719991"
+  merge_parent_2: "9626e4473744247b1e209299c8896d07457f359b"
+  deterministic_receipt_hash: "a874f9fb3f02e8ed5fa0d5c3094c40c9950ba95f32acad4d636645807100e9ae"
+  execution_lease: "RELEASED_BY_R143_CLOSEOUT_CANDIDATE"
+  closeout_receipt: "coordination/CONTROL-TOWER/R143-W2-S1-CLOSURE-RECONCILIATION.yaml"
+  successor_rule: "NO_AUTOMATIC_RESUME / NEW_GOVERNED_TASK_RELEASE_REQUIRED"
 
 resource_contract:
   local_heavy_stage_max: 1
@@ -96,16 +103,7 @@ resource_contract:
   cleanup: "ONLY_VERIFIED_TASK_OWNED_DESCENDANTS"
 
 activation_requirements:
-  - "R144 closeout merged"
-  - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP completed"
-  - "reservation PR #410 independently accepted and merged"
-  - "real runtime Draft PR #411 created from post-reservation main"
-  - "Lane-B ACTIVE_IMPLEMENTATION Work Claim binds exact worker slot/runtime PR #411/branch"
-  - "no concurrent A-share vertical slice"
-  - "no second W2/C2 writer"
-  - "Issue #404 remains OPEN"
-  - "fresh authorization witness verifies on final active gate exact head"
-  - "final active gate receives independent GPT review before canonical merge"
+  - "HISTORICAL_ONLY / SATISFIED"
 
 hard_locks:
   - "NO_SECOND_A_SHARE_RULE_AUTHORITY"
@@ -121,4 +119,4 @@ hard_locks:
   - "NO_SELF_REVIEW_OR_SELF_MERGE"
 
 completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
-next_command_after_gate_is_canonical: "编程1_FRESH_READ_CANONICAL_THEN_BEGIN_G0_AUTHORITY_INVENTORY"
+next_command_after_gate_is_canonical: "WAIT_FOR_NEW_GOVERNED_SUCCESSOR_RELEASE"
