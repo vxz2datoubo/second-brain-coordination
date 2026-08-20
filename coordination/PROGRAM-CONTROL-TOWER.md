@@ -4,10 +4,10 @@
 ## 自动同步快照（机器生成区）
 
 - Registry: `AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001`
-- as_of: `2026-08-20T02:32:00+08:00`
+- as_of: `2026-08-20T04:30:00+08:00`
 - Foundation structural check: **PASS**
-- Lane release decision: **HOLD_BY_USER**
-- User-held lanes: `LANE-B-A-SHARE-REMEDIATION`
+- Lane release decision: **ELIGIBLE_FOR_GPT_DRY_RUN**
+- User-held lanes: `NONE`
 
 ### Agent routes
 
@@ -21,14 +21,14 @@
 
 | slot | task_id | epoch | status | execution_allowed | model_id | Issue / PR |
 |---|---|---:|---|---|---|---|
-| `GPT-WORKER-R143-PROGRAMMING-1` | `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143` | 143 | `RESERVED_NON_EXECUTABLE` | `false` | `GPT-5.6 Sol` | #404 / #410 |
+| `GPT-WORKER-R143-PROGRAMMING-1` | `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143` | 143 | `ACTIVE_IMPLEMENTATION` | `true` | `GPT-5.6 Sol` | #404 / #411 |
 
 ### Program lanes
 
 | Lane | desired | observed | heavy | next gate |
 |---|---|---|---|---|
 | `LANE-A-HARNESS-INTEGRATION` | `ACTIVE` | `SIGNAL_TOWER_ON_DEMAND_OPERATIONAL / NO_ACTIVE_IMPLEMENTATION` | `false` | ON_DEMAND_SIGNAL_TOWER_OR_NEW_GOVERNED_TASK_RELEASE |
-| `LANE-B-A-SHARE-REMEDIATION` | `PAUSED` | `W2_S1_R143_USER_RELEASE_RETAINED / AWAIT_FRESH_POST_R144_PREFLIGHT` | `false` | FRESH_SIGNAL_TOWER_CONTROL_TOWER_PREFLIGHT_THEN_NEW_R143_ACTIVATION |
+| `LANE-B-A-SHARE-REMEDIATION` | `ACTIVE` | `W2_S1_R143_ACTIVE_IMPLEMENTATION_ON_FINAL_GATE_CANONICAL` | `false` | FINAL_ACTIVE_GATE_ACCEPT_AND_CANONICAL_THEN_EXECUTOR_G0 |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `DONE` | `DONE` | `false` | REOPEN_ONLY_FOR_BUG_SECURITY_CONTRACT_DEFECT_PROVEN_REGRESSION |
 
 <!-- CONTROL_TOWER_AUTOGEN:END -->
@@ -43,7 +43,7 @@
 | Lane | claim state | agent | resource | write surface | route binding |
 |---|---|---|---|---|---|
 | `LANE-A-HARNESS-INTEGRATION` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
-| `LANE-B-A-SHARE-REMEDIATION` | `RESERVED_IMPLEMENTATION_NON_EXECUTABLE` | `GPT_ENGINEERING_WORKER` | `LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION` | 5 paths | epoch 143 · #404/#410 · slot `GPT-WORKER-R143-PROGRAMMING-1` |
+| `LANE-B-A-SHARE-REMEDIATION` | `ACTIVE_IMPLEMENTATION` | `GPT_ENGINEERING_WORKER` | `LIGHT_TO_MEDIUM_IMPLEMENTATION` | 5 paths | epoch 143 · #404/#411 · slot `GPT-WORKER-R143-PROGRAMMING-1` |
 | `LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP` | `CLOSED_NO_ACTIVE_IMPLEMENTATION` | `NONE` | `NO_ACTIVE_IMPLEMENTATION` | NONE | NONE |
 
 ### Pairwise current-claim collision scan
@@ -64,28 +64,33 @@
 
 ## 当前正式节奏
 
-- **R144 已完整收口**：implementation PR #408 与 post-merge closeout PR #409 均已独立审核并合并；R144 Codex lease 为历史非执行态。
-- **Signal Tower 已完成 fresh post-R144 preflight**：`GLOBAL_SHALLOW → DELTA → TARGETED_DEEP → CONDITIONAL_RESEARCH(not required for activation) → RELEASE_DECISION`，结果仅允许创建 R143 非执行 reservation candidate。
-- **PR #410 只做 reservation，不是 runtime activation**：`GPT-WORKER-R143-PROGRAMMING-1` 当前 `activation_state=RESERVED`、`execution_allowed=false`，Lane-B Work Claim 为 `RESERVED_IMPLEMENTATION_NON_EXECUTABLE`。
-- **编程1现在仍不能写 W2 runtime**：PR #410 即使 CI 绿，也必须先独立审核并由用户决定是否 merge。merge 后还要从 then-current main 创建真实 runtime Draft PR，再通过单独的 final ACTIVE gate 把 slot/claim exact-bind 到那个 runtime PR。
-- **旧 PR #405 永久不能作为当前激活入口原样继续**：它是 pre-R144 stale candidate，当前 activation 必须基于 post-R144 canonical main。
-- **GPT Engineering Worker first-class registry 保持 canonical**：编程1/编程2只是 slot/provenance，编程2不得与编程1共享 mutable W2 writer surface。
-- **Signal Tower 正常 on-demand 能力继续可用**：Signal != Task，normal mode 不要求 daemon/scheduler。
+- **R144 已完整收口**：implementation PR #408 与 post-merge closeout PR #409 均已独立审核并合并，Codex lease 为历史非执行态。
+- **R143 reservation 已正式 canonical**：PR #410 在独立 exact-head ACCEPT 后合并为 `d62c027426c6c08a3d377c0a982160e47ad39eb1`。
+- **真实 runtime Draft PR 已创建**：PR #411，branch `gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate`，当前仅 bootstrap control-plane evidence，没有 W2 runtime implementation。
+- **Final ACTIVE gate = PR #412**：它把 `GPT-WORKER-R143-PROGRAMMING-1`、Lane-B `ACTIVE_IMPLEMENTATION` Work Claim、R143 route 与 Release Gate exact-bind 到 runtime PR #411。
+- **PR #412 合并前编程1仍不能写 W2**：candidate branch 中的 `execution_allowed=true` 只用于 exact-head gate validation，不是 canonical authority。
+- **PR #412 canonical 后**：编程1必须 fresh-read main、slot、claim、route、Release Gate 和 fresh Lane-B authorization witness，然后才可进入 G0 authority inventory。
+- **用户已授予常规工程推进持续授权**：满足独立 exact-head ACCEPT、CI/validator/Control Tower gate 通过且无 drift 时，不再逐个 merge 询问；交易/资金/密钥/权限扩张/删除/重大越界架构仍需单独审批。
+- **旧 PR #405 无当前 authority**：`STALE_PRE_R144 / DO_NOT_MERGE_AS_IS`。
+- **Signal Tower 正常 ON_DEMAND 继续可用**：Signal != Task，不获得 Lane-B/W2 runtime write。
 - **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_W3_WRITE / NO_SIGNAL_TOWER_RUNTIME_WRITE / NO_SECOND_A_SHARE_RULE_AUTHORITY** 继续锁定。
 
-## R143 reservation binding
+## R143 final ACTIVE binding candidate
 
 - Issue: `#404`
 - Task: `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143`
 - Route epoch: `143`
-- Intended executor: `GPT_ENGINEERING_WORKER` / 编程1
+- Executor: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
 - Worker slot: `GPT-WORKER-R143-PROGRAMMING-1`
-- Reservation PR: `#410`
-- Reservation branch: `gpt/r143-post-r144-fresh-activation`
-- Base main: `12aab49dbffcd06214d6c5dae5917dff9b548595`
-- Preflight receipt: `coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml`
-- Old PR #405: `STALE_PRE_R144 / DO_NOT_MERGE_AS_IS`
+- Reservation PR: `#410` → merged `d62c027426c6c08a3d377c0a982160e47ad39eb1`
+- Runtime PR: `#411`
+- Runtime branch: `gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate`
+- Runtime bootstrap head: `1145566dc6f8a2f2bd052093557799c483e96053`
+- Final ACTIVE gate PR: `#412`
+- Final ACTIVE gate branch: `gpt/r143-final-active-gate`
+- Final gate receipt: `coordination/CONTROL-TOWER/R143-FINAL-ACTIVE-GATE-RECEIPT.yaml`
+- Old PR #405: `STALE_PRE_R144 / NO_AUTHORITY`
 
 ## 下一关
 
-先让 PR #410 在 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Work Claim、projection 与 authorization-witness 验证，再交给独立 GPT exact-head Review。若且仅若用户随后授权并合并 reservation，才创建真实 runtime Draft PR。最终 runtime 执行权必须由另一个基于 then-current main 的 ACTIVE gate 将同一 worker slot、Work Claim、Issue/task/epoch、runtime PR/branch 和 fresh authorization witness 原子绑定；在那之前编程1不得修改 W2 runtime。
+PR #412 必须在最终 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Work Claim、projection、O0-O4/WIP/resource 和 Lane-B authorization witness 验证，再交独立 GPT exact-head Review。若 ACCEPT 且 reviewed head 未漂移，则按用户持续授权直接合并 #412。合并后才向编程1发出 runtime G0 开工指令；编程1不得 self-review/self-merge。
