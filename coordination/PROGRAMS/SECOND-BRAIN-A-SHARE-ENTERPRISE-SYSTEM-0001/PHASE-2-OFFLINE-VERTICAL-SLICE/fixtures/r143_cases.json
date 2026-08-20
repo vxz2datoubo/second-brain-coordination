@@ -1,0 +1,70 @@
+{
+  "fillability": [
+    {
+      "abstain": true,
+      "at_limit": true,
+      "case_id": "bar-only-at-limit",
+      "evidence": null,
+      "expected_state": "ORDER_FILLABILITY_UNKNOWN",
+      "observed_fact": false
+    },
+    {
+      "abstain": false,
+      "at_limit": true,
+      "case_id": "evidence-backed-fillable",
+      "evidence": {
+        "contra_liquidity_quantity": 1000,
+        "evidence_id": "fixture-contra-liquidity-001",
+        "evidence_kind": "CONTRA_LIQUIDITY",
+        "fillable": true,
+        "observed_at": "2026-07-06T10:00:00+08:00",
+        "source_ref": "synthetic-public-safe-order-book"
+      },
+      "expected_state": "ORDER_FILLABILITY_EVIDENCE_CONFIRMED",
+      "observed_fact": true
+    },
+    {
+      "abstain": false,
+      "at_limit": true,
+      "case_id": "conservative-no-fill-scenario",
+      "conservative_no_fill_scenario": true,
+      "evidence": null,
+      "expected_state": "SCENARIO_ASSUMPTION_NO_FILL",
+      "observed_fact": false
+    }
+  ],
+  "reference_price": [
+    {
+      "case_id": "official-previous-close",
+      "kind": "OFFICIAL_PREVIOUS_CLOSE",
+      "rule_snapshot_id": "SSE_MAIN_NORMAL_POST_20260706",
+      "source_ref": "synthetic-official-previous-close",
+      "trading_day": "2026-07-06",
+      "value": 10.0
+    },
+    {
+      "case_id": "ex-right-ex-dividend",
+      "kind": "EX_RIGHT_EX_DIVIDEND_REFERENCE",
+      "rule_snapshot_id": "SSE_MAIN_NORMAL_POST_20260706",
+      "source_ref": "synthetic-official-ex-right-reference",
+      "trading_day": "2026-07-06",
+      "value": 9.0
+    }
+  ],
+  "schema_version": "1.1",
+  "trading_calendar": {
+    "calendar_id": "R143-SYNTHETIC-TRADING-CALENDAR",
+    "exchange": "A_SHARE",
+    "source_ref": "synthetic-public-safe-calendar",
+    "authority_kind": "SYNTHETIC_SCENARIO",
+    "provenance": "TEST_FIXTURE_EXPLICIT_CALLER_INPUT",
+    "trading_days": [
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-07",
+      "2026-07-08",
+      "2026-07-10",
+      "2026-07-13"
+    ]
+  }
+}

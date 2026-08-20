@@ -1,0 +1,24 @@
+schema_version: "1.0"
+task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+route_epoch: 143
+issue: 404
+runtime_pr: 411
+worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+disposition: "ADAPT_EXISTING"
+canonical_authority:
+  owner: "W2"
+  object: "AShareRuleSnapshot"
+  contract: "C2_A_SHARE_RULE_SNAPSHOT"
+  write_policy: "SINGLE_WRITER_READ_ONLY_CONSUMERS"
+existing_runtime_fragments:
+  - "Bar.limit_rule_version"
+  - "SimulationConfig.rule_version"
+  - "PIT temporal envelope"
+  - "legacy prior_close simulation state"
+  - "legacy symbol-level acquired_day inventory"
+findings:
+  concrete_second_ashare_rule_snapshot_authority_found: false
+  reusable_complete_snapshot_runtime_found: false
+  new_canonical_schema_identity_required: false
+  materialization_path: "src/offline_research/r143_rules.py"
+hard_invariant: "NO_SECOND_A_SHARE_RULE_AUTHORITY"

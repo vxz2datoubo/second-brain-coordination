@@ -1,0 +1,169 @@
+name: Lane-B W2 S1 R143 PIT rule inventory replay gate
+
+on:
+  pull_request:
+    paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/**"
+      - ".github/workflows/lane-b-w2-s1-r143.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r143:
+    name: Python ${{ matrix.python-version }} R143
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        python-version: ["3.11", "3.13"]
+    env:
+      SLICE: coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install witness-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Changed-path allowlist
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          BASE="${BASE_SHA:-}"
+          HEAD="${HEAD_SHA:-}"
+          if [ -z "$BASE" ] || [ -z "$HEAD" ]; then
+            echo "R143_ACCEPTANCE_BINDING_MISSING: workflow_dispatch/non-PR runs are diagnostic-only and cannot certify acceptance" >&2
+            exit 1
+          fi
+          ACTUAL_HEAD="$(git rev-parse HEAD)"
+          test "$ACTUAL_HEAD" = "$HEAD"
+          git fetch --no-tags --depth=1 origin "$BASE"
+          git cat-file -e "${BASE}^{commit}"
+          BASE="$BASE" HEAD="$HEAD" python - <<'PY'
+          import os, subprocess
+          allowed_prefixes=(
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/",
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/",
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/fixtures/",
+            "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/R143/",
+          )
+          exact={
+            ".github/workflows/lane-b-w2-s1-r143.yml",
+            "coordination/CONTROL-TOWER/R143-RUNTIME-PR-BOOTSTRAP.yaml", # historical PR bootstrap only
+          }
+          base=os.environ["BASE"]
+          head=os.environ["HEAD"]
+          paths=subprocess.check_output(["git","diff","--name-only",base,head],text=True).splitlines()
+          bad=[p for p in paths if p not in exact and not p.startswith(allowed_prefixes)]
+          print("EXACT_PR_BASE", base)
+          print("EXACT_PR_HEAD", head)
+          print("CHANGED_PATHS", paths)
+          if bad: raise SystemExit(f"OUT_OF_SCOPE_PATHS:{bad}")
+          PY
+      - name: Run full legacy plus R143 adversarial suite
+        working-directory: ${{ env.SLICE }}
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Stale-rule mutation must fail closed
+        working-directory: ${{ env.SLICE }}
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          from dataclasses import replace
+          from offline_research.r143_rules import DEFAULT_RULE_RESOLVER, RuleGateError
+          snap=DEFAULT_RULE_RESOLVER.resolve(
+              "SSE","MAIN","RISK_WARNING","2026-07-06",
+              knowledge_cutoff="2026-07-07T00:00:00+08:00",
+          )
+          try:
+              replace(snap, price_limit_pct=.99).verify_integrity()
+          except RuleGateError as exc:
+              assert str(exc)=="STALE_RULE_MUTATION"
+              print("STALE_RULE_MUTATION_OBSERVED")
+          else:
+              raise SystemExit("STALE_RULE_MUTATION_NOT_DETECTED")
+          PY
+      - name: Deterministic replay receipt
+        working-directory: ${{ env.SLICE }}
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from offline_research.r143_rules import deterministic_replay_receipt
+          v=json.loads(Path("R143/VALIDATION-RECEIPT.json").read_text())
+          r=v["deterministic_replay"]
+          assert deterministic_replay_receipt(r["payload"])["receipt_hash"]==r["receipt_hash"]
+          print("DETERMINISTIC_REPLAY_HASH", r["receipt_hash"])
+          PY
+      - name: Lane-B authorization witness round trip
+        working-directory: coordination/CONTROL-TOWER
+        run: |
+          python run_authorization_witness.py create --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION > /tmp/r143-lane-b-witness.json
+          python run_authorization_witness.py verify --repo-root ../.. --lane LANE-B-A-SHARE-REMEDIATION --witness-file /tmp/r143-lane-b-witness.json
+      - name: Public private secret safety scan
+        working-directory: ${{ env.SLICE }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          pats=[re.compile(r'\bsk-[A-Za-z0-9_-]{20,}\b'),re.compile(r'\b(?:ghp|github_pat)_[A-Za-z0-9_]{20,}\b'),re.compile(r'\bAKIA[0-9A-Z]{16}\b'),re.compile(r'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----')]
+          hits=[]
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or '__pycache__' in p.parts: continue
+              text=p.read_text(encoding='utf-8',errors='ignore')
+              if any(rx.search(text) for rx in pats): hits.append(str(p))
+          if hits: raise SystemExit(f"SECRET_SCAN_FAIL:{hits}")
+          print("PUBLIC_PRIVATE_SECRET_SCAN_PASS")
+          PY
+      - name: Resource cleanup and no task-owned orphan descendants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          def ppid(pid):
+              try:
+                  for line in (Path('/proc')/str(pid)/'status').read_text().splitlines():
+                      if line.startswith('PPid:'): return int(line.split()[1])
+              except Exception: return 0
+              return 0
+          ancestors=set(); cur=os.getpid()
+          while cur and cur not in ancestors:
+              ancestors.add(cur); cur=ppid(cur)
+          markers=("GPT-LANE-B-W2-S1-"+"PIT-RULE-INVENTORY-REPLAY-GATE-R143", "lane-b-w2-s1-"+"r143")
+          found=[]
+          for proc in Path('/proc').iterdir():
+              if not proc.name.isdigit() or int(proc.name) in ancestors: continue
+              try: cmd=(proc/'cmdline').read_bytes().replace(b'\0',b' ').decode(errors='ignore')
+              except Exception: continue
+              if any(m in cmd for m in markers): found.append((proc.name,cmd[:240]))
+          if found: raise SystemExit(f"TASK_OWNED_ORPHANS:{found}")
+          print("NO_TASK_OWNED_ORPHAN_DESCENDANTS")
+          PY
+      - name: Worktree clean
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$STATUS" ]; then
+            printf '%s\n' "$STATUS" >&2
+            exit 1
+          fi
+          echo "WORKTREE_CLEAN_PASS"
