@@ -472,7 +472,7 @@ def simulate_portfolio(
     events: list[Bar],
     signals: list[dict[str, Any]],
     config: SimulationConfig,
-    requested_as_of: str,
+    requested_as_of: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Research ledger with PIT rule, governed calendar and lot-level T+1 gates."""
     ordered_signals = sorted(signals, key=lambda item: (parse_time(item["available_at"]), item["signal_id"]))
