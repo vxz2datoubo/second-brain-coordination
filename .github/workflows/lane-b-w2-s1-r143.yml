@@ -29,15 +29,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 2
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Changed-path allowlist
         shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          python - <<'PY'
-          import subprocess
+          set -euo pipefail
+          BASE="${BASE_SHA:-}"
+          HEAD="${HEAD_SHA:-}"
+          if [ -z "$BASE" ] || [ -z "$HEAD" ]; then
+            echo "R143_ACCEPTANCE_BINDING_MISSING: workflow_dispatch/non-PR runs are diagnostic-only and cannot certify acceptance" >&2
+            exit 1
+          fi
+          ACTUAL_HEAD="$(git rev-parse HEAD)"
+          test "$ACTUAL_HEAD" = "$HEAD"
+          git fetch --no-tags --depth=1 origin "$BASE"
+          git cat-file -e "${BASE}^{commit}"
+          BASE="$BASE" HEAD="$HEAD" python - <<'PY'
+          import os, subprocess
           allowed_prefixes=(
             "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/",
             "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/tests/",
@@ -48,10 +62,12 @@ jobs:
             ".github/workflows/lane-b-w2-s1-r143.yml",
             "coordination/CONTROL-TOWER/R143-RUNTIME-PR-BOOTSTRAP.yaml", # historical PR bootstrap only
           }
-          subprocess.run(["git","fetch","origin","main","--depth=2"],check=True)
-          base=subprocess.check_output(["git","merge-base","HEAD","origin/main"],text=True).strip()
-          paths=subprocess.check_output(["git","diff","--name-only",base,"HEAD"],text=True).splitlines()
+          base=os.environ["BASE"]
+          head=os.environ["HEAD"]
+          paths=subprocess.check_output(["git","diff","--name-only",base,head],text=True).splitlines()
           bad=[p for p in paths if p not in exact and not p.startswith(allowed_prefixes)]
+          print("EXACT_PR_BASE", base)
+          print("EXACT_PR_HEAD", head)
           print("CHANGED_PATHS", paths)
           if bad: raise SystemExit(f"OUT_OF_SCOPE_PATHS:{bad}")
           PY
@@ -125,7 +141,6 @@ jobs:
           ancestors=set(); cur=os.getpid()
           while cur and cur not in ancestors:
               ancestors.add(cur); cur=ppid(cur)
-          # Construct markers so the verifier source does not falsely classify its parent command line.
           markers=("GPT-LANE-B-W2-S1-"+"PIT-RULE-INVENTORY-REPLAY-GATE-R143", "lane-b-w2-s1-"+"r143")
           found=[]
           for proc in Path('/proc').iterdir():
