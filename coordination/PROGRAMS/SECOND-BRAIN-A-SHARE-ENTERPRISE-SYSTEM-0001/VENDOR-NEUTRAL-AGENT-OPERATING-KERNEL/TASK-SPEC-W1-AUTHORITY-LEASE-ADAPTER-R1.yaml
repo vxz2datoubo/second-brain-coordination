@@ -1,0 +1,55 @@
+schema_version: "1.0"
+record_type: "CandidateAdapterTaskSpec"
+task_spec_id: "W1-AUTHORITY-LEASE-ADAPTER-R1"
+status: "SPEC_ONLY_NOT_IMPLEMENTED"
+authority: "CANDIDATE_ONLY"
+owner:
+  workstream: "W1"
+  responsibilities:
+    - "AuthorityResolution"
+    - "active task lease"
+    - "approval evidence and completion acceptance"
+  must_not_own: ["knowledge memory", "provider routing", "model evaluation"]
+producer: "W1 governed runtime"
+consumers: ["PEOS/W10 protocol adapter", "W8 runtime adapter", "GPT acceptance"]
+input_contracts:
+  - "TaskIntent"
+  - "ACTIVE_ROUTE_LEASE"
+  - "PROJECT_CHARTER_HARD_RESTRICTIONS"
+  - "USER_SCOPE_AND_APPROVAL_REQUEST"
+  - "ApprovalEvidence"
+output_contracts:
+  - "AuthorityResolution"
+  - "LeaseDecision"
+  - "CompletionAcceptanceCandidate"
+allowed_paths:
+  rule: "intersection(canonical_owner_scope, active_lease_scope, approved_user_scope)"
+  empty_intersection: "BLOCKED_AUTHORITY_CONFLICT"
+allowed_actions:
+  rule: "route_and_charter_authorization_intersection_after_cumulative_denies"
+  denies: "monotonic_union; no allow can remove a hard deny"
+approval_requirements:
+  binding: ["task_id", "action", "approval_id", "nonce", "issued_at", "expires_at"]
+  anti_replay: "persist consumed approval_id and nonce; reject reuse"
+  expiry: "reject when observed_at >= expires_at"
+  invalid_scope: "reject cross-task, out-of-lease or out-of-path approval"
+negative_tests:
+  - "user allow cannot override canonical or route hard deny"
+  - "same-layer task conflict blocks without source-id tie breaking"
+  - "same-layer non-overlapping path conflict blocks"
+  - "empty path intersection blocks"
+  - "expired, replayed and cross-task approvals block"
+  - "capability and model profile cannot grant authority"
+dependencies:
+  - "AGENT-KERNEL-CONTRACTS"
+  - "W1 active lease registry"
+  - "GPT/W1 acceptance protocol"
+shared_interface_write_lock:
+  owner: "W1"
+  locked_objects: ["AuthorityResolution", "active lease", "approval ledger", "CompletionAcceptance"]
+  other_adapters: "read_only"
+rollback:
+  mode: "disable_adapter_and_retain_candidate_records"
+  restore: "revert adapter-only commit; no canonical state mutation"
+completion_signal: "W1_AUTHORITY_LEASE_ADAPTER_R1_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"

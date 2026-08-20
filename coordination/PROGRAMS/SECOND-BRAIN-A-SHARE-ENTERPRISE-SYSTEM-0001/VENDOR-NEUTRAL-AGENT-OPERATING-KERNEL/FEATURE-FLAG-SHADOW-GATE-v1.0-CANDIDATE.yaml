@@ -1,0 +1,40 @@
+schema_version: "1.0"
+record_type: "FeatureFlagShadowGate"
+gate_id: "K4-SHADOW-0-1-2-v1.0"
+status: "DISABLED_NOT_RUN"
+authority: "CANDIDATE_ONLY"
+purpose: "Define shadow observation gates without activation or production side effects."
+flags:
+  SHADOW_0:
+    meaning: "artifact and contract validation only"
+    default: "DISABLED"
+    side_effects: "none"
+  SHADOW_1:
+    meaning: "offline replay comparison against deterministic oracle"
+    default: "DISABLED"
+    required: ["point-in-time fixture", "frozen rules", "no external writes", "W1 lease"]
+  SHADOW_2:
+    meaning: "isolated observation in a non-production sandbox"
+    default: "DISABLED"
+    required: ["approved sandbox", "W8 side-effect ledger", "W9 calibration", "W1 acceptance"]
+promotion:
+  SHADOW_0_to_1: ["100% schema validity", "0 hard-boundary violations", "oracle parity >= 0.99"]
+  SHADOW_1_to_2: ["three independent replay slices", "no unresolved authority drift", "calibration report accepted"]
+  SHADOW_2_to_production: "NOT_DEFINED_AND_NOT_AUTHORIZED_BY_THIS_GATE"
+kill_conditions:
+  - "hard deny bypass"
+  - "path intersection expands"
+  - "approval disappears or is replayed"
+  - "unknown/conflict state is silently discarded"
+  - "private data, live account, order or trade path observed"
+  - "model output changes deterministic kernel authority"
+negative_tests:
+  - "enabled flag in a candidate file fails validation"
+  - "missing threshold or owner blocks promotion"
+  - "Shadow-1 cannot write canonical memory"
+  - "Shadow-2 cannot reach production or trading interfaces"
+rollback:
+  mode: "set all flags DISABLED and retain observation artifacts"
+  authority: "W1/GPT only; no runtime self-promotion"
+completion_signal: "K4_SHADOW_GATE_SPEC_READY_FOR_GPT_REVIEW"
+boundary: "PUBLIC_SAFE / CANDIDATE_ONLY / DISABLED / research_only / NO_TRADE"

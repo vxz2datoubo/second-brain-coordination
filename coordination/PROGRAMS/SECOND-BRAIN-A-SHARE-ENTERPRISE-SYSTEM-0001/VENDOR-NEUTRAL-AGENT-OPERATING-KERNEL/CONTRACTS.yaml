@@ -1,0 +1,225 @@
+schema_version: "1.0"
+proposal_id: "VENDOR-NEUTRAL-AGENT-OPERATING-KERNEL-PROPOSAL-0011"
+authority: "CANDIDATE_ONLY"
+implementation:
+  package: "src/vendor_neutral_agent_kernel"
+  aggregate_schema: "schemas/AgentKernelContracts.schema.json"
+
+common_meta:
+  required:
+    - schema_version
+    - object_id
+    - run_id
+    - trace_id
+    - created_at
+    - source_refs
+    - epistemic_status
+    - authority_class
+    - quality_status
+    - content_hash
+    - extensions
+  optional:
+    - supersedes
+    - rollback_ref
+
+epistemic_lanes:
+  - USER_ASSERTED
+  - USER_ADOPTED
+  - TOOL_OBSERVED
+  - INFERRED
+  - HYPOTHESIS
+  - DECISION
+  - OUTCOME
+  - UNKNOWN
+
+authority_layers:
+  hard_restrictions: "Cumulative denials; never overridden."
+  user_scope: "Objective, cancellation, narrowing, and approval request only."
+  active_route_lease: "W1 task, agent, branch, paths, actions, and WIP owner."
+  execution_feasibility: "Agent, Skill, tool, and model may restrict or describe only."
+
+contracts:
+  AuthorityResolution:
+    required:
+      - meta
+      - effective_task_id
+      - agent_id
+      - allowed_paths
+      - allowed_actions
+      - forbidden_actions
+      - approval_requirements
+      - verified_approval_actions
+      - conflicts
+      - resolution_evidence
+      - resolution_status
+      - authority_hash
+    invariants:
+      - "Allowed and forbidden actions are disjoint."
+      - "Allowed paths are an authorization-scope intersection."
+      - "Forbidden actions are a cumulative union."
+      - "Verified approvals can only originate from the active W1 route."
+      - "Same-layer contradictions fail closed and remain visible."
+      - "Input order does not change the authority hash."
+
+  TaskIntent:
+    required:
+      - meta
+      - objective
+      - explicit_requirements
+      - success_criteria
+      - non_goals
+      - unknowns
+      - reversibility
+      - side_effect_class
+      - evidence_budget
+      - time_budget_seconds
+      - autonomy_boundary
+
+  EpistemicClaim:
+    required:
+      - meta
+      - canonical_statement
+      - provenance_lane
+      - supporting_evidence
+      - opposing_evidence
+      - alternative_explanations
+      - confidence
+      - confidence_basis
+      - freshness
+      - invalidation_conditions
+      - review_after
+    invariants:
+      - "INFERRED and HYPOTHESIS require supporting evidence."
+      - "UNKNOWN requires confidence 0."
+      - "Revisions preserve the original and declare supersedes."
+
+  MemoryWriteProposal:
+    required:
+      - meta
+      - candidate_claims
+      - destination_scope
+      - source_provenance
+      - validation_status
+      - authority_write
+      - idempotency_key
+    constants:
+      authority_write: false
+
+  CapabilityDescriptor:
+    required:
+      - meta
+      - provider_id
+      - provider_display_name
+      - capability_id
+      - semantics
+      - field_semantics_version
+      - source_quality
+      - authority_fit
+      - freshness_ms
+      - reliability
+      - latency_ms
+      - quota_remaining
+      - cost_units
+      - side_effect_class
+      - availability
+      - failure_modes
+    invariants:
+      - "Provider display name cannot affect route score or decision hash."
+
+  ToolRouteDecision:
+    required:
+      - meta
+      - requested_capability
+      - required_semantics
+      - candidates
+      - selected_provider_id
+      - selected_capability_id
+      - fallback_order
+      - decision_hash
+    invariants:
+      - "Input order does not change selection or hash."
+      - "Unavailable, stale, over-cost, over-latency, or disallowed routes fail closed."
+
+  ExecutionCheckpoint:
+    required:
+      - meta
+      - intent_hash
+      - context_hash
+      - authority_hash
+      - completed_steps
+      - remaining_steps
+      - artifact_refs
+      - side_effect_ledger
+      - test_state
+      - resume_instructions
+      - external_anchors
+    invariants:
+      - "Side-effect idempotency keys are unique."
+      - "Authority and external-anchor drift both remain visible before resume."
+
+  CompletionReceipt:
+    required:
+      - meta
+      - requirement_evidence
+      - changed_files
+      - tests
+      - external_anchors
+      - unknowns
+      - findings
+      - rollback
+      - completion_status
+    invariants:
+      - "Narrow evidence cannot prove a broader requirement."
+      - "Unknowns and findings prevent SUCCESS_CLEAN."
+
+  AgentHandoff:
+    required:
+      - meta
+      - source_agent
+      - target_agent
+      - reviewer
+      - task_id
+      - owned_paths
+      - base
+      - parent
+      - tree
+      - head
+      - completed
+      - remaining
+      - tests
+      - unknowns
+      - rollback
+
+  ModelBehaviorProfile:
+    required:
+      - meta
+      - model_family
+      - model_version
+      - evaluated_at
+      - evaluation_refs
+      - task_strengths
+      - known_failure_modes
+      - verbosity_profile
+      - tool_use_profile
+      - verification_profile
+      - delegation_profile
+      - structured_output_profile
+      - effective_from
+      - review_after
+      - authority_overrides
+    constants:
+      authority_overrides: []
+
+side_effect_classes:
+  - READ_ONLY
+  - REVERSIBLE_LOCAL
+  - EXTERNAL_REVERSIBLE
+  - IRREVERSIBLE_OR_PRODUCTION
+
+completion_statuses:
+  - SUCCESS_CLEAN
+  - SUCCESS_WITH_FINDINGS
+  - PARTIAL
+  - BLOCKED
+  - FAILED
+  - NEEDS_APPROVAL
