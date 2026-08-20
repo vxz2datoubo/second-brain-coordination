@@ -1,0 +1,124 @@
+{
+  "adversarial_evidence": {
+    "fillability": {
+      "bar_only_limit": {
+        "abstain": true,
+        "observed_fact": false,
+        "state": "ORDER_FILLABILITY_UNKNOWN"
+      },
+      "conservative_no_fill": {
+        "observed_fact": false,
+        "state": "SCENARIO_ASSUMPTION_NO_FILL"
+      },
+      "evidence_backed": {
+        "observed_fact": true,
+        "state": "ORDER_FILLABILITY_EVIDENCE_CONFIRMED"
+      }
+    },
+    "receipt_hash": "201d01c2c79df837b4cfe9eac65342ce5e1b4be7b6410dc97cb252e3beca663e",
+    "retained": {
+      "commission": true,
+      "sh_transfer_fee": true,
+      "slippage": true,
+      "stamp_duty": true,
+      "zero_market_impact": "EXPLICIT_BASELINE_ASSUMPTION"
+    },
+    "schema_version": "1.0",
+    "t1": {
+      "multiple_lots": "PASS_REQUIRED",
+      "next_trading_day_unlock": "PASS_REQUIRED",
+      "old_settled_same_day_buy": "PASS_REQUIRED",
+      "partial_old_sale": "PASS_REQUIRED",
+      "weekend_holiday": "PASS_REQUIRED"
+    },
+    "task_id": "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143",
+    "temporal_session": {
+      "missing_snapshot": "FAIL_CLOSED",
+      "pre_effective": "FAIL_CLOSED",
+      "same_cutoff_deterministic": true,
+      "stale_rule_mutation": "STALE_RULE_MUTATION",
+      "superseded_interval": "FAIL_CLOSED",
+      "unsupported_session": "ABSTAIN"
+    }
+  },
+  "deterministic_replay": {
+    "payload": {
+      "authority": "W2/C2_A_SHARE_RULE_SNAPSHOT",
+      "fail_closed": [
+        "MISSING_SNAPSHOT",
+        "PRE_EFFECTIVE",
+        "SUPERSEDED_INTERVAL",
+        "STALE_RULE_MUTATION",
+        "UNSUPPORTED_MARKET",
+        "UNSUPPORTED_OR_UNKNOWN_SESSION",
+        "UNKNOWN_OR_NON_TRADING_CALENDAR_DAY"
+      ],
+      "fillability_vocabulary": [
+        "ORDER_FILLABILITY_UNKNOWN",
+        "ORDER_FILLABILITY_EVIDENCE_CONFIRMED",
+        "SCENARIO_ASSUMPTION_NO_FILL"
+      ],
+      "knowledge_cutoff": "2026-07-06T15:00:00+08:00",
+      "no_trade": true,
+      "reference_price_kinds": [
+        "OFFICIAL_PREVIOUS_CLOSE",
+        "EX_RIGHT_EX_DIVIDEND_REFERENCE"
+      ],
+      "research_only": true,
+      "retained_costs": [
+        "COMMISSION",
+        "STAMP_DUTY",
+        "SLIPPAGE",
+        "SH_TRANSFER_FEE"
+      ],
+      "rule_matrix": {
+        "BSE": "UNSUPPORTED_ABSTAIN",
+        "CHINEXT": "0.20",
+        "IPO_FIRST_5_TRADING_DAYS": "NO_PRICE_LIMIT",
+        "SSE_MAIN_RISK_POST": "0.10",
+        "SSE_MAIN_RISK_PRE": "0.05",
+        "STAR": "0.20",
+        "SZSE_MAIN_RISK_POST": "0.10",
+        "SZSE_MAIN_RISK_PRE": "0.05"
+      },
+      "t1_cases": [
+        "OLD_SETTLED_PLUS_SAME_DAY_BUY",
+        "PARTIAL_OLD_SALE",
+        "MULTIPLE_LOTS",
+        "NEXT_TRADING_DAY_UNLOCK",
+        "WEEKEND_NOT_UNLOCK"
+      ],
+      "task_id": "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143",
+      "zero_market_impact": "EXPLICIT_BASELINE_ASSUMPTION_NOT_ECONOMIC_VALIDATION"
+    },
+    "receipt_hash": "201d01c2c79df837b4cfe9eac65342ce5e1b4be7b6410dc97cb252e3beca663e"
+  },
+  "resource_cleanup": {
+    "local_validation": {
+      "cpu_bound_workers_max_observed": 1,
+      "heavy_stage_started": false,
+      "nested_parallelism": false,
+      "python": "3.13.5",
+      "result": "PASS",
+      "task_owned_python_process_cap": 2,
+      "tests_run": 79
+    },
+    "note": "The first naive marker scan matched the verifier ancestor shell itself; the corrected lineage-aware scan excluded the active harness ancestry and found zero task-owned orphans.",
+    "process_cleanup": {
+      "background_task_owned_python_after_validation": 0,
+      "global_kill_used": false,
+      "method": "lineage-aware /proc scan excluding verifier ancestor chain",
+      "task_owned_orphan_descendants": []
+    },
+    "schema_version": "1.0",
+    "scratch_state": "CLEAN_OF___pycache__",
+    "secret_scan": {
+      "hits": [],
+      "patterns": "high-confidence secret formats only",
+      "result": "PASS"
+    },
+    "task_id": "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+  },
+  "schema_version": "1.0",
+  "task_id": "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
+}
