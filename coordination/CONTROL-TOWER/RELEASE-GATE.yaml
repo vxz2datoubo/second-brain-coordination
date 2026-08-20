@@ -1,4 +1,4 @@
-schema_version: "1.5"
+schema_version: "1.6"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
@@ -6,19 +6,38 @@ architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 foundation_state: "FOUNDATION_READY"
-lane_release_state: "R143_RESERVATION_NON_EXECUTABLE"
-proposal_only_dry_run_result: "POST_R144_PREFLIGHT_PASS / R143_RESERVATION_ELIGIBLE"
-implementation_release_state: "R143_RESERVATION_ONLY / FINAL_ACTIVE_GATE_PENDING_RUNTIME_PR"
+lane_release_state: "R143_ACTIVE_IMPLEMENTATION"
+proposal_only_dry_run_result: "POST_R144_PREFLIGHT_PASS / R143_ACTIVE_GATE_ELIGIBLE"
+implementation_release_state: "R143_W2_S1_ACTIVE_ON_FINAL_GATE_CANONICAL"
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
+
+standing_user_engineering_authorization:
+  granted: true
+  granted_at: "2026-08-20T04:24:00+08:00"
+  source: "USER_CURRENT_EXPLICIT_DIRECTION"
+  user_statement: "以后不需要我授权，你直接操作即可"
+  scope: "ROUTINE_PROJECT_ENGINEERING_AND_CONTROL_PLANE_MERGES_AFTER_INDEPENDENT_EXACT_HEAD_ACCEPT"
+  prerequisites:
+    - "independent GPT exact-head ACCEPT"
+    - "required CI / validators / collision gates PASS"
+    - "no unresolved blocker"
+    - "merge expected_head_sha still equals independently reviewed head"
+    - "no scope or authority drift after review"
+  exclusions:
+    - "real trading / account / order / fund action"
+    - "secret or credential handling"
+    - "permission or visibility expansion"
+    - "destructive deletion or irreversible data loss"
+    - "major architecture change outside already approved task scope"
+  effect: >-
+    Within scope, GPT architecture authority may perform the routine merge and continue the governed engineering sequence without
+    requesting a new per-merge user confirmation. This standing authorization never waives independent review, exact-head binding,
+    CI, Control Tower, Signal Tower, NO_TRADE, or other safety gates.
 
 lane_specific_release_state:
   LANE-A-HARNESS-INTEGRATION:
     state: "SIGNAL_TOWER_ON_DEMAND / NO_ACTIVE_IMPLEMENTATION"
-    basis:
-      - "R144 implementation accepted and merged in PR #408"
-      - "R144 post-merge control-plane closeout independently accepted and merged in PR #409"
-      - "R144 closeout merge commit 12aab49dbffcd06214d6c5dae5917dff9b548595"
     runtime_write_allowed: false
     runtime_write_scope: []
     implementation_route_allowed: false
@@ -28,20 +47,20 @@ lane_specific_release_state:
     production_allowed: false
     trading_allowed: false
   LANE-B-A-SHARE-REMEDIATION:
-    state: "RESERVED_IMPLEMENTATION_NON_EXECUTABLE"
+    state: "ACTIVE_IMPLEMENTATION_ON_FINAL_GATE_CANONICAL"
     basis:
-      - "User release intent retained: 开始编程1 W2 第一切片。"
-      - "Fresh post-R144 Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
-      - "Fresh Control Tower O0-O4/WIP/resource/single-writer scan found no blocker"
-      - "Reservation PR #410 exact-binds 编程1 without granting runtime execution"
+      - "Reservation PR #410 independently accepted and merged as d62c027426c6c08a3d377c0a982160e47ad39eb1"
+      - "Real runtime Draft PR #411 created from post-reservation main"
+      - "Final ACTIVE gate PR #412 exact-binds worker slot and Work Claim to runtime PR #411"
+      - "Issue #404 remains open and bounded to one W2 business vertical slice"
     worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
-    reservation_pr: 410
-    reservation_branch: "gpt/r143-post-r144-fresh-activation"
-    runtime_write_allowed: false
-    implementation_route_allowed: false
-    reservation_allowed: true
-    final_activation_required: true
-    final_activation_requires_runtime_pr: true
+    runtime_pr: 411
+    runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+    final_active_gate_pr: 412
+    final_active_gate_branch: "gpt/r143-final-active-gate"
+    runtime_write_allowed: true
+    implementation_route_allowed: true
+    authority_effective_only_after_final_active_gate_is_canonical: true
     old_pr_405_reuse_allowed: false
     trading_allowed: false
     production_allowed: false
@@ -52,83 +71,64 @@ lane_specific_release_state:
     closure_issue: 335
     merged_pr: 334
 
-dry_run_receipt: "coordination/CONTROL-TOWER/DRY-RUN-RECEIPT.yaml"
 r143_post_r144_preflight_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
+r143_final_active_gate_receipt: "coordination/CONTROL-TOWER/R143-FINAL-ACTIVE-GATE-RECEIPT.yaml"
 
 build_validation:
   r144_implementation_merge: "d9734f2db3f039167f0e3e32933392ae5571de13"
   r144_closeout_merge: "12aab49dbffcd06214d6c5dae5917dff9b548595"
-  r143_preflight: "PASS_FOR_NON_EXECUTABLE_RESERVATION"
-  reservation_exact_head_ci: "REQUIRED_BEFORE_PR410_MERGE"
-  python_3_11: "REQUIRED"
-  python_3_13: "REQUIRED"
+  r143_reservation_merge: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+  r143_runtime_pr: 411
+  r143_final_active_gate_pr: 412
+  r143_preflight: "PASS"
+  python_3_11: "REQUIRED_ON_FINAL_ACTIVE_GATE_EXACT_HEAD"
+  python_3_13: "REQUIRED_ON_FINAL_ACTIVE_GATE_EXACT_HEAD"
   targeted_regressions: "REQUIRED"
-  repository_reconciliation: "REQUIRED_ON_EXACT_PR410_HEAD"
-  lane_work_claim_validation: "REQUIRED_ON_EXACT_PR410_HEAD"
-  worker_slot_validation: "REQUIRED_ON_EXACT_PR410_HEAD"
-  route_projection_check: "REQUIRED_ON_EXACT_PR410_HEAD"
-  work_claim_projection_check: "REQUIRED_ON_EXACT_PR410_HEAD"
-  durable_authorization_witness_round_trip: "REQUIRED_ON_EXACT_PR410_HEAD"
+  repository_reconciliation: "REQUIRED"
+  lane_work_claim_validation: "REQUIRED"
+  worker_slot_validation: "REQUIRED"
+  route_projection_check: "REQUIRED"
+  work_claim_projection_check: "REQUIRED"
+  lane_b_authorization_witness_round_trip: "REQUIRED"
 
 foundation_build_requires:
   - id: CT-F01-RECONCILIATION
-    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
-    requirement: "Current Program Lane observed state reconciles against latest agent routes and GPT worker registry."
+    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
+    requirement: "Current Program Lane observed state reconciles against routes and GPT worker registry."
   - id: CT-F02-STALE-VIEW
-    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
-    requirement: "Stale PR #405 and historical aggregate views cannot override current post-R144 main."
+    status: "PASS"
+    requirement: "Stale PR #405 cannot override current post-R144/post-reservation main."
   - id: CT-F03-COLLISION
-    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
-    requirement: "O0-O4 authority/path/interface classification has no reservation blocker."
+    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
+    requirement: "O0-O4 authority/path/interface classification has no active implementation blocker."
   - id: CT-F04-WIP
-    status: "PASS_PREFLIGHT / EXACT_HEAD_RECHECK_REQUIRED"
+    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
     requirement: "One A-share vertical slice maximum, one W2/C2 writer maximum and heavy-stage limits remain satisfied."
   - id: CT-F05-WORK-CLAIM
-    status: "RESERVATION_EXACT_BINDING_REQUIRED"
-    requirement: "Lane-B RESERVED_IMPLEMENTATION_NON_EXECUTABLE claim exactly matches GPT-WORKER-R143-PROGRAMMING-1."
+    status: "ACTIVE_EXACT_BINDING_REQUIRED"
+    requirement: "Lane-B ACTIVE_IMPLEMENTATION claim exactly matches GPT-WORKER-R143-PROGRAMMING-1 and runtime PR #411."
   - id: CT-F06-COMMIT-FRESHNESS
     status: "FRESH_WITNESS_REQUIRED"
-    requirement: >-
-      Authorization material fingerprints routes, strict worker authority, Work Claims, Program Lane state, release policy,
-      WIP/overlap policy and this Release Gate. Any material drift invalidates the witness.
+    requirement: "Authorization material must remain fresh on final gate exact head."
   - id: CT-F07-PROJECTION-AND-CI
     status: "EXACT_HEAD_RECHECK_REQUIRED"
-    requirement: "Machine-generated bulletin blocks and Python 3.11/3.13 exact-head CI pass."
+    requirement: "Machine projections and Python 3.11/3.13 final-gate CI pass."
   - id: CT-F08-RUNTIME-AUTHORITY
-    status: "NOT_GRANTED_BY_PR410"
-    requirement: "Reservation merge never implies runtime write authority; a separate runtime PR and final ACTIVE gate are required."
-
-proposal_only_release_requires:
-  - "foundation_state == FOUNDATION_READY"
-  - "current per-agent routes and Program Lane observations reconcile"
-  - "current LANE-WORK-CLAIMS validates PASS"
-  - "proposal-only lane has no Agent route or domain write authority"
-  - "proposal write path remains confined to isolated proposal root"
-  - "pairwise current-claim scan contains no O3/O4 blocker"
-  - "no same-agent double booking or heavy-resource collision"
-  - "user explicitly starts the lane; no automatic activation"
-
-reservation_release_requires:
-  - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
-  - "fresh Control Tower O0-O4/WIP/resource/same-writer scan"
-  - "one RESERVED GPT_ENGINEERING_WORKER slot with execution_allowed=false"
-  - "one exact RESERVED_IMPLEMENTATION_NON_EXECUTABLE Work Claim with identical slot surface"
-  - "exact Issue/PR/branch/task/epoch binding"
-  - "fresh authorization witness"
-  - "independent GPT exact-head review"
-  - "explicit user merge authorization"
+    status: "GRANTED_ONLY_ON_FINAL_GATE_CANONICAL"
+    requirement: "W2 runtime authority begins only after PR #412 is independently accepted and canonical on main."
 
 implementation_release_requires:
   - "reservation PR #410 accepted and merged"
-  - "real runtime Draft PR created from then-current main"
-  - "worker slot changed from RESERVED to ACTIVE and rebound to exact runtime PR/branch"
-  - "execution_allowed=true only together with a matching ACTIVE_IMPLEMENTATION Work Claim"
-  - "current route binding matches exact worker slot/task/epoch/issue/runtime PR/branch"
+  - "real runtime Draft PR #411 created from then-current main"
+  - "worker slot ACTIVE and rebound to exact runtime PR #411/branch"
+  - "execution_allowed=true together with matching ACTIVE_IMPLEMENTATION Work Claim"
+  - "route binding matches exact worker slot/task/epoch/issue/runtime PR/branch"
   - "fresh O0-O4 scan has no unresolved O3/O4 collision"
   - "no second W2/C2 authority or same-object writer"
   - "no same-agent double booking or heavy-resource collision"
-  - "fresh durable authorization witness immediately before durable runtime write"
-  - "independent GPT review and explicit user merge authorization of the final active gate"
+  - "fresh durable Lane-B authorization witness"
+  - "independent GPT exact-head review of final active gate"
+  - "standing user engineering authorization prerequisites remain satisfied at merge time"
 
 historical_release_contracts:
   r133_h1:
@@ -136,29 +136,30 @@ historical_release_contracts:
     issue: 338
     route_epoch: 133
     task_id: "CODEX-COGNITIVE-OS-H1-CONTRACT-SYNTHETIC-SKELETON"
-    note: "Retained as history only; it does not authorize current Lane-A execution."
   r144_gpt_worker_foundation:
     status: "ACCEPTED_MERGED_CLOSED"
     issue: 406
     route_epoch: 144
     implementation_pr: 408
     closeout_pr: 409
+  r143_reservation:
+    status: "ACCEPTED_MERGED_NON_EXECUTABLE"
+    issue: 404
+    reservation_pr: 410
+    merge_commit: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
 
 forbidden_effects:
-  - "No automatic R143 runtime start."
-  - "No runtime write from reservation PR #410."
-  - "No reuse or merge of stale PR #405 as current activation."
-  - "No H2 Harness runtime release."
+  - "No runtime write before final active gate PR #412 is canonical."
+  - "No reuse or merge of stale PR #405 as current authority."
   - "No second AShareRuleSnapshot authority."
   - "No W3 or Signal Tower runtime mutation."
   - "No private-data ingestion or publication."
   - "No production scheduler/gateway deployment."
-  - "No permission/visibility changes."
+  - "No secret/permission expansion."
   - "No account/order/fund/trading action."
-  - "No automatic Formal Skill promotion."
   - "No executor self-review or self-merge."
 
 current_disposition: >-
-  R144 implementation and closeout are canonical. Fresh post-R144 preflight found R143 eligible only for a non-executable reservation.
-  PR #410 reserves the single bounded W2/C2 work surface for 编程1 but grants no runtime write authority. After reservation merge, a
-  real runtime Draft PR and a separate exact final ACTIVE gate are required before 编程1 may modify W2 runtime.
+  R143 reservation is canonical and runtime Draft PR #411 exists. Final ACTIVE gate PR #412 is the only candidate that may convert
+  the reserved 编程1 lease into ACTIVE_IMPLEMENTATION. Candidate ACTIVE fields are non-authoritative until PR #412 is independently
+  accepted and merged to main. Once canonical, 编程1 must fresh-read main and the exact route/claim/slot/witness before beginning G0.

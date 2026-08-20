@@ -26,10 +26,10 @@ worker_slots:
     task_id: "GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143"
     route_epoch: 143
     issue: 404
-    pr: 410
-    branch: "gpt/r143-post-r144-fresh-activation"
-    status: "RESERVED_NON_EXECUTABLE"
-    execution_allowed: false
+    pr: 411
+    branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+    status: "ACTIVE_IMPLEMENTATION"
+    execution_allowed: true
     completion_signal: "LANE_B_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE_READY_FOR_GPT_REVIEW"
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/PHASE-2-OFFLINE-VERTICAL-SLICE/src/offline_research/**"
@@ -51,16 +51,20 @@ worker_slots:
     write_domains: [W2]
     authority_claims:
       - "C2_A_SHARE_RULE_SNAPSHOT_SINGLE_WRITER"
-    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION_RESERVATION"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
     provenance:
-      source: "GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION"
-      receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
-      canonical_main: "12aab49dbffcd06214d6c5dae5917dff9b548595"
-      user_release: "2026-08-19 explicit: 开始编程1 W2 第一切片。"
-      intended_window: "编程1"
+      source: "R143-FINAL-ACTIVE-GATE-0001"
+      receipt: "coordination/CONTROL-TOWER/R143-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+      canonical_main_before_gate: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
       reservation_pr: 410
-      reservation_only: true
+      reservation_merge: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+      runtime_pr: 411
+      runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
+      final_active_gate_pr: 412
+      final_active_gate_branch: "gpt/r143-final-active-gate"
+      authority_effective_only_when_final_gate_is_canonical_main: true
+      intended_window: "编程1"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
-    activation_state: "RESERVED"
+    activation_state: "ACTIVE"
     closure_state: null
