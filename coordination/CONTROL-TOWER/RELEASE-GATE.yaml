@@ -1,4 +1,4 @@
-schema_version: "1.6"
+schema_version: "1.7"
 gate_id: "PROGRAM-CONTROL-TOWER-FOUNDATION-RELEASE-0001"
 issue: 310
 owner: "USER"
@@ -6,9 +6,9 @@ architecture_owner: "GPT"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 foundation_state: "FOUNDATION_READY"
-lane_release_state: "R143_ACTIVE_IMPLEMENTATION"
-proposal_only_dry_run_result: "POST_R144_PREFLIGHT_PASS / R143_ACTIVE_GATE_ELIGIBLE"
-implementation_release_state: "R143_W2_S1_ACTIVE_ON_FINAL_GATE_CANONICAL"
+lane_release_state: "NO_ACTIVE_IMPLEMENTATION"
+proposal_only_dry_run_result: "R143_RUNTIME_ACCEPTED_MERGED / POST_MERGE_CLOSEOUT_CANDIDATE"
+implementation_release_state: "R143_W2_S1_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED_BY_CLOSEOUT_CANDIDATE"
 automatic_lane_release: false
 passing_ci_does_not_release_lanes: true
 
@@ -47,24 +47,26 @@ lane_specific_release_state:
     production_allowed: false
     trading_allowed: false
   LANE-B-A-SHARE-REMEDIATION:
-    state: "ACTIVE_IMPLEMENTATION_ON_FINAL_GATE_CANONICAL"
+    state: "R143_W2_S1_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
     basis:
       - "Reservation PR #410 independently accepted and merged as d62c027426c6c08a3d377c0a982160e47ad39eb1"
-      - "Real runtime Draft PR #411 created from post-reservation main"
-      - "Final ACTIVE gate PR #412 exact-binds worker slot and Work Claim to runtime PR #411"
-      - "Issue #404 remains open and bounded to one W2 business vertical slice"
-    worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
+      - "Final ACTIVE gate PR #412 exact-bound the R143 worker slot and Work Claim"
+      - "Runtime PR #411 independently accepted on exact head 9626e4473744247b1e209299c8896d07457f359b"
+      - "Independent Review #4984787833 found zero blockers and closed F01/F02/F03"
+      - "Runtime PR #411 merged as 4423349b6154986b74b6f172d7e01643f8bd46f9"
+      - "Post-merge closeout candidate releases the worker slot, Work Claim and executable route"
+    worker_slot_id: null
     runtime_pr: 411
-    runtime_branch: "gpt/lane-b-w2-s1-pit-rule-inventory-replay-gate"
-    final_active_gate_pr: 412
-    final_active_gate_branch: "gpt/r143-final-active-gate"
-    runtime_write_allowed: true
-    implementation_route_allowed: true
-    authority_effective_only_after_final_active_gate_is_canonical: true
+    runtime_merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
+    accepted_exact_head: "9626e4473744247b1e209299c8896d07457f359b"
+    independent_final_review: 4984787833
+    runtime_write_allowed: false
+    implementation_route_allowed: false
     old_pr_405_reuse_allowed: false
     trading_allowed: false
     production_allowed: false
     private_data_allowed: false
+    reopen_rule: "NEW_GOVERNED_TASK + FRESH_SIGNAL_TOWER_PREFLIGHT + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
   LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP:
     state: "CLOSED_WITH_BOUNDED_GAPS"
     active_implementation_lease: false
@@ -73,61 +75,64 @@ lane_specific_release_state:
 
 r143_post_r144_preflight_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R143-POST-R144-ACTIVATION.yaml"
 r143_final_active_gate_receipt: "coordination/CONTROL-TOWER/R143-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+r143_closeout_receipt: "coordination/CONTROL-TOWER/R143-W2-S1-CLOSURE-RECONCILIATION.yaml"
 
 build_validation:
   r144_implementation_merge: "d9734f2db3f039167f0e3e32933392ae5571de13"
   r144_closeout_merge: "12aab49dbffcd06214d6c5dae5917dff9b548595"
   r143_reservation_merge: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
   r143_runtime_pr: 411
-  r143_final_active_gate_pr: 412
-  r143_preflight: "PASS"
-  python_3_11: "REQUIRED_ON_FINAL_ACTIVE_GATE_EXACT_HEAD"
-  python_3_13: "REQUIRED_ON_FINAL_ACTIVE_GATE_EXACT_HEAD"
-  targeted_regressions: "REQUIRED"
-  repository_reconciliation: "REQUIRED"
-  lane_work_claim_validation: "REQUIRED"
-  worker_slot_validation: "REQUIRED"
-  route_projection_check: "REQUIRED"
-  work_claim_projection_check: "REQUIRED"
-  lane_b_authorization_witness_round_trip: "REQUIRED"
+  r143_runtime_accepted_head: "9626e4473744247b1e209299c8896d07457f359b"
+  r143_runtime_final_review: 4984787833
+  r143_runtime_merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
+  r143_dedicated_ci: 32383780651
+  r143_control_tower_ci: 32383780654
+  r143_phase3_compatibility_ci: 32383780746
+  r143_deterministic_receipt_hash: "a874f9fb3f02e8ed5fa0d5c3094c40c9950ba95f32acad4d636645807100e9ae"
+  python_3_11: "PASS_ON_ACCEPTED_EXACT_HEAD"
+  python_3_13: "PASS_ON_ACCEPTED_EXACT_HEAD"
+  targeted_regressions: "PASS"
+  repository_reconciliation: "PASS"
+  lane_work_claim_validation: "PASS_BEFORE_RUNTIME_MERGE / CLOSEOUT_RECHECK_REQUIRED"
+  worker_slot_validation: "PASS_BEFORE_RUNTIME_MERGE / CLOSEOUT_RECHECK_REQUIRED"
+  route_projection_check: "PASS_BEFORE_RUNTIME_MERGE / CLOSEOUT_RECHECK_REQUIRED"
+  work_claim_projection_check: "PASS_BEFORE_RUNTIME_MERGE / CLOSEOUT_RECHECK_REQUIRED"
+  lane_b_authorization_witness_round_trip: "PASS_BEFORE_RUNTIME_MERGE / NO_ACTIVE_WITNESS_AFTER_CLOSEOUT"
 
 foundation_build_requires:
   - id: CT-F01-RECONCILIATION
-    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
-    requirement: "Current Program Lane observed state reconciles against routes and GPT worker registry."
+    status: "CLOSEOUT_RECHECK_REQUIRED"
+    requirement: "Current Program Lane observed state reconciles against routes and GPT worker registry after R143 merge."
   - id: CT-F02-STALE-VIEW
     status: "PASS"
-    requirement: "Stale PR #405 cannot override current post-R144/post-reservation main."
+    requirement: "Stale PR #405 cannot override current canonical R143 history."
   - id: CT-F03-COLLISION
-    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
-    requirement: "O0-O4 authority/path/interface classification has no active implementation blocker."
+    status: "CLOSEOUT_RECHECK_REQUIRED"
+    requirement: "O0-O4 authority/path/interface classification has no active implementation blocker after lease release."
   - id: CT-F04-WIP
-    status: "FINAL_ACTIVE_GATE_RECHECK_REQUIRED"
-    requirement: "One A-share vertical slice maximum, one W2/C2 writer maximum and heavy-stage limits remain satisfied."
+    status: "CLOSEOUT_RECHECK_REQUIRED"
+    requirement: "No A-share implementation slice or W2/C2 writer remains active after closeout."
   - id: CT-F05-WORK-CLAIM
-    status: "ACTIVE_EXACT_BINDING_REQUIRED"
-    requirement: "Lane-B ACTIVE_IMPLEMENTATION claim exactly matches GPT-WORKER-R143-PROGRAMMING-1 and runtime PR #411."
+    status: "CLOSED_NO_ACTIVE_IMPLEMENTATION_REQUIRED"
+    requirement: "Lane-B Work Claim is closed and exposes no runtime write surface."
   - id: CT-F06-COMMIT-FRESHNESS
-    status: "FRESH_WITNESS_REQUIRED"
-    requirement: "Authorization material must remain fresh on final gate exact head."
+    status: "NO_ACTIVE_WITNESS_AFTER_CLOSEOUT"
+    requirement: "A future successor must create a fresh authorization witness; the R143 witness is historical only."
   - id: CT-F07-PROJECTION-AND-CI
-    status: "EXACT_HEAD_RECHECK_REQUIRED"
-    requirement: "Machine projections and Python 3.11/3.13 final-gate CI pass."
+    status: "CLOSEOUT_EXACT_HEAD_RECHECK_REQUIRED"
+    requirement: "Machine projections and Python 3.11/3.13 closeout CI pass before merge."
   - id: CT-F08-RUNTIME-AUTHORITY
-    status: "GRANTED_ONLY_ON_FINAL_GATE_CANONICAL"
-    requirement: "W2 runtime authority begins only after PR #412 is independently accepted and canonical on main."
+    status: "R143_HISTORY_ONLY / NO_CURRENT_RUNTIME_WRITE"
+    requirement: "R143 W2 runtime implementation is canonical history; no current R143 execution authority remains."
 
 implementation_release_requires:
-  - "reservation PR #410 accepted and merged"
-  - "real runtime Draft PR #411 created from then-current main"
-  - "worker slot ACTIVE and rebound to exact runtime PR #411/branch"
-  - "execution_allowed=true together with matching ACTIVE_IMPLEMENTATION Work Claim"
-  - "route binding matches exact worker slot/task/epoch/issue/runtime PR/branch"
+  - "fresh Signal Tower GLOBAL_SHALLOW + DELTA + TARGETED_DEEP preflight"
+  - "fresh exact Work Claim and route binding"
+  - "fresh GPT Engineering Worker slot when GPT worker executes"
   - "fresh O0-O4 scan has no unresolved O3/O4 collision"
   - "no second W2/C2 authority or same-object writer"
-  - "no same-agent double booking or heavy-resource collision"
-  - "fresh durable Lane-B authorization witness"
-  - "independent GPT exact-head review of final active gate"
+  - "fresh durable authorization witness"
+  - "independent GPT exact-head review before any successor merge"
   - "standing user engineering authorization prerequisites remain satisfied at merge time"
 
 historical_release_contracts:
@@ -147,9 +152,17 @@ historical_release_contracts:
     issue: 404
     reservation_pr: 410
     merge_commit: "d62c027426c6c08a3d377c0a982160e47ad39eb1"
+  r143_w2_s1_runtime:
+    status: "ACCEPTED_MERGED / CLOSEOUT_PENDING_INDEPENDENT_REVIEW"
+    issue: 404
+    route_epoch: 143
+    runtime_pr: 411
+    accepted_exact_head: "9626e4473744247b1e209299c8896d07457f359b"
+    final_review: 4984787833
+    merge_commit: "4423349b6154986b74b6f172d7e01643f8bd46f9"
 
 forbidden_effects:
-  - "No runtime write before final active gate PR #412 is canonical."
+  - "No automatic successor release after R143 completion."
   - "No reuse or merge of stale PR #405 as current authority."
   - "No second AShareRuleSnapshot authority."
   - "No W3 or Signal Tower runtime mutation."
@@ -160,6 +173,6 @@ forbidden_effects:
   - "No executor self-review or self-merge."
 
 current_disposition: >-
-  R143 reservation is canonical and runtime Draft PR #411 exists. Final ACTIVE gate PR #412 is the only candidate that may convert
-  the reserved 编程1 lease into ACTIVE_IMPLEMENTATION. Candidate ACTIVE fields are non-authoritative until PR #412 is independently
-  accepted and merged to main. Once canonical, 编程1 must fresh-read main and the exact route/claim/slot/witness before beginning G0.
+  R143 W2 S1 runtime is independently accepted and merged to canonical main as 4423349b6154986b74b6f172d7e01643f8bd46f9.
+  The only remaining R143 action is bounded post-merge control-plane closeout: release the GPT worker slot, Lane-B Work Claim and
+  executable route, preserve the accepted runtime as history, and require a fresh Signal Tower + Control Tower release for any successor.
