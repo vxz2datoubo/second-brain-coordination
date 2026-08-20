@@ -1,10 +1,10 @@
-schema_version: "3.18"
+schema_version: "3.19"
 registry_id: "AI-SYSTEM-PARALLEL-PROGRAM-LANES-0001"
 control_tower_issue: 310
 owner: "USER"
 architecture_owner: "GPT"
 status: "ACTIVE_CANDIDATE_CONTROL_VIEW"
-as_of: "2026-08-20T04:30:00+08:00"
+as_of: "2026-08-21T00:29:00+08:00"
 boundary: "GOVERNANCE_AND_OBSERVABILITY / NO_TRADE"
 
 authority_role: >-
@@ -31,19 +31,20 @@ portfolio_capacity_policy:
   same_canonical_object_writers_max: 1
   nested_parallelism: "FORBIDDEN"
   additional_rule: >-
-    R144 is closed and non-executable. R143 reservation PR #410 is independently accepted and merged. Real runtime Draft PR #411 exists.
-    Final ACTIVE gate PR #412 exact-binds one GPT Engineering Worker slot and one Lane-B W2/C2 writer surface to runtime PR #411.
-    Signal Tower remains normal ON_DEMAND and never gains W2 write authority.
+    R144 is closed and non-executable. R143 W2 S1 runtime PR #411 was independently accepted on exact head
+    9626e4473744247b1e209299c8896d07457f359b and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
+    This closeout candidate releases the R143 GPT Engineering Worker slot and Lane-B W2/C2 writer surface. Signal Tower remains
+    normal ON_DEMAND and never gains W2 write authority. Any successor slice requires a fresh governed release.
 
 current_user_release_policy:
-  decision_at: "2026-08-20T04:24:00+08:00"
-  decision: "R143_FINAL_ACTIVE_GATE_CANDIDATE / RUNTIME_PR_411_BOUND / STANDING_ROUTINE_ENGINEERING_MERGE_AUTHORIZATION"
+  decision_at: "2026-08-21T00:29:00+08:00"
+  decision: "R143_RUNTIME_ACCEPTED_MERGED / POST_MERGE_CONTROL_PLANE_CLOSEOUT / NO_ACTIVE_IMPLEMENTATION"
   rationale: >-
-    R143 reservation PR #410 was independently accepted and merged as d62c027426c6c08a3d377c0a982160e47ad39eb1. A real runtime Draft PR #411
-    was then created from that canonical main. User also explicitly granted standing authority for GPT to continue routine project engineering
-    operations without a new per-merge prompt, while high-risk trading/funds/secrets/permissions/deletion/major-architecture actions remain excluded.
-  released_implementation_lanes:
-    - "LANE-B-A-SHARE-REMEDIATION"
+    Independent Review 4984787833 accepted exact R143 runtime head 9626e4473744247b1e209299c8896d07457f359b with zero blockers.
+    PR #411 merged as 4423349b6154986b74b6f172d7e01643f8bd46f9 under the standing routine engineering authorization. Runtime merge
+    does not itself release an execution lease, so the stale R143 worker slot, Lane-B Work Claim and executable route are being
+    closed in a separate bounded control-plane closeout. No successor task is automatically released.
+  released_implementation_lanes: []
   prepared_implementation_lanes: []
   held_lanes: []
   release_owner: "USER_CURRENT_EXPLICIT_DIRECTION + GPT_GOVERNED_ENGINEERING_AUTHORITY"
@@ -82,8 +83,13 @@ current_user_release_policy:
   r143_runtime_bootstrap_head: "1145566dc6f8a2f2bd052093557799c483e96053"
   r143_final_active_gate_pr: 412
   r143_final_active_gate_branch: "gpt/r143-final-active-gate"
-  r143_user_release: "ACTIVE_GATE_CANDIDATE"
-  r143_runtime_status: "ACTIVE_IMPLEMENTATION_ONLY_WHEN_FINAL_GATE_412_IS_CANONICAL"
+  r143_accepted_head: "9626e4473744247b1e209299c8896d07457f359b"
+  r143_final_review: 4984787833
+  r143_runtime_merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
+  r143_closeout_pr: 414
+  r143_closeout_receipt: "coordination/CONTROL-TOWER/R143-W2-S1-CLOSURE-RECONCILIATION.yaml"
+  r143_user_release: "RUNTIME_ACCEPTED_MERGED"
+  r143_runtime_status: "IMPLEMENTATION_ACCEPTED_MERGED / CLOSEOUT_PENDING_INDEPENDENT_REVIEW / NO_ACTIVE_EXECUTOR_AFTER_CLOSEOUT"
   qclaw_r60_issue: 296
   qclaw_r60_pr: 304
   qclaw_r60_route_epoch: 60
@@ -137,12 +143,12 @@ observed_agent_state:
     observation_status: "R144_DONE_HISTORICAL / EXECUTION_LEASE_RELEASED"
   GPT_ENGINEERING_WORKER:
     source: "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
-    observed_status: "ACTIVE_IMPLEMENTATION"
-    execution_allowed: true
-    observed_worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
-    observed_issue: 404
-    observed_pr: 411
-    observation_status: "R143_W2_S1 / FINAL_ACTIVE_GATE_PR_412_CANDIDATE"
+    observed_status: "NO_ACTIVE_SLOT"
+    execution_allowed: false
+    observed_worker_slot_id: null
+    observed_issue: null
+    observed_pr: null
+    observation_status: "R143_RUNTIME_ACCEPTED_MERGED / EXECUTION_LEASE_RELEASED_BY_CLOSEOUT_CANDIDATE"
   QCLAW:
     source: "coordination/ACTIVE-QCLAW-TASK.yaml"
     observed_task_id: "QCLAW-P2-RETRIEVAL-ADVERSARIAL-BENCHMARK-R60"
@@ -166,7 +172,7 @@ signal_tower_operating_contract:
   normal_mode: "ON_DEMAND / EVENT_OR_TASK_RELEASE_DRIVEN"
   capture: >-
     Explicit durable signals use the accepted Signal Tower admission/projection path. Signal is not automatically a task.
-    R143 W2 execution never grants Signal Tower write authority.
+    R143 completion and closeout never grant Signal Tower W2 write authority.
   mandatory_before_formal_task_release:
     - "GLOBAL_SHALLOW"
     - "DELTA"
@@ -214,24 +220,23 @@ program_lanes:
     owner: "USER"
     architecture_owner: "GPT"
     desired_state: "ACTIVE"
-    observed_state: "W2_S1_R143_ACTIVE_IMPLEMENTATION_ON_FINAL_GATE_CANONICAL"
+    observed_state: "R143_W2_S1_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
     primary_system_positions: [W2, W3, W4, W5, W7, W9, W10, W11, W12, W13]
-    current_phase: "R143_W2_S1_PIT_RULE_INVENTORY_REPLAY_GATE"
-    active_execution_route: "coordination/ROUTES/GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143.yaml"
+    current_phase: "R143_W2_S1_DONE_HISTORICAL / AWAIT_NEW_GOVERNED_SUCCESSOR"
+    active_execution_route: null
     dependencies:
       - "R144 first-class GPT Engineering Worker support accepted and merged"
-      - "R144 post-merge closeout merged"
       - "R143 reservation PR #410 accepted and merged"
-      - "Runtime Draft PR #411 exists from post-reservation main"
-      - "Final ACTIVE gate #412 exact-binds slot/claim/route to runtime PR #411"
-      - "Fresh O0-O4/WIP/resource scan and Lane-B authorization witness"
-      - "PIT/T+1/W7/NO_TRADE gates"
+      - "R143 final ACTIVE gate #412 accepted and merged"
+      - "R143 runtime PR #411 independently accepted at exact head 9626e4473744247b1e209299c8896d07457f359b"
+      - "R143 runtime PR #411 merged as 4423349b6154986b74b6f172d7e01643f8bd46f9"
+      - "Post-merge closeout requires independent exact-head review before canonicalization"
     shared_interfaces: ["W2 A-share data/rules", "W3 knowledge/context", "W7 validation/risk", "W10 DecisionEpisode"]
-    next_gate: "FINAL_ACTIVE_GATE_ACCEPT_AND_CANONICAL_THEN_EXECUTOR_G0"
-    maturity: "MASTER_AUDIT_ACCEPTED_MERGED / W2_S1_ACTIVE_GATE"
+    next_gate: "SIGNAL_TOWER_ON_DEMAND_OR_NEW_GOVERNED_TASK_RELEASE"
+    maturity: "W2_S1_ACCEPTED_MERGED / NO_ACTIVE_IMPLEMENTATION"
     heavy_execution_authorized: false
-    implementation_owner: "GPT_ENGINEERING_WORKER"
-    implementation_owner_candidate: "GPT_ENGINEERING_WORKER"
+    implementation_owner: null
+    implementation_owner_candidate: null
 
   - lane_id: "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"
     mission: "Preserve the completed Second Brain × GPT cognitive closed-loop foundation as a frozen reusable authority boundary."
@@ -250,9 +255,10 @@ program_lanes:
 
 cross_lane_overlap_matrix:
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-B-A-SHARE-REMEDIATION"]
-    overlap_level: "O2_SIGNAL_TOWER_READ_ONLY_VS_W2_WRITER"
+    overlap_level: "O1_READ_ONLY_COEXISTENCE"
     rule: >-
-      Lane-A normal Signal Tower operation may observe/reconcile but cannot mutate Lane-B W2/C2 authority or runtime. Lane-B has the single writer.
+      Lane-A Signal Tower and completed Lane-B R143 history may be observed together. Neither lane has an active R143 runtime writer;
+      a successor W2 writer requires a new governed Work Claim and authorization witness.
   - pair: ["LANE-A-HARNESS-INTEGRATION", "LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP"]
     overlap_level: "O2_FROZEN_INTERFACE_CONSUMPTION"
     rule: "Signal Tower may consume frozen W3/domain interfaces but cannot mutate W3/domain canonical truth."
@@ -261,6 +267,6 @@ cross_lane_overlap_matrix:
     rule: "Lane-B may read frozen W3/W10 context but holds no W3/W10 write authority."
 
 reconciliation_rule: >-
-  R144 is historical/non-executable. R143 reservation is merged, runtime Draft PR #411 exists, and final ACTIVE gate #412 is the only
-  authority transition candidate. Once #412 is independently accepted and canonical, exactly one GPT Engineering Worker slot may write
-  the bounded W2 S1 surface; Signal Tower remains ON_DEMAND and read-only with respect to Lane-B runtime.
+  R144 and R143 W2 S1 are historical/non-executable after their governed closeouts. R143 runtime PR #411 is canonical at merge
+  4423349b6154986b74b6f172d7e01643f8bd46f9, but no worker slot, Work Claim or executable R143 route remains after this closeout.
+  Signal Tower stays ON_DEMAND; any future Lane-B implementation requires a new formal task-release preflight and fresh execution authority.
