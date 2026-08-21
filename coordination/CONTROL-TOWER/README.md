@@ -22,7 +22,7 @@ Source precedence remains:
 - `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
 - `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation (see below).
 - `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `path_action_constraints.py`: reconciles exact-path action restrictions across Worker / Work Claim / Route, validates actual Git diff actions, and can enforce a governed transition baseline/final-state proof so a narrow delete-only cleanup cannot silently become generic modify/create authority or history replacement.
+- `path_action_constraints.py`: reconciles exact-path action restrictions across Worker / Work Claim / Route, validates Git diff actions, and can enforce a governed baseline/final-state transition proof.
 - `authorization_witness.py`: fingerprints route + strict worker authority material + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
 - `PROGRAM-CONTROL-TOWER.md`: human projection only; its generated blocks are checked by CI.
 
@@ -40,8 +40,6 @@ R144 R3 makes the execution-identity schema type-strict. Once the Program capaci
 
 A path listed in `write_paths` normally means the active authority may mutate that surface subject to the rest of the Control Tower contract. When authority is intentionally narrower than generic write, the same exact constraint must be declared by the Worker slot, its Work Claim and the bound Route.
 
-Canonical shape:
-
 ```yaml
 path_action_constraints:
   - path: path/to/exact/file
@@ -50,11 +48,9 @@ path_action_constraints:
     required_final_state: "ABSENT"
 ```
 
-The Route carries the same entry under `write_scope.exact_action_constraints`. `path_action_constraints.py` requires Worker / Work Claim / Route execution identity, write surface and action semantics to agree exactly. Constrained paths must be exact, not wildcard patterns, and a broader write pattern may not cover a constrained exact path because that would bypass the narrow action rule.
+The Route carries the same entry under `write_scope.exact_action_constraints`. The validator requires Worker / Work Claim / Route execution identity, write surface, allowed actions, baseline and final state to agree exactly. Constrained paths must be exact, and no broader write pattern may cover a constrained exact path.
 
-For PR enforcement, the validator reads `git diff --name-status -M <base> <head>` and maps actual file operations to `CREATE`, `MODIFY` or `DELETE`. Rename/copy/unknown status is fail-closed unless a future reviewed contract explicitly models it. Therefore a `DELETE`-only path rejects creation, content modification and rename even when the path remains present in the ordinary `write_paths` collision surface.
-
-When `transition_baseline_sha` is declared, the validator can additionally require that the baseline commit exists, remains an ancestor of the governed runtime head, actually contains the constrained path, and that the required final state is met. For a baseline-present + final-ABSENT DELETE-only cleanup, the net baseline→head transition must be exactly one `DELETE`. Missing/stale baselines fail closed as structured findings; they are never treated as permission to fall back or rewrite history. A task-specific workflow may enable this transition mode only on the governed runtime PR while still validating the same contract on its preceding scope-amendment PR.
+For PR enforcement, `git diff --name-status -M` maps operations to `CREATE`, `MODIFY` or `DELETE`; rename/copy/unknown operations fail closed unless a future reviewed contract explicitly models them. With transition mode enabled, the baseline commit must exist and remain an ancestor, the baseline path must exist, the required final state must hold, and a baseline-present→final-ABSENT DELETE-only cleanup must resolve as exactly one net DELETE. Unavailable/stale baselines produce structured failures rather than exceptions or fallback authority.
 
 ## Corrective maintenance/adoption authority
 
@@ -84,67 +80,26 @@ A Program Lane cannot gain durable runtime-write permission merely because a cha
 
 - `ACTIVE_IMPLEMENTATION` requires an exact current Agent route binding and explicit write paths/interfaces/authority surface.
 - `HELD_PROPOSAL_ONLY` reserves no Agent route and may write only inside the lane's isolated proposal root.
-- `CLOSED_NO_ACTIVE_IMPLEMENTATION` represents a completed lane stage with **no current execution lease**. It requires:
-  - `execution_agent: null`;
-  - no route binding;
-  - no current read/write/interface/domain/authority work surface;
-  - a durable `closure_receipt` preserving the completed evidence.
-- Moving from proposal-only to implementation requires a new Work Claim and a fresh O0-O4 scan.
-- Reopening a closed lane is also a **new authorization event**: create a new per-agent route, replace the closed claim with a bounded `ACTIVE_IMPLEMENTATION` claim, rescan O0-O4/WIP and create a fresh witness.
+- `CLOSED_NO_ACTIVE_IMPLEMENTATION` represents a completed lane stage with **no current execution lease**. It requires `execution_agent: null`, no route binding, no current work surface, and a durable closure receipt.
+- Moving from proposal-only to implementation or reopening a closed lane requires a new authorization event, fresh Work Claim, O0-O4/WIP scan and witness.
 - No Work Claim means no durable runtime write.
-
-`CLOSED_NO_ACTIVE_IMPLEMENTATION` exists so the Control Tower can represent normal completion truthfully. A completed implementation must not remain `ACTIVE_IMPLEMENTATION`, and a completed lane must not be disguised as `HELD_PROPOSAL_ONLY` merely to satisfy the validator.
 
 ## Durable authorization witness
 
-A route check only protects task identity. The full authorization witness additionally binds:
-
-- current route fingerprint;
-- strict raw GPT worker registry/slot authority material and structural state;
-- bounded corrective maintenance/adoption authority when present;
-- current Work Claim;
-- current Program Lane state;
-- user release/hold policy;
-- WIP/resource policy;
-- relevant cross-lane overlap declarations;
-- current Release Gate state.
-
-For a closed claim, the witness may still fingerprint the lane/claim/governance state for freshness, but `execution_agent` and route fingerprint are null and the witness grants **no execution authority**.
-
-Create the witness after preflight. Verify it again immediately before a durable write/commit. Any material change invalidates the old witness and requires a fresh preflight. If the GPT worker authority source itself is missing or structurally invalid after R144 enablement, witness creation/verification fails closed rather than returning a false-green `fresh=True`.
+A route check only protects task identity. The full authorization witness additionally binds current route, strict raw GPT worker authority, current Work Claim, Program Lane state, release/hold policy, WIP/resource policy, overlap declarations and Release Gate state. Any material change invalidates the old witness and requires a fresh preflight. Invalid worker authority fails closed rather than returning a false-green fresh witness.
 
 ## Separate release levels
 
 - **Foundation Ready**: scanner/reconciler, O0-O4 classifier, Work Claims, WIP checks, authorization witness, deterministic projections and exact-head CI are validated.
-- **Proposal-only lane release**: GPT may allow a lane to research/design and write only in its isolated proposal root. No shared runtime implementation is authorized.
+- **Proposal-only lane release**: GPT may allow isolated proposal-root work only.
 - **Implementation lane release**: requires a separate executable Agent route plus a fresh `ACTIVE_IMPLEMENTATION` Work Claim and collision scan.
-- **Closed lane**: carries no execution lease; reopening is never implied by passing CI or by another lane starting proposal work.
+- **Closed lane**: carries no execution lease; reopening is never implied by passing CI.
 
 Passing CI never auto-starts a held lane and never auto-grants implementation permission.
 
 ## Projection rule
 
-`coordination/PROGRAM-CONTROL-TOWER.md` contains two generated regions:
-
-- `CONTROL_TOWER_AUTOGEN`: current routes, lane state and release hold;
-- `CONTROL_TOWER_CLAIMS_AUTOGEN`: current work surfaces and pairwise claim collisions.
-
-CI requires both regions to equal state derived from canonical sources. The remaining prose is explanatory only and cannot authorize work.
-
-## Current closure example
-
-After Second Brain P2.4B/Foundation Closure:
-
-- R132 is retained in `ACTIVE-CODEX-TASK.yaml` as a non-executable `DONE` tombstone;
-- Lane C uses `CLOSED_NO_ACTIVE_IMPLEMENTATION` and keeps a closure receipt;
-- Lane A may be active at the strategic/program level while its current Work Claim is still `HELD_PROPOSAL_ONLY`, meaning architecture proposal work is allowed but implementation remains held;
-- Lane B may remain user-held independently.
-
-This distinction prevents three common false states:
-
-1. completed work still looking executable;
-2. a completed lane pretending to be a proposal lane;
-3. proposal activity being mistaken for runtime implementation permission.
+`coordination/PROGRAM-CONTROL-TOWER.md` contains `CONTROL_TOWER_AUTOGEN` and `CONTROL_TOWER_CLAIMS_AUTOGEN` generated regions. CI requires both to match canonical sources. Remaining prose is explanatory only and cannot authorize work.
 
 ## Runtime dependency
 
