@@ -73,11 +73,12 @@ claims:
       automatic_task_creation_allowed: false
       production_allowed: false
       trading_allowed: false
+      r145_workflow_write_allowed: false
+      runtime_enforcement_root: ".github/workflows/runtime-governance-root.yml"
       bootstrap_cleanup_reason: "Remove pre-activation marker that otherwise causes retained R142 whole-PR allowlist false-red."
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-      - ".github/workflows/*r145*"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
     path_action_constraints:
       - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
@@ -108,6 +109,7 @@ claims:
     authority_claims:
       - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
       - "R145_BOOTSTRAP_MARKER_DELETE_ONLY"
+      - "R145_RUNTIME_WORKFLOW_MUTATION_FORBIDDEN"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -137,7 +139,8 @@ release_semantics:
     R145 planning PR #416 is independently accepted and merged as d06dc93cd1c05d11f8c200039880de3b07c11a23. Runtime bootstrap
     Draft PR #418 exists from that canonical main. Final ACTIVE gate PR #419 independently accepted and merged as
     cecd7427d16ab9ab20d00aeb8227402608708044, activating 编程1 on bounded Lane-A S0D/S0E write surfaces. A later G0 compatibility
-    finding adds exactly one delete-only cleanup path for the spent S0F bootstrap marker; it grants no general S0F write authority.
+    finding adds exactly one delete-only cleanup path for the spent S0F bootstrap marker; it grants no general S0F write authority
+    and no R145 workflow write authority. Runtime enforcement remains governance-owned outside PR #418's writable surface.
   lane_b_r143: >-
     R143 W2 S1 runtime implementation PR #411 was independently accepted and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
     Its closeout released the GPT worker slot, Lane-B Work Claim, W2/C2 writer surface and executable route. No successor is active.
@@ -154,5 +157,7 @@ release_semantics:
   r145_worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
   r145_runtime_authorized_when_this_gate_is_canonical: true
   r145_bootstrap_cleanup_scope: "EXACT_PATH_DELETE_ONLY"
+  r145_runtime_workflow_write_authorized: false
+  r145_runtime_governance_root: ".github/workflows/runtime-governance-root.yml"
   r143_w2_runtime_authorized_now: false
   iagl_stage_b: "NOT_AUTHORIZED"
