@@ -1,0 +1,90 @@
+name: Runtime governance root
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  r145-runtime-root:
+    if: github.event.pull_request.number == 418
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - name: Checkout canonical base only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install governance parser dependency
+        run: python -m pip install --disable-pip-version-check pyyaml
+
+      - name: Fetch runtime head as data only
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "$HEAD_SHA"
+          git cat-file -e "${HEAD_SHA}^{commit}"
+
+      - name: Enforce base-trusted R145 runtime authority
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          ROUTE_FILE="coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+          REQUIRED_CONTRACT_FILE="coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+
+          python path_action_constraints.py \
+            --repo-root ../.. \
+            --worker-slot GPT-WORKER-R145-PROGRAMMING-1 \
+            --lane LANE-A-HARNESS-INTEGRATION \
+            --route-file "$ROUTE_FILE" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --enforce-transition-lineage
+
+          python path_action_policy.py \
+            --repo-root ../.. \
+            --worker-slot GPT-WORKER-R145-PROGRAMMING-1 \
+            --lane LANE-A-HARNESS-INTEGRATION \
+            --route-file "$ROUTE_FILE" \
+            --required-contract-file "$REQUIRED_CONTRACT_FILE" \
+            --base-sha "$BASE_SHA" \
+            --head-sha "$HEAD_SHA" \
+            --enforce-full-write-surface
+
+      - name: Assert runtime did not mutate enforcement roots
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          PROTECTED=(
+            ".github/workflows/r145-final-active-gate.yml"
+            ".github/workflows/runtime-governance-root.yml"
+            "coordination/CONTROL-TOWER/path_action_constraints.py"
+            "coordination/CONTROL-TOWER/path_action_policy.py"
+            "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+          )
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "${PROTECTED[@]}" | grep -q .; then
+            echo "R145_BASE_TRUSTED_ENFORCEMENT_ROOT_MUTATION_FORBIDDEN"
+            git diff --name-status "$BASE_SHA" "$HEAD_SHA" -- "${PROTECTED[@]}"
+            exit 2
+          fi
