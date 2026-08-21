@@ -57,22 +57,23 @@ mechanical_enforcement:
     - "Constrained path must be exact; wildcard constraints are forbidden."
     - "A broader write path such as S0F/** may not cover the constrained exact path."
     - "PR diff actions are derived from git diff --name-status -M and CREATE / MODIFY / RENAME_OR_OTHER fail closed."
-    - "Runtime cleanup additionally requires baseline commit existence and ancestry, baseline path present, final path absent, and exactly one net DELETE transition."
-    - "Unavailable/stale transition baseline fails closed rather than crashing or falling back."
+    - "Runtime cleanup requires baseline commit existence and ancestry, baseline path present, final path absent, and exactly one net DELETE transition."
+    - "Unavailable/stale transition baseline fails closed with structured evidence rather than crashing or falling back."
   runtime_workflow_rule: >-
-    The R145 gate now also triggers on authorized S0D/S0E runtime changes. For PR #418 it enables transition-lineage enforcement, so a
-    later runtime implementation cannot silently recreate/modify the marker after cleanup. PR #420 validates the contract itself but
-    does not pretend that the separate runtime branch has already performed the deletion.
+    The R145 gate also triggers on authorized S0D/S0E runtime changes. For PR #418 it enables transition-lineage enforcement, so later
+    runtime work cannot silently recreate/modify the marker after cleanup. PR #420 validates the contract but does not pretend the
+    separate runtime branch has already performed the deletion.
 
 historical_validation_evidence:
-  pre_lineage_test_head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
-  program_control_tower_run: 32472370128
-  control_tower_test_count: 104
-  result: "PASS before lineage hardening"
-  later_negative_run: 32472904773
+  action_contract_green_head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
+  action_contract_control_tower_run: 32472370128
+  result: "104/104 PASS before lineage hardening"
+  lineage_negative_head: "1dc92c629eec0a4be067b32293aaf011d5ef3615"
+  lineage_negative_run: 32472904773
   negative_result: >-
-    108/109 tests passed; the deliberately invalid non-existent baseline test exposed an unhandled git bad-object exception. This was
-    treated as a real fail-closed gap and remediated so unavailable baseline commits return structured failure instead of crashing.
+    108/109 tests passed; a deliberately unavailable baseline produced an unhandled git bad-object exception. That was treated as a
+    real fail-closed defect and remediated so unavailable baseline commits now return PATH_ACTION_TRANSITION_BASELINE_UNAVAILABLE.
+  final_exact_head_and_runs: "INTENTIONALLY_NOT_SELF_EMBEDDED / READ_FROM_PR_AND_FRESH_CI"
 
 unchanged_authority:
   - "S0D bounded implementation remains authorized."
