@@ -11,6 +11,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from path_action_constraints import PathActionConstraint, validate_diff  # noqa: E402
 from path_action_policy import (  # noqa: E402
     validate_full_diff_write_surface,
     validate_required_anchor,
@@ -221,6 +222,16 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
             write_paths=BASE_WRITES,
         )
 
+    def exact_delete_constraint(self):
+        return {
+            EXACT: PathActionConstraint(
+                path=EXACT,
+                allowed_actions=("DELETE",),
+                transition_baseline_sha=self.base,
+                required_final_state="ABSENT",
+            )
+        }
+
     def test_authorized_s0d_modify_passes(self):
         (self.root / S0D_FILE).write_text("new\n", encoding="utf-8")
         head = self.commit("authorized")
@@ -253,16 +264,26 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
         self.assertTrue(any(item["evidence"]["path"] == OTHER_S0F for item in result["findings"]))
 
     @unittest.skipIf(os.name == "nt", "Git type-change symlink regression requires POSIX")
-    def test_type_change_on_exact_path_remains_within_surface_but_is_left_for_action_guard(self):
+    def test_real_git_type_change_on_exact_path_is_rejected_by_action_guard(self):
         target = self.root / EXACT
         target.unlink()
-        link_target = self.root / "link-target.txt"
-        link_target.write_text("target\n", encoding="utf-8")
-        target.symlink_to(link_target)
+        target.symlink_to("/tmp/r145-type-change-nonexistent-target")
         head = self.commit("type-change")
-        result = self.check(head)
-        self.assertEqual("FAIL", result["status"], "link-target.txt itself is intentionally outside the runtime write surface")
-        self.assertIn("PATH_ACTION_DIFF_OUTSIDE_WRITE_SURFACE", {item["code"] for item in result["findings"]})
+
+        surface = self.check(head)
+        self.assertEqual("PASS", surface["status"], "the exact path remains inside the common write surface")
+
+        action = validate_diff(
+            self.root,
+            base_sha=self.base,
+            head_sha=head,
+            constraints=self.exact_delete_constraint(),
+        )
+        self.assertEqual("FAIL", action["status"])
+        violations = [item for item in action["findings"] if item["code"] == "PATH_ACTION_DIFF_VIOLATION"]
+        self.assertTrue(violations)
+        self.assertEqual("MODIFY", violations[0]["evidence"]["derived_action"])
+        self.assertTrue(str(violations[0]["evidence"]["git_status"]).startswith("T"))
 
 
 if __name__ == "__main__":
