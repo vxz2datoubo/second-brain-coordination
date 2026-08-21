@@ -65,8 +65,8 @@ mechanical_enforcement:
     - "RENAME fails"
     - "unrelated diff ignored"
 
-exact_head_validation_candidate:
-  head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
+validation_evidence_before_final_receipt_edit:
+  tested_head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
   program_control_tower_run: 32472370128
   program_control_tower_python_3_11_job: 96741650270
   program_control_tower_python_3_13_job: 96741650541
@@ -76,9 +76,13 @@ exact_head_validation_candidate:
   lane_a_python_3_11_job: 96741650601
   lane_a_python_3_13_job: 96741650795
   lane_a_result: "PASS / witness fresh=true reason=MATCH / path-action contract PASS"
-  current_pr_diff_action_note: >-
-    PR #420 grants and validates the contract but does not itself mutate the constrained bootstrap marker, so the exact-head diff
-    contains no action on that path. After #420 is canonical, PR #418 must delete that path; the same workflow then requires actual D.
+  note: >-
+    This evidence proves the implementation before the receipt-only documentation update. Independent rereview must bind the later
+    final exact head and fresh CI on that head; this receipt intentionally does not self-embed its own future head/run IDs.
+
+current_pr_diff_action_semantics: >-
+  PR #420 grants and validates the contract but does not itself mutate the constrained bootstrap marker, so the amendment PR may have
+  no diff entry for that path. After #420 is canonical, PR #418 must delete that path; the same R145 gate then requires actual D.
 
 unchanged_authority:
   - "S0D bounded implementation remains authorized."
@@ -105,8 +109,8 @@ acceptance_requires:
   - "no general S0F wildcard or broader bypass"
   - "CREATE / MODIFY / RENAME adversarial failures proven"
   - "DELETE positive control proven"
-  - "Program Control Tower Python 3.11 + 3.13 PASS"
-  - "Lane-A witness + action-aware contract Python 3.11 + 3.13 PASS"
+  - "Program Control Tower Python 3.11 + 3.13 PASS on final exact head"
+  - "Lane-A witness + action-aware contract Python 3.11 + 3.13 PASS on final exact head"
   - "no collision or second writer"
 
 self_review_forbidden: true
