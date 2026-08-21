@@ -54,7 +54,7 @@ The Route carries the same entry under `write_scope.exact_action_constraints`. `
 
 For PR enforcement, the validator reads `git diff --name-status -M <base> <head>` and maps actual file operations to `CREATE`, `MODIFY` or `DELETE`. Rename/copy/unknown status is fail-closed unless a future reviewed contract explicitly models it. Therefore a `DELETE`-only path rejects creation, content modification and rename even when the path remains present in the ordinary `write_paths` collision surface.
 
-When `transition_baseline_sha` is declared, the validator can additionally require that the baseline commit exists, remains an ancestor of the governed runtime head, actually contains the constrained path, and that the required final state is met. For a baseline-present + final-ABSENT DELETE-only cleanup, the net baseline→head transition must be exactly one `DELETE`. Missing/stale baselines fail closed as structured findings; they are never treated as permission to fall back or rewrite history.
+When `transition_baseline_sha` is declared, the validator can additionally require that the baseline commit exists, remains an ancestor of the governed runtime head, actually contains the constrained path, and that the required final state is met. For a baseline-present + final-ABSENT DELETE-only cleanup, the net baseline→head transition must be exactly one `DELETE`. Missing/stale baselines fail closed as structured findings; they are never treated as permission to fall back or rewrite history. A task-specific workflow may enable this transition mode only on the governed runtime PR while still validating the same contract on its preceding scope-amendment PR.
 
 ## Corrective maintenance/adoption authority
 
