@@ -1,4 +1,4 @@
-schema_version: "3.17"
+schema_version: "3.18"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -43,27 +43,63 @@ claims:
       reopen_rule: "BUG / SECURITY_GAP / CONTRACT_DEFECT / PROVEN_REGRESSION only"
 
   - lane_id: "LANE-A-HARNESS-INTEGRATION"
-    claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
-    execution_agent: null
-    resource_class: "NO_ACTIVE_IMPLEMENTATION"
-    route_binding: null
-    write_paths: []
-    read_paths: []
-    interfaces: []
-    read_domains: []
+    claim_state: "ACTIVE_IMPLEMENTATION"
+    execution_agent: "GPT_ENGINEERING_WORKER"
+    worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+    resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
+    route_binding:
+      worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+      task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+      route_epoch: 145
+      issue: 415
+      pr: 418
+      branch: "gpt/r145-cross-domain-routing-isolation-runtime"
+    implementation_scope:
+      planning_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
+      final_active_gate_receipt: "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+      phase: "R145_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_ACTIVE_IMPLEMENTATION"
+      runtime_write_allowed: true
+      authority_effective_only_after_final_gate_merge: true
+      runtime_pr: 418
+      runtime_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
+      final_active_gate_pr: 419
+      final_active_gate_branch: "gpt/r145-final-active-gate"
+      intended_executor_window: "编程1"
+      cross_repo_write_allowed: false
+      ai_film_write_allowed: false
+      world_model_write_allowed: false
+      a_share_w2_write_allowed: false
+      w3_write_allowed: false
+      automatic_task_creation_allowed: false
+      production_allowed: false
+      trading_allowed: false
+    write_paths:
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+      - ".github/workflows/*r145*"
+    read_paths:
+      - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+      - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+      - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+      - "coordination/CONTROL-TOWER"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+    interfaces:
+      - name: "R135-READ-ONLY-CROSS-REPO-SHADOW"
+        mode: "extend/reuse"
+        frozen: false
+      - name: "R142-RETROSPECTIVE-INTAKE"
+        mode: "extend"
+        frozen: false
+      - name: "DOMAIN-AUTHORITY-BOUNDARY"
+        mode: "adapt-existing"
+        frozen: false
+      - name: "W3-DOMAIN-AUTHORITY"
+        mode: "read/reference-only"
+        frozen: true
+    read_domains: [W1, W3]
     write_domains: []
-    authority_claims: []
-    closure_receipt:
-      closure_issue: 406
-      merged_pr: 408
-      merge_commit: "d9734f2db3f039167f0e3e32933392ae5571de13"
-      tested_head: "217a38e341b0c66864b67b549cdccf0be7757206"
-      final_review: 4975349444
-      receipt_ref: "coordination/CONTROL-TOWER/R144-GPT-WORKER-FIRST-CLASS-CLOSURE-RECONCILIATION.yaml"
-      completed_route_epoch: 144
-      result: "GPT_ENGINEERING_WORKER_FIRST_CLASS_SUPPORT_ACCEPTED_MERGED"
-      signal_tower_normal_operation: "ON_DEMAND_PREFLIGHT_AVAILABLE"
-      reopen_rule: "NEW_GOVERNED_TASK + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
+    authority_claims:
+      - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -89,23 +125,24 @@ claims:
       reopen_rule: "NEW_GOVERNED_TASK + FRESH_SIGNAL_TOWER_PREFLIGHT + FRESH_WORK_CLAIM + FRESH_AUTHORIZATION_WITNESS"
 
 release_semantics:
-  lane_a_r144: >-
-    R144 implementation and post-merge closeout are independently accepted and merged. Lane-A carries no current implementation
-    lease; Signal Tower remains available on demand.
+  lane_a_r145: >-
+    R145 planning PR #416 is independently accepted and merged as d06dc93cd1c05d11f8c200039880de3b07c11a23. Runtime bootstrap
+    Draft PR #418 exists from that canonical main. Final ACTIVE gate PR #419 exact-binds 编程1, one GPT worker slot and the bounded
+    Lane-A S0D/S0E write surface to PR #418. Candidate ACTIVE authority becomes durable only when PR #419 is independently accepted
+    and merged to canonical main.
   lane_b_r143: >-
-    R143 W2 S1 runtime implementation PR #411 was independently accepted on exact head
-    9626e4473744247b1e209299c8896d07457f359b and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
-    This closeout releases the GPT worker slot, Lane-B Work Claim, W2/C2 writer surface and executable route. Any successor slice
-    requires a new Signal Tower task-release preflight, new exact Work Claim and fresh authorization witness; there is no automatic resume.
+    R143 W2 S1 runtime implementation PR #411 was independently accepted and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
+    Its closeout released the GPT worker slot, Lane-B Work Claim, W2/C2 writer surface and executable route. No successor is active.
   implementation_release_is_separate: true
   active_route_requires_atomic_claim_at_executor: true
   signal_tower_task_release_preflight: "GLOBAL_SHALLOW + DELTA + TARGETED_DEEP + CONDITIONAL_RESEARCH_WHEN_REQUIRED"
-  signal_tower_normal_operation_outside_r143: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
-  r143_reservation_pr: 410
-  r143_runtime_pr: 411
-  r143_runtime_merge: "4423349b6154986b74b6f172d7e01643f8bd46f9"
-  r143_final_active_gate_pr: 412
-  r143_worker_slot_id: "GPT-WORKER-R143-PROGRAMMING-1"
-  r143_w2_runtime_authorized_when_this_gate_is_canonical: false
-  old_pr_405_reuse_allowed: false
+  signal_tower_normal_operation_outside_r145: "ON_DEMAND / SIGNAL_IS_NOT_TASK"
+  r145_planning_pr: 416
+  r145_planning_review: 4989615283
+  r145_planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
+  r145_runtime_pr: 418
+  r145_final_active_gate_pr: 419
+  r145_worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+  r145_runtime_authorized_when_this_gate_is_canonical: true
+  r143_w2_runtime_authorized_now: false
   iagl_stage_b: "NOT_AUTHORIZED"

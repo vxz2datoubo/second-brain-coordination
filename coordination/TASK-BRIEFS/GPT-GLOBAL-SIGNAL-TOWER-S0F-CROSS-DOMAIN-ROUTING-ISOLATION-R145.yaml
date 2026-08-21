@@ -1,8 +1,8 @@
-schema_version: "1.0"
+schema_version: "1.1"
 task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 route_epoch: 145
 issue: 415
-status: "PLANNED_NON_EXECUTABLE / AWAIT_INDEPENDENT_PLANNING_REVIEW"
+status: "ACTIVE_IMPLEMENTATION_CANDIDATE / EFFECTIVE_ONLY_AFTER_FINAL_GATE_MERGE"
 owner: "USER"
 architecture_owner: "GPT"
 intended_executor_role: "GPT_ENGINEERING_WORKER"
@@ -12,14 +12,21 @@ mode: "project_plan"
 mode_label: "【Codex模式：项目计划模式】Signal Tower S0F Cross-Domain Routing Isolation"
 repository: "vxz2datoubo/second-brain-coordination"
 planning_branch: "gpt/r145-signal-tower-cross-domain-routing-isolation-plan"
-implementation_branch: null
-implementation_pr: null
-execution_allowed: false
+implementation_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
+implementation_pr: 418
+execution_allowed: true
+authority_effective_only_after_final_gate_merge: true
 boundary: "SHARED_SIGNAL_ROUTING / READ_ONLY_CROSS_REPO / NO_DOMAIN_WRITE / NO_W3_WRITE / NO_TRADE / NO_PRODUCTION"
 
 release_preflight:
-  receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
-  canonical_main: "ec39e53e3be8d286ca13c5fa89e8c1f2b25eed16"
+  planning_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
+  canonical_main_at_planning_release: "ec39e53e3be8d286ca13c5fa89e8c1f2b25eed16"
+  planning_review: 4989615283
+  planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
+  runtime_bootstrap_head: "8930daf530522e487f7858416816f4a53f8ffe86"
+  final_active_gate_receipt: "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+  worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+  final_active_gate_pr: 419
   decision: "PROCEED_WITH_BOUNDED_SIGNAL_TOWER_CROSS_DOMAIN_ROUTING_ISOLATION_R145"
   strategy: "ADAPT_EXISTING / NO_NEW_PARALLEL_DOMAIN_AUTHORITY"
 
@@ -227,7 +234,8 @@ hard_locks:
   - "NO_SELF_MERGE"
 
 activation_rule: >-
-  This planning brief creates no execution lease. Implementation may start only after a fresh activation binds the then-current main,
-  implementation branch/PR, exact Lane-A Work Claim, GPT Engineering Worker slot and fresh authorization witness.
+  Candidate implementation authority is exact-bound to runtime PR #418, final ACTIVE gate PR #419 and GPT-WORKER-R145-PROGRAMMING-1,
+  but becomes executable only after PR #419 passes fresh exact-head Control Tower CI, authorization-witness verification, independent GPT
+  activation review and is merged to canonical main. Before that, PR #418 remains bootstrap-only.
 
 completion_signal: "GLOBAL_SIGNAL_TOWER_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_READY_FOR_GPT_REVIEW"
