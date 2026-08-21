@@ -22,7 +22,7 @@ Source precedence remains:
 - `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
 - `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation (see below).
 - `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `path_action_constraints.py`: reconciles exact-path action restrictions across Worker / Work Claim / Route and can validate actual Git diff actions, so a narrow DELETE-only authority cannot silently become generic modify/create authority.
+- `path_action_constraints.py`: reconciles exact-path action restrictions across Worker / Work Claim / Route, validates actual Git diff actions, and can enforce a governed transition baseline/final-state proof so a narrow delete-only cleanup cannot silently become generic modify/create authority or history replacement.
 - `authorization_witness.py`: fingerprints route + strict worker authority material + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
 - `PROGRAM-CONTROL-TOWER.md`: human projection only; its generated blocks are checked by CI.
 
@@ -46,11 +46,15 @@ Canonical shape:
 path_action_constraints:
   - path: path/to/exact/file
     allowed_actions: ["DELETE"]
+    transition_baseline_sha: 0123456789abcdef0123456789abcdef01234567
+    required_final_state: "ABSENT"
 ```
 
-The Route carries the same entries under `write_scope.exact_action_constraints`. `path_action_constraints.py` requires the Worker / Work Claim / Route execution identity, write surface and action map to agree exactly. Constrained paths must be exact, not wildcard patterns, and a broader write pattern may not cover a constrained exact path because that would bypass the narrow action rule.
+The Route carries the same entry under `write_scope.exact_action_constraints`. `path_action_constraints.py` requires Worker / Work Claim / Route execution identity, write surface and action semantics to agree exactly. Constrained paths must be exact, not wildcard patterns, and a broader write pattern may not cover a constrained exact path because that would bypass the narrow action rule.
 
 For PR enforcement, the validator reads `git diff --name-status -M <base> <head>` and maps actual file operations to `CREATE`, `MODIFY` or `DELETE`. Rename/copy/unknown status is fail-closed unless a future reviewed contract explicitly models it. Therefore a `DELETE`-only path rejects creation, content modification and rename even when the path remains present in the ordinary `write_paths` collision surface.
+
+When `transition_baseline_sha` is declared, the validator can additionally require that the baseline commit exists, remains an ancestor of the governed runtime head, actually contains the constrained path, and that the required final state is met. For a baseline-present + final-ABSENT DELETE-only cleanup, the net baseline→head transition must be exactly one `DELETE`. Missing/stale baselines fail closed as structured findings; they are never treated as permission to fall back or rewrite history.
 
 ## Corrective maintenance/adoption authority
 
