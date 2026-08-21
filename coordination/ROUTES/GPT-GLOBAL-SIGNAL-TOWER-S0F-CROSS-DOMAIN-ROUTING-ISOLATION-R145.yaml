@@ -1,12 +1,14 @@
-schema_version: "1.0"
+schema_version: "1.1"
 route_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "PLANNED_NON_EXECUTABLE"
-execution_allowed: false
-runtime_code_change_allowed: false
+status: "ACTIVE_IMPLEMENTATION_CANDIDATE"
+execution_allowed: true
+runtime_code_change_allowed: true
 automatic_resume: false
 merge_authorized: false
 self_review_forbidden: true
+
+authority_effective_only_when_final_gate_is_canonical_main: true
 
 binding:
   task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
@@ -15,16 +17,23 @@ binding:
   lane_id: "LANE-A-HARNESS-INTEGRATION"
   slice_id: "S0F-CROSS-DOMAIN-ROUTING-ISOLATION"
   planning_branch: "gpt/r145-signal-tower-cross-domain-routing-isolation-plan"
-  implementation_branch: null
-  implementation_pr: null
+  planning_pr: 416
+  planning_review: 4989615283
+  planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
+  implementation_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
+  implementation_pr: 418
+  runtime_bootstrap_head: "8930daf530522e487f7858416816f4a53f8ffe86"
+  final_active_gate_branch: "gpt/r145-final-active-gate"
+  final_active_gate_pr: 419
   task_brief: "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
   planning_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
+  active_gate_receipt: "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
 
 executor:
   role: "GPT_ENGINEERING_WORKER"
   model_id: "GPT-5.6 Sol"
-  worker_slot_id: null
-  intended_window: null
+  worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+  intended_window: "编程1"
   reviewer_role: "GPT_INDEPENDENT_REVIEWER"
   impersonation_forbidden: true
 
@@ -32,8 +41,8 @@ mode:
   value: "project_plan"
   label: "【Codex模式：项目计划模式】"
   reason: >-
-    This is a multi-system authority-routing defect affecting retrospective Signal reconciliation. Planning is durable, but implementation
-    must not start until a separate exact activation binds a worker slot, Work Claim, implementation branch/PR and fresh witness.
+    This bounded implementation repairs a multi-system authority-routing defect in retrospective Signal reconciliation. It extends
+    existing R135/R142 seams and may not create a second domain authority or write into domain repositories.
 
 boundary: "SHARED_SIGNAL_ROUTING / READ_ONLY_CROSS_REPO / NO_DOMAIN_WRITE / NO_W3_WRITE / NO_TRADE / NO_PRODUCTION"
 
@@ -56,6 +65,7 @@ routing_invariants:
   draft_pr_not_canonical_authority: true
   repository_identity_alone_insufficient: true
   signal_is_not_task: true
+  signal_task_route_writeback_domain_compatibility_required: true
 
 required_domains:
   - domain_id: "SECOND_BRAIN_SYSTEM"
@@ -64,18 +74,19 @@ required_domains:
     repository: "vxz2datoubo/second-brain-coordination"
   - domain_id: "AI_FILM_SYSTEM"
     repository: "vxz2datoubo/eustia-ai-film"
+    observation_mode: "READ_ONLY"
   - domain_id: "WORLD_MODEL_SYSTEM"
     repository: "vxz2datoubo/ai-world-simulation-engine"
     repository_visibility: PRIVATE
+    observation_mode: "READ_ONLY"
   - domain_id: "FUTURE_DOMAIN_*"
     repository: "GOVERNED_DESCRIPTOR_REQUIRED"
 
 write_scope:
-  planning_evidence:
-    - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
-    - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
-    - "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
-  implementation: []
+  implementation:
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+    - ".github/workflows/*r145*"
   cross_repo: []
   forbidden:
     - "vxz2datoubo/eustia-ai-film mutation"
@@ -88,15 +99,18 @@ write_scope:
     - "secret/permission/visibility expansion"
 
 activation_contract:
-  activation_state: "PLANNING_ONLY"
-  execution_allowed: false
+  activation_state: "ACTIVE_CANDIDATE"
+  execution_allowed: true
   worker_slot_required: true
+  worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
   exact_lane_a_work_claim_required: true
   implementation_branch_and_pr_required: true
   fresh_authorization_witness_required: true
   fresh_control_tower_collision_wip_scan_required: true
   fresh_main_binding_required: true
   planning_review_required: true
+  independent_activation_review_required: true
+  effective_only_after_final_gate_merge: true
   world_model_concurrent_engineering_may_continue: true
   world_model_access_mode: "READ_ONLY / CANONICAL_MAIN_OR_IMMUTABLE_ACCEPTED_REF_ONLY"
 
@@ -141,4 +155,4 @@ hard_locks:
 
 planning_completion_signal: "R145_CROSS_DOMAIN_ROUTING_ISOLATION_PLANNING_READY_FOR_GPT_REVIEW"
 implementation_completion_signal: "GLOBAL_SIGNAL_TOWER_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_INDEPENDENT_PLANNING_REVIEW / NO_IMPLEMENTATION"
+next_command: "WAIT_FOR_INDEPENDENT_ACTIVATION_REVIEW / NO_RUNTIME_EDITS_UNTIL_GATE_CANONICAL"

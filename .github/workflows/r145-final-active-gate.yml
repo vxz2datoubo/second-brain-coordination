@@ -1,0 +1,40 @@
+name: R145 final active gate
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/r145-final-active-gate.yml"
+      - "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
+      - "coordination/ACTIVE-PROGRAM-LANES.yaml"
+      - "coordination/PROGRAM-CONTROL-TOWER.md"
+      - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
+      - "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
+      - "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+      - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+      - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lane-a-authorization-witness:
+    name: Python ${{ matrix.python-version }} Lane-A witness
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test-only YAML parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
+      - name: Create fresh Lane-A authorization witness
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_authorization_witness.py create --repo-root ../.. --lane LANE-A-HARNESS-INTEGRATION > /tmp/r145-lane-a-witness.json
+      - name: Verify fresh Lane-A authorization witness
+        working-directory: coordination/CONTROL-TOWER
+        run: python run_authorization_witness.py verify --repo-root ../.. --lane LANE-A-HARNESS-INTEGRATION --witness-file /tmp/r145-lane-a-witness.json
