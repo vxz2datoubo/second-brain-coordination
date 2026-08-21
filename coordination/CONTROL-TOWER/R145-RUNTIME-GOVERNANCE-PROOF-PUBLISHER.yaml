@@ -1,9 +1,9 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R145-RUNTIME-GOVERNANCE-PROOF-PUBLISHER-AMENDMENT-0001"
 issue: 415
 task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 route_epoch: 145
-status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT_CANDIDATE / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
+status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT_CANDIDATE / F01_REMEDIATED / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
 runtime_pr: 418
 runtime_hold: "STOP_BEFORE_G1_G5"
 problem: "LIVE_ROOT_UNOBSERVABLE_WITH_CURRENT_TOOLING"
@@ -39,6 +39,27 @@ proof_contract:
   current_pr_head_cross_check_required: true
   stale_run_success_for_newer_head_forbidden: true
   status_role: "DISCOVERY_HINT / LIVE_PROOF_POINTER / NOT_ACCEPTANCE_AUTHORITY"
+f01_remediation:
+  review_id: 4996456829
+  blocker: "TESTED_POLICY_IS_NOT_THE_PRIVILEGED_EXECUTION_PATH"
+  disposition: "REMEDIATED_CANDIDATE"
+  privileged_execution_artifact: ".github/workflows/runtime-governance-proof-publisher.yml::inline-python"
+  semantic_test_artifact: "EXACT_WORKFLOW_INLINE_PYTHON_EXTRACTED_AND_EXECUTED"
+  privileged_main_path_tested: true
+  production_only_mutation_sensitivity_required: true
+  shadow_policy_module: "ABSENT"
+  removed_shadow_path: "coordination/CONTROL-TOWER/runtime_governance_proof_policy.py"
+  invariant: "TESTED_POLICY_IS_THE_PRIVILEGED_EXECUTION_PATH"
+  mutation_matrix:
+    - "WORKFLOW_ID_BINDING"
+    - "WORKFLOW_PATH_BINDING"
+    - "EXACTLY_ONE_PR_418_BINDING"
+    - "BOUND_HEAD_SHA_VALIDATION"
+    - "CURRENT_PR_STALE_HEAD_BASE_CROSS_CHECK"
+    - "FIXED_STATUS_TARGET_SHA"
+    - "FIXED_STATUS_CONTEXT"
+    - "ORIGINAL_ROOT_TARGET_URL"
+    - "NON_SUCCESS_CANNOT_BECOME_SUCCESS"
 fail_closed:
   - "WRONG_WORKFLOW_NAME"
   - "WRONG_WORKFLOW_ID_OR_PATH"
