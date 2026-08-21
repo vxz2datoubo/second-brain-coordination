@@ -194,8 +194,7 @@ class PathActionDiffTests(unittest.TestCase):
         }
 
     def test_delete_passes(self):
-        findings = validate_diff_actions(self.constraints, [("D", (EXACT,))])
-        self.assertEqual([], findings)
+        self.assertEqual([], validate_diff_actions(self.constraints, [("D", (EXACT,))]))
 
     def test_modify_fails(self):
         findings = validate_diff_actions(self.constraints, [("M", (EXACT,))])
@@ -213,8 +212,7 @@ class PathActionDiffTests(unittest.TestCase):
         self.assertEqual("UNSUPPORTED", findings[0].evidence["derived_action"])
 
     def test_unrelated_diff_is_ignored(self):
-        findings = validate_diff_actions(self.constraints, [("M", ("elsewhere.txt",))])
-        self.assertEqual([], findings)
+        self.assertEqual([], validate_diff_actions(self.constraints, [("M", ("elsewhere.txt",))]))
 
 
 class TransitionLineageTests(unittest.TestCase):
@@ -262,10 +260,19 @@ class TransitionLineageTests(unittest.TestCase):
         self.assertEqual("FAIL", result["status"])
         self.assertIn("PATH_ACTION_REQUIRED_FINAL_STATE_VIOLATION", {item["code"] for item in result["findings"]})
 
-    def test_non_ancestor_baseline_fails(self):
+    def test_unavailable_baseline_fails_closed(self):
         head = self.commit_delete()
-        bogus = "a" * 40
-        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint(baseline=bogus))
+        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint(baseline="a" * 40))
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_TRANSITION_BASELINE_UNAVAILABLE", {item["code"] for item in result["findings"]})
+
+    def test_existing_non_ancestor_baseline_fails(self):
+        head = self.commit_delete()
+        tree = subprocess.check_output(["git", "rev-parse", f"{self.baseline}^{{tree}}"], cwd=self.root, text=True).strip()
+        other = subprocess.check_output(
+            ["git", "commit-tree", tree], cwd=self.root, input="unrelated root\n", text=True
+        ).strip()
+        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint(baseline=other))
         self.assertEqual("FAIL", result["status"])
         self.assertIn("PATH_ACTION_TRANSITION_BASELINE_NOT_ANCESTOR", {item["code"] for item in result["findings"]})
 
