@@ -1,0 +1,159 @@
+name: Runtime Governance Proof Publisher
+
+on:
+  workflow_run:
+    workflows: ["Runtime governance root"]
+    types: [completed]
+
+permissions:
+  actions: read
+  pull-requests: read
+  statuses: write
+
+jobs:
+  publish-live-proof-pointer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish bounded runtime-governance live proof pointer
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          import urllib.error
+          import urllib.request
+
+          REPO = "vxz2datoubo/second-brain-coordination"
+          ROOT_NAME = "Runtime governance root"
+          ROOT_PATH = ".github/workflows/runtime-governance-root.yml"
+          PR_NUMBER = 418
+          CONTEXT = "r145/runtime-governance-live-proof"
+          SHA40 = re.compile(r"^[0-9a-f]{40}$")
+          FAILURE_CONCLUSIONS = {
+              "failure", "timed_out", "cancelled", "action_required",
+              "skipped", "neutral", "startup_failure", "stale",
+          }
+
+          token = os.environ.get("GITHUB_TOKEN", "")
+          event_path = os.environ.get("GITHUB_EVENT_PATH", "")
+          if not token or not event_path:
+              raise SystemExit("PUBLISHER_ENVIRONMENT_MISSING")
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "r145-runtime-governance-proof-publisher",
+          }
+
+          def request_json(method, path, body=None):
+              url = f"https://api.github.com{path}"
+              data = None if body is None else json.dumps(body, sort_keys=True).encode("utf-8")
+              request = urllib.request.Request(url, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except urllib.error.HTTPError as exc:
+                  detail = exc.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"GITHUB_API_HTTP_{exc.code}:{path}:{detail[:300]}") from exc
+
+          with open(event_path, "r", encoding="utf-8") as handle:
+              event = json.load(handle)
+
+          wr = event.get("workflow_run") if isinstance(event.get("workflow_run"), dict) else {}
+          wf = event.get("workflow") if isinstance(event.get("workflow"), dict) else {}
+          repo = event.get("repository") if isinstance(event.get("repository"), dict) else {}
+          run_id = wr.get("id")
+
+          def stop(reason):
+              print(json.dumps({"publisher": "FAIL_CLOSED", "reason": reason, "run_id": run_id}, sort_keys=True))
+              raise SystemExit(2)
+
+          if event.get("action") != "completed": stop("WORKFLOW_RUN_NOT_COMPLETED_ACTION")
+          if repo.get("full_name") != REPO: stop("REPOSITORY_MISMATCH")
+          if not isinstance(run_id, int): stop("WORKFLOW_RUN_ID_MISSING")
+          if wr.get("name") != ROOT_NAME: stop("WORKFLOW_NAME_MISMATCH")
+          if wr.get("event") != "pull_request_target": stop("WORKFLOW_EVENT_MISMATCH")
+          if wr.get("status") != "completed": stop("WORKFLOW_RUN_NOT_COMPLETED")
+
+          expected = request_json("GET", f"/repos/{REPO}/actions/workflows/{ROOT_PATH}")
+          original = request_json("GET", f"/repos/{REPO}/actions/runs/{run_id}?exclude_pull_requests=false")
+
+          expected_id = expected.get("id")
+          if not isinstance(expected_id, int): stop("EXPECTED_WORKFLOW_ID_MISSING")
+          if expected.get("name") != ROOT_NAME or expected.get("path") != ROOT_PATH:
+              stop("EXPECTED_WORKFLOW_IDENTITY_MISMATCH")
+          if wf.get("id") != expected_id or wr.get("workflow_id") != expected_id or original.get("workflow_id") != expected_id:
+              stop("WORKFLOW_ID_MISMATCH")
+          if wf.get("path") != ROOT_PATH: stop("WORKFLOW_PATH_MISMATCH")
+          original_path = original.get("path")
+          if not isinstance(original_path, str) or original_path.split("@", 1)[0] != ROOT_PATH:
+              stop("WORKFLOW_RUN_PATH_MISMATCH")
+          if original.get("id") != run_id or original.get("name") != ROOT_NAME:
+              stop("ORIGINAL_RUN_IDENTITY_MISMATCH")
+          if original.get("event") != "pull_request_target" or original.get("status") != "completed":
+              stop("ORIGINAL_RUN_EVENT_OR_STATUS_MISMATCH")
+          original_repo = original.get("repository") if isinstance(original.get("repository"), dict) else {}
+          if original_repo.get("full_name") != REPO: stop("ORIGINAL_RUN_REPOSITORY_MISMATCH")
+
+          bindings = original.get("pull_requests")
+          if not isinstance(bindings, list) or len(bindings) != 1:
+              stop("PR_BINDING_AMBIGUOUS_OR_MISSING")
+          binding = bindings[0] if isinstance(bindings[0], dict) else {}
+          if binding.get("number") != PR_NUMBER: stop("PR_NUMBER_MISMATCH")
+          head = binding.get("head") if isinstance(binding.get("head"), dict) else {}
+          base = binding.get("base") if isinstance(binding.get("base"), dict) else {}
+          head_sha = head.get("sha")
+          base_sha = base.get("sha")
+          if not isinstance(head_sha, str) or not SHA40.fullmatch(head_sha): stop("BOUND_HEAD_SHA_MISSING")
+          if not isinstance(base_sha, str) or not SHA40.fullmatch(base_sha): stop("BOUND_BASE_SHA_MISSING")
+
+          target_url = original.get("html_url")
+          expected_url = f"https://github.com/{REPO}/actions/runs/{run_id}"
+          if target_url != expected_url: stop("ROOT_RUN_TARGET_URL_MISMATCH")
+
+          current_pr = request_json("GET", f"/repos/{REPO}/pulls/{PR_NUMBER}")
+          current_head = current_pr.get("head") if isinstance(current_pr.get("head"), dict) else {}
+          current_base = current_pr.get("base") if isinstance(current_pr.get("base"), dict) else {}
+          stale = current_pr.get("number") != PR_NUMBER or current_head.get("sha") != head_sha or current_base.get("sha") != base_sha
+
+          conclusion = original.get("conclusion")
+          if wr.get("conclusion") != conclusion:
+              state, reason = "error", "WORKFLOW_CONCLUSION_MISMATCH"
+          elif stale:
+              state, reason = "error", "STALE_ROOT_RUN_FOR_OLDER_PR_HEAD"
+          elif conclusion == "success":
+              state, reason = "success", "ROOT_RUN_SUCCESS"
+          elif conclusion in FAILURE_CONCLUSIONS:
+              state, reason = "failure", f"ROOT_RUN_{str(conclusion).upper()}"
+          else:
+              state, reason = "error", "ROOT_RUN_CONCLUSION_UNKNOWN"
+
+          description = f"{reason}; root run {run_id}"[:140]
+          payload = {
+              "state": state,
+              "target_url": target_url,
+              "description": description,
+              "context": CONTEXT,
+          }
+          request_json("POST", f"/repos/{REPO}/statuses/{head_sha}", payload)
+          print(json.dumps({
+              "publisher": "STATUS_PUBLISHED",
+              "state": state,
+              "context": CONTEXT,
+              "head_sha": head_sha,
+              "root_run_id": run_id,
+              "target_url": target_url,
+              "reason": reason,
+              "acceptance_authority": False,
+          }, sort_keys=True))
+
+          if state == "error":
+              raise SystemExit(2)
+          PY

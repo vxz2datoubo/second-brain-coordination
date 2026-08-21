@@ -1,0 +1,80 @@
+schema_version: "1.0"
+receipt_id: "R145-RUNTIME-GOVERNANCE-PROOF-PUBLISHER-AMENDMENT-0001"
+issue: 415
+task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+route_epoch: 145
+status: "CONTROL_PLANE_OBSERVABILITY_AMENDMENT_CANDIDATE / REQUIRES_INDEPENDENT_REVIEW_AND_CANONICAL_MERGE"
+runtime_pr: 418
+runtime_hold: "STOP_BEFORE_G1_G5"
+problem: "LIVE_ROOT_UNOBSERVABLE_WITH_CURRENT_TOOLING"
+architecture:
+  source_workflow:
+    name: "Runtime governance root"
+    path: ".github/workflows/runtime-governance-root.yml"
+    event: "pull_request_target"
+    execution_trust: "CANONICAL_BASE_ONLY"
+    permissions:
+      contents: read
+  publisher:
+    name: "Runtime Governance Proof Publisher"
+    path: ".github/workflows/runtime-governance-proof-publisher.yml"
+    event: "workflow_run / completed"
+    checkout_repository: false
+    executes_pr_head_code: false
+    downloads_pr_artifacts: false
+    uses_pr_cache: false
+    secrets_referenced: false
+    permissions:
+      actions: read
+      pull-requests: read
+      statuses: write
+    all_other_permissions: none
+proof_contract:
+  repository: "vxz2datoubo/second-brain-coordination"
+  pr_number: 418
+  status_context: "r145/runtime-governance-live-proof"
+  target_url: "ORIGINAL_RUNTIME_GOVERNANCE_ROOT_RUN_HTML_URL"
+  head_source: "ORIGINAL_WORKFLOW_RUN_PULL_REQUEST_BINDING"
+  github_sha_as_runtime_head_forbidden: true
+  current_pr_head_cross_check_required: true
+  stale_run_success_for_newer_head_forbidden: true
+  status_role: "DISCOVERY_HINT / LIVE_PROOF_POINTER / NOT_ACCEPTANCE_AUTHORITY"
+fail_closed:
+  - "WRONG_WORKFLOW_NAME"
+  - "WRONG_WORKFLOW_ID_OR_PATH"
+  - "WRONG_EVENT"
+  - "WRONG_REPOSITORY"
+  - "PR_NOT_418"
+  - "EMPTY_PR_BINDING"
+  - "AMBIGUOUS_PR_BINDING"
+  - "MISSING_OR_INVALID_HEAD_SHA"
+  - "STALE_ROOT_RUN_FOR_OLDER_PR_HEAD"
+  - "UNKNOWN_OR_MALFORMED_CONCLUSION"
+status_mapping:
+  success: success
+  failure: failure
+  timed_out: failure
+  cancelled: failure
+  action_required: failure
+  skipped: failure
+  neutral: failure
+  startup_failure: failure
+  stale: failure
+  unknown: error
+security:
+  no_contents_write: true
+  no_issues_write: true
+  no_pull_requests_write: true
+  no_deployments: true
+  no_packages: true
+  no_production_authority: true
+  no_domain_write: true
+  no_trading_account_order_fund_authority: true
+  commit_status_never_substitutes_original_logs: true
+post_merge_rule: >-
+  Only after independent ACCEPT and canonical merge may PR #418 non-destructively sync current main to trigger a new real
+  Runtime governance root run and corresponding proof-publisher status. GPT must follow target_url/run ID to original jobs,
+  steps and logs before any LIVE_ROOT_PASS conclusion.
+rollback: "Revert the canonical merge commit for this amendment; this removes the publisher and Program Control Tower trigger addition without touching PR #418 runtime history."
+self_review_forbidden: true
+self_merge_forbidden: true
