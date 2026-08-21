@@ -1,4 +1,4 @@
-schema_version: "3.18"
+schema_version: "3.19"
 claims_id: "PROGRAM-CONTROL-TOWER-LANE-WORK-CLAIMS-0001"
 issue: 310
 owner: "USER"
@@ -73,10 +73,16 @@ claims:
       automatic_task_creation_allowed: false
       production_allowed: false
       trading_allowed: false
+      bootstrap_cleanup:
+        path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+        action: "DELETE_ONLY"
+        create_or_modify_forbidden: true
+        reason: "Remove pre-activation marker that otherwise causes retained R142 whole-PR allowlist false-red."
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
       - ".github/workflows/*r145*"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
     read_paths:
       - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
       - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
@@ -100,6 +106,7 @@ claims:
     write_domains: []
     authority_claims:
       - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
+      - "R145_BOOTSTRAP_MARKER_DELETE_ONLY"
 
   - lane_id: "LANE-B-A-SHARE-REMEDIATION"
     claim_state: "CLOSED_NO_ACTIVE_IMPLEMENTATION"
@@ -127,9 +134,9 @@ claims:
 release_semantics:
   lane_a_r145: >-
     R145 planning PR #416 is independently accepted and merged as d06dc93cd1c05d11f8c200039880de3b07c11a23. Runtime bootstrap
-    Draft PR #418 exists from that canonical main. Final ACTIVE gate PR #419 exact-binds 编程1, one GPT worker slot and the bounded
-    Lane-A S0D/S0E write surface to PR #418. Candidate ACTIVE authority becomes durable only when PR #419 is independently accepted
-    and merged to canonical main.
+    Draft PR #418 exists from that canonical main. Final ACTIVE gate PR #419 independently accepted and merged as
+    cecd7427d16ab9ab20d00aeb8227402608708044, activating 编程1 on bounded Lane-A S0D/S0E write surfaces. A later G0 compatibility
+    finding adds exactly one delete-only cleanup path for the spent S0F bootstrap marker; it grants no general S0F write authority.
   lane_b_r143: >-
     R143 W2 S1 runtime implementation PR #411 was independently accepted and merged as 4423349b6154986b74b6f172d7e01643f8bd46f9.
     Its closeout released the GPT worker slot, Lane-B Work Claim, W2/C2 writer surface and executable route. No successor is active.
@@ -142,7 +149,9 @@ release_semantics:
   r145_planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
   r145_runtime_pr: 418
   r145_final_active_gate_pr: 419
+  r145_final_active_gate_merge: "cecd7427d16ab9ab20d00aeb8227402608708044"
   r145_worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
   r145_runtime_authorized_when_this_gate_is_canonical: true
+  r145_bootstrap_cleanup_scope: "EXACT_PATH_DELETE_ONLY"
   r143_w2_runtime_authorized_now: false
   iagl_stage_b: "NOT_AUTHORIZED"
