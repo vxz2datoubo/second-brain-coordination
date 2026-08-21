@@ -66,16 +66,17 @@
 
 - **R143 / R144 已完整收口**：均为历史非执行态；Lane-B 当前没有 W2/C2 writer lease，Lane-C 维持关闭边界。
 - **R145 planning 已独立验收并合并**：PR #416 exact head `e6f908442acd810053c041f565ba15c38230cd86` 经 Review `4989615283` ACCEPT，合并为 `d06dc93cd1c05d11f8c200039880de3b07c11a23`。
-- **R145 Final ACTIVE Gate 已独立验收并合并**：PR #419 exact head `1eb83951d1f3a75ffbd8bb08043fca25086d6f75` 经 Review `4989933896` ACCEPT，合并为 `cecd7427d16ab9ab20d00aeb8227402608708044`。
-- **R145 runtime identity = Draft PR #418**：branch `gpt/r145-cross-domain-routing-isolation-runtime`。编程1已完成 G0 fresh authority inventory，并把 branch 非破坏同步到 current main；当前 runtime head `6c59f197ef515b1c282aa6a08c7759ed96749957` 仍没有 durable runtime implementation commit。
-- **G0 disposition = `REUSE / ADAPT_EXISTING`**：没有触发 `DOMAIN_AUTHORITY_SCHEMA_MATERIALIZATION_GATE`，不得创建第二套 Domain Authority / Domain Registry。
-- **G0 发现 R142 historical allowlist compatibility gap**：PR #418 的 pre-activation S0F bootstrap marker 会在后续 G2 触发 retained R142 workflow 时被 whole-PR allowlist 误判为越界。
-- **R145 cleanup scope amendment = Draft PR #420**：只候选增加 exact bootstrap marker 的 `DELETE_ONLY` 权限，不开放 general S0F write，不修改历史 R142 workflow。#420 独立 ACCEPT + canonical 前，编程1不得删除该 marker，也不得 durable 写入 G1/G2 runtime implementation。
+- **R145 final ACTIVE gate 已独立验收并合并**：PR #419 exact head `1eb83951d1f3a75ffbd8bb08043fca25086d6f75` 经 Review `4989933896` ACCEPT，合并为 `cecd7427d16ab9ab20d00aeb8227402608708044`，因此 `GPT-WORKER-R145-PROGRAMMING-1` 与 Lane-A bounded runtime authority 已 canonical 生效。
+- **R145 runtime identity = Draft PR #418**：branch `gpt/r145-cross-domain-routing-isolation-runtime`，G0 同步 head `6c59f197ef515b1c282aa6a08c7759ed96749957`。G0 结论为 `REUSE / ADAPT_EXISTING`，runtime implementation 尚未 durable 落盘。
+- **G0 compatibility defect 已确认**：保留的 R142 workflow 会对整个 PR diff 做历史 allowlist；#418 的 spent S0F bootstrap marker 会在后续 S0E 变化时制造 false-red。
+- **R145 scope amendment = Draft PR #420**：只新增 exact bootstrap marker 的 `DELETE` 权限；无 general S0F write。Review `4990534580` 曾因 DELETE_ONLY 只有声明、没有机器 enforcement 给出 `CHANGES_REQUIRED`。
+- **#420 remediation candidate 已增加 action-aware Control Tower guard**：Worker / Work Claim / Route 三方 action contract 必须一致；S0F wildcard bypass、CREATE、MODIFY、RENAME 均 fail closed；并增加 G0 runtime baseline `6c59f197...` 与 final `ABSENT` lineage proof，防止 cleanup 后重建/改写 marker。
+- **#418 继续 G0 HOLD**：#420 未经 fresh independent rereview ACCEPT 并 canonical merge 前，编程1不得开始 G1/G2 durable runtime implementation。
 - **域隔离继续锁定**：AI Film、World Model、A-share W2、W3 均不可由 R145 写入；World Model 只允许 canonical-main / immutable accepted-ref 的只读观察，私有正文不得复制到公开 coordination repo。
 - **Signal != Task**：R145 不允许 retrospective Signal 自动创建任务，也不允许跨域 relation 自动转移 ownership。
 - **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_SECRET_PERMISSION_VISIBILITY_EXPANSION / NO_SELF_REVIEW / NO_SELF_MERGE** 持续有效。
 
-## R145 activation identity
+## R145 current identity
 
 - Issue: `#415`
 - Task: `GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145`
@@ -87,15 +88,12 @@
 - Runtime branch: `gpt/r145-cross-domain-routing-isolation-runtime`
 - Runtime G0 sync head: `6c59f197ef515b1c282aa6a08c7759ed96749957`
 - Final ACTIVE gate PR: `#419`
-- Final ACTIVE gate Review: `4989933896`
-- Final ACTIVE gate merge: `cecd7427d16ab9ab20d00aeb8227402608708044`
+- Final ACTIVE Review: `4989933896`
+- Final ACTIVE merge: `cecd7427d16ab9ab20d00aeb8227402608708044`
 - Worker slot: `GPT-WORKER-R145-PROGRAMMING-1`
-- Executor: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
-- Activation receipt: `coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml`
-- Cleanup scope amendment candidate: `#420`
-- Cleanup exact path: `S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml`
-- Cleanup action: `DELETE_ONLY`
+- Scope amendment PR: `#420`
+- Prior amendment Review: `4990534580 / CHANGES_REQUIRED`
 
 ## 下一关
 
-PR #420 必须先在 final exact head 上通过 Program Control Tower / worker registry / Lane-A Work Claim / projection / collision validation，并由独立 GPT Reviewer 确认：只增加 exact bootstrap marker 的 DELETE_ONLY 权限、没有 general S0F write、没有修改历史 R142 workflow、没有 runtime implementation。若 ACCEPT 且无漂移，按 standing routine engineering authorization 合并 #420。随后编程1 fresh 同步 #418 到新 main，只删除该 bootstrap marker，确认 final main...#418 diff 不再包含 S0F marker，再继续 G1-G5。
+PR #420 必须在 remediation final exact head 上通过 Program Control Tower Python 3.11/3.13、worker/claim/route action-contract adversarial tests、projection/O0-O4/WIP checks、Lane-A fresh witness 与 action-aware guard，并再次交独立 GPT exact-head Review。若且仅若 fresh rereview ACCEPT 且 head/base/main/merge-ref 无漂移，才按 standing routine engineering authorization 合并 #420。合并后编程1先 fresh sync #418，保留 G0 head lineage，清除 exact bootstrap marker并验证 transition guard，然后才继续 G1-G5。
