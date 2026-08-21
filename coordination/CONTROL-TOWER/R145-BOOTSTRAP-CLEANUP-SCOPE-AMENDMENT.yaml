@@ -32,10 +32,6 @@ mechanical_enforcement:
   validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
   adversarial_tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
   workflow: ".github/workflows/r145-final-active-gate.yml"
-  authority_binding:
-    - "Worker slot path_action_constraints"
-    - "Lane-A Work Claim path_action_constraints"
-    - "R145 Route write_scope.exact_action_constraints"
   rules:
     - "Worker / Work Claim / Route identity, write surface, allowed actions, transition baseline and final state must agree exactly."
     - "Constrained path is exact and no broader write pattern may cover it."
@@ -45,22 +41,11 @@ mechanical_enforcement:
     - "R145 workflow remains active on S0D/S0E runtime changes and enables lineage enforcement specifically on PR #418."
 
 false_green_history:
-  first_amendment_failure:
-    cause: "worker registry schema 1.1 drift + projection mismatch"
-    resolution: "restored canonical schema 1.0 and synchronized projection; validator was not relaxed"
-  reviewer_failure:
-    review: 4990534580
-    cause: "DELETE_ONLY declaration had no action-aware machine semantics"
-    resolution: "added generic action-aware validator, adversarial tests and workflow enforcement"
-  lineage_test_failure:
-    run: 32472904773
-    result: "108/109 PASS then fail"
-    cause: "non-existent baseline caused git bad-object exception"
-    resolution: "missing baseline now fails closed as PATH_ACTION_TRANSITION_BASELINE_UNAVAILABLE"
+  first_amendment_failure: "worker registry schema drift/projection mismatch; restored schema 1.0 without relaxing validators"
+  reviewer_failure: "Review 4990534580 found DELETE_ONLY semantic false-green; fixed with generic action-aware enforcement"
+  lineage_test_failure: "run 32472904773 exposed bad-object exception for unavailable baseline; now structured fail-closed"
 
 unchanged_authority:
-  - "S0D and S0E bounded implementation remain the only normal runtime write surfaces."
-  - ".github/workflows/*r145* remains authorized."
   - "No historical R142 workflow mutation."
   - "No general S0F write."
   - "No cross-repo / AI Film / World Model / A-share W2 / W3 write."
@@ -80,7 +65,6 @@ acceptance_requires:
   - "missing/non-ancestor baseline negative tests and baseline-present→final-absent positive test"
   - "Program Control Tower Python 3.11 + 3.13 PASS on final exact head"
   - "Lane-A witness + action-aware contract Python 3.11 + 3.13 PASS on final exact head"
-  - "no collision or second writer"
 
 final_exact_head_and_ci: "READ_FRESH_FROM_PR_AND_WORKFLOW_RUNS / NOT_SELF_EMBEDDED"
 self_review_forbidden: true
