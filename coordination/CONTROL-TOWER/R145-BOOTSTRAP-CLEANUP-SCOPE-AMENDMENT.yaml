@@ -23,48 +23,46 @@ independent_review_history:
 
 amendment:
   exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-  canonical_allowed_actions: ["DELETE"]
+  allowed_actions: ["DELETE"]
   transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
   required_final_state: "ABSENT"
   general_s0f_write_allowed: false
 
 mechanical_enforcement:
   validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
-  adversarial_tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
+  tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
   workflow: ".github/workflows/r145-final-active-gate.yml"
-  rules:
-    - "Worker / Work Claim / Route identity, write surface, allowed actions, transition baseline and final state must agree exactly."
-    - "Constrained path is exact and no broader write pattern may cover it."
-    - "CREATE / MODIFY / RENAME_OR_OTHER fail closed; DELETE is the only allowed action."
-    - "Runtime transition requires baseline commit available and ancestor, baseline path present, final path absent, and exactly one net DELETE."
-    - "Unavailable/stale baseline returns structured fail-closed evidence rather than exception/fallback."
-    - "R145 workflow stays active on S0D/S0E runtime changes and enables lineage enforcement specifically on PR #418."
+  properties:
+    - "Worker/Claim/Route action contract equality"
+    - "exact path only; broader wildcard bypass forbidden"
+    - "CREATE/MODIFY/RENAME fail closed; DELETE allowed"
+    - "baseline commit availability + ancestry"
+    - "baseline path present + final path absent"
+    - "exact net DELETE transition"
+    - "unavailable baseline returns structured fail-closed finding"
+    - "runtime PR #418 transition mode remains checked during S0D/S0E changes"
 
 false_green_history:
-  - "Initial candidate exposed worker registry schema/projection drift and was corrected without relaxing validators."
-  - "Review 4990534580 exposed declaration-only DELETE_ONLY semantics and forced action-aware enforcement."
-  - "Run 32472904773 exposed an unavailable-baseline crash; unavailable baseline now fails closed structurally."
-
-unchanged_authority:
-  - "No historical R142 workflow mutation."
-  - "No general S0F write."
-  - "No cross-repo / AI Film / World Model / A-share W2 / W3 write."
-  - "No Signal-to-Task automation, production, trading, account/order/fund or secret/permission expansion."
+  - "Initial schema/projection red gate was preserved and fixed without validator weakening."
+  - "Independent Review 4990534580 forced action-aware semantics instead of declaration-only DELETE_ONLY."
+  - "Run 32472904773 exposed unavailable-baseline exception; this is now a structured fail-closed case."
 
 execution_rule: >-
-  #420 must receive a fresh independent exact-head ACCEPT and canonical merge before 编程1 resumes. After merge, #418 must be
-  non-destructively synchronized to the new main while preserving G0 head 6c59f197... in ancestry; the exact marker must then be absent
-  and the R145 transition-lineage gate must PASS before G1-G5 runtime implementation can be accepted.
+  #420 must receive fresh exact-head independent ACCEPT and canonical merge before 编程1 resumes. Then #418 must sync non-destructively,
+  preserve G0 head 6c59f197... as ancestry, end with the exact marker absent, and pass the transition-lineage guard before R145 G1-G5
+  can be accepted.
+
+unchanged_authority:
+  - "No historical R142 workflow mutation or general S0F write."
+  - "No cross-repo / AI Film / World Model / A-share W2 / W3 write."
+  - "No production, trading, account/order/fund, secret/permission expansion or automatic Signal-to-Task release."
 
 acceptance_requires:
-  - "fresh exact-head independent rereview after Review 4990534580"
+  - "fresh exact-head rereview after Review 4990534580"
   - "fresh base/main/merge-ref no-drift seal"
-  - "Worker / Work Claim / Route action/baseline/final-state agreement"
-  - "no general S0F wildcard or broader bypass"
-  - "CREATE / MODIFY / RENAME negative tests; DELETE positive test"
-  - "missing/non-ancestor baseline negative tests and baseline-present→final-absent positive test"
-  - "Program Control Tower Python 3.11 + 3.13 PASS on final exact head"
-  - "Lane-A witness + action-aware contract Python 3.11 + 3.13 PASS on final exact head"
+  - "action/baseline/final-state agreement and adversarial tests"
+  - "Program Control Tower 3.11 + 3.13 final-head PASS"
+  - "Lane-A witness + action-aware guard 3.11 + 3.13 final-head PASS"
 
 final_exact_head_and_ci: "READ_FRESH_FROM_PR_AND_WORKFLOW_RUNS / NOT_SELF_EMBEDDED"
 self_review_forbidden: true
