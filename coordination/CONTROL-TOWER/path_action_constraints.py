@@ -450,6 +450,15 @@ def validate_diff(
     }
 
 
+def _git_commit_exists(repo_root: Path, commit: str) -> bool:
+    return subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
+        cwd=repo_root,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
 def _git_object_exists(repo_root: Path, commit: str, path: str) -> bool:
     probe = subprocess.run(
         ["git", "cat-file", "-e", f"{commit}:{path}"],
@@ -476,6 +485,27 @@ def validate_transition_lineage(
         if baseline is None:
             continue
 
+        baseline_commit_exists = _git_commit_exists(root, baseline)
+        if not baseline_commit_exists:
+            checked[path] = {
+                "baseline_sha": baseline,
+                "baseline_commit_exists": False,
+                "baseline_is_ancestor": False,
+                "baseline_present": False,
+                "head_present": _git_object_exists(root, head_sha, path),
+                "required_final_state": final_state,
+                "transition_entries": [],
+            }
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_TRANSITION_BASELINE_UNAVAILABLE",
+                    "The governed cleanup baseline commit must exist in the checked repository history.",
+                    {"path": path, "baseline_sha": baseline, "head_sha": head_sha},
+                )
+            )
+            continue
+
         ancestor = subprocess.run(
             ["git", "merge-base", "--is-ancestor", baseline, head_sha],
             cwd=root,
@@ -486,11 +516,11 @@ def validate_transition_lineage(
         head_present = _git_object_exists(root, head_sha, path)
         transition_entries = _git_diff_entries(root, baseline, head_sha)
         relevant_entries = [entry for entry in transition_entries if path in entry[1]]
-        transition_action_findings = validate_diff_actions({path: constraint}, relevant_entries)
-        findings.extend(transition_action_findings)
+        findings.extend(validate_diff_actions({path: constraint}, relevant_entries))
 
         checked[path] = {
             "baseline_sha": baseline,
+            "baseline_commit_exists": True,
             "baseline_is_ancestor": ancestor,
             "baseline_present": baseline_present,
             "head_present": head_present,
@@ -558,8 +588,7 @@ def validate_transition_lineage(
 def _constraints_from_contract(result: dict[str, Any]) -> dict[str, PathActionConstraint]:
     raw = []
     for path, spec in (result.get("constraints") or {}).items():
-        item = {"path": path, **spec}
-        raw.append(item)
+        raw.append({"path": path, **spec})
     constraints, findings = _parse_constraints(raw, "validated_contract")
     if findings:
         raise ValueError("validated contract could not be reconstructed")
