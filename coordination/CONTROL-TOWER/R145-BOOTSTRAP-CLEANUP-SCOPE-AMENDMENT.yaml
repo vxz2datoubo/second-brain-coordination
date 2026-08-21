@@ -9,15 +9,12 @@ architecture_owner: "GPT"
 status: "REMEDIATED_CANDIDATE / PENDING_FRESH_INDEPENDENT_REREVIEW / NON_AUTHORITATIVE_UNTIL_ACCEPT_AND_CANONICAL_MERGE"
 
 trigger:
-  source: "R145_G0_FRESH_REVIEW"
-  issue_comment: 5365953776
   observed_runtime_head: "6c59f197ef515b1c282aa6a08c7759ed96749957"
   canonical_main: "cecd7427d16ab9ab20d00aeb8227402608708044"
   defect: "R142_HISTORICAL_WHOLE_PR_ALLOWLIST_FALSE_RED_ON_SPENT_R145_BOOTSTRAP_MARKER"
 
-independent_review_history:
+review_history:
   review_id: 4990534580
-  reviewed_head: "6d74543a54ba28f2e9c538b8fe6a72a0f7383815"
   disposition: "CHANGES_REQUIRED"
   blocker: "R145-SCOPE-F01 / DELETE_ONLY_IS_DECLARED_BUT_NOT_MECHANICALLY_ENFORCED"
 
@@ -32,37 +29,36 @@ mechanical_enforcement:
   validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
   tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
   workflow: ".github/workflows/r145-final-active-gate.yml"
-  properties:
+  guarantees:
     - "Worker/Claim/Route action contract equality"
-    - "exact path only; broader wildcard bypass forbidden"
-    - "CREATE/MODIFY/RENAME fail closed; DELETE allowed"
-    - "baseline commit availability + ancestry"
-    - "baseline path present + final path absent"
+    - "no broader wildcard bypass"
+    - "CREATE/MODIFY/RENAME fail closed"
+    - "DELETE positive control"
+    - "baseline availability and ancestry"
+    - "baseline-present and final-absent proof"
     - "exact net DELETE transition"
-    - "unavailable baseline returns structured fail-closed finding"
-    - "runtime PR #418 transition mode remains checked during S0D/S0E changes"
+    - "unavailable baseline is structured fail-closed"
+    - "PR #418 transition mode remains checked on S0D/S0E changes"
 
 false_green_history:
-  - "Initial schema/projection red gate was preserved and fixed without validator weakening."
-  - "Independent Review 4990534580 forced action-aware semantics instead of declaration-only DELETE_ONLY."
-  - "Run 32472904773 exposed unavailable-baseline exception; this is now a structured fail-closed case."
+  - "schema/projection drift was preserved as red and corrected without validator weakening"
+  - "Review 4990534580 forced machine action semantics"
+  - "run 32472904773 exposed unavailable-baseline exception; remediated as structured failure"
 
 execution_rule: >-
-  #420 must receive fresh exact-head independent ACCEPT and canonical merge before 编程1 resumes. Then #418 must sync non-destructively,
-  preserve G0 head 6c59f197... as ancestry, end with the exact marker absent, and pass the transition-lineage guard before R145 G1-G5
-  can be accepted.
+  #420 requires fresh exact-head independent ACCEPT and canonical merge. Afterwards #418 must sync non-destructively while preserving
+  G0 head 6c59f197... in ancestry, end with the exact marker absent, and pass transition-lineage enforcement before G1-G5 acceptance.
 
 unchanged_authority:
   - "No historical R142 workflow mutation or general S0F write."
-  - "No cross-repo / AI Film / World Model / A-share W2 / W3 write."
-  - "No production, trading, account/order/fund, secret/permission expansion or automatic Signal-to-Task release."
+  - "No cross-repo/domain write expansion."
+  - "No production/trading/account/secret/automatic task release expansion."
 
 acceptance_requires:
   - "fresh exact-head rereview after Review 4990534580"
-  - "fresh base/main/merge-ref no-drift seal"
-  - "action/baseline/final-state agreement and adversarial tests"
-  - "Program Control Tower 3.11 + 3.13 final-head PASS"
-  - "Lane-A witness + action-aware guard 3.11 + 3.13 final-head PASS"
+  - "fresh no-drift seal"
+  - "final-head Python 3.11 + 3.13 Control Tower PASS"
+  - "final-head Python 3.11 + 3.13 Lane-A witness/action guard PASS"
 
 final_exact_head_and_ci: "READ_FRESH_FROM_PR_AND_WORKFLOW_RUNS / NOT_SELF_EMBEDDED"
 self_review_forbidden: true
