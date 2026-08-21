@@ -1,0 +1,64 @@
+schema_version: "1.0"
+receipt_id: "R145-FINAL-ACTIVE-GATE-0001"
+repository: "vxz2datoubo/second-brain-coordination"
+owner: "USER"
+architecture_owner: "GPT"
+issue: 415
+task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+route_epoch: 145
+status: "ACTIVE_GATE_CANDIDATE / NON_AUTHORITATIVE_UNTIL_MERGED"
+
+canonical_main_before_gate: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
+planning_pr: 416
+planning_review: 4989615283
+planning_merge: "d06dc93cd1c05d11f8c200039880de3b07c11a23"
+runtime_pr: 418
+runtime_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
+runtime_bootstrap_head: "8930daf530522e487f7858416816f4a53f8ffe86"
+final_active_gate_pr: null
+final_active_gate_branch: "gpt/r145-final-active-gate"
+worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+executor_role: "GPT_ENGINEERING_WORKER"
+model_id: "GPT-5.6 Sol"
+intended_window: "编程1"
+reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+
+authority_effect:
+  effective_only_when_final_gate_is_canonical_main: true
+  runtime_pr_bootstrap_remains_non_executable_until_then: true
+  cross_repo_write_allowed: false
+  ai_film_write_allowed: false
+  world_model_write_allowed: false
+  a_share_w2_write_allowed: false
+  w3_write_allowed: false
+  trading_allowed: false
+  production_allowed: false
+
+implementation_write_surface:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+  - ".github/workflows/*r145*"
+
+read_only_external_domains:
+  - "vxz2datoubo/eustia-ai-film"
+  - "vxz2datoubo/ai-world-simulation-engine"
+
+hard_gates:
+  - "GLOBAL_VISIBILITY != DOMAIN_OWNERSHIP"
+  - "MISSING_IN_NON_OWNER_DOMAIN != DESIRED_EFFECT_UNMET"
+  - "OWNER_DOMAIN_CANONICAL_REQUIRED_BEFORE_NEW_DURABLE_SIGNAL"
+  - "NO_FALLBACK_TO_SECOND_BRAIN_CANONICAL"
+  - "SIGNAL_PRIMARY_DOMAIN / TASK_TARGET_DOMAIN / ROUTE_AUTHORITY_DOMAIN / WRITEBACK_OWNER_COMPATIBILITY_REQUIRED"
+  - "NO_CROSS_REPO_WRITE"
+  - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+  - "NO_NEW_PARALLEL_DOMAIN_AUTHORITY"
+  - "SIGNAL_IS_NOT_TASK"
+
+schema_materialization_stop_gate: "DOMAIN_AUTHORITY_SCHEMA_MATERIALIZATION_GATE"
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+
+next_gate: "BIND_PR_NUMBER_THEN_EXACT_HEAD_CI_AND_INDEPENDENT_GPT_ACTIVATION_REVIEW"
