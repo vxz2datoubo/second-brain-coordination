@@ -34,7 +34,6 @@ worker_slots:
     write_paths:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-      - ".github/workflows/*r145*"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
     path_action_constraints:
       - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
@@ -65,6 +64,7 @@ worker_slots:
     authority_claims:
       - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
       - "R145_BOOTSTRAP_MARKER_DELETE_ONLY"
+      - "R145_RUNTIME_WORKFLOW_MUTATION_FORBIDDEN"
     resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
     provenance:
       source: "R145-FINAL-ACTIVE-GATE-0001"
@@ -80,6 +80,8 @@ worker_slots:
       authority_effective_only_when_final_gate_is_canonical_main: true
       intended_window: "编程1"
       bootstrap_cleanup_amendment_reason: "R142 historical whole-PR allowlist compatibility"
+      runtime_enforcement_root: ".github/workflows/runtime-governance-root.yml"
+      r145_workflow_write_authority: "FORBIDDEN"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
     activation_state: "ACTIVE"
