@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
@@ -12,6 +13,8 @@ from control_tower import load_yaml
 WORKER_REGISTRY = "coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml"
 CLAIMS_FILE = "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
 ALLOWED_ACTIONS = frozenset({"CREATE", "MODIFY", "DELETE"})
+ALLOWED_FINAL_STATES = frozenset({"PRESENT", "ABSENT"})
+_HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 
 @dataclass(frozen=True)
@@ -26,6 +29,8 @@ class ActionFinding:
 class PathActionConstraint:
     path: str
     allowed_actions: tuple[str, ...]
+    transition_baseline_sha: str | None = None
+    required_final_state: str | None = None
 
 
 def _norm_path(value: str) -> str:
@@ -35,8 +40,15 @@ def _norm_path(value: str) -> str:
     return str(PurePosixPath(value))
 
 
-def _canonical_constraint_map(value: dict[str, PathActionConstraint]) -> dict[str, tuple[str, ...]]:
-    return {path: constraint.allowed_actions for path, constraint in sorted(value.items())}
+def _canonical_constraint_map(value: dict[str, PathActionConstraint]) -> dict[str, dict[str, Any]]:
+    return {
+        path: {
+            "allowed_actions": list(constraint.allowed_actions),
+            "transition_baseline_sha": constraint.transition_baseline_sha,
+            "required_final_state": constraint.required_final_state,
+        }
+        for path, constraint in sorted(value.items())
+    }
 
 
 def _parse_constraints(raw: Any, source: str) -> tuple[dict[str, PathActionConstraint], list[ActionFinding]]:
@@ -65,8 +77,12 @@ def _parse_constraints(raw: Any, source: str) -> tuple[dict[str, PathActionConst
                 )
             )
             continue
+
         path = item.get("path")
         actions = item.get("allowed_actions")
+        baseline = item.get("transition_baseline_sha")
+        final_state = item.get("required_final_state")
+
         if not isinstance(path, str) or not path.strip():
             findings.append(
                 ActionFinding(
@@ -88,6 +104,7 @@ def _parse_constraints(raw: Any, source: str) -> tuple[dict[str, PathActionConst
                 )
             )
             continue
+
         if not isinstance(actions, list) or not actions or any(not isinstance(action, str) for action in actions):
             findings.append(
                 ActionFinding(
@@ -110,6 +127,40 @@ def _parse_constraints(raw: Any, source: str) -> tuple[dict[str, PathActionConst
                 )
             )
             continue
+
+        if baseline is not None:
+            if not isinstance(baseline, str) or not _HEX40.fullmatch(baseline):
+                findings.append(
+                    ActionFinding(
+                        "ERROR",
+                        "PATH_ACTION_BASELINE_SHA_INVALID",
+                        "transition_baseline_sha must be an exact lowercase 40-hex commit when declared.",
+                        {"source": source, "index": index, "actual": baseline},
+                    )
+                )
+                continue
+            if not isinstance(final_state, str) or final_state.upper() not in ALLOWED_FINAL_STATES:
+                findings.append(
+                    ActionFinding(
+                        "ERROR",
+                        "PATH_ACTION_FINAL_STATE_INVALID",
+                        "A transition baseline requires required_final_state PRESENT or ABSENT.",
+                        {"source": source, "index": index, "actual": final_state},
+                    )
+                )
+                continue
+            final_state = final_state.upper()
+        elif final_state is not None:
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_FINAL_STATE_WITHOUT_BASELINE",
+                    "required_final_state may not be declared without a transition_baseline_sha.",
+                    {"source": source, "index": index},
+                )
+            )
+            continue
+
         if path in result:
             findings.append(
                 ActionFinding(
@@ -120,7 +171,12 @@ def _parse_constraints(raw: Any, source: str) -> tuple[dict[str, PathActionConst
                 )
             )
             continue
-        result[path] = PathActionConstraint(path=path, allowed_actions=normalized_actions)
+        result[path] = PathActionConstraint(
+            path=path,
+            allowed_actions=normalized_actions,
+            transition_baseline_sha=baseline,
+            required_final_state=final_state,
+        )
     return result, findings
 
 
@@ -204,26 +260,24 @@ def validate_contract(
     else:
         route = load_yaml(route_path)
 
-    worker_constraints, worker_constraint_findings = _parse_constraints(
+    worker_constraints, parsed = _parse_constraints(
         worker.get("path_action_constraints") if worker else None, "worker_registry"
     )
-    findings.extend(worker_constraint_findings)
-    claim_constraints, claim_constraint_findings = _parse_constraints(
+    findings.extend(parsed)
+    claim_constraints, parsed = _parse_constraints(
         claim.get("path_action_constraints") if claim else None, "work_claim"
     )
-    findings.extend(claim_constraint_findings)
+    findings.extend(parsed)
     route_write_scope = route.get("write_scope") if isinstance(route.get("write_scope"), dict) else {}
-    route_constraints, route_constraint_findings = _parse_constraints(
-        route_write_scope.get("exact_action_constraints"), "route"
-    )
-    findings.extend(route_constraint_findings)
+    route_constraints, parsed = _parse_constraints(route_write_scope.get("exact_action_constraints"), "route")
+    findings.extend(parsed)
 
-    worker_write_paths, write_findings = _string_paths(worker.get("write_paths") if worker else None, "worker_registry")
-    findings.extend(write_findings)
-    claim_write_paths, write_findings = _string_paths(claim.get("write_paths") if claim else None, "work_claim")
-    findings.extend(write_findings)
-    route_write_paths, write_findings = _string_paths(route_write_scope.get("implementation"), "route")
-    findings.extend(write_findings)
+    worker_write_paths, parsed = _string_paths(worker.get("write_paths") if worker else None, "worker_registry")
+    findings.extend(parsed)
+    claim_write_paths, parsed = _string_paths(claim.get("write_paths") if claim else None, "work_claim")
+    findings.extend(parsed)
+    route_write_paths, parsed = _string_paths(route_write_scope.get("implementation"), "route")
+    findings.extend(parsed)
 
     if worker is not None and claim is not None:
         claim_binding = claim.get("route_binding") if isinstance(claim.get("route_binding"), dict) else {}
@@ -316,16 +370,14 @@ def validate_contract(
         "worker_slot_id": worker_slot_id,
         "lane_id": lane_id,
         "route_file": route_file,
-        "constraints": {path: list(item.allowed_actions) for path, item in sorted(canonical_constraints.items())},
+        "constraints": _canonical_constraint_map(canonical_constraints),
         "findings": [asdict(item) for item in findings],
     }
 
 
 def _git_diff_entries(repo_root: Path, base_sha: str, head_sha: str) -> list[tuple[str, tuple[str, ...]]]:
     output = subprocess.check_output(
-        ["git", "diff", "--name-status", "-M", base_sha, head_sha],
-        cwd=repo_root,
-        text=True,
+        ["git", "diff", "--name-status", "-M", base_sha, head_sha], cwd=repo_root, text=True
     )
     result: list[tuple[str, tuple[str, ...]]] = []
     for line in output.splitlines():
@@ -336,9 +388,19 @@ def _git_diff_entries(repo_root: Path, base_sha: str, head_sha: str) -> list[tup
     return result
 
 
+def _derived_action(status: str) -> str:
+    code = status[:1].upper()
+    if code == "A":
+        return "CREATE"
+    if code == "D":
+        return "DELETE"
+    if code in {"M", "T"}:
+        return "MODIFY"
+    return "UNSUPPORTED"
+
+
 def validate_diff_actions(
-    constraints: dict[str, PathActionConstraint],
-    entries: list[tuple[str, tuple[str, ...]]],
+    constraints: dict[str, PathActionConstraint], entries: list[tuple[str, tuple[str, ...]]]
 ) -> list[ActionFinding]:
     findings: list[ActionFinding] = []
     by_path: dict[str, list[tuple[str, tuple[str, ...]]]] = {path: [] for path in constraints}
@@ -350,15 +412,7 @@ def validate_diff_actions(
     for path, matching in by_path.items():
         allowed = set(constraints[path].allowed_actions)
         for status, paths in matching:
-            code = status[:1].upper()
-            if code == "A":
-                action = "CREATE"
-            elif code == "D":
-                action = "DELETE"
-            elif code in {"M", "T"}:
-                action = "MODIFY"
-            else:
-                action = "UNSUPPORTED"
+            action = _derived_action(status)
             if action not in allowed:
                 findings.append(
                     ActionFinding(
@@ -396,11 +450,116 @@ def validate_diff(
     }
 
 
+def _git_object_exists(repo_root: Path, commit: str, path: str) -> bool:
+    probe = subprocess.run(
+        ["git", "cat-file", "-e", f"{commit}:{path}"],
+        cwd=repo_root,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return probe.returncode == 0
+
+
+def validate_transition_lineage(
+    repo_root: Path,
+    *,
+    head_sha: str,
+    constraints: dict[str, PathActionConstraint],
+) -> dict[str, Any]:
+    root = repo_root.resolve()
+    findings: list[ActionFinding] = []
+    checked: dict[str, Any] = {}
+
+    for path, constraint in constraints.items():
+        baseline = constraint.transition_baseline_sha
+        final_state = constraint.required_final_state
+        if baseline is None:
+            continue
+
+        ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", baseline, head_sha],
+            cwd=root,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode == 0
+        baseline_present = _git_object_exists(root, baseline, path)
+        head_present = _git_object_exists(root, head_sha, path)
+        transition_entries = _git_diff_entries(root, baseline, head_sha)
+        relevant_entries = [entry for entry in transition_entries if path in entry[1]]
+        transition_action_findings = validate_diff_actions({path: constraint}, relevant_entries)
+        findings.extend(transition_action_findings)
+
+        checked[path] = {
+            "baseline_sha": baseline,
+            "baseline_is_ancestor": ancestor,
+            "baseline_present": baseline_present,
+            "head_present": head_present,
+            "required_final_state": final_state,
+            "transition_entries": [[status, list(paths)] for status, paths in relevant_entries],
+        }
+
+        if not ancestor:
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_TRANSITION_BASELINE_NOT_ANCESTOR",
+                    "The governed cleanup baseline must remain an ancestor of the runtime head; history rewrite or unrelated substitution fails closed.",
+                    {"path": path, "baseline_sha": baseline, "head_sha": head_sha},
+                )
+            )
+        if not baseline_present:
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_TRANSITION_BASELINE_PATH_MISSING",
+                    "The governed cleanup baseline must actually contain the constrained path.",
+                    {"path": path, "baseline_sha": baseline},
+                )
+            )
+        if final_state == "ABSENT" and head_present:
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_REQUIRED_FINAL_STATE_VIOLATION",
+                    "The constrained path must be absent from the governed runtime head after cleanup.",
+                    {"path": path, "head_sha": head_sha, "required_final_state": final_state},
+                )
+            )
+        if final_state == "PRESENT" and not head_present:
+            findings.append(
+                ActionFinding(
+                    "ERROR",
+                    "PATH_ACTION_REQUIRED_FINAL_STATE_VIOLATION",
+                    "The constrained path must be present in the governed runtime head.",
+                    {"path": path, "head_sha": head_sha, "required_final_state": final_state},
+                )
+            )
+        if baseline_present and final_state == "ABSENT":
+            actions = [_derived_action(status) for status, _ in relevant_entries]
+            if actions != ["DELETE"]:
+                findings.append(
+                    ActionFinding(
+                        "ERROR",
+                        "PATH_ACTION_DELETE_TRANSITION_NOT_EXACT",
+                        "A DELETE-only cleanup must resolve from baseline-present to final-absent as exactly one net DELETE transition.",
+                        {"path": path, "actions": actions, "entries": checked[path]["transition_entries"]},
+                    )
+                )
+
+    errors = [asdict(item) for item in findings if item.severity == "ERROR"]
+    return {
+        "status": "PASS" if not errors else "FAIL",
+        "head_sha": head_sha,
+        "checked": checked,
+        "findings": [asdict(item) for item in findings],
+    }
+
+
 def _constraints_from_contract(result: dict[str, Any]) -> dict[str, PathActionConstraint]:
-    raw = [
-        {"path": path, "allowed_actions": actions}
-        for path, actions in (result.get("constraints") or {}).items()
-    ]
+    raw = []
+    for path, spec in (result.get("constraints") or {}).items():
+        item = {"path": path, **spec}
+        raw.append(item)
     constraints, findings = _parse_constraints(raw, "validated_contract")
     if findings:
         raise ValueError("validated contract could not be reconstructed")
@@ -415,29 +574,35 @@ def main() -> int:
     parser.add_argument("--route-file", required=True)
     parser.add_argument("--base-sha")
     parser.add_argument("--head-sha")
+    parser.add_argument("--enforce-transition-lineage", action="store_true")
     args = parser.parse_args()
 
-    contract = validate_contract(
-        Path(args.repo_root),
-        worker_slot_id=args.worker_slot,
-        lane_id=args.lane,
-        route_file=args.route_file,
-    )
+    root = Path(args.repo_root)
+    contract = validate_contract(root, worker_slot_id=args.worker_slot, lane_id=args.lane, route_file=args.route_file)
     output: dict[str, Any] = {"contract": contract}
     exit_code = 0 if contract["status"] == "PASS" else 2
 
     if bool(args.base_sha) != bool(args.head_sha):
         parser.error("--base-sha and --head-sha must be supplied together")
-    if args.base_sha and args.head_sha and contract["status"] == "PASS":
-        diff = validate_diff(
-            Path(args.repo_root),
-            base_sha=args.base_sha,
-            head_sha=args.head_sha,
-            constraints=_constraints_from_contract(contract),
-        )
+
+    constraints: dict[str, PathActionConstraint] = {}
+    if contract["status"] == "PASS":
+        constraints = _constraints_from_contract(contract)
+
+    if args.base_sha and args.head_sha and constraints:
+        diff = validate_diff(root, base_sha=args.base_sha, head_sha=args.head_sha, constraints=constraints)
         output["diff"] = diff
         if diff["status"] != "PASS":
             exit_code = 2
+
+    if args.enforce_transition_lineage:
+        if not args.head_sha:
+            parser.error("--enforce-transition-lineage requires --head-sha")
+        if contract["status"] == "PASS":
+            transition = validate_transition_lineage(root, head_sha=args.head_sha, constraints=constraints)
+            output["transition"] = transition
+            if transition["status"] != "PASS":
+                exit_code = 2
 
     print(json.dumps(output, ensure_ascii=False, indent=2, sort_keys=True))
     return exit_code
