@@ -52,6 +52,7 @@ core_invariants:
   - "DRAFT_PR_EVIDENCE != DOMAIN_CANONICAL_AUTHORITY"
   - "NO_CROSS_REPO_WRITE"
   - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+  - "RUNTIME_ENFORCEMENT_ROOT_NOT_WRITABLE_BY_RUNTIME_PR"
 
 must_reuse_or_adapt:
   - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
@@ -167,8 +168,17 @@ mandatory_scenarios:
 preferred_write_surfaces:
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
   - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-  - ".github/workflows/*r145*"
   - "task-specific public-safe fixtures/receipts/tests under the existing Global Signal Plane authority"
+
+runtime_governance_enforcement:
+  runtime_pr: 418
+  r145_workflow_write_authorized: false
+  final_active_gate_workflow: ".github/workflows/r145-final-active-gate.yml"
+  base_trusted_root: ".github/workflows/runtime-governance-root.yml"
+  execution_source: "PULL_REQUEST_TARGET / CANONICAL_BASE_TRUSTED"
+  rule: >-
+    Runtime PR #418 may not modify its enforcement workflows or Control Tower policy code. The base-trusted governance root must evaluate
+    #418 head as data using canonical-base validators and fail closed on any changed path outside the bounded runtime write surface.
 
 read_only_sources:
   - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
@@ -184,6 +194,11 @@ forbidden_writes:
   - "trading/account/order/fund"
   - "production/private scheduler/webhook/daemon"
   - "repository permissions/visibility/secrets"
+  - ".github/workflows/*r145*"
+  - ".github/workflows/runtime-governance-root.yml"
+  - "coordination/CONTROL-TOWER/path_action_constraints.py"
+  - "coordination/CONTROL-TOWER/path_action_policy.py"
+  - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
 
 privacy_contract:
   private_world_model_repository: true
@@ -211,6 +226,7 @@ acceptance_requires:
   - "cross-repo mutation denial evidence"
   - "deterministic reconciliation/receipt"
   - "Control Tower claim/slot/route/witness validation"
+  - "base-trusted runtime governance-root validation for PR #418"
   - "independent GPT exact-head review"
 
 hard_locks:
@@ -229,6 +245,8 @@ hard_locks:
   - "NO_ACCOUNT_ORDER_FUND_ACCESS"
   - "NO_PRODUCTION_SCHEDULER_WEBHOOK_DAEMON"
   - "NO_SECRET_PERMISSION_VISIBILITY_EXPANSION"
+  - "NO_RUNTIME_WORKFLOW_WRITE"
+  - "NO_SELF_WEAKENING_GOVERNANCE_ROOT"
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"

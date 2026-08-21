@@ -66,14 +66,18 @@
 
 - **R143 / R144 已完整收口**：均为历史非执行态；Lane-B 当前没有 W2/C2 writer lease，Lane-C 维持关闭边界。
 - **R145 planning 已独立验收并合并**：PR #416 exact head `e6f908442acd810053c041f565ba15c38230cd86` 经 Review `4989615283` ACCEPT，合并为 `d06dc93cd1c05d11f8c200039880de3b07c11a23`。
-- **R145 runtime identity = Draft PR #418**：branch `gpt/r145-cross-domain-routing-isolation-runtime`，bootstrap head `8930daf530522e487f7858416816f4a53f8ffe86`。当前只有 bootstrap/evidence，不得在 activation gate canonical 前开始 runtime implementation。
-- **R145 final ACTIVE gate = Draft PR #419**：候选绑定 `GPT-WORKER-R145-PROGRAMMING-1`、Lane-A Work Claim、R145 route、Release Gate 与 runtime PR #418。
-- **#419 分支里的 ACTIVE 字段仍只是 candidate**：只有 #419 通过 fresh exact-head CI、Lane-A authorization witness、独立 GPT Review 并合并到 canonical main 后，编程1才真正获得 R145 S0D/S0E bounded runtime write authority。
+- **R145 final ACTIVE gate 已独立验收并合并**：PR #419 exact head `1eb83951d1f3a75ffbd8bb08043fca25086d6f75` 经 Review `4989933896` ACCEPT，合并为 `cecd7427d16ab9ab20d00aeb8227402608708044`，因此 `GPT-WORKER-R145-PROGRAMMING-1` 与 Lane-A bounded runtime authority 已 canonical 生效。
+- **R145 runtime identity = Draft PR #418**：branch `gpt/r145-cross-domain-routing-isolation-runtime`，G0 同步 head `6c59f197ef515b1c282aa6a08c7759ed96749957`。G0 结论为 `REUSE / ADAPT_EXISTING`，runtime implementation 尚未 durable 落盘。
+- **G0 compatibility defect 已确认**：保留的 R142 workflow 会对整个 PR diff 做历史 allowlist；#418 的 spent S0F bootstrap marker 会在后续 S0E 变化时制造 false-red。
+- **R145 scope amendment = Draft PR #420**：为 exact bootstrap marker 增加 `DELETE` 约束并逐轮修复 F01-F04 false-green；无 general S0F write。
+- **F02/F03 已由 Independent Review `4995264281` 判定关闭**：required contract 已独立 pin；完整 changed-path → common write-surface 已机械验证。
+- **F04 remediation candidate**：Runtime PR #418 不再拥有 `.github/workflows/*r145*` 写权限。`r145-final-active-gate.yml`、action validators 与 required-contract anchor 均为 governance-owned enforcement surfaces。新增 `.github/workflows/runtime-governance-root.yml` 作为 `pull_request_target` base-trusted root，从 canonical base 执行 validator，只把 #418 head 当数据读取；#418 不能通过修改自己的 workflow 关闭根检查。
+- **#418 继续 G0 HOLD**：#420 未经 fresh independent exact-head rereview ACCEPT 并 canonical merge 前，编程1不得开始 G1/G2 durable runtime implementation。
 - **域隔离继续锁定**：AI Film、World Model、A-share W2、W3 均不可由 R145 写入；World Model 只允许 canonical-main / immutable accepted-ref 的只读观察，私有正文不得复制到公开 coordination repo。
 - **Signal != Task**：R145 不允许 retrospective Signal 自动创建任务，也不允许跨域 relation 自动转移 ownership。
 - **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_SECRET_PERMISSION_VISIBILITY_EXPANSION / NO_SELF_REVIEW / NO_SELF_MERGE** 持续有效。
 
-## R145 activation identity
+## R145 current identity
 
 - Issue: `#415`
 - Task: `GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145`
@@ -83,12 +87,15 @@
 - Planning merge: `d06dc93cd1c05d11f8c200039880de3b07c11a23`
 - Runtime PR: `#418`
 - Runtime branch: `gpt/r145-cross-domain-routing-isolation-runtime`
-- Runtime bootstrap head: `8930daf530522e487f7858416816f4a53f8ffe86`
+- Runtime G0 sync head: `6c59f197ef515b1c282aa6a08c7759ed96749957`
 - Final ACTIVE gate PR: `#419`
-- Worker slot candidate: `GPT-WORKER-R145-PROGRAMMING-1`
-- Executor candidate: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
-- Activation receipt: `coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml`
+- Final ACTIVE Review: `4989933896`
+- Final ACTIVE merge: `cecd7427d16ab9ab20d00aeb8227402608708044`
+- Worker slot: `GPT-WORKER-R145-PROGRAMMING-1`
+- Scope amendment PR: `#420`
+- Latest independent amendment Review: `4995264281 / CHANGES_REQUIRED / F04`
+- Base-trusted runtime governance root: `.github/workflows/runtime-governance-root.yml`
 
 ## 下一关
 
-PR #419 必须在最终 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Lane-A Work Claim、Program/claim projections、O0-O4/WIP/resource 验证，以及专用 Lane-A authorization witness create→verify，再交独立 GPT exact-head Review。若且仅若独立 Review 为 ACCEPT、reviewed head/base/main/merge-ref 未漂移且无 blocker，则按用户 standing routine engineering authorization 合并 #419。合并后再向编程1发出 PR #418 的 G0 开工指令；在此之前不得修改 R145 runtime implementation。
+PR #420 必须在 F04 remediation final exact head 上通过 Program Control Tower Python 3.11/3.13、worker/claim/route action-contract tests、projection/O0-O4/WIP checks、Lane-A fresh witness、action-aware guard，以及 base-trusted runtime governance-root adversarial tests。随后再次交独立 GPT exact-head Review。若且仅若 fresh rereview ACCEPT 且 head/base/main/merge-ref 无漂移，才按 standing routine engineering authorization 合并 #420。合并后编程1先 fresh sync #418，保留 G0 head lineage，清除 exact bootstrap marker并验证 base-trusted transition/full-diff guard，然后才继续 G1-G5。

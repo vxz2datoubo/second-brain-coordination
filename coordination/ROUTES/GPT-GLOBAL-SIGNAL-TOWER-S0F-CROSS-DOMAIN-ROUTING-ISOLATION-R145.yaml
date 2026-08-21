@@ -1,7 +1,7 @@
-schema_version: "1.1"
+schema_version: "1.2"
 route_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 repository: "vxz2datoubo/second-brain-coordination"
-status: "ACTIVE_IMPLEMENTATION_CANDIDATE"
+status: "ACTIVE_IMPLEMENTATION"
 execution_allowed: true
 runtime_code_change_allowed: true
 automatic_resume: false
@@ -23,8 +23,10 @@ binding:
   implementation_branch: "gpt/r145-cross-domain-routing-isolation-runtime"
   implementation_pr: 418
   runtime_bootstrap_head: "8930daf530522e487f7858416816f4a53f8ffe86"
+  g0_synchronized_runtime_head: "6c59f197ef515b1c282aa6a08c7759ed96749957"
   final_active_gate_branch: "gpt/r145-final-active-gate"
   final_active_gate_pr: 419
+  final_active_gate_merge: "cecd7427d16ab9ab20d00aeb8227402608708044"
   task_brief: "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
   planning_receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
   active_gate_receipt: "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
@@ -66,6 +68,7 @@ routing_invariants:
   repository_identity_alone_insufficient: true
   signal_is_not_task: true
   signal_task_route_writeback_domain_compatibility_required: true
+  runtime_enforcement_root_self_mutation_forbidden: true
 
 required_domains:
   - domain_id: "SECOND_BRAIN_SYSTEM"
@@ -86,7 +89,18 @@ write_scope:
   implementation:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-    - ".github/workflows/*r145*"
+    - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+  exact_action_constraints:
+    - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+      allowed_actions: ["DELETE"]
+      transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
+      required_final_state: "ABSENT"
+  governance_owned_enforcement_paths:
+    - ".github/workflows/r145-final-active-gate.yml"
+    - ".github/workflows/runtime-governance-root.yml"
+    - "coordination/CONTROL-TOWER/path_action_constraints.py"
+    - "coordination/CONTROL-TOWER/path_action_policy.py"
+    - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
   cross_repo: []
   forbidden:
     - "vxz2datoubo/eustia-ai-film mutation"
@@ -97,9 +111,12 @@ write_scope:
     - "trading/account/order/fund"
     - "production scheduler/webhook/daemon"
     - "secret/permission/visibility expansion"
+    - "general S0F write beyond exact bootstrap DELETE_ONLY"
+    - "any R145 workflow mutation from runtime PR #418"
+    - "governance-root or action-validator mutation from runtime PR #418"
 
 activation_contract:
-  activation_state: "ACTIVE_CANDIDATE"
+  activation_state: "ACTIVE"
   execution_allowed: true
   worker_slot_required: true
   worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
@@ -110,7 +127,9 @@ activation_contract:
   fresh_main_binding_required: true
   planning_review_required: true
   independent_activation_review_required: true
-  effective_only_after_final_gate_merge: true
+  final_gate_canonical: true
+  runtime_enforcement_root: ".github/workflows/runtime-governance-root.yml"
+  runtime_enforcement_root_execution_source: "BASE_TRUSTED_PULL_REQUEST_TARGET"
   world_model_concurrent_engineering_may_continue: true
   world_model_access_mode: "READ_ONLY / CANONICAL_MAIN_OR_IMMUTABLE_ACCEPTED_REF_ONLY"
 
@@ -149,10 +168,12 @@ hard_locks:
   - "NO_ACCOUNT_ORDER_FUND_ACCESS"
   - "NO_PRODUCTION_SCHEDULER_WEBHOOK_DAEMON"
   - "NO_SECRET_PERMISSION_VISIBILITY_EXPANSION"
+  - "NO_RUNTIME_WORKFLOW_WRITE"
+  - "NO_SELF_WEAKENING_GOVERNANCE_ROOT"
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
 
 planning_completion_signal: "R145_CROSS_DOMAIN_ROUTING_ISOLATION_PLANNING_READY_FOR_GPT_REVIEW"
 implementation_completion_signal: "GLOBAL_SIGNAL_TOWER_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_READY_FOR_GPT_REVIEW"
-next_command: "WAIT_FOR_INDEPENDENT_ACTIVATION_REVIEW / NO_RUNTIME_EDITS_UNTIL_GATE_CANONICAL"
+next_command: "AFTER_SCOPE_AMENDMENT_CANONICAL_SYNC_RUNTIME_BRANCH_DELETE_BOOTSTRAP_MARKER_THEN_CONTINUE_G1_G5"

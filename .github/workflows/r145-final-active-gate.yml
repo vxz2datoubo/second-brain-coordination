@@ -10,8 +10,16 @@ on:
       - "coordination/CONTROL-TOWER/LANE-WORK-CLAIMS.yaml"
       - "coordination/CONTROL-TOWER/RELEASE-GATE.yaml"
       - "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
+      - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+      - "coordination/CONTROL-TOWER/path_action_constraints.py"
+      - "coordination/CONTROL-TOWER/path_action_policy.py"
+      - "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
+      - "coordination/CONTROL-TOWER/tests/test_path_action_policy.py"
       - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
       - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
   workflow_dispatch:
 
 permissions:
@@ -27,6 +35,8 @@ jobs:
         python-version: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -38,3 +48,37 @@ jobs:
       - name: Verify fresh Lane-A authorization witness
         working-directory: coordination/CONTROL-TOWER
         run: python run_authorization_witness.py verify --repo-root ../.. --lane LANE-A-HARNESS-INTEGRATION --witness-file /tmp/r145-lane-a-witness.json
+      - name: Enforce Worker Claim Route path-action contract
+        working-directory: coordination/CONTROL-TOWER
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROUTE_FILE="coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+          REQUIRED_CONTRACT_FILE="coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
+          ARGS=(
+            --repo-root ../..
+            --worker-slot GPT-WORKER-R145-PROGRAMMING-1
+            --lane LANE-A-HARNESS-INTEGRATION
+            --route-file "$ROUTE_FILE"
+          )
+          POLICY_ARGS=(
+            --repo-root ../..
+            --worker-slot GPT-WORKER-R145-PROGRAMMING-1
+            --lane LANE-A-HARNESS-INTEGRATION
+            --route-file "$ROUTE_FILE"
+            --required-contract-file "$REQUIRED_CONTRACT_FILE"
+          )
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            MERGE_SHA="$(git rev-parse HEAD)"
+            BASE_SHA="$(git rev-parse "${MERGE_SHA}^1")"
+            HEAD_SHA="$(git rev-parse "${MERGE_SHA}^2")"
+            if [ "${{ github.event.pull_request.number }}" = "418" ]; then
+              ARGS+=(--enforce-transition-lineage)
+              POLICY_ARGS+=(--enforce-full-write-surface)
+            fi
+            python path_action_constraints.py "${ARGS[@]}" --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA"
+            python path_action_policy.py "${POLICY_ARGS[@]}" --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA"
+          else
+            python path_action_constraints.py "${ARGS[@]}"
+            python path_action_policy.py "${POLICY_ARGS[@]}"
+          fi
