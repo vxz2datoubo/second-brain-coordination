@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 registry_id: "ACTIVE-GPT-ENGINEERING-WORKERS-0001"
 agent_type: "GPT_ENGINEERING_WORKER"
 parallel_routes_allowed: true
@@ -35,6 +35,12 @@ worker_slots:
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
       - ".github/workflows/*r145*"
+      - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+    path_action_constraints:
+      - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+        action: "DELETE_ONLY"
+        reason: "Remove the pre-activation bootstrap marker so retained R142 whole-PR changed-path validation does not false-red on an already-spent bootstrap artifact."
+        create_or_modify_forbidden: true
     read_paths:
       - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
       - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
@@ -58,6 +64,7 @@ worker_slots:
     write_domains: []
     authority_claims:
       - "S0F_CROSS_DOMAIN_ROUTING_ISOLATION_EXTENSION_ONLY"
+      - "R145_BOOTSTRAP_MARKER_DELETE_ONLY"
     resource_class: "LIGHT_TO_MEDIUM_IMPLEMENTATION"
     provenance:
       source: "R145-FINAL-ACTIVE-GATE-0001"
@@ -72,6 +79,7 @@ worker_slots:
       final_active_gate_branch: "gpt/r145-final-active-gate"
       authority_effective_only_when_final_gate_is_canonical_main: true
       intended_window: "编程1"
+      bootstrap_cleanup_amendment_reason: "R142 historical whole-PR allowlist compatibility"
     reviewer_role: "GPT_INDEPENDENT_REVIEWER"
     reviewer_separation: "EXECUTION_IDENTITY_NOT_ACCEPTANCE_AUTHORITY"
     activation_state: "ACTIVE"
