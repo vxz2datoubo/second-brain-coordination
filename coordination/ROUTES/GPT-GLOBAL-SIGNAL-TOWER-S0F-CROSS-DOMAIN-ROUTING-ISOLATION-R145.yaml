@@ -68,6 +68,7 @@ routing_invariants:
   repository_identity_alone_insufficient: true
   signal_is_not_task: true
   signal_task_route_writeback_domain_compatibility_required: true
+  runtime_enforcement_root_self_mutation_forbidden: true
 
 required_domains:
   - domain_id: "SECOND_BRAIN_SYSTEM"
@@ -88,13 +89,18 @@ write_scope:
   implementation:
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
-    - ".github/workflows/*r145*"
     - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
   exact_action_constraints:
     - path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
       allowed_actions: ["DELETE"]
       transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
       required_final_state: "ABSENT"
+  governance_owned_enforcement_paths:
+    - ".github/workflows/r145-final-active-gate.yml"
+    - ".github/workflows/runtime-governance-root.yml"
+    - "coordination/CONTROL-TOWER/path_action_constraints.py"
+    - "coordination/CONTROL-TOWER/path_action_policy.py"
+    - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
   cross_repo: []
   forbidden:
     - "vxz2datoubo/eustia-ai-film mutation"
@@ -106,6 +112,8 @@ write_scope:
     - "production scheduler/webhook/daemon"
     - "secret/permission/visibility expansion"
     - "general S0F write beyond exact bootstrap DELETE_ONLY"
+    - "any R145 workflow mutation from runtime PR #418"
+    - "governance-root or action-validator mutation from runtime PR #418"
 
 activation_contract:
   activation_state: "ACTIVE"
@@ -120,6 +128,8 @@ activation_contract:
   planning_review_required: true
   independent_activation_review_required: true
   final_gate_canonical: true
+  runtime_enforcement_root: ".github/workflows/runtime-governance-root.yml"
+  runtime_enforcement_root_execution_source: "BASE_TRUSTED_PULL_REQUEST_TARGET"
   world_model_concurrent_engineering_may_continue: true
   world_model_access_mode: "READ_ONLY / CANONICAL_MAIN_OR_IMMUTABLE_ACCEPTED_REF_ONLY"
 
@@ -158,6 +168,8 @@ hard_locks:
   - "NO_ACCOUNT_ORDER_FUND_ACCESS"
   - "NO_PRODUCTION_SCHEDULER_WEBHOOK_DAEMON"
   - "NO_SECRET_PERMISSION_VISIBILITY_EXPANSION"
+  - "NO_RUNTIME_WORKFLOW_WRITE"
+  - "NO_SELF_WEAKENING_GOVERNANCE_ROOT"
   - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
   - "NO_SELF_REVIEW"
   - "NO_SELF_MERGE"
