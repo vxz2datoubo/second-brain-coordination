@@ -38,12 +38,12 @@ mechanical_enforcement:
     - "CREATE / MODIFY / RENAME_OR_OTHER fail closed; DELETE is the only allowed action."
     - "Runtime transition requires baseline commit available and ancestor, baseline path present, final path absent, and exactly one net DELETE."
     - "Unavailable/stale baseline returns structured fail-closed evidence rather than exception/fallback."
-    - "R145 workflow remains active on S0D/S0E runtime changes and enables lineage enforcement specifically on PR #418."
+    - "R145 workflow stays active on S0D/S0E runtime changes and enables lineage enforcement specifically on PR #418."
 
 false_green_history:
-  first_amendment_failure: "worker registry schema drift/projection mismatch; restored schema 1.0 without relaxing validators"
-  reviewer_failure: "Review 4990534580 found DELETE_ONLY semantic false-green; fixed with generic action-aware enforcement"
-  lineage_test_failure: "run 32472904773 exposed bad-object exception for unavailable baseline; now structured fail-closed"
+  - "Initial candidate exposed worker registry schema/projection drift and was corrected without relaxing validators."
+  - "Review 4990534580 exposed declaration-only DELETE_ONLY semantics and forced action-aware enforcement."
+  - "Run 32472904773 exposed an unavailable-baseline crash; unavailable baseline now fails closed structurally."
 
 unchanged_authority:
   - "No historical R142 workflow mutation."
