@@ -1,0 +1,57 @@
+schema_version: "1.0"
+receipt_id: "R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT-0001"
+issue: 415
+task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+route_epoch: 145
+runtime_pr: 418
+worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
+architecture_owner: "GPT"
+status: "SCOPE_AMENDMENT_CANDIDATE / NON_AUTHORITATIVE_UNTIL_INDEPENDENT_ACCEPT_AND_CANONICAL_MERGE"
+
+trigger:
+  source: "R145_G0_FRESH_REVIEW"
+  issue_comment: 5365953776
+  observed_runtime_head: "6c59f197ef515b1c282aa6a08c7759ed96749957"
+  canonical_main: "cecd7427d16ab9ab20d00aeb8227402608708044"
+  defect: "R142_HISTORICAL_WHOLE_PR_ALLOWLIST_FALSE_RED_ON_SPENT_R145_BOOTSTRAP_MARKER"
+
+facts:
+  - "R145 G2 must touch S0E/R142 runtime, which triggers the retained R142 workflow."
+  - "The retained R142 workflow computes current-main...HEAD across the whole PR."
+  - "PR #418 still carries a pre-activation S0F bootstrap marker relative to current main."
+  - "That marker is outside the historical R142 allowlist and would make the retained R142 workflow fail even if R145 runtime changes are bounded."
+  - "Current R145 worker/claim/route authority does not include S0F, so 编程1 may not delete it without an amendment."
+
+amendment:
+  exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+  allowed_action: "DELETE_ONLY"
+  create_allowed: false
+  modify_allowed: false
+  general_s0f_write_allowed: false
+  purpose: "Remove the spent bootstrap marker from the final #418 diff before G1-G5 completion."
+
+unchanged_authority:
+  - "S0D bounded implementation remains authorized."
+  - "S0E bounded implementation remains authorized."
+  - ".github/workflows/*r145* remains authorized."
+  - "No historical R142 workflow mutation is authorized."
+  - "No cross-repo write."
+  - "No AI Film / World Model / A-share W2 / W3 write."
+  - "No Signal-to-Task automation."
+  - "No production/trading/account/order/fund authority."
+
+execution_rule: >-
+  Only after this amendment is independently reviewed and merged to canonical main may 编程1 synchronize #418 with that main and
+  delete the exact bootstrap marker. The worker must then verify that main...#418 no longer contains the S0F bootstrap marker before
+  committing G1-G4 runtime implementation. No other S0F mutation is permitted.
+
+acceptance_requires:
+  - "independent GPT exact-head review"
+  - "current main unchanged or fresh rebind"
+  - "worker/claim/route exact path agreement"
+  - "no general S0F expansion"
+  - "Program Control Tower structural validation"
+  - "no collision or second writer"
+
+self_review_forbidden: true
+self_merge_forbidden: true
