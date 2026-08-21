@@ -1,0 +1,233 @@
+schema_version: "1.0"
+task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
+route_epoch: 145
+issue: 415
+status: "PLANNED_NON_EXECUTABLE / AWAIT_INDEPENDENT_PLANNING_REVIEW"
+owner: "USER"
+architecture_owner: "GPT"
+intended_executor_role: "GPT_ENGINEERING_WORKER"
+model_id_required: "GPT-5.6 Sol"
+reviewer_role: "GPT_INDEPENDENT_REVIEWER"
+mode: "project_plan"
+mode_label: "【Codex模式：项目计划模式】Signal Tower S0F Cross-Domain Routing Isolation"
+repository: "vxz2datoubo/second-brain-coordination"
+planning_branch: "gpt/r145-signal-tower-cross-domain-routing-isolation-plan"
+implementation_branch: null
+implementation_pr: null
+execution_allowed: false
+boundary: "SHARED_SIGNAL_ROUTING / READ_ONLY_CROSS_REPO / NO_DOMAIN_WRITE / NO_W3_WRITE / NO_TRADE / NO_PRODUCTION"
+
+release_preflight:
+  receipt: "coordination/CONTROL-TOWER/GLOBAL-RECONCILIATION-RECEIPT-R145-PLANNING.yaml"
+  canonical_main: "ec39e53e3be8d286ca13c5fa89e8c1f2b25eed16"
+  decision: "PROCEED_WITH_BOUNDED_SIGNAL_TOWER_CROSS_DOMAIN_ROUTING_ISOLATION_R145"
+  strategy: "ADAPT_EXISTING / NO_NEW_PARALLEL_DOMAIN_AUTHORITY"
+
+problem_statement: >-
+  Historical-window retrospective intake currently carries domain/project labels but does not yet mechanically require the candidate's
+  owner-domain current canonical authority before concluding that the desired effect remains unmet. Because the current R142 evidence
+  chain is centered on second-brain-coordination, a domain-specific AI Film, A-share, World Model or future-system candidate could be
+  misclassified as new shared/Second Brain work merely because a non-owner domain lacks that architecture.
+
+mission: >-
+  Materialize a domain-neutral Domain Authority Resolution Gate by adapting existing cross-project authority boundaries, R135 exact-commit
+  read-only source binding, and R142 retrospective reconciliation. Ensure global Signal visibility never transfers domain ownership;
+  ensure completion/satisfaction judgments are made only against the resolved owner-domain canonical authority; fail closed when that
+  authority is unresolved; and block domain-mismatched Signal->Task->Route release.
+
+core_invariants:
+  - "GLOBAL_VISIBILITY != DOMAIN_OWNERSHIP"
+  - "MISSING_IN_NON_OWNER_DOMAIN != DESIRED_EFFECT_UNMET"
+  - "OWNER_DOMAIN_CANONICAL_REQUIRED_BEFORE_NEW_DURABLE_SIGNAL"
+  - "REPOSITORY_IDENTITY_ALONE_IS_INSUFFICIENT"
+  - "SIGNAL_IS_NOT_TASK"
+  - "CROSS_DOMAIN_RELATION != OWNERSHIP_TRANSFER"
+  - "DRAFT_PR_EVIDENCE != DOMAIN_CANONICAL_AUTHORITY"
+  - "NO_CROSS_REPO_WRITE"
+  - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+
+must_reuse_or_adapt:
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/src/global_signal_gateway/retrospective_intake.py"
+  - "existing R135/R136/R142 contracts, routes, receipts and tests"
+
+mandatory_domain_regressions:
+  SECOND_BRAIN_SYSTEM:
+    repository: "vxz2datoubo/second-brain-coordination"
+  A_SHARE_SYSTEM:
+    repository: "vxz2datoubo/second-brain-coordination"
+    special_requirement: "same repo as SECOND_BRAIN_SYSTEM but distinct domain authority; must remain distinguishable"
+  AI_FILM_SYSTEM:
+    repository: "vxz2datoubo/eustia-ai-film"
+    authority_hint: "PROJECT_INDEX.yaml"
+    write_policy: "READ_ONLY_FROM_SIGNAL_TOWER"
+  WORLD_MODEL_SYSTEM:
+    repository: "vxz2datoubo/ai-world-simulation-engine"
+    canonical_main_at_release: "3cd428e328fc0d2a1375e5bedd3a3bd176751f1b"
+    architecture_hint: "ARCHITECTURE.md"
+    concurrent_draft_pr: 2
+    draft_head_observed_at_release: "73a9c4863602beb88bd99f5f013d08ae76853b5c"
+    repository_visibility: PRIVATE
+    write_policy: "READ_ONLY_FROM_SIGNAL_TOWER"
+  FUTURE_DOMAIN:
+    requirement: "new domain addable through governed descriptor/config/adapter binding without reconciliation-code edits"
+
+required_domain_authority_binding:
+  - domain_id
+  - project_id
+  - repository
+  - canonical_ref_kind
+  - canonical_commit
+  - authority_path_or_contract_ref
+  - authority_schema_or_version_when_available
+  - writeback_owner
+  - observation_mode
+  - provenance_or_exact_read_proof
+
+schema_materialization_gate:
+  id: "DOMAIN_AUTHORITY_SCHEMA_MATERIALIZATION_GATE"
+  rule: >-
+    Inventory all existing project/domain authority identities first. If a brand-new canonical global Domain Registry/object identity is
+    actually required, STOP for GPT architecture review. Do not create a second registry, hard-coded authority dictionary, or shadow
+    source of truth merely to satisfy this task.
+
+required_fail_closed_reasons:
+  - DOMAIN_ROUTE_UNRESOLVED
+  - DOMAIN_AUTHORITY_UNAVAILABLE
+  - DOMAIN_CANONICAL_DRIFT
+  - DOMAIN_PROJECT_ID_MISMATCH
+  - NON_CANONICAL_SOURCE_ONLY
+
+implementation_phases:
+  G0:
+    name: "fresh reconcile and authority inventory"
+    requirements:
+      - "recheck main / Issue #415 / planning gate / current claims / worker slots"
+      - "inventory R135/R136/R142 representations"
+      - "inventory AI Film authority declaration"
+      - "inventory World Model canonical identity/authority surface without mutating the private repo"
+      - "select REUSE/ADAPT_EXISTING or STOP at schema materialization gate"
+  G1:
+    name: "domain-neutral authority resolver seam"
+    requirements:
+      - "no permanent per-domain if/elif switch"
+      - "descriptor/config-driven future-domain addition"
+      - "repository + project/domain identity + exact canonical commit"
+  G2:
+    name: "R142 retrospective reconciliation integration"
+    requirements:
+      - "candidate primary domain resolves before NEW_DURABLE_SIGNAL eligibility"
+      - "non-owner-domain absence cannot set desired_effect_unmet=true"
+      - "unresolved domain fails closed without Second Brain fallback"
+  G3:
+    name: "Signal-to-Task domain compatibility guard"
+    requirements:
+      - "verify Signal.primary_domain / Task.target_domain / Route.authority_domain / writeback owner"
+      - "mismatch blocks release unless separately governed cross-domain shared-capability task"
+      - "preserve Signal != Task"
+  G4:
+    name: "multi-domain adversarial tests and privacy negative controls"
+  G5:
+    name: "exact-head CI / receipt / independent review"
+
+mandatory_scenarios:
+  - "AI_FILM_ABSENT_IN_SECOND_BRAIN_DOES_NOT_CREATE_SECOND_BRAIN_GAP"
+  - "AI_FILM_OWNER_CANONICAL_SATISFIES_CANDIDATE"
+  - "AI_FILM_AUTHORITY_UNAVAILABLE_FAILS_CLOSED"
+  - "A_SHARE_AND_SECOND_BRAIN_SAME_REPO_DIFFERENT_DOMAIN_AUTHORITY"
+  - "WORLD_MODEL_ABSENT_IN_SECOND_BRAIN_DOES_NOT_CREATE_SECOND_BRAIN_GAP"
+  - "WORLD_MODEL_CANONICAL_MAIN_BEATS_DRAFT_PR_FOR_COMPLETION_TRUTH"
+  - "WORLD_MODEL_SOURCE_DRIFT_FAILS_CLOSED"
+  - "UNKNOWN_FUTURE_DOMAIN_DOES_NOT_DEFAULT_TO_SECOND_BRAIN"
+  - "SYNTHETIC_FIFTH_DOMAIN_ADD_WITHOUT_RECONCILIATION_CODE_EDIT"
+  - "TWO_DOMAINS_ONE_REPO_DIFFERENT_AUTHORITY_ROOTS"
+  - "DOMAIN_REPOSITORY_MOVE_PRESERVES_HISTORICAL_EXACT_BINDING"
+  - "TRANSFERABLE_PATTERN_CANDIDATE_DOES_NOT_MOVE_DOMAIN_TRUTH"
+  - "DOMAIN_SPECIFIC_REJECTION_AS_SHARED_IS_VALID"
+  - "CROSS_DOMAIN_RELATION_CANNOT_CREATE_WRITE_PERMISSION"
+  - "AI_FILM_SIGNAL_TO_SECOND_BRAIN_TASK_BLOCKED"
+  - "WORLD_MODEL_SIGNAL_TO_A_SHARE_ROUTE_BLOCKED"
+  - "A_SHARE_SIGNAL_TO_A_SHARE_ROUTE_STILL_REQUIRES_NORMAL_GATES"
+  - "PRIVATE_WORLD_MODEL_BODY_NOT_PERSISTED_TO_PUBLIC_REPO"
+  - "CROSS_REPO_MUTATION_DENIED"
+  - "OPAQUE_REF_EXACT_REPO_COMMIT_PATH_HASH_NO_PRIVATE_BODY"
+  - "R142_DISPOSITION_PRECEDENCE_RETAINED_INSIDE_RESOLVED_DOMAIN"
+  - "HISTORICAL_TODO_HAS_NO_CURRENT_AUTHORITY"
+  - "STALE_SECOND_BRAIN_SNAPSHOT_FAILS_CLOSED"
+  - "SIGNAL_IS_NOT_TASK_RETAINED"
+
+preferred_write_surfaces:
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
+  - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**"
+  - ".github/workflows/*r145*"
+  - "task-specific public-safe fixtures/receipts/tests under the existing Global Signal Plane authority"
+
+read_only_sources:
+  - "coordination/PROPOSALS/PROGRAM-LANES/LANE-A-HARNESS-INTEGRATION/CROSS-PROJECT-DOMAIN-CONSUMER-BOUNDARY.yaml"
+  - "current Program Control Tower / Work Claims / worker registry / Release Gate"
+  - "vxz2datoubo/eustia-ai-film domain authority surfaces"
+  - "vxz2datoubo/ai-world-simulation-engine canonical main authority surfaces"
+
+forbidden_writes:
+  - "vxz2datoubo/eustia-ai-film"
+  - "vxz2datoubo/ai-world-simulation-engine"
+  - "A-share W2 canonical/runtime"
+  - "W3 canonical/runtime"
+  - "trading/account/order/fund"
+  - "production/private scheduler/webhook/daemon"
+  - "repository permissions/visibility/secrets"
+
+privacy_contract:
+  private_world_model_repository: true
+  public_second_brain_repository: true
+  allowed_persistence: "metadata / hashes / exact commit + path / opaque refs / public-safe synthetic fixtures"
+  forbidden_persistence: "raw private World Model canonical bodies or copied private source content"
+
+resource_contract:
+  local_heavy_stage_max: 1
+  cpu_bound_worker_max: 1
+  task_owned_python_process_cap: 2
+  nested_parallelism: "FORBIDDEN"
+  remote_ci_preferred: true
+  global_python_or_docker_kill: "FORBIDDEN"
+  concurrent_world_model_engineering: "MAY_CONTINUE / R145 READ_ONLY ONLY"
+
+acceptance_requires:
+  - "exact base/main + exact PR head + merge-ref parent binding"
+  - "changed-path allowlist"
+  - "Python 3.11 + 3.13 exact-head CI when Python"
+  - "all mandatory multi-domain scenarios"
+  - "domain-addition extensibility negative control"
+  - "source drift and canonical-vs-Draft tests"
+  - "private-body public-repo leakage scan"
+  - "cross-repo mutation denial evidence"
+  - "deterministic reconciliation/receipt"
+  - "Control Tower claim/slot/route/witness validation"
+  - "independent GPT exact-head review"
+
+hard_locks:
+  - "NO_CROSS_REPO_WRITE"
+  - "NO_DOMAIN_CANONICAL_MIGRATION"
+  - "NO_SECOND_GLOBAL_W3"
+  - "NO_PARALLEL_DOMAIN_AUTHORITY"
+  - "NO_PRIVATE_BODY_COPY_TO_PUBLIC_REPO"
+  - "NO_AUTOMATIC_SIGNAL_TO_TASK"
+  - "NO_AUTOMATIC_SUCCESSOR_RELEASE"
+  - "NO_AI_FILM_WRITE"
+  - "NO_WORLD_MODEL_WRITE"
+  - "NO_A_SHARE_W2_WRITE"
+  - "NO_W3_WRITE"
+  - "NO_TRADE"
+  - "NO_ACCOUNT_ORDER_FUND_ACCESS"
+  - "NO_PRODUCTION_SCHEDULER_WEBHOOK_DAEMON"
+  - "NO_SECRET_PERMISSION_VISIBILITY_EXPANSION"
+  - "NO_REBASE_RESET_FORCE_PUSH_HISTORY_REWRITE"
+  - "NO_SELF_REVIEW"
+  - "NO_SELF_MERGE"
+
+activation_rule: >-
+  This planning brief creates no execution lease. Implementation may start only after a fresh activation binds the then-current main,
+  implementation branch/PR, exact Lane-A Work Claim, GPT Engineering Worker slot and fresh authorization witness.
+
+completion_signal: "GLOBAL_SIGNAL_TOWER_S0F_CROSS_DOMAIN_ROUTING_ISOLATION_READY_FOR_GPT_REVIEW"
