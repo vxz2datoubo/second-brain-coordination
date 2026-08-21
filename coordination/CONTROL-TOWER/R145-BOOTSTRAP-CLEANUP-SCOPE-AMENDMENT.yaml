@@ -6,7 +6,7 @@ route_epoch: 145
 runtime_pr: 418
 worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
 architecture_owner: "GPT"
-status: "REMEDIATED_CANDIDATE / PENDING_FRESH_INDEPENDENT_REREVIEW / NON_AUTHORITATIVE_UNTIL_ACCEPT_AND_CANONICAL_MERGE"
+status: "F04_REMEDIATION_CANDIDATE / PENDING_FRESH_INDEPENDENT_REREVIEW / NON_AUTHORITATIVE_UNTIL_ACCEPT_AND_CANONICAL_MERGE"
 
 trigger:
   observed_runtime_head: "6c59f197ef515b1c282aa6a08c7759ed96749957"
@@ -14,9 +14,17 @@ trigger:
   defect: "R142_HISTORICAL_WHOLE_PR_ALLOWLIST_FALSE_RED_ON_SPENT_R145_BOOTSTRAP_MARKER"
 
 review_history:
-  review_id: 4990534580
-  disposition: "CHANGES_REQUIRED"
-  blocker: "R145-SCOPE-F01 / DELETE_ONLY_IS_DECLARED_BUT_NOT_MECHANICALLY_ENFORCED"
+  - review_id: 4990534580
+    disposition: "CHANGES_REQUIRED"
+    blocker: "R145-SCOPE-F01 / DELETE_ONLY_IS_DECLARED_BUT_NOT_MECHANICALLY_ENFORCED"
+  - review_id: 4993689390
+    disposition: "CHANGES_REQUIRED"
+    blockers:
+      - "R145-SCOPE-F02 / REQUIRED_DELETE_ONLY_CONTRACT_CAN_DISAPPEAR_OR_BE_COHERENTLY_WEAKENED"
+      - "R145-SCOPE-F03 / UNAUTHORIZED_S0F_RECREATE_OR_LOW_SIMILARITY_RENAME_CAN_HIDE_AS_UNRELATED_DIFF"
+  - review_id: 4995264281
+    disposition: "CHANGES_REQUIRED"
+    blocker: "R145-SCOPE-F04 / RUNTIME_CAN_SELF_WEAKEN_ITS_OWN_ENFORCEMENT_WORKFLOW"
 
 amendment:
   exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
@@ -24,41 +32,61 @@ amendment:
   transition_baseline_sha: "6c59f197ef515b1c282aa6a08c7759ed96749957"
   required_final_state: "ABSENT"
   general_s0f_write_allowed: false
+  runtime_workflow_write_allowed: false
+  protected_enforcement_paths:
+    - ".github/workflows/r145-final-active-gate.yml"
+    - ".github/workflows/runtime-governance-root.yml"
+    - "coordination/CONTROL-TOWER/path_action_constraints.py"
+    - "coordination/CONTROL-TOWER/path_action_policy.py"
+    - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
 
 mechanical_enforcement:
-  validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
-  tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
-  workflow: ".github/workflows/r145-final-active-gate.yml"
+  action_validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
+  policy_validator: "coordination/CONTROL-TOWER/path_action_policy.py"
+  action_tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
+  policy_tests: "coordination/CONTROL-TOWER/tests/test_path_action_policy.py"
+  advisory_pull_request_workflow: ".github/workflows/r145-final-active-gate.yml"
+  base_trusted_runtime_root: ".github/workflows/runtime-governance-root.yml"
+  base_trusted_event: "pull_request_target"
+  base_trusted_runtime_pr: 418
   guarantees:
     - "Worker/Claim/Route action contract equality"
-    - "no broader wildcard bypass"
-    - "CREATE/MODIFY/RENAME fail closed"
+    - "Worker/Claim/Route equal independently governed required anchor"
+    - "no broader S0F wildcard bypass"
+    - "CREATE/MODIFY/RENAME/type-change fail closed on the exact marker"
     - "DELETE positive control"
     - "baseline availability and ancestry"
     - "baseline-present and final-absent proof"
     - "exact net DELETE transition"
-    - "unavailable baseline is structured fail-closed"
-    - "PR #418 transition mode remains checked on S0D/S0E changes"
+    - "full changed-path set must remain inside the common runtime write surface"
+    - "runtime PR #418 has no R145 workflow write authority"
+    - "base-trusted root executes canonical-base validators and treats PR #418 head only as data"
+    - "runtime attempt to modify/disable either enforcement workflow or Control Tower validator fails closed"
 
 false_green_history:
   - "schema/projection drift was preserved as red and corrected without validator weakening"
   - "Review 4990534580 forced machine action semantics"
   - "run 32472904773 exposed unavailable-baseline exception; remediated as structured failure"
+  - "Review 4993689390 forced independently pinned required contract and full changed-path coverage"
+  - "Review 4995264281 identified self-modifiable enforcement invocation root; remediation removes runtime workflow authority and adds base-trusted root"
 
 execution_rule: >-
   #420 requires fresh exact-head independent ACCEPT and canonical merge. Afterwards #418 must sync non-destructively while preserving
-  G0 head 6c59f197... in ancestry, end with the exact marker absent, and pass transition-lineage enforcement before G1-G5 acceptance.
+  G0 head 6c59f197... in ancestry, end with the exact marker absent, and pass base-trusted transition-lineage/full-write-surface enforcement
+  before G1-G5 acceptance. #418 may not modify any protected enforcement path.
 
 unchanged_authority:
   - "No historical R142 workflow mutation or general S0F write."
   - "No cross-repo/domain write expansion."
   - "No production/trading/account/secret/automatic task release expansion."
+  - "No runtime write authority over R145 workflows or Control Tower enforcement code."
 
 acceptance_requires:
-  - "fresh exact-head rereview after Review 4990534580"
+  - "fresh exact-head rereview after Review 4995264281"
   - "fresh no-drift seal"
   - "final-head Python 3.11 + 3.13 Control Tower PASS"
   - "final-head Python 3.11 + 3.13 Lane-A witness/action guard PASS"
+  - "base-trusted runtime governance-root static/adversarial regression PASS"
 
 final_exact_head_and_ci: "READ_FRESH_FROM_PR_AND_WORKFLOW_RUNS / NOT_SELF_EMBEDDED"
 self_review_forbidden: true
