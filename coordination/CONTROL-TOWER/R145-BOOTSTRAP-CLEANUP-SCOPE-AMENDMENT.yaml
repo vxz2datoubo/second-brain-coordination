@@ -1,4 +1,4 @@
-schema_version: "1.0"
+schema_version: "1.1"
 receipt_id: "R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT-0001"
 issue: 415
 task_id: "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
@@ -6,7 +6,7 @@ route_epoch: 145
 runtime_pr: 418
 worker_slot_id: "GPT-WORKER-R145-PROGRAMMING-1"
 architecture_owner: "GPT"
-status: "SCOPE_AMENDMENT_CANDIDATE / NON_AUTHORITATIVE_UNTIL_INDEPENDENT_ACCEPT_AND_CANONICAL_MERGE"
+status: "REMEDIATED_CANDIDATE / PENDING_FRESH_INDEPENDENT_REREVIEW / NON_AUTHORITATIVE_UNTIL_ACCEPT_AND_CANONICAL_MERGE"
 
 trigger:
   source: "R145_G0_FRESH_REVIEW"
@@ -15,42 +15,98 @@ trigger:
   canonical_main: "cecd7427d16ab9ab20d00aeb8227402608708044"
   defect: "R142_HISTORICAL_WHOLE_PR_ALLOWLIST_FALSE_RED_ON_SPENT_R145_BOOTSTRAP_MARKER"
 
+independent_review_history:
+  review_id: 4990534580
+  reviewed_head: "6d74543a54ba28f2e9c538b8fe6a72a0f7383815"
+  disposition: "CHANGES_REQUIRED"
+  blocker: "R145-SCOPE-F01 / DELETE_ONLY_IS_DECLARED_BUT_NOT_MECHANICALLY_ENFORCED"
+  blocker_summary: >-
+    Worker, Work Claim and Route YAML declared DELETE_ONLY intent, but the canonical validators did not understand action semantics;
+    a MODIFY to the exact path could therefore remain structurally green.
+
 facts:
   - "R145 G2 must touch S0E/R142 runtime, which triggers the retained R142 workflow."
   - "The retained R142 workflow computes current-main...HEAD across the whole PR."
   - "PR #418 still carries a pre-activation S0F bootstrap marker relative to current main."
   - "That marker is outside the historical R142 allowlist and would make the retained R142 workflow fail even if R145 runtime changes are bounded."
-  - "Current R145 worker/claim/route authority does not include S0F, so 编程1 may not delete it without an amendment."
+  - "Current canonical R145 authority before this amendment does not include S0F, so 编程1 may not delete it without a reviewed amendment."
 
 amendment:
   exact_path: "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
-  allowed_action: "DELETE_ONLY"
+  canonical_allowed_actions: ["DELETE"]
   create_allowed: false
   modify_allowed: false
+  rename_or_copy_allowed: false
   general_s0f_write_allowed: false
   purpose: "Remove the spent bootstrap marker from the final #418 diff before G1-G5 completion."
+
+mechanical_enforcement:
+  validator: "coordination/CONTROL-TOWER/path_action_constraints.py"
+  adversarial_tests: "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
+  workflow: ".github/workflows/r145-final-active-gate.yml"
+  contract_rules:
+    - "Worker / Work Claim / Route execution identity must agree."
+    - "Worker / Work Claim / Route write surfaces must agree."
+    - "Worker / Work Claim / Route path-action constraints must agree exactly."
+    - "Constrained path must be an exact path; wildcard constraints are forbidden."
+    - "A broader write path such as S0F/** may not cover the constrained exact path."
+    - "Actual PR diff action is derived from git diff --name-status -M."
+    - "CREATE / MODIFY / RENAME_OR_OTHER on the constrained path fail closed."
+    - "DELETE is the only accepted action for this exact path."
+  test_matrix:
+    - "DELETE_ONLY contract passes"
+    - "missing claim constraint fails closed"
+    - "Worker/Claim/Route action mismatch fails"
+    - "general S0F wildcard bypass fails"
+    - "write-surface drift fails"
+    - "CREATE fails"
+    - "DELETE passes"
+    - "MODIFY fails"
+    - "RENAME fails"
+    - "unrelated diff ignored"
+
+exact_head_validation_candidate:
+  head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
+  program_control_tower_run: 32472370128
+  program_control_tower_python_3_11_job: 96741650270
+  program_control_tower_python_3_13_job: 96741650541
+  control_tower_test_count: 104
+  control_tower_result: "PASS / errors=[] / projection_matches=true / worker_slot_structural_check=PASS / claims=PASS / pairwise=O0 / CLAIM_PROJECTION_MATCH"
+  lane_a_action_witness_run: 32472370115
+  lane_a_python_3_11_job: 96741650601
+  lane_a_python_3_13_job: 96741650795
+  lane_a_result: "PASS / witness fresh=true reason=MATCH / path-action contract PASS"
+  current_pr_diff_action_note: >-
+    PR #420 grants and validates the contract but does not itself mutate the constrained bootstrap marker, so the exact-head diff
+    contains no action on that path. After #420 is canonical, PR #418 must delete that path; the same workflow then requires actual D.
 
 unchanged_authority:
   - "S0D bounded implementation remains authorized."
   - "S0E bounded implementation remains authorized."
   - ".github/workflows/*r145* remains authorized."
   - "No historical R142 workflow mutation is authorized."
+  - "No general S0F write authority."
   - "No cross-repo write."
   - "No AI Film / World Model / A-share W2 / W3 write."
   - "No Signal-to-Task automation."
   - "No production/trading/account/order/fund authority."
 
 execution_rule: >-
-  Only after this amendment is independently reviewed and merged to canonical main may 编程1 synchronize #418 with that main and
-  delete the exact bootstrap marker. The worker must then verify that main...#418 no longer contains the S0F bootstrap marker before
-  committing G1-G4 runtime implementation. No other S0F mutation is permitted.
+  Only after this amendment is freshly independently reviewed on its final exact head and merged to canonical main may 编程1
+  synchronize #418 with that main and delete the exact bootstrap marker. The worker must run the action-aware R145 gate and verify
+  that current-main...#418 records the constrained path as D and no broader S0F mutation before committing G1-G4 runtime work.
 
 acceptance_requires:
-  - "independent GPT exact-head review"
+  - "independent GPT exact-head rereview after Review 4990534580 remediation"
   - "current main unchanged or fresh rebind"
-  - "worker/claim/route exact path agreement"
-  - "no general S0F expansion"
-  - "Program Control Tower structural validation"
+  - "Worker / Work Claim / Route exact identity agreement"
+  - "Worker / Work Claim / Route exact write-surface agreement"
+  - "Worker / Work Claim / Route exact action-constraint agreement"
+  - "no general S0F wildcard or broader bypass"
+  - "CREATE / MODIFY / RENAME adversarial failures proven"
+  - "DELETE positive control proven"
+  - "Program Control Tower Python 3.11 + 3.13 PASS"
+  - "Lane-A witness + action-aware contract Python 3.11 + 3.13 PASS"
   - "no collision or second writer"
 
 self_review_forbidden: true
