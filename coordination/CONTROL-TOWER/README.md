@@ -1,49 +1,49 @@
 # Program Control Tower Foundation
 
-This directory is the executable, fail-closed implementation of the cross-program Control Tower declared by Issue #310.
+This directory contains the executable, fail-closed Program Control Tower declared by Issue #310.
 
 ## Authority boundary
 
-The Control Tower is **not** a task router, market authority, W3 knowledge store, W7 risk veto, W12 probability authority, trading engine, or AI-film canonical source. It reads canonical sources and produces reconciliation findings, collision classifications, work-claim validation, authorization witnesses, and derived human projections.
+The Control Tower is not a task router, domain truth store, trading engine, W3 authority or AI-film/world-model canonical source. It reconciles canonical routes, worker slots, work claims, overlap/WIP state, authorization witnesses and derived human projections.
 
-Source precedence remains:
-
-1. current explicit user direction;
-2. latest per-agent `ACTIVE-*.yaml` route on remote `main`;
-3. project/program canonical authority;
-4. `coordination/ACTIVE-PROGRAM-LANES.yaml` for lane relationships only;
-5. derived human views;
-6. historical aggregate views.
+Source precedence remains: current explicit user direction → current per-agent canonical route → project/program canonical authority → lane relationship registry → derived views → historical views.
 
 ## Core files
 
-- `LANE-WORK-CLAIMS.yaml`: the current machine-readable work surface for each Program Lane.
-- `RELEASE-GATE.yaml`: separates Foundation Ready, proposal-only lane release and implementation release.
-- `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classifier.
-- `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation (see below).
-- `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `authorization_witness.py`: fingerprints route + strict worker authority material + work claim + hold/WIP/overlap/release policy so stale authorization cannot be silently reused.
-- `PROGRAM-CONTROL-TOWER.md`: human projection only; its generated blocks are checked by CI.
+- `LANE-WORK-CLAIMS.yaml`: current work surfaces.
+- `RELEASE-GATE.yaml`: release governance.
+- `control_tower.py`: reconciliation, WIP/staleness and O0-O4 classification.
+- `worker_slots.py`: GPT Engineering Worker slot validation.
+- `lane_claims.py`: route/claim binding and closed/proposal isolation.
+- `path_action_constraints.py`: exact-path action semantics plus optional transition-lineage enforcement.
+- `authorization_witness.py`: freshness binding across route, worker, claim and release policy.
+- `PROGRAM-CONTROL-TOWER.md`: derived human projection only.
 
-## GPT Engineering Worker slots
+## Exact-path action constraints
 
-`GPT_ENGINEERING_WORKER` is a first-class execution identity backed by `coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml`, which holds a `worker_slots` list. There is exactly one agent ontology (`GPT_ENGINEERING_WORKER`); 编程1/编程2 are `worker_slot_id` provenance labels, not separate agent species.
+Ordinary `write_paths` remain collision/write surfaces. A narrower authority must be repeated identically by Worker, Work Claim and Route:
 
-Each active slot must bind: `worker_slot_id`, `agent_type`, `executor_role`, `model_id`, `task_id`, `route_epoch`, `issue`, `pr`, `branch`, `status`, `execution_allowed`, write/read paths, interfaces, domains, authority claims, resource class, provenance, reviewer role/separation, activation and closure state.
+```yaml
+path_action_constraints:
+  - path: path/to/exact/file
+    allowed_actions: ["DELETE"]
+    transition_baseline_sha: 0123456789abcdef0123456789abcdef01234567
+    required_final_state: "ABSENT"
+```
 
-Fail-closed rules: duplicate slot id (silent overwrite / double booking) fails; a released/closed slot with an execution lease fails; two active slots colliding on the same mutable surface or authority (O3/O4) fail; active executable slots beyond `gpt_engineering_worker_active_slots_max` fail; a slot declaring a non-GPT agent identity (CODEX impersonation) fails; `reviewer_role == executor_role` (self-review) fails. A Work Claim bound to `GPT_ENGINEERING_WORKER` must also bind the exact `worker_slot_id`, and every ACTIVE/RESERVED slot must be owned by exactly one matching Work Claim.
+The Route mirrors the entry under `write_scope.exact_action_constraints`. The validator requires exact agreement on execution identity, write surface, actions, baseline and final state. Wildcard constrained paths and broader write patterns covering a constrained exact path fail closed.
 
-R144 R3 makes the execution-identity schema type-strict. Once the Program capacity policy enables GPT worker slots, removing the canonical registry is an ERROR and means no GPT worker execution. `execution_allowed` must be an actual YAML boolean: values such as `"false"`, `"0"`, numbers, containers or omitted authority material never become an executable lease by coercion. `agent_type` and `executor_role` are explicit authority fields and are not inferred/defaulted for a malformed slot. Raw `worker_slots` material, including invalid entries, participates in authorization freshness. If canonical worker authority is structurally invalid, `authorization_witness.py` refuses to mint or refresh a green witness instead of filtering the defect away.
+PR actions come from `git diff --name-status -M`: CREATE/MODIFY/DELETE are explicit; rename/copy/unknown actions fail closed unless separately governed. Transition mode additionally requires the baseline commit to exist and remain an ancestor, the baseline path to exist, the required final state to hold, and a baseline-present→final-ABSENT cleanup to produce exactly one net DELETE. Missing/stale baselines yield structured failure rather than exception or fallback authority.
 
-## Corrective maintenance/adoption authority
+## Worker, claim and witness rules
 
-R144 uses `R144-GPT-MAINTENANCE-ADOPTION.yaml` only for the exceptional bounded repair of the existing Draft PR after independent review. This artifact is **not** a `GPT_ENGINEERING_WORKER` runtime slot and is **not** a replacement for an executable Agent route or Work Claim. It records the user's explicit branch-maintenance instruction, the exact candidate input head/review that triggered repair, truthful executor provenance, and an allow-list of governance files that may be corrected.
+`GPT_ENGINEERING_WORKER` is one agent ontology with bounded worker-slot leases. Active slots exact-bind model/task/epoch/Issue/PR/branch and their work surface. Duplicate/colliding/over-capacity/impersonating/self-reviewing or malformed leases fail closed. Every active/reserved slot must be owned by exactly one matching Work Claim.
 
-The maintenance/adoption contract is mechanically fail-closed: `execution_allowed`, runtime write, trade, merge, acceptance, self-review and retroactive WorkBuddy authorization must all remain false; same-PR continuity, fresh exact-head CI and a separate independent review must remain true. Any mutation of this authority participates in the worker-registry authorization witness and therefore invalidates previously minted authorization material. It gives GPT architecture-owner corrective-maintenance provenance without pretending that WorkBuddy was authorized at R1 or that GPT acquired CODEX/runtime execution identity.
+`ACTIVE_IMPLEMENTATION` requires an executable route and explicit work surface. `HELD_PROPOSAL_ONLY` is isolated proposal work only. `CLOSED_NO_ACTIVE_IMPLEMENTATION` carries no lease. Reopening or changing release level is a new authorization event. No Work Claim means no durable runtime write.
+
+Authorization witnesses bind raw worker authority, route, claim, lane/release policy, WIP and overlap state; material changes invalidate old witness material.
 
 ## Commands
-
-From this directory:
 
 ```bash
 python run_all_tests.py
@@ -55,76 +55,4 @@ python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECON
 python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file witness.json
 ```
 
-`check` fails closed when canonical route projection, user hold, WIP/resource boundaries, worker authority/registry structure, or maintenance/adoption guard is inconsistent. A user hold is not an implementation failure: it returns `HOLD_BY_USER` while the structural foundation can still be `PASS`.
-
-## Work Claim rule
-
-A Program Lane cannot gain durable runtime-write permission merely because a chat window, issue, dashboard, or model says it is working.
-
-- `ACTIVE_IMPLEMENTATION` requires an exact current Agent route binding and explicit write paths/interfaces/authority surface.
-- `HELD_PROPOSAL_ONLY` reserves no Agent route and may write only inside the lane's isolated proposal root.
-- `CLOSED_NO_ACTIVE_IMPLEMENTATION` represents a completed lane stage with **no current execution lease**. It requires:
-  - `execution_agent: null`;
-  - no route binding;
-  - no current read/write/interface/domain/authority work surface;
-  - a durable `closure_receipt` preserving the completed evidence.
-- Moving from proposal-only to implementation requires a new Work Claim and a fresh O0-O4 scan.
-- Reopening a closed lane is also a **new authorization event**: create a new per-agent route, replace the closed claim with a bounded `ACTIVE_IMPLEMENTATION` claim, rescan O0-O4/WIP and create a fresh witness.
-- No Work Claim means no durable runtime write.
-
-`CLOSED_NO_ACTIVE_IMPLEMENTATION` exists so the Control Tower can represent normal completion truthfully. A completed implementation must not remain `ACTIVE_IMPLEMENTATION`, and a completed lane must not be disguised as `HELD_PROPOSAL_ONLY` merely to satisfy the validator.
-
-## Durable authorization witness
-
-A route check only protects task identity. The full authorization witness additionally binds:
-
-- current route fingerprint;
-- strict raw GPT worker registry/slot authority material and structural state;
-- bounded corrective maintenance/adoption authority when present;
-- current Work Claim;
-- current Program Lane state;
-- user release/hold policy;
-- WIP/resource policy;
-- relevant cross-lane overlap declarations;
-- current Release Gate state.
-
-For a closed claim, the witness may still fingerprint the lane/claim/governance state for freshness, but `execution_agent` and route fingerprint are null and the witness grants **no execution authority**.
-
-Create the witness after preflight. Verify it again immediately before a durable write/commit. Any material change invalidates the old witness and requires a fresh preflight. If the GPT worker authority source itself is missing or structurally invalid after R144 enablement, witness creation/verification fails closed rather than returning a false-green `fresh=True`.
-
-## Separate release levels
-
-- **Foundation Ready**: scanner/reconciler, O0-O4 classifier, Work Claims, WIP checks, authorization witness, deterministic projections and exact-head CI are validated.
-- **Proposal-only lane release**: GPT may allow a lane to research/design and write only in its isolated proposal root. No shared runtime implementation is authorized.
-- **Implementation lane release**: requires a separate executable Agent route plus a fresh `ACTIVE_IMPLEMENTATION` Work Claim and collision scan.
-- **Closed lane**: carries no execution lease; reopening is never implied by passing CI or by another lane starting proposal work.
-
-Passing CI never auto-starts a held lane and never auto-grants implementation permission.
-
-## Projection rule
-
-`coordination/PROGRAM-CONTROL-TOWER.md` contains two generated regions:
-
-- `CONTROL_TOWER_AUTOGEN`: current routes, lane state and release hold;
-- `CONTROL_TOWER_CLAIMS_AUTOGEN`: current work surfaces and pairwise claim collisions.
-
-CI requires both regions to equal state derived from canonical sources. The remaining prose is explanatory only and cannot authorize work.
-
-## Current closure example
-
-After Second Brain P2.4B/Foundation Closure:
-
-- R132 is retained in `ACTIVE-CODEX-TASK.yaml` as a non-executable `DONE` tombstone;
-- Lane C uses `CLOSED_NO_ACTIVE_IMPLEMENTATION` and keeps a closure receipt;
-- Lane A may be active at the strategic/program level while its current Work Claim is still `HELD_PROPOSAL_ONLY`, meaning architecture proposal work is allowed but implementation remains held;
-- Lane B may remain user-held independently.
-
-This distinction prevents three common false states:
-
-1. completed work still looking executable;
-2. a completed lane pretending to be a proposal lane;
-3. proposal activity being mistaken for runtime implementation permission.
-
-## Runtime dependency
-
-The implementation uses PyYAML only as a test/runtime parser. CI pins `PyYAML==6.0.2`. No network access, private data, account access, trading action, scheduler activation, production deployment, or automatic agent activation is performed.
+Passing CI never starts work or grants a higher release level. This layer performs no trading/account action, private-data publication, production deployment or automatic task release.
