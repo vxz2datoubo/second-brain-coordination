@@ -27,6 +27,8 @@ class RequiredContract:
     constraints: dict[str, PathActionConstraint]
     anchor_file: str
     general_s0f_write_allowed: bool
+    runtime_workflow_write_allowed: bool
+    protected_enforcement_paths: tuple[str, ...]
 
 
 def _load_required_contract(repo_root: Path, anchor_file: str) -> tuple[RequiredContract | None, list[ActionFinding]]:
@@ -86,7 +88,36 @@ def _load_required_contract(repo_root: Path, anchor_file: str) -> tuple[Required
             )
         ]
 
-    return RequiredContract(constraints=constraints, anchor_file=anchor_file, general_s0f_write_allowed=False), []
+    runtime_workflow_write = amendment.get("runtime_workflow_write_allowed")
+    if runtime_workflow_write is not False:
+        return None, [
+            ActionFinding(
+                "ERROR",
+                "PATH_ACTION_RUNTIME_WORKFLOW_WRITE_NOT_FORBIDDEN",
+                "The required contract must explicitly forbid runtime PR workflow writes.",
+                {"anchor_file": anchor_file, "actual": runtime_workflow_write},
+            )
+        ]
+
+    protected_raw = amendment.get("protected_enforcement_paths")
+    if not isinstance(protected_raw, list) or not protected_raw or any(not isinstance(item, str) or not item for item in protected_raw):
+        return None, [
+            ActionFinding(
+                "ERROR",
+                "PATH_ACTION_PROTECTED_ENFORCEMENT_PATHS_INVALID",
+                "The required contract must define a non-empty list of exact governance-owned enforcement paths.",
+                {"anchor_file": anchor_file, "actual": protected_raw},
+            )
+        ]
+
+    protected = tuple(sorted(set(protected_raw)))
+    return RequiredContract(
+        constraints=constraints,
+        anchor_file=anchor_file,
+        general_s0f_write_allowed=False,
+        runtime_workflow_write_allowed=False,
+        protected_enforcement_paths=protected,
+    ), []
 
 
 def _load_common_write_surface(
@@ -189,6 +220,7 @@ def validate_required_anchor(
     )
     findings.extend(surface_findings)
 
+    protected_paths: list[str] = []
     if required:
         for exact_path in required.constraints:
             if exact_path not in write_paths:
@@ -201,6 +233,19 @@ def validate_required_anchor(
                     )
                 )
 
+        protected_paths = list(required.protected_enforcement_paths)
+        for protected in protected_paths:
+            covering = sorted(pattern for pattern in write_paths if _pattern_covers_exact(pattern, protected))
+            if covering:
+                findings.append(
+                    ActionFinding(
+                        "ERROR",
+                        "PATH_ACTION_PROTECTED_ENFORCEMENT_ROOT_WRITABLE",
+                        "Runtime write authority must not cover governance-owned enforcement roots.",
+                        {"protected_path": protected, "covering_write_paths": covering},
+                    )
+                )
+
     errors = [asdict(item) for item in findings if item.severity == "ERROR"]
     return {
         "status": "PASS" if not errors else "FAIL",
@@ -208,6 +253,7 @@ def validate_required_anchor(
         "required": expected,
         "actual": actual,
         "write_paths": write_paths,
+        "protected_enforcement_paths": protected_paths,
         "findings": [asdict(item) for item in findings],
     }
 
@@ -218,15 +264,34 @@ def validate_full_diff_write_surface(
     base_sha: str,
     head_sha: str,
     write_paths: list[str],
+    protected_paths: list[str] | None = None,
 ) -> dict[str, Any]:
     entries = _git_diff_entries(repo_root.resolve(), base_sha, head_sha)
     findings: list[ActionFinding] = []
     checked: list[dict[str, Any]] = []
+    protected = set(protected_paths or [])
 
     for status, paths in entries:
         for path in paths:
             matching = sorted(pattern for pattern in write_paths if _pattern_covers_exact(pattern, path))
-            checked.append({"git_status": status, "path": path, "matching_write_paths": matching})
+            is_protected = path in protected
+            checked.append(
+                {
+                    "git_status": status,
+                    "path": path,
+                    "matching_write_paths": matching,
+                    "protected_enforcement_path": is_protected,
+                }
+            )
+            if is_protected:
+                findings.append(
+                    ActionFinding(
+                        "ERROR",
+                        "PATH_ACTION_PROTECTED_ENFORCEMENT_ROOT_CHANGED",
+                        "The governed runtime PR may not modify a governance-owned enforcement root.",
+                        {"git_status": status, "path": path},
+                    )
+                )
             if not matching:
                 findings.append(
                     ActionFinding(
@@ -281,6 +346,7 @@ def main() -> int:
             base_sha=args.base_sha,
             head_sha=args.head_sha,
             write_paths=list(anchor.get("write_paths") or []),
+            protected_paths=list(anchor.get("protected_enforcement_paths") or []),
         )
         output["full_diff_write_surface"] = surface
         if surface["status"] != "PASS":
