@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,7 @@ from path_action_constraints import (  # noqa: E402
     PathActionConstraint,
     validate_contract,
     validate_diff_actions,
+    validate_transition_lineage,
 )
 
 SLOT = "GPT-WORKER-R145-PROGRAMMING-1"
@@ -20,13 +22,21 @@ LANE = "LANE-A-HARNESS-INTEGRATION"
 TASK = "GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145"
 ROUTE_FILE = "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
 EXACT = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
+BASELINE = "6c59f197ef515b1c282aa6a08c7759ed96749957"
 BASE_WRITES = [
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**",
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**",
     ".github/workflows/*r145*",
     EXACT,
 ]
-CONSTRAINT = [{"path": EXACT, "allowed_actions": ["DELETE"]}]
+CONSTRAINT = [
+    {
+        "path": EXACT,
+        "allowed_actions": ["DELETE"],
+        "transition_baseline_sha": BASELINE,
+        "required_final_state": "ABSENT",
+    }
+]
 
 
 class RepoFixture:
@@ -130,7 +140,9 @@ class PathActionContractTests(unittest.TestCase):
         self.repo.build()
         result = self.check()
         self.assertEqual("PASS", result["status"])
-        self.assertEqual({EXACT: ["DELETE"]}, result["constraints"])
+        self.assertEqual(["DELETE"], result["constraints"][EXACT]["allowed_actions"])
+        self.assertEqual(BASELINE, result["constraints"][EXACT]["transition_baseline_sha"])
+        self.assertEqual("ABSENT", result["constraints"][EXACT]["required_final_state"])
 
     def test_missing_claim_constraint_fails_closed(self):
         self.repo.build(claim_constraints=[])
@@ -139,7 +151,15 @@ class PathActionContractTests(unittest.TestCase):
         self.assertIn("PATH_ACTION_CONSTRAINT_DRIFT", {item["code"] for item in result["findings"]})
 
     def test_worker_claim_route_action_mismatch_fails(self):
-        self.repo.build(route_constraints=[{"path": EXACT, "allowed_actions": ["MODIFY"]}])
+        mismatch = [{**CONSTRAINT[0], "allowed_actions": ["MODIFY"]}]
+        self.repo.build(route_constraints=mismatch)
+        result = self.check()
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_CONSTRAINT_DRIFT", {item["code"] for item in result["findings"]})
+
+    def test_transition_baseline_mismatch_fails(self):
+        mismatch = [{**CONSTRAINT[0], "transition_baseline_sha": "a" * 40}]
+        self.repo.build(route_constraints=mismatch)
         result = self.check()
         self.assertEqual("FAIL", result["status"])
         self.assertIn("PATH_ACTION_CONSTRAINT_DRIFT", {item["code"] for item in result["findings"]})
@@ -164,7 +184,14 @@ class PathActionContractTests(unittest.TestCase):
 
 class PathActionDiffTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.constraints = {EXACT: PathActionConstraint(path=EXACT, allowed_actions=("DELETE",))}
+        self.constraints = {
+            EXACT: PathActionConstraint(
+                path=EXACT,
+                allowed_actions=("DELETE",),
+                transition_baseline_sha=BASELINE,
+                required_final_state="ABSENT",
+            )
+        }
 
     def test_delete_passes(self):
         findings = validate_diff_actions(self.constraints, [("D", (EXACT,))])
@@ -188,6 +215,71 @@ class PathActionDiffTests(unittest.TestCase):
     def test_unrelated_diff_is_ignored(self):
         findings = validate_diff_actions(self.constraints, [("M", ("elsewhere.txt",))])
         self.assertEqual([], findings)
+
+
+class TransitionLineageTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        subprocess.run(["git", "init", "-q"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.name", "test"], cwd=self.root, check=True)
+        target = self.root / EXACT
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("bootstrap\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-qm", "baseline"], cwd=self.root, check=True)
+        self.baseline = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def constraint(self, *, final_state="ABSENT", baseline=None):
+        return {
+            EXACT: PathActionConstraint(
+                path=EXACT,
+                allowed_actions=("DELETE",),
+                transition_baseline_sha=baseline or self.baseline,
+                required_final_state=final_state,
+            )
+        }
+
+    def commit_delete(self) -> str:
+        (self.root / EXACT).unlink()
+        subprocess.run(["git", "add", "-A"], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-qm", "delete"], cwd=self.root, check=True)
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+
+    def test_baseline_present_final_absent_exact_delete_passes(self):
+        head = self.commit_delete()
+        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint())
+        self.assertEqual("PASS", result["status"])
+        self.assertTrue(result["checked"][EXACT]["baseline_is_ancestor"])
+        self.assertEqual([["D", [EXACT]]], result["checked"][EXACT]["transition_entries"])
+
+    def test_final_present_fails(self):
+        result = validate_transition_lineage(self.root, head_sha=self.baseline, constraints=self.constraint())
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_REQUIRED_FINAL_STATE_VIOLATION", {item["code"] for item in result["findings"]})
+
+    def test_non_ancestor_baseline_fails(self):
+        head = self.commit_delete()
+        bogus = "a" * 40
+        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint(baseline=bogus))
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_TRANSITION_BASELINE_NOT_ANCESTOR", {item["code"] for item in result["findings"]})
+
+    def test_modify_then_final_present_fails(self):
+        target = self.root / EXACT
+        target.write_text("modified\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-qm", "modify"], cwd=self.root, check=True)
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
+        result = validate_transition_lineage(self.root, head_sha=head, constraints=self.constraint())
+        codes = {item["code"] for item in result["findings"]}
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_DIFF_VIOLATION", codes)
+        self.assertIn("PATH_ACTION_REQUIRED_FINAL_STATE_VIOLATION", codes)
 
 
 if __name__ == "__main__":
