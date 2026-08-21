@@ -1,42 +1,31 @@
 # Program Control Tower Foundation
 
-This directory is the executable, fail-closed implementation of the cross-program Control Tower declared by Issue #310.
+This directory contains the executable, fail-closed Program Control Tower declared by Issue #310.
 
 ## Authority boundary
 
-The Control Tower is **not** a task router, market authority, W3 knowledge store, W7 risk veto, W12 probability authority, trading engine, or AI-film canonical source. It reads canonical sources and produces reconciliation findings, collision classifications, work-claim validation, authorization witnesses, and derived human projections.
+The Control Tower is not a task router, domain truth store, trading engine, W3 authority or AI-film/world-model canonical source. It reconciles canonical routes, worker slots, work claims, overlap/WIP state, authorization witnesses and derived human projections.
 
-Source precedence remains:
-
-1. current explicit user direction;
-2. latest per-agent `ACTIVE-*.yaml` route on remote `main`;
-3. project/program canonical authority;
-4. `coordination/ACTIVE-PROGRAM-LANES.yaml` for lane relationships only;
-5. derived human views;
-6. historical aggregate views.
+Source precedence remains: current explicit user direction → current per-agent canonical route → project/program canonical authority → lane relationship registry → derived views → historical views.
 
 ## Core files
 
-- `LANE-WORK-CLAIMS.yaml`: current machine-readable work surface for each Program Lane.
-- `RELEASE-GATE.yaml`: separates foundation, proposal-only release and implementation release.
-- `control_tower.py`: desired/observed reconciliation, stale-view/WIP checks and O0-O4 classification.
-- `worker_slots.py`: canonical `GPT_ENGINEERING_WORKER` multi-slot/lease registry validation.
-- `lane_claims.py`: exact route binding, proposal-only isolation and closed-lane no-lease validation.
-- `path_action_constraints.py`: reconciles exact-path action restrictions across Worker / Work Claim / Route, validates Git diff actions, and optionally enforces a governed baseline/final-state transition.
-- `authorization_witness.py`: binds route, worker authority, Work Claim and release policy so stale authorization cannot be silently reused.
-- `PROGRAM-CONTROL-TOWER.md`: human projection only; generated blocks are checked by CI.
+- `LANE-WORK-CLAIMS.yaml`: machine-readable current work surfaces.
+- `RELEASE-GATE.yaml`: release-level governance.
+- `control_tower.py`: reconciliation, WIP/staleness and O0-O4 classification.
+- `worker_slots.py`: GPT Engineering Worker multi-slot authority validation.
+- `lane_claims.py`: exact route/claim binding and closed/proposal isolation.
+- `path_action_constraints.py`: exact-path action semantics and optional governed transition-lineage enforcement.
+- `authorization_witness.py`: freshness binding for route, worker, claim and release policy.
+- `PROGRAM-CONTROL-TOWER.md`: derived human projection, never execution authority.
 
 ## GPT Engineering Worker slots
 
-`GPT_ENGINEERING_WORKER` is a first-class execution identity backed by `coordination/ACTIVE-GPT-ENGINEERING-WORKERS.yaml`. 编程1/编程2 are worker-slot provenance labels, not separate agent species.
-
-Each active slot binds its worker id, agent/executor role, model, task/epoch/Issue/PR/branch, status, execution flag, paths, interfaces, domains, authority claims, resource class, provenance and reviewer separation. Duplicate/double-booked slots, released slots retaining a lease, O3/O4 mutable-surface collisions, capacity overflow, impersonation or self-review fail closed. Every ACTIVE/RESERVED GPT worker slot must be owned by exactly one matching Work Claim.
-
-Worker registry identity remains schema-version strict. `execution_allowed` must be a real YAML boolean, malformed identity material is not inferred, and raw worker authority participates in authorization freshness.
+`GPT_ENGINEERING_WORKER` is one agent ontology with multiple bounded `worker_slot_id` leases. Window labels such as 编程1/编程2 are provenance, not separate agent species. Active slots must exact-bind model/task/epoch/Issue/PR/branch, status, execution flag, paths, interfaces, domains, authority claims, provenance and reviewer separation. Duplicate, colliding, over-capacity, impersonating, self-reviewing or structurally malformed leases fail closed.
 
 ## Exact-path action constraints
 
-Ordinary `write_paths` describe collision/write surfaces. When an authority must be narrower than generic write, Worker, Work Claim and Route must repeat one exact action contract:
+`write_paths` continue to describe mutable surfaces for collision/WIP purposes. When one path requires narrower semantics than generic write, Worker, Work Claim and Route must declare the same exact contract:
 
 ```yaml
 path_action_constraints:
@@ -46,17 +35,17 @@ path_action_constraints:
     required_final_state: "ABSENT"
 ```
 
-The Route stores the same entry under `write_scope.exact_action_constraints`. The action validator requires all three sources to agree on execution identity, write surface, allowed actions, baseline and final state. Wildcard constrained paths are forbidden, and a broader write pattern may not cover a constrained exact path.
+The Route mirrors this under `write_scope.exact_action_constraints`. The validator requires all three sources to agree on execution identity, write surface, allowed actions, transition baseline and final state. Constrained paths cannot be wildcards and cannot sit beneath a broader write pattern that bypasses their action restriction.
 
-`git diff --name-status -M` is mapped to `CREATE`, `MODIFY` and `DELETE`; rename/copy/unknown operations fail closed unless a later reviewed contract explicitly models them. With transition mode enabled, the baseline commit must exist and remain an ancestor, the baseline path must exist, the required final state must hold, and a baseline-present→final-ABSENT delete-only cleanup must be exactly one net `DELETE`. Missing/stale baselines return structured failures rather than exceptions or fallback authority.
+For PR checks, `git diff --name-status -M` is mapped to `CREATE`, `MODIFY` and `DELETE`; rename/copy/unknown actions fail closed unless separately modeled. Transition mode additionally requires the baseline commit to exist and remain an ancestor, the baseline path to exist, and the required final state to hold. A baseline-present → final-ABSENT delete-only cleanup must be exactly one net `DELETE`. Missing/stale baselines return structured failure, never fallback authority or an unhandled exception.
 
-## Corrective maintenance/adoption authority
+## Work Claim and witness rules
 
-R144's `R144-GPT-MAINTENANCE-ADOPTION.yaml` is a separate exceptional corrective-maintenance provenance artifact, not a runtime slot and not a replacement for route/claim execution authority. It remains fail-closed and participates in witness freshness.
+`ACTIVE_IMPLEMENTATION` requires a matching executable route and explicit work surface. `HELD_PROPOSAL_ONLY` is isolated proposal work only. `CLOSED_NO_ACTIVE_IMPLEMENTATION` carries no execution lease. Reopening or changing levels is a new authorization event. No Work Claim means no durable runtime write.
+
+The authorization witness binds route, raw worker authority, Work Claim, lane state, release/hold policy, WIP/resource policy, overlap declarations and Release Gate state. Material changes invalidate old witness material.
 
 ## Commands
-
-From this directory:
 
 ```bash
 python run_all_tests.py
@@ -68,26 +57,4 @@ python run_authorization_witness.py create --repo-root ../.. --lane LANE-C-SECON
 python run_authorization_witness.py verify --repo-root ../.. --lane LANE-C-SECOND-BRAIN-GPT-COGNITIVE-CLOSED-LOOP --witness-file witness.json
 ```
 
-## Work Claim rule
-
-- `ACTIVE_IMPLEMENTATION` requires an exact executable route and explicit work surface.
-- `HELD_PROPOSAL_ONLY` grants only isolated proposal-root work.
-- `CLOSED_NO_ACTIVE_IMPLEMENTATION` carries no execution lease and requires durable closure evidence.
-- Reopening or moving from proposal to implementation is a new authorization event with fresh claim/collision/witness checks.
-- No Work Claim means no durable runtime write.
-
-## Durable authorization witness
-
-The witness binds route, strict raw GPT worker authority, current Work Claim, Program Lane state, hold/release policy, WIP/resource policy, overlap declarations and Release Gate state. Material changes invalidate old witness material. Invalid worker authority fails closed.
-
-## Separate release levels
-
-Passing CI never starts work by itself. Foundation readiness, proposal-only release, active implementation release and closed-lane state remain separate governance levels.
-
-## Projection rule
-
-`PROGRAM-CONTROL-TOWER.md` contains generated Control Tower and Work Claim regions. CI requires them to match canonical sources; prose outside those regions cannot authorize work.
-
-## Runtime dependency
-
-PyYAML is used as a pinned parser in CI. This Control Tower layer performs no trading/account action, private-data publication, scheduler activation, production deployment or automatic task release.
+Passing CI never auto-starts work or grants a higher release level. The Control Tower layer performs no trading/account action, private-data publication, production deployment or automatic task release.
