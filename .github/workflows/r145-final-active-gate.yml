@@ -12,7 +12,9 @@ on:
       - "coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml"
       - "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
       - "coordination/CONTROL-TOWER/path_action_constraints.py"
+      - "coordination/CONTROL-TOWER/path_action_policy.py"
       - "coordination/CONTROL-TOWER/tests/test_path_action_constraints.py"
+      - "coordination/CONTROL-TOWER/tests/test_path_action_policy.py"
       - "coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
       - "coordination/TASK-BRIEFS/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
       - "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**"
@@ -52,11 +54,19 @@ jobs:
         run: |
           set -euo pipefail
           ROUTE_FILE="coordination/ROUTES/GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145.yaml"
+          REQUIRED_CONTRACT_FILE="coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT.yaml"
           ARGS=(
             --repo-root ../..
             --worker-slot GPT-WORKER-R145-PROGRAMMING-1
             --lane LANE-A-HARNESS-INTEGRATION
             --route-file "$ROUTE_FILE"
+          )
+          POLICY_ARGS=(
+            --repo-root ../..
+            --worker-slot GPT-WORKER-R145-PROGRAMMING-1
+            --lane LANE-A-HARNESS-INTEGRATION
+            --route-file "$ROUTE_FILE"
+            --required-contract-file "$REQUIRED_CONTRACT_FILE"
           )
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             MERGE_SHA="$(git rev-parse HEAD)"
@@ -64,8 +74,11 @@ jobs:
             HEAD_SHA="$(git rev-parse "${MERGE_SHA}^2")"
             if [ "${{ github.event.pull_request.number }}" = "418" ]; then
               ARGS+=(--enforce-transition-lineage)
+              POLICY_ARGS+=(--enforce-full-write-surface)
             fi
             python path_action_constraints.py "${ARGS[@]}" --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA"
+            python path_action_policy.py "${POLICY_ARGS[@]}" --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA"
           else
             python path_action_constraints.py "${ARGS[@]}"
+            python path_action_policy.py "${POLICY_ARGS[@]}"
           fi
