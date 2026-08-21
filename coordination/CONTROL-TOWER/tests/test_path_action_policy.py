@@ -25,13 +25,17 @@ ANCHOR_FILE = "coordination/CONTROL-TOWER/R145-BOOTSTRAP-CLEANUP-SCOPE-AMENDMENT
 EXACT = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/BOOTSTRAP-NON-EXECUTABLE.yaml"
 OTHER_S0F = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0F-CROSS-DOMAIN-ROUTING-ISOLATION/OTHER.yaml"
 S0D_FILE = "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/runtime.py"
+FINAL_GATE = ".github/workflows/r145-final-active-gate.yml"
+ROOT_WORKFLOW = ".github/workflows/runtime-governance-root.yml"
+POLICY = "coordination/CONTROL-TOWER/path_action_policy.py"
+ACTION = "coordination/CONTROL-TOWER/path_action_constraints.py"
 BASELINE = "6c59f197ef515b1c282aa6a08c7759ed96749957"
 BASE_WRITES = [
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0D-READ-ONLY-SHADOW/**",
     "coordination/PROGRAMS/SECOND-BRAIN-A-SHARE-ENTERPRISE-SYSTEM-0001/GLOBAL-SIGNAL-PLANE/S0E-EXPLICIT-INTAKE-ADAPTIVE-GATEWAY/**",
-    ".github/workflows/*r145*",
     EXACT,
 ]
+PROTECTED = [FINAL_GATE, ROOT_WORKFLOW, ACTION, POLICY, ANCHOR_FILE]
 CONSTRAINT = [
     {
         "path": EXACT,
@@ -65,6 +69,8 @@ class PolicyFixture:
                 "transition_baseline_sha": BASELINE,
                 "required_final_state": "ABSENT",
                 "general_s0f_write_allowed": False,
+                "runtime_workflow_write_allowed": False,
+                "protected_enforcement_paths": PROTECTED,
             }
         }
         self.write_yaml(
@@ -142,6 +148,7 @@ class RequiredContractAnchorTests(unittest.TestCase):
         result = self.repo.check()
         self.assertEqual("PASS", result["status"])
         self.assertEqual(result["required"], result["actual"])
+        self.assertEqual(sorted(PROTECTED), sorted(result["protected_enforcement_paths"]))
 
     def test_all_three_constraints_removed_fails(self):
         self.repo.build(constraints=[])
@@ -178,6 +185,8 @@ class RequiredContractAnchorTests(unittest.TestCase):
                 "transition_baseline_sha": BASELINE,
                 "required_final_state": "ABSENT",
                 "general_s0f_write_allowed": True,
+                "runtime_workflow_write_allowed": False,
+                "protected_enforcement_paths": PROTECTED,
             }
         }
         self.repo.build(anchor=anchor)
@@ -187,6 +196,29 @@ class RequiredContractAnchorTests(unittest.TestCase):
             "PATH_ACTION_REQUIRED_CONTRACT_GENERAL_S0F_NOT_FORBIDDEN",
             {item["code"] for item in result["findings"]},
         )
+
+    def test_anchor_must_forbid_runtime_workflow_writes(self):
+        anchor = {
+            "amendment": {
+                "exact_path": EXACT,
+                "allowed_actions": ["DELETE"],
+                "transition_baseline_sha": BASELINE,
+                "required_final_state": "ABSENT",
+                "general_s0f_write_allowed": False,
+                "runtime_workflow_write_allowed": True,
+                "protected_enforcement_paths": PROTECTED,
+            }
+        }
+        self.repo.build(anchor=anchor)
+        result = self.repo.check()
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_RUNTIME_WORKFLOW_WRITE_NOT_FORBIDDEN", {item["code"] for item in result["findings"]})
+
+    def test_runtime_write_surface_must_not_cover_protected_enforcement_root(self):
+        self.repo.build(writes=BASE_WRITES + [".github/workflows/*r145*"])
+        result = self.repo.check()
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_PROTECTED_ENFORCEMENT_ROOT_WRITABLE", {item["code"] for item in result["findings"]})
 
 
 class FullWriteSurfaceGitTests(unittest.TestCase):
@@ -202,6 +234,10 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
         allowed = self.root / S0D_FILE
         allowed.parent.mkdir(parents=True, exist_ok=True)
         allowed.write_text("old\n", encoding="utf-8")
+        for workflow_path in (FINAL_GATE, ROOT_WORKFLOW):
+            workflow = self.root / workflow_path
+            workflow.parent.mkdir(parents=True, exist_ok=True)
+            workflow.write_text("name: trusted\n", encoding="utf-8")
         subprocess.run(["git", "add", "."], cwd=self.root, check=True)
         subprocess.run(["git", "commit", "-qm", "baseline"], cwd=self.root, check=True)
         self.base = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=self.root, text=True).strip()
@@ -220,6 +256,7 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
             base_sha=self.base,
             head_sha=head,
             write_paths=BASE_WRITES,
+            protected_paths=PROTECTED,
         )
 
     def exact_delete_constraint(self):
@@ -263,6 +300,26 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
         self.assertEqual("FAIL", result["status"])
         self.assertTrue(any(item["evidence"]["path"] == OTHER_S0F for item in result["findings"]))
 
+    def test_modify_protected_final_gate_fails_even_without_other_changes(self):
+        (self.root / FINAL_GATE).write_text("name: disabled\n", encoding="utf-8")
+        head = self.commit("disable-final-gate")
+        result = self.check(head)
+        codes = {item["code"] for item in result["findings"]}
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_PROTECTED_ENFORCEMENT_ROOT_CHANGED", codes)
+        self.assertIn("PATH_ACTION_DIFF_OUTSIDE_WRITE_SURFACE", codes)
+
+    def test_f04_attack_modify_guard_delete_marker_add_s0f_fails(self):
+        (self.root / FINAL_GATE).write_text("name: bypassed\n", encoding="utf-8")
+        (self.root / EXACT).unlink()
+        (self.root / OTHER_S0F).write_text("unauthorized replacement\n", encoding="utf-8")
+        head = self.commit("f04-attack")
+        result = self.check(head)
+        codes = {item["code"] for item in result["findings"]}
+        self.assertEqual("FAIL", result["status"])
+        self.assertIn("PATH_ACTION_PROTECTED_ENFORCEMENT_ROOT_CHANGED", codes)
+        self.assertIn("PATH_ACTION_DIFF_OUTSIDE_WRITE_SURFACE", codes)
+
     @unittest.skipIf(os.name == "nt", "Git type-change symlink regression requires POSIX")
     def test_real_git_type_change_on_exact_path_is_rejected_by_action_guard(self):
         target = self.root / EXACT
@@ -284,6 +341,21 @@ class FullWriteSurfaceGitTests(unittest.TestCase):
         self.assertTrue(violations)
         self.assertEqual("MODIFY", violations[0]["evidence"]["derived_action"])
         self.assertTrue(str(violations[0]["evidence"]["git_status"]).startswith("T"))
+
+
+class RuntimeGovernanceRootWorkflowTests(unittest.TestCase):
+    def test_root_is_base_trusted_and_invokes_both_runtime_guards(self):
+        repo_root = Path(__file__).resolve().parents[3]
+        workflow = (repo_root / ROOT_WORKFLOW).read_text(encoding="utf-8")
+        self.assertIn("pull_request_target:", workflow)
+        self.assertIn("github.event.pull_request.number == 418", workflow)
+        self.assertIn("github.event.pull_request.base.sha", workflow)
+        self.assertIn("github.event.pull_request.head.sha", workflow)
+        self.assertIn("--enforce-transition-lineage", workflow)
+        self.assertIn("--enforce-full-write-surface", workflow)
+        self.assertIn("path_action_constraints.py", workflow)
+        self.assertIn("path_action_policy.py", workflow)
+        self.assertNotIn("checkout@v4\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}", workflow)
 
 
 if __name__ == "__main__":
