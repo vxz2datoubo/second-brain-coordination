@@ -64,30 +64,31 @@
 
 ## 当前正式节奏
 
-- **R144 已完整收口**：implementation PR #408 与 post-merge closeout PR #409 均已独立审核并合并，Codex lease 为历史非执行态。
-- **R143 W2 S1 runtime 已验收并合并**：PR #411 exact head `9626e4473744247b1e209299c8896d07457f359b` 经 Independent Review `4984787833` ACCEPT 后，合并为 `4423349b6154986b74b6f172d7e01643f8bd46f9`。
-- **R143 post-merge closeout = PR #414**：只释放 `GPT-WORKER-R143-PROGRAMMING-1`、Lane-B Work Claim、W2/C2 writer lease 和 executable route，不修改 W2 runtime。
-- **当前 closeout candidate 无 active GPT Engineering Worker slot**，Lane-B 当前 Work Claim 为 `CLOSED_NO_ACTIVE_IMPLEMENTATION`。
-- **任何 successor slice 都不会自动启动**：必须重新触发 Signal Tower `GLOBAL_SHALLOW → DELTA → TARGETED_DEEP → CONDITIONAL_RESEARCH when required → RELEASE_DECISION`，再生成新的 Task/Route/Claim/slot/witness。
-- **旧 PR #405 无当前 authority**：`STALE_PRE_R144 / DO_NOT_MERGE_AS_IS`。
-- **Signal Tower 正常 ON_DEMAND 继续可用**：Signal != Task，不获得 Lane-B/W2 runtime write。
-- **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_W3_WRITE / NO_SIGNAL_TOWER_RUNTIME_WRITE / NO_SECOND_A_SHARE_RULE_AUTHORITY** 继续锁定。
+- **R143 / R144 已完整收口**：均为历史非执行态；Lane-B 当前没有 W2/C2 writer lease，Lane-C 维持关闭边界。
+- **R145 planning 已独立验收并合并**：PR #416 exact head `e6f908442acd810053c041f565ba15c38230cd86` 经 Review `4989615283` ACCEPT，合并为 `d06dc93cd1c05d11f8c200039880de3b07c11a23`。
+- **R145 runtime identity = Draft PR #418**：branch `gpt/r145-cross-domain-routing-isolation-runtime`，bootstrap head `8930daf530522e487f7858416816f4a53f8ffe86`。当前只有 bootstrap/evidence，不得在 activation gate canonical 前开始 runtime implementation。
+- **R145 final ACTIVE gate = Draft PR #419**：候选绑定 `GPT-WORKER-R145-PROGRAMMING-1`、Lane-A Work Claim、R145 route、Release Gate 与 runtime PR #418。
+- **#419 分支里的 ACTIVE 字段仍只是 candidate**：只有 #419 通过 fresh exact-head CI、Lane-A authorization witness、独立 GPT Review 并合并到 canonical main 后，编程1才真正获得 R145 S0D/S0E bounded runtime write authority。
+- **域隔离继续锁定**：AI Film、World Model、A-share W2、W3 均不可由 R145 写入；World Model 只允许 canonical-main / immutable accepted-ref 的只读观察，私有正文不得复制到公开 coordination repo。
+- **Signal != Task**：R145 不允许 retrospective Signal 自动创建任务，也不允许跨域 relation 自动转移 ownership。
+- **NO_TRADE / NO_ACCOUNT_ORDER_FUND / NO_PRODUCTION_PRIVATE / NO_SECRET_PERMISSION_VISIBILITY_EXPANSION / NO_SELF_REVIEW / NO_SELF_MERGE** 持续有效。
 
-## R143 accepted runtime history
+## R145 activation identity
 
-- Issue: `#404`
-- Task: `GPT-LANE-B-W2-S1-PIT-RULE-INVENTORY-REPLAY-GATE-R143`
-- Route epoch: `143`
-- Historical executor: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
-- Reservation PR: `#410` → merged `d62c027426c6c08a3d377c0a982160e47ad39eb1`
-- Final ACTIVE gate PR: `#412` → merged `528adc35e015fc66fac000a6728af29bad719991`
-- Runtime PR: `#411`
-- Accepted runtime head: `9626e4473744247b1e209299c8896d07457f359b`
-- Independent Review: `4984787833`
-- Runtime merge: `4423349b6154986b74b6f172d7e01643f8bd46f9`
-- Deterministic receipt: `a874f9fb3f02e8ed5fa0d5c3094c40c9950ba95f32acad4d636645807100e9ae`
-- Closeout receipt candidate: `coordination/CONTROL-TOWER/R143-W2-S1-CLOSURE-RECONCILIATION.yaml`
+- Issue: `#415`
+- Task: `GPT-GLOBAL-SIGNAL-TOWER-S0F-CROSS-DOMAIN-ROUTING-ISOLATION-R145`
+- Route epoch: `145`
+- Planning PR: `#416`
+- Planning Review: `4989615283`
+- Planning merge: `d06dc93cd1c05d11f8c200039880de3b07c11a23`
+- Runtime PR: `#418`
+- Runtime branch: `gpt/r145-cross-domain-routing-isolation-runtime`
+- Runtime bootstrap head: `8930daf530522e487f7858416816f4a53f8ffe86`
+- Final ACTIVE gate PR: `#419`
+- Worker slot candidate: `GPT-WORKER-R145-PROGRAMMING-1`
+- Executor candidate: `GPT_ENGINEERING_WORKER` / 编程1 / `GPT-5.6 Sol`
+- Activation receipt: `coordination/CONTROL-TOWER/R145-FINAL-ACTIVE-GATE-RECEIPT.yaml`
 
 ## 下一关
 
-PR #414 必须在最终 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Work Claim、Program/claim projections、O0-O4/WIP/resource 验证，再交独立 GPT exact-head Review。若 ACCEPT 且 reviewed head/base/main 未漂移，则按用户持续授权直接合并 #414。合并后 R143 变为 `DONE_HISTORICAL / NO_ACTIVE_LEASE`；任何下一切片必须从新的 Signal Tower task-release preflight 开始。
+PR #419 必须在最终 exact head 上通过 Program Control Tower Python 3.11/3.13、worker registry、Lane-A Work Claim、Program/claim projections、O0-O4/WIP/resource 验证，以及专用 Lane-A authorization witness create→verify，再交独立 GPT exact-head Review。若且仅若独立 Review 为 ACCEPT、reviewed head/base/main/merge-ref 未漂移且无 blocker，则按用户 standing routine engineering authorization 合并 #419。合并后再向编程1发出 PR #418 的 G0 开工指令；在此之前不得修改 R145 runtime implementation。
