@@ -65,7 +65,7 @@ mechanical_enforcement:
     - "RENAME fails"
     - "unrelated diff ignored"
 
-validation_evidence_before_final_receipt_edit:
+validation_evidence_before_receipt_only_updates:
   tested_head: "ad0032a9dfe5b6a20f7437ecbf26a375abd8b68f"
   program_control_tower_run: 32472370128
   program_control_tower_python_3_11_job: 96741650270
@@ -77,8 +77,8 @@ validation_evidence_before_final_receipt_edit:
   lane_a_python_3_13_job: 96741650795
   lane_a_result: "PASS / witness fresh=true reason=MATCH / path-action contract PASS"
   note: >-
-    This evidence proves the implementation before the receipt-only documentation update. Independent rereview must bind the later
-    final exact head and fresh CI on that head; this receipt intentionally does not self-embed its own future head/run IDs.
+    This evidence proves the code/control contract before receipt-only documentation updates. Fresh CI on the later final exact head is
+    still mandatory for rereview. The receipt intentionally does not self-embed its own future exact head or future run IDs.
 
 current_pr_diff_action_semantics: >-
   PR #420 grants and validates the contract but does not itself mutate the constrained bootstrap marker, so the amendment PR may have
