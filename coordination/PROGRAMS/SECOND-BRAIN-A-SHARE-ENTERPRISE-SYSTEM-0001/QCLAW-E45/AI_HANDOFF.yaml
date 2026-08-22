@@ -1,0 +1,21 @@
+# E45 AI_HANDOFF
+
+handoff_from: QCLAW
+handoff_to: GPT
+epoch: 45
+issue: 193
+pr: 195
+tested_head: "8726164523ae899a731c2342db19ccfaac250c9f"
+combined_source_artifact_hash: "ff07a77f72fab6ab021224299711e5b3e77e9cae815c0db984259969845320ff"
+total_tests: 58
+total_files: 15
+dual_python: "3.11.10 + 3.13.3 — all pass"
+
+completion_signal: "QCLAW_E45_VERIFIER_ONLY_CAPABILITY_USER_ORIGIN_REAL_EVALUATOR_MUTATION_DUAL_PROVIDER_READY_FOR_GPT_REVIEW"
+
+notes:
+  - "Verifier-only capability protocol — UNTRUSTED_TEST_DOUBLE until Codex E58 accepted"
+  - "Corpus input and ground truth are separate types; pipeline never sees expected outcomes"
+  - "15 mutation anchors verified; subprocess execution delegated to CI workflow"
+  - "KNOWLEDGE_AND_STATED requires exact user-message origin"
+  - "Codex E58 (Issue #192) is parallel dependency — E45 cannot claim capability authority until E58 accepted"
